@@ -73,7 +73,13 @@ namespace Poe2Accessibility.Services
         /// <summary>A panel chosen in the radial menu opens this long after its name was said.</summary>
         private const int ChosenPanelMs = 2500;
 
+        /// <summary>Longest one-word label a bare number before it is paired with ("DEX", "Strength").</summary>
+        private const int MaxPairedLabel = 12;
+
         private (string Text, DateTime At, AccessibleUiNode Node)? deferredFocus;
+
+        /// <summary>A tab's page waiting to see whether a focus lands on it: tab, page, its texts, when.</summary>
+        private (string Tab, string Page, HashSet<string> Texts, DateTime At)? pendingPage;
         private IntPtr lastFocusLayer;
 
         /// <summary>The layer holding the focus (FocusTracker), to notice a focus that moved into a popup.</summary>
@@ -123,6 +129,7 @@ namespace Poe2Accessibility.Services
             this.pendingHints = (string.Empty, DateTime.MinValue);
             this.lastFocusLayer = IntPtr.Zero;
             this.deferredFocus = null;
+            this.pendingPage = null;
         }
 
         /// <summary>
@@ -199,7 +206,11 @@ namespace Poe2Accessibility.Services
             var text = focused;
             if (node.Context.Length > 0 && node.Context != this.lastContext)
             {
-                text = Announcements.InContext(node.Context, text);
+                if (!this.JustChosen(node.Context))
+                {
+                    text = Announcements.InContext(node.Context, text);
+                }
+
                 this.lastContext = node.Context;
             }
 
@@ -215,7 +226,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.deferredFocus = null;
-            this.output.Speak(text, true);
+            this.output.Speak(this.WithPendingPage(text), true);
         }
 
         /// <summary>
@@ -253,7 +264,14 @@ namespace Poe2Accessibility.Services
                     this.lastContext = fresh.Context;
                 }
 
-                this.Speak("focus in a new layer", text, true);
+                this.Speak("focus in a new layer", this.WithPendingPage(text), true);
+            }
+
+            if (this.pendingPage is { } pending && this.deferredFocus == null &&
+                (DateTime.UtcNow - pending.At).TotalMilliseconds >= NewLayerFocusDelayMs)
+            {
+                // No focus came with the page (Challenges: a free cursor): the page alone, after its tab.
+                this.Speak("tab", this.WithPendingPage(string.Empty), true);
             }
 
             if (this.pendingFocus != null && !this.JustFocused())
@@ -355,35 +373,47 @@ namespace Poe2Accessibility.Services
                     // A tab switch rebuilds the whole panel: say only the tab, then where the focus is (D2R rule) — the
                     // one that moved with it, or the one that stayed (the inventory beside Skills and Character).
                     var withFocus = this.JustFocused();
-                    if (this.lastContext == tabTitle.Text && (withFocus || (DateTime.UtcNow - this.lastTabAt).TotalMilliseconds < RepeatedTabMs))
+                    if (this.lastContext == tabTitle.Text && (DateTime.UtcNow - this.lastTabAt).TotalMilliseconds < RepeatedTabMs)
                     {
-                        return; // the focus announcement already named this panel, or the same switch reported twice
+                        return; // the same switch reported twice
                     }
 
-                    var namedByChoice = withFocus && this.lastPanel.Text == tabTitle.Text &&
-                                        (DateTime.UtcNow - this.lastPanel.At).TotalMilliseconds < ChosenPanelMs;
+                    // Already named: by the focus announcement (its panel title), or by the radial menu as it was chosen.
+                    var named = (withFocus && this.lastContext == tabTitle.Text) || this.JustChosen(tabTitle.Text);
                     this.lastContext = tabTitle.Text;
                     this.lastTabAt = DateTime.UtcNow;
-                    if (namedByChoice)
+                    var freeCursor = (focus == null || focus.IsHovered) && change.Layer.Address == snapshot.TopInteractive?.Address &&
+                                     (focusLayer == IntPtr.Zero || focusLayer == change.Layer.Address);
+                    if (freeCursor)
                     {
-                        return; // the radial menu named the panel as it was chosen, and the focus followed it
-                    }
-
-                    var focusSpeech = withFocus ? this.lastFocusSpeech : focus != null ? this.Focused(focus) : string.Empty;
-                    if (focusSpeech.Length == 0 && focusLayer == IntPtr.Zero && change.Layer.Address == snapshot.TopInteractive?.Address)
-                    {
-                        // A page the free cursor browses (Challenges): nothing will be focused, so its content follows
-                        // the tab; a progress count ("0/8") stays, other bare numbers mean nothing alone.
-                        // The page under an overlay page stays visible to the tree (Friends under Challenges): only
-                        // the texts inside the panel the tab names, when the panel is found.
-                        var pageTexts = change.Texts.Where(text => text != tabTitle && (!IsNumber(text.Text) || text.Text.Contains('/'))).ToList();
+                        // A page the free cursor browses (Challenges, the passive tree): no control holds what it shows,
+                        // so its content follows the tab ("Skill points: 0", the attributes); a progress count ("0/8")
+                        // stays, other bare numbers mean nothing alone. The page under an overlay page stays visible to
+                        // the tree (Friends under Challenges): only the texts inside the panel the tab names.
+                        var pageTexts = PairNumbers(change.Texts).Where(text => text != tabTitle && (!IsNumber(text.Text) || text.Text.Contains('/'))).ToList();
                         var inPage = this.InPanel == null ? pageTexts : pageTexts.Where(text => this.InPanel(text.Address, tabTitle.Text)).ToList();
                         var page = Describe(inPage.Count > 0 ? inPage : pageTexts);
+                        var pageSaid = new HashSet<string>(change.Texts.Select(text => text.Text));
                         this.lastPanel = (change.Layer.Address, page, DateTime.UtcNow);
-                        this.Speak("tab", page.Length > 0 ? Announcements.Sentences(new[] { tabTitle.Text, page }) : tabTitle.Text, true);
+                        if (focus != null && this.deferredFocus == null)
+                        {
+                            // The hovered element was already said: the page after it.
+                            this.recentTexts = (pageSaid, DateTime.UtcNow);
+                            this.Speak("page after focus", page, false);
+                            return;
+                        }
+
+                        // A cursor may still land on the page (the passive tree's node): one utterance with it, else alone.
+                        this.pendingPage = (named ? string.Empty : tabTitle.Text, page, pageSaid, DateTime.UtcNow);
                         return;
                     }
 
+                    if (named)
+                    {
+                        return;
+                    }
+
+                    var focusSpeech = withFocus ? this.lastFocusSpeech : focus != null ? this.Focused(focus) : string.Empty;
                     this.Speak("tab", focusSpeech.Length > 0 ? Announcements.InContext(tabTitle.Text, focusSpeech) : tabTitle.Text, true);
                     return;
                 }
@@ -432,7 +462,9 @@ namespace Poe2Accessibility.Services
                 }
 
                 var own = focus == null ? new HashSet<string>() : new HashSet<string>(focus.ListItems) { focus.Text, focus.Value, focus.Group };
-                var texts = Describe(change.Texts.Where(text => !own.Contains(text.Text) && !IsNumber(text.Text) && !(focus?.Text.Contains(text.Text, StringComparison.Ordinal) ?? false) &&
+                var said = (DateTime.UtcNow - this.recentTexts.At).TotalMilliseconds < RecentTextsMs ? this.recentTexts.Texts : new HashSet<string>();
+                var texts = Describe(PairNumbers(change.Texts).Where(text => !own.Contains(text.Text) && !IsNumber(text.Text) && !said.Contains(text.Text) &&
+                                                                !(focus?.Text.Contains(text.Text, StringComparison.Ordinal) ?? false) &&
                                                                 !InFocusContext(focus, text.Text)));
                 if (texts.Length == 0)
                 {
@@ -596,6 +628,46 @@ namespace Poe2Accessibility.Services
         private static bool InFocusContext(AccessibleUiNode? focus, string text) =>
             focus != null && focus.Context.Length > 0 && focus.Context.Split(". ").Contains(Announcements.TabTitle(text));
 
+        /// <summary>Whether the radial menu named this panel a moment ago (its option is the panel's title).</summary>
+        private bool JustChosen(string title) =>
+            this.lastPanel.Text == title && (DateTime.UtcNow - this.lastPanel.At).TotalMilliseconds < ChosenPanelMs;
+
+        /// <summary>The tab and page waiting, then the text (a focus): one utterance; its texts count as just said.</summary>
+        private string WithPendingPage(string text)
+        {
+            if (this.pendingPage is not { } pending)
+            {
+                return text;
+            }
+
+            this.pendingPage = null;
+            this.recentTexts = (pending.Texts, DateTime.UtcNow);
+            return Announcements.Sentences(new[] { pending.Tab, pending.Page, text }.Where(part => part.Length > 0));
+        }
+
+        /// <summary>
+        ///     A bare number drawn before its one-word label reads as one text ("11", "DEX" → "DEX 11"); a label with
+        ///     spaces or punctuation ("A, empty") is not a caption of the number before it.
+        /// </summary>
+        private static List<ScreenText> PairNumbers(IReadOnlyList<ScreenText> texts)
+        {
+            var paired = new List<ScreenText>(texts.Count);
+            for (var i = 0; i < texts.Count; i++)
+            {
+                if (i + 1 < texts.Count && IsNumber(texts[i].Text) && texts[i].Text.Trim().Length > 0 &&
+                    texts[i + 1].Text.Length is > 0 and <= MaxPairedLabel && texts[i + 1].Text.All(char.IsLetter))
+                {
+                    paired.Add(texts[i + 1] with { Text = $"{texts[i + 1].Text} {texts[i].Text.Trim()}" });
+                    i++;
+                    continue;
+                }
+
+                paired.Add(texts[i]);
+            }
+
+            return paired;
+        }
+
         private static bool IsNumber(string text) => text.All(c => char.IsDigit(c) || c is '.' or ',' or ':' or '%' or '/' or '+' or '-' or ' '); // "6", "25%", "0:08"
 
         /// <summary>Texts in reading order without repeats; a disabled control is marked unavailable.</summary>
@@ -625,6 +697,10 @@ namespace Poe2Accessibility.Services
             {
                 return;
             }
+
+            // A page still waiting for its focus goes first: what follows (the area the quest map shows) must not
+            // be cut off by the page arriving a moment later.
+            text = this.WithPendingPage(text);
 
             // The same parts in another order a moment later (a panel reported as opened, then as its texts
             // appearing: "A, empty. Secondary skill set…" after "Secondary skill set… A, empty") are not news.
