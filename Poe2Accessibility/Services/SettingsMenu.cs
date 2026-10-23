@@ -24,6 +24,7 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.AnnounceChat)),
             Switch(nameof(AccessibilitySettings.ReadTooltipsOnFocus)),
             Switch(nameof(AccessibilitySettings.AnnouncePickups)),
+            Switch(nameof(AccessibilitySettings.AnnounceDiscoveries)),
             Switch(nameof(AccessibilitySettings.AnnounceLevelUp)),
             Switch(nameof(AccessibilitySettings.Radar)),
             Switch(nameof(AccessibilitySettings.EnemySounds)),

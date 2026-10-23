@@ -81,6 +81,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceChat) => T("Chat", "Chat"),
             nameof(AccessibilitySettings.ReadTooltipsOnFocus) => T("Whole tooltips on focus", "Descripciones completas al enfocar"),
             nameof(AccessibilitySettings.AnnouncePickups) => T("Picked up items", "Objetos recogidos"),
+            nameof(AccessibilitySettings.AnnounceDiscoveries) => T("Discoveries", "Descubrimientos"),
             nameof(AccessibilitySettings.AnnounceLevelUp) => T("Level up", "Subida de nivel"),
             nameof(AccessibilitySettings.Radar) => T("Radar", "Radar"),
             nameof(AccessibilitySettings.EnemySounds) => T("Enemy sounds", "Sonidos de enemigos"),
@@ -150,6 +151,23 @@ namespace Poe2Accessibility
             "bump" => T("you pushed into a wall", "empujaste contra una pared"),
             _ => T("nearest one on screen, on its side", "el más cercano en pantalla, a su lado"),
         } + T(". Left or right plays it", ". Izquierda o derecha lo reproduce");
+
+        /// <summary>The rarity word that ends a unique monster's scanner name ("El molinero hinchado, único").</summary>
+        public static string UniqueRarityWord => RarityName(GameHelper.RemoteEnums.Rarity.Unique);
+
+        /// <summary>A first sighting: "Nueva salida: Sierraclara", "Nuevo punto de control", "Jefe a la vista: El molinero hinchado".</summary>
+        public static string Discovered(Services.ScanEntry entry) => entry.Kind switch
+        {
+            "checkpoint" => T("New checkpoint", "Nuevo punto de control"),
+            "waypoint" => T($"New waypoint: {entry.Name}", $"Nuevo punto de ruta: {entry.Name}"),
+            "portal" => T($"Portal: {entry.Name}", $"Portal: {entry.Name}"),
+            _ when entry.Category == Services.ScanCategory.Enemies =>
+                T($"Boss in sight: {entry.Name[..entry.Name.LastIndexOf(',')]}", $"Jefe a la vista: {entry.Name[..entry.Name.LastIndexOf(',')]}"),
+            _ => T($"New exit: {entry.Name}", $"Nueva salida: {entry.Name}"),
+        };
+
+        /// <summary>A requirement the character does not meet (drawn red): "No cumples: Requiere Nivel 5".</summary>
+        public static string Unmet(string requirement) => T($"Not met: {requirement}", $"No cumples: {requirement}");
 
         public static string SettingsMenuTitle => T("Mod settings", "Ajustes del mod");
 

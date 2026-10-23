@@ -110,7 +110,7 @@ namespace Poe2Accessibility
 
         public static string EnemyWithRarity(string name, GameHelper.RemoteEnums.Rarity rarity) => $"{name}, {RarityName(rarity)}";
 
-        private static string RarityName(GameHelper.RemoteEnums.Rarity rarity) => rarity switch
+        internal static string RarityName(GameHelper.RemoteEnums.Rarity rarity) => rarity switch
         {
             GameHelper.RemoteEnums.Rarity.Normal => "normal",
             GameHelper.RemoteEnums.Rarity.Magic => T("magic", "mágico"),

@@ -76,6 +76,12 @@ namespace Poe2Accessibility.Services
                     }
 
                     var line = Announcements.WithButton(Announcements.JoinLines(wrapped), glyph);
+                    if (line.Any(char.IsDigit) && this.elements.IsTextRed(node.Address))
+                    {
+                        // A requirement drawn in red is one the character does not meet (D2R "cannot equip" reasons);
+                        // red lines without numbers (Corrupted, Unidentified) are states, not requirements.
+                        line = Announcements.Unmet(line);
+                    }
                     glyph = string.Empty;
                     if (line.Length > 0 && !lines.Contains(line))
                     {

@@ -78,6 +78,9 @@ namespace Poe2Accessibility
         /// <summary>The game's own sounds for the nearest item, chest or shrine, exit or portal, and waypoint or checkpoint on screen.</summary>
         public bool ObjectSounds = true;
 
+        /// <summary>Name the first sighting of an exit, waypoint, checkpoint or boss in an area.</summary>
+        public bool AnnounceDiscoveries = true;
+
         /// <summary>Say what arrives in the inventory while playing: "Recogido: Traje de ermitaño".</summary>
         public bool AnnouncePickups = true;
 

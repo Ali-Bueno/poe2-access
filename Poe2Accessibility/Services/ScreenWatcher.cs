@@ -214,7 +214,14 @@ namespace Poe2Accessibility.Services
                     continue; // a panel slid out of view keeps its visible flag (the world map's quest list)
                 }
 
-                if (hasText && text.Length > 0)
+                if (hasText && markupButton.Length > 0 && tagged.TrimStart().StartsWith("<<", StringComparison.Ordinal) &&
+                    text.Trim().TrimStart('+').Trim() is { Length: > 0 } legendLabel)
+                {
+                    // A text that starts with its buttons is a legend ("<<rt>> + <<lstick>> Move" beside the character
+                    // preview): label and buttons, read with the hints, not as content of the panel.
+                    texts.Add((self, new ScreenText(info.Address, Announcements.Flatten(legendLabel), info.Name, false, true, markupButton)));
+                }
+                else if (hasText && text.Length > 0)
                 {
                     // Glyphs inside a sentence are read in place; a lone trailing glyph ("continue {A}") the same way.
                     var spoken = Announcements.Flatten(markupButton.Length > 0 ? ControllerGlyphs.Render(tagged) : text);

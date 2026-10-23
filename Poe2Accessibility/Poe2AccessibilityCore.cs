@@ -64,6 +64,7 @@ namespace Poe2Accessibility
         private Heartbeat? heartbeat;
         private StatusWatch? statuses;
         private InventoryWatch? pickups;
+        private DiscoveryNarrator? discoveries;
 
         /// <summary>Game sounds are cut to this length: repeated proximity cues must stay short.</summary>
         private const float GameSoundSeconds = 0.9f;
@@ -146,6 +147,7 @@ namespace Poe2Accessibility
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds);
+                this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds);
                 this.ApplySoundVolumes(this.Settings);
                 this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
                 this.screen = new ScreenWatcher(elements, this.log);
@@ -397,6 +399,7 @@ namespace Poe2Accessibility
                 }
 
                 this.objectSounds?.Tick(playing && this.Settings.ObjectSounds);
+                this.discoveries?.Tick(playing && this.Settings.AnnounceDiscoveries);
                 if (playing && this.Settings.WallBump)
                 {
                     this.wallBump?.Tick(this.padState.LeftX, this.padState.LeftY);
@@ -664,6 +667,11 @@ namespace Poe2Accessibility
                 this.objectSounds.Gain = Fraction(settings.ObjectVolume);
             }
 
+            if (this.discoveries != null)
+            {
+                this.discoveries.Gain = Fraction(settings.ObjectVolume);
+            }
+
             if (this.heartbeat != null)
             {
                 this.heartbeat.Gain = Fraction(settings.HeartbeatVolume);
@@ -753,6 +761,7 @@ namespace Poe2Accessibility
             this.statuses?.Reset();
             this.pickups?.Reset();
             this.targets?.Reset();
+            this.discoveries?.Reset();
             this.entities?.Forget();
             this.nearby?.Reset();
             if (this.Settings.AnnounceArea)
