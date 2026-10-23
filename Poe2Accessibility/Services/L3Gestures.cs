@@ -13,6 +13,9 @@ namespace Poe2Accessibility.Services
         FlickDown,
         FlickLeft,
         FlickRight,
+
+        /// <summary>The right stick pressed (R3) while L3 is held: lock or release the guide beacon.</summary>
+        StickClick,
     }
 
     /// <summary>
@@ -37,11 +40,14 @@ namespace Poe2Accessibility.Services
         private bool holdFired;
         private bool flicked;
         private bool stickOut;
+        private bool r3Down;
         private long? pendingTapAt;
 
-        public IReadOnlyList<PadGesture> Update(long nowMs, bool l3, float rightX, float rightY)
+        public IReadOnlyList<PadGesture> Update(long nowMs, bool l3, float rightX, float rightY, bool r3 = false)
         {
             var gestures = new List<PadGesture>();
+            var r3Pressed = r3 && !this.r3Down;
+            this.r3Down = r3;
             if (!l3 && this.pendingTapAt is { } tapAt && nowMs - tapAt > DoubleTapMs)
             {
                 gestures.Add(PadGesture.Tap);
@@ -54,6 +60,13 @@ namespace Poe2Accessibility.Services
             }
             else if (l3)
             {
+                if (r3Pressed)
+                {
+                    this.flicked = true;
+                    this.pendingTapAt = null;
+                    gestures.Add(PadGesture.StickClick);
+                }
+
                 var magnitude = Math.Max(Math.Abs(rightX), Math.Abs(rightY));
                 if (!this.stickOut && magnitude >= FlickPress)
                 {

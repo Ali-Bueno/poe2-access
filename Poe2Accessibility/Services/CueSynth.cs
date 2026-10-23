@@ -47,6 +47,13 @@ namespace Poe2Accessibility.Services
         private const float TapReleaseSeconds = 0.01f;
         private const float TapLevel = 0.4f;
 
+        /// <summary>Guide beacon (D2R beacon.md): a plain 620 Hz note of 80 ms, unlike every other cue.</summary>
+        private const float PingSeconds = 0.08f;
+        private const float PingHz = 620f;
+        private const float PingOvertoneLevel = 0.2f;
+        private const float PingReleaseSeconds = 0.025f;
+        private const float PingLevel = 0.35f;
+
         /// <summary>What sets an enemy apart besides where it is.</summary>
         public enum Layer
         {
@@ -143,6 +150,19 @@ namespace Poe2Accessibility.Services
             }
 
             return Normalized(samples, TapLevel);
+        }
+
+        public static float[] Ping(int sampleRate)
+        {
+            var samples = new float[(int)(PingSeconds * sampleRate)];
+            for (var i = 0; i < samples.Length; i++)
+            {
+                var t = (float)i / sampleRate;
+                var tone = MathF.Sin(2 * MathF.PI * PingHz * t) + (PingOvertoneLevel * MathF.Sin(2 * MathF.PI * PingHz * 2 * t));
+                samples[i] = tone * MathF.Min(1f, t / AttackSeconds) * MathF.Min(1f, (PingSeconds - t) / PingReleaseSeconds);
+            }
+
+            return Normalized(samples, PingLevel);
         }
 
         /// <summary>Fast attack, then a smooth fall to silence at the end (no click).</summary>

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <AssemblyName>Poe2Access</AssemblyName>
+    <RootNamespace>Poe2AccessLauncher</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AsmResolver.PE.Win32Resources" Version="5.5.1" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <HostOutputDir>$(MSBuildThisFileDirectory)..\..\external\GameHelper2\GameHelper\bin\Release\net10.0-windows\win-x64\</HostOutputDir>
+  </PropertyGroup>
+
+  <!-- Deploys the launcher beside GameHelper.exe so it can be started by double-click (same idea as Launcher.csproj). -->
+  <Target Name="CopyToHost" AfterTargets="Build" Condition="Exists('$(HostOutputDir)')">
+    <Copy SourceFiles="$(OutDir)$(TargetName).exe;$(OutDir)$(TargetName).dll;$(OutDir)$(TargetName).runtimeconfig.json;$(OutDir)$(TargetName).deps.json;$(OutDir)AsmResolver.PE.dll;$(OutDir)AsmResolver.PE.File.dll;$(OutDir)AsmResolver.dll;$(OutDir)AsmResolver.PE.Win32Resources.dll"
+          DestinationFolder="$(HostOutputDir)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

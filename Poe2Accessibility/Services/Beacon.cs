@@ -1,0 +1,241 @@
+namespace Poe2Accessibility.Services
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Numerics;
+    using System.Threading.Tasks;
+    using GameHelper;
+    using GameHelper.RemoteObjects.Components;
+
+    /// <summary>
+    ///     Guide beacon (D2R docs/beacon.md): once the player locks a scanner entry, a short ping repeats, faster as the
+    ///     walkable route shortens, panned toward where the route goes next — the farthest route point within reach in
+    ///     a straight line, so it turns where the corridor turns and never points into a wall. No route: silence (never
+    ///     a straight line through walls). Arriving names the target and releases the lock; so does an area change.
+    ///     Routes are searched off the frame thread (A* over a whole area takes up to ~300 ms).
+    /// </summary>
+    public sealed class Beacon
+    {
+        /// <summary>D2R: silence after the lock so the spoken name is not stepped on.</summary>
+        private const int LockDelayMs = 600;
+
+        /// <summary>How often the target's place and the route are refreshed while the player walks.</summary>
+        private const int RouteRefreshMs = 700;
+
+        /// <summary>Route length the ping looks ahead along, in grid cells (~ 0.7 s of walking).</summary>
+        private const float LookAheadGrid = 25f;
+
+        /// <summary>Close enough to count as arrived: a step and a half.</summary>
+        private const float ArrivalWorld = 150f;
+
+        /// <summary>A chest or item that vanished while the player stood this close was opened or picked up: arrived.</summary>
+        private const float GoneNearWorld = 600f;
+
+        /// <summary>World offset used to measure how the camera draws the world axes.</summary>
+        private const float ProbeWorld = 100f;
+
+        private readonly AudioCueService audio;
+        private readonly EntityCatalog catalog;
+        private readonly IAccessibilityOutputService output;
+        private readonly PluginLog log;
+        private readonly float[] ping;
+        private ScanEntry? target;
+        private List<Vector2>? route;
+        private Task<List<Vector2>?>? search;
+        private int version;
+        private long lockedAt;
+        private long lastPing;
+        private long lastRefresh = long.MinValue / 2;
+        private bool noRouteSaid;
+
+        public Beacon(AudioCueService audio, EntityCatalog catalog, IAccessibilityOutputService output, PluginLog log)
+        {
+            this.audio = audio;
+            this.catalog = catalog;
+            this.output = output;
+            this.log = log;
+            this.ping = CueSynth.Ping(AudioCueService.SampleRate);
+        }
+
+        /// <summary>Beacon gain under the master volume (settings BeaconVolume).</summary>
+        public float Gain { get; set; } = 1f;
+
+        public ScanEntry? Target => this.target;
+
+        /// <summary>Locks <paramref name="entry"/>; locking the same target again releases it (D2R second press).</summary>
+        public void Toggle(ScanEntry entry)
+        {
+            if (this.target?.Id == entry.Id)
+            {
+                this.Clear(true);
+                return;
+            }
+
+            this.target = entry;
+            this.route = null;
+            this.search = null;
+            this.version++;
+            this.noRouteSaid = false;
+            this.lockedAt = Environment.TickCount64;
+            this.lastRefresh = long.MinValue / 2;
+            this.output.Speak(Announcements.BeaconLocked(this.catalog.Describe(entry)), true);
+            this.log.Info($"Beacon locked on {entry.Name} ({entry.Category})");
+        }
+
+        /// <summary>Releases the lock (area change, arrival, second press).</summary>
+        public void Clear(bool speak)
+        {
+            if (this.target == null)
+            {
+                return;
+            }
+
+            if (speak)
+            {
+                this.output.Speak(Announcements.BeaconOff, true);
+            }
+
+            this.log.Info($"Beacon released ({this.target.Name})");
+            this.target = null;
+            this.route = null;
+            this.search = null;
+            this.version++;
+        }
+
+        /// <summary>Per frame. Silent (lock kept) while a panel, menu or dialogue is open.</summary>
+        public void Tick(bool playing)
+        {
+            if (this.target is not { } goal || !playing)
+            {
+                return;
+            }
+
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            if (!area.Player.TryGetComponent<Render>(out var player))
+            {
+                return;
+            }
+
+            var now = Environment.TickCount64;
+            var gridSize = area.WorldToGridConvertor;
+            var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
+            if (now - this.lastRefresh >= RouteRefreshMs)
+            {
+                this.lastRefresh = now;
+                if (!this.Refresh(here))
+                {
+                    return;
+                }
+
+                goal = this.target!;
+                this.StartSearch(here / gridSize, new Vector2(goal.WorldX, goal.WorldY) / gridSize);
+            }
+
+            this.CollectSearch();
+            if (Vector2.Distance(here, new Vector2(goal.WorldX, goal.WorldY)) <= ArrivalWorld)
+            {
+                this.Arrive(goal);
+                return;
+            }
+
+            if (this.route is not { Count: > 0 } path || now - this.lockedAt < LockDelayMs)
+            {
+                return;
+            }
+
+            var playerGrid = here / gridSize;
+            var from = BeaconMath.NearestIndex(path, playerGrid);
+            var remainingWorld = BeaconMath.Remaining(path, from, playerGrid) * gridSize;
+            if (remainingWorld <= ArrivalWorld)
+            {
+                this.Arrive(goal);
+                return;
+            }
+
+            if (now - this.lastPing < BeaconMath.IntervalMs(remainingWorld) || !this.catalog.TryLiveGrid(out var grid, out var row))
+            {
+                return;
+            }
+
+            this.lastPing = now;
+            var aim = BeaconMath.AimPoint(grid, row, path, from, playerGrid, LookAheadGrid) * gridSize;
+            var (pan, pitch) = BeaconMath.Voice(ScreenDirection(player.WorldPosition, aim - here));
+            this.audio.Play(this.ping, pan, pitch, this.Gain);
+        }
+
+        /// <summary>The target's current place; false when it is gone (and the lock was released).</summary>
+        private bool Refresh(Vector2 here)
+        {
+            var goal = this.target!;
+            var current = this.catalog.Entries().FirstOrDefault(entry => entry.Id == goal.Id);
+            if (current != null)
+            {
+                this.target = current with { Category = goal.Category };
+                return true;
+            }
+
+            if (EntityCatalog.IsEntity(goal) && Vector2.Distance(here, new Vector2(goal.WorldX, goal.WorldY)) <= GoneNearWorld)
+            {
+                // D2R: a target that vanishes on reaching it (chest opened, item picked up) counts as arrived.
+                this.Arrive(goal);
+                return false;
+            }
+
+            return true; // out of the game's range: keep walking to where it was last seen
+        }
+
+        private void StartSearch(Vector2 start, Vector2 end)
+        {
+            if (this.search is { IsCompleted: false } || !this.catalog.TryLiveGrid(out var grid, out var row))
+            {
+                return;
+            }
+
+            var started = this.version;
+            this.search = Task.Run(() => started == this.version ? RoutePlanner.FindRoute(grid, row, start, end) : null);
+        }
+
+        private void CollectSearch()
+        {
+            if (this.search is not { IsCompleted: true } done)
+            {
+                return;
+            }
+
+            this.search = null;
+            var found = done.IsCompletedSuccessfully ? done.Result : null;
+            if (found != null)
+            {
+                this.route = found;
+                this.noRouteSaid = false;
+            }
+            else if (!this.noRouteSaid && this.target != null)
+            {
+                this.noRouteSaid = true;
+                this.route = null;
+                this.output.Speak(Announcements.BeaconNoRoute(this.target.Name), false);
+            }
+        }
+
+        private void Arrive(ScanEntry goal)
+        {
+            this.output.Speak(Announcements.BeaconArrived(goal.Name), true);
+            this.log.Info($"Beacon arrived at {goal.Name}");
+            this.target = null;
+            this.route = null;
+            this.search = null;
+            this.version++;
+        }
+
+        /// <summary>Screen offset (x right, y down) of a world offset, from how the camera draws the world axes here.</summary>
+        private static Vector2 ScreenDirection(GameOffsets.Natives.StdTuple3D<float> origin, Vector2 worldOffset)
+        {
+            var world = Core.States.InGameStateObject.CurrentWorldInstance;
+            var here = world.WorldToScreen(origin);
+            var alongX = world.WorldToScreen(new GameOffsets.Natives.StdTuple3D<float> { X = origin.X + ProbeWorld, Y = origin.Y, Z = origin.Z }) - here;
+            var alongY = world.WorldToScreen(new GameOffsets.Natives.StdTuple3D<float> { X = origin.X, Y = origin.Y + ProbeWorld, Z = origin.Z }) - here;
+            return ((worldOffset.X / ProbeWorld) * alongX) + ((worldOffset.Y / ProbeWorld) * alongY);
+        }
+    }
+}

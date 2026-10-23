@@ -28,3 +28,17 @@ cmake -S ooz -B ooz\build -G Ninja -DCMAKE_BUILD_TYPE=Release -DOOZ_BUILD_EXE=OF
 cmake --build ooz\build --target libooz --config Release
 ```
 The built binary is kept at `external/oodle/oo2core.dll` (gitignored). Decompression only; compression exports are stubs.
+
+## Poe2AccessLauncher — one-click start for the player
+.NET 10 WinExe (no console window, assembly `Poe2Access`) that replaces GameHelper's `Launcher.exe` for this project: no
+update check, no key prompt, no visible window.
+
+```
+dotnet build tools/Poe2AccessLauncher -c Release     # also copies the exe + dlls beside GameHelper.exe
+Poe2Access.exe [start|restart|stop] [--host <dir>]   # start (default): open PoE2 via Steam if needed, then restart the host
+```
+`restart` stops every process whose image is in the host folder (not `Launcher.exe`), deletes the previous random-named
+copies, makes a new copy of `GameHelper.exe` with rewritten version-info strings and starts it with
+`__COMPAT_LAYER=RunAsInvoker`. Single instance; steps go to `Poe2Access.log` next to the exe; a failure shows a message box
+and exits 1. The host folder defaults to the exe's own folder when it holds `GameHelper.exe`, else the repository build output.
+The GameHelper-style copy/rename logic is a short independent reimplementation (GameHelper is GPLv3).

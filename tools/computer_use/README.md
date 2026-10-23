@@ -20,8 +20,9 @@ py -B tools/computer_use/pad.py quit
 ```
 
 Plugin rebuild loop: `launch.py stop` → `dotnet build Poe2Accessibility -c Release` → `launch.py host`
-(GameHelper locks the plugin DLL; the launcher's "path contains poe" prompt is answered through the
-console input buffer, and `__COMPAT_LAYER=RunAsInvoker` runs it without UAC — it only needs read access).
+(GameHelper locks the plugin DLL; `launch.py` drives `Poe2Access.exe restart|stop` from
+`tools/Poe2AccessLauncher`, which skips the update check and the "path contains poe" prompt and runs the host
+unelevated via `__COMPAT_LAYER=RunAsInvoker` — it only needs read access).
 
 Every action prints JSON with the plugin log lines written since it started (`Speech interrupts|queued`,
 `Focus ->`, `Screen <change>`); that log is the test oracle. Research commands go through

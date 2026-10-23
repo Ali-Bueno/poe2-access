@@ -45,16 +45,23 @@ namespace Poe2Accessibility
         private GamepadReader.PadState padState;
         private (string Character, int Level) lastLevel;
         private long lastSoundError = long.MinValue / 2;
-        private long viewDownSince;
-
-        /// <summary>The radial menu opens on a held View; a second of holding means it is open.</summary>
-        private const int RadialDumpHoldMs = 1000;
 
         /// <summary>A failing sound tick is logged once a minute, not every frame.</summary>
         private const int SoundErrorReportMs = 60000;
 
+        /// <summary>Right stick deflection that counts as aiming (the target is named only then).</summary>
+        private const float AimDeflection = 0.3f;
+
         /// <summary>Half and a quarter; re-armed 10 points above.</summary>
         private readonly VitalAlarm lifeAlarm = new(10, 50, 25);
+
+        /// <summary>Half, a quarter and a tenth; re-armed 10 points above (mana is spent and refilled constantly).</summary>
+        private readonly VitalAlarm manaAlarm = new(10, 50, 25, 10);
+        private Beacon? beacon;
+        private TargetNarrator? targets;
+
+        /// <summary>The focus of the previous frame, to notice a text field closing (pre-game focus goes to nothing).</summary>
+        private AccessibleUiNode? previousFocus;
         private ResearchSession? research;
         private UiElementReader? elements;
         private DevCommandFile? devCommands;
@@ -74,6 +81,7 @@ namespace Poe2Accessibility
                 this.settingsStore = new SettingsStore<AccessibilitySettings>(Path.Join(this.DllDirectory, "config", "settings.txt"), this.log);
                 this.ApplySettings(this.settingsStore.Load(this.Settings));
                 this.log.Info($"Enabled. GameHelper {Core.GetVersion()}, game open: {isGameOpened}");
+                Localization.Detect(this.Settings.Language, message => this.log.Info(message));
 
                 IAccessibilityOutputService? prism = this.Settings.SpeechEnabled
                     ? PrismOutputService.TryCreate(this.DllDirectory, this.log)
@@ -109,9 +117,12 @@ namespace Poe2Accessibility
                 this.radar = new Radar(this.audio, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.nearby = new ProximityNarrator(this.entities, this.output);
                 this.wallBump = new WallBump(this.audio);
+                this.beacon = new Beacon(this.audio, this.entities, this.output, this.log);
+                this.targets = new TargetNarrator(memory, elements, this.output, this.log);
                 this.ApplySoundVolumes(this.Settings);
-                this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.log);
+                this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
                 this.screen = new ScreenWatcher(elements, this.log);
+                this.entities.QuestTexts = this.QuestTexts;
                 this.chat = new ChatWatcher(elements, line =>
                 {
                     if (this.Settings.AnnounceChat)
@@ -199,6 +210,7 @@ namespace Poe2Accessibility
             {
                 var stateObject = GameStateService.CurrentStateObjectAddress();
                 this.focus?.Tick(this.gameState.CurrentState, stateObject);
+                this.WatchTextFieldClosing();
                 this.ReadModButton();
                 this.WatchLife();
                 this.TickSounds();
@@ -210,7 +222,7 @@ namespace Poe2Accessibility
                 }
             }
 
-            if (this.Settings.ResearchMode && this.devCommands != null)
+            if (this.devCommands != null)
             {
                 foreach (var command in this.devCommands.Poll())
                 {
@@ -267,6 +279,11 @@ namespace Poe2Accessibility
                     this.narrator.OnScreenChange(change, this.screen.Current, this.focus.Current, this.focus.CurrentLayer);
                 }
             }
+
+            if (!inGame && this.Settings.AnnounceAppearingText)
+            {
+                this.narrator.OnPreGameHints(this.screen.Current);
+            }
         }
 
         /// <summary>Per frame: the mod button's gestures from the pad state the game received.</summary>
@@ -284,36 +301,12 @@ namespace Poe2Accessibility
                 return;
             }
 
-            foreach (var gesture in this.gestures.Update(Environment.TickCount64, state.IsDown(GameLayout.PadButtons.LeftStick), state.RightX, state.RightY))
+            foreach (var gesture in this.gestures.Update(Environment.TickCount64, state.IsDown(GameLayout.PadButtons.LeftStick), state.RightX, state.RightY, state.IsDown(GameLayout.PadButtons.RightStick)))
             {
                 this.commands.OnGesture(gesture);
             }
-
-            this.DumpHeldRadialMenu(state.IsDown(GameLayout.PadButtons.Back));
         }
 
-        /// <summary>Research: holding View opens the radial menu, which no layer event reports yet; dump it once per hold.</summary>
-        private void DumpHeldRadialMenu(bool viewDown)
-        {
-            if (!viewDown)
-            {
-                this.viewDownSince = 0;
-                return;
-            }
-
-            var now = Environment.TickCount64;
-            if (this.viewDownSince == 0)
-            {
-                this.viewDownSince = now;
-            }
-            else if (this.viewDownSince > 0 && now - this.viewDownSince >= RadialDumpHoldMs && this.Settings.ResearchMode &&
-                     this.gameState?.CurrentState == GameStateTypes.InGameState)
-            {
-                this.viewDownSince = -1; // once per hold
-                this.log?.Info("View held: dumping the UI for the radial menu");
-                this.DumpUiTree(false);
-            }
-        }
 
         /// <summary>Per frame: radar, enemy sounds and what is nearby, only in gameplay; a failure here never stops the speech after it.</summary>
         private void TickSounds()
@@ -331,6 +324,10 @@ namespace Poe2Accessibility
 
                 this.radar?.Tick(playing && this.Settings.Radar);
                 this.nearby?.Tick(playing && this.Settings.AnnounceNearby);
+                this.beacon?.Tick(playing);
+                var aiming = !this.padState.IsDown(GameLayout.PadButtons.LeftStick) &&
+                             MathF.Max(MathF.Abs(this.padState.RightX), MathF.Abs(this.padState.RightY)) >= AimDeflection;
+                this.targets?.Tick(playing && this.Settings.AnnounceTarget, aiming);
                 if (playing && this.Settings.WallBump)
                 {
                     this.wallBump?.Tick(this.padState.LeftX, this.padState.LeftY);
@@ -382,6 +379,51 @@ namespace Poe2Accessibility
             {
                 this.output.Speak(Announcements.LowLife(threshold), true);
             }
+
+            if (this.Settings.AnnounceLowMana && life.Mana.Total > 0 && this.manaAlarm.Update(life.Mana.CurrentInPercent()) is { } manaThreshold)
+            {
+                // Mana runs low in every fight: after what is being said, except when it is nearly gone.
+                this.output.Speak(Announcements.LowMana(manaThreshold), manaThreshold <= 10);
+            }
+        }
+
+        /// <summary>"Life 80 percent, mana 40 percent" for the mod button; null outside gameplay.</summary>
+        private string? ReadVitals()
+        {
+            if (this.gameState?.CurrentState != GameStateTypes.InGameState ||
+                !Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) ||
+                life.Health.Total <= 0)
+            {
+                return null;
+            }
+
+            return Announcements.Vitals(
+                life.Health.CurrentInPercent(),
+                life.Mana.Total > 0 ? life.Mana.CurrentInPercent() : 0,
+                life.EnergyShield.Total > 0 ? life.EnergyShield.CurrentInPercent() : null);
+        }
+
+        /// <summary>The HUD's texts (quest tracker among them) for the scanner's Quest category.</summary>
+        private System.Collections.Generic.IReadOnlyList<string> QuestTexts()
+        {
+            var hud = this.narrator == null ? null : this.screen?.Current.Find(this.narrator.HudLayer);
+            return hud?.Texts.Select(text => text.Text).ToList() ?? (System.Collections.Generic.IReadOnlyList<string>)Array.Empty<string>();
+        }
+
+        /// <summary>
+        ///     A text field gave the focus up (pre-game the controller cursor then rests on nothing, D2R "B ends editing"):
+        ///     say what it holds and that editing ended, since nothing else changes on screen for the player.
+        /// </summary>
+        private void WatchTextFieldClosing()
+        {
+            var current = this.focus?.Current;
+            if (current == null && this.previousFocus is { Role: UiRole.TextField } field &&
+                this.gameState?.CurrentState != GameStateTypes.InGameState)
+            {
+                this.output.Speak(Announcements.EditFinished(field.Value), true);
+            }
+
+            this.previousFocus = current;
         }
 
         private void RepeatLast()
@@ -398,6 +440,14 @@ namespace Poe2Accessibility
 
         private void RunDevCommand(string command)
         {
+            if (command.StartsWith("gesture ", StringComparison.Ordinal) &&
+                Enum.TryParse<PadGesture>(command["gesture ".Length..], true, out var gesture))
+            {
+                // Test aid: a mod-button gesture without the pad (L3 + R3 cannot be chorded by the virtual pad).
+                this.commands?.OnGesture(gesture);
+                return;
+            }
+
             switch (command)
             {
                 case "dump":
@@ -520,6 +570,11 @@ namespace Poe2Accessibility
             {
                 this.enemyCues.Gain = Fraction(settings.EnemyVolume);
             }
+
+            if (this.beacon != null)
+            {
+                this.beacon.Gain = Fraction(settings.BeaconVolume);
+            }
         }
 
         /// <summary>The overlay library's key-timeout table is process-wide: a key the host consumes first never reaches us.</summary>
@@ -573,6 +628,7 @@ namespace Poe2Accessibility
 
         private void OnAreaChanged(string areaName)
         {
+            this.beacon?.Clear(false);
             this.entities?.Forget();
             this.nearby?.Reset();
             if (this.Settings.AnnounceArea)

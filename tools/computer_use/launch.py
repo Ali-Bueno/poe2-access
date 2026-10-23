@@ -1,7 +1,5 @@
-"""Development launcher: starts PoE2 and (re)starts GameHelper unelevated, answering its path warning."""
+"""Development launcher: starts PoE2 and drives Poe2Access.exe to (re)start or stop GameHelper."""
 import argparse
-import ctypes as C
-from ctypes import wintypes as W
 import json
 import os
 from pathlib import Path
@@ -18,16 +16,7 @@ STEAM_RUN_URL = 'steam://rungameid/2694490'  # Path of Exile 2 Steam app id
 GAME_START_SECONDS = 240  # first start compiles shaders
 HOST_START_SECONDS = 60
 POLL_SECONDS = 0.5
-kernel32 = C.WinDLL('kernel32', use_last_error=True)
-
-
-class KeyEventRecord(C.Structure):
-    _fields_ = [('down', W.BOOL), ('repeat', W.WORD), ('vk', W.WORD), ('scan', W.WORD),
-                ('char', W.WCHAR), ('state', W.DWORD)]
-
-
-class InputRecord(C.Structure):
-    _fields_ = [('type', W.WORD), ('padding', W.WORD), ('key', KeyEventRecord)]
+LAUNCHER = HOST_DIRECTORY / 'Poe2Access.exe'  # tools/Poe2AccessLauncher, deployed beside GameHelper.exe
 
 
 def wait_for(condition, seconds, what):
@@ -51,22 +40,6 @@ def host_processes():
     return [row for row in rows if str(Path(row['Path']).parent).lower() == folder]
 
 
-def press_enter_in_console(pid):
-    """Writes Enter into another process's console input, so its ReadKey returns without window focus."""
-    kernel32.FreeConsole()
-    if not kernel32.AttachConsole(pid):
-        raise C.WinError(C.get_last_error())
-    try:
-        handle = kernel32.CreateFileW('CONIN$', 0xC0000000, 3, None, 3, 0, None)  # read|write, share, OPEN_EXISTING
-        enter = [InputRecord(1, 0, KeyEventRecord(down, 1, 0x0D, 0x1C, '\r', 0)) for down in (True, False)]
-        records, written = (InputRecord * 2)(*enter), W.DWORD()
-        if not kernel32.WriteConsoleInputW(handle, records, 2, C.byref(written)):
-            raise C.WinError(C.get_last_error())
-        kernel32.CloseHandle(handle)
-    finally:
-        kernel32.FreeConsole()
-
-
 def start_game():
     windows = w.game_windows()
     if not windows:
@@ -75,26 +48,28 @@ def start_game():
     return windows[0]
 
 
+def run_launcher(command):
+    """Runs Poe2Access.exe <command>; on failure it shows a message box, so the wait is bounded."""
+    try:
+        done = subprocess.run([str(LAUNCHER), command], cwd=HOST_DIRECTORY, timeout=HOST_START_SECONDS)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f'Poe2Access.exe {command} did not finish; see Poe2Access.log') from None
+    if done.returncode:
+        raise RuntimeError(f'Poe2Access.exe {command} failed ({done.returncode}); see Poe2Access.log')
+
+
 def stop_host():
     """GameHelper locks the deployed plugin DLL, so stop it before every plugin build."""
-    stopped = host_processes()
-    for row in stopped:
-        subprocess.run(['taskkill', '/PID', str(row['Id']), '/F'], capture_output=True)
+    stopped = [row['Id'] for row in host_processes()]
+    run_launcher('stop')
     wait_for(lambda: not host_processes(), HOST_START_SECONDS, 'GameHelper to exit')
-    return [row['Id'] for row in stopped]
+    return stopped
 
 
 def restart_host():
-    stop_host()
     log_start = PLUGIN_LOG.stat().st_size if PLUGIN_LOG.exists() else 0
-    environment = dict(os.environ, __COMPAT_LAYER='RunAsInvoker')  # GameHelper only needs read access to the game
-    launcher = subprocess.Popen([str(HOST_DIRECTORY / 'Launcher.exe')], cwd=HOST_DIRECTORY, env=environment,
-                                creationflags=subprocess.CREATE_NEW_CONSOLE)
-    time.sleep(POLL_SECONDS)
-    press_enter_in_console(launcher.pid)  # the launcher warns that the path contains "poe" and waits for a key
-    launcher.wait(HOST_START_SECONDS)
-    host = wait_for(lambda: [row for row in host_processes() if not row['Path'].lower().endswith('launcher.exe')],
-                    HOST_START_SECONDS, 'GameHelper')
+    run_launcher('restart')
+    host = wait_for(host_processes, HOST_START_SECONDS, 'GameHelper')
 
     def enabled_lines():
         if not PLUGIN_LOG.exists() or PLUGIN_LOG.stat().st_size <= log_start:

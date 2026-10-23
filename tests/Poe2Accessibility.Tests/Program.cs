@@ -34,6 +34,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(NearbyThingsAreNamedOncePerApproach), NearbyThingsAreNamedOncePerApproach);
             Run(nameof(WallBumpThudsOncePerContact), WallBumpThudsOncePerContact);
             Run(nameof(FriendsGetTheirOwnStream), FriendsGetTheirOwnStream);
+            Run(nameof(PhrasesFollowTheGameLanguage), PhrasesFollowTheGameLanguage);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -409,6 +410,35 @@ namespace Poe2Accessibility.Tests
             Equal("- 50 - - 25", Feed(100, 49, 45, 51, 20), "each threshold once on the way down");
             Equal("- 50", Feed(61, 40), "re-armed 10 points above");
             Equal("- 25", Feed(100, 10), "a big hit says only the lowest");
+        }
+
+        private static void PhrasesFollowTheGameLanguage()
+        {
+            try
+            {
+                Localization.Detect("en");
+                Equal("2 of 5", Announcements.ListPosition(2, 5), "english position");
+                Equal("Life 25 percent", Announcements.LowLife(25), "english life");
+                Equal("Wounded Man, 9 steps, up left, no route", Announcements.ScanEntry("Wounded Man", 9, Announcements.StickDirections[3], 0, null, false), "english scan entry");
+                Equal("right", Announcements.StickDirections[0], "english direction");
+                Equal("D-pad right", Announcements.ButtonName("DPadRight", false), "english button");
+
+                Localization.Detect("es");
+                Equal("2 de 5", Announcements.ListPosition(2, 5), "spanish position");
+                Equal("Vida 25 por ciento", Announcements.LowLife(25), "spanish life");
+                Equal("Wounded Man, 9 pasos, arriba a la izquierda, sin ruta", Announcements.ScanEntry("Wounded Man", 9, Announcements.StickDirections[3], 0, null, false), "spanish scan entry");
+                Equal("Renly, 1 paso, abajo 3, luego izquierda", Announcements.ScanEntry("Renly", 1, "abajo", 3, "izquierda", true), "spanish scan entry with a turn");
+                Equal("cruceta derecha", Announcements.ButtonName("DPadRight", false), "spanish button");
+                Equal("A", Announcements.ButtonName("Button4", false), "letters stay");
+
+                Equal("es", Localization.ParseGameLanguage("[GENERAL]\nlanguage=en\n[LANGUAGE]\nlanguage=ES\n"), "ini section");
+                Localization.Detect("auto");
+                Equal(true, Localization.Language is "en" or "es", "auto never throws");
+            }
+            finally
+            {
+                Localization.Detect("en");
+            }
         }
 
         private static string Said(ScanAnswer answer) => $"{answer.Entry?.Name ?? "None"} {answer.CategoryChanged}";

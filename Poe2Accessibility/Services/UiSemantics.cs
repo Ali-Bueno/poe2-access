@@ -70,6 +70,11 @@ namespace Poe2Accessibility.Services
                 return listNode;
             }
 
+            if (this.DescribeOptionList(info) is { } optionNode)
+            {
+                return optionNode;
+            }
+
             if (this.DescribeButtonSlot(info) is { } slotNode)
             {
                 return slotNode;

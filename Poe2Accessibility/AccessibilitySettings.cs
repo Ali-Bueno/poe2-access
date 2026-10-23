@@ -18,6 +18,9 @@ namespace Poe2Accessibility
         public bool AnnounceArea = true;
         public bool VerboseLogging = false;
 
+        /// <summary>Language of the mod's own phrases: "auto" follows the game's text language, or "en" / "es".</summary>
+        public string Language = "auto";
+
         [JsonConverter(typeof(StringEnumConverter))]
         public VK DumpUiTreeHotKey = VK.F6;
 
@@ -41,6 +44,12 @@ namespace Poe2Accessibility
 
         /// <summary>Say when life falls below half and below a quarter.</summary>
         public bool AnnounceLowLife = true;
+
+        /// <summary>Say when mana falls below half, a quarter and a tenth.</summary>
+        public bool AnnounceLowMana = true;
+
+        /// <summary>Name the monster, NPC or object the right stick aims at.</summary>
+        public bool AnnounceTarget = true;
 
         /// <summary>Name what you walk up to or stand on: checkpoints, NPCs, the stash, chests, items, exits.</summary>
         public bool AnnounceNearby = true;
@@ -66,6 +75,9 @@ namespace Poe2Accessibility
         /// <summary>Radar and enemy sound volumes, percent of their designed level (0-200), under SoundVolume.</summary>
         public int RadarVolume = 100;
         public int EnemyVolume = 100;
+
+        /// <summary>Guide beacon volume (hold L3, press the right stick on a scanner choice), percent (0-200).</summary>
+        public int BeaconVolume = 100;
 
         /// <summary>Research: dump the UI tree automatically once per screen (game state) after it settles, and log every focused widget's surroundings.</summary>
         public bool ResearchMode = true;

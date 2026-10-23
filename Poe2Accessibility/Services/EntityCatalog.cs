@@ -32,6 +32,15 @@ namespace Poe2Accessibility.Services
 
         private static readonly ScanCategory[] Landmarks = { ScanCategory.Exits, ScanCategory.Waypoints, ScanCategory.Npcs };
 
+        /// <summary>
+        ///     Remembered while out of the game's range too, but dropped once the player comes back near the place and
+        ///     the game no longer lists them (chest opened, item picked up).
+        /// </summary>
+        private static readonly ScanCategory[] Loot = { ScanCategory.Chests, ScanCategory.Items };
+
+        /// <summary>The game keeps entities this close to the player awake; a loot entry missing inside it is gone.</summary>
+        private const float AwakeWorld = 1000f;
+
         /// <summary>Landmark ids live above entity ids so the two never collide.</summary>
         private const uint LandmarkIdBase = 0x80000000;
 
@@ -45,6 +54,7 @@ namespace Poe2Accessibility.Services
 
         public EntityCatalog(HostMemoryReader memory, UiElementReader elements, InventoryReader inventory, LandmarkTable landmarks, Func<string> areaId, PluginLog log)
         {
+            this.QuestTexts = () => Array.Empty<string>();
             this.log = log;
             this.memory = memory;
             this.elements = elements;
@@ -52,6 +62,9 @@ namespace Poe2Accessibility.Services
             this.landmarks = landmarks;
             this.areaId = areaId;
         }
+
+        /// <summary>The quest tracker's texts on screen ("Find Clearfell", "Slay the Bloated Miller"), for the Quest category.</summary>
+        public Func<IReadOnlyList<string>> QuestTexts { get; set; }
 
         /// <summary>A thing in the world, not a named place of the area's tiles.</summary>
         public static bool IsEntity(ScanEntry entry) => entry.Id < LandmarkIdBase;
@@ -83,15 +96,27 @@ namespace Poe2Accessibility.Services
                 }
 
                 found[entry.Id] = entry;
-                if (Landmarks.Contains(entry.Category))
+                if (Landmarks.Contains(entry.Category) || Loot.Contains(entry.Category))
                 {
                     this.remembered[entry.Id] = entry;
                 }
             }
 
-            foreach (var landmark in this.remembered.Values)
+            var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
+            foreach (var landmark in this.remembered.Values.ToList())
             {
-                found.TryAdd(landmark.Id, landmark);
+                if (found.ContainsKey(landmark.Id))
+                {
+                    continue;
+                }
+
+                if (Loot.Contains(landmark.Category) && Vector2.Distance(here, new Vector2(landmark.WorldX, landmark.WorldY)) < AwakeWorld)
+                {
+                    this.remembered.Remove(landmark.Id); // near its place and no longer listed: opened or picked up
+                    continue;
+                }
+
+                found.Add(landmark.Id, landmark);
             }
 
             foreach (var landmark in this.TileLandmarks(area, player.WorldPosition.Z))
@@ -100,7 +125,71 @@ namespace Poe2Accessibility.Services
             }
 
             var origin = player.WorldPosition;
-            return found.Values.OrderBy(entry => Distance(origin, entry)).ToList();
+            var sorted = found.Values.OrderBy(entry => Distance(origin, entry)).ToList();
+            sorted.InsertRange(0, QuestTargets(sorted, this.QuestTexts()));
+            return sorted;
+        }
+
+        /// <summary>
+        ///     What the quest tracker names: an exit, NPC, object or unique monster whose name the objective text
+        ///     contains ("Find Clearfell" → the exit to Clearfell). Copies in <see cref="ScanCategory.Quest"/>, same
+        ///     ids, so locking one guides to the real thing. A label equal to the name is the thing's own nameplate.
+        /// </summary>
+        public static List<ScanEntry> QuestTargets(IReadOnlyList<ScanEntry> entries, IReadOnlyList<string> questTexts)
+        {
+            var texts = questTexts.Select(Fold).Where(text => text.Length > 0).ToList();
+            var targets = new List<ScanEntry>();
+            if (texts.Count == 0)
+            {
+                return targets;
+            }
+
+            foreach (var entry in entries)
+            {
+                if (entry.Category is ScanCategory.Players or ScanCategory.Items ||
+                    (entry.Category == ScanCategory.Enemies && !entry.Name.Contains(", ", StringComparison.Ordinal)))
+                {
+                    continue; // ordinary monsters share names with flavour text; bosses carry their rarity
+                }
+
+                var name = Fold(entry.Category == ScanCategory.Enemies ? entry.Name[..entry.Name.IndexOf(", ", StringComparison.Ordinal)] : entry.Name);
+                if (name.Length >= 4 && texts.Any(text => text != name && ContainsWord(text, name)) && targets.All(target => target.Id != entry.Id))
+                {
+                    targets.Add(entry with { Category = ScanCategory.Quest });
+                }
+            }
+
+            return targets;
+        }
+
+        private static bool ContainsWord(string text, string name)
+        {
+            for (var at = text.IndexOf(name, StringComparison.Ordinal); at >= 0; at = text.IndexOf(name, at + 1, StringComparison.Ordinal))
+            {
+                var end = at + name.Length;
+                if ((at == 0 || !char.IsLetter(text[at - 1])) && (end == text.Length || !char.IsLetter(text[end])))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>Lower case without accents, so "Sierraclara" in a sentence matches the exit's label.</summary>
+        private static string Fold(string text)
+        {
+            var decomposed = text.ToLowerInvariant().Normalize(System.Text.NormalizationForm.FormD);
+            return new string(decomposed.Where(c => System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark).ToArray());
+        }
+
+        /// <summary>The walkable grid as the game holds it now (see <see cref="WalkableGrid"/>); false outside an area.</summary>
+        public bool TryLiveGrid(out byte[] grid, out int bytesPerRow)
+        {
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            bytesPerRow = area.TerrainMetadata.BytesPerRow;
+            grid = bytesPerRow > 0 ? this.WalkableGrid(area) : Array.Empty<byte>();
+            return grid.Length > 0;
         }
 
         /// <summary>

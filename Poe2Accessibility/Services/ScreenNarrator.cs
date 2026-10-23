@@ -54,6 +54,19 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A panel's opening and its becoming the top layer arrive in one frame (death screen): one reading.</summary>
         private (IntPtr Layer, string Text, DateTime At) lastPanel;
+
+        /// <summary>Texts just read out, so the same screen reported again a moment later (top layer) is not repeated.</summary>
+        private (HashSet<string> Texts, DateTime At) recentTexts = (new HashSet<string>(), DateTime.MinValue);
+
+        /// <summary>Pre-game button hints: the last spoken, and a new set waiting to settle.</summary>
+        private string lastHints = string.Empty;
+        private (string Text, DateTime Since) pendingHints = (string.Empty, DateTime.MinValue);
+
+        /// <summary>Recently read texts are left out of a repeat within this time.</summary>
+        private const int RecentTextsMs = 1500;
+
+        /// <summary>A new set of pre-game hints must stay this long before it is read (screens rebuild in steps).</summary>
+        private const int HintsSettleMs = 400;
         private bool inGame;
         private IntPtr valueOwner;
         private string lastValue = string.Empty;
@@ -70,6 +83,34 @@ namespace Poe2Accessibility.Services
             this.hudSpoken.Clear();
             this.tutorialSpoken.Clear();
             this.inGame = inGameState;
+            this.lastHints = string.Empty;
+        }
+
+        /// <summary>
+        ///     Per frame before the game (login, character selection and creation): the controller hints are how a
+        ///     player learns these screens ("Change class, left stick"; "Next class information, D-pad left and
+        ///     right"), so a new set is read after what is being said, once it has settled.
+        /// </summary>
+        public void OnPreGameHints(ScreenSnapshot snapshot)
+        {
+            var hints = Describe(snapshot.Layers.Where(layer => layer.IsHintBar).SelectMany(layer => layer.Texts));
+            if (hints == this.lastHints)
+            {
+                this.pendingHints = (hints, DateTime.MinValue);
+                return;
+            }
+
+            if (hints != this.pendingHints.Text)
+            {
+                this.pendingHints = (hints, DateTime.UtcNow);
+                return;
+            }
+
+            if ((DateTime.UtcNow - this.pendingHints.Since).TotalMilliseconds >= HintsSettleMs)
+            {
+                this.lastHints = hints;
+                this.Speak("pre-game hints", hints, false);
+            }
         }
 
         /// <summary>Read long tooltips with the focus (setting); short ones always are.</summary>
@@ -361,7 +402,14 @@ namespace Poe2Accessibility.Services
                     this.lastTop = change.Layer.Address;
                     if (focus == null || focusLayer != change.Layer.Address)
                     {
-                        this.Speak("top layer", Describe(change.Texts), true);
+                        // The same screen reported again right after its texts were read (class choice: the class and
+                        // its quote, then the screen with its title): only what was not said yet.
+                        var recent = (DateTime.UtcNow - this.recentTexts.At).TotalMilliseconds < RecentTextsMs ? this.recentTexts.Texts : new HashSet<string>();
+                        var unsaid = change.Texts.Where(text => !recent.Contains(text.Text)).ToList();
+                        if (unsaid.Count > 0)
+                        {
+                            this.Speak("top layer", Describe(unsaid), unsaid.Count == change.Texts.Count);
+                        }
                     }
                     else if (returning && !this.JustFocused())
                     {
@@ -385,8 +433,13 @@ namespace Poe2Accessibility.Services
                 case ScreenChangeKind.TextsAppeared when change.Layer.Address == focusLayer && this.JustFocused():
                     // A popup built inside the focused layer (exit confirmation): its message, then the focused button.
                     var items = new HashSet<string>(focus?.ListItems ?? Array.Empty<string>());
-                    var message = change.Texts.Where(text => !text.IsControl && text.Text != focus?.Text && !items.Contains(text.Text));
-                    this.Speak("message with focus", Announcements.Sentences(new[] { Describe(message), this.lastFocusSpeech }), true);
+                    var message = Describe(change.Texts.Where(text => !text.IsControl && text.Text != focus?.Text && !items.Contains(text.Text) &&
+                                                                     !(focus?.Value.Contains(text.Text, StringComparison.Ordinal) ?? false)));
+                    if (message.Length > 0)
+                    {
+                        this.Speak("message with focus", Announcements.Sentences(new[] { message, this.lastFocusSpeech }), true);
+                    }
+
                     break;
                 case ScreenChangeKind.TextsAppeared:
                     if (IsBehind(change.Layer, top) && change.Layer.Address != focusLayer)
@@ -400,6 +453,7 @@ namespace Poe2Accessibility.Services
                     if (fresh.Count > 0)
                     {
                         this.Speak("appeared", Describe(fresh), navigatingWithoutFocus);
+                        this.recentTexts = (new HashSet<string>(fresh.Select(text => text.Text)), DateTime.UtcNow);
                     }
 
                     break;
@@ -417,11 +471,13 @@ namespace Poe2Accessibility.Services
         ///     Everything the screen shows where the player is: the focused control's layer, else the top panel
         ///     (character stats, support gem capacity, skill points) — legends excluded, they have their own command.
         /// </summary>
-        public void SpeakScreen(ScreenSnapshot snapshot, IntPtr focusLayer)
+        public void SpeakScreen(ScreenSnapshot snapshot, IntPtr focusLayer, bool withHints = false)
         {
             var layer = snapshot.Find(focusLayer) ?? snapshot.TopInteractive;
-            var texts = layer?.Texts.Where(text => !ScreenWatcher.IsLegend(text)).ToList() ?? new List<ScreenText>();
-            this.Speak("screen", texts.Count == 0 ? Announcements.NothingToRead : Describe(texts), true);
+            var texts = layer?.Texts.Where(text => !ScreenWatcher.IsLegend(text) && !IsNumber(text.Text)).ToList() ?? new List<ScreenText>();
+            var hints = withHints ? snapshot.Layers.SelectMany(each => each.Texts).Where(ScreenWatcher.IsLegend).ToList() : new List<ScreenText>();
+            var spoken = Announcements.Sentences(new[] { Describe(texts), Describe(hints) }.Where(part => part.Length > 0));
+            this.Speak("screen", spoken.Length == 0 ? Announcements.NothingToRead : spoken, true);
         }
 
         /// <summary>The focus announcement already named it: a stash tab's title "3" is the context's "tab 3".</summary>

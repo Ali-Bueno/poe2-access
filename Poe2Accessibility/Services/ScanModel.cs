@@ -8,6 +8,8 @@ namespace Poe2Accessibility.Services
     /// <summary>Scanner categories in browsing order: first how to leave, then where to go, then who and what is around.</summary>
     public enum ScanCategory
     {
+        /// <summary>What the quest tracker names (copies of entries of the other categories).</summary>
+        Quest,
         Exits,
         Waypoints,
         Npcs,

@@ -18,6 +18,9 @@ namespace Poe2Accessibility.Services
         private const float ReachWorld = 200f;
         private const float RearmWorld = 300f;
 
+        /// <summary>The same thing is named again only after a minute (a fight around a checkpoint repeated it every 8 s).</summary>
+        private const int RepeatCooldownMs = 60000;
+
         /// <summary>D2R ground items: up to four names per utterance, later groups 900 ms apart.</summary>
         private const int NamesPerUtterance = 4;
         private const int UtteranceGapMs = 900;
@@ -29,7 +32,7 @@ namespace Poe2Accessibility.Services
 
         private readonly EntityCatalog catalog;
         private readonly IAccessibilityOutputService output;
-        private readonly ProximityTracker tracker = new(ReachWorld, RearmWorld);
+        private readonly ProximityTracker tracker = new(ReachWorld, RearmWorld, RepeatCooldownMs);
         private readonly Queue<string> pending = new();
         private long lastPoll = long.MinValue / 2;
         private long lastSpoken = long.MinValue / 2;
@@ -61,7 +64,7 @@ namespace Poe2Accessibility.Services
             {
                 this.lastPoll = now;
                 var near = this.catalog.Entries().Where(entry => EntityCatalog.IsEntity(entry) && Announced.Contains(entry.Category));
-                foreach (var entry in this.tracker.Update(player.WorldPosition.X, player.WorldPosition.Y, near))
+                foreach (var entry in this.tracker.Update(player.WorldPosition.X, player.WorldPosition.Y, near, now))
                 {
                     this.pending.Enqueue(entry.Name);
                 }
