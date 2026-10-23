@@ -12,7 +12,7 @@ toggles the map legend). Turn the controller commands off with `ControllerComman
 |---|---|---|
 | Tap | Next line of the focused element: its name first, then each tooltip line | Where the scanner's choice is now; nothing chosen: repeat the last speech |
 | Double tap | Previous line | Life, mana, energy shield, harmful states and the boss's life ("Vida 80 por ciento, maná 40 por ciento. Envenenado. El molinero hinchado 55 por ciento") |
-| Hold (half a second) | Whole tooltip (item mods, gem stats, definitions) | Read the screen (quest tracker, HUD texts), then the button hints |
+| Hold (half a second) | Whole tooltip (item mods, gem stats, definitions) | Read the screen (quest tracker, HUD texts), then the skill bar: each set's buttons with what they fire, the empty ones last |
 | Hold + right stick flick | — (the game navigates with the right stick in menus) | Scanner (below) |
 | Hold + right stick press (R3) | — | Guide beacon on the scanner's choice (below); again on the same choice turns it off |
 | Hold a second and a half | — | The mod's settings menu (below) |
@@ -50,7 +50,7 @@ yet (a closed tutorial barrier): "Todavía no hay ruta hacia …".
 
 ## Settings menu (gameplay)
 
-Hold L3 for a second and a half: "Ajustes del mod. Nombres de objetivos, activado, 1 de 49". Without holding L3,
+Hold L3 for a second and a half: "Ajustes del mod. Ayuda: el botón L3 en el juego, 1 de 56" (five help topics, then the settings, then the sound glossary). Without holding L3,
 flick the right stick up or down to move through the list and left or right to change the value (switches
 toggle, volumes move in steps of 25 percent, language: same as the game, Spanish, English). Tap L3 to close:
 "Ajustes guardados" (written to `config/settings.txt`). Opening a game panel closes it too.

@@ -170,10 +170,12 @@ namespace Poe2Accessibility.Services
             }
 
             var tooltip = this.TooltipLines(info);
-            if ((namedById || hovered || label.Length == 0) && tooltip.Count > 0)
+            var context = this.InGame ? this.PanelTitle(info) : string.Empty;
+            if ((namedById || hovered || label.Length == 0 || label == context) && tooltip.Count > 0)
             {
-                // Only a control id named it, nothing did (cosmetic slots: an icon), or the free cursor rests on it
-                // (passive node): the tooltip's title is what a sighted player reads ("Support Gem Slot", "Weapon Effect").
+                // Only a control id named it, nothing did (cosmetic slots: an icon), the label found is the panel's
+                // title (the quest map's underground toggle), or the free cursor rests on it (passive node): the
+                // tooltip's title is what a sighted player reads ("Support Gem Slot", "Weapon Effect").
                 label = tooltip[0];
                 tooltip.RemoveAt(0);
                 namedById = false;
@@ -214,7 +216,7 @@ namespace Poe2Accessibility.Services
                 Text = label,
                 Value = value,
                 IsVisible = this.elements.IsVisible(info),
-                Context = this.InGame ? this.PanelTitle(info) : string.Empty,
+                Context = context,
                 NamedByControlId = namedById,
                 Position = position,
                 ListItems = listItems,

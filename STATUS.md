@@ -117,7 +117,10 @@
 | Target from the HUD target bar (controller) | done (live) | HUD > entity_info_container > entity_info_display > name_label; MouseOverEntity is 0 with a pad |
 | Discoveries, pick-ups, unmet requirements | done (code) | `DiscoveryNarrator` ("Jefe a la vista" heard live), `InventoryWatch` (ServerData MainInventory1 via reflection), red tooltip lines with digits |
 | Checkpoint travel map markers | done (live) | `UiSemantics.MapMarkers`: "Viajar al punto de control, abajo, 2 de 2" (direction from the player's own marker) |
-| Melee reach ping, item comparison, skill bar reader, NPC quest bell, route prompts | todo | `docs/d2r-gap-analysis.md` (254 rows, top 15 ranked) |
+| Skill bar readout (after the screen on the gameplay hold) | done (live) | `UiSemantics.SkillBar`: "Set de habilidades principal: LT, Activar set… X, Saeta básica… Vacío: LB, cruceta arriba, Y"; bind screen names skills from their dat rows (`docs/research/skill-bar.md`) |
+| Route turn prompts, partial routes, edge knock, controls help in the settings menu | done (live) | "Ahora arriba a la derecha, 10"; knock when the D-pad cannot move in a menu; help topics open the L3 menu |
+| Social, Challenges, Cosmetics, Quests, Character, Skills panels | done (live) | filter box as an edit field; Challenges rows by their `selected_*` marker frame ("El relicario, 0/50, 5 de 8", expand reads the goal); free-cursor pages read after the tab; icon buttons named by their tooltip ("Efecto para arma") |
+| Melee reach ping, item comparison, NPC quest bell, unexplored-areas category, wall tones | todo | `docs/d2r-gap-analysis.md` (254 rows, top 15 ranked) |
 
 ## Derived facts (with source)
 - Plugin contract, hotkeys (`Utils.IsKeyPressedAndNotTimeout`), events (`RemoteEvents.AreaChanged` public,
@@ -197,7 +200,9 @@
   polling, layer of the focus) → `UiSemantics` (role/label/value; in game: `InventoryReader` grids/slots,
   keyword links, row text, panel title) → `AccessibleUiNode`.
 - In-game archetypes: `UiSemantics.InGame` (inventory, links with row and definition, panel title),
-  `.Tooltips` (+0x120), `.Geometry` (value drawn by a sibling), `.Slots` (button-bound slots), `.Lists`.
+  `.Tooltips` (+0x120), `.Geometry` (value drawn by a sibling), `.Slots` (button-bound slots), `.Lists`
+  (selectable lists, `selected_*` marker rows), `.SkillBar` (HUD bar + bind-screen glyphs + dat chain to names),
+  `.MapMarkers`, `.OptionLists` (NPC dialogue).
 - Screen: `ScreenWatcher` (background snapshots of visible layers: texts, controls, enabled bit, glyph
   pairing, row merge) → `ScreenDiffer` (pure: two-snapshot confirmation, counters, top layer) →
   `ScreenNarrator` (pre-game: popups/top layer; in game: focus layer, tab titles, the objective box and
@@ -220,9 +225,10 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-User test of the 2026-10-23 evening batch (beacon, quest category, boss life, dodge whoosh, heartbeat, object sounds,
-target names, Spanish speech); verify the NPC dialogue options in Clearfell (Renly); then continue down
-`docs/d2r-gap-analysis.md` (settings menu, pickup notices, cannot-equip reasons, item comparison).
+User test of the 2026-10-23 batches (skill bar on the L3 hold, beacon turns, boss life, dodge whoosh, heartbeat,
+object sounds, social/challenges/cosmetics panels); verify the NPC dialogue options and vendors in Clearfell (the
+current character is still before the Miller); then continue down `docs/d2r-gap-analysis.md` (item comparison,
+melee reach ping, unexplored-areas category).
 
 ## Known issues / open questions
 - Character creation: the highlighted "Continue" button is not the UI manager's focus (M+0x748/0x750/0x760 all
@@ -245,8 +251,11 @@ target names, Spanish speech); verify the NPC dialogue options in Clearfell (Ren
   "up 2, then up left" / "up left 2, then up"; behind a closed tutorial barrier the route says "no route" or
   stalls without saying why; the transition prompt "Press-Hold (Show Options)" is not read.
 - Dialogue open: the focus line is spoken, then ~200 ms later again with the speaker (the first is cut off).
-- Bind screen and reward panel open with noisy labels ("Targeting Mode. Automatic. 5. 6.", "3. 0. Gold. I").
-- "Game Paused" is read when menus close; skills-panel rows repeat the skill name before the tooltip.
+- Reward panel opens with noisy labels ("3. 0. Gold. I"); the bind screen is fixed (one utterance, no numbers).
+- Cosmetics: the weapon-set toggles "I / II" read only "desmarcado, casilla de verificación, 2 de 2" (the numerals
+  are drawn, no text in memory).
+- After a host restart the first HUD texts ("Nuevo punto de control") and discoveries are announced again.
+- "Game Paused" is read when menus close.
 - GameHelper's own automation plugins (AutoHotKeyTrigger, PickupHelper) were enabled; disabled in
   `configs/plugins.json` on 2026-10-23 (they press keys / click for the player).
 - Running from a path containing "poe" triggers GameHelper's launcher warning (its anti-detection advice).
