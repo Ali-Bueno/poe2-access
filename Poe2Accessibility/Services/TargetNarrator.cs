@@ -127,7 +127,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            this.output.Speak(spoken, now - this.spokenAt < SweepMs);
+            this.output.Say(SpeechKind.EnemyNames, spoken, now - this.spokenAt < SweepMs); // a sweep cuts the last name
             this.log.Debug($"Target -> {entity.Path} \"{spoken}\"");
             (this.spoken, this.spokenAt) = (hovered, now);
         }

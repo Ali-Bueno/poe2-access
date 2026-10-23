@@ -50,10 +50,20 @@ yet (a closed tutorial barrier): "Todavía no hay ruta hacia …".
 
 ## Settings menu (gameplay)
 
-Hold L3 for a second and a half: "Ajustes del mod. Ayuda: el botón L3 en el juego, 1 de 56" (five help topics, then the settings, then the sound glossary). Without holding L3,
+Hold L3 for a second and a half: "Ajustes del mod. Ayuda: el botón L3 en el juego, 1 de 68" (five help topics, then the settings, then the sound glossary). Without holding L3,
 flick the right stick up or down to move through the list and left or right to change the value (switches
 toggle, volumes move in steps of 25 percent, language: same as the game, Spanish, English). Tap L3 to close:
 "Ajustes guardados" (written to `config/settings.txt`). Opening a game panel closes it too.
+
+**Speech priority** (D2R): nine "Voz: …" entries choose how each kind of news is delivered — waits its turn,
+cuts in when urgent, cuts in, or cuts in and cannot be cut off (later news queues behind it for 1.5 s). Defaults:
+a harmful state beginning and an arrival with the guide hold; a state ending cuts in; low life/mana, boss life,
+aimed names and places cut in only when urgent (life at or under the heartbeat line, mana at 10 %, a boss at 30 %
+or defeated, a quick sweep of the aim); objectives and picked-up items wait.
+
+**Wall tones** (off by default, D2R): a soft hiss per screen direction that swells as a wall closes in (higher
+ahead, lower behind, panned to the sides); "Alcance de los tonos de pared" sets how far ahead it starts (world
+units, 600 ≈ 1.5 s of walking). It follows the radar volume and is silent in menus, like the radar.
 
 The last group is the **sound glossary**: every sound of the mod by name and meaning ("Latido, vida en o bajo el
 límite"); left or right plays it.

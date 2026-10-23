@@ -72,7 +72,7 @@ namespace Poe2Accessibility.Services
             {
                 if (!this.active.ContainsKey(ailment) && !this.baseline)
                 {
-                    this.output.Urge(Announcements.AilmentBegins(ailment));
+                    this.output.Say(SpeechKind.StatusBegins, Announcements.AilmentBegins(ailment));
                 }
 
                 this.active[ailment] = now;
@@ -83,7 +83,7 @@ namespace Poe2Accessibility.Services
                 if (!present.Contains(ailment) && now - lastSeen >= EndHoldMs)
                 {
                     this.active.Remove(ailment);
-                    this.output.Speak(Announcements.AilmentEnds(ailment), false);
+                    this.output.Say(SpeechKind.StatusEnds, Announcements.AilmentEnds(ailment));
                 }
             }
 

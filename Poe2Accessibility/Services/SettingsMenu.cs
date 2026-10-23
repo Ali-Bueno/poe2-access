@@ -50,6 +50,15 @@ namespace Poe2Accessibility.Services
             Number(nameof(AccessibilitySettings.ObjectVolume), 0, 200, 25),
             Number(nameof(AccessibilitySettings.HeartbeatVolume), 0, 200, 25),
             Choice(nameof(AccessibilitySettings.Language), "auto", "es", "en"),
+            Choice(nameof(AccessibilitySettings.SpeechStatusBegins), SpeechPriority.Levels),
+            Choice(nameof(AccessibilitySettings.SpeechStatusEnds), SpeechPriority.Levels),
+            Choice(nameof(AccessibilitySettings.SpeechLifeAndMana), SpeechPriority.Levels),
+            Choice(nameof(AccessibilitySettings.SpeechBossLife), SpeechPriority.Levels),
+            Choice(nameof(AccessibilitySettings.SpeechEnemyNames), SpeechPriority.Levels),
+            Choice(nameof(AccessibilitySettings.SpeechQuest), SpeechPriority.Levels),
+            Choice(nameof(AccessibilitySettings.SpeechPlaces), SpeechPriority.Levels),
+            Choice(nameof(AccessibilitySettings.SpeechGroundItems), SpeechPriority.Levels),
+            Choice(nameof(AccessibilitySettings.SpeechArrivals), SpeechPriority.Levels),
         };
 
         private readonly Item[] items;
@@ -142,7 +151,7 @@ namespace Poe2Accessibility.Services
             {
                 Kind.Switch => (bool)value! ? Announcements.On : Announcements.Off,
                 Kind.Number => item.Max == 200 ? Announcements.Percent((int)value!) : $"{value}",
-                _ => Announcements.LanguageName((string)value!),
+                _ => Announcements.ChoiceName((string)value!),
             };
         }
 

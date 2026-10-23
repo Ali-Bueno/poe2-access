@@ -43,6 +43,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(StickClickWhileHoldingL3), StickClickWhileHoldingL3);
             Run(nameof(HeartbeatBeatsUnderTheLine), HeartbeatBeatsUnderTheLine);
             Run(nameof(WallTonesSwellNearWalls), WallTonesSwellNearWalls);
+            Run(nameof(NewsFollowItsDeliveryLevel), NewsFollowItsDeliveryLevel);
             Run(nameof(BuffIdsNameAilments), BuffIdsNameAilments);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
@@ -426,6 +427,45 @@ namespace Poe2Accessibility.Tests
             var partial = RoutePlanner.FindRoute(grid, row, start, goal, true, out var reached);
             Equal(false, reached, "the goal is not reached");
             Equal(true, partial != null && partial[^1].X == 9, "the way ends at the wall, nearest to the goal");
+        }
+
+        private static void NewsFollowItsDeliveryLevel()
+        {
+            var output = new RecordingOutput();
+            SpeechPriority.Chosen = null;
+            output.Say(SpeechKind.StatusBegins, "a");
+            output.Say(SpeechKind.GroundItems, "b");
+            output.Say(SpeechKind.LifeAndMana, "c", urgent: true);
+            output.Say(SpeechKind.LifeAndMana, "d");
+            SpeechPriority.Chosen = _ => SpeechPriority.CutsIn;
+            output.Say(SpeechKind.GroundItems, "e");
+            SpeechPriority.Chosen = _ => "nonsense";
+            output.Say(SpeechKind.Quest, "f");
+            SpeechPriority.Chosen = null;
+            Equal("urge a|b False|c True|d False|e True|f False", string.Join("|", output.Calls), "each kind at its level, defaults for unknown values");
+        }
+
+        private sealed class RecordingOutput : IAccessibilityOutputService
+        {
+            public List<string> Calls { get; } = new();
+
+            public string BackendName => "test";
+
+            public void Speak(string text, bool interrupt = false) => this.Calls.Add($"{text} {interrupt}");
+
+            public void Urge(string text, int holdMs = 1500) => this.Calls.Add($"urge {text}");
+
+            public void Repeat()
+            {
+            }
+
+            public void Stop()
+            {
+            }
+
+            public void Dispose()
+            {
+            }
         }
 
         private static void WallTonesSwellNearWalls()

@@ -64,7 +64,7 @@ namespace Poe2Accessibility.Services
                 if (!this.baseline && playing && count > before)
                 {
                     var name = this.reader.DescribeItemEntity(address) ?? item.Path;
-                    this.output.Speak(Announcements.PickedUp(name, before == 0 ? 0 : count - before), false);
+                    this.output.Say(SpeechKind.GroundItems, Announcements.PickedUp(name, before == 0 ? 0 : count - before));
                 }
             }
 

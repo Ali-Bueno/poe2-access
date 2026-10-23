@@ -78,7 +78,7 @@ namespace Poe2Accessibility.Services
                     names.Add(this.pending.Dequeue());
                 }
 
-                this.output.Speak(Announcements.Nearby(names), false);
+                this.output.Say(SpeechKind.Places, Announcements.Nearby(names));
                 this.lastSpoken = now;
             }
         }

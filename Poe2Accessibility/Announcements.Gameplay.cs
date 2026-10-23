@@ -126,6 +126,15 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceLevelUp) => T("Level up", "Subida de nivel"),
             nameof(AccessibilitySettings.Radar) => T("Radar", "Radar"),
             nameof(AccessibilitySettings.WallTones) => T("Wall tones", "Tonos de pared"),
+            nameof(AccessibilitySettings.SpeechStatusBegins) => T("Speech: a state begins", "Voz: empieza un estado"),
+            nameof(AccessibilitySettings.SpeechStatusEnds) => T("Speech: a state ends", "Voz: termina un estado"),
+            nameof(AccessibilitySettings.SpeechLifeAndMana) => T("Speech: low life and mana", "Voz: vida y maná bajos"),
+            nameof(AccessibilitySettings.SpeechBossLife) => T("Speech: boss life", "Voz: vida del jefe"),
+            nameof(AccessibilitySettings.SpeechEnemyNames) => T("Speech: aimed names", "Voz: nombres apuntados"),
+            nameof(AccessibilitySettings.SpeechQuest) => T("Speech: objectives", "Voz: objetivos"),
+            nameof(AccessibilitySettings.SpeechPlaces) => T("Speech: places and things nearby", "Voz: lugares y cosas cercanas"),
+            nameof(AccessibilitySettings.SpeechGroundItems) => T("Speech: picked-up items", "Voz: objetos recogidos"),
+            nameof(AccessibilitySettings.SpeechArrivals) => T("Speech: arrivals", "Voz: llegadas"),
             nameof(AccessibilitySettings.WallToneRange) => T("Wall tone range", "Alcance de los tonos de pared"),
             nameof(AccessibilitySettings.EnemySounds) => T("Enemy sounds", "Sonidos de enemigos"),
             nameof(AccessibilitySettings.NpcSounds) => T("NPC sounds", "Sonidos de personajes"),
@@ -263,6 +272,16 @@ namespace Poe2Accessibility
             "es" => "Español",
             "en" => "English",
             _ => T("Same as the game", "Igual que el juego"),
+        };
+
+        /// <summary>A choice setting's value: a speech delivery level, else a language.</summary>
+        public static string ChoiceName(string value) => value switch
+        {
+            Services.SpeechPriority.Waits => T("waits its turn", "espera su turno"),
+            Services.SpeechPriority.Urgent => T("cuts in when urgent", "interrumpe si es urgente"),
+            Services.SpeechPriority.CutsIn => T("cuts in", "interrumpe"),
+            Services.SpeechPriority.Holds => T("cuts in and cannot be cut off", "interrumpe y no se corta"),
+            _ => LanguageName(value),
         };
 
         /// <summary>The thing the right stick aims at: "Drowned", "Bloated Miller, unique, 40 percent".</summary>

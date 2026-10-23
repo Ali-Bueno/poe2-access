@@ -342,7 +342,7 @@ namespace Poe2Accessibility.Services
                     : change.Texts.Where(text => this.tutorialSpoken.Add(text.Text)).ToList();
                 if (hints.Count > 0)
                 {
-                    this.Speak("objective", Describe(hints), false);
+                    this.Speak("objective", Describe(hints), SpeechPriority.Interrupts(SpeechKind.Quest));
                 }
 
                 return;

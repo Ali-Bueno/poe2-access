@@ -169,6 +169,7 @@ namespace Poe2Accessibility
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds));
                 this.commands.Settings = () => this.Settings;
                 this.commands.SkillBar = this.ReadSkillBar;
+                SpeechPriority.Chosen = this.SpeechLevel;
                 this.narrator.InPanel = this.semantics.IsInPanel;
                 this.narrator.Refresh = node => this.semantics?.Describe(node.Address, node.IsHovered);
                 this.commands.SettingsChanged = changed =>
@@ -492,13 +493,13 @@ namespace Poe2Accessibility
 
             if (this.lifeAlarm.Update(life.Health.CurrentInPercent()) is { } threshold)
             {
-                this.output.Urge(Announcements.LowLife(threshold));
+                this.output.Say(SpeechKind.LifeAndMana, Announcements.LowLife(threshold), threshold <= this.Settings.LowLifeBelow);
             }
 
             if (this.Settings.AnnounceLowMana && life.Mana.Total > 0 && this.manaAlarm.Update(life.Mana.CurrentInPercent()) is { } manaThreshold)
             {
-                // Mana runs low in every fight: after what is being said, except when it is nearly gone.
-                this.output.Speak(Announcements.LowMana(manaThreshold), manaThreshold <= 10);
+                // Mana runs low in every fight: urgent only when it is nearly gone.
+                this.output.Say(SpeechKind.LifeAndMana, Announcements.LowMana(manaThreshold), manaThreshold <= 10);
             }
         }
 
@@ -519,6 +520,20 @@ namespace Poe2Accessibility
             var states = this.statuses?.Active.Select(Announcements.AilmentName).ToList() ?? new System.Collections.Generic.List<string>();
             return Announcements.Sentences(new[] { vitals, string.Join(", ", states), this.bosses?.Status() ?? string.Empty }.Where(part => part.Length > 0));
         }
+
+        /// <summary>The delivery level the player chose for a kind of news (speech priority).</summary>
+        private string SpeechLevel(SpeechKind kind) => kind switch
+        {
+            SpeechKind.StatusBegins => this.Settings.SpeechStatusBegins,
+            SpeechKind.StatusEnds => this.Settings.SpeechStatusEnds,
+            SpeechKind.LifeAndMana => this.Settings.SpeechLifeAndMana,
+            SpeechKind.BossLife => this.Settings.SpeechBossLife,
+            SpeechKind.EnemyNames => this.Settings.SpeechEnemyNames,
+            SpeechKind.Quest => this.Settings.SpeechQuest,
+            SpeechKind.Places => this.Settings.SpeechPlaces,
+            SpeechKind.GroundItems => this.Settings.SpeechGroundItems,
+            _ => this.Settings.SpeechArrivals,
+        };
 
         /// <summary>The skill bar's sets in screen order (D2R skill bar readout); null outside gameplay or when not found.</summary>
         private string? ReadSkillBar()
@@ -843,7 +858,7 @@ namespace Poe2Accessibility
             this.nearby?.Reset();
             if (this.Settings.AnnounceArea)
             {
-                this.output.Speak(Announcements.Area(areaName), false);
+                this.output.Say(SpeechKind.Places, Announcements.Area(areaName));
             }
         }
 

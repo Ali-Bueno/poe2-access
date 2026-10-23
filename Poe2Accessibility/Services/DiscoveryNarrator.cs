@@ -83,7 +83,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            this.output.Speak(string.Join(". ", this.waiting.Select(Announcements.Discovered)), false);
+            this.output.Say(SpeechKind.Places, string.Join(". ", this.waiting.Select(Announcements.Discovered)));
             if (this.sound != null)
             {
                 this.audio.Play(this.sound, 0f, 1f, this.Gain);

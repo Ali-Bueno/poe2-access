@@ -21,6 +21,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Boss life steps, percent (D2R: 50, then every 10; 75 and 5 added for long PoE fights).</summary>
         private static readonly int[] LifeSteps = { 75, 50, 40, 30, 20, 10, 5 };
 
+        /// <summary>From here down a boss's life cuts in when its kind is set to "cuts in when urgent".</summary>
+        private const int UrgentBossPercent = 30;
+
         /// <summary>Monsters this close (world units, about a screen) are watched.</summary>
         private const float WatchWorld = 1400f;
 
@@ -147,7 +150,7 @@ namespace Poe2Accessibility.Services
             {
                 if (boss.Engaged && boss.Step > 0)
                 {
-                    this.output.Speak(Announcements.BossDefeated(boss.Name), false);
+                    this.output.Say(SpeechKind.BossLife, Announcements.BossDefeated(boss.Name), true);
                     this.log.Info($"Boss defeated: {boss.Name}");
                 }
 
@@ -169,7 +172,7 @@ namespace Poe2Accessibility.Services
             if (step < boss.Step)
             {
                 // The real value, not the step (D2R): a big hit may skip several steps at once.
-                this.output.Speak(Announcements.BossLife(boss.Name, percent), false);
+                this.output.Say(SpeechKind.BossLife, Announcements.BossLife(boss.Name, percent), percent <= UrgentBossPercent);
             }
 
             this.bosses[entity.Id] = (boss.Name, step, engaged, percent);

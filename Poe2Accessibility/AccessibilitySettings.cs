@@ -75,6 +75,36 @@ namespace Poe2Accessibility
         /// <summary>Navigation radar: a cue when the way up, left, right or down on screen changes (tin exit, breath open floor, tock wall).</summary>
         public bool Radar = true;
 
+        // Speech priority (D2R): per kind of news, "waits" (its turn), "urgent" (cuts in when urgent), "cuts" (cuts in),
+        // or "holds" (cuts in and later news queues behind it for a moment).
+
+        /// <summary>A harmful state begins: delivery level.</summary>
+        public string SpeechStatusBegins = "holds";
+
+        /// <summary>A harmful state ends: delivery level.</summary>
+        public string SpeechStatusEnds = "cuts";
+
+        /// <summary>Low life and mana: delivery level.</summary>
+        public string SpeechLifeAndMana = "urgent";
+
+        /// <summary>Boss life: delivery level.</summary>
+        public string SpeechBossLife = "urgent";
+
+        /// <summary>Names of what the aim lands on: delivery level.</summary>
+        public string SpeechEnemyNames = "urgent";
+
+        /// <summary>New objectives and tutorial lines: delivery level.</summary>
+        public string SpeechQuest = "waits";
+
+        /// <summary>Areas, discoveries and things nearby: delivery level.</summary>
+        public string SpeechPlaces = "urgent";
+
+        /// <summary>Picked-up items: delivery level.</summary>
+        public string SpeechGroundItems = "waits";
+
+        /// <summary>Arriving with the guide: delivery level.</summary>
+        public string SpeechArrivals = "holds";
+
         /// <summary>Wall tones (D2R): a soft noise band per screen direction that swells as a wall closes in. Off by default.</summary>
         public bool WallTones = false;
 
