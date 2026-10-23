@@ -50,7 +50,7 @@ yet (a closed tutorial barrier): "Todavía no hay ruta hacia …".
 
 ## Settings menu (gameplay)
 
-Hold L3 for a second and a half: "Ajustes del mod. Ayuda: el botón L3 en el juego, 1 de 70" (five help topics, then the settings, then the sound glossary). Without holding L3,
+Hold L3 for a second and a half: "Ajustes del mod. Ayuda: el botón L3 en el juego, 1 de 71" (five help topics, then the settings, then the sound glossary). Without holding L3,
 flick the right stick up or down to move through the list and left or right to change the value (switches
 toggle, volumes move in steps of 25 percent, language: same as the game, Spanish, English). Tap L3 to close:
 "Ajustes guardados" (written to `config/settings.txt`). Opening a game panel closes it too.
