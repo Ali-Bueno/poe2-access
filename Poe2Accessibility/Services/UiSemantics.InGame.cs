@@ -147,6 +147,25 @@ namespace Poe2Accessibility.Services
             return lines;
         }
 
+        /// <summary>Whether an ancestor panel carries this title (a social page under the Challenges overlay does not).</summary>
+        public bool IsInPanel(IntPtr address, string title)
+        {
+            if (!this.elements.TryReadElement(address, out var info))
+            {
+                return false;
+            }
+
+            foreach (var ancestor in this.elements.ReadAncestors(info, PanelTitleHops))
+            {
+                if (this.elements.ReadWStringStructAt(ancestor.Address + GameLayout.Element.PanelTitleOffset)?.Trim() == title)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>Title of the nearest ancestor panel (GameLayout.Element.PanelTitleOffset).</summary>
         private string PanelTitle(in UiElementReader.ElementInfo info)
         {

@@ -32,6 +32,14 @@ namespace Poe2Accessibility.Services
         /// <summary>Breadth-first budget when looking for the selected tab of a page (options: ~800 visible nodes).</summary>
         private const int MaxTabSearchNodes = 2000;
 
+        /// <summary>A visible frame whose control name starts so marks the chosen row of a list that keeps the focus.</summary>
+        private const string SelectionMarkerPrefix = "selected_";
+
+        /// <summary>Challenges: focused tabs_container → row 5 levels down → its marker.</summary>
+        private const int MarkerSearchDepth = 8;
+
+        private const int MaxMarkerNodes = 400;
+
         /// <summary>
         ///     A non-control container whose entry holder (child or grandchild) lists controls, with a valid selected
         ///     index: the selected entry is read with all its texts in screen order, then its position.
@@ -60,6 +68,81 @@ namespace Poe2Accessibility.Services
                 Position = Announcements.ListPosition(selected + 1, entries.Count),
                 IsVisible = this.elements.IsVisible(info),
                 Context = this.InGame ? this.PanelTitle(info) : string.Empty,
+            };
+        }
+
+        /// <summary>
+        ///     A container that keeps the focus while a marker frame shows the chosen row ("selected_challenge_frame"
+        ///     in Challenges, moved by the stick): the marked row with all its texts, then its place among the rows.
+        /// </summary>
+        private AccessibleUiNode? DescribeMarkedRow(in UiElementReader.ElementInfo info)
+        {
+            if (this.elements.TryReadText(info.Address, out var own) && own.Length > 0)
+            {
+                return null;
+            }
+
+            var queue = new Queue<(UiElementReader.ElementInfo Node, int Depth)>();
+            queue.Enqueue((info, 0));
+            var budget = MaxMarkerNodes;
+            while (queue.Count > 0 && budget-- > 0)
+            {
+                var (node, depth) = queue.Dequeue();
+                foreach (var childAddress in this.elements.ReadChildren(node))
+                {
+                    if (!this.elements.TryReadElement(childAddress, out var child) || !child.IsVisibleFlag)
+                    {
+                        continue;
+                    }
+
+                    if (child.Name.StartsWith(SelectionMarkerPrefix, StringComparison.Ordinal) && node.Address != info.Address)
+                    {
+                        return this.MarkedRow(info, node);
+                    }
+
+                    if (depth < MarkerSearchDepth)
+                    {
+                        queue.Enqueue((child, depth + 1));
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private AccessibleUiNode? MarkedRow(in UiElementReader.ElementInfo owner, in UiElementReader.ElementInfo row)
+        {
+            var text = this.ScreenOrderText(row);
+            if (text.Length == 0)
+            {
+                return null;
+            }
+
+            var position = string.Empty;
+            if (this.elements.TryReadElement(row.Raw.ParentPtr, out var list))
+            {
+                var rows = new List<IntPtr>();
+                foreach (var childAddress in this.elements.ReadChildren(list))
+                {
+                    if (this.elements.TryReadElement(childAddress, out var child) && child.IsVisibleFlag)
+                    {
+                        rows.Add(childAddress);
+                    }
+                }
+
+                var index = rows.IndexOf(row.Address);
+                position = index < 0 ? string.Empty : Announcements.ListPosition(index + 1, rows.Count);
+            }
+
+            return new AccessibleUiNode
+            {
+                Address = owner.Address,
+                Name = owner.Name,
+                Role = UiRole.ListItem,
+                Text = text,
+                Position = position,
+                IsVisible = this.elements.IsVisible(owner),
+                Context = this.InGame ? this.PanelTitle(owner) : string.Empty,
             };
         }
 

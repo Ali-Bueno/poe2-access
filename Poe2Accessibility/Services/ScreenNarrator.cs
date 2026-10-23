@@ -70,11 +70,20 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private const int NewLayerFocusDelayMs = 300;
 
-        private (string Text, DateTime At)? deferredFocus;
+        /// <summary>A panel chosen in the radial menu opens this long after its name was said.</summary>
+        private const int ChosenPanelMs = 2500;
+
+        private (string Text, DateTime At, AccessibleUiNode Node)? deferredFocus;
         private IntPtr lastFocusLayer;
 
         /// <summary>The layer holding the focus (FocusTracker), to notice a focus that moved into a popup.</summary>
         public Func<IntPtr>? FocusLayer { get; set; }
+
+        /// <summary>The focused node described again (its panel may have been built since); null when gone.</summary>
+        public Func<AccessibleUiNode, AccessibleUiNode?>? Refresh { get; set; }
+
+        /// <summary>Whether a text lies inside the panel with the given title; null reads every text.</summary>
+        public Func<IntPtr, string, bool>? InPanel { get; set; }
 
         /// <summary>Read a screen's message with its first focus (delete character); off for the game menu.</summary>
         public bool ReadScreenMessages { get; set; } = true;
@@ -201,7 +210,7 @@ namespace Poe2Accessibility.Services
             this.lastFocusLayer = layer;
             if (intoNewLayer)
             {
-                this.deferredFocus = (text, DateTime.UtcNow);
+                this.deferredFocus = (text, DateTime.UtcNow, node);
                 return;
             }
 
@@ -235,7 +244,16 @@ namespace Poe2Accessibility.Services
             if (this.deferredFocus is { } deferred && (DateTime.UtcNow - deferred.At).TotalMilliseconds >= NewLayerFocusDelayMs)
             {
                 this.deferredFocus = null;
-                this.Speak("focus in a new layer", deferred.Text, true);
+                var text = deferred.Text;
+                if (deferred.Node.Context.Length == 0 && this.Refresh?.Invoke(deferred.Node) is { Context.Length: > 0 } fresh &&
+                    fresh.Context != this.lastContext)
+                {
+                    // The panel finished building after its focus arrived (Skills beside the inventory): its title now.
+                    text = Announcements.InContext(fresh.Context, text);
+                    this.lastContext = fresh.Context;
+                }
+
+                this.Speak("focus in a new layer", text, true);
             }
 
             if (this.pendingFocus != null && !this.JustFocused())
@@ -342,9 +360,30 @@ namespace Poe2Accessibility.Services
                         return; // the focus announcement already named this panel, or the same switch reported twice
                     }
 
+                    var namedByChoice = withFocus && this.lastPanel.Text == tabTitle.Text &&
+                                        (DateTime.UtcNow - this.lastPanel.At).TotalMilliseconds < ChosenPanelMs;
                     this.lastContext = tabTitle.Text;
                     this.lastTabAt = DateTime.UtcNow;
+                    if (namedByChoice)
+                    {
+                        return; // the radial menu named the panel as it was chosen, and the focus followed it
+                    }
+
                     var focusSpeech = withFocus ? this.lastFocusSpeech : focus != null ? this.Focused(focus) : string.Empty;
+                    if (focusSpeech.Length == 0 && focusLayer == IntPtr.Zero && change.Layer.Address == snapshot.TopInteractive?.Address)
+                    {
+                        // A page the free cursor browses (Challenges): nothing will be focused, so its content follows
+                        // the tab; a progress count ("0/8") stays, other bare numbers mean nothing alone.
+                        // The page under an overlay page stays visible to the tree (Friends under Challenges): only
+                        // the texts inside the panel the tab names, when the panel is found.
+                        var pageTexts = change.Texts.Where(text => text != tabTitle && (!IsNumber(text.Text) || text.Text.Contains('/'))).ToList();
+                        var inPage = this.InPanel == null ? pageTexts : pageTexts.Where(text => this.InPanel(text.Address, tabTitle.Text)).ToList();
+                        var page = Describe(inPage.Count > 0 ? inPage : pageTexts);
+                        this.lastPanel = (change.Layer.Address, page, DateTime.UtcNow);
+                        this.Speak("tab", page.Length > 0 ? Announcements.Sentences(new[] { tabTitle.Text, page }) : tabTitle.Text, true);
+                        return;
+                    }
+
                     this.Speak("tab", focusSpeech.Length > 0 ? Announcements.InContext(tabTitle.Text, focusSpeech) : tabTitle.Text, true);
                     return;
                 }

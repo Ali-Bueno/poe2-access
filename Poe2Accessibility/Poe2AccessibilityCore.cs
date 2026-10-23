@@ -167,6 +167,8 @@ namespace Poe2Accessibility
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds));
                 this.commands.Settings = () => this.Settings;
                 this.commands.SkillBar = this.ReadSkillBar;
+                this.narrator.InPanel = this.semantics.IsInPanel;
+                this.narrator.Refresh = node => this.semantics?.Describe(node.Address, node.IsHovered);
                 this.commands.SettingsChanged = changed =>
                 {
                     this.ApplySettings(changed);

@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using Poe2Accessibility.Models;
 
     /// <summary>
@@ -28,6 +29,8 @@ namespace Poe2Accessibility.Services
         private const int MaxRowCells = 6;
 
         private const int RowCellDepth = 2;
+
+        private static readonly string[] StructuralSuffixes = { "_parent", "_container", "_layout", "_background", "_bg", "_overlay" };
 
         private readonly UiElementReader elements;
         private readonly UiCatalog catalog;
@@ -75,6 +78,11 @@ namespace Poe2Accessibility.Services
                 return optionNode;
             }
 
+            if (this.DescribeMarkedRow(info) is { } markedNode)
+            {
+                return markedNode;
+            }
+
             if (this.DescribeButtonSlot(info) is { } slotNode)
             {
                 return slotNode;
@@ -86,7 +94,9 @@ namespace Poe2Accessibility.Services
             }
 
             var ownText = this.elements.TryReadText(address, out var text) ? text : string.Empty;
-            var role = this.InferRole(info, ownText.Length > 0);
+            // A text box wrapped in a bare frame (social filter): the frame takes the focus, its child is the input.
+            var input = ownText.Length == 0 && !info.HasFlagBit(GameLayout.Element.TextInputFlagBit) ? this.TextInputChild(info) : IntPtr.Zero;
+            var role = input != IntPtr.Zero ? UiRole.TextField : this.InferRole(info, ownText.Length > 0);
             var value = string.Empty;
             var namedById = false;
             string label;
@@ -101,7 +111,7 @@ namespace Poe2Accessibility.Services
                     label = this.FindRowLabel(info);
                     if (label.Length == 0)
                     {
-                        label = this.elements.ReadWStringStructAt(address + GameLayout.Element.PlaceholderOffset)?.Trim() ?? string.Empty;
+                        label = this.elements.ReadWStringStructAt((input != IntPtr.Zero ? input : address) + GameLayout.Element.PlaceholderOffset)?.Trim() ?? string.Empty;
                     }
 
                     if (label.Length == 0)
@@ -457,7 +467,7 @@ namespace Poe2Accessibility.Services
         {
             foreach (var ancestor in this.elements.ReadAncestors(info, maxHops))
             {
-                if (ancestor.Name.Length > 0)
+                if (ancestor.Name.Length > 0 && !IsStructuralName(ancestor.Name))
                 {
                     return ancestor.Name;
                 }
@@ -466,9 +476,32 @@ namespace Poe2Accessibility.Services
             return string.Empty;
         }
 
-        /// <summary>"patch_notes_button" → "patch notes"; "label_(button)" → "label".</summary>
+        /// <summary>The direct child that is a text input; zero when none.</summary>
+        private IntPtr TextInputChild(in UiElementReader.ElementInfo info)
+        {
+            foreach (var childAddress in this.elements.ReadChildren(info))
+            {
+                if (this.elements.TryReadElement(childAddress, out var child) && child.HasFlagBit(GameLayout.Element.TextInputFlagBit))
+                {
+                    return childAddress;
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+
+        /// <summary>Layout ids that only group other elements ("panels_parent", "tabs_container"): they name nothing.</summary>
+        private static bool IsStructuralName(string controlName) =>
+            StructuralSuffixes.Any(suffix => controlName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
+
+        /// <summary>"patch_notes_button" → "patch notes"; "label_(button)" → "label"; a structural id → "".</summary>
         private static string Humanise(string controlName)
         {
+            if (IsStructuralName(controlName))
+            {
+                return string.Empty;
+            }
+
             var name = controlName.Replace("_(button)", string.Empty, StringComparison.Ordinal);
             foreach (var suffix in new[] { "_button", "_combobox", "_checkbox", "_slider", "_label", "_frame" })
             {

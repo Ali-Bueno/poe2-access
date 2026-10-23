@@ -61,6 +61,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Element whose children are the screen layers; in game that is not the root (set by the plugin each tick).</summary>
         public IntPtr LayerContainer { get; set; }
 
+        /// <summary>The layer container <see cref="CurrentLayer"/> was found under.</summary>
+        private IntPtr layerFoundUnder;
+
         /// <summary>Forget the last focus so the next tick re-announces (screen change, user request).</summary>
         /// <summary>The active state's UI manager (zero when none is found); the pad state lives there too.</summary>
         public IntPtr Manager { get; private set; }
@@ -139,6 +142,7 @@ namespace Poe2Accessibility.Services
             var topLevel = chain.Count >= 2 ? chain[^2].Address : element;
             var layerIndex = chain.FindIndex(ancestor => ancestor.Address == this.LayerContainer);
             this.CurrentLayer = layerIndex > 0 ? chain[layerIndex - 1].Address : layerIndex == 0 ? element : topLevel;
+            this.layerFoundUnder = this.LayerContainer;
             if (!this.elements.TryReadElement(this.CurrentRoot, out var root))
             {
                 return -1;
@@ -155,6 +159,13 @@ namespace Poe2Accessibility.Services
             }
 
             this.sinceValuePoll.Restart();
+            if (this.layerFoundUnder != this.LayerContainer)
+            {
+                // Focused before the in-game layer container was known (plugin started on an open panel): the
+                // layer is the container itself until placed again.
+                this.PanelIndexOf(this.Current.Address);
+            }
+
             var fresh = this.semantics.Describe(this.Current.Address, this.Current.IsHovered);
             if (fresh is { IsVisible: false })
             {

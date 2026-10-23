@@ -455,7 +455,7 @@ namespace Poe2Accessibility
 
         /// <summary>Entering a panel: its title before the focused item.</summary>
         public static string InContext(string context, string focused) =>
-            context.Length == 0 ? focused : focused.Length == 0 ? context : $"{context}. {focused}";
+            context.Length == 0 ? focused : focused.Length == 0 ? context : Sentences(new[] { context, focused });
 
         /// <summary>Numbered tabs ("-1-" vendor pages, "1" default stash tabs) read "tab 1"; named tabs keep their name.</summary>
         public static string TabTitle(string caption)
