@@ -191,6 +191,54 @@ namespace Poe2Accessibility
 
             /// <summary>NPC dialogue box (speaker, line, Continue / choices), child 57 of G while open (2026-10-23).</summary>
             public const int NpcDialogueLayerOffset = 0x798;
+
+            /// <summary>The HUD skill bar ("skill_bar"): children 1..12 are the slot frames in screen order (docs/research/skill-bar.md).</summary>
+            public const int SkillBarOffset = 0x610;
+
+            public const string SkillBarName = "skill_bar";
+
+            /// <summary>The "Set Skill Bind" screen, kept hidden in game; its bars hold every binding's button glyph.</summary>
+            public const int BindDisplayOffset = 0x788;
+
+            public const string BindDisplayName = "bind_management_display";
+        }
+
+        /// <summary>
+        ///     A skill bar slot element (two per slot frame: primary and secondary set; same class in the bind screen)
+        ///     and the dat chain from its skill icon to the skill's localized name; measured on 0.5.5e, 2026-10-23
+        ///     (docs/research/skill-bar.md).
+        /// </summary>
+        public static class SkillSlot
+        {
+            /// <summary>int32 binding index: 0..11 primary set, 12..23 the same buttons in the secondary set.</summary>
+            public const int BindingIndexOffset = 0x370;
+
+            public const int ButtonsPerSet = 12;
+
+            /// <summary>On the slot's icon child: the ActiveSkillDetails listed in the player's skills (Actor+0xB08).</summary>
+            public const int SkillDetailsOffset = 0x2D8;
+
+            /// <summary>A dat foreign key is (row, file); the file's table name is a std::wstring at file+8.</summary>
+            public const int KeyFileOffset = 0x8;
+
+            public const int FileNameOffset = 0x8;
+
+            /// <summary>ActiveSkillDetails → GrantedEffectsPerLevel (GameHelper's +0x48 reads ActionTypes in 0.5.5e).</summary>
+            public const int LevelKeyOffset = 0x58;
+
+            public const string LevelTable = "Data/Balance/GrantedEffectsPerLevel.dat";
+
+            public const int EffectKeyOffset = 0x0;
+
+            public const string EffectTable = "Data/Balance/GrantedEffects.dat";
+
+            /// <summary>GrantedEffects → ActiveSkills (unaligned).</summary>
+            public const int SkillKeyOffset = 0x4F;
+
+            public const string SkillTable = "Data/Balance/ActiveSkills.dat";
+
+            /// <summary>ActiveSkills row: pointer to the NUL-terminated UTF-16 displayed name ("Saeta básica").</summary>
+            public const int DisplayedNameOffset = 0x8;
         }
 
         /// <summary>

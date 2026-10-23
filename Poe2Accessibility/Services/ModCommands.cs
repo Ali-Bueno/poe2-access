@@ -51,6 +51,9 @@ namespace Poe2Accessibility.Services
 
         public Action<AccessibilitySettings>? SettingsChanged { get; set; }
 
+        /// <summary>What each skill bar button fires, read after the screen on the gameplay hold; null when unknown.</summary>
+        public Func<string?>? SkillBar { get; set; }
+
         /// <summary>The settings menu is open (its flicks need no L3).</summary>
         public bool InSettingsMenu => this.settingsMenu.IsOpen;
 
@@ -126,6 +129,11 @@ namespace Poe2Accessibility.Services
                     break;
                 case PadGesture.Hold:
                     this.narrator.SpeakScreen(this.screen(), IntPtr.Zero, true);
+                    if (this.SkillBar?.Invoke() is { Length: > 0 } bar)
+                    {
+                        this.output.Speak(bar, false);
+                    }
+
                     break;
                 case PadGesture.StickClick:
                     this.ToggleBeacon();

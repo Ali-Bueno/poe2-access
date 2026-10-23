@@ -20,8 +20,8 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     An in-game control with no caption that shows a controller glyph: the button it binds, then what is
-        ///     bound — the title of the skill icon's tooltip, else (tooltip not built until first hovered) the icon's
-        ///     file name, else empty ("Set Skill Bind" bar, 2026-10-23).
+        ///     bound — the skill's name from its dat rows, else the title of the icon's tooltip (built for actions;
+        ///     for skills only once hovered), else the icon's file name, else empty ("Set Skill Bind" bar, 2026-10-23).
         /// </summary>
         private AccessibleUiNode? DescribeButtonSlot(in UiElementReader.ElementInfo info)
         {
@@ -32,14 +32,20 @@ namespace Poe2Accessibility.Services
 
             var button = string.Empty;
             var bound = string.Empty;
+            var skill = string.Empty;
             var icon = string.Empty;
             var details = new List<string>();
             var queue = new Queue<(UiElementReader.ElementInfo Node, int Depth)>();
             queue.Enqueue((info, 0));
             var budget = MaxSlotNodes;
-            while (queue.Count > 0 && budget-- > 0 && (button.Length == 0 || bound.Length == 0))
+            while (queue.Count > 0 && budget-- > 0 && (button.Length == 0 || (bound.Length == 0 && skill.Length == 0)))
             {
                 var (node, depth) = queue.Dequeue();
+                if (skill.Length == 0)
+                {
+                    skill = this.SkillName(node);
+                }
+
                 if (this.elements.ReadTextureKey(node) is { } key)
                 {
                     if (button.Length == 0 && ControllerGlyphs.FromTextureKey(key) is { Length: > 0 } glyph)
@@ -78,7 +84,7 @@ namespace Poe2Accessibility.Services
                 Name = info.Name,
                 Role = UiRole.Panel,
                 Text = button,
-                Value = bound.Length > 0 ? bound : icon.Length > 0 ? icon : Announcements.Empty, // binding reads just the new skill
+                Value = skill.Length > 0 ? skill : bound.Length > 0 ? bound : icon.Length > 0 ? icon : Announcements.Empty, // binding reads just the new skill
                 IsVisible = this.elements.IsVisible(info),
                 Context = this.PanelTitle(info),
                 Tooltip = details,

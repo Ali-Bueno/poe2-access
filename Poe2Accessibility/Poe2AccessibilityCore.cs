@@ -166,6 +166,7 @@ namespace Poe2Accessibility
                 this.entities.QuestTexts = this.QuestTexts;
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds));
                 this.commands.Settings = () => this.Settings;
+                this.commands.SkillBar = this.ReadSkillBar;
                 this.commands.SettingsChanged = changed =>
                 {
                     this.ApplySettings(changed);
@@ -511,6 +512,18 @@ namespace Poe2Accessibility
                 life.EnergyShield.Total > 0 ? life.EnergyShield.CurrentInPercent() : null);
             var states = this.statuses?.Active.Select(Announcements.AilmentName).ToList() ?? new System.Collections.Generic.List<string>();
             return Announcements.Sentences(new[] { vitals, string.Join(", ", states), this.bosses?.Status() ?? string.Empty }.Where(part => part.Length > 0));
+        }
+
+        /// <summary>The skill bar's sets in screen order (D2R skill bar readout); null outside gameplay or when not found.</summary>
+        private string? ReadSkillBar()
+        {
+            if (this.gameState?.CurrentState != GameStateTypes.InGameState || this.semantics == null || this.focus == null)
+            {
+                return null;
+            }
+
+            var sets = this.semantics.ReadSkillBar(this.focus.LayerContainer);
+            return sets.Count == 0 ? null : Announcements.Sentences(sets.Select(set => Announcements.SkillSet(set.Title, set.Bindings)));
         }
 
         /// <summary>The HUD's texts (quest tracker among them) for the scanner's Quest category.</summary>

@@ -8,6 +8,38 @@ namespace Poe2Accessibility
         /// <summary>"Guiding to Clearfell, 116 steps, down 3, then left" (the scanner's route description).</summary>
         public static string BeaconLocked(string described) => T($"Guiding to {described}", $"Guiando hacia {described}");
 
+        /// <summary>A skill bar set when the game gives no title for it.</summary>
+        public static string SkillSetTitle(int set) =>
+            set == 0 ? T("Primary skill set", "Set de habilidades principal") : T("Secondary skill set", "Set de habilidades secundario");
+
+        /// <summary>
+        ///     One set of the skill bar in screen order, the free buttons together at the end:
+        ///     "Primary skill set: RT, Fragmentation Rounds. X, Basic Bolt. Empty: LB, Y".
+        /// </summary>
+        public static string SkillSet(string title, IEnumerable<(string Button, string Bound)> bindings)
+        {
+            var bound = new List<string>();
+            var free = new List<string>();
+            foreach (var (button, name) in bindings)
+            {
+                if (name.Length > 0)
+                {
+                    bound.Add($"{button}, {name}");
+                }
+                else
+                {
+                    free.Add(button);
+                }
+            }
+
+            if (free.Count > 0)
+            {
+                bound.Add($"{T("Empty", "Vacío")}: {string.Join(", ", free)}");
+            }
+
+            return $"{title}: {string.Join(". ", bound)}";
+        }
+
         /// <summary>The guide reached a turn: "Now up right, 12".</summary>
         public static string RouteTurn(string direction, int steps) => T($"Now {direction}, {steps}", $"Ahora {direction}, {steps}");
 
