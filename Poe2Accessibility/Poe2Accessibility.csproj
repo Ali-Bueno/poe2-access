@@ -42,6 +42,7 @@
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\ui-catalog.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\ui-catalog.json')" />
     <!-- Named tiles (exits) for areas GameHelper's Radar table lacks; same format as its important_tgt_files.txt. -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\landmarks.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\area-names.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
     <!-- The game's own sounds, extracted locally by tools/Poe2UiExtract sounds (gitignored, never shipped). -->
     <ItemGroup><_GameSounds Include="$(MSBuildProjectDirectory)\sounds\*.wav" /></ItemGroup>
     <Copy SourceFiles="@(_GameSounds)" DestinationFolder="$(PluginDeployDir)sounds" SkipUnchangedFiles="true" />

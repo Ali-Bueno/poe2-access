@@ -21,6 +21,17 @@ if (args.Length > 0 && string.Equals(args[0], "sounds", StringComparison.Ordinal
     return SoundExtractor.Run(game, args.Length > 2 ? args[2] : @"Poe2Accessibility\sounds");
 }
 
+// Args: areas <gameDir> <outFile>  -- localized world-area names from WorldAreas.datc64 as { lang: { id: name } }.
+if (args.Length > 0 && string.Equals(args[0], "areas", StringComparison.OrdinalIgnoreCase))
+{
+    if (args.Length < 3)
+    {
+        Console.WriteLine("Usage: Poe2UiExtract.exe areas <gameDir> <outFile>");
+        return 1;
+    }
+    return AreaExtractor.Run(args[1], args[2]);
+}
+
 // Args: [0] = path to _.index.bin, [1] = output dir
 string indexPath = args.Length > 0 ? args[0] : @"D:\games\steam\steamapps\common\Path of Exile 2\Bundles2\_.index.bin";
 string outDir = args.Length > 1 ? args[1] : @"out";
