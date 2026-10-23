@@ -178,6 +178,35 @@ namespace Poe2Accessibility
         /// <summary>A requirement the character does not meet (drawn red): "No cumples: Requiere Nivel 5".</summary>
         public static string Unmet(string requirement) => T($"Not met: {requirement}", $"No cumples: {requirement}");
 
+        /// <summary>Controls help topics at the top of the settings menu.</summary>
+        public static string HelpTitle(string topic) => topic switch
+        {
+            "help_l3" => T("Help: the L3 button in play", "Ayuda: el botón L3 en el juego"),
+            "help_scanner" => T("Help: scanner", "Ayuda: escáner"),
+            "help_guide" => T("Help: guide", "Ayuda: guía"),
+            "help_menus" => T("Help: menus", "Ayuda: menús"),
+            _ => T("Help: this menu", "Ayuda: este menú"),
+        };
+
+        public static string HelpText(string topic) => topic switch
+        {
+            "help_l3" => T(
+                "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states and the boss. Hold: the screen and the button hints. Hold a second and a half: this menu",
+                "Toque: dónde está lo elegido en el escáner, o repetir. Doble toque: vida, maná, estados y el jefe. Mantener: la pantalla y las pistas de botones. Mantener un segundo y medio: este menú"),
+            "help_scanner" => T(
+                "Hold L3 and flick the right stick: up and down change the category, left and right go through it, nearest first. Quest is first: what the objective names",
+                "Mantén L3 y mueve el stick derecho: arriba y abajo cambian de categoría, izquierda y derecha la recorren, de la más cercana a la más lejana. Misión va primero: lo que nombra el objetivo"),
+            "help_guide" => T(
+                "Hold L3 and press the right stick: a ping guides you to the scanner's choice along a free route, turns are named. Again on the same target turns it off",
+                "Mantén L3 y presiona el stick derecho: un ping te guía hacia lo elegido en el escáner por un camino libre, y se nombran los giros. Otra vez sobre el mismo objetivo la apaga"),
+            "help_menus" => T(
+                "In menus L3 reads the next line of the focused thing, double tap the previous, hold the whole description. A knock means the end of the list",
+                "En los menús L3 lee la siguiente línea de lo enfocado, doble toque la anterior, mantener la descripción completa. Un toc indica el final de la lista"),
+            _ => T(
+                "Right stick up and down move, left and right change or play. Tap L3 to close and save",
+                "Stick derecho arriba y abajo para moverte, izquierda y derecha para cambiar o escuchar. Toca L3 para cerrar y guardar"),
+        };
+
         public static string SettingsMenuTitle => T("Mod settings", "Ajustes del mod");
 
         public static string SettingsMenuClosed => T("Settings saved", "Ajustes guardados");

@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
 
     /// <summary>
@@ -13,6 +14,9 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class SettingsMenu
     {
+        /// <summary>The list opens on the controls help (D2R onboarding): one topic per entry, read in full.</summary>
+        private static readonly string[] HelpTopics = { "help_l3", "help_scanner", "help_guide", "help_menus", "help_settings" };
+
         private static readonly Item[] SettingItems =
         {
             Switch(nameof(AccessibilitySettings.AnnounceTarget)),
@@ -54,7 +58,8 @@ namespace Poe2Accessibility.Services
         public SettingsMenu(SoundGlossary? glossary = null)
         {
             this.glossary = glossary;
-            var all = new List<Item>(SettingItems);
+            var all = new List<Item>(HelpTopics.Select(topic => new Item(topic, Kind.Help, 0, 0, 0, Array.Empty<string>())));
+            all.AddRange(SettingItems);
             foreach (var key in glossary?.Keys ?? Array.Empty<string>())
             {
                 all.Add(new Item(key, Kind.Sound, 0, 0, 0, Array.Empty<string>()));
@@ -95,6 +100,11 @@ namespace Poe2Accessibility.Services
                 return string.Empty;
             }
 
+            if (item.Kind == Kind.Help)
+            {
+                return Announcements.HelpText(item.Name); // left or right reads the topic again
+            }
+
             var field = Field(item.Name);
             switch (item.Kind)
             {
@@ -116,7 +126,9 @@ namespace Poe2Accessibility.Services
         private string Describe(AccessibilitySettings settings)
         {
             var item = this.items[this.index];
-            return item.Kind == Kind.Sound
+            return item.Kind == Kind.Help
+                ? Announcements.SettingLine(Announcements.HelpTitle(item.Name), Announcements.HelpText(item.Name), this.index + 1, this.items.Length)
+                : item.Kind == Kind.Sound
                 ? Announcements.SettingLine(Announcements.SoundName(item.Name), Announcements.SoundMeaning(item.Name), this.index + 1, this.items.Length)
                 : Announcements.SettingLine(Announcements.SettingName(item.Name), this.Value(settings, item), this.index + 1, this.items.Length);
         }
@@ -149,6 +161,9 @@ namespace Poe2Accessibility.Services
 
             /// <summary>A glossary entry: plays a sound, changes nothing.</summary>
             Sound,
+
+            /// <summary>A controls help topic: read, changes nothing.</summary>
+            Help,
         }
 
         private sealed record Item(string Name, Kind Kind, int Min, int Max, int Step, string[] Choices);
