@@ -15,6 +15,7 @@ toggles the map legend). Turn the controller commands off with `ControllerComman
 | Hold (half a second) | Whole tooltip (item mods, gem stats, definitions) | Read the screen (quest tracker, HUD texts), then the button hints |
 | Hold + right stick flick | — (the game navigates with the right stick in menus) | Scanner (below) |
 | Hold + right stick press (R3) | — | Guide beacon on the scanner's choice (below); again on the same choice turns it off |
+| Hold a second and a half | — | The mod's settings menu (below) |
 
 A new focus starts again from its first line. Tooltips are also read automatically when the focus lands
 (`ReadTooltipsOnFocus`, on by default).
@@ -46,6 +47,16 @@ when it is down, faster as the route shortens. Walk so the ping is centred. "Lle
 gesture on the same target, or changing area, turns it off. With no scanner choice the gesture locks the first
 quest target. The ping is silent while a panel or dialogue is open (the lock is kept) and when no route exists
 yet (a closed tutorial barrier): "Todavía no hay ruta hacia …".
+
+## Settings menu (gameplay)
+
+Hold L3 for a second and a half: "Ajustes del mod. Nombres de objetivos, activado, 1 de 49". Without holding L3,
+flick the right stick up or down to move through the list and left or right to change the value (switches
+toggle, volumes move in steps of 25 percent, language: same as the game, Spanish, English). Tap L3 to close:
+"Ajustes guardados" (written to `config/settings.txt`). Opening a game panel closes it too.
+
+The last group is the **sound glossary**: every sound of the mod by name and meaning ("Latido, vida en o bajo el
+límite"); left or right plays it.
 
 ## Radial menu
 
@@ -86,7 +97,13 @@ right Skills, down Bind Screen, down-left Character, left Passives, up-left Ques
 - Harmful states as they begin ("Envenenado", "Congelado", "Aturdido"…) and end ("Ya no estás envenenado")
   (`StatusAlerts`).
 - What the right stick aims at, while you aim: "Ahogado", "El molinero hinchado, único, 40 por ciento"
-  (`AnnounceTarget`).
+  (`AnnounceTarget`), read from the game's own target bar at the top of the screen.
+- Discoveries: the first time the game shows an exit, a waypoint or checkpoint, or a boss in the area: "Nueva
+  salida: Sierraclara", "Nuevo punto de control", "Jefe a la vista: El molinero hinchado" (`AnnounceDiscoveries`).
+- Pick-ups: "Recogido: Traje de ermitaño"; a stack that grew: "Recogido 2 más: …" (`AnnouncePickups`).
+- Tooltips mark requirements drawn in red: "No cumples: Requiere Nivel 5".
+- The checkpoint travel map names each checkpoint by where it lies from yours: "Viajar al punto de control,
+  abajo, botón, 2 de 2".
 - Before the game (login, character selection and creation) the controller hints are read when a screen
   opens, and only the new ones when the focus changes them ("Iniciar el juego en el pueblo/guarida, LT más A").
 - The mod speaks Spanish when the game does (`Language`: auto, en, es).

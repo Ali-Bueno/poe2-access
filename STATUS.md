@@ -113,7 +113,11 @@
 | Spanish/English mod phrases, localized area names | done (live) | `Localization` (game ini), `catalog/area-names.json` from WorldAreas (10 languages) |
 | Pre-game hints, delete/creation screens, edit done | done (live) | hints on entry, only new ones after; "¿Estás seguro…? yarkey… cancelar, botón, 1 de 2"; "Zq, edición terminada" |
 | NPC dialogue options read one by one | done (code) | `UiSemantics.OptionLists`: confirm glyph marks the option; verify in town |
-| Melee reach ping, settings menu, item comparison, pickup notices | todo | `docs/d2r-gap-analysis.md` (254 rows, top 15 ranked) |
+| Spoken settings menu + sound glossary (hold L3 1.5 s) | done (live) | `SettingsMenu`, `SoundGlossary`; 26 settings + 23 sounds |
+| Target from the HUD target bar (controller) | done (live) | HUD > entity_info_container > entity_info_display > name_label; MouseOverEntity is 0 with a pad |
+| Discoveries, pick-ups, unmet requirements | done (code) | `DiscoveryNarrator` ("Jefe a la vista" heard live), `InventoryWatch` (ServerData MainInventory1 via reflection), red tooltip lines with digits |
+| Checkpoint travel map markers | done (live) | `UiSemantics.MapMarkers`: "Viajar al punto de control, abajo, 2 de 2" (direction from the player's own marker) |
+| Melee reach ping, item comparison, skill bar reader, NPC quest bell, route prompts | todo | `docs/d2r-gap-analysis.md` (254 rows, top 15 ranked) |
 
 ## Derived facts (with source)
 - Plugin contract, hotkeys (`Utils.IsKeyPressedAndNotTimeout`), events (`RemoteEvents.AreaChanged` public,
