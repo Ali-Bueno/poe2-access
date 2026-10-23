@@ -63,6 +63,11 @@ namespace Poe2Accessibility.Services
                 return inventoryNode;
             }
 
+            if (this.DescribePassiveNode(info, hovered) is { } passiveNode)
+            {
+                return passiveNode;
+            }
+
             if (this.DescribeLink(info) is { } linkNode)
             {
                 return linkNode;

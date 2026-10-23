@@ -204,6 +204,67 @@ namespace Poe2Accessibility
         }
 
         /// <summary>
+        ///     Passive tree (0.5.5e, measured 2026-10-23, docs/research/passive-tree.md): node element → PSG node record →
+        ///     PassiveSkills row; the tree state object holds the graph file and the allocated ids; GameHelper's
+        ///     SkillTreeNodeUiElement (+0x2A0) and its child path are stale.
+        /// </summary>
+        public static class PassiveTree
+        {
+            /// <summary>On a node element: its PassiveSkillGraph node record.</summary>
+            public const int NodeRecordOffset = 0x2C8;
+
+            /// <summary>Record +0x00: foreign key to the PassiveSkills row.</summary>
+            public const int RecordSkillKeyOffset = 0x0;
+
+            public const string SkillTable = "Data/Balance/PassiveSkills.dat";
+
+            /// <summary>Node element → group → canvas; canvas +0x3D8 = the tree state object T.</summary>
+            public const int CanvasStateOffset = 0x3D8;
+
+            /// <summary>T +0x160 → the graph file (name at +8); file +0x28 → the graph content C.</summary>
+            public const int StateGraphFileOffset = 0x160;
+
+            public const string GraphFileName = "Metadata/PassiveSkillGraph.psg";
+
+            public const int GraphContentOffset = 0x28;
+
+            /// <summary>C +0x58: std::vector of edge pointers; edge +0 from record, +8 to record (out-edges only per record).</summary>
+            public const int EdgeListOffset = 0x58;
+
+            public const int EdgeToOffset = 0x8;
+
+            /// <summary>T +0x1A8: std::vector of 4-byte entries whose low u16 is an allocated node's graph id.</summary>
+            public const int AllocatedOffset = 0x1A8;
+
+            public const int AllocatedEntrySize = 4;
+
+            /// <summary>PassiveSkills row (unaligned): graph id, name, class list, kind flags.</summary>
+            public const int RowGraphIdOffset = 0x30;
+
+            public const int RowNameOffset = 0x32;
+
+            /// <summary>Row +0x3A: (count, pointer) to 16-byte keys into Characters.dat — set only on class start nodes.</summary>
+            public const int RowCharactersOffset = 0x3A;
+
+            public const int RowKeystoneOffset = 0x4A;
+
+            public const int RowNotableOffset = 0x4B;
+
+            /// <summary>"Mastery" decoration: drawn as a large icon, its links are not drawn.</summary>
+            public const int RowIconOnlyOffset = 0x54;
+
+            public const int RowJewelSocketOffset = 0x65;
+
+            /// <summary>Bytes of the row read at once (up to the jewel socket flag).</summary>
+            public const int RowBytes = 0x70;
+
+            /// <summary>Characters row +0x00: its Id, the player's metadata path ("Metadata/Characters/StrDex/StrDexFourb").</summary>
+            public const int CharacterIdOffset = 0x0;
+
+            public const int KeySize = 0x10;
+        }
+
+        /// <summary>
         ///     A skill bar slot element (two per slot frame: primary and secondary set; same class in the bind screen)
         ///     and the dat chain from its skill icon to the skill's localized name; measured on 0.5.5e, 2026-10-23
         ///     (docs/research/skill-bar.md).

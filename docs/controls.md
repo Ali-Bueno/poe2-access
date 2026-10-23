@@ -71,6 +71,13 @@ units, 600 ≈ 1.5 s of walking). It follows the radar volume and is silent in m
 The last group is the **sound glossary**: every sound of the mod by name and meaning ("Latido, vida en o bajo el
 límite"); left or right plays it.
 
+## Passive tree
+
+The free cursor (left stick) moves by distance, not along the tree's lines, so each node is read with where its
+links go: "Velocidad de ataque, alcanzable, Velocidad de ataque aumentada un 3%. Conexiones: arriba, Armadura y
+evasión, asignado; abajo a la izquierda, …" (clockwise from up). States: asignado (allocated), alcanzable (linked
+to an allocated node or the class's start), sin conexión. Opening the tree reads the skill points and attributes.
+
 ## Radial menu
 
 Hold View: the option the right or left stick points at is read as it changes (up Inventory, up-right Cosmetics,

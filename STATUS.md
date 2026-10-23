@@ -120,7 +120,9 @@
 | Skill bar readout (after the screen on the gameplay hold) | done (live) | `UiSemantics.SkillBar`: "Set de habilidades principal: LT, Activar set… X, Saeta básica… Vacío: LB, cruceta arriba, Y"; bind screen names skills from their dat rows (`docs/research/skill-bar.md`) |
 | Route turn prompts, partial routes, edge knock, controls help in the settings menu | done (live) | "Ahora arriba a la derecha, 10"; knock when the D-pad cannot move in a menu; help topics open the L3 menu |
 | Social, Challenges, Cosmetics, Quests, Character, Skills panels | done (live) | filter box as an edit field; Challenges rows by their `selected_*` marker frame ("El relicario, 0/50, 5 de 8", expand reads the goal); free-cursor pages read after the tab; icon buttons named by their tooltip ("Efecto para arma") |
-| Melee reach ping, item comparison, NPC quest bell, unexplored-areas category, wall tones | todo | `docs/d2r-gap-analysis.md` (254 rows, top 15 ranked) |
+| Passive tree: node state and links | done (live) | `UiSemantics.PassiveTree`: "Armadura y evasión, alcanzable, +10 a la armadura… Conexiones: arriba, Armadura y evasión, asignado; abajo a la izquierda, …"; points and attributes on opening (`docs/research/passive-tree.md`) |
+| Speech priority per kind, wall tones, small-obstacle knock | done (code) | `SpeechPriority` (9 "Voz: …" settings), `WallTones` (off by default), `PassageScan.IsSmallObstacle`; unit-tested, not heard live |
+| Melee reach ping, item comparison, NPC quest bell, unexplored-areas category | todo | `docs/d2r-gap-analysis.md` (254 rows, top 15 ranked) |
 
 ## Derived facts (with source)
 - Plugin contract, hotkeys (`Utils.IsKeyPressedAndNotTimeout`), events (`RemoteEvents.AreaChanged` public,

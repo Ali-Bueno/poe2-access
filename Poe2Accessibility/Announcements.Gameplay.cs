@@ -1,12 +1,38 @@
 namespace Poe2Accessibility
 {
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>Spoken strings of the guide beacon, vitals, target and text fields (same translatable layer).</summary>
     public static partial class Announcements
     {
         /// <summary>"Guiding to Clearfell, 116 steps, down 3, then left" (the scanner's route description).</summary>
         public static string BeaconLocked(string described) => T($"Guiding to {described}", $"Guiando hacia {described}");
+
+        /// <summary>Passive node kinds (a small node says none) and states.</summary>
+        public static string PassiveKeystone => T("keystone", "piedra angular");
+
+        public static string PassiveNotable => T("notable", "notable");
+
+        public static string PassiveJewelSocket => T("jewel socket", "engarce de joya");
+
+        public static string PassiveAllocated => T("allocated", "asignado");
+
+        public static string PassiveReachable => T("reachable", "alcanzable");
+
+        public static string PassiveLocked => T("not linked", "sin conexión");
+
+        /// <summary>"Attack Speed, notable, can be allocated".</summary>
+        public static string PassiveNode(string name, string kind, string state) =>
+            string.Join(", ", new[] { name, kind, state }.Where(part => part.Length > 0));
+
+        public static string PassiveLink(string name, string state) => $"{name}, {state}";
+
+        /// <summary>A link to the class's start (the portrait at the tree's centre).</summary>
+        public static string PassiveStartLink(string name) => T($"start, {name}", $"inicio, {name}");
+
+        /// <summary>"Links: up, Armour and Evasion, allocated; down left, Attribute, can be allocated".</summary>
+        public static string PassiveLinks(IEnumerable<string> links) => T("Links: ", "Conexiones: ") + string.Join("; ", links);
 
         /// <summary>A skill bar set when the game gives no title for it.</summary>
         public static string SkillSetTitle(int set) =>

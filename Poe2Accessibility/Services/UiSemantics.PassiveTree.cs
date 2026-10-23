@@ -1,0 +1,301 @@
+namespace Poe2Accessibility.Services
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Numerics;
+    using GameHelper.Plugin;
+    using Poe2Accessibility.Models;
+
+    /// <summary>
+    ///     Passive tree nodes for <see cref="UiSemantics"/> (D2R skill tree readout, adapted): the hovered node's name,
+    ///     kind and state from its dat row and the tree's allocated list, its stats from the tooltip, then the nodes it
+    ///     links to with their direction on screen — the free cursor moves by distance, not along links
+    ///     (docs/research/passive-tree.md).
+    /// </summary>
+    public sealed partial class UiSemantics
+    {
+        private const int MaxPassiveNameChars = 96;
+
+        /// <summary>Upper bounds of the graph read once per tree: edges, groups, nodes.</summary>
+        private const int MaxPassiveEdges = 20000;
+
+        private const int MaxPassiveElements = 20000;
+
+        /// <summary>The longest "Unallocated" line a tooltip ends with; the state word replaces it.</summary>
+        private const int MaxStateLineChars = 24;
+
+        private PassiveGraph? passiveGraph;
+
+        /// <summary>The player's metadata path, to find the class's own start node.</summary>
+        public Func<string>? PlayerPath { get; set; }
+
+        private enum PassiveState
+        {
+            Locked,
+            Reachable,
+            Allocated,
+        }
+
+        /// <summary>A hovered passive node; null for any other element.</summary>
+        private AccessibleUiNode? DescribePassiveNode(in UiElementReader.ElementInfo info, bool hovered)
+        {
+            if (!this.InGame || !hovered ||
+                !this.reader.TryRead<IntPtr>(info.Address + GameLayout.PassiveTree.NodeRecordOffset, out var record) || record == IntPtr.Zero ||
+                this.PassiveRow(record) is not { } row ||
+                !this.elements.TryReadElement(info.Raw.ParentPtr, out var group) ||
+                this.PassiveGraphOf(group.Raw.ParentPtr, info) is not { } graph)
+            {
+                return null;
+            }
+
+            var allocated = this.AllocatedIds(graph.State);
+            var node = this.ReadPassiveRow(record, row);
+            var state = this.StateOf(graph, node, allocated);
+            var tooltip = this.TooltipLines(info);
+            if (tooltip.Count > 0 && tooltip[0] == node.Name)
+            {
+                tooltip.RemoveAt(0);
+            }
+
+            tooltip.RemoveAll(line => line.StartsWith('(') && line.EndsWith(')')); // the English name under the title
+            if (state != PassiveState.Allocated && tooltip.Count > 0 && tooltip[^1].Length <= MaxStateLineChars && !tooltip[^1].Any(char.IsDigit))
+            {
+                tooltip.RemoveAt(tooltip.Count - 1); // the game's "Unallocated": the state word says it
+            }
+
+            var links = this.DescribeLinks(graph, info.Address, record, allocated);
+            if (links.Length > 0)
+            {
+                tooltip.Add(links);
+            }
+
+            return new AccessibleUiNode
+            {
+                Address = info.Address,
+                Name = info.Name,
+                Role = UiRole.Panel,
+                Text = Announcements.PassiveNode(node.Name, node.Kind, StateWord(state)),
+                IsVisible = this.elements.IsVisible(info),
+                IsHovered = hovered,
+                Context = this.PanelTitle(info),
+                Tooltip = tooltip,
+            };
+        }
+
+        /// <summary>"Up: Armour and Evasion, allocated; down left: Attribute, reachable", clockwise from up.</summary>
+        private string DescribeLinks(PassiveGraph graph, IntPtr element, IntPtr record, HashSet<int> allocated)
+        {
+            if (!graph.Links.TryGetValue(record, out var linked) ||
+                !PluginUiElementReflection.TryGetAbsoluteRect(element, out var position, out var size))
+            {
+                return string.Empty;
+            }
+
+            var here = position + (size / 2);
+            var parts = new List<(double Order, string Text)>();
+            foreach (var other in linked)
+            {
+                if (this.PassiveRow(other) is not { } row)
+                {
+                    continue;
+                }
+
+                var node = this.ReadPassiveRow(other, row);
+                if (node.IconOnly)
+                {
+                    continue; // links through a mastery icon are not drawn
+                }
+
+                var words = Announcements.PassiveLink(node.Name, StateWord(this.StateOf(graph, node, allocated)));
+                if (node.IsStart || !graph.Elements.TryGetValue(other, out var otherElement) ||
+                    !PluginUiElementReflection.TryGetAbsoluteRect(otherElement, out var otherPosition, out var otherSize))
+                {
+                    parts.Add((double.MaxValue, Announcements.PassiveStartLink(node.Name))); // the class portrait at the centre
+                    continue;
+                }
+
+                // Screen y grows downwards; StickDirections count counter-clockwise from right. Clockwise from up.
+                var offset = otherPosition + (otherSize / 2) - here;
+                var angle = Math.Atan2(-offset.Y, offset.X) * 180 / Math.PI;
+                var octant = (int)(((Math.Round(angle / 45) % 8) + 8) % 8);
+                var clockwiseFromUp = (((112.5 - angle) % 360) + 360) % 360; // from the up sector's left edge, so sectors keep their order
+                parts.Add((clockwiseFromUp, $"{Announcements.StickDirections[octant]}, {words}"));
+            }
+
+            return parts.Count == 0 ? string.Empty : Announcements.PassiveLinks(parts.OrderBy(part => part.Order).Select(part => part.Text));
+        }
+
+        private PassiveState StateOf(PassiveGraph graph, PassiveNodeRow node, HashSet<int> allocated)
+        {
+            if (allocated.Contains(node.GraphId))
+            {
+                return PassiveState.Allocated;
+            }
+
+            // Reachable: linked to an allocated node, or to the class's own start.
+            return graph.Links.TryGetValue(node.Record, out var linked) &&
+                   linked.Any(other => other == graph.OwnStart || (this.PassiveRow(other) is { } row && this.reader.TryRead<ushort>(row + GameLayout.PassiveTree.RowGraphIdOffset, out var id) && allocated.Contains(id)))
+                ? PassiveState.Reachable
+                : PassiveState.Locked;
+        }
+
+        private static string StateWord(PassiveState state) => state switch
+        {
+            PassiveState.Allocated => Announcements.PassiveAllocated,
+            PassiveState.Reachable => Announcements.PassiveReachable,
+            _ => Announcements.PassiveLocked,
+        };
+
+        /// <summary>The graph ids in the tree's allocated list (re-read on every describe: allocating changes it).</summary>
+        private HashSet<int> AllocatedIds(IntPtr state)
+        {
+            var ids = new HashSet<int>();
+            if (this.reader.TryRead<GameOffsets.Natives.StdVector>(state + GameLayout.PassiveTree.AllocatedOffset, out var vector))
+            {
+                var count = (int)Math.Clamp((vector.Last.ToInt64() - vector.First.ToInt64()) / GameLayout.PassiveTree.AllocatedEntrySize, 0, MaxPassiveEdges);
+                foreach (var entry in this.reader.ReadArray<uint>(vector.First, count))
+                {
+                    ids.Add((int)(entry & 0xFFFF));
+                }
+            }
+
+            return ids;
+        }
+
+        /// <summary>The PassiveSkills row of a node record, trusted only when its key names the table.</summary>
+        private IntPtr? PassiveRow(IntPtr record) => this.DatRow(record + GameLayout.PassiveTree.RecordSkillKeyOffset, GameLayout.PassiveTree.SkillTable);
+
+        private PassiveNodeRow ReadPassiveRow(IntPtr record, IntPtr row)
+        {
+            var bytes = this.elements.ReadBlock(row, GameLayout.PassiveTree.RowBytes);
+            if (bytes.Length < GameLayout.PassiveTree.RowBytes)
+            {
+                return new PassiveNodeRow(record, -1, string.Empty, string.Empty, false, false);
+            }
+
+            var name = this.elements.ReadUtf16BufferAt((IntPtr)BitConverter.ToInt64(bytes, GameLayout.PassiveTree.RowNameOffset), MaxPassiveNameChars) ?? string.Empty;
+            var kind = bytes[GameLayout.PassiveTree.RowKeystoneOffset] == 1 ? Announcements.PassiveKeystone
+                : bytes[GameLayout.PassiveTree.RowNotableOffset] == 1 ? Announcements.PassiveNotable
+                : bytes[GameLayout.PassiveTree.RowJewelSocketOffset] == 1 ? Announcements.PassiveJewelSocket
+                : string.Empty;
+            var isStart = BitConverter.ToInt64(bytes, GameLayout.PassiveTree.RowCharactersOffset) > 0;
+            return new PassiveNodeRow(record, BitConverter.ToUInt16(bytes, GameLayout.PassiveTree.RowGraphIdOffset), name, kind,
+                bytes[GameLayout.PassiveTree.RowIconOnlyOffset] == 1, isStart);
+        }
+
+        /// <summary>The tree's links and node elements, read once per canvas (they persist while the tree is closed).</summary>
+        private PassiveGraph? PassiveGraphOf(IntPtr canvasAddress, in UiElementReader.ElementInfo hoveredNode)
+        {
+            if (this.passiveGraph is { } cached && cached.Canvas == canvasAddress)
+            {
+                return cached;
+            }
+
+            if (!this.elements.TryReadElement(canvasAddress, out var canvas) ||
+                !this.reader.TryRead<IntPtr>(canvasAddress + GameLayout.PassiveTree.CanvasStateOffset, out var state) ||
+                !this.reader.TryRead<IntPtr>(state + GameLayout.PassiveTree.StateGraphFileOffset, out var graphFile) ||
+                this.elements.ReadWStringStructAt(graphFile + GameLayout.SkillSlot.FileNameOffset) != GameLayout.PassiveTree.GraphFileName ||
+                !this.reader.TryRead<IntPtr>(graphFile + GameLayout.PassiveTree.GraphContentOffset, out var content) ||
+                !this.reader.TryRead<GameOffsets.Natives.StdVector>(content + GameLayout.PassiveTree.EdgeListOffset, out var edgeVector) ||
+                !this.reader.TryRead<IntPtr>(hoveredNode.Address, out var nodeClass))
+            {
+                return null;
+            }
+
+            // Links in both directions: a record lists only its out-edges.
+            var links = new Dictionary<IntPtr, List<IntPtr>>();
+            var edgeCount = (int)Math.Clamp((edgeVector.Last.ToInt64() - edgeVector.First.ToInt64()) / IntPtr.Size, 0, MaxPassiveEdges);
+            foreach (var edge in this.reader.ReadArray<IntPtr>(edgeVector.First, edgeCount))
+            {
+                var ends = this.reader.ReadArray<IntPtr>(edge, 2);
+                if (ends.Length < 2 || ends[0] == IntPtr.Zero || ends[1] == IntPtr.Zero || ends[0] == ends[1])
+                {
+                    continue;
+                }
+
+                Link(links, ends[0], ends[1]);
+                Link(links, ends[1], ends[0]);
+            }
+
+            // Node elements by record, for the screen positions of linked nodes.
+            var elementsByRecord = new Dictionary<IntPtr, IntPtr>();
+            var budget = MaxPassiveElements;
+            foreach (var groupAddress in this.elements.ReadChildren(canvas))
+            {
+                if (!this.elements.TryReadElement(groupAddress, out var group))
+                {
+                    continue;
+                }
+
+                foreach (var element in this.elements.ReadChildren(group))
+                {
+                    if (budget-- <= 0)
+                    {
+                        break;
+                    }
+
+                    var head = this.reader.ReadArray<IntPtr>(element, 1);
+                    if (head.Length == 1 && head[0] == nodeClass &&
+                        this.reader.TryRead<IntPtr>(element + GameLayout.PassiveTree.NodeRecordOffset, out var record) && record != IntPtr.Zero)
+                    {
+                        elementsByRecord[record] = element;
+                    }
+                }
+            }
+
+            var graph = new PassiveGraph(canvasAddress, state, links, elementsByRecord, this.OwnStart(links.Keys));
+            this.passiveGraph = graph;
+            return graph;
+        }
+
+        private static void Link(Dictionary<IntPtr, List<IntPtr>> links, IntPtr from, IntPtr to)
+        {
+            if (!links.TryGetValue(from, out var list))
+            {
+                links[from] = list = new List<IntPtr>();
+            }
+
+            if (!list.Contains(to))
+            {
+                list.Add(to);
+            }
+        }
+
+        /// <summary>The start node whose class list holds the player's own character (its Id is the player's path).</summary>
+        private IntPtr OwnStart(IEnumerable<IntPtr> records)
+        {
+            var path = this.PlayerPath?.Invoke() ?? string.Empty;
+            if (path.Length == 0)
+            {
+                return IntPtr.Zero;
+            }
+
+            foreach (var record in records)
+            {
+                if (this.PassiveRow(record) is not { } row ||
+                    !this.reader.TryRead<long>(row + GameLayout.PassiveTree.RowCharactersOffset, out var count) || count is <= 0 or > 16 ||
+                    !this.reader.TryRead<IntPtr>(row + GameLayout.PassiveTree.RowCharactersOffset + sizeof(long), out var keys))
+                {
+                    continue;
+                }
+
+                for (var i = 0; i < count; i++)
+                {
+                    if (this.reader.TryRead<IntPtr>(keys + (i * GameLayout.PassiveTree.KeySize), out var character) &&
+                        this.reader.TryRead<IntPtr>(character + GameLayout.PassiveTree.CharacterIdOffset, out var id) &&
+                        string.Equals(this.elements.ReadUtf16BufferAt(id, MaxPassiveNameChars), path, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return record;
+                    }
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+
+        private sealed record PassiveGraph(IntPtr Canvas, IntPtr State, Dictionary<IntPtr, List<IntPtr>> Links, Dictionary<IntPtr, IntPtr> Elements, IntPtr OwnStart);
+
+        private sealed record PassiveNodeRow(IntPtr Record, int GraphId, string Name, string Kind, bool IconOnly, bool IsStart);
+    }
+}

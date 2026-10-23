@@ -172,6 +172,7 @@ namespace Poe2Accessibility
                 SpeechPriority.Chosen = this.SpeechLevel;
                 this.narrator.InPanel = this.semantics.IsInPanel;
                 this.narrator.Refresh = node => this.semantics?.Describe(node.Address, node.IsHovered);
+                this.semantics.PlayerPath = () => Core.States.InGameStateObject.CurrentAreaInstance.Player.Path ?? string.Empty;
                 this.commands.SettingsChanged = changed =>
                 {
                     this.ApplySettings(changed);
