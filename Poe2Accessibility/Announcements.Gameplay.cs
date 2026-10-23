@@ -89,6 +89,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.ReadTooltipsOnFocus) => T("Whole tooltips on focus", "Descripciones completas al enfocar"),
             nameof(AccessibilitySettings.AnnouncePickups) => T("Picked up items", "Objetos recogidos"),
             nameof(AccessibilitySettings.AnnounceDiscoveries) => T("Discoveries", "Descubrimientos"),
+            nameof(AccessibilitySettings.EdgeKnock) => T("Knock at the end of menus", "Toc al final de los menús"),
             nameof(AccessibilitySettings.RoutePrompts) => T("Turn prompts", "Indicaciones de giro"),
             nameof(AccessibilitySettings.AnnounceLevelUp) => T("Level up", "Subida de nivel"),
             nameof(AccessibilitySettings.Radar) => T("Radar", "Radar"),

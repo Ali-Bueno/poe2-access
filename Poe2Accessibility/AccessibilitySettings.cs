@@ -81,6 +81,9 @@ namespace Poe2Accessibility
         /// <summary>While the guide beacon leads, name each turn as you reach it: "Ahora arriba a la derecha, 12".</summary>
         public bool RoutePrompts = true;
 
+        /// <summary>A knock when the D-pad does not move the focus in a menu (the end of the list).</summary>
+        public bool EdgeKnock = true;
+
         /// <summary>Name the first sighting of an exit, waypoint, checkpoint or boss in an area.</summary>
         public bool AnnounceDiscoveries = true;
 

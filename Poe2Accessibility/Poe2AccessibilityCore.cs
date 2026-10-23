@@ -78,6 +78,17 @@ namespace Poe2Accessibility
         /// <summary>When the game went to "not loaded"; zero once announced or left (see <see cref="AnnounceLastingClose"/>).</summary>
         private long closedSince;
 
+        /// <summary>
+        ///     Edge knock (D2R): a D-pad press in a menu that leaves the focus and its value where they were means the
+        ///     list ends there; a knock says so instead of silence.
+        /// </summary>
+        private (long At, IntPtr Focus, string Value)? edgeCheck;
+        private bool dpadDown;
+        private float[]? edgeKnock;
+
+        /// <summary>How long after a D-pad press the focus must still be unchanged to count as the edge.</summary>
+        private const int EdgeKnockDelayMs = 300;
+
         /// <summary>A "not loaded" state shorter than this is a transition, not the game closing.</summary>
         private const int ClosedSettleMs = 2000;
         private bool confirmDown;
@@ -252,6 +263,7 @@ namespace Poe2Accessibility
                 this.ReadModButton();
                 this.focus?.Tick(this.gameState.CurrentState, stateObject);
                 this.WatchTextFieldClosing();
+                this.KnockAtEdge();
                 this.WatchLife();
                 this.TickSounds();
                 this.NarrateScreenChanges(stateObject);
@@ -346,6 +358,14 @@ namespace Poe2Accessibility
             }
 
             this.confirmDown = confirm;
+            var dpad = state.IsDown(GameLayout.PadButtons.DPadUp) || state.IsDown(GameLayout.PadButtons.DPadDown) ||
+                       state.IsDown(GameLayout.PadButtons.DPadLeft) || state.IsDown(GameLayout.PadButtons.DPadRight);
+            if (dpad && !this.dpadDown && this.focus?.Current is { } before && this.Settings.EdgeKnock)
+            {
+                this.edgeCheck = (Environment.TickCount64, before.Address, before.Value);
+            }
+
+            this.dpadDown = dpad;
             if (!this.Settings.ControllerCommands || this.commands == null)
             {
                 return;
@@ -753,6 +773,24 @@ namespace Poe2Accessibility
             this.closedSince = 0;
             var text = reallyClosed ? $"{Announcements.GameDetected} {Announcements.ForState(current)}" : Announcements.ForState(current);
             this.output.Speak(text, true);
+        }
+
+        /// <summary>Per frame: the knock when a D-pad press did not move the focus or change its value.</summary>
+        private void KnockAtEdge()
+        {
+            if (this.edgeCheck is not { } check || Environment.TickCount64 - check.At < EdgeKnockDelayMs)
+            {
+                return;
+            }
+
+            this.edgeCheck = null;
+            var now = this.focus?.Current;
+            if (now != null && now.Address == check.Focus && now.Value == check.Value && this.audio != null)
+            {
+                this.edgeKnock ??= RadarSynth.Bump(AudioCueService.SampleRate);
+                this.audio.Play(this.edgeKnock, 0f, 1f, 1f);
+                this.log?.Debug("Edge knock");
+            }
         }
 
         /// <summary>Per frame: "Game closed" once the game has stayed unloaded for a while.</summary>
