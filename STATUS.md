@@ -263,7 +263,7 @@ testing); then continue down `docs/d2r-gap-analysis.md` (item comparison, monste
   Enter on the keyboard started the game and the pad was player 1 again in game. Never press A at that prompt.
 - Passive tree: allocation facts rest on one allocated node (`docs/research/passive-tree.md` OPEN list); the
   class start is said as "inicio, DUELISTA" without a direction (the portrait has no node element).
-- Opening a game panel from the escape menu says "En juego." first (the state change).
+- Closing the game menu is silent now (D2R); Options opened from it starts with its page.
 - "Game Paused" is read when menus close.
 - GameHelper's own automation plugins (AutoHotKeyTrigger, PickupHelper) were enabled; disabled in
   `configs/plugins.json` on 2026-10-23 (they press keys / click for the player).
