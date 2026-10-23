@@ -1,0 +1,172 @@
+namespace Poe2Accessibility.Services
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Reflection;
+    using GameHelper;
+    using System.Runtime.InteropServices;
+    using GameHelper.RemoteEnums;
+    using GameHelper.RemoteObjects.Components;
+    using GameHelper.RemoteObjects.States.InGameStateObjects;
+    using GameOffsets.Objects.States.InGameState;
+
+    /// <summary>
+    ///     Reads inventory widgets: the grid (cell under the controller cursor and the item there) and item
+    ///     elements (the item entity behind them, read through GameHelper's components).
+    /// </summary>
+    public sealed class InventoryReader
+    {
+        private const string ItemPathPrefix = "Metadata/Items";
+
+        /// <summary>Plausible grid layout: cell size in layout units (80 measured) and cells per side.</summary>
+        private const float MinCellSize = 8;
+
+        private const float MaxCellSize = 512;
+        private const int MaxGridCells = 64;
+
+        /// <summary>Slot element → item element depth (slot → frame → item).</summary>
+        private const int ItemSearchDepth = 2;
+
+        /// <summary>GameHelper keeps the player's inventories (name → InventoryStruct address) in an internal property.</summary>
+        private static readonly PropertyInfo? PlayerInventories =
+            typeof(ServerData).GetProperty(nameof(PlayerInventories), BindingFlags.Instance | BindingFlags.NonPublic);
+
+        private static readonly int DetailsPathOffset = (int)Marshal.OffsetOf<EntityDetails>(nameof(EntityDetails.name));
+
+        private readonly HostMemoryReader reader;
+        private readonly UiElementReader elements;
+
+        public InventoryReader(HostMemoryReader reader, UiElementReader elements)
+        {
+            this.reader = reader;
+            this.elements = elements;
+        }
+
+        /// <summary>The grid's cursor cell (zero-based) and the item element on it (zero on an empty cell).</summary>
+        public bool TryReadGrid(IntPtr element, out int column, out int row, out IntPtr item)
+        {
+            column = row = 0;
+            item = IntPtr.Zero;
+            var block = this.reader.ReadBytes(element + GameLayout.InventoryGrid.CellSizeOffset,
+                GameLayout.InventoryGrid.CellOffset + (2 * sizeof(int)) - GameLayout.InventoryGrid.CellSizeOffset);
+            if (block.Length == 0)
+            {
+                return false;
+            }
+
+            var span = block.AsSpan();
+            var cellSize = MemoryMarshal.Read<float>(span);
+            item = MemoryMarshal.Read<IntPtr>(span[(GameLayout.InventoryGrid.HoveredItemOffset - GameLayout.InventoryGrid.CellSizeOffset)..]);
+            column = MemoryMarshal.Read<int>(span[(GameLayout.InventoryGrid.CellOffset - GameLayout.InventoryGrid.CellSizeOffset)..]);
+            row = MemoryMarshal.Read<int>(span[(GameLayout.InventoryGrid.CellOffset + sizeof(int) - GameLayout.InventoryGrid.CellSizeOffset)..]);
+            return cellSize is >= MinCellSize and <= MaxCellSize &&
+                column is >= 0 and < MaxGridCells && row is >= 0 and < MaxGridCells &&
+                (item == IntPtr.Zero || this.EntityOf(item) != IntPtr.Zero);
+        }
+
+        /// <summary>Which player inventory a grid shows (main, flasks, helmet…); null when GameHelper does not list it.</summary>
+        public InventoryName? InventoryOf(IntPtr grid)
+        {
+            if (!this.reader.TryRead<IntPtr>(grid + GameLayout.InventoryGrid.ServerInventoryOffset, out var inventory) || inventory == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            try
+            {
+                var serverData = Core.States.InGameStateObject.CurrentAreaInstance.ServerDataObject;
+                if (PlayerInventories?.GetValue(serverData) is Dictionary<InventoryName, IntPtr> map)
+                {
+                    foreach (var (name, address) in map)
+                    {
+                        if (address == inventory)
+                        {
+                            return name;
+                        }
+                    }
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                // GameHelper rebuilt the map while we enumerated it; the next poll asks again.
+            }
+
+            return null;
+        }
+
+        /// <summary>Item element held by an equipment/flask slot (or the slot itself); zero when the slot is empty.</summary>
+        public IntPtr FindItemElement(IntPtr slot, int depth = 0)
+        {
+            if (this.EntityOf(slot) != IntPtr.Zero)
+            {
+                return slot;
+            }
+
+            if (depth >= ItemSearchDepth || !this.elements.TryReadElement(slot, out var info))
+            {
+                return IntPtr.Zero;
+            }
+
+            foreach (var child in this.elements.ReadChildren(info))
+            {
+                var found = this.FindItemElement(child, depth + 1);
+                if (found != IntPtr.Zero)
+                {
+                    return found;
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+
+        /// <summary>
+        ///     "Scroll of Wisdom, 3" / "Glinting Wrapped Quarterstaff, magic"; null when the element holds no readable
+        ///     item. <paramref name="tooltipTitle"/> is the item's own name (magic, rare, unique) and names items whose
+        ///     base row has no display name (skill gems).
+        /// </summary>
+        public string? DescribeItem(IntPtr itemElement, string tooltipTitle = "")
+        {
+            return this.DescribeItemEntity(this.EntityOf(itemElement), tooltipTitle);
+        }
+
+        /// <summary>Same for an item entity (a ground item's WorldItem points to one); null when it is not an item.</summary>
+        public string? DescribeItemEntity(IntPtr entity, string tooltipTitle = "")
+        {
+            if (entity == IntPtr.Zero || !this.IsItemEntity(entity))
+            {
+                return null;
+            }
+
+            var item = (Item)Activator.CreateInstance(typeof(Item), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { entity }, null)!;
+            var name = item.TryGetComponent<Base>(out var baseComponent) ? baseComponent.BaseItemName : string.Empty;
+            var rarity = item.TryGetComponent<Mods>(out var mods) ? mods.Rarity : Rarity.Normal;
+            if (name.Length == 0 || (rarity != Rarity.Normal && tooltipTitle.Length > 0))
+            {
+                name = tooltipTitle;
+            }
+
+            var count = item.TryGetComponent<Stack>(out var stack) ? stack.Count : 0;
+            return Announcements.Item(name, rarity, count);
+        }
+
+        /// <summary>Item entity behind an item element, zero otherwise.</summary>
+        private IntPtr EntityOf(IntPtr element) =>
+            this.reader.TryRead<IntPtr>(element + GameLayout.InventoryItem.EntityOffset, out var entity) && this.IsItemEntity(entity)
+                ? entity
+                : IntPtr.Zero;
+
+        /// <summary>An entity whose details path is under Metadata/Items.</summary>
+        private bool IsItemEntity(IntPtr entity)
+        {
+            if (!this.reader.IsValidAddress(entity) ||
+                !this.reader.TryRead<ItemStruct>(entity, out var item) ||
+                !this.reader.IsValidAddress(item.EntityDetailsPtr))
+            {
+                return false;
+            }
+
+            var path = this.elements.ReadWStringStructAt(item.EntityDetailsPtr + DetailsPathOffset);
+            return path != null && path.StartsWith(ItemPathPrefix, StringComparison.Ordinal);
+        }
+    }
+}

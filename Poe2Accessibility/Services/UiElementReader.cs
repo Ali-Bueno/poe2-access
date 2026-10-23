@@ -1,0 +1,356 @@
+namespace Poe2Accessibility.Services
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
+    using System.Runtime.InteropServices;
+    using GameOffsets.Objects.UiElement;
+    using Poe2Accessibility.Models;
+
+    /// <summary>
+    ///     Cheap, validated reads of single UI elements for live use (focus tracking), as opposed to the
+    ///     research-oriented UiTreeReader that probes whole trees. Offsets come from GameLayout.
+    /// </summary>
+    public sealed class UiElementReader
+    {
+        private const int MaxChildrenPerNode = 4096;
+        private const int MaxTextLength = 1024;
+        private const int MaxParentDepth = 64;
+
+        /// <summary>Warning red is a strong red channel with little green and blue (the price red is E4,00,00).</summary>
+        private const uint MinWarningRed = 0xC0;
+        private const uint MaxWarningGreenBlue = 0x40;
+
+        /// <summary>Host reads are all-or-nothing; objects are read in page-sized chunks so a short tail is tolerated.</summary>
+        private const int ChunkBytes = 0x100;
+
+        private static readonly int BaseSize = Unsafe.SizeOf<UiElementBaseOffset>();
+
+        /// <summary>Enough bytes to cover the text fields of the label subclass (0x538 + 32).</summary>
+        private static readonly int TextBlockSize = GameLayout.Element.TextCopyOffset + WStringDecoder.Size;
+
+        private readonly HostMemoryReader reader;
+
+        public UiElementReader(HostMemoryReader reader)
+        {
+            this.reader = reader;
+        }
+
+        /// <param name="Texture">Texture resource of image elements (GameLayout.Image), read with the base block.</param>
+        public readonly record struct ElementInfo(IntPtr Address, UiElementBaseOffset Raw, string Name, IntPtr Texture = default, IntPtr AltTexture = default)
+        {
+            public bool IsVisibleFlag => UiElementBaseFuncs.IsVisibleChecker(this.Raw.Flags);
+
+            public bool HasFlagBit(int bit) => (this.Raw.Flags & (1u << bit)) != 0;
+        }
+
+        /// <summary>Reads the base struct plus the control name; false unless the self pointer confirms an element.</summary>
+        public bool TryReadElement(IntPtr address, out ElementInfo info)
+        {
+            info = default;
+            var block = this.reader.ReadBytes(address, BaseSize);
+            if (block.Length == 0)
+            {
+                return false;
+            }
+
+            var raw = MemoryMarshal.Read<UiElementBaseOffset>(block);
+            if (raw.Self != address && raw.Self != IntPtr.Zero)
+            {
+                return false;
+            }
+
+            var name = WStringDecoder.TryDecode(this.reader, block, GameLayout.Element.NameOffset, MaxTextLength, allowEmpty: true) ?? string.Empty;
+            var texture = block.Length >= GameLayout.Image.TextureOffset + IntPtr.Size
+                ? MemoryMarshal.Read<IntPtr>(block.AsSpan(GameLayout.Image.TextureOffset))
+                : IntPtr.Zero;
+            var altTexture = block.Length >= GameLayout.Image.AltTextureOffset + IntPtr.Size
+                ? MemoryMarshal.Read<IntPtr>(block.AsSpan(GameLayout.Image.AltTextureOffset))
+                : IntPtr.Zero;
+            info = new ElementInfo(address, raw, name, texture, altTexture);
+            return true;
+        }
+
+        /// <summary>Strict test used on untrusted pointers: real elements always store their own address in Self.</summary>
+        public bool IsElement(IntPtr address) =>
+            this.reader.IsValidAddress(address) &&
+            this.reader.TryRead<UiElementBaseOffset>(address, out var raw) &&
+            raw.Self == address;
+
+        public IntPtr[] ReadChildren(in ElementInfo info) =>
+            this.reader.ReadStdVector<IntPtr>(info.Raw.ChildrensPtr, MaxChildrenPerNode);
+
+        /// <summary>
+        ///     Display text of a label / text-field element. Only the 0x700-byte text subclass has these
+        ///     fields; on smaller elements the offsets fall into the next heap object, so the read is accepted
+        ///     only when the tagged text and both stripped copies are all well-formed and the copies agree.
+        /// </summary>
+        public bool TryReadText(IntPtr address, out string text) => this.TryReadText(address, out text, out _);
+
+        /// <summary>Same, also returning the text with markup (glyph tokens such as &lt;&lt;xbox_button_a&gt;&gt;).</summary>
+        public bool TryReadText(IntPtr address, out string text, out string tagged)
+        {
+            text = string.Empty;
+            tagged = string.Empty;
+            var block = this.reader.ReadBytes(address, TextBlockSize);
+            if (block.Length == 0)
+            {
+                return false;
+            }
+
+            var taggedText = WStringDecoder.TryDecode(this.reader, block, GameLayout.Element.TextWithTagsOffset, MaxTextLength, allowEmpty: true);
+            var stripped = WStringDecoder.TryDecode(this.reader, block, GameLayout.Element.TextOffset, MaxTextLength, allowEmpty: true);
+            var copy = WStringDecoder.TryDecode(this.reader, block, GameLayout.Element.TextCopyOffset, MaxTextLength, allowEmpty: true);
+            if (taggedText == null || stripped == null || copy == null || stripped != copy)
+            {
+                return false;
+            }
+
+            text = stripped.Trim();
+            tagged = taggedText;
+            return true;
+        }
+
+        /// <summary>
+        ///     A label drawn in the game's warning red (a price the player cannot pay); call only on elements whose text
+        ///     read succeeded, the colour field belongs to the label subclass.
+        /// </summary>
+        public bool IsTextRed(IntPtr label) =>
+            this.reader.TryRead<uint>(label + GameLayout.Element.TextColorOffset, out var argb) &&
+            ((argb >> 16) & 0xFF) >= MinWarningRed && ((argb >> 8) & 0xFF) <= MaxWarningGreenBlue && (argb & 0xFF) <= MaxWarningGreenBlue;
+
+        /// <summary>Art key of a texture resource (GameLayout.Image); null when it is not one.</summary>
+        /// <summary>Art key of an image element, whichever image class it is.</summary>
+        public string? ReadTextureKey(in ElementInfo info) => this.ReadTextureKey(info.Texture) ?? this.ReadTextureKey(info.AltTexture);
+
+        public string? ReadTextureKey(IntPtr texture)
+        {
+            if (!this.reader.IsValidAddress(texture))
+            {
+                return null;
+            }
+
+            var key = this.ReadWStringStructAt(texture + GameLayout.Image.TextureKeyOffset);
+            return key != null && key.StartsWith(GameLayout.Image.ArtPrefix, StringComparison.Ordinal) &&
+                key.Contains(GameLayout.Image.TextureMarker, StringComparison.Ordinal) ? key : null;
+        }
+
+        /// <summary>
+        ///     Widget kind from the click-sound asset the element carries (validated on the options menu:
+        ///     FourCheckBoxPress / FourSliderPress / FourComboBoxPress / FourRegularButtonPress / FourTabButtonPress
+        ///     / FourPanelButtonPress). The sound lives at subclass-specific offsets, so the block is scanned.
+        /// </summary>
+        public UiRole DetectRoleBySound(IntPtr address)
+        {
+            var block = this.ReadBlock(address, GameLayout.Element.ProbeBytes);
+            for (var offset = BaseSize; offset + WStringDecoder.Size <= block.Length; offset += IntPtr.Size)
+            {
+                if (WStringDecoder.IsHeap(block, offset) == false && block[offset] == 0)
+                {
+                    continue;
+                }
+
+                var text = WStringDecoder.TryDecode(this.reader, block, offset, MaxTextLength, allowEmpty: false);
+                if (text == null || !text.Contains("Press.ogg", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (text.Contains("CheckBox", StringComparison.OrdinalIgnoreCase))
+                {
+                    return UiRole.CheckBox;
+                }
+
+                if (text.Contains("Slider", StringComparison.OrdinalIgnoreCase))
+                {
+                    return UiRole.Slider;
+                }
+
+                if (text.Contains("ComboBox", StringComparison.OrdinalIgnoreCase))
+                {
+                    return UiRole.ComboBox;
+                }
+
+                if (text.Contains("TabButton", StringComparison.OrdinalIgnoreCase))
+                {
+                    return UiRole.Tab;
+                }
+
+                return UiRole.Button;
+            }
+
+            return UiRole.Unknown;
+        }
+
+        /// <summary>True when the element and every ancestor carry the visible flag.</summary>
+        public bool IsVisible(in ElementInfo info)
+        {
+            var current = info;
+            for (var depth = 0; depth < MaxParentDepth; depth++)
+            {
+                if (!current.IsVisibleFlag)
+                {
+                    return false;
+                }
+
+                if (current.Raw.ParentPtr == IntPtr.Zero)
+                {
+                    return true;
+                }
+
+                if (!this.TryReadElement(current.Raw.ParentPtr, out current))
+                {
+                    return false;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>Ancestors from the parent upwards, at most <paramref name="maxHops"/>.</summary>
+        public List<ElementInfo> ReadAncestors(in ElementInfo info, int maxHops)
+        {
+            var chain = new List<ElementInfo>();
+            var current = info;
+            while (chain.Count < maxHops && current.Raw.ParentPtr != IntPtr.Zero && this.TryReadElement(current.Raw.ParentPtr, out current))
+            {
+                chain.Add(current);
+            }
+
+            return chain;
+        }
+
+        /// <summary>Numeric state of a slider (GameLayout.Slider); null when unreadable or nonsensical.</summary>
+        public (int Value, int Min, int Max)? ReadSliderState(IntPtr address)
+        {
+            if (!this.reader.TryRead<int>(address + GameLayout.Slider.ValueOffset, out var value) ||
+                !this.reader.TryRead<int>(address + GameLayout.Slider.MinOffset, out var min) ||
+                !this.reader.TryRead<int>(address + GameLayout.Slider.MaxOffset, out var max) ||
+                max <= min || value < min || value > max)
+            {
+                return null;
+            }
+
+            return (value, min, max);
+        }
+
+        /// <summary>Selected and highlighted indices plus raw 16-byte entries of a combo box (GameLayout.ComboBox); null when the shape is wrong.</summary>
+        public (int SelectedIndex, int HighlightIndex, byte[][] Entries, byte[][] ParallelEntries)? ReadComboBoxState(IntPtr address)
+        {
+            if (!this.reader.TryRead<long>(address + GameLayout.ComboBox.SelectedIndexOffset, out var index) || index < 0 || index > int.MaxValue)
+            {
+                return null;
+            }
+
+            var entries = this.ReadEntries(address + GameLayout.ComboBox.ItemsVectorOffset);
+            if (entries.Length == 0 || index >= entries.Length)
+            {
+                return null;
+            }
+
+            var highlight = this.reader.TryRead<long>(address + GameLayout.ComboBox.HighlightIndexOffset, out var h) && h >= 0 && h < entries.Length
+                ? (int)h
+                : (int)index;
+            var parallel = this.ReadEntries(address + GameLayout.ComboBox.ParallelVectorOffset);
+            return ((int)index, highlight, entries, parallel);
+        }
+
+        private byte[][] ReadEntries(IntPtr vectorAddress)
+        {
+            if (!this.reader.TryRead<GameOffsets.Natives.StdVector>(vectorAddress, out var vector))
+            {
+                return Array.Empty<byte[]>();
+            }
+
+            var bytes = this.reader.ReadStdVector<byte>(vector, GameLayout.ComboBox.MaxEntries * GameLayout.ComboBox.EntryStride);
+            if (bytes.Length == 0 || bytes.Length % GameLayout.ComboBox.EntryStride != 0)
+            {
+                return Array.Empty<byte[]>();
+            }
+
+            var entries = new byte[bytes.Length / GameLayout.ComboBox.EntryStride][];
+            for (var i = 0; i < entries.Length; i++)
+            {
+                entries[i] = bytes.AsSpan(i * GameLayout.ComboBox.EntryStride, GameLayout.ComboBox.EntryStride).ToArray();
+            }
+
+            return entries;
+        }
+
+        /// <summary>Reads a std::wstring struct located at an arbitrary address; null when malformed.</summary>
+        public string? ReadWStringStructAt(IntPtr address)
+        {
+            var block = this.reader.ReadBytes(address, WStringDecoder.Size);
+            return block.Length == 0 ? null : WStringDecoder.TryDecode(this.reader, block, 0, MaxTextLength, allowEmpty: true);
+        }
+
+        /// <summary>Reads a NUL-terminated UTF-16 buffer at an arbitrary address; null when not printable text.</summary>
+        public string? ReadUtf16BufferAt(IntPtr address, int maxChars)
+        {
+            var chars = this.reader.ReadArray<char>(address, maxChars);
+            if (chars.Length == 0)
+            {
+                return null;
+            }
+
+            var end = Array.IndexOf(chars, '\0');
+            if (end <= 0)
+            {
+                return null;
+            }
+
+            for (var i = 0; i < end; i++)
+            {
+                if (char.IsControl(chars[i]) || char.IsSurrogate(chars[i]))
+                {
+                    return null;
+                }
+            }
+
+            return new string(chars, 0, end);
+        }
+
+        /// <summary>Ticked state of a check-box element (GameLayout.Element.CheckBoxStateOffset); null when unreadable.</summary>
+        public bool? ReadCheckBoxState(IntPtr address) =>
+            this.reader.TryRead<byte>(address + GameLayout.Element.CheckBoxStateOffset, out var state) ? state != 0 : null;
+
+        public bool IsReadable(IntPtr address) => this.reader.IsValidAddress(address) && this.reader.ReadBytes(address, IntPtr.Size).Length > 0;
+
+        /// <summary>Decodes a std::vector&lt;std::wstring&gt;; entries that are not well-formed strings are skipped.</summary>
+        public List<string> ReadStringVector(GameOffsets.Natives.StdVector vector)
+        {
+            var items = new List<string>();
+            var bytes = this.reader.ReadStdVector<byte>(vector, MaxTextLength * WStringDecoder.Size);
+            for (var offset = 0; offset + WStringDecoder.Size <= bytes.Length; offset += WStringDecoder.Size)
+            {
+                var text = WStringDecoder.TryDecode(this.reader, bytes, offset, MaxTextLength, allowEmpty: true);
+                if (text != null)
+                {
+                    items.Add(text);
+                }
+            }
+
+            return items;
+        }
+
+        /// <summary>Raw bytes of an object, chunked; the returned length is the readable prefix.</summary>
+        public byte[] ReadBlock(IntPtr address, int bytes)
+        {
+            var result = new byte[bytes];
+            var readable = 0;
+            for (var chunk = 0; chunk < bytes; chunk += ChunkBytes)
+            {
+                var part = this.reader.ReadBytes(address + chunk, Math.Min(ChunkBytes, bytes - chunk));
+                if (part.Length == 0)
+                {
+                    break;
+                }
+
+                Array.Copy(part, 0, result, chunk, part.Length);
+                readable += part.Length;
+            }
+
+            return readable == bytes ? result : result[..readable];
+        }
+    }
+}

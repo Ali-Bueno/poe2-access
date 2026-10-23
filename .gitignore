@@ -1,0 +1,16 @@
+# Reference/host checkouts (clone them, see README / STATUS.md)
+external/
+
+# Build output
+bin/
+obj/
+*.user
+
+# Runtime artefacts of the plugin
+Poe2Accessibility/debug/
+Poe2Accessibility/logs/
+Poe2Accessibility/config/
+
+# Python caches
+__pycache__/
+*.pyc

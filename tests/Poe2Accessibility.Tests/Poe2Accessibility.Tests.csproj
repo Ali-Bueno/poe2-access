@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Console test runner (no test framework dependency): compiles the plugin's pure logic files against fakes. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Poe2Accessibility\Models\ScreenSnapshot.cs" Link="Plugin\ScreenSnapshot.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ScreenDiffer.cs" Link="Plugin\ScreenDiffer.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\TextEdit.cs" Link="Plugin\TextEdit.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ChatDiff.cs" Link="Plugin\ChatDiff.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\L3Gestures.cs" Link="Plugin\L3Gestures.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ScanModel.cs" Link="Plugin\ScanModel.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\RoutePlanner.cs" Link="Plugin\RoutePlanner.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\VitalAlarm.cs" Link="Plugin\VitalAlarm.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\CueSynth.cs" Link="Plugin\CueSynth.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\EnemyCueScheduler.cs" Link="Plugin\EnemyCueScheduler.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\PassageScan.cs" Link="Plugin\PassageScan.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\RadarSensor.cs" Link="Plugin\RadarSensor.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\RadarSynth.cs" Link="Plugin\RadarSynth.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ProximityTracker.cs" Link="Plugin\ProximityTracker.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\WallBumpDetector.cs" Link="Plugin\WallBumpDetector.cs" />
+  </ItemGroup>
+
+</Project>
