@@ -78,6 +78,9 @@ namespace Poe2Accessibility
         /// <summary>The game's own sounds for the nearest item, chest or shrine, exit or portal, and waypoint or checkpoint on screen.</summary>
         public bool ObjectSounds = true;
 
+        /// <summary>Say what arrives in the inventory while playing: "Recogido: Traje de ermitaño".</summary>
+        public bool AnnouncePickups = true;
+
         /// <summary>Two short blips when the game's target lands on a living enemy (D2R crosshair).</summary>
         public bool CrosshairBeep = true;
 

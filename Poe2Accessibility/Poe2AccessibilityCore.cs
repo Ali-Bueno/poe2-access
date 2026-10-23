@@ -63,6 +63,7 @@ namespace Poe2Accessibility
         private ObjectSounds? objectSounds;
         private Heartbeat? heartbeat;
         private StatusWatch? statuses;
+        private InventoryWatch? pickups;
 
         /// <summary>Game sounds are cut to this length: repeated proximity cues must stay short.</summary>
         private const float GameSoundSeconds = 0.9f;
@@ -137,9 +138,11 @@ namespace Poe2Accessibility
                 this.nearby = new ProximityNarrator(this.entities, this.output);
                 this.wallBump = new WallBump(this.audio);
                 this.beacon = new Beacon(this.audio, this.entities, this.output, this.log);
-                this.targets = new TargetNarrator(this.audio, memory, elements, this.output, this.log);
+                this.targets = new TargetNarrator(this.audio, memory, elements, this.output, this.log) { HudLayer = () => this.narrator?.HudLayer ?? IntPtr.Zero };
+                this.narrator.IgnoredHudText = () => this.targets?.NameLabel ?? IntPtr.Zero;
                 this.heartbeat = new Heartbeat(this.audio);
                 this.statuses = new StatusWatch(this.output, this.log);
+                this.pickups = new InventoryWatch(inventory, this.output, this.log);
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log);
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log));
                 this.ApplySoundVolumes(this.Settings);
@@ -380,6 +383,10 @@ namespace Poe2Accessibility
 
                 this.heartbeat?.Tick(playing && this.Settings.LowLifeHeartbeat, PlayerLifePercent());
                 this.statuses?.Tick(playing && this.Settings.StatusAlerts);
+                if (this.gameState?.CurrentState == GameStateTypes.InGameState)
+                {
+                    this.pickups?.Tick(playing && this.Settings.AnnouncePickups);
+                }
                 if (this.bosses != null)
                 {
                     this.bosses.AnnounceLife = this.Settings.AnnounceBossLife;
@@ -742,6 +749,8 @@ namespace Poe2Accessibility
             this.beacon?.Clear(false);
             this.bosses?.Reset();
             this.statuses?.Reset();
+            this.pickups?.Reset();
+            this.targets?.Reset();
             this.entities?.Forget();
             this.nearby?.Reset();
             if (this.Settings.AnnounceArea)

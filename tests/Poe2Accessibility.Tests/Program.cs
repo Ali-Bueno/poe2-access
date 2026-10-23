@@ -469,6 +469,7 @@ namespace Poe2Accessibility.Tests
             Equal(StatusAilment.Electrocuted, StatusAilments.FromBuffId("electrocuted") ?? StatusAilment.Cursed, "electrocution before shock");
             Equal(true, StatusAilments.FromBuffId("chill_immunity") == null, "immunities are not ailments");
             Equal(true, StatusAilments.FromBuffId("flask_effect_life") == null, "flasks are not ailments");
+            Equal(true, StatusAilments.FromBuffId("flammability_ignite_chance_buildup_79") == null, "build-up is not the ailment yet");
         }
 
         private static void WallBumpThudsOncePerContact()

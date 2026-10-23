@@ -45,9 +45,12 @@ namespace Poe2Accessibility.Services
         {
             var lower = id.ToLowerInvariant();
             if (lower.Contains("immun", StringComparison.Ordinal) || lower.Contains("aura", StringComparison.Ordinal) ||
-                lower.Contains("avoid", StringComparison.Ordinal))
+                lower.Contains("avoid", StringComparison.Ordinal) || lower.Contains("buildup", StringComparison.Ordinal) ||
+                lower.Contains("chance", StringComparison.Ordinal))
             {
-                return null; // "chill_immunity", the player's own auras
+                // "chill_immunity", the player's own auras, and PoE2's ailment build-up meters
+                // ("flammability_ignite_chance_buildup", seen 2026-10-23) that are not the ailment yet.
+                return null;
             }
 
             foreach (var (stem, ailment) in Stems)

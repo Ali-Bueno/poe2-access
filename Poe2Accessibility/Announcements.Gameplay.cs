@@ -80,6 +80,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceNearby) => T("Name nearby things", "Nombrar cosas cercanas"),
             nameof(AccessibilitySettings.AnnounceChat) => T("Chat", "Chat"),
             nameof(AccessibilitySettings.ReadTooltipsOnFocus) => T("Whole tooltips on focus", "Descripciones completas al enfocar"),
+            nameof(AccessibilitySettings.AnnouncePickups) => T("Picked up items", "Objetos recogidos"),
             nameof(AccessibilitySettings.AnnounceLevelUp) => T("Level up", "Subida de nivel"),
             nameof(AccessibilitySettings.Radar) => T("Radar", "Radar"),
             nameof(AccessibilitySettings.EnemySounds) => T("Enemy sounds", "Sonidos de enemigos"),
@@ -99,6 +100,11 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.Language) => T("Language", "Idioma"),
             _ => field,
         };
+
+        /// <summary>"Recogido: Traje de ermitaño"; a stack that grew: "Recogido 2 más: Pergamino de sabiduría, 5".</summary>
+        public static string PickedUp(string name, int added) => added > 0
+            ? T($"Picked up {added} more: {name}", $"Recogido {added} más: {name}")
+            : T($"Picked up: {name}", $"Recogido: {name}");
 
         public static string SettingsMenuTitle => T("Mod settings", "Ajustes del mod");
 

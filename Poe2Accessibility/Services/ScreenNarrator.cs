@@ -152,6 +152,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The in-game objective / tutorial box: whatever it shows next is read, whoever has the focus.</summary>
         public IntPtr TutorialLayer { get; set; }
 
+        /// <summary>A HUD text read elsewhere (the target display's name, TargetNarrator), left out of the HUD news.</summary>
+        public Func<IntPtr>? IgnoredHudText { get; set; }
+
         /// <summary>The in-game HUD: new texts (quest tracker, ground item) are read after the rest, never as a page.</summary>
         public IntPtr HudLayer { get; set; }
 
@@ -309,7 +312,8 @@ namespace Poe2Accessibility.Services
                 // area — the quest tracker reappears whenever a panel closes; bare numbers are flask charges and timers.
                 if (change.Kind != ScreenChangeKind.TopLayerChanged)
                 {
-                    var news = change.Texts.Where(text => !IsNumber(text.Text) && this.hudSpoken.Add(text.Text)).ToList();
+                    var ignored = this.IgnoredHudText?.Invoke() ?? IntPtr.Zero;
+                    var news = change.Texts.Where(text => text.Address != ignored && !IsNumber(text.Text) && this.hudSpoken.Add(text.Text)).ToList();
                     if (news.Count > 0)
                     {
                         this.Speak("hud", Describe(news), false);
