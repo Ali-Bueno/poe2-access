@@ -812,6 +812,11 @@ namespace Poe2Accessibility
                 return;
             }
 
+            if (previous == GameStateTypes.EscapeState && current == GameStateTypes.InGameState)
+            {
+                return; // the game menu closed (D2R: closing is not news), or Options opened from it: its page speaks
+            }
+
             var reallyClosed = previous == GameStateTypes.GameNotLoaded && this.closedSince == 0;
             this.closedSince = 0;
             var text = reallyClosed ? $"{Announcements.GameDetected} {Announcements.ForState(current)}" : Announcements.ForState(current);
