@@ -290,17 +290,25 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private static void PairGlyphs(List<WalkNode> nodes, List<(int Node, ScreenText Text)> texts, List<(int Node, string Button)> glyphs)
         {
+            // A legend with two icons and a "+" between them ("LT + A: Start in town") is one chord: the "+" is not a
+            // label of its own, and the two buttons are pressed together, not either one.
+            var plus = texts.Where(item => item.Text.Text == PlusLabel).ToList();
+            texts.RemoveAll(item => item.Text.Text == PlusLabel);
             foreach (var (glyphNode, button) in glyphs)
             {
                 var best = NearestText(nodes, texts, glyphNode);
                 if (best >= 0)
                 {
                     var text = texts[best].Text;
-                    var joined = text.Button.Length == 0 ? button : text.Button + Announcements.ButtonSeparator + button;
+                    var chord = plus.Count > 0 && NearestText(nodes, plus, texts[best].Node) >= 0;
+                    var joined = text.Button.Length == 0 ? button : text.Button + (chord ? Announcements.ButtonCombination : Announcements.ButtonSeparator) + button;
                     texts[best] = (texts[best].Node, text with { Button = joined });
                 }
             }
         }
+
+        /// <summary>The visible "+" between a chord's two icons in a legend (hint entry plus_label).</summary>
+        private const string PlusLabel = "+";
 
         /// <summary>A currency icon names the amount beside it: the inventory's gold counter reads "0 gold".</summary>
         private static void PairUnits(List<WalkNode> nodes, List<(int Node, ScreenText Text)> texts, List<(int Node, string Unit)> units)

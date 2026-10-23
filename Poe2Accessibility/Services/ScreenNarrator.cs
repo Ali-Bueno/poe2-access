@@ -60,7 +60,27 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Pre-game button hints: the last spoken, and a new set waiting to settle.</summary>
         private string lastHints = string.Empty;
+        private readonly HashSet<string> spokenHints = new();
         private (string Text, DateTime Since) pendingHints = (string.Empty, DateTime.MinValue);
+
+        /// <summary>
+        ///     A focus that lands in another layer, or right after A was pressed (a confirmation popup is built
+        ///     inside the menu's own layer), waits this long for the popup's message, so "Confirm, button" is not
+        ///     said and then cut off by "Exit? Confirm, button".
+        /// </summary>
+        private const int NewLayerFocusDelayMs = 300;
+
+        private (string Text, DateTime At)? deferredFocus;
+        private IntPtr lastFocusLayer;
+
+        /// <summary>The layer holding the focus (FocusTracker), to notice a focus that moved into a popup.</summary>
+        public Func<IntPtr>? FocusLayer { get; set; }
+
+        /// <summary>Milliseconds since the confirm button (A) was last pressed.</summary>
+        public Func<long>? SinceConfirm { get; set; }
+
+        /// <summary>A focus change this soon after A is the screen the press opened.</summary>
+        private const int ConfirmOpensMs = 1000;
 
         /// <summary>Recently read texts are left out of a repeat within this time.</summary>
         private const int RecentTextsMs = 1500;
@@ -84,6 +104,10 @@ namespace Poe2Accessibility.Services
             this.tutorialSpoken.Clear();
             this.inGame = inGameState;
             this.lastHints = string.Empty;
+            this.spokenHints.Clear();
+            this.pendingHints = (string.Empty, DateTime.MinValue);
+            this.lastFocusLayer = IntPtr.Zero;
+            this.deferredFocus = null;
         }
 
         /// <summary>
@@ -93,7 +117,8 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public void OnPreGameHints(ScreenSnapshot snapshot)
         {
-            var hints = Describe(snapshot.Layers.Where(layer => layer.IsHintBar).SelectMany(layer => layer.Texts));
+            var legends = snapshot.Layers.Where(layer => layer.IsHintBar).SelectMany(layer => layer.Texts).ToList();
+            var hints = Describe(legends);
             if (hints == this.lastHints)
             {
                 this.pendingHints = (hints, DateTime.MinValue);
@@ -108,8 +133,16 @@ namespace Poe2Accessibility.Services
 
             if ((DateTime.UtcNow - this.pendingHints.Since).TotalMilliseconds >= HintsSettleMs)
             {
+                // A new screen reads all its hints; a focus move on the same screen only the ones it added
+                // ("Start in town, LT plus A" on a character), never the whole bar again.
+                var fresh = legends.Where(legend => !this.spokenHints.Contains(Describe(new[] { legend }))).ToList();
                 this.lastHints = hints;
-                this.Speak("pre-game hints", hints, false);
+                foreach (var legend in legends)
+                {
+                    this.spokenHints.Add(Describe(new[] { legend }));
+                }
+
+                this.Speak("pre-game hints", Describe(fresh), false);
             }
         }
 
@@ -153,6 +186,17 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastFocusSpeech = focused;
+            var layer = this.FocusLayer?.Invoke() ?? IntPtr.Zero;
+            var intoNewLayer = (!this.inGame && layer != this.lastFocusLayer) ||
+                               (this.SinceConfirm?.Invoke() ?? long.MaxValue) < ConfirmOpensMs;
+            this.lastFocusLayer = layer;
+            if (intoNewLayer)
+            {
+                this.deferredFocus = (text, DateTime.UtcNow);
+                return;
+            }
+
+            this.deferredFocus = null;
             this.output.Speak(text, true);
         }
 
@@ -179,6 +223,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Per frame: a focus named only by its control id is spoken once no tooltip described it in time.</summary>
         public void Tick()
         {
+            if (this.deferredFocus is { } deferred && (DateTime.UtcNow - deferred.At).TotalMilliseconds >= NewLayerFocusDelayMs)
+            {
+                this.deferredFocus = null;
+                this.Speak("focus in a new layer", deferred.Text, true);
+            }
+
             if (this.pendingFocus != null && !this.JustFocused())
             {
                 this.Speak("focus by control id", this.lastFocusSpeech, true);
@@ -400,7 +450,20 @@ namespace Poe2Accessibility.Services
                 case ScreenChangeKind.TopLayerChanged:
                     var returning = this.lastTop != IntPtr.Zero;
                     this.lastTop = change.Layer.Address;
-                    if (focus == null || focusLayer != change.Layer.Address)
+                    if (focus != null && focusLayer == change.Layer.Address && (this.JustFocused() || this.deferredFocus != null))
+                    {
+                        // A screen opened with its focus (delete character: "Are you sure…? yarkey…", then Cancel):
+                        // its message, then the focus.
+                        var focusTexts = new HashSet<string>(focus.ListItems) { focus.Text, focus.Value };
+                        // A caption ending in a colon names a field ("League filter:"), it is not the screen's message.
+                        var screenMessage = Describe(change.Texts.Where(text => !text.IsControl && !focusTexts.Contains(text.Text) &&
+                                                                                !text.Text.TrimEnd().EndsWith(':')));
+                        if (screenMessage.Length > 0)
+                        {
+                            this.Speak("screen with focus", Announcements.Sentences(new[] { screenMessage, this.lastFocusSpeech }), true);
+                        }
+                    }
+                    else if (focus == null || focusLayer != change.Layer.Address)
                     {
                         // The same screen reported again right after its texts were read (class choice: the class and
                         // its quote, then the screen with its title): only what was not said yet.
@@ -515,7 +578,12 @@ namespace Poe2Accessibility.Services
             }
 
             this.log.Debug($"Narrate ({reason})");
-            this.output.Speak(text, interrupt);
+            if (this.deferredFocus is { } deferred && text.Contains(this.lastFocusSpeech, StringComparison.Ordinal))
+            {
+                this.deferredFocus = null; // the popup's message carried the focus with it
+            }
+
+            this.output.Speak(text, interrupt || this.deferredFocus != null);
         }
     }
 }

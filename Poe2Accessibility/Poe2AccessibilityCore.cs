@@ -67,6 +67,16 @@ namespace Poe2Accessibility
 
         /// <summary>The focus of the previous frame, to notice a text field closing (pre-game focus goes to nothing).</summary>
         private AccessibleUiNode? previousFocus;
+
+        /// <summary>When A (the confirm button) last went down, from the game's own pad state.</summary>
+        private long lastConfirmAt = long.MinValue / 2;
+
+        /// <summary>When the game went to "not loaded"; zero once announced or left (see <see cref="AnnounceLastingClose"/>).</summary>
+        private long closedSince;
+
+        /// <summary>A "not loaded" state shorter than this is a transition, not the game closing.</summary>
+        private const int ClosedSettleMs = 2000;
+        private bool confirmDown;
         private ResearchSession? research;
         private UiElementReader? elements;
         private DevCommandFile? devCommands;
@@ -106,6 +116,8 @@ namespace Poe2Accessibility
                 this.semantics = new UiSemantics(memory, elements, catalog, new ComboBoxReader(elements, this.log), inventory);
                 this.focus = new FocusTracker(memory, elements, this.locator, this.semantics, this.log);
                 this.narrator = new ScreenNarrator(this.output, this.log, layer => this.semantics?.SelectedTab(layer) ?? string.Empty);
+                this.narrator.FocusLayer = () => this.focus?.CurrentLayer ?? IntPtr.Zero;
+                this.narrator.SinceConfirm = () => Environment.TickCount64 - this.lastConfirmAt;
                 this.focus.FocusChanged += this.narrator.OnFocusChanged;
                 this.focus.ValueChanged += this.narrator.OnValueChanged;
                 this.focus.TooltipChanged += this.narrator.OnTooltipChanged;
@@ -209,6 +221,7 @@ namespace Poe2Accessibility
             }
 
             this.gameState.Tick();
+            this.AnnounceLastingClose();
             if (!this.gameState.IsAttached)
             {
                 this.processProbe?.Tick();
@@ -304,6 +317,13 @@ namespace Poe2Accessibility
             }
 
             this.padState = state;
+            var confirm = state.IsDown(GameLayout.PadButtons.A);
+            if (confirm && !this.confirmDown)
+            {
+                this.lastConfirmAt = Environment.TickCount64;
+            }
+
+            this.confirmDown = confirm;
             if (!this.Settings.ControllerCommands || this.commands == null)
             {
                 return;
@@ -647,10 +667,31 @@ namespace Poe2Accessibility
                 return;
             }
 
-            var text = previous == GameStateTypes.GameNotLoaded && current != GameStateTypes.GameNotLoaded
-                ? $"{Announcements.GameDetected} {Announcements.ForState(current)}"
-                : Announcements.ForState(current);
+            if (current == GameStateTypes.GameNotLoaded)
+            {
+                // Leaving the game for character selection passes through "not loaded" for a moment: only a state
+                // that lasts is the game closing.
+                this.closedSince = Environment.TickCount64;
+                return;
+            }
+
+            var reallyClosed = previous == GameStateTypes.GameNotLoaded && this.closedSince == 0;
+            this.closedSince = 0;
+            var text = reallyClosed ? $"{Announcements.GameDetected} {Announcements.ForState(current)}" : Announcements.ForState(current);
             this.output.Speak(text, true);
+        }
+
+        /// <summary>Per frame: "Game closed" once the game has stayed unloaded for a while.</summary>
+        private void AnnounceLastingClose()
+        {
+            if (this.closedSince != 0 && Environment.TickCount64 - this.closedSince >= ClosedSettleMs)
+            {
+                this.closedSince = 0;
+                if (this.Settings.AnnounceGameState)
+                {
+                    this.output.Speak(Announcements.ForState(GameStateTypes.GameNotLoaded), true);
+                }
+            }
         }
 
         private void OnAreaChanged(string areaName)
