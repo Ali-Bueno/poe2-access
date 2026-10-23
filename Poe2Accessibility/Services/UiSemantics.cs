@@ -80,6 +80,11 @@ namespace Poe2Accessibility.Services
                 return slotNode;
             }
 
+            if (this.DescribeMapMarker(info) is { } markerNode)
+            {
+                return markerNode;
+            }
+
             var ownText = this.elements.TryReadText(address, out var text) ? text : string.Empty;
             var role = this.InferRole(info, ownText.Length > 0);
             var value = string.Empty;

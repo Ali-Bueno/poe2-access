@@ -118,6 +118,7 @@ namespace Poe2Accessibility
                 this.locator = new UiManagerLocator(memory, elements, this.log);
                 var inventory = new InventoryReader(memory, elements);
                 this.semantics = new UiSemantics(memory, elements, catalog, new ComboBoxReader(elements, this.log), inventory);
+                this.semantics.Trace = message => this.log.Debug(message);
                 this.focus = new FocusTracker(memory, elements, this.locator, this.semantics, this.log);
                 this.narrator = new ScreenNarrator(this.output, this.log, layer => this.semantics?.SelectedTab(layer) ?? string.Empty);
                 this.narrator.FocusLayer = () => this.focus?.CurrentLayer ?? IntPtr.Zero;
