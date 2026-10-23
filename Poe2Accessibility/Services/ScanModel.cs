@@ -20,8 +20,8 @@ namespace Poe2Accessibility.Services
         Players,
     }
 
-    /// <summary>One thing the scanner can name; positions in world units.</summary>
-    public sealed record ScanEntry(uint Id, ScanCategory Category, string Name, float WorldX, float WorldY, float WorldZ);
+    /// <summary>One thing the scanner can name; positions in world units; <c>Kind</c> picks its sound ("gold", "chest", "checkpoint").</summary>
+    public sealed record ScanEntry(uint Id, ScanCategory Category, string Name, float WorldX, float WorldY, float WorldZ, string Kind = "");
 
     /// <summary>
     ///     The eight directions the left stick walks, for a world offset. The stick's right is the world direction

@@ -48,6 +48,12 @@ namespace Poe2Accessibility
         /// <summary>Say when mana falls below half, a quarter and a tenth.</summary>
         public bool AnnounceLowMana = true;
 
+        /// <summary>Say a boss's life as it falls past 75, 50, 40, 30, 20, 10 and 5 percent, and its defeat.</summary>
+        public bool AnnounceBossLife = true;
+
+        /// <summary>A rising whoosh on the side of a rare or unique monster that starts an attack: time to dodge.</summary>
+        public bool DodgeWarnings = true;
+
         /// <summary>Name the monster, NPC or object the right stick aims at.</summary>
         public bool AnnounceTarget = true;
 
@@ -69,6 +75,9 @@ namespace Poe2Accessibility
         /// <summary>Navigation radar: a cue when the way up, left, right or down on screen changes (tin exit, breath open floor, tock wall).</summary>
         public bool Radar = true;
 
+        /// <summary>The game's own sounds for the nearest item, chest or shrine, exit or portal, and waypoint or checkpoint on screen.</summary>
+        public bool ObjectSounds = true;
+
         /// <summary>Volume of all the mod's sounds, percent (0-200).</summary>
         public int SoundVolume = 100;
 
@@ -78,6 +87,9 @@ namespace Poe2Accessibility
 
         /// <summary>Guide beacon volume (hold L3, press the right stick on a scanner choice), percent (0-200).</summary>
         public int BeaconVolume = 100;
+
+        /// <summary>Volume of the object sounds (game sounds for loot, chests, exits, waypoints), percent (0-200).</summary>
+        public int ObjectVolume = 70;
 
         /// <summary>Research: dump the UI tree automatically once per screen (game state) after it settles, and log every focused widget's surroundings.</summary>
         public bool ResearchMode = true;

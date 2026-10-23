@@ -149,6 +149,37 @@ namespace Poe2Accessibility.Services
             return Announcements.Item(name, rarity, count);
         }
 
+        /// <summary>
+        ///     Which drop sound an item on the ground gets: "gold", "currency", "quest", "rare" (rare and unique) or
+        ///     "item", from its metadata path (Metadata/Items/Currency/…, …/QuestItems/…) and its rarity.
+        /// </summary>
+        public string ItemKind(IntPtr entity)
+        {
+            if (entity == IntPtr.Zero || !this.IsItemEntity(entity))
+            {
+                return "item";
+            }
+
+            var item = (Item)Activator.CreateInstance(typeof(Item), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { entity }, null)!;
+            var path = item.Path ?? string.Empty;
+            if (path.Contains("Gold", StringComparison.OrdinalIgnoreCase))
+            {
+                return "gold";
+            }
+
+            if (path.Contains("/Currency/", StringComparison.Ordinal))
+            {
+                return "currency";
+            }
+
+            if (path.Contains("Quest", StringComparison.Ordinal))
+            {
+                return "quest";
+            }
+
+            return item.TryGetComponent<Mods>(out var mods) && mods.Rarity is Rarity.Rare or Rarity.Unique ? "rare" : "item";
+        }
+
         /// <summary>Item entity behind an item element, zero otherwise.</summary>
         private IntPtr EntityOf(IntPtr element) =>
             this.reader.TryRead<IntPtr>(element + GameLayout.InventoryItem.EntityOffset, out var entity) && this.IsItemEntity(entity)

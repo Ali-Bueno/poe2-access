@@ -14,6 +14,13 @@ if (args.Length > 0 && string.Equals(args[0], "catalog", StringComparison.Ordina
     return CatalogGenerator.Run(args[1], args[2]);
 }
 
+// Args: sounds <gameDir> [outDir]  -- decode the audio-cue set from the FMOD banks into WAV files + manifest.txt.
+if (args.Length > 0 && string.Equals(args[0], "sounds", StringComparison.OrdinalIgnoreCase))
+{
+    string game = args.Length > 1 ? args[1] : @"D:\games\steam\steamapps\common\Path of Exile 2";
+    return SoundExtractor.Run(game, args.Length > 2 ? args[2] : @"Poe2Accessibility\sounds");
+}
+
 // Args: [0] = path to _.index.bin, [1] = output dir
 string indexPath = args.Length > 0 ? args[0] : @"D:\games\steam\steamapps\common\Path of Exile 2\Bundles2\_.index.bin";
 string outDir = args.Length > 1 ? args[1] : @"out";

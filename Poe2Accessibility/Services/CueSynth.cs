@@ -54,6 +54,12 @@ namespace Poe2Accessibility.Services
         private const float PingReleaseSeconds = 0.025f;
         private const float PingLevel = 0.35f;
 
+        /// <summary>Dodge warning: a fast rising noise sweep (a whoosh), unlike every tonal cue, short enough to react to.</summary>
+        private const float WhooshSeconds = 0.22f;
+        private const float WhooshStartHz = 300f;
+        private const float WhooshEndHz = 1400f;
+        private const float WhooshLevel = 0.5f;
+
         /// <summary>What sets an enemy apart besides where it is.</summary>
         public enum Layer
         {
@@ -163,6 +169,28 @@ namespace Poe2Accessibility.Services
             }
 
             return Normalized(samples, PingLevel);
+        }
+
+        public static float[] Whoosh(int sampleRate)
+        {
+            // Band-passed noise whose centre rises: a resonant filter swept over white noise, louder toward the end.
+            var samples = new float[(int)(WhooshSeconds * sampleRate)];
+            var random = new Random(7);
+            float low = 0f, band = 0f;
+            for (var i = 0; i < samples.Length; i++)
+            {
+                var t = (float)i / sampleRate;
+                var progress = t / WhooshSeconds;
+                var centre = WhooshStartHz * MathF.Pow(WhooshEndHz / WhooshStartHz, progress);
+                var f = 2f * MathF.Sin(MathF.PI * centre / sampleRate);
+                var noise = (float)((random.NextDouble() * 2) - 1);
+                low += f * band;
+                var high = noise - low - (0.25f * band);
+                band += f * high;
+                samples[i] = band * MathF.Min(1f, t / 0.02f) * MathF.Min(1f, (WhooshSeconds - t) / 0.03f) * (0.4f + (0.6f * progress));
+            }
+
+            return Normalized(samples, WhooshLevel);
         }
 
         /// <summary>Fast attack, then a smooth fall to silence at the end (no click).</summary>

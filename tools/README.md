@@ -12,6 +12,15 @@ tools\Poe2UiExtract\bin\Release\net10.0\Poe2UiExtract.exe "D:\games\steam\steama
 ```
 Needs `oo2core.dll` next to the exe (see below). Output lives in `external/poe2-ui/` (gitignored: game data).
 
+### `sounds` command - game audio cues
+```
+dotnet run --project tools/Poe2UiExtract -c Release -- sounds "D:\games\steam\steamapps\common\Path of Exile 2" Poe2Accessibility\sounds
+```
+Decodes a fixed cue list (item, item_rare, currency, gold, quest_item, chest, shrine, exit, portal, waypoint, checkpoint, npc,
+warning, heartbeat) from `<game>\FMOD\Desktop\*.bank` (loose FMOD banks, not in the bundles) into trimmed 16-bit WAVs plus
+`manifest.txt` (cue -> bank/sample). Uses the game's own `fmod.dll` read-only for Vorbis decoding (no oo2core needed).
+Output is gitignored game data. To change a cue, edit the `Cues` table in `SoundExtractor.cs`. Details: `docs/research/game-audio.md`.
+
 ## ooz-shim — Oodle-compatible `oo2core.dll`
 PoE2 links Oodle statically, so no `oo2core_9_win64.dll` is available. `oodle_shim.cpp` re-exports
 `OodleLZ_Decompress` (the signature LibBundle3 P/Invokes) on top of the open-source decompressor

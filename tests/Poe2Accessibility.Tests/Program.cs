@@ -35,6 +35,11 @@ namespace Poe2Accessibility.Tests
             Run(nameof(WallBumpThudsOncePerContact), WallBumpThudsOncePerContact);
             Run(nameof(FriendsGetTheirOwnStream), FriendsGetTheirOwnStream);
             Run(nameof(PhrasesFollowTheGameLanguage), PhrasesFollowTheGameLanguage);
+            Run(nameof(ConfirmGlyphMarksTheEntryBesideIt), ConfirmGlyphMarksTheEntryBesideIt);
+            Run(nameof(BeaconPointsAlongTheRoute), BeaconPointsAlongTheRoute);
+            Run(nameof(QuestNamesItsTargets), QuestNamesItsTargets);
+            Run(nameof(NearbyThingsWaitForTheCooldown), NearbyThingsWaitForTheCooldown);
+            Run(nameof(StickClickWhileHoldingL3), StickClickWhileHoldingL3);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -360,6 +365,89 @@ namespace Poe2Accessibility.Tests
             Equal("Checkpoint, Stash", Walk(1050), "back again: both, nearest first");
         }
 
+        private static void BeaconPointsAlongTheRoute()
+        {
+            // A 20x20 open grid (two cells per byte, 0x11 = both walkable) with a wall at x = 10 except a gap at y = 18.
+            const int size = 20;
+            var row = size / 2;
+            var grid = Enumerable.Repeat((byte)0x11, row * size).ToArray();
+            for (var y = 0; y < size; y++)
+            {
+                if (y != 18)
+                {
+                    grid[(y * row) + 5] &= 0xF0; // x = 10 is the low nibble of byte 5
+                }
+            }
+
+            var route = new List<System.Numerics.Vector2>();
+            for (var y = 2; y <= 18; y++)
+            {
+                route.Add(new System.Numerics.Vector2(5, y));
+            }
+
+            for (var x = 6; x <= 15; x++)
+            {
+                route.Add(new System.Numerics.Vector2(x, 18));
+            }
+
+            var player = new System.Numerics.Vector2(5, 2);
+            var from = BeaconMath.NearestIndex(route, player);
+            Equal(0, from, "the player stands on the first cell");
+            var aim = BeaconMath.AimPoint(grid, row, route, from, player, 25f);
+            Equal(true, aim.X <= 9, "the ping never points through the wall");
+            Equal(true, aim.Y > 10, "it looks ahead down the corridor");
+            Equal(true, BeaconMath.IntervalMs(50f) == BeaconMath.NearIntervalMs, "close: fastest");
+            Equal(true, BeaconMath.IntervalMs(10000f) == BeaconMath.FarIntervalMs, "far: slowest");
+            Equal(true, BeaconMath.IntervalMs(1000f) < BeaconMath.IntervalMs(2000f), "slower when farther");
+            var (panRight, _) = BeaconMath.Voice(new System.Numerics.Vector2(1, 0));
+            var (_, pitchUp) = BeaconMath.Voice(new System.Numerics.Vector2(0, -1));
+            var (_, pitchDown) = BeaconMath.Voice(new System.Numerics.Vector2(0, 1));
+            Equal(true, panRight > 0.9f && pitchUp > 1f && pitchDown < 1f, "right is right, up is higher, down is lower");
+        }
+
+        private static void QuestNamesItsTargets()
+        {
+            var entries = new[]
+            {
+                new ScanEntry(1, ScanCategory.Exits, "Campamento de Sierraclara", 0, 0, 0),
+                new ScanEntry(2, ScanCategory.Enemies, "El molinero hinchado, único", 0, 0, 0),
+                new ScanEntry(3, ScanCategory.Enemies, "Ahogado", 0, 0, 0),
+                new ScanEntry(4, ScanCategory.Waypoints, "Punto de control", 0, 0, 0),
+                new ScanEntry(5, ScanCategory.Npcs, "Renly", 0, 0, 0),
+            };
+            string Names(params string[] texts) => string.Join(" | ", QuestMatcher.Targets(entries, texts).Select(entry => entry.Name));
+            Equal("Campamento de Sierraclara | El molinero hinchado, único", Names("Llegar a Sierraclara", "Busca al Molinero y encuentra refugio en Sierraclara"), "proper nouns of the objective");
+            Equal(string.Empty, Names("Los ahogados observan entre las lodosas ramas"), "ordinary monsters never");
+            Equal("Renly", Names("Talk to Renly"), "a name inside the sentence");
+            Equal(string.Empty, Names("Renly"), "a label equal to the name is its own nameplate");
+            Equal(true, QuestMatcher.Targets(entries, new[] { "Talk to Renly" }).All(entry => entry.Category == ScanCategory.Quest), "copies in the Quest category");
+        }
+
+        private static void NearbyThingsWaitForTheCooldown()
+        {
+            var tracker = new ProximityTracker(200, 300, 60000);
+            var checkpoint = new ScanEntry(1, ScanCategory.Waypoints, "Checkpoint", 0, 0, 0);
+            string At(float x, long now) => string.Join(", ", tracker.Update(x, 0, new[] { checkpoint }, now).Select(entry => entry.Name));
+            Equal("Checkpoint", At(100, 0), "first approach");
+            Equal(string.Empty, At(500, 5000), "stepped away while fighting");
+            Equal(string.Empty, At(100, 9000), "back within the minute: quiet");
+            Equal(string.Empty, At(500, 30000), "away again");
+            Equal("Checkpoint", At(100, 70000), "after the cooldown it is news again");
+        }
+
+        private static void StickClickWhileHoldingL3()
+        {
+            var gestures = new L3Gestures();
+            var seen = new List<PadGesture>();
+            seen.AddRange(gestures.Update(0, true, 0, 0));
+            seen.AddRange(gestures.Update(100, true, 0, 0, true));
+            seen.AddRange(gestures.Update(200, true, 0, 0, true));
+            seen.AddRange(gestures.Update(700, true, 0, 0));
+            seen.AddRange(gestures.Update(800, false, 0, 0));
+            seen.AddRange(gestures.Update(1300, false, 0, 0));
+            Equal("StickClick", string.Join(",", seen), "one click, no hold or tap after it");
+        }
+
         private static void WallBumpThudsOncePerContact()
         {
             var bump = new WallBumpDetector(new WallBumpLimits(0.5f, 200, 15f, 30f, 45f, 300));
@@ -439,6 +527,21 @@ namespace Poe2Accessibility.Tests
             {
                 Localization.Detect("en");
             }
+        }
+
+        private static void ConfirmGlyphMarksTheEntryBesideIt()
+        {
+            // Three dialogue options stacked 30 px apart, 200 px wide.
+            var entries = new List<(System.Numerics.Vector2 Position, System.Numerics.Vector2 Size)>
+            {
+                (new(100, 100), new(200, 30)),
+                (new(100, 130), new(200, 30)),
+                (new(100, 160), new(200, 30)),
+            };
+            Equal(1, UiSemantics.NearestRect(entries, new(150, 145)), "glyph inside the second entry");
+            Equal(2, UiSemantics.NearestRect(entries, new(80, 172)), "glyph drawn left of the third entry");
+            Equal(0, UiSemantics.NearestRect(entries, new(80, 90)), "glyph above the list");
+            Equal(-1, UiSemantics.NearestRect(new List<(System.Numerics.Vector2, System.Numerics.Vector2)>(), new(0, 0)), "no entries");
         }
 
         private static string Said(ScanAnswer answer) => $"{answer.Entry?.Name ?? "None"} {answer.CategoryChanged}";

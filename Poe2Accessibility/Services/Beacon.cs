@@ -32,8 +32,6 @@ namespace Poe2Accessibility.Services
         /// <summary>A chest or item that vanished while the player stood this close was opened or picked up: arrived.</summary>
         private const float GoneNearWorld = 600f;
 
-        /// <summary>World offset used to measure how the camera draws the world axes.</summary>
-        private const float ProbeWorld = 100f;
 
         private readonly AudioCueService audio;
         private readonly EntityCatalog catalog;
@@ -160,7 +158,7 @@ namespace Poe2Accessibility.Services
 
             this.lastPing = now;
             var aim = BeaconMath.AimPoint(grid, row, path, from, playerGrid, LookAheadGrid) * gridSize;
-            var (pan, pitch) = BeaconMath.Voice(ScreenDirection(player.WorldPosition, aim - here));
+            var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, aim - here));
             this.audio.Play(this.ping, pan, pitch, this.Gain);
         }
 
@@ -228,14 +226,5 @@ namespace Poe2Accessibility.Services
             this.version++;
         }
 
-        /// <summary>Screen offset (x right, y down) of a world offset, from how the camera draws the world axes here.</summary>
-        private static Vector2 ScreenDirection(GameOffsets.Natives.StdTuple3D<float> origin, Vector2 worldOffset)
-        {
-            var world = Core.States.InGameStateObject.CurrentWorldInstance;
-            var here = world.WorldToScreen(origin);
-            var alongX = world.WorldToScreen(new GameOffsets.Natives.StdTuple3D<float> { X = origin.X + ProbeWorld, Y = origin.Y, Z = origin.Z }) - here;
-            var alongY = world.WorldToScreen(new GameOffsets.Natives.StdTuple3D<float> { X = origin.X, Y = origin.Y + ProbeWorld, Z = origin.Z }) - here;
-            return ((worldOffset.X / ProbeWorld) * alongX) + ((worldOffset.Y / ProbeWorld) * alongY);
-        }
     }
 }

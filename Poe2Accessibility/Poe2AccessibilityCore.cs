@@ -59,6 +59,11 @@ namespace Poe2Accessibility
         private readonly VitalAlarm manaAlarm = new(10, 50, 25, 10);
         private Beacon? beacon;
         private TargetNarrator? targets;
+        private BossWatch? bosses;
+        private ObjectSounds? objectSounds;
+
+        /// <summary>Game sounds are cut to this length: repeated proximity cues must stay short.</summary>
+        private const float GameSoundSeconds = 0.9f;
 
         /// <summary>The focus of the previous frame, to notice a text field closing (pre-game focus goes to nothing).</summary>
         private AccessibleUiNode? previousFocus;
@@ -119,6 +124,8 @@ namespace Poe2Accessibility
                 this.wallBump = new WallBump(this.audio);
                 this.beacon = new Beacon(this.audio, this.entities, this.output, this.log);
                 this.targets = new TargetNarrator(memory, elements, this.output, this.log);
+                this.bosses = new BossWatch(this.audio, this.output, elements, this.log);
+                this.objectSounds = new ObjectSounds(this.audio, this.entities, GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log));
                 this.ApplySoundVolumes(this.Settings);
                 this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
                 this.screen = new ScreenWatcher(elements, this.log);
@@ -280,7 +287,8 @@ namespace Poe2Accessibility
                 }
             }
 
-            if (!inGame && this.Settings.AnnounceAppearingText)
+            if (this.gameState.CurrentState is GameStateTypes.LoginState or GameStateTypes.SelectCharacterState or
+                    GameStateTypes.CreateCharacterState or GameStateTypes.DeleteCharacterState && this.Settings.AnnounceAppearingText)
             {
                 this.narrator.OnPreGameHints(this.screen.Current);
             }
@@ -328,6 +336,14 @@ namespace Poe2Accessibility
                 var aiming = !this.padState.IsDown(GameLayout.PadButtons.LeftStick) &&
                              MathF.Max(MathF.Abs(this.padState.RightX), MathF.Abs(this.padState.RightY)) >= AimDeflection;
                 this.targets?.Tick(playing && this.Settings.AnnounceTarget, aiming);
+                if (this.bosses != null)
+                {
+                    this.bosses.AnnounceLife = this.Settings.AnnounceBossLife;
+                    this.bosses.DodgeWarnings = this.Settings.DodgeWarnings;
+                    this.bosses.Tick(playing);
+                }
+
+                this.objectSounds?.Tick(playing && this.Settings.ObjectSounds);
                 if (playing && this.Settings.WallBump)
                 {
                     this.wallBump?.Tick(this.padState.LeftX, this.padState.LeftY);
@@ -397,10 +413,11 @@ namespace Poe2Accessibility
                 return null;
             }
 
-            return Announcements.Vitals(
+            var vitals = Announcements.Vitals(
                 life.Health.CurrentInPercent(),
                 life.Mana.Total > 0 ? life.Mana.CurrentInPercent() : 0,
                 life.EnergyShield.Total > 0 ? life.EnergyShield.CurrentInPercent() : null);
+            return this.bosses?.Status() is { } boss ? Announcements.Sentences(new[] { vitals, boss }) : vitals;
         }
 
         /// <summary>The HUD's texts (quest tracker among them) for the scanner's Quest category.</summary>
@@ -575,6 +592,16 @@ namespace Poe2Accessibility
             {
                 this.beacon.Gain = Fraction(settings.BeaconVolume);
             }
+
+            if (this.bosses != null)
+            {
+                this.bosses.Gain = Fraction(settings.EnemyVolume);
+            }
+
+            if (this.objectSounds != null)
+            {
+                this.objectSounds.Gain = Fraction(settings.ObjectVolume);
+            }
         }
 
         /// <summary>The overlay library's key-timeout table is process-wide: a key the host consumes first never reaches us.</summary>
@@ -629,6 +656,7 @@ namespace Poe2Accessibility
         private void OnAreaChanged(string areaName)
         {
             this.beacon?.Clear(false);
+            this.bosses?.Reset();
             this.entities?.Forget();
             this.nearby?.Reset();
             if (this.Settings.AnnounceArea)

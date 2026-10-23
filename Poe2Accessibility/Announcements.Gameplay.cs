@@ -40,6 +40,11 @@ namespace Poe2Accessibility
             ? T($"{value}, editing done", $"{value}, edición terminada")
             : T("Editing done, field empty", "Edición terminada, campo vacío");
 
+        /// <summary>A boss's life fell past a step: "The Bloated Miller 40 percent".</summary>
+        public static string BossLife(string name, int percent) => T($"{name} {percent} percent", $"{name} {percent} por ciento");
+
+        public static string BossDefeated(string name) => T($"{name} defeated", $"{name} derrotado");
+
         /// <summary>The thing the right stick aims at: "Drowned", "Bloated Miller, unique, 40 percent".</summary>
         public static string Target(string name, int? lifePercent) => lifePercent is { } life and < 100
             ? T($"{name}, {life} percent", $"{name}, {life} por ciento")
