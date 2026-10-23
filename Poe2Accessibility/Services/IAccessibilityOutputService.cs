@@ -13,6 +13,12 @@ namespace Poe2Accessibility.Services
         /// <param name="interrupt">true only on context changes (new screen); false for incremental info.</param>
         void Speak(string text, bool interrupt = false);
 
+        /// <summary>
+        ///     D2R "Urge": interrupts, then any interrupting phrase in the next <paramref name="holdMs"/> queues behind
+        ///     it instead of cutting it off (low life, arrival, a status that began).
+        /// </summary>
+        void Urge(string text, int holdMs = 1500);
+
         /// <summary>Re-speak the last announcement (user hotkey).</summary>
         void Repeat();
 
@@ -25,6 +31,10 @@ namespace Poe2Accessibility.Services
         public string BackendName => "none";
 
         public void Speak(string text, bool interrupt = false)
+        {
+        }
+
+        public void Urge(string text, int holdMs = 1500)
         {
         }
 

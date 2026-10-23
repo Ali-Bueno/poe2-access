@@ -17,8 +17,11 @@
 - **Build:** `dotnet build external/GameHelper2/GameOverlay.sln -c Release` once (host), then
   `dotnet build Poe2Accessibility -c Release` → auto-deploys to
   `external/GameHelper2/GameHelper/bin/Release/net10.0-windows/win-x64/Plugins/Poe2Accessibility/`.
-- **Run:** `py -B tools/computer_use/launch.py all` (starts PoE2 and GameHelper **without UAC** via
-  `__COMPAT_LAYER=RunAsInvoker`; GameHelper only opens the game for reading). Manual: `Launcher.exe` as admin.
+- **Run:** double-click `Poe2Access.exe` in the host folder (`tools/Poe2AccessLauncher`, built with the
+  host): starts PoE2 through Steam if needed and a hidden, renamed GameHelper copy without UAC
+  (`__COMPAT_LAYER=RunAsInvoker`), no console, no update check, no prompt; `restart`/`stop` for testing; errors
+  in `Poe2Access.log` + a message box. Dev: `py -B tools/computer_use/launch.py all|host|stop` wraps it.
+- **Repository:** private GitHub `Ali-Bueno/poe2-access` (created 2026-10-23).
 - **Unit tests (pure logic, no game):** `dotnet run --project tests/Poe2Accessibility.Tests` (screen differ, text edits, chat, gestures, scanner, alarms, enemy cues, radar).
 - **Autonomous testing (controller only):** virtual DualShock 4 + speech log oracle — `tools/computer_use/README.md`. Plugin logs: `Plugins/Poe2Accessibility/logs/accessibility.log`;
   UI dumps: `Plugins/Poe2Accessibility/debug/ui-tree-<State>-<timestamp>.txt`;
@@ -100,7 +103,17 @@
 | Radial menu (hold View) | done (live) | the highlighted option is the only text of its layer: "Inventory", "Skills", "Passives", "Bind Screen", "Character", "Quests", "Cosmetics", "Not Available" |
 | Death screen | done (live) | "You have Died. resurrect at checkpoint", then the button |
 | NPC / player tap, wall bump, level-up "Level 3" | done (code) | user to test; passive-point tutorial line was already read |
-| Beacon, boss life, reach ping | todo | D2R/LeAccess designs listed in `docs/radar.md` / `docs/enemy-sounds.md` |
+| Guide beacon (L3 + R3 on a scanner choice) | done (live) | `Beacon`/`BeaconMath`: route off the frame thread, ping 620 Hz panned along the route, "Llegaste a …" |
+| Scanner Quest category (objective's proper nouns) | done (live) | "Misión. El molinero hinchado, único, 5 pasos"; `QuestMatcher` |
+| Boss life + dodge warning | done (live) | "El molinero hinchado 72 por ciento"; whoosh on GroundSlam/HeavyStrike/… (`BossWatch`, Actor +0x8B0 animation) |
+| Mana warnings, vitals on L3 double tap | done (live) | "Maná 50 por ciento"; "Vida 85 por ciento, maná 100 por ciento. El molinero hinchado 65 por ciento" |
+| Target name on right-stick aim, crosshair beep | done (code) | GameHelper `MouseOverEntity`; never heard live yet (no monster under the aim during the bot test) |
+| Low-life heartbeat, harmful states (Urge speech) | done (code) | `Heartbeat`, `StatusWatch` (buff ids by stem; every new id logged "Player buff seen") |
+| Game sounds for loot/chests/exits/waypoints | done (code) | `ObjectSounds` + `GameSounds`; sounds extracted from the game's FMOD banks via its own fmod.dll (`docs/research/game-audio.md`) |
+| Spanish/English mod phrases, localized area names | done (live) | `Localization` (game ini), `catalog/area-names.json` from WorldAreas (10 languages) |
+| Pre-game hints, delete/creation screens, edit done | done (live) | hints on entry, only new ones after; "¿Estás seguro…? yarkey… cancelar, botón, 1 de 2"; "Zq, edición terminada" |
+| NPC dialogue options read one by one | done (code) | `UiSemantics.OptionLists`: confirm glyph marks the option; verify in town |
+| Melee reach ping, settings menu, item comparison, pickup notices | todo | `docs/d2r-gap-analysis.md` (254 rows, top 15 ranked) |
 
 ## Derived facts (with source)
 - Plugin contract, hotkeys (`Utils.IsKeyPressedAndNotTimeout`), events (`RemoteEvents.AreaChanged` public,
@@ -194,14 +207,25 @@
   (`PassageScan`, `RadarSensor`, `RadarSynth`); with `ProximityNarrator` (`ProximityTracker`) gated in
   `Poe2AccessibilityCore.TickSounds`.
 - Shop/stash: tooltip `cost` → `CurrencyIcons`, red price via `UiElementReader.IsTextRed`; grid tabs `UiSemantics.GridTab`.
+- Gameplay guides: `Beacon` (+ pure `BeaconMath`), `QuestMatcher`, `BossWatch` (boss life + dodge whoosh),
+  `TargetNarrator` (aim names + crosshair), `StatusWatch` (+ pure `StatusAilments`), `Heartbeat` (+ `HeartbeatGate`
+  in VitalAlarm.cs), `ObjectSounds` + `GameSounds` (game WAVs), `ScreenProjection` (world offset → screen).
+  Speech priority: `IAccessibilityOutputService.Urge` (later interrupts queue for 1.5 s).
 - Tests: `tests/Poe2Accessibility.Tests` (differ, text edits, chat diff, gestures, scanner, route legs, life
-  alarm). Dev tools: `tools/computer_use/`; `entities` dev command dumps entities with their component strings.
+  alarm, beacon, quest matching, cooldown, heartbeat, ailments). Dev tools: `tools/computer_use/`; dev commands
+  `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-User test of the wall bump, NPC taps and level-up; feedback on enemy density, nearby names and the radial menu; watch
-the radar flapping seen once near the encampment exit (log has position and axis per cue); wall tones as an option.
+User test of the 2026-10-23 evening batch (beacon, quest category, boss life, dodge whoosh, heartbeat, object sounds,
+target names, Spanish speech); verify the NPC dialogue options in Clearfell (Renly); then continue down
+`docs/d2r-gap-analysis.md` (settings menu, pickup notices, cannot-equip reasons, item comparison).
 
 ## Known issues / open questions
+- Character creation: the highlighted "Continue" button is not the UI manager's focus (M+0x748/0x750/0x760 all
+  empty while it shows; CreateCharacterState+0x2E8 = create_button); after the name field closes only the hints
+  ("Entrada, A") say what A does.
+- Login gateway dropdown entries (name + latency columns) are not read while the list is open.
+- Landmark labels that are not area names ("Boss - Yama", "Chest") stay English.
 - Vendor opening also says "Gold" (an empty gold header in the inventory panel); NPC dialogue topics read "2 of 2"
   for the first of 8 (position counted in the right column only); heard topics (greyed) are left out.
 - Waypoint map: the A action is read when it appears as the cursor moves, not when the map opens.

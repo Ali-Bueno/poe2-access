@@ -25,6 +25,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\ProximityTracker.cs" Link="Plugin\ProximityTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\BeaconMath.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\QuestMatcher.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\StatusAilments.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\WallBumpDetector.cs" Link="Plugin\WallBumpDetector.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\UiSemantics.Nearest.cs" Link="Plugin\UiSemantics.Nearest.cs" />
     <Compile Include="..\..\Poe2Accessibility\Localization.cs" Link="Plugin\Localization.cs" />

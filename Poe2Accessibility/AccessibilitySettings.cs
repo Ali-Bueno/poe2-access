@@ -78,6 +78,16 @@ namespace Poe2Accessibility
         /// <summary>The game's own sounds for the nearest item, chest or shrine, exit or portal, and waypoint or checkpoint on screen.</summary>
         public bool ObjectSounds = true;
 
+        /// <summary>Two short blips when the game's target lands on a living enemy (D2R crosshair).</summary>
+        public bool CrosshairBeep = true;
+
+        /// <summary>A heartbeat loops while life is at or under LowLifeBelow percent (D2R low-life heartbeat).</summary>
+        public bool LowLifeHeartbeat = true;
+        public int LowLifeBelow = 25;
+
+        /// <summary>Say when a harmful state begins and ends: frozen, chilled, shocked, ignited, poisoned, bleeding, stunned, slowed, cursed.</summary>
+        public bool StatusAlerts = true;
+
         /// <summary>Volume of all the mod's sounds, percent (0-200).</summary>
         public int SoundVolume = 100;
 
@@ -90,6 +100,9 @@ namespace Poe2Accessibility
 
         /// <summary>Volume of the object sounds (game sounds for loot, chests, exits, waypoints), percent (0-200).</summary>
         public int ObjectVolume = 70;
+
+        /// <summary>Low-life heartbeat volume, percent (0-200).</summary>
+        public int HeartbeatVolume = 100;
 
         /// <summary>Research: dump the UI tree automatically once per screen (game state) after it settles, and log every focused widget's surroundings.</summary>
         public bool ResearchMode = true;

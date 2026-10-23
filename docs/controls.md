@@ -11,9 +11,10 @@ toggles the map legend). Turn the controller commands off with `ControllerComman
 | Gesture | In menus (something has the focus) | In gameplay |
 |---|---|---|
 | Tap | Next line of the focused element: its name first, then each tooltip line | Where the scanner's choice is now; nothing chosen: repeat the last speech |
-| Double tap | Previous line | Read the button hints |
-| Hold (half a second) | Whole tooltip (item mods, gem stats, definitions) | Read the screen |
+| Double tap | Previous line | Life, mana, energy shield, harmful states and the boss's life ("Vida 80 por ciento, maná 40 por ciento. Envenenado. El molinero hinchado 55 por ciento") |
+| Hold (half a second) | Whole tooltip (item mods, gem stats, definitions) | Read the screen (quest tracker, HUD texts), then the button hints |
 | Hold + right stick flick | — (the game navigates with the right stick in menus) | Scanner (below) |
+| Hold + right stick press (R3) | — | Guide beacon on the scanner's choice (below); again on the same choice turns it off |
 
 A new focus starts again from its first line. Tooltips are also read automatically when the focus lands
 (`ReadTooltipsOnFocus`, on by default).
@@ -24,15 +25,27 @@ Hold L3 and flick the right stick: up and down change the category, left and rig
 first; both wrap and empty categories are skipped. The category is named only when it changes:
 "Characters. Una, 14 steps, right 3, then up right".
 
-- Categories: exits (area transitions and named places), waypoints and checkpoints, characters (NPCs in
-  play), enemies (with rarity), objects (stash, salvage bench, well), chests and shrines, items on the
-  ground, other players.
+- Categories: **quest** (what the quest tracker names: the exit to the area it asks for, the boss to kill, the
+  NPC to talk to), exits (area transitions and named places, in the game's language), waypoints and
+  checkpoints, characters (NPCs in play), enemies (with rarity), objects (stash, salvage bench, well), chests
+  and shrines, items on the ground, other players. Chests and items stay listed once seen until opened or
+  picked up.
 - Distance is along the walkable route, in steps of about a quarter second of walking. The direction is the
   stick direction to push now, then how many steps until the route turns and which way: walk "right 3",
   then ask again. With no turn left only the direction is given; "here" means you are on it; "no route"
   means only the straight line is known (a closed tutorial barrier or door).
 - The choice is kept while you walk: tap L3 to hear where it is now. After ten seconds without a question the
   next flick starts again from the nearest entry.
+
+## Guide beacon (gameplay)
+
+Choose a target with the scanner (the Quest category first is the usual one), hold L3 and press the right
+stick: "Guiando hacia Campamento de Sierraclara, 21 pasos…". A short ping then repeats, panned toward where the
+walkable route goes next (around walls, never through them), higher when the way is up the screen and lower
+when it is down, faster as the route shortens. Walk so the ping is centred. "Llegaste a …" ends it; the same
+gesture on the same target, or changing area, turns it off. With no scanner choice the gesture locks the first
+quest target. The ping is silent while a panel or dialogue is open (the lock is kept) and when no route exists
+yet (a closed tutorial barrier): "Todavía no hay ruta hacia …".
 
 ## Radial menu
 
@@ -49,14 +62,34 @@ right Skills, down Bind Screen, down-left Character, left Passives, up-left Ques
 - **NPCs:** a light wooden tap for the nearest NPC or other player on screen, faster as you get closer.
 - **Wall bump:** a dull thud when you push the stick into a wall and stop, on the side you pushed.
 - **Nearby:** what you walk up to or stand on is named once: checkpoints, NPCs, the stash, chests, items, exits
-  ([nearby](proximity.md)).
-- All stop while a panel, menu or dialogue is open. Settings: `Radar`, `WallBump`, `EnemySounds`, `NpcSounds`, `AnnounceNearby`, `AnnounceLevelUp`, `RadarVolume`,
-  `EnemyVolume`, `SoundVolume` in `config/settings.txt`.
+  ([nearby](proximity.md)); the same thing is named again only after a minute.
+- **Things worth walking to:** the game's own sounds repeat for the nearest item (gold, currency, rare and
+  quest items differ), chest or shrine, exit or portal, and waypoint or checkpoint on screen, on their side,
+  more often as you get closer, silent once you stand on them. They need the sounds extracted once from your
+  game: `dotnet run --project tools/Poe2UiExtract -c Release -- sounds "<game folder>" Poe2Accessibility\sounds`
+  then rebuild (see `tools/README.md`).
+- **Dodge warning:** a rising whoosh on the side of a rare or unique monster as it starts an attack or spell:
+  dodge (B).
+- **Crosshair:** two short blips when the game's target lands on a living enemy.
+- **Heartbeat:** loops while life is at or under 25 percent, until it climbs back to 30.
+- All stop while a panel, menu or dialogue is open. Settings: `Radar`, `WallBump`, `EnemySounds`, `NpcSounds`,
+  `AnnounceNearby`, `AnnounceLevelUp`, `ObjectSounds`, `DodgeWarnings`, `CrosshairBeep`, `LowLifeHeartbeat`,
+  `LowLifeBelow`, volumes `SoundVolume`, `RadarVolume`, `EnemyVolume`, `BeaconVolume`, `ObjectVolume`,
+  `HeartbeatVolume` in `config/settings.txt`.
 
-## Warnings
+## Warnings and speech
 
-"Life 50 percent" and "Life 25 percent" when life falls below half and a quarter, once per fall
-(`AnnounceLowLife`, on by default).
+- "Vida 50 por ciento" / "Vida 25 por ciento" when life falls below half and a quarter, once per fall; they
+  cannot be cut off by the next phrase for a moment (`AnnounceLowLife`).
+- "Maná 50 / 25 / 10 por ciento" when mana falls past those lines (`AnnounceLowMana`).
+- A boss's life as it falls past 75, 50, 40, 30, 20, 10 and 5 percent, and "… derrotado" (`AnnounceBossLife`).
+- Harmful states as they begin ("Envenenado", "Congelado", "Aturdido"…) and end ("Ya no estás envenenado")
+  (`StatusAlerts`).
+- What the right stick aims at, while you aim: "Ahogado", "El molinero hinchado, único, 40 por ciento"
+  (`AnnounceTarget`).
+- Before the game (login, character selection and creation) the controller hints are read when a screen
+  opens, and only the new ones when the focus changes them ("Iniciar el juego en el pueblo/guarida, LT más A").
+- The mod speaks Spanish when the game does (`Language`: auto, en, es).
 
 ## Keyboard (development)
 

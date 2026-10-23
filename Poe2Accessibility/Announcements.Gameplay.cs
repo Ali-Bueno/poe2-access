@@ -45,6 +45,30 @@ namespace Poe2Accessibility
 
         public static string BossDefeated(string name) => T($"{name} defeated", $"{name} derrotado");
 
+        /// <summary>"Poisoned" as it begins (D2R: high priority, cannot be cut off).</summary>
+        public static string AilmentBegins(Services.StatusAilment ailment) => AilmentName(ailment);
+
+        /// <summary>"No longer poisoned" once it has been gone for half a second.</summary>
+        public static string AilmentEnds(Services.StatusAilment ailment) =>
+            T($"No longer {AilmentName(ailment).ToLowerInvariant()}", $"Ya no estás {AilmentName(ailment).ToLowerInvariant()}");
+
+        public static string AilmentName(Services.StatusAilment ailment) => ailment switch
+        {
+            Services.StatusAilment.Frozen => T("Frozen", "Congelado"),
+            Services.StatusAilment.Chilled => T("Chilled", "Enfriado"),
+            Services.StatusAilment.Shocked => T("Shocked", "Electrizado"),
+            Services.StatusAilment.Electrocuted => T("Electrocuted", "Electrocutado"),
+            Services.StatusAilment.Ignited => T("Ignited", "En llamas"),
+            Services.StatusAilment.Poisoned => T("Poisoned", "Envenenado"),
+            Services.StatusAilment.Bleeding => T("Bleeding", "Sangrando"),
+            Services.StatusAilment.Stunned => T("Stunned", "Aturdido"),
+            Services.StatusAilment.Pinned => T("Pinned", "Inmovilizado"),
+            Services.StatusAilment.Slowed => T("Slowed", "Ralentizado"),
+            Services.StatusAilment.Maimed => T("Maimed", "Mutilado"),
+            Services.StatusAilment.Blinded => T("Blinded", "Cegado"),
+            _ => T("Cursed", "Maldito"),
+        };
+
         /// <summary>The thing the right stick aims at: "Drowned", "Bloated Miller, unique, 40 percent".</summary>
         public static string Target(string name, int? lifePercent) => lifePercent is { } life and < 100
             ? T($"{name}, {life} percent", $"{name}, {life} por ciento")

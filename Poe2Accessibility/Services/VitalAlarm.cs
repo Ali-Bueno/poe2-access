@@ -41,4 +41,32 @@ namespace Poe2Accessibility.Services
             return crossed;
         }
     }
+
+    /// <summary>On at or under <see cref="Below"/>, off once life is <see cref="ReleasePoints"/> above it. Pure.</summary>
+    public sealed class HeartbeatGate
+    {
+        public const int ReleasePoints = 5;
+
+        private bool on;
+
+        public int Below { get; set; } = 25;
+
+        public bool Update(int? lifePercent)
+        {
+            if (lifePercent is not { } life || life <= 0)
+            {
+                this.on = false;
+            }
+            else if (life <= this.Below)
+            {
+                this.on = true;
+            }
+            else if (life >= this.Below + ReleasePoints)
+            {
+                this.on = false;
+            }
+
+            return this.on;
+        }
+    }
 }

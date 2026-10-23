@@ -218,7 +218,7 @@ namespace Poe2Accessibility.Services
 
         private void Arrive(ScanEntry goal)
         {
-            this.output.Speak(Announcements.BeaconArrived(goal.Name), true);
+            this.output.Urge(Announcements.BeaconArrived(goal.Name));
             this.log.Info($"Beacon arrived at {goal.Name}");
             this.target = null;
             this.route = null;

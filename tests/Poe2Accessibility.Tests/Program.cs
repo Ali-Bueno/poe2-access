@@ -40,6 +40,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(QuestNamesItsTargets), QuestNamesItsTargets);
             Run(nameof(NearbyThingsWaitForTheCooldown), NearbyThingsWaitForTheCooldown);
             Run(nameof(StickClickWhileHoldingL3), StickClickWhileHoldingL3);
+            Run(nameof(HeartbeatBeatsUnderTheLine), HeartbeatBeatsUnderTheLine);
+            Run(nameof(BuffIdsNameAilments), BuffIdsNameAilments);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -446,6 +448,27 @@ namespace Poe2Accessibility.Tests
             seen.AddRange(gestures.Update(800, false, 0, 0));
             seen.AddRange(gestures.Update(1300, false, 0, 0));
             Equal("StickClick", string.Join(",", seen), "one click, no hold or tap after it");
+        }
+
+        private static void HeartbeatBeatsUnderTheLine()
+        {
+            var gate = new HeartbeatGate { Below = 25 };
+            Equal(false, gate.Update(80), "healthy");
+            Equal(true, gate.Update(25), "at the line");
+            Equal(true, gate.Update(28), "within the release margin");
+            Equal(false, gate.Update(30), "five points above: released");
+            Equal(true, gate.Update(10), "low again");
+            Equal(false, gate.Update(null), "dead or unreadable: quiet");
+        }
+
+        private static void BuffIdsNameAilments()
+        {
+            Equal(StatusAilment.Chilled, StatusAilments.FromBuffId("chilled") ?? StatusAilment.Cursed, "chill");
+            Equal(StatusAilment.Frozen, StatusAilments.FromBuffId("frozen") ?? StatusAilment.Cursed, "freeze");
+            Equal(StatusAilment.Poisoned, StatusAilments.FromBuffId("poisoned") ?? StatusAilment.Cursed, "poison");
+            Equal(StatusAilment.Electrocuted, StatusAilments.FromBuffId("electrocuted") ?? StatusAilment.Cursed, "electrocution before shock");
+            Equal(true, StatusAilments.FromBuffId("chill_immunity") == null, "immunities are not ailments");
+            Equal(true, StatusAilments.FromBuffId("flask_effect_life") == null, "flasks are not ailments");
         }
 
         private static void WallBumpThudsOncePerContact()

@@ -46,6 +46,9 @@ namespace Poe2Accessibility.Services
 
         public string BackendName { get; private set; } = "none";
 
+        /// <summary>Until then interrupting phrases queue (see <see cref="Urge"/>).</summary>
+        private DateTime urgedUntil = DateTime.MinValue;
+
         /// <summary>Returns null (after logging) when no backend can be acquired.</summary>
         public static PrismOutputService? TryCreate(string pluginDirectory, PluginLog log)
         {
@@ -81,10 +84,27 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (interrupt && now < this.urgedUntil)
+            {
+                interrupt = false; // an urgent phrase is still being heard: wait behind it
+            }
+
             this.lastText = text;
             this.lastSpokenAt = now;
             this.log.Info($"Speech {(interrupt ? "interrupts" : "queued")}: {text}");
             this.Enqueue(new SpeechRequest(text, interrupt));
+        }
+
+        public void Urge(string text, int holdMs = 1500)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return;
+            }
+
+            this.urgedUntil = DateTime.MinValue;
+            this.Speak(text, true);
+            this.urgedUntil = DateTime.UtcNow.AddMilliseconds(holdMs);
         }
 
         public void Repeat()

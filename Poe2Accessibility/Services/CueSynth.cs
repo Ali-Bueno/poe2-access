@@ -60,6 +60,20 @@ namespace Poe2Accessibility.Services
         private const float WhooshEndHz = 1400f;
         private const float WhooshLevel = 0.5f;
 
+        /// <summary>Low-life heartbeat (D2R vitals.md): a lub-dub of two low thumps, one beat every 0.58 s (~103/min).</summary>
+        public const int HeartbeatPeriodMs = 580;
+        private const float HeartbeatLubHz = 62f;
+        private const float HeartbeatDubHz = 52f;
+        private const float HeartbeatGapSeconds = 0.16f;
+        private const float HeartbeatThumpSeconds = 0.11f;
+        private const float HeartbeatLevel = 0.6f;
+
+        /// <summary>Crosshair (D2R crosshair.md): two flat 24 ms blips at 1175 Hz, 40 ms apart, odd harmonics.</summary>
+        private const float BlipHz = 1175f;
+        private const float BlipSeconds = 0.024f;
+        private const float BlipGapSeconds = 0.04f;
+        private const float BlipLevel = 0.22f;
+
         /// <summary>What sets an enemy apart besides where it is.</summary>
         public enum Layer
         {
@@ -191,6 +205,43 @@ namespace Poe2Accessibility.Services
             }
 
             return Normalized(samples, WhooshLevel);
+        }
+
+        public static float[] Heartbeat(int sampleRate)
+        {
+            var samples = new float[(int)((HeartbeatGapSeconds + HeartbeatThumpSeconds) * sampleRate)];
+            void Thump(float start, float hz, float level)
+            {
+                var first = (int)(start * sampleRate);
+                for (var i = 0; i < (int)(HeartbeatThumpSeconds * sampleRate) && first + i < samples.Length; i++)
+                {
+                    var t = (float)i / sampleRate;
+                    // A falling sine with a soft attack: a felt thump, below every other cue.
+                    samples[first + i] += level * MathF.Sin(2 * MathF.PI * hz * t * (1f - (0.3f * t / HeartbeatThumpSeconds))) *
+                                          MathF.Min(1f, t / 0.008f) * MathF.Exp(-t / 0.035f);
+                }
+            }
+
+            Thump(0f, HeartbeatLubHz, 1f);
+            Thump(HeartbeatGapSeconds, HeartbeatDubHz, 0.75f);
+            return Normalized(samples, HeartbeatLevel);
+        }
+
+        public static float[] Crosshair(int sampleRate)
+        {
+            var blip = (int)(BlipSeconds * sampleRate);
+            var gap = (int)(BlipGapSeconds * sampleRate);
+            var samples = new float[(2 * blip) + gap];
+            for (var i = 0; i < blip; i++)
+            {
+                var t = (float)i / sampleRate;
+                var tone = MathF.Sin(2 * MathF.PI * BlipHz * t) + (MathF.Sin(2 * MathF.PI * BlipHz * 3 * t) / 3f) + (MathF.Sin(2 * MathF.PI * BlipHz * 5 * t) / 5f);
+                var edge = MathF.Min(1f, MathF.Min(t, BlipSeconds - t) / 0.003f);
+                samples[i] = tone * edge;
+                samples[blip + gap + i] = tone * edge;
+            }
+
+            return Normalized(samples, BlipLevel);
         }
 
         /// <summary>Fast attack, then a smooth fall to silence at the end (no click).</summary>

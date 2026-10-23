@@ -61,6 +61,8 @@ namespace Poe2Accessibility
         private TargetNarrator? targets;
         private BossWatch? bosses;
         private ObjectSounds? objectSounds;
+        private Heartbeat? heartbeat;
+        private StatusWatch? statuses;
 
         /// <summary>Game sounds are cut to this length: repeated proximity cues must stay short.</summary>
         private const float GameSoundSeconds = 0.9f;
@@ -135,7 +137,9 @@ namespace Poe2Accessibility
                 this.nearby = new ProximityNarrator(this.entities, this.output);
                 this.wallBump = new WallBump(this.audio);
                 this.beacon = new Beacon(this.audio, this.entities, this.output, this.log);
-                this.targets = new TargetNarrator(memory, elements, this.output, this.log);
+                this.targets = new TargetNarrator(this.audio, memory, elements, this.output, this.log);
+                this.heartbeat = new Heartbeat(this.audio);
+                this.statuses = new StatusWatch(this.output, this.log);
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log);
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log));
                 this.ApplySoundVolumes(this.Settings);
@@ -355,7 +359,15 @@ namespace Poe2Accessibility
                 this.beacon?.Tick(playing);
                 var aiming = !this.padState.IsDown(GameLayout.PadButtons.LeftStick) &&
                              MathF.Max(MathF.Abs(this.padState.RightX), MathF.Abs(this.padState.RightY)) >= AimDeflection;
-                this.targets?.Tick(playing && this.Settings.AnnounceTarget, aiming);
+                if (this.targets != null)
+                {
+                    this.targets.Names = this.Settings.AnnounceTarget;
+                    this.targets.Beep = this.Settings.CrosshairBeep;
+                    this.targets.Tick(playing && (this.Settings.AnnounceTarget || this.Settings.CrosshairBeep), aiming);
+                }
+
+                this.heartbeat?.Tick(playing && this.Settings.LowLifeHeartbeat, PlayerLifePercent());
+                this.statuses?.Tick(playing && this.Settings.StatusAlerts);
                 if (this.bosses != null)
                 {
                     this.bosses.AnnounceLife = this.Settings.AnnounceBossLife;
@@ -398,6 +410,13 @@ namespace Poe2Accessibility
             this.lastLevel = (character.Name, character.Level);
         }
 
+        /// <summary>The player's life percent, null when it cannot be read or the player is dead.</summary>
+        private static int? PlayerLifePercent() =>
+            Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) &&
+            life.IsAlive && life.Health.Total > 0
+                ? life.Health.CurrentInPercent()
+                : null;
+
         private static bool IsPlayerAlive() =>
             Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) && life.IsAlive;
 
@@ -413,7 +432,7 @@ namespace Poe2Accessibility
 
             if (this.lifeAlarm.Update(life.Health.CurrentInPercent()) is { } threshold)
             {
-                this.output.Speak(Announcements.LowLife(threshold), true);
+                this.output.Urge(Announcements.LowLife(threshold));
             }
 
             if (this.Settings.AnnounceLowMana && life.Mana.Total > 0 && this.manaAlarm.Update(life.Mana.CurrentInPercent()) is { } manaThreshold)
@@ -437,7 +456,8 @@ namespace Poe2Accessibility
                 life.Health.CurrentInPercent(),
                 life.Mana.Total > 0 ? life.Mana.CurrentInPercent() : 0,
                 life.EnergyShield.Total > 0 ? life.EnergyShield.CurrentInPercent() : null);
-            return this.bosses?.Status() is { } boss ? Announcements.Sentences(new[] { vitals, boss }) : vitals;
+            var states = this.statuses?.Active.Select(Announcements.AilmentName).ToList() ?? new System.Collections.Generic.List<string>();
+            return Announcements.Sentences(new[] { vitals, string.Join(", ", states), this.bosses?.Status() ?? string.Empty }.Where(part => part.Length > 0));
         }
 
         /// <summary>The HUD's texts (quest tracker among them) for the scanner's Quest category.</summary>
@@ -622,6 +642,17 @@ namespace Poe2Accessibility
             {
                 this.objectSounds.Gain = Fraction(settings.ObjectVolume);
             }
+
+            if (this.heartbeat != null)
+            {
+                this.heartbeat.Gain = Fraction(settings.HeartbeatVolume);
+                this.heartbeat.Below = Math.Clamp(settings.LowLifeBelow, 5, 70);
+            }
+
+            if (this.targets != null)
+            {
+                this.targets.Gain = Fraction(settings.EnemyVolume);
+            }
         }
 
         /// <summary>The overlay library's key-timeout table is process-wide: a key the host consumes first never reaches us.</summary>
@@ -698,6 +729,7 @@ namespace Poe2Accessibility
         {
             this.beacon?.Clear(false);
             this.bosses?.Reset();
+            this.statuses?.Reset();
             this.entities?.Forget();
             this.nearby?.Reset();
             if (this.Settings.AnnounceArea)

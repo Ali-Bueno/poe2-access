@@ -27,6 +27,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Names within this long of the previous one cut it off (sweeping); later ones queue.</summary>
         private const int SweepMs = 2000;
 
+        /// <summary>D2R crosshair: a monster beeped for stays quiet for this long of being the target.</summary>
+        private const int BeepQuietMs = 3000;
+
+        private readonly AudioCueService audio;
+        private readonly float[] beep;
+        private readonly System.Collections.Generic.Dictionary<IntPtr, long> beeped = new();
         private readonly HostMemoryReader memory;
         private readonly UiElementReader elements;
         private readonly IAccessibilityOutputService output;
@@ -37,13 +43,24 @@ namespace Poe2Accessibility.Services
         private IntPtr spoken;
         private long spokenAt = long.MinValue / 2;
 
-        public TargetNarrator(HostMemoryReader memory, UiElementReader elements, IAccessibilityOutputService output, PluginLog log)
+        public TargetNarrator(AudioCueService audio, HostMemoryReader memory, UiElementReader elements, IAccessibilityOutputService output, PluginLog log)
         {
+            this.audio = audio;
+            this.beep = CueSynth.Crosshair(AudioCueService.SampleRate);
             this.memory = memory;
             this.elements = elements;
             this.output = output;
             this.log = log;
         }
+
+        /// <summary>Crosshair beep gain (settings).</summary>
+        public float Gain { get; set; } = 1f;
+
+        /// <summary>Beep when the game's target lands on a living enemy (D2R crosshair).</summary>
+        public bool Beep { get; set; } = true;
+
+        /// <summary>Speak the target's name while aiming.</summary>
+        public bool Names { get; set; } = true;
 
         /// <summary>Per frame; <paramref name="aiming"/> while the right stick is pushed (and L3, the scanner, is not held).</summary>
         public void Tick(bool playing, bool aiming)
@@ -62,7 +79,8 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (!aiming || hovered == IntPtr.Zero || now - this.candidateSince < SettleMs ||
+            this.BeepOnEnemy(hovered, now);
+            if (!this.Names || !aiming || hovered == IntPtr.Zero || now - this.candidateSince < SettleMs ||
                 (hovered == this.spoken && now - this.spokenAt < RepeatMs))
             {
                 if (hovered == this.spoken)
@@ -82,6 +100,46 @@ namespace Poe2Accessibility.Services
             this.output.Speak(spoken, now - this.spokenAt < SweepMs);
             this.log.Debug($"Target -> {entity.Path} \"{spoken}\"");
             (this.spoken, this.spokenAt) = (hovered, now);
+        }
+
+        /// <summary>Two blips the first time a living enemy becomes the target, then quiet for it while it stays one.</summary>
+        private void BeepOnEnemy(IntPtr hovered, long now)
+        {
+            if (!this.Beep || hovered == IntPtr.Zero)
+            {
+                return;
+            }
+
+            if (this.beeped.TryGetValue(hovered, out var at) && now - at < BeepQuietMs)
+            {
+                this.beeped[hovered] = now; // still the target: stays quiet
+                return;
+            }
+
+            var entity = Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values.FirstOrDefault(candidate => candidate.Address == hovered);
+            if (entity == null || entity.EntityType != EntityTypes.Monster || !EntityCatalog.IsAliveEnemy(entity))
+            {
+                return;
+            }
+
+            this.beeped[hovered] = now;
+            if (this.beeped.Count > 64)
+            {
+                foreach (var stale in this.beeped.Where(pair => now - pair.Value > BeepQuietMs).Select(pair => pair.Key).ToList())
+                {
+                    this.beeped.Remove(stale);
+                }
+            }
+
+            var pan = 0f;
+            if (entity.TryGetComponent<Render>(out var render) &&
+                Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<Render>(out var player))
+            {
+                var offset = new System.Numerics.Vector2(render.WorldPosition.X - player.WorldPosition.X, render.WorldPosition.Y - player.WorldPosition.Y);
+                pan = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, offset)).Pan;
+            }
+
+            this.audio.Play(this.beep, pan, 1f, this.Gain);
         }
 
         /// <summary>Name, rarity of a magic or better monster, life when hurt; null for unnamed things and corpses.</summary>
