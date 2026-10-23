@@ -47,6 +47,14 @@ namespace Poe2Accessibility.Services
         private const float BumpReleaseSeconds = 0.012f;
         private const float BumpLevel = 1.4f;
 
+        /// <summary>Wall tones (D2R `[wall_tones]`): a noise band per screen direction, loud enough under the cues.</summary>
+        private const float WallToneQ = 2f;
+        private const float WallToneLevel = 0.3f;
+        private const float WallToneSeconds = 2f;
+
+        /// <summary>The tail crossfaded into the head so the band loops without a seam.</summary>
+        private const float WallToneSeamSeconds = 0.1f;
+
         /// <summary>Which way a ray points on screen.</summary>
         public enum Direction
         {
@@ -114,6 +122,64 @@ namespace Poe2Accessibility.Services
             }
 
             return samples;
+        }
+
+        /// <summary>D2R bands: high ahead (up), middle to the sides, low behind (down).</summary>
+        public static float WallToneHz(Direction direction) => direction switch
+        {
+            Direction.Up => 800f,
+            Direction.Down => 250f,
+            _ => 450f,
+        };
+
+        /// <summary>A wall tone's level: (1 - depth / range)², nothing once the open way reaches the range.</summary>
+        public static float WallToneGain(float depthCells, float rangeCells)
+        {
+            if (rangeCells <= 0 || depthCells >= rangeCells - 1)
+            {
+                return 0f;
+            }
+
+            var closeness = 1f - (Math.Max(depthCells, 0f) / rangeCells);
+            return closeness * closeness;
+        }
+
+        /// <summary>White noise through a fixed band-pass, looping: the last <see cref="WallToneSeamSeconds"/> fade into the first.</summary>
+        public static float[] WallTone(Direction direction, int sampleRate)
+        {
+            var length = (int)(WallToneSeconds * sampleRate);
+            var seam = (int)(WallToneSeamSeconds * sampleRate);
+            var raw = new float[length + seam];
+            uint seed = (uint)direction + 7;
+            float low = 0, band = 0;
+            var tuning = 2 * MathF.Sin(MathF.PI * WallToneHz(direction) / sampleRate);
+            var peak = 0f;
+            for (var i = 0; i < raw.Length; i++)
+            {
+                seed = (seed * 1664525) + 1013904223;
+                var noise = ((seed >> 8) / 8388608f) - 1f;
+                var high = noise - low - (band / WallToneQ);
+                band += tuning * high;
+                low += tuning * band;
+                raw[i] = band;
+                peak = MathF.Max(peak, MathF.Abs(band));
+            }
+
+            var scale = peak > 0 ? WallToneLevel / peak : 0f;
+            var loop = new float[length];
+            for (var i = 0; i < length; i++)
+            {
+                loop[i] = raw[i] * scale;
+            }
+
+            for (var i = 0; i < seam; i++)
+            {
+                // After the loop's last sample comes raw[length]: the head starts there and blends into its own.
+                var t = (float)i / seam;
+                loop[i] = (loop[i] * t) + (raw[length + i] * scale * (1f - t));
+            }
+
+            return loop;
         }
 
         /// <summary>White noise through a state-variable band-pass whose centre glides exponentially.</summary>

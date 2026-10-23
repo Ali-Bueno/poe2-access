@@ -75,6 +75,12 @@ namespace Poe2Accessibility
         /// <summary>Navigation radar: a cue when the way up, left, right or down on screen changes (tin exit, breath open floor, tock wall).</summary>
         public bool Radar = true;
 
+        /// <summary>Wall tones (D2R): a soft noise band per screen direction that swells as a wall closes in. Off by default.</summary>
+        public bool WallTones = false;
+
+        /// <summary>How far ahead a wall starts to sound for the wall tones, in world units (~400 per second of walking).</summary>
+        public int WallToneRange = 600;
+
         /// <summary>The game's own sounds for the nearest item, chest or shrine, exit or portal, and waypoint or checkpoint on screen.</summary>
         public bool ObjectSounds = true;
 

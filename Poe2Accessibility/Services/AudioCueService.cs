@@ -34,6 +34,7 @@ namespace Poe2Accessibility.Services
 
         private readonly PluginLog log;
         private readonly List<Voice> voices = new();
+        private readonly List<Bed> beds = new();
         private readonly AutoResetEvent bufferDone = new(false);
         private readonly IntPtr[] headers = new IntPtr[BufferCount];
         private readonly float[] mix = new float[BufferFrames * Channels];
@@ -98,6 +99,18 @@ namespace Poe2Accessibility.Services
 
                 this.voices.Add(new Voice(samples, pitch, MathF.Cos(angle) * gain, MathF.Sin(angle) * gain));
             }
+        }
+
+        /// <summary>A looping sound mixed under the cues until the caller sets it silent (wall tones).</summary>
+        public Bed AddBed(float[] loop)
+        {
+            var bed = new Bed(loop);
+            lock (this.beds)
+            {
+                this.beds.Add(bed);
+            }
+
+            return bed;
         }
 
         /// <summary>Cuts every cue at once (a menu opened, the area changed).</summary>
@@ -179,10 +192,66 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            lock (this.beds)
+            {
+                foreach (var bed in this.beds)
+                {
+                    bed.MixInto(this.mix);
+                }
+            }
+
             var volume = this.Volume;
             for (var i = 0; i < this.mix.Length; i++)
             {
                 this.pcm[i] = (short)(Math.Clamp(this.mix[i] * volume, -1f, 1f) * short.MaxValue);
+            }
+        }
+
+        /// <summary>A loop whose level and side glide to what the game thread last set; skipped while silent.</summary>
+        public sealed class Bed
+        {
+            /// <summary>Per-sample step toward the target level: ~11 ms, so changes never click.</summary>
+            private const float Glide = 0.002f;
+
+            private const float Silence = 1e-5f;
+
+            private readonly float[] loop;
+            private int position;
+            private float left;
+            private float right;
+            private volatile float targetLeft;
+            private volatile float targetRight;
+
+            internal Bed(float[] loop) => this.loop = loop;
+
+            /// <summary>Equal-power pan as for cues; gain 0 fades it out.</summary>
+            public void Set(float pan, float gain)
+            {
+                var angle = (Math.Clamp(pan, -1f, 1f) + 1f) * MathF.PI / 4f;
+                this.targetLeft = MathF.Cos(angle) * gain;
+                this.targetRight = MathF.Sin(angle) * gain;
+            }
+
+            internal void MixInto(float[] mix)
+            {
+                var toLeft = this.targetLeft;
+                var toRight = this.targetRight;
+                if (this.loop.Length == 0 || (toLeft == 0 && toRight == 0 && this.left < Silence && this.right < Silence))
+                {
+                    this.left = 0;
+                    this.right = 0;
+                    return;
+                }
+
+                for (var frame = 0; frame < mix.Length / Channels; frame++)
+                {
+                    this.left += (toLeft - this.left) * Glide;
+                    this.right += (toRight - this.right) * Glide;
+                    var sample = this.loop[this.position];
+                    this.position = (this.position + 1) % this.loop.Length;
+                    mix[frame * Channels] += sample * this.left;
+                    mix[(frame * Channels) + 1] += sample * this.right;
+                }
             }
         }
 

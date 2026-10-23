@@ -213,7 +213,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The grid direction that the camera draws as this screen direction.</summary>
-        private static Vector2? GridAxis(RadarSynth.Direction direction, Vector2 alongX, Vector2 alongY) =>
+        internal static Vector2? GridAxis(RadarSynth.Direction direction, Vector2 alongX, Vector2 alongY) =>
             StickDirection.WorldDirection(
                 direction switch
                 {
@@ -240,7 +240,7 @@ namespace Poe2Accessibility.Services
             return found;
         }
 
-        private static StdTuple3D<float> Offset(StdTuple3D<float> origin, float dx, float dy) =>
+        internal static StdTuple3D<float> Offset(StdTuple3D<float> origin, float dx, float dy) =>
             new() { X = origin.X + dx, Y = origin.Y + dy, Z = origin.Z };
     }
 }

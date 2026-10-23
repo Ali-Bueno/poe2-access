@@ -42,6 +42,7 @@ namespace Poe2Accessibility
         private Radar? radar;
         private ProximityNarrator? nearby;
         private WallBump? wallBump;
+        private WallTones? wallTones;
         private GamepadReader.PadState padState;
         private (string Character, int Level) lastLevel;
         private long lastSoundError = long.MinValue / 2;
@@ -150,6 +151,7 @@ namespace Poe2Accessibility
                 this.radar = new Radar(this.audio, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.nearby = new ProximityNarrator(this.entities, this.output);
                 this.wallBump = new WallBump(this.audio);
+                this.wallTones = new WallTones(this.audio);
                 this.beacon = new Beacon(this.audio, this.entities, this.output, this.log);
                 this.targets = new TargetNarrator(this.audio, memory, elements, this.output, this.log) { HudLayer = () => this.narrator?.HudLayer ?? IntPtr.Zero };
                 this.narrator.IgnoredHudText = () => this.targets?.NameLabel ?? IntPtr.Zero;
@@ -222,6 +224,7 @@ namespace Poe2Accessibility
             this.radar = null;
             this.nearby = null;
             this.wallBump = null;
+            this.wallTones = null;
             this.audio?.Dispose();
             this.audio = null;
 
@@ -402,6 +405,7 @@ namespace Poe2Accessibility
                 }
 
                 this.radar?.Tick(playing && this.Settings.Radar);
+                this.wallTones?.Tick(playing && this.Settings.WallTones);
                 this.nearby?.Tick(playing && this.Settings.AnnounceNearby);
                 if (this.beacon != null)
                 {
@@ -689,6 +693,12 @@ namespace Poe2Accessibility
             if (this.wallBump != null)
             {
                 this.wallBump.Gain = Fraction(settings.RadarVolume);
+            }
+
+            if (this.wallTones != null)
+            {
+                this.wallTones.Gain = Fraction(settings.RadarVolume);
+                this.wallTones.RangeWorld = Math.Clamp(settings.WallToneRange, 100, 3000);
             }
 
             if (this.enemyCues != null)

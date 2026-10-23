@@ -42,6 +42,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(NearbyThingsWaitForTheCooldown), NearbyThingsWaitForTheCooldown);
             Run(nameof(StickClickWhileHoldingL3), StickClickWhileHoldingL3);
             Run(nameof(HeartbeatBeatsUnderTheLine), HeartbeatBeatsUnderTheLine);
+            Run(nameof(WallTonesSwellNearWalls), WallTonesSwellNearWalls);
             Run(nameof(BuffIdsNameAilments), BuffIdsNameAilments);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
@@ -425,6 +426,15 @@ namespace Poe2Accessibility.Tests
             var partial = RoutePlanner.FindRoute(grid, row, start, goal, true, out var reached);
             Equal(false, reached, "the goal is not reached");
             Equal(true, partial != null && partial[^1].X == 9, "the way ends at the wall, nearest to the goal");
+        }
+
+        private static void WallTonesSwellNearWalls()
+        {
+            Equal(0f, RadarSynth.WallToneGain(20f, 20f), "open to the range: silent");
+            Equal(1f, RadarSynth.WallToneGain(0f, 20f), "touching the wall: full");
+            Equal(true, RadarSynth.WallToneGain(2f, 20f) > RadarSynth.WallToneGain(10f, 20f), "closer is louder");
+            var loop = RadarSynth.WallTone(RadarSynth.Direction.Up, 44100);
+            Equal(true, MathF.Abs(loop[0] - loop[^1]) < 0.08f, "the loop has no seam");
         }
 
         private static void QuestNamesItsTargets()

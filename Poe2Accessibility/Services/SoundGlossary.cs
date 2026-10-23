@@ -1,5 +1,6 @@
 namespace Poe2Accessibility.Services
 {
+    using System;
     using System.Collections.Generic;
 
     /// <summary>
@@ -29,6 +30,7 @@ namespace Poe2Accessibility.Services
             this.Add("radar_open", RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Left, rate));
             this.Add("radar_exit", RadarSynth.Cue(RadarReading.Exit, RadarSynth.Direction.Left, rate));
             this.Add("bump", RadarSynth.Bump(rate));
+            this.Add("wall_tone", Excerpt(RadarSynth.WallTone(RadarSynth.Direction.Up, rate), rate));
             foreach (var game in new[] { "item", "item_rare", "currency", "gold", "quest_item", "chest", "shrine", "exit", "portal", "waypoint", "checkpoint" })
             {
                 if (gameSounds.Get(game) is { } samples)
@@ -40,6 +42,20 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Sound keys in menu order.</summary>
         public IReadOnlyList<string> Keys => this.keys;
+
+        /// <summary>A second of a loop with soft edges: what a wall right ahead sounds like.</summary>
+        private static float[] Excerpt(float[] loop, int rate)
+        {
+            var length = Math.Min(loop.Length, rate);
+            var fade = rate / 20;
+            var excerpt = new float[length];
+            for (var i = 0; i < length; i++)
+            {
+                excerpt[i] = loop[i] * Math.Min(1f, Math.Min(i, length - 1 - i) / (float)fade);
+            }
+
+            return excerpt;
+        }
 
         public void Play(string key)
         {
