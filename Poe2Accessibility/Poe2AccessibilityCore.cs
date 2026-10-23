@@ -146,6 +146,12 @@ namespace Poe2Accessibility
                 this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
+                this.commands.Settings = () => this.Settings;
+                this.commands.SettingsChanged = changed =>
+                {
+                    this.ApplySettings(changed);
+                    this.settingsStore?.Save(changed);
+                };
                 this.chat = new ChatWatcher(elements, line =>
                 {
                     if (this.Settings.AnnounceChat)
@@ -333,6 +339,12 @@ namespace Poe2Accessibility
                 return;
             }
 
+            this.gestures.FlicksWithoutL3 = this.commands.InSettingsMenu;
+            if (this.commands.InSettingsMenu && this.focus?.Current != null)
+            {
+                this.commands.CloseSettingsMenu();
+            }
+
             foreach (var gesture in this.gestures.Update(Environment.TickCount64, state.IsDown(GameLayout.PadButtons.LeftStick), state.RightX, state.RightY, state.IsDown(GameLayout.PadButtons.RightStick)))
             {
                 this.commands.OnGesture(gesture);
@@ -357,7 +369,7 @@ namespace Poe2Accessibility
                 this.radar?.Tick(playing && this.Settings.Radar);
                 this.nearby?.Tick(playing && this.Settings.AnnounceNearby);
                 this.beacon?.Tick(playing);
-                var aiming = !this.padState.IsDown(GameLayout.PadButtons.LeftStick) &&
+                var aiming = !this.padState.IsDown(GameLayout.PadButtons.LeftStick) && !(this.commands?.InSettingsMenu ?? false) &&
                              MathF.Max(MathF.Abs(this.padState.RightX), MathF.Abs(this.padState.RightY)) >= AimDeflection;
                 if (this.targets != null)
                 {

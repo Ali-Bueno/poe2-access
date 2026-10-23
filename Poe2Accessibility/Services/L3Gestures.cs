@@ -16,6 +16,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The right stick pressed (R3) while L3 is held: lock or release the guide beacon.</summary>
         StickClick,
+
+        /// <summary>L3 held for two seconds: the mod's settings menu.</summary>
+        LongHold,
     }
 
     /// <summary>
@@ -30,6 +33,11 @@ namespace Poe2Accessibility.Services
 
         public const int DoubleTapMs = 300;
 
+        public const int LongHoldMs = 2000;
+
+        /// <summary>The settings menu is open: flicks are read without holding L3.</summary>
+        public bool FlicksWithoutL3 { get; set; }
+
         /// <summary>A flick counts past this deflection and re-arms once the stick is back under the release.</summary>
         private const float FlickPress = 0.7f;
 
@@ -41,6 +49,8 @@ namespace Poe2Accessibility.Services
         private bool flicked;
         private bool stickOut;
         private bool r3Down;
+        private bool longHoldFired;
+        private bool freeStickOut;
         private long? pendingTapAt;
 
         public IReadOnlyList<PadGesture> Update(long nowMs, bool l3, float rightX, float rightY, bool r3 = false)
@@ -48,6 +58,22 @@ namespace Poe2Accessibility.Services
             var gestures = new List<PadGesture>();
             var r3Pressed = r3 && !this.r3Down;
             this.r3Down = r3;
+            if (this.FlicksWithoutL3 && !l3)
+            {
+                var free = Math.Max(Math.Abs(rightX), Math.Abs(rightY));
+                if (!this.freeStickOut && free >= FlickPress)
+                {
+                    this.freeStickOut = true;
+                    gestures.Add(Math.Abs(rightY) >= Math.Abs(rightX)
+                        ? rightY > 0 ? PadGesture.FlickUp : PadGesture.FlickDown
+                        : rightX > 0 ? PadGesture.FlickRight : PadGesture.FlickLeft);
+                }
+                else if (this.freeStickOut && free <= FlickRelease)
+                {
+                    this.freeStickOut = false;
+                }
+            }
+
             if (!l3 && this.pendingTapAt is { } tapAt && nowMs - tapAt > DoubleTapMs)
             {
                 gestures.Add(PadGesture.Tap);
@@ -56,7 +82,7 @@ namespace Poe2Accessibility.Services
 
             if (l3 && !this.down)
             {
-                (this.down, this.downAt, this.holdFired, this.flicked, this.stickOut) = (true, nowMs, false, false, false);
+                (this.down, this.downAt, this.holdFired, this.flicked, this.stickOut, this.longHoldFired) = (true, nowMs, false, false, false, false);
             }
             else if (l3)
             {
@@ -87,6 +113,12 @@ namespace Poe2Accessibility.Services
                     this.holdFired = true;
                     this.pendingTapAt = null;
                     gestures.Add(PadGesture.Hold);
+                }
+
+                if (this.holdFired && !this.longHoldFired && !this.flicked && nowMs - this.downAt >= LongHoldMs)
+                {
+                    this.longHoldFired = true;
+                    gestures.Add(PadGesture.LongHold);
                 }
             }
             else if (this.down)

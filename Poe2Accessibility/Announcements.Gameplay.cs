@@ -69,6 +69,57 @@ namespace Poe2Accessibility
             _ => T("Cursed", "Maldito"),
         };
 
+        /// <summary>Spoken name of a setting of the settings menu, by field name.</summary>
+        public static string SettingName(string field) => field switch
+        {
+            nameof(AccessibilitySettings.AnnounceTarget) => T("Target names", "Nombres de objetivos"),
+            nameof(AccessibilitySettings.AnnounceLowLife) => T("Low life warnings", "Avisos de vida baja"),
+            nameof(AccessibilitySettings.AnnounceLowMana) => T("Low mana warnings", "Avisos de maná bajo"),
+            nameof(AccessibilitySettings.AnnounceBossLife) => T("Boss life", "Vida de jefes"),
+            nameof(AccessibilitySettings.StatusAlerts) => T("Harmful states", "Estados alterados"),
+            nameof(AccessibilitySettings.AnnounceNearby) => T("Name nearby things", "Nombrar cosas cercanas"),
+            nameof(AccessibilitySettings.AnnounceChat) => T("Chat", "Chat"),
+            nameof(AccessibilitySettings.ReadTooltipsOnFocus) => T("Whole tooltips on focus", "Descripciones completas al enfocar"),
+            nameof(AccessibilitySettings.AnnounceLevelUp) => T("Level up", "Subida de nivel"),
+            nameof(AccessibilitySettings.Radar) => T("Radar", "Radar"),
+            nameof(AccessibilitySettings.EnemySounds) => T("Enemy sounds", "Sonidos de enemigos"),
+            nameof(AccessibilitySettings.NpcSounds) => T("NPC sounds", "Sonidos de personajes"),
+            nameof(AccessibilitySettings.WallBump) => T("Wall bump", "Choque con paredes"),
+            nameof(AccessibilitySettings.ObjectSounds) => T("Object sounds", "Sonidos de objetos"),
+            nameof(AccessibilitySettings.DodgeWarnings) => T("Dodge warnings", "Avisos para esquivar"),
+            nameof(AccessibilitySettings.CrosshairBeep) => T("Crosshair beep", "Pitido de mira"),
+            nameof(AccessibilitySettings.LowLifeHeartbeat) => T("Low life heartbeat", "Latido de vida baja"),
+            nameof(AccessibilitySettings.LowLifeBelow) => T("Heartbeat below", "Latido por debajo de"),
+            nameof(AccessibilitySettings.SoundVolume) => T("Master volume", "Volumen general"),
+            nameof(AccessibilitySettings.RadarVolume) => T("Radar volume", "Volumen del radar"),
+            nameof(AccessibilitySettings.EnemyVolume) => T("Enemy volume", "Volumen de enemigos"),
+            nameof(AccessibilitySettings.BeaconVolume) => T("Guide volume", "Volumen de la guía"),
+            nameof(AccessibilitySettings.ObjectVolume) => T("Object volume", "Volumen de objetos"),
+            nameof(AccessibilitySettings.HeartbeatVolume) => T("Heartbeat volume", "Volumen del latido"),
+            nameof(AccessibilitySettings.Language) => T("Language", "Idioma"),
+            _ => field,
+        };
+
+        public static string SettingsMenuTitle => T("Mod settings", "Ajustes del mod");
+
+        public static string SettingsMenuClosed => T("Settings saved", "Ajustes guardados");
+
+        /// <summary>"Sonidos de objetos, activado, 14 de 25".</summary>
+        public static string SettingLine(string name, string value, int position, int count) => $"{name}, {value}, {ListPosition(position, count)}";
+
+        public static string On => T("on", "activado");
+
+        public static string Off => T("off", "desactivado");
+
+        public static string Percent(int value) => T($"{value} percent", $"{value} por ciento");
+
+        public static string LanguageName(string code) => code switch
+        {
+            "es" => "Español",
+            "en" => "English",
+            _ => T("Same as the game", "Igual que el juego"),
+        };
+
         /// <summary>The thing the right stick aims at: "Drowned", "Bloated Miller, unique, 40 percent".</summary>
         public static string Target(string name, int? lifePercent) => lifePercent is { } life and < 100
             ? T($"{name}, {life} percent", $"{name}, {life} por ciento")

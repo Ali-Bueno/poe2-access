@@ -26,6 +26,7 @@ namespace Poe2Accessibility.Services
         private readonly ScanBrowser browser = new();
         private readonly Beacon? beacon;
         private readonly Func<string?> vitals;
+        private readonly SettingsMenu settingsMenu = new();
         private IntPtr lineOwner;
         private int lineIndex = -1;
 
@@ -42,9 +43,33 @@ namespace Poe2Accessibility.Services
             this.log = log;
         }
 
+        /// <summary>The live settings, and what to do when the settings menu changed them (apply and save).</summary>
+        public Func<AccessibilitySettings>? Settings { get; set; }
+
+        public Action<AccessibilitySettings>? SettingsChanged { get; set; }
+
+        /// <summary>The settings menu is open (its flicks need no L3).</summary>
+        public bool InSettingsMenu => this.settingsMenu.IsOpen;
+
+        /// <summary>A panel opened over the settings menu: close it quietly (saved).</summary>
+        public void CloseSettingsMenu()
+        {
+            if (this.settingsMenu.IsOpen && this.Settings?.Invoke() is { } settings)
+            {
+                this.settingsMenu.Close();
+                this.SettingsChanged?.Invoke(settings);
+            }
+        }
+
         public void OnGesture(PadGesture gesture)
         {
             this.log.Debug($"Mod button: {gesture}");
+            if (this.settingsMenu.IsOpen)
+            {
+                this.InSettings(gesture);
+                return;
+            }
+
             var current = this.focus.Current;
             if (current != null)
             {
@@ -102,6 +127,13 @@ namespace Poe2Accessibility.Services
                 case PadGesture.StickClick:
                     this.ToggleBeacon();
                     break;
+                case PadGesture.LongHold:
+                    if (this.Settings?.Invoke() is { } settings)
+                    {
+                        this.output.Speak(this.settingsMenu.Open(settings), true);
+                    }
+
+                    break;
                 default:
                     this.Scan(gesture);
                     break;
@@ -158,6 +190,35 @@ namespace Poe2Accessibility.Services
             }
 
             this.beacon.Toggle(choice);
+        }
+
+        /// <summary>Settings menu: up/down move, left/right change the value, a tap closes and saves.</summary>
+        private void InSettings(PadGesture gesture)
+        {
+            if (this.Settings?.Invoke() is not { } settings)
+            {
+                return;
+            }
+
+            switch (gesture)
+            {
+                case PadGesture.FlickUp:
+                    this.output.Speak(this.settingsMenu.Move(settings, -1), true);
+                    break;
+                case PadGesture.FlickDown:
+                    this.output.Speak(this.settingsMenu.Move(settings, 1), true);
+                    break;
+                case PadGesture.FlickLeft:
+                case PadGesture.FlickRight:
+                    this.output.Speak(this.settingsMenu.Change(settings, gesture == PadGesture.FlickRight ? 1 : -1), true);
+                    this.SettingsChanged?.Invoke(settings);
+                    break;
+                case PadGesture.Tap:
+                case PadGesture.DoubleTap:
+                    this.output.Speak(this.settingsMenu.Close(), true);
+                    this.SettingsChanged?.Invoke(settings);
+                    break;
+            }
         }
 
         /// <summary>Line by line through the focused element; a new focus starts again from its first line.</summary>
