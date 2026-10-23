@@ -106,6 +106,51 @@ namespace Poe2Accessibility
             ? T($"Picked up {added} more: {name}", $"Recogido {added} más: {name}")
             : T($"Picked up: {name}", $"Recogido: {name}");
 
+        /// <summary>Sound glossary: the name of each of the mod's sounds.</summary>
+        public static string SoundName(string key) => key switch
+        {
+            "beacon" => T("Guide ping", "Ping de la guía"),
+            "dodge" => T("Dodge warning", "Aviso para esquivar"),
+            "crosshair" => T("Crosshair", "Mira"),
+            "heartbeat" => T("Heartbeat", "Latido"),
+            "enemy" => T("Enemy", "Enemigo"),
+            "elite" => T("Magic or rare enemy", "Enemigo mágico o raro"),
+            "boss" => T("Unique enemy", "Enemigo único"),
+            "friend" => T("Character", "Personaje"),
+            "radar_wall" => T("Radar: wall", "Radar: pared"),
+            "radar_open" => T("Radar: open way", "Radar: camino libre"),
+            "radar_exit" => T("Radar: exit", "Radar: salida"),
+            "bump" => T("Wall bump", "Choque con pared"),
+            "item" => T("Item on the ground", "Objeto en el suelo"),
+            "item_rare" => T("Rare item", "Objeto raro"),
+            "currency" => T("Currency", "Moneda"),
+            "gold" => T("Gold", "Oro"),
+            "quest_item" => T("Quest item", "Objeto de misión"),
+            "chest" => T("Chest", "Cofre"),
+            "shrine" => T("Shrine", "Santuario"),
+            "exit" => T("Exit", "Salida"),
+            "portal" => T("Portal", "Portal"),
+            "waypoint" => T("Waypoint", "Punto de ruta"),
+            "checkpoint" => T("Checkpoint", "Punto de control"),
+            _ => key,
+        };
+
+        /// <summary>Sound glossary: what the sound means, and that left or right plays it.</summary>
+        public static string SoundMeaning(string key) => key switch
+        {
+            "beacon" => T("walk so it sounds in the centre; faster when closer", "camina para oírlo al centro; más rápido al acercarte"),
+            "dodge" => T("a rare or unique monster starts an attack, dodge", "un monstruo raro o único empieza un ataque, esquiva"),
+            "crosshair" => T("the game's target lands on a living enemy", "el objetivo del juego cae en un enemigo vivo"),
+            "heartbeat" => T("life at or under the line", "vida en o bajo el límite"),
+            "enemy" or "elite" or "boss" => T("on its side, faster when closer", "a su lado, más rápido al acercarse"),
+            "friend" => T("nearest NPC or player", "personaje o jugador más cercano"),
+            "radar_wall" => T("the way closed on that side", "camino cerrado de ese lado"),
+            "radar_open" => T("the way opened again", "el camino se abrió"),
+            "radar_exit" => T("an exit on that line", "una salida en esa línea"),
+            "bump" => T("you pushed into a wall", "empujaste contra una pared"),
+            _ => T("nearest one on screen, on its side", "el más cercano en pantalla, a su lado"),
+        } + T(". Left or right plays it", ". Izquierda o derecha lo reproduce");
+
         public static string SettingsMenuTitle => T("Mod settings", "Ajustes del mod");
 
         public static string SettingsMenuClosed => T("Settings saved", "Ajustes guardados");

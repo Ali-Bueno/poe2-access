@@ -5,7 +5,7 @@ namespace Poe2Accessibility.Services
     using System.Reflection;
 
     /// <summary>
-    ///     The mod's settings, spoken (D2R in-game settings list): opened by holding L3 for two seconds in gameplay;
+    ///     The mod's settings, spoken (D2R in-game settings list): opened by holding L3 for a second and a half in gameplay;
     ///     the right stick then moves through the list (up/down) and changes the value (left/right), with no need to
     ///     hold L3; a tap on L3 closes it and saves to config/settings.txt. Switches toggle, percentages move in
     ///     quarters, the list wraps. Fields are reached by name, so the list is the only place to touch when a
@@ -13,7 +13,7 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class SettingsMenu
     {
-        private static readonly Item[] Items =
+        private static readonly Item[] SettingItems =
         {
             Switch(nameof(AccessibilitySettings.AnnounceTarget)),
             Switch(nameof(AccessibilitySettings.AnnounceLowLife)),
@@ -43,7 +43,22 @@ namespace Poe2Accessibility.Services
             Choice(nameof(AccessibilitySettings.Language), "auto", "es", "en"),
         };
 
+        private readonly Item[] items;
+        private readonly SoundGlossary? glossary;
         private int index;
+
+        /// <param name="glossary">Its sounds become the list's last group: name and meaning, left or right plays it.</param>
+        public SettingsMenu(SoundGlossary? glossary = null)
+        {
+            this.glossary = glossary;
+            var all = new List<Item>(SettingItems);
+            foreach (var key in glossary?.Keys ?? Array.Empty<string>())
+            {
+                all.Add(new Item(key, Kind.Sound, 0, 0, 0, Array.Empty<string>()));
+            }
+
+            this.items = all.ToArray();
+        }
 
         public bool IsOpen { get; private set; }
 
@@ -63,14 +78,20 @@ namespace Poe2Accessibility.Services
         /// <summary>Next / previous setting (wraps).</summary>
         public string Move(AccessibilitySettings settings, int step)
         {
-            this.index = (((this.index + step) % Items.Length) + Items.Length) % Items.Length;
+            this.index = (((this.index + step) % this.items.Length) + this.items.Length) % this.items.Length;
             return this.Describe(settings);
         }
 
         /// <summary>Toggles a switch or steps a value; returns the new value only.</summary>
         public string Change(AccessibilitySettings settings, int step)
         {
-            var item = Items[this.index];
+            var item = this.items[this.index];
+            if (item.Kind == Kind.Sound)
+            {
+                this.glossary?.Play(item.Name);
+                return string.Empty;
+            }
+
             var field = Field(item.Name);
             switch (item.Kind)
             {
@@ -91,8 +112,10 @@ namespace Poe2Accessibility.Services
 
         private string Describe(AccessibilitySettings settings)
         {
-            var item = Items[this.index];
-            return Announcements.SettingLine(Announcements.SettingName(item.Name), this.Value(settings, item), this.index + 1, Items.Length);
+            var item = this.items[this.index];
+            return item.Kind == Kind.Sound
+                ? Announcements.SettingLine(Announcements.SoundName(item.Name), Announcements.SoundMeaning(item.Name), this.index + 1, this.items.Length)
+                : Announcements.SettingLine(Announcements.SettingName(item.Name), this.Value(settings, item), this.index + 1, this.items.Length);
         }
 
         private string Value(AccessibilitySettings settings, Item item)
@@ -120,6 +143,9 @@ namespace Poe2Accessibility.Services
             Switch,
             Number,
             Choice,
+
+            /// <summary>A glossary entry: plays a sound, changes nothing.</summary>
+            Sound,
         }
 
         private sealed record Item(string Name, Kind Kind, int Min, int Max, int Step, string[] Choices);

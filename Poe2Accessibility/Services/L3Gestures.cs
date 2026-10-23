@@ -17,7 +17,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The right stick pressed (R3) while L3 is held: lock or release the guide beacon.</summary>
         StickClick,
 
-        /// <summary>L3 held for two seconds: the mod's settings menu.</summary>
+        /// <summary>L3 held for a second and a half: the mod settings menu.</summary>
         LongHold,
     }
 
@@ -33,7 +33,7 @@ namespace Poe2Accessibility.Services
 
         public const int DoubleTapMs = 300;
 
-        public const int LongHoldMs = 2000;
+        public const int LongHoldMs = 1500;
 
         /// <summary>The settings menu is open: flicks are read without holding L3.</summary>
         public bool FlicksWithoutL3 { get; set; }

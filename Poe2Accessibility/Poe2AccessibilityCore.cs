@@ -144,11 +144,13 @@ namespace Poe2Accessibility
                 this.statuses = new StatusWatch(this.output, this.log);
                 this.pickups = new InventoryWatch(inventory, this.output, this.log);
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log);
-                this.objectSounds = new ObjectSounds(this.audio, this.entities, GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log));
+                var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
+                this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds);
                 this.ApplySoundVolumes(this.Settings);
                 this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
+                this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds));
                 this.commands.Settings = () => this.Settings;
                 this.commands.SettingsChanged = changed =>
                 {

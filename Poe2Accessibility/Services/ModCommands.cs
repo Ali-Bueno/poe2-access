@@ -26,7 +26,7 @@ namespace Poe2Accessibility.Services
         private readonly ScanBrowser browser = new();
         private readonly Beacon? beacon;
         private readonly Func<string?> vitals;
-        private readonly SettingsMenu settingsMenu = new();
+        private SettingsMenu settingsMenu = new();
         private IntPtr lineOwner;
         private int lineIndex = -1;
 
@@ -42,6 +42,9 @@ namespace Poe2Accessibility.Services
             this.catalog = catalog;
             this.log = log;
         }
+
+        /// <summary>Adds the sound glossary as the settings menu's last group.</summary>
+        public void UseGlossary(SoundGlossary glossary) => this.settingsMenu = new SettingsMenu(glossary);
 
         /// <summary>The live settings, and what to do when the settings menu changed them (apply and save).</summary>
         public Func<AccessibilitySettings>? Settings { get; set; }
@@ -210,8 +213,12 @@ namespace Poe2Accessibility.Services
                     break;
                 case PadGesture.FlickLeft:
                 case PadGesture.FlickRight:
-                    this.output.Speak(this.settingsMenu.Change(settings, gesture == PadGesture.FlickRight ? 1 : -1), true);
-                    this.SettingsChanged?.Invoke(settings);
+                    var changed = this.settingsMenu.Change(settings, gesture == PadGesture.FlickRight ? 1 : -1);
+                    if (changed.Length > 0)
+                    {
+                        this.output.Speak(changed, true);
+                        this.SettingsChanged?.Invoke(settings);
+                    }
                     break;
                 case PadGesture.Tap:
                 case PadGesture.DoubleTap:
