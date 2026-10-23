@@ -24,6 +24,15 @@ ID prefixes: `N` = navigation and sounds (N + sub-area letter A-H + number), `M`
 14. **Wall tones** (NB1, NB3, NB4): per-direction continuous bed as the alternative to tock/breath. H / M.
 15. **Unexplored-areas category and route-following prompts in the scanner** (NF2, NF3, NF7): "discovery" speech and sound, turn prompts while walking. H / M.
 
+**Ported as of 2026-10-23 (late):** 1 (`Urge` + per-kind delivery levels, `SpeechPriority`; `Lead` still open),
+2 (heartbeat), 3 (glyph table), 4 (edit done; masked fields open), 5 (crosshair beep), 8 (harmful states), 10 (spoken
+settings menu + glossary + help topics), 12 (NPC options, code only — verify in town), 13 (`ObjectSounds`, game
+WAVs), 14 (wall tones), 15 (route turn prompts, discovery speech; unexplored-areas category open); plus the skill
+bar readout (MB50/MB51), the small-obstacle knock (NB3) and the edge knock. Still open from the list: 6 (item in
+hand, cannot-equip reason, inventory arrival/departure), 7 (item comparison with the equipped one), 9 (melee reach
+ping), 11 (passage classifier). Next RE-bound ones: NPC quest bell (NA13), monster mods on the target (MB70),
+gold pickup amount (MB36, needs the gold counter), passive-tree neighbours (MB49, `docs/research/passive-tree.md`).
+
 Next after these: new-character tutorial (MB91, SC20-SC31, H / L), passive-tree node navigation (MB49, H / L), monster plate rank and mods (MB70, H / L, needs RE), door loops (NA8, NA9), NPC quest bell (NA13).
 
 ## Navigation and sounds
