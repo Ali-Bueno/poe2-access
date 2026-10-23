@@ -228,10 +228,11 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-User test of the 2026-10-23 batches (skill bar on the L3 hold, beacon turns, boss life, dodge whoosh, heartbeat,
-object sounds, social/challenges/cosmetics panels); verify the NPC dialogue options and vendors in Clearfell (the
-current character is still before the Miller); then continue down `docs/d2r-gap-analysis.md` (item comparison,
-melee reach ping, unexplored-areas category).
+User test of the 2026-10-23 batches by ear (wall tones and small-obstacle knock, heartbeat, dodge whoosh, object
+sounds) and by use (passive tree links, skill bar on the L3 hold, item in hand, speech priority levels); verify the
+NPC dialogue options and vendors in Clearfell (the character is still before the Miller, who killed it once during
+testing); then continue down `docs/d2r-gap-analysis.md` (item comparison, monster mods on the target — RE through
+`ModsAndObjectMagicProperties` + Mods.dat names —, gold pickup amount, NPC quest bell, melee reach ping).
 
 ## Known issues / open questions
 - Character creation: the highlighted "Continue" button is not the UI manager's focus (M+0x748/0x750/0x760 all
@@ -258,6 +259,11 @@ melee reach ping, unexplored-areas category).
 - Cosmetics: the weapon-set toggles "I / II" read only "desmarcado, casilla de verificación, 2 de 2" (the numerals
   are drawn, no text in memory).
 - After a host restart the first HUD texts ("Nuevo punto de control") and discoveries are announced again.
+- After leaving to character selection the virtual test pad became player 2 there ("P2 Presiona A para unirte");
+  Enter on the keyboard started the game and the pad was player 1 again in game. Never press A at that prompt.
+- Passive tree: allocation facts rest on one allocated node (`docs/research/passive-tree.md` OPEN list); the
+  class start is said as "inicio, DUELISTA" without a direction (the portrait has no node element).
+- Opening a game panel from the escape menu says "En juego." first (the state change).
 - "Game Paused" is read when menus close.
 - GameHelper's own automation plugins (AutoHotKeyTrigger, PickupHelper) were enabled; disabled in
   `configs/plugins.json` on 2026-10-23 (they press keys / click for the player).
