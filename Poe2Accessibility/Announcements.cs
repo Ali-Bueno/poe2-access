@@ -356,6 +356,12 @@ namespace Poe2Accessibility
                 parts.Add(UnavailableState);
             }
 
+            // Name, state, place in the list, then what it means (D2R order): the position never trails a description.
+            if (node.Position.Length > 0)
+            {
+                parts.Add(node.Position);
+            }
+
             if ((node.IsHovered || node.Role == Models.UiRole.Link) && node.Tooltip.Count > 0)
             {
                 parts.Add(Sentences(node.Tooltip));
@@ -363,11 +369,6 @@ namespace Poe2Accessibility
             else if (IsShortTooltip(node.Tooltip))
             {
                 parts.Add(Sentences(node.Tooltip));
-            }
-
-            if (node.Position.Length > 0)
-            {
-                parts.Add(node.Position);
             }
 
             if (fullTooltip && !node.IsHovered && node.Tooltip.Count > 0 && !IsShortTooltip(node.Tooltip))

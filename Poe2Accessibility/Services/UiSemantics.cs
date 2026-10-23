@@ -132,6 +132,12 @@ namespace Poe2Accessibility.Services
                         null => string.Empty,
                     };
                     label = ownText.Length > 0 ? ownText : Humanise(info.Name);
+                    if (label.Length == 0)
+                    {
+                        // A toggle drawn as a captioned button (cosmetics categories: "Character", "Extras").
+                        label = this.FindDescendantText(info, CaptionSearchDepth, null);
+                    }
+
                     break;
                 default:
                     label = ownText.Length > 0 ? ownText : this.RowText(info);
@@ -164,10 +170,10 @@ namespace Poe2Accessibility.Services
             }
 
             var tooltip = this.TooltipLines(info);
-            if ((namedById || hovered) && tooltip.Count > 0)
+            if ((namedById || hovered || label.Length == 0) && tooltip.Count > 0)
             {
-                // Only a control id named it, or the free cursor rests on it (passive node): the tooltip's title is
-                // what a sighted player reads ("Support Gem Slot", "Critical Damage").
+                // Only a control id named it, nothing did (cosmetic slots: an icon), or the free cursor rests on it
+                // (passive node): the tooltip's title is what a sighted player reads ("Support Gem Slot", "Weapon Effect").
                 label = tooltip[0];
                 tooltip.RemoveAt(0);
                 namedById = false;
