@@ -122,6 +122,7 @@
 | Social, Challenges, Cosmetics, Quests, Character, Skills panels | done (live) | filter box as an edit field; Challenges rows by their `selected_*` marker frame ("El relicario, 0/50, 5 de 8", expand reads the goal); free-cursor pages read after the tab; icon buttons named by their tooltip ("Efecto para arma") |
 | Passive tree: node state and links | done (live) | `UiSemantics.PassiveTree`: "Armadura y evasión, alcanzable, +10 a la armadura… Conexiones: arriba, Armadura y evasión, asignado; abajo a la izquierda, …"; points and attributes on opening (`docs/research/passive-tree.md`) |
 | Speech priority per kind, wall tones, small-obstacle knock | done (code) | `SpeechPriority` (9 "Voz: …" settings), `WallTones` (off by default), `PassageScan.IsSmallObstacle`; unit-tested, not heard live |
+| Item in hand (inventory cursor) | done (live) | `InventoryWatch.TickHand` on GameHelper's Cursor1 inventory: "En la mano: Pergamino de sabiduría, 3. Elige una celda…", "Ya no llevas ningún objeto"; pick-ups now named from the item entity (host `Inventory.Items` keys are slot entries, not entities) |
 | Melee reach ping, item comparison, NPC quest bell, unexplored-areas category | todo | `docs/d2r-gap-analysis.md` (254 rows, top 15 ranked) |
 
 ## Derived facts (with source)

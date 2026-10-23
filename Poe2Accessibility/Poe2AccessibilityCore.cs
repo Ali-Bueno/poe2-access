@@ -428,6 +428,7 @@ namespace Poe2Accessibility
                 if (this.gameState?.CurrentState == GameStateTypes.InGameState)
                 {
                     this.pickups?.Tick(playing && this.Settings.AnnouncePickups);
+                    this.pickups?.TickHand(this.Settings.AnnounceHand);
                 }
                 if (this.bosses != null)
                 {

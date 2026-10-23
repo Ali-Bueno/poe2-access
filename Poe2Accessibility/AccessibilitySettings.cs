@@ -108,6 +108,9 @@ namespace Poe2Accessibility
         /// <summary>Arriving with the guide: delivery level.</summary>
         public string SpeechArrivals = "holds";
 
+        /// <summary>Say what the cursor takes in hand in the inventory and when it lets go (D2R item in hand).</summary>
+        public bool AnnounceHand = true;
+
         /// <summary>Wall tones (D2R): a soft noise band per screen direction that swells as a wall closes in. Off by default.</summary>
         public bool WallTones = false;
 

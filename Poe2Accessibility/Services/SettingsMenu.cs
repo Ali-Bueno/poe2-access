@@ -31,6 +31,7 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.AnnounceDiscoveries)),
             Switch(nameof(AccessibilitySettings.RoutePrompts)),
             Switch(nameof(AccessibilitySettings.EdgeKnock)),
+            Switch(nameof(AccessibilitySettings.AnnounceHand)),
             Switch(nameof(AccessibilitySettings.AnnounceLevelUp)),
             Switch(nameof(AccessibilitySettings.Radar)),
             Switch(nameof(AccessibilitySettings.SmallObstacles)),
