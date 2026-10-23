@@ -78,6 +78,9 @@ namespace Poe2Accessibility
         /// <summary>The game's own sounds for the nearest item, chest or shrine, exit or portal, and waypoint or checkpoint on screen.</summary>
         public bool ObjectSounds = true;
 
+        /// <summary>While the guide beacon leads, name each turn as you reach it: "Ahora arriba a la derecha, 12".</summary>
+        public bool RoutePrompts = true;
+
         /// <summary>Name the first sighting of an exit, waypoint, checkpoint or boss in an area.</summary>
         public bool AnnounceDiscoveries = true;
 

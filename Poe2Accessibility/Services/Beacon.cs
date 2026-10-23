@@ -33,6 +33,19 @@ namespace Poe2Accessibility.Services
         private const float GoneNearWorld = 600f;
 
 
+        /// <summary>Route prompts (D2R route-description.md): a turn is named when the player is this close to it.</summary>
+        private const float TurnPromptWorld = 160f;
+
+        /// <summary>A corner within this many grid cells of the last one named is the same corner (routes are re-planned).</summary>
+        private const float SameCornerGrid = 6f;
+
+        private const float CornerToleranceGrid = 3f;
+        private const float MinLegGrid = 5f;
+
+        /// <summary>One spoken step (EntityCatalog), and the probe used to read the camera's axes.</summary>
+        private const float StepWorld = 100f;
+        private const float ProbeOffset = 100f;
+
         private readonly AudioCueService audio;
         private readonly EntityCatalog catalog;
         private readonly IAccessibilityOutputService output;
@@ -46,6 +59,7 @@ namespace Poe2Accessibility.Services
         private long lastPing;
         private long lastRefresh = long.MinValue / 2;
         private bool noRouteSaid;
+        private Vector2? lastTurn;
 
         public Beacon(AudioCueService audio, EntityCatalog catalog, IAccessibilityOutputService output, PluginLog log)
         {
@@ -151,6 +165,11 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (this.TurnPrompts)
+            {
+                this.PromptTurn(path, from, playerGrid, gridSize, player.WorldPosition);
+            }
+
             if (now - this.lastPing < BeaconMath.IntervalMs(remainingWorld) || !this.catalog.TryLiveGrid(out var grid, out var row))
             {
                 return;
@@ -160,6 +179,41 @@ namespace Poe2Accessibility.Services
             var aim = BeaconMath.AimPoint(grid, row, path, from, playerGrid, LookAheadGrid) * gridSize;
             var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, aim - here));
             this.audio.Play(this.ping, pan, pitch, this.Gain);
+        }
+
+        /// <summary>Speak "Now up right, 12" as the player reaches each turn of the route (setting RoutePrompts).</summary>
+        public bool TurnPrompts { get; set; } = true;
+
+        /// <summary>
+        ///     The next real turn of the route (corners of the walked grid path), named once as the player comes within
+        ///     <see cref="TurnPromptWorld"/> of it: the direction of the leg after it and how many steps it lasts.
+        /// </summary>
+        private void PromptTurn(List<Vector2> path, int from, Vector2 playerGrid, float gridSize, GameOffsets.Natives.StdTuple3D<float> origin)
+        {
+            var corners = RoutePlanner.Corners(path.GetRange(from, path.Count - from), CornerToleranceGrid);
+            if (corners.Count < 3)
+            {
+                return; // a straight line to the end: nothing to turn at
+            }
+
+            var turn = corners[1];
+            if (Vector2.Distance(playerGrid, turn) * gridSize > TurnPromptWorld ||
+                (this.lastTurn is { } said && Vector2.Distance(said, turn) <= SameCornerGrid))
+            {
+                return;
+            }
+
+            var alongX = ScreenProjection.Direction(origin, new Vector2(ProbeOffset, 0));
+            var alongY = ScreenProjection.Direction(origin, new Vector2(0, ProbeOffset));
+            var legs = RoutePlanner.Legs(corners.GetRange(1, corners.Count - 1), delta => StickDirection.Octant(alongX, alongY, delta.X, delta.Y), MinLegGrid);
+            if (legs.Count == 0)
+            {
+                return;
+            }
+
+            this.lastTurn = turn;
+            var steps = Math.Max(1, (int)Math.Round(legs[0].Length * gridSize / StepWorld));
+            this.output.Speak(Announcements.RouteTurn(Announcements.StickDirections[legs[0].Direction], steps), false);
         }
 
         /// <summary>The target's current place; false when it is gone (and the lock was released).</summary>

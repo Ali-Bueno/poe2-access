@@ -8,6 +8,9 @@ namespace Poe2Accessibility
         /// <summary>"Guiding to Clearfell, 116 steps, down 3, then left" (the scanner's route description).</summary>
         public static string BeaconLocked(string described) => T($"Guiding to {described}", $"Guiando hacia {described}");
 
+        /// <summary>The guide reached a turn: "Now up right, 12".</summary>
+        public static string RouteTurn(string direction, int steps) => T($"Now {direction}, {steps}", $"Ahora {direction}, {steps}");
+
         public static string BeaconOff => T("Guide off", "Guía desactivada");
 
         public static string BeaconArrived(string name) => T($"Arrived at {name}", $"Llegaste a {name}");
@@ -82,6 +85,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.ReadTooltipsOnFocus) => T("Whole tooltips on focus", "Descripciones completas al enfocar"),
             nameof(AccessibilitySettings.AnnouncePickups) => T("Picked up items", "Objetos recogidos"),
             nameof(AccessibilitySettings.AnnounceDiscoveries) => T("Discoveries", "Descubrimientos"),
+            nameof(AccessibilitySettings.RoutePrompts) => T("Turn prompts", "Indicaciones de giro"),
             nameof(AccessibilitySettings.AnnounceLevelUp) => T("Level up", "Subida de nivel"),
             nameof(AccessibilitySettings.Radar) => T("Radar", "Radar"),
             nameof(AccessibilitySettings.EnemySounds) => T("Enemy sounds", "Sonidos de enemigos"),

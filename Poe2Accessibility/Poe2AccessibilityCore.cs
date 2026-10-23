@@ -376,7 +376,11 @@ namespace Poe2Accessibility
 
                 this.radar?.Tick(playing && this.Settings.Radar);
                 this.nearby?.Tick(playing && this.Settings.AnnounceNearby);
-                this.beacon?.Tick(playing);
+                if (this.beacon != null)
+                {
+                    this.beacon.TurnPrompts = this.Settings.RoutePrompts;
+                    this.beacon.Tick(playing);
+                }
                 var aiming = !this.padState.IsDown(GameLayout.PadButtons.LeftStick) && !(this.commands?.InSettingsMenu ?? false) &&
                              MathF.Max(MathF.Abs(this.padState.RightX), MathF.Abs(this.padState.RightY)) >= AimDeflection;
                 if (this.targets != null)
