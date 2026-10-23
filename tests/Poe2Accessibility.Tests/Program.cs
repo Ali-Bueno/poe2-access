@@ -44,6 +44,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(HeartbeatBeatsUnderTheLine), HeartbeatBeatsUnderTheLine);
             Run(nameof(WallTonesSwellNearWalls), WallTonesSwellNearWalls);
             Run(nameof(NewsFollowItsDeliveryLevel), NewsFollowItsDeliveryLevel);
+            Run(nameof(RockStandsAloneWallDoesNot), RockStandsAloneWallDoesNot);
             Run(nameof(BuffIdsNameAilments), BuffIdsNameAilments);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
@@ -427,6 +428,29 @@ namespace Poe2Accessibility.Tests
             var partial = RoutePlanner.FindRoute(grid, row, start, goal, true, out var reached);
             Equal(false, reached, "the goal is not reached");
             Equal(true, partial != null && partial[^1].X == 9, "the way ends at the wall, nearest to the goal");
+        }
+
+        private static void RockStandsAloneWallDoesNot()
+        {
+            // 30x30 open grid: a 2x2 rock ahead (x 10-11, y 14-15) and, elsewhere, a wall across the whole map at y = 25.
+            const int size = 30;
+            var row = size / 2;
+            var grid = Enumerable.Repeat((byte)0x11, row * size).ToArray();
+            void Block(int x, int y) => grid[(y * row) + (x / 2)] &= (byte)((x & 1) == 0 ? 0xF0 : 0x0F);
+            foreach (var (x, y) in new[] { (10, 14), (11, 14), (10, 15), (11, 15) })
+            {
+                Block(x, y);
+            }
+
+            for (var x = 0; x < size; x++)
+            {
+                Block(x, 25);
+            }
+
+            var right = new System.Numerics.Vector2(1, 0);
+            var down = new System.Numerics.Vector2(0, 1);
+            Equal(true, PassageScan.IsSmallObstacle(grid, row, new System.Numerics.Vector2(5.5f, 14.5f), right, 4f, 5), "a rock standing alone");
+            Equal(false, PassageScan.IsSmallObstacle(grid, row, new System.Numerics.Vector2(20.5f, 20.5f), down, 4f, 5), "a wall across the map");
         }
 
         private static void NewsFollowItsDeliveryLevel()

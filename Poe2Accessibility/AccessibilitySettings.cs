@@ -75,6 +75,9 @@ namespace Poe2Accessibility
         /// <summary>Navigation radar: a cue when the way up, left, right or down on screen changes (tin exit, breath open floor, tock wall).</summary>
         public bool Radar = true;
 
+        /// <summary>The radar's wall cue knocks hollow when the wall is a small obstacle the player can step round.</summary>
+        public bool SmallObstacles = true;
+
         // Speech priority (D2R): per kind of news, "waits" (its turn), "urgent" (cuts in when urgent), "cuts" (cuts in),
         // or "holds" (cuts in and later news queues behind it for a moment).
 

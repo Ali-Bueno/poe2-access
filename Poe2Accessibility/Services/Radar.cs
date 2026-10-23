@@ -41,6 +41,10 @@ namespace Poe2Accessibility.Services
         private const long OpeningIntervalMs = 500;
 
         private const float ProbeWorld = 100f;
+
+        /// <summary>Widest blocked group still a small obstacle, in cells (D2R: 5×5 subtiles).</summary>
+        private const int SmallObstacleCells = 5;
+
         private const string TransitionPathMarker = "AreaTransition";
 
         private static readonly RadarSynth.Direction[] Directions = Enum.GetValues<RadarSynth.Direction>();
@@ -51,6 +55,10 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<RadarSynth.Direction, RadarSensor> sensors = new();
         private readonly Dictionary<RadarSynth.Direction, RadarReading> pending = new();
         private readonly Dictionary<(RadarReading, RadarSynth.Direction), float[]> sounds = new();
+        private readonly Dictionary<RadarSynth.Direction, float[]> obstacleSounds = new();
+
+        /// <summary>Directions whose confirmed wall is a small obstacle the player can step round.</summary>
+        private readonly HashSet<RadarSynth.Direction> smallObstacles = new();
         private List<Vector2> exits = new();
         private float scale;
         private string area = string.Empty;
@@ -72,11 +80,16 @@ namespace Poe2Accessibility.Services
                 {
                     this.sounds[(reading, direction)] = RadarSynth.Cue(reading, direction, AudioCueService.SampleRate);
                 }
+
+                this.obstacleSounds[direction] = RadarSynth.Obstacle(direction, AudioCueService.SampleRate);
             }
         }
 
         /// <summary>Cue volume, a fraction of the synthesized level.</summary>
         public float Gain { get; set; } = 1f;
+
+        /// <summary>A wall that is a rock, tree or pillar standing alone knocks hollow instead (D2R small obstacles).</summary>
+        public bool SmallObstacles { get; set; } = true;
 
         /// <summary>Per frame; <paramref name="active"/> false silences and forgets every reading.</summary>
         public void Tick(bool active)
@@ -150,6 +163,16 @@ namespace Poe2Accessibility.Services
                 if (this.sensors[direction].Update(now, position, axis, scan, exitAhead) is { } reading)
                 {
                     this.pending[direction] = reading;
+                    if (reading == RadarReading.Wall && this.SmallObstacles &&
+                        PassageScan.IsSmallObstacle(grid, row, position, axis, scan.Depth, SmallObstacleCells))
+                    {
+                        this.smallObstacles.Add(direction);
+                    }
+                    else
+                    {
+                        this.smallObstacles.Remove(direction);
+                    }
+
                     this.log.Debug($"Radar {direction}: {reading} (depth {scan.Depth * cellSize:0} units, at {position.X:0.00},{position.Y:0.00}, axis {axis.X:0.000},{axis.Y:0.000})");
                 }
             }
@@ -177,7 +200,9 @@ namespace Poe2Accessibility.Services
             var due = Directions.Where(direction => this.pending.TryGetValue(direction, out var reading) && reading == urgency).ToList();
             var direction = due[this.turn++ % due.Count];
             this.pending.Remove(direction);
-            var sound = this.sounds[(urgency, direction)];
+            var sound = urgency == RadarReading.Wall && this.smallObstacles.Contains(direction)
+                ? this.obstacleSounds[direction]
+                : this.sounds[(urgency, direction)];
             this.audio.Play(sound, RadarSynth.Pan(direction) * PanStrength, 1f, this.Gain);
             this.busyUntil = now + (sound.Length * 1000L / AudioCueService.SampleRate) + CueGapMs;
         }

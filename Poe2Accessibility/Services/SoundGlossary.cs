@@ -29,6 +29,7 @@ namespace Poe2Accessibility.Services
             this.Add("radar_wall", RadarSynth.Cue(RadarReading.Wall, RadarSynth.Direction.Left, rate));
             this.Add("radar_open", RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Left, rate));
             this.Add("radar_exit", RadarSynth.Cue(RadarReading.Exit, RadarSynth.Direction.Left, rate));
+            this.Add("radar_obstacle", RadarSynth.Obstacle(RadarSynth.Direction.Left, rate));
             this.Add("bump", RadarSynth.Bump(rate));
             this.Add("wall_tone", Excerpt(RadarSynth.WallTone(RadarSynth.Direction.Up, rate), rate));
             foreach (var game in new[] { "item", "item_rare", "currency", "gold", "quest_item", "chest", "shrine", "exit", "portal", "waypoint", "checkpoint" })

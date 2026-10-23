@@ -21,6 +21,11 @@ namespace Poe2Accessibility.Services
         private const float ExitHarmonic = 2.7f;
         private const float ExitDecaySeconds = 0.045f;
 
+        /// <summary>Small obstacle (D2R): a hollow knock between the tock and the tin, quick decay, inharmonic partial.</summary>
+        private const float ObstacleHz = 640f;
+        private const float ObstacleHarmonic = 2.76f;
+        private const float ObstacleDecaySeconds = 0.012f;
+
         private const float WallHz = 260f;
         private const float WallHarmonic = 1.5f;
         private const float WallDecaySeconds = 0.025f;
@@ -63,6 +68,10 @@ namespace Poe2Accessibility.Services
             Right,
             Down,
         }
+
+        /// <summary>The wall cue when what stops the way is a small obstacle the player can step round.</summary>
+        public static float[] Obstacle(Direction direction, int sampleRate) =>
+            Struck(ObstacleHz * (direction == Direction.Down ? DownPitch : 1f), ObstacleHarmonic, ObstacleDecaySeconds, sampleRate);
 
         public static float[] Cue(RadarReading reading, Direction direction, int sampleRate)
         {

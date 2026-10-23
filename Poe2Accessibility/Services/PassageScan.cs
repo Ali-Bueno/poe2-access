@@ -14,6 +14,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Depth in cells along the ray; Unknown when the grid ends before the opening depth.</summary>
         public readonly record struct Result(float Depth, bool Unknown);
 
+        /// <summary>How far past the open depth the obstacle test looks for the blocked cell that stopped the ray.</summary>
+        private const float ObstacleSearchCells = 3f;
+
         private static readonly (int X, int Y)[] Neighbours =
         {
             (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1),
@@ -71,6 +74,74 @@ namespace Poe2Accessibility.Services
             }
 
             return new Result(depth, unknown);
+        }
+
+        /// <summary>
+        ///     Whether the blocked cells that stop a ray form a small obstacle the player can step round (D2R
+        ///     small-obstacle timbre): the first blocked cell within a few cells past <paramref name="depthCells"/>, its
+        ///     8-connected blocked group no wider or taller than <paramref name="maxSide"/> cells and clear of the map's edge.
+        /// </summary>
+        public static bool IsSmallObstacle(byte[] grid, int bytesPerRow, Vector2 start, Vector2 axis, float depthCells, int maxSide)
+        {
+            if (bytesPerRow <= 0 || grid.Length < bytesPerRow)
+            {
+                return false;
+            }
+
+            var columns = bytesPerRow * 2;
+            var rows = grid.Length / bytesPerRow;
+            (int X, int Y)? first = null;
+            for (var step = 0f; step <= ObstacleSearchCells && first == null; step += 0.5f)
+            {
+                var point = start + (axis * (depthCells + step));
+                var cell = ((int)MathF.Floor(point.X), (int)MathF.Floor(point.Y));
+                if (cell.Item1 < 0 || cell.Item2 < 0 || cell.Item1 >= columns || cell.Item2 >= rows)
+                {
+                    return false; // the map's edge stops it: a wall
+                }
+
+                if (!RoutePlanner.IsWalkable(grid, bytesPerRow, cell.Item1, cell.Item2))
+                {
+                    first = cell;
+                }
+            }
+
+            if (first is not { } seed)
+            {
+                return false;
+            }
+
+            var seen = new HashSet<(int, int)> { seed };
+            var queue = new Queue<(int X, int Y)>();
+            queue.Enqueue(seed);
+            int minX = seed.X, maxX = seed.X, minY = seed.Y, maxY = seed.Y;
+            while (queue.Count > 0)
+            {
+                var cell = queue.Dequeue();
+                foreach (var (dx, dy) in Neighbours)
+                {
+                    var next = (X: cell.X + dx, Y: cell.Y + dy);
+                    if (next.X < 0 || next.Y < 0 || next.X >= columns || next.Y >= rows)
+                    {
+                        return false; // joined to the map's edge
+                    }
+
+                    if (RoutePlanner.IsWalkable(grid, bytesPerRow, next.X, next.Y) || !seen.Add(next))
+                    {
+                        continue;
+                    }
+
+                    (minX, maxX, minY, maxY) = (Math.Min(minX, next.X), Math.Max(maxX, next.X), Math.Min(minY, next.Y), Math.Max(maxY, next.Y));
+                    if (maxX - minX >= maxSide || maxY - minY >= maxSide)
+                    {
+                        return false; // grows past the size of a rock or a pillar: a wall
+                    }
+
+                    queue.Enqueue(next);
+                }
+            }
+
+            return true;
         }
 
         private static Vector2 Centre((int X, int Y) cell) => new(cell.X + 0.5f, cell.Y + 0.5f);

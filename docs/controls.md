@@ -50,7 +50,7 @@ yet (a closed tutorial barrier): "Todavía no hay ruta hacia …".
 
 ## Settings menu (gameplay)
 
-Hold L3 for a second and a half: "Ajustes del mod. Ayuda: el botón L3 en el juego, 1 de 68" (five help topics, then the settings, then the sound glossary). Without holding L3,
+Hold L3 for a second and a half: "Ajustes del mod. Ayuda: el botón L3 en el juego, 1 de 70" (five help topics, then the settings, then the sound glossary). Without holding L3,
 flick the right stick up or down to move through the list and left or right to change the value (switches
 toggle, volumes move in steps of 25 percent, language: same as the game, Spanish, English). Tap L3 to close:
 "Ajustes guardados" (written to `config/settings.txt`). Opening a game panel closes it too.
@@ -64,6 +64,9 @@ or defeated, a quick sweep of the aim); objectives and picked-up items wait.
 **Wall tones** (off by default, D2R): a soft hiss per screen direction that swells as a wall closes in (higher
 ahead, lower behind, panned to the sides); "Alcance de los tonos de pared" sets how far ahead it starts (world
 units, 600 ≈ 1.5 s of walking). It follows the radar volume and is silent in menus, like the radar.
+
+**Small obstacles** (on by default, D2R): when the radar's wall on one side is a rock, tree or pillar standing alone
+(a blocked group no wider than 5 cells, clear of the map's edge), it knocks hollow (640 Hz) instead of the tock: step round it.
 
 The last group is the **sound glossary**: every sound of the mod by name and meaning ("Latido, vida en o bajo el
 límite"); left or right plays it.

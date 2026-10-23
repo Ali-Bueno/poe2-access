@@ -33,6 +33,7 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.EdgeKnock)),
             Switch(nameof(AccessibilitySettings.AnnounceLevelUp)),
             Switch(nameof(AccessibilitySettings.Radar)),
+            Switch(nameof(AccessibilitySettings.SmallObstacles)),
             Switch(nameof(AccessibilitySettings.WallTones)),
             Switch(nameof(AccessibilitySettings.EnemySounds)),
             Switch(nameof(AccessibilitySettings.NpcSounds)),

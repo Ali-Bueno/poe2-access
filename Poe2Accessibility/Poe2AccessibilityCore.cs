@@ -703,6 +703,7 @@ namespace Poe2Accessibility
             if (this.radar != null)
             {
                 this.radar.Gain = Fraction(settings.RadarVolume);
+                this.radar.SmallObstacles = settings.SmallObstacles;
             }
 
             if (this.wallBump != null)

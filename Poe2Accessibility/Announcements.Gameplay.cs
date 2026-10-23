@@ -125,6 +125,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.RoutePrompts) => T("Turn prompts", "Indicaciones de giro"),
             nameof(AccessibilitySettings.AnnounceLevelUp) => T("Level up", "Subida de nivel"),
             nameof(AccessibilitySettings.Radar) => T("Radar", "Radar"),
+            nameof(AccessibilitySettings.SmallObstacles) => T("Small obstacles sound hollow", "Obstáculos pequeños con toc hueco"),
             nameof(AccessibilitySettings.WallTones) => T("Wall tones", "Tonos de pared"),
             nameof(AccessibilitySettings.SpeechStatusBegins) => T("Speech: a state begins", "Voz: empieza un estado"),
             nameof(AccessibilitySettings.SpeechStatusEnds) => T("Speech: a state ends", "Voz: termina un estado"),
@@ -166,6 +167,7 @@ namespace Poe2Accessibility
             "dodge" => T("Dodge warning", "Aviso para esquivar"),
             "crosshair" => T("Crosshair", "Mira"),
             "wall_tone" => T("Wall tone", "Tono de pared"),
+            "radar_obstacle" => T("Radar: small obstacle", "Radar: obstáculo pequeño"),
             "heartbeat" => T("Heartbeat", "Latido"),
             "enemy" => T("Enemy", "Enemigo"),
             "elite" => T("Magic or rare enemy", "Enemigo mágico o raro"),
@@ -195,6 +197,9 @@ namespace Poe2Accessibility
             "beacon" => T("walk so it sounds in the centre; faster when closer", "camina para oírlo al centro; más rápido al acercarte"),
             "dodge" => T("a rare or unique monster starts an attack, dodge", "un monstruo raro o único empieza un ataque, esquiva"),
             "crosshair" => T("the game's target lands on a living enemy", "el objetivo del juego cae en un enemigo vivo"),
+            "radar_obstacle" => T(
+                "a rock, tree or pillar standing alone on that side: step round it",
+                "una roca, árbol o pilar aislado de ese lado: rodéalo"),
             "wall_tone" => T(
                 "with wall tones on, a hiss on the side of a near wall; higher ahead, lower behind, louder when closer",
                 "con los tonos de pared activados, un soplo del lado de una pared cercana; más agudo delante, más grave detrás, más fuerte al acercarte"),
