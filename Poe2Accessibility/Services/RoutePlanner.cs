@@ -41,8 +41,18 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>Grid cells from start to goal, or null when no route exists within the budget.</summary>
-        public static List<Vector2>? FindRoute(byte[] grid, int bytesPerRow, Vector2 start, Vector2 goal)
+        public static List<Vector2>? FindRoute(byte[] grid, int bytesPerRow, Vector2 start, Vector2 goal) =>
+            FindRoute(grid, bytesPerRow, start, goal, false, out _);
+
+        /// <summary>
+        ///     Like <see cref="FindRoute(byte[], int, Vector2, Vector2)"/>, but when the goal cannot be reached (a gate
+        ///     still closed) and <paramref name="orNearest"/> is set, the route to the reachable cell closest to it:
+        ///     the player is led as far as the way goes, to the gate the quest will open. <paramref name="reached"/>
+        ///     says which one it is.
+        /// </summary>
+        public static List<Vector2>? FindRoute(byte[] grid, int bytesPerRow, Vector2 start, Vector2 goal, bool orNearest, out bool reached)
         {
+            reached = false;
             if (grid.Length == 0 || bytesPerRow <= 0 ||
                 !TrySnap(grid, bytesPerRow, (int)MathF.Round(start.X), (int)MathF.Round(start.Y), StartSnapRadius, out var from) ||
                 !TrySnap(grid, bytesPerRow, (int)MathF.Round(goal.X), (int)MathF.Round(goal.Y), GoalSnapRadius, out var to))
@@ -55,11 +65,20 @@ namespace Poe2Accessibility.Services
             var open = new PriorityQueue<(int X, int Y), float>();
             open.Enqueue(from, Heuristic(from, to));
             var expansions = 0;
+            var closest = from;
+            var closestDistance = Heuristic(from, to);
             while (open.TryDequeue(out var current, out _) && expansions++ < MaxExpansions)
             {
                 if (current == to)
                 {
+                    reached = true;
                     return Rebuild(cameFrom, current);
+                }
+
+                var left = Heuristic(current, to);
+                if (left < closestDistance)
+                {
+                    (closest, closestDistance) = (current, left);
                 }
 
                 var here = cost[current];
@@ -84,7 +103,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            return null;
+            return orNearest && closest != from ? Rebuild(cameFrom, closest) : null;
         }
 
         /// <summary>Length of a route in grid units.</summary>

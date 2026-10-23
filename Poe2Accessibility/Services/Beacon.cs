@@ -60,6 +60,7 @@ namespace Poe2Accessibility.Services
         private long lastRefresh = long.MinValue / 2;
         private bool noRouteSaid;
         private Vector2? lastTurn;
+        private volatile bool partialRoute;
 
         public Beacon(AudioCueService audio, EntityCatalog catalog, IAccessibilityOutputService output, PluginLog log)
         {
@@ -161,8 +162,12 @@ namespace Poe2Accessibility.Services
             var remainingWorld = BeaconMath.Remaining(path, from, playerGrid) * gridSize;
             if (remainingWorld <= ArrivalWorld)
             {
-                this.Arrive(goal);
-                return;
+                if (!this.partialRoute)
+                {
+                    this.Arrive(goal);
+                }
+
+                return; // at the end of a way that stops short: silent until the gate opens and the route goes on
             }
 
             if (this.TurnPrompts)
@@ -245,7 +250,17 @@ namespace Poe2Accessibility.Services
             }
 
             var started = this.version;
-            this.search = Task.Run(() => started == this.version ? RoutePlanner.FindRoute(grid, row, start, end) : null);
+            this.search = Task.Run(() =>
+            {
+                if (started != this.version)
+                {
+                    return null;
+                }
+
+                var route = RoutePlanner.FindRoute(grid, row, start, end, true, out var reached);
+                this.partialRoute = route != null && !reached;
+                return route;
+            });
         }
 
         private void CollectSearch()
@@ -260,7 +275,16 @@ namespace Poe2Accessibility.Services
             if (found != null)
             {
                 this.route = found;
-                this.noRouteSaid = false;
+                if (this.partialRoute && !this.noRouteSaid && this.target != null)
+                {
+                    // The way stops short (a gate the quest opens): lead as close as it goes, and say so once.
+                    this.noRouteSaid = true;
+                    this.output.Speak(Announcements.BeaconPartialRoute(this.target.Name), false);
+                }
+                else if (!this.partialRoute)
+                {
+                    this.noRouteSaid = false;
+                }
             }
             else if (!this.noRouteSaid && this.target != null)
             {

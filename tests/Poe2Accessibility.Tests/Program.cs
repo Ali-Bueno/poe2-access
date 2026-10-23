@@ -37,6 +37,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(PhrasesFollowTheGameLanguage), PhrasesFollowTheGameLanguage);
             Run(nameof(ConfirmGlyphMarksTheEntryBesideIt), ConfirmGlyphMarksTheEntryBesideIt);
             Run(nameof(BeaconPointsAlongTheRoute), BeaconPointsAlongTheRoute);
+            Run(nameof(ClosedWayLeadsToItsNearestPoint), ClosedWayLeadsToItsNearestPoint);
             Run(nameof(QuestNamesItsTargets), QuestNamesItsTargets);
             Run(nameof(NearbyThingsWaitForTheCooldown), NearbyThingsWaitForTheCooldown);
             Run(nameof(StickClickWhileHoldingL3), StickClickWhileHoldingL3);
@@ -405,6 +406,25 @@ namespace Poe2Accessibility.Tests
             var (_, pitchUp) = BeaconMath.Voice(new System.Numerics.Vector2(0, -1));
             var (_, pitchDown) = BeaconMath.Voice(new System.Numerics.Vector2(0, 1));
             Equal(true, panRight > 0.9f && pitchUp > 1f && pitchDown < 1f, "right is right, up is higher, down is lower");
+        }
+
+        private static void ClosedWayLeadsToItsNearestPoint()
+        {
+            // 20x20 open grid split by a full wall at x = 10: the right half cannot be reached.
+            const int size = 20;
+            var row = size / 2;
+            var grid = Enumerable.Repeat((byte)0x11, row * size).ToArray();
+            for (var y = 0; y < size; y++)
+            {
+                grid[(y * row) + 5] &= 0xF0;
+            }
+
+            var start = new System.Numerics.Vector2(2, 10);
+            var goal = new System.Numerics.Vector2(17, 10);
+            Equal(true, RoutePlanner.FindRoute(grid, row, start, goal) == null, "no full route");
+            var partial = RoutePlanner.FindRoute(grid, row, start, goal, true, out var reached);
+            Equal(false, reached, "the goal is not reached");
+            Equal(true, partial != null && partial[^1].X == 9, "the way ends at the wall, nearest to the goal");
         }
 
         private static void QuestNamesItsTargets()

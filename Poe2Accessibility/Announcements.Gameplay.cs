@@ -15,6 +15,10 @@ namespace Poe2Accessibility
 
         public static string BeaconArrived(string name) => T($"Arrived at {name}", $"Llegaste a {name}");
 
+        /// <summary>The route stops short of the target (closed gate): the guide leads as close as the way goes.</summary>
+        public static string BeaconPartialRoute(string name) =>
+            T($"The way to {name} is closed further on; guiding as close as it goes", $"El camino a {name} está cerrado más adelante; te guío lo más cerca posible");
+
         public static string BeaconNoRoute(string name) => T($"No route to {name} yet", $"Todavía no hay ruta hacia {name}");
 
         public static string BeaconNeedsChoice => T("Choose something with the scanner first", "Primero elige algo con el escáner");
