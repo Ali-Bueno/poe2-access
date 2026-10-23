@@ -247,9 +247,11 @@ namespace Poe2Accessibility
             else
             {
                 var stateObject = GameStateService.CurrentStateObjectAddress();
+                // The pad first: the game moves the focus in the frame it reads a press, and the narrator needs to
+                // know that A, LB or RB caused the move it is about to hear about.
+                this.ReadModButton();
                 this.focus?.Tick(this.gameState.CurrentState, stateObject);
                 this.WatchTextFieldClosing();
-                this.ReadModButton();
                 this.WatchLife();
                 this.TickSounds();
                 this.NarrateScreenChanges(stateObject);
@@ -335,7 +337,9 @@ namespace Poe2Accessibility
             }
 
             this.padState = state;
-            var confirm = state.IsDown(GameLayout.PadButtons.A);
+            // A opens screens and popups, LB/RB switch tabs: a focus that follows them waits for the new page.
+            var confirm = state.IsDown(GameLayout.PadButtons.A) || state.IsDown(GameLayout.PadButtons.LeftShoulder) ||
+                          state.IsDown(GameLayout.PadButtons.RightShoulder);
             if (confirm && !this.confirmDown)
             {
                 this.lastConfirmAt = Environment.TickCount64;
@@ -723,6 +727,11 @@ namespace Poe2Accessibility
             this.research?.OnStateChanged(current);
             this.screen?.Reset(false);
             this.narrator?.Reset(current == GameStateTypes.InGameState);
+            if (this.narrator != null)
+            {
+                // The game menu's screen carries the pause banner and a loading tip: its focus alone opens it.
+                this.narrator.ReadScreenMessages = current != GameStateTypes.EscapeState;
+            }
             if (this.semantics != null)
             {
                 this.semantics.InGame = current == GameStateTypes.InGameState;

@@ -76,6 +76,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The layer holding the focus (FocusTracker), to notice a focus that moved into a popup.</summary>
         public Func<IntPtr>? FocusLayer { get; set; }
 
+        /// <summary>Read a screen's message with its first focus (delete character); off for the game menu.</summary>
+        public bool ReadScreenMessages { get; set; } = true;
+
         /// <summary>Milliseconds since the confirm button (A) was last pressed.</summary>
         public Func<long>? SinceConfirm { get; set; }
 
@@ -454,7 +457,7 @@ namespace Poe2Accessibility.Services
                 case ScreenChangeKind.TopLayerChanged:
                     var returning = this.lastTop != IntPtr.Zero;
                     this.lastTop = change.Layer.Address;
-                    if (focus != null && focusLayer == change.Layer.Address && (this.JustFocused() || this.deferredFocus != null))
+                    if (focus != null && focusLayer == change.Layer.Address && this.ReadScreenMessages && (this.JustFocused() || this.deferredFocus != null))
                     {
                         // A screen opened with its focus (delete character: "Are you sure…? yarkey…", then Cancel):
                         // its message, then the focus.
