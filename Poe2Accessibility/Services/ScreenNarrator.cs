@@ -78,6 +78,9 @@ namespace Poe2Accessibility.Services
 
         private (string Text, DateTime At, AccessibleUiNode Node)? deferredFocus;
 
+        /// <summary>The layer whose tab was last announced; cleared when another screen comes on top.</summary>
+        private IntPtr lastTabLayer;
+
         /// <summary>A tab's page waiting to see whether a focus lands on it: tab, page, its texts, when.</summary>
         private (string Tab, string Page, HashSet<string> Texts, DateTime At)? pendingPage;
         private IntPtr lastFocusLayer;
@@ -368,8 +371,20 @@ namespace Poe2Accessibility.Services
             if (this.inGame)
             {
                 var tabTitle = change.Texts.FirstOrDefault(text => text.Name == TabTitleName);
+                if (tabTitle == null && change.Kind == ScreenChangeKind.TopLayerChanged)
+                {
+                    this.lastTabLayer = IntPtr.Zero; // another screen came on top: the panel's tab is news again
+                }
+
+                if (tabTitle != null && change.Kind == ScreenChangeKind.TopLayerChanged && change.Layer.Address == this.lastTabLayer &&
+                    this.lastContext == tabTitle.Text && !this.JustFocused())
+                {
+                    return; // the same panel and tab reported again (an item's count on the cursor came and went)
+                }
+
                 if (tabTitle != null)
                 {
+                    this.lastTabLayer = change.Layer.Address;
                     // A tab switch rebuilds the whole panel: say only the tab, then where the focus is (D2R rule) — the
                     // one that moved with it, or the one that stayed (the inventory beside Skills and Character).
                     var withFocus = this.JustFocused();
