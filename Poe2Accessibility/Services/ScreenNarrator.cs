@@ -85,6 +85,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A focus change this soon after A is the screen the press opened.</summary>
         private const int ConfirmOpensMs = 1000;
 
+        /// <summary>The last narration as a set of its parts, to drop the same news reported twice.</summary>
+        private (string Parts, DateTime At) lastNarrated = (string.Empty, DateTime.MinValue);
+
         /// <summary>Recently read texts are left out of a repeat within this time.</summary>
         private const int RecentTextsMs = 1500;
 
@@ -193,7 +196,7 @@ namespace Poe2Accessibility.Services
 
             this.lastFocusSpeech = focused;
             var layer = this.FocusLayer?.Invoke() ?? IntPtr.Zero;
-            var intoNewLayer = (!this.inGame && layer != this.lastFocusLayer) ||
+            var intoNewLayer = layer != this.lastFocusLayer ||
                                (this.SinceConfirm?.Invoke() ?? long.MaxValue) < ConfirmOpensMs;
             this.lastFocusLayer = layer;
             if (intoNewLayer)
@@ -390,7 +393,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 var own = focus == null ? new HashSet<string>() : new HashSet<string>(focus.ListItems) { focus.Text, focus.Value, focus.Group };
-                var texts = Describe(change.Texts.Where(text => !own.Contains(text.Text) && !(focus?.Text.Contains(text.Text, StringComparison.Ordinal) ?? false) &&
+                var texts = Describe(change.Texts.Where(text => !own.Contains(text.Text) && !IsNumber(text.Text) && !(focus?.Text.Contains(text.Text, StringComparison.Ordinal) ?? false) &&
                                                                 !InFocusContext(focus, text.Text)));
                 if (texts.Length == 0)
                 {
@@ -584,6 +587,17 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            // The same parts in another order a moment later (a panel reported as opened, then as its texts
+            // appearing: "A, empty. Secondary skill set…" after "Secondary skill set… A, empty") are not news.
+            var parts = string.Join("|", text.Split(new[] { ". ", ", " }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(part => part.Trim().TrimEnd('.')).OrderBy(part => part, StringComparer.Ordinal));
+            if (parts == this.lastNarrated.Parts && (DateTime.UtcNow - this.lastNarrated.At).TotalMilliseconds < RecentTextsMs)
+            {
+                this.log.Debug($"Narrate ({reason}) skipped: same as just said");
+                return;
+            }
+
+            this.lastNarrated = (parts, DateTime.UtcNow);
             this.log.Debug($"Narrate ({reason})");
             if (this.deferredFocus is { } deferred && text.Contains(this.lastFocusSpeech, StringComparison.Ordinal))
             {
