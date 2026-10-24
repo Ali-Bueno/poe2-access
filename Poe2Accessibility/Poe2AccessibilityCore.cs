@@ -187,7 +187,7 @@ namespace Poe2Accessibility
                 this.pickups = new InventoryWatch(inventory, this.output, this.log);
                 this.gold = new GoldWatch(memory, elements, this.output, this.log) { Fields = this.locator.Fields };
                 this.barriers = new BarrierWatch(this.entities, this.output, this.log);
-                this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = DodgeTimings.Load(this.DodgeTimingsPath) };
+                this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = DodgeTimings.Load(this.DodgeTimingsPath), TimingsPath = this.DodgeTimingsPath };
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
                 var drops = ItemDropSounds.Load(
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
@@ -258,7 +258,6 @@ namespace Poe2Accessibility
                 this.gameState = null;
             }
 
-            this.bosses?.Timings.Save(this.DodgeTimingsPath);
             this.processProbe = null;
             this.screen?.Dispose();
             this.screen = null;
@@ -1064,7 +1063,6 @@ namespace Poe2Accessibility
         private void OnAreaChanged(string areaName, bool resumed)
         {
             this.beacon?.Clear(false);
-            this.bosses?.Timings.Save(this.DodgeTimingsPath);
             this.bosses?.Reset();
             this.statuses?.Reset();
             this.pickups?.Reset();

@@ -19,8 +19,8 @@ No readable attack progress was found, so the timing is learnt instead.
 - Every monster within a screen is watched (rarity does not matter: a rare uses its kind's animations). When the
   player's life falls by 4% of its maximum in one frame and exactly one monster in reach has an attack under way (or
   ended within 300 ms), that attack's delay is recorded: key = monster metadata path without "@level" + animation id.
-- The median of the last five delays is the attack's timing; saved in `config/dodge-timings.txt` on area change and
-  shutdown, so it carries across sessions.
+- The median of the last five delays is the attack's timing; saved in `config/dodge-timings.txt` after each blow learnt,
+  so it carries across sessions.
 - A rare's or unique's attack warns 500 ms before its learnt blow (at once when the blow comes sooner), at the wind-up
   while unknown. A rare's melee warns only if it is within reach when the warning is due.
 

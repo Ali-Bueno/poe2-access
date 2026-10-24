@@ -93,8 +93,11 @@ namespace Poe2Accessibility.Services
             return null;
         }
 
-        /// <summary>When each kind of attack lands (loaded and saved by the plugin).</summary>
+        /// <summary>When each kind of attack lands (loaded by the plugin).</summary>
         public DodgeTimings Timings { get; set; } = new();
+
+        /// <summary>Where <see cref="Timings"/> is saved after each blow learnt (the host is often stopped, not closed).</summary>
+        public string TimingsPath { get; set; } = string.Empty;
 
         /// <summary>A new area: no boss is known.</summary>
         public void Reset()
@@ -283,6 +286,11 @@ namespace Poe2Accessibility.Services
             var (id, attack) = (hitters[0].Key, hitters[0].Value);
             var delay = (int)(now - attack.StartedAt);
             this.Timings.Learn(attack.Key, delay);
+            if (this.TimingsPath.Length > 0)
+            {
+                this.Timings.Save(this.TimingsPath);
+            }
+
             this.attacks[id] = attack with { Learned = true };
             this.log.Info($"Dodge timing: {attack.Key} hit after {delay} ms (learnt {this.Timings.Delay(attack.Key)} ms)");
         }
