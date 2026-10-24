@@ -26,6 +26,13 @@ No readable attack progress was found, so the timing is learnt instead.
 
 Seen live: MudGolemWetEncased1 GroundSlam 1156 ms twice; HuhuGrubLarvaeEmergeSummoned1_ Melee 437 / 453 ms.
 Melee samples of the golem varied (391 / 2203 / 2641 ms) with a 2% threshold (damage over time, later swings).
+The Bloated Miller (SwollenMillerBoss, Riverbank, 2026-10-24, won with the scripted fight): GroundSlam (13) 1828 / 1781 ms,
+DualStrike (62) 781 ms, HeavyStrike (71) 625 ms, ChargeEnd (11) 344 ms, Charge (10) 360 / 78 ms — a charge lands when
+it arrives, so its delay follows the distance and the warning comes at once.
+
+The timings measured in development ship as `catalog/dodge-timings.txt`, loaded before the player's own
+`config/dodge-timings.txt`: a tester's first Miller fight is already timed, and their own blows push the shipped
+samples out of each list of five.
 
 ## Open
 The +0x8B8 object's vectors may hold the animation's event times (the real hit frame); decoding them would give the

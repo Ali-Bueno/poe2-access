@@ -2,3 +2,8 @@
 # One attack per line: monster path without its level, animation id, then the delays in ms from the attack's start to the blow.
 Metadata/Monsters/HuhuGrub/HuhuGrubLarvaeEmergeSummoned1_|1=437,453
 Metadata/Monsters/MudGolem/MudGolemWetEncased1|13=1156,1156
+Metadata/Monsters/SwollenMiller/SwollenMillerBoss|10=360,78
+Metadata/Monsters/SwollenMiller/SwollenMillerBoss|11=344
+Metadata/Monsters/SwollenMiller/SwollenMillerBoss|13=1828,1781
+Metadata/Monsters/SwollenMiller/SwollenMillerBoss|62=781
+Metadata/Monsters/SwollenMiller/SwollenMillerBoss|71=625
