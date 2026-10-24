@@ -112,19 +112,30 @@ namespace Poe2Accessibility.Services
             if (this.pending.Count > 0 && now - this.pending.Peek().At >= NameHoldMs && now - this.lastSpoken >= UtteranceGapMs)
             {
                 var names = new List<string>();
-                while (names.Count < NamesPerUtterance && this.pending.Count > 0)
+                var targeted = string.Empty;
+                for (var taken = 0; taken < NamesPerUtterance && this.pending.Count > 0; taken++)
                 {
-                    // Already named with the button: not again.
+                    // Already named with the button: not again. The one A uses is its own sentence, so the button
+                    // is not heard as part of the list ("Finn, Alijo, A", 2026-10-24).
                     var entry = this.pending.Dequeue().Entry;
-                    if (entry.Id != this.targetSpoken)
+                    if (entry.Id == this.targetSpoken)
                     {
-                        names.Add(this.Label(entry));
+                        continue;
+                    }
+
+                    if (entry.Id == this.target)
+                    {
+                        targeted = this.Label(entry);
+                    }
+                    else
+                    {
+                        names.Add(entry.Name);
                     }
                 }
 
-                if (names.Count > 0)
+                if (names.Count > 0 || targeted.Length > 0)
                 {
-                    this.output.Say(SpeechKind.Places, Announcements.Nearby(names));
+                    this.output.Say(SpeechKind.Places, Announcements.Sentences(new[] { Announcements.Nearby(names), targeted }.Where(part => part.Length > 0)));
                     this.lastSpoken = now;
                 }
             }

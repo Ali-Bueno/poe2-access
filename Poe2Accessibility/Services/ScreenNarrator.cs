@@ -153,6 +153,15 @@ namespace Poe2Accessibility.Services
         /// <summary>The last narration as a set of its parts, to drop the same news reported twice.</summary>
         private (string Parts, DateTime At) lastNarrated = (string.Empty, DateTime.MinValue);
 
+        /// <summary>
+        ///     Narrations of the last moment, by their sorted parts: the stash said its tab and focus twice, as its layer
+        ///     opened and as it became the top layer in the same frame, with its legends between (2026-10-24).
+        /// </summary>
+        private readonly Dictionary<string, DateTime> recentNarrations = new(StringComparer.Ordinal);
+
+        /// <summary>Events of one frame land within this; a tab switched there and back is slower.</summary>
+        private const int SameMomentMs = 300;
+
         /// <summary>Recently read texts are left out of a repeat within this time.</summary>
         private const int RecentTextsMs = 1500;
 
@@ -817,7 +826,7 @@ namespace Poe2Accessibility.Services
                     }
 
                     var focusSpeech = withFocus ? this.lastFocusSpeech : focus != null ? this.Focused(focus) : string.Empty;
-                    this.Speak("tab", focusSpeech.Length > 0 ? Announcements.InContext(tabTitle.Text, focusSpeech) : tabTitle.Text, true);
+                    this.Speak("tab", focusSpeech.Length > 0 ? Announcements.InContext(Announcements.TabTitle(tabTitle.Text), focusSpeech) : Announcements.TabTitle(tabTitle.Text), true);
                     return;
                 }
 
@@ -914,7 +923,7 @@ namespace Poe2Accessibility.Services
                 {
                     // A tabbed page arrived with the focus (options opened from the game menu, an options tab switch):
                     // the selected tab and the focus, as pre-game — never the page's labels.
-                    this.Speak("page with focus", Announcements.InContext(pageTab, this.lastFocusSpeech), true);
+                    this.Speak("page with focus", Announcements.InContext(Announcements.TabTitle(pageTab), this.lastFocusSpeech), true);
                 }
                 else if (change.Layer.Address != focusLayer)
                 {
@@ -1017,7 +1026,7 @@ namespace Poe2Accessibility.Services
                 case ScreenChangeKind.TextsAppeared when change.Layer.Address == focusLayer && this.JustFocused() && change.Texts.Count >= PageChangeTexts:
                     // A new page in the same layer (options tab switch): the tab, then the focus — never the page's labels.
                     var tab = this.selectedTab(change.Layer.Address);
-                    this.Speak("page with focus", tab.Length > 0 ? Announcements.InContext(tab, this.lastFocusSpeech) : this.lastFocusSpeech, true);
+                    this.Speak("page with focus", tab.Length > 0 ? Announcements.InContext(Announcements.TabTitle(tab), this.lastFocusSpeech) : this.lastFocusSpeech, true);
                     break;
                 case ScreenChangeKind.TextsAppeared when change.Layer.Address == focusLayer && this.JustFocused() &&
                                                          change.Texts.All(text => text.Name.EndsWith(PopupSuffix, StringComparison.Ordinal)):
@@ -1180,13 +1189,20 @@ namespace Poe2Accessibility.Services
             // appearing: "A, empty. Secondary skill set…" after "Secondary skill set… A, empty") are not news.
             var parts = string.Join("|", text.Split(new[] { ". ", ", " }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(part => part.Trim().TrimEnd('.')).OrderBy(part => part, StringComparer.Ordinal));
-            if (parts == this.lastNarrated.Parts && (DateTime.UtcNow - this.lastNarrated.At).TotalMilliseconds < RecentTextsMs)
+            var now = DateTime.UtcNow;
+            foreach (var old in this.recentNarrations.Where(pair => (now - pair.Value).TotalMilliseconds >= SameMomentMs).Select(pair => pair.Key).ToList())
+            {
+                this.recentNarrations.Remove(old);
+            }
+
+            if ((parts == this.lastNarrated.Parts && (now - this.lastNarrated.At).TotalMilliseconds < RecentTextsMs) || this.recentNarrations.ContainsKey(parts))
             {
                 this.log.Debug($"Narrate ({reason}) skipped: same as just said");
                 return;
             }
 
-            this.lastNarrated = (parts, DateTime.UtcNow);
+            this.lastNarrated = (parts, now);
+            this.recentNarrations[parts] = now;
             this.log.Debug($"Narrate ({reason})");
             if (this.deferredFocus is { } deferred && text.Contains(this.lastFocusSpeech, StringComparison.Ordinal))
             {
