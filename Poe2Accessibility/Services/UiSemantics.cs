@@ -98,7 +98,7 @@ namespace Poe2Accessibility.Services
                 return markerNode;
             }
 
-            var ownText = this.elements.TryReadText(address, out var text) ? text : string.Empty;
+            var ownText = this.elements.TryReadSpokenText(address, out var text) ? text : string.Empty;
             // A text box wrapped in a bare frame (social filter): the frame takes the focus, its child is the input.
             var input = ownText.Length == 0 && !info.HasFlagBit(GameLayout.Element.TextInputFlagBit) ? this.TextInputChild(info) : IntPtr.Zero;
             var role = input != IntPtr.Zero ? UiRole.TextField : this.InferRole(info, ownText.Length > 0);
@@ -351,7 +351,7 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                if (this.elements.TryReadText(childAddress, out var text) && text.Length > 0)
+                if (this.elements.TryReadSpokenText(childAddress, out var text) && text.Length > 0)
                 {
                     found.Add(text);
                 }
@@ -384,7 +384,7 @@ namespace Poe2Accessibility.Services
                     }
 
                     var nameOk = requiredName == null || child.Name.Equals(requiredName, StringComparison.OrdinalIgnoreCase);
-                    if (nameOk && this.elements.TryReadText(childAddress, out var text) && text.Length > 0)
+                    if (nameOk && this.elements.TryReadSpokenText(childAddress, out var text) && text.Length > 0)
                     {
                         return text;
                     }
@@ -414,7 +414,7 @@ namespace Poe2Accessibility.Services
                         !sibling.HasFlagBit(GameLayout.Element.InteractiveFlagBit) &&
                         sibling.Name.Length == 0)
                     {
-                        var text = this.elements.TryReadText(sibling.Address, out var own) && own.Length > 0
+                        var text = this.elements.TryReadSpokenText(sibling.Address, out var own) && own.Length > 0
                             ? own
                             : this.FindLabelInThinWrapper(sibling, SiblingSearchDepth);
                         if (text.Length > 0)
@@ -442,7 +442,7 @@ namespace Poe2Accessibility.Services
                     return string.Empty;
                 }
 
-                if (this.elements.TryReadText(only.Address, out var text) && text.Length > 0)
+                if (this.elements.TryReadSpokenText(only.Address, out var text) && text.Length > 0)
                 {
                     return text;
                 }
@@ -465,7 +465,7 @@ namespace Poe2Accessibility.Services
                 {
                     if (this.elements.TryReadElement(siblings[i], out var sibling))
                     {
-                        var text = this.elements.TryReadText(sibling.Address, out var own) && own.Length > 0
+                        var text = this.elements.TryReadSpokenText(sibling.Address, out var own) && own.Length > 0
                             ? own
                             : this.FindDescendantText(sibling, CaptionSearchDepth, null);
                         if (text.Length > 0)

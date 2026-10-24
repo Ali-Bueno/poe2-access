@@ -12,7 +12,7 @@ namespace Poe2Accessibility.Services
         private const int ListSearchLevels = 3;
 
         /// <summary>In-game option control → cell → label/control pair → row: the rows are four levels up.</summary>
-        private const int SameClassSearchLevels = 4;
+        private const int SameClassSearchLevels = 5; // the controller deadzone slider sits one wrapper deeper than its row's other sliders
 
         /// <summary>List container → scroll wrapper → section: where a section's title sits.</summary>
         private const int GroupLabelHops = 2;

@@ -132,11 +132,12 @@ namespace Poe2Accessibility.Services
         ///     state change — the game menu closing and a respawn in the same area would repeat the quest tracker,
         ///     "Nuevo punto de control" and the last tutorial hint.
         /// </summary>
-        private bool TutorialIsNews(string text)
+        /// <summary>A hint never said in this area; or said long ago and shown again while playing (the HUD on top, no panel just closed).</summary>
+        private bool TutorialIsNews(string text, bool playing)
         {
             var now = DateTime.UtcNow;
             if (this.tutorialSpoken.TryGetValue(text, out var said) &&
-                ((now - this.hudBackAt).TotalMilliseconds < HudBackMs || (now - said).TotalMilliseconds < TutorialRepeatMs))
+                (!playing || (now - this.hudBackAt).TotalMilliseconds < HudBackMs || (now - said).TotalMilliseconds < TutorialRepeatMs))
             {
                 return false;
             }
@@ -403,7 +404,7 @@ namespace Poe2Accessibility.Services
                 // B (Riverbank boss, 2026-10-24, silent for minutes): said again then.
                 var hints = change.Kind == ScreenChangeKind.TopLayerChanged
                     ? new List<ScreenText>()
-                    : change.Texts.Where(text => this.TutorialIsNews(text.Text)).ToList();
+                    : change.Texts.Where(text => this.TutorialIsNews(text.Text, focus == null && snapshot.TopInteractive?.Address == this.HudLayer)).ToList();
                 if (hints.Count > 0)
                 {
                     this.Speak("objective", Describe(hints), SpeechPriority.Interrupts(SpeechKind.Quest));

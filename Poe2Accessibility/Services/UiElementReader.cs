@@ -112,6 +112,23 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
+        ///     The text as it is heard, as the screen watcher speaks it: glyphs the plain text drops are named in place
+        ///     (the two "Encaje de objetos" options differ only by their stick and D-pad glyphs) and wrapped lines are
+        ///     joined ("Detección automática de" / "método de entrada", one label on two lines).
+        /// </summary>
+        public bool TryReadSpokenText(IntPtr address, out string spoken)
+        {
+            spoken = string.Empty;
+            if (!this.TryReadText(address, out var text, out var tagged))
+            {
+                return false;
+            }
+
+            spoken = text.Length == 0 ? text : Announcements.Flatten(ControllerGlyphs.FromMarkup(tagged).Length > 0 ? ControllerGlyphs.Render(tagged) : text);
+            return true;
+        }
+
+        /// <summary>
         ///     A label drawn in the game's warning red (a price the player cannot pay); call only on elements whose text
         ///     read succeeded, the colour field belongs to the label subclass.
         /// </summary>
