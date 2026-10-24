@@ -97,7 +97,7 @@ namespace Poe2Accessibility.Services
                 // too, with their description as tooltip: they carry the interactive bit, the picker's cells do not.
                 var held = skill.Length > 0 ? skill : bound.Length > 0 ? bound : clears ? Announcements.ClearBinding : string.Empty;
                 return held.Length == 0 || !info.HasFlagBit(GameLayout.Element.NavigableFlagBit) || info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) ||
-                       !this.InOneRow(info)
+                       !this.AmongCellsOnly(info)
                     ? null
                     : new AccessibleUiNode
                 {
@@ -192,21 +192,20 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     The navigable siblings of a cell share its row, as the picker's row groups do; the character panel's stat
-        ///     icons share one parent over several rows (a resistance read "column 1, row 4" without its value, 2026-10-24).
+        ///     A picker's row group holds only cells; the character panel's stat icons sit among texts ("Monje",
+        ///     "Resistencias"), which they are not cells of (a resistance read "column 1, row 4" without its value, 2026-10-24).
         /// </summary>
-        private bool InOneRow(in UiElementReader.ElementInfo cell)
+        private bool AmongCellsOnly(in UiElementReader.ElementInfo cell)
         {
             if (!this.elements.TryReadElement(cell.Raw.ParentPtr, out var group))
             {
                 return false;
             }
 
-            var y = MathF.Round(cell.Raw.RelativePosition.Y);
             foreach (var siblingAddress in this.elements.ReadChildren(group))
             {
-                if (this.elements.TryReadElement(siblingAddress, out var sibling) && sibling.IsVisibleFlag &&
-                    sibling.HasFlagBit(GameLayout.Element.NavigableFlagBit) && MathF.Round(sibling.Raw.RelativePosition.Y) != y)
+                if (siblingAddress != cell.Address && this.elements.TryReadElement(siblingAddress, out var sibling) && sibling.IsVisibleFlag &&
+                    this.elements.TryReadText(siblingAddress, out var text) && text.Length > 0)
                 {
                     return false;
                 }
