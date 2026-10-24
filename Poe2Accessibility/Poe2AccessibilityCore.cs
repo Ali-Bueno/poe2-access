@@ -58,8 +58,11 @@ namespace Poe2Accessibility
         /// <summary>Half and a quarter; re-armed 10 points above.</summary>
         private readonly VitalAlarm lifeAlarm = new(10, 50, 25);
 
-        /// <summary>Half, a quarter and a tenth; re-armed 10 points above (mana is spent and refilled constantly).</summary>
-        private readonly VitalAlarm manaAlarm = new(10, 50, 25, 10);
+        /// <summary>
+        ///     Half, a quarter and a tenth; re-armed 30 points above: mana is spent and refilled constantly, and at 10 the
+        ///     half was said every 8 s through the Miller fight (2026-10-24).
+        /// </summary>
+        private readonly VitalAlarm manaAlarm = new(30, 50, 25, 10);
         private Beacon? beacon;
         private TargetNarrator? targets;
         private BossWatch? bosses;

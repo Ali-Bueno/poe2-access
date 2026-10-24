@@ -110,8 +110,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Monsters with the Targetable component this many, none flagged in play, mean the flag moved (game update).</summary>
         private const int TargetableJudgedOn = 20;
 
-        /// <summary>Monsters, characters and players whose Render names judge where the names are (see <see cref="LayoutProbe"/>).</summary>
-        private const int RendersToJudge = 30;
+        /// <summary>
+        ///     Living monsters, characters and players in one pass whose Render names judge where the names are (see
+        ///     <see cref="LayoutProbe"/>). Gathered over time, the dead adds of a boss fight left freed renders that read
+        ///     nothing: "the names of characters and monsters" were reported lost mid-fight (2026-10-24).
+        /// </summary>
+        private const int RendersToJudge = 15;
 
         /// <summary>
         ///     The Targetable in-play flag (<see cref="GameLayout.TargetableComponent"/>) is believed until a game update
@@ -119,7 +123,6 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private static bool targetableTrusted = true;
 
-        private readonly List<IntPtr> namedRenders = new();
         private readonly HashSet<uint> unflaggedMonsters = new();
         private bool targetableConfirmed;
 
@@ -157,7 +160,6 @@ namespace Poe2Accessibility.Services
         {
             this.remembered.Clear();
             this.sighted.Clear();
-            this.namedRenders.Clear();
             this.itemTitles.Clear();
             this.explored.Reset();
             lock (this.samplesLock)
@@ -200,6 +202,7 @@ namespace Poe2Accessibility.Services
             var found = new Dictionary<uint, ScanEntry>();
             // Known to the game but not yet to the player: only the quest marker may point at them.
             var unseen = new List<ScanEntry>();
+            var renders = new List<IntPtr>();
             foreach (var entity in area.AwakeEntities.Values)
             {
                 if (!entity.IsValid || !entity.TryGetComponent<Render>(out var render))
@@ -207,7 +210,7 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                this.CheckLayout(entity, render);
+                this.CheckLayout(entity, render, renders);
                 if (this.Classify(entity, render) is not { } entry)
                 {
                     this.remembered.Remove(entity.Id); // a story variant left play (Una after the quest step)
@@ -225,6 +228,11 @@ namespace Poe2Accessibility.Services
                 {
                     this.remembered[entry.Id] = entry;
                 }
+            }
+
+            if (this.Probe != null && renders.Count >= RendersToJudge)
+            {
+                this.Probe.ProbeRenderNames(renders);
             }
 
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
@@ -698,16 +706,11 @@ namespace Poe2Accessibility.Services
         ///     Feeds the layout checks a game update can defeat: the entity name field (judged once on enough monsters,
         ///     characters and players) and the in-play flag (no living monster flagged among many means it moved).
         /// </summary>
-        private void CheckLayout(Entity entity, Render render)
+        private void CheckLayout(Entity entity, Render render, List<IntPtr> renders)
         {
-            var named = entity.EntityType is EntityTypes.Monster or EntityTypes.NPC or EntityTypes.Player;
-            if (this.Probe != null && named && this.namedRenders.Count < RendersToJudge && !this.namedRenders.Contains(render.Address))
+            if ((entity.EntityType == EntityTypes.Monster && IsAliveEnemy(entity)) || entity.EntityType is EntityTypes.NPC or EntityTypes.Player)
             {
-                this.namedRenders.Add(render.Address);
-                if (this.namedRenders.Count == RendersToJudge)
-                {
-                    this.Probe.ProbeRenderNames(this.namedRenders);
-                }
+                renders.Add(render.Address);
             }
 
             if (this.targetableConfirmed || !targetableTrusted || entity.EntityType != EntityTypes.Monster || !IsAliveEnemy(entity) ||
