@@ -35,6 +35,17 @@ namespace Poe2Accessibility.Services
         ///     after a death ("Jefe a la vista: El devorador" four times in three minutes, 2026-10-24).
         /// </summary>
         private readonly HashSet<string> seenUniques = new(StringComparer.Ordinal);
+
+        /// <summary>
+        ///     Exits and waypoints announced this session, by area, kind, name and place: walking back into the camp said
+        ///     "New waypoint: Transporter" each time (2026-10-24).
+        /// </summary>
+        private readonly HashSet<string> knownPlaces = new(StringComparer.Ordinal);
+
+        /// <summary>A place's position is rounded to this many world units in its key (two checkpoints share a name).</summary>
+        private const float PlaceKeyWorld = 500f;
+
+        private string area = string.Empty;
         private readonly List<ScanEntry> waiting = new();
         private long areaStartedAt = Environment.TickCount64;
         private bool resumed;
@@ -51,8 +62,9 @@ namespace Poe2Accessibility.Services
         public float Gain { get; set; } = 1f;
 
         /// <summary>A new area: nothing discovered yet; resumed when the host started inside it after the player arrived.</summary>
-        public void Reset(bool resumed)
+        public void Reset(string area, bool resumed)
         {
+            this.area = area;
             this.seen.Clear();
             this.seenUniques.Clear();
             this.waiting.Clear();
@@ -77,7 +89,7 @@ namespace Poe2Accessibility.Services
             foreach (var entry in entries)
             {
                 if (!EntityCatalog.IsEntity(entry) || !IsDiscovery(entry) || !this.seen.Add(entry.Id) ||
-                    (entry.Category == ScanCategory.Enemies && !this.seenUniques.Add(entry.Name)))
+                    (entry.Category == ScanCategory.Enemies ? !this.seenUniques.Add(entry.Name) : !this.knownPlaces.Add(this.PlaceKey(entry))))
                 {
                     continue;
                 }
@@ -106,6 +118,9 @@ namespace Poe2Accessibility.Services
 
             this.waiting.Clear();
         }
+
+        private string PlaceKey(ScanEntry entry) =>
+            $"{this.area}|{entry.Kind}|{entry.Name}|{MathF.Round(entry.WorldX / PlaceKeyWorld)}|{MathF.Round(entry.WorldY / PlaceKeyWorld)}";
 
         private static bool IsDiscovery(ScanEntry entry) =>
             entry.Category is ScanCategory.Exits or ScanCategory.Waypoints ||

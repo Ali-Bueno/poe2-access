@@ -1107,7 +1107,7 @@ namespace Poe2Accessibility
             this.gold?.Reset();
             this.barriers?.Reset();
             this.targets?.Reset();
-            this.discoveries?.Reset(resumed);
+            this.discoveries?.Reset(areaName, resumed);
             this.enemyNews?.Reset();
             this.entities?.Forget();
             this.nearby?.Reset();
