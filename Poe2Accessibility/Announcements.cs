@@ -535,6 +535,14 @@ namespace Poe2Accessibility
         public static string InContext(string context, string focused) =>
             context.Length == 0 ? focused : focused.Length == 0 ? context : Sentences(new[] { context, focused });
 
+        /// <summary>A text too long to say at once: how many paragraphs it has and how to read them.</summary>
+        public static string LongText(int paragraphs) => T(
+            $"Long text, {paragraphs} paragraphs: scroll it with the stick to read it",
+            $"Texto largo, {paragraphs} párrafos: desplázalo con el stick para leerlo");
+
+        /// <summary>One paragraph of a long text, after its place in it.</summary>
+        public static string LongTextParagraph(string paragraph, int number, int total) => T($"{number} of {total}. {paragraph}", $"{number} de {total}. {paragraph}");
+
         /// <summary>Numbered tabs ("-1-" vendor pages, "1" default stash tabs) read "tab 1"; named tabs keep their name.</summary>
         public static string TabTitle(string caption)
         {

@@ -15,6 +15,9 @@ namespace Poe2Accessibility.Services
     {
         private const int MaxChildrenPerNode = 4096;
         private const int MaxTextLength = 1024;
+
+        /// <summary>The longest text read whole on request (the terms of use hold about 60 000 characters).</summary>
+        private const int MaxLongTextLength = 1 << 18;
         private const int MaxParentDepth = 64;
 
         /// <summary>
@@ -132,6 +135,19 @@ namespace Poe2Accessibility.Services
             text = ControllerGlyphs.HasUnnamedItemArt(taggedText) ? ControllerGlyphs.Plain(taggedText) : stripped.Trim();
             tagged = taggedText;
             return true;
+        }
+
+        /// <summary>True when the element holds a text too long for <see cref="TryReadText"/>; only its header is read.</summary>
+        public bool IsLongText(IntPtr address) =>
+            this.reader.TryRead<GameOffsets.Natives.StdWString>(address + GameLayout.Element.TextOffset, out var value) &&
+            value.Length > MaxTextLength && WStringDecoder.LooksLikeString(value, MaxLongTextLength, allowEmpty: false);
+
+        /// <summary>The whole text of an element holding a long one (<see cref="IsLongText"/>), markup stripped.</summary>
+        public bool TryReadLongText(IntPtr address, out string text)
+        {
+            var block = this.reader.ReadBytes(address, TextBlockSize);
+            text = block.Length == 0 ? string.Empty : WStringDecoder.TryDecode(this.reader, block, GameLayout.Element.TextOffset, MaxLongTextLength, allowEmpty: false) ?? string.Empty;
+            return text.Length > MaxTextLength;
         }
 
         /// <summary>

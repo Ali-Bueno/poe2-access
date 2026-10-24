@@ -49,6 +49,9 @@ namespace Poe2Accessibility.Services
         /// </remarks>
         private static readonly string[] IgnoredControlPrefixes = { "couch_coop", "world_", "map_overlay", "paused_frame" };
 
+        /// <summary>A text this tall (layout units) may be a long one scrolled in a frame; only those are checked for it.</summary>
+        private const float LongTextMinHeight = 2000;
+
         private readonly UiElementReader elements;
         private readonly PluginLog log;
         private readonly ScreenDiffer differ = new();
@@ -69,6 +72,14 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Latest snapshot (render thread reads it to know which layer owns input).</summary>
         public ScreenSnapshot Current { get; private set; } = ScreenSnapshot.Empty;
+
+        /// <summary>A text too long to say at once on screen now (the terms of use), read by <see cref="LongTextReader"/>.</summary>
+        public IntPtr LongText => this.longText;
+
+        private volatile IntPtr longText;
+
+        /// <summary>The long text found by the capture under way.</summary>
+        private IntPtr capturedLongText;
 
         /// <summary>Root of the current screen; zero pauses the watcher.</summary>
         public void SetRoot(IntPtr address) => this.root = address;
@@ -146,6 +157,7 @@ namespace Poe2Accessibility.Services
             }
 
             var layers = new List<ScreenLayer>();
+            this.capturedLongText = IntPtr.Zero;
             var ignoredLayer = this.LayerOf(this.ignoredElement, rootAddress);
             var children = this.elements.ReadChildren(rootInfo);
             var budget = MaxNodes;
@@ -161,6 +173,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            this.longText = this.capturedLongText;
             return new ScreenSnapshot(rootAddress, layers);
         }
 
@@ -210,6 +223,10 @@ namespace Poe2Accessibility.Services
                 nodes.Add(new WalkNode(parent, above.Depth + 1, above.X + position.X, above.Y + position.Y, control, enabled));
                 var children = this.elements.ReadChildren(info);
                 var hasText = this.elements.TryReadText(info.Address, out var text, out var tagged);
+                if (!hasText && this.capturedLongText == IntPtr.Zero && info.Raw.UnscaledSize.Y >= LongTextMinHeight && this.elements.IsLongText(info.Address))
+                {
+                    this.capturedLongText = info.Address; // read a paragraph at a time as it scrolls, not with the screen
+                }
                 if (hasText && ControllerGlyphs.ForOtherPlayer(tagged))
                 {
                     continue; // a second controller's prompt and its children ("P2")

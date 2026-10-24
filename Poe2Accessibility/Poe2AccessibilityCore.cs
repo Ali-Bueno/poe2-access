@@ -29,6 +29,7 @@ namespace Poe2Accessibility
         private ScreenNarrator? narrator;
         private ChatWatcher? chat;
         private MapOverlayWatch? mapOverlay;
+        private LongTextReader? longText;
         private EntityDump? entityDump;
         private TerrainDump? terrainDump;
         private ActorTrace? actorTrace;
@@ -251,6 +252,7 @@ namespace Poe2Accessibility
                     PanelChanged = text => this.output.Speak(text, true),
                 };
                 this.mapOverlay = new MapOverlayWatch(elements, text => this.output.Speak(text, true));
+                this.longText = new LongTextReader(elements, this.output);
                 this.research = new ResearchSession(this.dumper, new FocusResearchLog(elements, debugDirectory, this.log), this.log)
                 {
                     Enabled = this.Settings.ResearchMode,
@@ -407,6 +409,7 @@ namespace Poe2Accessibility
             this.screen.SetIgnoredElement(chatLayer);
             this.chat?.Tick(chatLayer);
             this.mapOverlay?.Tick(inGame ? this.locator.InGameMapOverlay(stateObject) : IntPtr.Zero);
+            this.longText?.Tick(this.screen.LongText);
             this.narrator.TutorialLayer = inGame ? this.locator.InGameTutorialLayer(stateObject) : IntPtr.Zero;
             this.screen.SetArrivalLayer(this.narrator.TutorialLayer);
             this.narrator.HudLayer = inGame ? this.locator.InGameHudLayer(stateObject) : IntPtr.Zero;

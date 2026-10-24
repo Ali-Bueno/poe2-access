@@ -192,6 +192,9 @@ left; a topic already heard (drawn grey) is read "atenuado": "Presentación, ate
   (sold, stored). They follow the focus update the move causes.
 - Another player's menu (A on a player): "DrBacamarte, Guerrero Niv. 2, Liga Forbidden Rites. invitar al grupo,
   1 de 5", then each button as the D-pad moves ("comerciar, 3 de 5"); B closes it.
+- Long texts (the terms of use, RB on the login screen): "Texto largo, 248 párrafos: desplázalo con el stick para
+  leerlo", then the paragraph at the scroll position with its place ("78 de 248. …"); scrolling forward a little reads
+  the paragraphs passed, in order.
 - The large map (D-pad down in play): "Mapa. Mantén presionado cruceta abajo para interactuar con el mapa", then
   "Mapa oculto" when it closes.
 - The chat panel (LT in a panel): "Chat. Mantén presionado LT para chatear" when shown, "Chat oculto" when hidden.

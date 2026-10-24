@@ -167,6 +167,15 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A new set of pre-game hints must stay this long before it is read (screens rebuild in steps).</summary>
         private const int HintsSettleMs = 400;
+
+        /// <summary>
+        ///     A screen's own text that interrupts its button bar this soon after the bar began cut it off: the login
+        ///     screen's "Conectarse…" silenced "Presiona para jugar, A" 50 ms in (2026-10-24). The bar is said again after.
+        /// </summary>
+        private const int HintsCutMs = 1500;
+
+        /// <summary>The button bar last said, while an interrupting screen text could still cut it.</summary>
+        private (string Text, DateTime At)? cuttableHints;
         private bool inGame;
         private IntPtr valueOwner;
         private string lastValue = string.Empty;
@@ -334,6 +343,7 @@ namespace Poe2Accessibility.Services
                 else
                 {
                     this.Speak("pre-game hints", Describe(fresh), false);
+                    this.cuttableHints = (Describe(fresh), DateTime.UtcNow);
                 }
             }
         }
@@ -1224,7 +1234,16 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            this.output.Speak(text, interrupt || this.deferredFocus != null);
+            var cut = interrupt || this.deferredFocus != null;
+            this.output.Speak(text, cut);
+            if (cut && this.cuttableHints is { } hints)
+            {
+                this.cuttableHints = null;
+                if ((now - hints.At).TotalMilliseconds < HintsCutMs)
+                {
+                    this.output.Speak(hints.Text, false);
+                }
+            }
         }
     }
 }
