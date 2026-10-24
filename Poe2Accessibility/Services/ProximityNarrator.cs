@@ -33,6 +33,9 @@ namespace Poe2Accessibility.Services
         private const int TargetPollMs = 100;
         private const int TargetSettleMs = 200;
 
+        /// <summary>Another player walking past takes the target for a moment ("CaçaDoStorm, Cazadora, A" in the camp).</summary>
+        private const int PlayerSettleMs = 1000;
+
         /// <summary>No target this long: the next one is news even if it is the last one named.</summary>
         private const int TargetForgetMs = 3000;
 
@@ -53,6 +56,12 @@ namespace Poe2Accessibility.Services
         private uint? target;
         private uint? targetSpoken;
 
+        /// <summary>
+        ///     An exit's label shows "Hold A (Show Options)" after a press, drawn outside the UI tree (2026-10-24): said
+        ///     once per area, the first time an exit takes the target.
+        /// </summary>
+        private bool exitOptionsSaid;
+
         public ProximityNarrator(EntityCatalog catalog, IAccessibilityOutputService output)
         {
             this.catalog = catalog;
@@ -67,6 +76,7 @@ namespace Poe2Accessibility.Services
             this.candidate = null;
             this.target = null;
             this.targetSpoken = null;
+            this.exitOptionsSaid = false;
         }
 
         /// <summary>
@@ -142,7 +152,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (now - this.candidateSince < TargetSettleMs)
+            if (now - this.candidateSince < (current.Category == ScanCategory.Players ? PlayerSettleMs : TargetSettleMs))
             {
                 return;
             }
@@ -165,7 +175,14 @@ namespace Poe2Accessibility.Services
             }
 
             this.targetSpoken = entry.Id;
-            return Announcements.WithButton(entry.Name, ControllerGlyphs.Interact);
+            var label = Announcements.WithButton(entry.Name, ControllerGlyphs.Interact);
+            if (entry.Category != ScanCategory.Exits || this.exitOptionsSaid)
+            {
+                return label;
+            }
+
+            this.exitOptionsSaid = true;
+            return $"{label}. {Announcements.HoldForOptions(ControllerGlyphs.Interact)}";
         }
     }
 }

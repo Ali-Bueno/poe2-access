@@ -216,6 +216,9 @@ namespace Poe2Accessibility
 
         public static string Unequipped(string name) => T($"Unequipped: {name}", $"Desequipado: {name}");
 
+        /// <summary>An exit's own hint: holding the interact button offers its options (a new instance).</summary>
+        public static string HoldForOptions(string button) => T($"hold {button} for options", $"mantén {button} para opciones");
+
         /// <summary>The chat panel shown, with its hint ("Hold LT to chat").</summary>
         public static string ChatShown(string hint) => T($"Chat. {hint}", $"Chat. {hint}");
 

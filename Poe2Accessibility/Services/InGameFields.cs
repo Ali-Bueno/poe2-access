@@ -72,13 +72,18 @@ namespace Poe2Accessibility.Services
 
             if (layerContainer != this.container)
             {
+                // The offsets found stay: they belong to the game's code, not to this container. Misses count only
+                // in a row: one empty read per area load added up to "inventory not found" on the third trip
+                // through the camp's exit (2026-10-24).
                 this.container = layerContainer;
-                this.missedAt.Clear(); // the offsets found stay: they belong to the game's code, not to this container
+                this.missedAt.Clear();
+                this.misses.Clear();
             }
 
             var spec = Specs[field];
             if (this.offsets.TryGetValue(field, out var known) && this.Holds(known, spec) is var held && held != IntPtr.Zero)
             {
+                this.misses.Remove(field); // found again: a miss while an area loaded does not count toward a loss
                 return held;
             }
 

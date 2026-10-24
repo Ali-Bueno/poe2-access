@@ -141,7 +141,9 @@ left; a topic already heard (drawn grey) is read "atenuado": "Presentación, ate
   ([nearby](proximity.md)); the same thing is named again only after a minute.
 - **What A uses:** when the game moves its interaction target (the label it marks with the A button) to something
   else, it is named with the button: "Finn, A", then "Alijo, A" one step further. A name said this way is not said
-  again by the nearby list. Setting `AnnounceInteractTarget` ("Lo que usa el botón de interactuar").
+  again by the nearby list. Another player must hold the target a second to be named (people walk past). The first
+  exit in an area adds the game's own hint: "Campamento de Sierraclara, A. mantén A para opciones". Setting
+  `AnnounceInteractTarget` ("Lo que usa el botón de interactuar").
 - **Things worth walking to:** the game's own sounds repeat for the nearest chest or shrine, exit or portal, and
   waypoint or checkpoint on screen, and for up to four items at once, on their side, higher when up the screen and
   lower when down, more often as you get closer, silent once you stand on them. An item plays the drop sound the game gives its base (a scroll rustles, an orb clinks, a belt,

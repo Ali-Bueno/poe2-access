@@ -315,7 +315,8 @@ monster modifiers on a magic/rare monster are still unheard; the remaining fragi
   drifting stick or the touchpad then disturbs NVDA in other windows (seen 2026-10-23, not the mod).
 - L3 is also seen by the game: on the world map it toggles the legend while the mod reads a line.
 - Scanner: long routes take ~200 ms on GameHelper's frame thread; a route along an octant boundary alternates
-  "up 2, then up left" / "up left 2, then up"; the transition prompt "Press-Hold (Show Options)" is not read.
+  "up 2, then up left" / "up left 2, then up". The exit prompt "Mantener presionado (Mostrar opciones)" is drawn
+  outside the UI tree (not in a full dump while on screen): the A target says "mantén A para opciones" instead.
   A barrier never seen closed and past the network bubble still reads open (nothing to know it by).
 - Skill tooltips read "Costo." with no value: the game draws the header with nothing under it (Chaos Bolt,
   Punch; seen on screen 2026-10-24), so the readout is faithful.
