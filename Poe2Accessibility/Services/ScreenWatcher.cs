@@ -212,7 +212,9 @@ namespace Poe2Accessibility.Services
                 var above = parent >= 0 ? nodes[parent] : new WalkNode(-1, -1, 0, 0, -1, true);
                 var self = nodes.Count;
                 var enabled = above.Enabled;
-                if (info.HasFlagBit(GameLayout.Element.InteractiveFlagBit))
+                // A control slid out of view does not make its layer one to use: the login screen's "Deal of the Day"
+                // panel waits off screen with its "buy now!" button and hid the screen in front (fresh install, 2026-10-24).
+                if (info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) && !IsOffScreen(info.Address, screen))
                 {
                     hasControls = true;
                     control = self;
@@ -291,7 +293,7 @@ namespace Poe2Accessibility.Services
             MergeRows(nodes, texts);
             // A legend layer holds nothing but legends; a menu layer may carry its own hint bar (game menu).
             isHintBar = texts.Count > 0 && texts.TrueForAll(text => IsLegend(text.Text));
-            return new ScreenLayer(layerInfo.Address, index, texts.Select(text => text.Text).ToList(), hasControls, isHintBar);
+            return new ScreenLayer(layerInfo.Address, index, texts.Select(text => text.Text).ToList(), hasControls, isHintBar, Name: layerInfo.Name);
         }
 
         private static bool IsOffScreen(IntPtr element, RectangleF screen) =>

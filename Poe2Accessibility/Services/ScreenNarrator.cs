@@ -1071,6 +1071,22 @@ namespace Poe2Accessibility.Services
                     }
 
                     break;
+                case ScreenChangeKind.TextsAppeared when !this.inGame && change.Layer.Name == NoticeLayerName && IsBehind(change.Layer, top):
+                    // The pre-game notice corner sits under the screen it reports on ("Input method set to Controller"
+                    // on a fresh install's first button press, 2026-10-24); its connection log ("> Connecting…") is
+                    // the state's own announcement.
+                    var notices = change.Texts.Where(text => !text.Text.StartsWith('>')).ToList();
+                    if (notices.Count > 0 && this.deferredFocus != null)
+                    {
+                        // The press that switched the input also moved the focus: the focus first, the notice after.
+                        this.hintAfterFocus = Announcements.Sentences(new[] { this.hintAfterFocus, Describe(notices) }.Where(part => part.Length > 0));
+                    }
+                    else if (notices.Count > 0)
+                    {
+                        this.Speak("notice", Describe(notices), false);
+                    }
+
+                    break;
                 case ScreenChangeKind.TextsAppeared:
                     if (IsBehind(change.Layer, top) && change.Layer.Address != focusLayer)
                     {
@@ -1105,6 +1121,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Control-id suffix of a description a control shows beside itself while focused.</summary>
         private const string PopupSuffix = "_popup";
+
+        /// <summary>The pre-game layer of notices and the connection log (login dump, 2026-10-24).</summary>
+        private const string NoticeLayerName = "visible_area";
 
         /// <summary>Speaks the hint bar (controller legends) on request.</summary>
         public void SpeakHints(ScreenSnapshot snapshot)

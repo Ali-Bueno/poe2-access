@@ -887,6 +887,10 @@ namespace Poe2Accessibility
             if (attached)
             {
                 this.NoteGameBuild();
+
+                // The game asks for a restart to change its language: a game started again under a running host speaks
+                // the new one (a fresh install starts in English; Español applies on the next start, 2026-10-24).
+                Localization.Detect(this.Settings.Language, message => this.log?.Info(message));
             }
 
             this.output.Speak(attached ? Announcements.GameAttached : Announcements.GameNotAttached, false);
