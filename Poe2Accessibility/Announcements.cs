@@ -451,7 +451,7 @@ namespace Poe2Accessibility
             {
                 if (builder.Length > 0)
                 {
-                    var continues = char.IsLower(line[0]) || SentenceEnds.Contains(builder[^1]);
+                    var continues = char.IsLower(line[0]) || SentenceEnds.Contains(builder[^1]) || EndsInLinkWord(builder);
                     builder.Append(continues ? " " : ". ");
                 }
 
@@ -460,6 +460,26 @@ namespace Poe2Accessibility
 
             return builder.ToString();
         }
+
+        /// <summary>
+        ///     A line ending in a short lower-case word wraps mid-phrase even when the next starts in capitals: "Ocultar
+        ///     las pestañas de" / "Solo retirar" (a tab type's name) is one option label.
+        /// </summary>
+        private static bool EndsInLinkWord(System.Text.StringBuilder builder)
+        {
+            var end = builder.Length;
+            var start = end;
+            while (start > 0 && char.IsLetter(builder[start - 1]))
+            {
+                start--;
+            }
+
+            return end - start is > 0 and <= MaxLinkWordLength && char.IsLower(builder[start]) &&
+                   (start == 0 || builder[start - 1] == ' ');
+        }
+
+        /// <summary>"de", "del", "la", "of", "the", "to": the length of the words a phrase cannot end on.</summary>
+        private const int MaxLinkWordLength = 3;
 
         /// <summary>One table row: "Maximum Life, 42"; a caption ending in ':' runs into its value ("LVL: 1").</summary>
         public static string LabelValue(string label, string value) => label.EndsWith(':') ? $"{label} {value}" : $"{label}, {value}";

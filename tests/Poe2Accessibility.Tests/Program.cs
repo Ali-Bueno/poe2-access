@@ -51,6 +51,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(BuffIdsNameAilments), BuffIdsNameAilments);
             Run(nameof(FarBarrierStaysClosedUntilSeenNear), FarBarrierStaysClosedUntilSeenNear);
             Run(nameof(ScrolledRowsAreNotNews), ScrolledRowsAreNotNews);
+            Run(nameof(WrappedLabelsJoin), WrappedLabelsJoin);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -487,6 +488,13 @@ namespace Poe2Accessibility.Tests
             Set(22, 22, true);
             var route = RoutePlanner.FindRoute(grid, row, new System.Numerics.Vector2(22.4f, 22.4f), new System.Numerics.Vector2(50, 50), false, out var reached);
             Equal(true, route != null && reached, "a route from the ground around the pocket");
+        }
+
+        private static void WrappedLabelsJoin()
+        {
+            Equal("Ocultar las pestañas de Solo retirar", Announcements.Flatten("Ocultar las pestañas de \nSolo retirar"), "link word");
+            Equal("Socket a Support Gem of any colour", Announcements.Flatten("Socket a Support Gem of any\ncolour"), "lower case");
+            Equal("1 Strength = +2 Life. 5 Strength = +1 Damage", Announcements.Flatten("1 Strength = +2 Life\n5 Strength = +1 Damage"), "two lines");
         }
 
         private static void ScrolledRowsAreNotNews()

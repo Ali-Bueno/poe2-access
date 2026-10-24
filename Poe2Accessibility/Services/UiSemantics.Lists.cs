@@ -306,6 +306,9 @@ namespace Poe2Accessibility.Services
         ///     options row's label/control pair has only one caption, so the rows above it win); failing that, the
         ///     first level of three or more with one caption (skill rows below "LVL: 1, Punch" are empty).
         /// </summary>
+        /// <summary>A shown value, not a name: digits and signs only ("100%", "+ 0.0", "240").</summary>
+        private static bool IsValueText(string caption) => caption.Length > 0 && !caption.Any(char.IsLetter);
+
         private (string Position, IReadOnlyList<string> Items, string Group) SameClassPosition(in UiElementReader.ElementInfo info)
         {
             (string Position, IReadOnlyList<string> Items, string Group)? sparse = null;
@@ -332,6 +335,12 @@ namespace Poe2Accessibility.Services
                 {
                     var captions = siblings.Select(sibling => this.FindDescendantText(sibling, CaptionSearchDepth + 1, null)).ToList();
                     var captioned = captions.Count(caption => caption.Length > 0);
+                    if (siblings.Count == 2 && captions.Count(IsValueText) == 1)
+                    {
+                        // A label beside its control whose value is drawn next to it ("Transparencia" | slider "100%"):
+                        // a row, not a list of two.
+                        captioned = 1;
+                    }
                     var found = (Announcements.ListPosition(index + 1, siblings.Count), (IReadOnlyList<string>)captions, this.GroupLabel(parent));
                     if (captioned >= 2)
                     {

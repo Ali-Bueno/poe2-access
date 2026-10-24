@@ -589,10 +589,10 @@ namespace Poe2Accessibility.Services
                     this.Speak("opened with focus", texts, true);
                 }
                 else if (change.Kind == ScreenChangeKind.TextsAppeared && justFocused &&
-                         (change.Scrolled || (focus?.Position.Length > 0 && this.selectedTab(change.Layer.Address).Length > 0)))
+                         (change.Scrolled || this.selectedTab(change.Layer.Address).Length > 0))
                 {
                     // The list scrolled under the focus (the Game options page): rows coming into view, not news. On a
-                    // tabbed page the rows below stay drawn, clipped, so only the arrivals show; a list item focused
+                    // tabbed page the rows below stay drawn, clipped, so only the arrivals show; a control focused
                     // there brings no text of its own (its description is its tooltip).
                 }
                 else if (change.Kind == ScreenChangeKind.TextsAppeared && justFocused)
