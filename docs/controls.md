@@ -134,7 +134,14 @@ right Skills, down Bind Screen, down-left Character, left Passives, up-left Ques
   (`AnnounceTarget`), read from the game's own target bar at the top of the screen.
 - Discoveries: the first time the game shows an exit, a waypoint or checkpoint, or a boss in the area: "Nueva
   salida: Sierraclara", "Nuevo punto de control", "Jefe a la vista: El molinero hinchado" (`AnnounceDiscoveries`).
-- Pick-ups: "Recogido: Traje de ermitaño"; a stack that grew: "Recogido 2 más: …" (`AnnouncePickups`).
+- Pick-ups: "Recogido: Traje de ermitaño"; a stack that grew: "Recogido 2 más: …"; gold: "Recogido 37 de oro"
+  (`AnnouncePickups`).
+- Item in hand: "En la mano: Ballesta improvisada. Elige una celda o una ranura de equipo compatible para
+  colocarlo"; letting go: "Ya no llevas ningún objeto", or, into an equipment slot, "Equipado: Ballesta
+  improvisada, Mano principal" (`AnnounceHand`).
+- Inventory moves without the hand (`AnnounceMoves`): "Equipado: …, Mano principal" and "Desequipado: …" (X on an
+  item or a slot); with a panel open, "Nuevo en el inventario: …" (bought, withdrawn) and "… salió del inventario"
+  (sold, stored). They follow the focus update the move causes.
 - Tooltips mark requirements drawn in red: "No cumples: Requiere Nivel 5".
 - The checkpoint travel map names each checkpoint by where it lies from yours: "Viajar al punto de control,
   abajo, botón, 2 de 2".

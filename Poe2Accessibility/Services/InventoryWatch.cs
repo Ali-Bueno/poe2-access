@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
     using GameHelper;
     using GameHelper.RemoteEnums;
@@ -50,6 +51,7 @@ namespace Poe2Accessibility.Services
         {
             this.known.Clear();
             this.baseline = true;
+            this.movesBaseline = true;
         }
 
         /// <summary>Per frame; <paramref name="playing"/> false while a panel is open (the baseline still follows).</summary>
@@ -101,6 +103,12 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastHandPoll = now;
+            if (this.handEmptyDue != 0 && now >= this.handEmptyDue)
+            {
+                this.handEmptyDue = 0;
+                this.output.Speak(Announcements.HandEmpty, false);
+            }
+
             if (!this.TryCursor(out var items))
             {
                 this.handKnown = false;
@@ -123,15 +131,218 @@ namespace Poe2Accessibility.Services
 
             if (item != IntPtr.Zero && entity != null)
             {
+                this.handEmptyDue = 0;
                 this.output.Urge(Announcements.InHand(this.reader.DescribeItemEntity(entity.Address) ?? entity.Path)); // the name carries the stack
             }
             else if (this.handKnown)
             {
-                this.output.Speak(Announcements.HandEmpty, false);
+                // Where it went is not guessed here; an equipment slot taking it is said by TickMoves ("Equipado: …")
+                // instead, so the release waits for that batch.
+                this.handEmptyDue = now + HandEmptyWaitMs;
             }
 
             this.held = item;
             this.handKnown = true;
+        }
+
+        /// <summary>
+        ///     Per frame in game (D2R arrival notices). The game makes a new item entity whenever an item changes
+        ///     inventory, so a move is a departure and an arrival read together once the inventories have been still
+        ///     for <see cref="SettleMs"/> (which also lets the focus update the move causes be said first): an arrival
+        ///     in an equipment slot is "Equipado: Ballesta improvisada, Mano principal"; one in the main inventory is
+        ///     "Desequipado: …" beside an equipment departure, a placement beside a cursor departure (the hand's), and
+        ///     with a panel open otherwise "Nuevo en el inventario: …" (bought, withdrawn); a main-inventory departure
+        ///     with nothing taking it (hand, equipment) and a panel open is "… salió del inventario" (sold, stored).
+        ///     Pick-ups during play are Tick's.
+        /// </summary>
+        public void TickMoves(bool playing, bool enabled)
+        {
+            var now = Environment.TickCount64;
+            if (now - this.lastMovesPoll < PollMs)
+            {
+                return;
+            }
+
+            this.lastMovesPoll = now;
+            var server = Core.States.InGameStateObject.CurrentAreaInstance.ServerDataObject;
+            if (PlayerInventoriesProperty?.GetValue(server) is not Dictionary<InventoryName, IntPtr> inventories)
+            {
+                return;
+            }
+
+            var located = new Dictionary<IntPtr, InventoryName>();
+            foreach (var name in Tracked)
+            {
+                if (this.Reader(inventories, name) is { } reader)
+                {
+                    foreach (var (_, item) in reader.Items)
+                    {
+                        located[item.Address] = name;
+                    }
+                }
+            }
+
+            if (!this.movesBaseline && enabled)
+            {
+                foreach (var (entity, from) in this.where)
+                {
+                    if (!located.ContainsKey(entity))
+                    {
+                        this.departures.Add((from, this.NameOf(entity)));
+                        (this.lastMoveAt, this.movedInPanel) = (now, this.movedInPanel || !playing);
+                    }
+                }
+
+                foreach (var (entity, to) in located)
+                {
+                    if (!this.where.ContainsKey(entity))
+                    {
+                        this.arrivals.Add((to, this.NameOf(entity)));
+                        (this.lastMoveAt, this.movedInPanel) = (now, this.movedInPanel || !playing);
+                    }
+                }
+
+                if ((this.arrivals.Count > 0 || this.departures.Count > 0) && now - this.lastMoveAt >= SettleMs)
+                {
+                    this.SpeakMoves();
+                }
+            }
+            else
+            {
+                this.arrivals.Clear();
+                this.departures.Clear();
+            }
+
+            foreach (var gone in new List<IntPtr>(this.names.Keys))
+            {
+                if (!located.ContainsKey(gone))
+                {
+                    this.names.Remove(gone);
+                }
+            }
+
+            this.where = located;
+            this.movesBaseline = false;
+        }
+
+        /// <summary>One settled batch of departures and arrivals, said in that order of importance.</summary>
+        private void SpeakMoves()
+        {
+            static bool IsEquipment(InventoryName name) => Announcements.SlotName(name) != null;
+            var departures = new List<(InventoryName From, string Name)>(this.departures);
+            var taken = this.arrivals.Any(arrival => arrival.To == InventoryName.Cursor1 || IsEquipment(arrival.To));
+            foreach (var (to, name) in this.arrivals)
+            {
+                if (Announcements.SlotName(to) is { } slot)
+                {
+                    this.handEmptyDue = 0; // the hand let go into this slot: "Equipped" says it all
+                    this.output.Speak(Announcements.Equipped(name, slot), false);
+                    Take(source => source != InventoryName.Cursor1 && !IsEquipment(source));
+                }
+                else if (to == InventoryName.MainInventory1)
+                {
+                    if (Take(IsEquipment) is { } unequipped)
+                    {
+                        this.output.Speak(Announcements.Unequipped(unequipped), false);
+                    }
+                    else if (Take(source => source is InventoryName.Cursor1 or InventoryName.MainInventory1) == null && this.movedInPanel)
+                    {
+                        this.output.Speak(Announcements.NewInInventory(name), false);
+                    }
+                }
+            }
+
+            if (!taken && this.movedInPanel)
+            {
+                foreach (var (from, name) in departures)
+                {
+                    if (from == InventoryName.MainInventory1)
+                    {
+                        this.output.Speak(Announcements.LeftInventory(name), false);
+                    }
+                }
+            }
+
+            this.arrivals.Clear();
+            this.departures.Clear();
+            this.movedInPanel = false;
+
+            string? Take(Func<InventoryName, bool> source)
+            {
+                var index = departures.FindIndex(departure => source(departure.From));
+                if (index < 0)
+                {
+                    return null;
+                }
+
+                var name = departures[index].Name;
+                departures.RemoveAt(index);
+                return name;
+            }
+        }
+
+        /// <summary>Main inventory, cursor and the equipment slots: where an item can be moved by the player.</summary>
+        private static readonly InventoryName[] Tracked =
+        {
+            InventoryName.MainInventory1, InventoryName.Cursor1, InventoryName.BodyArmour1, InventoryName.Weapon1, InventoryName.Offhand1,
+            InventoryName.Weapon2, InventoryName.Offhand2, InventoryName.Helm1, InventoryName.Amulet1, InventoryName.Ring1, InventoryName.Ring2,
+            InventoryName.Gloves1, InventoryName.Boots1, InventoryName.Belt1,
+        };
+
+        /// <summary>A move is read once the inventories have not changed for this long.</summary>
+        private const int SettleMs = 300;
+
+        /// <summary>"No longer holding" waits this long for a move batch that may say "Equipped" instead.</summary>
+        private const int HandEmptyWaitMs = 800;
+
+        private long handEmptyDue;
+
+        private readonly Dictionary<InventoryName, Inventory> readers = new();
+        private readonly Dictionary<IntPtr, string> names = new();
+        private readonly List<(InventoryName To, string Name)> arrivals = new();
+        private readonly List<(InventoryName From, string Name)> departures = new();
+        private Dictionary<IntPtr, InventoryName> where = new();
+        private bool movesBaseline = true;
+        private bool movedInPanel;
+        private long lastMovesPoll;
+        private long lastMoveAt;
+
+        /// <summary>An item's name, kept after it leaves (a sold item can no longer be read).</summary>
+        private string NameOf(IntPtr entity)
+        {
+            if (!this.names.TryGetValue(entity, out var name))
+            {
+                name = this.reader.DescribeItemEntity(entity) ?? Announcements.UnknownItem;
+                this.names[entity] = name;
+            }
+
+            return name;
+        }
+
+        /// <summary>
+        ///     GameHelper's reader of one player inventory, made once (each registers an update coroutine) and moved
+        ///     when the game rebuilds the inventory.
+        /// </summary>
+        private Inventory? Reader(Dictionary<InventoryName, IntPtr> inventories, InventoryName name)
+        {
+            if (!inventories.TryGetValue(name, out var address) || address == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            if (!this.readers.TryGetValue(name, out var reader))
+            {
+                reader = (Inventory)Activator.CreateInstance(typeof(Inventory), BindingFlags.Instance | BindingFlags.NonPublic, null,
+                    new object[] { address, $"Poe2Accessibility {name}" }, null)!;
+                this.readers[name] = reader;
+            }
+            else if (reader.Address != address)
+            {
+                reader.Address = address;
+                this.movesBaseline = true;
+            }
+
+            return reader;
         }
 
         private bool TryCursor(out IReadOnlyDictionary<IntPtr, Item> items)

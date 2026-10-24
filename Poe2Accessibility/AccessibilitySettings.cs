@@ -114,6 +114,9 @@ namespace Poe2Accessibility
         /// <summary>Say what the cursor takes in hand in the inventory and when it lets go (D2R item in hand).</summary>
         public bool AnnounceHand = true;
 
+        /// <summary>Say what is equipped or unequipped, and what arrives in or leaves the inventory in a panel (D2R arrivals).</summary>
+        public bool AnnounceMoves = true;
+
         /// <summary>Reach ping (D2R): two rising notes when an enemy in sight comes within melee reach.</summary>
         public bool MeleeReach = true;
 

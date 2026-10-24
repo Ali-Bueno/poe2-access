@@ -150,6 +150,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceDiscoveries) => T("Discoveries", "Descubrimientos"),
             nameof(AccessibilitySettings.EdgeKnock) => T("Knock at the end of menus", "Toc al final de los menús"),
             nameof(AccessibilitySettings.AnnounceHand) => T("Item in hand", "Objeto en la mano"),
+            nameof(AccessibilitySettings.AnnounceMoves) => T("Equipped and moved items", "Objetos equipados y movidos"),
             nameof(AccessibilitySettings.RoutePrompts) => T("Turn prompts", "Indicaciones de giro"),
             nameof(AccessibilitySettings.AnnounceLevelUp) => T("Level up", "Subida de nivel"),
             nameof(AccessibilitySettings.Radar) => T("Radar", "Radar"),
@@ -190,6 +191,17 @@ namespace Poe2Accessibility
         public static string InHand(string name) =>
             T($"In hand: {name}. Choose a cell or a matching equipment slot to place it",
               $"En la mano: {name}. Elige una celda o una ranura de equipo compatible para colocarlo");
+
+        /// <summary>An item now in an equipment slot (by the cursor or the equip button): what and where.</summary>
+        public static string Equipped(string name, string slot) => T($"Equipped: {name}, {slot}", $"Equipado: {name}, {slot}");
+
+        public static string Unequipped(string name) => T($"Unequipped: {name}", $"Desequipado: {name}");
+
+        /// <summary>Arrived in the main inventory with a panel open, not by hand: bought, withdrawn.</summary>
+        public static string NewInInventory(string name) => T($"New in inventory: {name}", $"Nuevo en el inventario: {name}");
+
+        /// <summary>Left the main inventory with a panel open, not by hand: sold, stored.</summary>
+        public static string LeftInventory(string name) => T($"{name} left the inventory", $"{name} salió del inventario");
 
         public static string HandEmpty => T("You no longer hold an item", "Ya no llevas ningún objeto");
 

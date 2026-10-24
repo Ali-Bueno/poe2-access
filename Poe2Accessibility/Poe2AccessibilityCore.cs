@@ -436,6 +436,7 @@ namespace Poe2Accessibility
                 {
                     this.pickups?.Tick(playing && this.Settings.AnnouncePickups);
                     this.pickups?.TickHand(this.Settings.AnnounceHand);
+                    this.pickups?.TickMoves(playing, this.Settings.AnnounceMoves);
                     this.gold?.Tick(this.focus?.LayerContainer ?? IntPtr.Zero, playing, this.Settings.AnnouncePickups);
                 }
                 if (this.bosses != null)
