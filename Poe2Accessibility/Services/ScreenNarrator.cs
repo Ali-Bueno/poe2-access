@@ -290,6 +290,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The inventory's gold amount text (GoldWatch): with its unit word as a header, chrome of any panel beside the inventory.</summary>
         public Func<IntPtr>? GoldCounter { get; set; }
 
+        /// <summary>
+        ///     The game's name for the gold lying on screen ("Oro"): its tooltip on the HUD ("Oro. Tamaño de la pila: 1/10.000.
+        ///     Se puede gastar en los vendedores") is left out, the pick-up says the amount.
+        /// </summary>
+        public Func<IReadOnlyCollection<string>>? GoldNames { get; set; }
+
         /// <summary>"4 de 6" for a selector without focus in a layer (the class choice), else null.</summary>
         public Func<IntPtr, string?>? SelectorPosition { get; set; }
 
@@ -555,6 +561,12 @@ namespace Poe2Accessibility.Services
                 if (change.Kind != ScreenChangeKind.TopLayerChanged)
                 {
                     var ignored = this.IgnoredHudText?.Invoke() ?? IntPtr.Zero;
+                    if (this.GoldNames?.Invoke() is { Count: > 0 } gold && change.Texts.Any(text => gold.Contains(text.Text)))
+                    {
+                        this.log.Debug("HUD gold tooltip skipped");
+                        return;
+                    }
+
                     var news = change.Texts.Where(text => text.Address != ignored && !IsNumber(text.Text) && this.hudSpoken.Add(text.Text)).ToList();
                     if (news.Count > 0 && DateTime.UtcNow >= this.hudQuietUntil)
                     {

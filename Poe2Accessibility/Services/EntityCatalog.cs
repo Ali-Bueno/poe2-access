@@ -79,6 +79,7 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<uint, ScanEntry> remembered = new();
         /// <summary>Entities and named tiles the player has seen in this area (see <see cref="Sighted"/>).</summary>
         private readonly HashSet<uint> sighted = new();
+        private readonly HashSet<string> goldNames = new(StringComparer.Ordinal);
         private readonly ExplorationMap explored = new();
         /// <summary>Recent live walkable grids (GameLayout-free: whole copies), oldest first.</summary>
         private readonly Queue<byte[]> samples = new();
@@ -107,6 +108,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The current area's name in the client language (its name in an objective is not a destination).</summary>
         public Func<string> AreaName { get; set; } = () => string.Empty;
+
+        /// <summary>The game's names for gold lying on the ground ("Oro"), kept past its pick-up (its HUD tooltip comes later).</summary>
+        public IReadOnlyCollection<string> GoldNames => this.goldNames;
 
         /// <summary>A thing in the world, not a named place of the area's tiles.</summary>
         public static bool IsEntity(ScanEntry entry) => entry.Id < LandmarkIdBase;
@@ -573,6 +577,10 @@ namespace Poe2Accessibility.Services
                 category = ScanCategory.Items;
                 name = this.inventory.DescribeItemEntity(worldItem.ItemEntityAddress, name) ?? name;
                 kind = this.inventory.ItemKind(worldItem.ItemEntityAddress);
+                if (kind == "gold" && name.Split(',')[0].Trim() is { Length: > 0 } gold)
+                {
+                    this.goldNames.Add(gold); // "Oro, 2": the name before the amount
+                }
                 baseId = this.inventory.ItemBaseId(worldItem.ItemEntityAddress);
             }
             else if (entity.EntityType == EntityTypes.Chest)

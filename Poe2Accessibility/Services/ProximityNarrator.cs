@@ -63,7 +63,8 @@ namespace Poe2Accessibility.Services
                 Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<Render>(out var player))
             {
                 this.lastPoll = now;
-                var near = this.catalog.Entries().Where(entry => EntityCatalog.IsEntity(entry) && Announced.Contains(entry.Category));
+                // Gold is said once, as it is picked up ("Recogido 2 de oro", GoldWatch); its sound leads the way to it.
+                var near = this.catalog.Entries().Where(entry => EntityCatalog.IsEntity(entry) && Announced.Contains(entry.Category) && entry.Kind != "gold");
                 foreach (var entry in this.tracker.Update(player.WorldPosition.X, player.WorldPosition.Y, near, now))
                 {
                     this.pending.Enqueue(entry.Name);
