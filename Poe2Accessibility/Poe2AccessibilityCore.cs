@@ -152,7 +152,7 @@ namespace Poe2Accessibility
                 this.targets = new TargetNarrator(this.audio, memory, elements, this.output, this.log) { HudLayer = () => this.narrator?.HudLayer ?? IntPtr.Zero };
                 this.narrator.IgnoredHudText = () => this.targets?.NameLabel ?? IntPtr.Zero;
                 this.narrator.GoldCounter = () => this.gold?.Counter ?? IntPtr.Zero;
-                this.narrator.GoldNames = () => this.entities?.GoldNames ?? Array.Empty<string>();
+                this.narrator.GroundItemName = texts => this.entities?.ItemOfTooltip(texts);
                 this.statuses = new StatusWatch(this.output, this.log);
                 this.pickups = new InventoryWatch(inventory, this.output, this.log);
                 this.gold = new GoldWatch(memory, elements, this.output, this.log);

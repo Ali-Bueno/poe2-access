@@ -79,7 +79,11 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<uint, ScanEntry> remembered = new();
         /// <summary>Entities and named tiles the player has seen in this area (see <see cref="Sighted"/>).</summary>
         private readonly HashSet<uint> sighted = new();
-        private readonly HashSet<string> goldNames = new(StringComparer.Ordinal);
+        /// <summary>
+        ///     Title of each ground item seen in this area ("Pergamino de sabiduría") → its spoken name ("Pergamino de
+        ///     sabiduría, 3"; empty for gold, which its pick-up says), kept past the pick-up: its HUD tooltip can come later.
+        /// </summary>
+        private readonly Dictionary<string, string> itemTitles = new(StringComparer.Ordinal);
         private readonly ExplorationMap explored = new();
         /// <summary>Recent live walkable grids (GameLayout-free: whole copies), oldest first.</summary>
         private readonly Queue<byte[]> samples = new();
@@ -109,8 +113,19 @@ namespace Poe2Accessibility.Services
         /// <summary>The current area's name in the client language (its name in an objective is not a destination).</summary>
         public Func<string> AreaName { get; set; } = () => string.Empty;
 
-        /// <summary>The game's names for gold lying on the ground ("Oro"), kept past its pick-up (its HUD tooltip comes later).</summary>
-        public IReadOnlyCollection<string> GoldNames => this.goldNames;
+        /// <summary>The spoken name of the ground item whose tooltip holds these texts (empty for gold); null when none does.</summary>
+        public string? ItemOfTooltip(IEnumerable<string> texts)
+        {
+            foreach (var text in texts)
+            {
+                if (this.itemTitles.TryGetValue(text, out var spoken))
+                {
+                    return spoken;
+                }
+            }
+
+            return null;
+        }
 
         /// <summary>A thing in the world, not a named place of the area's tiles.</summary>
         public static bool IsEntity(ScanEntry entry) => entry.Id < LandmarkIdBase;
@@ -120,6 +135,7 @@ namespace Poe2Accessibility.Services
         {
             this.remembered.Clear();
             this.sighted.Clear();
+            this.itemTitles.Clear();
             this.explored.Reset();
             lock (this.samplesLock)
             {
@@ -577,9 +593,14 @@ namespace Poe2Accessibility.Services
                 category = ScanCategory.Items;
                 name = this.inventory.DescribeItemEntity(worldItem.ItemEntityAddress, name) ?? name;
                 kind = this.inventory.ItemKind(worldItem.ItemEntityAddress);
-                if (kind == "gold" && name.Split(',')[0].Trim() is { Length: > 0 } gold)
+                if (name.Split(',')[0].Trim() is { Length: > 0 } title)
                 {
-                    this.goldNames.Add(gold); // "Oro, 2": the name before the amount
+                    this.itemTitles[title] = kind == "gold" ? string.Empty : name; // "Oro, 2": the title before the amount
+                }
+
+                if (this.inventory.ItemBaseName(worldItem.ItemEntityAddress) is { Length: > 0 } baseName)
+                {
+                    this.itemTitles.TryAdd(baseName, kind == "gold" ? string.Empty : name); // a rare's tooltip names its base on a line of its own
                 }
                 baseId = this.inventory.ItemBaseId(worldItem.ItemEntityAddress);
             }

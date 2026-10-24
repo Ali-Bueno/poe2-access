@@ -149,6 +149,14 @@ namespace Poe2Accessibility.Services
             return Announcements.Item(name, rarity, count);
         }
 
+        /// <summary>The base display name of an item entity ("Broquel de cuero"); empty if unreadable.</summary>
+        public string ItemBaseName(IntPtr entity) =>
+            entity != IntPtr.Zero && this.IsItemEntity(entity) &&
+            ((Item)Activator.CreateInstance(typeof(Item), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { entity }, null)!)
+                .TryGetComponent<Base>(out var baseComponent)
+                ? this.BaseName(baseComponent)
+                : string.Empty;
+
         /// <summary>The item's base display name; GameHelper's is empty for names under 8 characters.</summary>
         private string BaseName(Base component)
         {

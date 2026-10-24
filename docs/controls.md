@@ -171,6 +171,9 @@ left; a topic already heard (drawn grey) is read "atenuado": "Presentación, ate
   middle: "Ahogado, 3, derecha. Lobo podrido, raro, arriba" (`AnnounceEnemies`; bosses are discoveries).
 - Pick-ups: "Recogido: Traje de ermitaño"; a stack that grew: "Recogido 2 más: …"; gold: "Recogido 37 de oro"
   (`AnnouncePickups`).
+- An item on the ground whose tooltip the game shows (you stand by it or aim at it) says only its name, rarity and
+  quality ("Broquel de cuero, Calidad: +5%"); its whole text is read in the inventory. Gold says nothing until picked
+  up. A shrine's, checkpoint's or portal's text is read whole.
 - Item in hand: "En la mano: Ballesta improvisada. Elige una celda o una ranura de equipo compatible para
   colocarlo"; letting go: "Ya no llevas ningún objeto", or, into an equipment slot, "Equipado: Ballesta
   improvisada, Mano principal" (`AnnounceHand`). These cut in on what is being read; the next D-pad move cuts them.

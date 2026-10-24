@@ -291,10 +291,14 @@ namespace Poe2Accessibility.Services
         public Func<IntPtr>? GoldCounter { get; set; }
 
         /// <summary>
-        ///     The game's name for the gold lying on screen ("Oro"): its tooltip on the HUD ("Oro. Tamaño de la pila: 1/10.000.
-        ///     Se puede gastar en los vendedores") is left out, the pick-up says the amount.
+        ///     The spoken name of the ground item whose tooltip the HUD shows, from its texts (empty for gold); null when the
+        ///     texts are not an item's. Such a tooltip says only the name and the quality: the whole text is read in the
+        ///     inventory (user, 2026-10-24); a shrine's or a portal's is read whole.
         /// </summary>
-        public Func<IReadOnlyCollection<string>>? GoldNames { get; set; }
+        public Func<IEnumerable<string>, string?>? GroundItemName { get; set; }
+
+        /// <summary>The quality line of an item tooltip ("Calidad: +10%"): the only property with a signed percentage.</summary>
+        private static readonly System.Text.RegularExpressions.Regex QualityLine = new(@":\s*\+\d+\s*%\s*$", System.Text.RegularExpressions.RegexOptions.Compiled);
 
         /// <summary>"4 de 6" for a selector without focus in a layer (the class choice), else null.</summary>
         public Func<IntPtr, string?>? SelectorPosition { get; set; }
@@ -561,14 +565,16 @@ namespace Poe2Accessibility.Services
                 if (change.Kind != ScreenChangeKind.TopLayerChanged)
                 {
                     var ignored = this.IgnoredHudText?.Invoke() ?? IntPtr.Zero;
-                    if (this.GoldNames?.Invoke() is { Count: > 0 } gold && change.Texts.Any(text => gold.Contains(text.Text)))
-                    {
-                        this.log.Debug("HUD gold tooltip skipped");
-                        return;
-                    }
-
                     var news = change.Texts.Where(text => text.Address != ignored && !IsNumber(text.Text) && this.hudSpoken.Add(text.Text)).ToList();
-                    if (news.Count > 0 && DateTime.UtcNow >= this.hudQuietUntil)
+                    if (news.Count > 0 && this.GroundItemName?.Invoke(change.Texts.Select(text => text.Text)) is { } item)
+                    {
+                        var quality = change.Texts.FirstOrDefault(text => QualityLine.IsMatch(text.Text));
+                        if (item.Length > 0 && DateTime.UtcNow >= this.hudQuietUntil)
+                        {
+                            this.Speak("ground item", quality == null ? item : $"{item}, {quality.Text}", false);
+                        }
+                    }
+                    else if (news.Count > 0 && DateTime.UtcNow >= this.hudQuietUntil)
                     {
                         this.Speak("hud", Describe(news), false);
                     }
