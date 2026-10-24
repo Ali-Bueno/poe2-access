@@ -61,8 +61,45 @@ failure). The FMOD header version is read from `fmod.dll` (`SoundExtractor`).
 
 ## Still needs a person after a patch
 - GameHelper2 upstream offsets: pull and rebuild (`external/GameHelper2`), then `tools/package/New-TestPackage.ps1`.
-- Dat row columns (`ModsDat.NameOffset`, `PassiveTree.Row*`, `SkillSlot` keys, `BaseComponent`/`NpcComponent` rows)
-  and the image texture fields in the base control. A wrong one makes that reading fall back (a mod without its name,
-  an item without its base name) rather than speak garbage, since every string goes through the decoders' checks.
-  The columns could follow the community dat schema if the launcher fetched it when regenerating the data.
+- The parts in "Still fragile" below. A wrong one makes that reading fall back (a mod without its name, an item
+  without its base name) rather than speak garbage, since every string goes through the decoders' checks.
 - Run the `layout` self-test and a short session through login, a menu, the inventory and a fight.
+
+## Still fragile (next session, asked 2026-10-24)
+What a patch can still move with nothing to find it again, most player-visible first, each with the idea to try.
+
+1. **Monster modifier names** (`ModsDat.NameOffset` 0x62, `MonsterMods`). Not searchable in memory: the row's id
+   column is a string too ("MonsterSpeed1"). Idea: let the launcher derive the column from the player's own files
+   while regenerating (`GameDataSetup`). The id column is the same in `Data/Mods.datc64` and
+   `Data/Spanish/Mods.datc64`, the name column differs; in datc64 a string column is 8 bytes, as wide as the pointer
+   in memory, so the file's column offset is the row offset the plugin reads. Write it to a catalog file
+   (`dat-columns.json`) that the plugin reads, falling back to the constant. Second check in game: a rare monster's
+   on-screen panel lists its modifiers; the row string that matches it confirms the column. Live research first:
+   confirm 0x62 is the file's column offset too.
+2. **The same per-language trick for the other text columns**: `PassiveTree.RowNameOffset` (PassiveSkills),
+   `BaseComponent.NameOffset` (BaseItemTypes, item base names), `SkillSlot.DisplayedNameOffset`. Flag and key
+   columns (`PassiveTree.RowKeystone/Notable/IconOnly/JewelSocket/Characters/GraphId`, `SkillSlot` level, effect and
+   skill keys) need the community schema (poe-tool-dev/dat-schema) or known rows (a known keystone's flag set).
+3. **The launcher's own columns** (`ItemSoundExtractor`: BaseItemTypes 88/124, ItemVisualIdentity 24/919,
+   SoundEffects 8/16). Guarded by row sizes, so a change skips the step and keeps the old files. Self-identifying
+   instead: the sound columns hold strings starting `Audio/Sound Effects/`, the key columns hold valid row indices.
+4. **Component fields**: `BaseComponent.NameRowOffset` (a pointer to a BaseItemTypes row whose name matches the
+   item's tooltip title), `NpcComponent.MarkerRowOffset` (quest marker over NPCs), `TargetableComponent` (a lost flag
+   is already noticed and everything counts as in play; could search for the byte that is 1 on living monsters and 0
+   on corpses).
+5. **Image texture fields** in the base control (`Image.TextureOffset`/`AltTextureOffset`: currency icons, gold): the
+   texture's key string contains `Art/`, searchable on image elements like the text anchor.
+6. **Control flag bits** (`Element` interactive 0x1B, navigable 0x0E, text input 0x10, enabled 0x0D): check against
+   known controls (menu buttons are interactive and navigable, a text box has the text-input bit).
+7. **Groups that only follow the label text** could get a check of their own in `ControlFields`: tabs (exactly one
+   sibling selected), class selector (index 0..5 with the class id beside it), skill slot binding (unique 0..23
+   across the bar), passive node record (a PassiveSkills row whose graph id is the node's), panel title and
+   placeholder (a readable string).
+8. **Passive tree graph** (`PassiveTree.StateGraphFileOffset`, `GraphContentOffset`, `EdgeListOffset`,
+   `AllocatedOffset`): allocated entries must be node ids of the graph, edges must join known nodes.
+9. **Pad buttons** (`GameLayout.PadButtons`): only the axes are checked (`GamepadReader.Plausible`); a press seen by
+   the game's focus moving could confirm the A bit.
+10. **GameHelper2 upstream**: still pull and rebuild by hand; when its state patterns stop matching, the plugin could
+    say so instead of staying silent.
+
+Unused, can go: `InGameUi.NpcDialogueLayerOffset`, `AreaTransitionComponent.DestinationRowOffset`.

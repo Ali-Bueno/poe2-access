@@ -298,6 +298,10 @@ of the hit, not the wind-up) needs live RE on a rare's attack: the monster's `Ac
 (Actor +0xB08 skills, details +0x08) or a progress field near the animation id (Actor +0x8B0). Monster modifiers
 on a magic/rare monster are still unheard.
 
+Then (asked 2026-10-24): make the rest survive game updates, monster modifier names first: the plan, the idea for
+each part and what to research live are in `docs/compatibility.md`, "Still fragile". After each change run the
+dev command `layout` at login, in game, in the options and in the inventory.
+
 ## Known issues / open questions
 - Character creation: the league dropdown's list (12 leagues) is not verified open — with the test pad as player 2
   at that screen A does nothing, the mouse does not open it, and Enter submits the form (it answered "Ya existe un
