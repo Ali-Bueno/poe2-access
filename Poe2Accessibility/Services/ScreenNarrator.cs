@@ -317,6 +317,33 @@ namespace Poe2Accessibility.Services
         /// <summary>The in-game HUD: new texts (quest tracker, ground item) are read after the rest, never as a page.</summary>
         public IntPtr HudLayer { get; set; }
 
+        /// <summary>
+        ///     A HUD text in the skill bar: its alert line ("Sin maná", "Inventario lleno", "En tiempo de recarga"), said
+        ///     each time it shows rather than once per area (a second "Inventario lleno" was silent, 2026-10-24).
+        /// </summary>
+        public Func<IntPtr, bool>? IsSkillBarText { get; set; }
+
+        /// <summary>A layer over the focused panel with at most this many texts is a message, not a page.</summary>
+        private const int MessageTexts = 2;
+
+        /// <summary>The same refusal or alert shown again this soon is the same press repeated, not news.</summary>
+        private const int AlertRepeatMs = 2500;
+
+        private readonly Dictionary<string, DateTime> alertsSaid = new(StringComparer.Ordinal);
+
+        /// <summary>A refusal or alert, unless the same one was said a moment ago.</summary>
+        private bool AlertIsNews(string text)
+        {
+            var now = DateTime.UtcNow;
+            if (this.alertsSaid.TryGetValue(text, out var at) && (now - at).TotalMilliseconds < AlertRepeatMs)
+            {
+                return false;
+            }
+
+            this.alertsSaid[text] = now;
+            return true;
+        }
+
         public void OnFocusChanged(AccessibleUiNode node)
         {
             this.lastFocusAt = DateTime.UtcNow;
@@ -543,6 +570,19 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (this.inGame && change.Kind != ScreenChangeKind.TopLayerChanged &&
+                change.Texts.FirstOrDefault(text => text.Name == GameLayout.InGameUi.MessageLabelName) is { } refusal)
+            {
+                // The game refusing what was just pressed (socketing a second gem of a kind): whatever has the focus,
+                // since the press is what the player is waiting on (it was silent and tried three times, 2026-10-24).
+                if (this.AlertIsNews(refusal.Text))
+                {
+                    this.Speak("game message", refusal.Text, true);
+                }
+
+                return;
+            }
+
             if (this.inGame && change.Layer.Address == this.TutorialLayer)
             {
                 // A new objective or tutorial hint: after what is being said, never instead of it. The box shows the
@@ -574,7 +614,14 @@ namespace Poe2Accessibility.Services
                 if (change.Kind != ScreenChangeKind.TopLayerChanged)
                 {
                     var ignored = this.IgnoredHudText?.Invoke() ?? IntPtr.Zero;
-                    var news = change.Texts.Where(text => text.Address != ignored && !IsNumber(text.Text) && this.hudSpoken.Add(text.Text)).ToList();
+                    var alerts = change.Texts.Where(text => !IsNumber(text.Text) && (this.IsSkillBarText?.Invoke(text.Address) ?? false)).ToList();
+                    var alertNews = alerts.Where(text => this.AlertIsNews(text.Text)).ToList();
+                    if (alertNews.Count > 0)
+                    {
+                        this.Speak("alert", Describe(alertNews), false);
+                    }
+
+                    var news = change.Texts.Except(alerts).Where(text => text.Address != ignored && !IsNumber(text.Text) && this.hudSpoken.Add(text.Text)).ToList();
                     if (news.Count > 0 && this.GroundItemName?.Invoke(change.Texts.Select(text => text.Text)) is { } item)
                     {
                         var quality = change.Texts.FirstOrDefault(text => QualityLine.IsMatch(text.Text));
@@ -704,6 +751,21 @@ namespace Poe2Accessibility.Services
                 }
 
                 var justFocused = this.JustFocused();
+                var focusIndex = snapshot.Layers.FirstOrDefault(layer => layer.Address == focusLayer)?.Index;
+                if (change.Layer.Address != focusLayer && !justFocused && focusIndex < change.Layer.Index && !change.Layer.HasControls &&
+                    change.Kind is ScreenChangeKind.LayerOpened or ScreenChangeKind.TextsAppeared && change.Texts.Count <= MessageTexts)
+                {
+                    // A line over the focused panel that no focus move brought: the game refusing the press ("Ya tienes una
+                    // gema de habilidad engarzada de este tipo." over Skills was silent, tried three times, 2026-10-24).
+                    var line = Describe(change.Texts.Where(text => text.Text != focus?.Text && !IsNumber(text.Text)));
+                    if (line.Length > 0 && this.AlertIsNews(line))
+                    {
+                        this.Speak("message over panel", line, true);
+                    }
+
+                    return;
+                }
+
                 if (change.Layer.Address != focusLayer && !justFocused)
                 {
                     return;

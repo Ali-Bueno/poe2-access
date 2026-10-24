@@ -89,6 +89,12 @@ namespace Poe2Accessibility
 
         /// <summary>The creation screen's name help was said for this visit (a refused name comes back to it).</summary>
         private bool creationHelpSaid;
+
+        /// <summary>The HUD's skill bar this frame (zero outside gameplay or when not found).</summary>
+        private IntPtr skillBar;
+
+        /// <summary>The skill bar's alert line sits two levels under it (skill_bar → container → label, 2026-10-24).</summary>
+        private const int SkillBarTextDepth = 4;
         private ResearchSession? research;
         private UiElementReader? elements;
         private DevCommandFile? devCommands;
@@ -197,6 +203,7 @@ namespace Poe2Accessibility
                 this.narrator.InOtherControlGroup = this.semantics.InOtherControlGroup;
                 this.narrator.SelectorPosition = this.semantics.SelectorPosition;
                 this.narrator.SelectorChoice = this.semantics.SelectorChoice;
+                this.narrator.IsSkillBarText = this.IsSkillBarText;
                 this.focus.FocusChanged += this.OnCreationFocus;
                 this.narrator.Refresh = node => this.semantics?.Describe(node.Address, node.IsHovered);
                 this.semantics.PlayerPath = () => Core.States.InGameStateObject.CurrentAreaInstance.Player.Path ?? string.Empty;
@@ -368,6 +375,7 @@ namespace Poe2Accessibility
             this.narrator.TutorialLayer = inGame ? this.locator.InGameTutorialLayer(stateObject) : IntPtr.Zero;
             this.screen.SetArrivalLayer(this.narrator.TutorialLayer);
             this.narrator.HudLayer = inGame ? this.locator.InGameHudLayer(stateObject) : IntPtr.Zero;
+            this.skillBar = inGame ? this.locator.InGameSkillBar(stateObject) : IntPtr.Zero;
             this.narrator.ReadTooltips = this.Settings.ReadTooltipsOnFocus;
             this.narrator.Tick();
             while (this.screen.TryDequeue(out var change))
@@ -955,6 +963,11 @@ namespace Poe2Accessibility
                 }
             }
         }
+
+        /// <summary>A text element inside the HUD's skill bar (its alert line).</summary>
+        private bool IsSkillBarText(IntPtr text) =>
+            this.skillBar != IntPtr.Zero && this.elements != null && this.elements.TryReadElement(text, out var info) &&
+            this.elements.ReadAncestors(info, SkillBarTextDepth).Any(ancestor => ancestor.Address == this.skillBar);
 
         /// <summary>
         ///     The creation screen's name field takes typing at once and nothing on screen says how to finish: once per

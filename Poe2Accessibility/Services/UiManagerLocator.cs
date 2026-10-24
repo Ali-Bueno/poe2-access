@@ -111,6 +111,8 @@ namespace Poe2Accessibility.Services
 
         public IntPtr InGameHudLayer(IntPtr inGameState) => this.Fields.Find(this.InGameLayerContainer(inGameState), InGameField.Hud);
 
+        public IntPtr InGameSkillBar(IntPtr inGameState) => this.Fields.Find(this.InGameLayerContainer(inGameState), InGameField.SkillBar);
+
         public IntPtr InGameDeathScreen(IntPtr inGameState) => this.Fields.Find(this.InGameLayerContainer(inGameState), InGameField.DeathScreen);
 
         /// <summary>

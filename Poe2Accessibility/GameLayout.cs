@@ -246,6 +246,12 @@ namespace Poe2Accessibility
 
             public const string SkillBarName = "skill_bar";
 
+            /// <summary>
+            ///     The centred line for refusals ("Ya tienes una gema de habilidad engarzada de este tipo."): a label that is
+            ///     itself an in-game layer, hidden between messages (hud_console.ui `message_label`, 2026-10-24).
+            /// </summary>
+            public const string MessageLabelName = "message_label";
+
             /// <summary>The "Set Skill Bind" screen, kept hidden in game; its bars hold every binding's button glyph.</summary>
             public const int BindDisplayOffset = 0x788;
 
