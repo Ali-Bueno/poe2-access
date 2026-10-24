@@ -79,7 +79,7 @@
 | World map (Quests tab): area under the cursor, map legend | done (live) | no-focus panel narration; finding areas with a free cursor is still hard |
 | Character stats (inspect mode): widgets with values, stat-list links with row + definition | done (live) | "DEX, 7, …", "Evasion Rating, 7. Evasion, link. …" |
 | Skills panel rows, empty slots, skill bind bar (button + bound skill) | done (live) | "empty, 2 of 10", "B, Dodge Roll/Sprint"; unhovered skills fall back to the icon name |
-| Skill bind screen (X on a gem) and skill picker (a slot's grid of skills/actions) | done (live) | "Selecciona el botón al que asignar Descarga de caos. Set de habilidades principal. LB, vacío"; entering the other row names it; picker cells "Exhumar, Costo. 7 de maná…", "Usar frasco de vida…" (no grid position) |
+| Skill bind screen (X on a gem) and skill picker (a slot's grid of skills/actions) | done (live) | "Selecciona el botón al que asignar Descarga de caos. Set de habilidades principal. LB, vacío"; entering the other row names it; picker cells (A on a Bind Screen button) "Exhumar, Costo. 7 de maná…", "Usar frasco de vida…" (no grid position) |
 | Cosmetics | done (live) | ordinary buttons once the d-pad moves the focus |
 | Quest list | todo | empty at the start of Act 1 |
 | Objective / tutorial box (G+0xDD8): new texts read, queued | done (live) | "Equip Item. Press View to Open your Inventory", "Press X to equip weapon." |
@@ -297,6 +297,8 @@ wall tones, dodge whoosh, object sounds, the quest bell) and by use (barrier phr
 - Scanner: long routes take ~200 ms on GameHelper's frame thread; a route along an octant boundary alternates
   "up 2, then up left" / "up left 2, then up"; the transition prompt "Press-Hold (Show Options)" is not read.
   A barrier never seen closed and past the network bubble still reads open (nothing to know it by).
+- Skill picker (A on a Bind Screen button): the first cell, a red cross, has no text, tooltip or skill and reads
+  "action binding display"; what it does (clear the button?) is unverified.
 - Cosmetics: the weapon-set toggles "I / II" read only "desmarcado, casilla de verificación, 2 de 2" (the numerals
   are drawn, no text in memory).
 - After a host restart the first HUD texts ("Nuevo punto de control") and discoveries are announced again.

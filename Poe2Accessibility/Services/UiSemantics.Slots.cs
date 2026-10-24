@@ -80,7 +80,7 @@ namespace Poe2Accessibility.Services
 
             if (button.Length == 0)
             {
-                // A cell of the skill picker (Y on a bind screen slot: every skill and action that can go there,
+                // A cell of the skill picker (A on a Bind Screen button: every skill and action that can go there,
                 // 2026-10-24): no glyph, the skill or action it holds names it. The options' combo boxes are navigable
                 // too, with their description as tooltip: they carry the interactive bit, the picker's cells do not.
                 var held = skill.Length > 0 ? skill : bound;
