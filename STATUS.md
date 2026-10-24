@@ -277,7 +277,7 @@
 
 ## Next step
 The Witch "yarkbruja" (level 2) is in Clearfell Encampment; the quests point to the Mud Burrow (the Devourer) and
-the Grim Tangle. The uncut gem was engraved "Esbirro guerrero esqueleto" to leave town; it is not socketed (no
+the Grim Tangle. The uncut gem was engraved "Tirador esqueleto" to leave town; it is not socketed (no
 spirit left). Next: user test by ear of the 2026-10-23/24 batches (reach ping, wall tones, dodge whoosh, object
 sounds, the quest bell; barrier phrases, combos and FPS rows in Options, the bind screen, heard topics); monster
 modifiers on a magic/rare monster are still unheard (none met in Clearfell or the Mud Burrow entrance; the level 2
