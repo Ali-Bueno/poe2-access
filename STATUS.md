@@ -242,11 +242,11 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-User test of the 2026-10-23 batches by ear (wall tones and small-obstacle knock, heartbeat, dodge whoosh, object
-sounds) and by use (passive tree links, skill bar on the L3 hold, item in hand, speech priority levels); verify the
-NPC dialogue options and vendors in Clearfell (the character is still before the Miller, who killed it once during
-testing); then continue down `docs/d2r-gap-analysis.md` (item comparison, monster mods on the target — RE through
-`ModsAndObjectMagicProperties` + Mods.dat names —, gold pickup amount, NPC quest bell, melee reach ping).
+Town-bound RE once the character is past the Miller (scripted attacks cannot win that fight; the user plays it):
+NPC quest bell (NPC component / overlay flag), dialogue options and vendors by ear, item comparison (vendor items
+against the equipped ones), gold rising while the inventory is hidden, monster modifiers heard on a magic/rare
+monster. User test by ear of the 2026-10-23 batches (reach ping, wall tones, small-obstacle knock, heartbeat, dodge
+whoosh, object sounds) and by use (unexplored category, equip notices, class positions, league selector).
 
 ## Known issues / open questions
 - Character creation: the league dropdown's list (12 leagues) is not verified open — with the test pad as player 2
