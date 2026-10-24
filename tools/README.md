@@ -27,6 +27,11 @@ trimmed 16-bit WAVs plus `manifest.txt` (cue -> bank/sample). Uses the game's ow
 (no oo2core needed). The WAVs are gitignored game data. To change a cue, edit the `Cues` table in `SoundExtractor.cs`.
 Details: `docs/research/game-audio.md`.
 
+### `dat-strings` command - research aid
+`Poe2UiExtract dat-strings <gameDir> <table> [language] [rows]` prints every string column of a table's first rows with its
+byte offset (the same offset in a row in memory), English by default or a translated copy (`spanish`). It is how
+`Characters` +0x08 was found to hold the localized class name ("Monje") read for the passive tree's class starts.
+
 ## ooz-shim — Oodle-compatible `oo2core.dll`
 PoE2 links Oodle statically, so no `oo2core_9_win64.dll` is available. `oodle_shim.cpp` re-exports
 `OodleLZ_Decompress` (the signature LibBundle3 P/Invokes) on top of the open-source decompressor

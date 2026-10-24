@@ -108,11 +108,12 @@
 | NPC / player tap, wall bump, level-up "Level 3" | done (code) | user to test; passive-point tutorial line was already read |
 | Guide beacon (L3 + R3 on a scanner choice) | done (live) | `Beacon`/`BeaconMath`: route off the frame thread, ping 620 Hz panned along the route, "Llegaste a …" |
 | Scanner Quest category (objective's proper nouns) | done (live) | "Misión. El molinero hinchado, único, 5 pasos"; `QuestMatcher` |
-| Boss life + dodge warning | done (live); stricter dodge (code) | "El molinero hinchado 72 por ciento"; whoosh + snap only on attack animations (`DodgeThreats`: Submerge/Hide warned before), a rare's blow within 150 units, louder when closer; marks the wind-up start, not the hit |
+| Boss life + dodge warning | done (live) | "El molinero hinchado 72 por ciento"; whoosh + snap only on attack animations (`DodgeThreats`), a rare's blow within 150 units, louder when closer; timed half a second before the blow as learnt from the hits taken (`DodgeTimings`, `config/dodge-timings.txt`; MudGolem GroundSlam 1156 ms), at the wind-up until learnt (`docs/research/dodge-timing.md`) |
+| Cue timbres and mixer | done (code) | beacon an iron chime, dodge a blade swing with a ringing snap and thud, both in a short stone-room tail; growl with a sub-octave; levels raised toward the game's own sounds; soft limiter instead of clipping (`CueSynth.Limit`) |
 | Mana warnings, vitals on L3 double tap | done (live) | "Maná 50 por ciento"; "Vida 85 por ciento, maná 100 por ciento. El molinero hinchado 65 por ciento" |
 | Target name on right-stick aim, crosshair beep | done (code) | GameHelper `MouseOverEntity`; never heard live yet (no monster under the aim during the bot test) |
 | Harmful states (Urge speech) | done (code) | `StatusWatch` (buff ids by stem; every new id logged "Player buff seen"); the mod's heartbeat was removed (the game has its own, user 2026-10-24) |
-| Game sounds for loot/chests/exits/waypoints | done (code) | `ObjectSounds` + `GameSounds`; each item its own drop sound from the game's tables (`ItemDropSounds`, `catalog/item-sounds.json`: scroll → `Scroll_Drop_01`); portal = the portal scroll's (`docs/research/game-audio.md`) |
+| Game sounds for loot/chests/exits/waypoints | done (live) | `ObjectSounds` + `GameSounds`; each item its own drop sound from the game's tables (`ItemDropSounds`, `catalog/item-sounds.json`: scroll → `Scroll_Drop_01`); up to four items at once, pitch up/down by screen side; portal = the portal scroll's (`docs/research/game-audio.md`) |
 | Spanish/English mod phrases, localized area names | done (live) | `Localization` (game ini), `catalog/area-names.json` from WorldAreas (10 languages) |
 | Pre-game hints, delete/creation screens, edit done | done (live) | hints on entry, only new ones after; "¿Estás seguro…? yarkey… cancelar, botón, 1 de 2"; "Zq, edición terminada" |
 | NPC dialogue options read one by one | done (live) | `UiSemantics.OptionLists`: confirm glyph marks the option; D-pad left reaches the lore column; a heard topic (drawn grey) reads "Presentación, atenuado, 1 de 8" (Una, 2026-10-24) |
@@ -291,16 +292,12 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-The Witch "yarkbruja" (level 3, crossbow) plays Act 1 around Clearfell. Next: user test of the 2026-10-24 batch
-(each item's own drop sound, enemies coming into view, the scanner limited to what is seen, checkpoint map place
-names, inventory actions cutting in, the stricter dodge whoosh with its snap). Precise dodge timing (the moment
-of the hit, not the wind-up) needs live RE on a rare's attack: the monster's `ActiveSkillDetails.UseStage`
-(Actor +0xB08 skills, details +0x08) or a progress field near the animation id (Actor +0x8B0). Monster modifiers
-on a magic/rare monster are still unheard.
-
-Then (asked 2026-10-24): make the rest survive game updates, monster modifier names first: the plan, the idea for
-each part and what to research live are in `docs/compatibility.md`, "Still fragile". After each change run the
-dev command `layout` at login, in game, in the options and in the inventory.
+Characters: "kehgan" (Monk, level 2, Riverbank), "yarkbruja" (Witch, level 3, Clearfell), "yarkey" (Mercenary, level 4,
+Mud Burrow). Next: user test of the 2026-10-24 batch (learnt dodge timing, the new cue timbres, several loot sounds with
+pitch, panel legends, passive class starts, character panel values, the scanner's sighted rule). Then: decode the Actor
++0x8B8 object (animation event lists?) so a dodge is timed before its first blow (`docs/research/dodge-timing.md`);
+monster modifiers on a magic/rare monster are still unheard; the remaining fragile parts are in `docs/compatibility.md`,
+"Still fragile" (run the dev command `layout` at login, in game, in the options and in the inventory after each change).
 
 ## Known issues / open questions
 - Character creation: the league dropdown's list (12 leagues) is not verified open — with the test pad as player 2
