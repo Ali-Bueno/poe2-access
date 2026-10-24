@@ -626,6 +626,8 @@ namespace Poe2Accessibility.Tests
             Equal(1170, timings.Delay(key) ?? 0, "a blow long after the start is not that attack's");
             var copy = DodgeTimings.FromLines(timings.ToLines());
             Equal(timings.Delay(key), copy.Delay(key), "saved and loaded");
+            var seeded = DodgeTimings.FromLines(new[] { $"{key}=900,900,900" }.Concat(new[] { $"{key}=1200,1210,1190" }));
+            Equal(1190, seeded.Delay(key) ?? 0, "the player's own blows outweigh the shipped ones");
         }
 
         private static void NewsFollowItsDeliveryLevel()
