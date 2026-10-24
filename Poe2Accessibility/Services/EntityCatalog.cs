@@ -36,6 +36,9 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private const float BarrierReachCells = 30f;
 
+        /// <summary>A route ending this near (grid cells) its target reached it, whatever stands beside.</summary>
+        private const float MinBarrierGapCells = 8f;
+
         private static readonly ScanCategory[] Landmarks = { ScanCategory.Exits, ScanCategory.Waypoints, ScanCategory.Npcs };
 
         /// <summary>
@@ -239,7 +242,7 @@ namespace Poe2Accessibility.Services
 
             // A target inside a wall snaps to the nearest walkable cell, which can lie on this side of a closed barrier
             // (the Riverbank exit behind the boss's gate read as a full route): the way stops at the barrier.
-            var barrier = route is { Count: > 0 } && BarrierBetween(this.ClosedBarriers(), route[^1], goal);
+            var barrier = route is { Count: > 0 } && entry.Kind != "barrier" && BarrierBetween(this.ClosedBarriers(), route[^1], goal);
             partial |= barrier;
 
             this.log.Debug($"Route to {entry.Name}: {(route == null ? "none" : $"{route.Count} cells")} in {timer.ElapsedMilliseconds} ms from cell ({start.X:F0},{start.Y:F0}) to ({goal.X:F0},{goal.Y:F0})");
@@ -311,6 +314,11 @@ namespace Poe2Accessibility.Services
         {
             var line = target - routeEnd;
             var lengthSquared = line.LengthSquared();
+            if (lengthSquared < MinBarrierGapCells * MinBarrierGapCells)
+            {
+                return false; // the route reaches the target (the boss stands by his arena's gate)
+            }
+
             foreach (var barrier in barriers)
             {
                 var along = lengthSquared == 0 ? 0 : Math.Clamp(Vector2.Dot(barrier - routeEnd, line) / lengthSquared, 0f, 1f);
