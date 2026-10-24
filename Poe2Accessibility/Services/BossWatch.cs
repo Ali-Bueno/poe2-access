@@ -41,7 +41,7 @@ namespace Poe2Accessibility.Services
         private const float MeleeDangerGapWorld = 150f;
 
         /// <summary>The warning's gain at the edge of the watched range; full at contact.</summary>
-        private const float FarWarningGain = 0.55f;
+        private const float FarWarningGain = 0.7f;
 
         /// <summary>The warning comes this long before an attack's learnt blow: time to hear it and roll (B).</summary>
         private const int LeadMs = 500;

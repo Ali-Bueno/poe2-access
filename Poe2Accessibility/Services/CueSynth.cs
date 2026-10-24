@@ -4,16 +4,19 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     Synthesized enemy cues (mono, full scale ±1), after the D2R mod's design (its docs/entity-cues.md): every
-    ///     enemy shares one low growl so pitch only means up or down, and its rarity adds a layer on top.
+    ///     enemy shares one low growl so pitch only means up or down, and its rarity adds a layer on top. Timbres are
+    ///     iron, stone and breath rather than plain beeps, so the cues sit in the game's dark sound world; the beacon and
+    ///     the dodge warning ring on in a short stone-room tail.
     /// </summary>
     public static class CueSynth
     {
-        /// <summary>A 90 ms band-limited buzz falling 175 → 125 Hz, its loudness fluttering at 36 Hz.</summary>
+        /// <summary>A 90 ms band-limited buzz falling 175 → 125 Hz over its sub-octave, its loudness fluttering at 36 Hz.</summary>
         private const float GrowlSeconds = 0.09f;
         private const float GrowlStartHz = 175f;
         private const float GrowlEndHz = 125f;
         private const float GrowlFlutterHz = 36f;
-        private const float GrowlLevel = 0.45f;
+        private const float GrowlSubLevel = 0.6f;
+        private const float GrowlLevel = 0.58f;
 
         /// <summary>Harmonics stop below this, so the buzz is rough without hiss.</summary>
         private const float BandLimitHz = 2000f;
@@ -22,7 +25,7 @@ namespace Poe2Accessibility.Services
         private const float EliteHz = 750f;
         private const int EliteHarmonics = 6;
         private const float EliteChatterHz = 62f;
-        private const float EliteLevel = 0.28f;
+        private const float EliteLevel = 0.36f;
 
         /// <summary>Spread phases (rad × h²) keep the harmonics' crest low.</summary>
         private const float ElitePhaseSpread = 1.3f;
@@ -30,7 +33,8 @@ namespace Poe2Accessibility.Services
         /// <summary>Unique: a struck metal bar — a free bar's partial ratios, the higher ones dying faster.</summary>
         private const float RingSeconds = 0.14f;
         private const float RingHz = 520f;
-        private const float RingLevel = 0.3f;
+        private const float RingReleaseSeconds = 0.01f;
+        private const float RingLevel = 0.4f;
         private static readonly float[] RingRatios = { 1f, 2.756f, 5.404f, 8.933f };
         private static readonly float[] RingAmplitudes = { 1f, 0.5f, 0.25f, 0.12f };
         private static readonly float[] RingDecaySeconds = { 0.09f, 0.05f, 0.03f, 0.02f };
@@ -45,26 +49,55 @@ namespace Poe2Accessibility.Services
         private const float TapDecaySeconds = 0.012f;
         private const float TapOvertoneDecaySeconds = 0.006f;
         private const float TapReleaseSeconds = 0.01f;
-        private const float TapLevel = 0.4f;
-
-        /// <summary>Guide beacon (D2R beacon.md): a plain 620 Hz note of 80 ms, unlike every other cue.</summary>
-        private const float PingSeconds = 0.08f;
-        private const float PingHz = 620f;
-        private const float PingOvertoneLevel = 0.2f;
-        private const float PingReleaseSeconds = 0.025f;
-        private const float PingLevel = 0.35f;
+        private const float TapLevel = 0.46f;
 
         /// <summary>
-        ///     Dodge warning: a fast rising noise sweep (a whoosh), unlike every tonal cue, short enough to react to; it
-        ///     ends on a bright snap so the "now" stands out from the wall tones' hiss.
+        ///     Guide beacon (D2R beacon.md): a struck iron chime on 620 Hz, unlike every other cue — harmonic partials so
+        ///     its pitch (up or down) stays clear, one inharmonic for the metal — then the room.
+        /// </summary>
+        private const float PingSeconds = 0.12f;
+        private const float PingHz = 620f;
+        private const float PingReleaseSeconds = 0.025f;
+        private const float PingRoom = 0.3f;
+        private const float PingLevel = 0.5f;
+        private static readonly float[] PingRatios = { 1f, 2f, 3f, 4.16f };
+        private static readonly float[] PingAmplitudes = { 1f, 0.45f, 0.25f, 0.15f };
+        private static readonly float[] PingDecaySeconds = { 0.1f, 0.05f, 0.03f, 0.015f };
+
+        /// <summary>
+        ///     Dodge warning: a fast rising noise sweep (a blade's swing), unlike every tonal cue, short enough to react to;
+        ///     it ends on a ringing steel snap over a low thud so the "now" stands out from the wall tones' hiss.
         /// </summary>
         private const float WhooshSeconds = 0.2f;
         private const float WhooshStartHz = 400f;
         private const float WhooshEndHz = 2000f;
-        private const float WhooshLevel = 0.6f;
+        private const float WhooshDamping = 0.18f;
+        private const float WhooshLevel = 0.85f;
         private const float SnapHz = 2600f;
-        private const float SnapDecaySeconds = 0.012f;
-        private const float SnapSeconds = 0.05f;
+        private const float SnapDecaySeconds = 0.025f;
+        private const float SnapSeconds = 0.08f;
+        private const float ThudStartHz = 110f;
+        private const float ThudEndHz = 55f;
+        private const float ThudDecaySeconds = 0.035f;
+        private const float ThudLevel = 0.8f;
+        private const float WhooshRoom = 0.25f;
+        private static readonly float[] SnapRatios = { 1f, 1.48f, 2.13f };
+        private static readonly float[] SnapAmplitudes = { 1f, 0.6f, 0.35f };
+
+        /// <summary>
+        ///     The stone room: parallel damped comb filters then all-passes (Schroeder), a tail this long that fades out;
+        ///     the damping in the loop swallows the highs as stone does.
+        /// </summary>
+        private const float RoomTailSeconds = 0.2f;
+        private const float RoomFeedback = 0.5f;
+        private const float RoomDamping = 0.4f;
+        private const float RoomAllPassGain = 0.5f;
+        private const float RoomFadeSeconds = 0.06f;
+        private static readonly float[] RoomCombMs = { 29.7f, 37.1f, 41.1f, 43.7f };
+        private static readonly float[] RoomAllPassMs = { 5f, 1.7f };
+
+        /// <summary>The mixer's output stays linear up to this level, then rounds off toward full scale.</summary>
+        private const float LimitKnee = 0.8f;
 
         /// <summary>Crosshair (D2R crosshair.md): two flat 24 ms blips at 1175 Hz, 40 ms apart, odd harmonics.</summary>
         private const float ReachLowHz = 1320f;
@@ -110,7 +143,7 @@ namespace Poe2Accessibility.Services
                 var frequency = GrowlStartHz + ((GrowlEndHz - GrowlStartHz) * t / GrowlSeconds);
                 phase += frequency / sampleRate;
                 var harmonics = (int)(BandLimitHz / frequency);
-                var value = 0f;
+                var value = GrowlSubLevel * MathF.Sin((float)(Math.PI * phase));
                 for (var h = 1; h <= harmonics; h++)
                 {
                     value += MathF.Sin((float)(2 * Math.PI * h * phase)) / h;
@@ -154,7 +187,7 @@ namespace Poe2Accessibility.Services
                     value += RingAmplitudes[p] * MathF.Exp(-t / RingDecaySeconds[p]) * MathF.Sin(2 * MathF.PI * RingHz * RingRatios[p] * t);
                 }
 
-                samples[i] = value * MathF.Min(1f, t / AttackSeconds);
+                samples[i] = value * MathF.Min(1f, t / AttackSeconds) * MathF.Min(1f, (RingSeconds - t) / RingReleaseSeconds);
             }
 
             return Normalized(samples, RingLevel);
@@ -180,11 +213,16 @@ namespace Poe2Accessibility.Services
             for (var i = 0; i < samples.Length; i++)
             {
                 var t = (float)i / sampleRate;
-                var tone = MathF.Sin(2 * MathF.PI * PingHz * t) + (PingOvertoneLevel * MathF.Sin(2 * MathF.PI * PingHz * 2 * t));
+                var tone = 0f;
+                for (var p = 0; p < PingRatios.Length; p++)
+                {
+                    tone += PingAmplitudes[p] * MathF.Exp(-t / PingDecaySeconds[p]) * MathF.Sin(2 * MathF.PI * PingHz * PingRatios[p] * t);
+                }
+
                 samples[i] = tone * MathF.Min(1f, t / AttackSeconds) * MathF.Min(1f, (PingSeconds - t) / PingReleaseSeconds);
             }
 
-            return Normalized(samples, PingLevel);
+            return Normalized(Room(samples, sampleRate, PingRoom), PingLevel);
         }
 
         public static float[] Whoosh(int sampleRate)
@@ -202,7 +240,7 @@ namespace Poe2Accessibility.Services
                 var f = 2f * MathF.Sin(MathF.PI * centre / sampleRate);
                 var noise = (float)((random.NextDouble() * 2) - 1);
                 low += f * band;
-                var high = noise - low - (0.25f * band);
+                var high = noise - low - (WhooshDamping * band);
                 band += f * high;
                 samples[i] = band * MathF.Min(1f, t / 0.02f) * MathF.Min(1f, (WhooshSeconds - t) / 0.03f) * (0.4f + (0.6f * progress));
             }
@@ -213,13 +251,23 @@ namespace Poe2Accessibility.Services
                 peak = MathF.Max(peak, MathF.Abs(samples[i]));
             }
 
+            var thudPhase = 0.0;
             for (var i = sweep; i < samples.Length; i++)
             {
                 var t = (float)(i - sweep) / sampleRate;
-                samples[i] = peak * MathF.Sin(2 * MathF.PI * SnapHz * t) * MathF.Exp(-t / SnapDecaySeconds);
+                var steel = 0f;
+                for (var p = 0; p < SnapRatios.Length; p++)
+                {
+                    steel += SnapAmplitudes[p] * MathF.Sin(2 * MathF.PI * SnapHz * SnapRatios[p] * t);
+                }
+
+                thudPhase += (ThudStartHz + ((ThudEndHz - ThudStartHz) * t / SnapSeconds)) / sampleRate;
+                var thud = ThudLevel * MathF.Sin((float)(2 * Math.PI * thudPhase)) * MathF.Exp(-t / ThudDecaySeconds);
+                var edge = MathF.Min(1f, (SnapSeconds - t) / PingReleaseSeconds);
+                samples[i] = peak * ((steel / SnapRatios.Length * MathF.Exp(-t / SnapDecaySeconds)) + thud) * edge;
             }
 
-            return Normalized(samples, WhooshLevel);
+            return Normalized(Room(samples, sampleRate, WhooshRoom), WhooshLevel);
         }
 
         /// <summary>D2R reach ping: 96 ms, two rising sine notes (1320 then 1760 Hz), far above every other cue.</summary>
@@ -253,6 +301,61 @@ namespace Poe2Accessibility.Services
             }
 
             return Normalized(samples, BlipLevel);
+        }
+
+        /// <summary>The mixer's output stage: linear to the knee, then a soft curve that never passes full scale.</summary>
+        public static float Limit(float sample)
+        {
+            var magnitude = MathF.Abs(sample);
+            if (magnitude <= LimitKnee)
+            {
+                return sample;
+            }
+
+            var over = (magnitude - LimitKnee) / (1f - LimitKnee);
+            return MathF.CopySign(LimitKnee + ((1f - LimitKnee) * MathF.Tanh(over)), sample);
+        }
+
+        /// <summary>The cue followed by its stone-room tail, <paramref name="wet"/> of the cue's level; the tail fades to silence.</summary>
+        private static float[] Room(float[] dry, int sampleRate, float wet)
+        {
+            var length = dry.Length + (int)(RoomTailSeconds * sampleRate);
+            var reverb = new float[length];
+            foreach (var ms in RoomCombMs)
+            {
+                var line = new float[(int)(ms * sampleRate / 1000f)];
+                var low = 0f;
+                for (var i = 0; i < length; i++)
+                {
+                    var slot = i % line.Length;
+                    var delayed = line[slot];
+                    low += RoomDamping * (delayed - low);
+                    line[slot] = (i < dry.Length ? dry[i] : 0f) + (RoomFeedback * low);
+                    reverb[i] += delayed / RoomCombMs.Length;
+                }
+            }
+
+            foreach (var ms in RoomAllPassMs)
+            {
+                var line = new float[(int)(ms * sampleRate / 1000f)];
+                for (var i = 0; i < length; i++)
+                {
+                    var slot = i % line.Length;
+                    var delayed = line[slot];
+                    var input = reverb[i];
+                    line[slot] = input + (RoomAllPassGain * delayed);
+                    reverb[i] = delayed - (RoomAllPassGain * line[slot]);
+                }
+            }
+
+            var fade = (int)(RoomFadeSeconds * sampleRate);
+            var output = new float[length];
+            for (var i = 0; i < length; i++)
+            {
+                output[i] = ((i < dry.Length ? dry[i] : 0f) + (wet * reverb[i])) * MathF.Min(1f, (float)(length - i) / fade);
+            }
+
+            return output;
         }
 
         /// <summary>Fast attack, then a smooth fall to silence at the end (no click).</summary>

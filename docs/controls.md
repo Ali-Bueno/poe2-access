@@ -52,7 +52,7 @@ first; both wrap and empty categories are skipped. The category is named only wh
 ## Guide beacon (gameplay)
 
 Choose a target with the scanner (the Quest category first is the usual one), hold L3 and press the right
-stick: "Guiando hacia Campamento de Sierraclara, 21 pasos…". A short ping then repeats, panned toward where the
+stick: "Guiando hacia Campamento de Sierraclara, 21 pasos…". A short iron chime then repeats, panned toward where the
 walkable route goes next (around walls, never through them), higher when the way is up the screen and lower
 when it is down, faster as the route shortens. Walk so the ping is centred. "Llegaste a …" ends it; the same
 gesture on the same target, or changing area, turns it off. With no scanner choice the gesture locks the first
@@ -136,16 +136,17 @@ left; a topic already heard (drawn grey) is read "atenuado": "Presentación, ate
 - **Wall bump:** a dull thud when you push the stick into a wall and stop, on the side you pushed.
 - **Nearby:** what you walk up to or stand on is named once: checkpoints, NPCs, the stash, chests, items, exits
   ([nearby](proximity.md)); the same thing is named again only after a minute.
-- **Things worth walking to:** the game's own sounds repeat for the nearest item, chest or shrine, exit or
-  portal, and waypoint or checkpoint on screen, on their side, more often as you get closer, silent once you
-  stand on them. An item plays the drop sound the game gives its base (a scroll rustles, an orb clinks, a belt,
+- **Things worth walking to:** the game's own sounds repeat for the nearest chest or shrine, exit or portal, and
+  waypoint or checkpoint on screen, and for up to four items at once, on their side, higher when up the screen and
+  lower when down, more often as you get closer, silent once you stand on them. An item plays the drop sound the game gives its base (a scroll rustles, an orb clinks, a belt,
   a crossbow, a gem each their own; the rare layer over a rare or unique; the generic item, currency, gold and
   quest sounds only for bases without one). They need the sounds extracted once from your game (see
   `tools/README.md`: `item-sounds`, then `sounds`), then a rebuild.
-- **Dodge warning:** a rising whoosh ending in a snap, on the side of a rare or unique monster as it starts an
-  attack or spell, louder the closer it is: dodge (B). Only animations that are attacks warn (not burrowing,
-  hiding, buffs or summons); a rare's blow warns only once it is within about a step and a half, a unique's
-  from anywhere on screen. It marks the start of the wind-up, not the moment of the hit.
+- **Dodge warning:** a blade-like rising whoosh ending in a ringing snap over a low thud, on the side of a rare or
+  unique monster attacking, louder the closer it is: dodge (B). Only animations that are attacks warn (not
+  burrowing, hiding, buffs or summons); a rare's blow warns only within about a step and a half, a unique's from
+  anywhere on screen. The mod learns from every blow you take when each kind of attack lands and then warns half a
+  second before it; an attack never seen hit warns at its wind-up ([dodge timing](research/dodge-timing.md)).
 - **Crosshair:** two short blips when the game's target lands on a living enemy.
 - The game's own low-life heartbeat and menu sounds are left to the game: the mod has none of its own.
 - All stop while a panel, menu or dialogue is open. Settings: `Radar`, `WallBump`, `EnemySounds`, `NpcSounds`,

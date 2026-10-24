@@ -28,6 +28,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(LifeWarningsSpeakOncePerFall), LifeWarningsSpeakOncePerFall);
             Run(nameof(EnemyCuesPulseFasterWhenNearAndTakeTurns), EnemyCuesPulseFasterWhenNearAndTakeTurns);
             Run(nameof(EnemyCueSoundsStayInRangeAndDiffer), EnemyCueSoundsStayInRangeAndDiffer);
+            Run(nameof(CuesRingOutAndTheMixerRoundsOff), CuesRingOutAndTheMixerRoundsOff);
             Run(nameof(PassageScanMeasuresTheWayAhead), PassageScanMeasuresTheWayAhead);
             Run(nameof(RadarSoundsConfirmedChangesOnly), RadarSoundsConfirmedChangesOnly);
             Run(nameof(RadarSoundsStayInRangeAndDiffer), RadarSoundsStayInRangeAndDiffer);
@@ -286,6 +287,21 @@ namespace Poe2Accessibility.Tests
             int Crossings(float[] sound) => sound.Zip(sound.Skip(1)).Count(pair => pair.First < 0 != pair.Second < 0);
             Equal(true, Crossings(elite) > Crossings(growl) * 2, "the elite layer is brighter than the growl");
             Equal(true, boss.Length > growl.Length, "the boss ring rings past the growl");
+        }
+
+        private static void CuesRingOutAndTheMixerRoundsOff()
+        {
+            const int rate = 44100;
+            foreach (var (name, sound) in new[] { ("beacon", CueSynth.Ping(rate)), ("dodge", CueSynth.Whoosh(rate)) })
+            {
+                Equal(true, sound.All(sample => MathF.Abs(sample) <= 1f), $"{name} stays within full scale");
+                Equal(true, MathF.Abs(sound[^1]) < 0.01f, $"{name}'s room tail fades to silence");
+                Equal(true, sound.Length < rate / 2, $"{name} is over within half a second");
+            }
+
+            Equal(0.5f, CueSynth.Limit(0.5f), "below the knee the mix is untouched");
+            Equal(true, CueSynth.Limit(3f) <= 1f && CueSynth.Limit(-3f) >= -1f, "a pile-up never passes full scale");
+            Equal(true, CueSynth.Limit(0.95f) > CueSynth.Limit(0.9f), "louder stays louder");
         }
 
         /// <summary>A walkable nibble grid (two cells per byte) with the given cells blocked.</summary>

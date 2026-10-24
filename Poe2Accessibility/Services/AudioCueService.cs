@@ -203,7 +203,7 @@ namespace Poe2Accessibility.Services
             var volume = this.Volume;
             for (var i = 0; i < this.mix.Length; i++)
             {
-                this.pcm[i] = (short)(Math.Clamp(this.mix[i] * volume, -1f, 1f) * short.MaxValue);
+                this.pcm[i] = (short)(CueSynth.Limit(this.mix[i] * volume) * short.MaxValue);
             }
         }
 
