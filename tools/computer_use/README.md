@@ -9,7 +9,7 @@ Requirements: Python 3.13, ViGEmBus (installed), `py -m pip install vgamepad` (b
 ## Session
 
 ```powershell
-py -B tools/computer_use/pad.py serve          # background: plugs one virtual pad in for the session
+py -B tools/computer_use/pad.py serve --xbox   # background: plugs one virtual pad in for the session
 py -B tools/computer_use/launch.py all         # starts PoE2 via Steam if needed, (re)starts GameHelper
 py -B tools/computer_use/desktop.py list       # game PID
 py -B tools/computer_use/desktop.py --pid N focus
@@ -48,3 +48,7 @@ dpad-up/down/left/right (hold `--seconds`, ≤ 2 s). `stick left|right up|down|l
 - The game shows Xbox glyphs for the virtual DS4 and a "P2 Connect a Controller" prompt while two pads
   are connected (the plugin filters it).
 - Text entry: Triangle/Cross opens the field; type; Enter submits (character creation submitted with Enter).
+- Character selection shows "J2 Presiona A para unirte" and ignores A (Client.txt: "Trying to show popup without a
+  valid player index"). With the Xbox pad (`serve --xbox`) plugged in before the game starts, Enter on the keyboard
+  starts the game and the pad drives it; the virtual DS4 never got past that screen (2026-10-24). Entering with the
+  mouse binds the keyboard instead, and the input method can only change out of the game.

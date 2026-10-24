@@ -10,8 +10,8 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Discoveries (D2R exploration.md): the first time the game shows an exit, a waypoint or checkpoint, or a
     ///     unique monster in this area, it is named after what is being said ("Nueva salida: Sierraclara") with a
-    ///     short sound. What surrounds the player when the area loads is not news (the exit just taken), and finds in
-    ///     the first seconds wait until the area name has been said.
+    ///     short sound. What surrounds the player when the area loads is not news (the exit just taken), nor anything
+    ///     known when the host starts inside an area; finds in the first seconds wait until the area name has been said.
     /// </summary>
     public sealed class DiscoveryNarrator
     {
@@ -30,6 +30,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<uint> seen = new();
         private readonly List<ScanEntry> waiting = new();
         private long areaStartedAt = Environment.TickCount64;
+        private bool resumed;
         private long lastPoll;
 
         public DiscoveryNarrator(EntityCatalog catalog, IAccessibilityOutputService output, AudioCueService audio, GameSounds sounds)
@@ -42,12 +43,13 @@ namespace Poe2Accessibility.Services
 
         public float Gain { get; set; } = 1f;
 
-        /// <summary>A new area: nothing discovered yet.</summary>
-        public void Reset()
+        /// <summary>A new area: nothing discovered yet; resumed when the host started inside it after the player arrived.</summary>
+        public void Reset(bool resumed)
         {
             this.seen.Clear();
             this.waiting.Clear();
             this.areaStartedAt = Environment.TickCount64;
+            this.resumed = resumed;
         }
 
         /// <summary>Per frame while playing.</summary>
@@ -70,9 +72,9 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                if (arriving && Vector2.Distance(here, new Vector2(entry.WorldX, entry.WorldY)) <= ArrivalNearWorld)
+                if (arriving && (this.resumed || Vector2.Distance(here, new Vector2(entry.WorldX, entry.WorldY)) <= ArrivalNearWorld))
                 {
-                    continue; // the exit just taken, the checkpoint the player stands on
+                    continue; // the exit just taken, the checkpoint the player stands on; all of it on a host restart
                 }
 
                 this.waiting.Add(entry);

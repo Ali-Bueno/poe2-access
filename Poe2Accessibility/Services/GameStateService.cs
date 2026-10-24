@@ -18,6 +18,9 @@ namespace Poe2Accessibility.Services
         private readonly UiElementReader elements;
         private IntPtr lastAreaRow;
 
+        /// <summary>No loading screen or login seen yet: the host (re)started with the game already in an area.</summary>
+        private bool resuming = true;
+
         public GameStateService(PluginLog log, HostMemoryReader reader, UiElementReader elements)
         {
             this.reader = reader;
@@ -27,7 +30,8 @@ namespace Poe2Accessibility.Services
 
         public event Action<GameStateTypes, GameStateTypes>? StateChanged;
 
-        public event Action<string>? AreaChanged;
+        /// <summary>The area's name, and whether the host just started inside it (no loading screen: nothing is news).</summary>
+        public event Action<string, bool>? AreaChanged;
 
         /// <summary>GameHelper opened (true) or lost (false) the game process.</summary>
         public event Action<bool>? AttachedChanged;
@@ -78,8 +82,9 @@ namespace Poe2Accessibility.Services
             this.lastAreaRow = row;
             this.CurrentAreaName = name;
             this.CurrentAreaId = this.elements.ReadUtf16BufferAt(area.IdPtr, MaxAreaNameChars) ?? string.Empty;
-            this.log.Info($"Area: {name} ({this.CurrentAreaId})");
-            this.AreaChanged?.Invoke(name);
+            this.log.Info($"Area: {name} ({this.CurrentAreaId}){(this.resuming ? " resumed" : string.Empty)}");
+            this.AreaChanged?.Invoke(name, this.resuming);
+            this.resuming = false;
         }
 
         /// <summary>Address of the game's state object for the current state (needed to find its UI root).</summary>
@@ -125,10 +130,15 @@ namespace Poe2Accessibility.Services
             {
                 this.TrackArea();
             }
-            else if (state is GameStateTypes.SelectCharacterState or GameStateTypes.CreateCharacterState or GameStateTypes.LoginState)
+            else
             {
-                // Entering the game again (maybe with another character in the same area) names the area again.
-                this.lastAreaRow = IntPtr.Zero;
+                // A loading screen or login before the game: the next area is entered, not resumed.
+                this.resuming &= state == GameStateTypes.GameNotLoaded;
+                if (state is GameStateTypes.SelectCharacterState or GameStateTypes.CreateCharacterState or GameStateTypes.LoginState)
+                {
+                    // Entering the game again (maybe with another character in the same area) names the area again.
+                    this.lastAreaRow = IntPtr.Zero;
+                }
             }
         }
     }

@@ -1,4 +1,5 @@
-"""Virtual DualShock 4 for PoE2 testing. `serve` plugs one pad in for the whole session; desktop.py sends it bounded presses."""
+"""Virtual DualShock 4 (or Xbox 360) for PoE2 testing. `serve` plugs one pad in for the whole session; desktop.py sends it
+bounded presses."""
 import argparse
 import json
 import sys
@@ -99,9 +100,72 @@ def chord(pad, vg, name, side, direction):
         pad.update()
 
 
-def serve():
+class XboxAsDs4:
+    """An Xbox 360 pad behind the DualShock calls above. Steam Input can show the game a virtual DualShock twice
+    (itself and an XInput copy): character selection then waits for "P2 press A to join" and A selects nothing
+    (2026-10-24). An XInput pad is seen once."""
+
+    def __init__(self, vg):
+        self.pad = vg.VX360Gamepad()
+        x, b, d = vg.XUSB_BUTTON, vg.DS4_BUTTONS, vg.DS4_DPAD_DIRECTIONS
+        self.buttons = {b.DS4_BUTTON_CROSS: x.XUSB_GAMEPAD_A, b.DS4_BUTTON_CIRCLE: x.XUSB_GAMEPAD_B,
+                        b.DS4_BUTTON_SQUARE: x.XUSB_GAMEPAD_X, b.DS4_BUTTON_TRIANGLE: x.XUSB_GAMEPAD_Y,
+                        b.DS4_BUTTON_SHOULDER_LEFT: x.XUSB_GAMEPAD_LEFT_SHOULDER,
+                        b.DS4_BUTTON_SHOULDER_RIGHT: x.XUSB_GAMEPAD_RIGHT_SHOULDER,
+                        b.DS4_BUTTON_THUMB_LEFT: x.XUSB_GAMEPAD_LEFT_THUMB, b.DS4_BUTTON_THUMB_RIGHT: x.XUSB_GAMEPAD_RIGHT_THUMB,
+                        b.DS4_BUTTON_OPTIONS: x.XUSB_GAMEPAD_START, b.DS4_BUTTON_SHARE: x.XUSB_GAMEPAD_BACK}
+        self.axis_flags = {b.DS4_BUTTON_TRIGGER_LEFT, b.DS4_BUTTON_TRIGGER_RIGHT}  # the trigger axes carry them
+        self.special = {vg.DS4_SPECIAL_BUTTONS.DS4_SPECIAL_BUTTON_PS: x.XUSB_GAMEPAD_GUIDE}
+        self.dpad = {d.DS4_BUTTON_DPAD_NORTH: x.XUSB_GAMEPAD_DPAD_UP, d.DS4_BUTTON_DPAD_SOUTH: x.XUSB_GAMEPAD_DPAD_DOWN,
+                     d.DS4_BUTTON_DPAD_WEST: x.XUSB_GAMEPAD_DPAD_LEFT, d.DS4_BUTTON_DPAD_EAST: x.XUSB_GAMEPAD_DPAD_RIGHT}
+
+    def _button(self, table, button, down):
+        if button in self.axis_flags:
+            return
+        if button not in table:
+            raise ValueError(f'{button} has no Xbox equivalent')
+        (self.pad.press_button if down else self.pad.release_button)(button=table[button])
+
+    def press_button(self, button):
+        self._button(self.buttons, button, True)
+
+    def release_button(self, button):
+        self._button(self.buttons, button, False)
+
+    def press_special_button(self, special_button):
+        self._button(self.special, special_button, True)
+
+    def release_special_button(self, special_button):
+        self._button(self.special, special_button, False)
+
+    def directional_pad(self, direction):
+        for button in self.dpad.values():
+            self.pad.release_button(button=button)
+        if direction in self.dpad:
+            self.pad.press_button(button=self.dpad[direction])
+
+    def left_trigger(self, value):
+        self.pad.left_trigger(value=value)
+
+    def right_trigger(self, value):
+        self.pad.right_trigger(value=value)
+
+    def left_joystick_float(self, x_value_float, y_value_float):
+        self.pad.left_joystick_float(x_value_float=x_value_float, y_value_float=-y_value_float)  # XInput y grows upwards
+
+    def right_joystick_float(self, x_value_float, y_value_float):
+        self.pad.right_joystick_float(x_value_float=x_value_float, y_value_float=-y_value_float)
+
+    def reset(self):
+        self.pad.reset()
+
+    def update(self):
+        self.pad.update()
+
+
+def serve(xbox):
     import vgamepad as vg  # only the server needs the driver client
-    pad = vg.VDS4Gamepad()
+    pad = XboxAsDs4(vg) if xbox else vg.VDS4Gamepad()
     pad.reset()
     pad.update()
     print(json.dumps(dict(ok=True, serving=ADDRESS)), flush=True)
@@ -141,9 +205,10 @@ def send(request):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['serve', 'quit'])
+    parser.add_argument('--xbox', action='store_true', help='serve an Xbox 360 pad (seen once through XInput)')
     args = parser.parse_args()
     if args.action == 'serve':
-        return serve()
+        return serve(args.xbox)
     send(dict(action='quit'))
     return 0
 

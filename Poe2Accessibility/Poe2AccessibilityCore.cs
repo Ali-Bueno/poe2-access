@@ -956,7 +956,7 @@ namespace Poe2Accessibility
             }
         }
 
-        private void OnAreaChanged(string areaName)
+        private void OnAreaChanged(string areaName, bool resumed)
         {
             this.beacon?.Clear(false);
             this.bosses?.Reset();
@@ -965,10 +965,10 @@ namespace Poe2Accessibility
             this.gold?.Reset();
             this.barriers?.Reset();
             this.targets?.Reset();
-            this.discoveries?.Reset();
+            this.discoveries?.Reset(resumed);
             this.entities?.Forget();
             this.nearby?.Reset();
-            this.narrator?.NewArea();
+            this.narrator?.NewArea(resumed);
             if (this.Settings.AnnounceArea)
             {
                 this.output.Say(SpeechKind.Places, Announcements.Area(areaName));

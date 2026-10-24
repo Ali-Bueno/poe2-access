@@ -42,6 +42,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A tutorial hint shown again during play is said again after this long.</summary>
         private const int TutorialRepeatMs = 60000;
 
+        /// <summary>The HUD read in this long after the host started inside an area was already there, not news.</summary>
+        private const int ResumedHudMs = 2000;
+
         private readonly IAccessibilityOutputService output;
         private readonly Func<IntPtr, string> selectedTab;
         private readonly PluginLog log;
@@ -64,6 +67,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>When the HUD last became the top layer again (a panel, the radial menu or a respawn screen closed).</summary>
         private DateTime hudBackAt = DateTime.MinValue;
+
+        /// <summary>Until then the HUD's texts are only noted (the host restarted with the game in an area).</summary>
+        private DateTime hudQuietUntil = DateTime.MinValue;
         private ScreenSnapshot? seenSnapshot;
         private IntPtr seenTop;
         private AccessibleUiNode? pendingFocus;
@@ -205,10 +211,12 @@ namespace Poe2Accessibility.Services
             this.seenTop = top;
         }
 
-        public void NewArea()
+        /// <summary>A new area; resumed when the host started inside it, so what the HUD shows now was already said.</summary>
+        public void NewArea(bool resumed)
         {
             this.hudSpoken.Clear();
             this.tutorialSpoken.Clear();
+            this.hudQuietUntil = resumed ? DateTime.UtcNow.AddMilliseconds(ResumedHudMs) : DateTime.MinValue;
         }
 
         /// <summary>
@@ -537,7 +545,7 @@ namespace Poe2Accessibility.Services
                 {
                     var ignored = this.IgnoredHudText?.Invoke() ?? IntPtr.Zero;
                     var news = change.Texts.Where(text => text.Address != ignored && !IsNumber(text.Text) && this.hudSpoken.Add(text.Text)).ToList();
-                    if (news.Count > 0)
+                    if (news.Count > 0 && DateTime.UtcNow >= this.hudQuietUntil)
                     {
                         this.Speak("hud", Describe(news), false);
                     }
