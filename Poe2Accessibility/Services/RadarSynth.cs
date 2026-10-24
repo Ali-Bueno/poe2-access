@@ -1,6 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Numerics;
 
     /// <summary>
     ///     Radar cues (mono, D2R radar_synth.cpp recipes): struck tones for an exit (tin) and a wall (tock), a
@@ -52,13 +53,22 @@ namespace Poe2Accessibility.Services
         private const float BumpReleaseSeconds = 0.012f;
         private const float BumpLevel = 1.4f;
 
-        /// <summary>Wall tones (D2R `[wall_tones]`): a noise band per screen direction, loud enough under the cues.</summary>
-        private const float WallToneQ = 2f;
-        private const float WallToneLevel = 0.3f;
-        private const float WallToneSeconds = 2f;
+        /// <summary>Wall tones (D2R `[wall_tones]`): two band-pass stages at this Q, a band about half an octave wide.</summary>
+        private const double WallToneQ = 1.8;
 
-        /// <summary>The tail crossfaded into the head so the band loops without a seam.</summary>
-        private const float WallToneSeamSeconds = 0.1f;
+        /// <summary>A one-pole low-pass rolls off what the band-pass skirts let through above the bands (warmth).</summary>
+        private const double WallToneWarmthHz = 1800;
+
+        /// <summary>RMS of one direction at a touching wall (D2R ContactRms, -28 dBFS): a soft bed under the cues.</summary>
+        private const float WallToneRms = 0.04f;
+
+        /// <summary>The low band behind the player is lifted this much (Grimdark's walltones, by ear).</summary>
+        private const float BehindTrimDb = 3f;
+
+        /// <summary>Loop length, a power of two for the FFT: ~3 s, long enough not to read as a pulse.</summary>
+        private const int WallToneSamples = 1 << 17;
+
+        private const double NegligibleMagnitude = 1e-9;
 
         /// <summary>Which way a ray points on screen.</summary>
         public enum Direction
@@ -153,42 +163,97 @@ namespace Poe2Accessibility.Services
             return closeness * closeness;
         }
 
-        /// <summary>White noise through a fixed band-pass, looping: the last <see cref="WallToneSeamSeconds"/> fade into the first.</summary>
+        /// <summary>
+        ///     One seamless loop of band-limited noise (D2R wall_tones.cpp): a random-phase spectrum shaped like two
+        ///     band-pass stages and a warm low-pass, inverse FFT, scaled to <see cref="WallToneRms"/> (behind, lifted).
+        /// </summary>
         public static float[] WallTone(Direction direction, int sampleRate)
         {
-            var length = (int)(WallToneSeconds * sampleRate);
-            var seam = (int)(WallToneSeamSeconds * sampleRate);
-            var raw = new float[length + seam];
-            uint seed = (uint)direction + 7;
-            float low = 0, band = 0;
-            var tuning = 2 * MathF.Sin(MathF.PI * WallToneHz(direction) / sampleRate);
-            var peak = 0f;
-            for (var i = 0; i < raw.Length; i++)
+            const int n = WallToneSamples;
+            var spectrum = new Complex[n];
+            var state = 0x9E3779B9u * ((uint)direction + 1);
+            for (var k = 1; k < n / 2; k++)
             {
-                seed = (seed * 1664525) + 1013904223;
-                var noise = ((seed >> 8) / 8388608f) - 1f;
-                var high = noise - low - (band / WallToneQ);
-                band += tuning * high;
-                low += tuning * band;
-                raw[i] = band;
-                peak = MathF.Max(peak, MathF.Abs(band));
+                var magnitude = WallToneMagnitude(WallToneHz(direction), (double)k * sampleRate / n, sampleRate);
+                if (magnitude < NegligibleMagnitude)
+                {
+                    continue;
+                }
+
+                state ^= state << 13; // xorshift32
+                state ^= state >> 17;
+                state ^= state << 5;
+                spectrum[k] = Complex.FromPolarCoordinates(magnitude, 2 * Math.PI * (state / 4294967296.0));
+                spectrum[n - k] = Complex.Conjugate(spectrum[k]);
             }
 
-            var scale = peak > 0 ? WallToneLevel / peak : 0f;
-            var loop = new float[length];
-            for (var i = 0; i < length; i++)
+            InverseFft(spectrum);
+            var energy = 0.0;
+            foreach (var value in spectrum)
             {
-                loop[i] = raw[i] * scale;
+                energy += value.Real * value.Real;
             }
 
-            for (var i = 0; i < seam; i++)
+            var level = WallToneRms * (direction == Direction.Down ? MathF.Pow(10f, BehindTrimDb / 20f) : 1f);
+            var scale = energy > 0 ? level / Math.Sqrt(energy / n) : 0;
+            var loop = new float[n];
+            for (var i = 0; i < n; i++)
             {
-                // After the loop's last sample comes raw[length]: the head starts there and blends into its own.
-                var t = (float)i / seam;
-                loop[i] = (loop[i] * t) + (raw[length + i] * scale * (1f - t));
+                loop[i] = (float)(spectrum[i].Real * scale);
             }
 
             return loop;
+        }
+
+        /// <summary>The wall tone's filter chain at <paramref name="hz"/>: an RBJ band-pass (0 dB peak) twice, then the low-pass.</summary>
+        private static double WallToneMagnitude(double centreHz, double hz, int sampleRate)
+        {
+            var w0 = 2 * Math.PI * centreHz / sampleRate;
+            var alpha = Math.Sin(w0) / (2 * WallToneQ);
+            var a0 = 1 + alpha;
+            var w = 2 * Math.PI * hz / sampleRate;
+            var z1 = Complex.FromPolarCoordinates(1, -w);
+            var z2 = Complex.FromPolarCoordinates(1, -2 * w);
+            var band = Complex.Abs(alpha / a0 * (1 - z2) / (1 + (-2 * Math.Cos(w0) / a0 * z1) + ((1 - alpha) / a0 * z2)));
+            return band * band / Math.Sqrt(1 + ((hz / WallToneWarmthHz) * (hz / WallToneWarmthHz)));
+        }
+
+        /// <summary>In-place iterative radix-2 inverse FFT without 1/N scaling (the loop is renormalised).</summary>
+        private static void InverseFft(Complex[] data)
+        {
+            var n = data.Length;
+            for (int i = 1, j = 0; i < n; i++)
+            {
+                var bit = n >> 1;
+                for (; (j & bit) != 0; bit >>= 1)
+                {
+                    j ^= bit;
+                }
+
+                j ^= bit;
+                if (i < j)
+                {
+                    (data[i], data[j]) = (data[j], data[i]);
+                }
+            }
+
+            for (var length = 2; length <= n; length <<= 1)
+            {
+                var angle = 2 * Math.PI / length;
+                var step = new Complex(Math.Cos(angle), Math.Sin(angle));
+                for (var start = 0; start < n; start += length)
+                {
+                    var twiddle = Complex.One;
+                    for (var k = 0; k < length / 2; k++)
+                    {
+                        var even = data[start + k];
+                        var odd = data[start + k + (length / 2)] * twiddle;
+                        data[start + k] = even + odd;
+                        data[start + k + (length / 2)] = even - odd;
+                        twiddle *= step;
+                    }
+                }
+            }
         }
 
         /// <summary>White noise through a state-variable band-pass whose centre glides exponentially.</summary>

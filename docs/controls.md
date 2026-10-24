@@ -74,8 +74,8 @@ a harmful state beginning and an arrival with the guide hold; a state ending cut
 enemy names (aimed and coming into view) and places cut in only when urgent (life at or under `LowLifeBelow`, 25 %, mana at 10 %, a boss at
 30 % or defeated, a rare enemy coming into view, a quick sweep of the aim); objectives and picked-up items wait.
 
-**Wall tones** (off by default, D2R): a soft hiss per screen direction that swells as a wall closes in (higher
-ahead, lower behind, panned to the sides); "Alcance de los tonos de pared" sets how far ahead it starts (world
+**Wall tones** (off by default, D2R): a soft, warm hiss per screen direction that swells as a wall closes in
+(higher ahead, lower and a little louder behind, the sides panned hard; the D2R recipe and level, well under the cues); "Alcance de los tonos de pared" sets how far ahead it starts (world
 units, 600 ≈ 1.5 s of walking). It follows the radar volume and is silent in menus, like the radar.
 
 **Small obstacles** (on by default, D2R): when the radar's wall on one side is a rock, tree or pillar standing alone

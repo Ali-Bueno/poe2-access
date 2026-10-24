@@ -676,6 +676,10 @@ namespace Poe2Accessibility.Tests
             Equal(true, RadarSynth.WallToneGain(2f, 20f) > RadarSynth.WallToneGain(10f, 20f), "closer is louder");
             var loop = RadarSynth.WallTone(RadarSynth.Direction.Up, 44100);
             Equal(true, MathF.Abs(loop[0] - loop[^1]) < 0.08f, "the loop has no seam");
+            static float Rms(float[] samples) => MathF.Sqrt(samples.Sum(s => s * s) / samples.Length);
+            Equal(true, MathF.Abs(Rms(loop) - 0.04f) < 0.001f, "a touching wall sits at -28 dBFS RMS (D2R)");
+            var behind = Rms(RadarSynth.WallTone(RadarSynth.Direction.Down, 44100)) / Rms(loop);
+            Equal(true, MathF.Abs(behind - 1.413f) < 0.01f, "the band behind is lifted 3 dB");
         }
 
         private static void QuestNamesItsTargets()

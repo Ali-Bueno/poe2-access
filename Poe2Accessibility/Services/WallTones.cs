@@ -9,7 +9,7 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Wall tones (D2R `[wall_tones]`): one soft noise band per screen direction that swells as the walkable ground
     ///     ends within range — level (1 - d / range)², the lanes across the body counted, the farthest reach wins, the
-    ///     map's edge a wall. A continuous alternative to the radar's knocks; silent outside play.
+    ///     map's edge a wall; the sides panned hard. A continuous alternative to the radar's knocks; silent outside play.
     /// </summary>
     public sealed class WallTones
     {
@@ -19,7 +19,6 @@ namespace Poe2Accessibility.Services
         private const float LaneCells = 1.5f;
 
         private const float ProbeWorld = 100f;
-        private const float PanStrength = 0.9f;
 
         private static readonly RadarSynth.Direction[] Directions = Enum.GetValues<RadarSynth.Direction>();
 
@@ -91,7 +90,7 @@ namespace Poe2Accessibility.Services
                     gain = RadarSynth.WallToneGain(depth, range);
                 }
 
-                this.beds[direction].Set(RadarSynth.Pan(direction) * PanStrength, gain * this.Gain);
+                this.beds[direction].Set(RadarSynth.Pan(direction), gain * this.Gain);
             }
 
             this.sounding = true;
