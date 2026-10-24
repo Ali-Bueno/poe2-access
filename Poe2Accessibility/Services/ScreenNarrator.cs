@@ -30,6 +30,12 @@ namespace Poe2Accessibility.Services
         /// <summary>A tab switch shows up as texts appearing and then as the top layer changing: one announcement.</summary>
         private const int RepeatedTabMs = 1500;
 
+        /// <summary>A text this short is a name or title, kept even when the focus's line mentions it (the speaker "Renly").</summary>
+        private const int ShortLabelChars = 20;
+
+        /// <summary>An item's tier numeral ("I") beside its name, which already says its level.</summary>
+        private const string TierLabelName = "tier_label";
+
         /// <summary>A tutorial hint shown this soon after the HUD is back on top is the box reappearing, not news.</summary>
         private const int HudBackMs = 3000;
 
@@ -136,6 +142,29 @@ namespace Poe2Accessibility.Services
         ///     "Nuevo punto de control" and the last tutorial hint.
         /// </summary>
         /// <summary>A hint never said in this area; or said long ago and shown again while playing (the HUD on top, no panel just closed).</summary>
+        /// <summary>
+        ///     The inventory's gold amount and its header (the unit word alone, "Oro"): a reward or vendor panel opens
+        ///     beside the inventory and read "20 oro. Oro." first.
+        /// </summary>
+        private HashSet<IntPtr> Chrome(IReadOnlyList<ScreenText> texts)
+        {
+            var chrome = new HashSet<IntPtr>();
+            var counter = this.GoldCounter?.Invoke() ?? IntPtr.Zero;
+            if (counter == IntPtr.Zero || texts.FirstOrDefault(text => text.Address == counter) is not { } amount)
+            {
+                return chrome;
+            }
+
+            chrome.Add(counter);
+            var unit = amount.Text.TrimStart('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', ',', ' ');
+            foreach (var text in texts.Where(text => unit.Length > 0 && string.Equals(text.Text, unit, StringComparison.CurrentCultureIgnoreCase)))
+            {
+                chrome.Add(text.Address);
+            }
+
+            return chrome;
+        }
+
         private bool TutorialIsNews(string text, bool playing)
         {
             var now = DateTime.UtcNow;
@@ -236,6 +265,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A HUD text read elsewhere (the target display's name, TargetNarrator), left out of the HUD news.</summary>
         public Func<IntPtr>? IgnoredHudText { get; set; }
+
+        /// <summary>The inventory's gold amount text (GoldWatch): with its unit word as a header, chrome of any panel beside the inventory.</summary>
+        public Func<IntPtr>? GoldCounter { get; set; }
 
         /// <summary>"4 de 6" for a selector without focus in a layer (the class choice), else null.</summary>
         public Func<IntPtr, string?>? SelectorPosition { get; set; }
@@ -376,6 +408,18 @@ namespace Poe2Accessibility.Services
             this.lastExpanded = node.IsExpanded;
             this.valueOwner = node.Address;
             this.lastValue = node.Value;
+            if (this.deferredFocus is { } waiting && waiting.Node.Address == node.Address)
+            {
+                // The focus moved before its new layer settled (a vendor opening: the cursor jumps from an empty cell
+                // to the first item): the waiting readout says where it is now, not where it was.
+                var now = this.Focused(node);
+                this.lastFocusSpeech = now;
+                this.deferredFocus = (node.Context.Length > 0 && waiting.Text.StartsWith(node.Context, StringComparison.Ordinal)
+                    ? Announcements.InContext(node.Context, now)
+                    : now, waiting.At, node);
+                return;
+            }
+
             if (node.Role is UiRole.GridCell or UiRole.ItemSlot or UiRole.ListItem)
             {
                 // The cursor moved inside the grid: a new item and cell, not a value of the same control.
@@ -443,7 +487,8 @@ namespace Poe2Accessibility.Services
                     : change.Texts.Where(text => this.TutorialIsNews(text.Text, focus == null && snapshot.TopInteractive?.Address == this.HudLayer)).ToList();
                 if (hints.Count > 0)
                 {
-                    this.Speak("objective", Describe(hints), SpeechPriority.Interrupts(SpeechKind.Quest));
+                    // In a menu the focus is what the player is listening to: a hint waits its turn there.
+                    this.Speak("objective", Describe(hints), SpeechPriority.Interrupts(SpeechKind.Quest) && focus == null);
                 }
 
                 return;
@@ -576,8 +621,10 @@ namespace Poe2Accessibility.Services
 
                 var own = focus == null ? new HashSet<string>() : new HashSet<string>(focus.ListItems) { focus.Text, focus.Value, focus.Group };
                 var said = (DateTime.UtcNow - this.recentTexts.At).TotalMilliseconds < RecentTextsMs ? this.recentTexts.Texts : new HashSet<string>();
+                var chrome = this.Chrome(change.Texts);
                 var texts = Describe(PairNumbers(change.Texts).Where(text => !own.Contains(text.Text) && !IsNumber(text.Text) && !said.Contains(text.Text) &&
-                                                                !(focus?.Text.Contains(text.Text, StringComparison.Ordinal) ?? false) &&
+                                                                !chrome.Contains(text.Address) && text.Name != TierLabelName &&
+                                                                !(text.Text.Length > ShortLabelChars && (focus?.Text.Contains(text.Text, StringComparison.Ordinal) ?? false)) &&
                                                                 !InFocusContext(focus, text.Text)));
                 if (texts.Length == 0)
                 {

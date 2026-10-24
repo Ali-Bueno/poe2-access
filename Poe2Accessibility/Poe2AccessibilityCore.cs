@@ -159,6 +159,7 @@ namespace Poe2Accessibility
                 this.beacon = new Beacon(this.audio, this.entities, this.output, this.log);
                 this.targets = new TargetNarrator(this.audio, memory, elements, this.output, this.log) { HudLayer = () => this.narrator?.HudLayer ?? IntPtr.Zero };
                 this.narrator.IgnoredHudText = () => this.targets?.NameLabel ?? IntPtr.Zero;
+                this.narrator.GoldCounter = () => this.gold?.Counter ?? IntPtr.Zero;
                 this.heartbeat = new Heartbeat(this.audio);
                 this.statuses = new StatusWatch(this.output, this.log);
                 this.pickups = new InventoryWatch(inventory, this.output, this.log);

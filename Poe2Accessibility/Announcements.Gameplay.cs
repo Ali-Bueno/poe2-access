@@ -222,6 +222,9 @@ namespace Poe2Accessibility
         /// <summary>A closed barrier in the scanner's objects (a tutorial beam, a gate); it has no name of its own.</summary>
         public static string ClosedBarrier => T("Closed barrier", "Barrera cerrada");
 
+        /// <summary>An NPC with the quest indicator over its head.</summary>
+        public static string NpcWithQuest(string name) => T($"{name}, has a quest", $"{name}, con misión");
+
         public static string GoldPickedUp(long amount) => T($"Picked up {amount} gold", $"Recogido {amount} de oro");
 
         public static string PickedUp(string name, int added) => added > 0
@@ -257,6 +260,7 @@ namespace Poe2Accessibility
             "portal" => T("Portal", "Portal"),
             "waypoint" => T("Waypoint", "Punto de ruta"),
             "checkpoint" => T("Checkpoint", "Punto de control"),
+            "npc_quest" => T("Character with a quest", "Personaje con misión"),
             _ => key,
         };
 

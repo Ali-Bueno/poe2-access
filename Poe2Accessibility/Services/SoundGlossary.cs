@@ -27,6 +27,7 @@ namespace Poe2Accessibility.Services
             this.Add("elite", CueSynth.Enemy(CueSynth.Layer.Elite, rate));
             this.Add("boss", CueSynth.Enemy(CueSynth.Layer.Boss, rate));
             this.Add("friend", CueSynth.Enemy(CueSynth.Layer.Friend, rate));
+            this.Add("npc_quest", CueSynth.Ring(rate));
             this.Add("radar_wall", RadarSynth.Cue(RadarReading.Wall, RadarSynth.Direction.Left, rate));
             this.Add("radar_open", RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Left, rate));
             this.Add("radar_exit", RadarSynth.Cue(RadarReading.Exit, RadarSynth.Direction.Left, rate));

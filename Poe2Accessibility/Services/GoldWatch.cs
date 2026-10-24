@@ -21,6 +21,9 @@ namespace Poe2Accessibility.Services
         private readonly PluginLog log;
 
         private IntPtr counter;
+
+        /// <summary>The inventory panel's gold amount text, once found (zero before): chrome, not news of a panel opening.</summary>
+        public IntPtr Counter => this.counter;
         private long? amount;
         private long lastPoll;
 

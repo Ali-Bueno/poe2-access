@@ -129,6 +129,18 @@ namespace Poe2Accessibility
             public const int MaxEntries = 256;
         }
 
+        /// <summary>NPC component (2026-10-24, Clearfell).</summary>
+        public static class NpcComponent
+        {
+            /// <summary>
+            ///     Dat reference {row, file} to the MiscAnimated.dat row of the marker over the NPC's head: row +0 → the
+            ///     id "NPCQuestMarker" (Quest_Indicator effect) on RenlyIntro, null on the seven other town NPCs.
+            /// </summary>
+            public const int MarkerRowOffset = 0x50;
+
+            public const string QuestMarkerId = "NPCQuestMarker";
+        }
+
         /// <summary>Item Base component (GameOffsets BaseOffsets).</summary>
         public static class BaseComponent
         {

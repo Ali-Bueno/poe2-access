@@ -36,11 +36,13 @@ namespace Poe2Accessibility.Services
             ("chests", entry => entry.Category == ScanCategory.Chests),
             ("exits", entry => entry.Category == ScanCategory.Exits || entry.Kind == "portal"),
             ("waypoints", entry => entry.Kind is "waypoint" or "checkpoint"),
+            ("quests", entry => entry.Kind == "npc_quest"),
         };
 
         private readonly AudioCueService audio;
         private readonly EntityCatalog catalog;
         private readonly GameSounds sounds;
+        private readonly float[] questRing = CueSynth.Ring(AudioCueService.SampleRate);
         private readonly Dictionary<string, long> lastPlayed = new();
         private readonly Dictionary<string, ScanEntry> nearest = new();
         private long lastPoll;
@@ -120,6 +122,7 @@ namespace Poe2Accessibility.Services
             "portal" => this.sounds.Get("portal"),
             "waypoint" => this.sounds.Get("waypoint"),
             "checkpoint" => this.sounds.Get("checkpoint"),
+            "npc_quest" => this.questRing,
             "exit" => this.sounds.Get("exit"),
             _ => entry.Category == ScanCategory.Items ? this.sounds.Get("item") : null,
         };

@@ -551,9 +551,23 @@ namespace Poe2Accessibility.Services
                 return null; // unnamed placeholders are not things a player can find
             }
 
+            if (category == ScanCategory.Npcs && this.HasQuestMarker(entity))
+            {
+                // D2R's NPC "!": the game's quest indicator over the head (someone to talk to for the story).
+                name = Announcements.NpcWithQuest(name);
+                kind = "npc_quest";
+            }
+
             var position = render.WorldPosition;
             return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, kind);
         }
+
+        /// <summary>The NPC shows the quest indicator over its head (<see cref="GameLayout.NpcComponent"/>).</summary>
+        private bool HasQuestMarker(Entity entity) =>
+            entity.TryGetComponent<NPC>(out var npc) &&
+            this.memory.TryRead<IntPtr>(npc.Address + GameLayout.NpcComponent.MarkerRowOffset, out var row) && row != IntPtr.Zero &&
+            this.memory.TryRead<IntPtr>(row, out var id) && id != IntPtr.Zero &&
+            (this.elements.ReadUtf16BufferAt(id, 32) ?? string.Empty).StartsWith(GameLayout.NpcComponent.QuestMarkerId, StringComparison.Ordinal);
 
         /// <summary>A living monster that is not the player's (minions are friendly).</summary>
         public static bool IsAliveEnemy(Entity entity) =>
