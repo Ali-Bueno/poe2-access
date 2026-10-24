@@ -75,6 +75,73 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
+        ///     How deep a button menu's texts sit: its buttons two levels down, the player's name six (layout → header
+        ///     frame → label stack → name row → frame → text).
+        /// </summary>
+        private const int ButtonMenuDepth = 7;
+
+        /// <summary>
+        ///     A menu that keeps the focus while the D-pad moves a chosen button (<see cref="GameLayout.ButtonMenu"/>):
+        ///     the button and its place, with the texts outside the buttons (the player's name, class and league) as
+        ///     its context.
+        /// </summary>
+        private AccessibleUiNode? DescribeButtonMenu(in UiElementReader.ElementInfo info)
+        {
+            if (info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) ||
+                (this.elements.TryReadText(info.Address, out var own) && own.Length > 0) ||
+                !this.reader.TryRead<int>(info.Address + GameLayout.ButtonMenu.SelectedIndexOffset, out var selected) || selected < 0)
+            {
+                return null;
+            }
+
+            var buttons = new List<string>();
+            var header = new List<string>();
+            var queue = new Queue<(UiElementReader.ElementInfo Node, int Depth)>();
+            queue.Enqueue((info, 0));
+            while (queue.Count > 0)
+            {
+                var (node, depth) = queue.Dequeue();
+                foreach (var childAddress in this.elements.ReadChildren(node))
+                {
+                    if (!this.elements.TryReadElement(childAddress, out var child) || !child.IsVisibleFlag)
+                    {
+                        continue;
+                    }
+
+                    if (child.HasFlagBit(GameLayout.Element.InteractiveFlagBit))
+                    {
+                        buttons.Add(this.ScreenOrderText(child));
+                    }
+                    else if (this.elements.TryReadText(child.Address, out var text) && text.Length > 0)
+                    {
+                        header.Add(text);
+                    }
+                    else if (depth + 1 < ButtonMenuDepth)
+                    {
+                        queue.Enqueue((child, depth + 1));
+                    }
+                }
+            }
+
+            // Every button labelled, and the index one of them: anything else is not this widget.
+            if (buttons.Count < 2 || selected >= buttons.Count || buttons.Any(text => text.Length == 0))
+            {
+                return null;
+            }
+
+            return new AccessibleUiNode
+            {
+                Address = info.Address,
+                Name = info.Name,
+                Role = UiRole.ListItem,
+                Text = buttons[selected],
+                Position = Announcements.ListPosition(selected + 1, buttons.Count),
+                IsVisible = this.elements.IsVisible(info),
+                Context = string.Join(", ", header),
+            };
+        }
+
+        /// <summary>
         ///     A container that keeps the focus while a marker frame shows the chosen row ("selected_challenge_frame"
         ///     in Challenges, moved by the stick): the marked row with all its texts, then its place among the rows.
         /// </summary>

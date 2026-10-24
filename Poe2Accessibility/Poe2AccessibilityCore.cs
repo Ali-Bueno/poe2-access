@@ -214,7 +214,7 @@ namespace Poe2Accessibility
                 var drops = ItemDropSounds.Load(
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds, drops);
-                this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds);
+                this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds, new KnownPlaces(Path.Join(this.DllDirectory, "config", "known-places.txt")));
                 this.enemyNews = new EnemyNarrator(this.entities, this.output);
                 this.deaths = new DeathWatch(this.locator, elements, this.output, this.log);
                 this.ApplySoundVolumes(this.Settings);
@@ -730,6 +730,14 @@ namespace Poe2Accessibility
                 return;
             }
 
+            if (command.StartsWith("dump 0x", StringComparison.Ordinal))
+            {
+                // Research: "dump 0x4DD5032C310" dumps the tree under that element, for popups no root holds (the
+                // menu A opens on another player is reached only from the focus, 2026-10-24).
+                this.DumpUiTree(false, command["dump ".Length..]);
+                return;
+            }
+
             switch (command)
             {
                 case "dump":
@@ -1122,7 +1130,7 @@ namespace Poe2Accessibility
             }
         }
 
-        private void DumpUiTree(bool visibleOnly)
+        private void DumpUiTree(bool visibleOnly, string? root = null)
         {
             if (this.dumper == null || this.gameState == null)
             {
@@ -1157,7 +1165,7 @@ namespace Poe2Accessibility
                 var path = this.dumper.Dump(
                     this.gameState.CurrentState,
                     stateObject,
-                    this.Settings.UiDumpRootAddressOverride,
+                    root ?? this.Settings.UiDumpRootAddressOverride,
                     visibleOnly,
                     this.Settings.UiDumpMaxDepth,
                     this.Settings.UiDumpMaxNodes);

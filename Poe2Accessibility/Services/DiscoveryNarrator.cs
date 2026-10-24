@@ -37,10 +37,13 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> seenUniques = new(StringComparer.Ordinal);
 
         /// <summary>
-        ///     Exits and waypoints announced this session, by area, kind, name and place: walking back into the camp said
-        ///     "New waypoint: Transporter" each time (2026-10-24).
+        ///     Exits and waypoints each character was told about, by area, kind, name and place, across sessions:
+        ///     walking back into the camp said "New waypoint: Transporter" each time (2026-10-24).
         /// </summary>
-        private readonly HashSet<string> knownPlaces = new(StringComparer.Ordinal);
+        private readonly KnownPlaces knownPlaces;
+
+        /// <summary>The character's name, read once per area (the player entity may not be ready at the reset).</summary>
+        private string character = string.Empty;
 
         /// <summary>A place's position is rounded to this many world units in its key (two checkpoints share a name).</summary>
         private const float PlaceKeyWorld = 500f;
@@ -57,10 +60,11 @@ namespace Poe2Accessibility.Services
         private bool resumedBaseline;
         private long lastPoll;
 
-        public DiscoveryNarrator(EntityCatalog catalog, IAccessibilityOutputService output, AudioCueService audio, GameSounds sounds)
+        public DiscoveryNarrator(EntityCatalog catalog, IAccessibilityOutputService output, AudioCueService audio, GameSounds sounds, KnownPlaces knownPlaces)
         {
             this.catalog = catalog;
             this.output = output;
+            this.knownPlaces = knownPlaces;
             this.audio = audio;
             this.sound = sounds.Get("waypoint");
         }
@@ -71,6 +75,7 @@ namespace Poe2Accessibility.Services
         public void Reset(string area, bool resumed)
         {
             this.area = area;
+            this.character = string.Empty;
             this.seen.Clear();
             this.seenUniques.Clear();
             this.waiting.Clear();
@@ -90,6 +95,18 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastPoll = now;
+            if (this.character.Length == 0)
+            {
+                if (Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<Player>(out var self) && self.Name.Length > 0)
+                {
+                    this.character = self.Name;
+                }
+                else if (now - this.areaStartedAt < ArrivalMs)
+                {
+                    return; // the name comes with the arrival; without it, places are remembered for this session only
+                }
+            }
+
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
             var arriving = now - this.areaStartedAt < ArrivalMs || this.resumedBaseline;
             this.resumedBaseline = false;
@@ -97,7 +114,7 @@ namespace Poe2Accessibility.Services
             foreach (var entry in entries)
             {
                 if (!EntityCatalog.IsEntity(entry) || !IsDiscovery(entry) || !this.seen.Add(entry.Id) ||
-                    (entry.Category == ScanCategory.Enemies ? !this.seenUniques.Add(entry.Name) : !this.knownPlaces.Add(this.PlaceKey(entry))))
+                    (entry.Category == ScanCategory.Enemies ? !this.seenUniques.Add(entry.Name) : !this.knownPlaces.Add(this.character, this.PlaceKey(entry))))
                 {
                     continue;
                 }

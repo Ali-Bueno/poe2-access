@@ -119,6 +119,7 @@
 | NPC dialogue options read one by one | done (live) | `UiSemantics.OptionLists`: confirm glyph marks the option; D-pad left reaches the lore column; a heard topic (drawn grey) reads "Presentación, atenuado, 1 de 8" (Una, 2026-10-24) |
 | Spoken settings menu + sound glossary (hold L3 1.5 s) | done (live) | `SettingsMenu`, `SoundGlossary`; 26 settings + 23 sounds |
 | Target from the HUD target bar (controller) | done (live) | HUD > entity_info_container > entity_info_display > name_label; MouseOverEntity is 0 with a pad |
+| Player menu (A on another player) | done (live, header unheard) | popup outside the root, focus stays on it; chosen button int `+0x348` (`GameLayout.ButtonMenu`); `UiSemantics.DescribeButtonMenu`; dev command `dump 0x<address>` dumps such popups |
 | Weapon swap "Set de armas 2, vacío" (D2R) | done (live) | GameHelper `Stats.CurrentWeaponIndex` (+0x168) still right in 0.5.5e; `InventoryWatch.TickWeaponSet` |
 | Inline item art named ("Identificar Pergamino de sabiduría x 1") | done (unit) | `catalog/item-names.json` (`Poe2UiExtract item-names`, BaseItemTypes Id +0x0 / Name +0x20); `ControllerGlyphs.Plain` |
 | What A uses ("Finn, A", "Alijo, A") | done (live) | Targetable `+0x6B` = the game's interaction target; `ProximityNarrator.TrackTarget` (2026-10-24) |

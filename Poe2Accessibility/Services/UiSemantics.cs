@@ -81,6 +81,11 @@ namespace Poe2Accessibility.Services
                 return listNode;
             }
 
+            if (this.DescribeButtonMenu(info) is { } menuNode)
+            {
+                return menuNode;
+            }
+
             if (this.DescribeOptionList(info) is { } optionNode)
             {
                 return optionNode;

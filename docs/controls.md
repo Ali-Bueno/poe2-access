@@ -189,6 +189,8 @@ left; a topic already heard (drawn grey) is read "atenuado": "Presentación, ate
 - Inventory moves without the hand (`AnnounceMoves`): "Equipado: …, Mano principal" and "Desequipado: …" (X on an
   item or a slot); with a panel open, "Nuevo en el inventario: …" (bought, withdrawn) and "… salió del inventario"
   (sold, stored). They follow the focus update the move causes.
+- Another player's menu (A on a player): "DrBacamarte, Guerrero Niv. 2, Liga Forbidden Rites. invitar al grupo,
+  1 de 5", then each button as the D-pad moves ("comerciar, 3 de 5"); B closes it.
 - The chat panel (LT in a panel): "Chat. Mantén presionado LT para chatear" when shown, "Chat oculto" when hidden.
 - Weapon swap (RT in the inventory, `AnnounceMoves`): "Set de armas 2: Arco, Carcaj" or "Set de armas 2, vacío".
 - Legends with inline item art name the item: "Identificar Pergamino de sabiduría x 1, X" (catalog/item-names.json).

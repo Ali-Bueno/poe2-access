@@ -59,6 +59,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(ScrolledRowsAreNotNews), ScrolledRowsAreNotNews);
             Run(nameof(WrappedLabelsJoin), WrappedLabelsJoin);
             Run(nameof(InlineItemArtIsNamed), InlineItemArtIsNamed);
+            Run(nameof(KnownPlacesOutliveTheSession), KnownPlacesOutliveTheSession);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -510,6 +511,24 @@ namespace Poe2Accessibility.Tests
             Set(22, 22, true);
             var route = RoutePlanner.FindRoute(grid, row, new System.Numerics.Vector2(22.4f, 22.4f), new System.Numerics.Vector2(50, 50), false, out var reached);
             Equal(true, route != null && reached, "a route from the ground around the pocket");
+        }
+
+        private static void KnownPlacesOutliveTheSession()
+        {
+            var file = System.IO.Path.GetTempFileName();
+            try
+            {
+                var first = new KnownPlaces(file);
+                Equal(true, first.Add("kehgan", "camp|waypoint|Transporter|0|0"), "a place is new the first time");
+                Equal(false, first.Add("kehgan", "camp|waypoint|Transporter|0|0"), "then known");
+                var next = new KnownPlaces(file);
+                Equal(false, next.Add("kehgan", "camp|waypoint|Transporter|0|0"), "still known in the next session");
+                Equal(true, next.Add("yarkbruja", "camp|waypoint|Transporter|0|0"), "another character has not seen it");
+            }
+            finally
+            {
+                System.IO.File.Delete(file);
+            }
         }
 
         private static void InlineItemArtIsNamed()

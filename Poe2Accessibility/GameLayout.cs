@@ -395,6 +395,16 @@ namespace Poe2Accessibility
             public static int SelectedIndexOffset { get; internal set; } = 0x388;
         }
 
+        /// <summary>
+        ///     A gamepad button menu that keeps the focus on itself (the menu A opens on another player: invite,
+        ///     whisper, trade, add friend, report). int: the chosen button among its visible buttons, 1 → 3 as the
+        ///     D-pad moved from "whisper" to "add as friend" (2026-10-24); the buttons' own memory does not change.
+        /// </summary>
+        public static class ButtonMenu
+        {
+            public const int SelectedIndexOffset = 0x348;
+        }
+
         /// <summary>Inventory grid element (focused while the cursor is anywhere in the grid).</summary>
         public static class InventoryGrid
         {
