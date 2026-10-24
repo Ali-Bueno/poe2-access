@@ -142,7 +142,7 @@ right Skills, down Bind Screen, down-left Character, left Passives, up-left Ques
 - Inventory moves without the hand (`AnnounceMoves`): "Equipado: …, Mano principal" and "Desequipado: …" (X on an
   item or a slot); with a panel open, "Nuevo en el inventario: …" (bought, withdrawn) and "… salió del inventario"
   (sold, stored). They follow the focus update the move causes.
-- Tooltips mark requirements drawn in red: "No cumples: Requiere Nivel 5".
+- Requirements drawn in red come right after the item name (and price): "No puedes usarlo: Requiere Nivel 5".
 - The checkpoint travel map names each checkpoint by where it lies from yours: "Viajar al punto de control,
   abajo, botón, 2 de 2".
 - Before the game (login, character selection and creation) the controller hints are read when a screen

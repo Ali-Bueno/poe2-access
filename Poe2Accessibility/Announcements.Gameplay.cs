@@ -286,8 +286,11 @@ namespace Poe2Accessibility
             _ => T($"New exit: {entry.Name}", $"Nueva salida: {entry.Name}"),
         };
 
-        /// <summary>A requirement the character does not meet (drawn red): "No cumples: Requiere Nivel 5".</summary>
-        public static string Unmet(string requirement) => T($"Not met: {requirement}", $"No cumples: {requirement}");
+        /// <summary>
+        ///     Requirements the character does not meet (drawn red), said after the item's name (D2R "cannot equip"):
+        ///     "No puedes usarlo: Requiere Nivel 5".
+        /// </summary>
+        public static string Unmet(string requirements) => T($"Cannot use: {requirements}", $"No puedes usarlo: {requirements}");
 
         /// <summary>Controls help topics at the top of the settings menu.</summary>
         public static string HelpTitle(string topic) => topic switch

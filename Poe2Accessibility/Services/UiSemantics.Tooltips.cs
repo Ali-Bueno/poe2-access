@@ -35,6 +35,8 @@ namespace Poe2Accessibility.Services
             var budget = MaxTooltipNodes;
             var glyph = string.Empty;
             var currency = string.Empty;
+            var priced = false;
+            var unmet = new List<string>();
             while (stack.Count > 0 && budget-- > 0)
             {
                 var node = stack.Pop();
@@ -58,6 +60,7 @@ namespace Poe2Accessibility.Services
                         // Said right after the item's name: what it costs matters before its stats.
                         lines.Insert(Math.Min(1, lines.Count), Announcements.Amount(text, currency, this.elements.IsTextRed(node.Address)));
                         currency = string.Empty;
+                        priced = true;
                         continue;
                     }
 
@@ -78,10 +81,18 @@ namespace Poe2Accessibility.Services
                     var line = Announcements.WithButton(Announcements.JoinLines(wrapped), glyph);
                     if (line.Any(char.IsDigit) && this.elements.IsTextRed(node.Address))
                     {
-                        // A requirement drawn in red is one the character does not meet (D2R "cannot equip" reasons);
-                        // red lines without numbers (Corrupted, Unidentified) are states, not requirements.
-                        line = Announcements.Unmet(line);
+                        // A requirement drawn in red is one the character does not meet (D2R "cannot equip" reasons):
+                        // gathered and said right after the name (and price); red lines without numbers (Corrupted,
+                        // Unidentified) are states, not requirements.
+                        glyph = string.Empty;
+                        if (!unmet.Contains(line))
+                        {
+                            unmet.Add(line);
+                        }
+
+                        continue;
                     }
+
                     glyph = string.Empty;
                     if (line.Length > 0 && !lines.Contains(line))
                     {
@@ -104,6 +115,11 @@ namespace Poe2Accessibility.Services
             if (glyph.Length > 0 && lines.Count > 0)
             {
                 lines[^1] = Announcements.WithButton(lines[^1], glyph);
+            }
+
+            if (unmet.Count > 0)
+            {
+                lines.Insert(Math.Min(priced ? 2 : 1, lines.Count), Announcements.Unmet(string.Join(", ", unmet)));
             }
 
             return lines;
