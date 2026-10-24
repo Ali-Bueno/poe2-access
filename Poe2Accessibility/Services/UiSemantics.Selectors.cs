@@ -21,8 +21,8 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     "4 de 6" for the class choice of character creation: no control holds the focus, the left stick moves a
-        ///     highlight along the first row of class icons (the second row holds the variants, picked later with X).
-        ///     The selector keeps the highlighted index (GameLayout.ClassSelector); the count is the icons in that row.
+        ///     highlight along a row of class icons (the second row holds the variants, swapped in with X).
+        ///     The selector keeps the highlighted index (GameLayout.ClassSelector); the count is the icons in its row.
         ///     Null when the layer has no such selector or its index is out of range.
         /// </summary>
         public string? SelectorPosition(IntPtr layer)
@@ -41,13 +41,31 @@ namespace Poe2Accessibility.Services
             }
 
             var icons = this.elements.ReadChildren(grid);
-            if (icons.Length == 0 || !PluginUiElementReflection.TryGetAbsoluteRect(icons[0], out var first, out _))
+            if (index < 0 || index >= icons.Length || !PluginUiElementReflection.TryGetAbsoluteRect(icons[index], out var current, out _))
             {
                 return null;
             }
 
-            var firstRow = icons.Count(icon => PluginUiElementReflection.TryGetAbsoluteRect(icon, out var at, out _) && Math.Abs(at.Y - first.Y) < SameRowPixels);
-            return index >= 0 && index < firstRow ? Announcements.ListPosition(index + 1, firstRow) : null;
+            // The row the highlight is on: the classes, or their variants once X swapped one (the stick then walks those).
+            var row = Enumerable.Range(0, icons.Length)
+                .Where(at => PluginUiElementReflection.TryGetAbsoluteRect(icons[at], out var place, out _) && Math.Abs(place.Y - current.Y) < SameRowPixels)
+                .ToList();
+            return Announcements.ListPosition(row.IndexOf(index) + 1, row.Count);
+        }
+
+        /// <summary>
+        ///     The class the selector shows (GameLayout.ClassSelector id): X in the name step swaps it for its variant
+        ///     (Exploradora 2 → Cazadora 8, live 2026-10-24) without any focus change of its own. Null without a selector.
+        /// </summary>
+        public int? SelectorChoice(IntPtr layer)
+        {
+            if (!this.selectors.TryGetValue(layer, out var found))
+            {
+                found = this.FindSelector(layer);
+                this.selectors[layer] = found;
+            }
+
+            return found.Selector != IntPtr.Zero && this.reader.TryRead<int>(found.Selector + GameLayout.ClassSelector.ClassIdOffset, out var id) ? id : null;
         }
 
         private (IntPtr Selector, IntPtr Grid) FindSelector(IntPtr layer)

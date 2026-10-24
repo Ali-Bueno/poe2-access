@@ -187,6 +187,11 @@ left; a topic already heard (drawn grey) is read "atenuado": "Presentación, ate
   "Estás aquí, cerca de …". A checkpoint not seen since the host started has only its direction.
 - Before the game (login, character selection and creation) the controller hints are read when a screen
   opens, and only the new ones when the focus changes them ("Iniciar el juego en el pueblo/guarida, LT más A").
+- Character creation: the left stick picks the class ("Bruja, 4 de 6", its quote), A selects it. The name field
+  then takes typing at once; the mod says how to finish once per visit: Enter creates the character, or B ends the
+  typing and A creates it. After B the left stick moves between name, league ("Liga, Forbidden Rites", A opens the
+  list of 12) and Continue. X swaps the class for its variant when it has one ("Bruja" ↔ "Hechicera"), said with its
+  quote. A name in use is refused with "Ya existe un personaje con este nombre".
 - The mod speaks Spanish when the game does (`Language`: auto, en, es).
 
 ## Keyboard (development)

@@ -232,6 +232,7 @@ namespace Poe2Accessibility.Services
             this.lastContext = string.Empty;
             this.lastGroup = string.Empty;
             this.lastSelectorPosition = string.Empty;
+            this.lastSelectorChoice = null;
             this.inGame = inGameState;
             this.lastHints = string.Empty;
             this.spokenHints.Clear();
@@ -304,6 +305,14 @@ namespace Poe2Accessibility.Services
         public Func<IntPtr, string?>? SelectorPosition { get; set; }
 
         private string lastSelectorPosition = string.Empty;
+
+        /// <summary>The choice a selector without focus holds in a layer (the class id), else null.</summary>
+        public Func<IntPtr, int?>? SelectorChoice { get; set; }
+
+        private int? lastSelectorChoice;
+
+        /// <summary>Said once the focus waiting for its new layer has been (the creation screen's name help).</summary>
+        public void SayAfterFocus(string text) => this.hintAfterFocus = Announcements.Sentences(new[] { this.hintAfterFocus, text });
 
         /// <summary>The in-game HUD: new texts (quest tracker, ground item) are read after the rest, never as a page.</summary>
         public IntPtr HudLayer { get; set; }
@@ -780,6 +789,9 @@ namespace Poe2Accessibility.Services
             }
 
             var top = snapshot.TopInteractive;
+            var selected = this.SelectorChoice?.Invoke(change.Layer.Address);
+            var choiceSwapped = selected != null && this.lastSelectorChoice != null && selected != this.lastSelectorChoice;
+            this.lastSelectorChoice = selected ?? this.lastSelectorChoice;
             switch (change.Kind)
             {
                 case ScreenChangeKind.TopLayerChanged:
@@ -843,6 +855,13 @@ namespace Poe2Accessibility.Services
                     {
                         this.Speak("message with focus", Announcements.Sentences(new[] { message, this.lastFocusSpeech }), true);
                     }
+                    else if (choiceSwapped)
+                    {
+                        // X in the name step swaps the class for its variant and focuses the name field: the card the
+                        // variant brings (a control's caption) is the news, the field was just said.
+                        this.Speak("choice swapped", Describe(change.Texts.Where(text => text.Text != focus?.Text &&
+                                                                                        !(focus?.Value.Contains(text.Text, StringComparison.Ordinal) ?? false))), true);
+                    }
 
                     break;
                 case ScreenChangeKind.TextsAppeared:
@@ -854,18 +873,23 @@ namespace Poe2Accessibility.Services
                     var own = focus == null ? new HashSet<string>() : new HashSet<string> { focus.Text, focus.Value };
                     var fresh = change.Texts.Where(text => !own.Contains(text.Text)).ToList();
                     var navigatingWithoutFocus = change.Layer.Address == top?.Address && focusLayer != change.Layer.Address;
+                    var freshTexts = new HashSet<string>(fresh.Select(text => text.Text));
                     if (fresh.Count > 0 && navigatingWithoutFocus && this.SelectorPosition?.Invoke(change.Layer.Address) is { } position &&
                         position != this.lastSelectorPosition)
                     {
                         // A choice moved with the stick (the class of character creation): where it is, after its name.
                         this.lastSelectorPosition = position;
-                        fresh[0] = fresh[0] with { Text = $"{fresh[0].Text}, {position}" };
+                        // The name sits before its quote, the longest text; the screen's title can come first ("Elige tu clase").
+                        var quote = fresh.IndexOf(fresh.MaxBy(text => text.Text.Length)!);
+                        var named = Math.Max(0, quote - 1);
+                        fresh[named] = fresh[named] with { Text = $"{fresh[named].Text}, {position}" };
                     }
 
                     if (fresh.Count > 0)
                     {
                         this.Speak("appeared", Describe(fresh), navigatingWithoutFocus);
-                        this.recentTexts = (new HashSet<string>(fresh.Select(text => text.Text)), DateTime.UtcNow);
+                        // As shown, not with the position: the screen's title arriving next must find the class said.
+                        this.recentTexts = (freshTexts, DateTime.UtcNow);
                     }
 
                     break;

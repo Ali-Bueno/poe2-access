@@ -86,6 +86,9 @@ namespace Poe2Accessibility
         /// <summary>A "not loaded" state shorter than this is a transition, not the game closing.</summary>
         private const int ClosedSettleMs = 2000;
         private bool confirmDown;
+
+        /// <summary>The creation screen's name help was said for this visit (a refused name comes back to it).</summary>
+        private bool creationHelpSaid;
         private ResearchSession? research;
         private UiElementReader? elements;
         private DevCommandFile? devCommands;
@@ -192,6 +195,8 @@ namespace Poe2Accessibility
                 this.narrator.InPanel = this.semantics.IsInPanel;
                 this.narrator.InOtherControlGroup = this.semantics.InOtherControlGroup;
                 this.narrator.SelectorPosition = this.semantics.SelectorPosition;
+                this.narrator.SelectorChoice = this.semantics.SelectorChoice;
+                this.focus.FocusChanged += this.OnCreationFocus;
                 this.narrator.Refresh = node => this.semantics?.Describe(node.Address, node.IsHovered);
                 this.semantics.PlayerPath = () => Core.States.InGameStateObject.CurrentAreaInstance.Player.Path ?? string.Empty;
                 this.commands.SettingsChanged = changed =>
@@ -946,9 +951,27 @@ namespace Poe2Accessibility
             }
         }
 
+        /// <summary>
+        ///     The creation screen's name field takes typing at once and nothing on screen says how to finish: once per
+        ///     visit, after the field, how to create the character (user, 2026-10-24).
+        /// </summary>
+        private void OnCreationFocus(AccessibleUiNode node)
+        {
+            if (!this.creationHelpSaid && node.Role == UiRole.TextField && this.gameState?.CurrentState == GameStateTypes.CreateCharacterState)
+            {
+                this.creationHelpSaid = true;
+                this.narrator?.SayAfterFocus(Announcements.CreationNameHelp);
+            }
+        }
+
         private void OnGameStateChanged(GameStateTypes previous, GameStateTypes current)
         {
             this.research?.OnStateChanged(current);
+            if (current == GameStateTypes.SelectCharacterState)
+            {
+                this.creationHelpSaid = false;
+            }
+
             this.screen?.Reset(false);
             this.narrator?.Reset(current == GameStateTypes.InGameState);
             if (this.narrator != null)

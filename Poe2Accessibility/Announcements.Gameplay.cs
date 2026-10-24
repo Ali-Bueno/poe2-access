@@ -112,6 +112,14 @@ namespace Poe2Accessibility
             ? T($"{value}, editing done", $"{value}, edición terminada")
             : T("Editing done, field empty", "Edición terminada, campo vacío");
 
+        /// <summary>
+        ///     Character creation's name step: the field takes typing at once; Enter, or B and then A, creates the
+        ///     character, and the stick reaches the league (verified live 2026-10-24).
+        /// </summary>
+        public static string CreationNameHelp => T(
+            "Type the name. To create the character: Enter, or B and then A. The left stick moves between name, league and Continue.",
+            "Escribe el nombre. Para crear el personaje: Intro, o B y luego A. El stick izquierdo pasa por nombre, liga y Continuar.");
+
         /// <summary>A boss's life fell past a step: "The Bloated Miller 40 percent".</summary>
         public static string BossLife(string name, int percent) => T($"{name} {percent} percent", $"{name} {percent} por ciento");
 
