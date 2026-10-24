@@ -37,26 +37,44 @@ def hold(pad, press, release, seconds):
         pad.update()
 
 
-def press(pad, vg, name, seconds):
+def control(pad, vg, name):
+    """(down, up) callables for one control."""
     if name in BUTTONS:
         button = getattr(vg.DS4_BUTTONS, 'DS4_BUTTON_' + BUTTONS[name])
-        hold(pad, lambda: pad.press_button(button=button), lambda: pad.release_button(button=button), seconds)
-    elif name in TRIGGERS:
+        return lambda: pad.press_button(button=button), lambda: pad.release_button(button=button)
+    if name in TRIGGERS:
         flag, axis = TRIGGERS[name]
         button = getattr(vg.DS4_BUTTONS, 'DS4_BUTTON_' + flag)
         set_axis = getattr(pad, axis)
-        hold(pad, lambda: (pad.press_button(button=button), set_axis(255)),
-             lambda: (pad.release_button(button=button), set_axis(0)), seconds)
-    elif name in SPECIAL:
+        return lambda: (pad.press_button(button=button), set_axis(255)), lambda: (pad.release_button(button=button), set_axis(0))
+    if name in SPECIAL:
         button = getattr(vg.DS4_SPECIAL_BUTTONS, 'DS4_SPECIAL_BUTTON_' + SPECIAL[name])
-        hold(pad, lambda: pad.press_special_button(special_button=button),
-             lambda: pad.release_special_button(special_button=button), seconds)
-    elif name.startswith('dpad-') and name[5:] in DPAD:
+        return lambda: pad.press_special_button(special_button=button), lambda: pad.release_special_button(special_button=button)
+    if name.startswith('dpad-') and name[5:] in DPAD:
         direction = getattr(vg.DS4_DPAD_DIRECTIONS, 'DS4_BUTTON_DPAD_' + DPAD[name[5:]])
         none = vg.DS4_DPAD_DIRECTIONS.DS4_BUTTON_DPAD_NONE
-        hold(pad, lambda: pad.directional_pad(direction=direction), lambda: pad.directional_pad(direction=none), seconds)
-    else:
-        raise ValueError(f'Unknown control {name}; use one of {", ".join(NAMES)}')
+        return lambda: pad.directional_pad(direction=direction), lambda: pad.directional_pad(direction=none)
+    raise ValueError(f'Unknown control {name}; use one of {", ".join(NAMES)}')
+
+
+def press(pad, vg, name, seconds):
+    down, up = control(pad, vg, name)
+    hold(pad, down, up, seconds)
+
+
+def combo(pad, vg, held, pressed):
+    """Hold one control and tap another meanwhile (character selection: LT + A starts in town)."""
+    held_down, held_up = control(pad, vg, held)
+    down, up = control(pad, vg, pressed)
+    try:
+        held_down()
+        pad.update()
+        time.sleep(0.15)
+        hold(pad, down, up, 0.1)
+        time.sleep(0.1)
+    finally:
+        held_up()
+        pad.update()
 
 
 def _unit(text):
@@ -179,6 +197,8 @@ def serve(xbox):
                         return 0
                     if request['action'] == 'press':
                         press(pad, vg, request['name'], request['seconds'])
+                    elif request['action'] == 'combo':
+                        combo(pad, vg, request['held'], request['pressed'])
                     elif request['action'] == 'chord':
                         chord(pad, vg, request['name'], request['side'], request['direction'])
                     elif request['action'] == 'stick':

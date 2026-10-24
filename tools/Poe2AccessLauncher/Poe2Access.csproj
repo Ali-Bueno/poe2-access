@@ -20,7 +20,8 @@
   </PropertyGroup>
 
   <!-- Deploys the launcher beside GameHelper.exe so it can be started by double-click (same idea as Launcher.csproj). -->
-  <Target Name="CopyToHost" AfterTargets="Build" Condition="Exists('$(HostOutputDir)')">
+  <!-- Never from a self-contained publish (the test package): its runtimeconfig needs the runtime beside it. -->
+  <Target Name="CopyToHost" AfterTargets="Build" Condition="Exists('$(HostOutputDir)') And '$(SelfContained)' != 'true'">
     <Copy SourceFiles="$(OutDir)$(TargetName).exe;$(OutDir)$(TargetName).dll;$(OutDir)$(TargetName).runtimeconfig.json;$(OutDir)$(TargetName).deps.json;$(OutDir)AsmResolver.PE.dll;$(OutDir)AsmResolver.PE.File.dll;$(OutDir)AsmResolver.dll;$(OutDir)AsmResolver.PE.Win32Resources.dll"
           DestinationFolder="$(HostOutputDir)" SkipUnchangedFiles="true" />
   </Target>

@@ -14,7 +14,7 @@
   <ItemGroup>
     <!-- Only needed at run time for the bundle-extraction mode; the file lives beside the exe when
          present, but its absence must never fail the build (e.g. the catalog mode never touches it). -->
-    <None Include="..\oo2core.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\oo2core.dll')" />
+    <None Include="..\..\external\oodle\oo2core.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\..\external\oodle\oo2core.dll')" />
   </ItemGroup>
 
 </Project>

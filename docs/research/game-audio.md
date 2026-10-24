@@ -17,7 +17,7 @@ Status: working (12 cues + 113 item drop samples extracted, verified non-silent)
 Load the game's own `fmod.dll` (2.03.11; header version `0x00020311`) via P/Invoke in NOSOUND output mode, write the FSB5
 bytes to a temp file, `System_CreateSound(CREATESAMPLE)`, pick the sub-sound by name, `Sound_Lock` the decoded float PCM,
 trim leading silence (< -50 dBFS), cap at 1.5 s with an 80 ms fade, write 16-bit WAV. Read-only on the install.
-If the game updates FMOD, adjust `FmodVersion` in `SoundExtractor.cs`.
+The header version is derived from `fmod.dll`'s product version (2.3.11 -> `0x00020311`), so an FMOD update needs no code change.
 
 ## Cue map (bank in `FMOD/Desktop`, sample name)
 | cue | bank | sample |

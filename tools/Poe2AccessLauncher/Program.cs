@@ -60,7 +60,7 @@ internal static partial class Program
             {
                 case "start":
                     GameLauncher.EnsureRunning();
-                    SoundSetup.EnsureExtracted(HostController.ResolveDirectory(host), GameLauncher.InstallDirectory());
+                    GameDataSetup.EnsureCurrent(HostController.ResolveDirectory(host), GameLauncher.InstallDirectory());
                     controller.Restart();
                     break;
                 case "restart":

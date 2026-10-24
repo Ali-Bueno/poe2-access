@@ -4,8 +4,8 @@
 .DESCRIPTION
     GameHelper, the launcher and the sound extractor are published self-contained into one folder (they share the
     same .NET 10 runtime files), so nothing has to be installed. Only the accessibility plugin is shipped, with
-    research mode off. The game's sounds are not shipped: the launcher extracts them from the player's own install on
-    the first start (SoundSetup.cs). Run with GameHelper stopped (the plugin build deploys into its folder).
+    research mode off. The game's sounds are not shipped: the launcher regenerates them from the player's own install on
+    the first start and after each game patch (GameDataSetup.cs). Run with GameHelper stopped (the plugin build deploys into its folder).
 #>
 param(
     [string]$Output = (Join-Path $PSScriptRoot '..\..\dist')

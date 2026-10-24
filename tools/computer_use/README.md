@@ -36,6 +36,8 @@ like `31A928F1010+988`.
 
 `pad NAME`: cross, circle, square, triangle, l1, r1, l2, r2, l3, r3, options, share, ps, touchpad,
 dpad-up/down/left/right (hold `--seconds`, ≤ 2 s). `stick left|right up|down|left|right`.
+`combo HELD PRESSED` holds one control and taps another (`combo l2 cross` starts the game in town from character
+selection).
 `type TEXT` types into a focused field (only the length is logged — safe for passwords).
 `key`, `click`, `move`, `scroll` exist but a key press switches the game to keyboard mode.
 

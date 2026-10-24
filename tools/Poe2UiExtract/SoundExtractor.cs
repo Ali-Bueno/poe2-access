@@ -30,7 +30,7 @@ internal static class SoundExtractor
     };
 
     private const string Lib = "fmod";
-    private const uint FmodVersion = 0x00020311; // 2.03.11 = the version shipped with the game
+    private const uint FallbackFmodVersion = 0x00020311; // 2.03.11, used when fmod.dll carries no readable version
     private const uint ModeSample = 0x0109;      // CREATESAMPLE | 2D | LOOP_OFF
     private const uint TimeUnitPcmBytes = 4;
 
@@ -48,6 +48,18 @@ internal static class SoundExtractor
     [DllImport(Lib)] private static extern int FMOD_Sound_GetLength(IntPtr sound, out uint length, uint unit);
     [DllImport(Lib)] private static extern int FMOD_Sound_Lock(IntPtr sound, uint offset, uint length, out IntPtr p1, out IntPtr p2, out uint l1, out uint l2);
     [DllImport(Lib)] private static extern int FMOD_Sound_Unlock(IntPtr sound, IntPtr p1, IntPtr p2, uint l1, uint l2);
+
+    // FMOD writes its version as 0x00MMmmpp with each part in decimal digits: 2.3.11 -> 0x00020311.
+    private static uint HeaderVersion(string fmodPath)
+    {
+        var parts = System.Diagnostics.FileVersionInfo.GetVersionInfo(fmodPath).ProductVersion?.Split(' ')[0].Split('.');
+        if (parts is { Length: >= 3 } && parts.Take(3).All(part => int.TryParse(part, out var n) && n < 100))
+        {
+            return parts.Take(3).Aggregate(0u, (version, part) => version << 8 | Convert.ToUInt32(part, 16));
+        }
+
+        return FallbackFmodVersion;
+    }
 
     public static int Run(string gameDir, string outDir, string itemCatalog)
     {
@@ -70,10 +82,10 @@ internal static class SoundExtractor
             .Select(sample => new Cue("items/" + sample, ItemSoundExtractor.Bank, sample))).ToArray();
         string tmp = Path.Combine(Path.GetTempPath(), "poe2-sounds-" + Environment.ProcessId + ".fsb");
 
-        if (FMOD_System_Create(out var sys, FmodVersion) != 0 || FMOD_System_SetOutput(sys, 2 /*NOSOUND*/) != 0
+        if (FMOD_System_Create(out var sys, HeaderVersion(fmodPath)) != 0 || FMOD_System_SetOutput(sys, 2 /*NOSOUND*/) != 0
             || FMOD_System_Init(sys, 8, 0, IntPtr.Zero) != 0)
         {
-            Console.WriteLine("FMOD init failed (header version mismatch? update FmodVersion).");
+            Console.WriteLine("FMOD init failed (header version mismatch).");
             return 1;
         }
 
