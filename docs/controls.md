@@ -162,6 +162,8 @@ left; a topic already heard (drawn grey) is read "atenuado": "Presentación, ate
   (`StatusAlerts`).
 - What the right stick aims at, while you aim: "Ahogado", "El molinero hinchado, único, 40 por ciento"
   (`AnnounceTarget`), read from the game's own target bar at the top of the screen.
+- Death: "Has muerto. resucitar en el punto de control", then the focused button (A). Y shows or hides the death
+  screen, so a Y meant for a skill can hide it: then "La pantalla de muerte está oculta: Y la muestra".
 - Discoveries: the first time the game shows an exit, a waypoint or checkpoint, or a boss in the area: "Nueva
   salida: Sierraclara", "Nuevo punto de control, cerca de Campamento de Sierraclara", "Jefe a la vista: El molinero
   hinchado" (`AnnounceDiscoveries`).

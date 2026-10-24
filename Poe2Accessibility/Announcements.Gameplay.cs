@@ -295,6 +295,18 @@ namespace Poe2Accessibility
             string.Join(". ", groups.Select(group =>
                 group.Count > 1 ? $"{group.Name}, {group.Count}, {StickDirections[group.Direction]}" : $"{group.Name}, {StickDirections[group.Direction]}"));
 
+        /// <summary>
+        ///     The death screen read on its own: "Has muerto. resucitar en el punto de control"; hidden, it says so and that Y
+        ///     (the game's hint "toggle death screen visibility [Y]") shows it.
+        /// </summary>
+        public static string DeathScreen(IReadOnlyList<string> texts, bool shown)
+        {
+            var read = texts.Count > 0 ? string.Join(". ", texts) : T("You have died", "Has muerto");
+            return shown ? read : $"{read}. {DeathScreenHidden}";
+        }
+
+        public static string DeathScreenHidden => T("The death screen is hidden: Y shows it", "La pantalla de muerte está oculta: Y la muestra");
+
         /// <summary>A place on a map by what it is beside: "cerca de Campamento de Sierraclara".</summary>
         public static string NearPlace(string name) => T($"near {name}", $"cerca de {name}");
 

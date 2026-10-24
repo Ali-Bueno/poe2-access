@@ -69,6 +69,7 @@ namespace Poe2Accessibility
         private BarrierWatch? barriers;
         private DiscoveryNarrator? discoveries;
         private EnemyNarrator? enemyNews;
+        private DeathWatch? deaths;
 
         /// <summary>Game sounds are cut to this length: repeated proximity cues must stay short.</summary>
         private const float GameSoundSeconds = 0.9f;
@@ -162,6 +163,7 @@ namespace Poe2Accessibility
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds, drops);
                 this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds);
                 this.enemyNews = new EnemyNarrator(this.entities, this.output);
+                this.deaths = new DeathWatch(this.locator, elements, this.output, this.log);
                 this.ApplySoundVolumes(this.Settings);
                 this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
                 this.screen = new ScreenWatcher(elements, this.log);
@@ -280,6 +282,10 @@ namespace Poe2Accessibility
                 this.Isolated("life", this.WatchLife);
                 this.Isolated("sounds", this.TickSounds);
                 this.Isolated("screen", () => this.NarrateScreenChanges(stateObject));
+                if (state == GameStateTypes.InGameState)
+                {
+                    this.Isolated("death", () => this.deaths?.Tick(stateObject));
+                }
                 this.Isolated("research", () =>
                 {
                     this.research?.Tick(state, stateObject, this.Settings.UiDumpRootAddressOverride, this.Settings.UiDumpMaxDepth, this.Settings.UiDumpMaxNodes);
@@ -343,6 +349,7 @@ namespace Poe2Accessibility
             while (this.screen.TryDequeue(out var change))
             {
                 this.log?.Info($"Screen {change.Kind} layer {change.Layer.Index}: {string.Join(" | ", change.Texts.Select(text => text.Button.Length > 0 ? $"{text.Text} [{text.Button}]" : text.Text))}");
+                this.deaths?.Saw(change.Layer.Address);
                 if (change.Kind == ScreenChangeKind.TopLayerChanged || this.Settings.AnnounceAppearingText)
                 {
                     this.narrator.OnScreenChange(change, this.screen.Current, this.focus.Current, this.focus.CurrentLayer);

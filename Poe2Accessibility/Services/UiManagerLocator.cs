@@ -83,6 +83,8 @@ namespace Poe2Accessibility.Services
 
         public IntPtr InGameHudLayer(IntPtr inGameState) => this.InGameLayer(inGameState, GameLayout.InGameUi.HudLayerOffset);
 
+        public IntPtr InGameDeathScreen(IntPtr inGameState) => this.InGameLayer(inGameState, GameLayout.InGameUi.DeathScreenOffset);
+
         /// <summary>A layer the container points to by field; only trusted when it really is one of its children.</summary>
         private IntPtr InGameLayer(IntPtr inGameState, int offset)
         {

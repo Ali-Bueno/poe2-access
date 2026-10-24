@@ -230,6 +230,12 @@ namespace Poe2Accessibility
             /// <summary>The HUD ("HUD", child 12 of G): quest tracker, flask charges, ground-item tooltips (2026-10-23).</summary>
             public const int HudLayerOffset = 0x558;
 
+            /// <summary>
+            ///     The death screen ("death_screen": title_text, respawn buttons), child 24 of G while shown; the same element
+            ///     across deaths in an area (dumps and screen logs, 2026-10-24).
+            /// </summary>
+            public const int DeathScreenOffset = 0xCE8;
+
             /// <summary>NPC dialogue box (speaker, line, Continue / choices), child 57 of G while open (2026-10-23).</summary>
             public const int NpcDialogueLayerOffset = 0x798;
 
