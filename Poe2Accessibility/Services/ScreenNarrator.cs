@@ -251,6 +251,14 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public void OnPreGameHints(ScreenSnapshot snapshot)
         {
+            if (this.FocusLayer?.Invoke() is { } focusLayer && focusLayer != IntPtr.Zero &&
+                snapshot.Find(focusLayer)?.Texts.Any(text => text.Name == GameLayout.InGameUi.MessageLabelName) == true)
+            {
+                // A message box holds the focus ("Disconnected… OK"): the bar still shows the screen behind it ("Press
+                // to play, A"), which is not what A does now (2026-10-24).
+                return;
+            }
+
             var legends = snapshot.Layers.Where(layer => layer.IsHintBar).SelectMany(layer => layer.Texts).ToList();
             var hints = Describe(legends);
             if (hints == this.lastHints)
