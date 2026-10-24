@@ -54,3 +54,10 @@ selection).
   valid player index"). With the Xbox pad (`serve --xbox`) plugged in before the game starts, Enter on the keyboard
   starts the game and the pad drives it; the virtual DS4 never got past that screen (2026-10-24). Entering with the
   mouse binds the keyboard instead, and the input method can only change out of the game.
+- `--wait` accepts at most 5 seconds: a larger value fails before sending anything (filtered output hides the error).
+- Escape on the login screen quits the game; GameHelper closes with it (`CloseWhenGameExit`), so start both again with
+  `launch.py all`.
+- Stopping the pad server unplugs the virtual pad: in game that is a disconnect ("tu dispositivo de control se ha
+  desconectado") back to the login screen.
+- A fresh first start (no `poe2_production_Config.ini`) is tested by moving that file aside with the game closed and
+  putting it back afterwards; Steam logs in without a form, the game starts in English.
