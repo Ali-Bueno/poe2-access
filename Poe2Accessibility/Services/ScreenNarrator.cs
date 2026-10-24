@@ -325,7 +325,16 @@ namespace Poe2Accessibility.Services
                     this.spokenHints.Add(Describe(new[] { legend }));
                 }
 
-                this.Speak("pre-game hints", Describe(fresh), false);
+                if (this.deferredFocus != null)
+                {
+                    // The focus waiting for its screen goes first and the bar after it: back at character selection
+                    // the buttons were said first and cut off by the character 60 ms later (2026-10-24).
+                    this.hintAfterFocus = Announcements.Sentences(new[] { this.hintAfterFocus, Describe(fresh) }.Where(part => part.Length > 0));
+                }
+                else
+                {
+                    this.Speak("pre-game hints", Describe(fresh), false);
+                }
             }
         }
 
