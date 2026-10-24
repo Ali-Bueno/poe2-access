@@ -246,6 +246,9 @@ namespace Poe2Accessibility
         /// <summary>A scanner entry of the unexplored category: where unseen ground begins.</summary>
         public static string UnexploredArea => T("Unexplored ground", "Zona sin explorar");
 
+        /// <summary>The scanner's entry for the place of the last death in this area (D2R).</summary>
+        public static string DeathPlace => T("Where you died", "Donde moriste");
+
         /// <summary>Gold picked up during play (D2R "Picked up 37 gold"): the counter's rise.</summary>
         /// <summary>A barrier that opened on its own (scanner-style place: "The way opened, 4 steps, left").</summary>
         public static string BarrierOpened => T("The way opened", "Se abrió el paso");

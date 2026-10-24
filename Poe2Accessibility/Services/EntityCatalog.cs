@@ -58,6 +58,15 @@ namespace Poe2Accessibility.Services
         /// <summary>Unexplored entries: this base plus their block (row in the high half), above the tile landmarks.</summary>
         private const uint UnexploredIdBase = 0xC0000000;
 
+        /// <summary>The place of the last death: one id between the tile landmarks and the unexplored blocks.</summary>
+        private const uint DeathPlaceId = UnexploredIdBase - 1;
+
+        /// <summary>
+        ///     Where the player last died (D2R death place), with the area instance it belongs to: listed among the exits
+        ///     whenever that instance is current, until the next death.
+        /// </summary>
+        private (string Area, ScanEntry Entry)? deathPlace;
+
         private const int MaxUnexplored = 8;
 
         /// <summary>The frontier scans the whole grid: recomputed at most this often (the many Entries() callers share it).</summary>
@@ -263,6 +272,11 @@ namespace Poe2Accessibility.Services
                 {
                     unseen.Add(landmark);
                 }
+            }
+
+            if (this.deathPlace is { } death && death.Area == area.AreaHash)
+            {
+                found.TryAdd(death.Entry.Id, death.Entry);
             }
 
             foreach (var frontier in this.Unexplored(area, player))
@@ -757,6 +771,17 @@ namespace Poe2Accessibility.Services
             }
 
             return null;
+        }
+
+        /// <summary>Notes where the player stands as the place of the death that just happened.</summary>
+        public void RememberDeath()
+        {
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            if (area.AreaHash.Length > 0 && area.Player.TryGetComponent<Render>(out var player))
+            {
+                var at = player.WorldPosition;
+                this.deathPlace = (area.AreaHash, new ScanEntry(DeathPlaceId, ScanCategory.Exits, Announcements.DeathPlace, at.X, at.Y, at.Z));
+            }
         }
 
         /// <summary>A living monster that is not the player's (minions are friendly).</summary>

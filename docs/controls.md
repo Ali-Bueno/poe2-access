@@ -27,7 +27,8 @@ first; both wrap and empty categories are skipped. The category is named only wh
 "Characters. Una, 14 steps, right 3, then up right".
 
 - Categories: **quest** (what the quest tracker names: the exit to the area it asks for, the boss to kill, the
-  NPC to talk to), exits (area transitions and named places, in the game's language), **unexplored** (where
+  NPC to talk to), exits (area transitions and named places, in the game's language; "Donde moriste" after a
+  death, while that area instance lasts), **unexplored** (where
   ground never seen begins, one entry per stretch and direction, nearest first: "Zona sin explorar, 7 pasos,
   izquierda"; ground within about 60 cells of where you walked counts as seen, and a wall with no way through
   hides what lies behind it; forgotten on leaving the area), waypoints and

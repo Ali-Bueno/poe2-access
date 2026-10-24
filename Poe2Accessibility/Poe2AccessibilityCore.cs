@@ -217,7 +217,7 @@ namespace Poe2Accessibility
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds, drops);
                 this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds, new KnownPlaces(Path.Join(this.DllDirectory, "config", "known-places.txt")));
                 this.enemyNews = new EnemyNarrator(this.entities, this.output);
-                this.deaths = new DeathWatch(this.locator, elements, this.output, this.log);
+                this.deaths = new DeathWatch(this.locator, elements, this.output, this.log) { Died = () => this.entities?.RememberDeath() };
                 this.ApplySoundVolumes(this.Settings);
                 this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
                 this.screen = new ScreenWatcher(elements, this.log);
