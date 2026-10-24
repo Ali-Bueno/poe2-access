@@ -198,7 +198,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (fresh.Value == this.Current.Value && fresh.Text == this.Current.Text)
+            if (fresh.Value == this.Current.Value && fresh.Text == this.Current.Text && fresh.IsExpanded == this.Current.IsExpanded)
             {
                 if (!fresh.Tooltip.SequenceEqual(this.Current.Tooltip))
                 {

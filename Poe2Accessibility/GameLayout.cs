@@ -123,6 +123,9 @@ namespace Poe2Accessibility
             /// <summary>Second {index, tagged pointer} record right after the first; hypothesis: the entry highlighted while the list is open.</summary>
             public const int HighlightIndexOffset = 0x528;
 
+            /// <summary>Byte, 1 while the combo is open (in-game options open in place: A, the D-pad steps, A or B); VSync and Mode, 2026-10-24.</summary>
+            public const int OpenFlagOffset = 0x538;
+
             public const int MaxEntries = 256;
         }
 

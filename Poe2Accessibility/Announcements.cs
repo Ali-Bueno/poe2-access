@@ -129,6 +129,8 @@ namespace Poe2Accessibility
         public static string ControlLabel(string humanisedId) => humanisedId switch
         {
             "league" => T("League", "Liga"),
+            "gateway" => T("Gateway", "Servidor"),
+            "language" => T("Language", "Idioma"),
             _ => humanisedId,
         };
 
@@ -480,6 +482,15 @@ namespace Poe2Accessibility
 
         /// <summary>"de", "del", "la", "of", "the", "to": the length of the words a phrase cannot end on.</summary>
         private const int MaxLinkWordLength = 3;
+
+        /// <summary>A combo opened in place: the D-pad now steps its value.</summary>
+        public static string ComboOpened(string valueAndPosition) => T($"Choosing: {valueAndPosition}", $"Eligiendo: {valueAndPosition}");
+
+        /// <summary>A combo closed on its value.</summary>
+        public static string ComboClosed(string value) => T($"Chosen: {value}", $"Elegido: {value}");
+
+        /// <summary>A changed value with its place among the choices: "Adaptativo (experimental), 3 de 4".</summary>
+        public static string ValueAt(string value, string position) => position.Length == 0 ? value : $"{value}, {position}";
 
         /// <summary>One table row: "Maximum Life, 42"; a caption ending in ':' runs into its value ("LVL: 1").</summary>
         public static string LabelValue(string label, string value) => label.EndsWith(':') ? $"{label} {value}" : $"{label}, {value}";

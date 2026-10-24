@@ -103,12 +103,16 @@ namespace Poe2Accessibility.Services
             var input = ownText.Length == 0 && !info.HasFlagBit(GameLayout.Element.TextInputFlagBit) ? this.TextInputChild(info) : IntPtr.Zero;
             var role = input != IntPtr.Zero ? UiRole.TextField : this.InferRole(info, ownText.Length > 0);
             var value = string.Empty;
+            var valuePosition = string.Empty;
+            var expanded = false;
             var namedById = false;
             string label;
             switch (role)
             {
                 case UiRole.ComboBox:
                     value = this.ComboBoxValue(info, ownText);
+                    valuePosition = this.ComboValuePosition(info, value);
+                    expanded = this.reader.TryRead<byte>(info.Address + GameLayout.ComboBox.OpenFlagOffset, out var open) && open == 1;
                     label = Humanise(info.Name);
                     break;
                 case UiRole.TextField:
@@ -220,6 +224,8 @@ namespace Poe2Accessibility.Services
                 Role = role,
                 Text = label,
                 Value = value,
+                ValuePosition = valuePosition,
+                IsExpanded = expanded,
                 IsVisible = this.elements.IsVisible(info),
                 Context = context,
                 NamedByControlId = namedById,
@@ -235,6 +241,15 @@ namespace Poe2Accessibility.Services
         /// <summary>Visible text first (login gateway combo shows it in a text field); otherwise the selected entry from the object.</summary>
         private string ComboBoxValue(in UiElementReader.ElementInfo info, string ownText)
         {
+            var combo = this.comboBoxes.Read(info.Address);
+            var open = this.reader.TryRead<byte>(info.Address + GameLayout.ComboBox.OpenFlagOffset, out var flag) && flag == 1;
+            if (open && combo.IsOpenOnOtherEntry && combo.Highlighted.Length > 0)
+            {
+                // List open and the user is on another entry: that entry is what matters now (the gateway list keeps
+                // showing the committed server while the D-pad moves, 2026-10-24).
+                return combo.Highlighted;
+            }
+
             // The league selector's "league_combobox_popup" shows the league's description beside it while focused:
             // a tooltip, not the value.
             var shown = ownText.Length > 0 ? ownText : this.FindDescendantText(info, CaptionSearchDepth, null, PopupSuffix);
@@ -243,19 +258,28 @@ namespace Poe2Accessibility.Services
                 return shown;
             }
 
-            var combo = this.comboBoxes.Read(info.Address);
-            if (combo.IsOpenOnOtherEntry && combo.Highlighted.Length > 0)
-            {
-                // List open and the user is on another entry: that entry is what matters now.
-                return combo.Highlighted;
-            }
-
             if (combo.Selected.Length > 0)
             {
                 return combo.Selected;
             }
 
             return combo.Count > 0 ? Announcements.ComboPosition(combo.SelectedIndex + 1, combo.Count) : string.Empty;
+        }
+
+        /// <summary>
+        ///     The shown value's place among the combo's entries. In-game option combos open in place: A, then the D-pad
+        ///     steps the value itself (no list on screen), so the position is all that tells how many choices are left.
+        /// </summary>
+        private string ComboValuePosition(in UiElementReader.ElementInfo info, string value)
+        {
+            var combo = this.comboBoxes.Read(info.Address);
+            if (combo.Count < 2 || value.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            var index = value == combo.Highlighted ? combo.HighlightIndex : value == combo.Selected ? combo.SelectedIndex : -1;
+            return index >= 0 && index < combo.Count ? Announcements.ListPosition(index + 1, combo.Count) : string.Empty;
         }
 
         /// <summary>The game shows a value label next to some sliders; the rest only have the number in memory.</summary>

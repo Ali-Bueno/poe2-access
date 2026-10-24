@@ -126,6 +126,7 @@ namespace Poe2Accessibility.Services
         private bool inGame;
         private IntPtr valueOwner;
         private string lastValue = string.Empty;
+        private bool lastExpanded;
 
         /// <summary>
         ///     A new area (its name changed): the HUD's and the tutorial box's texts are news again. Not on every game
@@ -258,6 +259,7 @@ namespace Poe2Accessibility.Services
 
             this.valueOwner = node.Address;
             this.lastValue = node.Value;
+            this.lastExpanded = node.IsExpanded;
             var focused = this.Focused(node);
             if (node.Group.Length > 0 && node.Group != this.lastGroup)
             {
@@ -347,6 +349,8 @@ namespace Poe2Accessibility.Services
         public void OnValueChanged(AccessibleUiNode node)
         {
             var before = node.Address == this.valueOwner ? this.lastValue : string.Empty;
+            var wasExpanded = node.Address == this.valueOwner && this.lastExpanded;
+            this.lastExpanded = node.IsExpanded;
             this.valueOwner = node.Address;
             this.lastValue = node.Value;
             if (node.Role is UiRole.GridCell or UiRole.ItemSlot or UiRole.ListItem)
@@ -368,8 +372,17 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (node.Role == UiRole.ComboBox && node.IsExpanded != wasExpanded && node.Value == before)
+            {
+                // Opened or closed in place, the value unchanged: A on an in-game option, A again to keep it.
+                this.output.Speak(node.IsExpanded
+                    ? Announcements.ComboOpened(Announcements.ValueAt(node.Value, node.ValuePosition))
+                    : Announcements.ComboClosed(node.Value), true);
+                return;
+            }
+
             var edit = node.Role == UiRole.TextField ? TextEdit.Between(before, node.Value) : null;
-            this.output.Speak(edit is { } typed ? Announcements.Typed(typed.Added, typed.Removed) : Announcements.ValueOrEmpty(node.Value), true);
+            this.output.Speak(edit is { } typed ? Announcements.Typed(typed.Added, typed.Removed) : Announcements.ValueAt(Announcements.ValueOrEmpty(node.Value), node.ValuePosition), true);
         }
 
         public void OnScreenChange(ScreenChange change, ScreenSnapshot snapshot, AccessibleUiNode? focus, IntPtr focusLayer)

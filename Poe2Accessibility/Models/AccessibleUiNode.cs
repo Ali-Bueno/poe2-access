@@ -45,6 +45,12 @@ namespace Poe2Accessibility.Models
         /// <summary>Current value for value-bearing controls (combo box selection, text field contents).</summary>
         public string Value { get; init; } = string.Empty;
 
+        /// <summary>Where the value stands among its choices (combo boxes: "3 de 4"), said when the value changes.</summary>
+        public string ValuePosition { get; init; } = string.Empty;
+
+        /// <summary>A combo box whose choices are open (in game: stepped in place with the D-pad).</summary>
+        public bool IsExpanded { get; init; }
+
         public bool IsVisible { get; init; }
 
         /// <summary>"3 of 6" in the list of sibling controls; empty when the control is alone.</summary>
