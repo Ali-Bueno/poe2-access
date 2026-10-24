@@ -55,6 +55,7 @@ namespace Poe2Accessibility.Services
             this.known.Clear();
             this.baseline = true;
             this.movesBaseline = true;
+            this.weaponSet = -1;
         }
 
         /// <summary>Per frame; <paramref name="playing"/> false while a panel is open (the baseline still follows).</summary>
@@ -230,8 +231,40 @@ namespace Poe2Accessibility.Services
                 this.NameOf(entity); // read while it is there: a swapped-out item's entity is gone ("Unequipped: unknown item")
             }
 
+            this.TickWeaponSet(located, enabled);
             this.where = located;
             this.movesBaseline = false;
+        }
+
+        /// <summary>The weapon set in use (Stats component, GameHelper's CurrentWeaponIndex: 0 or 1); -1 until read.</summary>
+        private int weaponSet = -1;
+
+        /// <summary>
+        ///     D2R weapon swap: RT in the inventory changes the set in use with nothing on screen to read but the slots;
+        ///     the new set is said with what it holds ("Set de armas 2, vacío", 2026-10-24).
+        /// </summary>
+        private void TickWeaponSet(Dictionary<IntPtr, InventoryName> located, bool enabled)
+        {
+            if (!Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<Stats>(out var stats) ||
+                stats.CurrentWeaponIndex is not (0 or 1))
+            {
+                return; // a moved offset reads anything else
+            }
+
+            var previous = this.weaponSet;
+            this.weaponSet = stats.CurrentWeaponIndex;
+            if (previous < 0 || previous == this.weaponSet || !enabled)
+            {
+                return;
+            }
+
+            var (main, off) = this.weaponSet == 0 ? (InventoryName.Weapon1, InventoryName.Offhand1) : (InventoryName.Weapon2, InventoryName.Offhand2);
+            var held = located.Where(pair => pair.Value == main || pair.Value == off)
+                .OrderBy(pair => pair.Value == main ? 0 : 1)
+                .Select(pair => this.NameOf(pair.Key))
+                .Distinct()
+                .ToList();
+            this.output.Speak(Announcements.WeaponSet(this.weaponSet + 1, held), true);
         }
 
         /// <summary>One settled batch of departures and arrivals, said in that order of importance.</summary>

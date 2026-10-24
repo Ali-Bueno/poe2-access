@@ -58,6 +58,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(FarBarrierStaysClosedUntilSeenNear), FarBarrierStaysClosedUntilSeenNear);
             Run(nameof(ScrolledRowsAreNotNews), ScrolledRowsAreNotNews);
             Run(nameof(WrappedLabelsJoin), WrappedLabelsJoin);
+            Run(nameof(InlineItemArtIsNamed), InlineItemArtIsNamed);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -509,6 +510,19 @@ namespace Poe2Accessibility.Tests
             Set(22, 22, true);
             var route = RoutePlanner.FindRoute(grid, row, new System.Numerics.Vector2(22.4f, 22.4f), new System.Numerics.Vector2(50, 50), false, out var reached);
             Equal(true, route != null && reached, "a route from the ground around the pocket");
+        }
+
+        private static void InlineItemArtIsNamed()
+        {
+            ItemNames.Set(new() { ["en"] = new() { ["CurrencyIdentification"] = "Scroll of Wisdom", ["CurrencyUpgradeToMagic"] = "Orb of Transmutation" } });
+            const string identify = "Identify <<itemvisual:CurrencyIdentification>> x 1";
+            Equal(true, ControllerGlyphs.HasUnnamedItemArt(identify), "the identify legend shows its scroll only as art");
+            Equal("Identify Scroll of Wisdom x 1", ControllerGlyphs.Plain(identify), "the art is named in place");
+            const string named = "Use an <<itemvisual:CurrencyUpgradeToMagic>> <currencyitem>{Orb of Transmutation}";
+            Equal(false, ControllerGlyphs.HasUnnamedItemArt(named), "art followed by its own name is not named twice");
+            Equal("Use an Orb of Transmutation", ControllerGlyphs.Render(named), "no stray brackets where the art was");
+            Equal(false, ControllerGlyphs.HasUnnamedItemArt("Identify <<itemvisual:Unknown>> x 1"), "unknown art stays as the game strips it");
+            ItemNames.Set(new());
         }
 
         private static void WrappedLabelsJoin()

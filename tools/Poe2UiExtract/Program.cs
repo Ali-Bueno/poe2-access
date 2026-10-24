@@ -57,6 +57,12 @@ if (args.Length > 0 && string.Equals(args[0], "item-sounds", StringComparison.Or
     return ItemSoundExtractor.Run(game, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-sounds.json");
 }
 
+// Args: item-names <gameDir> [outFile]  -- currency item names per language, for inline item art in legends.
+if (args.Length > 1 && string.Equals(args[0], "item-names", StringComparison.OrdinalIgnoreCase))
+{
+    return ItemNameExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-names.json");
+}
+
 // Args: areas <gameDir> <outFile>  -- localized world-area names from WorldAreas.datc64 as { lang: { id: name } }.
 if (args.Length > 0 && string.Equals(args[0], "areas", StringComparison.OrdinalIgnoreCase))
 {

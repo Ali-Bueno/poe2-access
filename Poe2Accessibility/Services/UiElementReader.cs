@@ -128,7 +128,8 @@ namespace Poe2Accessibility.Services
                 return false;
             }
 
-            text = stripped.Trim();
+            // The stripped copy leaves a gap where inline item art was ("Identificar   x 1"): the item is named there.
+            text = ControllerGlyphs.HasUnnamedItemArt(taggedText) ? ControllerGlyphs.Plain(taggedText) : stripped.Trim();
             tagged = taggedText;
             return true;
         }

@@ -216,6 +216,12 @@ namespace Poe2Accessibility
 
         public static string Unequipped(string name) => T($"Unequipped: {name}", $"Desequipado: {name}");
 
+        /// <summary>The weapon set swapped to and what it holds (D2R "Armas 2: Arco largo, Carcaj").</summary>
+        public static string WeaponSet(int number, System.Collections.Generic.IReadOnlyList<string> held) =>
+            held.Count == 0
+                ? T($"Weapon set {number}, empty", $"Set de armas {number}, vacío")
+                : T($"Weapon set {number}: ", $"Set de armas {number}: ") + string.Join(", ", held);
+
         /// <summary>Arrived in the main inventory with a panel open, not by hand: bought, withdrawn.</summary>
         public static string NewInInventory(string name) => T($"New in inventory: {name}", $"Nuevo en el inventario: {name}");
 

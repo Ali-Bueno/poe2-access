@@ -11,7 +11,7 @@ internal static class AreaExtractor
 {
     private static readonly byte[] Marker = { 0xBB, 0xBB, 0xBB, 0xBB, 0xBB, 0xBB, 0xBB, 0xBB };
 
-    private static readonly Dictionary<string, string> LanguageCodes = new(StringComparer.OrdinalIgnoreCase)
+    internal static readonly Dictionary<string, string> LanguageCodes = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Spanish"] = "es", ["French"] = "fr", ["German"] = "de", ["Portuguese"] = "pt", ["Russian"] = "ru",
         ["Thai"] = "th", ["Japanese"] = "ja", ["Korean"] = "ko", ["Traditional Chinese"] = "zh-TW",

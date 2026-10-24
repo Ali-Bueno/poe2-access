@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text;
     using System.Text.RegularExpressions;
 
@@ -88,6 +89,17 @@ namespace Poe2Accessibility.Services
         private static readonly Regex WideGap = new(@"[ \t]{3,}", RegexOptions.Compiled);
 
         /// <summary>
+        ///     Inline item art ("Identificar &lt;&lt;itemvisual:CurrencyIdentification&gt;&gt; x 1"); "Use an &lt;&lt;itemvisual:…&gt;&gt;
+        ///     &lt;currencyitem&gt;{Orb of Transmutation}" names the item itself right after.
+        /// </summary>
+        private static readonly Regex ItemArt = new(@"<<itemvisual:(\w+)>>(\s*<\w+>\{)?", RegexOptions.Compiled);
+
+        /// <summary>Any other inline art token, dropped as the game's stripped copy drops it.</summary>
+        private static readonly Regex ArtToken = new(@"<<\w+:[^>]*>>", RegexOptions.Compiled);
+
+        private static readonly Regex HorizontalSpaces = new(@"[ \t]{2,}", RegexOptions.Compiled);
+
+        /// <summary>
         ///     True when every button of a tagged text comes first (a legend: "&lt;&lt;rt&gt;&gt; + &lt;&lt;lstick&gt;&gt; Move"); false when
         ///     a button also sits later in the text, which is then a sentence read in place ("stick izquierdo para
         ///     moverte, stick derecho para apuntar").
@@ -108,7 +120,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static string Render(string tagged)
         {
-            var source = WideGap.Replace(tagged, ", ");
+            var source = WideGap.Replace(NameItemArt(tagged), ", ");
             var spoken = MarkupToken.Replace(source, match =>
             {
                 if (!MarkupFiles.TryGetValue(match.Groups[1].Value, out var file))
@@ -123,6 +135,26 @@ namespace Poe2Accessibility.Services
             spoken = Tag.Replace(spoken, string.Empty).Replace("{", string.Empty).Replace("}", string.Empty);
             return SpaceBeforeStop.Replace(Spaces.Replace(spoken, " ").Trim(), "$1"); // "press A ." from "<<a>>."
         }
+
+        /// <summary>True when the text shows an item only by its art, one <see cref="ItemNames"/> can name.</summary>
+        public static bool HasUnnamedItemArt(string tagged) =>
+            ItemArt.Matches(tagged).Any(match => !match.Groups[2].Success && ItemNames.Of(match.Groups[1].Value) != null);
+
+        /// <summary>
+        ///     The plain text as the game strips it, the item art named in place ("Identificar Pergamino de sabiduría x 1"):
+        ///     buttons and other art dropped, tags and braces gone, line breaks kept.
+        /// </summary>
+        public static string Plain(string tagged)
+        {
+            var plain = Tag.Replace(MarkupToken.Replace(NameItemArt(tagged), " "), string.Empty).Replace("{", string.Empty).Replace("}", string.Empty);
+            return SpaceBeforeStop.Replace(HorizontalSpaces.Replace(plain, " "), "$1").Trim();
+        }
+
+        /// <summary>Item art the text does not name itself is named; all other art tokens go.</summary>
+        private static string NameItemArt(string tagged) =>
+            ArtToken.Replace(
+                ItemArt.Replace(tagged, match => match.Groups[2].Success || ItemNames.Of(match.Groups[1].Value) is not { } name ? match.Groups[2].Value : $" {name} "),
+                string.Empty);
 
         /// <summary>The text before a glyph already ends with the button's name ("joystick derecho" before "stick derecho").</summary>
         private static bool NamedBefore(string before, string name)

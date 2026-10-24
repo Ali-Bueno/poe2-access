@@ -12,6 +12,11 @@ tools\Poe2UiExtract\bin\Release\net10.0\Poe2UiExtract.exe "D:\games\steam\steama
 ```
 Needs `oo2core.dll` next to the exe (see below). Output lives in `external/poe2-ui/` (gitignored: game data).
 
+### `item-names` command - currency names for inline item art
+`dotnet run --project tools/Poe2UiExtract -c Release -- item-names "D:/games/steam/steamapps/common/Path of Exile 2"`
+writes `Poe2Accessibility/catalog/item-names.json` ({ language: { idTail: name } }, BaseItemTypes Id +0x0 / Name +0x20);
+it stops with an error when those columns move (find them again with `dat-strings`).
+
 ### `item-sounds` and `sounds` commands - game audio cues
 Run in this order, with forward slashes (`dotnet` under bash eats backslashes):
 ```

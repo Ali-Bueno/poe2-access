@@ -180,6 +180,7 @@ namespace Poe2Accessibility
                 this.entityDump = new EntityDump(elements, memory, this.log, debugDirectory);
                 this.terrainDump = new TerrainDump(memory, this.log, debugDirectory);
                 this.actorTrace = new ActorTrace(memory, this.log, debugDirectory);
+                ItemNames.Load(this.log, Path.Join(this.DllDirectory, "catalog", "item-names.json"));
                 // GameHelper's Radar table; a test package ships only this plugin, with a copy of it in its catalog.
                 var landmarks = LandmarkTable.Load(
                     this.log,

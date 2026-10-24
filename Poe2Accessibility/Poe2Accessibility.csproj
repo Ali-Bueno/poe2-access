@@ -43,6 +43,8 @@
     <!-- Named tiles (exits) for areas GameHelper's Radar table lacks; same format as its important_tgt_files.txt. -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\landmarks.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\area-names.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
+    <!-- Currency item names for inline item art in legends (tools/Poe2UiExtract item-names). -->
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\item-names.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\item-names.json')" />
     <!-- The dat columns names are read from, found again by tools/Poe2UiExtract dat-columns (the launcher, after a patch). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\dat-columns.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\dat-columns.json')" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\dodge-timings.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\dodge-timings.txt')" />
