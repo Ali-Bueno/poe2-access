@@ -454,7 +454,10 @@ namespace Poe2Accessibility
 
         /// <summary>A label wrapped over several lines by the layout (the world map legend) read as one line.</summary>
         public static string Flatten(string text) =>
-            text.Contains('\n') ? JoinLines(text.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)) : text;
+            SpaceRuns.Replace(text.Contains('\n') ? JoinLines(text.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)) : text, " ");
+
+        /// <summary>Where inline art was cut out of a text ("Identify <<itemvisual:…>> x 1" reads "Identify   x 1").</summary>
+        private static readonly System.Text.RegularExpressions.Regex SpaceRuns = new(" {2,}", System.Text.RegularExpressions.RegexOptions.Compiled);
 
         /// <summary>
         ///     Lines of one text: a line starting in lower case continues the previous one (layout wrapping, "Socket

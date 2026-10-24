@@ -225,6 +225,11 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            foreach (var entity in located.Keys)
+            {
+                this.NameOf(entity); // read while it is there: a swapped-out item's entity is gone ("Unequipped: unknown item")
+            }
+
             this.where = located;
             this.movesBaseline = false;
         }
@@ -314,13 +319,18 @@ namespace Poe2Accessibility.Services
         /// <summary>An item's name, kept after it leaves (a sold item can no longer be read).</summary>
         private string NameOf(IntPtr entity)
         {
-            if (!this.names.TryGetValue(entity, out var name))
+            if (this.names.TryGetValue(entity, out var name))
             {
-                name = this.reader.DescribeItemEntity(entity) ?? Announcements.UnknownItem;
-                this.names[entity] = name;
+                return name;
             }
 
-            return name;
+            if (this.reader.DescribeItemEntity(entity) is not { } read)
+            {
+                return Announcements.UnknownItem; // not kept: the next poll may read it
+            }
+
+            this.names[entity] = read;
+            return read;
         }
 
         /// <summary>

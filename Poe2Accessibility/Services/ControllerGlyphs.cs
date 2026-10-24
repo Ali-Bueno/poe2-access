@@ -71,6 +71,10 @@ namespace Poe2Accessibility.Services
         private static readonly Regex OtherPlayerToken = new(@"<<\w+;[1-9]>>", RegexOptions.Compiled);
         private static readonly Regex Tag = new(@"<[^<>]*>", RegexOptions.Compiled);
         private static readonly Regex Spaces = new(@"\s+", RegexOptions.Compiled);
+        private static readonly Regex SpaceBeforeStop = new(@"\s+([.,;:!?])", RegexOptions.Compiled);
+
+        /// <summary>A button name's last word this long is a word the sentence may already say ("derecho", "stick"); "A" is not.</summary>
+        private const int MinNamedWordChars = 4;
 
         /// <summary>The run of buttons a legend starts with ("&lt;&lt;rt&gt;&gt; + &lt;&lt;lstick&gt;&gt; "), joined by "+" or spaces.</summary>
         private static readonly Regex LeadingTokens = new(@"^\s*(?:<<\w+(?:;[^>]*)?>>\s*\+?\s*)+", RegexOptions.Compiled);
@@ -99,10 +103,27 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static string Render(string tagged)
         {
-            var spoken = MarkupToken.Replace(WideGap.Replace(tagged, ", "), match =>
-                MarkupFiles.TryGetValue(match.Groups[1].Value, out var file) ? $" {Announcements.ButtonName(file, PlayStationSeen)} " : " ");
+            var source = WideGap.Replace(tagged, ", ");
+            var spoken = MarkupToken.Replace(source, match =>
+            {
+                if (!MarkupFiles.TryGetValue(match.Groups[1].Value, out var file))
+                {
+                    return " ";
+                }
+
+                // "with the right stick <<rstick>> to strafe": the sentence names the button, the icon only shows it.
+                var name = Announcements.ButtonName(file, PlayStationSeen);
+                return NamedBefore(source[..match.Index], name) ? " " : $" {name} ";
+            });
             spoken = Tag.Replace(spoken, string.Empty).Replace("{", string.Empty).Replace("}", string.Empty);
-            return Spaces.Replace(spoken, " ").Trim();
+            return SpaceBeforeStop.Replace(Spaces.Replace(spoken, " ").Trim(), "$1"); // "press A ." from "<<a>>."
+        }
+
+        /// <summary>The text before a glyph already ends with the button's name ("joystick derecho" before "stick derecho").</summary>
+        private static bool NamedBefore(string before, string name)
+        {
+            var last = name.Split(' ', StringSplitOptions.RemoveEmptyEntries) is { Length: > 0 } words ? words[^1] : string.Empty;
+            return last.Length >= MinNamedWordChars && Tag.Replace(before, string.Empty).TrimEnd().EndsWith(last, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>

@@ -29,9 +29,10 @@ namespace Poe2Accessibility.Services
             var top = position.Y - (size.Y / 2);
             foreach (var siblingAddress in this.elements.ReadChildren(parent))
             {
-                if (siblingAddress == info.Address || !this.elements.TryReadElement(siblingAddress, out var sibling) || !sibling.IsVisibleFlag)
+                if (siblingAddress == info.Address || !this.elements.TryReadElement(siblingAddress, out var sibling) || !sibling.IsVisibleFlag ||
+                    sibling.HasFlagBit(GameLayout.Element.NavigableFlagBit))
                 {
-                    continue;
+                    continue; // another widget's caption ("Life" above "Armour") is not this one's value
                 }
 
                 var text = this.TextInside(sibling, OverlayTextDepth, position.X, top, position.X + size.X, position.Y + size.Y);

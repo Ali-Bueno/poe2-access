@@ -96,7 +96,8 @@ namespace Poe2Accessibility.Services
                 // 2026-10-24): no glyph, the skill or action it holds names it. The options' combo boxes are navigable
                 // too, with their description as tooltip: they carry the interactive bit, the picker's cells do not.
                 var held = skill.Length > 0 ? skill : bound.Length > 0 ? bound : clears ? Announcements.ClearBinding : string.Empty;
-                return held.Length == 0 || !info.HasFlagBit(GameLayout.Element.NavigableFlagBit) || info.HasFlagBit(GameLayout.Element.InteractiveFlagBit)
+                return held.Length == 0 || !info.HasFlagBit(GameLayout.Element.NavigableFlagBit) || info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) ||
+                       !this.InOneRow(info)
                     ? null
                     : new AccessibleUiNode
                 {
@@ -188,6 +189,30 @@ namespace Poe2Accessibility.Services
             var row = cells.Select(other => other.Y).Distinct().Count(top => top < y);
             var column = cells.Count(other => other.Y == y && other.X < x);
             return Announcements.GridPosition(column, row);
+        }
+
+        /// <summary>
+        ///     The navigable siblings of a cell share its row, as the picker's row groups do; the character panel's stat
+        ///     icons share one parent over several rows (a resistance read "column 1, row 4" without its value, 2026-10-24).
+        /// </summary>
+        private bool InOneRow(in UiElementReader.ElementInfo cell)
+        {
+            if (!this.elements.TryReadElement(cell.Raw.ParentPtr, out var group))
+            {
+                return false;
+            }
+
+            var y = MathF.Round(cell.Raw.RelativePosition.Y);
+            foreach (var siblingAddress in this.elements.ReadChildren(group))
+            {
+                if (this.elements.TryReadElement(siblingAddress, out var sibling) && sibling.IsVisibleFlag &&
+                    sibling.HasFlagBit(GameLayout.Element.NavigableFlagBit) && MathF.Round(sibling.Raw.RelativePosition.Y) != y)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>A caption drawn as an image among the control's children: the weapon-set numeral (2026-10-24).</summary>

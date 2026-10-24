@@ -203,9 +203,10 @@ namespace Poe2Accessibility.Services
                 tooltip.RemoveAt(0);
             }
 
-            if (this.InGame && value.Length == 0 && tooltip.Count > 0 && role is UiRole.Panel or UiRole.Unknown)
+            if (this.InGame && value.Length == 0 && tooltip.Count > 0 && role is UiRole.Panel or UiRole.Unknown && !label.Any(char.IsDigit))
             {
-                // An inspectable widget (character panel stat): its number is drawn by a sibling.
+                // An inspectable widget (character panel stat): its number is drawn by a sibling, unless its own caption
+                // holds it ("Armour, 0%").
                 value = this.OverlayValue(info, label);
             }
 
