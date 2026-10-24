@@ -174,7 +174,7 @@ namespace Poe2Accessibility.Services
             }
 
             var item = (Item)Activator.CreateInstance(typeof(Item), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { entity }, null)!;
-            var path = item.Path ?? string.Empty;
+            var path = ItemPath(item);
             if (path.Contains("Gold", StringComparison.OrdinalIgnoreCase))
             {
                 return "gold";
@@ -191,6 +191,20 @@ namespace Poe2Accessibility.Services
             }
 
             return item.TryGetComponent<Mods>(out var mods) && mods.Rarity is Rarity.Rare or Rarity.Unique ? "rare" : "item";
+        }
+
+        /// <summary>The item's base type id (its metadata path, "Metadata/Items/Currency/CurrencyIdentification"); empty if unreadable.</summary>
+        public string ItemBaseId(IntPtr entity) =>
+            entity == IntPtr.Zero || !this.IsItemEntity(entity)
+                ? string.Empty
+                : ItemPath((Item)Activator.CreateInstance(typeof(Item), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { entity }, null)!);
+
+        /// <summary>The entity path without the "@level" suffix some item paths carry.</summary>
+        private static string ItemPath(Item item)
+        {
+            var path = item.Path ?? string.Empty;
+            var at = path.IndexOf('@', StringComparison.Ordinal);
+            return at < 0 ? path : path[..at];
         }
 
         /// <summary>Item entity behind an item element, zero otherwise.</summary>

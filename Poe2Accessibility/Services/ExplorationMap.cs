@@ -68,6 +68,14 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>The ground at <paramref name="cell"/> (grid cells) has been seen.</summary>
+        public bool IsSeen(Vector2 cell)
+        {
+            var x = (int)(cell.X / BlockCells);
+            var y = (int)(cell.Y / BlockCells);
+            return x >= 0 && y >= 0 && x < this.blocksX && y < this.blocksY && this.seen[(y * this.blocksX) + x];
+        }
+
         /// <summary>Walkable grid cells to head for, one per unexplored group and direction, nearest first.</summary>
         public IReadOnlyList<Vector2> Frontier(byte[] grid, int bytesPerRow, Vector2 from, int maxEntries)
         {

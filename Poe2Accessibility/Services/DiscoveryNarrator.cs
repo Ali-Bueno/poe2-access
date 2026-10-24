@@ -9,7 +9,8 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     Discoveries (D2R exploration.md): the first time the game shows an exit, a waypoint or checkpoint, or a
-    ///     unique monster in this area, it is named after what is being said ("Nueva salida: Sierraclara") with a
+    ///     unique monster in this area, it is named after what is being said ("Nueva salida: Sierraclara"; a checkpoint
+    ///     by the named place beside it, as on its travel map: "Nuevo punto de control, cerca de Sierraclara") with a
     ///     short sound. What surrounds the player when the area loads is not news (the exit just taken), nor anything
     ///     known when the host starts inside an area; finds in the first seconds wait until the area name has been said.
     /// </summary>
@@ -65,7 +66,8 @@ namespace Poe2Accessibility.Services
             this.lastPoll = now;
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
             var arriving = now - this.areaStartedAt < ArrivalMs;
-            foreach (var entry in this.catalog.Entries())
+            var entries = this.catalog.Entries();
+            foreach (var entry in entries)
             {
                 if (!EntityCatalog.IsEntity(entry) || !IsDiscovery(entry) || !this.seen.Add(entry.Id))
                 {
@@ -85,7 +87,10 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            this.output.Say(SpeechKind.Places, string.Join(". ", this.waiting.Select(Announcements.Discovered)));
+            string Near(ScanEntry entry) => entry.Kind == "checkpoint"
+                ? MapPlaces.NamedNear(new Vector2(entry.WorldX, entry.WorldY), entries, CheckpointPlaces.NearPlaceWorld)?.Name ?? string.Empty
+                : string.Empty;
+            this.output.Say(SpeechKind.Places, string.Join(". ", this.waiting.Select(entry => Announcements.Discovered(entry, Near(entry)))));
             if (this.sound != null)
             {
                 this.audio.Play(this.sound, 0f, 1f, this.Gain);

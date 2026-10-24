@@ -13,8 +13,10 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     The scanner's view of the area: GameHelper's awake entities sorted into <see cref="ScanCategory"/>,
-    ///     named as the game names them, nearest first. Exits, waypoints and NPCs stay listed at their last known
-    ///     place once seen (the game unloads far entities), until the area changes.
+    ///     named as the game names them, nearest first. Only what a sighted player has seen (the minimap shows no
+    ///     more): enemies while on screen, everything else once it has been on screen or on explored ground, and the
+    ///     area's named tiles once their ground is explored. Exits, waypoints and NPCs then stay listed at their last
+    ///     known place (the game unloads far entities), until the area changes.
     /// </summary>
     public sealed class EntityCatalog
     {
@@ -75,6 +77,8 @@ namespace Poe2Accessibility.Services
         private readonly Func<string> areaId;
         private readonly PluginLog log;
         private readonly Dictionary<uint, ScanEntry> remembered = new();
+        /// <summary>Entities and named tiles the player has seen in this area (see <see cref="Sighted"/>).</summary>
+        private readonly HashSet<uint> sighted = new();
         private readonly ExplorationMap explored = new();
         /// <summary>Recent live walkable grids (GameLayout-free: whole copies), oldest first.</summary>
         private readonly Queue<byte[]> samples = new();
@@ -111,6 +115,7 @@ namespace Poe2Accessibility.Services
         public void Forget()
         {
             this.remembered.Clear();
+            this.sighted.Clear();
             this.explored.Reset();
             lock (this.samplesLock)
             {
@@ -163,6 +168,11 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
+                if (!this.Sighted(entry, render.WorldPosition, area.WorldToGridConvertor))
+                {
+                    continue;
+                }
+
                 found[entry.Id] = entry;
                 if (Landmarks.Contains(entry.Category) || Loot.Contains(entry.Category))
                 {
@@ -189,7 +199,11 @@ namespace Poe2Accessibility.Services
 
             foreach (var landmark in this.TileLandmarks(area, player.WorldPosition.Z))
             {
-                found.TryAdd(landmark.Id, landmark);
+                var place = new StdTuple3D<float> { X = landmark.WorldX, Y = landmark.WorldY, Z = landmark.WorldZ };
+                if (this.Sighted(landmark, place, area.WorldToGridConvertor))
+                {
+                    found.TryAdd(landmark.Id, landmark);
+                }
             }
 
             foreach (var frontier in this.Unexplored(area, player))
@@ -487,6 +501,32 @@ namespace Poe2Accessibility.Services
             return this.unexplored;
         }
 
+        /// <summary>
+        ///     What a sighted player knows of: an enemy only while the camera shows it (the minimap draws no monsters),
+        ///     other players always (the map draws the party), anything else from the moment it is on screen or its
+        ///     ground has been explored.
+        /// </summary>
+        private bool Sighted(ScanEntry entry, StdTuple3D<float> place, float worldToGrid)
+        {
+            if (entry.Category == ScanCategory.Enemies)
+            {
+                return ScreenProjection.IsOnScreen(place);
+            }
+
+            if (entry.Category == ScanCategory.Players || this.sighted.Contains(entry.Id))
+            {
+                return true;
+            }
+
+            if (!ScreenProjection.IsOnScreen(place) && !this.explored.IsSeen(new Vector2(place.X, place.Y) / worldToGrid))
+            {
+                return false;
+            }
+
+            this.sighted.Add(entry.Id);
+            return true;
+        }
+
         private static float Distance(StdTuple3D<float> origin, ScanEntry entry) =>
             new Vector2(entry.WorldX - origin.X, entry.WorldY - origin.Y).Length();
 
@@ -507,6 +547,7 @@ namespace Poe2Accessibility.Services
             var name = this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty;
             var path = entity.Path ?? string.Empty;
             var kind = string.Empty;
+            var baseId = string.Empty;
             ScanCategory? category;
             if (entity.EntityType == EntityTypes.Player)
             {
@@ -532,6 +573,7 @@ namespace Poe2Accessibility.Services
                 category = ScanCategory.Items;
                 name = this.inventory.DescribeItemEntity(worldItem.ItemEntityAddress, name) ?? name;
                 kind = this.inventory.ItemKind(worldItem.ItemEntityAddress);
+                baseId = this.inventory.ItemBaseId(worldItem.ItemEntityAddress);
             }
             else if (entity.EntityType == EntityTypes.Chest)
             {
@@ -581,7 +623,7 @@ namespace Poe2Accessibility.Services
             }
 
             var position = render.WorldPosition;
-            return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, kind);
+            return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, kind, baseId);
         }
 
         /// <summary>The NPC shows the quest indicator over its head (<see cref="GameLayout.NpcComponent"/>).</summary>

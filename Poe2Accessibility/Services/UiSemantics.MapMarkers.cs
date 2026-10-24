@@ -9,8 +9,9 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Markers on a map panel (the checkpoint travel map, 2026-10-23): sibling buttons without text, each named
     ///     only by a one-line tooltip — "Estás aquí" for the one the player stands at, "Viajar al punto de control" for
-    ///     every other. The game names none of them, so each is told apart by where it lies from the player's own
-    ///     marker: "Viajar al punto de control, arriba a la derecha, 2 de 4". The map is drawn the way the camera
+    ///     every other. The game names none of them, so each is told apart by the named place beside it
+    ///     (<see cref="MarkerPlaces"/>), where it lies from the player's own marker and how far: "Viajar al punto de
+    ///     control, cerca de Sierraclara, arriba a la derecha, a 40 pasos, 2 de 4". The map is drawn the way the camera
     ///     shows the world, so screen directions are the stick directions.
     /// </summary>
     public sealed partial class UiSemantics
@@ -23,6 +24,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Debug log for research (set by the plugin).</summary>
         public System.Action<string>? Trace { get; set; }
+
+        /// <summary>Per map marker (offset from the player's own, its index) the place beside it and the steps to it (set by the plugin).</summary>
+        public System.Func<IReadOnlyList<Vector2>, int, IReadOnlyList<(string? Near, int Steps)?>>? MarkerPlaces { get; set; }
 
         /// <summary>The map whose markers were last read, and the marker it opened on.</summary>
         private (System.IntPtr Parent, System.IntPtr Marker) mapHere;
@@ -73,6 +77,13 @@ namespace Poe2Accessibility.Services
                 : markers.FindIndex(marker => marker.Address == this.mapHere.Marker);
             var label = markers[self].Label;
             this.Trace?.Invoke($"Map markers: {markers.Count}, self {self}, here {hereIndex}, centres {string.Join(" ", markers.Select(marker => $"({marker.Centre.X:0},{marker.Centre.Y:0})"))}");
+            var place = hereIndex >= 0 && this.MarkerPlaces?.Invoke(markers.Select(marker => marker.Centre - markers[hereIndex].Centre).ToList(), hereIndex) is { } places &&
+                        self < places.Count ? places[self] : null;
+            if (place?.Near is { Length: > 0 } near)
+            {
+                label = $"{label}, {Announcements.NearPlace(near)}";
+            }
+
             if (hereIndex >= 0 && hereIndex != self)
             {
                 var offset = markers[self].Centre - markers[hereIndex].Centre;
@@ -83,6 +94,11 @@ namespace Poe2Accessibility.Services
                     var octant = (int)(((System.Math.Round(angle / 45) % 8) + 8) % 8);
                     label = $"{label}, {Announcements.StickDirections[octant]}";
                 }
+            }
+
+            if (place?.Steps is > 0 and var steps)
+            {
+                label = $"{label}, {Announcements.StepsAway(steps)}";
             }
 
             return new AccessibleUiNode

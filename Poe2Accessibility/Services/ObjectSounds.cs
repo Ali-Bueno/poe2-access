@@ -9,7 +9,8 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     Proximity sounds for things worth walking to (D2R proximity loops): the nearest item, chest or shrine, exit
-    ///     or portal, and waypoint or checkpoint on screen each repeat the game's own sound for them, on their side,
+    ///     or portal, and waypoint or checkpoint on screen each repeat the game's own sound for them (an item its own drop
+    ///     sound, <see cref="ItemDropSounds"/>, with the rare layer over it for a rare or unique), on their side,
     ///     louder and more often as the player gets closer, and stop once the player stands on them. One voice per
     ///     group so loot, chests and exits stay apart; the groups take turns so two never start together.
     /// </summary>
@@ -29,6 +30,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Groups never start within this time of each other.</summary>
         private const int GroupGapMs = 220;
 
+        /// <summary>The rare drop layer under a rare or unique item's own sound.</summary>
+        private const float RareLayerGain = 0.6f;
+
 
         private static readonly (string Group, Func<ScanEntry, bool> Member)[] Groups =
         {
@@ -42,17 +46,19 @@ namespace Poe2Accessibility.Services
         private readonly AudioCueService audio;
         private readonly EntityCatalog catalog;
         private readonly GameSounds sounds;
+        private readonly ItemDropSounds drops;
         private readonly float[] questRing = CueSynth.Ring(AudioCueService.SampleRate);
         private readonly Dictionary<string, long> lastPlayed = new();
         private readonly Dictionary<string, ScanEntry> nearest = new();
         private long lastPoll;
         private long lastAnyPlayed;
 
-        public ObjectSounds(AudioCueService audio, EntityCatalog catalog, GameSounds sounds)
+        public ObjectSounds(AudioCueService audio, EntityCatalog catalog, GameSounds sounds, ItemDropSounds drops)
         {
             this.audio = audio;
             this.catalog = catalog;
             this.sounds = sounds;
+            this.drops = drops;
         }
 
         public float Gain { get; set; } = 1f;
@@ -105,13 +111,19 @@ namespace Poe2Accessibility.Services
 
                 var screen = ScreenProjection.Direction(player.WorldPosition, new Vector2(entry.WorldX, entry.WorldY) - here);
                 var pan = screen.LengthSquared() > 0 ? Vector2.Normalize(screen).X : 0f;
-                this.audio.Play(samples, pan, 1f, this.Gain * (FarGain + ((1f - FarGain) * closeness)));
+                var gain = this.Gain * (FarGain + ((1f - FarGain) * closeness));
+                this.audio.Play(samples, pan, 1f, gain);
+                if (entry.Kind == "rare" && samples != this.sounds.Get("item_rare") && this.sounds.Get("item_rare") is { } rare)
+                {
+                    this.audio.Play(rare, pan, 1f, gain * RareLayerGain);
+                }
+
                 this.lastPlayed[group] = now;
                 this.lastAnyPlayed = now;
             }
         }
 
-        private float[]? SoundFor(ScanEntry entry) => entry.Kind switch
+        private float[]? SoundFor(ScanEntry entry) => this.drops.For(entry.BaseId) ?? entry.Kind switch
         {
             "gold" => this.sounds.Get("gold"),
             "currency" => this.sounds.Get("currency"),

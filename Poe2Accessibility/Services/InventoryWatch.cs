@@ -29,6 +29,9 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<IntPtr, int> known = new();
         private const int HandPollMs = 100;
 
+        /// <summary>The emptied cell is read about 100 ms after the pick-up (2026-10-24); a hold of 1.5 s queued the moves after it.</summary>
+        private const int InHandHoldMs = 400;
+
         private Inventory? inventory;
         private bool baseline = true;
         private long lastPoll;
@@ -106,7 +109,7 @@ namespace Poe2Accessibility.Services
             if (this.handEmptyDue != 0 && now >= this.handEmptyDue)
             {
                 this.handEmptyDue = 0;
-                this.output.Speak(Announcements.HandEmpty, false);
+                this.output.Speak(Announcements.HandEmpty, true);
             }
 
             if (!this.TryCursor(out var items))
@@ -132,7 +135,8 @@ namespace Poe2Accessibility.Services
             if (item != IntPtr.Zero && entity != null)
             {
                 this.handEmptyDue = 0;
-                this.output.Urge(Announcements.InHand(this.reader.DescribeItemEntity(entity.Address) ?? entity.Path)); // the name carries the stack
+                // Held only past the readout of the cell it left (now empty); the next D-pad move cuts it.
+                this.output.Urge(Announcements.InHand(this.reader.DescribeItemEntity(entity.Address) ?? entity.Path), InHandHoldMs); // the name carries the stack
             }
             else if (this.handKnown)
             {
@@ -236,18 +240,18 @@ namespace Poe2Accessibility.Services
                 if (Announcements.SlotName(to) is { } slot)
                 {
                     this.handEmptyDue = 0; // the hand let go into this slot: "Equipped" says it all
-                    this.output.Speak(Announcements.Equipped(name, slot), false);
+                    this.output.Speak(Announcements.Equipped(name, slot), true);
                     Take(source => source != InventoryName.Cursor1 && !IsEquipment(source));
                 }
                 else if (to == InventoryName.MainInventory1)
                 {
                     if (Take(IsEquipment) is { } unequipped)
                     {
-                        this.output.Speak(Announcements.Unequipped(unequipped), false);
+                        this.output.Speak(Announcements.Unequipped(unequipped), true);
                     }
                     else if (Take(source => source is InventoryName.Cursor1 or InventoryName.MainInventory1) == null && this.movedInPanel)
                     {
-                        this.output.Speak(Announcements.NewInInventory(name), false);
+                        this.output.Speak(Announcements.NewInInventory(name), true);
                     }
                 }
             }
@@ -258,7 +262,7 @@ namespace Poe2Accessibility.Services
                 {
                     if (from == InventoryName.MainInventory1)
                     {
-                        this.output.Speak(Announcements.LeftInventory(name), false);
+                        this.output.Speak(Announcements.LeftInventory(name), true);
                     }
                 }
             }

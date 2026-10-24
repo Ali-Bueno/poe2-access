@@ -155,7 +155,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.ReadTooltipsOnFocus) => T("Whole tooltips on focus", "Descripciones completas al enfocar"),
             nameof(AccessibilitySettings.AnnouncePickups) => T("Picked up items", "Objetos recogidos"),
             nameof(AccessibilitySettings.AnnounceDiscoveries) => T("Discoveries", "Descubrimientos"),
-            nameof(AccessibilitySettings.EdgeKnock) => T("Knock at the end of menus", "Toc al final de los menús"),
+            nameof(AccessibilitySettings.AnnounceEnemies) => T("Enemies coming into view", "Enemigos que aparecen"),
             nameof(AccessibilitySettings.AnnounceHand) => T("Item in hand", "Objeto en la mano"),
             nameof(AccessibilitySettings.AnnounceMoves) => T("Equipped and moved items", "Objetos equipados y movidos"),
             nameof(AccessibilitySettings.RoutePrompts) => T("Turn prompts", "Indicaciones de giro"),
@@ -167,7 +167,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.SpeechStatusEnds) => T("Speech: a state ends", "Voz: termina un estado"),
             nameof(AccessibilitySettings.SpeechLifeAndMana) => T("Speech: low life and mana", "Voz: vida y maná bajos"),
             nameof(AccessibilitySettings.SpeechBossLife) => T("Speech: boss life", "Voz: vida del jefe"),
-            nameof(AccessibilitySettings.SpeechEnemyNames) => T("Speech: aimed names", "Voz: nombres apuntados"),
+            nameof(AccessibilitySettings.SpeechEnemyNames) => T("Speech: enemy names", "Voz: nombres de enemigos"),
             nameof(AccessibilitySettings.SpeechQuest) => T("Speech: objectives", "Voz: objetivos"),
             nameof(AccessibilitySettings.SpeechPlaces) => T("Speech: places and things nearby", "Voz: lugares y cosas cercanas"),
             nameof(AccessibilitySettings.SpeechGroundItems) => T("Speech: picked-up items", "Voz: objetos recogidos"),
@@ -181,14 +181,12 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.ObjectSounds) => T("Object sounds", "Sonidos de objetos"),
             nameof(AccessibilitySettings.DodgeWarnings) => T("Dodge warnings", "Avisos para esquivar"),
             nameof(AccessibilitySettings.CrosshairBeep) => T("Crosshair beep", "Pitido de mira"),
-            nameof(AccessibilitySettings.LowLifeHeartbeat) => T("Low life heartbeat", "Latido de vida baja"),
-            nameof(AccessibilitySettings.LowLifeBelow) => T("Heartbeat below", "Latido por debajo de"),
+            nameof(AccessibilitySettings.LowLifeBelow) => T("Urgent life warnings below", "Avisos de vida urgentes por debajo de"),
             nameof(AccessibilitySettings.SoundVolume) => T("Master volume", "Volumen general"),
             nameof(AccessibilitySettings.RadarVolume) => T("Radar volume", "Volumen del radar"),
             nameof(AccessibilitySettings.EnemyVolume) => T("Enemy volume", "Volumen de enemigos"),
             nameof(AccessibilitySettings.BeaconVolume) => T("Guide volume", "Volumen de la guía"),
             nameof(AccessibilitySettings.ObjectVolume) => T("Object volume", "Volumen de objetos"),
-            nameof(AccessibilitySettings.HeartbeatVolume) => T("Heartbeat volume", "Volumen del latido"),
             nameof(AccessibilitySettings.Language) => T("Language", "Idioma"),
             _ => field,
         };
@@ -240,7 +238,6 @@ namespace Poe2Accessibility
             "reach" => T("Reach ping", "Aviso de alcance"),
             "wall_tone" => T("Wall tone", "Tono de pared"),
             "radar_obstacle" => T("Radar: small obstacle", "Radar: obstáculo pequeño"),
-            "heartbeat" => T("Heartbeat", "Latido"),
             "enemy" => T("Enemy", "Enemigo"),
             "elite" => T("Magic or rare enemy", "Enemigo mágico o raro"),
             "boss" => T("Unique enemy", "Enemigo único"),
@@ -279,7 +276,6 @@ namespace Poe2Accessibility
             "wall_tone" => T(
                 "with wall tones on, a hiss on the side of a near wall; higher ahead, lower behind, louder when closer",
                 "con los tonos de pared activados, un soplo del lado de una pared cercana; más agudo delante, más grave detrás, más fuerte al acercarte"),
-            "heartbeat" => T("life at or under the line", "vida en o bajo el límite"),
             "enemy" or "elite" or "boss" => T("on its side, faster when closer", "a su lado, más rápido al acercarse"),
             "friend" => T("nearest NPC or player", "personaje o jugador más cercano"),
             "radar_wall" => T("the way closed on that side", "camino cerrado de ese lado"),
@@ -292,9 +288,23 @@ namespace Poe2Accessibility
         /// <summary>The rarity word that ends a unique monster's scanner name ("El molinero hinchado, único").</summary>
         public static string UniqueRarityWord => RarityName(GameHelper.RemoteEnums.Rarity.Unique);
 
+        public static string RareRarityWord => RarityName(GameHelper.RemoteEnums.Rarity.Rare);
+
+        /// <summary>Enemies coming into view, biggest pack first: "Ahogado, 3, derecha. Lobo podrido, raro, arriba".</summary>
+        public static string EnemiesAppeared(IEnumerable<(string Name, int Count, int Direction)> groups) =>
+            string.Join(". ", groups.Select(group =>
+                group.Count > 1 ? $"{group.Name}, {group.Count}, {StickDirections[group.Direction]}" : $"{group.Name}, {StickDirections[group.Direction]}"));
+
+        /// <summary>A place on a map by what it is beside: "cerca de Campamento de Sierraclara".</summary>
+        public static string NearPlace(string name) => T($"near {name}", $"cerca de {name}");
+
+        /// <summary>A straight-line distance in scanner steps: "a 35 pasos".</summary>
+        public static string StepsAway(int steps) => T(steps == 1 ? "1 step away" : $"{steps} steps away", steps == 1 ? "a 1 paso" : $"a {steps} pasos");
+
         /// <summary>A first sighting: "Nueva salida: Sierraclara", "Nuevo punto de control", "Jefe a la vista: El molinero hinchado".</summary>
-        public static string Discovered(Services.ScanEntry entry) => entry.Kind switch
+        public static string Discovered(Services.ScanEntry entry, string near = "") => entry.Kind switch
         {
+            "checkpoint" when near.Length > 0 => T($"New checkpoint, {NearPlace(near)}", $"Nuevo punto de control, {NearPlace(near)}"),
             "checkpoint" => T("New checkpoint", "Nuevo punto de control"),
             "waypoint" => T($"New waypoint: {entry.Name}", $"Nuevo punto de ruta: {entry.Name}"),
             "portal" => T($"Portal: {entry.Name}", $"Portal: {entry.Name}"),
@@ -331,8 +341,8 @@ namespace Poe2Accessibility
                 "Hold L3 and press the right stick: a ping guides you to the scanner's choice along a free route, turns are named. Again on the same target turns it off",
                 "Mantén L3 y presiona el stick derecho: un ping te guía hacia lo elegido en el escáner por un camino libre, y se nombran los giros. Otra vez sobre el mismo objetivo la apaga"),
             "help_menus" => T(
-                "In menus L3 reads the next line of the focused thing, double tap the previous, hold the whole description. A knock means the end of the list",
-                "En los menús L3 lee la siguiente línea de lo enfocado, doble toque la anterior, mantener la descripción completa. Un toc indica el final de la lista"),
+                "In menus L3 reads the next line of the focused thing, double tap the previous, hold the whole description",
+                "En los menús L3 lee la siguiente línea de lo enfocado, doble toque la anterior, mantener la descripción completa"),
             _ => T(
                 "Right stick up and down move, left and right change or play. Tap L3 to close and save",
                 "Stick derecho arriba y abajo para moverte, izquierda y derecha para cambiar o escuchar. Toca L3 para cerrar y guardar"),

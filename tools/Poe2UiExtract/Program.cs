@@ -14,11 +14,20 @@ if (args.Length > 0 && string.Equals(args[0], "catalog", StringComparison.Ordina
     return CatalogGenerator.Run(args[1], args[2]);
 }
 
-// Args: sounds <gameDir> [outDir]  -- decode the audio-cue set from the FMOD banks into WAV files + manifest.txt.
+// Args: sounds <gameDir> [outDir] [itemSoundsJson]  -- decode the audio-cue set (plus the drop samples named in the item
+// catalog, as items/<sample>.wav) from the FMOD banks into WAV files + manifest.txt.
 if (args.Length > 0 && string.Equals(args[0], "sounds", StringComparison.OrdinalIgnoreCase))
 {
     string game = args.Length > 1 ? args[1] : @"D:\games\steam\steamapps\common\Path of Exile 2";
-    return SoundExtractor.Run(game, args.Length > 2 ? args[2] : @"Poe2Accessibility\sounds");
+    return SoundExtractor.Run(game, args.Length > 2 ? args[2] : @"Poe2Accessibility\sounds",
+        args.Length > 3 ? args[3] : @"Poe2Accessibility\catalog\item-sounds.json");
+}
+
+// Args: item-sounds <gameDir> [outFile]  -- base item id -> drop sample (ItemDrops.bank) from the dat tables as JSON.
+if (args.Length > 0 && string.Equals(args[0], "item-sounds", StringComparison.OrdinalIgnoreCase))
+{
+    string game = args.Length > 1 ? args[1] : @"D:\games\steam\steamapps\common\Path of Exile 2";
+    return ItemSoundExtractor.Run(game, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-sounds.json");
 }
 
 // Args: areas <gameDir> <outFile>  -- localized world-area names from WorldAreas.datc64 as { lang: { id: name } }.

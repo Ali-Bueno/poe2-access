@@ -12,9 +12,9 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Bosses and rare monsters near the player. Boss life (D2R boss-life.md) is spoken as the real percentage at
     ///     each step it falls past, and the defeat once. The dodge warning: when a rare or unique monster on screen
-    ///     starts an attack or spell (its animation leaves idle/run/hit), a short rising whoosh plays on its side —
-    ///     the wind-up is the moment to dodge (B). Monsters read from GameHelper's awake entities; the animation id is
-    ///     GameHelper's <c>Actor.Animation</c> (Actor +0x8B0).
+    ///     starts an attack or spell (<see cref="DodgeThreats"/>; a rare's blow only once it is within reach), a short
+    ///     rising whoosh plays on its side, louder the closer it is — the wind-up is the moment to dodge (B). Monsters
+    ///     read from GameHelper's awake entities; the animation id is GameHelper's <c>Actor.Animation</c> (Actor +0x8B0).
     /// </summary>
     public sealed class BossWatch
     {
@@ -32,6 +32,14 @@ namespace Poe2Accessibility.Services
         /// <summary>One warning per monster within this time (multi-hit animations restart).</summary>
         private const int WarningGapMs = 600;
 
+        /// <summary>
+        ///     A rare's blow warns only within this gap between the bodies (world units): the player's own reach is 40, so
+        ///     this leaves a step and a half to roll away; a unique's blows warn from anywhere on screen (slam waves).
+        /// </summary>
+        private const float MeleeDangerGapWorld = 150f;
+
+        /// <summary>The warning's gain at the edge of the watched range; full at contact.</summary>
+        private const float FarWarningGain = 0.55f;
 
         private readonly AudioCueService audio;
         private readonly IAccessibilityOutputService output;
@@ -123,7 +131,8 @@ namespace Poe2Accessibility.Services
 
                 if (this.DodgeWarnings && EntityCatalog.IsAliveEnemy(entity) && entity.TryGetComponent<Actor>(out var actor))
                 {
-                    this.WatchAttack(entity.Id, (int)actor.Animation, render, offset, now);
+                    var gap = offset.Length() - render.ModelBounds.X - player.ModelBounds.X;
+                    this.WatchAttack(entity.Id, (int)actor.Animation, magic.Rarity == Rarity.Unique, render, offset, gap, now);
                 }
             }
         }
@@ -178,50 +187,26 @@ namespace Poe2Accessibility.Services
             this.bosses[entity.Id] = (boss.Name, step, engaged, percent);
         }
 
-        private void WatchAttack(uint id, int animation, Render render, Vector2 offset, long now)
+        private void WatchAttack(uint id, int animation, bool unique, Render render, Vector2 offset, float gap, long now)
         {
             this.animations.TryGetValue(id, out var last);
             this.animations[id] = (animation, last.WarnedAt);
-            if (animation == last.Animation || !IsAttack(animation) || now - last.WarnedAt < WarningGapMs)
+            if (animation == last.Animation || now - last.WarnedAt < WarningGapMs)
+            {
+                return;
+            }
+
+            var threat = DodgeThreats.Of(animation, value => Enum.GetName(typeof(Animation), value));
+            if (threat == DodgeThreat.None || (threat == DodgeThreat.Melee && !unique && gap > MeleeDangerGapWorld))
             {
                 return;
             }
 
             this.animations[id] = (animation, now);
             var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
-            this.audio.Play(this.whoosh, pan, pitch, this.Gain);
-            this.log.Debug($"Dodge warning: monster {id} animation {(Animation)animation}");
+            var closeness = 1f - Math.Clamp(offset.Length() / WatchWorld, 0f, 1f);
+            this.audio.Play(this.whoosh, pan, pitch, this.Gain * (FarWarningGain + ((1f - FarWarningGain) * closeness)));
+            this.log.Debug($"Dodge warning: monster {id} animation {(Animation)animation} ({threat}, gap {gap:F0})");
         }
-
-        /// <summary>Anything but standing, moving, flinching, dying or appearing is an attack or a spell.</summary>
-        public static bool IsAttack(int animation)
-        {
-            if (animation <= 0)
-            {
-                return false;
-            }
-
-            var name = Enum.GetName(typeof(Animation), animation);
-            if (name == null)
-            {
-                return true;
-            }
-
-            foreach (var calm in CalmAnimations)
-            {
-                if (name.Contains(calm, StringComparison.Ordinal))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private static readonly string[] CalmAnimations =
-        {
-            "Idle", "Run", "Walk", "TakeHit", "Hit", "Death", "Dead", "Stun", "Spawn", "Emerge", "Flinch", "Knockback", "Turn", "Taunt", "Sleep", "Rise",
-            "Buff", // a self buff hurts no one (the Bloated Miller's SpellBuff warned like his slams, 2026-10-24)
-        };
     }
 }

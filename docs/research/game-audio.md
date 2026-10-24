@@ -1,6 +1,6 @@
 # PoE2 game audio: where it lives and how to extract it
 
-Status: working (14 cues extracted, verified non-silent). Tool: `tools/Poe2UiExtract` command `sounds`.
+Status: working (12 cues + 113 item drop samples extracted, verified non-silent). Tool: `tools/Poe2UiExtract` command `sounds`.
 
 ## Format
 - Audio is NOT in `Bundles2/`. It is 2935 loose FMOD Studio banks in `<game>\FMOD\Desktop\*.bank` (15 GB), plus
@@ -30,12 +30,29 @@ If the game updates FMOD, adjust `FmodVersion` in `SoundExtractor.cs`.
 | chest | Chest_Rarity | Chests_Rarity_Magic_Open_01 |
 | shrine | ChallengeShrines | Gameplay_Shrines_ChallengeShrine_Activate_Stinger_01 |
 | exit | UI_General | WorldAreaTransition_02 |
-| portal | General_Gameplay | CombatPortal_FX_Use_01 (a combat-portal sound, not the town portal) |
+| portal | PortalScrollPortal | PortalScroll_Effects_Po_Activate_01 (the portal scroll's portal; idle loop `_Po_IdleActive_01`) |
 | waypoint | Waypoint4.0 | WaypointActivate_01 |
 | checkpoint | BossCheckpoints | BossCheckpoints_Activate_01 |
 | npc | General_Gameplay | Quest_UI_Offer_01 (placeholder; no generic NPC greeting found) |
-| warning | BoneCultist_Necromancer | MeteorWarning_01 (placeholder) |
-| heartbeat | Four_Offering_Pain | PainOffering_FX_Heartbeat_01 (a pain-offering effect, not a low-life sound; none found) |
+
+The `warning` and `heartbeat` placeholders were dropped (2026-10-24): the game plays its own low-life heartbeat.
+
+## Item drop sounds (2026-10-24)
+Every item base has its own drop sound; `item-sounds` reads which from the game's tables (offsets from the PoE2
+`poe-tool-dev/dat-schema`, checked against the row sizes 360 / 968 / 33):
+- `BaseItemTypes`: `Id` +0, `SoundEffect` +88 (scrolls, some quest items), `ItemVisualIdentity` +124.
+- `ItemVisualIdentity`: `InventorySoundEffect` +24 (most equipment, gems, flasks: `FourSkillGemDrop.ogg`),
+  `DropSoundEffect` +919 (only a generic rarity layer: `Currency.ogg`, `Item_Quest.ogg`).
+- `SoundEffects`: `Id` +0, `SoundFile` +8 (the drop event), `SoundFile_2D` +16 (use/move event).
+- Event → sample by name against `ItemDrops.bank` (lowercased, punctuation and a leading `Four` dropped; `Item`/`Items`
+  prefix allowed; use/move/equip events rejected). Orbs carry only a use event (`OrbUse_Chaos`): the drop sample is
+  derived (`OrbDrop_Chaos_01`). Result: 3,583 bases on 113 samples ("Scroll of Wisdom" → `Scroll_Drop_01`, a belt →
+  `Belt_Drop_01`, an uncut gem → `UncutSkillGem_Drop_01`). Unmapped: gold (`GoldCoinDrop.ogg` vs `GoldDrop_01..08`),
+  the generic `Item_Quest.ogg` / `Currency.ogg` bases, and league events living in other banks (fossils, runes, maps):
+  the plugin falls back to its generic cues for them. Not auditioned by ear; the Studio API (`fmodstudio.dll` ships
+  with the game) could render events exactly if a match turns out wrong.
+- Other cues surveyed: no campaign checkpoint bank besides `BossCheckpoints`; `Waypoint4.0` has `WaypointActive_01`
+  (likely the idle sound); `Chest_Rarity` also has `Chests_Rarity_Rare_Open_01`.
 
 All except `gold` are capped at 1.5 s. Choices are by name only and not yet auditioned; swap entries in the `Cues` table.
 Other useful finds: `Four_ItemFilter` (AlertSound_01..16, the item-filter drop alerts), `UI_General` (GenericFail,

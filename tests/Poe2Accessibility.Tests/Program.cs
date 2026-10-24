@@ -41,7 +41,6 @@ namespace Poe2Accessibility.Tests
             Run(nameof(QuestNamesItsTargets), QuestNamesItsTargets);
             Run(nameof(NearbyThingsWaitForTheCooldown), NearbyThingsWaitForTheCooldown);
             Run(nameof(StickClickWhileHoldingL3), StickClickWhileHoldingL3);
-            Run(nameof(HeartbeatBeatsUnderTheLine), HeartbeatBeatsUnderTheLine);
             Run(nameof(WallTonesSwellNearWalls), WallTonesSwellNearWalls);
             Run(nameof(NewsFollowItsDeliveryLevel), NewsFollowItsDeliveryLevel);
             Run(nameof(RockStandsAloneWallDoesNot), RockStandsAloneWallDoesNot);
@@ -49,6 +48,9 @@ namespace Poe2Accessibility.Tests
             Run(nameof(UnexploredGroundLiesPastTheSeenEdge), UnexploredGroundLiesPastTheSeenEdge);
             Run(nameof(RouteStartsOutsideAPocket), RouteStartsOutsideAPocket);
             Run(nameof(BuffIdsNameAilments), BuffIdsNameAilments);
+            Run(nameof(OnlyHarmfulAnimationsWarn), OnlyHarmfulAnimationsWarn);
+            Run(nameof(MapMarkersFindTheirCheckpoints), MapMarkersFindTheirCheckpoints);
+            Run(nameof(CheckpointsAreNamedByTheirNeighbour), CheckpointsAreNamedByTheirNeighbour);
             Run(nameof(FarBarrierStaysClosedUntilSeenNear), FarBarrierStaysClosedUntilSeenNear);
             Run(nameof(ScrolledRowsAreNotNews), ScrolledRowsAreNotNews);
             Run(nameof(WrappedLabelsJoin), WrappedLabelsJoin);
@@ -682,15 +684,55 @@ namespace Poe2Accessibility.Tests
             Equal("StickClick", string.Join(",", seen), "one click, no hold or tap after it");
         }
 
-        private static void HeartbeatBeatsUnderTheLine()
+        private static void MapMarkersFindTheirCheckpoints()
         {
-            var gate = new HeartbeatGate { Below = 25 };
-            Equal(false, gate.Update(80), "healthy");
-            Equal(true, gate.Update(25), "at the line");
-            Equal(true, gate.Update(28), "within the release margin");
-            Equal(false, gate.Update(30), "five points above: released");
-            Equal(true, gate.Update(10), "low again");
-            Equal(false, gate.Update(null), "dead or unreadable: quiet");
+            static System.Numerics.Vector2 V(float x, float y) => new(x, y);
+
+            // The map draws the world 20 times smaller; the places come in another order than the markers.
+            var places = new[] { V(-400, 600), V(1000, 0), V(0, -1600) };
+            var markers = new[] { V(50, 0), V(0, -80), V(-20, 30) };
+            Equal("1,2,0", string.Join(",", MapPlaces.Assign(markers, places)), "each marker to the place in its direction and distance");
+            Equal("1", string.Join(",", MapPlaces.Assign(new[] { V(30, 4) }, places)), "a lone marker takes the place it points at");
+            Equal("-1", string.Join(",", MapPlaces.Assign(new[] { V(-30, -30) }, new[] { V(100, 0) })), "nothing in its direction: unnamed");
+            Equal("0,-1", string.Join(",", MapPlaces.Assign(new[] { V(50, 0), V(0, 50) }, new[] { V(1000, 0) })), "a checkpoint never seen stays unnamed");
+            Equal(string.Empty, string.Join(",", MapPlaces.Assign(Array.Empty<System.Numerics.Vector2>(), places)), "no markers");
+        }
+
+        private static void CheckpointsAreNamedByTheirNeighbour()
+        {
+            var entries = new[]
+            {
+                new ScanEntry(1, ScanCategory.Waypoints, "Punto de control", 0, 0, 0, "checkpoint"),
+                new ScanEntry(2, ScanCategory.Enemies, "Ahogado", 50, 0, 0),
+                new ScanEntry(3, ScanCategory.Exits, "Campamento de Sierraclara", 900, 0, 0, "exit"),
+                new ScanEntry(4, ScanCategory.Npcs, "Una", 1500, 0, 0),
+                new ScanEntry(5, ScanCategory.Objects, "Barrera cerrada", 100, 0, 0, "barrier"),
+            };
+            var origin = new System.Numerics.Vector2(0, 0);
+            Equal("Campamento de Sierraclara", MapPlaces.NamedNear(origin, entries, 2000)?.Name ?? "none", "the nearest named place, not a monster, barrier or checkpoint");
+            Equal("none", MapPlaces.NamedNear(origin, entries, 500)?.Name ?? "none", "nothing named close enough");
+        }
+
+        private static void OnlyHarmfulAnimationsWarn()
+        {
+            var names = new Dictionary<int, string>
+            {
+                [1] = "Submerge", [2] = "Hide", [3] = "SpellBuff", [4] = "GroundSlam", [5] = "SpellProjectile", [6] = "LeapAttack",
+                [7] = "BossMovement", [8] = "HeavyStrike", [9] = "DoryaniHumanBossCrystalToss", [10] = "Idle",
+            };
+            string? NameOf(int id) => names.TryGetValue(id, out var name) ? name : null;
+            Equal(DodgeThreat.None, DodgeThreats.Of(1, NameOf), "going under ground hurts no one");
+            Equal(DodgeThreat.None, DodgeThreats.Of(2, NameOf), "hiding");
+            Equal(DodgeThreat.None, DodgeThreats.Of(3, NameOf), "a self buff");
+            Equal(DodgeThreat.Melee, DodgeThreats.Of(4, NameOf), "a slam lands beside the monster");
+            Equal(DodgeThreat.Ranged, DodgeThreats.Of(5, NameOf), "a projectile crosses the distance");
+            Equal(DodgeThreat.Ranged, DodgeThreats.Of(6, NameOf), "a leap reaches from afar though it says attack");
+            Equal(DodgeThreat.None, DodgeThreats.Of(7, NameOf), "a boss walking");
+            Equal(DodgeThreat.Melee, DodgeThreats.Of(8, NameOf), "a heavy strike");
+            Equal(DodgeThreat.Ranged, DodgeThreats.Of(9, NameOf), "a toss, not a cry");
+            Equal(DodgeThreat.None, DodgeThreats.Of(10, NameOf), "standing");
+            Equal(DodgeThreat.Ranged, DodgeThreats.Of(99, NameOf), "an id the table lacks (a game update) still warns");
+            Equal(DodgeThreat.None, DodgeThreats.Of(0, NameOf), "no animation");
         }
 
         private static void BuffIdsNameAilments()

@@ -106,20 +106,23 @@
 | NPC / player tap, wall bump, level-up "Level 3" | done (code) | user to test; passive-point tutorial line was already read |
 | Guide beacon (L3 + R3 on a scanner choice) | done (live) | `Beacon`/`BeaconMath`: route off the frame thread, ping 620 Hz panned along the route, "Llegaste a …" |
 | Scanner Quest category (objective's proper nouns) | done (live) | "Misión. El molinero hinchado, único, 5 pasos"; `QuestMatcher` |
-| Boss life + dodge warning | done (live) | "El molinero hinchado 72 por ciento"; whoosh on GroundSlam/HeavyStrike/… (`BossWatch`, Actor +0x8B0 animation) |
+| Boss life + dodge warning | done (live); stricter dodge (code) | "El molinero hinchado 72 por ciento"; whoosh + snap only on attack animations (`DodgeThreats`: Submerge/Hide warned before), a rare's blow within 150 units, louder when closer; marks the wind-up start, not the hit |
 | Mana warnings, vitals on L3 double tap | done (live) | "Maná 50 por ciento"; "Vida 85 por ciento, maná 100 por ciento. El molinero hinchado 65 por ciento" |
 | Target name on right-stick aim, crosshair beep | done (code) | GameHelper `MouseOverEntity`; never heard live yet (no monster under the aim during the bot test) |
-| Low-life heartbeat, harmful states (Urge speech) | done (code) | `Heartbeat`, `StatusWatch` (buff ids by stem; every new id logged "Player buff seen") |
-| Game sounds for loot/chests/exits/waypoints | done (code) | `ObjectSounds` + `GameSounds`; sounds extracted from the game's FMOD banks via its own fmod.dll (`docs/research/game-audio.md`) |
+| Harmful states (Urge speech) | done (code) | `StatusWatch` (buff ids by stem; every new id logged "Player buff seen"); the mod's heartbeat was removed (the game has its own, user 2026-10-24) |
+| Game sounds for loot/chests/exits/waypoints | done (code) | `ObjectSounds` + `GameSounds`; each item its own drop sound from the game's tables (`ItemDropSounds`, `catalog/item-sounds.json`: scroll → `Scroll_Drop_01`); portal = the portal scroll's (`docs/research/game-audio.md`) |
 | Spanish/English mod phrases, localized area names | done (live) | `Localization` (game ini), `catalog/area-names.json` from WorldAreas (10 languages) |
 | Pre-game hints, delete/creation screens, edit done | done (live) | hints on entry, only new ones after; "¿Estás seguro…? yarkey… cancelar, botón, 1 de 2"; "Zq, edición terminada" |
 | NPC dialogue options read one by one | done (live) | `UiSemantics.OptionLists`: confirm glyph marks the option; D-pad left reaches the lore column; a heard topic (drawn grey) reads "Presentación, atenuado, 1 de 8" (Una, 2026-10-24) |
 | Spoken settings menu + sound glossary (hold L3 1.5 s) | done (live) | `SettingsMenu`, `SoundGlossary`; 26 settings + 23 sounds |
 | Target from the HUD target bar (controller) | done (live) | HUD > entity_info_container > entity_info_display > name_label; MouseOverEntity is 0 with a pad |
 | Discoveries, pick-ups, unmet requirements | done (code) | `DiscoveryNarrator` ("Jefe a la vista" heard live), `InventoryWatch` (ServerData MainInventory1 via reflection), red tooltip lines with digits |
-| Checkpoint travel map markers | done (live) | `UiSemantics.MapMarkers`: "Viajar al punto de control, abajo, 2 de 2" (direction from the player's own marker) |
+| Checkpoint travel map markers | done (live); place names (code) | `UiSemantics.MapMarkers` + `CheckpointPlaces`/`MapPlaces`: markers matched to seen checkpoints by one scale, "Viajar al punto de control, cerca de …, abajo, a 35 pasos, 2 de 2" (the game names none) |
 | Skill bar readout (after the screen on the gameplay hold) | done (live) | `UiSemantics.SkillBar`: "Set de habilidades principal: LT, Activar set… X, Saeta básica… Vacío: LB, cruceta arriba, Y"; bind screen names skills from their dat rows (`docs/research/skill-bar.md`) |
-| Route turn prompts, partial routes, edge knock, controls help in the settings menu | done (live) | "Ahora arriba a la derecha, 10"; knock when the D-pad cannot move in a menu; help topics open the L3 menu |
+| Route turn prompts, partial routes, controls help in the settings menu | done (live) | "Ahora arriba a la derecha, 10"; help topics open the L3 menu; the menu edge knock was removed (user 2026-10-24) |
+| Scanner limited to what a sighted player sees | done (code) | `EntityCatalog.Sighted`: enemies on screen only, the rest once on screen or on explored ground, named tiles once explored (it listed the whole network bubble and every named tile before) |
+| Enemies coming into view | done (code) | `EnemyNarrator`: once per monster per area, packs grouped: "Ahogado, 3, derecha"; uniques stay discoveries |
+| Inventory actions cut in | done (code) | "En la mano" held 400 ms (was 1.5 s, which queued the moves after it); equip/unequip/hand empty/arrivals interrupt |
 | Social, Challenges, Cosmetics, Quests, Character, Skills panels | done (live) | filter box as an edit field; Challenges rows by their `selected_*` marker frame ("El relicario, 0/50, 5 de 8", expand reads the goal); free-cursor pages read after the tab; icon buttons named by their tooltip ("Efecto para arma") |
 | Passive tree: node state and links | done (live) | `UiSemantics.PassiveTree`: "Armadura y evasión, alcanzable, +10 a la armadura… Conexiones: arriba, Armadura y evasión, asignado; abajo a la izquierda, …"; points and attributes on opening (`docs/research/passive-tree.md`) |
 | Speech priority per kind, wall tones, small-obstacle knock | done (code) | `SpeechPriority` (9 "Voz: …" settings), `WallTones` (off by default), `PassageScan.IsSmallObstacle`; unit-tested, not heard live |
@@ -275,21 +278,22 @@
   (`PassageScan`, `RadarSensor`, `RadarSynth`); with `ProximityNarrator` (`ProximityTracker`) gated in
   `Poe2AccessibilityCore.TickSounds`.
 - Shop/stash: tooltip `cost` → `CurrencyIcons`, red price via `UiElementReader.IsTextRed`; grid tabs `UiSemantics.GridTab`.
-- Gameplay guides: `Beacon` (+ pure `BeaconMath`), `QuestMatcher`, `BossWatch` (boss life + dodge whoosh),
-  `TargetNarrator` (aim names + crosshair), `StatusWatch` (+ pure `StatusAilments`), `Heartbeat` (+ `HeartbeatGate`
-  in VitalAlarm.cs), `ObjectSounds` + `GameSounds` (game WAVs), `ScreenProjection` (world offset → screen).
+- Gameplay guides: `Beacon` (+ pure `BeaconMath`), `QuestMatcher`, `BossWatch` (boss life + dodge whoosh, pure
+  `DodgeThreats`), `TargetNarrator` (aim names + crosshair), `StatusWatch` (+ pure `StatusAilments`), `EnemyNarrator`,
+  `ObjectSounds` + `GameSounds` + `ItemDropSounds` (game WAVs), `CheckpointPlaces` (+ pure `MapPlaces`),
+  `ScreenProjection` (world offset → screen, on-screen test).
   Speech priority: `IAccessibilityOutputService.Urge` (later interrupts queue for 1.5 s).
 - Tests: `tests/Poe2Accessibility.Tests` (differ, text edits, chat diff, gestures, scanner, route legs, life
-  alarm, beacon, quest matching, cooldown, heartbeat, ailments). Dev tools: `tools/computer_use/`; dev commands
+  alarm, beacon, quest matching, cooldown, ailments, dodge threats, map markers). Dev tools: `tools/computer_use/`; dev commands
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-The Witch "yarkbruja" (level 2) is in Clearfell Encampment; the quests point to the Mud Burrow (the Devourer) and
-the Grim Tangle. The uncut gem was engraved "Tirador esqueleto" to leave town; it is not socketed (no
-spirit left). Next: user test by ear of the 2026-10-23/24 batches (reach ping, wall tones, dodge whoosh, object
-sounds, the quest bell; barrier phrases, combos and FPS rows in Options, the bind screen and picker positions,
-weapon-set toggles, heard topics); monster modifiers on a magic/rare monster are still unheard (none met in
-Clearfell or the Mud Burrow entrance; the level 2 character dies there to larvae and Mud Simulacra).
+The Witch "yarkbruja" (level 3, crossbow) plays Act 1 around Clearfell. Next: user test of the 2026-10-24 batch
+(each item's own drop sound, enemies coming into view, the scanner limited to what is seen, checkpoint map place
+names, inventory actions cutting in, the stricter dodge whoosh with its snap). Precise dodge timing (the moment
+of the hit, not the wind-up) needs live RE on a rare's attack: the monster's `ActiveSkillDetails.UseStage`
+(Actor +0xB08 skills, details +0x08) or a progress field near the animation id (Actor +0x8B0). Monster modifiers
+on a magic/rare monster are still unheard.
 
 ## Known issues / open questions
 - Character creation: the league dropdown's list (12 leagues) is not verified open — with the test pad as player 2

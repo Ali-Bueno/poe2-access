@@ -54,19 +54,17 @@ namespace Poe2Accessibility.Services
         private const float PingReleaseSeconds = 0.025f;
         private const float PingLevel = 0.35f;
 
-        /// <summary>Dodge warning: a fast rising noise sweep (a whoosh), unlike every tonal cue, short enough to react to.</summary>
-        private const float WhooshSeconds = 0.22f;
-        private const float WhooshStartHz = 300f;
-        private const float WhooshEndHz = 1400f;
-        private const float WhooshLevel = 0.5f;
-
-        /// <summary>Low-life heartbeat (D2R vitals.md): a lub-dub of two low thumps, one beat every 0.58 s (~103/min).</summary>
-        public const int HeartbeatPeriodMs = 580;
-        private const float HeartbeatLubHz = 62f;
-        private const float HeartbeatDubHz = 52f;
-        private const float HeartbeatGapSeconds = 0.16f;
-        private const float HeartbeatThumpSeconds = 0.11f;
-        private const float HeartbeatLevel = 0.6f;
+        /// <summary>
+        ///     Dodge warning: a fast rising noise sweep (a whoosh), unlike every tonal cue, short enough to react to; it
+        ///     ends on a bright snap so the "now" stands out from the wall tones' hiss.
+        /// </summary>
+        private const float WhooshSeconds = 0.2f;
+        private const float WhooshStartHz = 400f;
+        private const float WhooshEndHz = 2000f;
+        private const float WhooshLevel = 0.6f;
+        private const float SnapHz = 2600f;
+        private const float SnapDecaySeconds = 0.012f;
+        private const float SnapSeconds = 0.05f;
 
         /// <summary>Crosshair (D2R crosshair.md): two flat 24 ms blips at 1175 Hz, 40 ms apart, odd harmonics.</summary>
         private const float ReachLowHz = 1320f;
@@ -192,10 +190,11 @@ namespace Poe2Accessibility.Services
         public static float[] Whoosh(int sampleRate)
         {
             // Band-passed noise whose centre rises: a resonant filter swept over white noise, louder toward the end.
-            var samples = new float[(int)(WhooshSeconds * sampleRate)];
+            var sweep = (int)(WhooshSeconds * sampleRate);
+            var samples = new float[sweep + (int)(SnapSeconds * sampleRate)];
             var random = new Random(7);
             float low = 0f, band = 0f;
-            for (var i = 0; i < samples.Length; i++)
+            for (var i = 0; i < sweep; i++)
             {
                 var t = (float)i / sampleRate;
                 var progress = t / WhooshSeconds;
@@ -208,27 +207,19 @@ namespace Poe2Accessibility.Services
                 samples[i] = band * MathF.Min(1f, t / 0.02f) * MathF.Min(1f, (WhooshSeconds - t) / 0.03f) * (0.4f + (0.6f * progress));
             }
 
-            return Normalized(samples, WhooshLevel);
-        }
-
-        public static float[] Heartbeat(int sampleRate)
-        {
-            var samples = new float[(int)((HeartbeatGapSeconds + HeartbeatThumpSeconds) * sampleRate)];
-            void Thump(float start, float hz, float level)
+            var peak = 0f;
+            for (var i = 0; i < sweep; i++)
             {
-                var first = (int)(start * sampleRate);
-                for (var i = 0; i < (int)(HeartbeatThumpSeconds * sampleRate) && first + i < samples.Length; i++)
-                {
-                    var t = (float)i / sampleRate;
-                    // A falling sine with a soft attack: a felt thump, below every other cue.
-                    samples[first + i] += level * MathF.Sin(2 * MathF.PI * hz * t * (1f - (0.3f * t / HeartbeatThumpSeconds))) *
-                                          MathF.Min(1f, t / 0.008f) * MathF.Exp(-t / 0.035f);
-                }
+                peak = MathF.Max(peak, MathF.Abs(samples[i]));
             }
 
-            Thump(0f, HeartbeatLubHz, 1f);
-            Thump(HeartbeatGapSeconds, HeartbeatDubHz, 0.75f);
-            return Normalized(samples, HeartbeatLevel);
+            for (var i = sweep; i < samples.Length; i++)
+            {
+                var t = (float)(i - sweep) / sampleRate;
+                samples[i] = peak * MathF.Sin(2 * MathF.PI * SnapHz * t) * MathF.Exp(-t / SnapDecaySeconds);
+            }
+
+            return Normalized(samples, WhooshLevel);
         }
 
         /// <summary>D2R reach ping: 96 ms, two rising sine notes (1320 then 1760 Hz), far above every other cue.</summary>

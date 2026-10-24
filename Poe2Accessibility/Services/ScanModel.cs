@@ -24,7 +24,8 @@ namespace Poe2Accessibility.Services
     }
 
     /// <summary>One thing the scanner can name; positions in world units; <c>Kind</c> picks its sound ("gold", "chest", "checkpoint").</summary>
-    public sealed record ScanEntry(uint Id, ScanCategory Category, string Name, float WorldX, float WorldY, float WorldZ, string Kind = "");
+    /// <param name="BaseId">For an item, its base type id (the game picks its drop sound by it).</param>
+    public sealed record ScanEntry(uint Id, ScanCategory Category, string Name, float WorldX, float WorldY, float WorldZ, string Kind = "", string BaseId = "");
 
     /// <summary>
     ///     The eight directions the left stick walks, for a world offset. The stick's right is the world direction

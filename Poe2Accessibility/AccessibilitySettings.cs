@@ -135,11 +135,11 @@ namespace Poe2Accessibility
         /// <summary>While the guide beacon leads, name each turn as you reach it: "Ahora arriba a la derecha, 12".</summary>
         public bool RoutePrompts = true;
 
-        /// <summary>A knock when the D-pad does not move the focus in a menu (the end of the list).</summary>
-        public bool EdgeKnock = true;
-
         /// <summary>Name the first sighting of an exit, waypoint, checkpoint or boss in an area, and a barrier that opens.</summary>
         public bool AnnounceDiscoveries = true;
+
+        /// <summary>Name the enemies coming into view, a pack in one line: "Ahogado, 3, derecha".</summary>
+        public bool AnnounceEnemies = true;
 
         /// <summary>Say what arrives in the inventory while playing: "Recogido: Traje de ermitaño".</summary>
         public bool AnnouncePickups = true;
@@ -147,8 +147,7 @@ namespace Poe2Accessibility
         /// <summary>Two short blips when the game's target lands on a living enemy (D2R crosshair).</summary>
         public bool CrosshairBeep = true;
 
-        /// <summary>A heartbeat loops while life is at or under LowLifeBelow percent (D2R low-life heartbeat).</summary>
-        public bool LowLifeHeartbeat = true;
+        /// <summary>Life warnings at or under this percent cut in when urgent (the game plays its own low-life heartbeat).</summary>
         public int LowLifeBelow = 25;
 
         /// <summary>Say when a harmful state begins and ends: frozen, chilled, shocked, ignited, poisoned, bleeding, stunned, slowed, cursed.</summary>
@@ -166,9 +165,6 @@ namespace Poe2Accessibility
 
         /// <summary>Volume of the object sounds (game sounds for loot, chests, exits, waypoints), percent (0-200).</summary>
         public int ObjectVolume = 70;
-
-        /// <summary>Low-life heartbeat volume, percent (0-200).</summary>
-        public int HeartbeatVolume = 100;
 
         /// <summary>Research: dump the UI tree automatically once per screen (game state) after it settles, and log every focused widget's surroundings.</summary>
         public bool ResearchMode = true;

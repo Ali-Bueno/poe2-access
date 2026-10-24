@@ -63,12 +63,12 @@ namespace Poe2Accessibility
         private TargetNarrator? targets;
         private BossWatch? bosses;
         private ObjectSounds? objectSounds;
-        private Heartbeat? heartbeat;
         private StatusWatch? statuses;
         private InventoryWatch? pickups;
         private GoldWatch? gold;
         private BarrierWatch? barriers;
         private DiscoveryNarrator? discoveries;
+        private EnemyNarrator? enemyNews;
 
         /// <summary>Game sounds are cut to this length: repeated proximity cues must stay short.</summary>
         private const float GameSoundSeconds = 0.9f;
@@ -81,17 +81,6 @@ namespace Poe2Accessibility
 
         /// <summary>When the game went to "not loaded"; zero once announced or left (see <see cref="AnnounceLastingClose"/>).</summary>
         private long closedSince;
-
-        /// <summary>
-        ///     Edge knock (D2R): a D-pad press in a menu that leaves the focus and its value where they were means the
-        ///     list ends there; a knock says so instead of silence.
-        /// </summary>
-        private (long At, IntPtr Focus, string Value)? edgeCheck;
-        private bool dpadDown;
-        private float[]? edgeKnock;
-
-        /// <summary>How long after a D-pad press the focus must still be unchanged to count as the edge.</summary>
-        private const int EdgeKnockDelayMs = 300;
 
         /// <summary>A "not loaded" state shorter than this is a transition, not the game closing.</summary>
         private const int ClosedSettleMs = 2000;
@@ -150,6 +139,8 @@ namespace Poe2Accessibility
                     Path.Join(this.DllDirectory, "..", "Radar", "important_tgt_files.txt"),
                     Path.Join(this.DllDirectory, "catalog", "landmarks.json"));
                 this.entities = new EntityCatalog(memory, elements, inventory, landmarks, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
+                var checkpointPlaces = new CheckpointPlaces(this.entities);
+                this.semantics.MarkerPlaces = checkpointPlaces.Describe;
                 this.audio = new AudioCueService(this.log);
                 this.enemyCues = new EnemyCues(this.audio, memory, this.log);
                 this.radar = new Radar(this.audio, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
@@ -160,15 +151,17 @@ namespace Poe2Accessibility
                 this.targets = new TargetNarrator(this.audio, memory, elements, this.output, this.log) { HudLayer = () => this.narrator?.HudLayer ?? IntPtr.Zero };
                 this.narrator.IgnoredHudText = () => this.targets?.NameLabel ?? IntPtr.Zero;
                 this.narrator.GoldCounter = () => this.gold?.Counter ?? IntPtr.Zero;
-                this.heartbeat = new Heartbeat(this.audio);
                 this.statuses = new StatusWatch(this.output, this.log);
                 this.pickups = new InventoryWatch(inventory, this.output, this.log);
                 this.gold = new GoldWatch(memory, elements, this.output, this.log);
                 this.barriers = new BarrierWatch(this.entities, this.output, this.log);
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
-                this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds);
+                var drops = ItemDropSounds.Load(
+                    Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
+                this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds, drops);
                 this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds);
+                this.enemyNews = new EnemyNarrator(this.entities, this.output);
                 this.ApplySoundVolumes(this.Settings);
                 this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
                 this.screen = new ScreenWatcher(elements, this.log);
@@ -284,7 +277,6 @@ namespace Poe2Accessibility
                 this.Isolated("pad", this.ReadModButton);
                 this.Isolated("focus", () => this.focus?.Tick(state, stateObject));
                 this.Isolated("text field", this.WatchTextFieldClosing);
-                this.Isolated("edge", this.KnockAtEdge);
                 this.Isolated("life", this.WatchLife);
                 this.Isolated("sounds", this.TickSounds);
                 this.Isolated("screen", () => this.NarrateScreenChanges(stateObject));
@@ -383,14 +375,6 @@ namespace Poe2Accessibility
             }
 
             this.confirmDown = confirm;
-            var dpad = state.IsDown(GameLayout.PadButtons.DPadUp) || state.IsDown(GameLayout.PadButtons.DPadDown) ||
-                       state.IsDown(GameLayout.PadButtons.DPadLeft) || state.IsDown(GameLayout.PadButtons.DPadRight);
-            if (dpad && !this.dpadDown && this.focus?.Current is { } before && this.Settings.EdgeKnock)
-            {
-                this.edgeCheck = (Environment.TickCount64, before.Address, before.Value);
-            }
-
-            this.dpadDown = dpad;
             if (!this.Settings.ControllerCommands || this.commands == null)
             {
                 return;
@@ -466,7 +450,6 @@ namespace Poe2Accessibility
                     this.targets.Tick(playing && (this.Settings.AnnounceTarget || this.Settings.CrosshairBeep), aiming);
                 }
             });
-            this.Isolated("heartbeat", () => this.heartbeat?.Tick(playing && this.Settings.LowLifeHeartbeat, PlayerLifePercent()));
             this.Isolated("states", () => this.statuses?.Tick(playing && this.Settings.StatusAlerts));
             if (this.gameState?.CurrentState == GameStateTypes.InGameState)
             {
@@ -488,6 +471,7 @@ namespace Poe2Accessibility
             });
             this.Isolated("object sounds", () => this.objectSounds?.Tick(playing && this.Settings.ObjectSounds));
             this.Isolated("discoveries", () => this.discoveries?.Tick(playing && this.Settings.AnnounceDiscoveries));
+            this.Isolated("enemy news", () => this.enemyNews?.Tick(playing && this.Settings.AnnounceEnemies));
             this.Isolated("wall bump", () =>
             {
                 if (playing && this.Settings.WallBump)
@@ -537,13 +521,6 @@ namespace Poe2Accessibility
 
             this.lastLevel = (character.Name, character.Level);
         }
-
-        /// <summary>The player's life percent, null when it cannot be read or the player is dead.</summary>
-        private static int? PlayerLifePercent() =>
-            Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) &&
-            life.IsAlive && life.Health.Total > 0
-                ? life.Health.CurrentInPercent()
-                : null;
 
         private static bool IsPlayerAlive() =>
             Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) && life.IsAlive;
@@ -846,12 +823,6 @@ namespace Poe2Accessibility
                 this.discoveries.Gain = Fraction(settings.ObjectVolume);
             }
 
-            if (this.heartbeat != null)
-            {
-                this.heartbeat.Gain = Fraction(settings.HeartbeatVolume);
-                this.heartbeat.Below = Math.Clamp(settings.LowLifeBelow, 5, 70);
-            }
-
             if (this.targets != null)
             {
                 this.targets.Gain = Fraction(settings.EnemyVolume);
@@ -925,24 +896,6 @@ namespace Poe2Accessibility
             this.output.Speak(text, true);
         }
 
-        /// <summary>Per frame: the knock when a D-pad press did not move the focus or change its value.</summary>
-        private void KnockAtEdge()
-        {
-            if (this.edgeCheck is not { } check || Environment.TickCount64 - check.At < EdgeKnockDelayMs)
-            {
-                return;
-            }
-
-            this.edgeCheck = null;
-            var now = this.focus?.Current;
-            if (now != null && now.Address == check.Focus && now.Value == check.Value && this.audio != null)
-            {
-                this.edgeKnock ??= RadarSynth.Bump(AudioCueService.SampleRate);
-                this.audio.Play(this.edgeKnock, 0f, 1f, 1f);
-                this.log?.Debug("Edge knock");
-            }
-        }
-
         /// <summary>Per frame: "Game closed" once the game has stayed unloaded for a while.</summary>
         private void AnnounceLastingClose()
         {
@@ -966,6 +919,7 @@ namespace Poe2Accessibility
             this.barriers?.Reset();
             this.targets?.Reset();
             this.discoveries?.Reset(resumed);
+            this.enemyNews?.Reset();
             this.entities?.Forget();
             this.nearby?.Reset();
             this.narrator?.NewArea(resumed);
