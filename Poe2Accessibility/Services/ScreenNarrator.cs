@@ -135,6 +135,7 @@ namespace Poe2Accessibility.Services
             this.lastTop = IntPtr.Zero;
             this.lastContext = string.Empty;
             this.lastGroup = string.Empty;
+            this.lastSelectorPosition = string.Empty;
             this.inGame = inGameState;
             this.lastHints = string.Empty;
             this.spokenHints.Clear();
@@ -188,6 +189,11 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A HUD text read elsewhere (the target display's name, TargetNarrator), left out of the HUD news.</summary>
         public Func<IntPtr>? IgnoredHudText { get; set; }
+
+        /// <summary>"4 de 6" for a selector without focus in a layer (the class choice), else null.</summary>
+        public Func<IntPtr, string?>? SelectorPosition { get; set; }
+
+        private string lastSelectorPosition = string.Empty;
 
         /// <summary>The in-game HUD: new texts (quest tracker, ground item) are read after the rest, never as a page.</summary>
         public IntPtr HudLayer { get; set; }
@@ -624,6 +630,14 @@ namespace Poe2Accessibility.Services
                     var own = focus == null ? new HashSet<string>() : new HashSet<string> { focus.Text, focus.Value };
                     var fresh = change.Texts.Where(text => !own.Contains(text.Text)).ToList();
                     var navigatingWithoutFocus = change.Layer.Address == top?.Address && focusLayer != change.Layer.Address;
+                    if (fresh.Count > 0 && navigatingWithoutFocus && this.SelectorPosition?.Invoke(change.Layer.Address) is { } position &&
+                        position != this.lastSelectorPosition)
+                    {
+                        // A choice moved with the stick (the class of character creation): where it is, after its name.
+                        this.lastSelectorPosition = position;
+                        fresh[0] = fresh[0] with { Text = $"{fresh[0].Text}, {position}" };
+                    }
+
                     if (fresh.Count > 0)
                     {
                         this.Speak("appeared", Describe(fresh), navigatingWithoutFocus);

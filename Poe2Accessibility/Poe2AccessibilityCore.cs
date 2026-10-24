@@ -46,6 +46,7 @@ namespace Poe2Accessibility
         private GamepadReader.PadState padState;
         private (string Character, int Level) lastLevel;
         private readonly System.Collections.Generic.Dictionary<string, long> tickFaults = new();
+        private HostMemoryReader? memoryReader;
 
         /// <summary>A failing sound tick is logged once a minute, not every frame.</summary>
         private const int SoundErrorReportMs = 60000;
@@ -122,6 +123,7 @@ namespace Poe2Accessibility
                 this.WarnOnHotkeyCollisions();
 
                 var memory = new HostMemoryReader(this.log);
+                this.memoryReader = memory;
                 var debugDirectory = Path.Join(this.DllDirectory, "debug");
                 this.dumper = new UiTreeDumper(new UiTreeReader(memory), debugDirectory, this.log);
                 this.devCommands = new DevCommandFile(debugDirectory, this.log);
@@ -173,6 +175,7 @@ namespace Poe2Accessibility
                 this.commands.SkillBar = this.ReadSkillBar;
                 SpeechPriority.Chosen = this.SpeechLevel;
                 this.narrator.InPanel = this.semantics.IsInPanel;
+                this.narrator.SelectorPosition = this.semantics.SelectorPosition;
                 this.narrator.Refresh = node => this.semantics?.Describe(node.Address, node.IsHovered);
                 this.semantics.PlayerPath = () => Core.States.InGameStateObject.CurrentAreaInstance.Player.Path ?? string.Empty;
                 this.commands.SettingsChanged = changed =>
@@ -640,6 +643,23 @@ namespace Poe2Accessibility
             {
                 // Test aid: a mod-button gesture without the pad (L3 + R3 cannot be chorded by the virtual pad).
                 this.commands?.OnGesture(gesture);
+                return;
+            }
+
+            if (command.StartsWith("hex ", StringComparison.Ordinal) && this.memoryReader != null)
+            {
+                // Research: "hex 0x46656B1D030 0x800" logs that memory, 32 bytes per line, to diff two game states.
+                var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length == 3 && long.TryParse(parts[1].Replace("0x", string.Empty), System.Globalization.NumberStyles.HexNumber, null, out var at) &&
+                    int.TryParse(parts[2].Replace("0x", string.Empty), System.Globalization.NumberStyles.HexNumber, null, out var length))
+                {
+                    var bytes = this.memoryReader.ReadBytes(new IntPtr(at), Math.Clamp(length, 0, 0x4000));
+                    for (var offset = 0; offset < bytes.Length; offset += 32)
+                    {
+                        this.log?.Info($"hex 0x{at:X}+{offset:X4}: {Convert.ToHexString(bytes, offset, Math.Min(32, bytes.Length - offset))}");
+                    }
+                }
+
                 return;
             }
 

@@ -357,6 +357,18 @@ namespace Poe2Accessibility
             public const int NameOffset = 0x62;
         }
 
+        /// <summary>
+        ///     Character creation's class selector ("ClassVariationSelector"): no focus; the left stick moves a highlight
+        ///     along the first row of its icon grid and wraps (live 2026-10-23: Exploradora 0, Guerrero 1, Druida 2,
+        ///     Bruja 3, Mercenario 4, Monje 5; the class id beside it: 2, 6, 11, 1, 9, 10).
+        /// </summary>
+        public static class ClassSelector
+        {
+            public const string Name = "ClassVariationSelector";
+            public const int ClassIdOffset = 0x390;
+            public const int IndexOffset = 0x394;
+        }
+
         /// <summary>Inventory item element (grid child or slot content).</summary>
         public static class InventoryItem
         {

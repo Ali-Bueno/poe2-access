@@ -129,6 +129,7 @@
 | Unexplored-areas scanner category | done (live) | `ExplorationMap` (unit-tested): "Sin explorar. Zona sin explorar, 7 pasos, arriba 4, luego arriba a la izquierda"; forgotten on area change and host restart |
 | Highlighted control without focus, league selector | done (live) | `FocusTracker`: a visible child named "hightlight" (the game's spelling) marks its parent pre-game: "Continuar, botón, 3 de 3" after the name field; combo values skip `*_popup` children ("Liga, Forbidden Rites…"), the popup is read after the focus; HUD `paused_frame` ignored |
 | Equip / unequip / arrival notices (D2R) | done (live) | `InventoryWatch.TickMoves`: the game makes a new item entity on every inventory change, so moves are departures and arrivals paired once still for 300 ms: "Equipado: Ballesta improvisada, Mano principal", "Desequipado: …"; "Nuevo en el inventario" / "… salió del inventario" with a panel open (vendor/stash untested); the hand's "Ya no llevas…" waits 800 ms and is dropped for an equip |
+| Class choice position | done (live) | `UiSemantics.SelectorPosition`: ClassVariationSelector +0x394 index over the first icon row: "Monje, 6 de 6. Mi vida…"; class id +0x390; the second row is the variants (X on the name step) |
 | Item comparison, NPC quest bell | todo | need an equippable item and the town (the Miller blocks the way; scripted attacks did nothing visible) |
 
 ## Derived facts (with source)
