@@ -43,6 +43,11 @@ namespace Poe2Accessibility.Services
         private System.Collections.Generic.List<IntPtr> markers = new();
         private IntPtr markersRoot;
         private IntPtr lastFocused;
+
+        /// <summary>A focus the game gave as a side effect (<see cref="IgnoreNextFocus"/>), ignored until the focus moves on.</summary>
+        private IntPtr ignoredFocus;
+
+        private long ignoreFocusUntil;
         private bool pendingVisibility;
         private GameStateTypes lastState = GameStateTypes.GameNotLoaded;
 
@@ -84,6 +89,13 @@ namespace Poe2Accessibility.Services
         /// <summary>The active state's UI manager (zero when none is found); the pad state lives there too.</summary>
         public IntPtr Manager { get; private set; }
 
+        /// <summary>
+        ///     The focus the game gives within <paramref name="withinMs"/> is a side effect, not the player's move: the
+        ///     guide chord's R3 puts the game's HUD cursor on the experience bar, which was read over "Guiando hacia…" and
+        ///     made L3 read it again instead of the scanner (2026-10-24). Ignored until the game moves the focus on.
+        /// </summary>
+        public void IgnoreNextFocus(int withinMs) => this.ignoreFocusUntil = Environment.TickCount64 + withinMs;
+
         public void Reset()
         {
             this.lastFocused = IntPtr.Zero;
@@ -101,6 +113,22 @@ namespace Poe2Accessibility.Services
             }
 
             var (focused, hovered) = this.ReadFocusedPointer(state, stateObject);
+            if (focused != IntPtr.Zero && focused != this.lastFocused && Environment.TickCount64 < this.ignoreFocusUntil)
+            {
+                this.ignoreFocusUntil = 0;
+                this.ignoredFocus = focused;
+                this.log.Debug($"Focus 0x{focused.ToInt64():X} ignored: the game's side effect of a mod chord");
+            }
+
+            if (focused != this.ignoredFocus)
+            {
+                this.ignoredFocus = IntPtr.Zero;
+            }
+            else if (focused != IntPtr.Zero)
+            {
+                focused = IntPtr.Zero; // neither said nor a menu for the mod button while the game keeps it there
+            }
+
             var changed = focused != this.lastFocused;
             var recheck = this.pendingVisibility && this.sincePendingCheck.ElapsedMilliseconds >= PendingRecheckMs;
             if (!changed && !recheck)

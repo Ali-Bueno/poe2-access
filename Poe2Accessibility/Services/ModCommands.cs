@@ -16,6 +16,9 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class ModCommands
     {
+        /// <summary>The game moves its HUD cursor this soon after the chord's R3 (65 ms seen live).</summary>
+        private const int ChordFocusMs = 1000;
+
         private readonly IAccessibilityOutputService output;
         private readonly FocusTracker focus;
         private readonly UiSemantics semantics;
@@ -136,6 +139,7 @@ namespace Poe2Accessibility.Services
 
                     break;
                 case PadGesture.StickClick:
+                    this.focus.IgnoreNextFocus(ChordFocusMs);
                     this.ToggleBeacon();
                     break;
                 case PadGesture.LongHold:
