@@ -104,6 +104,19 @@ to an allocated node or the class's start), sin conexión. Opening the tree read
 Hold View: the option the right or left stick points at is read as it changes (up Inventory, up-right Cosmetics,
 right Skills, down Bind Screen, down-left Character, left Passives, up-left Quests). Release View to open it.
 
+## Skills and binding
+
+In the Skills panel (beside the inventory: D-pad left from the first column) each skill is read with its tags,
+cost and description. X on a skill opens the bind screen: "Selecciona el botón al que asignar Descarga de caos.
+Set de habilidades principal. LB, vacío"; the D-pad moves between buttons and names the other set when you enter
+it; A binds. Y on a button opens the grid of every skill and action that can go there, read by name and tooltip
+("Usar frasco de vida, Bebes de tu frasco de vida equipado").
+
+## Dialogue
+
+The speaker, then the focused option and its place among all options. D-pad left reaches the lore topics on the
+left; a topic already heard (drawn grey) is read "atenuado": "Presentación, atenuado, 1 de 8".
+
 ## Sounds (gameplay)
 
 - **Radar:** a tock when a wall closes the way up, left, right or down on screen, a breath when it opens again, a tin
