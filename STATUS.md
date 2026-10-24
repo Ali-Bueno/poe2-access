@@ -123,7 +123,11 @@
 | Passive tree: node state and links | done (live) | `UiSemantics.PassiveTree`: "Armadura y evasión, alcanzable, +10 a la armadura… Conexiones: arriba, Armadura y evasión, asignado; abajo a la izquierda, …"; points and attributes on opening (`docs/research/passive-tree.md`) |
 | Speech priority per kind, wall tones, small-obstacle knock | done (code) | `SpeechPriority` (9 "Voz: …" settings), `WallTones` (off by default), `PassageScan.IsSmallObstacle`; unit-tested, not heard live |
 | Item in hand (inventory cursor) | done (live) | `InventoryWatch.TickHand` on GameHelper's Cursor1 inventory: "En la mano: Pergamino de sabiduría, 3. Elige una celda…", "Ya no llevas ningún objeto"; pick-ups now named from the item entity (host `Inventory.Items` keys are slot entries, not entities) |
-| Melee reach ping, item comparison, NPC quest bell, unexplored-areas category | todo | `docs/d2r-gap-analysis.md` (254 rows, top 15 ranked) |
+| Monster modifiers on the aimed monster | done (code) | `MonsterMods`: names from the game's Mods.dat rows in the client language (first gender branch); the Miller's mods have no name, so nothing is added, as on its plate; not heard on a magic/rare monster yet |
+| Gold pick-ups | done (code) | `GoldWatch`: rise of the inventory's gold counter during play, "Recogido N de oro"; the counter is found with the panel hidden; a rise while hidden not seen yet (no gold dropped) |
+| Reach ping (D2R) | done (code) | `EnemyCues` + `ReachGate` (unit-tested): body gap from `Render.ModelBounds`; two rising notes, re-armed past reach + 25 |
+| Unexplored-areas scanner category | done (live) | `ExplorationMap` (unit-tested): "Sin explorar. Zona sin explorar, 7 pasos, arriba 4, luego arriba a la izquierda"; forgotten on area change and host restart |
+| Item comparison, NPC quest bell | todo | need an equippable item and the town (the Miller blocks the way; scripted attacks did nothing visible) |
 
 ## Derived facts (with source)
 - Plugin contract, hotkeys (`Utils.IsKeyPressedAndNotTimeout`), events (`RemoteEvents.AreaChanged` public,
@@ -191,6 +195,13 @@
   read as the projectile/sight layer for enemy sounds. `+0x100/+0x118` were all 5 in Clearfell.
 
 - **Vendor / stash / tooltip price / text colour `+0x6D0` / off-screen panels (2026-10-23):** `docs/research/ui-layers.md` (last section).
+
+- **Mods.dat row (2026-10-23):** +0 Id, +0xA ModType key, +0x1E stat keys, +0x5E domain, **+0x62 Name** (client
+  language, gender branches "<if:MS>{de Rabia}<elif:FS>{…}"); row size 0x2B5 (table walk from a monster's
+  ObjectMagicProperties mod row; `entities` dev command prints each monster's mod rows and spoken names).
+- **Inventory panel G+0x378 (2026-10-23):** full-screen root with `panels_parent`; the gold counter is the amount
+  text whose child image is `CoinPile`, at panels_parent[0][0][0][8][0], and it keeps its text while hidden.
+- **Render.ModelBounds** X/Y read as body size in world units: player 30, Drowned 52, Miller 85 (2026-10-23).
 
 - **Object sizes by allocator stride (2026-09-15):** slider 0x410, check box 0x700, label 0x700, combo box 0x800; bytes past
   these belong to the neighbouring object (the deep-probe hex must be read with that in mind).

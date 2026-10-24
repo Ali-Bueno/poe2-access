@@ -46,6 +46,9 @@ namespace Poe2Accessibility.Services
         /// <summary>How often the log gets a summary of what played (never one line per pulse).</summary>
         private const int ReportMs = 5000;
 
+        /// <summary>The reach ping is armed again once every enemy is this far beyond the reach (world units).</summary>
+        private const float ReleaseWorld = 25f;
+
         private readonly AudioCueService audio;
         private readonly HostMemoryReader memory;
         private byte[] sightGrid = Array.Empty<byte>();
@@ -57,6 +60,10 @@ namespace Poe2Accessibility.Services
         private readonly EnemyCueScheduler scheduler = new(MaxStreams, MinGapMs, NearIntervalMs, FarIntervalMs);
         private readonly Dictionary<CueSynth.Layer, float[]> sounds = new();
         private List<CueTarget> targets = new();
+        private readonly ReachGate reachGate = new();
+        private readonly float[] reachPing = CueSynth.ReachPing(AudioCueService.SampleRate);
+        private float? nearestEdge;
+        private float nearestPan;
         private long lastRefresh = long.MinValue / 2; // halved: "now - lastRefresh" must not overflow
         private bool silent = true;
 
@@ -80,6 +87,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Taps for the nearest NPC or other player (setting NpcSounds).</summary>
         public bool Friends { get; set; } = true;
 
+        /// <summary>The D2R reach ping: two rising notes when an enemy in sight comes within melee reach.</summary>
+        public bool Reach { get; set; } = true;
+
+        /// <summary>Melee reach: gap between the two bodies (ModelBounds) at which the ping fires, world units.</summary>
+        public float ReachWorld { get; set; } = 40f;
+
         /// <summary>Per frame; <paramref name="active"/> false (menu, dialogue, loading, window in the back) silences at once.</summary>
         public void Tick(bool active)
         {
@@ -90,6 +103,7 @@ namespace Poe2Accessibility.Services
                     this.audio.StopAll();
                     this.scheduler.Reset();
                     this.targets.Clear();
+                    this.reachGate.Reset();
                     this.silent = true;
                 }
 
@@ -102,6 +116,15 @@ namespace Poe2Accessibility.Services
             {
                 this.targets = this.Collect();
                 this.lastRefresh = now;
+                if (!this.Reach)
+                {
+                    this.reachGate.Reset();
+                }
+                else if (this.reachGate.Update(this.nearestEdge, this.ReachWorld, ReleaseWorld))
+                {
+                    this.audio.Play(this.reachPing, this.nearestPan * PanStrength, 1f, this.Gain);
+                    this.log.Debug($"Reach ping: gap {this.nearestEdge:F0}");
+                }
             }
 
             if (this.scheduler.Next(now, this.targets) is { } target)
@@ -128,6 +151,7 @@ namespace Poe2Accessibility.Services
         private List<CueTarget> Collect()
         {
             var found = new List<CueTarget>();
+            this.nearestEdge = null;
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             var world = Core.States.InGameStateObject.CurrentWorldInstance;
             var window = Core.Process.WindowArea;
@@ -145,8 +169,14 @@ namespace Poe2Accessibility.Services
             foreach (var entity in area.AwakeEntities.Values)
             {
                 // Not in play: still buried or dormant (or a story variant of an NPC), nothing a sighted player sees.
-                if (!entity.IsValid || !EntityCatalog.IsInPlay(this.memory, entity) || this.LayerOf(entity) is not { } layer ||
-                    !entity.TryGetComponent<Render>(out var render))
+                if (!entity.IsValid || !EntityCatalog.IsInPlay(this.memory, entity) || !entity.TryGetComponent<Render>(out var render))
+                {
+                    continue;
+                }
+
+                var layer = this.LayerOf(entity);
+                var enemy = this.Reach && entity.EntityType == EntityTypes.Monster && EntityCatalog.IsAliveEnemy(entity);
+                if (layer == null && !enemy)
                 {
                     continue;
                 }
@@ -164,8 +194,23 @@ namespace Poe2Accessibility.Services
                 }
 
                 var offset = (screen - here) / half;
+                if (enemy)
+                {
+                    var gap = Vector2.Distance(new Vector2(render.WorldPosition.X, render.WorldPosition.Y), new Vector2(player.WorldPosition.X, player.WorldPosition.Y)) -
+                              render.ModelBounds.X - player.ModelBounds.X;
+                    if (this.nearestEdge is not { } nearest || gap < nearest)
+                    {
+                        (this.nearestEdge, this.nearestPan) = (gap, Math.Clamp(offset.X, -1f, 1f));
+                    }
+                }
+
+                if (layer is not { } voiced)
+                {
+                    continue;
+                }
+
                 var nearness = 1f - Math.Clamp(offset.Length() / CornerDistance, 0f, 1f);
-                found.Add(new CueTarget(entity.Id, layer, Math.Clamp(offset.X, -1f, 1f), Math.Clamp(offset.Y, -1f, 1f), nearness));
+                found.Add(new CueTarget(entity.Id, voiced, Math.Clamp(offset.X, -1f, 1f), Math.Clamp(offset.Y, -1f, 1f), nearness));
             }
 
             return found;

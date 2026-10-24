@@ -45,6 +45,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(WallTonesSwellNearWalls), WallTonesSwellNearWalls);
             Run(nameof(NewsFollowItsDeliveryLevel), NewsFollowItsDeliveryLevel);
             Run(nameof(RockStandsAloneWallDoesNot), RockStandsAloneWallDoesNot);
+            Run(nameof(ReachPingsOncePerContact), ReachPingsOncePerContact);
+            Run(nameof(UnexploredGroundLiesPastTheSeenEdge), UnexploredGroundLiesPastTheSeenEdge);
             Run(nameof(BuffIdsNameAilments), BuffIdsNameAilments);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
@@ -451,6 +453,44 @@ namespace Poe2Accessibility.Tests
             var down = new System.Numerics.Vector2(0, 1);
             Equal(true, PassageScan.IsSmallObstacle(grid, row, new System.Numerics.Vector2(5.5f, 14.5f), right, 4f, 5), "a rock standing alone");
             Equal(false, PassageScan.IsSmallObstacle(grid, row, new System.Numerics.Vector2(20.5f, 20.5f), down, 4f, 5), "a wall across the map");
+        }
+
+        private static void UnexploredGroundLiesPastTheSeenEdge()
+        {
+            // 400x200 open field split by a wall at x = 200 with no gap; the player stands at (40, 100).
+            const int width = 400, height = 200;
+            var row = width / 2;
+            var grid = Enumerable.Repeat((byte)0x11, row * height).ToArray();
+            for (var y = 0; y < height; y++)
+            {
+                grid[(y * row) + 100] = 0; // cells 200 and 201
+            }
+
+            var map = new ExplorationMap();
+            map.Visit(new System.Numerics.Vector2(40, 100), width, height);
+            var targets = map.Frontier(grid, row, new System.Numerics.Vector2(40, 100), 8);
+            Equal(true, targets.Count > 0, "unseen ground east of the start is offered");
+            Equal(true, targets.All(cell => cell.X < 200), "nothing past the unbroken wall");
+            Equal(true, targets.All(cell => System.Numerics.Vector2.Distance(cell, new System.Numerics.Vector2(40, 100)) > ExplorationMap.SeenRadiusCells - ExplorationMap.BlockCells),
+                "targets lie at the seen edge");
+            for (var x = 25; x < 200; x += 50)
+            {
+                for (var y = 25; y < 200; y += 50)
+                {
+                    map.Visit(new System.Numerics.Vector2(x, y), width, height);
+                }
+            }
+
+            Equal(0, map.Frontier(grid, row, new System.Numerics.Vector2(120, 100), 8).Count, "the west field walked through: nothing left");
+        }
+
+        private static void ReachPingsOncePerContact()
+        {
+            // Reach 40, release 25: a fight swaying around the edge pings once; it arms again only past 65 or with no enemy.
+            var gate = new ReachGate();
+            var pings = new[] { 120f, 50f, 38f, 45f, 30f, 60f, 70f, 39f, (float?)null, 10f }
+                .Select(gap => gate.Update(gap, 40f, 25f) ? "P" : ".");
+            Equal("..P....P.P", string.Join(string.Empty, pings), "one ping per contact, re-armed past reach + release or with no enemy");
         }
 
         private static void NewsFollowItsDeliveryLevel()

@@ -69,6 +69,10 @@ namespace Poe2Accessibility.Services
         private const float HeartbeatLevel = 0.6f;
 
         /// <summary>Crosshair (D2R crosshair.md): two flat 24 ms blips at 1175 Hz, 40 ms apart, odd harmonics.</summary>
+        private const float ReachLowHz = 1320f;
+        private const float ReachHighHz = 1760f;
+        private const float ReachNoteSeconds = 0.048f;
+        private const float ReachLevel = 0.3f;
         private const float BlipHz = 1175f;
         private const float BlipSeconds = 0.024f;
         private const float BlipGapSeconds = 0.04f;
@@ -225,6 +229,22 @@ namespace Poe2Accessibility.Services
             Thump(0f, HeartbeatLubHz, 1f);
             Thump(HeartbeatGapSeconds, HeartbeatDubHz, 0.75f);
             return Normalized(samples, HeartbeatLevel);
+        }
+
+        /// <summary>D2R reach ping: 96 ms, two rising sine notes (1320 then 1760 Hz), far above every other cue.</summary>
+        public static float[] ReachPing(int sampleRate)
+        {
+            var note = (int)(ReachNoteSeconds * sampleRate);
+            var samples = new float[2 * note];
+            for (var i = 0; i < samples.Length; i++)
+            {
+                var t = (float)(i % note) / sampleRate;
+                var hz = i < note ? ReachLowHz : ReachHighHz;
+                var edge = MathF.Min(1f, MathF.Min(t, ReachNoteSeconds - t) / 0.004f);
+                samples[i] = MathF.Sin(2 * MathF.PI * hz * t) * edge;
+            }
+
+            return Normalized(samples, ReachLevel);
         }
 
         public static float[] Crosshair(int sampleRate)

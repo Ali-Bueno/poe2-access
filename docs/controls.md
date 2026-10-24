@@ -27,7 +27,10 @@ first; both wrap and empty categories are skipped. The category is named only wh
 "Characters. Una, 14 steps, right 3, then up right".
 
 - Categories: **quest** (what the quest tracker names: the exit to the area it asks for, the boss to kill, the
-  NPC to talk to), exits (area transitions and named places, in the game's language), waypoints and
+  NPC to talk to), exits (area transitions and named places, in the game's language), **unexplored** (where
+  ground never seen begins, one entry per stretch and direction, nearest first: "Zona sin explorar, 7 pasos,
+  izquierda"; ground within about 60 cells of where you walked counts as seen, and a wall with no way through
+  hides what lies behind it; forgotten on leaving the area), waypoints and
   checkpoints, characters (NPCs in play), enemies (with rarity), objects (stash, salvage bench, well), chests
   and shrines, items on the ground, other players. Chests and items stay listed once seen until opened or
   picked up.
@@ -50,7 +53,7 @@ yet (a closed tutorial barrier): "Todavía no hay ruta hacia …".
 
 ## Settings menu (gameplay)
 
-Hold L3 for a second and a half: "Ajustes del mod. Ayuda: el botón L3 en el juego, 1 de 71" (five help topics, then the settings, then the sound glossary). Without holding L3,
+Hold L3 for a second and a half: "Ajustes del mod. Ayuda: el botón L3 en el juego, 1 de 76" (five help topics, then the settings, then the sound glossary). Without holding L3,
 flick the right stick up or down to move through the list and left or right to change the value (switches
 toggle, volumes move in steps of 25 percent, language: same as the game, Spanish, English). Tap L3 to close:
 "Ajustes guardados" (written to `config/settings.txt`). Opening a game panel closes it too.
@@ -67,6 +70,17 @@ units, 600 ≈ 1.5 s of walking). It follows the radar volume and is silent in m
 
 **Small obstacles** (on by default, D2R): when the radar's wall on one side is a rock, tree or pillar standing alone
 (a blocked group no wider than 5 cells, clear of the map's edge), it knocks hollow (640 Hz) instead of the tock: step round it.
+
+**Reach ping** (on by default, D2R): two quick rising notes on the side of the nearest enemy in sight when the gap
+between its body and yours falls to "Distancia de alcance" (world units, 40 by default); it sounds again only after
+every enemy has stepped back past that distance plus 25.
+
+**Monster modifiers** (on by default): an aimed magic or rare monster is named with its modifiers in the game's own
+words and language, as its nameplate shows them ("…, raro, de Rabia, 80 por ciento"); technical and unique-boss
+mods without a name are left out.
+
+**Gold** is announced when picked up during play ("Recogido 37 de oro", from the inventory's gold counter; sales and
+rewards with a panel open say nothing), under the "Objetos recogidos" switch.
 
 The last group is the **sound glossary**: every sound of the mod by name and meaning ("Latido, vida en o bajo el
 límite"); left or right plays it.

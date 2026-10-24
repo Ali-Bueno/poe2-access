@@ -20,6 +20,7 @@ namespace Poe2Accessibility.Services
         private static readonly Item[] SettingItems =
         {
             Switch(nameof(AccessibilitySettings.AnnounceTarget)),
+            Switch(nameof(AccessibilitySettings.AnnounceMonsterMods)),
             Switch(nameof(AccessibilitySettings.AnnounceLowLife)),
             Switch(nameof(AccessibilitySettings.AnnounceLowMana)),
             Switch(nameof(AccessibilitySettings.AnnounceBossLife)),
@@ -47,6 +48,8 @@ namespace Poe2Accessibility.Services
             Number(nameof(AccessibilitySettings.SoundVolume), 0, 200, 25),
             Number(nameof(AccessibilitySettings.RadarVolume), 0, 200, 25),
             Number(nameof(AccessibilitySettings.WallToneRange), 200, 1600, 100),
+            Switch(nameof(AccessibilitySettings.MeleeReach)),
+            Number(nameof(AccessibilitySettings.MeleeReachRange), 0, 200, 10),
             Number(nameof(AccessibilitySettings.EnemyVolume), 0, 200, 25),
             Number(nameof(AccessibilitySettings.BeaconVolume), 0, 200, 25),
             Number(nameof(AccessibilitySettings.ObjectVolume), 0, 200, 25),

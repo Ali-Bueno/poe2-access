@@ -65,6 +65,7 @@ namespace Poe2Accessibility
         private Heartbeat? heartbeat;
         private StatusWatch? statuses;
         private InventoryWatch? pickups;
+        private GoldWatch? gold;
         private DiscoveryNarrator? discoveries;
 
         /// <summary>Game sounds are cut to this length: repeated proximity cues must stay short.</summary>
@@ -158,6 +159,7 @@ namespace Poe2Accessibility
                 this.heartbeat = new Heartbeat(this.audio);
                 this.statuses = new StatusWatch(this.output, this.log);
                 this.pickups = new InventoryWatch(inventory, this.output, this.log);
+                this.gold = new GoldWatch(memory, elements, this.output, this.log);
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds);
@@ -403,12 +405,16 @@ namespace Poe2Accessibility
                 {
                     this.enemyCues.Enemies = this.Settings.EnemySounds;
                     this.enemyCues.Friends = this.Settings.NpcSounds;
-                    this.enemyCues.Tick(playing && (this.Settings.EnemySounds || this.Settings.NpcSounds));
+                    this.enemyCues.Tick(playing && (this.Settings.EnemySounds || this.Settings.NpcSounds || this.Settings.MeleeReach));
                 }
 
                 this.radar?.Tick(playing && this.Settings.Radar);
                 this.wallTones?.Tick(playing && this.Settings.WallTones);
                 this.nearby?.Tick(playing && this.Settings.AnnounceNearby);
+                if (playing)
+                {
+                    this.entities?.Track();
+                }
                 if (this.beacon != null)
                 {
                     this.beacon.TurnPrompts = this.Settings.RoutePrompts;
@@ -419,6 +425,7 @@ namespace Poe2Accessibility
                 if (this.targets != null)
                 {
                     this.targets.Names = this.Settings.AnnounceTarget;
+                    this.targets.ModNames = this.Settings.AnnounceMonsterMods;
                     this.targets.Beep = this.Settings.CrosshairBeep;
                     this.targets.Tick(playing && (this.Settings.AnnounceTarget || this.Settings.CrosshairBeep), aiming);
                 }
@@ -429,6 +436,7 @@ namespace Poe2Accessibility
                 {
                     this.pickups?.Tick(playing && this.Settings.AnnouncePickups);
                     this.pickups?.TickHand(this.Settings.AnnounceHand);
+                    this.gold?.Tick(this.focus?.LayerContainer ?? IntPtr.Zero, playing, this.Settings.AnnouncePickups);
                 }
                 if (this.bosses != null)
                 {
@@ -722,6 +730,8 @@ namespace Poe2Accessibility
             if (this.enemyCues != null)
             {
                 this.enemyCues.Gain = Fraction(settings.EnemyVolume);
+                this.enemyCues.Reach = settings.MeleeReach;
+                this.enemyCues.ReachWorld = Math.Clamp(settings.MeleeReachRange, 0, 500);
             }
 
             if (this.beacon != null)
@@ -860,6 +870,7 @@ namespace Poe2Accessibility
             this.bosses?.Reset();
             this.statuses?.Reset();
             this.pickups?.Reset();
+            this.gold?.Reset();
             this.targets?.Reset();
             this.discoveries?.Reset();
             this.entities?.Forget();

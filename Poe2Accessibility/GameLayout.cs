@@ -186,6 +186,12 @@ namespace Poe2Accessibility
             /// </summary>
             public const int TutorialLayerOffset = 0xDD8;
 
+            /// <summary>
+            ///     The inventory panel root (full-screen, unnamed; "panels_parent" below it). Its gold counter — an amount
+            ///     text with the coin-pile image as its child — keeps the value while the panel is hidden (2026-10-23).
+            /// </summary>
+            public const int InventoryPanelOffset = 0x378;
+
             /// <summary>The HUD ("HUD", child 12 of G): quest tracker, flask charges, ground-item tooltips (2026-10-23).</summary>
             public const int HudLayerOffset = 0x558;
 
@@ -338,6 +344,17 @@ namespace Poe2Accessibility
 
             /// <summary>Server inventory object shown by the grid (GameHelper InventoryStruct: TotalBoxes at +0x150); 2026-10-23.</summary>
             public const int ServerInventoryOffset = 0x6F8;
+        }
+
+        /// <summary>
+        ///     Mods.dat row (the ModsPtr of GameHelper's ModArrayStruct): +0 Id, +0x8 hash, +0xA ModType key, +0x1A
+        ///     level, +0x1E four stat keys, +0x5E domain, +0x62 Name — the display name in the client language with
+        ///     gender branches ("&lt;if:MS&gt;{de Rabia}&lt;elif:FS&gt;{de Rabia}…"). Row size 0x2B5; read from a live
+        ///     table walk on 2026-10-23 (MonsterGainsFrenzyChargeAsKilled1, domain 3).
+        /// </summary>
+        public static class ModsDat
+        {
+            public const int NameOffset = 0x62;
         }
 
         /// <summary>Inventory item element (grid child or slot content).</summary>

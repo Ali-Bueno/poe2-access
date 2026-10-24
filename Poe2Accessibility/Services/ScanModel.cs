@@ -11,6 +11,9 @@ namespace Poe2Accessibility.Services
         /// <summary>What the quest tracker names (copies of entries of the other categories).</summary>
         Quest,
         Exits,
+
+        /// <summary>Ground never seen yet next to ground walked (D2R unexplored areas), one entry per run and direction.</summary>
+        Unexplored,
         Waypoints,
         Npcs,
         Enemies,

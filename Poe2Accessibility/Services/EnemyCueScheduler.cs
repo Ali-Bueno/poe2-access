@@ -8,6 +8,35 @@ namespace Poe2Accessibility.Services
     public sealed record CueTarget(uint Id, CueSynth.Layer Layer, float ScreenX, float ScreenY, float Nearness);
 
     /// <summary>
+    ///     D2R reach ping gate: fires once when the nearest enemy comes within reach, then stays quiet until every
+    ///     enemy is beyond reach plus the release margin (no ping per step while a fight sways in and out).
+    /// </summary>
+    public sealed class ReachGate
+    {
+        private bool inside;
+
+        /// <summary>True when the ping is due; <paramref name="nearestEdge"/> is null when no enemy is in sight.</summary>
+        public bool Update(float? nearestEdge, float reach, float release)
+        {
+            if (nearestEdge is { } edge && edge <= reach)
+            {
+                var due = !this.inside;
+                this.inside = true;
+                return due;
+            }
+
+            if (nearestEdge is not { } far || far > reach + release)
+            {
+                this.inside = false;
+            }
+
+            return false;
+        }
+
+        public void Reset() => this.inside = false;
+    }
+
+    /// <summary>
     ///     Which enemy cue to start now (D2R entity-cues design): one stream for the nearest unique, one for the nearest
     ///     elite, the rest for the nearest others, plus one for the nearest friend (NPC or player). A stream pulses faster as its target nears, due streams take turns
     ///     (most overdue first) and starts keep a minimum gap. A stream keeps its cadence when its target changes, so

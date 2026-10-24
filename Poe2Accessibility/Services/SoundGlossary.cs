@@ -21,6 +21,7 @@ namespace Poe2Accessibility.Services
             this.Add("beacon", CueSynth.Ping(rate));
             this.Add("dodge", CueSynth.Whoosh(rate));
             this.Add("crosshair", CueSynth.Crosshair(rate));
+            this.Add("reach", CueSynth.ReachPing(rate));
             this.Add("heartbeat", CueSynth.Heartbeat(rate));
             this.Add("enemy", CueSynth.Enemy(CueSynth.Layer.None, rate));
             this.Add("elite", CueSynth.Enemy(CueSynth.Layer.Elite, rate));

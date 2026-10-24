@@ -39,6 +39,7 @@ namespace Poe2Accessibility.Services
         private readonly UiElementReader elements;
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
+        private readonly MonsterMods mods;
         private long lastPoll;
         private IntPtr candidate;
         private long candidateSince;
@@ -62,6 +63,7 @@ namespace Poe2Accessibility.Services
             this.elements = elements;
             this.output = output;
             this.log = log;
+            this.mods = new MonsterMods(memory, elements);
         }
 
         /// <summary>Crosshair beep gain (settings).</summary>
@@ -72,6 +74,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Speak the target's name while aiming.</summary>
         public bool Names { get; set; } = true;
+
+        /// <summary>Read a magic or rare monster's modifiers after its name (settings).</summary>
+        public bool ModNames { get; set; } = true;
 
         /// <summary>The in-game HUD layer (ScreenNarrator.HudLayer), where the target display lives.</summary>
         public Func<IntPtr>? HudLayer { get; set; }
@@ -283,6 +288,10 @@ namespace Poe2Accessibility.Services
             if (entity.TryGetComponent<ObjectMagicProperties>(out var magic) && magic.Rarity != Rarity.Normal)
             {
                 name = Announcements.EnemyWithRarity(name, magic.Rarity);
+                if (this.ModNames)
+                {
+                    name = Announcements.WithMods(name, this.mods.Of(magic));
+                }
             }
 
             return Announcements.Target(name, life.Health.Total > 0 ? life.Health.CurrentInPercent() : null);

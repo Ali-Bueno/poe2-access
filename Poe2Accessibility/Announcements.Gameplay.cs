@@ -138,6 +138,7 @@ namespace Poe2Accessibility
         public static string SettingName(string field) => field switch
         {
             nameof(AccessibilitySettings.AnnounceTarget) => T("Target names", "Nombres de objetivos"),
+            nameof(AccessibilitySettings.AnnounceMonsterMods) => T("Monster modifiers", "Modificadores de monstruos"),
             nameof(AccessibilitySettings.AnnounceLowLife) => T("Low life warnings", "Avisos de vida baja"),
             nameof(AccessibilitySettings.AnnounceLowMana) => T("Low mana warnings", "Avisos de maná bajo"),
             nameof(AccessibilitySettings.AnnounceBossLife) => T("Boss life", "Vida de jefes"),
@@ -164,6 +165,8 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.SpeechGroundItems) => T("Speech: picked-up items", "Voz: objetos recogidos"),
             nameof(AccessibilitySettings.SpeechArrivals) => T("Speech: arrivals", "Voz: llegadas"),
             nameof(AccessibilitySettings.WallToneRange) => T("Wall tone range", "Alcance de los tonos de pared"),
+            nameof(AccessibilitySettings.MeleeReach) => T("Reach ping", "Aviso de alcance cuerpo a cuerpo"),
+            nameof(AccessibilitySettings.MeleeReachRange) => T("Reach distance", "Distancia de alcance"),
             nameof(AccessibilitySettings.EnemySounds) => T("Enemy sounds", "Sonidos de enemigos"),
             nameof(AccessibilitySettings.NpcSounds) => T("NPC sounds", "Sonidos de personajes"),
             nameof(AccessibilitySettings.WallBump) => T("Wall bump", "Choque con paredes"),
@@ -190,6 +193,12 @@ namespace Poe2Accessibility
 
         public static string HandEmpty => T("You no longer hold an item", "Ya no llevas ningún objeto");
 
+        /// <summary>A scanner entry of the unexplored category: where unseen ground begins.</summary>
+        public static string UnexploredArea => T("Unexplored ground", "Zona sin explorar");
+
+        /// <summary>Gold picked up during play (D2R "Picked up 37 gold"): the counter's rise.</summary>
+        public static string GoldPickedUp(long amount) => T($"Picked up {amount} gold", $"Recogido {amount} de oro");
+
         public static string PickedUp(string name, int added) => added > 0
             ? T($"Picked up {added} more: {name}", $"Recogido {added} más: {name}")
             : T($"Picked up: {name}", $"Recogido: {name}");
@@ -200,6 +209,7 @@ namespace Poe2Accessibility
             "beacon" => T("Guide ping", "Ping de la guía"),
             "dodge" => T("Dodge warning", "Aviso para esquivar"),
             "crosshair" => T("Crosshair", "Mira"),
+            "reach" => T("Reach ping", "Aviso de alcance"),
             "wall_tone" => T("Wall tone", "Tono de pared"),
             "radar_obstacle" => T("Radar: small obstacle", "Radar: obstáculo pequeño"),
             "heartbeat" => T("Heartbeat", "Latido"),
@@ -231,6 +241,9 @@ namespace Poe2Accessibility
             "beacon" => T("walk so it sounds in the centre; faster when closer", "camina para oírlo al centro; más rápido al acercarte"),
             "dodge" => T("a rare or unique monster starts an attack, dodge", "un monstruo raro o único empieza un ataque, esquiva"),
             "crosshair" => T("the game's target lands on a living enemy", "el objetivo del juego cae en un enemigo vivo"),
+            "reach" => T(
+                "an enemy is close enough to hit in melee, on its side; again once every enemy has stepped back",
+                "un enemigo está al alcance cuerpo a cuerpo, de su lado; vuelve a sonar cuando todos se hayan alejado"),
             "radar_obstacle" => T(
                 "a rock, tree or pillar standing alone on that side: step round it",
                 "una roca, árbol o pilar aislado de ese lado: rodéalo"),
@@ -324,6 +337,10 @@ namespace Poe2Accessibility
         };
 
         /// <summary>The thing the right stick aims at: "Drowned", "Bloated Miller, unique, 40 percent".</summary>
+        /// <summary>A monster's modifiers after its name and rarity, in the game's words and order.</summary>
+        public static string WithMods(string name, System.Collections.Generic.IReadOnlyList<string> mods) =>
+            mods.Count == 0 ? name : $"{name}, {string.Join(", ", mods)}";
+
         public static string Target(string name, int? lifePercent) => lifePercent is { } life and < 100
             ? T($"{name}, {life} percent", $"{name}, {life} por ciento")
             : name;

@@ -57,6 +57,9 @@ namespace Poe2Accessibility
         /// <summary>Name the monster, NPC or object the right stick aims at.</summary>
         public bool AnnounceTarget = true;
 
+        /// <summary>Read a magic or rare monster's modifiers after its name when it is aimed at (D2R enchantments).</summary>
+        public bool AnnounceMonsterMods = true;
+
         /// <summary>Name what you walk up to or stand on: checkpoints, NPCs, the stash, chests, items, exits.</summary>
         public bool AnnounceNearby = true;
 
@@ -110,6 +113,12 @@ namespace Poe2Accessibility
 
         /// <summary>Say what the cursor takes in hand in the inventory and when it lets go (D2R item in hand).</summary>
         public bool AnnounceHand = true;
+
+        /// <summary>Reach ping (D2R): two rising notes when an enemy in sight comes within melee reach.</summary>
+        public bool MeleeReach = true;
+
+        /// <summary>Gap between your body and the enemy's at which the reach ping fires, world units (~400 per second of walking).</summary>
+        public int MeleeReachRange = 40;
 
         /// <summary>Wall tones (D2R): a soft noise band per screen direction that swells as a wall closes in. Off by default.</summary>
         public bool WallTones = false;

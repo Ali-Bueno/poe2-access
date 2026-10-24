@@ -30,7 +30,7 @@ namespace Poe2Accessibility.Services
 
             foreach (var entry in entries)
             {
-                if (entry.Category is ScanCategory.Players or ScanCategory.Items ||
+                if (entry.Category is ScanCategory.Players or ScanCategory.Items or ScanCategory.Unexplored ||
                     (entry.Category == ScanCategory.Enemies && !entry.Name.Contains(", ", StringComparison.Ordinal)))
                 {
                     continue; // ordinary monsters share names with flavour text; bosses carry their rarity

@@ -44,6 +44,16 @@ namespace Poe2Accessibility.Services
         /// <summary>Landmark ids live above entity ids so the two never collide.</summary>
         private const uint LandmarkIdBase = 0x80000000;
 
+        /// <summary>Unexplored entries: this base plus their block (row in the high half), above the tile landmarks.</summary>
+        private const uint UnexploredIdBase = 0xC0000000;
+
+        private const int MaxUnexplored = 8;
+
+        /// <summary>The frontier scans the whole grid: recomputed at most this often (the many Entries() callers share it).</summary>
+        private const int UnexploredRefreshMs = 2000;
+
+        private const int TrackMs = 250;
+
         private readonly HostMemoryReader memory;
         private readonly UiElementReader elements;
         private readonly InventoryReader inventory;
@@ -51,6 +61,10 @@ namespace Poe2Accessibility.Services
         private readonly Func<string> areaId;
         private readonly PluginLog log;
         private readonly Dictionary<uint, ScanEntry> remembered = new();
+        private readonly ExplorationMap explored = new();
+        private IReadOnlyList<ScanEntry> unexplored = Array.Empty<ScanEntry>();
+        private long unexploredAt = long.MinValue / 2;
+        private long trackedAt = long.MinValue / 2;
 
         public EntityCatalog(HostMemoryReader memory, UiElementReader elements, InventoryReader inventory, LandmarkTable landmarks, Func<string> areaId, PluginLog log)
         {
@@ -70,7 +84,31 @@ namespace Poe2Accessibility.Services
         public static bool IsEntity(ScanEntry entry) => entry.Id < LandmarkIdBase;
 
         /// <summary>A new area: nothing seen yet.</summary>
-        public void Forget() => this.remembered.Clear();
+        public void Forget()
+        {
+            this.remembered.Clear();
+            this.explored.Reset();
+            this.unexplored = Array.Empty<ScanEntry>();
+            this.unexploredAt = long.MinValue / 2;
+        }
+
+        /// <summary>Per frame while playing: the ground around the player counts as seen (unexplored category).</summary>
+        public void Track()
+        {
+            var now = Environment.TickCount64;
+            if (now - this.trackedAt < TrackMs)
+            {
+                return;
+            }
+
+            this.trackedAt = now;
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            var row = area.TerrainMetadata.BytesPerRow;
+            if (row > 0 && area.Player.TryGetComponent<Render>(out var player))
+            {
+                this.explored.Visit(new Vector2(player.GridPosition.X, player.GridPosition.Y), row * 2, area.GridWalkableData.Length / row);
+            }
+        }
 
         /// <summary>Everything the scanner can name, nearest first.</summary>
         public IReadOnlyList<ScanEntry> Entries()
@@ -122,6 +160,11 @@ namespace Poe2Accessibility.Services
             foreach (var landmark in this.TileLandmarks(area, player.WorldPosition.Z))
             {
                 found.TryAdd(landmark.Id, landmark);
+            }
+
+            foreach (var frontier in this.Unexplored(area, player))
+            {
+                found.TryAdd(frontier.Id, frontier);
             }
 
             var origin = player.WorldPosition;
@@ -245,6 +288,30 @@ namespace Poe2Accessibility.Services
                 var centre = new Vector2(spots.Average(spot => spot.X), spots.Average(spot => spot.Y)) * toWorld;
                 yield return new ScanEntry(LandmarkIdBase + index, ScanCategory.Exits, label, centre.X, centre.Y, height);
             }
+        }
+
+        /// <summary>Where unseen ground begins (<see cref="ExplorationMap"/>), refreshed every UnexploredRefreshMs.</summary>
+        private IReadOnlyList<ScanEntry> Unexplored(AreaInstance area, Render player)
+        {
+            var now = Environment.TickCount64;
+            if (now - this.unexploredAt < UnexploredRefreshMs || !this.TryLiveGrid(out var grid, out var row))
+            {
+                return this.unexplored;
+            }
+
+            this.unexploredAt = now;
+            var toWorld = area.WorldToGridConvertor;
+            var from = new Vector2(player.GridPosition.X, player.GridPosition.Y);
+            this.unexplored = this.explored.Frontier(grid, row, from, MaxUnexplored)
+                .Select(cell => new ScanEntry(
+                    UnexploredIdBase + (uint)(((int)cell.Y / ExplorationMap.BlockCells) << 15) + (uint)((int)cell.X / ExplorationMap.BlockCells),
+                    ScanCategory.Unexplored,
+                    Announcements.UnexploredArea,
+                    cell.X * toWorld,
+                    cell.Y * toWorld,
+                    player.WorldPosition.Z))
+                .ToList();
+            return this.unexplored;
         }
 
         private static float Distance(StdTuple3D<float> origin, ScanEntry entry) =>
