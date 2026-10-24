@@ -86,6 +86,21 @@ namespace Poe2Accessibility
 
         /// <summary>A "not loaded" state shorter than this is a transition, not the game closing.</summary>
         private const int ClosedSettleMs = 2000;
+
+        /// <summary>
+        ///     A state the game may only pass through is said once it has lasted this long: entering the game goes
+        ///     through character selection for 18 ms ("Cargando. Selección de personaje. Cargando área", 2026-10-24).
+        ///     The others are said at once, before the area name or the menu they bring.
+        /// </summary>
+        private const int StateSettleMs = 150;
+
+        private static readonly System.Collections.Generic.HashSet<GameStateTypes> PassingStates = new()
+        {
+            GameStateTypes.SelectCharacterState, GameStateTypes.WaitingState, GameStateTypes.LoadingState,
+        };
+
+        /// <summary>The state announcement waiting out <see cref="StateSettleMs"/>; Detected keeps "Game detected" when replaced.</summary>
+        private (string Text, bool Detected, long At)? pendingState;
         private bool confirmDown;
 
         /// <summary>When each kind of monster attack lands, learnt from the blows taken (BossWatch).</summary>
@@ -298,6 +313,7 @@ namespace Poe2Accessibility
 
             this.gameState.Tick();
             this.AnnounceLastingClose();
+            this.AnnounceSettledState();
             if (!this.gameState.IsAttached)
             {
                 this.processProbe?.Tick();
@@ -1043,8 +1059,24 @@ namespace Poe2Accessibility
 
             var reallyClosed = previous == GameStateTypes.GameNotLoaded && this.closedSince == 0;
             this.closedSince = 0;
-            var text = reallyClosed ? $"{Announcements.GameDetected} {Announcements.ForState(current)}" : Announcements.ForState(current);
-            this.output.Speak(text, true);
+            this.pendingState = (Announcements.ForState(current), reallyClosed || this.pendingState?.Detected == true, Environment.TickCount64);
+            if (!PassingStates.Contains(current))
+            {
+                this.pendingState = this.pendingState.Value with { At = long.MinValue / 2 };
+                this.AnnounceSettledState();
+            }
+        }
+
+        /// <summary>Per frame: the state reached, once it has settled; a passing one is replaced unsaid.</summary>
+        private void AnnounceSettledState()
+        {
+            if (this.pendingState is not { } pending || Environment.TickCount64 - pending.At < StateSettleMs)
+            {
+                return;
+            }
+
+            this.pendingState = null;
+            this.output.Speak(pending.Detected ? $"{Announcements.GameDetected} {pending.Text}" : pending.Text, true);
         }
 
         /// <summary>Per frame: "Game closed" once the game has stayed unloaded for a while.</summary>

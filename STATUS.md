@@ -325,11 +325,9 @@ dev command `layout` at login, in game, in the options and in the inventory.
 - With the keyboard as player 1 (entered with the mouse) the HUD's "1 2 Q W E R T" skill bar is read as a panel.
 - A text appearing right after a focus move repeats the focus with it ("Accesorio para casco, botón, 10 de 19.
   No tienes cosméticos…"): by design, so the name is never cut off; the first readout is interrupted.
-- Passive tree: allocation checked on two characters (Duelist pending/applied, Witch applied, 2026-10-24); the
-  class start is said as "inicio, BRUJA" without a direction (the portrait has no node element).
+- Passive tree: allocation checked on two characters (Duelist pending/applied, Witch applied, 2026-10-24); a class
+  start is said without a direction (the portrait has no node element): "inicio de tu clase, Monje".
 - Closing the game menu is silent now (D2R); Options opened from it starts with its page.
-- Leaving to character selection says "Cargando. Selección de personaje. Cargando área" (a 16 ms pass through
-  the selection state is announced).
 - GameHelper's own automation plugins (AutoHotKeyTrigger, PickupHelper) were enabled; disabled in
   `configs/plugins.json` on 2026-10-23 (they press keys / click for the player).
 - Running from a path containing "poe" triggers GameHelper's launcher warning (its anti-detection advice).
