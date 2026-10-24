@@ -101,6 +101,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The quest tracker's texts on screen ("Find Clearfell", "Slay the Bloated Miller"), for the Quest category.</summary>
         public Func<IReadOnlyList<string>> QuestTexts { get; set; }
 
+        /// <summary>The current area's name in the client language (its name in an objective is not a destination).</summary>
+        public Func<string> AreaName { get; set; } = () => string.Empty;
+
         /// <summary>A thing in the world, not a named place of the area's tiles.</summary>
         public static bool IsEntity(ScanEntry entry) => entry.Id < LandmarkIdBase;
 
@@ -196,7 +199,7 @@ namespace Poe2Accessibility.Services
 
             var origin = player.WorldPosition;
             var sorted = found.Values.OrderBy(entry => Distance(origin, entry)).ToList();
-            sorted.InsertRange(0, QuestMatcher.Targets(sorted, this.QuestTexts()));
+            sorted.InsertRange(0, QuestMatcher.Targets(sorted, this.QuestTexts(), this.AreaName()));
             return sorted;
         }
 

@@ -173,6 +173,7 @@ namespace Poe2Accessibility
                 this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
+                this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds));
                 this.commands.Settings = () => this.Settings;
                 this.commands.SkillBar = this.ReadSkillBar;

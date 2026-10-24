@@ -650,6 +650,8 @@ namespace Poe2Accessibility.Tests
             Equal("Renly", Names("Talk to Renly"), "a name inside the sentence");
             Equal(string.Empty, Names("Renly"), "a label equal to the name is its own nameplate");
             Equal(true, QuestMatcher.Targets(entries, new[] { "Talk to Renly" }).All(entry => entry.Category == ScanCategory.Quest), "copies in the Quest category");
+            Equal(string.Empty, string.Join(" | ", QuestMatcher.Targets(entries, new[] { "Suelo traicionero", "Registra Sierraclara para encontrar la entrada al Lodazal" }, "Sierraclara").Select(entry => entry.Name)),
+                  "the area the player searches is not a destination");
         }
 
         private static void NearbyThingsWaitForTheCooldown()

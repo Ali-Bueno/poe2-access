@@ -12,7 +12,11 @@ namespace Poe2Accessibility.Services
         ///     contains ("Find Clearfell" → the exit to Clearfell). Copies in <see cref="ScanCategory.Quest"/>, same
         ///     ids, so locking one guides to the real thing. A label equal to the name is the thing's own nameplate.
         /// </summary>
-        public static List<ScanEntry> Targets(IReadOnlyList<ScanEntry> entries, IReadOnlyList<string> questTexts)
+        /// <param name="currentArea">
+        ///     The area the player is in: its name in the objective ("Registra Sierraclara para encontrar la entrada al
+        ///     Lodazal") is where to search, not where to go — it made the exit back to Campamento de Sierraclara the target.
+        /// </param>
+        public static List<ScanEntry> Targets(IReadOnlyList<ScanEntry> entries, IReadOnlyList<string> questTexts, string currentArea = "")
         {
             var texts = questTexts.Select(Fold).Where(text => text.Length > 0).ToList();
             var targets = new List<ScanEntry>();
@@ -27,6 +31,7 @@ namespace Poe2Accessibility.Services
             var properNouns = new HashSet<string>(questTexts.SelectMany(text => text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1))
                 .Where(word => word.Length >= 4 && char.IsUpper(word[0]))
                 .Select(word => Fold(word.Trim(',', '.', ':', ';', '!', '?', '\'', '"'))));
+            properNouns.ExceptWith(Fold(currentArea).Split(' ', StringSplitOptions.RemoveEmptyEntries));
 
             foreach (var entry in entries)
             {
