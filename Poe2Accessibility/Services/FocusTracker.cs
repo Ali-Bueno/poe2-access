@@ -19,6 +19,19 @@ namespace Poe2Accessibility.Services
         /// <summary>How often the focused control is re-read for in-place value changes (a few reads each time).</summary>
         private const int ValuePollMs = 150;
 
+        /// <summary>A screen with no highlight marker is searched again this often (it may still be building).</summary>
+        private const int MarkerRescanMs = 2000;
+
+        /// <summary>Highlight markers are looked for among this many elements of the screen (a pre-game screen has ~4500).</summary>
+        private const int MaxMarkerScan = 8000;
+
+        /// <summary>
+        ///     Child names that mark their parent as the highlighted control while visible: the creation screen's
+        ///     Continue after the name field (create_button > "hightlight", the game's spelling) has nothing in the UI
+        ///     manager's focus or hover (2026-10-23).
+        /// </summary>
+        private static readonly string[] HighlightMarkers = { "hightlight", "highlight" };
+
         private readonly HostMemoryReader reader;
         private readonly UiElementReader elements;
         private readonly UiManagerLocator locator;
@@ -26,6 +39,9 @@ namespace Poe2Accessibility.Services
         private readonly PluginLog log;
         private readonly Stopwatch sincePendingCheck = Stopwatch.StartNew();
         private readonly Stopwatch sinceValuePoll = Stopwatch.StartNew();
+        private readonly Stopwatch sinceMarkerScan = Stopwatch.StartNew();
+        private System.Collections.Generic.List<IntPtr> markers = new();
+        private IntPtr markersRoot;
         private IntPtr lastFocused;
         private bool pendingVisibility;
         private GameStateTypes lastState = GameStateTypes.GameNotLoaded;
@@ -219,9 +235,68 @@ namespace Poe2Accessibility.Services
                 return (current, false);
             }
 
-            return this.reader.TryRead<IntPtr>(manager + GameLayout.UiManager.HoveredOffset, out var hovered) && this.elements.IsElement(hovered)
-                ? (hovered, true)
-                : (IntPtr.Zero, false);
+            if (this.reader.TryRead<IntPtr>(manager + GameLayout.UiManager.HoveredOffset, out var hovered) && this.elements.IsElement(hovered))
+            {
+                return (hovered, true);
+            }
+
+            // Pre-game only: in game nothing focused is the usual case (playing), and the HUD is large.
+            return state != GameStateTypes.InGameState ? (this.HighlightedControl(), false) : (IntPtr.Zero, false);
+        }
+
+        /// <summary>The parent of a visible highlight marker under the current root, or zero.</summary>
+        private IntPtr HighlightedControl()
+        {
+            if (this.CurrentRoot == IntPtr.Zero)
+            {
+                return IntPtr.Zero;
+            }
+
+            if (this.markersRoot != this.CurrentRoot || (this.markers.Count == 0 && this.sinceMarkerScan.ElapsedMilliseconds >= MarkerRescanMs))
+            {
+                this.markersRoot = this.CurrentRoot;
+                this.markers = this.FindMarkers(this.CurrentRoot);
+                this.sinceMarkerScan.Restart();
+            }
+
+            foreach (var marker in this.markers)
+            {
+                if (this.elements.TryReadElement(marker, out var info) && info.IsVisibleFlag && info.Raw.ParentPtr != IntPtr.Zero &&
+                    this.elements.TryReadElement(info.Raw.ParentPtr, out var parent) && this.elements.IsVisible(parent))
+                {
+                    return info.Raw.ParentPtr;
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+
+        private System.Collections.Generic.List<IntPtr> FindMarkers(IntPtr root)
+        {
+            var found = new System.Collections.Generic.List<IntPtr>();
+            var queue = new System.Collections.Generic.Queue<IntPtr>();
+            var seen = new System.Collections.Generic.HashSet<IntPtr>();
+            queue.Enqueue(root);
+            while (queue.Count > 0 && seen.Count < MaxMarkerScan)
+            {
+                var address = queue.Dequeue();
+                if (!seen.Add(address) || !this.elements.TryReadElement(address, out var info))
+                {
+                    continue;
+                }
+
+                if (Array.IndexOf(HighlightMarkers, info.Name) >= 0)
+                {
+                    found.Add(address);
+                }
+
+                foreach (var child in this.elements.ReadChildren(info))
+                {
+                    queue.Enqueue(child);
+                }
+            }
+
+            return found;
         }
     }
 }

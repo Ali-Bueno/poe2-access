@@ -589,6 +589,12 @@ namespace Poe2Accessibility.Services
                     var tab = this.selectedTab(change.Layer.Address);
                     this.Speak("page with focus", tab.Length > 0 ? Announcements.InContext(tab, this.lastFocusSpeech) : this.lastFocusSpeech, true);
                     break;
+                case ScreenChangeKind.TextsAppeared when change.Layer.Address == focusLayer && this.JustFocused() &&
+                                                         change.Texts.All(text => text.Name.EndsWith(PopupSuffix, StringComparison.Ordinal)):
+                    // A description the focused control shows beside itself (the league selector's league_combobox_popup):
+                    // after the control, like a tooltip.
+                    this.Speak("popup of focus", Describe(change.Texts), false);
+                    break;
                 case ScreenChangeKind.TextsAppeared when change.Layer.Address == focusLayer && this.JustFocused():
                     // A popup built inside the focused layer (exit confirmation): its message, then the focused button.
                     var items = new HashSet<string>(focus?.ListItems ?? Array.Empty<string>());
@@ -618,6 +624,9 @@ namespace Poe2Accessibility.Services
                     break;
             }
         }
+
+        /// <summary>Control-id suffix of a description a control shows beside itself while focused.</summary>
+        private const string PopupSuffix = "_popup";
 
         /// <summary>Speaks the hint bar (controller legends) on request.</summary>
         public void SpeakHints(ScreenSnapshot snapshot)

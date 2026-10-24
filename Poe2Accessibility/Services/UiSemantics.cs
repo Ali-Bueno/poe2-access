@@ -235,7 +235,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Visible text first (login gateway combo shows it in a text field); otherwise the selected entry from the object.</summary>
         private string ComboBoxValue(in UiElementReader.ElementInfo info, string ownText)
         {
-            var shown = ownText.Length > 0 ? ownText : this.FindDescendantText(info, CaptionSearchDepth, null);
+            // The league selector's "league_combobox_popup" shows the league's description beside it while focused:
+            // a tooltip, not the value.
+            var shown = ownText.Length > 0 ? ownText : this.FindDescendantText(info, CaptionSearchDepth, null, PopupSuffix);
             if (shown.Length > 0)
             {
                 return shown;
@@ -359,7 +361,9 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>Breadth-first search for the first descendant with display text (optionally restricted by control name).</summary>
-        private string FindDescendantText(in UiElementReader.ElementInfo root, int maxDepth, string? requiredName)
+        private const string PopupSuffix = "_popup";
+
+        private string FindDescendantText(in UiElementReader.ElementInfo root, int maxDepth, string? requiredName, string? skippedSuffix = null)
         {
             var queue = new Queue<(UiElementReader.ElementInfo Info, int Depth)>();
             queue.Enqueue((root, 0));
@@ -373,7 +377,8 @@ namespace Poe2Accessibility.Services
 
                 foreach (var childAddress in this.elements.ReadChildren(current))
                 {
-                    if (!this.elements.TryReadElement(childAddress, out var child) || !child.IsVisibleFlag)
+                    if (!this.elements.TryReadElement(childAddress, out var child) || !child.IsVisibleFlag ||
+                        (skippedSuffix != null && child.Name.EndsWith(skippedSuffix, StringComparison.Ordinal)))
                     {
                         continue;
                     }
@@ -525,7 +530,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            return name.Replace('_', ' ').Trim();
+            return Announcements.ControlLabel(name.Replace('_', ' ').Trim());
         }
     }
 }

@@ -109,6 +109,16 @@ namespace Poe2Accessibility
         public static string OtherPlayer(string name, string characterClass) =>
             characterClass.Length == 0 || characterClass == name ? name : $"{name}, {characterClass}";
 
+        /// <summary>
+        ///     A label for a control known only by its id (nothing on screen names it): the humanised id ("league"),
+        ///     translated where the game's own word is known; other ids stay as they are.
+        /// </summary>
+        public static string ControlLabel(string humanisedId) => humanisedId switch
+        {
+            "league" => T("League", "Liga"),
+            _ => humanisedId,
+        };
+
         public static string EnemyWithRarity(string name, GameHelper.RemoteEnums.Rarity rarity) => $"{name}, {RarityName(rarity)}";
 
         internal static string RarityName(GameHelper.RemoteEnums.Rarity rarity) => rarity switch

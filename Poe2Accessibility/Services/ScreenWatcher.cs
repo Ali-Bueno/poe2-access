@@ -42,8 +42,12 @@ namespace Poe2Accessibility.Services
         private const float SameLineTolerance = 8;
 
         /// <summary>Control-id prefixes never read: the couch co-op "P2, Connect a Controller" prompt shows whenever a second pad is plugged in.</summary>
-        /// <remarks>World and map overlays draw labels over the game world (ground items, monsters); they are not UI to read.</remarks>
-        private static readonly string[] IgnoredControlPrefixes = { "couch_coop", "world_", "map_overlay" };
+        /// <remarks>
+        ///     World and map overlays draw labels over the game world (ground items, monsters); they are not UI to read.
+        ///     The HUD's "Game Paused" banner (paused_frame) shows for a moment as a panel closes; the menu that pauses
+        ///     the game is announced itself.
+        /// </remarks>
+        private static readonly string[] IgnoredControlPrefixes = { "couch_coop", "world_", "map_overlay", "paused_frame" };
 
         private readonly UiElementReader elements;
         private readonly PluginLog log;
