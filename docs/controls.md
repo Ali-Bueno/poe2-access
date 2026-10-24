@@ -110,8 +110,12 @@ In the Skills panel (beside the inventory: D-pad left from the first column) eac
 cost and description. X on a skill opens the bind screen: "Selecciona el botón al que asignar Descarga de caos.
 Set de habilidades principal. LB, vacío"; the D-pad moves between buttons and names the other set when you enter
 it; A binds. The Bind Screen (radial menu, down) starts on a button ("Set de habilidades principal. A, vacío");
-A there opens the grid of every skill and action that can go on it, read by name and tooltip ("Usar frasco de
-vida, Bebes de tu frasco de vida equipado"). Its first cell (a red cross) has no name yet.
+A on an empty button (X on a bound one) opens the grid of every skill and action that can go on it, read by name,
+column and row, then tooltip ("Usar frasco de vida, columna 2, fila 2, Bebes de tu frasco de vida equipado"). Its
+first cell, "vaciar el botón", leaves the button empty. On a bound button A picks the skill up to move it ("vacío.
+Colocar, A. Cancelar, B") and Y empties it.
+
+In Cosmetics the toggles above each weapon slot read "set de armas I" and "set de armas II".
 
 ## Dialogue
 

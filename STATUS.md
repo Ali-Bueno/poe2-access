@@ -79,7 +79,7 @@
 | World map (Quests tab): area under the cursor, map legend | done (live) | no-focus panel narration; finding areas with a free cursor is still hard |
 | Character stats (inspect mode): widgets with values, stat-list links with row + definition | done (live) | "DEX, 7, …", "Evasion Rating, 7. Evasion, link. …" |
 | Skills panel rows, empty slots, skill bind bar (button + bound skill) | done (live) | "empty, 2 of 10", "B, Dodge Roll/Sprint"; unhovered skills fall back to the icon name |
-| Skill bind screen (X on a gem) and skill picker (a slot's grid of skills/actions) | done (live) | "Selecciona el botón al que asignar Descarga de caos. Set de habilidades principal. LB, vacío"; entering the other row names it; picker cells (A on a Bind Screen button) "Exhumar, Costo. 7 de maná…", "Usar frasco de vida…" (no grid position) |
+| Skill bind screen (X on a gem) and skill picker (a slot's grid of skills/actions) | done (live) | "Selecciona el botón al que asignar Descarga de caos. Set de habilidades principal. LB, vacío"; entering the other row names it; picker cells (A on an empty button, X on a bound one) "vaciar el botón, columna 1, fila 1", "Usar frasco de vida, columna 2, fila 2…"; picking a skill up reads "vacío. Colocar, A. Cancelar, B" |
 | Cosmetics | done (live) | ordinary buttons once the d-pad moves the focus |
 | Quest list | todo | empty at the start of Act 1 |
 | Objective / tutorial box (G+0xDD8): new texts read, queued | done (live) | "Equip Item. Press View to Open your Inventory", "Press X to equip weapon." |
@@ -239,6 +239,14 @@
   "untargetable" in the entity dump is its broken flag (+0x51), not ours (+0x69).
 - **Tutorial lessons freeze the character** until their action: the flask lesson ("Has recibido daño. Presiona
   cruceta izquierda…") held a fight for 20 minutes until D-pad left (Mud Burrow, 2026-10-24).
+- **Bind screen actions** on a bound button: A picks the skill up (hint bar "Colocar, A. Cancelar, B"), X opens
+  the picker ("Cambiar habilidad"), Y empties it ("Quitar"); A on an empty button opens the picker. The picker's
+  red cross is `UIImages/InGame/Cross.dds` and empties the button (chosen on RB, Chaos Bolt bound back, 2026-10-24).
+- **Cosmetics weapon-set toggles** draw their numeral as a child's `…/Cosmetics/WeaponSetIcon1.dds` / `…2.dds`.
+- **State objects can end near an unreadable page:** SelectCharacterState sat 0x1CF0 bytes before one, so a
+  0x2000-byte read failed whole; `UiManagerLocator` reads it in 0x100 chunks (2026-10-24).
+- **Input method** ("Haz clic para moverte" / WASD / "Control/Mando") only changes at the main menu or character
+  selection; entering with the mouse binds the keyboard as player 1 and a pad plugged in afterwards is ignored.
 
 - **Object sizes by allocator stride (2026-09-15):** slider 0x410, check box 0x700, label 0x700, combo box 0x800; bytes past
   these belong to the neighbouring object (the deep-probe hex must be read with that in mind).
@@ -279,9 +287,9 @@
 The Witch "yarkbruja" (level 2) is in Clearfell Encampment; the quests point to the Mud Burrow (the Devourer) and
 the Grim Tangle. The uncut gem was engraved "Tirador esqueleto" to leave town; it is not socketed (no
 spirit left). Next: user test by ear of the 2026-10-23/24 batches (reach ping, wall tones, dodge whoosh, object
-sounds, the quest bell; barrier phrases, combos and FPS rows in Options, the bind screen, heard topics); monster
-modifiers on a magic/rare monster are still unheard (none met in Clearfell or the Mud Burrow entrance; the level 2
-character dies there to larvae and Mud Simulacra).
+sounds, the quest bell; barrier phrases, combos and FPS rows in Options, the bind screen and picker positions,
+weapon-set toggles, heard topics); monster modifiers on a magic/rare monster are still unheard (none met in
+Clearfell or the Mud Burrow entrance; the level 2 character dies there to larvae and Mud Simulacra).
 
 ## Known issues / open questions
 - Character creation: the league dropdown's list (12 leagues) is not verified open — with the test pad as player 2
@@ -298,13 +306,14 @@ character dies there to larvae and Mud Simulacra).
 - Scanner: long routes take ~200 ms on GameHelper's frame thread; a route along an octant boundary alternates
   "up 2, then up left" / "up left 2, then up"; the transition prompt "Press-Hold (Show Options)" is not read.
   A barrier never seen closed and past the network bubble still reads open (nothing to know it by).
-- Skill picker (A on a Bind Screen button): the first cell, a red cross, has no text, tooltip or skill and reads
-  "action binding display"; what it does (clear the button?) is unverified.
-- Cosmetics: the weapon-set toggles "I / II" read only "desmarcado, casilla de verificación, 2 de 2" (the numerals
-  are drawn, no text in memory).
-- After a host restart the first HUD texts ("Nuevo punto de control") and discoveries are announced again.
-- After leaving to character selection the virtual test pad became player 2 there ("P2 Presiona A para unirte");
-  Enter on the keyboard started the game and the pad was player 1 again in game. Never press A at that prompt.
+- Skill tooltips read "Costo." with no value: the game draws the header with nothing under it (Chaos Bolt,
+  Punch; seen on screen 2026-10-24), so the readout is faithful.
+- Character selection with the virtual pad: "J2 Presiona A para unirte" and A selects nothing (Client.txt: "popup
+  without a valid player index"); with the Xbox test pad Enter on the keyboard starts the game and the pad drives
+  it (`tools/computer_use/README.md`). Never press A at that prompt.
+- With the keyboard as player 1 (entered with the mouse) the HUD's "1 2 Q W E R T" skill bar is read as a panel.
+- A text appearing right after a focus move repeats the focus with it ("Accesorio para casco, botón, 10 de 19.
+  No tienes cosméticos…"): by design, so the name is never cut off; the first readout is interrupted.
 - Passive tree: allocation checked on two characters (Duelist pending/applied, Witch applied, 2026-10-24); the
   class start is said as "inicio, BRUJA" without a direction (the portrait has no node element).
 - Closing the game menu is silent now (D2R); Options opened from it starts with its page.
