@@ -224,6 +224,11 @@ namespace Poe2Accessibility
 
         public static string ChatHidden => T("Chat hidden", "Chat oculto");
 
+        /// <summary>The large map over the world shown, with its hint ("Hold D-pad down to interact with the map").</summary>
+        public static string MapShown(string hint) => hint.Length == 0 ? T("Map", "Mapa") : T($"Map. {hint}", $"Mapa. {hint}");
+
+        public static string MapHidden => T("Map hidden", "Mapa oculto");
+
         /// <summary>The weapon set swapped to and what it holds (D2R "Armas 2: Arco largo, Carcaj").</summary>
         public static string WeaponSet(int number, System.Collections.Generic.IReadOnlyList<string> held) =>
             held.Count == 0
@@ -353,6 +358,7 @@ namespace Poe2Accessibility
             "death screen" => T("the death screen", "la pantalla de muerte"),
             "inventory panel" => T("the inventory", "el inventario"),
             "chat" => T("the chat", "el chat"),
+            "map overlay" => T("the map", "el mapa"),
             "objective box" => T("the objective box", "la caja de objetivos"),
             "skill bar" => T("the skill bar", "la barra de habilidades"),
             "area name" => T("the area names", "los nombres de las zonas"),

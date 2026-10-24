@@ -8,6 +8,7 @@ namespace Poe2Accessibility.Services
     public enum InGameField
     {
         Hud,
+        MapOverlay,
         DeathScreen,
         InventoryPanel,
         Chat,
@@ -39,6 +40,7 @@ namespace Poe2Accessibility.Services
         private static readonly Dictionary<InGameField, Spec> Specs = new()
         {
             [InGameField.Hud] = new(GameLayout.InGameUi.HudLayerOffset, true, Named("HUD")),
+            [InGameField.MapOverlay] = new(GameLayout.InGameUi.MapOverlayOffset, true, Named("map_overlay")),
             [InGameField.DeathScreen] = new(GameLayout.InGameUi.DeathScreenOffset, true, Named("death_screen")),
             [InGameField.InventoryPanel] = new(GameLayout.InGameUi.InventoryPanelOffset, true, (fields, info) => fields.HasChild(info, 1, "panels_parent")),
             [InGameField.Chat] = new(GameLayout.InGameUi.ChatLayerOffset, true, (fields, info) => fields.HasChild(info, 2, "textField") && fields.HasChild(info, 2, "scrollbar")),
@@ -158,6 +160,7 @@ namespace Poe2Accessibility.Services
         private static string Part(InGameField field) => field switch
         {
             InGameField.Hud => "HUD",
+            InGameField.MapOverlay => "map overlay",
             InGameField.DeathScreen => "death screen",
             InGameField.InventoryPanel => "inventory panel",
             InGameField.Chat => "chat",

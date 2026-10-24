@@ -239,6 +239,9 @@ namespace Poe2Accessibility
             /// <summary>The HUD ("HUD", child 12 of G): quest tracker, flask charges, ground-item tooltips (2026-10-23).</summary>
             public const int HudLayerOffset = 0x558;
 
+            /// <summary>The large map over the world ("map_overlay", child 0 of G; dump 2026-10-24).</summary>
+            public const int MapOverlayOffset = 0xB88;
+
             /// <summary>
             ///     The death screen ("death_screen": title_text, respawn buttons), child 24 of G while shown; the same element
             ///     across deaths in an area (dumps and screen logs, 2026-10-24).
