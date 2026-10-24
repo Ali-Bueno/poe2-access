@@ -187,7 +187,10 @@ namespace Poe2Accessibility.Services
         /// <summary>The tree's links and node elements, read once per canvas (they persist while the tree is closed).</summary>
         private PassiveGraph? PassiveGraphOf(IntPtr canvasAddress, in UiElementReader.ElementInfo hoveredNode)
         {
-            if (this.passiveGraph is { } cached && cached.Canvas == canvasAddress)
+            // Applying passive changes gives the canvas a new state object (the old one's allocated list goes stale:
+            // a node allocated and applied read "reachable", 2026-10-24), so the cache holds while both still match.
+            if (this.passiveGraph is { } cached && cached.Canvas == canvasAddress &&
+                this.reader.TryRead<IntPtr>(canvasAddress + GameLayout.PassiveTree.CanvasStateOffset, out var currentState) && currentState == cached.State)
             {
                 return cached;
             }

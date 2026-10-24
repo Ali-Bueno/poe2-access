@@ -128,6 +128,7 @@ namespace Poe2Accessibility.Services
         private string lastValue = string.Empty;
         private bool lastExpanded;
         private string lastLinkRow = string.Empty;
+        private IReadOnlyList<string> tooltipSaid = Array.Empty<string>();
 
         /// <summary>
         ///     A new area (its name changed): the HUD's and the tutorial box's texts are news again. Not on every game
@@ -261,6 +262,7 @@ namespace Poe2Accessibility.Services
             this.valueOwner = node.Address;
             this.lastValue = node.Value;
             this.lastExpanded = node.IsExpanded;
+            this.tooltipSaid = this.ReadTooltips ? node.Tooltip : Array.Empty<string>();
             var focused = this.Focused(node);
             if (node.Group.Length > 0 && node.Group != this.lastGroup)
             {
@@ -308,7 +310,14 @@ namespace Poe2Accessibility.Services
 
             if (this.ReadTooltips && node.Tooltip.Count > 0 && node.Address == this.valueOwner)
             {
-                this.Speak("tooltip of focus", Announcements.Sentences(node.Tooltip), false);
+                // Only what was not said yet: a passive node's links come first, its description a moment later.
+                var said = this.tooltipSaid;
+                this.tooltipSaid = node.Tooltip;
+                var fresh = node.Tooltip.Where(line => !said.Contains(line)).ToList();
+                if (fresh.Count > 0)
+                {
+                    this.Speak("tooltip of focus", Announcements.Sentences(fresh), false);
+                }
             }
         }
 
