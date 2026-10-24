@@ -45,5 +45,12 @@ namespace Poe2Accessibility.Models
         TopLayerChanged,
     }
 
-    public sealed record ScreenChange(ScreenChangeKind Kind, ScreenLayer Layer, IReadOnlyList<ScreenText> Texts);
+    public sealed record ScreenChange(ScreenChangeKind Kind, ScreenLayer Layer, IReadOnlyList<ScreenText> Texts)
+    {
+        /// <summary>
+        ///     Texts appeared while others of the same layer had just gone: a list scrolled (an options page moving
+        ///     under the focus), not something the focus brought.
+        /// </summary>
+        public bool Scrolled { get; init; }
+    }
 }

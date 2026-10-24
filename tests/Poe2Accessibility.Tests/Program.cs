@@ -50,6 +50,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(RouteStartsOutsideAPocket), RouteStartsOutsideAPocket);
             Run(nameof(BuffIdsNameAilments), BuffIdsNameAilments);
             Run(nameof(FarBarrierStaysClosedUntilSeenNear), FarBarrierStaysClosedUntilSeenNear);
+            Run(nameof(ScrolledRowsAreNotNews), ScrolledRowsAreNotNews);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -486,6 +487,23 @@ namespace Poe2Accessibility.Tests
             Set(22, 22, true);
             var route = RoutePlanner.FindRoute(grid, row, new System.Numerics.Vector2(22.4f, 22.4f), new System.Numerics.Vector2(50, 50), false, out var reached);
             Equal(true, route != null && reached, "a route from the ground around the pocket");
+        }
+
+        private static void ScrolledRowsAreNotNews()
+        {
+            var differ = Settled(out _);
+            var scrolled = Snapshot(Layer(1, 0, true, Text(11, "All I need"), Text(12, "Witch")));
+            differ.Apply(scrolled);
+            var changes = differ.Apply(scrolled);
+            Equal(true, changes.Single().Scrolled, "a row came in as another left");
+
+            var grown = Snapshot(Layer(1, 0, true, Text(11, "All I need"), Text(12, "Witch"), Text(13, "Details")));
+            differ.Apply(grown);
+            differ.Apply(grown);
+            differ.Apply(grown);
+            var details = Snapshot(Layer(1, 0, true, Text(11, "All I need"), Text(12, "Witch"), Text(13, "Details"), Text(14, "More")));
+            differ.Apply(details);
+            Equal(false, differ.Apply(details).Single().Scrolled, "a text added with nothing gone");
         }
 
         private static void FarBarrierStaysClosedUntilSeenNear()

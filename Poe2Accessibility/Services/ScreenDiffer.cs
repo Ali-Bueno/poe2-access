@@ -15,9 +15,16 @@ namespace Poe2Accessibility.Services
     {
         private static readonly Regex Digits = new(@"\d+", RegexOptions.Compiled);
 
+        /// <summary>Snapshots after texts went away within which arrivals in the same layer count as a scroll.</summary>
+        private const int ScrollSnapshots = 3;
+
         private readonly HashSet<IntPtr> stableLayers = new();
         private readonly HashSet<IntPtr> baseLayers = new();
         private readonly Dictionary<IntPtr, string> stableTexts = new();
+
+        /// <summary>Per layer, the snapshot number in which some of its texts last went away.</summary>
+        private readonly Dictionary<IntPtr, long> vanishedAt = new();
+        private long applied;
         private ScreenSnapshot previous = ScreenSnapshot.Empty;
         private IntPtr stableTop;
         private bool hasBaseline;
@@ -43,6 +50,7 @@ namespace Poe2Accessibility.Services
             this.baseLayers.Clear();
             this.stableLayers.Clear();
             this.stableTexts.Clear();
+            this.vanishedAt.Clear();
             this.previous = ScreenSnapshot.Empty;
             this.stableTop = IntPtr.Zero;
             this.hasBaseline = false;
@@ -55,11 +63,17 @@ namespace Poe2Accessibility.Services
             var previousLayers = this.previous.Layers.ToDictionary(layer => layer.Address);
             var previousTexts = this.previous.Layers.SelectMany(layer => layer.Texts).GroupBy(text => text.Address)
                 .ToDictionary(group => group.Key, group => group.First().Text);
+            this.applied++;
             foreach (var layer in current.Layers)
             {
-                if (!previousLayers.ContainsKey(layer.Address))
+                if (!previousLayers.TryGetValue(layer.Address, out var previousLayer))
                 {
                     continue;
+                }
+
+                if (previousLayer.Texts.Any(old => layer.Texts.All(text => text.Address != old.Address)))
+                {
+                    this.vanishedAt[layer.Address] = this.applied;
                 }
 
                 var opened = this.stableLayers.Add(layer.Address);
@@ -91,7 +105,9 @@ namespace Poe2Accessibility.Services
                 }
                 else if (appeared.Count > 0)
                 {
-                    changes.Add(new ScreenChange(ScreenChangeKind.TextsAppeared, layer, appeared));
+                    // A text needs two snapshots to count, so a scroll's arrivals come a snapshot or two after its departures.
+                    var scrolled = this.vanishedAt.TryGetValue(layer.Address, out var gone) && this.applied - gone <= ScrollSnapshots;
+                    changes.Add(new ScreenChange(ScreenChangeKind.TextsAppeared, layer, appeared) { Scrolled = scrolled });
                 }
             }
 
