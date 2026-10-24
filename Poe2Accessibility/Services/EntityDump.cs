@@ -16,7 +16,7 @@ namespace Poe2Accessibility.Services
     {
         /// <summary>Render-component offsets probed for a display name (GameHelper notes a class name at +0xA0).</summary>
         /// <summary>Components whose pointers are followed to strings (destination area, quest state).</summary>
-        private static readonly string[] ProbedComponents = { "AreaTransition", "NPC", "Chest" };
+        private static readonly string[] ProbedComponents = { "AreaTransition", "NPC", "Chest", "TriggerableBlockage", "Transitionable", "Counter", "ProximityTrigger", "Timer" };
 
         private static readonly System.Reflection.FieldInfo? ComponentMap =
             typeof(GameHelper.RemoteObjects.States.InGameStateObjects.Entity).GetField("componentAddresses", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
@@ -79,6 +79,19 @@ namespace Poe2Accessibility.Services
                         {
                             sb.AppendLine($"         {probed}@0x{address.ToInt64():X}: {this.Strings(address)}");
                         }
+                    }
+
+                    if (entity.TryGetComponent<WorldItem>(out var worldItem) && worldItem.ItemEntityAddress != IntPtr.Zero)
+                    {
+                        // The item a ground entity holds: how its name can be read (gems have no base display name).
+                        var item = (GameHelper.RemoteObjects.States.InGameStateObjects.Item)Activator.CreateInstance(
+                            typeof(GameHelper.RemoteObjects.States.InGameStateObjects.Item),
+                            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, new object[] { worldItem.ItemEntityAddress }, null)!;
+                        var itemBase = item.TryGetComponent<Base>(out var baseComponent) ? $"\"{baseComponent.BaseItemName}\" ({baseComponent.InternalName})" : "-";
+                        var itemComponents = ComponentMap.GetValue(item) is System.Collections.Concurrent.ConcurrentDictionary<string, IntPtr> held
+                            ? string.Join(",", held.Select(pair => $"{pair.Key}@0x{pair.Value.ToInt64():X}").OrderBy(text => text))
+                            : string.Empty;
+                        sb.AppendLine($"         item @0x{worldItem.ItemEntityAddress.ToInt64():X} {item.Path} base={itemBase} components: {itemComponents}");
                     }
 
                     if (components.TryGetValue("ObjectMagicProperties", out var magic) && magic != IntPtr.Zero)

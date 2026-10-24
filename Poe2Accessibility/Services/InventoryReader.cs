@@ -138,7 +138,7 @@ namespace Poe2Accessibility.Services
             }
 
             var item = (Item)Activator.CreateInstance(typeof(Item), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { entity }, null)!;
-            var name = item.TryGetComponent<Base>(out var baseComponent) ? baseComponent.BaseItemName : string.Empty;
+            var name = item.TryGetComponent<Base>(out var baseComponent) ? this.BaseName(baseComponent) : string.Empty;
             var rarity = item.TryGetComponent<Mods>(out var mods) ? mods.Rarity : Rarity.Normal;
             if (name.Length == 0 || (rarity != Rarity.Normal && tooltipTitle.Length > 0))
             {
@@ -147,6 +147,19 @@ namespace Poe2Accessibility.Services
 
             var count = item.TryGetComponent<Stack>(out var stack) ? stack.Count : 0;
             return Announcements.Item(name, rarity, count);
+        }
+
+        /// <summary>The item's base display name; GameHelper's is empty for names under 8 characters.</summary>
+        private string BaseName(Base component)
+        {
+            if (component.BaseItemName.Length > 0)
+            {
+                return component.BaseItemName;
+            }
+
+            return this.reader.TryRead<IntPtr>(component.Address + GameLayout.BaseComponent.NameRowOffset, out var row) && row != IntPtr.Zero
+                ? this.elements.ReadWStringStructAt(row + GameLayout.BaseComponent.NameOffset) ?? string.Empty
+                : string.Empty;
         }
 
         /// <summary>

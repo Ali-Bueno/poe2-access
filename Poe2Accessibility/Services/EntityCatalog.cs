@@ -69,6 +69,7 @@ namespace Poe2Accessibility.Services
         private readonly ExplorationMap explored = new();
         /// <summary>Recent live walkable grids (GameLayout-free: whole copies), oldest first.</summary>
         private readonly Queue<byte[]> samples = new();
+        private readonly BarrierMemory barriers = new();
         private readonly object samplesLock = new();
         private long lastSampleAt;
         private IReadOnlyList<ScanEntry> unexplored = Array.Empty<ScanEntry>();
@@ -100,6 +101,7 @@ namespace Poe2Accessibility.Services
             lock (this.samplesLock)
             {
                 this.samples.Clear();
+                this.barriers.Reset();
             }
             this.unexplored = Array.Empty<ScanEntry>();
             this.unexploredAt = long.MinValue / 2;
@@ -275,7 +277,8 @@ namespace Poe2Accessibility.Services
             // A cell is walkable for routes only if it was in every recent sample: a closed tutorial barrier
             // (TutorialBlocker3 by the Riverbank bridge, 2026-10-23) flickers in the live grid every few seconds,
             // which split the ground in two and made routes and the guide's "the way is closed" flap. A gate that
-            // really opens is walkable again once the samples agree (about two seconds).
+            // really opens is walkable again once the samples agree (about two seconds). Past the network bubble the
+            // grid cannot be trusted at all: see BarrierMemory.
             lock (this.samplesLock)
             {
                 var now = Environment.TickCount64;
@@ -288,6 +291,15 @@ namespace Poe2Accessibility.Services
                 {
                     this.samples.Enqueue(live);
                     this.lastSampleAt = now;
+                    if (area.Player.TryGetComponent<Render>(out var player))
+                    {
+                        var before = this.barriers.ClosedCount;
+                        this.barriers.Observe(live, snapshot, area.TerrainMetadata.BytesPerRow, (int)player.GridPosition.X, (int)player.GridPosition.Y);
+                        if (this.barriers.ClosedCount != before)
+                        {
+                            this.log.Debug($"Barrier cells remembered closed: {this.barriers.ClosedCount}");
+                        }
+                    }
                     while (this.samples.Count > MaxSamples)
                     {
                         this.samples.Dequeue();
@@ -320,6 +332,7 @@ namespace Poe2Accessibility.Services
                     }
                 }
 
+                this.barriers.Apply(stable);
                 return stable;
             }
         }
@@ -451,6 +464,13 @@ namespace Poe2Accessibility.Services
             {
                 category = ScanCategory.Npcs;
             }
+            else if (entity.TryGetComponent<TriggerableBlockage>(out var blockage))
+            {
+                // Tutorial beams and gates: where the way is shut, while it is (BarrierWatch says when one opens).
+                category = blockage.IsBlocked ? ScanCategory.Objects : null;
+                name = name.Length > 0 ? name : Announcements.ClosedBarrier;
+                kind = "barrier";
+            }
             else
             {
                 category = entity.TryGetComponent<Targetable>(out _) ? ScanCategory.Objects : null; // stash, bench, well
@@ -458,7 +478,7 @@ namespace Poe2Accessibility.Services
 
             if (category == null || name.Length == 0)
             {
-                return null; // unnamed placeholders ("TutorialBlocker1") are not things a player can find
+                return null; // unnamed placeholders are not things a player can find
             }
 
             var position = render.WorldPosition;

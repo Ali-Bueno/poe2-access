@@ -67,6 +67,7 @@ namespace Poe2Accessibility
         private StatusWatch? statuses;
         private InventoryWatch? pickups;
         private GoldWatch? gold;
+        private BarrierWatch? barriers;
         private DiscoveryNarrator? discoveries;
 
         /// <summary>Game sounds are cut to this length: repeated proximity cues must stay short.</summary>
@@ -162,6 +163,7 @@ namespace Poe2Accessibility
                 this.statuses = new StatusWatch(this.output, this.log);
                 this.pickups = new InventoryWatch(inventory, this.output, this.log);
                 this.gold = new GoldWatch(memory, elements, this.output, this.log);
+                this.barriers = new BarrierWatch(this.entities, this.output, this.log);
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds);
@@ -463,6 +465,7 @@ namespace Poe2Accessibility
                 this.Isolated("hand", () => this.pickups?.TickHand(this.Settings.AnnounceHand));
                 this.Isolated("moves", () => this.pickups?.TickMoves(playing, this.Settings.AnnounceMoves));
                 this.Isolated("gold", () => this.gold?.Tick(this.focus?.LayerContainer ?? IntPtr.Zero, playing, this.Settings.AnnouncePickups));
+                this.Isolated("barriers", () => this.barriers?.Tick(this.Settings.AnnounceDiscoveries));
             }
 
             this.Isolated("bosses", () =>
@@ -702,6 +705,14 @@ namespace Poe2Accessibility
                     break;
                 case "terrain":
                     this.terrainDump?.Write();
+                    if (this.entities != null && this.entities.TryLiveGrid(out var routed, out _))
+                    {
+                        // The grid routes are searched on (live samples combined), beside the raw layer just written.
+                        var routedPath = Path.Join(this.DllDirectory, "debug", $"routed-{DateTime.Now:yyyyMMdd-HHmmss}.walkable");
+                        File.WriteAllBytes(routedPath, routed);
+                        this.log?.Info($"Routed grid written to {routedPath}");
+                    }
+
                     break;
                 case "enemies":
                     this.log?.Info(this.enemyCues?.Diagnose() ?? "Enemy cues off");
@@ -943,6 +954,7 @@ namespace Poe2Accessibility
             this.statuses?.Reset();
             this.pickups?.Reset();
             this.gold?.Reset();
+            this.barriers?.Reset();
             this.targets?.Reset();
             this.discoveries?.Reset();
             this.entities?.Forget();

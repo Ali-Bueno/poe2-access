@@ -138,7 +138,7 @@ namespace Poe2Accessibility
         /// <summary>A knock when the D-pad does not move the focus in a menu (the end of the list).</summary>
         public bool EdgeKnock = true;
 
-        /// <summary>Name the first sighting of an exit, waypoint, checkpoint or boss in an area.</summary>
+        /// <summary>Name the first sighting of an exit, waypoint, checkpoint or boss in an area, and a barrier that opens.</summary>
         public bool AnnounceDiscoveries = true;
 
         /// <summary>Say what arrives in the inventory while playing: "Recogido: Traje de ermitaño".</summary>

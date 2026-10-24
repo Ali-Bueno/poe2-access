@@ -28,6 +28,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\StatusAilments.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\SpeechPriority.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ExplorationMap.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\BarrierMemory.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\IAccessibilityOutputService.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\WallBumpDetector.cs" Link="Plugin\WallBumpDetector.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\UiSemantics.Nearest.cs" Link="Plugin\UiSemantics.Nearest.cs" />

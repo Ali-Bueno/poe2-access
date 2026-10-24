@@ -126,6 +126,19 @@ namespace Poe2Accessibility
             public const int MaxEntries = 256;
         }
 
+        /// <summary>Item Base component (GameOffsets BaseOffsets).</summary>
+        public static class BaseComponent
+        {
+            /// <summary>Pointer to the name row.</summary>
+            public const int NameRowOffset = 0x10;
+
+            /// <summary>
+            ///     std::wstring display name inside the name row. GameHelper reads it as a pointer, which is only right
+            ///     for names of 8 characters or more: shorter ones are stored inline ("Exhumar", a gem; 2026-10-24).
+            /// </summary>
+            public const int NameOffset = 0x30;
+        }
+
         /// <summary>Entity Render component.</summary>
         public static class RenderComponent
         {

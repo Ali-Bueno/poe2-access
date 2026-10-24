@@ -77,6 +77,10 @@ namespace Poe2Accessibility
         public static string BeaconPartialRoute(string name) =>
             T($"The way to {name} is closed further on; guiding as close as it goes", $"El camino a {name} está cerrado más adelante; te guío lo más cerca posible");
 
+        /// <summary>The player reached the end of a route that stops short; the way on is still shut.</summary>
+        public static string BeaconAtClosest(string name) =>
+            T($"As close to {name} as the way goes; it is still closed", $"Estás lo más cerca posible de {name}; el camino sigue cerrado");
+
         public static string BeaconNoRoute(string name) => T($"No route to {name} yet", $"Todavía no hay ruta hacia {name}");
 
         public static string BeaconNeedsChoice => T("Choose something with the scanner first", "Primero elige algo con el escáner");
@@ -209,6 +213,12 @@ namespace Poe2Accessibility
         public static string UnexploredArea => T("Unexplored ground", "Zona sin explorar");
 
         /// <summary>Gold picked up during play (D2R "Picked up 37 gold"): the counter's rise.</summary>
+        /// <summary>A barrier that opened on its own (scanner-style place: "The way opened, 4 steps, left").</summary>
+        public static string BarrierOpened => T("The way opened", "Se abrió el paso");
+
+        /// <summary>A closed barrier in the scanner's objects (a tutorial beam, a gate); it has no name of its own.</summary>
+        public static string ClosedBarrier => T("Closed barrier", "Barrera cerrada");
+
         public static string GoldPickedUp(long amount) => T($"Picked up {amount} gold", $"Recogido {amount} de oro");
 
         public static string PickedUp(string name, int added) => added > 0

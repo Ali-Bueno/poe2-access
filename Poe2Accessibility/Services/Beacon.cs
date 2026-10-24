@@ -194,7 +194,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Test aid (dev command "beacon"): target, route, search and ping state.</summary>
         public string Diagnose() =>
-            $"target={this.target?.Name ?? "none"} route={this.route?.Count ?? -1} partial={this.partialRoute} search={(this.search == null ? "none" : this.search.Status.ToString())} lastPing={Environment.TickCount64 - this.lastPing} ms ago";
+            $"target={this.target?.Name ?? "none"} at={this.target?.WorldX:F0},{this.target?.WorldY:F0} route={this.route?.Count ?? -1} partial={this.partialRoute} search={(this.search == null ? "none" : this.search.Status.ToString())} lastPing={Environment.TickCount64 - this.lastPing} ms ago";
 
         /// <summary>Test aid (dev command "beacon"): the screen direction of the last ping and the route left, world units.</summary>
         public (Vector2 Screen, float RemainingWorld)? LastAim { get; private set; }
@@ -301,9 +301,10 @@ namespace Poe2Accessibility.Services
             }
             else if (!this.noRouteSaid && this.target != null)
             {
+                // Standing where a partial route ended is "as close as it goes", not "no route yet".
                 this.noRouteSaid = true;
+                this.output.Speak(this.route != null && this.partialSaid ? Announcements.BeaconAtClosest(this.target.Name) : Announcements.BeaconNoRoute(this.target.Name), false);
                 this.route = null;
-                this.output.Speak(Announcements.BeaconNoRoute(this.target.Name), false);
             }
         }
 

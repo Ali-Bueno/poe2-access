@@ -49,6 +49,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(UnexploredGroundLiesPastTheSeenEdge), UnexploredGroundLiesPastTheSeenEdge);
             Run(nameof(RouteStartsOutsideAPocket), RouteStartsOutsideAPocket);
             Run(nameof(BuffIdsNameAilments), BuffIdsNameAilments);
+            Run(nameof(FarBarrierStaysClosedUntilSeenNear), FarBarrierStaysClosedUntilSeenNear);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -485,6 +486,40 @@ namespace Poe2Accessibility.Tests
             Set(22, 22, true);
             var route = RoutePlanner.FindRoute(grid, row, new System.Numerics.Vector2(22.4f, 22.4f), new System.Numerics.Vector2(50, 50), false, out var reached);
             Equal(true, route != null && reached, "a route from the ground around the pocket");
+        }
+
+        private static void FarBarrierStaysClosedUntilSeenNear()
+        {
+            // 400x10 open strip; a barrier at cells 380-381 reads closed (believed at any distance), then
+            // walkable again while the player is still at x 10, past the network bubble: closed until they stand at x 300.
+            const int row = 200;
+            var open = Enumerable.Repeat((byte)0x11, row * 10).ToArray();
+            var shut = (byte[])open.Clone();
+            for (var y = 0; y < 10; y++)
+            {
+                shut[(y * row) + 190] = 0;
+            }
+
+            var memory = new BarrierMemory();
+            memory.Observe(open, open, row, 10, 5);
+            memory.Observe(shut, open, row, 10, 5);
+            memory.Observe(open, open, row, 10, 5);
+            var grid = (byte[])open.Clone();
+            memory.Apply(grid);
+            Equal(false, RoutePlanner.IsWalkable(grid, row, 380, 5), "seen open from afar: still closed");
+            Equal(20, memory.ClosedCount, "remembered cells");
+            memory.Observe(open, open, row, 300, 5);
+            grid = (byte[])open.Clone();
+            memory.Apply(grid);
+            Equal(true, RoutePlanner.IsWalkable(grid, row, 380, 5), "seen open from near by");
+
+            // Already closed at the first sample (the plugin started beside it): open in the grid as loaded is enough.
+            var fresh = new BarrierMemory();
+            fresh.Observe(shut, open, row, 10, 5);
+            fresh.Observe(open, open, row, 10, 5);
+            grid = (byte[])open.Clone();
+            fresh.Apply(grid);
+            Equal(false, RoutePlanner.IsWalkable(grid, row, 381, 5), "closed before the first sample");
         }
 
         private static void UnexploredGroundLiesPastTheSeenEdge()
