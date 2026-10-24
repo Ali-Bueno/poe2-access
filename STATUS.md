@@ -57,7 +57,7 @@
 | Autonomous test loop (virtual pad, launcher, peek, dev command file) | done (live) | `tools/computer_use/` |
 | Screen layers: popups, no-focus panels, closing popups, disabled controls | done (live) | `ScreenWatcher`/`ScreenDiffer`/`ScreenNarrator`; rules in `docs/menu-speech-rules.md` |
 | Terms / account windows read | done (code) | layer model; verified on creation screen, terms accepted before it existed |
-| Character creation (class, quote, name field) | done (live) | class preview video popup not in UI tree (open) |
+| Character creation (class, quote, name field) | done (live) | how to create said once on the name field (Enter, or B then A); X variant "Bruja" ↔ "Hechicera" with its quote; league list read (12) |
 | **Boot to gameplay** | done (live) | account `yarkidius`, Witch `Yarkidius`, Act 1 beach (2026-10-23) |
 | Hint bar button names (glyph images) | wip | Opus research on `entry_icon` |
 | Human labels for id-named controls (gateway, exit, options, motd) | todo | tooltip / localisation |
@@ -123,7 +123,7 @@
 | Skill bar readout (after the screen on the gameplay hold) | done (live) | `UiSemantics.SkillBar`: "Set de habilidades principal: LT, Activar set… X, Saeta básica… Vacío: LB, cruceta arriba, Y"; bind screen names skills from their dat rows (`docs/research/skill-bar.md`) |
 | Route turn prompts, partial routes, controls help in the settings menu | done (live) | "Ahora arriba a la derecha, 10"; help topics open the L3 menu; the menu edge knock was removed (user 2026-10-24) |
 | Game updates: layout found again, data regenerated, losses said | done (self-test ok at login, in game, options, inventory 2026-10-24) | `LayoutProbe`, `InGameFields`, `ControlFields`, `GameStateService.AreaRowOffset`, `CompatibilityReport`; launcher `GameDataSetup`; dev command `layout`; `docs/compatibility.md` |
-| Scanner limited to what a sighted player sees | done (code) | `EntityCatalog.Sighted`: enemies on screen only, the rest once on screen or on explored ground, named tiles once explored (it listed the whole network bubble and every named tile before) |
+| Scanner limited to what a sighted player sees | done (live) | `EntityCatalog.Sighted`: enemies on screen, minimap-icon things once the client has them, the rest once seen or explored; Quest category at any distance ("Misión. Campamento de Sierraclara, 130 pasos" from unexplored Riverbank); `docs/research/minimap.md` |
 | Enemies coming into view | done (code) | `EnemyNarrator`: once per monster per area, packs grouped: "Ahogado, 3, derecha"; uniques stay discoveries |
 | Inventory actions cut in | done (code) | "En la mano" held 400 ms (was 1.5 s, which queued the moves after it); equip/unequip/hand empty/arrivals interrupt |
 | Social, Challenges, Cosmetics, Quests, Character, Skills panels | done (live) | filter box as an edit field; Challenges rows by their `selected_*` marker frame ("El relicario, 0/50, 5 de 8", expand reads the goal); free-cursor pages read after the tab; icon buttons named by their tooltip ("Efecto para arma") |

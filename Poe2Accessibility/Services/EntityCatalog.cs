@@ -198,6 +198,8 @@ namespace Poe2Accessibility.Services
             }
 
             var found = new Dictionary<uint, ScanEntry>();
+            // Known to the game but not yet to the player: only the quest marker may point at them.
+            var unseen = new List<ScanEntry>();
             foreach (var entity in area.AwakeEntities.Values)
             {
                 if (!entity.IsValid || !entity.TryGetComponent<Render>(out var render))
@@ -212,8 +214,9 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                if (!this.Sighted(entry, render.WorldPosition, area.WorldToGridConvertor))
+                if (!this.Sighted(entry, render.WorldPosition, area.WorldToGridConvertor, OnMinimap(entity)))
                 {
+                    unseen.Add(entry);
                     continue;
                 }
 
@@ -244,9 +247,13 @@ namespace Poe2Accessibility.Services
             foreach (var landmark in this.TileLandmarks(area, player.WorldPosition.Z))
             {
                 var place = new StdTuple3D<float> { X = landmark.WorldX, Y = landmark.WorldY, Z = landmark.WorldZ };
-                if (this.Sighted(landmark, place, area.WorldToGridConvertor))
+                if (this.Sighted(landmark, place, area.WorldToGridConvertor, false))
                 {
                     found.TryAdd(landmark.Id, landmark);
+                }
+                else
+                {
+                    unseen.Add(landmark);
                 }
             }
 
@@ -257,7 +264,10 @@ namespace Poe2Accessibility.Services
 
             var origin = player.WorldPosition;
             var sorted = found.Values.OrderBy(entry => Distance(origin, entry)).ToList();
-            sorted.InsertRange(0, QuestMatcher.Targets(sorted, this.QuestTexts(), this.AreaName()));
+            // The quest marker: what the objective names is found wherever the game knows it, seen or not (user,
+            // 2026-10-24: the objective guided before the scanner kept to what is seen; docs/research/minimap.md).
+            var questPool = sorted.Concat(unseen.Where(entry => !found.ContainsKey(entry.Id))).OrderBy(entry => Distance(origin, entry)).ToList();
+            sorted.InsertRange(0, QuestMatcher.Targets(questPool, this.QuestTexts(), this.AreaName()));
             return sorted;
         }
 
@@ -547,12 +557,13 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     What a sighted player knows of: an enemy only while the camera shows it (the minimap draws no monsters),
-        ///     other players always (the map draws the party), anything else from the moment it is on screen or its
-        ///     ground has been explored.
+        ///     other players always (the map draws the party), what the minimap draws an icon for (exits, waypoints,
+        ///     checkpoints, NPCs, the stash, shrines) once the game has it, anything else from the moment it is on screen
+        ///     or its ground has been explored.
         /// </summary>
-        private bool Sighted(ScanEntry entry, StdTuple3D<float> place, float worldToGrid)
+        private bool Sighted(ScanEntry entry, StdTuple3D<float> place, float worldToGrid, bool onMinimap)
         {
-            if (entry.Category == ScanCategory.Enemies)
+            if (entry.Category == ScanCategory.Enemies && !onMinimap)
             {
                 return ScreenProjection.IsOnScreen(place);
             }
@@ -562,7 +573,7 @@ namespace Poe2Accessibility.Services
                 return true;
             }
 
-            if (!ScreenProjection.IsOnScreen(place) && !this.explored.IsSeen(new Vector2(place.X, place.Y) / worldToGrid))
+            if (!onMinimap && !ScreenProjection.IsOnScreen(place) && !this.explored.IsSeen(new Vector2(place.X, place.Y) / worldToGrid))
             {
                 return false;
             }
@@ -570,6 +581,10 @@ namespace Poe2Accessibility.Services
             this.sighted.Add(entry.Id);
             return true;
         }
+
+        /// <summary>The entity carries a MinimapIcons.dat icon (GameHelper's MinimapIcon component): the minimap draws it.</summary>
+        private static bool OnMinimap(Entity entity) =>
+            entity.TryGetComponent<MinimapIcon>(out var icon) && !string.IsNullOrEmpty(icon.IconName);
 
         private static float Distance(StdTuple3D<float> origin, ScanEntry entry) =>
             new Vector2(entry.WorldX - origin.X, entry.WorldY - origin.Y).Length();

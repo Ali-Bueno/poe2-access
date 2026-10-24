@@ -709,6 +709,10 @@ namespace Poe2Accessibility
                 case "entities":
                     this.entityDump?.Write(80);
                     break;
+                case "entities all":
+                    // Research: every entity the client knows (the network bubble), e.g. far quest icons.
+                    this.entityDump?.Write(int.MaxValue);
+                    break;
                 case "beacon":
                     // Test aid: where the guide's last ping pointed on screen (x right, y down), for scripted walking.
                     this.log?.Info(this.beacon?.LastAim is { } aim

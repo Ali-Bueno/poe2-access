@@ -69,6 +69,7 @@ namespace Poe2Accessibility.Services
                 var targetable = entity.TryGetComponent<Targetable>(out var target) ? (EntityCatalog.IsInPlay(this.memory, entity) ? "targetable" : "untargetable") : "-";
                 var name = this.reader.ReadWStringStructAt(row.Render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty;
                 var flags = target == null ? string.Empty : $" target[30..80]={Convert.ToHexString(this.memory.ReadBytes(target.Address + 0x30, 0x50))}";
+                flags += minimap == null ? string.Empty : $" icon[0..60]={Convert.ToHexString(this.memory.ReadBytes(minimap.Address, 0x60))}";
                 sb.AppendLine($"{row.Distance,6:F0} ({row.Dx,6:F0},{row.Dy,6:F0}) id={entity.Id} @0x{entity.Address.ToInt64():X} {entity.EntityType}/{entity.EntitySubtype} icon=\"{icon}\" {life} {reaction} {targetable}{flags} {entity.Path} name=\"{name}\" bounds=({row.Render.ModelBounds.X:F0},{row.Render.ModelBounds.Y:F0},{row.Render.ModelBounds.Z:F0})");
                 if (ComponentMap?.GetValue(entity) is System.Collections.Concurrent.ConcurrentDictionary<string, IntPtr> components)
                 {
