@@ -430,7 +430,7 @@ namespace Poe2Accessibility
             {
                 if (builder.Length > 0)
                 {
-                    builder.Append(builder[^1] == ':' ? " " : ", ");
+                    builder.Append(builder[^1] == ':' || SentenceEnds.Contains(builder[^1]) ? " " : ", ");
                 }
 
                 builder.Append(cell);
