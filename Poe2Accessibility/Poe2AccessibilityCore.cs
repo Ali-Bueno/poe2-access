@@ -127,6 +127,7 @@ namespace Poe2Accessibility
                 var elements = new UiElementReader(memory);
                 this.elements = elements;
                 var catalog = UiCatalog.Load(Path.Join(this.DllDirectory, "catalog", "ui-catalog.json"), this.log);
+                DatColumns.Apply(Path.Join(this.DllDirectory, "catalog", "dat-columns.json"), this.log);
                 this.compatibility = new CompatibilityReport(this.log);
                 this.layoutProbe = new LayoutProbe(memory, elements, this.compatibility);
                 var probe = this.layoutProbe;

@@ -8,7 +8,7 @@ What a PoE2 patch can break, what follows it on its own, and what needs a person
 |---|---|---|
 | GameHelper2 (upstream) | 4 byte patterns for the game states; struct offsets in `GameOffsets` (element base, entities, components) | Patterns usually survive. Offsets are updated upstream: pull `external/GameHelper2`, rebuild, repackage. |
 | The plugin's own offsets (`GameLayout`, ~86) | control name and text fields, UI manager focus fields, in-game layer fields, Render name, Targetable flag, dat row columns | The ones below are found again at runtime; the rest are checked only by the readings that use them. |
-| Data from the game's files | `catalog/item-sounds.json`, `area-names.json`, `ui-catalog.json`, the extracted sounds | Regenerated on the player's machine by the launcher when the game's files change. |
+| Data from the game's files | `catalog/item-sounds.json`, `area-names.json`, `ui-catalog.json`, `dat-columns.json`, the extracted sounds | Regenerated on the player's machine by the launcher when the game's files change. |
 
 ## Found again at runtime (plugin)
 Each field is tried where it was measured first, so a build that did not move it behaves exactly as before; only
@@ -59,6 +59,13 @@ Run it on each new build of the plugin, at login, in game, in the options and in
 catalog and the sounds from the player's own install (about 25 s, each step independent, old files kept on
 failure). The FMOD header version is read from `fmod.dll` (`SoundExtractor`).
 
+`dat-columns` (`DatColumnExtractor`) finds the dat columns names are read from: a display name is the first string column
+whose text differs between the English table and its Spanish copy (a string column holds the offset of a string's first
+character in 80% of rows; the name differs in a quarter of the rows that have one). In a datc64 a string is 8 bytes, as
+wide as the pointer in memory, so the file's column offset is the row offset the plugin reads (0.5.5e: Mods.Name 0x62,
+PassiveSkills.Name 0x32, ActiveSkills.DisplayedName 0x8, all as measured live). The plugin applies the file at start
+(`DatColumns`, logged "where measured" / "moved from … to …"); the PassiveSkills flags beside the name follow its shift.
+
 ## Still needs a person after a patch
 - GameHelper2 upstream offsets: pull and rebuild (`external/GameHelper2`), then `tools/package/New-TestPackage.ps1`.
 - The parts in "Still fragile" below. A wrong one makes that reading fall back (a mod without its name, an item
@@ -68,18 +75,12 @@ failure). The FMOD header version is read from `fmod.dll` (`SoundExtractor`).
 ## Still fragile (next session, asked 2026-10-24)
 What a patch can still move with nothing to find it again, most player-visible first, each with the idea to try.
 
-1. **Monster modifier names** (`ModsDat.NameOffset` 0x62, `MonsterMods`). Not searchable in memory: the row's id
-   column is a string too ("MonsterSpeed1"). Idea: let the launcher derive the column from the player's own files
-   while regenerating (`GameDataSetup`). The id column is the same in `Data/Mods.datc64` and
-   `Data/Spanish/Mods.datc64`, the name column differs; in datc64 a string column is 8 bytes, as wide as the pointer
-   in memory, so the file's column offset is the row offset the plugin reads. Write it to a catalog file
-   (`dat-columns.json`) that the plugin reads, falling back to the constant. Second check in game: a rare monster's
-   on-screen panel lists its modifiers; the row string that matches it confirms the column. Live research first:
-   confirm 0x62 is the file's column offset too.
-2. **The same per-language trick for the other text columns**: `PassiveTree.RowNameOffset` (PassiveSkills),
-   `BaseComponent.NameOffset` (BaseItemTypes, item base names), `SkillSlot.DisplayedNameOffset`. Flag and key
-   columns (`PassiveTree.RowKeystone/Notable/IconOnly/JewelSocket/Characters/GraphId`, `SkillSlot` level, effect and
-   skill keys) need the community schema (poe-tool-dev/dat-schema) or known rows (a known keystone's flag set).
+1. ~~Monster modifier names~~ and the passive and skill names: found again from the files (`dat-columns`, above).
+2. **Flag and key columns** (`PassiveTree.RowKeystone/Notable/IconOnly/JewelSocket/Characters/GraphId` follow the
+   passive name's shift, which is right only when the change came before the name; `SkillSlot` level, effect and skill
+   keys): need the community schema (poe-tool-dev/dat-schema) or known rows (a known keystone's flag set).
+   `BaseComponent.NameOffset` is a std::wstring in GameHelper's in-memory row, not a dat column: check it against the
+   item's tooltip title.
 3. **The launcher's own columns** (`ItemSoundExtractor`: BaseItemTypes 88/124, ItemVisualIdentity 24/919,
    SoundEffects 8/16). Guarded by row sizes, so a change skips the step and keeps the old files. Self-identifying
    instead: the sound columns hold strings starting `Audio/Sound Effects/`, the key columns hold valid row indices.

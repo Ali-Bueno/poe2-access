@@ -33,7 +33,37 @@ internal sealed class DatTable
         return file == null ? null : new DatTable(file.Read().ToArray());
     }
 
+    /// <summary>Opens <c>data/[balance/]&lt;language&gt;/&lt;name&gt;.datc64</c>, a translated copy; null when absent.</summary>
+    public static DatTable? OpenTranslated(Index index, string name, string language)
+    {
+        var file = index.Files.Values.FirstOrDefault(f => f.Path != null
+            && (f.Path.Equals($"data/balance/{language}/{name}.datc64", StringComparison.OrdinalIgnoreCase)
+                || f.Path.Equals($"data/{language}/{name}.datc64", StringComparison.OrdinalIgnoreCase)));
+        return file == null ? null : new DatTable(file.Read().ToArray());
+    }
+
     public string String(int row, int offset) => this.ReadString(BitConverter.ToInt64(this.data, this.RowStart(row) + offset));
+
+    /// <summary>
+    ///     The string a column holds in a row, or null when the 8 bytes there are not the offset of a string's first
+    ///     character (a misaligned column lands inside another string, after a non-NUL character).
+    /// </summary>
+    public string? StringOrNull(int row, int offset)
+    {
+        if (offset < 0 || offset + 8 > this.RowSize)
+        {
+            return null;
+        }
+
+        var value = BitConverter.ToInt64(this.data, this.RowStart(row) + offset);
+        var at = this.varStart + value;
+        if (value < Marker.Length || at >= this.data.Length || (value > Marker.Length && (this.data[at - 1] != 0 || this.data[at - 2] != 0)))
+        {
+            return null;
+        }
+
+        return this.ReadString(value);
+    }
 
     /// <summary>The row a foreign-key column points to, or -1 for a null key.</summary>
     public long Key(int row, int offset)

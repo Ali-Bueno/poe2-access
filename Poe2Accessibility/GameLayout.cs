@@ -288,24 +288,30 @@ namespace Poe2Accessibility
             public const int AllocatedEntrySize = 4;
 
             /// <summary>PassiveSkills row (unaligned): graph id, name, class list, kind flags.</summary>
-            public const int RowGraphIdOffset = 0x30;
+            public static int RowGraphIdOffset => 0x30 + RowShift;
 
-            public const int RowNameOffset = 0x32;
+            /// <summary>The name column as measured; <see cref="RowShift"/> follows it when the dat-columns catalog finds it moved.</summary>
+            public const int MeasuredRowNameOffset = 0x32;
+
+            public static int RowNameOffset => MeasuredRowNameOffset + RowShift;
 
             /// <summary>Row +0x3A: (count, pointer) to 16-byte keys into Characters.dat — set only on class start nodes.</summary>
-            public const int RowCharactersOffset = 0x3A;
+            public static int RowCharactersOffset => 0x3A + RowShift;
 
-            public const int RowKeystoneOffset = 0x4A;
+            public static int RowKeystoneOffset => 0x4A + RowShift;
 
-            public const int RowNotableOffset = 0x4B;
+            public static int RowNotableOffset => 0x4B + RowShift;
 
             /// <summary>"Mastery" decoration: drawn as a large icon, its links are not drawn.</summary>
-            public const int RowIconOnlyOffset = 0x54;
+            public static int RowIconOnlyOffset => 0x54 + RowShift;
 
-            public const int RowJewelSocketOffset = 0x65;
+            public static int RowJewelSocketOffset => 0x65 + RowShift;
 
             /// <summary>Bytes of the row read at once (up to the jewel socket flag).</summary>
-            public const int RowBytes = 0x70;
+            public static int RowBytes => 0x70 + RowShift;
+
+            /// <summary>How far the name column moved from where it was measured; the row's other fields move with it.</summary>
+            public static int RowShift { get; internal set; }
 
             /// <summary>Characters row +0x00: its Id, the player's metadata path ("Metadata/Characters/StrDex/StrDexFourb").</summary>
             public const int CharacterIdOffset = 0x0;
@@ -348,7 +354,7 @@ namespace Poe2Accessibility
             public const string SkillTable = "Data/Balance/ActiveSkills.dat";
 
             /// <summary>ActiveSkills row: pointer to the NUL-terminated UTF-16 displayed name ("Saeta básica").</summary>
-            public const int DisplayedNameOffset = 0x8;
+            public static int DisplayedNameOffset { get; internal set; } = 0x8;
         }
 
         /// <summary>
@@ -397,7 +403,7 @@ namespace Poe2Accessibility
         /// </summary>
         public static class ModsDat
         {
-            public const int NameOffset = 0x62;
+            public static int NameOffset { get; internal set; } = 0x62;
         }
 
         /// <summary>

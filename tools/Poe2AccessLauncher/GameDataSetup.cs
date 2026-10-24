@@ -10,7 +10,7 @@ internal static class GameDataSetup
 {
     private const string ExtractorExe = "Poe2UiExtract.exe";
     private const int StepTimeoutMilliseconds = 180_000;
-    private const int StampFormat = 1; // bump when the regeneration steps change, to rebuild once on every machine
+    private const int StampFormat = 2; // bump when the regeneration steps change, to rebuild once on every machine
 
     private sealed record Step(string Name, Func<string?> Run);
 
@@ -53,6 +53,7 @@ internal static class GameDataSetup
         {
             new Step("item sounds", () => ReplaceFile(extractor, itemSounds, temp => ["item-sounds", gameDirectory, temp])),
             new Step("area names", () => ReplaceFile(extractor, Path.Join(catalog, "area-names.json"), temp => ["areas", gameDirectory, temp])),
+            new Step("dat columns", () => ReplaceFile(extractor, Path.Join(catalog, "dat-columns.json"), temp => ["dat-columns", gameDirectory, temp])),
             new Step("UI catalog", () => BuildUiCatalog(extractor, gameDirectory, uiScripts, Path.Join(catalog, "ui-catalog.json"))),
             new Step("sounds", () => ReplaceSounds(extractor, gameDirectory, sounds, itemSounds)),
         };
