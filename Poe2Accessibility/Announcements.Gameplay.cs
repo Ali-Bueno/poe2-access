@@ -74,6 +74,9 @@ namespace Poe2Accessibility
         public static string BeaconArrived(string name) => T($"Arrived at {name}", $"Llegaste a {name}");
 
         /// <summary>The route stops short of the target (closed gate): the guide leads as close as the way goes.</summary>
+        public static string BeaconBarrierRoute(string name) =>
+            T($"A closed barrier cuts the way to {name}; guiding as close as it goes", $"Una barrera cerrada corta el camino a {name}; te guío lo más cerca posible");
+
         public static string BeaconPartialRoute(string name) =>
             T($"The way to {name} is closed further on; guiding as close as it goes", $"El camino a {name} está cerrado más adelante; te guío lo más cerca posible");
 

@@ -30,6 +30,12 @@ namespace Poe2Accessibility.Services
         /// <summary>World offset used to measure how the camera draws the world axes.</summary>
         private const float ProbeWorldUnits = 100f;
 
+        /// <summary>
+        ///     A closed barrier this near (grid cells) the line from a route's end to its target cuts the way: the beam
+        ///     of TutorialBlocker3 ran 55 cells across its centre, the target snaps up to 60 cells to walkable ground.
+        /// </summary>
+        private const float BarrierReachCells = 30f;
+
         private static readonly ScanCategory[] Landmarks = { ScanCategory.Exits, ScanCategory.Waypoints, ScanCategory.Npcs };
 
         /// <summary>
@@ -70,6 +76,8 @@ namespace Poe2Accessibility.Services
         /// <summary>Recent live walkable grids (GameLayout-free: whole copies), oldest first.</summary>
         private readonly Queue<byte[]> samples = new();
         private readonly BarrierMemory barriers = new();
+        /// <summary>Closed barriers seen in this area by entity id (grid position), kept past the network bubble.</summary>
+        private readonly Dictionary<uint, Vector2> closedBarriers = new();
         private readonly object samplesLock = new();
         private long lastSampleAt;
         private IReadOnlyList<ScanEntry> unexplored = Array.Empty<ScanEntry>();
@@ -102,6 +110,7 @@ namespace Poe2Accessibility.Services
             {
                 this.samples.Clear();
                 this.barriers.Reset();
+                this.closedBarriers.Clear();
             }
             this.unexplored = Array.Empty<ScanEntry>();
             this.unexploredAt = long.MinValue / 2;
@@ -228,6 +237,11 @@ namespace Poe2Accessibility.Services
                 (route, partial) = (nearest, true);
             }
 
+            // A target inside a wall snaps to the nearest walkable cell, which can lie on this side of a closed barrier
+            // (the Riverbank exit behind the boss's gate read as a full route): the way stops at the barrier.
+            var barrier = route is { Count: > 0 } && BarrierBetween(this.ClosedBarriers(), route[^1], goal);
+            partial |= barrier;
+
             this.log.Debug($"Route to {entry.Name}: {(route == null ? "none" : $"{route.Count} cells")} in {timer.ElapsedMilliseconds} ms from cell ({start.X:F0},{start.Y:F0}) to ({goal.X:F0},{goal.Y:F0})");
             if (route == null)
             {
@@ -258,7 +272,55 @@ namespace Poe2Accessibility.Services
 
             var legSteps = Math.Max(1, (int)Math.Round(legs[0].Length * gridSize / StepWorldUnits));
             var then = legs.Count > 1 ? Announcements.StickDirections[legs[1].Direction] : null;
-            return Announcements.ScanEntry(entry.Name, steps, Announcements.StickDirections[legs[0].Direction], legSteps, then, true, partial);
+            return Announcements.ScanEntry(entry.Name, steps, Announcements.StickDirections[legs[0].Direction], legSteps, then, true, partial, barrier);
+        }
+
+        /// <summary>
+        ///     Grid positions of the closed barriers (TriggerableBlockage, not a door the player opens): those awake now,
+        ///     and those seen closed earlier in this area and not seen open since (past the bubble the game forgets them).
+        ///     Frame thread only.
+        /// </summary>
+        public IReadOnlyList<Vector2> ClosedBarriers()
+        {
+            lock (this.samplesLock)
+            {
+                foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+                {
+                    if (!entity.IsValid || !entity.TryGetComponent<TriggerableBlockage>(out var blockage) ||
+                        entity.TryGetComponent<Targetable>(out _) || !entity.TryGetComponent<Render>(out var render))
+                    {
+                        continue;
+                    }
+
+                    if (blockage.IsBlocked)
+                    {
+                        this.closedBarriers[entity.Id] = new Vector2(render.GridPosition.X, render.GridPosition.Y);
+                    }
+                    else
+                    {
+                        this.closedBarriers.Remove(entity.Id);
+                    }
+                }
+
+                return this.closedBarriers.Values.ToList();
+            }
+        }
+
+        /// <summary>A closed barrier lies within <see cref="BarrierReachCells"/> of the line from a route's end to its target.</summary>
+        public static bool BarrierBetween(IReadOnlyList<Vector2> barriers, Vector2 routeEnd, Vector2 target)
+        {
+            var line = target - routeEnd;
+            var lengthSquared = line.LengthSquared();
+            foreach (var barrier in barriers)
+            {
+                var along = lengthSquared == 0 ? 0 : Math.Clamp(Vector2.Dot(barrier - routeEnd, line) / lengthSquared, 0f, 1f);
+                if (Vector2.Distance(barrier, routeEnd + (line * along)) <= BarrierReachCells)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

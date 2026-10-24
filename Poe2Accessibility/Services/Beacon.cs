@@ -64,6 +64,8 @@ namespace Poe2Accessibility.Services
         private bool partialSaid;
         private Vector2? lastTurn;
         private volatile bool partialRoute;
+        private volatile bool barrierRoute;
+        private bool closestSaid;
 
         public Beacon(AudioCueService audio, EntityCatalog catalog, IAccessibilityOutputService output, PluginLog log)
         {
@@ -94,6 +96,7 @@ namespace Poe2Accessibility.Services
             this.version++;
             this.noRouteSaid = false;
             this.partialSaid = false;
+            this.closestSaid = false;
             this.lockedAt = Environment.TickCount64;
             this.lastRefresh = long.MinValue / 2;
             this.output.Speak(Announcements.BeaconLocked(this.catalog.Describe(entry)), true);
@@ -169,6 +172,10 @@ namespace Poe2Accessibility.Services
                 if (!this.partialRoute)
                 {
                     this.Arrive(goal);
+                }
+                else
+                {
+                    this.SayClosest(goal);
                 }
 
                 return; // at the end of a way that stops short: silent until the gate opens and the route goes on
@@ -263,6 +270,7 @@ namespace Poe2Accessibility.Services
             }
 
             var started = this.version;
+            var barriers = this.catalog.ClosedBarriers();
             this.search = Task.Run(() =>
             {
                 if (started != this.version)
@@ -271,7 +279,8 @@ namespace Poe2Accessibility.Services
                 }
 
                 var route = RoutePlanner.FindRoute(grid, row, start, end, true, out var reached);
-                this.partialRoute = route != null && !reached;
+                this.barrierRoute = route is { Count: > 0 } && EntityCatalog.BarrierBetween(barriers, route[^1], end);
+                this.partialRoute = route != null && (!reached || this.barrierRoute);
                 return route;
             });
         }
@@ -292,19 +301,37 @@ namespace Poe2Accessibility.Services
                 {
                     // The way stops short (a gate the quest opens): lead as close as it goes, and say so once.
                     this.partialSaid = true;
-                    this.output.Speak(Announcements.BeaconPartialRoute(this.target.Name), false);
+                    this.output.Speak(this.barrierRoute ? Announcements.BeaconBarrierRoute(this.target.Name) : Announcements.BeaconPartialRoute(this.target.Name), false);
                 }
                 else if (!this.partialRoute)
                 {
                     this.noRouteSaid = false;
+                    this.closestSaid = false;
                 }
             }
             else if (!this.noRouteSaid && this.target != null)
             {
                 // Standing where a partial route ended is "as close as it goes", not "no route yet".
                 this.noRouteSaid = true;
-                this.output.Speak(this.route != null && this.partialSaid ? Announcements.BeaconAtClosest(this.target.Name) : Announcements.BeaconNoRoute(this.target.Name), false);
+                if (this.route != null && this.partialSaid)
+                {
+                    this.SayClosest(this.target);
+                }
+                else
+                {
+                    this.output.Speak(Announcements.BeaconNoRoute(this.target.Name), false);
+                }
+
                 this.route = null;
+            }
+        }
+
+        private void SayClosest(ScanEntry goal)
+        {
+            if (!this.closestSaid)
+            {
+                this.closestSaid = true;
+                this.output.Speak(Announcements.BeaconAtClosest(goal.Name), false);
             }
         }
 
