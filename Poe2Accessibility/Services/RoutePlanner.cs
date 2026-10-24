@@ -18,6 +18,15 @@ namespace Poe2Accessibility.Services
         /// <summary>How far to look for a walkable cell when the player stands on a blocked one.</summary>
         private const int StartSnapRadius = 12;
 
+        /// <summary>A start region smaller than this (under 8x8 cells) is a pocket beside a rock, not the ground the player walks on.</summary>
+        private const int PocketCells = 64;
+
+        /// <summary>How far from a blocked own cell other start cells are tried (a pocket sits right beside the rock).</summary>
+        private const int PocketSnapRadius = 4;
+
+        /// <summary>Pockets tried before giving up on finding the player's real ground.</summary>
+        private const int MaxStartTries = 6;
+
         /// <summary>A landmark's tile centre can sit inside a building (Clearfell's gate: blocked centre).</summary>
         private const int GoalSnapRadius = 60;
 
@@ -54,12 +63,54 @@ namespace Poe2Accessibility.Services
         {
             reached = false;
             if (grid.Length == 0 || bytesPerRow <= 0 ||
-                !TrySnap(grid, bytesPerRow, (int)MathF.Round(start.X), (int)MathF.Round(start.Y), StartSnapRadius, out var from) ||
                 !TrySnap(grid, bytesPerRow, (int)MathF.Round(goal.X), (int)MathF.Round(goal.Y), GoalSnapRadius, out var to))
             {
                 return null;
             }
 
+            // The player's own cell can read blocked beside a rock, and the nearest walkable cell can be a pocket of a
+            // few cells cut off from the ground around it: a search that ends in a pocket tries the next nearest cell
+            // outside what was already searched (the route flipped between "no route" and the long way each step).
+            // Only among cells within PocketSnapRadius of the player: ground farther away is not where they stand.
+            var origin = ((int)MathF.Round(start.X), (int)MathF.Round(start.Y));
+            var searched = new HashSet<(int, int)>();
+            List<Vector2>? first = null;
+            var firstReached = false;
+            var tries = 0;
+            foreach (var from in StartCandidates(grid, bytesPerRow, origin.Item1, origin.Item2, StartSnapRadius))
+            {
+                if (searched.Contains(from))
+                {
+                    continue;
+                }
+
+                if (tries > 0 && Math.Max(Math.Abs(from.X - origin.Item1), Math.Abs(from.Y - origin.Item2)) > PocketSnapRadius)
+                {
+                    break;
+                }
+
+                var route = Search(grid, bytesPerRow, from, to, orNearest, searched, out var region, out var found);
+                if (tries++ == 0)
+                {
+                    (first, firstReached) = (route, found);
+                }
+
+                if (found || region >= PocketCells || tries >= MaxStartTries)
+                {
+                    reached = found;
+                    return route;
+                }
+            }
+
+            reached = firstReached;
+            return first;
+        }
+
+        /// <summary>A* from one start cell; <paramref name="region"/> counts the cells it reached (a pocket stays small).</summary>
+        private static List<Vector2>? Search(byte[] grid, int bytesPerRow, (int X, int Y) from, (int X, int Y) to, bool orNearest,
+                                             HashSet<(int, int)> searched, out int region, out bool reached)
+        {
+            reached = false;
             var cameFrom = new Dictionary<(int, int), (int, int)>();
             var cost = new Dictionary<(int, int), float> { [from] = 0f };
             var open = new PriorityQueue<(int X, int Y), float>();
@@ -67,43 +118,51 @@ namespace Poe2Accessibility.Services
             var expansions = 0;
             var closest = from;
             var closestDistance = Heuristic(from, to);
-            while (open.TryDequeue(out var current, out _) && expansions++ < MaxExpansions)
+            try
             {
-                if (current == to)
+                while (open.TryDequeue(out var current, out _) && expansions++ < MaxExpansions)
                 {
-                    reached = true;
-                    return Rebuild(cameFrom, current);
-                }
-
-                var left = Heuristic(current, to);
-                if (left < closestDistance)
-                {
-                    (closest, closestDistance) = (current, left);
-                }
-
-                var here = cost[current];
-                foreach (var (dx, dy, step) in Neighbours)
-                {
-                    var next = (current.X + dx, current.Y + dy);
-                    if (!IsWalkable(grid, bytesPerRow, next.Item1, next.Item2) ||
-                        (dx != 0 && dy != 0 && (!IsWalkable(grid, bytesPerRow, current.X + dx, current.Y) || !IsWalkable(grid, bytesPerRow, current.X, current.Y + dy))))
+                    if (current == to)
                     {
-                        continue;
+                        reached = true;
+                        return Rebuild(cameFrom, current);
                     }
 
-                    var candidate = here + step;
-                    if (cost.TryGetValue(next, out var known) && known <= candidate)
+                    var left = Heuristic(current, to);
+                    if (left < closestDistance)
                     {
-                        continue;
+                        (closest, closestDistance) = (current, left);
                     }
 
-                    cost[next] = candidate;
-                    cameFrom[next] = current;
-                    open.Enqueue(next, candidate + Heuristic(next, to));
+                    var here = cost[current];
+                    foreach (var (dx, dy, step) in Neighbours)
+                    {
+                        var next = (current.X + dx, current.Y + dy);
+                        if (!IsWalkable(grid, bytesPerRow, next.Item1, next.Item2) ||
+                            (dx != 0 && dy != 0 && (!IsWalkable(grid, bytesPerRow, current.X + dx, current.Y) || !IsWalkable(grid, bytesPerRow, current.X, current.Y + dy))))
+                        {
+                            continue;
+                        }
+
+                        var candidate = here + step;
+                        if (cost.TryGetValue(next, out var known) && known <= candidate)
+                        {
+                            continue;
+                        }
+
+                        cost[next] = candidate;
+                        cameFrom[next] = current;
+                        open.Enqueue(next, candidate + Heuristic(next, to));
+                    }
                 }
+
+                return orNearest && closest != from ? Rebuild(cameFrom, closest) : null;
             }
-
-            return orNearest && closest != from ? Rebuild(cameFrom, closest) : null;
+            finally
+            {
+                region = cost.Count;
+                searched.UnionWith(cost.Keys);
+            }
         }
 
         /// <summary>Length of a route in grid units.</summary>
@@ -240,6 +299,24 @@ namespace Poe2Accessibility.Services
 
             route.Reverse();
             return route;
+        }
+
+        /// <summary>Walkable cells around a point, nearest ring first.</summary>
+        private static IEnumerable<(int X, int Y)> StartCandidates(byte[] grid, int bytesPerRow, int x, int y, int maxRadius)
+        {
+            for (var radius = 0; radius <= maxRadius; radius++)
+            {
+                for (var dy = -radius; dy <= radius; dy++)
+                {
+                    for (var dx = -radius; dx <= radius; dx++)
+                    {
+                        if ((Math.Abs(dx) == radius || Math.Abs(dy) == radius) && IsWalkable(grid, bytesPerRow, x + dx, y + dy))
+                        {
+                            yield return (x + dx, y + dy);
+                        }
+                    }
+                }
+            }
         }
 
         private static bool TrySnap(byte[] grid, int bytesPerRow, int x, int y, int maxRadius, out (int X, int Y) cell)

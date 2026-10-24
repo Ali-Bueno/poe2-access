@@ -83,6 +83,12 @@ namespace Poe2Accessibility.Services
             Directory.CreateDirectory(this.directory);
             var path = Path.Join(this.directory, $"terrain-{DateTime.Now:yyyyMMdd-HHmmss}.txt");
             File.WriteAllText(path, text.ToString());
+            if (walkable != null)
+            {
+                // The whole walkable layer for offline route research: "<name>.walkable" with the row width and the
+                // player's cell in the text dump's first line.
+                File.WriteAllBytes(Path.ChangeExtension(path, ".walkable"), walkable);
+            }
             this.log.Info($"Terrain layers written to {path}");
         }
 

@@ -47,6 +47,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(RockStandsAloneWallDoesNot), RockStandsAloneWallDoesNot);
             Run(nameof(ReachPingsOncePerContact), ReachPingsOncePerContact);
             Run(nameof(UnexploredGroundLiesPastTheSeenEdge), UnexploredGroundLiesPastTheSeenEdge);
+            Run(nameof(RouteStartsOutsideAPocket), RouteStartsOutsideAPocket);
             Run(nameof(BuffIdsNameAilments), BuffIdsNameAilments);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
@@ -461,6 +462,29 @@ namespace Poe2Accessibility.Tests
             var down = new System.Numerics.Vector2(0, 1);
             Equal(true, PassageScan.IsSmallObstacle(grid, row, new System.Numerics.Vector2(5.5f, 14.5f), right, 4f, 5), "a rock standing alone");
             Equal(false, PassageScan.IsSmallObstacle(grid, row, new System.Numerics.Vector2(20.5f, 20.5f), down, 4f, 5), "a wall across the map");
+        }
+
+        private static void RouteStartsOutsideAPocket()
+        {
+            // 60x60 open ground; the player stands on a blocked block (x 20-24, y 20-24) whose centre cell (22,22) is a
+            // walkable pocket of one cell. The nearest walkable cell is that pocket; the route must start outside it.
+            const int size = 60;
+            var row = size / 2;
+            var grid = Enumerable.Repeat((byte)0x11, row * size).ToArray();
+            void Set(int x, int y, bool open) => grid[(y * row) + (x / 2)] = (byte)(open
+                ? grid[(y * row) + (x / 2)] | ((x & 1) == 0 ? 0x01 : 0x10)
+                : grid[(y * row) + (x / 2)] & ((x & 1) == 0 ? 0xF0 : 0x0F));
+            for (var y = 20; y <= 24; y++)
+            {
+                for (var x = 20; x <= 24; x++)
+                {
+                    Set(x, y, false);
+                }
+            }
+
+            Set(22, 22, true);
+            var route = RoutePlanner.FindRoute(grid, row, new System.Numerics.Vector2(22.4f, 22.4f), new System.Numerics.Vector2(50, 50), false, out var reached);
+            Equal(true, route != null && reached, "a route from the ground around the pocket");
         }
 
         private static void UnexploredGroundLiesPastTheSeenEdge()

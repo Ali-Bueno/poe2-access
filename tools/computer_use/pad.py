@@ -58,10 +58,19 @@ def press(pad, vg, name, seconds):
         raise ValueError(f'Unknown control {name}; use one of {", ".join(NAMES)}')
 
 
+def _unit(text):
+    """vec:X,Y as a unit stick vector (screen axes, y down)."""
+    x, y = (float(part) for part in text.split(','))
+    length = (x * x + y * y) ** 0.5
+    if length == 0:
+        raise ValueError('vec:X,Y must not be zero')
+    return x / length, y / length
+
+
 def stick(pad, side, direction, amount, seconds):
-    if side not in ('left', 'right') or direction not in STICK_DIRECTIONS or not 0 < amount <= 1:
-        raise ValueError('Use left|right, up|down|left|right and an amount in (0, 1]')
-    x, y = STICK_DIRECTIONS[direction]
+    if side not in ('left', 'right') or not (direction in STICK_DIRECTIONS or direction.startswith('vec:')) or not 0 < amount <= 1:
+        raise ValueError('Use left|right, up|down|left|right or vec:X,Y (screen, y down) and an amount in (0, 1]')
+    x, y = STICK_DIRECTIONS[direction] if direction in STICK_DIRECTIONS else _unit(direction[4:])
     move = getattr(pad, f'{side}_joystick_float')
     hold(pad, lambda: move(x_value_float=x * amount, y_value_float=y * amount),
          lambda: move(x_value_float=0.0, y_value_float=0.0), seconds)

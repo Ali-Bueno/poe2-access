@@ -92,7 +92,7 @@ namespace Poe2Accessibility
         ///     until it and the way it turns ("116 steps, down 3, then left"); "here" when on top of it; "no route"
         ///     when only the straight line is known.
         /// </summary>
-        public static string ScanEntry(string name, int steps, string direction, int legSteps, string? then, bool routed)
+        public static string ScanEntry(string name, int steps, string direction, int legSteps, string? then, bool routed, bool partial = false)
         {
             if (steps < 1)
             {
@@ -100,6 +100,13 @@ namespace Poe2Accessibility
             }
 
             var leg = then == null ? direction : T($"{direction} {legSteps}, then {then}", $"{direction} {legSteps}, luego {then}");
+            if (partial)
+            {
+                // Steps are the straight line; the legs lead as close as the ground goes (a gate, a bridge further on).
+                return T($"{name}, {steps} {(steps == 1 ? "step" : "steps")} away, the way stops short: {leg}",
+                         $"{name}, a {steps} {(steps == 1 ? "paso" : "pasos")}, el camino se corta antes: {leg}");
+            }
+
             return T(
                 $"{name}, {steps} {(steps == 1 ? "step" : "steps")}, {leg}{(routed ? string.Empty : ", no route")}",
                 $"{name}, {steps} {(steps == 1 ? "paso" : "pasos")}, {leg}{(routed ? string.Empty : ", sin ruta")}");

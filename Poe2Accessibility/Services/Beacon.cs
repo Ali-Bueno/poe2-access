@@ -59,6 +59,9 @@ namespace Poe2Accessibility.Services
         private long lastPing;
         private long lastRefresh = long.MinValue / 2;
         private bool noRouteSaid;
+
+        /// <summary>"The way is closed further on" is said once per lock, even if the route comes and goes.</summary>
+        private bool partialSaid;
         private Vector2? lastTurn;
         private volatile bool partialRoute;
 
@@ -90,6 +93,7 @@ namespace Poe2Accessibility.Services
             this.search = null;
             this.version++;
             this.noRouteSaid = false;
+            this.partialSaid = false;
             this.lockedAt = Environment.TickCount64;
             this.lastRefresh = long.MinValue / 2;
             this.output.Speak(Announcements.BeaconLocked(this.catalog.Describe(entry)), true);
@@ -182,9 +186,18 @@ namespace Poe2Accessibility.Services
 
             this.lastPing = now;
             var aim = BeaconMath.AimPoint(grid, row, path, from, playerGrid, LookAheadGrid) * gridSize;
-            var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, aim - here));
+            var screen = ScreenProjection.Direction(player.WorldPosition, aim - here);
+            this.LastAim = (screen, remainingWorld);
+            var (pan, pitch) = BeaconMath.Voice(screen);
             this.audio.Play(this.ping, pan, pitch, this.Gain);
         }
+
+        /// <summary>Test aid (dev command "beacon"): target, route, search and ping state.</summary>
+        public string Diagnose() =>
+            $"target={this.target?.Name ?? "none"} route={this.route?.Count ?? -1} partial={this.partialRoute} search={(this.search == null ? "none" : this.search.Status.ToString())} lastPing={Environment.TickCount64 - this.lastPing} ms ago";
+
+        /// <summary>Test aid (dev command "beacon"): the screen direction of the last ping and the route left, world units.</summary>
+        public (Vector2 Screen, float RemainingWorld)? LastAim { get; private set; }
 
         /// <summary>Speak "Now up right, 12" as the player reaches each turn of the route (setting RoutePrompts).</summary>
         public bool TurnPrompts { get; set; } = true;
@@ -275,10 +288,10 @@ namespace Poe2Accessibility.Services
             if (found != null)
             {
                 this.route = found;
-                if (this.partialRoute && !this.noRouteSaid && this.target != null)
+                if (this.partialRoute && !this.partialSaid && this.target != null)
                 {
                     // The way stops short (a gate the quest opens): lead as close as it goes, and say so once.
-                    this.noRouteSaid = true;
+                    this.partialSaid = true;
                     this.output.Speak(Announcements.BeaconPartialRoute(this.target.Name), false);
                 }
                 else if (!this.partialRoute)

@@ -54,6 +54,11 @@ namespace Poe2Accessibility.Services
 
         private const int TrackMs = 250;
 
+        /// <summary>Live walkable grids kept for routing, one per SampleMs: a cell must be walkable in all of them.</summary>
+        private const int MaxSamples = 4;
+
+        private const int SampleMs = 500;
+
         private readonly HostMemoryReader memory;
         private readonly UiElementReader elements;
         private readonly InventoryReader inventory;
@@ -62,6 +67,10 @@ namespace Poe2Accessibility.Services
         private readonly PluginLog log;
         private readonly Dictionary<uint, ScanEntry> remembered = new();
         private readonly ExplorationMap explored = new();
+        /// <summary>Recent live walkable grids (GameLayout-free: whole copies), oldest first.</summary>
+        private readonly Queue<byte[]> samples = new();
+        private readonly object samplesLock = new();
+        private long lastSampleAt;
         private IReadOnlyList<ScanEntry> unexplored = Array.Empty<ScanEntry>();
         private long unexploredAt = long.MinValue / 2;
         private long trackedAt = long.MinValue / 2;
@@ -88,6 +97,10 @@ namespace Poe2Accessibility.Services
         {
             this.remembered.Clear();
             this.explored.Reset();
+            lock (this.samplesLock)
+            {
+                this.samples.Clear();
+            }
             this.unexplored = Array.Empty<ScanEntry>();
             this.unexploredAt = long.MinValue / 2;
         }
@@ -204,13 +217,24 @@ namespace Poe2Accessibility.Services
             var start = new Vector2(origin.X, origin.Y) / gridSize;
             var goal = new Vector2(entry.WorldX, entry.WorldY) / gridSize;
             var route = RoutePlanner.FindRoute(grid, row, start, goal);
-            this.log.Debug($"Route to {entry.Name}: {(route == null ? "none" : $"{route.Count} cells")} in {timer.ElapsedMilliseconds} ms");
-            if (route == null)
+            var partial = false;
+            if (route == null && RoutePlanner.FindRoute(grid, row, start, goal, true, out _) is { Count: > 1 } nearest &&
+                RoutePlanner.Length(nearest) * gridSize >= StepWorldUnits)
             {
-                this.log.Debug($"No route to {entry.Name}: grid {grid.Length} bytes, {row} per row; start {start} walkable={RoutePlanner.IsWalkable(grid, row, (int)start.X, (int)start.Y)}, goal {goal} walkable={RoutePlanner.IsWalkable(grid, row, (int)goal.X, (int)goal.Y)}");
+                // No way all the way (a gate the quest opens, a bridge out of the grid): the legs lead as close as the
+                // ground goes, like the guide beacon; the distance stays the straight line.
+                (route, partial) = (nearest, true);
             }
 
-            var length = route == null ? Distance(origin, entry) : RoutePlanner.Length(route) * gridSize;
+            this.log.Debug($"Route to {entry.Name}: {(route == null ? "none" : $"{route.Count} cells")} in {timer.ElapsedMilliseconds} ms from cell ({start.X:F0},{start.Y:F0}) to ({goal.X:F0},{goal.Y:F0})");
+            if (route == null)
+            {
+                var loaded = area.GridWalkableData;
+                var fromLoaded = loaded.Length == grid.Length ? RoutePlanner.FindRoute(loaded, row, start, goal) : null;
+                this.log.Debug($"No route to {entry.Name}: grid {grid.Length} bytes, {row} per row; start {start} walkable={RoutePlanner.IsWalkable(grid, row, (int)start.X, (int)start.Y)}, goal {goal} walkable={RoutePlanner.IsWalkable(grid, row, (int)goal.X, (int)goal.Y)}; the grid as loaded {(fromLoaded == null ? "has none either" : $"has one of {fromLoaded.Count} cells")}");
+            }
+
+            var length = route == null || partial ? Distance(origin, entry) : RoutePlanner.Length(route) * gridSize;
             var steps = (int)Math.Round(length / StepWorldUnits);
             if (steps < 1)
             {
@@ -227,12 +251,12 @@ namespace Poe2Accessibility.Services
                 : RoutePlanner.Legs(RoutePlanner.Corners(route, CornerToleranceGrid), DirectionOf, MinLegGrid);
             if (legs.Count == 0)
             {
-                return Announcements.ScanEntry(entry.Name, steps, Announcements.StickDirections[DirectionOf(goal - start)], 0, null, route != null);
+                return Announcements.ScanEntry(entry.Name, steps, Announcements.StickDirections[DirectionOf(goal - start)], 0, null, route != null && !partial);
             }
 
             var legSteps = Math.Max(1, (int)Math.Round(legs[0].Length * gridSize / StepWorldUnits));
             var then = legs.Count > 1 ? Announcements.StickDirections[legs[1].Direction] : null;
-            return Announcements.ScanEntry(entry.Name, steps, Announcements.StickDirections[legs[0].Direction], legSteps, then, true);
+            return Announcements.ScanEntry(entry.Name, steps, Announcements.StickDirections[legs[0].Direction], legSteps, then, true, partial);
         }
 
         /// <summary>
@@ -248,12 +272,56 @@ namespace Poe2Accessibility.Services
                 return snapshot;
             }
 
-            if (!live.AsSpan().SequenceEqual(snapshot))
+            // A cell is walkable for routes only if it was in every recent sample: a closed tutorial barrier
+            // (TutorialBlocker3 by the Riverbank bridge, 2026-10-23) flickers in the live grid every few seconds,
+            // which split the ground in two and made routes and the guide's "the way is closed" flap. A gate that
+            // really opens is walkable again once the samples agree (about two seconds).
+            lock (this.samplesLock)
             {
-                this.log.Debug($"Walkable grid changed since the area loaded: {Changed(snapshot, live)} cells");
-            }
+                var now = Environment.TickCount64;
+                if (this.samples.Count > 0 && this.samples.Peek().Length != live.Length)
+                {
+                    this.samples.Clear();
+                }
 
-            return live;
+                if (this.samples.Count == 0 || now - this.lastSampleAt >= SampleMs)
+                {
+                    this.samples.Enqueue(live);
+                    this.lastSampleAt = now;
+                    while (this.samples.Count > MaxSamples)
+                    {
+                        this.samples.Dequeue();
+                    }
+                }
+
+                if (!live.AsSpan().SequenceEqual(snapshot))
+                {
+                    this.log.Debug($"Walkable grid changed since the area loaded: {Changed(snapshot, live)} cells");
+                }
+
+                var stable = (byte[])live.Clone();
+                foreach (var sample in this.samples)
+                {
+                    for (var i = 0; i < stable.Length; i++)
+                    {
+                        var both = stable[i];
+                        var other = sample[i];
+                        if ((other & 0x0F) == 0)
+                        {
+                            both &= 0xF0;
+                        }
+
+                        if ((other & 0xF0) == 0)
+                        {
+                            both &= 0x0F;
+                        }
+
+                        stable[i] = both;
+                    }
+                }
+
+                return stable;
+            }
         }
 
         private static int Changed(byte[] before, byte[] after)

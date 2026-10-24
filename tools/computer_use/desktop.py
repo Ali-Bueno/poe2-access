@@ -51,7 +51,7 @@ def main():
     button.add_argument('--seconds', type=float, default=0.1)
     joystick = sub.add_parser('stick', help='Push a virtual stick, then centre it')
     joystick.add_argument('side', choices=['left', 'right'])
-    joystick.add_argument('direction', choices=list(pad.STICK_DIRECTIONS))
+    joystick.add_argument('direction', help='up, down, left, right, up-left... or vec:X,Y (screen axes, y down)')
     joystick.add_argument('--amount', type=float, default=1.0)
     joystick.add_argument('--seconds', type=float, default=0.15)
     flick = sub.add_parser('chord', help='Hold a button and flick a stick meanwhile (mod scanner: l3 right up)')

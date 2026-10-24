@@ -16,7 +16,7 @@ namespace Poe2Accessibility.Services
     {
         /// <summary>Render-component offsets probed for a display name (GameHelper notes a class name at +0xA0).</summary>
         /// <summary>Components whose pointers are followed to strings (destination area, quest state).</summary>
-        private static readonly string[] ProbedComponents = { "AreaTransition", "NPC" };
+        private static readonly string[] ProbedComponents = { "AreaTransition", "NPC", "Chest" };
 
         private static readonly System.Reflection.FieldInfo? ComponentMap =
             typeof(GameHelper.RemoteObjects.States.InGameStateObjects.Entity).GetField("componentAddresses", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
