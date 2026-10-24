@@ -197,7 +197,7 @@ namespace Poe2Accessibility
                 this.enemyCues = new EnemyCues(this.audio, memory, this.log);
                 this.radar = new Radar(this.audio, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.nearby = new ProximityNarrator(this.entities, this.output);
-                this.wallBump = new WallBump(this.audio);
+                this.wallBump = new WallBump(this.audio) { HeldStill = () => this.narrator?.RepeatLesson() };
                 this.wallTones = new WallTones(this.audio);
                 this.beacon = new Beacon(this.audio, this.entities, this.output, this.log);
                 this.targets = new TargetNarrator(this.audio, memory, elements, this.output, this.log) { HudLayer = () => this.narrator?.HudLayer ?? IntPtr.Zero };
@@ -541,9 +541,9 @@ namespace Poe2Accessibility
             this.Isolated("enemy news", () => this.enemyNews?.Tick(playing && this.Settings.AnnounceEnemies));
             this.Isolated("wall bump", () =>
             {
-                if (playing && this.Settings.WallBump)
+                if (playing)
                 {
-                    this.wallBump?.Tick(this.padState.LeftX, this.padState.LeftY);
+                    this.wallBump?.Tick(this.padState.LeftX, this.padState.LeftY, this.Settings.WallBump);
                 }
             });
             this.Isolated("level", this.WatchLevel);

@@ -134,6 +134,9 @@ left; a topic already heard (drawn grey) is read "atenuado": "Presentación, ate
   uniques ring ([enemy sounds](enemy-sounds.md)).
 - **NPCs:** a light wooden tap for the nearest NPC or other player on screen, faster as you get closer.
 - **Wall bump:** a dull thud when you push the stick into a wall and stop, on the side you pushed.
+- **Lessons that hold you:** some of the game's tutorial lessons keep the character still until you press what
+  they ask (low mana: D-pad right; dodge: B; a passive point: View). The lesson is read whole, again when it comes
+  back, and again when you push the stick and the character does not move.
 - **Nearby:** what you walk up to or stand on is named once: checkpoints, NPCs, the stash, chests, items, exits
   ([nearby](proximity.md)); the same thing is named again only after a minute.
 - **Things worth walking to:** the game's own sounds repeat for the nearest chest or shrine, exit or portal, and

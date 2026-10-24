@@ -207,6 +207,20 @@ namespace Poe2Accessibility.Services
             return true;
         }
 
+        /// <summary>
+        ///     The player pushes the stick and the character stands still: the lesson on screen, if any, is what holds it
+        ///     ("You have low mana. Press D-pad right…" held the Monk in silence, 2026-10-24). Said again, kept whole.
+        /// </summary>
+        public void RepeatLesson()
+        {
+            if (!this.inGame || this.seenSnapshot?.Find(this.TutorialLayer) is not { Texts.Count: > 0 } lesson)
+            {
+                return;
+            }
+
+            this.Speak("lesson held", Describe(lesson.Texts), false, keep: true);
+        }
+
         /// <summary>Notes the HUD coming back on top, once per snapshot.</summary>
         private void NoteTop(ScreenSnapshot snapshot)
         {
