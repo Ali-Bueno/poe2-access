@@ -47,6 +47,7 @@ namespace Poe2Accessibility.Services
             }
 
             var options = new List<string>();
+            var rows = new List<UiElementReader.ElementInfo>();
             var chosen = -1;
             foreach (var (list, listFrame) in lists)
             {
@@ -63,14 +64,18 @@ namespace Poe2Accessibility.Services
                 }
 
                 options.AddRange(entries.Select(entry => entry.Text));
+                rows.AddRange(entries.Select(entry => entry.Entry));
             }
 
+            // A topic already heard is drawn grey among the new ones (Una's "Presentación", 2026-10-24).
+            var heard = chosen >= 0 && this.EntryGrey(rows[chosen]) == true && rows.Any(row => this.EntryGrey(row) == false);
             return chosen < 0 ? null : new AccessibleUiNode
             {
                 Address = info.Address,
                 Name = info.Name,
                 Role = UiRole.ListItem,
                 Text = options[chosen],
+                Value = heard ? Announcements.Dimmed : string.Empty,
                 Position = Announcements.ListPosition(chosen + 1, options.Count),
                 ListItems = options,
                 IsVisible = this.elements.IsVisible(info),

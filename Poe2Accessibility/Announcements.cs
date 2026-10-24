@@ -214,6 +214,9 @@ namespace Poe2Accessibility
 
         public static string Empty => T("empty", "vacío");
 
+        /// <summary>A list entry drawn grey among coloured ones (a dialogue topic already heard).</summary>
+        public static string Dimmed => T("dimmed", "atenuado");
+
         public static string EmptyCell => T("empty", "vacío");
         public static string UnknownItem => T("unknown item", "objeto desconocido");
 

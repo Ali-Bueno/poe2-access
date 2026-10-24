@@ -79,6 +79,7 @@
 | World map (Quests tab): area under the cursor, map legend | done (live) | no-focus panel narration; finding areas with a free cursor is still hard |
 | Character stats (inspect mode): widgets with values, stat-list links with row + definition | done (live) | "DEX, 7, …", "Evasion Rating, 7. Evasion, link. …" |
 | Skills panel rows, empty slots, skill bind bar (button + bound skill) | done (live) | "empty, 2 of 10", "B, Dodge Roll/Sprint"; unhovered skills fall back to the icon name |
+| Skill bind screen (X on a gem) and skill picker (a slot's grid of skills/actions) | done (live) | "Selecciona el botón al que asignar Descarga de caos. Set de habilidades principal. LB, vacío"; entering the other row names it; picker cells "Exhumar, Costo. 7 de maná…", "Usar frasco de vida…" (no grid position) |
 | Cosmetics | done (live) | ordinary buttons once the d-pad moves the focus |
 | Quest list | todo | empty at the start of Act 1 |
 | Objective / tutorial box (G+0xDD8): new texts read, queued | done (live) | "Equip Item. Press View to Open your Inventory", "Press X to equip weapon." |
@@ -95,7 +96,7 @@
 | Options section names on entering a section | done (live) | "UI. Controller. HUD Mode, Central, combo box, 1 of 8" |
 | Vendor window (buy/sell) | done (live) | "tab 3. Suede Bracers, …, 25 gold, not enough. Gloves…"; magic items by full name; gold counter "0 gold"; selling not exercised (own items) |
 | Stash | done (live) | "Stash. tab 4. empty, column 12, row 10"; tab switches on LB/RB; moving items untested |
-| Waypoint map (Teleport) | done (live/partial) | D-pad moves between areas: "Clearfell. Monster level: 2. …"; off-screen quest list dropped; travel untested (only the town waypoint taken) |
+| Waypoint map (Teleport) | done (live) | opens "Teletransporte. acto 1", "Viajar al pueblo, Y", then the act's cartouche and the place under the cursor; the stick moves between areas ("Lodazal. … El devorador", "Viajar, A"); Y travelled to town (2026-10-24) |
 | Audio output (winmm mixer, synthesized cues) | done (code) | `AudioCueService`; no new DLL; "Audio cues ready" logged live |
 | Enemy sounds (growl + rarity layer, pan, tempo by nearness) | done (live) | "16 pulses, up to 6 enemies in the last 5 s"; sight from the projectile layer; ~9 pulses/s in a pack (tune by ear); `enemies` dev command |
 | Navigation radar (D2R: tock wall, breath floor, tin exit, 4 screen rays) | done (live) | `docs/radar.md`; user: "creo que funciona"; wall tones = later alternative |
@@ -112,7 +113,7 @@
 | Game sounds for loot/chests/exits/waypoints | done (code) | `ObjectSounds` + `GameSounds`; sounds extracted from the game's FMOD banks via its own fmod.dll (`docs/research/game-audio.md`) |
 | Spanish/English mod phrases, localized area names | done (live) | `Localization` (game ini), `catalog/area-names.json` from WorldAreas (10 languages) |
 | Pre-game hints, delete/creation screens, edit done | done (live) | hints on entry, only new ones after; "¿Estás seguro…? yarkey… cancelar, botón, 1 de 2"; "Zq, edición terminada" |
-| NPC dialogue options read one by one | done (code) | `UiSemantics.OptionLists`: confirm glyph marks the option; verify in town |
+| NPC dialogue options read one by one | done (live) | `UiSemantics.OptionLists`: confirm glyph marks the option; D-pad left reaches the lore column; a heard topic (drawn grey) reads "Presentación, atenuado, 1 de 8" (Una, 2026-10-24) |
 | Spoken settings menu + sound glossary (hold L3 1.5 s) | done (live) | `SettingsMenu`, `SoundGlossary`; 26 settings + 23 sounds |
 | Target from the HUD target bar (controller) | done (live) | HUD > entity_info_container > entity_info_display > name_label; MouseOverEntity is 0 with a pad |
 | Discoveries, pick-ups, unmet requirements | done (code) | `DiscoveryNarrator` ("Jefe a la vista" heard live), `InventoryWatch` (ServerData MainInventory1 via reflection), red tooltip lines with digits |
@@ -231,6 +232,13 @@
 - **Inspect mode / compare:** R3 on an item (glyph `RightStickButton2.dds`, legend "Comparar"); the inventory's
   R3 legend is "Comparar", a gem's "Inspeccionar".
 - **Uncut gem tier** label is named `tier_label` ("I").
+- **Element flags bit 14** (`NavigableFlagBit`) is set in game on what the controller cursor lands on: equipment
+  slots, Skills rows, the spirit panel, bind screen slots, skill picker cells; in-game controls lack bit 0x1B
+  (bind screen and Skills dumps, 2026-10-24).
+- **Buried larvae** (`HuhuGrubLarvaeEmergeSummoned`, Mud Burrow) are ordinary alive, targetable monsters; GameHelper's
+  "untargetable" in the entity dump is its broken flag (+0x51), not ours (+0x69).
+- **Tutorial lessons freeze the character** until their action: the flask lesson ("Has recibido daño. Presiona
+  cruceta izquierda…") held a fight for 20 minutes until D-pad left (Mud Burrow, 2026-10-24).
 
 - **Object sizes by allocator stride (2026-09-15):** slider 0x410, check box 0x700, label 0x700, combo box 0x800; bytes past
   these belong to the neighbouring object (the deep-probe hex must be read with that in mind).
@@ -280,9 +288,6 @@ wall tones, dodge whoosh, object sounds, the quest bell) and by use (barrier phr
   personaje con este nombre": never press Enter there with a free name). Closed, it reads "Liga, Forbidden Rites,
   lista desplegable, 2 de 3" and then the league's description.
 - Landmark labels that are not area names ("Boss - Yama", "Chest") stay English.
-- NPC dialogue: topics are counted over the three lists ("El devorador, 5 de 8"), but the heard lore topics of the
-  left column (Presentación, Sierraclara, Ogham, El molinero) are not reachable with the D-pad or sticks.
-- Waypoint map: the A action is read when it appears as the cursor moves, not when the map opens.
 - Radar: once, near the encampment exit, Up and Left flipped wall/exit every ~2 s with depths 100 ↔ 500 units while
   the character oscillated between two cells; not reproduced standing still.
 - The bot died twice to Rotten Wolves while testing (Clearfell, 2026-10-23): don't fight with scripted input.
@@ -292,9 +297,6 @@ wall tones, dodge whoosh, object sounds, the quest bell) and by use (barrier phr
 - Scanner: long routes take ~200 ms on GameHelper's frame thread; a route along an octant boundary alternates
   "up 2, then up left" / "up left 2, then up"; the transition prompt "Press-Hold (Show Options)" is not read.
   A barrier never seen closed and past the network bubble still reads open (nothing to know it by).
-- Skill bind screen (X on a gem in the Skills panel) reads its whole layer: the spirit panel beside it, "Set de
-  habilidades secundario. Modo de selección de objetivos. Automático…" before "Selecciona el botón al que asignar
-  Exhumar" and the focused slot.
 - Options Graphics: the two "Límite de FPS" rows (check box beside a number) read "1 de 2", not their row.
 - Cosmetics: the weapon-set toggles "I / II" read only "desmarcado, casilla de verificación, 2 de 2" (the numerals
   are drawn, no text in memory).

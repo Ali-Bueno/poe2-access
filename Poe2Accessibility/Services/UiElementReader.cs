@@ -21,6 +21,16 @@ namespace Poe2Accessibility.Services
         private const uint MinWarningRed = 0xC0;
         private const uint MaxWarningGreenBlue = 0x40;
 
+        /// <summary>
+        ///     Grey text: a heard dialogue topic is FF606060, FF909090 while focused; new topics are beige FFE3D7A6 and
+        ///     white FFFFFFF9 focused (Una, 2026-10-24).
+        /// </summary>
+        private const uint MaxGrey = 0xA0;
+
+        private const uint MinGrey = 0x20;
+
+        private const int GreyTolerance = 4;
+
         /// <summary>Host reads are all-or-nothing; objects are read in page-sized chunks so a short tail is tolerated.</summary>
         private const int ChunkBytes = 0x100;
 
@@ -136,7 +146,18 @@ namespace Poe2Accessibility.Services
             this.reader.TryRead<uint>(label + GameLayout.Element.TextColorOffset, out var argb) &&
             ((argb >> 16) & 0xFF) >= MinWarningRed && ((argb >> 8) & 0xFF) <= MaxWarningGreenBlue && (argb & 0xFF) <= MaxWarningGreenBlue;
 
-        /// <summary>Art key of a texture resource (GameLayout.Image); null when it is not one.</summary>
+        /// <summary>A label drawn grey (a heard dialogue topic); call only on elements whose text read succeeded.</summary>
+        public bool IsTextGrey(IntPtr label)
+        {
+            if (!this.reader.TryRead<uint>(label + GameLayout.Element.TextColorOffset, out var argb))
+            {
+                return false;
+            }
+
+            int red = (int)((argb >> 16) & 0xFF), green = (int)((argb >> 8) & 0xFF), blue = (int)(argb & 0xFF);
+            return red is >= (int)MinGrey and <= (int)MaxGrey && Math.Abs(red - green) <= GreyTolerance && Math.Abs(green - blue) <= GreyTolerance;
+        }
+
         /// <summary>Art key of an image element, whichever image class it is.</summary>
         public string? ReadTextureKey(in ElementInfo info) => this.ReadTextureKey(info.Texture) ?? this.ReadTextureKey(info.AltTexture);
 

@@ -59,12 +59,15 @@ namespace Poe2Accessibility.Services
             }
 
             var text = this.ScreenOrderText(entries[selected]);
+            // A grey entry among coloured ones is dimmed (a dialogue topic already heard); a list drawn all grey is its style.
+            var dimmed = this.EntryGrey(entries[selected]) == true && entries.Any(entry => this.EntryGrey(entry) == false);
             return text.Length == 0 ? null : new AccessibleUiNode
             {
                 Address = info.Address,
                 Name = info.Name,
                 Role = UiRole.ListItem,
                 Text = text,
+                Value = dimmed ? Announcements.Dimmed : string.Empty,
                 Position = Announcements.ListPosition(selected + 1, entries.Count),
                 IsVisible = this.elements.IsVisible(info),
                 Context = this.InGame ? this.PanelTitle(info) : string.Empty,
@@ -179,6 +182,37 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>Every visible text under an entry, top to bottom then left to right ("Yarkidius, Level 1 Witch, Act 1: …").</summary>
+        /// <summary>Whether the entry's first text (the entry itself when it is a label) is grey; null when it has none.</summary>
+        private bool? EntryGrey(in UiElementReader.ElementInfo entry)
+        {
+            var stack = new Stack<(UiElementReader.ElementInfo Node, int Depth)>();
+            stack.Push((entry, 0));
+            while (stack.Count > 0)
+            {
+                var (node, depth) = stack.Pop();
+                if (this.elements.TryReadText(node.Address, out var text) && text.Length > 0)
+                {
+                    return this.elements.IsTextGrey(node.Address);
+                }
+
+                if (depth > EntryTextDepth)
+                {
+                    continue;
+                }
+
+                var children = this.elements.ReadChildren(node);
+                for (var i = children.Length - 1; i >= 0; i--)
+                {
+                    if (this.elements.TryReadElement(children[i], out var child) && child.IsVisibleFlag)
+                    {
+                        stack.Push((child, depth + 1));
+                    }
+                }
+            }
+
+            return null;
+        }
+
         private string ScreenOrderText(in UiElementReader.ElementInfo entry)
         {
             var cells = new List<(float Y, float X, string Text)>();
