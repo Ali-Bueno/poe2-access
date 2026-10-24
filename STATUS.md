@@ -124,13 +124,19 @@
 | Speech priority per kind, wall tones, small-obstacle knock | done (code) | `SpeechPriority` (9 "Voz: …" settings), `WallTones` (off by default), `PassageScan.IsSmallObstacle`; unit-tested, not heard live |
 | Item in hand (inventory cursor) | done (live) | `InventoryWatch.TickHand` on GameHelper's Cursor1 inventory: "En la mano: Pergamino de sabiduría, 3. Elige una celda…", "Ya no llevas ningún objeto"; pick-ups now named from the item entity (host `Inventory.Items` keys are slot entries, not entities) |
 | Monster modifiers on the aimed monster | done (code) | `MonsterMods`: names from the game's Mods.dat rows in the client language (first gender branch); the Miller's mods have no name, so nothing is added, as on its plate; not heard on a magic/rare monster yet |
-| Gold pick-ups | done (code) | `GoldWatch`: rise of the inventory's gold counter during play, "Recogido N de oro"; the counter is found with the panel hidden; a rise while hidden not seen yet (no gold dropped) |
+| Gold pick-ups | done (live) | `GoldWatch`: rise of the inventory's gold counter during play, "Recogido 17 de oro" heard with the panel hidden after the Miller (2026-10-24); was: a rise while hidden not seen yet (no gold dropped) |
 | Reach ping (D2R) | done (code) | `EnemyCues` + `ReachGate` (unit-tested): body gap from `Render.ModelBounds`; two rising notes, re-armed past reach + 25 |
 | Unexplored-areas scanner category | done (live) | `ExplorationMap` (unit-tested): "Sin explorar. Zona sin explorar, 7 pasos, arriba 4, luego arriba a la izquierda"; forgotten on area change and host restart |
 | Highlighted control without focus, league selector | done (live) | `FocusTracker`: a visible child named "hightlight" (the game's spelling) marks its parent pre-game: "Continuar, botón, 3 de 3" after the name field; combo values skip `*_popup` children ("Liga, Forbidden Rites…"), the popup is read after the focus; HUD `paused_frame` ignored |
 | Equip / unequip / arrival notices (D2R) | done (live) | `InventoryWatch.TickMoves`: the game makes a new item entity on every inventory change, so moves are departures and arrivals paired once still for 300 ms: "Equipado: Ballesta improvisada, Mano principal", "Desequipado: …"; "Nuevo en el inventario" / "… salió del inventario" with a panel open (vendor/stash untested); the hand's "Ya no llevas…" waits 800 ms and is dropped for an equip |
 | Class choice position | done (live) | `UiSemantics.SelectorPosition`: ClassVariationSelector +0x394 index over the first icon row: "Monje, 6 de 6. Mi vida…"; class id +0x390; the second row is the variants (X on the name step) |
-| Item comparison, NPC quest bell | todo | need an equippable item and the town (the Miller blocks the way; scripted attacks did nothing visible) |
+| NPC quest bell (D2R NPC "!") | done (live) | `EntityCatalog.HasQuestMarker`: "Personajes. Renly, con misión, 16 pasos…", "Una, con misión"; bell (`CueSynth.Ring`) among the object sounds and in the glossary |
+| Item comparison | done (live, the game's own) | R3 "Comparar" opens Modo inspección: the item beside the equipped ones, links walked with the D-pad; an item's text is read once, then only the links ("Set de armas, enlace") |
+| Barriers: routes, scanner, opening | done (live) | `BarrierMemory` (unit-tested): closed believed at any distance, walkable only within 120 cells; routes cut by a closed barrier say "una barrera cerrada corta el camino"; scanner "Elementos. Barrera cerrada"; `BarrierWatch` "Se abrió el paso, …"; the guide says "lo más cerca posible" at the end of a partial route |
+| Tutorial lessons that freeze the character | done (live) | a hint shown again during play a minute later is said again (the dodge lesson held the Witch stunned until B); in menus hints queue |
+| Options page: glyph labels, scroll, slider rows, combos | done (live) | "Encaje de objetos stick izquierdo / cruceta", wrapped labels joined, deadzone "3 de 10", rows scrolling into view not read, value-beside-slider rows keep the list position, combos opened in place: "Eligiendo: …", "Adaptativo (experimental), 2 de 3", "Elegido: …" |
+| Login: gateway list | done (live) | "Servidor, Sao Paulo (BR), lista desplegable, 5 de 7"; open list reads the highlighted entry "Japan, 16 de 19" |
+| NPC dialogue and vendor (town) | done (live) | speaker first ("Renly. Comprar o vender objetos, 7 de 8"); vendor stock "Coraza oxidada, columna 10, fila 10, 50 oro, no alcanza… Comprar objeto, X"; reward and vendor openings without the gold chrome |
 
 ## Derived facts (with source)
 - Plugin contract, hotkeys (`Utils.IsKeyPressedAndNotTimeout`), events (`RemoteEvents.AreaChanged` public,
@@ -205,6 +211,26 @@
 - **Inventory panel G+0x378 (2026-10-23):** full-screen root with `panels_parent`; the gold counter is the amount
   text whose child image is `CoinPile`, at panels_parent[0][0][0][8][0], and it keeps its text while hidden.
 - **Render.ModelBounds** X/Y read as body size in world units: player 30, Drowned 52, Miller 85 (2026-10-23).
+- **Network bubble (2026-10-24, Riverbank):** the live walkable grid is only true near the player. TutorialBlocker3's
+  footprint (x 474–494, y 890–945, 595 cells) read walkable from 250+ cells away and closed at ~200: the guide
+  flipped between two routes. Closed readings are trusted at any distance (`BarrierMemory`). Evidence: the
+  `terrain` and `routed-*.walkable` dumps compared offline with `astar.py`.
+- **TriggerableBlockage +0x30** = IsBlocked (GameOffsets; 1 → 0 seen live). Riverbank tutorial barriers carry
+  Counter (+0x18 = 1 while closed), ProximityTrigger, Timer, Transitionable (+0x120 state). They open on tutorial
+  steps, not kills: TutorialBlocker3 by the Large Chest once its gem (Exhumar) is socketed and cast,
+  TutorialBlocker4 at the Miller's arena once the passive point from his kill is spent and applied (X).
+- **Item Base name** is a std::wstring at name row (Base +0x10) +0x30: names under 8 characters are inline (SSO);
+  GameHelper reads it as a pointer and returns "" ("Exhumar", a gem on the ground, was "objeto desconocido").
+- **Chest +0x168** (GameHelper IsOpened) is right: 0 → 1 on opening GallowsTutorialChest2; +0x16D is 1 in both states.
+- **Combo box +0x538** byte = 1 while open; +0x528 the highlighted index moves with the D-pad (gateway list);
+  in-game option combos open in place (no list on screen).
+- **NPC +0x50** = dat reference {row, file} to MiscAnimated.dat: row +0 → "NPCQuestMarker" on NPCs with the quest
+  indicator (RenlyIntro, Una, Renly at the forge), null on the others (Clearfell, 2026-10-24).
+- **Passive tree:** applying changes gives the canvas (+0x3D8) a new state object T; T+0x1A8 then lists the
+  applied node (44871, Escudo de energía, Witch). Node element +0x64C = 1 on it.
+- **Inspect mode / compare:** R3 on an item (glyph `RightStickButton2.dds`, legend "Comparar"); the inventory's
+  R3 legend is "Comparar", a gem's "Inspeccionar".
+- **Uncut gem tier** label is named `tier_label` ("I").
 
 - **Object sizes by allocator stride (2026-09-15):** slider 0x410, check box 0x700, label 0x700, combo box 0x800; bytes past
   these belong to the neighbouring object (the deep-probe hex must be read with that in mind).
@@ -242,42 +268,41 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-Town-bound RE once the character is past the Miller (scripted attacks cannot win that fight; the user plays it):
-NPC quest bell (NPC component / overlay flag), dialogue options and vendors by ear, item comparison (vendor items
-against the equipped ones), gold rising while the inventory is hidden, monster modifiers heard on a magic/rare
-monster. User test by ear of the 2026-10-23 batches (reach ping, wall tones, small-obstacle knock, heartbeat, dodge
-whoosh, object sounds) and by use (unexplored category, equip notices, class positions, league selector).
+The Witch "yarkbruja" (level 2) is in Clearfell with Renly's reward still to take (talk, X on the gem) and the
+Devourer quest. Next: Una's quest and the Clearfell map (monster modifiers heard on a magic/rare monster, the
+"Insectoide de huesos" heard during the Miller fight is a Witch construct: check it is not announced as a
+character), the waypoint map on the Transportador. User test by ear of the 2026-10-23/24 batches (reach ping,
+wall tones, dodge whoosh, object sounds, the quest bell) and by use (barrier phrases, combos in Options).
 
 ## Known issues / open questions
 - Character creation: the league dropdown's list (12 leagues) is not verified open — with the test pad as player 2
   at that screen A does nothing, the mouse does not open it, and Enter submits the form (it answered "Ya existe un
   personaje con este nombre": never press Enter there with a free name). Closed, it reads "Liga, Forbidden Rites,
   lista desplegable, 2 de 3" and then the league's description.
-- Login gateway dropdown entries (name + latency columns) are not read while the list is open.
 - Landmark labels that are not area names ("Boss - Yama", "Chest") stay English.
-- Vendor opening also says "Gold" (an empty gold header in the inventory panel); NPC dialogue topics read "2 of 2"
-  for the first of 8 (position counted in the right column only); heard topics (greyed) are left out.
+- NPC dialogue: topics are counted over the three lists ("El devorador, 5 de 8"), but the heard lore topics of the
+  left column (Presentación, Sierraclara, Ogham, El molinero) are not reachable with the D-pad or sticks.
 - Waypoint map: the A action is read when it appears as the cursor moves, not when the map opens.
 - Radar: once, near the encampment exit, Up and Left flipped wall/exit every ~2 s with depths 100 ↔ 500 units while
   the character oscillated between two cells; not reproduced standing still.
 - The bot died twice to Rotten Wolves while testing (Clearfell, 2026-10-23): don't fight with scripted input.
 - Steam's desktop controller layout turns the DualSense into mouse/keyboard while the game is in the back; a
   drifting stick or the touchpad then disturbs NVDA in other windows (seen 2026-10-23, not the mod).
-- Options: wrapping from the Input tab to Graphics read the whole Graphics page once; the deadzone slider has no
-  position or tooltip, so the section name is repeated on the next row. Seen 2026-10-23, not fixed.
 - L3 is also seen by the game: on the world map it toggles the legend while the mod reads a line.
 - Scanner: long routes take ~200 ms on GameHelper's frame thread; a route along an octant boundary alternates
-  "up 2, then up left" / "up left 2, then up"; behind a closed tutorial barrier the route says "no route" or
-  stalls without saying why; the transition prompt "Press-Hold (Show Options)" is not read.
-- Dialogue open: the focus line is spoken, then ~200 ms later again with the speaker (the first is cut off).
-- Reward panel opens with noisy labels ("3. 0. Gold. I"); the bind screen is fixed (one utterance, no numbers).
+  "up 2, then up left" / "up left 2, then up"; the transition prompt "Press-Hold (Show Options)" is not read.
+  A barrier never seen closed and past the network bubble still reads open (nothing to know it by).
+- Skill bind screen (X on a gem in the Skills panel) reads its whole layer: the spirit panel beside it, "Set de
+  habilidades secundario. Modo de selección de objetivos. Automático…" before "Selecciona el botón al que asignar
+  Exhumar" and the focused slot.
+- Options Graphics: the two "Límite de FPS" rows (check box beside a number) read "1 de 2", not their row.
 - Cosmetics: the weapon-set toggles "I / II" read only "desmarcado, casilla de verificación, 2 de 2" (the numerals
   are drawn, no text in memory).
 - After a host restart the first HUD texts ("Nuevo punto de control") and discoveries are announced again.
 - After leaving to character selection the virtual test pad became player 2 there ("P2 Presiona A para unirte");
   Enter on the keyboard started the game and the pad was player 1 again in game. Never press A at that prompt.
-- Passive tree: allocation facts rest on one allocated node (`docs/research/passive-tree.md` OPEN list); the
-  class start is said as "inicio, DUELISTA" without a direction (the portrait has no node element).
+- Passive tree: allocation checked on two characters (Duelist pending/applied, Witch applied, 2026-10-24); the
+  class start is said as "inicio, BRUJA" without a direction (the portrait has no node element).
 - Closing the game menu is silent now (D2R); Options opened from it starts with its page.
 - Leaving to character selection says "Cargando. Selección de personaje. Cargando área" (a 16 ms pass through
   the selection state is announced).
