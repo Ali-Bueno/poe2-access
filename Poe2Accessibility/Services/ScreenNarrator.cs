@@ -74,6 +74,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Until then the HUD's texts are only noted (the host restarted with the game in an area).</summary>
         private DateTime hudQuietUntil = DateTime.MinValue;
 
+        /// <summary>When a ground item's name was said: the rest of its tooltip follows in a second step.</summary>
+        private DateTime groundItemAt = DateTime.MinValue;
+
         /// <summary>When the focused control's value last changed in place (its actions may change with it).</summary>
         private DateTime valueChangedAt = DateTime.MinValue;
         private ScreenSnapshot? seenSnapshot;
@@ -705,9 +708,11 @@ namespace Poe2Accessibility.Services
                         if (item.Length > 0 && DateTime.UtcNow >= this.hudQuietUntil)
                         {
                             this.Speak("ground item", quality == null ? item : $"{item}, {quality.Text}", false);
+                            this.groundItemAt = DateTime.UtcNow; // the stats that follow ("Attacks per Second: 1.40") are its tooltip
                         }
                     }
-                    else if (news.Count > 0 && DateTime.UtcNow >= this.hudQuietUntil)
+                    else if (news.Count > 0 && DateTime.UtcNow >= this.hudQuietUntil &&
+                             (DateTime.UtcNow - this.groundItemAt).TotalMilliseconds >= FocusTextMergeMs)
                     {
                         this.Speak("hud", Describe(news), false);
                     }
