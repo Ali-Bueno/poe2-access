@@ -90,6 +90,8 @@ namespace Poe2Accessibility
         private UiElementReader? elements;
         private DevCommandFile? devCommands;
         private UiManagerLocator? locator;
+        private CompatibilityReport? compatibility;
+        private LayoutProbe? layoutProbe;
         private UiSemantics? semantics;
 
         /// <inheritdoc />
@@ -121,10 +123,13 @@ namespace Poe2Accessibility
                 var elements = new UiElementReader(memory);
                 this.elements = elements;
                 var catalog = UiCatalog.Load(Path.Join(this.DllDirectory, "catalog", "ui-catalog.json"), this.log);
-                this.locator = new UiManagerLocator(memory, elements, this.log);
+                this.compatibility = new CompatibilityReport(this.log);
+                this.layoutProbe = new LayoutProbe(memory, elements, this.compatibility);
+                this.locator = new UiManagerLocator(memory, elements, this.log, this.layoutProbe, new InGameFields(memory, elements, this.compatibility));
                 var inventory = new InventoryReader(memory, elements);
                 this.semantics = new UiSemantics(memory, elements, catalog, new ComboBoxReader(elements, this.log), inventory);
                 this.semantics.Trace = message => this.log.Debug(message);
+                this.semantics.Fields = this.locator.Fields;
                 this.focus = new FocusTracker(memory, elements, this.locator, this.semantics, this.log);
                 this.narrator = new ScreenNarrator(this.output, this.log, layer => this.semantics?.SelectedTab(layer) ?? string.Empty);
                 this.narrator.FocusLayer = () => this.focus?.CurrentLayer ?? IntPtr.Zero;
@@ -141,7 +146,11 @@ namespace Poe2Accessibility
                     Path.Join(this.DllDirectory, "..", "Radar", "important_tgt_files.txt"),
                     Path.Join(this.DllDirectory, "catalog", "important_tgt_files.txt"),
                     Path.Join(this.DllDirectory, "catalog", "landmarks.json"));
-                this.entities = new EntityCatalog(memory, elements, inventory, landmarks, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
+                this.entities = new EntityCatalog(memory, elements, inventory, landmarks, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log)
+                {
+                    Probe = this.layoutProbe,
+                    Report = this.compatibility,
+                };
                 var checkpointPlaces = new CheckpointPlaces(this.entities);
                 this.semantics.MarkerPlaces = checkpointPlaces.Describe;
                 this.audio = new AudioCueService(this.log);
@@ -157,7 +166,7 @@ namespace Poe2Accessibility
                 this.narrator.GroundItemName = texts => this.entities?.ItemOfTooltip(texts);
                 this.statuses = new StatusWatch(this.output, this.log);
                 this.pickups = new InventoryWatch(inventory, this.output, this.log);
-                this.gold = new GoldWatch(memory, elements, this.output, this.log);
+                this.gold = new GoldWatch(memory, elements, this.output, this.log) { Fields = this.locator.Fields };
                 this.barriers = new BarrierWatch(this.entities, this.output, this.log);
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
@@ -289,6 +298,8 @@ namespace Poe2Accessibility
                 {
                     this.Isolated("death", () => this.deaths?.Tick(stateObject));
                 }
+
+                this.Isolated("compatibility", this.SayCompatibility);
                 this.Isolated("research", () =>
                 {
                     this.research?.Tick(state, stateObject, this.Settings.UiDumpRootAddressOverride, this.Settings.UiDumpMaxDepth, this.Settings.UiDumpMaxNodes);
@@ -713,6 +724,9 @@ namespace Poe2Accessibility
                 case "enemies":
                     this.log?.Info(this.enemyCues?.Diagnose() ?? "Enemy cues off");
                     break;
+                case "layout":
+                    this.LayoutSelfTest();
+                    break;
                 case "screen":
                     this.narrator?.SpeakScreen(this.screen?.Current ?? ScreenSnapshot.Empty, this.focus?.CurrentLayer ?? IntPtr.Zero);
                     break;
@@ -735,9 +749,65 @@ namespace Poe2Accessibility
                 true);
         }
 
+        /// <summary>Research (dev command "layout"): the layout searches started off target must find the layout in use.</summary>
+        private void LayoutSelfTest()
+        {
+            if (this.gameState == null || this.locator == null || this.layoutProbe == null || this.memoryReader == null)
+            {
+                return;
+            }
+
+            var stateObject = GameStateService.CurrentStateObjectAddress();
+            var manager = this.locator.Locate(this.gameState.CurrentState, stateObject);
+            var root = this.memoryReader.TryRead<IntPtr>(manager + GameLayout.UiManager.RootOffset, out var held) ? held : IntPtr.Zero;
+            var result = $"Layout self-test ({this.gameState.CurrentState}): {this.layoutProbe.SelfTest(root, manager)}";
+            if (this.gameState.CurrentState == GameStateTypes.InGameState)
+            {
+                result += $"; {this.locator.Fields.SelfTest(this.locator.InGameLayerContainer(stateObject))}";
+            }
+
+            this.log?.Info(result);
+        }
+
+        /// <summary>Per frame: the parts of the game's layout that could not be found, said once together.</summary>
+        private void SayCompatibility()
+        {
+            if (this.compatibility?.TakeUnsaid() is { Count: > 0 } missing)
+            {
+                this.output.Speak(Announcements.CompatibilityMissing(missing), false);
+            }
+        }
+
+        /// <summary>Logs which build of the game this is; a new game process is checked against the layout again.</summary>
+        private void NoteGameBuild()
+        {
+            this.compatibility?.Reset();
+            this.layoutProbe?.Reset();
+            this.locator?.Fields.Reset();
+            this.locator?.Reset();
+            try
+            {
+                using var game = System.Diagnostics.Process.GetProcessById((int)Core.Process.Pid);
+                if (game.MainModule?.FileName is { Length: > 0 } path)
+                {
+                    var file = new FileInfo(path);
+                    this.log?.Info($"Game build: {path}, {file.Length} bytes, written {file.LastWriteTimeUtc:yyyy-MM-dd HH:mm} UTC");
+                }
+            }
+            catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception)
+            {
+                this.log?.Debug($"Game build unreadable: {ex.Message}");
+            }
+        }
+
         private void OnAttachedChanged(bool attached)
         {
             this.processProbe?.Reset();
+            if (attached)
+            {
+                this.NoteGameBuild();
+            }
+
             this.output.Speak(attached ? Announcements.GameAttached : Announcements.GameNotAttached, false);
         }
 

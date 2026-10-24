@@ -20,8 +20,18 @@ namespace Poe2Accessibility.Services
         public bool TryRead(IntPtr manager, out PadState state)
         {
             state = default;
-            return manager != IntPtr.Zero && this.reader.TryRead(manager + GameLayout.UiManager.PadStateOffset, out state);
+            return manager != IntPtr.Zero && this.reader.TryRead(manager + GameLayout.UiManager.PadStateOffset, out state) && Plausible(state);
         }
+
+        /// <summary>Sticks within ±1 and triggers within 0..1, with room for rounding: anything else is not a pad state.</summary>
+        private static bool Plausible(in PadState state)
+        {
+            static bool Within(float value, float low) => !float.IsNaN(value) && value >= low - Slack && value <= 1f + Slack;
+            return Within(state.LeftX, -1f) && Within(state.LeftY, -1f) && Within(state.RightX, -1f) && Within(state.RightY, -1f) &&
+                   Within(state.LeftTrigger, 0f) && Within(state.RightTrigger, 0f);
+        }
+
+        private const float Slack = 0.05f;
 
         /// <summary>Buttons (GameLayout.PadButtons), sticks (up and right positive) and triggers (0..1).</summary>
         [StructLayout(LayoutKind.Sequential, Pack = 4)]

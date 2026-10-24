@@ -305,6 +305,31 @@ namespace Poe2Accessibility
             return shown ? read : $"{read}. {DeathScreenHidden}";
         }
 
+        /// <summary>The layout parts not found after a game update, in one line.</summary>
+        public static string CompatibilityMissing(IReadOnlyList<string> parts)
+        {
+            var names = parts.Select(CompatibilityPart).ToList();
+            var list = names.Count == 1 ? names[0] : $"{string.Join(", ", names.Take(names.Count - 1))} {T("and", "y")} {names[^1]}";
+            return T(
+                $"Compatibility warning: cannot find {list}. The game may have been updated; those readings may fail",
+                $"Aviso de compatibilidad: no encuentro {list}. Puede que el juego se haya actualizado; esas lecturas pueden fallar");
+        }
+
+        private static string CompatibilityPart(string part) => part switch
+        {
+            "element names" => T("the interface's control names", "los nombres de la interfaz"),
+            "element texts" => T("the interface's texts", "los textos de la interfaz"),
+            "entity names" => T("the names of characters and monsters", "los nombres de personajes y monstruos"),
+            "targetable flag" => T("which monsters and characters are in play", "qué monstruos y personajes están en juego"),
+            "HUD" => T("the HUD", "el HUD"),
+            "death screen" => T("the death screen", "la pantalla de muerte"),
+            "inventory panel" => T("the inventory", "el inventario"),
+            "chat" => T("the chat", "el chat"),
+            "objective box" => T("the objective box", "la caja de objetivos"),
+            "skill bar" => T("the skill bar", "la barra de habilidades"),
+            _ => part,
+        };
+
         public static string DeathScreenHidden => T("The death screen is hidden: Y shows it", "La pantalla de muerte está oculta: Y la muestra");
 
         /// <summary>A place on a map by what it is beside: "cerca de Campamento de Sierraclara".</summary>

@@ -107,6 +107,28 @@ namespace Poe2Accessibility.Services
             this.areaId = areaId;
         }
 
+        /// <summary>Monsters with the Targetable component this many, none flagged in play, mean the flag moved (game update).</summary>
+        private const int TargetableJudgedOn = 20;
+
+        /// <summary>Monsters, characters and players whose Render names judge where the names are (see <see cref="LayoutProbe"/>).</summary>
+        private const int RendersToJudge = 30;
+
+        /// <summary>
+        ///     The Targetable in-play flag (<see cref="GameLayout.TargetableComponent"/>) is believed until a game update
+        ///     visibly breaks it; then everything counts as in play rather than nothing.
+        /// </summary>
+        private static bool targetableTrusted = true;
+
+        private readonly List<IntPtr> namedRenders = new();
+        private readonly HashSet<uint> unflaggedMonsters = new();
+        private bool targetableConfirmed;
+
+        /// <summary>Checks the entity name field once enough named things are awake (set by the plugin).</summary>
+        public LayoutProbe? Probe { get; set; }
+
+        /// <summary>Where a broken in-play flag is reported (set by the plugin).</summary>
+        public CompatibilityReport? Report { get; set; }
+
         /// <summary>The quest tracker's texts on screen ("Find Clearfell", "Slay the Bloated Miller"), for the Quest category.</summary>
         public Func<IReadOnlyList<string>> QuestTexts { get; set; }
 
@@ -135,6 +157,7 @@ namespace Poe2Accessibility.Services
         {
             this.remembered.Clear();
             this.sighted.Clear();
+            this.namedRenders.Clear();
             this.itemTitles.Clear();
             this.explored.Reset();
             lock (this.samplesLock)
@@ -182,6 +205,7 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
+                this.CheckLayout(entity, render);
                 if (this.Classify(entity, render) is not { } entry)
                 {
                     this.remembered.Remove(entity.Id); // a story variant left play (Una after the quest step)
@@ -655,6 +679,40 @@ namespace Poe2Accessibility.Services
             return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, kind, baseId);
         }
 
+        /// <summary>
+        ///     Feeds the layout checks a game update can defeat: the entity name field (judged once on enough monsters,
+        ///     characters and players) and the in-play flag (no living monster flagged among many means it moved).
+        /// </summary>
+        private void CheckLayout(Entity entity, Render render)
+        {
+            var named = entity.EntityType is EntityTypes.Monster or EntityTypes.NPC or EntityTypes.Player;
+            if (this.Probe != null && named && this.namedRenders.Count < RendersToJudge && !this.namedRenders.Contains(render.Address))
+            {
+                this.namedRenders.Add(render.Address);
+                if (this.namedRenders.Count == RendersToJudge)
+                {
+                    this.Probe.ProbeRenderNames(this.namedRenders);
+                }
+            }
+
+            if (this.targetableConfirmed || !targetableTrusted || entity.EntityType != EntityTypes.Monster || !IsAliveEnemy(entity) ||
+                !entity.TryGetComponent<Targetable>(out var target))
+            {
+                return;
+            }
+
+            if (this.memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.IsTargetableOffset, out var flag) && flag != 0)
+            {
+                this.targetableConfirmed = true; // one monster in play proves the flag
+                this.Report?.Found("targetable flag");
+            }
+            else if (this.unflaggedMonsters.Add(entity.Id) && this.unflaggedMonsters.Count >= TargetableJudgedOn)
+            {
+                targetableTrusted = false;
+                this.Report?.Missing("targetable flag");
+            }
+        }
+
         /// <summary>The NPC shows the quest indicator over its head (<see cref="GameLayout.NpcComponent"/>).</summary>
         private bool HasQuestMarker(Entity entity) =>
             entity.TryGetComponent<NPC>(out var npc) &&
@@ -671,7 +729,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Targetable by its own flag (<see cref="GameLayout.TargetableComponent"/>); no component: in play.</summary>
         public static bool IsInPlay(HostMemoryReader memory, Entity entity) =>
-            !entity.TryGetComponent<Targetable>(out var target) ||
+            !targetableTrusted || !entity.TryGetComponent<Targetable>(out var target) ||
             (memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.IsTargetableOffset, out var flag) && flag != 0);
     }
 }

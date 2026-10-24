@@ -3,6 +3,7 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using Newtonsoft.Json;
 
     /// <summary>
@@ -114,7 +115,8 @@ namespace Poe2Accessibility.Services
                 var parsed = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(File.ReadAllText(file)) ?? new();
                 foreach (var (language, byId) in parsed)
                 {
-                    this.names[language] = byId;
+                    // A table regenerated from the game's files keeps the trailing spaces some names carry there.
+                    this.names[language] = byId.ToDictionary(pair => pair.Key, pair => pair.Value.Trim(), StringComparer.Ordinal);
                 }
 
                 if (parsed.TryGetValue("en", out var en))
@@ -122,7 +124,7 @@ namespace Poe2Accessibility.Services
                     foreach (var (id, name) in en)
                     {
                         // First id wins when several areas share a name (e.g. act variants): any one maps to the same text.
-                        this.englishToId.TryAdd(name, id);
+                        this.englishToId.TryAdd(name.Trim(), id);
                     }
                 }
 

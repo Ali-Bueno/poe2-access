@@ -50,6 +50,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(BuffIdsNameAilments), BuffIdsNameAilments);
             Run(nameof(OnlyHarmfulAnimationsWarn), OnlyHarmfulAnimationsWarn);
             Run(nameof(MapMarkersFindTheirCheckpoints), MapMarkersFindTheirCheckpoints);
+            Run(nameof(MovedFieldsAreFoundNearestFirst), MovedFieldsAreFoundNearestFirst);
             Run(nameof(CheckpointsAreNamedByTheirNeighbour), CheckpointsAreNamedByTheirNeighbour);
             Run(nameof(FarBarrierStaysClosedUntilSeenNear), FarBarrierStaysClosedUntilSeenNear);
             Run(nameof(ScrolledRowsAreNotNews), ScrolledRowsAreNotNews);
@@ -682,6 +683,16 @@ namespace Poe2Accessibility.Tests
             seen.AddRange(gestures.Update(800, false, 0, 0));
             seen.AddRange(gestures.Update(1300, false, 0, 0));
             Equal("StickClick", string.Join(",", seen), "one click, no hold or tap after it");
+        }
+
+        private static void MovedFieldsAreFoundNearestFirst()
+        {
+            Equal("152,160,144,168,136", string.Join(",", OffsetSearch.Outward(0x98, 0x10, 8)), "where measured first, then one step either side");
+            Equal("8,16,0,24", string.Join(",", OffsetSearch.Outward(8, 0x10, 8, 0)), "never below the floor");
+            Equal(0x98, OffsetSearch.First(0x98, 0x100, 8, offset => offset == 0x98 || offset == 0xA0) ?? -1, "kept where measured when it still fits");
+            Equal(0xA0, OffsetSearch.First(0x98, 0x100, 8, offset => offset is 0xA0 or 0x40) ?? -1, "the nearest fit wins");
+            Equal(-8, OffsetSearch.First(0, 0x100, 8, shift => shift == -8, -0x100) ?? 1, "a shift may be negative");
+            Equal(true, OffsetSearch.First(0x98, 0x20, 8, offset => offset == 0x200) == null, "nothing within reach: lost");
         }
 
         private static void MapMarkersFindTheirCheckpoints()

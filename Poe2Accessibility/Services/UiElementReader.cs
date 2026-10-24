@@ -36,8 +36,11 @@ namespace Poe2Accessibility.Services
 
         private static readonly int BaseSize = Unsafe.SizeOf<UiElementBaseOffset>();
 
-        /// <summary>Enough bytes to cover the text fields of the label subclass (0x538 + 32).</summary>
-        private static readonly int TextBlockSize = GameLayout.Element.TextCopyOffset + WStringDecoder.Size;
+        /// <summary>Enough bytes to cover the text fields of the label subclass (0x538 + 32 as measured; they can move).</summary>
+        private static int TextBlockSize => GameLayout.Element.TextCopyOffset + WStringDecoder.Size;
+
+        /// <summary>The base struct, and the control name wherever it lies now.</summary>
+        private static int ElementBlockSize => Math.Max(BaseSize, GameLayout.Element.NameOffset + WStringDecoder.Size);
 
         private readonly HostMemoryReader reader;
 
@@ -58,7 +61,7 @@ namespace Poe2Accessibility.Services
         public bool TryReadElement(IntPtr address, out ElementInfo info)
         {
             info = default;
-            var block = this.reader.ReadBytes(address, BaseSize);
+            var block = this.reader.ReadBytes(address, ElementBlockSize);
             if (block.Length == 0)
             {
                 return false;

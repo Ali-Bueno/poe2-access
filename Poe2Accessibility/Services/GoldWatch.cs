@@ -35,6 +35,9 @@ namespace Poe2Accessibility.Services
             this.log = log;
         }
 
+        /// <summary>The in-game layers by what they hold (set by the plugin): the inventory panel holds the counter.</summary>
+        public InGameFields? Fields { get; set; }
+
         /// <summary>A new area or character: the panel is rebuilt and the amount is learnt again without a word.</summary>
         public void Reset()
         {
@@ -92,7 +95,8 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private IntPtr Find(IntPtr layerContainer)
         {
-            if (!this.memory.TryRead<IntPtr>(layerContainer + GameLayout.InGameUi.InventoryPanelOffset, out var panel) || panel == IntPtr.Zero)
+            var panel = this.Fields?.Find(layerContainer, InGameField.InventoryPanel) ?? IntPtr.Zero;
+            if (panel == IntPtr.Zero)
             {
                 return IntPtr.Zero;
             }

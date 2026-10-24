@@ -8,29 +8,31 @@ namespace Poe2Accessibility
     /// </summary>
     public static class GameLayout
     {
+        // Properties with a setter are where they were measured until LayoutProbe or InGameFields finds them moved by a
+        // game update (docs/compatibility.md); constants are checked only by the readings that use them.
         /// <summary>Fields of a UI element beyond what GameHelper2's UiElementBaseOffset covers.</summary>
         public static class Element
         {
             /// <summary>std::wstring, layout control name ("login_button", "textField"...). 888/4104 nodes on the login dump.</summary>
-            public const int NameOffset = 0x98;
+            public static int NameOffset { get; internal set; } = 0x98;
 
             /// <summary>std::wstring, font face; present on text-bearing elements only.</summary>
-            public const int FontOffset = 0xC0;
+            public static int FontOffset { get; internal set; } = 0xC0;
 
             /// <summary>std::wstring, display text WITH markup ("save &lt;&lt;xbox_button_x&gt;&gt;"). Label/text-field subclass only (0x700-byte objects, no children).</summary>
-            public const int TextWithTagsOffset = 0x360;
+            public static int TextWithTagsOffset { get; internal set; } = 0x360;
 
             /// <summary>std::wstring, display text with markup stripped (tags become spaces). This is what gets spoken.</summary>
-            public const int TextOffset = 0x490;
+            public static int TextOffset { get; internal set; } = 0x490;
 
             /// <summary>std::wstring, second copy of the stripped text; used as a consistency check.</summary>
-            public const int TextCopyOffset = 0x538;
+            public static int TextCopyOffset { get; internal set; } = 0x538;
 
             /// <summary>
             ///     Packed ARGB colour of a label's text: an unaffordable vendor price FFE40000, "Buy Item" FFBDBD9A, stat
             ///     lines FFA0A0A0 (four labels of one item tooltip diffed, 2026-10-23).
             /// </summary>
-            public const int TextColorOffset = 0x6D0;
+            public static int TextColorOffset { get; internal set; } = 0x6D0;
 
             /// <summary>Flags bit set on every interactive widget (buttons, combo boxes, text fields) and nothing else.</summary>
             public const int InteractiveFlagBit = 0x1B;
@@ -52,12 +54,12 @@ namespace Poe2Accessibility
             ///     std::vector of 0x18-byte entries whose first qword is a tooltip root element: its parent is the owner
             ///     but it is not among the owner's children; the game shows the focused element's tooltip (2026-10-23).
             /// </summary>
-            public const int TooltipsOffset = 0x120;
+            public static int TooltipsOffset { get; internal set; } = 0x120;
 
             public const int TooltipEntrySize = 0x18;
 
             /// <summary>Every UI element points at its state's UI manager here (2026-10-23).</summary>
-            public const int ManagerOffset = 0x90;
+            public static int ManagerOffset { get; internal set; } = 0x90;
 
             /// <summary>Text-field placeholder ("Type your character name here..."), the only label some fields have (2026-10-23).</summary>
             public const int PlaceholderOffset = 0x798;
@@ -165,7 +167,7 @@ namespace Poe2Accessibility
         public static class RenderComponent
         {
             /// <summary>std::wstring display name ("Wounded Man"; for the player, the class: "Witch"), 2026-10-23.</summary>
-            public const int NameOffset = 0x160;
+            public static int NameOffset { get; internal set; } = 0x160;
         }
 
         /// <summary>
@@ -450,19 +452,19 @@ namespace Poe2Accessibility
         public static class UiManager
         {
             /// <summary>Pointer to the state's UI root element (parentless).</summary>
-            public const int RootOffset = 0x688;
+            public static int RootOffset { get; internal set; } = 0x688;
 
             /// <summary>Element under the controller cursor — the activation target; null when nothing has focus.</summary>
-            public const int CurrentOffset = 0x748;
+            public static int CurrentOffset { get; internal set; } = 0x748;
 
             /// <summary>Previously focused element (kept, hidden, after a panel closes); lags one step behind.</summary>
-            public const int LastFocusedOffset = 0x750;
+            public static int LastFocusedOffset { get; internal set; } = 0x750;
 
             /// <summary>
             ///     Element under the free cursor while nothing has focus (passive tree: the hovered node, whose tooltip
             ///     the game builds right after; 2026-10-23).
             /// </summary>
-            public const int HoveredOffset = 0x760;
+            public static int HoveredOffset { get; internal set; } = 0x760;
 
             /// <summary>
             ///     The pad state the game received this frame: uint32 buttons (<see cref="PadButtons"/>), then floats
@@ -470,7 +472,7 @@ namespace Poe2Accessibility
             ///     the previous frame (virtual DualShock 4 through Steam Input, game shows "Xbox Controller #1",
             ///     2026-10-23).
             /// </summary>
-            public const int PadStateOffset = 0x768;
+            public static int PadStateOffset { get; internal set; } = 0x768;
         }
     }
 }

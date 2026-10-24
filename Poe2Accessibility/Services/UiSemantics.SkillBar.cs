@@ -26,7 +26,7 @@ namespace Poe2Accessibility.Services
         public List<SkillSet> ReadSkillBar(IntPtr layerContainer)
         {
             var sets = new List<SkillSet>();
-            if (!this.InGameElement(layerContainer, GameLayout.InGameUi.SkillBarOffset, GameLayout.InGameUi.SkillBarName, out var bar))
+            if (!this.InGameElement(layerContainer, InGameField.SkillBar, out var bar))
             {
                 return sets;
             }
@@ -141,7 +141,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private (IntPtr Display, Dictionary<int, string> Buttons, string[] Titles)? BindTable(IntPtr layerContainer, IntPtr slotClass, bool rebuild)
         {
-            if (!this.InGameElement(layerContainer, GameLayout.InGameUi.BindDisplayOffset, GameLayout.InGameUi.BindDisplayName, out var display))
+            if (!this.InGameElement(layerContainer, InGameField.BindDisplay, out var display))
             {
                 return null;
             }
@@ -222,13 +222,13 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>An in-game element the layer container points to by field, trusted only by its control name.</summary>
-        private bool InGameElement(IntPtr layerContainer, int offset, string name, out UiElementReader.ElementInfo info)
+        /// <summary>The in-game layers by what they hold (set by the plugin).</summary>
+        public InGameFields? Fields { get; set; }
+
+        private bool InGameElement(IntPtr layerContainer, InGameField field, out UiElementReader.ElementInfo info)
         {
             info = default;
-            return layerContainer != IntPtr.Zero &&
-                   this.reader.TryRead<IntPtr>(layerContainer + offset, out var address) &&
-                   this.elements.TryReadElement(address, out info) &&
-                   info.Name == name;
+            return this.Fields?.Find(layerContainer, field) is { } address && address != IntPtr.Zero && this.elements.TryReadElement(address, out info);
         }
     }
 }

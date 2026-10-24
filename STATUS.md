@@ -122,6 +122,7 @@
 | Checkpoint travel map markers | done (live); place names (code) | `UiSemantics.MapMarkers` + `CheckpointPlaces`/`MapPlaces`: markers matched to seen checkpoints by one scale, "Viajar al punto de control, cerca de …, abajo, a 35 pasos, 2 de 2" (the game names none) |
 | Skill bar readout (after the screen on the gameplay hold) | done (live) | `UiSemantics.SkillBar`: "Set de habilidades principal: LT, Activar set… X, Saeta básica… Vacío: LB, cruceta arriba, Y"; bind screen names skills from their dat rows (`docs/research/skill-bar.md`) |
 | Route turn prompts, partial routes, controls help in the settings menu | done (live) | "Ahora arriba a la derecha, 10"; help topics open the L3 menu; the menu edge knock was removed (user 2026-10-24) |
+| Game updates: layout found again, data regenerated, losses said | done (code) | `LayoutProbe`, `InGameFields`, `CompatibilityReport`; launcher `GameDataSetup`; dev command `layout` self-test; `docs/compatibility.md` |
 | Scanner limited to what a sighted player sees | done (code) | `EntityCatalog.Sighted`: enemies on screen only, the rest once on screen or on explored ground, named tiles once explored (it listed the whole network bubble and every named tile before) |
 | Enemies coming into view | done (code) | `EnemyNarrator`: once per monster per area, packs grouped: "Ahogado, 3, derecha"; uniques stay discoveries |
 | Inventory actions cut in | done (code) | "En la mano" held 400 ms (was 1.5 s, which queued the moves after it); equip/unequip/hand empty/arrivals interrupt |
