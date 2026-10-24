@@ -41,9 +41,12 @@ namespace Poe2Accessibility.Services
                     continue; // ordinary monsters share names with flavour text; bosses carry their rarity
                 }
 
-                var name = Fold(entry.Category == ScanCategory.Enemies ? entry.Name[..entry.Name.IndexOf(", ", StringComparison.Ordinal)] : entry.Name);
+                // Bosses carry their rarity after the name, NPCs their quest marker ("Renly, con misión").
+                var name = Fold(entry.Category == ScanCategory.Enemies ? entry.Name[..entry.Name.IndexOf(", ", StringComparison.Ordinal)]
+                    : entry.Kind == "npc_quest" && entry.Name.LastIndexOf(", ", StringComparison.Ordinal) is > 0 and var marker ? entry.Name[..marker]
+                    : entry.Name);
                 var named = texts.Any(text => text != name && ContainsWord(text, name)) ||
-                            name.Split(' ').Any(word => word.Length >= 4 && properNouns.Contains(word));
+                            name.Split(' ').Any(word => word.Length >= 4 && properNouns.Contains(word.Trim(',', '.', ':', ';')));
                 if (name.Length >= 4 && named && targets.All(target => target.Id != entry.Id))
                 {
                     targets.Add(entry with { Category = ScanCategory.Quest });

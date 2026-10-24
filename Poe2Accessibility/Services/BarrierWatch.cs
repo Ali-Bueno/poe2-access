@@ -43,8 +43,14 @@ namespace Poe2Accessibility.Services
             this.lastPoll = now;
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
             {
-                if (!entity.IsValid || !entity.TryGetComponent<TriggerableBlockage>(out var blockage) || entity.TryGetComponent<Targetable>(out _))
+                if (!entity.IsValid || !entity.TryGetComponent<TriggerableBlockage>(out var blockage))
                 {
+                    continue;
+                }
+
+                if (entity.TryGetComponent<Targetable>(out _))
+                {
+                    this.blocked.Remove(entity.Id); // a door the player opens: its state while untargetable is stale
                     continue;
                 }
 
@@ -52,6 +58,7 @@ namespace Poe2Accessibility.Services
                 if (this.blocked.TryGetValue(entity.Id, out var was) && was && !closed && entity.TryGetComponent<Render>(out var render))
                 {
                     this.log.Info($"Barrier opened: {entity.Path}");
+                    this.catalog.BarrierOpened();
                     if (enabled)
                     {
                         var at = render.WorldPosition;

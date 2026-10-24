@@ -53,7 +53,7 @@ namespace Poe2Accessibility.Services
         private readonly float[] ping;
         private ScanEntry? target;
         private List<Vector2>? route;
-        private Task<List<Vector2>?>? search;
+        private Task<(List<Vector2>? Route, bool Partial, bool Barrier)>? search;
         private int version;
         private long lockedAt;
         private long lastPing;
@@ -63,8 +63,8 @@ namespace Poe2Accessibility.Services
         /// <summary>"The way is closed further on" is said once per lock, even if the route comes and goes.</summary>
         private bool partialSaid;
         private Vector2? lastTurn;
-        private volatile bool partialRoute;
-        private volatile bool barrierRoute;
+        private bool partialRoute;
+        private bool barrierRoute;
         private bool closestSaid;
 
         public Beacon(AudioCueService audio, EntityCatalog catalog, IAccessibilityOutputService output, PluginLog log)
@@ -95,11 +95,11 @@ namespace Poe2Accessibility.Services
             this.search = null;
             this.version++;
             this.noRouteSaid = false;
-            this.partialSaid = false;
             this.closestSaid = false;
             this.lockedAt = Environment.TickCount64;
             this.lastRefresh = long.MinValue / 2;
-            this.output.Speak(Announcements.BeaconLocked(this.catalog.Describe(entry)), true);
+            this.output.Speak(Announcements.BeaconLocked(this.catalog.Describe(entry, out var cut)), true);
+            this.partialSaid = cut; // the lock already said the way stops short: not again when the route arrives
             this.log.Info($"Beacon locked on {entry.Name} ({entry.Category})");
         }
 
@@ -270,18 +270,19 @@ namespace Poe2Accessibility.Services
             }
 
             var started = this.version;
-            var barriers = this.catalog.ClosedBarriers();
+            // Guiding to a barrier itself: it is the end of the way, not what cuts it.
+            var barriers = this.target?.Kind == "barrier" ? Array.Empty<Vector2>() : this.catalog.ClosedBarriers();
+            // The result travels with the task: a search left running by a lock change must not touch the new one's state.
             this.search = Task.Run(() =>
             {
                 if (started != this.version)
                 {
-                    return null;
+                    return ((List<Vector2>?)null, false, false);
                 }
 
                 var route = RoutePlanner.FindRoute(grid, row, start, end, true, out var reached);
-                this.barrierRoute = route is { Count: > 0 } && EntityCatalog.BarrierBetween(barriers, route[^1], end);
-                this.partialRoute = route != null && (!reached || this.barrierRoute);
-                return route;
+                var barrier = route is { Count: > 0 } && EntityCatalog.BarrierBetween(barriers, route[^1], end);
+                return (route, route != null && (!reached || barrier), barrier);
             });
         }
 
@@ -293,10 +294,12 @@ namespace Poe2Accessibility.Services
             }
 
             this.search = null;
-            var found = done.IsCompletedSuccessfully ? done.Result : null;
+            var (found, partial, barrier) = done.IsCompletedSuccessfully ? done.Result : (null, false, false);
             if (found != null)
             {
                 this.route = found;
+                this.partialRoute = partial;
+                this.barrierRoute = barrier;
                 if (this.partialRoute && !this.partialSaid && this.target != null)
                 {
                     // The way stops short (a gate the quest opens): lead as close as it goes, and say so once.

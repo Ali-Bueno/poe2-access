@@ -652,6 +652,9 @@ namespace Poe2Accessibility.Tests
             Equal(true, QuestMatcher.Targets(entries, new[] { "Talk to Renly" }).All(entry => entry.Category == ScanCategory.Quest), "copies in the Quest category");
             Equal(string.Empty, string.Join(" | ", QuestMatcher.Targets(entries, new[] { "Suelo traicionero", "Registra Sierraclara para encontrar la entrada al Lodazal" }, "Sierraclara").Select(entry => entry.Name)),
                   "the area the player searches is not a destination");
+            Equal("Renly, con misión", string.Join(" | ", QuestMatcher.Targets(new[] { new ScanEntry(6, ScanCategory.Npcs, "Renly, con misión", 0, 0, 0, "npc_quest") },
+                                                                                new[] { "Habla con Renly" }).Select(entry => entry.Name)),
+                  "an NPC named with its quest marker");
         }
 
         private static void NearbyThingsWaitForTheCooldown()

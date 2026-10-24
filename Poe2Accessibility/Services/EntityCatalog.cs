@@ -218,8 +218,13 @@ namespace Poe2Accessibility.Services
         ///     wall between the player and the target is walked around, not into); the straight line, marked "no
         ///     route", when the grid has no way there.
         /// </summary>
-        public string Describe(ScanEntry entry)
+        public string Describe(ScanEntry entry) => this.Describe(entry, out _);
+
+        /// <inheritdoc cref="Describe(ScanEntry)"/>
+        /// <param name="cut">The phrase says the way stops short or a closed barrier cuts it.</param>
+        public string Describe(ScanEntry entry, out bool cut)
         {
+            cut = false;
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             if (!area.Player.TryGetComponent<Render>(out var player))
             {
@@ -271,9 +276,11 @@ namespace Poe2Accessibility.Services
             var legs = route == null
                 ? new List<(int Direction, float Length)>()
                 : RoutePlanner.Legs(RoutePlanner.Corners(route, CornerToleranceGrid), DirectionOf, MinLegGrid);
+            cut = partial;
             if (legs.Count == 0)
             {
-                return Announcements.ScanEntry(entry.Name, steps, Announcements.StickDirections[DirectionOf(goal - start)], 0, null, route != null && !partial);
+                // Standing at the cut (no leg left to walk): the straight line, still said as cut, not "no route".
+                return Announcements.ScanEntry(entry.Name, steps, Announcements.StickDirections[DirectionOf(goal - start)], 0, null, route != null, partial, barrier);
             }
 
             var legSteps = Math.Max(1, (int)Math.Round(legs[0].Length * gridSize / StepWorldUnits));
@@ -309,6 +316,18 @@ namespace Poe2Accessibility.Services
                 }
 
                 return this.closedBarriers.Values.ToList();
+            }
+        }
+
+        /// <summary>
+        ///     A barrier just opened (<see cref="BarrierWatch"/>): the samples are taken only when something asks for the
+        ///     grid, so without the guide locked the old closed ones would keep the gate shut for routes a while longer.
+        /// </summary>
+        public void BarrierOpened()
+        {
+            lock (this.samplesLock)
+            {
+                this.samples.Clear();
             }
         }
 
