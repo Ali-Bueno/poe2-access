@@ -81,7 +81,7 @@ namespace Poe2Accessibility.Services
                         wrapped = wrapped[1..];
                     }
 
-                    var line = Announcements.WithButton(Announcements.JoinLines(wrapped), glyph);
+                    var line = Announcements.WithButton(Announcements.Flatten(string.Join('\n', wrapped)), glyph);
                     if (line.Any(char.IsDigit) && this.elements.IsTextRed(node.Address))
                     {
                         // A requirement drawn in red is one the character does not meet (D2R "cannot equip" reasons):
