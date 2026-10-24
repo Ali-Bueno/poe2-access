@@ -24,6 +24,22 @@
 - No native blind-accessibility settings in PoE2 (forum thread 3652275 asks for it, no staff reply).
   No existing blind-accessibility mod found.
 
+### In-process vs external track record (web research 2026-10-24)
+Asked whether injecting the mod as a DLL has precedent. No injected PoE tool with a clean record exists;
+the only client-side detection reports concern in-process code. Several sources blocked fetching (403).
+- **Map hacks** (client memory patching, PoE1): GGG warned 3,921 players and threatened permanent bans
+  (gamestar.de report, undated, anecdotal: https://www.gamestar.de/artikel/path-of-exile-letzte-warnung-an-cheater,3082194.html).
+- **Optiscaler in PoE2** (a DLL graphics tool, not a cheat; June 2025): one user got a "map hack" kick
+  warning, another did not; no staff reply (https://www.pathofexile.com/forum/view-thread/3786781).
+  Read as: a foreign DLL in the client can trip detection.
+- **Exilebuddy** (PoE1 bot, Bossland): shut down ~2017–18 amid a "warning flood" (OwnedCore, anecdotal).
+- **External readers** (PoEHUD, ExileApi, GameHelper): no documented ban wave found; described as treated
+  "notoriously gently" (EyeAuras, Dec 2024, anecdotal).
+- No GGG statement separates memory reading from injection, or mentions accessibility tools. The viral
+  "disabled player banned for macros" story was false — GGG told TheGamer nobody was banned
+  (https://www.thegamer.com/disabled-path-of-exile-player-banned-macros/).
+- **Conclusion:** the record supports the existing stance (external, read-only); injection adds account risk.
+
 ## Native UI navigation
 - Full first-party controller support (menus navigable, reported clunky). KB+M ↔ controller cannot be
   swapped in-game (only at main menu / character select).
