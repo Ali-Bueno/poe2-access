@@ -43,6 +43,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(StickClickWhileHoldingL3), StickClickWhileHoldingL3);
             Run(nameof(WallTonesSwellNearWalls), WallTonesSwellNearWalls);
             Run(nameof(NewsFollowItsDeliveryLevel), NewsFollowItsDeliveryLevel);
+            Run(nameof(DodgeTimingIsLearntFromBlows), DodgeTimingIsLearntFromBlows);
             Run(nameof(RockStandsAloneWallDoesNot), RockStandsAloneWallDoesNot);
             Run(nameof(ReachPingsOncePerContact), ReachPingsOncePerContact);
             Run(nameof(UnexploredGroundLiesPastTheSeenEdge), UnexploredGroundLiesPastTheSeenEdge);
@@ -588,6 +589,27 @@ namespace Poe2Accessibility.Tests
             var pings = new[] { 120f, 50f, 38f, 45f, 30f, 60f, 70f, 39f, (float?)null, 10f }
                 .Select(gap => gate.Update(gap, 40f, 25f) ? "P" : ".");
             Equal("..P....P.P", string.Join(string.Empty, pings), "one ping per contact, re-armed past reach + release or with no enemy");
+        }
+
+        private static void DodgeTimingIsLearntFromBlows()
+        {
+            var timings = new DodgeTimings();
+            var key = DodgeTimings.Key("Metadata/Monsters/MudGolem/MudGolemWet1@3", 13);
+            Equal("Metadata/Monsters/MudGolem/MudGolemWet1|13", key, "the kind without its level");
+            Equal(true, timings.Delay(key) == null, "unknown until it hits");
+            Equal(1000L, DodgeTimings.WarnAt(1000, null, 500), "unknown: at the wind-up");
+            foreach (var delay in new[] { 1170, 1150, 3900, 1180, 1160 })
+            {
+                timings.Learn(key, delay);
+            }
+
+            Equal(1170, timings.Delay(key) ?? 0, "the median ignores a blow from another monster");
+            Equal(1670L, DodgeTimings.WarnAt(1000, timings.Delay(key), 500), "half a second before the blow");
+            Equal(1000L, DodgeTimings.WarnAt(1000, 300, 500), "a blow quicker than the lead: at once");
+            timings.Learn(key, 9000);
+            Equal(1170, timings.Delay(key) ?? 0, "a blow long after the start is not that attack's");
+            var copy = DodgeTimings.FromLines(timings.ToLines());
+            Equal(timings.Delay(key), copy.Delay(key), "saved and loaded");
         }
 
         private static void NewsFollowItsDeliveryLevel()

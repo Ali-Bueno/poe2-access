@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Numerics;
     using GameHelper;
     using GameHelper.RemoteEnums;
@@ -11,10 +12,11 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     Bosses and rare monsters near the player. Boss life (D2R boss-life.md) is spoken as the real percentage at
-    ///     each step it falls past, and the defeat once. The dodge warning: when a rare or unique monster on screen
-    ///     starts an attack or spell (<see cref="DodgeThreats"/>; a rare's blow only once it is within reach), a short
-    ///     rising whoosh plays on its side, louder the closer it is — the wind-up is the moment to dodge (B). Monsters
-    ///     read from GameHelper's awake entities; the animation id is GameHelper's <c>Actor.Animation</c> (Actor +0x8B0).
+    ///     each step it falls past, and the defeat once. The dodge warning: a short rising whoosh on the side of a rare or
+    ///     unique monster on screen attacking (<see cref="DodgeThreats"/>; a rare's blow only within reach), louder the
+    ///     closer it is, half a second before the blow lands as learnt from earlier hits of that attack by any monster of
+    ///     its kind (<see cref="DodgeTimings"/>), at the wind-up until then. Animation ids are GameHelper's
+    ///     <c>Actor.Animation</c> (Actor +0x8B0).
     /// </summary>
     public sealed class BossWatch
     {
@@ -41,12 +43,23 @@ namespace Poe2Accessibility.Services
         /// <summary>The warning's gain at the edge of the watched range; full at contact.</summary>
         private const float FarWarningGain = 0.55f;
 
+        /// <summary>The warning comes this long before an attack's learnt blow: time to hear it and roll (B).</summary>
+        private const int LeadMs = 500;
+
+        /// <summary>A fall of life this large in one frame is a blow, not damage over time.</summary>
+        private const float BlowFraction = 0.04f;
+
+        /// <summary>A blow seen this soon after its attack animation ended still belongs to it (the server's word arrives late).</summary>
+        private const int LateBlowMs = 300;
+
         private readonly AudioCueService audio;
         private readonly IAccessibilityOutputService output;
         private readonly UiElementReader elements;
         private readonly PluginLog log;
         private readonly float[] whoosh;
-        private readonly Dictionary<uint, (int Animation, long WarnedAt)> animations = new();
+        private readonly Dictionary<uint, Attack> attacks = new();
+        private readonly Dictionary<uint, long> warnedAt = new();
+        private int lastPlayerLife = -1;
         private readonly Dictionary<uint, (string Name, int Step, bool Engaged, int Percent)> bosses = new();
         private long lastLifePoll;
 
@@ -80,11 +93,16 @@ namespace Poe2Accessibility.Services
             return null;
         }
 
+        /// <summary>When each kind of attack lands (loaded and saved by the plugin).</summary>
+        public DodgeTimings Timings { get; set; } = new();
+
         /// <summary>A new area: no boss is known.</summary>
         public void Reset()
         {
-            this.animations.Clear();
+            this.attacks.Clear();
+            this.warnedAt.Clear();
             this.bosses.Clear();
+            this.lastPlayerLife = -1;
         }
 
         /// <summary>Per frame while playing.</summary>
@@ -111,9 +129,8 @@ namespace Poe2Accessibility.Services
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
             foreach (var entity in area.AwakeEntities.Values)
             {
-                if (!entity.IsValid || entity.EntityType != EntityTypes.Monster ||
-                    !entity.TryGetComponent<ObjectMagicProperties>(out var magic) || magic.Rarity is not (Rarity.Rare or Rarity.Unique) ||
-                    !entity.TryGetComponent<Render>(out var render))
+                // Every monster near teaches when its kind's attacks land; rares and uniques are the ones warned of.
+                if (!entity.IsValid || entity.EntityType != EntityTypes.Monster || !entity.TryGetComponent<Render>(out var render))
                 {
                     continue;
                 }
@@ -124,7 +141,8 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                if (magic.Rarity == Rarity.Unique && pollLife)
+                var rarity = entity.TryGetComponent<ObjectMagicProperties>(out var magic) ? magic.Rarity : Rarity.Normal;
+                if (rarity == Rarity.Unique && pollLife)
                 {
                     this.WatchLife(entity, render);
                 }
@@ -132,8 +150,13 @@ namespace Poe2Accessibility.Services
                 if (this.DodgeWarnings && EntityCatalog.IsAliveEnemy(entity) && entity.TryGetComponent<Actor>(out var actor))
                 {
                     var gap = offset.Length() - render.ModelBounds.X - player.ModelBounds.X;
-                    this.WatchAttack(entity.Id, (int)actor.Animation, magic.Rarity == Rarity.Unique, render, offset, gap, now);
+                    this.WatchAttack(entity, (int)actor.Animation, rarity, render, offset, gap, now);
                 }
+            }
+
+            if (this.DodgeWarnings && area.Player.TryGetComponent<Life>(out var life))
+            {
+                this.LearnFromBlow(life.Health.Current, life.Health.Total, now);
             }
         }
 
@@ -187,26 +210,93 @@ namespace Poe2Accessibility.Services
             this.bosses[entity.Id] = (boss.Name, step, engaged, percent);
         }
 
-        private void WatchAttack(uint id, int animation, bool unique, Render render, Vector2 offset, float gap, long now)
+        private void WatchAttack(Entity entity, int animation, Rarity rarity, Render render, Vector2 offset, float gap, long now)
         {
-            this.animations.TryGetValue(id, out var last);
-            this.animations[id] = (animation, last.WarnedAt);
-            if (animation == last.Animation || now - last.WarnedAt < WarningGapMs)
+            var id = entity.Id;
+            this.attacks.TryGetValue(id, out var attack);
+            if (attack == null || attack.Animation != animation)
+            {
+                if (attack != null && attack.EndedAt == 0)
+                {
+                    attack = attack with { EndedAt = now }; // a blow can still arrive for it
+                    this.attacks[id] = attack;
+                }
+
+                var threat = DodgeThreats.Of(animation, value => Enum.GetName(typeof(Animation), value));
+                if (threat == DodgeThreat.None)
+                {
+                    if (attack != null && now - attack.EndedAt > LateBlowMs)
+                    {
+                        this.attacks.Remove(id);
+                    }
+
+                    return;
+                }
+
+                var key = DodgeTimings.Key(entity.Path, animation);
+                var learnt = this.Timings.Delay(key);
+                attack = new Attack(animation, key, threat, now, DodgeTimings.WarnAt(now, learnt, LeadMs), learnt,
+                    rarity is Rarity.Rare or Rarity.Unique, rarity == Rarity.Unique);
+            }
+
+            // A rare's blow needs it within reach when it would land; a unique's carries (slam waves).
+            var inReach = attack.Threat != DodgeThreat.Melee || attack.Unique || gap <= MeleeDangerGapWorld;
+            attack = attack with { InReach = inReach };
+            if (attack.Warns && !attack.Warned && attack.EndedAt == 0 && now >= attack.WarnAt)
+            {
+                attack = attack with { Warned = true };
+                if (inReach && now - this.warnedAt.GetValueOrDefault(id, long.MinValue / 2) >= WarningGapMs)
+                {
+                    this.warnedAt[id] = now;
+                    var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
+                    var closeness = 1f - Math.Clamp(offset.Length() / WatchWorld, 0f, 1f);
+                    this.audio.Play(this.whoosh, pan, pitch, this.Gain * (FarWarningGain + ((1f - FarWarningGain) * closeness)));
+                    this.log.Debug($"Dodge warning: monster {id} animation {(Animation)animation} ({attack.Threat}, gap {gap:F0}, " +
+                                   $"{(attack.Learnt is { } delay ? $"{now - attack.StartedAt} ms into a blow learnt at {delay} ms" : "at the wind-up")})");
+                }
+            }
+
+            this.attacks[id] = attack;
+        }
+
+        /// <summary>
+        ///     The player's life fell by a blow: the one monster whose attack is under way in reach dealt it, so that
+        ///     attack lands this long after it starts. With two or more under way nothing is learnt.
+        /// </summary>
+        private void LearnFromBlow(int life, int total, long now)
+        {
+            var fell = this.lastPlayerLife >= 0 && this.lastPlayerLife - life >= Math.Max(1f, total * BlowFraction);
+            this.lastPlayerLife = life;
+            if (!fell)
             {
                 return;
             }
 
-            var threat = DodgeThreats.Of(animation, value => Enum.GetName(typeof(Animation), value));
-            if (threat == DodgeThreat.None || (threat == DodgeThreat.Melee && !unique && gap > MeleeDangerGapWorld))
+            var hitters = this.attacks.Where(pair => !pair.Value.Learned && pair.Value.InReach &&
+                                                     now - pair.Value.StartedAt <= DodgeTimings.MaxDelayMs &&
+                                                     (pair.Value.EndedAt == 0 || now - pair.Value.EndedAt <= LateBlowMs)).ToList();
+            if (hitters.Count != 1)
             {
                 return;
             }
 
-            this.animations[id] = (animation, now);
-            var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
-            var closeness = 1f - Math.Clamp(offset.Length() / WatchWorld, 0f, 1f);
-            this.audio.Play(this.whoosh, pan, pitch, this.Gain * (FarWarningGain + ((1f - FarWarningGain) * closeness)));
-            this.log.Debug($"Dodge warning: monster {id} animation {(Animation)animation} ({threat}, gap {gap:F0})");
+            var (id, attack) = (hitters[0].Key, hitters[0].Value);
+            var delay = (int)(now - attack.StartedAt);
+            this.Timings.Learn(attack.Key, delay);
+            this.attacks[id] = attack with { Learned = true };
+            this.log.Info($"Dodge timing: {attack.Key} hit after {delay} ms (learnt {this.Timings.Delay(attack.Key)} ms)");
+        }
+
+        /// <summary>An attack under way: when it began, when to warn, and what was done about it.</summary>
+        private sealed record Attack(int Animation, string Key, DodgeThreat Threat, long StartedAt, long WarnAt, int? Learnt, bool Warns, bool Unique)
+        {
+            public long EndedAt { get; init; }
+
+            public bool InReach { get; init; }
+
+            public bool Warned { get; init; }
+
+            public bool Learned { get; init; }
         }
     }
 }

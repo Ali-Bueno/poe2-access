@@ -30,6 +30,7 @@ namespace Poe2Accessibility
         private ChatWatcher? chat;
         private EntityDump? entityDump;
         private TerrainDump? terrainDump;
+        private ActorTrace? actorTrace;
         private EntityCatalog? entities;
         private GamepadReader? pad;
         private ModCommands? commands;
@@ -86,6 +87,9 @@ namespace Poe2Accessibility
         /// <summary>A "not loaded" state shorter than this is a transition, not the game closing.</summary>
         private const int ClosedSettleMs = 2000;
         private bool confirmDown;
+
+        /// <summary>When each kind of monster attack lands, learnt from the blows taken (BossWatch).</summary>
+        private string DodgeTimingsPath => Path.Join(this.DllDirectory, "config", "dodge-timings.txt");
 
         /// <summary>The creation screen's name help was said for this visit (a refused name comes back to it).</summary>
         private bool creationHelpSaid;
@@ -154,6 +158,7 @@ namespace Poe2Accessibility
                 this.pad = new GamepadReader(memory);
                 this.entityDump = new EntityDump(elements, memory, this.log, debugDirectory);
                 this.terrainDump = new TerrainDump(memory, this.log, debugDirectory);
+                this.actorTrace = new ActorTrace(memory, this.log, debugDirectory);
                 // GameHelper's Radar table; a test package ships only this plugin, with a copy of it in its catalog.
                 var landmarks = LandmarkTable.Load(
                     this.log,
@@ -182,7 +187,7 @@ namespace Poe2Accessibility
                 this.pickups = new InventoryWatch(inventory, this.output, this.log);
                 this.gold = new GoldWatch(memory, elements, this.output, this.log) { Fields = this.locator.Fields };
                 this.barriers = new BarrierWatch(this.entities, this.output, this.log);
-                this.bosses = new BossWatch(this.audio, this.output, elements, this.log);
+                this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = DodgeTimings.Load(this.DodgeTimingsPath) };
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
                 var drops = ItemDropSounds.Load(
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
@@ -253,6 +258,7 @@ namespace Poe2Accessibility
                 this.gameState = null;
             }
 
+            this.bosses?.Timings.Save(this.DodgeTimingsPath);
             this.processProbe = null;
             this.screen?.Dispose();
             this.screen = null;
@@ -314,6 +320,7 @@ namespace Poe2Accessibility
                 if (state == GameStateTypes.InGameState)
                 {
                     this.Isolated("death", () => this.deaths?.Tick(stateObject));
+                    this.Isolated("trace", () => this.actorTrace?.Tick());
                 }
 
                 this.Isolated("compatibility", this.SayCompatibility);
@@ -675,6 +682,12 @@ namespace Poe2Accessibility
                 return;
             }
 
+            if (command.StartsWith("trace ", StringComparison.Ordinal) && int.TryParse(command["trace ".Length..], out var seconds))
+            {
+                this.actorTrace?.Start(seconds);
+                return;
+            }
+
             if (command.StartsWith("hex ", StringComparison.Ordinal) && this.memoryReader != null)
             {
                 // Research: "hex 0x46656B1D030 0x800" logs that memory, 32 bytes per line, to diff two game states.
@@ -731,6 +744,9 @@ namespace Poe2Accessibility
                         ? FormattableString.Invariant($"{me.GridPosition.X:F0},{me.GridPosition.Y:F0}")
                         : "?";
                     this.log?.Info($"Beacon state: {this.beacon?.Diagnose()}; cell={cell}; playing={Core.Process.Foreground && this.focus?.Current == null && IsPlayerAlive()} focus={this.focus?.Current?.Text}");
+                    break;
+                case "trace":
+                    this.actorTrace?.Start();
                     break;
                 case "terrain":
                     this.terrainDump?.Write();
@@ -1048,6 +1064,7 @@ namespace Poe2Accessibility
         private void OnAreaChanged(string areaName, bool resumed)
         {
             this.beacon?.Clear(false);
+            this.bosses?.Timings.Save(this.DodgeTimingsPath);
             this.bosses?.Reset();
             this.statuses?.Reset();
             this.pickups?.Reset();

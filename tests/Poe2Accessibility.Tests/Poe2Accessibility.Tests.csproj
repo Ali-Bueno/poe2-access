@@ -30,6 +30,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\ExplorationMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\BarrierMemory.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\DodgeThreats.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\DodgeTimings.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\MapPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\OffsetSearch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ControlFields.cs" />
