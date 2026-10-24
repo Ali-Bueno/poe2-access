@@ -21,6 +21,8 @@
   host): starts PoE2 through Steam if needed and a hidden, renamed GameHelper copy without UAC
   (`__COMPAT_LAYER=RunAsInvoker`), no console, no update check, no prompt; `restart`/`stop` for testing; errors
   in `Poe2Access.log` + a message box. Dev: `py -B tools/computer_use/launch.py all|host|stop` wraps it.
+- **Test package:** `tools/package/New-TestPackage.ps1` → `dist/Poe2Access-test-<date>.zip` (self-contained, unzip and
+  run; sounds extracted from the tester's install on the first start); `tools/README.md`.
 - **Repository:** private GitHub `Ali-Bueno/poe2-access` (created 2026-10-23).
 - **Unit tests (pure logic, no game):** `dotnet run --project tests/Poe2Accessibility.Tests` (screen differ, text edits, chat, gestures, scanner, alarms, enemy cues, radar).
 - **Autonomous testing (controller only):** virtual DualShock 4 + speech log oracle — `tools/computer_use/README.md`. Plugin logs: `Plugins/Poe2Accessibility/logs/accessibility.log`;

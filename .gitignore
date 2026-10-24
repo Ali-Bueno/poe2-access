@@ -17,3 +17,6 @@ __pycache__/
 
 # Extracted game audio (local copy of game assets, never commit)
 Poe2Accessibility/sounds/
+
+# Test packages (tools/package/New-TestPackage.ps1)
+dist/

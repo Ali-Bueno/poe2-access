@@ -1,0 +1,44 @@
+ACCESIBILIDAD PARA PATH OF EXILE 2 - VERSIÓN DE PRUEBA
+
+Es un mod de prueba que hace jugable Path of Exile 2 sin ver la pantalla. Lee los menús, el inventario, los diálogos y lo que pasa en el juego con tu lector de pantalla, y añade sonidos para orientarte: radar de paredes, enemigos, objetos, salidas y una guía hacia lo que elijas.
+
+AVISO
+Es una herramienta no oficial. Lee la memoria del juego, pero no la cambia ni pulsa nada por ti. Grinding Gear Games no la ha aprobado: úsala bajo tu responsabilidad. Es una versión de prueba y puede fallar.
+
+QUÉ NECESITAS
+- Windows 10 u 11 de 64 bits.
+- Path of Exile 2 de Steam, con el parche 0.5.5. Si el juego se actualiza, el mod puede dejar de funcionar hasta que salga una versión nueva.
+- Un lector de pantalla. Se recomienda NVDA. Si no tienes ninguno, se usa la voz de Windows.
+- Un mando de Xbox o de PlayStation. El mod está pensado para jugar con mando.
+No hace falta instalar nada más: todo va dentro de esta carpeta.
+
+CÓMO EMPEZAR
+1. Descomprime la carpeta donde quieras.
+   Si al abrir el mod Windows dice "Windows protegió tu PC", elige "Más información" y luego "Ejecutar de todas formas". Para evitarlo, antes de descomprimir abre las Propiedades del archivo zip, marca "Desbloquear" y acepta.
+2. Abre Steam.
+3. Haz doble clic en Poe2Access.exe. Abre el juego si no estaba abierto y arranca el mod. La primera vez saca los sonidos del juego de tu propia instalación; tarda un segundo.
+4. Oirás "Accesibilidad de Path of Exile 2 lista" y, cuando el mod se conecte al juego, "Game Helper conectado al juego".
+5. En la pantalla de inicio del juego, pulsa un botón del MANDO, no el ratón ni el teclado. El juego elige el método de control en ese momento, y si entras con el ratón, ignora el mando hasta que vuelvas al menú principal.
+
+CONTROLES BÁSICOS
+El botón del mod es L3, el clic del stick izquierdo.
+- En los menús: toca L3 para la siguiente línea de lo enfocado, doble toque para la anterior y mantén pulsado para leer la descripción entera.
+- Jugando: toca L3 para saber dónde está lo elegido en el escáner. Doble toque para vida, maná, estados y la vida del jefe. Mantén pulsado para leer la pantalla y la barra de habilidades.
+- Escáner: mantén L3 y mueve el stick derecho. Arriba y abajo cambian de categoría (misión, salidas, zonas sin explorar, puntos de ruta y de control, personajes, enemigos, objetos, cofres...). Izquierda y derecha la recorren, de lo más cercano a lo más lejano.
+- Guía: mantén L3 y pulsa el stick derecho. Un ping te lleva hacia lo elegido por un camino libre y te dice los giros. Repítelo para apagarla.
+- Ajustes del mod: mantén L3 un segundo y medio. Ahí están la ayuda, todos los ajustes y un glosario donde puedes escuchar cada sonido.
+- Al morir, Y muestra u oculta la pantalla de muerte. A resucita en el punto de control.
+Encontrarás todos los controles en "Controles (ingles).md".
+
+PARA CERRAR
+El mod se cierra solo al salir del juego. También puedes usar "Detener el mod.bat".
+
+SI ALGO FALLA
+Envía estos dos archivos a quien te pasó el mod:
+- Poe2Access.log, en esta carpeta.
+- Plugins\Poe2Accessibility\logs\accessibility.log
+Si puedes, di también qué estabas haciendo y a qué hora.
+
+CRÉDITOS
+- GameHelper2 (licencia GPLv3): https://github.com/Gordin/GameHelper2
+- PRISM, para la salida al lector de pantalla: https://github.com/ethindp/prism

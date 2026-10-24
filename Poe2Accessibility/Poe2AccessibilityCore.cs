@@ -135,9 +135,11 @@ namespace Poe2Accessibility
                 this.pad = new GamepadReader(memory);
                 this.entityDump = new EntityDump(elements, memory, this.log, debugDirectory);
                 this.terrainDump = new TerrainDump(memory, this.log, debugDirectory);
+                // GameHelper's Radar table; a test package ships only this plugin, with a copy of it in its catalog.
                 var landmarks = LandmarkTable.Load(
                     this.log,
                     Path.Join(this.DllDirectory, "..", "Radar", "important_tgt_files.txt"),
+                    Path.Join(this.DllDirectory, "catalog", "important_tgt_files.txt"),
                     Path.Join(this.DllDirectory, "catalog", "landmarks.json"));
                 this.entities = new EntityCatalog(memory, elements, inventory, landmarks, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 var checkpointPlaces = new CheckpointPlaces(this.entities);

@@ -36,6 +36,30 @@ internal static class GameLauncher
         throw new TimeoutException($"The game window did not appear within {Timeout.TotalSeconds:0} seconds.");
     }
 
+    /// <summary>The folder of the running game (its fmod.dll and FMOD banks), or null when it cannot be read.</summary>
+    public static string? InstallDirectory()
+    {
+        foreach (var process in ProcessNames.SelectMany(Process.GetProcessesByName))
+        {
+            using (process)
+            {
+                try
+                {
+                    if (Path.GetDirectoryName(process.MainModule?.FileName) is { Length: > 0 } directory)
+                    {
+                        return directory;
+                    }
+                }
+                catch (Exception error) when (error is System.ComponentModel.Win32Exception or InvalidOperationException)
+                {
+                    Log.Write($"Game folder unreadable: {error.Message}");
+                }
+            }
+        }
+
+        return null;
+    }
+
     private static bool FindWindow()
     {
         foreach (var process in ProcessNames.SelectMany(Process.GetProcessesByName))

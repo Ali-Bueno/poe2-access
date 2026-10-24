@@ -57,3 +57,16 @@ copies, makes a new copy of `GameHelper.exe` with rewritten version-info strings
 `__COMPAT_LAYER=RunAsInvoker`. Single instance; steps go to `Poe2Access.log` next to the exe; a failure shows a message box
 and exits 1. The host folder defaults to the exe's own folder when it holds `GameHelper.exe`, else the repository build output.
 The GameHelper-style copy/rename logic is a short independent reimplementation (GameHelper is GPLv3).
+In a test package `start` also extracts the game's sounds on the first run (`SoundSetup.cs`): when `Poe2UiExtract.exe`
+sits beside it and the plugin has no `sounds/manifest.txt`, it runs `sounds` on the folder of the running game.
+
+## package — test build for other players
+```
+pwsh tools/package/New-TestPackage.ps1      # with GameHelper stopped; writes dist/Poe2Access-test-<date>.zip
+```
+Publishes GameHelper, the launcher and Poe2UiExtract self-contained into one folder (they share the .NET 10 runtime
+files, nothing to install), adds only the accessibility plugin (dll, PRISM, catalogs, the Radar plugin's
+`important_tgt_files.txt`, research mode off), GameHelper's `core_settings.json` with only this plugin enabled,
+`LEEME.txt` (Spanish instructions), the controls doc and a stop shortcut. No game sounds are shipped: the launcher
+extracts them from the tester's install. About 43 MB zipped. `dist/` is gitignored; publishing a release stays a
+manual decision.
