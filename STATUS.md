@@ -276,11 +276,12 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-The Witch "yarkbruja" (level 2) is in Clearfell with Renly's reward still to take (talk, X on the gem) and the
-Devourer quest. Next: Una's quest and the Clearfell map (monster modifiers heard on a magic/rare monster, the
-"Insectoide de huesos" heard during the Miller fight is a Witch construct: check it is not announced as a
-character), the waypoint map on the Transportador. User test by ear of the 2026-10-23/24 batches (reach ping,
-wall tones, dodge whoosh, object sounds, the quest bell) and by use (barrier phrases, combos in Options).
+The Witch "yarkbruja" (level 2) is in Clearfell Encampment; the quests point to the Mud Burrow (the Devourer) and
+the Grim Tangle. The uncut gem was engraved "Esbirro guerrero esqueleto" to leave town; it is not socketed (no
+spirit left). Next: user test by ear of the 2026-10-23/24 batches (reach ping, wall tones, dodge whoosh, object
+sounds, the quest bell; barrier phrases, combos and FPS rows in Options, the bind screen, heard topics); monster
+modifiers on a magic/rare monster are still unheard (none met in Clearfell or the Mud Burrow entrance; the level 2
+character dies there to larvae and Mud Simulacra).
 
 ## Known issues / open questions
 - Character creation: the league dropdown's list (12 leagues) is not verified open — with the test pad as player 2
