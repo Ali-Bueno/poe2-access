@@ -57,6 +57,12 @@ if (args.Length > 0 && string.Equals(args[0], "item-sounds", StringComparison.Or
     return ItemSoundExtractor.Run(game, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-sounds.json");
 }
 
+// Args: hit-times <gameDir> [outFile]  -- when each monster attack lands, from the animation data, for dodge warnings.
+if (args.Length > 1 && string.Equals(args[0], "hit-times", StringComparison.OrdinalIgnoreCase))
+{
+    return HitTimeExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hit-times.txt");
+}
+
 // Args: item-names <gameDir> [outFile]  -- currency item names per language, for inline item art in legends.
 if (args.Length > 1 && string.Equals(args[0], "item-names", StringComparison.OrdinalIgnoreCase))
 {

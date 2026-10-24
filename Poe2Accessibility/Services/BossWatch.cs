@@ -239,7 +239,7 @@ namespace Poe2Accessibility.Services
                 var key = DodgeTimings.Key(entity.Path, animation);
                 var learnt = this.Timings.Delay(key);
                 attack = new Attack(animation, key, threat, now, DodgeTimings.WarnAt(now, learnt, LeadMs), learnt,
-                    rarity is Rarity.Rare or Rarity.Unique, rarity == Rarity.Unique);
+                    rarity is Rarity.Rare or Rarity.Unique, rarity == Rarity.Unique) { Swing = this.Timings.Swing(key) };
             }
 
             // A rare's blow needs it within reach when it would land; a unique's carries (slam waves).
@@ -247,7 +247,9 @@ namespace Poe2Accessibility.Services
             attack = attack with { InReach = inReach };
             if (attack.Warns && !attack.Warned && attack.EndedAt == 0 && now >= attack.WarnAt)
             {
-                attack = attack with { Warned = true };
+                // The same animation id goes on swinging (a golem's blows a swing apart, nothing new written between
+                // them): a timed attack warns again one swing later.
+                attack = attack.Learnt != null && attack.Swing is { } swing ? attack with { WarnAt = attack.WarnAt + swing } : attack with { Warned = true };
                 if (inReach && now - this.warnedAt.GetValueOrDefault(id, long.MinValue / 2) >= WarningGapMs)
                 {
                     this.warnedAt[id] = now;
@@ -276,7 +278,7 @@ namespace Poe2Accessibility.Services
             }
 
             var hitters = this.attacks.Where(pair => !pair.Value.Learned && pair.Value.InReach &&
-                                                     now - pair.Value.StartedAt <= DodgeTimings.MaxDelayMs &&
+                                                     (pair.Value.Swing != null || now - pair.Value.StartedAt <= DodgeTimings.MaxDelayMs) &&
                                                      (pair.Value.EndedAt == 0 || now - pair.Value.EndedAt <= LateBlowMs)).ToList();
             if (hitters.Count != 1)
             {
@@ -285,6 +287,11 @@ namespace Poe2Accessibility.Services
 
             var (id, attack) = (hitters[0].Key, hitters[0].Value);
             var delay = (int)(now - attack.StartedAt);
+            if (attack.Swing is { } swing && delay > swing)
+            {
+                delay %= swing; // a later swing of the same animation: its blow lands as far into its own swing
+            }
+
             this.Timings.Learn(attack.Key, delay);
             if (this.TimingsPath.Length > 0)
             {
@@ -305,6 +312,9 @@ namespace Poe2Accessibility.Services
             public bool Warned { get; init; }
 
             public bool Learned { get; init; }
+
+            /// <summary>One swing's length when the game's files give it: the attack repeats at this period.</summary>
+            public int? Swing { get; init; }
         }
     }
 }

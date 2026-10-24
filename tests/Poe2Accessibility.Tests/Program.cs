@@ -661,6 +661,13 @@ namespace Poe2Accessibility.Tests
             Equal(timings.Delay(key), copy.Delay(key), "saved and loaded");
             var seeded = DodgeTimings.FromLines(new[] { $"{key}=900,900,900" }.Concat(new[] { $"{key}=1200,1210,1190" }));
             Equal(1190, seeded.Delay(key) ?? 0, "the player's own blows outweigh the shipped ones");
+            var filed = new DodgeTimings();
+            filed.AddHitTimes(new[] { "# comment", $"{key}=1169/2333", "Metadata/Monsters/X|1=20/100", "broken line" });
+            Equal(1169, filed.Delay(key) ?? 0, "before any blow, the game files' hit time");
+            Equal(2333, filed.Swing(key) ?? 0, "and how long one swing lasts");
+            Equal(true, filed.Delay("Metadata/Monsters/X|1") == null, "a hit sooner than any blow is not believed");
+            filed.Learn(key, 1150);
+            Equal(1150, filed.Delay(key) ?? 0, "a blow felt outweighs the files");
         }
 
         private static void NewsFollowItsDeliveryLevel()

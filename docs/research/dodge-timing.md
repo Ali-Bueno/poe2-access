@@ -34,6 +34,26 @@ The timings measured in development ship as `catalog/dodge-timings.txt`, loaded 
 `config/dodge-timings.txt`: a tester's first Miller fight is already timed, and their own blows push the shipped
 samples out of each list of five.
 
-## Open
-The +0x8B8 object's vectors may hold the animation's event times (the real hit frame); decoding them would give the
-timing before the first blow.
+## Hit times from the game files (2026-10-24)
+The +0x8B8 object turned out to be the parsed `.act` entry of the action, static and shared by every monster using that
+`.act` (same pointer for all larva Melee); it holds no time. A repeat swing writes nothing: the animation id stays and
+the blows come one animation length apart (golem melee 661, 2125, 3656… = 661 + k × 1500).
+
+The game's files do hold the hit frame (`tools/Poe2UiExtract hit-times` → `catalog/hit-times.txt`):
+- The Actor's animation id (+0x8B0) is the row of `Animation.datc64` whose Id names the action (1 Melee, 13 GroundSlam,
+  62 DualStrike, 71 HeavyStrike).
+- `MonsterVarieties` +0x00 Id, +0x28 ACTFiles, +0x38 AOFiles, +0xD0 GrantedEffects; `GrantedEffects` +0x71 the skill's
+  Animation row (inferred from 8 rows). Actions: Melee plus each skill's animation.
+- `.act` (UTF-16LE) maps an action to its animations (`GroundSlam = "ground_slam_01";`, `@Alias`, `:options`, stance
+  blocks); the `.ao` AnimationController lists events per animation, and `contact` is the hit (seconds); without one, the
+  `.ao`'s Melee section `damage_patterns[].key_frames` first value is the fraction of the animation; `.amd` gives each
+  animation's length in ms. Parents (`extends`) are followed.
+- Checked against blows timed in game: golem GroundSlam 1169 (1156–1172 seen), golem Melee 661 (672), larva Melee 430
+  (437–469), Miller GroundSlam 1803 (1781–1828), HeavyStrike 578 (625). Miller DualStrike says 930 against 781 seen: the
+  measured seed wins over the files.
+- 6019 of 8552 monster attacks with animations get a time; the rest are mostly projectiles, spells and charges, whose
+  blow depends on travel. Normal monsters play at speed 1.0; hasted or slowed ones are not traced (a learnt blow
+  corrects them).
+
+The mod: `DodgeTimings.Delay` is the learnt median, else the files' hit; `Swing` the animation length. An attack that
+keeps its animation warns again one swing later, and a blow felt in a later swing is learnt modulo the swing.

@@ -27,6 +27,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Learnt since the last save.</summary>
         public bool Changed { get; private set; }
 
+        /// <summary>
+        ///     From the game's animation data (catalog/hit-times.txt): when each attack lands and how long one swing
+        ///     lasts, for an attack no blow has timed yet (docs/research/dodge-timing.md).
+        /// </summary>
+        private readonly Dictionary<string, (int Hit, int Swing)> fromFiles = new(StringComparer.Ordinal);
+
         /// <summary>"Metadata/Monsters/MudGolem/MudGolemWet1|13": the monster kind without its "@level" suffix.</summary>
         public static string Key(string monsterPath, int animation)
         {
@@ -60,16 +66,41 @@ namespace Poe2Accessibility.Services
             this.Changed = true;
         }
 
-        /// <summary>The median learnt delay, null when the attack has never hit.</summary>
+        /// <summary>The median learnt delay; before any blow, the one the game's files give; null when neither knows it.</summary>
         public int? Delay(string key)
         {
             if (!this.delays.TryGetValue(key, out var list) || list.Count == 0)
             {
-                return null;
+                return this.fromFiles.TryGetValue(key, out var timed) ? timed.Hit : null;
             }
 
             var sorted = list.OrderBy(value => value).ToList();
             return sorted[sorted.Count / 2];
+        }
+
+        /// <summary>How many attacks the game's files time.</summary>
+        public int FileTimes => this.fromFiles.Count;
+
+        /// <summary>How long one swing of the attack lasts (it repeats while the animation holds), when the files say.</summary>
+        public int? Swing(string key) => this.fromFiles.TryGetValue(key, out var timed) && timed.Swing > 0 ? timed.Swing : null;
+
+        /// <summary>Lines "key=hit/swing" (catalog/hit-times.txt); "#" lines are comments.</summary>
+        public void AddHitTimes(IEnumerable<string> lines)
+        {
+            foreach (var line in lines)
+            {
+                var split = line.LastIndexOf('=');
+                var slash = line.LastIndexOf('/');
+                if (line.StartsWith('#') || split <= 0 || slash < split ||
+                    !int.TryParse(line[(split + 1)..slash], NumberStyles.Integer, CultureInfo.InvariantCulture, out var hit) ||
+                    !int.TryParse(line[(slash + 1)..], NumberStyles.Integer, CultureInfo.InvariantCulture, out var swing) ||
+                    hit is < MinDelayMs or > MaxDelayMs)
+                {
+                    continue;
+                }
+
+                this.fromFiles[line[..split]] = (hit, swing);
+            }
         }
 
         /// <summary>One line per attack: "key=delay,delay,…".</summary>
@@ -106,6 +137,14 @@ namespace Poe2Accessibility.Services
         ///     blows come later in each list, so they push the measured ones out.
         /// </summary>
         public static DodgeTimings Load(string seedPath, string path) => FromLines(ReadLines(seedPath).Concat(ReadLines(path)));
+
+        /// <summary>As <see cref="Load(string, string)"/>, with the game files' hit times beneath what was measured.</summary>
+        public static DodgeTimings Load(string hitTimesPath, string seedPath, string path)
+        {
+            var timings = Load(seedPath, path);
+            timings.AddHitTimes(ReadLines(hitTimesPath));
+            return timings;
+        }
 
         private static IEnumerable<string> ReadLines(string path)
         {

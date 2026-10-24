@@ -154,8 +154,10 @@ left; a topic already heard (drawn grey) is read "atenuado": "Presentación, ate
 - **Dodge warning:** a blade-like rising whoosh ending in a ringing snap over a low thud, on the side of a rare or
   unique monster attacking, louder the closer it is: dodge (B). Only animations that are attacks warn (not
   burrowing, hiding, buffs or summons); a rare's blow warns only within about a step and a half, a unique's from
-  anywhere on screen. The mod learns from every blow you take when each kind of attack lands and then warns half a
-  second before it; an attack never seen hit warns at its wind-up ([dodge timing](research/dodge-timing.md)).
+  anywhere on screen. It warns half a second before the blow: from the first attack, by the hit time in the game's
+  own animation data (about 70% of monster attacks), and by what it learns from every blow you take, which wins;
+  an attack timed neither way warns at its wind-up. A monster that keeps swinging is warned for each swing
+  ([dodge timing](research/dodge-timing.md)).
 - **Crosshair:** two short blips when the game's target lands on a living enemy.
 - The game's own low-life heartbeat and menu sounds are left to the game: the mod has none of its own.
 - All stop while a panel, menu or dialogue is open. Settings: `Radar`, `WallBump`, `EnemySounds`, `NpcSounds`,

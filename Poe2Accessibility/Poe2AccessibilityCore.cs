@@ -211,7 +211,9 @@ namespace Poe2Accessibility
                 this.pickups = new InventoryWatch(inventory, this.output, this.log);
                 this.gold = new GoldWatch(memory, elements, this.output, this.log) { Fields = this.locator.Fields };
                 this.barriers = new BarrierWatch(this.entities, this.output, this.log);
-                this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = DodgeTimings.Load(this.DodgeTimingsSeedPath, this.DodgeTimingsPath), TimingsPath = this.DodgeTimingsPath };
+                var timings = DodgeTimings.Load(Path.Join(this.DllDirectory, "catalog", "hit-times.txt"), this.DodgeTimingsSeedPath, this.DodgeTimingsPath);
+                this.log.Info($"Dodge timings: {timings.FileTimes} attacks timed by the game files");
+                this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = timings, TimingsPath = this.DodgeTimingsPath };
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
                 var drops = ItemDropSounds.Load(
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);

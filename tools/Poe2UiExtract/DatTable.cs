@@ -65,6 +65,17 @@ internal sealed class DatTable
         return this.ReadString(value);
     }
 
+    /// <summary>8 bytes at any offset of a row, aligned or not (GrantedEffects' animation key sits at +0x71).</summary>
+    public long Int64(int row, int offset) => offset >= 0 && offset + 8 <= this.RowSize ? BitConverter.ToInt64(this.data, this.RowStart(row) + offset) : -1;
+
+    /// <summary>A list column of strings: a count, then where in the variable section its string offsets start.</summary>
+    public IReadOnlyList<string> StringList(int row, int offset) =>
+        this.ListItems(row, offset, 8).Select(at => this.ReadString(BitConverter.ToInt64(this.data, at))).ToList();
+
+    /// <summary>A list column of foreign keys (16 bytes each, the row index first).</summary>
+    public IReadOnlyList<long> KeyList(int row, int offset) =>
+        this.ListItems(row, offset, 16).Select(at => BitConverter.ToInt64(this.data, at)).ToList();
+
     /// <summary>The row a foreign-key column points to, or -1 for a null key.</summary>
     public long Key(int row, int offset)
     {
@@ -134,6 +145,29 @@ internal sealed class DatTable
     private const int MinDistinctKeys = 10;
 
     private int RowStart(int row) => 4 + (row * this.RowSize);
+
+    /// <summary>Byte positions of a list column's items; none when the count or position is implausible.</summary>
+    private IEnumerable<int> ListItems(int row, int offset, int itemSize)
+    {
+        if (offset < 0 || offset + 16 > this.RowSize)
+        {
+            yield break;
+        }
+
+        var count = BitConverter.ToInt64(this.data, this.RowStart(row) + offset);
+        var start = BitConverter.ToInt64(this.data, this.RowStart(row) + offset + 8);
+        if (count is <= 0 or > MaxListItems || start < 0 || this.varStart + start + (count * itemSize) > this.data.Length)
+        {
+            yield break;
+        }
+
+        for (var i = 0; i < count; i++)
+        {
+            yield return this.varStart + (int)start + (i * itemSize);
+        }
+    }
+
+    private const int MaxListItems = 4096;
 
     private string ReadString(long offset)
     {

@@ -119,6 +119,7 @@
 | NPC dialogue options read one by one | done (live) | `UiSemantics.OptionLists`: confirm glyph marks the option; D-pad left reaches the lore column; a heard topic (drawn grey) reads "Presentación, atenuado, 1 de 8" (Una, 2026-10-24) |
 | Spoken settings menu + sound glossary (hold L3 1.5 s) | done (live) | `SettingsMenu`, `SoundGlossary`; 26 settings + 23 sounds |
 | Target from the HUD target bar (controller) | done (live) | HUD > entity_info_container > entity_info_display > name_label; MouseOverEntity is 0 with a pad |
+| Dodge timing before the first blow (game files) | done (unit, values checked against blows timed live) | `catalog/hit-times.txt` from `Poe2UiExtract hit-times` (5866 attacks loaded); repeat swings warned each period; `docs/research/dodge-timing.md` |
 | Death place "Donde moriste" among the exits (D2R) | done (code) | `DeathWatch.Died` → `EntityCatalog.RememberDeath` (area hash + position); not seen live (no death since) |
 | Fresh install (no game config): login read at once, language list, input-method notice | done (live) | off-screen controls do not make a layer the top (the "Deal of the Day" panel hid the login); `visible_area` notices said after the focus; Steam logs in without a form; language re-detected on attach |
 | Long scrolled texts (terms of use) by paragraph | done (live) | text over 1024 chars in a frame: `ScreenWatcher.LongText` → `LongTextReader`; scroll = frame `PositionModifier.Y` (+0x10C, negative) against text − frame `UnscaledSize.Y` |
@@ -301,11 +302,11 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-Characters: "kehgan" (Monk, level 2, Riverbank), "yarkbruja" (Witch, level 3, Clearfell), "yarkey" (Mercenary, level 4,
-Mud Burrow). Next: user test of the 2026-10-24 batch (learnt dodge timing, the new cue timbres, several loot sounds with
-pitch, panel legends, passive class starts, character panel values, the scanner's sighted rule). Then: decode the Actor
-+0x8B8 object (animation event lists?) so a dodge is timed before its first blow (`docs/research/dodge-timing.md`);
-monster modifiers on a magic/rare monster are still unheard; the remaining fragile parts are in `docs/compatibility.md`,
+Characters: "kehgan" (Monk, level 2, Clearfell Encampment), "yarkbruja" (Witch, level 3, Clearfell Encampment), "yarkey"
+(Mercenary, level 4, Mud Burrow). Next: user test of the 2026-10-24 batch (dodge timed from the game files before the first
+blow and per swing, D2R wall tones, "what A uses", weapon swap, map / chat / player menu, terms of use by paragraph,
+first-start login); a rare's warning with a file-timed attack is not heard live yet. Monster modifiers on a magic/rare
+monster are still unheard; the remaining fragile parts are in `docs/compatibility.md`,
 "Still fragile" (run the dev command `layout` at login, in game, in the options and in the inventory after each change).
 
 ## Known issues / open questions
