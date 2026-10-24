@@ -127,6 +127,7 @@ namespace Poe2Accessibility.Services
         private IntPtr valueOwner;
         private string lastValue = string.Empty;
         private bool lastExpanded;
+        private string lastLinkRow = string.Empty;
 
         /// <summary>
         ///     A new area (its name changed): the HUD's and the tutorial box's texts are news again. Not on every game
@@ -311,7 +312,20 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        private string Focused(AccessibleUiNode node) => Announcements.Focused(node, this.ReadTooltips);
+        private string Focused(AccessibleUiNode node)
+        {
+            if (node.Role != UiRole.Link)
+            {
+                this.lastLinkRow = string.Empty;
+                return Announcements.Focused(node, this.ReadTooltips);
+            }
+
+            // Moving between the links of one item in inspect mode ("Cetro", "Espíritu", "Set de armas") re-read the
+            // whole item each time: its text is said when the focus comes to it, then only the links.
+            var newRow = node.Value != this.lastLinkRow;
+            this.lastLinkRow = node.Value;
+            return Announcements.Link(node, newRow);
+        }
 
         /// <summary>Per frame: a focus named only by its control id is spoken once no tooltip described it in time.</summary>
         public void Tick()

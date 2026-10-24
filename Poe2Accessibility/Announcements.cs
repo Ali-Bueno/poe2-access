@@ -406,10 +406,11 @@ namespace Poe2Accessibility
         }
 
         /// <summary>"Evasion Rating, 7. Evasion, link. Evasion Rating grants a chance …": the line, the keyword, its definition.</summary>
-        private static string Link(Models.AccessibleUiNode node)
+        /// <summary>A keyword link: the text holding it (unless just said for the previous link), the keyword, its definition.</summary>
+        public static string Link(Models.AccessibleUiNode node, bool withRow = true)
         {
             var parts = new System.Collections.Generic.List<string>();
-            if (node.Value.Length > 0)
+            if (withRow && node.Value.Length > 0)
             {
                 parts.Add(node.Value);
             }
