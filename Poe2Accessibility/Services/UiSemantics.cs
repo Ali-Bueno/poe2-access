@@ -150,6 +150,11 @@ namespace Poe2Accessibility.Services
                         label = this.FindDescendantText(info, CaptionSearchDepth, null);
                     }
 
+                    if (label.Length == 0)
+                    {
+                        label = this.DrawnCaption(info);
+                    }
+
                     break;
                 default:
                     label = ownText.Length > 0 ? ownText : this.RowText(info);

@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text.RegularExpressions;
     using Poe2Accessibility.Models;
 
@@ -16,7 +17,13 @@ namespace Poe2Accessibility.Services
         /// <summary>Folder of skill and action icons ("…/SkillIcons/GamepadActions/DodgeRoll.dds|…").</summary>
         private const string SkillIconFolder = "/SkillIcons/";
 
+        /// <summary>The skill picker's first cell, a red cross with no text or tooltip: it empties the button (2026-10-24).</summary>
+        private const string ClearBindingIcon = "/UIImages/InGame/Cross.dds";
+
         private static readonly Regex WordStart = new("(?<=[a-z])(?=[A-Z])", RegexOptions.Compiled);
+
+        /// <summary>The numeral the cosmetics' weapon-set toggles draw instead of a caption ("…/Cosmetics/WeaponSetIcon2.dds|…").</summary>
+        private static readonly Regex WeaponSetIcon = new(@"/WeaponSetIcon(\d)\.dds", RegexOptions.Compiled);
 
         /// <summary>
         ///     An in-game control with no caption that shows a controller glyph: the button it binds, then what is
@@ -34,6 +41,7 @@ namespace Poe2Accessibility.Services
             var bound = string.Empty;
             var skill = string.Empty;
             var icon = string.Empty;
+            var clears = false;
             var details = new List<string>();
             var queue = new Queue<(UiElementReader.ElementInfo Node, int Depth)>();
             queue.Enqueue((info, 0));
@@ -55,6 +63,10 @@ namespace Poe2Accessibility.Services
                     else if (icon.Length == 0 && key.Contains(SkillIconFolder, StringComparison.Ordinal))
                     {
                         icon = IconName(key);
+                    }
+                    else
+                    {
+                        clears |= key.Contains(ClearBindingIcon, StringComparison.Ordinal);
                     }
                 }
 
@@ -83,7 +95,7 @@ namespace Poe2Accessibility.Services
                 // A cell of the skill picker (A on a Bind Screen button: every skill and action that can go there,
                 // 2026-10-24): no glyph, the skill or action it holds names it. The options' combo boxes are navigable
                 // too, with their description as tooltip: they carry the interactive bit, the picker's cells do not.
-                var held = skill.Length > 0 ? skill : bound;
+                var held = skill.Length > 0 ? skill : bound.Length > 0 ? bound : clears ? Announcements.ClearBinding : string.Empty;
                 return held.Length == 0 || !info.HasFlagBit(GameLayout.Element.NavigableFlagBit) || info.HasFlagBit(GameLayout.Element.InteractiveFlagBit)
                     ? null
                     : new AccessibleUiNode
@@ -92,6 +104,7 @@ namespace Poe2Accessibility.Services
                     Name = info.Name,
                     Role = UiRole.Panel,
                     Text = held,
+                    Position = this.PickerPosition(info),
                     IsVisible = this.elements.IsVisible(info),
                     Context = this.PanelTitle(info),
                     Tooltip = details,
@@ -129,6 +142,63 @@ namespace Poe2Accessibility.Services
                     this.elements.TryReadSpokenText(sibling, out var caption) && caption.Length > 0)
                 {
                     return caption;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        ///     A picker cell's column and row (2026-10-24: a first row with the cross and the skills in use, then every
+        ///     other skill and action seven to a row, each row group a child of the grid): from the cells' positions.
+        /// </summary>
+        private string PickerPosition(in UiElementReader.ElementInfo cell)
+        {
+            if (!this.elements.TryReadElement(cell.Raw.ParentPtr, out var group) || !this.elements.TryReadElement(group.Raw.ParentPtr, out var grid))
+            {
+                return string.Empty;
+            }
+
+            var cells = new List<(IntPtr Address, float X, float Y)>();
+            foreach (var groupAddress in this.elements.ReadChildren(grid))
+            {
+                if (!this.elements.TryReadElement(groupAddress, out var rows) || !rows.IsVisibleFlag)
+                {
+                    continue;
+                }
+
+                foreach (var cellAddress in this.elements.ReadChildren(rows))
+                {
+                    if (this.elements.TryReadElement(cellAddress, out var other) && other.IsVisibleFlag && other.HasFlagBit(GameLayout.Element.NavigableFlagBit))
+                    {
+                        cells.Add((cellAddress, MathF.Round(rows.Raw.RelativePosition.X + other.Raw.RelativePosition.X),
+                            MathF.Round(rows.Raw.RelativePosition.Y + other.Raw.RelativePosition.Y)));
+                    }
+                }
+            }
+
+            var address = cell.Address;
+            var index = cells.FindIndex(other => other.Address == address);
+            if (index < 0)
+            {
+                return string.Empty;
+            }
+
+            var (_, x, y) = cells[index];
+            var row = cells.Select(other => other.Y).Distinct().Count(top => top < y);
+            var column = cells.Count(other => other.Y == y && other.X < x);
+            return Announcements.GridPosition(column, row);
+        }
+
+        /// <summary>A caption drawn as an image among the control's children: the weapon-set numeral (2026-10-24).</summary>
+        private string DrawnCaption(in UiElementReader.ElementInfo info)
+        {
+            foreach (var childAddress in this.elements.ReadChildren(info))
+            {
+                if (this.elements.TryReadElement(childAddress, out var child) && child.IsVisibleFlag &&
+                    this.elements.ReadTextureKey(child) is { } key && WeaponSetIcon.Match(key) is { Success: true } match)
+                {
+                    return Announcements.WeaponSet(int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture));
                 }
             }
 

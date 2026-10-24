@@ -214,6 +214,16 @@ namespace Poe2Accessibility
 
         public static string Empty => T("empty", "vacío");
 
+        /// <summary>A weapon-set toggle, named as the game's tooltips do ("Set de armas I").</summary>
+        public static string WeaponSet(int number)
+        {
+            var numeral = number switch { 1 => "I", 2 => "II", _ => number.ToString(System.Globalization.CultureInfo.InvariantCulture) };
+            return T($"weapon set {numeral}", $"set de armas {numeral}");
+        }
+
+        /// <summary>The skill picker's red cross: choosing it leaves the button without a skill.</summary>
+        public static string ClearBinding => T("empty the button", "vaciar el botón");
+
         /// <summary>A list entry drawn grey among coloured ones (a dialogue topic already heard).</summary>
         public static string Dimmed => T("dimmed", "atenuado");
 
