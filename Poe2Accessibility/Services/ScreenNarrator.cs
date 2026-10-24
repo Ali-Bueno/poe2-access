@@ -70,6 +70,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Until then the HUD's texts are only noted (the host restarted with the game in an area).</summary>
         private DateTime hudQuietUntil = DateTime.MinValue;
+
+        /// <summary>When the focused control's value last changed in place (its actions may change with it).</summary>
+        private DateTime valueChangedAt = DateTime.MinValue;
         private ScreenSnapshot? seenSnapshot;
         private IntPtr seenTop;
         private AccessibleUiNode? pendingFocus;
@@ -486,6 +489,7 @@ namespace Poe2Accessibility.Services
             }
 
             var edit = node.Role == UiRole.TextField ? TextEdit.Between(before, node.Value) : null;
+            this.valueChangedAt = DateTime.UtcNow;
             this.output.Speak(edit is { } typed ? Announcements.Typed(typed.Added, typed.Removed) : Announcements.ValueAt(Announcements.ValueOrEmpty(node.Value), node.ValuePosition), true);
         }
 
@@ -500,6 +504,13 @@ namespace Poe2Accessibility.Services
                 {
                     // What the map cursor's place offers ("Instance Manager, A" on a town): after the place.
                     this.Speak("action of panel without focus", Describe(change.Texts), false);
+                }
+                else if (this.inGame && change.Kind == ScreenChangeKind.TextsAppeared &&
+                         (DateTime.UtcNow - this.valueChangedAt).TotalMilliseconds < FocusTextMergeMs)
+                {
+                    // The control changed in place and offers other actions: A on a bound skill picks it up, its button
+                    // reads "empty" and the bar "Place, A. Cancel, B" (skill bind screen, 2026-10-24).
+                    this.Speak("actions after value change", Describe(change.Texts), false);
                 }
 
                 return;
