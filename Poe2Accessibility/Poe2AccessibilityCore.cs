@@ -278,18 +278,24 @@ namespace Poe2Accessibility
                 var stateObject = GameStateService.CurrentStateObjectAddress();
                 // The pad first: the game moves the focus in the frame it reads a press, and the narrator needs to
                 // know that A, LB or RB caused the move it is about to hear about.
-                this.ReadModButton();
-                this.focus?.Tick(this.gameState.CurrentState, stateObject);
-                this.WatchTextFieldClosing();
-                this.KnockAtEdge();
-                this.WatchLife();
-                this.TickSounds();
-                this.NarrateScreenChanges(stateObject);
-                this.research?.Tick(this.gameState.CurrentState, stateObject, this.Settings.UiDumpRootAddressOverride, this.Settings.UiDumpMaxDepth, this.Settings.UiDumpMaxNodes);
-                if (this.elements != null)
+                // GameHelper only writes a plugin's exceptions to its hidden console: each part reports its own faults
+                // to the log and one failing part does not silence the rest.
+                var state = this.gameState.CurrentState;
+                this.Isolated("pad", this.ReadModButton);
+                this.Isolated("focus", () => this.focus?.Tick(state, stateObject));
+                this.Isolated("text field", this.WatchTextFieldClosing);
+                this.Isolated("edge", this.KnockAtEdge);
+                this.Isolated("life", this.WatchLife);
+                this.Isolated("sounds", this.TickSounds);
+                this.Isolated("screen", () => this.NarrateScreenChanges(stateObject));
+                this.Isolated("research", () =>
                 {
-                    this.research?.WatchFocusedBytes(this.focus?.Current?.Address ?? IntPtr.Zero, this.elements);
-                }
+                    this.research?.Tick(state, stateObject, this.Settings.UiDumpRootAddressOverride, this.Settings.UiDumpMaxDepth, this.Settings.UiDumpMaxNodes);
+                    if (this.elements != null)
+                    {
+                        this.research?.WatchFocusedBytes(this.focus?.Current?.Address ?? IntPtr.Zero, this.elements);
+                    }
+                });
             }
 
             if (this.devCommands != null)
@@ -511,7 +517,7 @@ namespace Poe2Accessibility
             if (!this.tickFaults.TryGetValue(service, out var last) || now - last >= SoundErrorReportMs)
             {
                 this.tickFaults[service] = now;
-                this.log?.Error($"Gameplay tick failed: {service}", ex);
+                this.log?.Error($"Tick failed: {service}", ex);
             }
         }
 

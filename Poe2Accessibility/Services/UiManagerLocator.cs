@@ -12,6 +12,8 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class UiManagerLocator
     {
+        private const int ScanChunkBytes = 0x100;
+
         private readonly HostMemoryReader reader;
         private readonly UiElementReader elements;
         private readonly PluginLog log;
@@ -96,14 +98,19 @@ namespace Poe2Accessibility.Services
         private IntPtr FromStateElements(IntPtr stateObject, out string how)
         {
             how = string.Empty;
-            var slots = this.reader.ReadArray<IntPtr>(stateObject, GameLayout.StateObjectScanBytes / IntPtr.Size);
-            for (var i = 0; i < slots.Length; i++)
+            // Reads are all-or-nothing and a state object can sit near the end of its heap region (SelectCharacterState
+            // 0x1CF0 bytes before an unreadable page, 2026-10-24): read it in chunks so the slots that exist are seen.
+            for (var chunk = 0; chunk < GameLayout.StateObjectScanBytes; chunk += ScanChunkBytes)
             {
-                if (this.reader.IsValidAddress(slots[i]) && this.elements.IsElement(slots[i]) &&
-                    this.reader.TryRead<IntPtr>(slots[i] + GameLayout.Element.ManagerOffset, out var manager) && this.IsManager(manager))
+                var slots = this.reader.ReadArray<IntPtr>(stateObject + chunk, ScanChunkBytes / IntPtr.Size);
+                for (var i = 0; i < slots.Length; i++)
                 {
-                    how = $"element at state+0x{i * IntPtr.Size:X}";
-                    return manager;
+                    if (this.reader.IsValidAddress(slots[i]) && this.elements.IsElement(slots[i]) &&
+                        this.reader.TryRead<IntPtr>(slots[i] + GameLayout.Element.ManagerOffset, out var manager) && this.IsManager(manager))
+                    {
+                        how = $"element at state+0x{chunk + (i * IntPtr.Size):X}";
+                        return manager;
+                    }
                 }
             }
 

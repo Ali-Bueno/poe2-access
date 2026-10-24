@@ -181,7 +181,6 @@ namespace Poe2Accessibility.Services
             return new List<UiElementReader.ElementInfo>();
         }
 
-        /// <summary>Every visible text under an entry, top to bottom then left to right ("Yarkidius, Level 1 Witch, Act 1: …").</summary>
         /// <summary>Whether the entry's first text (the entry itself when it is a label) is grey; null when it has none.</summary>
         private bool? EntryGrey(in UiElementReader.ElementInfo entry)
         {
@@ -213,6 +212,7 @@ namespace Poe2Accessibility.Services
             return null;
         }
 
+        /// <summary>Every visible text under an entry, top to bottom then left to right ("Yarkidius, Level 1 Witch, Act 1: …").</summary>
         private string ScreenOrderText(in UiElementReader.ElementInfo entry)
         {
             var cells = new List<(float Y, float X, string Text)>();
