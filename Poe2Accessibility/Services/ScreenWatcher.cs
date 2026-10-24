@@ -216,6 +216,9 @@ namespace Poe2Accessibility.Services
                 }
 
                 var markupButton = hasText ? ControllerGlyphs.FromMarkup(tagged) : string.Empty;
+                // A chord's icons joined by a plus ("<<rt>>+<<lstick>>", stripped " + ") are an icon too: the label beside
+                // them is the legend (it was read as content and repeated the inventory's focus, 2026-10-24).
+                var glyphsOnly = markupButton.Length > 0 && text.Trim().Trim('+').Trim().Length == 0;
                 if (hasText && text.Length > 0 && IsOffScreen(info.Address, screen))
                 {
                     continue; // a panel slid out of view keeps its visible flag (the world map's quest list)
@@ -228,7 +231,7 @@ namespace Poe2Accessibility.Services
                     // preview): label and buttons, read with the hints, not as content of the panel.
                     texts.Add((self, new ScreenText(info.Address, Announcements.Flatten(legendLabel), info.Name, false, true, markupButton)));
                 }
-                else if (hasText && text.Length > 0)
+                else if (hasText && text.Length > 0 && !glyphsOnly)
                 {
                     // Glyphs inside a sentence are read in place; a lone trailing glyph ("continue {A}") the same way.
                     var spoken = Announcements.Flatten(markupButton.Length > 0 ? ControllerGlyphs.Render(tagged) : text);

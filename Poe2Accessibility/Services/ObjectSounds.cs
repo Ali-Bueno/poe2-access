@@ -11,8 +11,9 @@ namespace Poe2Accessibility.Services
     ///     Proximity sounds for things worth walking to (D2R proximity loops): the nearest item, chest or shrine, exit
     ///     or portal, and waypoint or checkpoint on screen each repeat the game's own sound for them (an item its own drop
     ///     sound, <see cref="ItemDropSounds"/>, with the rare layer over it for a rare or unique), on their side,
-    ///     louder and more often as the player gets closer, and stop once the player stands on them. One voice per
-    ///     group so loot, chests and exits stay apart; the groups take turns so two never start together.
+    ///     louder and more often as the player gets closer, higher above and lower below, and stop once the player stands
+    ///     on them. One voice per group so chests and exits stay apart, one per item for the nearest few (several drops
+    ///     were heard as one, user 2026-10-24); voices take turns so two never start together.
     /// </summary>
     public sealed class ObjectSounds
     {
@@ -30,13 +31,17 @@ namespace Poe2Accessibility.Services
         /// <summary>Groups never start within this time of each other.</summary>
         private const int GroupGapMs = 220;
 
+        /// <summary>Items heard at once, nearest first, each with its own sound and turn.</summary>
+        private const int MaxLootVoices = 4;
+
         /// <summary>The rare drop layer under a rare or unique item's own sound.</summary>
         private const float RareLayerGain = 0.6f;
 
+        private const string LootGroup = "loot";
 
         private static readonly (string Group, Func<ScanEntry, bool> Member)[] Groups =
         {
-            ("loot", entry => entry.Category == ScanCategory.Items),
+            (LootGroup, entry => entry.Category == ScanCategory.Items),
             ("chests", entry => entry.Category == ScanCategory.Chests),
             ("exits", entry => entry.Category == ScanCategory.Exits || entry.Kind == "portal"),
             ("waypoints", entry => entry.Kind is "waypoint" or "checkpoint"),
@@ -86,10 +91,16 @@ namespace Poe2Accessibility.Services
                 var entries = this.catalog.Entries().Where(entry => EntityCatalog.IsEntity(entry) && entry.Category != ScanCategory.Quest).ToList();
                 foreach (var (group, member) in Groups)
                 {
-                    if (entries.Where(member).FirstOrDefault() is { } entry && Distance(here, entry) <= RangeWorld)
+                    var voices = group == LootGroup ? MaxLootVoices : 1;
+                    foreach (var entry in entries.Where(member).Where(entry => Distance(here, entry) <= RangeWorld).Take(voices))
                     {
-                        this.nearest[group] = entry;
+                        this.nearest[voices == 1 ? group : $"{group}:{entry.Id}"] = entry;
                     }
+                }
+
+                foreach (var gone in this.lastPlayed.Keys.Where(key => !this.nearest.ContainsKey(key)).ToList())
+                {
+                    this.lastPlayed.Remove(gone);
                 }
             }
 
@@ -109,13 +120,12 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                var screen = ScreenProjection.Direction(player.WorldPosition, new Vector2(entry.WorldX, entry.WorldY) - here);
-                var pan = screen.LengthSquared() > 0 ? Vector2.Normalize(screen).X : 0f;
+                var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, new Vector2(entry.WorldX, entry.WorldY) - here));
                 var gain = this.Gain * (FarGain + ((1f - FarGain) * closeness));
-                this.audio.Play(samples, pan, 1f, gain);
+                this.audio.Play(samples, pan, pitch, gain);
                 if (entry.Kind == "rare" && samples != this.sounds.Get("item_rare") && this.sounds.Get("item_rare") is { } rare)
                 {
-                    this.audio.Play(rare, pan, 1f, gain * RareLayerGain);
+                    this.audio.Play(rare, pan, pitch, gain * RareLayerGain);
                 }
 
                 this.lastPlayed[group] = now;

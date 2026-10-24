@@ -233,6 +233,7 @@ namespace Poe2Accessibility.Services
             this.lastGroup = string.Empty;
             this.lastSelectorPosition = string.Empty;
             this.lastSelectorChoice = null;
+            this.legendsLayer = IntPtr.Zero;
             this.inGame = inGameState;
             this.lastHints = string.Empty;
             this.spokenHints.Clear();
@@ -322,6 +323,11 @@ namespace Poe2Accessibility.Services
         ///     each time it shows rather than once per area (a second "Inventario lleno" was silent, 2026-10-24).
         /// </summary>
         public Func<IntPtr, bool>? IsSkillBarText { get; set; }
+
+        /// <summary>The panel whose button legends were said (<see cref="legendsSaid"/>), each once per opening.</summary>
+        private IntPtr legendsLayer;
+
+        private readonly HashSet<string> legendsSaid = new(StringComparer.Ordinal);
 
         /// <summary>A layer over the focused panel with at most this many texts is a message, not a page.</summary>
         private const int MessageTexts = 2;
@@ -542,6 +548,13 @@ namespace Poe2Accessibility.Services
         public void OnScreenChange(ScreenChange change, ScreenSnapshot snapshot, AccessibleUiNode? focus, IntPtr focusLayer)
         {
             this.NoteTop(snapshot);
+            if (this.inGame && focusLayer == IntPtr.Zero && change.Layer.Address == this.HudLayer)
+            {
+                // Every panel closed: its title and legends are news when it opens again.
+                this.legendsLayer = IntPtr.Zero;
+                this.lastContext = string.Empty;
+            }
+
             this.log.Debug($"Screen change {change.Kind} layer 0x{change.Layer.Address.ToInt64():X} focus layer 0x{focusLayer.ToInt64():X} hint={change.Layer.IsHintBar} top=0x{snapshot.TopInteractive?.Address.ToInt64() ?? 0:X} justFocused={this.JustFocused()}");
             if (change.Layer.IsHintBar)
             {
@@ -557,6 +570,26 @@ namespace Poe2Accessibility.Services
                     // The control changed in place and offers other actions: A on a bound skill picks it up, its button
                     // reads "empty" and the bar "Place, A. Cancel, B" (skill bind screen, 2026-10-24).
                     this.Speak("actions after value change", Describe(change.Texts), false);
+                }
+                else if (this.inGame && focusLayer != IntPtr.Zero && change.Kind is ScreenChangeKind.LayerOpened or ScreenChangeKind.TextsAppeared)
+                {
+                    // What a panel's buttons do, each once per opening and after the focus: the inventory said "Equip, X"
+                    // from the item but never "Drop, Y" from this bar (user, 2026-10-24).
+                    if (focusLayer != this.legendsLayer)
+                    {
+                        this.legendsLayer = focusLayer;
+                        this.legendsSaid.Clear();
+                    }
+
+                    var fresh = change.Texts.Where(text => this.legendsSaid.Add(Describe(new[] { text }))).ToList();
+                    if (fresh.Count > 0 && this.deferredFocus != null)
+                    {
+                        this.hintAfterFocus = Announcements.Sentences(new[] { this.hintAfterFocus, Describe(fresh) });
+                    }
+                    else if (fresh.Count > 0)
+                    {
+                        this.Speak("panel actions", Describe(fresh), false);
+                    }
                 }
 
                 return;

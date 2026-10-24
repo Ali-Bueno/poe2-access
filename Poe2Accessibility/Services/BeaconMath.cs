@@ -102,9 +102,14 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     Stereo and pitch of the ping for a screen direction (x right, y down): left/right by pan, up a little
-        ///     higher and down a little lower (D2R rear pitch 0.94), since stereo alone cannot tell up from down.
+        ///     Stereo and pitch of a cue for a screen direction (x right, y down): left/right by pan, up higher and down
+        ///     lower, since stereo alone cannot tell up from down (about four semitones each way: the D2R steps, 1.12 and
+        ///     0.9, were too subtle to hear on loot, user 2026-10-24).
         /// </summary>
+        private const float UpPitch = 0.26f;
+
+        private const float DownPitch = 0.2f;
+
         public static (float Pan, float Pitch) Voice(Vector2 screenDirection)
         {
             if (screenDirection.LengthSquared() < float.Epsilon)
@@ -114,7 +119,7 @@ namespace Poe2Accessibility.Services
 
             var unit = Vector2.Normalize(screenDirection);
             var up = -unit.Y;
-            return (unit.X, up >= 0 ? 1f + (0.12f * up) : 1f + (0.1f * up));
+            return (unit.X, up >= 0 ? 1f + (UpPitch * up) : 1f + (DownPitch * up));
         }
     }
 }
