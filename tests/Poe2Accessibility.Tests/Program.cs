@@ -51,6 +51,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(OnlyHarmfulAnimationsWarn), OnlyHarmfulAnimationsWarn);
             Run(nameof(MapMarkersFindTheirCheckpoints), MapMarkersFindTheirCheckpoints);
             Run(nameof(MovedFieldsAreFoundNearestFirst), MovedFieldsAreFoundNearestFirst);
+            Run(nameof(MovedControlFieldsAreTrustedOnceTwoControlsAgree), MovedControlFieldsAreTrustedOnceTwoControlsAgree);
             Run(nameof(CheckpointsAreNamedByTheirNeighbour), CheckpointsAreNamedByTheirNeighbour);
             Run(nameof(FarBarrierStaysClosedUntilSeenNear), FarBarrierStaysClosedUntilSeenNear);
             Run(nameof(ScrolledRowsAreNotNews), ScrolledRowsAreNotNews);
@@ -693,6 +694,21 @@ namespace Poe2Accessibility.Tests
             Equal(0xA0, OffsetSearch.First(0x98, 0x100, 8, offset => offset is 0xA0 or 0x40) ?? -1, "the nearest fit wins");
             Equal(-8, OffsetSearch.First(0, 0x100, 8, shift => shift == -8, -0x100) ?? 1, "a shift may be negative");
             Equal(true, OffsetSearch.First(0x98, 0x20, 8, offset => offset == 0x200) == null, "nothing within reach: lost");
+        }
+
+        private static void MovedControlFieldsAreTrustedOnceTwoControlsAgree()
+        {
+            var log = new PluginLog(System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests"), false);
+            var controls = new ControlFields(new CompatibilityReport(log), () => 0);
+            static bool Moved(int shift) => shift == 0x10;
+            Equal(0x10, controls.Shift(ControlGroup.Slider, 1, Moved), "a moved slider is read where it fits");
+            Equal(0x10, controls.Shift(ControlGroup.Slider, 1, Moved), "the same slider again");
+            Equal(0x10, controls.Shift(ControlGroup.Slider, 2, Moved), "a second slider agrees");
+            Equal(0x10, controls.Shift(ControlGroup.Slider, 3, _ => false), "trusted once two agreed, even on an unreadable one");
+            Equal(0, controls.Current(ControlGroup.ComboBox), "another group is not moved by it");
+            var followed = new ControlFields(new CompatibilityReport(log), () => 8);
+            Equal(8, followed.Shift(ControlGroup.ComboBox, 1, shift => shift is 0 or 8), "tried first as far as the label text moved");
+            Equal(8, followed.Current(ControlGroup.Inventory), "an unjudged group follows the label text");
         }
 
         private static void MapMarkersFindTheirCheckpoints()

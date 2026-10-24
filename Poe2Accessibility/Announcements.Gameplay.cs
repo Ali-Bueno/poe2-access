@@ -327,6 +327,8 @@ namespace Poe2Accessibility
             "chat" => T("the chat", "el chat"),
             "objective box" => T("the objective box", "la caja de objetivos"),
             "skill bar" => T("the skill bar", "la barra de habilidades"),
+            "area name" => T("the area names", "los nombres de las zonas"),
+            "combo boxes" => T("the drop-down lists", "las listas desplegables"),
             _ => part,
         };
 

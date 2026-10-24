@@ -92,6 +92,7 @@ namespace Poe2Accessibility
         private UiManagerLocator? locator;
         private CompatibilityReport? compatibility;
         private LayoutProbe? layoutProbe;
+        private ControlFields? controls;
         private UiSemantics? semantics;
 
         /// <inheritdoc />
@@ -125,8 +126,11 @@ namespace Poe2Accessibility
                 var catalog = UiCatalog.Load(Path.Join(this.DllDirectory, "catalog", "ui-catalog.json"), this.log);
                 this.compatibility = new CompatibilityReport(this.log);
                 this.layoutProbe = new LayoutProbe(memory, elements, this.compatibility);
+                var probe = this.layoutProbe;
+                this.controls = new ControlFields(this.compatibility, () => probe.TextShift);
+                elements.Controls = this.controls;
                 this.locator = new UiManagerLocator(memory, elements, this.log, this.layoutProbe, new InGameFields(memory, elements, this.compatibility));
-                var inventory = new InventoryReader(memory, elements);
+                var inventory = new InventoryReader(memory, elements) { Controls = this.controls };
                 this.semantics = new UiSemantics(memory, elements, catalog, new ComboBoxReader(elements, this.log), inventory);
                 this.semantics.Trace = message => this.log.Debug(message);
                 this.semantics.Fields = this.locator.Fields;
@@ -208,7 +212,7 @@ namespace Poe2Accessibility
                 };
                 this.focus.FocusChanged += node => this.research.OnFocusChanged(this.gameState?.CurrentState ?? GameStateTypes.GameNotLoaded, node, this.focus.CurrentPanelIndex);
 
-                this.gameState = new GameStateService(this.log, memory, elements);
+                this.gameState = new GameStateService(this.log, memory, elements) { Report = this.compatibility };
                 this.gameState.StateChanged += this.OnGameStateChanged;
                 this.gameState.AreaChanged += this.OnAreaChanged;
                 this.gameState.AttachedChanged += this.OnAttachedChanged;
@@ -766,6 +770,8 @@ namespace Poe2Accessibility
                 result += $"; {this.locator.Fields.SelfTest(this.locator.InGameLayerContainer(stateObject))}";
             }
 
+            result += $"; {this.gameState.SelfTestAreaRow()}; controls: {this.controls?.SelfTest()}";
+
             this.log?.Info(result);
         }
 
@@ -784,6 +790,8 @@ namespace Poe2Accessibility
             this.compatibility?.Reset();
             this.layoutProbe?.Reset();
             this.locator?.Fields.Reset();
+            this.controls?.Reset();
+            this.gameState?.ResetLayout();
             this.locator?.Reset();
             try
             {

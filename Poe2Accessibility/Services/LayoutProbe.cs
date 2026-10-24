@@ -40,6 +40,25 @@ namespace Poe2Accessibility.Services
             "root_control", "HUD", "map_overlay", "world_overlay", "world_ui_layer_parent", "message_label", "no_controller_overlay", "death_screen",
         };
 
+        /// <summary>
+        ///     Subclass fields with nothing to check them by: they sit after the base control, so when it grows they move as
+        ///     far as the label text (the groups that can be checked are in <see cref="ControlFields"/>).
+        /// </summary>
+        private static readonly (int Measured, Action<int> Set)[] TextFollowers =
+        {
+            (GameLayout.Element.CheckBoxStateOffset, at => GameLayout.Element.CheckBoxStateOffset = at),
+            (GameLayout.Element.PanelTitleOffset, at => GameLayout.Element.PanelTitleOffset = at),
+            (GameLayout.Element.PlaceholderOffset, at => GameLayout.Element.PlaceholderOffset = at),
+            (GameLayout.TabButton.SelectedOffset, at => GameLayout.TabButton.SelectedOffset = at),
+            (GameLayout.SelectableList.SelectedIndexOffset, at => GameLayout.SelectableList.SelectedIndexOffset = at),
+            (GameLayout.ClassSelector.ClassIdOffset, at => GameLayout.ClassSelector.ClassIdOffset = at),
+            (GameLayout.ClassSelector.IndexOffset, at => GameLayout.ClassSelector.IndexOffset = at),
+            (GameLayout.SkillSlot.BindingIndexOffset, at => GameLayout.SkillSlot.BindingIndexOffset = at),
+            (GameLayout.SkillSlot.SkillDetailsOffset, at => GameLayout.SkillSlot.SkillDetailsOffset = at),
+            (GameLayout.PassiveTree.NodeRecordOffset, at => GameLayout.PassiveTree.NodeRecordOffset = at),
+            (GameLayout.PassiveTree.CanvasStateOffset, at => GameLayout.PassiveTree.CanvasStateOffset = at),
+        };
+
         private readonly HostMemoryReader reader;
         private readonly UiElementReader elements;
         private readonly CompatibilityReport report;
@@ -134,6 +153,11 @@ namespace Poe2Accessibility.Services
             GameLayout.Element.TextOffset = this.measuredText + found;
             GameLayout.Element.TextCopyOffset = this.measuredCopy + found;
             GameLayout.Element.TextColorOffset = this.measuredColor + found;
+            foreach (var (measured, set) in TextFollowers)
+            {
+                set(measured + found);
+            }
+
             this.textKnown = true;
             this.Record("element texts", this.measuredText, this.measuredText + found);
         }
@@ -199,6 +223,9 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>A new game process: everything is checked again from the measured layout.</summary>
+        /// <summary>How far the label text fields are from where they were measured (the base control's growth, most likely).</summary>
+        public int TextShift => GameLayout.Element.TextOffset - this.measuredText;
+
         public void Reset()
         {
             (this.namesKnown, this.textKnown, this.managerKnown, this.renderKnown) = (false, false, false, false);

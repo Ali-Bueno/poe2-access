@@ -48,7 +48,7 @@ namespace Poe2Accessibility
             public const int TextInputFlagBit = 0x10;
 
             /// <summary>Panel title ("Inventory", "Skills", "Passives", "Stash"…); the only strings found there in game dumps.</summary>
-            public const int PanelTitleOffset = 0x2E8;
+            public static int PanelTitleOffset { get; internal set; } = 0x2E8;
 
             /// <summary>
             ///     std::vector of 0x18-byte entries whose first qword is a tooltip root element: its parent is the owner
@@ -62,7 +62,7 @@ namespace Poe2Accessibility
             public static int ManagerOffset { get; internal set; } = 0x90;
 
             /// <summary>Text-field placeholder ("Type your character name here..."), the only label some fields have (2026-10-23).</summary>
-            public const int PlaceholderOffset = 0x798;
+            public static int PlaceholderOffset { get; internal set; } = 0x798;
 
             /// <summary>Set while a control can be used: the terms window's Continue gained it when I Agree was ticked (2026-10-23).</summary>
             public const int EnabledFlagBit = 0x0D;
@@ -75,7 +75,7 @@ namespace Poe2Accessibility
             ///     the same options-menu check box taken before and after toggling it (2026-09-15 03:53); the two
             ///     bytes after it stayed 1 (other bool properties).
             /// </summary>
-            public const int CheckBoxStateOffset = 0x60A;
+            public static int CheckBoxStateOffset { get; internal set; } = 0x60A;
         }
 
         /// <summary>
@@ -260,7 +260,7 @@ namespace Poe2Accessibility
         public static class PassiveTree
         {
             /// <summary>On a node element: its PassiveSkillGraph node record.</summary>
-            public const int NodeRecordOffset = 0x2C8;
+            public static int NodeRecordOffset { get; internal set; } = 0x2C8;
 
             /// <summary>Record +0x00: foreign key to the PassiveSkills row.</summary>
             public const int RecordSkillKeyOffset = 0x0;
@@ -268,7 +268,7 @@ namespace Poe2Accessibility
             public const string SkillTable = "Data/Balance/PassiveSkills.dat";
 
             /// <summary>Node element → group → canvas; canvas +0x3D8 = the tree state object T.</summary>
-            public const int CanvasStateOffset = 0x3D8;
+            public static int CanvasStateOffset { get; internal set; } = 0x3D8;
 
             /// <summary>T +0x160 → the graph file (name at +8); file +0x28 → the graph content C.</summary>
             public const int StateGraphFileOffset = 0x160;
@@ -321,12 +321,12 @@ namespace Poe2Accessibility
         public static class SkillSlot
         {
             /// <summary>int32 binding index: 0..11 primary set, 12..23 the same buttons in the secondary set.</summary>
-            public const int BindingIndexOffset = 0x370;
+            public static int BindingIndexOffset { get; internal set; } = 0x370;
 
             public const int ButtonsPerSet = 12;
 
             /// <summary>On the slot's icon child: the ActiveSkillDetails listed in the player's skills (Actor+0xB08).</summary>
-            public const int SkillDetailsOffset = 0x2D8;
+            public static int SkillDetailsOffset { get; internal set; } = 0x2D8;
 
             /// <summary>A dat foreign key is (row, file); the file's table name is a std::wstring at file+8.</summary>
             public const int KeyFileOffset = 0x8;
@@ -362,7 +362,7 @@ namespace Poe2Accessibility
         /// </summary>
         public static class TabButton
         {
-            public const int SelectedOffset = 0x391;
+            public static int SelectedOffset { get; internal set; } = 0x391;
 
             /// <summary>Layout id of the child holding a tab container's pages (vendor TabContainer, stash top_level_tabs).</summary>
             public const string PagesContainerName = "pages_container";
@@ -370,7 +370,7 @@ namespace Poe2Accessibility
 
         public static class SelectableList
         {
-            public const int SelectedIndexOffset = 0x388;
+            public static int SelectedIndexOffset { get; internal set; } = 0x388;
         }
 
         /// <summary>Inventory grid element (focused while the cursor is anywhere in the grid).</summary>
@@ -408,8 +408,8 @@ namespace Poe2Accessibility
         public static class ClassSelector
         {
             public const string Name = "ClassVariationSelector";
-            public const int ClassIdOffset = 0x390;
-            public const int IndexOffset = 0x394;
+            public static int ClassIdOffset { get; internal set; } = 0x390;
+            public static int IndexOffset { get; internal set; } = 0x394;
         }
 
         /// <summary>Inventory item element (grid child or slot content).</summary>

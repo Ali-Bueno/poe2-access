@@ -32,6 +32,10 @@
     <Compile Include="..\..\Poe2Accessibility\Services\DodgeThreats.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\MapPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\OffsetSearch.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ControlFields.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\CompatibilityReport.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\PluginLog.cs" />
+    <Compile Include="..\..\Poe2Accessibility\GameLayout.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\IAccessibilityOutputService.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\WallBumpDetector.cs" Link="Plugin\WallBumpDetector.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\UiSemantics.Nearest.cs" Link="Plugin\UiSemantics.Nearest.cs" />

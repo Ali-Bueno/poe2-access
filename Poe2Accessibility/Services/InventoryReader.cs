@@ -36,6 +36,11 @@ namespace Poe2Accessibility.Services
         private readonly HostMemoryReader reader;
         private readonly UiElementReader elements;
 
+        /// <summary>Where the grid and item element fields are after a game update; as measured when null.</summary>
+        public ControlFields? Controls { get; set; }
+
+        private int Shift => this.Controls?.Current(ControlGroup.Inventory) ?? 0;
+
         public InventoryReader(HostMemoryReader reader, UiElementReader elements)
         {
             this.reader = reader;
@@ -45,9 +50,16 @@ namespace Poe2Accessibility.Services
         /// <summary>The grid's cursor cell (zero-based) and the item element on it (zero on an empty cell).</summary>
         public bool TryReadGrid(IntPtr element, out int column, out int row, out IntPtr item)
         {
+            // Only a cursor on an item proves where the fields are: an empty cell reads sensibly almost anywhere.
+            var shift = this.Controls?.Shift(ControlGroup.Inventory, element, at => this.GridAt(element, at, out _, out _, out var held) && held != IntPtr.Zero) ?? 0;
+            return this.GridAt(element, shift, out column, out row, out item);
+        }
+
+        private bool GridAt(IntPtr element, int shift, out int column, out int row, out IntPtr item)
+        {
             column = row = 0;
             item = IntPtr.Zero;
-            var block = this.reader.ReadBytes(element + GameLayout.InventoryGrid.CellSizeOffset,
+            var block = this.reader.ReadBytes(element + GameLayout.InventoryGrid.CellSizeOffset + shift,
                 GameLayout.InventoryGrid.CellOffset + (2 * sizeof(int)) - GameLayout.InventoryGrid.CellSizeOffset);
             if (block.Length == 0)
             {
@@ -61,13 +73,13 @@ namespace Poe2Accessibility.Services
             row = MemoryMarshal.Read<int>(span[(GameLayout.InventoryGrid.CellOffset + sizeof(int) - GameLayout.InventoryGrid.CellSizeOffset)..]);
             return cellSize is >= MinCellSize and <= MaxCellSize &&
                 column is >= 0 and < MaxGridCells && row is >= 0 and < MaxGridCells &&
-                (item == IntPtr.Zero || this.EntityOf(item) != IntPtr.Zero);
+                (item == IntPtr.Zero || this.EntityAt(item, shift) != IntPtr.Zero);
         }
 
         /// <summary>Which player inventory a grid shows (main, flasks, helmet…); null when GameHelper does not list it.</summary>
         public InventoryName? InventoryOf(IntPtr grid)
         {
-            if (!this.reader.TryRead<IntPtr>(grid + GameLayout.InventoryGrid.ServerInventoryOffset, out var inventory) || inventory == IntPtr.Zero)
+            if (!this.reader.TryRead<IntPtr>(grid + GameLayout.InventoryGrid.ServerInventoryOffset + this.Shift, out var inventory) || inventory == IntPtr.Zero)
             {
                 return null;
             }
@@ -216,8 +228,10 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>Item entity behind an item element, zero otherwise.</summary>
-        private IntPtr EntityOf(IntPtr element) =>
-            this.reader.TryRead<IntPtr>(element + GameLayout.InventoryItem.EntityOffset, out var entity) && this.IsItemEntity(entity)
+        private IntPtr EntityOf(IntPtr element) => this.EntityAt(element, this.Shift);
+
+        private IntPtr EntityAt(IntPtr element, int shift) =>
+            this.reader.TryRead<IntPtr>(element + GameLayout.InventoryItem.EntityOffset + shift, out var entity) && this.IsItemEntity(entity)
                 ? entity
                 : IntPtr.Zero;
 

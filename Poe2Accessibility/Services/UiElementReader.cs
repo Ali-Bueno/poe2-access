@@ -17,6 +17,12 @@ namespace Poe2Accessibility.Services
         private const int MaxTextLength = 1024;
         private const int MaxParentDepth = 64;
 
+        /// <summary>
+        ///     Option sliders run 0..1000 at most (2026-10). A slider resting at its minimum proves nothing about where its
+        ///     fields are: next to it, zeros followed by a positive int read as a slider at its minimum too.
+        /// </summary>
+        private const int MaxSliderMagnitude = 1000000;
+
         /// <summary>Warning red is a strong red channel with little green and blue (the price red is E4,00,00).</summary>
         private const uint MinWarningRed = 0xC0;
         private const uint MaxWarningGreenBlue = 0x40;
@@ -48,6 +54,9 @@ namespace Poe2Accessibility.Services
         {
             this.reader = reader;
         }
+
+        /// <summary>Where slider and combo box fields are after a game update; as measured when null.</summary>
+        public ControlFields? Controls { get; set; }
 
         /// <param name="Texture">Texture resource of image elements (GameLayout.Image), read with the base block.</param>
         public readonly record struct ElementInfo(IntPtr Address, UiElementBaseOffset Raw, string Name, IntPtr Texture = default, IntPtr AltTexture = default)
@@ -262,12 +271,22 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>Numeric state of a slider (GameLayout.Slider); null when unreadable or nonsensical.</summary>
-        public (int Value, int Min, int Max)? ReadSliderState(IntPtr address)
+        public (int Value, int Min, int Max)? ReadSliderState(IntPtr address) =>
+            this.SliderAt(address, this.Controls?.Shift(ControlGroup.Slider, address, shift => this.SliderAt(address, shift) is { } state && state.Value > state.Min) ?? 0);
+
+        /// <summary>Selected and highlighted indices plus raw 16-byte entries of a combo box (GameLayout.ComboBox); null when the shape is wrong.</summary>
+        public (int SelectedIndex, int HighlightIndex, byte[][] Entries, byte[][] ParallelEntries)? ReadComboBoxState(IntPtr address) =>
+            this.ComboBoxAt(address, this.Controls?.Shift(ControlGroup.ComboBox, address, shift => this.ComboBoxFits(address, shift)) ?? 0);
+
+        /// <summary>Where a combo box keeps its open flag (GameLayout.ComboBox.OpenFlagOffset, moved with the other combo fields).</summary>
+        public int ComboBoxOpenFlagOffset => GameLayout.ComboBox.OpenFlagOffset + (this.Controls?.Current(ControlGroup.ComboBox) ?? 0);
+
+        private (int Value, int Min, int Max)? SliderAt(IntPtr address, int shift)
         {
-            if (!this.reader.TryRead<int>(address + GameLayout.Slider.ValueOffset, out var value) ||
-                !this.reader.TryRead<int>(address + GameLayout.Slider.MinOffset, out var min) ||
-                !this.reader.TryRead<int>(address + GameLayout.Slider.MaxOffset, out var max) ||
-                max <= min || value < min || value > max)
+            if (!this.reader.TryRead<int>(address + GameLayout.Slider.ValueOffset + shift, out var value) ||
+                !this.reader.TryRead<int>(address + GameLayout.Slider.MinOffset + shift, out var min) ||
+                !this.reader.TryRead<int>(address + GameLayout.Slider.MaxOffset + shift, out var max) ||
+                max <= min || value < min || value > max || Math.Abs(min) > MaxSliderMagnitude || Math.Abs(max) > MaxSliderMagnitude)
             {
                 return null;
             }
@@ -275,25 +294,50 @@ namespace Poe2Accessibility.Services
             return (value, min, max);
         }
 
-        /// <summary>Selected and highlighted indices plus raw 16-byte entries of a combo box (GameLayout.ComboBox); null when the shape is wrong.</summary>
-        public (int SelectedIndex, int HighlightIndex, byte[][] Entries, byte[][] ParallelEntries)? ReadComboBoxState(IntPtr address)
+        private (int SelectedIndex, int HighlightIndex, byte[][] Entries, byte[][] ParallelEntries)? ComboBoxAt(IntPtr address, int shift)
         {
-            if (!this.reader.TryRead<long>(address + GameLayout.ComboBox.SelectedIndexOffset, out var index) || index < 0 || index > int.MaxValue)
+            if (!this.reader.TryRead<long>(address + GameLayout.ComboBox.SelectedIndexOffset + shift, out var index) || index < 0 || index > int.MaxValue)
             {
                 return null;
             }
 
-            var entries = this.ReadEntries(address + GameLayout.ComboBox.ItemsVectorOffset);
+            var entries = this.ReadEntries(address + GameLayout.ComboBox.ItemsVectorOffset + shift);
             if (entries.Length == 0 || index >= entries.Length)
             {
                 return null;
             }
 
-            var highlight = this.reader.TryRead<long>(address + GameLayout.ComboBox.HighlightIndexOffset, out var h) && h >= 0 && h < entries.Length
+            var highlight = this.reader.TryRead<long>(address + GameLayout.ComboBox.HighlightIndexOffset + shift, out var h) && h >= 0 && h < entries.Length
                 ? (int)h
                 : (int)index;
-            var parallel = this.ReadEntries(address + GameLayout.ComboBox.ParallelVectorOffset);
+            var parallel = this.ReadEntries(address + GameLayout.ComboBox.ParallelVectorOffset + shift);
             return ((int)index, highlight, entries, parallel);
+        }
+
+        /// <summary>
+        ///     A combo box reads sensibly with its fields moved by the shift: the selected entry reads as text and, while it
+        ///     is closed, the highlight rests on it. The entries vector has a copy right after it, so the indices are what
+        ///     tell the true layout from one moved by a vector.
+        /// </summary>
+        private bool ComboBoxFits(IntPtr address, int shift) =>
+            this.ComboBoxAt(address, shift) is { } state && this.EntryReads(state.Entries[state.SelectedIndex]) &&
+            this.reader.TryRead<byte>(address + GameLayout.ComboBox.OpenFlagOffset + shift, out var open) && open <= 1 &&
+            (open == 1 || (this.reader.TryRead<long>(address + GameLayout.ComboBox.HighlightIndexOffset + shift, out var highlight) && highlight == state.SelectedIndex));
+
+        /// <summary>One of the entry's two qwords points to a text: a std::wstring or a label (the shapes ComboBoxReader decodes).</summary>
+        private bool EntryReads(byte[] entry)
+        {
+            for (var qword = 0; qword + IntPtr.Size <= entry.Length; qword += IntPtr.Size)
+            {
+                var pointer = MemoryMarshal.Read<IntPtr>(entry.AsSpan(qword));
+                if (pointer != IntPtr.Zero && (!string.IsNullOrWhiteSpace(this.ReadWStringStructAt(pointer)) ||
+                    (this.IsElement(pointer) && this.TryReadText(pointer, out var text) && text.Length > 0)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private byte[][] ReadEntries(IntPtr vectorAddress)

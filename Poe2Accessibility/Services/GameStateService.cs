@@ -1,6 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Linq;
     using GameHelper;
     using GameHelper.RemoteEnums;
 
@@ -13,10 +14,21 @@ namespace Poe2Accessibility.Services
         /// <summary>Area names are short ("The Riverbank"); a longer read is not a name.</summary>
         private const int MaxAreaNameChars = 128;
 
+        private const int MaxAreaIdChars = 64;
+        private const int AreaSearchRadius = 0x400;
+        private const int AreaSearchStep = 8;
+        private const int AreaSearchRetryMs = 5000;
+        private const int AreaMissesToReport = 3;
+        private const string AreaRowPart = "area name";
+
         private readonly PluginLog log;
         private readonly HostMemoryReader reader;
         private readonly UiElementReader elements;
         private IntPtr lastAreaRow;
+        private int areaRowOffset = GameLayout.AreaLoadingState.CurrentAreaRowOffset;
+        private bool areaRowChecked;
+        private int areaMisses;
+        private long areaSearchedAt = long.MinValue / 2;
 
         /// <summary>No loading screen or login seen yet: the host (re)started with the game already in an area.</summary>
         private bool resuming = true;
@@ -27,6 +39,9 @@ namespace Poe2Accessibility.Services
             this.elements = elements;
             this.log = log;
         }
+
+        /// <summary>Where layout outcomes go (the area row found again after a game update).</summary>
+        public CompatibilityReport? Report { get; set; }
 
         public event Action<GameStateTypes, GameStateTypes>? StateChanged;
 
@@ -56,6 +71,107 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private void TrackArea()
         {
+            var loading = LoadingStateAddress();
+            if (loading == IntPtr.Zero)
+            {
+                return;
+            }
+
+            var offset = this.AreaRowOffset(loading);
+            if (!this.reader.TryRead<IntPtr>(loading + offset, out var held) || held == this.lastAreaRow ||
+                this.AreaRowAt(loading, offset) is not var (row, name, id))
+            {
+                return;
+            }
+
+            this.lastAreaRow = row;
+            this.CurrentAreaName = name;
+            this.CurrentAreaId = id;
+            this.log.Info($"Area: {name} ({this.CurrentAreaId}){(this.resuming ? " resumed" : string.Empty)}");
+            this.AreaChanged?.Invoke(name, this.resuming);
+            this.resuming = false;
+        }
+
+        /// <summary>A new game process (perhaps a patched one): the area row is checked again.</summary>
+        public void ResetLayout()
+        {
+            (this.areaRowChecked, this.areaMisses, this.areaSearchedAt) = (false, 0, long.MinValue / 2);
+        }
+
+        /// <summary>
+        ///     Research (dev command "layout"): every other offset of the loading state within reach that also holds a world-area
+        ///     row; any of them could be taken for the area after an update moves the field.
+        /// </summary>
+        public string SelfTestAreaRow()
+        {
+            var loading = LoadingStateAddress();
+            if (loading == IntPtr.Zero || this.AreaRowAt(loading, this.areaRowOffset) is null)
+            {
+                return "area name not readable";
+            }
+
+            var others = OffsetSearch.Outward(this.areaRowOffset, AreaSearchRadius, AreaSearchStep)
+                .Where(at => at != this.areaRowOffset && this.AreaRowAt(loading, at) != null).Order().Select(at => $"+0x{at:X}").ToList();
+            return others.Count == 0 ? "area name ok" : $"area name FAIL (also fits at {string.Join(", ", others)})";
+        }
+
+        /// <summary>
+        ///     Where the loading state keeps the current area row: as measured, else (only in game, when it must hold the
+        ///     area just entered) the nearest offset that holds one.
+        /// </summary>
+        private int AreaRowOffset(IntPtr loading)
+        {
+            if (this.areaRowChecked || !IsInGame(Core.States.GameCurrentState))
+            {
+                return this.areaRowOffset;
+            }
+
+            if (this.AreaRowAt(loading, this.areaRowOffset) != null)
+            {
+                this.areaRowChecked = true;
+                this.Report?.Found(AreaRowPart);
+                return this.areaRowOffset;
+            }
+
+            var now = Environment.TickCount64;
+            if (now - this.areaSearchedAt < AreaSearchRetryMs)
+            {
+                return this.areaRowOffset;
+            }
+
+            this.areaSearchedAt = now;
+            var measured = GameLayout.AreaLoadingState.CurrentAreaRowOffset;
+            if (OffsetSearch.First(measured, AreaSearchRadius, AreaSearchStep, at => this.AreaRowAt(loading, at) != null) is { } found)
+            {
+                (this.areaRowOffset, this.areaRowChecked) = (found, true);
+                this.Report?.Moved(AreaRowPart, measured, found);
+            }
+            else if (++this.areaMisses == AreaMissesToReport)
+            {
+                this.Report?.Missing(AreaRowPart);
+            }
+
+            return this.areaRowOffset;
+        }
+
+        /// <summary>The world-area row held at the offset: a readable name and an id shaped like one ("G1_1", "Abyss_Boss1").</summary>
+        private (IntPtr Row, string Name, string Id)? AreaRowAt(IntPtr loading, int offset)
+        {
+            if (!this.reader.TryRead<IntPtr>(loading + offset, out var row) || !this.reader.IsValidAddress(row) ||
+                !this.reader.TryRead<GameOffsets.Objects.FilesStructures.WorldAreaDatOffsets>(row, out var area))
+            {
+                return null;
+            }
+
+            var id = this.elements.ReadUtf16BufferAt(area.IdPtr, MaxAreaNameChars);
+            var name = this.elements.ReadUtf16BufferAt(area.NamePtr, MaxAreaNameChars);
+            return !string.IsNullOrEmpty(name) && id is { Length: >= 2 and <= MaxAreaIdChars } && id.All(c => char.IsAsciiLetterOrDigit(c) || c == '_')
+                ? (row, name, id)
+                : null;
+        }
+
+        private static IntPtr LoadingStateAddress()
+        {
             var loading = IntPtr.Zero;
             foreach (var (address, type) in Core.States.AllStates)
             {
@@ -65,26 +181,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            if (loading == IntPtr.Zero ||
-                !this.reader.TryRead<IntPtr>(loading + GameLayout.AreaLoadingState.CurrentAreaRowOffset, out var row) ||
-                row == this.lastAreaRow || !this.reader.IsValidAddress(row) ||
-                !this.reader.TryRead<GameOffsets.Objects.FilesStructures.WorldAreaDatOffsets>(row, out var area))
-            {
-                return;
-            }
-
-            var name = this.elements.ReadUtf16BufferAt(area.NamePtr, MaxAreaNameChars);
-            if (string.IsNullOrEmpty(name))
-            {
-                return;
-            }
-
-            this.lastAreaRow = row;
-            this.CurrentAreaName = name;
-            this.CurrentAreaId = this.elements.ReadUtf16BufferAt(area.IdPtr, MaxAreaNameChars) ?? string.Empty;
-            this.log.Info($"Area: {name} ({this.CurrentAreaId}){(this.resuming ? " resumed" : string.Empty)}");
-            this.AreaChanged?.Invoke(name, this.resuming);
-            this.resuming = false;
+            return loading;
         }
 
         /// <summary>Address of the game's state object for the current state (needed to find its UI root).</summary>

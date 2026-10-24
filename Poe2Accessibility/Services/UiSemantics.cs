@@ -115,7 +115,7 @@ namespace Poe2Accessibility.Services
                 case UiRole.ComboBox:
                     value = this.ComboBoxValue(info, ownText);
                     valuePosition = this.ComboValuePosition(info, value);
-                    expanded = this.reader.TryRead<byte>(info.Address + GameLayout.ComboBox.OpenFlagOffset, out var open) && open == 1;
+                    expanded = this.reader.TryRead<byte>(info.Address + this.elements.ComboBoxOpenFlagOffset, out var open) && open == 1;
                     label = Humanise(info.Name);
                     break;
                 case UiRole.TextField:
@@ -250,7 +250,7 @@ namespace Poe2Accessibility.Services
         private string ComboBoxValue(in UiElementReader.ElementInfo info, string ownText)
         {
             var combo = this.comboBoxes.Read(info.Address);
-            var open = this.reader.TryRead<byte>(info.Address + GameLayout.ComboBox.OpenFlagOffset, out var flag) && flag == 1;
+            var open = this.reader.TryRead<byte>(info.Address + this.elements.ComboBoxOpenFlagOffset, out var flag) && flag == 1;
             if (open && combo.IsOpenOnOtherEntry && combo.Highlighted.Length > 0)
             {
                 // List open and the user is on another entry: that entry is what matters now (the gateway list keeps
@@ -293,13 +293,14 @@ namespace Poe2Accessibility.Services
         /// <summary>The game shows a value label next to some sliders; the rest only have the number in memory.</summary>
         private string SliderValue(in UiElementReader.ElementInfo info)
         {
+            // Read even when a label shows the value, so the slider fields are checked on the first slider seen.
+            var state = this.elements.ReadSliderState(info.Address);
             var shown = this.FindFollowingSiblingText(info);
             if (shown.Length > 0)
             {
                 return shown;
             }
 
-            var state = this.elements.ReadSliderState(info.Address);
             return state == null ? string.Empty : Announcements.SliderValue(state.Value.Value, state.Value.Min, state.Value.Max);
         }
 
