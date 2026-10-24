@@ -916,6 +916,7 @@ namespace Poe2Accessibility
             this.discoveries?.Reset();
             this.entities?.Forget();
             this.nearby?.Reset();
+            this.narrator?.NewArea();
             if (this.Settings.AnnounceArea)
             {
                 this.output.Say(SpeechKind.Places, Announcements.Area(areaName));

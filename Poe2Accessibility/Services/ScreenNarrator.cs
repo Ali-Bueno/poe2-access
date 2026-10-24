@@ -116,6 +116,17 @@ namespace Poe2Accessibility.Services
         private string lastValue = string.Empty;
 
         /// <summary>
+        ///     A new area (its name changed): the HUD's and the tutorial box's texts are news again. Not on every game
+        ///     state change — the game menu closing and a respawn in the same area would repeat the quest tracker,
+        ///     "Nuevo punto de control" and the last tutorial hint.
+        /// </summary>
+        public void NewArea()
+        {
+            this.hudSpoken.Clear();
+            this.tutorialSpoken.Clear();
+        }
+
+        /// <summary>
         ///     New game state: its first top layer is not a popup closing. In game only the panel holding the focus
         ///     speaks (HUD, chat and map are always shown and toggle with panels, so layer events are noise).
         /// </summary>
@@ -124,8 +135,6 @@ namespace Poe2Accessibility.Services
             this.lastTop = IntPtr.Zero;
             this.lastContext = string.Empty;
             this.lastGroup = string.Empty;
-            this.hudSpoken.Clear();
-            this.tutorialSpoken.Clear();
             this.inGame = inGameState;
             this.lastHints = string.Empty;
             this.spokenHints.Clear();
