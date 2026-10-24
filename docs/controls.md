@@ -31,13 +31,18 @@ first; both wrap and empty categories are skipped. The category is named only wh
   ground never seen begins, one entry per stretch and direction, nearest first: "Zona sin explorar, 7 pasos,
   izquierda"; ground within about 60 cells of where you walked counts as seen, and a wall with no way through
   hides what lies behind it; forgotten on leaving the area), waypoints and
-  checkpoints, characters (NPCs in play), enemies (with rarity), objects (stash, salvage bench, well), chests
+  checkpoints, characters (NPCs in play; "Renly, con misión" when the game shows its quest indicator over them,
+  with a bell among the object sounds), enemies (with rarity), objects (stash, salvage bench, well, a closed
+  barrier: "Barrera cerrada"), chests
   and shrines, items on the ground, other players. Chests and items stay listed once seen until opened or
   picked up.
 - Distance is along the walkable route, in steps of about a quarter second of walking. The direction is the
   stick direction to push now, then how many steps until the route turns and which way: walk "right 3",
   then ask again. With no turn left only the direction is given; "here" means you are on it; "no route"
-  means only the straight line is known (a closed tutorial barrier or door).
+  means only the straight line is known. "El camino se corta antes: …" leads as close as the ground goes;
+  "una barrera cerrada corta el camino: …" says a closed barrier stands between that point and the target
+  (tutorial barriers open on a tutorial step: casting the gem from the Riverbank's Large Chest, spending the
+  passive point from the Miller). When one opens near you: "Se abrió el paso, 4 pasos, izquierda".
 - The choice is kept while you walk: tap L3 to hear where it is now. After ten seconds without a question the
   next flick starts again from the nearest entry.
 
@@ -49,7 +54,9 @@ walkable route goes next (around walls, never through them), higher when the way
 when it is down, faster as the route shortens. Walk so the ping is centred. "Llegaste a …" ends it; the same
 gesture on the same target, or changing area, turns it off. With no scanner choice the gesture locks the first
 quest target. The ping is silent while a panel or dialogue is open (the lock is kept) and when no route exists
-yet (a closed tutorial barrier): "Todavía no hay ruta hacia …".
+yet: "Todavía no hay ruta hacia …". When the way stops short it says so once ("Una barrera cerrada corta el
+camino a …; te guío lo más cerca posible") and, at that point, "Estás lo más cerca posible de …; el camino sigue
+cerrado"; the ping goes on by itself once the barrier opens.
 
 ## Settings menu (gameplay)
 
