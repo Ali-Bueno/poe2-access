@@ -81,9 +81,10 @@ What a patch can still move with nothing to find it again, most player-visible f
    keys): need the community schema (poe-tool-dev/dat-schema) or known rows (a known keystone's flag set).
    `BaseComponent.NameOffset` is a std::wstring in GameHelper's in-memory row, not a dat column: check it against the
    item's tooltip title.
-3. **The launcher's own columns** (`ItemSoundExtractor`: BaseItemTypes 88/124, ItemVisualIdentity 24/919,
-   SoundEffects 8/16). Guarded by row sizes, so a change skips the step and keeps the old files. Self-identifying
-   instead: the sound columns hold strings starting `Audio/Sound Effects/`, the key columns hold valid row indices.
+3. ~~The launcher's own columns~~ (`ItemSoundExtractor`): kept while the row sizes match and each column still holds
+   what it must; else found by content: sound paths are string columns of `Audio/…` text, a key column holds null keys
+   or row indices of its target and is ranked by how many item drop samples its keys lead to (0.5.5e: the measured
+   ItemVisualIdentity 919 leads to none, the search takes 24 and 140 and writes the same catalog).
 4. **Component fields**: `BaseComponent.NameRowOffset` (a pointer to a BaseItemTypes row whose name matches the
    item's tooltip title), `NpcComponent.MarkerRowOffset` (quest marker over NPCs), `TargetableComponent` (a lost flag
    is already noticed and everything counts as in play; could search for the byte that is 1 on living monsters and 0

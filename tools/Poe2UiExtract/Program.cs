@@ -61,7 +61,7 @@ Console.WriteLine($"Opening index (read-only intent): {indexPath}");
 // Open with parsePaths:false so a handful of unparsable paths (known PoE2 quirk,
 // see LibGGPK3 issue #25) don't abort the whole run; we call ParsePaths ourselves
 // and just report the failure count.
-using var index = new Index(indexPath, parsePaths: false);
+using var index = SharedBundles.Open(indexPath);
 int failed = index.ParsePaths();
 Console.WriteLine($"ParsePaths failed count: {failed}");
 Console.WriteLine($"Total files in index: {index.Files.Count}");

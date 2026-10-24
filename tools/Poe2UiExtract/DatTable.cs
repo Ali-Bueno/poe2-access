@@ -72,6 +72,67 @@ internal sealed class DatTable
         return value is >= 0 and < int.MaxValue ? value : -1;
     }
 
+    /// <summary>
+    ///     A foreign-key column into a table of <paramref name="targetRows"/> rows: every row holds a null key or a row
+    ///     index, with some variety (a column of zeros or small counts is not a key).
+    /// </summary>
+    public bool IsKeyColumn(int offset, int targetRows)
+    {
+        if (offset < 0 || offset + 8 > this.RowSize)
+        {
+            return false;
+        }
+
+        var distinct = new HashSet<long>();
+        for (var row = 0; row < this.RowCount; row++)
+        {
+            var value = BitConverter.ToInt64(this.data, this.RowStart(row) + offset);
+            if (value == NullKey)
+            {
+                continue;
+            }
+
+            if (value < 0 || value >= targetRows)
+            {
+                return false;
+            }
+
+            distinct.Add(value);
+        }
+
+        return distinct.Count >= MinDistinctKeys;
+    }
+
+    /// <summary>
+    ///     A string column (a string in nearly every row) whose filled rows nearly all match, with enough of them filled
+    ///     (a sound column is empty where the effect has no such sound).
+    /// </summary>
+    public bool IsStringColumn(int offset, Func<string, bool> matches)
+    {
+        int strings = 0, filled = 0, hits = 0;
+        for (var row = 0; row < this.RowCount; row++)
+        {
+            if (this.StringOrNull(row, offset) is not { } text)
+            {
+                continue;
+            }
+
+            strings++;
+            filled += text.Length > 0 ? 1 : 0;
+            hits += text.Length > 0 && matches(text) ? 1 : 0;
+        }
+
+        return strings >= this.RowCount * NearlyAll && filled >= MinFilledRows && hits >= filled * NearlyAll;
+    }
+
+    private const double NearlyAll = 0.9;
+
+    private const int MinFilledRows = 50;
+
+    private const long NullKey = unchecked((long)0xFEFEFEFEFEFEFEFE);
+
+    private const int MinDistinctKeys = 10;
+
     private int RowStart(int row) => 4 + (row * this.RowSize);
 
     private string ReadString(long offset)

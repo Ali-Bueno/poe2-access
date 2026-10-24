@@ -30,36 +30,42 @@ internal static partial class ItemSoundExtractor
             return 1;
         }
 
-        using var index = new Index(Path.Combine(gameDir, "Bundles2", "_.index.bin"), parsePaths: false);
+        using var index = SharedBundles.Open(Path.Combine(gameDir, "Bundles2", "_.index.bin"));
         Console.WriteLine($"ParsePaths failed count: {index.ParsePaths()}");
         var items = DatTable.Open(index, "baseitemtypes");
         var visuals = DatTable.Open(index, "itemvisualidentity");
         var sounds = DatTable.Open(index, "soundeffects");
-        if (items == null || visuals == null || sounds == null
-            || items.RowSize != BaseRowSize || visuals.RowSize != VisualRowSize || sounds.RowSize != SoundRowSize)
+        if (items == null || visuals == null || sounds == null)
         {
-            Console.WriteLine("A dat table is missing or its row size changed (update the offsets from the dat schema).");
+            Console.WriteLine("A dat table is missing.");
             return 1;
         }
 
         var resolver = new SampleResolver(Fsb5.Names(File.ReadAllBytes(bankPath)));
+        if (!FindColumns(items, visuals, sounds, resolver, out var columns))
+        {
+            Console.WriteLine("The sound columns were not found again (update the offsets from the dat schema).");
+            return 1;
+        }
+
+        var (baseSoundEffect, baseVisual, visualInventorySound, visualDropSound, soundFile, soundFile2D) = columns;
         var map = new SortedDictionary<string, string>(StringComparer.Ordinal);
         var unresolved = new Dictionary<string, int>();
         for (var row = 0; row < items.RowCount; row++)
         {
-            var baseSound = items.Key(row, BaseSoundEffect);
-            var visual = items.Key(row, BaseVisual);
+            var baseSound = items.Key(row, baseSoundEffect);
+            var visual = items.Key(row, baseVisual);
             var candidates = new List<long> { baseSound };
             if (visual >= 0)
             {
-                candidates.Add(visuals.Key((int)visual, VisualInventorySound));
-                candidates.Add(visuals.Key((int)visual, VisualDropSound));
+                candidates.Add(visuals.Key((int)visual, visualInventorySound));
+                candidates.Add(visuals.Key((int)visual, visualDropSound));
             }
 
             // Orb drops: the row only carries the use event; the bank's matching drop sample is the cue.
-            var sample = baseSound >= 0 ? resolver.ResolveOrbDrop(sounds.String((int)baseSound, SoundFile2D)) : null;
+            var sample = baseSound >= 0 ? resolver.ResolveOrbDrop(sounds.String((int)baseSound, soundFile2D)) : null;
             var misses = new List<string>();
-            foreach (var file in candidates.Where(c => c >= 0).Select(c => sounds.String((int)c, SoundFile)))
+            foreach (var file in candidates.Where(c => c >= 0).Select(c => sounds.String((int)c, soundFile)))
             {
                 if (sample != null || file.Length == 0)
                 {
@@ -96,6 +102,78 @@ internal static partial class ItemSoundExtractor
         }
 
         return map.Count > 0 ? 0 : 1;
+    }
+
+    /// <summary>
+    ///     The six columns: as measured while the row sizes are unchanged and each still holds what it must; after a game
+    ///     update that changed a table, found again by content: the sound paths are strings under "Audio/", and a key
+    ///     column is the one whose keys lead to the most item drop samples (a random number column leads to none).
+    /// </summary>
+    private static bool FindColumns(DatTable items, DatTable visuals, DatTable sounds, SampleResolver resolver,
+        out (int BaseSound, int BaseVisual, int VisualInventory, int VisualDrop, int File, int File2D) columns)
+    {
+        static bool IsSoundPath(string text) => text.StartsWith("Audio/", StringComparison.OrdinalIgnoreCase);
+        var measured = items.RowSize == BaseRowSize && visuals.RowSize == VisualRowSize && sounds.RowSize == SoundRowSize;
+        int file, file2D;
+        if (measured && sounds.IsStringColumn(SoundFile, IsSoundPath) && sounds.IsStringColumn(SoundFile2D, IsSoundPath))
+        {
+            (file, file2D) = (SoundFile, SoundFile2D);
+        }
+        else
+        {
+            var paths = Enumerable.Range(1, Math.Max(0, sounds.RowSize - 8)).Where(offset => sounds.IsStringColumn(offset, IsSoundPath)).ToList();
+            (file, file2D) = paths.Count switch { 0 => (-1, -1), 1 => (paths[0], paths[0]), _ => (paths[0], paths[1]) };
+        }
+
+        columns = (-1, -1, -1, -1, file, file2D);
+        if (file < 0)
+        {
+            return false;
+        }
+
+        bool Drops(long sound) => resolver.Resolve(sounds.String((int)sound, file)) != null;
+        bool BaseDrops(long sound) => Drops(sound) || resolver.ResolveOrbDrop(sounds.String((int)sound, file2D)) != null;
+        var visualKeys = KeyColumns(visuals, sounds.RowCount, Drops, measured ? new[] { VisualInventorySound, VisualDropSound } : null, 2);
+        bool VisualDrops(long visual) => visualKeys.Any(column => visuals.Key((int)visual, column) is >= 0 and var sound && Drops(sound));
+        var baseSound = KeyColumns(items, sounds.RowCount, BaseDrops, measured ? new[] { BaseSoundEffect } : null, 1);
+        var baseVisual = visualKeys.Count == 0 ? new List<int>() : KeyColumns(items, visuals.RowCount, VisualDrops, measured ? new[] { BaseVisual } : null, 1);
+        columns = (baseSound.FirstOrDefault(-1), baseVisual.FirstOrDefault(-1), visualKeys.FirstOrDefault(-1), visualKeys.LastOrDefault(-1), file, file2D);
+        Console.WriteLine($"Sound columns: BaseItemTypes {columns.BaseSound}/{columns.BaseVisual}, ItemVisualIdentity {columns.VisualInventory}/{columns.VisualDrop}, "
+            + $"SoundEffects {file}/{file2D} ({(measured ? "row sizes as measured" : "a table changed: found by content")})");
+        return baseSound.Count == 1 && baseVisual.Count == 1 && visualKeys.Count > 0;
+    }
+
+    /// <summary>
+    ///     The <paramref name="measured"/> columns while they still are keys that lead somewhere; otherwise the best
+    ///     scoring key columns into a table of <paramref name="targetRows"/> rows, at most <paramref name="count"/>, in row order.
+    /// </summary>
+    private static List<int> KeyColumns(DatTable table, int targetRows, Func<long, bool> good, int[]? measured, int count)
+    {
+        int Score(int offset)
+        {
+            var score = 0;
+            for (var row = 0; row < table.RowCount; row++)
+            {
+                score += table.Key(row, offset) is >= 0 and var key && good(key) ? 1 : 0;
+            }
+
+            return score;
+        }
+
+        if (measured != null && measured.All(offset => table.IsKeyColumn(offset, targetRows) && Score(offset) > 0))
+        {
+            return measured.ToList();
+        }
+
+        return Enumerable.Range(0, Math.Max(0, table.RowSize - 7))
+            .Where(offset => table.IsKeyColumn(offset, targetRows))
+            .Select(offset => (Offset: offset, Score: Score(offset)))
+            .Where(column => column.Score > 0)
+            .OrderByDescending(column => column.Score)
+            .Take(count)
+            .Select(column => column.Offset)
+            .Order()
+            .ToList();
     }
 
     /// <summary>The distinct sample names of a written item-sounds.json; empty when the file does not exist.</summary>

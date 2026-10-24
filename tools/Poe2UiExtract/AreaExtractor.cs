@@ -21,7 +21,7 @@ internal static class AreaExtractor
     public static int Run(string gameDir, string outFile)
     {
         var indexPath = Path.Combine(gameDir, "Bundles2", "_.index.bin");
-        using var index = new Index(indexPath, parsePaths: false);
+        using var index = SharedBundles.Open(indexPath);
         Console.WriteLine($"ParsePaths failed count: {index.ParsePaths()}");
 
         var files = index.Files.Values

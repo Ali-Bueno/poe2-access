@@ -29,7 +29,7 @@ internal static class DatColumnExtractor
 
     public static int Run(string gameDir, string outFile)
     {
-        using var index = new Index(Path.Combine(gameDir, "Bundles2", "_.index.bin"), parsePaths: false);
+        using var index = SharedBundles.Open(Path.Combine(gameDir, "Bundles2", "_.index.bin"));
         index.ParsePaths();
         var found = new SortedDictionary<string, int>(StringComparer.Ordinal);
         foreach (var (table, column, measured) in Columns)
