@@ -83,7 +83,7 @@
 | Skills panel rows, empty slots, skill bind bar (button + bound skill) | done (live) | "empty, 2 of 10", "B, Dodge Roll/Sprint"; unhovered skills fall back to the icon name |
 | Skill bind screen (X on a gem) and skill picker (a slot's grid of skills/actions) | done (live) | "Selecciona el botón al que asignar Descarga de caos. Set de habilidades principal. LB, vacío"; entering the other row names it; picker cells (A on an empty button, X on a bound one) "vaciar el botón, columna 1, fila 1", "Usar frasco de vida, columna 2, fila 2…"; picking a skill up reads "vacío. Colocar, A. Cancelar, B" |
 | Cosmetics | done (live) | ordinary buttons once the d-pad moves the focus |
-| Quest list | todo | empty at the start of Act 1 |
+| Quest list | done (live) | world map X: "Llegar a Sierraclara, botón, <description>", then "Más información, A. Cerrar, B…"; the map's own legends after its place (2026-10-24) |
 | Objective / tutorial box (G+0xDD8): new texts read, queued | done (live) | "Equip Item. Press View to Open your Inventory", "Press X to equip weapon." |
 | HUD (G+0x558): new texts once per area, never the whole HUD | done (code) | quest tracker, shrines; a ground item's tooltip says only name, rarity and quality (`EntityCatalog.ItemOfTooltip`), gold nothing (user 2026-10-24) |
 | NPC dialogue: speaker + line, every advanced line, Continue, quest accept | done (live) | Renly, Una (Clearfell, 2026-10-23); a line changing in place is spoken (the screen filter drops texts the focus holds); choices not seen yet |

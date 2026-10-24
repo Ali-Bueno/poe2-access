@@ -337,6 +337,9 @@ namespace Poe2Accessibility.Services
 
         private readonly HashSet<string> legendsSaid = new(StringComparer.Ordinal);
 
+        /// <summary>Legends of a panel without focus, said once its title and content have been.</summary>
+        private (string Text, DateTime At) panelLegends = (string.Empty, DateTime.MinValue);
+
         /// <summary>A layer over the focused panel with at most this many texts is a message, not a page.</summary>
         private const int MessageTexts = 2;
 
@@ -498,6 +501,12 @@ namespace Poe2Accessibility.Services
                 this.Speak("focus by control id", this.lastFocusSpeech, true);
                 this.pendingFocus = null;
             }
+
+            if (this.panelLegends.Text.Length > 0 && (DateTime.UtcNow - this.panelLegends.At).TotalMilliseconds >= FocusTextMergeMs)
+            {
+                this.Speak("panel actions", this.panelLegends.Text, false);
+                this.panelLegends = (string.Empty, DateTime.MinValue);
+            }
         }
 
         /// <summary>Only the new value; a text field echoes just the typed or deleted characters.</summary>
@@ -560,6 +569,7 @@ namespace Poe2Accessibility.Services
             {
                 // Every panel closed: its title and legends are news when it opens again.
                 this.legendsLayer = IntPtr.Zero;
+                this.panelLegends = (string.Empty, DateTime.MinValue);
                 this.lastContext = string.Empty;
             }
 
@@ -597,6 +607,23 @@ namespace Poe2Accessibility.Services
                     else if (fresh.Count > 0)
                     {
                         this.Speak("panel actions", Describe(fresh), false);
+                    }
+                }
+                else if (this.inGame && focusLayer == IntPtr.Zero && snapshot.TopInteractive is { } panel && panel.Address != this.HudLayer &&
+                         change.Kind is ScreenChangeKind.LayerOpened or ScreenChangeKind.TextsAppeared)
+                {
+                    // A panel nothing focuses (the world map: "Show quests, X"): its legends once per opening, after the
+                    // title and the place it shows, which come a moment later (Tick).
+                    if (panel.Address != this.legendsLayer)
+                    {
+                        this.legendsLayer = panel.Address;
+                        this.legendsSaid.Clear();
+                    }
+
+                    var fresh = change.Texts.Where(text => this.legendsSaid.Add(Describe(new[] { text }))).ToList();
+                    if (fresh.Count > 0)
+                    {
+                        this.panelLegends = (Announcements.Sentences(new[] { this.panelLegends.Text, Describe(fresh) }), DateTime.UtcNow);
                     }
                 }
 
