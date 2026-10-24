@@ -333,6 +333,7 @@ namespace Poe2Accessibility
             this.screen.SetIgnoredElement(chatLayer);
             this.chat?.Tick(chatLayer);
             this.narrator.TutorialLayer = inGame ? this.locator.InGameTutorialLayer(stateObject) : IntPtr.Zero;
+            this.screen.SetArrivalLayer(this.narrator.TutorialLayer);
             this.narrator.HudLayer = inGame ? this.locator.InGameHudLayer(stateObject) : IntPtr.Zero;
             this.narrator.ReadTooltips = this.Settings.ReadTooltipsOnFocus;
             this.narrator.Tick();

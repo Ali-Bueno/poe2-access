@@ -118,6 +118,14 @@ namespace Poe2Accessibility.Tests
             var changes = differ.Apply(inventory);
             Equal(true, changes.Any(change => change.Kind == ScreenChangeKind.TopLayerChanged && change.Layer.Address == (IntPtr)3),
                 "a panel opened later owns input even below a base layer");
+
+            // The tutorial box already showing on arrival ("L to move, R to aim") is read; the rest stays silent.
+            var tutorial = new ScreenDiffer { FreezeBaseLayers = true, ArrivalLayer = (IntPtr)4 };
+            var start = Snapshot(Layer(1, 0, true, Text(10, "HUD")), Layer(4, 13, false, Text(40, "L to move")));
+            tutorial.Apply(start);
+            var read = tutorial.Apply(start);
+            Equal("TextsAppeared 4 L to move", string.Join("|", read.Select(change => $"{change.Kind} {change.Layer.Address} {change.Texts[0].Text}")),
+                "the arrival layer's texts are news in the baseline");
         }
 
         private static void TypingIsReportedAsTheEdit()

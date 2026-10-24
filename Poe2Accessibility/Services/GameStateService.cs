@@ -125,6 +125,11 @@ namespace Poe2Accessibility.Services
             {
                 this.TrackArea();
             }
+            else if (state is GameStateTypes.SelectCharacterState or GameStateTypes.CreateCharacterState or GameStateTypes.LoginState)
+            {
+                // Entering the game again (maybe with another character in the same area) names the area again.
+                this.lastAreaRow = IntPtr.Zero;
+            }
         }
     }
 }

@@ -28,6 +28,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public bool FreezeBaseLayers { get; set; }
 
+        /// <summary>
+        ///     A layer whose texts are news even in the silent baseline (the tutorial box: a new character arrives with
+        ///     "L to move, R to aim" already on screen). Zero for none.
+        /// </summary>
+        public IntPtr ArrivalLayer { get; set; }
+
         /// <summary>The last snapshot passed to Apply, with base layers marked.</summary>
         public ScreenSnapshot Last { get; private set; } = ScreenSnapshot.Empty;
 
@@ -90,6 +96,10 @@ namespace Poe2Accessibility.Services
             }
 
             var baselineNow = !this.hasBaseline && current.Layers.Count > 0 && current.Layers.All(layer => this.stableLayers.Contains(layer.Address));
+            if (baselineNow && this.ArrivalLayer != IntPtr.Zero && current.Layers.FirstOrDefault(layer => layer.Address == this.ArrivalLayer) is { Texts.Count: > 0 } arrival)
+            {
+                changes.Add(new ScreenChange(ScreenChangeKind.TextsAppeared, arrival, arrival.Texts));
+            }
             if (baselineNow && this.FreezeBaseLayers)
             {
                 this.baseLayers.UnionWith(current.Layers.Select(layer => layer.Address));

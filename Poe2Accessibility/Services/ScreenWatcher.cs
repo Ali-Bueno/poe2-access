@@ -80,6 +80,9 @@ namespace Poe2Accessibility.Services
             this.resetRequested = true;
         }
 
+        /// <summary>The layer read even when it is already on screen as a state begins (the in-game tutorial box).</summary>
+        public void SetArrivalLayer(IntPtr layer) => this.differ.ArrivalLayer = layer;
+
         /// <summary>The layer holding this element is never read (the chat panel: its own feature, never automatic).</summary>
         public void SetIgnoredElement(IntPtr element) => this.ignoredElement = element;
 
@@ -219,7 +222,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 if (hasText && markupButton.Length > 0 && tagged.TrimStart().StartsWith("<<", StringComparison.Ordinal) &&
-                    text.Trim().TrimStart('+').Trim() is { Length: > 0 } legendLabel)
+                    ControllerGlyphs.OnlyLeadingButtons(tagged) && text.Trim().TrimStart('+').Trim() is { Length: > 0 } legendLabel)
                 {
                     // A text that starts with its buttons is a legend ("<<rt>> + <<lstick>> Move" beside the character
                     // preview): label and buttons, read with the hints, not as content of the panel.

@@ -72,6 +72,19 @@ namespace Poe2Accessibility.Services
         private static readonly Regex Tag = new(@"<[^<>]*>", RegexOptions.Compiled);
         private static readonly Regex Spaces = new(@"\s+", RegexOptions.Compiled);
 
+        /// <summary>The run of buttons a legend starts with ("&lt;&lt;rt&gt;&gt; + &lt;&lt;lstick&gt;&gt; "), joined by "+" or spaces.</summary>
+        private static readonly Regex LeadingTokens = new(@"^\s*(?:<<\w+(?:;[^>]*)?>>\s*\+?\s*)+", RegexOptions.Compiled);
+
+        /// <summary>A wide gap in one text separates two prompts ("&lt;&lt;lstick&gt;&gt; to move     &lt;&lt;rstick&gt;&gt; to aim").</summary>
+        private static readonly Regex WideGap = new(@"[ \t]{3,}", RegexOptions.Compiled);
+
+        /// <summary>
+        ///     True when every button of a tagged text comes first (a legend: "&lt;&lt;rt&gt;&gt; + &lt;&lt;lstick&gt;&gt; Move"); false when
+        ///     a button also sits later in the text, which is then a sentence read in place ("stick izquierdo para
+        ///     moverte, stick derecho para apuntar").
+        /// </summary>
+        public static bool OnlyLeadingButtons(string tagged) => !MarkupToken.IsMatch(LeadingTokens.Replace(tagged, string.Empty, 1));
+
         public static bool HasGlyphs(string tagged) => MarkupToken.IsMatch(tagged);
 
         /// <summary>
@@ -86,7 +99,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static string Render(string tagged)
         {
-            var spoken = MarkupToken.Replace(tagged, match =>
+            var spoken = MarkupToken.Replace(WideGap.Replace(tagged, ", "), match =>
                 MarkupFiles.TryGetValue(match.Groups[1].Value, out var file) ? $" {Announcements.ButtonName(file, PlayStationSeen)} " : " ");
             spoken = Tag.Replace(spoken, string.Empty).Replace("{", string.Empty).Replace("}", string.Empty);
             return Spaces.Replace(spoken, " ").Trim();
