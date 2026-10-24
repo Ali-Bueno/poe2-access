@@ -101,7 +101,8 @@ What a patch can still move with nothing to find it again, most player-visible f
    `AllocatedOffset`): allocated entries must be node ids of the graph, edges must join known nodes.
 9. **Pad buttons** (`GameLayout.PadButtons`): only the axes are checked (`GamepadReader.Plausible`); a press seen by
    the game's focus moving could confirm the A bit.
-10. **GameHelper2 upstream**: still pull and rebuild by hand; when its state patterns stop matching, the plugin could
-    say so instead of staying silent.
+10. **GameHelper2 upstream**: still pull and rebuild by hand. When its state patterns or offsets stop fitting, the
+    plugin says so: attached two minutes without ever reading a game state (`GameStateService`, part "game states":
+    "no encuentro el estado del juego (GameHelper necesita una actualización)").
 
 Unused, can go: `InGameUi.NpcDialogueLayerOffset`, `AreaTransitionComponent.DestinationRowOffset`.

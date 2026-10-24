@@ -21,6 +21,14 @@ namespace Poe2Accessibility.Services
         private const int AreaMissesToReport = 3;
         private const string AreaRowPart = "area name";
 
+        /// <summary>
+        ///     Attached this long without ever reading a game state: GameHelper's byte patterns or state offsets no longer
+        ///     fit the game (a patch); the game reaches its login screen well within it, even compiling shaders.
+        /// </summary>
+        private const int StatesUnreadMs = 120_000;
+
+        private const string StatesPart = "game states";
+
         private readonly PluginLog log;
         private readonly HostMemoryReader reader;
         private readonly UiElementReader elements;
@@ -32,6 +40,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>No loading screen or login seen yet: the host (re)started with the game already in an area.</summary>
         private bool resuming = true;
+
+        private long attachedAt;
+        private bool stateRead;
 
         public GameStateService(PluginLog log, HostMemoryReader reader, UiElementReader elements)
         {
@@ -205,6 +216,8 @@ namespace Poe2Accessibility.Services
             if (pid != this.AttachedPid)
             {
                 this.AttachedPid = pid;
+                this.attachedAt = Environment.TickCount64;
+                this.stateRead = false;
                 this.log.Info(pid == 0 ? "Game process lost" : $"Attached to game process {pid}");
                 foreach (var (address, type) in Core.States.AllStates)
                 {
@@ -215,6 +228,16 @@ namespace Poe2Accessibility.Services
             }
 
             var state = Core.States.GameCurrentState;
+            if (state != GameStateTypes.GameNotLoaded)
+            {
+                this.stateRead = true;
+            }
+            else if (this.IsAttached && !this.stateRead && Environment.TickCount64 - this.attachedAt > StatesUnreadMs)
+            {
+                this.stateRead = true; // said once per game process
+                this.Report?.Missing(StatesPart);
+            }
+
             if (state != this.CurrentState)
             {
                 var previous = this.CurrentState;
