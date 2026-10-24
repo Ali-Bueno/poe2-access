@@ -23,6 +23,33 @@ if (args.Length > 0 && string.Equals(args[0], "sounds", StringComparison.Ordinal
         args.Length > 3 ? args[3] : @"Poe2Accessibility\catalog\item-sounds.json");
 }
 
+// Args: dat-strings <gameDir> <table> [language] [rows]  -- research aid: every string column of a table's first rows.
+if (args.Length > 2 && string.Equals(args[0], "dat-strings", StringComparison.OrdinalIgnoreCase))
+{
+    using var bundles = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+    bundles.ParsePaths();
+    var language = args.Length > 3 && args[3] != "english" ? args[3] : null;
+    var table = language == null ? DatTable.Open(bundles, args[2]) : DatTable.OpenTranslated(bundles, args[2], language);
+    if (table == null)
+    {
+        Console.WriteLine($"No table {args[2]}");
+        return 1;
+    }
+
+    var rows = Math.Min(table.RowCount, args.Length > 4 ? int.Parse(args[4]) : 20);
+    Console.WriteLine($"{args[2]}: {table.RowCount} rows of 0x{table.RowSize:X} bytes");
+    for (var offset = 0; offset + 8 <= table.RowSize; offset++)
+    {
+        var texts = Enumerable.Range(0, rows).Select(row => table.StringOrNull(row, offset)).ToList();
+        if (texts.Count(text => text != null) >= rows * 0.8 && texts.Any(text => !string.IsNullOrEmpty(text)))
+        {
+            Console.WriteLine($"+0x{offset:X}: {string.Join(" | ", texts.Select(text => text ?? "?"))}");
+        }
+    }
+
+    return 0;
+}
+
 // Args: item-sounds <gameDir> [outFile]  -- base item id -> drop sample (ItemDrops.bank) from the dat tables as JSON.
 if (args.Length > 0 && string.Equals(args[0], "item-sounds", StringComparison.OrdinalIgnoreCase))
 {

@@ -29,7 +29,12 @@ namespace Poe2Accessibility
         public static string PassiveLink(string name, string state) => $"{name}, {state}";
 
         /// <summary>A link to the class's start (the portrait at the tree's centre).</summary>
-        public static string PassiveStartLink(string name) => T($"start, {name}", $"inicio, {name}");
+        /// <summary>A link to a class start: the player's own ("start of your class, Monk") or another class's.</summary>
+        public static string PassiveStartLink(string name, bool own) =>
+            own ? T($"start of your class, {name}", $"inicio de tu clase, {name}") : T($"start, {name}", $"inicio, {name}");
+
+        /// <summary>"Shadow or Monk".</summary>
+        public static string Either(IEnumerable<string> names) => string.Join(ButtonSeparator, names);
 
         /// <summary>"Links: up, Armour and Evasion, allocated; down left, Attribute, can be allocated".</summary>
         public static string PassiveLinks(IEnumerable<string> links) => T("Links: ", "Conexiones: ") + string.Join("; ", links);

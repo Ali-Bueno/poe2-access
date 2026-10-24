@@ -322,6 +322,9 @@ namespace Poe2Accessibility
             /// <summary>Characters row +0x00: its Id, the player's metadata path ("Metadata/Characters/StrDex/StrDexFourb").</summary>
             public const int CharacterIdOffset = 0x0;
 
+            /// <summary>Characters row +0x08: the class's localized name ("Monje"; dat-strings characters, 2026-10-24).</summary>
+            public const int CharacterNameOffset = 0x8;
+
             public const int KeySize = 0x10;
         }
 

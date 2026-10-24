@@ -107,11 +107,18 @@ namespace Poe2Accessibility.Services
                     continue; // links through a mastery icon are not drawn
                 }
 
+                if (node.IsStart)
+                {
+                    // The class portrait at the centre; the node's own name is a PoE 1 class in capitals ("SIX").
+                    parts.Add((double.MaxValue, Announcements.PassiveStartLink(this.StartClasses(row) ?? node.Name, other == graph.OwnStart)));
+                    continue;
+                }
+
                 var words = Announcements.PassiveLink(node.Name, StateWord(this.StateOf(graph, node, allocated)));
-                if (node.IsStart || !graph.Elements.TryGetValue(other, out var otherElement) ||
+                if (!graph.Elements.TryGetValue(other, out var otherElement) ||
                     !PluginUiElementReflection.TryGetAbsoluteRect(otherElement, out var otherPosition, out var otherSize))
                 {
-                    parts.Add((double.MaxValue, Announcements.PassiveStartLink(node.Name))); // the class portrait at the centre
+                    parts.Add((double.MaxValue - 1, words)); // not drawn: no side to give
                     continue;
                 }
 
@@ -295,6 +302,44 @@ namespace Poe2Accessibility.Services
             }
 
             return IntPtr.Zero;
+        }
+
+        /// <summary>
+        ///     The localized classes of a start node's row ("Sombra o Monje"), only the player's when it is among them;
+        ///     null when the list is unreadable.
+        /// </summary>
+        private string? StartClasses(IntPtr row)
+        {
+            if (!this.reader.TryRead<long>(row + GameLayout.PassiveTree.RowCharactersOffset, out var count) || count is <= 0 or > 16 ||
+                !this.reader.TryRead<IntPtr>(row + GameLayout.PassiveTree.RowCharactersOffset + sizeof(long), out var keys))
+            {
+                return null;
+            }
+
+            var path = this.PlayerPath?.Invoke() ?? string.Empty;
+            var names = new List<string>();
+            for (var i = 0; i < count; i++)
+            {
+                if (!this.reader.TryRead<IntPtr>(keys + (i * GameLayout.PassiveTree.KeySize), out var character) ||
+                    !this.reader.TryRead<IntPtr>(character + GameLayout.PassiveTree.CharacterNameOffset, out var namePointer) ||
+                    this.elements.ReadUtf16BufferAt(namePointer, MaxPassiveNameChars) is not { Length: > 0 } name)
+                {
+                    continue;
+                }
+
+                if (this.reader.TryRead<IntPtr>(character + GameLayout.PassiveTree.CharacterIdOffset, out var id) &&
+                    string.Equals(this.elements.ReadUtf16BufferAt(id, MaxPassiveNameChars), path, StringComparison.OrdinalIgnoreCase))
+                {
+                    return name;
+                }
+
+                if (!names.Contains(name))
+                {
+                    names.Add(name);
+                }
+            }
+
+            return names.Count == 0 ? null : Announcements.Either(names);
         }
 
         private sealed record PassiveGraph(IntPtr Canvas, IntPtr State, Dictionary<IntPtr, List<IntPtr>> Links, Dictionary<IntPtr, IntPtr> Elements, IntPtr OwnStart);
