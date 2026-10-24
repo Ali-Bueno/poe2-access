@@ -30,12 +30,19 @@ namespace Poe2Accessibility.Services
         private List<string> lines = new();
         private IntPtr layer;
         private IntPtr list;
+        private bool? panelShown;
 
         public ChatWatcher(UiElementReader elements, Action<string> speak)
         {
             this.elements = elements;
             this.speak = speak;
         }
+
+        /// <summary>
+        ///     The chat panel shown or hidden (LT in a panel): said with its hint, which names the button that types
+        ///     ("Chat. Mantén presionado LT para chatear", 2026-10-24); null keeps it silent.
+        /// </summary>
+        public Action<string>? PanelChanged { get; set; }
 
         /// <summary>Per frame with the current chat layer (zero outside the game).</summary>
         public void Tick(IntPtr chatLayer)
@@ -45,6 +52,7 @@ namespace Poe2Accessibility.Services
                 this.layer = chatLayer;
                 this.list = IntPtr.Zero;
                 this.lines.Clear();
+                this.panelShown = null;
             }
 
             if (this.layer == IntPtr.Zero || this.sincePoll.ElapsedMilliseconds < PollMs)
@@ -53,6 +61,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.sincePoll.Restart();
+            this.TrackPanel();
             var baseline = this.list == IntPtr.Zero;
             if (baseline && !this.TryFindList())
             {
@@ -86,6 +95,40 @@ namespace Poe2Accessibility.Services
                     this.speak(text);
                 }
             }
+        }
+
+        private void TrackPanel()
+        {
+            var hint = this.PanelHint();
+            if (this.panelShown is { } was && was != (hint != null))
+            {
+                this.PanelChanged?.Invoke(hint != null ? Announcements.ChatShown(hint) : Announcements.ChatHidden);
+            }
+
+            this.panelShown = hint != null;
+        }
+
+        /// <summary>
+        ///     The shown panel's hint: a visible direct child of the visible layer with a button glyph. Lines that flash
+        ///     up in play show the layer without it.
+        /// </summary>
+        private string? PanelHint()
+        {
+            if (!this.elements.TryReadElement(this.layer, out var root) || !root.IsVisibleFlag)
+            {
+                return null;
+            }
+
+            foreach (var child in this.elements.ReadChildren(root))
+            {
+                if (this.elements.TryReadElement(child, out var info) && info.IsVisibleFlag &&
+                    this.elements.TryReadText(child, out var text, out var tagged) && text.Length > 0 && ControllerGlyphs.HasGlyphs(tagged))
+                {
+                    return ControllerGlyphs.Render(tagged);
+                }
+            }
+
+            return null;
         }
 
         private bool TryFindList()

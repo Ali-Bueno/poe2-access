@@ -245,7 +245,10 @@ namespace Poe2Accessibility
                     {
                         this.output.Speak(line, false);
                     }
-                });
+                })
+                {
+                    PanelChanged = text => this.output.Speak(text, true),
+                };
                 this.research = new ResearchSession(this.dumper, new FocusResearchLog(elements, debugDirectory, this.log), this.log)
                 {
                     Enabled = this.Settings.ResearchMode,

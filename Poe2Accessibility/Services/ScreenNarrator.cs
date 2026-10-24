@@ -245,7 +245,14 @@ namespace Poe2Accessibility.Services
             this.hudSpoken.Clear();
             this.tutorialSpoken.Clear();
             this.hudQuietUntil = resumed ? DateTime.UtcNow.AddMilliseconds(ResumedHudMs) : DateTime.MinValue;
+            this.hudBaseline = resumed;
         }
+
+        /// <summary>
+        ///     A host restart: the HUD's first texts were already said, even when a panel hid it past the quiet time
+        ///     (the whole quest tracker was read on closing the inventory, 2026-10-24).
+        /// </summary>
+        private bool hudBaseline;
 
         /// <summary>
         ///     New game state: its first top layer is not a popup closing. In game only the panel holding the focus
@@ -710,6 +717,13 @@ namespace Poe2Accessibility.Services
 
             if (this.inGame && change.Layer.Address == this.HudLayer)
             {
+                if (this.hudBaseline)
+                {
+                    this.hudBaseline = false;
+                    this.hudSpoken.UnionWith(change.Texts.Select(text => text.Text));
+                    return;
+                }
+
                 // Closing every panel makes the HUD the top layer: that is not news. What appears on it is, once per
                 // area — the quest tracker reappears whenever a panel closes; bare numbers are flask charges and timers.
                 if (change.Kind != ScreenChangeKind.TopLayerChanged)

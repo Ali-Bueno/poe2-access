@@ -49,6 +49,12 @@ namespace Poe2Accessibility.Services
         private readonly List<ScanEntry> waiting = new();
         private long areaStartedAt = Environment.TickCount64;
         private bool resumed;
+
+        /// <summary>
+        ///     A host restart: the first pass in play is what the player already knew, however long a panel kept it
+        ///     from running (started with the inventory open, closing it said "New waypoint", 2026-10-24).
+        /// </summary>
+        private bool resumedBaseline;
         private long lastPoll;
 
         public DiscoveryNarrator(EntityCatalog catalog, IAccessibilityOutputService output, AudioCueService audio, GameSounds sounds)
@@ -70,6 +76,7 @@ namespace Poe2Accessibility.Services
             this.waiting.Clear();
             this.areaStartedAt = Environment.TickCount64;
             this.resumed = resumed;
+            this.resumedBaseline = resumed;
         }
 
         /// <summary>Per frame while playing.</summary>
@@ -84,7 +91,8 @@ namespace Poe2Accessibility.Services
 
             this.lastPoll = now;
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
-            var arriving = now - this.areaStartedAt < ArrivalMs;
+            var arriving = now - this.areaStartedAt < ArrivalMs || this.resumedBaseline;
+            this.resumedBaseline = false;
             var entries = this.catalog.Entries();
             foreach (var entry in entries)
             {

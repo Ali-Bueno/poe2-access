@@ -216,6 +216,11 @@ namespace Poe2Accessibility
 
         public static string Unequipped(string name) => T($"Unequipped: {name}", $"Desequipado: {name}");
 
+        /// <summary>The chat panel shown, with its hint ("Hold LT to chat").</summary>
+        public static string ChatShown(string hint) => T($"Chat. {hint}", $"Chat. {hint}");
+
+        public static string ChatHidden => T("Chat hidden", "Chat oculto");
+
         /// <summary>The weapon set swapped to and what it holds (D2R "Armas 2: Arco largo, Carcaj").</summary>
         public static string WeaponSet(int number, System.Collections.Generic.IReadOnlyList<string> held) =>
             held.Count == 0
