@@ -1,6 +1,8 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>Harmful states the player can be in (see <see cref="StatusWatch"/>).</summary>
     public enum StatusAilment
@@ -20,42 +22,53 @@ namespace Poe2Accessibility.Services
         Cursed,
     }
 
-    /// <summary>Buff definition id → ailment, by stem (pure).</summary>
+    /// <summary>Buff definition id → ailment, by its words (pure).</summary>
     public static class StatusAilments
     {
-        private static readonly (string Stem, StatusAilment Ailment)[] Stems =
+        /// <summary>
+        ///     Words naming the state itself, as the game's BuffDefinitions ids spell them ("chilled", "ignited",
+        ///     "stun_display_buff", "mud_slow", "curse_enfeeble"), matched as whole words of the id.
+        /// </summary>
+        private static readonly (string[] Words, StatusAilment Ailment)[] Names =
         {
-            ("frozen", StatusAilment.Frozen), ("freeze", StatusAilment.Frozen),
-            ("chill", StatusAilment.Chilled),
-            ("electrocut", StatusAilment.Electrocuted),
-            ("shock", StatusAilment.Shocked),
-            ("ignite", StatusAilment.Ignited), ("burning", StatusAilment.Ignited),
-            ("poison", StatusAilment.Poisoned),
-            ("bleed", StatusAilment.Bleeding),
-            ("stun", StatusAilment.Stunned),
-            ("pinned", StatusAilment.Pinned),
-            ("hinder", StatusAilment.Slowed), ("slow", StatusAilment.Slowed),
-            ("maim", StatusAilment.Maimed),
-            ("blind", StatusAilment.Blinded),
-            ("curse", StatusAilment.Cursed),
+            (new[] { "frozen" }, StatusAilment.Frozen),
+            (new[] { "chill", "chilled" }, StatusAilment.Chilled),
+            (new[] { "electrocute", "electrocuted" }, StatusAilment.Electrocuted),
+            (new[] { "shock", "shocked" }, StatusAilment.Shocked),
+            (new[] { "ignite", "ignited", "burning" }, StatusAilment.Ignited),
+            (new[] { "poison", "poisoned" }, StatusAilment.Poisoned),
+            (new[] { "bleed", "bleeding" }, StatusAilment.Bleeding),
+            (new[] { "stun", "stunned" }, StatusAilment.Stunned),
+            (new[] { "pinned" }, StatusAilment.Pinned),
+            (new[] { "hinder", "hindered", "slow", "slowed" }, StatusAilment.Slowed),
+            (new[] { "maim", "maimed" }, StatusAilment.Maimed),
+            (new[] { "blind", "blinded" }, StatusAilment.Blinded),
+            (new[] { "curse", "cursed" }, StatusAilment.Cursed),
+        };
+
+        /// <summary>
+        ///     Words of ids that only mention a state: immunities and auras, build-up meters, counters and "recently"
+        ///     markers, flask bonuses, effects on enemies, and vulnerabilities ("sprint_heavy_stunnable" and
+        ///     "number_of_times_stunned_in_past_duration_from_ot" read as stuns, 2026-10-24).
+        /// </summary>
+        private static readonly HashSet<string> NotTheState = new(StringComparer.Ordinal)
+        {
+            "immunity", "immune", "aura", "avoid", "avoidance", "buildup", "chance", "prevention", "recently", "number",
+            "count", "reserve", "cannot", "flask", "have", "was", "enemy", "enemies", "stunnable", "damage", "duration",
         };
 
         /// <summary>The ailment a buff id stands for; null for everything else (auras, flasks, charges, immunities).</summary>
         public static StatusAilment? FromBuffId(string id)
         {
-            var lower = id.ToLowerInvariant();
-            if (lower.Contains("immun", StringComparison.Ordinal) || lower.Contains("aura", StringComparison.Ordinal) ||
-                lower.Contains("avoid", StringComparison.Ordinal) || lower.Contains("buildup", StringComparison.Ordinal) ||
-                lower.Contains("chance", StringComparison.Ordinal))
+            var words = id.ToLowerInvariant().Split('_', StringSplitOptions.RemoveEmptyEntries);
+            if (words.Any(NotTheState.Contains))
             {
-                // "chill_immunity", the player's own auras, and PoE2's ailment build-up meters
-                // ("flammability_ignite_chance_buildup", seen 2026-10-23) that are not the ailment yet.
                 return null;
             }
 
-            foreach (var (stem, ailment) in Stems)
+            foreach (var (names, ailment) in Names)
             {
-                if (lower.Contains(stem, StringComparison.Ordinal))
+                if (words.Any(word => Array.IndexOf(names, word) >= 0))
                 {
                     return ailment;
                 }

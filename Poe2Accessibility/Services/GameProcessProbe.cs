@@ -18,6 +18,7 @@ namespace Poe2Accessibility.Services
         private readonly PluginLog log;
         private readonly Stopwatch sinceLastProbe = Stopwatch.StartNew();
         private string lastReport = string.Empty;
+        private string pendingReport = string.Empty;
 
         public GameProcessProbe(PluginLog log)
         {
@@ -74,6 +75,15 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            // A game starting or quitting has no window for a moment ("no main window yet" was said as the player
+            // quit, 2026-10-24): only a diagnosis found on two probes in a row is said.
+            var seenBefore = report == this.pendingReport;
+            this.pendingReport = report;
+            if (!seenBefore && report.Length > 0)
+            {
+                return;
+            }
+
             this.lastReport = report;
             if (!string.IsNullOrEmpty(report))
             {
@@ -82,6 +92,6 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        public void Reset() => this.lastReport = string.Empty;
+        public void Reset() => this.lastReport = this.pendingReport = string.Empty;
     }
 }

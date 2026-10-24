@@ -51,10 +51,10 @@ namespace Poe2Accessibility.Services
             _ => false,
         };
 
-        /// <summary>Speaks a piece of news at the level the player chose for its kind.</summary>
+        /// <summary>Speaks a piece of news at the level the player chose for its kind; urgent news cutting in also holds.</summary>
         public static void Say(this IAccessibilityOutputService output, SpeechKind kind, string text, bool urgent = false)
         {
-            if (Level(kind) == Holds)
+            if (Level(kind) == Holds || (urgent && Level(kind) == Urgent))
             {
                 output.Urge(text);
                 return;

@@ -102,9 +102,11 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            this.urgedUntil = DateTime.MinValue;
+            // An urgent phrase still being heard keeps the floor: this one waits behind it ("Life 25 percent" was cut
+            // off by "Burning" 70 ms later, 2026-10-24), then holds in turn.
+            var until = DateTime.UtcNow.AddMilliseconds(holdMs);
             this.Speak(text, true);
-            this.urgedUntil = DateTime.UtcNow.AddMilliseconds(holdMs);
+            this.urgedUntil = until > this.urgedUntil ? until : this.urgedUntil;
         }
 
         public void Repeat()

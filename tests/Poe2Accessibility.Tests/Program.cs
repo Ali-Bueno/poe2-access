@@ -603,7 +603,7 @@ namespace Poe2Accessibility.Tests
             SpeechPriority.Chosen = _ => "nonsense";
             output.Say(SpeechKind.Quest, "f");
             SpeechPriority.Chosen = null;
-            Equal("urge a|b False|c True|d False|e True|f False", string.Join("|", output.Calls), "each kind at its level, defaults for unknown values");
+            Equal("urge a|b False|urge c|d False|e True|f False", string.Join("|", output.Calls), "each kind at its level, urgent news holds, defaults for unknown values");
         }
 
         private sealed class RecordingOutput : IAccessibilityOutputService
@@ -771,6 +771,17 @@ namespace Poe2Accessibility.Tests
             Equal(true, StatusAilments.FromBuffId("chill_immunity") == null, "immunities are not ailments");
             Equal(true, StatusAilments.FromBuffId("flask_effect_life") == null, "flasks are not ailments");
             Equal(true, StatusAilments.FromBuffId("flammability_ignite_chance_buildup_79") == null, "build-up is not the ailment yet");
+            // Ids of the game's BuffDefinitions that only mention a state (seen as false stuns live, 2026-10-24).
+            foreach (var mention in new[] { "sprint_heavy_stunnable_79", "number_of_times_stunned_in_past_duration_from_ot_79", "have_been_stunned_recently",
+                         "stunning_magic_buff", "chill_prevention", "flask_bonus_reduced_self_poison_duration", "have_ignited_an_enemy_recently", "frozen_damage_increase" })
+            {
+                Equal(true, StatusAilments.FromBuffId(mention) == null, $"{mention} is not the state");
+            }
+
+            Equal(StatusAilment.Stunned, StatusAilments.FromBuffId("stun_display_buff") ?? StatusAilment.Cursed, "the stun itself");
+            Equal(StatusAilment.Slowed, StatusAilments.FromBuffId("mud_slow_79") ?? StatusAilment.Cursed, "a slow by its last word");
+            Equal(StatusAilment.Ignited, StatusAilments.FromBuffId("ignited_79") ?? StatusAilment.Cursed, "ignite");
+            Equal(StatusAilment.Cursed, StatusAilments.FromBuffId("curse_enfeeble") ?? StatusAilment.Frozen, "a curse by its first word");
         }
 
         private static void WallBumpThudsOncePerContact()
