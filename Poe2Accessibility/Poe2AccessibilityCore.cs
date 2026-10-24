@@ -45,7 +45,7 @@ namespace Poe2Accessibility
         private WallTones? wallTones;
         private GamepadReader.PadState padState;
         private (string Character, int Level) lastLevel;
-        private long lastSoundError = long.MinValue / 2;
+        private readonly System.Collections.Generic.Dictionary<string, long> tickFaults = new();
 
         /// <summary>A failing sound tick is logged once a minute, not every frame.</summary>
         private const int SoundErrorReportMs = 60000;
@@ -394,32 +394,53 @@ namespace Poe2Accessibility
         }
 
 
-        /// <summary>Per frame: radar, enemy sounds and what is nearby, only in gameplay; a failure here never stops the speech after it.</summary>
+        /// <summary>
+        ///     Per frame: radar, enemy sounds and what is nearby, only in gameplay. Each service runs on its own (D2R
+        ///     crash containment): one that throws is logged (throttled per service) and the others still run.
+        /// </summary>
         private void TickSounds()
         {
+            bool playing;
             try
             {
-                var playing = Core.Process.Foreground && this.focus?.Current == null &&
-                              this.gameState?.CurrentState == GameStateTypes.InGameState && IsPlayerAlive();
+                playing = Core.Process.Foreground && this.focus?.Current == null &&
+                          this.gameState?.CurrentState == GameStateTypes.InGameState && IsPlayerAlive();
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                this.ReportTickFault("gameplay state", ex);
+                return;
+            }
+
+            this.Isolated("enemy sounds", () =>
+            {
                 if (this.enemyCues != null)
                 {
                     this.enemyCues.Enemies = this.Settings.EnemySounds;
                     this.enemyCues.Friends = this.Settings.NpcSounds;
                     this.enemyCues.Tick(playing && (this.Settings.EnemySounds || this.Settings.NpcSounds || this.Settings.MeleeReach));
                 }
-
-                this.radar?.Tick(playing && this.Settings.Radar);
-                this.wallTones?.Tick(playing && this.Settings.WallTones);
-                this.nearby?.Tick(playing && this.Settings.AnnounceNearby);
+            });
+            this.Isolated("radar", () => this.radar?.Tick(playing && this.Settings.Radar));
+            this.Isolated("wall tones", () => this.wallTones?.Tick(playing && this.Settings.WallTones));
+            this.Isolated("nearby", () => this.nearby?.Tick(playing && this.Settings.AnnounceNearby));
+            this.Isolated("exploration", () =>
+            {
                 if (playing)
                 {
                     this.entities?.Track();
                 }
+            });
+            this.Isolated("beacon", () =>
+            {
                 if (this.beacon != null)
                 {
                     this.beacon.TurnPrompts = this.Settings.RoutePrompts;
                     this.beacon.Tick(playing);
                 }
+            });
+            this.Isolated("target", () =>
+            {
                 var aiming = !this.padState.IsDown(GameLayout.PadButtons.LeftStick) && !(this.commands?.InSettingsMenu ?? false) &&
                              MathF.Max(MathF.Abs(this.padState.RightX), MathF.Abs(this.padState.RightY)) >= AimDeflection;
                 if (this.targets != null)
@@ -429,39 +450,58 @@ namespace Poe2Accessibility
                     this.targets.Beep = this.Settings.CrosshairBeep;
                     this.targets.Tick(playing && (this.Settings.AnnounceTarget || this.Settings.CrosshairBeep), aiming);
                 }
+            });
+            this.Isolated("heartbeat", () => this.heartbeat?.Tick(playing && this.Settings.LowLifeHeartbeat, PlayerLifePercent()));
+            this.Isolated("states", () => this.statuses?.Tick(playing && this.Settings.StatusAlerts));
+            if (this.gameState?.CurrentState == GameStateTypes.InGameState)
+            {
+                this.Isolated("pick-ups", () => this.pickups?.Tick(playing && this.Settings.AnnouncePickups));
+                this.Isolated("hand", () => this.pickups?.TickHand(this.Settings.AnnounceHand));
+                this.Isolated("moves", () => this.pickups?.TickMoves(playing, this.Settings.AnnounceMoves));
+                this.Isolated("gold", () => this.gold?.Tick(this.focus?.LayerContainer ?? IntPtr.Zero, playing, this.Settings.AnnouncePickups));
+            }
 
-                this.heartbeat?.Tick(playing && this.Settings.LowLifeHeartbeat, PlayerLifePercent());
-                this.statuses?.Tick(playing && this.Settings.StatusAlerts);
-                if (this.gameState?.CurrentState == GameStateTypes.InGameState)
-                {
-                    this.pickups?.Tick(playing && this.Settings.AnnouncePickups);
-                    this.pickups?.TickHand(this.Settings.AnnounceHand);
-                    this.pickups?.TickMoves(playing, this.Settings.AnnounceMoves);
-                    this.gold?.Tick(this.focus?.LayerContainer ?? IntPtr.Zero, playing, this.Settings.AnnouncePickups);
-                }
+            this.Isolated("bosses", () =>
+            {
                 if (this.bosses != null)
                 {
                     this.bosses.AnnounceLife = this.Settings.AnnounceBossLife;
                     this.bosses.DodgeWarnings = this.Settings.DodgeWarnings;
                     this.bosses.Tick(playing);
                 }
-
-                this.objectSounds?.Tick(playing && this.Settings.ObjectSounds);
-                this.discoveries?.Tick(playing && this.Settings.AnnounceDiscoveries);
+            });
+            this.Isolated("object sounds", () => this.objectSounds?.Tick(playing && this.Settings.ObjectSounds));
+            this.Isolated("discoveries", () => this.discoveries?.Tick(playing && this.Settings.AnnounceDiscoveries));
+            this.Isolated("wall bump", () =>
+            {
                 if (playing && this.Settings.WallBump)
                 {
                     this.wallBump?.Tick(this.padState.LeftX, this.padState.LeftY);
                 }
+            });
+            this.Isolated("level", this.WatchLevel);
+        }
 
-                this.WatchLevel();
+        /// <summary>Runs one gameplay service; an exception is logged (throttled per service) and the frame goes on.</summary>
+        private void Isolated(string service, Action tick)
+        {
+            try
+            {
+                tick();
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
             {
-                if (Environment.TickCount64 - this.lastSoundError >= SoundErrorReportMs)
-                {
-                    this.lastSoundError = Environment.TickCount64;
-                    this.log?.Error("Gameplay sound/proximity tick failed", ex);
-                }
+                this.ReportTickFault(service, ex);
+            }
+        }
+
+        private void ReportTickFault(string service, Exception ex)
+        {
+            var now = Environment.TickCount64;
+            if (!this.tickFaults.TryGetValue(service, out var last) || now - last >= SoundErrorReportMs)
+            {
+                this.tickFaults[service] = now;
+                this.log?.Error($"Gameplay tick failed: {service}", ex);
             }
         }
 
