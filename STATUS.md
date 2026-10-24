@@ -314,7 +314,9 @@ monster are still unheard; the remaining fragile parts are in `docs/compatibilit
   at that screen A does nothing, the mouse does not open it, and Enter submits the form (it answered "Ya existe un
   personaje con este nombre": never press Enter there with a free name). Closed, it reads "Liga, Forbidden Rites,
   lista desplegable, 2 de 3" and then the league's description.
-- Landmark labels that are not area names ("Boss - Yama", "Chest") stay English.
+- Landmark labels that are not area names are players' notes from GameHelper Radar: in Spanish their common words and
+  reward notes are translated ("Escaleras hacia arriba", "Crop Circle (gema de habilidad de nivel 4)"); the names in
+  them (Crop Circle, Kabala) stay as written, since the game's own Spanish name is not known for them.
 - Radar: once, near the encampment exit, Up and Left flipped wall/exit every ~2 s with depths 100 ↔ 500 units while
   the character oscillated between two cells; not reproduced standing still.
 - The bot died twice to Rotten Wolves while testing (Clearfell, 2026-10-23): don't fight with scripted input.

@@ -535,6 +535,76 @@ namespace Poe2Accessibility
         public static string InContext(string context, string focused) =>
             context.Length == 0 ? focused : focused.Length == 0 ? context : Sentences(new[] { context, focused });
 
+        /// <summary>
+        ///     GameHelper Radar's labels are notes players wrote in English ("Stairs Up", "Crop Circle (Skill Gem Level 4)"):
+        ///     in Spanish their common words and reward notes are translated; names stay as written.
+        /// </summary>
+        public static string LandmarkLabel(string label)
+        {
+            if (!Localization.IsSpanish)
+            {
+                return label;
+            }
+
+            var trimmed = label.Trim();
+            if (LandmarkWords.TryGetValue(trimmed, out var whole))
+            {
+                return whole;
+            }
+
+            foreach (var (pattern, replacement) in LandmarkNotes)
+            {
+                trimmed = pattern.Replace(trimmed, replacement);
+            }
+
+            return trimmed;
+        }
+
+        private static readonly System.Collections.Generic.Dictionary<string, string> LandmarkWords = new(System.StringComparer.OrdinalIgnoreCase)
+        {
+            ["Boss"] = "Jefe",
+            ["Bosses"] = "Jefes",
+            ["Boss stairs"] = "Escaleras del jefe",
+            ["Stairs"] = "Escaleras",
+            ["Stairs Up"] = "Escaleras hacia arriba",
+            ["Stairs Down"] = "Escaleras hacia abajo",
+            ["Entrance"] = "Entrada",
+            ["Transition"] = "Paso a otra zona",
+            ["Beacon"] = "Baliza",
+            ["Ancient Seal"] = "Sello antiguo",
+            ["Looted Vault"] = "Cámara saqueada",
+            ["Rare Fight"] = "Combate con un monstruo raro",
+            ["Medallion"] = "Medallón",
+            ["Bell (Rewards)"] = "Campana (recompensas)",
+            ["Flask buff - Need key"] = "Mejora de frascos, necesita una llave",
+            ["Pillars - Buff choice"] = "Pilares, elige una mejora",
+            ["Rhoa - No reward?"] = "Rhoa, quizá sin recompensa",
+            ["To Devourer"] = "Hacia el Devorador",
+            ["Arena / Hunting Grounds"] = "Arena o coto de caza",
+            ["Forgotten Corpses"] = "Cadáveres olvidados",
+            ["Forgotten Riches"] = "Riquezas olvidadas",
+        };
+
+        private static readonly (System.Text.RegularExpressions.Regex Pattern, string Replacement)[] LandmarkNotes =
+        {
+            (new(@"Support [Gg]em Level (\d+) and Flasks"), "gema de apoyo de nivel $1 y frascos"),
+            (new(@"Support [Gg]em Level (\d+)"), "gema de apoyo de nivel $1"),
+            (new(@"Support [Gg]em"), "gema de apoyo"),
+            (new(@"Skill Gem Level (\d+)"), "gema de habilidad de nivel $1"),
+            (new(@"Spirit Gem Level (\d+)"), "gema de espíritu de nivel $1"),
+            (new(@"(\d+) Spirit"), "$1 de espíritu"),
+            (new(@"\+(\d+) Max Life"), "+$1 de vida máxima"),
+            (new(@"\+(\d+) Passives?"), "+$1 puntos de pasiva"),
+            (new(@"(\d+)% Cold Res"), "$1% de resistencia al frío"),
+            (new(@"(\d+)% Fire Res"), "$1% de resistencia al fuego"),
+            (new(@"(\d+)% Lightning Res"), "$1% de resistencia al rayo"),
+            (new(@"(\d+)% Chaos Res"), "$1% de resistencia al caos"),
+            (new(@"Res Ring"), "anillo de resistencia"),
+            (new(@"\(waypoint\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase), "(punto de ruta)"),
+            (new(@"Salvaging Bench"), "mesa de reciclaje"),
+            (new(@" - "), ", "),
+        };
+
         /// <summary>A text too long to say at once: how many paragraphs it has and how to read them.</summary>
         public static string LongText(int paragraphs) => T(
             $"Long text, {paragraphs} paragraphs: scroll it with the stick to read it",

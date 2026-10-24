@@ -60,6 +60,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(WrappedLabelsJoin), WrappedLabelsJoin);
             Run(nameof(InlineItemArtIsNamed), InlineItemArtIsNamed);
             Run(nameof(KnownPlacesOutliveTheSession), KnownPlacesOutliveTheSession);
+            Run(nameof(RadarLabelsSpeakSpanish), RadarLabelsSpeakSpanish);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -511,6 +512,17 @@ namespace Poe2Accessibility.Tests
             Set(22, 22, true);
             var route = RoutePlanner.FindRoute(grid, row, new System.Numerics.Vector2(22.4f, 22.4f), new System.Numerics.Vector2(50, 50), false, out var reached);
             Equal(true, route != null && reached, "a route from the ground around the pocket");
+        }
+
+        private static void RadarLabelsSpeakSpanish()
+        {
+            Localization.Detect("es");
+            Equal("Escaleras hacia arriba", Announcements.LandmarkLabel("Stairs Up"), "a whole label");
+            Equal("Crop Circle (gema de habilidad de nivel 4)", Announcements.LandmarkLabel("Crop Circle (Skill Gem Level 4)"), "a reward note, the name kept");
+            Equal("Sisters of Garukhan (10% de resistencia al rayo)", Announcements.LandmarkLabel("Sisters of Garukhan (10% Lightning Res)"), "a resistance");
+            Equal("Kabala (+2 puntos de pasiva)", Announcements.LandmarkLabel("Kabala (+2 Passive)"), "passive points");
+            Localization.Detect("en");
+            Equal("Stairs Up", Announcements.LandmarkLabel("Stairs Up"), "English untouched");
         }
 
         private static void KnownPlacesOutliveTheSession()

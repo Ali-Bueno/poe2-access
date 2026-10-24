@@ -90,17 +90,20 @@ namespace Poe2Accessibility.Services
             return result;
         }
 
-        /// <summary>The label in the current language when it is exactly an English area name, else unchanged.</summary>
+        /// <summary>
+        ///     The label in the current language: an English area name as the game names it, else the radar table's own
+        ///     words and reward notes translated (<see cref="Announcements.LandmarkLabel"/>), names kept.
+        /// </summary>
         public string Localize(string label)
         {
-            if (this.englishToId.TryGetValue(label, out var id)
+            if (this.englishToId.TryGetValue(label.Trim(), out var id)
                 && this.names.TryGetValue(Localization.Language, out var lang)
                 && lang.TryGetValue(id, out var local))
             {
                 return local;
             }
 
-            return label;
+            return Announcements.LandmarkLabel(label);
         }
 
         private void LoadAreaNames(PluginLog log, string file)
