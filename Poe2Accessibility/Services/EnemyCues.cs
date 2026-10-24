@@ -249,9 +249,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The sound for this entity, or null when it gets none (or its kind is switched off).</summary>
         private CueSynth.Layer? LayerOf(GameHelper.RemoteObjects.States.InGameStateObjects.Entity entity)
         {
-            if (entity.EntityType == EntityTypes.Monster)
+            if (entity.EntityType == EntityTypes.Monster && EntityCatalog.IsAliveEnemy(entity))
             {
-                if (!this.Enemies || !EntityCatalog.IsAliveEnemy(entity))
+                if (!this.Enemies)
                 {
                     return null;
                 }
@@ -264,6 +264,7 @@ namespace Poe2Accessibility.Services
                 };
             }
 
+            // A friendly monster with the NPC component is a character (Mortimer); corpses and minions have none.
             var friend = entity.EntityType == EntityTypes.NPC || entity.TryGetComponent<NPC>(out _) ||
                          (entity.EntityType == EntityTypes.Player && entity.EntitySubtype != EntitySubtypes.PlayerSelf);
             return this.Friends && friend ? CueSynth.Layer.Friend : null;

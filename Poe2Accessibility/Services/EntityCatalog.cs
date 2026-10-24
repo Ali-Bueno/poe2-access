@@ -372,8 +372,9 @@ namespace Poe2Accessibility.Services
             }
             else if (entity.EntityType == EntityTypes.Monster)
             {
-                category = IsAliveEnemy(entity) ? ScanCategory.Enemies : null;
-                if (category != null && entity.TryGetComponent<ObjectMagicProperties>(out var magic) && magic.Rarity != Rarity.Normal)
+                // A friendly monster with the NPC component is a character (Mortimer by the Miller); minions have none.
+                category = IsAliveEnemy(entity) ? ScanCategory.Enemies : entity.TryGetComponent<NPC>(out _) ? ScanCategory.Npcs : null;
+                if (category == ScanCategory.Enemies && entity.TryGetComponent<ObjectMagicProperties>(out var magic) && magic.Rarity != Rarity.Normal)
                 {
                     name = Announcements.EnemyWithRarity(name, magic.Rarity);
                 }
