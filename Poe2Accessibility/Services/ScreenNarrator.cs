@@ -30,6 +30,12 @@ namespace Poe2Accessibility.Services
         /// <summary>A tab switch shows up as texts appearing and then as the top layer changing: one announcement.</summary>
         private const int RepeatedTabMs = 1500;
 
+        /// <summary>A tutorial hint shown this soon after the HUD is back on top is the box reappearing, not news.</summary>
+        private const int HudBackMs = 3000;
+
+        /// <summary>A tutorial hint shown again during play is said again after this long.</summary>
+        private const int TutorialRepeatMs = 60000;
+
         private readonly IAccessibilityOutputService output;
         private readonly Func<IntPtr, string> selectedTab;
         private readonly PluginLog log;
@@ -47,7 +53,13 @@ namespace Poe2Accessibility.Services
         private string lastFocusSpeech = string.Empty;
         private string lastGroup = string.Empty;
         private readonly HashSet<string> hudSpoken = new();
-        private readonly HashSet<string> tutorialSpoken = new();
+        /// <summary>Tutorial hints said in this area and when.</summary>
+        private readonly Dictionary<string, DateTime> tutorialSpoken = new();
+
+        /// <summary>When the HUD last became the top layer again (a panel, the radial menu or a respawn screen closed).</summary>
+        private DateTime hudBackAt = DateTime.MinValue;
+        private ScreenSnapshot? seenSnapshot;
+        private IntPtr seenTop;
         private AccessibleUiNode? pendingFocus;
         private DateTime lastFocusAt = DateTime.MinValue;
         private DateTime lastTabAt = DateTime.MinValue;
@@ -120,6 +132,37 @@ namespace Poe2Accessibility.Services
         ///     state change — the game menu closing and a respawn in the same area would repeat the quest tracker,
         ///     "Nuevo punto de control" and the last tutorial hint.
         /// </summary>
+        private bool TutorialIsNews(string text)
+        {
+            var now = DateTime.UtcNow;
+            if (this.tutorialSpoken.TryGetValue(text, out var said) &&
+                ((now - this.hudBackAt).TotalMilliseconds < HudBackMs || (now - said).TotalMilliseconds < TutorialRepeatMs))
+            {
+                return false;
+            }
+
+            this.tutorialSpoken[text] = now;
+            return true;
+        }
+
+        /// <summary>Notes the HUD coming back on top, once per snapshot.</summary>
+        private void NoteTop(ScreenSnapshot snapshot)
+        {
+            if (ReferenceEquals(snapshot, this.seenSnapshot))
+            {
+                return;
+            }
+
+            var top = snapshot.TopInteractive?.Address ?? IntPtr.Zero;
+            if (this.seenSnapshot != null && top != this.seenTop && top == this.HudLayer && top != IntPtr.Zero)
+            {
+                this.hudBackAt = DateTime.UtcNow;
+            }
+
+            this.seenSnapshot = snapshot;
+            this.seenTop = top;
+        }
+
         public void NewArea()
         {
             this.hudSpoken.Clear();
@@ -330,6 +373,7 @@ namespace Poe2Accessibility.Services
 
         public void OnScreenChange(ScreenChange change, ScreenSnapshot snapshot, AccessibleUiNode? focus, IntPtr focusLayer)
         {
+            this.NoteTop(snapshot);
             this.log.Debug($"Screen change {change.Kind} layer 0x{change.Layer.Address.ToInt64():X} focus layer 0x{focusLayer.ToInt64():X} hint={change.Layer.IsHintBar} top=0x{snapshot.TopInteractive?.Address.ToInt64() ?? 0:X} justFocused={this.JustFocused()}");
             if (change.Layer.IsHintBar)
             {
@@ -353,11 +397,13 @@ namespace Poe2Accessibility.Services
 
             if (this.inGame && change.Layer.Address == this.TutorialLayer)
             {
-                // A new objective or tutorial hint: after what is being said, never instead of it; once per area, as
-                // the box shows the same hint again whenever a panel or the radial menu closes.
+                // A new objective or tutorial hint: after what is being said, never instead of it. The box shows the
+                // same hint again whenever a panel or the radial menu closes: not news. Shown again later during play
+                // it can be the game waiting for that very action — the dodge lesson holds the character stunned until
+                // B (Riverbank boss, 2026-10-24, silent for minutes): said again then.
                 var hints = change.Kind == ScreenChangeKind.TopLayerChanged
                     ? new List<ScreenText>()
-                    : change.Texts.Where(text => this.tutorialSpoken.Add(text.Text)).ToList();
+                    : change.Texts.Where(text => this.TutorialIsNews(text.Text)).ToList();
                 if (hints.Count > 0)
                 {
                     this.Speak("objective", Describe(hints), SpeechPriority.Interrupts(SpeechKind.Quest));

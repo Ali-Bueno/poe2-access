@@ -221,6 +221,7 @@ namespace Poe2Accessibility.Services
         private static readonly string[] CalmAnimations =
         {
             "Idle", "Run", "Walk", "TakeHit", "Hit", "Death", "Dead", "Stun", "Spawn", "Emerge", "Flinch", "Knockback", "Turn", "Taunt", "Sleep", "Rise",
+            "Buff", // a self buff hurts no one (the Bloated Miller's SpellBuff warned like his slams, 2026-10-24)
         };
     }
 }
