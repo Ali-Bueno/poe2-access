@@ -738,6 +738,27 @@ namespace Poe2Accessibility.Services
             this.memory.TryRead<IntPtr>(row, out var id) && id != IntPtr.Zero &&
             (this.elements.ReadUtf16BufferAt(id, 32) ?? string.Empty).StartsWith(GameLayout.NpcComponent.QuestMarkerId, StringComparison.Ordinal);
 
+        /// <summary>
+        ///     What A uses now: the entity the game flags as the player's target (<see
+        ///     cref="GameLayout.TargetableComponent.IsTargetedOffset"/>), named as the scanner names it; monsters are the
+        ///     target bar's.
+        /// </summary>
+        public ScanEntry? InteractTarget()
+        {
+            foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+            {
+                if (entity.IsValid && entity.TryGetComponent<Targetable>(out var target) &&
+                    this.memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.IsTargetedOffset, out var flag) && flag != 0 &&
+                    entity.TryGetComponent<Render>(out var render) && this.Classify(entity, render) is { } entry &&
+                    entry.Category is not ScanCategory.Enemies)
+                {
+                    return entry;
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>A living monster that is not the player's (minions are friendly).</summary>
         public static bool IsAliveEnemy(Entity entity) =>
             entity.TryGetComponent<Life>(out var life) && life.IsAlive &&

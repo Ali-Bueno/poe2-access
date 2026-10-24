@@ -63,6 +63,9 @@ namespace Poe2Accessibility
         /// <summary>Name what you walk up to or stand on: checkpoints, NPCs, the stash, chests, items, exits.</summary>
         public bool AnnounceNearby = true;
 
+        /// <summary>Say what A uses (the label the game marks with the button) whenever it changes: "Stash, A".</summary>
+        public bool AnnounceInteractTarget = true;
+
         /// <summary>A short growl for each enemy on screen: side by stereo, below you by a lower pitch, nearer by a faster beat.</summary>
         public bool EnemySounds = true;
 

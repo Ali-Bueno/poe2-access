@@ -139,6 +139,9 @@ left; a topic already heard (drawn grey) is read "atenuado": "Presentación, ate
   back, and again when you push the stick and the character does not move.
 - **Nearby:** what you walk up to or stand on is named once: checkpoints, NPCs, the stash, chests, items, exits
   ([nearby](proximity.md)); the same thing is named again only after a minute.
+- **What A uses:** when the game moves its interaction target (the label it marks with the A button) to something
+  else, it is named with the button: "Finn, A", then "Alijo, A" one step further. A name said this way is not said
+  again by the nearby list. Setting `AnnounceInteractTarget` ("Lo que usa el botón de interactuar").
 - **Things worth walking to:** the game's own sounds repeat for the nearest chest or shrine, exit or portal, and
   waypoint or checkpoint on screen, and for up to four items at once, on their side, higher when up the screen and
   lower when down, more often as you get closer, silent once you stand on them. An item plays the drop sound the game gives its base (a scroll rustles, an orb clinks, a belt,

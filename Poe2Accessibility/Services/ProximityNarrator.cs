@@ -8,7 +8,8 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     Names what the player walks up to or stands on (checkpoints, NPCs, the stash, chests, items on the ground,
-    ///     exits), once per approach, after what is being said. Design: docs/proximity.md.
+    ///     exits), once per approach, after what is being said; and what A uses, with the button, whenever the game's
+    ///     target moves to something else (Finn beside the stash took A, 2026-10-24). Design: docs/proximity.md.
     /// </summary>
     public sealed class ProximityNarrator
     {
@@ -25,6 +26,16 @@ namespace Poe2Accessibility.Services
         private const int NamesPerUtterance = 4;
         private const int UtteranceGapMs = 900;
 
+        /// <summary>A name waits this long, so the game's target can settle on it and the name carry the button once.</summary>
+        private const int NameHoldMs = 350;
+
+        /// <summary>The game's target is read this often and must hold this long before it is named (walking sweeps it).</summary>
+        private const int TargetPollMs = 100;
+        private const int TargetSettleMs = 200;
+
+        /// <summary>No target this long: the next one is news even if it is the last one named.</summary>
+        private const int TargetForgetMs = 3000;
+
         private static readonly ScanCategory[] Announced =
         {
             ScanCategory.Exits, ScanCategory.Waypoints, ScanCategory.Npcs, ScanCategory.Objects, ScanCategory.Chests, ScanCategory.Items,
@@ -33,9 +44,14 @@ namespace Poe2Accessibility.Services
         private readonly EntityCatalog catalog;
         private readonly IAccessibilityOutputService output;
         private readonly ProximityTracker tracker = new(ReachWorld, RearmWorld, RepeatCooldownMs);
-        private readonly Queue<string> pending = new();
+        private readonly Queue<(ScanEntry Entry, long At)> pending = new();
         private long lastPoll = long.MinValue / 2;
         private long lastSpoken = long.MinValue / 2;
+        private long lastTargetPoll = long.MinValue / 2;
+        private uint? candidate;
+        private long candidateSince;
+        private uint? target;
+        private uint? targetSpoken;
 
         public ProximityNarrator(EntityCatalog catalog, IAccessibilityOutputService output)
         {
@@ -48,10 +64,16 @@ namespace Poe2Accessibility.Services
         {
             this.tracker.Reset();
             this.pending.Clear();
+            this.candidate = null;
+            this.target = null;
+            this.targetSpoken = null;
         }
 
-        /// <summary>Per frame; paused while a panel or dialogue is open, so closing one does not repeat what is near.</summary>
-        public void Tick(bool active)
+        /// <summary>
+        ///     Per frame; paused while a panel or dialogue is open, so closing one does not repeat what is near.
+        ///     <paramref name="nearby"/> names what is walked up to, <paramref name="interact"/> what A uses.
+        /// </summary>
+        public void Tick(bool active, bool nearby, bool interact)
         {
             if (!active)
             {
@@ -59,7 +81,13 @@ namespace Poe2Accessibility.Services
             }
 
             var now = Environment.TickCount64;
-            if (now - this.lastPoll >= PollMs &&
+            if (interact && now - this.lastTargetPoll >= TargetPollMs)
+            {
+                this.lastTargetPoll = now;
+                this.TrackTarget(now);
+            }
+
+            if (nearby && now - this.lastPoll >= PollMs &&
                 Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<Render>(out var player))
             {
                 this.lastPoll = now;
@@ -67,21 +95,77 @@ namespace Poe2Accessibility.Services
                 var near = this.catalog.Entries().Where(entry => EntityCatalog.IsEntity(entry) && Announced.Contains(entry.Category) && entry.Kind != "gold");
                 foreach (var entry in this.tracker.Update(player.WorldPosition.X, player.WorldPosition.Y, near, now))
                 {
-                    this.pending.Enqueue(entry.Name);
+                    this.pending.Enqueue((entry, now));
                 }
             }
 
-            if (this.pending.Count > 0 && now - this.lastSpoken >= UtteranceGapMs)
+            if (this.pending.Count > 0 && now - this.pending.Peek().At >= NameHoldMs && now - this.lastSpoken >= UtteranceGapMs)
             {
                 var names = new List<string>();
                 while (names.Count < NamesPerUtterance && this.pending.Count > 0)
                 {
-                    names.Add(this.pending.Dequeue());
+                    // Already named with the button: not again.
+                    var entry = this.pending.Dequeue().Entry;
+                    if (entry.Id != this.targetSpoken)
+                    {
+                        names.Add(this.Label(entry));
+                    }
                 }
 
-                this.output.Say(SpeechKind.Places, Announcements.Nearby(names));
-                this.lastSpoken = now;
+                if (names.Count > 0)
+                {
+                    this.output.Say(SpeechKind.Places, Announcements.Nearby(names));
+                    this.lastSpoken = now;
+                }
             }
+        }
+
+        /// <summary>Follows the game's target; a new one that holds is named with the button, unless a queued name will carry it.</summary>
+        private void TrackTarget(long now)
+        {
+            var current = this.catalog.InteractTarget();
+            if (current?.Id != this.candidate)
+            {
+                this.candidate = current?.Id;
+                this.candidateSince = now;
+                return;
+            }
+
+            if (current == null)
+            {
+                this.target = null;
+                if (now - this.candidateSince >= TargetForgetMs)
+                {
+                    this.targetSpoken = null;
+                }
+
+                return;
+            }
+
+            if (now - this.candidateSince < TargetSettleMs)
+            {
+                return;
+            }
+
+            this.target = current.Id;
+            if (current.Id == this.targetSpoken || this.pending.Any(item => item.Entry.Id == current.Id))
+            {
+                return;
+            }
+
+            this.output.Say(SpeechKind.Places, this.Label(current));
+        }
+
+        /// <summary>A name, with the interact button when A uses it now.</summary>
+        private string Label(ScanEntry entry)
+        {
+            if (entry.Id != this.target)
+            {
+                return entry.Name;
+            }
+
+            this.targetSpoken = entry.Id;
+            return Announcements.WithButton(entry.Name, ControllerGlyphs.Interact);
         }
     }
 }

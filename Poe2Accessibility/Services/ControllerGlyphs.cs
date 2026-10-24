@@ -46,6 +46,11 @@ namespace Poe2Accessibility.Services
         /// <summary>True once a PlayStation glyph folder was seen; markup has no family of its own.</summary>
         public static bool PlayStationSeen { get; private set; }
 
+        /// <summary>The button that interacts (A, Cross), named for the pad the game shows.</summary>
+        public static string Interact => Announcements.ButtonName(InteractGlyph, PlayStationSeen);
+
+        private const string InteractGlyph = "Button4";
+
         /// <summary>Spoken button for an image art key; null when the image is not a controller glyph.</summary>
         public static string? FromTextureKey(string textureKey)
         {

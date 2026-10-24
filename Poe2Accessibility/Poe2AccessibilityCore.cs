@@ -489,7 +489,7 @@ namespace Poe2Accessibility
             });
             this.Isolated("radar", () => this.radar?.Tick(playing && this.Settings.Radar));
             this.Isolated("wall tones", () => this.wallTones?.Tick(playing && this.Settings.WallTones));
-            this.Isolated("nearby", () => this.nearby?.Tick(playing && this.Settings.AnnounceNearby));
+            this.Isolated("nearby", () => this.nearby?.Tick(playing, this.Settings.AnnounceNearby, this.Settings.AnnounceInteractTarget));
             this.Isolated("exploration", () =>
             {
                 if (playing)

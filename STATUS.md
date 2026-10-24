@@ -119,6 +119,7 @@
 | NPC dialogue options read one by one | done (live) | `UiSemantics.OptionLists`: confirm glyph marks the option; D-pad left reaches the lore column; a heard topic (drawn grey) reads "Presentación, atenuado, 1 de 8" (Una, 2026-10-24) |
 | Spoken settings menu + sound glossary (hold L3 1.5 s) | done (live) | `SettingsMenu`, `SoundGlossary`; 26 settings + 23 sounds |
 | Target from the HUD target bar (controller) | done (live) | HUD > entity_info_container > entity_info_display > name_label; MouseOverEntity is 0 with a pad |
+| What A uses ("Finn, A", "Alijo, A") | done (live) | Targetable `+0x6B` = the game's interaction target; `ProximityNarrator.TrackTarget` (2026-10-24) |
 | Discoveries, pick-ups, unmet requirements | done (code) | `DiscoveryNarrator` ("Jefe a la vista" heard live), `InventoryWatch` (ServerData MainInventory1 via reflection), red tooltip lines with digits |
 | Checkpoint travel map markers | done (live); place names (code) | `UiSemantics.MapMarkers` + `CheckpointPlaces`/`MapPlaces`: markers matched to seen checkpoints by one scale, "Viajar al punto de control, cerca de …, abajo, a 35 pasos, 2 de 2" (the game names none) |
 | Skill bar readout (after the screen on the gameplay hold) | done (live) | `UiSemantics.SkillBar`: "Set de habilidades principal: LT, Activar set… X, Saeta básica… Vacío: LB, cruceta arriba, Y"; bind screen names skills from their dat rows (`docs/research/skill-bar.md`) |
@@ -314,9 +315,6 @@ monster modifiers on a magic/rare monster are still unheard; the remaining fragi
 - Scanner: long routes take ~200 ms on GameHelper's frame thread; a route along an octant boundary alternates
   "up 2, then up left" / "up left 2, then up"; the transition prompt "Press-Hold (Show Options)" is not read.
   A barrier never seen closed and past the network bubble still reads open (nothing to know it by).
-- A takes the nearest interactable the character faces, not the beacon's target: arrived at the camp's stash, A
-  talked to Finn standing beside it (2026-10-24). The game's own interaction target (its highlighted label with
-  the A glyph) is not read yet; reading it would let "Llegaste a Alijo" say what A will open.
 - A legend's inline item art is dropped: "Identificar x 1, X" under an unidentified item does not say it costs a
   Scroll of Wisdom (`<<itemvisual:CurrencyIdentification>>`; a BaseItemTypes/ItemVisualIdentity catalog would name it).
 - Skill tooltips read "Costo." with no value: the game draws the header with nothing under it (Chaos Bolt,

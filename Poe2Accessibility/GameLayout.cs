@@ -178,6 +178,13 @@ namespace Poe2Accessibility
         public static class TargetableComponent
         {
             public const int IsTargetableOffset = 0x69;
+
+            /// <summary>
+            ///     1 on the one entity A uses now, the one whose label shows the A glyph (GameHelper's
+            ///     IsTargettedByPlayer +0x53, moved like the flag above): the waypoint the character stood on, then the
+            ///     notice board walked up to (Clearfell Encampment, 2026-10-24).
+            /// </summary>
+            public const int IsTargetedOffset = 0x6B;
         }
 
         /// <summary>Entity AreaTransition component (2026-10-23 dump).</summary>

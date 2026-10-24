@@ -164,6 +164,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceBossLife) => T("Boss life", "Vida de jefes"),
             nameof(AccessibilitySettings.StatusAlerts) => T("Harmful states", "Estados alterados"),
             nameof(AccessibilitySettings.AnnounceNearby) => T("Name nearby things", "Nombrar cosas cercanas"),
+            nameof(AccessibilitySettings.AnnounceInteractTarget) => T("What the interact button uses", "Lo que usa el botón de interactuar"),
             nameof(AccessibilitySettings.AnnounceChat) => T("Chat", "Chat"),
             nameof(AccessibilitySettings.ReadTooltipsOnFocus) => T("Whole tooltips on focus", "Descripciones completas al enfocar"),
             nameof(AccessibilitySettings.AnnouncePickups) => T("Picked up items", "Objetos recogidos"),

@@ -26,6 +26,7 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.AnnounceBossLife)),
             Switch(nameof(AccessibilitySettings.StatusAlerts)),
             Switch(nameof(AccessibilitySettings.AnnounceNearby)),
+            Switch(nameof(AccessibilitySettings.AnnounceInteractTarget)),
             Switch(nameof(AccessibilitySettings.AnnounceChat)),
             Switch(nameof(AccessibilitySettings.ReadTooltipsOnFocus)),
             Switch(nameof(AccessibilitySettings.AnnouncePickups)),
