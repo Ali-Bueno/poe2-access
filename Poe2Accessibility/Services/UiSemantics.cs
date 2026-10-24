@@ -16,8 +16,11 @@ namespace Poe2Accessibility.Services
         /// <summary>Captions sit one or two levels below a button / combo box.</summary>
         private const int CaptionSearchDepth = 2;
 
-        /// <summary>Form rows (label column + control column) are within this many ancestors of the control (options rows: 3).</summary>
-        private const int RowSearchHops = 4;
+        /// <summary>
+        ///     Form rows (label column + control column) are within this many ancestors of the control (options rows: 3;
+        ///     the FPS limit's number field, wrapped beside its check box: 5).
+        /// </summary>
+        private const int RowSearchHops = 5;
 
         /// <summary>A named container right above an unnamed widget names it (news panel inside motd_frame).</summary>
         private const int NamedAncestorHops = 2;

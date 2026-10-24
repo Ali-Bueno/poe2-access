@@ -310,6 +310,7 @@ namespace Poe2Accessibility.Services
 
                 var index = -1;
                 var count = 0;
+                var kinds = new HashSet<IntPtr>();
                 foreach (var childAddress in this.elements.ReadChildren(parent))
                 {
                     if (this.elements.TryReadElement(childAddress, out var child) && child.IsVisibleFlag && this.HoldsControl(child, ListItemDepth))
@@ -319,8 +320,18 @@ namespace Poe2Accessibility.Services
                             index = count;
                         }
 
+                        kinds.Add(child.Raw.Vtable);
                         count++;
                     }
+                }
+
+                // A check box beside the number it enables ("Límite de FPS en primer plano" | 240) is one row of the
+                // section, not a list of two: controls of different kinds side by side are a compound row (the number
+                // sits in a wrapper, so its pair shows one level up).
+                if (kinds.Count > 1 && (level == 0 || count == 2))
+                {
+                    item = parent;
+                    continue;
                 }
 
                 if (count >= 2 && index >= 0)

@@ -297,7 +297,6 @@ wall tones, dodge whoosh, object sounds, the quest bell) and by use (barrier phr
 - Scanner: long routes take ~200 ms on GameHelper's frame thread; a route along an octant boundary alternates
   "up 2, then up left" / "up left 2, then up"; the transition prompt "Press-Hold (Show Options)" is not read.
   A barrier never seen closed and past the network bubble still reads open (nothing to know it by).
-- Options Graphics: the two "Límite de FPS" rows (check box beside a number) read "1 de 2", not their row.
 - Cosmetics: the weapon-set toggles "I / II" read only "desmarcado, casilla de verificación, 2 de 2" (the numerals
   are drawn, no text in memory).
 - After a host restart the first HUD texts ("Nuevo punto de control") and discoveries are announced again.

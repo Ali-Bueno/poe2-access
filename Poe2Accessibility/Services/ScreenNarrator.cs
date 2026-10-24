@@ -306,12 +306,24 @@ namespace Poe2Accessibility.Services
             this.lastExpanded = node.IsExpanded;
             this.tooltipSaid = this.ReadTooltips ? node.Tooltip : Array.Empty<string>();
             var focused = this.Focused(node);
+            var layer = this.FocusLayer?.Invoke() ?? IntPtr.Zero;
+            if (layer != this.lastFocusLayer)
+            {
+                this.lastGroup = string.Empty; // another screen: its section is news
+            }
+
             if (node.Group.Length > 0 && node.Group != this.lastGroup)
             {
                 focused = Announcements.InContext(node.Group, focused);
             }
 
-            this.lastGroup = node.Group;
+            if (node.Group.Length > 0)
+            {
+                // A control without a group of its own (the FPS limit's number beside its check box) does not leave
+                // the section: coming back is not news.
+                this.lastGroup = node.Group;
+            }
+
             var text = focused;
             if (node.Context.Length > 0 && node.Context != this.lastContext)
             {
@@ -324,7 +336,6 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastFocusSpeech = focused;
-            var layer = this.FocusLayer?.Invoke() ?? IntPtr.Zero;
             var intoNewLayer = layer != this.lastFocusLayer ||
                                (this.SinceConfirm?.Invoke() ?? long.MaxValue) < ConfirmOpensMs;
             this.lastFocusLayer = layer;
