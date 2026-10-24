@@ -309,7 +309,12 @@ namespace Poe2Accessibility
             cannotAfford ? T($"{amount} {currency}, not enough", $"{amount} {currency}, no alcanza") : $"{amount} {currency}";
 
         /// <summary>A label with the controller button bound to it ("Select, A").</summary>
-        public static string WithButton(string label, string button) => button.Length == 0 ? label : $"{label}, {button}";
+        /// <summary>
+        ///     "Show quests, X"; a label that goes on from its button ("&lt;&lt;view&gt;&gt; to open the menus.") keeps the
+        ///     game's order: "View to open the menus."
+        /// </summary>
+        public static string WithButton(string label, string button) =>
+            button.Length == 0 ? label : label.Length > 0 && char.IsLower(label[0]) ? $"{button} {label}" : $"{label}, {button}";
 
         /// <summary>"100%" or "(0/1)" still need a full stop; these already end a sentence or lead into the next.</summary>
         private const string SentenceEnds = ".!?:;";

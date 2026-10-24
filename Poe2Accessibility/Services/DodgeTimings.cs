@@ -101,15 +101,21 @@ namespace Poe2Accessibility.Services
             return timings;
         }
 
-        public static DodgeTimings Load(string path)
+        /// <summary>
+        ///     The shipped timings measured in development (<paramref name="seedPath"/>), then the player's own: their
+        ///     blows come later in each list, so they push the measured ones out.
+        /// </summary>
+        public static DodgeTimings Load(string seedPath, string path) => FromLines(ReadLines(seedPath).Concat(ReadLines(path)));
+
+        private static IEnumerable<string> ReadLines(string path)
         {
             try
             {
-                return File.Exists(path) ? FromLines(File.ReadAllLines(path)) : new DodgeTimings();
+                return File.Exists(path) ? File.ReadAllLines(path) : Array.Empty<string>();
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
-                return new DodgeTimings();
+                return Array.Empty<string>();
             }
         }
 

@@ -39,6 +39,7 @@ foreach ($file in 'Poe2Accessibility.dll', 'Poe2Accessibility.pdb', 'Prismatoid.
     Copy-Item (Join-Path $pluginBuild $file) $plugin
 }
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\*.json') (Join-Path $plugin 'catalog')
+Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\dodge-timings.txt') (Join-Path $plugin 'catalog') # measured dodge timings
 Copy-Item (Join-Path $repo 'external\GameHelper2\Plugins\Radar\important_tgt_files.txt') (Join-Path $plugin 'catalog') # named places; Radar is not shipped
 Set-Content -Path (Join-Path $plugin 'config\settings.txt') -Value '{ "ResearchMode": false }' -Encoding utf8
 

@@ -39,8 +39,11 @@ namespace Poe2Accessibility.Services
         /// <summary>A tutorial hint shown this soon after the HUD is back on top is the box reappearing, not news.</summary>
         private const int HudBackMs = 3000;
 
-        /// <summary>A tutorial hint shown again during play is said again after this long.</summary>
-        private const int TutorialRepeatMs = 60000;
+        /// <summary>
+        ///     A tutorial hint shown again during play is said again after this long: the low-mana lesson came back 28 s
+        ///     after it was said and held the character until the D-pad right flask, in silence (2026-10-24).
+        /// </summary>
+        private const int TutorialRepeatMs = 5000;
 
         /// <summary>The HUD read in this long after the host started inside an area was already there, not news.</summary>
         private const int ResumedHudMs = 2000;
@@ -660,6 +663,12 @@ namespace Poe2Accessibility.Services
                 var hints = change.Kind == ScreenChangeKind.TopLayerChanged
                     ? new List<ScreenText>()
                     : change.Texts.Where(text => this.TutorialIsNews(text.Text, focus == null && snapshot.TopInteractive?.Address == this.HudLayer)).ToList();
+                if (hints.Count > 0)
+                {
+                    // Its button line is the lesson's instruction: "You received a passive point. View to open the menus"
+                    // holds the character until View (2026-10-24: only the first line was said, the player stood still).
+                    hints.AddRange(legends);
+                }
                 if (hints.Count > 0 && this.deferredFocus != null)
                 {
                     // A panel opening with its hint (Skills beside the inventory: "Unidentified item. Press X…"): the

@@ -1,0 +1,4 @@
+# Dodge timings measured in development (BossWatch log lines "Dodge timing"), 0.5.5e, 2026-10-24.
+# One attack per line: monster path without its level, animation id, then the delays in ms from the attack's start to the blow.
+Metadata/Monsters/HuhuGrub/HuhuGrubLarvaeEmergeSummoned1_|1=437,453
+Metadata/Monsters/MudGolem/MudGolemWetEncased1|13=1156,1156

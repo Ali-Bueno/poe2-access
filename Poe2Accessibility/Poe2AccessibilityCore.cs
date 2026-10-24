@@ -106,6 +106,9 @@ namespace Poe2Accessibility
         /// <summary>When each kind of monster attack lands, learnt from the blows taken (BossWatch).</summary>
         private string DodgeTimingsPath => Path.Join(this.DllDirectory, "config", "dodge-timings.txt");
 
+        /// <summary>Timings measured in development, shipped so the first fights are timed too.</summary>
+        private string DodgeTimingsSeedPath => Path.Join(this.DllDirectory, "catalog", "dodge-timings.txt");
+
         /// <summary>The creation screen's name help was said for this visit (a refused name comes back to it).</summary>
         private bool creationHelpSaid;
 
@@ -202,7 +205,7 @@ namespace Poe2Accessibility
                 this.pickups = new InventoryWatch(inventory, this.output, this.log);
                 this.gold = new GoldWatch(memory, elements, this.output, this.log) { Fields = this.locator.Fields };
                 this.barriers = new BarrierWatch(this.entities, this.output, this.log);
-                this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = DodgeTimings.Load(this.DodgeTimingsPath), TimingsPath = this.DodgeTimingsPath };
+                this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = DodgeTimings.Load(this.DodgeTimingsSeedPath, this.DodgeTimingsPath), TimingsPath = this.DodgeTimingsPath };
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
                 var drops = ItemDropSounds.Load(
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
