@@ -127,6 +127,7 @@
 | Gold pick-ups | done (code) | `GoldWatch`: rise of the inventory's gold counter during play, "Recogido N de oro"; the counter is found with the panel hidden; a rise while hidden not seen yet (no gold dropped) |
 | Reach ping (D2R) | done (code) | `EnemyCues` + `ReachGate` (unit-tested): body gap from `Render.ModelBounds`; two rising notes, re-armed past reach + 25 |
 | Unexplored-areas scanner category | done (live) | `ExplorationMap` (unit-tested): "Sin explorar. Zona sin explorar, 7 pasos, arriba 4, luego arriba a la izquierda"; forgotten on area change and host restart |
+| Highlighted control without focus, league selector | done (live) | `FocusTracker`: a visible child named "hightlight" (the game's spelling) marks its parent pre-game: "Continuar, botón, 3 de 3" after the name field; combo values skip `*_popup` children ("Liga, Forbidden Rites…"), the popup is read after the focus; HUD `paused_frame` ignored |
 | Item comparison, NPC quest bell | todo | need an equippable item and the town (the Miller blocks the way; scripted attacks did nothing visible) |
 
 ## Derived facts (with source)
@@ -246,9 +247,10 @@ testing); then continue down `docs/d2r-gap-analysis.md` (item comparison, monste
 `ModsAndObjectMagicProperties` + Mods.dat names —, gold pickup amount, NPC quest bell, melee reach ping).
 
 ## Known issues / open questions
-- Character creation: the highlighted "Continue" button is not the UI manager's focus (M+0x748/0x750/0x760 all
-  empty while it shows; CreateCharacterState+0x2E8 = create_button); after the name field closes only the hints
-  ("Entrada, A") say what A does.
+- Character creation: the league dropdown's list (12 leagues) is not verified open — with the test pad as player 2
+  at that screen A does nothing, the mouse does not open it, and Enter submits the form (it answered "Ya existe un
+  personaje con este nombre": never press Enter there with a free name). Closed, it reads "Liga, Forbidden Rites,
+  lista desplegable, 2 de 3" and then the league's description.
 - Login gateway dropdown entries (name + latency columns) are not read while the list is open.
 - Landmark labels that are not area names ("Boss - Yama", "Chest") stay English.
 - Vendor opening also says "Gold" (an empty gold header in the inventory panel); NPC dialogue topics read "2 of 2"
@@ -275,7 +277,8 @@ testing); then continue down `docs/d2r-gap-analysis.md` (item comparison, monste
 - Passive tree: allocation facts rest on one allocated node (`docs/research/passive-tree.md` OPEN list); the
   class start is said as "inicio, DUELISTA" without a direction (the portrait has no node element).
 - Closing the game menu is silent now (D2R); Options opened from it starts with its page.
-- "Game Paused" is read when menus close.
+- Leaving to character selection says "Cargando. Selección de personaje. Cargando área" (a 16 ms pass through
+  the selection state is announced).
 - GameHelper's own automation plugins (AutoHotKeyTrigger, PickupHelper) were enabled; disabled in
   `configs/plugins.json` on 2026-10-23 (they press keys / click for the player).
 - Running from a path containing "poe" triggers GameHelper's launcher warning (its anti-detection advice).
