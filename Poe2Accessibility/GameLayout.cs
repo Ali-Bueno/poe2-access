@@ -35,6 +35,13 @@ namespace Poe2Accessibility
             /// <summary>Flags bit set on every interactive widget (buttons, combo boxes, text fields) and nothing else.</summary>
             public const int InteractiveFlagBit = 0x1B;
 
+            /// <summary>
+            ///     In game, set on what the controller cursor can land on (in-game controls lack <see cref="InteractiveFlagBit"/>):
+            ///     equipment slots, Skills rows, the spirit panel and the slots of the skill bind screen, and on nothing
+            ///     else of those panels (bind screen dump, 2026-10-24).
+            /// </summary>
+            public const int NavigableFlagBit = 0x0E;
+
             /// <summary>Flags bit set on elements that accept typed text (combo boxes and text fields).</summary>
             public const int TextInputFlagBit = 0x10;
 

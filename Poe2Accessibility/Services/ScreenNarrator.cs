@@ -73,6 +73,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A panel's opening and its becoming the top layer arrive in one frame (death screen): one reading.</summary>
         private (IntPtr Layer, string Text, DateTime At) lastPanel;
 
+        /// <summary>When a panel without focus opened: what its cursor shows a moment later follows its title.</summary>
+        private (IntPtr Layer, DateTime At) panelOpened;
+
         /// <summary>Texts just read out, so the same screen reported again a moment later (top layer) is not repeated.</summary>
         private (HashSet<string> Texts, DateTime At) recentTexts = (new HashSet<string>(), DateTime.MinValue);
 
@@ -101,6 +104,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A tab's page waiting to see whether a focus lands on it: tab, page, its texts, when.</summary>
         private (string Tab, string Page, HashSet<string> Texts, DateTime At)? pendingPage;
+
+        /// <summary>A tutorial hint that arrived while a new layer's focus was still waiting: said after that focus.</summary>
+        private string hintAfterFocus = string.Empty;
         private IntPtr lastFocusLayer;
 
         /// <summary>The layer holding the focus (FocusTracker), to notice a focus that moved into a popup.</summary>
@@ -111,6 +117,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Whether a text lies inside the panel with the given title; null reads every text.</summary>
         public Func<IntPtr, string, bool>? InPanel { get; set; }
+
+        /// <summary>Whether a text (first) belongs to another group of controls than the focus (second).</summary>
+        public Func<IntPtr, IntPtr, bool>? InOtherControlGroup { get; set; }
 
         /// <summary>Read a screen's message with its first focus (delete character); off for the game menu.</summary>
         public bool ReadScreenMessages { get; set; } = true;
@@ -219,6 +228,7 @@ namespace Poe2Accessibility.Services
             this.lastFocusLayer = IntPtr.Zero;
             this.deferredFocus = null;
             this.pendingPage = null;
+            this.hintAfterFocus = string.Empty;
         }
 
         /// <summary>
@@ -342,10 +352,11 @@ namespace Poe2Accessibility.Services
 
             if (this.ReadTooltips && node.Tooltip.Count > 0 && node.Address == this.valueOwner)
             {
-                // Only what was not said yet: a passive node's links come first, its description a moment later.
+                // Only what was not said yet: a passive node's links come first, its description a moment later; a
+                // title the focus announcement already holds is not news either.
                 var said = this.tooltipSaid;
                 this.tooltipSaid = node.Tooltip;
-                var fresh = node.Tooltip.Where(line => !said.Contains(line)).ToList();
+                var fresh = node.Tooltip.Where(line => !said.Contains(line) && !this.lastFocusSpeech.Contains(line, StringComparison.Ordinal)).ToList();
                 if (fresh.Count > 0)
                 {
                     this.Speak("tooltip of focus", Announcements.Sentences(fresh), false);
@@ -384,6 +395,13 @@ namespace Poe2Accessibility.Services
                 }
 
                 this.Speak("focus in a new layer", this.WithPendingPage(text), true);
+            }
+
+            if (this.deferredFocus == null && this.hintAfterFocus.Length > 0)
+            {
+                // The waiting focus was said (here or with a popup's message): the hint now.
+                this.Speak("objective after focus", this.hintAfterFocus, false);
+                this.hintAfterFocus = string.Empty;
             }
 
             if (this.pendingPage is { } pending && this.deferredFocus == null &&
@@ -485,7 +503,13 @@ namespace Poe2Accessibility.Services
                 var hints = change.Kind == ScreenChangeKind.TopLayerChanged
                     ? new List<ScreenText>()
                     : change.Texts.Where(text => this.TutorialIsNews(text.Text, focus == null && snapshot.TopInteractive?.Address == this.HudLayer)).ToList();
-                if (hints.Count > 0)
+                if (hints.Count > 0 && this.deferredFocus != null)
+                {
+                    // A panel opening with its hint (Skills beside the inventory: "Unidentified item. Press X…"): the
+                    // focus it is about first, which would otherwise cut the hint off.
+                    this.hintAfterFocus = Announcements.Sentences(new[] { this.hintAfterFocus, Describe(hints) });
+                }
+                else if (hints.Count > 0)
                 {
                     // In a menu the focus is what the player is listening to: a hint waits its turn there.
                     this.Speak("objective", Describe(hints), SpeechPriority.Interrupts(SpeechKind.Quest) && focus == null);
@@ -588,10 +612,19 @@ namespace Poe2Accessibility.Services
                         : Describe(content);
                     var repeated = this.lastPanel.Layer == change.Layer.Address && this.lastPanel.Text == shown &&
                                    (DateTime.UtcNow - this.lastPanel.At).TotalMilliseconds < RepeatedTabMs;
+                    // The waypoint map's hovered place arrives 300 ms after its title: it must not cut "Teletransporte,
+                    // acto 1" and the "Travel to town, Y" action off (2026-10-24).
+                    var opening = change.Kind == ScreenChangeKind.TextsAppeared && this.panelOpened.Layer == change.Layer.Address &&
+                                  (DateTime.UtcNow - this.panelOpened.At).TotalMilliseconds < FocusTextMergeMs;
+                    if (change.Kind == ScreenChangeKind.LayerOpened)
+                    {
+                        this.panelOpened = (change.Layer.Address, DateTime.UtcNow);
+                    }
+
                     if (shown.Length > 0 && !repeated)
                     {
                         this.lastPanel = (change.Layer.Address, shown, DateTime.UtcNow);
-                        this.Speak("panel without focus", shown, (DateTime.UtcNow - this.lastTabAt).TotalMilliseconds >= FocusTextMergeMs);
+                        this.Speak("panel without focus", shown, !opening && (DateTime.UtcNow - this.lastTabAt).TotalMilliseconds >= FocusTextMergeMs);
                     }
 
                     return;
@@ -622,10 +655,11 @@ namespace Poe2Accessibility.Services
                 var own = focus == null ? new HashSet<string>() : new HashSet<string>(focus.ListItems) { focus.Text, focus.Value, focus.Group };
                 var said = (DateTime.UtcNow - this.recentTexts.At).TotalMilliseconds < RecentTextsMs ? this.recentTexts.Texts : new HashSet<string>();
                 var chrome = this.Chrome(change.Texts);
-                var texts = Describe(PairNumbers(change.Texts).Where(text => !own.Contains(text.Text) && !IsNumber(text.Text) && !said.Contains(text.Text) &&
-                                                                !chrome.Contains(text.Address) && text.Name != TierLabelName &&
-                                                                !(text.Text.Length > ShortLabelChars && (focus?.Text.Contains(text.Text, StringComparison.Ordinal) ?? false)) &&
-                                                                !InFocusContext(focus, text.Text)));
+                var kept = PairNumbers(change.Texts).Where(text => !own.Contains(text.Text) && !IsNumber(text.Text) && !said.Contains(text.Text) &&
+                                                                  !chrome.Contains(text.Address) && text.Name != TierLabelName &&
+                                                                  !(text.Text.Length > ShortLabelChars && (focus?.Text.Contains(text.Text, StringComparison.Ordinal) ?? false)) &&
+                                                                  !InFocusContext(focus, text.Text)).ToList();
+                var texts = Describe(kept);
                 if (texts.Length == 0)
                 {
                     return;
@@ -664,8 +698,13 @@ namespace Poe2Accessibility.Services
                 }
                 else if (change.Kind == ScreenChangeKind.LayerOpened && justFocused)
                 {
-                    // A box opened on the focus (NPC dialogue: speaker, then the line and Continue the focus holds).
-                    this.Speak("opened with focus", Announcements.Sentences(new[] { texts, this.lastFocusSpeech }), true);
+                    // A box opened on the focus (NPC dialogue: speaker, then the line and Continue the focus holds). The
+                    // captions of other control groups beside it are read when the cursor goes there (skill bind screen:
+                    // "Choose the button to bind Chaos Bolt", the primary set, the slot — not the spirit panel).
+                    var near = focus == null || this.InOtherControlGroup is not { } other
+                        ? texts
+                        : Describe(kept.Where(text => !other(text.Address, focus.Address)));
+                    this.Speak("opened with focus", Announcements.Sentences(new[] { near, this.lastFocusSpeech }), true);
                 }
                 else if (change.Kind == ScreenChangeKind.LayerOpened)
                 {

@@ -78,7 +78,24 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            return button.Length == 0 ? null : new AccessibleUiNode
+            if (button.Length == 0)
+            {
+                // A cell of the skill picker (Y on a bind screen slot: every skill and action that can go there,
+                // 2026-10-24): no glyph, the skill or action it holds names it.
+                var held = skill.Length > 0 ? skill : bound;
+                return held.Length == 0 || !info.HasFlagBit(GameLayout.Element.NavigableFlagBit) ? null : new AccessibleUiNode
+                {
+                    Address = info.Address,
+                    Name = info.Name,
+                    Role = UiRole.Panel,
+                    Text = held,
+                    IsVisible = this.elements.IsVisible(info),
+                    Context = this.PanelTitle(info),
+                    Tooltip = details,
+                };
+            }
+
+            return new AccessibleUiNode
             {
                 Address = info.Address,
                 Name = info.Name,
@@ -87,8 +104,32 @@ namespace Poe2Accessibility.Services
                 Value = skill.Length > 0 ? skill : bound.Length > 0 ? bound : icon.Length > 0 ? icon : Announcements.Empty, // binding reads just the new skill
                 IsVisible = this.elements.IsVisible(info),
                 Context = this.PanelTitle(info),
+                Group = this.SlotRowCaption(info),
                 Tooltip = details,
             };
+        }
+
+        /// <summary>
+        ///     The caption beside a row of slots ("Set de habilidades principal" before the twelve slots of the skill bind
+        ///     screen, 2026-10-24): a text among the slot's siblings. Said when the cursor moves into that row.
+        /// </summary>
+        private string SlotRowCaption(in UiElementReader.ElementInfo slot)
+        {
+            if (!this.elements.TryReadElement(slot.Raw.ParentPtr, out var row))
+            {
+                return string.Empty;
+            }
+
+            foreach (var sibling in this.elements.ReadChildren(row))
+            {
+                if (sibling != slot.Address && this.elements.TryReadElement(sibling, out var info) && info.IsVisibleFlag &&
+                    this.elements.TryReadSpokenText(sibling, out var caption) && caption.Length > 0)
+                {
+                    return caption;
+                }
+            }
+
+            return string.Empty;
         }
 
         /// <summary>"Art/…/SkillIcons/GamepadActions/DodgeRoll.dds|0,0,0,0|0" → "Dodge Roll".</summary>

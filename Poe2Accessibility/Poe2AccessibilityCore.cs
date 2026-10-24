@@ -179,6 +179,7 @@ namespace Poe2Accessibility
                 this.commands.SkillBar = this.ReadSkillBar;
                 SpeechPriority.Chosen = this.SpeechLevel;
                 this.narrator.InPanel = this.semantics.IsInPanel;
+                this.narrator.InOtherControlGroup = this.semantics.InOtherControlGroup;
                 this.narrator.SelectorPosition = this.semantics.SelectorPosition;
                 this.narrator.Refresh = node => this.semantics?.Describe(node.Address, node.IsHovered);
                 this.semantics.PlayerPath = () => Core.States.InGameStateObject.CurrentAreaInstance.Player.Path ?? string.Empty;

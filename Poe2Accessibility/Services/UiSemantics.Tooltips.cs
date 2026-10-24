@@ -12,6 +12,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A rich tooltip (skill gem: title, tags, level, cost, damage, description) stays under this many nodes.</summary>
         private const int MaxTooltipNodes = 200;
 
+        /// <summary>The English name a localised client prints under a tooltip's title ("Escudo de energía", "(Energy Shield)").</summary>
+        private static readonly Regex EnglishName = new(@"^\([A-Za-z' -]+\)$", RegexOptions.Compiled);
+
         private static string ShownText(Match link) => link.Groups[2].Success ? link.Groups[2].Value : link.Groups[1].Value;
 
         /// <summary>
@@ -120,6 +123,11 @@ namespace Poe2Accessibility.Services
             if (unmet.Count > 0)
             {
                 lines.Insert(Math.Min(priced ? 2 : 1, lines.Count), Announcements.Unmet(string.Join(", ", unmet)));
+            }
+
+            if (lines.Count > 1 && EnglishName.IsMatch(lines[1]))
+            {
+                lines.RemoveAt(1);
             }
 
             return lines;
