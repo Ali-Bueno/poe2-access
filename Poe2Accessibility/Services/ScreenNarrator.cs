@@ -36,6 +36,11 @@ namespace Poe2Accessibility.Services
         /// <summary>An item's tier numeral ("I") beside its name, which already says its level.</summary>
         private const string TierLabelName = "tier_label";
 
+        /// <summary>A kept line is held about as long as a screen reader takes to say it, within these bounds.</summary>
+        private const int SpokenMsPerChar = 45;
+        private const int MinKeepMs = 1500;
+        private const int MaxKeepMs = 6000;
+
         /// <summary>A tutorial hint shown this soon after the HUD is back on top is the box reappearing, not news.</summary>
         private const int HudBackMs = 3000;
 
@@ -680,8 +685,10 @@ namespace Poe2Accessibility.Services
                 }
                 else if (hints.Count > 0)
                 {
-                    // In a menu the focus is what the player is listening to: a hint waits its turn there.
-                    this.Speak("objective", Describe(hints), SpeechPriority.Interrupts(SpeechKind.Quest) && focus == null);
+                    // In a menu the focus is what the player is listening to: a hint waits its turn there. In play it is
+                    // kept whole: "Before going on, engrave your uncut skill gem" was cut by the beacon's arrival while the
+                    // game barred the way out (2026-10-24).
+                    this.Speak("objective", Describe(hints), SpeechPriority.Interrupts(SpeechKind.Quest) && focus == null, keep: focus == null);
                 }
 
                 return;
@@ -1130,7 +1137,7 @@ namespace Poe2Accessibility.Services
 
         private static bool IsBehind(ScreenLayer layer, ScreenLayer? top) => top != null && layer.Index < top.Index;
 
-        private void Speak(string reason, string text, bool interrupt)
+        private void Speak(string reason, string text, bool interrupt, bool keep = false)
         {
             if (text.Length == 0)
             {
@@ -1156,6 +1163,12 @@ namespace Poe2Accessibility.Services
             if (this.deferredFocus is { } deferred && text.Contains(this.lastFocusSpeech, StringComparison.Ordinal))
             {
                 this.deferredFocus = null; // the popup's message carried the focus with it
+            }
+
+            if (keep && !interrupt && this.deferredFocus == null)
+            {
+                this.output.Keep(text, Math.Clamp(text.Length * SpokenMsPerChar, MinKeepMs, MaxKeepMs));
+                return;
             }
 
             this.output.Speak(text, interrupt || this.deferredFocus != null);

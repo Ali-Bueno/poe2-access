@@ -19,6 +19,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         void Urge(string text, int holdMs = 1500);
 
+        /// <summary>
+        ///     Queues the phrase like <see cref="Speak"/> without interrupting, then lets no interrupting phrase cut it for
+        ///     <paramref name="holdMs"/>: a lesson that holds the character still must be heard whole.
+        /// </summary>
+        void Keep(string text, int holdMs) => this.Speak(text);
+
         /// <summary>Re-speak the last announcement (user hotkey).</summary>
         void Repeat();
 

@@ -109,6 +109,18 @@ namespace Poe2Accessibility.Services
             this.urgedUntil = until > this.urgedUntil ? until : this.urgedUntil;
         }
 
+        public void Keep(string text, int holdMs)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return;
+            }
+
+            var until = DateTime.UtcNow.AddMilliseconds(holdMs);
+            this.Speak(text, false);
+            this.urgedUntil = until > this.urgedUntil ? until : this.urgedUntil;
+        }
+
         public void Repeat()
         {
             if (string.IsNullOrEmpty(this.lastText))
