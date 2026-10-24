@@ -990,6 +990,13 @@ namespace Poe2Accessibility
                 this.creationHelpSaid = false;
             }
 
+            if (current == GameStateTypes.AreaLoadingState)
+            {
+                // A respawn reloads the same area without an area change; its barriers come back reading open for a
+                // moment ("Se abrió el paso" after a death, 2026-10-24): learnt again without a word.
+                this.barriers?.Reset();
+            }
+
             this.screen?.Reset(false);
             this.narrator?.Reset(current == GameStateTypes.InGameState);
             if (this.narrator != null)

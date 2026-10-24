@@ -29,6 +29,12 @@ namespace Poe2Accessibility.Services
         private readonly AudioCueService audio;
         private readonly float[]? sound;
         private readonly HashSet<uint> seen = new();
+
+        /// <summary>
+        ///     Unique monsters already announced, by name: the Devourer comes back as a new entity each time it emerges and
+        ///     after a death ("Jefe a la vista: El devorador" four times in three minutes, 2026-10-24).
+        /// </summary>
+        private readonly HashSet<string> seenUniques = new(StringComparer.Ordinal);
         private readonly List<ScanEntry> waiting = new();
         private long areaStartedAt = Environment.TickCount64;
         private bool resumed;
@@ -48,6 +54,7 @@ namespace Poe2Accessibility.Services
         public void Reset(bool resumed)
         {
             this.seen.Clear();
+            this.seenUniques.Clear();
             this.waiting.Clear();
             this.areaStartedAt = Environment.TickCount64;
             this.resumed = resumed;
@@ -69,7 +76,8 @@ namespace Poe2Accessibility.Services
             var entries = this.catalog.Entries();
             foreach (var entry in entries)
             {
-                if (!EntityCatalog.IsEntity(entry) || !IsDiscovery(entry) || !this.seen.Add(entry.Id))
+                if (!EntityCatalog.IsEntity(entry) || !IsDiscovery(entry) || !this.seen.Add(entry.Id) ||
+                    (entry.Category == ScanCategory.Enemies && !this.seenUniques.Add(entry.Name)))
                 {
                     continue;
                 }
