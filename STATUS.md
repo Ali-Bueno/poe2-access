@@ -310,7 +310,8 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-Characters: "kehgan" (Monk, level 2, Clearfell Encampment; a town NPC shows a quest marker), "yarkbruja" (Witch, level 3,
+Next fix: disabled option rows say nothing (page index +0x370 measured; `docs/research/ui-sweep-2026-10-25.md`), then
+the rest of that sweep. Characters: "kehgan" (Monk, level 2, Clearfell Encampment; a town NPC shows a quest marker), "yarkbruja" (Witch, level 3,
 Clearfell Encampment, no NPC marker), "yarkey" (Mercenary, level 4, Mud Burrow). Start in town from character selection:
 `desktop.py combo l2 cross --seconds 1.8` (away from town the confirmation's Cancel is focused: D-pad right, then A). Next: user test of the 2026-10-25 batch (places and the Lugares category, the other
 languages, projectile dodge timing, quieter area loads, the new package layout) and of the 2026-10-24 one (wall tones,
