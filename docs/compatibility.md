@@ -64,7 +64,14 @@ whose text differs between the English table and its Spanish copy (a string colu
 character in 80% of rows; the name differs in a quarter of the rows that have one). In a datc64 a string is 8 bytes, as
 wide as the pointer in memory, so the file's column offset is the row offset the plugin reads (0.5.5e: Mods.Name 0x62,
 PassiveSkills.Name 0x32, ActiveSkills.DisplayedName 0x8, all as measured live). The plugin applies the file at start
-(`DatColumns`, logged "where measured" / "moved from … to …"); the PassiveSkills flags beside the name follow its shift.
+(`DatColumns`, logged "where measured" / "moved from … to …").
+
+Flags and keys are found by what they hold (`DatContentColumns`), each on its own, so a column added between them is
+followed too: a flag column is the 0/1 column set on the most rows whose Id carries its word (`keystone`, `notable`,
+`mastery`, `jewel`; those rows at least a quarter of its set rows), the graph id the u16 column distinct on every row,
+the class list the only key list into Characters, the per-level effect key the key column reaching nearly every
+GrantedEffects row, and the ActiveSkills key the one whose target Ids appear inside the effect Ids (0.5.5e: 1160 rows,
+the next column 41). A PassiveSkills column a launcher did not write follows the name's shift.
 
 ## Still needs a person after a patch
 - GameHelper2 upstream offsets: pull and rebuild (`external/GameHelper2`), then `tools/package/New-TestPackage.ps1`.
@@ -76,11 +83,10 @@ PassiveSkills.Name 0x32, ActiveSkills.DisplayedName 0x8, all as measured live). 
 What a patch can still move with nothing to find it again, most player-visible first, each with the idea to try.
 
 1. ~~Monster modifier names~~ and the passive and skill names: found again from the files (`dat-columns`, above).
-2. **Flag and key columns** (`PassiveTree.RowKeystone/Notable/IconOnly/JewelSocket/Characters/GraphId` follow the
-   passive name's shift, which is right only when the change came before the name; `SkillSlot` level, effect and skill
-   keys): need the community schema (poe-tool-dev/dat-schema) or known rows (a known keystone's flag set).
-   `BaseComponent.NameOffset` is a std::wstring in GameHelper's in-memory row, not a dat column: check it against the
-   item's tooltip title.
+2. ~~Flag and key columns~~ (PassiveSkills graph id, class list, keystone/notable/mastery/jewel flags; the skill
+   bar's GrantedEffectsPerLevel → GrantedEffects → ActiveSkills keys): found by content (`DatContentColumns`, above).
+   Still open: `BaseComponent.NameOffset` is a std::wstring in GameHelper's in-memory row, not a dat column: check it
+   against the item's tooltip title.
 3. ~~The launcher's own columns~~ (`ItemSoundExtractor`): kept while the row sizes match and each column still holds
    what it must; else found by content: sound paths are string columns of `Audio/…` text, a key column holds null keys
    or row indices of its target and is ranked by how many item drop samples its keys lead to (0.5.5e: the measured

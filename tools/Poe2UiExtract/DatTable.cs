@@ -78,6 +78,32 @@ internal sealed class DatTable
     /// <summary>A one-byte flag column.</summary>
     public bool Bool(int row, int offset) => offset >= 0 && offset < this.RowSize && this.data[this.RowStart(row) + offset] != 0;
 
+    /// <summary>2 bytes at any offset of a row; -1 past its end.</summary>
+    public int UInt16(int row, int offset) => offset >= 0 && offset + 2 <= this.RowSize ? BitConverter.ToUInt16(this.data, this.RowStart(row) + offset) : -1;
+
+    /// <summary>A one-byte flag column: every row holds 0 or 1, and both occur.</summary>
+    public bool IsFlagColumn(int offset)
+    {
+        if (offset < 0 || offset >= this.RowSize)
+        {
+            return false;
+        }
+
+        int set = 0;
+        for (var row = 0; row < this.RowCount; row++)
+        {
+            var value = this.data[this.RowStart(row) + offset];
+            if (value > 1)
+            {
+                return false;
+            }
+
+            set += value;
+        }
+
+        return set > 0 && set < this.RowCount;
+    }
+
     /// <summary>A list column of foreign keys (16 bytes each, the row index first).</summary>
     public IReadOnlyList<long> KeyList(int row, int offset) =>
         this.ListItems(row, offset, 16).Select(at => BitConverter.ToInt64(this.data, at)).ToList();

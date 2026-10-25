@@ -2,10 +2,11 @@ using System.Text.Json;
 using Index = LibBundle3.Index;
 
 /// <summary>
-///     `dat-columns` command: finds, in the player's own install, the dat columns the plugin reads names from, so a game
-///     update that moves them is followed without a new plugin build. A display name is the first string column whose
-///     text differs between the English table and a translated copy (the Id column is the same in both); the file's
-///     column offset is the row offset in memory, a string being 8 bytes in both. Writes { "Table.Column": offset }.
+///     `dat-columns` command: finds, in the player's own install, the dat columns the plugin reads, so a game update that
+///     moves them is followed without a new plugin build. A display name is the first string column whose text differs
+///     between the English table and a translated copy (the Id column is the same in both); flags and keys are found by
+///     what they hold (<see cref="DatContentColumns"/>). The file's column offset is the row offset in memory, a string
+///     or key being as wide as its pointers. Writes { "Table.Column": offset }.
 /// </summary>
 internal static class DatColumnExtractor
 {
@@ -51,6 +52,16 @@ internal static class DatColumnExtractor
             {
                 Console.WriteLine($"{column}: no translated column found, left out");
             }
+        }
+
+        foreach (var (column, offset, measured) in DatContentColumns.Find(index))
+        {
+            if (offset is { } at)
+            {
+                found[column] = at;
+            }
+
+            Console.WriteLine(offset is { } where ? $"{column}: +0x{where:X} (measured +0x{measured:X})" : $"{column}: not recognised, left out");
         }
 
         if (found.Count == 0)

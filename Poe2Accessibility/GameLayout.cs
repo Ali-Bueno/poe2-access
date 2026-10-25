@@ -312,31 +312,26 @@ namespace Poe2Accessibility
 
             public const int AllocatedEntrySize = 4;
 
-            /// <summary>PassiveSkills row (unaligned): graph id, name, class list, kind flags.</summary>
-            public static int RowGraphIdOffset => 0x30 + RowShift;
+            /// <summary>PassiveSkills row (unaligned): u16 graph id; each column is followed by DatColumns.</summary>
+            public static int RowGraphIdOffset { get; internal set; } = 0x30;
 
-            /// <summary>The name column as measured; <see cref="RowShift"/> follows it when the dat-columns catalog finds it moved.</summary>
-            public const int MeasuredRowNameOffset = 0x32;
+            public static int RowNameOffset { get; internal set; } = 0x32;
 
-            public static int RowNameOffset => MeasuredRowNameOffset + RowShift;
+            /// <summary>(count, pointer) to 16-byte keys into Characters.dat — set only on class start nodes.</summary>
+            public static int RowCharactersOffset { get; internal set; } = 0x3A;
 
-            /// <summary>Row +0x3A: (count, pointer) to 16-byte keys into Characters.dat — set only on class start nodes.</summary>
-            public static int RowCharactersOffset => 0x3A + RowShift;
+            public static int RowKeystoneOffset { get; internal set; } = 0x4A;
 
-            public static int RowKeystoneOffset => 0x4A + RowShift;
-
-            public static int RowNotableOffset => 0x4B + RowShift;
+            public static int RowNotableOffset { get; internal set; } = 0x4B;
 
             /// <summary>"Mastery" decoration: drawn as a large icon, its links are not drawn.</summary>
-            public static int RowIconOnlyOffset => 0x54 + RowShift;
+            public static int RowIconOnlyOffset { get; internal set; } = 0x54;
 
-            public static int RowJewelSocketOffset => 0x65 + RowShift;
+            public static int RowJewelSocketOffset { get; internal set; } = 0x65;
 
-            /// <summary>Bytes of the row read at once (up to the jewel socket flag).</summary>
-            public static int RowBytes => 0x70 + RowShift;
-
-            /// <summary>How far the name column moved from where it was measured; the row's other fields move with it.</summary>
-            public static int RowShift { get; internal set; }
+            /// <summary>Bytes of the row read at once: up to the last column read.</summary>
+            public static int RowBytes => System.Math.Max(System.Math.Max(RowNameOffset + 8, RowCharactersOffset + KeySize),
+                System.Math.Max(System.Math.Max(RowKeystoneOffset, RowNotableOffset), System.Math.Max(RowIconOnlyOffset, RowJewelSocketOffset)) + 1);
 
             /// <summary>Characters row +0x00: its Id, the player's metadata path ("Metadata/Characters/StrDex/StrDexFourb").</summary>
             public const int CharacterIdOffset = 0x0;
@@ -372,12 +367,12 @@ namespace Poe2Accessibility
 
             public const string LevelTable = "Data/Balance/GrantedEffectsPerLevel.dat";
 
-            public const int EffectKeyOffset = 0x0;
+            public static int EffectKeyOffset { get; internal set; } = 0x0;
 
             public const string EffectTable = "Data/Balance/GrantedEffects.dat";
 
             /// <summary>GrantedEffects → ActiveSkills (unaligned).</summary>
-            public const int SkillKeyOffset = 0x4F;
+            public static int SkillKeyOffset { get; internal set; } = 0x4F;
 
             public const string SkillTable = "Data/Balance/ActiveSkills.dat";
 

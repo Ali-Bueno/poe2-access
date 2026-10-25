@@ -1,5 +1,13 @@
 {
   "ActiveSkills.DisplayedName": 8,
+  "GrantedEffects.ActiveSkill": 79,
+  "GrantedEffectsPerLevel.GrantedEffect": 0,
   "Mods.Name": 98,
+  "PassiveSkills.Characters": 58,
+  "PassiveSkills.GraphId": 48,
+  "PassiveSkills.IsIconOnly": 84,
+  "PassiveSkills.IsJewelSocket": 101,
+  "PassiveSkills.IsKeystone": 74,
+  "PassiveSkills.IsNotable": 75,
   "PassiveSkills.Name": 50
 }
