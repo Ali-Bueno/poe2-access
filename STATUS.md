@@ -112,7 +112,7 @@
 | Boss life + dodge warning | done (live) | "El molinero hinchado 72 por ciento"; whoosh + snap only on attack animations (`DodgeThreats`), a rare's blow within 150 units, louder when closer; timed half a second before the blow as learnt from the hits taken (`DodgeTimings`, `config/dodge-timings.txt`; MudGolem GroundSlam 1156 ms), at the wind-up until learnt (`docs/research/dodge-timing.md`) |
 | Cue timbres and mixer | done (code) | beacon an iron chime, dodge a blade swing with a ringing snap and thud, both in a short stone-room tail; growl with a sub-octave; levels raised toward the game's own sounds; soft limiter instead of clipping (`CueSynth.Limit`) |
 | Mana warnings, vitals on L3 double tap | done (live) | "Maná 50 por ciento"; "Vida 85 por ciento, maná 100 por ciento. El molinero hinchado 65 por ciento" |
-| Vitals: flask uses, level progress, explored share (D2R) | done (live) | "Frasco de vida menor, 6 usos… Nivel 3, 5 por ciento hacia el nivel 4, nivel del área 15. Explorado 41 por ciento" (2026-10-25); `FlaskWatch` (GameHelper FlaskInventory + Charges 60/10), `ExperienceTable` (`catalog/experience.json` from ExperienceLevels), `ExplorationMap.ExploredPercent`; empty-flask warning not heard (full-life flasks are not spent in town) |
+| Vitals: flask uses, level progress, explored share (D2R) | done (live) | "Frasco de vida menor, 6 usos… Nivel 3, 5 por ciento hacia el nivel 4, nivel del área 15. Explorado 41 por ciento" (2026-10-25); `FlaskWatch` (GameHelper FlaskInventory + Charges 60/10), `ExperienceTable` (`catalog/experience.json` from ExperienceLevels), `ExplorationMap.ExploredPercent`; empty-flask warning heard: "Frasco de maná menor vacío" after six drinks in Clearfell, then the game's own "Sin frascos" (2026-10-25; flasks are not drunk in town or at full life/mana) |
 | Loot filter for item sounds and approach names (D2R) | done (code) | `LootFilter`, setting "Objetos que suenan y se nombran": todos / mágicos o mejores / solo monedas, gemas, objetos de misión, raros y únicos; the scanner still lists every item; not heard live (no ground items in town) |
 | Target name on right-stick aim, crosshair beep | done (code) | GameHelper `MouseOverEntity`; never heard live yet (no monster under the aim during the bot test) |
 | Harmful states (Urge speech) | done (code) | `StatusWatch` (buff ids by stem; every new id logged "Player buff seen"); the mod's heartbeat was removed (the game has its own, user 2026-10-24) |
@@ -317,7 +317,8 @@ languages, projectile dodge timing, quieter area loads, the new package layout) 
 untested: voiced NPC lines come as chat lines and are read; a cinematic's text has never been on screen in a test. Places: measure the other tile rotation selectors and place the
 rooms of generated areas (`docs/research/places.md`, Open). After a game patch: `pwsh tools/package/Update-GameHelper.ps1`, then the dev command
 `layout` through the screens listed in `docs/compatibility.md` (self-test); no part is left unchecked. Not yet heard
-live: the loot filter's quieter settings and the dry-flask warning.
+live: the loot filter's quieter settings (kehgan carries no normal item; a white drop with "solo valiosos" set
+must stay silent).
 
 ## Known issues / open questions
 - Character creation: the league dropdown's list (12 leagues) is not verified open — with the test pad as player 2
