@@ -442,6 +442,28 @@ namespace Poe2Accessibility
             public const int IndexOffset = 0x394;
         }
 
+        /// <summary>
+        ///     The area's tile grid (GameHelper's TerrainStruct.TileDetailsPtr: TileStructure records, row by row; each
+        ///     points at a TgtFileStruct holding the tile's .tdt path). Read raw so a moved field can be found again
+        ///     (TileGridSearch); measured as GameHelper's structs on 0.5.5e (Act 1 town, 990 sub-tiles).
+        /// </summary>
+        public static class TileGrid
+        {
+            public const int MeasuredStride = 0x38;
+
+            /// <summary>Record size; follows the grid's bytes over its sub-tiles when a search found the grid moved.</summary>
+            public static int Stride { get; internal set; } = MeasuredStride;
+
+            /// <summary>Pointer to the tile file (TileStructure.TgtFilePtr).</summary>
+            public static int FileOffset { get; internal set; } = 0x8;
+
+            /// <summary>std::wstring path in the tile file, after its vtable (TgtFileStruct.TgtPath).</summary>
+            public static int PathOffset { get; internal set; } = 0x8;
+
+            /// <summary>The sub-tile's x within its tile; y at +1, the rotation selector at +2 (tileIdX, tileIdY, RotationSelector).</summary>
+            public static int IdsOffset { get; internal set; } = 0x34;
+        }
+
         /// <summary>Inventory item element (grid child or slot content).</summary>
         public static class InventoryItem
         {

@@ -73,6 +73,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(MovedFieldsAreFoundByWatchingThemChange), MovedFieldsAreFoundByWatchingThemChange);
             Run(nameof(FlagBitsAreFoundOnTheirCarriers), FlagBitsAreFoundOnTheirCarriers);
             Run(nameof(PadButtonsFollowTheLeftTrigger), PadButtonsFollowTheLeftTrigger);
+            Run(nameof(TileGridIsFoundByWhatItsRecordsHold), TileGridIsFoundByWhatItsRecordsHold);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -642,6 +643,39 @@ namespace Poe2Accessibility.Tests
 
             Equal(true, none.Judged, "judged");
             Equal(null, none.Shift, "no bit follows the trigger");
+        }
+
+        private static void TileGridIsFoundByWhatItsRecordsHold()
+        {
+            // Six rows of ten sub-tiles; each tile spans five sub-tiles of two rows, its file at 0x1000 + 0x100 per tile.
+            const int perRow = 10;
+            const int subTiles = 60;
+            static byte[] Grid(TileGridSearch.Layout layout, bool ids)
+            {
+                var noise = new Random(7);
+                var grid = new byte[subTiles * layout.Stride];
+                noise.NextBytes(grid);
+                for (var i = 0; i < subTiles; i++)
+                {
+                    var (row, column) = (i / perRow, i % perRow);
+                    var tile = ((row / 2) * 2) + (column / 5);
+                    var at = i * layout.Stride;
+                    BitConverter.GetBytes(0x1000L + (tile * 0x100)).CopyTo(grid, at + layout.FileOffset);
+                    (grid[at + layout.IdsOffset], grid[at + layout.IdsOffset + 1], grid[at + layout.IdsOffset + 2]) =
+                        ids ? ((byte)(column % 5), (byte)(row % 2), (byte)(tile % 8)) : ((byte)0, (byte)0, (byte)0);
+                }
+
+                return grid;
+            }
+
+            static bool NamesTile(long file, int path) => path == 0x10 && file is >= 0x1000 and < 0x2000;
+            var measured = new TileGridSearch.Layout(0x38, 0x8, 0x10, 0x34);
+            var moved = new TileGridSearch.Layout(0x40, 0x10, 0x10, 0x3A);
+            Equal(measured, TileGridSearch.Find(Grid(measured, true), subTiles, perRow, measured, NamesTile), "where measured");
+            Equal(moved, TileGridSearch.Find(Grid(moved, true), subTiles, perRow, measured, NamesTile), "a longer record with its fields moved");
+            Equal(null, TileGridSearch.Find(Grid(measured, false), subTiles, perRow, measured, NamesTile), "no bytes step between neighbours");
+            Equal(null, TileGridSearch.Find(Grid(measured, true), subTiles + 1, perRow, measured, NamesTile), "bytes that are not whole records");
+            Equal((0x38, 0x40), TileGridSearch.FirstMoved(measured, moved), "the record size is reported first");
         }
 
         private static void KnownPlacesOutliveTheSession()
