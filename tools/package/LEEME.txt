@@ -10,14 +10,15 @@ QUÉ NECESITAS
 - Path of Exile 2 de Steam. El mod se adapta solo a la mayoría de las actualizaciones del juego. Si una actualización cambia algo que no encuentra, te lo dice al arrancar ("Aviso de compatibilidad: no encuentro…"). En ese caso, espera una versión nueva del mod.
 - Un lector de pantalla. Se recomienda NVDA. Si no tienes ninguno, se usa la voz de Windows.
 - Un mando de Xbox o de PlayStation. El mod está pensado para jugar con mando.
-No hace falta instalar nada más: todo va dentro de esta carpeta.
+No hace falta instalar nada más: todo va dentro de esta carpeta. Poe2Access.exe arranca el mod; lo demás está en la carpeta "app" y no hace falta tocarlo.
+El mod habla en el idioma en que tengas el juego (los diez idiomas del juego).
 
 CÓMO EMPEZAR
 1. Descomprime la carpeta donde quieras.
    Si al abrir el mod Windows dice "Windows protegió tu PC", elige "Más información" y luego "Ejecutar de todas formas". Para evitarlo, antes de descomprimir abre las Propiedades del archivo zip, marca "Desbloquear" y acepta.
 2. Abre Steam.
 3. Haz doble clic en Poe2Access.exe. Abre el juego si no estaba abierto y arranca el mod. La primera vez, y después de cada actualización del juego, prepara los sonidos y los datos a partir de tu propia instalación. Tarda unos 30 segundos, durante los que no oirás nada; espera.
-4. Oirás "Accesibilidad de Path of Exile 2 lista" y, cuando el mod se conecte al juego, "Game Helper conectado al juego".
+4. Oirás "Accesibilidad de Path of Exile 2 lista" y, cuando el mod se conecte al juego, "Juego detectado" con la pantalla en la que estás.
 5. En la pantalla de inicio del juego, pulsa un botón del MANDO, no el ratón ni el teclado. El juego elige el método de control en ese momento, y si entras con el ratón, ignora el mando hasta que vuelvas al menú principal.
 
 CONTROLES BÁSICOS
@@ -35,8 +36,8 @@ El mod se cierra solo al salir del juego. También puedes usar "Detener el mod.b
 
 SI ALGO FALLA
 Envía estos dos archivos a quien te pasó el mod:
-- Poe2Access.log, en esta carpeta.
-- Plugins\Poe2Accessibility\logs\accessibility.log
+- app\Poe2Access.log
+- app\Plugins\Poe2Accessibility\logs\accessibility.log
 Si puedes, di también qué estabas haciendo y a qué hora.
 
 CRÉDITOS

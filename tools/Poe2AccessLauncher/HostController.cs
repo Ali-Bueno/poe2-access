@@ -11,6 +11,9 @@ internal sealed class HostController(string hostDirectory)
     private const int ExitWaitMilliseconds = 10_000;
     private const int StartupCheckMilliseconds = 1_500;
 
+    /// <summary>The test package keeps GameHelper and everything else in "app" beside this one executable.</summary>
+    public static string PackagedHostDirectory => Path.Join(AppContext.BaseDirectory, "app");
+
     public static string ResolveDirectory(string? overrideDirectory)
     {
         if (overrideDirectory is not null)
@@ -21,6 +24,11 @@ internal sealed class HostController(string hostDirectory)
         if (File.Exists(Path.Join(AppContext.BaseDirectory, HostExe)))
         {
             return Path.GetFullPath(AppContext.BaseDirectory);
+        }
+
+        if (File.Exists(Path.Join(PackagedHostDirectory, HostExe)))
+        {
+            return Path.GetFullPath(PackagedHostDirectory);
         }
 
         var relative = Path.Join("external", "GameHelper2", "GameHelper", "bin", "Release", "net10.0-windows", "win-x64");

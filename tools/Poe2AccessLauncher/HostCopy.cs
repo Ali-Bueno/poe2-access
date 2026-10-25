@@ -20,14 +20,14 @@ internal static class HostCopy
         var name = RandomName();
         var target = Path.Join(hostDirectory, $"{name}.exe");
         Rewrite(sourceExe, target, name);
-        File.AppendAllLines(Path.Join(AppContext.BaseDirectory, OwnStoreFile), [Path.GetFileName(target)]);
+        File.AppendAllLines(Path.Join(hostDirectory, OwnStoreFile), [Path.GetFileName(target)]);
         return target;
     }
 
     public static void DeleteOldCopies(string hostDirectory)
     {
         var files = new List<string>();
-        var own = Path.Join(AppContext.BaseDirectory, OwnStoreFile);
+        var own = Path.Join(hostDirectory, OwnStoreFile);
         if (File.Exists(own))
         {
             files.AddRange(File.ReadAllLines(own).Where(line => line.Length > 0).Select(line => Path.Join(hostDirectory, line)));
@@ -36,8 +36,8 @@ internal static class HostCopy
         var host = Path.Join(hostDirectory, HostStoreFile);
         if (File.Exists(host))
         {
-            var names = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(host)) ?? [];
-            files.AddRange(names.Select(name => Path.Join(hostDirectory, name)));
+            using var names = JsonDocument.Parse(File.ReadAllText(host)); // a JSON string array (trim-safe, no serializer)
+            files.AddRange(names.RootElement.EnumerateArray().Select(name => name.GetString()).OfType<string>().Select(name => Path.Join(hostDirectory, name)));
             File.WriteAllText(host, "[]");
         }
 

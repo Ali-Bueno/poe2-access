@@ -80,8 +80,10 @@ once in game, and the launcher starts it before regenerating.
 ```
 pwsh tools/package/New-TestPackage.ps1      # with GameHelper stopped; writes dist/Poe2Access-test-<date>.zip
 ```
-Publishes GameHelper, the launcher and Poe2UiExtract self-contained into one folder (they share the .NET 10 runtime
-files, nothing to install), adds only the accessibility plugin (dll, PRISM, catalogs, the Radar plugin's
+The top folder holds only `Poe2Access.exe` (the launcher as one self-contained, trimmed, compressed file, ~11 MB), `LEEME.txt`,
+the controls and the stop shortcut; GameHelper and Poe2UiExtract are published self-contained into `app/` (they share the
+.NET 10 runtime files, nothing to install; the launcher finds `app/GameHelper.exe` and logs to `app/Poe2Access.log`), with only
+the accessibility plugin (dll, PRISM, catalogs, the Radar plugin's
 `important_tgt_files.txt`, research mode off), GameHelper's `core_settings.json` with only this plugin enabled,
 `LEEME.txt` (Spanish instructions), the controls doc and a stop shortcut. No game sounds are shipped: the launcher
 regenerates them, and the catalogs, from the tester's install (`oo2core.dll` ships for bundle reading). About 43 MB zipped. `dist/` is gitignored; publishing a release stays a

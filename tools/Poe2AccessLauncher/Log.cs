@@ -1,9 +1,10 @@
 namespace Poe2AccessLauncher;
 
-/// <summary>Appends timestamped lines to Poe2Access.log next to the executable.</summary>
+/// <summary>Appends timestamped lines to Poe2Access.log next to the executable, or in the package's "app" folder.</summary>
 internal static class Log
 {
-    private static readonly string FilePath = Path.Combine(AppContext.BaseDirectory, "Poe2Access.log");
+    private static readonly string FilePath = Path.Combine(
+        Directory.Exists(HostController.PackagedHostDirectory) ? HostController.PackagedHostDirectory : AppContext.BaseDirectory, "Poe2Access.log");
 
     public static void Write(string message)
     {
