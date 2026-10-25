@@ -23,6 +23,7 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.AnnounceMonsterMods)),
             Switch(nameof(AccessibilitySettings.AnnounceLowLife)),
             Switch(nameof(AccessibilitySettings.AnnounceLowMana)),
+            Switch(nameof(AccessibilitySettings.AnnounceFlasks)),
             Switch(nameof(AccessibilitySettings.AnnounceBossLife)),
             Switch(nameof(AccessibilitySettings.StatusAlerts)),
             Switch(nameof(AccessibilitySettings.AnnounceNearby)),

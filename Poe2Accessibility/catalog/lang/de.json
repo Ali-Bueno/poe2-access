@@ -76,6 +76,7 @@
  "Editing done, field empty": "Bearbeitung beendet, Feld leer",
  "Electrocuted": "Elektrisiert",
  "Empty": "Leer",
+ "Empty flasks": "Leere Fläschchen",
  "Enemies": "Gegner",
  "Enemies coming into view": "Gegner, die in Sicht kommen",
  "Enemy": "Gegner",
@@ -396,6 +397,7 @@
  "{0} Speech backend {1}.": "{0} Sprachausgabe {1}.",
  "{0} away": "{0} entfernt",
  "{0} defeated": "{0} besiegt",
+ "{0} empty": "{0} leer",
  "{0} left the inventory": "{0} hat das Inventar verlassen",
  "{0} of {1}": "{0} von {1}",
  "{0} of {1}. {2}": "{0} von {1}. {2}",
@@ -405,6 +407,7 @@
  "{0} {1} percent": "{0} {1} Prozent",
  "{0} {1}, not enough": "{0} {1}, nicht genug",
  "{0} {1}, then {2}": "{0} {1}, dann {2}",
+ "{0}, 1 use": "{0}, 1 Anwendung",
  "{0}, area level {1}": "{0}, Gebietsstufe {1}",
  "{0}, editing done": "{0}, Bearbeitung beendet",
  "{0}, has a quest": "{0}, hat eine Quest",
@@ -414,5 +417,6 @@
  "{0}, {1} away, a closed barrier cuts the way: {2}": "{0}, {1} entfernt, eine geschlossene Barriere versperrt den Weg: {2}",
  "{0}, {1} away, the way stops short: {2}": "{0}, {1} entfernt, der Weg endet vorher: {2}",
  "{0}, {1} percent": "{0}, {1} Prozent",
+ "{0}, {1} uses": "{0}, {1} Anwendungen",
  "{0}, {1}, {2}{3}": "{0}, {1}, {2}{3}"
 }

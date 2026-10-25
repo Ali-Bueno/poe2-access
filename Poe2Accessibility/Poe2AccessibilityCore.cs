@@ -78,6 +78,7 @@ namespace Poe2Accessibility
         private EnemyNarrator? enemyNews;
         private DeathWatch? deaths;
         private ExperienceTable? experience;
+        private FlaskWatch? flasks;
 
         /// <summary>Game sounds are cut to this length: repeated proximity cues must stay short.</summary>
         private const float GameSoundSeconds = 0.9f;
@@ -222,6 +223,7 @@ namespace Poe2Accessibility
                 this.narrator.GroundItemName = texts => this.entities?.ItemOfTooltip(texts);
                 this.statuses = new StatusWatch(this.output, this.log);
                 this.pickups = new InventoryWatch(inventory, this.output, this.log);
+                this.flasks = new FlaskWatch(inventory, this.output);
                 this.gold = new GoldWatch(memory, elements, this.output, this.log) { Fields = this.locator.Fields };
                 this.barriers = new BarrierWatch(this.entities, this.output, this.log);
                 var timings = DodgeTimings.Load(Path.Join(this.DllDirectory, "catalog", "hit-times.txt"), this.DodgeTimingsSeedPath, this.DodgeTimingsPath);
@@ -551,6 +553,7 @@ namespace Poe2Accessibility
                 this.Isolated("hand", () => this.pickups?.TickHand(this.Settings.AnnounceHand));
                 this.Isolated("moves", () => this.pickups?.TickMoves(playing, this.Settings.AnnounceMoves));
                 this.Isolated("gold", () => this.gold?.Tick(this.focus?.LayerContainer ?? IntPtr.Zero, playing, this.Settings.AnnouncePickups));
+                this.Isolated("flasks", () => this.flasks?.Tick(playing, this.Settings.AnnounceFlasks));
                 this.Isolated("barriers", () => this.barriers?.Tick(this.Settings.AnnounceDiscoveries));
             }
 
@@ -669,7 +672,8 @@ namespace Poe2Accessibility
             var player = Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<GameHelper.RemoteObjects.Components.Player>(out var me) ? me : null;
             var character = player?.Level ?? 0;
             var levels = Announcements.Levels(character, AreaLevel(), player == null ? null : this.experience?.PercentToNext(character, unchecked((uint)player.Xp)));
-            return Announcements.Sentences(new[] { vitals, string.Join(", ", states), this.bosses?.Status() ?? string.Empty, levels }.Where(part => part.Length > 0));
+            var flasks = string.Join(", ", this.flasks?.Flasks().Select(flask => Announcements.Flask(flask.Name, flask.Uses)) ?? Enumerable.Empty<string>());
+            return Announcements.Sentences(new[] { vitals, string.Join(", ", states), this.bosses?.Status() ?? string.Empty, flasks, levels }.Where(part => part.Length > 0));
         }
 
         /// <summary>The delivery level the player chose for a kind of news (speech priority).</summary>
@@ -837,6 +841,9 @@ namespace Poe2Accessibility
                     break;
                 case "layout":
                     this.LayoutSelfTest();
+                    break;
+                case "flasks":
+                    this.log?.Info(this.flasks?.Diagnose() ?? "Flasks off");
                     break;
                 case "screen":
                     this.narrator?.SpeakScreen(this.screen?.Current ?? ScreenSnapshot.Empty, this.focus?.CurrentLayer ?? IntPtr.Zero);
@@ -1187,6 +1194,7 @@ namespace Poe2Accessibility
             this.statuses?.Reset();
             this.pickups?.Reset();
             this.gold?.Reset();
+            this.flasks?.Reset();
             this.barriers?.Reset();
             this.targets?.Reset();
             this.discoveries?.Reset(areaName, resumed);
