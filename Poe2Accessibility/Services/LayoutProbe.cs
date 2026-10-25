@@ -3,6 +3,7 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.InteropServices;
 
     /// <summary>
     ///     Finds the memory layout a game update can move (docs/compatibility.md). Each field is first tried where it was
@@ -28,6 +29,9 @@ namespace Poe2Accessibility.Services
         private const int MaxLeaves = 400;
         private const int MaxNamedNodes = 200;
 
+        /// <summary>A texture pointer is trusted once this many images lead through it to an art key.</summary>
+        private const int MinTextureHits = 5;
+
         /// <summary>Entity names are judged on this many monsters, characters and players; half must read.</summary>
         private const int MinRenders = 15;
 
@@ -49,14 +53,9 @@ namespace Poe2Accessibility.Services
             (GameLayout.Element.CheckBoxStateOffset, at => GameLayout.Element.CheckBoxStateOffset = at),
             (GameLayout.Element.PanelTitleOffset, at => GameLayout.Element.PanelTitleOffset = at),
             (GameLayout.Element.PlaceholderOffset, at => GameLayout.Element.PlaceholderOffset = at),
-            (GameLayout.TabButton.SelectedOffset, at => GameLayout.TabButton.SelectedOffset = at),
             (GameLayout.SelectableList.SelectedIndexOffset, at => GameLayout.SelectableList.SelectedIndexOffset = at),
             (GameLayout.ClassSelector.ClassIdOffset, at => GameLayout.ClassSelector.ClassIdOffset = at),
             (GameLayout.ClassSelector.IndexOffset, at => GameLayout.ClassSelector.IndexOffset = at),
-            (GameLayout.SkillSlot.BindingIndexOffset, at => GameLayout.SkillSlot.BindingIndexOffset = at),
-            (GameLayout.SkillSlot.SkillDetailsOffset, at => GameLayout.SkillSlot.SkillDetailsOffset = at),
-            (GameLayout.PassiveTree.NodeRecordOffset, at => GameLayout.PassiveTree.NodeRecordOffset = at),
-            (GameLayout.PassiveTree.CanvasStateOffset, at => GameLayout.PassiveTree.CanvasStateOffset = at),
         };
 
         private readonly HostMemoryReader reader;
@@ -78,13 +77,17 @@ namespace Poe2Accessibility.Services
         private readonly int measuredHovered = GameLayout.UiManager.HoveredOffset;
         private readonly int measuredPad = GameLayout.UiManager.PadStateOffset;
         private readonly int measuredRenderName = GameLayout.RenderComponent.NameOffset;
+        private readonly int measuredTexture = GameLayout.Image.TextureOffset;
+        private readonly int measuredAltTexture = GameLayout.Image.AltTextureOffset;
 
         private bool namesKnown;
         private bool textKnown;
         private bool managerKnown;
         private bool renderKnown;
+        private bool texturesKnown;
         private long namesTriedAt = long.MinValue / 2;
         private long textTriedAt = long.MinValue / 2;
+        private long texturesTriedAt = long.MinValue / 2;
 
         public LayoutProbe(HostMemoryReader reader, UiElementReader elements, CompatibilityReport report)
         {
@@ -163,6 +166,43 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
+        ///     Image textures: enough images under the root lead through the texture pointer to an art key, and the smaller
+        ///     image class's pointer follows it (<paramref name="conclusive"/>: in game, where the HUD always shows images).
+        /// </summary>
+        public void ProbeTextures(IntPtr root, bool conclusive)
+        {
+            var now = Environment.TickCount64;
+            if (this.texturesKnown || root == IntPtr.Zero || now - this.texturesTriedAt < RetryMs)
+            {
+                return;
+            }
+
+            this.texturesTriedAt = now;
+            var fits = this.TextureFits(root);
+            if (fits(GameLayout.Image.TextureOffset))
+            {
+                this.texturesKnown = true;
+                this.report.Found("image textures");
+                return;
+            }
+
+            if (OffsetSearch.First(this.measuredTexture, Radius, Step, fits, Step) is not { } found)
+            {
+                if (conclusive)
+                {
+                    this.report.Missing("image textures");
+                }
+
+                return;
+            }
+
+            GameLayout.Image.TextureOffset = found;
+            GameLayout.Image.AltTextureOffset = this.measuredAltTexture + (found - this.measuredTexture);
+            this.texturesKnown = true;
+            this.Record("image textures", this.measuredTexture, found);
+        }
+
+        /// <summary>
         ///     A UI manager holds <paramref name="root"/> (the root of elements that point at it) where measured, or the slot
         ///     that holds it is adopted and the focus, hover and pad fields follow it.
         /// </summary>
@@ -222,14 +262,14 @@ namespace Poe2Accessibility.Services
             this.Record("entity names", this.measuredRenderName, found);
         }
 
-        /// <summary>A new game process: everything is checked again from the measured layout.</summary>
         /// <summary>How far the label text fields are from where they were measured (the base control's growth, most likely).</summary>
         public int TextShift => GameLayout.Element.TextOffset - this.measuredText;
 
+        /// <summary>A new game process: everything is checked again from the measured layout.</summary>
         public void Reset()
         {
-            (this.namesKnown, this.textKnown, this.managerKnown, this.renderKnown) = (false, false, false, false);
-            this.namesTriedAt = this.textTriedAt = long.MinValue / 2;
+            (this.namesKnown, this.textKnown, this.managerKnown, this.renderKnown, this.texturesKnown) = (false, false, false, false, false);
+            this.namesTriedAt = this.textTriedAt = this.texturesTriedAt = long.MinValue / 2;
         }
 
         /// <summary>
@@ -244,8 +284,9 @@ namespace Poe2Accessibility.Services
             var slots = this.reader.ReadArray<IntPtr>(manager, ManagerScanBytes / IntPtr.Size);
             var rootSlot = OffsetSearch.First(GameLayout.UiManager.RootOffset + SelfTestShift, ManagerScanBytes, Step,
                 offset => offset / IntPtr.Size < slots.Length && slots[offset / IntPtr.Size] == root);
+            var textures = OffsetSearch.First(GameLayout.Image.TextureOffset + SelfTestShift, Radius, Step, this.TextureFits(root), Step);
             return string.Join("; ", SelfTestLine("element names", GameLayout.Element.NameOffset, names), SelfTestLine("element texts", textShift, text),
-                SelfTestLine("UI manager", GameLayout.UiManager.RootOffset, rootSlot));
+                SelfTestLine("UI manager", GameLayout.UiManager.RootOffset, rootSlot), SelfTestLine("image textures", GameLayout.Image.TextureOffset, textures));
         }
 
         /// <summary>How far a field is pretended to have moved in <see cref="SelfTest"/>.</summary>
@@ -280,6 +321,29 @@ namespace Poe2Accessibility.Services
         {
             var blocks = this.Leaves(root).Take(MaxLeaves).Select(leaf => this.reader.ReadBytes(leaf, this.measuredCopy + Radius + WStringDecoder.Size)).Where(block => block.Length > 0).ToList();
             return shift => blocks.Count(block => this.TextAt(block, shift)) >= MinTextHits;
+        }
+
+        /// <summary>
+        ///     Enough images under the root lead through the pointer at the offset to an art key, and far fewer through the
+        ///     next slot: one step after the smaller class's pointer is the larger class's, which must not be taken for it.
+        /// </summary>
+        private Func<int, bool> TextureFits(IntPtr root)
+        {
+            var blocks = this.Leaves(root).Take(MaxLeaves).Select(leaf => this.reader.ReadBytes(leaf, this.measuredTexture + Radius + Step + IntPtr.Size)).Where(block => block.Length > 0).ToList();
+            var hits = new Dictionary<int, int>();
+            int Hits(int offset)
+            {
+                if (!hits.TryGetValue(offset, out var count))
+                {
+                    count = offset < 0 ? 0 : blocks.Count(block => offset + IntPtr.Size <= block.Length &&
+                        this.elements.ReadTextureKey(MemoryMarshal.Read<IntPtr>(block.AsSpan(offset))) != null);
+                    hits[offset] = count;
+                }
+
+                return count;
+            }
+
+            return offset => Hits(offset) is var count && count >= MinTextureHits && Hits(offset + Step) * 2 < count;
         }
 
         private bool TextAt(byte[] block, int shift)

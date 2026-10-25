@@ -15,6 +15,21 @@ namespace Poe2Accessibility.Services
 
         /// <summary>GameLayout.InventoryGrid and GameLayout.InventoryItem: the cursor cell holds an item element whose entity is an item.</summary>
         Inventory,
+
+        /// <summary>GameLayout.TabButton: exactly one tab of a bar is selected.</summary>
+        Tabs,
+
+        /// <summary>GameLayout.SkillSlot binding index: the skill bar's slots hold distinct indices of both sets.</summary>
+        SkillBinding,
+
+        /// <summary>GameLayout.SkillSlot details: a slot icon's skill leads to a GrantedEffectsPerLevel row.</summary>
+        SkillDetails,
+
+        /// <summary>GameLayout.PassiveTree canvas state: the tree state holds the passive skill graph file.</summary>
+        PassiveCanvas,
+
+        /// <summary>GameLayout.PassiveTree node record: a node element's record leads to a PassiveSkills row.</summary>
+        PassiveNode,
     }
 
     /// <summary>
@@ -97,6 +112,9 @@ namespace Poe2Accessibility.Services
             return expected;
         }
 
+        /// <summary>Whether a live control has proved the group's shift yet.</summary>
+        public bool IsKnown(ControlGroup group) => this.State(group).Known != null;
+
         /// <summary>The group's shift as known so far, for a field read without a control to judge it on.</summary>
         public int Current(ControlGroup group) => this.State(group).Known ?? this.State(group).Candidate ?? this.textShift();
 
@@ -128,6 +146,11 @@ namespace Poe2Accessibility.Services
         {
             ControlGroup.Slider => "sliders",
             ControlGroup.ComboBox => "combo boxes",
+            ControlGroup.Tabs => "tabs",
+            ControlGroup.SkillBinding => "skill slot bindings",
+            ControlGroup.SkillDetails => "skill slot skills",
+            ControlGroup.PassiveCanvas => "passive tree state",
+            ControlGroup.PassiveNode => "passive nodes",
             _ => "inventory grid",
         };
 
@@ -136,6 +159,11 @@ namespace Poe2Accessibility.Services
         {
             ControlGroup.Slider => GameLayout.Slider.ValueOffset,
             ControlGroup.ComboBox => GameLayout.ComboBox.SelectedIndexOffset,
+            ControlGroup.Tabs => GameLayout.TabButton.SelectedOffset,
+            ControlGroup.SkillBinding => GameLayout.SkillSlot.BindingIndexOffset,
+            ControlGroup.SkillDetails => GameLayout.SkillSlot.SkillDetailsOffset,
+            ControlGroup.PassiveCanvas => GameLayout.PassiveTree.CanvasStateOffset,
+            ControlGroup.PassiveNode => GameLayout.PassiveTree.NodeRecordOffset,
             _ => GameLayout.InventoryGrid.CellSizeOffset,
         };
 

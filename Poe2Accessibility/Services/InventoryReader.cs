@@ -8,6 +8,7 @@ namespace Poe2Accessibility.Services
     using GameHelper.RemoteEnums;
     using GameHelper.RemoteObjects.Components;
     using GameHelper.RemoteObjects.States.InGameStateObjects;
+    using GameOffsets.Objects.Components;
     using GameOffsets.Objects.States.InGameState;
 
     /// <summary>
@@ -169,6 +170,8 @@ namespace Poe2Accessibility.Services
                 ? this.BaseName(baseComponent)
                 : string.Empty;
 
+        private static readonly int NameRowOffset = (int)Marshal.OffsetOf<BaseOffsets>(nameof(BaseOffsets.DisplayNameRowPtr));
+
         /// <summary>The item's base display name; GameHelper's is empty for names under 8 characters.</summary>
         private string BaseName(Base component)
         {
@@ -177,8 +180,9 @@ namespace Poe2Accessibility.Services
                 return component.BaseItemName;
             }
 
-            return this.reader.TryRead<IntPtr>(component.Address + GameLayout.BaseComponent.NameRowOffset, out var row) && row != IntPtr.Zero
-                ? this.elements.ReadWStringStructAt(row + GameLayout.BaseComponent.NameOffset) ?? string.Empty
+            // GameHelper's own offsets, read as a std::wstring: short names are stored inline (SSO), not behind a pointer.
+            return this.reader.TryRead<IntPtr>(component.Address + NameRowOffset, out var row) && row != IntPtr.Zero
+                ? this.elements.ReadWStringStructAt(row + BaseOffsets.DisplayNameOffset) ?? string.Empty
                 : string.Empty;
         }
 

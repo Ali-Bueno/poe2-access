@@ -40,10 +40,10 @@ namespace Poe2Accessibility.Services
         /// <summary>A hovered passive node; null for any other element.</summary>
         private AccessibleUiNode? DescribePassiveNode(in UiElementReader.ElementInfo info, bool hovered)
         {
+            // A node is a child of a group of the canvas that holds the tree state; its record is judged only there.
             if (!this.InGame || !hovered ||
-                !this.reader.TryRead<IntPtr>(info.Address + GameLayout.PassiveTree.NodeRecordOffset, out var record) || record == IntPtr.Zero ||
-                this.PassiveRow(record) is not { } row ||
-                !this.elements.TryReadElement(info.Raw.ParentPtr, out var group) ||
+                !this.elements.TryReadElement(info.Raw.ParentPtr, out var group) || this.TreeState(group.Raw.ParentPtr) == IntPtr.Zero ||
+                this.NodeRecord(info.Address) is not { } record || this.PassiveRow(record) is not { } row ||
                 this.PassiveGraphOf(group.Raw.ParentPtr, info) is not { } graph)
             {
                 return null;
@@ -170,6 +170,30 @@ namespace Poe2Accessibility.Services
             return ids;
         }
 
+        /// <summary>The canvas's tree state, judged where it holds the passive skill graph; zero on any other element.</summary>
+        private IntPtr TreeState(IntPtr canvas)
+        {
+            var shift = this.elements.Controls?.Shift(ControlGroup.PassiveCanvas, canvas, at => this.TreeStateAt(canvas, at) != IntPtr.Zero) ?? 0;
+            return this.TreeStateAt(canvas, shift);
+        }
+
+        private IntPtr TreeStateAt(IntPtr canvas, int shift) =>
+            this.reader.TryRead<IntPtr>(canvas + GameLayout.PassiveTree.CanvasStateOffset + shift, out var state) && state != IntPtr.Zero &&
+            this.reader.TryRead<IntPtr>(state + GameLayout.PassiveTree.StateGraphFileOffset, out var graphFile) && graphFile != IntPtr.Zero &&
+            this.elements.ReadWStringStructAt(graphFile + GameLayout.SkillSlot.FileNameOffset) == GameLayout.PassiveTree.GraphFileName
+                ? state
+                : IntPtr.Zero;
+
+        /// <summary>A node element's graph record, judged where it leads to a PassiveSkills row.</summary>
+        private IntPtr? NodeRecord(IntPtr node)
+        {
+            var shift = this.elements.Controls?.Shift(ControlGroup.PassiveNode, node, at => this.NodeRecordAt(node, at) is { } record && this.PassiveRow(record) != null) ?? 0;
+            return this.NodeRecordAt(node, shift);
+        }
+
+        private IntPtr? NodeRecordAt(IntPtr node, int shift) =>
+            this.reader.TryRead<IntPtr>(node + GameLayout.PassiveTree.NodeRecordOffset + shift, out var record) && record != IntPtr.Zero ? record : null;
+
         /// <summary>The PassiveSkills row of a node record, trusted only when its key names the table.</summary>
         private IntPtr? PassiveRow(IntPtr record) => this.DatRow(record + GameLayout.PassiveTree.RecordSkillKeyOffset, GameLayout.PassiveTree.SkillTable);
 
@@ -196,16 +220,14 @@ namespace Poe2Accessibility.Services
         {
             // Applying passive changes gives the canvas a new state object (the old one's allocated list goes stale:
             // a node allocated and applied read "reachable", 2026-10-24), so the cache holds while both still match.
-            if (this.passiveGraph is { } cached && cached.Canvas == canvasAddress &&
-                this.reader.TryRead<IntPtr>(canvasAddress + GameLayout.PassiveTree.CanvasStateOffset, out var currentState) && currentState == cached.State)
+            var state = this.TreeState(canvasAddress);
+            if (this.passiveGraph is { } cached && cached.Canvas == canvasAddress && state == cached.State)
             {
                 return cached;
             }
 
-            if (!this.elements.TryReadElement(canvasAddress, out var canvas) ||
-                !this.reader.TryRead<IntPtr>(canvasAddress + GameLayout.PassiveTree.CanvasStateOffset, out var state) ||
+            if (state == IntPtr.Zero || !this.elements.TryReadElement(canvasAddress, out var canvas) ||
                 !this.reader.TryRead<IntPtr>(state + GameLayout.PassiveTree.StateGraphFileOffset, out var graphFile) ||
-                this.elements.ReadWStringStructAt(graphFile + GameLayout.SkillSlot.FileNameOffset) != GameLayout.PassiveTree.GraphFileName ||
                 !this.reader.TryRead<IntPtr>(graphFile + GameLayout.PassiveTree.GraphContentOffset, out var content) ||
                 !this.reader.TryRead<GameOffsets.Natives.StdVector>(content + GameLayout.PassiveTree.EdgeListOffset, out var edgeVector) ||
                 !this.reader.TryRead<IntPtr>(hoveredNode.Address, out var nodeClass))
@@ -247,7 +269,7 @@ namespace Poe2Accessibility.Services
 
                     var head = this.reader.ReadArray<IntPtr>(element, 1);
                     if (head.Length == 1 && head[0] == nodeClass &&
-                        this.reader.TryRead<IntPtr>(element + GameLayout.PassiveTree.NodeRecordOffset, out var record) && record != IntPtr.Zero)
+                        this.NodeRecordAt(element, this.elements.Controls?.Current(ControlGroup.PassiveNode) ?? 0) is { } record)
                     {
                         elementsByRecord[record] = element;
                     }

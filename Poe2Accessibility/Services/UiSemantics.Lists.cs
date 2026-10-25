@@ -320,15 +320,23 @@ namespace Poe2Accessibility.Services
 
             var queue = new Queue<UiElementReader.ElementInfo>();
             queue.Enqueue(root);
+            var bars = new HashSet<IntPtr>();
             var budget = MaxTabSearchNodes;
             while (queue.Count > 0 && budget-- > 0)
             {
+                // Once the selected byte is proved, it is read before the costlier click-sound scan.
                 var node = queue.Dequeue();
-                if (node.HasFlagBit(GameLayout.Element.InteractiveFlagBit) &&
-                    this.reader.TryRead<byte>(node.Address + GameLayout.TabButton.SelectedOffset, out var selected) && selected != 0 &&
-                    this.elements.DetectRoleBySound(node.Address) == UiRole.Tab && this.HasSiblingTab(node))
+                if (node.HasFlagBit(GameLayout.Element.InteractiveFlagBit) && !bars.Contains(node.Raw.ParentPtr) &&
+                    (!(this.elements.Controls?.IsKnown(ControlGroup.Tabs) ?? true) || this.IsTabSelected(node.Address, this.TabSelectedOffset(null))) &&
+                    this.elements.DetectRoleBySound(node.Address) == UiRole.Tab && this.SiblingTabs(node) is { Count: >= 2 } tabs)
                 {
-                    return this.FindDescendantText(node, CaptionSearchDepth + 1, null);
+                    bars.Add(node.Raw.ParentPtr);
+                    var at = this.TabSelectedOffset(tabs);
+                    if (tabs.FirstOrDefault(tab => this.IsTabSelected(tab, at)) is var selected && selected != IntPtr.Zero &&
+                        this.elements.TryReadElement(selected, out var tab))
+                    {
+                        return this.FindDescendantText(tab, CaptionSearchDepth + 1, null);
+                    }
                 }
 
                 foreach (var childAddress in this.elements.ReadChildren(node))
@@ -343,24 +351,46 @@ namespace Poe2Accessibility.Services
             return string.Empty;
         }
 
-        /// <summary>A tab bar has at least two tabs; a lone control with the tab click sound is something else.</summary>
-        private bool HasSiblingTab(in UiElementReader.ElementInfo tab)
+        /// <summary>The tabs of a tab's bar, itself included; a lone control with the tab click sound is something else.</summary>
+        private List<IntPtr> SiblingTabs(in UiElementReader.ElementInfo tab)
         {
-            if (!this.elements.TryReadElement(tab.Raw.ParentPtr, out var parent))
+            var tabs = new List<IntPtr>();
+            var own = tab.Address;
+            if (this.elements.TryReadElement(tab.Raw.ParentPtr, out var parent))
             {
-                return false;
+                tabs.AddRange(this.elements.ReadChildren(parent).Where(sibling => sibling == own || this.elements.DetectRoleBySound(sibling) == UiRole.Tab));
             }
 
-            foreach (var sibling in this.elements.ReadChildren(parent))
-            {
-                if (sibling != tab.Address && this.elements.DetectRoleBySound(sibling) == UiRole.Tab)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return tabs;
         }
+
+        /// <summary>The tab buttons' selected byte, judged on a bar of them when one is given (exactly one tab is set).</summary>
+        private int TabSelectedOffset(IReadOnlyList<IntPtr>? tabs)
+        {
+            var shift = tabs is { Count: >= 2 }
+                ? this.elements.Controls?.Shift(ControlGroup.Tabs, tabs[0], at => this.OneTabSelected(tabs, GameLayout.TabButton.SelectedOffset + at))
+                : this.elements.Controls?.Current(ControlGroup.Tabs);
+            return GameLayout.TabButton.SelectedOffset + (shift ?? 0);
+        }
+
+        private bool OneTabSelected(IReadOnlyList<IntPtr> tabs, int offset)
+        {
+            var selected = 0;
+            foreach (var tab in tabs)
+            {
+                if (!this.reader.TryRead<byte>(tab + offset, out var value) || value > 1)
+                {
+                    return false;
+                }
+
+                selected += value;
+            }
+
+            return selected == 1;
+        }
+
+        private bool IsTabSelected(IntPtr tab, int offset) => this.reader.TryRead<byte>(tab + offset, out var selected) && selected != 0;
+
         /// <summary>
         ///     Position among sibling controls: the first ancestor level whose visible children hold several controls
         ///     is the list (menu buttons are siblings; a settings control sits in a row, the rows are the list).

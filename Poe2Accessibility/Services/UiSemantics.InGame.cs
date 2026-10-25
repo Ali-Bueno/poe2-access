@@ -244,10 +244,10 @@ namespace Poe2Accessibility.Services
                 this.gridTabs = (info.Address, this.FindGridTabs(info));
             }
 
+            var at = this.TabSelectedOffset(this.gridTabs.Tabs);
             foreach (var button in this.gridTabs.Tabs)
             {
-                if (this.reader.TryRead<byte>(button + GameLayout.TabButton.SelectedOffset, out var selected) && selected != 0 &&
-                    this.elements.TryReadElement(button, out var tab))
+                if (this.IsTabSelected(button, at) && this.elements.TryReadElement(button, out var tab))
                 {
                     return Announcements.TabTitle(this.FindDescendantText(tab, CaptionSearchDepth + 1, null));
                 }

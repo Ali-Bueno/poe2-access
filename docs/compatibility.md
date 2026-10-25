@@ -19,6 +19,7 @@ nearest fit wins). Fields of one structure that move together follow an anchor.
 |---|---|---|
 | Control name: the root or a layer carries a known name (`root_control`, `HUD`, `map_overlay`, …) | font, manager pointer, tooltips | `LayoutProbe.ProbeNames` |
 | Label text: tagged text plus two equal stripped copies, on 5+ labels | text colour | `LayoutProbe.ProbeText` |
+| Image texture: 5+ images reach an art key (`Art/…dds|`) through the pointer, far fewer through the next slot (the smaller image class's pointer sits one step before) | the smaller class's texture | `LayoutProbe.ProbeTextures` |
 | UI manager root slot: holds the root of the elements that point at the manager (2 elements must agree before an unproven manager is trusted; the direct in-game slot is taken only as measured) | focus, last focused, hovered, pad state | `LayoutProbe.AdoptManager` |
 | In-game layers by name (`HUD`, `death_screen`, `skill_bar`, `bind_management_display`) or shape (inventory: child `panels_parent`; chat: `textField` and `scrollbar` below) | the objective box (no name or shape) follows the nearest one found | `InGameFields` |
 | Entity names: half of 30 monsters, characters and players read a name | — | `LayoutProbe.ProbeRenderNames` |
@@ -35,7 +36,12 @@ Their fields sit after the base control, so when it grows they all move as far a
 | Combo box: the selected entry reads as text and, while closed, the highlight rests on it (the entries vector has a copy right after it, so the entries alone fit at +0x18 too) | selected, highlight, open flag, both vectors | `UiElementReader.ComboBoxFits` |
 | Slider: value within min..max, both within ±1,000,000, value above the minimum (a slider at its minimum fits beside zeros almost anywhere, so it proves nothing) | value, max, min | `UiElementReader.ReadSliderState` |
 | Inventory: the cursor cell holds an item element whose entity is under `Metadata/Items` (an empty cell proves nothing) | grid cell size, hovered item, cell, server inventory; item element's entity | `InventoryReader.TryReadGrid` |
-| Nothing to check them by: they follow the label text | check box, tab selected, selectable list index, class selector, skill slot binding and details, passive node record and canvas state, panel title, placeholder | `LayoutProbe.TextFollowers` |
+| Tabs: exactly one tab of a bar (two or more siblings with the tab click sound) has its byte set, the others 0 | tab selected | `UiSemantics.TabSelectedOffset` |
+| Skill bar: the 24 slot elements hold distinct binding indices 0..23 | binding index | `UiSemantics.BindingOffset` |
+| Skill slot icon: its skill details lead to a GrantedEffectsPerLevel row (an empty slot proves nothing) | skill details | `UiSemantics.SkillDetailsShift` |
+| Passive tree canvas: its state object holds `Metadata/PassiveSkillGraph.psg` | canvas state | `UiSemantics.TreeState` |
+| Passive node (a child of a group of that canvas): its record leads to a PassiveSkills row | node record | `UiSemantics.NodeRecord` |
+| Nothing to check them by: they follow the label text | check box, selectable list index, class selector, panel title, placeholder | `LayoutProbe.TextFollowers` |
 
 A shift other than the expected one is trusted once two controls agree on it (`ControlFields`). Only combo boxes and
 the area row are said when lost: a grid is recognised by reading it and a slider at its minimum proves nothing, so
@@ -91,20 +97,18 @@ What a patch can still move with nothing to find it again, most player-visible f
    what it must; else found by content: sound paths are string columns of `Audio/…` text, a key column holds null keys
    or row indices of its target and is ranked by how many item drop samples its keys lead to (0.5.5e: the measured
    ItemVisualIdentity 919 leads to none, the search takes 24 and 140 and writes the same catalog).
-4. **Component fields**: `BaseComponent.NameRowOffset` (a pointer to a BaseItemTypes row whose name matches the
-   item's tooltip title), `NpcComponent.MarkerRowOffset` (quest marker over NPCs), `TargetableComponent` (a lost flag
+4. **Component fields**: ~~`BaseComponent.NameRowOffset`~~ (now GameHelper's own `BaseOffsets`, updated upstream),
+   `NpcComponent.MarkerRowOffset` (quest marker over NPCs), `TargetableComponent` (a lost flag
    is already noticed and everything counts as in play; could search for the byte that is 1 on living monsters and 0
    on corpses).
-5. **Image texture fields** in the base control (`Image.TextureOffset`/`AltTextureOffset`: currency icons, gold): the
-   texture's key string contains `Art/`, searchable on image elements like the text anchor.
+5. ~~Image texture fields~~: found again (`LayoutProbe.ProbeTextures`, above).
 6. **Control flag bits** (`Element` interactive 0x1B, navigable 0x0E, text input 0x10, enabled 0x0D): check against
    known controls (menu buttons are interactive and navigable, a text box has the text-input bit).
-7. **Groups that only follow the label text** could get a check of their own in `ControlFields`: tabs (exactly one
-   sibling selected), class selector (index 0..5 with the class id beside it), skill slot binding (unique 0..23
-   across the bar), passive node record (a PassiveSkills row whose graph id is the node's), panel title and
-   placeholder (a readable string).
-8. **Passive tree graph** (`PassiveTree.StateGraphFileOffset`, `GraphContentOffset`, `EdgeListOffset`,
-   `AllocatedOffset`): allocated entries must be node ids of the graph, edges must join known nodes.
+7. **Groups that only follow the label text**: tabs, skill slots and the passive tree now have checks (above). Still
+   following the text: class selector (index 0..5 with the class id beside it), panel title and placeholder (a
+   readable string), check box, selectable list index.
+8. **Passive tree graph** (`PassiveTree.StateGraphFileOffset` is the canvas check's own anchor; `GraphContentOffset`,
+   `EdgeListOffset`, `AllocatedOffset`): allocated entries must be node ids of the graph, edges must join known nodes.
 9. **Pad buttons** (`GameLayout.PadButtons`): only the axes are checked (`GamepadReader.Plausible`); a press seen by
    the game's focus moving could confirm the A bit.
 10. **GameHelper2 upstream**: still pull and rebuild by hand. When its state patterns or offsets stop fitting, the
@@ -114,5 +118,3 @@ What a patch can still move with nothing to find it again, most player-visible f
     ids +0x34/+0x35, `RotationSelector` +0x36, 0x38 bytes each): a moved field names no places or puts props at wrong
     spots. Check with the `tiles` dev command in the Act 1 town: `Encampment_01.tdt` with its (0,0) sub-tile at grid
     (68, 138), selector 3, and the log line "6 props now". `catalog/places.json` itself is regenerated after each patch.
-
-Unused, can go: `InGameUi.NpcDialogueLayerOffset`, `AreaTransitionComponent.DestinationRowOffset`.

@@ -79,20 +79,16 @@ namespace Poe2Accessibility
         }
 
         /// <summary>
-        ///     Slider subclass (0x410-byte objects). Validated across the options menu (2026-09-15): Sharpness
-        ///     150 in [0,1000] is displayed "15%", Scene Brightness 500 in [0,1000] is "+ 0.0", volumes 100 in [0,100].
-        /// </summary>
-        /// <summary>
         ///     Image elements: +0x240 points to a shared texture resource whose +0x8 std::wstring is the art key,
         ///     e.g. "Art/.../UIImages/Common/Gamepad/XboxOne/Button4.dds|0,0,58,58|0" (hint-bar glyphs and ~1700
         ///     in-game images, 2026-10-23). Some element classes keep two floats there, hence the key checks.
         /// </summary>
         public static class Image
         {
-            public const int TextureOffset = 0x240;
+            public static int TextureOffset { get; internal set; } = 0x240;
 
             /// <summary>Same pointer in the smaller image class of the skill bar's button glyphs (TriggerLeft.dds …, 2026-10-23).</summary>
-            public const int AltTextureOffset = 0x238;
+            public static int AltTextureOffset { get; internal set; } = 0x238;
             public const int TextureKeyOffset = 0x8;
             public const string ArtPrefix = "Art/";
             public const string TextureMarker = ".dds|";
@@ -104,6 +100,10 @@ namespace Poe2Accessibility
             public const string GoldArtMarker = "/CoinPile";
         }
 
+        /// <summary>
+        ///     Slider subclass (0x410-byte objects). Validated across the options menu (2026-09-15): Sharpness
+        ///     150 in [0,1000] is displayed "15%", Scene Brightness 500 in [0,1000] is "+ 0.0", volumes 100 in [0,100].
+        /// </summary>
         public static class Slider
         {
             public const int ValueOffset = 0x37C;
@@ -150,19 +150,6 @@ namespace Poe2Accessibility
             public const string QuestMarkerId = "NPCQuestMarker";
         }
 
-        /// <summary>Item Base component (GameOffsets BaseOffsets).</summary>
-        public static class BaseComponent
-        {
-            /// <summary>Pointer to the name row.</summary>
-            public const int NameRowOffset = 0x10;
-
-            /// <summary>
-            ///     std::wstring display name inside the name row. GameHelper reads it as a pointer, which is only right
-            ///     for names of 8 characters or more: shorter ones are stored inline ("Exhumar", a gem; 2026-10-24).
-            /// </summary>
-            public const int NameOffset = 0x30;
-        }
-
         /// <summary>Entity Render component.</summary>
         public static class RenderComponent
         {
@@ -185,13 +172,6 @@ namespace Poe2Accessibility
             ///     notice board walked up to (Clearfell Encampment, 2026-10-24).
             /// </summary>
             public const int IsTargetedOffset = 0x6B;
-        }
-
-        /// <summary>Entity AreaTransition component (2026-10-23 dump).</summary>
-        public static class AreaTransitionComponent
-        {
-            /// <summary>Destination WorldAreas.dat row: +0 id ("G1_2"), +8 name ("Clearfell").</summary>
-            public const int DestinationRowOffset = 0x48;
         }
 
         /// <summary>Button bits of the pad state (each button held while sampling the field, 2026-10-23).</summary>
@@ -248,9 +228,6 @@ namespace Poe2Accessibility
             /// </summary>
             public const int DeathScreenOffset = 0xCE8;
 
-            /// <summary>NPC dialogue box (speaker, line, Continue / choices), child 57 of G while open (2026-10-23).</summary>
-            public const int NpcDialogueLayerOffset = 0x798;
-
             /// <summary>The HUD skill bar ("skill_bar"): children 1..12 are the slot frames in screen order (docs/research/skill-bar.md).</summary>
             public const int SkillBarOffset = 0x610;
 
@@ -285,7 +262,7 @@ namespace Poe2Accessibility
         public static class PassiveTree
         {
             /// <summary>On a node element: its PassiveSkillGraph node record.</summary>
-            public static int NodeRecordOffset { get; internal set; } = 0x2C8;
+            public const int NodeRecordOffset = 0x2C8;
 
             /// <summary>Record +0x00: foreign key to the PassiveSkills row.</summary>
             public const int RecordSkillKeyOffset = 0x0;
@@ -293,7 +270,7 @@ namespace Poe2Accessibility
             public const string SkillTable = "Data/Balance/PassiveSkills.dat";
 
             /// <summary>Node element → group → canvas; canvas +0x3D8 = the tree state object T.</summary>
-            public static int CanvasStateOffset { get; internal set; } = 0x3D8;
+            public const int CanvasStateOffset = 0x3D8;
 
             /// <summary>T +0x160 → the graph file (name at +8); file +0x28 → the graph content C.</summary>
             public const int StateGraphFileOffset = 0x160;
@@ -350,12 +327,12 @@ namespace Poe2Accessibility
         public static class SkillSlot
         {
             /// <summary>int32 binding index: 0..11 primary set, 12..23 the same buttons in the secondary set.</summary>
-            public static int BindingIndexOffset { get; internal set; } = 0x370;
+            public const int BindingIndexOffset = 0x370;
 
             public const int ButtonsPerSet = 12;
 
             /// <summary>On the slot's icon child: the ActiveSkillDetails listed in the player's skills (Actor+0xB08).</summary>
-            public static int SkillDetailsOffset { get; internal set; } = 0x2D8;
+            public const int SkillDetailsOffset = 0x2D8;
 
             /// <summary>A dat foreign key is (row, file); the file's table name is a std::wstring at file+8.</summary>
             public const int KeyFileOffset = 0x8;
@@ -381,22 +358,22 @@ namespace Poe2Accessibility
         }
 
         /// <summary>
-        ///     Selectable list widget that keeps the focus while its selection moves (character selection list):
-        ///     int32 index of the selected entry among the entry holder's children (0 → 1 when moving from
-        ///     "Create Character" to the character, 2026-10-23).
-        /// </summary>
-        /// <summary>
         ///     Tab button (FourTabButton click sound): byte set on the selected tab (options tabs UI → Sound; vendor stock
         ///     pages and stash tabs, 2026-10-23).
         /// </summary>
         public static class TabButton
         {
-            public static int SelectedOffset { get; internal set; } = 0x391;
+            public const int SelectedOffset = 0x391;
 
             /// <summary>Layout id of the child holding a tab container's pages (vendor TabContainer, stash top_level_tabs).</summary>
             public const string PagesContainerName = "pages_container";
         }
 
+        /// <summary>
+        ///     Selectable list widget that keeps the focus while its selection moves (character selection list):
+        ///     int32 index of the selected entry among the entry holder's children (0 → 1 when moving from
+        ///     "Create Character" to the character, 2026-10-23).
+        /// </summary>
         public static class SelectableList
         {
             public static int SelectedIndexOffset { get; internal set; } = 0x388;
@@ -478,15 +455,10 @@ namespace Poe2Accessibility
         public const int StateObjectScanBytes = 0x2000;
 
         /// <summary>
-        ///     Global UI manager object referenced by the game states. Found by diffing login-screen dumps
-        ///     while the joystick moved, then confirmed by what the game actually activated: the control
-        ///     that gets activated is the one at <see cref="CurrentOffset"/>; when that slot is empty (right
-        ///     after the screen opens) the game activates the one at <see cref="LastFocusedOffset"/>.
-        /// </summary>
-        /// <summary>
         ///     UI manager: one per state that owns UI (pre-game it sits inside a larger object at +0x240, which is
-        ///     why older notes say +0x8C8/+0x988/+0x990). Validated on login, inventory, skills and game menu
-        ///     (docs/research/ui-layers.md).
+        ///     why older notes say +0x8C8/+0x988/+0x990). Found by diffing login dumps while the joystick moved and
+        ///     confirmed by what the game activated (<see cref="CurrentOffset"/>, else <see cref="LastFocusedOffset"/>);
+        ///     validated on login, inventory, skills and game menu (docs/research/ui-layers.md).
         /// </summary>
         public static class UiManager
         {

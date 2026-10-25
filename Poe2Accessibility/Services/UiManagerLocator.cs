@@ -82,6 +82,7 @@ namespace Poe2Accessibility.Services
                     // In game the HUD always shows texts and named layers, so a miss there is a real one.
                     this.probe.ProbeNames(root, inGame);
                     this.probe.ProbeText(root, inGame);
+                    this.probe.ProbeTextures(root, inGame);
                 }
             }
 

@@ -41,34 +41,29 @@ namespace Poe2Accessibility.Services
                 return sets;
             }
 
+            var slotElements = slots.SelectMany(frame => this.elements.TryReadElement(frame, out var info) ? this.elements.ReadChildren(info) : Array.Empty<IntPtr>())
+                .Where(slot => this.reader.TryRead<IntPtr>(slot, out var type) && type == slotClass)
+                .ToList();
+            var bindingAt = this.BindingOffset(slotElements);
             var table = this.BindTable(layerContainer, slotClass, false);
             var bindings = new List<(int Set, string Button, string Bound)>();
-            foreach (var frameAddress in slots)
+            foreach (var slotAddress in slotElements)
             {
-                if (!this.elements.TryReadElement(frameAddress, out var frame))
+                if (!this.elements.TryReadElement(slotAddress, out var slot) ||
+                    !this.reader.TryRead<int>(slotAddress + bindingAt, out var index) ||
+                    index < 0 || index >= 2 * GameLayout.SkillSlot.ButtonsPerSet)
                 {
                     continue;
                 }
 
-                foreach (var slotAddress in this.elements.ReadChildren(frame))
+                if (table != null && !table.Value.Buttons.ContainsKey(index))
                 {
-                    if (!this.reader.TryRead<IntPtr>(slotAddress, out var type) || type != slotClass ||
-                        !this.elements.TryReadElement(slotAddress, out var slot) ||
-                        !this.reader.TryRead<int>(slotAddress + GameLayout.SkillSlot.BindingIndexOffset, out var index) ||
-                        index < 0 || index >= 2 * GameLayout.SkillSlot.ButtonsPerSet)
-                    {
-                        continue;
-                    }
+                    table = this.BindTable(layerContainer, slotClass, true); // rebuilt once (pad family changed)
+                }
 
-                    if (table != null && !table.Value.Buttons.ContainsKey(index))
-                    {
-                        table = this.BindTable(layerContainer, slotClass, true); // rebuilt once (pad family changed)
-                    }
-
-                    if (table?.Buttons.GetValueOrDefault(index) is { Length: > 0 } button)
-                    {
-                        bindings.Add((index / GameLayout.SkillSlot.ButtonsPerSet, button, this.BoundName(slot)));
-                    }
+                if (table?.Buttons.GetValueOrDefault(index) is { Length: > 0 } button)
+                {
+                    bindings.Add((index / GameLayout.SkillSlot.ButtonsPerSet, button, this.BoundName(slot)));
                 }
             }
 
@@ -112,9 +107,7 @@ namespace Poe2Accessibility.Services
         {
             foreach (var child in this.elements.ReadChildren(slot))
             {
-                if (child != IntPtr.Zero &&
-                    this.reader.TryRead<IntPtr>(child + GameLayout.SkillSlot.SkillDetailsOffset, out var details) && details != IntPtr.Zero &&
-                    this.DatRow(details + GameLayout.SkillSlot.LevelKeyOffset, GameLayout.SkillSlot.LevelTable) is { } level &&
+                if (child != IntPtr.Zero && this.SkillLevelRow(child, this.SkillDetailsShift(child)) is { } level &&
                     this.DatRow(level + GameLayout.SkillSlot.EffectKeyOffset, GameLayout.SkillSlot.EffectTable) is { } effect &&
                     this.DatRow(effect + GameLayout.SkillSlot.SkillKeyOffset, GameLayout.SkillSlot.SkillTable) is { } skill &&
                     this.reader.TryRead<IntPtr>(skill + GameLayout.SkillSlot.DisplayedNameOffset, out var name) &&
@@ -126,6 +119,31 @@ namespace Poe2Accessibility.Services
 
             return string.Empty;
         }
+
+        /// <summary>The binding index field, judged on the skill bar's slots: both sets' indices, each once.</summary>
+        private int BindingOffset(IReadOnlyList<IntPtr> slots)
+        {
+            bool Distinct(int shift)
+            {
+                var seen = new HashSet<int>();
+                return slots.All(slot => this.reader.TryRead<int>(slot + GameLayout.SkillSlot.BindingIndexOffset + shift, out var index) &&
+                    index >= 0 && index < 2 * GameLayout.SkillSlot.ButtonsPerSet && seen.Add(index));
+            }
+
+            var shift = slots.Count >= GameLayout.SkillSlot.ButtonsPerSet
+                ? this.elements.Controls?.Shift(ControlGroup.SkillBinding, slots[0], Distinct)
+                : this.elements.Controls?.Current(ControlGroup.SkillBinding);
+            return GameLayout.SkillSlot.BindingIndexOffset + (shift ?? 0);
+        }
+
+        /// <summary>The skill details field of a slot's icon, judged where it leads to a skill level row (an empty slot proves nothing).</summary>
+        private int SkillDetailsShift(IntPtr icon) =>
+            this.elements.Controls?.Shift(ControlGroup.SkillDetails, icon, shift => this.SkillLevelRow(icon, shift) != null) ?? 0;
+
+        private IntPtr? SkillLevelRow(IntPtr icon, int shift) =>
+            this.reader.TryRead<IntPtr>(icon + GameLayout.SkillSlot.SkillDetailsOffset + shift, out var details) && details != IntPtr.Zero
+                ? this.DatRow(details + GameLayout.SkillSlot.LevelKeyOffset, GameLayout.SkillSlot.LevelTable)
+                : null;
 
         /// <summary>The row of a dat foreign key (row, file), only when the file is the expected table.</summary>
         private IntPtr? DatRow(IntPtr key, string table) =>
@@ -183,7 +201,7 @@ namespace Poe2Accessibility.Services
 
         private void ReadBindSlot(in UiElementReader.ElementInfo slot, Dictionary<int, string> buttons, string[] titles)
         {
-            if (!this.reader.TryRead<int>(slot.Address + GameLayout.SkillSlot.BindingIndexOffset, out var index) ||
+            if (!this.reader.TryRead<int>(slot.Address + GameLayout.SkillSlot.BindingIndexOffset + (this.elements.Controls?.Current(ControlGroup.SkillBinding) ?? 0), out var index) ||
                 index < 0 || index >= 2 * GameLayout.SkillSlot.ButtonsPerSet ||
                 !this.elements.TryReadElement(slot.Raw.ParentPtr, out var parent) ||
                 !this.elements.TryReadElement(parent.Raw.ParentPtr, out var frame))
