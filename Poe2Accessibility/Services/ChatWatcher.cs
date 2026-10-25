@@ -92,7 +92,7 @@ namespace Poe2Accessibility.Services
                     !(this.spokenAt.TryGetValue(text, out var at) && now - at < RepeatWindowMs))
                 {
                     this.spokenAt[text] = now;
-                    this.speak(text);
+                    this.speak(ChatDiff.Spoken(text));
                 }
             }
         }

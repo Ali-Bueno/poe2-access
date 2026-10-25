@@ -57,11 +57,11 @@ namespace Poe2Accessibility.Services
             speed is > 0 && gapWorld > 0 ? (int)Math.Round(gapWorld * MsPerSecond / speed.Value) : 0;
 
         /// <summary>
-        ///     Whether an attack can still land: its animation runs (<paramref name="endedAt"/> 0), or it ended after
-        ///     releasing a projectile that is still flying (a projectile flies on when the monster turns away).
+        ///     Whether an attack can still land: its animation runs (<paramref name="endedAt"/> 0), or it ended after the
+        ///     swing's release (<paramref name="releaseAt"/>) let a projectile go that is still flying.
         /// </summary>
-        public static bool CanStillHit(long startedAt, long endedAt, int? releaseMs, int travelMs, long now) =>
-            endedAt == 0 || (travelMs > 0 && releaseMs is { } release && endedAt - startedAt >= release && now - endedAt <= travelMs);
+        public static bool CanStillHit(long endedAt, long? releaseAt, int travelMs, long now) =>
+            endedAt == 0 || (travelMs > 0 && releaseAt is { } release && release <= endedAt && now - endedAt <= travelMs);
 
         public void Learn(string key, int delayMs)
         {

@@ -12,7 +12,9 @@ internal static class GameDataSetup
     private const int StepTimeoutMilliseconds = 180_000;
     private const int StampFormat = 3; // bump when the regeneration steps change, to rebuild once on every machine
 
-    private sealed record Step(string Name, Func<string?> Run);
+    /// <param name="Optional">Its failure keeps the shipped file and still lets the stamp be written: a patch that moves
+    /// the tables these read must not rerun every step on every start (review 2026-10-25).</param>
+    private sealed record Step(string Name, Func<string?> Run, bool Optional = false);
 
     public static void EnsureCurrent(string hostDirectory, string? gameDirectory)
     {
@@ -54,8 +56,8 @@ internal static class GameDataSetup
             new Step("item sounds", () => ReplaceFile(extractor, itemSounds, temp => ["item-sounds", gameDirectory, temp])),
             new Step("area names", () => ReplaceFile(extractor, Path.Join(catalog, "area-names.json"), temp => ["areas", gameDirectory, temp])),
             new Step("dat columns", () => ReplaceFile(extractor, Path.Join(catalog, "dat-columns.json"), temp => ["dat-columns", gameDirectory, temp])),
-            new Step("hit times", () => ReplaceFile(extractor, Path.Join(catalog, "hit-times.txt"), temp => ["hit-times", gameDirectory, temp])),
-            new Step("places", () => ReplaceFile(extractor, Path.Join(catalog, "places.json"), temp => ["places", gameDirectory, temp])),
+            new Step("hit times", () => ReplaceFile(extractor, Path.Join(catalog, "hit-times.txt"), temp => ["hit-times", gameDirectory, temp]), true),
+            new Step("places", () => ReplaceFile(extractor, Path.Join(catalog, "places.json"), temp => ["places", gameDirectory, temp]), true),
             new Step("UI catalog", () => BuildUiCatalog(extractor, gameDirectory, uiScripts, Path.Join(catalog, "ui-catalog.json"))),
             new Step("sounds", () => ReplaceSounds(extractor, gameDirectory, sounds, itemSounds)),
         };
@@ -74,7 +76,7 @@ internal static class GameDataSetup
                 error = exception.Message;
             }
 
-            allDone &= error is null;
+            allDone &= error is null || step.Optional;
             Log.Write(error is null ? $"Game data: {step.Name} done in {watch.Elapsed.TotalSeconds:0.0} s" : $"Game data: {step.Name} failed, previous kept ({error})");
         }
 

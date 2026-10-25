@@ -5,8 +5,7 @@ using Index = LibBundle3.Index;
 
 /// <summary>
 ///     `places` command: named map pieces and props for the plugin's place announcements (D2R named places), from the
-///     terrain files (docs/research/places.md). A tile (.tdt) is named by its designer tag or file name ("Slash_Bridge_01",
-///     tag "SlashBridge" → bridge); props come from the tile's .tmd and the area rooms' .arm object lines
+///     terrain files (docs/research/places.md). A tile (.tdt) is named by its file name ("Slash_Bridge_01" → bridge); props come from the tile's .tmd and the area rooms' .arm object lines
 ///     (`x y … "model.ao" "class"`, x/y in grid cells from the file's origin). Read-only on the game.
 /// </summary>
 internal static partial class PlaceExtractor
@@ -86,9 +85,9 @@ internal static partial class PlaceExtractor
         var tileProps = new SortedDictionary<string, List<object[]>>(StringComparer.Ordinal);
         foreach (var (path, file) in byPath.Where(pair => pair.Key.EndsWith(".tdt", StringComparison.Ordinal)))
         {
-            var stem = Path.GetFileNameWithoutExtension(path);
-            var tags = TdtTags(file.Read().ToArray());
-            if ((tags.Select(tag => Kind(TileKinds, tag)).FirstOrDefault(kind => kind != null) ?? Kind(TileKinds, stem)) is { } kind)
+            // The file name only: the binary's other strings ("door" in ledge tiles, edge types) named 395 tiles wrongly
+            // (review 2026-10-25), and the useful designer tags (SlashBridge, EncampmentFront) repeat the name anyway.
+            if (Kind(TileKinds, Path.GetFileNameWithoutExtension(path)) is { } kind)
             {
                 tiles[path] = kind;
             }
@@ -130,31 +129,6 @@ internal static partial class PlaceExtractor
         }
 
         return null;
-    }
-
-    /// <summary>Designer tags of a tile: the UTF-16 strings of the binary .tdt that are neither paths nor file names.</summary>
-    private static List<string> TdtTags(byte[] data)
-    {
-        var tags = new List<string>();
-        var run = new StringBuilder();
-        for (var i = 0; i + 1 < data.Length; i += 2)
-        {
-            var c = (char)(data[i] | (data[i + 1] << 8));
-            if (c is >= ' ' and < (char)0x7F)
-            {
-                run.Append(c);
-                continue;
-            }
-
-            if (run.Length >= 3 && run.ToString() is var text && !text.Contains('/') && !text.Contains('.'))
-            {
-                tags.Add(text);
-            }
-
-            run.Clear();
-        }
-
-        return tags;
     }
 
     private static string Text(byte[] data) =>

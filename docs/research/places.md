@@ -12,11 +12,13 @@ tile prop lists (plus `.ao` models, `.gt`/`.et` ground and edge types). The runt
 
 - **`.tdt`** is binary with UTF-16 strings: the `.tgt` model path, then designer tags on some tiles
   (`Slash_Bridge_01.tdt` → `SlashBridge`, `ccms_bridge2.tdt` → `bridge`, the town's `Encampment_01*` → `lumbermill`),
-  then `.gt`/`.et` paths. A tile's kind is the first tag, else its file name, split into words (camel case,
-  underscores, digits) and matched as whole words against a list (`PlaceExtractor.TileKinds`: bridge, stairs, door,
+  then `.gt`/`.et` paths. A tile's kind comes from its file name only, split into words (camel case, underscores,
+  digits) and matched as whole words against a list (`PlaceExtractor.TileKinds`: bridge, stairs, door,
   gate, ruins, church, graveyard, hut, tower, temple, arena/boss, entrance, dock, waterfall, encampment, mill, …).
-  Whole words keep `cave_wall`, `gatewallborder` or `outdoor` out. 2,950 tiles named on 0.5.5e (door 656, stairs 501,
-  arena 222, bridge 218, entrance 216, ruins 214, hut 180, …); in Act 1 only bridges, the encampment and arenas.
+  Whole words keep `cave_wall`, `gatewallborder` or `outdoor` out. The tags are not used: the binary's other strings
+  named 395 tiles against their file names (`ledgesand_abysswall_*` → door, `shoreline_*overlay_*` → boat), and the
+  useful tags repeat the name. 2,148 tiles named on 0.5.5e (stairs 415, door 289, entrance 180, bridge 180, ruins 154,
+  hut 154, tomb 150, …); in Act 1 only bridges, the encampment and arenas.
 - **`.tmd`** (UTF-16 text, `version 8`): one object per line, `x y … "model.ao" … "class"`, x/y in grid cells from the
   tile's corner in the file's orientation. 132 tiles have named props (`PlaceExtractor.PropKinds`: cart/wagon, well,
   campfire, anvil, notice board, mill wheel, tent, stall, statue, altar, fountain, boat, throne).
@@ -34,8 +36,8 @@ tile prop lists (plus `.ao` models, `.gt`/`.et` ground and edge types). The runt
   block at file (299, 256) the exit entity at (324, 189): x' = y, y' = height − x, with `RotationSelector` 3. Selector 0
   is taken as the file's own orientation; others are left out and logged ("tile props left out for rotations …")
   until measured.
-- **Rooms** are placed at the grid origin when their anchors stand where live entities of their kind do (two, or the
-  only one): in the town `town_1.arm`'s waypoint (282, 252) and well (349, 237) are exactly the live entities'
+- **Rooms** are placed at the grid origin when two of their anchors stand where live entities of their kind do (one
+  is any checkpoint near a room's corner by chance: 189 rooms have a single checkpoint): in the town `town_1.arm`'s waypoint (282, 252) and well (349, 237) are exactly the live entities'
   grid cells. Generated areas place rooms elsewhere; those are not matched yet.
 - A kind covering more than a quarter of the area's ground (sub-tiles that are not `*blank*` filler) is the area
   itself (the town is one "lumbermill" tile over 270 of 927) and is dropped. Touching sub-tiles of one kind are one piece for the scanner (category "Lugares").

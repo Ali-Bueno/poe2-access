@@ -86,6 +86,9 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private const float WholeAreaShare = 0.25f;
 
+        /// <summary>Live anchors a room needs where its file has them (the town: waypoint, well and stash).</summary>
+        private const int MinAnchors = 2;
+
         /// <summary>A room anchor this near (grid cells) a live entity of its kind is that entity.</summary>
         private const float AnchorToleranceCells = 2f;
 
@@ -153,8 +156,8 @@ namespace Poe2Accessibility.Services
         public string? KindAt(Vector2 grid) => this.cells.TryGetValue(this.CellOf(grid), out var kind) ? kind : null;
 
         /// <summary>
-        ///     Places rooms at the grid origin whose anchors stand where live entities of their kind do (an area's fixed
-        ///     layout: the town's waypoint, well and stash, 2026-10-25); true when a room was added.
+        ///     Places rooms at the grid origin when two of their anchors stand where live entities of their kind do (an
+        ///     area's fixed layout: the town's waypoint, well and stash, 2026-10-25); true when a room was added.
         /// </summary>
         public bool MatchRooms(IReadOnlyList<(string Kind, Vector2 Grid)> anchors)
         {
@@ -168,7 +171,8 @@ namespace Poe2Accessibility.Services
 
                 var hits = room.Anchors.Count(anchor => anchors.Any(live => live.Kind == anchor.Kind &&
                     Vector2.Distance(live.Grid, new Vector2(anchor.X, anchor.Y)) <= AnchorToleranceCells));
-                if (hits >= Math.Min(2, room.Anchors.Count))
+                // One anchor is any checkpoint near the room's own corner by chance (189 checkpoint rooms, review 2026-10-25).
+                if (hits >= MinAnchors)
                 {
                     this.matched.Add(room);
                     this.AddProps(room.Props.Select(prop => (new Vector2(prop.X, prop.Y), prop.Kind)));

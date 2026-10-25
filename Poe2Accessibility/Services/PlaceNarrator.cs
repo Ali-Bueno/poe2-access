@@ -43,7 +43,7 @@ namespace Poe2Accessibility.Services
         private int generation;
         private PlaceTracker tracker = NewTracker();
         private PlaceMap? map;
-        private int tileCount;
+        private (int Count, IntPtr First) builtFor;
         private long lastPoll = long.MinValue / 2;
         private long lastAnchorPoll = long.MinValue / 2;
 
@@ -59,7 +59,7 @@ namespace Poe2Accessibility.Services
         public void Reset()
         {
             this.map = null;
-            this.tileCount = 0;
+            this.builtFor = default;
             this.generation++; // a build still running belongs to the area left
             this.tracker = NewTracker();
             this.lastAnchorPoll = long.MinValue / 2;
@@ -208,14 +208,17 @@ namespace Poe2Accessibility.Services
                 if (built.Result is { } fresh && fresh.Generation == this.generation)
                 {
                     this.map = fresh.Map;
-                    this.tileCount = fresh.Count;
                     this.lastAnchorPoll = long.MinValue / 2;
                 }
             }
 
-            if ((this.map == null || count != this.tileCount) && this.building == null)
+            // Built again when the grid changes (its size or its storage: the next area may share the size); a grid that
+            // failed is not read again until it changes.
+            var grid = (count, terrain.TileDetailsPtr.First);
+            if (grid != this.builtFor && this.building == null)
             {
                 // Off the frame thread: 58 ms for the town's 990 sub-tiles (2026-10-25), large areas hold thousands.
+                this.builtFor = grid;
                 var (details, perRow, generation) = (terrain.TileDetailsPtr, (int)terrain.TotalTiles.X, this.generation);
                 this.building = Task.Run(() => this.Build(details, perRow, count, generation));
             }

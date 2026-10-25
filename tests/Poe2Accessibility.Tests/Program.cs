@@ -64,6 +64,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(InlineItemArtIsNamed), InlineItemArtIsNamed);
             Run(nameof(KnownPlacesOutliveTheSession), KnownPlacesOutliveTheSession);
             Run(nameof(MapPiecesAndPropsArePlaced), MapPiecesAndPropsArePlaced);
+            Run(nameof(ChatSpeakersGetASpace), ChatSpeakersGetASpace);
             Run(nameof(PlacesAreSaidOnceAsTheyChange), PlacesAreSaidOnceAsTheyChange);
             Run(nameof(RadarLabelsSpeakSpanish), RadarLabelsSpeakSpanish);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
@@ -707,11 +708,12 @@ namespace Poe2Accessibility.Tests
             Equal(1900L, DodgeTimings.WarnAt(1000, timings.Delay(bolt) + travel, 500), "half a second before the projectile arrives");
             Equal(1000L, DodgeTimings.WarnAt(1000, timings.Delay("Metadata/Monsters/Unknown|31") + travel, 500), "an untimed release still warns at the wind-up");
 
-            Equal(true, DodgeTimings.CanStillHit(1000, 0, 800, 600, 2500), "the animation still runs");
-            Equal(true, DodgeTimings.CanStillHit(1000, 2000, 800, 600, 2400), "released, the monster turned away, the projectile flies on");
-            Equal(false, DodgeTimings.CanStillHit(1000, 1500, 800, 600, 1600), "interrupted before the release: nothing comes");
-            Equal(false, DodgeTimings.CanStillHit(1000, 2000, 800, 600, 2700), "landed long ago");
-            Equal(false, DodgeTimings.CanStillHit(1000, 2000, 800, 0, 2100), "a blow beside the monster ends with its animation");
+            Equal(true, DodgeTimings.CanStillHit(0, 1800, 600, 2500), "the animation still runs");
+            Equal(true, DodgeTimings.CanStillHit(2000, 1800, 600, 2400), "released, the monster turned away, the projectile flies on");
+            Equal(false, DodgeTimings.CanStillHit(1500, 1800, 600, 1600), "interrupted before the release: nothing comes");
+            Equal(false, DodgeTimings.CanStillHit(2000, 1800, 600, 2700), "landed long ago");
+            Equal(false, DodgeTimings.CanStillHit(2000, 1800, 0, 2100), "a blow beside the monster ends with its animation");
+            Equal(false, DodgeTimings.CanStillHit(2000, 1800 + 1500, 600, 2100), "a later swing that ended before its release fired nothing");
         }
 
         private static void NewsFollowItsDeliveryLevel()
@@ -727,7 +729,7 @@ namespace Poe2Accessibility.Tests
             SpeechPriority.Chosen = _ => "nonsense";
             output.Say(SpeechKind.Quest, "f");
             SpeechPriority.Chosen = null;
-            Equal("urge a|b False|urge c|keep d|e True|f False", string.Join("|", output.Calls), "each kind at its level, urgent news holds, a waiting life warning keeps its turn, defaults for unknown values");
+            Equal("urge a|b False|urge c|mention d|e True|f False", string.Join("|", output.Calls), "each kind at its level, urgent news holds, a waiting life warning keeps its turn, defaults for unknown values");
         }
 
         private sealed class RecordingOutput : IAccessibilityOutputService
@@ -741,6 +743,8 @@ namespace Poe2Accessibility.Tests
             public void Urge(string text, int holdMs = 1500) => this.Calls.Add($"urge {text}");
 
             public void Keep(string text, int holdMs) => this.Calls.Add($"keep {text}");
+
+            public void Mention(string text) => this.Calls.Add($"mention {text}");
 
             public void Repeat()
             {
@@ -1023,6 +1027,13 @@ namespace Poe2Accessibility.Tests
             {
                 Localization.Detect("en");
             }
+        }
+
+        private static void ChatSpeakersGetASpace()
+        {
+            Equal("Renly: Esto es lo que tengo.", ChatDiff.Spoken("Renly:Esto es lo que tengo."), "speaker glued to the line");
+            Equal("Una: Hola", ChatDiff.Spoken("Una: Hola"), "already spaced");
+            Equal("Son las 12:30", ChatDiff.Spoken("Son las 12:30"), "a time keeps its colon");
         }
 
         private static void MapPiecesAndPropsArePlaced()

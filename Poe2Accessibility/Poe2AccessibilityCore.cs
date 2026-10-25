@@ -107,6 +107,9 @@ namespace Poe2Accessibility
 
         /// <summary>The state announcement waiting out <see cref="StateSettleMs"/>; Detected keeps "Game detected" when replaced.</summary>
         private (string Text, bool Detected, long At, bool Queued)? pendingState;
+
+        /// <summary>The language setting last applied to <see cref="Localization"/>.</summary>
+        private string? appliedLanguage;
         private bool confirmDown;
 
         /// <summary>When each kind of monster attack lands, learnt from the blows taken (BossWatch).</summary>
@@ -146,6 +149,7 @@ namespace Poe2Accessibility
                 this.ApplySettings(this.settingsStore.Load(this.Settings));
                 this.log.Info($"Enabled. GameHelper {Core.GetVersion()}, game open: {isGameOpened}");
                 Localization.PhraseDirectory = Path.Join(this.DllDirectory, "catalog", "lang");
+                this.appliedLanguage = this.Settings.Language;
                 Localization.Detect(this.Settings.Language, message => this.log.Info(message));
 
                 IAccessibilityOutputService? prism = this.Settings.SpeechEnabled
@@ -938,14 +942,15 @@ namespace Poe2Accessibility
 
         private void ApplySettings(AccessibilitySettings settings)
         {
-            var languageChanged = this.Settings.Language != settings.Language;
             this.Settings = settings;
             if (this.log != null)
             {
                 this.log.Verbose = settings.VerboseLogging;
-                if (languageChanged && Localization.PhraseDirectory != null)
+                // The settings menu changes the live settings object, so the language is compared with the one applied.
+                if (settings.Language != this.appliedLanguage && Localization.PhraseDirectory != null)
                 {
-                    Localization.Detect(settings.Language, message => this.log.Info(message)); // chosen in the settings menu
+                    this.appliedLanguage = settings.Language;
+                    Localization.Detect(settings.Language, message => this.log.Info(message));
                 }
             }
 

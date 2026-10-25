@@ -11,6 +11,15 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public static class ChatDiff
     {
+        /// <summary>A chat line as spoken: the speaker's colon followed by a space ("Renly:Esto es lo que tengo.", 2026-10-24).</summary>
+        public static string Spoken(string line)
+        {
+            var colon = line.IndexOf(':');
+            return colon > 0 && colon + 1 < line.Length && !char.IsWhiteSpace(line[colon + 1]) && !char.IsDigit(line[colon + 1])
+                ? $"{line[..(colon + 1)]} {line[(colon + 1)..]}"
+                : line;
+        }
+
         public static IReadOnlyList<string> Appended(IReadOnlyList<string> before, IReadOnlyList<string> after)
         {
             if (before.Count == 0)

@@ -25,6 +25,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         void Keep(string text, int holdMs) => this.Speak(text);
 
+        /// <summary>
+        ///     Queues a short warning like <see cref="Speak"/>; an interrupting phrase in the next moment starts with it, so
+        ///     the warning is never dropped and nothing waits behind it (life and mana).
+        /// </summary>
+        void Mention(string text) => this.Speak(text);
+
         /// <summary>Re-speak the last announcement (user hotkey).</summary>
         void Repeat();
 

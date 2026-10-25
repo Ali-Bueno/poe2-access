@@ -59,6 +59,12 @@ namespace Poe2Accessibility.Services
         private readonly PluginLog log;
         private readonly float[] whoosh;
         private readonly Dictionary<uint, Attack> attacks = new();
+
+        /// <summary>
+        ///     Projectiles let go by an attack the monster has already left for its next one (an archer's volley): each
+        ///     keeps its warning, with the side and loudness from where it was shot.
+        /// </summary>
+        private readonly List<(uint Id, long WarnAt, float Pan, float Pitch, float Gain)> flights = new();
         private readonly Dictionary<uint, long> warnedAt = new();
         private int lastPlayerLife = -1;
         private readonly Dictionary<uint, (string Name, int Step, bool Engaged, int Percent)> bosses = new();
@@ -104,6 +110,7 @@ namespace Poe2Accessibility.Services
         public void Reset()
         {
             this.attacks.Clear();
+            this.flights.Clear();
             this.warnedAt.Clear();
             this.bosses.Clear();
             this.lastPlayerLife = -1;
@@ -156,6 +163,11 @@ namespace Poe2Accessibility.Services
                     var gap = offset.Length() - render.ModelBounds.X - player.ModelBounds.X;
                     this.WatchAttack(entity, (int)actor.Animation, rarity, render, offset, gap, now);
                 }
+            }
+
+            if (this.DodgeWarnings)
+            {
+                this.WarnFlights(now);
             }
 
             if (this.DodgeWarnings && area.Player.TryGetComponent<Life>(out var life))
@@ -241,38 +253,46 @@ namespace Poe2Accessibility.Services
                     }
 
                     // A projectile released before the monster turned away still comes: its warning stands.
-                    if (!DodgeTimings.CanStillHit(attack.StartedAt, attack.EndedAt, attack.Learnt, attack.TravelMs, now))
+                    if (!attack.CanStillHit(now))
                     {
                         return;
                     }
                 }
                 else
                 {
+                    if (attack is { TravelMs: > 0, Warns: true, Warned: false, InReach: true } flying && flying.CanStillHit(now))
+                    {
+                        // The next attack replaces this record; the projectile it let go is still coming.
+                        var (flightPan, flightPitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
+                        this.flights.Add((id, flying.WarnAt, flightPan, flightPitch, this.WarningGain(offset)));
+                    }
+
                     var key = DodgeTimings.Key(entity.Path, animation);
                     var learnt = this.Timings.Delay(key);
 
                     // A projectile lands its flight across the gap after the release the files and earlier blows time.
                     var travel = DodgeTimings.TravelMs(gap, this.Timings.ProjectileSpeed(key));
                     attack = new Attack(animation, key, threat, now, DodgeTimings.WarnAt(now, learnt + travel, LeadMs), learnt,
-                        rarity is Rarity.Rare or Rarity.Unique, rarity == Rarity.Unique) { Swing = this.Timings.Swing(key), TravelMs = travel };
+                        rarity is Rarity.Rare or Rarity.Unique, rarity == Rarity.Unique)
+                    {
+                        Swing = this.Timings.Swing(key), TravelMs = travel, ReleaseAt = learnt is { } release ? now + release : null,
+                    };
                 }
             }
 
             // A rare's blow needs it within reach when it would land; a unique's carries (slam waves).
             var inReach = attack.Threat != DodgeThreat.Melee || attack.Unique || gap <= MeleeDangerGapWorld;
             attack = attack with { InReach = inReach };
-            if (attack.Warns && !attack.Warned && DodgeTimings.CanStillHit(attack.StartedAt, attack.EndedAt, attack.Learnt, attack.TravelMs, now) &&
-                now >= attack.WarnAt)
+            if (attack.Warns && !attack.Warned && attack.CanStillHit(now) && now >= attack.WarnAt)
             {
                 // The same animation id goes on swinging (a golem's blows a swing apart, nothing new written between
                 // them): a timed attack warns again one swing later.
-                attack = attack.Learnt != null && attack.Swing is { } swing ? attack with { WarnAt = attack.WarnAt + swing } : attack with { Warned = true };
-                if (inReach && now - this.warnedAt.GetValueOrDefault(id, long.MinValue / 2) >= WarningGapMs)
+                attack = attack.Learnt != null && attack.Swing is { } swing
+                    ? attack with { WarnAt = attack.WarnAt + swing, ReleaseAt = attack.ReleaseAt + swing }
+                    : attack with { Warned = true };
+                var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
+                if (inReach && this.Warn(id, pan, pitch, this.WarningGain(offset), now))
                 {
-                    this.warnedAt[id] = now;
-                    var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
-                    var closeness = 1f - Math.Clamp(offset.Length() / WatchWorld, 0f, 1f);
-                    this.audio.Play(this.whoosh, pan, pitch, this.Gain * (FarWarningGain + ((1f - FarWarningGain) * closeness)));
                     this.log.Debug($"Dodge warning: monster {id} animation {(Animation)animation} ({attack.Threat}, gap {gap:F0}, " +
                                    $"{(attack.Learnt is { } delay ? $"{now - attack.StartedAt} ms into a blow learnt at {delay} ms" : "at the wind-up")}" +
                                    $"{(attack.TravelMs > 0 ? $", {attack.TravelMs} ms of flight" : string.Empty)})");
@@ -280,6 +300,45 @@ namespace Poe2Accessibility.Services
             }
 
             this.attacks[id] = attack;
+        }
+
+        /// <summary>Louder the nearer the attacker; never below the far level, so a far archer is still heard.</summary>
+        private float WarningGain(Vector2 offset)
+        {
+            var closeness = 1f - Math.Clamp(offset.Length() / WatchWorld, 0f, 1f);
+            return this.Gain * (FarWarningGain + ((1f - FarWarningGain) * closeness));
+        }
+
+        /// <summary>Plays the whoosh unless this monster warned a moment ago; true when it played.</summary>
+        private bool Warn(uint id, float pan, float pitch, float gain, long now)
+        {
+            if (now - this.warnedAt.GetValueOrDefault(id, long.MinValue / 2) < WarningGapMs)
+            {
+                return false;
+            }
+
+            this.warnedAt[id] = now;
+            this.audio.Play(this.whoosh, pan, pitch, gain);
+            return true;
+        }
+
+        /// <summary>The warnings of projectiles in flight whose attack was replaced by the next one.</summary>
+        private void WarnFlights(long now)
+        {
+            for (var i = this.flights.Count - 1; i >= 0; i--)
+            {
+                var flight = this.flights[i];
+                if (now < flight.WarnAt)
+                {
+                    continue;
+                }
+
+                this.flights.RemoveAt(i);
+                if (now - flight.WarnAt <= LeadMs && this.Warn(flight.Id, flight.Pan, flight.Pitch, flight.Gain, now))
+                {
+                    this.log.Debug($"Dodge warning: monster {flight.Id}, a projectile still in flight from its previous attack");
+                }
+            }
         }
 
         /// <summary>
@@ -337,6 +396,11 @@ namespace Poe2Accessibility.Services
 
             /// <summary>Its projectile's flight to the player from where the attack began; 0 without a projectile.</summary>
             public int TravelMs { get; init; }
+
+            /// <summary>When the swing warned of next lets its blow or projectile go, from the timings; null when unknown.</summary>
+            public long? ReleaseAt { get; init; }
+
+            public bool CanStillHit(long now) => DodgeTimings.CanStillHit(this.EndedAt, this.ReleaseAt, this.TravelMs, now);
         }
     }
 }

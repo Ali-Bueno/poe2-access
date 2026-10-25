@@ -18,6 +18,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Identical text arriving within this window is a frame-level duplicate, not new information.</summary>
         private const int DuplicateSuppressionMs = 300;
 
+        /// <summary>
+        ///     How long a mentioned warning may still be unheard: "Vida 50 por ciento" queued behind a line was dropped
+        ///     by "Aturdido" 80 ms later (2026-10-24); about the time to say such a line.
+        /// </summary>
+        private const int MentionMs = 1500;
+
         /// <summary>Library name used by Prismatoid's DllImport (verified by reflection on Prismatoid 0.4.0).</summary>
         private const string NativeLibraryName = "prism";
 
@@ -48,6 +54,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Until then interrupting phrases queue (see <see cref="Urge"/>).</summary>
         private DateTime urgedUntil = DateTime.MinValue;
+
+        /// <summary>The last <see cref="Mention"/>ed phrase and when: an interrupting phrase soon after says it first.</summary>
+        private (string Text, DateTime At)? mentioned;
 
         /// <summary>Returns null (after logging) when no backend can be acquired.</summary>
         public static PrismOutputService? TryCreate(string pluginDirectory, PluginLog log)
@@ -89,6 +98,16 @@ namespace Poe2Accessibility.Services
                 interrupt = false; // an urgent phrase is still being heard: wait behind it
             }
 
+            if (interrupt && this.mentioned is { } news && (now - news.At).TotalMilliseconds < MentionMs)
+            {
+                text = $"{news.Text}. {text}"; // the warning this cuts off is said first, not lost
+            }
+
+            if (interrupt)
+            {
+                this.mentioned = null;
+            }
+
             this.lastText = text;
             this.lastSpokenAt = now;
             this.log.Info($"Speech {(interrupt ? "interrupts" : "queued")}: {text}");
@@ -107,6 +126,17 @@ namespace Poe2Accessibility.Services
             var until = DateTime.UtcNow.AddMilliseconds(holdMs);
             this.Speak(text, true);
             this.urgedUntil = until > this.urgedUntil ? until : this.urgedUntil;
+        }
+
+        public void Mention(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return;
+            }
+
+            this.Speak(text, false);
+            this.mentioned = (text, DateTime.UtcNow);
         }
 
         public void Keep(string text, int holdMs)
