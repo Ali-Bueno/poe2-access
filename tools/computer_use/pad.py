@@ -95,8 +95,12 @@ def stick(pad, side, direction, amount, seconds):
          lambda: move(x_value_float=0.0, y_value_float=0.0), seconds)
 
 
-def chord(pad, vg, name, side, direction):
-    """Hold a button, flick a stick while it is held, then release both (the mod's L3 + right stick scanner)."""
+def chord(pad, vg, name, side, direction, seconds=0.25, select=False):
+    """Hold a button, flick a stick while it is held, then release both (the mod's L3 + right stick scanner).
+
+    `select` lets go of the button while the stick still points (the radial menu opens what it points at on release);
+    `seconds` is how long the stick is pushed before that.
+    """
     if name not in BUTTONS or side not in ('left', 'right') or direction not in STICK_DIRECTIONS:
         raise ValueError('Use a button name, left|right and up|down|left|right')
     button = getattr(vg.DS4_BUTTONS, 'DS4_BUTTON_' + BUTTONS[name])
@@ -108,7 +112,11 @@ def chord(pad, vg, name, side, direction):
         time.sleep(0.15)
         move(x_value_float=x, y_value_float=y)
         pad.update()
-        time.sleep(0.25)
+        time.sleep(seconds)
+        if select:
+            pad.release_button(button=button)
+            pad.update()
+            time.sleep(0.15)
         move(x_value_float=0.0, y_value_float=0.0)
         pad.update()
         time.sleep(0.15)
@@ -200,7 +208,7 @@ def serve(xbox):
                     elif request['action'] == 'combo':
                         combo(pad, vg, request['held'], request['pressed'], request.get('seconds', 0.1))
                     elif request['action'] == 'chord':
-                        chord(pad, vg, request['name'], request['side'], request['direction'])
+                        chord(pad, vg, request['name'], request['side'], request['direction'], request.get('seconds', 0.25), request.get('select', False))
                     elif request['action'] == 'stick':
                         stick(pad, request['side'], request['direction'], request['amount'], request['seconds'])
                     else:

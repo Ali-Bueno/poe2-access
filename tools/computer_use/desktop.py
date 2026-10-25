@@ -62,6 +62,8 @@ def main():
     flick.add_argument('name', choices=sorted(pad.BUTTONS))
     flick.add_argument('side', choices=['left', 'right'])
     flick.add_argument('direction', choices=list(pad.STICK_DIRECTIONS))
+    flick.add_argument('--seconds', type=float, default=0.25, help='How long the stick stays pushed')
+    flick.add_argument('--select', action='store_true', help='Let go of the button before the stick (radial menu: opens what it points at)')
     key = sub.add_parser('key')
     key.add_argument('keys', help='For example escape or alt+enter')
     key.add_argument('--seconds', type=float, default=0.08)
@@ -120,7 +122,7 @@ def main():
             elif args.action == 'chord':
                 w.require_foreground(info)
                 result.update(name=args.name, side=args.side, direction=args.direction)
-                pad.send(dict(action='chord', name=args.name, side=args.side, direction=args.direction))
+                pad.send(dict(action='chord', name=args.name, side=args.side, direction=args.direction, seconds=args.seconds, select=args.select))
             elif args.action == 'key':
                 result.update(keys=args.keys, seconds=args.seconds)
                 controls.press_keys(info, args.keys, args.seconds)

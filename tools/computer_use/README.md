@@ -39,6 +39,10 @@ dpad-up/down/left/right (hold `--seconds`, ≤ 2 s). `stick left|right up|down|l
 `combo HELD PRESSED [--seconds S]` holds one control and presses another meanwhile (`combo l2 cross --seconds 1.8`
 starts the game in town from character selection: the game wants A held; a character away from town gets a
 confirmation whose Cancel is focused).
+`chord BUTTON left|right DIRECTION [--seconds S] [--select]` holds a button and pushes a stick meanwhile; `--select`
+lets go of the button while the stick still points, which opens what the radial menu points at
+(`chord share right up-right --seconds 0.8 --select` opens Cosmetics). Changing `pad.py` needs `pad.py quit` and a
+new `serve`, which disconnects the game to the login screen.
 `type TEXT` types into a focused field (only the length is logged — safe for passwords).
 `key`, `click`, `move`, `scroll` exist but a key press switches the game to keyboard mode.
 

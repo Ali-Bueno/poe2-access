@@ -23,6 +23,19 @@ if (args.Length > 0 && string.Equals(args[0], "sounds", StringComparison.Ordinal
         args.Length > 3 ? args[3] : @"Poe2Accessibility\catalog\item-sounds.json");
 }
 
+// Args: paths <gameDir> <part>  -- research aid: every bundled file path containing <part> (quest reward icons' names).
+if (args.Length > 2 && string.Equals(args[0], "paths", StringComparison.OrdinalIgnoreCase))
+{
+    using var pathIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+    pathIndex.ParsePaths();
+    foreach (var path in pathIndex.Files.Values.Select(file => file.Path).Where(path => path != null && path.Contains(args[2], StringComparison.OrdinalIgnoreCase)).Order(StringComparer.OrdinalIgnoreCase))
+    {
+        Console.WriteLine(path);
+    }
+
+    return 0;
+}
+
 // Args: dat-strings <gameDir> <table> [language] [rows]  -- research aid: every string column of a table's first rows.
 if (args.Length > 2 && string.Equals(args[0], "dat-strings", StringComparison.OrdinalIgnoreCase))
 {
