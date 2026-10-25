@@ -11,7 +11,7 @@ toggles the map legend). Turn the controller commands off with `ControllerComman
 | Gesture | In menus (something has the focus) | In gameplay |
 |---|---|---|
 | Tap | Next line of the focused element: its name first, then each tooltip line | Where the scanner's choice is now; nothing chosen: repeat the last speech |
-| Double tap | Previous line | Life, mana, energy shield, harmful states, the boss's life, the flasks' uses left, then your level, how far to the next, the area's, and how much of the ground you can reach you have seen ("Vida 80 por ciento, maná 40 por ciento. Envenenado. El molinero hinchado 55 por ciento. Frasco de vida menor, 6 usos, Frasco de maná menor, 2 usos. Nivel 4, 35 por ciento hacia el nivel 5, nivel del área 2. Explorado 40 por ciento") |
+| Double tap | Previous line | Life, mana, energy shield, harmful states, the boss's life, the flasks' uses left, then your level, how far to the next, the area's, and how much of the ground you can reach you have seen ("Life 80 percent, mana 40 percent. Poisoned. The Bloated Miller 55 percent. Lesser Life Flask, 6 uses, Lesser Mana Flask, 2 uses. Level 4, 35 percent to level 5, area level 2. Explored 40 percent") |
 | Hold (half a second) | Whole tooltip (item mods, gem stats, definitions) | Read the screen (quest tracker, HUD texts), then the skill bar: each set's buttons with what they fire, the empty ones last |
 | Hold + right stick flick | — (the game navigates with the right stick in menus) | Scanner (below) |
 | Hold + right stick press (R3) | — | Guide beacon on the scanner's choice (below); again on the same choice turns it off |
@@ -27,15 +27,15 @@ first; both wrap and empty categories are skipped. The category is named only wh
 "Characters. Una, 14 steps, right 3, then up right".
 
 - Categories: **quest** (what the quest tracker names: the exit to the area it asks for, the boss to kill, the
-  NPC to talk to), exits (area transitions and named places, in the game's language; "Donde moriste" after a
+  NPC to talk to), exits (area transitions and named places, in the game's language; "Where you died" after a
   death, while that area instance lasts), **places** (named map pieces and props from the game's terrain files:
   bridges, stairs, doors, ruins, graveyards, a cart, a well, an anvil; [places](research/places.md)), **unexplored** (where
-  ground never seen begins, one entry per stretch and direction, nearest first: "Zona sin explorar, 7 pasos,
-  izquierda"; ground within about 60 cells of where you walked counts as seen, and a wall with no way through
+  ground never seen begins, one entry per stretch and direction, nearest first: "Unexplored ground, 7 steps,
+  left"; ground within about 60 cells of where you walked counts as seen, and a wall with no way through
   hides what lies behind it; forgotten on leaving the area), waypoints and
-  checkpoints, characters (NPCs in play; "Renly, con misión" when the game shows its quest indicator over them,
+  checkpoints, characters (NPCs in play; "Renly, has a quest" when the game shows its quest indicator over them,
   with a bell among the object sounds), enemies (with rarity), objects (stash, salvage bench, well, a closed
-  barrier: "Barrera cerrada"), chests
+  barrier: "Closed barrier"), chests
   and shrines, items on the ground, other players. Chests and items stay listed once seen until opened or
   picked up.
 - Only what a sighted player knows of (the minimap shows no more): enemies while they are on screen; everything
@@ -44,33 +44,33 @@ first; both wrap and empty categories are skipped. The category is named only wh
 - Distance is along the walkable route, in steps of about a quarter second of walking. The direction is the
   stick direction to push now, then how many steps until the route turns and which way: walk "right 3",
   then ask again. With no turn left only the direction is given; "here" means you are on it; "no route"
-  means only the straight line is known. "El camino se corta antes: …" leads as close as the ground goes;
-  "una barrera cerrada corta el camino: …" says a closed barrier stands between that point and the target
+  means only the straight line is known. "The way stops short: …" leads as close as the ground goes;
+  "a closed barrier cuts the way: …" says a closed barrier stands between that point and the target
   (tutorial barriers open on a tutorial step: casting the gem from the Riverbank's Large Chest, spending the
-  passive point from the Miller). When one opens near you: "Se abrió el paso, 4 pasos, izquierda".
+  passive point from the Miller). When one opens near you: "The way opened, 4 steps, left".
 - The choice is kept while you walk: tap L3 to hear where it is now. After ten seconds without a question the
   next flick starts again from the nearest entry.
 
 ## Guide beacon (gameplay)
 
 Choose a target with the scanner (the Quest category first is the usual one), hold L3 and press the right
-stick: "Guiando hacia Campamento de Sierraclara, 21 pasos…". A short iron chime then repeats, panned toward where the
+stick: "Guiding to Clearfell Encampment, 21 steps…". A short iron chime then repeats, panned toward where the
 walkable route goes next (around walls, never through them), higher when the way is up the screen and lower
-when it is down, faster as the route shortens. Walk so the ping is centred. "Llegaste a …" ends it; the same
+when it is down, faster as the route shortens. Walk so the ping is centred. "Arrived at …" ends it; the same
 gesture on the same target, or changing area, turns it off. With no scanner choice the gesture locks the first
 quest target. The ping is silent while a panel or dialogue is open (the lock is kept) and when no route exists
-yet: "Todavía no hay ruta hacia …". When the way stops short it says so once ("Una barrera cerrada corta el
-camino a …; te guío lo más cerca posible") and, at that point, "Estás lo más cerca posible de …; el camino sigue
-cerrado"; the ping goes on by itself once the barrier opens.
+yet: "No route to … yet". When the way stops short it says so once ("A closed barrier cuts the way
+to …; guiding as close as it goes") and, at that point, "As close to … as the way goes; it is still
+closed"; the ping goes on by itself once the barrier opens.
 
 ## Settings menu (gameplay)
 
-Hold L3 for a second and a half: "Ajustes del mod. Ayuda: el botón L3 en el juego, 1 de 75" (five help topics, then the settings, then the sound glossary). Without holding L3,
+Hold L3 for a second and a half: "Mod settings. Help: the L3 button in play, 1 of 75" (five help topics, then the settings, then the sound glossary). Without holding L3,
 flick the right stick up or down to move through the list and left or right to change the value (switches
 toggle, volumes move in steps of 25 percent, language: same as the game, Spanish, English). Tap L3 to close:
-"Ajustes guardados" (written to `config/settings.txt`). Opening a game panel closes it too.
+"Settings saved" (written to `config/settings.txt`). Opening a game panel closes it too.
 
-**Speech priority** (D2R): nine "Voz: …" entries choose how each kind of news is delivered — waits its turn,
+**Speech priority** (D2R): nine "Speech: …" entries choose how each kind of news is delivered — waits its turn,
 cuts in when urgent, cuts in, or cuts in and cannot be cut off (later news queues behind it for 1.5 s). Defaults:
 a harmful state beginning and an arrival with the guide hold; a state ending cuts in; low life/mana, boss life,
 enemy names (aimed and coming into view) and places cut in only when urgent (life at or under `LowLifeBelow`, 25 %, mana at 10 %, a boss at
@@ -81,32 +81,32 @@ approach — all (default), magic or better, or only currency, gold, gems, quest
 scanner's Items category still lists every item (`LootSounds`: `all`, `magic`, `valuable`).
 
 **Wall tones** (off by default, D2R): a soft, warm hiss per screen direction that swells as a wall closes in
-(higher ahead, lower and a little louder behind, the sides panned hard; the D2R recipe and level, well under the cues); "Alcance de los tonos de pared" sets how far ahead it starts (world
+(higher ahead, lower and a little louder behind, the sides panned hard; the D2R recipe and level, well under the cues); "Wall tone range" sets how far ahead it starts (world
 units, 600 ≈ 1.5 s of walking). It follows the radar volume and is silent in menus, like the radar.
 
 **Small obstacles** (on by default, D2R): when the radar's wall on one side is a rock, tree or pillar standing alone
 (a blocked group no wider than 5 cells, clear of the map's edge), it knocks hollow (640 Hz) instead of the tock: step round it.
 
 **Reach ping** (on by default, D2R): two quick rising notes on the side of the nearest enemy in sight when the gap
-between its body and yours falls to "Distancia de alcance" (world units, 40 by default); it sounds again only after
+between its body and yours falls to "Reach distance" (world units, 40 by default); it sounds again only after
 every enemy has stepped back past that distance plus 25.
 
 **Monster modifiers** (on by default): an aimed magic or rare monster is named with its modifiers in the game's own
-words and language, as its nameplate shows them ("…, raro, de Rabia, 80 por ciento"); technical and unique-boss
+words and language, as its nameplate shows them ("…, rare, of Venom, 80 percent"); technical and unique-boss
 mods without a name are left out.
 
-**Gold** is announced when picked up during play ("Recogido 37 de oro", from the inventory's gold counter; sales and
-rewards with a panel open say nothing), under the "Objetos recogidos" switch.
+**Gold** is announced when picked up during play ("Picked up 37 gold", from the inventory's gold counter; sales and
+rewards with a panel open say nothing), under the "Picked up items" switch.
 
-The last group is the **sound glossary**: every sound of the mod by name and meaning ("Aviso para esquivar, un
-monstruo raro o único empieza un ataque, esquiva"); left or right plays it.
+The last group is the **sound glossary**: every sound of the mod by name and meaning ("Dodge warning, a rare
+or unique monster starts an attack, dodge"); left or right plays it.
 
 ## Passive tree
 
 The free cursor (left stick) moves by distance, not along the tree's lines, so each node is read with where its
-links go: "Velocidad de ataque, alcanzable, Velocidad de ataque aumentada un 3%. Conexiones: arriba, Armadura y
-evasión, asignado; abajo a la izquierda, …" (clockwise from up). States: asignado (allocated), alcanzable (linked
-to an allocated node or the class's start), sin conexión. Opening the tree reads the skill points and attributes.
+links go: "Attack Speed, reachable, 3% increased Attack Speed. Links: up, Armour and
+Evasion, allocated; down left, …" (clockwise from up). States: allocated, reachable (linked
+to an allocated node or the class's start), not linked. Opening the tree reads the skill points and attributes.
 
 ## Radial menu
 
@@ -116,20 +116,20 @@ right Skills, down Bind Screen, down-left Character, left Passives, up-left Ques
 ## Skills and binding
 
 In the Skills panel (beside the inventory: D-pad left from the first column) each skill is read with its tags,
-cost and description. X on a skill opens the bind screen: "Selecciona el botón al que asignar Descarga de caos.
-Set de habilidades principal. LB, vacío"; the D-pad moves between buttons and names the other set when you enter
-it; A binds. The Bind Screen (radial menu, down) starts on a button ("Set de habilidades principal. A, vacío");
+cost and description. X on a skill opens the bind screen: "Select button to bind Chaos Bolt. Primary Skill Set.
+LB, empty"; the D-pad moves between buttons and names the other set when you enter
+it; A binds. The Bind Screen (radial menu, down) starts on a button ("Primary Skill Set. A, empty");
 A on an empty button (X on a bound one) opens the grid of every skill and action that can go on it, read by name,
-column and row, then tooltip ("Usar frasco de vida, columna 2, fila 2, Bebes de tu frasco de vida equipado"). Its
-first cell, "vaciar el botón", leaves the button empty. On a bound button A picks the skill up to move it ("vacío.
-Colocar, A. Cancelar, B") and Y empties it.
+column and row, then tooltip ("Use flask in slot 1, column 2, row 2, …"). Its
+first cell, "empty the button", leaves the button empty. On a bound button A picks the skill up to move it ("empty.
+Place, A. Cancel, B") and Y empties it.
 
-In Cosmetics the toggles above each weapon slot read "set de armas I" and "set de armas II".
+In Cosmetics the toggles above each weapon slot read "weapon set I" and "weapon set II".
 
 ## Dialogue
 
 The speaker, then the focused option and its place among all options. D-pad left reaches the lore topics on the
-left; a topic already heard (drawn grey) is read "atenuado": "Presentación, atenuado, 1 de 8".
+left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed, 1 of 8".
 
 ## Sounds (gameplay)
 
@@ -145,15 +145,14 @@ left; a topic already heard (drawn grey) is read "atenuado": "Presentación, ate
   back, and again when you push the stick and the character does not move.
 - **Nearby:** what you walk up to or stand on is named once: checkpoints, NPCs, the stash, chests, items, exits
   ([nearby](proximity.md)); the same thing is named again only after a minute.
-- **Places:** walking into a named part of the map says it once, after what is being said ("puente", "escaleras",
-  "puerta"); a bridge of several pieces is one. Then the nearest named prop within two or three steps ("carro",
-  "pozo", "yunque", "tablón de anuncios"), again after going six steps away. Setting "Nombrar los lugares por los
-  que pasas".
+- **Places:** walking into a named part of the map says it once, after what is being said ("bridge", "stairs",
+  "door"); a bridge of several pieces is one. Then the nearest named prop within two or three steps ("cart",
+  "well", "anvil", "notice board"), again after going six steps away. Setting "Name places you walk into".
 - **What A uses:** when the game moves its interaction target (the label it marks with the A button) to something
-  else, it is named with the button: "Finn, A", then "Alijo, A" one step further. A name said this way is not said
+  else, it is named with the button: "Finn, A", then "Stash, A" one step further. A name said this way is not said
   again by the nearby list. Another player must hold the target a second to be named (people walk past). The first
-  exit in an area adds the game's own hint: "Campamento de Sierraclara, A. mantén A para opciones". Setting
-  `AnnounceInteractTarget` ("Lo que usa el botón de interactuar").
+  exit in an area adds the game's own hint: "Clearfell Encampment, A. hold A for options". Setting
+  `AnnounceInteractTarget` ("What the interact button uses").
 - **Things worth walking to:** the game's own sounds repeat for the nearest chest or shrine, exit or portal, and
   waypoint or checkpoint on screen, and for up to four items at once, on their side, higher when up the screen and
   lower when down, more often as you get closer, silent once you stand on them. An item plays the drop sound the game gives its base (a scroll rustles, an orb clinks, a belt,
@@ -175,56 +174,57 @@ left; a topic already heard (drawn grey) is read "atenuado": "Presentación, ate
 
 ## Warnings and speech
 
-- "Vida 50 por ciento" / "Vida 25 por ciento" when life falls below half and a quarter, once per fall; they
+- "Life 50 percent" / "Life 25 percent" when life falls below half and a quarter, once per fall; they
   cannot be cut off by the next phrase for a moment (`AnnounceLowLife`).
-- "Frasco de vida menor vacío" when a flask has no use left during play, once until it refills (`AnnounceFlasks`,
+- "Lesser Life Flask empty" when a flask has no use left during play, once until it refills (`AnnounceFlasks`,
   delivered like the life warnings).
-- "Maná 50 / 25 / 10 por ciento" when mana falls past those lines (`AnnounceLowMana`).
-- A boss's life as it falls past 75, 50, 40, 30, 20, 10 and 5 percent, and "… derrotado" (`AnnounceBossLife`).
-- Harmful states as they begin ("Envenenado", "Congelado", "Aturdido"…) and end ("Ya no estás envenenado")
+- "Mana 50 / 25 / 10 percent" when mana falls past those lines (`AnnounceLowMana`).
+- A boss's life as it falls past 75, 50, 40, 30, 20, 10 and 5 percent, and "… defeated" (`AnnounceBossLife`).
+- Harmful states as they begin ("Poisoned", "Frozen", "Stunned"…) and end ("No longer poisoned")
   (`StatusAlerts`).
-- What the right stick aims at, while you aim: "Ahogado", "El molinero hinchado, único, 40 por ciento"
+- What the right stick aims at, while you aim: "Drowned", "The Bloated Miller, unique, 40 percent"
   (`AnnounceTarget`), read from the game's own target bar at the top of the screen.
-- Death: "Has muerto. resucitar en el punto de control", then the focused button (A). Y shows or hides the death
-  screen, so a Y meant for a skill can hide it: then "La pantalla de muerte está oculta: Y la muestra".
-- Discoveries: the first time the game shows an exit, a waypoint or checkpoint, or a boss in the area: "Nueva
-  salida: Sierraclara", "Nuevo punto de control, cerca de Campamento de Sierraclara", "Jefe a la vista: El molinero
-  hinchado" (`AnnounceDiscoveries`).
+- Death: "You have died. Resurrect at Checkpoint", then the focused button (A). Y shows or hides the death
+  screen, so a Y meant for a skill can hide it: then "The death screen is hidden: Y shows it".
+- Discoveries: the first time the game shows an exit, a waypoint or checkpoint, or a boss in the area: "New
+  exit: Clearfell", "New checkpoint, near Clearfell Encampment", "Boss in sight: The Bloated Miller" (`AnnounceDiscoveries`).
 - Enemies coming into view, each monster once per area, a pack in one line by name, count and the direction of its
-  middle: "Ahogado, 3, derecha. Lobo podrido, raro, arriba" (`AnnounceEnemies`; bosses are discoveries).
-- Pick-ups: "Recogido: Traje de ermitaño"; a stack that grew: "Recogido 2 más: …"; gold: "Recogido 37 de oro"
+  middle: "Drowned, 3, right. Rotten Wolf, rare, up" (`AnnounceEnemies`; bosses are discoveries).
+- Pick-ups: "Picked up: Hermit Garb"; a stack that grew: "Picked up 2 more: …"; gold: "Picked up 37 gold"
   (`AnnouncePickups`).
 - An item on the ground whose tooltip the game shows (you stand by it or aim at it) says only its name, rarity and
-  quality ("Broquel de cuero, Calidad: +5%"); its whole text is read in the inventory. Gold says nothing until picked
+  quality ("Leather Buckler, Quality: +5%"); its whole text is read in the inventory. Gold says nothing until picked
   up. A shrine's, checkpoint's or portal's text is read whole.
-- Item in hand: "En la mano: Ballesta improvisada. Elige una celda o una ranura de equipo compatible para
-  colocarlo"; letting go: "Ya no llevas ningún objeto", or, into an equipment slot, "Equipado: Ballesta
-  improvisada, Mano principal" (`AnnounceHand`). These cut in on what is being read; the next D-pad move cuts them.
-- Inventory moves without the hand (`AnnounceMoves`): "Equipado: …, Mano principal" and "Desequipado: …" (X on an
-  item or a slot); with a panel open, "Nuevo en el inventario: …" (bought, withdrawn) and "… salió del inventario"
+- Item in hand: "In hand: Makeshift Crossbow. Choose a cell or a matching equipment slot to place it"; letting go: "You no longer hold an item", or, into an equipment slot, "Equipped:
+  Makeshift Crossbow, Main hand" (`AnnounceHand`). These cut in on what is being read; the next D-pad move cuts them.
+- Inventory moves without the hand (`AnnounceMoves`): "Equipped: …, Main hand" and "Unequipped: …" (X on an
+  item or a slot); with a panel open, "New in inventory: …" (bought, withdrawn) and "… left the inventory"
   (sold, stored). They follow the focus update the move causes.
-- Another player's menu (A on a player): "DrBacamarte, Guerrero Niv. 2, Liga Forbidden Rites. invitar al grupo,
-  1 de 5", then each button as the D-pad moves ("comerciar, 3 de 5"); B closes it.
-- Long texts (the terms of use, RB on the login screen): "Texto largo, 248 párrafos: desplázalo con el stick para
-  leerlo", then the paragraph at the scroll position with its place ("78 de 248. …"); scrolling forward a little reads
+- Another player's menu (A on a player): "DrBacamarte, Warrior Lvl 2, Forbidden Rites League. Invite to Party,
+  1 of 5", then each button as the D-pad moves ("Trade, 3 of 5"); B closes it.
+- Long texts (the terms of use, RB on the login screen): "Long text, 248 paragraphs: scroll it with the stick
+  to read it", then the paragraph at the scroll position with its place ("78 of 248. …"); scrolling forward a little reads
   the paragraphs passed, in order.
-- The large map (D-pad down in play): "Mapa. Mantén presionado cruceta abajo para interactuar con el mapa", then
-  "Mapa oculto" when it closes.
-- The chat panel (LT in a panel): "Chat. Mantén presionado LT para chatear" when shown, "Chat oculto" when hidden.
-- Weapon swap (RT in the inventory, `AnnounceMoves`): "Set de armas 2: Arco, Carcaj" or "Set de armas 2, vacío".
-- Legends with inline item art name the item: "Identificar Pergamino de sabiduría x 1, X" (catalog/item-names.json).
-- Requirements drawn in red come right after the item name (and price): "No puedes usarlo: Requiere Nivel 5".
+- The large map (D-pad down in play): "Map. Hold D-pad down To Interact With Map", then "Map hidden" when it closes.
+- The chat panel (LT in a panel): "Chat. Press-Hold LT to Chat" when shown, "Chat hidden" when hidden.
+- Chat channel: in the chat panel D-pad left reaches the channel list ("Global, combo box"); A opens it ("Choosing:
+  Global, 2 of 6"), the D-pad reads each channel ("Party, 3 of 6") and A chooses it: "Channel: Party". Holding LT
+  types; the field is named by its channel ("Global, #, text field"). X shows the channel filters (check boxes:
+  "Global, checked", A shows or hides that channel).
+- Weapon swap (RT in the inventory, `AnnounceMoves`): "Weapon set 2: Crude Bow, Blunt Quiver" or "Weapon set 2, empty".
+- Legends with inline item art name the item: "Identify Scroll of Wisdom x 1, X" (catalog/item-names.json).
+- Requirements drawn in red come right after the item name (and price): "Cannot use: Requires Level 5".
 - The checkpoint travel map: the game names no checkpoint, so each is said by the named place beside it (an exit,
   waypoint, NPC or object within about 20 steps), where it lies from yours and how far in a straight line:
-  "Viajar al punto de control, cerca de Campamento de Sierraclara, abajo, a 35 pasos, botón, 2 de 2"; yours:
-  "Estás aquí, cerca de …". A checkpoint not seen since the host started has only its direction.
+  "Travel to Checkpoint, near Clearfell Encampment, down, 35 steps away, button, 2 of 2"; yours:
+  "You are here, near …". A checkpoint not seen since the host started has only its direction.
 - Before the game (login, character selection and creation) the controller hints are read when a screen
-  opens, and only the new ones when the focus changes them ("Iniciar el juego en el pueblo/guarida, LT más A").
-- Character creation: the left stick picks the class ("Bruja, 4 de 6", its quote), A selects it. The name field
+  opens, and only the new ones when the focus changes them ("Start Game").
+- Character creation: the left stick picks the class ("Witch, 4 of 6", its quote), A selects it. The name field
   then takes typing at once; the mod says how to finish once per visit: Enter creates the character, or B ends the
-  typing and A creates it. After B the left stick moves between name, league ("Liga, Forbidden Rites", A opens the
-  list of 12) and Continue. X swaps the class for its variant when it has one ("Bruja" ↔ "Hechicera"), said with its
-  quote. A name in use is refused with "Ya existe un personaje con este nombre".
+  typing and A creates it. After B the left stick moves between name, league ("League, Forbidden Rites", A opens the
+  list of 12) and Continue. X swaps the class for its variant when it has one ("Witch" ↔ "Sorceress"), said with its
+  quote. A name in use is refused with "A character with this name already exists".
 - The mod speaks Spanish when the game does (`Language`: auto, en, es).
 
 ## Keyboard (development)

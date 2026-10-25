@@ -15,7 +15,7 @@ mod can be structured section by section instead of from scratch.
 
 ## Starting a new mod
 
-1. Read [`CLAUDE.md`](CLAUDE.md) → **Investigar el Engine** and pick the framework for *that* game.
+1. Read [`CLAUDE.md`](CLAUDE.md) → **§2 Investigate the engine** and pick the framework for *that* game.
 2. Pull the relevant subsystem references from [`reference/`](reference/) (e.g. for navigation, start
    at [`reference/audio-navigation/README.md`](reference/audio-navigation/README.md)).
 3. Build in the recommended order: adapter + speech → beacon → radar → scan → polish.
