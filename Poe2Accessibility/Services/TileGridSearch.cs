@@ -33,7 +33,7 @@ namespace Poe2Accessibility.Services
         public const double RotationShare = 0.9;
 
         /// <summary>Where a record's fields sit: its size, the tile file pointer, the file's path, the first of the three bytes.</summary>
-        public readonly record struct Layout(int Stride, int FileOffset, int PathOffset, int IdsOffset)
+        public sealed record Layout(int Stride, int FileOffset, int PathOffset, int IdsOffset)
         {
             public override string ToString() => $"record 0x{this.Stride:X}, file +0x{this.FileOffset:X}, path +0x{this.PathOffset:X}, ids +0x{this.IdsOffset:X}";
         }

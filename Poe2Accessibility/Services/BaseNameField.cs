@@ -8,14 +8,15 @@ namespace Poe2Accessibility.Services
     ///     the row), which a game update can move with nothing static to check it by (docs/compatibility.md). Checked on
     ///     inventory tooltips instead: a normal or magic item's title holds its base name ("Broquel de cuero", "Broquel de
     ///     cuero del zorro"). Two titles that hold the name prove it; two that do not start a search for the nearest
-    ///     place whose name the title holds, taken once a second title agrees. Pure.
+    ///     place whose name the title holds, taken once a second title agrees. Each item's title counts once (the
+    ///     focused item is described again on every value poll). Pure.
     /// </summary>
     public sealed class BaseNameField
     {
         /// <summary>Titles that must agree before a place is believed (one could hold a short name by chance).</summary>
         public const int Agreeing = 2;
 
-        /// <summary>Titles that miss the name before a search; titles that miss every place before the name is given up.</summary>
+        /// <summary>Titles in a row that miss the name before a search; that miss every place before the name is given up.</summary>
         public const int MissesToSearch = 2;
         public const int MissesToGiveUp = 6;
 
@@ -28,6 +29,7 @@ namespace Poe2Accessibility.Services
 
         private readonly (int Row, int Name) measured;
         private (int Row, int Name)? candidate;
+        private (IntPtr Item, string Title)? last;
         private int agreed;
         private int missed;
 
@@ -49,19 +51,21 @@ namespace Poe2Accessibility.Services
         public bool Moved => this.Judged && !this.Lost && this.Offsets != this.measured;
 
         /// <summary>
-        ///     One tooltip title of a normal or magic item, with <paramref name="nameAt"/> reading the item's name at a row
-        ///     pointer offset and a name offset (empty where none); true on the call that settles the field.
+        ///     One tooltip title of a normal or magic <paramref name="item"/>, with <paramref name="nameAt"/> reading its name
+        ///     at a row pointer offset and a name offset (empty where none); true on the call that settles the field.
         /// </summary>
-        public bool Observe(string title, Func<int, int, string> nameAt)
+        public bool Observe(IntPtr item, string title, Func<int, int, string> nameAt)
         {
-            if (this.Judged || string.IsNullOrWhiteSpace(title))
+            if (this.Judged || string.IsNullOrWhiteSpace(title) || this.last == (item, title))
             {
                 return false;
             }
 
+            this.last = (item, title);
             var place = this.candidate ?? this.Offsets;
             if (Holds(title, nameAt(place.Row, place.Name)))
             {
+                this.missed = 0;
                 if (++this.agreed < Agreeing)
                 {
                     return false;
@@ -100,10 +104,10 @@ namespace Poe2Accessibility.Services
         /// <summary>A new game process: judged again from where it was measured.</summary>
         public void Reset()
         {
-            (this.Offsets, this.candidate, this.agreed, this.missed, this.Judged, this.Lost) = (this.measured, null, 0, 0, false, false);
+            (this.Offsets, this.candidate, this.last, this.agreed, this.missed, this.Judged, this.Lost) = (this.measured, null, null, 0, 0, false, false);
         }
 
         private static bool Holds(string title, string name) =>
-            name.Length >= MinNameLength && name.Any(char.IsLetter) && title.Contains(name, StringComparison.Ordinal);
+            name.Length >= MinNameLength && name.Any(char.IsLetter) && title.Contains(name, StringComparison.OrdinalIgnoreCase); // a prefix can lower the name's first letter
     }
 }

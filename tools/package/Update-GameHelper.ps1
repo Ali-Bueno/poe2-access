@@ -30,6 +30,7 @@ if (-not (Test-Path (Join-Path $clone '.git'))) {
 
 Invoke-Native git @('-C', $clone, 'fetch', '--quiet', 'origin')
 $new = @(git -C $clone log --oneline 'HEAD..@{u}')
+if ($LASTEXITCODE -ne 0) { throw 'external\GameHelper2 has no upstream branch to compare with (detached HEAD?).' }
 if ($new.Count -eq 0) {
     Write-Host "GameHelper2 is up to date ($(git -C $clone log --oneline -1))."
 } else {

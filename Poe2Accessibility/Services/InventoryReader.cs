@@ -233,7 +233,7 @@ namespace Poe2Accessibility.Services
 
         private void CheckBaseName(Base component, string title)
         {
-            if (!this.BaseNames.Observe(title, (row, name) => this.NameAt(component.Address, row, name)))
+            if (!this.BaseNames.Observe(component.Address, title, (row, name) => this.NameAt(component.Address, row, name)))
             {
                 return;
             }

@@ -41,13 +41,16 @@ namespace Poe2Accessibility.Services
         private readonly HostMemoryReader memory;
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
-        private readonly TileGridSearch.Layout measured = new(
-            GameLayout.TileGrid.MeasuredStride, GameLayout.TileGrid.FileOffset, GameLayout.TileGrid.PathOffset, GameLayout.TileGrid.IdsOffset);
+        private static readonly TileGridSearch.Layout Measured = new(
+            GameLayout.TileGrid.Stride, GameLayout.TileGrid.FileOffset, GameLayout.TileGrid.PathOffset, GameLayout.TileGrid.IdsOffset);
+
+        /// <summary>Where the grid's fields are read: as measured, or as a search found them; replaced whole (builds run off the frame thread).</summary>
+        private volatile TileGridSearch.Layout layout = Measured;
         private Task<(PlaceMap Map, int Count, int Generation)?>? building;
         private int generation;
         private PlaceTracker tracker = NewTracker();
         private PlaceMap? map;
-        private (int Count, IntPtr First) builtFor;
+        private (int Count, IntPtr First, IntPtr Last) builtFor;
         private long lastPoll = long.MinValue / 2;
         private long lastAnchorPoll = long.MinValue / 2;
 
@@ -129,7 +132,7 @@ namespace Poe2Accessibility.Services
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             var terrain = area.TerrainMetadata;
             var lines = new List<string> { $"# tiles per row {terrain.TotalTiles.X}; x y path idX idY rotation (x, y: the sub-tile's top-left grid cell)" };
-            lines.AddRange(this.ReadPlacements(this.ReadGrid(terrain.TileDetailsPtr), (int)terrain.TotalTiles.X)
+            lines.AddRange(this.ReadPlacements(this.ReadGrid(terrain.TileDetailsPtr), (int)terrain.TotalTiles.X, this.layout)
                 .Select(tile => $"{tile.Grid.X} {tile.Grid.Y} {tile.Path} {tile.IdX} {tile.IdY} {tile.Rotation}"));
             lines.Add("# entities: grid x y path");
             foreach (var entity in area.AwakeEntities.Values)
@@ -151,7 +154,7 @@ namespace Poe2Accessibility.Services
         /// <summary>A new game process: the grid is judged again from where it was measured.</summary>
         public void ResetLayout()
         {
-            this.UseLayout(this.measured);
+            this.layout = Measured;
             this.gridTest = "not judged yet (needs an area)";
         }
 
@@ -161,22 +164,25 @@ namespace Poe2Accessibility.Services
             {
                 var timer = System.Diagnostics.Stopwatch.StartNew();
                 var grid = this.ReadGrid(details);
-                var placements = this.ReadPlacements(grid, perRow);
-                // Searched on every grid, also one that reads: the self-test tells whether a search would find it (a few ms).
+                var layout = this.layout;
+                var placements = this.ReadPlacements(grid, perRow, layout);
                 var fits = LayoutFits(placements, count);
+
+                // Searched on every grid (a few ms): the search also checks the id bytes (neighbours one step apart),
+                // which LayoutFits does not, so a layout it finds elsewhere wins.
                 var found = this.FindLayout(grid, count, perRow);
-                if (!fits && found != null)
+                if (found != null && found != layout)
                 {
-                    this.UseLayout(found.Value);
-                    placements = this.ReadPlacements(grid, perRow);
+                    (layout, this.layout) = (found, found);
+                    placements = this.ReadPlacements(grid, perRow, layout);
                     fits = true;
                 }
 
-                var verdict = !fits ? -1 : this.Layout() == this.measured ? 1 : 2;
+                var verdict = !fits ? -1 : layout == Measured ? 1 : 2;
                 this.gridTest = verdict > 0
-                    ? $"{(verdict == 1 ? "ok" : "moved")} ({placements.Count} of {count} sub-tiles name a tile; {this.Layout()}; " +
-                      $"{(found == this.Layout() ? "a search finds it too" : $"a search would find {found?.ToString() ?? "nothing"}")})"
-                    : $"FAIL ({placements.Count} of {count} sub-tiles name a tile, {grid.Length} bytes; nothing near {this.measured} fits)";
+                    ? $"{(verdict == 1 ? "ok" : "moved")} ({placements.Count} of {count} sub-tiles name a tile; {layout}; " +
+                      $"{(found != null ? "a search finds it too" : "a search finds nothing here")})"
+                    : $"FAIL ({placements.Count} of {count} sub-tiles name a tile, {grid.Length} bytes; nothing near {Measured} fits)";
                 Interlocked.Exchange(ref this.tileLayout, verdict);
                 if (placements.Count == 0)
                 {
@@ -200,13 +206,13 @@ namespace Poe2Accessibility.Services
         private byte[] ReadGrid(StdVector details)
         {
             var bytes = details.Last.ToInt64() - details.First.ToInt64();
-            return bytes is > 0 and <= (long)MaxSubTiles * GameLayout.TileGrid.MeasuredStride ? this.memory.ReadBytes(details.First, (int)bytes) : Array.Empty<byte>();
+            return bytes is > 0 and <= (long)MaxSubTiles * GameLayout.TileGrid.Stride ? this.memory.ReadBytes(details.First, (int)bytes) : Array.Empty<byte>();
         }
 
         /// <summary>The sub-tiles that name a tile file, one GameLayout.TileGrid record each, row by row.</summary>
-        private List<TilePlacement> ReadPlacements(byte[] grid, int tilesPerRow)
+        private List<TilePlacement> ReadPlacements(byte[] grid, int tilesPerRow, TileGridSearch.Layout layout)
         {
-            var (stride, file, path, ids) = this.Layout();
+            var (stride, file, path, ids) = layout;
             var paths = new Dictionary<long, string>();
             var count = grid.Length / stride;
             var placements = new List<TilePlacement>(count);
@@ -228,7 +234,7 @@ namespace Poe2Accessibility.Services
         private TileGridSearch.Layout? FindLayout(byte[] grid, int subTiles, int perRow)
         {
             var paths = new Dictionary<(long, int), string>();
-            return TileGridSearch.Find(grid, subTiles, perRow, this.measured, (file, path) =>
+            return TileGridSearch.Find(grid, subTiles, perRow, Measured, (file, path) =>
             {
                 if (!paths.TryGetValue((file, path), out var name))
                 {
@@ -239,13 +245,6 @@ namespace Poe2Accessibility.Services
                 return name.EndsWith(".tdt", StringComparison.Ordinal);
             });
         }
-
-        private TileGridSearch.Layout Layout() =>
-            new(GameLayout.TileGrid.Stride, GameLayout.TileGrid.FileOffset, GameLayout.TileGrid.PathOffset, GameLayout.TileGrid.IdsOffset);
-
-        private void UseLayout(TileGridSearch.Layout layout) =>
-            (GameLayout.TileGrid.Stride, GameLayout.TileGrid.FileOffset, GameLayout.TileGrid.PathOffset, GameLayout.TileGrid.IdsOffset) =
-            (layout.Stride, layout.FileOffset, layout.PathOffset, layout.IdsOffset);
 
         /// <summary>
         ///     GameHelper's tile grid still reads (TileStructure, TgtFileStruct): half the sub-tiles name a tile file and
@@ -288,8 +287,9 @@ namespace Poe2Accessibility.Services
         {
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             var terrain = area.TerrainMetadata;
-            var count = (int)(terrain.TotalTiles.X * terrain.TotalTiles.Y);
-            if (count <= 0 || terrain.TotalTiles.X <= 0 || terrain.TileDetailsPtr.Last.ToInt64() <= terrain.TileDetailsPtr.First.ToInt64())
+            var (perRow, rows) = (terrain.TotalTiles.X, terrain.TotalTiles.Y);
+            if (perRow is <= 0 or > MaxSubTiles || rows is <= 0 or > MaxSubTiles || perRow * rows > MaxSubTiles ||
+                terrain.TileDetailsPtr.Last.ToInt64() <= terrain.TileDetailsPtr.First.ToInt64())
             {
                 return null;
             }
@@ -300,7 +300,7 @@ namespace Poe2Accessibility.Services
                     this.Report?.Found("tile grid");
                     break;
                 case 2:
-                    var (from, to) = TileGridSearch.FirstMoved(this.measured, this.Layout());
+                    var (from, to) = TileGridSearch.FirstMoved(Measured, this.layout);
                     this.Report?.Moved("tile grid", from, to);
                     break;
                 case -1:
@@ -318,15 +318,16 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            // Built again when the grid changes (its size or its storage: the next area may share the size); a grid that
-            // failed is not read again until it changes.
-            var grid = (count, terrain.TileDetailsPtr.First);
+            // Built again when the grid changes (its size or its storage: the next area may share the size; a grid still
+            // filling grows); a grid that failed is not read again until it changes.
+            var count = (int)(perRow * rows);
+            var grid = (count, terrain.TileDetailsPtr.First, terrain.TileDetailsPtr.Last);
             if (grid != this.builtFor && this.building == null)
             {
                 // Off the frame thread: 58 ms for the town's 990 sub-tiles (2026-10-25), large areas hold thousands.
                 this.builtFor = grid;
-                var (details, perRow, generation) = (terrain.TileDetailsPtr, (int)terrain.TotalTiles.X, this.generation);
-                this.building = Task.Run(() => this.Build(details, perRow, count, generation));
+                var (details, tilesPerRow, generation) = (terrain.TileDetailsPtr, (int)perRow, this.generation);
+                this.building = Task.Run(() => this.Build(details, tilesPerRow, count, generation));
             }
 
             if (this.map == null)
