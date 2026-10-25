@@ -15,7 +15,8 @@ namespace Poe2Accessibility.Services
     ///     each step it falls past, and the defeat once. The dodge warning: a short rising whoosh on the side of a rare or
     ///     unique monster on screen attacking (<see cref="DodgeThreats"/>; a rare's blow only within reach), louder the
     ///     closer it is, half a second before the blow lands as learnt from earlier hits of that attack by any monster of
-    ///     its kind (<see cref="DodgeTimings"/>), at the wind-up until then. Animation ids are GameHelper's
+    ///     its kind or given by the game's files (<see cref="DodgeTimings"/>; a projectile's flight across the gap added, at
+    ///     its speed in the files), at the wind-up until then. Animation ids are GameHelper's
     ///     <c>Actor.Animation</c> (Actor +0x8B0).
     /// </summary>
     public sealed class BossWatch
@@ -228,24 +229,40 @@ namespace Poe2Accessibility.Services
                 var threat = DodgeThreats.Of(animation, value => Enum.GetName(typeof(Animation), value));
                 if (threat == DodgeThreat.None)
                 {
-                    if (attack != null && now - attack.EndedAt > LateBlowMs)
+                    if (attack == null)
                     {
-                        this.attacks.Remove(id);
+                        return;
                     }
 
-                    return;
-                }
+                    if (now - attack.EndedAt > LateBlowMs + attack.TravelMs)
+                    {
+                        this.attacks.Remove(id);
+                        return;
+                    }
 
-                var key = DodgeTimings.Key(entity.Path, animation);
-                var learnt = this.Timings.Delay(key);
-                attack = new Attack(animation, key, threat, now, DodgeTimings.WarnAt(now, learnt, LeadMs), learnt,
-                    rarity is Rarity.Rare or Rarity.Unique, rarity == Rarity.Unique) { Swing = this.Timings.Swing(key) };
+                    // A projectile released before the monster turned away still comes: its warning stands.
+                    if (!DodgeTimings.CanStillHit(attack.StartedAt, attack.EndedAt, attack.Learnt, attack.TravelMs, now))
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    var key = DodgeTimings.Key(entity.Path, animation);
+                    var learnt = this.Timings.Delay(key);
+
+                    // A projectile lands its flight across the gap after the release the files and earlier blows time.
+                    var travel = DodgeTimings.TravelMs(gap, this.Timings.ProjectileSpeed(key));
+                    attack = new Attack(animation, key, threat, now, DodgeTimings.WarnAt(now, learnt + travel, LeadMs), learnt,
+                        rarity is Rarity.Rare or Rarity.Unique, rarity == Rarity.Unique) { Swing = this.Timings.Swing(key), TravelMs = travel };
+                }
             }
 
             // A rare's blow needs it within reach when it would land; a unique's carries (slam waves).
             var inReach = attack.Threat != DodgeThreat.Melee || attack.Unique || gap <= MeleeDangerGapWorld;
             attack = attack with { InReach = inReach };
-            if (attack.Warns && !attack.Warned && attack.EndedAt == 0 && now >= attack.WarnAt)
+            if (attack.Warns && !attack.Warned && DodgeTimings.CanStillHit(attack.StartedAt, attack.EndedAt, attack.Learnt, attack.TravelMs, now) &&
+                now >= attack.WarnAt)
             {
                 // The same animation id goes on swinging (a golem's blows a swing apart, nothing new written between
                 // them): a timed attack warns again one swing later.
@@ -257,7 +274,8 @@ namespace Poe2Accessibility.Services
                     var closeness = 1f - Math.Clamp(offset.Length() / WatchWorld, 0f, 1f);
                     this.audio.Play(this.whoosh, pan, pitch, this.Gain * (FarWarningGain + ((1f - FarWarningGain) * closeness)));
                     this.log.Debug($"Dodge warning: monster {id} animation {(Animation)animation} ({attack.Threat}, gap {gap:F0}, " +
-                                   $"{(attack.Learnt is { } delay ? $"{now - attack.StartedAt} ms into a blow learnt at {delay} ms" : "at the wind-up")})");
+                                   $"{(attack.Learnt is { } delay ? $"{now - attack.StartedAt} ms into a blow learnt at {delay} ms" : "at the wind-up")}" +
+                                   $"{(attack.TravelMs > 0 ? $", {attack.TravelMs} ms of flight" : string.Empty)})");
                 }
             }
 
@@ -279,14 +297,15 @@ namespace Poe2Accessibility.Services
 
             var hitters = this.attacks.Where(pair => !pair.Value.Learned && pair.Value.InReach &&
                                                      (pair.Value.Swing != null || now - pair.Value.StartedAt <= DodgeTimings.MaxDelayMs) &&
-                                                     (pair.Value.EndedAt == 0 || now - pair.Value.EndedAt <= LateBlowMs)).ToList();
+                                                     (pair.Value.EndedAt == 0 || now - pair.Value.EndedAt <= LateBlowMs + pair.Value.TravelMs)).ToList();
             if (hitters.Count != 1)
             {
                 return;
             }
 
+            // A projectile's blow is learnt as its release: the flight differs with the distance each time.
             var (id, attack) = (hitters[0].Key, hitters[0].Value);
-            var delay = (int)(now - attack.StartedAt);
+            var delay = (int)(now - attack.StartedAt) - attack.TravelMs;
             if (attack.Swing is { } swing && delay > swing)
             {
                 delay %= swing; // a later swing of the same animation: its blow lands as far into its own swing
@@ -315,6 +334,9 @@ namespace Poe2Accessibility.Services
 
             /// <summary>One swing's length when the game's files give it: the attack repeats at this period.</summary>
             public int? Swing { get; init; }
+
+            /// <summary>Its projectile's flight to the player from where the attack began; 0 without a projectile.</summary>
+            public int TravelMs { get; init; }
         }
     }
 }

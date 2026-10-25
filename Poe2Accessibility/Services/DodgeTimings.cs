@@ -8,7 +8,8 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     When each monster attack lands, learnt from the hits the player takes: the time from the attack animation's
-    ///     start to the player's life falling, per monster kind and animation (a rare uses its kind's animations). The
+    ///     start to the player's life falling (to a projectile's release, its flight taken off), per monster kind and
+    ///     animation (a rare uses its kind's animations). The
     ///     game keeps no attack progress readable from the Actor (docs/research/dodge-timing.md), so the warning is timed
     ///     from these. Pure apart from <see cref="Load"/> and <see cref="Save"/>.
     /// </summary>
@@ -22,16 +23,19 @@ namespace Poe2Accessibility.Services
 
         private const int MinDelayMs = 50;
 
+        private const float MsPerSecond = 1000f;
+
         private readonly Dictionary<string, List<int>> delays = new(StringComparer.Ordinal);
 
         /// <summary>Learnt since the last save.</summary>
         public bool Changed { get; private set; }
 
         /// <summary>
-        ///     From the game's animation data (catalog/hit-times.txt): when each attack lands and how long one swing
-        ///     lasts, for an attack no blow has timed yet (docs/research/dodge-timing.md).
+        ///     From the game's animation data (catalog/hit-times.txt): when each attack lands (a projectile's release), how
+        ///     long one swing lasts and how fast its projectile flies (0: no projectile), for an attack no blow has timed yet
+        ///     (docs/research/dodge-timing.md).
         /// </summary>
-        private readonly Dictionary<string, (int Hit, int Swing)> fromFiles = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, (int Hit, int Swing, int Speed)> fromFiles = new(StringComparer.Ordinal);
 
         /// <summary>"Metadata/Monsters/MudGolem/MudGolemWet1|13": the monster kind without its "@level" suffix.</summary>
         public static string Key(string monsterPath, int animation)
@@ -43,6 +47,21 @@ namespace Poe2Accessibility.Services
         /// <summary>When to warn for an attack that began at <paramref name="start"/>: the lead before its learnt hit, or at once.</summary>
         public static long WarnAt(long start, int? delayMs, int leadMs) =>
             delayMs is { } delay && delay - leadMs > 0 ? start + delay - leadMs : start;
+
+        /// <summary>
+        ///     How long a projectile takes to cross <paramref name="gapWorld"/> world units at <paramref name="speed"/> world
+        ///     units a second (the files' ProjectileSpeed); 0 for an attack without a projectile. Its blow lands this long
+        ///     after the release the files time.
+        /// </summary>
+        public static int TravelMs(float gapWorld, int? speed) =>
+            speed is > 0 && gapWorld > 0 ? (int)Math.Round(gapWorld * MsPerSecond / speed.Value) : 0;
+
+        /// <summary>
+        ///     Whether an attack can still land: its animation runs (<paramref name="endedAt"/> 0), or it ended after
+        ///     releasing a projectile that is still flying (a projectile flies on when the monster turns away).
+        /// </summary>
+        public static bool CanStillHit(long startedAt, long endedAt, int? releaseMs, int travelMs, long now) =>
+            endedAt == 0 || (travelMs > 0 && releaseMs is { } release && endedAt - startedAt >= release && now - endedAt <= travelMs);
 
         public void Learn(string key, int delayMs)
         {
@@ -84,22 +103,34 @@ namespace Poe2Accessibility.Services
         /// <summary>How long one swing of the attack lasts (it repeats while the animation holds), when the files say.</summary>
         public int? Swing(string key) => this.fromFiles.TryGetValue(key, out var timed) && timed.Swing > 0 ? timed.Swing : null;
 
-        /// <summary>Lines "key=hit/swing" (catalog/hit-times.txt); "#" lines are comments.</summary>
+        /// <summary>How fast the attack's projectile flies (world units a second), when the files say it fires one.</summary>
+        public int? ProjectileSpeed(string key) => this.fromFiles.TryGetValue(key, out var timed) && timed.Speed > 0 ? timed.Speed : null;
+
+        /// <summary>
+        ///     Lines "key=hit/swing[/speed]" (catalog/hit-times.txt); "#" lines are comments. A hit later than a blow is
+        ///     learnt is still believed within its own swing (long boss attacks).
+        /// </summary>
         public void AddHitTimes(IEnumerable<string> lines)
         {
             foreach (var line in lines)
             {
                 var split = line.LastIndexOf('=');
-                var slash = line.LastIndexOf('/');
-                if (line.StartsWith('#') || split <= 0 || slash < split ||
-                    !int.TryParse(line[(split + 1)..slash], NumberStyles.Integer, CultureInfo.InvariantCulture, out var hit) ||
-                    !int.TryParse(line[(slash + 1)..], NumberStyles.Integer, CultureInfo.InvariantCulture, out var swing) ||
-                    hit is < MinDelayMs or > MaxDelayMs)
+                var parts = split > 0 ? line[(split + 1)..].Split('/') : Array.Empty<string>();
+                if (line.StartsWith('#') || parts.Length is < 2 or > 3 ||
+                    !int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out var hit) ||
+                    !int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var swing) ||
+                    hit < MinDelayMs || hit > Math.Max(MaxDelayMs, swing))
                 {
                     continue;
                 }
 
-                this.fromFiles[line[..split]] = (hit, swing);
+                var speed = 0;
+                if (parts.Length == 3 && !int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out speed))
+                {
+                    continue;
+                }
+
+                this.fromFiles[line[..split]] = (hit, swing, speed);
             }
         }
 

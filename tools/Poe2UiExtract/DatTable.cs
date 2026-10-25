@@ -72,9 +72,23 @@ internal sealed class DatTable
     public IReadOnlyList<string> StringList(int row, int offset) =>
         this.ListItems(row, offset, 8).Select(at => this.ReadString(BitConverter.ToInt64(this.data, at))).ToList();
 
+    /// <summary>4 bytes at any offset of a row; -1 past its end.</summary>
+    public int Int32(int row, int offset) => offset >= 0 && offset + 4 <= this.RowSize ? BitConverter.ToInt32(this.data, this.RowStart(row) + offset) : -1;
+
+    /// <summary>A one-byte flag column.</summary>
+    public bool Bool(int row, int offset) => offset >= 0 && offset < this.RowSize && this.data[this.RowStart(row) + offset] != 0;
+
     /// <summary>A list column of foreign keys (16 bytes each, the row index first).</summary>
     public IReadOnlyList<long> KeyList(int row, int offset) =>
         this.ListItems(row, offset, 16).Select(at => BitConverter.ToInt64(this.data, at)).ToList();
+
+    /// <summary>A list column of keys into the same table (8 bytes each).</summary>
+    public IReadOnlyList<long> RowList(int row, int offset) =>
+        this.ListItems(row, offset, 8).Select(at => BitConverter.ToInt64(this.data, at)).ToList();
+
+    /// <summary>A list column of 4-byte integers.</summary>
+    public IReadOnlyList<int> Int32List(int row, int offset) =>
+        this.ListItems(row, offset, 4).Select(at => BitConverter.ToInt32(this.data, at)).ToList();
 
     /// <summary>The row a foreign-key column points to, or -1 for a null key.</summary>
     public long Key(int row, int offset)

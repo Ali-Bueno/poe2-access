@@ -12,6 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The plugin's own sorting of attack animations (pure), so hit-times counts the attacks the mod warns of. -->
+    <Compile Include="..\..\Poe2Accessibility\Services\DodgeThreats.cs" Link="DodgeThreats.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Only needed at run time for the bundle-extraction mode; the file lives beside the exe when
          present, but its absence must never fail the build (e.g. the catalog mode never touches it). -->
     <None Include="..\..\external\oodle\oo2core.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\..\external\oodle\oo2core.dll')" />

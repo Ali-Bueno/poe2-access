@@ -1,37 +1,35 @@
-using System.Text;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using Index = LibBundle3.Index;
+using Poe2Accessibility.Services;
 
 /// <summary>
 ///     `hit-times` command: when each monster attack lands, from the game's own animation data, so the mod can warn
-///     before an attack's first blow (docs/research/dodge-timing.md). For every MonsterVarieties row:
-///     - its actions: "Melee" and the animation of each granted skill (GrantedEffects +0x71 → Animation row);
-///     - the action's animation names from the monster's .act ("GroundSlam = \"ground_slam_01\";", "@Alias" followed);
-///     - each animation's hit: the "contact" event time of the .ao's AnimationController, else the first damage key
-///       frame of its Melee section times the animation length from the .amd; the earliest of the action wins.
-///     The Actor's animation id is the action's row in Animation.datc64. Written as
-///     "monster path|animation id=hit ms/animation ms" lines. Checked against blows timed in game: mud golem slam 1169
-///     (1156–1172 seen), Bloated Miller slam 1803 (1781–1828), larva melee 430 (437–469).
+///     before an attack's first blow (sources and checks: docs/research/dodge-timing.md). For every MonsterVarieties row:
+///     - its actions: "Melee" and the animation of each granted skill (GrantedEffects +0x71 → Animation row), plus the
+///       actions the Animation table plays with them (<see cref="AnimationActions"/>);
+///     - each action's animations from the monster's .act, through the Animation table's fallbacks when it lacks one;
+///     - each animation's hit (<see cref="HitOf"/>), the earliest of the action winning;
+///     - for a skill that fires a projectile, its speed (<see cref="ProjectileSpeeds"/>), so the mod adds its flight.
+///     Written as "monster path|animation id=hit ms/animation ms[/projectile speed]" lines; the Actor's animation id is the
+///     action's row in Animation.datc64.
 /// </summary>
 internal static class HitTimeExtractor
 {
+    // MonsterVarieties: Id, ACTFiles, AOFiles, GrantedEffects (found with dat-strings; the community dat-schema's names).
     private const int MonsterIdOffset = 0x00;
     private const int ActFilesOffset = 0x28;
     private const int AoFilesOffset = 0x38;
     private const int GrantedEffectsOffset = 0xD0;
-    private const int SkillAnimationOffset = 0x71;
-    private const string ContactEvent = "contact";
-    private const int MaxAliasDepth = 4;
 
-    private static readonly Regex Comment = new(@"//[^\n]*", RegexOptions.Compiled);
-    private static readonly Regex Stance = new(@"stance\s+\w+\s*\{[^{}]*\}", RegexOptions.Compiled);
-    private static readonly Regex Assignment = new("(\\w+)\\s*=\\s*\"([^\"]*)\"", RegexOptions.Compiled);
-    private static readonly Regex Extends = new("extends\\s+\"([^\"]+)\"", RegexOptions.Compiled);
-    private static readonly Regex Controller = new(@"\nAnimationController\s*\{(.*?)\n\}", RegexOptions.Compiled | RegexOptions.Singleline);
-    private static readonly Regex Metadata = new("metadata\\s*=\\s*\"([^\"]+)\"", RegexOptions.Compiled);
-    private static readonly Regex Animations = new(@"animations\s*=\s*'(\[.*?\])'", RegexOptions.Compiled | RegexOptions.Singleline);
-    private static readonly Regex MeleeSection = new(@"\nMelee\s*\{\s*animations\s*=\s*'(\[.*?\])'", RegexOptions.Compiled | RegexOptions.Singleline);
+    // GrantedEffects: the skill's Animation row (inferred from 8 rows).
+    private const int SkillAnimationOffset = 0x71;
+
+    private const string MeleeAction = "Melee";
+
+    private enum Source
+    {
+        Contact,
+        DamagePattern,
+        BakedContact,
+    }
 
     public static int Run(string gameDir, string outFile)
     {
@@ -53,9 +51,11 @@ internal static class HitTimeExtractor
             animationRows.TryAdd(animations.String(row, 0), row);
         }
 
-        var reader = new GameFiles(path => files.TryGetValue(path.ToLowerInvariant(), out var file) ? file.Read().ToArray() : null);
-        var lines = new List<string>();
-        int actions = 0, timed = 0;
+        var actions = new AnimationActions(animations);
+        var speeds = ProjectileSpeeds.Read(index, skills);
+        var reader = new MonsterAnimationFiles(path => files.TryGetValue(path.ToLowerInvariant(), out var file) ? file.Read().ToArray() : null);
+        var lines = new SortedSet<string>(StringComparer.Ordinal);
+        var tally = new Tally();
         for (var row = 0; row < monsters.RowCount; row++)
         {
             var id = monsters.StringOrNull(row, MonsterIdOffset);
@@ -72,235 +72,155 @@ internal static class HitTimeExtractor
                 return 1;
             }
 
-            var names = new SortedSet<string>(StringComparer.Ordinal) { "Melee" };
+            // Each action and the skills that play it (Melee is every monster's basic attack).
+            var skillsOf = new Dictionary<int, List<int>>();
+            if (animationRows.TryGetValue(MeleeAction, out var melee))
+            {
+                skillsOf[melee] = new List<int>();
+            }
+
             foreach (var skill in monsters.KeyList(row, GrantedEffectsOffset).Where(key => key >= 0 && key < skills.RowCount))
             {
                 var animation = skills.Int64((int)skill, SkillAnimationOffset);
                 if (animation >= 0 && animation < animations.RowCount)
                 {
-                    names.Add(animations.String((int)animation, 0));
+                    if (!skillsOf.TryGetValue((int)animation, out var list))
+                    {
+                        list = new List<int>();
+                        skillsOf[(int)animation] = list;
+                    }
+
+                    list.Add((int)skill);
                 }
             }
 
             var actMap = reader.Act(act);
             var animated = reader.Ao(ao);
-            var lengths = animated.Amd == null ? new Dictionary<string, int>() : reader.Amd(animated.Amd);
-            foreach (var action in names)
+            var clipsData = animated.Amd == null ? new Dictionary<string, AmdClip>() : reader.Amd(animated.Amd);
+            var played = actions.WithFollowUps(skillsOf.Keys);
+            foreach (var action in played)
             {
-                if (!animationRows.TryGetValue(action, out var animationId))
+                var requested = skillsOf.ContainsKey(action);
+                var (clips, resolved) = actions.Clips(actMap, action);
+                var warned = DodgeThreats.Of(action, value => value >= 0 && value < animations.RowCount ? animations.String(value, 0) : null) != DodgeThreat.None;
+                if (clips.Count == 0)
                 {
+                    tally.NoAnimation(requested, warned);
                     continue;
                 }
 
-                var candidates = new List<(int Hit, int Length)>();
-                foreach (var clip in Clips(actMap, action, 0))
+                var timed = clips.Select(clip => (Hit: HitOf(animated, clipsData, clip), Length: clipsData.GetValueOrDefault(clip)?.Length ?? 0))
+                    .Where(c => c.Hit != null).Select(c => (c.Hit!.Value.Ms, c.Hit.Value.Source, c.Length)).ToList();
+                if (timed.Count == 0)
                 {
-                    var length = lengths.GetValueOrDefault(clip);
-                    if (animated.Contact.TryGetValue(clip, out var contact))
-                    {
-                        candidates.Add(((int)Math.Round(contact * 1000), length));
-                    }
-                    else if (animated.MeleeKeyFrame.TryGetValue(clip, out var keyFrame) && length > 0)
-                    {
-                        candidates.Add(((int)Math.Round(keyFrame * length), length));
-                    }
-                }
-
-                actions += Clips(actMap, action, 0).Any() ? 1 : 0;
-                if (candidates.Count == 0)
-                {
+                    tally.Untimed(requested, warned, clips.Any(animated.EventClips.Contains));
                     continue;
                 }
 
-                var first = candidates.MinBy(candidate => candidate.Hit);
-                timed++;
-                lines.Add($"{id}|{animationId}={first.Hit}/{first.Length}");
+                var first = timed.MinBy(candidate => candidate.Ms);
+                var speed = requested && skillsOf[action].Count > 0 && skillsOf[action].All(speeds.ContainsKey) ? skillsOf[action].Max(skill => speeds[skill]) : 0;
+                var value = $"{first.Ms}/{first.Length}" + (speed > 0 ? $"/{speed}" : string.Empty);
+                lines.Add($"{id}|{action}={value}");
+                tally.Timed(requested, warned, first.Source, speed > 0, resolved != action);
+
+                // Which of the two ids the Actor shows for a fallback is not traced: both get the time.
+                if (resolved != action && !played.Contains(resolved))
+                {
+                    lines.Add($"{id}|{resolved}={value}");
+                }
             }
         }
 
         var header = new[]
         {
             "# When monster attacks land, from the game's animation data (tools/Poe2UiExtract hit-times), regenerated after patches.",
-            "# monster path|animation id=ms from the attack's start to its blow/ms of one swing (0 unknown).",
+            "# monster path|animation id=ms from the attack's start to its blow (a projectile's release)/ms of one swing (0 unknown)",
+            "# [/the projectile's speed in world units a second].",
         };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
-        File.WriteAllLines(outFile, header.Concat(lines.Distinct().OrderBy(line => line, StringComparer.Ordinal)));
-        Console.WriteLine($"Wrote {outFile}: {timed} of {actions} monster attacks with animations timed.");
+        File.WriteAllLines(outFile, header.Concat(lines));
+        Console.WriteLine($"Wrote {outFile}: {lines.Count} lines.");
+        tally.Print();
         return 0;
     }
 
-    /// <summary>The animation names an action plays ("attack_01,attack_02"), aliases ("@Melee") followed.</summary>
-    private static IEnumerable<string> Clips(IReadOnlyDictionary<string, string> act, string action, int depth)
+    /// <summary>A table's rows still have the size its offsets were read at; else says what is left out.</summary>
+    internal static bool Sized(DatTable? table, int rowSize, string name, string skipped)
     {
-        if (depth > MaxAliasDepth || !act.TryGetValue(action, out var value))
+        if (table != null && table.RowSize == rowSize)
         {
-            yield break;
+            return true;
         }
 
-        foreach (var part in value.Split(','))
-        {
-            var name = part.Split(':')[0].Trim();
-            if (name.StartsWith('@'))
-            {
-                foreach (var aliased in Clips(act, name[1..], depth + 1))
-                {
-                    yield return aliased;
-                }
-            }
-            else if (name.Length > 0)
-            {
-                yield return name.ToLowerInvariant();
-            }
-        }
+        Console.WriteLine($"{name} {(table == null ? "not found" : $"rows are 0x{table.RowSize:X} bytes, not 0x{rowSize:X}")}: {skipped} left out; " +
+                          "find the columns again (dat-strings, dat-schema).");
+        return false;
     }
 
-    private sealed record Animated(string? Amd, Dictionary<string, double> Contact, Dictionary<string, double> MeleeKeyFrame);
-
-    /// <summary>The monster files read once each: .act action maps, .ao events (with their parents), .amd lengths.</summary>
-    private sealed class GameFiles
+    /// <summary>
+    ///     One animation's blow: the .ao's "contact", else its Melee damage pattern's first key frame, else the "contact"
+    ///     baked into the .amd; null when the files mark none.
+    /// </summary>
+    private static (int Ms, Source Source)? HitOf(AnimatedObject animated, IReadOnlyDictionary<string, AmdClip> clips, string clip)
     {
-        private readonly Func<string, byte[]?> read;
-        private readonly Dictionary<string, Dictionary<string, string>> acts = new(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, Animated> aos = new(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, Dictionary<string, int>> amds = new(StringComparer.OrdinalIgnoreCase);
-
-        public GameFiles(Func<string, byte[]?> read) => this.read = read;
-
-        public Dictionary<string, string> Act(string path)
+        var data = clips.GetValueOrDefault(clip);
+        if (animated.Contact.TryGetValue(clip, out var contact))
         {
-            if (this.acts.TryGetValue(path, out var cached))
-            {
-                return cached;
-            }
-
-            var map = new Dictionary<string, string>(StringComparer.Ordinal);
-            if (this.Text(path) is { } text)
-            {
-                text = Comment.Replace(text, string.Empty);
-                // The default stance first; a stance block's own definitions only fill what it lacks.
-                foreach (var source in new[] { Stance.Replace(text, string.Empty), text })
-                {
-                    foreach (Match match in Assignment.Matches(source))
-                    {
-                        map.TryAdd(match.Groups[1].Value, match.Groups[2].Value);
-                    }
-                }
-            }
-
-            this.acts[path] = map;
-            return map;
+            return ((int)Math.Round(contact * MonsterAnimationFiles.MsPerSecond), Source.Contact);
         }
 
-        public Animated Ao(string path, int depth = 0)
+        if (animated.MeleeKeyFrame.TryGetValue(clip, out var keyFrame) && data is { Length: > 0 })
         {
-            if (this.aos.TryGetValue(path, out var cached))
-            {
-                return cached;
-            }
-
-            var result = new Animated(null, new Dictionary<string, double>(), new Dictionary<string, double>());
-            if (this.Text(path) is { } text)
-            {
-                if (Extends.Match(text) is { Success: true } parent && parent.Groups[1].Value != "Metadata/Parent" && depth < MaxAliasDepth)
-                {
-                    var inherited = this.Ao(parent.Groups[1].Value.EndsWith(".ao", StringComparison.OrdinalIgnoreCase) ? parent.Groups[1].Value : parent.Groups[1].Value + ".ao", depth + 1);
-                    result = new Animated(inherited.Amd, new Dictionary<string, double>(inherited.Contact), new Dictionary<string, double>(inherited.MeleeKeyFrame));
-                }
-
-                if (Controller.Match(text) is { Success: true } controller)
-                {
-                    if (Metadata.Match(controller.Groups[1].Value) is { Success: true } amd)
-                    {
-                        result = result with { Amd = amd.Groups[1].Value };
-                    }
-
-                    if (Animations.Match(controller.Groups[1].Value) is { Success: true } list)
-                    {
-                        ForEachAnimation(list.Groups[1].Value, (name, animation) =>
-                        {
-                            if (animation.TryGetProperty("events", out var events) && events.ValueKind == JsonValueKind.Array)
-                            {
-                                var times = events.EnumerateArray()
-                                    .Where(e => e.TryGetProperty("name", out var n) && n.GetString() == ContactEvent && e.TryGetProperty("time", out _))
-                                    .Select(e => e.GetProperty("time").GetDouble()).ToList();
-                                if (times.Count > 0)
-                                {
-                                    result.Contact[name] = times.Min();
-                                }
-                            }
-                        });
-                    }
-                }
-
-                if (MeleeSection.Match(text) is { Success: true } melee)
-                {
-                    ForEachAnimation(melee.Groups[1].Value, (name, animation) =>
-                    {
-                        if (animation.TryGetProperty("melee_data", out var data) && data.TryGetProperty("damage_patterns", out var patterns))
-                        {
-                            var frames = patterns.EnumerateArray()
-                                .Where(p => p.TryGetProperty("key_frames", out var k) && k.GetArrayLength() > 0)
-                                .Select(p => p.GetProperty("key_frames")[0][0].GetDouble()).ToList();
-                            if (frames.Count > 0)
-                            {
-                                result.MeleeKeyFrame[name] = frames.Min();
-                            }
-                        }
-                    });
-                }
-            }
-
-            this.aos[path] = result;
-            return result;
+            return ((int)Math.Round(keyFrame * data.Length), Source.DamagePattern);
         }
 
-        /// <summary>Animation lengths in ms: a quoted name, then two lines on, the length.</summary>
-        public Dictionary<string, int> Amd(string path)
+        return data?.Contact is { } baked ? (baked, Source.BakedContact) : null;
+    }
+
+    /// <summary>Counts per outcome, printed so a patch that breaks a source shows at once.</summary>
+    private sealed class Tally
+    {
+        private readonly Dictionary<string, int> counts = new(StringComparer.Ordinal);
+
+        public void Timed(bool requested, bool warned, Source source, bool speed, bool fallback)
         {
-            if (this.amds.TryGetValue(path, out var cached))
+            this.Add(requested, warned, "timed");
+            this.Add(requested, warned, $"by {source}");
+            if (fallback)
             {
-                return cached;
+                this.Add(requested, warned, "through a fallback action");
             }
 
-            var lengths = new Dictionary<string, int>(StringComparer.Ordinal);
-            if (this.Text(path) is { } text)
+            if (speed)
             {
-                var lines = text.Split('\n');
-                for (var i = 0; i + 2 < lines.Length; i++)
-                {
-                    if (lines[i].StartsWith('"') && int.TryParse(lines[i + 2].Trim(), out var ms))
-                    {
-                        lengths.TryAdd(lines[i].Trim().Trim('"').ToLowerInvariant(), ms);
-                    }
-                }
-            }
-
-            this.amds[path] = lengths;
-            return lengths;
-        }
-
-        private static void ForEachAnimation(string json, Action<string, JsonElement> visit)
-        {
-            try
-            {
-                using var document = JsonDocument.Parse(json);
-                foreach (var animation in document.RootElement.EnumerateArray())
-                {
-                    if (animation.TryGetProperty("name", out var name) && name.GetString() is { } text)
-                    {
-                        visit(text.ToLowerInvariant(), animation);
-                    }
-                }
-            }
-            catch (Exception ex) when (ex is JsonException or InvalidOperationException or KeyNotFoundException or IndexOutOfRangeException)
-            {
-                // A malformed list leaves this file's animations untimed.
+                this.Add(requested, warned, "with a projectile speed");
             }
         }
 
-        private string? Text(string path)
+        /// <summary>Neither the .act nor its fallbacks give the action an animation: not counted as an attack.</summary>
+        public void NoAnimation(bool requested, bool warned) => this.Add(requested, warned, "no animation in the .act");
+
+        public void Untimed(bool requested, bool warned, bool hasEvents) =>
+            this.Add(requested, warned, hasEvents ? "untimed: server events, none a contact" : "untimed: no server event");
+
+        public void Print()
         {
-            return this.read(path) is { } bytes ? Encoding.Unicode.GetString(bytes).TrimStart('\uFEFF') : null;
+            foreach (var group in new[] { "attacks", "follow-ups" })
+            {
+                foreach (var warned in new[] { "warned of", "calm" })
+                {
+                    var prefix = $"{group}, {warned}|";
+                    var parts = this.counts.Where(pair => pair.Key.StartsWith(prefix, StringComparison.Ordinal))
+                        .OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => $"{pair.Key[prefix.Length..]} {pair.Value}");
+                    Console.WriteLine($"{prefix[..^1]}: {string.Join(", ", parts)}");
+                }
+            }
+        }
+
+        private void Add(bool requested, bool warned, string what)
+        {
+            var key = $"{(requested ? "attacks" : "follow-ups")}, {(warned ? "warned of" : "calm")}|{what}";
+            this.counts[key] = this.counts.GetValueOrDefault(key) + 1;
         }
     }
 }
