@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
+    using System.Threading.Tasks;
     using GameHelper;
     using GameHelper.RemoteObjects.Components;
     using GameOffsets.Objects.States.InGameState;
@@ -38,7 +39,8 @@ namespace Poe2Accessibility.Services
         private readonly HostMemoryReader memory;
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
-        private readonly Dictionary<IntPtr, string> tilePaths = new();
+        private Task<(PlaceMap Map, int Count, int Generation)?>? building;
+        private int generation;
         private PlaceTracker tracker = NewTracker();
         private PlaceMap? map;
         private int tileCount;
@@ -58,7 +60,7 @@ namespace Poe2Accessibility.Services
         {
             this.map = null;
             this.tileCount = 0;
-            this.tilePaths.Clear();
+            this.generation++; // a build still running belongs to the area left
             this.tracker = NewTracker();
             this.lastAnchorPoll = long.MinValue / 2;
         }
@@ -108,15 +110,40 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        private (PlaceMap Map, int Count, int Generation)? Build(GameOffsets.Natives.StdVector details, int perRow, int count, int generation)
+        {
+            try
+            {
+                var timer = System.Diagnostics.Stopwatch.StartNew();
+                var placements = this.ReadPlacements(details, perRow);
+                if (placements.Count == 0)
+                {
+                    return null;
+                }
+
+                var built = PlaceMap.Build(this.catalog, placements, TileStructure.TileToGridConversion);
+                this.log.Info($"Places: {built.Pieces.Count} map pieces, {built.Props.Count} props from {placements.Count} sub-tiles " +
+                              $"({Kinds(built.Pieces.Concat(built.Props))}) in {timer.ElapsedMilliseconds} ms" +
+                              (built.UnknownRotations.Count > 0 ? $"; tile props left out for rotations {string.Join(",", built.UnknownRotations)}" : string.Empty));
+                return (built, count, generation);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                this.log.Warn($"Places: map not built: {ex.Message}");
+                return null;
+            }
+        }
+
         /// <summary>The area's tile grid (GameHelper's TileDetailsPtr, one TileStructure per sub-tile, row by row).</summary>
         private List<TilePlacement> ReadPlacements(GameOffsets.Natives.StdVector details, int tilesPerRow)
         {
+            var paths = new Dictionary<IntPtr, string>();
             var tiles = this.memory.ReadStdVector<TileStructure>(details, MaxSubTiles);
             var placements = new List<TilePlacement>(tiles.Length);
             var step = TileStructure.TileToGridConversion;
             for (var i = 0; i < tiles.Length; i++)
             {
-                if (this.TilePath(tiles[i].TgtFilePtr) is { Length: > 0 } path)
+                if (this.TilePath(paths, tiles[i].TgtFilePtr) is { Length: > 0 } path)
                 {
                     var grid = new Vector2(i % tilesPerRow, i / tilesPerRow) * step;
                     placements.Add(new TilePlacement(path, tiles[i].tileIdX, tiles[i].tileIdY, tiles[i].RotationSelector, grid));
@@ -126,12 +153,12 @@ namespace Poe2Accessibility.Services
             return placements;
         }
 
-        private string TilePath(IntPtr tgtFile)
+        private string TilePath(Dictionary<IntPtr, string> paths, IntPtr tgtFile)
         {
-            if (!this.tilePaths.TryGetValue(tgtFile, out var path))
+            if (!paths.TryGetValue(tgtFile, out var path))
             {
                 path = this.memory.TryRead<TgtFileStruct>(tgtFile, out var file) ? this.memory.ReadStdWString(file.TgtPath).ToLowerInvariant() : string.Empty;
-                this.tilePaths[tgtFile] = path;
+                paths[tgtFile] = path;
             }
 
             return path;
@@ -153,21 +180,27 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            if (this.map == null || count != this.tileCount)
+            if (this.building is { IsCompleted: true } built)
             {
-                var timer = System.Diagnostics.Stopwatch.StartNew();
-                var placements = this.ReadPlacements(terrain.TileDetailsPtr, (int)terrain.TotalTiles.X);
-                if (placements.Count == 0)
+                this.building = null;
+                if (built.Result is { } fresh && fresh.Generation == this.generation)
                 {
-                    return null;
+                    this.map = fresh.Map;
+                    this.tileCount = fresh.Count;
+                    this.lastAnchorPoll = long.MinValue / 2;
                 }
+            }
 
-                this.map = PlaceMap.Build(this.catalog, placements, TileStructure.TileToGridConversion);
-                this.tileCount = count;
-                this.lastAnchorPoll = long.MinValue / 2;
-                this.log.Info($"Places: {this.map.Pieces.Count} map pieces, {this.map.Props.Count} props from {placements.Count} sub-tiles " +
-                              $"({Kinds(this.map.Pieces.Concat(this.map.Props))}) in {timer.ElapsedMilliseconds} ms" +
-                              (this.map.UnknownRotations.Count > 0 ? $"; tile props left out for rotations {string.Join(",", this.map.UnknownRotations)}" : string.Empty));
+            if ((this.map == null || count != this.tileCount) && this.building == null)
+            {
+                // Off the frame thread: 58 ms for the town's 990 sub-tiles (2026-10-25), large areas hold thousands.
+                var (details, perRow, generation) = (terrain.TileDetailsPtr, (int)terrain.TotalTiles.X, this.generation);
+                this.building = Task.Run(() => this.Build(details, perRow, count, generation));
+            }
+
+            if (this.map == null)
+            {
+                return null;
             }
 
             var now = Environment.TickCount64;
