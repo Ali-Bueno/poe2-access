@@ -144,6 +144,7 @@ namespace Poe2Accessibility
                 this.settingsStore = new SettingsStore<AccessibilitySettings>(Path.Join(this.DllDirectory, "config", "settings.txt"), this.log);
                 this.ApplySettings(this.settingsStore.Load(this.Settings));
                 this.log.Info($"Enabled. GameHelper {Core.GetVersion()}, game open: {isGameOpened}");
+                Localization.PhraseDirectory = Path.Join(this.DllDirectory, "catalog", "lang");
                 Localization.Detect(this.Settings.Language, message => this.log.Info(message));
 
                 IAccessibilityOutputService? prism = this.Settings.SpeechEnabled
@@ -895,7 +896,11 @@ namespace Poe2Accessibility
                 Localization.Detect(this.Settings.Language, message => this.log?.Info(message));
             }
 
-            this.output.Speak(attached ? Announcements.GameAttached : Announcements.GameNotAttached, false);
+            // With state announcements on, "Game detected" and the screen follow at once and would cut the attach line off.
+            if (!attached || !this.Settings.AnnounceGameState)
+            {
+                this.output.Speak(attached ? Announcements.GameAttached : Announcements.GameNotAttached, false);
+            }
         }
 
         /// <inheritdoc />

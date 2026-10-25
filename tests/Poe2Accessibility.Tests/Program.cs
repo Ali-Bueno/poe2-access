@@ -36,6 +36,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(WallBumpThudsOncePerContact), WallBumpThudsOncePerContact);
             Run(nameof(FriendsGetTheirOwnStream), FriendsGetTheirOwnStream);
             Run(nameof(PhrasesFollowTheGameLanguage), PhrasesFollowTheGameLanguage);
+            Run(nameof(OtherLanguagesUsePhraseTables), OtherLanguagesUsePhraseTables);
             Run(nameof(ConfirmGlyphMarksTheEntryBesideIt), ConfirmGlyphMarksTheEntryBesideIt);
             Run(nameof(BeaconPointsAlongTheRoute), BeaconPointsAlongTheRoute);
             Run(nameof(ClosedWayLeadsToItsNearestPoint), ClosedWayLeadsToItsNearestPoint);
@@ -695,7 +696,7 @@ namespace Poe2Accessibility.Tests
             SpeechPriority.Chosen = _ => "nonsense";
             output.Say(SpeechKind.Quest, "f");
             SpeechPriority.Chosen = null;
-            Equal("urge a|b False|urge c|d False|e True|f False", string.Join("|", output.Calls), "each kind at its level, urgent news holds, defaults for unknown values");
+            Equal("urge a|b False|urge c|keep d|e True|f False", string.Join("|", output.Calls), "each kind at its level, urgent news holds, a waiting life warning keeps its turn, defaults for unknown values");
         }
 
         private sealed class RecordingOutput : IAccessibilityOutputService
@@ -707,6 +708,8 @@ namespace Poe2Accessibility.Tests
             public void Speak(string text, bool interrupt = false) => this.Calls.Add($"{text} {interrupt}");
 
             public void Urge(string text, int holdMs = 1500) => this.Calls.Add($"urge {text}");
+
+            public void Keep(string text, int holdMs) => this.Calls.Add($"keep {text}");
 
             public void Repeat()
             {
@@ -953,7 +956,37 @@ namespace Poe2Accessibility.Tests
 
                 Equal("es", Localization.ParseGameLanguage("[GENERAL]\nlanguage=en\n[LANGUAGE]\nlanguage=ES\n"), "ini section");
                 Localization.Detect("auto");
-                Equal(true, Localization.Language is "en" or "es", "auto never throws");
+                Equal(true, Localization.Languages.Contains(Localization.Language), "auto never throws");
+            }
+            finally
+            {
+                Localization.Detect("en");
+            }
+        }
+
+        private static void OtherLanguagesUsePhraseTables()
+        {
+            try
+            {
+                Equal("es", Localization.Normalize("ES"), "upper case code");
+                Equal("pt", Localization.Normalize("pt-BR"), "regional code");
+                Equal("zh-TW", Localization.Normalize("zh_tw"), "underscore code");
+                Equal(null, Localization.Normalize("auto"), "auto is no language");
+
+                Localization.Set("fr", new()
+                {
+                    ["Life {0} percent"] = "Vie à {0} pour cent",
+                    ["left"] = "gauche",
+                    ["{0} steps"] = "{0} pas",
+                    ["{0}, {1}, {2}{3}"] = "{0} : {1}, {2}{3}",
+                    [", no route"] = ", pas de chemin",
+                    ["{0} of {1}"] = "{1} / {0} {2}",
+                });
+                Equal("Vie à 25 pour cent", Announcements.LowLife(25), "interpolated phrase by its format");
+                Equal("gauche", Announcements.StickDirections[4], "plain phrase");
+                Equal("up", Announcements.StickDirections[2], "missing phrase stays English");
+                Equal("Una : 9 pas, gauche, pas de chemin", Announcements.ScanEntry("Una", 9, Announcements.StickDirections[4], 0, null, false), "nested phrases");
+                Equal("2 of 5", Announcements.ListPosition(2, 5), "a broken translation falls back to English");
             }
             finally
             {

@@ -285,7 +285,8 @@ namespace Poe2Accessibility.Services
                 {
                     if (Take(IsEquipment) is { } unequipped)
                     {
-                        this.output.Speak(Announcements.Unequipped(unequipped), true);
+                        // The arrival is the same item in a new entity, readable when the departed one never was.
+                        this.output.Speak(Announcements.Unequipped(unequipped == Announcements.UnknownItem ? name : unequipped), true);
                     }
                     else if (Take(source => source is InventoryName.Cursor1 or InventoryName.MainInventory1) == null && this.movedInPanel)
                     {

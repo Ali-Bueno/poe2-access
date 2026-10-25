@@ -90,6 +90,13 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (this.catalog.DistanceTo(entry) <= ArrivalWorld)
+            {
+                // Already there: locking would say the way and then the arrival at once.
+                this.output.Speak(Announcements.Here(entry.Name), true);
+                return;
+            }
+
             this.target = entry;
             this.route = null;
             this.search = null;

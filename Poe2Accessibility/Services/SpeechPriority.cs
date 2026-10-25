@@ -28,6 +28,9 @@ namespace Poe2Accessibility.Services
         public const string CutsIn = "cuts";
         public const string Holds = "holds";
 
+        /// <summary>How long a queued life or mana warning keeps later interrupts behind it (the length of one such line).</summary>
+        private const int WaitingVitalHoldMs = 1500;
+
         /// <summary>The levels in the settings menu's order, quietest first.</summary>
         public static readonly string[] Levels = { Waits, Urgent, CutsIn, Holds };
 
@@ -57,6 +60,13 @@ namespace Poe2Accessibility.Services
             if (Level(kind) == Holds || (urgent && Level(kind) == Urgent))
             {
                 output.Urge(text);
+                return;
+            }
+
+            if (kind == SpeechKind.LifeAndMana && !Interrupts(kind, urgent))
+            {
+                // A waiting life warning was dropped by a state beginning 80 ms later (2026-10-24): it keeps its turn.
+                output.Keep(text, WaitingVitalHoldMs);
                 return;
             }
 

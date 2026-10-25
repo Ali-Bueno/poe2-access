@@ -310,6 +310,15 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public string Describe(ScanEntry entry) => this.Describe(entry, out _);
 
+        /// <summary>Straight-line world distance from the player to the entry; null without a player position.</summary>
+        public float? DistanceTo(ScanEntry entry)
+        {
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            return area.Player.TryGetComponent<Render>(out var player)
+                ? Vector2.Distance(new Vector2(player.WorldPosition.X, player.WorldPosition.Y), new Vector2(entry.WorldX, entry.WorldY))
+                : null;
+        }
+
         /// <inheritdoc cref="Describe(ScanEntry)"/>
         /// <param name="cut">The phrase says the way stops short or a closed barrier cuts it.</param>
         public string Describe(ScanEntry entry, out bool cut)
