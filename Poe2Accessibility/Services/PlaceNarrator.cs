@@ -110,6 +110,28 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>Research: every sub-tile (grid cell, file, placed ids, rotation selector) and the anchor entities, to a file.</summary>
+        public void Dump(string file)
+        {
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            var terrain = area.TerrainMetadata;
+            var lines = new List<string> { $"# tiles per row {terrain.TotalTiles.X}; x y path idX idY rotation (x, y: the sub-tile's top-left grid cell)" };
+            lines.AddRange(this.ReadPlacements(terrain.TileDetailsPtr, (int)terrain.TotalTiles.X)
+                .Select(tile => $"{tile.Grid.X} {tile.Grid.Y} {tile.Path} {tile.IdX} {tile.IdY} {tile.Rotation}"));
+            lines.Add("# entities: grid x y path");
+            foreach (var entity in area.AwakeEntities.Values)
+            {
+                if (entity.IsValid && entity.Path is { } path && entity.TryGetComponent<Render>(out var render))
+                {
+                    lines.Add($"entity {render.GridPosition.X:0} {render.GridPosition.Y:0} {path}");
+                }
+            }
+
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(file)!);
+            System.IO.File.WriteAllLines(file, lines);
+            this.log.Info($"Tile grid written to {file} ({lines.Count} lines)");
+        }
+
         private (PlaceMap Map, int Count, int Generation)? Build(GameOffsets.Natives.StdVector details, int perRow, int count, int generation)
         {
             try
