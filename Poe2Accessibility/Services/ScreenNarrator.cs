@@ -10,7 +10,7 @@ namespace Poe2Accessibility.Services
     ///     a context change interrupts; the layer that owns input is the only one that speaks; a layer with no
     ///     focus inside is read as text (title, message, controls); closing a popup re-reads the focus.
     /// </summary>
-    public sealed class ScreenNarrator
+    public sealed partial class ScreenNarrator
     {
         /// <summary>Two snapshots (~300 ms) confirm a text; one that lands this soon after a focus move belongs to it.</summary>
         private const int FocusTextMergeMs = 700;
@@ -218,33 +218,6 @@ namespace Poe2Accessibility.Services
             return chrome;
         }
 
-        private bool TutorialIsNews(string text, bool playing)
-        {
-            var now = DateTime.UtcNow;
-            if (this.tutorialSpoken.TryGetValue(text, out var said) &&
-                (!playing || (now - this.hudBackAt).TotalMilliseconds < HudBackMs || (now - said).TotalMilliseconds < TutorialRepeatMs))
-            {
-                return false;
-            }
-
-            this.tutorialSpoken[text] = now;
-            return true;
-        }
-
-        /// <summary>
-        ///     The player pushes the stick and the character stands still: the lesson on screen, if any, is what holds it
-        ///     ("You have low mana. Press D-pad right…" held the Monk in silence, 2026-10-24). Said again, kept whole.
-        /// </summary>
-        public void RepeatLesson()
-        {
-            if (!this.inGame || this.seenSnapshot?.Find(this.TutorialLayer) is not { Texts.Count: > 0 } lesson)
-            {
-                return;
-            }
-
-            this.Speak("lesson held", Describe(lesson.Texts), false, keep: true);
-        }
-
         /// <summary>Notes the HUD coming back on top, once per snapshot.</summary>
         private void NoteTop(ScreenSnapshot snapshot)
         {
@@ -299,67 +272,6 @@ namespace Poe2Accessibility.Services
             this.deferredFocus = null;
             this.pendingPage = null;
             this.hintAfterFocus = string.Empty;
-        }
-
-        /// <summary>
-        ///     Per frame before the game (login, character selection and creation): the controller hints are how a
-        ///     player learns these screens ("Change class, left stick"; "Next class information, D-pad left and
-        ///     right"), so a new set is read after what is being said, once it has settled.
-        /// </summary>
-        public void OnPreGameHints(ScreenSnapshot snapshot)
-        {
-            if (this.FocusLayer?.Invoke() is { } focusLayer && focusLayer != IntPtr.Zero &&
-                snapshot.Find(focusLayer)?.Texts.Any(text => text.Name == GameLayout.InGameUi.MessageLabelName) == true)
-            {
-                // A message box holds the focus ("Disconnected… OK"): the bar still shows the screen behind it ("Press
-                // to play, A"), which is not what A does now (2026-10-24).
-                return;
-            }
-
-            var legends = snapshot.Layers.Where(layer => layer.IsHintBar).SelectMany(layer => layer.Texts).ToList();
-            var hints = Describe(legends);
-            if (hints.Length > 0 && hints == this.staleHints.Text && (DateTime.UtcNow - this.staleHints.Since).TotalMilliseconds < StaleHintsMs)
-            {
-                // The bar still showed the login's buttons as character selection opened: they were read after the
-                // character as if they were its own (2026-10-25).
-                return;
-            }
-
-            if (hints == this.lastHints)
-            {
-                this.pendingHints = (hints, DateTime.MinValue);
-                return;
-            }
-
-            if (hints != this.pendingHints.Text)
-            {
-                this.pendingHints = (hints, DateTime.UtcNow);
-                return;
-            }
-
-            if ((DateTime.UtcNow - this.pendingHints.Since).TotalMilliseconds >= HintsSettleMs)
-            {
-                // A new screen reads all its hints; a focus move on the same screen only the ones it added
-                // ("Start in town, LT plus A" on a character), never the whole bar again.
-                var fresh = legends.Where(legend => !this.spokenHints.Contains(Describe(new[] { legend }))).ToList();
-                this.lastHints = hints;
-                foreach (var legend in legends)
-                {
-                    this.spokenHints.Add(Describe(new[] { legend }));
-                }
-
-                if (this.deferredFocus != null)
-                {
-                    // The focus waiting for its screen goes first and the bar after it: back at character selection
-                    // the buttons were said first and cut off by the character 60 ms later (2026-10-24).
-                    this.hintAfterFocus = Announcements.Sentences(new[] { this.hintAfterFocus, Describe(fresh) }.Where(part => part.Length > 0));
-                }
-                else
-                {
-                    this.Speak("pre-game hints", Describe(fresh), false);
-                    this.cuttableHints = (Describe(fresh), DateTime.UtcNow);
-                }
-            }
         }
 
         /// <summary>Read long tooltips with the focus (setting); short ones always are.</summary>
@@ -650,57 +562,7 @@ namespace Poe2Accessibility.Services
             this.log.Debug($"Screen change {change.Kind} layer 0x{change.Layer.Address.ToInt64():X} focus layer 0x{focusLayer.ToInt64():X} hint={change.Layer.IsHintBar} top=0x{snapshot.TopInteractive?.Address.ToInt64() ?? 0:X} justFocused={this.JustFocused()}");
             if (change.Layer.IsHintBar)
             {
-                if (this.inGame && focusLayer == IntPtr.Zero && change.Kind == ScreenChangeKind.TextsAppeared &&
-                    (DateTime.UtcNow - this.lastPanel.At).TotalMilliseconds < FocusTextMergeMs)
-                {
-                    // What the map cursor's place offers ("Instance Manager, A" on a town): after the place.
-                    this.Speak("action of panel without focus", Describe(change.Texts), false);
-                }
-                else if (this.inGame && change.Kind == ScreenChangeKind.TextsAppeared &&
-                         (DateTime.UtcNow - this.valueChangedAt).TotalMilliseconds < FocusTextMergeMs)
-                {
-                    // The control changed in place and offers other actions: A on a bound skill picks it up, its button
-                    // reads "empty" and the bar "Place, A. Cancel, B" (skill bind screen, 2026-10-24).
-                    this.Speak("actions after value change", Describe(change.Texts), false);
-                }
-                else if (this.inGame && focusLayer != IntPtr.Zero && change.Kind is ScreenChangeKind.LayerOpened or ScreenChangeKind.TextsAppeared)
-                {
-                    // What a panel's buttons do, each once per opening and after the focus: the inventory said "Equip, X"
-                    // from the item but never "Drop, Y" from this bar (user, 2026-10-24).
-                    if (focusLayer != this.legendsLayer)
-                    {
-                        this.legendsLayer = focusLayer;
-                        this.legendsSaid.Clear();
-                    }
-
-                    var fresh = change.Texts.Where(text => this.legendsSaid.Add(Describe(new[] { text }))).ToList();
-                    if (fresh.Count > 0 && this.deferredFocus != null)
-                    {
-                        this.hintAfterFocus = Announcements.Sentences(new[] { this.hintAfterFocus, Describe(fresh) });
-                    }
-                    else if (fresh.Count > 0)
-                    {
-                        this.Speak("panel actions", Describe(fresh), false);
-                    }
-                }
-                else if (this.inGame && focusLayer == IntPtr.Zero && snapshot.TopInteractive is { } panel && panel.Address != this.HudLayer &&
-                         change.Kind is ScreenChangeKind.LayerOpened or ScreenChangeKind.TextsAppeared)
-                {
-                    // A panel nothing focuses (the world map: "Show quests, X"): its legends once per opening, after the
-                    // title and the place it shows, which come a moment later (Tick).
-                    if (panel.Address != this.legendsLayer)
-                    {
-                        this.legendsLayer = panel.Address;
-                        this.legendsSaid.Clear();
-                    }
-
-                    var fresh = change.Texts.Where(text => this.legendsSaid.Add(Describe(new[] { text }))).ToList();
-                    if (fresh.Count > 0)
-                    {
-                        this.panelLegends = (Announcements.Sentences(new[] { this.panelLegends.Text, Describe(fresh) }), DateTime.UtcNow);
-                    }
-                }
-
+                this.OnHintBarChange(change, snapshot, focus, focusLayer);
                 return;
             }
 
@@ -727,409 +589,77 @@ namespace Poe2Accessibility.Services
 
             if (this.inGame && change.Layer.Address == this.TutorialLayer)
             {
-                // A new objective or tutorial hint: after what is being said, never instead of it. The box shows the
-                // same hint again whenever a panel or the radial menu closes: not news. Shown again later during play
-                // it can be the game waiting for that very action — the dodge lesson holds the character stunned until
-                // B (Riverbank boss, 2026-10-24, silent for minutes): said again then.
-                var hints = change.Kind == ScreenChangeKind.TopLayerChanged
-                    ? new List<ScreenText>()
-                    : change.Texts.Where(text => this.TutorialIsNews(text.Text, focus == null && snapshot.TopInteractive?.Address == this.HudLayer)).ToList();
-                if (hints.Count > 0)
-                {
-                    // Its button line is the lesson's instruction: "You received a passive point. View to open the menus"
-                    // holds the character until View (2026-10-24: only the first line was said, the player stood still).
-                    hints.AddRange(legends);
-                }
-                if (hints.Count > 0 && this.deferredFocus != null)
-                {
-                    // A panel opening with its hint (Skills beside the inventory: "Unidentified item. Press X…"): the
-                    // focus it is about first, which would otherwise cut the hint off.
-                    this.hintAfterFocus = Announcements.Sentences(new[] { this.hintAfterFocus, Describe(hints) });
-                }
-                else if (hints.Count > 0)
-                {
-                    // In a menu the focus is what the player is listening to: a hint waits its turn there. In play it is
-                    // kept whole: "Before going on, engrave your uncut skill gem" was cut by the beacon's arrival while the
-                    // game barred the way out (2026-10-24).
-                    this.Speak("objective", Describe(hints), SpeechPriority.Interrupts(SpeechKind.Quest) && focus == null, keep: focus == null);
-                }
-
+                this.OnTutorialChange(change, snapshot, focus, legends);
                 return;
             }
 
             if (this.inGame && change.Layer.Address == this.HudLayer)
             {
-                if (this.hudBaseline)
-                {
-                    this.hudBaseline = false;
-                    this.hudSpoken.UnionWith(change.Texts.Select(text => text.Text));
-                    return;
-                }
-
-                // Closing every panel makes the HUD the top layer: that is not news. What appears on it is, once per
-                // area — the quest tracker reappears whenever a panel closes; bare numbers are flask charges and timers.
-                if (change.Kind != ScreenChangeKind.TopLayerChanged)
-                {
-                    var ignored = this.IgnoredHudText?.Invoke() ?? IntPtr.Zero;
-                    var alerts = change.Texts.Where(text => !IsNumber(text.Text) && (this.IsSkillBarText?.Invoke(text.Address) ?? false)).ToList();
-                    var alertNews = alerts.Where(text => this.AlertIsNews(text.Text)).ToList();
-                    if (alertNews.Count > 0)
-                    {
-                        this.Speak("alert", Describe(alertNews), false);
-                    }
-
-                    var news = change.Texts.Except(alerts).Where(text => text.Address != ignored && !IsNumber(text.Text) && this.hudSpoken.Add(text.Text)).ToList();
-                    if (news.Count > 0 && this.GroundItemName?.Invoke(change.Texts.Select(text => text.Text)) is { } item)
-                    {
-                        var quality = change.Texts.FirstOrDefault(text => QualityLine.IsMatch(text.Text));
-                        if (item.Length > 0 && DateTime.UtcNow >= this.hudQuietUntil)
-                        {
-                            this.Speak("ground item", quality == null ? item : $"{item}, {quality.Text}", false);
-                            this.groundItemAt = DateTime.UtcNow; // the stats that follow ("Attacks per Second: 1.40") are its tooltip
-                        }
-                    }
-                    else if (news.Count > 0 && DateTime.UtcNow >= this.hudQuietUntil &&
-                             (DateTime.UtcNow - this.groundItemAt).TotalMilliseconds >= FocusTextMergeMs)
-                    {
-                        this.Speak("hud", Describe(news), false);
-                    }
-                }
-
+                this.OnHudChange(change);
                 return;
             }
 
             if (this.inGame)
             {
-                var tabTitle = change.Texts.FirstOrDefault(text => text.Name == TabTitleName);
-                if (tabTitle == null && change.Kind == ScreenChangeKind.TopLayerChanged)
-                {
-                    this.lastTabLayer = IntPtr.Zero; // another screen came on top: the panel's tab is news again
-                }
-
-                if (tabTitle != null && change.Kind == ScreenChangeKind.TopLayerChanged && change.Layer.Address == this.lastTabLayer &&
-                    this.lastContext == tabTitle.Text && !this.JustFocused())
-                {
-                    return; // the same panel and tab reported again (an item's count on the cursor came and went)
-                }
-
-                if (tabTitle != null)
-                {
-                    this.lastTabLayer = change.Layer.Address;
-                    // A tab switch rebuilds the whole panel: say only the tab, then where the focus is (D2R rule) — the
-                    // one that moved with it, or the one that stayed (the inventory beside Skills and Character).
-                    var withFocus = this.JustFocused();
-                    if (this.lastContext == tabTitle.Text && (DateTime.UtcNow - this.lastTabAt).TotalMilliseconds < RepeatedTabMs)
-                    {
-                        return; // the same switch reported twice
-                    }
-
-                    // Already named: by the focus announcement (its panel title), or by the radial menu as it was chosen.
-                    var named = (withFocus && this.lastContext == tabTitle.Text) || this.JustChosen(tabTitle.Text);
-                    this.lastContext = tabTitle.Text;
-                    this.lastTabAt = DateTime.UtcNow;
-                    var freeCursor = (focus == null || focus.IsHovered) && change.Layer.Address == snapshot.TopInteractive?.Address &&
-                                     (focusLayer == IntPtr.Zero || focusLayer == change.Layer.Address);
-                    if (freeCursor)
-                    {
-                        // A page the free cursor browses (Challenges, the passive tree): no control holds what it shows,
-                        // so its content follows the tab ("Skill points: 0", the attributes); a progress count ("0/8")
-                        // stays, other bare numbers mean nothing alone. The page under an overlay page stays visible to
-                        // the tree (Friends under Challenges): only the texts inside the panel the tab names.
-                        var pageTexts = PairNumbers(change.Texts).Where(text => text != tabTitle && (!IsNumber(text.Text) || text.Text.Contains('/'))).ToList();
-                        var inPage = this.InPanel == null ? pageTexts : pageTexts.Where(text => this.InPanel(text.Address, tabTitle.Text)).ToList();
-                        var page = Describe(inPage.Count > 0 ? inPage : pageTexts);
-                        var pageSaid = new HashSet<string>(change.Texts.Select(text => text.Text));
-                        this.lastPanel = (change.Layer.Address, page, DateTime.UtcNow);
-                        if (focus != null && this.deferredFocus == null)
-                        {
-                            // The hovered element was already said: the page after it.
-                            this.recentTexts = (pageSaid, DateTime.UtcNow);
-                            this.Speak("page after focus", page, false);
-                            return;
-                        }
-
-                        // A cursor may still land on the page (the passive tree's node): one utterance with it, else alone.
-                        this.pendingPage = (named ? string.Empty : tabTitle.Text, page, pageSaid, DateTime.UtcNow);
-                        return;
-                    }
-
-                    if (named)
-                    {
-                        return;
-                    }
-
-                    var focusSpeech = withFocus ? this.lastFocusSpeech : focus != null ? this.Focused(focus) : string.Empty;
-                    this.Speak("tab", focusSpeech.Length > 0 ? Announcements.InContext(Announcements.TabTitle(tabTitle.Text), focusSpeech) : Announcements.TabTitle(tabTitle.Text), true);
-                    return;
-                }
-
-                if (focusLayer == IntPtr.Zero && change.Layer.Address == snapshot.TopInteractive?.Address)
-                {
-                    // A panel nothing focuses or hovers (world map): what its cursor shows is the content. Right
-                    // after the tab name it follows it.
-                    // A small box without focus (Engrave? Confirm A, Back B) is answered with its buttons: say them.
-                    // A bare number means nothing alone (a stash tab's title while the focus moves to the new tab).
-                    var content = change.Texts.Where(text => !IsNumber(text.Text)).ToList();
-                    var shown = content.Count <= SmallBoxTexts && legends.Count > 0
-                        ? Announcements.Sentences(new[] { Describe(content), Describe(legends) })
-                        : Describe(content);
-                    var repeated = this.lastPanel.Layer == change.Layer.Address && this.lastPanel.Text == shown &&
-                                   (DateTime.UtcNow - this.lastPanel.At).TotalMilliseconds < RepeatedTabMs;
-                    // The waypoint map's hovered place arrives 300 ms after its title: it must not cut "Teletransporte,
-                    // acto 1" and the "Travel to town, Y" action off (2026-10-24).
-                    var opening = change.Kind == ScreenChangeKind.TextsAppeared && this.panelOpened.Layer == change.Layer.Address &&
-                                  (DateTime.UtcNow - this.panelOpened.At).TotalMilliseconds < FocusTextMergeMs;
-                    if (change.Kind == ScreenChangeKind.LayerOpened)
-                    {
-                        this.panelOpened = (change.Layer.Address, DateTime.UtcNow);
-                    }
-
-                    if (shown.Length > 0 && !repeated)
-                    {
-                        this.lastPanel = (change.Layer.Address, shown, DateTime.UtcNow);
-                        this.Speak("panel without focus", shown, !opening && (DateTime.UtcNow - this.lastTabAt).TotalMilliseconds >= FocusTextMergeMs);
-                    }
-
-                    return;
-                }
-
-                if (focusLayer == IntPtr.Zero && !change.Layer.IsBase && !change.Layer.HasControls && change.Texts.Count <= SmallBoxTexts &&
-                    change.Kind is ScreenChangeKind.LayerOpened or ScreenChangeKind.TextsAppeared)
-                {
-                    // A small box showing one choice at a time with nothing focused: the radial menu (hold View) shows
-                    // only the option the stick points at.
-                    var choice = Describe(change.Texts);
-                    if (!(this.lastPanel.Layer == change.Layer.Address && this.lastPanel.Text == choice &&
-                          (DateTime.UtcNow - this.lastPanel.At).TotalMilliseconds < RepeatedTabMs))
-                    {
-                        this.lastPanel = (change.Layer.Address, choice, DateTime.UtcNow);
-                        this.Speak("box without focus", choice, true);
-                    }
-
-                    return;
-                }
-
-                var justFocused = this.JustFocused();
-                var focusIndex = snapshot.Layers.FirstOrDefault(layer => layer.Address == focusLayer)?.Index;
-                if (change.Layer.Address != focusLayer && !justFocused && focusIndex < change.Layer.Index && !change.Layer.HasControls &&
-                    change.Kind is ScreenChangeKind.LayerOpened or ScreenChangeKind.TextsAppeared && change.Texts.Count <= MessageTexts)
-                {
-                    // A line over the focused panel that no focus move brought: the game refusing the press ("Ya tienes una
-                    // gema de habilidad engarzada de este tipo." over Skills was silent, tried three times, 2026-10-24).
-                    var line = Describe(change.Texts.Where(text => text.Text != focus?.Text && !IsNumber(text.Text)));
-                    if (line.Length > 0 && this.AlertIsNews(line))
-                    {
-                        this.Speak("message over panel", line, true);
-                    }
-
-                    return;
-                }
-
-                if (change.Layer.Address != focusLayer && !justFocused)
-                {
-                    return;
-                }
-
-                var own = focus == null ? new HashSet<string>() : new HashSet<string>(focus.ListItems) { focus.Text, focus.Value, focus.Group };
-                var said = (DateTime.UtcNow - this.recentTexts.At).TotalMilliseconds < RecentTextsMs ? this.recentTexts.Texts : new HashSet<string>();
-                var chrome = this.Chrome(change.Texts);
-                var kept = PairNumbers(change.Texts).Where(text => !own.Contains(text.Text) && !IsNumber(text.Text) && !said.Contains(text.Text) &&
-                                                                  !chrome.Contains(text.Address) && text.Name != TierLabelName &&
-                                                                  !(text.Text.Length > ShortLabelChars && (focus?.Text.Contains(text.Text, StringComparison.Ordinal) ?? false)) &&
-                                                                  !InFocusContext(focus, text.Text)).ToList();
-                var texts = Describe(kept);
-                if (texts.Length == 0)
-                {
-                    return;
-                }
-
-                var pageTab = justFocused && this.pendingFocus == null && change.Texts.Count >= PageChangeTexts
-                    ? this.selectedTab(change.Layer.Address)
-                    : string.Empty;
-                if (this.pendingFocus != null && justFocused)
-                {
-                    // The tooltip names what the id could not.
-                    this.pendingFocus = null;
-                    this.Speak("tooltip for unnamed focus", texts, true);
-                }
-                else if (pageTab.Length > 0)
-                {
-                    // A tabbed page arrived with the focus (options opened from the game menu, an options tab switch):
-                    // the selected tab and the focus, as pre-game — never the page's labels.
-                    this.Speak("page with focus", Announcements.InContext(Announcements.TabTitle(pageTab), this.lastFocusSpeech), true);
-                }
-                else if (change.Layer.Address != focusLayer)
-                {
-                    // A tooltip beside the focused control (support gem slot): after the control.
-                    this.Speak("tooltip", texts, false);
-                }
-                else if (change.Kind == ScreenChangeKind.LayerOpened && justFocused && change.Texts.Count >= LargeLayerTexts)
-                {
-                    // A whole panel opened on the focus (skill crafting: 24 skills and their levels): its labels are
-                    // what the focus moves through, so the focus alone, already said, stays.
-                }
-                else if (change.Kind == ScreenChangeKind.LayerOpened && justFocused && this.selectedTab(change.Layer.Address) is { Length: > 0 } openedTab)
-                {
-                    // A tabbed panel (vendor stock): its tab, what it shows besides controls and stack counts (gold), the focus.
-                    var shown = Describe(change.Texts.Where(text => !text.IsControl && !IsNumber(text.Text) && !own.Contains(text.Text)));
-                    this.Speak("tabbed panel with focus", Announcements.Sentences(new[] { Announcements.TabTitle(openedTab), shown, this.lastFocusSpeech }), true);
-                }
-                else if (change.Kind == ScreenChangeKind.LayerOpened && justFocused)
-                {
-                    // A box opened on the focus (NPC dialogue: speaker, then the line and Continue the focus holds). The
-                    // captions of other control groups beside it are read when the cursor goes there (skill bind screen:
-                    // "Choose the button to bind Chaos Bolt", the primary set, the slot — not the spirit panel).
-                    var near = focus == null || this.InOtherControlGroup is not { } other
-                        ? texts
-                        : Describe(kept.Where(text => !other(text.Address, focus.Address)));
-                    this.Speak("opened with focus", Announcements.Sentences(new[] { near, this.lastFocusSpeech }), true);
-                }
-                else if (change.Kind == ScreenChangeKind.LayerOpened)
-                {
-                    this.Speak("opened with focus", texts, true);
-                }
-                else if (change.Kind == ScreenChangeKind.TextsAppeared && justFocused &&
-                         (change.Scrolled || this.selectedTab(change.Layer.Address).Length > 0))
-                {
-                    // The list scrolled under the focus (the Game options page): rows coming into view, not news. On a
-                    // tabbed page the rows below stay drawn, clipped, so only the arrivals show; a control focused
-                    // there brings no text of its own (its description is its tooltip).
-                }
-                else if (change.Kind == ScreenChangeKind.TextsAppeared && justFocused)
-                {
-                    // The text came with the focus move (a skill's details, an expanded definition): the focus again,
-                    // since this cuts it off, then the text — the name before a long description, never after it.
-                    this.Speak("appeared with focus", Announcements.Sentences(new[] { this.lastFocusSpeech, texts }), true);
-                }
-                else if (change.Kind == ScreenChangeKind.TextsAppeared)
-                {
-                    this.Speak("appeared in focus layer", texts, false);
-                }
-
+                this.OnInGameChange(change, snapshot, focus, focusLayer, legends);
                 return;
             }
 
-            var top = snapshot.TopInteractive;
-            var selected = this.SelectorChoice?.Invoke(change.Layer.Address);
-            var choiceSwapped = selected != null && this.lastSelectorChoice != null && selected != this.lastSelectorChoice;
-            this.lastSelectorChoice = selected ?? this.lastSelectorChoice;
-            switch (change.Kind)
+            this.OnPreGameChange(change, snapshot, focus, focusLayer);
+        }
+
+        /// <summary>The controller legends of the hint bar, said after the focus that waits for them.</summary>
+        private void OnHintBarChange(ScreenChange change, ScreenSnapshot snapshot, AccessibleUiNode? focus, IntPtr focusLayer)
+        {
+            if (this.inGame && focusLayer == IntPtr.Zero && change.Kind == ScreenChangeKind.TextsAppeared &&
+                (DateTime.UtcNow - this.lastPanel.At).TotalMilliseconds < FocusTextMergeMs)
             {
-                case ScreenChangeKind.TopLayerChanged:
-                    var returning = this.lastTop != IntPtr.Zero;
-                    this.lastTop = change.Layer.Address;
-                    if (focus != null && focusLayer == change.Layer.Address && this.ReadScreenMessages && (this.JustFocused() || this.deferredFocus != null))
-                    {
-                        // A screen opened with its focus (delete character: "Are you sure…? yarkey…", then Cancel):
-                        // its message, then the focus.
-                        var focusTexts = new HashSet<string>(focus.ListItems) { focus.Text, focus.Value };
-                        // A caption ending in a colon names a field ("League filter:"), it is not the screen's message.
-                        var screenMessage = Describe(change.Texts.Where(text => !text.IsControl && !focusTexts.Contains(text.Text) &&
-                                                                                !text.Text.TrimEnd().EndsWith(':')));
-                        if (screenMessage.Length > 0)
-                        {
-                            this.Speak("screen with focus", Announcements.Sentences(new[] { screenMessage, this.lastFocusSpeech }), true);
-                        }
-                    }
-                    else if (focus == null || focusLayer != change.Layer.Address)
-                    {
-                        // The same screen reported again right after its texts were read (class choice: the class and
-                        // its quote, then the screen with its title): only what was not said yet.
-                        var recent = (DateTime.UtcNow - this.recentTexts.At).TotalMilliseconds < RecentTextsMs ? this.recentTexts.Texts : new HashSet<string>();
-                        var unsaid = change.Texts.Where(text => !recent.Contains(text.Text)).ToList();
-                        if (unsaid.Count > 0)
-                        {
-                            this.Speak("top layer", Describe(unsaid), unsaid.Count == change.Texts.Count);
-                        }
-                    }
-                    else if (returning && !this.JustFocused())
-                    {
-                        // A popup closed: the focus underneath did not move, so the tracker stays silent.
-                        this.Speak("top layer, focus", this.Focused(focus), true);
-                    }
+                // What the map cursor's place offers ("Instance Manager, A" on a town): after the place.
+                this.Speak("action of panel without focus", Describe(change.Texts), false);
+            }
+            else if (this.inGame && change.Kind == ScreenChangeKind.TextsAppeared &&
+                     (DateTime.UtcNow - this.valueChangedAt).TotalMilliseconds < FocusTextMergeMs)
+            {
+                // The control changed in place and offers other actions: A on a bound skill picks it up, its button
+                // reads "empty" and the bar "Place, A. Cancel, B" (skill bind screen, 2026-10-24).
+                this.Speak("actions after value change", Describe(change.Texts), false);
+            }
+            else if (this.inGame && focusLayer != IntPtr.Zero && change.Kind is ScreenChangeKind.LayerOpened or ScreenChangeKind.TextsAppeared)
+            {
+                // What a panel's buttons do, each once per opening and after the focus: the inventory said "Equip, X"
+                // from the item but never "Drop, Y" from this bar (user, 2026-10-24).
+                if (focusLayer != this.legendsLayer)
+                {
+                    this.legendsLayer = focusLayer;
+                    this.legendsSaid.Clear();
+                }
 
-                    break;
-                case ScreenChangeKind.LayerOpened:
-                    if (change.Layer.Address != top?.Address && !change.Layer.HasControls && !IsBehind(change.Layer, top))
-                    {
-                        this.Speak("layer", Describe(change.Texts), false);
-                    }
+                var fresh = change.Texts.Where(text => this.legendsSaid.Add(Describe(new[] { text }))).ToList();
+                if (fresh.Count > 0 && this.deferredFocus != null)
+                {
+                    this.hintAfterFocus = Announcements.Sentences(new[] { this.hintAfterFocus, Describe(fresh) });
+                }
+                else if (fresh.Count > 0)
+                {
+                    this.Speak("panel actions", Describe(fresh), false);
+                }
+            }
+            else if (this.inGame && focusLayer == IntPtr.Zero && snapshot.TopInteractive is { } panel && panel.Address != this.HudLayer &&
+                     change.Kind is ScreenChangeKind.LayerOpened or ScreenChangeKind.TextsAppeared)
+            {
+                // A panel nothing focuses (the world map: "Show quests, X"): its legends once per opening, after the
+                // title and the place it shows, which come a moment later (Tick).
+                if (panel.Address != this.legendsLayer)
+                {
+                    this.legendsLayer = panel.Address;
+                    this.legendsSaid.Clear();
+                }
 
-                    break;
-                case ScreenChangeKind.TextsAppeared when change.Layer.Address == focusLayer && this.JustFocused() && change.Texts.Count >= PageChangeTexts:
-                    // A new page in the same layer (options tab switch): the tab, then the focus — never the page's labels.
-                    var tab = this.selectedTab(change.Layer.Address);
-                    this.Speak("page with focus", tab.Length > 0 ? Announcements.InContext(Announcements.TabTitle(tab), this.lastFocusSpeech) : this.lastFocusSpeech, true);
-                    break;
-                case ScreenChangeKind.TextsAppeared when change.Layer.Address == focusLayer && this.JustFocused() &&
-                                                         change.Texts.All(text => text.Name.EndsWith(PopupSuffix, StringComparison.Ordinal)):
-                    // A description the focused control shows beside itself (the league selector's league_combobox_popup):
-                    // after the control, like a tooltip.
-                    this.Speak("popup of focus", Describe(change.Texts), false);
-                    break;
-                case ScreenChangeKind.TextsAppeared when change.Layer.Address == focusLayer && this.JustFocused():
-                    // A popup built inside the focused layer (exit confirmation): its message, then the focused button.
-                    var items = new HashSet<string>(focus?.ListItems ?? Array.Empty<string>());
-                    var message = Describe(change.Texts.Where(text => !text.IsControl && text.Text != focus?.Text && !items.Contains(text.Text) &&
-                                                                     !(focus?.Value.Contains(text.Text, StringComparison.Ordinal) ?? false)));
-                    if (message.Length > 0)
-                    {
-                        this.Speak("message with focus", Announcements.Sentences(new[] { message, this.lastFocusSpeech }), true);
-                    }
-                    else if (choiceSwapped)
-                    {
-                        // X in the name step swaps the class for its variant and focuses the name field: the card the
-                        // variant brings (a control's caption) is the news, the field was just said.
-                        this.Speak("choice swapped", Describe(change.Texts.Where(text => text.Text != focus?.Text &&
-                                                                                        !(focus?.Value.Contains(text.Text, StringComparison.Ordinal) ?? false))), true);
-                    }
-
-                    break;
-                case ScreenChangeKind.TextsAppeared when !this.inGame && change.Layer.Name == NoticeLayerName && IsBehind(change.Layer, top):
-                    // The pre-game notice corner sits under the screen it reports on ("Input method set to Controller"
-                    // on a fresh install's first button press, 2026-10-24); its connection log ("> Connecting…") is
-                    // the state's own announcement.
-                    var notices = change.Texts.Where(text => !text.Text.StartsWith('>')).ToList();
-                    if (notices.Count > 0 && this.deferredFocus != null)
-                    {
-                        // The press that switched the input also moved the focus: the focus first, the notice after.
-                        this.hintAfterFocus = Announcements.Sentences(new[] { this.hintAfterFocus, Describe(notices) }.Where(part => part.Length > 0));
-                    }
-                    else if (notices.Count > 0)
-                    {
-                        this.Speak("notice", Describe(notices), false);
-                    }
-
-                    break;
-                case ScreenChangeKind.TextsAppeared:
-                    if (IsBehind(change.Layer, top) && change.Layer.Address != focusLayer)
-                    {
-                        break;
-                    }
-
-                    var own = focus == null ? new HashSet<string>() : new HashSet<string> { focus.Text, focus.Value };
-                    var fresh = change.Texts.Where(text => !own.Contains(text.Text)).ToList();
-                    var navigatingWithoutFocus = change.Layer.Address == top?.Address && focusLayer != change.Layer.Address;
-                    var freshTexts = new HashSet<string>(fresh.Select(text => text.Text));
-                    if (fresh.Count > 0 && navigatingWithoutFocus && this.SelectorPosition?.Invoke(change.Layer.Address) is { } position &&
-                        position != this.lastSelectorPosition)
-                    {
-                        // A choice moved with the stick (the class of character creation): where it is, after its name.
-                        this.lastSelectorPosition = position;
-                        // The name sits before its quote, the longest text; the screen's title can come first ("Elige tu clase").
-                        var quote = fresh.IndexOf(fresh.MaxBy(text => text.Text.Length)!);
-                        var named = Math.Max(0, quote - 1);
-                        fresh[named] = fresh[named] with { Text = $"{fresh[named].Text}, {position}" };
-                    }
-
-                    if (fresh.Count > 0)
-                    {
-                        this.Speak("appeared", Describe(fresh), navigatingWithoutFocus);
-                        // As shown, not with the position: the screen's title arriving next must find the class said.
-                        this.recentTexts = (freshTexts, DateTime.UtcNow);
-                    }
-
-                    break;
+                var fresh = change.Texts.Where(text => this.legendsSaid.Add(Describe(new[] { text }))).ToList();
+                if (fresh.Count > 0)
+                {
+                    this.panelLegends = (Announcements.Sentences(new[] { this.panelLegends.Text, Describe(fresh) }), DateTime.UtcNow);
+                }
             }
         }
 
