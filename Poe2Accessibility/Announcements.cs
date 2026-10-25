@@ -137,10 +137,11 @@ namespace Poe2Accessibility
         public static string Steps(int steps) => steps == 1 ? T("1 step", "1 paso") : T($"{steps} steps", $"{steps} pasos");
 
         /// <summary>Another player: character name, then class ("Yarky, Witch").</summary>
-        public static string OtherPlayer(string name, string characterClass)
+        public static string OtherPlayer(string name, string characterClass, int level = 0)
         {
             var spoken = name.Replace('_', ' ').Trim(); // "O_GROSSO_J" was read with its underscores (2026-10-24)
-            return characterClass.Length == 0 || characterClass == name ? spoken : $"{spoken}, {characterClass}";
+            var who = characterClass.Length == 0 || characterClass == name ? spoken : $"{spoken}, {characterClass}";
+            return level > 0 ? T($"{who}, level {level}", $"{who}, nivel {level}") : who;
         }
 
         /// <summary>
@@ -348,7 +349,16 @@ namespace Poe2Accessibility
         public static string GameNotAttached => T("Game Helper is not attached to the game.", "Game Helper no está conectado al juego.");
         public static string NoGameProcess => T("No Path of Exile process is running.", "No hay ningún proceso de Path of Exile en ejecución.");
 
-        public static string Area(string areaName) => T($"Area: {areaName}.", $"Área: {areaName}.");
+        /// <summary>"Área: Sierraclara, nivel 2." (the area level is its monsters' level; 0 when unknown).</summary>
+        public static string Area(string areaName, int level = 0) =>
+            level > 0 ? T($"Area: {areaName}, level {level}.", $"Área: {areaName}, nivel {level}.") : T($"Area: {areaName}.", $"Área: {areaName}.");
+
+        /// <summary>The character's level and the area's (its monsters'), for the vitals readout: "Nivel 4, nivel del área 2".</summary>
+        public static string Levels(int character, int area) =>
+            character > 0 && area > 0 ? T($"Level {character}, area level {area}", $"Nivel {character}, nivel del área {area}")
+            : character > 0 ? LevelUp(character)
+            : area > 0 ? T($"area level {area}", $"nivel del área {area}")
+            : string.Empty;
 
         /// <summary>Menu rule: name, then state/value, then role. Value-bearing controls read "label, value, role".</summary>
         /// <param name="fullTooltip">Also read a long tooltip (item mods, gem stats) after the position.</param>

@@ -988,6 +988,10 @@ namespace Poe2Accessibility.Tests
                 Equal("Renly, 1 paso, abajo 3, luego izquierda", Announcements.ScanEntry("Renly", 1, "abajo", 3, "izquierda", true), "spanish scan entry with a turn");
                 Equal("cruceta derecha", Announcements.ButtonName("DPadRight", false), "spanish button");
                 Equal("A", Announcements.ButtonName("Button4", false), "letters stay");
+                Equal("Área: Sierraclara, nivel 2.", Announcements.Area("Sierraclara", 2), "area with its level");
+                Equal("Área: Sierraclara.", Announcements.Area("Sierraclara"), "area level unknown");
+                Equal("Nivel 4, nivel del área 2", Announcements.Levels(4, 2), "levels in the vitals");
+                Equal("O GROSSO J, Guerrero, nivel 20", Announcements.OtherPlayer("O_GROSSO_J", "Guerrero", 20), "another player with level");
 
                 Equal("es", Localization.ParseGameLanguage("[GENERAL]\nlanguage=en\n[LANGUAGE]\nlanguage=ES\n"), "ini section");
                 Localization.Detect("auto");

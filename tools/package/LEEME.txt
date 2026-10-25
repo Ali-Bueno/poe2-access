@@ -24,7 +24,7 @@ CÓMO EMPEZAR
 CONTROLES BÁSICOS
 El botón del mod es L3, el clic del stick izquierdo.
 - En los menús: toca L3 para la siguiente línea de lo enfocado, doble toque para la anterior y mantén pulsado para leer la descripción entera.
-- Jugando: toca L3 para saber dónde está lo elegido en el escáner. Doble toque para vida, maná, estados y la vida del jefe. Mantén pulsado para leer la pantalla y la barra de habilidades.
+- Jugando: toca L3 para saber dónde está lo elegido en el escáner. Doble toque para vida, maná, estados, la vida del jefe, tu nivel y el nivel del área (que es el de sus monstruos). Al entrar en una zona se dice su nivel: "Área: Sierraclara, nivel 2". En el escáner, los otros jugadores llevan su nivel. Mantén pulsado para leer la pantalla y la barra de habilidades.
 - Escáner: mantén L3 y mueve el stick derecho. Arriba y abajo cambian de categoría (misión, salidas, lugares como puentes, escaleras o carros, zonas sin explorar, puntos de ruta y de control, personajes, enemigos, objetos, cofres...). Izquierda y derecha la recorren, de lo más cercano a lo más lejano.
 - Guía: mantén L3 y pulsa el stick derecho. Un ping te lleva hacia lo elegido por un camino libre y te dice los giros. Repítelo para apagarla.
 - Ajustes del mod: mantén L3 un segundo y medio. Ahí están la ayuda, todos los ajustes y un glosario donde puedes escuchar cada sonido.

@@ -100,6 +100,9 @@ namespace Poe2Accessibility
         /// </summary>
         private const int StateSettleMs = 150;
 
+        /// <summary>No area goes past this level (endgame maps reach the 80s); a larger number is a broken read.</summary>
+        private const int MaxAreaLevel = 100;
+
         private static readonly System.Collections.Generic.HashSet<GameStateTypes> PassingStates = new()
         {
             GameStateTypes.SelectCharacterState, GameStateTypes.WaitingState, GameStateTypes.LoadingState,
@@ -636,6 +639,16 @@ namespace Poe2Accessibility
             }
         }
 
+        /// <summary>
+        ///     The current area's level, which is its monsters' level (GameHelper AreaInstance +0xBC, "Monster Level" in its
+        ///     overlay; the game's world map says "Monster level: 1" on the Riverbank); 0 when the read is not a level.
+        /// </summary>
+        private static int AreaLevel()
+        {
+            var level = Core.States.InGameStateObject.CurrentAreaInstance.CurrentAreaLevel;
+            return level is > 0 and <= MaxAreaLevel ? level : 0;
+        }
+
         /// <summary>"Life 80 percent, mana 40 percent" for the mod button; null outside gameplay.</summary>
         private string? ReadVitals()
         {
@@ -651,7 +664,9 @@ namespace Poe2Accessibility
                 life.Mana.Total > 0 ? life.Mana.CurrentInPercent() : 0,
                 life.EnergyShield.Total > 0 ? life.EnergyShield.CurrentInPercent() : null);
             var states = this.statuses?.Active.Select(Announcements.AilmentName).ToList() ?? new System.Collections.Generic.List<string>();
-            return Announcements.Sentences(new[] { vitals, string.Join(", ", states), this.bosses?.Status() ?? string.Empty }.Where(part => part.Length > 0));
+            var character = Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<GameHelper.RemoteObjects.Components.Player>(out var me) ? me.Level : 0;
+            var levels = Announcements.Levels(character, AreaLevel());
+            return Announcements.Sentences(new[] { vitals, string.Join(", ", states), this.bosses?.Status() ?? string.Empty, levels }.Where(part => part.Length > 0));
         }
 
         /// <summary>The delivery level the player chose for a kind of news (speech priority).</summary>
@@ -1178,7 +1193,9 @@ namespace Poe2Accessibility
                     this.pendingState = null;
                 }
 
-                this.output.Say(SpeechKind.Places, Announcements.Area(areaName));
+                var level = AreaLevel();
+                this.log?.Info($"Area level {level} (instance {Core.States.InGameStateObject.CurrentAreaInstance.AreaHash})");
+                this.output.Say(SpeechKind.Places, Announcements.Area(areaName, level));
             }
         }
 

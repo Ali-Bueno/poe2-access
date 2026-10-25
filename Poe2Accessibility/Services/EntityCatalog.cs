@@ -656,7 +656,7 @@ namespace Poe2Accessibility.Services
                 category = entity.EntitySubtype == EntitySubtypes.PlayerSelf ? null : ScanCategory.Players;
                 if (entity.TryGetComponent<Player>(out var other) && other.Name.Length > 0)
                 {
-                    name = Announcements.OtherPlayer(other.Name, name); // the render name is the class
+                    name = Announcements.OtherPlayer(other.Name, name, other.Level); // the render name is the class
                 }
             }
             else if (path.Contains("AreaTransition", StringComparison.Ordinal))
