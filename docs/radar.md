@@ -36,11 +36,18 @@ blocks within 45 units along the push (the stick direction through the inverse c
 re-armed after walking 30 units, turning the push more than 45° or 300 ms without pushing into anything. Sliding
 along a wall moves the character, so it stays silent. Setting `WallBump`.
 
+## Local co-op: player 2
+
+With `PartnerRadar` on, a second radar follows local player 2 (`LocalPlayers`, [local co-op](research/local-coop.md)):
+the same rays on the shared screen, but every strike sounds twice (a flam 70 ms apart) and the breath is two short
+puffs over the same sweep, so the cue keeps its length. Both radars share one turn: one cue at a time across the two.
+Player 2's radar is silent while player 2 is dead, alone, or when the first player's radar would be (menus, focus).
+
 ## Not ported yet
 
 Doors (no door bit in PoE2's walkable grid), small-obstacle timbre, wall repeat, the unexplored tail. Wall tones (LeAccess `reference/navigation-radar.md`) are the alternative style for later.
 
 ## Settings
 
-`Radar` (on), `RadarVolume` and `SoundVolume` (percent, 0-200). Silent whenever a panel, menu or dialogue has the
+`Radar` (on), `PartnerRadar` (off), `RadarVolume` and `SoundVolume` (percent, 0-200). Silent whenever a panel, menu or dialogue has the
 focus, the game window is in the back, or the player is dead.

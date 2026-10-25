@@ -155,7 +155,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 
 - **Radar:** a tock when a wall closes the way up, left, right or down on screen, a breath when it opens again, a tin
   for an exit on that line. Left and right are stereo, down is a little lower. Only changes sound
-  ([radar](radar.md)).
+  ([radar](radar.md)). In local co-op, setting "Radar for local player 2" gives player 2 a radar of their own: the
+  same cues, each sounding twice.
 - **Enemies:** a short growl for each enemy on screen, faster as it gets closer; magic and rare enemies buzz on top,
   uniques ring ([enemy sounds](enemy-sounds.md)).
 - **NPCs:** a light wooden tap for the nearest NPC or other player on screen, faster as you get closer.
@@ -188,7 +189,7 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   ([dodge timing](research/dodge-timing.md)).
 - **Crosshair:** two short blips when the game's target lands on a living enemy.
 - The game's own low-life heartbeat and menu sounds are left to the game: the mod has none of its own.
-- All stop while a panel, menu or dialogue is open. Settings: `Radar`, `WallBump`, `EnemySounds`, `NpcSounds`,
+- All stop while a panel, menu or dialogue is open. Settings: `Radar`, `PartnerRadar`, `WallBump`, `EnemySounds`, `NpcSounds`,
   `AnnounceNearby`, `AnnounceLevelUp`, `ObjectSounds`, `LootSounds`, `DodgeWarnings`, `CrosshairBeep`, `LowLifeBelow`, volumes
   `SoundVolume`, `RadarVolume`, `EnemyVolume`, `BeaconVolume`, `ObjectVolume` in `config/settings.txt`.
 

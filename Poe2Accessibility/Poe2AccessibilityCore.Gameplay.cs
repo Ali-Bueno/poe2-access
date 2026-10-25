@@ -15,11 +15,11 @@ namespace Poe2Accessibility
         /// </summary>
         private void TickSounds()
         {
-            bool playing;
+            bool inWorld, playing;
             try
             {
-                playing = Core.Process.Foreground && this.focus?.Current == null &&
-                          this.gameState?.CurrentState == GameStateTypes.InGameState && IsPlayerAlive();
+                inWorld = Core.Process.Foreground && this.focus?.Current == null && this.gameState?.CurrentState == GameStateTypes.InGameState;
+                playing = inWorld && IsPlayerAlive();
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
             {
@@ -37,6 +37,8 @@ namespace Poe2Accessibility
                 }
             });
             this.Isolated("radar", () => this.radar?.Tick(playing && this.Settings.Radar));
+            this.Isolated("partner radar", () => this.partnerRadar?.Tick(
+                inWorld && this.Settings.PartnerRadar && this.localPlayers?.Second() is { } partner && IsAlive(partner)));
             this.Isolated("wall tones", () => this.wallTones?.Tick(playing && this.Settings.WallTones));
             this.Isolated("nearby", () => this.nearby?.Tick(playing, this.Settings.AnnounceNearby, this.Settings.AnnounceInteractTarget));
             this.Isolated("places", () => this.places?.Tick(playing, this.Settings.AnnouncePlaces));
@@ -140,8 +142,10 @@ namespace Poe2Accessibility
             this.lastLevel = (character.Name, character.Level);
         }
 
-        private static bool IsPlayerAlive() =>
-            Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) && life.IsAlive;
+        private static bool IsPlayerAlive() => IsAlive(Core.States.InGameStateObject.CurrentAreaInstance.Player);
+
+        private static bool IsAlive(GameHelper.RemoteObjects.States.InGameStateObjects.Entity entity) =>
+            entity.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) && life.IsAlive;
 
         /// <summary>Per frame: a warning when the player's life falls below a threshold.</summary>
         private void WatchLife()

@@ -103,6 +103,7 @@
 | Audio output (winmm mixer, synthesized cues) | done (code) | `AudioCueService`; no new DLL; "Audio cues ready" logged live |
 | Enemy sounds (growl + rarity layer, pan, tempo by nearness) | done (live) | "16 pulses, up to 6 enemies in the last 5 s"; sight from the projectile layer; ~9 pulses/s in a pack (tune by ear); `enemies` dev command |
 | Navigation radar (D2R: tock wall, breath floor, tin exit, 4 screen rays) | done (live) | `docs/radar.md`; user: "creo que funciona"; wall tones = later alternative |
+| Local co-op: radar for player 2 (`PartnerRadar`, off), each cue sounding twice; speech stays player 1's | done (live, bot) | `LocalPlayers` reads the area's local player list; both radars logged live with J2 among online players; skill bar read right in co-op (`docs/research/local-coop.md`) |
 | Nearby things named on approach (checkpoint, NPC, stash, chest, item, exit) | done (live) | `docs/proximity.md`; "Checkpoint" on respawn, "Clearfell Encampment" at the exit |
 | Radial menu (hold View) | done (live) | the highlighted option is the only text of its layer: "Inventory", "Skills", "Passives", "Bind Screen", "Character", "Quests", "Cosmetics", "Not Available" |
 | Death screen | done (live); fallback (code) | "You have Died. resurrect at checkpoint", then the button; `DeathWatch` reads it from G+0xCE8 when not narrated 2 s after dying, says it hidden ("Y la muestra"): once (11:23, 2026-10-24) the game focused it but it read hidden and nothing was said |
@@ -202,6 +203,9 @@
 - Game element layout hints (ExileCore2): `Text`, `TextNoTags`, `Tooltip`, `isHighlighted`, `Type` ushort;
   `IngameState.UIHover/UIHoverElement/FocusedInputElement`: `docs/research/exilecore2-study.md`.
 - Terrain/entities/landmarks (for later): `docs/research/poe2radar-study.md`.
+- Local players (couch co-op): std::vector at GameHelper's `LocalPlayerStruct`+0x08, entry 0 = `AreaInstance.Player`,
+  entry 1 = player 2; J2's pad and menu cursor never reach the mod; co-op HUD has one `skill_bar` per player
+  (`docs/research/local-coop.md`).
 - **Entities (2026-10-23, 0.5.5e, `entities` dev command):** Render `+0x160` std::wstring = display name ("Una",
   "Stash", "Clearfell"; for players the class). GameHelper's Targetable flags (`+0x51…`) read zero for everything;
   **`+0x69` = targetable/in play** (1: active NPC variant, stash, waypoint, bench, exit, players; 0: story variants
@@ -298,7 +302,7 @@
 - Scanner: `EntityCatalog` (entries, landmarks, `Describe`; `.Classify` categories and names, `.Terrain` live grid and barriers) → `RoutePlanner` (A*, corners,
   legs) and `ScanModel` (`ScanBrowser`, `StickDirection`); `LandmarkTable`. Warnings: `VitalAlarm`.
 - Sounds: `AudioCueService` (winmm mixer) ← `EnemyCues` (`EnemyCueScheduler`, `CueSynth`) and `Radar`
-  (`PassageScan`, `RadarSensor`, `RadarSynth`); with `ProximityNarrator` (`ProximityTracker`) gated in
+  (`PassageScan`, `RadarSensor`, `RadarSynth`; a second `Radar` follows `LocalPlayers.Second`); with `ProximityNarrator` (`ProximityTracker`) gated in
   `Poe2AccessibilityCore.TickSounds`.
 - Shop/stash: tooltip `cost` → `CurrencyIcons`, red price via `UiElementReader.IsTextRed`; grid tabs `UiSemantics.GridTab`.
 - Gameplay guides: `Beacon` (+ pure `BeaconMath`), `QuestMatcher`, `BossWatch` (boss life + dodge whoosh, pure
@@ -311,8 +315,9 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-Next: user test of the 2026-10-25 UI sweep fixes (`docs/research/ui-sweep-2026-10-25.md`). Characters: "kehgan" (Monk, level 2, Clearfell Encampment; a town NPC shows a quest marker), "yarkbruja" (Witch, level 3,
-Clearfell Encampment, no NPC marker), "yarkey" (Mercenary, level 4, Mud Burrow). Start in town from character selection:
+Next: user test of the 2026-10-25 UI sweep fixes (`docs/research/ui-sweep-2026-10-25.md`) and of the player 2 radar
+in real couch co-op (two pads; J2 joins at character selection, "Radar del jugador local 2" in the mod's settings). Characters: "kehgan" (Monk, level 2, Clearfell Encampment; a town NPC shows a quest marker), "yarkbruja" (Witch, level 3,
+Clearfell Encampment, no NPC marker), "yarkey" (Mercenary, level 4, Clearfell Encampment). Start in town from character selection:
 `desktop.py combo l2 cross --seconds 1.8` (away from town the confirmation's Cancel is focused: D-pad right, then A). Next: user test of the 2026-10-25 batch (places and the Lugares category, the other
 languages, projectile dodge timing, quieter area loads, the new package layout) and of the 2026-10-24 one (wall tones,
 "what A uses", weapon swap, map / chat / player menu). Cinematics and their subtitles (`enable_subtitles=true`) are

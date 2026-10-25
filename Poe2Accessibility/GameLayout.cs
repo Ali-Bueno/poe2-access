@@ -519,6 +519,21 @@ namespace Poe2Accessibility
             public const int UiManagerOffset = 0x310;
         }
 
+        /// <summary>
+        ///     The area's local players (couch co-op): a std::vector of entity pointers inside GameHelper's
+        ///     LocalPlayerStruct whose inline storage is GameHelper's LocalPlayerPtr, so entry 0 is GameHelper's player.
+        ///     Clearfell with two local players among online ones, 2026-10-25: begin +0x5D0, end +0x5E0, entries the two
+        ///     characters' entities (peek.py `find` of both addresses, docs/research/local-coop.md).
+        /// </summary>
+        public static class LocalPlayers
+        {
+            /// <summary>The list's begin and end pointers, from the start of GameHelper's LocalPlayerStruct.</summary>
+            public const int ListOffset = 0x08;
+
+            /// <summary>Couch co-op seats: character selection shows J1 and J2 (2026-10-25).</summary>
+            public const int MaxPlayers = 2;
+        }
+
         /// <summary>How far into a state object the UI-manager pointer is looked for (LoginState's is at 0x2B8).</summary>
         public const int StateObjectScanBytes = 0x2000;
 

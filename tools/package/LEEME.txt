@@ -29,6 +29,7 @@ El botón del mod es L3, el clic del stick izquierdo.
 - Guía: mantén L3 y pulsa el stick derecho. Un ping te lleva hacia lo elegido por un camino libre y te dice los giros. Repítelo para apagarla.
 - Ajustes del mod: mantén L3 un segundo y medio. Ahí están la ayuda, todos los ajustes y un glosario donde puedes escuchar cada sonido.
 - Al morir, Y muestra u oculta la pantalla de muerte. A resucita en el punto de control.
+- Cooperativo local: el mod habla siempre para el jugador 1. El ajuste "Radar del jugador local 2" da al jugador 2 su propio radar, con los mismos sonidos pero dobles.
 Encontrarás todos los controles en "Controles (ingles).md".
 
 PARA CERRAR

@@ -6,12 +6,13 @@ namespace Poe2Accessibility.Services
     using System.Numerics;
     using GameHelper;
     using GameHelper.RemoteObjects.Components;
+    using GameHelper.RemoteObjects.States.InGameStateObjects;
     using GameOffsets.Natives;
 
     /// <summary>
     ///     Navigation radar (D2R design, docs/radar.md): four rays along the screen's up, left, right and down, each
     ///     reading open floor, wall or exit from the walkable grid. A ray sounds only when its reading changes and is
-    ///     confirmed; cues play one at a time, walls first.
+    ///     confirmed; cues play one at a time, walls first. One radar per local player, sharing a <see cref="Turn"/>.
     /// </summary>
     public sealed class Radar
     {
@@ -50,6 +51,9 @@ namespace Poe2Accessibility.Services
         private static readonly RadarSynth.Direction[] Directions = Enum.GetValues<RadarSynth.Direction>();
 
         private readonly AudioCueService audio;
+        private readonly Func<Entity?> subject;
+        private readonly Turn turn;
+        private readonly string label;
         private readonly Func<string> areaId;
         private readonly PluginLog log;
         private readonly Dictionary<RadarSynth.Direction, RadarSensor> sensors = new();
@@ -65,23 +69,26 @@ namespace Poe2Accessibility.Services
         private Vector2 lastPosition;
         private long lastPoll = long.MinValue / 2;
         private long lastExitRefresh = long.MinValue / 2;
-        private long busyUntil;
-        private int turn;
+        private int rotation;
         private bool silent = true;
 
-        public Radar(AudioCueService audio, Func<string> areaId, PluginLog log)
+        /// <param name="subject">The local player the rays start from; null while there is none.</param>
+        public Radar(AudioCueService audio, Func<Entity?> subject, RadarSynth.Voice voice, Turn turn, Func<string> areaId, PluginLog log)
         {
             this.audio = audio;
+            this.subject = subject;
+            this.turn = turn;
+            this.label = voice == RadarSynth.Voice.First ? "Radar" : "Radar P2";
             this.areaId = areaId;
             this.log = log;
             foreach (var direction in Directions)
             {
                 foreach (var reading in new[] { RadarReading.Open, RadarReading.Exit, RadarReading.Wall })
                 {
-                    this.sounds[(reading, direction)] = RadarSynth.Cue(reading, direction, AudioCueService.SampleRate);
+                    this.sounds[(reading, direction)] = RadarSynth.Cue(reading, direction, AudioCueService.SampleRate, voice);
                 }
 
-                this.obstacleSounds[direction] = RadarSynth.Obstacle(direction, AudioCueService.SampleRate);
+                this.obstacleSounds[direction] = RadarSynth.Obstacle(direction, AudioCueService.SampleRate, voice);
             }
         }
 
@@ -124,7 +131,7 @@ namespace Poe2Accessibility.Services
             var cellSize = areaInstance.WorldToGridConvertor;
             var grid = areaInstance.GridWalkableData;
             var row = areaInstance.TerrainMetadata.BytesPerRow;
-            if (cellSize <= 0 || grid.Length == 0 || !areaInstance.Player.TryGetComponent<Render>(out var player))
+            if (cellSize <= 0 || grid.Length == 0 || this.subject() is not { } subject || !subject.TryGetComponent<Render>(out var player))
             {
                 return;
             }
@@ -173,7 +180,7 @@ namespace Poe2Accessibility.Services
                         this.smallObstacles.Remove(direction);
                     }
 
-                    this.log.Debug($"Radar {direction}: {reading} (depth {scan.Depth * cellSize:0} units, at {position.X:0.00},{position.Y:0.00}, axis {axis.X:0.000},{axis.Y:0.000})");
+                    this.log.Debug($"{this.label} {direction}: {reading} (depth {scan.Depth * cellSize:0} units, at {position.X:0.00},{position.Y:0.00}, axis {axis.X:0.000},{axis.Y:0.000})");
                 }
             }
         }
@@ -181,7 +188,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The most urgent cue still true (walls, then exits, then floor; equals take turns), one at a time.</summary>
         private void PlayNext(long now)
         {
-            if (now < this.busyUntil || this.pending.Count == 0)
+            if (now < this.turn.BusyUntil || this.pending.Count == 0)
             {
                 return;
             }
@@ -198,13 +205,13 @@ namespace Poe2Accessibility.Services
 
             var urgency = this.pending.Values.Max();
             var due = Directions.Where(direction => this.pending.TryGetValue(direction, out var reading) && reading == urgency).ToList();
-            var direction = due[this.turn++ % due.Count];
+            var direction = due[this.rotation++ % due.Count];
             this.pending.Remove(direction);
             var sound = urgency == RadarReading.Wall && this.smallObstacles.Contains(direction)
                 ? this.obstacleSounds[direction]
                 : this.sounds[(urgency, direction)];
             this.audio.Play(sound, RadarSynth.Pan(direction) * PanStrength, 1f, this.Gain);
-            this.busyUntil = now + (sound.Length * 1000L / AudioCueService.SampleRate) + CueGapMs;
+            this.turn.BusyUntil = now + (sound.Length * 1000L / AudioCueService.SampleRate) + CueGapMs;
         }
 
         private void Rebase()
@@ -215,7 +222,6 @@ namespace Poe2Accessibility.Services
             }
 
             this.pending.Clear();
-            this.busyUntil = 0;
         }
 
         /// <summary>Cell sizes differ per area, so the thresholds in cells follow the area's grid.</summary>
@@ -267,5 +273,11 @@ namespace Poe2Accessibility.Services
 
         internal static StdTuple3D<float> Offset(StdTuple3D<float> origin, float dx, float dy) =>
             new() { X = origin.X + dx, Y = origin.Y + dy, Z = origin.Z };
+
+        /// <summary>When the radars' next cue may start: one cue at a time across all of them.</summary>
+        public sealed class Turn
+        {
+            public long BusyUntil { get; set; }
+        }
     }
 }

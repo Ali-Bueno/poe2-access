@@ -33,6 +33,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(PassageScanMeasuresTheWayAhead), PassageScanMeasuresTheWayAhead);
             Run(nameof(RadarSoundsConfirmedChangesOnly), RadarSoundsConfirmedChangesOnly);
             Run(nameof(RadarSoundsStayInRangeAndDiffer), RadarSoundsStayInRangeAndDiffer);
+            Run(nameof(PartnerRadarStrikesTwice), PartnerRadarStrikesTwice);
+            Run(nameof(LocalPlayerListTrustsOnlyItsOwnPlayerFirst), LocalPlayerListTrustsOnlyItsOwnPlayerFirst);
             Run(nameof(NearbyThingsAreNamedOncePerApproach), NearbyThingsAreNamedOncePerApproach);
             Run(nameof(WallBumpThudsOncePerContact), WallBumpThudsOncePerContact);
             Run(nameof(FriendsGetTheirOwnStream), FriendsGetTheirOwnStream);
@@ -408,6 +410,44 @@ namespace Poe2Accessibility.Tests
             var wallUp = RadarSynth.Cue(RadarReading.Wall, RadarSynth.Direction.Up, rate);
             Equal(true, Crossings(exitDown) < Crossings(exitUp), "below the player sounds lower");
             Equal(true, Crossings(exitUp) > Crossings(wallUp) * 3, "the exit tin is far above the wall tock");
+        }
+
+        private static void PartnerRadarStrikesTwice()
+        {
+            const int rate = 44100;
+            foreach (var reading in new[] { RadarReading.Open, RadarReading.Exit, RadarReading.Wall })
+            {
+                foreach (var direction in Enum.GetValues<RadarSynth.Direction>())
+                {
+                    var sound = RadarSynth.Cue(reading, direction, rate, RadarSynth.Voice.Second);
+                    Equal(true, sound.Length > rate / 20 && sound.Length < rate / 4, $"second voice {reading} {direction} lasts 50-250 ms");
+                    Equal(true, sound.All(sample => MathF.Abs(sample) <= 1f), $"second voice {reading} {direction} within full scale");
+                }
+            }
+
+            float Loudest(float[] sound, int fromMs, int toMs) =>
+                sound.Skip(rate * fromMs / 1000).Take(rate * (toMs - fromMs) / 1000).Max(MathF.Abs);
+            var single = RadarSynth.Cue(RadarReading.Wall, RadarSynth.Direction.Up, rate);
+            var twice = RadarSynth.Cue(RadarReading.Wall, RadarSynth.Direction.Up, rate, RadarSynth.Voice.Second);
+            Equal(true, Loudest(twice, 70, 90) > Loudest(twice, 50, 68) * 4, "the second voice's wall strikes again");
+            Equal(true, Loudest(single, 70, 90) < Loudest(single, 0, 20) / 4, "the first voice's wall strikes once");
+            var obstacle = RadarSynth.Obstacle(RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second);
+            Equal(true, Loudest(obstacle, 70, 90) > Loudest(obstacle, 50, 68) * 4, "the second voice's obstacle strikes again");
+            var breath = RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Up, rate);
+            var puffs = RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Up, rate, RadarSynth.Voice.Second);
+            Equal(breath.Length, puffs.Length, "two puffs last as long as one breath");
+            Equal(true, Loudest(puffs, 85, 95) < Loudest(puffs, 40, 50) / 4, "the puffs part in the middle");
+        }
+
+        private static void LocalPlayerListTrustsOnlyItsOwnPlayerFirst()
+        {
+            IntPtr self = 0x1000, partner = 0x2000, stranger = 0x3000;
+            Equal((IntPtr?)partner, LocalPlayerList.Second(new[] { self, partner }, self), "couch co-op: the second entry");
+            Equal((IntPtr?)null, LocalPlayerList.Second(new[] { self }, self), "alone: nobody");
+            Equal((IntPtr?)null, LocalPlayerList.Second(new[] { stranger, partner }, self), "a list not led by the player is not trusted");
+            Equal((IntPtr?)null, LocalPlayerList.Second(new[] { self, partner, stranger }, self), "more seats than the game has: not trusted");
+            Equal((IntPtr?)null, LocalPlayerList.Second(new[] { self, IntPtr.Zero }, self), "an empty seat");
+            Equal((IntPtr?)null, LocalPlayerList.Second(new[] { self, partner }, IntPtr.Zero), "no player yet");
         }
 
         private static void NearbyThingsAreNamedOncePerApproach()

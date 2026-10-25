@@ -41,6 +41,8 @@ namespace Poe2Accessibility
         private const int MaxSoundVolume = 200;
         private EnemyCues? enemyCues;
         private Radar? radar;
+        private Radar? partnerRadar;
+        private LocalPlayers? localPlayers;
         private ProximityNarrator? nearby;
         private PlaceNarrator? places;
         private WallBump? wallBump;
@@ -226,7 +228,10 @@ namespace Poe2Accessibility
                 this.semantics.MarkerPlaces = checkpointPlaces.Describe;
                 this.audio = new AudioCueService(this.log);
                 this.enemyCues = new EnemyCues(this.audio, memory, this.log);
-                this.radar = new Radar(this.audio, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
+                var radarTurn = new Radar.Turn();
+                this.radar = new Radar(this.audio, () => Core.States.InGameStateObject.CurrentAreaInstance.Player, RadarSynth.Voice.First, radarTurn, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
+                this.localPlayers = new LocalPlayers(memory, this.log);
+                this.partnerRadar = new Radar(this.audio, () => this.localPlayers?.Second(), RadarSynth.Voice.Second, radarTurn, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.nearby = new ProximityNarrator(this.entities, this.output);
                 this.places = new PlaceNarrator(PlaceCatalog.Load(Path.Join(this.DllDirectory, "catalog", "places.json"), this.log), memory, this.output, this.log)
                 {
@@ -330,6 +335,8 @@ namespace Poe2Accessibility
             this.screen = null;
             this.enemyCues = null;
             this.radar = null;
+            this.partnerRadar = null;
+            this.localPlayers = null;
             this.nearby = null;
             this.places = null;
             this.inventoryReader = null;

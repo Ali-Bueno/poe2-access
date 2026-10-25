@@ -43,6 +43,7 @@ def main():
     parser.add_argument('--wait', type=float, default=0.6, help='Seconds to wait after the input before reading the log')
     parser.add_argument('--capture', action='store_true', help='Also save a screenshot after the wait')
     parser.add_argument('--scale', type=int, choices=[1, 2, 4], default=2, help='Screenshot size divisor; multiply image pixels by it for client pixels')
+    parser.add_argument('--second', action='store_true', help='Pad input goes to the second pad (`pad.py serve --second`)')
     sub = parser.add_subparsers(dest='action', required=True)
     for action in ['list', 'focus', 'capture']:
         sub.add_parser(action)
@@ -82,6 +83,7 @@ def main():
     wheel.add_argument('steps', type=int)
     sub.add_parser('log', help='Only wait, then report new plugin log lines')
     args = parser.parse_args()
+    pad.use_second(args.second)
     if args.action not in ('list', 'log') and args.pid is None:
         parser.error('--pid is required for a targeted action')
     if not 0 <= args.wait <= MAX_WAIT_SECONDS:

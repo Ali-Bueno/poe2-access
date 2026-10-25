@@ -19,6 +19,10 @@ py -B tools/computer_use/desktop.py --pid N capture                     # half-s
 py -B tools/computer_use/pad.py quit
 ```
 
+Couch co-op: `pad.py serve --xbox --second` plugs a second pad on its own pipe; `desktop.py --second …` drives it and
+`pad.py quit --second` unplugs it (in a co-op game that disconnects both players). Joining is at character selection
+([local co-op](../../docs/research/local-coop.md)).
+
 Plugin rebuild loop: `launch.py stop` → `dotnet build Poe2Accessibility -c Release` → `launch.py host`
 (GameHelper locks the plugin DLL; `launch.py` drives `Poe2Access.exe restart|stop` from
 `tools/Poe2AccessLauncher`, which skips the update check and the "path contains poe" prompt and runs the host

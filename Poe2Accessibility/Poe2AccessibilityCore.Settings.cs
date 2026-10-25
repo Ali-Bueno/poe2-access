@@ -64,10 +64,13 @@ namespace Poe2Accessibility
                 this.audio.Volume = Fraction(settings.SoundVolume);
             }
 
-            if (this.radar != null)
+            foreach (var radar in new[] { this.radar, this.partnerRadar })
             {
-                this.radar.Gain = Fraction(settings.RadarVolume);
-                this.radar.SmallObstacles = settings.SmallObstacles;
+                if (radar != null)
+                {
+                    radar.Gain = Fraction(settings.RadarVolume);
+                    radar.SmallObstacles = settings.SmallObstacles;
+                }
             }
 
             if (this.wallBump != null)

@@ -6,7 +6,7 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Radar cues (mono, D2R radar_synth.cpp recipes): struck tones for an exit (tin) and a wall (tock), a
     ///     filtered-noise breath for open floor that rises ahead, falls behind and holds to the sides. Below the player
-    ///     the struck tones drop to <see cref="DownPitch"/>.
+    ///     the struck tones drop to <see cref="DownPitch"/>. The second local player's cues come twice (<see cref="Voice"/>).
     /// </summary>
     public static class RadarSynth
     {
@@ -30,6 +30,9 @@ namespace Poe2Accessibility.Services
         private const float WallHz = 260f;
         private const float WallHarmonic = 1.5f;
         private const float WallDecaySeconds = 0.025f;
+
+        /// <summary>The second strike of a second-voice cue: the wall tock has decayed to 6% by then, so two hits are heard.</summary>
+        private const float FlamSeconds = 0.07f;
 
         private const float BreathSeconds = 0.18f;
         private const float BreathReleaseSeconds = 0.015f;
@@ -70,6 +73,13 @@ namespace Poe2Accessibility.Services
 
         private const double NegligibleMagnitude = 1e-9;
 
+        /// <summary>Whose radar: the second local (couch co-op) player's strikes twice and breathes in two puffs.</summary>
+        public enum Voice
+        {
+            First,
+            Second,
+        }
+
         /// <summary>Which way a ray points on screen.</summary>
         public enum Direction
         {
@@ -80,21 +90,21 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The wall cue when what stops the way is a small obstacle the player can step round.</summary>
-        public static float[] Obstacle(Direction direction, int sampleRate) =>
-            Struck(ObstacleHz * (direction == Direction.Down ? DownPitch : 1f), ObstacleHarmonic, ObstacleDecaySeconds, sampleRate);
+        public static float[] Obstacle(Direction direction, int sampleRate, Voice voice = Voice.First) =>
+            Strike(ObstacleHz * (direction == Direction.Down ? DownPitch : 1f), ObstacleHarmonic, ObstacleDecaySeconds, sampleRate, voice);
 
-        public static float[] Cue(RadarReading reading, Direction direction, int sampleRate)
+        public static float[] Cue(RadarReading reading, Direction direction, int sampleRate, Voice voice = Voice.First)
         {
             var pitch = direction == Direction.Down ? DownPitch : 1f;
             return reading switch
             {
-                RadarReading.Exit => Struck(ExitHz * pitch, ExitHarmonic, ExitDecaySeconds, sampleRate),
-                RadarReading.Wall => Struck(WallHz * pitch, WallHarmonic, WallDecaySeconds, sampleRate),
+                RadarReading.Exit => Strike(ExitHz * pitch, ExitHarmonic, ExitDecaySeconds, sampleRate, voice),
+                RadarReading.Wall => Strike(WallHz * pitch, WallHarmonic, WallDecaySeconds, sampleRate, voice),
                 RadarReading.Open => direction switch
                 {
-                    Direction.Up => Breath(AheadStartHz, AheadEndHz, sampleRate),
-                    Direction.Down => Breath(BehindStartHz, BehindEndHz, sampleRate),
-                    _ => Breath(SideHz, SideHz, sampleRate),
+                    Direction.Up => Breaths(AheadStartHz, AheadEndHz, sampleRate, voice),
+                    Direction.Down => Breaths(BehindStartHz, BehindEndHz, sampleRate, voice),
+                    _ => Breaths(SideHz, SideHz, sampleRate, voice),
                 },
                 _ => Array.Empty<float>(),
             };
@@ -129,6 +139,37 @@ namespace Poe2Accessibility.Services
             Direction.Right => 1f,
             _ => 0f,
         };
+
+        private static float[] Strike(float hz, float harmonic, float decaySeconds, int sampleRate, Voice voice)
+        {
+            var once = Struck(hz, harmonic, decaySeconds, sampleRate);
+            return voice == Voice.First ? once : Mix(once, once, (int)(FlamSeconds * sampleRate));
+        }
+
+        /// <summary>The second voice splits the sweep into two half-length puffs, so the cue keeps its length.</summary>
+        private static float[] Breaths(float startHz, float endHz, int sampleRate, Voice voice)
+        {
+            if (voice == Voice.First)
+            {
+                return Breath(startHz, endHz, BreathSeconds, sampleRate);
+            }
+
+            var middleHz = MathF.Sqrt(startHz * endHz);
+            var first = Breath(startHz, middleHz, BreathSeconds / 2, sampleRate);
+            return Mix(first, Breath(middleHz, endHz, BreathSeconds / 2, sampleRate), first.Length);
+        }
+
+        private static float[] Mix(float[] first, float[] second, int offset)
+        {
+            var mixed = new float[Math.Max(first.Length, offset + second.Length)];
+            first.CopyTo(mixed, 0);
+            for (var i = 0; i < second.Length; i++)
+            {
+                mixed[offset + i] += second[i];
+            }
+
+            return mixed;
+        }
 
         private static float[] Struck(float hz, float harmonic, float decaySeconds, int sampleRate)
         {
@@ -257,9 +298,9 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>White noise through a state-variable band-pass whose centre glides exponentially.</summary>
-        private static float[] Breath(float startHz, float endHz, int sampleRate)
+        private static float[] Breath(float startHz, float endHz, float seconds, int sampleRate)
         {
-            var samples = new float[(int)(BreathSeconds * sampleRate)];
+            var samples = new float[(int)(seconds * sampleRate)];
             uint seed = 1;
             float low = 0, band = 0;
             var peak = 0f;
@@ -268,12 +309,12 @@ namespace Poe2Accessibility.Services
                 var t = (float)i / sampleRate;
                 seed = (seed * 1664525) + 1013904223;
                 var noise = ((seed >> 8) / 8388608f) - 1f;
-                var centre = startHz * MathF.Pow(endHz / startHz, t / BreathSeconds);
+                var centre = startHz * MathF.Pow(endHz / startHz, t / seconds);
                 var tuning = 2 * MathF.Sin(MathF.PI * centre / sampleRate);
                 var high = noise - low - (band / BreathQ);
                 band += tuning * high;
                 low += tuning * band;
-                var envelope = MathF.Pow(MathF.Sin(MathF.PI * t / BreathSeconds), 2) * MathF.Min(1f, (BreathSeconds - t) / BreathReleaseSeconds);
+                var envelope = MathF.Pow(MathF.Sin(MathF.PI * t / seconds), 2) * MathF.Min(1f, (seconds - t) / BreathReleaseSeconds);
                 samples[i] = band * envelope;
                 peak = MathF.Max(peak, MathF.Abs(samples[i]));
             }

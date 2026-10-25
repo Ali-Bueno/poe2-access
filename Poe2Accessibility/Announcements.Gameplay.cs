@@ -194,6 +194,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.RoutePrompts) => T("Turn prompts", "Indicaciones de giro"),
             nameof(AccessibilitySettings.AnnounceLevelUp) => T("Level up", "Subida de nivel"),
             nameof(AccessibilitySettings.Radar) => T("Radar", "Radar"),
+            nameof(AccessibilitySettings.PartnerRadar) => T("Radar for local player 2", "Radar del jugador local 2"),
             nameof(AccessibilitySettings.SmallObstacles) => T("Small obstacles sound hollow", "Obstáculos pequeños con toc hueco"),
             nameof(AccessibilitySettings.WallTones) => T("Wall tones", "Tonos de pared"),
             nameof(AccessibilitySettings.SpeechStatusBegins) => T("Speech: a state begins", "Voz: empieza un estado"),
@@ -304,6 +305,10 @@ namespace Poe2Accessibility
             "radar_wall" => T("Radar: wall", "Radar: pared"),
             "radar_open" => T("Radar: open way", "Radar: camino libre"),
             "radar_exit" => T("Radar: exit", "Radar: salida"),
+            "radar2_wall" => T("Player 2 radar: wall", "Radar del jugador 2: pared"),
+            "radar2_open" => T("Player 2 radar: open way", "Radar del jugador 2: camino libre"),
+            "radar2_exit" => T("Player 2 radar: exit", "Radar del jugador 2: salida"),
+            "radar2_obstacle" => T("Player 2 radar: small obstacle", "Radar del jugador 2: obstáculo pequeño"),
             "bump" => T("Wall bump", "Choque con pared"),
             "item" => T("Item on the ground", "Objeto en el suelo"),
             "item_rare" => T("Rare item", "Objeto raro"),
@@ -340,6 +345,9 @@ namespace Poe2Accessibility
             "radar_wall" => T("the way closed on that side", "camino cerrado de ese lado"),
             "radar_open" => T("the way opened again", "el camino se abrió"),
             "radar_exit" => T("an exit on that line", "una salida en esa línea"),
+            "radar2_wall" or "radar2_open" or "radar2_exit" or "radar2_obstacle" => T(
+                "local co-op: like player 1's radar, sounding twice",
+                "cooperativo local: como el radar del jugador 1, pero suena dos veces"),
             "bump" => T("you pushed into a wall", "empujaste contra una pared"),
             _ => T("nearest one on screen, on its side", "el más cercano en pantalla, a su lado"),
         } + T(". Left or right plays it", ". Izquierda o derecha lo reproduce");

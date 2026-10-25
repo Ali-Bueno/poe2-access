@@ -40,6 +40,7 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.AnnounceMoves)),
             Switch(nameof(AccessibilitySettings.AnnounceLevelUp)),
             Switch(nameof(AccessibilitySettings.Radar)),
+            Switch(nameof(AccessibilitySettings.PartnerRadar)),
             Switch(nameof(AccessibilitySettings.SmallObstacles)),
             Switch(nameof(AccessibilitySettings.WallTones)),
             Switch(nameof(AccessibilitySettings.EnemySounds)),

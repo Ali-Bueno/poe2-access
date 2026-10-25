@@ -7,6 +7,7 @@ import time
 from multiprocessing.connection import Client, Listener
 
 ADDRESS = r'\\.\pipe\poe2access-pad'
+SECOND_ADDRESS = ADDRESS + '2'  # the second pad (couch co-op player 2) is served on its own pipe
 AUTHKEY = b'poe2access-pad'  # local named pipe; the key only keeps unrelated pipe clients out
 MAX_HOLD_SECONDS = 2.0  # small observable steps, never unattended navigation
 BUTTONS = dict(cross='CROSS', circle='CIRCLE', square='SQUARE', triangle='TRIANGLE',
@@ -218,6 +219,13 @@ def serve(xbox):
                     connection.send(dict(ok=False, error=str(error)))
 
 
+def use_second(second):
+    """Points serve and send at the second pad's pipe."""
+    global ADDRESS
+    if second:
+        ADDRESS = SECOND_ADDRESS
+
+
 def send(request):
     """Forward one request to the running server; raises when it is not running or refuses."""
     try:
@@ -234,7 +242,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['serve', 'quit'])
     parser.add_argument('--xbox', action='store_true', help='serve an Xbox 360 pad (seen once through XInput)')
+    parser.add_argument('--second', action='store_true', help='a second pad beside the first (couch co-op player 2)')
     args = parser.parse_args()
+    use_second(args.second)
     if args.action == 'serve':
         return serve(args.xbox)
     send(dict(action='quit'))
