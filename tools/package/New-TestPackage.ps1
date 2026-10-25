@@ -29,8 +29,12 @@ if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 New-Item -ItemType Directory -Force $stage | Out-Null
 
 # Host and extractor: self-contained, into the same "app" folder. The launcher: one file at the top.
+# Built under dist\build: in GameHelper's own bin the self-contained build would leave the .NET runtime in the
+# development host folder, where the framework-dependent development launcher then fails to start.
+$artifacts = Join-Path $Output 'build'
 foreach ($project in 'external\GameHelper2\GameHelper\GameHelper.csproj', 'tools\Poe2UiExtract\Poe2UiExtract.csproj') {
-    Invoke-Dotnet @('publish', (Join-Path $repo $project), '-c', 'Release', '-r', 'win-x64', '--self-contained', 'true', '-o', $app, '-p:GenerateDocumentationFile=false', '-p:SatelliteResourceLanguages=en', '-nologo', '-v', 'q')
+    Invoke-Dotnet @('publish', (Join-Path $repo $project), '-c', 'Release', '-r', 'win-x64', '--self-contained', 'true', '-o', $app, '--artifacts-path', $artifacts,
+        '-p:GenerateDocumentationFile=false', '-p:SatelliteResourceLanguages=en', '-nologo', '-v', 'q')
 }
 # Unused here: GameHelper's bundled fonts serve only its "Universal font" option, off in the shipped settings (it falls
 # back to the configured font without them); the native PDB reader and the crash-dump tool serve debuggers.
