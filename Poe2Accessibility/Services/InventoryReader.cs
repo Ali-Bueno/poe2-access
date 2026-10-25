@@ -187,35 +187,45 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     Which drop sound an item on the ground gets: "gold", "currency", "quest", "rare" (rare and unique) or
-        ///     "item", from its metadata path (Metadata/Items/Currency/…, …/QuestItems/…) and its rarity.
+        ///     Which drop sound an item on the ground gets — "gold", "currency", "quest", "rare" (rare and unique) or
+        ///     "item", from its metadata path (Metadata/Items/Currency/…, …/QuestItems/…) and its rarity — and its worth
+        ///     for the loot filter (gems are valuable too).
         /// </summary>
-        public string ItemKind(IntPtr entity)
+        public (string Kind, LootTier Tier) ItemKind(IntPtr entity)
         {
             if (entity == IntPtr.Zero || !this.IsItemEntity(entity))
             {
-                return "item";
+                return ("item", LootTier.Valuable);
             }
 
             var item = (Item)Activator.CreateInstance(typeof(Item), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { entity }, null)!;
             var path = ItemPath(item);
             if (path.Contains("Gold", StringComparison.OrdinalIgnoreCase))
             {
-                return "gold";
+                return ("gold", LootTier.Valuable);
             }
 
             if (path.Contains("/Currency/", StringComparison.Ordinal))
             {
-                return "currency";
+                return ("currency", LootTier.Valuable);
             }
 
             if (path.Contains("Quest", StringComparison.Ordinal))
             {
-                return "quest";
+                return ("quest", LootTier.Valuable);
             }
 
-            return item.TryGetComponent<Mods>(out var mods) && mods.Rarity is Rarity.Rare or Rarity.Unique ? "rare" : "item";
+            var rarity = item.TryGetComponent<Mods>(out var mods) ? mods.Rarity : Rarity.Normal;
+            if (rarity is Rarity.Rare or Rarity.Unique)
+            {
+                return ("rare", LootTier.Valuable);
+            }
+
+            return ("item", path.Contains(GemPath, StringComparison.Ordinal) ? LootTier.Valuable : rarity == Rarity.Magic ? LootTier.Magic : LootTier.Normal);
         }
+
+        /// <summary>Skill and support gems, uncut ones too, live under Metadata/Items/Gems/.</summary>
+        private const string GemPath = "/Gems/";
 
         /// <summary>The item's base type id (its metadata path, "Metadata/Items/Currency/CurrencyIdentification"); empty if unreadable.</summary>
         public string ItemBaseId(IntPtr entity) =>

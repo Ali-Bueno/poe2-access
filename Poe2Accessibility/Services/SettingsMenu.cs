@@ -44,6 +44,7 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.NpcSounds)),
             Switch(nameof(AccessibilitySettings.WallBump)),
             Switch(nameof(AccessibilitySettings.ObjectSounds)),
+            Choice(nameof(AccessibilitySettings.LootSounds), LootFilter.Levels),
             Switch(nameof(AccessibilitySettings.DodgeWarnings)),
             Switch(nameof(AccessibilitySettings.CrosshairBeep)),
             Number(nameof(AccessibilitySettings.LowLifeBelow), 5, 70, 5),

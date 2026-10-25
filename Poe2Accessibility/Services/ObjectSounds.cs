@@ -68,6 +68,9 @@ namespace Poe2Accessibility.Services
 
         public float Gain { get; set; } = 1f;
 
+        /// <summary>Which items sound (<see cref="LootFilter"/> level, settings).</summary>
+        public string LootLevel { get; set; } = LootFilter.All;
+
         /// <summary>Per frame while playing.</summary>
         public void Tick(bool playing)
         {
@@ -92,7 +95,8 @@ namespace Poe2Accessibility.Services
                 foreach (var (group, member) in Groups)
                 {
                     var voices = group == LootGroup ? MaxLootVoices : 1;
-                    foreach (var entry in entries.Where(member).Where(entry => Distance(here, entry) <= RangeWorld).Take(voices))
+                    foreach (var entry in entries.Where(member).Where(entry => group != LootGroup || LootFilter.Allows(this.LootLevel, entry.Loot))
+                                 .Where(entry => Distance(here, entry) <= RangeWorld).Take(voices))
                     {
                         this.nearest[voices == 1 ? group : $"{group}:{entry.Id}"] = entry;
                     }

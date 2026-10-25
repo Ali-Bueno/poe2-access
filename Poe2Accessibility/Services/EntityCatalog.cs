@@ -650,6 +650,7 @@ namespace Poe2Accessibility.Services
             var path = entity.Path ?? string.Empty;
             var kind = string.Empty;
             var baseId = string.Empty;
+            var loot = LootTier.Valuable;
             ScanCategory? category;
             if (entity.EntityType == EntityTypes.Player)
             {
@@ -674,7 +675,7 @@ namespace Poe2Accessibility.Services
             {
                 category = ScanCategory.Items;
                 name = this.inventory.DescribeItemEntity(worldItem.ItemEntityAddress, name) ?? name;
-                kind = this.inventory.ItemKind(worldItem.ItemEntityAddress);
+                (kind, loot) = this.inventory.ItemKind(worldItem.ItemEntityAddress);
                 if (name.Split(',')[0].Trim() is { Length: > 0 } title)
                 {
                     this.itemTitles[title] = kind == "gold" ? string.Empty : name; // "Oro, 2": the title before the amount
@@ -734,7 +735,7 @@ namespace Poe2Accessibility.Services
             }
 
             var position = render.WorldPosition;
-            return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, kind, baseId);
+            return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, kind, baseId, loot);
         }
 
         /// <summary>

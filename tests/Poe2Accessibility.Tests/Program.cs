@@ -68,6 +68,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(PlacesAreSaidOnceAsTheyChange), PlacesAreSaidOnceAsTheyChange);
             Run(nameof(RadarLabelsSpeakSpanish), RadarLabelsSpeakSpanish);
             Run(nameof(ExperienceProgressIsWithinTheLevel), ExperienceProgressIsWithinTheLevel);
+            Run(nameof(LootFilterKeepsWhatThePlayerChose), LootFilterKeepsWhatThePlayerChose);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -545,6 +546,17 @@ namespace Poe2Accessibility.Tests
             Equal("Nivel 4, 35 por ciento hacia el nivel 5, nivel del área 2", Announcements.Levels(4, 2, 35), "vitals line");
             Equal("Nivel 4, nivel del área 2", Announcements.Levels(4, 2), "without the table");
             Localization.Detect("en");
+        }
+
+        private static void LootFilterKeepsWhatThePlayerChose()
+        {
+            Equal(true, LootFilter.Allows(LootFilter.All, LootTier.Normal), "all keeps white items");
+            Equal(false, LootFilter.Allows(LootFilter.Magic, LootTier.Normal), "magic or better drops white items");
+            Equal(true, LootFilter.Allows(LootFilter.Magic, LootTier.Magic), "magic or better keeps magic items");
+            Equal(false, LootFilter.Allows(LootFilter.Valuable, LootTier.Magic), "valuable drops magic items");
+            Equal(true, LootFilter.Allows(LootFilter.Valuable, LootTier.Valuable), "valuable keeps currency and rares");
+            Equal(true, LootFilter.Allows("garbage", LootTier.Normal), "an unknown setting keeps everything");
+            Equal(LootTier.Valuable, new ScanEntry(1, ScanCategory.Items, "x", 0, 0, 0).Loot, "an item of unknown worth stays heard");
         }
 
         private static void KnownPlacesOutliveTheSession()

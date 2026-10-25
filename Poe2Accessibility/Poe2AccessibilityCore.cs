@@ -1025,6 +1025,12 @@ namespace Poe2Accessibility
             if (this.objectSounds != null)
             {
                 this.objectSounds.Gain = Fraction(settings.ObjectVolume);
+                this.objectSounds.LootLevel = settings.LootSounds;
+            }
+
+            if (this.nearby != null)
+            {
+                this.nearby.LootLevel = settings.LootSounds;
             }
 
             if (this.discoveries != null)

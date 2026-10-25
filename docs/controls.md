@@ -11,7 +11,7 @@ toggles the map legend). Turn the controller commands off with `ControllerComman
 | Gesture | In menus (something has the focus) | In gameplay |
 |---|---|---|
 | Tap | Next line of the focused element: its name first, then each tooltip line | Where the scanner's choice is now; nothing chosen: repeat the last speech |
-| Double tap | Previous line | Life, mana, energy shield, harmful states, the boss's life, then your level and the area's ("Vida 80 por ciento, maná 40 por ciento. Envenenado. El molinero hinchado 55 por ciento. Nivel 4, nivel del área 2") |
+| Double tap | Previous line | Life, mana, energy shield, harmful states, the boss's life, then your level, how far to the next, and the area's ("Vida 80 por ciento, maná 40 por ciento. Envenenado. El molinero hinchado 55 por ciento. Nivel 4, 35 por ciento hacia el nivel 5, nivel del área 2") |
 | Hold (half a second) | Whole tooltip (item mods, gem stats, definitions) | Read the screen (quest tracker, HUD texts), then the skill bar: each set's buttons with what they fire, the empty ones last |
 | Hold + right stick flick | — (the game navigates with the right stick in menus) | Scanner (below) |
 | Hold + right stick press (R3) | — | Guide beacon on the scanner's choice (below); again on the same choice turns it off |
@@ -75,6 +75,10 @@ cuts in when urgent, cuts in, or cuts in and cannot be cut off (later news queue
 a harmful state beginning and an arrival with the guide hold; a state ending cuts in; low life/mana, boss life,
 enemy names (aimed and coming into view) and places cut in only when urgent (life at or under `LowLifeBelow`, 25 %, mana at 10 %, a boss at
 30 % or defeated, a rare enemy coming into view, a quick sweep of the aim); objectives and picked-up items wait.
+
+**Items heard and named** (D2R loot filter): which items on the ground get their drop sound and are named on
+approach — all (default), magic or better, or only currency, gold, gems, quest items, rares and uniques. The
+scanner's Items category still lists every item (`LootSounds`: `all`, `magic`, `valuable`).
 
 **Wall tones** (off by default, D2R): a soft, warm hiss per screen direction that swells as a wall closes in
 (higher ahead, lower and a little louder behind, the sides panned hard; the D2R recipe and level, well under the cues); "Alcance de los tonos de pared" sets how far ahead it starts (world
@@ -166,7 +170,7 @@ left; a topic already heard (drawn grey) is read "atenuado": "Presentación, ate
 - **Crosshair:** two short blips when the game's target lands on a living enemy.
 - The game's own low-life heartbeat and menu sounds are left to the game: the mod has none of its own.
 - All stop while a panel, menu or dialogue is open. Settings: `Radar`, `WallBump`, `EnemySounds`, `NpcSounds`,
-  `AnnounceNearby`, `AnnounceLevelUp`, `ObjectSounds`, `DodgeWarnings`, `CrosshairBeep`, `LowLifeBelow`, volumes
+  `AnnounceNearby`, `AnnounceLevelUp`, `ObjectSounds`, `LootSounds`, `DodgeWarnings`, `CrosshairBeep`, `LowLifeBelow`, volumes
   `SoundVolume`, `RadarVolume`, `EnemyVolume`, `BeaconVolume`, `ObjectVolume` in `config/settings.txt`.
 
 ## Warnings and speech

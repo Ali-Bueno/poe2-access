@@ -194,6 +194,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.NpcSounds) => T("NPC sounds", "Sonidos de personajes"),
             nameof(AccessibilitySettings.WallBump) => T("Wall bump", "Choque con paredes"),
             nameof(AccessibilitySettings.ObjectSounds) => T("Object sounds", "Sonidos de objetos"),
+            nameof(AccessibilitySettings.LootSounds) => T("Items heard and named", "Objetos que suenan y se nombran"),
             nameof(AccessibilitySettings.DodgeWarnings) => T("Dodge warnings", "Avisos para esquivar"),
             nameof(AccessibilitySettings.CrosshairBeep) => T("Crosshair beep", "Pitido de mira"),
             nameof(AccessibilitySettings.LowLifeBelow) => T("Urgent life warnings below", "Avisos de vida urgentes por debajo de"),
@@ -506,14 +507,17 @@ namespace Poe2Accessibility
             Services.SpeechPriority.Urgent => T("cuts in when urgent", "interrumpe si es urgente"),
             Services.SpeechPriority.CutsIn => T("cuts in", "interrumpe"),
             Services.SpeechPriority.Holds => T("cuts in and cannot be cut off", "interrumpe y no se corta"),
+            Services.LootFilter.All => T("all", "todos"),
+            Services.LootFilter.Magic => T("magic or better", "mágicos o mejores"),
+            Services.LootFilter.Valuable => T("only currency, gems, quest items, rares and uniques", "solo monedas, gemas, objetos de misión, raros y únicos"),
             _ => LanguageName(value),
         };
 
-        /// <summary>The thing the right stick aims at: "Drowned", "Bloated Miller, unique, 40 percent".</summary>
         /// <summary>A monster's modifiers after its name and rarity, in the game's words and order.</summary>
         public static string WithMods(string name, System.Collections.Generic.IReadOnlyList<string> mods) =>
             mods.Count == 0 ? name : $"{name}, {string.Join(", ", mods)}";
 
+        /// <summary>The thing the right stick aims at: "Drowned", "Bloated Miller, unique, 40 percent".</summary>
         public static string Target(string name, int? lifePercent) => lifePercent is { } life and < 100
             ? T($"{name}, {life} percent", $"{name}, {life} por ciento")
             : name;

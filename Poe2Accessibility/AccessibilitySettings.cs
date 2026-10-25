@@ -169,6 +169,12 @@ namespace Poe2Accessibility
         /// <summary>Guide beacon volume (hold L3, press the right stick on a scanner choice), percent (0-200).</summary>
         public int BeaconVolume = 100;
 
+        /// <summary>
+        ///     Which items on the ground sound and are named on approach (D2R loot filter): "all", "magic" (magic or
+        ///     better) or "valuable" (currency, gold, gems, quest items, rares and uniques). The scanner lists them all.
+        /// </summary>
+        public string LootSounds = Services.LootFilter.All;
+
         /// <summary>Volume of the object sounds (game sounds for loot, chests, exits, waypoints), percent (0-200).</summary>
         public int ObjectVolume = 70;
 
