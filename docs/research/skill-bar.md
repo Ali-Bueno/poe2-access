@@ -13,6 +13,9 @@ on every case; **OPEN** = not known.
   art, poise, weapon-set labels ("Set de habilidades principal/secundario").
 - MEASURED: each slot frame has **2 children of one class (same vtable)**: child 0 = primary skill set,
   child 1 = secondary set (used while the swap action is held). Call them *slot elements*.
+- MEASURED (local co-op, 2026-10-25): each player has a `skill_bar` (`G+0x610` player 1, `G+0x7B0` player 2) whose
+  child 0 holds the twelve frames in two rows of six; each frame is a background, then the two slot elements
+  ([local co-op](local-coop.md)).
 - MEASURED: **slot element `+0x370` (int32) = binding index**: 0..11 primary, 12..23 = same button, secondary
   set (child 1 index = child 0 index + 12, all 12 slots). Other fields of the slot element: `+0x2E8` icon
   child (= child 2), `+0x2F0` number backing (child 0), `+0x300` 85x85 child 1, `+0x120` tooltip vector.

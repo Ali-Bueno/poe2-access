@@ -31,19 +31,11 @@ namespace Poe2Accessibility.Services
                 return sets;
             }
 
-            // The slot class is taken from the first slot at run time (its vtable), never hard-coded.
-            var slots = this.elements.ReadChildren(bar).Skip(1).Take(GameLayout.SkillSlot.ButtonsPerSet).ToList();
-            var first = slots.Count > 0 && this.elements.TryReadElement(slots[0], out var firstFrame)
-                ? this.elements.ReadChildren(firstFrame).FirstOrDefault()
-                : IntPtr.Zero;
-            if (first == IntPtr.Zero || !this.reader.TryRead<IntPtr>(first, out var slotClass) || slotClass == IntPtr.Zero)
+            if (this.SlotElements(bar) is not var (slotElements, slotClass))
             {
                 return sets;
             }
 
-            var slotElements = slots.SelectMany(frame => this.elements.TryReadElement(frame, out var info) ? this.elements.ReadChildren(info) : Array.Empty<IntPtr>())
-                .Where(slot => this.reader.TryRead<IntPtr>(slot, out var type) && type == slotClass)
-                .ToList();
             var bindingAt = this.BindingOffset(slotElements);
             this.SkillDetailsShift(slotElements.SelectMany(slot => this.elements.TryReadElement(slot, out var info) ? this.elements.ReadChildren(info) : Array.Empty<IntPtr>()).ToList());
             var table = this.BindTable(layerContainer, slotClass, false);
@@ -79,6 +71,35 @@ namespace Poe2Accessibility.Services
             }
 
             return sets;
+        }
+
+        /// <summary>
+        ///     The bar's slots and their class (a vtable, taken at run time): one slot per set in each of the twelve frames.
+        ///     Alone the frames are children 1..12 of the bar; in local co-op each player's bar nests them in its first
+        ///     child, a background before each frame's two slots (docs/research/local-coop.md).
+        /// </summary>
+        private (List<IntPtr> Slots, IntPtr SlotClass)? SlotElements(UiElementReader.ElementInfo bar)
+        {
+            var children = this.elements.ReadChildren(bar);
+            var layouts = new List<IEnumerable<IntPtr>> { children.Skip(1) };
+            if (children.Length > 0 && this.elements.TryReadElement(children[0], out var nested))
+            {
+                layouts.Add(this.elements.ReadChildren(nested));
+            }
+
+            foreach (var frames in layouts)
+            {
+                var slots = frames.Take(GameLayout.SkillSlot.ButtonsPerSet)
+                    .SelectMany(frame => this.elements.TryReadElement(frame, out var info) ? this.elements.ReadChildren(info) : Array.Empty<IntPtr>())
+                    .GroupBy(slot => this.reader.TryRead<IntPtr>(slot, out var type) ? type : IntPtr.Zero)
+                    .FirstOrDefault(group => group.Key != IntPtr.Zero && group.Count() == 2 * GameLayout.SkillSlot.ButtonsPerSet);
+                if (slots != null)
+                {
+                    return (slots.ToList(), slots.Key);
+                }
+            }
+
+            return null;
         }
 
         /// <summary>What a slot fires: the skill's name, else the action's tooltip title, else its icon's name; "" when empty.</summary>
