@@ -70,9 +70,9 @@ The GameHelper-style copy/rename logic is a short independent reimplementation (
 In a test package `start` also keeps the game data current (`GameDataSetup.cs`): when `Poe2UiExtract.exe` sits beside it, it
 compares a stamp of the install (size and time of `Bundles2/_.index.bin` and of the game exe, `fmod.dll` version, a format
 number) with `Plugins/Poe2Accessibility/catalog/game-version.txt`. Missing or different (first run, game patch), it runs
-`item-sounds`, `areas`, `dat-columns`, the `.ui` extraction plus `catalog`, and `sounds`, each independent and silent, with
+`item-sounds`, `areas`, `dat-columns`, `hit-times`, `places`, the `.ui` extraction plus `catalog`, and `sounds`, each independent and silent, with
 a 3-minute timeout, logging to `Poe2Access.log`. Outputs are written to a temp file or folder and replace the old ones only
-on success; the stamp is written only when all of them succeed (otherwise the next start retries). About 35 s in total,
+on success; the stamp is written only when all of them succeed (otherwise the next start retries). About 80 s in total,
 once per patch. The extractor opens the bundles sharing them with the running game (`SharedBundles`): the game locks some
 once in game, and the launcher starts it before regenerating.
 

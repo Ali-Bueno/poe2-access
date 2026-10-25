@@ -17,7 +17,7 @@ CÓMO EMPEZAR
 1. Descomprime la carpeta donde quieras.
    Si al abrir el mod Windows dice "Windows protegió tu PC", elige "Más información" y luego "Ejecutar de todas formas". Para evitarlo, antes de descomprimir abre las Propiedades del archivo zip, marca "Desbloquear" y acepta.
 2. Abre Steam.
-3. Haz doble clic en Poe2Access.exe. Abre el juego si no estaba abierto y arranca el mod. La primera vez, y después de cada actualización del juego, prepara los sonidos y los datos a partir de tu propia instalación. Tarda unos 30 segundos, durante los que no oirás nada; espera.
+3. Haz doble clic en Poe2Access.exe. Abre el juego si no estaba abierto y arranca el mod. La primera vez, y después de cada actualización del juego, prepara los sonidos y los datos a partir de tu propia instalación. Tarda alrededor de un minuto y medio, durante el que no oirás nada; espera.
 4. Oirás "Accesibilidad de Path of Exile 2 lista" y, cuando el mod se conecte al juego, "Juego detectado" con la pantalla en la que estás.
 5. En la pantalla de inicio del juego, pulsa un botón del MANDO, no el ratón ni el teclado. El juego elige el método de control en ese momento, y si entras con el ratón, ignora el mando hasta que vuelvas al menú principal.
 
