@@ -74,6 +74,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(FlagBitsAreFoundOnTheirCarriers), FlagBitsAreFoundOnTheirCarriers);
             Run(nameof(PadButtonsFollowTheLeftTrigger), PadButtonsFollowTheLeftTrigger);
             Run(nameof(TileGridIsFoundByWhatItsRecordsHold), TileGridIsFoundByWhatItsRecordsHold);
+            Run(nameof(BaseNamesAreCheckedAgainstTooltipTitles), BaseNamesAreCheckedAgainstTooltipTitles);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -676,6 +677,31 @@ namespace Poe2Accessibility.Tests
             Equal(null, TileGridSearch.Find(Grid(measured, false), subTiles, perRow, measured, NamesTile), "no bytes step between neighbours");
             Equal(null, TileGridSearch.Find(Grid(measured, true), subTiles + 1, perRow, measured, NamesTile), "bytes that are not whole records");
             Equal((0x38, 0x40), TileGridSearch.FirstMoved(measured, moved), "the record size is reported first");
+        }
+
+        private static void BaseNamesAreCheckedAgainstTooltipTitles()
+        {
+            static Func<int, int, string> NameAt(int row, int name) => (r, n) => (r, n) == (row, name) ? "Broquel de cuero" : (r, n) == (0x10, 0x40) ? "de" : string.Empty;
+            string[] titles = { "Broquel de cuero", "Broquel de cuero del zorro", "Broquel de cuero", "Broquel de cuero" };
+
+            var kept = new BaseNameField(0x10, 0x30);
+            Equal(false, kept.Observe(titles[0], NameAt(0x10, 0x30)), "one title is not enough");
+            Equal(true, kept.Observe(titles[1], NameAt(0x10, 0x30)), "a magic title holds the base name");
+            Equal(false, kept.Moved, "where measured");
+
+            var moved = new BaseNameField(0x10, 0x30);
+            var settled = titles.Count(title => moved.Observe(title, NameAt(0x18, 0x38)));
+            Equal(1, settled, "settled once");
+            Equal((0x18, 0x38), moved.Offsets, "found after two misses and a second title");
+            Equal(true, moved.Moved, "moved");
+
+            var lost = new BaseNameField(0x10, 0x30);
+            for (var i = 0; i < BaseNameField.MissesToGiveUp; i++)
+            {
+                lost.Observe("Broquel de cuero", NameAt(0x100, 0x100)); // "de" at +0x40 is too short to count
+            }
+
+            Equal(true, lost.Lost, "no place holds the name");
         }
 
         private static void KnownPlacesOutliveTheSession()

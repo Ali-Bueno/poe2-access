@@ -40,6 +40,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Where the grid and item element fields are after a game update; as measured when null.</summary>
         public ControlFields? Controls { get; set; }
 
+        /// <summary>Where a base name that moved or was lost after a game update is reported (docs/compatibility.md).</summary>
+        public CompatibilityReport? Report { get; set; }
+
+        /// <summary>Where item base names are read, checked against tooltip titles.</summary>
+        public BaseNameField BaseNames { get; } = new(NameRowOffset, DisplayNameOffset);
+
         private int Shift => this.Controls?.Current(ControlGroup.Inventory) ?? 0;
 
         public InventoryReader(HostMemoryReader reader, UiElementReader elements)
@@ -151,8 +157,18 @@ namespace Poe2Accessibility.Services
             }
 
             var item = (Item)Activator.CreateInstance(typeof(Item), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { entity }, null)!;
-            var name = item.TryGetComponent<Base>(out var baseComponent) ? this.BaseName(baseComponent) : string.Empty;
             var rarity = item.TryGetComponent<Mods>(out var mods) ? mods.Rarity : Rarity.Normal;
+            var name = string.Empty;
+            if (item.TryGetComponent<Base>(out var baseComponent))
+            {
+                if (rarity is Rarity.Normal or Rarity.Magic)
+                {
+                    this.CheckBaseName(baseComponent, tooltipTitle); // their titles hold the base name
+                }
+
+                name = this.BaseName(baseComponent);
+            }
+
             if (name.Length == 0 || (rarity != Rarity.Normal && tooltipTitle.Length > 0))
             {
                 name = tooltipTitle;
@@ -176,18 +192,60 @@ namespace Poe2Accessibility.Services
         private static readonly int DisplayNameOffset =
             typeof(BaseOffsets).GetField(nameof(BaseOffsets.DisplayNameOffset))?.GetRawConstantValue() is int offset ? offset : BaseOffsets.DisplayNameOffset;
 
-        /// <summary>The item's base display name; GameHelper's is empty for names under 8 characters.</summary>
+        /// <summary>Research (dev command "layout"): how item base names were judged.</summary>
+        public string SelfTest() =>
+            "item base names " + (!this.BaseNames.Judged ? "not judged yet (needs a normal or magic item's tooltip)"
+                : this.BaseNames.Lost ? "lost (titles hold no name near where measured)"
+                : this.BaseNames.Moved ? $"moved (row +0x{this.BaseNames.Offsets.Row:X}, name +0x{this.BaseNames.Offsets.Name:X})"
+                : "ok");
+
+        /// <summary>
+        ///     The item's base display name; GameHelper's is empty for names under 8 characters. Once tooltips show the name
+        ///     elsewhere it is read there; once they show it nowhere near, none is read (callers use the title).
+        /// </summary>
         private string BaseName(Base component)
         {
-            if (component.BaseItemName.Length > 0)
+            if (this.BaseNames.Lost)
+            {
+                return string.Empty;
+            }
+
+            if (!this.BaseNames.Moved && component.BaseItemName.Length > 0)
             {
                 return component.BaseItemName;
             }
 
-            // GameHelper's own offsets, read as a std::wstring: short names are stored inline (SSO), not behind a pointer.
-            return this.reader.TryRead<IntPtr>(component.Address + NameRowOffset, out var row) && row != IntPtr.Zero
-                ? this.elements.ReadWStringStructAt(row + DisplayNameOffset) ?? string.Empty
+            var (row, name) = this.BaseNames.Offsets;
+            return this.NameAt(component.Address, row, name);
+        }
+
+        /// <summary>GameHelper's layout read as a std::wstring: short names are stored inline (SSO), not behind a pointer.</summary>
+        private string NameAt(IntPtr component, int rowOffset, int nameOffset) =>
+            this.reader.TryRead<IntPtr>(component + rowOffset, out var row) && row != IntPtr.Zero && this.reader.IsValidAddress(row)
+                ? this.elements.ReadWStringStructAt(row + nameOffset) ?? string.Empty
                 : string.Empty;
+
+        private void CheckBaseName(Base component, string title)
+        {
+            if (!this.BaseNames.Observe(title, (row, name) => this.NameAt(component.Address, row, name)))
+            {
+                return;
+            }
+
+            var (row, name) = this.BaseNames.Offsets;
+            if (this.BaseNames.Lost)
+            {
+                this.Report?.Missing("item base names");
+            }
+            else if (!this.BaseNames.Moved)
+            {
+                this.Report?.Found("item base names");
+            }
+            else
+            {
+                (var from, var to) = row != NameRowOffset ? (NameRowOffset, row) : (DisplayNameOffset, name);
+                this.Report?.Moved("item base names", from, to);
+            }
         }
 
         /// <summary>

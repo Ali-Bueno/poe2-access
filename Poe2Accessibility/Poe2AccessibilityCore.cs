@@ -70,6 +70,7 @@ namespace Poe2Accessibility
         private ObjectSounds? objectSounds;
         private StatusWatch? statuses;
         private InventoryWatch? pickups;
+        private InventoryReader? inventoryReader;
         private GoldWatch? gold;
         private BarrierWatch? barriers;
         private DiscoveryNarrator? discoveries;
@@ -182,7 +183,8 @@ namespace Poe2Accessibility
                 this.locator = new UiManagerLocator(memory, elements, this.log, this.layoutProbe, new InGameFields(memory, elements, this.compatibility));
                 this.flagBits = new FlagBits(elements, this.compatibility);
                 this.locator.Flags = this.flagBits;
-                var inventory = new InventoryReader(memory, elements) { Controls = this.controls };
+                var inventory = new InventoryReader(memory, elements) { Controls = this.controls, Report = this.compatibility };
+                this.inventoryReader = inventory;
                 this.semantics = new UiSemantics(memory, elements, catalog, new ComboBoxReader(elements, this.log), inventory);
                 this.semantics.TreeFields.Report = this.compatibility;
                 this.semantics.TreeFields.Log = message => this.log?.Info(message);
@@ -327,6 +329,7 @@ namespace Poe2Accessibility
             this.radar = null;
             this.nearby = null;
             this.places = null;
+            this.inventoryReader = null;
             this.wallBump = null;
             this.wallTones = null;
             this.audio?.Dispose();
