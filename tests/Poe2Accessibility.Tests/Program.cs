@@ -70,6 +70,9 @@ namespace Poe2Accessibility.Tests
             Run(nameof(ExperienceProgressIsWithinTheLevel), ExperienceProgressIsWithinTheLevel);
             Run(nameof(LootFilterKeepsWhatThePlayerChose), LootFilterKeepsWhatThePlayerChose);
             Run(nameof(InPlayFlagIsFoundFromStoryVariants), InPlayFlagIsFoundFromStoryVariants);
+            Run(nameof(MovedFieldsAreFoundByWatchingThemChange), MovedFieldsAreFoundByWatchingThemChange);
+            Run(nameof(FlagBitsAreFoundOnTheirCarriers), FlagBitsAreFoundOnTheirCarriers);
+            Run(nameof(PadButtonsFollowTheLeftTrigger), PadButtonsFollowTheLeftTrigger);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -574,6 +577,71 @@ namespace Poe2Accessibility.Tests
             Equal(false, InPlayFlag.Fits(inPlay.Take(2).ToList(), renly, 0x10), "too little in play");
             Equal(0x10, OffsetSearch.First(0x14, 8, 1, at => InPlayFlag.Fits(inPlay, renly, at)), "found again from a moved start");
             Equal(1.0, InPlayFlag.Share(inPlay, 0x10), "share in play");
+        }
+
+        private static void MovedFieldsAreFoundByWatchingThemChange()
+        {
+            static Dictionary<int, long> Read(long atZero, long atEight, long counter) => new() { [0] = atZero, [8] = atEight, [16] = counter };
+            static bool Index(long value) => value is >= 0 and < 4;
+            var control = (IntPtr)0x1000;
+
+            var measured = new ChangingField();
+            measured.Observe(control, 0, Read(0, 3, 100), Index);
+            Equal(true, measured.Observe(control, 0, Read(1, 3, 101), Index), "the expected field changing settles it");
+            Equal(0, measured.Proved, "where measured");
+
+            var moved = new ChangingField();
+            moved.Observe(control, 0, Read(0, 0, 100), Index);
+            Equal(false, moved.Observe(control, 0, Read(0, 1, 101), Index), "one change is not enough");
+            Equal(true, moved.Observe(control, 0, Read(0, 2, 102), Index), "a second change elsewhere moves it");
+            Equal(8, moved.Proved, "the field that moved with the selection (a counter out of range never counts)");
+
+            var other = new ChangingField();
+            other.Observe(control, 0, Read(0, 0, 100), Index);
+            other.Observe(control, 0, Read(0, 1, 100), Index);
+            Equal(false, other.Observe((IntPtr)0x2000, 0, Read(0, 2, 100), Index), "a new control starts over");
+            Equal(null, other.Proved, "nothing proved yet");
+        }
+
+        private static void FlagBitsAreFoundOnTheirCarriers()
+        {
+            // Bit 11 (visible) is on everything; bit 27 marks the controls; one label wrongly carries it.
+            const uint visible = 1u << 11, control = 1u << 27;
+            var controls = Enumerable.Repeat(visible | control, 20).ToList();
+            var labels = Enumerable.Repeat(visible, 19).Append(visible | control).ToList();
+            Equal(27, BitSearch.FindBit(controls, labels, 27, 0.9, 0.1, 3), "where measured, a stray label tolerated");
+            Equal(27, BitSearch.FindBit(controls, labels, 22, 0.9, 0.1, 3), "found from a moved start; the visible bit never fits");
+            Equal(null, BitSearch.FindBit(controls.Take(2).ToList(), labels, 27, 0.9, 0.1, 3), "too few to judge");
+            Equal(0.05, BitSearch.Share(labels, 27), "share");
+        }
+
+        private static void PadButtonsFollowTheLeftTrigger()
+        {
+            static PadButtonCheck Feed(int triggerBit, uint alsoHeld)
+            {
+                var check = new PadButtonCheck();
+                for (var frame = 0; frame < 25; frame++)
+                {
+                    check.Observe((1u << triggerBit) | alsoHeld, 1f, 0f, 14);
+                    check.Observe(alsoHeld, 0f, 0f, 14);
+                    check.Observe(1u << 3, 0.4f, 0f, 14); // half pressed: not counted
+                }
+
+                return check;
+            }
+
+            Equal(0, Feed(14, 0).Shift, "where measured");
+            Equal(2, Feed(16, 0).Shift, "every button moved by two");
+            Equal(0, Feed(14, 1u << 10).Shift, "A held throughout is set both ways: not the trigger");
+            var none = new PadButtonCheck();
+            for (var frame = 0; frame < 25; frame++)
+            {
+                none.Observe(0, 1f, 0f, 14);
+                none.Observe(0, 0f, 0f, 14);
+            }
+
+            Equal(true, none.Judged, "judged");
+            Equal(null, none.Shift, "no bit follows the trigger");
         }
 
         private static void KnownPlacesOutliveTheSession()

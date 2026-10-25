@@ -385,6 +385,10 @@ namespace Poe2Accessibility
             "combo boxes" => T("the drop-down lists", "las listas desplegables"),
             "image textures" => T("the button and currency icons", "los iconos de botones y monedas"),
             "tile grid" => T("the places on the map", "los lugares del mapa"),
+            "pad buttons" => T("the controller's buttons", "los botones del mando"),
+            "passive tree links" or "passive tree allocations" => T("the passive tree's links and allocated nodes", "las conexiones y los nodos asignados del árbol de pasivas"),
+            "quest marker" => T("which characters have a quest", "qué personajes tienen misión"),
+            "interactive flag" or "text input flag" or "navigable flag" or "enabled flag" => T("the kinds of interface controls", "los tipos de controles de la interfaz"),
             "game states" => T("the game's state (GameHelper needs an update)", "el estado del juego (GameHelper necesita una actualización)"),
             _ => part,
         };

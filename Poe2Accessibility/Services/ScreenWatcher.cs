@@ -243,7 +243,7 @@ namespace Poe2Accessibility.Services
                 {
                     hasControls = true;
                     control = self;
-                    enabled = info.HasFlagBit(GameLayout.Element.EnabledFlagBit);
+                    enabled = !FlagBits.EnabledTrusted || info.HasFlagBit(GameLayout.Element.EnabledFlagBit);
                 }
 
                 var position = info.Raw.RelativePosition;

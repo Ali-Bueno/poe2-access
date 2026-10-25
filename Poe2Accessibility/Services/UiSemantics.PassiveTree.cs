@@ -22,6 +22,9 @@ namespace Poe2Accessibility.Services
 
         private const int MaxPassiveElements = 20000;
 
+        /// <summary>The tree's canvas holds dozens of node groups; an element with fewer children is never searched as one.</summary>
+        private const int MinCanvasGroups = 10;
+
         /// <summary>The longest "Unallocated" line a tooltip ends with; the state word replaces it.</summary>
         private const int MaxStateLineChars = 24;
 
@@ -49,6 +52,7 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
+            this.TreeFields.JudgeAllocated(graph.State, graph.Links.Keys);
             var allocated = this.AllocatedIds(graph.State);
             var node = this.ReadPassiveRow(record, row);
             var state = this.StateOf(graph, node, allocated);
@@ -157,32 +161,38 @@ namespace Poe2Accessibility.Services
         /// <summary>The graph ids in the tree's allocated list (re-read on every describe: allocating changes it).</summary>
         private HashSet<int> AllocatedIds(IntPtr state)
         {
-            var ids = new HashSet<int>();
-            if (this.reader.TryRead<GameOffsets.Natives.StdVector>(state + GameLayout.PassiveTree.AllocatedOffset, out var vector))
-            {
-                var count = (int)Math.Clamp((vector.Last.ToInt64() - vector.First.ToInt64()) / GameLayout.PassiveTree.AllocatedEntrySize, 0, MaxPassiveEdges);
-                foreach (var entry in this.reader.ReadArray<uint>(vector.First, count))
-                {
-                    ids.Add((int)(entry & 0xFFFF));
-                }
-            }
-
-            return ids;
+            return this.TreeFields.AllocatedAt(state, GameLayout.PassiveTree.AllocatedOffset)?.ToHashSet() ?? new HashSet<int>();
         }
 
-        /// <summary>The canvas's tree state, judged where it holds the passive skill graph; zero on any other element.</summary>
+        /// <summary>
+        ///     The canvas's tree state, judged where it holds the passive skill graph; zero on any other element. When no
+        ///     canvas field leads to it, the state's own graph file field is looked for (one change at a time), on an element
+        ///     shaped like the canvas only.
+        /// </summary>
         private IntPtr TreeState(IntPtr canvas)
         {
             var shift = this.elements.Controls?.Shift(ControlGroup.PassiveCanvas, canvas, at => this.TreeStateAt(canvas, at) != IntPtr.Zero) ?? 0;
-            return this.TreeStateAt(canvas, shift);
+            if (this.TreeStateAt(canvas, shift) is var state && state != IntPtr.Zero)
+            {
+                return state;
+            }
+
+            return this.elements.TryReadElement(canvas, out var info) && this.elements.ReadChildren(info).Length >= MinCanvasGroups &&
+                   this.reader.TryRead<IntPtr>(canvas + GameLayout.PassiveTree.CanvasStateOffset + shift, out var candidate) && candidate != IntPtr.Zero &&
+                   this.TreeFields.GraphFile(candidate, true) != IntPtr.Zero
+                ? candidate
+                : IntPtr.Zero;
         }
 
         private IntPtr TreeStateAt(IntPtr canvas, int shift) =>
             this.reader.TryRead<IntPtr>(canvas + GameLayout.PassiveTree.CanvasStateOffset + shift, out var state) && state != IntPtr.Zero &&
-            this.reader.TryRead<IntPtr>(state + GameLayout.PassiveTree.StateGraphFileOffset, out var graphFile) && graphFile != IntPtr.Zero &&
-            this.elements.ReadWStringStructAt(graphFile + GameLayout.SkillSlot.FileNameOffset) == GameLayout.PassiveTree.GraphFileName
+            this.TreeFields.GraphFile(state, false) != IntPtr.Zero
                 ? state
                 : IntPtr.Zero;
+
+        /// <summary>A node record's graph id (from its PassiveSkills row); null when it does not lead to one.</summary>
+        private int? GraphIdOf(IntPtr record) =>
+            this.PassiveRow(record) is { } row && this.reader.TryRead<ushort>(row + GameLayout.PassiveTree.RowGraphIdOffset, out var id) ? id : null;
 
         /// <summary>A node element's graph record, judged where it leads to a PassiveSkills row.</summary>
         private IntPtr? NodeRecord(IntPtr node)
@@ -227,9 +237,8 @@ namespace Poe2Accessibility.Services
             }
 
             if (state == IntPtr.Zero || !this.elements.TryReadElement(canvasAddress, out var canvas) ||
-                !this.reader.TryRead<IntPtr>(state + GameLayout.PassiveTree.StateGraphFileOffset, out var graphFile) ||
-                !this.reader.TryRead<IntPtr>(graphFile + GameLayout.PassiveTree.GraphContentOffset, out var content) ||
-                !this.reader.TryRead<GameOffsets.Natives.StdVector>(content + GameLayout.PassiveTree.EdgeListOffset, out var edgeVector) ||
+                this.TreeFields.GraphFile(state, false) is var graphFile && graphFile == IntPtr.Zero ||
+                this.TreeFields.Edges(graphFile) is not { } edgeVector ||
                 !this.reader.TryRead<IntPtr>(hoveredNode.Address, out var nodeClass))
             {
                 return null;

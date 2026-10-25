@@ -35,20 +35,20 @@ namespace Poe2Accessibility
             public static int TextColorOffset { get; internal set; } = 0x6D0;
 
             /// <summary>Flags bit set on every interactive widget (buttons, combo boxes, text fields) and nothing else.</summary>
-            public const int InteractiveFlagBit = 0x1B;
+            public static int InteractiveFlagBit { get; internal set; } = 0x1B;
 
             /// <summary>
             ///     In game, set on what the controller cursor can land on (in-game controls lack <see cref="InteractiveFlagBit"/>):
             ///     equipment slots, Skills rows, the spirit panel and the slots of the skill bind screen, and on nothing
             ///     else of those panels (bind screen dump, 2026-10-24).
             /// </summary>
-            public const int NavigableFlagBit = 0x0E;
+            public static int NavigableFlagBit { get; internal set; } = 0x0E;
 
             /// <summary>Flags bit set on elements that accept typed text (combo boxes and text fields).</summary>
-            public const int TextInputFlagBit = 0x10;
+            public static int TextInputFlagBit { get; internal set; } = 0x10;
 
             /// <summary>Panel title ("Inventory", "Skills", "Passives", "Stash"…); the only strings found there in game dumps.</summary>
-            public static int PanelTitleOffset { get; internal set; } = 0x2E8;
+            public const int PanelTitleOffset = 0x2E8;
 
             /// <summary>
             ///     std::vector of 0x18-byte entries whose first qword is a tooltip root element: its parent is the owner
@@ -62,10 +62,10 @@ namespace Poe2Accessibility
             public static int ManagerOffset { get; internal set; } = 0x90;
 
             /// <summary>Text-field placeholder ("Type your character name here..."), the only label some fields have (2026-10-23).</summary>
-            public static int PlaceholderOffset { get; internal set; } = 0x798;
+            public const int PlaceholderOffset = 0x798;
 
             /// <summary>Set while a control can be used: the terms window's Continue gained it when I Agree was ticked (2026-10-23).</summary>
-            public const int EnabledFlagBit = 0x0D;
+            public static int EnabledFlagBit { get; internal set; } = 0x0D;
 
             /// <summary>Bytes of an element worth scanning for subclass strings (click sounds); labels are 0x700 bytes.</summary>
             public const int ProbeBytes = 0x800;
@@ -75,7 +75,7 @@ namespace Poe2Accessibility
             ///     the same options-menu check box taken before and after toggling it (2026-09-15 03:53); the two
             ///     bytes after it stayed 1 (other bool properties).
             /// </summary>
-            public static int CheckBoxStateOffset { get; internal set; } = 0x60A;
+            public const int CheckBoxStateOffset = 0x60A;
         }
 
         /// <summary>
@@ -177,22 +177,30 @@ namespace Poe2Accessibility
         /// <summary>Button bits of the pad state (each button held while sampling the field, 2026-10-23).</summary>
         public static class PadButtons
         {
-            public const uint DPadUp = 0x1;
-            public const uint DPadDown = 0x2;
-            public const uint DPadLeft = 0x4;
-            public const uint DPadRight = 0x8;
-            public const uint Start = 0x10;
-            public const uint Back = 0x20;
-            public const uint LeftStick = 0x40;
-            public const uint RightStick = 0x80;
-            public const uint LeftShoulder = 0x100;
-            public const uint RightShoulder = 0x200;
-            public const uint A = 0x400;
-            public const uint B = 0x800;
-            public const uint X = 0x1000;
-            public const uint Y = 0x2000;
-            public const uint LeftTrigger = 0x4000;
-            public const uint RightTrigger = 0x8000;
+            /// <summary>The left trigger's bit as measured; the check (PadButtonCheck) judges the order on it.</summary>
+            public const int MeasuredLeftTriggerBit = 14;
+
+            /// <summary>How far every bit moved from where it was measured (a renumbering of the buttons moves them all).</summary>
+            public static int Shift { get; internal set; }
+
+            public static uint DPadUp => Bit(0);
+            public static uint DPadDown => Bit(1);
+            public static uint DPadLeft => Bit(2);
+            public static uint DPadRight => Bit(3);
+            public static uint Start => Bit(4);
+            public static uint Back => Bit(5);
+            public static uint LeftStick => Bit(6);
+            public static uint RightStick => Bit(7);
+            public static uint LeftShoulder => Bit(8);
+            public static uint RightShoulder => Bit(9);
+            public static uint A => Bit(10);
+            public static uint B => Bit(11);
+            public static uint X => Bit(12);
+            public static uint Y => Bit(13);
+            public static uint LeftTrigger => Bit(MeasuredLeftTriggerBit);
+            public static uint RightTrigger => Bit(15);
+
+            private static uint Bit(int measured) => measured + Shift is >= 0 and < 32 ? 1u << (measured + Shift) : 0;
         }
 
         /// <summary>
@@ -215,6 +223,9 @@ namespace Poe2Accessibility
             ///     text with the coin-pile image as its child — keeps the value while the panel is hidden (2026-10-23).
             /// </summary>
             public const int InventoryPanelOffset = 0x378;
+
+            /// <summary>The inventory panel's container of panels (inventory, character, skills, quests…), each with its title.</summary>
+            public const string PanelsParentName = "panels_parent";
 
             /// <summary>The HUD ("HUD", child 12 of G): quest tracker, flask charges, ground-item tooltips (2026-10-23).</summary>
             public const int HudLayerOffset = 0x558;
@@ -273,19 +284,19 @@ namespace Poe2Accessibility
             public const int CanvasStateOffset = 0x3D8;
 
             /// <summary>T +0x160 → the graph file (name at +8); file +0x28 → the graph content C.</summary>
-            public const int StateGraphFileOffset = 0x160;
+            public static int StateGraphFileOffset { get; internal set; } = 0x160;
 
             public const string GraphFileName = "Metadata/PassiveSkillGraph.psg";
 
-            public const int GraphContentOffset = 0x28;
+            public static int GraphContentOffset { get; internal set; } = 0x28;
 
             /// <summary>C +0x58: std::vector of edge pointers; edge +0 from record, +8 to record (out-edges only per record).</summary>
-            public const int EdgeListOffset = 0x58;
+            public static int EdgeListOffset { get; internal set; } = 0x58;
 
             public const int EdgeToOffset = 0x8;
 
             /// <summary>T +0x1A8: std::vector of 4-byte entries whose low u16 is an allocated node's graph id.</summary>
-            public const int AllocatedOffset = 0x1A8;
+            public static int AllocatedOffset { get; internal set; } = 0x1A8;
 
             public const int AllocatedEntrySize = 4;
 
@@ -376,7 +387,7 @@ namespace Poe2Accessibility
         /// </summary>
         public static class SelectableList
         {
-            public static int SelectedIndexOffset { get; internal set; } = 0x388;
+            public const int SelectedIndexOffset = 0x388;
         }
 
         /// <summary>
@@ -424,8 +435,11 @@ namespace Poe2Accessibility
         public static class ClassSelector
         {
             public const string Name = "ClassVariationSelector";
-            public static int ClassIdOffset { get; internal set; } = 0x390;
-            public static int IndexOffset { get; internal set; } = 0x394;
+
+            /// <summary>The class id (its Characters.dat row) at each place of the selector's first row, as measured (see above).</summary>
+            public static readonly int[] FirstRowClassIds = { 2, 6, 11, 1, 9, 10 };
+            public const int ClassIdOffset = 0x390;
+            public const int IndexOffset = 0x394;
         }
 
         /// <summary>Inventory item element (grid child or slot content).</summary>

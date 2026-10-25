@@ -30,6 +30,21 @@ namespace Poe2Accessibility.Services
 
         /// <summary>GameLayout.PassiveTree node record: a node element's record leads to a PassiveSkills row.</summary>
         PassiveNode,
+
+        /// <summary>GameLayout.ClassSelector: the highlighted class's index and id agree with the selector's first row.</summary>
+        ClassSelector,
+
+        /// <summary>GameLayout.Element placeholder: a text field's hint reads as words.</summary>
+        Placeholder,
+
+        /// <summary>GameLayout.Element panel title: an ancestor of the focus names its panel (weak: confirmed by a second control).</summary>
+        PanelTitle,
+
+        /// <summary>GameLayout.Element check box state: found by watching it change as the box is ticked (<see cref="ChangingField"/>).</summary>
+        CheckBox,
+
+        /// <summary>GameLayout.SelectableList index: found by watching it change as the selection moves (<see cref="ChangingField"/>).</summary>
+        SelectableList,
     }
 
     /// <summary>
@@ -124,11 +139,46 @@ namespace Poe2Accessibility.Services
             return expected;
         }
 
+        /// <summary>
+        ///     The shift of a group with nothing static to check it by, found by watching it change on one control as the
+        ///     player moves the value (<see cref="ChangingField"/>); the expected one until then. <paramref name="read"/>
+        ///     reads bytes of the control (offset, length); a value is <paramref name="size"/> bytes (1 or 4).
+        /// </summary>
+        public int Changing(ControlGroup group, IntPtr control, int measured, int size, Func<int, int, byte[]> read, Func<long, bool> valid)
+        {
+            var state = this.State(group);
+            if (state.Known is { } known)
+            {
+                return known;
+            }
+
+            var expected = this.textShift();
+            var first = expected - Radius;
+            var block = read(measured + first, (2 * Radius) + size);
+            var values = new Dictionary<int, long>();
+            for (var shift = first; shift <= expected + Radius; shift += Step)
+            {
+                var at = shift - first;
+                if (at + size <= block.Length && measured + shift >= 0)
+                {
+                    values[shift] = size == 1 ? block[at] : BitConverter.ToInt32(block, at);
+                }
+            }
+
+            state.Watch ??= new ChangingField();
+            if (state.Watch.Observe(control, expected, values, valid) && state.Watch.Proved is { } proved)
+            {
+                this.Adopt(group, state, proved);
+            }
+
+            return state.Known ?? expected;
+        }
+
         /// <summary>Whether a live control has proved the group's shift yet.</summary>
         public bool IsKnown(ControlGroup group) => this.State(group).Known != null;
 
         /// <summary>The group's shift as known so far, for a field read without a control to judge it on.</summary>
-        public int Current(ControlGroup group) => this.State(group).Known ?? this.State(group).Candidate ?? this.textShift();
+        public int Current(ControlGroup group) => this.State(group).Known ?? (IsWeak(group) ? null : this.State(group).Candidate) ?? this.textShift();
 
         /// <summary>A new game process (perhaps a patched one): every group is judged again.</summary>
         public void Reset() => this.states.Clear();
@@ -142,7 +192,11 @@ namespace Poe2Accessibility.Services
             var lines = new List<string>();
             foreach (var (group, state) in this.states)
             {
-                if (state.Known is { } known && state.Fits is { } fits)
+                if (state.Known != null && state.Watch != null)
+                {
+                    lines.Add($"{Part(group)} ok (seen changing)");
+                }
+                else if (state.Known is { } known && state.Fits is { } fits)
                 {
                     var others = OffsetSearch.Outward(known, Radius, Step, known - Radius).Where(at => at != known && fits(at)).Order().ToList();
                     lines.Add(others.Count == 0
@@ -158,7 +212,7 @@ namespace Poe2Accessibility.Services
         ///     Groups whose check another field could pass by chance (a hover byte on a tab bar): a shift found by search is
         ///     used only once a second control agrees; the others are used at once, as their check names the field.
         /// </summary>
-        private static bool IsWeak(ControlGroup group) => group is ControlGroup.Tabs;
+        private static bool IsWeak(ControlGroup group) => group is ControlGroup.Tabs or ControlGroup.PanelTitle;
 
         private static string Part(ControlGroup group) => group switch
         {
@@ -169,6 +223,11 @@ namespace Poe2Accessibility.Services
             ControlGroup.SkillDetails => "skill slot skills",
             ControlGroup.PassiveCanvas => "passive tree state",
             ControlGroup.PassiveNode => "passive nodes",
+            ControlGroup.ClassSelector => "class selector",
+            ControlGroup.Placeholder => "text field hints",
+            ControlGroup.PanelTitle => "panel titles",
+            ControlGroup.CheckBox => "check boxes",
+            ControlGroup.SelectableList => "selectable lists",
             _ => "inventory grid",
         };
 
@@ -182,6 +241,11 @@ namespace Poe2Accessibility.Services
             ControlGroup.SkillDetails => GameLayout.SkillSlot.SkillDetailsOffset,
             ControlGroup.PassiveCanvas => GameLayout.PassiveTree.CanvasStateOffset,
             ControlGroup.PassiveNode => GameLayout.PassiveTree.NodeRecordOffset,
+            ControlGroup.ClassSelector => GameLayout.ClassSelector.IndexOffset,
+            ControlGroup.Placeholder => GameLayout.Element.PlaceholderOffset,
+            ControlGroup.PanelTitle => GameLayout.Element.PanelTitleOffset,
+            ControlGroup.CheckBox => GameLayout.Element.CheckBoxStateOffset,
+            ControlGroup.SelectableList => GameLayout.SelectableList.SelectedIndexOffset,
             _ => GameLayout.InventoryGrid.CellSizeOffset,
         };
 
@@ -222,6 +286,8 @@ namespace Poe2Accessibility.Services
             public int Misses { get; set; }
 
             public Func<int, bool>? Fits { get; set; }
+
+            public ChangingField? Watch { get; set; }
         }
     }
 }

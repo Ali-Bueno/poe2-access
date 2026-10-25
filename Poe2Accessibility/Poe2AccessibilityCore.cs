@@ -78,6 +78,8 @@ namespace Poe2Accessibility
         private ExperienceTable? experience;
         private FlaskWatch? flasks;
         private EntityFields? entityFields;
+        private FlagBits? flagBits;
+        private readonly PadButtonCheck padCheck = new();
 
         /// <summary>Game sounds are cut to this length: repeated proximity cues must stay short.</summary>
         private const float GameSoundSeconds = 0.9f;
@@ -178,8 +180,12 @@ namespace Poe2Accessibility
                 this.controls = new ControlFields(this.compatibility, () => probe.TextShift);
                 elements.Controls = this.controls;
                 this.locator = new UiManagerLocator(memory, elements, this.log, this.layoutProbe, new InGameFields(memory, elements, this.compatibility));
+                this.flagBits = new FlagBits(elements, this.compatibility);
+                this.locator.Flags = this.flagBits;
                 var inventory = new InventoryReader(memory, elements) { Controls = this.controls };
                 this.semantics = new UiSemantics(memory, elements, catalog, new ComboBoxReader(elements, this.log), inventory);
+                this.semantics.TreeFields.Report = this.compatibility;
+                this.semantics.TreeFields.Log = message => this.log?.Info(message);
                 this.semantics.Trace = message => this.log.Debug(message);
                 this.semantics.Fields = this.locator.Fields;
                 this.focus = new FocusTracker(memory, elements, this.locator, this.semantics, this.log);
@@ -187,6 +193,13 @@ namespace Poe2Accessibility
                 this.narrator.FocusLayer = () => this.focus?.CurrentLayer ?? IntPtr.Zero;
                 this.narrator.SinceConfirm = () => Environment.TickCount64 - this.lastConfirmAt;
                 this.focus.FocusChanged += this.narrator.OnFocusChanged;
+                this.focus.FocusChanged += node =>
+                {
+                    if (this.gameState?.CurrentState == GameStateTypes.InGameState)
+                    {
+                        this.flagBits?.SampleFocus(node.Address, node.Role);
+                    }
+                };
                 this.focus.ValueChanged += this.narrator.OnValueChanged;
                 this.focus.TooltipChanged += this.narrator.OnTooltipChanged;
                 this.pad = new GamepadReader(memory);
@@ -464,6 +477,7 @@ namespace Poe2Accessibility
             }
 
             this.padState = state;
+            this.CheckPadButtons(state);
             // A opens screens and popups, LB/RB switch tabs: a focus that follows them waits for the new page.
             var confirm = state.IsDown(GameLayout.PadButtons.A) || state.IsDown(GameLayout.PadButtons.LeftShoulder) ||
                           state.IsDown(GameLayout.PadButtons.RightShoulder);

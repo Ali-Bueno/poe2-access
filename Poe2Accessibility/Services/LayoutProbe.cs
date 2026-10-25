@@ -44,20 +44,6 @@ namespace Poe2Accessibility.Services
             "root_control", "HUD", "map_overlay", "world_overlay", "world_ui_layer_parent", "message_label", "no_controller_overlay", "death_screen",
         };
 
-        /// <summary>
-        ///     Subclass fields with nothing to check them by: they sit after the base control, so when it grows they move as
-        ///     far as the label text (the groups that can be checked are in <see cref="ControlFields"/>).
-        /// </summary>
-        private static readonly (int Measured, Action<int> Set)[] TextFollowers =
-        {
-            (GameLayout.Element.CheckBoxStateOffset, at => GameLayout.Element.CheckBoxStateOffset = at),
-            (GameLayout.Element.PanelTitleOffset, at => GameLayout.Element.PanelTitleOffset = at),
-            (GameLayout.Element.PlaceholderOffset, at => GameLayout.Element.PlaceholderOffset = at),
-            (GameLayout.SelectableList.SelectedIndexOffset, at => GameLayout.SelectableList.SelectedIndexOffset = at),
-            (GameLayout.ClassSelector.ClassIdOffset, at => GameLayout.ClassSelector.ClassIdOffset = at),
-            (GameLayout.ClassSelector.IndexOffset, at => GameLayout.ClassSelector.IndexOffset = at),
-        };
-
         private readonly HostMemoryReader reader;
         private readonly UiElementReader elements;
         private readonly CompatibilityReport report;
@@ -156,11 +142,6 @@ namespace Poe2Accessibility.Services
             GameLayout.Element.TextOffset = this.measuredText + found;
             GameLayout.Element.TextCopyOffset = this.measuredCopy + found;
             GameLayout.Element.TextColorOffset = this.measuredColor + found;
-            foreach (var (measured, set) in TextFollowers)
-            {
-                set(measured + found);
-            }
-
             this.textKnown = true;
             this.Record("element texts", this.measuredText, this.measuredText + found);
         }

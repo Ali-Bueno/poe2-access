@@ -207,9 +207,10 @@ namespace Poe2Accessibility.Services
                 return false;
             }
 
+            var shift = this.elements.Controls?.Current(ControlGroup.PanelTitle) ?? 0;
             foreach (var ancestor in this.elements.ReadAncestors(info, PanelTitleHops))
             {
-                if (this.elements.ReadWStringStructAt(ancestor.Address + GameLayout.Element.PanelTitleOffset)?.Trim() == title)
+                if (this.elements.ReadWStringStructAt(ancestor.Address + GameLayout.Element.PanelTitleOffset + shift)?.Trim() == title)
                 {
                     return true;
                 }
@@ -218,20 +219,30 @@ namespace Poe2Accessibility.Services
             return false;
         }
 
-        /// <summary>Title of the nearest ancestor panel (GameLayout.Element.PanelTitleOffset).</summary>
+        /// <summary>
+        ///     Title of the nearest ancestor panel (GameLayout.Element.PanelTitleOffset), judged only on a focus inside the
+        ///     inventory's panels, each of which has one: the field holds where an ancestor names the panel (a shift found by
+        ///     search waits for a second focus to agree).
+        /// </summary>
         private string PanelTitle(in UiElementReader.ElementInfo info)
         {
-            foreach (var ancestor in this.elements.ReadAncestors(info, PanelTitleHops))
+            var chain = this.elements.ReadAncestors(info, PanelTitleHops);
+            var ancestors = chain.Select(ancestor => ancestor.Address).ToList();
+            if (ancestors.Count == 0)
             {
-                var title = this.elements.ReadWStringStructAt(ancestor.Address + GameLayout.Element.PanelTitleOffset)?.Trim();
-                if (!string.IsNullOrEmpty(title) && title.Length <= MaxPanelTitleLength && !title.Contains('/'))
-                {
-                    return title;
-                }
+                return string.Empty;
             }
 
-            return string.Empty;
+            var shift = chain.Any(ancestor => ancestor.Name == GameLayout.InGameUi.PanelsParentName)
+                ? this.elements.Controls?.Shift(ControlGroup.PanelTitle, info.Address, at => ancestors.Any(ancestor => this.TitleAt(ancestor, at).Length > 0)) ?? 0
+                : this.elements.Controls?.Current(ControlGroup.PanelTitle) ?? 0;
+            return ancestors.Select(ancestor => this.TitleAt(ancestor, shift)).FirstOrDefault(title => title.Length > 0) ?? string.Empty;
         }
+
+        /// <summary>A panel title read with the field moved by a shift: a short name with letters, no path.</summary>
+        private string TitleAt(IntPtr element, int shift) =>
+            this.elements.ReadWStringStructAt(element + GameLayout.Element.PanelTitleOffset + shift)?.Trim() is { Length: > 0 and <= MaxPanelTitleLength } title &&
+            !title.Contains('/') && title.Any(char.IsLetter) ? title : string.Empty;
 
         /// <summary>
         ///     Selected tab of the tab container a grid is a page of ("tab 3" of a vendor's stock, a stash tab); empty

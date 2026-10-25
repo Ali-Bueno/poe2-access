@@ -157,9 +157,35 @@ namespace Poe2Accessibility
                 result += $"; {this.locator.Fields.SelfTest(this.locator.InGameLayerContainer(stateObject))}";
             }
 
-            result += $"; {this.gameState.SelfTestAreaRow()}; {this.entityFields?.SelfTest()}; controls: {this.controls?.SelfTest()}";
+            var pad = !this.padCheck.Judged ? "pad buttons: not judged yet (press the left trigger alone)" : this.padCheck.Shift is { } shift ? $"pad buttons ok (shift {shift})" : "pad buttons FAIL";
+            result += $"; {this.gameState.SelfTestAreaRow()}; {this.entityFields?.SelfTest()}; {this.flagBits?.SelfTest()}; {pad}; {this.semantics?.TreeFields.SelfTest()}; controls: {this.controls?.SelfTest()}";
 
             this.log?.Info(result);
+        }
+
+        /// <summary>Per frame: whether the pad's button bits are where measured, judged on the left trigger (PadButtonCheck).</summary>
+        private void CheckPadButtons(GamepadReader.PadState state)
+        {
+            if (!this.padCheck.Observe(state.Buttons, state.LeftTrigger, state.RightTrigger, GameLayout.PadButtons.MeasuredLeftTriggerBit))
+            {
+                return;
+            }
+
+            if (this.padCheck.Shift is not { } shift)
+            {
+                this.compatibility?.Missing("pad buttons");
+                return;
+            }
+
+            GameLayout.PadButtons.Shift = shift;
+            if (shift == 0)
+            {
+                this.compatibility?.Found("pad buttons");
+            }
+            else
+            {
+                this.compatibility?.Moved("pad buttons", GameLayout.PadButtons.MeasuredLeftTriggerBit, GameLayout.PadButtons.MeasuredLeftTriggerBit + shift);
+            }
         }
 
         /// <summary>Per frame: the parts of the game's layout that could not be found, said once together.</summary>
@@ -179,6 +205,10 @@ namespace Poe2Accessibility
             this.locator?.Fields.Reset();
             this.controls?.Reset();
             this.entityFields?.Reset();
+            this.flagBits?.Reset();
+            this.padCheck.Reset();
+            this.semantics?.TreeFields.Reset();
+            GameLayout.PadButtons.Shift = 0;
             this.gameState?.ResetLayout();
             this.locator?.Reset();
             try

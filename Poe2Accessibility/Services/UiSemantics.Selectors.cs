@@ -34,13 +34,19 @@ namespace Poe2Accessibility.Services
                 this.selectors[layer] = found;
             }
 
-            if (found.Selector == IntPtr.Zero || !this.reader.TryRead<int>(found.Selector + GameLayout.ClassSelector.IndexOffset, out var index) ||
-                !this.elements.TryReadElement(found.Grid, out var grid))
+            if (found.Selector == IntPtr.Zero || !this.elements.TryReadElement(found.Grid, out var grid))
             {
                 return null;
             }
 
             var icons = this.elements.ReadChildren(grid);
+            var selector = found.Selector;
+            var shift = this.elements.Controls?.Shift(ControlGroup.ClassSelector, selector, at => this.SelectorAgrees(selector, at, icons.Length)) ?? 0;
+            if (!this.reader.TryRead<int>(found.Selector + GameLayout.ClassSelector.IndexOffset + shift, out var index))
+            {
+                return null;
+            }
+
             if (index < 0 || index >= icons.Length || !PluginUiElementReflection.TryGetAbsoluteRect(icons[index], out var current, out _))
             {
                 return null;
@@ -65,8 +71,18 @@ namespace Poe2Accessibility.Services
                 this.selectors[layer] = found;
             }
 
-            return found.Selector != IntPtr.Zero && this.reader.TryRead<int>(found.Selector + GameLayout.ClassSelector.ClassIdOffset, out var id) ? id : null;
+            var shift = this.elements.Controls?.Current(ControlGroup.ClassSelector) ?? 0;
+            return found.Selector != IntPtr.Zero && this.reader.TryRead<int>(found.Selector + GameLayout.ClassSelector.ClassIdOffset + shift, out var id) ? id : null;
         }
+
+        /// <summary>
+        ///     The selector's index and class id, read with the fields moved by a shift, name the same class of its first row
+        ///     (the row of variants proves nothing: the selector is judged again once the highlight is back on a class).
+        /// </summary>
+        private bool SelectorAgrees(IntPtr selector, int shift, int icons) =>
+            this.reader.TryRead<int>(selector + GameLayout.ClassSelector.IndexOffset + shift, out var index) &&
+            this.reader.TryRead<int>(selector + GameLayout.ClassSelector.ClassIdOffset + shift, out var id) &&
+            index >= 0 && index < Math.Min(icons, GameLayout.ClassSelector.FirstRowClassIds.Length) && GameLayout.ClassSelector.FirstRowClassIds[index] == id;
 
         private (IntPtr Selector, IntPtr Grid) FindSelector(IntPtr layer)
         {

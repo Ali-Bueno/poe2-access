@@ -414,8 +414,12 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>Ticked state of a check-box element (GameLayout.Element.CheckBoxStateOffset); null when unreadable.</summary>
-        public bool? ReadCheckBoxState(IntPtr address) =>
-            this.reader.TryRead<byte>(address + GameLayout.Element.CheckBoxStateOffset, out var state) ? state != 0 : null;
+        public bool? ReadCheckBoxState(IntPtr address)
+        {
+            var at = GameLayout.Element.CheckBoxStateOffset + (this.Controls?.Changing(ControlGroup.CheckBox, address, GameLayout.Element.CheckBoxStateOffset, 1,
+                (offset, length) => this.reader.ReadBytes(address + offset, length), value => value is 0 or 1) ?? 0);
+            return this.reader.TryRead<byte>(address + at, out var state) ? state != 0 : null;
+        }
 
         public bool IsReadable(IntPtr address) => this.reader.IsValidAddress(address) && this.reader.ReadBytes(address, IntPtr.Size).Length > 0;
 

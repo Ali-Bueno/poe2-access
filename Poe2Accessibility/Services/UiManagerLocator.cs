@@ -40,6 +40,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The in-game layers by what they hold.</summary>
         public InGameFields Fields { get; }
 
+        /// <summary>Checks the controls' flag bits on the pre-game screens (set by the plugin).</summary>
+        public FlagBits? Flags { get; set; }
+
         public void Reset() => this.cache.Clear();
 
         /// <summary>Manager address for the given state object, or zero when none can be validated.</summary>
@@ -83,6 +86,10 @@ namespace Poe2Accessibility.Services
                     this.probe.ProbeNames(root, inGame);
                     this.probe.ProbeText(root, inGame);
                     this.probe.ProbeTextures(root, inGame);
+                    if (!inGame)
+                    {
+                        this.Flags?.ProbeScreen(root);
+                    }
                 }
             }
 

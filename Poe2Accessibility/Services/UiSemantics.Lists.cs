@@ -53,14 +53,17 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private AccessibleUiNode? DescribeSelectableList(in UiElementReader.ElementInfo info)
         {
-            if (info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) ||
-                !this.reader.TryRead<int>(info.Address + GameLayout.SelectableList.SelectedIndexOffset, out var selected) || selected < 0)
+            if (info.HasFlagBit(GameLayout.Element.InteractiveFlagBit))
             {
                 return null;
             }
 
             var entries = this.FindEntryHolder(info, ListHolderDepth);
-            if (entries.Count == 0 || selected >= entries.Count)
+            var address = info.Address;
+            var at = GameLayout.SelectableList.SelectedIndexOffset + (entries.Count < 2 ? this.elements.Controls?.Current(ControlGroup.SelectableList) ?? 0
+                : this.elements.Controls?.Changing(ControlGroup.SelectableList, address, GameLayout.SelectableList.SelectedIndexOffset, sizeof(int),
+                    (offset, length) => this.reader.ReadBytes(address + offset, length), value => value >= 0 && value < entries.Count) ?? 0);
+            if (entries.Count == 0 || !this.reader.TryRead<int>(info.Address + at, out var selected) || selected < 0 || selected >= entries.Count)
             {
                 return null;
             }

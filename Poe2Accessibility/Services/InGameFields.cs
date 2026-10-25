@@ -42,7 +42,7 @@ namespace Poe2Accessibility.Services
             [InGameField.Hud] = new(GameLayout.InGameUi.HudLayerOffset, true, Named("HUD")),
             [InGameField.MapOverlay] = new(GameLayout.InGameUi.MapOverlayOffset, true, Named("map_overlay")),
             [InGameField.DeathScreen] = new(GameLayout.InGameUi.DeathScreenOffset, true, Named("death_screen")),
-            [InGameField.InventoryPanel] = new(GameLayout.InGameUi.InventoryPanelOffset, true, (fields, info) => fields.HasChild(info, 1, "panels_parent")),
+            [InGameField.InventoryPanel] = new(GameLayout.InGameUi.InventoryPanelOffset, true, (fields, info) => fields.HasChild(info, 1, GameLayout.InGameUi.PanelsParentName)),
             [InGameField.Chat] = new(GameLayout.InGameUi.ChatLayerOffset, true, (fields, info) => fields.HasChild(info, 2, "textField") && fields.HasChild(info, 2, "scrollbar")),
             [InGameField.Tutorial] = new(GameLayout.InGameUi.TutorialLayerOffset, true, null),
             [InGameField.SkillBar] = new(GameLayout.InGameUi.SkillBarOffset, false, Named(GameLayout.InGameUi.SkillBarName)),

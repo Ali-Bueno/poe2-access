@@ -49,7 +49,11 @@ namespace Poe2Accessibility.Services
             this.elements = elements;
             this.catalog = catalog;
             this.comboBoxes = comboBoxes;
+            this.TreeFields = new PassiveTreeFields(reader, elements, record => this.PassiveRow(record) != null, this.GraphIdOf);
         }
+
+        /// <summary>The passive tree's state and graph fields, found again after a game update.</summary>
+        public PassiveTreeFields TreeFields { get; }
 
         /// <summary>In game: inventory archetypes and panel titles apply (their fields mean something else pre-game).</summary>
         public bool InGame { get; set; }
@@ -128,7 +132,7 @@ namespace Poe2Accessibility.Services
                     label = this.FindRowLabel(info);
                     if (label.Length == 0)
                     {
-                        label = this.elements.ReadWStringStructAt((input != IntPtr.Zero ? input : address) + GameLayout.Element.PlaceholderOffset)?.Trim() ?? string.Empty;
+                        label = this.Placeholder(input != IntPtr.Zero ? input : address);
                     }
 
                     if (label.Length == 0)
@@ -248,7 +252,7 @@ namespace Poe2Accessibility.Services
                 Group = group,
                 Tooltip = tooltip,
                 IsHovered = hovered,
-                IsEnabled = !info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) || info.HasFlagBit(GameLayout.Element.EnabledFlagBit),
+                IsEnabled = !info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) || !FlagBits.EnabledTrusted || info.HasFlagBit(GameLayout.Element.EnabledFlagBit),
             };
         }
 
@@ -552,6 +556,14 @@ namespace Poe2Accessibility.Services
             StructuralSuffixes.Any(suffix => controlName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
 
         /// <summary>"patch_notes_button" → "patch notes"; "label_(button)" → "label"; a structural id → "".</summary>
+        /// <summary>A text field's hint ("Type your character name here..."), judged where it reads as words.</summary>
+        private string Placeholder(IntPtr field)
+        {
+            string? HintAt(int shift) => this.elements.ReadWStringStructAt(field + GameLayout.Element.PlaceholderOffset + shift)?.Trim();
+            var shift = this.elements.Controls?.Shift(ControlGroup.Placeholder, field, at => HintAt(at) is { Length: > 0 } hint && hint.Any(char.IsLetter)) ?? 0;
+            return HintAt(shift) ?? string.Empty;
+        }
+
         private static string Humanise(string controlName)
         {
             if (IsStructuralName(controlName))

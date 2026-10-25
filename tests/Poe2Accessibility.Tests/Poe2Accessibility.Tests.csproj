@@ -20,6 +20,9 @@
     <Compile Include="..\..\Poe2Accessibility\Services\ExperienceTable.cs" Link="Plugin\ExperienceTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\LootFilter.cs" Link="Plugin\LootFilter.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\InPlayFlag.cs" Link="Plugin\InPlayFlag.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ChangingField.cs" Link="Plugin\ChangingField.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\BitSearch.cs" Link="Plugin\BitSearch.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\PadButtonCheck.cs" Link="Plugin\PadButtonCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CueSynth.cs" Link="Plugin\CueSynth.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\EnemyCueScheduler.cs" Link="Plugin\EnemyCueScheduler.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PassageScan.cs" Link="Plugin\PassageScan.cs" />
