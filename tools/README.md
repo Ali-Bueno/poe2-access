@@ -78,15 +78,15 @@ once in game, and the launcher starts it before regenerating.
 
 ## package — test build for other players
 ```
-pwsh tools/package/New-TestPackage.ps1      # with GameHelper stopped; writes dist/Poe2Access-test-<date>.zip
+pwsh tools/package/New-TestPackage.ps1      # with GameHelper stopped; writes dist/Poe2Access-test-<date>.zip (+ .7z with 7-Zip)
 ```
-The top folder holds only `Poe2Access.exe` (the launcher as one self-contained, trimmed, compressed file, ~11 MB), `LEEME.txt`,
+The top folder holds only `Poe2Access.exe` (the launcher as one self-contained, trimmed file, ~14 MB, left uncompressed so the archive compresses it better), `LEEME.txt`,
 the controls and the stop shortcut; GameHelper and Poe2UiExtract are published self-contained into `app/` (they share the
 .NET 10 runtime files, nothing to install; the launcher finds `app/GameHelper.exe` and logs to `app/Poe2Access.log`), with only
 the accessibility plugin (dll, PRISM, catalogs, the Radar plugin's
 `important_tgt_files.txt`, research mode off), GameHelper's `core_settings.json` with only this plugin enabled,
 `LEEME.txt` (Spanish instructions), the controls doc and a stop shortcut. No game sounds are shipped: the launcher
-regenerates them, and the catalogs, from the tester's install (`oo2core.dll` ships for bundle reading). About 43 MB zipped. `dist/` is gitignored; publishing a release stays a
+regenerates them, and the catalogs, from the tester's install (`oo2core.dll` ships for bundle reading). GameHelper's bundled fonts (its "Universal font" option, off), the native PDB reader and `createdump.exe` are left out. About 45 MB zipped; the .7z (LZMA2, ~29 MB) fits a 30 MB chat upload, and Windows 11 opens it (Windows 10 needs 7-Zip or WinRAR). `dist/` is gitignored; publishing a release stays a
 manual decision.
 
 ## localization — the mod's phrases in the game's other languages

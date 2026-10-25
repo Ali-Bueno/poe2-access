@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
-    Builds a test package of the mod: unzip, run Poe2Access.exe, play. Writes dist\Poe2Access-test-<date>.zip.
+    Builds a test package of the mod: unzip, run Poe2Access.exe, play. Writes dist\Poe2Access-test-<date>.zip, and a
+    smaller .7z beside it when 7-Zip is installed (under the 30 MB a chat upload takes; the zip is about 45 MB).
 .DESCRIPTION
     The top folder holds only the launcher (one self-contained, trimmed executable), the instructions, the controls and
     a stop shortcut. GameHelper and the sound extractor are published self-contained into "app" (they share the same
@@ -31,8 +32,12 @@ New-Item -ItemType Directory -Force $stage | Out-Null
 foreach ($project in 'external\GameHelper2\GameHelper\GameHelper.csproj', 'tools\Poe2UiExtract\Poe2UiExtract.csproj') {
     Invoke-Dotnet @('publish', (Join-Path $repo $project), '-c', 'Release', '-r', 'win-x64', '--self-contained', 'true', '-o', $app, '-p:GenerateDocumentationFile=false', '-p:SatelliteResourceLanguages=en', '-nologo', '-v', 'q')
 }
+# Unused here: GameHelper's bundled fonts serve only its "Universal font" option, off in the shipped settings (it falls
+# back to the configured font without them); the native PDB reader and the crash-dump tool serve debuggers.
+Remove-Item -Recurse -Force (Join-Path $app 'fonts'), (Join-Path $app 'Microsoft.DiaSymReader.Native.amd64.dll'), (Join-Path $app 'createdump.exe') -ErrorAction SilentlyContinue
+# Uncompressed inside: the archive compresses it better than the bundle's own compression (and it starts faster).
 Invoke-Dotnet @('publish', (Join-Path $repo 'tools\Poe2AccessLauncher\Poe2Access.csproj'), '-c', 'Release', '-r', 'win-x64', '--self-contained', 'true', '-o', $stage,
-    '-p:PublishSingleFile=true', '-p:PublishTrimmed=true', '-p:EnableCompressionInSingleFile=true', '-p:DebugType=none', '-nologo', '-v', 'q')
+    '-p:PublishSingleFile=true', '-p:PublishTrimmed=true', '-p:EnableCompressionInSingleFile=false', '-p:DebugType=none', '-nologo', '-v', 'q')
 
 # The accessibility plugin, built as for development, then copied without logs, dumps, settings or extracted sounds.
 Invoke-Dotnet @('build', (Join-Path $repo 'Poe2Accessibility'), '-c', 'Release', '-nologo', '-v', 'q')
@@ -63,3 +68,13 @@ $zip = Join-Path $Output ("Poe2Access-test-{0:yyyyMMdd}.zip" -f (Get-Date))
 if (Test-Path $zip) { Remove-Item $zip -Force }
 Compress-Archive -Path $stage -DestinationPath $zip -CompressionLevel Optimal
 Write-Host ("Package: {0} ({1:N0} MB)" -f $zip, ((Get-Item $zip).Length / 1MB))
+
+# The same folder as .7z (LZMA2): Windows 11 opens it; Windows 10 needs 7-Zip or WinRAR.
+$sevenZip = Join-Path $env:ProgramFiles '7-Zip\7z.exe'
+if (Test-Path $sevenZip) {
+    $archive = [System.IO.Path]::ChangeExtension($zip, '.7z')
+    if (Test-Path $archive) { Remove-Item $archive -Force }
+    & $sevenZip a -t7z -mx=9 -m0=lzma2 -md=64m -ms=on $archive $stage | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "7-Zip failed ($LASTEXITCODE)" }
+    Write-Host ("Package: {0} ({1:N1} MB)" -f $archive, ((Get-Item $archive).Length / 1MB))
+}
