@@ -137,6 +137,9 @@ namespace Poe2Accessibility.Services
             return path;
         }
 
+        private static string Kinds(IEnumerable<(Vector2 Grid, string Kind)> places) =>
+            string.Join(", ", places.GroupBy(place => place.Kind).Select(group => $"{group.Key} {group.Count()}"));
+
         private static PlaceTracker NewTracker() => new(TileStructure.TileToGridConversion, ReachCells, ForgetCells);
 
         /// <summary>The map of the current area, built once its tiles are known and given the rooms its anchors place.</summary>
@@ -152,6 +155,7 @@ namespace Poe2Accessibility.Services
 
             if (this.map == null || count != this.tileCount)
             {
+                var timer = System.Diagnostics.Stopwatch.StartNew();
                 var placements = this.ReadPlacements(terrain.TileDetailsPtr, (int)terrain.TotalTiles.X);
                 if (placements.Count == 0)
                 {
@@ -161,7 +165,8 @@ namespace Poe2Accessibility.Services
                 this.map = PlaceMap.Build(this.catalog, placements, TileStructure.TileToGridConversion);
                 this.tileCount = count;
                 this.lastAnchorPoll = long.MinValue / 2;
-                this.log.Info($"Places: {this.map.Pieces.Count} map pieces, {this.map.Props.Count} props from {placements.Count} sub-tiles" +
+                this.log.Info($"Places: {this.map.Pieces.Count} map pieces, {this.map.Props.Count} props from {placements.Count} sub-tiles " +
+                              $"({Kinds(this.map.Pieces.Concat(this.map.Props))}) in {timer.ElapsedMilliseconds} ms" +
                               (this.map.UnknownRotations.Count > 0 ? $"; tile props left out for rotations {string.Join(",", this.map.UnknownRotations)}" : string.Empty));
             }
 

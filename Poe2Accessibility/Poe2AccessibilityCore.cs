@@ -106,7 +106,7 @@ namespace Poe2Accessibility
         };
 
         /// <summary>The state announcement waiting out <see cref="StateSettleMs"/>; Detected keeps "Game detected" when replaced.</summary>
-        private (string Text, bool Detected, long At)? pendingState;
+        private (string Text, bool Detected, long At, bool Queued)? pendingState;
         private bool confirmDown;
 
         /// <summary>When each kind of monster attack lands, learnt from the blows taken (BossWatch).</summary>
@@ -1104,7 +1104,17 @@ namespace Poe2Accessibility
 
             var reallyClosed = previous == GameStateTypes.GameNotLoaded && this.closedSince == 0;
             this.closedSince = 0;
-            this.pendingState = (Announcements.ForState(current), reallyClosed || this.pendingState?.Detected == true, Environment.TickCount64);
+            if (previous == GameStateTypes.AreaLoadingState && current == GameStateTypes.InGameState && this.pendingState?.Detected != true)
+            {
+                // A new area's name follows at once and replaces it ("En juego" before every area name was noise,
+                // 2026-10-25); a respawn in the same area keeps it as the end of the load.
+                this.pendingState = (Announcements.ForState(current), false, Environment.TickCount64, false);
+                return;
+            }
+
+            // Taking an exit, the game's own "Entrando a Sierraclara..." was cut off by "Cargando área" (2026-10-25).
+            var queued = previous == GameStateTypes.InGameState && current == GameStateTypes.AreaLoadingState;
+            this.pendingState = (Announcements.ForState(current), reallyClosed || this.pendingState?.Detected == true, Environment.TickCount64, queued);
             if (!PassingStates.Contains(current))
             {
                 this.pendingState = this.pendingState.Value with { At = long.MinValue / 2 };
@@ -1121,7 +1131,7 @@ namespace Poe2Accessibility
             }
 
             this.pendingState = null;
-            this.output.Speak(pending.Detected ? $"{Announcements.GameDetected} {pending.Text}" : pending.Text, true);
+            this.output.Speak(pending.Detected ? $"{Announcements.GameDetected} {pending.Text}" : pending.Text, !pending.Queued);
         }
 
         /// <summary>Per frame: "Game closed" once the game has stayed unloaded for a while.</summary>
@@ -1154,6 +1164,11 @@ namespace Poe2Accessibility
             this.narrator?.NewArea(resumed);
             if (this.Settings.AnnounceArea)
             {
+                if (this.pendingState is { Detected: false } loaded && loaded.Text == Announcements.ForState(GameStateTypes.InGameState))
+                {
+                    this.pendingState = null;
+                }
+
                 this.output.Say(SpeechKind.Places, Announcements.Area(areaName));
             }
         }
