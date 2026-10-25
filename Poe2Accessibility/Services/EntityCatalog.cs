@@ -100,6 +100,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Closed barriers seen in this area by entity id (grid position), kept past the network bubble.</summary>
         private readonly Dictionary<uint, Vector2> closedBarriers = new();
         private readonly object samplesLock = new();
+
+        /// <summary>The last combined grid and the live grid it was made from (see WalkableGrid).</summary>
+        private (byte[] Live, byte[] Grid)? stable;
         private long lastSampleAt;
         private IReadOnlyList<ScanEntry> unexplored = Array.Empty<ScanEntry>();
         private long unexploredAt = long.MinValue / 2;
@@ -116,9 +119,6 @@ namespace Poe2Accessibility.Services
             this.areaId = areaId;
         }
 
-        /// <summary>Monsters with the Targetable component this many, none flagged in play, mean the flag moved (game update).</summary>
-        private const int TargetableJudgedOn = 20;
-
         /// <summary>
         ///     Living monsters, characters and players in one pass whose Render names judge where the names are (see
         ///     <see cref="LayoutProbe"/>). Gathered over time, the dead adds of a boss fight left freed renders that read
@@ -126,20 +126,11 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private const int RendersToJudge = 15;
 
-        /// <summary>
-        ///     The Targetable in-play flag (<see cref="GameLayout.TargetableComponent"/>) is believed until a game update
-        ///     visibly breaks it; then everything counts as in play rather than nothing.
-        /// </summary>
-        private static bool targetableTrusted = true;
-
-        private readonly HashSet<uint> unflaggedMonsters = new();
-        private bool targetableConfirmed;
-
         /// <summary>Checks the entity name field once enough named things are awake (set by the plugin).</summary>
         public LayoutProbe? Probe { get; set; }
 
-        /// <summary>Where a broken in-play flag is reported (set by the plugin).</summary>
-        public CompatibilityReport? Report { get; set; }
+        /// <summary>Finds the in-play flag and the quest marker again after a game update (set by the plugin).</summary>
+        public EntityFields? Fields { get; set; }
 
         /// <summary>The quest tracker's texts on screen ("Find Clearfell", "Slay the Bloated Miller"), for the Quest category.</summary>
         public Func<IReadOnlyList<string>> QuestTexts { get; set; }
@@ -177,6 +168,7 @@ namespace Poe2Accessibility.Services
             lock (this.samplesLock)
             {
                 this.samples.Clear();
+                this.stable = null;
                 this.barriers.Reset();
                 this.closedBarriers.Clear();
             }
@@ -215,6 +207,7 @@ namespace Poe2Accessibility.Services
             // Known to the game but not yet to the player: only the quest marker may point at them.
             var unseen = new List<ScanEntry>();
             var renders = new List<IntPtr>();
+            var sampling = this.Fields?.StartPass() ?? false;
             foreach (var entity in area.AwakeEntities.Values)
             {
                 if (!entity.IsValid || !entity.TryGetComponent<Render>(out var render))
@@ -223,6 +216,11 @@ namespace Poe2Accessibility.Services
                 }
 
                 this.CheckLayout(entity, render, renders);
+                if (sampling)
+                {
+                    this.Fields!.Sample(entity, render);
+                }
+
                 if (this.Classify(entity, render) is not { } entry)
                 {
                     this.remembered.Remove(entity.Id); // a story variant left play (Una after the quest step)
@@ -240,6 +238,11 @@ namespace Poe2Accessibility.Services
                 {
                     this.remembered[entry.Id] = entry;
                 }
+            }
+
+            if (sampling)
+            {
+                this.Fields!.EndPass();
             }
 
             if (this.Probe != null && renders.Count >= RendersToJudge)
@@ -356,8 +359,9 @@ namespace Poe2Accessibility.Services
             partial |= barrier;
 
             this.log.Debug($"Route to {entry.Name}: {(route == null ? "none" : $"{route.Count} cells")} in {timer.ElapsedMilliseconds} ms from cell ({start.X:F0},{start.Y:F0}) to ({goal.X:F0},{goal.Y:F0})");
-            if (route == null)
+            if (route == null && this.log.Verbose)
             {
+                // Research only: a third search over the grid as loaded (up to ~300 ms on the frame thread).
                 var loaded = area.GridWalkableData;
                 var fromLoaded = loaded.Length == grid.Length ? RoutePlanner.FindRoute(loaded, row, start, goal) : null;
                 this.log.Debug($"No route to {entry.Name}: grid {grid.Length} bytes, {row} per row; start {start} walkable={RoutePlanner.IsWalkable(grid, row, (int)start.X, (int)start.Y)}, goal {goal} walkable={RoutePlanner.IsWalkable(grid, row, (int)goal.X, (int)goal.Y)}; the grid as loaded {(fromLoaded == null ? "has none either" : $"has one of {fromLoaded.Count} cells")}");

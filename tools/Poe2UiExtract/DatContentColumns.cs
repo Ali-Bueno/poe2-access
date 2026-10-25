@@ -64,14 +64,18 @@ internal static class DatContentColumns
         return true;
     }
 
-    /// <summary>A list of keys into a table, set on some rows (class start nodes list their classes).</summary>
+    /// <summary>
+    ///     A list of keys into a table that names each of its rows once over a few rows: every class has one start node
+    ///     (0.5.5e: six start nodes list the twelve Characters rows, two each).
+    /// </summary>
     private static bool IsKeyListInto(DatTable table, int offset, int targetRows)
     {
+        var named = new HashSet<long>();
         var filled = 0;
         for (var row = 0; row < table.RowCount; row++)
         {
             var keys = table.KeyList(row, offset);
-            if (keys.Any(key => key < 0 || key >= targetRows))
+            if (keys.Any(key => key < 0 || key >= targetRows || !named.Add(key)))
             {
                 return false;
             }
@@ -79,7 +83,7 @@ internal static class DatContentColumns
             filled += keys.Count > 0 ? 1 : 0;
         }
 
-        return filled > 0;
+        return filled > 0 && filled <= targetRows && named.Count == targetRows;
     }
 
     /// <summary>The flag column set on the most rows whose Id carries <paramref name="word"/>, those being a fair share of its rows.</summary>

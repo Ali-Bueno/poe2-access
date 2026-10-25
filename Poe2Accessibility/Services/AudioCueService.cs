@@ -131,7 +131,14 @@ namespace Poe2Accessibility.Services
 
             this.stopping = true;
             this.bufferDone.Set();
-            this.mixer?.Join(500);
+            if (this.mixer != null && !this.mixer.Join(500))
+            {
+                // A mixer stalled in the driver may still write into the buffers: they are left to the process, never freed under it.
+                this.log.Warn("Audio cues: the mixer did not stop in time; its buffers are left allocated");
+                this.device = IntPtr.Zero;
+                return;
+            }
+
             waveOutReset(this.device);
             foreach (var header in this.headers)
             {

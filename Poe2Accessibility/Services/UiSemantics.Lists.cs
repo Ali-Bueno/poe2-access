@@ -32,6 +32,13 @@ namespace Poe2Accessibility.Services
         /// <summary>Breadth-first budget when looking for the selected tab of a page (options: ~800 visible nodes).</summary>
         private const int MaxTabSearchNodes = 2000;
 
+        /// <summary>A tab bar of fewer tabs is not judged on: on two tabs a hover byte fits as well as the selected one.</summary>
+        private const int MinJudgedTabs = 3;
+
+        private const int MaxTablessLayers = 64;
+
+        private readonly HashSet<IntPtr> tablessLayers = new();
+
         /// <summary>A visible frame whose control name starts so marks the chosen row of a list that keeps the focus.</summary>
         private const string SelectionMarkerPrefix = "selected_";
 
@@ -318,6 +325,14 @@ namespace Poe2Accessibility.Services
                 return string.Empty;
             }
 
+            // Until a bar proves the selected byte every control's click sound is read: a layer found without tabs is
+            // then only read through the byte (the cheap way) until the bar is proved.
+            var proved = this.elements.Controls?.IsKnown(ControlGroup.Tabs) ?? true;
+            if (!proved && this.tablessLayers.Contains(layer))
+            {
+                proved = true;
+            }
+
             var queue = new Queue<UiElementReader.ElementInfo>();
             queue.Enqueue(root);
             var bars = new HashSet<IntPtr>();
@@ -327,7 +342,7 @@ namespace Poe2Accessibility.Services
                 // Once the selected byte is proved, it is read before the costlier click-sound scan.
                 var node = queue.Dequeue();
                 if (node.HasFlagBit(GameLayout.Element.InteractiveFlagBit) && !bars.Contains(node.Raw.ParentPtr) &&
-                    (!(this.elements.Controls?.IsKnown(ControlGroup.Tabs) ?? true) || this.IsTabSelected(node.Address, this.TabSelectedOffset(null))) &&
+                    (!proved || this.IsTabSelected(node.Address, this.TabSelectedOffset(null))) &&
                     this.elements.DetectRoleBySound(node.Address) == UiRole.Tab && this.SiblingTabs(node) is { Count: >= 2 } tabs)
                 {
                     bars.Add(node.Raw.ParentPtr);
@@ -346,6 +361,16 @@ namespace Poe2Accessibility.Services
                         queue.Enqueue(child);
                     }
                 }
+            }
+
+            if (!proved && bars.Count == 0)
+            {
+                if (this.tablessLayers.Count >= MaxTablessLayers)
+                {
+                    this.tablessLayers.Clear();
+                }
+
+                this.tablessLayers.Add(layer);
             }
 
             return string.Empty;
@@ -367,7 +392,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The tab buttons' selected byte, judged on a bar of them when one is given (exactly one tab is set).</summary>
         private int TabSelectedOffset(IReadOnlyList<IntPtr>? tabs)
         {
-            var shift = tabs is { Count: >= 2 }
+            var shift = tabs is { Count: >= MinJudgedTabs }
                 ? this.elements.Controls?.Shift(ControlGroup.Tabs, tabs[0], at => this.OneTabSelected(tabs, GameLayout.TabButton.SelectedOffset + at))
                 : this.elements.Controls?.Current(ControlGroup.Tabs);
             return GameLayout.TabButton.SelectedOffset + (shift ?? 0);

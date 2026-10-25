@@ -44,12 +44,14 @@ namespace Poe2Accessibility.Services
                 if (this.samples.Count > 0 && this.samples.Peek().Length != live.Length)
                 {
                     this.samples.Clear();
+                    this.stable = null;
                 }
 
                 if (this.samples.Count == 0 || now - this.lastSampleAt >= SampleMs)
                 {
                     this.samples.Enqueue(live);
                     this.lastSampleAt = now;
+                    this.stable = null;
                     if (area.Player.TryGetComponent<Render>(out var player))
                     {
                         var before = this.barriers.ClosedCount;
@@ -65,9 +67,16 @@ namespace Poe2Accessibility.Services
                     }
                 }
 
-                if (!live.AsSpan().SequenceEqual(snapshot))
+                if (this.log.Verbose && !live.AsSpan().SequenceEqual(snapshot))
                 {
                     this.log.Debug($"Walkable grid changed since the area loaded: {Changed(snapshot, live)} cells");
+                }
+
+                // The guide asks on every ping: the combination is kept while no sample was added and the live grid is
+                // the same; callers get their own copy.
+                if (this.stable is { } kept && kept.Live.AsSpan().SequenceEqual(live))
+                {
+                    return (byte[])kept.Grid.Clone();
                 }
 
                 var stable = (byte[])live.Clone();
@@ -92,7 +101,8 @@ namespace Poe2Accessibility.Services
                 }
 
                 this.barriers.Apply(stable);
-                return stable;
+                this.stable = (live, stable);
+                return (byte[])stable.Clone();
             }
         }
 
@@ -148,6 +158,7 @@ namespace Poe2Accessibility.Services
             lock (this.samplesLock)
             {
                 this.samples.Clear();
+                this.stable = null;
             }
         }
 

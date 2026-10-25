@@ -145,7 +145,7 @@ namespace Poe2Accessibility
             ///     Dat reference {row, file} to the MiscAnimated.dat row of the marker over the NPC's head: row +0 → the
             ///     id "NPCQuestMarker" (Quest_Indicator effect) on RenlyIntro, null on the seven other town NPCs.
             /// </summary>
-            public const int MarkerRowOffset = 0x50;
+            public static int MarkerRowOffset { get; internal set; } = 0x50;
 
             public const string QuestMarkerId = "NPCQuestMarker";
         }
@@ -164,14 +164,14 @@ namespace Poe2Accessibility
         /// </summary>
         public static class TargetableComponent
         {
-            public const int IsTargetableOffset = 0x69;
+            public static int IsTargetableOffset { get; internal set; } = 0x69;
 
             /// <summary>
             ///     1 on the one entity A uses now, the one whose label shows the A glyph (GameHelper's
             ///     IsTargettedByPlayer +0x53, moved like the flag above): the waypoint the character stood on, then the
             ///     notice board walked up to (Clearfell Encampment, 2026-10-24).
             /// </summary>
-            public const int IsTargetedOffset = 0x6B;
+            public static int IsTargetedOffset { get; internal set; } = 0x6B;
         }
 
         /// <summary>Button bits of the pad state (each button held while sampling the field, 2026-10-23).</summary>
@@ -307,7 +307,7 @@ namespace Poe2Accessibility
             public static int RowJewelSocketOffset { get; internal set; } = 0x65;
 
             /// <summary>Bytes of the row read at once: up to the last column read.</summary>
-            public static int RowBytes => System.Math.Max(System.Math.Max(RowNameOffset + 8, RowCharactersOffset + KeySize),
+            public static int RowBytes => System.Math.Max(System.Math.Max(System.Math.Max(RowNameOffset + 8, RowCharactersOffset + KeySize), RowGraphIdOffset + 2),
                 System.Math.Max(System.Math.Max(RowKeystoneOffset, RowNotableOffset), System.Math.Max(RowIconOnlyOffset, RowJewelSocketOffset)) + 1);
 
             /// <summary>Characters row +0x00: its Id, the player's metadata path ("Metadata/Characters/StrDex/StrDexFourb").</summary>

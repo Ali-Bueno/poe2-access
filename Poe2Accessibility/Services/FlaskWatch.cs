@@ -17,7 +17,7 @@ namespace Poe2Accessibility.Services
 
         private readonly InventoryReader inventory;
         private readonly IAccessibilityOutputService output;
-        private readonly HashSet<string> dry = new();
+        private readonly HashSet<IntPtr> dry = new();
         private long lastPoll;
         private bool baseline = true;
 
@@ -28,11 +28,11 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The flasks in belt order with the uses they have left (charges over charges per use).</summary>
-        public IReadOnlyList<(string Name, int Uses)> Flasks()
+        public IReadOnlyList<(IntPtr Address, string Name, int Uses)> Flasks()
         {
             // A flask fills a column of the belt's cells (5x2 in 0.5.5e): each is read once.
             var belt = Core.States.InGameStateObject.CurrentAreaInstance.ServerDataObject.FlaskInventory;
-            var flasks = new List<(string, int)>();
+            var flasks = new List<(IntPtr, string, int)>();
             var seen = new HashSet<IntPtr>();
             for (var x = 0; x < belt.TotalBoxes.X; x++)
             {
@@ -59,19 +59,21 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastPoll = now;
-            foreach (var (name, uses) in this.Flasks())
+            var flasks = this.Flasks();
+            foreach (var (address, name, uses) in flasks)
             {
                 if (uses > 0)
                 {
-                    this.dry.Remove(name);
+                    this.dry.Remove(address);
                 }
-                else if (this.dry.Add(name) && !this.baseline && enabled)
+                else if (this.dry.Add(address) && !this.baseline && enabled)
                 {
                     this.output.Say(SpeechKind.LifeAndMana, Announcements.FlaskEmpty(name));
                 }
             }
 
-            this.baseline = false;
+            // The belt can read empty right after an area loads: the silent first read waits for flasks.
+            this.baseline &= flasks.Count == 0;
         }
 
         /// <summary>A new area: the first read is the baseline again.</summary>
@@ -99,7 +101,7 @@ namespace Poe2Accessibility.Services
             return $"Flasks: {belt.TotalBoxes.X}x{belt.TotalBoxes.Y} at 0x{belt.Address.ToInt64():X}, {belt.Items.Count} items; {string.Join("; ", cells)}";
         }
 
-        private static (string Name, int Uses)? Read(Item item, InventoryReader inventory)
+        private static (IntPtr Address, string Name, int Uses)? Read(Item item, InventoryReader inventory)
         {
             if (item.Address == IntPtr.Zero || !item.TryGetComponent<Charges>(out var charges) || charges.Current < 0 ||
                 inventory.ItemBaseName(item.Address) is not { Length: > 0 } name)
@@ -107,7 +109,7 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            return (name, charges.PerUseCharge > 0 ? charges.Current / charges.PerUseCharge : charges.Current);
+            return (item.Address, name, charges.PerUseCharge > 0 ? charges.Current / charges.PerUseCharge : charges.Current);
         }
     }
 }

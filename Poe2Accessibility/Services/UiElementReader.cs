@@ -49,7 +49,8 @@ namespace Poe2Accessibility.Services
         private static int TextBlockSize => GameLayout.Element.TextCopyOffset + WStringDecoder.Size;
 
         /// <summary>The base struct, and the control name wherever it lies now.</summary>
-        private static int ElementBlockSize => Math.Max(BaseSize, GameLayout.Element.NameOffset + WStringDecoder.Size);
+        private static int ElementBlockSize => Math.Max(Math.Max(BaseSize, GameLayout.Element.NameOffset + WStringDecoder.Size),
+            Math.Max(GameLayout.Image.TextureOffset, GameLayout.Image.AltTextureOffset) + IntPtr.Size);
 
         private readonly HostMemoryReader reader;
 

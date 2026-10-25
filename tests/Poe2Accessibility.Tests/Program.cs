@@ -69,6 +69,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(RadarLabelsSpeakSpanish), RadarLabelsSpeakSpanish);
             Run(nameof(ExperienceProgressIsWithinTheLevel), ExperienceProgressIsWithinTheLevel);
             Run(nameof(LootFilterKeepsWhatThePlayerChose), LootFilterKeepsWhatThePlayerChose);
+            Run(nameof(InPlayFlagIsFoundFromStoryVariants), InPlayFlagIsFoundFromStoryVariants);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -557,6 +558,22 @@ namespace Poe2Accessibility.Tests
             Equal(true, LootFilter.Allows(LootFilter.Valuable, LootTier.Valuable), "valuable keeps currency and rares");
             Equal(true, LootFilter.Allows("garbage", LootTier.Normal), "an unknown setting keeps everything");
             Equal(LootTier.Valuable, new ScanEntry(1, ScanCategory.Items, "x", 0, 0, 0).Loot, "an item of unknown worth stays heard");
+        }
+
+        private static void InPlayFlagIsFoundFromStoryVariants()
+        {
+            // Byte 0x10 is the flag; 0x11 is 1 on everything (no zero to tell it apart); 0x12 differs between Renly's variants
+            // but is set on both.
+            static byte[] Block(byte flag, byte variant) { var block = new byte[0x20]; block[0x10] = flag; block[0x11] = 1; block[0x12] = variant; return block; }
+            var inPlay = new[] { Block(1, 1), Block(1, 1), Block(1, 1), Block(1, 1) };
+            var renly = new IReadOnlyList<byte[]>[] { new[] { Block(1, 1), Block(0, 1) } };
+            Equal(true, InPlayFlag.Fits(inPlay, renly, 0x10), "the flag fits");
+            Equal(false, InPlayFlag.Fits(inPlay, renly, 0x11), "a byte that is 1 on everything does not");
+            Equal(false, InPlayFlag.Fits(inPlay, renly, 0x12), "both variants in play: not the flag");
+            Equal(false, InPlayFlag.Fits(inPlay, Array.Empty<IReadOnlyList<byte[]>>(), 0x10), "no story variants: nothing proves a 0");
+            Equal(false, InPlayFlag.Fits(inPlay.Take(2).ToList(), renly, 0x10), "too little in play");
+            Equal(0x10, OffsetSearch.First(0x14, 8, 1, at => InPlayFlag.Fits(inPlay, renly, at)), "found again from a moved start");
+            Equal(1.0, InPlayFlag.Share(inPlay, 0x10), "share in play");
         }
 
         private static void KnownPlacesOutliveTheSession()

@@ -172,6 +172,10 @@ namespace Poe2Accessibility.Services
 
         private static readonly int NameRowOffset = (int)Marshal.OffsetOf<BaseOffsets>(nameof(BaseOffsets.DisplayNameRowPtr));
 
+        /// <summary>Read from the host's own GameOffsets at run time: a const would keep the value this plugin was built against.</summary>
+        private static readonly int DisplayNameOffset =
+            typeof(BaseOffsets).GetField(nameof(BaseOffsets.DisplayNameOffset))?.GetRawConstantValue() is int offset ? offset : BaseOffsets.DisplayNameOffset;
+
         /// <summary>The item's base display name; GameHelper's is empty for names under 8 characters.</summary>
         private string BaseName(Base component)
         {
@@ -182,7 +186,7 @@ namespace Poe2Accessibility.Services
 
             // GameHelper's own offsets, read as a std::wstring: short names are stored inline (SSO), not behind a pointer.
             return this.reader.TryRead<IntPtr>(component.Address + NameRowOffset, out var row) && row != IntPtr.Zero
-                ? this.elements.ReadWStringStructAt(row + BaseOffsets.DisplayNameOffset) ?? string.Empty
+                ? this.elements.ReadWStringStructAt(row + DisplayNameOffset) ?? string.Empty
                 : string.Empty;
         }
 
@@ -215,13 +219,17 @@ namespace Poe2Accessibility.Services
                 return ("quest", LootTier.Valuable);
             }
 
-            var rarity = item.TryGetComponent<Mods>(out var mods) ? mods.Rarity : Rarity.Normal;
-            if (rarity is Rarity.Rare or Rarity.Unique)
+            if (!item.TryGetComponent<Mods>(out var mods))
+            {
+                return ("item", LootTier.Valuable); // worth unknown: kept audible
+            }
+
+            if (mods.Rarity is Rarity.Rare or Rarity.Unique)
             {
                 return ("rare", LootTier.Valuable);
             }
 
-            return ("item", path.Contains(GemPath, StringComparison.Ordinal) ? LootTier.Valuable : rarity == Rarity.Magic ? LootTier.Magic : LootTier.Normal);
+            return ("item", path.Contains(GemPath, StringComparison.Ordinal) ? LootTier.Valuable : mods.Rarity == Rarity.Magic ? LootTier.Magic : LootTier.Normal);
         }
 
         /// <summary>Skill and support gems, uncut ones too, live under Metadata/Items/Gems/.</summary>

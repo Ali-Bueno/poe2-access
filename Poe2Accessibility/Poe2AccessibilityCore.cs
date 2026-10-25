@@ -77,6 +77,7 @@ namespace Poe2Accessibility
         private DeathWatch? deaths;
         private ExperienceTable? experience;
         private FlaskWatch? flasks;
+        private EntityFields? entityFields;
 
         /// <summary>Game sounds are cut to this length: repeated proximity cues must stay short.</summary>
         private const float GameSoundSeconds = 0.9f;
@@ -199,10 +200,11 @@ namespace Poe2Accessibility
                     Path.Join(this.DllDirectory, "..", "Radar", "important_tgt_files.txt"),
                     Path.Join(this.DllDirectory, "catalog", "important_tgt_files.txt"),
                     Path.Join(this.DllDirectory, "catalog", "landmarks.json"));
+                this.entityFields = new EntityFields(memory, elements) { Report = this.compatibility };
                 this.entities = new EntityCatalog(memory, elements, inventory, landmarks, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log)
                 {
                     Probe = this.layoutProbe,
-                    Report = this.compatibility,
+                    Fields = this.entityFields,
                 };
                 var checkpointPlaces = new CheckpointPlaces(this.entities);
                 this.semantics.MarkerPlaces = checkpointPlaces.Describe;

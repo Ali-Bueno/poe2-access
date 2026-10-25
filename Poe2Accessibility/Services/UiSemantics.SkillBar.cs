@@ -45,6 +45,7 @@ namespace Poe2Accessibility.Services
                 .Where(slot => this.reader.TryRead<IntPtr>(slot, out var type) && type == slotClass)
                 .ToList();
             var bindingAt = this.BindingOffset(slotElements);
+            this.SkillDetailsShift(slotElements.SelectMany(slot => this.elements.TryReadElement(slot, out var info) ? this.elements.ReadChildren(info) : Array.Empty<IntPtr>()).ToList());
             var table = this.BindTable(layerContainer, slotClass, false);
             var bindings = new List<(int Set, string Button, string Bound)>();
             foreach (var slotAddress in slotElements)
@@ -105,9 +106,11 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private string SkillName(in UiElementReader.ElementInfo slot)
         {
-            foreach (var child in this.elements.ReadChildren(slot))
+            var children = this.elements.ReadChildren(slot);
+            var shift = this.SkillDetailsShift(children);
+            foreach (var child in children)
             {
-                if (child != IntPtr.Zero && this.SkillLevelRow(child, this.SkillDetailsShift(child)) is { } level &&
+                if (child != IntPtr.Zero && this.SkillLevelRow(child, shift) is { } level &&
                     this.DatRow(level + GameLayout.SkillSlot.EffectKeyOffset, GameLayout.SkillSlot.EffectTable) is { } effect &&
                     this.DatRow(effect + GameLayout.SkillSlot.SkillKeyOffset, GameLayout.SkillSlot.SkillTable) is { } skill &&
                     this.reader.TryRead<IntPtr>(skill + GameLayout.SkillSlot.DisplayedNameOffset, out var name) &&
@@ -136,9 +139,13 @@ namespace Poe2Accessibility.Services
             return GameLayout.SkillSlot.BindingIndexOffset + (shift ?? 0);
         }
 
-        /// <summary>The skill details field of a slot's icon, judged where it leads to a skill level row (an empty slot proves nothing).</summary>
-        private int SkillDetailsShift(IntPtr icon) =>
-            this.elements.Controls?.Shift(ControlGroup.SkillDetails, icon, shift => this.SkillLevelRow(icon, shift) != null) ?? 0;
+        /// <summary>
+        ///     The skill details field of the slots' icons, judged on all of them at once (the whole bar when it is read):
+        ///     it holds where one of them leads to a skill level row; empty slots and their other children prove nothing.
+        /// </summary>
+        private int SkillDetailsShift(IReadOnlyList<IntPtr> icons) => icons.Count == 0
+            ? this.elements.Controls?.Current(ControlGroup.SkillDetails) ?? 0
+            : this.elements.Controls?.Shift(ControlGroup.SkillDetails, icons[0], shift => icons.Any(icon => icon != IntPtr.Zero && this.SkillLevelRow(icon, shift) != null)) ?? 0;
 
         private IntPtr? SkillLevelRow(IntPtr icon, int shift) =>
             this.reader.TryRead<IntPtr>(icon + GameLayout.SkillSlot.SkillDetailsOffset + shift, out var details) && details != IntPtr.Zero

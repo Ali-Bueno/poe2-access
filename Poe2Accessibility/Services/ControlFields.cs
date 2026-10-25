@@ -43,8 +43,14 @@ namespace Poe2Accessibility.Services
         private const int Radius = 0x100;
         private const int Step = 8;
 
-        /// <summary>A failed search is not repeated sooner than this (a control can be briefly unreadable).</summary>
+        /// <summary>
+        ///     A failed search on a control is not repeated sooner than this (a control can be briefly unreadable); kept per
+        ///     control, so one that can never prove the layout (an empty slot) does not hold up the one that can.
+        /// </summary>
         private const int RetryMs = 5000;
+
+        /// <summary>Controls remembered per group for <see cref="RetryMs"/>; more are forgotten all at once.</summary>
+        private const int MaxTriedControls = 64;
 
         private const int MissesToReport = 3;
 
@@ -84,22 +90,28 @@ namespace Poe2Accessibility.Services
                 if (control != state.CandidateControl)
                 {
                     this.Adopt(group, state, candidate);
+                    return candidate;
                 }
 
-                return candidate;
+                return IsWeak(group) ? expected : candidate;
             }
 
             var now = Environment.TickCount64;
-            if (now - state.TriedAt < RetryMs)
+            if (state.Tried.TryGetValue(control, out var triedAt) && now - triedAt < RetryMs)
             {
                 return expected;
             }
 
-            state.TriedAt = now;
+            if (state.Tried.Count >= MaxTriedControls)
+            {
+                state.Tried.Clear();
+            }
+
+            state.Tried[control] = now;
             if (OffsetSearch.First(expected, Radius, Step, fits, expected - Radius) is { } found)
             {
                 (state.Candidate, state.CandidateControl) = (found, control);
-                return found;
+                return IsWeak(group) ? expected : found;
             }
 
             if (++state.Misses == MissesToReport && group == ControlGroup.ComboBox)
@@ -141,6 +153,12 @@ namespace Poe2Accessibility.Services
 
             return lines.Count == 0 ? "no controls judged yet" : string.Join("; ", lines);
         }
+
+        /// <summary>
+        ///     Groups whose check another field could pass by chance (a hover byte on a tab bar): a shift found by search is
+        ///     used only once a second control agrees; the others are used at once, as their check names the field.
+        /// </summary>
+        private static bool IsWeak(ControlGroup group) => group is ControlGroup.Tabs;
 
         private static string Part(ControlGroup group) => group switch
         {
@@ -184,7 +202,7 @@ namespace Poe2Accessibility.Services
         {
             if (!this.states.TryGetValue(group, out var state))
             {
-                state = new GroupState { TriedAt = long.MinValue / 2 };
+                state = new GroupState();
                 this.states[group] = state;
             }
 
@@ -199,7 +217,7 @@ namespace Poe2Accessibility.Services
 
             public IntPtr CandidateControl { get; set; }
 
-            public long TriedAt { get; set; }
+            public Dictionary<IntPtr, long> Tried { get; } = new();
 
             public int Misses { get; set; }
 

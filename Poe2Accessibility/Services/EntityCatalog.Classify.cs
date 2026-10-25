@@ -114,41 +114,18 @@ namespace Poe2Accessibility.Services
             return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, kind, baseId, loot);
         }
 
-        /// <summary>
-        ///     Feeds the layout checks a game update can defeat: the entity name field (judged once on enough monsters,
-        ///     characters and players) and the in-play flag (no living monster flagged among many means it moved).
-        /// </summary>
+        /// <summary>Feeds the entity name check (judged once on enough monsters, characters and players).</summary>
         private void CheckLayout(Entity entity, Render render, List<IntPtr> renders)
         {
             if ((entity.EntityType == EntityTypes.Monster && IsAliveEnemy(entity)) || entity.EntityType is EntityTypes.NPC or EntityTypes.Player)
             {
                 renders.Add(render.Address);
             }
-
-            if (this.targetableConfirmed || !targetableTrusted || entity.EntityType != EntityTypes.Monster || !IsAliveEnemy(entity) ||
-                !entity.TryGetComponent<Targetable>(out var target))
-            {
-                return;
-            }
-
-            if (this.memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.IsTargetableOffset, out var flag) && flag != 0)
-            {
-                this.targetableConfirmed = true; // one monster in play proves the flag
-                this.Report?.Found("targetable flag");
-            }
-            else if (this.unflaggedMonsters.Add(entity.Id) && this.unflaggedMonsters.Count >= TargetableJudgedOn)
-            {
-                targetableTrusted = false;
-                this.Report?.Missing("targetable flag");
-            }
         }
 
         /// <summary>The NPC shows the quest indicator over its head (<see cref="GameLayout.NpcComponent"/>).</summary>
         private bool HasQuestMarker(Entity entity) =>
-            entity.TryGetComponent<NPC>(out var npc) &&
-            this.memory.TryRead<IntPtr>(npc.Address + GameLayout.NpcComponent.MarkerRowOffset, out var row) && row != IntPtr.Zero &&
-            this.memory.TryRead<IntPtr>(row, out var id) && id != IntPtr.Zero &&
-            (this.elements.ReadUtf16BufferAt(id, 32) ?? string.Empty).StartsWith(GameLayout.NpcComponent.QuestMarkerId, StringComparison.Ordinal);
+            entity.TryGetComponent<NPC>(out var npc) && (this.Fields?.HasMarkerAt(npc.Address, GameLayout.NpcComponent.MarkerRowOffset) ?? false);
 
         /// <summary>
         ///     What A uses now: the entity the game flags as the player's target (<see
@@ -180,7 +157,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Targetable by its own flag (<see cref="GameLayout.TargetableComponent"/>); no component: in play.</summary>
         public static bool IsInPlay(HostMemoryReader memory, Entity entity) =>
-            !targetableTrusted || !entity.TryGetComponent<Targetable>(out var target) ||
+            !EntityFields.InPlayTrusted || !entity.TryGetComponent<Targetable>(out var target) ||
             (memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.IsTargetableOffset, out var flag) && flag != 0);
     }
 }

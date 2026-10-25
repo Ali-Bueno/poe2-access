@@ -157,7 +157,7 @@ namespace Poe2Accessibility
                 result += $"; {this.locator.Fields.SelfTest(this.locator.InGameLayerContainer(stateObject))}";
             }
 
-            result += $"; {this.gameState.SelfTestAreaRow()}; controls: {this.controls?.SelfTest()}";
+            result += $"; {this.gameState.SelfTestAreaRow()}; {this.entityFields?.SelfTest()}; controls: {this.controls?.SelfTest()}";
 
             this.log?.Info(result);
         }
@@ -178,6 +178,7 @@ namespace Poe2Accessibility
             this.layoutProbe?.Reset();
             this.locator?.Fields.Reset();
             this.controls?.Reset();
+            this.entityFields?.Reset();
             this.gameState?.ResetLayout();
             this.locator?.Reset();
             try

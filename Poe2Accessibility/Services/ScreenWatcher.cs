@@ -55,11 +55,14 @@ namespace Poe2Accessibility.Services
         private readonly UiElementReader elements;
         private readonly PluginLog log;
         private readonly ScreenDiffer differ = new();
-        private readonly ConcurrentQueue<ScreenChange> changes = new();
+        private readonly ConcurrentQueue<(ScreenChange Change, int Generation)> changes = new();
         private readonly CancellationTokenSource stop = new();
         private readonly Dictionary<IntPtr, string?> textureKeys = new();
         private readonly Stopwatch sinceSlowReport = Stopwatch.StartNew();
         private volatile bool resetRequested;
+
+        /// <summary>Counts resets: a capture or a change from before the last one belongs to the old screen and is dropped.</summary>
+        private int generation;
         private IntPtr root;
         private IntPtr ignoredElement;
 
@@ -88,7 +91,9 @@ namespace Poe2Accessibility.Services
         public void Reset(bool inGame)
         {
             this.differ.FreezeBaseLayers = inGame;
+            Interlocked.Increment(ref this.generation);
             this.resetRequested = true;
+            this.Current = ScreenSnapshot.Empty;
         }
 
         /// <summary>The layer read even when it is already on screen as a state begins (the in-game tutorial box).</summary>
@@ -97,7 +102,21 @@ namespace Poe2Accessibility.Services
         /// <summary>The layer holding this element is never read (the chat panel: its own feature, never automatic).</summary>
         public void SetIgnoredElement(IntPtr element) => this.ignoredElement = element;
 
-        public bool TryDequeue(out ScreenChange change) => this.changes.TryDequeue(out change!);
+        public bool TryDequeue(out ScreenChange change)
+        {
+            var current = Volatile.Read(ref this.generation);
+            while (this.changes.TryDequeue(out var queued))
+            {
+                if (queued.Generation == current)
+                {
+                    change = queued.Change;
+                    return true;
+                }
+            }
+
+            change = null!;
+            return false;
+        }
 
         public void Dispose() => this.stop.Cancel();
 
@@ -115,14 +134,20 @@ namespace Poe2Accessibility.Services
                         this.textureKeys.Clear();
                     }
 
+                    var started = Volatile.Read(ref this.generation);
                     var timer = Stopwatch.StartNew();
                     var captured = this.Capture(this.root);
                     this.ReportSlowSnapshot(timer.ElapsedMilliseconds, captured);
+                    if (started != Volatile.Read(ref this.generation))
+                    {
+                        continue; // the screen changed state while it was captured: the next pass starts the new one
+                    }
+
                     var applied = this.differ.Apply(captured);
                     this.Current = this.differ.Last;
                     foreach (var change in applied)
                     {
-                        this.changes.Enqueue(change);
+                        this.changes.Enqueue((change, started));
                     }
                 }
                 catch (OperationCanceledException)

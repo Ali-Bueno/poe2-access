@@ -54,6 +54,9 @@ namespace Poe2Accessibility.Services
         private ScanEntry? target;
         private List<Vector2>? route;
         private Task<(List<Vector2>? Route, bool Partial, bool Barrier)>? search;
+
+        /// <summary>The last search started, even one a lock change let go: a new one waits for it (rapid re-locks stacked them).</summary>
+        private Task? running;
         private int version;
         private long lockedAt;
         private long lastPing;
@@ -271,7 +274,7 @@ namespace Poe2Accessibility.Services
 
         private void StartSearch(Vector2 start, Vector2 end)
         {
-            if (this.search is { IsCompleted: false } || !this.catalog.TryLiveGrid(out var grid, out var row))
+            if (this.search is { IsCompleted: false } || this.running is { IsCompleted: false } || !this.catalog.TryLiveGrid(out var grid, out var row))
             {
                 return;
             }
@@ -291,6 +294,7 @@ namespace Poe2Accessibility.Services
                 var barrier = route is { Count: > 0 } && EntityCatalog.BarrierBetween(barriers, route[^1], end);
                 return (route, route != null && (!reached || barrier), barrier);
             });
+            this.running = this.search;
         }
 
         private void CollectSearch()
@@ -301,6 +305,11 @@ namespace Poe2Accessibility.Services
             }
 
             this.search = null;
+            if (done.IsFaulted)
+            {
+                this.log.Warn($"Guide: route search failed ({done.Exception?.GetBaseException().Message}); heard as no route");
+            }
+
             var (found, partial, barrier) = done.IsCompletedSuccessfully ? done.Result : (null, false, false);
             if (found != null)
             {

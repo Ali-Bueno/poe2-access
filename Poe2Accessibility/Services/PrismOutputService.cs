@@ -258,8 +258,16 @@ namespace Poe2Accessibility.Services
             }
             finally
             {
-                backend.Dispose();
-                context.Dispose();
+                // An exception escaping this thread would end the host process.
+                try
+                {
+                    backend.Dispose();
+                    context.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    this.log.Error("PRISM shutdown failed", ex);
+                }
             }
         }
 
