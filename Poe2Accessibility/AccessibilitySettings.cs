@@ -18,7 +18,7 @@ namespace Poe2Accessibility
         public bool AnnounceArea = true;
         public bool VerboseLogging = false;
 
-        /// <summary>Language of the mod's own phrases: "auto" follows the game's text language, or "en" / "es".</summary>
+        /// <summary>Language of the mod's own phrases: "auto" follows the game's text language, or a code of <see cref="Localization.Languages"/>.</summary>
         public string Language = "auto";
 
         [JsonConverter(typeof(StringEnumConverter))]

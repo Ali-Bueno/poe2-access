@@ -43,6 +43,9 @@
     <!-- Named tiles (exits) for areas GameHelper's Radar table lacks; same format as its important_tgt_files.txt. -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\landmarks.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\area-names.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
+    <!-- The mod's phrases in the game's other languages (tools/localization/phrases.py keeps them in step with the code). -->
+    <ItemGroup><_PhraseTables Include="$(MSBuildProjectDirectory)\catalog\lang\*.json" /></ItemGroup>
+    <Copy SourceFiles="@(_PhraseTables)" DestinationFolder="$(PluginDeployDir)catalog\lang" SkipUnchangedFiles="true" />
     <!-- Currency item names for inline item art in legends (tools/Poe2UiExtract item-names). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\item-names.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\item-names.json')" />
     <!-- The dat columns names are read from, found again by tools/Poe2UiExtract dat-columns (the launcher, after a patch). -->

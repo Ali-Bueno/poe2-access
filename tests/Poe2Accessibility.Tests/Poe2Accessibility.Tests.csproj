@@ -44,6 +44,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\WallBumpDetector.cs" Link="Plugin\WallBumpDetector.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\UiSemantics.Nearest.cs" Link="Plugin\UiSemantics.Nearest.cs" />
     <Compile Include="..\..\Poe2Accessibility\Localization.cs" Link="Plugin\Localization.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Phrase.cs" Link="Plugin\Phrase.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.cs" Link="Plugin\Announcements.cs" />
     <Compile Include="..\..\Poe2Accessibility\Models\AccessibleUiNode.cs" Link="Plugin\AccessibleUiNode.cs" />
     <Compile Include="..\..\external\GameHelper2\GameHelper\RemoteEnums\GameStateTypes.cs" Link="Plugin\GameStateTypes.cs" />

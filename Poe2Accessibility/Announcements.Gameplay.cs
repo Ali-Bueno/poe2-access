@@ -376,7 +376,7 @@ namespace Poe2Accessibility
         public static string NearPlace(string name) => T($"near {name}", $"cerca de {name}");
 
         /// <summary>A straight-line distance in scanner steps: "a 35 pasos".</summary>
-        public static string StepsAway(int steps) => T(steps == 1 ? "1 step away" : $"{steps} steps away", steps == 1 ? "a 1 paso" : $"a {steps} pasos");
+        public static string StepsAway(int steps) => T($"{Steps(steps)} away", $"a {Steps(steps)}");
 
         /// <summary>A first sighting: "Nueva salida: Sierraclara", "Nuevo punto de control", "Jefe a la vista: El molinero hinchado".</summary>
         public static string Discovered(Services.ScanEntry entry, string near = "") => entry.Kind switch
@@ -438,10 +438,19 @@ namespace Poe2Accessibility
 
         public static string Percent(int value) => T($"{value} percent", $"{value} por ciento");
 
+        /// <summary>A language by its own name, as the game's language list shows it.</summary>
         public static string LanguageName(string code) => code switch
         {
             "es" => "Español",
             "en" => "English",
+            "pt" => "Português",
+            "fr" => "Français",
+            "de" => "Deutsch",
+            "ru" => "Русский",
+            "th" => "ไทย",
+            "ja" => "日本語",
+            "ko" => "한국어",
+            "zh-TW" => "繁體中文",
             _ => T("Same as the game", "Igual que el juego"),
         };
 

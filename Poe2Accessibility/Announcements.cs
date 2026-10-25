@@ -9,7 +9,20 @@ namespace Poe2Accessibility
     /// </summary>
     public static partial class Announcements
     {
-        private static string T(string en, string es) => Localization.IsSpanish ? es : en;
+        private static string T(string en, string es) => Localization.Language switch
+        {
+            "en" => en,
+            "es" => es,
+            _ => Localization.Translate(en) ?? en,
+        };
+
+        /// <summary>Interpolated phrases: other languages look the English composite format up ("Life {0} percent").</summary>
+        private static string T(Phrase en, Phrase es) => Localization.Language switch
+        {
+            "en" => en.Text(),
+            "es" => es.Text(),
+            _ => en.Text(Localization.Translate(en.Format)),
+        };
 
         public static string PluginReady => T("Path of Exile 2 accessibility ready.", "Accesibilidad de Path of Exile 2 lista.");
         public static string GameDetected => T("Game detected.", "Juego detectado.");
@@ -65,12 +78,11 @@ namespace Poe2Accessibility
         public static string LowLife(int percent) => T($"Life {percent} percent", $"Vida {percent} por ciento");
 
         /// <summary>The left stick's eight directions, by <see cref="Services.StickDirection"/> octant.</summary>
-        public static string[] StickDirections => Localization.IsSpanish ? StickDirectionsEs : StickDirectionsEn;
-
-        private static readonly string[] StickDirectionsEn = { "right", "up right", "up", "up left", "left", "down left", "down", "down right" };
-
-        private static readonly string[] StickDirectionsEs =
-            { "derecha", "arriba a la derecha", "arriba", "arriba a la izquierda", "izquierda", "abajo a la izquierda", "abajo", "abajo a la derecha" };
+        public static string[] StickDirections => new[]
+        {
+            T("right", "derecha"), T("up right", "arriba a la derecha"), T("up", "arriba"), T("up left", "arriba a la izquierda"),
+            T("left", "izquierda"), T("down left", "abajo a la izquierda"), T("down", "abajo"), T("down right", "abajo a la derecha"),
+        };
 
         public static string ScanCategoryName(Services.ScanCategory category) => category switch
         {
@@ -96,27 +108,32 @@ namespace Poe2Accessibility
         {
             if (steps < 1)
             {
-                return T($"{name}, here", $"{name}, aquí");
+                return Here(name);
             }
 
             var leg = then == null ? direction : T($"{direction} {legSteps}, then {then}", $"{direction} {legSteps}, luego {then}");
             if (partial && barrier)
             {
-                return T($"{name}, {steps} {(steps == 1 ? "step" : "steps")} away, a closed barrier cuts the way: {leg}",
-                         $"{name}, a {steps} {(steps == 1 ? "paso" : "pasos")}, una barrera cerrada corta el camino: {leg}");
+                return T($"{name}, {Steps(steps)} away, a closed barrier cuts the way: {leg}",
+                         $"{name}, a {Steps(steps)}, una barrera cerrada corta el camino: {leg}");
             }
 
             if (partial)
             {
                 // Steps are the straight line; the legs lead as close as the ground goes (a gate, a bridge further on).
-                return T($"{name}, {steps} {(steps == 1 ? "step" : "steps")} away, the way stops short: {leg}",
-                         $"{name}, a {steps} {(steps == 1 ? "paso" : "pasos")}, el camino se corta antes: {leg}");
+                return T($"{name}, {Steps(steps)} away, the way stops short: {leg}",
+                         $"{name}, a {Steps(steps)}, el camino se corta antes: {leg}");
             }
 
-            return T(
-                $"{name}, {steps} {(steps == 1 ? "step" : "steps")}, {leg}{(routed ? string.Empty : ", no route")}",
-                $"{name}, {steps} {(steps == 1 ? "paso" : "pasos")}, {leg}{(routed ? string.Empty : ", sin ruta")}");
+            var route = routed ? string.Empty : T(", no route", ", sin ruta");
+            return T($"{name}, {Steps(steps)}, {leg}{route}", $"{name}, {Steps(steps)}, {leg}{route}");
         }
+
+        /// <summary>Something within reach: "Una, here".</summary>
+        public static string Here(string name) => T($"{name}, here", $"{name}, aquí");
+
+        /// <summary>A count of scanner steps: "1 step", "12 steps".</summary>
+        public static string Steps(int steps) => steps == 1 ? T("1 step", "1 paso") : T($"{steps} steps", $"{steps} pasos");
 
         /// <summary>Another player: character name, then class ("Yarky, Witch").</summary>
         public static string OtherPlayer(string name, string characterClass) =>
@@ -138,7 +155,7 @@ namespace Poe2Accessibility
 
         internal static string RarityName(GameHelper.RemoteEnums.Rarity rarity) => rarity switch
         {
-            GameHelper.RemoteEnums.Rarity.Normal => "normal",
+            GameHelper.RemoteEnums.Rarity.Normal => T("normal", "normal"),
             GameHelper.RemoteEnums.Rarity.Magic => T("magic", "mágico"),
             GameHelper.RemoteEnums.Rarity.Rare => T("rare", "raro"),
             GameHelper.RemoteEnums.Rarity.Unique => T("unique", "único"),
@@ -150,67 +167,37 @@ namespace Poe2Accessibility
 
         public static string UnavailableState => T("unavailable", "no disponible");
 
-        /// <summary>Glyph file (same name in every controller family) → (Xbox name, PlayStation name).</summary>
-        private static readonly System.Collections.Generic.Dictionary<string, (string Xbox, string PlayStation)> Buttons = new()
-        {
-            ["Button4"] = ("A", "Cross"),
-            ["Button3"] = ("B", "Circle"),
-            ["Button1"] = ("X", "Square"),
-            ["Button2"] = ("Y", "Triangle"),
-            ["ShoulderButtonLeft"] = ("LB", "L1"),
-            ["ShoulderButtonRight"] = ("RB", "R1"),
-            ["TriggerLeft"] = ("LT", "L2"),
-            ["TriggerRight"] = ("RT", "R2"),
-            ["LeftStickButton2"] = ("left stick click", "L3"),
-            ["RightStickButton2"] = ("right stick click", "R3"),
-            ["LeftStick2"] = ("left stick", "left stick"),
-            ["RightStick2"] = ("right stick", "right stick"),
-            ["DPad"] = ("D-pad", "D-pad"),
-            ["DPadUp"] = ("D-pad up", "D-pad up"),
-            ["DPadDown"] = ("D-pad down", "D-pad down"),
-            ["DPadLeft"] = ("D-pad left", "D-pad left"),
-            ["DPadRight"] = ("D-pad right", "D-pad right"),
-            ["DPadUpDown"] = ("D-pad up and down", "D-pad up and down"),
-            ["DPadLeftRight"] = ("D-pad left and right", "D-pad left and right"),
-            ["MenuButton"] = ("Menu", "Options"),
-            ["ViewButton"] = ("View", "Create"),
-        };
-
-        /// <summary>Spoken controller button for a glyph file; unknown glyphs keep their file name.</summary>
+        /// <summary>Spoken controller button for a glyph file (same name in every controller family); unknown glyphs keep their file name.</summary>
         public static string ButtonName(string glyphFile, bool playStation) =>
-            Buttons.TryGetValue(glyphFile, out var names) ? LocalButton(glyphFile, names, playStation) : glyphFile;
+            ButtonNames(glyphFile) is { } names ? (playStation ? names.PlayStation : names.Xbox) : glyphFile;
 
-        private static string LocalButton(string glyphFile, (string Xbox, string PlayStation) names, bool playStation)
+        private static (string Xbox, string PlayStation)? ButtonNames(string glyphFile) => glyphFile switch
         {
-            if (Localization.IsSpanish && ButtonsEs.TryGetValue(glyphFile, out var es))
-            {
-                return playStation ? es.PlayStation : es.Xbox;
-            }
-
-            return playStation ? names.PlayStation : names.Xbox;
-        }
-
-        /// <summary>Spanish names where they differ from <see cref="Buttons"/> (letters and View stay).</summary>
-        private static readonly System.Collections.Generic.Dictionary<string, (string Xbox, string PlayStation)> ButtonsEs = new()
-        {
-            ["Button4"] = ("A", "Cruz"),
-            ["Button3"] = ("B", "Círculo"),
-            ["Button1"] = ("X", "Cuadrado"),
-            ["Button2"] = ("Y", "Triángulo"),
-            ["LeftStickButton2"] = ("clic del stick izquierdo", "L3"),
-            ["RightStickButton2"] = ("clic del stick derecho", "R3"),
-            ["LeftStick2"] = ("stick izquierdo", "stick izquierdo"),
-            ["RightStick2"] = ("stick derecho", "stick derecho"),
-            ["DPad"] = ("cruceta", "cruceta"),
-            ["DPadUp"] = ("cruceta arriba", "cruceta arriba"),
-            ["DPadDown"] = ("cruceta abajo", "cruceta abajo"),
-            ["DPadLeft"] = ("cruceta izquierda", "cruceta izquierda"),
-            ["DPadRight"] = ("cruceta derecha", "cruceta derecha"),
-            ["DPadUpDown"] = ("cruceta arriba y abajo", "cruceta arriba y abajo"),
-            ["DPadLeftRight"] = ("cruceta izquierda y derecha", "cruceta izquierda y derecha"),
-            ["MenuButton"] = ("Menu", "Opciones"),
-            ["ViewButton"] = ("View", "Crear"),
+            "Button4" => ("A", T("Cross", "Cruz")),
+            "Button3" => ("B", T("Circle", "Círculo")),
+            "Button1" => ("X", T("Square", "Cuadrado")),
+            "Button2" => ("Y", T("Triangle", "Triángulo")),
+            "ShoulderButtonLeft" => ("LB", "L1"),
+            "ShoulderButtonRight" => ("RB", "R1"),
+            "TriggerLeft" => ("LT", "L2"),
+            "TriggerRight" => ("RT", "R2"),
+            "LeftStickButton2" => (T("left stick click", "clic del stick izquierdo"), "L3"),
+            "RightStickButton2" => (T("right stick click", "clic del stick derecho"), "R3"),
+            "LeftStick2" => Both(T("left stick", "stick izquierdo")),
+            "RightStick2" => Both(T("right stick", "stick derecho")),
+            "DPad" => Both(T("D-pad", "cruceta")),
+            "DPadUp" => Both(T("D-pad up", "cruceta arriba")),
+            "DPadDown" => Both(T("D-pad down", "cruceta abajo")),
+            "DPadLeft" => Both(T("D-pad left", "cruceta izquierda")),
+            "DPadRight" => Both(T("D-pad right", "cruceta derecha")),
+            "DPadUpDown" => Both(T("D-pad up and down", "cruceta arriba y abajo")),
+            "DPadLeftRight" => Both(T("D-pad left and right", "cruceta izquierda y derecha")),
+            "MenuButton" => ("Menu", T("Options", "Opciones")),
+            "ViewButton" => ("View", T("Create", "Crear")),
+            _ => null,
         };
+
+        private static (string Xbox, string PlayStation) Both(string name) => (name, name);
 
         public static string Empty => T("empty", "vacío");
 
@@ -537,72 +524,95 @@ namespace Poe2Accessibility
 
         /// <summary>
         ///     GameHelper Radar's labels are notes players wrote in English ("Stairs Up", "Crop Circle (Skill Gem Level 4)"):
-        ///     in Spanish their common words and reward notes are translated; names stay as written.
+        ///     in other languages their common words and reward notes are translated; names stay as written.
         /// </summary>
         public static string LandmarkLabel(string label)
         {
-            if (!Localization.IsSpanish)
+            if (Localization.Language == "en")
             {
                 return label;
             }
 
             var trimmed = label.Trim();
-            if (LandmarkWords.TryGetValue(trimmed, out var whole))
+            if (LandmarkWord(trimmed) is { } whole)
             {
                 return whole;
             }
 
-            foreach (var (pattern, replacement) in LandmarkNotes)
+            var replacements = LandmarkNoteTexts;
+            for (var i = 0; i < LandmarkNotes.Length; i++)
             {
-                trimmed = pattern.Replace(trimmed, replacement);
+                trimmed = LandmarkNotes[i].Replace(trimmed, replacements[i]);
             }
 
             return trimmed;
         }
 
-        private static readonly System.Collections.Generic.Dictionary<string, string> LandmarkWords = new(System.StringComparer.OrdinalIgnoreCase)
+        private static string? LandmarkWord(string label) => label.ToLowerInvariant() switch
         {
-            ["Boss"] = "Jefe",
-            ["Bosses"] = "Jefes",
-            ["Boss stairs"] = "Escaleras del jefe",
-            ["Stairs"] = "Escaleras",
-            ["Stairs Up"] = "Escaleras hacia arriba",
-            ["Stairs Down"] = "Escaleras hacia abajo",
-            ["Entrance"] = "Entrada",
-            ["Transition"] = "Paso a otra zona",
-            ["Beacon"] = "Baliza",
-            ["Ancient Seal"] = "Sello antiguo",
-            ["Looted Vault"] = "Cámara saqueada",
-            ["Rare Fight"] = "Combate con un monstruo raro",
-            ["Medallion"] = "Medallón",
-            ["Bell (Rewards)"] = "Campana (recompensas)",
-            ["Flask buff - Need key"] = "Mejora de frascos, necesita una llave",
-            ["Pillars - Buff choice"] = "Pilares, elige una mejora",
-            ["Rhoa - No reward?"] = "Rhoa, quizá sin recompensa",
-            ["To Devourer"] = "Hacia el Devorador",
-            ["Arena / Hunting Grounds"] = "Arena o coto de caza",
-            ["Forgotten Corpses"] = "Cadáveres olvidados",
-            ["Forgotten Riches"] = "Riquezas olvidadas",
+            "boss" => T("Boss", "Jefe"),
+            "bosses" => T("Bosses", "Jefes"),
+            "boss stairs" => T("Boss stairs", "Escaleras del jefe"),
+            "stairs" => T("Stairs", "Escaleras"),
+            "stairs up" => T("Stairs Up", "Escaleras hacia arriba"),
+            "stairs down" => T("Stairs Down", "Escaleras hacia abajo"),
+            "entrance" => T("Entrance", "Entrada"),
+            "transition" => T("Transition", "Paso a otra zona"),
+            "beacon" => T("Beacon", "Baliza"),
+            "ancient seal" => T("Ancient Seal", "Sello antiguo"),
+            "looted vault" => T("Looted Vault", "Cámara saqueada"),
+            "rare fight" => T("Rare Fight", "Combate con un monstruo raro"),
+            "medallion" => T("Medallion", "Medallón"),
+            "bell (rewards)" => T("Bell (Rewards)", "Campana (recompensas)"),
+            "flask buff - need key" => T("Flask buff - Need key", "Mejora de frascos, necesita una llave"),
+            "pillars - buff choice" => T("Pillars - Buff choice", "Pilares, elige una mejora"),
+            "rhoa - no reward?" => T("Rhoa - No reward?", "Rhoa, quizá sin recompensa"),
+            "to devourer" => T("To Devourer", "Hacia el Devorador"),
+            "arena / hunting grounds" => T("Arena / Hunting Grounds", "Arena o coto de caza"),
+            "forgotten corpses" => T("Forgotten Corpses", "Cadáveres olvidados"),
+            "forgotten riches" => T("Forgotten Riches", "Riquezas olvidadas"),
+            _ => null,
         };
 
-        private static readonly (System.Text.RegularExpressions.Regex Pattern, string Replacement)[] LandmarkNotes =
+        private static readonly System.Text.RegularExpressions.Regex[] LandmarkNotes =
         {
-            (new(@"Support [Gg]em Level (\d+) and Flasks"), "gema de apoyo de nivel $1 y frascos"),
-            (new(@"Support [Gg]em Level (\d+)"), "gema de apoyo de nivel $1"),
-            (new(@"Support [Gg]em"), "gema de apoyo"),
-            (new(@"Skill Gem Level (\d+)"), "gema de habilidad de nivel $1"),
-            (new(@"Spirit Gem Level (\d+)"), "gema de espíritu de nivel $1"),
-            (new(@"(\d+) Spirit"), "$1 de espíritu"),
-            (new(@"\+(\d+) Max Life"), "+$1 de vida máxima"),
-            (new(@"\+(\d+) Passives?"), "+$1 puntos de pasiva"),
-            (new(@"(\d+)% Cold Res"), "$1% de resistencia al frío"),
-            (new(@"(\d+)% Fire Res"), "$1% de resistencia al fuego"),
-            (new(@"(\d+)% Lightning Res"), "$1% de resistencia al rayo"),
-            (new(@"(\d+)% Chaos Res"), "$1% de resistencia al caos"),
-            (new(@"Res Ring"), "anillo de resistencia"),
-            (new(@"\(waypoint\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase), "(punto de ruta)"),
-            (new(@"Salvaging Bench"), "mesa de reciclaje"),
-            (new(@" - "), ", "),
+            new(@"Support [Gg]em Level (\d+) and Flasks"),
+            new(@"Support [Gg]em Level (\d+)"),
+            new(@"Support [Gg]em"),
+            new(@"Skill Gem Level (\d+)"),
+            new(@"Spirit Gem Level (\d+)"),
+            new(@"(\d+) Spirit"),
+            new(@"\+(\d+) Max Life"),
+            new(@"\+(\d+) Passives?"),
+            new(@"(\d+)% Cold Res"),
+            new(@"(\d+)% Fire Res"),
+            new(@"(\d+)% Lightning Res"),
+            new(@"(\d+)% Chaos Res"),
+            new(@"Res Ring"),
+            new(@"\(waypoint\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase),
+            new(@"Salvaging Bench"),
+            new(@" - "),
+        };
+
+        /// <summary>The replacement of each <see cref="LandmarkNotes"/> pattern, in the same order.</summary>
+        private static string[] LandmarkNoteTexts => new[]
+        {
+            T("support gem level $1 and flasks", "gema de apoyo de nivel $1 y frascos"),
+            T("support gem level $1", "gema de apoyo de nivel $1"),
+            T("support gem", "gema de apoyo"),
+            T("skill gem level $1", "gema de habilidad de nivel $1"),
+            T("spirit gem level $1", "gema de espíritu de nivel $1"),
+            T("$1 spirit", "$1 de espíritu"),
+            T("+$1 maximum life", "+$1 de vida máxima"),
+            T("+$1 passive points", "+$1 puntos de pasiva"),
+            T("$1% cold resistance", "$1% de resistencia al frío"),
+            T("$1% fire resistance", "$1% de resistencia al fuego"),
+            T("$1% lightning resistance", "$1% de resistencia al rayo"),
+            T("$1% chaos resistance", "$1% de resistencia al caos"),
+            T("resistance ring", "anillo de resistencia"),
+            T("(waypoint)", "(punto de ruta)"),
+            T("salvaging bench", "mesa de reciclaje"),
+            ", ",
         };
 
         /// <summary>A text too long to say at once: how many paragraphs it has and how to read them.</summary>

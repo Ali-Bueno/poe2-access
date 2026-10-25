@@ -86,3 +86,15 @@ files, nothing to install), adds only the accessibility plugin (dll, PRISM, cata
 `LEEME.txt` (Spanish instructions), the controls doc and a stop shortcut. No game sounds are shipped: the launcher
 regenerates them, and the catalogs, from the tester's install (`oo2core.dll` ships for bundle reading). About 43 MB zipped. `dist/` is gitignored; publishing a release stays a
 manual decision.
+
+## localization — the mod's phrases in the game's other languages
+Spoken strings are `T(english, spanish)` calls in `Poe2Accessibility/Announcements*.cs`; pt, fr, de, ru, th, ja, ko and
+zh-TW look the English text up in `Poe2Accessibility/catalog/lang/<code>.json` (an interpolated phrase by its composite
+format, "Life {0} percent", built at run time by `Phrase`). A missing entry is spoken in English.
+```
+py tools/localization/phrases.py check            # missing, stale and placeholder-mismatched entries per language
+py tools/localization/phrases.py missing fr       # {english: spanish} still to translate
+py tools/localization/phrases.py merge fr new.json  # add translations, drop stale entries
+py tools/localization/phrases.py leaks            # holes that carry literal text (an English word would leak)
+```
+Run `check` after changing any phrase. A plural is two phrases ("1 step" / "{0} steps"), never a literal inside a hole.

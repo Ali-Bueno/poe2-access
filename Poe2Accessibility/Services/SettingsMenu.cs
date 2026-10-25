@@ -54,7 +54,7 @@ namespace Poe2Accessibility.Services
             Number(nameof(AccessibilitySettings.EnemyVolume), 0, 200, 25),
             Number(nameof(AccessibilitySettings.BeaconVolume), 0, 200, 25),
             Number(nameof(AccessibilitySettings.ObjectVolume), 0, 200, 25),
-            Choice(nameof(AccessibilitySettings.Language), "auto", "es", "en"),
+            Choice(nameof(AccessibilitySettings.Language), new[] { "auto" }.Concat(Localization.Languages).ToArray()),
             Choice(nameof(AccessibilitySettings.SpeechStatusBegins), SpeechPriority.Levels),
             Choice(nameof(AccessibilitySettings.SpeechStatusEnds), SpeechPriority.Levels),
             Choice(nameof(AccessibilitySettings.SpeechLifeAndMana), SpeechPriority.Levels),
