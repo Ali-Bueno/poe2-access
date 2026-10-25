@@ -21,7 +21,8 @@
   host): starts PoE2 through Steam if needed and a hidden, renamed GameHelper copy without UAC
   (`__COMPAT_LAYER=RunAsInvoker`), no console, no update check, no prompt; `restart`/`stop` for testing; errors
   in `Poe2Access.log` + a message box. Dev: `py -B tools/computer_use/launch.py all|host|stop` wraps it.
-- **Test package:** `tools/package/New-TestPackage.ps1` → `dist/Poe2Access-test-<date>.zip` (self-contained, unzip and
+- **Test package:** `tools/package/New-TestPackage.ps1` → `dist/Poe2Access-test-<date>.zip` (top folder: `Poe2Access.exe`, LEEME, controls, stop
+  shortcut; everything else in `app/`; self-contained, unzip and
   run; sounds extracted from the tester's install on the first start); `tools/README.md`.
 - **Repository:** private GitHub `Ali-Bueno/poe2-access` (created 2026-10-23).
 - **Unit tests (pure logic, no game):** `dotnet run --project tests/Poe2Accessibility.Tests` (screen differ, text edits, chat, gestures, scanner, alarms, enemy cues, radar).
@@ -114,7 +115,8 @@
 | Target name on right-stick aim, crosshair beep | done (code) | GameHelper `MouseOverEntity`; never heard live yet (no monster under the aim during the bot test) |
 | Harmful states (Urge speech) | done (code) | `StatusWatch` (buff ids by stem; every new id logged "Player buff seen"); the mod's heartbeat was removed (the game has its own, user 2026-10-24) |
 | Game sounds for loot/chests/exits/waypoints | done (live) | `ObjectSounds` + `GameSounds`; each item its own drop sound from the game's tables (`ItemDropSounds`, `catalog/item-sounds.json`: scroll → `Scroll_Drop_01`); up to four items at once, pitch up/down by screen side; portal = the portal scroll's (`docs/research/game-audio.md`) |
-| Spanish/English mod phrases, localized area names | done (live) | `Localization` (game ini), `catalog/area-names.json` from WorldAreas (10 languages) |
+| Mod phrases in the game's 10 languages, localized area names | done (live: es, fr) | `Localization` (game ini or setting) + `Phrase` handler: other languages look the English composite format up in `catalog/lang/<code>.json` (406 phrases, game terms checked against ClientStrings); `tools/localization/phrases.py check`; `catalog/area-names.json` from WorldAreas |
+| Named places walked into and props in reach (D2R) | done (live, town + Clearfell) | `PlaceNarrator`/`PlaceMap`/`PlaceTracker`, `catalog/places.json` from `Poe2UiExtract places` (2949 named tiles, tile and room props): "carro", "yunque", "campamento"; scanner category Lugares; tile props turned by RotationSelector (only 3 measured); `docs/research/places.md` |
 | Pre-game hints, delete/creation screens, edit done | done (live) | hints on entry, only new ones after; "¿Estás seguro…? yarkey… cancelar, botón, 1 de 2"; "Zq, edición terminada" |
 | NPC dialogue options read one by one | done (live) | `UiSemantics.OptionLists`: confirm glyph marks the option; D-pad left reaches the lore column; a heard topic (drawn grey) reads "Presentación, atenuado, 1 de 8" (Una, 2026-10-24) |
 | Spoken settings menu + sound glossary (hold L3 1.5 s) | done (live) | `SettingsMenu`, `SoundGlossary`; 26 settings + 23 sounds |
@@ -303,10 +305,10 @@
 
 ## Next step
 Characters: "kehgan" (Monk, level 2, Clearfell Encampment), "yarkbruja" (Witch, level 3, Clearfell Encampment), "yarkey"
-(Mercenary, level 4, Mud Burrow). Next: user test of the 2026-10-24 batch (dodge timed from the game files before the first
-blow and per swing, D2R wall tones, "what A uses", weapon swap, map / chat / player menu, terms of use by paragraph,
-first-start login); a rare's warning with a file-timed attack is not heard live yet. Monster modifiers on a magic/rare
-monster are still unheard; the remaining fragile parts are in `docs/compatibility.md`,
+(Mercenary, level 4, Mud Burrow). Next: user test of the 2026-10-25 batch (places and the Lugares category, the other
+languages, projectile dodge timing, quieter area loads, the new package layout) and of the 2026-10-24 one (wall tones,
+"what A uses", weapon swap, map / chat / player menu). Places: measure the other tile rotation selectors and place the
+rooms of generated areas (`docs/research/places.md`, Open). The remaining fragile parts are in `docs/compatibility.md`,
 "Still fragile" (run the dev command `layout` at login, in game, in the options and in the inventory after each change).
 
 ## Known issues / open questions
