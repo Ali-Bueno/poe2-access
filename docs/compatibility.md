@@ -116,5 +116,7 @@ What a patch can still move with nothing to find it again, most player-visible f
     "no encuentro el estado del juego (GameHelper necesita una actualización)").
 11. **Tile grid** (`PlaceNarrator`: GameHelper's `TerrainStruct.TileDetailsPtr` +0x28, `TileStructure` tile file +0x8,
     ids +0x34/+0x35, `RotationSelector` +0x36, 0x38 bytes each): a moved field names no places or puts props at wrong
-    spots. Check with the `tiles` dev command in the Act 1 town: `Encampment_01.tdt` with its (0,0) sub-tile at grid
+    spots. Now noticed, not yet found again: each map build checks that half the sub-tiles name a `.tdt` file and nearly
+    all carry a rotation selector 0..7 (`PlaceNarrator.LayoutFits`; "Layout: tile grid where measured", else said as
+    missing: "los lugares del mapa"). Check with the `tiles` dev command in the Act 1 town: `Encampment_01.tdt` with its (0,0) sub-tile at grid
     (68, 138), selector 3, and the log line "6 props now". `catalog/places.json` itself is regenerated after each patch.

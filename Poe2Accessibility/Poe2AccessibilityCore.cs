@@ -210,7 +210,10 @@ namespace Poe2Accessibility
                 this.enemyCues = new EnemyCues(this.audio, memory, this.log);
                 this.radar = new Radar(this.audio, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.nearby = new ProximityNarrator(this.entities, this.output);
-                this.places = new PlaceNarrator(PlaceCatalog.Load(Path.Join(this.DllDirectory, "catalog", "places.json"), this.log), memory, this.output, this.log);
+                this.places = new PlaceNarrator(PlaceCatalog.Load(Path.Join(this.DllDirectory, "catalog", "places.json"), this.log), memory, this.output, this.log)
+                {
+                    Report = this.compatibility,
+                };
                 this.entities.PlaceEntries = height => this.places?.Entries(height) ?? Array.Empty<ScanEntry>();
                 this.wallBump = new WallBump(this.audio) { HeldStill = () => this.narrator?.RepeatLesson() };
                 this.wallTones = new WallTones(this.audio);

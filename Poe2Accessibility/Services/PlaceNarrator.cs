@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
+    using System.Threading;
     using System.Threading.Tasks;
     using GameHelper;
     using GameHelper.RemoteObjects.Components;
@@ -35,6 +36,9 @@ namespace Poe2Accessibility.Services
         /// <summary>More sub-tiles than this is a broken read, not an area (the largest maps hold a few tens of thousands).</summary>
         private const int MaxSubTiles = 1 << 20;
 
+        /// <summary>A rotation selector names one of the eight turns and mirrors of a tile (0.5.5e: 0..7 seen).</summary>
+        private const int MaxRotation = 7;
+
         private readonly PlaceCatalog catalog;
         private readonly HostMemoryReader memory;
         private readonly IAccessibilityOutputService output;
@@ -47,6 +51,9 @@ namespace Poe2Accessibility.Services
         private long lastPoll = long.MinValue / 2;
         private long lastAnchorPoll = long.MinValue / 2;
 
+        /// <summary>The last build's verdict on the tile grid layout (1 fits, -1 does not, 0 none new), for the frame thread.</summary>
+        private int tileLayout;
+
         public PlaceNarrator(PlaceCatalog catalog, HostMemoryReader memory, IAccessibilityOutputService output, PluginLog log)
         {
             this.catalog = catalog;
@@ -54,6 +61,9 @@ namespace Poe2Accessibility.Services
             this.output = output;
             this.log = log;
         }
+
+        /// <summary>Where a tile grid that no longer reads after a game update is reported (docs/compatibility.md).</summary>
+        public CompatibilityReport? Report { get; set; }
 
         /// <summary>A new area: its map is built again from its tiles.</summary>
         public void Reset()
@@ -138,6 +148,7 @@ namespace Poe2Accessibility.Services
             {
                 var timer = System.Diagnostics.Stopwatch.StartNew();
                 var placements = this.ReadPlacements(details, perRow);
+                Interlocked.Exchange(ref this.tileLayout, LayoutFits(placements, count) ? 1 : -1);
                 if (placements.Count == 0)
                 {
                     return null;
@@ -175,6 +186,17 @@ namespace Poe2Accessibility.Services
             return placements;
         }
 
+        /// <summary>
+        ///     GameHelper's tile grid still reads (TileStructure, TgtFileStruct): half the sub-tiles name a tile file and
+        ///     nearly all of those carry a rotation selector in range (the Act 1 town: 990 of 990 sub-tiles, 2026-10-25).
+        /// </summary>
+        private static bool LayoutFits(IReadOnlyList<TilePlacement> placements, int subTiles)
+        {
+            var named = placements.Count(placement => placement.Path.EndsWith(".tdt", StringComparison.Ordinal));
+            var turned = placements.Count(placement => placement.Rotation is >= 0 and <= MaxRotation);
+            return named * 2 >= subTiles && turned * 10 >= placements.Count * 9;
+        }
+
         private string TilePath(Dictionary<IntPtr, string> paths, IntPtr tgtFile)
         {
             if (!paths.TryGetValue(tgtFile, out var path))
@@ -200,6 +222,16 @@ namespace Poe2Accessibility.Services
             if (count <= 0 || terrain.TotalTiles.X <= 0)
             {
                 return null;
+            }
+
+            switch (Interlocked.Exchange(ref this.tileLayout, 0))
+            {
+                case 1:
+                    this.Report?.Found("tile grid");
+                    break;
+                case -1:
+                    this.Report?.Missing("tile grid");
+                    break;
             }
 
             if (this.building is { IsCompleted: true } built)

@@ -380,6 +380,8 @@ namespace Poe2Accessibility
             "skill bar" => T("the skill bar", "la barra de habilidades"),
             "area name" => T("the area names", "los nombres de las zonas"),
             "combo boxes" => T("the drop-down lists", "las listas desplegables"),
+            "image textures" => T("the button and currency icons", "los iconos de botones y monedas"),
+            "tile grid" => T("the places on the map", "los lugares del mapa"),
             "game states" => T("the game's state (GameHelper needs an update)", "el estado del juego (GameHelper necesita una actualización)"),
             _ => part,
         };
