@@ -28,7 +28,8 @@ first; both wrap and empty categories are skipped. The category is named only wh
 
 - Categories: **quest** (what the quest tracker names: the exit to the area it asks for, the boss to kill, the
   NPC to talk to), exits (area transitions and named places, in the game's language; "Donde moriste" after a
-  death, while that area instance lasts), **unexplored** (where
+  death, while that area instance lasts), **places** (named map pieces and props from the game's terrain files:
+  bridges, stairs, doors, ruins, graveyards, a cart, a well, an anvil; [places](research/places.md)), **unexplored** (where
   ground never seen begins, one entry per stretch and direction, nearest first: "Zona sin explorar, 7 pasos,
   izquierda"; ground within about 60 cells of where you walked counts as seen, and a wall with no way through
   hides what lies behind it; forgotten on leaving the area), waypoints and
@@ -140,6 +141,10 @@ left; a topic already heard (drawn grey) is read "atenuado": "Presentación, ate
   back, and again when you push the stick and the character does not move.
 - **Nearby:** what you walk up to or stand on is named once: checkpoints, NPCs, the stash, chests, items, exits
   ([nearby](proximity.md)); the same thing is named again only after a minute.
+- **Places:** walking into a named part of the map says it once, after what is being said ("puente", "escaleras",
+  "puerta"); a bridge of several pieces is one. Then the nearest named prop within two or three steps ("carro",
+  "pozo", "yunque", "tablón de anuncios"), again after going six steps away. Setting "Nombrar los lugares por los
+  que pasas".
 - **What A uses:** when the game moves its interaction target (the label it marks with the A button) to something
   else, it is named with the button: "Finn, A", then "Alijo, A" one step further. A name said this way is not said
   again by the nearby list. Another player must hold the target a second to be named (people walk past). The first
