@@ -145,11 +145,17 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public string? DescribeItem(IntPtr itemElement, string tooltipTitle = "")
         {
-            return this.DescribeItemEntity(this.EntityOf(itemElement), tooltipTitle);
+            return this.Describe(this.EntityOf(itemElement), tooltipTitle, true);
         }
 
         /// <summary>Same for an item entity (a ground item's WorldItem points to one); null when it is not an item.</summary>
-        public string? DescribeItemEntity(IntPtr entity, string tooltipTitle = "")
+        public string? DescribeItemEntity(IntPtr entity, string tooltipTitle = "") => this.Describe(entity, tooltipTitle, false);
+
+        /// <summary>
+        ///     Only a tooltip's title checks where base names are read (<see cref="BaseNames"/>): a ground item's label
+        ///     is not known to hold the base name.
+        /// </summary>
+        private string? Describe(IntPtr entity, string tooltipTitle, bool fromTooltip)
         {
             if (entity == IntPtr.Zero || !this.IsItemEntity(entity))
             {
@@ -161,7 +167,7 @@ namespace Poe2Accessibility.Services
             var name = string.Empty;
             if (item.TryGetComponent<Base>(out var baseComponent))
             {
-                if (rarity is Rarity.Normal or Rarity.Magic)
+                if (fromTooltip && rarity is Rarity.Normal or Rarity.Magic)
                 {
                     this.CheckBaseName(baseComponent, tooltipTitle); // their titles hold the base name
                 }
