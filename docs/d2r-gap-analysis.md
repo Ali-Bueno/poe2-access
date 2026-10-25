@@ -39,7 +39,7 @@ uses with a dry-flask warning (D2R belt), the explored share of the reachable gr
 crosshair repeat rule, the 500 ms status-end hold, minions kept out of enemy cues (friendly), the guide re-planning
 every 700 ms (a moving target and straying are both covered).
 
-Next after these: new-character tutorial (MB91, SC20-SC31, H / L), passive-tree node navigation (MB49, H / L), monster plate rank and mods (MB70, H / L, needs RE), door loops (NA8, NA9), NPC quest bell (NA13).
+Checked 2026-10-25 as already present: the NPC quest bell (NA13: a bell and "Renly, con misión"; the marker field is found again after a patch), passive-tree neighbours (MB49, adapted: each node read with where its links go), the monster plate's rank and mods after the aimed target's name (MB70, `MonsterMods`). Left: door loops (NA8, NA9: PoE2 doors are not in the walkable grid, needs RE of the door objects first) and the new-character tutorial (MB91: PoE2 has its own, whose lessons are read whole).
 
 ## Navigation and sounds
 
