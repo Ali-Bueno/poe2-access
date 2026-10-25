@@ -9,7 +9,8 @@ namespace Poe2Accessibility.Services
     ///     remarks, system notices, whispers and party. Global ('#') and trade ('$') channels are other players'
     ///     chatter and stay silent; the same line twice within a few seconds is said once. The chat layer's message list is its descendant
     ///     with the most children; lines present when the watcher first sees it are history, not news, and the
-    ///     game rebuilds the line elements, so new lines come from the text sequence (<see cref="ChatDiff"/>).
+    ///     game rebuilds the line elements, so new lines come from the text sequence (<see cref="ChatDiff"/>). A new
+    ///     channel chosen in the panel's channel list is said once the list closes on it.
     /// </summary>
     public sealed class ChatWatcher
     {
@@ -24,6 +25,7 @@ namespace Poe2Accessibility.Services
         private static readonly char[] PlayerChannels = { '#', '$' };
 
         private readonly UiElementReader elements;
+        private readonly ComboBoxReader comboBoxes;
         private readonly Action<string> speak;
         private readonly Stopwatch sincePoll = Stopwatch.StartNew();
         private readonly Dictionary<string, long> spokenAt = new();
@@ -31,10 +33,13 @@ namespace Poe2Accessibility.Services
         private IntPtr layer;
         private IntPtr list;
         private bool? panelShown;
+        private IntPtr channelList;
+        private string channel = string.Empty;
 
-        public ChatWatcher(UiElementReader elements, Action<string> speak)
+        public ChatWatcher(UiElementReader elements, ComboBoxReader comboBoxes, Action<string> speak)
         {
             this.elements = elements;
+            this.comboBoxes = comboBoxes;
             this.speak = speak;
         }
 
@@ -43,6 +48,9 @@ namespace Poe2Accessibility.Services
         ///     ("Chat. Mantén presionado LT para chatear", 2026-10-24); null keeps it silent.
         /// </summary>
         public Action<string>? PanelChanged { get; set; }
+
+        /// <summary>Another channel chosen for what the player types ("Channel: Trade"); null keeps it silent.</summary>
+        public Action<string>? ChannelChanged { get; set; }
 
         /// <summary>Per frame with the current chat layer (zero outside the game).</summary>
         public void Tick(IntPtr chatLayer)
@@ -53,6 +61,8 @@ namespace Poe2Accessibility.Services
                 this.list = IntPtr.Zero;
                 this.lines.Clear();
                 this.panelShown = null;
+                this.channelList = IntPtr.Zero;
+                this.channel = string.Empty;
             }
 
             if (this.layer == IntPtr.Zero || this.sincePoll.ElapsedMilliseconds < PollMs)
@@ -62,6 +72,7 @@ namespace Poe2Accessibility.Services
 
             this.sincePoll.Restart();
             this.TrackPanel();
+            this.TrackChannel();
             var baseline = this.list == IntPtr.Zero;
             if (baseline && !this.TryFindList())
             {
@@ -106,6 +117,52 @@ namespace Poe2Accessibility.Services
             }
 
             this.panelShown = hint != null;
+        }
+
+        /// <summary>The channel list is a direct child of the layer; its committed entry is the channel (Local, Global, Party…).</summary>
+        private void TrackChannel()
+        {
+            if (this.channelList == IntPtr.Zero)
+            {
+                this.channelList = this.FindChannelList();
+                if (this.channelList == IntPtr.Zero)
+                {
+                    return;
+                }
+            }
+
+            var combo = this.comboBoxes.Read(this.channelList);
+            if (combo.Count == 0)
+            {
+                this.channelList = IntPtr.Zero;
+                return;
+            }
+
+            if (combo.Selected.Length > 0 && combo.Selected != this.channel)
+            {
+                if (this.channel.Length > 0)
+                {
+                    this.ChannelChanged?.Invoke(Announcements.ChatChannel(combo.Selected));
+                }
+
+                this.channel = combo.Selected;
+            }
+        }
+
+        private IntPtr FindChannelList()
+        {
+            if (this.elements.TryReadElement(this.layer, out var root))
+            {
+                foreach (var child in this.elements.ReadChildren(root))
+                {
+                    if (this.elements.TryReadElement(child, out var info) && this.elements.HasComboBoxParts(info))
+                    {
+                        return child;
+                    }
+                }
+            }
+
+            return IntPtr.Zero;
         }
 
         /// <summary>

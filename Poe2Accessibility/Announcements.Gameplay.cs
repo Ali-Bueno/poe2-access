@@ -241,6 +241,9 @@ namespace Poe2Accessibility
 
         public static string ChatHidden => T("Chat hidden", "Chat oculto");
 
+        /// <summary>The chat channel chosen in its list (the game's own channel name).</summary>
+        public static string ChatChannel(string name) => T($"Channel: {name}", $"Canal: {name}");
+
         /// <summary>The large map over the world shown, with its hint ("Hold D-pad down to interact with the map").</summary>
         public static string MapShown(string hint) => hint.Length == 0 ? T("Map", "Mapa") : T($"Map. {hint}", $"Mapa. {hint}");
 

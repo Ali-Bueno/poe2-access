@@ -150,6 +150,15 @@ colour to apply …"), so the
   is one text "Name: message". Channels: `#` global, `$` trade (other players); NPC shouts
   ("Wounded Man: Reach... Clearfell..."), the character's own remarks ("Yarkidius: The dead rise
   again?…") and system notices ("AFK mode is now ON…") have no prefix.
+- MEASURED (2026-10-25, 0.5.5e): chat channel list = the chat layer's child 2, unnamed, parts `button`, `scrollbar`,
+  `textField` like the gateway combo, button click sounds. Its combo fields sit 0xC8 past the options combos'
+  (selected int64 +0x5E0, highlight +0x5F0, open byte +0x600, entries +0x750, entry qword 0 → std::wstring):
+  Local, Global, Grupo, Susurros, Comercio, Hermandad. The field (child 3) holds the channel prefix: "" Local,
+  `#` Global, `%` party, `@` whisper, `&` guild. Filter check boxes (X in typing mode; +0x60A checked) show or
+  hide a channel; Global's tooltip says "Conectado al canal 1 Español del chat Global" and Y on it writes
+  "/global 1" into the field. In typing mode A opens the system keyboard (Client.txt `OpenVirtualKeyboard`), Y
+  sends from the panel. The panel's focus labels came from a hidden "Modo inspección" text in another layer
+  until label searches stopped at the layer container.
 - MEASURED: pickup = A on the ground item; equip = X on the item in the inventory (tutorial prompts).
 
 ## Controller input as the game sees it

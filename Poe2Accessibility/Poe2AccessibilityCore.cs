@@ -185,7 +185,8 @@ namespace Poe2Accessibility
                 this.locator.Flags = this.flagBits;
                 var inventory = new InventoryReader(memory, elements) { Controls = this.controls, Report = this.compatibility };
                 this.inventoryReader = inventory;
-                this.semantics = new UiSemantics(memory, elements, catalog, new ComboBoxReader(elements, this.log), inventory);
+                var comboBoxes = new ComboBoxReader(elements, this.log);
+                this.semantics = new UiSemantics(memory, elements, catalog, comboBoxes, inventory);
                 this.semantics.TreeFields.Report = this.compatibility;
                 this.semantics.TreeFields.Log = message => this.log?.Info(message);
                 this.semantics.Trace = message => this.log.Debug(message);
@@ -276,7 +277,7 @@ namespace Poe2Accessibility
                     this.ApplySettings(changed);
                     this.settingsStore?.Save(changed);
                 };
-                this.chat = new ChatWatcher(elements, line =>
+                this.chat = new ChatWatcher(elements, comboBoxes, line =>
                 {
                     if (this.Settings.AnnounceChat)
                     {
@@ -285,6 +286,7 @@ namespace Poe2Accessibility
                 })
                 {
                     PanelChanged = text => this.output.Speak(text, true),
+                    ChannelChanged = text => this.output.Urge(text),
                 };
                 this.mapOverlay = new MapOverlayWatch(elements, text => this.output.Speak(text, true));
                 this.longText = new LongTextReader(elements, this.output);
@@ -441,6 +443,11 @@ namespace Poe2Accessibility
             var inGame = this.gameState.CurrentState == GameStateTypes.InGameState;
             var container = inGame ? this.locator.InGameLayerContainer(stateObject) : this.focus.CurrentRoot;
             this.focus.LayerContainer = container;
+            if (this.semantics != null)
+            {
+                this.semantics.LayerContainer = container;
+            }
+
             this.screen.SetRoot(container);
             var chatLayer = inGame ? this.locator.InGameChatLayer(stateObject) : IntPtr.Zero;
             this.screen.SetIgnoredElement(chatLayer);

@@ -58,6 +58,9 @@ namespace Poe2Accessibility.Services
         /// <summary>In game: inventory archetypes and panel titles apply (their fields mean something else pre-game).</summary>
         public bool InGame { get; set; }
 
+        /// <summary>The element whose children are the screen's layers: labels are never looked for past it.</summary>
+        public IntPtr LayerContainer { get; set; }
+
         public AccessibleUiNode? Describe(IntPtr address, bool hovered = false)
         {
             if (!this.elements.TryReadElement(address, out var info))
@@ -124,12 +127,18 @@ namespace Poe2Accessibility.Services
                 case UiRole.ComboBox:
                     value = this.ComboBoxValue(info, ownText);
                     valuePosition = this.ComboValuePosition(info, value);
-                    expanded = this.reader.TryRead<byte>(info.Address + this.elements.ComboBoxOpenFlagOffset, out var open) && open == 1;
+                    expanded = this.elements.IsComboBoxOpen(info.Address);
                     label = Humanise(info.Name);
                     break;
                 case UiRole.TextField:
                     value = ownText.Length > 0 ? ownText : this.FindDescendantText(info, CaptionSearchDepth, null);
                     label = this.FindRowLabel(info);
+                    if (label.Length == 0)
+                    {
+                        // A list right before the field picks where it goes (the chat's channel: "Global", then "#hello").
+                        label = this.PrecedingComboValue(info);
+                    }
+
                     if (label.Length == 0)
                     {
                         label = this.Placeholder(input != IntPtr.Zero ? input : address);
@@ -260,7 +269,7 @@ namespace Poe2Accessibility.Services
         private string ComboBoxValue(in UiElementReader.ElementInfo info, string ownText)
         {
             var combo = this.comboBoxes.Read(info.Address);
-            var open = this.reader.TryRead<byte>(info.Address + this.elements.ComboBoxOpenFlagOffset, out var flag) && flag == 1;
+            var open = this.elements.IsComboBoxOpen(info.Address);
             if (open && combo.IsOpenOnOtherEntry && combo.Highlighted.Length > 0)
             {
                 // List open and the user is on another entry: that entry is what matters now (the gateway list keeps
@@ -298,6 +307,21 @@ namespace Poe2Accessibility.Services
 
             var index = value == combo.Highlighted ? combo.HighlightIndex : value == combo.Selected ? combo.SelectedIndex : -1;
             return index >= 0 && index < combo.Count ? Announcements.ListPosition(index + 1, combo.Count) : string.Empty;
+        }
+
+        private string PrecedingComboValue(in UiElementReader.ElementInfo field)
+        {
+            if (!this.elements.TryReadElement(field.Raw.ParentPtr, out var parent))
+            {
+                return string.Empty;
+            }
+
+            var siblings = this.elements.ReadChildren(parent);
+            var index = Array.IndexOf(siblings, field.Address);
+            return index > 0 && this.elements.TryReadElement(siblings[index - 1], out var before) && before.IsVisibleFlag &&
+                this.InferRole(before, false) == UiRole.ComboBox
+                ? this.ComboBoxValue(before, string.Empty)
+                : string.Empty;
         }
 
         /// <summary>The game shows a value label next to some sliders; the rest only have the number in memory.</summary>
@@ -341,6 +365,11 @@ namespace Poe2Accessibility.Services
             if (name.EndsWith("button", StringComparison.Ordinal))
             {
                 return UiRole.Button;
+            }
+
+            if (this.elements.HasComboBoxParts(info))
+            {
+                return UiRole.ComboBox; // unnamed, with a button's click sound: the chat's channel list
             }
 
             var bySound = this.elements.DetectRoleBySound(info.Address);
@@ -448,6 +477,11 @@ namespace Poe2Accessibility.Services
             var child = info;
             foreach (var parent in this.elements.ReadAncestors(info, RowSearchHops))
             {
+                if (parent.Address == this.LayerContainer)
+                {
+                    break; // other layers (a hidden "Inspect Mode" beside the chat) label nothing in this one
+                }
+
                 var siblings = this.elements.ReadChildren(parent);
                 var index = Array.IndexOf(siblings, child.Address);
                 for (var i = index - 1; i >= 0; i--)
@@ -528,6 +562,11 @@ namespace Poe2Accessibility.Services
         {
             foreach (var ancestor in this.elements.ReadAncestors(info, maxHops))
             {
+                if (ancestor.Address == this.LayerContainer)
+                {
+                    break;
+                }
+
                 if (ancestor.Name.Length > 0 && !IsStructuralName(ancestor.Name))
                 {
                     return ancestor.Name;

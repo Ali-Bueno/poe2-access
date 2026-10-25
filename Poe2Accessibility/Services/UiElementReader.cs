@@ -43,6 +43,15 @@ namespace Poe2Accessibility.Services
         /// <summary>Host reads are all-or-nothing; objects are read in page-sized chunks so a short tail is tolerated.</summary>
         private const int ChunkBytes = 0x100;
 
+        /// <summary>How far a combo subclass's fields are looked for from the group's (the chat's channel list: 0xC8).</summary>
+        private const int SubclassFieldRadius = 0x100;
+
+        /// <summary>A combo box holds its parts and a label or two (four children seen).</summary>
+        private const int MaxComboBoxChildren = 8;
+
+        /// <summary>Control names of a combo box's parts (gateway and language lists, the chat's channel list; 0.5.5e).</summary>
+        private static readonly string[] ComboBoxParts = { "button", "scrollbar", "textField" };
+
         private static readonly int BaseSize = Unsafe.SizeOf<UiElementBaseOffset>();
 
         /// <summary>Enough bytes to cover the text fields of the label subclass (0x538 + 32 as measured; they can move).</summary>
@@ -53,6 +62,9 @@ namespace Poe2Accessibility.Services
             Math.Max(GameLayout.Image.TextureOffset, GameLayout.Image.AltTextureOffset) + IntPtr.Size);
 
         private readonly HostMemoryReader reader;
+
+        /// <summary>Combo field shift per element class (vtable), once proven on one of its controls.</summary>
+        private readonly Dictionary<IntPtr, int> comboBoxShifts = new();
 
         public UiElementReader(HostMemoryReader reader)
         {
@@ -294,10 +306,58 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Selected and highlighted indices plus raw 16-byte entries of a combo box (GameLayout.ComboBox); null when the shape is wrong.</summary>
         public (int SelectedIndex, int HighlightIndex, byte[][] Entries, byte[][] ParallelEntries)? ReadComboBoxState(IntPtr address) =>
-            this.ComboBoxAt(address, this.Controls?.Shift(ControlGroup.ComboBox, address, shift => this.ComboBoxFits(address, shift)) ?? 0);
+            this.ComboBoxAt(address, this.ComboBoxShift(address));
 
-        /// <summary>Where a combo box keeps its open flag (GameLayout.ComboBox.OpenFlagOffset, moved with the other combo fields).</summary>
-        public int ComboBoxOpenFlagOffset => GameLayout.ComboBox.OpenFlagOffset + (this.Controls?.Current(ControlGroup.ComboBox) ?? 0);
+        /// <summary>Whether the combo box's list is open (GameLayout.ComboBox.OpenFlagOffset, moved with the other combo fields).</summary>
+        public bool IsComboBoxOpen(IntPtr address) =>
+            this.reader.TryRead<byte>(address + GameLayout.ComboBox.OpenFlagOffset + this.ComboBoxShift(address), out var open) && open == 1;
+
+        /// <summary>A combo box by its parts, named or not: the drop button, the list's scrollbar and the value field.</summary>
+        public bool HasComboBoxParts(in ElementInfo info)
+        {
+            if (info.Raw.ChildrensPtr.Last.ToInt64() - info.Raw.ChildrensPtr.First.ToInt64() > MaxComboBoxChildren * IntPtr.Size)
+            {
+                return false;
+            }
+
+            var found = 0;
+            foreach (var child in this.ReadChildren(info))
+            {
+                var part = this.TryReadElement(child, out var childInfo) ? Array.IndexOf(ComboBoxParts, childInfo.Name) : -1;
+                found |= part >= 0 ? 1 << part : 0;
+            }
+
+            return found == (1 << ComboBoxParts.Length) - 1;
+        }
+
+        /// <summary>
+        ///     Where this combo's fields are: the group's shift, or the one found on it for a subclass that keeps more fields
+        ///     before them (the chat's channel list, 0xC8 further in 0.5.5e). Kept per class once a shift reads sensibly.
+        /// </summary>
+        private int ComboBoxShift(IntPtr address)
+        {
+            if (!this.reader.TryRead<IntPtr>(address, out var type) || type == IntPtr.Zero)
+            {
+                return this.Controls?.Current(ControlGroup.ComboBox) ?? 0;
+            }
+
+            if (this.comboBoxShifts.TryGetValue(type, out var known))
+            {
+                return known;
+            }
+
+            var shift = this.Controls?.Shift(ControlGroup.ComboBox, address, at => this.ComboBoxFits(address, at)) ?? 0;
+            var fitting = this.ComboBoxFits(address, shift)
+                ? shift
+                : OffsetSearch.First(shift, SubclassFieldRadius, IntPtr.Size, at => this.ComboBoxFits(address, at), shift - SubclassFieldRadius);
+            if (fitting is not { } proven)
+            {
+                return shift;
+            }
+
+            this.comboBoxShifts[type] = proven;
+            return proven;
+        }
 
         private (int Value, int Min, int Max)? SliderAt(IntPtr address, int shift)
         {

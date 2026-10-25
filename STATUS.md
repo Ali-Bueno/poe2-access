@@ -130,6 +130,7 @@
 | Long scrolled texts (terms of use) by paragraph | done (live) | text over 1024 chars in a frame: `ScreenWatcher.LongText` → `LongTextReader`; scroll = frame `PositionModifier.Y` (+0x10C, negative) against text − frame `UnscaledSize.Y` |
 | Map overlay shown / hidden (D-pad down) | done (live) | `map_overlay` (G+0xB88) hint `gamepad_move_map_hint` visible only while open; `MapOverlayWatch` |
 | Chat panel shown / hidden (LT in a panel) | done (live) | chat layer visible with its "hold LT to chat" hint; `ChatWatcher.TrackPanel` |
+| Chat channel list and filters | done (live) | unnamed combo found by its parts, fields per class (`UiElementReader.ComboBoxShift`); "Eligiendo: Global, 2 de 6", "Canal: Susurros", field "Global, #, campo de texto" (2026-10-25) |
 | Player menu (A on another player) | done (live, header unheard) | popup outside the root, focus stays on it; chosen button int `+0x348` (`GameLayout.ButtonMenu`); `UiSemantics.DescribeButtonMenu`; dev command `dump 0x<address>` dumps such popups |
 | Weapon swap "Set de armas 2, vacío" (D2R) | done (live) | GameHelper `Stats.CurrentWeaponIndex` (+0x168) still right in 0.5.5e; `InventoryWatch.TickWeaponSet` |
 | Inline item art named ("Identificar Pergamino de sabiduría x 1") | done (unit) | `catalog/item-names.json` (`Poe2UiExtract item-names`, BaseItemTypes Id +0x0 / Name +0x20); `ControllerGlyphs.Plain` |
