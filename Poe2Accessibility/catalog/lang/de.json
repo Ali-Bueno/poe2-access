@@ -301,6 +301,7 @@
  "gate": "Tor",
  "gold": "Gold",
  "graveyard": "Friedhof",
+ "hold {0}": "{0} halten",
  "hold {0} for options": "halte {0} für Optionen",
  "hut": "Hütte",
  "jewel socket": "Juwelenfassung",

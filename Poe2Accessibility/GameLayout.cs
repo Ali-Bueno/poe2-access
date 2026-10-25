@@ -262,6 +262,12 @@ namespace Poe2Accessibility
             /// </summary>
             public const string MessageLabelName = "message_label";
 
+            /// <summary>
+            ///     The ring a hint-bar icon fills while its button is held: only hold actions carry it ("Comprobar precio" and
+            ///     "Enlazar al chat" beside "Tirar" on the same Y, inventory hint bar dump 2026-10-24).
+            /// </summary>
+            public const string HoldProgressName = "progress_frame";
+
             /// <summary>The skill picker's panel (A on a Bind Screen button), the control id above its cells (UI dump 2026-10-24).</summary>
             public const string SkillPickerName = "action_binding_display";
 

@@ -417,6 +417,9 @@ namespace Poe2Accessibility
 
         public static string UnnamedElement => T("Unnamed element", "Elemento sin nombre");
 
+        /// <summary>A hint whose button is held, not pressed: "Comprobar precio, mantener Y".</summary>
+        public static string HoldButton(string button) => T($"hold {button}", $"mantener {button}");
+
         /// <summary>
         ///     A tooltip without its title when the label already said it: a Skills row "NIVEL: 1, Rayo atronador, DPS: 12,5"
         ///     read the skill's name again as the tooltip's first line (2026-10-25).

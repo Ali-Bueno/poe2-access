@@ -266,7 +266,7 @@ namespace Poe2Accessibility.Services
                 {
                     if (ControllerGlyphs.FromTextureKey(key) is { } glyph)
                     {
-                        glyphs.Add((self, glyph));
+                        glyphs.Add((self, this.HasChildNamed(children, GameLayout.InGameUi.HoldProgressName) ? Announcements.HoldButton(glyph) : glyph));
                     }
                     else if (CurrencyIcons.FromTextureKey(key) is { } unit)
                     {
@@ -304,6 +304,9 @@ namespace Poe2Accessibility.Services
         public static bool IsLegend(ScreenText text) => text.Name == HintEntryName || text.Button.Length > 0;
 
         /// <summary>Art key of an image element; texture keys are cached (shared resources).</summary>
+        private bool HasChildNamed(IEnumerable<IntPtr> children, string name) =>
+            children.Any(child => this.elements.TryReadElement(child, out var info) && info.Name == name);
+
         private string? TextureKeyOf(in UiElementReader.ElementInfo info)
         {
             if (info.Texture == IntPtr.Zero)
