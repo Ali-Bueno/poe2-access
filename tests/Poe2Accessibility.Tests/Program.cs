@@ -1234,7 +1234,8 @@ namespace Poe2Accessibility.Tests
         private static void SmallCapsCaptionsGetACapital()
         {
             Equal("Reanudar juego", Announcements.Capitalised("reanudar juego"), "game menu entry");
-            Equal("set de armas I", Announcements.Capitalised("set de armas I"), "mixed case stays");
+            Equal("Confirmar A", Announcements.Capitalised("confirmar A"), "a button letter is not a capital word");
+            Equal("kehgan, Nivel 2 Monje", Announcements.Capitalised("kehgan, Nivel 2 Monje"), "capitals in its words: as written");
             Equal("+ 0.0", Announcements.Capitalised("+ 0.0"), "no letter to raise");
             Equal(string.Empty, Announcements.Capitalised(string.Empty), "empty");
         }

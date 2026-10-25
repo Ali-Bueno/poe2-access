@@ -177,10 +177,13 @@ namespace Poe2Accessibility
 
         /// <summary>
         ///     A caption the game keeps in lower case and draws in small capitals ("reanudar juego" in the game menu,
-        ///     0.5.5e) gets its first letter raised, so it reads as a name on a braille display; mixed case stays as written.
+        ///     "confirmar A" with its button, 0.5.5e) gets its first letter raised, so it reads as a name on a braille
+        ///     display; a text with capitals in its words ("kehgan, Nivel 2 Monje") stays as written.
         /// </summary>
         public static string Capitalised(string text) =>
-            text.Length > 0 && char.IsLower(text[0]) && !text.Any(char.IsUpper) ? char.ToUpperInvariant(text[0]) + text[1..] : text;
+            text.Length > 0 && char.IsLower(text[0]) && !text.Split(' ').Any(word => word.Length > 1 && word.Any(char.IsUpper))
+                ? char.ToUpperInvariant(text[0]) + text[1..]
+                : text;
 
         public static string UnavailableState => T("unavailable", "no disponible");
 
