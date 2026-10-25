@@ -262,6 +262,9 @@ namespace Poe2Accessibility
             /// </summary>
             public const string MessageLabelName = "message_label";
 
+            /// <summary>The skill picker's panel (A on a Bind Screen button), the control id above its cells (UI dump 2026-10-24).</summary>
+            public const string SkillPickerName = "action_binding_display";
+
             /// <summary>The "Set Skill Bind" screen, kept hidden in game; its bars hold every binding's button glyph.</summary>
             public const int BindDisplayOffset = 0x788;
 

@@ -95,7 +95,14 @@ namespace Poe2Accessibility.Services
                 // A cell of the skill picker (A on a Bind Screen button: every skill and action that can go there,
                 // 2026-10-24): no glyph, the skill or action it holds names it. The options' combo boxes are navigable
                 // too, with their description as tooltip: they carry the interactive bit, the picker's cells do not.
+                // A cell nothing names fell back to a far container's id, "action binding display" (2026-10-24): its icon or
+                // "unnamed" with its place is all a sighted player has too.
                 var held = skill.Length > 0 ? skill : bound.Length > 0 ? bound : clears ? Announcements.ClearBinding : string.Empty;
+                if (held.Length == 0 && this.NearestNamedAncestor(info, RowSearchHops) == GameLayout.InGameUi.SkillPickerName)
+                {
+                    held = icon.Length > 0 ? icon : Announcements.UnnamedElement;
+                }
+
                 return held.Length == 0 || !info.HasFlagBit(GameLayout.Element.NavigableFlagBit) || info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) ||
                        !this.AmongCellsOnly(info)
                     ? null

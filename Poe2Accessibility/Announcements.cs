@@ -137,8 +137,11 @@ namespace Poe2Accessibility
         public static string Steps(int steps) => steps == 1 ? T("1 step", "1 paso") : T($"{steps} steps", $"{steps} pasos");
 
         /// <summary>Another player: character name, then class ("Yarky, Witch").</summary>
-        public static string OtherPlayer(string name, string characterClass) =>
-            characterClass.Length == 0 || characterClass == name ? name : $"{name}, {characterClass}";
+        public static string OtherPlayer(string name, string characterClass)
+        {
+            var spoken = name.Replace('_', ' ').Trim(); // "O_GROSSO_J" was read with its underscores (2026-10-24)
+            return characterClass.Length == 0 || characterClass == name ? spoken : $"{spoken}, {characterClass}";
+        }
 
         /// <summary>
         ///     A label for a control known only by its id (nothing on screen names it): the humanised id ("league"),
@@ -409,8 +412,10 @@ namespace Poe2Accessibility
                 parts.Add(Sentences(tooltip));
             }
 
-            return parts.Count == 0 ? T("Unnamed element", "Elemento sin nombre") : Clauses(parts);
+            return parts.Count == 0 ? UnnamedElement : Clauses(parts);
         }
+
+        public static string UnnamedElement => T("Unnamed element", "Elemento sin nombre");
 
         /// <summary>
         ///     A tooltip without its title when the label already said it: a Skills row "NIVEL: 1, Rayo atronador, DPS: 12,5"
