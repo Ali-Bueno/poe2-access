@@ -104,6 +104,9 @@ namespace Poe2Accessibility
             _ => T($"{name}, {uses} uses", $"{name}, {uses} usos"),
         };
 
+        /// <summary>How much of the area's reachable ground has been seen, for the vitals readout (D2R): "Explorado 40 por ciento".</summary>
+        public static string Explored(int percent) => T($"Explored {percent} percent", $"Explorado {percent} por ciento");
+
         /// <summary>A flask with no use left: "Frasco de vida menor vacío".</summary>
         public static string FlaskEmpty(string name) => T($"{name} empty", $"{name} vacío");
 

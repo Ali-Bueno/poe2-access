@@ -76,6 +76,32 @@ namespace Poe2Accessibility.Services
             return x >= 0 && y >= 0 && x < this.blocksX && y < this.blocksY && this.seen[(y * this.blocksX) + x];
         }
 
+        /// <summary>Whole percent of the ground reachable from <paramref name="from"/> that has been seen (D2R explored share); null without a grid.</summary>
+        public int? ExploredPercent(byte[] grid, int bytesPerRow, Vector2 from)
+        {
+            if (this.seen.Length == 0 || bytesPerRow <= 0 || grid.Length / bytesPerRow < 1)
+            {
+                return null;
+            }
+
+            var width = bytesPerRow * 2;
+            var height = grid.Length / bytesPerRow;
+            if ((width + BlockCells - 1) / BlockCells != this.blocksX || (height + BlockCells - 1) / BlockCells != this.blocksY)
+            {
+                return null;
+            }
+
+            var reachable = this.Reachable(grid, bytesPerRow, width, height, from);
+            int total = 0, seenBlocks = 0;
+            for (var i = 0; i < reachable.Length; i++)
+            {
+                total += reachable[i] ? 1 : 0;
+                seenBlocks += reachable[i] && this.seen[i] ? 1 : 0;
+            }
+
+            return total == 0 ? null : seenBlocks * 100 / total;
+        }
+
         /// <summary>Walkable grid cells to head for, one per unexplored group and direction, nearest first.</summary>
         public IReadOnlyList<Vector2> Frontier(byte[] grid, int bytesPerRow, Vector2 from, int maxEntries)
         {

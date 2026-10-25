@@ -194,7 +194,8 @@ namespace Poe2Accessibility
             var character = player?.Level ?? 0;
             var levels = Announcements.Levels(character, AreaLevel(), player == null ? null : this.experience?.PercentToNext(character, unchecked((uint)player.Xp)));
             var flasks = string.Join(", ", this.flasks?.Flasks().Select(flask => Announcements.Flask(flask.Name, flask.Uses)) ?? Enumerable.Empty<string>());
-            return Announcements.Sentences(new[] { vitals, string.Join(", ", states), this.bosses?.Status() ?? string.Empty, flasks, levels }.Where(part => part.Length > 0));
+            var explored = this.entities?.ExploredPercent() is { } percent ? Announcements.Explored(percent) : string.Empty;
+            return Announcements.Sentences(new[] { vitals, string.Join(", ", states), this.bosses?.Status() ?? string.Empty, flasks, levels, explored }.Where(part => part.Length > 0));
         }
 
         /// <summary>The delivery level the player chose for a kind of news (speech priority).</summary>

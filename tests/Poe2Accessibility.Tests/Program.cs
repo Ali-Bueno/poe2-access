@@ -660,7 +660,10 @@ namespace Poe2Accessibility.Tests
             }
 
             var map = new ExplorationMap();
+            Equal(null, map.ExploredPercent(grid, row, new System.Numerics.Vector2(40, 100)), "nothing walked yet");
             map.Visit(new System.Numerics.Vector2(40, 100), width, height);
+            var firstLook = map.ExploredPercent(grid, row, new System.Numerics.Vector2(40, 100));
+            Equal(true, firstLook is > 0 and < 50, "a first look sees part of the reachable west field");
             var targets = map.Frontier(grid, row, new System.Numerics.Vector2(40, 100), 8);
             Equal(true, targets.Count > 0, "unseen ground east of the start is offered");
             Equal(true, targets.All(cell => cell.X < 200), "nothing past the unbroken wall");
@@ -675,6 +678,7 @@ namespace Poe2Accessibility.Tests
             }
 
             Equal(0, map.Frontier(grid, row, new System.Numerics.Vector2(120, 100), 8).Count, "the west field walked through: nothing left");
+            Equal(100, map.ExploredPercent(grid, row, new System.Numerics.Vector2(120, 100)), "the unreachable east field does not count");
         }
 
         private static void ReachPingsOncePerContact()

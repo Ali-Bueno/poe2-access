@@ -412,6 +412,15 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>How much of the ground the player can reach has been seen, in percent; null outside gameplay or without a grid.</summary>
+        public int? ExploredPercent()
+        {
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            return area.Player.TryGetComponent<Render>(out var player) && this.TryLiveGrid(out var grid, out var row)
+                ? this.explored.ExploredPercent(grid, row, new Vector2(player.GridPosition.X, player.GridPosition.Y))
+                : null;
+        }
+
         /// <summary>Where unseen ground begins (<see cref="ExplorationMap"/>), refreshed every UnexploredRefreshMs.</summary>
         private IReadOnlyList<ScanEntry> Unexplored(AreaInstance area, Render player)
         {

@@ -11,7 +11,7 @@ toggles the map legend). Turn the controller commands off with `ControllerComman
 | Gesture | In menus (something has the focus) | In gameplay |
 |---|---|---|
 | Tap | Next line of the focused element: its name first, then each tooltip line | Where the scanner's choice is now; nothing chosen: repeat the last speech |
-| Double tap | Previous line | Life, mana, energy shield, harmful states, the boss's life, the flasks' uses left, then your level, how far to the next, and the area's ("Vida 80 por ciento, maná 40 por ciento. Envenenado. El molinero hinchado 55 por ciento. Frasco de vida menor, 6 usos, Frasco de maná menor, 2 usos. Nivel 4, 35 por ciento hacia el nivel 5, nivel del área 2") |
+| Double tap | Previous line | Life, mana, energy shield, harmful states, the boss's life, the flasks' uses left, then your level, how far to the next, the area's, and how much of the ground you can reach you have seen ("Vida 80 por ciento, maná 40 por ciento. Envenenado. El molinero hinchado 55 por ciento. Frasco de vida menor, 6 usos, Frasco de maná menor, 2 usos. Nivel 4, 35 por ciento hacia el nivel 5, nivel del área 2. Explorado 40 por ciento") |
 | Hold (half a second) | Whole tooltip (item mods, gem stats, definitions) | Read the screen (quest tracker, HUD texts), then the skill bar: each set's buttons with what they fire, the empty ones last |
 | Hold + right stick flick | — (the game navigates with the right stick in menus) | Scanner (below) |
 | Hold + right stick press (R3) | — | Guide beacon on the scanner's choice (below); again on the same choice turns it off |
