@@ -112,6 +112,8 @@
 | Boss life + dodge warning | done (live) | "El molinero hinchado 72 por ciento"; whoosh + snap only on attack animations (`DodgeThreats`), a rare's blow within 150 units, louder when closer; timed half a second before the blow as learnt from the hits taken (`DodgeTimings`, `config/dodge-timings.txt`; MudGolem GroundSlam 1156 ms), at the wind-up until learnt (`docs/research/dodge-timing.md`) |
 | Cue timbres and mixer | done (code) | beacon an iron chime, dodge a blade swing with a ringing snap and thud, both in a short stone-room tail; growl with a sub-octave; levels raised toward the game's own sounds; soft limiter instead of clipping (`CueSynth.Limit`) |
 | Mana warnings, vitals on L3 double tap | done (live) | "Maná 50 por ciento"; "Vida 85 por ciento, maná 100 por ciento. El molinero hinchado 65 por ciento" |
+| Vitals: flask uses, level progress, explored share (D2R) | done (live) | "Frasco de vida menor, 6 usos… Nivel 3, 5 por ciento hacia el nivel 4, nivel del área 15. Explorado 41 por ciento" (2026-10-25); `FlaskWatch` (GameHelper FlaskInventory + Charges 60/10), `ExperienceTable` (`catalog/experience.json` from ExperienceLevels), `ExplorationMap.ExploredPercent`; empty-flask warning not heard (full-life flasks are not spent in town) |
+| Loot filter for item sounds and approach names (D2R) | done (code) | `LootFilter`, setting "Objetos que suenan y se nombran": todos / mágicos o mejores / solo monedas, gemas, objetos de misión, raros y únicos; the scanner still lists every item; not heard live (no ground items in town) |
 | Target name on right-stick aim, crosshair beep | done (code) | GameHelper `MouseOverEntity`; never heard live yet (no monster under the aim during the bot test) |
 | Harmful states (Urge speech) | done (code) | `StatusWatch` (buff ids by stem; every new id logged "Player buff seen"); the mod's heartbeat was removed (the game has its own, user 2026-10-24) |
 | Game sounds for loot/chests/exits/waypoints | done (live) | `ObjectSounds` + `GameSounds`; each item its own drop sound from the game's tables (`ItemDropSounds`, `catalog/item-sounds.json`: scroll → `Scroll_Drop_01`); up to four items at once, pitch up/down by screen side; portal = the portal scroll's (`docs/research/game-audio.md`) |
@@ -136,7 +138,7 @@
 | Checkpoint travel map markers | done (live); place names (code) | `UiSemantics.MapMarkers` + `CheckpointPlaces`/`MapPlaces`: markers matched to seen checkpoints by one scale, "Viajar al punto de control, cerca de …, abajo, a 35 pasos, 2 de 2" (the game names none) |
 | Skill bar readout (after the screen on the gameplay hold) | done (live) | `UiSemantics.SkillBar`: "Set de habilidades principal: LT, Activar set… X, Saeta básica… Vacío: LB, cruceta arriba, Y"; bind screen names skills from their dat rows (`docs/research/skill-bar.md`) |
 | Route turn prompts, partial routes, controls help in the settings menu | done (live) | "Ahora arriba a la derecha, 10"; help topics open the L3 menu; the menu edge knock was removed (user 2026-10-24) |
-| Game updates: layout found again, data regenerated, losses said | done (self-test ok at login, in game, options, inventory 2026-10-24) | `LayoutProbe`, `InGameFields`, `ControlFields`, `GameStateService.AreaRowOffset`, `CompatibilityReport`; launcher `GameDataSetup`; dev command `layout`; `docs/compatibility.md` |
+| Game updates: layout found again, data regenerated, losses said | done (self-test ok at login, in game, options, inventory, passive tree, skill bar 2026-10-25) | `LayoutProbe` (+ image textures), `InGameFields`, `ControlFields` (+ tabs, skill slots, passive canvas and nodes), `GameStateService.AreaRowOffset`, tile grid check, `CompatibilityReport`; launcher `GameDataSetup` + `DatContentColumns` (passive flags, skill keys by content); dev command `layout`; `docs/compatibility.md` |
 | Scanner limited to what a sighted player sees | done (live) | `EntityCatalog.Sighted`: enemies on screen, minimap-icon things once the client has them, the rest once seen or explored; Quest category at any distance ("Misión. Campamento de Sierraclara, 130 pasos" from unexplored Riverbank); `docs/research/minimap.md` |
 | Enemies coming into view | done (code) | `EnemyNarrator`: once per monster per area, packs grouped: "Ahogado, 3, derecha"; uniques stay discoveries |
 | Inventory actions cut in | done (code) | "En la mano" held 400 ms (was 1.5 s, which queued the moves after it); equip/unequip/hand empty/arrivals interrupt |
@@ -272,7 +274,9 @@
   these belong to the neighbouring object (the deep-probe hex must be read with that in mind).
 
 ## Code map
-- `Poe2AccessibilityCore` — wiring + per-frame tick (GameHelper `DrawUI`); dev commands; no logic.
+- `Poe2AccessibilityCore` — wiring + per-frame tick (GameHelper `DrawUI`), no logic; partial files `.Gameplay` (service
+  ticks isolated per service, vitals and skill bar readouts), `.DevCommands` (command file, status, layout self-test),
+  `.Settings` (host panel, applying settings, hotkey checks).
 - Speech: `PrismOutputService` (own thread, logs every line) behind `IAccessibilityOutputService`;
   all spoken strings in `Announcements` (incl. button names, item/slot phrases).
 - Focus: `UiManagerLocator` (manager per state, `element+0x90`) → `FocusTracker` (`M+0x748`, value
@@ -284,12 +288,12 @@
   `.MapMarkers`, `.OptionLists` (NPC dialogue).
 - Screen: `ScreenWatcher` (background snapshots of visible layers: texts, controls, enabled bit, glyph
   pairing, row merge) → `ScreenDiffer` (pure: two-snapshot confirmation, counters, top layer) →
-  `ScreenNarrator` (pre-game: popups/top layer; in game: focus layer, tab titles, the objective box and
-  new HUD texts). `ChatWatcher` reads NPC/system/whisper/party chat lines.
+  `ScreenNarrator` (`OnScreenChange` dispatches by layer: hint bar, `.InGame` focus layer / objective box / HUD,
+  `.PreGame` popups and top layer). `ChatWatcher` reads NPC/system/whisper/party chat lines.
 - Memory layout constants: `GameLayout` (each with provenance). Glyph tables: `ControllerGlyphs`.
 - Research: `UiTreeDumper`/`UiTreeReader`, `ResearchSession`, `FocusResearchLog`, `DevCommandFile`.
 - Controller: `GamepadReader` (pad state M+0x768) → `L3Gestures` → `ModCommands` (menu lines / gameplay).
-- Scanner: `EntityCatalog` (classify, names, landmarks, live grid, `Describe`) → `RoutePlanner` (A*, corners,
+- Scanner: `EntityCatalog` (entries, landmarks, `Describe`; `.Classify` categories and names, `.Terrain` live grid and barriers) → `RoutePlanner` (A*, corners,
   legs) and `ScanModel` (`ScanBrowser`, `StickDirection`); `LandmarkTable`. Warnings: `VitalAlarm`.
 - Sounds: `AudioCueService` (winmm mixer) ← `EnemyCues` (`EnemyCueScheduler`, `CueSynth`) and `Radar`
   (`PassageScan`, `RadarSensor`, `RadarSynth`); with `ProximityNarrator` (`ProximityTracker`) gated in
@@ -298,7 +302,7 @@
 - Gameplay guides: `Beacon` (+ pure `BeaconMath`), `QuestMatcher`, `BossWatch` (boss life + dodge whoosh, pure
   `DodgeThreats`), `TargetNarrator` (aim names + crosshair), `StatusWatch` (+ pure `StatusAilments`), `EnemyNarrator`, `DeathWatch`,
   `ObjectSounds` + `GameSounds` + `ItemDropSounds` (game WAVs), `CheckpointPlaces` (+ pure `MapPlaces`),
-  `ScreenProjection` (world offset → screen, on-screen test).
+  `ScreenProjection` (world offset → screen, on-screen test), `FlaskWatch`, `ExperienceTable`, `LootFilter`.
   Speech priority: `IAccessibilityOutputService.Urge` (later interrupts queue for 1.5 s).
 - Tests: `tests/Poe2Accessibility.Tests` (differ, text edits, chat diff, gestures, scanner, route legs, life
   alarm, beacon, quest matching, cooldown, ailments, dodge threats, map markers). Dev tools: `tools/computer_use/`; dev commands

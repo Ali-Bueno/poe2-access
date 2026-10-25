@@ -54,9 +54,10 @@ def main():
     joystick.add_argument('direction', help='up, down, left, right, up-left... or vec:X,Y (screen axes, y down)')
     joystick.add_argument('--amount', type=float, default=1.0)
     joystick.add_argument('--seconds', type=float, default=0.15)
-    both = sub.add_parser('combo', help='Hold one control and tap another meanwhile (l2 cross: start in town)')
+    both = sub.add_parser('combo', help='Hold one control and press another meanwhile (l2 cross --seconds 1.5: start in town)')
     both.add_argument('held', choices=pad.NAMES)
     both.add_argument('pressed', choices=pad.NAMES)
+    both.add_argument('--seconds', type=float, default=0.1, help='How long the second control stays down')
     flick = sub.add_parser('chord', help='Hold a button and flick a stick meanwhile (mod scanner: l3 right up)')
     flick.add_argument('name', choices=sorted(pad.BUTTONS))
     flick.add_argument('side', choices=['left', 'right'])
@@ -114,8 +115,8 @@ def main():
                               amount=args.amount, seconds=args.seconds))
             elif args.action == 'combo':
                 w.require_foreground(info)
-                result.update(held=args.held, pressed=args.pressed)
-                pad.send(dict(action='combo', held=args.held, pressed=args.pressed))
+                result.update(held=args.held, pressed=args.pressed, seconds=args.seconds)
+                pad.send(dict(action='combo', held=args.held, pressed=args.pressed, seconds=args.seconds))
             elif args.action == 'chord':
                 w.require_foreground(info)
                 result.update(name=args.name, side=args.side, direction=args.direction)

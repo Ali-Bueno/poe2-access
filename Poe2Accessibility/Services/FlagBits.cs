@@ -49,6 +49,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<IntPtr> focusSeen = new();
         private (List<uint> Controls, List<uint> Labels, List<uint> Inputs, List<uint> Buttons) screen = (new(), new(), new(), new());
         private bool screenJudged;
+        private bool textInputJudged;
         private bool navigableJudged;
 
         public FlagBits(UiElementReader elements, CompatibilityReport report)
@@ -63,33 +64,40 @@ namespace Poe2Accessibility.Services
         /// <summary>Pre-game: judges the interactive, text-input and enabled bits on a screen's controls, once per game process.</summary>
         public void ProbeScreen(IntPtr root)
         {
-            if (this.screenJudged || root == IntPtr.Zero)
+            if ((this.screenJudged && this.textInputJudged) || root == IntPtr.Zero)
             {
                 return;
             }
 
-            this.screen = this.Gather(root);
-            var (controls, labels, inputs, buttons) = this.screen;
+            var gathered = this.Gather(root);
+            var (controls, labels, inputs, buttons) = gathered;
             if (controls.Count < MinCarriers || labels.Count < MinCarriers)
             {
                 return; // a loading screen: judged on the next one
             }
 
-            this.screenJudged = true;
-            this.Judge("interactive flag", controls, labels, this.measuredInteractive, OtherShare, MinCarriers, bit => GameLayout.Element.InteractiveFlagBit = bit);
-            if (inputs.Count >= MinInputs)
+            this.screen = gathered;
+            if (!this.screenJudged)
             {
-                this.Judge("text input flag", inputs, buttons, this.measuredTextInput, OtherShare, MinInputs, bit => GameLayout.Element.TextInputFlagBit = bit);
+                this.screenJudged = true;
+                this.Judge("interactive flag", controls, labels, this.measuredInteractive, OtherShare, MinCarriers, bit => GameLayout.Element.InteractiveFlagBit = bit);
+                if (BitSearch.Share(controls, GameLayout.Element.EnabledFlagBit) < EnabledLostShare)
+                {
+                    EnabledTrusted = false;
+                    this.report.Missing("enabled flag");
+                }
+                else
+                {
+                    this.report.Found("enabled flag");
+                }
             }
 
-            if (BitSearch.Share(controls, GameLayout.Element.EnabledFlagBit) < EnabledLostShare)
+            // A screen with text inputs (the login, character creation) judges their bit against plain labels: some buttons
+            // carry it too (3 of 14 at character creation, 2026-10-25).
+            if (!this.textInputJudged && inputs.Count >= MinInputs)
             {
-                EnabledTrusted = false;
-                this.report.Missing("enabled flag");
-            }
-            else
-            {
-                this.report.Found("enabled flag");
+                this.textInputJudged = true;
+                this.Judge("text input flag", inputs, labels, this.measuredTextInput, OtherShare, MinInputs, bit => GameLayout.Element.TextInputFlagBit = bit);
             }
         }
 
@@ -125,7 +133,7 @@ namespace Poe2Accessibility.Services
             GameLayout.Element.NavigableFlagBit = this.measuredNavigable;
             GameLayout.Element.EnabledFlagBit = this.measuredEnabled;
             EnabledTrusted = true;
-            (this.screenJudged, this.navigableJudged) = (false, false);
+            (this.screenJudged, this.textInputJudged, this.navigableJudged) = (false, false, false);
             this.focusFlags.Clear();
             this.containerFlags.Clear();
             this.focusSeen.Clear();
@@ -136,7 +144,7 @@ namespace Poe2Accessibility.Services
         {
             var (controls, labels, inputs, buttons) = this.screen;
             return string.Join("; ", Line("interactive flag", controls, labels, GameLayout.Element.InteractiveFlagBit, OtherShare, MinCarriers),
-                Line("text input flag", inputs, buttons, GameLayout.Element.TextInputFlagBit, OtherShare, MinInputs),
+                Line("text input flag", inputs, labels, GameLayout.Element.TextInputFlagBit, OtherShare, MinInputs),
                 Line("navigable flag", this.focusFlags, this.containerFlags, GameLayout.Element.NavigableFlagBit, ContainerShare, MinCarriers),
                 $"enabled flag {(EnabledTrusted ? "ok" : "lost")} ({BitSearch.Share(controls, GameLayout.Element.EnabledFlagBit):P0} of {controls.Count} controls)");
         }
@@ -151,6 +159,7 @@ namespace Poe2Accessibility.Services
             var fits = Enumerable.Range(0, 32).Where(bit => BitSearch.Share(carriers, bit) >= CarrierShare && BitSearch.Share(others, bit) <= otherShare).ToList();
             var kept = BitSearch.Share(carriers, now) >= KeepShare && BitSearch.Share(others, now) <= otherShare;
             return kept && fits.All(bit => bit == now) ? $"{part} ok"
+                : kept ? $"{part} ok (also fits {string.Join(", ", fits.Where(bit => bit != now).Select(bit => $"0x{bit:X}"))}: a search from a moved bit takes the nearest)"
                 : $"{part} FAIL (fits {string.Join(", ", fits.Select(bit => $"0x{bit:X}"))}, is 0x{now:X}: on {BitSearch.Share(carriers, now):P0} of {carriers.Count}, {BitSearch.Share(others, now):P0} of {others.Count} others)";
         }
 
@@ -188,20 +197,21 @@ namespace Poe2Accessibility.Services
             queue.Enqueue(root);
             for (var walked = 0; queue.Count > 0 && walked < MaxWalkNodes; walked++)
             {
-                if (!this.elements.TryReadElement(queue.Dequeue(), out var info) || !info.IsVisibleFlag)
+                if (!this.elements.TryReadElement(queue.Dequeue(), out var info))
                 {
                     continue;
                 }
 
+                // Hidden layers are walked through (a root can be drawn without the flag); only visible elements count.
                 var children = this.elements.ReadChildren(info);
-                if (children.Length == 0)
+                if (info.IsVisibleFlag && children.Length == 0)
                 {
                     if (found.Labels.Count < SamplesPerKind && this.elements.TryReadText(info.Address, out var text) && text.Length > 0)
                     {
                         found.Labels.Add(info.Raw.Flags);
                     }
                 }
-                else if (found.Controls.Count < SamplesPerKind)
+                else if (info.IsVisibleFlag && found.Controls.Count < SamplesPerKind)
                 {
                     var role = this.elements.DetectRoleBySound(info.Address);
                     if (role is UiRole.Button or UiRole.CheckBox or UiRole.Slider or UiRole.ComboBox or UiRole.Tab)
@@ -211,7 +221,7 @@ namespace Poe2Accessibility.Services
                     }
                 }
 
-                if (info.Name == TextFieldName)
+                if (info.IsVisibleFlag && info.Name == TextFieldName)
                 {
                     found.Inputs.Add(info.Raw.Flags);
                 }

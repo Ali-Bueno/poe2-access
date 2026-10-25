@@ -421,7 +421,8 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Position among sibling controls: the first ancestor level whose visible children hold several controls
-        ///     is the list (menu buttons are siblings; a settings control sits in a row, the rows are the list).
+        ///     is the list (menu buttons are siblings; a settings control sits in a row, the rows are the list), counted
+        ///     in reading order (the "spawn in town" confirmation holds OK before Cancel but draws Cancel on the left).
         /// </summary>
         private (string Position, IReadOnlyList<string> Items) ListPosition(in UiElementReader.ElementInfo info)
         {
@@ -433,22 +434,19 @@ namespace Poe2Accessibility.Services
                     break;
                 }
 
-                var index = -1;
-                var count = 0;
-                var kinds = new HashSet<IntPtr>();
+                var items = new List<UiElementReader.ElementInfo>();
                 foreach (var childAddress in this.elements.ReadChildren(parent))
                 {
                     if (this.elements.TryReadElement(childAddress, out var child) && child.IsVisibleFlag && this.HoldsControl(child, ListItemDepth))
                     {
-                        if (childAddress == item.Address)
-                        {
-                            index = count;
-                        }
-
-                        kinds.Add(child.Raw.Vtable);
-                        count++;
+                        items.Add(child);
                     }
                 }
+
+                var own = item.Address;
+                var index = InReadingOrder(items).FindIndex(child => child.Address == own);
+                var count = items.Count;
+                var kinds = items.Select(child => child.Raw.Vtable).ToHashSet();
 
                 // A check box beside the number it enables ("Límite de FPS en primer plano" | 240) is one row of the
                 // section, not a list of two: controls of different kinds side by side are a compound row (the number

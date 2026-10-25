@@ -556,11 +556,15 @@ namespace Poe2Accessibility.Services
             StructuralSuffixes.Any(suffix => controlName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
 
         /// <summary>"patch_notes_button" → "patch notes"; "label_(button)" → "label"; a structural id → "".</summary>
-        /// <summary>A text field's hint ("Type your character name here..."), judged where it reads as words.</summary>
+        /// <summary>
+        ///     A text field's hint ("Type your character name here..."), judged where it reads as words other than the
+        ///     field's font face, which the field also holds 0x50 before the hint (0.5.5e).
+        /// </summary>
         private string Placeholder(IntPtr field)
         {
             string? HintAt(int shift) => this.elements.ReadWStringStructAt(field + GameLayout.Element.PlaceholderOffset + shift)?.Trim();
-            var shift = this.elements.Controls?.Shift(ControlGroup.Placeholder, field, at => HintAt(at) is { Length: > 0 } hint && hint.Any(char.IsLetter)) ?? 0;
+            var font = this.elements.ReadWStringStructAt(field + GameLayout.Element.FontOffset)?.Trim();
+            var shift = this.elements.Controls?.Shift(ControlGroup.Placeholder, field, at => HintAt(at) is { Length: > 0 } hint && hint.Any(char.IsLetter) && hint != font) ?? 0;
             return HintAt(shift) ?? string.Empty;
         }
 

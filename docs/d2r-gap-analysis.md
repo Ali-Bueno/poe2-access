@@ -33,6 +33,12 @@ hand, cannot-equip reason, inventory arrival/departure), 7 (item comparison with
 ping), 11 (passage classifier). Next RE-bound ones: NPC quest bell (NA13), monster mods on the target (MB70),
 gold pickup amount (MB36, needs the gold counter), passive-tree neighbours (MB49, `docs/research/passive-tree.md`).
 
+**Ported 2026-10-25:** the audible loot filter (NA3: `LootFilter`, all / magic or better / valuable only, sounds and
+approach names; the scanner lists everything), and three vitals parts: experience percent to the next level, the flasks'
+uses with a dry-flask warning (D2R belt), the explored share of the reachable ground. Checked as already present: the
+crosshair repeat rule, the 500 ms status-end hold, minions kept out of enemy cues (friendly), the guide re-planning
+every 700 ms (a moving target and straying are both covered).
+
 Next after these: new-character tutorial (MB91, SC20-SC31, H / L), passive-tree node navigation (MB49, H / L), monster plate rank and mods (MB70, H / L, needs RE), door loops (NA8, NA9), NPC quest bell (NA13).
 
 ## Navigation and sounds

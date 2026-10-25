@@ -62,15 +62,15 @@ def press(pad, vg, name, seconds):
     hold(pad, down, up, seconds)
 
 
-def combo(pad, vg, held, pressed):
-    """Hold one control and tap another meanwhile (character selection: LT + A starts in town)."""
+def combo(pad, vg, held, pressed, seconds=0.1):
+    """Hold one control and press another meanwhile (character selection: LT + held A starts in town)."""
     held_down, held_up = control(pad, vg, held)
     down, up = control(pad, vg, pressed)
     try:
         held_down()
         pad.update()
         time.sleep(0.15)
-        hold(pad, down, up, 0.1)
+        hold(pad, down, up, seconds)
         time.sleep(0.1)
     finally:
         held_up()
@@ -198,7 +198,7 @@ def serve(xbox):
                     if request['action'] == 'press':
                         press(pad, vg, request['name'], request['seconds'])
                     elif request['action'] == 'combo':
-                        combo(pad, vg, request['held'], request['pressed'])
+                        combo(pad, vg, request['held'], request['pressed'], request.get('seconds', 0.1))
                     elif request['action'] == 'chord':
                         chord(pad, vg, request['name'], request['side'], request['direction'])
                     elif request['action'] == 'stick':
