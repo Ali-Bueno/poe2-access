@@ -1,7 +1,8 @@
 # Surviving game updates
 
 What a PoE2 patch can break, what follows it on its own, and what needs a person. Code: `LayoutProbe`,
-`InGameFields`, `CompatibilityReport` (plugin); `GameDataSetup` (launcher).
+`InGameFields`, `ControlFields`, `EntityFields`, `FlagBits`, `PassiveTreeFields`, `CompatibilityReport` (plugin);
+`GameDataSetup` (launcher); `tools/package/Update-GameHelper.ps1` (host).
 
 ## What depends on the game's build
 | Layer | Examples | After a patch |
@@ -23,8 +24,15 @@ nearest fit wins). Fields of one structure that move together follow an anchor.
 | UI manager root slot: holds the root of the elements that point at the manager (2 elements must agree before an unproven manager is trusted; the direct in-game slot is taken only as measured) | focus, last focused, hovered, pad state | `LayoutProbe.AdoptManager` |
 | In-game layers by name (`HUD`, `death_screen`, `skill_bar`, `bind_management_display`) or shape (inventory: child `panels_parent`; chat: `textField` and `scrollbar` below) | the objective box (no name or shape) follows the nearest one found | `InGameFields` |
 | Entity names: half of 30 monsters, characters and players read a name | — | `LayoutProbe.ProbeRenderNames` |
-| Targetable in-play flag: one living monster flagged proves it; 20 unflagged and none flagged means it moved | everything counts as in play rather than nothing | `EntityCatalog.CheckLayout` |
+| Targetable in-play flag: set on what is always in play (players, waypoint, stash, checkpoint, living monsters) and, of an NPC's story variants (one Render name), on at most one; the nearest byte that fits when the measured one does not | targeted flag; everything counts as in play while unjudged or lost | `EntityFields` (pure `InPlayFlag`) |
+| NPC quest marker: the NPC component's dat reference leads to the MiscAnimated row `NPCQuestMarker…` on some NPC (a town with no marker proves nothing; the self-test lists the row ids it sees) | — | `EntityFields.HasMarkerAt` |
+| Control flag bits: interactive is on most controls with a click sound and on no plain label; text input on combo boxes and text fields and on no label (some buttons carry it too); navigable on what the in-game controller focus lands on, rarely on its container (grids left out); a bit is kept while half its carriers still have it | — | `FlagBits` (pure `BitSearch`) |
+| Enabled flag bit: nothing tells it apart (a disabled control is rare), so it is only noticed lost (under 20% of a screen's controls): then every control counts as enabled | — | `FlagBits.EnabledTrusted` |
 | Pad state: sticks within ±1, triggers within 0..1, else no input (no phantom L3 gestures) | — | `GamepadReader` |
+| Pad buttons: the left trigger is reported both as a pressure and as a button bit; the bit set in nearly every frame it is down alone and in nearly none with both up gives how far all the buttons moved | every button | `PadButtonCheck` |
+| Passive tree graph: the tree state holds the graph file (named `Metadata/PassiveSkillGraph.psg`); its content an edge list whose sampled edges join node records; the state's allocated list holds only graph ids of those records (gathered off the frame thread) | links, allocations | `PassiveTreeFields` |
+| Tile grid (GameHelper's `TileDetailsPtr`, read raw): record size = the grid's bytes over its sub-tiles; the file pointer and path where half the sub-tiles name a `.tdt`; the three id bytes where neighbours from one file differ by one step (90% in the Act 1 town) and selectors stay 0..7 | place names, props | `TileGridSearch` (pure), `PlaceNarrator` |
+| Item base name (GameHelper's `BaseOffsets`, no static check): a normal or magic item's tooltip title holds it; two titles that miss start a search of the row pointer and the name nearby, taken once a second title agrees; none anywhere: titles are used instead | — | `BaseNameField` (pure), `InventoryReader` |
 | Area row of the loading state: points at a world-area row with a name and an id shaped like `G1_1` (searched only in game, when it must hold the area) | — | `GameStateService.AreaRowOffset` |
 
 ### Control subclasses
@@ -41,11 +49,15 @@ Their fields sit after the base control, so when it grows they all move as far a
 | Skill slot icon: its skill details lead to a GrantedEffectsPerLevel row (an empty slot proves nothing) | skill details | `UiSemantics.SkillDetailsShift` |
 | Passive tree canvas: its state object holds `Metadata/PassiveSkillGraph.psg` | canvas state | `UiSemantics.TreeState` |
 | Passive node (a child of a group of that canvas): its record leads to a PassiveSkills row | node record | `UiSemantics.NodeRecord` |
-| Nothing to check them by: they follow the label text | check box, selectable list index, class selector, panel title, placeholder | `LayoutProbe.TextFollowers` |
+| Class selector: its index and the class id beside it name the same class of the first row (`ClassSelector.FirstRowClassIds`; a variant highlighted proves nothing) | index, class id | `UiSemantics.SelectorAgrees` |
+| Panel title (only under `panels_parent`): an ancestor of the panel reads a title there | title | `UiSemantics.TitleAt` |
+| Text field hint: reads as words other than the field's font face (the field holds its font 0x50 before the hint) | hint | `UiSemantics.Placeholder` |
+| Check box, selectable list: nothing static, so judged the way they were measured, by watching them change: the shift whose value changes as the player toggles or moves is the field; another shift that changes twice while the expected one stays put takes its place | state, selected index | `ControlFields.Changing` (pure `ChangingField`) |
 
-A shift other than the expected one is trusted once two controls agree on it (`ControlFields`). Only combo boxes and
-the area row are said when lost: a grid is recognised by reading it and a slider at its minimum proves nothing, so
-their misses are only logged.
+A shift other than the expected one is trusted once two controls agree on it (`ControlFields`); weak groups (tabs, panel
+titles) need a second control even where measured, and a control that fitted nowhere is tried again later. Only combo
+boxes and the area row are said when lost: a grid is recognised by reading it and a slider at its minimum proves
+nothing, so their misses are only logged.
 
 The child order of the in-game layer container changes between sessions: layers are never found by index.
 
@@ -57,7 +69,12 @@ process (`OnAttachedChanged`) logs the game exe's size and time and checks every
 `LayoutProbe.SelfTestShift` (0x18) off target and logs whether it comes back ("element names ok; … UI manager
 FAIL (found 0x…)"). For the area row and the control groups judged so far it lists every other offset within reach
 that also fits ("combo boxes FAIL (also fits at +0x18)"); any of them could be taken for the true one after an update.
-Run it on each new build of the plugin, at login, in game, in the options and in the inventory (2026-10-24: all ok).
+Parts with a judgment of their own report it ("in-play flag ok", "quest marker ok", "interactive flag ok (also fits
+0x12: …)", "pad buttons ok (shift 0)", "passive tree graph ok; links ok; allocations ok", "tile grid ok (990 of 990
+sub-tiles name a tile; …; a search finds it too)", "item base names ok", "selectable lists ok (seen changing)"), or
+"not judged yet" with what they need. Run it on each new build of the plugin at login, at character creation (class
+selector, name field), in town (an NPC with a quest marker), in the options, the inventory (a tooltip), the passive
+tree, and with the left trigger pressed alone (2026-10-25: all ok, every part judged live).
 
 ## Regenerated by the launcher (packaged builds)
 `GameDataSetup` stamps the install (`catalog/game-version.txt`: size and time of `Bundles2/_.index.bin` and of the exe,
@@ -80,43 +97,25 @@ GrantedEffects row, and the ActiveSkills key the one whose target Ids appear ins
 the next column 41). A PassiveSkills column a launcher did not write follows the name's shift.
 
 ## Still needs a person after a patch
-- GameHelper2 upstream offsets: pull and rebuild (`external/GameHelper2`), then `tools/package/New-TestPackage.ps1`.
-- The parts in "Still fragile" below. A wrong one makes that reading fall back (a mod without its name, an item
-  without its base name) rather than speak garbage, since every string goes through the decoders' checks.
-- Run the `layout` self-test and a short session through login, a menu, the inventory and a fight.
+- GameHelper2 upstream offsets (its state patterns, entities, components, terrain): `pwsh
+  tools/package/Update-GameHelper.ps1` (with GameHelper stopped) fetches upstream, lists the new commits, fast-forwards
+  `external/GameHelper2`, rebuilds the host and the plugin and runs the tests; `-CheckOnly` only lists, `-Package` also
+  builds the test package. When its patterns or offsets stop fitting, the plugin says so: attached two minutes
+  without ever reading a game state (`GameStateService`, part "game states": "no encuentro el estado del juego
+  (GameHelper necesita una actualización)").
+- A part the self-test reports lost after a patch: each search assumes one change at a time near where the field was
+  measured, so a redesign (a new structure, a field moved far) still needs a new measurement. A wrong part makes its
+  reading fall back (a mod without its name, an item without its base name) rather than speak garbage, since every
+  string goes through the decoders' checks.
+- Run the `layout` self-test (above) and a short session through login, a menu, the inventory and a fight.
 
-## Still fragile (next session, asked 2026-10-24)
-What a patch can still move with nothing to find it again, most player-visible first, each with the idea to try.
+## What a search cannot recover
+Asked 2026-10-24 to leave nothing fragile; since 2026-10-25 every field the plugin reads from the game has a check
+(above), and each was judged live. What remains is by design:
 
-1. ~~Monster modifier names~~ and the passive and skill names: found again from the files (`dat-columns`, above).
-2. ~~Flag and key columns~~ (PassiveSkills graph id, class list, keystone/notable/mastery/jewel flags; the skill
-   bar's GrantedEffectsPerLevel → GrantedEffects → ActiveSkills keys): found by content (`DatContentColumns`, above).
-   Still open: `BaseComponent.NameOffset` is a std::wstring in GameHelper's in-memory row, not a dat column: check it
-   against the item's tooltip title.
-3. ~~The launcher's own columns~~ (`ItemSoundExtractor`): kept while the row sizes match and each column still holds
-   what it must; else found by content: sound paths are string columns of `Audio/…` text, a key column holds null keys
-   or row indices of its target and is ranked by how many item drop samples its keys lead to (0.5.5e: the measured
-   ItemVisualIdentity 919 leads to none, the search takes 24 and 140 and writes the same catalog).
-4. **Component fields**: ~~`BaseComponent.NameRowOffset`~~ (now GameHelper's own `BaseOffsets`, updated upstream),
-   `NpcComponent.MarkerRowOffset` (quest marker over NPCs), `TargetableComponent` (a lost flag
-   is already noticed and everything counts as in play; could search for the byte that is 1 on living monsters and 0
-   on corpses).
-5. ~~Image texture fields~~: found again (`LayoutProbe.ProbeTextures`, above).
-6. **Control flag bits** (`Element` interactive 0x1B, navigable 0x0E, text input 0x10, enabled 0x0D): check against
-   known controls (menu buttons are interactive and navigable, a text box has the text-input bit).
-7. **Groups that only follow the label text**: tabs, skill slots and the passive tree now have checks (above). Still
-   following the text: class selector (index 0..5 with the class id beside it), panel title and placeholder (a
-   readable string), check box, selectable list index.
-8. **Passive tree graph** (`PassiveTree.StateGraphFileOffset` is the canvas check's own anchor; `GraphContentOffset`,
-   `EdgeListOffset`, `AllocatedOffset`): allocated entries must be node ids of the graph, edges must join known nodes.
-9. **Pad buttons** (`GameLayout.PadButtons`): only the axes are checked (`GamepadReader.Plausible`); a press seen by
-   the game's focus moving could confirm the A bit.
-10. **GameHelper2 upstream**: still pull and rebuild by hand. When its state patterns or offsets stop fitting, the
-    plugin says so: attached two minutes without ever reading a game state (`GameStateService`, part "game states":
-    "no encuentro el estado del juego (GameHelper necesita una actualización)").
-11. **Tile grid** (`PlaceNarrator`: GameHelper's `TerrainStruct.TileDetailsPtr` +0x28, `TileStructure` tile file +0x8,
-    ids +0x34/+0x35, `RotationSelector` +0x36, 0x38 bytes each): a moved field names no places or puts props at wrong
-    spots. Now noticed, not yet found again: each map build checks that half the sub-tiles name a `.tdt` file and nearly
-    all carry a rotation selector 0..7 (`PlaceNarrator.LayoutFits`; "Layout: tile grid where measured", else said as
-    missing: "los lugares del mapa"). Check with the `tiles` dev command in the Act 1 town: `Encampment_01.tdt` with its (0,0) sub-tile at grid
-    (68, 138), selector 3, and the log line "6 props now". `catalog/places.json` itself is regenerated after each patch.
+- A search finds a field moved near where it was measured (within 0x40 to 0x100 bytes, or a bit renumbered), one
+  change at a time; a field moved farther, or two fields of one judgment moved at once, is reported lost.
+- Parts whose evidence is rare are judged late: the quest marker needs an NPC that shows one, check boxes and
+  selectable lists a change by the player; the enabled bit is only noticed lost.
+- GameHelper's own offsets beyond the tile grid and item base names (entity lists, components' other fields, the
+  terrain) are GameHelper's to update; `Update-GameHelper.ps1` brings them in.

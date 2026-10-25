@@ -79,7 +79,10 @@ once in game, and the launcher starts it before regenerating.
 ## package — test build for other players
 ```
 pwsh tools/package/New-TestPackage.ps1      # with GameHelper stopped; writes dist/Poe2Access-test-<date>.zip (+ .7z with 7-Zip)
+pwsh tools/package/Update-GameHelper.ps1    # after a game patch: pull GameHelper2 upstream, rebuild host + plugin, run the tests
 ```
+`Update-GameHelper.ps1` lists the new upstream commits (`-CheckOnly` stops there), refuses to pull over local changes in
+`external/GameHelper2` or while the host runs from its build folder, and with `-Package` also builds the test package.
 The top folder holds only `Poe2Access.exe` (the launcher as one self-contained, trimmed file, ~14 MB, left uncompressed so the archive compresses it better), `LEEME.txt`,
 the controls and the stop shortcut; GameHelper and Poe2UiExtract are published self-contained into `app/` (they share the
 .NET 10 runtime files, nothing to install; the launcher finds `app/GameHelper.exe` and logs to `app/Poe2Access.log`), with only
