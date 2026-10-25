@@ -353,12 +353,20 @@ namespace Poe2Accessibility
         public static string Area(string areaName, int level = 0) =>
             level > 0 ? T($"Area: {areaName}, level {level}.", $"Área: {areaName}, nivel {level}.") : T($"Area: {areaName}.", $"Área: {areaName}.");
 
-        /// <summary>The character's level and the area's (its monsters'), for the vitals readout: "Nivel 4, nivel del área 2".</summary>
-        public static string Levels(int character, int area) =>
-            character > 0 && area > 0 ? T($"Level {character}, area level {area}", $"Nivel {character}, nivel del área {area}")
-            : character > 0 ? LevelUp(character)
-            : area > 0 ? T($"area level {area}", $"nivel del área {area}")
-            : string.Empty;
+        /// <summary>
+        ///     The character's level, how far it is to the next (D2R experience percent) and the area's level (its
+        ///     monsters'), for the vitals readout: "Nivel 4, 35 por ciento hacia el nivel 5, nivel del área 2".
+        /// </summary>
+        public static string Levels(int character, int area, int? progress = null)
+        {
+            var own = character <= 0 ? string.Empty
+                : progress is { } percent ? T($"Level {character}, {percent} percent to level {character + 1}", $"Nivel {character}, {percent} por ciento hacia el nivel {character + 1}")
+                : LevelUp(character);
+            return own.Length > 0 && area > 0 ? T($"{own}, area level {area}", $"{own}, nivel del área {area}")
+                : own.Length > 0 ? own
+                : area > 0 ? T($"area level {area}", $"nivel del área {area}")
+                : string.Empty;
+        }
 
         /// <summary>Menu rule: name, then state/value, then role. Value-bearing controls read "label, value, role".</summary>
         /// <param name="fullTooltip">Also read a long tooltip (item mods, gem stats) after the position.</param>

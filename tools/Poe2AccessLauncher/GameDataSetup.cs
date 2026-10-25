@@ -56,6 +56,7 @@ internal static class GameDataSetup
             new Step("item sounds", () => ReplaceFile(extractor, itemSounds, temp => ["item-sounds", gameDirectory, temp])),
             new Step("area names", () => ReplaceFile(extractor, Path.Join(catalog, "area-names.json"), temp => ["areas", gameDirectory, temp])),
             new Step("dat columns", () => ReplaceFile(extractor, Path.Join(catalog, "dat-columns.json"), temp => ["dat-columns", gameDirectory, temp])),
+            new Step("experience", () => ReplaceFile(extractor, Path.Join(catalog, "experience.json"), temp => ["experience", gameDirectory, temp])),
             new Step("hit times", () => ReplaceFile(extractor, Path.Join(catalog, "hit-times.txt"), temp => ["hit-times", gameDirectory, temp]), true),
             new Step("places", () => ReplaceFile(extractor, Path.Join(catalog, "places.json"), temp => ["places", gameDirectory, temp]), true),
             new Step("UI catalog", () => BuildUiCatalog(extractor, gameDirectory, uiScripts, Path.Join(catalog, "ui-catalog.json"))),

@@ -77,6 +77,7 @@ namespace Poe2Accessibility
         private DiscoveryNarrator? discoveries;
         private EnemyNarrator? enemyNews;
         private DeathWatch? deaths;
+        private ExperienceTable? experience;
 
         /// <summary>Game sounds are cut to this length: repeated proximity cues must stay short.</summary>
         private const float GameSoundSeconds = 0.9f;
@@ -170,6 +171,7 @@ namespace Poe2Accessibility
                 this.elements = elements;
                 var catalog = UiCatalog.Load(Path.Join(this.DllDirectory, "catalog", "ui-catalog.json"), this.log);
                 DatColumns.Apply(Path.Join(this.DllDirectory, "catalog", "dat-columns.json"), this.log);
+                this.experience = ExperienceTable.Load(Path.Join(this.DllDirectory, "catalog", "experience.json"), this.log);
                 this.compatibility = new CompatibilityReport(this.log);
                 this.layoutProbe = new LayoutProbe(memory, elements, this.compatibility);
                 var probe = this.layoutProbe;
@@ -664,8 +666,9 @@ namespace Poe2Accessibility
                 life.Mana.Total > 0 ? life.Mana.CurrentInPercent() : 0,
                 life.EnergyShield.Total > 0 ? life.EnergyShield.CurrentInPercent() : null);
             var states = this.statuses?.Active.Select(Announcements.AilmentName).ToList() ?? new System.Collections.Generic.List<string>();
-            var character = Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<GameHelper.RemoteObjects.Components.Player>(out var me) ? me.Level : 0;
-            var levels = Announcements.Levels(character, AreaLevel());
+            var player = Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<GameHelper.RemoteObjects.Components.Player>(out var me) ? me : null;
+            var character = player?.Level ?? 0;
+            var levels = Announcements.Levels(character, AreaLevel(), player == null ? null : this.experience?.PercentToNext(character, unchecked((uint)player.Xp)));
             return Announcements.Sentences(new[] { vitals, string.Join(", ", states), this.bosses?.Status() ?? string.Empty, levels }.Where(part => part.Length > 0));
         }
 

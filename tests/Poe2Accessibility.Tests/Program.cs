@@ -67,6 +67,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(ChatSpeakersGetASpace), ChatSpeakersGetASpace);
             Run(nameof(PlacesAreSaidOnceAsTheyChange), PlacesAreSaidOnceAsTheyChange);
             Run(nameof(RadarLabelsSpeakSpanish), RadarLabelsSpeakSpanish);
+            Run(nameof(ExperienceProgressIsWithinTheLevel), ExperienceProgressIsWithinTheLevel);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -529,6 +530,21 @@ namespace Poe2Accessibility.Tests
             Equal("Kabala (+2 puntos de pasiva)", Announcements.LandmarkLabel("Kabala (+2 Passive)"), "passive points");
             Localization.Detect("en");
             Equal("Stairs Up", Announcements.LandmarkLabel("Stairs Up"), "English untouched");
+        }
+
+        private static void ExperienceProgressIsWithinTheLevel()
+        {
+            var table = new ExperienceTable(new uint[] { 0, 525, 1760, 4250334444, 4250334445 });
+            Equal(0, table.PercentToNext(1, 0), "level 1 at its start");
+            Equal(50, table.PercentToNext(2, 525 + 618), "half way through level 2");
+            Equal(99, table.PercentToNext(3, 4250334443), "experience past int.MaxValue");
+            Equal(null, table.PercentToNext(5, 4250334445), "the last level");
+            Equal(null, table.PercentToNext(2, 100), "experience below the level (a stale read)");
+            Equal(null, new ExperienceTable(Array.Empty<uint>()).PercentToNext(1, 0), "no table");
+            Localization.Detect("es");
+            Equal("Nivel 4, 35 por ciento hacia el nivel 5, nivel del área 2", Announcements.Levels(4, 2, 35), "vitals line");
+            Equal("Nivel 4, nivel del área 2", Announcements.Levels(4, 2), "without the table");
+            Localization.Detect("en");
         }
 
         private static void KnownPlacesOutliveTheSession()

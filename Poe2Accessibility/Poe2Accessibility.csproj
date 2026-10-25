@@ -52,6 +52,8 @@
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\item-names.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\item-names.json')" />
     <!-- The dat columns the plugin reads, found again by tools/Poe2UiExtract dat-columns (the launcher, after a patch). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\dat-columns.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\dat-columns.json')" />
+    <!-- The total experience each level starts at (tools/Poe2UiExtract experience). -->
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\experience.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\experience.json')" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\dodge-timings.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\dodge-timings.txt')" />
     <!-- When monster attacks land, from the game's animation data (tools/Poe2UiExtract hit-times). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\hit-times.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\hit-times.txt')" />

@@ -69,6 +69,12 @@ if (args.Length > 1 && string.Equals(args[0], "places", StringComparison.Ordinal
     return PlaceExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\places.json");
 }
 
+// Args: experience <gameDir> [outFile]  -- the total experience each character level starts at.
+if (args.Length > 1 && string.Equals(args[0], "experience", StringComparison.OrdinalIgnoreCase))
+{
+    return ExperienceExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\experience.json");
+}
+
 // Args: item-names <gameDir> [outFile]  -- currency item names per language, for inline item art in legends.
 if (args.Length > 1 && string.Equals(args[0], "item-names", StringComparison.OrdinalIgnoreCase))
 {
