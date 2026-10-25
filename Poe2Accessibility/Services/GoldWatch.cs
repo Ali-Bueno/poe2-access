@@ -24,6 +24,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The inventory panel's gold amount text, once found (zero before): chrome, not news of a panel opening.</summary>
         public IntPtr Counter => this.counter;
+
+        /// <summary>The gold the character carries, once the counter has been read.</summary>
+        public long? Amount => this.amount;
         private long? amount;
         private long lastPoll;
 

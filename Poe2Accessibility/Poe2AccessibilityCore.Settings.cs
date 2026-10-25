@@ -17,6 +17,7 @@ namespace Poe2Accessibility
             ImGui.Checkbox("Announce game state changes", ref this.Settings.AnnounceGameState);
             ImGui.Checkbox("Announce area changes", ref this.Settings.AnnounceArea);
             ImGui.Checkbox("Read NPC, system, whisper and party chat", ref this.Settings.AnnounceChat);
+            ImGui.Checkbox("Also read global and trade chat", ref this.Settings.AnnouncePlayerChat);
             ImGui.Checkbox("Read whole tooltips when the focus lands", ref this.Settings.ReadTooltipsOnFocus);
             ImGui.Checkbox("L3 is the mod button (lines, details, hints, screen)", ref this.Settings.ControllerCommands);
             ImGui.Checkbox("Say when life falls below half and a quarter", ref this.Settings.AnnounceLowLife);

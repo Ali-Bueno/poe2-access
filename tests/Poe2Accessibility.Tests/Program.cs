@@ -1224,6 +1224,9 @@ namespace Poe2Accessibility.Tests
             Equal("Renly: Esto es lo que tengo.", ChatDiff.Spoken("Renly:Esto es lo que tengo."), "speaker glued to the line");
             Equal("Una: Hola", ChatDiff.Spoken("Una: Hola"), "already spaced");
             Equal("Son las 12:30", ChatDiff.Spoken("Son las 12:30"), "a time keeps its colon");
+            Equal("zzChopanz: Gran yelmo imperial", ChatDiff.Spoken("#zzChopanz:Gran yelmo imperial"), "global sign dropped");
+            Equal("Ana: WTS", ChatDiff.Spoken("$Ana: WTS"), "trade sign dropped");
+            Equal(true, ChatDiff.IsPlayerChannel("#Ana: hola") && !ChatDiff.IsPlayerChannel("@De Ana: hola"), "whispers are not player channels");
         }
 
         private static void MapPiecesAndPropsArePlaced()

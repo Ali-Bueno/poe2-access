@@ -7,7 +7,7 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     New chat lines worth hearing: NPC shouts ("Wounded Man: Reach... Clearfell..."), the character's own
     ///     remarks, system notices, whispers and party. Global ('#') and trade ('$') channels are other players'
-    ///     chatter and stay silent; the same line twice within a few seconds is said once. The chat layer's message list is its descendant
+    ///     chatter, said only when the player asks for them; the same line twice within a few seconds is said once. The chat layer's message list is its descendant
     ///     with the most children; lines present when the watcher first sees it are history, not news, and the
     ///     game rebuilds the line elements, so new lines come from the text sequence (<see cref="ChatDiff"/>). A new
     ///     channel chosen in the panel's channel list is said once the list closes on it.
@@ -21,8 +21,6 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A line repeated within this time is not said again (AFK on/off while idling, repeated shouts).</summary>
         private const int RepeatWindowMs = 5000;
-
-        private static readonly char[] PlayerChannels = { '#', '$' };
 
         private readonly UiElementReader elements;
         private readonly ComboBoxReader comboBoxes;
@@ -51,6 +49,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Another channel chosen for what the player types ("Channel: Trade"); null keeps it silent.</summary>
         public Action<string>? ChannelChanged { get; set; }
+
+        /// <summary>Whether global and trade lines are said too (a setting).</summary>
+        public Func<bool>? ReadPlayerChannels { get; set; }
 
         /// <summary>Per frame with the current chat layer (zero outside the game).</summary>
         public void Tick(IntPtr chatLayer)
@@ -99,7 +100,7 @@ namespace Poe2Accessibility.Services
             foreach (var text in added)
             {
                 var now = Environment.TickCount64;
-                if (Array.IndexOf(PlayerChannels, text[0]) < 0 &&
+                if ((!ChatDiff.IsPlayerChannel(text) || this.ReadPlayerChannels?.Invoke() == true) &&
                     !(this.spokenAt.TryGetValue(text, out var at) && now - at < RepeatWindowMs))
                 {
                     this.spokenAt[text] = now;

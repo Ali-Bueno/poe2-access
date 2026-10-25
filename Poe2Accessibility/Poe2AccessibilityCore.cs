@@ -287,6 +287,7 @@ namespace Poe2Accessibility
                 {
                     PanelChanged = text => this.output.Speak(text, true),
                     ChannelChanged = text => this.output.Urge(text),
+                    ReadPlayerChannels = () => this.Settings.AnnouncePlayerChat,
                 };
                 this.mapOverlay = new MapOverlayWatch(elements, text => this.output.Speak(text, true));
                 this.longText = new LongTextReader(elements, this.output);

@@ -36,6 +36,9 @@ namespace Poe2Accessibility
         /// <summary>Read new chat lines from NPCs, your character, the system, whispers and party (not global or trade).</summary>
         public bool AnnounceChat = true;
 
+        /// <summary>Also read other players' global and trade chat (busy, so off by default).</summary>
+        public bool AnnouncePlayerChat;
+
         /// <summary>Read the whole tooltip when the focus lands on something (items, gems, stats); off = name only, tooltip on request.</summary>
         public bool ReadTooltipsOnFocus = true;
 

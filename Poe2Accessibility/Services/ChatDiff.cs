@@ -11,9 +11,18 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public static class ChatDiff
     {
-        /// <summary>A chat line as spoken: the speaker's colon followed by a space ("Renly:Esto es lo que tengo.", 2026-10-24).</summary>
+        private static readonly char[] PlayerChannels = { '#', '$' };
+
+        /// <summary>Global ('#') and trade ('$') lines: other players' chatter, marked by the channel's sign.</summary>
+        public static bool IsPlayerChannel(string line) => line.Length > 0 && Array.IndexOf(PlayerChannels, line[0]) >= 0;
+
+        /// <summary>
+        ///     A chat line as spoken: without a channel sign, the speaker's colon followed by a space ("Renly:Esto es lo
+        ///     que tengo.", 2026-10-24).
+        /// </summary>
         public static string Spoken(string line)
         {
+            line = IsPlayerChannel(line) ? line[1..] : line;
             var colon = line.IndexOf(':');
             return colon > 0 && colon + 1 < line.Length && !char.IsWhiteSpace(line[colon + 1]) && !char.IsDigit(line[colon + 1])
                 ? $"{line[..(colon + 1)]} {line[(colon + 1)..]}"
