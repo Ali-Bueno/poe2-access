@@ -65,6 +65,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(KnownPlacesOutliveTheSession), KnownPlacesOutliveTheSession);
             Run(nameof(MapPiecesAndPropsArePlaced), MapPiecesAndPropsArePlaced);
             Run(nameof(ChatSpeakersGetASpace), ChatSpeakersGetASpace);
+            Run(nameof(SmallCapsCaptionsGetACapital), SmallCapsCaptionsGetACapital);
+            Run(nameof(QuestRewardIconsAreNamed), QuestRewardIconsAreNamed);
             Run(nameof(PlacesAreSaidOnceAsTheyChange), PlacesAreSaidOnceAsTheyChange);
             Run(nameof(RadarLabelsSpeakSpanish), RadarLabelsSpeakSpanish);
             Run(nameof(ExperienceProgressIsWithinTheLevel), ExperienceProgressIsWithinTheLevel);
@@ -1227,6 +1229,24 @@ namespace Poe2Accessibility.Tests
             Equal("zzChopanz: Gran yelmo imperial", ChatDiff.Spoken("#zzChopanz:Gran yelmo imperial"), "global sign dropped");
             Equal("Ana: WTS", ChatDiff.Spoken("$Ana: WTS"), "trade sign dropped");
             Equal(true, ChatDiff.IsPlayerChannel("#Ana: hola") && !ChatDiff.IsPlayerChannel("@De Ana: hola"), "whispers are not player channels");
+        }
+
+        private static void SmallCapsCaptionsGetACapital()
+        {
+            Equal("Reanudar juego", Announcements.Capitalised("reanudar juego"), "game menu entry");
+            Equal("set de armas I", Announcements.Capitalised("set de armas I"), "mixed case stays");
+            Equal("+ 0.0", Announcements.Capitalised("+ 0.0"), "no letter to raise");
+            Equal(string.Empty, Announcements.Capitalised(string.Empty), "empty");
+        }
+
+        private static void QuestRewardIconsAreNamed()
+        {
+            Localization.Detect("es");
+            Equal("gema de asistencia", QuestRewards.FromTextureKey("Art/2DItems/QuestItems/RewardSupportGem.dds|0,0,0,0|0"), "support gem");
+            Equal("oro", QuestRewards.FromTextureKey("Art/2DItems/QuestItems/RewardGold.dds|0,0,0,0|0"), "gold");
+            Equal("NewKind", QuestRewards.FromTextureKey("Art/2DItems/QuestItems/RewardNewKind.dds|0,0,0,0|0"), "a kind not known yet keeps its art name");
+            Equal(null, QuestRewards.FromTextureKey("Art/2DItems/Currency/Ruthless/CoinPileTier1.dds|0,0,0,0|0"), "another image");
+            Localization.Detect("en");
         }
 
         private static void MapPiecesAndPropsArePlaced()

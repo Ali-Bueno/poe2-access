@@ -64,13 +64,29 @@ namespace Poe2Accessibility.Services
                     return;
                 }
 
+                // A page of a few lines besides its controls (Guild: "You are not in a guild", what guilds are for) is
+                // read after the focus; a page full of labels is left to the focus that browses it.
+                var focusTexts = focus == null ? new HashSet<string>() : new HashSet<string>(focus.ListItems) { focus.Text, focus.Value, focus.Group };
+                var focusSpeech = withFocus || named ? this.lastFocusSpeech : focus != null ? this.Focused(focus) : string.Empty;
+                var lines = change.Texts.Where(text => text != tabTitle && !text.IsControl && !IsNumber(text.Text) &&
+                                                       !text.Text.Split(", ").Any(focusTexts.Contains) &&
+                                                       !focusSpeech.Contains(text.Text, StringComparison.Ordinal) && !this.JustNarrated(text.Text)).ToList();
+                var pageLines = lines.Count <= SmallBoxTexts ? Describe(lines) : string.Empty;
                 if (named)
                 {
+                    if (pageLines.Length > 0)
+                    {
+                        this.AfterFocus("page lines after focus", pageLines);
+                    }
+
                     return;
                 }
 
-                var focusSpeech = withFocus ? this.lastFocusSpeech : focus != null ? this.Focused(focus) : string.Empty;
-                this.Speak("tab", focusSpeech.Length > 0 ? Announcements.InContext(Announcements.TabTitle(tabTitle.Text), focusSpeech) : Announcements.TabTitle(tabTitle.Text), true);
+                this.Speak("tab", Announcements.Sentences(new[]
+                {
+                    focusSpeech.Length > 0 ? Announcements.InContext(Announcements.TabTitle(tabTitle.Text), focusSpeech) : Announcements.TabTitle(tabTitle.Text),
+                    pageLines,
+                }.Where(part => part.Length > 0)), true);
                 return;
             }
 
@@ -199,6 +215,14 @@ namespace Poe2Accessibility.Services
             {
                 this.Speak("opened with focus", texts, true);
             }
+            else if (change.Kind == ScreenChangeKind.TopLayerChanged && justFocused && change.Layer.Address == focusLayer &&
+                     kept.Where(text => !text.IsControl && !this.JustNarrated(text.Text)).ToList() is { Count: > 0 and <= SmallBoxTexts } lines)
+            {
+                // A panel back on top with its focus (the social panel from the game menu): the few lines its frame shows
+                // besides controls (the account name and area over Friends), after the focus. A panel full of labels is
+                // left to the focus that browses it.
+                this.AfterFocus("panel lines after focus", Describe(lines));
+            }
             else if (change.Kind == ScreenChangeKind.TextsAppeared && justFocused &&
                      (change.Scrolled || this.selectedTab(change.Layer.Address).Length > 0))
             {
@@ -212,7 +236,7 @@ namespace Poe2Accessibility.Services
                 // since this cuts it off, then the text — the name before a long description, never after it.
                 this.Speak("appeared with focus", Announcements.Sentences(new[] { this.lastFocusSpeech, texts }), true);
             }
-            else if (change.Kind == ScreenChangeKind.TextsAppeared)
+            else if (change.Kind == ScreenChangeKind.TextsAppeared && (DateTime.UtcNow - this.collapsedAt).TotalMilliseconds >= FocusTextMergeMs)
             {
                 this.Speak("appeared in focus layer", texts, false);
             }

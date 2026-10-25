@@ -20,7 +20,19 @@ namespace Poe2Accessibility.Services
                 case ScreenChangeKind.TopLayerChanged:
                     var returning = this.lastTop != IntPtr.Zero;
                     this.lastTop = change.Layer.Address;
-                    if (focus != null && focusLayer == change.Layer.Address && this.ReadScreenMessages && (this.JustFocused() || this.deferredFocus != null))
+                    if (focus != null && focusLayer == change.Layer.Address && !this.ReadScreenMessages && (this.JustFocused() || this.deferredFocus != null))
+                    {
+                        // The game menu: its title came with the state, and its other lines (the R3 tip, the pause banner)
+                        // are the same every time it opens, so each is said once a session, after the focus.
+                        var menuTexts = new HashSet<string>(focus.ListItems) { focus.Text, focus.Value };
+                        var lines = change.Texts.Where(text => !text.IsControl && !menuTexts.Contains(text.Text) && !this.SaidTitle.StartsWith(text.Text, StringComparison.Ordinal) &&
+                                                               this.screenLinesSaid.Add(text.Text)).ToList();
+                        if (lines.Count > 0)
+                        {
+                            this.SayAfterFocus(Describe(lines));
+                        }
+                    }
+                    else if (focus != null && focusLayer == change.Layer.Address && this.ReadScreenMessages && (this.JustFocused() || this.deferredFocus != null))
                     {
                         // A screen opened with its focus (delete character: "Are you sure…? yarkey…", then Cancel):
                         // its message, then the focus.

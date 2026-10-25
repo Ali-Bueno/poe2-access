@@ -96,6 +96,12 @@ namespace Poe2Accessibility
             /// <summary>Currency item icons; a vendor price is this icon beside the amount (2026-10-23).</summary>
             public const string CurrencyArtPrefix = "Art/2DItems/Currency/";
 
+            /// <summary>
+            ///     Quest reward icons, one per kind ("RewardSupportGem", "RewardGold"…; twelve in the 0.5.5e bundles, listed
+            ///     with tools/Poe2UiExtract paths).
+            /// </summary>
+            public const string QuestRewardArtPrefix = "Art/2DItems/QuestItems/Reward";
+
             /// <summary>Gold's icon: "Art/2DItems/Currency/Ruthless/CoinPileTier1.dds" on prices and the inventory's gold counter.</summary>
             public const string GoldArtMarker = "/CoinPile";
         }
@@ -201,6 +207,21 @@ namespace Poe2Accessibility
             public static uint RightTrigger => Bit(15);
 
             private static uint Bit(int measured) => measured + Shift is >= 0 and < 32 ? 1u << (measured + Shift) : 0;
+        }
+
+        /// <summary>
+        ///     The quest map (Misiones): "WorldScreen" holds the "map_control" widget, whose first child is the map canvas,
+        ///     and the surface/underground toggle, a button known by its click sounds (DepthToggleDown.ogg /
+        ///     DepthToggleUp.ogg). The canvas byte is 1 while the surface shows and 0 underground: it flipped with each of
+        ///     four presses of the toggle in act 1, nothing else of the panel did (2026-10-25).
+        /// </summary>
+        public static class WorldMap
+        {
+            public const string ControlName = "map_control";
+
+            public const string DepthToggleSound = "DepthToggle";
+
+            public const int SurfaceShownOffset = 0x566;
         }
 
         /// <summary>
@@ -398,6 +419,19 @@ namespace Poe2Accessibility
         public static class ButtonMenu
         {
             public const int SelectedIndexOffset = 0x348;
+        }
+
+        /// <summary>
+        ///     A section of an options page (a heading over a list of rows; Gráficos has four). The byte is set on the
+        ///     page's active section, the qword is that section's highlighted row, disabled rows included, which the game
+        ///     highlights but never focuses: Gráficos went 0 → 11 down the first section, the "Pantalla" (1),
+        ///     "Resolución de la ventana" (5) and "HDR" (9) rows too, then the flag moved to the next section, whose row
+        ///     started at 0 (2026-10-25). Row → list → page → section.
+        /// </summary>
+        public static class OptionsSection
+        {
+            public const int ActiveOffset = 0x368;
+            public const int RowIndexOffset = 0x370;
         }
 
         /// <summary>Inventory grid element (focused while the cursor is anywhere in the grid).</summary>

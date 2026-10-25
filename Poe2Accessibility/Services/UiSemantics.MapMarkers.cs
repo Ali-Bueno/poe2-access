@@ -31,6 +31,48 @@ namespace Poe2Accessibility.Services
         /// <summary>The map whose markers were last read, and the marker it opened on.</summary>
         private (System.IntPtr Parent, System.IntPtr Marker) mapHere;
 
+        /// <summary>Hops from the depth toggle up to the element holding the map widget ("WorldScreen", 4 measured).</summary>
+        private const int MapWidgetHops = 6;
+
+        /// <summary>The last button checked for being the depth toggle, and its map canvas (zero: not the toggle).</summary>
+        private (System.IntPtr Button, System.IntPtr Canvas) depthToggle;
+
+        /// <summary>
+        ///     The quest map's surface/underground toggle says what the map shows ("debajo del suelo"); empty for any other
+        ///     button. Its own memory does not change with a press: the map canvas holds it (GameLayout.WorldMap).
+        /// </summary>
+        private string MapDepthValue(in UiElementReader.ElementInfo info)
+        {
+            if (this.depthToggle.Button != info.Address)
+            {
+                this.depthToggle = (info.Address, this.elements.HasSound(info.Address, GameLayout.WorldMap.DepthToggleSound) ? this.MapCanvasNear(info) : System.IntPtr.Zero);
+            }
+
+            return this.depthToggle.Canvas == System.IntPtr.Zero ? string.Empty : this.elements.ReadSurfaceShown(this.depthToggle.Canvas) switch
+            {
+                true => Announcements.AboveGround,
+                false => Announcements.BelowGround,
+                null => string.Empty,
+            };
+        }
+
+        /// <summary>The canvas of the map widget beside the toggle: the first child of "map_control" under one of its ancestors.</summary>
+        private System.IntPtr MapCanvasNear(in UiElementReader.ElementInfo toggle)
+        {
+            foreach (var ancestor in this.elements.ReadAncestors(toggle, MapWidgetHops))
+            {
+                foreach (var child in this.elements.ReadChildren(ancestor))
+                {
+                    if (this.elements.TryReadElement(child, out var widget) && widget.Name == GameLayout.WorldMap.ControlName)
+                    {
+                        return this.elements.ReadChildren(widget).FirstOrDefault();
+                    }
+                }
+            }
+
+            return System.IntPtr.Zero;
+        }
+
         private AccessibleUiNode? DescribeMapMarker(in UiElementReader.ElementInfo info)
         {
             if (!this.InGame || this.elements.TryReadText(info.Address, out var own) && own.Length > 0 ||

@@ -147,6 +147,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Read a screen's message with its first focus (delete character); off for the game menu.</summary>
         public bool ReadScreenMessages { get; set; } = true;
 
+        /// <summary>The screen's title as the state announcement already said it ("Menú del juego."); empty for none.</summary>
+        public string SaidTitle { get; set; } = string.Empty;
+
+        /// <summary>Lines of the game menu said this session (<see cref="ReadScreenMessages"/> off): its tip never changes.</summary>
+        private readonly HashSet<string> screenLinesSaid = new(StringComparer.Ordinal);
+
         /// <summary>Milliseconds since the confirm button (A) was last pressed.</summary>
         public Func<long>? SinceConfirm { get; set; }
 
@@ -155,6 +161,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The last narration as a set of its parts, to drop the same news reported twice.</summary>
         private (string Parts, DateTime At) lastNarrated = (string.Empty, DateTime.MinValue);
+
+        /// <summary>What was said in the last <see cref="RecentTextsMs"/>, as parts (<see cref="JustNarrated"/>).</summary>
+        private readonly List<(HashSet<string> Parts, DateTime At)> narrated = new();
 
         /// <summary>
         ///     Narrations of the last moment, by their sorted parts: the stash said its tab and focus twice, as its layer
@@ -186,6 +195,12 @@ namespace Poe2Accessibility.Services
         private IntPtr valueOwner;
         private string lastValue = string.Empty;
         private bool lastExpanded;
+
+        /// <summary>The panel whose notes were said with the focus last (<see cref="AccessibleUiNode.PanelNotes"/>).</summary>
+        private string notesContext = string.Empty;
+
+        /// <summary>When the focused row was last closed: the rows that slide up into view after it are not news.</summary>
+        private DateTime collapsedAt = DateTime.MinValue;
         private string lastLinkRow = string.Empty;
         private IReadOnlyList<string> tooltipSaid = Array.Empty<string>();
 
@@ -309,6 +324,42 @@ namespace Poe2Accessibility.Services
         /// <summary>Said once the focus waiting for its new layer has been (the creation screen's name help).</summary>
         public void SayAfterFocus(string text) => this.hintAfterFocus = Announcements.Sentences(new[] { this.hintAfterFocus, text });
 
+        /// <summary>
+        ///     Whether a line was part of a narration a moment ago (the checkpoint map's title, said as it opened, came
+        ///     again as the same layer went on top).
+        /// </summary>
+        private bool JustNarrated(string line)
+        {
+            var now = DateTime.UtcNow;
+            var parts = Parts(line);
+            return parts.Count > 0 && this.narrated.Any(said => (now - said.At).TotalMilliseconds < RecentTextsMs && parts.All(said.Parts.Contains));
+        }
+
+        /// <summary>Keeps what was just said for <see cref="JustNarrated"/>.</summary>
+        private void NoteNarrated(string text)
+        {
+            var now = DateTime.UtcNow;
+            this.narrated.RemoveAll(said => (now - said.At).TotalMilliseconds >= RecentTextsMs);
+            this.narrated.Add((new HashSet<string>(Parts(text), StringComparer.Ordinal), now));
+        }
+
+        /// <summary>A text cut at its sentences and commas ("Guild. You are not in a guild, Create Guild").</summary>
+        private static List<string> Parts(string text) =>
+            text.Split(new[] { ". ", ", " }, StringSplitOptions.RemoveEmptyEntries).Select(part => part.Trim().TrimEnd('.')).Where(part => part.Length > 0).ToList();
+
+        /// <summary>Said after the focus: queued behind it, or held for it while it waits for its layer to settle.</summary>
+        private void AfterFocus(string reason, string text)
+        {
+            if (this.deferredFocus != null)
+            {
+                this.SayAfterFocus(text);
+            }
+            else
+            {
+                this.Speak(reason, text, false);
+            }
+        }
+
         /// <summary>The in-game HUD: new texts (quest tracker, ground item) are read after the rest, never as a page.</summary>
         public IntPtr HudLayer { get; set; }
 
@@ -383,8 +434,23 @@ namespace Poe2Accessibility.Services
                 // the section: coming back is not news.
                 this.lastGroup = node.Group;
             }
+            else if (node.Position.Length > 0)
+            {
+                // A list of its own without a heading (the Character panel's stat tiles): coming back to the stat list
+                // names its section again.
+                this.lastGroup = string.Empty;
+            }
 
             var text = focused;
+            var notes = node.Context == this.notesContext ? new List<string>() : node.PanelNotes.Where(note => !focused.Contains(note.TrimEnd('.'), StringComparison.Ordinal)).ToList();
+            if (notes.Count > 0)
+            {
+                // Entering a panel: the lines it shows besides the part the focus is in, before the focus (kept due
+                // until said: a focus waiting for its layer can be overtaken by the next), unless the focus says them
+                // (Party's "You are not in a party" heads its buttons).
+                text = Announcements.InContext(Announcements.Sentences(notes), text);
+            }
+
             if (node.Context.Length > 0 && node.Context != this.lastContext)
             {
                 if (!this.JustChosen(node.Context))
@@ -405,7 +471,9 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            this.notesContext = node.Context;
             this.deferredFocus = null;
+            this.NoteNarrated(text);
             this.output.Speak(this.WithPendingPage(text), true);
         }
 
@@ -456,6 +524,7 @@ namespace Poe2Accessibility.Services
             if (this.deferredFocus is { } deferred && (DateTime.UtcNow - deferred.At).TotalMilliseconds >= NewLayerFocusDelayMs)
             {
                 this.deferredFocus = null;
+                this.notesContext = deferred.Node.Context;
                 var text = deferred.Text;
                 if (deferred.Node.Context.Length == 0 && this.Refresh?.Invoke(deferred.Node) is { Context.Length: > 0 } fresh &&
                     fresh.Context != this.lastContext)
@@ -515,6 +584,14 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (node.IsCollapsible && node.IsExpanded != wasExpanded)
+            {
+                // A opened or closed the row: its state; the lines it shows follow as the screen reports them.
+                this.collapsedAt = node.IsExpanded ? DateTime.MinValue : DateTime.UtcNow;
+                this.output.Speak(node.IsExpanded ? Announcements.Expanded : Announcements.Collapsed, true);
+                return;
+            }
+
             if (node.Role is UiRole.GridCell or UiRole.ItemSlot or UiRole.ListItem)
             {
                 // The cursor moved inside the grid: a new item and cell, not a value of the same control.
@@ -557,6 +634,7 @@ namespace Poe2Accessibility.Services
                 this.legendsLayer = IntPtr.Zero;
                 this.panelLegends = (string.Empty, DateTime.MinValue);
                 this.lastContext = string.Empty;
+                this.notesContext = string.Empty;
             }
 
             this.log.Debug($"Screen change {change.Kind} layer 0x{change.Layer.Address.ToInt64():X} focus layer 0x{focusLayer.ToInt64():X} hint={change.Layer.IsHintBar} top=0x{snapshot.TopInteractive?.Address.ToInt64() ?? 0:X} justFocused={this.JustFocused()}");
@@ -741,7 +819,7 @@ namespace Poe2Accessibility.Services
             var parts = new List<string>();
             foreach (var text in texts)
             {
-                var labelled = Announcements.WithButton(text.Text, text.Button);
+                var labelled = Announcements.WithButton(Announcements.Capitalised(text.Text), text.Button);
                 var spoken = text.IsControl && !text.IsEnabled ? Announcements.Unavailable(labelled) : labelled;
                 if (!parts.Contains(spoken))
                 {
@@ -785,6 +863,7 @@ namespace Poe2Accessibility.Services
 
             this.lastNarrated = (parts, now);
             this.recentNarrations[parts] = now;
+            this.NoteNarrated(text);
             this.log.Debug($"Narrate ({reason})");
             if (this.deferredFocus is { } deferred && text.Contains(this.lastFocusSpeech, StringComparison.Ordinal))
             {

@@ -131,6 +131,7 @@
 | Map overlay shown / hidden (D-pad down) | done (live) | `map_overlay` (G+0xB88) hint `gamepad_move_map_hint` visible only while open; `MapOverlayWatch` |
 | Chat panel shown / hidden (LT in a panel) | done (live) | chat layer visible with its "hold LT to chat" hint; `ChatWatcher.TrackPanel` |
 | Chat channel list and filters | done (live) | unnamed combo found by its parts, fields per class (`UiElementReader.ComboBoxShift`); "Eligiendo: Global, 2 de 6", "Canal: Susurros", field "Global, #, campo de texto" (2026-10-25) |
+| UI sweep 2026-10-25, every finding fixed | done (live) | disabled option rows ("no disponible"), challenges expanded/collapsed, quest map depth and rewards, panel notes (Skills spirit/capacity, Character class), stat-list sections, socket "1 de 2", small passive nodes, map with area/league/realm, game menu tip, friends/guild lines, clear-search button, capitalised small-caps captions; `docs/research/ui-sweep-2026-10-25.md` |
 | Player menu (A on another player) | done (live, header unheard) | popup outside the root, focus stays on it; chosen button int `+0x348` (`GameLayout.ButtonMenu`); `UiSemantics.DescribeButtonMenu`; dev command `dump 0x<address>` dumps such popups |
 | Weapon swap "Set de armas 2, vacío" (D2R) | done (live) | GameHelper `Stats.CurrentWeaponIndex` (+0x168) still right in 0.5.5e; `InventoryWatch.TickWeaponSet` |
 | Inline item art named ("Identificar Pergamino de sabiduría x 1") | done (unit) | `catalog/item-names.json` (`Poe2UiExtract item-names`, BaseItemTypes Id +0x0 / Name +0x20); `ControllerGlyphs.Plain` |
@@ -310,8 +311,7 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-Next fix: disabled option rows say nothing (page index +0x370 measured; `docs/research/ui-sweep-2026-10-25.md`), then
-the rest of that sweep. Characters: "kehgan" (Monk, level 2, Clearfell Encampment; a town NPC shows a quest marker), "yarkbruja" (Witch, level 3,
+Next: user test of the 2026-10-25 UI sweep fixes (`docs/research/ui-sweep-2026-10-25.md`). Characters: "kehgan" (Monk, level 2, Clearfell Encampment; a town NPC shows a quest marker), "yarkbruja" (Witch, level 3,
 Clearfell Encampment, no NPC marker), "yarkey" (Mercenary, level 4, Mud Burrow). Start in town from character selection:
 `desktop.py combo l2 cross --seconds 1.8` (away from town the confirmation's Cancel is focused: D-pad right, then A). Next: user test of the 2026-10-25 batch (places and the Lugares category, the other
 languages, projectile dodge timing, quieter area loads, the new package layout) and of the 2026-10-24 one (wall tones,
@@ -359,6 +359,8 @@ must stay silent).
 - A `settings.txt` that fails to parse is ignored (spoken warning) and never overwritten with defaults.
 - Pre-game UI root unknown to every public tool; our scan heuristic (self-pointer + no parent + children) is unvalidated.
 - Native `prism.dll` resolution inside the plugin `AssemblyLoadContext` untested (resolver installed as safety net).
-- UI sweep 2026-10-25: unread or misread UI still open (disabled option rows, cosmetics filter bar, panel texts,
-  map toggle state, challenges expanded state…) in `docs/research/ui-sweep-2026-10-25.md`.
+- Panel notes (`UiSemantics.PanelNotes`) are a heuristic: a titled panel's texts outside navigable elements and outside
+  parts holding more than three; checked on Skills ("0 de espíritu", gem capacity) and Character ("Monje.
+  Resistencias"), the inventory and stash give none. A panel whose loose lines change while open says them only on
+  entry.
 - GGG ToS: read-only tool, still no written approval — ask before any public release (brief §25).

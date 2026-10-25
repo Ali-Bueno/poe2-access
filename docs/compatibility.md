@@ -52,10 +52,11 @@ Their fields sit after the base control, so when it grows they all move as far a
 | Class selector: its index and the class id beside it name the same class of the first row (`ClassSelector.FirstRowClassIds`; a variant highlighted proves nothing) | index, class id | `UiSemantics.SelectorAgrees` |
 | Panel title (only under `panels_parent`): an ancestor of the panel reads a title there | title | `UiSemantics.TitleAt` |
 | Text field hint: reads as words other than the field's font face (the field holds its font 0x50 before the hint) | hint | `UiSemantics.Placeholder` |
-| Check box, selectable list: nothing static, so judged the way they were measured, by watching them change: the shift whose value changes as the player toggles or moves is the field; another shift that changes twice while the expected one stays put takes its place | state, selected index | `ControlFields.Changing` (pure `ChangingField`) |
+| Options section (weak): on a focused options row, the section two levels above its list has the active byte set and the row's index after it | active, highlighted row | `UiElementReader.IsSectionRow` |
+| Check box, selectable list, quest map depth: nothing static, so judged the way they were measured, by watching them change: the shift whose value changes as the player toggles or moves is the field; another shift that changes twice while the expected one stays put takes its place | state, selected index | `ControlFields.Changing` (pure `ChangingField`) |
 
 A shift other than the expected one is trusted once two controls agree on it (`ControlFields`); weak groups (tabs, panel
-titles) need a second control even where measured, and a control that fitted nowhere is tried again later. Only combo
+titles, options sections) need a second control even where measured, and a control that fitted nowhere is tried again later. Only combo
 boxes and the area row are said when lost: a grid is recognised by reading it and a slider at its minimum proves
 nothing, so their misses are only logged.
 

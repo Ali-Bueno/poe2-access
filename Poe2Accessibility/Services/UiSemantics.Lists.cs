@@ -42,6 +42,12 @@ namespace Poe2Accessibility.Services
         /// <summary>A visible frame whose control name starts so marks the chosen row of a list that keeps the focus.</summary>
         private const string SelectionMarkerPrefix = "selected_";
 
+        /// <summary>The part of a collapsible row shown while it is open (Challenges; the game's spelling, 0.5.5e).</summary>
+        private const string CollapsibleFrameName = "collapsable_frame";
+
+        /// <summary>How deep under a marked row its collapsible part is looked for (row → frame → collapsable_frame).</summary>
+        private const int CollapsibleFrameDepth = 3;
+
         /// <summary>Challenges: focused tabs_container → row 5 levels down → its marker.</summary>
         private const int MarkerSearchDepth = 8;
 
@@ -214,6 +220,7 @@ namespace Poe2Accessibility.Services
                 position = index < 0 ? string.Empty : Announcements.ListPosition(index + 1, rows.Count);
             }
 
+            var collapsible = this.CollapsibleFrame(row);
             return new AccessibleUiNode
             {
                 Address = owner.Address,
@@ -221,9 +228,41 @@ namespace Poe2Accessibility.Services
                 Role = UiRole.ListItem,
                 Text = text,
                 Position = position,
+                IsCollapsible = collapsible != null,
+                IsExpanded = collapsible?.IsVisibleFlag == true,
                 IsVisible = this.elements.IsVisible(owner),
                 Context = this.InGame ? this.PanelTitle(owner) : string.Empty,
             };
+        }
+
+        /// <summary>The part of <paramref name="row"/> that shows only while A has it open; null for a row that does not open.</summary>
+        private UiElementReader.ElementInfo? CollapsibleFrame(in UiElementReader.ElementInfo row)
+        {
+            var queue = new Queue<(UiElementReader.ElementInfo Node, int Depth)>();
+            queue.Enqueue((row, 0));
+            while (queue.Count > 0)
+            {
+                var (node, depth) = queue.Dequeue();
+                foreach (var childAddress in this.elements.ReadChildren(node))
+                {
+                    if (!this.elements.TryReadElement(childAddress, out var child))
+                    {
+                        continue;
+                    }
+
+                    if (child.Name == CollapsibleFrameName)
+                    {
+                        return child;
+                    }
+
+                    if (depth + 1 < CollapsibleFrameDepth)
+                    {
+                        queue.Enqueue((child, depth + 1));
+                    }
+                }
+            }
+
+            return null;
         }
 
         /// <summary>Visible children of the first descendant whose visible children are all controls.</summary>

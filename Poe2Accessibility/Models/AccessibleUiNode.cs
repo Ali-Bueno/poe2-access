@@ -48,8 +48,17 @@ namespace Poe2Accessibility.Models
         /// <summary>Where the value stands among its choices (combo boxes: "3 de 4"), said when the value changes.</summary>
         public string ValuePosition { get; init; } = string.Empty;
 
-        /// <summary>A combo box whose choices are open (in game: stepped in place with the D-pad).</summary>
+        /// <summary>A combo box whose choices are open (in game: stepped in place with the D-pad), a collapsible row shown open.</summary>
         public bool IsExpanded { get; init; }
+
+        /// <summary>
+        ///     The few lines the focus's panel shows outside the focused part ("0 de espíritu" over the Skills list): said
+        ///     once as the focus enters the panel.
+        /// </summary>
+        public System.Collections.Generic.IReadOnlyList<string> PanelNotes { get; init; } = Array.Empty<string>();
+
+        /// <summary>A row that A opens and closes (a Challenges category): its state is said with it.</summary>
+        public bool IsCollapsible { get; init; }
 
         public bool IsVisible { get; init; }
 

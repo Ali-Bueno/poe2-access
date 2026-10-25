@@ -46,6 +46,9 @@ namespace Poe2Accessibility.Services
         /// <summary>How far a combo subclass's fields are looked for from the group's (the chat's channel list: 0xC8).</summary>
         private const int SubclassFieldRadius = 0x100;
 
+        /// <summary>More rows than an options section holds (Gráficos' sections have 12 at most, 2026-10-25).</summary>
+        private const int MaxSectionRows = 256;
+
         /// <summary>A combo box holds its parts and a label or two (four children seen).</summary>
         private const int MaxComboBoxChildren = 8;
 
@@ -330,6 +333,12 @@ namespace Poe2Accessibility.Services
             return found == (1 << ComboBoxParts.Length) - 1;
         }
 
+        private int? SectionRowAt(IntPtr section, int shift) =>
+            this.reader.TryRead<byte>(section + GameLayout.OptionsSection.ActiveOffset + shift, out var active) && active == 1 &&
+            this.reader.TryRead<long>(section + GameLayout.OptionsSection.RowIndexOffset + shift, out var row) && row is >= 0 and < MaxSectionRows
+                ? (int)row
+                : null;
+
         /// <summary>
         ///     Where this combo's fields are: the group's shift, or the one found on it for a subclass that keeps more fields
         ///     before them (the chat's channel list, 0xC8 further in 0.5.5e). Kept per class once a shift reads sensibly.
@@ -479,6 +488,45 @@ namespace Poe2Accessibility.Services
             var at = GameLayout.Element.CheckBoxStateOffset + (this.Controls?.Changing(ControlGroup.CheckBox, address, GameLayout.Element.CheckBoxStateOffset, 1,
                 (offset, length) => this.reader.ReadBytes(address + offset, length), value => value is 0 or 1) ?? 0);
             return this.reader.TryRead<byte>(address + at, out var state) ? state != 0 : null;
+        }
+
+        /// <summary>
+        ///     The row an options section highlights while it is its page's active section (GameLayout.OptionsSection);
+        ///     null otherwise. Disabled rows are highlighted there too, though the game never focuses them.
+        /// </summary>
+        public int? ReadSectionRow(IntPtr section) => this.SectionRowAt(section, this.Controls?.Current(ControlGroup.OptionsSection) ?? 0);
+
+        /// <summary>Whether <paramref name="section"/> is an active options section highlighting <paramref name="row"/>, a row the game focused.</summary>
+        public bool IsSectionRow(IntPtr section, int row) =>
+            this.SectionRowAt(section, this.Controls?.Shift(ControlGroup.OptionsSection, section, at => this.SectionRowAt(section, at) == row) ?? 0) == row;
+
+        /// <summary>Whether the quest map canvas shows the surface (GameLayout.WorldMap); null when unreadable.</summary>
+        public bool? ReadSurfaceShown(IntPtr canvas)
+        {
+            var at = GameLayout.WorldMap.SurfaceShownOffset + (this.Controls?.Changing(ControlGroup.MapDepth, canvas, GameLayout.WorldMap.SurfaceShownOffset, 1,
+                (offset, length) => this.reader.ReadBytes(canvas + offset, length), value => value is 0 or 1) ?? 0);
+            return this.reader.TryRead<byte>(canvas + at, out var shown) && shown <= 1 ? shown == 1 : null;
+        }
+
+        /// <summary>Whether one of the element's sound paths contains <paramref name="part"/> (the quest map's "DepthToggle").</summary>
+        public bool HasSound(IntPtr address, string part)
+        {
+            var block = this.ReadBlock(address, GameLayout.Element.ProbeBytes);
+            for (var offset = BaseSize; offset + WStringDecoder.Size <= block.Length; offset += IntPtr.Size)
+            {
+                if (WStringDecoder.IsHeap(block, offset) == false && block[offset] == 0)
+                {
+                    continue;
+                }
+
+                if (WStringDecoder.TryDecode(this.reader, block, offset, MaxTextLength, allowEmpty: false) is { } text &&
+                    text.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase) && text.Contains(part, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public bool IsReadable(IntPtr address) => this.reader.IsValidAddress(address) && this.reader.ReadBytes(address, IntPtr.Size).Length > 0;

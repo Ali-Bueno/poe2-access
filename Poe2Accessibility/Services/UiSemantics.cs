@@ -176,6 +176,12 @@ namespace Poe2Accessibility.Services
                     break;
                 default:
                     label = ownText.Length > 0 ? ownText : this.RowText(info);
+                    if (label.Length == 0 && role == UiRole.Button && this.FollowsTextField(info))
+                    {
+                        // The icon button at the end of a search box (Cosmetics' "x"): it empties the box.
+                        label = Announcements.ClearSearch;
+                    }
+
                     if (label.Length == 0)
                     {
                         label = Humanise(info.Name);
@@ -183,6 +189,11 @@ namespace Poe2Accessibility.Services
                     }
 
                     break;
+            }
+
+            if (this.InGame && role == UiRole.Button && value.Length == 0)
+            {
+                value = this.MapDepthValue(info);
             }
 
             if (label.Length == 0)
@@ -255,6 +266,7 @@ namespace Poe2Accessibility.Services
                 IsExpanded = expanded,
                 IsVisible = this.elements.IsVisible(info),
                 Context = context,
+                PanelNotes = this.InGame && context.Length > 0 && !hovered ? this.PanelNotes(info) : Array.Empty<string>(),
                 NamedByControlId = namedById,
                 Position = position,
                 ListItems = listItems,
@@ -322,6 +334,20 @@ namespace Poe2Accessibility.Services
                 this.InferRole(before, false) == UiRole.ComboBox
                 ? this.ComboBoxValue(before, string.Empty)
                 : string.Empty;
+        }
+
+        /// <summary>Whether the sibling right before <paramref name="control"/> is a visible text input.</summary>
+        private bool FollowsTextField(in UiElementReader.ElementInfo control)
+        {
+            if (!this.elements.TryReadElement(control.Raw.ParentPtr, out var parent))
+            {
+                return false;
+            }
+
+            var siblings = this.elements.ReadChildren(parent);
+            var index = Array.IndexOf(siblings, control.Address);
+            return index > 0 && this.elements.TryReadElement(siblings[index - 1], out var before) && before.IsVisibleFlag &&
+                   before.HasFlagBit(GameLayout.Element.TextInputFlagBit);
         }
 
         /// <summary>The game shows a value label next to some sliders; the rest only have the number in memory.</summary>

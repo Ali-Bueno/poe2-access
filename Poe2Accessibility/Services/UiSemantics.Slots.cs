@@ -167,7 +167,7 @@ namespace Poe2Accessibility.Services
                 return string.Empty;
             }
 
-            var cells = new List<(IntPtr Address, float X, float Y)>();
+            var cells = new List<(IntPtr Address, float X, float Y, IntPtr Group)>();
             foreach (var groupAddress in this.elements.ReadChildren(grid))
             {
                 if (!this.elements.TryReadElement(groupAddress, out var rows) || !rows.IsVisibleFlag)
@@ -180,7 +180,7 @@ namespace Poe2Accessibility.Services
                     if (this.elements.TryReadElement(cellAddress, out var other) && other.IsVisibleFlag && other.HasFlagBit(GameLayout.Element.NavigableFlagBit))
                     {
                         cells.Add((cellAddress, MathF.Round(rows.Raw.RelativePosition.X + other.Raw.RelativePosition.X),
-                            MathF.Round(rows.Raw.RelativePosition.Y + other.Raw.RelativePosition.Y)));
+                            MathF.Round(rows.Raw.RelativePosition.Y + other.Raw.RelativePosition.Y), groupAddress));
                     }
                 }
             }
@@ -192,9 +192,17 @@ namespace Poe2Accessibility.Services
                 return string.Empty;
             }
 
-            var (_, x, y) = cells[index];
+            var (_, x, y, inGroup) = cells[index];
             var row = cells.Select(other => other.Y).Distinct().Count(top => top < y);
             var column = cells.Count(other => other.Y == y && other.X < x);
+            var siblings = cells.Where(other => other.Group == inGroup).ToList();
+            if (siblings.Count > 1 && cells.Where(other => other.Group != inGroup).GroupBy(other => other.Group).All(other => other.Count() == 1))
+            {
+                // The one group of several among single cells is a list: a skill's support sockets beside its gem are
+                // "1 of 2", which says how many it has (the greyed places after them are drawn on the row's frame).
+                return Announcements.ListPosition(siblings.Count(other => other.X < x) + 1, siblings.Count);
+            }
+
             return Announcements.GridPosition(column, row);
         }
 

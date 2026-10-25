@@ -66,6 +66,11 @@ namespace Poe2Accessibility
             min == 0 && max == 100 ? T($"{value} percent", $"{value} por ciento") : $"{value}";
 
         public static string Checked => T("checked", "marcado");
+
+        /// <summary>What the quest map shows (its surface/underground toggle).</summary>
+        public static string AboveGround => T("above ground", "encima del suelo");
+
+        public static string BelowGround => T("below ground", "debajo del suelo");
         public static string Unchecked => T("unchecked", "desmarcado");
 
         public static string NoHints => T("No button hints on screen.", "No hay indicaciones de botones en pantalla.");
@@ -169,6 +174,13 @@ namespace Poe2Accessibility
 
         /// <summary>A control that is shown but cannot be used yet (locked button).</summary>
         public static string Unavailable(string label) => $"{label}, {UnavailableState}";
+
+        /// <summary>
+        ///     A caption the game keeps in lower case and draws in small capitals ("reanudar juego" in the game menu,
+        ///     0.5.5e) gets its first letter raised, so it reads as a name on a braille display; mixed case stays as written.
+        /// </summary>
+        public static string Capitalised(string text) =>
+            text.Length > 0 && char.IsLower(text[0]) && !text.Any(char.IsUpper) ? char.ToUpperInvariant(text[0]) + text[1..] : text;
 
         public static string UnavailableState => T("unavailable", "no disponible");
 
@@ -291,6 +303,27 @@ namespace Poe2Accessibility
 
         public static string Gold => T("gold", "oro");
 
+        /// <summary>
+        ///     A quest reward by its icon's kind ("SupportGem"); Spanish as the game's item classes say it (ItemClasses:
+        ///     "Gemas de asistencia", "Viales" for charms, "Tablilla"). A kind not known yet is said as its art name.
+        /// </summary>
+        public static string QuestReward(string kind) => kind.ToLowerInvariant() switch
+        {
+            "artificersorb" => Services.ItemNames.Of("CurrencyAddEquipmentSocket") ?? T("Artificer's Orb", "Orbe del artesano"),
+            "atlaspassive" => T("Atlas passive point", "punto de pasiva del Atlas"),
+            "book" => T("book", "libro"),
+            "charms" => T("charms", "viales"),
+            "consumablebuff" => T("lasting bonus", "bonificación duradera"),
+            "craftingbench" => T("crafting bench", "mesa de fabricación"),
+            "flasks" => T("flasks", "frascos"),
+            "gold" => Gold,
+            "precursortablet" => T("tablet", "tablilla"),
+            "skillgem" => T("skill gem", "gema de habilidad"),
+            "spiritdraught" => T("spirit", "espíritu"),
+            "supportgem" => T("support gem", "gema de asistencia"),
+            _ => kind,
+        };
+
         public static string LevelUp(int level) => T($"Level {level}", $"Nivel {level}");
 
         /// <summary>What the player just walked up to: "Checkpoint", "Una, Stash".</summary>
@@ -391,7 +424,7 @@ namespace Poe2Accessibility
             var parts = new System.Collections.Generic.List<string>(3);
             if (node.Text.Length > 0)
             {
-                parts.Add(node.Text);
+                parts.Add(Capitalised(node.Text));
             }
 
             if (node.Value.Length > 0)
@@ -402,6 +435,11 @@ namespace Poe2Accessibility
             if (role.Length > 0 && !node.IsHovered)
             {
                 parts.Add(role);
+            }
+
+            if (node.IsCollapsible)
+            {
+                parts.Add(node.IsExpanded ? Expanded : Collapsed);
             }
 
             if (!node.IsEnabled)
@@ -434,6 +472,14 @@ namespace Poe2Accessibility
         }
 
         public static string UnnamedElement => T("Unnamed element", "Elemento sin nombre");
+
+        /// <summary>The icon button that empties a search box (the game's own hint for it: "Borrar búsqueda").</summary>
+        public static string ClearSearch => T("Clear search", "Borrar búsqueda");
+
+        /// <summary>A collapsible row shown open (a Challenges category after A).</summary>
+        public static string Expanded => T("expanded", "expandido");
+
+        public static string Collapsed => T("collapsed", "contraído");
 
         /// <summary>A hint whose button is held, not pressed: "Comprobar precio, mantener Y".</summary>
         public static string HoldButton(string button) => T($"hold {button}", $"mantener {button}");

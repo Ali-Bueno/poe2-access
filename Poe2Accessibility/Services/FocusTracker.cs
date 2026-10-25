@@ -32,6 +32,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private static readonly string[] HighlightMarkers = { "hightlight", "highlight" };
 
+        /// <summary>Hops from a focused control up to its options row (a combo box sits three below it).</summary>
+        private const int OptionRowHops = 4;
+
+        /// <summary>Fewest rows that make an options list.</summary>
+        private const int MinOptionRows = 3;
+
         private readonly HostMemoryReader reader;
         private readonly UiElementReader elements;
         private readonly UiManagerLocator locator;
@@ -43,6 +49,12 @@ namespace Poe2Accessibility.Services
         private System.Collections.Generic.List<IntPtr> markers = new();
         private IntPtr markersRoot;
         private IntPtr lastFocused;
+
+        /// <summary>
+        ///     The element holding the options sections of the last focus (<see cref="GameLayout.OptionsSection"/>): the game
+        ///     highlights a disabled row without focusing it, so that row is found from its section. Zero elsewhere.
+        /// </summary>
+        private IntPtr optionSections;
 
         /// <summary>A focus the game gave as a side effect (<see cref="IgnoreNextFocus"/>), ignored until the focus moves on.</summary>
         private IntPtr ignoredFocus;
@@ -164,8 +176,9 @@ namespace Poe2Accessibility.Services
 
             this.Current = node;
             this.CurrentPanelIndex = this.PanelIndexOf(focused);
+            this.optionSections = this.OptionSectionsOf(focused);
             this.sinceValuePoll.Restart();
-            this.log.Info($"Focus -> 0x{focused.ToInt64():X} panel={this.CurrentPanelIndex} name=\"{node.Name}\" role={node.Role} text=\"{node.Text}\" value=\"{node.Value}\"");
+            this.log.Info($"Focus -> 0x{focused.ToInt64():X} panel={this.CurrentPanelIndex} name=\"{node.Name}\" role={node.Role} text=\"{node.Text}\" value=\"{node.Value}\" context=\"{node.Context}\" group=\"{node.Group}\" notes=\"{string.Join(". ", node.PanelNotes)}\"");
             this.FocusChanged?.Invoke(node);
         }
 
@@ -268,8 +281,120 @@ namespace Poe2Accessibility.Services
                 return (hovered, true);
             }
 
+            var disabledRow = this.DisabledOptionRow();
+            if (disabledRow != IntPtr.Zero)
+            {
+                return (disabledRow, false);
+            }
+
             // Pre-game only: in game nothing focused is the usual case (playing), and the HUD is large.
             return state != GameStateTypes.InGameState ? (this.HighlightedControl(), false) : (IntPtr.Zero, false);
+        }
+
+        /// <summary>The holder of the options sections <paramref name="element"/> sits in (row → list → page → section → holder), or zero.</summary>
+        private IntPtr OptionSectionsOf(IntPtr element)
+        {
+            if (!this.elements.TryReadElement(element, out var info))
+            {
+                return IntPtr.Zero;
+            }
+
+            var chain = this.elements.ReadAncestors(info, OptionRowHops + 4);
+            chain.Insert(0, info);
+            for (var hop = 0; hop <= OptionRowHops && hop + 4 < chain.Count; hop++)
+            {
+                var rows = this.elements.ReadChildren(chain[hop + 1]);
+                var row = Array.IndexOf(rows, chain[hop].Address);
+                if (rows.Length >= MinOptionRows && row >= 0)
+                {
+                    // The first list on the way up is the options list or none.
+                    return this.elements.IsSectionRow(chain[hop + 3].Address, row) ? chain[hop + 4].Address : IntPtr.Zero;
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+
+        /// <summary>
+        ///     The control of the options row the active section highlights when the game focuses nothing, if that control is
+        ///     disabled ("Resolución de la ventana" while the mode is windowed full screen); zero otherwise.
+        /// </summary>
+        private IntPtr DisabledOptionRow()
+        {
+            if (this.optionSections == IntPtr.Zero)
+            {
+                return IntPtr.Zero;
+            }
+
+            if (!this.elements.TryReadElement(this.optionSections, out var holder) || !this.elements.IsVisible(holder))
+            {
+                this.optionSections = IntPtr.Zero; // the options page closed or another tab shows
+                return IntPtr.Zero;
+            }
+
+            foreach (var section in this.elements.ReadChildren(holder))
+            {
+                if (this.elements.ReadSectionRow(section) is { } row && this.elements.TryReadElement(section, out var sectionInfo))
+                {
+                    var rows = this.SectionRows(sectionInfo);
+                    return row < rows.Length ? this.DisabledControlIn(rows[row]) : IntPtr.Zero;
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+
+        /// <summary>A section's rows: its grandchild with the most children (heading and list sit in a page).</summary>
+        private IntPtr[] SectionRows(in UiElementReader.ElementInfo section)
+        {
+            var rows = Array.Empty<IntPtr>();
+            foreach (var page in this.elements.ReadChildren(section))
+            {
+                if (!this.elements.TryReadElement(page, out var pageInfo))
+                {
+                    continue;
+                }
+
+                foreach (var list in this.elements.ReadChildren(pageInfo))
+                {
+                    if (this.elements.TryReadElement(list, out var listInfo) && this.elements.ReadChildren(listInfo) is { } children && children.Length > rows.Length)
+                    {
+                        rows = children;
+                    }
+                }
+            }
+
+            return rows;
+        }
+
+        /// <summary>The row's control (its first interactive descendant) when the game has it disabled, else zero.</summary>
+        private IntPtr DisabledControlIn(IntPtr row)
+        {
+            var queue = new System.Collections.Generic.Queue<(IntPtr Address, int Depth)>();
+            queue.Enqueue((row, 0));
+            while (queue.Count > 0)
+            {
+                var (address, depth) = queue.Dequeue();
+                if (!this.elements.TryReadElement(address, out var info))
+                {
+                    continue;
+                }
+
+                if (info.HasFlagBit(GameLayout.Element.InteractiveFlagBit))
+                {
+                    return FlagBits.EnabledTrusted && !info.HasFlagBit(GameLayout.Element.EnabledFlagBit) ? address : IntPtr.Zero;
+                }
+
+                if (depth < OptionRowHops)
+                {
+                    foreach (var child in this.elements.ReadChildren(info))
+                    {
+                        queue.Enqueue((child, depth + 1));
+                    }
+                }
+            }
+
+            return IntPtr.Zero;
         }
 
         /// <summary>The parent of a visible highlight marker under the current root, or zero.</summary>

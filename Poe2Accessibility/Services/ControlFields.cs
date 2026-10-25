@@ -45,6 +45,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>GameLayout.SelectableList index: found by watching it change as the selection moves (<see cref="ChangingField"/>).</summary>
         SelectableList,
+
+        /// <summary>GameLayout.OptionsSection: an active section's row index names the focused row (weak: confirmed by a second section).</summary>
+        OptionsSection,
+
+        /// <summary>GameLayout.WorldMap depth byte: found by watching it change as the toggle is pressed (<see cref="ChangingField"/>).</summary>
+        MapDepth,
     }
 
     /// <summary>
@@ -212,7 +218,7 @@ namespace Poe2Accessibility.Services
         ///     Groups whose check another field could pass by chance (a hover byte on a tab bar): a shift found by search is
         ///     used only once a second control agrees; the others are used at once, as their check names the field.
         /// </summary>
-        private static bool IsWeak(ControlGroup group) => group is ControlGroup.Tabs or ControlGroup.PanelTitle;
+        private static bool IsWeak(ControlGroup group) => group is ControlGroup.Tabs or ControlGroup.PanelTitle or ControlGroup.OptionsSection;
 
         private static string Part(ControlGroup group) => group switch
         {
@@ -228,6 +234,8 @@ namespace Poe2Accessibility.Services
             ControlGroup.PanelTitle => "panel titles",
             ControlGroup.CheckBox => "check boxes",
             ControlGroup.SelectableList => "selectable lists",
+            ControlGroup.OptionsSection => "options sections",
+            ControlGroup.MapDepth => "quest map depth",
             _ => "inventory grid",
         };
 
@@ -246,6 +254,8 @@ namespace Poe2Accessibility.Services
             ControlGroup.PanelTitle => GameLayout.Element.PanelTitleOffset,
             ControlGroup.CheckBox => GameLayout.Element.CheckBoxStateOffset,
             ControlGroup.SelectableList => GameLayout.SelectableList.SelectedIndexOffset,
+            ControlGroup.OptionsSection => GameLayout.OptionsSection.RowIndexOffset,
+            ControlGroup.MapDepth => GameLayout.WorldMap.SurfaceShownOffset,
             _ => GameLayout.InventoryGrid.CellSizeOffset,
         };
 

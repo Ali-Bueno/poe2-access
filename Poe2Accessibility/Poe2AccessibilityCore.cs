@@ -601,6 +601,7 @@ namespace Poe2Accessibility
             {
                 // The game menu's screen carries the pause banner and a loading tip: its focus alone opens it.
                 this.narrator.ReadScreenMessages = current != GameStateTypes.EscapeState;
+                this.narrator.SaidTitle = current == GameStateTypes.EscapeState ? Announcements.ForState(current) : string.Empty;
             }
             if (this.semantics != null)
             {

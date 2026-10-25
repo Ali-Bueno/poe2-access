@@ -216,13 +216,14 @@ namespace Poe2Accessibility.Services
             }
 
             var name = this.elements.ReadUtf16BufferAt((IntPtr)BitConverter.ToInt64(bytes, GameLayout.PassiveTree.RowNameOffset), MaxPassiveNameChars) ?? string.Empty;
+            var isStart = BitConverter.ToInt64(bytes, GameLayout.PassiveTree.RowCharactersOffset) > 0;
+            var iconOnly = bytes[GameLayout.PassiveTree.RowIconOnlyOffset] == 1;
             var kind = bytes[GameLayout.PassiveTree.RowKeystoneOffset] == 1 ? Announcements.PassiveKeystone
                 : bytes[GameLayout.PassiveTree.RowNotableOffset] == 1 ? Announcements.PassiveNotable
                 : bytes[GameLayout.PassiveTree.RowJewelSocketOffset] == 1 ? Announcements.PassiveJewelSocket
-                : string.Empty;
-            var isStart = BitConverter.ToInt64(bytes, GameLayout.PassiveTree.RowCharactersOffset) > 0;
-            return new PassiveNodeRow(record, BitConverter.ToUInt16(bytes, GameLayout.PassiveTree.RowGraphIdOffset), name, kind,
-                bytes[GameLayout.PassiveTree.RowIconOnlyOffset] == 1, isStart);
+                : isStart || iconOnly ? string.Empty
+                : Announcements.PassiveSmall;
+            return new PassiveNodeRow(record, BitConverter.ToUInt16(bytes, GameLayout.PassiveTree.RowGraphIdOffset), name, kind, iconOnly, isStart);
         }
 
         /// <summary>The tree's links and node elements, read once per canvas (they persist while the tree is closed).</summary>

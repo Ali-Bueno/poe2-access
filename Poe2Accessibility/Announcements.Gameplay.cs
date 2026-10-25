@@ -9,8 +9,10 @@ namespace Poe2Accessibility
         /// <summary>"Guiding to Clearfell, 116 steps, down 3, then left" (the scanner's route description).</summary>
         public static string BeaconLocked(string described) => T($"Guiding to {described}", $"Guiando hacia {described}");
 
-        /// <summary>Passive node kinds (a small node says none) and states.</summary>
+        /// <summary>Passive node kinds and states.</summary>
         public static string PassiveKeystone => T("keystone", "piedra angular");
+
+        public static string PassiveSmall => T("small node", "nodo pequeño");
 
         public static string PassiveNotable => T("notable", "notable");
 

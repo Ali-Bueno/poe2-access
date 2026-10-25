@@ -104,9 +104,10 @@ or unique monster starts an attack, dodge"); left or right plays it.
 ## Passive tree
 
 The free cursor (left stick) moves by distance, not along the tree's lines, so each node is read with where its
-links go: "Attack Speed, reachable, 3% increased Attack Speed. Links: up, Armour and
-Evasion, allocated; down left, …" (clockwise from up). States: allocated, reachable (linked
-to an allocated node or the class's start), not linked. Opening the tree reads the skill points and attributes.
+links go: "Attack Speed, small node, reachable, 3% increased Attack Speed. Links: up, Armour and
+Evasion, allocated; down left, …" (clockwise from up). Kinds: small node, notable, keystone, jewel socket. States:
+allocated, reachable (linked to an allocated node or the class's start), not linked. Opening the tree reads the skill
+points and attributes.
 
 ## Radial menu
 
@@ -116,7 +117,9 @@ right Skills, down Bind Screen, down-left Character, left Passives, up-left Ques
 ## Skills and binding
 
 In the Skills panel (beside the inventory: D-pad left from the first column) each skill is read with its tags,
-cost and description. X on a skill opens the bind screen: "Select button to bind Chaos Bolt. Primary Skill Set.
+cost and description; entering the panel says first what it shows above and below the list ("0 Spirit. Equipped Gem
+Capacity: Str (0/1), Dex (0/2), Int (0/2)"). Manage Sockets: the support sockets are "Support Gem Slot, 1 of 2" (the
+greyed places after them are only drawn on the row: a socket added later becomes "3 of 3"). X on a skill opens the bind screen: "Select button to bind Chaos Bolt. Primary Skill Set.
 LB, empty"; the D-pad moves between buttons and names the other set when you enter
 it; A binds. The Bind Screen (radial menu, down) starts on a button ("Primary Skill Set. A, empty");
 A on an empty button (X on a bound one) opens the grid of every skill and action that can go on it, read by name,
@@ -124,7 +127,24 @@ column and row, then tooltip ("Use flask in slot 1, column 2, row 2, …"). Its
 first cell, "empty the button", leaves the button empty. On a bound button A picks the skill up to move it ("empty.
 Place, A. Cancel, B") and Y empties it.
 
-In Cosmetics the toggles above each weapon slot read "weapon set I" and "weapon set II".
+In Cosmetics the toggles above each weapon slot read "weapon set I" and "weapon set II"; the search box is "Search
+here..., edit field", the "x" at its end "Clear search, button".
+
+## Other panels
+
+- Character: entering it says the class and the resistances' heading ("Monk. Resistances. DEX, 11, 8 of 14"); in
+  the stat list (inspect mode) each section is named as the links move into it ("Armour. Estimated Physical Damage
+  Reduction, 0%. physical, link").
+- Options: rows the game has greyed out are read with "unavailable" ("Window Resolution, 2560 x 1440, combo box,
+  unavailable, 6 of 12") — the game highlights them without giving them the focus.
+- Challenges: each category says whether it is open ("The Ritualist, 0/11, collapsed, 1 of 8"); A says "expanded"
+  and reads its lines, or "collapsed".
+- Quests (world map): the surface/underground toggle says what the map shows ("…, above ground, button"; A: "below
+  ground"). In the quest list a quest's reward is named by its icon: "Reward: support gem, gold" (R3 shows the
+  items themselves).
+- Social: Friends opens with your account name and area after the focus; a Guild or Party page without one reads
+  its explanation after the focus ("You are not currently in a guild. …").
+- Game menu: its tip (R3 for skills and buffs) and the pause banner are said once a session, after the focus.
 
 ## Dialogue
 
@@ -205,7 +225,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - Long texts (the terms of use, RB on the login screen): "Long text, 248 paragraphs: scroll it with the stick
   to read it", then the paragraph at the scroll position with its place ("78 of 248. …"); scrolling forward a little reads
   the paragraphs passed, in order.
-- The large map (D-pad down in play): "Map. Hold D-pad down To Interact With Map", then "Map hidden" when it closes.
+- The large map (D-pad down in play): "Map. Clearfell Encampment. Forbidden Rites League. Realm São Paulo (BR). Hold
+  D-pad down To Interact With Map" (the area, league and realm the map's corner shows), then "Map hidden" when it closes.
 - The chat panel (LT in a panel): "Chat. Press-Hold LT to Chat" when shown, "Chat hidden" when hidden.
 - Chat channel: in the chat panel D-pad left reaches the channel list ("Global, combo box"); A opens it ("Choosing:
   Global, 2 of 6"), the D-pad reads each channel ("Party, 3 of 6") and A chooses it: "Channel: Party". Holding LT

@@ -21,6 +21,22 @@ namespace Poe2Accessibility.Services
         /// <summary>Label text → cell → row (character stats); a third level would take in the whole section.</summary>
         private const int LinkRowHops = 2;
 
+        /// <summary>Most lines a panel shows outside the focused part to be read as its notes; more is a panel of labels.</summary>
+        private const int MaxPanelNotes = 3;
+
+        /// <summary>Depth and elements of a panel looked through for its notes (Skills: the spirit line sits 2 below the panel).</summary>
+        private const int PanelNoteDepth = 6;
+
+        private const int MaxPanelNoteNodes = 600;
+
+        /// <summary>A label and its control, alone in their holder (a check box with its caption beside it).</summary>
+        private const int ControlCaptionPair = 2;
+
+        /// <summary>The notes of the last panel, kept a moment: the focus is described every few steps within one panel.</summary>
+        private const int PanelNotesKeepMs = 1000;
+
+        private (IntPtr Panel, IReadOnlyList<string> Notes, long At) panelNotes = (IntPtr.Zero, Array.Empty<string>(), 0);
+
         /// <summary>Keyword link markup: "[Flask|Flasks]" shows "Flasks", "[Wells]" shows "Wells".</summary>
         private static readonly System.Text.RegularExpressions.Regex KeywordLink = new(@"\[([^\[\]|]+)(?:\|([^\[\]]+))?\]", System.Text.RegularExpressions.RegexOptions.Compiled);
 
@@ -101,13 +117,16 @@ namespace Poe2Accessibility.Services
 
             var link = links[index];
             var keyword = link.Groups[2].Success ? link.Groups[2].Value : link.Groups[1].Value;
+            var row = this.LinkRow(parent, sentence, keyword, out var rowElement);
             return new AccessibleUiNode
             {
                 Address = info.Address,
                 Name = info.Name,
                 Role = UiRole.Link,
                 Text = keyword,
-                Value = this.LinkRow(parent, sentence, keyword),
+                Value = row,
+                // The stat list's section ("Escudo de energía" over its rows): said as the links move into it.
+                Group = rowElement is { } inRow && this.elements.TryReadElement(inRow.Raw.ParentPtr, out var rows) ? this.GroupLabel(rows) : string.Empty,
                 IsVisible = this.elements.IsVisible(info),
                 Context = this.InGame ? this.PanelTitle(info) : string.Empty,
                 Tooltip = this.Definition(info),
@@ -118,7 +137,7 @@ namespace Poe2Accessibility.Services
         ///     Where the link sits: its table row when the text is a row's label ("Evasion Rating, 7" in the character
         ///     stats), else the text itself; empty when the text is just the keyword.
         /// </summary>
-        private string LinkRow(in UiElementReader.ElementInfo text, string sentence, string keyword)
+        private string LinkRow(in UiElementReader.ElementInfo text, string sentence, string keyword, out UiElementReader.ElementInfo? rowElement)
         {
             var node = text;
             for (var level = 0; level < LinkRowHops && this.elements.TryReadElement(node.Raw.ParentPtr, out var parent); level++)
@@ -126,12 +145,14 @@ namespace Poe2Accessibility.Services
                 var row = this.RowText(parent);
                 if (row.Length > sentence.Length && row.Contains(sentence, StringComparison.Ordinal))
                 {
+                    rowElement = parent;
                     return row;
                 }
 
                 node = parent;
             }
 
+            rowElement = null;
             return sentence == keyword ? string.Empty : sentence;
         }
 
@@ -238,6 +259,99 @@ namespace Poe2Accessibility.Services
                 : this.elements.Controls?.Current(ControlGroup.PanelTitle) ?? 0;
             return ancestors.Select(ancestor => this.TitleAt(ancestor, shift)).FirstOrDefault(title => title.Length > 0) ?? string.Empty;
         }
+
+        /// <summary>
+        ///     The few lines a titled panel shows besides what the cursor lands on, in screen order (Skills: "0 de
+        ///     espíritu" over the list, the gem capacity under it; Character: the class over the stat tiles). Texts inside
+        ///     navigable or interactive elements are read when focused, and a part of the panel holding more than a
+        ///     handful (the stat list) is a list, not a note; empty when none are left.
+        /// </summary>
+        private IReadOnlyList<string> PanelNotes(in UiElementReader.ElementInfo info)
+        {
+            var shift = this.elements.Controls?.Current(ControlGroup.PanelTitle) ?? 0;
+            foreach (var ancestor in this.elements.ReadAncestors(info, PanelTitleHops))
+            {
+                var title = this.TitleAt(ancestor.Address, shift);
+                if (title.Length > 0)
+                {
+                    return this.NotesOf(ancestor, title);
+                }
+            }
+
+            return Array.Empty<string>();
+        }
+
+        private IReadOnlyList<string> NotesOf(in UiElementReader.ElementInfo panel, string title)
+        {
+            var now = Environment.TickCount64;
+            if (this.panelNotes.Panel == panel.Address && now - this.panelNotes.At < PanelNotesKeepMs)
+            {
+                return this.panelNotes.Notes;
+            }
+
+            var lines = new List<(float Y, float X, string Text)>();
+            var budget = MaxPanelNoteNodes;
+            foreach (var childAddress in this.elements.ReadChildren(panel))
+            {
+                if (!this.elements.TryReadElement(childAddress, out var child) || !child.IsVisibleFlag)
+                {
+                    continue;
+                }
+
+                var part = new List<(float Y, float X, string Text)>();
+                this.CollectNotes(child, 0, 0, PanelNoteDepth, ref budget, part);
+                if (part.Count <= MaxPanelNotes)
+                {
+                    lines.AddRange(part);
+                }
+            }
+
+            var texts = lines.Where(line => line.Text != title).OrderBy(line => line.Y).ThenBy(line => line.X).Select(line => line.Text).Distinct().ToList();
+            IReadOnlyList<string> notes = texts.Count <= MaxPanelNotes ? texts : Array.Empty<string>();
+            this.panelNotes = (panel.Address, notes, now);
+            return notes;
+        }
+
+        /// <summary>Texts of <paramref name="node"/> and below, placed relative to the panel, short of what the focus lands on.</summary>
+        private void CollectNotes(in UiElementReader.ElementInfo node, float x, float y, int depth, ref int budget, List<(float Y, float X, string Text)> found)
+        {
+            if (budget-- <= 0 || node.HasFlagBit(GameLayout.Element.NavigableFlagBit) || node.HasFlagBit(GameLayout.Element.InteractiveFlagBit))
+            {
+                return;
+            }
+
+            var children = this.elements.ReadChildren(node);
+            if (children.Length == ControlCaptionPair && children.Any(this.IsFocusable))
+            {
+                return; // a caption beside its control (Friends' "Mostrar desconectados" and its check box)
+            }
+
+            var nodeX = x + node.Raw.RelativePosition.X;
+            var nodeY = y + node.Raw.RelativePosition.Y;
+            if (this.elements.TryReadSpokenText(node.Address, out var text) && text.Any(char.IsLetter))
+            {
+                // A bare number is a value drawn beside its tile ("11" over DES), read with the tile.
+                found.Add((nodeY, nodeX, text));
+            }
+
+            if (depth == 0)
+            {
+                return;
+            }
+
+            foreach (var childAddress in children)
+            {
+                if (this.elements.TryReadElement(childAddress, out var child) && child.IsVisibleFlag)
+                {
+                    this.CollectNotes(child, nodeX, nodeY, depth - 1, ref budget, found);
+                }
+            }
+        }
+
+        /// <summary>Whether the controller cursor lands on the element (in game: navigable; before it: interactive).</summary>
+        private bool IsFocusable(IntPtr address) =>
+            this.elements.TryReadElement(address, out var element) &&
+            (element.HasFlagBit(GameLayout.Element.NavigableFlagBit) || element.HasFlagBit(GameLayout.Element.InteractiveFlagBit));
 
         /// <summary>A panel title read with the field moved by a shift: a short name with letters, no path.</summary>
         private string TitleAt(IntPtr element, int shift) =>

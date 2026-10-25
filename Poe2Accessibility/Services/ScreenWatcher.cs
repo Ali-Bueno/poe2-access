@@ -297,6 +297,11 @@ namespace Poe2Accessibility.Services
                     {
                         units.Add((self, unit));
                     }
+                    else if (QuestRewards.FromTextureKey(key) is { } reward && !IsOffScreen(info.Address, screen))
+                    {
+                        // An icon that says what a quest gives ("Recompensa:" then a support gem and gold).
+                        texts.Add((self, new ScreenText(info.Address, reward, info.Name, false, true)));
+                    }
                 }
 
                 if (nodes[self].Depth >= MaxDepth)
