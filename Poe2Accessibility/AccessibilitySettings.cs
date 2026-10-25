@@ -63,6 +63,9 @@ namespace Poe2Accessibility
         /// <summary>Name what you walk up to or stand on: checkpoints, NPCs, the stash, chests, items, exits.</summary>
         public bool AnnounceNearby = true;
 
+        /// <summary>Name the places of the map you walk into and the props in reach: "bridge", "stairs", "cart", "well".</summary>
+        public bool AnnouncePlaces = true;
+
         /// <summary>Say what A uses (the label the game marks with the button) whenever it changes: "Stash, A".</summary>
         public bool AnnounceInteractTarget = true;
 

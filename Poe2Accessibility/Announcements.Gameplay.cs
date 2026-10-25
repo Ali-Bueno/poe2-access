@@ -164,6 +164,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceBossLife) => T("Boss life", "Vida de jefes"),
             nameof(AccessibilitySettings.StatusAlerts) => T("Harmful states", "Estados alterados"),
             nameof(AccessibilitySettings.AnnounceNearby) => T("Name nearby things", "Nombrar cosas cercanas"),
+            nameof(AccessibilitySettings.AnnouncePlaces) => T("Name places you walk into", "Nombrar los lugares por los que pasas"),
             nameof(AccessibilitySettings.AnnounceInteractTarget) => T("What the interact button uses", "Lo que usa el botón de interactuar"),
             nameof(AccessibilitySettings.AnnounceChat) => T("Chat", "Chat"),
             nameof(AccessibilitySettings.ReadTooltipsOnFocus) => T("Whole tooltips on focus", "Descripciones completas al enfocar"),
@@ -437,6 +438,50 @@ namespace Poe2Accessibility
         public static string Off => T("off", "desactivado");
 
         public static string Percent(int value) => T($"{value} percent", $"{value} por ciento");
+
+        /// <summary>A named map piece or prop of the terrain files (catalog/places.json kinds).</summary>
+        public static string PlaceName(string kind) => kind switch
+        {
+            "bridge" => T("bridge", "puente"),
+            "stairs" => T("stairs", "escaleras"),
+            "door" => T("door", "puerta"),
+            "gate" => T("gate", "portón"),
+            "ruins" => T("ruins", "ruinas"),
+            "church" => T("church", "iglesia"),
+            "graveyard" => T("graveyard", "cementerio"),
+            "hut" => T("hut", "cabaña"),
+            "tower" => T("tower", "torre"),
+            "temple" => T("temple", "templo"),
+            "arena" => T("arena", "arena"),
+            "entrance" => T("entrance", "entrada"),
+            "dock" => T("dock", "muelle"),
+            "waterfall" => T("waterfall", "cascada"),
+            "encampment" => T("encampment", "campamento"),
+            "courtyard" => T("courtyard", "patio"),
+            "alley" => T("alley", "callejón"),
+            "ramp" => T("ramp", "rampa"),
+            "lake" => T("lake", "lago"),
+            "corridor" => T("corridor", "pasillo"),
+            "tomb" => T("tomb", "tumba"),
+            "forge" => T("forge", "forja"),
+            "statue" => T("statue", "estatua"),
+            "well" => T("well", "pozo"),
+            "boat" => T("boat", "barca"),
+            "market" => T("market", "mercado"),
+            "garden" => T("garden", "jardín"),
+            "library" => T("library", "biblioteca"),
+            "cart" => T("cart", "carro"),
+            "campfire" => T("campfire", "fogata"),
+            "anvil" => T("anvil", "yunque"),
+            "noticeboard" => T("notice board", "tablón de anuncios"),
+            "waterwheel" => T("water wheel", "rueda del molino"),
+            "tent" => T("tent", "tienda de campaña"),
+            "stall" => T("stall", "puesto"),
+            "altar" => T("altar", "altar"),
+            "fountain" => T("fountain", "fuente"),
+            "throne" => T("throne", "trono"),
+            _ => kind,
+        };
 
         /// <summary>A language by its own name, as the game's language list shows it.</summary>
         public static string LanguageName(string code) => code switch

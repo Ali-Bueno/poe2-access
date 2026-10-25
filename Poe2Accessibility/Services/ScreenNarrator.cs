@@ -101,6 +101,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Pre-game button hints: the last spoken, and a new set waiting to settle.</summary>
         private string lastHints = string.Empty;
+
+        /// <summary>The previous screen's hints and when that screen closed: the bar can show them for a moment longer.</summary>
+        private (string Text, DateTime Since) staleHints = (string.Empty, DateTime.MinValue);
         private readonly HashSet<string> spokenHints = new();
         private (string Text, DateTime Since) pendingHints = (string.Empty, DateTime.MinValue);
 
@@ -164,6 +167,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Recently read texts are left out of a repeat within this time.</summary>
         private const int RecentTextsMs = 1500;
+
+        /// <summary>The previous screen's hint bar seen this soon after a state change is the game redrawing late.</summary>
+        private const int StaleHintsMs = 2000;
 
         /// <summary>A new set of pre-game hints must stay this long before it is read (screens rebuild in steps).</summary>
         private const int HintsSettleMs = 400;
@@ -285,6 +291,7 @@ namespace Poe2Accessibility.Services
             this.lastSelectorChoice = null;
             this.legendsLayer = IntPtr.Zero;
             this.inGame = inGameState;
+            this.staleHints = (this.lastHints, DateTime.UtcNow);
             this.lastHints = string.Empty;
             this.spokenHints.Clear();
             this.pendingHints = (string.Empty, DateTime.MinValue);
@@ -311,6 +318,13 @@ namespace Poe2Accessibility.Services
 
             var legends = snapshot.Layers.Where(layer => layer.IsHintBar).SelectMany(layer => layer.Texts).ToList();
             var hints = Describe(legends);
+            if (hints.Length > 0 && hints == this.staleHints.Text && (DateTime.UtcNow - this.staleHints.Since).TotalMilliseconds < StaleHintsMs)
+            {
+                // The bar still showed the login's buttons as character selection opened: they were read after the
+                // character as if they were its own (2026-10-25).
+                return;
+            }
+
             if (hints == this.lastHints)
             {
                 this.pendingHints = (hints, DateTime.MinValue);

@@ -44,6 +44,7 @@ namespace Poe2Accessibility
         private EnemyCues? enemyCues;
         private Radar? radar;
         private ProximityNarrator? nearby;
+        private PlaceNarrator? places;
         private WallBump? wallBump;
         private WallTones? wallTones;
         private GamepadReader.PadState padState;
@@ -201,6 +202,8 @@ namespace Poe2Accessibility
                 this.enemyCues = new EnemyCues(this.audio, memory, this.log);
                 this.radar = new Radar(this.audio, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.nearby = new ProximityNarrator(this.entities, this.output);
+                this.places = new PlaceNarrator(PlaceCatalog.Load(Path.Join(this.DllDirectory, "catalog", "places.json"), this.log), memory, this.output, this.log);
+                this.entities.PlaceEntries = height => this.places?.Entries(height) ?? Array.Empty<ScanEntry>();
                 this.wallBump = new WallBump(this.audio) { HeldStill = () => this.narrator?.RepeatLesson() };
                 this.wallTones = new WallTones(this.audio);
                 this.beacon = new Beacon(this.audio, this.entities, this.output, this.log);
@@ -296,6 +299,7 @@ namespace Poe2Accessibility
             this.enemyCues = null;
             this.radar = null;
             this.nearby = null;
+            this.places = null;
             this.wallBump = null;
             this.wallTones = null;
             this.audio?.Dispose();
@@ -503,6 +507,7 @@ namespace Poe2Accessibility
             this.Isolated("radar", () => this.radar?.Tick(playing && this.Settings.Radar));
             this.Isolated("wall tones", () => this.wallTones?.Tick(playing && this.Settings.WallTones));
             this.Isolated("nearby", () => this.nearby?.Tick(playing, this.Settings.AnnounceNearby, this.Settings.AnnounceInteractTarget));
+            this.Isolated("places", () => this.places?.Tick(playing, this.Settings.AnnouncePlaces));
             this.Isolated("exploration", () =>
             {
                 if (playing)
@@ -929,10 +934,15 @@ namespace Poe2Accessibility
 
         private void ApplySettings(AccessibilitySettings settings)
         {
+            var languageChanged = this.Settings.Language != settings.Language;
             this.Settings = settings;
             if (this.log != null)
             {
                 this.log.Verbose = settings.VerboseLogging;
+                if (languageChanged && Localization.PhraseDirectory != null)
+                {
+                    Localization.Detect(settings.Language, message => this.log.Info(message)); // chosen in the settings menu
+                }
             }
 
             if (this.research != null)
@@ -1140,6 +1150,7 @@ namespace Poe2Accessibility
             this.enemyNews?.Reset();
             this.entities?.Forget();
             this.nearby?.Reset();
+            this.places?.Reset();
             this.narrator?.NewArea(resumed);
             if (this.Settings.AnnounceArea)
             {

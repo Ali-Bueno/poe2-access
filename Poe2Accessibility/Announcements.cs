@@ -88,6 +88,7 @@ namespace Poe2Accessibility
         {
             Services.ScanCategory.Quest => T("Quest", "Misión"),
             Services.ScanCategory.Exits => T("Exits", "Salidas"),
+            Services.ScanCategory.Places => T("Places", "Lugares"),
             Services.ScanCategory.Unexplored => T("Unexplored", "Sin explorar"),
             Services.ScanCategory.Waypoints => T("Waypoints and checkpoints", "Puntos de ruta y de control"),
             Services.ScanCategory.Npcs => T("Characters", "Personajes"),
@@ -393,21 +394,38 @@ namespace Poe2Accessibility
                 parts.Add(node.Position);
             }
 
-            if ((node.IsHovered || node.Role == Models.UiRole.Link) && node.Tooltip.Count > 0)
+            var tooltip = Unsaid(node.Tooltip, node.Text);
+            if ((node.IsHovered || node.Role == Models.UiRole.Link) && tooltip.Count > 0)
             {
-                parts.Add(Sentences(node.Tooltip));
+                parts.Add(Sentences(tooltip));
             }
-            else if (IsShortTooltip(node.Tooltip))
+            else if (IsShortTooltip(tooltip))
             {
-                parts.Add(Sentences(node.Tooltip));
+                parts.Add(Sentences(tooltip));
             }
 
-            if (fullTooltip && !node.IsHovered && node.Tooltip.Count > 0 && !IsShortTooltip(node.Tooltip))
+            if (fullTooltip && !node.IsHovered && tooltip.Count > 0 && !IsShortTooltip(tooltip))
             {
-                parts.Add(Sentences(node.Tooltip));
+                parts.Add(Sentences(tooltip));
             }
 
             return parts.Count == 0 ? T("Unnamed element", "Elemento sin nombre") : Clauses(parts);
+        }
+
+        /// <summary>
+        ///     A tooltip without its title when the label already said it: a Skills row "NIVEL: 1, Rayo atronador, DPS: 12,5"
+        ///     read the skill's name again as the tooltip's first line (2026-10-25).
+        /// </summary>
+        private static System.Collections.Generic.IReadOnlyList<string> Unsaid(System.Collections.Generic.IReadOnlyList<string> tooltip, string said)
+        {
+            if (tooltip.Count == 0 || said.Length == 0)
+            {
+                return tooltip;
+            }
+
+            var title = tooltip[0].Trim();
+            var clauses = said.Split(", ");
+            return clauses.Any(clause => clause.Trim().Equals(title, StringComparison.OrdinalIgnoreCase)) ? tooltip.Skip(1).ToList() : tooltip;
         }
 
         /// <summary>"Evasion Rating, 7. Evasion, link. Evasion Rating grants a chance …": the line, the keyword, its definition.</summary>

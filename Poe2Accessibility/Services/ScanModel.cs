@@ -12,6 +12,9 @@ namespace Poe2Accessibility.Services
         Quest,
         Exits,
 
+        /// <summary>Named map pieces and props of the terrain files (bridges, stairs, a cart, a well: <see cref="PlaceNarrator"/>).</summary>
+        Places,
+
         /// <summary>Ground never seen yet next to ground walked (D2R unexplored areas), one entry per run and direction.</summary>
         Unexplored,
         Waypoints,

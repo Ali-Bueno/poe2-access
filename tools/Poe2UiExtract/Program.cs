@@ -63,6 +63,12 @@ if (args.Length > 1 && string.Equals(args[0], "hit-times", StringComparison.Ordi
     return HitTimeExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hit-times.txt");
 }
 
+// Args: places <gameDir> [outFile]  -- named map pieces and props for the place announcements (docs/research/places.md).
+if (args.Length > 1 && string.Equals(args[0], "places", StringComparison.OrdinalIgnoreCase))
+{
+    return PlaceExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\places.json");
+}
+
 // Args: item-names <gameDir> [outFile]  -- currency item names per language, for inline item art in legends.
 if (args.Length > 1 && string.Equals(args[0], "item-names", StringComparison.OrdinalIgnoreCase))
 {

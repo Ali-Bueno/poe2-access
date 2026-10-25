@@ -144,6 +144,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The quest tracker's texts on screen ("Find Clearfell", "Slay the Bloated Miller"), for the Quest category.</summary>
         public Func<IReadOnlyList<string>> QuestTexts { get; set; }
 
+        /// <summary>The area's named places (<see cref="PlaceNarrator.Entries"/>), set by the plugin.</summary>
+        public Func<float, IEnumerable<ScanEntry>>? PlaceEntries { get; set; }
+
         /// <summary>The current area's name in the client language (its name in an objective is not a destination).</summary>
         public Func<string> AreaName { get; set; } = () => string.Empty;
 
@@ -271,6 +274,15 @@ namespace Poe2Accessibility.Services
                 else
                 {
                     unseen.Add(landmark);
+                }
+            }
+
+            foreach (var place in this.PlaceEntries?.Invoke(player.WorldPosition.Z) ?? Array.Empty<ScanEntry>())
+            {
+                var at = new StdTuple3D<float> { X = place.WorldX, Y = place.WorldY, Z = place.WorldZ };
+                if (this.Sighted(place, at, area.WorldToGridConvertor, false))
+                {
+                    found.TryAdd(place.Id, place);
                 }
             }
 

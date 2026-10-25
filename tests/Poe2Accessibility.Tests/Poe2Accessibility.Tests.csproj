@@ -38,6 +38,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\PluginLog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ControllerGlyphs.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ItemNames.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\PlaceMap.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\PlaceTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\KnownPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\GameLayout.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\IAccessibilityOutputService.cs" />

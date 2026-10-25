@@ -3,6 +3,7 @@ namespace Poe2Accessibility.Tests
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Numerics;
     using Poe2Accessibility.Models;
     using Poe2Accessibility.Services;
 
@@ -46,6 +47,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(WallTonesSwellNearWalls), WallTonesSwellNearWalls);
             Run(nameof(NewsFollowItsDeliveryLevel), NewsFollowItsDeliveryLevel);
             Run(nameof(DodgeTimingIsLearntFromBlows), DodgeTimingIsLearntFromBlows);
+            Run(nameof(ProjectileWarningsAddTheFlight), ProjectileWarningsAddTheFlight);
             Run(nameof(RockStandsAloneWallDoesNot), RockStandsAloneWallDoesNot);
             Run(nameof(ReachPingsOncePerContact), ReachPingsOncePerContact);
             Run(nameof(UnexploredGroundLiesPastTheSeenEdge), UnexploredGroundLiesPastTheSeenEdge);
@@ -61,6 +63,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(WrappedLabelsJoin), WrappedLabelsJoin);
             Run(nameof(InlineItemArtIsNamed), InlineItemArtIsNamed);
             Run(nameof(KnownPlacesOutliveTheSession), KnownPlacesOutliveTheSession);
+            Run(nameof(MapPiecesAndPropsArePlaced), MapPiecesAndPropsArePlaced);
+            Run(nameof(PlacesAreSaidOnceAsTheyChange), PlacesAreSaidOnceAsTheyChange);
             Run(nameof(RadarLabelsSpeakSpanish), RadarLabelsSpeakSpanish);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
@@ -681,6 +685,33 @@ namespace Poe2Accessibility.Tests
             Equal(true, filed.Delay("Metadata/Monsters/X|1") == null, "a hit sooner than any blow is not believed");
             filed.Learn(key, 1150);
             Equal(1150, filed.Delay(key) ?? 0, "a blow felt outweighs the files");
+            Equal(true, filed.ProjectileSpeed(key) == null, "a line without a speed fires no projectile");
+        }
+
+        private static void ProjectileWarningsAddTheFlight()
+        {
+            var timings = new DodgeTimings();
+            const string bolt = "Metadata/Monsters/Caster|31";
+            const string boss = "Metadata/Monsters/Boss|9";
+            timings.AddHitTimes(new[] { $"{bolt}=800/1500/1000", $"{boss}=8646/9466", "Metadata/Monsters/Boss|10=5000/0", "Metadata/Monsters/Caster|32=800/1500/fast" });
+            Equal(800, timings.Delay(bolt) ?? 0, "the files time the release");
+            Equal(1000, timings.ProjectileSpeed(bolt) ?? 0, "and the projectile's speed");
+            Equal(8646, timings.Delay(boss) ?? 0, "a long boss attack is believed within its own swing");
+            Equal(true, timings.Delay("Metadata/Monsters/Boss|10") == null, "but not past the longest blow learnt without a swing");
+            Equal(true, timings.Delay("Metadata/Monsters/Caster|32") == null, "a broken speed drops the line");
+
+            var travel = DodgeTimings.TravelMs(600f, timings.ProjectileSpeed(bolt));
+            Equal(600, travel, "600 units at 1000 a second");
+            Equal(0, DodgeTimings.TravelMs(600f, null), "no projectile, no flight");
+            Equal(0, DodgeTimings.TravelMs(-20f, 1000), "bodies touching, no flight");
+            Equal(1900L, DodgeTimings.WarnAt(1000, timings.Delay(bolt) + travel, 500), "half a second before the projectile arrives");
+            Equal(1000L, DodgeTimings.WarnAt(1000, timings.Delay("Metadata/Monsters/Unknown|31") + travel, 500), "an untimed release still warns at the wind-up");
+
+            Equal(true, DodgeTimings.CanStillHit(1000, 0, 800, 600, 2500), "the animation still runs");
+            Equal(true, DodgeTimings.CanStillHit(1000, 2000, 800, 600, 2400), "released, the monster turned away, the projectile flies on");
+            Equal(false, DodgeTimings.CanStillHit(1000, 1500, 800, 600, 1600), "interrupted before the release: nothing comes");
+            Equal(false, DodgeTimings.CanStillHit(1000, 2000, 800, 600, 2700), "landed long ago");
+            Equal(false, DodgeTimings.CanStillHit(1000, 2000, 800, 0, 2100), "a blow beside the monster ends with its animation");
         }
 
         private static void NewsFollowItsDeliveryLevel()
@@ -992,6 +1023,54 @@ namespace Poe2Accessibility.Tests
             {
                 Localization.Detect("en");
             }
+        }
+
+        private static void MapPiecesAndPropsArePlaced()
+        {
+            const int sub = 23;
+            var catalog = PlaceCatalog.Parse(@"{
+                ""tiles"": { ""metadata/terrain/a/bridge_01.tdt"": ""bridge"", ""metadata/terrain/a/town.tdt"": ""mill"" },
+                ""tileProps"": { ""metadata/terrain/a/bridge_01.tdt"": [[30, 5, ""cart""]] },
+                ""rooms"": [ { ""arm"": ""town.arm"", ""anchors"": [[282, 252, ""waypoint""], [349, 237, ""well""]], ""props"": [[376, 211, ""cart""]] } ]
+            }");
+            var placements = new List<TilePlacement>
+            {
+                new("metadata/terrain/a/bridge_01.tdt", 0, 0, 0, new(0, 0)),
+                new("metadata/terrain/a/bridge_01.tdt", 1, 0, 0, new(sub, 0)),
+                new("metadata/terrain/a/bridge_01.tdt", 0, 0, 3, new(5 * sub, 2 * sub)),
+                new("metadata/terrain/a/bridge_01.tdt", 1, 0, 3, new(6 * sub, 2 * sub)),
+                new("metadata/terrain/a/bridge_01.tdt", 0, 0, 2, new(9 * sub, 2 * sub)),
+            };
+            placements.AddRange(Enumerable.Range(0, 10).Select(i => new TilePlacement("metadata/terrain/a/town.tdt", i, 0, 0, new(i * sub, 10 * sub))));
+            placements.AddRange(Enumerable.Range(0, 20).Select(i => new TilePlacement("metadata/terrain/a/grass.tdt", 0, 0, 0, new(i * sub, 20 * sub))));
+            placements.AddRange(Enumerable.Range(0, 40).Select(i => new TilePlacement("metadata/terrain/blank.tdt", 0, 0, 0, new(i * sub, 30 * sub))));
+            var map = PlaceMap.Build(catalog, placements, sub);
+            Equal("bridge", map.KindAt(new Vector2(30, 10)), "a named tile's sub-tiles");
+            Equal(null, map.KindAt(new Vector2(30, 10 * sub + 5)), "a kind covering most of the area is the area itself");
+            Equal(3, map.Pieces.Count(piece => piece.Kind == "bridge"), "separate bridges");
+            Equal($"30,5 {5 * sub + 5},{2 * sub + sub - 30}", string.Join(" ", map.Props.Select(prop => $"{prop.Grid.X},{prop.Grid.Y}")), "props turned with their tile; an unknown turn leaves them out");
+            Equal("2", string.Join(",", map.UnknownRotations), "and says which turn it was");
+            Equal(false, map.MatchRooms(new[] { ("waypoint", new Vector2(282, 252)) }), "one anchor of two does not place a room");
+            Equal(true, map.MatchRooms(new[] { ("waypoint", new Vector2(283, 252)), ("well", new Vector2(349, 236)) }), "both anchors place it");
+            Equal(3, map.Props.Count, "the room's cart joins the tiles'");
+        }
+
+        private static void PlacesAreSaidOnceAsTheyChange()
+        {
+            var tracker = new PlaceTracker(23, 25, 60);
+            var props = new List<(Vector2 Grid, string Kind)> { (new Vector2(100, 0), "cart") };
+            string Walk(string? kind, float x) => string.Join("+", tracker.Update(kind, new Vector2(x, 0), props));
+            Equal("", Walk("bridge", 0), "a piece waits one update");
+            Equal("bridge", Walk("bridge", 2), "then it is said");
+            Equal("", Walk("bridge", 4), "once");
+            Equal("", Walk(null, 20), "plain ground near it keeps the name");
+            Equal("", Walk("bridge", 24), "so the bridge's next piece is not news");
+            Equal("cart", Walk(null, 80), "a prop in reach");
+            Equal("", Walk(null, 90), "said once");
+            Equal("", Walk(null, 200), "far away: forgotten");
+            Equal("cart", Walk(null, 110), "and said again on the way back");
+            Equal("", Walk("stairs", 300), "a new kind waits");
+            Equal("stairs", Walk("stairs", 302), "and is said");
         }
 
         private static void ConfirmGlyphMarksTheEntryBesideIt()
