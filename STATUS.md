@@ -307,7 +307,8 @@
 Characters: "kehgan" (Monk, level 2, Clearfell Encampment), "yarkbruja" (Witch, level 3, Clearfell Encampment), "yarkey"
 (Mercenary, level 4, Mud Burrow). Next: user test of the 2026-10-25 batch (places and the Lugares category, the other
 languages, projectile dodge timing, quieter area loads, the new package layout) and of the 2026-10-24 one (wall tones,
-"what A uses", weapon swap, map / chat / player menu). Places: measure the other tile rotation selectors and place the
+"what A uses", weapon swap, map / chat / player menu). Cinematics and their subtitles (`enable_subtitles=true`) are
+untested: voiced NPC lines come as chat lines and are read; a cinematic's text has never been on screen in a test. Places: measure the other tile rotation selectors and place the
 rooms of generated areas (`docs/research/places.md`, Open). The remaining fragile parts are in `docs/compatibility.md`,
 "Still fragile" (run the dev command `layout` at login, in game, in the options and in the inventory after each change).
 
