@@ -34,7 +34,7 @@ namespace Poe2Accessibility
         private EntityCatalog? entities;
         private GamepadReader? pad;
         private ModCommands? commands;
-        private readonly L3Gestures gestures = new();
+        private L3Gestures gestures = new();
         private AudioCueService? audio;
 
         /// <summary>Sound volumes are percents; above double the synthesized level the cues clip.</summary>
@@ -519,6 +519,7 @@ namespace Poe2Accessibility
                 this.log?.Info($"Local co-op: reading player {seat}'s controller and cursor");
                 Seats.Input = seat;
                 this.focus.Seat = seat;
+                this.gestures = new L3Gestures(); // a hold on the other controller is not this one's tap
             }
 
             if ((seat == 2 ? second : first) is not { } state)

@@ -26,9 +26,7 @@ namespace Poe2Accessibility.Services
         public List<SkillSet> ReadSkillBar(IntPtr layerContainer, bool partner = false)
         {
             var sets = new List<SkillSet>();
-            var found = partner ? this.Fields?.PartnerSkillBar(layerContainer) is { } second && second != IntPtr.Zero && this.elements.TryReadElement(second, out var partnerBar) ? partnerBar : (UiElementReader.ElementInfo?)null
-                : this.InGameElement(layerContainer, InGameField.SkillBar, out var firstBar) ? firstBar : null;
-            if (found is not { } bar)
+            if (!(partner ? this.PartnerSkillBar(layerContainer, out var bar) : this.InGameElement(layerContainer, InGameField.SkillBar, out bar)))
             {
                 return sets;
             }
@@ -272,6 +270,12 @@ namespace Poe2Accessibility.Services
         /// <summary>An in-game element the layer container points to by field, trusted only by its control name.</summary>
         /// <summary>The in-game layers by what they hold (set by the plugin).</summary>
         public InGameFields? Fields { get; set; }
+
+        private bool PartnerSkillBar(IntPtr layerContainer, out UiElementReader.ElementInfo info)
+        {
+            info = default;
+            return this.Fields?.PartnerSkillBar(layerContainer) is { } address && address != IntPtr.Zero && this.elements.TryReadElement(address, out info);
+        }
 
         private bool InGameElement(IntPtr layerContainer, InGameField field, out UiElementReader.ElementInfo info)
         {
