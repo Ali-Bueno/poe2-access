@@ -64,9 +64,9 @@ Copy-Item (Join-Path $devHost 'configs\core_settings.json') (Join-Path $app 'con
 Set-Content -Path (Join-Path $app 'configs\plugins.json') -Value "{`n  `"Poe2Accessibility`": {`n    `"Enable`": true`n  }`n}" -Encoding utf8
 
 # Instructions for the testers, the controls, and a stop shortcut.
-Copy-Item (Join-Path $PSScriptRoot 'LEEME.txt') $stage
-Copy-Item (Join-Path $repo 'docs\controls.md') (Join-Path $stage 'Controles (ingles).md')
-Set-Content -Path (Join-Path $stage 'Detener el mod.bat') -Value "@start `"`" `"%~dp0Poe2Access.exe`" stop" -Encoding ascii
+Copy-Item (Join-Path $PSScriptRoot 'README.txt') $stage
+Copy-Item (Join-Path $repo 'docs\controls.md') (Join-Path $stage 'Controls.md')
+Set-Content -Path (Join-Path $stage 'Stop the mod.bat') -Value "@start `"`" `"%~dp0Poe2Access.exe`" stop" -Encoding ascii
 
 $zip = Join-Path $Output ("Poe2Access-test-{0:yyyyMMdd}.zip" -f (Get-Date))
 if (Test-Path $zip) { Remove-Item $zip -Force }

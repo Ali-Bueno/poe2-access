@@ -36,7 +36,7 @@ if ($Notes.Length -eq 0) {
     $previous = & gh release view --repo Ali-Bueno/poe2-access --json tagName --jq .tagName 2>$null
     $range = if ($LASTEXITCODE -eq 0 -and $previous) { "$previous..HEAD" } else { 'HEAD~10..HEAD' }
     & git -C $repo fetch --quiet --tags
-    $Notes = "Test version. Unzip it anywhere and run Poe2Access.exe (instructions in LEEME.txt).`n`nChanges:`n" +
+    $Notes = "Test version. Unzip it anywhere and run Poe2Access.exe (instructions in README.txt).`n`nChanges:`n" +
         ((Invoke-Git @('log', '--format=- %s', $range)) -join "`n")
 }
 
@@ -49,7 +49,7 @@ if (-not $files) { throw "No package in $output" }
 
 $notesFile = Join-Path $output 'notes.md'
 Set-Content -Path $notesFile -Value $Notes -Encoding utf8
-& gh release create $tag @files --repo Ali-Bueno/poe2-access --target (Invoke-Git @('rev-parse', 'HEAD')) --title "Test version $tag" --notes-file $notesFile --latest
-if ($LASTEXITCODE -ne 0) { throw 'gh release create failed' }
+$created = & gh release create $tag @files --repo Ali-Bueno/poe2-access --target (Invoke-Git @('rev-parse', 'HEAD')) --title "Test version $tag" --notes-file $notesFile --latest 2>&1
+if ($LASTEXITCODE -ne 0) { throw "gh release create failed: $created" }
 Remove-Item $output -Recurse -Force
 Write-Host "Released $tag. Always the newest: https://github.com/Ali-Bueno/poe2-access/releases/latest/download/Poe2Access.zip"

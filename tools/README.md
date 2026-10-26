@@ -83,12 +83,12 @@ pwsh tools/package/Update-GameHelper.ps1    # after a game patch: pull GameHelpe
 ```
 `Update-GameHelper.ps1` lists the new upstream commits (`-CheckOnly` stops there), refuses to pull over local changes in
 `external/GameHelper2` or while the host runs from its build folder, and with `-Package` also builds the test package.
-The top folder holds only `Poe2Access.exe` (the launcher as one self-contained, trimmed file, ~14 MB, left uncompressed so the archive compresses it better), `LEEME.txt`,
+The top folder holds only `Poe2Access.exe` (the launcher as one self-contained, trimmed file, ~14 MB, left uncompressed so the archive compresses it better), `README.txt`,
 the controls and the stop shortcut; GameHelper and Poe2UiExtract are published self-contained into `app/` (they share the
 .NET 10 runtime files, nothing to install; the launcher finds `app/GameHelper.exe` and logs to `app/Poe2Access.log`), with only
 the accessibility plugin (dll, PRISM, catalogs, the Radar plugin's
 `important_tgt_files.txt`, research mode off), GameHelper's `core_settings.json` with only this plugin enabled,
-`LEEME.txt` (Spanish instructions), the controls doc and a stop shortcut. No game sounds are shipped: the launcher
+`README.txt` (English instructions), the controls doc (`Controls.md`) and a stop shortcut (`Stop the mod.bat`). No game sounds are shipped: the launcher
 regenerates them, and the catalogs, from the tester's install (`oo2core.dll` ships for bundle reading). GameHelper's bundled fonts (its "Universal font" option, off), the native PDB reader and `createdump.exe` are left out. About 45 MB zipped; the .7z (LZMA2, ~29 MB) fits a 30 MB chat upload, and Windows 11 opens it (Windows 10 needs 7-Zip or WinRAR). `dist/` is gitignored; publishing a release stays a
 manual decision.
 

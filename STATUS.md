@@ -21,7 +21,8 @@
   host): starts PoE2 through Steam if needed and a hidden, renamed GameHelper copy without UAC
   (`__COMPAT_LAYER=RunAsInvoker`), no console, no update check, no prompt; `restart`/`stop` for testing; errors
   in `Poe2Access.log` + a message box. Dev: `py -B tools/computer_use/launch.py all|host|stop` wraps it.
-- **Test package:** `tools/package/New-TestPackage.ps1` → `dist/Poe2Access-test-<date>.zip` and `.7z` (~29 MB, fits a chat upload; top folder: `Poe2Access.exe`, LEEME, controls, stop
+- **Releases:** public repo (2026-10-26); `tools/package/Publish-Release.ps1` builds the package and makes it the latest GitHub release (tag `vYYYY.MM.DD[-n]`, assets always `Poe2Access.zip` / `.7z`), so `https://github.com/Ali-Bueno/poe2-access/releases/latest/download/Poe2Access.zip` is always the newest.
+- **Test package:** `tools/package/New-TestPackage.ps1` → `dist/Poe2Access-test-<date>.zip` and `.7z` (~29 MB, fits a chat upload; top folder: `Poe2Access.exe`, README.txt, Controls.md, Stop the mod.bat
   shortcut; everything else in `app/`; self-contained, unzip and
   run; sounds extracted from the tester's install on the first start); `tools/README.md`.
 - **Repository:** private GitHub `Ali-Bueno/poe2-access` (created 2026-10-23).

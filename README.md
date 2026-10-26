@@ -37,8 +37,8 @@ Nothing else needs installing: everything is inside the folder.
 5. At the game's title screen, press a button on the **controller**, not the mouse or keyboard: the game picks the
    control method then.
 
-The mod closes with the game; `Detener el mod.bat` stops it too. It speaks the language the game is set to (all ten
-of the game's languages). The full instructions in Spanish are in `LEEME.txt`, inside the download.
+The mod closes with the game; `Stop the mod.bat` stops it too. It speaks the language the game is set to (all ten
+of the game's languages). The full instructions are in `README.txt`, inside the download.
 
 ## What it makes accessible
 
