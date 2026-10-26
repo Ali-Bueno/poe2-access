@@ -1,8 +1,9 @@
 # Local (couch) co-op and online parties (PoE2 0.5.5e, 2026-10-25)
 
 Measured live with two virtual Xbox pads (`pad.py serve --xbox` and `pad.py serve --xbox --second`) in the Clearfell
-Encampment, a town instance shared with ~10 online players. Code: `LocalPlayers` (+ pure `LocalPlayerList`),
-`GameLayout.LocalPlayers`, the partner radar in `Poe2AccessibilityCore.Gameplay`.
+Encampment (a town instance shared with ~10 online players) and in Clearfell. Code: `Seats`, `InputSeat`,
+`LocalPlayers` (+ pure `LocalPlayerList`), `LocalInventories`, `PlayerAlerts`, `SeatOutput`, `CoopDowns`,
+`GameLayout.LocalPlayers`, `GameLayout.UiManager.PlayerStride`, `GameLayout.InGameUi.PartnerSkillBarShift`.
 
 ## Joining
 
@@ -28,21 +29,55 @@ Encampment, a town instance shared with ~10 online players. Code: `LocalPlayers`
   same two, unused). The inline capacity of two matches the two seats. `LocalPlayerList.Second` trusts the list only
   when entry 0 is GameHelper's player and it holds at most two entries.
 
-## What reaches the mod from J2
+## Each player's cursor and controller (UI manager)
 
-- J2's buttons are not in the pad state the mod reads (UI manager +0x768): J2's L3 did nothing, J1's L3 answered.
-- J2's menu cursor is not the mod's focus (no `Focus ->` while J2 moved in its game menu), but what J2 opens is on the
-  shared screen and is read as a screen change ("Menú del juego. Grupo actual. Yarkey. Yarkbruja…").
-- OPEN: where J2's focus and pad state live. J2 opens its own panels, so a blind J2 needs them read to equip; the UI
-  manager's +0x748 (focus) and +0x768 (pad) are J1's.
-- The objective box shows the party's quest state, not J1's alone; it is read as drawn.
+Player 2's block of the UI manager lies **0x240** past player 1's (`GameLayout.UiManager.PlayerStride`):
+
+| | player 1 | player 2 | measured |
+|---|---|---|---|
+| focused element (current) | +0x748 | +0x988 | J2's character list at selection; J2's inventory grid in town |
+| hovered element | +0x760 | +0x9A0 | only +0x9A0 changed while J2 moved its character cursor (UI manager 0x27A15991250) |
+| pad state (uint buttons, 6 floats) | +0x768 | +0x9A8 | +0x9AC = 1.0 with J2's left stick right; in town +0x9A8 = 0x400 (A) while J2 held A (0x27A0F585A00) |
+
+Diffs of 0x1000 bytes of the UI manager (before and after each input) showed nothing else move with J2's input but a
+timer at +0xC00 and J2's own cursor state at +0x9F0 (+0x7B0 for J1). `InputSeat` picks whose block the mod reads:
+player 1 unless player 2 is read; player 2 read alone takes over at its first press; both read, the player who pressed
+last (a held stick is not a press; a new UI manager is a baseline, else an area load flipped the seat back and forth).
+
+## Each player's inventories (server data)
+
+GameHelper reads `ServerData +0x48` (a vector with one player data per local player) only at entry 0. In co-op it held
+two entries, each with 117 inventories at +0x320 (`InventoryArrayStruct`, id + pointer). Entry 1 is J2's: its
+MainInventory1 (0x279B6917310) is what J2's inventory panel grid points to at +0x6F8. `LocalInventories.Of(2)` reads it
+(entry 0 stays GameHelper's own map). Pick-ups, hand, moves and flasks read the watched player's entry; a host
+`Inventory` just made or moved is silent for a second (`InventoryWatch.ReaderSettleMs`: its first reads are empty or
+stale, and gave a false "Recogido" when J2's inventory began to be watched).
+
+## HUD
+
 - The HUD splits in two `per_player_hud` (HUD child 5, children 0 left = J1, 1 right = J2, `HUD/COOP/HUD_L_Back` and
-  `HUD_R_Back`). The layer container's skill-bar field (+0x610) still holds J1's `skill_bar`; J2's is at +0x7B0. A co-op
-  bar nests its twelve slot frames (two rows of six) in its first child, each frame a background then the two slots;
-  alone, the frames are children 1..12 of the bar with the two slots only (`UiSemantics.SlotElements` takes either).
+  `HUD_R_Back`). The layer container's skill-bar field (+0x610) still holds J1's `skill_bar`; J2's is at +0x7B0
+  (`PartnerSkillBarShift` 0x1A0 past J1's field, checked by name and by being another element). A co-op bar nests its
+  twelve slot frames (two rows of six) in its first child, each frame a background then the two slots; alone, the
+  frames are children 1..12 of the bar with the two slots only (`UiSemantics.SlotElements` takes either).
+- J2's inventory is its own layer (right half), with J2's name and level ("yarkbruja, Niv. 3") and the shared gold
+  ("113 (compartido)"). What either player opens is on the shared screen and is read as a screen change.
+- The objective box shows the party's quest state, not J1's alone; it is read as drawn.
+
+## Deaths (Clearfell, 2026-10-25)
+
+- A local player who dies while the other lives gets **no death screen**: the body carries a world label
+  `Metadata/MiscellaneousObjects/ReviveIcon` "acércate para revivir", the chat says "yarkbruja ha muerto.", that side of
+  the HUD goes red, and the camera keeps following the living player (the body can be off screen). Walking up gives the
+  interact prompt "Revivir, A" and "MANTÉN PRESIONADO A PARA REVIVIR" (taking damage interrupts it).
+- Once both are dead, the usual death screen opens ("Has muerto | resucitar en el punto de control"); resurrecting
+  loads a new instance with both alive (new entity ids).
+- `CoopDowns` says "yarkbruja ha caído. Ve hasta su cuerpo para revivir" (heard live) and "Has caído. El otro jugador
+  puede revivirte", and who is back on their feet; a loading screen or another area instance starts it over (a respawn
+  was first said as two revivals). `DeathWatch` waits for the death screen only once no local player is left alive.
 
 ## Online parties
 
-The mod follows `AreaInstance.Player` everywhere (radar, vitals, deaths, buffs, level, inventory), which is the
-client's own character whatever the party order. Other players only appear as the scanner's Players category, the NPC
-tap and party chat.
+The mod follows `AreaInstance.Player` everywhere unless player 2 is read alone (`Seats.Followed`), which is the client's
+own character whatever the party order. Other players only appear as the scanner's Players category, the NPC tap and
+party chat (online, the scanner listed "brunaarcher, Exploradora, nivel 10" in town).

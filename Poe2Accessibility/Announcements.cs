@@ -329,6 +329,17 @@ namespace Poe2Accessibility
 
         public static string LevelUp(int level) => T($"Level {level}", $"Nivel {level}");
 
+        /// <summary>Local co-op: the other local player died while the followed one lives (<see cref="Services.CoopDowns"/>).</summary>
+        public static string PartnerDown(string name) =>
+            T($"{name} is down. Go to their body to revive them", $"{name} ha caído. Ve hasta su cuerpo para revivir");
+
+        public static string PartnerUp(string name) => T($"{name} is back on their feet", $"{name} vuelve a estar en pie");
+
+        /// <summary>Local co-op: the followed player died while the other lives, so there is no death screen yet.</summary>
+        public static string YouAreDown => T("You are down. The other player can revive you", "Has caído. El otro jugador puede revivirte");
+
+        public static string YouAreUp => T("You are back on your feet", "Vuelves a estar en pie");
+
         /// <summary>What the player just walked up to: "Checkpoint", "Una, Stash".</summary>
         public static string Nearby(System.Collections.Generic.IEnumerable<string> names) => string.Join(", ", names);
 

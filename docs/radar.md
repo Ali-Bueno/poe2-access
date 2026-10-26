@@ -38,12 +38,13 @@ along a wall moves the character, so it stays silent. Setting `WallBump`.
 
 ## Local co-op: player 2
 
-With `PartnerRadar` on, a second radar follows local player 2 (`LocalPlayers`, [local co-op](research/local-coop.md)):
-the same rays on the shared screen in another timbre (`RadarSynth.Voice.Second`): a plucked string (Karplus-Strong) for
+With both local players read (`ReadPlayer1` and `ReadPlayer2` on, `Seats.Partner`), a second radar follows local player
+2 ([local co-op](research/local-coop.md)): the same rays on the shared screen in another timbre (`RadarSynth.Voice.Second`): a plucked string (Karplus-Strong) for
 each strike, in the same order (wall 196 Hz, small obstacle 494 Hz, exit 1320 Hz, lower below the player), and a
 whistle for the breath, rising an octave ahead (600 to 1200 Hz), falling one behind, level to the sides (800 Hz). Each
 second-voice cue is scaled to the loudness (RMS) of the first voice's cue it stands for, up to a peak of 0.8. Both radars share one turn: one cue at a time across the two.
 Player 2's radar is silent while player 2 is dead, alone, or when the first player's radar would be (menus, focus).
+With player 2 read alone, the one radar follows player 2 in the first voice.
 
 ## Not ported yet
 
@@ -51,5 +52,5 @@ Doors (no door bit in PoE2's walkable grid), small-obstacle timbre, wall repeat,
 
 ## Settings
 
-`Radar` (on), `PartnerRadar` (off), `RadarVolume` and `SoundVolume` (percent, 0-200). Silent whenever a panel, menu or dialogue has the
+`Radar` (on, for every read player), `RadarVolume` and `SoundVolume` (percent, 0-200). Silent whenever a panel, menu or dialogue has the
 focus, the game window is in the back, or the player is dead.

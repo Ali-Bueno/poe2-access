@@ -142,6 +142,7 @@ namespace Poe2Accessibility
         {
             if (this.gameState?.CurrentState != GameStateTypes.InGameState)
             {
+                this.coopDowns.Reset(); // a loading screen (a respawn among them) is not a revival
                 return;
             }
 
@@ -151,7 +152,20 @@ namespace Poe2Accessibility
             {
                 this.partnerAlerts?.Tick(this.Settings, inWorld && IsAlive(partner));
             }
+
+            // Local co-op: who is down and who is back. A life not readable (entities reload with the area) is no news.
+            var other = Seats.Other;
+            if (LifeKnown(Seats.Followed) && (other == null || LifeKnown(other)))
+            {
+                foreach (var news in this.coopDowns.Update(Core.States.InGameStateObject.CurrentAreaInstance.Address.ToInt64(), IsPlayerAlive(), other == null ? null : (PlayerAlerts.Name(other), IsAlive(other))))
+                {
+                    this.output.Say(SpeechKind.LifeAndMana, news, true);
+                }
+            }
         }
+
+        private static bool LifeKnown(GameHelper.RemoteObjects.States.InGameStateObjects.Entity entity) =>
+            entity.IsValid && entity.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) && life.Health.Total > 0;
 
         /// <summary>
         ///     The current area's level, which is its monsters' level (GameHelper AreaInstance +0xBC, "Monster Level" in its

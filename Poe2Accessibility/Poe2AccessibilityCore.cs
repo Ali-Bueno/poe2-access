@@ -49,6 +49,8 @@ namespace Poe2Accessibility
         private WallTones? wallTones;
         private GamepadReader.PadState padState;
         private readonly InputSeat inputSeat = new();
+        private readonly CoopDowns coopDowns = new();
+        private IntPtr padManager;
         private readonly System.Collections.Generic.Dictionary<string, long> tickFaults = new();
         private HostMemoryReader? memoryReader;
 
@@ -262,7 +264,11 @@ namespace Poe2Accessibility
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds, drops);
                 this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds, new KnownPlaces(Path.Join(this.DllDirectory, "config", "known-places.txt")));
                 this.enemyNews = new EnemyNarrator(this.entities, this.output);
-                this.deaths = new DeathWatch(this.locator, elements, this.output, this.log) { Died = () => this.entities?.RememberDeath() };
+                this.deaths = new DeathWatch(this.locator, elements, this.output, this.log)
+                {
+                    Died = () => this.entities?.RememberDeath(),
+                    Revivable = () => Seats.Other is { } other && IsAlive(other),
+                };
                 this.ApplySoundVolumes(this.Settings);
                 this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
                 this.screen = new ScreenWatcher(elements, this.log);
@@ -498,6 +504,12 @@ namespace Poe2Accessibility
                 return;
             }
 
+            if (this.focus.Manager != this.padManager)
+            {
+                this.padManager = this.focus.Manager;
+                this.inputSeat.Baseline();
+            }
+
             GamepadReader.PadState? first = this.pad.TryRead(this.focus.Manager, out var one) ? one : null;
             GamepadReader.PadState? second = this.Settings.ReadPlayer2 && this.pad.TryRead(this.focus.Manager, out var two, 2) ? two : null;
             var seat = this.inputSeat.Update(this.Settings.ReadPlayer1, this.Settings.ReadPlayer2,
@@ -708,6 +720,7 @@ namespace Poe2Accessibility
             this.gold?.Reset();
             this.flasks?.Reset();
             this.partnerFlasks?.Reset();
+            this.coopDowns.Reset();
             this.barriers?.Reset();
             this.targets?.Reset();
             this.discoveries?.Reset(areaName, resumed);

@@ -13,15 +13,23 @@ namespace Poe2Accessibility.Services
 
         private readonly uint[] lastButtons = new uint[2];
         private readonly bool[] lastPushed = new bool[2];
+        private bool rebase;
 
         public int Seat { get; private set; } = 1;
+
+        /// <summary>
+        ///     Another UI manager (game state): its first reading is where the controls are, not a press (an area load
+        ///     switched the seat back and forth, 2026-10-25).
+        /// </summary>
+        public void Baseline() => this.rebase = true;
 
         /// <param name="first">Player 1's buttons and largest stick or trigger deflection, null when unreadable.</param>
         /// <param name="second">The same for player 2.</param>
         public int Update(bool readFirst, bool readSecond, (uint Buttons, float Deflection)? first, (uint Buttons, float Deflection)? second)
         {
-            var pressedFirst = this.Pressed(0, first);
-            var pressedSecond = this.Pressed(1, second);
+            var pressedFirst = this.Pressed(0, first) && !this.rebase;
+            var pressedSecond = this.Pressed(1, second) && !this.rebase;
+            this.rebase = false;
             if (!readSecond)
             {
                 this.Seat = 1;

@@ -65,7 +65,7 @@ closed"; the ping goes on by itself once the barrier opens.
 
 ## Settings menu (gameplay)
 
-Hold L3 for a second and a half: "Mod settings. Help: the L3 button in play, 1 of 76" (five help topics, then the settings, then the sound glossary). Without holding L3,
+Hold L3 for a second and a half: "Mod settings. Help: the L3 button in play, 1 of 86" (five help topics, then the settings, then the sound glossary). Without holding L3,
 flick the right stick up or down to move through the list and left or right to change the value (switches
 toggle, volumes move in steps of 25 percent, language: same as the game, Spanish, English). Tap L3 to close:
 "Settings saved" (written to `config/settings.txt`). Opening a game panel closes it too.
@@ -97,6 +97,19 @@ mods without a name are left out.
 
 **Gold** is announced when picked up during play ("Picked up 37 gold", from the inventory's gold counter; sales and
 rewards with a panel open say nothing), under the "Picked up items" switch.
+
+**Local co-op** (two controllers on one PC; the last two settings): "Local co-op: read for player 1" (on) and "read for
+player 2" (off) choose whom the mod reads for — one, the other or both ([local co-op](research/local-coop.md)).
+- Player 1 alone (default): as playing alone; player 2's controller and cursor are not read.
+- Player 2 alone: everything follows player 2 — its cursor and controller (from its first press; before it joins at
+  character selection the mod reads player 1's), its radar, life, level, states, inventory, flasks and skill bar.
+- Both: menus and the mod's commands follow whoever pressed last (so each hears its own inventory, vitals and skill
+  bar); each hears its own life, mana, level, states, pick-ups and flasks with its character name first; player 2 has
+  its own radar sounds. Enemy, object and place sounds, the scanner and the guide stay player 1's: on a shared screen
+  the two are never far apart.
+- In every mode: "yarkbruja is down. Go to their body to revive them" when the other player falls (hold A beside the
+  body: "Revive, A"), "You are down. The other player can revive you", and who is back on their feet. The NPC tap leaves
+  the other local player out; the scanner's Players category lists them.
 
 The last group is the **sound glossary**: every sound of the mod by name and meaning ("Dodge warning, a rare
 or unique monster starts an attack, dodge"); left or right plays it.
@@ -155,8 +168,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 
 - **Radar:** a tock when a wall closes the way up, left, right or down on screen, a breath when it opens again, a tin
   for an exit on that line. Left and right are stereo, down is a little lower. Only changes sound
-  ([radar](radar.md)). In local co-op, setting "Radar for local player 2" gives player 2 a radar of their own: the
-  same meanings in other sounds: plucked strings for walls, obstacles and exits, a whistle for the open way.
+  ([radar](radar.md)). In local co-op with both players read, player 2 has a radar of their own: the same
+  meanings in other sounds, plucked strings for walls, obstacles and exits, a whistle for the open way.
 - **Enemies:** a short growl for each enemy on screen, faster as it gets closer; magic and rare enemies buzz on top,
   uniques ring ([enemy sounds](enemy-sounds.md)).
 - **NPCs:** a light wooden tap for the nearest NPC or other player on screen, faster as you get closer.
@@ -189,7 +202,7 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   ([dodge timing](research/dodge-timing.md)).
 - **Crosshair:** two short blips when the game's target lands on a living enemy.
 - The game's own low-life heartbeat and menu sounds are left to the game: the mod has none of its own.
-- All stop while a panel, menu or dialogue is open. Settings: `Radar`, `PartnerRadar`, `WallBump`, `EnemySounds`, `NpcSounds`,
+- All stop while a panel, menu or dialogue is open. Settings: `Radar`, `WallBump`, `EnemySounds`, `NpcSounds`,
   `AnnounceNearby`, `AnnounceLevelUp`, `ObjectSounds`, `LootSounds`, `DodgeWarnings`, `CrosshairBeep`, `LowLifeBelow`, volumes
   `SoundVolume`, `RadarVolume`, `EnemyVolume`, `BeaconVolume`, `ObjectVolume` in `config/settings.txt`.
 

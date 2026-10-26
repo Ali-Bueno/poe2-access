@@ -61,6 +61,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The player has just died (once per death): the place is kept for the scanner.</summary>
         public Action? Died { get; set; }
 
+        /// <summary>
+        ///     Local co-op: whether another local player lives to revive the dead one; then there is no death screen
+        ///     (<see cref="CoopDowns"/> says it) and the screen is awaited only once both are dead.
+        /// </summary>
+        public Func<bool>? Revivable { get; set; }
+
         /// <summary>Per frame in game.</summary>
         public void Tick(IntPtr inGameState)
         {
@@ -83,6 +89,12 @@ namespace Poe2Accessibility.Services
             {
                 (this.dead, this.said, this.diedAt, this.wasShown, this.hiddenSince) = (true, false, now, false, 0);
                 this.Died?.Invoke();
+                return;
+            }
+
+            if (this.Revivable?.Invoke() == true)
+            {
+                (this.diedAt, this.hiddenSince, this.wasShown) = (now, 0, false);
                 return;
             }
 

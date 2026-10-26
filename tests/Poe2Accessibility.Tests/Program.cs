@@ -36,6 +36,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(PartnerRadarHasItsOwnSounds), PartnerRadarHasItsOwnSounds);
             Run(nameof(LocalPlayerListTrustsOnlyItsOwnPlayerFirst), LocalPlayerListTrustsOnlyItsOwnPlayerFirst);
             Run(nameof(InputSeatFollowsWhoPressedLast), InputSeatFollowsWhoPressedLast);
+            Run(nameof(CoopDownsSayWhoFellAndRose), CoopDownsSayWhoFellAndRose);
             Run(nameof(NearbyThingsAreNamedOncePerApproach), NearbyThingsAreNamedOncePerApproach);
             Run(nameof(WallBumpThudsOncePerContact), WallBumpThudsOncePerContact);
             Run(nameof(FriendsGetTheirOwnStream), FriendsGetTheirOwnStream);
@@ -485,6 +486,24 @@ namespace Poe2Accessibility.Tests
             Equal(true, Crossings(behind, 120, 160) < Crossings(behind, 20, 60), "the whistle falls behind");
         }
 
+        private static void CoopDownsSayWhoFellAndRose()
+        {
+            var downs = new CoopDowns();
+            const long town = 1, field = 2, respawned = 3;
+            Equal(0, downs.Update(field, true, ("yarkbruja", false)).Count, "the first reading (area loaded with the partner dead) is not news");
+            Equal(Announcements.PartnerUp("yarkbruja"), downs.Update(field, true, ("yarkbruja", true)).Single(), "revived");
+            Equal(Announcements.PartnerDown("yarkbruja"), downs.Update(field, true, ("yarkbruja", false)).Single(), "the partner falls");
+            Equal(0, downs.Update(field, true, ("yarkbruja", false)).Count, "still down: said once");
+            Equal(0, downs.Update(field, false, ("yarkbruja", false)).Count, "both dead: the death screen speaks");
+            Equal(0, downs.Update(respawned, true, ("yarkbruja", true)).Count, "respawned at the checkpoint: a new instance, no news");
+            Equal(Announcements.YouAreDown, downs.Update(respawned, false, ("yarkbruja", true)).Single(), "the followed player falls, the partner can revive");
+            Equal(Announcements.YouAreUp, downs.Update(respawned, true, ("yarkbruja", true)).Single(), "revived by the partner");
+            downs.Update(respawned, false, ("yarkbruja", true));
+            downs.Reset();
+            Equal(0, downs.Update(town, true, ("yarkbruja", true)).Count, "a reset (area change seen) starts over too");
+            Equal(0, downs.Update(town, false, null).Count, "alone: the death screen's own reader");
+        }
+
         private static void InputSeatFollowsWhoPressedLast()
         {
             (uint, float)? idle = (0u, 0f), a = (0x400u, 0f), walking = (0u, 1f);
@@ -502,6 +521,9 @@ namespace Poe2Accessibility.Tests
             Equal(1, both.Update(true, true, (0x400u, 1f), idle), "player 1 presses A");
             Equal(1, both.Update(true, true, (0x400u, 1f), null), "player 2 unreadable: no press");
             Equal(2, both.Update(true, true, (0x400u, 1f), walking), "player 2 pushes a stick");
+            both.Baseline();
+            Equal(2, both.Update(true, true, (0x7u, 1f), idle), "another UI manager: its first reading is not a press");
+            Equal(1, both.Update(true, true, (0x8u, 1f), idle), "then a press counts again");
         }
 
         private static void LocalPlayerListTrustsOnlyItsOwnPlayerFirst()

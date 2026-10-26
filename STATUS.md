@@ -103,7 +103,7 @@
 | Audio output (winmm mixer, synthesized cues) | done (code) | `AudioCueService`; no new DLL; "Audio cues ready" logged live |
 | Enemy sounds (growl + rarity layer, pan, tempo by nearness) | done (live) | "16 pulses, up to 6 enemies in the last 5 s"; sight from the projectile layer; ~9 pulses/s in a pack (tune by ear); `enemies` dev command |
 | Navigation radar (D2R: tock wall, breath floor, tin exit, 4 screen rays) | done (live) | `docs/radar.md`; user: "creo que funciona"; wall tones = later alternative |
-| Local co-op: radar for player 2 (`PartnerRadar`, off), its own timbre (plucked strings, whistle); speech stays player 1's | done (live, bot) | `LocalPlayers` reads the area's local player list; both radars logged live with J2 among online players; skill bar read right in co-op (`docs/research/local-coop.md`) |
+| Local co-op: per-player reading (`ReadPlayer1` on, `ReadPlayer2` off; one, the other or both): cursor, pad, inventories, flasks, skill bar, radar (player 2 in its own timbre), named life/level/state news, downs and revivals | done (live, bot) | J2 read alone and both read, tested with two virtual pads in town and Clearfell (inventory, hand, L3 menu, vitals, skill bar, radar, "yarkbruja ha caído"); default and solo online unchanged (`docs/research/local-coop.md`) |
 | Nearby things named on approach (checkpoint, NPC, stash, chest, item, exit) | done (live) | `docs/proximity.md`; "Checkpoint" on respawn, "Clearfell Encampment" at the exit |
 | Radial menu (hold View) | done (live) | the highlighted option is the only text of its layer: "Inventory", "Skills", "Passives", "Bind Screen", "Character", "Quests", "Cosmetics", "Not Available" |
 | Death screen | done (live); fallback (code) | "You have Died. resurrect at checkpoint", then the button; `DeathWatch` reads it from G+0xCE8 when not narrated 2 s after dying, says it hidden ("Y la muestra"): once (11:23, 2026-10-24) the game focused it but it read hidden and nothing was said |
@@ -299,10 +299,12 @@
 - Memory layout constants: `GameLayout` (each with provenance). Glyph tables: `ControllerGlyphs`.
 - Research: `UiTreeDumper`/`UiTreeReader`, `ResearchSession`, `FocusResearchLog`, `DevCommandFile`.
 - Controller: `GamepadReader` (pad state M+0x768) → `L3Gestures` → `ModCommands` (menu lines / gameplay).
+- Local co-op: `Seats` (followed, partner, asking player; `InputSeat` picks whose pad and cursor, `PlayerStride`), `LocalPlayers`,
+  `LocalInventories` (player 2's server inventories), `PlayerAlerts` + `SeatOutput` (named per-player news), `CoopDowns`.
 - Scanner: `EntityCatalog` (entries, landmarks, `Describe`; `.Classify` categories and names, `.Terrain` live grid and barriers) → `RoutePlanner` (A*, corners,
   legs) and `ScanModel` (`ScanBrowser`, `StickDirection`); `LandmarkTable`. Warnings: `VitalAlarm`.
 - Sounds: `AudioCueService` (winmm mixer) ← `EnemyCues` (`EnemyCueScheduler`, `CueSynth`) and `Radar`
-  (`PassageScan`, `RadarSensor`, `RadarSynth`; a second `Radar` follows `LocalPlayers.Second`); with `ProximityNarrator` (`ProximityTracker`) gated in
+  (`PassageScan`, `RadarSensor`, `RadarSynth`; a second `Radar` follows `Seats.Partner`); with `ProximityNarrator` (`ProximityTracker`) gated in
   `Poe2AccessibilityCore.TickSounds`.
 - Shop/stash: tooltip `cost` → `CurrencyIcons`, red price via `UiElementReader.IsTextRed`; grid tabs `UiSemantics.GridTab`.
 - Gameplay guides: `Beacon` (+ pure `BeaconMath`), `QuestMatcher`, `BossWatch` (boss life + dodge whoosh, pure
@@ -315,13 +317,9 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-Next (branch `coop-seats`, game with two pads, `pad.py serve --xbox` and `--second`): everything the mod does for player 1,
-for player 2 too, by the toggles `ReadPlayer1` / `ReadPlayer2` (one, the other, or both; `Seats`). Done offline: the
-followed player, player 2's skill bar, per-player radar and life/mana/level/state news (named while both are read).
-Find live: J2's focused element and pad state (UI manager +0x748 and +0x768 are J1's), J2's inventory panel and server
-inventories (pick-ups, flasks), J2's death screen (`docs/research/local-coop.md`); then a second focus reader and J2's pad
-on the mod's commands, verify every mode live, merge to main. Then: user test of the 2026-10-25 UI sweep fixes (`docs/research/ui-sweep-2026-10-25.md`) and of the player 2 radar
-in real couch co-op (two pads; J2 joins at character selection, "Radar del jugador local 2" in the mod's settings). Characters: "kehgan" (Monk, level 2, Clearfell Encampment; a town NPC shows a quest marker), "yarkbruja" (Witch, level 3,
+Next: user test of local co-op with two real controllers (both toggles, a revive by holding A; the revive and
+respawn lines are unit-tested, not heard live). Then: user test of the 2026-10-25 UI sweep fixes (`docs/research/ui-sweep-2026-10-25.md`) and of the player 2 radar
+in real couch co-op (two pads; J2 joins at character selection, "Cooperativo local: lectura para el jugador 2" in the mod's settings). Characters: "kehgan" (Monk, level 2, Clearfell Encampment; a town NPC shows a quest marker), "yarkbruja" (Witch, level 3,
 Clearfell Encampment, no NPC marker), "yarkey" (Mercenary, level 4, Clearfell Encampment). Start in town from character selection:
 `desktop.py combo l2 cross --seconds 1.8` (away from town the confirmation's Cancel is focused: D-pad right, then A). Next: user test of the 2026-10-25 batch (places and the Lugares category, the other
 languages, projectile dodge timing, quieter area loads, the new package layout) and of the 2026-10-24 one (wall tones,

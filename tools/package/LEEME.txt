@@ -29,7 +29,7 @@ El botón del mod es L3, el clic del stick izquierdo.
 - Guía: mantén L3 y pulsa el stick derecho. Un ping te lleva hacia lo elegido por un camino libre y te dice los giros. Repítelo para apagarla.
 - Ajustes del mod: mantén L3 un segundo y medio. Ahí están la ayuda, todos los ajustes y un glosario donde puedes escuchar cada sonido.
 - Al morir, Y muestra u oculta la pantalla de muerte. A resucita en el punto de control.
-- Cooperativo local: el mod habla siempre para el jugador 1. El ajuste "Radar del jugador local 2" da al jugador 2 su propio radar, con sonidos propios: cuerdas pulsadas para paredes, obstáculos y salidas, y un silbido para el camino libre.
+- Cooperativo local (dos mandos en el mismo PC): al final de los ajustes del mod, "Cooperativo local: lectura para el jugador 1" (activado) y "lectura para el jugador 2" (desactivado) eligen para quién lee el mod: uno, el otro o los dos. Con los dos, el mod lee los menús y los comandos de quien haya pulsado el último, cada uno oye su propia vida, nivel y estados con su nombre delante, y el jugador 2 tiene su propio radar, con sonidos propios: cuerdas pulsadas para paredes, obstáculos y salidas, y un silbido para el camino libre. Si cae un jugador, el otro lo revive manteniendo A junto a su cuerpo; el mod avisa de quién ha caído.
 Encontrarás todos los controles en "Controles (ingles).md".
 
 PARA CERRAR

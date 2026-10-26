@@ -24,6 +24,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Player 2 while both players are read, else null.</summary>
         public static Entity? Partner => settings?.Invoke() is { ReadPlayer1: true, ReadPlayer2: true } ? players?.Second() : null;
 
+        /// <summary>The local player the mod does not follow; null when playing alone.</summary>
+        public static Entity? Other => players?.Second() is { } second ? (FollowsSecond ? First : second) : null;
+
         /// <summary>Whose controller and cursor the mod reads, 1 or 2; set every frame by the plugin (<see cref="InputSeat"/>).</summary>
         public static int Input { get; set; } = 1;
 
