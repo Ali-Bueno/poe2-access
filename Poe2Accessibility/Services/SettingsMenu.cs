@@ -49,6 +49,7 @@ namespace Poe2Accessibility.Services
             Choice(nameof(AccessibilitySettings.LootSounds), LootFilter.Levels),
             Switch(nameof(AccessibilitySettings.DodgeWarnings)),
             Switch(nameof(AccessibilitySettings.BossWeakPoint)),
+            Switch(nameof(AccessibilitySettings.ShieldSounds)),
             Switch(nameof(AccessibilitySettings.CrosshairBeep)),
             Number(nameof(AccessibilitySettings.LowLifeBelow), 5, 70, 5),
             Number(nameof(AccessibilitySettings.SoundVolume), 0, 200, 25),

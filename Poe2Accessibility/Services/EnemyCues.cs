@@ -239,8 +239,12 @@ namespace Poe2Accessibility.Services
 
                 var to = new Vector2(render.WorldPosition.X, render.WorldPosition.Y) / toGrid;
                 var (grid, maxBlocked) = this.SightGrid(area);
+                var life = entity.TryGetComponent<Life>(out var vitals) ? $"{vitals.Health.Current}/{vitals.Health.Total}" : "-";
+                var animation = entity.TryGetComponent<Actor>(out var actor) ? Enum.GetName(actor.Animation) ?? $"{(int)actor.Animation}" : "-";
+                var buffs = entity.TryGetComponent<Buffs>(out var effects) ? string.Join(",", effects.StatusEffects.Keys.Take(12)) : "-";
                 lines.Add($"  {entity.Id} {entity.Path}: alive enemy {EntityCatalog.IsAliveEnemy(entity)}, in play {EntityCatalog.IsInPlay(this.memory, entity)}, " +
-                          $"screen {world.WorldToScreen(render.WorldPosition)}, in sight {InSight(grid, area.TerrainMetadata.BytesPerRow, from, to, maxBlocked)}");
+                          $"screen {world.WorldToScreen(render.WorldPosition)}, in sight {InSight(grid, area.TerrainMetadata.BytesPerRow, from, to, maxBlocked)}, " +
+                          $"life {life}, animation {animation}, buffs [{buffs}]");
             }
 
             return string.Join(Environment.NewLine, lines.Take(40));

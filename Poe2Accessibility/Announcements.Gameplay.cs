@@ -230,6 +230,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.LootSounds) => T("Items heard and named", "Objetos que suenan y se nombran"),
             nameof(AccessibilitySettings.DodgeWarnings) => T("Dodge warnings", "Avisos para esquivar"),
             nameof(AccessibilitySettings.BossWeakPoint) => T("Boss weak point heartbeat", "Latido del punto débil del jefe"),
+            nameof(AccessibilitySettings.ShieldSounds) => T("Shield raised and lowered", "Escudo levantado y bajado"),
             nameof(AccessibilitySettings.CrosshairBeep) => T("Crosshair beep", "Pitido de mira"),
             nameof(AccessibilitySettings.LowLifeBelow) => T("Urgent life warnings below", "Avisos de vida urgentes por debajo de"),
             nameof(AccessibilitySettings.SoundVolume) => T("Master volume", "Volumen general"),
@@ -311,6 +312,8 @@ namespace Poe2Accessibility
             "dodge" => T("Dodge warning", "Aviso para esquivar"),
             "crosshair" => T("Crosshair", "Mira"),
             "weak_point" => T("Boss weak point", "Punto débil del jefe"),
+            "shield_up" => T("Shield raised", "Escudo levantado"),
+            "shield_down" => T("Shield lowered", "Escudo bajado"),
             "reach" => T("Reach ping", "Aviso de alcance"),
             "wall_tone" => T("Wall tone", "Tono de pared"),
             "radar_obstacle" => T("Radar: small obstacle", "Radar: obstáculo pequeño"),
@@ -347,6 +350,8 @@ namespace Poe2Accessibility
             "beacon" => T("walk so it sounds in the centre; faster when closer", "camina para oírlo al centro; más rápido al acercarte"),
             "dodge" => T("a rare or unique monster starts an attack, dodge", "un monstruo raro o único empieza un ataque, esquiva"),
             "crosshair" => T("the game's target lands on a living enemy", "el objetivo del juego cae en un enemigo vivo"),
+            "shield_up" => T("you raised your shield (Raise Shield, held)", "levantaste el escudo (Levantar escudo, mantenido)"),
+            "shield_down" => T("your shield came down", "el escudo bajó"),
             "weak_point" => T(
                 "from the side of the boss's head, not its tail; faster as you near it, slow and soft at the head, silent while it is buried",
                 "del lado de la cabeza del jefe, no de la cola; más rápido al acercarte, lento y suave junto a la cabeza, callado mientras está enterrada"),
@@ -462,8 +467,8 @@ namespace Poe2Accessibility
         public static string HelpText(string topic) => topic switch
         {
             "help_l3" => T(
-                "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states, the boss, the flasks, your level and the area's, your gold and how much you have explored. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu",
-                "Toque: dónde está lo elegido en el escáner, o repetir. Doble toque: vida, maná, estados, el jefe, los frascos, tu nivel y el del área, tu oro y cuánto has explorado. Mantener: la pantalla, las pistas de botones y la barra de habilidades. Mantener un segundo y medio: este menú"),
+                "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states, the boss, the flasks, your level and the area's, your gold, the league encounter (tribute) and how much you have explored. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu",
+                "Toque: dónde está lo elegido en el escáner, o repetir. Doble toque: vida, maná, estados, el jefe, los frascos, tu nivel y el del área, tu oro, el encuentro de liga (tributo) y cuánto has explorado. Mantener: la pantalla, las pistas de botones y la barra de habilidades. Mantener un segundo y medio: este menú"),
             "help_scanner" => T(
                 "Hold L3 and flick the right stick: up and down change the category, left and right go through it, nearest first. Quest is first: what the objective names",
                 "Mantén L3 y mueve el stick derecho: arriba y abajo cambian de categoría, izquierda y derecha la recorren, de la más cercana a la más lejana. Misión va primero: lo que nombra el objetivo"),

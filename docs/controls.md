@@ -11,7 +11,7 @@ toggles the map legend). Turn the controller commands off with `ControllerComman
 | Gesture | In menus (something has the focus) | In gameplay |
 |---|---|---|
 | Tap | Next line of the focused element: its name first, then each tooltip line | Where the scanner's choice is now; nothing chosen: repeat the last speech |
-| Double tap | Previous line | Life, mana, energy shield, harmful states, the boss's life, the flasks' uses left, then your level, how far to the next, the area's, your gold, and how much of the ground you can reach you have seen ("Life 80 percent, mana 40 percent. Poisoned. The Bloated Miller 55 percent. Lesser Life Flask, 6 uses, Lesser Mana Flask, 2 uses. Level 4, 35 percent to level 5, area level 2. 113 gold. Explored 40 percent") |
+| Double tap | Previous line | Life, mana, energy shield, harmful states, the boss's life, the flasks' uses left, then your level, how far to the next, the area's, your gold, the league encounter the HUD shows (tribute, rituals left), and how much of the ground you can reach you have seen ("Life 80 percent, mana 40 percent. Poisoned. The Bloated Miller 55 percent. Lesser Life Flask, 6 uses, Lesser Mana Flask, 2 uses. Level 4, 35 percent to level 5, area level 2. 113 gold. Ritual encounter. 100 Tribute. 0 rituals remaining. Explored 40 percent") |
 | Hold (half a second) | Whole tooltip (item mods, gem stats, definitions) | Read the screen (quest tracker, HUD texts), then the skill bar: each set's buttons with what they fire, the empty ones last |
 | Hold + right stick flick | — (the game navigates with the right stick in menus) | Scanner (below) |
 | Hold + right stick press (R3) | — | Guide beacon on the scanner's choice (below); again on the same choice turns it off |
@@ -193,6 +193,9 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   a crossbow, a gem each their own; the rare layer over a rare or unique; the generic item, currency, gold and
   quest sounds only for bases without one). They need the sounds extracted once from your game (see
   `tools/README.md`: `item-sounds`, then `sounds`), then a rebuild.
+- **Shield raised / lowered:** a short metal clank gliding up as you raise your shield (Raise Shield, held) and a
+  quieter one gliding down as it comes down, by the player's animation (ActiveBlockChannel / ActiveBlockEnd).
+  Setting "Escudo levantado y bajado" (on by default).
 - **Boss weak point:** a heartbeat (two low thumps) from the side of a boss's head when its tail is not the part to
   strike (the Devourer); faster as you near the head, slow and soft once you are within melee reach of it, silent
   while it is buried. The first time in an area: "El devorador: golpea la cabeza, sigue el latido". Setting "Latido

@@ -63,6 +63,9 @@ namespace Poe2Accessibility
         /// <summary>A heartbeat that leads to the part of a boss worth striking: the Devourer's head, not its tail.</summary>
         public bool BossWeakPoint = true;
 
+        /// <summary>Raise Shield: a rising clank as you raise your shield, a falling one as it comes down.</summary>
+        public bool ShieldSounds = true;
+
         /// <summary>Name the monster, NPC or object the right stick aims at.</summary>
         public bool AnnounceTarget = true;
 

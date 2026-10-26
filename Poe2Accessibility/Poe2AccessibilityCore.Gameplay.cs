@@ -98,6 +98,7 @@ namespace Poe2Accessibility
                 }
             });
             this.Isolated("weak point", () => this.weakPoint?.Tick(playing && this.Settings.BossWeakPoint));
+            this.Isolated("shield", () => this.shield?.Tick(playing && this.Settings.ShieldSounds));
             this.Isolated("object sounds", () => this.objectSounds?.Tick(playing && this.Settings.ObjectSounds));
             this.Isolated("discoveries", () => this.discoveries?.Tick(playing && this.Settings.AnnounceDiscoveries));
             this.Isolated("enemy news", () => this.enemyNews?.Tick(playing && this.Settings.AnnounceEnemies));
@@ -199,7 +200,8 @@ namespace Poe2Accessibility
             var flasks = string.Join(", ", (Seats.AskingSecond && Seats.Partner != null ? this.partnerFlasks : this.flasks)?.Flasks().Select(flask => Announcements.Flask(flask.Name, flask.Uses)) ?? Enumerable.Empty<string>());
             var explored = this.entities?.ExploredPercent() is { } percent ? Announcements.Explored(percent) : string.Empty;
             var gold = this.gold?.Amount is { } coins ? Announcements.Amount(coins.ToString(System.Globalization.CultureInfo.CurrentCulture), Announcements.Gold, false) : string.Empty;
-            return Announcements.Sentences(new[] { vitals, string.Join(", ", states), this.bosses?.Status() ?? string.Empty, flasks, levels, gold, explored }.Where(part => part.Length > 0));
+            var encounter = Announcements.Sentences(this.encounters?.Lines(this.narrator?.HudLayer ?? IntPtr.Zero) ?? Array.Empty<string>());
+            return Announcements.Sentences(new[] { vitals, string.Join(", ", states), this.bosses?.Status() ?? string.Empty, flasks, levels, gold, encounter, explored }.Where(part => part.Length > 0));
         }
 
         /// <summary>The delivery level the player chose for a kind of news (speech priority).</summary>

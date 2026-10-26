@@ -113,6 +113,20 @@ namespace Poe2Accessibility.Services
         private const float BeatLevel = 0.6f;
         private static readonly float[] BeatHarmonics = { 1f, 0.5f, 0.3f };
 
+        /// <summary>
+        ///     Raise Shield: a short clank of a struck plate (inharmonic partials) whose pitch glides a fifth, up as the
+        ///     shield rises (260 → 390 Hz), down and quieter as it falls.
+        /// </summary>
+        private const float ShieldSeconds = 0.13f;
+        private const float ShieldGlideSeconds = 0.07f;
+        private const float ShieldLowHz = 260f;
+        private const float ShieldHighHz = 390f;
+        private const float ShieldUpLevel = 0.45f;
+        private const float ShieldDownLevel = 0.35f;
+        private static readonly float[] ShieldRatios = { 1f, 2.4f, 3.9f };
+        private static readonly float[] ShieldAmplitudes = { 1f, 0.45f, 0.2f };
+        private static readonly float[] ShieldDecaySeconds = { 0.06f, 0.035f, 0.02f };
+
         /// <summary>Crosshair (D2R crosshair.md): two flat 24 ms blips at 1175 Hz, 40 ms apart, odd harmonics.</summary>
         private const float ReachLowHz = 1320f;
         private const float ReachHighHz = 1760f;
@@ -327,6 +341,10 @@ namespace Poe2Accessibility.Services
             return Normalized(samples, BeatLevel);
         }
 
+        public static float[] ShieldUp(int sampleRate) => Shield(sampleRate, ShieldLowHz, ShieldHighHz, ShieldUpLevel);
+
+        public static float[] ShieldDown(int sampleRate) => Shield(sampleRate, ShieldHighHz, ShieldLowHz, ShieldDownLevel);
+
         /// <summary>The mixer's output stage: linear to the knee, then a soft curve that never passes full scale.</summary>
         public static float Limit(float sample)
         {
@@ -398,6 +416,27 @@ namespace Poe2Accessibility.Services
 
                 samples[start + i] += level * tone * MathF.Exp(-t / BeatDecaySeconds) * MathF.Min(1f, t / AttackSeconds) * MathF.Min(1f, (BeatSeconds - t) / TapReleaseSeconds);
             }
+        }
+
+        private static float[] Shield(int sampleRate, float fromHz, float toHz, float level)
+        {
+            var samples = new float[(int)(ShieldSeconds * sampleRate)];
+            var phases = new double[ShieldRatios.Length];
+            for (var i = 0; i < samples.Length; i++)
+            {
+                var t = (float)i / sampleRate;
+                var hz = fromHz + ((toHz - fromHz) * MathF.Min(1f, t / ShieldGlideSeconds));
+                var value = 0f;
+                for (var p = 0; p < ShieldRatios.Length; p++)
+                {
+                    phases[p] += hz * ShieldRatios[p] / sampleRate;
+                    value += ShieldAmplitudes[p] * MathF.Exp(-t / ShieldDecaySeconds[p]) * MathF.Sin((float)(2 * Math.PI * phases[p]));
+                }
+
+                samples[i] = value * MathF.Min(1f, t / AttackSeconds) * MathF.Min(1f, (ShieldSeconds - t) / TapReleaseSeconds);
+            }
+
+            return Normalized(samples, level);
         }
 
         /// <summary>Fast attack, then a smooth fall to silence at the end (no click).</summary>

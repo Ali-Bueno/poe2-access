@@ -468,6 +468,22 @@ namespace Poe2Accessibility
         }
 
         /// <summary>
+        ///     The HUD's right-hand column ("tertiary_hud_layout", a direct child of the HUD layer): the league encounter
+        ///     tracker ("Encuentro de ritual", "100 Tributo", "0 rituales restantes") above the quest tracker pages
+        ///     (UI dump 2026-10-26, Clearfell after a ritual).
+        /// </summary>
+        public static class EncounterTracker
+        {
+            public const string ColumnName = "tertiary_hud_layout";
+
+            /// <summary>The quest tracker and its page legend share the column: not the encounter.</summary>
+            public static readonly string[] SkippedNames = { "quests_display_pages_root", "page_cycling_legend" };
+
+            /// <summary>The column sits this deep under the HUD layer (1) — a little slack for a game patch.</summary>
+            public const int SearchDepth = 3;
+        }
+
+        /// <summary>
         ///     Character creation's class selector ("ClassVariationSelector"): no focus; the left stick moves a highlight
         ///     along the first row of its icon grid and wraps (live 2026-10-23: Exploradora 0, Guerrero 1, Druida 2,
         ///     Bruja 3, Mercenario 4, Monje 5; the class id beside it: 2, 6, 11, 1, 9, 10).

@@ -71,6 +71,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(WeakPointLeadsToTheHead), WeakPointLeadsToTheHead);
             Run(nameof(WeakPointBeatsFasterThenSteady), WeakPointBeatsFasterThenSteady);
             Run(nameof(FlaskDrinksAreSaidBySlot), FlaskDrinksAreSaidBySlot);
+            Run(nameof(ShieldRaisedAndLowered), ShieldRaisedAndLowered);
             Run(nameof(WrappedLabelsJoin), WrappedLabelsJoin);
             Run(nameof(InlineItemArtIsNamed), InlineItemArtIsNamed);
             Run(nameof(KnownPlacesOutliveTheSession), KnownPlacesOutliveTheSession);
@@ -991,6 +992,21 @@ namespace Poe2Accessibility.Tests
             Equal(FlaskNews.Refilled, drinks.Update(0, Life, 1), "a use gained from kills");
             Equal(FlaskNews.New, drinks.Update(1, "Frasco de vida mayor", 2), "another flask put in the slot");
             Equal(FlaskNews.New, drinks.Update(2, "Frasco de maná mayor", 3), "a flask in a slot empty until now");
+        }
+
+        private static void ShieldRaisedAndLowered()
+        {
+            var shield = new ShieldStance();
+            Equal(ShieldChange.None, shield.Update("Idle", 0), "shield down");
+            Equal(ShieldChange.Raised, shield.Update("ActiveBlockChannel", 100), "LB held: raised at once");
+            Equal(ShieldChange.None, shield.Update("ActiveBlockChannelMoving", 200), "still up while walking");
+            Equal(ShieldChange.None, shield.Update("Block", 250), "a blocked hit flickers in");
+            Equal(ShieldChange.None, shield.Update("ActiveBlockChannel", 300), "and the shield is still up");
+            Equal(ShieldChange.Lowered, shield.Update("ActiveBlockEnd", 400), "released: lowered at its end");
+            Equal(ShieldChange.None, shield.Update("Idle", 500), "down stays quiet");
+            shield.Update("ActiveBlockChannel", 600);
+            Equal(ShieldChange.None, shield.Update("StunnedHeavy", 700), "knocked out of it: not yet");
+            Equal(ShieldChange.Lowered, shield.Update("StunnedHeavy", 700 + ShieldStance.LostMs), "a lasting change lowers it");
         }
 
         private static void FarBarrierStaysClosedUntilSeenNear()

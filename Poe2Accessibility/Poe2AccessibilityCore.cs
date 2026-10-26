@@ -64,6 +64,8 @@ namespace Poe2Accessibility
         private TargetNarrator? targets;
         private BossWatch? bosses;
         private WeakPointGuide? weakPoint;
+        private ShieldWatch? shield;
+        private EncounterReader? encounters;
         private ObjectSounds? objectSounds;
         private PlayerAlerts? alerts;
         private PlayerAlerts? partnerAlerts;
@@ -260,6 +262,8 @@ namespace Poe2Accessibility
                 this.log.Info($"Dodge timings: {timings.FileTimes} attacks timed by the game files");
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = timings, TimingsPath = this.DodgeTimingsPath };
                 this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log);
+                this.shield = new ShieldWatch(this.audio, this.log);
+                this.encounters = new EncounterReader(elements);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
                 var drops = ItemDropSounds.Load(
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
@@ -717,6 +721,7 @@ namespace Poe2Accessibility
             this.beacon?.Clear(false);
             this.bosses?.Reset();
             this.weakPoint?.Reset();
+            this.shield?.Reset();
             this.alerts?.Statuses.Reset();
             this.partnerAlerts?.Statuses.Reset();
             this.pickups?.Reset();
