@@ -33,6 +33,8 @@ Encampment, a town instance shared with ~10 online players. Code: `LocalPlayers`
 - J2's buttons are not in the pad state the mod reads (UI manager +0x768): J2's L3 did nothing, J1's L3 answered.
 - J2's menu cursor is not the mod's focus (no `Focus ->` while J2 moved in its game menu), but what J2 opens is on the
   shared screen and is read as a screen change ("Menú del juego. Grupo actual. Yarkey. Yarkbruja…").
+- OPEN: where J2's focus and pad state live. J2 opens its own panels, so a blind J2 needs them read to equip; the UI
+  manager's +0x748 (focus) and +0x768 (pad) are J1's.
 - The objective box shows the party's quest state, not J1's alone; it is read as drawn.
 - The HUD splits in two `per_player_hud` (HUD child 5, children 0 left = J1, 1 right = J2, `HUD/COOP/HUD_L_Back` and
   `HUD_R_Back`). The layer container's skill-bar field (+0x610) still holds J1's `skill_bar`; J2's is at +0x7B0. A co-op

@@ -315,7 +315,9 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-Next: user test of the 2026-10-25 UI sweep fixes (`docs/research/ui-sweep-2026-10-25.md`) and of the player 2 radar
+Next (game with two pads, `pad.py serve --xbox` and `--second`): player 2's menus, so J2 can equip. Find J2's
+focused element and pad state in co-op (UI manager +0x748 and +0x768 are J1's; `docs/research/local-coop.md`), read J2's
+focus like J1's and let J2's pad reach the mod's commands. Then: user test of the 2026-10-25 UI sweep fixes (`docs/research/ui-sweep-2026-10-25.md`) and of the player 2 radar
 in real couch co-op (two pads; J2 joins at character selection, "Radar del jugador local 2" in the mod's settings). Characters: "kehgan" (Monk, level 2, Clearfell Encampment; a town NPC shows a quest marker), "yarkbruja" (Witch, level 3,
 Clearfell Encampment, no NPC marker), "yarkey" (Mercenary, level 4, Clearfell Encampment). Start in town from character selection:
 `desktop.py combo l2 cross --seconds 1.8` (away from town the confirmation's Cancel is focused: D-pad right, then A). Next: user test of the 2026-10-25 batch (places and the Lugares category, the other
