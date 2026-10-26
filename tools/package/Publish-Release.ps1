@@ -44,12 +44,20 @@ if (Test-Path $output) { Remove-Item $output -Recurse -Force }
 & (Join-Path $PSScriptRoot 'New-TestPackage.ps1') -Output $output
 $built = Get-ChildItem $output -File | Where-Object { $_.Name -like 'Poe2Access-test-*' }
 foreach ($file in $built) { Move-Item $file.FullName (Join-Path $output ('Poe2Access' + $file.Extension)) -Force }
-$files = $assets | ForEach-Object { Join-Path $output $_ } | Where-Object { Test-Path $_ }
+# Relative to the repository: gh reads "path#label", and the repository's path holds a '#' (c#).
+$files = $assets | Where-Object { Test-Path (Join-Path $output $_) } | ForEach-Object { "dist/release/$_" }
 if (-not $files) { throw "No package in $output" }
 
 $notesFile = Join-Path $output 'notes.md'
 Set-Content -Path $notesFile -Value $Notes -Encoding utf8
-$created = & gh release create $tag @files --repo Ali-Bueno/poe2-access --target (Invoke-Git @('rev-parse', 'HEAD')) --title "Test version $tag" --notes-file $notesFile --latest 2>&1
+Push-Location $repo
+try {
+    $created = & gh release create $tag @files --repo Ali-Bueno/poe2-access --target (Invoke-Git @('rev-parse', 'HEAD')) --title "Test version $tag" --notes-file $notesFile --latest 2>&1
+}
+finally {
+    Pop-Location
+}
+
 if ($LASTEXITCODE -ne 0) { throw "gh release create failed: $created" }
 Remove-Item $output -Recurse -Force
 Write-Host "Released $tag. Always the newest: https://github.com/Ali-Bueno/poe2-access/releases/latest/download/Poe2Access.zip"
