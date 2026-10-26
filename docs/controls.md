@@ -214,8 +214,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 
 - "Life 50 percent" / "Life 25 percent" when life falls below half and a quarter, once per fall; they
   cannot be cut off by the next phrase for a moment (`AnnounceLowLife`).
-- "Lesser Life Flask empty" when a flask has no use left during play, once until it refills (`AnnounceFlasks`,
-  delivered like the life warnings).
+- "Lesser Life Flask, 3 uses" each time you drink a flask, and "Lesser Life Flask empty" when one has no use left
+  during play, once until it refills (`AnnounceFlasks`, "Flask uses", delivered like the life warnings).
 - "Mana 50 / 25 / 10 percent" when mana falls past those lines (`AnnounceLowMana`).
 - A boss's life as it falls past 75, 50, 40, 30, 20, 10 and 5 percent, and "… defeated" (`AnnounceBossLife`).
 - Harmful states as they begin ("Poisoned", "Frozen", "Stunned"…) and end ("No longer poisoned")

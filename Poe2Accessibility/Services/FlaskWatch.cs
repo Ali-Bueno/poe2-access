@@ -10,8 +10,8 @@ namespace Poe2Accessibility.Services
     using GameHelper.RemoteObjects.States.InGameStateObjects;
 
     /// <summary>
-    ///     The flasks on the belt (D2R belt readout): the uses each has left from its charges, for the vitals readout, and
-    ///     a warning when one runs dry during play, once until it can be used again.
+    ///     The flasks on the belt (D2R belt readout): the uses each has left from its charges, for the vitals readout and
+    ///     after each drink, and a warning when one runs dry during play, once until it can be used again.
     /// </summary>
     public sealed class FlaskWatch
     {
@@ -20,6 +20,7 @@ namespace Poe2Accessibility.Services
         private readonly InventoryReader inventory;
         private readonly IAccessibilityOutputService output;
         private readonly HashSet<IntPtr> dry = new();
+        private readonly Dictionary<IntPtr, int> usesLeft = new();
         private long lastPoll;
         private bool baseline = true;
 
@@ -60,7 +61,7 @@ namespace Poe2Accessibility.Services
             return flasks;
         }
 
-        /// <summary>Per frame: a flask that has just run dry is said (silent on the first read of an area).</summary>
+        /// <summary>Per frame: a flask drunk says the uses it has left, one run dry says so (silent on the first read of an area).</summary>
         public void Tick(bool playing, bool enabled)
         {
             var now = Environment.TickCount64;
@@ -73,13 +74,18 @@ namespace Poe2Accessibility.Services
             var flasks = this.Flasks();
             foreach (var (address, name, uses) in flasks)
             {
+                // Charges fall only when the flask is drunk (kills and time refill it): fewer uses is a drink.
+                var drunk = this.usesLeft.TryGetValue(address, out var before) && uses < before;
+                this.usesLeft[address] = uses;
                 if (uses > 0)
                 {
                     this.dry.Remove(address);
                 }
-                else if (this.dry.Add(address) && !this.baseline && enabled)
+
+                var ranDry = uses <= 0 && this.dry.Add(address);
+                if ((drunk || ranDry) && !this.baseline && enabled)
                 {
-                    this.output.Say(SpeechKind.LifeAndMana, Announcements.FlaskEmpty(name));
+                    this.output.Say(SpeechKind.LifeAndMana, Announcements.Flask(name, uses));
                 }
             }
 
@@ -91,6 +97,7 @@ namespace Poe2Accessibility.Services
         public void Reset()
         {
             this.dry.Clear();
+            this.usesLeft.Clear();
             this.baseline = true;
         }
 

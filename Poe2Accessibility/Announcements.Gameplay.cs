@@ -99,7 +99,7 @@ namespace Poe2Accessibility
         /// <summary>Mana fell below a threshold: "Mana 25 percent".</summary>
         public static string LowMana(int percent) => T($"Mana {percent} percent", $"Maná {percent} por ciento");
 
-        /// <summary>A flask with the uses it has left, for the vitals readout: "Frasco de vida menor, 2 usos".</summary>
+        /// <summary>A flask with the uses it has left, for the vitals readout and after a drink: "Frasco de vida menor, 2 usos".</summary>
         public static string Flask(string name, int uses) => uses switch
         {
             <= 0 => FlaskEmpty(name),
@@ -182,7 +182,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceMonsterMods) => T("Monster modifiers", "Modificadores de monstruos"),
             nameof(AccessibilitySettings.AnnounceLowLife) => T("Low life warnings", "Avisos de vida baja"),
             nameof(AccessibilitySettings.AnnounceLowMana) => T("Low mana warnings", "Avisos de maná bajo"),
-            nameof(AccessibilitySettings.AnnounceFlasks) => T("Empty flasks", "Frascos vacíos"),
+            nameof(AccessibilitySettings.AnnounceFlasks) => T("Flask uses", "Usos de los frascos"),
             nameof(AccessibilitySettings.AnnounceBossLife) => T("Boss life", "Vida de jefes"),
             nameof(AccessibilitySettings.StatusAlerts) => T("Harmful states", "Estados alterados"),
             nameof(AccessibilitySettings.AnnounceNearby) => T("Name nearby things", "Nombrar cosas cercanas"),
