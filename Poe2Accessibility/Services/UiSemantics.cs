@@ -215,6 +215,13 @@ namespace Poe2Accessibility.Services
                 namedById = label.Length > 0;
             }
 
+            if (this.InGame && value.Length == 0 && this.elements.ReadTextureKey(info) is { } art && QuestRewards.FromTextureKey(art) is { } reward)
+            {
+                // A quest's reward icon inspected with R3: "Recompensa:" labels it, its art says what it is (the crafting
+                // bench's RewardCraftingBench.dds, 2026-10-26).
+                value = reward;
+            }
+
             var tooltip = this.TooltipLines(info);
             var context = this.InGame ? this.PanelTitle(info) : string.Empty;
             if ((namedById || hovered || label.Length == 0 || label == context) && tooltip.Count > 0)

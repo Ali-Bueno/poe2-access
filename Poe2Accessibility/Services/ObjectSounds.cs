@@ -23,8 +23,11 @@ namespace Poe2Accessibility.Services
         private const float RangeWorld = 1300f;
         private const float OnItWorld = 150f;
 
-        /// <summary>Repeat interval near / far, and the gain at the edge of the range.</summary>
-        private const int NearIntervalMs = 1300;
+        /// <summary>
+        ///     Repeat interval near / far, and the gain at the edge of the range. Near, often enough that its side stays
+        ///     true while walking (1.3 s was heard as misplaced, user 2026-10-26).
+        /// </summary>
+        private const int NearIntervalMs = 600;
         private const int FarIntervalMs = 3200;
         private const float FarGain = 0.3f;
 

@@ -297,19 +297,24 @@ namespace Poe2Accessibility.Services
                 }
 
                 var news = change.Texts.Except(alerts).Where(text => text.Address != ignored && !IsNumber(text.Text) && this.hudSpoken.Add(text.Text)).ToList();
-                if (news.Count > 0 && this.GroundItemName?.Invoke(change.Texts.Select(text => text.Text)) is { } item)
+                var itemTarget = news.Count > 0 && this.ItemTargetNamed?.Invoke() == true;
+                var item = news.Count > 0 ? this.GroundItemName?.Invoke(change.Texts.Select(text => text.Text)) : null;
+                if (item != null || (itemTarget && change.Texts.Any(text => PropertyLine.IsMatch(text.Text))))
                 {
                     var quality = change.Texts.FirstOrDefault(text => QualityLine.IsMatch(text.Text));
-                    if (item.Length > 0 && DateTime.UtcNow >= this.hudQuietUntil)
+                    if (item is not "" && DateTime.UtcNow >= this.hudQuietUntil)
                     {
-                        this.Speak("ground item", quality == null ? item : $"{item}, {quality.Text}", false);
-                        this.groundItemAt = DateTime.UtcNow; // the stats that follow ("Attacks per Second: 1.40") are its tooltip
+                        // The game shows this tooltip for what A uses, already named with the button: only its quality is new.
+                        var said = itemTarget ? quality?.Text ?? string.Empty : quality == null ? item! : $"{item}, {quality.Text}";
+                        this.Speak("ground item", said, false);
                     }
+
+                    this.groundItemAt = DateTime.UtcNow; // the stats that follow ("Attacks per Second: 1.40") are its tooltip
                 }
-                else if (news.Count > 0 && DateTime.UtcNow >= this.hudQuietUntil &&
+                else if (news.Where(text => !PropertyLine.IsMatch(text.Text)).ToList() is { Count: > 0 } lines && DateTime.UtcNow >= this.hudQuietUntil &&
                          (DateTime.UtcNow - this.groundItemAt).TotalMilliseconds >= FocusTextMergeMs)
                 {
-                    this.Speak("hud", Describe(news), false);
+                    this.Speak("hud", Describe(lines), false);
                 }
             }
         }

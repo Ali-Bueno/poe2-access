@@ -85,6 +85,7 @@
 | Skill bind screen (X on a gem) and skill picker (a slot's grid of skills/actions) | done (live) | "Selecciona el botón al que asignar Descarga de caos. Set de habilidades principal. LB, vacío"; entering the other row names it; picker cells (A on an empty button, X on a bound one) "vaciar el botón, columna 1, fila 1", "Usar frasco de vida, columna 2, fila 2…"; picking a skill up reads "vacío. Colocar, A. Cancelar, B" |
 | Cosmetics | done (live) | ordinary buttons once the d-pad moves the focus |
 | Quest list | done (live) | world map X: "Llegar a Sierraclara, botón, <description>", then "Más información, A. Cerrar, B…"; the map's own legends after its place (2026-10-24) |
+| Quest list rewards (R3 "Inspeccionar recompensas") | done (live) | the focused reward icon has no text; `UiSemantics.Describe` names it by its art (`QuestRewards`: "Misiones. Recompensa: mesa de fabricación, 2 de 6" from RewardCraftingBench.dds, 2026-10-26); the NPC's reward window ("Selecciona una recompensa…") was already read |
 | Objective / tutorial box (G+0xDD8): new texts read, queued | done (live) | "Equip Item. Press View to Open your Inventory", "Press X to equip weapon." |
 | HUD (G+0x558): new texts once per area, never the whole HUD | done (code) | quest tracker, shrines; a ground item's tooltip says only name, rarity and quality (`EntityCatalog.ItemOfTooltip`), gold nothing (user 2026-10-24) |
 | NPC dialogue: speaker + line, every advanced line, Continue, quest accept | done (live) | Renly, Una (Clearfell, 2026-10-23); a line changing in place is spoken (the screen filter drops texts the focus holds); choices not seen yet |
@@ -112,6 +113,9 @@
 | Scanner Quest category (objective's proper nouns) | done (live) | "Misión. El molinero hinchado, único, 5 pasos"; `QuestMatcher` |
 | Boss life + dodge warning | done (live) | "El molinero hinchado 72 por ciento"; whoosh + snap only on attack animations (`DodgeThreats`), a rare's blow within 150 units, louder when closer; timed half a second before the blow as learnt from the hits taken (`DodgeTimings`, `config/dodge-timings.txt`; MudGolem GroundSlam 1156 ms), at the wind-up until learnt (`docs/research/dodge-timing.md`) |
 | League encounter in the vitals readout (L3 double tap): "Encuentro de ritual. 100 Tributo. 0 rituales restantes" | done (code) | `EncounterReader`: visible texts under the HUD's `tertiary_hud_layout` except the quest pages (UI dump 2026-10-26); changes during play were already said as HUD news |
+| Culling Strike cue (off by default) | done (code) | `CullWatch` + pure `CullThreshold` (KeywordPopups "CullingStrike": 35/20/10/5% by rarity); falling two-note chime on the enemy's side, rares and uniques named |
+| Primed for Stun cue (Boneshatter: heavy stun and shockwave) | done (code) | `EnemyStateWatch` (own switch `PrimedStunCues`) + pure `PrimedThreshold` (KeywordPopups "PrimedStun": 40/50/60/70% by rarity) on `GameLayout.ActorComponent` (threshold Actor+0x4E4, buildup +0x4E8; stun traces 2026-10-26: a hag at 54 of 60 stunned by the next hit); not heard live yet. Freeze / Electrocution / Pin buildups: not found (the second and third 0x1C entries after the stun one stayed 0 against a Warrior; `stuntrace` logs Actor 0x4C0-0x5C0) |
+| Enemy state sounds: heavy stunned, frozen, electrocuted, pinned, armour broken, dazed, parried | done (code) | `EnemyStateWatch` + pure `EnemyStates`/`EnemyStateNews`: buffs `frozen`, `electrocute_display_buff`, `pinned`, `broken_armour_debuff`, `dazed`, `parried` and the animations HeavyStun[Back|Forward] / Electrocute*; a sound per state (`CueSynth.StateCue`) on the enemy's side as it begins, rares and uniques named with the game's own term; on by default (only states the party causes happen); heavy stun seen in traces, the others not yet heard live |
 | Raise Shield feedback: clank up as the shield rises, down as it falls | done (live) | `ShieldWatch` + pure `ShieldStance` on the player's animation name (game Animation rows 0x1DF-0x1E2: ActiveBlockChannel[Moving] held, ActiveBlockEnd[Moving] lowering); a blocked hit's flicker is ignored for 300 ms; heard live 2026-10-26 (log: raised ActiveBlockChannel, lowered at ActiveBlockEnd or by attacking) |
 | Boss weak point heartbeat (the Devourer: strike the head, not the tail) | done (live) | `WeakPointGuide` + pure `WeakPoints`: a unique monster sharing a "Tail" entity's name (MonsterVarieties MudBurrowerTailBoss / DevourerBossDuoTail have no boss bar, read 2026-10-26); silent while the head is out of play (it turns untargetable as it burrows: the log toggled in and out of play through the fight, won 2026-10-26) |
 | Cue timbres and mixer | done (code) | beacon an iron chime, dodge a blade swing with a ringing snap and thud, both in a short stone-room tail; growl with a sub-octave; levels raised toward the game's own sounds; soft limiter instead of clipping (`CueSynth.Limit`) |
@@ -139,7 +143,7 @@
 | Player menu (A on another player) | done (live, header unheard) | popup outside the root, focus stays on it; chosen button int `+0x348` (`GameLayout.ButtonMenu`); `UiSemantics.DescribeButtonMenu`; dev command `dump 0x<address>` dumps such popups |
 | Weapon swap "Set de armas 2, vacío" (D2R) | done (live) | GameHelper `Stats.CurrentWeaponIndex` (+0x168) still right in 0.5.5e; `InventoryWatch.TickWeaponSet` |
 | Inline item art named ("Identificar Pergamino de sabiduría x 1") | done (unit) | `catalog/item-names.json` (`Poe2UiExtract item-names`, BaseItemTypes Id +0x0 / Name +0x20); `ControllerGlyphs.Plain` |
-| What A uses ("Finn, A", "Alijo, A") | done (live) | Targetable `+0x6B` = the game's interaction target; `ProximityNarrator.TrackTarget` (2026-10-24) |
+| What A uses ("Finn, A", "Alijo, A") | done (live) | Targetable `+0x6B` = the game's interaction target; `ProximityNarrator.TrackTarget` (2026-10-24); cuts in since 2026-10-26 (queued it came late and A took the next item), the item's HUD tooltip no longer repeats it, lone tooltip property lines are not HUD news; items walked back to are named again (no minute cooldown) and a near item's sound repeats every 600 ms, not 1.3 s; a magic/rare item's HUD tooltip is no longer read whole (its full name is not the scanner's base name); no screen news while another window is in front (code) |
 | Discoveries, pick-ups, unmet requirements | done (code) | `DiscoveryNarrator` ("Jefe a la vista" heard live), `InventoryWatch` (ServerData MainInventory1 via reflection), red tooltip lines with digits |
 | Checkpoint travel map markers | done (live); place names (code) | `UiSemantics.MapMarkers` + `CheckpointPlaces`/`MapPlaces`: markers matched to seen checkpoints by one scale, "Viajar al punto de control, cerca de …, abajo, a 35 pasos, 2 de 2" (the game names none) |
 | Skill bar readout (after the screen on the gameplay hold) | done (live) | `UiSemantics.SkillBar`: "Set de habilidades principal: LT, Activar set… X, Saeta básica… Vacío: LB, cruceta arriba, Y"; bind screen names skills from their dat rows (`docs/research/skill-bar.md`) |
@@ -168,6 +172,8 @@
 | NPC dialogue and vendor (town) | done (live) | speaker first ("Renly. Comprar o vender objetos, 7 de 8"); vendor stock "Coraza oxidada, columna 10, fila 10, 50 oro, no alcanza… Comprar objeto, X"; reward and vendor openings without the gold chrome |
 
 ## Derived facts (with source)
+- Heavy stun buildup is "poise" in the game's data (Stats.dat: `poise_threshold`, `base_poise_threshold`, `poise_decay_delay_ms`, `is_heavy_stunned`, `cannot_accumulate_heavy_stun_poise`). GameHelper's `GameStats` enum is about 3 rows behind the 2026-10-26 Stats.dat (`poise_threshold` 17371+1 there, row 17374 now): compare raw keys, not enum names. Stat keys are row + 1.
+- Enemy state buff ids and display names: BuffDefinitions and KeywordPopups (`Poe2UiExtract dat-strings <game> KeywordPopups <Language> 1100`; the language name as the game spells it, e.g. "Spanish", "Traditional Chinese"; run from PowerShell with `[Console]::OutputEncoding = UTF8` or the text is mangled).
 - Plugin contract, hotkeys (`Utils.IsKeyPressedAndNotTimeout`), events (`RemoteEvents.AreaChanged` public,
   `StateChanged` internal → poll), logging convention: `docs/research/gamehelper2-plugin-api.md`.
 - `UiElementBaseOffset` (GameOffsets): Self 0x08, Children 0x10, Parent 0xB8, RelPos 0x100, StringId 0x128
@@ -314,13 +320,17 @@
   `DodgeThreats`), `TargetNarrator` (aim names + crosshair), `StatusWatch` (+ pure `StatusAilments`), `EnemyNarrator`, `DeathWatch`,
   `ObjectSounds` + `GameSounds` + `ItemDropSounds` (game WAVs), `CheckpointPlaces` (+ pure `MapPlaces`),
   `ScreenProjection` (world offset → screen, on-screen test), `FlaskWatch`, `ExperienceTable`, `LootFilter`.
+  Combat state cues: `CullWatch` (+ pure `CullThreshold`), `EnemyStateWatch` (+ pure `EnemyStates`, `EnemyStateNews`),
+  `ShieldWatch` (+ pure `ShieldStance`), `WeakPointGuide` (+ pure `WeakPoints`); research: `StunTrace` (dev `stuntrace`).
   Speech priority: `IAccessibilityOutputService.Urge` (later interrupts queue for 1.5 s), `.Keep` (tutorial lessons; `SpeechFloor` holds what comes meanwhile).
 - Tests: `tests/Poe2Accessibility.Tests` (differ, text edits, chat diff, gestures, scanner, route legs, life
   alarm, beacon, quest matching, cooldown, ailments, dodge threats, map markers). Dev tools: `tools/computer_use/`; dev commands
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-Next: user test (DLL and package of 2026-10-26 12:30 in `dist`) of the 2026-10-26 lesson priority (inventory with a pending passive point) and skill details in
+Next: user test in combat of the 2026-10-26 enemy state sounds and the Primed for Stun wind-up (Warrior with
+Destrozahuesos; is it too frequent, are the seven sounds told apart?); then find the Freeze / Electrocution / Pin buildups
+with `stuntrace` against a cold or lightning build. Then: user test (DLL and package of 2026-10-26 12:30 in `dist`) of the 2026-10-26 lesson priority (inventory with a pending passive point) and skill details in
 the engrave list. Then: user test of local co-op with two real controllers (both toggles, a revive by holding A; the revive and
 respawn lines are unit-tested, not heard live). Then: user test of the 2026-10-25 UI sweep fixes (`docs/research/ui-sweep-2026-10-25.md`) and of the player 2 radar
 in real couch co-op (two pads; J2 joins at character selection, "Cooperativo local: lectura para el jugador 2" in the mod's settings). Characters: "kehgan" (Monk, level 2, Clearfell Encampment; a town NPC shows a quest marker), "yarkbruja" (Witch, level 3,
@@ -339,6 +349,7 @@ must stay silent).
   at that screen A does nothing, the mouse does not open it, and Enter submits the form (it answered "Ya existe un
   personaje con este nombre": never press Enter there with a free name). Closed, it reads "Liga, Forbidden Rites,
   lista desplegable, 2 de 3" and then the league's description.
+- GameHelper marks a monster Useless once the game flags it dead (stat `is_dead`) and stops reading it, so its life can freeze mid-hit ("Ezomita antiguo" 16/50 in TakeHitBackward, heard and listed as an enemy that could not be hit, 2026-10-26): `EntityCatalog.IsFrozenDead` makes it dead for enemies and boss defeats.
 - League devices with life are typed Monster by GameHelper (Ritual rune, `Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable`, alive and hostile by the Devourer, 2026-10-26): enemies are only paths under `Metadata/Monsters/` (`EntityCatalog.CreatureFolder`; all 89 living hostiles in 47 dev dumps are). The rune is nameless, so the scanner does not list it.
 - Landmark labels that are not area names are players' notes from GameHelper Radar: in Spanish their common words and
   reward notes are translated ("Escaleras hacia arriba", "Crop Circle (gema de habilidad de nivel 4)"); the names in

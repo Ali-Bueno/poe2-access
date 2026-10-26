@@ -155,6 +155,33 @@ namespace Poe2Accessibility
 
         public static string BossDefeated(string name) => T($"{name} defeated", $"{name} derrotado");
 
+        /// <summary>A rare or unique enemy now within culling range: "Beira, de la manada putrefacta: golpe de gracia".</summary>
+        public static string Cullable(string name) => T($"{name}: culling strike", $"{name}: golpe de gracia");
+
+        /// <summary>An enemy state's name, as the game's KeywordPopups call it (read 2026-10-26).</summary>
+        public static string EnemyStateName(Services.EnemyState state) => state switch
+        {
+            Services.EnemyState.PrimedForStun => T("Primed for Stun", "Listo para el aturdimiento"),
+            Services.EnemyState.HeavyStunned => T("Heavy Stun", "Aturdimiento total"),
+            Services.EnemyState.Frozen => T("Frozen", "Congelado"),
+            Services.EnemyState.Electrocuted => T("Electrocution", "Parálisis"),
+            Services.EnemyState.Pinned => T("Pinned", "Retenido"),
+            Services.EnemyState.ArmourBroken => T("Armour Break", "Rotura de armadura"),
+            Services.EnemyState.Dazed => T("Daze", "Desorientación"),
+            _ => T("Parried", "Parado"),
+        };
+
+        /// <summary>A rare or unique enemy has just entered states: "Beira, de la manada putrefacta: aturdimiento total".</summary>
+        public static string EnemyEntered(string name, IEnumerable<Services.EnemyState> states)
+        {
+            var named = string.Join(", ", states.Select(EnemyStateName));
+            return T($"{name}: {named}", $"{name}: {named}");
+        }
+
+        /// <summary>The enemy state a sound glossary key ("state_Frozen") stands for.</summary>
+        public static Services.EnemyState? StateOfSound(string key) =>
+            key.StartsWith("state_", StringComparison.Ordinal) && Enum.TryParse<Services.EnemyState>(key["state_".Length..], out var state) ? state : null;
+
         /// <summary>Once per area, as the weak-point heartbeat first leads to a boss's head.</summary>
         public static string WeakPointGuide(string name) =>
             T($"{name}: strike the head, follow the heartbeat", $"{name}: golpea la cabeza, sigue el latido");
@@ -231,6 +258,9 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.DodgeWarnings) => T("Dodge warnings", "Avisos para esquivar"),
             nameof(AccessibilitySettings.BossWeakPoint) => T("Boss weak point heartbeat", "Latido del punto débil del jefe"),
             nameof(AccessibilitySettings.ShieldSounds) => T("Shield raised and lowered", "Escudo levantado y bajado"),
+            nameof(AccessibilitySettings.CullCues) => T("Culling Strike cue", "Aviso de golpe de gracia"),
+            nameof(AccessibilitySettings.EnemyStateCues) => T("Enemy state sounds", "Sonidos de estados del enemigo"),
+            nameof(AccessibilitySettings.PrimedStunCues) => T("Primed for Stun sound", "Sonido de listo para el aturdimiento"),
             nameof(AccessibilitySettings.CrosshairBeep) => T("Crosshair beep", "Pitido de mira"),
             nameof(AccessibilitySettings.LowLifeBelow) => T("Urgent life warnings below", "Avisos de vida urgentes por debajo de"),
             nameof(AccessibilitySettings.SoundVolume) => T("Master volume", "Volumen general"),
@@ -313,6 +343,8 @@ namespace Poe2Accessibility
             "crosshair" => T("Crosshair", "Mira"),
             "weak_point" => T("Boss weak point", "Punto débil del jefe"),
             "shield_up" => T("Shield raised", "Escudo levantado"),
+            "cull" => T("Culling Strike", "Golpe de gracia"),
+            _ when StateOfSound(key) is { } state => EnemyStateName(state),
             "shield_down" => T("Shield lowered", "Escudo bajado"),
             "reach" => T("Reach ping", "Aviso de alcance"),
             "wall_tone" => T("Wall tone", "Tono de pared"),
@@ -352,6 +384,15 @@ namespace Poe2Accessibility
             "crosshair" => T("the game's target lands on a living enemy", "el objetivo del juego cae en un enemigo vivo"),
             "shield_up" => T("you raised your shield (Raise Shield, held)", "levantaste el escudo (Levantar escudo, mantenido)"),
             "shield_down" => T("your shield came down", "el escudo bajó"),
+            "cull" => T(
+                "an enemy on that side is low enough for a Culling Strike: 35% life normal, 20% magic, 10% rare, 5% unique",
+                "un enemigo de ese lado ya cae con un golpe de gracia: 35% de vida si es normal, 20% mágico, 10% raro, 5% único"),
+            "state_PrimedForStun" => T(
+                "an enemy on that side has enough stun buildup that a heavy hit stuns it (Boneshatter): 40% normal, 50% magic, 60% rare, 70% unique",
+                "un enemigo de ese lado ya acumula aturdimiento suficiente para que un golpe fuerte lo aturda (Destrozahuesos): 40% si es normal, 50% mágico, 60% raro, 70% único"),
+            _ when StateOfSound(key) is not null => T(
+                "an enemy on that side has just been put in this state; a rare or unique one is named too",
+                "un enemigo de ese lado acaba de quedar en este estado; si es raro o único, también se nombra"),
             "weak_point" => T(
                 "from the side of the boss's head, not its tail; faster as you near it, slow and soft at the head, silent while it is buried",
                 "del lado de la cabeza del jefe, no de la cola; más rápido al acercarte, lento y suave junto a la cabeza, callado mientras está enterrada"),

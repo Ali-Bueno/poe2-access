@@ -66,6 +66,21 @@ namespace Poe2Accessibility
         /// <summary>Raise Shield: a rising clank as you raise your shield, a falling one as it comes down.</summary>
         public bool ShieldSounds = true;
 
+        /// <summary>Culling Strike (Killing Palm): a falling chime from an enemy now low enough to be culled. Off by default: only builds that cull need it.</summary>
+        public bool CullCues = false;
+
+        /// <summary>
+        ///     A sound of its own for each enemy state skills pay off on — heavy stunned, frozen, electrocuted, pinned,
+        ///     armour broken, dazed, parried — from the enemy's side as it begins; a rare or unique enemy is named too.
+        /// </summary>
+        public bool EnemyStateCues = true;
+
+        /// <summary>
+        ///     Primed for Stun: a rising wind-up from an enemy whose heavy stun buildup now lets a big hit stun it (Boneshatter's
+        ///     shockwave). Apart from the other states because every build's hits build stun.
+        /// </summary>
+        public bool PrimedStunCues = true;
+
         /// <summary>Name the monster, NPC or object the right stick aims at.</summary>
         public bool AnnounceTarget = true;
 

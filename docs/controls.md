@@ -193,6 +193,22 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   a crossbow, a gem each their own; the rare layer over a rare or unique; the generic item, currency, gold and
   quest sounds only for bases without one). They need the sounds extracted once from your game (see
   `tools/README.md`: `item-sounds`, then `sounds`), then a rebuild.
+- **Culling Strike** (off by default, setting "Aviso de golpe de gracia"; for culling builds such as the Monk's Killing
+  Palm): two bright notes falling a fifth from the side of an enemy that has just dropped to its culling threshold,
+  as the game defines it (35% life normal, 20% magic, 10% rare, 5% unique); a rare or unique one is also named
+  ("Beira, de la manada putrefacta: golpe de gracia"). A raised threshold (Enhanced Culling) is not taken into account.
+- **Primed for Stun** (setting "Sonido de listo para el aturdimiento", on by default; for Boneshatter and other
+  heavy hits): a wind-up rising an octave and a half from the side of an enemy whose heavy stun buildup has reached
+  the game's threshold (40% normal, 50% magic, 60% rare, 70% unique), once until it drops below again or is stunned;
+  a rare or unique one is also named ("Beira, de la manada putrefacta: listo para el aturdimiento"). Every build's
+  hits build stun, so it has its own switch.
+- **Enemy states** (setting "Sonidos de estados del enemigo", on by default): a short sound of its own, from the
+  enemy's side, as an enemy enters a state that skills pay off on — heavy stunned (a low gong), frozen (three icy
+  sparkles rising), electrocuted (a crackling buzz), pinned (two nail knocks), armour broken (a gritty crack
+  falling), dazed (a wobbling tone sinking), parried (a bright ting). One sound per state at a time, so a nova that
+  freezes a pack chimes once. A rare or unique enemy is also named with the game's term ("Beira, de la manada
+  putrefacta: aturdimiento total"). Only the states your party causes ever happen, so the sounds follow the build.
+  All of them are in the sound glossary.
 - **Shield raised / lowered:** a short metal clank gliding up as you raise your shield (Raise Shield, held) and a
   quieter one gliding down as it comes down, by the player's animation (ActiveBlockChannel / ActiveBlockEnd).
   Setting "Escudo levantado y bajado" (on by default).

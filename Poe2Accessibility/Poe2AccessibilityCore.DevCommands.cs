@@ -26,6 +26,12 @@ namespace Poe2Accessibility
                 return;
             }
 
+            if (command.StartsWith("stuntrace ", StringComparison.Ordinal) && int.TryParse(command["stuntrace ".Length..], out var stunSeconds))
+            {
+                this.stunTrace?.Start(stunSeconds);
+                return;
+            }
+
             if (command.StartsWith("hex ", StringComparison.Ordinal) && this.memoryReader != null)
             {
                 // Research: "hex 0x46656B1D030 0x800" logs that memory, 32 bytes per line, to diff two game states.
@@ -93,6 +99,9 @@ namespace Poe2Accessibility
                     break;
                 case "trace":
                     this.actorTrace?.Start();
+                    break;
+                case "stuntrace":
+                    this.stunTrace?.Start();
                     break;
                 case "terrain":
                     this.terrainDump?.Write();

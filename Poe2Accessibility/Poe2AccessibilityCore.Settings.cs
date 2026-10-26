@@ -102,6 +102,16 @@ namespace Poe2Accessibility
                 this.bosses.Gain = Fraction(settings.EnemyVolume);
             }
 
+            if (this.culls != null)
+            {
+                this.culls.Gain = Fraction(settings.EnemyVolume);
+            }
+
+            if (this.enemyStates != null)
+            {
+                this.enemyStates.Gain = Fraction(settings.EnemyVolume);
+            }
+
             if (this.weakPoint != null)
             {
                 this.weakPoint.Gain = Fraction(settings.EnemyVolume);

@@ -149,6 +149,13 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
+        ///     GameHelper stops reading a monster once the game flags it dead (stat is_dead) and marks it Useless, so its
+        ///     life can stay where it was ("Ezomita antiguo" frozen at 16/50 mid-hit, sounded and listed as an enemy that
+        ///     could not be hit, 2026-10-26); a monster that rises again is read and unmarked by GameHelper.
+        /// </summary>
+        public static bool IsFrozenDead(Entity entity) => entity.EntityState == EntityStates.Useless;
+
+        /// <summary>
         ///     The game's creatures all live under this folder; a "monster" elsewhere is a league device given life (the
         ///     Ritual rune, Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable, sounded as an enemy, 2026-10-26).
         /// </summary>
@@ -156,7 +163,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A living creature that is not the player's (minions are friendly).</summary>
         public static bool IsAliveEnemy(Entity entity) =>
-            entity.Path.StartsWith(CreatureFolder, StringComparison.Ordinal) &&
+            entity.Path.StartsWith(CreatureFolder, StringComparison.Ordinal) && !IsFrozenDead(entity) &&
             entity.TryGetComponent<Life>(out var life) && life.IsAlive &&
             !(entity.TryGetComponent<Positioned>(out var positioned) && positioned.IsFriendly);
 

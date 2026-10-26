@@ -156,6 +156,20 @@ namespace Poe2Accessibility
             public const string QuestMarkerId = "NPCQuestMarker";
         }
 
+        /// <summary>
+        ///     Entity Actor component: heavy stun buildup ("poise" in Stats.dat) is the first of three entries of 0x1C bytes
+        ///     from 0x4D8 — {int 5, float 8.0, int 0, int threshold, int buildup, float, float seconds before it decays}. The
+        ///     threshold (24 for a 13-life urchin, 40 for a 20-life wolf, 60 for a 36-life hag) and the buildup, which rises
+        ///     with every hit, blocked ones too, decays and empties as the heavy stun lands (54 of 60, then a hit: stunned),
+        ///     from the stun traces of 2026-10-26.
+        /// </summary>
+        public static class ActorComponent
+        {
+            public static int PoiseThresholdOffset { get; internal set; } = 0x4E4;
+
+            public static int PoiseOffset { get; internal set; } = 0x4E8;
+        }
+
         /// <summary>Entity Render component.</summary>
         public static class RenderComponent
         {

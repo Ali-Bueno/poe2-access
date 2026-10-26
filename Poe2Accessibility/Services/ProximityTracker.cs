@@ -1,27 +1,31 @@
 namespace Poe2Accessibility.Services
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
 
     /// <summary>
     ///     What the player just came up to (D2R ground items / NPC proximity): an entry is announced once when it comes
-    ///     within reach, and again only after the player has moved beyond the re-arm distance from it and the
-    ///     cooldown has passed (fighting beside a checkpoint walks in and out of reach every few seconds).
+    ///     within reach, and again only after the player has moved beyond the re-arm distance from it and, for entries
+    ///     that cool down, the cooldown has passed (fighting beside a checkpoint walks in and out of reach every few seconds).
     /// </summary>
     public sealed class ProximityTracker
     {
         private readonly float reach;
         private readonly float rearm;
         private readonly int cooldownMs;
+        private readonly Func<ScanEntry, bool> cools;
         private readonly HashSet<uint> announced = new();
         private readonly Dictionary<uint, long> announcedAt = new();
 
-        public ProximityTracker(float reach, float rearm, int cooldownMs = 0)
+        /// <param name="cools">Entries the cooldown applies to; all when null.</param>
+        public ProximityTracker(float reach, float rearm, int cooldownMs = 0, Func<ScanEntry, bool>? cools = null)
         {
             this.reach = reach;
             this.rearm = rearm;
             this.cooldownMs = cooldownMs;
+            this.cools = cools ?? (_ => true);
         }
 
         /// <summary>Entries newly within reach of the player, nearest first.</summary>
@@ -39,7 +43,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 if (distance <= this.reach && !this.announced.Contains(entry.Id) &&
-                    (!this.announcedAt.TryGetValue(entry.Id, out var at) || nowMs - at >= this.cooldownMs))
+                    (!this.announcedAt.TryGetValue(entry.Id, out var at) || nowMs - at >= this.cooldownMs || !this.cools(entry)))
                 {
                     this.announced.Add(entry.Id);
                     this.announcedAt[entry.Id] = nowMs;

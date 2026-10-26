@@ -24,6 +24,12 @@ namespace Poe2Accessibility.Services
             this.Add("weak_point", CueSynth.Heartbeat(rate));
             this.Add("shield_up", CueSynth.ShieldUp(rate));
             this.Add("shield_down", CueSynth.ShieldDown(rate));
+            this.Add("cull", CueSynth.Cull(rate));
+            foreach (var state in Enum.GetValues<EnemyState>())
+            {
+                this.Add($"state_{state}", CueSynth.StateCue(state, rate));
+            }
+
             this.Add("reach", CueSynth.ReachPing(rate));
             this.Add("enemy", CueSynth.Enemy(CueSynth.Layer.None, rate));
             this.Add("elite", CueSynth.Enemy(CueSynth.Layer.Elite, rate));

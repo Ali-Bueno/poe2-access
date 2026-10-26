@@ -99,6 +99,8 @@ namespace Poe2Accessibility
             });
             this.Isolated("weak point", () => this.weakPoint?.Tick(playing && this.Settings.BossWeakPoint));
             this.Isolated("shield", () => this.shield?.Tick(playing && this.Settings.ShieldSounds));
+            this.Isolated("cull", () => this.culls?.Tick(playing && this.Settings.CullCues));
+            this.Isolated("enemy states", () => this.enemyStates?.Tick(playing, this.Settings.EnemyStateCues, this.Settings.PrimedStunCues));
             this.Isolated("object sounds", () => this.objectSounds?.Tick(playing && this.Settings.ObjectSounds));
             this.Isolated("discoveries", () => this.discoveries?.Tick(playing && this.Settings.AnnounceDiscoveries));
             this.Isolated("enemy news", () => this.enemyNews?.Tick(playing && this.Settings.AnnounceEnemies));

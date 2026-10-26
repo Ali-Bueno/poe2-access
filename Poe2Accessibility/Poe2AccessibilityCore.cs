@@ -31,6 +31,7 @@ namespace Poe2Accessibility
         private EntityDump? entityDump;
         private TerrainDump? terrainDump;
         private ActorTrace? actorTrace;
+        private StunTrace? stunTrace;
         private EntityCatalog? entities;
         private GamepadReader? pad;
         private ModCommands? commands;
@@ -66,6 +67,8 @@ namespace Poe2Accessibility
         private WeakPointGuide? weakPoint;
         private ShieldWatch? shield;
         private EncounterReader? encounters;
+        private CullWatch? culls;
+        private EnemyStateWatch? enemyStates;
         private ObjectSounds? objectSounds;
         private PlayerAlerts? alerts;
         private PlayerAlerts? partnerAlerts;
@@ -211,6 +214,7 @@ namespace Poe2Accessibility
                 this.entityDump = new EntityDump(elements, memory, this.log, debugDirectory);
                 this.terrainDump = new TerrainDump(memory, this.log, debugDirectory);
                 this.actorTrace = new ActorTrace(memory, this.log, debugDirectory);
+                this.stunTrace = new StunTrace(memory, this.log, debugDirectory);
                 ItemNames.Load(this.log, Path.Join(this.DllDirectory, "catalog", "item-names.json"));
                 // GameHelper's Radar table; a test package ships only this plugin, with a copy of it in its catalog.
                 var landmarks = LandmarkTable.Load(
@@ -246,6 +250,7 @@ namespace Poe2Accessibility
                 this.narrator.IgnoredHudText = () => this.targets?.NameLabel ?? IntPtr.Zero;
                 this.narrator.GoldCounter = () => this.gold?.Counter ?? IntPtr.Zero;
                 this.narrator.GroundItemName = texts => this.entities?.ItemOfTooltip(texts);
+                this.narrator.ItemTargetNamed = () => this.Settings.AnnounceInteractTarget && this.entities?.InteractTarget()?.Category == ScanCategory.Items;
                 // Each local player's own news; while both are read, each line is named (Seats).
                 var followedVoice = new SeatOutput(this.output, () => Seats.Partner == null ? string.Empty : PlayerAlerts.Name(Seats.Followed));
                 var partnerVoice = new SeatOutput(this.output, () => PlayerAlerts.Name(Seats.Partner));
@@ -264,6 +269,8 @@ namespace Poe2Accessibility
                 this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log);
                 this.shield = new ShieldWatch(this.audio, this.log);
                 this.encounters = new EncounterReader(elements);
+                this.culls = new CullWatch(this.audio, this.output, elements);
+                this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
                 var drops = ItemDropSounds.Load(
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
@@ -413,6 +420,7 @@ namespace Poe2Accessibility
                 {
                     this.Isolated("death", () => this.deaths?.Tick(stateObject));
                     this.Isolated("trace", () => this.actorTrace?.Tick());
+                    this.Isolated("stun trace", () => this.stunTrace?.Tick());
                 }
 
                 this.Isolated("compatibility", this.SayCompatibility);
@@ -484,18 +492,21 @@ namespace Poe2Accessibility
             this.skillBar = inGame ? this.locator.InGameSkillBar(stateObject) : IntPtr.Zero;
             this.narrator.ReadTooltips = this.Settings.ReadTooltipsOnFocus;
             this.narrator.Tick();
+            // Another window in front (a notification, alt-tab): what the game redraws meanwhile is not news, and is
+            // taken in silently so coming back does not read it (tooltips read out on a notification, 2026-10-26).
+            var watching = !this.gameState.IsAttached || Core.Process.Foreground;
             while (this.screen.TryDequeue(out var change))
             {
                 this.log?.Info($"Screen {change.Kind} layer {change.Layer.Index}: {string.Join(" | ", change.Texts.Select(text => text.Button.Length > 0 ? $"{text.Text} [{text.Button}]" : text.Text))}");
                 this.deaths?.Saw(change.Layer.Address);
-                if (change.Kind == ScreenChangeKind.TopLayerChanged || this.Settings.AnnounceAppearingText)
+                if (watching && (change.Kind == ScreenChangeKind.TopLayerChanged || this.Settings.AnnounceAppearingText))
                 {
                     this.narrator.OnScreenChange(change, this.screen.Current, this.focus.Current, this.focus.CurrentLayer);
                 }
             }
 
             if (this.gameState.CurrentState is GameStateTypes.LoginState or GameStateTypes.SelectCharacterState or
-                    GameStateTypes.CreateCharacterState or GameStateTypes.DeleteCharacterState && this.Settings.AnnounceAppearingText)
+                    GameStateTypes.CreateCharacterState or GameStateTypes.DeleteCharacterState && this.Settings.AnnounceAppearingText && watching)
             {
                 this.narrator.OnPreGameHints(this.screen.Current);
             }
@@ -722,6 +733,8 @@ namespace Poe2Accessibility
             this.bosses?.Reset();
             this.weakPoint?.Reset();
             this.shield?.Reset();
+            this.culls?.Reset();
+            this.enemyStates?.Reset();
             this.alerts?.Statuses.Reset();
             this.partnerAlerts?.Statuses.Reset();
             this.pickups?.Reset();

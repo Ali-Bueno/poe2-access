@@ -19,7 +19,10 @@ namespace Poe2Accessibility.Services
         private const float ReachWorld = 200f;
         private const float RearmWorld = 300f;
 
-        /// <summary>The same thing is named again only after a minute (a fight around a checkpoint repeated it every 8 s).</summary>
+        /// <summary>
+        ///     The same thing is named again only after a minute (a fight around a checkpoint repeated it every 8 s); an item
+        ///     whenever it is walked back to (user 2026-10-26: walking away and back said nothing).
+        /// </summary>
         private const int RepeatCooldownMs = 60000;
 
         /// <summary>D2R ground items: up to four names per utterance, later groups 900 ms apart.</summary>
@@ -46,7 +49,7 @@ namespace Poe2Accessibility.Services
 
         private readonly EntityCatalog catalog;
         private readonly IAccessibilityOutputService output;
-        private readonly ProximityTracker tracker = new(ReachWorld, RearmWorld, RepeatCooldownMs);
+        private readonly ProximityTracker tracker = new(ReachWorld, RearmWorld, RepeatCooldownMs, entry => entry.Category != ScanCategory.Items);
         private readonly Queue<(ScanEntry Entry, long At)> pending = new();
         private long lastPoll = long.MinValue / 2;
         private long lastSpoken = long.MinValue / 2;
@@ -145,7 +148,7 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        /// <summary>Follows the game's target; a new one that holds is named with the button, unless a queued name will carry it.</summary>
+        /// <summary>Follows the game's target; a new one that holds is named at once with the button.</summary>
         private void TrackTarget(long now)
         {
             var current = this.catalog.InteractTarget();
@@ -173,12 +176,14 @@ namespace Poe2Accessibility.Services
             }
 
             this.target = current.Id;
-            if (current.Id == this.targetSpoken || this.pending.Any(item => item.Entry.Id == current.Id))
+            if (current.Id == this.targetSpoken)
             {
                 return;
             }
 
-            this.output.Say(SpeechKind.Places, this.Label(current));
+            // What A takes now cuts in, like a focus: queued behind other lines it came late and A took the next item
+            // ("Ballesta tensa, A" heard while A already held a bow, 2026-10-26). A queued name of it is skipped later.
+            this.output.Speak(this.Label(current), true);
         }
 
         /// <summary>A name, with the interact button when A uses it now.</summary>

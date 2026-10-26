@@ -72,6 +72,10 @@ namespace Poe2Accessibility.Tests
             Run(nameof(WeakPointBeatsFasterThenSteady), WeakPointBeatsFasterThenSteady);
             Run(nameof(FlaskDrinksAreSaidBySlot), FlaskDrinksAreSaidBySlot);
             Run(nameof(ShieldRaisedAndLowered), ShieldRaisedAndLowered);
+            Run(nameof(CullingThresholdsByRarity), CullingThresholdsByRarity);
+            Run(nameof(EnemyStatesFromBuffsAndAnimations), EnemyStatesFromBuffsAndAnimations);
+            Run(nameof(PrimedForStunByRarity), PrimedForStunByRarity);
+            Run(nameof(EnemyStatesAreNewsOnlyAsTheyBegin), EnemyStatesAreNewsOnlyAsTheyBegin);
             Run(nameof(WrappedLabelsJoin), WrappedLabelsJoin);
             Run(nameof(InlineItemArtIsNamed), InlineItemArtIsNamed);
             Run(nameof(KnownPlacesOutliveTheSession), KnownPlacesOutliveTheSession);
@@ -994,6 +998,62 @@ namespace Poe2Accessibility.Tests
             Equal(FlaskNews.New, drinks.Update(2, "Frasco de maná mayor", 3), "a flask in a slot empty until now");
         }
 
+        private static void CullingThresholdsByRarity()
+        {
+            Equal(true, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 35, 100), "normal at 35%");
+            Equal(false, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 36, 100), "normal above 35%");
+            Equal(false, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Magic, 21, 100), "magic above 20%");
+            Equal(true, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Rare, 100, 1000), "rare at 10%");
+            Equal(true, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Unique, 2500, 50000), "unique at 5%");
+            Equal(false, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Unique, 0, 50000), "dead is not cullable");
+        }
+
+        private static void EnemyStatesFromBuffsAndAnimations()
+        {
+            Equal(EnemyState.Frozen, EnemyStates.FromBuffId("frozen"), "frozen");
+            Equal(EnemyState.ArmourBroken, EnemyStates.FromBuffId("broken_armour_debuff_79"), "skill id suffix dropped");
+            Equal(EnemyState.Parried, EnemyStates.FromBuffId("parried"), "parried");
+            Equal(null, EnemyStates.FromBuffId("parried_immunity"), "an immunity is not the state");
+            Equal(null, EnemyStates.FromBuffId("trap_pinned"), "only the pinned buff itself");
+            Equal(null, EnemyStates.FromBuffId("frozen_"), "empty suffix");
+            Equal(EnemyState.HeavyStunned, EnemyStates.FromAnimation("HeavyStunBack"), "heavy stun animation");
+            Equal(null, EnemyStates.FromAnimation("HeavyStunDeath"), "a stun death is a death");
+            Equal(EnemyState.Electrocuted, EnemyStates.FromAnimation("ElectrocuteLeft"), "electrocuted animation");
+        }
+
+        private static void PrimedForStunByRarity()
+        {
+            Equal(false, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 18, 60), "hag at 30%: not yet");
+            Equal(true, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 24, 60), "normal at 40%");
+            Equal(true, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 54, 60), "hag at 54 of 60 (stunned by the next hit)");
+            Equal(false, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Magic, 19, 40), "magic below 50%");
+            Equal(true, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Rare, 600, 1000), "rare at 60%");
+            Equal(false, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Unique, 690, 1000), "unique below 70%");
+            Equal(false, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 10, 0), "no threshold read");
+            Equal(false, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 1_000_000, 60), "not a buildup");
+        }
+
+        private static void EnemyStatesAreNewsOnlyAsTheyBegin()
+        {
+            var news = new EnemyStateNews();
+            news.BeginPoll();
+            Equal("HeavyStunned", string.Join(",", news.Update(1, new[] { EnemyState.HeavyStunned }, 0)), "a heavy stun begins");
+            news.EndPoll();
+            news.BeginPoll();
+            Equal("", string.Join(",", news.Update(1, new[] { EnemyState.HeavyStunned, EnemyState.HeavyStunned }, 100)), "still stunned");
+            news.EndPoll();
+            news.BeginPoll();
+            Equal("", string.Join(",", news.Update(1, Array.Empty<EnemyState>(), 200)), "gone for a moment");
+            Equal("", string.Join(",", news.Update(1, new[] { EnemyState.HeavyStunned }, 300)), "back within the hold: the same stun");
+            Equal("Frozen", string.Join(",", news.Update(1, new[] { EnemyState.HeavyStunned, EnemyState.Frozen }, 400)), "frozen too");
+            Equal("HeavyStunned", string.Join(",", news.Update(1, new[] { EnemyState.HeavyStunned }, 400 + EnemyStateNews.EndMs)), "a new heavy stun after the hold");
+            news.EndPoll();
+            news.BeginPoll();
+            news.EndPoll();
+            news.BeginPoll();
+            Equal("Frozen", string.Join(",", news.Update(1, new[] { EnemyState.Frozen }, 1000)), "out of sight and back: news again");
+        }
+
         private static void ShieldRaisedAndLowered()
         {
             var shield = new ShieldStance();
@@ -1232,6 +1292,13 @@ namespace Poe2Accessibility.Tests
             Equal(string.Empty, At(100, 9000), "back within the minute: quiet");
             Equal(string.Empty, At(500, 30000), "away again");
             Equal("Checkpoint", At(100, 70000), "after the cooldown it is news again");
+
+            var items = new ProximityTracker(200, 300, 60000, entry => entry.Category != ScanCategory.Items);
+            var bow = new ScanEntry(2, ScanCategory.Items, "Arco corto", 0, 0, 0);
+            string ItemAt(float x, long now) => string.Join(", ", items.Update(x, 0, new[] { bow }, now).Select(entry => entry.Name));
+            Equal("Arco corto", ItemAt(100, 0), "an item walked up to");
+            Equal(string.Empty, ItemAt(500, 3000), "walked away");
+            Equal("Arco corto", ItemAt(100, 6000), "walked back: named again, no cooldown for items");
         }
 
         private static void StickClickWhileHoldingL3()

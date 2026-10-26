@@ -194,7 +194,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (!life.IsAlive)
+            if (!life.IsAlive || EntityCatalog.IsFrozenDead(entity))
             {
                 if (boss.Engaged && boss.Step > 0)
                 {

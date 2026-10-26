@@ -302,8 +302,21 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public Func<IEnumerable<string>, string?>? GroundItemName { get; set; }
 
+        /// <summary>
+        ///     True while A uses an item on the ground and it is named at once (ProximityNarrator): the tooltip the game shows
+        ///     for it is that item's, magic and rare names included ("Bastón largo intenso de impacto" for "Bastón largo"),
+        ///     and is not said again.
+        /// </summary>
+        public Func<bool>? ItemTargetNamed { get; set; }
+
         /// <summary>The quality line of an item tooltip ("Calidad: +10%"): the only property with a signed percentage.</summary>
         private static readonly System.Text.RegularExpressions.Regex QualityLine = new(@":\s*\+\d+\s*%\s*$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+        /// <summary>
+        ///     A tooltip property line ("Probabilidad de impacto crítico: 5.00%") that arrived ahead of its item's name, the
+        ///     tooltip's texts settling at different times (2026-10-26): never HUD news.
+        /// </summary>
+        private static readonly System.Text.RegularExpressions.Regex PropertyLine = new(@"^[^:]{2,60}:\s*[-+]?\d", System.Text.RegularExpressions.RegexOptions.Compiled);
 
         /// <summary>"4 de 6" for a selector without focus in a layer (the class choice), else null.</summary>
         public Func<IntPtr, string?>? SelectorPosition { get; set; }
