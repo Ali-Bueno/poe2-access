@@ -445,8 +445,8 @@ namespace Poe2Accessibility
         public static string HelpText(string topic) => topic switch
         {
             "help_l3" => T(
-                "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states and the boss. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu",
-                "Toque: dónde está lo elegido en el escáner, o repetir. Doble toque: vida, maná, estados y el jefe. Mantener: la pantalla, las pistas de botones y la barra de habilidades. Mantener un segundo y medio: este menú"),
+                "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states, the boss, the flasks, your level and the area's, your gold and how much you have explored. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu",
+                "Toque: dónde está lo elegido en el escáner, o repetir. Doble toque: vida, maná, estados, el jefe, los frascos, tu nivel y el del área, tu oro y cuánto has explorado. Mantener: la pantalla, las pistas de botones y la barra de habilidades. Mantener un segundo y medio: este menú"),
             "help_scanner" => T(
                 "Hold L3 and flick the right stick: up and down change the category, left and right go through it, nearest first. Quest is first: what the objective names",
                 "Mantén L3 y mueve el stick derecho: arriba y abajo cambian de categoría, izquierda y derecha la recorren, de la más cercana a la más lejana. Misión va primero: lo que nombra el objetivo"),
