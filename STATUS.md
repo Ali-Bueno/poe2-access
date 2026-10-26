@@ -371,4 +371,6 @@ must stay silent).
   parts holding more than three; checked on Skills ("0 de espíritu", gem capacity) and Character ("Monje.
   Resistencias"), the inventory and stash give none. A panel whose loose lines change while open says them only on
   entry.
-- GGG ToS: read-only tool, still no written approval — ask before any public release (brief §25).
+- GGG ToS: read-only tool, still no written approval — ask before any public release (brief §25). Emailed
+  `contact@grindinggear.com` on 2026-10-26 (permission, an opt-in accessibility log file instead of memory reading,
+  a team contact); awaiting a reply.
