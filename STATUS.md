@@ -315,9 +315,12 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-Next (game with two pads, `pad.py serve --xbox` and `--second`): player 2's menus, so J2 can equip. Find J2's
-focused element and pad state in co-op (UI manager +0x748 and +0x768 are J1's; `docs/research/local-coop.md`), read J2's
-focus like J1's and let J2's pad reach the mod's commands. Then: user test of the 2026-10-25 UI sweep fixes (`docs/research/ui-sweep-2026-10-25.md`) and of the player 2 radar
+Next (branch `coop-seats`, game with two pads, `pad.py serve --xbox` and `--second`): everything the mod does for player 1,
+for player 2 too, by the toggles `ReadPlayer1` / `ReadPlayer2` (one, the other, or both; `Seats`). Done offline: the
+followed player, player 2's skill bar, per-player radar and life/mana/level/state news (named while both are read).
+Find live: J2's focused element and pad state (UI manager +0x748 and +0x768 are J1's), J2's inventory panel and server
+inventories (pick-ups, flasks), J2's death screen (`docs/research/local-coop.md`); then a second focus reader and J2's pad
+on the mod's commands, verify every mode live, merge to main. Then: user test of the 2026-10-25 UI sweep fixes (`docs/research/ui-sweep-2026-10-25.md`) and of the player 2 radar
 in real couch co-op (two pads; J2 joins at character selection, "Radar del jugador local 2" in the mod's settings). Characters: "kehgan" (Monk, level 2, Clearfell Encampment; a town NPC shows a quest marker), "yarkbruja" (Witch, level 3,
 Clearfell Encampment, no NPC marker), "yarkey" (Mercenary, level 4, Clearfell Encampment). Start in town from character selection:
 `desktop.py combo l2 cross --seconds 1.8` (away from town the confirmation's Cancel is focused: D-pad right, then A). Next: user test of the 2026-10-25 batch (places and the Lugares category, the other
