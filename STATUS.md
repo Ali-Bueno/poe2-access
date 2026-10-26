@@ -318,8 +318,7 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-Next: put the new plugin DLL into `dist\Poe2Access` once the user stops the mod (not the package script: it wipes that
-folder), then user test of the 2026-10-26 lesson priority (inventory with a pending passive point) and skill details in
+Next: user test (DLL and package of 2026-10-26 12:30 in `dist`) of the 2026-10-26 lesson priority (inventory with a pending passive point) and skill details in
 the engrave list, and the Devourer's weak-point heartbeat (does the head turn untargetable when it burrows?). Then: user test of local co-op with two real controllers (both toggles, a revive by holding A; the revive and
 respawn lines are unit-tested, not heard live). Then: user test of the 2026-10-25 UI sweep fixes (`docs/research/ui-sweep-2026-10-25.md`) and of the player 2 radar
 in real couch co-op (two pads; J2 joins at character selection, "Cooperativo local: lectura para el jugador 2" in the mod's settings). Characters: "kehgan" (Monk, level 2, Clearfell Encampment; a town NPC shows a quest marker), "yarkbruja" (Witch, level 3,
