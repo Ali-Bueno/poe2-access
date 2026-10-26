@@ -982,14 +982,15 @@ namespace Poe2Accessibility.Tests
             var drinks = new FlaskDrinks();
             const string Mana = "Frasco de maná menor";
             const string Life = "Frasco de vida menor";
-            Equal(false, drinks.Update(1, Mana, 6), "first read");
-            Equal(true, drinks.Update(1, Mana, 5), "a drink, whatever item entity the game made for it");
-            Equal(false, drinks.Update(1, Mana, 5), "no change");
-            Equal(false, drinks.Update(0, Life, 1), "first read of the life flask");
-            Equal(true, drinks.Update(0, Life, 0), "the last use drunk: said once (empty)");
-            Equal(false, drinks.Update(0, Life, 0), "still dry");
-            Equal(false, drinks.Update(0, Life, 1), "refilled by kills: silent");
-            Equal(false, drinks.Update(1, "Frasco de vida menor", 2), "another flask put in the slot");
+            Equal(FlaskNews.New, drinks.Update(1, Mana, 6), "first read (the caller keeps an area's first read silent)");
+            Equal(FlaskNews.Drunk, drinks.Update(1, Mana, 5), "a drink, whatever item entity the game made for it");
+            Equal(FlaskNews.None, drinks.Update(1, Mana, 5), "no change");
+            drinks.Update(0, Life, 1);
+            Equal(FlaskNews.Drunk, drinks.Update(0, Life, 0), "the last use drunk: said once (empty)");
+            Equal(FlaskNews.None, drinks.Update(0, Life, 0), "still dry");
+            Equal(FlaskNews.Refilled, drinks.Update(0, Life, 1), "a use gained from kills");
+            Equal(FlaskNews.New, drinks.Update(1, "Frasco de vida mayor", 2), "another flask put in the slot");
+            Equal(FlaskNews.New, drinks.Update(2, "Frasco de maná mayor", 3), "a flask in a slot empty until now");
         }
 
         private static void FarBarrierStaysClosedUntilSeenNear()

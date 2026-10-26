@@ -11,7 +11,7 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     The flasks on the belt (D2R belt readout): the uses each has left from its charges, for the vitals readout and
-    ///     after each drink, and a warning when one runs dry during play, once until it can be used again.
+    ///     whenever they change during play (<see cref="FlaskDrinks"/>).
     /// </summary>
     public sealed class FlaskWatch
     {
@@ -60,7 +60,7 @@ namespace Poe2Accessibility.Services
             return flasks;
         }
 
-        /// <summary>Per frame: a flask drunk says the uses it has left, one run dry says so (silent on the first read of an area).</summary>
+        /// <summary>Per frame: a flask drunk or refilled says the uses it has, one run dry or put on the belt says so (an area's first read is silent).</summary>
         public void Tick(bool playing, bool enabled)
         {
             var now = Environment.TickCount64;
@@ -73,9 +73,16 @@ namespace Poe2Accessibility.Services
             var flasks = this.Flasks();
             foreach (var (slot, name, uses) in flasks)
             {
-                if (this.drinks.Update(slot, name, uses) && !this.baseline && enabled)
+                var news = this.drinks.Update(slot, name, uses) switch
                 {
-                    this.output.Say(SpeechKind.LifeAndMana, Announcements.Flask(name, uses));
+                    FlaskNews.Drunk => Announcements.Flask(name, uses),
+                    FlaskNews.Refilled => Announcements.FlaskRefilled(name, uses),
+                    FlaskNews.New => Announcements.FlaskArrived(Announcements.Flask(name, uses)),
+                    _ => string.Empty,
+                };
+                if (news.Length > 0 && !this.baseline && enabled)
+                {
+                    this.output.Say(SpeechKind.LifeAndMana, news);
                 }
             }
 

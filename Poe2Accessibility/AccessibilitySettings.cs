@@ -51,7 +51,7 @@ namespace Poe2Accessibility
         /// <summary>Say when mana falls below half, a quarter and a tenth.</summary>
         public bool AnnounceLowMana = true;
 
-        /// <summary>Say the uses a flask has left each time it is drunk, "Frasco de vida menor, 3 usos", and when one runs dry (D2R belt).</summary>
+        /// <summary>Say the uses a flask has after each drink ("Frasco de vida menor, 3 usos") and each use it gains, when one runs dry, and a flask put on the belt (D2R belt).</summary>
         public bool AnnounceFlasks = true;
 
         /// <summary>Say a boss's life as it falls past 75, 50, 40, 30, 20, 10 and 5 percent, and its defeat.</summary>

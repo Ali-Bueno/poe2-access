@@ -148,8 +148,15 @@ namespace Poe2Accessibility.Services
             return null;
         }
 
-        /// <summary>A living monster that is not the player's (minions are friendly).</summary>
+        /// <summary>
+        ///     The game's creatures all live under this folder; a "monster" elsewhere is a league device given life (the
+        ///     Ritual rune, Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable, sounded as an enemy, 2026-10-26).
+        /// </summary>
+        public const string CreatureFolder = "Metadata/Monsters/";
+
+        /// <summary>A living creature that is not the player's (minions are friendly).</summary>
         public static bool IsAliveEnemy(Entity entity) =>
+            entity.Path.StartsWith(CreatureFolder, StringComparison.Ordinal) &&
             entity.TryGetComponent<Life>(out var life) && life.IsAlive &&
             !(entity.TryGetComponent<Positioned>(out var positioned) && positioned.IsFriendly);
 

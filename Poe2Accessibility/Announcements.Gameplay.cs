@@ -113,6 +113,14 @@ namespace Poe2Accessibility
         /// <summary>A flask with no use left: "Frasco de vida menor vacío".</summary>
         public static string FlaskEmpty(string name) => T($"{name} empty", $"{name} vacío");
 
+        /// <summary>A flask that gained a use from kills or time: "Frasco de vida menor recargado, 2 usos".</summary>
+        public static string FlaskRefilled(string name, int uses) => uses == 1
+            ? T($"{name} refilled, 1 use", $"{name} recargado, 1 uso")
+            : T($"{name} refilled, {uses} uses", $"{name} recargado, {uses} usos");
+
+        /// <summary>A flask put on the belt during play: "Nuevo frasco: Frasco de vida mayor, 3 usos".</summary>
+        public static string FlaskArrived(string flask) => T($"New flask: {flask}", $"Nuevo frasco: {flask}");
+
         /// <summary>"Life 80 percent, mana 40 percent, energy shield 100 percent" (energy shield only when the character has some).</summary>
         public static string Vitals(int life, int mana, int? energyShield)
         {
