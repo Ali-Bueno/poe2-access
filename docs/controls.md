@@ -193,6 +193,10 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   a crossbow, a gem each their own; the rare layer over a rare or unique; the generic item, currency, gold and
   quest sounds only for bases without one). They need the sounds extracted once from your game (see
   `tools/README.md`: `item-sounds`, then `sounds`), then a rebuild.
+- **Boss weak point:** a heartbeat (two low thumps) from the side of a boss's head when its tail is not the part to
+  strike (the Devourer); faster as you near the head, slow and soft once you are within melee reach of it, silent
+  while it is buried. The first time in an area: "El devorador: golpea la cabeza, sigue el latido". Setting "Latido
+  del punto débil del jefe" (on by default), volume with the enemy sounds.
 - **Dodge warning:** a blade-like rising whoosh ending in a ringing snap over a low thud, on the side of a rare or
   unique monster attacking, louder the closer it is: dodge (B). Only animations that are attacks warn (not
   burrowing, hiding, buffs or summons); a rare's blow warns only within about a step and a half, a unique's from

@@ -33,6 +33,8 @@
  "Boss in sight: {0}": "보스 발견: {0}",
  "Boss life": "보스 생명력",
  "Boss stairs": "보스 계단",
+ "Boss weak point": "보스 약점",
+ "Boss weak point heartbeat": "보스 약점 심장 박동",
  "Bosses": "보스",
  "Cannot use: {0}": "사용할 수 없음: {0}",
  "Change password.": "비밀번호 변경.",
@@ -239,7 +241,7 @@
  "Stairs Down": "내려가는 계단",
  "Stairs Up": "올라가는 계단",
  "Stunned": "기절함",
- "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states and the boss. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "탭: 스캐너로 선택한 것의 위치, 또는 반복. 두 번 탭: 생명력, 마나, 상태, 보스. 길게 누르기: 화면, 버튼 안내, 스킬 바. 1.5초 길게 누르기: 이 메뉴",
+ "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states, the boss, the flasks, your level and the area's, your gold and how much you have explored. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "탭: 스캐너로 선택한 것의 위치, 또는 반복. 두 번 탭: 생명력, 마나, 상태, 보스, 플라스크, 내 레벨과 지역 레벨, 내 골드와 탐험한 정도. 길게 누르기: 화면, 버튼 안내, 스킬 바. 1.5초 길게 누르기: 이 메뉴",
  "Target names": "대상 이름",
  "The death screen is hidden: Y shows it": "사망 화면이 숨겨져 있습니다. Y를 누르면 표시됩니다",
  "The way opened": "길이 열렸습니다",
@@ -325,6 +327,7 @@
  "flasks": "플라스크",
  "forge": "대장간",
  "fountain": "분수",
+ "from the side of the boss's head, not its tail; faster as you near it, slow and soft at the head, silent while it is buried": "보스의 꼬리가 아닌 머리 쪽에서 들림. 가까워질수록 빨라지고, 머리 옆에서는 느리고 부드럽게, 땅속에 숨어 있는 동안에는 조용함",
  "garden": "정원",
  "gate": "성문",
  "gold": "골드",
@@ -453,5 +456,6 @@
  "{0}, {1} away, the way stops short: {2}": "{0}, {1} 거리, 길이 도중에 끊깁니다: {2}",
  "{0}, {1} percent": "{0}, {1} 퍼센트",
  "{0}, {1} uses": "{0}, {1}회",
- "{0}, {1}, {2}{3}": "{0}, {1}, {2}{3}"
+ "{0}, {1}, {2}{3}": "{0}, {1}, {2}{3}",
+ "{0}: strike the head, follow the heartbeat": "{0}: 머리를 공격하세요, 심장 박동을 따라가세요"
 }

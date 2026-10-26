@@ -33,6 +33,8 @@
  "Boss in sight: {0}": "ボスが見えます：{0}",
  "Boss life": "ボスのライフ",
  "Boss stairs": "ボスの階段",
+ "Boss weak point": "ボスの弱点",
+ "Boss weak point heartbeat": "ボスの弱点への心音",
  "Bosses": "ボス",
  "Cannot use: {0}": "使用できません：{0}",
  "Change password.": "パスワード変更。",
@@ -239,7 +241,7 @@
  "Stairs Down": "下り階段",
  "Stairs Up": "上り階段",
  "Stunned": "スタン",
- "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states and the boss. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "タップ：スキャナーで選んだものの場所、または繰り返し。ダブルタップ：ライフ、マナ、状態、ボス。長押し：画面、ボタンのヒント、スキルバー。1.5秒長押し：このメニュー",
+ "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states, the boss, the flasks, your level and the area's, your gold and how much you have explored. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "タップ：スキャナーで選んだものの場所、または繰り返し。ダブルタップ：ライフ、マナ、状態、ボス、フラスコ、自分とエリアのレベル、所持ゴールド、探索した割合。長押し：画面、ボタンのヒント、スキルバー。1.5秒長押し：このメニュー",
  "Target names": "ターゲット名",
  "The death screen is hidden: Y shows it": "死亡画面は非表示です。Yで表示します",
  "The way opened": "道が開きました",
@@ -325,6 +327,7 @@
  "flasks": "フラスコ",
  "forge": "鍛冶場",
  "fountain": "噴水",
+ "from the side of the boss's head, not its tail; faster as you near it, slow and soft at the head, silent while it is buried": "ボスの尻尾ではなく頭の方向から鳴る。近づくほど速く、頭のそばではゆっくり静かに、潜っている間は鳴らない",
  "garden": "庭園",
  "gate": "門",
  "gold": "ゴールド",
@@ -453,5 +456,6 @@
  "{0}, {1} away, the way stops short: {2}": "{0}、{1}先、手前で道が途切れています：{2}",
  "{0}, {1} percent": "{0}、{1}パーセント",
  "{0}, {1} uses": "{0}、残り{1}回",
- "{0}, {1}, {2}{3}": "{0}、{1}、{2}{3}"
+ "{0}, {1}, {2}{3}": "{0}、{1}、{2}{3}",
+ "{0}: strike the head, follow the heartbeat": "{0}：頭を攻撃、心音をたどって"
 }

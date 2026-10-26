@@ -33,6 +33,8 @@
  "Boss in sight: {0}": "看見首領：{0}",
  "Boss life": "首領生命",
  "Boss stairs": "首領的樓梯",
+ "Boss weak point": "首領弱點",
+ "Boss weak point heartbeat": "首領弱點心跳聲",
  "Bosses": "首領",
  "Cannot use: {0}": "無法使用：{0}",
  "Change password.": "變更密碼。",
@@ -239,7 +241,7 @@
  "Stairs Down": "向下的樓梯",
  "Stairs Up": "向上的樓梯",
  "Stunned": "暈眩",
- "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states and the boss. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "點一下：掃描器所選目標的位置，或重複。點兩下：生命、魔力、狀態與首領。按住：畫面、按鍵提示與技能列。按住一秒半：此選單",
+ "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states, the boss, the flasks, your level and the area's, your gold and how much you have explored. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "點一下：掃描器所選目標的位置，或重複。點兩下：生命、魔力、狀態、首領、藥劑、你的等級與區域等級、你的金幣與探索進度。按住：畫面、按鍵提示與技能列。按住一秒半：此選單",
  "Target names": "目標名稱",
  "The death screen is hidden: Y shows it": "死亡畫面已隱藏，按 Y 顯示",
  "The way opened": "路開了",
@@ -325,6 +327,7 @@
  "flasks": "藥劑",
  "forge": "鍛造廠",
  "fountain": "噴泉",
+ "from the side of the boss's head, not its tail; faster as you near it, slow and soft at the head, silent while it is buried": "從首領頭部那一側傳來，不是尾巴；越接近越快，在頭部旁時緩慢輕柔，頭部鑽入地下時靜默",
  "garden": "花園",
  "gate": "大門",
  "gold": "金幣",
@@ -453,5 +456,6 @@
  "{0}, {1} away, the way stops short: {2}": "{0}，距離{1}，路在前方中斷：{2}",
  "{0}, {1} percent": "{0}，百分之{1}",
  "{0}, {1} uses": "{0}，剩 {1} 次",
- "{0}, {1}, {2}{3}": "{0}，{1}，{2}{3}"
+ "{0}, {1}, {2}{3}": "{0}，{1}，{2}{3}",
+ "{0}: strike the head, follow the heartbeat": "{0}：攻擊頭部，跟著心跳聲"
 }

@@ -84,11 +84,12 @@ namespace Poe2Accessibility
                 this.wallTones.RangeWorld = Math.Clamp(settings.WallToneRange, 100, 3000);
             }
 
+            var reach = Math.Clamp(settings.MeleeReachRange, 0, 500);
             if (this.enemyCues != null)
             {
                 this.enemyCues.Gain = Fraction(settings.EnemyVolume);
                 this.enemyCues.Reach = settings.MeleeReach;
-                this.enemyCues.ReachWorld = Math.Clamp(settings.MeleeReachRange, 0, 500);
+                this.enemyCues.ReachWorld = reach;
             }
 
             if (this.beacon != null)
@@ -99,6 +100,12 @@ namespace Poe2Accessibility
             if (this.bosses != null)
             {
                 this.bosses.Gain = Fraction(settings.EnemyVolume);
+            }
+
+            if (this.weakPoint != null)
+            {
+                this.weakPoint.Gain = Fraction(settings.EnemyVolume);
+                this.weakPoint.ReachWorld = reach;
             }
 
             if (this.objectSounds != null)

@@ -64,6 +64,12 @@ namespace Poe2Accessibility.Tests
             Run(nameof(CheckpointsAreNamedByTheirNeighbour), CheckpointsAreNamedByTheirNeighbour);
             Run(nameof(FarBarrierStaysClosedUntilSeenNear), FarBarrierStaysClosedUntilSeenNear);
             Run(nameof(ScrolledRowsAreNotNews), ScrolledRowsAreNotNews);
+            Run(nameof(FocusDetailsAreNotScrolledRows), FocusDetailsAreNotScrolledRows);
+            Run(nameof(KeptLessonIsHeardWhole), KeptLessonIsHeardWhole);
+            Run(nameof(KeptLessonHoldsFromItsStart), KeptLessonHoldsFromItsStart);
+            Run(nameof(PendingLessonIsRemindedNowAndThen), PendingLessonIsRemindedNowAndThen);
+            Run(nameof(WeakPointLeadsToTheHead), WeakPointLeadsToTheHead);
+            Run(nameof(WeakPointBeatsFasterThenSteady), WeakPointBeatsFasterThenSteady);
             Run(nameof(WrappedLabelsJoin), WrappedLabelsJoin);
             Run(nameof(InlineItemArtIsNamed), InlineItemArtIsNamed);
             Run(nameof(KnownPlacesOutliveTheSession), KnownPlacesOutliveTheSession);
@@ -897,6 +903,79 @@ namespace Poe2Accessibility.Tests
             Equal(false, differ.Apply(details).Single().Scrolled, "a text added with nothing gone");
         }
 
+        private const string TierLabel = "tier_label";
+
+        private static void FocusDetailsAreNotScrolledRows()
+        {
+            Equal(true, FocusDetails.HeadedBy(new[] { Text(1, "Destrozahuesos"), Text(2, "AdE, Cuerpo a cuerpo, Golpe") }, "Destrozahuesos, Nivel 1", TierLabel),
+                "a skill's details under its name, as the old ones left");
+            Equal(false, FocusDetails.HeadedBy(new[] { Text(1, "Golpe perfecto"), Text(2, "Nivel 5") }, "Golpe perfecto, Nivel 5", TierLabel), "the focused row scrolling in");
+            Equal(false, FocusDetails.HeadedBy(new[] { Text(1, "Acercar la cámara"), Text(2, "Activado") }, "Restricciones de equipamiento", TierLabel), "other rows scrolling in");
+        }
+
+        private static void KeptLessonIsHeardWhole()
+        {
+            var floor = new SpeechFloor();
+            var start = new DateTime(2026, 10, 26, 10, 33, 21);
+            Equal(true, floor.Admit("Orbe de aumento, 2, columna 1, fila 1", true, start), "the focus goes out");
+            Equal(true, floor.Keep("Navega a tu arbol de pasivas", true, 2000, start.AddMilliseconds(200)), "the lesson in a menu cuts in");
+            Equal(false, floor.Admit("Lanza de madera dura", true, start.AddMilliseconds(500)), "a move waits");
+            Equal(false, floor.Admit("Comparar, clic del stick derecho", false, start.AddMilliseconds(600)), "its legend waits after it");
+            Equal(false, floor.Admit("Vacío, columna 4, fila 2", true, start.AddMilliseconds(900)), "a later move replaces what waited");
+            Equal(false, floor.Keep("Objeto sin identificar", true, 2000, start.AddMilliseconds(1000)), "a lesson never cuts the one being said");
+            Equal(0, floor.Release(start.AddMilliseconds(1500)).Count, "nothing while the lesson is said");
+            Equal("Vacío, columna 4, fila 2", string.Join("|", floor.Release(start.AddMilliseconds(4300))), "the latest move after the lessons");
+            Equal(true, floor.Admit("Vacío, columna 3, fila 2", true, start.AddMilliseconds(4400)), "the floor is free again");
+            floor.Keep("Navega a tu arbol de pasivas", true, 2000, start.AddMilliseconds(5000));
+            floor.Admit("Inventario", true, start.AddMilliseconds(5100));
+            floor.Clear(start.AddMilliseconds(5200));
+            Equal(0, floor.Release(start.AddMilliseconds(9000)).Count, "stopped speech drops what waited");
+        }
+
+        private static void KeptLessonHoldsFromItsStart()
+        {
+            var floor = new SpeechFloor();
+            var start = new DateTime(2026, 10, 26, 10, 32, 42);
+            floor.Sent(new string('x', 100), true, start);
+            Equal(false, floor.Keep("¡Has recibido un punto de pasivas!", false, 2000, start), "in play the lesson waits its turn");
+            Equal(true, floor.Held(start.AddMilliseconds(100 * SpeechFloor.SpokenMsPerChar + 1900)), "held until said after what was ahead");
+            Equal(false, floor.Held(start.AddMilliseconds(100 * SpeechFloor.SpokenMsPerChar + 2100)), "then free");
+
+            var later = start.AddMinutes(1);
+            floor.Sent(new string('x', 1000), true, later);
+            floor.Keep("lesson", false, 2000, later);
+            Equal(false, floor.Held(later.AddMilliseconds(SpeechFloor.MaxAheadMs + 2100)), "a long line ahead delays the hold only so far");
+        }
+
+        private static void PendingLessonIsRemindedNowAndThen()
+        {
+            Equal(false, LessonReminder.IsDue(TimeSpan.FromSeconds(3), false), "the box flickering during play");
+            Equal(true, LessonReminder.IsDue(TimeSpan.FromSeconds(6), false), "shown again during play: the game waits for it");
+            Equal(false, LessonReminder.IsDue(TimeSpan.FromSeconds(30), true), "back with a panel soon after");
+            Equal(true, LessonReminder.IsDue(TimeSpan.FromSeconds(61), true), "still pending a minute later");
+        }
+
+        private static void WeakPointLeadsToTheHead()
+        {
+            const string Folder = "Metadata/Monsters/MudBurrower/";
+            var player = new Vector2(1000, 1000);
+            var tail = new BossPart(1, "El devorador", Folder + "MudBurrowerTailBoss", new Vector2(1100, 1000), 80, true, true);
+            var head = new BossPart(2, "El devorador", Folder + "MudBurrowerHeadBoss", new Vector2(1600, 1000), 90, true, true);
+            var trap = new BossPart(3, "El devorador", Folder + "MudBurrowerHeadTrap", new Vector2(1050, 1000), 60, false, true);
+            var larva = new BossPart(4, "Larva de carne", "Metadata/Monsters/MudBurrower/Maggot", new Vector2(1010, 1000), 20, false, true);
+            Equal(2u, WeakPoints.Pick(new[] { tail, trap, larva, head }, player)?.Id, "the unique head, not the nearer tail, trap or larva");
+            Equal(null, WeakPoints.Pick(new[] { tail, trap, head with { InPlay = false } }, player)?.Id, "the head buried: silence, never a trap of its name");
+            Equal(null, WeakPoints.Pick(new[] { head, larva }, player)?.Id, "no tail near: no guide");
+            var duo = new BossPart(5, "Anundr", "Metadata/Monsters/DevourerDuo/DevourerBossDuoTail", player, 80, true, true);
+            Equal(true, WeakPoints.IsTail(duo.Path) && !WeakPoints.IsTail("Metadata/Monsters/Tailor/Thief"), "the word in the last segment only");
+        }
+
+        private static void WeakPointBeatsFasterThenSteady()
+        {
+            Equal(true, WeakPoints.IntervalMs(2000, 40) > WeakPoints.IntervalMs(300, 40), "faster as the gap closes");
+            Equal(WeakPoints.AtPartIntervalMs, WeakPoints.IntervalMs(30, 40), "steady within reach");
+        }
+
         private static void FarBarrierStaysClosedUntilSeenNear()
         {
             // 400x10 open strip; a barrier at cells 380-381 reads closed (believed at any distance), then
@@ -1057,7 +1136,7 @@ namespace Poe2Accessibility.Tests
 
             public void Urge(string text, int holdMs = 1500) => this.Calls.Add($"urge {text}");
 
-            public void Keep(string text, int holdMs) => this.Calls.Add($"keep {text}");
+            public void Keep(string text, int holdMs, bool interrupt = false) => this.Calls.Add($"keep {text} {interrupt}");
 
             public void Mention(string text) => this.Calls.Add($"mention {text}");
 

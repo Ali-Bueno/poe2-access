@@ -20,10 +20,10 @@ namespace Poe2Accessibility.Services
         void Urge(string text, int holdMs = 1500);
 
         /// <summary>
-        ///     Queues the phrase like <see cref="Speak"/> without interrupting, then lets no interrupting phrase cut it for
-        ///     <paramref name="holdMs"/>: a lesson that holds the character still must be heard whole.
+        ///     Says a tutorial lesson whole: for <paramref name="holdMs"/> once it starts, what would cut it waits and follows
+        ///     it (only the latest of what interrupts).
         /// </summary>
-        void Keep(string text, int holdMs) => this.Speak(text);
+        void Keep(string text, int holdMs, bool interrupt = false) => this.Speak(text, interrupt);
 
         /// <summary>
         ///     Queues a short warning like <see cref="Speak"/>; an interrupting phrase in the next moment starts with it, so

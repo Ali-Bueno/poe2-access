@@ -33,6 +33,8 @@
  "Boss in sight: {0}": "Chefe à vista: {0}",
  "Boss life": "Vida do chefe",
  "Boss stairs": "Escada do chefe",
+ "Boss weak point": "Ponto fraco do chefe",
+ "Boss weak point heartbeat": "Batimento do ponto fraco do chefe",
  "Bosses": "Chefes",
  "Cannot use: {0}": "Não é possível usar: {0}",
  "Change password.": "Alterar senha.",
@@ -239,7 +241,7 @@
  "Stairs Down": "Escada para baixo",
  "Stairs Up": "Escada para cima",
  "Stunned": "Atordoado",
- "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states and the boss. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "Toque: onde está a escolha do escâner, ou repetir. Toque duplo: vida, mana, estados e o chefe. Segurar: a tela, as dicas de botões e a barra de habilidades. Segurar um segundo e meio: este menu",
+ "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states, the boss, the flasks, your level and the area's, your gold and how much you have explored. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "Toque: onde está a escolha do escâner, ou repetir. Toque duplo: vida, mana, estados, o chefe, os frascos, o seu nível e o da área, o seu ouro e quanto você explorou. Segurar: a tela, as dicas de botões e a barra de habilidades. Segurar um segundo e meio: este menu",
  "Target names": "Nomes de alvos",
  "The death screen is hidden: Y shows it": "A tela de morte está oculta: Y a mostra",
  "The way opened": "O caminho se abriu",
@@ -325,6 +327,7 @@
  "flasks": "frascos",
  "forge": "forja",
  "fountain": "fonte",
+ "from the side of the boss's head, not its tail; faster as you near it, slow and soft at the head, silent while it is buried": "do lado da cabeça do chefe, não da cauda; mais rápido ao se aproximar, lento e suave junto à cabeça, calado enquanto ela está enterrada",
  "garden": "jardim",
  "gate": "portão",
  "gold": "ouro",
@@ -453,5 +456,6 @@
  "{0}, {1} away, the way stops short: {2}": "{0}, a {1}, o caminho termina antes: {2}",
  "{0}, {1} percent": "{0}, {1} por cento",
  "{0}, {1} uses": "{0}, {1} usos",
- "{0}, {1}, {2}{3}": "{0}, {1}, {2}{3}"
+ "{0}, {1}, {2}{3}": "{0}, {1}, {2}{3}",
+ "{0}: strike the head, follow the heartbeat": "{0}: golpeie a cabeça, siga o batimento"
 }

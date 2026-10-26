@@ -33,6 +33,8 @@
  "Boss in sight: {0}": "Boss in Sicht: {0}",
  "Boss life": "Leben von Bossen",
  "Boss stairs": "Treppe des Bosses",
+ "Boss weak point": "Schwachstelle des Bosses",
+ "Boss weak point heartbeat": "Herzschlag zur Schwachstelle des Bosses",
  "Bosses": "Bosse",
  "Cannot use: {0}": "Nicht verwendbar: {0}",
  "Change password.": "Passwort ändern.",
@@ -239,7 +241,7 @@
  "Stairs Down": "Treppe nach unten",
  "Stairs Up": "Treppe nach oben",
  "Stunned": "Betäubt",
- "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states and the boss. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "Tippen: wo die Auswahl des Scanners liegt, oder wiederholen. Doppeltippen: Leben, Mana, Zustände und der Boss. Halten: der Bildschirm, die Tastenhinweise und die Fertigkeitenleiste. Eineinhalb Sekunden halten: dieses Menü",
+ "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states, the boss, the flasks, your level and the area's, your gold and how much you have explored. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "Tippen: wo die Auswahl des Scanners liegt, oder wiederholen. Doppeltippen: Leben, Mana, Zustände, der Boss, die Fläschchen, deine Stufe und die des Gebiets, dein Gold und wie viel du erkundet hast. Halten: der Bildschirm, die Tastenhinweise und die Fertigkeitenleiste. Eineinhalb Sekunden halten: dieses Menü",
  "Target names": "Namen der Ziele",
  "The death screen is hidden: Y shows it": "Der Todesbildschirm ist ausgeblendet: Y zeigt ihn an",
  "The way opened": "Der Weg hat sich geöffnet",
@@ -325,6 +327,7 @@
  "flasks": "Fläschchen",
  "forge": "Schmiede",
  "fountain": "Springbrunnen",
+ "from the side of the boss's head, not its tail; faster as you near it, slow and soft at the head, silent while it is buried": "von der Seite des Bosskopfs, nicht des Schwanzes; schneller, je näher du kommst, langsam und leise am Kopf, still, solange er vergraben ist",
  "garden": "Garten",
  "gate": "Tor",
  "gold": "Gold",
@@ -453,5 +456,6 @@
  "{0}, {1} away, the way stops short: {2}": "{0}, {1} entfernt, der Weg endet vorher: {2}",
  "{0}, {1} percent": "{0}, {1} Prozent",
  "{0}, {1} uses": "{0}, {1} Anwendungen",
- "{0}, {1}, {2}{3}": "{0}, {1}, {2}{3}"
+ "{0}, {1}, {2}{3}": "{0}, {1}, {2}{3}",
+ "{0}: strike the head, follow the heartbeat": "{0}: Schlag auf den Kopf, folge dem Herzschlag"
 }

@@ -36,6 +36,10 @@
     <Compile Include="..\..\Poe2Accessibility\Services\QuestMatcher.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\StatusAilments.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\SpeechPriority.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\SpeechFloor.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\FocusDetails.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\LessonReminder.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\WeakPoints.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ExplorationMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\BarrierMemory.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\DodgeThreats.cs" />

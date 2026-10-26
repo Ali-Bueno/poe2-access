@@ -163,6 +163,7 @@ namespace Poe2Accessibility.Services
             var kept = PairNumbers(change.Texts).Where(text => !own.Contains(text.Text) && !IsNumber(text.Text) && !said.Contains(text.Text) &&
                                                               !chrome.Contains(text.Address) && text.Name != TierLabelName &&
                                                               !(text.Text.Length > ShortLabelChars && (focus?.Text.Contains(text.Text, StringComparison.Ordinal) ?? false)) &&
+                                                              !FocusDetails.Names(text.Text, focus?.Text ?? string.Empty) &&
                                                               !InFocusContext(focus, text.Text)).ToList();
             var texts = Describe(kept);
             if (texts.Length == 0)
@@ -223,7 +224,7 @@ namespace Poe2Accessibility.Services
                 // left to the focus that browses it.
                 this.AfterFocus("panel lines after focus", Describe(lines));
             }
-            else if (change.Kind == ScreenChangeKind.TextsAppeared && justFocused &&
+            else if (change.Kind == ScreenChangeKind.TextsAppeared && justFocused && !FocusDetails.HeadedBy(change.Texts, focus?.Text ?? string.Empty, TierLabelName) &&
                      (change.Scrolled || this.selectedTab(change.Layer.Address).Length > 0))
             {
                 // The list scrolled under the focus (the Game options page): rows coming into view, not news. On a
@@ -245,10 +246,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The objective / tutorial box: new texts read, lessons that hold the character kept whole.</summary>
         private void OnTutorialChange(ScreenChange change, ScreenSnapshot snapshot, AccessibleUiNode? focus, System.Collections.Generic.List<ScreenText> legends)
         {
-            // A new objective or tutorial hint: after what is being said, never instead of it. The box shows the
-            // same hint again whenever a panel or the radial menu closes: not news. Shown again later during play
-            // it can be the game waiting for that very action — the dodge lesson holds the character stunned until
-            // B (Riverbank boss, 2026-10-24, silent for minutes): said again then.
+            // The box shows the same hint again whenever a panel or the radial menu closes: not news, until a reminder
+            // is due. Shown again later during play it can be the game waiting for that very action — the dodge lesson
+            // holds the character stunned until B (Riverbank boss, 2026-10-24, silent for minutes): said again then.
             var hints = change.Kind == ScreenChangeKind.TopLayerChanged
                 ? new List<ScreenText>()
                 : change.Texts.Where(text => this.TutorialIsNews(text.Text, focus == null && snapshot.TopInteractive?.Address == this.HudLayer)).ToList();
@@ -258,18 +258,19 @@ namespace Poe2Accessibility.Services
                 // holds the character until View (2026-10-24: only the first line was said, the player stood still).
                 hints.AddRange(legends);
             }
-            if (hints.Count > 0 && this.deferredFocus != null)
+            if (hints.Count > 0)
             {
-                // A panel opening with its hint (Skills beside the inventory: "Unidentified item. Press X…"): the
-                // focus it is about first, which would otherwise cut the hint off.
-                this.hintAfterFocus = Announcements.Sentences(new[] { this.hintAfterFocus, Describe(hints) });
-            }
-            else if (hints.Count > 0)
-            {
-                // In a menu the focus is what the player is listening to: a hint waits its turn there. In play it is
-                // kept whole: "Before going on, engrave your uncut skill gem" was cut by the beacon's arrival while the
-                // game barred the way out (2026-10-24).
-                this.Speak("objective", Describe(hints), SpeechPriority.Interrupts(SpeechKind.Quest) && focus == null, keep: focus == null);
+                // A lesson is said whole and what would cut it waits ("Before going on, engrave your uncut skill gem" cut by
+                // the beacon, 2026-10-24; "Navigate to your passive tree" by inventory moves, 2026-10-26). In a menu it
+                // cuts in, then the focus it cut off; in play the objectives' speech setting says whether it waits.
+                var inMenu = focus != null;
+                var cutFocus = inMenu && this.deferredFocus == null &&
+                               (DateTime.UtcNow - this.lastFocusAt).TotalMilliseconds < SpeechFloor.SpokenMs(this.lastFocusSpeech);
+                this.Speak("objective", Describe(hints), inMenu || SpeechPriority.Interrupts(SpeechKind.Quest), keep: true);
+                if (cutFocus)
+                {
+                    this.output.Speak(this.lastFocusSpeech);
+                }
             }
         }
 
@@ -316,8 +317,8 @@ namespace Poe2Accessibility.Services
         private bool TutorialIsNews(string text, bool playing)
         {
             var now = DateTime.UtcNow;
-            if (this.tutorialSpoken.TryGetValue(text, out var said) &&
-                (!playing || (now - this.hudBackAt).TotalMilliseconds < HudBackMs || (now - said).TotalMilliseconds < TutorialRepeatMs))
+            var boxBack = !playing || (now - this.hudBackAt).TotalMilliseconds < HudBackMs;
+            if (this.tutorialSpoken.TryGetValue(text, out var said) && !LessonReminder.IsDue(now - said, boxBack))
             {
                 return false;
             }

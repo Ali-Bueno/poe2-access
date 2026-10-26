@@ -147,6 +147,10 @@ namespace Poe2Accessibility
 
         public static string BossDefeated(string name) => T($"{name} defeated", $"{name} derrotado");
 
+        /// <summary>Once per area, as the weak-point heartbeat first leads to a boss's head.</summary>
+        public static string WeakPointGuide(string name) =>
+            T($"{name}: strike the head, follow the heartbeat", $"{name}: golpea la cabeza, sigue el latido");
+
         /// <summary>"Poisoned" as it begins (D2R: high priority, cannot be cut off).</summary>
         public static string AilmentBegins(Services.StatusAilment ailment) => AilmentName(ailment);
 
@@ -217,6 +221,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.ObjectSounds) => T("Object sounds", "Sonidos de objetos"),
             nameof(AccessibilitySettings.LootSounds) => T("Items heard and named", "Objetos que suenan y se nombran"),
             nameof(AccessibilitySettings.DodgeWarnings) => T("Dodge warnings", "Avisos para esquivar"),
+            nameof(AccessibilitySettings.BossWeakPoint) => T("Boss weak point heartbeat", "Latido del punto débil del jefe"),
             nameof(AccessibilitySettings.CrosshairBeep) => T("Crosshair beep", "Pitido de mira"),
             nameof(AccessibilitySettings.LowLifeBelow) => T("Urgent life warnings below", "Avisos de vida urgentes por debajo de"),
             nameof(AccessibilitySettings.SoundVolume) => T("Master volume", "Volumen general"),
@@ -297,6 +302,7 @@ namespace Poe2Accessibility
             "beacon" => T("Guide ping", "Ping de la guía"),
             "dodge" => T("Dodge warning", "Aviso para esquivar"),
             "crosshair" => T("Crosshair", "Mira"),
+            "weak_point" => T("Boss weak point", "Punto débil del jefe"),
             "reach" => T("Reach ping", "Aviso de alcance"),
             "wall_tone" => T("Wall tone", "Tono de pared"),
             "radar_obstacle" => T("Radar: small obstacle", "Radar: obstáculo pequeño"),
@@ -333,6 +339,9 @@ namespace Poe2Accessibility
             "beacon" => T("walk so it sounds in the centre; faster when closer", "camina para oírlo al centro; más rápido al acercarte"),
             "dodge" => T("a rare or unique monster starts an attack, dodge", "un monstruo raro o único empieza un ataque, esquiva"),
             "crosshair" => T("the game's target lands on a living enemy", "el objetivo del juego cae en un enemigo vivo"),
+            "weak_point" => T(
+                "from the side of the boss's head, not its tail; faster as you near it, slow and soft at the head, silent while it is buried",
+                "del lado de la cabeza del jefe, no de la cola; más rápido al acercarte, lento y suave junto a la cabeza, callado mientras está enterrada"),
             "reach" => T(
                 "an enemy is close enough to hit in melee, on its side; again once every enemy has stepped back",
                 "un enemigo está al alcance cuerpo a cuerpo, de su lado; vuelve a sonar cuando todos se hayan alejado"),

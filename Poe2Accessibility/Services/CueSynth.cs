@@ -99,6 +99,20 @@ namespace Poe2Accessibility.Services
         /// <summary>The mixer's output stays linear up to this level, then rounds off toward full scale.</summary>
         private const float LimitKnee = 0.8f;
 
+        /// <summary>
+        ///     Boss weak point: a heartbeat, two soft thumps 150 ms apart whose pitch falls 160 → 90 Hz (the second a little
+        ///     higher and quieter), with two overtones so small speakers carry it; no other cue is a double low thump.
+        /// </summary>
+        private const float BeatSeconds = 0.11f;
+        private const float BeatGapSeconds = 0.15f;
+        private const float BeatStartHz = 160f;
+        private const float BeatEndHz = 90f;
+        private const float BeatDecaySeconds = 0.035f;
+        private const float BeatSecondRatio = 1.15f;
+        private const float BeatSecondLevel = 0.7f;
+        private const float BeatLevel = 0.6f;
+        private static readonly float[] BeatHarmonics = { 1f, 0.5f, 0.3f };
+
         /// <summary>Crosshair (D2R crosshair.md): two flat 24 ms blips at 1175 Hz, 40 ms apart, odd harmonics.</summary>
         private const float ReachLowHz = 1320f;
         private const float ReachHighHz = 1760f;
@@ -303,6 +317,16 @@ namespace Poe2Accessibility.Services
             return Normalized(samples, BlipLevel);
         }
 
+        public static float[] Heartbeat(int sampleRate)
+        {
+            var beat = (int)(BeatSeconds * sampleRate);
+            var gap = (int)(BeatGapSeconds * sampleRate);
+            var samples = new float[gap + beat];
+            AddBeat(samples, 0, beat, 1f, 1f, sampleRate);
+            AddBeat(samples, gap, beat, BeatSecondLevel, BeatSecondRatio, sampleRate);
+            return Normalized(samples, BeatLevel);
+        }
+
         /// <summary>The mixer's output stage: linear to the knee, then a soft curve that never passes full scale.</summary>
         public static float Limit(float sample)
         {
@@ -356,6 +380,24 @@ namespace Poe2Accessibility.Services
             }
 
             return output;
+        }
+
+        /// <summary>One thump of <see cref="Heartbeat"/> mixed in at <paramref name="start"/>, its pitch scaled by <paramref name="ratio"/>.</summary>
+        private static void AddBeat(float[] samples, int start, int length, float level, float ratio, int sampleRate)
+        {
+            var phase = 0.0;
+            for (var i = 0; i < length; i++)
+            {
+                var t = (float)i / sampleRate;
+                phase += ratio * (BeatStartHz + ((BeatEndHz - BeatStartHz) * t / BeatSeconds)) / sampleRate;
+                var tone = 0f;
+                for (var h = 0; h < BeatHarmonics.Length; h++)
+                {
+                    tone += BeatHarmonics[h] * MathF.Sin((float)(2 * Math.PI * (h + 1) * phase));
+                }
+
+                samples[start + i] += level * tone * MathF.Exp(-t / BeatDecaySeconds) * MathF.Min(1f, t / AttackSeconds) * MathF.Min(1f, (BeatSeconds - t) / TapReleaseSeconds);
+            }
         }
 
         /// <summary>Fast attack, then a smooth fall to silence at the end (no click).</summary>

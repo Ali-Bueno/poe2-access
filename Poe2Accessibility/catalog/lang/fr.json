@@ -33,6 +33,8 @@
  "Boss in sight: {0}": "Boss en vue : {0}",
  "Boss life": "Vie des boss",
  "Boss stairs": "Escalier du boss",
+ "Boss weak point": "Point faible du boss",
+ "Boss weak point heartbeat": "Battement du point faible du boss",
  "Bosses": "Boss",
  "Cannot use: {0}": "Impossible d'utiliser : {0}",
  "Change password.": "Changer le mot de passe.",
@@ -239,7 +241,7 @@
  "Stairs Down": "Escalier descendant",
  "Stairs Up": "Escalier montant",
  "Stunned": "Étourdi",
- "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states and the boss. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "Appui : où se trouve le choix du scanner, ou répéter. Double appui : vie, mana, états et le boss. Maintenir : l'écran, les indications de boutons et la barre de compétences. Maintenir une seconde et demie : ce menu",
+ "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states, the boss, the flasks, your level and the area's, your gold and how much you have explored. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "Appui : où se trouve le choix du scanner, ou répéter. Double appui : vie, mana, états, le boss, les fioles, votre niveau et celui de la zone, votre or et ce que vous avez exploré. Maintenir : l'écran, les indications de boutons et la barre de compétences. Maintenir une seconde et demie : ce menu",
  "Target names": "Noms des cibles",
  "The death screen is hidden: Y shows it": "L'écran de mort est masqué : Y l'affiche",
  "The way opened": "Le passage s'est ouvert",
@@ -325,6 +327,7 @@
  "flasks": "flacons",
  "forge": "forge",
  "fountain": "fontaine",
+ "from the side of the boss's head, not its tail; faster as you near it, slow and soft at the head, silent while it is buried": "du côté de la tête du boss, pas de sa queue ; plus rapide quand vous approchez, lent et doux près de la tête, muet tant qu'elle est enfouie",
  "garden": "jardin",
  "gate": "portail",
  "gold": "or",
@@ -453,5 +456,6 @@
  "{0}, {1} away, the way stops short: {2}": "{0}, à {1}, le chemin s'arrête avant : {2}",
  "{0}, {1} percent": "{0}, {1} pour cent",
  "{0}, {1} uses": "{0}, {1} utilisations",
- "{0}, {1}, {2}{3}": "{0}, {1}, {2}{3}"
+ "{0}, {1}, {2}{3}": "{0}, {1}, {2}{3}",
+ "{0}: strike the head, follow the heartbeat": "{0} : frappez la tête, suivez le battement de cœur"
 }

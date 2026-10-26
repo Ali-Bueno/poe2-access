@@ -23,7 +23,7 @@ namespace Poe2Accessibility.Services
 
         public void Urge(string text, int holdMs = 1500) => this.inner.Urge(this.Named(text), holdMs);
 
-        public void Keep(string text, int holdMs) => this.inner.Keep(this.Named(text), holdMs);
+        public void Keep(string text, int holdMs, bool interrupt = false) => this.inner.Keep(this.Named(text), holdMs, interrupt);
 
         public void Mention(string text) => this.inner.Mention(this.Named(text));
 

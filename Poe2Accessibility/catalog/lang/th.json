@@ -33,6 +33,8 @@
  "Boss in sight: {0}": "เห็นบอส {0}",
  "Boss life": "พลังชีวิตบอส",
  "Boss stairs": "บันไดของบอส",
+ "Boss weak point": "จุดอ่อนของบอส",
+ "Boss weak point heartbeat": "เสียงหัวใจเต้นนำไปยังจุดอ่อนของบอส",
  "Bosses": "บอส",
  "Cannot use: {0}": "ใช้ไม่ได้ {0}",
  "Change password.": "เปลี่ยนรหัสผ่าน",
@@ -239,7 +241,7 @@
  "Stairs Down": "บันไดลง",
  "Stairs Up": "บันไดขึ้น",
  "Stunned": "ถูกสตัน",
- "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states and the boss. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "กดหนึ่งครั้ง บอกตำแหน่งที่ตัวสแกนเลือกไว้ หรือพูดซ้ำ กดสองครั้ง พลังชีวิต มานา สถานะ และบอส กดค้าง หน้าจอ คำแนะนำปุ่ม และแถบสกิล กดค้างหนึ่งวินาทีครึ่ง เมนูนี้",
+ "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states, the boss, the flasks, your level and the area's, your gold and how much you have explored. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "กดหนึ่งครั้ง บอกตำแหน่งที่ตัวสแกนเลือกไว้ หรือพูดซ้ำ กดสองครั้ง พลังชีวิต มานา สถานะ บอส ขวดยา เลเวลของคุณและของพื้นที่ ทองของคุณ และสำรวจไปแล้วเท่าไร กดค้าง หน้าจอ คำแนะนำปุ่ม และแถบสกิล กดค้างหนึ่งวินาทีครึ่ง เมนูนี้",
  "Target names": "ชื่อเป้าหมาย",
  "The death screen is hidden: Y shows it": "ซ่อนหน้าจอตายอยู่ กด Y เพื่อแสดง",
  "The way opened": "ทางเปิดแล้ว",
@@ -325,6 +327,7 @@
  "flasks": "ขวดยา",
  "forge": "เตาหลอม",
  "fountain": "น้ำพุ",
+ "from the side of the boss's head, not its tail; faster as you near it, slow and soft at the head, silent while it is buried": "ดังจากฝั่งหัวของบอส ไม่ใช่หาง ยิ่งเข้าใกล้ยิ่งถี่ ช้าและเบาเมื่ออยู่ที่หัว เงียบขณะที่หัวมุดอยู่ใต้ดิน",
  "garden": "สวน",
  "gate": "ประตูใหญ่",
  "gold": "ทอง",
@@ -453,5 +456,6 @@
  "{0}, {1} away, the way stops short: {2}": "{0} ห่างไป {1} ทางไปไม่ถึง {2}",
  "{0}, {1} percent": "{0}, {1} เปอร์เซ็นต์",
  "{0}, {1} uses": "{0}, ใช้ได้ {1} ครั้ง",
- "{0}, {1}, {2}{3}": "{0}, {1}, {2}{3}"
+ "{0}, {1}, {2}{3}": "{0}, {1}, {2}{3}",
+ "{0}: strike the head, follow the heartbeat": "{0}: ตีที่หัว ตามเสียงหัวใจเต้นไป"
 }

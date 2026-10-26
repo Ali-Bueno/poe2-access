@@ -93,7 +93,7 @@
 | Mod button L3 (any controller, from the game's own pad state M+0x768) | done (live) | tap/double tap = next/previous line, hold = whole tooltip; gameplay: repeat, hints, screen; `docs/controls.md` |
 | Scanner (hold L3 + right stick flicks; tap = where the choice is now) | done (live) | `EntityCatalog` + `RoutePlanner` + `ScanBrowser`: 8 categories, routed steps, leg + next turn ("Una, 14 steps, right 3, then up right"); walked Riverbank → Miller → Clearfell → town NPCs on it |
 | Low-life warnings | done (live) | `VitalAlarm`: "Life 50 percent" / "Life 25 percent" once per fall; the Miller was beaten reacting to them |
-| Skill crafting (engrave an uncut gem): grid in reading order, details after the name, Engrave confirm with its buttons | done (live) | "Skeletal Sniper, Level 1, 1 of 24"; "Engrave. Contagion. Confirm, A. Back, B" |
+| Skill crafting (engrave an uncut gem): grid in reading order, details after the name, Engrave confirm with its buttons | done (live; details fix in code) | "Skeletal Sniper, Level 1, 1 of 24"; "Engrave. Contagion. Confirm, A. Back, B"; the details were taken for scrolled rows since 2026-10-24 (only the name read, 2026-10-26): `FocusDetails` |
 | Skill gems in the inventory named from their tooltip (no base display name) | done (live) | "Unearth, column 1, row 1" |
 | Read the whole panel (`screen` command) | done (live) | character detailed stats read fully; summary block order is jumbled |
 | Options section names on entering a section | done (live) | "UI. Controller. HUD Mode, Central, combo box, 1 of 8" |
@@ -111,6 +111,7 @@
 | Guide beacon (L3 + R3 on a scanner choice) | done (live) | `Beacon`/`BeaconMath`: route off the frame thread, ping 620 Hz panned along the route, "Llegaste a …" |
 | Scanner Quest category (objective's proper nouns) | done (live) | "Misión. El molinero hinchado, único, 5 pasos"; `QuestMatcher` |
 | Boss life + dodge warning | done (live) | "El molinero hinchado 72 por ciento"; whoosh + snap only on attack animations (`DodgeThreats`), a rare's blow within 150 units, louder when closer; timed half a second before the blow as learnt from the hits taken (`DodgeTimings`, `config/dodge-timings.txt`; MudGolem GroundSlam 1156 ms), at the wind-up until learnt (`docs/research/dodge-timing.md`) |
+| Boss weak point heartbeat (the Devourer: strike the head, not the tail) | done (code) | `WeakPointGuide` + pure `WeakPoints`: a unique monster sharing a "Tail" entity's name (MonsterVarieties MudBurrowerTailBoss / DevourerBossDuoTail have no boss bar, read 2026-10-26); silent while the head is out of play (burying untargetable: not yet seen live) |
 | Cue timbres and mixer | done (code) | beacon an iron chime, dodge a blade swing with a ringing snap and thud, both in a short stone-room tail; growl with a sub-octave; levels raised toward the game's own sounds; soft limiter instead of clipping (`CueSynth.Limit`) |
 | Mana warnings, vitals on L3 double tap | done (live) | "Maná 50 por ciento"; "Vida 85 por ciento, maná 100 por ciento. El molinero hinchado 65 por ciento" |
 | Vitals: flask uses, level progress, gold, explored share (D2R) | done (live) | "Frasco de vida menor, 6 usos… Nivel 3, 5 por ciento hacia el nivel 4, nivel del área 15. Explorado 41 por ciento" (2026-10-25); `FlaskWatch` (GameHelper FlaskInventory + Charges 60/10), `ExperienceTable` (`catalog/experience.json` from ExperienceLevels), `ExplorationMap.ExploredPercent`; empty-flask warning heard: "Frasco de maná menor vacío" after six drinks in Clearfell, then the game's own "Sin frascos" (2026-10-25; flasks are not drunk in town or at full life/mana) |
@@ -159,7 +160,7 @@
 | NPC quest bell (D2R NPC "!") | done (live) | `EntityCatalog.HasQuestMarker`: "Personajes. Renly, con misión, 16 pasos…", "Una, con misión"; bell (`CueSynth.Ring`) among the object sounds and in the glossary |
 | Item comparison | done (live, the game's own) | R3 "Comparar" opens Modo inspección: the item beside the equipped ones, links walked with the D-pad; an item's text is read once, then only the links ("Set de armas, enlace") |
 | Barriers: routes, scanner, opening | done (live) | `BarrierMemory` (unit-tested): closed believed at any distance, walkable only within 120 cells; routes cut by a closed barrier say "una barrera cerrada corta el camino"; scanner "Elementos. Barrera cerrada"; `BarrierWatch` "Se abrió el paso, …"; the guide says "lo más cerca posible" at the end of a partial route |
-| Tutorial lessons that freeze the character | done (live) | lessons that hold the character until a press: dodge (B), low mana (D-pad right flask), passive point (View), engrave the uncut gem before leaving the camp; the lesson's button line is read ("View para abrir los menús"), a lesson shown again during play is said again after 5 s, and in play it is kept whole against interrupting lines; in menus hints queue |
+| Tutorial lessons that freeze the character | done (live) | lessons that hold the character until a press: dodge (B), low mana (D-pad right flask), passive point (View), engrave the uncut gem before leaving the camp; the lesson's button line is read ("View para abrir los menús"), a lesson shown again during play is said again after 5 s, and in play it is kept whole against interrupting lines. In code (2026-10-26, user missed the passive point behind inventory moves): in menus a lesson cuts in, is kept whole (`SpeechFloor`: what interrupts meanwhile waits, only the latest follows) and the focus it cut is said after it; a pending lesson back with a panel or menu is reminded after 60 s (`LessonReminder`) |
 | Options page: glyph labels, scroll, slider rows, combos | done (live) | "Encaje de objetos stick izquierdo / cruceta", wrapped labels joined, deadzone "3 de 10", rows scrolling into view not read, value-beside-slider rows keep the list position, combos opened in place: "Eligiendo: …", "Adaptativo (experimental), 2 de 3", "Elegido: …" |
 | Login: gateway list | done (live) | "Servidor, Sao Paulo (BR), lista desplegable, 5 de 7"; open list reads the highlighted entry "Japan, 16 de 19" |
 | NPC dialogue and vendor (town) | done (live) | speaker first ("Renly. Comprar o vender objetos, 7 de 8"); vendor stock "Coraza oxidada, columna 10, fila 10, 50 oro, no alcanza… Comprar objeto, X"; reward and vendor openings without the gold chrome |
@@ -311,13 +312,15 @@
   `DodgeThreats`), `TargetNarrator` (aim names + crosshair), `StatusWatch` (+ pure `StatusAilments`), `EnemyNarrator`, `DeathWatch`,
   `ObjectSounds` + `GameSounds` + `ItemDropSounds` (game WAVs), `CheckpointPlaces` (+ pure `MapPlaces`),
   `ScreenProjection` (world offset → screen, on-screen test), `FlaskWatch`, `ExperienceTable`, `LootFilter`.
-  Speech priority: `IAccessibilityOutputService.Urge` (later interrupts queue for 1.5 s).
+  Speech priority: `IAccessibilityOutputService.Urge` (later interrupts queue for 1.5 s), `.Keep` (tutorial lessons; `SpeechFloor` holds what comes meanwhile).
 - Tests: `tests/Poe2Accessibility.Tests` (differ, text edits, chat diff, gestures, scanner, route legs, life
   alarm, beacon, quest matching, cooldown, ailments, dodge threats, map markers). Dev tools: `tools/computer_use/`; dev commands
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-Next: user test of local co-op with two real controllers (both toggles, a revive by holding A; the revive and
+Next: put the new plugin DLL into `dist\Poe2Access` once the user stops the mod (not the package script: it wipes that
+folder), then user test of the 2026-10-26 lesson priority (inventory with a pending passive point) and skill details in
+the engrave list, and the Devourer's weak-point heartbeat (does the head turn untargetable when it burrows?). Then: user test of local co-op with two real controllers (both toggles, a revive by holding A; the revive and
 respawn lines are unit-tested, not heard live). Then: user test of the 2026-10-25 UI sweep fixes (`docs/research/ui-sweep-2026-10-25.md`) and of the player 2 radar
 in real couch co-op (two pads; J2 joins at character selection, "Cooperativo local: lectura para el jugador 2" in the mod's settings). Characters: "kehgan" (Monk, level 2, Clearfell Encampment; a town NPC shows a quest marker), "yarkbruja" (Witch, level 3,
 Clearfell Encampment, no NPC marker), "yarkey" (Mercenary, level 4, Clearfell Encampment). Start in town from character selection:

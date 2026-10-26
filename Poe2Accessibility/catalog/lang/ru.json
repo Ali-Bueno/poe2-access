@@ -33,6 +33,8 @@
  "Boss in sight: {0}": "Босс на виду: {0}",
  "Boss life": "Здоровье боссов",
  "Boss stairs": "Лестница босса",
+ "Boss weak point": "Слабое место босса",
+ "Boss weak point heartbeat": "Сердцебиение слабого места босса",
  "Bosses": "Боссы",
  "Cannot use: {0}": "Нельзя использовать: {0}",
  "Change password.": "Смена пароля.",
@@ -239,7 +241,7 @@
  "Stairs Down": "Лестница вниз",
  "Stairs Up": "Лестница вверх",
  "Stunned": "Оглушён",
- "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states and the boss. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "Нажатие: где находится выбор сканера, или повтор. Двойное нажатие: здоровье, мана, состояния и босс. Удержание: экран, подсказки по кнопкам и панель умений. Удержание полторы секунды: это меню",
+ "Tap: where the scanner's choice is, or repeat. Double tap: life, mana, states, the boss, the flasks, your level and the area's, your gold and how much you have explored. Hold: the screen, the button hints and the skill bar. Hold a second and a half: this menu": "Нажатие: где находится выбор сканера, или повтор. Двойное нажатие: здоровье, мана, состояния, босс, флаконы, ваш уровень и уровень области, ваше золото и сколько вы исследовали. Удержание: экран, подсказки по кнопкам и панель умений. Удержание полторы секунды: это меню",
  "Target names": "Названия целей",
  "The death screen is hidden: Y shows it": "Экран смерти скрыт: Y показывает его",
  "The way opened": "Путь открылся",
@@ -325,6 +327,7 @@
  "flasks": "флаконы",
  "forge": "кузница",
  "fountain": "фонтан",
+ "from the side of the boss's head, not its tail; faster as you near it, slow and soft at the head, silent while it is buried": "со стороны головы босса, а не хвоста; чаще по мере приближения, медленно и тихо у головы, молчит, пока она под землёй",
  "garden": "сад",
  "gate": "ворота",
  "gold": "золото",
@@ -453,5 +456,6 @@
  "{0}, {1} away, the way stops short: {2}": "{0}, {1} от вас, путь обрывается раньше: {2}",
  "{0}, {1} percent": "{0}, {1} процентов",
  "{0}, {1} uses": "{0}, использований: {1}",
- "{0}, {1}, {2}{3}": "{0}, {1}, {2}{3}"
+ "{0}, {1}, {2}{3}": "{0}, {1}, {2}{3}",
+ "{0}: strike the head, follow the heartbeat": "{0}: бейте в голову, следуйте за сердцебиением"
 }

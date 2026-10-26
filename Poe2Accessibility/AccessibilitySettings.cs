@@ -60,6 +60,9 @@ namespace Poe2Accessibility
         /// <summary>A rising whoosh on the side of a rare or unique monster that starts an attack: time to dodge.</summary>
         public bool DodgeWarnings = true;
 
+        /// <summary>A heartbeat that leads to the part of a boss worth striking: the Devourer's head, not its tail.</summary>
+        public bool BossWeakPoint = true;
+
         /// <summary>Name the monster, NPC or object the right stick aims at.</summary>
         public bool AnnounceTarget = true;
 

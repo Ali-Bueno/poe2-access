@@ -97,6 +97,7 @@ namespace Poe2Accessibility
                     this.bosses.Tick(playing);
                 }
             });
+            this.Isolated("weak point", () => this.weakPoint?.Tick(playing && this.Settings.BossWeakPoint));
             this.Isolated("object sounds", () => this.objectSounds?.Tick(playing && this.Settings.ObjectSounds));
             this.Isolated("discoveries", () => this.discoveries?.Tick(playing && this.Settings.AnnounceDiscoveries));
             this.Isolated("enemy news", () => this.enemyNews?.Tick(playing && this.Settings.AnnounceEnemies));

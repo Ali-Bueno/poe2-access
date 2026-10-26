@@ -37,18 +37,12 @@ namespace Poe2Accessibility.Services
         private const string TierLabelName = "tier_label";
 
         /// <summary>A kept line is held about as long as a screen reader takes to say it, within these bounds.</summary>
-        private const int SpokenMsPerChar = 45;
         private const int MinKeepMs = 1500;
         private const int MaxKeepMs = 6000;
 
         /// <summary>A tutorial hint shown this soon after the HUD is back on top is the box reappearing, not news.</summary>
         private const int HudBackMs = 3000;
 
-        /// <summary>
-        ///     A tutorial hint shown again during play is said again after this long: the low-mana lesson came back 28 s
-        ///     after it was said and held the character until the D-pad right flask, in silence (2026-10-24).
-        /// </summary>
-        private const int TutorialRepeatMs = 5000;
 
         /// <summary>The HUD read in this long after the host started inside an area was already there, not news.</summary>
         private const int ResumedHudMs = 2000;
@@ -870,9 +864,9 @@ namespace Poe2Accessibility.Services
                 this.deferredFocus = null; // the popup's message carried the focus with it
             }
 
-            if (keep && !interrupt && this.deferredFocus == null)
+            if (keep)
             {
-                this.output.Keep(text, Math.Clamp(text.Length * SpokenMsPerChar, MinKeepMs, MaxKeepMs));
+                this.output.Keep(text, Math.Clamp(SpeechFloor.SpokenMs(text), MinKeepMs, MaxKeepMs), interrupt);
                 return;
             }
 
