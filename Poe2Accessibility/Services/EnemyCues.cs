@@ -155,7 +155,7 @@ namespace Poe2Accessibility.Services
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             var world = Core.States.InGameStateObject.CurrentWorldInstance;
             var window = Core.Process.WindowArea;
-            if (window.Width <= 0 || window.Height <= 0 || !area.Player.TryGetComponent<Render>(out var player))
+            if (window.Width <= 0 || window.Height <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return found;
             }
@@ -222,7 +222,7 @@ namespace Poe2Accessibility.Services
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             var world = Core.States.InGameStateObject.CurrentWorldInstance;
             var window = Core.Process.WindowArea;
-            if (!area.Player.TryGetComponent<Render>(out var player))
+            if (!Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return "Enemy cues: no player";
             }
@@ -266,7 +266,7 @@ namespace Poe2Accessibility.Services
 
             // A friendly monster with the NPC component is a character (Mortimer); corpses and minions have none.
             var friend = entity.EntityType == EntityTypes.NPC || entity.TryGetComponent<NPC>(out _) ||
-                         (entity.EntityType == EntityTypes.Player && entity.EntitySubtype != EntitySubtypes.PlayerSelf);
+                         (entity.EntityType == EntityTypes.Player && !Seats.IsLocal(entity));
             return this.Friends && friend ? CueSynth.Layer.Friend : null;
         }
 

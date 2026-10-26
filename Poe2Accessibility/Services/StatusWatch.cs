@@ -5,6 +5,7 @@ namespace Poe2Accessibility.Services
     using System.Linq;
     using GameHelper;
     using GameHelper.RemoteObjects.Components;
+    using GameHelper.RemoteObjects.States.InGameStateObjects;
 
     /// <summary>
     ///     Harmful states on the player (D2R status-effects.md): a state that begins is spoken at once and cannot be cut
@@ -20,6 +21,7 @@ namespace Poe2Accessibility.Services
         /// <summary>D2R EndHoldMs: an end is spoken once the state has been gone this long.</summary>
         private const int EndHoldMs = 500;
 
+        private readonly Func<Entity?> subject;
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
         private readonly Dictionary<StatusAilment, long> active = new();
@@ -27,8 +29,9 @@ namespace Poe2Accessibility.Services
         private bool baseline = true;
         private long lastPoll;
 
-        public StatusWatch(IAccessibilityOutputService output, PluginLog log)
+        public StatusWatch(Func<Entity?> subject, IAccessibilityOutputService output, PluginLog log)
         {
+            this.subject = subject;
             this.output = output;
             this.log = log;
         }
@@ -48,7 +51,7 @@ namespace Poe2Accessibility.Services
         {
             var now = Environment.TickCount64;
             if (!reading || now - this.lastPoll < PollMs ||
-                !Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<Buffs>(out var buffs))
+                this.subject() is not { } entity || !entity.TryGetComponent<Buffs>(out var buffs))
             {
                 return;
             }

@@ -127,7 +127,7 @@ namespace Poe2Accessibility.Services
             }
 
             var entity = Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values.FirstOrDefault(candidate => candidate.Address == hovered);
-            if (entity == null || entity.EntitySubtype == EntitySubtypes.PlayerSelf || this.Describe(entity) is not { } spoken)
+            if (entity == null || Seats.IsLocal(entity) || this.Describe(entity) is not { } spoken)
             {
                 return;
             }
@@ -147,7 +147,7 @@ namespace Poe2Accessibility.Services
             }
 
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            if (!area.Player.TryGetComponent<Render>(out var player))
+            if (!Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return IntPtr.Zero;
             }
@@ -156,7 +156,7 @@ namespace Poe2Accessibility.Services
             var bestDistance = float.MaxValue;
             foreach (var entity in area.AwakeEntities.Values)
             {
-                if (!entity.IsValid || entity.EntitySubtype == EntitySubtypes.PlayerSelf || !entity.TryGetComponent<Render>(out var render))
+                if (!entity.IsValid || Seats.IsLocal(entity) || !entity.TryGetComponent<Render>(out var render))
                 {
                     continue;
                 }
@@ -257,7 +257,7 @@ namespace Poe2Accessibility.Services
 
             var pan = 0f;
             if (entity.TryGetComponent<Render>(out var render) &&
-                Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<Render>(out var player))
+                Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 var offset = new System.Numerics.Vector2(render.WorldPosition.X - player.WorldPosition.X, render.WorldPosition.Y - player.WorldPosition.Y);
                 pan = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, offset)).Pan;

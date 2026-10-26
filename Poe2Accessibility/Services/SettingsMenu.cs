@@ -40,7 +40,6 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.AnnounceMoves)),
             Switch(nameof(AccessibilitySettings.AnnounceLevelUp)),
             Switch(nameof(AccessibilitySettings.Radar)),
-            Switch(nameof(AccessibilitySettings.PartnerRadar)),
             Switch(nameof(AccessibilitySettings.SmallObstacles)),
             Switch(nameof(AccessibilitySettings.WallTones)),
             Switch(nameof(AccessibilitySettings.EnemySounds)),
@@ -69,6 +68,8 @@ namespace Poe2Accessibility.Services
             Choice(nameof(AccessibilitySettings.SpeechPlaces), SpeechPriority.Levels),
             Choice(nameof(AccessibilitySettings.SpeechGroundItems), SpeechPriority.Levels),
             Choice(nameof(AccessibilitySettings.SpeechArrivals), SpeechPriority.Levels),
+            Switch(nameof(AccessibilitySettings.ReadPlayer1)),
+            Switch(nameof(AccessibilitySettings.ReadPlayer2)),
         };
 
         private readonly Item[] items;

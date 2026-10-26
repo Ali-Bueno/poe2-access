@@ -125,7 +125,7 @@ namespace Poe2Accessibility.Services
             }
 
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            if (!area.Player.TryGetComponent<Render>(out var player))
+            if (!Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return;
             }
@@ -170,7 +170,7 @@ namespace Poe2Accessibility.Services
                 this.WarnFlights(now);
             }
 
-            if (this.DodgeWarnings && area.Player.TryGetComponent<Life>(out var life))
+            if (this.DodgeWarnings && Seats.Followed.TryGetComponent<Life>(out var life))
             {
                 this.LearnFromBlow(life.Health.Current, life.Health.Total, now);
             }

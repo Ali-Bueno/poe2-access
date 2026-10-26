@@ -101,7 +101,7 @@ namespace Poe2Accessibility.Services
             }
 
             if (nearby && now - this.lastPoll >= PollMs &&
-                Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<Render>(out var player))
+                Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 this.lastPoll = now;
                 // Gold is said once, as it is picked up ("Recogido 2 de oro", GoldWatch); its sound leads the way to it.

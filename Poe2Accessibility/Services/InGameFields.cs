@@ -122,6 +122,19 @@ namespace Poe2Accessibility.Services
             return IntPtr.Zero;
         }
 
+        /// <summary>Player 2's skill bar in local co-op: at its measured distance from player 1's, named the same, another element.</summary>
+        public IntPtr PartnerSkillBar(IntPtr layerContainer)
+        {
+            var first = this.Find(layerContainer, InGameField.SkillBar);
+            if (first == IntPtr.Zero || !this.offsets.TryGetValue(InGameField.SkillBar, out var offset))
+            {
+                return IntPtr.Zero;
+            }
+
+            var partner = this.Holds(offset + GameLayout.InGameUi.PartnerSkillBarShift, Specs[InGameField.SkillBar]);
+            return partner != first ? partner : IntPtr.Zero;
+        }
+
         /// <summary>
         ///     Research (dev command "layout"): each field with a name or shape is looked for from a wrong place
         ///     (<see cref="LayoutProbe.SelfTestShift"/> away) and must be found where it is now.

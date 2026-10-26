@@ -266,6 +266,12 @@ namespace Poe2Accessibility
             public const string SkillBarName = "skill_bar";
 
             /// <summary>
+            ///     Local co-op: player 2's skill bar this far past player 1's field (+0x7B0 with player 1's at +0x610; both
+            ///     named skill_bar, in two per_player_hud; Clearfell, 2026-10-25, docs/research/local-coop.md).
+            /// </summary>
+            public const int PartnerSkillBarShift = 0x1A0;
+
+            /// <summary>
             ///     The centred line for refusals ("Ya tienes una gema de habilidad engarzada de este tipo."): a label that is
             ///     itself an in-game layer, hidden between messages (hud_console.ui `message_label`, 2026-10-24).
             /// </summary>

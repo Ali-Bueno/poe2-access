@@ -47,7 +47,7 @@ namespace Poe2Accessibility.Services
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             var world = Core.States.InGameStateObject.CurrentWorldInstance;
             var cellSize = area.WorldToGridConvertor;
-            if (cellSize <= 0 || !area.Player.TryGetComponent<Render>(out var player))
+            if (cellSize <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return;
             }

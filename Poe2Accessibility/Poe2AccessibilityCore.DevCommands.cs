@@ -86,7 +86,7 @@ namespace Poe2Accessibility
                     this.log?.Info(this.beacon?.LastAim is { } aim
                         ? FormattableString.Invariant($"Beacon aim {aim.Screen.X:F3},{aim.Screen.Y:F3} remaining {aim.RemainingWorld:F0}")
                         : "Beacon aim none");
-                    var cell = Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var me)
+                    var cell = Seats.Followed.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var me)
                         ? FormattableString.Invariant($"{me.GridPosition.X:F0},{me.GridPosition.Y:F0}")
                         : "?";
                     this.log?.Info($"Beacon state: {this.beacon?.Diagnose()}; cell={cell}; playing={Core.Process.Foreground && this.focus?.Current == null && IsPlayerAlive()} focus={this.focus?.Current?.Text}");

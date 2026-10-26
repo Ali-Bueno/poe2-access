@@ -89,7 +89,7 @@ namespace Poe2Accessibility.Services
         {
             var now = Environment.TickCount64;
             if (!playing || now - this.lastPoll < PollMs ||
-                !Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<Render>(out var player))
+                !Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return;
             }
@@ -97,7 +97,7 @@ namespace Poe2Accessibility.Services
             this.lastPoll = now;
             if (this.character.Length == 0)
             {
-                if (Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<Player>(out var self) && self.Name.Length > 0)
+                if (Seats.Followed.TryGetComponent<Player>(out var self) && self.Name.Length > 0)
                 {
                     this.character = self.Name;
                 }

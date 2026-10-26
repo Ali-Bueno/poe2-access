@@ -66,7 +66,7 @@ namespace Poe2Accessibility.Services
         {
             var now = Environment.TickCount64;
             if (now - this.lastPoll < PollMs ||
-                !Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<Life>(out var life) || life.Health.Total <= 0)
+                !Seats.Followed.TryGetComponent<Life>(out var life) || life.Health.Total <= 0)
             {
                 return;
             }

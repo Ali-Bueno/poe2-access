@@ -39,7 +39,7 @@ namespace Poe2Accessibility.Services
         public string Write(int maxEntities)
         {
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            if (!area.Player.TryGetComponent<Render>(out var playerRender))
+            if (!Seats.Followed.TryGetComponent<Render>(out var playerRender))
             {
                 return string.Empty;
             }

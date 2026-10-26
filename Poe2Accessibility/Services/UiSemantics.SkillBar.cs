@@ -22,11 +22,13 @@ namespace Poe2Accessibility.Services
         /// <summary>One set of the bar in screen order: its title and each binding's button and what it fires ("" = empty).</summary>
         public sealed record SkillSet(string Title, IReadOnlyList<(string Button, string Bound)> Bindings);
 
-        /// <summary>The bar's primary and secondary sets; empty when the in-game bar is not found.</summary>
-        public List<SkillSet> ReadSkillBar(IntPtr layerContainer)
+        /// <summary>The bar's primary and secondary sets (player 2's in local co-op); empty when the in-game bar is not found.</summary>
+        public List<SkillSet> ReadSkillBar(IntPtr layerContainer, bool partner = false)
         {
             var sets = new List<SkillSet>();
-            if (!this.InGameElement(layerContainer, InGameField.SkillBar, out var bar))
+            var found = partner ? this.Fields?.PartnerSkillBar(layerContainer) is { } second && second != IntPtr.Zero && this.elements.TryReadElement(second, out var partnerBar) ? partnerBar : (UiElementReader.ElementInfo?)null
+                : this.InGameElement(layerContainer, InGameField.SkillBar, out var firstBar) ? firstBar : null;
+            if (found is not { } bar)
             {
                 return sets;
             }

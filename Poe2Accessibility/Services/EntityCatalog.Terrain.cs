@@ -52,7 +52,7 @@ namespace Poe2Accessibility.Services
                     this.samples.Enqueue(live);
                     this.lastSampleAt = now;
                     this.stable = null;
-                    if (area.Player.TryGetComponent<Render>(out var player))
+                    if (Seats.Followed.TryGetComponent<Render>(out var player))
                     {
                         var before = this.barriers.ClosedCount;
                         this.barriers.Observe(live, snapshot, area.TerrainMetadata.BytesPerRow, (int)player.GridPosition.X, (int)player.GridPosition.Y);

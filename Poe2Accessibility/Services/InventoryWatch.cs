@@ -245,7 +245,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private void TickWeaponSet(Dictionary<IntPtr, InventoryName> located, bool enabled)
         {
-            if (!Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<Stats>(out var stats) ||
+            if (!Seats.Followed.TryGetComponent<Stats>(out var stats) ||
                 stats.CurrentWeaponIndex is not (0 or 1))
             {
                 return; // a moved offset reads anything else

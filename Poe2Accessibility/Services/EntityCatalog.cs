@@ -188,7 +188,7 @@ namespace Poe2Accessibility.Services
             this.trackedAt = now;
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             var row = area.TerrainMetadata.BytesPerRow;
-            if (row > 0 && area.Player.TryGetComponent<Render>(out var player))
+            if (row > 0 && Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 this.explored.Visit(new Vector2(player.GridPosition.X, player.GridPosition.Y), row * 2, area.GridWalkableData.Length / row);
             }
@@ -198,7 +198,7 @@ namespace Poe2Accessibility.Services
         public IReadOnlyList<ScanEntry> Entries()
         {
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            if (!area.Player.TryGetComponent<Render>(out var player))
+            if (!Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return Array.Empty<ScanEntry>();
             }
@@ -320,7 +320,7 @@ namespace Poe2Accessibility.Services
         public float? DistanceTo(ScanEntry entry)
         {
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            return area.Player.TryGetComponent<Render>(out var player)
+            return Seats.Followed.TryGetComponent<Render>(out var player)
                 ? Vector2.Distance(new Vector2(player.WorldPosition.X, player.WorldPosition.Y), new Vector2(entry.WorldX, entry.WorldY))
                 : null;
         }
@@ -331,7 +331,7 @@ namespace Poe2Accessibility.Services
         {
             cut = false;
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            if (!area.Player.TryGetComponent<Render>(out var player))
+            if (!Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return entry.Name;
             }
@@ -420,7 +420,7 @@ namespace Poe2Accessibility.Services
         public int? ExploredPercent()
         {
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            return area.Player.TryGetComponent<Render>(out var player) && this.TryLiveGrid(out var grid, out var row)
+            return Seats.Followed.TryGetComponent<Render>(out var player) && this.TryLiveGrid(out var grid, out var row)
                 ? this.explored.ExploredPercent(grid, row, new Vector2(player.GridPosition.X, player.GridPosition.Y))
                 : null;
         }
@@ -490,7 +490,7 @@ namespace Poe2Accessibility.Services
         public void RememberDeath()
         {
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            if (area.AreaHash.Length > 0 && area.Player.TryGetComponent<Render>(out var player))
+            if (area.AreaHash.Length > 0 && Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 var at = player.WorldPosition;
                 this.deathPlace = (area.AreaHash, new ScanEntry(DeathPlaceId, ScanCategory.Exits, Announcements.DeathPlace, at.X, at.Y, at.Z));

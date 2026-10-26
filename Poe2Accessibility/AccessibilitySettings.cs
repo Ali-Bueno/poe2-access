@@ -90,11 +90,17 @@ namespace Poe2Accessibility
         /// <summary>Navigation radar: a cue when the way up, left, right or down on screen changes (tin exit, breath open floor, tock wall).</summary>
         public bool Radar = true;
 
-        /// <summary>Local co-op: a second radar for player 2, with its own sounds (plucked strings and a whistle).</summary>
-        public bool PartnerRadar = false;
-
         /// <summary>The radar's wall cue knocks hollow when the wall is a small obstacle the player can step round.</summary>
         public bool SmallObstacles = true;
+
+        /// <summary>Local co-op: the mod reads for player 1 (alone, always player 1).</summary>
+        public bool ReadPlayer1 = true;
+
+        /// <summary>
+        ///     Local co-op: the mod reads for player 2. Alone, it follows player 2 instead of player 1; with both on, player 2
+        ///     gets a radar of its own, in its own sounds (plucked strings and a whistle).
+        /// </summary>
+        public bool ReadPlayer2 = false;
 
         // Speech priority (D2R): per kind of news, "waits" (its turn), "urgent" (cuts in when urgent), "cuts" (cuts in),
         // or "holds" (cuts in and later news queues behind it for a moment).

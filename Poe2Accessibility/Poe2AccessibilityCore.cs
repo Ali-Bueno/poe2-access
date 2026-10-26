@@ -48,7 +48,6 @@ namespace Poe2Accessibility
         private WallBump? wallBump;
         private WallTones? wallTones;
         private GamepadReader.PadState padState;
-        private (string Character, int Level) lastLevel;
         private readonly System.Collections.Generic.Dictionary<string, long> tickFaults = new();
         private HostMemoryReader? memoryReader;
 
@@ -58,19 +57,12 @@ namespace Poe2Accessibility
         /// <summary>Right stick deflection that counts as aiming (the target is named only then).</summary>
         private const float AimDeflection = 0.3f;
 
-        /// <summary>Half and a quarter; re-armed 10 points above.</summary>
-        private readonly VitalAlarm lifeAlarm = new(10, 50, 25);
-
-        /// <summary>
-        ///     Half, a quarter and a tenth; re-armed 30 points above: mana is spent and refilled constantly, and at 10 the
-        ///     half was said every 8 s through the Miller fight (2026-10-24).
-        /// </summary>
-        private readonly VitalAlarm manaAlarm = new(30, 50, 25, 10);
         private Beacon? beacon;
         private TargetNarrator? targets;
         private BossWatch? bosses;
         private ObjectSounds? objectSounds;
-        private StatusWatch? statuses;
+        private PlayerAlerts? alerts;
+        private PlayerAlerts? partnerAlerts;
         private InventoryWatch? pickups;
         private InventoryReader? inventoryReader;
         private GoldWatch? gold;
@@ -229,9 +221,10 @@ namespace Poe2Accessibility
                 this.audio = new AudioCueService(this.log);
                 this.enemyCues = new EnemyCues(this.audio, memory, this.log);
                 var radarTurn = new Radar.Turn();
-                this.radar = new Radar(this.audio, () => Core.States.InGameStateObject.CurrentAreaInstance.Player, RadarSynth.Voice.First, radarTurn, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
+                this.radar = new Radar(this.audio, () => Seats.Followed, RadarSynth.Voice.First, radarTurn, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.localPlayers = new LocalPlayers(memory, this.log);
-                this.partnerRadar = new Radar(this.audio, () => this.localPlayers?.Second(), RadarSynth.Voice.Second, radarTurn, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
+                Seats.Attach(this.localPlayers, () => this.Settings);
+                this.partnerRadar = new Radar(this.audio, () => Seats.Partner, RadarSynth.Voice.Second, radarTurn, () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.nearby = new ProximityNarrator(this.entities, this.output);
                 this.places = new PlaceNarrator(PlaceCatalog.Load(Path.Join(this.DllDirectory, "catalog", "places.json"), this.log), memory, this.output, this.log)
                 {
@@ -245,7 +238,8 @@ namespace Poe2Accessibility
                 this.narrator.IgnoredHudText = () => this.targets?.NameLabel ?? IntPtr.Zero;
                 this.narrator.GoldCounter = () => this.gold?.Counter ?? IntPtr.Zero;
                 this.narrator.GroundItemName = texts => this.entities?.ItemOfTooltip(texts);
-                this.statuses = new StatusWatch(this.output, this.log);
+                this.alerts = new PlayerAlerts(() => Seats.Followed, new SeatOutput(this.output, () => Seats.Partner == null ? string.Empty : PlayerAlerts.Name(Seats.Followed)), this.log);
+                this.partnerAlerts = new PlayerAlerts(() => Seats.Partner, new SeatOutput(this.output, () => PlayerAlerts.Name(Seats.Partner)), this.log);
                 this.pickups = new InventoryWatch(inventory, this.output, this.log);
                 this.flasks = new FlaskWatch(inventory, this.output);
                 this.gold = new GoldWatch(memory, elements, this.output, this.log) { Fields = this.locator.Fields };
@@ -276,7 +270,7 @@ namespace Poe2Accessibility
                 this.narrator.IsSkillBarText = this.IsSkillBarText;
                 this.focus.FocusChanged += this.OnCreationFocus;
                 this.narrator.Refresh = node => this.semantics?.Describe(node.Address, node.IsHovered);
-                this.semantics.PlayerPath = () => Core.States.InGameStateObject.CurrentAreaInstance.Player.Path ?? string.Empty;
+                this.semantics.PlayerPath = () => Seats.Followed.Path ?? string.Empty;
                 this.commands.SettingsChanged = changed =>
                 {
                     this.ApplySettings(changed);
@@ -336,6 +330,7 @@ namespace Poe2Accessibility
             this.enemyCues = null;
             this.radar = null;
             this.partnerRadar = null;
+            Seats.Attach(null, null);
             this.localPlayers = null;
             this.nearby = null;
             this.places = null;
@@ -390,7 +385,7 @@ namespace Poe2Accessibility
                 this.Isolated("pad", this.ReadModButton);
                 this.Isolated("focus", () => this.focus?.Tick(state, stateObject));
                 this.Isolated("text field", this.WatchTextFieldClosing);
-                this.Isolated("life", this.WatchLife);
+                this.Isolated("player news", this.TickPlayerNews);
                 this.Isolated("sounds", this.TickSounds);
                 this.Isolated("screen", () => this.NarrateScreenChanges(stateObject));
                 if (state == GameStateTypes.InGameState)
@@ -681,7 +676,8 @@ namespace Poe2Accessibility
         {
             this.beacon?.Clear(false);
             this.bosses?.Reset();
-            this.statuses?.Reset();
+            this.alerts?.Statuses.Reset();
+            this.partnerAlerts?.Statuses.Reset();
             this.pickups?.Reset();
             this.gold?.Reset();
             this.flasks?.Reset();

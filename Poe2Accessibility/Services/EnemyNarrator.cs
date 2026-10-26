@@ -52,7 +52,7 @@ namespace Poe2Accessibility.Services
         {
             var now = Environment.TickCount64;
             if (!playing || now - this.lastPoll < PollMs ||
-                !Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<Render>(out var player))
+                !Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return;
             }

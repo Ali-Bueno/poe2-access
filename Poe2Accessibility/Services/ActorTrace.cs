@@ -80,7 +80,7 @@ namespace Poe2Accessibility.Services
             }
 
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            if (!area.Player.TryGetComponent<Render>(out var player) || !area.Player.TryGetComponent<Life>(out var life))
+            if (!Seats.Followed.TryGetComponent<Render>(out var player) || !Seats.Followed.TryGetComponent<Life>(out var life))
             {
                 return;
             }

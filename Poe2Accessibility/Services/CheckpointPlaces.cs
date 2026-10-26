@@ -39,7 +39,7 @@ namespace Poe2Accessibility.Services
         public IReadOnlyList<(string? Near, int Steps)?> Describe(IReadOnlyList<Vector2> markers, int here)
         {
             var result = new (string? Near, int Steps)?[markers.Count];
-            if (!Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<Render>(out var player))
+            if (!Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return result;
             }

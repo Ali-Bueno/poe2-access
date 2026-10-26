@@ -70,7 +70,7 @@ namespace Poe2Accessibility.Services
             var cellSize = area.WorldToGridConvertor;
             var grid = area.GridWalkableData;
             var row = area.TerrainMetadata.BytesPerRow;
-            if (cellSize <= 0 || grid.Length == 0 || !area.Player.TryGetComponent<Render>(out var player))
+            if (cellSize <= 0 || grid.Length == 0 || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return;
             }

@@ -38,7 +38,7 @@ namespace Poe2Accessibility
             });
             this.Isolated("radar", () => this.radar?.Tick(playing && this.Settings.Radar));
             this.Isolated("partner radar", () => this.partnerRadar?.Tick(
-                inWorld && this.Settings.PartnerRadar && this.localPlayers?.Second() is { } partner && IsAlive(partner)));
+                inWorld && this.Settings.Radar && Seats.Partner is { } partner && IsAlive(partner)));
             this.Isolated("wall tones", () => this.wallTones?.Tick(playing && this.Settings.WallTones));
             this.Isolated("nearby", () => this.nearby?.Tick(playing, this.Settings.AnnounceNearby, this.Settings.AnnounceInteractTarget));
             this.Isolated("places", () => this.places?.Tick(playing, this.Settings.AnnouncePlaces));
@@ -69,7 +69,6 @@ namespace Poe2Accessibility
                     this.targets.Tick(playing && (this.Settings.AnnounceTarget || this.Settings.CrosshairBeep), aiming);
                 }
             });
-            this.Isolated("states", () => this.statuses?.Tick(playing && this.Settings.StatusAlerts));
             if (this.gameState?.CurrentState == GameStateTypes.InGameState)
             {
                 this.Isolated("pick-ups", () => this.pickups?.Tick(playing && this.Settings.AnnouncePickups));
@@ -99,7 +98,6 @@ namespace Poe2Accessibility
                     this.wallBump?.Tick(this.padState.LeftX, this.padState.LeftY, this.Settings.WallBump);
                 }
             });
-            this.Isolated("level", this.WatchLevel);
         }
 
         /// <summary>Runs one gameplay service; an exception is logged (throttled per service) and the frame goes on.</summary>
@@ -125,47 +123,24 @@ namespace Poe2Accessibility
             }
         }
 
-        /// <summary>"Level 3" when the character levels up; the first reading of a character is only remembered.</summary>
-        private void WatchLevel()
-        {
-            var player = Core.States.InGameStateObject.CurrentAreaInstance.Player;
-            if (!player.TryGetComponent<GameHelper.RemoteObjects.Components.Player>(out var character) || character.Level <= 0)
-            {
-                return;
-            }
-
-            if (this.lastLevel.Character == character.Name && character.Level > this.lastLevel.Level && this.Settings.AnnounceLevelUp)
-            {
-                this.output.Speak(Announcements.LevelUp(character.Level), false);
-            }
-
-            this.lastLevel = (character.Name, character.Level);
-        }
-
-        private static bool IsPlayerAlive() => IsAlive(Core.States.InGameStateObject.CurrentAreaInstance.Player);
+        private static bool IsPlayerAlive() => IsAlive(Seats.Followed);
 
         private static bool IsAlive(GameHelper.RemoteObjects.States.InGameStateObjects.Entity entity) =>
             entity.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) && life.IsAlive;
 
-        /// <summary>Per frame: a warning when the player's life falls below a threshold.</summary>
-        private void WatchLife()
+        /// <summary>Per frame in the game: each read player's own news (life, mana, level, states).</summary>
+        private void TickPlayerNews()
         {
-            if (!this.Settings.AnnounceLowLife || this.gameState?.CurrentState != GameStateTypes.InGameState ||
-                !Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) ||
-                !life.IsAlive || life.Health.Total <= 0)
+            if (this.gameState?.CurrentState != GameStateTypes.InGameState)
             {
                 return;
             }
 
-            if (this.lifeAlarm.Update(life.Health.CurrentInPercent()) is { } threshold)
+            var inWorld = Core.Process.Foreground && this.focus?.Current == null;
+            this.alerts?.Tick(this.Settings, inWorld && IsPlayerAlive());
+            if (Seats.Partner is { } partner)
             {
-                this.output.Say(SpeechKind.LifeAndMana, Announcements.LowLife(threshold), threshold <= this.Settings.LowLifeBelow);
-            }
-
-            if (this.Settings.AnnounceLowMana && life.Mana.Total > 0 && this.manaAlarm.Update(life.Mana.CurrentInPercent()) is { } manaThreshold)
-            {
-                // Mana runs low in every fight: urgent only when it is nearly gone.
-                this.output.Say(SpeechKind.LifeAndMana, Announcements.LowMana(manaThreshold), manaThreshold <= 10);
+                this.partnerAlerts?.Tick(this.Settings, inWorld && IsAlive(partner));
             }
         }
 
@@ -183,7 +158,7 @@ namespace Poe2Accessibility
         private string? ReadVitals()
         {
             if (this.gameState?.CurrentState != GameStateTypes.InGameState ||
-                !Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) ||
+                !Seats.Followed.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) ||
                 life.Health.Total <= 0)
             {
                 return null;
@@ -193,8 +168,8 @@ namespace Poe2Accessibility
                 life.Health.CurrentInPercent(),
                 life.Mana.Total > 0 ? life.Mana.CurrentInPercent() : 0,
                 life.EnergyShield.Total > 0 ? life.EnergyShield.CurrentInPercent() : null);
-            var states = this.statuses?.Active.Select(Announcements.AilmentName).ToList() ?? new System.Collections.Generic.List<string>();
-            var player = Core.States.InGameStateObject.CurrentAreaInstance.Player.TryGetComponent<GameHelper.RemoteObjects.Components.Player>(out var me) ? me : null;
+            var states = this.alerts?.Statuses.Active.Select(Announcements.AilmentName).ToList() ?? new System.Collections.Generic.List<string>();
+            var player = Seats.Followed.TryGetComponent<GameHelper.RemoteObjects.Components.Player>(out var me) ? me : null;
             var character = player?.Level ?? 0;
             var levels = Announcements.Levels(character, AreaLevel(), player == null ? null : this.experience?.PercentToNext(character, unchecked((uint)player.Xp)));
             var flasks = string.Join(", ", this.flasks?.Flasks().Select(flask => Announcements.Flask(flask.Name, flask.Uses)) ?? Enumerable.Empty<string>());
@@ -225,7 +200,7 @@ namespace Poe2Accessibility
                 return null;
             }
 
-            var sets = this.semantics.ReadSkillBar(this.focus.LayerContainer);
+            var sets = this.semantics.ReadSkillBar(this.focus.LayerContainer, Seats.FollowsSecond);
             return sets.Count == 0 ? null : Announcements.Sentences(sets.Select(set => Announcements.SkillSet(set.Title, set.Bindings)));
         }
 
