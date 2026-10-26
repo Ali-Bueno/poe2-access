@@ -90,7 +90,7 @@ namespace Poe2Accessibility
         /// <summary>Navigation radar: a cue when the way up, left, right or down on screen changes (tin exit, breath open floor, tock wall).</summary>
         public bool Radar = true;
 
-        /// <summary>Local co-op: a second radar for player 2, the same cues struck twice (and two short breaths).</summary>
+        /// <summary>Local co-op: a second radar for player 2, with its own sounds (plucked strings and a whistle).</summary>
         public bool PartnerRadar = false;
 
         /// <summary>The radar's wall cue knocks hollow when the wall is a small obstacle the player can step round.</summary>

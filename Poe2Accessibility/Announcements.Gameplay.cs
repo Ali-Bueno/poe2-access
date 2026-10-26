@@ -345,9 +345,7 @@ namespace Poe2Accessibility
             "radar_wall" => T("the way closed on that side", "camino cerrado de ese lado"),
             "radar_open" => T("the way opened again", "el camino se abrió"),
             "radar_exit" => T("an exit on that line", "una salida en esa línea"),
-            "radar2_wall" or "radar2_open" or "radar2_exit" or "radar2_obstacle" => T(
-                "local co-op: like player 1's radar, sounding twice",
-                "cooperativo local: como el radar del jugador 1, pero suena dos veces"),
+            "radar2_wall" or "radar2_open" or "radar2_exit" or "radar2_obstacle" => SoundMeaning(key.Replace("radar2_", "radar_")),
             "bump" => T("you pushed into a wall", "empujaste contra una pared"),
             _ => T("nearest one on screen, on its side", "el más cercano en pantalla, a su lado"),
         } + T(". Left or right plays it", ". Izquierda o derecha lo reproduce");

@@ -33,7 +33,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(PassageScanMeasuresTheWayAhead), PassageScanMeasuresTheWayAhead);
             Run(nameof(RadarSoundsConfirmedChangesOnly), RadarSoundsConfirmedChangesOnly);
             Run(nameof(RadarSoundsStayInRangeAndDiffer), RadarSoundsStayInRangeAndDiffer);
-            Run(nameof(PartnerRadarStrikesTwice), PartnerRadarStrikesTwice);
+            Run(nameof(PartnerRadarHasItsOwnSounds), PartnerRadarHasItsOwnSounds);
             Run(nameof(LocalPlayerListTrustsOnlyItsOwnPlayerFirst), LocalPlayerListTrustsOnlyItsOwnPlayerFirst);
             Run(nameof(NearbyThingsAreNamedOncePerApproach), NearbyThingsAreNamedOncePerApproach);
             Run(nameof(WallBumpThudsOncePerContact), WallBumpThudsOncePerContact);
@@ -412,7 +412,7 @@ namespace Poe2Accessibility.Tests
             Equal(true, Crossings(exitUp) > Crossings(wallUp) * 3, "the exit tin is far above the wall tock");
         }
 
-        private static void PartnerRadarStrikesTwice()
+        private static void PartnerRadarHasItsOwnSounds()
         {
             const int rate = 44100;
             foreach (var reading in new[] { RadarReading.Open, RadarReading.Exit, RadarReading.Wall })
@@ -425,18 +425,63 @@ namespace Poe2Accessibility.Tests
                 }
             }
 
-            float Loudest(float[] sound, int fromMs, int toMs) =>
-                sound.Skip(rate * fromMs / 1000).Take(rate * (toMs - fromMs) / 1000).Max(MathF.Abs);
-            var single = RadarSynth.Cue(RadarReading.Wall, RadarSynth.Direction.Up, rate);
-            var twice = RadarSynth.Cue(RadarReading.Wall, RadarSynth.Direction.Up, rate, RadarSynth.Voice.Second);
-            Equal(true, Loudest(twice, 70, 90) > Loudest(twice, 50, 68) * 4, "the second voice's wall strikes again");
-            Equal(true, Loudest(single, 70, 90) < Loudest(single, 0, 20) / 4, "the first voice's wall strikes once");
-            var obstacle = RadarSynth.Obstacle(RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second);
-            Equal(true, Loudest(obstacle, 70, 90) > Loudest(obstacle, 50, 68) * 4, "the second voice's obstacle strikes again");
-            var breath = RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Up, rate);
-            var puffs = RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Up, rate, RadarSynth.Voice.Second);
-            Equal(breath.Length, puffs.Length, "two puffs last as long as one breath");
-            Equal(true, Loudest(puffs, 85, 95) < Loudest(puffs, 40, 50) / 4, "the puffs part in the middle");
+            float[] Window(float[] sound, int fromMs, int toMs) =>
+                sound.Skip(rate * fromMs / 1000).Take(rate * (toMs - fromMs) / 1000).ToArray();
+            int[] CrossingsAt(float[] sound) =>
+                Enumerable.Range(1, sound.Length - 1).Where(i => sound[i - 1] < 0 != sound[i] < 0).ToArray();
+            int Crossings(float[] sound, int fromMs, int toMs) => CrossingsAt(Window(sound, fromMs, toMs)).Length;
+            float Loudest(float[] sound, int fromMs, int toMs) => Window(sound, fromMs, toMs).Max(MathF.Abs);
+            double Irregularity(float[] sound)
+            {
+                var at = CrossingsAt(Window(sound, 60, 120));
+                var gaps = at.Zip(at.Skip(1), (first, next) => (double)(next - first)).ToArray();
+                var mean = gaps.Average();
+                return Math.Sqrt(gaps.Average(gap => (gap - mean) * (gap - mean))) / mean;
+            }
+
+            double Brightness(float[] sound, int fromMs, int toMs)
+            {
+                var part = Window(sound, fromMs, toMs);
+                return Math.Sqrt(part.Skip(1).Select((sample, i) => (double)(sample - part[i]) * (sample - part[i])).Sum() / part.Sum(sample => (double)sample * sample));
+            }
+
+            int Period(float[] sound)
+            {
+                // the first autocorrelation peak past the first trough: the fundamental, not a multiple of it
+                var part = Window(sound, 20, 60);
+                var match = Enumerable.Range(0, rate / 80).Select(lag => part.Skip(lag).Select((sample, i) => (double)sample * part[i]).Sum() / (part.Length - lag)).ToArray();
+                var trough = Array.FindIndex(match, value => value < 0);
+                var lag = Array.FindIndex(match, trough, value => value >= 0.9 * match.Skip(trough).Max());
+                while (match[lag + 1] > match[lag])
+                {
+                    lag++;
+                }
+
+                return lag;
+            }
+
+            RadarSynth.Direction up = RadarSynth.Direction.Up, down = RadarSynth.Direction.Down, left = RadarSynth.Direction.Left;
+            const RadarSynth.Voice second = RadarSynth.Voice.Second;
+            var pluck = RadarSynth.Cue(RadarReading.Wall, up, rate, second);
+            Equal(true, Loudest(pluck, 70, 90) < Loudest(pluck, 0, 20) / 4, "the wall is plucked once");
+            var obstacle = RadarSynth.Obstacle(up, rate, second);
+            var exit = RadarSynth.Cue(RadarReading.Exit, up, rate, second);
+            Equal(true, Brightness(pluck, 0, 15) > Brightness(pluck, 45, 60) * 1.1, "the pluck starts bright and mellows");
+            var tock = RadarSynth.Cue(RadarReading.Wall, up, rate);
+            Equal(true, Math.Abs(Brightness(tock, 0, 15) - Brightness(tock, 45, 60)) < Brightness(tock, 0, 15) / 10, "the first voice's tock keeps one tone");
+            Equal(true, Brightness(pluck, 0, 15) > Brightness(tock, 0, 15) * 3, "the plucked wall is richer than the first voice's tock, though lower");
+            Equal(true, Period(exit) < Period(obstacle) && Period(obstacle) < Period(pluck), "plucked in the first voice's order: exit high, obstacle middle, wall low");
+            Equal(true, Math.Abs(Period(pluck) - (rate / 196)) <= 2, "the wall is plucked at 196 Hz");
+            Equal(true, Period(RadarSynth.Cue(RadarReading.Exit, down, rate, second)) > Period(exit), "below the player plucks lower");
+            var whistle = RadarSynth.Cue(RadarReading.Open, left, rate, second);
+            var breath = RadarSynth.Cue(RadarReading.Open, left, rate);
+            Equal(breath.Length, whistle.Length, "the whistle lasts as long as the breath");
+            Equal(true, Irregularity(whistle) < 0.1, "the second voice whistles a steady tone");
+            Equal(true, Irregularity(breath) > 0.2, "the first voice breathes noise");
+            var ahead = RadarSynth.Cue(RadarReading.Open, up, rate, second);
+            var behind = RadarSynth.Cue(RadarReading.Open, down, rate, second);
+            Equal(true, Crossings(ahead, 120, 160) > Crossings(ahead, 20, 60), "the whistle rises ahead");
+            Equal(true, Crossings(behind, 120, 160) < Crossings(behind, 20, 60), "the whistle falls behind");
         }
 
         private static void LocalPlayerListTrustsOnlyItsOwnPlayerFirst()

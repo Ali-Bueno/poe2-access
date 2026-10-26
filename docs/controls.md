@@ -156,7 +156,7 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - **Radar:** a tock when a wall closes the way up, left, right or down on screen, a breath when it opens again, a tin
   for an exit on that line. Left and right are stereo, down is a little lower. Only changes sound
   ([radar](radar.md)). In local co-op, setting "Radar for local player 2" gives player 2 a radar of their own: the
-  same cues, each sounding twice.
+  same meanings in other sounds: plucked strings for walls, obstacles and exits, a whistle for the open way.
 - **Enemies:** a short growl for each enemy on screen, faster as it gets closer; magic and rare enemies buzz on top,
   uniques ring ([enemy sounds](enemy-sounds.md)).
 - **NPCs:** a light wooden tap for the nearest NPC or other player on screen, faster as you get closer.
