@@ -70,6 +70,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(PendingLessonIsRemindedNowAndThen), PendingLessonIsRemindedNowAndThen);
             Run(nameof(WeakPointLeadsToTheHead), WeakPointLeadsToTheHead);
             Run(nameof(WeakPointBeatsFasterThenSteady), WeakPointBeatsFasterThenSteady);
+            Run(nameof(FlaskDrinksAreSaidBySlot), FlaskDrinksAreSaidBySlot);
             Run(nameof(WrappedLabelsJoin), WrappedLabelsJoin);
             Run(nameof(InlineItemArtIsNamed), InlineItemArtIsNamed);
             Run(nameof(KnownPlacesOutliveTheSession), KnownPlacesOutliveTheSession);
@@ -974,6 +975,21 @@ namespace Poe2Accessibility.Tests
         {
             Equal(true, WeakPoints.IntervalMs(2000, 40) > WeakPoints.IntervalMs(300, 40), "faster as the gap closes");
             Equal(WeakPoints.AtPartIntervalMs, WeakPoints.IntervalMs(30, 40), "steady within reach");
+        }
+
+        private static void FlaskDrinksAreSaidBySlot()
+        {
+            var drinks = new FlaskDrinks();
+            const string Mana = "Frasco de maná menor";
+            const string Life = "Frasco de vida menor";
+            Equal(false, drinks.Update(1, Mana, 6), "first read");
+            Equal(true, drinks.Update(1, Mana, 5), "a drink, whatever item entity the game made for it");
+            Equal(false, drinks.Update(1, Mana, 5), "no change");
+            Equal(false, drinks.Update(0, Life, 1), "first read of the life flask");
+            Equal(true, drinks.Update(0, Life, 0), "the last use drunk: said once (empty)");
+            Equal(false, drinks.Update(0, Life, 0), "still dry");
+            Equal(false, drinks.Update(0, Life, 1), "refilled by kills: silent");
+            Equal(false, drinks.Update(1, "Frasco de vida menor", 2), "another flask put in the slot");
         }
 
         private static void FarBarrierStaysClosedUntilSeenNear()

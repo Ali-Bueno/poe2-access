@@ -19,8 +19,7 @@ namespace Poe2Accessibility.Services
 
         private readonly InventoryReader inventory;
         private readonly IAccessibilityOutputService output;
-        private readonly HashSet<IntPtr> dry = new();
-        private readonly Dictionary<IntPtr, int> usesLeft = new();
+        private readonly FlaskDrinks drinks = new();
         private long lastPoll;
         private bool baseline = true;
 
@@ -35,11 +34,11 @@ namespace Poe2Accessibility.Services
         /// <summary>Whose belt is watched, local player 1 or 2 (<see cref="LocalInventories"/>).</summary>
         public Func<int> Seat { get; init; } = () => 1;
 
-        /// <summary>The flasks in belt order with the uses they have left (charges over charges per use).</summary>
-        public IReadOnlyList<(IntPtr Address, string Name, int Uses)> Flasks()
+        /// <summary>The flasks in belt order, by their column, with the uses they have left (charges over charges per use).</summary>
+        public IReadOnlyList<(int Slot, string Name, int Uses)> Flasks()
         {
             // A flask fills a column of the belt's cells (5x2 in 0.5.5e): each is read once.
-            var flasks = new List<(IntPtr, string, int)>();
+            var flasks = new List<(int, string, int)>();
             if (this.Belt() is not { } belt)
             {
                 return flasks;
@@ -53,7 +52,7 @@ namespace Poe2Accessibility.Services
                     var item = belt[y, x];
                     if (seen.Add(item.Address) && Read(item, this.inventory) is { } flask)
                     {
-                        flasks.Add(flask);
+                        flasks.Add((x, flask.Name, flask.Uses));
                     }
                 }
             }
@@ -72,18 +71,9 @@ namespace Poe2Accessibility.Services
 
             this.lastPoll = now;
             var flasks = this.Flasks();
-            foreach (var (address, name, uses) in flasks)
+            foreach (var (slot, name, uses) in flasks)
             {
-                // Charges fall only when the flask is drunk (kills and time refill it): fewer uses is a drink.
-                var drunk = this.usesLeft.TryGetValue(address, out var before) && uses < before;
-                this.usesLeft[address] = uses;
-                if (uses > 0)
-                {
-                    this.dry.Remove(address);
-                }
-
-                var ranDry = uses <= 0 && this.dry.Add(address);
-                if ((drunk || ranDry) && !this.baseline && enabled)
+                if (this.drinks.Update(slot, name, uses) && !this.baseline && enabled)
                 {
                     this.output.Say(SpeechKind.LifeAndMana, Announcements.Flask(name, uses));
                 }
@@ -96,8 +86,7 @@ namespace Poe2Accessibility.Services
         /// <summary>A new area: the first read is the baseline again.</summary>
         public void Reset()
         {
-            this.dry.Clear();
-            this.usesLeft.Clear();
+            this.drinks.Clear();
             this.baseline = true;
         }
 
@@ -149,7 +138,7 @@ namespace Poe2Accessibility.Services
             return this.secondBelt;
         }
 
-        private static (IntPtr Address, string Name, int Uses)? Read(Item item, InventoryReader inventory)
+        private static (string Name, int Uses)? Read(Item item, InventoryReader inventory)
         {
             if (item.Address == IntPtr.Zero || !item.TryGetComponent<Charges>(out var charges) || charges.Current < 0 ||
                 inventory.ItemBaseName(item.Address) is not { Length: > 0 } name)
@@ -157,7 +146,7 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            return (item.Address, name, charges.PerUseCharge > 0 ? charges.Current / charges.PerUseCharge : charges.Current);
+            return (name, charges.PerUseCharge > 0 ? charges.Current / charges.PerUseCharge : charges.Current);
         }
     }
 }
