@@ -48,6 +48,7 @@ namespace Poe2Accessibility
         private WallBump? wallBump;
         private WallTones? wallTones;
         private GamepadReader.PadState padState;
+        private readonly InputSeat inputSeat = new();
         private readonly System.Collections.Generic.Dictionary<string, long> tickFaults = new();
         private HostMemoryReader? memoryReader;
 
@@ -64,6 +65,7 @@ namespace Poe2Accessibility
         private PlayerAlerts? alerts;
         private PlayerAlerts? partnerAlerts;
         private InventoryWatch? pickups;
+        private InventoryWatch? partnerPickups;
         private InventoryReader? inventoryReader;
         private GoldWatch? gold;
         private BarrierWatch? barriers;
@@ -72,6 +74,7 @@ namespace Poe2Accessibility
         private DeathWatch? deaths;
         private ExperienceTable? experience;
         private FlaskWatch? flasks;
+        private FlaskWatch? partnerFlasks;
         private EntityFields? entityFields;
         private FlagBits? flagBits;
         private readonly PadButtonCheck padCheck = new();
@@ -177,7 +180,7 @@ namespace Poe2Accessibility
                 this.locator = new UiManagerLocator(memory, elements, this.log, this.layoutProbe, new InGameFields(memory, elements, this.compatibility));
                 this.flagBits = new FlagBits(elements, this.compatibility);
                 this.locator.Flags = this.flagBits;
-                var inventory = new InventoryReader(memory, elements) { Controls = this.controls, Report = this.compatibility };
+                var inventory = new InventoryReader(memory, elements) { Controls = this.controls, Report = this.compatibility, Locals = new LocalInventories(memory) };
                 this.inventoryReader = inventory;
                 var comboBoxes = new ComboBoxReader(elements, this.log);
                 this.semantics = new UiSemantics(memory, elements, catalog, comboBoxes, inventory);
@@ -238,10 +241,16 @@ namespace Poe2Accessibility
                 this.narrator.IgnoredHudText = () => this.targets?.NameLabel ?? IntPtr.Zero;
                 this.narrator.GoldCounter = () => this.gold?.Counter ?? IntPtr.Zero;
                 this.narrator.GroundItemName = texts => this.entities?.ItemOfTooltip(texts);
-                this.alerts = new PlayerAlerts(() => Seats.Followed, new SeatOutput(this.output, () => Seats.Partner == null ? string.Empty : PlayerAlerts.Name(Seats.Followed)), this.log);
-                this.partnerAlerts = new PlayerAlerts(() => Seats.Partner, new SeatOutput(this.output, () => PlayerAlerts.Name(Seats.Partner)), this.log);
-                this.pickups = new InventoryWatch(inventory, this.output, this.log);
-                this.flasks = new FlaskWatch(inventory, this.output);
+                // Each local player's own news; while both are read, each line is named (Seats).
+                var followedVoice = new SeatOutput(this.output, () => Seats.Partner == null ? string.Empty : PlayerAlerts.Name(Seats.Followed));
+                var partnerVoice = new SeatOutput(this.output, () => PlayerAlerts.Name(Seats.Partner));
+                Func<int> followedSeat = () => Seats.FollowsSecond ? 2 : 1;
+                this.alerts = new PlayerAlerts(() => Seats.Followed, followedVoice, this.log);
+                this.partnerAlerts = new PlayerAlerts(() => Seats.Partner, partnerVoice, this.log);
+                this.pickups = new InventoryWatch(inventory, followedVoice, this.log) { Seat = followedSeat };
+                this.partnerPickups = new InventoryWatch(inventory, partnerVoice, this.log) { Seat = () => 2 };
+                this.flasks = new FlaskWatch(inventory, followedVoice) { Seat = followedSeat };
+                this.partnerFlasks = new FlaskWatch(inventory, partnerVoice) { Seat = () => 2 };
                 this.gold = new GoldWatch(memory, elements, this.output, this.log) { Fields = this.locator.Fields };
                 this.barriers = new BarrierWatch(this.entities, this.output, this.log);
                 var timings = DodgeTimings.Load(Path.Join(this.DllDirectory, "catalog", "hit-times.txt"), this.DodgeTimingsSeedPath, this.DodgeTimingsPath);
@@ -484,7 +493,23 @@ namespace Poe2Accessibility
         private void ReadModButton()
         {
             this.padState = default;
-            if (this.pad == null || this.focus == null || !this.pad.TryRead(this.focus.Manager, out var state))
+            if (this.pad == null || this.focus == null)
+            {
+                return;
+            }
+
+            GamepadReader.PadState? first = this.pad.TryRead(this.focus.Manager, out var one) ? one : null;
+            GamepadReader.PadState? second = this.Settings.ReadPlayer2 && this.pad.TryRead(this.focus.Manager, out var two, 2) ? two : null;
+            var seat = this.inputSeat.Update(this.Settings.ReadPlayer1, this.Settings.ReadPlayer2,
+                first is { } a ? (a.Buttons, a.Deflection) : null, second is { } b ? (b.Buttons, b.Deflection) : null);
+            if (seat != Seats.Input)
+            {
+                this.log?.Info($"Local co-op: reading player {seat}'s controller and cursor");
+                Seats.Input = seat;
+                this.focus.Seat = seat;
+            }
+
+            if ((seat == 2 ? second : first) is not { } state)
             {
                 return;
             }
@@ -679,8 +704,10 @@ namespace Poe2Accessibility
             this.alerts?.Statuses.Reset();
             this.partnerAlerts?.Statuses.Reset();
             this.pickups?.Reset();
+            this.partnerPickups?.Reset();
             this.gold?.Reset();
             this.flasks?.Reset();
+            this.partnerFlasks?.Reset();
             this.barriers?.Reset();
             this.targets?.Reset();
             this.discoveries?.Reset(areaName, resumed);

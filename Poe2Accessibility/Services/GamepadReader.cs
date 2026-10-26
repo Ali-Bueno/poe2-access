@@ -17,10 +17,13 @@ namespace Poe2Accessibility.Services
             this.reader = reader;
         }
 
-        public bool TryRead(IntPtr manager, out PadState state)
+        /// <param name="seat">The local player, 1 or 2 (couch co-op; <see cref="GameLayout.UiManager.PlayerStride"/>).</param>
+        public bool TryRead(IntPtr manager, out PadState state, int seat = 1)
         {
             state = default;
-            return manager != IntPtr.Zero && this.reader.TryRead(manager + GameLayout.UiManager.PadStateOffset, out state) && Plausible(state);
+            return manager != IntPtr.Zero &&
+                   this.reader.TryRead(manager + GameLayout.UiManager.PadStateOffset + ((seat - 1) * GameLayout.UiManager.PlayerStride), out state) &&
+                   Plausible(state);
         }
 
         /// <summary>Sticks within ±1 and triggers within 0..1, with room for rounding: anything else is not a pad state.</summary>
@@ -46,6 +49,10 @@ namespace Poe2Accessibility.Services
             public readonly float RightTrigger;
 
             public bool IsDown(uint button) => (this.Buttons & button) != 0;
+
+            /// <summary>The largest stick or trigger deflection, 0..1.</summary>
+            public float Deflection => Math.Max(Math.Max(Math.Max(Math.Abs(this.LeftX), Math.Abs(this.LeftY)), Math.Max(Math.Abs(this.RightX), Math.Abs(this.RightY))),
+                Math.Max(this.LeftTrigger, this.RightTrigger));
         }
     }
 }

@@ -29,8 +29,6 @@ namespace Poe2Accessibility.Services
         private const int ItemSearchDepth = 2;
 
         /// <summary>GameHelper keeps the player's inventories (name → InventoryStruct address) in an internal property.</summary>
-        private static readonly PropertyInfo? PlayerInventories =
-            typeof(ServerData).GetProperty(nameof(PlayerInventories), BindingFlags.Instance | BindingFlags.NonPublic);
 
         private static readonly int DetailsPathOffset = (int)Marshal.OffsetOf<EntityDetails>(nameof(EntityDetails.name));
 
@@ -47,6 +45,9 @@ namespace Poe2Accessibility.Services
         public BaseNameField BaseNames { get; } = new(NameRowOffset, DisplayNameOffset);
 
         private int Shift => this.Controls?.Current(ControlGroup.Inventory) ?? 0;
+
+        /// <summary>Each local player's server inventories: a grid may show player 2's (local co-op).</summary>
+        public LocalInventories? Locals { get; set; }
 
         public InventoryReader(HostMemoryReader reader, UiElementReader elements)
         {
@@ -93,10 +94,9 @@ namespace Poe2Accessibility.Services
 
             try
             {
-                var serverData = Core.States.InGameStateObject.CurrentAreaInstance.ServerDataObject;
-                if (PlayerInventories?.GetValue(serverData) is Dictionary<InventoryName, IntPtr> map)
+                foreach (var seat in new[] { 1, 2 })
                 {
-                    foreach (var (name, address) in map)
+                    foreach (var (name, address) in this.Locals?.Of(seat) ?? new Dictionary<InventoryName, IntPtr>())
                     {
                         if (address == inventory)
                         {

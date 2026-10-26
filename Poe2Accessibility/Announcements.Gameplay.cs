@@ -1,5 +1,6 @@
 namespace Poe2Accessibility
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -326,8 +327,8 @@ namespace Poe2Accessibility
             _ => key,
         };
 
-        /// <summary>Sound glossary: what the sound means, and that left or right plays it.</summary>
-        public static string SoundMeaning(string key) => key switch
+        /// <summary>Sound glossary: what the sound means (player 2's radar sounds mean what player 1's do), and that left or right plays it.</summary>
+        public static string SoundMeaning(string key) => key.Replace("radar2_", "radar_", StringComparison.Ordinal) switch
         {
             "beacon" => T("walk so it sounds in the centre; faster when closer", "camina para oírlo al centro; más rápido al acercarte"),
             "dodge" => T("a rare or unique monster starts an attack, dodge", "un monstruo raro o único empieza un ataque, esquiva"),
@@ -346,7 +347,6 @@ namespace Poe2Accessibility
             "radar_wall" => T("the way closed on that side", "camino cerrado de ese lado"),
             "radar_open" => T("the way opened again", "el camino se abrió"),
             "radar_exit" => T("an exit on that line", "una salida en esa línea"),
-            "radar2_wall" or "radar2_open" or "radar2_exit" or "radar2_obstacle" => SoundMeaning(key.Replace("radar2_", "radar_")),
             "bump" => T("you pushed into a wall", "empujaste contra una pared"),
             _ => T("nearest one on screen, on its side", "el más cercano en pantalla, a su lado"),
         } + T(". Left or right plays it", ". Izquierda o derecha lo reproduce");

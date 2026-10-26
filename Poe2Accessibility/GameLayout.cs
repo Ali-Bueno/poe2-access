@@ -573,6 +573,14 @@ namespace Poe2Accessibility
             ///     2026-10-23).
             /// </summary>
             public static int PadStateOffset { get; internal set; } = 0x768;
+
+            /// <summary>
+            ///     Local co-op: player 2's focus, hover and pad state lie this far past player 1's (current +0x988, hovered
+            ///     +0x9A0, pad +0x9A8). Measured 2026-10-25: at character selection only +0x9A0 moved with player 2's cursor
+            ///     and +0x9AC was 1.0 while player 2's left stick was pushed right; in town +0x9A8 held A (0x400) while player
+            ///     2 held A, and player 2's inventory slot was at +0x988 (docs/research/local-coop.md).
+            /// </summary>
+            public const int PlayerStride = 0x240;
         }
     }
 }

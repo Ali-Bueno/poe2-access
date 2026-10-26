@@ -76,6 +76,15 @@ namespace Poe2Accessibility
                 this.Isolated("moves", () => this.pickups?.TickMoves(playing, this.Settings.AnnounceMoves));
                 this.Isolated("gold", () => this.gold?.Tick(this.focus?.LayerContainer ?? IntPtr.Zero, playing, this.Settings.AnnouncePickups));
                 this.Isolated("flasks", () => this.flasks?.Tick(playing, this.Settings.AnnounceFlasks));
+                if (Seats.Partner is { } partner)
+                {
+                    // The partner's own pick-ups, hand, moves and flasks, named (its menus are read for whoever moves in them).
+                    var partnerPlaying = inWorld && IsAlive(partner);
+                    this.Isolated("partner pick-ups", () => this.partnerPickups?.Tick(partnerPlaying && this.Settings.AnnouncePickups));
+                    this.Isolated("partner hand", () => this.partnerPickups?.TickHand(this.Settings.AnnounceHand));
+                    this.Isolated("partner moves", () => this.partnerPickups?.TickMoves(partnerPlaying, this.Settings.AnnounceMoves));
+                    this.Isolated("partner flasks", () => this.partnerFlasks?.Tick(partnerPlaying, this.Settings.AnnounceFlasks));
+                }
                 this.Isolated("barriers", () => this.barriers?.Tick(this.Settings.AnnounceDiscoveries));
             }
 
@@ -158,7 +167,7 @@ namespace Poe2Accessibility
         private string? ReadVitals()
         {
             if (this.gameState?.CurrentState != GameStateTypes.InGameState ||
-                !Seats.Followed.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) ||
+                !Seats.Asking.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) ||
                 life.Health.Total <= 0)
             {
                 return null;
@@ -168,11 +177,11 @@ namespace Poe2Accessibility
                 life.Health.CurrentInPercent(),
                 life.Mana.Total > 0 ? life.Mana.CurrentInPercent() : 0,
                 life.EnergyShield.Total > 0 ? life.EnergyShield.CurrentInPercent() : null);
-            var states = this.alerts?.Statuses.Active.Select(Announcements.AilmentName).ToList() ?? new System.Collections.Generic.List<string>();
-            var player = Seats.Followed.TryGetComponent<GameHelper.RemoteObjects.Components.Player>(out var me) ? me : null;
+            var states = (Seats.AskingSecond && Seats.Partner != null ? this.partnerAlerts : this.alerts)?.Statuses.Active.Select(Announcements.AilmentName).ToList() ?? new System.Collections.Generic.List<string>();
+            var player = Seats.Asking.TryGetComponent<GameHelper.RemoteObjects.Components.Player>(out var me) ? me : null;
             var character = player?.Level ?? 0;
             var levels = Announcements.Levels(character, AreaLevel(), player == null ? null : this.experience?.PercentToNext(character, unchecked((uint)player.Xp)));
-            var flasks = string.Join(", ", this.flasks?.Flasks().Select(flask => Announcements.Flask(flask.Name, flask.Uses)) ?? Enumerable.Empty<string>());
+            var flasks = string.Join(", ", (Seats.AskingSecond && Seats.Partner != null ? this.partnerFlasks : this.flasks)?.Flasks().Select(flask => Announcements.Flask(flask.Name, flask.Uses)) ?? Enumerable.Empty<string>());
             var explored = this.entities?.ExploredPercent() is { } percent ? Announcements.Explored(percent) : string.Empty;
             var gold = this.gold?.Amount is { } coins ? Announcements.Amount(coins.ToString(System.Globalization.CultureInfo.CurrentCulture), Announcements.Gold, false) : string.Empty;
             return Announcements.Sentences(new[] { vitals, string.Join(", ", states), this.bosses?.Status() ?? string.Empty, flasks, levels, gold, explored }.Where(part => part.Length > 0));
@@ -200,7 +209,7 @@ namespace Poe2Accessibility
                 return null;
             }
 
-            var sets = this.semantics.ReadSkillBar(this.focus.LayerContainer, Seats.FollowsSecond);
+            var sets = this.semantics.ReadSkillBar(this.focus.LayerContainer, Seats.AskingSecond);
             return sets.Count == 0 ? null : Announcements.Sentences(sets.Select(set => Announcements.SkillSet(set.Title, set.Bindings)));
         }
 

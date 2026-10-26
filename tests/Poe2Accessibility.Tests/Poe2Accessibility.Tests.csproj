@@ -52,6 +52,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\KnownPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\GameLayout.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\LocalPlayerList.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\InputSeat.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\IAccessibilityOutputService.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\WallBumpDetector.cs" Link="Plugin\WallBumpDetector.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\UiSemantics.Nearest.cs" Link="Plugin\UiSemantics.Nearest.cs" />

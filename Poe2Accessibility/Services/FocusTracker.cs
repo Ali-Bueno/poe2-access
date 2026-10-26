@@ -74,6 +74,9 @@ namespace Poe2Accessibility.Services
 
         public event Action<AccessibleUiNode>? FocusChanged;
 
+        /// <summary>Whose cursor is read in local co-op, 1 or 2 (<see cref="InputSeat"/>).</summary>
+        public int Seat { get; set; } = 1;
+
         /// <summary>The focused control's value changed without the focus moving (new value only is spoken).</summary>
         public event Action<AccessibleUiNode>? ValueChanged;
 
@@ -271,12 +274,13 @@ namespace Poe2Accessibility.Services
             }
 
             this.CurrentRoot = this.reader.TryRead<IntPtr>(manager + GameLayout.UiManager.RootOffset, out var root) ? root : IntPtr.Zero;
-            if (this.reader.TryRead<IntPtr>(manager + GameLayout.UiManager.CurrentOffset, out var current) && this.elements.IsElement(current))
+            var seat = (this.Seat - 1) * GameLayout.UiManager.PlayerStride;
+            if (this.reader.TryRead<IntPtr>(manager + GameLayout.UiManager.CurrentOffset + seat, out var current) && this.elements.IsElement(current))
             {
                 return (current, false);
             }
 
-            if (this.reader.TryRead<IntPtr>(manager + GameLayout.UiManager.HoveredOffset, out var hovered) && this.elements.IsElement(hovered))
+            if (this.reader.TryRead<IntPtr>(manager + GameLayout.UiManager.HoveredOffset + seat, out var hovered) && this.elements.IsElement(hovered))
             {
                 return (hovered, true);
             }

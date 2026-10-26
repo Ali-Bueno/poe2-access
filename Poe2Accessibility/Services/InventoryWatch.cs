@@ -20,8 +20,15 @@ namespace Poe2Accessibility.Services
     {
         private const int PollMs = 250;
 
-        private static readonly PropertyInfo? PlayerInventoriesProperty =
-            typeof(ServerData).GetProperty("PlayerInventories", BindingFlags.Instance | BindingFlags.NonPublic);
+        /// <summary>
+        ///     A host Inventory just made or moved reads empty, or the old inventory's items, until its update coroutine
+        ///     has run: what the readers show this long after is not news (a false "Picked up" when player 2's inventory
+        ///     began to be watched, 2026-10-25).
+        /// </summary>
+        private const int ReaderSettleMs = 1000;
+
+        private long readersSettleUntil;
+
 
         private readonly InventoryReader reader;
         private readonly IAccessibilityOutputService output;
@@ -50,6 +57,9 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>A new area: the inventory is read again silently.</summary>
+        /// <summary>Whose inventories are watched, local player 1 or 2 (<see cref="LocalInventories"/>).</summary>
+        public Func<int> Seat { get; init; } = () => 1;
+
         public void Reset()
         {
             this.known.Clear();
@@ -68,6 +78,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastPoll = now;
+            this.baseline |= now < this.readersSettleUntil;
             var present = new HashSet<IntPtr>();
             foreach (var (address, item) in items)
             {
@@ -127,8 +138,9 @@ namespace Poe2Accessibility.Services
                 break;
             }
 
-            if (item == this.held)
+            if (item == this.held || now < this.readersSettleUntil)
             {
+                this.held = item;
                 this.handKnown = true;
                 return;
             }
@@ -169,8 +181,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastMovesPoll = now;
-            var server = Core.States.InGameStateObject.CurrentAreaInstance.ServerDataObject;
-            if (PlayerInventoriesProperty?.GetValue(server) is not Dictionary<InventoryName, IntPtr> inventories)
+            if (this.reader.Locals?.Of(this.Seat()) is not { } inventories)
             {
                 return;
             }
@@ -187,6 +198,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            this.movesBaseline |= now < this.readersSettleUntil;
             if (!this.movesBaseline && enabled)
             {
                 foreach (var (entity, from) in this.where)
@@ -245,7 +257,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private void TickWeaponSet(Dictionary<IntPtr, InventoryName> located, bool enabled)
         {
-            if (!Seats.Followed.TryGetComponent<Stats>(out var stats) ||
+            if (!Seats.Of(this.Seat()).TryGetComponent<Stats>(out var stats) ||
                 stats.CurrentWeaponIndex is not (0 or 1))
             {
                 return; // a moved offset reads anything else
@@ -383,11 +395,13 @@ namespace Poe2Accessibility.Services
                 reader = (Inventory)Activator.CreateInstance(typeof(Inventory), BindingFlags.Instance | BindingFlags.NonPublic, null,
                     new object[] { address, $"Poe2Accessibility {name}" }, null)!;
                 this.readers[name] = reader;
+                this.Settle();
             }
             else if (reader.Address != address)
             {
                 reader.Address = address;
                 this.movesBaseline = true;
+                this.Settle();
             }
 
             return reader;
@@ -396,8 +410,7 @@ namespace Poe2Accessibility.Services
         private bool TryCursor(out IReadOnlyDictionary<IntPtr, Item> items)
         {
             items = new Dictionary<IntPtr, Item>();
-            var server = Core.States.InGameStateObject.CurrentAreaInstance.ServerDataObject;
-            if (PlayerInventoriesProperty?.GetValue(server) is not Dictionary<InventoryName, IntPtr> inventories ||
+            if (this.reader.Locals?.Of(this.Seat()) is not { } inventories ||
                 !inventories.TryGetValue(InventoryName.Cursor1, out var address) || address == IntPtr.Zero)
             {
                 return false;
@@ -408,10 +421,12 @@ namespace Poe2Accessibility.Services
                 this.cursor = (Inventory)Activator.CreateInstance(typeof(Inventory), BindingFlags.Instance | BindingFlags.NonPublic, null,
                     new object[] { address, "Poe2Accessibility cursor" }, null)!;
                 this.log.Info($"Watching the cursor inventory at 0x{address.ToInt64():X}");
+                this.Settle();
             }
             else if (this.cursor.Address != address)
             {
                 this.cursor.Address = address;
+                this.Settle();
                 this.held = IntPtr.Zero;
                 this.handKnown = false;
             }
@@ -420,11 +435,12 @@ namespace Poe2Accessibility.Services
             return true;
         }
 
+        private void Settle() => this.readersSettleUntil = Environment.TickCount64 + ReaderSettleMs;
+
         private bool TryInventory(out IReadOnlyDictionary<IntPtr, Item> items)
         {
             items = new Dictionary<IntPtr, Item>();
-            var server = Core.States.InGameStateObject.CurrentAreaInstance.ServerDataObject;
-            if (PlayerInventoriesProperty?.GetValue(server) is not Dictionary<InventoryName, IntPtr> inventories ||
+            if (this.reader.Locals?.Of(this.Seat()) is not { } inventories ||
                 !inventories.TryGetValue(InventoryName.MainInventory1, out var address) || address == IntPtr.Zero)
             {
                 return false;
@@ -436,11 +452,13 @@ namespace Poe2Accessibility.Services
                 this.inventory = (Inventory)Activator.CreateInstance(typeof(Inventory), BindingFlags.Instance | BindingFlags.NonPublic, null,
                     new object[] { address, "Poe2Accessibility main inventory" }, null)!;
                 this.log.Info($"Watching the main inventory at 0x{address.ToInt64():X}");
+                this.Settle();
             }
             else if (this.inventory.Address != address)
             {
                 this.inventory.Address = address;
                 this.Reset();
+                this.Settle();
             }
 
             items = this.inventory.Items;

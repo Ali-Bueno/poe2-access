@@ -35,6 +35,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(RadarSoundsStayInRangeAndDiffer), RadarSoundsStayInRangeAndDiffer);
             Run(nameof(PartnerRadarHasItsOwnSounds), PartnerRadarHasItsOwnSounds);
             Run(nameof(LocalPlayerListTrustsOnlyItsOwnPlayerFirst), LocalPlayerListTrustsOnlyItsOwnPlayerFirst);
+            Run(nameof(InputSeatFollowsWhoPressedLast), InputSeatFollowsWhoPressedLast);
             Run(nameof(NearbyThingsAreNamedOncePerApproach), NearbyThingsAreNamedOncePerApproach);
             Run(nameof(WallBumpThudsOncePerContact), WallBumpThudsOncePerContact);
             Run(nameof(FriendsGetTheirOwnStream), FriendsGetTheirOwnStream);
@@ -482,6 +483,25 @@ namespace Poe2Accessibility.Tests
             var behind = RadarSynth.Cue(RadarReading.Open, down, rate, second);
             Equal(true, Crossings(ahead, 120, 160) > Crossings(ahead, 20, 60), "the whistle rises ahead");
             Equal(true, Crossings(behind, 120, 160) < Crossings(behind, 20, 60), "the whistle falls behind");
+        }
+
+        private static void InputSeatFollowsWhoPressedLast()
+        {
+            (uint, float)? idle = (0u, 0f), a = (0x400u, 0f), walking = (0u, 1f);
+            var alone = new InputSeat();
+            Equal(1, alone.Update(true, false, a, a), "player 2 not read: player 1's controller");
+            var second = new InputSeat();
+            Equal(1, second.Update(false, true, a, idle), "player 2 read alone, before it presses: player 1 (it has not joined)");
+            Equal(2, second.Update(false, true, idle, a), "player 2's first press");
+            Equal(2, second.Update(false, true, a, idle), "then player 1's presses do not take it back");
+            var both = new InputSeat();
+            Equal(1, both.Update(true, true, idle, idle), "both read: player 1 first");
+            Equal(1, both.Update(true, true, walking, a), "player 1 starts walking as player 2 presses A: both pressed, no change");
+            Equal(1, both.Update(true, true, walking, idle), "player 1 keeps walking: holding a stick is not a press");
+            Equal(2, both.Update(true, true, walking, (0x1u, 0f)), "player 2 moves in its menu");
+            Equal(1, both.Update(true, true, (0x400u, 1f), idle), "player 1 presses A");
+            Equal(1, both.Update(true, true, (0x400u, 1f), null), "player 2 unreadable: no press");
+            Equal(2, both.Update(true, true, (0x400u, 1f), walking), "player 2 pushes a stick");
         }
 
         private static void LocalPlayerListTrustsOnlyItsOwnPlayerFirst()

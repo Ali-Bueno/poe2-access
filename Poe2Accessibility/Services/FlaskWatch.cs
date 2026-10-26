@@ -3,7 +3,9 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using GameHelper;
+    using GameHelper.RemoteEnums;
     using GameHelper.RemoteObjects.Components;
     using GameHelper.RemoteObjects.States.InGameStateObjects;
 
@@ -21,18 +23,27 @@ namespace Poe2Accessibility.Services
         private long lastPoll;
         private bool baseline = true;
 
+        private Inventory? secondBelt;
+
         public FlaskWatch(InventoryReader inventory, IAccessibilityOutputService output)
         {
             this.inventory = inventory;
             this.output = output;
         }
 
+        /// <summary>Whose belt is watched, local player 1 or 2 (<see cref="LocalInventories"/>).</summary>
+        public Func<int> Seat { get; init; } = () => 1;
+
         /// <summary>The flasks in belt order with the uses they have left (charges over charges per use).</summary>
         public IReadOnlyList<(IntPtr Address, string Name, int Uses)> Flasks()
         {
             // A flask fills a column of the belt's cells (5x2 in 0.5.5e): each is read once.
-            var belt = Core.States.InGameStateObject.CurrentAreaInstance.ServerDataObject.FlaskInventory;
             var flasks = new List<(IntPtr, string, int)>();
+            if (this.Belt() is not { } belt)
+            {
+                return flasks;
+            }
+
             var seen = new HashSet<IntPtr>();
             for (var x = 0; x < belt.TotalBoxes.X; x++)
             {
@@ -86,7 +97,11 @@ namespace Poe2Accessibility.Services
         /// <summary>Research (dev command "flasks"): every belt cell with what it holds.</summary>
         public string Diagnose()
         {
-            var belt = Core.States.InGameStateObject.CurrentAreaInstance.ServerDataObject.FlaskInventory;
+            if (this.Belt() is not { } belt)
+            {
+                return "Flasks: no belt";
+            }
+
             var cells = new List<string>();
             for (var x = 0; x < belt.TotalBoxes.X; x++)
             {
@@ -99,6 +114,32 @@ namespace Poe2Accessibility.Services
             }
 
             return $"Flasks: {belt.TotalBoxes.X}x{belt.TotalBoxes.Y} at 0x{belt.Address.ToInt64():X}, {belt.Items.Count} items; {string.Join("; ", cells)}";
+        }
+
+        /// <summary>The watched player's belt: GameHelper's for player 1, one made here (once) for player 2.</summary>
+        private Inventory? Belt()
+        {
+            if (this.Seat() != 2)
+            {
+                return Core.States.InGameStateObject.CurrentAreaInstance.ServerDataObject.FlaskInventory;
+            }
+
+            if (this.inventory.Locals?.Of(2) is not { } inventories || !inventories.TryGetValue(InventoryName.Flask1, out var address))
+            {
+                return null;
+            }
+
+            if (this.secondBelt == null)
+            {
+                this.secondBelt = (Inventory)Activator.CreateInstance(typeof(Inventory), BindingFlags.Instance | BindingFlags.NonPublic, null,
+                    new object[] { address, "Poe2Accessibility player 2 flasks" }, null)!;
+            }
+            else if (this.secondBelt.Address != address)
+            {
+                this.secondBelt.Address = address;
+            }
+
+            return this.secondBelt;
         }
 
         private static (IntPtr Address, string Name, int Uses)? Read(Item item, InventoryReader inventory)

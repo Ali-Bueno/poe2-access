@@ -24,6 +24,15 @@ namespace Poe2Accessibility.Services
         /// <summary>Player 2 while both players are read, else null.</summary>
         public static Entity? Partner => settings?.Invoke() is { ReadPlayer1: true, ReadPlayer2: true } ? players?.Second() : null;
 
+        /// <summary>Whose controller and cursor the mod reads, 1 or 2; set every frame by the plugin (<see cref="InputSeat"/>).</summary>
+        public static int Input { get; set; } = 1;
+
+        /// <summary>Whether the controller read is player 2's, who has joined: readouts it asks for (vitals, skill bar) are player 2's.</summary>
+        public static bool AskingSecond => Input == 2 && players?.Second() != null;
+
+        /// <summary>The player whose controller asks for a readout.</summary>
+        public static Entity Asking => AskingSecond && players?.Second() is { } second ? second : First;
+
         private static Entity First => Core.States.InGameStateObject.CurrentAreaInstance.Player;
 
         /// <summary>Set when the plugin starts, cleared when it stops.</summary>
@@ -31,7 +40,11 @@ namespace Poe2Accessibility.Services
         {
             players = localPlayers;
             settings = current;
+            Input = 1;
         }
+
+        /// <summary>Local player <paramref name="seat"/>'s entity; player 1's when player 2 has not joined.</summary>
+        public static Entity Of(int seat) => seat == 2 && players?.Second() is { } second ? second : First;
 
         public static bool IsFollowed(Entity entity) => entity.Address == Followed.Address;
 
