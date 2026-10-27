@@ -174,8 +174,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - **Enemies:** a short growl for each enemy on screen, faster as it gets closer; magic and rare enemies buzz on top,
   uniques ring ([enemy sounds](enemy-sounds.md)).
 - **NPCs and players:** a light wooden tap for each of the two nearest NPCs on screen, a quicker, higher double tap
-  for the nearest other player, faster as you get closer. A player down to revive calls with two rising sweeps,
-  louder than every other sound, also off screen and behind walls: go to the body and hold A.
+  for the nearest other player, faster as you get closer. A player down to revive calls with a soft falling
+  ding-dong, also off screen and behind walls: go to the body and hold A.
 - **Wall bump:** a dull thud when you push the stick into a wall and stop, on the side you pushed.
 - **Lessons that hold you:** some of the game's tutorial lessons keep the character still until you press what
   they ask (low mana: D-pad right; dodge: B; a passive point: View). The lesson is read whole, again when it comes

@@ -50,6 +50,9 @@ namespace Poe2Accessibility.Services
         /// <summary>NPCs heard at once (two characters side by side, one of them the one to talk to).</summary>
         private const int FriendStreams = 2;
 
+        /// <summary>The body's call is longer than a tap: this many times slower, so it does not run on (user 2026-10-27).</summary>
+        private const long DownCadence = 2;
+
         private readonly int maxStreams;
         private readonly long minGapMs;
         private readonly long nearIntervalMs;
@@ -79,7 +82,7 @@ namespace Poe2Accessibility.Services
             foreach (var (stream, target) in this.Streams(targets))
             {
                 var last = this.lastStart.TryGetValue(stream, out var at) ? at : Never;
-                var overdue = nowMs - last - this.Interval(target.Nearness);
+                var overdue = nowMs - last - (this.Interval(target.Nearness) * (target.Layer == CueSynth.Layer.PlayerDown ? DownCadence : 1));
                 if (overdue >= 0 && overdue > mostOverdue)
                 {
                     mostOverdue = overdue;

@@ -57,14 +57,16 @@ namespace Poe2Accessibility.Services
         private const float PlayerTapGapSeconds = 0.075f;
 
         /// <summary>
-        ///     Another player down, waiting to be revived (user 2026-10-26: the body was hard to find): two rising sweeps,
-        ///     louder than every other cue; nothing else sweeps upward (the reach ping is two short high notes).
+        ///     Another player down, waiting to be revived: a soft ding-dong falling a minor third, quieter than the taps
+        ///     (user 2026-10-27: rising sweeps sounded like the stun wind-up and drowned the game out).
         /// </summary>
-        private const float DownLowHz = 520f;
-        private const float DownHighHz = 920f;
-        private const float DownSweepSeconds = 0.17f;
-        private const int DownSweeps = 2;
-        private const float DownLevel = 0.62f;
+        private const float DownHighHz = 659f;
+        private const float DownLowHz = 554f;
+        private const float DownNoteSeconds = 0.13f;
+        private const float DownAttackSeconds = 0.012f;
+        private const float DownDecaySeconds = 0.06f;
+        private const float DownOvertoneLevel = 0.25f;
+        private const float DownLevel = 0.3f;
 
         /// <summary>
         ///     Guide beacon (D2R beacon.md): a struck iron chime on 620 Hz, unlike every other cue — harmonic partials so
@@ -192,7 +194,7 @@ namespace Poe2Accessibility.Services
             /// <summary>Another player, alive: a double tap.</summary>
             Player,
 
-            /// <summary>Another player down: the rising call.</summary>
+            /// <summary>Another player down: the ding-dong.</summary>
             PlayerDown,
         }
 
@@ -289,16 +291,14 @@ namespace Poe2Accessibility.Services
 
         public static float[] DownCall(int sampleRate)
         {
-            var sweep = (int)(DownSweepSeconds * sampleRate);
-            var samples = new float[sweep * DownSweeps];
-            var phase = 0.0;
-            for (var i = 0; i < samples.Length; i++)
+            var note = (int)(DownNoteSeconds * sampleRate);
+            var samples = new float[note * 2];
+            for (var i = 0; i < note; i++)
             {
-                var t = (float)(i % sweep) / sampleRate;
-                phase += (DownLowHz + ((DownHighHz - DownLowHz) * t / DownSweepSeconds)) / sampleRate;
-                var tone = MathF.Sin((float)(2 * Math.PI * phase)) + (0.35f * MathF.Sin((float)(4 * Math.PI * phase))) +
-                           (0.15f * MathF.Sin((float)(6 * Math.PI * phase)));
-                samples[i] = tone * MathF.Min(1f, t / AttackSeconds) * MathF.Min(1f, (DownSweepSeconds - t) / TapReleaseSeconds);
+                var t = (float)i / sampleRate;
+                var envelope = MathF.Min(1f, t / DownAttackSeconds) * MathF.Exp(-t / DownDecaySeconds) * MathF.Min(1f, (DownNoteSeconds - t) / TapReleaseSeconds);
+                samples[i] = envelope * (MathF.Sin(2 * MathF.PI * DownHighHz * t) + (DownOvertoneLevel * MathF.Sin(4 * MathF.PI * DownHighHz * t)));
+                samples[note + i] = envelope * (MathF.Sin(2 * MathF.PI * DownLowHz * t) + (DownOvertoneLevel * MathF.Sin(4 * MathF.PI * DownLowHz * t)));
             }
 
             return Normalized(samples, DownLevel);

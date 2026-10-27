@@ -1481,7 +1481,7 @@ namespace Poe2Accessibility.Tests
             var taps = CueSynth.Enemy(CueSynth.Layer.Player, 44100);
             var call = CueSynth.Enemy(CueSynth.Layer.PlayerDown, 44100);
             Equal(true, taps.Length > CueSynth.Tap(44100).Length && taps.All(sample => MathF.Abs(sample) <= 1f), "the player's double tap is longer than the NPC's, in range");
-            Equal(true, call.Max(MathF.Abs) > taps.Max(MathF.Abs) && call.All(sample => MathF.Abs(sample) <= 1f), "the body's call is the loudest, in range");
+            Equal(true, call.Max(MathF.Abs) < taps.Max(MathF.Abs) && call.All(sample => MathF.Abs(sample) <= 1f), "the body's call is softer than the taps, in range");
         }
 
         private static void LifeWarningsSpeakOncePerFall()
