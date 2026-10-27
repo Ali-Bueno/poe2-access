@@ -289,8 +289,10 @@ namespace Poe2Accessibility.Services
             if (change.Kind != ScreenChangeKind.TopLayerChanged)
             {
                 var ignored = this.IgnoredHudText?.Invoke() ?? IntPtr.Zero;
+                // The alert line keeps its last text after it fades: the HUD reopening lists it again, so only an alert
+                // that appears while the HUD is up is news ("Inventario lleno" on every panel close, 2026-10-27).
                 var alerts = change.Texts.Where(text => !IsNumber(text.Text) && (this.IsSkillBarText?.Invoke(text.Address) ?? false)).ToList();
-                var alertNews = alerts.Where(text => this.AlertIsNews(text.Text)).ToList();
+                var alertNews = change.Kind == ScreenChangeKind.TextsAppeared ? alerts.Where(text => this.AlertIsNews(text.Text)).ToList() : new List<ScreenText>();
                 if (alertNews.Count > 0)
                 {
                     this.Speak("alert", Describe(alertNews), false);
