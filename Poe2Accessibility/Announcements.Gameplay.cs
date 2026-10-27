@@ -379,6 +379,7 @@ namespace Poe2Accessibility
             "quest_item" => T("Quest item", "Objeto de misión"),
             "chest" => T("Chest", "Cofre"),
             "breakable" => T("Breakable: rock, egg, urn", "Rompible: roca, huevo, urna"),
+            "switch" => T("Switch or lever", "Interruptor o palanca"),
             "shrine" => T("Shrine", "Santuario"),
             "ritual" => T("Ritual altar", "Altar de ritual"),
             "exit" => T("Exit", "Salida"),
@@ -428,6 +429,9 @@ namespace Poe2Accessibility
             "radar_open" => T("the way opened again", "el camino se abrió"),
             "radar_exit" => T("an exit on that line", "una salida en esa línea"),
             "bump" => T("you pushed into a wall", "empujaste contra una pared"),
+            "exit" or "portal" or "waypoint" or "checkpoint" => T(
+                "the nearest one, on its side, without a break; louder when closer, from the centre once you stand on it",
+                "el más cercano, a su lado, sin parar; más fuerte al acercarte, al centro cuando estás encima"),
             _ => T("nearest one on screen, on its side", "el más cercano en pantalla, a su lado"),
         } + T(". Left or right plays it", ". Izquierda o derecha lo reproduce");
 

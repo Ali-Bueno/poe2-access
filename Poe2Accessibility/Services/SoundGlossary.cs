@@ -48,9 +48,9 @@ namespace Poe2Accessibility.Services
             this.Add("radar2_obstacle", RadarSynth.Obstacle(RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));
             this.Add("bump", RadarSynth.Bump(rate));
             this.Add("wall_tone", Excerpt(RadarSynth.WallTone(RadarSynth.Direction.Up, rate), rate));
-            foreach (var game in new[] { "item", "item_rare", "currency", "gold", "quest_item", "chest", "breakable", "shrine", "ritual", "exit", "portal", "waypoint", "checkpoint" })
+            foreach (var game in new[] { "item", "item_rare", "currency", "gold", "quest_item", "chest", "breakable", "switch", "shrine", "ritual", "exit", "portal", "waypoint", "checkpoint" })
             {
-                if (gameSounds.Get(game) is { } samples)
+                if ((gameSounds.GetLoop(game) is { } loop ? Excerpt(loop, rate) : gameSounds.Get(game)) is { } samples)
                 {
                     this.Add(game, samples);
                 }

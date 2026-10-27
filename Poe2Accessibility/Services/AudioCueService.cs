@@ -223,20 +223,23 @@ namespace Poe2Accessibility.Services
             private const float Silence = 1e-5f;
 
             private readonly float[] loop;
-            private int position;
+            private double position;
             private float left;
             private float right;
+            private float pitch = 1f;
             private volatile float targetLeft;
             private volatile float targetRight;
+            private volatile float targetPitch = 1f;
 
             internal Bed(float[] loop) => this.loop = loop;
 
-            /// <summary>Equal-power pan as for cues; gain 0 fades it out.</summary>
-            public void Set(float pan, float gain)
+            /// <summary>Equal-power pan as for cues; gain 0 fades it out; pitch 1 = as recorded.</summary>
+            public void Set(float pan, float gain, float pitch = 1f)
             {
                 var angle = (Math.Clamp(pan, -1f, 1f) + 1f) * MathF.PI / 4f;
                 this.targetLeft = MathF.Cos(angle) * gain;
                 this.targetRight = MathF.Sin(angle) * gain;
+                this.targetPitch = pitch > 0 ? pitch : 1f;
             }
 
             internal void MixInto(float[] mix)
@@ -250,12 +253,20 @@ namespace Poe2Accessibility.Services
                     return;
                 }
 
+                var toPitch = this.targetPitch;
                 for (var frame = 0; frame < mix.Length / Channels; frame++)
                 {
                     this.left += (toLeft - this.left) * Glide;
                     this.right += (toRight - this.right) * Glide;
-                    var sample = this.loop[this.position];
-                    this.position = (this.position + 1) % this.loop.Length;
+                    this.pitch += (toPitch - this.pitch) * Glide;
+                    var index = (int)this.position;
+                    var next = index + 1 < this.loop.Length ? index + 1 : 0;
+                    var sample = this.loop[index] + ((this.loop[next] - this.loop[index]) * (float)(this.position - index));
+                    this.position += this.pitch;
+                    if (this.position >= this.loop.Length)
+                    {
+                        this.position -= this.loop.Length;
+                    }
                     mix[frame * Channels] += sample * this.left;
                     mix[(frame * Channels) + 1] += sample * this.right;
                 }

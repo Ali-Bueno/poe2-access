@@ -41,6 +41,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(WallBumpThudsOncePerContact), WallBumpThudsOncePerContact);
             Run(nameof(FriendsGetTheirOwnStream), FriendsGetTheirOwnStream);
             Run(nameof(TwoNpcsAPlayerAndABodyAreAllHeard), TwoNpcsAPlayerAndABodyAreAllHeard);
+            Run(nameof(SwitchesAreToldFromBreakables), SwitchesAreToldFromBreakables);
             Run(nameof(PhrasesFollowTheGameLanguage), PhrasesFollowTheGameLanguage);
             Run(nameof(OtherLanguagesUsePhraseTables), OtherLanguagesUsePhraseTables);
             Run(nameof(ConfirmGlyphMarksTheEntryBesideIt), ConfirmGlyphMarksTheEntryBesideIt);
@@ -1454,6 +1455,14 @@ namespace Poe2Accessibility.Tests
             Equal(2, played.Where(id => id != 99).Distinct().Count(), "the NPC does not take an enemy stream");
             var tap = CueSynth.Enemy(CueSynth.Layer.Friend, 44100);
             Equal(true, tap.Length < CueSynth.Growl(44100).Length && tap.All(sample => MathF.Abs(sample) <= 1f), "the tap is short and in range");
+        }
+
+        private static void SwitchesAreToldFromBreakables()
+        {
+            Equal(true, Switches.IsSwitch("Metadata/Terrain/Gallows/Act1/1_8/Objects/MausoleumSecretDoorSwitch"), "the mausoleum's switch");
+            Equal(true, Switches.IsSwitch("Metadata/Terrain/Gallows/Act4/4_5_1/Objects/PrisonLever"), "a lever");
+            Equal(false, Switches.IsSwitch("Metadata/Chests/Urns/Urn1"), "an urn");
+            Equal(false, Switches.IsSwitch("Metadata/Chests/LeverRoom/Chest1"), "only the object's own name counts");
         }
 
         private static void TwoNpcsAPlayerAndABodyAreAllHeard()

@@ -11,7 +11,20 @@ using System.Text;
 internal static class SoundExtractor
 {
     // name -> (bank file, sample name inside the FSB, max seconds). Sample names come from the FSB5 name table.
-    private sealed record Cue(string Name, string Bank, string Sample, double MaxSeconds = 1.5);
+    // A loop is kept whole (the game's own idle beds) and its seam crossfaded, so it repeats without a click. A frozen
+    // loop is a one-shot held still: grains of its [FreezeFrom, FreezeTo) seconds layered into a steady bed.
+    private sealed record Cue(string Name, string Bank, string Sample, double MaxSeconds = 1.5, bool Loop = false,
+        double FreezeFrom = 0, double FreezeTo = 0);
+
+    private const double LoopMaxSeconds = 20;
+    private const double LoopSeamSeconds = 0.05;
+
+    // Freeze: 120 ms Hann grains every 30 ms (four overlap, a constant sum of 2), from seeded random points, wrapped
+    // round a 6 s loop so it has no seam.
+    private const double FreezeSeconds = 6;
+    private const double GrainSeconds = 0.12;
+    private const int GrainOverlap = 4;
+    private const int FreezeSeed = 27;
 
     private static readonly Cue[] Cues =
     {
@@ -29,6 +42,12 @@ internal static class SoundExtractor
         new("waypoint",   "Waypoint4.0",       "WaypointActivate_01"),
         new("checkpoint", "BossCheckpoints",   "BossCheckpoints_Activate_01"),
         new("npc",        "General_Gameplay",  "Quest_UI_Offer_01"),
+        new("switch",     "Foley",             "PlayerCharacter_Foley_HandGrabLever_01"),
+        new("loops/portal",     "PortalScrollPortal", "PortalScroll_Effects_Po_IdleActive_01", LoopMaxSeconds, true),
+        // Area transitions have no idle sound: the crossing's own sound, held at its loud first half second.
+        new("loops/exit",       "UI_General",         "WorldAreaTransition_02", LoopMaxSeconds, true, 0.05, 0.5),
+        new("loops/waypoint",   "Waypoint4.0",        "WaypointActive_01", LoopMaxSeconds, true),
+        new("loops/checkpoint", "BossCheckpoints",    "BossCheckpoints_Loop_01", LoopMaxSeconds, true),
     };
 
     private const string Lib = "fmod";
@@ -79,6 +98,7 @@ internal static class SoundExtractor
 
         Directory.CreateDirectory(outDir);
         Directory.CreateDirectory(Path.Combine(outDir, "items"));
+        Directory.CreateDirectory(Path.Combine(outDir, "loops"));
         // Every drop sample the item catalog (Poe2UiExtract item-sounds) points to, extracted as items/<sample>.wav.
         var cues = Cues.Concat(ItemSoundExtractor.ReadSamples(itemCatalog)
             .Select(sample => new Cue("items/" + sample, ItemSoundExtractor.Bank, sample))).ToArray();
@@ -115,7 +135,9 @@ internal static class SoundExtractor
                     if (sub == IntPtr.Zero) { Console.WriteLine($"SKIP {cue.Name}: sample '{cue.Sample}' not in {group.Key}"); continue; }
 
                     var (pcm, ch, rate) = Decode(sub);
-                    (pcm, double secs) = TrimAndCap(pcm, ch, rate, cue.MaxSeconds);
+                    (pcm, double secs) = !cue.Loop ? TrimAndCap(pcm, ch, rate, cue.MaxSeconds)
+                        : cue.FreezeTo > cue.FreezeFrom ? Freeze(pcm, ch, rate, cue.FreezeFrom, cue.FreezeTo)
+                        : Seamless(pcm, ch, rate, cue.MaxSeconds);
                     WriteWav(Path.Combine(outDir, cue.Name + ".wav"), pcm, ch, rate);
                     manifest.Add($"{cue.Name}.wav\tFMOD/Desktop/{group.Key}.bank\t{cue.Sample}\t{secs:F2}s\t{ch}ch {rate}Hz");
                     Console.WriteLine($"{cue.Name,-11} <- {group.Key}/{cue.Sample}  {secs:F2}s");
@@ -197,6 +219,46 @@ internal static class SoundExtractor
         {
             float g = (float)(fade - i) / fade;
             for (int c = 0; c < ch; c++) res[(len - fade + i) * ch + c] *= g;
+        }
+        return (res, (double)len / rate);
+    }
+
+    /// <summary>A loop capped in length, its tail crossfaded (equal power) into its head and dropped.</summary>
+    private static (float[] pcm, double seconds) Seamless(float[] pcm, int ch, int rate, double maxSeconds)
+    {
+        int seam = (int)(LoopSeamSeconds * rate);
+        int frames = Math.Min(pcm.Length / ch, (int)(maxSeconds * rate) + seam);
+        if (frames <= 2 * seam) return (pcm, (double)pcm.Length / ch / rate);
+        int len = frames - seam;
+        var res = new float[len * ch];
+        Array.Copy(pcm, res, res.Length);
+        for (int i = 0; i < seam; i++)
+        {
+            double angle = Math.PI / 2 * i / seam;
+            for (int c = 0; c < ch; c++)
+                res[i * ch + c] = (float)(pcm[i * ch + c] * Math.Sin(angle) + pcm[(len + i) * ch + c] * Math.Cos(angle));
+        }
+        return (res, (double)len / rate);
+    }
+
+    /// <summary>A one-shot held still: windowed grains of [from, to) seconds overlap-added round a seamless loop.</summary>
+    private static (float[] pcm, double seconds) Freeze(float[] pcm, int ch, int rate, double from, double to)
+    {
+        int grain = (int)(GrainSeconds * rate), hop = grain / GrainOverlap, len = (int)(FreezeSeconds * rate) / hop * hop;
+        int first = (int)(from * rate), last = Math.Min(pcm.Length / ch, (int)(to * rate)) - grain;
+        if (last <= first) return Seamless(pcm, ch, rate, LoopMaxSeconds);
+        var window = new float[grain];
+        for (int i = 0; i < grain; i++) window[i] = (float)(0.5 - 0.5 * Math.Cos(2 * Math.PI * i / grain));
+        var random = new Random(FreezeSeed);
+        var res = new float[len * ch];
+        for (int start = 0; start < len; start += hop)
+        {
+            int source = random.Next(first, last);
+            for (int i = 0; i < grain; i++)
+            {
+                int at = (start + i) % len;
+                for (int c = 0; c < ch; c++) res[at * ch + c] += pcm[(source + i) * ch + c] * window[i] * 2f / GrainOverlap;
+            }
         }
         return (res, (double)len / rate);
     }

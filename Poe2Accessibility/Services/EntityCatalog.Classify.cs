@@ -68,8 +68,9 @@ namespace Poe2Accessibility.Services
             {
                 var chest = entity.TryGetComponent<Chest>(out var component) ? component : null;
                 category = chest is { IsOpened: true } ? null : ScanCategory.Chests;
-                // A rock or an egg breaks like an urn and shows no label; it sounded like a chest (user 2026-10-26).
-                kind = chest is { IsLabelVisible: false, IsStrongbox: false } ? "breakable" : "chest";
+                // A rock or an egg breaks like an urn and shows no label; it sounded like a chest (user 2026-10-26). A
+                // switch or lever built as a chest (the mausoleum's secret door switch) sounded like a breakable (2026-10-27).
+                kind = Switches.IsSwitch(path) ? "switch" : chest is { IsLabelVisible: false, IsStrongbox: false } ? "breakable" : "chest";
             }
             else if (entity.EntityType == EntityTypes.Shrine)
             {

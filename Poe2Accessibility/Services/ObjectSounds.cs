@@ -11,17 +11,21 @@ namespace Poe2Accessibility.Services
     ///     Proximity sounds for things worth walking to (D2R proximity loops): the nearest item, chest or shrine, exit
     ///     or portal, and waypoint or checkpoint on screen each repeat the game's own sound for them (an item its own drop
     ///     sound, <see cref="ItemDropSounds"/>, with the rare layer over it for a rare or unique), on their side,
-    ///     louder and more often as the player gets closer, higher above and lower below, and stop once the player stands
+    ///     louder and more often as the player gets closer, higher above and lower below, centred when the player stands
     ///     on them. One voice per group so chests and exits stay apart, one per item for the nearest few (several drops
-    ///     were heard as one, user 2026-10-24); voices take turns so two never start together.
+    ///     were heard as one, user 2026-10-24); voices take turns so two never start together. A portal, exit, waypoint
+    ///     or checkpoint plays its idle bed without a break instead (user 2026-10-27), louder as the player nears.
     /// </summary>
     public sealed class ObjectSounds
     {
         private const int PollMs = 250;
 
-        /// <summary>Heard within about a screen; silent when standing on it (the proximity narrator names it then).</summary>
+        /// <summary>
+        ///     Heard within about a screen and still on it (user 2026-10-27: it went silent there); this near it slides
+        ///     to the centre, or its side would flip with every step over it.
+        /// </summary>
         private const float RangeWorld = 1300f;
-        private const float OnItWorld = 150f;
+        private const float CentreWorld = 150f;
 
         /// <summary>
         ///     Repeat interval near / far, and the gain at the edge of the range. Near, often enough that its side stays
@@ -59,6 +63,8 @@ namespace Poe2Accessibility.Services
         private readonly float[] questRing = CueSynth.Ring(AudioCueService.SampleRate);
         private readonly Dictionary<string, long> lastPlayed = new();
         private readonly Dictionary<string, ScanEntry> nearest = new();
+        private readonly Dictionary<string, AudioCueService.Bed> beds = new();
+        private readonly Dictionary<string, (float Pan, float Pitch, float Gain)> heardBeds = new();
         private long lastPoll;
         private long lastAnyPlayed;
 
@@ -78,14 +84,10 @@ namespace Poe2Accessibility.Services
         /// <summary>Per frame while playing.</summary>
         public void Tick(bool playing)
         {
-            if (!playing || this.sounds.Count == 0)
+            this.heardBeds.Clear();
+            if (!playing || this.sounds.Count == 0 || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
-                return;
-            }
-
-            var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            if (!Seats.Followed.TryGetComponent<Render>(out var player))
-            {
+                this.SetBeds();
                 return;
             }
 
@@ -115,21 +117,29 @@ namespace Poe2Accessibility.Services
             foreach (var (group, entry) in this.nearest)
             {
                 var distance = Distance(here, entry);
-                if (distance <= OnItWorld || distance > RangeWorld || now - this.lastAnyPlayed < GroupGapMs ||
-                    this.SoundFor(entry) is not { } samples)
+                if (distance > RangeWorld)
                 {
                     continue;
                 }
 
                 var closeness = 1f - Math.Clamp(distance / RangeWorld, 0f, 1f);
+                var (side, height) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, new Vector2(entry.WorldX, entry.WorldY) - here));
+                var spread = Math.Min(1f, distance / CentreWorld);
+                var (pan, pitch) = (side * spread, 1f + ((height - 1f) * spread));
+                var gain = this.Gain * (FarGain + ((1f - FarGain) * closeness));
+                if (this.sounds.GetLoop(entry.Kind) != null)
+                {
+                    this.heardBeds[entry.Kind] = (pan, pitch, gain);
+                    continue;
+                }
+
                 var interval = FarIntervalMs - (closeness * (FarIntervalMs - NearIntervalMs));
-                if (this.lastPlayed.TryGetValue(group, out var last) && now - last < interval)
+                if (now - this.lastAnyPlayed < GroupGapMs || this.SoundFor(entry) is not { } samples ||
+                    (this.lastPlayed.TryGetValue(group, out var last) && now - last < interval))
                 {
                     continue;
                 }
 
-                var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, new Vector2(entry.WorldX, entry.WorldY) - here));
-                var gain = this.Gain * (FarGain + ((1f - FarGain) * closeness));
                 this.audio.Play(samples, pan, pitch, gain);
                 if (entry.Kind == "rare" && samples != this.sounds.Get("item_rare") && this.sounds.Get("item_rare") is { } rare)
                 {
@@ -138,6 +148,32 @@ namespace Poe2Accessibility.Services
 
                 this.lastPlayed[group] = now;
                 this.lastAnyPlayed = now;
+            }
+
+            this.SetBeds();
+        }
+
+        /// <summary>Each idle bed follows the place heard this frame; the rest fade out.</summary>
+        private void SetBeds()
+        {
+            foreach (var (kind, (pan, pitch, gain)) in this.heardBeds)
+            {
+                if (!this.beds.ContainsKey(kind) && this.sounds.GetLoop(kind) is { } loop)
+                {
+                    this.beds[kind] = this.audio.AddBed(loop);
+                }
+            }
+
+            foreach (var (kind, bed) in this.beds)
+            {
+                if (this.heardBeds.TryGetValue(kind, out var voice))
+                {
+                    bed.Set(voice.Pan, voice.Gain, voice.Pitch);
+                }
+                else
+                {
+                    bed.Set(0f, 0f);
+                }
             }
         }
 
@@ -149,6 +185,7 @@ namespace Poe2Accessibility.Services
             "rare" => this.sounds.Get("item_rare"),
             "chest" => this.sounds.Get("chest"),
             "breakable" => this.sounds.Get("breakable"),
+            "switch" => this.sounds.Get("switch"),
             "shrine" => this.sounds.Get("shrine"),
             "ritual" => this.sounds.Get("ritual"),
             "portal" => this.sounds.Get("portal"),

@@ -190,10 +190,12 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   again by the nearby list. Another player must hold the target a second to be named (people walk past). The first
   exit in an area adds the game's own hint: "Clearfell Encampment, A. hold A for options". Setting
   `AnnounceInteractTarget` ("What the interact button uses").
-- **Things worth walking to:** the game's own sounds repeat for the nearest chest or shrine (a breaking sound for breakables), ritual altar,
-  exit or portal, and
-  waypoint or checkpoint on screen, and for up to four items at once, on their side, higher when up the screen and
-  lower when down, more often as you get closer, silent once you stand on them. An item plays the drop sound the game gives its base (a scroll rustles, an orb clinks, a belt,
+- **Things worth walking to:** the game's own sounds repeat for the nearest chest or shrine (a breaking sound for
+  breakables, a hand on a lever for switches), ritual altar, and for up to four items at once, on their side, higher
+  when up the screen and lower when down, more often as you get closer, from the centre once you stand on them. The
+  nearest exit or portal and the nearest waypoint or checkpoint sound without a break (a portal's hum, a waypoint's
+  low drone, a checkpoint's bright ring, and for an exit the game's area-crossing sound held still), louder as you
+  get closer. An item plays the drop sound the game gives its base (a scroll rustles, an orb clinks, a belt,
   a crossbow, a gem each their own; the rare layer over a rare or unique; the generic item, currency, gold and
   quest sounds only for bases without one). They need the sounds extracted once from your game (see
   `tools/README.md`: `item-sounds`, then `sounds`), then a rebuild.

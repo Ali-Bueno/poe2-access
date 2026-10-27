@@ -34,6 +34,29 @@ The header version is derived from `fmod.dll`'s product version (2.3.11 -> `0x00
 | waypoint | Waypoint4.0 | WaypointActivate_01 |
 | checkpoint | BossCheckpoints | BossCheckpoints_Activate_01 |
 | npc | General_Gameplay | Quest_UI_Offer_01 (placeholder; no generic NPC greeting found) |
+| switch | Foley | PlayerCharacter_Foley_HandGrabLever_01 (0.4 s, about 18 dB under `breakable`) |
+
+## Idle loops (`loops/`, 2026-10-27)
+Kept whole (up to 20 s), the seam crossfaded over 50 ms; the plugin brings each to one RMS (peaks capped at half
+scale) and plays it as a bed.
+No FSB5 sample carries a loop chunk: the loop regions live in the Studio events, so loops are chosen by name and
+checked for a steady level (RMS of 100 ms windows) and distinct spectra.
+
+| loop | bank | sample | character |
+|---|---|---|---|
+| portal | PortalScrollPortal | PortalScroll_Effects_Po_IdleActive_01 | 4 s, mid (centroid ~2.2 kHz) |
+| waypoint | Waypoint4.0 | WaypointActive_01 | 19 s, low hum, very steady |
+| checkpoint | BossCheckpoints | BossCheckpoints_Loop_01 | 19 s, bright (~3.9 kHz), steady |
+| exit | UI_General | WorldAreaTransition_02, frozen | 6 s of 120 ms grains from its 0.05–0.5 s (granular freeze) |
+
+Area transitions have no idle sound of their own, and the crossing sounds (`WorldAreaTransition_02`, `Travel_1..3`)
+are one-shots that die out within 2 s, so the exit loop holds the crossing's loud start still (user's choice
+2026-10-27). Spectra did not predict what sounds alike: the Delirium encounter-object idle loop (a 400–3200 Hz
+shimmer, far from the ritual stinger's spectrum) was heard as the ritual sound, and a torch
+(`Act3_Braziers/FireTorch_loop_01`) did not suit an exit (user 2026-10-27). Rejected for exits: wind loops (the radar's open floor is a
+noise breath), `Doodads/SubTransition_01` (a sub-bass throb once a second that dies out, like the weak-point
+heartbeat), `PortalScroll_Effects_Id_IdleInactive_*` (about -39 dB and uneven), the tormented-spirit wisp loop
+(same spectrum as the waypoint).
 
 The `warning` and `heartbeat` placeholders were dropped (2026-10-24): the game plays its own low-life heartbeat.
 
