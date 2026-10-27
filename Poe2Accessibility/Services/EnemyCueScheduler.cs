@@ -38,13 +38,17 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     Which enemy cue to start now (D2R entity-cues design): one stream for the nearest unique, one for the nearest
-    ///     elite, the rest for the nearest others, plus one for the nearest friend (NPC or player). A stream pulses faster as its target nears, due streams take turns
+    ///     elite, the rest for the nearest others; on top of them the two nearest NPCs, the nearest other player and the
+    ///     nearest player down (user 2026-10-26). A stream pulses faster as its target nears, due streams take turns
     ///     (most overdue first) and starts keep a minimum gap. A stream keeps its cadence when its target changes, so
     ///     the nearest enemy swapping makes no burst.
     /// </summary>
     public sealed class EnemyCueScheduler
     {
         private const long Never = long.MinValue / 2;
+
+        /// <summary>NPCs heard at once (two characters side by side, one of them the one to talk to).</summary>
+        private const int FriendStreams = 2;
 
         private readonly int maxStreams;
         private readonly long minGapMs;
@@ -106,12 +110,22 @@ namespace Poe2Accessibility.Services
         private IEnumerable<(string Stream, CueTarget Target)> Streams(IReadOnlyList<CueTarget> targets)
         {
             var nearestFirst = targets.OrderByDescending(target => target.Nearness).ToList();
-            if (nearestFirst.FirstOrDefault(target => target.Layer == CueSynth.Layer.Friend) is { } friend)
+            foreach (var (friend, index) in nearestFirst.Where(target => target.Layer == CueSynth.Layer.Friend).Take(FriendStreams).Select((target, index) => (target, index)))
             {
-                yield return ("friend", friend); // the nearest NPC or player, on top of the enemy streams
+                yield return ($"friend{index}", friend);
             }
 
-            nearestFirst.RemoveAll(target => target.Layer == CueSynth.Layer.Friend);
+            if (nearestFirst.FirstOrDefault(target => target.Layer == CueSynth.Layer.Player) is { } player)
+            {
+                yield return ("player", player);
+            }
+
+            if (nearestFirst.FirstOrDefault(target => target.Layer == CueSynth.Layer.PlayerDown) is { } down)
+            {
+                yield return ("down", down);
+            }
+
+            nearestFirst.RemoveAll(target => target.Layer is CueSynth.Layer.Friend or CueSynth.Layer.Player or CueSynth.Layer.PlayerDown);
             var boss = nearestFirst.FirstOrDefault(target => target.Layer == CueSynth.Layer.Boss);
             var elite = nearestFirst.FirstOrDefault(target => target.Layer == CueSynth.Layer.Elite);
             var used = 0;

@@ -168,13 +168,20 @@ namespace Poe2Accessibility.Services
             var from = new Vector2(player.WorldPosition.X, player.WorldPosition.Y) / toGrid;
             foreach (var entity in area.AwakeEntities.Values)
             {
-                // Not in play: still buried or dormant (or a story variant of an NPC), nothing a sighted player sees.
-                if (!entity.IsValid || !EntityCatalog.IsInPlay(this.memory, entity) || !entity.TryGetComponent<Render>(out var render))
+                if (!entity.IsValid || !entity.TryGetComponent<Render>(out var render))
                 {
                     continue;
                 }
 
+                // Not in play: still buried or dormant (or a story variant of an NPC), nothing a sighted player sees. A
+                // player down is heard off screen and behind walls too (user 2026-10-26: the body was hard to find).
                 var layer = this.LayerOf(entity);
+                var down = layer == CueSynth.Layer.PlayerDown;
+                if (!down && !EntityCatalog.IsInPlay(this.memory, entity))
+                {
+                    continue;
+                }
+
                 var enemy = this.Reach && entity.EntityType == EntityTypes.Monster && EntityCatalog.IsAliveEnemy(entity);
                 if (layer == null && !enemy)
                 {
@@ -182,13 +189,13 @@ namespace Poe2Accessibility.Services
                 }
 
                 var screen = world.WorldToScreen(render.WorldPosition);
-                if (screen.X < 0 || screen.Y < 0 || screen.X > window.Width || screen.Y > window.Height)
+                if (!down && (screen.X < 0 || screen.Y < 0 || screen.X > window.Width || screen.Y > window.Height))
                 {
                     continue;
                 }
 
                 var to = new Vector2(render.WorldPosition.X, render.WorldPosition.Y) / toGrid;
-                if (layer != CueSynth.Layer.Boss && grid.Length > 0 && !InSight(grid, row, from, to, maxBlocked))
+                if (!down && layer != CueSynth.Layer.Boss && grid.Length > 0 && !InSight(grid, row, from, to, maxBlocked))
                 {
                     continue;
                 }
@@ -268,10 +275,30 @@ namespace Poe2Accessibility.Services
                 };
             }
 
+            if (!this.Friends)
+            {
+                return null;
+            }
+
+            if (entity.EntityType == EntityTypes.Player)
+            {
+                // A body to revive calls, the local partner's too (CoopDowns says it fell); alive, the local partner
+                // has its own radar.
+                if (Seats.IsFollowed(entity))
+                {
+                    return null;
+                }
+
+                if (entity.TryGetComponent<Life>(out var body) && !body.IsAlive)
+                {
+                    return CueSynth.Layer.PlayerDown;
+                }
+
+                return Seats.IsLocal(entity) ? null : CueSynth.Layer.Player;
+            }
+
             // A friendly monster with the NPC component is a character (Mortimer); corpses and minions have none.
-            var friend = entity.EntityType == EntityTypes.NPC || entity.TryGetComponent<NPC>(out _) ||
-                         (entity.EntityType == EntityTypes.Player && !Seats.IsLocal(entity));
-            return this.Friends && friend ? CueSynth.Layer.Friend : null;
+            return entity.EntityType == EntityTypes.NPC || entity.TryGetComponent<NPC>(out _) ? CueSynth.Layer.Friend : null;
         }
 
         /// <summary>

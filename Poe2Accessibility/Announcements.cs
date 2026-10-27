@@ -96,6 +96,7 @@ namespace Poe2Accessibility
             Services.ScanCategory.Places => T("Places", "Lugares"),
             Services.ScanCategory.Unexplored => T("Unexplored", "Sin explorar"),
             Services.ScanCategory.Waypoints => T("Waypoints and checkpoints", "Puntos de ruta y de control"),
+            Services.ScanCategory.Encounters => T("Encounters", "Encuentros"),
             Services.ScanCategory.Npcs => T("Characters", "Personajes"),
             Services.ScanCategory.Enemies => T("Enemies", "Enemigos"),
             Services.ScanCategory.Objects => T("Objects", "Elementos"),

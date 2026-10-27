@@ -18,6 +18,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Ground never seen yet next to ground walked (D2R unexplored areas), one entry per run and direction.</summary>
         Unexplored,
         Waypoints,
+
+        /// <summary>League devices the player uses: the Ritual altar (to start a ritual, then to spend its tribute).</summary>
+        Encounters,
         Npcs,
         Enemies,
         Objects,

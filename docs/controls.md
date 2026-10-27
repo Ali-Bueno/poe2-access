@@ -14,7 +14,7 @@ toggles the map legend). Turn the controller commands off with `ControllerComman
 | Double tap | Previous line | Life, mana, energy shield, harmful states, the boss's life, the flasks' uses left, then your level, how far to the next, the area's, your gold, the league encounter the HUD shows (tribute, rituals left), and how much of the ground you can reach you have seen ("Life 80 percent, mana 40 percent. Poisoned. The Bloated Miller 55 percent. Lesser Life Flask, 6 uses, Lesser Mana Flask, 2 uses. Level 4, 35 percent to level 5, area level 2. 113 gold. Ritual encounter. 100 Tribute. 0 rituals remaining. Explored 40 percent") |
 | Hold (half a second) | Whole tooltip (item mods, gem stats, definitions) | Read the screen (quest tracker, HUD texts), then the skill bar: each set's buttons with what they fire, the empty ones last |
 | Hold + right stick flick | — (the game navigates with the right stick in menus) | Scanner (below) |
-| Hold + right stick press (R3) | — | Guide beacon on the scanner's choice (below); again on the same choice turns it off |
+| Hold + right stick press (R3) | — | Guide beacon on the scanner's choice (below); while it guides, the same gesture turns it off |
 | Hold a second and a half | — | The mod's settings menu (below) |
 
 A new focus starts again from its first line. Tooltips are also read automatically when the focus lands
@@ -33,10 +33,11 @@ first; both wrap and empty categories are skipped. The category is named only wh
   ground never seen begins, one entry per stretch and direction, nearest first: "Unexplored ground, 7 steps,
   left"; ground within about 60 cells of where you walked counts as seen, and a wall with no way through
   hides what lies behind it; forgotten on leaving the area), waypoints and
-  checkpoints, characters (NPCs in play; "Renly, has a quest" when the game shows its quest indicator over them,
+  checkpoints, **encounters** (league devices: "Ritual altar", where a ritual starts and, once done, where its
+  tribute is spent: A on it says "view favours"; listed during the ritual too), characters (NPCs in play; "Renly, has a quest" when the game shows its quest indicator over them,
   with a bell among the object sounds), enemies (with rarity), objects (stash, salvage bench, well, a closed
   barrier: "Closed barrier"), chests
-  and shrines, items on the ground, other players. Chests and items stay listed once seen until opened or
+  and shrines (rocks, eggs, urns and other breakables have their own breaking sound), items on the ground, other players. Chests and items stay listed once seen until opened or
   picked up.
 - Only what a sighted player knows of (the minimap shows no more): enemies while they are on screen; everything
   else once it has been on screen or on ground you explored; the area's named places once you explored their
@@ -57,7 +58,7 @@ Choose a target with the scanner (the Quest category first is the usual one), ho
 stick: "Guiding to Clearfell Encampment, 21 steps…". A short iron chime then repeats, panned toward where the
 walkable route goes next (around walls, never through them), higher when the way is up the screen and lower
 when it is down, faster as the route shortens. Walk so the ping is centred. "Arrived at …" ends it; the same
-gesture on the same target, or changing area, turns it off. With no scanner choice the gesture locks the first
+gesture while it guides, whatever the scanner has chosen, or changing area, turns it off. With no scanner choice the gesture locks the first
 quest target. The ping is silent while a panel or dialogue is open (the lock is kept) and when no route exists
 yet: "No route to … yet". When the way stops short it says so once ("A closed barrier cuts the way
 to …; guiding as close as it goes") and, at that point, "As close to … as the way goes; it is still
@@ -172,13 +173,15 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   meanings in other sounds, plucked strings for walls, obstacles and exits, a whistle for the open way.
 - **Enemies:** a short growl for each enemy on screen, faster as it gets closer; magic and rare enemies buzz on top,
   uniques ring ([enemy sounds](enemy-sounds.md)).
-- **NPCs:** a light wooden tap for the nearest NPC or other player on screen, faster as you get closer.
+- **NPCs and players:** a light wooden tap for each of the two nearest NPCs on screen, a quicker, higher double tap
+  for the nearest other player, faster as you get closer. A player down to revive calls with two rising sweeps,
+  louder than every other sound, also off screen and behind walls: go to the body and hold A.
 - **Wall bump:** a dull thud when you push the stick into a wall and stop, on the side you pushed.
 - **Lessons that hold you:** some of the game's tutorial lessons keep the character still until you press what
   they ask (low mana: D-pad right; dodge: B; a passive point: View). The lesson is read whole, again when it comes
   back, and again when you push the stick and the character does not move.
-- **Nearby:** what you walk up to or stand on is named once: checkpoints, NPCs, the stash, chests, items, exits
-  ([nearby](proximity.md)); the same thing is named again only after a minute.
+- **Nearby:** what you walk up to or stand on is named once: checkpoints, NPCs, the stash, chests, items, exits,
+  a ritual altar ([nearby](proximity.md)); the same thing is named again only after a minute (an item whenever you walk back to it).
 - **Places:** walking into a named part of the map says it once, after what is being said ("bridge", "stairs",
   "door"); a bridge of several pieces is one. Then the nearest named prop within two or three steps ("cart",
   "well", "anvil", "notice board"), again after going six steps away. Setting "Name places you walk into".
@@ -187,7 +190,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   again by the nearby list. Another player must hold the target a second to be named (people walk past). The first
   exit in an area adds the game's own hint: "Clearfell Encampment, A. hold A for options". Setting
   `AnnounceInteractTarget` ("What the interact button uses").
-- **Things worth walking to:** the game's own sounds repeat for the nearest chest or shrine, exit or portal, and
+- **Things worth walking to:** the game's own sounds repeat for the nearest chest or shrine (a breaking sound for breakables), ritual altar,
+  exit or portal, and
   waypoint or checkpoint on screen, and for up to four items at once, on their side, higher when up the screen and
   lower when down, more often as you get closer, silent once you stand on them. An item plays the drop sound the game gives its base (a scroll rustles, an orb clinks, a belt,
   a crossbow, a gem each their own; the rare layer over a rare or unique; the generic item, currency, gold and

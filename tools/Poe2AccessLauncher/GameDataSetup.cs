@@ -10,7 +10,7 @@ internal static class GameDataSetup
 {
     private const string ExtractorExe = "Poe2UiExtract.exe";
     private const int StepTimeoutMilliseconds = 180_000;
-    private const int StampFormat = 3; // bump when the regeneration steps change, to rebuild once on every machine
+    private const int StampFormat = 4; // 4: breakable and ritual sounds. Bump when the regeneration steps change, to rebuild once on every machine
 
     /// <param name="Optional">Its failure keeps the shipped file and still lets the stamp be written: a patch that moves
     /// the tables these read must not rerun every step on every start (review 2026-10-25).</param>

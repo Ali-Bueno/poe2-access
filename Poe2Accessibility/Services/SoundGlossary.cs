@@ -35,6 +35,8 @@ namespace Poe2Accessibility.Services
             this.Add("elite", CueSynth.Enemy(CueSynth.Layer.Elite, rate));
             this.Add("boss", CueSynth.Enemy(CueSynth.Layer.Boss, rate));
             this.Add("friend", CueSynth.Enemy(CueSynth.Layer.Friend, rate));
+            this.Add("player", CueSynth.Enemy(CueSynth.Layer.Player, rate));
+            this.Add("player_down", CueSynth.Enemy(CueSynth.Layer.PlayerDown, rate));
             this.Add("npc_quest", CueSynth.Ring(rate));
             this.Add("radar_wall", RadarSynth.Cue(RadarReading.Wall, RadarSynth.Direction.Left, rate));
             this.Add("radar_open", RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Left, rate));
@@ -46,7 +48,7 @@ namespace Poe2Accessibility.Services
             this.Add("radar2_obstacle", RadarSynth.Obstacle(RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));
             this.Add("bump", RadarSynth.Bump(rate));
             this.Add("wall_tone", Excerpt(RadarSynth.WallTone(RadarSynth.Direction.Up, rate), rate));
-            foreach (var game in new[] { "item", "item_rare", "currency", "gold", "quest_item", "chest", "shrine", "exit", "portal", "waypoint", "checkpoint" })
+            foreach (var game in new[] { "item", "item_rare", "currency", "gold", "quest_item", "chest", "breakable", "shrine", "ritual", "exit", "portal", "waypoint", "checkpoint" })
             {
                 if (gameSounds.Get(game) is { } samples)
                 {

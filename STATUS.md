@@ -110,7 +110,10 @@
 | Radial menu (hold View) | done (live) | the highlighted option is the only text of its layer: "Inventory", "Skills", "Passives", "Bind Screen", "Character", "Quests", "Cosmetics", "Not Available" |
 | Death screen | done (live); fallback (code) | "You have Died. resurrect at checkpoint", then the button; `DeathWatch` reads it from G+0xCE8 when not narrated 2 s after dying, says it hidden ("Y la muestra"): once (11:23, 2026-10-24) the game focused it but it read hidden and nothing was said |
 | NPC / player tap, wall bump, level-up "Level 3" | done (code) | user to test; passive-point tutorial line was already read |
-| Guide beacon (L3 + R3 on a scanner choice) | done (live) | `Beacon`/`BeaconMath`: route off the frame thread, ping 620 Hz panned along the route, "Llegaste a …" |
+| Guide beacon (L3 + R3 on a scanner choice) | done (live) | `Beacon`/`BeaconMath`: route off the frame thread, ping 620 Hz panned along the route, "Llegaste a …"; since 2026-10-26 the chord releases any lock whatever is chosen (a co-op friend found or dead left it on; code) |
+| Scanner Encounters category: league devices (`Metadata/…/Leagues/…` with a minimap icon) | done (code) | "Altar de ritual" (icon RitualRune; game strings "Altar de ritual {0}", "Interactúa para ver los favores": the altar is where the tribute is spent); listed while untargetable too; named on approach and with A; `ritual.wav` (RitualEncounter/RituaStart_01) among the object sounds |
+| Breakables (rocks, eggs, urns) | done (code) | Chest with no label (`Chest.IsLabelVisible` false, not a strongbox) → kind `breakable`, `breakable.wav` (Breakables/Breakables_01) instead of the chest's |
+| NPC and player taps | done (code) | two NPC streams at once; other players a higher double tap (`CueSynth.Layer.Player`); a player down (Life not alive, the local partner too) two rising sweeps, loudest, heard off screen and behind walls (`Layer.PlayerDown`); unit-tested |
 | Scanner Quest category (objective's proper nouns) | done (live) | "Misión. El molinero hinchado, único, 5 pasos"; `QuestMatcher` |
 | Boss life + dodge warning | done (live) | "El molinero hinchado 72 por ciento"; whoosh + snap only on attack animations (`DodgeThreats`), a rare's blow within 150 units, louder when closer; timed half a second before the blow as learnt from the hits taken (`DodgeTimings`, `config/dodge-timings.txt`; MudGolem GroundSlam 1156 ms), at the wind-up until learnt (`docs/research/dodge-timing.md`) |
 | League encounter in the vitals readout (L3 double tap): "Encuentro de ritual. 100 Tributo. 0 rituales restantes" | done (code) | `EncounterReader`: visible texts under the HUD's `tertiary_hud_layout` except the quest pages (UI dump 2026-10-26); changes during play were already said as HUD news |
@@ -144,7 +147,7 @@
 | Player menu (A on another player) | done (live, header unheard) | popup outside the root, focus stays on it; chosen button int `+0x348` (`GameLayout.ButtonMenu`); `UiSemantics.DescribeButtonMenu`; dev command `dump 0x<address>` dumps such popups |
 | Weapon swap "Set de armas 2, vacío" (D2R) | done (live) | GameHelper `Stats.CurrentWeaponIndex` (+0x168) still right in 0.5.5e; `InventoryWatch.TickWeaponSet` |
 | Inline item art named ("Identificar Pergamino de sabiduría x 1") | done (unit) | `catalog/item-names.json` (`Poe2UiExtract item-names`, BaseItemTypes Id +0x0 / Name +0x20); `ControllerGlyphs.Plain` |
-| What A uses ("Finn, A", "Alijo, A") | done (live) | Targetable `+0x6B` = the game's interaction target; `ProximityNarrator.TrackTarget` (2026-10-24); cuts in since 2026-10-26 (queued it came late and A took the next item), the item's HUD tooltip no longer repeats it, lone tooltip property lines are not HUD news; items walked back to are named again (no minute cooldown) and a near item's sound repeats every 600 ms, not 1.3 s; a magic/rare item's HUD tooltip is no longer read whole (its full name is not the scanner's base name); no screen news while another window is in front (code) |
+| What A uses ("Finn, A", "Alijo, A") | done (live) | Targetable `+0x6B` = the game's interaction target; `ProximityNarrator.TrackTarget` (2026-10-24); cuts in since 2026-10-26 (queued it came late and A took the next item), the item's HUD tooltip no longer repeats it, lone tooltip property lines are not HUD news; items walked back to are named again (no minute cooldown; a lone item kept the game's target, so since 2026-10-26 a target named and then left beyond the re-arm distance is named again within reach, code) and a near item's sound repeats every 600 ms, not 1.3 s; a magic/rare item's HUD tooltip is no longer read whole (its full name is not the scanner's base name); no screen news while another window is in front (code) |
 | Discoveries, pick-ups, unmet requirements | done (code) | `DiscoveryNarrator` ("Jefe a la vista" heard live), `InventoryWatch` (ServerData MainInventory1 via reflection), red tooltip lines with digits |
 | Checkpoint travel map markers | done (live); place names (code) | `UiSemantics.MapMarkers` + `CheckpointPlaces`/`MapPlaces`: markers matched to seen checkpoints by one scale, "Viajar al punto de control, cerca de …, abajo, a 35 pasos, 2 de 2" (the game names none) |
 | Skill bar readout (after the screen on the gameplay hold) | done (live) | `UiSemantics.SkillBar`: "Set de habilidades principal: LT, Activar set… X, Saeta básica… Vacío: LB, cruceta arriba, Y"; bind screen names skills from their dat rows (`docs/research/skill-bar.md`) |
@@ -329,7 +332,11 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-Next: user test in combat of the 2026-10-26 enemy state sounds and the Primed for Stun wind-up (Warrior with
+Next: user test of the late 2026-10-26 batch, deployed into the user's `dist` in place (DLL, two sounds, extractor DLL):
+the Encounters category on a Ritual altar (is the altar listed and named "Altar de ritual, A" when the favours
+open?), the breaking sound on rocks and eggs (if real chests break too, `IsLabelVisible` is not the split), a lone item
+named again when walked back to, L3 + R3 releasing the guide, two NPC taps, the player double tap and the down call.
+Then user test in combat of the 2026-10-26 enemy state sounds and the Primed for Stun wind-up (Warrior with
 Destrozahuesos; is it too frequent, are the seven sounds told apart?); then find the Freeze / Electrocution / Pin buildups
 with `stuntrace` against a cold or lightning build. Then: user test (DLL and package of 2026-10-26 12:30 in `dist`) of the 2026-10-26 lesson priority (inventory with a pending passive point) and skill details in
 the engrave list. Then: user test of local co-op with two real controllers (both toggles, a revive by holding A; the revive and
@@ -351,7 +358,7 @@ must stay silent).
   personaje con este nombre": never press Enter there with a free name). Closed, it reads "Liga, Forbidden Rites,
   lista desplegable, 2 de 3" and then the league's description.
 - GameHelper marks a monster Useless once the game flags it dead (stat `is_dead`) and stops reading it, so its life can freeze mid-hit ("Ezomita antiguo" 16/50 in TakeHitBackward, heard and listed as an enemy that could not be hit, 2026-10-26): `EntityCatalog.IsFrozenDead` makes it dead for enemies and boss defeats.
-- League devices with life are typed Monster by GameHelper (Ritual rune, `Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable`, alive and hostile by the Devourer, 2026-10-26): enemies are only paths under `Metadata/Monsters/` (`EntityCatalog.CreatureFolder`; all 89 living hostiles in 47 dev dumps are). The rune is nameless, so the scanner does not list it.
+- League devices with life are typed Monster by GameHelper (Ritual rune, `Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable`, alive and hostile by the Devourer, 2026-10-26): enemies are only paths under `Metadata/Monsters/` (`EntityCatalog.CreatureFolder`; all 89 living hostiles in 47 dev dumps are). The rune is nameless and named by its minimap icon (Encounters category). Untargetable in two dumps (13:42, 14:06) and targetable in one (13:18): which ritual states those are is not known.
 - Landmark labels that are not area names are players' notes from GameHelper Radar: in Spanish their common words and
   reward notes are translated ("Escaleras hacia arriba", "Crop Circle (gema de habilidad de nivel 4)"); the names in
   them (Crop Circle, Kabala) stay as written, since the game's own Spanish name is not known for them.

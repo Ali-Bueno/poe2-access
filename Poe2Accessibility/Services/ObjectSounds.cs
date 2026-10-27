@@ -46,6 +46,7 @@ namespace Poe2Accessibility.Services
         {
             (LootGroup, entry => entry.Category == ScanCategory.Items),
             ("chests", entry => entry.Category == ScanCategory.Chests),
+            ("encounters", entry => entry.Category == ScanCategory.Encounters),
             ("exits", entry => entry.Category == ScanCategory.Exits || entry.Kind == "portal"),
             ("waypoints", entry => entry.Kind is "waypoint" or "checkpoint"),
             ("quests", entry => entry.Kind == "npc_quest"),
@@ -147,7 +148,9 @@ namespace Poe2Accessibility.Services
             "quest" => this.sounds.Get("quest_item"),
             "rare" => this.sounds.Get("item_rare"),
             "chest" => this.sounds.Get("chest"),
+            "breakable" => this.sounds.Get("breakable"),
             "shrine" => this.sounds.Get("shrine"),
+            "ritual" => this.sounds.Get("ritual"),
             "portal" => this.sounds.Get("portal"),
             "waypoint" => this.sounds.Get("waypoint"),
             "checkpoint" => this.sounds.Get("checkpoint"),

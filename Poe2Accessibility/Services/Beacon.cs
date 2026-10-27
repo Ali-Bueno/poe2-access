@@ -84,15 +84,9 @@ namespace Poe2Accessibility.Services
 
         public ScanEntry? Target => this.target;
 
-        /// <summary>Locks <paramref name="entry"/>; locking the same target again releases it (D2R second press).</summary>
-        public void Toggle(ScanEntry entry)
+        /// <summary>Locks <paramref name="entry"/> in place of any earlier target.</summary>
+        public void Lock(ScanEntry entry)
         {
-            if (this.target?.Id == entry.Id)
-            {
-                this.Clear(true);
-                return;
-            }
-
             if (this.catalog.DistanceTo(entry) <= ArrivalWorld)
             {
                 // Already there: locking would say the way and then the arrival at once.

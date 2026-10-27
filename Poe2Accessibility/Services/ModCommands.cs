@@ -178,7 +178,8 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Locks the guide on the scanner's choice (D2R: what was spoken last), else on the first thing the quest
-        ///     names; the same choice again releases it.
+        ///     names; while one is locked, the chord releases it whatever is chosen (user 2026-10-26: a co-op friend
+        ///     found first or dead left the route on, and the press locked something else instead).
         /// </summary>
         private void ToggleBeacon()
         {
@@ -187,24 +188,22 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (this.beacon.Target != null)
+            {
+                this.beacon.Clear(true);
+                return;
+            }
+
             var entries = this.catalog.Entries();
             var choice = this.browser.Current(entries, Environment.TickCount64) ??
                          entries.FirstOrDefault(entry => entry.Category == ScanCategory.Quest);
             if (choice == null)
             {
-                if (this.beacon.Target != null)
-                {
-                    this.beacon.Clear(true);
-                }
-                else
-                {
-                    this.output.Speak(Announcements.BeaconNeedsChoice, true);
-                }
-
+                this.output.Speak(Announcements.BeaconNeedsChoice, true);
                 return;
             }
 
-            this.beacon.Toggle(choice);
+            this.beacon.Lock(choice);
         }
 
         /// <summary>Settings menu: up/down move, left/right change the value, a tap closes and saves.</summary>

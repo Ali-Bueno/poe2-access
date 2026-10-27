@@ -42,7 +42,7 @@ namespace Poe2Accessibility.Services
 
         private const float AttackSeconds = 0.004f;
 
-        /// <summary>NPCs and other players: a light wooden tap, 84 ms — a damped 700 Hz knock with a quicker overtone.</summary>
+        /// <summary>NPCs: a light wooden tap, 84 ms — a damped 700 Hz knock with a quicker overtone.</summary>
         private const float TapSeconds = 0.084f;
         private const float TapHz = 700f;
         private const float TapOvertoneRatio = 2.5f;
@@ -51,6 +51,20 @@ namespace Poe2Accessibility.Services
         private const float TapOvertoneDecaySeconds = 0.006f;
         private const float TapReleaseSeconds = 0.01f;
         private const float TapLevel = 0.46f;
+
+        /// <summary>Another player: two quicker, higher knocks, so it is not taken for an NPC (user 2026-10-26).</summary>
+        private const float PlayerTapHz = 1100f;
+        private const float PlayerTapGapSeconds = 0.075f;
+
+        /// <summary>
+        ///     Another player down, waiting to be revived (user 2026-10-26: the body was hard to find): two rising sweeps,
+        ///     louder than every other cue; nothing else sweeps upward (the reach ping is two short high notes).
+        /// </summary>
+        private const float DownLowHz = 520f;
+        private const float DownHighHz = 920f;
+        private const float DownSweepSeconds = 0.17f;
+        private const int DownSweeps = 2;
+        private const float DownLevel = 0.62f;
 
         /// <summary>
         ///     Guide beacon (D2R beacon.md): a struck iron chime on 620 Hz, unlike every other cue — harmonic partials so
@@ -172,11 +186,17 @@ namespace Poe2Accessibility.Services
             Elite,
             Boss,
 
-            /// <summary>Not an enemy: an NPC or another player, a tap instead of the growl.</summary>
+            /// <summary>Not an enemy: an NPC, a tap instead of the growl.</summary>
             Friend,
+
+            /// <summary>Another player, alive: a double tap.</summary>
+            Player,
+
+            /// <summary>Another player down: the rising call.</summary>
+            PlayerDown,
         }
 
-        /// <summary>The growl with the layer for this enemy mixed in; a tap for a friend.</summary>
+        /// <summary>The growl with the layer for this enemy mixed in; a tap for an NPC, a double tap for a player.</summary>
         public static float[] Enemy(Layer layer, int sampleRate)
         {
             var growl = Growl(sampleRate);
@@ -185,6 +205,8 @@ namespace Poe2Accessibility.Services
                 Layer.Elite => Sum(growl, EliteBuzz(sampleRate)),
                 Layer.Boss => Sum(growl, Ring(sampleRate)),
                 Layer.Friend => Tap(sampleRate),
+                Layer.Player => PlayerTaps(sampleRate),
+                Layer.PlayerDown => DownCall(sampleRate),
                 _ => growl,
             };
         }
@@ -249,18 +271,52 @@ namespace Poe2Accessibility.Services
             return Normalized(samples, RingLevel);
         }
 
-        public static float[] Tap(int sampleRate)
+        public static float[] Tap(int sampleRate) => Normalized(Knock(TapHz, sampleRate), TapLevel);
+
+        public static float[] PlayerTaps(int sampleRate)
+        {
+            var knock = Knock(PlayerTapHz, sampleRate);
+            var gap = (int)(PlayerTapGapSeconds * sampleRate);
+            var samples = new float[gap + knock.Length];
+            for (var i = 0; i < knock.Length; i++)
+            {
+                samples[i] += knock[i];
+                samples[gap + i] += knock[i];
+            }
+
+            return Normalized(samples, TapLevel);
+        }
+
+        public static float[] DownCall(int sampleRate)
+        {
+            var sweep = (int)(DownSweepSeconds * sampleRate);
+            var samples = new float[sweep * DownSweeps];
+            var phase = 0.0;
+            for (var i = 0; i < samples.Length; i++)
+            {
+                var t = (float)(i % sweep) / sampleRate;
+                phase += (DownLowHz + ((DownHighHz - DownLowHz) * t / DownSweepSeconds)) / sampleRate;
+                var tone = MathF.Sin((float)(2 * Math.PI * phase)) + (0.35f * MathF.Sin((float)(4 * Math.PI * phase))) +
+                           (0.15f * MathF.Sin((float)(6 * Math.PI * phase)));
+                samples[i] = tone * MathF.Min(1f, t / AttackSeconds) * MathF.Min(1f, (DownSweepSeconds - t) / TapReleaseSeconds);
+            }
+
+            return Normalized(samples, DownLevel);
+        }
+
+        /// <summary>A damped knock with a quicker overtone (the NPC tap, and the player's at a higher pitch).</summary>
+        private static float[] Knock(float hz, int sampleRate)
         {
             var samples = new float[(int)(TapSeconds * sampleRate)];
             for (var i = 0; i < samples.Length; i++)
             {
                 var t = (float)i / sampleRate;
-                var knock = (MathF.Sin(2 * MathF.PI * TapHz * t) * MathF.Exp(-t / TapDecaySeconds)) +
-                            (TapOvertoneLevel * MathF.Sin(2 * MathF.PI * TapHz * TapOvertoneRatio * t) * MathF.Exp(-t / TapOvertoneDecaySeconds));
+                var knock = (MathF.Sin(2 * MathF.PI * hz * t) * MathF.Exp(-t / TapDecaySeconds)) +
+                            (TapOvertoneLevel * MathF.Sin(2 * MathF.PI * hz * TapOvertoneRatio * t) * MathF.Exp(-t / TapOvertoneDecaySeconds));
                 samples[i] = knock * MathF.Min(1f, t / AttackSeconds) * MathF.Min(1f, (TapSeconds - t) / TapReleaseSeconds);
             }
 
-            return Normalized(samples, TapLevel);
+            return samples;
         }
 
         public static float[] Ping(int sampleRate)

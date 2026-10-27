@@ -3,6 +3,7 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Numerics;
     using GameHelper;
     using GameHelper.RemoteObjects.Components;
 
@@ -44,7 +45,8 @@ namespace Poe2Accessibility.Services
 
         private static readonly ScanCategory[] Announced =
         {
-            ScanCategory.Exits, ScanCategory.Waypoints, ScanCategory.Npcs, ScanCategory.Objects, ScanCategory.Chests, ScanCategory.Items,
+            ScanCategory.Exits, ScanCategory.Waypoints, ScanCategory.Encounters, ScanCategory.Npcs, ScanCategory.Objects, ScanCategory.Chests,
+            ScanCategory.Items,
         };
 
         private readonly EntityCatalog catalog;
@@ -58,6 +60,14 @@ namespace Poe2Accessibility.Services
         private long candidateSince;
         private uint? target;
         private uint? targetSpoken;
+        private Vector2 targetSpokenAt;
+
+        /// <summary>
+        ///     The one named with the button that the player then walked away from: named again once back within reach.
+        ///     A lone item kept the game's target, so walking back over it said nothing; a second item took the target
+        ///     and the first was named again (user 2026-10-26).
+        /// </summary>
+        private uint? targetLeft;
 
         /// <summary>
         ///     An exit's label shows "Hold A (Show Options)" after a press, drawn outside the UI tree (2026-10-24): said
@@ -82,6 +92,7 @@ namespace Poe2Accessibility.Services
             this.candidate = null;
             this.target = null;
             this.targetSpoken = null;
+            this.targetLeft = null;
             this.exitOptionsSaid = false;
         }
 
@@ -152,6 +163,23 @@ namespace Poe2Accessibility.Services
         private void TrackTarget(long now)
         {
             var current = this.catalog.InteractTarget();
+            if (!Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return;
+            }
+
+            var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
+            if (current != null && current.Id == this.targetSpoken)
+            {
+                this.targetSpokenAt = new Vector2(current.WorldX, current.WorldY); // an NPC walks
+            }
+
+            if (this.targetSpoken is { } spoken && Vector2.Distance(here, this.targetSpokenAt) > RearmWorld)
+            {
+                this.targetLeft = spoken;
+                this.targetSpoken = null;
+            }
+
             if (current?.Id != this.candidate)
             {
                 this.candidate = current?.Id;
@@ -181,6 +209,16 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (current.Id == this.targetLeft)
+            {
+                if (Vector2.Distance(here, new Vector2(current.WorldX, current.WorldY)) > ReachWorld)
+                {
+                    return; // still the game's target from afar: named when walked back to
+                }
+
+                this.targetLeft = null;
+            }
+
             // What A takes now cuts in, like a focus: queued behind other lines it came late and A took the next item
             // ("Ballesta tensa, A" heard while A already held a bow, 2026-10-26). A queued name of it is skipped later.
             this.output.Speak(this.Label(current), true);
@@ -195,6 +233,12 @@ namespace Poe2Accessibility.Services
             }
 
             this.targetSpoken = entry.Id;
+            this.targetSpokenAt = new Vector2(entry.WorldX, entry.WorldY);
+            if (entry.Id == this.targetLeft)
+            {
+                this.targetLeft = null;
+            }
+
             var label = Announcements.WithButton(entry.Name, ControllerGlyphs.Interact);
             if (entry.Category != ScanCategory.Exits || this.exitOptionsSaid)
             {

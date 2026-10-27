@@ -319,12 +319,21 @@ namespace Poe2Accessibility
         /// <summary>The scanner's entry for the place of the last death in this area (D2R).</summary>
         public static string DeathPlace => T("Where you died", "Donde moriste");
 
-        /// <summary>Gold picked up during play (D2R "Picked up 37 gold"): the counter's rise.</summary>
         /// <summary>A barrier that opened on its own (scanner-style place: "The way opened, 4 steps, left").</summary>
         public static string BarrierOpened => T("The way opened", "Se abrió el paso");
 
         /// <summary>A closed barrier in the scanner's objects (a tutorial beam, a gate); it has no name of its own.</summary>
         public static string ClosedBarrier => T("Closed barrier", "Barrera cerrada");
+
+        /// <summary>
+        ///     A league device by its minimap icon (MinimapIcons.dat id), as the game's own strings call it (ClientStrings
+        ///     "Altar de ritual {0}", "Interactúa para ver los favores"); the devices have no render name.
+        /// </summary>
+        public static string LeagueDevice(string icon) => icon switch
+        {
+            "RitualRune" => T("Ritual altar", "Altar de ritual"),
+            _ => T("League encounter", "Encuentro de liga"),
+        };
 
         /// <summary>An NPC with the quest indicator over its head.</summary>
         public static string NpcWithQuest(string name) => T($"{name}, has a quest", $"{name}, con misión");
@@ -353,6 +362,8 @@ namespace Poe2Accessibility
             "elite" => T("Magic or rare enemy", "Enemigo mágico o raro"),
             "boss" => T("Unique enemy", "Enemigo único"),
             "friend" => T("Character", "Personaje"),
+            "player" => T("Player", "Jugador"),
+            "player_down" => T("Player down", "Jugador caído"),
             "radar_wall" => T("Radar: wall", "Radar: pared"),
             "radar_open" => T("Radar: open way", "Radar: camino libre"),
             "radar_exit" => T("Radar: exit", "Radar: salida"),
@@ -367,7 +378,9 @@ namespace Poe2Accessibility
             "gold" => T("Gold", "Oro"),
             "quest_item" => T("Quest item", "Objeto de misión"),
             "chest" => T("Chest", "Cofre"),
+            "breakable" => T("Breakable: rock, egg, urn", "Rompible: roca, huevo, urna"),
             "shrine" => T("Shrine", "Santuario"),
+            "ritual" => T("Ritual altar", "Altar de ritual"),
             "exit" => T("Exit", "Salida"),
             "portal" => T("Portal", "Portal"),
             "waypoint" => T("Waypoint", "Punto de ruta"),
@@ -406,7 +419,11 @@ namespace Poe2Accessibility
                 "with wall tones on, a hiss on the side of a near wall; higher ahead, lower behind, louder when closer",
                 "con los tonos de pared activados, un soplo del lado de una pared cercana; más agudo delante, más grave detrás, más fuerte al acercarte"),
             "enemy" or "elite" or "boss" => T("on its side, faster when closer", "a su lado, más rápido al acercarse"),
-            "friend" => T("nearest NPC or player", "personaje o jugador más cercano"),
+            "friend" => T("the two nearest characters, each on its side", "los dos personajes más cercanos, cada uno a su lado"),
+            "player" => T("the nearest other player, on its side", "el otro jugador más cercano, a su lado"),
+            "player_down" => T(
+                "a player down, on its side, also off screen and behind walls: go to the body and hold A to revive",
+                "un jugador caído, a su lado, también fuera de pantalla y tras paredes: ve hasta su cuerpo y mantén A para revivir"),
             "radar_wall" => T("the way closed on that side", "camino cerrado de ese lado"),
             "radar_open" => T("the way opened again", "el camino se abrió"),
             "radar_exit" => T("an exit on that line", "una salida en esa línea"),
@@ -514,8 +531,8 @@ namespace Poe2Accessibility
                 "Hold L3 and flick the right stick: up and down change the category, left and right go through it, nearest first. Quest is first: what the objective names",
                 "Mantén L3 y mueve el stick derecho: arriba y abajo cambian de categoría, izquierda y derecha la recorren, de la más cercana a la más lejana. Misión va primero: lo que nombra el objetivo"),
             "help_guide" => T(
-                "Hold L3 and press the right stick: a ping guides you to the scanner's choice along a free route, turns are named. Again on the same target turns it off",
-                "Mantén L3 y presiona el stick derecho: un ping te guía hacia lo elegido en el escáner por un camino libre, y se nombran los giros. Otra vez sobre el mismo objetivo la apaga"),
+                "Hold L3 and press the right stick: a ping guides you to the scanner's choice along a free route, turns are named. Again while it guides turns it off",
+                "Mantén L3 y presiona el stick derecho: un ping te guía hacia lo elegido en el escáner por un camino libre, y se nombran los giros. Otra vez mientras guía la apaga"),
             "help_menus" => T(
                 "In menus L3 reads the next line of the focused thing, double tap the previous, hold the whole description",
                 "En los menús L3 lee la siguiente línea de lo enfocado, doble toque la anterior, mantener la descripción completa"),

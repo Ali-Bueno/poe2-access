@@ -40,6 +40,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(NearbyThingsAreNamedOncePerApproach), NearbyThingsAreNamedOncePerApproach);
             Run(nameof(WallBumpThudsOncePerContact), WallBumpThudsOncePerContact);
             Run(nameof(FriendsGetTheirOwnStream), FriendsGetTheirOwnStream);
+            Run(nameof(TwoNpcsAPlayerAndABodyAreAllHeard), TwoNpcsAPlayerAndABodyAreAllHeard);
             Run(nameof(PhrasesFollowTheGameLanguage), PhrasesFollowTheGameLanguage);
             Run(nameof(OtherLanguagesUsePhraseTables), OtherLanguagesUsePhraseTables);
             Run(nameof(ConfirmGlyphMarksTheEntryBesideIt), ConfirmGlyphMarksTheEntryBesideIt);
@@ -1453,6 +1454,34 @@ namespace Poe2Accessibility.Tests
             Equal(2, played.Where(id => id != 99).Distinct().Count(), "the NPC does not take an enemy stream");
             var tap = CueSynth.Enemy(CueSynth.Layer.Friend, 44100);
             Equal(true, tap.Length < CueSynth.Growl(44100).Length && tap.All(sample => MathF.Abs(sample) <= 1f), "the tap is short and in range");
+        }
+
+        private static void TwoNpcsAPlayerAndABodyAreAllHeard()
+        {
+            var scheduler = new EnemyCueScheduler(2, 100, 150, 600);
+            var targets = new[]
+            {
+                new CueTarget(1, CueSynth.Layer.Friend, 0.2f, 0f, 0.8f),
+                new CueTarget(2, CueSynth.Layer.Friend, -0.2f, 0f, 0.7f),
+                new CueTarget(3, CueSynth.Layer.Friend, 0.5f, 0f, 0.2f),
+                new CueTarget(4, CueSynth.Layer.Player, 0.4f, 0f, 0.5f),
+                new CueTarget(5, CueSynth.Layer.PlayerDown, 1f, 0f, 0f),
+                new CueTarget(6, CueSynth.Layer.None, 0f, 0f, 0.9f),
+            };
+            var played = new HashSet<uint>();
+            for (var now = 0L; now < 2000; now += 10)
+            {
+                if (scheduler.Next(now, targets) is { } target)
+                {
+                    played.Add(target.Id);
+                }
+            }
+
+            Equal("1 2 4 5 6", string.Join(" ", played.Order()), "the two nearest NPCs, the player, the body and the enemy; not the third NPC");
+            var taps = CueSynth.Enemy(CueSynth.Layer.Player, 44100);
+            var call = CueSynth.Enemy(CueSynth.Layer.PlayerDown, 44100);
+            Equal(true, taps.Length > CueSynth.Tap(44100).Length && taps.All(sample => MathF.Abs(sample) <= 1f), "the player's double tap is longer than the NPC's, in range");
+            Equal(true, call.Max(MathF.Abs) > taps.Max(MathF.Abs) && call.All(sample => MathF.Abs(sample) <= 1f), "the body's call is the loudest, in range");
         }
 
         private static void LifeWarningsSpeakOncePerFall()

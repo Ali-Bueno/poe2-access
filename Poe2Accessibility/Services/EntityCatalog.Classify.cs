@@ -17,13 +17,14 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private ScanEntry? Classify(Entity entity, Render render)
         {
-            if (!this.InPlay(entity))
+            var path = entity.Path ?? string.Empty;
+            var leagueIcon = LeagueDeviceIcon(entity, path);
+            if (leagueIcon == null && !this.InPlay(entity))
             {
                 return null;
             }
 
             var name = this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty;
-            var path = entity.Path ?? string.Empty;
             var kind = string.Empty;
             var baseId = string.Empty;
             var loot = LootTier.Valuable;
@@ -65,13 +66,23 @@ namespace Poe2Accessibility.Services
             }
             else if (entity.EntityType == EntityTypes.Chest)
             {
-                category = entity.TryGetComponent<Chest>(out var chest) && chest.IsOpened ? null : ScanCategory.Chests;
-                kind = "chest";
+                var hasChest = entity.TryGetComponent<Chest>(out var chest);
+                category = hasChest && chest.IsOpened ? null : ScanCategory.Chests;
+                // A rock or an egg breaks like an urn and shows no label; it sounded like a chest (user 2026-10-26).
+                kind = hasChest && !chest.IsLabelVisible && !chest.IsStrongbox ? "breakable" : "chest";
             }
             else if (entity.EntityType == EntityTypes.Shrine)
             {
                 category = entity.TryGetComponent<Shrine>(out var shrine) && shrine.IsUsed ? null : ScanCategory.Chests;
                 kind = "shrine";
+            }
+            else if (leagueIcon != null)
+            {
+                // Listed while the game makes it untargetable too (during the ritual): it is where the fight is and,
+                // once done, where its tribute is spent ("Interactúa para ver los favores").
+                category = ScanCategory.Encounters;
+                name = name.Length > 0 ? name : Announcements.LeagueDevice(leagueIcon);
+                kind = leagueIcon == "RitualRune" ? "ritual" : "encounter";
             }
             else if (entity.EntityType == EntityTypes.Monster)
             {
@@ -160,6 +171,16 @@ namespace Poe2Accessibility.Services
         ///     Ritual rune, Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable, sounded as an enemy, 2026-10-26).
         /// </summary>
         public const string CreatureFolder = "Metadata/Monsters/";
+
+        /// <summary>
+        ///     The minimap icon of a league device (the Ritual altar, Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable,
+        ///     icon "RitualRune"), or null; its rune object and light share the folder but carry no icon (dump 2026-10-26).
+        /// </summary>
+        private static string? LeagueDeviceIcon(Entity entity, string path) =>
+            path.Contains("/Leagues/", StringComparison.Ordinal) && entity.TryGetComponent<MinimapIcon>(out var icon) &&
+            !string.IsNullOrEmpty(icon.IconName)
+                ? icon.IconName
+                : null;
 
         /// <summary>A living creature that is not the player's (minions are friendly).</summary>
         public static bool IsAliveEnemy(Entity entity) =>
