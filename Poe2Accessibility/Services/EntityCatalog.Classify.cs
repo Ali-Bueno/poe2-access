@@ -66,10 +66,10 @@ namespace Poe2Accessibility.Services
             }
             else if (entity.EntityType == EntityTypes.Chest)
             {
-                var hasChest = entity.TryGetComponent<Chest>(out var chest);
-                category = hasChest && chest.IsOpened ? null : ScanCategory.Chests;
+                var chest = entity.TryGetComponent<Chest>(out var component) ? component : null;
+                category = chest is { IsOpened: true } ? null : ScanCategory.Chests;
                 // A rock or an egg breaks like an urn and shows no label; it sounded like a chest (user 2026-10-26).
-                kind = hasChest && !chest.IsLabelVisible && !chest.IsStrongbox ? "breakable" : "chest";
+                kind = chest is { IsLabelVisible: false, IsStrongbox: false } ? "breakable" : "chest";
             }
             else if (entity.EntityType == EntityTypes.Shrine)
             {
