@@ -122,8 +122,8 @@
 | Enemy state sounds: heavy stunned, frozen, electrocuted, pinned, armour broken, dazed, parried | done (code) | `EnemyStateWatch` + pure `EnemyStates`/`EnemyStateNews`: buffs `frozen`, `electrocute_display_buff`, `pinned`, `broken_armour_debuff`, `dazed`, `parried` and the animations HeavyStun[Back|Forward] / Electrocute*; a sound per state (`CueSynth.StateCue`) on the enemy's side as it begins, rares and uniques named with the game's own term; on by default (only states the party causes happen); heavy stun seen in traces, the others not yet heard live |
 | Raise Shield feedback: clank up as the shield rises, down as it falls | done (live) | `ShieldWatch` + pure `ShieldStance` on the player's animation name (game Animation rows 0x1DF-0x1E2: ActiveBlockChannel[Moving] held, ActiveBlockEnd[Moving] lowering); a blocked hit's flicker is ignored for 300 ms; heard live 2026-10-26 (log: raised ActiveBlockChannel, lowered at ActiveBlockEnd or by attacking) |
 | Parry cue (Parry: buckler, targe, two swords) | done (code; skills read live) | reverse hit whose dead stop falls `ParryLeadMs` (150) before a timed blow (`BossWatch` + pure `ParryTiming`, `CueSynth.Parry`); only when the player's skills list `ParryPlayer` (`ParrySkill`, chain verified live on a Warrior 2026-10-28); never on the 191 attacks the files mark unblockable/unparryable (`hit-times` `;noblock,noparry`, `SkillFlags`; launcher step v2); user picked reverse hit A; [notes](docs/research/parry-and-stun-bar.md) |
-| Unblockable attack cue | done (code) | two brass stabs at the wind-up of a rare's/unique's attack marked `;noblock` (`BossWatch`, `CueSynth.Unblockable`, `DodgeTimings.CanBlock`); the plain dodge warning stays for blockable ones (user, 2026-10-28) |
-| Harmful ground alarm | done (code) | soft low pulse while a buff of `catalog/hazards.txt` is on the player (`HazardWatch`, pure `HazardGround`, extractor `hazards` from GroundEffectTypes +0x20 and "standing in" descriptions, 61 ids); a tester's ask; not heard live |
+| Unblockable attack cue | done (code) | two brass stabs at the wind-up of a rare's/unique's attack marked `;noblock` (`BossWatch`, `CueSynth.Unblockable`, `DodgeTimings.CanBlock`); the plain dodge warning stays for blockable ones (user, 2026-10-28; picked sample A) |
+| Harmful ground alarm | done (code) | soft low pulse while a buff of `catalog/hazards.txt` is on the player (`HazardWatch`, pure `HazardGround`, extractor `hazards` from GroundEffectTypes +0x20 and "standing in" descriptions, 61 ids); a tester's ask; user picked sample A; not heard live |
 | Stun bar while blocking / parrying | done (code; bar read live 0/263) | `ShieldWatch` + pure `StunMeter`: "Barra de aturdimiento N por ciento" past 50/75/90; a blocked hit not heard live |
 | Energy shield warnings | done (code) | `PlayerAlerts`: 75/50/25 and "agotado", pool ≥ a fifth of life; no live DPS meter exists (per-skill DPS already read in the Skills panel) |
 | Volumes to 300 %, dodge/parry volume | done (unit) | `AudioCueService`: a gain above 1 drives the voice into `CueSynth.Limit` alone (dodge +5 dB at 200, +7 dB at 300); `DodgeVolume` apart from `EnemyVolume` |
@@ -346,9 +346,9 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
-Next (2026-10-28, ninth batch, deployed into the user's `dist`: DLL, translations, `hazards.txt`): user picks the
-unblockable cue and the hazard alarm (samples page v3 https://claude.ai/artifact/WZBmymWdgsrWpj5Yd2aRWk, A of each in the
-mod), then hears them in a boss fight (the Miller's charge: stabs at the wind-up; caustic or burning ground: the pulse
+Next (2026-10-28, ninth batch, deployed into the user's `dist`: DLL, translations, `hazards.txt`): the user chose sample A
+of the unblockable cue and of the hazard alarm (samples page v3 https://claude.ai/artifact/WZBmymWdgsrWpj5Yd2aRWk, already
+in the mod); hear them in a boss fight (the Miller's charge: stabs at the wind-up; caustic or burning ground: the pulse
 until stepping out). Before that, (eighth batch, deployed: DLL, translations, flagged `hit-times.txt` in the plugin
 catalog and `app/GameData`): the user chose parry reverse hit A; test with a buckler/targe character: does the stop fall
 right (tune "Antelación del aviso de Parada"), and is a red-glow attack (the Miller's charge) left to the dodge warning?
