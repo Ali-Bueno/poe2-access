@@ -1282,6 +1282,20 @@ namespace Poe2Accessibility.Tests
             Equal("Renly, con misión", string.Join(" | ", QuestMatcher.Targets(new[] { new ScanEntry(6, ScanCategory.Npcs, "Renly, con misión", 0, 0, 0, "npc_quest") },
                                                                                 new[] { "Habla con Renly" }).Select(entry => entry.Name)),
                   "an NPC named with its quest marker");
+            var places = new[] { new ScanEntry(7, ScanCategory.Places, "entrada", 0, 0, 0), new ScanEntry(8, ScanCategory.Places, "tumba", 0, 0, 0) };
+            Equal(string.Empty, string.Join(" | ", QuestMatcher.Targets(places, new[] { "Encuentra la entrada al Valle rojo en el Bosque singular", "Busca a Asinia en la Tumba de la consorte" })
+                                                                   .Select(entry => entry.Name)),
+                  "a place's common noun in the objective is not the target");
+            var notes = new[]
+            {
+                new ScanEntry(9, ScanCategory.Exits, "Ogham Farmlands Or Deadend", 0, 0, 0, QuestMatcher.TileNote),
+                new ScanEntry(10, ScanCategory.Exits, "Pueblo de Ogham", 0, 0, 0),
+            };
+            Equal("Pueblo de Ogham", string.Join(" | ", QuestMatcher.Targets(notes, new[] { "El tesoro salvaje de Ogham", "Encuentra la entrada del pueblo" })
+                                                               .Select(entry => entry.Name)),
+                  "a tile note shares a word with the quest, an area name may");
+            Equal("Ogham Farmlands Or Deadend", string.Join(" | ", QuestMatcher.Targets(notes.Take(1).ToList(), new[] { "Find Ogham Farmlands Or Deadend" }).Select(entry => entry.Name)),
+                  "a tile note named whole");
         }
 
         private static void NearbyThingsWaitForTheCooldown()
@@ -1468,6 +1482,9 @@ namespace Poe2Accessibility.Tests
             Equal("urn", Breakables.Material("Metadata/Chests/GraveyardDungeonChests/CryptUrn01"), "a crypt urn");
             Equal("egg", Breakables.Material("Metadata/Chests/BirdEggChests/BirdEggChest01"), "an egg");
             Equal("", Breakables.Material("Metadata/Chests/Village/Scarecrows/Scarecrow01"), "no material: the common sound");
+            Equal(true, Breakables.IsCorpse("Metadata/Chests/CorpseChests_95702/PirateCorpse/PirateCorpseChest01"), "a corpse chest is a body");
+            Equal(true, Breakables.IsCorpse("Metadata/Chests/Village/Impale01"), "the village's impaled victim is a body");
+            Equal(false, Breakables.IsCorpse("Metadata/Chests/Village/Scarecrows/Scarecrow01"), "a scarecrow is not");
             Equal(false, Switches.IsSwitch("Metadata/Chests/LeverRoom/Chest1"), "only the object's own name counts");
         }
 

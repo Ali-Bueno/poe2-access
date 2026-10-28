@@ -412,7 +412,8 @@ namespace Poe2Accessibility.Services
                 }
 
                 var centre = new Vector2(spots.Average(spot => spot.X), spots.Average(spot => spot.Y)) * toWorld;
-                yield return new ScanEntry(LandmarkIdBase + index, ScanCategory.Exits, label, centre.X, centre.Y, height);
+                yield return new ScanEntry(LandmarkIdBase + index, ScanCategory.Exits, label, centre.X, centre.Y, height,
+                                           this.landmarks.IsAreaName(label) ? string.Empty : QuestMatcher.TileNote);
             }
         }
 

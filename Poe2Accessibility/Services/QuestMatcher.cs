@@ -8,7 +8,14 @@ namespace Poe2Accessibility.Services
     public static class QuestMatcher
     {
         /// <summary>
-        ///     What the quest tracker names: an exit, NPC, object or unique monster whose name the objective text
+        ///     The kind of a radar table's note on a tile ("Ogham Farmlands Or Deadend"): the quest means it only when it
+        ///     names it whole, not by a word they share — "Ogham" in "The Wild Treasure of Ogham" led to that dead end
+        ///     (user 2026-10-28).
+        /// </summary>
+        public const string TileNote = "tile_note";
+
+        /// <summary>
+        ///     What the quest tracker names: an exit, NPC, object or unique monster (never a place) whose name the objective text
         ///     contains ("Find Clearfell" → the exit to Clearfell). Copies in <see cref="ScanCategory.Quest"/>, same
         ///     ids, so locking one guides to the real thing. A label equal to the name is the thing's own nameplate.
         /// </summary>
@@ -35,10 +42,13 @@ namespace Poe2Accessibility.Services
 
             foreach (var entry in entries)
             {
-                if (entry.Category is ScanCategory.Players or ScanCategory.Items or ScanCategory.Unexplored ||
+                // Ordinary monsters share names with flavour text; bosses carry their rarity. Places are the mod's names
+                // for tiles and props, common nouns the game never marks: "Find the entrance to the Red Vale" led to an
+                // "entrance" tile and "Search for Asinia in the Consort's Tomb" to a "tomb" prop (user 2026-10-28).
+                if (entry.Category is ScanCategory.Players or ScanCategory.Items or ScanCategory.Unexplored or ScanCategory.Places ||
                     (entry.Category == ScanCategory.Enemies && !entry.Name.Contains(", ", StringComparison.Ordinal)))
                 {
-                    continue; // ordinary monsters share names with flavour text; bosses carry their rarity
+                    continue;
                 }
 
                 // Bosses carry their rarity after the name, NPCs their quest marker ("Renly, con misión").
@@ -46,7 +56,7 @@ namespace Poe2Accessibility.Services
                     : entry.Kind == "npc_quest" && entry.Name.LastIndexOf(", ", StringComparison.Ordinal) is > 0 and var marker ? entry.Name[..marker]
                     : entry.Name);
                 var named = texts.Any(text => text != name && ContainsWord(text, name)) ||
-                            name.Split(' ').Any(word => word.Length >= 4 && properNouns.Contains(word.Trim(',', '.', ':', ';')));
+                            (entry.Kind != TileNote && name.Split(' ').Any(word => word.Length >= 4 && properNouns.Contains(word.Trim(',', '.', ':', ';'))));
                 if (name.Length >= 4 && named && targets.All(target => target.Id != entry.Id))
                 {
                     targets.Add(entry with { Category = ScanCategory.Quest });

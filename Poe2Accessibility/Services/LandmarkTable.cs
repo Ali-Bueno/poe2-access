@@ -22,6 +22,7 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, Dictionary<string, string>> areas = new(StringComparer.Ordinal);
         private readonly Dictionary<string, Dictionary<string, string>> names = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string> englishToId = new(StringComparer.Ordinal);
+        private readonly HashSet<string> areaNames = new(StringComparer.Ordinal);
         private readonly Dictionary<(string Area, string Language), IReadOnlyDictionary<string, string>> localized = new();
         private readonly HashSet<string> namesLoaded = new(StringComparer.OrdinalIgnoreCase);
 
@@ -91,6 +92,12 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
+        ///     The label names a world area, in any language (an exit before the game loads it), not the radar table's
+        ///     own note on a tile ("Ogham Farmlands Or Deadend", "The Corpse Tree (waypoint)").
+        /// </summary>
+        public bool IsAreaName(string label) => this.areaNames.Contains(label.Trim());
+
+        /// <summary>
         ///     The label in the current language: an English area name as the game names it, else the radar table's own
         ///     words and reward notes translated (<see cref="Announcements.LandmarkLabel"/>), names kept.
         /// </summary>
@@ -120,6 +127,7 @@ namespace Poe2Accessibility.Services
                 {
                     // A table regenerated from the game's files keeps the trailing spaces some names carry there.
                     this.names[language] = byId.ToDictionary(pair => pair.Key, pair => pair.Value.Trim(), StringComparer.Ordinal);
+                    this.areaNames.UnionWith(this.names[language].Values);
                 }
 
                 if (parsed.TryGetValue("en", out var en))

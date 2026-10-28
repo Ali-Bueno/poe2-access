@@ -27,7 +27,7 @@ first; both wrap and empty categories are skipped. The category is named only wh
 "Characters. Una, 14 steps, right 3, then up right".
 
 - Categories: **quest** (what the quest tracker names: the exit to the area it asks for, the boss to kill, the
-  NPC to talk to), exits (area transitions and named places, in the game's language; "Where you died" after a
+  NPC to talk to; never a place or prop the sentence happens to mention, such as "entrance" or "tomb"), exits (area transitions and named places, in the game's language; "Where you died" after a
   death, while that area instance lasts), **places** (named map pieces and props from the game's terrain files:
   bridges, stairs, doors, ruins, graveyards, a cart, a well, an anvil; [places](research/places.md)), **unexplored** (where
   ground never seen begins, one entry per stretch and direction, nearest first: "Unexplored ground, 7 steps,
@@ -37,7 +37,8 @@ first; both wrap and empty categories are skipped. The category is named only wh
   tribute is spent: A on it says "view favours"; listed during the ritual too), characters (NPCs in play; "Renly, has a quest" when the game shows its quest indicator over them,
   with a bell among the object sounds), enemies (with rarity), objects (stash, salvage bench, well, a closed
   barrier: "Closed barrier"), chests
-  and shrines (rocks, eggs, urns and other breakables have their own breaking sound), items on the ground, other players. Chests and items stay listed once seen until opened or
+  and shrines (rocks, eggs, urns and other breakables have their own breaking sound, bodies to search their own
+  rummage), items on the ground, other players. Chests and items stay listed once seen until opened or
   picked up.
 - Only what a sighted player knows of (the minimap shows no more): enemies while they are on screen; everything
   else once it has been on screen or on ground you explored; the area's named places once you explored their
@@ -190,9 +191,10 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   again by the nearby list. Another player must hold the target a second to be named (people walk past). The first
   exit in an area adds the game's own hint: "Clearfell Encampment, A. hold A for options". Setting
   `AnnounceInteractTarget` ("What the interact button uses").
-- **Things worth walking to:** the game's own sounds repeat for the nearest chest or shrine (a hand on a lever for
-  switches), ritual altar, every breakable in range at once (each with its material's breaking sound, softened and
-  kept low), and for up to four items at once, on their side, higher
+- **Things worth walking to:** the game's own sounds repeat for every chest in range at once (a body to search, such
+  as the Ogham village's victims, with the game's rummage through a corpse instead), the nearest shrine (a hand on a
+  lever for switches), ritual altar, every breakable in range at once (each with its material's breaking sound,
+  softened and kept low), and for up to four items at once, on their side, higher
   when up the screen and lower when down, more often as you get closer, from the centre once you stand on them. The
   nearest exit or portal and the nearest waypoint or checkpoint sound without a break (a portal's hum, a waypoint's
   low drone, a checkpoint's bright ring, and for an exit the game's area-crossing sound held still), louder as you
@@ -224,7 +226,7 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   while it is buried. The first time in an area: "El devorador: golpea la cabeza, sigue el latido". Setting "Latido
   del punto débil del jefe" (on by default), volume with the enemy sounds.
 - **Dodge warning:** a blade-like rising whoosh ending in a ringing snap over a low thud, on the side of a rare or
-  unique monster attacking, louder the closer it is: dodge (B). Only animations that are attacks warn (not
+  unique monster attacking, louder the closer it is (and never faint far off in a boss arena): dodge (B). Only animations that are attacks warn (not
   burrowing, hiding, buffs or summons); a rare's blow warns only within about a step and a half, a unique's from
   anywhere on screen. It warns half a second before the blow: from the first attack, by the hit time in the game's
   own animation data (about 70% of monster attacks), and by what it learns from every blow you take, which wins;
