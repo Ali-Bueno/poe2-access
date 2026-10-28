@@ -50,6 +50,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\ItemMoves.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CardText.cs" />
     <Compile Include="..\..\tools\Poe2AccessLauncher\ReleaseTag.cs" Link="Launcher\ReleaseTag.cs" />
+    <Compile Include="..\..\tools\Poe2AccessLauncher\GameDataStamp.cs" Link="Launcher\GameDataStamp.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ExplorationMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\BarrierMemory.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\DodgeThreats.cs" />

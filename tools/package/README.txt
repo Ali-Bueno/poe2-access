@@ -17,7 +17,7 @@ GETTING STARTED
 1. Unzip the folder anywhere.
    If Windows says "Windows protected your PC" when you open the mod, choose "More info", then "Run anyway". To avoid it, before unzipping, open the Properties of the downloaded file (.zip or .7z), tick "Unblock" and accept.
 2. Start Steam.
-3. Double-click Poe2Access.exe. It starts the game if it was not running, then the mod. The first time, and after each game update, it prepares the sounds and data from your own installation. It takes about a minute and a half, and you hear nothing meanwhile; wait.
+3. Double-click Poe2Access.exe. It starts the game if it was not running, then the mod. The first time, and after each game update, it prepares the sounds and data from your own installation. It takes about a minute and a half, and you hear nothing meanwhile; wait. New versions of the mod keep what was prepared (they redo only what they changed, in seconds) when they update themselves or are unzipped over the old folder; a new, empty folder prepares everything again.
 4. You will hear "Path of Exile 2 accessibility ready" and, when the mod connects to the game, "Game detected" with the screen you are on.
 5. At the game's title screen, press a button on the CONTROLLER, not the mouse or keyboard. The game picks the control method at that moment, and if you go in with the mouse, it ignores the controller until you return to the main menu.
 

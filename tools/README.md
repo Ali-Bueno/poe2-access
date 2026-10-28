@@ -68,12 +68,19 @@ copies, makes a new copy of `GameHelper.exe` with rewritten version-info strings
 and exits 1. The host folder defaults to the exe's own folder when it holds `GameHelper.exe`, else the repository build output.
 The GameHelper-style copy/rename logic is a short independent reimplementation (GameHelper is GPLv3).
 In a test package `start` also keeps the game data current (`GameDataSetup.cs`): when `Poe2UiExtract.exe` sits beside it, it
-compares a stamp of the install (size and time of `Bundles2/_.index.bin` and of the game exe, `fmod.dll` version, a format
-number) with `Plugins/Poe2Accessibility/catalog/game-version.txt`. Missing or different (first run, game patch), it runs
-`item-sounds`, `areas`, `dat-columns`, `hit-times`, `places`, the `.ui` extraction plus `catalog`, and `sounds`, each independent and silent, with
-a 3-minute timeout, logging to `Poe2Access.log`. Outputs are written to a temp file or folder and replace the old ones only
-on success; the stamp is written only when all of them succeed (otherwise the next start retries). About 80 s in total,
-once per patch. The extractor opens the bundles sharing them with the running game (`SharedBundles`): the game locks some
+compares a stamp of the install (size and time of `Bundles2/_.index.bin` and of the game exe, `fmod.dll` version) and of
+each step's version with `app/GameData/game-version.txt` (`GameDataStamp.cs`). It reruns the steps whose stamp differs:
+all of them after a game patch or on the first run, only the ones whose version a mod update raised otherwise. The
+steps are `item-sounds`, `areas`, `dat-columns`, `experience`, `hit-times`, `places`, the `.ui` extraction plus
+`catalog`, and `sounds` (rerun with `item-sounds`), each independent and silent, with a 3-minute timeout, logging to
+`Poe2Access.log`. Outputs are written to a temp file or folder and replace the old ones only on success; each step is
+stamped as it succeeds (a failed one is retried on the next start, an optional one is stamped anyway). About 85 s for
+all of them, about 2 s for the sounds alone. Everything stays in the mod's folder: the catalogs in `app/GameData/catalog`,
+copied over the plugin's shipped copies on every start (an update or an unzip over the mod puts those back), the sounds
+in the plugin's `sounds/`; no package carries either, so a mod update keeps them. **Raise a step's version in
+`GameDataSetup` when its output changes**, so that step alone reruns once on every machine. The first start after the old
+layout (one `format=` number in `Plugins/Poe2Accessibility/catalog/game-version.txt`) carries over what that stamp
+vouched for on the same install. The extractor opens the bundles sharing them with the running game (`SharedBundles`): the game locks some
 once in game, and the launcher starts it before regenerating.
 
 ## package — test build for other players

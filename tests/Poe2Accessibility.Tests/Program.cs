@@ -51,6 +51,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(QuestNamesItsTargets), QuestNamesItsTargets);
             Run(nameof(ItemMovesAreSaidAsDeeds), ItemMovesAreSaidAsDeeds);
             Run(nameof(ReleaseTagsOrderByDayThenNumber), ReleaseTagsOrderByDayThenNumber);
+            Run(nameof(GameDataStepsRerunAlone), GameDataStepsRerunAlone);
+            Run(nameof(OldGameDataStampCarriesOver), OldGameDataStampCarriesOver);
             Run(nameof(TradeListingSaysItemPriceThenSeller), TradeListingSaysItemPriceThenSeller);
             Run(nameof(NearbyThingsWaitForTheCooldown), NearbyThingsWaitForTheCooldown);
             Run(nameof(StickClickWhileHoldingL3), StickClickWhileHoldingL3);
@@ -1281,6 +1283,35 @@ namespace Poe2Accessibility.Tests
             Equal(null, CardText.Read(new List<IReadOnlyList<CardLine>> { seller, new List<CardLine> { new("Ballesta", false) } }, 6), "lines that fit a table row stay a row");
             var unpriced = CardText.Read(new List<IReadOnlyList<CardLine>> { seller, item.Where(line => !line.Price).ToList() }, 3);
             Equal("Vision doble. Ballesta de diada, Mike_58#7693, Jugador desconectado, listado hace 1 meses", unpriced?.Label, "without a price the longest column leads");
+        }
+
+        private static void GameDataStepsRerunAlone()
+        {
+            const string install = "index=10:20\nexe=30:40\nfmod=2.03.06\n";
+            var stamp = Poe2AccessLauncher.GameDataStamp.Parse(null).With(install, "sounds", 2).With(install, "places", 1);
+            var read = Poe2AccessLauncher.GameDataStamp.Parse(stamp.ToString().Replace("\n", "\r\n"));
+            Equal(install, read.Install, "the install lines survive the file");
+            Equal(true, read.IsCurrent(install, "sounds", 2), "a step done at its version is current");
+            Equal(true, read.IsCurrent(install, "places", 1), "the other steps are kept");
+            Equal(false, read.IsCurrent(install, "sounds", 3), "a raised version reruns that step");
+            Equal(false, read.IsCurrent(install, "area names", 1), "a step never done runs");
+            Equal(false, read.IsCurrent("index=11:20\nexe=30:40\nfmod=2.03.06\n", "places", 1), "a game patch reruns every step");
+            Equal(1, read.With("index=11:20\n", "sounds", 2).Steps.Count, "a step done on a patched install forgets the others");
+        }
+
+        private static void OldGameDataStampCarriesOver()
+        {
+            const string install = "index=10:20\nexe=30:40\nfmod=2.03.06\n";
+            string[] steps = { "item sounds", "places", "sounds" };
+            var current = Poe2AccessLauncher.GameDataStamp.FromLegacy("format=7\r\n" + install.Replace("\n", "\r\n"), install, steps, "sounds");
+            Equal(3, current.Steps.Count, "the last format vouches for every step");
+            Equal(true, current.IsCurrent(install, "sounds", Poe2AccessLauncher.GameDataStamp.LegacyVersion), "at the first version");
+            var older = Poe2AccessLauncher.GameDataStamp.FromLegacy("format=5\n" + install, install, steps, "sounds");
+            Equal(false, older.Steps.ContainsKey("sounds"), "an earlier format reruns the sounds");
+            Equal(true, older.IsCurrent(install, "places", 1), "and keeps the catalogs it covered");
+            Equal(0, Poe2AccessLauncher.GameDataStamp.FromLegacy("format=2\n" + install, install, steps, "sounds").Steps.Count, "a format before hit times and places covers nothing");
+            Equal(0, Poe2AccessLauncher.GameDataStamp.FromLegacy("format=7\nindex=9:20\nexe=30:40\nfmod=2.03.06\n", install, steps, "sounds").Steps.Count, "another install covers nothing");
+            Equal(0, Poe2AccessLauncher.GameDataStamp.FromLegacy(null, install, steps, "sounds").Steps.Count, "no old stamp covers nothing");
         }
 
         private static void ReleaseTagsOrderByDayThenNumber()
