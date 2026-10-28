@@ -12,7 +12,7 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     Bosses and rare monsters near the player. Boss life (D2R boss-life.md) is spoken as the real percentage at
-    ///     each step it falls past, and the defeat once. The dodge warning: a short rising whoosh on the side of a rare or
+    ///     each step it falls past, and the defeat once. The dodge warning (<see cref="CueSynth.Dodge"/>) on the side of a rare or
     ///     unique monster on screen attacking (<see cref="DodgeThreats"/>; a rare's blow only within reach), louder the
     ///     closer it is, half a second before the blow lands as learnt from earlier hits of that attack by any monster of
     ///     its kind or given by the game's files (<see cref="DodgeTimings"/>; a projectile's flight across the gap added, at
@@ -76,7 +76,7 @@ namespace Poe2Accessibility.Services
             this.output = output;
             this.elements = elements;
             this.log = log;
-            this.whoosh = CueSynth.Whoosh(AudioCueService.SampleRate);
+            this.whoosh = CueSynth.Dodge(AudioCueService.SampleRate);
         }
 
         public bool AnnounceLife { get; set; } = true;

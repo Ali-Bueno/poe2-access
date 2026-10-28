@@ -19,7 +19,7 @@ namespace Poe2Accessibility.Services
             this.audio = audio;
             var rate = AudioCueService.SampleRate;
             this.Add("beacon", CueSynth.Ping(rate));
-            this.Add("dodge", CueSynth.Whoosh(rate));
+            this.Add("dodge", CueSynth.Dodge(rate));
             this.Add("crosshair", CueSynth.Crosshair(rate));
             this.Add("weak_point", CueSynth.Heartbeat(rate));
             this.Add("shield_up", CueSynth.ShieldUp(rate));
