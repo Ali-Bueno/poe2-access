@@ -33,6 +33,7 @@ namespace Poe2Accessibility
                 {
                     this.enemyCues.Enemies = this.Settings.EnemySounds;
                     this.enemyCues.Friends = this.Settings.NpcSounds;
+                    this.enemyCues.Players = this.Settings.PlayerSounds;
                     this.enemyCues.Tick(playing && (this.Settings.EnemySounds || this.Settings.NpcSounds || this.Settings.MeleeReach));
                 }
             });

@@ -50,6 +50,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(ClosedWayLeadsToItsNearestPoint), ClosedWayLeadsToItsNearestPoint);
             Run(nameof(QuestNamesItsTargets), QuestNamesItsTargets);
             Run(nameof(ItemMovesAreSaidAsDeeds), ItemMovesAreSaidAsDeeds);
+            Run(nameof(ReleaseTagsOrderByDayThenNumber), ReleaseTagsOrderByDayThenNumber);
+            Run(nameof(TradeListingSaysItemPriceThenSeller), TradeListingSaysItemPriceThenSeller);
             Run(nameof(NearbyThingsWaitForTheCooldown), NearbyThingsWaitForTheCooldown);
             Run(nameof(StickClickWhileHoldingL3), StickClickWhileHoldingL3);
             Run(nameof(WallTonesSwellNearWalls), WallTonesSwellNearWalls);
@@ -331,11 +333,12 @@ namespace Poe2Accessibility.Tests
         private static void CuesRingOutAndTheMixerRoundsOff()
         {
             const int rate = 44100;
-            foreach (var (name, sound) in new[] { ("beacon", CueSynth.Ping(rate)), ("dodge", CueSynth.Whoosh(rate)) })
+            // The dodge warning's bass drop rings on after the hit, which comes 0.2 s in.
+            foreach (var (name, sound, seconds) in new[] { ("beacon", CueSynth.Ping(rate), 0.5f), ("dodge", CueSynth.Dodge(rate), 1f) })
             {
                 Equal(true, sound.All(sample => MathF.Abs(sample) <= 1f), $"{name} stays within full scale");
                 Equal(true, MathF.Abs(sound[^1]) < 0.01f, $"{name}'s room tail fades to silence");
-                Equal(true, sound.Length < rate / 2, $"{name} is over within half a second");
+                Equal(true, sound.Length < rate * seconds, $"{name} is over within {seconds} s");
             }
 
             Equal(0.5f, CueSynth.Limit(0.5f), "below the knee the mix is untouched");
@@ -1261,6 +1264,34 @@ namespace Poe2Accessibility.Tests
             Equal(true, MathF.Abs(Rms(loop) - 0.04f) < 0.001f, "a touching wall sits at -28 dBFS RMS (D2R)");
             var behind = Rms(RadarSynth.WallTone(RadarSynth.Direction.Down, 44100)) / Rms(loop);
             Equal(true, MathF.Abs(behind - 1.413f) < 0.01f, "the band behind is lifted 3 dB");
+        }
+
+        private static void TradeListingSaysItemPriceThenSeller()
+        {
+            var seller = new List<CardLine> { new("Mike_58#7693", false), new("Jugador desconectado", false), new("listado hace 1 meses", false) };
+            var item = new List<CardLine>
+            {
+                new("Vision doble. Ballesta de diada", false), new("Ballesta", false), new("Carga una saeta adicional", false),
+                new("Precio de salida:", true), new("1x", true), new("Orbe de aumento", true), new("DPS total: 88,80", false),
+            };
+            var card = CardText.Read(new List<IReadOnlyList<CardLine>> { seller, item }, 6);
+            Equal("Vision doble. Ballesta de diada, Precio de salida: 1x, Orbe de aumento, Mike_58#7693, Jugador desconectado, listado hace 1 meses",
+                  card?.Label, "the item, its price, then the seller's column with the status");
+            Equal("Ballesta | Carga una saeta adicional | DPS total: 88,80", string.Join(" | ", card?.Details ?? new List<string>()), "the item's other lines follow, the price not again");
+            Equal(null, CardText.Read(new List<IReadOnlyList<CardLine>> { seller, new List<CardLine> { new("Ballesta", false) } }, 6), "lines that fit a table row stay a row");
+            var unpriced = CardText.Read(new List<IReadOnlyList<CardLine>> { seller, item.Where(line => !line.Price).ToList() }, 3);
+            Equal("Vision doble. Ballesta de diada, Mike_58#7693, Jugador desconectado, listado hace 1 meses", unpriced?.Label, "without a price the longest column leads");
+        }
+
+        private static void ReleaseTagsOrderByDayThenNumber()
+        {
+            Equal(new Version(2026, 10, 28, 1), Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.28"), "an unnumbered tag is the day's first release");
+            Equal(true, Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.28-2") > Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.28"), "-2 follows the day's first");
+            Equal(true, Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.29") > Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.28-3"), "a later day follows any number");
+            Equal(true, Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.28-10") > Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.28-9"), "numbers compare as numbers");
+            Equal<Version?>(null, Poe2AccessLauncher.ReleaseTag.Parse("latest"), "not a dated tag");
+            Equal<Version?>(null, Poe2AccessLauncher.ReleaseTag.Parse("v2026.10"), "a tag without its day");
+            Equal<Version?>(null, Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.28-0"), "releases are numbered from 2");
         }
 
         private static void ItemMovesAreSaidAsDeeds()

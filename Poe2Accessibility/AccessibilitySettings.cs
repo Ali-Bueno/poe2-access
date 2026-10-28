@@ -99,8 +99,11 @@ namespace Poe2Accessibility
         /// <summary>A short growl for each enemy on screen: side by stereo, below you by a lower pitch, nearer by a faster beat.</summary>
         public bool EnemySounds = true;
 
-        /// <summary>A light wooden tap for the nearest NPC or other player on screen, faster as they get closer.</summary>
+        /// <summary>A light wooden tap for the nearest NPC on screen, faster as they get closer; a call for a player down.</summary>
         public bool NpcSounds = true;
+
+        /// <summary>A double tap for the nearest other player on screen (with NPC sounds on); off quiets a crowded town.</summary>
+        public bool PlayerSounds = true;
 
         /// <summary>A thud when you push the stick into a wall and stop.</summary>
         public bool WallBump = true;
@@ -122,6 +125,9 @@ namespace Poe2Accessibility
         ///     gets a radar of its own, in its own sounds (plucked strings and a whistle).
         /// </summary>
         public bool ReadPlayer2 = false;
+
+        /// <summary>Poe2Access.exe looks for a newer release when it starts and asks before installing it (it reads this file).</summary>
+        public bool CheckForUpdates = true;
 
         // Speech priority (D2R): per kind of news, "waits" (its turn), "urgent" (cuts in when urgent), "cuts" (cuts in),
         // or "holds" (cuts in and later news queues behind it for a moment).

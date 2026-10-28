@@ -44,6 +44,7 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.WallTones)),
             Switch(nameof(AccessibilitySettings.EnemySounds)),
             Switch(nameof(AccessibilitySettings.NpcSounds)),
+            Switch(nameof(AccessibilitySettings.PlayerSounds)),
             Switch(nameof(AccessibilitySettings.WallBump)),
             Switch(nameof(AccessibilitySettings.ObjectSounds)),
             Choice(nameof(AccessibilitySettings.LootSounds), LootFilter.Levels),
@@ -75,6 +76,7 @@ namespace Poe2Accessibility.Services
             Choice(nameof(AccessibilitySettings.SpeechArrivals), SpeechPriority.Levels),
             Switch(nameof(AccessibilitySettings.ReadPlayer1)),
             Switch(nameof(AccessibilitySettings.ReadPlayer2)),
+            Switch(nameof(AccessibilitySettings.CheckForUpdates)),
         };
 
         private readonly Item[] items;

@@ -37,6 +37,8 @@ Nothing else needs installing: everything is inside the folder.
 5. At the game's title screen, press a button on the **controller**, not the mouse or keyboard: the game picks the
    control method then.
 
+From then on `Poe2Access.exe` looks for a newer version when it starts and asks before installing it, keeping your
+settings (the setting "Check for updates at start" turns the question off; `Poe2Access.exe update` looks now).
 The mod closes with the game; `Stop the mod.bat` stops it too. It speaks the language the game is set to (all ten
 of the game's languages). The full instructions are in `README.txt`, inside the download.
 

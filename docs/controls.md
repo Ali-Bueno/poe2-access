@@ -175,8 +175,9 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - **Enemies:** a short growl for each enemy on screen, faster as it gets closer; magic and rare enemies buzz on top,
   uniques ring ([enemy sounds](enemy-sounds.md)).
 - **NPCs and players:** a light wooden tap for each of the two nearest NPCs on screen, a quicker, higher double tap
-  for the nearest other player, faster as you get closer. A player down to revive calls with a soft falling
-  ding-dong, also off screen and behind walls: go to the body and hold A.
+  for the nearest other player, faster as you get closer (setting "Other players' sounds" silences the players
+  alone, for a crowded town). A player down to revive calls with a soft falling ding-dong, also off screen and
+  behind walls: go to the body and hold A.
 - **Wall bump:** a dull thud when you push the stick into a wall and stop, on the side you pushed.
 - **Lessons that hold you:** some of the game's tutorial lessons keep the character still until you press what
   they ask (low mana: D-pad right; dodge: B; a passive point: View). The lesson is read whole, again when it comes
@@ -225,7 +226,9 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   strike (the Devourer); faster as you near the head, slow and soft once you are within melee reach of it, silent
   while it is buried. The first time in an area: "El devorador: golpea la cabeza, sigue el latido". Setting "Latido
   del punto débil del jefe" (on by default), volume with the enemy sounds.
-- **Dodge warning:** a blade-like rising whoosh ending in a ringing snap over a low thud, on the side of a rare or
+- **Dodge warning:** a blade drawn over a low gong, diving into a deep bass drop on the moment to dodge (metal and
+  bass, so it is not taken for the radar's breath of open floor; the drop needs headphones or speakers with some
+  bass, the blade is heard anywhere), on the side of a rare or
   unique monster attacking, louder the closer it is (and never faint far off in a boss arena): dodge (B). Only animations that are attacks warn (not
   burrowing, hiding, buffs or summons); a rare's blow warns only within about a step and a half, a unique's from
   anywhere on screen. It warns half a second before the blow: from the first attack, by the hit time in the game's
@@ -234,7 +237,7 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   ([dodge timing](research/dodge-timing.md)).
 - **Crosshair:** two short blips when the game's target lands on a living enemy.
 - The game's own low-life heartbeat and menu sounds are left to the game: the mod has none of its own.
-- All stop while a panel, menu or dialogue is open. Settings: `Radar`, `WallBump`, `EnemySounds`, `NpcSounds`,
+- All stop while a panel, menu or dialogue is open. Settings: `Radar`, `WallBump`, `EnemySounds`, `NpcSounds`, `PlayerSounds`,
   `AnnounceNearby`, `AnnounceLevelUp`, `ObjectSounds`, `LootSounds`, `DodgeWarnings`, `CrosshairBeep`, `LowLifeBelow`, volumes
   `SoundVolume`, `RadarVolume`, `EnemyVolume`, `BeaconVolume`, `ObjectVolume` in `config/settings.txt`.
 
@@ -273,6 +276,10 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   "Character selection") are no longer cut off by the cursor's next stop: it follows them. Closing a panel or an NPC
   back to play stops what it was reading (a long tooltip); the world's first words after it are kept. LB/RB that
   switch a merchant's or the stash's tab while the cursor stays in the inventory say the new tab ("Armour").
+- Trade market (game menu, "Trade Market"): pick filters, then RB searches. Each listing is read as a sighted player
+  scans it: the item, its price, the seller and whether you can buy at once or the player is offline, when it was listed and the gold
+  fee, its place in the list; then the item's properties and mods. Listings scrolling into view are not read until
+  the cursor gets there.
 - Another player's menu (A on a player): "DrBacamarte, Warrior Lvl 2, Forbidden Rites League. Invite to Party,
   1 of 5", then each button as the D-pad moves ("Trade, 3 of 5"); B closes it.
 - Long texts (the terms of use, RB on the login screen): "Long text, 248 paragraphs: scroll it with the stick

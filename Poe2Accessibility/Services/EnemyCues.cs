@@ -84,8 +84,11 @@ namespace Poe2Accessibility.Services
         /// <summary>Growls for enemies (setting EnemySounds).</summary>
         public bool Enemies { get; set; } = true;
 
-        /// <summary>Taps for the nearest NPC or other player (setting NpcSounds).</summary>
+        /// <summary>Taps for the nearest NPC, and the call for a player down (setting NpcSounds).</summary>
         public bool Friends { get; set; } = true;
+
+        /// <summary>The double tap for the nearest other player alive (setting PlayerSounds).</summary>
+        public bool Players { get; set; } = true;
 
         /// <summary>The D2R reach ping: two rising notes when an enemy in sight comes within melee reach.</summary>
         public bool Reach { get; set; } = true;
@@ -294,7 +297,7 @@ namespace Poe2Accessibility.Services
                     return CueSynth.Layer.PlayerDown;
                 }
 
-                return Seats.IsLocal(entity) ? null : CueSynth.Layer.Player;
+                return Seats.IsLocal(entity) || !this.Players ? null : CueSynth.Layer.Player;
             }
 
             // A friendly monster with the NPC component is a character (Mortimer); corpses and minions have none.
