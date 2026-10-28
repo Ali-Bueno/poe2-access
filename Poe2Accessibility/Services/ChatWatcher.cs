@@ -8,8 +8,10 @@ namespace Poe2Accessibility.Services
     ///     New chat lines worth hearing: NPC shouts ("Wounded Man: Reach... Clearfell..."), the character's own
     ///     remarks, system notices, whispers and party. Global ('#') and trade ('$') channels are other players'
     ///     chatter, said only when the player asks for them; the same line twice within a few seconds is said once. The chat layer's message list is its descendant
-    ///     with the most children; lines present when the watcher first sees it are history, not news, and the
-    ///     game rebuilds the line elements, so new lines come from the text sequence (<see cref="ChatDiff"/>). A new
+    ///     with the most text lines (a list of 74 textless icons beside it took the place of a short history after a fresh
+    ///     start and nothing was read all evening, 2026-10-27); lines present when the watcher first sees it are history,
+    ///     not news, unless the chat was seen empty first, and the game rebuilds the line elements, so new lines come
+    ///     from the text sequence (<see cref="ChatDiff"/>). A new
     ///     channel chosen in the panel's channel list is said once the list closes on it.
     /// </summary>
     public sealed class ChatWatcher
@@ -22,6 +24,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A line repeated within this time is not said again (AFK on/off while idling, repeated shouts).</summary>
         private const int RepeatWindowMs = 5000;
 
+        /// <summary>Lines in a list first found after the chat was seen empty that are still news, not history.</summary>
+        private const int FreshLines = 5;
+
         private readonly UiElementReader elements;
         private readonly ComboBoxReader comboBoxes;
         private readonly Action<string> speak;
@@ -30,6 +35,7 @@ namespace Poe2Accessibility.Services
         private List<string> lines = new();
         private IntPtr layer;
         private IntPtr list;
+        private bool seenEmpty;
         private bool? panelShown;
         private IntPtr channelList;
         private string channel = string.Empty;
@@ -60,6 +66,7 @@ namespace Poe2Accessibility.Services
             {
                 this.layer = chatLayer;
                 this.list = IntPtr.Zero;
+                this.seenEmpty = false;
                 this.lines.Clear();
                 this.panelShown = null;
                 this.channelList = IntPtr.Zero;
@@ -77,6 +84,7 @@ namespace Poe2Accessibility.Services
             var baseline = this.list == IntPtr.Zero;
             if (baseline && !this.TryFindList())
             {
+                this.seenEmpty = true;
                 return;
             }
 
@@ -95,7 +103,10 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            var added = baseline ? Array.Empty<string>() : ChatDiff.Appended(this.lines, current);
+            var added = !baseline ? ChatDiff.Appended(this.lines, current)
+                : this.seenEmpty && current.Count <= FreshLines ? current
+                : Array.Empty<string>();
+            this.seenEmpty = false;
             this.lines = current;
             foreach (var text in added)
             {
@@ -203,7 +214,7 @@ namespace Poe2Accessibility.Services
             {
                 var (node, depth) = queue.Dequeue();
                 var children = this.elements.ReadChildren(node);
-                if (children.Length > best.Children)
+                if (children.Length > best.Children && this.elements.TryReadText(children[^1], out var newest) && newest.Length > 0)
                 {
                     best = (node.Address, children.Length);
                 }

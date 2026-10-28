@@ -13,16 +13,19 @@ namespace Poe2Accessibility.Services
     {
         private static readonly char[] PlayerChannels = { '#', '$' };
 
+        /// <summary>Every channel's sign: global, trade, party ('%'), guild ('&amp;') and whispers ('@', "@De Ana:hola").</summary>
+        private static readonly char[] ChannelSigns = { '#', '$', '%', '&', '@' };
+
         /// <summary>Global ('#') and trade ('$') lines: other players' chatter, marked by the channel's sign.</summary>
         public static bool IsPlayerChannel(string line) => line.Length > 0 && Array.IndexOf(PlayerChannels, line[0]) >= 0;
 
         /// <summary>
         ///     A chat line as spoken: without a channel sign, the speaker's colon followed by a space ("Renly:Esto es lo
-        ///     que tengo.", 2026-10-24).
+        ///     que tengo.", 2026-10-24; a whisper "@Para Dahnte:miralo" is "Para Dahnte: miralo", 2026-10-27).
         /// </summary>
         public static string Spoken(string line)
         {
-            line = IsPlayerChannel(line) ? line[1..] : line;
+            line = line.Length > 1 && Array.IndexOf(ChannelSigns, line[0]) >= 0 ? line[1..] : line;
             var colon = line.IndexOf(':');
             return colon > 0 && colon + 1 < line.Length && !char.IsWhiteSpace(line[colon + 1]) && !char.IsDigit(line[colon + 1])
                 ? $"{line[..(colon + 1)]} {line[(colon + 1)..]}"
