@@ -378,6 +378,7 @@ namespace Poe2Accessibility
             "gold" => T("Gold", "Oro"),
             "quest_item" => T("Quest item", "Objeto de misión"),
             "chest" => T("Chest", "Cofre"),
+            "corpse" => T("Body to search", "Cadáver para registrar"),
             "breakable" => T("Breakable: rock, egg, urn", "Rompible: roca, huevo, urna"),
             "switch" => T("Switch or lever", "Interruptor o palanca"),
             "shrine" => T("Shrine", "Santuario"),
@@ -432,6 +433,7 @@ namespace Poe2Accessibility
             "exit" or "portal" or "waypoint" or "checkpoint" => T(
                 "the nearest one, on its side, without a break; louder when closer, from the centre once you stand on it",
                 "el más cercano, a su lado, sin parar; más fuerte al acercarte, al centro cuando estás encima"),
+            "chest" or "corpse" or "breakable" => T("every one within about a screen, each on its side", "todos los que hay a una pantalla, cada uno a su lado"),
             _ => T("nearest one on screen, on its side", "el más cercano en pantalla, a su lado"),
         } + T(". Left or right plays it", ". Izquierda o derecha lo reproduce");
 

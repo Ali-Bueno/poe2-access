@@ -9,7 +9,8 @@ namespace Poe2Accessibility.Services
     ///     plugin's <c>sounds/</c> folder (never shipped). 16-bit PCM WAV at the mixer rate, folded to mono so the mixer
     ///     can pan them; each is cut to a short cue with a fade so repeats stay clear. The idle beds in <c>loops/</c> are
     ///     kept whole and brought to one loudness; the breakables' sounds in <c>breakables/</c> (one per material, got as
-    ///     <c>breakables/rock</c>) are dulled and brought low, since many play at once.
+    ///     <c>breakables/rock</c>) are dulled and brought low, since many play at once; a searched body's is brought up
+    ///     near a chest's, its sample being far quieter.
     /// </summary>
     public sealed class GameSounds
     {
@@ -19,6 +20,13 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The one breakable sound of older extractions, for a material without its own.</summary>
         public const string BreakableFallback = "breakable";
+
+        /// <summary>A body searched for loot: the game's own rummage through a corpse (Corpses/Open_04).</summary>
+        public const string Corpse = "corpse";
+
+        /// <summary>The body's sound at most at this RMS and peak (about -20 dBFS): the sample sits 11 dB under the chest's.</summary>
+        private const float CorpseRms = 0.1f;
+        private const float CorpsePeak = 0.8f;
 
         /// <summary>The extractor's cap on a loop's length.</summary>
         private const float LoopMaxSeconds = 20f;
@@ -76,6 +84,11 @@ namespace Poe2Accessibility.Services
                 LowPass(samples, BreakableCutoffHz);
                 Normalize(samples, BreakableRms, BreakablePeak);
                 set.sounds[name.Length > 0 ? $"{BreakableFolder}/{name}" : BreakableFallback] = samples;
+            }
+
+            if (set.sounds.TryGetValue(Corpse, out var corpse))
+            {
+                Normalize(corpse, CorpseRms, CorpsePeak);
             }
 
             var loopFolder = Path.Join(directory, LoopFolder);

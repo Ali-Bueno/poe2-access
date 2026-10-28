@@ -34,6 +34,8 @@ internal static class SoundExtractor
         new("gold",       "ItemDrops",         "GoldDrop_01"),
         new("quest_item", "ItemDrops",         "Item_Drop_Quest_01"),
         new("chest",      "Chest_Rarity",      "Chests_Rarity_Magic_Open_01"),
+        // A body searched for loot (CorpseChests, the Ogham village's victims): the corpse chests' own rummage.
+        new("corpse",     "Corpses",           "Open_04"),
         new("breakable",  "Breakables",        "Breakables_01"),
         // Per-kind break sounds, softer than the generic one. Each sample is the one named after the object's own sound
         // event (the .ao SoundEvents of Metadata/Chests/<folder>), the quietest-sounding of its set.

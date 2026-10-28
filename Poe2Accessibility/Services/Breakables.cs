@@ -33,6 +33,15 @@ namespace Poe2Accessibility.Services
             ("basket", "basket"),
         };
 
+        /// <summary>
+        ///     Bodies searched like chests (Metadata/Chests/CorpseChests_95702, the Ogham village's impaled, hanged, stocked
+        ///     and burnt victims, Kedge Bay's mummified dead): they sounded like chests (user 2026-10-28).
+        /// </summary>
+        private static readonly string[] Corpses = { "corpse", "mummified", "unworthychest", "hangsaw", "impale", "stocks", "witchstake", "crucifix" };
+
+        /// <summary>A body searched for loot, not a chest.</summary>
+        public static bool IsCorpse(string path) => Array.Exists(Corpses, name => path.Contains(name, StringComparison.OrdinalIgnoreCase));
+
         /// <summary>The material's sound name, or empty for the common breaking sound.</summary>
         public static string Material(string path)
         {

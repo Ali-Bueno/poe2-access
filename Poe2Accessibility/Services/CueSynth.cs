@@ -83,15 +83,18 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Dodge warning: a fast rising noise sweep (a blade's swing), unlike every tonal cue, short enough to react to;
-        ///     it ends on a ringing steel snap over a low thud so the "now" stands out from the wall tones' hiss.
+        ///     it ends on a ringing steel snap over a low thud so the "now" stands out from the wall tones' hiss. The sweep
+        ///     starts fuller and the snap rings longer than at first: it was hard to hear in boss fights (a tester, 2026-10-28),
+        ///     so it carries more body at the same peak rather than more volume.
         /// </summary>
         private const float WhooshSeconds = 0.2f;
         private const float WhooshStartHz = 400f;
         private const float WhooshEndHz = 2000f;
         private const float WhooshDamping = 0.18f;
         private const float WhooshLevel = 0.85f;
+        private const float WhooshFloor = 0.6f;
         private const float SnapHz = 2600f;
-        private const float SnapDecaySeconds = 0.025f;
+        private const float SnapDecaySeconds = 0.035f;
         private const float SnapSeconds = 0.08f;
         private const float ThudStartHz = 110f;
         private const float ThudEndHz = 55f;
@@ -354,7 +357,7 @@ namespace Poe2Accessibility.Services
                 low += f * band;
                 var high = noise - low - (WhooshDamping * band);
                 band += f * high;
-                samples[i] = band * MathF.Min(1f, t / 0.02f) * MathF.Min(1f, (WhooshSeconds - t) / 0.03f) * (0.4f + (0.6f * progress));
+                samples[i] = band * MathF.Min(1f, t / 0.02f) * MathF.Min(1f, (WhooshSeconds - t) / 0.03f) * (WhooshFloor + ((1f - WhooshFloor) * progress));
             }
 
             var peak = 0f;
