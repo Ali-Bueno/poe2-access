@@ -66,6 +66,12 @@ namespace Poe2Accessibility
         /// <summary>Parry (buckler, targe or two swords): a reverse hit that swells in and stops dead on the moment to press Parry before a blow you can parry.</summary>
         public bool ParryCues = true;
 
+        /// <summary>An extra cue (two low brass stabs) at the wind-up of a rare's or unique's attack that cannot be blocked: dodge it, a shield or a parry will not stop it.</summary>
+        public bool UnblockableCues = true;
+
+        /// <summary>A soft, low pulsing alarm while you stand in harmful ground or an enemy's damaging zone (burning, caustic, a boss's flames); silence means safe ground.</summary>
+        public bool HazardAlarm = true;
+
         /// <summary>How long before the blow the parry cue stops, milliseconds: raise it if you press late, lower it if you press early.</summary>
         public int ParryLeadMs = 150;
 

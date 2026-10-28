@@ -21,6 +21,8 @@ namespace Poe2Accessibility.Services
             this.Add("beacon", CueSynth.Ping(rate));
             this.Add("dodge", CueSynth.Dodge(rate));
             this.Add("parry", CueSynth.Parry(rate));
+            this.Add("unblockable", CueSynth.Unblockable(rate));
+            this.Add("hazard", CueSynth.HazardAlarm(rate));
             this.Add("crosshair", CueSynth.Crosshair(rate));
             this.Add("weak_point", CueSynth.Heartbeat(rate));
             this.Add("shield_up", CueSynth.ShieldUp(rate));

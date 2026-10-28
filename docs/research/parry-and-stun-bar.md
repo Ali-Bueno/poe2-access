@@ -25,6 +25,22 @@
   (the charge's ChargeStart, Charge, ChargeEnd); `DodgeTimings.CanParry` keeps the parry cue off them. The launcher's
   "hit times" step is version 2 so installs regenerate it once.
 
+- The unblockable ones (`;noblock`) also sound an extra cue at the wind-up (`CueSynth.Unblockable`, `BossWatch`), the
+  user's ask, so the plain dodge warning means "dodge or parry".
+
+## Harmful ground (game files)
+- GroundEffectTypes (53 rows of 0x40): +0x20 is the BuffDefinitions row a creature standing in it gets (IgnitedGround →
+  `ignited_ground`, CausticCloud → `caustic_cloud`, LivingBlood → `ground_living_blood`, FungalArtillery →
+  `ground_fungal_artillery`); key scan 2026-10-28. Helpful types (Consecration, Haste, Blizzard, Oasis, FeatheredGround,
+  Leyline), Smoke (its buff is the shared `generic_buff_aura`) and Unused are left out.
+- Boss zones are buffs whose English description says the player takes damage while standing in something
+  (`demon_claw_boss_beam`, `voodoo_king_maze_debuff`, `perennial_king_sand_storm`, `caustic_cloud_snake_boss_vomit`).
+  Ailments read "Debuff inflicts …" and are not caught.
+- `hazards` writes the 61 ids to `catalog/hazards.txt` (launcher step "hazards" v1); `HazardGround` matches a player buff
+  id without its "_hex" instance suffix, or one that starts with a listed id and "_" (`ground_living_blood_damage`,
+  seen in play). `HazardWatch` holds a looping bed (`CueSynth.HazardAlarm`) up while one is on the player. Buffs seen in
+  real fights before this (logs): `caustic_cloud`, `ground_fungal_artillery`, `ground_living_blood_damage`, `vortex`.
+
 ## Memory (verified live 2026-10-28, yarkidius, Warrior 11)
 - Player skills: Actor +0xB08 std::vector of 16-byte entries → ActiveSkillDetails → +0x58 GrantedEffectsPerLevel key →
   +0x0 GrantedEffects key → row +0x0 Id. Logged as "Player skills: EnforcedWalkingPlayer, DodgeRollPlayer, …,

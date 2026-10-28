@@ -113,6 +113,12 @@ if (args.Length > 1 && string.Equals(args[0], "hit-times", StringComparison.Ordi
     return HitTimeExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hit-times.txt");
 }
 
+// Args: hazards <gameDir> [outFile]  -- buffs from standing in harmful ground, for the hazard alarm.
+if (args.Length > 1 && string.Equals(args[0], "hazards", StringComparison.OrdinalIgnoreCase))
+{
+    return HazardExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hazards.txt");
+}
+
 // Args: places <gameDir> [outFile]  -- named map pieces and props for the place announcements (docs/research/places.md).
 if (args.Length > 1 && string.Equals(args[0], "places", StringComparison.OrdinalIgnoreCase))
 {
@@ -153,7 +159,7 @@ if (args.Length > 0 && string.Equals(args[0], "dat-columns", StringComparison.Or
     return DatColumnExtractor.Run(args[1], args[2]);
 }
 
-// Args: batch <gameDir> <command> <outFile> [...]  -- item-sounds, areas, dat-columns, experience, hit-times, places and
+// Args: batch <gameDir> <command> <outFile> [...]  -- item-sounds, areas, dat-columns, experience, hit-times, hazards, places and
 // ui-catalog on one opened index (the launcher after a game patch); each output complete or absent.
 if (args.Length > 3 && string.Equals(args[0], "batch", StringComparison.OrdinalIgnoreCase))
 {

@@ -34,7 +34,7 @@ Details: `docs/research/game-audio.md`.
 
 ### `batch` command - several catalogs on one opened index
 `Poe2UiExtract batch <gameDir> <command> <outFile> [<command> <outFile> ...]` runs `item-sounds`, `areas`,
-`dat-columns`, `experience`, `hit-times`, `places` and `ui-catalog` (the `.ui` extraction plus `catalog`, through a temp
+`dat-columns`, `experience`, `hit-times`, `hazards`, `places` and `ui-catalog` (the `.ui` extraction plus `catalog`, through a temp
 folder) side by side on one opened index (`Batch.cs`). Opening and parsing the index costs ~10 s and most of the ~2 GB a
 run takes; LibBundle3 opens a bundle stream per file read and the commands only read the index, so they share it safely.
 Each output is written as `<outFile>.part` and renamed when complete; exit code 1 if any command failed. The launcher
@@ -79,7 +79,7 @@ In a test package `start` also keeps the game data current (`GameDataSetup.cs`):
 compares a stamp of the install (size and time of `Bundles2/_.index.bin` and of the game exe, `fmod.dll` version) and of
 each step's version with `app/GameData/game-version.txt` (`GameDataStamp.cs`). It reruns the steps whose stamp differs:
 all of them after a game patch or on the first run, only the ones whose version a mod update raised otherwise. The
-catalog steps (`item-sounds`, `areas`, `dat-columns`, `experience`, `hit-times`, `places`, `ui-catalog`) go to one
+catalog steps (`item-sounds`, `areas`, `dat-columns`, `experience`, `hit-times`, `hazards`, `places`, `ui-catalog`) go to one
 silent `batch` run of the extractor, then `sounds` (rerun with `item-sounds`) on its own, with 3 minutes per step,
 logging to `Poe2Access.log`. Outputs are written to a temp file or folder and replace the old ones only on success; each
 step is stamped as it succeeds (a failed one is retried on the next start, an optional one is stamped anyway). About

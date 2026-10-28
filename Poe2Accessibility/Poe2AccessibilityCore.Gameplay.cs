@@ -96,10 +96,12 @@ namespace Poe2Accessibility
                     this.bosses.AnnounceLife = this.Settings.AnnounceBossLife;
                     this.bosses.DodgeWarnings = this.Settings.DodgeWarnings;
                     this.bosses.ParryCues = this.Settings.ParryCues;
+                    this.bosses.UnblockableCues = this.Settings.UnblockableCues;
                     this.bosses.Tick(playing);
                 }
             });
             this.Isolated("weak point", () => this.weakPoint?.Tick(playing && this.Settings.BossWeakPoint));
+            this.Isolated("hazards", () => this.hazards?.Tick(playing && this.Settings.HazardAlarm));
             this.Isolated("shield", () => this.shield?.Tick(playing, this.Settings.ShieldSounds, this.Settings.AnnounceStunBar));
             this.Isolated("cull", () => this.culls?.Tick(playing && this.Settings.CullCues));
             this.Isolated("enemy states", () => this.enemyStates?.Tick(playing, this.Settings.EnemyStateCues, this.Settings.PrimedStunCues));

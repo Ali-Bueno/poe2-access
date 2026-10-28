@@ -68,6 +68,7 @@ namespace Poe2Accessibility
         private BossWatch? bosses;
         private WeakPointGuide? weakPoint;
         private ShieldWatch? shield;
+        private HazardWatch? hazards;
         private EncounterReader? encounters;
         private CullWatch? culls;
         private EnemyStateWatch? enemyStates;
@@ -281,6 +282,9 @@ namespace Poe2Accessibility
                 this.shield = new ShieldWatch(this.audio, this.output, memory, this.log);
                 var parrySkill = new ParrySkill(memory, elements, this.log);
                 this.bosses.CanParry = parrySkill.Has;
+                var hazardGround = HazardGround.Load(Path.Join(this.DllDirectory, "catalog", "hazards.txt"));
+                this.log.Info($"Hazard ground: {hazardGround.Count} buffs from the game files");
+                this.hazards = new HazardWatch(this.audio, hazardGround, this.log);
                 this.encounters = new EncounterReader(elements);
                 this.culls = new CullWatch(this.audio, this.output, elements);
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);
@@ -381,6 +385,7 @@ namespace Poe2Accessibility
             this.inventoryReader = null;
             this.wallBump = null;
             this.wallTones = null;
+            this.hazards = null;
             this.audio?.Dispose();
             this.audio = null;
 

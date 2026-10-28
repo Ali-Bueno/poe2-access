@@ -213,6 +213,30 @@ namespace Poe2Accessibility.Services
         private const float ParryFadeInSeconds = 0.03f;
         private const float ParryLevel = 0.8f;
 
+        /// <summary>
+        ///     An attack that cannot be blocked (the game's red glow): two low brass stabs a tritone apart, short and harsh, at
+        ///     the wind-up, before the dodge warning itself.
+        /// </summary>
+        private static readonly StateNote[] UnblockableNotes =
+        {
+            new(0f, 0.09f, 147f, 147f, Buzz, 0.08f, Grit: 0.2f),
+            new(0f, 0.09f, 208f, 208f, Buzz, 0.08f, Grit: 0.2f),
+            new(0.15f, 0.09f, 147f, 147f, Buzz, 0.08f, Grit: 0.2f),
+            new(0.15f, 0.09f, 208f, 208f, Buzz, 0.08f, Grit: 0.2f),
+        };
+
+        private const float UnblockableLevel = 0.7f;
+
+        /// <summary>
+        ///     Harmful ground under the player: a soft low tone (110 Hz and two overtones) swelling and fading twice a loop, so
+        ///     it pulses like a quiet alarm while it lasts; a whole number of cycles per loop, silent at the seam.
+        /// </summary>
+        private const float HazardHz = 110f;
+        private const float HazardPulseSeconds = 0.4f;
+        private const int HazardPulses = 2;
+        private const float HazardLevel = 0.3f;
+        private static readonly float[] HazardHarmonics = { 1f, 0.35f, 0.15f };
+
         /// <summary>Crosshair (D2R crosshair.md): two flat 24 ms blips at 1175 Hz, 40 ms apart, odd harmonics.</summary>
         private const float ReachLowHz = 1320f;
         private const float ReachHighHz = 1760f;
@@ -550,6 +574,30 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Parry now (<see cref="ParryHitNotes"/>): the cue's last sample is the moment to press.</summary>
         public static float[] Parry(int sampleRate) => ReverseHit(Struck(ParryHitNotes, 1f, sampleRate), ParryRoom, sampleRate);
+
+        /// <summary>An attack that cannot be blocked (<see cref="UnblockableNotes"/>).</summary>
+        public static float[] Unblockable(int sampleRate) => Struck(UnblockableNotes, UnblockableLevel, sampleRate);
+
+        /// <summary>The hazard alarm's loop (<see cref="HazardHz"/>): each pulse swells and fades within its first half.</summary>
+        public static float[] HazardAlarm(int sampleRate)
+        {
+            var samples = new float[(int)(HazardPulseSeconds * HazardPulses * sampleRate)];
+            for (var i = 0; i < samples.Length; i++)
+            {
+                var t = (float)i / sampleRate;
+                var phase = (t % HazardPulseSeconds) / HazardPulseSeconds;
+                var swell = phase < 0.5f ? MathF.Pow(MathF.Sin(MathF.PI * phase * 2f), 2f) : 0f;
+                var tone = 0f;
+                for (var h = 0; h < HazardHarmonics.Length; h++)
+                {
+                    tone += HazardHarmonics[h] * MathF.Sin(2 * MathF.PI * HazardHz * (h + 1) * t);
+                }
+
+                samples[i] = tone * swell;
+            }
+
+            return Normalized(samples, HazardLevel);
+        }
 
         /// <summary>A hit and its room played backwards, the last <see cref="ParrySwellSeconds"/> of it: a swell into a dead stop.</summary>
         internal static float[] ReverseHit(float[] hit, float room, int sampleRate)

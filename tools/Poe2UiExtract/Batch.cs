@@ -16,6 +16,7 @@ internal static class Batch
         ["dat-columns"] = (_, index, output) => DatColumnExtractor.Run(index, output),
         ["experience"] = (_, index, output) => ExperienceExtractor.Run(index, output),
         ["hit-times"] = (_, index, output) => HitTimeExtractor.Run(index, output),
+        ["hazards"] = (_, index, output) => HazardExtractor.Run(index, output),
         ["places"] = (_, index, output) => PlaceExtractor.Run(index, output),
         ["ui-catalog"] = (_, index, output) => UiScripts.BuildCatalog(index, output),
     };

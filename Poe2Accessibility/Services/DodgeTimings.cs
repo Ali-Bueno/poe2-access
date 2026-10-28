@@ -37,11 +37,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private readonly Dictionary<string, (int Hit, int Swing, int Speed)> fromFiles = new(StringComparer.Ordinal);
 
-        /// <summary>Attacks the game marks as impossible to block or to parry (the red glow on a boss's wind-up).</summary>
+        /// <summary>Attacks the game marks as impossible to block (the red glow on a boss's wind-up), and those only impossible to parry.</summary>
+        private readonly HashSet<string> unblockable = new(StringComparer.Ordinal);
         private readonly HashSet<string> unparryable = new(StringComparer.Ordinal);
 
-        /// <summary>The flags of catalog/hit-times.txt that rule a parry out: a parry is a block.</summary>
-        private static readonly string[] NoParryFlags = { "noblock", "noparry" };
+        private const string NoBlockFlag = "noblock";
+        private const string NoParryFlag = "noparry";
 
         /// <summary>"Metadata/Monsters/MudGolem/MudGolemWet1|13": the monster kind without its "@level" suffix.</summary>
         public static string Key(string monsterPath, int animation)
@@ -112,8 +113,11 @@ namespace Poe2Accessibility.Services
         /// <summary>How fast the attack's projectile flies (world units a second), when the files say it fires one.</summary>
         public int? ProjectileSpeed(string key) => this.fromFiles.TryGetValue(key, out var timed) && timed.Speed > 0 ? timed.Speed : null;
 
-        /// <summary>Whether the player can parry the attack: false when the game's files say it cannot be blocked or parried.</summary>
-        public bool CanParry(string key) => !this.unparryable.Contains(key);
+        /// <summary>Whether the player can block the attack: false when the game's files say it cannot be blocked.</summary>
+        public bool CanBlock(string key) => !this.unblockable.Contains(key);
+
+        /// <summary>Whether the player can parry the attack: a parry is a block, and some attacks only refuse the parry.</summary>
+        public bool CanParry(string key) => this.CanBlock(key) && !this.unparryable.Contains(key);
 
         /// <summary>
         ///     Lines "key=hit/swing[/speed][;flags]" (catalog/hit-times.txt; "-" for an untimed attack with flags); "#" lines
@@ -126,7 +130,13 @@ namespace Poe2Accessibility.Services
                 var flagsAt = entry.IndexOf(';');
                 var line = flagsAt > 0 ? entry[..flagsAt] : entry;
                 var split = line.LastIndexOf('=');
-                if (flagsAt > 0 && split > 0 && entry[(flagsAt + 1)..].Split(',').Any(NoParryFlags.Contains))
+                var flags = flagsAt > 0 && split > 0 ? entry[(flagsAt + 1)..].Split(',') : Array.Empty<string>();
+                if (flags.Contains(NoBlockFlag))
+                {
+                    this.unblockable.Add(line[..split]);
+                }
+
+                if (flags.Contains(NoParryFlag))
                 {
                     this.unparryable.Add(line[..split]);
                 }

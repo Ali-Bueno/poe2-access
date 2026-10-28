@@ -18,7 +18,8 @@ namespace Poe2Accessibility.Services
     ///     its kind or given by the game's files (<see cref="DodgeTimings"/>; a projectile's flight across the gap added, at
     ///     its speed in the files), at the wind-up until then. For a player who can parry, the parry cue
     ///     (<see cref="CueSynth.Parry"/>, a swell into a dead stop) stops <see cref="ParryLeadMs"/> before a timed blow worth
-    ///     parrying (<see cref="ParryTiming"/>), from any monster, never one the game marks as impossible to block or parry. Animation ids are GameHelper's <c>Actor.Animation</c> (Actor +0x8B0).
+    ///     parrying (<see cref="ParryTiming"/>), from any monster, never one the game marks as impossible to block or parry;
+    ///     a rare's or unique's attack that cannot be blocked adds its own cue at the wind-up (<see cref="CueSynth.Unblockable"/>). Animation ids are GameHelper's <c>Actor.Animation</c> (Actor +0x8B0).
     /// </summary>
     public sealed class BossWatch
     {
@@ -60,6 +61,7 @@ namespace Poe2Accessibility.Services
         private readonly PluginLog log;
         private readonly float[] whoosh;
         private readonly float[] parry = CueSynth.Parry(AudioCueService.SampleRate);
+        private readonly float[] unblockable = CueSynth.Unblockable(AudioCueService.SampleRate);
         private readonly int parryMs;
         private readonly Dictionary<uint, Attack> attacks = new();
 
@@ -89,6 +91,9 @@ namespace Poe2Accessibility.Services
         public bool DodgeWarnings { get; set; } = true;
 
         public bool ParryCues { get; set; } = true;
+
+        /// <summary>The extra cue at the wind-up of an attack the game marks as impossible to block (with the dodge warnings on).</summary>
+        public bool UnblockableCues { get; set; } = true;
 
         /// <summary>Whether the followed player has Parry now (<see cref="ParrySkill"/>); asked only with <see cref="ParryCues"/> on.</summary>
         public Func<bool> CanParry { get; set; } = () => false;
@@ -292,6 +297,7 @@ namespace Poe2Accessibility.Services
                     {
                         Swing = this.Timings.Swing(key), TravelMs = travel, ReleaseAt = learnt is { } release ? now + release : null,
                         ParryBlowAt = learnt is { } blow && this.Timings.CanParry(key) ? now + blow + travel : null,
+                        Unblockable = !this.Timings.CanBlock(key),
                     };
                 }
             }
@@ -299,6 +305,15 @@ namespace Poe2Accessibility.Services
             // A rare's blow needs it within reach when it would land; a unique's carries (slam waves).
             var inReach = attack.Threat != DodgeThreat.Melee || attack.Unique || gap <= MeleeDangerGapWorld;
             attack = attack with { InReach = inReach };
+            if (this.DodgeWarnings && this.UnblockableCues && attack is { Unblockable: true, UnblockableCued: false, Warns: true } && inReach)
+            {
+                // At the wind-up, as the game's red glow: the dodge warning still times the roll.
+                attack = attack with { UnblockableCued = true };
+                var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
+                this.audio.Play(this.unblockable, pan, pitch, this.WarningGain(offset));
+                this.log.Debug($"Unblockable attack: monster {id} animation {(Animation)animation}");
+            }
+
             if (this.DodgeWarnings && attack.Warns && !attack.Warned && attack.CanStillHit(now) && now >= attack.WarnAt)
             {
                 // The same animation id goes on swinging (a golem's blows a swing apart, nothing new written between
@@ -439,6 +454,11 @@ namespace Poe2Accessibility.Services
 
             /// <summary>When the swing warned of next lets its blow or projectile go, from the timings; null when unknown.</summary>
             public long? ReleaseAt { get; init; }
+
+            /// <summary>The game marks the attack as impossible to block, so neither a raised shield nor a parry stops it.</summary>
+            public bool Unblockable { get; init; }
+
+            public bool UnblockableCued { get; init; }
 
             /// <summary>When the next blow to parry lands; null for an untimed attack or once its cue has had its turn.</summary>
             public long? ParryBlowAt { get; init; }

@@ -85,6 +85,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(ParryCueOnlyForBlowsToParry), ParryCueOnlyForBlowsToParry);
             Run(nameof(ParryCueIsItsOwnSound), ParryCueIsItsOwnSound);
             Run(nameof(UnblockableAttacksAreNeverToParry), UnblockableAttacksAreNeverToParry);
+            Run(nameof(HarmfulGroundIsKnownByItsBuff), HarmfulGroundIsKnownByItsBuff);
+            Run(nameof(HazardAlarmLoopsWithoutASeam), HazardAlarmLoopsWithoutASeam);
             Run(nameof(CullingThresholdsByRarity), CullingThresholdsByRarity);
             Run(nameof(EnemyStatesFromBuffsAndAnimations), EnemyStatesFromBuffsAndAnimations);
             Run(nameof(PrimedForStunByRarity), PrimedForStunByRarity);
@@ -1145,12 +1147,37 @@ namespace Poe2Accessibility.Tests
                 "Metadata/Monsters/Miller|13=1803/3000",
             });
             Equal(false, timings.CanParry("Metadata/Monsters/Executioner|71"), "cannot be blocked: no parry either");
+            Equal(false, timings.CanBlock("Metadata/Monsters/Executioner|71"), "and no block: the extra dodge cue");
+            Equal(true, timings.CanBlock("Metadata/Monsters/Chimera|40"), "a shield still blocks what only refuses the parry");
             Equal(1200, timings.Delay("Metadata/Monsters/Executioner|71") ?? 0, "and its time still warns to dodge");
             Equal(false, timings.CanParry("Metadata/Monsters/Chimera|40"), "cannot be parried");
             Equal(700, timings.ProjectileSpeed("Metadata/Monsters/Chimera|40") ?? 0, "flags after a speed");
             Equal(false, timings.CanParry("Metadata/Monsters/Miller|10"), "an untimed charge keeps its flags");
             Equal(true, timings.Delay("Metadata/Monsters/Miller|10") == null, "and stays untimed");
             Equal(true, timings.CanParry("Metadata/Monsters/Miller|13"), "the Miller's slam can be parried");
+        }
+
+        private static void HarmfulGroundIsKnownByItsBuff()
+        {
+            var ground = new HazardGround(new[] { "# comment", "caustic_cloud", "ground_living_blood", "", "vortex" });
+            Equal(3, ground.Count, "ids, not comments or blank lines");
+            Equal(true, ground.IsHazard("caustic_cloud"), "standing in caustic ground");
+            Equal(true, ground.IsHazard("caustic_cloud_79"), "with GameHelper's instance suffix");
+            Equal(true, ground.IsHazard("ground_living_blood_damage_79"), "a buff named after the ground");
+            Equal(false, ground.IsHazard("ground"), "not a word of one");
+            Equal(false, ground.IsHazard("crossbow_should_aim_at_ground_79"), "a buff only mentioning ground");
+            Equal(false, ground.IsHazard("ignited_79"), "an ailment is the status warnings' business");
+            Equal("chilled", BuffIds.Base("chilled_1A"), "hex instance suffix dropped");
+            Equal("mud_slow", BuffIds.Base("mud_slow"), "a word is not a suffix");
+        }
+
+        private static void HazardAlarmLoopsWithoutASeam()
+        {
+            var loop = CueSynth.HazardAlarm(44100);
+            Equal(true, loop.Max(MathF.Abs) <= 0.31f && loop.Max(MathF.Abs) > 0.2f, "soft, as asked");
+            Equal(true, MathF.Abs(loop[0]) < 0.01f && MathF.Abs(loop[^1]) < 0.01f, "silent at the seam");
+            var stab = CueSynth.Unblockable(44100);
+            Equal(true, stab.All(sample => MathF.Abs(sample) <= 1f) && stab.Length < CueSynth.Dodge(44100).Length, "the unblockable cue is short and in range");
         }
 
         private static void ParryCueIsItsOwnSound()

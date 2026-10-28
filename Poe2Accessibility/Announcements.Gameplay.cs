@@ -268,6 +268,8 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.LootSounds) => T("Items heard and named", "Objetos que suenan y se nombran"),
             nameof(AccessibilitySettings.DodgeWarnings) => T("Dodge warnings", "Avisos para esquivar"),
             nameof(AccessibilitySettings.ParryCues) => T("Parry cue", "Aviso de Parada"),
+            nameof(AccessibilitySettings.UnblockableCues) => T("Unblockable attack cue", "Aviso de ataque imbloqueable"),
+            nameof(AccessibilitySettings.HazardAlarm) => T("Harmful ground alarm", "Alarma de suelo peligroso"),
             nameof(AccessibilitySettings.ParryLeadMs) => T("Parry cue lead, milliseconds", "Antelación del aviso de Parada, milisegundos"),
             nameof(AccessibilitySettings.BossWeakPoint) => T("Boss weak point heartbeat", "Latido del punto débil del jefe"),
             nameof(AccessibilitySettings.ShieldSounds) => T("Shield raised and lowered", "Escudo levantado y bajado"),
@@ -377,6 +379,8 @@ namespace Poe2Accessibility
             "beacon" => T("Guide ping", "Ping de la guía"),
             "dodge" => T("Dodge warning", "Aviso para esquivar"),
             "parry" => T("Parry cue", "Aviso de Parada"),
+            "unblockable" => T("Unblockable attack", "Ataque imbloqueable"),
+            "hazard" => T("Harmful ground", "Suelo peligroso"),
             "crosshair" => T("Crosshair", "Mira"),
             "weak_point" => T("Boss weak point", "Punto débil del jefe"),
             "shield_up" => T("Shield raised", "Escudo levantado"),
@@ -424,6 +428,12 @@ namespace Poe2Accessibility
         {
             "beacon" => T("walk so it sounds in the centre; faster when closer", "camina para oírlo al centro; más rápido al acercarte"),
             "dodge" => T("a rare or unique monster starts an attack, dodge", "un monstruo raro o único empieza un ataque, esquiva"),
+            "unblockable" => T(
+                "a rare or unique monster starts an attack that cannot be blocked or parried: only dodging avoids it, the dodge warning follows",
+                "un monstruo raro o único empieza un ataque que no se puede bloquear ni parar: solo esquivarlo sirve, luego suena el aviso para esquivar"),
+            "hazard" => T(
+                "repeats while you stand in harmful ground or an enemy's damaging zone: move until it stops",
+                "se repite mientras pisas suelo peligroso o una zona dañina de un enemigo: muévete hasta que pare"),
             "parry" => T(
                 "a blow you can parry is coming, from its side: press Parry as it stops dead (only with the Parry skill)",
                 "viene un golpe que puedes parar, de su lado: pulsa Parada cuando se corte en seco (solo con la habilidad Parada)"),

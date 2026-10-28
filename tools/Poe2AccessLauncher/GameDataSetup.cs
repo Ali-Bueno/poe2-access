@@ -75,6 +75,7 @@ internal static class GameDataSetup
             new Step("dat columns", 1, "dat-columns.json", "dat-columns"),
             new Step("experience", 1, "experience.json", "experience"),
             new Step("hit times", 2, "hit-times.txt", "hit-times", true),
+            new Step("hazards", 1, "hazards.txt", "hazards", true),
             new Step("places", 1, "places.json", "places", true),
             new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
             new Step(SoundsStep, 1, null, null, Input: ItemSoundsStep),

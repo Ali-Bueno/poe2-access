@@ -44,6 +44,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\ShieldStance.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\StunMeter.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ParryTiming.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\BuffIds.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\HazardGround.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CullThreshold.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\EnemyStates.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PrimedThreshold.cs" />

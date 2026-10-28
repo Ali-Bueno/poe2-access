@@ -36,15 +36,7 @@ namespace Poe2Accessibility.Services
 
         public static EnemyState? FromBuffId(string id)
         {
-            if (Buffs.TryGetValue(id, out var state))
-            {
-                return state;
-            }
-
-            var cut = id.LastIndexOf('_');
-            return cut > 0 && cut < id.Length - 1 && id[(cut + 1)..].All(Uri.IsHexDigit) && Buffs.TryGetValue(id[..cut], out state)
-                ? state
-                : null;
+            return Buffs.TryGetValue(id, out var state) || Buffs.TryGetValue(BuffIds.Base(id), out state) ? state : null;
         }
 
         /// <summary>The state an animation shows (GameHelper's Animation names); the stun deaths are deaths.</summary>

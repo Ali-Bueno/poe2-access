@@ -103,6 +103,11 @@ namespace Poe2Accessibility
                 this.bosses.ParryLeadMs = settings.ParryLeadMs;
             }
 
+            if (this.hazards != null)
+            {
+                this.hazards.Gain = Fraction(settings.EnemyVolume);
+            }
+
             if (this.culls != null)
             {
                 this.culls.Gain = Fraction(settings.EnemyVolume);

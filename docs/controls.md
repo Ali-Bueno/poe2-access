@@ -67,7 +67,7 @@ closed"; the ping goes on by itself once the barrier opens.
 
 ## Settings menu (gameplay)
 
-Hold L3 for a second and a half: "Mod settings. Help: the L3 button in play, 1 of 117" (five help topics, then the settings, then the sound glossary). Without holding L3,
+Hold L3 for a second and a half: "Mod settings. Help: the L3 button in play, 1 of 121" (five help topics, then the settings, then the sound glossary). Without holding L3,
 flick the right stick up or down to move through the list and left or right to change the value (switches
 toggle, volumes move in steps of 25 percent up to 300, language: same as the game, Spanish, English). Tap L3 to close:
 "Settings saved" (written to `config/settings.txt`). Opening a game panel closes it too.
@@ -235,6 +235,14 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   own animation data (about 70% of monster attacks), and by what it learns from every blow you take, which wins;
   an attack timed neither way warns at its wind-up. A monster that keeps swinging is warned for each swing
   ([dodge timing](research/dodge-timing.md)).
+- **Unblockable attack:** two low, harsh brass stabs a tritone apart, from the attacker's side, at the wind-up of a
+  rare's or unique's attack the game marks as impossible to block (its red glow): neither a shield nor Parry stops it,
+  so dodge; the dodge warning then times the roll as usual. Attacks you can block or parry keep the plain dodge
+  warning. Setting "Aviso de ataque imbloqueable" (on), volume "Volumen de esquiva y Parada".
+- **Harmful ground:** a soft, low pulse (110 Hz, a little over two a second) that repeats while you stand in harmful
+  ground or an enemy's damaging zone — burning, caustic, desecrated or bloody ground, a vortex, a boss's flames or
+  beam — and stops as you leave it: silence means safe ground. Known by the state the game puts on you there (61 from
+  the game files, `catalog/hazards.txt`). Setting "Alarma de suelo peligroso" (on), volume with the enemy sounds.
 - **Parry cue** (only for a character with the Parry skill: a buckler, a targe or two swords): a reverse hit, a
   struck buckler played backwards, that swells in for a third of a second and stops dead, from the attacker's side;
   press Parry on the stop, which falls 150 ms before a blow you can parry. Strikes from any monster within about a
