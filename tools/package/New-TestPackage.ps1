@@ -8,9 +8,12 @@
     .NET 10 runtime files), so nothing has to be installed. Only the accessibility plugin is shipped, with
     research mode off. The game's sounds are not shipped: the launcher regenerates them from the player's own install on
     the first start and after each game patch (GameDataSetup.cs). Run with GameHelper stopped (the plugin build deploys into its folder).
+    -Version (the release tag) goes into app\version.txt, which the launcher compares with the latest release to offer
+    an update; a package without it never updates itself.
 #>
 param(
-    [string]$Output = (Join-Path $PSScriptRoot '..\..\dist')
+    [string]$Output = (Join-Path $PSScriptRoot '..\..\dist'),
+    [string]$Version = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -62,6 +65,8 @@ Set-Content -Path (Join-Path $plugin 'config\settings.txt') -Value '{ "ResearchM
 New-Item -ItemType Directory -Force (Join-Path $app 'configs') | Out-Null
 Copy-Item (Join-Path $devHost 'configs\core_settings.json') (Join-Path $app 'configs')
 Set-Content -Path (Join-Path $app 'configs\plugins.json') -Value "{`n  `"Poe2Accessibility`": {`n    `"Enable`": true`n  }`n}" -Encoding utf8
+
+if ($Version.Length -gt 0) { Set-Content -Path (Join-Path $app 'version.txt') -Value $Version -Encoding ascii }
 
 # Instructions for the testers, the controls, and a stop shortcut.
 Copy-Item (Join-Path $PSScriptRoot 'README.txt') $stage

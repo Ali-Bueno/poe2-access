@@ -35,6 +35,9 @@ You will find every control in "Controls.md".
 TO CLOSE IT
 The mod closes by itself when you quit the game. You can also use "Stop the mod.bat".
 
+UPDATES
+When it starts, Poe2Access.exe looks for a newer version and asks before installing it. Answer Yes and wait about a minute in silence: a message says when it is done, and the mod starts. Your settings are kept. To stop the question, turn off "Check for updates at start" at the end of the mod's settings; to look for one yourself, run "Poe2Access.exe update" (for example from a shortcut).
+
 IF SOMETHING FAILS
 Send these two files to whoever gave you the mod:
 - app\Poe2Access.log

@@ -41,7 +41,7 @@ if ($Notes.Length -eq 0) {
 }
 
 if (Test-Path $output) { Remove-Item $output -Recurse -Force }
-& (Join-Path $PSScriptRoot 'New-TestPackage.ps1') -Output $output
+& (Join-Path $PSScriptRoot 'New-TestPackage.ps1') -Output $output -Version $tag
 $built = Get-ChildItem $output -File | Where-Object { $_.Name -like 'Poe2Access-test-*' }
 foreach ($file in $built) { Move-Item $file.FullName (Join-Path $output ('Poe2Access' + $file.Extension)) -Force }
 # Relative to the repository: gh reads "path#label", and the repository's path holds a '#' (c#).
