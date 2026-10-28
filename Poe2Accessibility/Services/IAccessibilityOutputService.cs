@@ -35,6 +35,12 @@ namespace Poe2Accessibility.Services
         void Repeat();
 
         void Stop();
+
+        /// <summary>
+        ///     Stops what was asked before <paramref name="since"/> and says again, queued, what was asked from then on:
+        ///     closing a panel stops its long tooltip but not the world's first words after it ("Alijo, A").
+        /// </summary>
+        void StopBefore(DateTime since) => this.Stop();
     }
 
     /// <summary>Fallback when PRISM cannot be initialised: the plugin keeps logging but stays silent.</summary>

@@ -119,6 +119,24 @@ namespace Poe2Accessibility.Services
         /// <summary>When a narration last cut in on its own: a waiting focus said after it follows it instead of cutting it off.</summary>
         private DateTime cutInAt = DateTime.MinValue;
 
+        /// <summary>A panel held the focus since play last showed: closing it back to play stops what it was saying.</summary>
+        private bool panelShown;
+
+        /// <summary>The layer whose tab was last said (a merchant's stock, the stash), for LB/RB that leave the focus where it is.</summary>
+        private IntPtr tabbedLayer;
+
+        /// <summary>When LB or RB was pressed in a panel; MaxValue when no tab switch is awaited.</summary>
+        private DateTime tabKeyAt = DateTime.MaxValue;
+
+        /// <summary>The game redraws the page this soon after LB/RB; a focus that moves by then says the tab itself.</summary>
+        private const int TabSwitchMs = 250;
+
+        /// <summary>Since when nothing has held the focus with only the HUD shown; MaxValue while something does.</summary>
+        private DateTime unfocusedSince = DateTime.MaxValue;
+
+        /// <summary>The focus gone this long with only the HUD on top is play again, not a panel passing between pages.</summary>
+        private const int BackToPlayMs = 250;
+
         /// <summary>The layer whose tab was last announced; cleared when another screen comes on top.</summary>
         private IntPtr lastTabLayer;
 
@@ -284,6 +302,7 @@ namespace Poe2Accessibility.Services
             this.deferredFocus = null;
             this.pendingPage = null;
             this.hintAfterFocus = string.Empty;
+            this.tabbedLayer = IntPtr.Zero;
         }
 
         /// <summary>Read long tooltips with the focus (setting); short ones always are.</summary>
@@ -531,6 +550,8 @@ namespace Poe2Accessibility.Services
         /// <summary>Per frame: a focus named only by its control id is spoken once no tooltip described it in time.</summary>
         public void Tick()
         {
+            this.TickBackToPlay();
+            this.TickTabKey();
             if (this.deferredFocus is { } deferred && (DateTime.UtcNow - deferred.At).TotalMilliseconds >= NewLayerFocusDelayMs)
             {
                 this.deferredFocus = null;
@@ -574,6 +595,80 @@ namespace Poe2Accessibility.Services
             {
                 this.Speak("panel actions", this.panelLegends.Text, false);
                 this.panelLegends = (string.Empty, DateTime.MinValue);
+            }
+        }
+
+        /// <summary>
+        ///     Back to play from a panel or an NPC (the focus gone, only the HUD on top): what the panel was saying, a long
+        ///     tooltip, stops with it (user 2026-10-28); what the world says from then on follows. The HUD stays on top
+        ///     under an NPC dialogue, so no screen change marks its closing: the focus does. A free-cursor panel (the
+        ///     world map) is on top itself and keeps talking.
+        /// </summary>
+        private void TickBackToPlay()
+        {
+            var focused = this.inGame && (this.FocusLayer?.Invoke() ?? IntPtr.Zero) != IntPtr.Zero;
+            if (!this.inGame || focused || !(this.seenTop == IntPtr.Zero || this.seenTop == this.HudLayer))
+            {
+                this.panelShown |= focused;
+                this.unfocusedSince = DateTime.MaxValue;
+                return;
+            }
+
+            var now = DateTime.UtcNow;
+            if (!this.panelShown)
+            {
+                return;
+            }
+
+            if (this.unfocusedSince == DateTime.MaxValue)
+            {
+                this.unfocusedSince = now;
+            }
+            else if ((now - this.unfocusedSince).TotalMilliseconds >= BackToPlayMs)
+            {
+                this.panelShown = false;
+                this.tabbedLayer = IntPtr.Zero;
+                this.deferredFocus = null;
+                this.pendingPage = null;
+                this.hintAfterFocus = string.Empty;
+                this.output.StopBefore(this.unfocusedSince);
+                this.log.Debug("Back to play: what the panel was saying stopped");
+            }
+        }
+
+        /// <summary>LB or RB pressed (the game's own pad state): a tab switch that leaves the focus in place is said in Tick.</summary>
+        public void OnTabKey()
+        {
+            if (this.inGame && this.tabbedLayer != IntPtr.Zero && (this.FocusLayer?.Invoke() ?? IntPtr.Zero) != IntPtr.Zero)
+            {
+                this.tabKeyAt = DateTime.UtcNow;
+            }
+        }
+
+        /// <summary>
+        ///     LB/RB switched a merchant's or the stash's tab while the focus stayed in the inventory beside it: nothing
+        ///     on screen moves the focus, so the new tab was silent (2026-10-28). Read once the page is redrawn, unless a
+        ///     focus that moved already said it.
+        /// </summary>
+        private void TickTabKey()
+        {
+            if (this.tabKeyAt == DateTime.MaxValue || (DateTime.UtcNow - this.tabKeyAt).TotalMilliseconds < TabSwitchMs)
+            {
+                return;
+            }
+
+            var pressed = this.tabKeyAt;
+            this.tabKeyAt = DateTime.MaxValue;
+            if (this.lastFocusAt >= pressed || this.deferredFocus != null)
+            {
+                return;
+            }
+
+            var tab = this.selectedTab(this.tabbedLayer);
+            if (tab.Length > 0 && tab != this.lastContext)
+            {
+                this.lastContext = tab;
+                this.Speak("tab without focus move", Announcements.TabTitle(tab), true);
             }
         }
 
@@ -672,7 +767,8 @@ namespace Poe2Accessibility.Services
                 // since the press is what the player is waiting on (it was silent and tried three times, 2026-10-24).
                 if (this.AlertIsNews(refusal.Text))
                 {
-                    this.Speak("game message", refusal.Text, true);
+                    // Held: the item re-read as the focus settles cut "El objeto no tiene espacio para más mods." (2026-10-26).
+                    this.Speak("game message", refusal.Text, true, Hold.Message);
                 }
 
                 return;
@@ -847,7 +943,15 @@ namespace Poe2Accessibility.Services
 
         private static bool IsBehind(ScreenLayer layer, ScreenLayer? top) => top != null && layer.Index < top.Index;
 
-        private void Speak(string reason, string text, bool interrupt, bool keep = false)
+        /// <summary>How long a line holds the floor against what would cut it: a lesson whole, a message for about its length.</summary>
+        private enum Hold
+        {
+            None,
+            Message,
+            Lesson,
+        }
+
+        private void Speak(string reason, string text, bool interrupt, Hold hold = Hold.None)
         {
             if (text.Length == 0)
             {
@@ -888,9 +992,9 @@ namespace Poe2Accessibility.Services
                 this.cutInAt = now;
             }
 
-            if (keep)
+            if (hold != Hold.None)
             {
-                this.output.Keep(text, Math.Clamp(SpeechFloor.SpokenMs(text), MinKeepMs, MaxKeepMs), interrupt);
+                this.output.Keep(text, hold == Hold.Lesson ? Math.Clamp(SpeechFloor.SpokenMs(text), MinKeepMs, MaxKeepMs) : SpeechFloor.MessageHoldMs(text), interrupt);
                 return;
             }
 

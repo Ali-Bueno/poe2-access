@@ -262,6 +262,11 @@ namespace Poe2Accessibility
                 this.flasks = new FlaskWatch(inventory, followedVoice) { Seat = followedSeat };
                 this.partnerFlasks = new FlaskWatch(inventory, partnerVoice) { Seat = () => 2 };
                 this.gold = new GoldWatch(memory, elements, this.output, this.log) { Fields = this.locator.Fields };
+                this.pickups.Gold = () => this.gold?.ReadNow();
+                this.pickups.SidePanel = () => this.semantics?.SidePanelTitle(
+                    this.locator.Fields.Find(this.focus?.LayerContainer ?? IntPtr.Zero, InGameField.InventoryPanel)) ?? string.Empty;
+                this.pickups.GroundItemIds = this.partnerPickups.GroundItemIds = () => this.entities?.GroundItemIds() ?? Array.Empty<uint>();
+                this.pickups.GroundItemTitle = this.partnerPickups.GroundItemTitle = id => this.entities?.GroundItemName(id);
                 this.barriers = new BarrierWatch(this.entities, this.output, this.log);
                 var timings = DodgeTimings.Load(Path.Join(this.DllDirectory, "catalog", "hit-times.txt"), this.DodgeTimingsSeedPath, this.DodgeTimingsPath);
                 this.log.Info($"Dodge timings: {timings.FileTimes} attacks timed by the game files");
@@ -552,6 +557,10 @@ namespace Poe2Accessibility
             if (confirm && !this.confirmDown)
             {
                 this.lastConfirmAt = Environment.TickCount64;
+                if (!state.IsDown(GameLayout.PadButtons.A))
+                {
+                    this.narrator?.OnTabKey();
+                }
             }
 
             this.confirmDown = confirm;
@@ -664,6 +673,14 @@ namespace Poe2Accessibility
             {
                 this.semantics.InGame = current == GameStateTypes.InGameState;
             }
+
+            if (previous == GameStateTypes.EscapeState && current == GameStateTypes.InGameState)
+            {
+                // Back to play from the game menu: its long pause banner stops (user 2026-10-28). Options opened from
+                // the menu are read after this, as their page arrives.
+                this.output.Stop();
+            }
+
             if (!this.Settings.AnnounceGameState)
             {
                 return;
@@ -711,7 +728,9 @@ namespace Poe2Accessibility
             }
 
             this.pendingState = null;
-            this.output.Speak(pending.Detected ? $"{Announcements.GameDetected} {pending.Text}" : pending.Text, !pending.Queued);
+            // Held: the screen's first focus cut "Menú del juego." and "Selección de personaje." 300 ms in (2026-10-26).
+            var text = pending.Detected ? $"{Announcements.GameDetected} {pending.Text}" : pending.Text;
+            this.output.Keep(text, SpeechFloor.MessageHoldMs(text), !pending.Queued);
         }
 
         /// <summary>Per frame: "Game closed" once the game has stayed unloaded for a while.</summary>

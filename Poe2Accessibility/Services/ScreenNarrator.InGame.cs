@@ -146,7 +146,7 @@ namespace Poe2Accessibility.Services
                 var line = Describe(change.Texts.Where(text => text.Text != focus?.Text && !IsNumber(text.Text)));
                 if (line.Length > 0 && this.AlertIsNews(line))
                 {
-                    this.Speak("message over panel", line, true);
+                    this.Speak("message over panel", line, true, Hold.Message);
                 }
 
                 return;
@@ -184,6 +184,7 @@ namespace Poe2Accessibility.Services
             {
                 // A tabbed page arrived with the focus (options opened from the game menu, an options tab switch):
                 // the selected tab and the focus, as pre-game — never the page's labels.
+                this.tabbedLayer = change.Layer.Address;
                 this.Speak("page with focus", Announcements.InContext(Announcements.TabTitle(pageTab), this.lastFocusSpeech), true);
             }
             else if (change.Layer.Address != focusLayer)
@@ -200,6 +201,8 @@ namespace Poe2Accessibility.Services
             {
                 // A tabbed panel (vendor stock): its tab, what it shows besides controls and stack counts (gold), the focus.
                 var shown = Describe(change.Texts.Where(text => !text.IsControl && !IsNumber(text.Text) && !own.Contains(text.Text)));
+                this.tabbedLayer = change.Layer.Address;
+                this.lastContext = openedTab;
                 this.Speak("tabbed panel with focus", Announcements.Sentences(new[] { Announcements.TabTitle(openedTab), shown, this.lastFocusSpeech }), true);
             }
             else if (change.Kind == ScreenChangeKind.LayerOpened && justFocused)
@@ -266,7 +269,7 @@ namespace Poe2Accessibility.Services
                 var inMenu = focus != null;
                 var cutFocus = inMenu && this.deferredFocus == null &&
                                (DateTime.UtcNow - this.lastFocusAt).TotalMilliseconds < SpeechFloor.SpokenMs(this.lastFocusSpeech);
-                this.Speak("objective", Describe(hints), inMenu || SpeechPriority.Interrupts(SpeechKind.Quest), keep: true);
+                this.Speak("objective", Describe(hints), inMenu || SpeechPriority.Interrupts(SpeechKind.Quest), Hold.Lesson);
                 if (cutFocus)
                 {
                     this.output.Speak(this.lastFocusSpeech);
@@ -295,7 +298,8 @@ namespace Poe2Accessibility.Services
                 var alertNews = change.Kind == ScreenChangeKind.TextsAppeared ? alerts.Where(text => this.AlertIsNews(text.Text)).ToList() : new List<ScreenText>();
                 if (alertNews.Count > 0)
                 {
-                    this.Speak("alert", Describe(alertNews), false);
+                    // Held: "Ya no llevas ningún objeto" cut "Inventario lleno" off 120 ms in (2026-10-26).
+                    this.Speak("alert", Describe(alertNews), false, Hold.Message);
                 }
 
                 var news = change.Texts.Except(alerts).Where(text => text.Address != ignored && !IsNumber(text.Text) && this.hudSpoken.Add(text.Text)).ToList();
@@ -345,7 +349,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            this.Speak("lesson held", Describe(lesson.Texts), false, keep: true);
+            this.Speak("lesson held", Describe(lesson.Texts), false, Hold.Lesson);
         }
     }
 }

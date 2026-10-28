@@ -25,6 +25,8 @@ namespace Poe2Accessibility.Services
 
         public void Keep(string text, int holdMs, bool interrupt = false) => this.inner.Keep(this.Named(text), holdMs, interrupt);
 
+        public void StopBefore(DateTime since) => this.inner.StopBefore(since);
+
         public void Mention(string text) => this.inner.Mention(this.Named(text));
 
         public void Repeat() => this.inner.Repeat();

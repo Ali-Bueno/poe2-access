@@ -58,6 +58,12 @@ namespace Poe2Accessibility.Services
         /// <summary>A kept line's hold and what waits behind it; guarded by <see cref="queueGate"/>.</summary>
         private readonly SpeechFloor floor = new();
 
+        /// <summary>What went out lately and when, for <see cref="StopBefore"/>.</summary>
+        private readonly List<(string Text, DateTime At)> sent = new();
+
+        /// <summary>How far back <see cref="sent"/> reaches.</summary>
+        private const int SentKeptMs = 3000;
+
         /// <summary>The last <see cref="Mention"/>ed phrase and when: an interrupting phrase soon after says it first.</summary>
         private (string Text, DateTime At)? mentioned;
 
@@ -119,6 +125,31 @@ namespace Poe2Accessibility.Services
             }
 
             this.Speak(this.lastText, true);
+        }
+
+        public void StopBefore(DateTime since)
+        {
+            var again = new List<string>();
+            lock (this.queueGate)
+            {
+                foreach (var line in this.sent)
+                {
+                    if (line.At >= since)
+                    {
+                        again.Add(line.Text);
+                    }
+                }
+
+                this.floor.Clear(DateTime.UtcNow);
+                this.EnqueueLocked(new SpeechRequest(null, true));
+                foreach (var text in again)
+                {
+                    this.EnqueueLocked(new SpeechRequest(text, false));
+                }
+            }
+
+            this.log.Info(again.Count == 0 ? "Speech stopped" : $"Speech stopped, said again: {string.Join(" | ", again)}");
+            this.pendingSignal.Set();
         }
 
         public void Stop()
@@ -223,6 +254,8 @@ namespace Poe2Accessibility.Services
                 if (goesOut)
                 {
                     this.EnqueueLocked(new SpeechRequest(text, interrupt));
+                    this.sent.RemoveAll(line => (now - line.At).TotalMilliseconds > SentKeptMs);
+                    this.sent.Add((text, now));
                 }
             }
 
