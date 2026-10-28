@@ -174,12 +174,7 @@ namespace Poe2Accessibility.Services
                 : null;
 
         /// <summary>The row of a dat foreign key (row, file), only when the file is the expected table.</summary>
-        private IntPtr? DatRow(IntPtr key, string table) =>
-            this.reader.TryRead<IntPtr>(key, out var row) && row != IntPtr.Zero &&
-            this.reader.TryRead<IntPtr>(key + GameLayout.SkillSlot.KeyFileOffset, out var file) && file != IntPtr.Zero &&
-            string.Equals(this.elements.ReadWStringStructAt(file + GameLayout.SkillSlot.FileNameOffset), table, StringComparison.OrdinalIgnoreCase)
-                ? row
-                : null;
+        private IntPtr? DatRow(IntPtr key, string table) => DatKey.Row(this.reader, this.elements, key, table);
 
         /// <summary>
         ///     Each binding's button from the hidden bind screen: a slot element there (same class, same index) has its

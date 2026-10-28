@@ -81,6 +81,9 @@ namespace Poe2Accessibility.Tests
             Run(nameof(WeakPointBeatsFasterThenSteady), WeakPointBeatsFasterThenSteady);
             Run(nameof(FlaskDrinksAreSaidBySlot), FlaskDrinksAreSaidBySlot);
             Run(nameof(ShieldRaisedAndLowered), ShieldRaisedAndLowered);
+            Run(nameof(StunBarSpeaksEachStepOnce), StunBarSpeaksEachStepOnce);
+            Run(nameof(ParryCueOnlyForBlowsToParry), ParryCueOnlyForBlowsToParry);
+            Run(nameof(ParryCueIsItsOwnSound), ParryCueIsItsOwnSound);
             Run(nameof(CullingThresholdsByRarity), CullingThresholdsByRarity);
             Run(nameof(EnemyStatesFromBuffsAndAnimations), EnemyStatesFromBuffsAndAnimations);
             Run(nameof(PrimedForStunByRarity), PrimedForStunByRarity);
@@ -1097,6 +1100,50 @@ namespace Poe2Accessibility.Tests
             shield.Update("ActiveBlockChannel", 600);
             Equal(ShieldChange.None, shield.Update("StunnedHeavy", 700), "knocked out of it: not yet");
             Equal(ShieldChange.Lowered, shield.Update("StunnedHeavy", 700 + ShieldStance.LostMs), "a lasting change lowers it");
+        }
+
+        private static void StunBarSpeaksEachStepOnce()
+        {
+            Equal(50, StunMeter.Percent(30, 60), "buildup over threshold");
+            Equal(100, StunMeter.Percent(90, 60), "a bar past full reads full");
+            Equal(null, StunMeter.Percent(5, 0), "no threshold: not a reading");
+            Equal(null, StunMeter.Percent(-1, 60), "negative: not a reading");
+            Equal(null, StunMeter.Percent(500, 60), "far past it: a misread");
+
+            var bar = new StunMeter(10, 50, 75, 90);
+            string Feed(params int[] values) => string.Join(" ", values.Select(value => bar.Update(value)?.ToString() ?? "-"));
+            Equal("- - 50 - 75 90 -", Feed(0, 30, 55, 60, 80, 95, 100), "each step once on the way up");
+            Equal("- -", Feed(70, 82), "not re-armed 5 points below");
+            Equal("- 90", Feed(60, 92), "re-armed 10 below; a big blow says only the highest");
+            bar.Reset();
+            Equal("75", Feed(80), "armed again after a reset");
+        }
+
+        private static void ParryCueOnlyForBlowsToParry()
+        {
+            Equal(true, ParryTiming.Worth(DodgeThreat.Melee, false, false, 100f, 150f), "a normal monster's strike within reach");
+            Equal(false, ParryTiming.Worth(DodgeThreat.Melee, false, true, 200f, 150f), "a strike out of reach, even a rare's");
+            Equal(true, ParryTiming.Worth(DodgeThreat.Ranged, true, true, 900f, 150f), "a rare's projectile");
+            Equal(false, ParryTiming.Worth(DodgeThreat.Ranged, true, false, 900f, 150f), "a normal archer's arrow: no cue");
+            Equal(false, ParryTiming.Worth(DodgeThreat.Ranged, false, true, 900f, 150f), "a spell is no projectile");
+            Equal(false, ParryTiming.Worth(DodgeThreat.None, false, true, 50f, 150f), "no attack");
+            Equal(1000L - 150 - 320, ParryTiming.StartAt(1000, 150, 320), "the swell stops 150 ms before the blow");
+            Equal(true, ParryTiming.InTime(1000, 320, 600), "a little late, the stop still comes before the blow");
+            Equal(true, ParryTiming.InTime(1000, 320, 680), "stopping on the blow itself");
+            Equal(false, ParryTiming.InTime(1000, 320, 681), "a blow too quick for the swell: no cue");
+        }
+
+        private static void ParryCueIsItsOwnSound()
+        {
+            var parry = CueSynth.Parry(44100);
+            var parried = CueSynth.StateCue(EnemyState.Parried, 44100);
+            var shield = CueSynth.ShieldUp(44100);
+            Equal(true, parry.All(sample => MathF.Abs(sample) <= 1f) && parry.Max(MathF.Abs) > 0.5f, "in range and clear");
+            Equal(true, parry.Length > parried.Length && parry.Length > shield.Length, "longer than the parried ting and the shield clank");
+            var edge = 441;
+            Equal(true, parry.Take(edge).Max(MathF.Abs) < parry.Skip(parry.Length - edge).Max(MathF.Abs) / 4f, "a reverse hit: it swells in");
+            Equal(true, parry.Skip(parry.Length - edge).Max(MathF.Abs) > 0.3f, "and stops dead, loud to its last 10 ms");
+            Equal(true, parry.Select(sample => MathF.Abs(CueSynth.Limit(sample * 3f))).Max() <= 1f, "driven to 300% it stays under full scale");
         }
 
         private static void FarBarrierStaysClosedUntilSeenNear()

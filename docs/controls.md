@@ -67,9 +67,9 @@ closed"; the ping goes on by itself once the barrier opens.
 
 ## Settings menu (gameplay)
 
-Hold L3 for a second and a half: "Mod settings. Help: the L3 button in play, 1 of 86" (five help topics, then the settings, then the sound glossary). Without holding L3,
+Hold L3 for a second and a half: "Mod settings. Help: the L3 button in play, 1 of 117" (five help topics, then the settings, then the sound glossary). Without holding L3,
 flick the right stick up or down to move through the list and left or right to change the value (switches
-toggle, volumes move in steps of 25 percent, language: same as the game, Spanish, English). Tap L3 to close:
+toggle, volumes move in steps of 25 percent up to 300, language: same as the game, Spanish, English). Tap L3 to close:
 "Settings saved" (written to `config/settings.txt`). Opening a game panel closes it too.
 
 **Speech priority** (D2R): nine "Speech: …" entries choose how each kind of news is delivered — waits its turn,
@@ -221,7 +221,7 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   All of them are in the sound glossary.
 - **Shield raised / lowered:** a short metal clank gliding up as you raise your shield (Raise Shield, held) and a
   quieter one gliding down as it comes down, by the player's animation (ActiveBlockChannel / ActiveBlockEnd).
-  Setting "Escudo levantado y bajado" (on by default).
+  Setting "Escudo levantado y bajado" (on by default). The stun bar that blocking fills is spoken (Warnings below).
 - **Boss weak point:** a heartbeat (two low thumps) from the side of a boss's head when its tail is not the part to
   strike (the Devourer); faster as you near the head, slow and soft once you are within melee reach of it, silent
   while it is buried. The first time in an area: "El devorador: golpea la cabeza, sigue el latido". Setting "Latido
@@ -235,11 +235,21 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   own animation data (about 70% of monster attacks), and by what it learns from every blow you take, which wins;
   an attack timed neither way warns at its wind-up. A monster that keeps swinging is warned for each swing
   ([dodge timing](research/dodge-timing.md)).
+- **Parry cue** (only for a character with the Parry skill: a buckler, a targe or two swords): a reverse hit, a
+  struck buckler played backwards, that swells in for a third of a second and stops dead, from the attacker's side;
+  press Parry on the stop, which falls 150 ms before a blow you can parry. Strikes from any monster within about a
+  step and a half, and a rare's or unique's projectiles; only blows whose time is known (the same timings as the dodge
+  warning) and that leave time for the whole swell, at most one cue per 0.75 s (Parry's own attack time). Settings
+  "Aviso de Parada" (on) and "Antelación del aviso de Parada, milisegundos" (0-600: raise it if you press late, lower
+  it if you press early)
+  ([parry and the stun bar](research/parry-and-stun-bar.md)).
 - **Crosshair:** two short blips when the game's target lands on a living enemy.
 - The game's own low-life heartbeat and menu sounds are left to the game: the mod has none of its own.
 - All stop while a panel, menu or dialogue is open. Settings: `Radar`, `WallBump`, `EnemySounds`, `NpcSounds`, `PlayerSounds`,
-  `AnnounceNearby`, `AnnounceLevelUp`, `ObjectSounds`, `LootSounds`, `DodgeWarnings`, `CrosshairBeep`, `LowLifeBelow`, volumes
-  `SoundVolume`, `RadarVolume`, `EnemyVolume`, `BeaconVolume`, `ObjectVolume` in `config/settings.txt`.
+  `AnnounceNearby`, `AnnounceLevelUp`, `ObjectSounds`, `LootSounds`, `DodgeWarnings`, `ParryCues`, `ParryLeadMs`, `CrosshairBeep`,
+  `LowLifeBelow`, volumes `SoundVolume`, `RadarVolume`, `EnemyVolume`, `DodgeVolume` (dodge warning and parry cue),
+  `BeaconVolume`, `ObjectVolume` in `config/settings.txt`, each 0-300 percent: above 100 a sound is driven into a soft
+  limit on its own, so it grows louder (the dodge warning about 5 dB at 200, 7 dB at 300) without clipping the rest.
 
 ## Warnings and speech
 
@@ -249,6 +259,12 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   a use, "Lesser Life Flask empty" when one has no use left, once until it refills, and "New flask: …" when one is put
   on the belt during play (`AnnounceFlasks`, "Flask uses", delivered like the life warnings).
 - "Mana 50 / 25 / 10 percent" when mana falls past those lines (`AnnounceLowMana`).
+- "Energy shield 75 / 50 / 25 percent" as it falls past those lines and "Energy shield depleted" when it is gone,
+  once per fall (`AnnounceEnergyShield`, "Avisos de escudo de energía", delivered like the life warnings). Only for a
+  pool of at least a fifth of your life: a little energy shield from one item would break in every fight.
+- "Stun bar 50 / 75 / 90 percent" as the heavy stun bar rises while you block with a raised shield or parry
+  (blocked and parried hits fill it; full, the guard breaks and you are heavily stunned), the real value, once per
+  rise (`AnnounceStunBar`, "Barra de aturdimiento al bloquear"; from 75 it cuts in when urgent).
 - A boss's life as it falls past 75, 50, 40, 30, 20, 10 and 5 percent, and "… defeated" (`AnnounceBossLife`).
 - Harmful states as they begin ("Poisoned", "Frozen", "Stunned"…) and end ("No longer poisoned")
   (`StatusAlerts`).

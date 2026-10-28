@@ -99,6 +99,14 @@ namespace Poe2Accessibility
         /// <summary>Mana fell below a threshold: "Mana 25 percent".</summary>
         public static string LowMana(int percent) => T($"Mana {percent} percent", $"Maná {percent} por ciento");
 
+        /// <summary>Energy shield fell below a threshold: "Energy shield 50 percent".</summary>
+        public static string LowEnergyShield(int percent) => T($"Energy shield {percent} percent", $"Escudo de energía {percent} por ciento");
+
+        public static string EnergyShieldGone => T("Energy shield depleted", "Escudo de energía agotado");
+
+        /// <summary>The player's heavy stun bar rose past a step while blocking or parrying (the game's "stun bar"): "Stun bar 80 percent".</summary>
+        public static string StunBar(int percent) => T($"Stun bar {percent} percent", $"Barra de aturdimiento {percent} por ciento");
+
         /// <summary>A flask with the uses it has left, for the vitals readout and after a drink: "Frasco de vida menor, 2 usos".</summary>
         public static string Flask(string name, int uses) => uses switch
         {
@@ -217,6 +225,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceMonsterMods) => T("Monster modifiers", "Modificadores de monstruos"),
             nameof(AccessibilitySettings.AnnounceLowLife) => T("Low life warnings", "Avisos de vida baja"),
             nameof(AccessibilitySettings.AnnounceLowMana) => T("Low mana warnings", "Avisos de maná bajo"),
+            nameof(AccessibilitySettings.AnnounceEnergyShield) => T("Energy shield warnings", "Avisos de escudo de energía"),
             nameof(AccessibilitySettings.AnnounceFlasks) => T("Flask uses", "Usos de los frascos"),
             nameof(AccessibilitySettings.AnnounceBossLife) => T("Boss life", "Vida de jefes"),
             nameof(AccessibilitySettings.StatusAlerts) => T("Harmful states", "Estados alterados"),
@@ -258,8 +267,11 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.ObjectSounds) => T("Object sounds", "Sonidos de objetos"),
             nameof(AccessibilitySettings.LootSounds) => T("Items heard and named", "Objetos que suenan y se nombran"),
             nameof(AccessibilitySettings.DodgeWarnings) => T("Dodge warnings", "Avisos para esquivar"),
+            nameof(AccessibilitySettings.ParryCues) => T("Parry cue", "Aviso de Parada"),
+            nameof(AccessibilitySettings.ParryLeadMs) => T("Parry cue lead, milliseconds", "Antelación del aviso de Parada, milisegundos"),
             nameof(AccessibilitySettings.BossWeakPoint) => T("Boss weak point heartbeat", "Latido del punto débil del jefe"),
             nameof(AccessibilitySettings.ShieldSounds) => T("Shield raised and lowered", "Escudo levantado y bajado"),
+            nameof(AccessibilitySettings.AnnounceStunBar) => T("Stun bar while blocking", "Barra de aturdimiento al bloquear"),
             nameof(AccessibilitySettings.CullCues) => T("Culling Strike cue", "Aviso de golpe de gracia"),
             nameof(AccessibilitySettings.EnemyStateCues) => T("Enemy state sounds", "Sonidos de estados del enemigo"),
             nameof(AccessibilitySettings.PrimedStunCues) => T("Primed for Stun sound", "Sonido de listo para el aturdimiento"),
@@ -268,6 +280,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.SoundVolume) => T("Master volume", "Volumen general"),
             nameof(AccessibilitySettings.RadarVolume) => T("Radar volume", "Volumen del radar"),
             nameof(AccessibilitySettings.EnemyVolume) => T("Enemy volume", "Volumen de enemigos"),
+            nameof(AccessibilitySettings.DodgeVolume) => T("Dodge and parry volume", "Volumen de esquiva y Parada"),
             nameof(AccessibilitySettings.BeaconVolume) => T("Guide volume", "Volumen de la guía"),
             nameof(AccessibilitySettings.ObjectVolume) => T("Object volume", "Volumen de objetos"),
             nameof(AccessibilitySettings.Language) => T("Language", "Idioma"),
@@ -363,6 +376,7 @@ namespace Poe2Accessibility
         {
             "beacon" => T("Guide ping", "Ping de la guía"),
             "dodge" => T("Dodge warning", "Aviso para esquivar"),
+            "parry" => T("Parry cue", "Aviso de Parada"),
             "crosshair" => T("Crosshair", "Mira"),
             "weak_point" => T("Boss weak point", "Punto débil del jefe"),
             "shield_up" => T("Shield raised", "Escudo levantado"),
@@ -410,6 +424,9 @@ namespace Poe2Accessibility
         {
             "beacon" => T("walk so it sounds in the centre; faster when closer", "camina para oírlo al centro; más rápido al acercarte"),
             "dodge" => T("a rare or unique monster starts an attack, dodge", "un monstruo raro o único empieza un ataque, esquiva"),
+            "parry" => T(
+                "a blow you can parry is coming, from its side: press Parry as it stops dead (only with the Parry skill)",
+                "viene un golpe que puedes parar, de su lado: pulsa Parada cuando se corte en seco (solo con la habilidad Parada)"),
             "crosshair" => T("the game's target lands on a living enemy", "el objetivo del juego cae en un enemigo vivo"),
             "shield_up" => T("you raised your shield (Raise Shield, held)", "levantaste el escudo (Levantar escudo, mantenido)"),
             "shield_down" => T("your shield came down", "el escudo bajó"),

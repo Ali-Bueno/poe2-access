@@ -81,7 +81,11 @@ namespace Poe2Accessibility.Services
         /// <summary>Master gain applied to every cue (settings volume).</summary>
         public float Volume { get; set; } = 1f;
 
-        /// <summary>Starts a cue. <paramref name="pan"/> -1 left … 1 right; <paramref name="pitch"/> 1 = as synthesized.</summary>
+        /// <summary>
+        ///     Starts a cue. <paramref name="pan"/> -1 left … 1 right; <paramref name="pitch"/> 1 = as synthesized. A
+        ///     <paramref name="gain"/> above 1 drives the cue alone into the soft limit, so its quiet body grows while its
+        ///     peaks stay under full scale: louder, where a plain gain would only be clipped by the output stage.
+        /// </summary>
         public void Play(float[] samples, float pan, float pitch, float gain)
         {
             if (!this.IsAvailable || samples.Length == 0 || pitch <= 0)
@@ -97,7 +101,8 @@ namespace Poe2Accessibility.Services
                     this.voices.RemoveAt(0);
                 }
 
-                this.voices.Add(new Voice(samples, pitch, MathF.Cos(angle) * gain, MathF.Sin(angle) * gain));
+                var level = MathF.Min(gain, 1f);
+                this.voices.Add(new Voice(samples, pitch, MathF.Cos(angle) * level, MathF.Sin(angle) * level, MathF.Max(gain, 1f)));
             }
         }
 
@@ -280,14 +285,16 @@ namespace Poe2Accessibility.Services
             private readonly double step;
             private readonly float left;
             private readonly float right;
+            private readonly float drive;
             private double position;
 
-            public Voice(float[] samples, double step, float left, float right)
+            public Voice(float[] samples, double step, float left, float right, float drive)
             {
                 this.samples = samples;
                 this.step = step;
                 this.left = left;
                 this.right = right;
+                this.drive = drive;
             }
 
             /// <summary>Adds the next buffer's worth; true once the cue has ended.</summary>
@@ -303,6 +310,11 @@ namespace Poe2Accessibility.Services
 
                     var fraction = (float)(this.position - index);
                     var sample = this.samples[index] + ((this.samples[index + 1] - this.samples[index]) * fraction);
+                    if (this.drive > 1f)
+                    {
+                        sample = CueSynth.Limit(sample * this.drive);
+                    }
+
                     mix[frame * Channels] += sample * this.left;
                     mix[(frame * Channels) + 1] += sample * this.right;
                     this.position += this.step;

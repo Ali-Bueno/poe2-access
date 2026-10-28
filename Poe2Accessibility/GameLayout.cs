@@ -168,6 +168,11 @@ namespace Poe2Accessibility
             public static int PoiseThresholdOffset { get; internal set; } = 0x4E4;
 
             public static int PoiseOffset { get; internal set; } = 0x4E8;
+
+            /// <summary>std::vector of the actor's skills, 16-byte entries whose first pointer is an ActiveSkillDetails (GameHelper ActorOffsets.ActiveSkillsPtr).</summary>
+            public const int SkillsOffset = 0xB08;
+
+            public const int SkillEntrySize = 0x10;
         }
 
         /// <summary>Entity Render component.</summary>
@@ -399,6 +404,9 @@ namespace Poe2Accessibility
             public static int EffectKeyOffset { get; internal set; } = 0x0;
 
             public const string EffectTable = "Data/Balance/GrantedEffects.dat";
+
+            /// <summary>GrantedEffects row: pointer to the UTF-16 Id, its first column ("ParryPlayer", row 433; dat-strings 2026-10-28).</summary>
+            public const int EffectIdOffset = 0x0;
 
             /// <summary>GrantedEffects → ActiveSkills (unaligned).</summary>
             public static int SkillKeyOffset { get; internal set; } = 0x4F;

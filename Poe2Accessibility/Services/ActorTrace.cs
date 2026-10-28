@@ -147,17 +147,18 @@ namespace Poe2Accessibility.Services
         /// <summary>Use stage (+0x08) and cast type (+0x0C) of each ActiveSkillDetails in Actor +0xB08.</summary>
         private string Skills(IntPtr actor)
         {
-            if (!this.memory.TryRead<IntPtr>(actor + 0xB08, out var first) || !this.memory.TryRead<IntPtr>(actor + 0xB10, out var last) ||
+            if (!this.memory.TryRead<IntPtr>(actor + GameLayout.ActorComponent.SkillsOffset, out var first) ||
+                !this.memory.TryRead<IntPtr>(actor + GameLayout.ActorComponent.SkillsOffset + IntPtr.Size, out var last) ||
                 first == IntPtr.Zero || last.ToInt64() <= first.ToInt64())
             {
                 return string.Empty;
             }
 
-            var count = (int)Math.Min(MaxSkills, (last.ToInt64() - first.ToInt64()) / 0x10);
+            var count = (int)Math.Min(MaxSkills, (last.ToInt64() - first.ToInt64()) / GameLayout.ActorComponent.SkillEntrySize);
             var parts = new List<string>();
             for (var i = 0; i < count; i++)
             {
-                if (this.memory.TryRead<IntPtr>(first + (i * 0x10), out var details) && details != IntPtr.Zero &&
+                if (this.memory.TryRead<IntPtr>(first + (i * GameLayout.ActorComponent.SkillEntrySize), out var details) && details != IntPtr.Zero &&
                     this.memory.TryRead<int>(details + 0x08, out var stage) && this.memory.TryRead<int>(details + 0x0C, out var cast))
                 {
                     parts.Add($"{stage}/{cast}");

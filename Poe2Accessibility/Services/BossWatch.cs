@@ -16,8 +16,9 @@ namespace Poe2Accessibility.Services
     ///     unique monster on screen attacking (<see cref="DodgeThreats"/>; a rare's blow only within reach), louder the
     ///     closer it is, half a second before the blow lands as learnt from earlier hits of that attack by any monster of
     ///     its kind or given by the game's files (<see cref="DodgeTimings"/>; a projectile's flight across the gap added, at
-    ///     its speed in the files), at the wind-up until then. Animation ids are GameHelper's
-    ///     <c>Actor.Animation</c> (Actor +0x8B0).
+    ///     its speed in the files), at the wind-up until then. For a player who can parry, the parry cue
+    ///     (<see cref="CueSynth.Parry"/>, a swell into a dead stop) stops <see cref="ParryLeadMs"/> before a timed blow worth
+    ///     parrying (<see cref="ParryTiming"/>), from any monster. Animation ids are GameHelper's <c>Actor.Animation</c> (Actor +0x8B0).
     /// </summary>
     public sealed class BossWatch
     {
@@ -58,6 +59,8 @@ namespace Poe2Accessibility.Services
         private readonly UiElementReader elements;
         private readonly PluginLog log;
         private readonly float[] whoosh;
+        private readonly float[] parry = CueSynth.Parry(AudioCueService.SampleRate);
+        private readonly int parryMs;
         private readonly Dictionary<uint, Attack> attacks = new();
 
         /// <summary>
@@ -69,6 +72,7 @@ namespace Poe2Accessibility.Services
         private int lastPlayerLife = -1;
         private readonly Dictionary<uint, (string Name, int Step, bool Engaged, int Percent)> bosses = new();
         private long lastLifePoll;
+        private long lastParryCue = long.MinValue / 2;
 
         public BossWatch(AudioCueService audio, IAccessibilityOutputService output, UiElementReader elements, PluginLog log)
         {
@@ -77,11 +81,20 @@ namespace Poe2Accessibility.Services
             this.elements = elements;
             this.log = log;
             this.whoosh = CueSynth.Dodge(AudioCueService.SampleRate);
+            this.parryMs = this.parry.Length * 1000 / AudioCueService.SampleRate;
         }
 
         public bool AnnounceLife { get; set; } = true;
 
         public bool DodgeWarnings { get; set; } = true;
+
+        public bool ParryCues { get; set; } = true;
+
+        /// <summary>Whether the followed player has Parry now (<see cref="ParrySkill"/>); asked only with <see cref="ParryCues"/> on.</summary>
+        public Func<bool> CanParry { get; set; } = () => false;
+
+        /// <summary>How long before a blow the parry cue stops, the moment to press Parry: time for the parry to come up.</summary>
+        public int ParryLeadMs { get; set; } = 150;
 
         /// <summary>Warning cue gain under the master volume.</summary>
         public float Gain { get; set; } = 1f;
@@ -119,7 +132,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Per frame while playing.</summary>
         public void Tick(bool playing)
         {
-            if (!playing || (!this.AnnounceLife && !this.DodgeWarnings))
+            var parrying = playing && this.ParryCues && this.CanParry();
+            var attacks = this.DodgeWarnings || parrying;
+            if (!playing || (!this.AnnounceLife && !attacks))
             {
                 return;
             }
@@ -158,10 +173,10 @@ namespace Poe2Accessibility.Services
                     this.WatchLife(entity, render);
                 }
 
-                if (this.DodgeWarnings && EntityCatalog.IsAliveEnemy(entity) && entity.TryGetComponent<Actor>(out var actor))
+                if (attacks && EntityCatalog.IsAliveEnemy(entity) && entity.TryGetComponent<Actor>(out var actor))
                 {
                     var gap = offset.Length() - render.ModelBounds.X - player.ModelBounds.X;
-                    this.WatchAttack(entity, (int)actor.Animation, rarity, render, offset, gap, now);
+                    this.WatchAttack(entity, (int)actor.Animation, rarity, render, offset, gap, now, parrying);
                 }
             }
 
@@ -170,7 +185,7 @@ namespace Poe2Accessibility.Services
                 this.WarnFlights(now);
             }
 
-            if (this.DodgeWarnings && Seats.Followed.TryGetComponent<Life>(out var life))
+            if (attacks && Seats.Followed.TryGetComponent<Life>(out var life))
             {
                 this.LearnFromBlow(life.Health.Current, life.Health.Total, now);
             }
@@ -226,7 +241,7 @@ namespace Poe2Accessibility.Services
             this.bosses[entity.Id] = (boss.Name, step, engaged, percent);
         }
 
-        private void WatchAttack(Entity entity, int animation, Rarity rarity, Render render, Vector2 offset, float gap, long now)
+        private void WatchAttack(Entity entity, int animation, Rarity rarity, Render render, Vector2 offset, float gap, long now, bool parrying)
         {
             var id = entity.Id;
             this.attacks.TryGetValue(id, out var attack);
@@ -260,7 +275,7 @@ namespace Poe2Accessibility.Services
                 }
                 else
                 {
-                    if (attack is { TravelMs: > 0, Warns: true, Warned: false, InReach: true } flying && flying.CanStillHit(now))
+                    if (this.DodgeWarnings && attack is { TravelMs: > 0, Warns: true, Warned: false, InReach: true } flying && flying.CanStillHit(now))
                     {
                         // The next attack replaces this record; the projectile it let go is still coming.
                         var (flightPan, flightPitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
@@ -276,6 +291,7 @@ namespace Poe2Accessibility.Services
                         rarity is Rarity.Rare or Rarity.Unique, rarity == Rarity.Unique)
                     {
                         Swing = this.Timings.Swing(key), TravelMs = travel, ReleaseAt = learnt is { } release ? now + release : null,
+                        ParryBlowAt = learnt is { } blow ? now + blow + travel : null,
                     };
                 }
             }
@@ -283,7 +299,7 @@ namespace Poe2Accessibility.Services
             // A rare's blow needs it within reach when it would land; a unique's carries (slam waves).
             var inReach = attack.Threat != DodgeThreat.Melee || attack.Unique || gap <= MeleeDangerGapWorld;
             attack = attack with { InReach = inReach };
-            if (attack.Warns && !attack.Warned && attack.CanStillHit(now) && now >= attack.WarnAt)
+            if (this.DodgeWarnings && attack.Warns && !attack.Warned && attack.CanStillHit(now) && now >= attack.WarnAt)
             {
                 // The same animation id goes on swinging (a golem's blows a swing apart, nothing new written between
                 // them): a timed attack warns again one swing later.
@@ -299,7 +315,31 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            if (parrying && attack.ParryBlowAt is { } blowAt && now >= ParryTiming.StartAt(blowAt, this.ParryLeadMs, this.parryMs) &&
+                attack.CanStillHit(now))
+            {
+                attack = this.CueParry(id, attack, blowAt, rarity, render, offset, gap, now);
+            }
+
             this.attacks[id] = attack;
+        }
+
+        /// <summary>
+        ///     The parry cue for a timed blow worth parrying, at most once per parry and only while its stop still falls
+        ///     before the blow (a blow too quick for the swell gets none); a repeating swing is cued again a swing later.
+        /// </summary>
+        private Attack CueParry(uint id, Attack attack, long blowAt, Rarity rarity, Render render, Vector2 offset, float gap, long now)
+        {
+            if (ParryTiming.InTime(blowAt, this.parryMs, now) && now - this.lastParryCue >= ParryTiming.RepeatMs &&
+                ParryTiming.Worth(attack.Threat, attack.TravelMs > 0, rarity is Rarity.Rare or Rarity.Unique, gap, MeleeDangerGapWorld))
+            {
+                this.lastParryCue = now;
+                var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
+                this.audio.Play(this.parry, pan, pitch, this.WarningGain(offset));
+                this.log.Debug($"Parry cue: monster {id} animation {(Animation)attack.Animation} ({attack.Threat}, gap {gap:F0}, {now - attack.StartedAt} ms in, blow in {blowAt - now} ms)");
+            }
+
+            return attack with { ParryBlowAt = attack.Swing is { } swing ? blowAt + swing : null };
         }
 
         /// <summary>Louder the nearer the attacker; never below the far level, so a far archer is still heard.</summary>
@@ -399,6 +439,9 @@ namespace Poe2Accessibility.Services
 
             /// <summary>When the swing warned of next lets its blow or projectile go, from the timings; null when unknown.</summary>
             public long? ReleaseAt { get; init; }
+
+            /// <summary>When the next blow to parry lands; null for an untimed attack or once its cue has had its turn.</summary>
+            public long? ParryBlowAt { get; init; }
 
             public bool CanStillHit(long now) => DodgeTimings.CanStillHit(this.EndedAt, this.ReleaseAt, this.TravelMs, now);
         }

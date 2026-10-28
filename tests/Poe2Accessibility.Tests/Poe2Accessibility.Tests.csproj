@@ -42,6 +42,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\WeakPoints.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\FlaskDrinks.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ShieldStance.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\StunMeter.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ParryTiming.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CullThreshold.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\EnemyStates.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PrimedThreshold.cs" />

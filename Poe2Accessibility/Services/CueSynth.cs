@@ -195,6 +195,23 @@ namespace Poe2Accessibility.Services
         private static readonly float[] Pure = { 1f };
         private static readonly float[] Organ = { 1f, 2f, 3f };
         private static readonly float[] Metal = { 1f, 2.92f };
+        private static readonly float[] Plate = { 1f, 1.58f, 2.37f, 3.41f };
+
+        /// <summary>
+        ///     Parry now: a reverse hit — a struck buckler (a low plate and a ringing bell partial) in a stone room, played
+        ///     backwards, so it swells in and stops dead on the moment to press Parry ("the attack is coming, parry it",
+        ///     the user's ask, 2026-10-28). The dodge warning ends in a bass drop and a tail; this one ends in silence.
+        /// </summary>
+        private static readonly StateNote[] ParryHitNotes =
+        {
+            new(0f, 0.5f, 210f, 200f, Plate, 0.16f, Grit: 0.25f),
+            new(0f, 0.35f, 840f, 830f, Bell, 0.09f, Grit: 0.15f),
+        };
+
+        private const float ParryRoom = 0.7f;
+        private const float ParrySwellSeconds = 0.32f;
+        private const float ParryFadeInSeconds = 0.03f;
+        private const float ParryLevel = 0.8f;
 
         /// <summary>Crosshair (D2R crosshair.md): two flat 24 ms blips at 1175 Hz, 40 ms apart, odd harmonics.</summary>
         private const float ReachLowHz = 1320f;
@@ -528,6 +545,32 @@ namespace Poe2Accessibility.Services
                 _ => (new[] { new StateNote(0f, 0.14f, 1568f, 1568f, Metal, 0.05f) }, 0.3f),
             };
 
+            return Struck(notes, level, sampleRate);
+        }
+
+        /// <summary>Parry now (<see cref="ParryHitNotes"/>): the cue's last sample is the moment to press.</summary>
+        public static float[] Parry(int sampleRate) => ReverseHit(Struck(ParryHitNotes, 1f, sampleRate), ParryRoom, sampleRate);
+
+        /// <summary>A hit and its room played backwards, the last <see cref="ParrySwellSeconds"/> of it: a swell into a dead stop.</summary>
+        internal static float[] ReverseHit(float[] hit, float room, int sampleRate)
+        {
+            var reversed = Room(hit, sampleRate, room);
+            Array.Reverse(reversed);
+            var length = Math.Min(reversed.Length, (int)(ParrySwellSeconds * sampleRate));
+            var skip = reversed.Length - length;
+            var fade = (int)(ParryFadeInSeconds * sampleRate);
+            var swell = new float[length];
+            for (var i = 0; i < length; i++)
+            {
+                swell[i] = reversed[skip + i] * MathF.Min(1f, (float)i / fade);
+            }
+
+            return Normalized(swell, ParryLevel);
+        }
+
+        /// <summary>Struck notes summed and brought to <paramref name="level"/> (enemy states, parry).</summary>
+        internal static float[] Struck(StateNote[] notes, float level, int sampleRate)
+        {
             var samples = new float[(int)(notes.Max(note => note.Start + note.Seconds) * sampleRate) + 1];
             var random = new Random(GritSeed);
             var gritStep = Math.Max(1, (int)(GritSeconds * sampleRate));
@@ -579,7 +622,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The cue followed by its stone-room tail, <paramref name="wet"/> of the cue's level; the tail fades to silence.</summary>
-        private static float[] Room(float[] dry, int sampleRate, float wet)
+        internal static float[] Room(float[] dry, int sampleRate, float wet)
         {
             var length = dry.Length + (int)(RoomTailSeconds * sampleRate);
             var reverb = new float[length];
@@ -639,7 +682,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>One struck note of an enemy-state cue: onset, length, pitch glide, partials (falling 1/n), decay, wobble and crackle.</summary>
-        private readonly record struct StateNote(
+        internal readonly record struct StateNote(
             float Start, float Seconds, float FromHz, float ToHz, float[] Ratios, float Decay, float VibratoHz = 0f, float VibratoDepth = 0f, float Grit = 0f);
 
         private static float[] Shield(int sampleRate, float fromHz, float toHz, float level)

@@ -58,7 +58,7 @@ namespace Poe2Accessibility
 
         private void ApplySoundVolumes(AccessibilitySettings settings)
         {
-            static float Fraction(int percent) => Math.Clamp(percent, 0, MaxSoundVolume) / 100f;
+            static float Fraction(int percent) => Math.Clamp(percent, 0, SettingsMenu.MaxVolume) / 100f;
             if (this.audio != null)
             {
                 this.audio.Volume = Fraction(settings.SoundVolume);
@@ -99,7 +99,8 @@ namespace Poe2Accessibility
 
             if (this.bosses != null)
             {
-                this.bosses.Gain = Fraction(settings.EnemyVolume);
+                this.bosses.Gain = Fraction(settings.DodgeVolume);
+                this.bosses.ParryLeadMs = settings.ParryLeadMs;
             }
 
             if (this.culls != null)

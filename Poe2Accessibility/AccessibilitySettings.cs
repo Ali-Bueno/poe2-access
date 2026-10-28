@@ -51,6 +51,9 @@ namespace Poe2Accessibility
         /// <summary>Say when mana falls below half, a quarter and a tenth.</summary>
         public bool AnnounceLowMana = true;
 
+        /// <summary>Say when the energy shield falls below three quarters, half and a quarter, and when it is gone (a pool of at least a fifth of life).</summary>
+        public bool AnnounceEnergyShield = true;
+
         /// <summary>Say the uses a flask has after each drink ("Frasco de vida menor, 3 usos") and each use it gains, when one runs dry, and a flask put on the belt (D2R belt).</summary>
         public bool AnnounceFlasks = true;
 
@@ -60,11 +63,20 @@ namespace Poe2Accessibility
         /// <summary>A rising whoosh on the side of a rare or unique monster that starts an attack: time to dodge.</summary>
         public bool DodgeWarnings = true;
 
+        /// <summary>Parry (buckler, targe or two swords): a reverse hit that swells in and stops dead on the moment to press Parry before a blow you can parry.</summary>
+        public bool ParryCues = true;
+
+        /// <summary>How long before the blow the parry cue stops, milliseconds: raise it if you press late, lower it if you press early.</summary>
+        public int ParryLeadMs = 150;
+
         /// <summary>A heartbeat that leads to the part of a boss worth striking: the Devourer's head, not its tail.</summary>
         public bool BossWeakPoint = true;
 
         /// <summary>Raise Shield: a rising clank as you raise your shield, a falling one as it comes down.</summary>
         public bool ShieldSounds = true;
+
+        /// <summary>Say the heavy stun bar that blocking with a raised shield or parrying fills, at half, three quarters and nine tenths.</summary>
+        public bool AnnounceStunBar = true;
 
         /// <summary>Culling Strike (Killing Palm): a falling chime from an enemy now low enough to be culled. Off by default: only builds that cull need it.</summary>
         public bool CullCues = false;
@@ -201,14 +213,17 @@ namespace Poe2Accessibility
         /// <summary>Say when a harmful state begins and ends: frozen, chilled, shocked, ignited, poisoned, bleeding, stunned, slowed, cursed.</summary>
         public bool StatusAlerts = true;
 
-        /// <summary>Volume of all the mod's sounds, percent (0-200).</summary>
+        /// <summary>Volume of all the mod's sounds, percent (0-300; above 100 a cue is driven louder, see AudioCueService).</summary>
         public int SoundVolume = 100;
 
-        /// <summary>Radar and enemy sound volumes, percent of their designed level (0-200), under SoundVolume.</summary>
+        /// <summary>Radar and enemy sound volumes, percent of their designed level (0-300), under SoundVolume.</summary>
         public int RadarVolume = 100;
         public int EnemyVolume = 100;
 
-        /// <summary>Guide beacon volume (hold L3, press the right stick on a scanner choice), percent (0-200).</summary>
+        /// <summary>Dodge warning and parry cue volume, percent (0-300), apart from the enemy sounds so the warnings can stand out.</summary>
+        public int DodgeVolume = 100;
+
+        /// <summary>Guide beacon volume (hold L3, press the right stick on a scanner choice), percent (0-300).</summary>
         public int BeaconVolume = 100;
 
         /// <summary>
@@ -217,7 +232,7 @@ namespace Poe2Accessibility
         /// </summary>
         public string LootSounds = Services.LootFilter.All;
 
-        /// <summary>Volume of the object sounds (game sounds for loot, chests, exits, waypoints), percent (0-200).</summary>
+        /// <summary>Volume of the object sounds (game sounds for loot, chests, exits, waypoints), percent (0-300).</summary>
         public int ObjectVolume = 70;
 
         /// <summary>Research: dump the UI tree automatically once per screen (game state) after it settles, and log every focused widget's surroundings.</summary>

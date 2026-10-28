@@ -22,6 +22,20 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private readonly VitalAlarm manaAlarm = new(30, 50, 25, 10);
 
+        /// <summary>Three quarters, half, a quarter and gone (under 1); re-armed 10 points above.</summary>
+        private readonly VitalAlarm shieldAlarm = new(10, 75, 50, 25, EnergyShieldGone);
+
+        private const int EnergyShieldGone = 1;
+
+        /// <summary>From here down the energy shield's news cuts in when urgent.</summary>
+        private const int UrgentEnergyShield = 25;
+
+        /// <summary>
+        ///     Energy shield news only for a pool at least this share of life: a sliver from one piece of gear (a helmet on a
+        ///     warrior) would break in every fight.
+        /// </summary>
+        private const float EnergyShieldMinShare = 0.2f;
+
         private (string Character, int Level) lastLevel;
 
         public PlayerAlerts(Func<Entity?> subject, IAccessibilityOutputService output, PluginLog log)
@@ -65,15 +79,15 @@ namespace Poe2Accessibility.Services
             this.lastLevel = (character.Name, character.Level);
         }
 
-        /// <summary>A warning when life (or mana) falls below a threshold.</summary>
+        /// <summary>A warning when life, mana or energy shield falls below a threshold, and when the energy shield is gone.</summary>
         private void WatchLife(Entity entity, AccessibilitySettings settings)
         {
-            if (!settings.AnnounceLowLife || !entity.TryGetComponent<Life>(out var life) || !life.IsAlive || life.Health.Total <= 0)
+            if (!entity.TryGetComponent<Life>(out var life) || !life.IsAlive || life.Health.Total <= 0)
             {
                 return;
             }
 
-            if (this.lifeAlarm.Update(life.Health.CurrentInPercent()) is { } threshold)
+            if (settings.AnnounceLowLife && this.lifeAlarm.Update(life.Health.CurrentInPercent()) is { } threshold)
             {
                 this.output.Say(SpeechKind.LifeAndMana, Announcements.LowLife(threshold), threshold <= settings.LowLifeBelow);
             }
@@ -81,6 +95,15 @@ namespace Poe2Accessibility.Services
             if (settings.AnnounceLowMana && life.Mana.Total > 0 && this.manaAlarm.Update(life.Mana.CurrentInPercent()) is { } manaThreshold)
             {
                 this.output.Say(SpeechKind.LifeAndMana, Announcements.LowMana(manaThreshold), manaThreshold <= 10);
+            }
+
+            if (settings.AnnounceEnergyShield && life.EnergyShield.Total >= life.Health.Total * EnergyShieldMinShare &&
+                this.shieldAlarm.Update(life.EnergyShield.CurrentInPercent()) is { } shieldThreshold)
+            {
+                this.output.Say(
+                    SpeechKind.LifeAndMana,
+                    shieldThreshold == EnergyShieldGone ? Announcements.EnergyShieldGone : Announcements.LowEnergyShield(shieldThreshold),
+                    shieldThreshold <= UrgentEnergyShield);
             }
         }
     }

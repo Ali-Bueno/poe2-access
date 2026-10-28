@@ -38,8 +38,6 @@ namespace Poe2Accessibility
         private L3Gestures gestures = new();
         private AudioCueService? audio;
 
-        /// <summary>Sound volumes are percents; above double the synthesized level the cues clip.</summary>
-        private const int MaxSoundVolume = 200;
         private EnemyCues? enemyCues;
         private Radar? radar;
         private Radar? partnerRadar;
@@ -280,7 +278,9 @@ namespace Poe2Accessibility
                 this.log.Info($"Dodge timings: {timings.FileTimes} attacks timed by the game files");
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = timings, TimingsPath = this.DodgeTimingsPath };
                 this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log);
-                this.shield = new ShieldWatch(this.audio, this.log);
+                this.shield = new ShieldWatch(this.audio, this.output, memory, this.log);
+                var parrySkill = new ParrySkill(memory, elements, this.log);
+                this.bosses.CanParry = parrySkill.Has;
                 this.encounters = new EncounterReader(elements);
                 this.culls = new CullWatch(this.audio, this.output, elements);
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);

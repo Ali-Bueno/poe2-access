@@ -23,6 +23,7 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.AnnounceMonsterMods)),
             Switch(nameof(AccessibilitySettings.AnnounceLowLife)),
             Switch(nameof(AccessibilitySettings.AnnounceLowMana)),
+            Switch(nameof(AccessibilitySettings.AnnounceEnergyShield)),
             Switch(nameof(AccessibilitySettings.AnnounceFlasks)),
             Switch(nameof(AccessibilitySettings.AnnounceBossLife)),
             Switch(nameof(AccessibilitySettings.StatusAlerts)),
@@ -49,21 +50,25 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.ObjectSounds)),
             Choice(nameof(AccessibilitySettings.LootSounds), LootFilter.Levels),
             Switch(nameof(AccessibilitySettings.DodgeWarnings)),
+            Switch(nameof(AccessibilitySettings.ParryCues)),
+            Number(nameof(AccessibilitySettings.ParryLeadMs), 0, 600, 50),
             Switch(nameof(AccessibilitySettings.BossWeakPoint)),
             Switch(nameof(AccessibilitySettings.ShieldSounds)),
+            Switch(nameof(AccessibilitySettings.AnnounceStunBar)),
             Switch(nameof(AccessibilitySettings.CullCues)),
             Switch(nameof(AccessibilitySettings.EnemyStateCues)),
             Switch(nameof(AccessibilitySettings.PrimedStunCues)),
             Switch(nameof(AccessibilitySettings.CrosshairBeep)),
             Number(nameof(AccessibilitySettings.LowLifeBelow), 5, 70, 5),
-            Number(nameof(AccessibilitySettings.SoundVolume), 0, 200, 25),
-            Number(nameof(AccessibilitySettings.RadarVolume), 0, 200, 25),
+            Volume(nameof(AccessibilitySettings.SoundVolume)),
+            Volume(nameof(AccessibilitySettings.RadarVolume)),
             Number(nameof(AccessibilitySettings.WallToneRange), 200, 1600, 100),
             Switch(nameof(AccessibilitySettings.MeleeReach)),
             Number(nameof(AccessibilitySettings.MeleeReachRange), 0, 200, 10),
-            Number(nameof(AccessibilitySettings.EnemyVolume), 0, 200, 25),
-            Number(nameof(AccessibilitySettings.BeaconVolume), 0, 200, 25),
-            Number(nameof(AccessibilitySettings.ObjectVolume), 0, 200, 25),
+            Volume(nameof(AccessibilitySettings.EnemyVolume)),
+            Volume(nameof(AccessibilitySettings.DodgeVolume)),
+            Volume(nameof(AccessibilitySettings.BeaconVolume)),
+            Volume(nameof(AccessibilitySettings.ObjectVolume)),
             Choice(nameof(AccessibilitySettings.Language), new[] { "auto" }.Concat(Localization.Languages).ToArray()),
             Choice(nameof(AccessibilitySettings.SpeechStatusBegins), SpeechPriority.Levels),
             Choice(nameof(AccessibilitySettings.SpeechStatusEnds), SpeechPriority.Levels),
@@ -78,6 +83,11 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.ReadPlayer2)),
             Switch(nameof(AccessibilitySettings.CheckForUpdates)),
         };
+
+        /// <summary>Highest volume, percent; above 100 a cue is driven into a soft limit rather than only clipped (AudioCueService).</summary>
+        public const int MaxVolume = 300;
+
+        private const int VolumeStep = 25;
 
         private readonly Item[] items;
         private readonly SoundGlossary? glossary;
@@ -140,7 +150,7 @@ namespace Poe2Accessibility.Services
                 case Kind.Switch:
                     field.SetValue(settings, !(bool)field.GetValue(settings)!);
                     break;
-                case Kind.Number:
+                case Kind.Number or Kind.Volume:
                     field.SetValue(settings, Math.Clamp((int)field.GetValue(settings)! + (step * item.Step), item.Min, item.Max));
                     break;
                 default:
@@ -168,7 +178,8 @@ namespace Poe2Accessibility.Services
             return item.Kind switch
             {
                 Kind.Switch => (bool)value! ? Announcements.On : Announcements.Off,
-                Kind.Number => item.Max == 200 ? Announcements.Percent((int)value!) : $"{value}",
+                Kind.Volume => Announcements.Percent((int)value!),
+                Kind.Number => $"{value}",
                 _ => Announcements.ChoiceName((string)value!),
             };
         }
@@ -180,12 +191,17 @@ namespace Poe2Accessibility.Services
 
         private static Item Number(string name, int min, int max, int step) => new(name, Kind.Number, min, max, step, Array.Empty<string>());
 
+        private static Item Volume(string name) => new(name, Kind.Volume, 0, MaxVolume, VolumeStep, Array.Empty<string>());
+
         private static Item Choice(string name, params string[] choices) => new(name, Kind.Choice, 0, 0, 0, choices);
 
         private enum Kind
         {
             Switch,
             Number,
+
+            /// <summary>A percentage of a sound's designed level, 0 to <see cref="MaxVolume"/>.</summary>
+            Volume,
             Choice,
 
             /// <summary>A glossary entry: plays a sound, changes nothing.</summary>
