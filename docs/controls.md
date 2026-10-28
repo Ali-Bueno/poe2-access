@@ -264,9 +264,15 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   up. A shrine's, checkpoint's or portal's text is read whole.
 - Item in hand: "In hand: Makeshift Crossbow. Choose a cell or a matching equipment slot to place it"; letting go: "You no longer hold an item", or, into an equipment slot, "Equipped:
   Makeshift Crossbow, Main hand" (`AnnounceHand`). These cut in on what is being read; the next D-pad move cuts them.
-- Inventory moves without the hand (`AnnounceMoves`): "Equipped: …, Main hand" and "Unequipped: …" (X on an
-  item or a slot); with a panel open, "New in inventory: …" (bought, withdrawn) and "… left the inventory"
-  (sold, stored). They follow the focus update the move causes.
+- Inventory moves (`AnnounceMoves`) are said as what you did: "Equipped: …, Main hand", "Unequipped: …", "Sold:
+  Padded Boots, for 9 gold" (Y at a merchant), "Bought: …, for 9 gold", "Moved to Stash: …" and "Taken from Stash: …"
+  (any panel beside the inventory, by its own title: the stash, the skills), "Dropped: …" (it lands on the ground),
+  "Used: …" (a currency's last orb, a rune socketed), "Obtained: …" (a ritual favour, a reward). The focus update the
+  move causes waits for them instead of cutting them off.
+- Messages the game or your action produces ("Inventory full", "The item has no room for more mods", "Game menu",
+  "Character selection") are no longer cut off by the cursor's next stop: it follows them. Closing a panel or an NPC
+  back to play stops what it was reading (a long tooltip); the world's first words after it are kept. LB/RB that
+  switch a merchant's or the stash's tab while the cursor stays in the inventory say the new tab ("Armour").
 - Another player's menu (A on a player): "DrBacamarte, Warrior Lvl 2, Forbidden Rites League. Invite to Party,
   1 of 5", then each button as the D-pad moves ("Trade, 3 of 5"); B closes it.
 - Long texts (the terms of use, RB on the login screen): "Long text, 248 paragraphs: scroll it with the stick
