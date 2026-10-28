@@ -21,9 +21,13 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Says a tutorial lesson whole: for <paramref name="holdMs"/> once it starts, what would cut it waits and follows
-        ///     it (only the latest of what interrupts).
+        ///     it (only the latest of what interrupts). A message (<paramref name="yieldsToMoves"/>) holds only until the
+        ///     player's own move.
         /// </summary>
-        void Keep(string text, int holdMs, bool interrupt = false) => this.Speak(text, interrupt);
+        void Keep(string text, int holdMs, bool interrupt = false, bool yieldsToMoves = false) => this.Speak(text, interrupt);
+
+        /// <summary>The cursor moved by the player: interrupts, but follows a message being kept rather than waiting it out.</summary>
+        void Moved(string text) => this.Speak(text, true);
 
         /// <summary>
         ///     Queues a short warning like <see cref="Speak"/>; an interrupting phrase in the next moment starts with it, so

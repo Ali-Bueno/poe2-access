@@ -75,6 +75,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(FocusDetailsAreNotScrolledRows), FocusDetailsAreNotScrolledRows);
             Run(nameof(KeptLessonIsHeardWhole), KeptLessonIsHeardWhole);
             Run(nameof(KeptLessonHoldsFromItsStart), KeptLessonHoldsFromItsStart);
+            Run(nameof(PlayerMoveFollowsAMessage), PlayerMoveFollowsAMessage);
             Run(nameof(PendingLessonIsRemindedNowAndThen), PendingLessonIsRemindedNowAndThen);
             Run(nameof(WeakPointLeadsToTheHead), WeakPointLeadsToTheHead);
             Run(nameof(WeakPointBeatsFasterThenSteady), WeakPointBeatsFasterThenSteady);
@@ -962,6 +963,26 @@ namespace Poe2Accessibility.Tests
             Equal(false, floor.Held(later.AddMilliseconds(SpeechFloor.MaxAheadMs + 2100)), "a long line ahead delays the hold only so far");
         }
 
+        private static void PlayerMoveFollowsAMessage()
+        {
+            var floor = new SpeechFloor();
+            var start = new DateTime(2026, 10, 28, 12, 35, 9);
+            floor.Keep("Vendido: Lanza con punta de hierro, raro, por 124 de oro", true, 2500, start, yieldsToMoves: true);
+            Equal(false, floor.Admit("Vacío, columna 2, fila 1", true, start.AddMilliseconds(100)), "the game's refresh waits for the sale");
+            var interrupt = true;
+            Equal(true, floor.Move("Orbe de aumento, columna 3, fila 1", ref interrupt, start.AddMilliseconds(230)), "the player's move goes out now");
+            Equal(false, interrupt, "queued behind the sale, not cutting it");
+            Equal(0, floor.Release(start.AddMilliseconds(3000)).Count, "the stale refresh is dropped");
+            interrupt = true;
+            Equal(true, floor.Move("Pergamino de sabiduría, 5, columna 1, fila 1", ref interrupt, start.AddMilliseconds(600)), "the next move");
+            Equal(true, interrupt, "cuts in as usual");
+
+            var lesson = start.AddMinutes(1);
+            floor.Keep("Navega a tu arbol de pasivas", true, 2000, lesson);
+            interrupt = true;
+            Equal(false, floor.Move("Vacío, columna 4, fila 2", ref interrupt, lesson.AddMilliseconds(300)), "a lesson still holds the move");
+        }
+
         private static void PendingLessonIsRemindedNowAndThen()
         {
             Equal(false, LessonReminder.IsDue(TimeSpan.FromSeconds(3), false), "the box flickering during play");
@@ -1238,7 +1259,7 @@ namespace Poe2Accessibility.Tests
 
             public void Urge(string text, int holdMs = 1500) => this.Calls.Add($"urge {text}");
 
-            public void Keep(string text, int holdMs, bool interrupt = false) => this.Calls.Add($"keep {text} {interrupt}");
+            public void Keep(string text, int holdMs, bool interrupt = false, bool yieldsToMoves = false) => this.Calls.Add($"keep {text} {interrupt}");
 
             public void Mention(string text) => this.Calls.Add($"mention {text}");
 

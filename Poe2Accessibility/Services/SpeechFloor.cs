@@ -20,6 +20,9 @@ namespace Poe2Accessibility.Services
         private DateTime speechEndsAt = DateTime.MinValue;
         private DateTime keptUntil = DateTime.MinValue;
 
+        /// <summary>The part of the hold the player's own move does not end (a lesson's).</summary>
+        private DateTime lessonUntil = DateTime.MinValue;
+
         public static int SpokenMs(string text) => text.Length * SpokenMsPerChar;
 
         /// <summary>
@@ -55,9 +58,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     A kept line going out now: cutting in, or after what is being said; returns whether it may interrupt (never
-        ///     another kept line still holding).
+        ///     another kept line still holding). A message (<paramref name="yieldsToMoves"/>) stops holding once the player moves.
         /// </summary>
-        public bool Keep(string text, bool interrupt, int holdMs, DateTime now)
+        public bool Keep(string text, bool interrupt, int holdMs, DateTime now, bool yieldsToMoves = false)
         {
             interrupt &= !this.Held(now);
             var ahead = this.speechEndsAt - now;
@@ -65,7 +68,33 @@ namespace Poe2Accessibility.Services
             this.Sent(text, interrupt, now);
             var until = startsAt.AddMilliseconds(holdMs);
             this.keptUntil = until > this.keptUntil ? until : this.keptUntil;
+            if (!yieldsToMoves && until > this.lessonUntil)
+            {
+                this.lessonUntil = until;
+            }
+
             return interrupt;
+        }
+
+        /// <summary>
+        ///     The player's own move (the cursor to another cell): a message no longer holds it back, it follows what is being
+        ///     said instead of waiting out the estimate (user 2026-10-28, selling); a lesson still holds. What waited is stale.
+        /// </summary>
+        public bool Move(string text, ref bool interrupt, DateTime now)
+        {
+            if (now < this.lessonUntil)
+            {
+                return this.Admit(text, interrupt, now);
+            }
+
+            if (this.Held(now))
+            {
+                this.keptUntil = this.lessonUntil;
+                interrupt = false;
+            }
+
+            this.held.Clear();
+            return this.Admit(text, interrupt, now);
         }
 
         /// <summary>A phrase that goes out regardless of the floor (urgent warnings queue right behind the kept line).</summary>
@@ -101,6 +130,7 @@ namespace Poe2Accessibility.Services
         {
             this.held.Clear();
             this.keptUntil = DateTime.MinValue;
+            this.lessonUntil = DateTime.MinValue;
             this.speechEndsAt = now;
         }
     }

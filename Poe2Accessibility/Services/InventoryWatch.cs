@@ -398,7 +398,7 @@ namespace Poe2Accessibility.Services
             if (lines.Count > 0)
             {
                 var text = string.Join(". ", lines);
-                this.output.Keep(text, SpeechFloor.MessageHoldMs(text), true);
+                this.output.Keep(text, SpeechFloor.MessageHoldMs(text), true, yieldsToMoves: true);
             }
         }
 

@@ -177,6 +177,12 @@ namespace Poe2Accessibility.Services
         /// <summary>A focus change this soon after A is the screen the press opened.</summary>
         private const int ConfirmOpensMs = 1000;
 
+        /// <summary>Milliseconds since a direction (d-pad or a stick) was last held.</summary>
+        public Func<long>? SinceDirection { get; set; }
+
+        /// <summary>A cursor move this soon after a direction is the player's own (our window: a few frames of reading).</summary>
+        private const int DirectionMovesMs = 500;
+
         /// <summary>The last narration as a set of its parts, to drop the same news reported twice.</summary>
         private (string Parts, DateTime At) lastNarrated = (string.Empty, DateTime.MinValue);
 
@@ -506,7 +512,20 @@ namespace Poe2Accessibility.Services
             this.notesContext = node.Context;
             this.deferredFocus = null;
             this.NoteNarrated(text);
-            this.output.Speak(this.WithPendingPage(text), true);
+            this.SayMove(this.WithPendingPage(text));
+        }
+
+        /// <summary>The cursor's new place: the player's own move ends a message's hold, the game's refresh does not.</summary>
+        private void SayMove(string text)
+        {
+            if ((this.SinceDirection?.Invoke() ?? long.MaxValue) < DirectionMovesMs)
+            {
+                this.output.Moved(text);
+            }
+            else
+            {
+                this.output.Speak(text, true);
+            }
         }
 
         /// <summary>
@@ -706,7 +725,7 @@ namespace Poe2Accessibility.Services
             if (node.Role is UiRole.GridCell or UiRole.ItemSlot or UiRole.ListItem)
             {
                 // The cursor moved inside the grid: a new item and cell, not a value of the same control.
-                this.output.Speak(this.Focused(node), true);
+                this.SayMove(this.Focused(node));
                 return;
             }
 
@@ -997,7 +1016,8 @@ namespace Poe2Accessibility.Services
 
             if (hold != Hold.None)
             {
-                this.output.Keep(text, hold == Hold.Lesson ? Math.Clamp(SpeechFloor.SpokenMs(text), MinKeepMs, MaxKeepMs) : SpeechFloor.MessageHoldMs(text), interrupt);
+                this.output.Keep(text, hold == Hold.Lesson ? Math.Clamp(SpeechFloor.SpokenMs(text), MinKeepMs, MaxKeepMs) : SpeechFloor.MessageHoldMs(text), interrupt,
+                    yieldsToMoves: hold == Hold.Message);
                 return;
             }
 

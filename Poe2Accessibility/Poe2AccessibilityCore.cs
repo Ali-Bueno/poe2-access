@@ -62,6 +62,9 @@ namespace Poe2Accessibility
         /// <summary>Right stick deflection that counts as aiming (the target is named only then).</summary>
         private const float AimDeflection = 0.3f;
 
+        /// <summary>A stick pushed this far counts as a direction (our threshold: well past rest, before a full push).</summary>
+        private const float DirectionDeflection = 0.5f;
+
         private Beacon? beacon;
         private TargetNarrator? targets;
         private BossWatch? bosses;
@@ -96,6 +99,9 @@ namespace Poe2Accessibility
 
         /// <summary>When A (the confirm button) last went down, from the game's own pad state.</summary>
         private long lastConfirmAt = long.MinValue / 2;
+
+        /// <summary>When a direction (d-pad or a stick) was last held, from the game's own pad state.</summary>
+        private long lastDirectionAt = long.MinValue / 2;
 
         /// <summary>When the game went to "not loaded"; zero once announced or left (see <see cref="AnnounceLastingClose"/>).</summary>
         private long closedSince;
@@ -201,6 +207,7 @@ namespace Poe2Accessibility
                 this.narrator = new ScreenNarrator(this.output, this.log, layer => this.semantics?.SelectedTab(layer) ?? string.Empty);
                 this.narrator.FocusLayer = () => this.focus?.CurrentLayer ?? IntPtr.Zero;
                 this.narrator.SinceConfirm = () => Environment.TickCount64 - this.lastConfirmAt;
+                this.narrator.SinceDirection = () => Environment.TickCount64 - this.lastDirectionAt;
                 this.focus.FocusChanged += this.narrator.OnFocusChanged;
                 this.focus.FocusChanged += node =>
                 {
@@ -556,6 +563,11 @@ namespace Poe2Accessibility
 
             this.padState = state;
             this.CheckPadButtons(state);
+            if (IsDirection(state))
+            {
+                this.lastDirectionAt = Environment.TickCount64;
+            }
+
             // A opens screens and popups, LB/RB switch tabs: a focus that follows them waits for the new page.
             var confirm = state.IsDown(GameLayout.PadButtons.A) || state.IsDown(GameLayout.PadButtons.LeftShoulder) ||
                           state.IsDown(GameLayout.PadButtons.RightShoulder);
@@ -585,6 +597,11 @@ namespace Poe2Accessibility
                 this.commands.OnGesture(gesture);
             }
         }
+
+        /// <summary>A d-pad direction or a pushed stick: what moves the cursor in a panel.</summary>
+        private static bool IsDirection(GamepadReader.PadState state) =>
+            state.IsDown(GameLayout.PadButtons.DPadUp | GameLayout.PadButtons.DPadDown | GameLayout.PadButtons.DPadLeft | GameLayout.PadButtons.DPadRight) ||
+            MathF.Max(MathF.Max(MathF.Abs(state.LeftX), MathF.Abs(state.LeftY)), MathF.Max(MathF.Abs(state.RightX), MathF.Abs(state.RightY))) >= DirectionDeflection;
 
         /// <summary>
         ///     A text field gave the focus up (pre-game the controller cursor then rests on nothing, D2R "B ends editing"):
@@ -735,7 +752,7 @@ namespace Poe2Accessibility
             this.pendingState = null;
             // Held: the screen's first focus cut "Menú del juego." and "Selección de personaje." 300 ms in (2026-10-26).
             var text = pending.Detected ? $"{Announcements.GameDetected} {pending.Text}" : pending.Text;
-            this.output.Keep(text, SpeechFloor.MessageHoldMs(text), !pending.Queued);
+            this.output.Keep(text, SpeechFloor.MessageHoldMs(text), !pending.Queued, yieldsToMoves: true);
         }
 
         /// <summary>Per frame: "Game closed" once the game has stayed unloaded for a while.</summary>

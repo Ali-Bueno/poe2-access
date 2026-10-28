@@ -114,7 +114,10 @@ namespace Poe2Accessibility.Services
             this.mentioned = (text, DateTime.UtcNow);
         }
 
-        public void Keep(string text, int holdMs, bool interrupt = false) => this.Say(text, interrupt, Delivery.Kept, holdMs);
+        public void Keep(string text, int holdMs, bool interrupt = false, bool yieldsToMoves = false) =>
+            this.Say(text, interrupt, yieldsToMoves ? Delivery.KeptMessage : Delivery.Kept, holdMs);
+
+        public void Moved(string text) => this.Say(text, true, Delivery.Move, 0);
 
         public void Repeat()
         {
@@ -240,7 +243,11 @@ namespace Poe2Accessibility.Services
                 switch (delivery)
                 {
                     case Delivery.Kept:
-                        interrupt = this.floor.Keep(text, interrupt, holdMs, now);
+                    case Delivery.KeptMessage:
+                        interrupt = this.floor.Keep(text, interrupt, holdMs, now, delivery == Delivery.KeptMessage);
+                        break;
+                    case Delivery.Move:
+                        goesOut = this.floor.Move(text, ref interrupt, now);
                         break;
                     case Delivery.Urgent:
                         interrupt &= !this.floor.Held(now); // right behind the lesson being kept, never dropped with what waits
@@ -260,7 +267,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.log.Info(goesOut
-                ? $"Speech {(interrupt ? "interrupts" : "queued")}{(delivery == Delivery.Kept ? ", kept" : string.Empty)}: {text}"
+                ? $"Speech {(interrupt ? "interrupts" : "queued")}{(delivery is Delivery.Kept or Delivery.KeptMessage ? ", kept" : delivery == Delivery.Move ? ", moved" : string.Empty)}: {text}"
                 : $"Speech waits for the kept line{(interrupt ? ", replacing what waited" : string.Empty)}: {text}");
             this.pendingSignal.Set();
         }
@@ -402,6 +409,8 @@ namespace Poe2Accessibility.Services
             Normal,
             Urgent,
             Kept,
+            KeptMessage,
+            Move,
         }
 
         private readonly record struct SpeechRequest(string? Text, bool Interrupt);
