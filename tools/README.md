@@ -32,6 +32,14 @@ trimmed 16-bit WAVs plus `manifest.txt` (cue -> bank/sample). Uses the game's ow
 (no oo2core needed). The WAVs are gitignored game data. To change a cue, edit the `Cues` table in `SoundExtractor.cs`.
 Details: `docs/research/game-audio.md`.
 
+### `batch` command - several catalogs on one opened index
+`Poe2UiExtract batch <gameDir> <command> <outFile> [<command> <outFile> ...]` runs `item-sounds`, `areas`,
+`dat-columns`, `experience`, `hit-times`, `places` and `ui-catalog` (the `.ui` extraction plus `catalog`, through a temp
+folder) side by side on one opened index (`Batch.cs`). Opening and parsing the index costs ~10 s and most of the ~2 GB a
+run takes; LibBundle3 opens a bundle stream per file read and the commands only read the index, so they share it safely.
+Each output is written as `<outFile>.part` and renamed when complete; exit code 1 if any command failed. The launcher
+uses it after a game patch: 33 s for all seven instead of 85 s as separate runs (2026-10-28).
+
 ### `dat-strings` command - research aid
 `Poe2UiExtract dat-strings <gameDir> <table> [language] [rows]` prints every string column of a table's first rows with its
 byte offset (the same offset in a row in memory), English by default or a translated copy (`spanish`). It is how
@@ -71,11 +79,11 @@ In a test package `start` also keeps the game data current (`GameDataSetup.cs`):
 compares a stamp of the install (size and time of `Bundles2/_.index.bin` and of the game exe, `fmod.dll` version) and of
 each step's version with `app/GameData/game-version.txt` (`GameDataStamp.cs`). It reruns the steps whose stamp differs:
 all of them after a game patch or on the first run, only the ones whose version a mod update raised otherwise. The
-steps are `item-sounds`, `areas`, `dat-columns`, `experience`, `hit-times`, `places`, the `.ui` extraction plus
-`catalog`, and `sounds` (rerun with `item-sounds`), each independent and silent, with a 3-minute timeout, logging to
-`Poe2Access.log`. Outputs are written to a temp file or folder and replace the old ones only on success; each step is
-stamped as it succeeds (a failed one is retried on the next start, an optional one is stamped anyway). About 85 s for
-all of them, about 2 s for the sounds alone. Everything stays in the mod's folder: the catalogs in `app/GameData/catalog`,
+catalog steps (`item-sounds`, `areas`, `dat-columns`, `experience`, `hit-times`, `places`, `ui-catalog`) go to one
+silent `batch` run of the extractor, then `sounds` (rerun with `item-sounds`) on its own, with 3 minutes per step,
+logging to `Poe2Access.log`. Outputs are written to a temp file or folder and replace the old ones only on success; each
+step is stamped as it succeeds (a failed one is retried on the next start, an optional one is stamped anyway). About
+33 s for all of them (85 s as separate runs), about 15 s for one catalog, 2 s for the sounds alone. Everything stays in the mod's folder: the catalogs in `app/GameData/catalog`,
 copied over the plugin's shipped copies on every start (an update or an unzip over the mod puts those back), the sounds
 in the plugin's `sounds/`; no package carries either, so a mod update keeps them. **Raise a step's version in
 `GameDataSetup` when its output changes**, so that step alone reruns once on every machine. The first start after the old

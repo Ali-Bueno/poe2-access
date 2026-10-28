@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Index = LibBundle3.Index;
 
 /// <summary>
 ///     `experience` command: the total experience each character level starts at, from ExperienceLevels.datc64, as a
@@ -9,8 +10,13 @@ internal static class ExperienceExtractor
 {
     public static int Run(string gameDir, string outFile)
     {
-        using var index = SharedBundles.Open(Path.Combine(gameDir, "Bundles2", "_.index.bin"));
-        index.ParsePaths();
+        using var index = SharedBundles.OpenParsed(gameDir);
+        return Run(index, outFile);
+    }
+
+    /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
+    public static int Run(Index index, string outFile)
+    {
         if (DatTable.Open(index, "experiencelevels") is not { RowCount: > 1 } table)
         {
             Console.WriteLine("experiencelevels: table missing");

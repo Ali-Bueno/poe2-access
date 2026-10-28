@@ -16,13 +16,17 @@ internal static class GameDataSetup
     private const string ItemSoundsStep = "item sounds";
     private const string SoundsStep = "sounds";
     private const string SoundsManifest = "manifest.txt";
+    private const string NewSuffix = ".new"; // an output before it replaces the previous one
+    private const string PartSuffix = ".part"; // the extractor's batch output still being written (Batch.cs)
+    private const string BatchLinePrefix = "batch "; // the extractor's batch result lines, "batch places done in 15.2 s"
 
     /// <param name="Version">Raise it when the step's output changes: that step alone reruns, once, on every machine.</param>
     /// <param name="Output">The catalog file it makes, or null for the sounds (the plugin's own folder, never shipped).</param>
+    /// <param name="Command">The extractor's batch command making the catalog; the stale ones share one opened index.</param>
     /// <param name="Optional">Its failure keeps the previous file and still counts as done: a patch that moves the
     /// tables these read must not rerun the step on every start (review 2026-10-25).</param>
     /// <param name="Input">The step whose output it reads: it reruns whenever that one does.</param>
-    private sealed record Step(string Name, int Version, string? Output, Func<string?> Run, bool Optional = false, string? Input = null);
+    private sealed record Step(string Name, int Version, string? Output, string? Command, bool Optional = false, string? Input = null);
 
     public static void EnsureCurrent(string hostDirectory, string? gameDirectory)
     {
@@ -64,19 +68,16 @@ internal static class GameDataSetup
         var catalog = Path.Join(data, "catalog");
         var stampFile = Path.Join(data, StampName);
         Directory.CreateDirectory(catalog);
-        var uiScripts = Path.Join(Path.GetTempPath(), "poe2-ui-" + Environment.ProcessId);
-        Step Catalog(string name, int version, string file, string command, bool optional = false) =>
-            new(name, version, file, () => ReplaceFile(extractor, Path.Join(catalog, file), temp => [command, gameDirectory, temp]), optional);
         var steps = new[]
         {
-            Catalog(ItemSoundsStep, 1, "item-sounds.json", "item-sounds"),
-            Catalog("area names", 1, "area-names.json", "areas"),
-            Catalog("dat columns", 1, "dat-columns.json", "dat-columns"),
-            Catalog("experience", 1, "experience.json", "experience"),
-            Catalog("hit times", 1, "hit-times.txt", "hit-times", true),
-            Catalog("places", 1, "places.json", "places", true),
-            new Step("UI catalog", 1, "ui-catalog.json", () => BuildUiCatalog(extractor, gameDirectory, uiScripts, Path.Join(catalog, "ui-catalog.json"))),
-            new Step(SoundsStep, 1, null, () => ReplaceSounds(extractor, gameDirectory, sounds, Path.Join(pluginCatalog, "item-sounds.json")), Input: ItemSoundsStep),
+            new Step(ItemSoundsStep, 1, "item-sounds.json", "item-sounds"),
+            new Step("area names", 1, "area-names.json", "areas"),
+            new Step("dat columns", 1, "dat-columns.json", "dat-columns"),
+            new Step("experience", 1, "experience.json", "experience"),
+            new Step("hit times", 1, "hit-times.txt", "hit-times", true),
+            new Step("places", 1, "places.json", "places", true),
+            new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
+            new Step(SoundsStep, 1, null, null, Input: ItemSoundsStep),
         };
 
         var stamp = LoadStamp(stampFile, install, pluginCatalog, catalog, steps);
@@ -100,21 +101,14 @@ internal static class GameDataSetup
         }
 
         Log.Write($"Game data is {(stamp.Steps.Count == 0 ? "missing" : "out of date")}: regenerating {string.Join(", ", stale)} from {gameDirectory}");
-        foreach (var step in steps.Where(step => stale.Contains(step.Name)))
+        var watch = Stopwatch.StartNew();
+        void Finish(Step step, string? error)
         {
-            var watch = Stopwatch.StartNew();
-            string? error;
-            try
+            if (error is not null)
             {
-                error = step.Run();
+                Log.Write($"Game data: {step.Name} failed, previous kept ({error})");
             }
-            catch (Exception exception)
-            {
-                error = exception.Message;
-            }
-
-            Log.Write(error is null ? $"Game data: {step.Name} done in {watch.Elapsed.TotalSeconds:0.0} s" : $"Game data: {step.Name} failed, previous kept ({error})");
-            if (error is null && step.Output is { } output)
+            else if (step.Output is { } output)
             {
                 CopyIntoPlugin(catalog, pluginCatalog, output);
             }
@@ -124,6 +118,36 @@ internal static class GameDataSetup
                 stamp = stamp.With(install, step.Name, step.Version);
                 File.WriteAllText(stampFile, stamp.ToString());
             }
+        }
+
+        var catalogs = steps.Where(step => step.Command is not null && stale.Contains(step.Name)).ToList();
+        if (catalogs.Count > 0)
+        {
+            var made = catalogs.Select(step => Path.Join(catalog, step.Output)).ToList();
+            var error = Guarded(() => RunBatch(extractor, gameDirectory, catalogs.Select(step => step.Command!).Zip(made.Select(file => file + NewSuffix))));
+            foreach (var (step, file) in catalogs.Zip(made))
+            {
+                Finish(step, Promote(file + NewSuffix, file) is null ? null : error ?? "not made");
+            }
+        }
+
+        if (stale.Contains(SoundsStep))
+        {
+            Finish(steps.Single(step => step.Name == SoundsStep), Guarded(() => ReplaceSounds(extractor, gameDirectory, sounds, Path.Join(pluginCatalog, "item-sounds.json"))));
+        }
+
+        Log.Write($"Game data: regenerated in {watch.Elapsed.TotalSeconds:0.0} s");
+    }
+
+    private static string? Guarded(Func<string?> run)
+    {
+        try
+        {
+            return run();
+        }
+        catch (Exception exception)
+        {
+            return exception.Message;
         }
     }
 
@@ -195,27 +219,20 @@ internal static class GameDataSetup
 
     private static string Describe(FileInfo file) => $"{file.Length}:{file.LastWriteTimeUtc.Ticks}";
 
-    private static string? ReplaceFile(string extractor, string target, Func<string, string[]> arguments)
+    /// <summary>One extractor run for all the stale catalogs: it opens the game's index once and makes them side by side.</summary>
+    private static string? RunBatch(string extractor, string gameDirectory, IEnumerable<(string Command, string Output)> jobs)
     {
-        var temp = target + ".new";
-        File.Delete(temp);
-        var error = Run(extractor, arguments(temp));
-        return error ?? Promote(temp, target);
-    }
-
-    private static string? BuildUiCatalog(string extractor, string gameDirectory, string scripts, string target)
-    {
+        var list = jobs.ToList();
+        var leftovers = list.SelectMany(job => new[] { job.Output, job.Output + PartSuffix }).ToList();
+        leftovers.ForEach(File.Delete);
         try
         {
-            var error = Run(extractor, [Path.Join(gameDirectory, "Bundles2", "_.index.bin"), scripts]);
-            return error ?? ReplaceFile(extractor, target, temp => ["catalog", scripts, temp]);
+            return Run(extractor, ["batch", gameDirectory, .. list.SelectMany(job => new[] { job.Command, job.Output })], StepTimeoutMilliseconds * list.Count,
+                line => { if (line.StartsWith(BatchLinePrefix, StringComparison.Ordinal)) Log.Write($"Game data: {line[BatchLinePrefix.Length..]}"); });
         }
         finally
         {
-            if (Directory.Exists(scripts))
-            {
-                Directory.Delete(scripts, true);
-            }
+            leftovers.Where(file => file.EndsWith(PartSuffix, StringComparison.Ordinal)).ToList().ForEach(File.Delete); // a timed-out run's unfinished outputs
         }
     }
 
@@ -231,7 +248,7 @@ internal static class GameDataSetup
             }
         }
 
-        var error = Run(extractor, ["sounds", gameDirectory, fresh, itemSounds]);
+        var error = Run(extractor, ["sounds", gameDirectory, fresh, itemSounds], StepTimeoutMilliseconds);
         if (error is null && !File.Exists(Path.Join(fresh, SoundsManifest)))
         {
             error = "no manifest written";
@@ -268,7 +285,7 @@ internal static class GameDataSetup
         return null;
     }
 
-    private static string? Run(string extractor, string[] arguments)
+    private static string? Run(string extractor, string[] arguments, int timeoutMilliseconds, Action<string>? onLine = null)
     {
         var info = new ProcessStartInfo(extractor)
         {
@@ -283,9 +300,9 @@ internal static class GameDataSetup
         }
 
         using var process = Process.Start(info) ?? throw new InvalidOperationException("Poe2UiExtract did not start.");
-        process.OutputDataReceived += (_, _) => { }; // drained, not kept: the extractor lists every path it sees
+        process.OutputDataReceived += (_, line) => { if (line.Data is { } text) onLine?.Invoke(text); }; // drained: the extractor lists every path it sees
         process.BeginOutputReadLine();
-        if (!process.WaitForExit(StepTimeoutMilliseconds))
+        if (!process.WaitForExit(timeoutMilliseconds))
         {
             process.Kill(true);
             return "timed out";

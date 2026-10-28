@@ -76,8 +76,13 @@ internal static partial class PlaceExtractor
 
     public static int Run(string gameDir, string outFile)
     {
-        using var index = SharedBundles.Open(Path.Combine(gameDir, "Bundles2", "_.index.bin"));
-        index.ParsePaths();
+        using var index = SharedBundles.OpenParsed(gameDir);
+        return Run(index, outFile);
+    }
+
+    /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
+    public static int Run(Index index, string outFile)
+    {
         var files = index.Files.Values.Where(file => file.Path != null && file.Path.StartsWith(TerrainPrefix, StringComparison.OrdinalIgnoreCase)).ToList();
         var byPath = files.ToDictionary(file => file.Path!.ToLowerInvariant(), StringComparer.Ordinal);
 

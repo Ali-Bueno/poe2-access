@@ -19,6 +19,14 @@ internal sealed class SharedBundles : IBundleFactory
         return new Index(indexPath, false, new SharedBundles(directory));
     }
 
+    /// <summary>The install's index with its paths parsed (a few never parse, a known PoE2 quirk: their count is printed).</summary>
+    public static Index OpenParsed(string gameDir)
+    {
+        var index = Open(Path.Combine(gameDir, "Bundles2", "_.index.bin"));
+        Console.WriteLine($"ParsePaths failed count: {index.ParsePaths()}");
+        return index;
+    }
+
     public Bundle GetBundle(BundleRecord record)
     {
         var stream = new FileStream(Path.Join(this.directory, record.Path), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);

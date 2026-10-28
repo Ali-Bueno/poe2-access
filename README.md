@@ -32,7 +32,7 @@ Nothing else needs installing: everything is inside the folder.
    "Run anyway" (or, before unzipping, open the downloaded file's Properties, tick "Unblock" and accept).
 2. Start Steam.
 3. Run `Poe2Access.exe`. It starts the game if it is not running, then the mod. The first time, and after each game
-   update, it prepares the sounds and data from your own installation: about a minute and a half of silence. A new
+   update, it prepares the sounds and data from your own installation: about half a minute of silence. A new
    version of the mod keeps them (it redoes only what it changed, in seconds) when it updates itself or is unzipped over
    the old folder; a new, empty folder prepares them again.
 4. You hear that the mod is ready, then that the game was detected.

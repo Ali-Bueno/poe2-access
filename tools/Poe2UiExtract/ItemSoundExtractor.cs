@@ -23,6 +23,13 @@ internal static partial class ItemSoundExtractor
 
     public static int Run(string gameDir, string outFile)
     {
+        using var index = SharedBundles.OpenParsed(gameDir);
+        return Run(gameDir, index, outFile);
+    }
+
+    /// <summary>On an index already opened with its paths parsed (the batch command); the bank is read from the install.</summary>
+    public static int Run(string gameDir, Index index, string outFile)
+    {
         var bankPath = Path.Combine(gameDir, "FMOD", "Desktop", Bank + ".bank");
         if (!File.Exists(bankPath))
         {
@@ -30,8 +37,6 @@ internal static partial class ItemSoundExtractor
             return 1;
         }
 
-        using var index = SharedBundles.Open(Path.Combine(gameDir, "Bundles2", "_.index.bin"));
-        Console.WriteLine($"ParsePaths failed count: {index.ParsePaths()}");
         var items = DatTable.Open(index, "baseitemtypes");
         var visuals = DatTable.Open(index, "itemvisualidentity");
         var sounds = DatTable.Open(index, "soundeffects");

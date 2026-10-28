@@ -20,10 +20,13 @@ internal static class AreaExtractor
 
     public static int Run(string gameDir, string outFile)
     {
-        var indexPath = Path.Combine(gameDir, "Bundles2", "_.index.bin");
-        using var index = SharedBundles.Open(indexPath);
-        Console.WriteLine($"ParsePaths failed count: {index.ParsePaths()}");
+        using var index = SharedBundles.OpenParsed(gameDir);
+        return Run(index, outFile);
+    }
 
+    /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
+    public static int Run(Index index, string outFile)
+    {
         var files = index.Files.Values
             .Where(f => f.Path != null && f.Path.EndsWith("/worldareas.datc64", StringComparison.OrdinalIgnoreCase))
             .ToList();

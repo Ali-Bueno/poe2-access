@@ -153,6 +153,13 @@ if (args.Length > 0 && string.Equals(args[0], "dat-columns", StringComparison.Or
     return DatColumnExtractor.Run(args[1], args[2]);
 }
 
+// Args: batch <gameDir> <command> <outFile> [...]  -- item-sounds, areas, dat-columns, experience, hit-times, places and
+// ui-catalog on one opened index (the launcher after a game patch); each output complete or absent.
+if (args.Length > 3 && string.Equals(args[0], "batch", StringComparison.OrdinalIgnoreCase))
+{
+    return Batch.Run(args[1], args[2..]);
+}
+
 // Args: [0] = path to _.index.bin, [1] = output dir
 string indexPath = args.Length > 0 ? args[0] : @"D:\games\steam\steamapps\common\Path of Exile 2\Bundles2\_.index.bin";
 string outDir = args.Length > 1 ? args[1] : @"out";
@@ -165,52 +172,6 @@ Console.WriteLine($"Opening index (read-only intent): {indexPath}");
 using var index = SharedBundles.Open(indexPath);
 int failed = index.ParsePaths();
 Console.WriteLine($"ParsePaths failed count: {failed}");
-Console.WriteLine($"Total files in index: {index.Files.Count}");
-Console.WriteLine($"Total bundles: {index.Bundles.Length}");
-
-var uiFiles = index.Files.Values
-    .Where(f => f.Path != null && f.Path.Contains("metadata/ui", StringComparison.OrdinalIgnoreCase))
-    .OrderBy(f => f.Path, StringComparer.OrdinalIgnoreCase)
-    .ToList();
-
-Console.WriteLine($"Metadata/UI path count: {uiFiles.Count}");
-Console.WriteLine("First 200 paths:");
-foreach (var f in uiFiles.Take(200))
-    Console.WriteLine(f.Path);
-
-// Extensions of interest (or no extension at all)
-var wantedExt = new[] { ".ui", ".xml", ".txt", ".json", ".css", ".lua" };
-var toExtract = uiFiles.Where(f =>
-{
-    var path = f.Path!;
-    if (!path.StartsWith("metadata/ui/", StringComparison.OrdinalIgnoreCase))
-        return false;
-    var ext = Path.GetExtension(path);
-    return ext.Length == 0 || wantedExt.Contains(ext, StringComparer.OrdinalIgnoreCase);
-}).ToList();
-
-Console.WriteLine($"Files selected for extraction: {toExtract.Count}");
-
-Directory.CreateDirectory(outDir);
-int extracted = 0, errors = 0;
-foreach (var f in toExtract)
-{
-    try
-    {
-        var rel = f.Path!.Replace('/', Path.DirectorySeparatorChar);
-        var dest = Path.Combine(outDir, rel);
-        Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
-        var data = f.Read();
-        File.WriteAllBytes(dest, data.ToArray());
-        extracted++;
-    }
-    catch (Exception ex)
-    {
-        errors++;
-        Console.WriteLine($"ERROR extracting {f.Path}: {ex.Message}");
-    }
-}
-
-Console.WriteLine($"Extracted: {extracted}, Errors: {errors}");
+var code = UiScripts.Extract(index, outDir);
 Console.WriteLine("Done.");
-return 0;
+return code;
