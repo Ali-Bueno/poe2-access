@@ -157,7 +157,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var own = focus == null ? new HashSet<string>() : new HashSet<string>(focus.ListItems) { focus.Text, focus.Value, focus.Group };
+            var own = focus == null ? new HashSet<string>() : new HashSet<string>(focus.ListItems.Concat(focus.Tooltip)) { focus.Text, focus.Value, focus.Group };
             var said = (DateTime.UtcNow - this.recentTexts.At).TotalMilliseconds < RecentTextsMs ? this.recentTexts.Texts : new HashSet<string>();
             var chrome = this.Chrome(change.Texts);
             var kept = PairNumbers(change.Texts).Where(text => !own.Contains(text.Text) && !IsNumber(text.Text) && !said.Contains(text.Text) &&
@@ -237,8 +237,15 @@ namespace Poe2Accessibility.Services
             else if (change.Kind == ScreenChangeKind.TextsAppeared && justFocused)
             {
                 // The text came with the focus move (a skill's details, an expanded definition): the focus again,
-                // since this cuts it off, then the text — the name before a long description, never after it.
-                this.Speak("appeared with focus", Announcements.Sentences(new[] { this.lastFocusSpeech, texts }), true);
+                // since this cuts it off, then the text — the name before a long description, never after it. Rows of
+                // the same list coming into view (the next trade listings) are read when the cursor gets there.
+                var near = focus == null || this.InOtherControlGroup is not { } other
+                    ? texts
+                    : Describe(kept.Where(text => !other(text.Address, focus.Address)));
+                if (near.Length > 0)
+                {
+                    this.Speak("appeared with focus", Announcements.Sentences(new[] { this.lastFocusSpeech, near }), true);
+                }
             }
             else if (change.Kind == ScreenChangeKind.TextsAppeared && (DateTime.UtcNow - this.collapsedAt).TotalMilliseconds >= FocusTextMergeMs)
             {

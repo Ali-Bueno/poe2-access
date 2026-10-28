@@ -121,6 +121,7 @@ namespace Poe2Accessibility.Services
             var valuePosition = string.Empty;
             var expanded = false;
             var namedById = false;
+            var cardDetails = new List<string>();
             string label;
             switch (role)
             {
@@ -175,6 +176,13 @@ namespace Poe2Accessibility.Services
 
                     break;
                 default:
+                    if (ownText.Length == 0 && this.InGame && !info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) && this.CardOf(info) is { } card)
+                    {
+                        // A trade listing: one label said the seller's status alone ("Jugador desconectado", 2026-10-28).
+                        (label, cardDetails) = card;
+                        break;
+                    }
+
                     label = ownText.Length > 0 ? ownText : this.RowText(info);
                     if (label.Length == 0 && role == UiRole.Button && this.FollowsTextField(info))
                     {
@@ -222,7 +230,7 @@ namespace Poe2Accessibility.Services
                 value = reward;
             }
 
-            var tooltip = this.TooltipLines(info);
+            var tooltip = cardDetails.Count > 0 ? cardDetails : this.TooltipLines(info);
             var context = this.InGame ? this.PanelTitle(info) : string.Empty;
             if ((namedById || hovered || label.Length == 0 || label == context) && tooltip.Count > 0)
             {

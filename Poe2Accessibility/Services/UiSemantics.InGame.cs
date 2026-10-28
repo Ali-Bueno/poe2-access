@@ -322,13 +322,17 @@ namespace Poe2Accessibility.Services
         private string PanelTitle(in UiElementReader.ElementInfo info)
         {
             var chain = this.elements.ReadAncestors(info, PanelTitleHops);
-            var ancestors = chain.Select(ancestor => ancestor.Address).ToList();
+            var inPanels = chain.Any(ancestor => ancestor.Name == GameLayout.InGameUi.PanelsParentName);
+            // Inside the side panels only the panels themselves carry titles: the root above them holds "HUD" within the
+            // search's reach, which the untitled trade market adopted as every panel's title (2026-10-28).
+            var ancestors = (inPanels ? chain.TakeWhile(ancestor => ancestor.Name != GameLayout.InGameUi.PanelsParentName) : chain)
+                .Select(ancestor => ancestor.Address).ToList();
             if (ancestors.Count == 0)
             {
                 return string.Empty;
             }
 
-            var shift = chain.Any(ancestor => ancestor.Name == GameLayout.InGameUi.PanelsParentName)
+            var shift = inPanels
                 ? this.elements.Controls?.Shift(ControlGroup.PanelTitle, info.Address, at => ancestors.Any(ancestor => this.TitleAt(ancestor, at).Length > 0)) ?? 0
                 : this.elements.Controls?.Current(ControlGroup.PanelTitle) ?? 0;
             return ancestors.Select(ancestor => this.TitleAt(ancestor, shift)).FirstOrDefault(title => title.Length > 0) ?? string.Empty;
