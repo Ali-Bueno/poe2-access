@@ -116,6 +116,9 @@ namespace Poe2Accessibility.Services
 
         private (string Text, DateTime At, AccessibleUiNode Node)? deferredFocus;
 
+        /// <summary>When a narration last cut in on its own: a waiting focus said after it follows it instead of cutting it off.</summary>
+        private DateTime cutInAt = DateTime.MinValue;
+
         /// <summary>The layer whose tab was last announced; cleared when another screen comes on top.</summary>
         private IntPtr lastTabLayer;
 
@@ -541,7 +544,10 @@ namespace Poe2Accessibility.Services
                     this.lastContext = fresh.Context;
                 }
 
-                this.Speak("focus in a new layer", this.WithPendingPage(text), true);
+                // A message that cut in while the focus waited is not cut off by it: "Waiting for the player to accept
+                // the trade invitation…" over the party panel the focus went back to was cut by the panel's lines
+                // (user 2026-10-28).
+                this.Speak("focus in a new layer", this.WithPendingPage(text), this.cutInAt < deferred.At);
             }
 
             if (this.deferredFocus == null && this.hintAfterFocus.Length > 0)
@@ -875,6 +881,11 @@ namespace Poe2Accessibility.Services
             if (this.deferredFocus is { } deferred && text.Contains(this.lastFocusSpeech, StringComparison.Ordinal))
             {
                 this.deferredFocus = null; // the popup's message carried the focus with it
+            }
+
+            if (interrupt)
+            {
+                this.cutInAt = now;
             }
 
             if (keep)
