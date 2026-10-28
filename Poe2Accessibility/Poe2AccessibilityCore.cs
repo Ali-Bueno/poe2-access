@@ -51,6 +51,7 @@ namespace Poe2Accessibility
         private GamepadReader.PadState padState;
         private readonly InputSeat inputSeat = new();
         private readonly CoopDowns coopDowns = new();
+        private readonly HostWindowHider hostWindow = new();
         private IntPtr padManager;
         private readonly System.Collections.Generic.Dictionary<string, long> tickFaults = new();
         private HostMemoryReader? memoryReader;
@@ -381,6 +382,7 @@ namespace Poe2Accessibility
         /// <inheritdoc />
         public override void DrawUI()
         {
+            this.Isolated("host window", this.hostWindow.Tick);
             if (this.settingsStore != null)
             {
                 switch (this.settingsStore.ReloadIfChanged(this.Settings, out var reloaded))
