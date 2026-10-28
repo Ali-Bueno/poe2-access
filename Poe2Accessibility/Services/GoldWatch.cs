@@ -27,6 +27,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The gold the character carries, once the counter has been read.</summary>
         public long? Amount => this.amount;
+
+        /// <summary>The counter read now (not at the last poll), null before it is found: a sale is timed against it.</summary>
+        public long? ReadNow() => this.TryAmount(this.counter, out var value) ? value : null;
         private long? amount;
         private long lastPoll;
 

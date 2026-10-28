@@ -22,6 +22,16 @@ namespace Poe2Accessibility.Services
 
         public static int SpokenMs(string text) => text.Length * SpokenMsPerChar;
 
+        /// <summary>
+        ///     How long a message the game or the player's own action produced ("Inventario lleno", "Vendido: …", "Menú del
+        ///     juego") keeps the floor: about its spoken length, never so long that the cursor's next stop lags behind. The
+        ///     focus that lands meanwhile follows it instead of cutting it off (user 2026-10-28).
+        /// </summary>
+        public static int MessageHoldMs(string text) => Math.Clamp(SpokenMs(text), MinMessageHoldMs, MaxMessageHoldMs);
+
+        private const int MinMessageHoldMs = 600;
+        private const int MaxMessageHoldMs = 2500;
+
         /// <summary>Whether a kept line has the floor now.</summary>
         public bool Held(DateTime now) => now < this.keptUntil;
 

@@ -143,6 +143,35 @@ namespace Poe2Accessibility.Services
         private bool HasQuestMarker(Entity entity) =>
             entity.TryGetComponent<NPC>(out var npc) && (this.Fields?.HasMarkerAt(npc.Address, GameLayout.NpcComponent.MarkerRowOffset) ?? false);
 
+        /// <summary>Ids of the items lying on the ground (no names read): an item that leaves the inventory and lands here was dropped.</summary>
+        public IReadOnlyCollection<uint> GroundItemIds()
+        {
+            var ids = new HashSet<uint>();
+            foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+            {
+                if (entity.IsValid && entity.TryGetComponent<WorldItem>(out _))
+                {
+                    ids.Add(entity.Id);
+                }
+            }
+
+            return ids;
+        }
+
+        /// <summary>The name of the ground item with this id, as the inventory names it; null when it is not there.</summary>
+        public string? GroundItemName(uint id)
+        {
+            foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+            {
+                if (entity.Id == id && entity.IsValid && entity.TryGetComponent<WorldItem>(out var item))
+                {
+                    return this.inventory.DescribeItemEntity(item.ItemEntityAddress);
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>
         ///     What A uses now: the entity the game flags as the player's target (<see
         ///     cref="GameLayout.TargetableComponent.IsTargetedOffset"/>), named as the scanner names it; monsters are the

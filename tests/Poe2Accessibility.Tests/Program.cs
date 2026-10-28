@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Tests
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
+    using GameHelper.RemoteEnums;
     using Poe2Accessibility.Models;
     using Poe2Accessibility.Services;
 
@@ -48,6 +49,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(BeaconPointsAlongTheRoute), BeaconPointsAlongTheRoute);
             Run(nameof(ClosedWayLeadsToItsNearestPoint), ClosedWayLeadsToItsNearestPoint);
             Run(nameof(QuestNamesItsTargets), QuestNamesItsTargets);
+            Run(nameof(ItemMovesAreSaidAsDeeds), ItemMovesAreSaidAsDeeds);
             Run(nameof(NearbyThingsWaitForTheCooldown), NearbyThingsWaitForTheCooldown);
             Run(nameof(StickClickWhileHoldingL3), StickClickWhileHoldingL3);
             Run(nameof(WallTonesSwellNearWalls), WallTonesSwellNearWalls);
@@ -1259,6 +1261,37 @@ namespace Poe2Accessibility.Tests
             Equal(true, MathF.Abs(Rms(loop) - 0.04f) < 0.001f, "a touching wall sits at -28 dBFS RMS (D2R)");
             var behind = Rms(RadarSynth.WallTone(RadarSynth.Direction.Down, 44100)) / Rms(loop);
             Equal(true, MathF.Abs(behind - 1.413f) < 0.01f, "the band behind is lifted 3 dB");
+        }
+
+        private static void ItemMovesAreSaidAsDeeds()
+        {
+            string Said(List<ItemMove> moves) => string.Join(" | ", moves.Select(move => $"{move.Kind} {move.Name} {move.Where}".Trim()));
+            var main = InventoryName.MainInventory1;
+            var none = new List<(InventoryName, string)>();
+            Equal("Sold Brazales", Said(ItemMoves.Read(none, new List<(InventoryName, string)> { (main, "Brazales") }, Announcements.SlotName, true, 19, "Mercader")),
+                  "gold rose with the departure: sold, whatever panel is open");
+            Equal("Bought Lanza", Said(ItemMoves.Read(new List<(InventoryName, string)> { (main, "Lanza") }, none, Announcements.SlotName, true, -555, "")),
+                  "gold fell with the arrival: bought");
+            Equal("MovedTo Orbe Alijo", Said(ItemMoves.Read(none, new List<(InventoryName, string)> { (InventoryName.Cursor1, "Orbe") }, Announcements.SlotName, true, 0, "Alijo")),
+                  "the hand let go into the stash");
+            Equal("TakenFrom Orbe Alijo", Said(ItemMoves.Read(new List<(InventoryName, string)> { (main, "Orbe") }, none, Announcements.SlotName, true, 0, "Alijo")),
+                  "came from the stash");
+            Equal("DroppedOrUsed Arco", Said(ItemMoves.Read(none, new List<(InventoryName, string)> { (main, "Arco") }, Announcements.SlotName, true, 0, "")),
+                  "gone with only the inventory open: dropped or used, decided on the ground");
+            Equal("Equipped Casco Helmet", Said(ItemMoves.Read(new List<(InventoryName, string)> { (InventoryName.Helm1, "Casco") }, new List<(InventoryName, string)> { (main, "Casco") },
+                                                              Announcements.SlotName, true, 0, "")),
+                  "equipped from the inventory: only that");
+            Equal(string.Empty, Said(ItemMoves.Read(new List<(InventoryName, string)> { (main, "Orbe") }, new List<(InventoryName, string)> { (InventoryName.Cursor1, "Orbe") },
+                                                    Announcements.SlotName, true, 0, "Alijo")),
+                  "put back from the hand: a placement, not news");
+            Equal(string.Empty, Said(ItemMoves.Read(none, new List<(InventoryName, string)> { (main, "Orbe") }, Announcements.SlotName, false, 0, "")),
+                  "during play the pick-up watch speaks");
+            Equal("TakenFrom Runa Alijo", Said(ItemMoves.Read(new List<(InventoryName, string)> { (main, "Runa") }, new List<(InventoryName, string)> { (InventoryName.Cursor1, "Runa") },
+                                                              Announcements.SlotName, true, 0, "Alijo", "Alijo")),
+                  "the hand picked it up in the stash and set it down in the inventory");
+            Equal(string.Empty, Said(ItemMoves.Read(none, new List<(InventoryName, string)> { (InventoryName.Cursor1, "Runa") }, Announcements.SlotName, true, 0, "Alijo", "Alijo")),
+                  "picked up and set down in the stash: rearranging, not news");
+            Equal("Orbe de aumento", ItemMoves.Title("Orbe de aumento, 3"), "the title without the stack");
         }
 
         private static void QuestNamesItsTargets()

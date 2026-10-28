@@ -220,6 +220,80 @@ namespace Poe2Accessibility.Services
             return false;
         }
 
+        /// <summary>
+        ///     The title of the panel shown beside the inventory (Stash, Skills, Merchant…, in the game's language), empty when
+        ///     none. The inventory panel root's panels_parent groups the shown panels in no fixed order (the stash came
+        ///     before the inventory once open, after it while hidden: dumps 2026-10-28), so the inventory is the titled
+        ///     panel holding the main inventory's grid and the other shown one is the side panel.
+        /// </summary>
+        public string SidePanelTitle(IntPtr inventoryPanel)
+        {
+            if (!this.elements.TryReadElement(inventoryPanel, out var root) || !root.IsVisibleFlag)
+            {
+                return string.Empty;
+            }
+
+            var shift = this.elements.Controls?.Current(ControlGroup.PanelTitle) ?? 0;
+            foreach (var child in this.elements.ReadChildren(root))
+            {
+                if (!this.elements.TryReadElement(child, out var parent) || parent.Name != GameLayout.InGameUi.PanelsParentName)
+                {
+                    continue;
+                }
+
+                foreach (var group in this.elements.ReadChildren(parent))
+                {
+                    if (!this.elements.TryReadElement(group, out var groupInfo) || !groupInfo.IsVisibleFlag)
+                    {
+                        continue;
+                    }
+
+                    foreach (var panel in this.elements.ReadChildren(groupInfo))
+                    {
+                        if (this.elements.TryReadElement(panel, out var info) && info.IsVisibleFlag && this.TitleAt(panel, shift) is { Length: > 0 } title &&
+                            !this.HoldsMainInventory(info))
+                        {
+                            return title;
+                        }
+                    }
+                }
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>Whether a grid of the main inventory lies within a few levels of the panel (the inventory panel's own).</summary>
+        private bool HoldsMainInventory(in UiElementReader.ElementInfo panel)
+        {
+            var budget = MainGridSearchNodes;
+            var queue = new Queue<(UiElementReader.ElementInfo Node, int Depth)>();
+            queue.Enqueue((panel, 0));
+            while (queue.Count > 0 && budget-- > 0)
+            {
+                var (node, depth) = queue.Dequeue();
+                if (this.inventory.InventoryOf(node.Address) == GameHelper.RemoteEnums.InventoryName.MainInventory1)
+                {
+                    return true;
+                }
+
+                if (depth < MainGridSearchDepth)
+                {
+                    foreach (var child in this.elements.ReadChildren(node))
+                    {
+                        if (this.elements.TryReadElement(child, out var info))
+                        {
+                            queue.Enqueue((info, depth + 1));
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private const int MainGridSearchDepth = 5;
+        private const int MainGridSearchNodes = 600;
+
         /// <summary>Whether an ancestor panel carries this title (a social page under the Challenges overlay does not).</summary>
         public bool IsInPanel(IntPtr address, string title)
         {

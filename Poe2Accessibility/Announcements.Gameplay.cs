@@ -305,11 +305,23 @@ namespace Poe2Accessibility
                 ? T($"Weapon set {number}, empty", $"Set de armas {number}, vacío")
                 : T($"Weapon set {number}: ", $"Set de armas {number}: ") + string.Join(", ", held);
 
-        /// <summary>Arrived in the main inventory with a panel open, not by hand: bought, withdrawn.</summary>
-        public static string NewInInventory(string name) => T($"New in inventory: {name}", $"Nuevo en el inventario: {name}");
+        /// <summary>
+        ///     What happened to an item moved with a panel open (<see cref="Services.ItemMoves"/>), said as the deed: "Vendido:
+        ///     Brazales de gamuza, por 19 de oro", "Movido a Alijo: …" (the panel's own title), "Tirado: …".
+        /// </summary>
+        public static string Sold(string names, long gold) => T($"Sold: {names}, for {gold} gold", $"Vendido: {names}, por {gold} de oro");
 
-        /// <summary>Left the main inventory with a panel open, not by hand: sold, stored.</summary>
-        public static string LeftInventory(string name) => T($"{name} left the inventory", $"{name} salió del inventario");
+        public static string Bought(string names, long gold) => T($"Bought: {names}, for {gold} gold", $"Comprado: {names}, por {gold} de oro");
+
+        public static string MovedTo(string name, string panel) => T($"Moved to {panel}: {name}", $"Movido a {panel}: {name}");
+
+        public static string TakenFrom(string name, string panel) => T($"Taken from {panel}: {name}", $"Sacado de {panel}: {name}");
+
+        public static string Obtained(string name) => T($"Obtained: {name}", $"Obtenido: {name}");
+
+        public static string Dropped(string name) => T($"Dropped: {name}", $"Tirado: {name}");
+
+        public static string UsedUp(string name) => T($"Used: {name}", $"Usado: {name}");
 
         public static string HandEmpty => T("You no longer hold an item", "Ya no llevas ningún objeto");
 

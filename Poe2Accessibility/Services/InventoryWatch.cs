@@ -60,6 +60,17 @@ namespace Poe2Accessibility.Services
         /// <summary>Whose inventories are watched, local player 1 or 2 (<see cref="LocalInventories"/>).</summary>
         public Func<int> Seat { get; init; } = () => 1;
 
+        /// <summary>The gold carried, null while unknown: rising with a departure is a sale, falling with an arrival a purchase.</summary>
+        public Func<long?>? Gold { get; set; }
+
+        /// <summary>The title of the panel open beside the inventory (stash, skills, merchant), empty when none.</summary>
+        public Func<string>? SidePanel { get; set; }
+
+        /// <summary>Ids of the items on the ground, and the title of one: an item gone from the inventory that lands there was dropped.</summary>
+        public Func<IReadOnlyCollection<uint>>? GroundItemIds { get; set; }
+
+        public Func<uint, string?>? GroundItemTitle { get; set; }
+
         public void Reset()
         {
             this.known.Clear();
@@ -165,12 +176,9 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     Per frame in game (D2R arrival notices). The game makes a new item entity whenever an item changes
         ///     inventory, so a move is a departure and an arrival read together once the inventories have been still
-        ///     for <see cref="SettleMs"/> (which also lets the focus update the move causes be said first): an arrival
-        ///     in an equipment slot is "Equipado: Ballesta improvisada, Mano principal"; one in the main inventory is
-        ///     "Desequipado: …" beside an equipment departure, a placement beside a cursor departure (the hand's), and
-        ///     with a panel open otherwise "Nuevo en el inventario: …" (bought, withdrawn); a main-inventory departure
-        ///     with nothing taking it (hand, equipment) and a panel open is "… salió del inventario" (sold, stored).
-        ///     Pick-ups during play are Tick's.
+        ///     for <see cref="SettleMs"/>, and said as what the player did (<see cref="ItemMoves"/>): "Equipado: Ballesta
+        ///     improvisada, Mano principal", "Vendido: …, por 19 de oro", "Movido a Alijo: …"; an item gone with only the
+        ///     inventory open is "Tirado" once it shows on the ground, else "Usado". Pick-ups during play are Tick's.
         /// </summary>
         public void TickMoves(bool playing, bool enabled)
         {
@@ -199,6 +207,21 @@ namespace Poe2Accessibility.Services
             }
 
             this.movesBaseline |= now < this.readersSettleUntil;
+            this.TickDrops(now);
+            // What a batch is measured against: the gold and the ground two polls before its first change, since the
+            // gold counter and a dropped item can show a poll ahead of the inventory. Only with a panel open, where
+            // moves are said.
+            this.recent.Enqueue((this.Gold?.Invoke(), playing ? Array.Empty<uint>() : this.GroundItemIds?.Invoke() ?? Array.Empty<uint>()));
+            while (this.recent.Count > RecentPolls)
+            {
+                this.recent.Dequeue();
+            }
+
+            if (this.arrivals.Count == 0 && this.departures.Count == 0)
+            {
+                (this.goldBefore, this.groundBefore) = this.recent.Peek();
+            }
+
             if (!this.movesBaseline && enabled)
             {
                 foreach (var (entity, from) in this.where)
@@ -279,60 +302,103 @@ namespace Poe2Accessibility.Services
             this.output.Speak(Announcements.WeaponSet(this.weaponSet + 1, held), true);
         }
 
-        /// <summary>One settled batch of departures and arrivals, said in that order of importance.</summary>
+        /// <summary>One settled batch of departures and arrivals, each said as the deed it was and held against the focus that follows.</summary>
         private void SpeakMoves()
         {
-            static bool IsEquipment(InventoryName name) => Announcements.SlotName(name) != null;
-            var departures = new List<(InventoryName From, string Name)>(this.departures);
-            var taken = this.arrivals.Any(arrival => arrival.To == InventoryName.Cursor1 || IsEquipment(arrival.To));
-            foreach (var (to, name) in this.arrivals)
+            var goldChange = this.Gold?.Invoke() is { } now && this.goldBefore is { } before ? now - before : 0;
+            var side = this.movedInPanel ? this.SidePanel?.Invoke() ?? string.Empty : string.Empty;
+            var moves = ItemMoves.Read(this.arrivals, this.departures, Announcements.SlotName, this.movedInPanel, goldChange, side, this.handFrom);
+            if (this.arrivals.Any(arrival => arrival.To == InventoryName.Cursor1))
             {
-                if (Announcements.SlotName(to) is { } slot)
-                {
-                    this.handEmptyDue = 0; // the hand let go into this slot: "Equipped" says it all
-                    this.output.Speak(Announcements.Equipped(name, slot), true);
-                    Take(source => source != InventoryName.Cursor1 && !IsEquipment(source));
-                }
-                else if (to == InventoryName.MainInventory1)
-                {
-                    if (Take(IsEquipment) is { } unequipped)
-                    {
-                        // The arrival is the same item in a new entity, readable when the departed one never was.
-                        this.output.Speak(Announcements.Unequipped(unequipped == Announcements.UnknownItem ? name : unequipped), true);
-                    }
-                    else if (Take(source => source is InventoryName.Cursor1 or InventoryName.MainInventory1) == null && this.movedInPanel)
-                    {
-                        this.output.Speak(Announcements.NewInInventory(name), true);
-                    }
-                }
+                // Picked up with nothing tracked leaving: from the panel beside (a stash tab), said when set down.
+                this.handFrom = this.departures.Count == 0 ? side : string.Empty;
             }
-
-            if (!taken && this.movedInPanel)
+            else if (this.departures.Any(departure => departure.From == InventoryName.Cursor1))
             {
-                foreach (var (from, name) in departures)
-                {
-                    if (from == InventoryName.MainInventory1)
-                    {
-                        this.output.Speak(Announcements.LeftInventory(name), true);
-                    }
-                }
+                this.handFrom = string.Empty;
             }
 
             this.arrivals.Clear();
             this.departures.Clear();
             this.movedInPanel = false;
-
-            string? Take(Func<InventoryName, bool> source)
+            if (moves.Count > 0)
             {
-                var index = departures.FindIndex(departure => source(departure.From));
-                if (index < 0)
-                {
-                    return null;
-                }
+                this.handEmptyDue = 0; // where the hand's item went is said instead
+            }
 
-                var name = departures[index].Name;
-                departures.RemoveAt(index);
-                return name;
+            var lines = new List<string>();
+            foreach (var group in moves.GroupBy(move => (move.Kind, move.Where)))
+            {
+                var names = string.Join(", ", group.Select(move => move.Name));
+                switch (group.Key.Kind)
+                {
+                    case ItemMoveKind.Sold:
+                        lines.Add(Announcements.Sold(names, goldChange));
+                        break;
+                    case ItemMoveKind.Bought:
+                        lines.Add(Announcements.Bought(names, -goldChange));
+                        break;
+                    case ItemMoveKind.DroppedOrUsed:
+                        foreach (var move in group)
+                        {
+                            this.drops.Add((move.Name, Environment.TickCount64 + DropWaitMs, this.groundBefore));
+                        }
+
+                        break;
+                    default:
+                        lines.AddRange(group.Select(move => move.Kind switch
+                        {
+                            ItemMoveKind.Equipped => Announcements.Equipped(move.Name, move.Where),
+                            ItemMoveKind.Unequipped => Announcements.Unequipped(move.Name),
+                            ItemMoveKind.MovedTo => Announcements.MovedTo(move.Name, move.Where),
+                            ItemMoveKind.TakenFrom => Announcements.TakenFrom(move.Name, move.Where),
+                            _ => Announcements.Obtained(move.Name),
+                        }));
+                        break;
+                }
+            }
+
+            this.SayMoves(lines);
+        }
+
+        /// <summary>
+        ///     Items gone with only the inventory open: dropped once a new ground item of that name shows (Y "Tirar"), used
+        ///     up (a currency's last orb, a rune socketed) when none has by the deadline.
+        /// </summary>
+        private void TickDrops(long now)
+        {
+            if (this.drops.Count == 0)
+            {
+                return;
+            }
+
+            var ground = this.GroundItemIds?.Invoke() ?? Array.Empty<uint>();
+            var lines = new List<string>();
+            foreach (var drop in this.drops.ToList())
+            {
+                var title = ItemMoves.Title(drop.Name);
+                if (ground.Except(drop.GroundBefore).Any(id => this.GroundItemTitle?.Invoke(id) is { } onGround && ItemMoves.Title(onGround) == title))
+                {
+                    lines.Add(Announcements.Dropped(drop.Name));
+                    this.drops.Remove(drop);
+                }
+                else if (now >= drop.Due)
+                {
+                    lines.Add(Announcements.UsedUp(drop.Name));
+                    this.drops.Remove(drop);
+                }
+            }
+
+            this.SayMoves(lines);
+        }
+
+        /// <summary>A move is what the player is waiting on: kept against the focus update it causes.</summary>
+        private void SayMoves(List<string> lines)
+        {
+            if (lines.Count > 0)
+            {
+                var text = string.Join(". ", lines);
+                this.output.Keep(text, SpeechFloor.MessageHoldMs(text), true);
             }
         }
 
@@ -356,6 +422,19 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<IntPtr, string> names = new();
         private readonly List<(InventoryName To, string Name)> arrivals = new();
         private readonly List<(InventoryName From, string Name)> departures = new();
+        private readonly List<(string Name, long Due, IReadOnlyCollection<uint> GroundBefore)> drops = new();
+        private readonly Queue<(long? Gold, IReadOnlyCollection<uint> Ground)> recent = new();
+        private long? goldBefore;
+
+        /// <summary>The panel the hand's item was picked up in, empty when it came from the inventory or equipment.</summary>
+        private string handFrom = string.Empty;
+        private IReadOnlyCollection<uint> groundBefore = Array.Empty<uint>();
+
+        /// <summary>Polls kept for <see cref="recent"/>: this one and the two before it.</summary>
+        private const int RecentPolls = 3;
+
+        /// <summary>A dropped item shows on the ground within this time of leaving the inventory; past it, it was used up.</summary>
+        private const int DropWaitMs = 1200;
         private Dictionary<IntPtr, InventoryName> where = new();
         private bool movesBaseline = true;
         private bool movedInPanel;

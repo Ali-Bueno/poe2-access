@@ -47,6 +47,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\PrimedThreshold.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Switches.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Breakables.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ItemMoves.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ExplorationMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\BarrierMemory.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\DodgeThreats.cs" />
