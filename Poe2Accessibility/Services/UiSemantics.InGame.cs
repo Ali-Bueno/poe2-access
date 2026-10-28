@@ -196,6 +196,32 @@ namespace Poe2Accessibility.Services
             return false;
         }
 
+        /// <summary>
+        ///     Whether a text lies in another row of the list the focus is a row of (the next trade listing scrolling
+        ///     in), not in a panel beside the list (a skill's details beside the engrave grid).
+        /// </summary>
+        public bool InSiblingRow(IntPtr text, IntPtr focus)
+        {
+            if (!this.elements.TryReadElement(text, out var info) || !this.elements.TryReadElement(focus, out var focused))
+            {
+                return false;
+            }
+
+            var list = focused.Raw.ParentPtr;
+            var branch = info;
+            foreach (var ancestor in this.elements.ReadAncestors(info, PanelTitleHops))
+            {
+                if (ancestor.Address == list)
+                {
+                    return branch.Address != focus && branch.Address != text;
+                }
+
+                branch = ancestor;
+            }
+
+            return false;
+        }
+
         private bool HoldsNavigable(in UiElementReader.ElementInfo root)
         {
             var stack = new Stack<UiElementReader.ElementInfo>();

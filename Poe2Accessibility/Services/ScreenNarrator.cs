@@ -159,6 +159,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether a text (first) belongs to another group of controls than the focus (second).</summary>
         public Func<IntPtr, IntPtr, bool>? InOtherControlGroup { get; set; }
 
+        /// <summary>Whether a text lies in another row of the list the focus is a row of (text, focus).</summary>
+        public Func<IntPtr, IntPtr, bool>? InSiblingRow { get; set; }
+
         /// <summary>Read a screen's message with its first focus (delete character); off for the game menu.</summary>
         public bool ReadScreenMessages { get; set; } = true;
 

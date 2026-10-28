@@ -239,9 +239,9 @@ namespace Poe2Accessibility.Services
                 // The text came with the focus move (a skill's details, an expanded definition): the focus again,
                 // since this cuts it off, then the text — the name before a long description, never after it. Rows of
                 // the same list coming into view (the next trade listings) are read when the cursor gets there.
-                var near = focus == null || this.InOtherControlGroup is not { } other
+                var near = focus == null || this.InSiblingRow is not { } sibling
                     ? texts
-                    : Describe(kept.Where(text => !other(text.Address, focus.Address)));
+                    : Describe(kept.Where(text => !sibling(text.Address, focus.Address)));
                 if (near.Length > 0)
                 {
                     this.Speak("appeared with focus", Announcements.Sentences(new[] { this.lastFocusSpeech, near }), true);
