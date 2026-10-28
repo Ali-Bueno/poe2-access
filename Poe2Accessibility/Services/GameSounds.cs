@@ -8,11 +8,17 @@ namespace Poe2Accessibility.Services
     ///     The game's own sound effects, extracted on the player's machine by <c>tools/Poe2UiExtract sounds</c> into the
     ///     plugin's <c>sounds/</c> folder (never shipped). 16-bit PCM WAV at the mixer rate, folded to mono so the mixer
     ///     can pan them; each is cut to a short cue with a fade so repeats stay clear. The idle beds in <c>loops/</c> are
-    ///     kept whole and brought to one loudness.
+    ///     kept whole and brought to one loudness; the breakables' sounds in <c>breakables/</c> (one per material, got as
+    ///     <c>breakables/rock</c>) are dulled and brought low, since many play at once.
     /// </summary>
     public sealed class GameSounds
     {
         private const string LoopFolder = "loops";
+
+        public const string BreakableFolder = "breakables";
+
+        /// <summary>The one breakable sound of older extractions, for a material without its own.</summary>
+        public const string BreakableFallback = "breakable";
 
         /// <summary>The extractor's cap on a loop's length.</summary>
         private const float LoopMaxSeconds = 20f;
@@ -22,6 +28,16 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Nor any peak above half scale: a crackling loop brought to that RMS would stand out in bursts.</summary>
         private const float LoopPeak = 0.5f;
+
+        /// <summary>
+        ///     Breakables at most at this peak and RMS (about -32 dBFS over the cue), well under a chest: rocks were "ultra
+        ///     shrill" at the game's level (user 2026-10-27), and every breakable in range now sounds, not only the nearest.
+        /// </summary>
+        private const float BreakablePeak = 0.3f;
+        private const float BreakableRms = 0.025f;
+
+        /// <summary>One-pole low-pass on the breakables, taking the crack's top edge off: the shrill part, not the material.</summary>
+        private const float BreakableCutoffHz = 2800f;
 
         private readonly Dictionary<string, float[]> sounds = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, float[]> loops = new(StringComparer.OrdinalIgnoreCase);
@@ -43,6 +59,25 @@ namespace Poe2Accessibility.Services
             }
 
             LoadFolder(directory, maxSeconds, true, set.sounds, log);
+            var breakableFolder = Path.Join(directory, BreakableFolder);
+            var breakables = new Dictionary<string, float[]>(StringComparer.OrdinalIgnoreCase);
+            if (Directory.Exists(breakableFolder))
+            {
+                LoadFolder(breakableFolder, maxSeconds, true, breakables, log);
+            }
+
+            if (set.sounds.Remove(BreakableFallback, out var fallback))
+            {
+                breakables[string.Empty] = fallback;
+            }
+
+            foreach (var (name, samples) in breakables)
+            {
+                LowPass(samples, BreakableCutoffHz);
+                Normalize(samples, BreakableRms, BreakablePeak);
+                set.sounds[name.Length > 0 ? $"{BreakableFolder}/{name}" : BreakableFallback] = samples;
+            }
+
             var loopFolder = Path.Join(directory, LoopFolder);
             if (Directory.Exists(loopFolder))
             {
@@ -78,6 +113,17 @@ namespace Poe2Accessibility.Services
                 {
                     log.Error($"Game sound {path} unreadable", ex);
                 }
+            }
+        }
+
+        private static void LowPass(float[] samples, float cutoffHz)
+        {
+            var alpha = 1f - MathF.Exp(-2f * MathF.PI * cutoffHz / AudioCueService.SampleRate);
+            var state = 0f;
+            for (var i = 0; i < samples.Length; i++)
+            {
+                state += alpha * (samples[i] - state);
+                samples[i] = state;
             }
         }
 

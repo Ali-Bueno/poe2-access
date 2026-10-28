@@ -36,6 +36,43 @@ if (args.Length > 2 && string.Equals(args[0], "paths", StringComparison.OrdinalI
     return 0;
 }
 
+// Args: cat <gameDir> <path> [maxChars]  -- research aid: a bundled UTF-16 text file (.ao, .aoc, .ot) printed as text.
+if (args.Length > 2 && string.Equals(args[0], "cat", StringComparison.OrdinalIgnoreCase))
+{
+    using var catIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+    catIndex.ParsePaths();
+    var catFile = catIndex.Files.Values.FirstOrDefault(file => string.Equals(file.Path, args[2], StringComparison.OrdinalIgnoreCase));
+    if (catFile == null)
+    {
+        Console.WriteLine($"No file {args[2]}");
+        return 1;
+    }
+
+    var text = System.Text.Encoding.Unicode.GetString(catFile.Read().ToArray()).TrimStart('﻿');
+    Console.WriteLine(args.Length > 3 ? text[..Math.Min(text.Length, int.Parse(args[3]))] : text);
+    return 0;
+}
+
+// Args: ao-sounds <gameDir> <pathPart>  -- research aid: every .ao whose path contains <pathPart> with the sound
+// events it plays (path <TAB> distinct "Audio/..." filenames).
+if (args.Length > 2 && string.Equals(args[0], "ao-sounds", StringComparison.OrdinalIgnoreCase))
+{
+    using var aoIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+    aoIndex.ParsePaths();
+    var audioName = new System.Text.RegularExpressions.Regex("""
+        "filename"\s*:\s*"(Audio/[^"]+)"
+        """);
+    foreach (var file in aoIndex.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(".ao", StringComparison.OrdinalIgnoreCase)
+        && file.Path.Contains(args[2], StringComparison.OrdinalIgnoreCase)).OrderBy(file => file.Path, StringComparer.OrdinalIgnoreCase))
+    {
+        var aoText = System.Text.Encoding.Unicode.GetString(file.Read().ToArray());
+        var names = audioName.Matches(aoText).Select(match => match.Groups[1].Value).Distinct().ToList();
+        Console.WriteLine($"{file.Path}	{string.Join(" | ", names)}");
+    }
+
+    return 0;
+}
+
 // Args: dat-strings <gameDir> <table> [language] [rows]  -- research aid: every string column of a table's first rows.
 if (args.Length > 2 && string.Equals(args[0], "dat-strings", StringComparison.OrdinalIgnoreCase))
 {

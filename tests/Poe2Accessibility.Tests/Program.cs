@@ -1462,6 +1462,12 @@ namespace Poe2Accessibility.Tests
             Equal(true, Switches.IsSwitch("Metadata/Terrain/Gallows/Act1/1_8/Objects/MausoleumSecretDoorSwitch"), "the mausoleum's switch");
             Equal(true, Switches.IsSwitch("Metadata/Terrain/Gallows/Act4/4_5_1/Objects/PrisonLever"), "a lever");
             Equal(false, Switches.IsSwitch("Metadata/Chests/Urns/Urn1"), "an urn");
+            Equal("boulder", Breakables.Material("Metadata/Chests/Boulders/BoulderDirty1"), "a rock");
+            Equal("rubble", Breakables.Material("Metadata/Chests/GoblinChests/GobRockPile01"), "a rock pile before a rock");
+            Equal("bigpot", Breakables.Material("Metadata/Chests/TitanValleyPots/Pot01"), "a big pot before a pot");
+            Equal("urn", Breakables.Material("Metadata/Chests/GraveyardDungeonChests/CryptUrn01"), "a crypt urn");
+            Equal("egg", Breakables.Material("Metadata/Chests/BirdEggChests/BirdEggChest01"), "an egg");
+            Equal("", Breakables.Material("Metadata/Chests/Village/Scarecrows/Scarecrow01"), "no material: the common sound");
             Equal(false, Switches.IsSwitch("Metadata/Chests/LeverRoom/Chest1"), "only the object's own name counts");
         }
 
@@ -1573,6 +1579,8 @@ namespace Poe2Accessibility.Tests
             Equal("zzChopanz: Gran yelmo imperial", ChatDiff.Spoken("#zzChopanz:Gran yelmo imperial"), "global sign dropped");
             Equal("Ana: WTS", ChatDiff.Spoken("$Ana: WTS"), "trade sign dropped");
             Equal(true, ChatDiff.IsPlayerChannel("#Ana: hola") && !ChatDiff.IsPlayerChannel("@De Ana: hola"), "whispers are not player channels");
+            Equal("De Dahnte: hola", ChatDiff.Spoken("@De Dahnte:hola"), "whisper sign dropped");
+            Equal("Ana: vamos", ChatDiff.Spoken("%Ana:vamos"), "party sign dropped");
         }
 
         private static void SmallCapsCaptionsGetACapital()

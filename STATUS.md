@@ -90,7 +90,7 @@
 | Objective / tutorial box (G+0xDD8): new texts read, queued | done (live) | "Equip Item. Press View to Open your Inventory", "Press X to equip weapon." |
 | HUD (G+0x558): new texts once per area, never the whole HUD | done (code) | quest tracker, shrines; a ground item's tooltip says only name, rarity and quality (`EntityCatalog.ItemOfTooltip`), gold nothing (user 2026-10-24) |
 | NPC dialogue: speaker + line, every advanced line, Continue, quest accept | done (live) | Renly, Una (Clearfell, 2026-10-23); a line changing in place is spoken (the screen filter drops texts the focus holds); choices not seen yet |
-| Chat: NPC shouts, own remarks, system, whispers, party (global/trade behind a setting, off) | done (live) | `ChatWatcher` + `ChatDiff` (text sequence; the game rebuilds line elements, an address-based check re-read old lines >1000 times); AFK notices dropped; `AnnounceChat` |
+| Chat: NPC shouts, own remarks, system, whispers, party (global/trade behind a setting, off) | done (live; fresh-start fix in code) | `ChatWatcher` + `ChatDiff` (text sequence; the game rebuilds line elements, an address-based check re-read old lines >1000 times); AFK notices dropped; `AnnounceChat`. The list is the chat layer's descendant with the most *text* lines: after a fresh game start the history is empty and a textless 74-icon list (`[13,5,1]` in the 2026-10-26 dump) was taken instead, so nothing was read all evening (2026-10-27); lines of a list first found after an empty chat are news. Channel signs dropped when spoken ("@De Dahnte:hola" → "De Dahnte: hola"). Other players' local chat cannot be told from NPC lines by text |
 | Tooltips read automatically when the focus lands (items, equipment, gems) | done (live) | "Main hand, Withered Wand, Wand. Grants Skill: Level 1 Chaos Bolt. … Unequip, X"; `ReadTooltipsOnFocus` |
 | Mod button L3 (any controller, from the game's own pad state M+0x768) | done (live) | tap/double tap = next/previous line, hold = whole tooltip; gameplay: repeat, hints, screen; `docs/controls.md` |
 | Scanner (hold L3 + right stick flicks; tap = where the choice is now) | done (live) | `EntityCatalog` + `RoutePlanner` + `ScanBrowser`: 8 categories, routed steps, leg + next turn ("Una, 14 steps, right 3, then up right"); walked Riverbank → Miller → Clearfell → town NPCs on it |
@@ -112,7 +112,7 @@
 | NPC / player tap, wall bump, level-up "Level 3" | done (code) | user to test; passive-point tutorial line was already read |
 | Guide beacon (L3 + R3 on a scanner choice) | done (live) | `Beacon`/`BeaconMath`: route off the frame thread, ping 620 Hz panned along the route, "Llegaste a …"; since 2026-10-26 the chord releases any lock whatever is chosen (a co-op friend found or dead left it on; code) |
 | Scanner Encounters category: league devices (`Metadata/…/Leagues/…` with a minimap icon) | done (code) | "Altar de ritual" (icon RitualRune; game strings "Altar de ritual {0}", "Interactúa para ver los favores": the altar is where the tribute is spent); listed while untargetable too; named on approach and with A; `ritual.wav` (RitualEncounter/RituaStart_01) among the object sounds |
-| Breakables (rocks, eggs, urns) | done (code) | Chest with no label (`Chest.IsLabelVisible` false, not a strongbox) → kind `breakable`, `breakable.wav` (Breakables/Breakables_01) instead of the chest's; a chest named `*Switch*`/`*Lever*` (`Switches`, unit-tested) → kind `switch`, `switch.wav` (a hand on a lever) |
+| Breakables (rocks, eggs, urns) | done (code) | Chest with no label (`Chest.IsLabelVisible` false, not a strongbox) → kind `breakable`; a sound per material (`Breakables` by path: boulder, rubble, urn, pot, big pot, statue, egg, bone, barrel, crate, basket → `sounds/breakables/`, from each `.ao`'s FMOD event via `Poe2UiExtract ao-sounds`, the softest sample of its bank; crates a name guess), the rest Breakables_01; all low-passed at 2.8 kHz and kept at peak 0.3 (rocks were "ultra shrill", user 2026-10-27); every breakable in range sounds (12 voices, 70 ms apart, not waiting for other groups); a chest named `*Switch*`/`*Lever*` (`Switches`, unit-tested) → kind `switch`, `switch.wav` (a hand on a lever) |
 | NPC and player taps | done (code) | two NPC streams at once; other players a higher double tap (`CueSynth.Layer.Player`); a player down (Life not alive, the local partner too) a soft falling ding-dong at half the cadence, heard off screen and behind walls (`Layer.PlayerDown`); unit-tested |
 | Scanner Quest category (objective's proper nouns) | done (live) | "Misión. El molinero hinchado, único, 5 pasos"; `QuestMatcher` |
 | Boss life + dodge warning | done (live) | "El molinero hinchado 72 por ciento"; whoosh + snap only on attack animations (`DodgeThreats`), a rare's blow within 150 units, louder when closer; timed half a second before the blow as learnt from the hits taken (`DodgeTimings`, `config/dodge-timings.txt`; MudGolem GroundSlam 1156 ms), at the wind-up until learnt (`docs/research/dodge-timing.md`) |
@@ -332,7 +332,20 @@
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 
 ## Next step
-Next: user test of the late 2026-10-26 batch, deployed into the user's `dist` in place (DLL, two sounds, extractor DLL):
+Next (2026-10-27, deployed into the user's `dist` in place: DLL + `sounds/breakables/`): user test of the chat after a
+fresh game start (a whisper from a friend read by itself, "De …: …") and of the per-material breakable sounds (all at once,
+softer; rocks). Ritual favours window, Act 1 (dump 2026-10-27 22:27, window open): no defer or reroll there. The defer
+(`layby_pay_button`), reroll (textless `[…,18,0,2]` / `[…,18,0,12]`) and "ofrecer tributo al rey" (`tribute_button`)
+buttons are all hidden; favours offer only "Comprar objeto, X" in their tooltip; the gamepad legend
+(GamepadLegendRitualSuspendItem "Reservar objeto", ConfirmPrepaySelection "Confirmar selección") never showed; ClientStrings
+has an Act 1 help text of its own (RitualRewardWindowHelpPopupAct1), and reroll is "once per area" for a cost
+(RitualRewardWindowRerollPopup). The "Modo de reservas" banner `[…,18,0,13]` is flagged visible with a rect, so it is
+read on open as the game shows it. To do when a ritual offers deferral (later act or endgame): an F6 dump to check the
+defer legend and the reroll button are read. Crossbow loaded ammo (user wish, low priority): not in the UI as text — the
+F6 dump taken while loading (2026-10-27 22:53) differs from the 22:27 one only in XP, life/mana and a status counter
+under `skill_bar` `[…,19,1]`; slot icons are not probed strings, and no player buff names the ammo. Next step if wanted: a
+live trace of the player's skills / stats while loading ammo (GameHelper Actor skills, Stats) to find the loaded type.
+Then: user test of the late 2026-10-26 batch, deployed into the user's `dist` in place (DLL, two sounds, extractor DLL):
 the Encounters category on a Ritual altar (is the altar listed and named "Altar de ritual, A" when the favours
 open?), the breaking sound on rocks and eggs (if real chests break too, `IsLabelVisible` is not the split), a lone item
 named again when walked back to, L3 + R3 releasing the guide, two NPC taps, the player double tap and the down call.

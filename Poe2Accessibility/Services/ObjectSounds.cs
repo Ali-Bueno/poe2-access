@@ -13,7 +13,8 @@ namespace Poe2Accessibility.Services
     ///     sound, <see cref="ItemDropSounds"/>, with the rare layer over it for a rare or unique), on their side,
     ///     louder and more often as the player gets closer, higher above and lower below, centred when the player stands
     ///     on them. One voice per group so chests and exits stay apart, one per item for the nearest few (several drops
-    ///     were heard as one, user 2026-10-24); voices take turns so two never start together. A portal, exit, waypoint
+    ///     were heard as one, user 2026-10-24); voices take turns so two never start together. Every breakable in range
+    ///     sounds, each with its material's sound, staggered only among themselves (user 2026-10-27). A portal, exit, waypoint
     ///     or checkpoint plays its idle bed without a break instead (user 2026-10-27), louder as the player nears.
     /// </summary>
     public sealed class ObjectSounds
@@ -41,15 +42,23 @@ namespace Poe2Accessibility.Services
         /// <summary>Items heard at once, nearest first, each with its own sound and turn.</summary>
         private const int MaxLootVoices = 4;
 
+        /// <summary>Breakables heard at once, nearest first: all of a room's urns, not only the nearest (user 2026-10-27).</summary>
+        private const int MaxBreakableVoices = 12;
+
+        /// <summary>Breakables never start within this time of each other, so a cluster is heard as several.</summary>
+        private const int BreakableGapMs = 70;
+
         /// <summary>The rare drop layer under a rare or unique item's own sound.</summary>
         private const float RareLayerGain = 0.6f;
 
         private const string LootGroup = "loot";
+        private const string BreakableGroup = "breakables";
 
         private static readonly (string Group, Func<ScanEntry, bool> Member)[] Groups =
         {
             (LootGroup, entry => entry.Category == ScanCategory.Items),
-            ("chests", entry => entry.Category == ScanCategory.Chests),
+            ("chests", entry => entry.Category == ScanCategory.Chests && entry.Kind != "breakable"),
+            (BreakableGroup, entry => entry.Kind == "breakable"),
             ("encounters", entry => entry.Category == ScanCategory.Encounters),
             ("exits", entry => entry.Category == ScanCategory.Exits || entry.Kind == "portal"),
             ("waypoints", entry => entry.Kind is "waypoint" or "checkpoint"),
@@ -67,6 +76,7 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, (float Pan, float Pitch, float Gain)> heardBeds = new();
         private long lastPoll;
         private long lastAnyPlayed;
+        private long lastBreakablePlayed;
 
         public ObjectSounds(AudioCueService audio, EntityCatalog catalog, GameSounds sounds, ItemDropSounds drops)
         {
@@ -100,7 +110,7 @@ namespace Poe2Accessibility.Services
                 var entries = this.catalog.Entries().Where(entry => EntityCatalog.IsEntity(entry) && entry.Category != ScanCategory.Quest).ToList();
                 foreach (var (group, member) in Groups)
                 {
-                    var voices = group == LootGroup ? MaxLootVoices : 1;
+                    var voices = group switch { LootGroup => MaxLootVoices, BreakableGroup => MaxBreakableVoices, _ => 1 };
                     foreach (var entry in entries.Where(member).Where(entry => group != LootGroup || LootFilter.Allows(this.LootLevel, entry.Loot))
                                  .Where(entry => Distance(here, entry) <= RangeWorld).Take(voices))
                     {
@@ -134,7 +144,13 @@ namespace Poe2Accessibility.Services
                 }
 
                 var interval = FarIntervalMs - (closeness * (FarIntervalMs - NearIntervalMs));
-                if (now - this.lastAnyPlayed < GroupGapMs || this.SoundFor(entry) is not { } samples ||
+                var breakable = entry.Kind == "breakable";
+                if (breakable ? now - this.lastBreakablePlayed < BreakableGapMs : now - this.lastAnyPlayed < GroupGapMs)
+                {
+                    continue;
+                }
+
+                if (this.SoundFor(entry) is not { } samples ||
                     (this.lastPlayed.TryGetValue(group, out var last) && now - last < interval))
                 {
                     continue;
@@ -147,7 +163,14 @@ namespace Poe2Accessibility.Services
                 }
 
                 this.lastPlayed[group] = now;
-                this.lastAnyPlayed = now;
+                if (breakable)
+                {
+                    this.lastBreakablePlayed = now;
+                }
+                else
+                {
+                    this.lastAnyPlayed = now;
+                }
             }
 
             this.SetBeds();
@@ -184,7 +207,7 @@ namespace Poe2Accessibility.Services
             "quest" => this.sounds.Get("quest_item"),
             "rare" => this.sounds.Get("item_rare"),
             "chest" => this.sounds.Get("chest"),
-            "breakable" => this.sounds.Get("breakable"),
+            "breakable" => this.sounds.Get($"{GameSounds.BreakableFolder}/{entry.Sound}") ?? this.sounds.Get(GameSounds.BreakableFallback),
             "switch" => this.sounds.Get("switch"),
             "shrine" => this.sounds.Get("shrine"),
             "ritual" => this.sounds.Get("ritual"),

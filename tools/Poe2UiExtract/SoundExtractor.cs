@@ -35,6 +35,19 @@ internal static class SoundExtractor
         new("quest_item", "ItemDrops",         "Item_Drop_Quest_01"),
         new("chest",      "Chest_Rarity",      "Chests_Rarity_Magic_Open_01"),
         new("breakable",  "Breakables",        "Breakables_01"),
+        // Per-kind break sounds, softer than the generic one. Each sample is the one named after the object's own sound
+        // event (the .ao SoundEvents of Metadata/Chests/<folder>), the quietest-sounding of its set.
+        new("breakables/barrel",  "BarrelChest",             "Break_4",                        1.0),
+        new("breakables/pot",     "HiddenPassagePots",       "PotBreak_3",                     1.0),
+        new("breakables/bigpot",  "TitanValleyPots",         "Break_LRG_1",                    1.0),
+        new("breakables/urn",     "HiddenPassageUrns",       "Urn_7",                          1.0),
+        new("breakables/boulder", "DirtyBoulders",           "DirtyBoulder_2_Open_1",          1.0),
+        new("breakables/rubble",  "GoblinRockPile",          "VaalRubbleChest_Medium_Cluster_01", 1.0),
+        new("breakables/statue",  "EzomyteChests_4.0",       "EzomyteChestMedium_02",          1.0),
+        new("breakables/egg",     "EggChest",                "Chest_SirenEgg_05",              1.0),
+        new("breakables/bone",    "MudBones_4.0",            "MudBones2_2",                    1.0),
+        new("breakables/crate",   "G4_5_1_SmashableClutter", "Environment_G4-5-1_SmashableClutter_Wood_Impact_02", 1.0),
+        new("breakables/basket",  "CarverTribeWickerBaskets", "Fall_B_3",                      1.0),
         new("shrine",     "ChallengeShrines",  "Gameplay_Shrines_ChallengeShrine_Activate_Stinger_01"),
         new("ritual",     "RitualEncounter",   "RituaStart_01"),
         new("exit",       "UI_General",        "WorldAreaTransition_02"),
@@ -138,7 +151,9 @@ internal static class SoundExtractor
                     (pcm, double secs) = !cue.Loop ? TrimAndCap(pcm, ch, rate, cue.MaxSeconds)
                         : cue.FreezeTo > cue.FreezeFrom ? Freeze(pcm, ch, rate, cue.FreezeFrom, cue.FreezeTo)
                         : Seamless(pcm, ch, rate, cue.MaxSeconds);
-                    WriteWav(Path.Combine(outDir, cue.Name + ".wav"), pcm, ch, rate);
+                    var wavPath = Path.Combine(outDir, cue.Name + ".wav");
+                    Directory.CreateDirectory(Path.GetDirectoryName(wavPath)!);
+                    WriteWav(wavPath, pcm, ch, rate);
                     manifest.Add($"{cue.Name}.wav\tFMOD/Desktop/{group.Key}.bank\t{cue.Sample}\t{secs:F2}s\t{ch}ch {rate}Hz");
                     Console.WriteLine($"{cue.Name,-11} <- {group.Key}/{cue.Sample}  {secs:F2}s");
                     ok++;

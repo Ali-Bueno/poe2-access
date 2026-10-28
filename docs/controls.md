@@ -190,8 +190,9 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   again by the nearby list. Another player must hold the target a second to be named (people walk past). The first
   exit in an area adds the game's own hint: "Clearfell Encampment, A. hold A for options". Setting
   `AnnounceInteractTarget` ("What the interact button uses").
-- **Things worth walking to:** the game's own sounds repeat for the nearest chest or shrine (a breaking sound for
-  breakables, a hand on a lever for switches), ritual altar, and for up to four items at once, on their side, higher
+- **Things worth walking to:** the game's own sounds repeat for the nearest chest or shrine (a hand on a lever for
+  switches), ritual altar, every breakable in range at once (each with its material's breaking sound, softened and
+  kept low), and for up to four items at once, on their side, higher
   when up the screen and lower when down, more often as you get closer, from the centre once you stand on them. The
   nearest exit or portal and the nearest waypoint or checkpoint sound without a break (a portal's hum, a waypoint's
   low drone, a checkpoint's bright ring, and for an exit the game's area-crossing sound held still), louder as you
@@ -276,7 +277,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   Global, 2 of 6"), the D-pad reads each channel ("Party, 3 of 6") and A chooses it: "Channel: Party". Holding LT
   types; the field is named by its channel ("Global, #, text field"). X shows the channel filters (check boxes:
   "Global, checked", A shows or hides that channel). Other players' global and trade lines are read only with the
-  setting "Global and trade chat" (off by default); NPCs, system notices, whispers and party always are.
+  setting "Global and trade chat" (off by default); NPCs, system notices, whispers and party always are, without
+  the channel's sign: "From Dahnte: hi", "To Dahnte: look".
 - Weapon swap (RT in the inventory, `AnnounceMoves`): "Weapon set 2: Crude Bow, Blunt Quiver" or "Weapon set 2, empty".
 - Legends with inline item art name the item: "Identify Scroll of Wisdom x 1, X" (catalog/item-names.json).
 - Requirements drawn in red come right after the item name (and price): "Cannot use: Requires Level 5".

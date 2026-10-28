@@ -28,6 +28,7 @@ namespace Poe2Accessibility.Services
             var kind = string.Empty;
             var baseId = string.Empty;
             var loot = LootTier.Valuable;
+            var sound = string.Empty;
             ScanCategory? category;
             if (entity.EntityType == EntityTypes.Player)
             {
@@ -71,6 +72,7 @@ namespace Poe2Accessibility.Services
                 // A rock or an egg breaks like an urn and shows no label; it sounded like a chest (user 2026-10-26). A
                 // switch or lever built as a chest (the mausoleum's secret door switch) sounded like a breakable (2026-10-27).
                 kind = Switches.IsSwitch(path) ? "switch" : chest is { IsLabelVisible: false, IsStrongbox: false } ? "breakable" : "chest";
+                sound = kind == "breakable" ? Breakables.Material(path) : string.Empty;
             }
             else if (entity.EntityType == EntityTypes.Shrine)
             {
@@ -123,7 +125,7 @@ namespace Poe2Accessibility.Services
             }
 
             var position = render.WorldPosition;
-            return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, kind, baseId, loot);
+            return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, kind, baseId, loot, sound);
         }
 
         /// <summary>Feeds the entity name check (judged once on enough monsters, characters and players).</summary>
