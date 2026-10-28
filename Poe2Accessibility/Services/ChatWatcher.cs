@@ -59,6 +59,15 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether global and trade lines are said too (a setting).</summary>
         public Func<bool>? ReadPlayerChannels { get; set; }
 
+        /// <summary>The local players' character names: their own lines are always said, in any channel.</summary>
+        public Func<IEnumerable<string>>? OwnNames { get; set; }
+
+        /// <summary>
+        ///     Says the player's own line: the proof a message went out (the user, 2026-10-28), so it ignores the chat
+        ///     settings and the repeat window; null leaves own lines to the plain speaker.
+        /// </summary>
+        public Action<string>? SpeakOwn { get; set; }
+
         /// <summary>Per frame with the current chat layer (zero outside the game).</summary>
         public void Tick(IntPtr chatLayer)
         {
@@ -111,7 +120,12 @@ namespace Poe2Accessibility.Services
             foreach (var text in added)
             {
                 var now = Environment.TickCount64;
-                if ((!ChatDiff.IsPlayerChannel(text) || this.ReadPlayerChannels?.Invoke() == true) &&
+                if (this.SpeakOwn != null && this.OwnNames != null && ChatDiff.IsFrom(text, this.OwnNames()))
+                {
+                    this.spokenAt[text] = now;
+                    this.SpeakOwn(ChatDiff.Spoken(text));
+                }
+                else if ((!ChatDiff.IsPlayerChannel(text) || this.ReadPlayerChannels?.Invoke() == true) &&
                     !(this.spokenAt.TryGetValue(text, out var at) && now - at < RepeatWindowMs))
                 {
                     this.spokenAt[text] = now;

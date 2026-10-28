@@ -299,6 +299,7 @@ namespace Poe2Accessibility
                 SpeechPriority.Chosen = this.SpeechLevel;
                 this.narrator.InPanel = this.semantics.IsInPanel;
                 this.narrator.InOtherControlGroup = this.semantics.InOtherControlGroup;
+                this.narrator.InSiblingRow = this.semantics.InSiblingRow;
                 this.narrator.SelectorPosition = this.semantics.SelectorPosition;
                 this.narrator.SelectorChoice = this.semantics.SelectorChoice;
                 this.narrator.IsSkillBarText = this.IsSkillBarText;
@@ -321,6 +322,8 @@ namespace Poe2Accessibility
                     PanelChanged = text => this.output.Speak(text, true),
                     ChannelChanged = text => this.output.Urge(text),
                     ReadPlayerChannels = () => this.Settings.AnnouncePlayerChat,
+                    OwnNames = () => new[] { PlayerAlerts.Name(Seats.Of(1)), PlayerAlerts.Name(Seats.Other) },
+                    SpeakOwn = line => this.output.Speak(line, false),
                 };
                 this.mapOverlay = new MapOverlayWatch(elements, text => this.output.Speak(text, true));
                 this.longText = new LongTextReader(elements, this.output);

@@ -293,7 +293,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   types; the field is named by its channel ("Global, #, text field"). X shows the channel filters (check boxes:
   "Global, checked", A shows or hides that channel). Other players' global and trade lines are read only with the
   setting "Global and trade chat" (off by default); NPCs, system notices, whispers and party always are, without
-  the channel's sign: "From Dahnte: hi", "To Dahnte: look".
+  the channel's sign: "From Dahnte: hi", "To Dahnte: look". What you send yourself is read back in every channel,
+  even with chat reading off, so you know it went out ("yarkey: WTS boots").
 - Weapon swap (RT in the inventory, `AnnounceMoves`): "Weapon set 2: Crude Bow, Blunt Quiver" or "Weapon set 2, empty".
 - Legends with inline item art name the item: "Identify Scroll of Wisdom x 1, X" (catalog/item-names.json).
 - Requirements drawn in red come right after the item name (and price): "Cannot use: Requires Level 5".

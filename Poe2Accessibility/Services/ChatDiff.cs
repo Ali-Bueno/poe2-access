@@ -20,6 +20,31 @@ namespace Poe2Accessibility.Services
         public static bool IsPlayerChannel(string line) => line.Length > 0 && Array.IndexOf(PlayerChannels, line[0]) >= 0;
 
         /// <summary>
+        ///     A line one of these characters wrote, in any channel: its speaker before the colon is the name, after a
+        ///     guild tag ("#<TAG> yarkey:hola") if any. A whisper's "Para Dahnte" names the one it went to, not the writer.
+        /// </summary>
+        public static bool IsFrom(string line, IEnumerable<string> names)
+        {
+            line = line.Length > 1 && Array.IndexOf(ChannelSigns, line[0]) >= 0 ? line[1..] : line;
+            var colon = line.IndexOf(':');
+            if (colon <= 0)
+            {
+                return false;
+            }
+
+            var speaker = line[..colon].Trim();
+            foreach (var name in names)
+            {
+                if (name.Length > 0 && (speaker == name || speaker.EndsWith("> " + name, StringComparison.Ordinal)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         ///     A chat line as spoken: without a channel sign, the speaker's colon followed by a space ("Renly:Esto es lo
         ///     que tengo.", 2026-10-24; a whisper "@Para Dahnte:miralo" is "Para Dahnte: miralo", 2026-10-27).
         /// </summary>

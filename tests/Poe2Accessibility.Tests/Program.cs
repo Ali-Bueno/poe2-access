@@ -1659,6 +1659,13 @@ namespace Poe2Accessibility.Tests
             Equal("Son las 12:30", ChatDiff.Spoken("Son las 12:30"), "a time keeps its colon");
             Equal("zzChopanz: Gran yelmo imperial", ChatDiff.Spoken("#zzChopanz:Gran yelmo imperial"), "global sign dropped");
             Equal("Ana: WTS", ChatDiff.Spoken("$Ana: WTS"), "trade sign dropped");
+            var mine = new[] { "yarkey", string.Empty };
+            Equal(true, ChatDiff.IsFrom("$yarkey: WTS botas", mine), "own trade line, said whatever the channel setting");
+            Equal(true, ChatDiff.IsFrom("#<KAOS> yarkey:hola", mine), "own global line after a guild tag");
+            Equal(true, ChatDiff.IsFrom("yarkey: ¡Necesito más tiempo!", mine), "own local remark");
+            Equal(false, ChatDiff.IsFrom("#yarkeyz: hola", mine), "another player whose name starts the same");
+            Equal(false, ChatDiff.IsFrom("@Para yarkey: hola", mine), "a whisper names its recipient, not the writer");
+            Equal(false, ChatDiff.IsFrom("Son las 12:30", mine), "a line without a speaker");
             Equal(true, ChatDiff.IsPlayerChannel("#Ana: hola") && !ChatDiff.IsPlayerChannel("@De Ana: hola"), "whispers are not player channels");
             Equal("De Dahnte: hola", ChatDiff.Spoken("@De Dahnte:hola"), "whisper sign dropped");
             Equal("Ana: vamos", ChatDiff.Spoken("%Ana:vamos"), "party sign dropped");
