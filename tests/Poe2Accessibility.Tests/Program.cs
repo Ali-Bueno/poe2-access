@@ -84,6 +84,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(StunBarSpeaksEachStepOnce), StunBarSpeaksEachStepOnce);
             Run(nameof(ParryCueOnlyForBlowsToParry), ParryCueOnlyForBlowsToParry);
             Run(nameof(ParryCueIsItsOwnSound), ParryCueIsItsOwnSound);
+            Run(nameof(UnblockableAttacksAreNeverToParry), UnblockableAttacksAreNeverToParry);
             Run(nameof(CullingThresholdsByRarity), CullingThresholdsByRarity);
             Run(nameof(EnemyStatesFromBuffsAndAnimations), EnemyStatesFromBuffsAndAnimations);
             Run(nameof(PrimedForStunByRarity), PrimedForStunByRarity);
@@ -1131,6 +1132,25 @@ namespace Poe2Accessibility.Tests
             Equal(true, ParryTiming.InTime(1000, 320, 600), "a little late, the stop still comes before the blow");
             Equal(true, ParryTiming.InTime(1000, 320, 680), "stopping on the blow itself");
             Equal(false, ParryTiming.InTime(1000, 320, 681), "a blow too quick for the swell: no cue");
+        }
+
+        private static void UnblockableAttacksAreNeverToParry()
+        {
+            var timings = new DodgeTimings();
+            timings.AddHitTimes(new[]
+            {
+                "Metadata/Monsters/Executioner|71=1200/2500;noblock",
+                "Metadata/Monsters/Chimera|40=900/1800/700;noparry",
+                "Metadata/Monsters/Miller|10=-;noblock,noparry",
+                "Metadata/Monsters/Miller|13=1803/3000",
+            });
+            Equal(false, timings.CanParry("Metadata/Monsters/Executioner|71"), "cannot be blocked: no parry either");
+            Equal(1200, timings.Delay("Metadata/Monsters/Executioner|71") ?? 0, "and its time still warns to dodge");
+            Equal(false, timings.CanParry("Metadata/Monsters/Chimera|40"), "cannot be parried");
+            Equal(700, timings.ProjectileSpeed("Metadata/Monsters/Chimera|40") ?? 0, "flags after a speed");
+            Equal(false, timings.CanParry("Metadata/Monsters/Miller|10"), "an untimed charge keeps its flags");
+            Equal(true, timings.Delay("Metadata/Monsters/Miller|10") == null, "and stays untimed");
+            Equal(true, timings.CanParry("Metadata/Monsters/Miller|13"), "the Miller's slam can be parried");
         }
 
         private static void ParryCueIsItsOwnSound()

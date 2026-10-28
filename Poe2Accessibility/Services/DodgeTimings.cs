@@ -37,6 +37,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private readonly Dictionary<string, (int Hit, int Swing, int Speed)> fromFiles = new(StringComparer.Ordinal);
 
+        /// <summary>Attacks the game marks as impossible to block or to parry (the red glow on a boss's wind-up).</summary>
+        private readonly HashSet<string> unparryable = new(StringComparer.Ordinal);
+
+        /// <summary>The flags of catalog/hit-times.txt that rule a parry out: a parry is a block.</summary>
+        private static readonly string[] NoParryFlags = { "noblock", "noparry" };
+
         /// <summary>"Metadata/Monsters/MudGolem/MudGolemWet1|13": the monster kind without its "@level" suffix.</summary>
         public static string Key(string monsterPath, int animation)
         {
@@ -106,15 +112,25 @@ namespace Poe2Accessibility.Services
         /// <summary>How fast the attack's projectile flies (world units a second), when the files say it fires one.</summary>
         public int? ProjectileSpeed(string key) => this.fromFiles.TryGetValue(key, out var timed) && timed.Speed > 0 ? timed.Speed : null;
 
+        /// <summary>Whether the player can parry the attack: false when the game's files say it cannot be blocked or parried.</summary>
+        public bool CanParry(string key) => !this.unparryable.Contains(key);
+
         /// <summary>
-        ///     Lines "key=hit/swing[/speed]" (catalog/hit-times.txt); "#" lines are comments. A hit later than a blow is
-        ///     learnt is still believed within its own swing (long boss attacks).
+        ///     Lines "key=hit/swing[/speed][;flags]" (catalog/hit-times.txt; "-" for an untimed attack with flags); "#" lines
+        ///     are comments. A hit later than a blow is learnt is still believed within its own swing (long boss attacks).
         /// </summary>
         public void AddHitTimes(IEnumerable<string> lines)
         {
-            foreach (var line in lines)
+            foreach (var entry in lines)
             {
+                var flagsAt = entry.IndexOf(';');
+                var line = flagsAt > 0 ? entry[..flagsAt] : entry;
                 var split = line.LastIndexOf('=');
+                if (flagsAt > 0 && split > 0 && entry[(flagsAt + 1)..].Split(',').Any(NoParryFlags.Contains))
+                {
+                    this.unparryable.Add(line[..split]);
+                }
+
                 var parts = split > 0 ? line[(split + 1)..].Split('/') : Array.Empty<string>();
                 if (line.StartsWith('#') || parts.Length is < 2 or > 3 ||
                     !int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out var hit) ||

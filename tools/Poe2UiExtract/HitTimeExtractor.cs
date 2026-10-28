@@ -8,9 +8,10 @@ using Index = LibBundle3.Index;
 ///       actions the Animation table plays with them (<see cref="AnimationActions"/>);
 ///     - each action's animations from the monster's .act, through the Animation table's fallbacks when it lacks one;
 ///     - each animation's hit (<see cref="HitOf"/>), the earliest of the action winning;
-///     - for a skill that fires a projectile, its speed (<see cref="ProjectileSpeeds"/>), so the mod adds its flight.
-///     Written as "monster path|animation id=hit ms/animation ms[/projectile speed]" lines; the Actor's animation id is the
-///     action's row in Animation.datc64.
+///     - for a skill that fires a projectile, its speed (<see cref="ProjectileSpeeds"/>), so the mod adds its flight;
+///     - whether the player cannot block or parry it (<see cref="SkillFlags"/>), carried to the actions played with it.
+///     Written as "monster path|animation id=hit ms/animation ms[/projectile speed][;flags]" lines ("-" for an untimed
+///     attack that carries flags); the Actor's animation id is the action's row in Animation.datc64.
 /// </summary>
 internal static class HitTimeExtractor
 {
@@ -59,6 +60,7 @@ internal static class HitTimeExtractor
 
         var actions = new AnimationActions(animations);
         var speeds = ProjectileSpeeds.Read(index, skills);
+        var skillFlags = SkillFlags.Read(index, skills);
         var reader = new MonsterAnimationFiles(path => files.TryGetValue(path.ToLowerInvariant(), out var file) ? file.Read().ToArray() : null);
         var lines = new SortedSet<string>(StringComparer.Ordinal);
         var tally = new Tally();
@@ -104,14 +106,17 @@ internal static class HitTimeExtractor
             var animated = reader.Ao(ao);
             var clipsData = animated.Amd == null ? new Dictionary<string, AmdClip>() : reader.Amd(animated.Amd);
             var played = actions.WithFollowUps(skillsOf.Keys);
+            var flagsOf = FlagsOf(skillsOf, skillFlags, actions);
             foreach (var action in played)
             {
                 var requested = skillsOf.ContainsKey(action);
+                var flags = flagsOf.TryGetValue(action, out var set) ? ";" + string.Join(',', set) : string.Empty;
                 var (clips, resolved) = actions.Clips(actMap, action);
                 var warned = DodgeThreats.Of(action, value => value >= 0 && value < animations.RowCount ? animations.String(value, 0) : null) != DodgeThreat.None;
                 if (clips.Count == 0)
                 {
                     tally.NoAnimation(requested, warned);
+                    AddUntimed(lines, id, action, flags);
                     continue;
                 }
 
@@ -120,19 +125,20 @@ internal static class HitTimeExtractor
                 if (timed.Count == 0)
                 {
                     tally.Untimed(requested, warned, clips.Any(animated.EventClips.Contains));
+                    AddUntimed(lines, id, action, flags);
                     continue;
                 }
 
                 var first = timed.MinBy(candidate => candidate.Ms);
                 var speed = requested && skillsOf[action].Count > 0 && skillsOf[action].All(speeds.ContainsKey) ? skillsOf[action].Max(skill => speeds[skill]) : 0;
                 var value = $"{first.Ms}/{first.Length}" + (speed > 0 ? $"/{speed}" : string.Empty);
-                lines.Add($"{id}|{action}={value}");
+                lines.Add($"{id}|{action}={value}{flags}");
                 tally.Timed(requested, warned, first.Source, speed > 0, resolved != action);
 
                 // Which of the two ids the Actor shows for a fallback is not traced: both get the time.
                 if (resolved != action && !played.Contains(resolved))
                 {
-                    lines.Add($"{id}|{resolved}={value}");
+                    lines.Add($"{id}|{resolved}={value}{flags}");
                 }
             }
         }
@@ -141,13 +147,44 @@ internal static class HitTimeExtractor
         {
             "# When monster attacks land, from the game's animation data (tools/Poe2UiExtract hit-times), regenerated after patches.",
             "# monster path|animation id=ms from the attack's start to its blow (a projectile's release)/ms of one swing (0 unknown)",
-            "# [/the projectile's speed in world units a second].",
+            "# [/the projectile's speed in world units a second][;noblock,noparry: the player cannot block or parry it]; \"-\" untimed.",
         };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllLines(outFile, header.Concat(lines));
-        Console.WriteLine($"Wrote {outFile}: {lines.Count} lines.");
+        Console.WriteLine($"Wrote {outFile}: {lines.Count} lines, {lines.Count(line => line.Contains(';'))} attacks the player cannot block or parry.");
         tally.Print();
         return 0;
+    }
+
+    /// <summary>The flags of the skills playing each action, carried to the actions played with it (the Miller's charge: ChargeStart, Charge, ChargeEnd).</summary>
+    private static Dictionary<int, SortedSet<string>> FlagsOf(Dictionary<int, List<int>> skillsOf, Dictionary<int, SortedSet<string>> skillFlags, AnimationActions actions)
+    {
+        var flagsOf = new Dictionary<int, SortedSet<string>>();
+        foreach (var (action, skills) in skillsOf)
+        {
+            var found = skills.Where(skillFlags.ContainsKey).SelectMany(skill => skillFlags[skill]).ToList();
+            foreach (var follow in found.Count == 0 ? new SortedSet<int>() : actions.WithFollowUps(new[] { action }))
+            {
+                if (!flagsOf.TryGetValue(follow, out var set))
+                {
+                    set = new SortedSet<string>(StringComparer.Ordinal);
+                    flagsOf[follow] = set;
+                }
+
+                set.UnionWith(found);
+            }
+        }
+
+        return flagsOf;
+    }
+
+    /// <summary>An attack the files do not time is still written when the player cannot block or parry it: a learnt blow times it later.</summary>
+    private static void AddUntimed(SortedSet<string> lines, string id, int action, string flags)
+    {
+        if (flags.Length > 0)
+        {
+            lines.Add($"{id}|{action}=-{flags}");
+        }
     }
 
     /// <summary>A table's rows still have the size its offsets were read at; else says what is left out.</summary>

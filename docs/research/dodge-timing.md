@@ -84,7 +84,10 @@ The game's files do hold the hit frame (`tools/Poe2UiExtract hit-times` → `cat
   where an animation has both, the earliest hit-like event lies within 150 ms of the contact only 44% of the time
   (`hit_ground` 67%, `slam` 35%, `proj` 16%). The Miller's ChargeEnd (`swipe` 215 ms) was felt at 344 ms. These keep the
   wind-up warning until a blow is learnt.
-- `catalog/hit-times.txt` has 7042 lines; the mod keeps 6929: 111 hits under 50 ms (mostly a contact at 0) are not
+- Lines may end in `;noblock` / `;noparry` (or both): the player cannot block or parry that attack (`SkillFlags`,
+  [parry notes](parry-and-stun-bar.md)); an untimed attack with flags is written as `=-;…`. 7117 lines on 2026-10-28,
+  191 flagged; the timings themselves did not change.
+- `catalog/hit-times.txt` had 7042 lines; the mod keeps 6929: 111 hits under 50 ms (mostly a contact at 0) are not
   believed, and a hit past 4000 ms only within its own swing (41 long boss attacks kept, 2 without a length dropped;
   before, every hit past 4000 ms was dropped, which with the hits under 50 ms made 5866 of 6019). Normal monsters play at
   speed 1.0; hasted or slowed ones are not traced (a learnt blow corrects them).

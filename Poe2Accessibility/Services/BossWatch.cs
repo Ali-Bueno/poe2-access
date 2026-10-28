@@ -18,7 +18,7 @@ namespace Poe2Accessibility.Services
     ///     its kind or given by the game's files (<see cref="DodgeTimings"/>; a projectile's flight across the gap added, at
     ///     its speed in the files), at the wind-up until then. For a player who can parry, the parry cue
     ///     (<see cref="CueSynth.Parry"/>, a swell into a dead stop) stops <see cref="ParryLeadMs"/> before a timed blow worth
-    ///     parrying (<see cref="ParryTiming"/>), from any monster. Animation ids are GameHelper's <c>Actor.Animation</c> (Actor +0x8B0).
+    ///     parrying (<see cref="ParryTiming"/>), from any monster, never one the game marks as impossible to block or parry. Animation ids are GameHelper's <c>Actor.Animation</c> (Actor +0x8B0).
     /// </summary>
     public sealed class BossWatch
     {
@@ -291,7 +291,7 @@ namespace Poe2Accessibility.Services
                         rarity is Rarity.Rare or Rarity.Unique, rarity == Rarity.Unique)
                     {
                         Swing = this.Timings.Swing(key), TravelMs = travel, ReleaseAt = learnt is { } release ? now + release : null,
-                        ParryBlowAt = learnt is { } blow ? now + blow + travel : null,
+                        ParryBlowAt = learnt is { } blow && this.Timings.CanParry(key) ? now + blow + travel : null,
                     };
                 }
             }

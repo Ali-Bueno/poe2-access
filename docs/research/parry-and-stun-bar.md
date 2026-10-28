@@ -14,6 +14,17 @@
 - **DPS**: ClientStrings `SkillPopupDPS` / `SkillPopupAverageDamage`: each skill's DPS in its popup and in the Skills
   panel ("Punch, DPS: 6,1", read since 2026-10-23). No live damage meter exists, so none is spoken.
 
+## Attacks that cannot be blocked or parried (game files)
+- KeywordPopups "Block": some boss skills cannot be blocked, shown by a red glow and an audio cue during the wind-up.
+  The game has no "parry now" or "dodge now" sign beyond that and the attack's own animation.
+- Stats `base_cannot_be_blocked` / `skill_cannot_be_blocked` / `base_cannot_be_parried` / `base_skill_cannot_be_parried`
+  sit in a stat key list at GrantedEffectStatSets +0x18 (66 sets, 69 skills, 153 monster varieties; scan 2026-10-28).
+  Examples: the Bloated Miller's charge (both), the Executioner's slams and guillotine drop, the Rust King's claw
+  cascade, the Devourer's dive push (cannot be blocked), the Chimera's fire spray (cannot be parried).
+- `hit-times` writes them as `;noblock,noparry` on each action the skill plays and the actions played with it
+  (the charge's ChargeStart, Charge, ChargeEnd); `DodgeTimings.CanParry` keeps the parry cue off them. The launcher's
+  "hit times" step is version 2 so installs regenerate it once.
+
 ## Memory (verified live 2026-10-28, yarkidius, Warrior 11)
 - Player skills: Actor +0xB08 std::vector of 16-byte entries → ActiveSkillDetails → +0x58 GrantedEffectsPerLevel key →
   +0x0 GrantedEffects key → row +0x0 Id. Logged as "Player skills: EnforcedWalkingPlayer, DodgeRollPlayer, …,

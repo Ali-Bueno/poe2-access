@@ -239,7 +239,9 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   struck buckler played backwards, that swells in for a third of a second and stops dead, from the attacker's side;
   press Parry on the stop, which falls 150 ms before a blow you can parry. Strikes from any monster within about a
   step and a half, and a rare's or unique's projectiles; only blows whose time is known (the same timings as the dodge
-  warning) and that leave time for the whole swell, at most one cue per 0.75 s (Parry's own attack time). Settings
+  warning) and that leave time for the whole swell, at most one cue per 0.75 s (Parry's own attack time), and never
+  for an attack the game marks as impossible to block or parry (a boss's red-glowing wind-up: the Bloated Miller's
+  charge, the Executioner's slams), which only the dodge warning announces. Settings
   "Aviso de Parada" (on) and "Antelación del aviso de Parada, milisegundos" (0-600: raise it if you press late, lower
   it if you press early)
   ([parry and the stun bar](research/parry-and-stun-bar.md)).

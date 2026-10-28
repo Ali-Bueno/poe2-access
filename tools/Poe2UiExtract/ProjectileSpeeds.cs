@@ -15,12 +15,12 @@ internal static class ProjectileSpeeds
 
     // Offsets and row sizes from the community dat-schema (2026-10-25), every row size matching this install.
     // GrantedEffects: ActiveSkill, StatSet.
-    private const int SkillRowSize = 0x129;
+    internal const int SkillRowSize = 0x129;
     private const int SkillActiveSkillOffset = 0x4F;
-    private const int SkillStatSetOffset = 0xA8;
+    internal const int SkillStatSetOffset = 0xA8;
 
     // GrantedEffectStatSets: ConstantStats, ConstantStatsValues.
-    private const int StatSetRowSize = 0x65;
+    internal const int StatSetRowSize = 0x65;
     private const int ConstantStatsOffset = 0x28;
     private const int ConstantValuesOffset = 0x38;
 
@@ -104,7 +104,7 @@ internal static class ProjectileSpeeds
         return speeds;
     }
 
-    private static long Find(DatTable table, string id)
+    internal static long Find(DatTable table, string id)
     {
         for (var row = 0; row < table.RowCount; row++)
         {
