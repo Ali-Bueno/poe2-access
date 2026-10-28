@@ -49,6 +49,10 @@ namespace Poe2Accessibility.Services
         private System.Collections.Generic.List<IntPtr> markers = new();
         private IntPtr markersRoot;
         private IntPtr lastFocused;
+        private IntPtr seenCurrent;
+        private IntPtr seenHovered;
+        private IntPtr seenHighlighted;
+        private bool hoverIsNewest;
 
         /// <summary>
         ///     The element holding the options sections of the last focus (<see cref="GameLayout.OptionsSection"/>): the game
@@ -275,24 +279,46 @@ namespace Poe2Accessibility.Services
 
             this.CurrentRoot = this.reader.TryRead<IntPtr>(manager + GameLayout.UiManager.RootOffset, out var root) ? root : IntPtr.Zero;
             var seat = (this.Seat - 1) * GameLayout.UiManager.PlayerStride;
-            if (this.reader.TryRead<IntPtr>(manager + GameLayout.UiManager.CurrentOffset + seat, out var current) && this.elements.IsElement(current))
+            var current = this.ElementAt(manager + GameLayout.UiManager.CurrentOffset + seat);
+            var hovered = this.ElementAt(manager + GameLayout.UiManager.HoveredOffset + seat);
+
+            // Pre-game only: in game nothing focused is the usual case (playing), and the HUD is large.
+            var highlighted = current == IntPtr.Zero && state != GameStateTypes.InGameState ? this.HighlightedControl() : IntPtr.Zero;
+            this.TrackNewest(current, hovered, highlighted);
+            if (current != IntPtr.Zero)
             {
                 return (current, false);
             }
 
-            if (this.reader.TryRead<IntPtr>(manager + GameLayout.UiManager.HoveredOffset + seat, out var hovered) && this.elements.IsElement(hovered))
+            if (hovered != IntPtr.Zero && (this.hoverIsNewest || highlighted == IntPtr.Zero))
             {
                 return (hovered, true);
             }
 
             var disabledRow = this.DisabledOptionRow();
-            if (disabledRow != IntPtr.Zero)
+            return disabledRow != IntPtr.Zero ? (disabledRow, false) : (highlighted, false);
+        }
+
+        private IntPtr ElementAt(IntPtr slot) =>
+            this.reader.TryRead<IntPtr>(slot, out var element) && this.elements.IsElement(element) ? element : IntPtr.Zero;
+
+        /// <summary>
+        ///     Notes whether the hovered element moved after the controller did: the creation screen keeps a class info
+        ///     panel hovered while the stick highlights the name field, and the stale hover must not win.
+        /// </summary>
+        private void TrackNewest(IntPtr current, IntPtr hovered, IntPtr highlighted)
+        {
+            if (current != this.seenCurrent || highlighted != this.seenHighlighted)
             {
-                return (disabledRow, false);
+                this.hoverIsNewest = false;
             }
 
-            // Pre-game only: in game nothing focused is the usual case (playing), and the HUD is large.
-            return state != GameStateTypes.InGameState ? (this.HighlightedControl(), false) : (IntPtr.Zero, false);
+            if (hovered != this.seenHovered)
+            {
+                this.hoverIsNewest = true;
+            }
+
+            (this.seenCurrent, this.seenHovered, this.seenHighlighted) = (current, hovered, highlighted);
         }
 
         /// <summary>The holder of the options sections <paramref name="element"/> sits in (row → list → page → section → holder), or zero.</summary>
