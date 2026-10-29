@@ -115,6 +115,10 @@ Foreign key = (row ptr, file ptr), file `+8` = std::wstring table name (same che
    start nodes: the portrait's position, OPEN); sort clockwise from up; same sector → order by angle and say
    "arriba, arriba" or use finer words. Announce "Velocidad de ataque, menor, alcanzable. Arriba: Armadura y
    evasión, asignado; …"; stats keep coming from the tooltip.
+   MEASURED: the game builds a node's tooltip ~150 ms after the hover (log 2026-10-24 10:49:15.635 → .787).
+   Name and state are said at once; stats, then links, follow with the tooltip. Links said before it made the
+   late stat sound like the last neighbour's ("…, Projectile Damage. 10% increased Attack Damage", user
+   report 2026-10-29).
 5. Fault checks: every FK checked by table name; an allocated id with no element, or a `T+0x1A8` entry count
    that disagrees with the `+0x64C` flags, logs once and falls back to the tooltip's "Sin asignar".
 

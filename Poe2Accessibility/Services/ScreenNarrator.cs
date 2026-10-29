@@ -460,7 +460,7 @@ namespace Poe2Accessibility.Services
             this.valueOwner = node.Address;
             this.lastValue = node.Value;
             this.lastExpanded = node.IsExpanded;
-            this.tooltipSaid = this.ReadTooltips ? node.Tooltip : Array.Empty<string>();
+            this.tooltipSaid = this.ReadTooltips || node.IsHovered ? node.Tooltip : Array.Empty<string>();
             var focused = this.Focused(node);
             var layer = this.FocusLayer?.Invoke() ?? IntPtr.Zero;
             if (layer != this.lastFocusLayer)
@@ -547,10 +547,10 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (this.ReadTooltips && node.Tooltip.Count > 0 && node.Address == this.valueOwner)
+            if ((this.ReadTooltips || node.IsHovered) && node.Tooltip.Count > 0 && node.Address == this.valueOwner)
             {
-                // Only what was not said yet: a passive node's links come first, its description a moment later; a
-                // title the focus announcement already holds is not news either.
+                // Only what was not said yet: a passive node is named before its tooltip is built, its stats and
+                // links follow; a title the focus announcement already holds is not news either.
                 var said = this.tooltipSaid;
                 this.tooltipSaid = node.Tooltip;
                 var fresh = node.Tooltip.Where(line => !said.Contains(line) && !this.lastFocusSpeech.Contains(line, StringComparison.Ordinal)).ToList();

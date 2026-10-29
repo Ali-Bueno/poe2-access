@@ -57,6 +57,7 @@ namespace Poe2Accessibility.Services
             var node = this.ReadPassiveRow(record, row);
             var state = this.StateOf(graph, node, allocated);
             var tooltip = this.TooltipLines(info);
+            var tooltipPending = tooltip.Count == 0;
             if (tooltip.Count > 0 && tooltip[0] == node.Name)
             {
                 tooltip.RemoveAt(0);
@@ -68,7 +69,8 @@ namespace Poe2Accessibility.Services
                 tooltip.RemoveAt(tooltip.Count - 1); // the game's "Unallocated": the state word says it
             }
 
-            var links = this.DescribeLinks(graph, info.Address, record, allocated);
+            // Before the game builds the tooltip the name and state are said alone; stats, then links, follow with it.
+            var links = tooltipPending ? string.Empty : this.DescribeLinks(graph, info.Address, record, allocated);
             if (links.Length > 0)
             {
                 tooltip.Add(links);
@@ -84,6 +86,7 @@ namespace Poe2Accessibility.Services
                 IsHovered = hovered,
                 Context = this.PanelTitle(info),
                 Tooltip = tooltip,
+                TooltipPending = tooltipPending,
             };
         }
 

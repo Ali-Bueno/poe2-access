@@ -71,6 +71,9 @@ namespace Poe2Accessibility.Models
         /// <summary>Lines of the element's tooltip (short ones are read with the focus, long ones on request).</summary>
         public System.Collections.Generic.IReadOnlyList<string> Tooltip { get; init; } = Array.Empty<string>();
 
+        /// <summary>The game has not built the tooltip that holds this element's stats yet (passive node, a few frames).</summary>
+        public bool TooltipPending { get; init; }
+
         /// <summary>Title of the section holding the list ("UI Scaling"); spoken when the focus enters it.</summary>
         public string Group { get; init; } = string.Empty;
 

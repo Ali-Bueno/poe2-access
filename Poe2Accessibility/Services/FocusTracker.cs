@@ -185,7 +185,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (!node.IsVisible || (hovered && node.Tooltip.Count == 0))
+            if (!node.IsVisible || (hovered && node.Tooltip.Count == 0 && !node.TooltipPending))
             {
                 // Focus already points at the control while the screen is still hidden: say it once it shows. A hovered
                 // node is described by the tooltip the game builds a frame later; one that never gets one stays silent.
@@ -230,7 +230,7 @@ namespace Poe2Accessibility.Services
 
         private void PollValue()
         {
-            if (this.Current == null || this.sinceValuePoll.ElapsedMilliseconds < ValuePollMs)
+            if (this.Current == null || (!this.Current.TooltipPending && this.sinceValuePoll.ElapsedMilliseconds < ValuePollMs))
             {
                 return;
             }
