@@ -290,8 +290,28 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>New HUD texts (quest tracker, shrines, ground items) once per area, never the whole HUD.</summary>
-        private void OnHudChange(ScreenChange change)
+        /// <summary>
+        ///     The quest tracker's page whenever it is not the page last said, held whole: an objective must not be lost (an
+        ///     area's new one came with the HUD after loading, which is no news, and was never said: Freythorn, 2026-10-29).
+        /// </summary>
+        /// <returns>The tracker's texts, for the HUD's own news to leave out.</returns>
+        public List<ScreenText> CheckQuestPage(ScreenSnapshot snapshot)
         {
+            var tracker = !this.inGame || snapshot.Find(this.HudLayer) is not { } hud
+                ? new List<ScreenText>()
+                : hud.Texts.Where(text => text.Name is GameLayout.InGameUi.QuestTitleName or GameLayout.InGameUi.QuestLineName &&
+                                          (this.IsQuestTrackerText?.Invoke(text.Address) ?? false)).ToList();
+            if (this.questPage.News(Describe(tracker)) is { Length: > 0 } page)
+            {
+                this.Speak("quest page", Announcements.QuestPage(page), SpeechPriority.Interrupts(SpeechKind.Quest), Hold.Lesson);
+            }
+
+            return tracker;
+        }
+
+        private void OnHudChange(ScreenChange change, ScreenSnapshot snapshot)
+        {
+            this.hudSpoken.UnionWith(this.CheckQuestPage(snapshot).Select(text => text.Text));
             if (this.hudBaseline)
             {
                 this.hudBaseline = false;

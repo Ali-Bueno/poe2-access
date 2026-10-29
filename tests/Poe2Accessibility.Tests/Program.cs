@@ -49,6 +49,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(BeaconPointsAlongTheRoute), BeaconPointsAlongTheRoute);
             Run(nameof(ClosedWayLeadsToItsNearestPoint), ClosedWayLeadsToItsNearestPoint);
             Run(nameof(QuestNamesItsTargets), QuestNamesItsTargets);
+            Run(nameof(QuestTrackerPageIsSaidWhenItChanges), QuestTrackerPageIsSaidWhenItChanges);
             Run(nameof(ItemMovesAreSaidAsDeeds), ItemMovesAreSaidAsDeeds);
             Run(nameof(ReleaseTagsOrderByDayThenNumber), ReleaseTagsOrderByDayThenNumber);
             Run(nameof(GameDataStepsRerunAlone), GameDataStepsRerunAlone);
@@ -1598,6 +1599,25 @@ namespace Poe2Accessibility.Tests
                   "a tile note shares a word with the quest, an area name may");
             Equal("Ogham Farmlands Or Deadend", string.Join(" | ", QuestMatcher.Targets(notes.Take(1).ToList(), new[] { "Find Ogham Farmlands Or Deadend" }).Select(entry => entry.Name)),
                   "a tile note named whole");
+            var altars = new[]
+            {
+                new ScanEntry(11, ScanCategory.Encounters, "Altar de ritual", 0, 0, 0, "ritual"),
+                new ScanEntry(12, ScanCategory.Encounters, "Altar de ritual del jefe", 0, 0, 0, "ritual"),
+                new ScanEntry(13, ScanCategory.Encounters, "Altar de ritual, completado", 0, 0, 0, "ritual"),
+            };
+            Equal("Altar de ritual", string.Join(" | ", QuestMatcher.Targets(altars, new[] { "Altares siniestros", "Busca los altares de ritual y purifícalos" }).Select(entry => entry.Name)),
+                  "the objective's plural names the altars still to do, not the boss's nor a done one (Freythorn, 2026-10-29)");
+        }
+
+        private static void QuestTrackerPageIsSaidWhenItChanges()
+        {
+            var page = new QuestTrackerPage();
+            Equal("Altares siniestros. Busca Villafrey", page.News("Altares siniestros. Busca Villafrey"), "the first page");
+            Equal(string.Empty, page.News(string.Empty), "the tracker hidden by a panel");
+            Equal(string.Empty, page.News("Altares siniestros. Busca Villafrey"), "back the same: no news");
+            Equal("Altares siniestros. Busca los altares de ritual", page.News("Altares siniestros. Busca los altares de ritual"), "the objective changed on entering the area");
+            Equal("El rastro de la corrupción. Viaja a Ogham", page.News("El rastro de la corrupción. Viaja a Ogham"), "another page");
+            Equal("Altares siniestros. Busca los altares de ritual", page.News("Altares siniestros. Busca los altares de ritual"), "paged back to it");
         }
 
         private static void NearbyThingsWaitForTheCooldown()

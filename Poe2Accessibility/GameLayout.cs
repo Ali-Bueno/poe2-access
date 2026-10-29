@@ -305,6 +305,18 @@ namespace Poe2Accessibility
             public const string SkillBarName = "skill_bar";
 
             /// <summary>
+            ///     The HUD's quest tracker: pages under "quests_display_pages_root", each quest a "title_label" and its
+            ///     "quest_info" lines, 5 to 8 levels down; only the shown page is drawn (UI dump 2026-10-27 22:53).
+            /// </summary>
+            public const string QuestPagesName = "quests_display_pages_root";
+
+            public const string QuestTitleName = "title_label";
+
+            public const string QuestLineName = "quest_info";
+
+            public const int QuestLineDepth = 8;
+
+            /// <summary>
             ///     Local co-op: player 2's skill bar this far past player 1's field (+0x7B0 with player 1's at +0x610; both
             ///     named skill_bar, in two per_player_hud; Clearfell, 2026-10-25, docs/research/local-coop.md).
             /// </summary>

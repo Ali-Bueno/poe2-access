@@ -366,9 +366,12 @@ namespace Poe2Accessibility
         ///     A league device by its minimap icon (MinimapIcons.dat id), as the game's own strings call it (ClientStrings
         ///     "Altar de ritual {0}", "Interactúa para ver los favores"); the devices have no render name.
         /// </summary>
-        public static string LeagueDevice(string icon) => icon switch
+        /// <param name="boss">The altar that summons an area's boss, not one of those its quest sends the player to.</param>
+        public static string LeagueDevice(string icon, bool boss) => icon switch
         {
-            "RitualRune" => T("Ritual altar", "Altar de ritual"),
+            Services.MinimapMarks.RitualDoneIcon => T("Ritual altar, done", "Altar de ritual, completado"),
+            Services.MinimapMarks.RitualIcon when boss => T("Boss's ritual altar", "Altar de ritual del jefe"),
+            Services.MinimapMarks.RitualIcon => T("Ritual altar", "Altar de ritual"),
             _ => T("League encounter", "Encuentro de liga"),
         };
 

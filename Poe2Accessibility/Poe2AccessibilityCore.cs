@@ -142,6 +142,7 @@ namespace Poe2Accessibility
 
         /// <summary>The HUD's skill bar this frame (zero outside gameplay or when not found).</summary>
         private IntPtr skillBar;
+        private bool wasWatching;
 
         /// <summary>The skill bar's alert line sits two levels under it (skill_bar → container → label, 2026-10-24).</summary>
         private const int SkillBarTextDepth = 4;
@@ -321,6 +322,7 @@ namespace Poe2Accessibility
                 this.narrator.SelectorPosition = this.semantics.SelectorPosition;
                 this.narrator.SelectorChoice = this.semantics.SelectorChoice;
                 this.narrator.IsSkillBarText = this.IsSkillBarText;
+                this.narrator.IsQuestTrackerText = this.IsQuestTrackerText;
                 this.focus.FocusChanged += this.OnCreationFocus;
                 this.narrator.Refresh = node => this.semantics?.Describe(node.Address, node.IsHovered);
                 this.semantics.PlayerPath = () => Seats.Followed.Path ?? string.Empty;
@@ -535,6 +537,13 @@ namespace Poe2Accessibility
                 }
             }
 
+            if (watching && !this.wasWatching)
+            {
+                this.narrator.CheckQuestPage(this.screen.Current); // an objective that changed while another window was in front
+            }
+
+            this.wasWatching = watching;
+
             if (this.gameState.CurrentState is GameStateTypes.LoginState or GameStateTypes.SelectCharacterState or
                     GameStateTypes.CreateCharacterState or GameStateTypes.DeleteCharacterState && this.Settings.AnnounceAppearingText && watching)
             {
@@ -667,6 +676,12 @@ namespace Poe2Accessibility
         private bool IsSkillBarText(IntPtr text) =>
             this.skillBar != IntPtr.Zero && this.elements != null && this.elements.TryReadElement(text, out var info) &&
             this.elements.ReadAncestors(info, SkillBarTextDepth).Any(ancestor => ancestor.Address == this.skillBar);
+
+        /// <summary>A quest's title or objective line in the HUD's quest tracker.</summary>
+        private bool IsQuestTrackerText(IntPtr text) =>
+            this.elements != null && this.elements.TryReadElement(text, out var info) &&
+            info.Name is GameLayout.InGameUi.QuestTitleName or GameLayout.InGameUi.QuestLineName &&
+            this.elements.ReadAncestors(info, GameLayout.InGameUi.QuestLineDepth).Any(ancestor => ancestor.Name == GameLayout.InGameUi.QuestPagesName);
 
         /// <summary>
         ///     The creation screen's name field takes typing at once and nothing on screen says how to finish: once per

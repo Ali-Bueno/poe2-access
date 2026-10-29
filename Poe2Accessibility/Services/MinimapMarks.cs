@@ -21,6 +21,16 @@ namespace Poe2Accessibility.Services
         public const string LandmarkKind = "landmark";
 
         /// <summary>
+        ///     A ritual altar's icon, "RitualRuneFinished" once done: the league's altars and the campaign's own (Freythorn's
+        ///     CanopyRitualAltar, the King in the Mists' CanopyBossRitualAltar; their .ot files, 2026-10-29).
+        /// </summary>
+        public const string RitualIcon = "RitualRune";
+
+        public const string RitualDoneIcon = "RitualRuneFinished";
+
+        public static bool IsRitualAltar(string icon) => icon.StartsWith(RitualIcon, StringComparison.Ordinal);
+
+        /// <summary>
         ///     How far (grid cells) the minimap points to a campaign boss's room: MinimapIcons +0x12 (the pointer's reach) is
         ///     400 for MillerActive, CroneActive, MudBurrowerActive, HusbandActive, WifeActive; the radar table names these arenas.
         /// </summary>

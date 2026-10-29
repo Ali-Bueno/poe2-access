@@ -308,6 +308,9 @@ namespace Poe2Accessibility
 
         public static string Gold => T("gold", "oro");
 
+        /// <summary>The quest tracker's shown page: titles and objectives.</summary>
+        public static string QuestPage(string page) => T("Quest: ", "Misión: ") + page;
+
         /// <summary>
         ///     A quest reward by its icon's kind ("SupportGem"); Spanish as the game's item classes say it (ItemClasses:
         ///     "Gemas de asistencia", "Viales" for charms, "Tablilla"). A kind not known yet is said as its art name.

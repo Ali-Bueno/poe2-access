@@ -11,6 +11,9 @@ namespace Poe2Accessibility.Services
     /// <summary>How <see cref="EntityCatalog"/> sorts an entity into a scanner category and names it, and the component flags it reads.</summary>
     public sealed partial class EntityCatalog
     {
+        /// <summary>Files of minimap marks the scanner left out, logged once each.</summary>
+        private readonly HashSet<string> silentMarks = new(StringComparer.Ordinal);
+
         /// <summary>
         ///     Category and name, or null for what the scanner leaves out (self, dead, opened, unnamed, and what is
         ///     not in play: the town holds every story variant of an NPC, only one of them targetable).
@@ -97,11 +100,12 @@ namespace Poe2Accessibility.Services
                 // Listed while the game makes it untargetable too (during the ritual): it is where the fight is and,
                 // once done, where its tribute is spent ("Interactúa para ver los favores").
                 category = ScanCategory.Encounters;
-                name = name.Length > 0 ? name : Announcements.LeagueDevice(leagueIcon);
-                kind = leagueIcon == "RitualRune" ? "ritual" : "encounter";
+                name = name.Length > 0 ? name : Announcements.LeagueDevice(leagueIcon, path.Contains(BossDevice, StringComparison.Ordinal));
+                kind = MinimapMarks.IsRitualAltar(leagueIcon) ? "ritual" : "encounter";
             }
-            else if (entity.EntityType == EntityTypes.Monster)
+            else if (entity.EntityType == EntityTypes.Monster && (path.StartsWith(CreatureFolder, StringComparison.Ordinal) || !entity.TryGetComponent<MinimapIcon>(out _)))
             {
+                // A "monster" outside the creatures that the minimap marks is a device: it goes on as a plain object below.
                 // A friendly monster with the NPC component is a character (Mortimer by the Miller); minions have none.
                 category = IsAliveEnemy(entity) ? ScanCategory.Enemies : entity.TryGetComponent<NPC>(out _) ? ScanCategory.Npcs : null;
                 if (category == ScanCategory.Enemies && entity.TryGetComponent<ObjectMagicProperties>(out var magic) && magic.Rarity != Rarity.Normal)
@@ -140,6 +144,12 @@ namespace Poe2Accessibility.Services
 
             if (category == null || name.Length == 0)
             {
+                if (icon.Length > 0 && !MinimapMarks.IsSpent(icon) && !path.StartsWith(CreatureFolder, StringComparison.Ordinal) && this.silentMarks.Add(path))
+                {
+                    // What the minimap draws and the scanner does not list may be a quest's target: logged to find the gap.
+                    this.log.Info($"Minimap mark not listed: {path} (icon {icon}, {entity.EntityType})");
+                }
+
                 return null; // unnamed placeholders are not things a player can find
             }
 
@@ -237,10 +247,13 @@ namespace Poe2Accessibility.Services
         ///     icon "RitualRune"), or null; its rune object and light share the folder but carry no icon (dump 2026-10-26).
         /// </summary>
         private static string? LeagueDeviceIcon(Entity entity, string path) =>
-            path.Contains("/Leagues/", StringComparison.Ordinal) && entity.TryGetComponent<MinimapIcon>(out var icon) &&
-            !string.IsNullOrEmpty(icon.IconName)
+            entity.TryGetComponent<MinimapIcon>(out var icon) && !string.IsNullOrEmpty(icon.IconName) &&
+            (path.Contains("/Leagues/", StringComparison.Ordinal) || MinimapMarks.IsRitualAltar(icon.IconName))
                 ? icon.IconName
                 : null;
+
+        /// <summary>A device whose file names a boss (CanopyBossRitualAltar): it summons the boss once the area's quest is done.</summary>
+        private const string BossDevice = "Boss";
 
         /// <summary>A living creature that is not the player's (minions are friendly).</summary>
         public static bool IsAliveEnemy(Entity entity) =>

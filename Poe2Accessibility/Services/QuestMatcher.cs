@@ -78,12 +78,14 @@ namespace Poe2Accessibility.Services
             return targets;
         }
 
+        /// <summary>The name's words in a row in the text, each also in the plural ("Busca los altares de ritual" names an "Altar de ritual").</summary>
         private static bool ContainsWord(string text, string name)
         {
-            for (var at = text.IndexOf(name, StringComparison.Ordinal); at >= 0; at = text.IndexOf(name, at + 1, StringComparison.Ordinal))
+            var words = Words(text);
+            var wanted = Words(name);
+            for (var at = 0; wanted.Length > 0 && at + wanted.Length <= words.Length; at++)
             {
-                var end = at + name.Length;
-                if ((at == 0 || !char.IsLetter(text[at - 1])) && (end == text.Length || !char.IsLetter(text[end])))
+                if (wanted.Select((word, i) => SameOrPlural(words[at + i], word)).All(same => same))
                 {
                     return true;
                 }
@@ -91,6 +93,12 @@ namespace Poe2Accessibility.Services
 
             return false;
         }
+
+        private static string[] Words(string text) =>
+            text.Split(text.Where(c => !char.IsLetterOrDigit(c)).Distinct().ToArray(), StringSplitOptions.RemoveEmptyEntries);
+
+        private static bool SameOrPlural(string word, string singular) =>
+            word == singular || word == singular + "s" || word == singular + "es";
 
         /// <summary>Lower case without accents, so "Sierraclara" in a sentence matches the exit's label.</summary>
         private static string Fold(string text)

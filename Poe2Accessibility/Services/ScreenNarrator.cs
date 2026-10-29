@@ -64,6 +64,7 @@ namespace Poe2Accessibility.Services
         private string lastFocusSpeech = string.Empty;
         private string lastGroup = string.Empty;
         private readonly HashSet<string> hudSpoken = new();
+        private readonly QuestTrackerPage questPage = new();
         /// <summary>Tutorial hints said in this area and when.</summary>
         private readonly Dictionary<string, DateTime> tutorialSpoken = new();
 
@@ -409,6 +410,9 @@ namespace Poe2Accessibility.Services
         ///     each time it shows rather than once per area (a second "Inventario lleno" was silent, 2026-10-24).
         /// </summary>
         public Func<IntPtr, bool>? IsSkillBarText { get; set; }
+
+        /// <summary>A quest's title or objective line in the HUD's quest tracker.</summary>
+        public Func<IntPtr, bool>? IsQuestTrackerText { get; set; }
 
         /// <summary>The panel whose button legends were said (<see cref="legendsSaid"/>), each once per opening.</summary>
         private IntPtr legendsLayer;
@@ -807,7 +811,7 @@ namespace Poe2Accessibility.Services
 
             if (this.inGame && change.Layer.Address == this.HudLayer)
             {
-                this.OnHudChange(change);
+                this.OnHudChange(change, snapshot);
                 return;
             }
 
