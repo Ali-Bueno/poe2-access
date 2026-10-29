@@ -45,7 +45,7 @@ namespace Poe2Accessibility.Services
 
         private static readonly ScanCategory[] Announced =
         {
-            ScanCategory.Exits, ScanCategory.Waypoints, ScanCategory.Encounters, ScanCategory.Npcs, ScanCategory.Objects, ScanCategory.Chests,
+            ScanCategory.Exits, ScanCategory.PointsOfInterest, ScanCategory.Waypoints, ScanCategory.Encounters, ScanCategory.Npcs, ScanCategory.Objects, ScanCategory.Chests,
             ScanCategory.Items,
         };
 

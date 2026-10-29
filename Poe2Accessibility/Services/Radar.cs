@@ -61,6 +61,12 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<(RadarReading, RadarSynth.Direction), float[]> sounds = new();
         private readonly Dictionary<RadarSynth.Direction, float[]> obstacleSounds = new();
 
+        /// <summary>Open and exit cues ending in D2R's unexplored mark (two pips).</summary>
+        private readonly Dictionary<(RadarReading, RadarSynth.Direction), float[]> markedSounds = new();
+
+        /// <summary>Each ray's grid axis at the last poll.</summary>
+        private readonly Dictionary<RadarSynth.Direction, Vector2> axes = new();
+
         /// <summary>Directions whose confirmed wall is a small obstacle the player can step round.</summary>
         private readonly HashSet<RadarSynth.Direction> smallObstacles = new();
         private List<Vector2> exits = new();
@@ -86,6 +92,10 @@ namespace Poe2Accessibility.Services
                 foreach (var reading in new[] { RadarReading.Open, RadarReading.Exit, RadarReading.Wall })
                 {
                     this.sounds[(reading, direction)] = RadarSynth.Cue(reading, direction, AudioCueService.SampleRate, voice);
+                    if (reading != RadarReading.Wall)
+                    {
+                        this.markedSounds[(reading, direction)] = RadarSynth.WithUnexploredTail(this.sounds[(reading, direction)], direction, AudioCueService.SampleRate);
+                    }
                 }
 
                 this.obstacleSounds[direction] = RadarSynth.Obstacle(direction, AudioCueService.SampleRate, voice);
@@ -94,6 +104,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Cue volume, a fraction of the synthesized level.</summary>
         public float Gain { get; set; } = 1f;
+
+        /// <summary>Where unseen ground begins (grid cells, <see cref="ExplorationMap.Frontier"/>), for the unexplored mark; null: no mark.</summary>
+        public Func<IReadOnlyList<Vector2>>? Unexplored { get; set; }
 
         /// <summary>A wall that is a rock, tree or pillar standing alone knocks hollow instead (D2R small obstacles).</summary>
         public bool SmallObstacles { get; set; } = true;
@@ -165,6 +178,7 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
+                this.axes[direction] = axis;
                 var scan = PassageScan.Scan(grid, row, position, axis, LaneCells, 2 * open, open);
                 var exitAhead = this.exits.Any(exit => IsAhead(exit - position, axis, scan.Depth, open));
                 if (this.sensors[direction].Update(now, position, axis, scan, exitAhead) is { } reading)
@@ -207,9 +221,12 @@ namespace Poe2Accessibility.Services
             var due = Directions.Where(direction => this.pending.TryGetValue(direction, out var reading) && reading == urgency).ToList();
             var direction = due[this.rotation++ % due.Count];
             this.pending.Remove(direction);
-            var sound = urgency == RadarReading.Wall && this.smallObstacles.Contains(direction)
-                ? this.obstacleSounds[direction]
-                : this.sounds[(urgency, direction)];
+            // D2R: a way that leads toward ground never seen ends in two pips (docs/radar.md).
+            var sound = urgency == RadarReading.Wall && this.smallObstacles.Contains(direction) ? this.obstacleSounds[direction]
+                : urgency != RadarReading.Wall && this.Unexplored?.Invoke() is { Count: > 0 } frontier && this.axes.TryGetValue(direction, out var axis) &&
+                  ExplorationMap.AnyToward(this.lastPosition, axis, frontier, ExplorationMap.MarkReachCells)
+                    ? this.markedSounds[(urgency, direction)]
+                    : this.sounds[(urgency, direction)];
             this.audio.Play(sound, RadarSynth.Pan(direction) * PanStrength, 1f, this.Gain);
             this.turn.BusyUntil = now + (sound.Length * 1000L / AudioCueService.SampleRate) + CueGapMs;
         }

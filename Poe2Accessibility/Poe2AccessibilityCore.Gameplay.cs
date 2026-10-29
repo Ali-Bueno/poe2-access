@@ -106,6 +106,9 @@ namespace Poe2Accessibility
             this.Isolated("cull", () => this.culls?.Tick(playing && this.Settings.CullCues));
             this.Isolated("enemy states", () => this.enemyStates?.Tick(playing, this.Settings.EnemyStateCues, this.Settings.PrimedStunCues));
             this.Isolated("object sounds", () => this.objectSounds?.Tick(playing && this.Settings.ObjectSounds));
+            // A town is not explored; the guide, while it leads, is the one sound to follow.
+            this.Isolated("unexplored loop", () => this.unexploredLoop?.Tick(
+                playing && this.Settings.UnexploredLoop && this.beacon?.Target == null && !InTownOrHideout()));
             this.Isolated("discoveries", () => this.discoveries?.Tick(playing && this.Settings.AnnounceDiscoveries));
             this.Isolated("enemy news", () => this.enemyNews?.Tick(playing && this.Settings.AnnounceEnemies));
             this.Isolated("wall bump", () =>
@@ -237,6 +240,28 @@ namespace Poe2Accessibility
         }
 
         /// <summary>The HUD's texts (quest tracker among them) for the scanner's Quest category.</summary>
+        /// <summary>The shop page is looked for this often while nothing has the focus (its search walks panels_parent).</summary>
+        private const int ShopLookupMs = 250;
+
+        private long shopLookedUpAt = long.MinValue / 2;
+        private IntPtr shopPage;
+
+        /// <summary>The shop's page while it is shown (<see cref="UiSemantics.ShopPage"/>), looked up at most every ShopLookupMs.</summary>
+        private IntPtr ShopPage()
+        {
+            var now = Environment.TickCount64;
+            if (now - this.shopLookedUpAt >= ShopLookupMs)
+            {
+                this.shopLookedUpAt = now;
+                this.shopPage = this.semantics?.ShopPage(this.locator?.Fields.Find(this.focus?.LayerContainer ?? IntPtr.Zero, InGameField.InventoryPanel) ?? IntPtr.Zero) ?? IntPtr.Zero;
+            }
+
+            return this.shopPage;
+        }
+
+        private static bool InTownOrHideout() =>
+            Core.States.InGameStateObject.CurrentWorldInstance.AreaDetails is { } area && (area.IsTown || area.IsHideout);
+
         private System.Collections.Generic.IReadOnlyList<string> QuestTexts()
         {
             var hud = this.narrator == null ? null : this.screen?.Current.Find(this.narrator.HudLayer);

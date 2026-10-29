@@ -14,7 +14,7 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, float[]> sounds = new();
         private readonly List<string> keys = new();
 
-        public SoundGlossary(AudioCueService audio, GameSounds gameSounds)
+        public SoundGlossary(AudioCueService audio, GameSounds gameSounds, GameSounds modSounds)
         {
             this.audio = audio;
             var rate = AudioCueService.SampleRate;
@@ -45,6 +45,12 @@ namespace Poe2Accessibility.Services
             this.Add("radar_open", RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Left, rate));
             this.Add("radar_exit", RadarSynth.Cue(RadarReading.Exit, RadarSynth.Direction.Left, rate));
             this.Add("radar_obstacle", RadarSynth.Obstacle(RadarSynth.Direction.Left, rate));
+            this.Add("radar_unexplored", RadarSynth.WithUnexploredTail(RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Left, rate), RadarSynth.Direction.Left, rate));
+            if (modSounds.GetLoop(UnexploredLoop.LoopName) is { } unexplored)
+            {
+                this.Add(UnexploredLoop.LoopName, Excerpt(unexplored, rate));
+            }
+
             this.Add("radar2_wall", RadarSynth.Cue(RadarReading.Wall, RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));
             this.Add("radar2_open", RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));
             this.Add("radar2_exit", RadarSynth.Cue(RadarReading.Exit, RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));

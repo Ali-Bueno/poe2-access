@@ -20,11 +20,26 @@ namespace Poe2Accessibility.Services
         /// <summary>Ground this near the player counts as seen (about half the screen's height).</summary>
         public const float SeenRadiusCells = 60f;
 
+        /// <summary>
+        ///     A radar ray is marked unexplored when unseen ground begins within this many cells inside its quarter of the
+        ///     screen (LeAccess: twice the reveal radius; ours reveals 60 cells, so frontier lies at least that far).
+        /// </summary>
+        public const float MarkReachCells = 3 * SeenRadiusCells;
+
         /// <summary>A block with fewer walkable cells is wall (a corridor three cells wide crossing it still counts).</summary>
         private const int MinWalkableCells = 6;
 
         /// <summary>Smaller frontier groups are nooks, not places to explore.</summary>
         private const int MinGroupBlocks = 2;
+
+        /// <summary>The frontier is recomputed every two seconds: a place still this near where it was is the same one, moved.</summary>
+        public const float SamePlaceCells = 3 * BlockCells;
+
+        /// <summary>The place being sounded is kept until another is less than half as far (no flipping between two).</summary>
+        private const float KeepRatio = 2f;
+
+        /// <summary>cos 45°: the edge of a ray's quarter.</summary>
+        private static readonly float QuarterCos = MathF.Sqrt(0.5f);
 
         private bool[] seen = Array.Empty<bool>();
         private int blocksX;
@@ -173,6 +188,46 @@ namespace Poe2Accessibility.Services
             }
 
             return targets.OrderBy(target => target.Distance).Take(maxEntries).Select(target => target.Cell).ToList();
+        }
+
+        /// <summary>
+        ///     The unexplored place to sound next (<see cref="UnexploredLoop"/>): the one sounded before while the
+        ///     recomputed frontier still holds it (within <see cref="SamePlaceCells"/>) and nothing is less than half as far;
+        ///     else the nearest. Null when nothing is left.
+        /// </summary>
+        public static Vector2? Follow(Vector2? current, IReadOnlyList<Vector2> frontier, Vector2 from)
+        {
+            if (frontier.Count == 0)
+            {
+                return null;
+            }
+
+            var nearest = frontier.MinBy(cell => Vector2.DistanceSquared(cell, from));
+            if (current is not { } last)
+            {
+                return nearest;
+            }
+
+            var kept = frontier.Where(cell => Vector2.Distance(cell, last) <= SamePlaceCells).OrderBy(cell => Vector2.DistanceSquared(cell, last))
+                .Select(cell => (Vector2?)cell).FirstOrDefault();
+            return kept is { } same && Vector2.Distance(same, from) <= KeepRatio * Vector2.Distance(nearest, from) ? same : nearest;
+        }
+
+        /// <summary>Any of <paramref name="cells"/> lies within <paramref name="reach"/> of <paramref name="from"/>, within 45° of <paramref name="axis"/>.</summary>
+        public static bool AnyToward(Vector2 from, Vector2 axis, IEnumerable<Vector2> cells, float reach)
+        {
+            var along = axis.LengthSquared() > 0 ? Vector2.Normalize(axis) : Vector2.Zero;
+            foreach (var cell in cells)
+            {
+                var offset = cell - from;
+                var distance = offset.Length();
+                if (distance > 0 && distance <= reach && Vector2.Dot(offset / distance, along) >= QuarterCos)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         internal static bool Walkable(byte[] grid, int bytesPerRow, int x, int y)

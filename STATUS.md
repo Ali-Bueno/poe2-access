@@ -183,6 +183,10 @@
 | NPC dialogue and vendor (town) | done (live) | speaker first ("Renly. Comprar o vender objetos, 7 de 8"); vendor stock "Coraza oxidada, columna 10, fila 10, 50 oro, no alcanza… Comprar objeto, X"; reward and vendor openings without the gold chrome |
 | Trade market (game menu, "Mercado de comercio") | done (live 2026-10-28) | RB searches once a filter is set; a listing (focusable card: seller column, item column with a `cost` block) is read item, price, seller and status, position, then properties and mods (`CardText`, pure, unit-tested; `UiSemantics.Cards`); listings scrolling into view are not mixed in. Its untitled panel had let the panel-title search adopt the root's "HUD" (+0x378) for the session: titles are now searched only below `panels_parent` |
 | Auto-update | done (live against the GitHub release 2026-10-28) | `Poe2Access.exe` (`Updater`, `ReleaseTag`) compares `app/version.txt` (written by `Publish-Release.ps1`) with the latest release, asks (message box), downloads the zip, checks its SHA-256 (the asset digest), keeps `app/configs/` and the plugin's `config/`, renames itself aside, rolls everything back on a failure (tested with a locked DLL), starts the new launcher; setting `CheckForUpdates`, `Poe2Access.exe update` for a manual check; ported from D4 Assist |
+| Minimap marks: signs, boss rooms, points of interest, quest icons | done (signs and tile boss rooms live; icon boss rooms code) | `MinimapMarks` + `MinimapIconLabel` (row +0x1A, `dat-columns` `MinimapIcons.Label`): story glyphs "Letrero: Decreto del conde" among objects, never quest targets (the Hunting Grounds signpost "Pueblo de Ogham" was a character and the quest's village, user 2026-10-28); scanner category Puntos de interés. Boss rooms from the area's tiles (`EntityCatalog.TileLandmarks`: radar-table arenas "Sala del jefe: Asinia", unnamed arena tiles by file name), listed once within the minimap's pointer reach (MinimapIcons +0x12: 400 cells campaign bosses, 250 map boss) or seen, as the game points a sighted player to them (user 2026-10-29: mimic the map, not lost); live in Clearfell, "En el mapa: Sala del jefe: Beira of the Rotten…" at 398 cells. Boss room objects (`BossRoomMinimapIcon`, "…, derrotado") and labelled icons ("Taller de Renly") when the client lists them; `QuestObject`/`QuestItem` icons copied into Quest ([minimap](docs/research/minimap.md)) |
+| Unexplored loop and radar mark (D2R) | done (loop live, mark unit) | `UnexploredLoop`: the D2R "unexplored room" recording (`assets/loops/`, shipped) at the nearest frontier place, silent in towns, menus and while guiding; radar open/exit cues toward unseen ground end in two 900 Hz pips; settings `UnexploredLoop`, `UnexploredMark` ([radar](docs/radar.md)) |
+| Microtransaction shop | done (live, no purchase made) | `UiSemantics.ShopPage` + highlight markers in game (`FocusTracker.InGameHighlightRoot`): tabs, categories "Pestañas de alijo, 27/27, 2 de 13", items "Pestaña extra de alijo, 30 puntos, 5 de 27", flags, featured banners named from their image ([shop](docs/research/shop.md)) |
+| Harmful ground and boss movement rules (Freythorn) | done (unit) | 7 ground buffs whose descriptions do not say "standing" added by the `hazards` extractor (swamp, spores, mud, the Voodoo King's rat tornado); "¡Quédate quieto!" / "¡Sigue moviéndote!" on the Voodoo King's punishment buffs (`StatusAilments`). Freythorn has no falls: the void between its treetop platforms is unwalkable ground the radar already calls wall |
 | GameHelper window out of Alt+Tab and the taskbar | done (live 2026-10-28) | `HostWindowHider`: WS_EX_TOOLWINDOW put back twice a second (the overlay library rewrites the whole extended style on click-through changes); Alt+Tab shows only the game and the terminal |
 
 ## Derived facts (with source)
@@ -325,11 +329,15 @@
 - Local co-op: `Seats` (followed, partner, asking player; `InputSeat` picks whose pad and cursor, `PlayerStride`), `LocalPlayers`,
   `LocalInventories` (player 2's server inventories), `PlayerAlerts` + `SeatOutput` (named per-player news), `CoopDowns`.
 - Scanner: `EntityCatalog` (entries, landmarks, `Describe`; `.Classify` categories and names, `.Terrain` live grid and barriers) → `RoutePlanner` (A*, corners,
-  legs) and `ScanModel` (`ScanBrowser`, `StickDirection`); `LandmarkTable`. Warnings: `VitalAlarm`.
+  legs) and `ScanModel` (`ScanBrowser`, `StickDirection`); `LandmarkTable`. Map marks: pure `MinimapMarks` (signs, boss
+  rooms by icon or tile, pointer reach), `MinimapIconLabel` (an icon's translated label). Exploring: `ExplorationMap`
+  (frontier), `UnexploredLoop` (D2R loop, `assets/loops/`), the radar's unexplored mark. Warnings: `VitalAlarm`.
 - Sounds: `AudioCueService` (winmm mixer) ← `EnemyCues` (`EnemyCueScheduler`, `CueSynth`) and `Radar`
   (`PassageScan`, `RadarSensor`, `RadarSynth`; a second `Radar` follows `Seats.Partner`); with `ProximityNarrator` (`ProximityTracker`) gated in
   `Poe2AccessibilityCore.TickSounds`.
 - Shop/stash: tooltip `cost` → `CurrencyIcons`, red price via `UiElementReader.IsTextRed`; grid tabs `UiSemantics.GridTab`.
+  Microtransaction shop: `UiSemantics.ShopPage`, `.Cards` `ShopEntryOf` (cards, position), `CardText.ShopImageTitle`
+  (featured banners), `FocusTracker.InGameHighlightRoot` (the shop's highlight markers; the game focuses nothing there).
 - Gameplay guides: `Beacon` (+ pure `BeaconMath`), `QuestMatcher`, `BossWatch` (boss life + dodge whoosh, pure
   `DodgeThreats`), `TargetNarrator` (aim names + crosshair), `StatusWatch` (+ pure `StatusAilments`), `EnemyNarrator`, `DeathWatch`,
   `ObjectSounds` + `GameSounds` + `ItemDropSounds` (game WAVs), `CheckpointPlaces` (+ pure `MapPlaces`),
@@ -346,7 +354,14 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
-Next (2026-10-28, ninth batch, deployed into the user's `dist`: DLL, translations, `hazards.txt`): the user chose sample A
+Next (2026-10-29, tenth batch: minimap marks, boss rooms, unexplored loop and radar mark, the shop, Freythorn's ground
+rules): user test in the Tomb and the Mausoleum ("Sala del jefe: Asinia" and the Mausoleum's arena among Puntos de
+interés once within 400 cells, the objective leading there), the unexplored loop and the radar's two pips in a maze,
+signs ("Letrero: …") on the road to Ogham, the shop (no purchase was made in tests: hear the buy confirmation), and the
+Voodoo King's "¡Quédate quieto!" / "¡Sigue moviéndote!". Not seen live: a `BossRoomMinimapIcon` object (none was in the
+client's lists, also not with the Crowbell alive at its arena; such an object without a Render component would be
+skipped by the catalog, whose positions come from Render), the "Taller de Renly" icon, the big title cards of area parts.
+Before that, (2026-10-28, ninth batch, deployed into the user's `dist`: DLL, translations, `hazards.txt`): the user chose sample A
 of the unblockable cue and of the hazard alarm (samples page v3 https://claude.ai/artifact/WZBmymWdgsrWpj5Yd2aRWk, already
 in the mod); hear them in a boss fight (the Miller's charge: stabs at the wind-up; caustic or burning ground: the pulse
 until stepping out). Before that, (eighth batch, deployed: DLL, translations, flagged `hit-times.txt` in the plugin

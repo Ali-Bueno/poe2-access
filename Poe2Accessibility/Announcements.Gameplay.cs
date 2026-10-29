@@ -195,11 +195,17 @@ namespace Poe2Accessibility
             T($"{name}: strike the head, follow the heartbeat", $"{name}: golpea la cabeza, sigue el latido");
 
         /// <summary>"Poisoned" as it begins (D2R: high priority, cannot be cut off).</summary>
-        public static string AilmentBegins(Services.StatusAilment ailment) => AilmentName(ailment);
+        public static string AilmentBegins(Services.StatusAilment ailment) => ailment switch
+        {
+            Services.StatusAilment.StopMoving => T("Stop moving!", "¡Quédate quieto!"),
+            Services.StatusAilment.KeepMoving => T("Keep moving!", "¡Sigue moviéndote!"),
+            _ => AilmentName(ailment),
+        };
 
         /// <summary>"No longer poisoned" once it has been gone for half a second.</summary>
-        public static string AilmentEnds(Services.StatusAilment ailment) =>
-            T($"No longer {AilmentName(ailment).ToLowerInvariant()}", $"Ya no estás {AilmentName(ailment).ToLowerInvariant()}");
+        public static string AilmentEnds(Services.StatusAilment ailment) => ailment is Services.StatusAilment.StopMoving or Services.StatusAilment.KeepMoving
+            ? T("You may move freely", "Ya puedes moverte libremente")
+            : T($"No longer {AilmentName(ailment).ToLowerInvariant()}", $"Ya no estás {AilmentName(ailment).ToLowerInvariant()}");
 
         public static string AilmentName(Services.StatusAilment ailment) => ailment switch
         {
@@ -248,6 +254,8 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.CheckForUpdates) => T("Check for updates at start", "Buscar actualizaciones al iniciar"),
             nameof(AccessibilitySettings.SmallObstacles) => T("Small obstacles sound hollow", "Obstáculos pequeños con toc hueco"),
             nameof(AccessibilitySettings.WallTones) => T("Wall tones", "Tonos de pared"),
+            nameof(AccessibilitySettings.UnexploredLoop) => T("Unexplored area loop", "Bucle de zona sin explorar"),
+            nameof(AccessibilitySettings.UnexploredMark) => T("Radar: unexplored mark", "Radar: marca de sin explorar"),
             nameof(AccessibilitySettings.SpeechStatusBegins) => T("Speech: a state begins", "Voz: empieza un estado"),
             nameof(AccessibilitySettings.SpeechStatusEnds) => T("Speech: a state ends", "Voz: termina un estado"),
             nameof(AccessibilitySettings.SpeechLifeAndMana) => T("Speech: low life and mana", "Voz: vida y maná bajos"),
@@ -364,6 +372,25 @@ namespace Poe2Accessibility
             _ => T("League encounter", "Encuentro de liga"),
         };
 
+        /// <summary>A boss's arena as its minimap icon labels it ("Sala del jefe: Corazón de la tumba"); map bosses have no label.</summary>
+        public static string BossRoom(string label) => label.Length > 0
+            ? T($"Boss room: {label}", $"Sala del jefe: {label}")
+            : T("Boss room", "Sala del jefe");
+
+        /// <summary>The arena of a boss already slain (its icon turned grey).</summary>
+        public static string BossRoomDefeated(string label) => label.Length > 0
+            ? T($"Boss room, defeated: {label}", $"Sala del jefe, derrotado: {label}")
+            : T("Boss room, defeated", "Sala del jefe, derrotado");
+
+        /// <summary>A banner of the shop's featured page (pictures only); A opens what it shows.</summary>
+        public static string ShopFeatured => T("featured", "destacado");
+
+        /// <summary>A shop item's price: the shop's own currency, points ("250 puntos").</summary>
+        public static string ShopPrice(string price) => T($"{price} points", $"{price} puntos");
+
+        /// <summary>A readable sign or plaque (the game's story glyphs: "Pueblo de Ogham" by the road, "Proclamación de Asinia").</summary>
+        public static string Sign(string name) => T($"Sign: {name}", $"Letrero: {name}");
+
         /// <summary>An NPC with the quest indicator over its head.</summary>
         public static string NpcWithQuest(string name) => T($"{name}, has a quest", $"{name}, con misión");
 
@@ -399,6 +426,8 @@ namespace Poe2Accessibility
             "radar_wall" => T("Radar: wall", "Radar: pared"),
             "radar_open" => T("Radar: open way", "Radar: camino libre"),
             "radar_exit" => T("Radar: exit", "Radar: salida"),
+            "radar_unexplored" => T("Radar: toward unexplored ground", "Radar: hacia terreno sin explorar"),
+            Services.UnexploredLoop.LoopName => T("Unexplored area", "Zona sin explorar"),
             "radar2_wall" => T("Player 2 radar: wall", "Radar del jugador 2: pared"),
             "radar2_open" => T("Player 2 radar: open way", "Radar del jugador 2: camino libre"),
             "radar2_exit" => T("Player 2 radar: exit", "Radar del jugador 2: salida"),
@@ -470,6 +499,12 @@ namespace Poe2Accessibility
             "radar_wall" => T("the way closed on that side", "camino cerrado de ese lado"),
             "radar_open" => T("the way opened again", "el camino se abrió"),
             "radar_exit" => T("an exit on that line", "una salida en esa línea"),
+            "radar_unexplored" => T(
+                "an open way or exit followed by two pips: that side leads to ground you have not seen yet",
+                "un camino libre o una salida seguidos de dos pitidos: ese lado lleva a terreno que aún no viste"),
+            Services.UnexploredLoop.LoopName => T(
+                "without a break, where the nearest unexplored ground begins, on its side; louder when closer",
+                "sin parar, donde empieza el terreno sin explorar más cercano, a su lado; más fuerte al acercarte"),
             "bump" => T("you pushed into a wall", "empujaste contra una pared"),
             "exit" or "portal" or "waypoint" or "checkpoint" => T(
                 "the nearest one, on its side, without a break; louder when closer, from the centre once you stand on it",
@@ -548,6 +583,7 @@ namespace Poe2Accessibility
             "checkpoint" => T("New checkpoint", "Nuevo punto de control"),
             "waypoint" => T($"New waypoint: {entry.Name}", $"Nuevo punto de ruta: {entry.Name}"),
             "portal" => T($"Portal: {entry.Name}", $"Portal: {entry.Name}"),
+            _ when entry.Category == Services.ScanCategory.PointsOfInterest => T($"On the map: {entry.Name}", $"En el mapa: {entry.Name}"),
             _ when entry.Category == Services.ScanCategory.Enemies =>
                 T($"Boss in sight: {entry.Name[..entry.Name.LastIndexOf(',')]}", $"Jefe a la vista: {entry.Name[..entry.Name.LastIndexOf(',')]}"),
             _ => T($"New exit: {entry.Name}", $"Nueva salida: {entry.Name}"),

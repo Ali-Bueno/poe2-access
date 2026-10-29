@@ -65,6 +65,9 @@
          folders: items, loops, breakables. -->
     <ItemGroup><_GameSounds Include="$(MSBuildProjectDirectory)\sounds\**\*.wav" /></ItemGroup>
     <Copy SourceFiles="@(_GameSounds)" DestinationFiles="@(_GameSounds->'$(PluginDeployDir)sounds\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <!-- The mod's own recorded sounds (shipped): the unexplored-area loop. -->
+    <ItemGroup><_ModAssets Include="$(MSBuildProjectDirectory)\assets\**\*.wav" /></ItemGroup>
+    <Copy SourceFiles="@(_ModAssets)" DestinationFiles="@(_ModAssets->'$(PluginDeployDir)assets\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 
 </Project>

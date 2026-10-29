@@ -26,7 +26,8 @@ namespace Poe2Accessibility.Services
         public static List<ScanEntry> Targets(IReadOnlyList<ScanEntry> entries, IReadOnlyList<string> questTexts, string currentArea = "")
         {
             var texts = questTexts.Select(Fold).Where(text => text.Length > 0).ToList();
-            var targets = new List<ScanEntry>();
+            // What the minimap marks with the quest's own icon is the objective, whatever the tracker says.
+            var targets = entries.Where(entry => entry.QuestMarked).Select(entry => entry with { Category = ScanCategory.Quest }).ToList();
             if (texts.Count == 0)
             {
                 return targets;
@@ -45,19 +46,30 @@ namespace Poe2Accessibility.Services
                 // Ordinary monsters share names with flavour text; bosses carry their rarity. Places are the mod's names
                 // for tiles and props, common nouns the game never marks: "Find the entrance to the Red Vale" led to an
                 // "entrance" tile and "Search for Asinia in the Consort's Tomb" to a "tomb" prop (user 2026-10-28).
+                // A sign names the place it points to ("Pueblo de Ogham" by the road), it is not that place (user 2026-10-28).
                 if (entry.Category is ScanCategory.Players or ScanCategory.Items or ScanCategory.Unexplored or ScanCategory.Places ||
+                    entry.Kind == MinimapMarks.SignKind ||
                     (entry.Category == ScanCategory.Enemies && !entry.Name.Contains(", ", StringComparison.Ordinal)))
                 {
                     continue;
                 }
 
                 // Bosses carry their rarity after the name, NPCs their quest marker ("Renly, con misión").
+                // A boss room by whom its label names, whole ("Busca a Asinia…"): its "Boss room" words and the radar
+                // table's notes ("Arena / Hunting Grounds") share common words with objectives, as tile notes do.
                 var name = Fold(entry.Category == ScanCategory.Enemies ? entry.Name[..entry.Name.IndexOf(", ", StringComparison.Ordinal)]
                     : entry.Kind == "npc_quest" && entry.Name.LastIndexOf(", ", StringComparison.Ordinal) is > 0 and var marker ? entry.Name[..marker]
+                    : entry.Kind == MinimapMarks.BossRoomKind ? entry.Subject
                     : entry.Name);
+                if (name.Length < 4)
+                {
+                    continue; // too short to mean anything, and a boss room that names no one
+                }
+
                 var named = texts.Any(text => text != name && ContainsWord(text, name)) ||
-                            (entry.Kind != TileNote && name.Split(' ').Any(word => word.Length >= 4 && properNouns.Contains(word.Trim(',', '.', ':', ';'))));
-                if (name.Length >= 4 && named && targets.All(target => target.Id != entry.Id))
+                            (entry.Kind is not (TileNote or MinimapMarks.BossRoomKind) &&
+                             name.Split(' ').Any(word => word.Length >= 4 && properNouns.Contains(word.Trim(',', '.', ':', ';'))));
+                if (named && targets.All(target => target.Id != entry.Id))
                 {
                     targets.Add(entry with { Category = ScanCategory.Quest });
                 }

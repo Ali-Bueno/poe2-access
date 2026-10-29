@@ -267,6 +267,26 @@ namespace Poe2Accessibility
             /// <summary>The inventory panel's container of panels (inventory, character, skills, quests…), each with its title.</summary>
             public const string PanelsParentName = "panels_parent";
 
+            /// <summary>The microtransaction shop's page, one of panels_parent's panels (UI dump 2026-10-29).</summary>
+            public const string ShopPageName = "EshopMainPage";
+
+            /// <summary>A shop item's card: "name_label", "price_label" (points) and flags such as "new_flag_label" (¡NUEVO!).</summary>
+            public const string ShopEntryName = "EShopItemEntry";
+
+            public const string ShopEntryNameLabel = "name_label";
+
+            /// <summary>A shop category's card ("Pestañas de alijo", "27/27"): its highlight frame's parent is its "item_frame".</summary>
+            public const string ShopCategoryName = "eshop_category_item";
+
+            public const string ShopCategoryFrameName = "item_frame";
+
+            /// <summary>A featured banner of the shop's first tab (item_slot > "item" > "item_picture", a downloaded image).</summary>
+            public const string ShopBannerName = "item";
+
+            public const string ShopBannerPictureName = "item_picture";
+
+            public const string ShopEntryPriceLabel = "price_label";
+
             /// <summary>The HUD ("HUD", child 12 of G): quest tracker, flask charges, ground-item tooltips (2026-10-23).</summary>
             public const int HudLayerOffset = 0x558;
 
@@ -487,6 +507,20 @@ namespace Poe2Accessibility
         public static class ModsDat
         {
             public static int NameOffset { get; internal set; } = 0x62;
+        }
+
+        /// <summary>
+        ///     MinimapIcon component and its MinimapIcons.dat row (docs/research/minimap.md): +0x20 the row (GameHelper reads
+        ///     the id at row +0); the row's label at +0x1A ("Corazón de la tumba" on WifeActive, 0.5.5e Spanish table).
+        /// </summary>
+        public static class MinimapIconRow
+        {
+            public const int ComponentRowOffset = 0x20;
+
+            /// <summary>Row size of MinimapIcons.datc64 (1049 rows of 0x2A bytes, 0.5.5e); the rows sit back to back in memory.</summary>
+            public const int RowSize = 0x2A;
+
+            public static int LabelOffset { get; internal set; } = 0x1A;
         }
 
         /// <summary>

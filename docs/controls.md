@@ -27,8 +27,13 @@ first; both wrap and empty categories are skipped. The category is named only wh
 "Characters. Una, 14 steps, right 3, then up right".
 
 - Categories: **quest** (what the quest tracker names: the exit to the area it asks for, the boss to kill, the
-  NPC to talk to; never a place or prop the sentence happens to mention, such as "entrance" or "tomb"), exits (area transitions and named places, in the game's language; "Where you died" after a
-  death, while that area instance lasts), **places** (named map pieces and props from the game's terrain files:
+  NPC to talk to, and whatever the minimap marks with the quest's own icon; never a place or prop the sentence happens
+  to mention, such as "entrance" or "tomb", nor a sign that names a place), exits (area transitions and named places, in the game's language; "Where you died" after a
+  death, while that area instance lasts), **points of interest** (what the minimap marks: a boss's arena
+  as "Boss room: Asinia" from the moment the minimap points to it, within about 400 cells for a campaign boss and 250
+  for a map boss, or once you have seen its place; the quest naming that boss then leads there; "Boss room, defeated"
+  when the game's own icon shows the boss dead; secrets and quest landmarks such as "Renly's Workshop", which the game
+  draws only near; each said once as "On the map: …"), **places** (named map pieces and props from the game's terrain files:
   bridges, stairs, doors, ruins, graveyards, a cart, a well, an anvil; [places](research/places.md)), **unexplored** (where
   ground never seen begins, one entry per stretch and direction, nearest first: "Unexplored ground, 7 steps,
   left"; ground within about 60 cells of where you walked counts as seen, and a wall with no way through
@@ -36,7 +41,7 @@ first; both wrap and empty categories are skipped. The category is named only wh
   checkpoints, **encounters** (league devices: "Ritual altar", where a ritual starts and, once done, where its
   tribute is spent: A on it says "view favours"; listed during the ritual too), characters (NPCs in play; "Renly, has a quest" when the game shows its quest indicator over them,
   with a bell among the object sounds), enemies (with rarity), objects (stash, salvage bench, well, a closed
-  barrier: "Closed barrier"), chests
+  barrier: "Closed barrier", readable signs and plaques: "Sign: Ogham Village"), chests
   and shrines (rocks, eggs, urns and other breakables have their own breaking sound, bodies to search their own
   rummage), items on the ground, other players. Chests and items stay listed once seen until opened or
   picked up.
@@ -170,8 +175,12 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 
 - **Radar:** a tock when a wall closes the way up, left, right or down on screen, a breath when it opens again, a tin
   for an exit on that line. Left and right are stereo, down is a little lower. Only changes sound
-  ([radar](radar.md)). In local co-op with both players read, player 2 has a radar of their own: the same
+  ([radar](radar.md)). An open way or exit that leads toward ground you have not seen yet ends in two short pips
+  (D2R's unexplored mark; setting "Radar: unexplored mark"). In local co-op with both players read, player 2 has a radar of their own: the same
   meanings in other sounds, plucked strings for walls, obstacles and exits, a whistle for the open way.
+- **Unexplored area loop:** the D2R mod's "unexplored room" sound plays without a break where the nearest ground you
+  have not seen yet begins, on its side and quieter when far (up to about 60 steps), so you always hear which way is
+  left to explore; silent in towns, menus and dialogue and while the guide leads (setting "Unexplored area loop").
 - **Enemies:** a short growl for each enemy on screen, faster as it gets closer; magic and rare enemies buzz on top,
   uniques ring ([enemy sounds](enemy-sounds.md)).
 - **NPCs and players:** a light wooden tap for each of the two nearest NPCs on screen, a quicker, higher double tap
@@ -306,6 +315,12 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   scans it: the item, its price, the seller and whether you can buy at once or the player is offline, when it was listed and the gold
   fee, its place in the list; then the item's properties and mods. Listings scrolling into view are not read until
   the cursor gets there.
+- Microtransaction shop (game menu, "Microtransaction Shop"): LB/RB change the tab ("Shop", "Special Offers"); the
+  D-pad moves the game's highlight, read as the card it lands on: a category ("Stash Tabs, 27/27, 2 of 13"), an item
+  with its price in points and its flags ("Extra Stash Tab, 30 points, 5 of 27", "…, NEW!", "You save 435 points!"),
+  its place among all the cards of the page. A opens a category; on an item A is the game's "Buy". The
+  featured banners are pictures only and are named from their image ("Early Access Supporter Packs, featured, 4 of
+  5"); A opens what they show. Your points are read on opening.
 - Another player's menu (A on a player): "DrBacamarte, Warrior Lvl 2, Forbidden Rites League. Invite to Party,
   1 of 5", then each button as the D-pad moves ("Trade, 3 of 5"); B closes it.
 - Long texts (the terms of use, RB on the login screen): "Long text, 248 paragraphs: scroll it with the stick

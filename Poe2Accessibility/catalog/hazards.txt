@@ -3,6 +3,7 @@
 architect_ground_blood
 atlas_orion_meteor_ground
 avarius_divine_beam_debuff
+azmeri_swamp_ground
 bestiary_spider_web
 briarpatch_ground
 brittle_ground
@@ -33,6 +34,7 @@ ground_profane_enemy
 ground_sanctum
 ground_sandstorm
 ground_sludge
+ground_spore_damage
 ground_spores
 ground_sulphite
 ground_tar_slow
@@ -43,11 +45,14 @@ machinarium_fire_beam_debuff
 maven_void_ground
 monster_aura_burning
 monster_mod_mana_siphoner
+mud_slow
 offering_of_judgement_chaos
 offering_of_judgement_fire
 perennial_king_sand_storm
 poison_cloud
 quicksand_aura
+rain_of_spores_vines_aura
+rooted_spore_ground
 sapped_ground
 scorched_ground
 shocked_ground
@@ -59,5 +64,7 @@ twilightsorceror_fire_beam_debuff
 vaal_cloud
 voodoo_king_death_aura_effigy
 voodoo_king_maze_debuff
+voodoo_king_plant_slow
+voodoo_king_ratnado_degen
 vortex
 withered_ground

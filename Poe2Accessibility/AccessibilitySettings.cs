@@ -192,6 +192,12 @@ namespace Poe2Accessibility
         /// <summary>Wall tones (D2R): a soft noise band per screen direction that swells as a wall closes in. Off by default.</summary>
         public bool WallTones = false;
 
+        /// <summary>D2R unexplored loop: the nearest place where unseen ground begins plays a loop where it lies.</summary>
+        public bool UnexploredLoop = true;
+
+        /// <summary>D2R unexplored mark: a radar open-way or exit cue toward unseen ground ends in two pips.</summary>
+        public bool UnexploredMark = true;
+
         /// <summary>How far ahead a wall starts to sound for the wall tones, in world units (~400 per second of walking).</summary>
         public int WallToneRange = 600;
 

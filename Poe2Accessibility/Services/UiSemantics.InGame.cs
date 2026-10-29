@@ -200,6 +200,29 @@ namespace Poe2Accessibility.Services
         ///     Whether a text lies in another row of the list the focus is a row of (the next trade listing scrolling
         ///     in), not in a panel beside the list (a skill's details beside the engrave grid).
         /// </summary>
+        /// <summary>
+        ///     The text lies in another card of the shop's list than the focused one: a card drawn just after a scroll (its
+        ///     "¡NUEVO!" flag came 200 ms later and was said alone), read when the cursor reaches it.
+        /// </summary>
+        public bool InAnotherShopCard(IntPtr text, IntPtr focus)
+        {
+            if (!this.elements.TryReadElement(text, out var info) || !this.elements.TryReadElement(focus, out var focused) ||
+                focused.Name != GameLayout.InGameUi.ShopEntryName)
+            {
+                return false;
+            }
+
+            foreach (var ancestor in this.elements.ReadAncestors(info, PanelTitleHops))
+            {
+                if (ancestor.Name == GameLayout.InGameUi.ShopEntryName)
+                {
+                    return ancestor.Address != focus;
+                }
+            }
+
+            return false;
+        }
+
         public bool InSiblingRow(IntPtr text, IntPtr focus)
         {
             if (!this.elements.TryReadElement(text, out var info) || !this.elements.TryReadElement(focus, out var focused))
@@ -244,6 +267,38 @@ namespace Poe2Accessibility.Services
             }
 
             return false;
+        }
+
+        /// <summary>
+        ///     The microtransaction shop's page (panels_parent > eshop_message_box > "EshopMainPage", UI dump 2026-10-29) while it
+        ///     is shown, else zero: it marks the chosen entry with a "highlight" child and focuses nothing.
+        /// </summary>
+        public IntPtr ShopPage(IntPtr inventoryPanel)
+        {
+            if (!this.elements.TryReadElement(inventoryPanel, out var root) || !root.IsVisibleFlag)
+            {
+                return IntPtr.Zero;
+            }
+
+            foreach (var child in this.elements.ReadChildren(root))
+            {
+                if (!this.elements.TryReadElement(child, out var parent) || parent.Name != GameLayout.InGameUi.PanelsParentName)
+                {
+                    continue;
+                }
+
+                foreach (var group in this.elements.ReadChildren(parent))
+                {
+                    if (this.elements.TryReadElement(group, out var groupInfo) && groupInfo.IsVisibleFlag &&
+                        this.elements.ReadChildren(groupInfo) is [var page] && this.elements.TryReadElement(page, out var pageInfo) &&
+                        pageInfo.IsVisibleFlag && pageInfo.Name == GameLayout.InGameUi.ShopPageName)
+                    {
+                        return page;
+                    }
+                }
+            }
+
+            return IntPtr.Zero;
         }
 
         /// <summary>
@@ -457,10 +512,17 @@ namespace Poe2Accessibility.Services
             this.elements.TryReadElement(address, out var element) &&
             (element.HasFlagBit(GameLayout.Element.NavigableFlagBit) || element.HasFlagBit(GameLayout.Element.InteractiveFlagBit));
 
-        /// <summary>A panel title read with the field moved by a shift: a short name with letters, no path.</summary>
+        /// <summary>
+        ///     Font faces the UI keeps in the same kind of field (UiTreeReader's font column): the shop's items_root holds
+        ///     "Fontin" where a panel keeps its title, said before the first item (2026-10-29).
+        /// </summary>
+        private static readonly string[] FontFaces = { "Fontin", "Fontin Smallcaps", "FontinSmallcaps", "OptimusPrincepsSemiBold" };
+
+        /// <summary>A panel title read with the field moved by a shift: a short name with letters, no path, no layout id, no font.</summary>
         private string TitleAt(IntPtr element, int shift) =>
             this.elements.ReadWStringStructAt(element + GameLayout.Element.PanelTitleOffset + shift)?.Trim() is { Length: > 0 and <= MaxPanelTitleLength } title &&
-            !title.Contains('/') && title.Any(char.IsLetter) ? title : string.Empty;
+            !title.Contains('/') && !title.Contains('_') && title.Any(char.IsLetter) &&
+            !FontFaces.Contains(title, StringComparer.OrdinalIgnoreCase) ? title : string.Empty; // "bar_area": a layout id, not a title
 
         /// <summary>
         ///     Selected tab of the tab container a grid is a page of ("tab 3" of a vendor's stock, a stash tab); empty

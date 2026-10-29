@@ -22,6 +22,12 @@ namespace Poe2Accessibility.Services
         /// <summary>A screen with no highlight marker is searched again this often (it may still be building).</summary>
         private const int MarkerRescanMs = 2000;
 
+        /// <summary>The shop's markers are searched again this often while none shows (a new tab, entries made on scrolling).</summary>
+        private const int InGameMarkerRescanMs = 300;
+
+        /// <summary>A shop page showing no marker for long (a tab bar, a page still loading) is searched less often, up to this.</summary>
+        private const int InGameMarkerRescanMaxMs = 1200;
+
         /// <summary>Highlight markers are looked for among this many elements of the screen (a pre-game screen has ~4500).</summary>
         private const int MaxMarkerScan = 8000;
 
@@ -30,7 +36,7 @@ namespace Poe2Accessibility.Services
         ///     Continue after the name field (create_button > "hightlight", the game's spelling) has nothing in the UI
         ///     manager's focus or hover (2026-10-23).
         /// </summary>
-        private static readonly string[] HighlightMarkers = { "hightlight", "highlight" };
+        private static readonly string[] HighlightMarkers = { "hightlight", "highlight", "highlight_picture", "highlight_rect" };
 
         /// <summary>Hops from a focused control up to its options row (a combo box sits three below it).</summary>
         private const int OptionRowHops = 4;
@@ -48,6 +54,7 @@ namespace Poe2Accessibility.Services
         private readonly Stopwatch sinceMarkerScan = Stopwatch.StartNew();
         private System.Collections.Generic.List<IntPtr> markers = new();
         private IntPtr markersRoot;
+        private long inGameRescanMs = InGameMarkerRescanMs;
         private IntPtr lastFocused;
         private IntPtr seenCurrent;
         private IntPtr seenHovered;
@@ -94,6 +101,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Index of the root child that contains the focused element (which panel of the screen is active).</summary>
         public int CurrentPanelIndex { get; private set; } = -1;
+
+        /// <summary>
+        ///     In game, a full-screen page that marks its choice with a highlight child instead of focusing it (the
+        ///     microtransaction shop, <see cref="UiSemantics.ShopPage"/>); zero when none is shown. Set by the plugin.
+        /// </summary>
+        public Func<IntPtr>? InGameHighlightRoot { get; set; }
 
         /// <summary>Screen layer (child of LayerContainer, or of the root) that contains the focused element; zero when unknown.</summary>
         public IntPtr CurrentLayer { get; private set; }
@@ -282,8 +295,11 @@ namespace Poe2Accessibility.Services
             var current = this.ElementAt(manager + GameLayout.UiManager.CurrentOffset + seat);
             var hovered = this.ElementAt(manager + GameLayout.UiManager.HoveredOffset + seat);
 
-            // Pre-game only: in game nothing focused is the usual case (playing), and the HUD is large.
-            var highlighted = current == IntPtr.Zero && state != GameStateTypes.InGameState ? this.HighlightedControl() : IntPtr.Zero;
+            // Pre-game the whole screen; in game nothing focused is the usual case (playing) and the HUD is large, so only
+            // a page that highlights its choice (the shop) is searched.
+            var highlighted = current != IntPtr.Zero ? IntPtr.Zero
+                : state != GameStateTypes.InGameState ? this.HighlightedControl(this.CurrentRoot)
+                : this.HighlightedControl(this.InGameHighlightRoot?.Invoke() ?? IntPtr.Zero);
             this.TrackNewest(current, hovered, highlighted);
             if (current != IntPtr.Zero)
             {
@@ -427,21 +443,45 @@ namespace Poe2Accessibility.Services
             return IntPtr.Zero;
         }
 
-        /// <summary>The parent of a visible highlight marker under the current root, or zero.</summary>
-        private IntPtr HighlightedControl()
+        /// <summary>
+        ///     The parent of a visible highlight marker under <paramref name="root"/>, or zero. The markers are searched again
+        ///     when none shows (a screen still building, a shop page whose entries are made as it scrolls).
+        /// </summary>
+        private IntPtr HighlightedControl(IntPtr root)
         {
-            if (this.CurrentRoot == IntPtr.Zero)
+            if (root == IntPtr.Zero)
             {
                 return IntPtr.Zero;
             }
 
-            if (this.markersRoot != this.CurrentRoot || (this.markers.Count == 0 && this.sinceMarkerScan.ElapsedMilliseconds >= MarkerRescanMs))
+            if (this.markersRoot != root)
             {
-                this.markersRoot = this.CurrentRoot;
-                this.markers = this.FindMarkers(this.CurrentRoot);
+                this.markersRoot = root;
+                this.markers = this.FindMarkers(root);
                 this.sinceMarkerScan.Restart();
+                this.inGameRescanMs = InGameMarkerRescanMs;
             }
 
+            // A pre-game screen is searched again only while it has no marker at all; the shop whenever none shows, since
+            // it rebuilds its entries.
+            var found = this.VisibleMarkerParent();
+            var stale = root == this.CurrentRoot ? this.markers.Count == 0 : found == IntPtr.Zero;
+            if (stale && this.sinceMarkerScan.ElapsedMilliseconds >= this.RescanMs(root))
+            {
+                this.markers = this.FindMarkers(root);
+                this.sinceMarkerScan.Restart();
+                found = this.VisibleMarkerParent();
+                this.inGameRescanMs = found == IntPtr.Zero ? Math.Min(this.inGameRescanMs * 2, InGameMarkerRescanMaxMs) : InGameMarkerRescanMs;
+            }
+
+            return found;
+        }
+
+        /// <summary>Pre-game screens rarely change; an in-game page rebuilds its entries as it scrolls and switches tabs.</summary>
+        private long RescanMs(IntPtr root) => root == this.CurrentRoot ? MarkerRescanMs : this.inGameRescanMs;
+
+        private IntPtr VisibleMarkerParent()
+        {
             foreach (var marker in this.markers)
             {
                 if (this.elements.TryReadElement(marker, out var info) && info.IsVisibleFlag && info.Raw.ParentPtr != IntPtr.Zero &&
@@ -452,6 +492,21 @@ namespace Poe2Accessibility.Services
             }
 
             return IntPtr.Zero;
+        }
+
+        /// <summary>
+        ///     The frame of a card whose caption is <paramref name="caption"/> ("name_label"): the card's last child, unnamed
+        ///     (UI dump 2026-10-29); zero for another card.
+        /// </summary>
+        private IntPtr CardFrame(in UiElementReader.ElementInfo caption)
+        {
+            if (caption.Raw.ParentPtr == IntPtr.Zero || !this.elements.TryReadElement(caption.Raw.ParentPtr, out var card))
+            {
+                return IntPtr.Zero;
+            }
+
+            var children = this.elements.ReadChildren(card);
+            return children.Length > 1 && this.elements.TryReadElement(children[^1], out var last) && last.Name.Length == 0 ? children[^1] : IntPtr.Zero;
         }
 
         private System.Collections.Generic.List<IntPtr> FindMarkers(IntPtr root)
@@ -471,6 +526,12 @@ namespace Poe2Accessibility.Services
                 if (Array.IndexOf(HighlightMarkers, info.Name) >= 0)
                 {
                     found.Add(address);
+                }
+
+                if (root != this.CurrentRoot && info.Name == GameLayout.InGameUi.ShopEntryNameLabel && this.CardFrame(info) is var frame &&
+                    frame != IntPtr.Zero && !found.Contains(frame))
+                {
+                    found.Add(frame); // the shop's offer cards: an unnamed frame, last, shown on the chosen one
                 }
 
                 foreach (var child in this.elements.ReadChildren(info))

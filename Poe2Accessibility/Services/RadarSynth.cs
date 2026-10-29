@@ -25,6 +25,14 @@ namespace Poe2Accessibility.Services
         private const float ExitDecaySeconds = 0.045f;
 
         /// <summary>Small obstacle (D2R): a hollow knock between the tock and the tin, quick decay, inharmonic partial.</summary>
+        /// <summary>D2R unexplored mark (radar.h): two 35 ms pips 30 ms apart, 30 ms after the cue, at 900 Hz.</summary>
+        private const float UnexploredMarkHz = 900f;
+        private const float UnexploredMarkHarmonic = 2f;
+        private const float UnexploredMarkDecaySeconds = 0.03f;
+        private const float UnexploredPipSeconds = 0.035f;
+        private const float UnexploredPipGapSeconds = 0.03f;
+        private const float UnexploredMarkGapSeconds = 0.03f;
+
         private const float ObstacleHz = 640f;
         private const float ObstacleHarmonic = 2.76f;
         private const float ObstacleDecaySeconds = 0.012f;
@@ -260,13 +268,30 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        private static float[] Struck(float hz, float harmonic, float decaySeconds, int sampleRate)
+        /// <summary>
+        ///     D2R's unexplored mark: the cue, a short gap, then two pips below the exit's tin, distinct from the guide's
+        ///     single chime; down a little lower like the cue (d2r-access radar_synth.cpp, docs/radar.md).
+        /// </summary>
+        public static float[] WithUnexploredTail(float[] cue, Direction direction, int sampleRate)
         {
-            var samples = new float[(int)(StruckSeconds * sampleRate)];
+            var pitch = direction == Direction.Down ? DownPitch : 1f;
+            var pip = Struck(UnexploredMarkHz * pitch, UnexploredMarkHarmonic, UnexploredMarkDecaySeconds, sampleRate, UnexploredPipSeconds);
+            var markGap = (int)(UnexploredMarkGapSeconds * sampleRate);
+            var pipGap = (int)(UnexploredPipGapSeconds * sampleRate);
+            var samples = new float[cue.Length + markGap + (2 * pip.Length) + pipGap];
+            cue.CopyTo(samples, 0);
+            pip.CopyTo(samples, cue.Length + markGap);
+            pip.CopyTo(samples, cue.Length + markGap + pip.Length + pipGap);
+            return samples;
+        }
+
+        private static float[] Struck(float hz, float harmonic, float decaySeconds, int sampleRate, float seconds = StruckSeconds)
+        {
+            var samples = new float[(int)(seconds * sampleRate)];
             for (var i = 0; i < samples.Length; i++)
             {
                 var t = (float)i / sampleRate;
-                var envelope = MathF.Min(1f, t / StruckAttackSeconds) * MathF.Min(1f, (StruckSeconds - t) / StruckReleaseSeconds) * MathF.Exp(-t / decaySeconds);
+                var envelope = MathF.Min(1f, t / StruckAttackSeconds) * MathF.Min(1f, (seconds - t) / StruckReleaseSeconds) * MathF.Exp(-t / decaySeconds);
                 samples[i] = CueLevel * envelope * (MathF.Sin(2 * MathF.PI * hz * t) + (HarmonicLevel * MathF.Sin(2 * MathF.PI * hz * harmonic * t)));
             }
 

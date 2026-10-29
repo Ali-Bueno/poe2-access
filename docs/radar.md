@@ -46,9 +46,22 @@ second-voice cue is scaled to the loudness (RMS) of the first voice's cue it sta
 Player 2's radar is silent while player 2 is dead, alone, or when the first player's radar would be (menus, focus).
 With player 2 read alone, the one radar follows player 2 in the first voice.
 
+## Unexplored ground (D2R / LeAccess)
+
+- **Mark:** an open-way or exit cue whose ray points toward unseen ground ends in D2R's tail: 30 ms gap, two 900 Hz
+  pips of 35 ms, 30 ms apart, a little lower downward (`RadarSynth.WithUnexploredTail`). The ray's quarter (±45°)
+  must hold a frontier place of the scanner's Unexplored category within 3 × the 60-cell reveal radius
+  (`ExplorationMap.AnyToward`). Setting `UnexploredMark`.
+- **Loop:** the D2R mod's "unexplored room" recording (supplied by the user for D2R, resampled to the mixer's
+  44.1 kHz, shipped in `assets/loops/`) plays without a break at the nearest frontier place, panned and pitched like
+  the guide, from full level near to a quarter at 6000 world units, silent beyond (`UnexploredLoop`). It keeps its
+  place while the recomputed frontier still holds it within three blocks, unless another is less than half as far
+  (`ExplorationMap.Follow`). Silent in towns and hideouts, menus, dialogue, and while the guide leads. Setting
+  `UnexploredLoop`, at the object sounds' volume. PoE2 has no rooms: the frontier stands for D2R's unvisited rooms.
+
 ## Not ported yet
 
-Doors (no door bit in PoE2's walkable grid), small-obstacle timbre, wall repeat, the unexplored tail. Wall tones (LeAccess `reference/navigation-radar.md`) are the alternative style for later.
+Doors (no door bit in PoE2's walkable grid), small-obstacle timbre, wall repeat, the "inside unexplored room" cue. Wall tones (LeAccess `reference/navigation-radar.md`) are the alternative style for later.
 
 ## Settings
 

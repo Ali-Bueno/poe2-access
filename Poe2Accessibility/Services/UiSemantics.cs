@@ -122,6 +122,7 @@ namespace Poe2Accessibility.Services
             var expanded = false;
             var namedById = false;
             var cardDetails = new List<string>();
+            var shopPosition = string.Empty;
             string label;
             switch (role)
             {
@@ -176,6 +177,12 @@ namespace Poe2Accessibility.Services
 
                     break;
                 default:
+                    if (this.InGame && this.ShopEntryOf(info) is { } entry)
+                    {
+                        (label, value, shopPosition) = entry;
+                        break;
+                    }
+
                     if (ownText.Length == 0 && this.InGame && !info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) && this.CardOf(info) is { } card)
                     {
                         // A trade listing: one label said the seller's status alone ("Jugador desconectado", 2026-10-28).
@@ -255,7 +262,7 @@ namespace Poe2Accessibility.Services
             }
 
             var group = string.Empty;
-            var (position, listItems) = hovered ? (string.Empty, Array.Empty<string>()) : role is UiRole.Button or UiRole.CheckBox or UiRole.Slider or UiRole.ComboBox or UiRole.TextField or UiRole.Tab
+            var (position, listItems) = hovered ? (string.Empty, Array.Empty<string>()) : shopPosition.Length > 0 ? (shopPosition, Array.Empty<string>()) : role is UiRole.Button or UiRole.CheckBox or UiRole.Slider or UiRole.ComboBox or UiRole.TextField or UiRole.Tab
                 ? this.ListPosition(info)
                 : (string.Empty, Array.Empty<string>());
             if (position.Length == 0 && this.InGame && !hovered && role is not UiRole.Button and not UiRole.Tab)

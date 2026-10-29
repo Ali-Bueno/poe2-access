@@ -10,6 +10,7 @@ namespace Poe2Accessibility.Services
     using GameHelper.RemoteObjects.Components;
     using GameHelper.RemoteObjects.States.InGameStateObjects;
     using GameOffsets.Natives;
+    using GameOffsets.Objects.States.InGameState;
 
     /// <summary>
     ///     The scanner's view of the area: GameHelper's awake entities sorted into <see cref="ScanCategory"/>,
@@ -41,7 +42,7 @@ namespace Poe2Accessibility.Services
         /// <summary>A route ending this near (grid cells) its target reached it, whatever stands beside.</summary>
         private const float MinBarrierGapCells = 8f;
 
-        private static readonly ScanCategory[] Landmarks = { ScanCategory.Exits, ScanCategory.Waypoints, ScanCategory.Npcs };
+        private static readonly ScanCategory[] Landmarks = { ScanCategory.Exits, ScanCategory.PointsOfInterest, ScanCategory.Waypoints, ScanCategory.Npcs };
 
         /// <summary>
         ///     Remembered while out of the game's range too, but dropped once the player comes back near the place and
@@ -55,6 +56,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Landmark ids live above entity ids so the two never collide.</summary>
         private const uint LandmarkIdBase = 0x80000000;
 
+        /// <summary>Boss arenas the landmark table does not name, between the named tiles and the mod's places.</summary>
+        private const uint ArenaIdBase = LandmarkIdBase + 0x10000000;
+
+        /// <summary>Pieces of one arena tile this many tiles apart are one arena.</summary>
+        private const int ArenaReachTiles = 2;
+
         /// <summary>Unexplored entries: this base plus their block (row in the high half), above the tile landmarks.</summary>
         private const uint UnexploredIdBase = 0xC0000000;
 
@@ -66,6 +73,9 @@ namespace Poe2Accessibility.Services
         ///     whenever that instance is current, until the next death.
         /// </summary>
         private (string Area, ScanEntry Entry)? deathPlace;
+
+        /// <summary>The unnamed boss arenas of the last tile layout read (<see cref="UnnamedArenas"/>).</summary>
+        private (Dictionary<string, List<Vector2>>? Tiles, int Count, string Area, IReadOnlyList<ScanEntry> Entries) arenas = (null, 0, string.Empty, Array.Empty<ScanEntry>());
 
         private const int MaxUnexplored = 8;
 
@@ -270,12 +280,13 @@ namespace Poe2Accessibility.Services
             foreach (var landmark in this.TileLandmarks(area, player.WorldPosition.Z))
             {
                 var place = new StdTuple3D<float> { X = landmark.WorldX, Y = landmark.WorldY, Z = landmark.WorldZ };
-                if (this.Sighted(landmark, place, area.WorldToGridConvertor, false))
+                if (this.Pointed(landmark, player, area.WorldToGridConvertor) || this.Sighted(landmark, place, area.WorldToGridConvertor, false))
                 {
                     found.TryAdd(landmark.Id, landmark);
                 }
-                else
+                else if (landmark.Kind != MinimapMarks.BossRoomKind)
                 {
+                    // A boss room the minimap neither shows nor points to is unknown to the quest marker too.
                     unseen.Add(landmark);
                 }
             }
@@ -394,11 +405,23 @@ namespace Poe2Accessibility.Services
             return Announcements.ScanEntry(entry.Name, steps, Announcements.StickDirections[legs[0].Direction], legSteps, then, true, partial, barrier);
         }
 
-        /// <summary>Named tiles of this area (<see cref="LandmarkTable"/>), placed from the area's tile grid.</summary>
+        /// <summary>The area's named tiles and boss arenas, seen or not (the "scan" dev command).</summary>
+        public IReadOnlyList<ScanEntry> AreaLandmarks() =>
+            Seats.Followed.TryGetComponent<Render>(out var player)
+                ? this.TileLandmarks(Core.States.InGameStateObject.CurrentAreaInstance, player.WorldPosition.Z).ToList()
+                : Array.Empty<ScanEntry>();
+
+        /// <summary>
+        ///     Named tiles of this area (<see cref="LandmarkTable"/>), placed from the area's tile grid, and the boss arenas
+        ///     among its tiles: a named one as "Boss room: Asinia", one the table lacks by its file alone.
+        /// </summary>
         private IEnumerable<ScanEntry> TileLandmarks(AreaInstance area, float height)
         {
             var tiles = area.TgtTilesLocations;
             var toWorld = area.WorldToGridConvertor;
+            var source = this.landmarks.Source(this.areaId());
+            var named = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var namedArenas = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var index = 0u;
             foreach (var (key, label) in this.landmarks.For(this.areaId()))
             {
@@ -411,10 +434,76 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
+                named.Add(MinimapMarks.TileFile(key));
                 var centre = new Vector2(spots.Average(spot => spot.X), spots.Average(spot => spot.Y)) * toWorld;
+                var english = source.TryGetValue(key, out var written) ? written : label;
+                if (!this.landmarks.IsAreaName(english) && MinimapMarks.ArenaBoss(key, english) is { } boss)
+                {
+                    // The Tomb's and the Mausoleum's arenas were "Asinia" and "MausoleumBoss_ArenaFloor" among the
+                    // exits, a maze's boss not found by that (user 2026-10-29); the boss's name lets the quest find it.
+                    var name = boss.Length == 0 ? string.Empty : boss == english.Trim() ? label : this.landmarks.Localize(boss);
+                    namedArenas.Add(MinimapMarks.TileFile(key));
+                    yield return new ScanEntry(LandmarkIdBase + index, ScanCategory.PointsOfInterest, Announcements.BossRoom(name),
+                                               centre.X, centre.Y, height, MinimapMarks.BossRoomKind, Subject: MinimapMarks.WithoutNote(name));
+                    continue;
+                }
+
                 yield return new ScanEntry(LandmarkIdBase + index, ScanCategory.Exits, label, centre.X, centre.Y, height,
                                            this.landmarks.IsAreaName(label) ? string.Empty : QuestMatcher.TileNote);
             }
+
+            foreach (var arena in this.UnnamedArenas(tiles, named, namedArenas))
+            {
+                yield return arena with { Name = Announcements.BossRoom(string.Empty), WorldX = arena.WorldX * toWorld, WorldY = arena.WorldY * toWorld, WorldZ = height };
+            }
+        }
+
+        /// <summary>
+        ///     Boss arenas among the area's tiles that the landmark table does not name, at their grid cells: the pieces of
+        ///     arena tiles side by side are one arena, left out when the table names a piece of it (an arena's floor named,
+        ///     its walls not). Worked out once per area layout.
+        /// </summary>
+        private IReadOnlyList<ScanEntry> UnnamedArenas(Dictionary<string, List<Vector2>> tiles, HashSet<string> named, HashSet<string> namedArenas)
+        {
+            // GameHelper empties the same dictionary when the area is left, so its size is part of the key; the area's id
+            // too, in case the first look at a layout came before the id did (its named arenas would pass for unnamed).
+            var area = this.areaId();
+            if (ReferenceEquals(this.arenas.Tiles, tiles) && this.arenas.Count == tiles.Count && this.arenas.Area == area)
+            {
+                return this.arenas.Entries;
+            }
+
+            var pieces = new List<(Vector2 Spot, bool Named)>();
+            foreach (var (key, spots) in tiles)
+            {
+                var file = MinimapMarks.TileFile(key);
+                var isNamed = namedArenas.Contains(file);
+                if (isNamed || (!named.Contains(file) && MinimapMarks.IsArenaTile(key)))
+                {
+                    pieces.AddRange(spots.Select(spot => (spot, isNamed)));
+                }
+            }
+
+            var entries = new List<ScanEntry>();
+            foreach (var group in MinimapMarks.Groups(pieces.Select(piece => piece.Spot).ToList(), ArenaReachTiles * TileStructure.TileToGridConversion))
+            {
+                if (group.Any(member => pieces[member].Named))
+                {
+                    continue;
+                }
+
+                var centre = group.Aggregate(Vector2.Zero, (sum, member) => sum + pieces[member].Spot) / group.Count;
+                entries.Add(new ScanEntry(ArenaIdBase + (uint)entries.Count, ScanCategory.PointsOfInterest, string.Empty,
+                                          centre.X, centre.Y, 0, MinimapMarks.BossRoomKind));
+            }
+
+            if (entries.Count > 0)
+            {
+                this.log.Info($"Boss arenas without a landmark name: {entries.Count}");
+            }
+
+            this.arenas = (tiles, tiles.Count, area, entries);
+            return entries;
         }
 
         /// <summary>How much of the ground the player can reach has been seen, in percent; null outside gameplay or without a grid.</summary>
@@ -424,6 +513,16 @@ namespace Poe2Accessibility.Services
             return Seats.Followed.TryGetComponent<Render>(out var player) && this.TryLiveGrid(out var grid, out var row)
                 ? this.explored.ExploredPercent(grid, row, new Vector2(player.GridPosition.X, player.GridPosition.Y))
                 : null;
+        }
+
+        /// <summary>Where unseen ground begins, in grid cells, nearest first (the Unexplored category's places).</summary>
+        public IReadOnlyList<Vector2> UnexploredCells()
+        {
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            var toWorld = area.WorldToGridConvertor;
+            return toWorld > 0 && Seats.Followed.TryGetComponent<Render>(out var player)
+                ? this.Unexplored(area, player).Select(entry => new Vector2(entry.WorldX, entry.WorldY) / toWorld).ToList()
+                : Array.Empty<Vector2>();
         }
 
         /// <summary>Where unseen ground begins (<see cref="ExplorationMap"/>), refreshed every UnexploredRefreshMs.</summary>
@@ -469,6 +568,24 @@ namespace Poe2Accessibility.Services
             }
 
             if (!onMinimap && !ScreenProjection.IsOnScreen(place) && !this.explored.IsSeen(new Vector2(place.X, place.Y) / worldToGrid))
+            {
+                return false;
+            }
+
+            this.sighted.Add(entry.Id);
+            return true;
+        }
+
+        /// <summary>
+        ///     A boss room the minimap points to before it is seen: an arrow at the minimap's edge while the player is within the
+        ///     icon's pointer distance (<see cref="MinimapMarks.CampaignBossPointerCells"/>, <see cref="MinimapMarks.MapBossPointerCells"/>).
+        ///     A sighted player follows it to the boss of a maze (user 2026-10-29), so the scanner lists the room from then on.
+        /// </summary>
+        private bool Pointed(ScanEntry entry, Render player, float worldToGrid)
+        {
+            var reach = entry.Id >= ArenaIdBase ? MinimapMarks.MapBossPointerCells : MinimapMarks.CampaignBossPointerCells;
+            if (entry.Kind != MinimapMarks.BossRoomKind ||
+                Vector2.Distance(new Vector2(player.GridPosition.X, player.GridPosition.Y), new Vector2(entry.WorldX, entry.WorldY) / worldToGrid) > reach)
             {
                 return false;
             }

@@ -93,6 +93,7 @@ namespace Poe2Accessibility
         {
             Services.ScanCategory.Quest => T("Quest", "Misión"),
             Services.ScanCategory.Exits => T("Exits", "Salidas"),
+            Services.ScanCategory.PointsOfInterest => T("Points of interest", "Puntos de interés"),
             Services.ScanCategory.Places => T("Places", "Lugares"),
             Services.ScanCategory.Unexplored => T("Unexplored", "Sin explorar"),
             Services.ScanCategory.Waypoints => T("Waypoints and checkpoints", "Puntos de ruta y de control"),

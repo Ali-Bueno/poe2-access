@@ -16,6 +16,7 @@ internal static class DatColumnExtractor
         ("mods", "Mods.Name", 0x62),
         ("passiveskills", "PassiveSkills.Name", 0x32),
         ("activeskills", "ActiveSkills.DisplayedName", 0x8),
+        ("minimapicons", "MinimapIcons.Label", 0x1A),
     };
 
     private const string Translation = "spanish";

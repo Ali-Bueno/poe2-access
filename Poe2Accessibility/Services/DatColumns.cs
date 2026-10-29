@@ -21,6 +21,7 @@ namespace Poe2Accessibility.Services
         private static readonly (string Column, int Measured, Action<int> Use)[] Columns =
         {
             ("Mods.Name", GameLayout.ModsDat.NameOffset, offset => GameLayout.ModsDat.NameOffset = offset),
+            ("MinimapIcons.Label", GameLayout.MinimapIconRow.LabelOffset, offset => GameLayout.MinimapIconRow.LabelOffset = offset),
             ("ActiveSkills.DisplayedName", GameLayout.SkillSlot.DisplayedNameOffset, offset => GameLayout.SkillSlot.DisplayedNameOffset = offset),
             ("GrantedEffectsPerLevel.GrantedEffect", GameLayout.SkillSlot.EffectKeyOffset, offset => GameLayout.SkillSlot.EffectKeyOffset = offset),
             ("GrantedEffects.ActiveSkill", GameLayout.SkillSlot.SkillKeyOffset, offset => GameLayout.SkillSlot.SkillKeyOffset = offset),

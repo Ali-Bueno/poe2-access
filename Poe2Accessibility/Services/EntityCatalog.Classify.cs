@@ -26,11 +26,22 @@ namespace Poe2Accessibility.Services
 
             var name = this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty;
             var kind = string.Empty;
+            var plain = false;
+            var subject = string.Empty;
             var baseId = string.Empty;
             var loot = LootTier.Valuable;
             var sound = string.Empty;
+            var icon = entity.TryGetComponent<MinimapIcon>(out var minimap) ? minimap.IconName ?? string.Empty : string.Empty;
             ScanCategory? category;
-            if (entity.EntityType == EntityTypes.Player)
+            if (icon == MinimapMarks.StoryGlyph)
+            {
+                // Typed NPC but a sign: "Pueblo de Ogham" by the road was listed as a character and taken for the quest's
+                // village (user 2026-10-28).
+                category = name.Length > 0 ? ScanCategory.Objects : null;
+                name = Announcements.Sign(name);
+                kind = MinimapMarks.SignKind;
+            }
+            else if (entity.EntityType == EntityTypes.Player)
             {
                 category = Seats.IsFollowed(entity) ? null : ScanCategory.Players;
                 if (entity.TryGetComponent<Player>(out var other) && other.Name.Length > 0)
@@ -112,12 +123,26 @@ namespace Poe2Accessibility.Services
             else
             {
                 category = entity.TryGetComponent<Targetable>(out _) ? ScanCategory.Objects : null; // stash, bench, well
+                plain = true;
+            }
+
+            // Only a plain object can be a mark: a used shrine, an opened chest or a minion stays out whatever its icon says.
+            if (plain && (category == null || name.Length == 0) && icon.Length > 0 &&
+                MinimapMarks.PointOfInterest(path, icon, MinimapIconLabel.Of(this.memory, this.elements, minimap!)) is { } point)
+            {
+                // A boss's arena, a secret or a quest landmark as the minimap labels it: the objects carry no name of their own.
+                category = ScanCategory.PointsOfInterest;
+                kind = point.Kind;
+                subject = point.Kind == MinimapMarks.BossRoomKind ? point.Label : string.Empty;
+                name = point.Kind != MinimapMarks.BossRoomKind ? point.Label
+                    : point.Defeated ? Announcements.BossRoomDefeated(point.Label) : Announcements.BossRoom(point.Label);
             }
 
             if (category == null || name.Length == 0)
             {
                 return null; // unnamed placeholders are not things a player can find
             }
+
 
             if (category == ScanCategory.Npcs && this.HasQuestMarker(entity))
             {
@@ -127,7 +152,8 @@ namespace Poe2Accessibility.Services
             }
 
             var position = render.WorldPosition;
-            return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, kind, baseId, loot, sound);
+            return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, kind, baseId, loot, sound,
+                MinimapMarks.IsQuestIcon(icon), subject);
         }
 
         /// <summary>Feeds the entity name check (judged once on enough monsters, characters and players).</summary>

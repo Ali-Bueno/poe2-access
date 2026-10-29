@@ -2,6 +2,7 @@ namespace Poe2Accessibility
 {
     using System;
     using System.IO;
+    using System.Linq;
     using GameHelper;
     using GameHelper.RemoteEnums;
     using Poe2Accessibility.Models;
@@ -43,6 +44,41 @@ namespace Poe2Accessibility
                     for (var offset = 0; offset < bytes.Length; offset += 32)
                     {
                         this.log?.Info($"hex 0x{at:X}+{offset:X4}: {Convert.ToHexString(bytes, offset, Math.Min(32, bytes.Length - offset))}");
+                    }
+                }
+
+                return;
+            }
+
+            if (command.StartsWith("guide at ", StringComparison.Ordinal) && command["guide at ".Length..].Split(' ') is [var gx, var gy] &&
+                float.TryParse(gx, out var cellX) && float.TryParse(gy, out var cellY) && Seats.Followed.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var self))
+            {
+                // Test aid: lock the guide on a grid cell (a tile seen in "entities"), for scripted walking.
+                var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+                this.beacon?.Lock(new ScanEntry(uint.MaxValue - 2, ScanCategory.Objects, $"cell {cellX:0},{cellY:0}", cellX * toWorld, cellY * toWorld, self.WorldPosition.Z));
+                return;
+            }
+
+            if (command == "guide unexplored")
+            {
+                // Test aid: lock the guide on the nearest unexplored place, for scripted exploring.
+                if (this.entities?.Entries().FirstOrDefault(entry => entry.Category == ScanCategory.Unexplored) is { } frontier)
+                {
+                    this.beacon?.Lock(frontier);
+                }
+
+                return;
+            }
+
+            if (command.StartsWith("guide ", StringComparison.Ordinal) && uint.TryParse(command["guide ".Length..], out var guideId))
+            {
+                // Test aid: lock the guide on any awake entity by id (from "entities"), seen or not, for scripted walking.
+                foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+                {
+                    if (entity.Id == guideId && entity.IsValid && entity.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var render))
+                    {
+                        var at = render.WorldPosition;
+                        this.beacon?.Lock(new ScanEntry(entity.Id, ScanCategory.Objects, $"entity {entity.Id}", at.X, at.Y, at.Z));
                     }
                 }
 
@@ -111,6 +147,51 @@ namespace Poe2Accessibility
                         var routedPath = Path.Join(this.DllDirectory, "debug", $"routed-{DateTime.Now:yyyyMMdd-HHmmss}.walkable");
                         File.WriteAllBytes(routedPath, routed);
                         this.log?.Info($"Routed grid written to {routedPath}");
+                    }
+
+                    break;
+                case "sleeping":
+                    // Research: the game's sleeping entities (known beyond the awake bubble) with a minimap icon or a name.
+                    var sleepers = new System.Collections.Concurrent.ConcurrentBag<string>();
+                    var sleeping = Core.States.InGameStateObject.CurrentAreaInstance.ScanSleepingEntities(_ => true, (_, entity) =>
+                    {
+                        var hasIcon = entity.TryGetComponent<GameHelper.RemoteObjects.Components.MinimapIcon>(out var mark) && !string.IsNullOrEmpty(mark.IconName);
+                        var label = hasIcon && this.memoryReader != null && this.elements != null ? MinimapIconLabel.Of(this.memoryReader, this.elements, mark!) : string.Empty;
+                        var at = entity.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var place) ? FormattableString.Invariant($"{place.GridPosition.X:0},{place.GridPosition.Y:0}") : "-";
+                        if (hasIcon || entity.Path.Contains("MinimapIcon", StringComparison.OrdinalIgnoreCase) || entity.Path.Contains("Transition", StringComparison.Ordinal) || entity.Path.Contains("Glyph", StringComparison.Ordinal) || entity.Path.Contains("Chest", StringComparison.Ordinal))
+                        {
+                            sleepers.Add($"{entity.Id} {entity.Path} icon={mark?.IconName}|{label} at {at}");
+                        }
+                    });
+                    this.log?.Info($"Sleeping entities: {sleeping}, with icons {sleepers.Count}");
+                    foreach (var line in sleepers.OrderBy(line => line, StringComparer.Ordinal))
+                    {
+                        this.log?.Info($"Sleeping {line}");
+                    }
+
+                    break;
+                case "unrendered":
+                    // Research: awake entities without a Render component (icon-only objects), with their components.
+                    foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+                    {
+                        if (entity.IsValid && !entity.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out _))
+                        {
+                            var mark = entity.TryGetComponent<GameHelper.RemoteObjects.Components.MinimapIcon>(out var icon) ? icon.IconName : "-";
+                            this.log?.Info($"Unrendered {entity.Id} {entity.Path} icon={mark} positioned={entity.TryGetComponent<GameHelper.RemoteObjects.Components.Positioned>(out _)}");
+                        }
+                    }
+
+                    break;
+                case "scan":
+                    // Research: every scanner entry, as the categories would say them, then the area's named tiles seen or not.
+                    foreach (var entry in this.entities?.Entries() ?? Array.Empty<ScanEntry>())
+                    {
+                        this.log?.Info($"Scan {entry.Category} id={entry.Id} kind={entry.Kind} \"{entry.Name}\" {this.entities!.DistanceTo(entry):F0}");
+                    }
+
+                    foreach (var entry in this.entities?.AreaLandmarks() ?? Array.Empty<ScanEntry>())
+                    {
+                        this.log?.Info($"Scan tile {entry.Category} id={entry.Id} kind={entry.Kind} \"{entry.Name}\" {this.entities!.DistanceTo(entry):F0}");
                     }
 
                     break;

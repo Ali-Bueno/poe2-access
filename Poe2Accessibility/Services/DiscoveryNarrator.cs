@@ -113,7 +113,8 @@ namespace Poe2Accessibility.Services
             var entries = this.catalog.Entries();
             foreach (var entry in entries)
             {
-                if (!EntityCatalog.IsEntity(entry) || !IsDiscovery(entry) || !this.seen.Add(entry.Id) ||
+                // A boss room comes from the area's tiles: the arrow the minimap starts pointing with, no entity behind it.
+                if (!(EntityCatalog.IsEntity(entry) || entry.Kind == MinimapMarks.BossRoomKind) || !IsDiscovery(entry) || !this.seen.Add(entry.Id) ||
                     (entry.Category == ScanCategory.Enemies ? !this.seenUniques.Add(entry.Name) : !this.knownPlaces.Add(this.character, this.PlaceKey(entry))))
                 {
                     continue;
@@ -148,7 +149,7 @@ namespace Poe2Accessibility.Services
             $"{this.area}|{entry.Kind}|{entry.Name}|{MathF.Round(entry.WorldX / PlaceKeyWorld)}|{MathF.Round(entry.WorldY / PlaceKeyWorld)}";
 
         private static bool IsDiscovery(ScanEntry entry) =>
-            entry.Category is ScanCategory.Exits or ScanCategory.Waypoints ||
+            entry.Category is ScanCategory.Exits or ScanCategory.Waypoints or ScanCategory.PointsOfInterest ||
             (entry.Category == ScanCategory.Enemies && entry.Name.EndsWith(Announcements.UniqueRarityWord, StringComparison.Ordinal));
     }
 }

@@ -100,6 +100,32 @@ if (args.Length > 2 && string.Equals(args[0], "dat-strings", StringComparison.Or
     return 0;
 }
 
+// Args: dat-rows <gameDir> <table> <id substring>  -- research aid: the raw bytes (as int32s) of the rows whose id matches.
+if (args.Length > 3 && string.Equals(args[0], "dat-rows", StringComparison.OrdinalIgnoreCase))
+{
+    using var bundles = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+    bundles.ParsePaths();
+    var table = DatTable.Open(bundles, args[2]);
+    if (table == null)
+    {
+        Console.WriteLine($"No table {args[2]}");
+        return 1;
+    }
+
+    for (var row = 0; row < table.RowCount; row++)
+    {
+        var id = table.StringOrNull(row, 0) ?? string.Empty;
+        if (id.Contains(args[3], StringComparison.OrdinalIgnoreCase))
+        {
+            var words = Enumerable.Range(0, (table.RowSize - 8) / 2).Select(at => 8 + (at * 2)).Where(at => at + 4 <= table.RowSize)
+                .Select(at => $"+{at:X}={table.Int32(row, at)}");
+            Console.WriteLine($"{row} {id}: {string.Join(' ', words)}");
+        }
+    }
+
+    return 0;
+}
+
 // Args: item-sounds <gameDir> [outFile]  -- base item id -> drop sample (ItemDrops.bank) from the dat tables as JSON.
 if (args.Length > 0 && string.Equals(args[0], "item-sounds", StringComparison.OrdinalIgnoreCase))
 {

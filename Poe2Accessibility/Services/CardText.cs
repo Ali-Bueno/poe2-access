@@ -13,6 +13,59 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public static class CardText
     {
+        /// <summary>The shop's banners are downloaded images: "…/ShopImages/public_news_2026-09-21_CotABox_small.png|0,0,0,0|1".</summary>
+        private const string ShopImagesFolder = "/ShopImages/";
+
+        private static readonly System.Text.RegularExpressions.Regex NewsPrefix = new(@"^(public_)?news_\d{4}-\d{2}-\d{2}_", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        /// <summary>The words of the shop's image file names that name the file, not the offer ("client_shop_assets_…_Thumb").</summary>
+        private static readonly HashSet<string> FileNoise = new(System.StringComparer.OrdinalIgnoreCase)
+        {
+            "public", "client", "shop", "assets", "featured", "thumb", "small", "large", "news",
+        };
+
+        /// <summary>The game's own name in a file name ("PoE2EarlyAccess…"), dropped before the words are split.</summary>
+        private static readonly System.Text.RegularExpressions.Regex GameName = new("PoE2?", System.Text.RegularExpressions.RegexOptions.None);
+
+        private static readonly System.Text.RegularExpressions.Regex SizeSuffix = new(@"_(small|large|medium|banner|thumb)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        /// <summary>
+        ///     A featured banner's title from its image file, the only name it has ("LegendsOfWraeclast" → "Legends Of
+        ///     Wraeclast"); empty when the texture is no shop image.
+        /// </summary>
+        public static string ShopImageTitle(string textureKey)
+        {
+            var path = textureKey.Split('|')[0].Replace('\\', '/');
+            var at = path.IndexOf(ShopImagesFolder, System.StringComparison.OrdinalIgnoreCase);
+            if (at < 0)
+            {
+                return string.Empty;
+            }
+
+            var name = System.IO.Path.GetFileNameWithoutExtension(path[(at + ShopImagesFolder.Length)..]);
+            name = GameName.Replace(SizeSuffix.Replace(NewsPrefix.Replace(name, string.Empty), string.Empty), "_");
+            var words = new List<string>();
+            foreach (var part in name.Split(new[] { '_', '-', ' ' }, System.StringSplitOptions.RemoveEmptyEntries))
+            {
+                var start = 0;
+                for (var i = 1; i <= part.Length; i++)
+                {
+                    // A capital after a small letter or digit, or the capital before a small one in a run (CotABox → Cot A Box).
+                    if (i == part.Length || (char.IsUpper(part[i]) && (!char.IsUpper(part[i - 1]) || (i + 1 < part.Length && char.IsLower(part[i + 1])))))
+                    {
+                        if (!FileNoise.Contains(part[start..i]))
+                        {
+                            words.Add(part[start..i]);
+                        }
+
+                        start = i;
+                    }
+                }
+            }
+
+            return string.Join(" ", words);
+        }
+
         /// <returns>Null when the lines fit a table row (<paramref name="rowCells"/>) or there is a single column.</returns>
         public static (string Label, List<string> Details)? Read(IReadOnlyList<IReadOnlyList<CardLine>> columns, int rowCells)
         {

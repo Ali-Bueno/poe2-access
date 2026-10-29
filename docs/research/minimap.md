@@ -40,3 +40,45 @@ bubble, and the unit of the pointer distance.
 - Everything else, named tiles included: once on screen or on explored ground.
 - Quest category: what the objective names, wherever the game knows it (bubble entities and the area's tiles),
   seen or not — the quest marker (user, 2026-10-24: the scanner had stopped guiding to the objective).
+
+## Labels, signs, boss rooms (2026-10-29, 0.5.5e)
+- **Label:** MinimapIcons row +0x1A, a pointer to the label in the client's language (Spanish table: `WifeActive`
+  "Corazón de la tumba", `HusbandActive` "Corazón del mausoleo", `CrowbellActive` "El pilar de caza",
+  `OghamVillageRenlysToolsActive` "Taller de Renly", `Checkpoint` "Punto de control"). Read live through the component
+  (+0x20 → row → +0x1A): "Waypoint|Transportador", "HealingWell|Pozo", "CraftingBenchIcon|Mesa de reciclaje".
+  `dat-columns` finds it as the first translated string column (`MinimapIcons.Label`). Rows are 0x2A bytes back to back;
+  each `…Active` row has its unlabelled `…Inactive` row beside it (`TitanGrottoEntranceInActive` spells it so).
+- **Boss rooms:** `Metadata/Monsters/<Boss>/Objects/BossRoomMinimapIcon` (49 .ot files; base
+  `Metadata/MiscellaneousObjects/BossRoomMinimapIcon`, icon `LootFilterLargeRedUpsideDownHouse`, turning
+  `…GreyUpsideDownHouse` on the shared state `boss_dead`); campaign bosses override the icon (`CrowbellActive` →
+  `CrowbellInactive`). The objects have only MinimapIcon and StateMachine. None was seen in the client's lists: at the
+  Hunt Stone with the Crowbell alive the awake list held three entities, and the 2864 sleeping ones near Ogham's
+  waypoint are decorations; GameHelper drops ids ≥ 0x40000000 (client-only visuals). So the client knows them only
+  near, as it knows everything else; the scanner lists one when it shows (`MinimapMarks`), but no live sighting yet.
+- **Boss rooms from tiles:** the client has the whole tile layout on arrival (GameHelper `TgtTilesLocations`), and
+  GameHelper Radar's table names the campaign arenas ("TombBoss_ArenaFloor" "Asinia", "MausoleumBoss_ArenaFloor",
+  "HagWitchArena_0x" "Beira of the Rotten", "CanopyArena" "The King in the Mists"); they were spoken among the exits. Now
+  `MinimapMarks.ArenaBoss` makes them "Sala del jefe: …" (file or label with "boss"/"arena", not a way in such as
+  "Arena_Transition_01" or "HoltenBossStairsDown_01"), and arena tiles the table lacks are found by file name, one per
+  group of pieces (`Clusters`). The Mud Burrow has no arena tile: the Devourer rises from its `path_St_Spawner` paths.
+- **Pointer reach:** MinimapIcons +0x12 (after two radii at +0x8, +0xC and two bools at +0x10, +0x11) is how far the
+  minimap points to an icon beyond its edge: 250 for most rows, 400 for the campaign boss icons (MillerActive,
+  CroneActive, MudBurrowerActive, RustObeliskActive, HusbandActive, WifeActive, FriendlyCauldronCroneActive), 150 for
+  league devices (Shrine, Essence, Breach, Sanctum), 100000 for marks shown map-wide (BossSummoningLocationActive,
+  RuneMarkersActive). Grid cells: the scanner lists a tile boss room once the player is that near (400 for the radar
+  table's arenas, 250 for unnamed ones, the map boss house's value) or has seen its place; checked live in Clearfell
+  2026-10-29: "En el mapa: Sala del jefe: Beira of the Rotten (10% de resistencia al frío)" at 4325 world units
+  (398 cells). Read with `Poe2UiExtract dat-rows <game> MinimapIcons <id>`.
+- **Signs:** story glyphs (`Metadata/NPC/Four_Act1/HuntingGroundsSignpostGlyph` "Pueblo de Ogham", `VillageGlyph1`
+  "Decreto del conde", `ClearfellPosting1` "Proclamación") are typed NPC with icon `StoryGlyph`. The scanner took the
+  signpost for a character and for the quest's village (user 2026-10-28); now "Letrero: …" among the objects, never a
+  quest target. Seen live 2026-10-29: "Letrero: Decreto del conde, A".
+- **Quest icons:** `QuestObject`, `QuestItem`, `MissionTarget` mark what the quest wants; such an entity is copied into
+  the Quest category whatever the tracker says.
+- **Title cards:** the big area-part banners (ClientStrings `TitleCardCrowbellArena`, `TitleCardUnasHome`,
+  `TitleCardRenlysWorkshop`…, 70 of them) come from server-only proximity objects (`CrowbellArenaEntranceTitle.ot`:
+  radius 50, off once the quest flag is set). None was seen on screen during the 2026-10-29 session, so where the UI
+  draws them is not known.
+- **World labels:** the names drawn over things in the world are UI labels under `world_ui_layer_parent`, named by the
+  entity's metadata path ("Metadata/MiscellaneousObjects/Checkpoint" → "Punto de control"); the minimap itself has no
+  UI children.

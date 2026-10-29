@@ -206,6 +206,21 @@ namespace Poe2Accessibility.Services
         /// <summary>Art key of an image element, whichever image class it is.</summary>
         public string? ReadTextureKey(in ElementInfo info) => this.ReadTextureKey(info.Texture) ?? this.ReadTextureKey(info.AltTexture);
 
+        /// <summary>The texture's key whatever it is (a downloaded shop image's file path too), or null.</summary>
+        public string? ReadAnyTextureKey(in ElementInfo info)
+        {
+            foreach (var texture in new[] { info.Texture, info.AltTexture })
+            {
+                if (this.reader.IsValidAddress(texture) && this.ReadWStringStructAt(texture + GameLayout.Image.TextureKeyOffset) is { Length: > 0 } key &&
+                    key.Contains('/', StringComparison.Ordinal))
+                {
+                    return key;
+                }
+            }
+
+            return null;
+        }
+
         public string? ReadTextureKey(IntPtr texture)
         {
             if (!this.reader.IsValidAddress(texture))

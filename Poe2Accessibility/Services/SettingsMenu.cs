@@ -43,6 +43,8 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.Radar)),
             Switch(nameof(AccessibilitySettings.SmallObstacles)),
             Switch(nameof(AccessibilitySettings.WallTones)),
+            Switch(nameof(AccessibilitySettings.UnexploredLoop)),
+            Switch(nameof(AccessibilitySettings.UnexploredMark)),
             Switch(nameof(AccessibilitySettings.EnemySounds)),
             Switch(nameof(AccessibilitySettings.NpcSounds)),
             Switch(nameof(AccessibilitySettings.PlayerSounds)),

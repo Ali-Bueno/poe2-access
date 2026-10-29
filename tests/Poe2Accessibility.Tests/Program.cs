@@ -108,6 +108,9 @@ namespace Poe2Accessibility.Tests
             Run(nameof(PadButtonsFollowTheLeftTrigger), PadButtonsFollowTheLeftTrigger);
             Run(nameof(TileGridIsFoundByWhatItsRecordsHold), TileGridIsFoundByWhatItsRecordsHold);
             Run(nameof(BaseNamesAreCheckedAgainstTooltipTitles), BaseNamesAreCheckedAgainstTooltipTitles);
+            Run(nameof(MinimapMarksNameBossRoomsAndLandmarks), MinimapMarksNameBossRoomsAndLandmarks);
+            Run(nameof(SignsAreNeverQuestTargetsAndQuestIconsAlways), SignsAreNeverQuestTargetsAndQuestIconsAlways);
+            Run(nameof(UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay), UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -1260,6 +1263,95 @@ namespace Poe2Accessibility.Tests
             Equal(100, map.ExploredPercent(grid, row, new System.Numerics.Vector2(120, 100)), "the unreachable east field does not count");
         }
 
+        private static void MinimapMarksNameBossRoomsAndLandmarks()
+        {
+            const string crowbellRoom = "Metadata/Monsters/Crowbell/Objects/BossRoomMinimapIcon";
+            Equal((MinimapMarks.BossRoomKind, "El pilar de caza", false),
+                  MinimapMarks.PointOfInterest(crowbellRoom, "CrowbellActive", "El pilar de caza"), "a campaign boss's arena by its label");
+            Equal((MinimapMarks.BossRoomKind, "El pilar de caza", true),
+                  MinimapMarks.PointOfInterest(crowbellRoom, "CrowbellInactive", "El pilar de caza"), "slain: its grey icon, the active row's label");
+            Equal((MinimapMarks.BossRoomKind, string.Empty, false),
+                  MinimapMarks.PointOfInterest("Metadata/MiscellaneousObjects/BossRoomMinimapIcon", "LootFilterLargeRedUpsideDownHouse", string.Empty), "a map boss's red house has no label");
+            Equal((MinimapMarks.BossRoomKind, string.Empty, true),
+                  MinimapMarks.PointOfInterest("Metadata/MiscellaneousObjects/BossRoomMinimapIcon", "LootFilterLargeGreyUpsideDownHouse", string.Empty), "and turns grey");
+            Equal((MinimapMarks.LandmarkKind, "Ritual driádico", false),
+                  MinimapMarks.PointOfInterest("Metadata/Terrain/Gallows/Act1/1_11/Objects/SecretRoomMinimapIcon", "HuntingGroundsSecretActive", "Ritual driádico"), "a secret by its label");
+            Equal(null, MinimapMarks.PointOfInterest("Metadata/Terrain/Gallows/Act1/1_11/Objects/SecretRoomMinimapIcon", "HuntingGroundsSecretInactive", string.Empty), "a secret found is gone");
+            Equal(null, MinimapMarks.PointOfInterest("Metadata/NPC/Four_Act1/HuntingGroundsSignpostGlyph", MinimapMarks.StoryGlyph, string.Empty), "a sign is no point of interest");
+            Equal(true, MinimapMarks.IsQuestIcon("QuestObject") && MinimapMarks.IsQuestIcon("QuestItem") && !MinimapMarks.IsQuestIcon("NPC"), "the quest's own icons");
+            Equal(true, MinimapMarks.IsSpent("TitanGrottoEntranceInActive"), "the table's other spelling of inactive");
+            Equal("Legends Of Wraeclast", CardText.ShopImageTitle("C:/Users/x/AppData/Local/Path of Exile 2/ShopImages/public_news_2026-10-01_LegendsOfWraeclast_small.png|0,0,0,0|1"), "a featured banner by its image file");
+            Equal("Cot A Box", CardText.ShopImageTitle("C:/Users/x/AppData/Local/Path of Exile 2/ShopImages/public_news_2026-09-21_CotABox_small.png|0,0,0,0|1"), "capitals in a run split before the small letters");
+            Equal(string.Empty, CardText.ShopImageTitle("Art/2DArt/UIImages/InGame/Cross.dds|0"), "no shop image, no title");
+            Equal("Early Access Supporter Packs", CardText.ShopImageTitle("C:/x/ShopImages/client_shop_assets_PoE2EarlyAccessSupporterPacks_Thumb.png|0"), "the file's own words dropped");
+            Equal("On Sale", CardText.ShopImageTitle("C:/x/ShopImages/public_client_shop_OnSale_Thumb.png|0"), "and the folder-like prefix");
+
+            const string tomb = "Metadata/Terrain/Woods/GraveyardDungeons/Feature/TombBoss_ArenaFloor.tdtx:2-y:2";
+            Equal("TombBoss_ArenaFloor", MinimapMarks.TileFile(tomb), "a tile key's file");
+            Equal("Asinia", MinimapMarks.ArenaBoss(tomb, "Asinia"), "the Tomb's arena names its boss");
+            Equal(string.Empty, MinimapMarks.ArenaBoss("Metadata/Terrain/Woods/GraveyardDungeons/Feature/MausoleumBoss_ArenaFloor.tdtx:0-y:0", "MausoleumBoss_ArenaFloor"),
+                  "the Mausoleum's arena, labelled with its own file name, names no one");
+            Equal("Crowbell Arena (+2 Passive)", MinimapMarks.ArenaBoss("Metadata/Terrain/Woods/Features_Cairns/DolmenDeAzutan_03.tdtx:0-y:9", "Crowbell Arena (+2 Passive)"),
+                  "an arena known by its label");
+            Equal("Captain Hartlin", MinimapMarks.ArenaBoss("Metadata/Terrain/Islands/Tiles/Island/JourneysEnd/BossArena_02.tdtx:0-y:0", "Boss - Captain Hartlin"), "the label's boss after its prefix");
+            Equal(string.Empty, MinimapMarks.ArenaBoss("Metadata/Terrain/Interlude/Part2/P2_1/Salt_Waste_Bossroom.tdtx:14-y:11", "Bosses"), "a bare label");
+            Equal(null, MinimapMarks.ArenaBoss("Metadata/Terrain/Woods/Village/Huts/VillageArena_02_courtyard_side.tdtx:0-y:0", "Entrance"), "the way into an arena");
+            Equal(null, MinimapMarks.ArenaBoss("Metadata/Terrain/Maps/Derelict/Tiles/HoltenBossStairsDown_01.tdtx:0-y:0", "Boss stairs"), "stairs down to a boss");
+            Equal(null, MinimapMarks.ArenaBoss("Metadata/Terrain/Woods/HuntingGrounds/RitualClearing01.tdtx:0-y:4", "Ritual Site (Level 4 Skill Gem)"), "no arena");
+            Equal(true, MinimapMarks.IsArenaTile("Metadata/Terrain/Interlude/Part2/P2_7/Qimah_bossroom.tdtx:3-y:1"), "an arena tile without a label");
+            Equal(false, MinimapMarks.IsArenaTile("Metadata/Terrain/Woods/Mudburrow/Path/path_St_Spawner_v02_01.tdtx:1-y:0"), "a burrow path");
+            var arenas = MinimapMarks.Groups(new[] { new System.Numerics.Vector2(0, 0), new System.Numerics.Vector2(400, 400), new System.Numerics.Vector2(46, 0), new System.Numerics.Vector2(23, 0) }, 46);
+            Equal("0 2 3 | 1", string.Join(" | ", arenas.Select(group => string.Join(' ', group.OrderBy(member => member)))), "one arena's pieces side by side, another far off");
+            Equal("Beira of the Rotten", MinimapMarks.WithoutNote("Beira of the Rotten (10% Cold Res)"), "the reward note left out");
+            var notes = QuestMatcher.Targets(new[]
+                {
+                    new ScanEntry(5, ScanCategory.PointsOfInterest, "Sala del jefe: Arena o coto de caza", 0, 0, 0, MinimapMarks.BossRoomKind, Subject: "Arena o coto de caza"),
+                    new ScanEntry(6, ScanCategory.PointsOfInterest, "Sala del jefe", 0, 0, 0, MinimapMarks.BossRoomKind),
+                },
+                new[] { "La caza", "Ve al Coto de caza y encuentra la Arena" });
+            Equal(0, notes.Count, "a boss room's note sharing words with the objective is no target, nor an unnamed room");
+            var bossTargets = QuestMatcher.Targets(new[] { new ScanEntry(4, ScanCategory.PointsOfInterest, "Sala del jefe: Asinia", 0, 0, 0, MinimapMarks.BossRoomKind, Subject: "Asinia") },
+                                                   new[] { "La consorte", "Asinia te espera en la Tumba de la Consorte" });
+            Equal(1, bossTargets.Count, "the quest naming the boss leads to the boss room");
+        }
+
+        private static void SignsAreNeverQuestTargetsAndQuestIconsAlways()
+        {
+            var entries = new[]
+            {
+                new ScanEntry(1, ScanCategory.Objects, "Letrero: Pueblo de Ogham", 0, 0, 0, MinimapMarks.SignKind),
+                new ScanEntry(2, ScanCategory.Exits, "Tierras de cultivo de Ogham", 0, 0, 0),
+                new ScanEntry(3, ScanCategory.Objects, "Mecanismo antiguo", 0, 0, 0, QuestMarked: true),
+            };
+            var targets = QuestMatcher.Targets(entries, new[] { "El lobo rabioso de Ogham", "Infíltrate en la Mansión más allá del pueblo de Ogham" });
+            Equal("Mecanismo antiguo | Tierras de cultivo de Ogham", string.Join(" | ", targets.Select(entry => entry.Name)),
+                  "the quest's icon first, the exit by its proper noun, never the sign that names the village (user 2026-10-28)");
+            Equal("Mecanismo antiguo", string.Join(" | ", QuestMatcher.Targets(entries, Array.Empty<string>()).Select(entry => entry.Name)), "the quest icon needs no tracker text");
+        }
+
+        private static void UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay()
+        {
+            var from = new System.Numerics.Vector2(100, 100);
+            var east = new System.Numerics.Vector2(170, 100);
+            var north = new System.Numerics.Vector2(100, 40);
+            Equal(north, ExplorationMap.Follow(null, new[] { east, north }, from), "the nearest first");
+            Equal(east + new System.Numerics.Vector2(10, 0), ExplorationMap.Follow(east, new[] { east + new System.Numerics.Vector2(10, 0), north }, from),
+                  "the place sounded keeps sounding, moved, while the frontier still holds it");
+            Equal(new System.Numerics.Vector2(100, 90), ExplorationMap.Follow(east, new[] { east, new System.Numerics.Vector2(100, 90) }, from),
+                  "another less than half as far takes over");
+            Equal(null, ExplorationMap.Follow(east, Array.Empty<System.Numerics.Vector2>(), from), "nothing left");
+            var right = new System.Numerics.Vector2(1, 0);
+            Equal(true, ExplorationMap.AnyToward(from, right, new[] { east }, ExplorationMap.MarkReachCells), "unseen ground ahead marks the ray");
+            Equal(true, ExplorationMap.AnyToward(from, right, new[] { new System.Numerics.Vector2(160, 150) }, ExplorationMap.MarkReachCells), "within the ray's quarter");
+            Equal(false, ExplorationMap.AnyToward(from, right, new[] { north }, ExplorationMap.MarkReachCells), "not off to the side");
+            Equal(false, ExplorationMap.AnyToward(from, right, new[] { new System.Numerics.Vector2(100 + ExplorationMap.MarkReachCells + 1, 100) }, ExplorationMap.MarkReachCells), "not beyond reach");
+            const int rate = 44100;
+            var open = RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Up, rate);
+            var marked = RadarSynth.WithUnexploredTail(open, RadarSynth.Direction.Up, rate);
+            Equal(true, marked.Length > open.Length + (rate / 10) && marked.Take(open.Length).SequenceEqual(open), "the cue untouched, then the pips");
+            Equal(true, marked.Skip(open.Length).Max(Math.Abs) is > 0.1f and <= 1f, "the pips are heard and do not clip");
+        }
+
         private static void ReachPingsOncePerContact()
         {
             // Reach 40, release 25: a fight swaying around the edge pings once; it arms again only past 65 or with no enemy.
@@ -1619,6 +1711,8 @@ namespace Poe2Accessibility.Tests
         private static void BuffIdsNameAilments()
         {
             Equal(StatusAilment.Chilled, StatusAilments.FromBuffId("chilled") ?? StatusAilment.Cursed, "chill");
+            Equal(StatusAilment.StopMoving, StatusAilments.FromBuffId("voodoo_king_punishment_moving") ?? StatusAilment.Cursed, "punished for moving: stand still");
+            Equal(StatusAilment.KeepMoving, StatusAilments.FromBuffId("voodoo_king_punishment_stationary") ?? StatusAilment.Cursed, "punished for standing: keep moving");
             Equal(StatusAilment.Frozen, StatusAilments.FromBuffId("frozen") ?? StatusAilment.Cursed, "freeze");
             Equal(StatusAilment.Poisoned, StatusAilments.FromBuffId("poisoned") ?? StatusAilment.Cursed, "poison");
             Equal(StatusAilment.Electrocuted, StatusAilments.FromBuffId("electrocuted") ?? StatusAilment.Cursed, "electrocution before shock");

@@ -64,6 +64,9 @@ namespace Poe2Accessibility.Services
             return table;
         }
 
+        /// <summary>The area's labels as the tables write them (English), for judging what a tile is.</summary>
+        public IReadOnlyDictionary<string, string> Source(string areaId) => this.areas.TryGetValue(areaId, out var tiles) ? tiles : None;
+
         public IReadOnlyDictionary<string, string> For(string areaId)
         {
             if (!this.areas.TryGetValue(areaId, out var tiles))

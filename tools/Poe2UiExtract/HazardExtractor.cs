@@ -24,6 +24,16 @@ internal static class HazardExtractor
         "Consecration", "Haste", "Blizzard", "Oasis", "FeatheredGround", "Leyline", "Smoke", "Unused",
     };
 
+    /// <summary>
+    ///     Ground the player is slowed or hurt in whose buff says nothing of standing (Freythorn and the Voodoo King, research
+    ///     2026-10-29: the swamp, spores, vines and the rat tornado's trail).
+    /// </summary>
+    private static readonly string[] UnsaidGround =
+    {
+        "azmeri_swamp_ground", "rain_of_spores_vines_aura", "rooted_spore_ground", "ground_spore_damage", "mud_slow",
+        "voodoo_king_ratnado_degen", "voodoo_king_plant_slow",
+    };
+
     private static readonly Regex Standing = new(@"standing (in|on)|in the (beam|aura|cloud)", RegexOptions.IgnoreCase);
     private static readonly Regex Taking = new(@"taking .*damage", RegexOptions.IgnoreCase);
 
@@ -58,6 +68,11 @@ internal static class HazardExtractor
             if (buffs.StringOrNull(row, BuffDescriptionOffset) is { } description && Standing.IsMatch(description) && Taking.IsMatch(description))
             {
                 ids.Add(buffs.String(row, 0));
+            }
+
+            if (Array.IndexOf(UnsaidGround, buffs.String(row, 0)) >= 0)
+            {
+                ids.Add(buffs.String(row, 0)); // only while the game still has it
             }
         }
 

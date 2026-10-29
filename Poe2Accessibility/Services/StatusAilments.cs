@@ -20,6 +20,12 @@ namespace Poe2Accessibility.Services
         Maimed,
         Blinded,
         Cursed,
+
+        /// <summary>A boss's rule: stop moving or be imprisoned (the Voodoo King's voodoo_king_punishment_moving).</summary>
+        StopMoving,
+
+        /// <summary>A boss's rule: keep moving or be imprisoned (voodoo_king_punishment_stationary).</summary>
+        KeepMoving,
     }
 
     /// <summary>Buff definition id → ailment, by its words (pure).</summary>
@@ -57,10 +63,19 @@ namespace Poe2Accessibility.Services
             "count", "reserve", "cannot", "flask", "have", "was", "enemy", "enemies", "stunnable", "damage", "duration",
         };
 
+        /// <summary>A boss's movement rule ("Stop moving or you will be imprisoned"): the id names what is punished.</summary>
+        private const string PunishmentWord = "punishment";
+
         /// <summary>The ailment a buff id stands for; null for everything else (auras, flasks, charges, immunities).</summary>
         public static StatusAilment? FromBuffId(string id)
         {
             var words = id.ToLowerInvariant().Split('_', StringSplitOptions.RemoveEmptyEntries);
+            if (words.Contains(PunishmentWord))
+            {
+                // Punished for moving: stand still; for standing: keep moving (BuffDefinitions descriptions).
+                return words.Contains("moving") ? StatusAilment.StopMoving : words.Contains("stationary") ? StatusAilment.KeepMoving : null;
+            }
+
             if (words.Any(NotTheState.Contains))
             {
                 return null;

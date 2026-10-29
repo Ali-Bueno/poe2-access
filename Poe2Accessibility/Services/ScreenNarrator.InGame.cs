@@ -249,7 +249,12 @@ namespace Poe2Accessibility.Services
             }
             else if (change.Kind == ScreenChangeKind.TextsAppeared && (DateTime.UtcNow - this.collapsedAt).TotalMilliseconds >= FocusTextMergeMs)
             {
-                this.Speak("appeared in focus layer", texts, false);
+                // Cards of the same list drawn a moment after a scroll (the shop's "¡NUEVO!" flags) are read when reached.
+                var news = focus == null || this.InAnotherShopCard is not { } other ? texts : Describe(kept.Where(text => !other(text.Address, focus.Address)));
+                if (news.Length > 0)
+                {
+                    this.Speak("appeared in focus layer", news, false);
+                }
             }
         }
 

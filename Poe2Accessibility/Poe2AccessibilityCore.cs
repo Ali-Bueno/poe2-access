@@ -40,6 +40,7 @@ namespace Poe2Accessibility
 
         private EnemyCues? enemyCues;
         private Radar? radar;
+        private UnexploredLoop? unexploredLoop;
         private Radar? partnerRadar;
         private LocalPlayers? localPlayers;
         private ProximityNarrator? nearby;
@@ -270,6 +271,7 @@ namespace Poe2Accessibility
                 this.partnerFlasks = new FlaskWatch(inventory, partnerVoice) { Seat = () => 2 };
                 this.gold = new GoldWatch(memory, elements, this.output, this.log) { Fields = this.locator.Fields };
                 this.pickups.Gold = () => this.gold?.ReadNow();
+                this.focus.InGameHighlightRoot = this.ShopPage;
                 this.pickups.SidePanel = () => this.semantics?.SidePanelTitle(
                     this.locator.Fields.Find(this.focus?.LayerContainer ?? IntPtr.Zero, InGameField.InventoryPanel)) ?? string.Empty;
                 this.pickups.GroundItemIds = this.partnerPickups.GroundItemIds = () => this.entities?.GroundItemIds() ?? Array.Empty<uint>();
@@ -292,6 +294,10 @@ namespace Poe2Accessibility
                 var drops = ItemDropSounds.Load(
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds, drops);
+                // The mod's own recorded sounds (assets/, shipped), loaded like the game's.
+                var modSounds = GameSounds.Load(Path.Join(this.DllDirectory, "assets"), GameSoundSeconds, this.log);
+                this.unexploredLoop = new UnexploredLoop(this.audio, this.entities, modSounds.GetLoop(UnexploredLoop.LoopName), this.log);
+                this.radar.Unexplored = () => this.Settings.UnexploredMark ? this.entities.UnexploredCells() : Array.Empty<System.Numerics.Vector2>();
                 this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds, new KnownPlaces(Path.Join(this.DllDirectory, "config", "known-places.txt")));
                 this.enemyNews = new EnemyNarrator(this.entities, this.output);
                 this.deaths = new DeathWatch(this.locator, elements, this.output, this.log)
@@ -304,13 +310,14 @@ namespace Poe2Accessibility
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
-                this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds));
+                this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds, modSounds));
                 this.commands.Settings = () => this.Settings;
                 this.commands.SkillBar = this.ReadSkillBar;
                 SpeechPriority.Chosen = this.SpeechLevel;
                 this.narrator.InPanel = this.semantics.IsInPanel;
                 this.narrator.InOtherControlGroup = this.semantics.InOtherControlGroup;
                 this.narrator.InSiblingRow = this.semantics.InSiblingRow;
+                this.narrator.InAnotherShopCard = this.semantics.InAnotherShopCard;
                 this.narrator.SelectorPosition = this.semantics.SelectorPosition;
                 this.narrator.SelectorChoice = this.semantics.SelectorChoice;
                 this.narrator.IsSkillBarText = this.IsSkillBarText;
@@ -377,6 +384,7 @@ namespace Poe2Accessibility
             this.screen = null;
             this.enemyCues = null;
             this.radar = null;
+            this.unexploredLoop = null;
             this.partnerRadar = null;
             Seats.Attach(null, null);
             this.localPlayers = null;
@@ -794,6 +802,7 @@ namespace Poe2Accessibility
             this.discoveries?.Reset(areaName, resumed);
             this.enemyNews?.Reset();
             this.entities?.Forget();
+            this.unexploredLoop?.Reset();
             this.nearby?.Reset();
             this.places?.Reset();
             this.narrator?.NewArea(resumed);

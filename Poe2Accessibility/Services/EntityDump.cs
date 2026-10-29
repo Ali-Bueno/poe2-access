@@ -64,6 +64,7 @@ namespace Poe2Accessibility.Services
             {
                 var entity = row.Entity;
                 var icon = entity.TryGetComponent<MinimapIcon>(out var minimap) ? minimap.IconName ?? string.Empty : string.Empty;
+                icon += minimap == null ? string.Empty : $"|{MinimapIconLabel.Of(this.memory, this.reader, minimap)}";
                 var life = entity.TryGetComponent<Life>(out var vitals) ? (vitals.IsAlive ? "alive" : "dead") : "-";
                 var reaction = entity.TryGetComponent<Positioned>(out var positioned) ? (positioned.IsFriendly ? "friendly" : "hostile") : "-";
                 var targetable = entity.TryGetComponent<Targetable>(out var target) ? (EntityCatalog.IsInPlay(this.memory, entity) ? "targetable" : "untargetable") : "-";
