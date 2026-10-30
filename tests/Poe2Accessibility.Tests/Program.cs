@@ -1095,7 +1095,7 @@ namespace Poe2Accessibility.Tests
             Equal(0, CullSkills.Load(System.IO.Path.Join(System.IO.Path.GetTempPath(), "no-such-cull-skills.txt")).Count, "a missing catalog culls nothing");
             Equal(true, CullThreshold.Modes[0] == CullThreshold.WithSkill, "only with a culling skill by default");
             var gong = CueSynth.Cull(44100);
-            Equal(true, gong.Length == (int)(0.75f * 44100) && MathF.Abs(gong.Max(MathF.Abs) - 0.75f) < 0.001f, "the gong: 0.75 s at its level, 5 dB over the sample");
+            Equal(true, gong.Length == (int)(0.75f * 44100) && MathF.Abs(gong.Max(MathF.Abs) - 0.94f) < 0.001f, "the gong: 0.75 s at its level, 7 dB over the sample");
             Equal(true, MathF.Abs(gong[^1]) < 0.01f, "it fades out without a click");
             Equal(true, gong.Length > CueSynth.StateCue(EnemyState.HeavyStunned, 44100).Length, "longer than the heavy-stun gong");
         }

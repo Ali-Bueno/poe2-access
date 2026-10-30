@@ -178,8 +178,8 @@ namespace Poe2Accessibility.Services
         private const float CullGongLevel = 0.32f;
         private const float CullMixLevel = 0.42f;
 
-        /// <summary>The sample's level raised 5 dB (0.42 → 0.75): it sounded too quiet in play (user, 2026-10-29).</summary>
-        private const float CullLevel = 0.75f;
+        /// <summary>The sample's level raised 7 dB (0.42 → 0.94): it sounded too quiet in play, at +5 dB still a little (user, 2026-10-29).</summary>
+        private const float CullLevel = 0.94f;
 
         /// <summary>The gong's modes: ratio to the strike tone, level, decay seconds; those above the second bloom after the strike.</summary>
         private static readonly (float Ratio, float Level, float Decay)[] CullModes =
