@@ -20,7 +20,7 @@ injects code or touches network traffic. Use it at your own risk.
 ## Requirements
 
 - Windows 10 or 11, 64-bit.
-- Path of Exile 2 on Steam.
+- Path of Exile 2 on Steam, or the Korean client (Kakao Games).
 - A screen reader. NVDA is recommended; without one, the Windows voice is used.
 - An Xbox or PlayStation controller: the mod is built for playing with a controller.
 
@@ -30,7 +30,10 @@ Nothing else needs installing: everything is inside the folder.
 
 1. Unzip the folder anywhere. If Windows says it protected your PC when you open the mod, choose "More info", then
    "Run anyway" (or, before unzipping, open the downloaded file's Properties, tick "Unblock" and accept).
-2. Start Steam.
+2. Start Steam. With the Korean client, `Poe2Access.exe` asks you instead to start the game from the Kakao Games
+   website (it needs your login there), then press OK; and it asks to run as administrator (the Windows prompt): the
+   Korean client lets only an administrator read it. With both clients installed, it starts the Steam one; to play the
+   Korean one, start it first.
 3. Run `Poe2Access.exe`. It starts the game if it is not running, then the mod. The first time, and after each game
    update, it prepares the sounds and data from your own installation: about half a minute of silence. A new
    version of the mod keeps them (it redoes only what it changed, in seconds) when it updates itself or is unzipped over

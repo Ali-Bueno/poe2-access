@@ -13,8 +13,9 @@ internal static partial class Program
         "  --host   GameHelper folder (default: this folder, or the repository build output)";
 
     private const uint MessageBoxError = 0x10;
-    private const uint MessageBoxInformation = 0x40;
+    internal const uint MessageBoxInformation = 0x40;
     private const int AttachParentProcess = -1;
+    private const int ErrorCancelled = 1223; // the UAC prompt was declined
 
     [LibraryImport("user32.dll", EntryPoint = "MessageBoxW", StringMarshalling = StringMarshalling.Utf16)]
     internal static partial int MessageBox(IntPtr window, string text, string caption, uint type);
@@ -49,6 +50,7 @@ internal static partial class Program
         Updater.DeleteLeftover();
         int code;
         var updated = false;
+        var elevate = false;
         using (var mutex = new Mutex(true, @"Local\Poe2Access", out var owned))
         {
             if (!owned)
@@ -57,7 +59,7 @@ internal static partial class Program
                 return 1;
             }
 
-            code = Run(command, host, ref updated);
+            code = Run(command, host, ref updated, ref elevate);
             mutex.ReleaseMutex();
         }
 
@@ -65,16 +67,42 @@ internal static partial class Program
         {
             Updater.StartInstalled(args);
         }
+        else if (elevate)
+        {
+            try
+            {
+                code = GameLauncher.RunAsAdministrator(args);
+            }
+            catch (System.ComponentModel.Win32Exception error) when (error.NativeErrorCode == ErrorCancelled)
+            {
+                Fail("The Korean client of Path of Exile 2 can only be read by a program run as administrator. Start Poe2Access again and accept the prompt.");
+                return 1;
+            }
+            catch (Exception error)
+            {
+                Log.Write(error.ToString());
+                Fail($"Poe2Access could not restart as administrator: {error.Message}");
+                return 1;
+            }
+        }
 
         return code;
     }
 
-    private static int Run(string command, string? host, ref bool updated)
+    private static int Run(string command, string? host, ref bool updated, ref bool elevate)
     {
         try
         {
             Log.Write($"--- {command}");
             var controller = new HostController(HostController.ResolveDirectory(host));
+            // With the Korean client running, GameHelper runs as administrator: only an administrator launcher can
+            // stop or replace it (a plain one cannot even tell it from other processes).
+            if (elevate = NeedsAdministrator())
+            {
+                Log.Write("Done");
+                return 0;
+            }
+
             switch (command)
             {
                 case "start":
@@ -85,6 +113,11 @@ internal static partial class Program
                     }
 
                     GameLauncher.EnsureRunning();
+                    if (elevate = NeedsAdministrator())
+                    {
+                        break; // the game has just been started: the administrator launcher carries on
+                    }
+
                     GameDataSetup.EnsureCurrent(HostController.ResolveDirectory(host), GameLauncher.InstallDirectory());
                     controller.Restart();
                     break;
@@ -108,6 +141,17 @@ internal static partial class Program
             Fail(error.Message);
             return 1;
         }
+    }
+
+    private static bool NeedsAdministrator()
+    {
+        var needed = GameInstall.NeedsAdministrator(GameLauncher.RunningProcessName(), Environment.IsPrivilegedProcess);
+        if (needed)
+        {
+            Log.Write("Korean client running: restarting as administrator, which GameHelper needs to read it");
+        }
+
+        return needed;
     }
 
     private static void ShowUsage()
