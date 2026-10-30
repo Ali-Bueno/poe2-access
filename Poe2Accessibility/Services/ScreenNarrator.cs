@@ -82,6 +82,9 @@ namespace Poe2Accessibility.Services
         private ScreenSnapshot? seenSnapshot;
         private IntPtr seenTop;
         private AccessibleUiNode? pendingFocus;
+
+        /// <summary>The focus that showed nothing yet when it came (its caption is drawn a frame later).</summary>
+        private IntPtr unnamedFocus;
         private DateTime lastFocusAt = DateTime.MinValue;
         private DateTime lastTabAt = DateTime.MinValue;
 
@@ -446,6 +449,7 @@ namespace Poe2Accessibility.Services
         public void OnFocusChanged(AccessibleUiNode node)
         {
             this.lastFocusAt = DateTime.UtcNow;
+            this.unnamedFocus = node.Text.Length == 0 && node.Value.Length == 0 ? node.Address : IntPtr.Zero;
             if (this.inGame && node.NamedByControlId && node.Role is UiRole.Panel or UiRole.Unknown)
             {
                 // Only a control id names it ("skillgem socket", inspect "layout"): a tooltip that appears now says
@@ -718,6 +722,13 @@ namespace Poe2Accessibility.Services
                 this.deferredFocus = (node.Context.Length > 0 && waiting.Text.StartsWith(node.Context, StringComparison.Ordinal)
                     ? Announcements.InContext(node.Context, now)
                     : now, waiting.At, node);
+                return;
+            }
+
+            if (this.pendingFocus?.Address == node.Address || (this.unnamedFocus == node.Address && node.Text.Length > 0))
+            {
+                // Its caption arrived after the focus, which only a control id or nothing named: the whole focus, once.
+                this.OnFocusChanged(node);
                 return;
             }
 

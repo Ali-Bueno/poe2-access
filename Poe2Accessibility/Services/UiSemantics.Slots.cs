@@ -22,9 +22,6 @@ namespace Poe2Accessibility.Services
 
         private static readonly Regex WordStart = new("(?<=[a-z])(?=[A-Z])", RegexOptions.Compiled);
 
-        /// <summary>The numeral the cosmetics' weapon-set toggles draw instead of a caption ("…/Cosmetics/WeaponSetIcon2.dds|…").</summary>
-        private static readonly Regex WeaponSetIcon = new(@"/WeaponSetIcon(\d)\.dds", RegexOptions.Compiled);
-
         /// <summary>
         ///     An in-game control with no caption that shows a controller glyph: the button it binds, then what is
         ///     bound — the skill's name from its dat rows, else the title of the icon's tooltip (built for actions;
@@ -235,9 +232,9 @@ namespace Poe2Accessibility.Services
             foreach (var childAddress in this.elements.ReadChildren(info))
             {
                 if (this.elements.TryReadElement(childAddress, out var child) && child.IsVisibleFlag &&
-                    this.elements.ReadTextureKey(child) is { } key && WeaponSetIcon.Match(key) is { Success: true } match)
+                    this.elements.ReadTextureKey(child) is { } key && WeaponSetRows.FromTextureKey(key) is { } set)
                 {
-                    return Announcements.WeaponSet(int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture));
+                    return Announcements.WeaponSet(set);
                 }
             }
 

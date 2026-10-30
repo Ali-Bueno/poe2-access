@@ -227,14 +227,15 @@ namespace Poe2Accessibility.Services
             var texts = new List<(int Node, ScreenText Text)>();
             var glyphs = new List<(int Node, string Button)>();
             var units = new List<(int Node, string Unit)>();
+            var setIcons = new List<(int Node, int Set)>();
             var hasControls = false;
             bool isHintBar;
-            var stack = new Stack<(UiElementReader.ElementInfo Info, int Parent, int Control)>();
-            stack.Push((layerInfo, -1, -1));
+            var stack = new Stack<(UiElementReader.ElementInfo Info, int Parent, int Index, int Control)>();
+            stack.Push((layerInfo, -1, 0, -1));
             while (stack.Count > 0 && budget-- > 0)
             {
-                var (info, parent, control) = stack.Pop();
-                var above = parent >= 0 ? nodes[parent] : new WalkNode(-1, -1, 0, 0, -1, true);
+                var (info, parent, childIndex, control) = stack.Pop();
+                var above = parent >= 0 ? nodes[parent] : new WalkNode(-1, 0, -1, 0, 0, -1, true);
                 var self = nodes.Count;
                 var enabled = above.Enabled;
                 // A control slid out of view does not make its layer one to use: the login screen's "Deal of the Day"
@@ -247,7 +248,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 var position = info.Raw.RelativePosition;
-                nodes.Add(new WalkNode(parent, above.Depth + 1, above.X + position.X, above.Y + position.Y, control, enabled));
+                nodes.Add(new WalkNode(parent, childIndex, above.Depth + 1, above.X + position.X, above.Y + position.Y, control, enabled));
                 var children = this.elements.ReadChildren(info);
                 var hasText = this.elements.TryReadText(info.Address, out var text, out var tagged);
                 if (!hasText && this.capturedLongText == IntPtr.Zero && info.Raw.UnscaledSize.Y >= LongTextMinHeight && this.elements.IsLongText(info.Address))
@@ -293,6 +294,10 @@ namespace Poe2Accessibility.Services
                     {
                         glyphs.Add((self, this.HasChildNamed(children, GameLayout.InGameUi.HoldProgressName) ? Announcements.HoldButton(glyph) : glyph));
                     }
+                    else if (WeaponSetRows.FromTextureKey(key) is { } set)
+                    {
+                        setIcons.Add((self, set));
+                    }
                     else if (CurrencyIcons.FromTextureKey(key) is { } unit)
                     {
                         units.Add((self, unit));
@@ -313,13 +318,14 @@ namespace Poe2Accessibility.Services
                 {
                     if (this.elements.TryReadElement(children[i], out var child) && child.IsVisibleFlag && !IsIgnored(child.Name))
                     {
-                        stack.Push((child, self, control));
+                        stack.Push((child, self, i, control));
                     }
                 }
             }
 
             PairGlyphs(nodes, texts, glyphs);
             PairUnits(nodes, texts, units);
+            PairWeaponSets(nodes, texts, setIcons);
             MergeRows(nodes, texts);
             // A legend layer holds nothing but legends; a menu layer may carry its own hint bar (game menu).
             isHintBar = texts.Count > 0 && texts.TrueForAll(text => IsLegend(text.Text));
@@ -389,6 +395,24 @@ namespace Poe2Accessibility.Services
                 {
                     var text = texts[best].Text;
                     texts[best] = (texts[best].Node, text with { Text = Announcements.Amount(text.Text, unit, false) });
+                }
+            }
+        }
+
+        /// <summary>A value drawn for one weapon set names the set (the spirit panel: "set de armas II: 30 de espíritu").</summary>
+        private static void PairWeaponSets(List<WalkNode> nodes, List<(int Node, ScreenText Text)> texts, List<(int Node, int Set)> icons)
+        {
+            if (icons.Count == 0)
+            {
+                return;
+            }
+
+            var sets = WeaponSetRows.Pair(nodes.Select(node => node.Parent).ToList(), nodes.Select(node => node.Index).ToList(), icons, texts.Select(text => text.Node));
+            for (var i = 0; i < texts.Count; i++)
+            {
+                if (sets.TryGetValue(texts[i].Node, out var set))
+                {
+                    texts[i] = (texts[i].Node, texts[i].Text with { Text = Announcements.WeaponSetValue(set, texts[i].Text.Text) });
                 }
             }
         }
@@ -470,6 +494,6 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>A visited element: parent index, depth, position summed from the layer, owning control and its enabled state.</summary>
-        private readonly record struct WalkNode(int Parent, int Depth, float X, float Y, int Control, bool Enabled);
+        private readonly record struct WalkNode(int Parent, int Index, int Depth, float X, float Y, int Control, bool Enabled);
     }
 }

@@ -33,7 +33,8 @@ namespace Poe2Accessibility.Services
 
         private const int RowCellDepth = 2;
 
-        private static readonly string[] StructuralSuffixes = { "_parent", "_container", "_layout", "_background", "_bg", "_overlay" };
+        /// <summary>Last words of layout ids; "_display" holds a whole screen (the bind screen's "action_binding_display").</summary>
+        private static readonly string[] StructuralWords = { "parent", "container", "layout", "background", "bg", "overlay", "display", "scrollable_frame" };
 
         private readonly UiElementReader elements;
         private readonly UiCatalog catalog;
@@ -452,31 +453,58 @@ namespace Poe2Accessibility.Services
                 return this.FindDescendantText(info, CaptionSearchDepth, null);
             }
 
-            var cells = new List<string>();
-            this.CollectTexts(info, RowCellDepth, cells);
+            var walk = new RowWalk();
+            this.CollectTexts(info, 0, RowCellDepth, walk);
+            var sets = walk.Icons.Count > 0 ? WeaponSetRows.Pair(walk.Parents, walk.Indices, walk.Icons, walk.Texts.Select(text => text.Node)) : null;
+            var cells = walk.Texts.Select(text => sets != null && sets.TryGetValue(text.Node, out var set) ? Announcements.WeaponSetValue(set, text.Text) : text.Text).ToList();
             return cells.Count is > 0 and <= MaxRowCells ? Announcements.Cells(cells) : this.FindDescendantText(info, CaptionSearchDepth, null);
         }
 
-        private void CollectTexts(in UiElementReader.ElementInfo node, int depth, List<string> found)
+        private void CollectTexts(in UiElementReader.ElementInfo node, int nodeId, int depth, RowWalk walk)
         {
-            if (depth < 0 || found.Count > MaxRowCells)
+            if (depth < 0 || walk.Texts.Count > MaxRowCells)
             {
                 return;
             }
 
-            foreach (var childAddress in this.elements.ReadChildren(node))
+            var children = this.elements.ReadChildren(node);
+            for (var index = 0; index < children.Length; index++)
             {
-                if (!this.elements.TryReadElement(childAddress, out var child) || !child.IsVisibleFlag)
+                if (!this.elements.TryReadElement(children[index], out var child) || !child.IsVisibleFlag)
                 {
                     continue;
                 }
 
-                if (this.elements.TryReadSpokenText(childAddress, out var text) && text.Length > 0)
+                var id = walk.Add(nodeId, index);
+                if (this.elements.TryReadSpokenText(children[index], out var text) && text.Length > 0)
                 {
-                    found.Add(text);
+                    walk.Texts.Add((id, text));
+                }
+                else if (this.elements.ReadTextureKey(child) is { } key && WeaponSetRows.FromTextureKey(key) is { } set)
+                {
+                    walk.Icons.Add((id, set));
                 }
 
-                this.CollectTexts(child, depth - 1, found);
+                this.CollectTexts(child, id, depth - 1, walk);
+            }
+        }
+
+        /// <summary>A row's texts in drawing order and the weapon-set icons among them, as a tree for <see cref="WeaponSetRows" />.</summary>
+        private sealed class RowWalk
+        {
+            public List<int> Parents { get; } = new() { -1 };
+
+            public List<int> Indices { get; } = new() { 0 };
+
+            public List<(int Node, int Set)> Icons { get; } = new();
+
+            public List<(int Node, string Text)> Texts { get; } = new();
+
+            public int Add(int parent, int index)
+            {
+                this.Parents.Add(parent);
+                this.Indices.Add(index);
+                return this.Parents.Count - 1;
             }
         }
 
@@ -638,11 +666,12 @@ namespace Poe2Accessibility.Services
             return IntPtr.Zero;
         }
 
-        /// <summary>Layout ids that only group other elements ("panels_parent", "tabs_container"): they name nothing.</summary>
+        /// <summary>Layout ids that only group other elements ("panels_parent", "container") and numeric ids (a spirit row's "2231762944"): they name nothing.</summary>
         private static bool IsStructuralName(string controlName) =>
-            StructuralSuffixes.Any(suffix => controlName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
+            !controlName.Any(char.IsLetter) ||
+            StructuralWords.Any(word => controlName.Equals(word, StringComparison.OrdinalIgnoreCase) ||
+                                        controlName.EndsWith("_" + word, StringComparison.OrdinalIgnoreCase));
 
-        /// <summary>"patch_notes_button" → "patch notes"; "label_(button)" → "label"; a structural id → "".</summary>
         /// <summary>
         ///     A text field's hint ("Type your character name here..."), judged where it reads as words other than the
         ///     field's font face, which the field also holds 0x50 before the hint (0.5.5e).
@@ -655,6 +684,7 @@ namespace Poe2Accessibility.Services
             return HintAt(shift) ?? string.Empty;
         }
 
+        /// <summary>"patch_notes_button" → "patch notes"; "label_(button)" → "label"; a structural id → "".</summary>
         private static string Humanise(string controlName)
         {
             if (IsStructuralName(controlName))

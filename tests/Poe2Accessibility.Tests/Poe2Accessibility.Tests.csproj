@@ -13,6 +13,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\ScreenDiffer.cs" Link="Plugin\ScreenDiffer.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TextEdit.cs" Link="Plugin\TextEdit.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ChatDiff.cs" Link="Plugin\ChatDiff.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\WeaponSetRows.cs" Link="Plugin\WeaponSetRows.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\QuestRewards.cs" Link="Plugin\QuestRewards.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\L3Gestures.cs" Link="Plugin\L3Gestures.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ScanModel.cs" Link="Plugin\ScanModel.cs" />

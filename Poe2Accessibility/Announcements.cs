@@ -230,6 +230,9 @@ namespace Poe2Accessibility
             return T($"weapon set {numeral}", $"set de armas {numeral}");
         }
 
+        /// <summary>A value shown for one weapon set ("set de armas II: 30 de espíritu").</summary>
+        public static string WeaponSetValue(int number, string value) => $"{WeaponSet(number)}: {value}";
+
         /// <summary>The skill picker's red cross: choosing it leaves the button without a skill.</summary>
         public static string ClearBinding => T("empty the button", "vaciar el botón");
 

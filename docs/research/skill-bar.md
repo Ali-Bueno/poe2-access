@@ -94,3 +94,22 @@ Secondary set: LT swap, D-up/D-down/D-left Contexto 1/2/3, D-right Rotar misión
    Speak in screen order: "LT: …. LB: vacío. …". Index ≥ 12: prefix with the swap action's button.
 4. Same chain upgrades `UiSemantics.Slots.DescribeButtonSlot` on the bind screen: its skill icons can read
    `+0x2D8` instead of waiting for the hover tooltip ("Unarmed Default Skill" fallback).
+
+## Spirit panel (`spirit_management_display`, bind screen and Skills; dumps and memory reads 2026-10-29)
+
+- MEASURED: under `bind_management_display` → `container`: child 0 `spirit_management_display`, child 1
+  `action_binding_display` (the two skill-set bars). Both ids, and a reserved row's numeric id (`"2231762944"`), are
+  layout names: before the texts are drawn they were read aloud ("action binding display", the number).
+- MEASURED: the panel's children are `[0]` `scrollable_frame` → `entries_layout` → one row per spirit skill
+  (`title_label`, `cost_label`, `assign_ui_container` with `reservation_count_label` "Activada"/"Desactivada",
+  `assigned_spirit_title_label`, `assigned_spirit_value_label`); `[1]` the caption ("Asignación por set de armas" /
+  "Selecciona para gestionar…"); `[2]` one box per weapon set (`RebindSpiritBarBox.dds`, text "N de espíritu
+  <<spirit_resource_icon>>"); `[3]` LB glyph, the set icons, RB glyph.
+- MEASURED: set icons are images one level under each cell of `[3]`, textures
+  `…/InventoryPanel/InventoryPanelWeaponSwap{1,2,3}Active.dds` (texture at element +0x240, key at +0x8). Box k of
+  `[2]` belongs to the k-th icon: with Iron Ward on set I, box 0 read "0 de espíritu" and box 1 "30 de espíritu";
+  set III's icon cell and box are hidden on a two-set character. `WeaponSetRows` pairs them.
+- MEASURED: the same art marks each equipment slot (`weapon_set_icon`, sets repeated: 1, 1, 2, 2, 1, 1) and the
+  cosmetics weapon slots (`…/Cosmetics/WeaponSetIcon{1,2,3}.dds`, one slot each); neither has a row of boxes beside it.
+- MEASURED (Manage spirit, A): only box 0 is shown, centred under a narrower icon row; LB's glyph hidden, RB's shown.
+  Which box shows while managing set II is not yet seen.

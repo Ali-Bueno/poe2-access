@@ -112,6 +112,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(MinimapMarksNameBossRoomsAndLandmarks), MinimapMarksNameBossRoomsAndLandmarks);
             Run(nameof(SignsAreNeverQuestTargetsAndQuestIconsAlways), SignsAreNeverQuestTargetsAndQuestIconsAlways);
             Run(nameof(UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay), UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay);
+            Run(nameof(SpiritValuesNameTheirWeaponSet), SpiritValuesNameTheirWeaponSet);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
@@ -1036,6 +1037,40 @@ namespace Poe2Accessibility.Tests
             Equal(FlaskNews.Refilled, drinks.Update(0, Life, 1), "a use gained from kills");
             Equal(FlaskNews.New, drinks.Update(1, "Frasco de vida mayor", 2), "another flask put in the slot");
             Equal(FlaskNews.New, drinks.Update(2, "Frasco de maná mayor", 3), "a flask in a slot empty until now");
+        }
+
+        private static void SpiritValuesNameTheirWeaponSet()
+        {
+            // The spirit panel (bind screen dump 2026-10-29): [0] entries, [1] caption, [2] one box per set, [3] LB, set icons, RB.
+            var parents = new List<int> { -1 };
+            var indices = new List<int> { 0 };
+            int Node(int parent, int index)
+            {
+                parents.Add(parent);
+                indices.Add(index);
+                return parents.Count - 1;
+            }
+
+            Node(0, 0);
+            var caption = Node(0, 1);
+            var boxes = Node(0, 2);
+            var setOne = Node(Node(boxes, 0), 0);
+            var setTwo = Node(Node(boxes, 1), 0);
+            var icons = Node(0, 3);
+            Node(Node(icons, 0), 0);
+            var iconOne = Node(Node(icons, 1), 0);
+            var iconTwo = Node(Node(icons, 2), 0);
+            var setIcons = new[] { (iconTwo, 2), (iconOne, 1) };
+            var sets = WeaponSetRows.Pair(parents, indices, setIcons, new[] { caption, setOne, setTwo });
+            Equal(1, sets.GetValueOrDefault(setOne), "first box, set I");
+            Equal(2, sets.GetValueOrDefault(setTwo), "second box, set II");
+            Equal(false, sets.ContainsKey(caption), "the caption is no set's");
+            Equal(2, WeaponSetRows.Pair(parents, indices, setIcons, new[] { setTwo }).GetValueOrDefault(setTwo), "managing set II shows its box alone");
+            Equal(0, WeaponSetRows.Pair(parents, indices, new[] { (iconOne, 1), (iconTwo, 1) }, new[] { setOne, setTwo }).Count, "equipment slots repeat their sets");
+            indices[icons] = 5;
+            Equal(0, WeaponSetRows.Pair(parents, indices, setIcons, new[] { setOne, setTwo }).Count, "a row away from the icons is not theirs");
+            Equal(2, WeaponSetRows.FromTextureKey("Art/Textures/Interface/2D/2DArt/UIImages/InGame/InventoryPanel/InventoryPanelWeaponSwap2Active.dds|0,0,2f,28|0"), "inventory art");
+            Equal(1, WeaponSetRows.FromTextureKey("Art/Textures/Interface/2D/2DArt/UIImages/InGame/Cosmetics/WeaponSetIcon1.dds|0,0,0,0|0"), "cosmetics numeral");
         }
 
         private static void CullingThresholdsByRarity()
