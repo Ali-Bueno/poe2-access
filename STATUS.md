@@ -375,6 +375,8 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
+First (2026-10-30): the user opens `dist`'s `Poe2Access.exe` (the v2026.10.30-2 launcher, put in alone over v2026.10.29-3):
+the log should say "latest v2026.10.30-2" from `release.json` and the update install; that judges the manifest live.
 Next (2026-10-29, twelfth batch, deployed into the user's `dist`): hear the culling gong on a Killing Palm Monk (rares named),
 the charge ticks and counts (power heard live), Rage full/empty once "Furia al impactar" is taken, the other resources on
 other classes, and the sound glossary at raised volumes ("…, Volumen de enemigos"). An Enraged buff id will show in a
