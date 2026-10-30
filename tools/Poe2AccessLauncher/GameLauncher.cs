@@ -1,10 +1,13 @@
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Poe2AccessLauncher;
 
 /// <summary>Starts Path of Exile 2 through Steam (or asks for the Korean client to be started) and waits for its main window.</summary>
-internal static class GameLauncher
+internal static partial class GameLauncher
 {
+    private const uint ProcessQueryLimitedInformation = 0x1000;
     private const string SteamUrl = "steam://rungameid/2694490"; // Path of Exile 2 Steam app id
     private const string KakaoKey = @"HKEY_CURRENT_USER\Software\Kakaogames\POE2"; // written by the Korean client's installer
     private static readonly string[] ProcessNames = GameInstall.ProcessNames;
@@ -53,22 +56,51 @@ internal static class GameLauncher
         {
             using (process)
             {
-                try
+                if (Path.GetDirectoryName(ImagePath(process.Id)) is { Length: > 0 } directory)
                 {
-                    if (Path.GetDirectoryName(process.MainModule?.FileName) is { Length: > 0 } directory)
-                    {
-                        return directory;
-                    }
+                    return directory;
                 }
-                catch (Exception error) when (error is System.ComponentModel.Win32Exception or InvalidOperationException)
-                {
-                    Log.Write($"Game folder unreadable: {error.Message}");
-                }
+
+                Log.Write($"Game folder unreadable: {new Win32Exception(Marshal.GetLastPInvokeError()).Message}");
             }
         }
 
         return null;
     }
+
+    // Asks only for limited query access: Process.MainModule needs to read the game's memory, which the Korean client
+    // denies (access denied, 2026-10-31).
+    private static unsafe string? ImagePath(int processId)
+    {
+        var process = OpenProcess(ProcessQueryLimitedInformation, false, processId);
+        if (process == IntPtr.Zero)
+        {
+            return null;
+        }
+
+        try
+        {
+            const int capacity = 1024;
+            var buffer = stackalloc char[capacity];
+            var length = capacity;
+            return QueryFullProcessImageName(process, 0, buffer, ref length) ? new string(buffer, 0, length) : null;
+        }
+        finally
+        {
+            CloseHandle(process);
+        }
+    }
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    private static partial IntPtr OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, int processId);
+
+    [LibraryImport("kernel32.dll", EntryPoint = "QueryFullProcessImageNameW", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static unsafe partial bool QueryFullProcessImageName(IntPtr process, uint flags, char* name, ref int size);
+
+    [LibraryImport("kernel32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool CloseHandle(IntPtr handle);
 
     /// <summary>The Korean client's install folder, or null when it is not installed.</summary>
     private static string? KakaoDirectory() =>

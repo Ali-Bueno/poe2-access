@@ -1,6 +1,7 @@
-using LibBundledGGPK3;
+using LibBundle3;
 using LibGGPK3;
 using LibGGPK3.Records;
+using BundleRecord = LibBundle3.Records.BundleRecord;
 using Index = LibBundle3.Index;
 
 /// <summary>
@@ -28,7 +29,7 @@ internal static class GameContent
 
         var bundles2 = ggpk.Root["Bundles2"] as DirectoryRecord ?? throw new DirectoryNotFoundException($"No Bundles2 in {GgpkName}");
         var index = bundles2["_.index.bin"] as FileRecord ?? throw new FileNotFoundException($"No Bundles2/_.index.bin in {GgpkName}");
-        return new Index(new GGFileStream(index), false, false, new GGPKBundleFactory(ggpk, bundles2));
+        return new Index(new MemoryStream(index.Read(), false), false, false, new GgpkBundles(bundles2));
     }
 
     /// <summary>The bank FMOD/Desktop/<paramref name="name"/>.bank, or null when the install has none by that name.</summary>
@@ -68,5 +69,22 @@ internal static class GameContent
             var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
             return Opened[path] = new GGPK(stream);
         }
+    }
+
+    /// <summary>
+    ///     Each bundle read from its own copy in memory: LibBundledGGPK3's factory opens a GGFileStream, of which LibGGPK3
+    ///     allows one per file at a time, so the batch's extractions reading one bundle side by side failed ("An instance
+    ///     of GGFileStream is already created for this FileRecord", places, 2026-10-31). FileRecord.Read locks the GGPK.
+    /// </summary>
+    private sealed class GgpkBundles(DirectoryRecord bundles2) : IBundleFactory
+    {
+        public Bundle GetBundle(BundleRecord record) =>
+            bundles2.TryFindNode(record.Path, out var node) && node is FileRecord file
+                ? new Bundle(new MemoryStream(file.Read(), false), false, record)
+                : throw new FileNotFoundException($"No Bundles2/{record.Path} in {GgpkName}");
+
+        public Stream CreateBundle(string bundlePath) => throw new NotSupportedException("The game's bundles are only read.");
+
+        public bool DeleteBundle(string bundlePath) => throw new NotSupportedException("The game's bundles are only read.");
     }
 }
