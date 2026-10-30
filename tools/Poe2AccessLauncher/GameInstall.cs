@@ -11,7 +11,41 @@ internal static class GameInstall
     /// <summary>The game's process names: Steam, standalone, and the Kakao Games client (the names GameHelper2's GameOffsets looks for).</summary>
     public static readonly string[] ProcessNames = ["PathOfExileSteam", "PathOfExile", "PathOfExile_KG"];
 
+    /// <summary>Path of Exile 2's Steam app id.</summary>
+    public const string SteamAppId = "2694490";
+
     private const string KakaoProcessName = "PathOfExile_KG";
+
+    /// <summary>
+    ///     Whether the game is started by asking for the Korean client: only when Steam does not have the game, so a PC
+    ///     with both clients (or a Kakao Games folder left behind) still starts the Steam one, as before the Korean client.
+    /// </summary>
+    public static bool StartsKakaoClient(bool steamHasGame, string? kakaoDirectory) => !steamHasGame && kakaoDirectory is not null;
+
+    /// <summary>
+    ///     Whether one of the Steam libraries holds the game's manifest: Steam's own folder and every library listed in
+    ///     its steamapps\libraryfolders.vdf (whose paths escape their backslashes).
+    /// </summary>
+    public static bool SteamHasGame(string? steamDirectory)
+    {
+        if (string.IsNullOrEmpty(steamDirectory))
+        {
+            return false;
+        }
+
+        var libraries = new System.Collections.Generic.List<string> { steamDirectory };
+        var folders = Path.Join(steamDirectory, "steamapps", "libraryfolders.vdf");
+        if (File.Exists(folders))
+        {
+            foreach (System.Text.RegularExpressions.Match match in
+                     System.Text.RegularExpressions.Regex.Matches(File.ReadAllText(folders), "\"path\"\\s+\"([^\"]*)\""))
+            {
+                libraries.Add(match.Groups[1].Value.Replace(@"\\", @"\"));
+            }
+        }
+
+        return libraries.Exists(library => File.Exists(Path.Join(library, "steamapps", $"appmanifest_{SteamAppId}.acf")));
+    }
 
     /// <summary>
     ///     Whether the launcher must restart as administrator for GameHelper to read the running game: the Korean client

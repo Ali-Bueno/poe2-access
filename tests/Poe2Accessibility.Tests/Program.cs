@@ -57,6 +57,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(OldGameDataStampCarriesOver), OldGameDataStampCarriesOver);
             Run(nameof(GameContentIsFoundInEitherLayout), GameContentIsFoundInEitherLayout);
             Run(nameof(KakaoClientIsAGameProcess), KakaoClientIsAGameProcess);
+            Run(nameof(SteamGameIsStartedBeforeTheKakaoClient), SteamGameIsStartedBeforeTheKakaoClient);
             Run(nameof(TradeListingSaysItemPriceThenSeller), TradeListingSaysItemPriceThenSeller);
             Run(nameof(NearbyThingsWaitForTheCooldown), NearbyThingsWaitForTheCooldown);
             Run(nameof(StickClickWhileHoldingL3), StickClickWhileHoldingL3);
@@ -1711,6 +1712,38 @@ namespace Poe2Accessibility.Tests
             Equal(false, Poe2AccessLauncher.GameInstall.NeedsAdministrator("PathOfExile_KG", true), "an administrator launcher carries on");
             Equal(false, Poe2AccessLauncher.GameInstall.NeedsAdministrator("PathOfExileSteam", false), "the Steam client needs no administrator");
             Equal(false, Poe2AccessLauncher.GameInstall.NeedsAdministrator(null, false), "no game running needs no administrator");
+        }
+
+        private static void SteamGameIsStartedBeforeTheKakaoClient()
+        {
+            var root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "poe2-steam-" + Guid.NewGuid().ToString("N"));
+            var steam = System.IO.Path.Combine(root, "Steam");
+            var library = System.IO.Path.Combine(root, "Games");
+            var kakao = System.IO.Path.Combine(root, "Kakaogames");
+            try
+            {
+                System.IO.Directory.CreateDirectory(System.IO.Path.Combine(steam, "steamapps"));
+                System.IO.Directory.CreateDirectory(System.IO.Path.Combine(library, "steamapps"));
+                Equal(false, Poe2AccessLauncher.GameInstall.SteamHasGame(null), "no Steam has no game");
+                Equal(false, Poe2AccessLauncher.GameInstall.SteamHasGame(steam), "Steam without the game");
+
+                // libraryfolders.vdf escapes the backslashes of each library's path.
+                System.IO.File.WriteAllText(
+                    System.IO.Path.Combine(steam, "steamapps", "libraryfolders.vdf"),
+                    "\"libraryfolders\"\n{\n\t\"0\"\n\t{\n\t\t\"path\"\t\t\"" + steam.Replace("\\", "\\\\") + "\"\n\t}\n\t\"1\"\n\t{\n\t\t\"path\"\t\t\"" +
+                    library.Replace("\\", "\\\\") + "\"\n\t\t\"apps\"\n\t\t{\n\t\t\t\"2694490\"\t\t\"1\"\n\t\t}\n\t}\n}\n");
+                Equal(false, Poe2AccessLauncher.GameInstall.SteamHasGame(steam), "a library listing the game but holding no manifest");
+                System.IO.File.WriteAllText(System.IO.Path.Combine(library, "steamapps", "appmanifest_2694490.acf"), string.Empty);
+                Equal(true, Poe2AccessLauncher.GameInstall.SteamHasGame(steam), "the game in a second library");
+
+                Equal(false, Poe2AccessLauncher.GameInstall.StartsKakaoClient(true, kakao), "both installed: Steam starts the game");
+                Equal(true, Poe2AccessLauncher.GameInstall.StartsKakaoClient(false, kakao), "only the Korean client installed");
+                Equal(false, Poe2AccessLauncher.GameInstall.StartsKakaoClient(false, null), "neither found: Steam, as before");
+            }
+            finally
+            {
+                System.IO.Directory.Delete(root, true);
+            }
         }
 
         private static void ReleaseTagsOrderByDayThenNumber()

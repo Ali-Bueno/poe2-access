@@ -8,7 +8,8 @@ namespace Poe2AccessLauncher;
 internal static partial class GameLauncher
 {
     private const uint ProcessQueryLimitedInformation = 0x1000;
-    private const string SteamUrl = "steam://rungameid/2694490"; // Path of Exile 2 Steam app id
+    private const string SteamUrl = "steam://rungameid/" + GameInstall.SteamAppId;
+    private const string SteamKey = @"HKEY_CURRENT_USER\Software\Valve\Steam"; // written by Steam
     private const string KakaoKey = @"HKEY_CURRENT_USER\Software\Kakaogames\POE2"; // written by the Korean client's installer
     private static readonly string[] ProcessNames = GameInstall.ProcessNames;
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(240); // first start compiles shaders
@@ -22,7 +23,8 @@ internal static partial class GameLauncher
             return;
         }
 
-        if (KakaoDirectory() is { } kakao)
+        var kakao = KakaoDirectory();
+        if (GameInstall.StartsKakaoClient(GameInstall.SteamHasGame(SteamDirectory()), kakao))
         {
             // The Korean client only starts from the Kakao Games website, which hands it the login token.
             Log.Write($"Korean client installed in {kakao}: waiting for it to be started from the Kakao Games website");
@@ -127,6 +129,10 @@ internal static partial class GameLauncher
     [LibraryImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool CloseHandle(IntPtr handle);
+
+    /// <summary>Steam's folder, or null when Steam is not installed.</summary>
+    private static string? SteamDirectory() =>
+        Microsoft.Win32.Registry.GetValue(SteamKey, "SteamPath", null) is string path && Directory.Exists(path) ? path : null;
 
     /// <summary>The Korean client's install folder, or null when it is not installed.</summary>
     private static string? KakaoDirectory() =>
