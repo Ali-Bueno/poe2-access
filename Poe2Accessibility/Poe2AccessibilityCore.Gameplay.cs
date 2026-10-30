@@ -41,6 +41,7 @@ namespace Poe2Accessibility
             this.Isolated("partner radar", () => this.partnerRadar?.Tick(
                 inWorld && this.Settings.Radar && Seats.Partner is { } partner && IsAlive(partner)));
             this.Isolated("wall tones", () => this.wallTones?.Tick(playing && this.Settings.WallTones));
+            this.Isolated("fights", () => this.fights?.Tick(playing, this.Settings.QuietItemsInFights));
             this.Isolated("nearby", () => this.nearby?.Tick(playing, this.Settings.AnnounceNearby, this.Settings.AnnounceInteractTarget));
             this.Isolated("places", () => this.places?.Tick(playing, this.Settings.AnnouncePlaces));
             this.Isolated("exploration", () =>

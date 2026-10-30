@@ -98,7 +98,9 @@ namespace Poe2Accessibility.Services
                 this.lastAnyPlayed = now;
                 var (side, height) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, at - here));
                 var spread = Math.Min(1f, distance / DeployedObjects.CentreWorld);
-                this.audio.Play(this.GameSound(DeployedObjects.SoundKey(entity.Path)) ?? this.ping, side * spread, 1f + ((height - 1f) * spread), this.Gain * DeployedObjects.GainAt(distance));
+                var key = DeployedObjects.SoundKey(entity.Path);
+                var (sound, name) = this.GameSound(key) is { } game ? (game, key) : (this.ping, "deployed");
+                this.audio.Play(sound, side * spread, 1f + ((height - 1f) * spread), this.Gain * DeployedObjects.GainAt(distance), name);
             }
 
             if (seen.Count > this.mostStanding)

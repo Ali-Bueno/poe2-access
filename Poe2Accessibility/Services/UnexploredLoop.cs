@@ -87,7 +87,7 @@ namespace Poe2Accessibility.Services
             var closeness = 1f - Math.Clamp(distance / RangeWorld, 0f, 1f);
             var (side, height) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, offset));
             var spread = Math.Min(1f, distance / CentreWorld);
-            this.bed ??= this.audio.AddBed(this.loop);
+            this.bed ??= this.audio.AddBed(this.loop, LoopName);
             this.bed.Set(side * spread, this.Gain * (FarGain + ((1f - FarGain) * closeness)), 1f + ((height - 1f) * spread));
         }
     }

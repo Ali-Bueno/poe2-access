@@ -145,7 +145,10 @@
 | Named places walked into and props in reach (D2R) | done (live, town + Clearfell) | `PlaceNarrator`/`PlaceMap`/`PlaceTracker`, `catalog/places.json` from `Poe2UiExtract places` (2148 named tiles, tile and room props): "carro", "yunque", "campamento"; scanner category Lugares; tile props turned by RotationSelector (only 3 measured); `docs/research/places.md` |
 | Pre-game hints, delete/creation screens, edit done | done (live) | hints on entry, only new ones after; "¿Estás seguro…? yarkey… cancelar, botón, 1 de 2"; "Zq, edición terminada" |
 | NPC dialogue options read one by one | done (live) | `UiSemantics.OptionLists`: confirm glyph marks the option; D-pad left reaches the lore column; a heard topic (drawn grey) reads "Presentación, atenuado, 1 de 8" (Una, 2026-10-24) |
-| Spoken settings menu + sound glossary (hold L3 1.5 s) | done (live; submenus in code) | `SettingsMenu`, `SoundGlossary`; since 2026-10-30 in 12 submenus as D2R (pure `SettingsCursor`: left/right opens, L3 tap goes back, double tap closes; each reopens where left); the flat list of 128 was "todo por doquier" (user) |
+| Spoken settings menu + sound glossary (hold L3 1.5 s) | done (live; submenus in code) | `SettingsMenu`, `SoundGlossary`; since 2026-10-30 in submenus as D2R (13 with "Volumen de cada sonido") (pure `SettingsCursor`: left/right opens, L3 tap goes back, double tap closes; each reopens where left); the flat list of 128 was "todo por doquier" (user) |
+| Volume of each sound ("Volumen de cada sonido", after Volúmenes) | done (code) | every cue and bed names its glossary key; `AudioCueService.SetLevels`/`Level` (settings `SoundLevels`, percent of the group volume, 0-300); ground items by base folder (`ItemSoundGroup`: flask, equipment, gem, currency, gold, quest, other, rare layer), the discovery chime its own; left/right steps 25 % and plays it (user 2026-10-30) |
+| Ground items quiet in fights | done (code) | `FightWatch` + pure `FightState`: a rare or unique (default) or any alive enemy within `ObjectSounds.RangeWorld`, held 2 s; drop sounds, approach names, the A target and the HUD tooltip; named once the fight ends; setting `QuietItemsInFights` (user 2026-10-30) |
+| Enemies coming into view without direction | done (code) | `EnemyDirections` (on); off: "Ahogado, 3" (user 2026-10-30: too many words while a boss talks) |
 | Target from the HUD target bar (controller) | done (live) | HUD > entity_info_container > entity_info_display > name_label; MouseOverEntity is 0 with a pad |
 | Dodge timing before the first blow (game files) | done (unit, values checked against blows timed live) | `catalog/hit-times.txt` from `Poe2UiExtract hit-times` (6929 attacks loaded; 6084 of the 7398 warned of timed; projectiles add their flight at the files' speed, unit not timed live); repeat swings warned each period; `docs/research/dodge-timing.md` |
 | Death place "Donde moriste" among the exits (D2R) | done (code) | `DeathWatch.Died` → `EntityCatalog.RememberDeath` (area hash + position); not seen live (no death since) |
@@ -352,7 +355,7 @@
   legs) and `ScanModel` (`ScanBrowser`, `StickDirection`); `LandmarkTable`. Map marks: pure `MinimapMarks` (signs, boss
   rooms by icon or tile, pointer reach), `MinimapIconLabel` (an icon's translated label). Exploring: `ExplorationMap`
   (frontier), `UnexploredLoop` (D2R loop, `assets/loops/`), the radar's unexplored mark. Warnings: `VitalAlarm`.
-- Sounds: `AudioCueService` (winmm mixer) ← `EnemyCues` (`EnemyCueScheduler`, `CueSynth`) and `Radar`
+- Sounds: `AudioCueService` (winmm mixer; each sound's own level by glossary key, `SetLevels`) ← `EnemyCues` (`EnemyCueScheduler`, `CueSynth`) and `Radar`
   (`PassageScan`, `RadarSensor`, `RadarSynth`; a second `Radar` follows `Seats.Partner`); with `ProximityNarrator` (`ProximityTracker`) gated in
   `Poe2AccessibilityCore.TickSounds`.
 - Shop/stash: tooltip `cost` → `CurrencyIcons`, red price via `UiElementReader.IsTextRed`; grid tabs `UiSemantics.GridTab`.
@@ -361,7 +364,8 @@
 - Gameplay guides: `Beacon` (+ pure `BeaconMath`), `QuestMatcher`, `BossWatch` (boss life + dodge whoosh, pure
   `DodgeThreats`), `TargetNarrator` (aim names + crosshair), `StatusWatch` (+ pure `StatusAilments`), `EnemyNarrator`, `DeathWatch`,
   `ObjectSounds` + `GameSounds` + `ItemDropSounds` (game WAVs), `CheckpointPlaces` (+ pure `MapPlaces`),
-  `ScreenProjection` (world offset → screen, on-screen test), `FlaskWatch`, `ExperienceTable`, `LootFilter`.
+  `ScreenProjection` (world offset → screen, on-screen test), `FlaskWatch`, `ExperienceTable`, `LootFilter`, `ItemSoundGroup`,
+  `FightWatch` (+ pure `FightState`: ground items quiet in fights).
   Combat state cues: `CullWatch` (+ pure `CullThreshold`), `EnemyStateWatch` (+ pure `EnemyStates`, `EnemyStateNews`),
   `ShieldWatch` (+ pure `ShieldStance`, `StunMeter`), `WeakPointGuide` (+ pure `WeakPoints`); player skills: `PlayerSkills` (granted
   effect ids via `DatKey`, Parry and `CullSkills`), pure `ParryTiming`; research: `StunTrace` (dev `stuntrace`).
@@ -375,6 +379,10 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
+First (2026-10-30, thirteenth batch, not yet in the user's `dist`: the mod was running, copy `Poe2Accessibility.dll` and
+`catalog/lang/*.json` once it is stopped): hear "Volumen de cada sonido" (a flask at 50 % against equipment), a boss or
+rare fight with drops on the ground (silent until 2 s after, then named), and "Dirección de los enemigos que aparecen"
+off ("Ahogado, 3").
 First (2026-10-30): the user opens `dist`'s `Poe2Access.exe` (the v2026.10.30-2 launcher, put in alone over v2026.10.29-3):
 the log should say "latest v2026.10.30-2" from `release.json` and the update install; that judges the manifest live.
 Next (2026-10-29, twelfth batch, deployed into the user's `dist`): hear the culling gong on a Killing Palm Monk (rares named),

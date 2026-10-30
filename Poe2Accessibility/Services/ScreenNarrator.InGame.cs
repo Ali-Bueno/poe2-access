@@ -340,7 +340,7 @@ namespace Poe2Accessibility.Services
                 if (item != null || (itemTarget && change.Texts.Any(text => PropertyLine.IsMatch(text.Text))))
                 {
                     var quality = change.Texts.FirstOrDefault(text => QualityLine.IsMatch(text.Text));
-                    if (item is not "" && DateTime.UtcNow >= this.hudQuietUntil)
+                    if (item is not "" && DateTime.UtcNow >= this.hudQuietUntil && this.QuietGroundItems?.Invoke() != true)
                     {
                         // The game shows this tooltip for what A uses, already named with the button: only its quality is new.
                         var said = itemTarget ? quality?.Text ?? string.Empty : quality == null ? item! : $"{item}, {quality.Text}";

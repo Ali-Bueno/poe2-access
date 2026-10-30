@@ -62,6 +62,7 @@ namespace Poe2Accessibility
             if (this.audio != null)
             {
                 this.audio.Volume = Fraction(settings.SoundVolume);
+                this.audio.SetLevels(settings.SoundLevels);
             }
 
             foreach (var radar in new[] { this.radar, this.partnerRadar })
@@ -144,6 +145,11 @@ namespace Poe2Accessibility
             if (this.nearby != null)
             {
                 this.nearby.LootLevel = settings.LootSounds;
+            }
+
+            if (this.enemyNews != null)
+            {
+                this.enemyNews.Directions = settings.EnemyDirections;
             }
 
             if (this.discoveries != null)

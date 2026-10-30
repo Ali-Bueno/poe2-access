@@ -200,7 +200,7 @@ namespace Poe2Accessibility.Services
             var screen = ScreenProjection.Direction(player.WorldPosition, aim - here);
             this.LastAim = (screen, remainingWorld);
             var (pan, pitch) = BeaconMath.Voice(screen);
-            this.audio.Play(this.ping, pan, pitch, this.Gain);
+            this.audio.Play(this.ping, pan, pitch, this.Gain, "beacon");
         }
 
         /// <summary>Test aid (dev command "beacon"): target, route, search and ping state.</summary>

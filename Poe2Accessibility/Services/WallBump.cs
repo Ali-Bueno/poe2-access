@@ -67,7 +67,7 @@ namespace Poe2Accessibility.Services
 
             if (this.detector.Update(Environment.TickCount64, push, position, blocked) && thud)
             {
-                this.audio.Play(this.sound, Math.Clamp(push.X, -1f, 1f) * PanStrength, 1f, this.Gain);
+                this.audio.Play(this.sound, Math.Clamp(push.X, -1f, 1f) * PanStrength, 1f, this.Gain, "bump");
             }
 
             if (this.held.Update(Environment.TickCount64, push, position, !blocked))

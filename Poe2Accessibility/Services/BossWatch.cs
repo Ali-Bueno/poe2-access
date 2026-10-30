@@ -310,7 +310,7 @@ namespace Poe2Accessibility.Services
                 // At the wind-up, as the game's red glow: the dodge warning still times the roll.
                 attack = attack with { UnblockableCued = true };
                 var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
-                this.audio.Play(this.unblockable, pan, pitch, this.WarningGain(offset));
+                this.audio.Play(this.unblockable, pan, pitch, this.WarningGain(offset), "unblockable");
                 this.log.Debug($"Unblockable attack: monster {id} animation {(Animation)animation}");
             }
 
@@ -350,7 +350,7 @@ namespace Poe2Accessibility.Services
             {
                 this.lastParryCue = now;
                 var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
-                this.audio.Play(this.parry, pan, pitch, this.WarningGain(offset));
+                this.audio.Play(this.parry, pan, pitch, this.WarningGain(offset), "parry");
                 this.log.Debug($"Parry cue: monster {id} animation {(Animation)attack.Animation} ({attack.Threat}, gap {gap:F0}, {now - attack.StartedAt} ms in, blow in {blowAt - now} ms)");
             }
 
@@ -373,7 +373,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.warnedAt[id] = now;
-            this.audio.Play(this.whoosh, pan, pitch, gain);
+            this.audio.Play(this.whoosh, pan, pitch, gain, "dodge");
             return true;
         }
 

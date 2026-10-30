@@ -263,7 +263,7 @@ namespace Poe2Accessibility.Services
                 pan = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, offset)).Pan;
             }
 
-            this.audio.Play(this.beep, pan, 1f, this.Gain);
+            this.audio.Play(this.beep, pan, 1f, this.Gain, "crosshair");
         }
 
         /// <summary>Name, rarity of a magic or better monster, life when hurt; null for unnamed things and corpses.</summary>

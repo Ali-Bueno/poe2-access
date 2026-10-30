@@ -108,7 +108,7 @@ namespace Poe2Accessibility.Services
                     }
                     else
                     {
-                        this.Play(this.Lost(kind));
+                        this.Play(this.Lost(kind), "charge_lost");
                     }
                 }
 
@@ -172,7 +172,7 @@ namespace Poe2Accessibility.Services
                 }
                 else
                 {
-                    this.Play(this.Lost(ChargeKind.Rage));
+                    this.Play(this.Lost(ChargeKind.Rage), "charge_lost");
                 }
             }
 
@@ -182,18 +182,18 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        private void Play(float[] sound) => this.audio?.Play(sound, 0f, 1f, 1f);
+        private void Play(float[] sound, string key) => this.audio?.Play(sound, 0f, 1f, 1f, key);
 
         /// <summary>The player's own gain, unpanned: its recorded sound in stereo at the gain's pitch, else the ticks.</summary>
         private void PlayGain(ChargeKind kind, int count)
         {
             if (PlayerCharges.RecordedGain(kind) is { } key && this.RecordedSound(key) is { } recorded)
             {
-                this.audio?.Play(recorded, PlayerCharges.GainPitch(kind, count), 1f);
+                this.audio?.Play(recorded, PlayerCharges.GainPitch(kind, count), 1f, key);
                 return;
             }
 
-            this.Play(this.Gained(kind, count));
+            this.Play(this.Gained(kind, count), "charge_gained");
         }
 
         private float[] Gained(ChargeKind kind, int count)

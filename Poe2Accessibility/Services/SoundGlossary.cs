@@ -10,12 +10,20 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class SoundGlossary
     {
+        /// <summary>The drop each item group is heard by here: its most common one in catalog/item-sounds.json.</summary>
+        private static readonly (string Key, string Sample)[] ItemGroupSamples =
+        {
+            (ItemSoundGroup.Flask, "Flask_Drop_01"),
+            (ItemSoundGroup.Equipment, "HelmetMetal_Drop_01"),
+            (ItemSoundGroup.Gem, "SupportGem_Drop_01"),
+        };
+
         private readonly AudioCueService audio;
         private readonly Dictionary<string, float[]> sounds = new();
         private readonly Dictionary<string, StereoSound> stereo = new();
         private readonly List<string> keys = new();
 
-        public SoundGlossary(AudioCueService audio, GameSounds gameSounds, GameSounds modSounds)
+        public SoundGlossary(AudioCueService audio, GameSounds gameSounds, GameSounds modSounds, ItemDropSounds drops)
         {
             this.audio = audio;
             var rate = AudioCueService.SampleRate;
@@ -70,12 +78,25 @@ namespace Poe2Accessibility.Services
             this.Add("radar2_obstacle", RadarSynth.Obstacle(RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));
             this.Add("bump", RadarSynth.Bump(rate));
             this.Add("wall_tone", Excerpt(RadarSynth.WallTone(RadarSynth.Direction.Up, rate), rate));
+            foreach (var (key, sample) in ItemGroupSamples)
+            {
+                if (drops.Sample(sample) is { } samples)
+                {
+                    this.Add(key, samples);
+                }
+            }
+
             foreach (var game in new[] { "item", "item_rare", "currency", "gold", "quest_item", "chest", "corpse", "breakable", "switch", "shrine", "ritual", "exit", "portal", "waypoint", "checkpoint", "tempest_bell", "ice_crystal" })
             {
                 if ((gameSounds.GetLoop(game) is { } loop ? Excerpt(loop, rate) : gameSounds.Get(game)) is { } samples)
                 {
                     this.Add(game, samples);
                 }
+            }
+
+            if (gameSounds.Get("waypoint") is { } chime)
+            {
+                this.Add(DiscoveryNarrator.SoundKey, chime);
             }
         }
 
@@ -119,11 +140,11 @@ namespace Poe2Accessibility.Services
         {
             if (this.stereo.TryGetValue(key, out var sound))
             {
-                this.audio.Play(sound, 1f, gain);
+                this.audio.Play(sound, 1f, gain, key);
             }
             else if (this.sounds.TryGetValue(key, out var samples))
             {
-                this.audio.Play(samples, 0f, 1f, gain);
+                this.audio.Play(samples, 0f, 1f, gain, key);
             }
         }
 

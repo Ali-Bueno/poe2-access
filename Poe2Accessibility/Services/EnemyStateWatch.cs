@@ -115,7 +115,7 @@ namespace Poe2Accessibility.Services
                     if (!this.sounded.TryGetValue(state, out var last) || now - last >= StateGapMs)
                     {
                         this.sounded[state] = now;
-                        this.audio.Play(this.cues[state], pan, pitch, this.Gain);
+                        this.audio.Play(this.cues[state], pan, pitch, this.Gain, $"state_{state}");
                     }
                 }
 

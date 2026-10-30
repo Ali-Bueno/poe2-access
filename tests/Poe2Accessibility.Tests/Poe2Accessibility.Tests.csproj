@@ -21,6 +21,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\VitalAlarm.cs" Link="Plugin\VitalAlarm.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ExperienceTable.cs" Link="Plugin\ExperienceTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\LootFilter.cs" Link="Plugin\LootFilter.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ItemSoundGroup.cs" Link="Plugin\ItemSoundGroup.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\FightState.cs" Link="Plugin\FightState.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\InPlayFlag.cs" Link="Plugin\InPlayFlag.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ChangingField.cs" Link="Plugin\ChangingField.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\BitSearch.cs" Link="Plugin\BitSearch.cs" />

@@ -30,7 +30,7 @@ namespace Poe2Accessibility.Services
         {
             foreach (var direction in Directions)
             {
-                this.beds[direction] = audio.AddBed(RadarSynth.WallTone(direction, AudioCueService.SampleRate));
+                this.beds[direction] = audio.AddBed(RadarSynth.WallTone(direction, AudioCueService.SampleRate), "wall_tone");
             }
         }
 

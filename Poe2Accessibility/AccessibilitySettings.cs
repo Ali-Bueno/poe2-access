@@ -226,6 +226,9 @@ namespace Poe2Accessibility
         /// <summary>Name the enemies coming into view, a pack in one line: "Ahogado, 3, derecha".</summary>
         public bool AnnounceEnemies = true;
 
+        /// <summary>Each pack's direction after its name; off, the names only: "Ahogado, 3".</summary>
+        public bool EnemyDirections = true;
+
         /// <summary>Say what arrives in the inventory while playing: "Recogido: Traje de ermitaño".</summary>
         public bool AnnouncePickups = true;
 
@@ -272,8 +275,17 @@ namespace Poe2Accessibility
         /// </summary>
         public string LootSounds = Services.LootFilter.All;
 
+        /// <summary>
+        ///     When items on the ground stop sounding and being named: in a fight with a rare or unique monster ("rares"),
+        ///     with any enemy ("any"), or "never" (<see cref="Services.FightState"/>).
+        /// </summary>
+        public string QuietItemsInFights = Services.FightState.RaresAndUniques;
+
         /// <summary>Volume of the object sounds (game sounds for loot, chests, exits, waypoints), percent (0-300).</summary>
         public int ObjectVolume = 70;
+
+        /// <summary>Each sound's own volume by its sound glossary key, percent (0-300) of its group's volume; one not listed is at 100.</summary>
+        public System.Collections.Generic.Dictionary<string, int> SoundLevels = new();
 
         /// <summary>Research: dump the UI tree automatically once per screen (game state) after it settles, and log every focused widget's surroundings.</summary>
         public bool ResearchMode = true;

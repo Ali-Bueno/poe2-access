@@ -296,6 +296,8 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnouncePickups) => T("Picked up items", "Objetos recogidos"),
             nameof(AccessibilitySettings.AnnounceDiscoveries) => T("Discoveries", "Descubrimientos"),
             nameof(AccessibilitySettings.AnnounceEnemies) => T("Enemies coming into view", "Enemigos que aparecen"),
+            nameof(AccessibilitySettings.EnemyDirections) => T("Direction of enemies coming into view", "Dirección de los enemigos que aparecen"),
+            nameof(AccessibilitySettings.QuietItemsInFights) => T("Silence items on the ground in fights", "Silenciar objetos del suelo en combate"),
             nameof(AccessibilitySettings.AnnounceHand) => T("Item in hand", "Objeto en la mano"),
             nameof(AccessibilitySettings.AnnounceMoves) => T("Equipped and moved items", "Objetos equipados y movidos"),
             nameof(AccessibilitySettings.RoutePrompts) => T("Turn prompts", "Indicaciones de giro"),
@@ -498,7 +500,10 @@ namespace Poe2Accessibility
             "radar2_exit" => T("Player 2 radar: exit", "Radar del jugador 2: salida"),
             "radar2_obstacle" => T("Player 2 radar: small obstacle", "Radar del jugador 2: obstáculo pequeño"),
             "bump" => T("Wall bump", "Choque con pared"),
-            "item" => T("Item on the ground", "Objeto en el suelo"),
+            Services.ItemSoundGroup.Flask => T("Flask on the ground", "Frasco en el suelo"),
+            Services.ItemSoundGroup.Equipment => T("Equipment on the ground", "Equipo en el suelo"),
+            Services.ItemSoundGroup.Gem => T("Gem on the ground", "Gema en el suelo"),
+            "item" => T("Other item on the ground", "Otro objeto en el suelo"),
             "item_rare" => T("Rare item", "Objeto raro"),
             "currency" => T("Currency", "Moneda"),
             "gold" => T("Gold", "Oro"),
@@ -514,6 +519,7 @@ namespace Poe2Accessibility
             "waypoint" => T("Waypoint", "Punto de ruta"),
             "checkpoint" => T("Checkpoint", "Punto de control"),
             "npc_quest" => T("Character with a quest", "Personaje con misión"),
+            Services.DiscoveryNarrator.SoundKey => T("Discovery", "Descubrimiento"),
             _ => key,
         };
 
@@ -582,6 +588,9 @@ namespace Poe2Accessibility
                 "without a break, where the nearest unexplored ground begins, on its side; louder when closer",
                 "sin parar, donde empieza el terreno sin explorar más cercano, a su lado; más fuerte al acercarte"),
             "bump" => T("you pushed into a wall", "empujaste contra una pared"),
+            Services.DiscoveryNarrator.SoundKey => T(
+                "a new exit, waypoint, checkpoint or unique monster came into view, with its name",
+                "una salida, punto de ruta, punto de control o monstruo único nuevo a la vista, con su nombre"),
             "exit" or "portal" or "waypoint" or "checkpoint" => T(
                 "the nearest one, on its side, without a break; louder when closer, from the centre once you stand on it",
                 "el más cercano, a su lado, sin parar; más fuerte al acercarte, al centro cuando estás encima"),
@@ -595,9 +604,12 @@ namespace Poe2Accessibility
         public static string RareRarityWord => RarityName(GameHelper.RemoteEnums.Rarity.Rare);
 
         /// <summary>Enemies coming into view, biggest pack first: "Ahogado, 3, derecha. Lobo podrido, raro, arriba".</summary>
-        public static string EnemiesAppeared(IEnumerable<(string Name, int Count, int Direction)> groups) =>
+        public static string EnemiesAppeared(IEnumerable<(string Name, int Count, int Direction)> groups, bool directions = true) =>
             string.Join(". ", groups.Select(group =>
-                group.Count > 1 ? $"{group.Name}, {group.Count}, {StickDirections[group.Direction]}" : $"{group.Name}, {StickDirections[group.Direction]}"));
+            {
+                var named = group.Count > 1 ? $"{group.Name}, {group.Count}" : group.Name;
+                return directions ? $"{named}, {StickDirections[group.Direction]}" : named;
+            }));
 
         /// <summary>
         ///     The death screen read on its own: "Has muerto. resucitar en el punto de control"; hidden, it says so and that Y
@@ -713,6 +725,7 @@ namespace Poe2Accessibility
             "chat" => T("Chat", "Chat"),
             "speech" => T("Speech priority", "Prioridad de voz"),
             "volumes" => T("Volumes", "Volúmenes"),
+            "sound_levels" => T("Volume of each sound", "Volumen de cada sonido"),
             "general" => T("General", "General"),
             _ => T("Sound glossary", "Glosario de sonidos"),
         };
@@ -805,6 +818,8 @@ namespace Poe2Accessibility
             Services.CullThreshold.WithSkill => T("when one of your skills culls", "si una de tus habilidades remata"),
             Services.CullThreshold.Always => T("always", "siempre"),
             Services.CullThreshold.Never => T("never", "nunca"),
+            Services.FightState.RaresAndUniques => T("against rares and uniques", "contra raros y únicos"),
+            Services.FightState.AnyEnemy => T("against any enemy", "contra cualquier enemigo"),
             _ => LanguageName(value),
         };
 

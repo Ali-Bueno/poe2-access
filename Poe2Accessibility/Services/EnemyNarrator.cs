@@ -39,6 +39,9 @@ namespace Poe2Accessibility.Services
             this.output = output;
         }
 
+        /// <summary>Each pack's direction after its name (settings EnemyDirections; off, names only: fewer words in a boss fight).</summary>
+        public bool Directions { get; set; } = true;
+
         /// <summary>A new area: nothing named yet.</summary>
         public void Reset()
         {
@@ -91,7 +94,7 @@ namespace Poe2Accessibility.Services
                 .ToList();
             this.waiting.Clear();
             var rare = groups.Any(group => group.Name.EndsWith(Announcements.RareRarityWord, StringComparison.Ordinal));
-            this.output.Say(SpeechKind.EnemyNames, Announcements.EnemiesAppeared(groups.Take(MaxGroups)), rare);
+            this.output.Say(SpeechKind.EnemyNames, Announcements.EnemiesAppeared(groups.Take(MaxGroups), this.Directions), rare);
         }
     }
 }

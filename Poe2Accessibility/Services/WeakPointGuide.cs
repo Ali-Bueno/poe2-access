@@ -98,7 +98,7 @@ namespace Poe2Accessibility.Services
 
             this.lastBeat = now;
             var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, head.Position - here));
-            this.audio.Play(this.beat, pan, pitch, this.Gain * (gap <= this.ReachWorld ? AtPartGain : 1f));
+            this.audio.Play(this.beat, pan, pitch, this.Gain * (gap <= this.ReachWorld ? AtPartGain : 1f), "weak_point");
         }
 
         /// <summary>The living monsters within the arena; false (no names read) when none of them is a tail.</summary>

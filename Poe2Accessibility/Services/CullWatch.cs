@@ -84,7 +84,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, at - here));
-                this.audio.Play(this.Chime, pan, pitch, this.Gain);
+                this.audio.Play(this.Chime, pan, pitch, this.Gain, "cull");
                 if (rarity is Rarity.Rare or Rarity.Unique &&
                     this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) is { Length: > 0 } name)
                 {

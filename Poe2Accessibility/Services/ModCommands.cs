@@ -236,6 +236,8 @@ namespace Poe2Accessibility.Services
                         this.output.Speak(changed, true);
                         this.SettingsChanged?.Invoke(settings);
                     }
+
+                    this.settingsMenu.PlaySound(settings);
                     break;
                 case PadGesture.Tap:
                 case PadGesture.DoubleTap:

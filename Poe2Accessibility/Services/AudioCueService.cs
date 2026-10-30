@@ -41,6 +41,7 @@ namespace Poe2Accessibility.Services
         private readonly float[] mix = new float[BufferFrames * Channels];
         private readonly short[] pcm = new short[BufferFrames * Channels];
         private readonly Thread? mixer;
+        private volatile IReadOnlyDictionary<string, float> levels = new Dictionary<string, float>();
         private IntPtr device;
         private volatile bool stopping;
 
@@ -82,14 +83,31 @@ namespace Poe2Accessibility.Services
         /// <summary>Master gain applied to every cue (settings volume).</summary>
         public float Volume { get; set; } = 1f;
 
+        /// <summary>Each sound's own volume by its glossary key, percent of its group's (settings SoundLevels); unset is 100.</summary>
+        public void SetLevels(IReadOnlyDictionary<string, int>? percents)
+        {
+            var fractions = new Dictionary<string, float>(StringComparer.Ordinal);
+            foreach (var (sound, percent) in percents ?? new Dictionary<string, int>())
+            {
+                fractions[sound] = Math.Clamp(percent, 0, SettingsMenu.MaxVolume) / 100f;
+            }
+
+            this.levels = fractions;
+        }
+
+        /// <summary>A sound's own volume, 1 = as designed.</summary>
+        public float Level(string sound) => this.levels.TryGetValue(sound, out var level) ? level : 1f;
+
         /// <summary>
         ///     Starts a cue. <paramref name="pan"/> -1 left … 1 right; <paramref name="pitch"/> 1 = as synthesized. A
         ///     <paramref name="gain"/> above 1 drives the cue alone into the soft limit, so its quiet body grows while its
         ///     peaks stay under full scale: louder, where a plain gain would only be clipped by the output stage.
+        ///     <paramref name="sound"/> is its glossary key, whose own volume scales the gain.
         /// </summary>
-        public void Play(float[] samples, float pan, float pitch, float gain)
+        public void Play(float[] samples, float pan, float pitch, float gain, string sound)
         {
-            if (!this.IsAvailable || samples.Length == 0 || pitch <= 0)
+            gain *= this.Level(sound);
+            if (!this.IsAvailable || samples.Length == 0 || pitch <= 0 || gain <= 0)
             {
                 return;
             }
@@ -100,9 +118,10 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>Starts a recorded stereo cue as recorded, unpanned (the player's own news); pitch and gain as for a mono cue.</summary>
-        public void Play(StereoSound sound, float pitch, float gain)
+        public void Play(StereoSound sound, float pitch, float gain, string key)
         {
-            if (!this.IsAvailable || sound.Left.Length == 0 || pitch <= 0)
+            gain *= this.Level(key);
+            if (!this.IsAvailable || sound.Left.Length == 0 || pitch <= 0 || gain <= 0)
             {
                 return;
             }
@@ -111,10 +130,10 @@ namespace Poe2Accessibility.Services
             this.Add(new Voice(sound.Left, sound.Right, pitch, level, level, MathF.Max(gain, 1f)));
         }
 
-        /// <summary>A looping sound mixed under the cues until the caller sets it silent (wall tones).</summary>
-        public Bed AddBed(float[] loop)
+        /// <summary>A looping sound mixed under the cues until the caller sets it silent (wall tones); its own volume by <paramref name="sound"/>.</summary>
+        public Bed AddBed(float[] loop, string sound)
         {
-            var bed = new Bed(loop);
+            var bed = new Bed(loop, () => this.Level(sound));
             lock (this.beds)
             {
                 this.beds.Add(bed);
@@ -233,6 +252,7 @@ namespace Poe2Accessibility.Services
             private const float Silence = 1e-5f;
 
             private readonly float[] loop;
+            private readonly Func<float> level;
             private double position;
             private float left;
             private float right;
@@ -241,7 +261,11 @@ namespace Poe2Accessibility.Services
             private volatile float targetRight;
             private volatile float targetPitch = 1f;
 
-            internal Bed(float[] loop) => this.loop = loop;
+            internal Bed(float[] loop, Func<float> level)
+            {
+                this.loop = loop;
+                this.level = level;
+            }
 
             /// <summary>Equal-power pan as for cues; gain 0 fades it out; pitch 1 = as recorded.</summary>
             public void Set(float pan, float gain, float pitch = 1f)
@@ -254,8 +278,9 @@ namespace Poe2Accessibility.Services
 
             internal void MixInto(float[] mix)
             {
-                var toLeft = this.targetLeft;
-                var toRight = this.targetRight;
+                var level = this.level();
+                var toLeft = this.targetLeft * level;
+                var toRight = this.targetRight * level;
                 if (this.loop.Length == 0 || (toLeft == 0 && toRight == 0 && this.left < Silence && this.right < Silence))
                 {
                     this.left = 0;

@@ -330,6 +330,17 @@ namespace Poe2Accessibility.Services
             PlayerDown,
         }
 
+        /// <summary>A layer's glossary key, which sets its own volume.</summary>
+        public static string LayerSound(Layer layer) => layer switch
+        {
+            Layer.Elite => "elite",
+            Layer.Boss => "boss",
+            Layer.Friend => "friend",
+            Layer.Player => "player",
+            Layer.PlayerDown => "player_down",
+            _ => "enemy",
+        };
+
         /// <summary>The growl with the layer for this enemy mixed in; a tap for an NPC, a double tap for a player.</summary>
         public static float[] Enemy(Layer layer, int sampleRate)
         {

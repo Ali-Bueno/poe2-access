@@ -108,6 +108,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(RadarLabelsSpeakSpanish), RadarLabelsSpeakSpanish);
             Run(nameof(ExperienceProgressIsWithinTheLevel), ExperienceProgressIsWithinTheLevel);
             Run(nameof(LootFilterKeepsWhatThePlayerChose), LootFilterKeepsWhatThePlayerChose);
+            Run(nameof(ItemsSoundUnderTheirGroupsVolume), ItemsSoundUnderTheirGroupsVolume);
+            Run(nameof(FightsLastWhileAnEngagingEnemyIsNear), FightsLastWhileAnEngagingEnemyIsNear);
             Run(nameof(InPlayFlagIsFoundFromStoryVariants), InPlayFlagIsFoundFromStoryVariants);
             Run(nameof(MovedFieldsAreFoundByWatchingThemChange), MovedFieldsAreFoundByWatchingThemChange);
             Run(nameof(FlagBitsAreFoundOnTheirCarriers), FlagBitsAreFoundOnTheirCarriers);
@@ -721,6 +723,37 @@ namespace Poe2Accessibility.Tests
             Equal("Nivel 4, 35 por ciento hacia el nivel 5, nivel del área 2", Announcements.Levels(4, 2, 35), "vitals line");
             Equal("Nivel 4, nivel del área 2", Announcements.Levels(4, 2), "without the table");
             Localization.Detect("en");
+        }
+
+        private static void ItemsSoundUnderTheirGroupsVolume()
+        {
+            Equal(ItemSoundGroup.Flask, ItemSoundGroup.Of("item", "Metadata/Items/Flasks/FlaskLife1"), "a flask");
+            Equal(ItemSoundGroup.Equipment, ItemSoundGroup.Of("item", "Metadata/Items/Armours/Helmets/FourHelmetStr1"), "a helmet");
+            Equal(ItemSoundGroup.Equipment, ItemSoundGroup.Of("rare", "Metadata/Items/Weapons/OneHandWeapons/Wands/FourWand1"), "a rare wand is equipment");
+            Equal(ItemSoundGroup.Equipment, ItemSoundGroup.Of("item", "Metadata/Items/Rings/FourRing1"), "a ring");
+            Equal(ItemSoundGroup.Gem, ItemSoundGroup.Of("item", "Metadata/Items/Gems/SkillGemFireball"), "a skill gem");
+            Equal(ItemSoundGroup.Gem, ItemSoundGroup.Of("item", "Metadata/items/Gem/SupportGemFasterCast"), "the files' other gem folders");
+            Equal("currency", ItemSoundGroup.Of("currency", "Metadata/Items/Currency/CurrencyIdentification"), "currency by its kind");
+            Equal("gold", ItemSoundGroup.Of("gold", string.Empty), "gold");
+            Equal("quest_item", ItemSoundGroup.Of("quest", "Metadata/Items/QuestItems/Book"), "a quest item");
+            Equal(ItemSoundGroup.Other, ItemSoundGroup.Of("item", "Metadata/Items/MapFragments/Key"), "anything else");
+            Equal(ItemSoundGroup.Other, ItemSoundGroup.Of("item", string.Empty), "an unread base");
+        }
+
+        private static void FightsLastWhileAnEngagingEnemyIsNear()
+        {
+            Equal(true, FightState.Engages(FightState.RaresAndUniques, true), "a rare starts a fight");
+            Equal(false, FightState.Engages(FightState.RaresAndUniques, false), "a white monster does not, by default");
+            Equal(true, FightState.Engages(FightState.AnyEnemy, false), "any enemy does when chosen");
+            Equal(false, FightState.Engages(CullThreshold.Never, true), "never");
+            var fight = new FightState();
+            Equal(false, fight.Update(false, 1000), "no enemy, no fight");
+            Equal(true, fight.Update(true, 2000), "an enemy near");
+            Equal(true, fight.Update(false, 2000 + FightState.HoldMs - 1), "held a moment after it is gone");
+            Equal(false, fight.Update(false, 2000 + FightState.HoldMs), "then over");
+            fight.Update(true, 9000);
+            fight.Reset();
+            Equal(false, fight.IsOn(9001), "a reset ends it");
         }
 
         private static void LootFilterKeepsWhatThePlayerChose()

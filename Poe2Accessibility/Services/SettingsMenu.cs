@@ -38,6 +38,7 @@ namespace Poe2Accessibility.Services
             new("enemies", new[]
             {
                 Switch(nameof(AccessibilitySettings.AnnounceEnemies)),
+                Switch(nameof(AccessibilitySettings.EnemyDirections)),
                 Switch(nameof(AccessibilitySettings.AnnounceTarget)),
                 Switch(nameof(AccessibilitySettings.AnnounceMonsterMods)),
                 Switch(nameof(AccessibilitySettings.AnnounceBossLife)),
@@ -84,6 +85,7 @@ namespace Poe2Accessibility.Services
             new("items", new[]
             {
                 Choice(nameof(AccessibilitySettings.LootSounds), LootFilter.Levels),
+                Choice(nameof(AccessibilitySettings.QuietItemsInFights), FightState.Modes),
                 Switch(nameof(AccessibilitySettings.AnnouncePickups)),
                 Switch(nameof(AccessibilitySettings.AnnounceHand)),
                 Switch(nameof(AccessibilitySettings.AnnounceMoves)),
@@ -108,7 +110,7 @@ namespace Poe2Accessibility.Services
                 Choice(nameof(AccessibilitySettings.SpeechGroundItems), SpeechPriority.Levels),
                 Choice(nameof(AccessibilitySettings.SpeechArrivals), SpeechPriority.Levels),
             }),
-            new("volumes", new[]
+            new(VolumesGroup, new[]
             {
                 Volume(nameof(AccessibilitySettings.SoundVolume)),
                 Volume(nameof(AccessibilitySettings.RadarVolume)),
@@ -129,13 +131,22 @@ namespace Poe2Accessibility.Services
         /// <summary>Highest volume, percent; above 100 a cue is driven into a soft limit rather than only clipped (AudioCueService).</summary>
         public const int MaxVolume = 300;
 
+        /// <summary>A sound's own volume when the player has not changed it, percent.</summary>
+        private const int DefaultLevel = 100;
+
         private const int VolumeStep = 25;
+
+        private const string VolumesGroup = "volumes";
+        private const string SoundLevelsGroup = "sound_levels";
 
         private readonly Group[] groups;
         private readonly SoundGlossary? glossary;
         private readonly SettingsCursor cursor;
 
-        /// <param name="glossary">Its sounds become the last group: name and meaning, left or right plays it.</param>
+        /// <param name="glossary">
+        ///     Its sounds become the last group (name and meaning, left or right plays it) and, after the volumes, each
+        ///     sound's own volume (left or right changes it and plays it).
+        /// </param>
         public SettingsMenu(SoundGlossary? glossary = null)
         {
             this.glossary = glossary;
@@ -143,6 +154,8 @@ namespace Poe2Accessibility.Services
             all.AddRange(SettingGroups);
             if (glossary?.Keys is { Count: > 0 } keys)
             {
+                var levels = keys.Select(key => new Item(key, Kind.SoundLevel, 0, MaxVolume, VolumeStep, Array.Empty<string>())).ToArray();
+                all.Insert(all.FindIndex(group => group.Name == VolumesGroup) + 1, new(SoundLevelsGroup, levels));
                 all.Add(new("glossary", keys.Select(key => new Item(key, Kind.Sound, 0, 0, 0, Array.Empty<string>())).ToArray()));
             }
 
@@ -200,13 +213,27 @@ namespace Poe2Accessibility.Services
             var item = this.Current;
             if (item.Kind == Kind.Sound)
             {
-                this.glossary?.Play(item.Name, SoundGlossary.VolumeSetting(item.Name) is { } volume ? (int)Field(volume).GetValue(settings)! / 100f : 1f);
-                return string.Empty;
+                return string.Empty; // played by PlaySound
             }
 
             if (item.Kind == Kind.Help)
             {
                 return Announcements.HelpText(item.Name); // left or right reads the topic again
+            }
+
+            if (item.Kind == Kind.SoundLevel)
+            {
+                var level = Math.Clamp(Level(settings, item.Name) + (step * item.Step), item.Min, item.Max);
+                if (level == DefaultLevel)
+                {
+                    settings.SoundLevels.Remove(item.Name);
+                }
+                else
+                {
+                    settings.SoundLevels[item.Name] = level;
+                }
+
+                return this.Value(settings, item);
             }
 
             var field = Field(item.Name);
@@ -227,7 +254,23 @@ namespace Poe2Accessibility.Services
             return this.Value(settings, item);
         }
 
+        /// <summary>
+        ///     Plays the sound the entry stands on (glossary or its own volume) as loud as the game now would: its group
+        ///     volume, its own, the master. Called after a change is applied, so a new level is heard at once.
+        /// </summary>
+        public void PlaySound(AccessibilitySettings settings)
+        {
+            if (this.IsOpen && this.InGroup && this.Current.Kind is Kind.Sound or Kind.SoundLevel)
+            {
+                var name = this.Current.Name;
+                this.glossary?.Play(name, SoundGlossary.VolumeSetting(name) is { } volume ? (int)Field(volume).GetValue(settings)! / 100f : 1f);
+            }
+        }
+
         private static string GroupName(Group group) => Announcements.SettingsGroupName(group.Name);
+
+        private static int Level(AccessibilitySettings settings, string sound) =>
+            (settings.SoundLevels ??= new()).TryGetValue(sound, out var level) ? level : DefaultLevel;
 
         private string Describe(AccessibilitySettings settings)
         {
@@ -242,6 +285,8 @@ namespace Poe2Accessibility.Services
                 ? Announcements.SettingLine(Announcements.HelpTitle(item.Name), Announcements.HelpText(item.Name), position, count)
                 : item.Kind == Kind.Sound
                 ? Announcements.SettingLine(Announcements.SoundName(item.Name), SoundLine(item.Name), position, count)
+                : item.Kind == Kind.SoundLevel
+                ? Announcements.SettingLine(Announcements.SoundName(item.Name), this.Value(settings, item), position, count)
                 : Announcements.SettingLine(Announcements.SettingName(item.Name), this.Value(settings, item), position, count);
         }
 
@@ -252,6 +297,11 @@ namespace Poe2Accessibility.Services
 
         private string Value(AccessibilitySettings settings, Item item)
         {
+            if (item.Kind == Kind.SoundLevel)
+            {
+                return Announcements.Percent(Level(settings, item.Name));
+            }
+
             var value = Field(item.Name).GetValue(settings);
             return item.Kind switch
             {
@@ -284,6 +334,9 @@ namespace Poe2Accessibility.Services
 
             /// <summary>A glossary entry: plays a sound, changes nothing.</summary>
             Sound,
+
+            /// <summary>One sound's own volume (settings SoundLevels by glossary key), a percentage of its group volume.</summary>
+            SoundLevel,
 
             /// <summary>A controls help topic: read, changes nothing.</summary>
             Help,

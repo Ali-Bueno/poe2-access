@@ -74,11 +74,11 @@ namespace Poe2Accessibility.Services
             {
                 case ShieldChange.Raised:
                     this.log.Info($"Shield raised ({animation})");
-                    this.audio.Play(this.up, 0f, 1f, 1f);
+                    this.audio.Play(this.up, 0f, 1f, 1f, "shield_up");
                     break;
                 case ShieldChange.Lowered:
                     this.log.Info($"Shield lowered ({animation})");
-                    this.audio.Play(this.down, 0f, 1f, 1f);
+                    this.audio.Play(this.down, 0f, 1f, 1f, "shield_down");
                     break;
             }
         }

@@ -75,6 +75,7 @@ namespace Poe2Accessibility
         private DeployedWatch? deployed;
         private EnemyStateWatch? enemyStates;
         private ObjectSounds? objectSounds;
+        private FightWatch? fights;
         private PlayerAlerts? alerts;
         private PlayerAlerts? partnerAlerts;
         private InventoryWatch? pickups;
@@ -300,6 +301,11 @@ namespace Poe2Accessibility
                 var drops = ItemDropSounds.Load(
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds, drops);
+                this.fights = new FightWatch();
+                Func<bool> inFight = () => this.fights?.InFight ?? false;
+                this.objectSounds.QuietItems = inFight;
+                this.nearby.QuietItems = inFight;
+                this.narrator.QuietGroundItems = inFight;
                 // The mod's own recorded sounds (assets/, shipped), loaded like the game's.
                 var modSounds = GameSounds.Load(Path.Join(this.DllDirectory, "assets"), GameSoundSeconds, this.log);
                 this.alerts.Charges.RecordedSound = key => modSounds.GetStereo(key) ?? gameSounds.GetStereo(key);
@@ -319,7 +325,7 @@ namespace Poe2Accessibility
                 this.entities.QuestTexts = this.QuestTexts;
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
                 this.entities.Memory = new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
-                this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds, modSounds));
+                this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds, modSounds, drops));
                 this.commands.Settings = () => this.Settings;
                 this.commands.SkillBar = this.ReadSkillBar;
                 SpeechPriority.Chosen = this.SpeechLevel;

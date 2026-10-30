@@ -72,11 +72,11 @@ closed"; the ping goes on by itself once the barrier opens.
 
 ## Settings menu (gameplay)
 
-Hold L3 for a second and a half: "Mod settings. Help, submenu, 1 of 12". The settings come in submenus (D2R):
+Hold L3 for a second and a half: "Mod settings. Help, submenu, 1 of 13". The settings come in submenus (D2R):
 Help (five controls topics), Your character (life, mana, energy shield, flasks, states, charges and combo, placed
 objects, level up), Enemies, Defence (dodge, parry, shield, stun bar, harmful ground), Navigation (radar, walls,
-unexplored ground, turns, places), Things and people nearby, Items, Chat, Speech priority, Volumes, General
-(language, local co-op, updates) and the Sound glossary. Without holding L3, flick the right stick up or down to move
+unexplored ground, turns, places), Things and people nearby, Items, Chat, Speech priority, Volumes, Volume of each
+sound, General (language, local co-op, updates) and the Sound glossary. Without holding L3, flick the right stick up or down to move
 and left or right to open a submenu, change a value or play a sound (switches toggle, volumes move in steps of 25
 percent up to 300, language: same as the game, Spanish, English). Tap L3 to go back to the submenus, on the one just
 left; tap it there, or double tap anywhere, to close: "Settings saved" (written to `config/settings.txt`). The menu and
@@ -92,6 +92,14 @@ combo points wait.
 **Items heard and named** (D2R loot filter): which items on the ground get their drop sound and are named on
 approach — all (default), magic or better, or only currency, gold, gems, quest items, rares and uniques. The
 scanner's Items category still lists every item (`LootSounds`: `all`, `magic`, `valuable`).
+
+**Silence items on the ground in fights** (Items): while an enemy it counts is alive within about a screen (the range
+the item sounds carry) and for 2 s after, items on the ground neither sound nor are named, on approach, as what A uses,
+or by their tooltip; once the fight is over, what dropped is named as usual. Against rares and uniques (default), against
+any enemy, or never (`QuietItemsInFights`: `rares`, `any`, `never`). The scanner still lists them.
+
+**Direction of enemies coming into view** (Enemies, on by default): off, the packs are named without where they are,
+"Drowned, 3. Rotten Wolf, rare" (`EnemyDirections`), fewer words while a boss talks.
 
 **Wall tones** (off by default, D2R): a soft, warm hiss per screen direction that swells as a wall closes in
 (higher ahead, lower and a little louder behind, the sides panned hard; the D2R recipe and level, well under the cues); "Wall tone range" sets how far ahead it starts (world
@@ -126,8 +134,14 @@ player 2" (off) choose whom the mod reads for — one, the other or both ([local
 
 The last group is the **sound glossary**: every sound of the mod by name, meaning and the volume setting that sets it
 ("Dodge warning, a rare or unique monster starts an attack, dodge, Dodge and parry volume"); left or right plays it
-as loud as the game would (that volume, then the master volume). The harmful-ground alarm and the Culling Strike
+as loud as the game would (that volume, its own, then the master volume). The harmful-ground alarm and the Culling Strike
 cue follow the enemy volume, the wall bump the radar volume.
+
+**Volume of each sound** (after Volumes): the same sounds, each with its own volume, a percentage of its group's
+("Flask on the ground, 75 percent"); left or right moves it 25 percent, 0 to 300, and plays it at the new level.
+Items on the ground are grouped by kind: flasks, equipment (armour, weapons, quivers, jewellery, jewels), gems,
+currency, gold, quest items, other items, and the rare layer. Kept in `config/settings.txt` as `SoundLevels`
+(`{"item_flask": 75, "dodge": 150}`; a sound not listed is at 100).
 
 ## Passive tree
 
@@ -285,8 +299,9 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - All stop while a panel, menu or dialogue is open. Settings: `Radar`, `WallBump`, `EnemySounds`, `NpcSounds`, `PlayerSounds`,
   `AnnounceNearby`, `AnnounceLevelUp`, `ObjectSounds`, `LootSounds`, `DodgeWarnings`, `ParryCues`, `ParryLeadMs`, `CrosshairBeep`,
   `LowLifeBelow`, volumes `SoundVolume`, `RadarVolume`, `EnemyVolume`, `DodgeVolume` (dodge warning and parry cue),
-  `BeaconVolume`, `ObjectVolume` in `config/settings.txt`, each 0-300 percent: above 100 a sound is driven into a soft
-  limit on its own, so it grows louder (the dodge warning about 5 dB at 200, 7 dB at 300) without clipping the rest.
+  `BeaconVolume`, `ObjectVolume` and each sound's own `SoundLevels` in `config/settings.txt`, each 0-300 percent: above
+  100 a sound is driven into a soft limit on its own, so it grows louder (the dodge warning about 5 dB at 200, 7 dB at
+  300) without clipping the rest.
 
 ## Warnings and speech
 
@@ -325,7 +340,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - Discoveries: the first time the game shows an exit, a waypoint or checkpoint, or a boss in the area: "New
   exit: Clearfell", "New checkpoint, near Clearfell Encampment", "Boss in sight: The Bloated Miller" (`AnnounceDiscoveries`).
 - Enemies coming into view, each monster once per area, a pack in one line by name, count and the direction of its
-  middle: "Drowned, 3, right. Rotten Wolf, rare, up" (`AnnounceEnemies`; bosses are discoveries).
+  middle: "Drowned, 3, right. Rotten Wolf, rare, up" (`AnnounceEnemies`; bosses are discoveries); without the
+  direction when `EnemyDirections` is off.
 - Pick-ups: "Picked up: Hermit Garb"; a stack that grew: "Picked up 2 more: …"; gold: "Picked up 37 gold"
   (`AnnouncePickups`).
 - An item on the ground whose tooltip the game shows (you stand by it or aim at it) says only its name, rarity and

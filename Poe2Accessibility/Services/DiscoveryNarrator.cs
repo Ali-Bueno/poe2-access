@@ -26,6 +26,9 @@ namespace Poe2Accessibility.Services
 
         private readonly EntityCatalog catalog;
         private readonly IAccessibilityOutputService output;
+        /// <summary>The discovery chime's glossary key (the game's waypoint sound, its own volume).</summary>
+        public const string SoundKey = "discovery";
+
         private readonly AudioCueService audio;
         private readonly float[]? sound;
         private readonly HashSet<uint> seen = new();
@@ -139,7 +142,7 @@ namespace Poe2Accessibility.Services
             this.output.Say(SpeechKind.Places, string.Join(". ", this.waiting.Select(entry => Announcements.Discovered(entry, Near(entry)))));
             if (this.sound != null)
             {
-                this.audio.Play(this.sound, 0f, 1f, this.Gain);
+                this.audio.Play(this.sound, 0f, 1f, this.Gain, SoundKey);
             }
 
             this.waiting.Clear();

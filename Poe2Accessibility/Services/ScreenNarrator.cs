@@ -340,6 +340,9 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public Func<IEnumerable<string>, string?>? GroundItemName { get; set; }
 
+        /// <summary>True while a ground item's tooltip is not said (a fight, <see cref="FightWatch"/>).</summary>
+        public Func<bool>? QuietGroundItems { get; set; }
+
         /// <summary>
         ///     True while A uses an item on the ground and it is named at once (ProximityNarrator): the tooltip the game shows
         ///     for it is that item's, magic and rare names included ("Bastón largo intenso de impacto" for "Bastón largo"),

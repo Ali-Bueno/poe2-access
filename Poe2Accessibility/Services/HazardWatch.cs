@@ -22,7 +22,7 @@ namespace Poe2Accessibility.Services
 
         public HazardWatch(AudioCueService audio, HazardGround hazards, PluginLog log)
         {
-            this.bed = audio.AddBed(CueSynth.HazardAlarm(AudioCueService.SampleRate));
+            this.bed = audio.AddBed(CueSynth.HazardAlarm(AudioCueService.SampleRate), "hazard");
             this.hazards = hazards;
             this.log = log;
         }

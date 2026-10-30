@@ -26,7 +26,7 @@ namespace Poe2Accessibility.Services
         ///     Heard within about a screen and still on it (user 2026-10-27: it went silent there); this near it slides
         ///     to the centre, or its side would flip with every step over it.
         /// </summary>
-        private const float RangeWorld = 1300f;
+        public const float RangeWorld = 1300f;
         private const float CentreWorld = 150f;
 
         /// <summary>
@@ -99,6 +99,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Which items sound (<see cref="LootFilter"/> level, settings).</summary>
         public string LootLevel { get; set; } = LootFilter.All;
 
+        /// <summary>True while items on the ground keep quiet (a fight, <see cref="FightWatch"/>).</summary>
+        public Func<bool> QuietItems { get; set; } = () => false;
+
         /// <summary>Per frame while playing.</summary>
         public void Tick(bool playing)
         {
@@ -116,9 +119,10 @@ namespace Poe2Accessibility.Services
                 this.lastPoll = now;
                 this.nearest.Clear();
                 var entries = this.catalog.Entries().Where(entry => EntityCatalog.IsEntity(entry) && entry.Category != ScanCategory.Quest).ToList();
+                var quietItems = this.QuietItems();
                 foreach (var (group, voices, member) in Groups)
                 {
-                    foreach (var entry in entries.Where(member).Where(entry => group != LootGroup || LootFilter.Allows(this.LootLevel, entry.Loot))
+                    foreach (var entry in entries.Where(member).Where(entry => group != LootGroup || (!quietItems && LootFilter.Allows(this.LootLevel, entry.Loot)))
                                  .Where(entry => Distance(here, entry) <= RangeWorld).Take(voices))
                     {
                         // Items take turns with the other groups, one at a time, so each drop is heard apart.
@@ -164,10 +168,10 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                this.audio.Play(samples, pan, pitch, gain);
+                this.audio.Play(samples, pan, pitch, gain, SoundKey(entry));
                 if (entry.Kind == "rare" && samples != this.sounds.Get("item_rare") && this.sounds.Get("item_rare") is { } rare)
                 {
-                    this.audio.Play(rare, pan, pitch, gain * RareLayerGain);
+                    this.audio.Play(rare, pan, pitch, gain * RareLayerGain, "item_rare");
                 }
 
                 this.lastPlayed[group] = now;
@@ -191,7 +195,7 @@ namespace Poe2Accessibility.Services
             {
                 if (!this.beds.ContainsKey(kind) && this.sounds.GetLoop(kind) is { } loop)
                 {
-                    this.beds[kind] = this.audio.AddBed(loop);
+                    this.beds[kind] = this.audio.AddBed(loop, kind);
                 }
             }
 
@@ -227,6 +231,9 @@ namespace Poe2Accessibility.Services
             "exit" => this.sounds.Get("exit"),
             _ => entry.Category == ScanCategory.Items ? this.sounds.Get("item") : null,
         };
+
+        /// <summary>The glossary key whose volume the entry's sound follows: an item by its group, the rest by kind.</summary>
+        private static string SoundKey(ScanEntry entry) => entry.Category == ScanCategory.Items ? ItemSoundGroup.Of(entry.Kind, entry.BaseId) : entry.Kind;
 
         private static float Distance(Vector2 here, ScanEntry entry) => Vector2.Distance(here, new Vector2(entry.WorldX, entry.WorldY));
 

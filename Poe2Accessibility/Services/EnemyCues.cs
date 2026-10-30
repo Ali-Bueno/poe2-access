@@ -125,7 +125,7 @@ namespace Poe2Accessibility.Services
                 }
                 else if (this.reachGate.Update(this.nearestEdge, this.ReachWorld, ReleaseWorld))
                 {
-                    this.audio.Play(this.reachPing, this.nearestPan * PanStrength, 1f, this.Gain);
+                    this.audio.Play(this.reachPing, this.nearestPan * PanStrength, 1f, this.Gain, "reach");
                     this.log.Debug($"Reach ping: gap {this.nearestEdge:F0}");
                 }
             }
@@ -133,7 +133,7 @@ namespace Poe2Accessibility.Services
             if (this.scheduler.Next(now, this.targets) is { } target)
             {
                 var pitch = 1f - ((1f - LowestPitch) * Math.Clamp(target.ScreenY, 0f, 1f));
-                this.audio.Play(this.sounds[target.Layer], target.ScreenX * PanStrength, pitch, this.Gain);
+                this.audio.Play(this.sounds[target.Layer], target.ScreenX * PanStrength, pitch, this.Gain, CueSynth.LayerSound(target.Layer));
                 this.pulses++;
             }
 
