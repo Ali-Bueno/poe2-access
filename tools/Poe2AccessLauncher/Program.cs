@@ -71,7 +71,7 @@ internal static partial class Program
         {
             try
             {
-                GameLauncher.RestartAsAdministrator(args);
+                code = GameLauncher.RunAsAdministrator(args);
             }
             catch (System.ComponentModel.Win32Exception error) when (error.NativeErrorCode == ErrorCancelled)
             {

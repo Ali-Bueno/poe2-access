@@ -58,8 +58,11 @@ internal static partial class GameLauncher
             return processes.Length > 0;
         });
 
-    /// <summary>Starts this launcher again as administrator (the UAC prompt), with the same arguments.</summary>
-    public static void RestartAsAdministrator(string[] args)
+    /// <summary>
+    ///     Runs this launcher again as administrator (the UAC prompt), with the same arguments, and returns its exit code
+    ///     once it ends: whoever ran "stop" (Stop the mod.bat, the build scripts) goes on only once GameHelper is stopped.
+    /// </summary>
+    public static int RunAsAdministrator(string[] args)
     {
         var info = new ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = true, Verb = "runas" };
         foreach (var arg in args)
@@ -67,7 +70,9 @@ internal static partial class GameLauncher
             info.ArgumentList.Add(arg);
         }
 
-        using var started = Process.Start(info);
+        using var started = Process.Start(info) ?? throw new InvalidOperationException("The administrator launcher did not start.");
+        started.WaitForExit();
+        return started.ExitCode;
     }
 
     /// <summary>The folder of the running game (its fmod.dll and FMOD banks), or null when it cannot be read.</summary>
