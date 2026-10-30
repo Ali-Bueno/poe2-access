@@ -68,6 +68,9 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public Action<string>? SpeakOwn { get; set; }
 
+        /// <summary>True while lines said aloud nearby (<see cref="ChatDiff.IsLocalSpeech"/>) are skipped: a fight (<see cref="FightWatch"/>).</summary>
+        public Func<bool>? QuietLocal { get; set; }
+
         /// <summary>Per frame with the current chat layer (zero outside the game).</summary>
         public void Tick(IntPtr chatLayer)
         {
@@ -126,6 +129,7 @@ namespace Poe2Accessibility.Services
                     this.SpeakOwn(ChatDiff.Spoken(text));
                 }
                 else if ((!ChatDiff.IsPlayerChannel(text) || this.ReadPlayerChannels?.Invoke() == true) &&
+                    !(ChatDiff.IsLocalSpeech(text) && this.QuietLocal?.Invoke() == true) &&
                     !(this.spokenAt.TryGetValue(text, out var at) && now - at < RepeatWindowMs))
                 {
                     this.spokenAt[text] = now;

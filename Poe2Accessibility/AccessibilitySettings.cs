@@ -281,6 +281,12 @@ namespace Poe2Accessibility
         /// </summary>
         public string QuietItemsInFights = Services.FightState.RaresAndUniques;
 
+        /// <summary>
+        ///     When characters' chat lines (NPC shouts, a boss's taunts, local chat) are skipped: in a fight with a rare or
+        ///     unique monster ("rares"), with any enemy ("any"), or "never". Whispers, party and the player's own lines stay.
+        /// </summary>
+        public string QuietChatInFights = Services.FightState.RaresAndUniques;
+
         /// <summary>Volume of the object sounds (game sounds for loot, chests, exits, waypoints), percent (0-300).</summary>
         public int ObjectVolume = 70;
 

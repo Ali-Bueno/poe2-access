@@ -298,6 +298,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceEnemies) => T("Enemies coming into view", "Enemigos que aparecen"),
             nameof(AccessibilitySettings.EnemyDirections) => T("Direction of enemies coming into view", "Dirección de los enemigos que aparecen"),
             nameof(AccessibilitySettings.QuietItemsInFights) => T("Silence items on the ground in fights", "Silenciar objetos del suelo en combate"),
+            nameof(AccessibilitySettings.QuietChatInFights) => T("Silence characters' lines in fights", "Silenciar frases de personajes en combate"),
             nameof(AccessibilitySettings.AnnounceHand) => T("Item in hand", "Objeto en la mano"),
             nameof(AccessibilitySettings.AnnounceMoves) => T("Equipped and moved items", "Objetos equipados y movidos"),
             nameof(AccessibilitySettings.RoutePrompts) => T("Turn prompts", "Indicaciones de giro"),

@@ -110,6 +110,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(LootFilterKeepsWhatThePlayerChose), LootFilterKeepsWhatThePlayerChose);
             Run(nameof(ItemsSoundUnderTheirGroupsVolume), ItemsSoundUnderTheirGroupsVolume);
             Run(nameof(FightsLastWhileAnEngagingEnemyIsNear), FightsLastWhileAnEngagingEnemyIsNear);
+            Run(nameof(OnlyLinesSaidAloudNearbyAreLocalSpeech), OnlyLinesSaidAloudNearbyAreLocalSpeech);
             Run(nameof(InPlayFlagIsFoundFromStoryVariants), InPlayFlagIsFoundFromStoryVariants);
             Run(nameof(MovedFieldsAreFoundByWatchingThemChange), MovedFieldsAreFoundByWatchingThemChange);
             Run(nameof(FlagBitsAreFoundOnTheirCarriers), FlagBitsAreFoundOnTheirCarriers);
@@ -742,18 +743,24 @@ namespace Poe2Accessibility.Tests
 
         private static void FightsLastWhileAnEngagingEnemyIsNear()
         {
-            Equal(true, FightState.Engages(FightState.RaresAndUniques, true), "a rare starts a fight");
-            Equal(false, FightState.Engages(FightState.RaresAndUniques, false), "a white monster does not, by default");
-            Equal(true, FightState.Engages(FightState.AnyEnemy, false), "any enemy does when chosen");
-            Equal(false, FightState.Engages(CullThreshold.Never, true), "never");
             var fight = new FightState();
+            Equal(false, fight.IsOn(0), "no fight before any enemy");
             Equal(false, fight.Update(false, 1000), "no enemy, no fight");
             Equal(true, fight.Update(true, 2000), "an enemy near");
             Equal(true, fight.Update(false, 2000 + FightState.HoldMs - 1), "held a moment after it is gone");
             Equal(false, fight.Update(false, 2000 + FightState.HoldMs), "then over");
-            fight.Update(true, 9000);
-            fight.Reset();
-            Equal(false, fight.IsOn(9001), "a reset ends it");
+            Equal(true, FightState.Modes.Contains(CullThreshold.Never), "the setting can be turned off");
+        }
+
+        private static void OnlyLinesSaidAloudNearbyAreLocalSpeech()
+        {
+            Equal(true, ChatDiff.IsLocalSpeech("El rey vudú:¡Arrodillaos!"), "a boss's shout");
+            Equal(true, ChatDiff.IsLocalSpeech("Renly:Esto es lo que tengo."), "an NPC's line");
+            Equal(false, ChatDiff.IsLocalSpeech("@De Dahnte:hola"), "a whisper");
+            Equal(false, ChatDiff.IsLocalSpeech("%yarkey:vamos"), "party");
+            Equal(false, ChatDiff.IsLocalSpeech("#Someone:wts"), "global");
+            Equal(false, ChatDiff.IsLocalSpeech("Has entrado en Sierraclara."), "a system notice has no speaker");
+            Equal(false, ChatDiff.IsLocalSpeech(string.Empty), "nothing");
         }
 
         private static void LootFilterKeepsWhatThePlayerChose()

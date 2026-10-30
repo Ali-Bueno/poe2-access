@@ -302,7 +302,7 @@ namespace Poe2Accessibility
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds, drops);
                 this.fights = new FightWatch();
-                Func<bool> inFight = () => this.fights?.InFight ?? false;
+                Func<bool> inFight = () => this.fights?.InFight(this.Settings.QuietItemsInFights) ?? false;
                 this.objectSounds.QuietItems = inFight;
                 this.nearby.QuietItems = inFight;
                 this.narrator.QuietGroundItems = inFight;
@@ -358,6 +358,7 @@ namespace Poe2Accessibility
                     ReadPlayerChannels = () => this.Settings.AnnouncePlayerChat,
                     OwnNames = () => new[] { PlayerAlerts.Name(Seats.Of(1)), PlayerAlerts.Name(Seats.Other) },
                     SpeakOwn = line => this.output.Speak(line, false),
+                    QuietLocal = () => this.fights?.InFight(this.Settings.QuietChatInFights) ?? false,
                 };
                 this.mapOverlay = new MapOverlayWatch(elements, text => this.output.Speak(text, true));
                 this.longText = new LongTextReader(elements, this.output);

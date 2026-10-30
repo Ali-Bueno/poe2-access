@@ -95,6 +95,7 @@ namespace Poe2Accessibility.Services
             {
                 Switch(nameof(AccessibilitySettings.AnnounceChat)),
                 Switch(nameof(AccessibilitySettings.AnnouncePlayerChat)),
+                Choice(nameof(AccessibilitySettings.QuietChatInFights), FightState.Modes),
             }),
             new("speech", new[]
             {
