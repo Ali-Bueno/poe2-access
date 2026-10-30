@@ -11,7 +11,8 @@ namespace Poe2Accessibility.Services
     ///     What the player builds up and spends (<see cref="PlayerCharges"/>): a tick per one held as a charge, infusion or
     ///     surge is gained, a lower tick as one goes, and the count said once it settles, so a chain of Killing Palm kills
     ///     is one "3 power charges". Rage, a stat that moves with every hit, is said only as it fills and as it runs out.
-    ///     Entering an area takes what is already held silently.
+    ///     Entering an area takes what is already held silently. The Combo is said and heard by switches of its own; power
+    ///     charges and the Combo play recorded stereo sounds instead of ticks, the Combo a semitone higher per point.
     /// </summary>
     public sealed class ChargeWatch
     {
@@ -43,6 +44,9 @@ namespace Poe2Accessibility.Services
             this.log = log;
         }
 
+        /// <summary>Recorded sounds by key (set by the plugin): a gain with one (<see cref="PlayerCharges.RecordedGain"/>) plays it, else ticks.</summary>
+        public Func<string, StereoSound?> RecordedSound { get; set; } = _ => null;
+
         /// <summary>What is held now, in <see cref="ChargeKind"/> order, for the vitals report (Rage apart).</summary>
         public IEnumerable<(ChargeKind Kind, int Count)> Held =>
             this.held.Where(entry => entry.Value > 0).OrderBy(entry => entry.Key).Select(entry => (entry.Key, entry.Value));
@@ -60,7 +64,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>Per frame; <paramref name="reading"/> false while dead, paused or in a menu (nothing is said).</summary>
-        public void Tick(bool reading)
+        public void Tick(bool reading, AccessibilitySettings settings)
         {
             var now = Environment.TickCount64;
             if (!reading || now - this.lastPoll < PollMs ||
@@ -95,28 +99,47 @@ namespace Poe2Accessibility.Services
                 }
 
                 this.log.Info($"Charges: {kind} {before} -> {after}");
-                this.Play(after > before ? this.Gained(kind, after) : this.Lost(kind));
+                var (speech, sound) = Outputs(kind, settings);
+                if (sound)
+                {
+                    if (after > before)
+                    {
+                        this.PlayGain(kind, after);
+                    }
+                    else
+                    {
+                        this.Play(this.Lost(kind));
+                    }
+                }
+
                 this.changedAt = now;
-                if (!this.unsaid.Contains(kind))
+                if (speech && !this.unsaid.Contains(kind))
                 {
                     this.unsaid.Add(kind);
                 }
             }
 
-            this.WatchRage(entity);
+            this.WatchRage(entity, settings);
             this.baseline = false;
             if (this.unsaid.Count > 0 && now - this.changedAt >= SettleMs)
             {
-                this.output.Say(SpeechKind.LifeAndMana, Announcements.Sentences(this.unsaid.Select(kind => Announcements.Charges(kind, this.held[kind]))));
+                foreach (var group in this.unsaid.GroupBy(PlayerCharges.SpeechKindOf))
+                {
+                    this.output.Say(group.Key, Announcements.Sentences(group.Select(kind => Announcements.Charges(kind, this.held[kind]))));
+                }
+
                 this.unsaid.Clear();
             }
         }
+
+        private static (bool Speech, bool Sound) Outputs(ChargeKind kind, AccessibilitySettings settings) =>
+            PlayerCharges.SpeechKindOf(kind) == SpeechKind.Combo ? (settings.ComboSpeech, settings.ComboSounds) : (settings.ChargeSpeech, settings.ChargeSounds);
 
         /// <summary>Stat that a buff or action changed, else one items changed, else 0.</summary>
         private static int Stat(Stats stats, GameStats stat) =>
             stats.StatsChangedByBuffAndActions.TryGetValue(stat, out var value) ? value : stats.StatsChangedByItems.GetValueOrDefault(stat);
 
-        private void WatchRage(Entity entity)
+        private void WatchRage(Entity entity, AccessibilitySettings settings)
         {
             if (!entity.TryGetComponent<Stats>(out var stats))
             {
@@ -140,11 +163,38 @@ namespace Poe2Accessibility.Services
             }
 
             this.log.Info($"Rage {(full ? "full" : "empty")}: {before} -> {now.Item1} of {max}");
-            this.Play(full ? this.Gained(ChargeKind.Rage, 1) : this.Lost(ChargeKind.Rage));
-            this.output.Say(SpeechKind.LifeAndMana, full ? Announcements.RageFull : Announcements.RageEmpty);
+            var (speech, sound) = Outputs(ChargeKind.Rage, settings);
+            if (sound)
+            {
+                if (full)
+                {
+                    this.PlayGain(ChargeKind.Rage, 1);
+                }
+                else
+                {
+                    this.Play(this.Lost(ChargeKind.Rage));
+                }
+            }
+
+            if (speech)
+            {
+                this.output.Say(SpeechKind.Charges, full ? Announcements.RageFull : Announcements.RageEmpty);
+            }
         }
 
         private void Play(float[] sound) => this.audio?.Play(sound, 0f, 1f, 1f);
+
+        /// <summary>The player's own gain, unpanned: its recorded sound in stereo at the gain's pitch, else the ticks.</summary>
+        private void PlayGain(ChargeKind kind, int count)
+        {
+            if (PlayerCharges.RecordedGain(kind) is { } key && this.RecordedSound(key) is { } recorded)
+            {
+                this.audio?.Play(recorded, PlayerCharges.GainPitch(kind, count), 1f);
+                return;
+            }
+
+            this.Play(this.Gained(kind, count));
+        }
 
         private float[] Gained(ChargeKind kind, int count)
         {

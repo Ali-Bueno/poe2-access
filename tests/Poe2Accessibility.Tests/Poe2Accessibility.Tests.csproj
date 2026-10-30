@@ -38,6 +38,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\QuestTrackerPage.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\StatusAilments.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\SpeechPriority.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\SettingsCursor.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\SpeechFloor.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\FocusDetails.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\LessonReminder.cs" />

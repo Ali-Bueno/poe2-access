@@ -1,5 +1,7 @@
 namespace Poe2Accessibility.Services
 {
+    using System;
+
     /// <summary>
     ///     What a player builds up and spends, by class: charges (Power from the Monk's Killing Palm, Frenzy, Endurance,
     ///     Spirit), the Sorceress's elemental Infusions, the bow and crossbow Surges, the Druid's Druidic Prowess, Arcane
@@ -38,6 +40,26 @@ namespace Poe2Accessibility.Services
         /// <summary>Maximum Rage when no stat raises it (KeywordPopups "Rage", read 2026-10-29).</summary>
         public const int DefaultMaxRage = 30;
 
+        /// <summary>The Combo climbs a semitone per point, at most an octave above its first.</summary>
+        public const int MaxComboSemitones = 12;
+
+        /// <summary>
+        ///     The recorded sound a gain plays instead of ticks, picked by the user (2026-10-30): the game's electric power
+        ///     charge and the mod's combo sound (assets/combo.wav, on C); null for the synthesized ticks.
+        /// </summary>
+        public static string? RecordedGain(ChargeKind kind) => kind switch
+        {
+            ChargeKind.Power => "power_charge",
+            ChargeKind.Combo => "combo",
+            _ => null,
+        };
+
+        /// <summary>Semitones above the recorded sound's own note: the Combo one more per point held, the first on it.</summary>
+        public static int GainSemitones(ChargeKind kind, int held) => kind == ChargeKind.Combo ? Math.Clamp(held - 1, 0, MaxComboSemitones) : 0;
+
+        /// <summary>The mixer's pitch ratio for <see cref="GainSemitones"/>.</summary>
+        public static float GainPitch(ChargeKind kind, int held) => MathF.Pow(2f, GainSemitones(kind, held) / 12f);
+
         /// <summary>The kind a buff id holds, or null for any other buff.</summary>
         public static ChargeKind? FromBuffId(string id) => BuffIds.Base(id) switch
         {
@@ -57,6 +79,9 @@ namespace Poe2Accessibility.Services
             "tempest_bell_combo_tracker" => ChargeKind.Combo,
             _ => null,
         };
+
+        /// <summary>The Combo has its own switches and speech level; every other kind follows the charges'.</summary>
+        public static SpeechKind SpeechKindOf(ChargeKind kind) => kind == ChargeKind.Combo ? SpeechKind.Combo : SpeechKind.Charges;
 
         /// <summary>What a buff entry holds: its stack count, at least one while the buff is there.</summary>
         public static int Held(short stacks) => stacks > 0 ? stacks : 1;

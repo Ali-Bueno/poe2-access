@@ -302,6 +302,8 @@ namespace Poe2Accessibility
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds, drops);
                 // The mod's own recorded sounds (assets/, shipped), loaded like the game's.
                 var modSounds = GameSounds.Load(Path.Join(this.DllDirectory, "assets"), GameSoundSeconds, this.log);
+                this.alerts.Charges.RecordedSound = key => modSounds.GetStereo(key) ?? gameSounds.GetStereo(key);
+                this.culls.Chime = modSounds.Get("cull") ?? this.culls.Chime;
                 this.unexploredLoop = new UnexploredLoop(this.audio, this.entities, modSounds.GetLoop(UnexploredLoop.LoopName), this.log);
                 this.radar.Unexplored = () => this.Settings.UnexploredMark ? this.entities.UnexploredCells() : Array.Empty<System.Numerics.Vector2>();
                 this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds, new KnownPlaces(Path.Join(this.DllDirectory, "config", "known-places.txt")));

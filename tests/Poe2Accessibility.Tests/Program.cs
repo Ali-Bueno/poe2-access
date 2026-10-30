@@ -59,6 +59,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(StickClickWhileHoldingL3), StickClickWhileHoldingL3);
             Run(nameof(WallTonesSwellNearWalls), WallTonesSwellNearWalls);
             Run(nameof(NewsFollowItsDeliveryLevel), NewsFollowItsDeliveryLevel);
+            Run(nameof(SettingsMenuOpensGroupsAndGoesBack), SettingsMenuOpensGroupsAndGoesBack);
             Run(nameof(DodgeTimingIsLearntFromBlows), DodgeTimingIsLearntFromBlows);
             Run(nameof(ProjectileWarningsAddTheFlight), ProjectileWarningsAddTheFlight);
             Run(nameof(RockStandsAloneWallDoesNot), RockStandsAloneWallDoesNot);
@@ -1154,6 +1155,16 @@ namespace Poe2Accessibility.Tests
             Equal(ChargeKind.Endurance, PlayerCharges.FromBuffId("endurance_charge_79"), "endurance");
             Equal(null, PlayerCharges.FromBuffId("power_charge_on_crit"), "another buff");
             Equal(ChargeKind.ColdInfusion, PlayerCharges.FromBuffId("cold_infusion_79"), "the Sorceress's infusions");
+            Equal(SpeechKind.Combo, PlayerCharges.SpeechKindOf(ChargeKind.Combo), "the Combo has its own speech level");
+            Equal(SpeechKind.Charges, PlayerCharges.SpeechKindOf(ChargeKind.Rage), "Rage follows the charges");
+            Equal("combo", PlayerCharges.RecordedGain(ChargeKind.Combo), "the Combo plays the mod's recorded sound");
+            Equal(null, PlayerCharges.RecordedGain(ChargeKind.Frenzy), "frenzy charges keep their ticks");
+            Equal(0, PlayerCharges.GainSemitones(ChargeKind.Combo, 1), "the first combo point on the sound's own note");
+            Equal(3, PlayerCharges.GainSemitones(ChargeKind.Combo, 4), "a semitone higher per point");
+            Equal(PlayerCharges.MaxComboSemitones, PlayerCharges.GainSemitones(ChargeKind.Combo, 40), "at most an octave up");
+            Equal(0, PlayerCharges.GainSemitones(ChargeKind.Power, 3), "power charges keep their note");
+            Equal(2f, PlayerCharges.GainPitch(ChargeKind.Combo, 13), "twelve semitones play an octave up");
+            Equal(1f, PlayerCharges.GainPitch(ChargeKind.Combo, 1), "the first point at the recorded pitch");
             Equal(ChargeKind.ChaosSurge, PlayerCharges.FromBuffId("instilling_chaos"), "a surge");
             Equal(ChargeKind.ArcaneSurge, PlayerCharges.FromBuffId("arcane_surge_79"), "Arcane Surge");
             Equal(ChargeKind.Combo, PlayerCharges.FromBuffId("tempest_bell_combo_tracker_79"), "Tempest Bell's combo (logged live)");
@@ -1544,6 +1555,26 @@ namespace Poe2Accessibility.Tests
             Equal(false, DodgeTimings.CanStillHit(2000, 1800 + 1500, 600, 2100), "a later swing that ended before its release fired nothing");
         }
 
+        private static void SettingsMenuOpensGroupsAndGoesBack()
+        {
+            var cursor = new SettingsCursor(new[] { 5, 12, 7 });
+            Equal(false, cursor.InGroup, "opens on the groups");
+            Equal((1, 3), cursor.Place, "the top level lists the groups");
+            cursor.Move(1);
+            cursor.Enter();
+            Equal((true, 1, 0), (cursor.InGroup, cursor.Group, cursor.Entry), "a group opens on its first entry");
+            Equal((1, 12), cursor.Place, "within a group, the place is the group's");
+            cursor.Move(-1);
+            Equal(11, cursor.Entry, "a group wraps");
+            cursor.Back();
+            Equal((false, 1), (cursor.InGroup, cursor.Group), "back lands on the group left");
+            cursor.Move(-2);
+            Equal(2, cursor.Group, "the groups wrap");
+            cursor.Move(-1);
+            cursor.Enter();
+            Equal(11, cursor.Entry, "a group opens on the entry it was left on");
+        }
+
         private static void NewsFollowItsDeliveryLevel()
         {
             var output = new RecordingOutput();
@@ -1557,7 +1588,9 @@ namespace Poe2Accessibility.Tests
             SpeechPriority.Chosen = _ => "nonsense";
             output.Say(SpeechKind.Quest, "f");
             SpeechPriority.Chosen = null;
-            Equal("urge a|b False|urge c|mention d|e True|f False", string.Join("|", output.Calls), "each kind at its level, urgent news holds, a waiting life warning keeps its turn, defaults for unknown values");
+            output.Say(SpeechKind.Charges, "g");
+            output.Say(SpeechKind.Combo, "h");
+            Equal("urge a|b False|urge c|mention d|e True|f False|g False|h False", string.Join("|", output.Calls), "each kind at its level, urgent news holds, a waiting life warning keeps its turn, defaults for unknown values, charges and combo wait");
         }
 
         private sealed class RecordingOutput : IAccessibilityOutputService

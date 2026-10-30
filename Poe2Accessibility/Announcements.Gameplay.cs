@@ -283,7 +283,10 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceFlasks) => T("Flask uses", "Usos de los frascos"),
             nameof(AccessibilitySettings.AnnounceBossLife) => T("Boss life", "Vida de jefes"),
             nameof(AccessibilitySettings.StatusAlerts) => T("Harmful states", "Estados alterados"),
-            nameof(AccessibilitySettings.ChargeAlerts) => T("Charges, infusions, surges and Rage", "Cargas, infusiones, sobrecargas y furia"),
+            nameof(AccessibilitySettings.ChargeSpeech) => T("Say charges, infusions, surges and Rage", "Decir cargas, infusiones, sobrecargas y furia"),
+            nameof(AccessibilitySettings.ChargeSounds) => T("Sounds of charges, infusions, surges and Rage", "Sonidos de cargas, infusiones, sobrecargas y furia"),
+            nameof(AccessibilitySettings.ComboSpeech) => T("Say combo points", "Decir puntos de combo"),
+            nameof(AccessibilitySettings.ComboSounds) => T("Sounds of combo points", "Sonidos de puntos de combo"),
             nameof(AccessibilitySettings.AnnounceNearby) => T("Name nearby things", "Nombrar cosas cercanas"),
             nameof(AccessibilitySettings.AnnouncePlaces) => T("Name places you walk into", "Nombrar los lugares por los que pasas"),
             nameof(AccessibilitySettings.AnnounceInteractTarget) => T("What the interact button uses", "Lo que usa el botón de interactuar"),
@@ -314,6 +317,8 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.SpeechPlaces) => T("Speech: places and things nearby", "Voz: lugares y cosas cercanas"),
             nameof(AccessibilitySettings.SpeechGroundItems) => T("Speech: picked-up items", "Voz: objetos recogidos"),
             nameof(AccessibilitySettings.SpeechArrivals) => T("Speech: arrivals", "Voz: llegadas"),
+            nameof(AccessibilitySettings.SpeechCharges) => T("Speech: charges", "Voz: cargas"),
+            nameof(AccessibilitySettings.SpeechCombo) => T("Speech: combo points", "Voz: puntos de combo"),
             nameof(AccessibilitySettings.WallToneRange) => T("Wall tone range", "Alcance de los tonos de pared"),
             nameof(AccessibilitySettings.MeleeReach) => T("Reach ping", "Aviso de alcance cuerpo a cuerpo"),
             nameof(AccessibilitySettings.MeleeReachRange) => T("Reach distance", "Distancia de alcance"),
@@ -467,6 +472,8 @@ namespace Poe2Accessibility
             "cull" => T("Culling Strike", "Golpe de gracia"),
             "charge_gained" => T("Charge gained", "Carga ganada"),
             "charge_lost" => T("Charge lost", "Carga perdida"),
+            "power_charge" => T("Power charge", "Carga de poder"),
+            "combo" => T("Combo point", "Punto de combo"),
             "deployed" => T("Placed by a skill", "Colocado por una habilidad"),
             "tempest_bell" => T("Tempest Bell", "Campana de tempestad"),
             "ice_crystal" => T("Ice crystal", "Cristal de hielo"),
@@ -531,8 +538,12 @@ namespace Poe2Accessibility
                 "an enemy on that side is low enough for a Culling Strike: 35% life normal, 20% magic, 10% rare, 5% unique",
                 "un enemigo de ese lado ya cae con un golpe de gracia: 35% de vida si es normal, 20% mágico, 10% raro, 5% único"),
             "charge_gained" => T(
-                "you gained a charge, an infusion or a surge: one tick for each you hold, highest for power charges, lowest for endurance; Rage ticks as it fills",
-                "ganaste una carga, una infusión o una sobrecarga: un toque por cada una que tienes, más agudo para las cargas de poder, más grave para las de aguante; la furia suena al llenarse"),
+                "you gained a charge, an infusion or a surge: one tick for each you hold, highest for spirit charges, lowest for endurance; Rage ticks as it fills",
+                "ganaste una carga, una infusión o una sobrecarga: un toque por cada una que tienes, más agudo para las de espíritu, más grave para las de aguante; la furia suena al llenarse"),
+            "power_charge" => T("you gained a power charge", "ganaste una carga de poder"),
+            "combo" => T(
+                "Tempest Bell's combo grew: a semitone higher for each point, the first on C; at 4 the bell can ring",
+                "subió el combo de la campana de tempestad: un semitono más agudo por cada punto, el primero en do; con 4 ya puede sonar la campana"),
             "charge_lost" => T("you spent one or it ran out; Rage ticks this way as it empties", "gastaste una o se te acabó; la furia suena así al vaciarse"),
             "deployed" or "tempest_bell" or "ice_crystal" => T(
                 "something a skill of yours placed and left standing, such as a bell, a crystal or a totem, from where it is; more often as you get closer",
@@ -660,14 +671,14 @@ namespace Poe2Accessibility
         /// </summary>
         public static string Unmet(string requirements) => T($"Cannot use: {requirements}", $"No puedes usarlo: {requirements}");
 
-        /// <summary>Controls help topics at the top of the settings menu.</summary>
+        /// <summary>Controls help topics, the settings menu's first group.</summary>
         public static string HelpTitle(string topic) => topic switch
         {
-            "help_l3" => T("Help: the L3 button in play", "Ayuda: el botón L3 en el juego"),
-            "help_scanner" => T("Help: scanner", "Ayuda: escáner"),
-            "help_guide" => T("Help: guide", "Ayuda: guía"),
-            "help_menus" => T("Help: menus", "Ayuda: menús"),
-            _ => T("Help: this menu", "Ayuda: este menú"),
+            "help_l3" => T("The L3 button in play", "El botón L3 en el juego"),
+            "help_scanner" => T("Scanner", "Escáner"),
+            "help_guide" => T("Guide", "Guía"),
+            "help_menus" => T("Menus", "Menús"),
+            _ => T("This menu", "Este menú"),
         };
 
         public static string HelpText(string topic) => topic switch
@@ -685,9 +696,28 @@ namespace Poe2Accessibility
                 "In menus L3 reads the next line of the focused thing, double tap the previous, hold the whole description",
                 "En los menús L3 lee la siguiente línea de lo enfocado, doble toque la anterior, mantener la descripción completa"),
             _ => T(
-                "Right stick up and down move, left and right change or play. Tap L3 to close and save",
-                "Stick derecho arriba y abajo para moverte, izquierda y derecha para cambiar o escuchar. Toca L3 para cerrar y guardar"),
+                "Right stick up and down move, left and right open a submenu, change a value or play a sound. Tap L3 to go back to the submenus, tap it there to close and save; a double tap closes from anywhere",
+                "Stick derecho arriba y abajo para moverte, izquierda y derecha para abrir un submenú, cambiar un valor o escuchar un sonido. Toca L3 para volver a los submenús, y tócalo allí para cerrar y guardar; un doble toque cierra desde cualquier sitio"),
         };
+
+        /// <summary>The settings menu's groups (D2R submenus), by key.</summary>
+        public static string SettingsGroupName(string key) => key switch
+        {
+            "help" => T("Help", "Ayuda"),
+            "character" => T("Your character", "Tu personaje"),
+            "enemies" => T("Enemies", "Enemigos"),
+            "defence" => T("Defence", "Defensa"),
+            "navigation" => T("Navigation", "Navegación"),
+            "surroundings" => T("Things and people nearby", "Cosas y personas cercanas"),
+            "items" => T("Items", "Objetos"),
+            "chat" => T("Chat", "Chat"),
+            "speech" => T("Speech priority", "Prioridad de voz"),
+            "volumes" => T("Volumes", "Volúmenes"),
+            "general" => T("General", "General"),
+            _ => T("Sound glossary", "Glosario de sonidos"),
+        };
+
+        public static string Submenu => T("submenu", "submenú");
 
         public static string SettingsMenuTitle => T("Mod settings", "Ajustes del mod");
 

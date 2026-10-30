@@ -23,6 +23,12 @@ if (args.Length > 0 && string.Equals(args[0], "sounds", StringComparison.Ordinal
         args.Length > 3 ? args[3] : @"Poe2Accessibility\catalog\item-sounds.json");
 }
 
+// Args: bank-samples <gameDir> <outDir> <bank,bank...> [filter]  -- research aid: a bank's samples as WAV to audition.
+if (args.Length > 3 && string.Equals(args[0], "bank-samples", StringComparison.OrdinalIgnoreCase))
+{
+    return SoundExtractor.DumpBanks(args[1], args[2], args[3].Split(','), args.Length > 4 ? args[4] : string.Empty);
+}
+
 // Args: paths <gameDir> <part>  -- research aid: every bundled file path containing <part> (quest reward icons' names).
 if (args.Length > 2 && string.Equals(args[0], "paths", StringComparison.OrdinalIgnoreCase))
 {

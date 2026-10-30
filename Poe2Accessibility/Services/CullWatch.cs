@@ -23,7 +23,6 @@ namespace Poe2Accessibility.Services
         private readonly AudioCueService audio;
         private readonly IAccessibilityOutputService output;
         private readonly UiElementReader elements;
-        private readonly float[] chime = CueSynth.Cull(AudioCueService.SampleRate);
         private readonly HashSet<uint> cullable = new();
         private readonly HashSet<uint> seen = new();
         private long lastPoll;
@@ -37,6 +36,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Chime gain under the master volume.</summary>
         public float Gain { get; set; } = 1f;
+
+        /// <summary>The sound played: the mod's recorded gong (assets/cull.wav) when the plugin sets it, else the synthesized one.</summary>
+        public float[] Chime { get; set; } = CueSynth.Cull(AudioCueService.SampleRate);
 
         /// <summary>When it plays: one of <see cref="CullThreshold.Modes"/> (setting CullCue).</summary>
         public string Mode { get; set; } = CullThreshold.WithSkill;
@@ -82,7 +84,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, at - here));
-                this.audio.Play(this.chime, pan, pitch, this.Gain);
+                this.audio.Play(this.Chime, pan, pitch, this.Gain);
                 if (rarity is Rarity.Rare or Rarity.Unique &&
                     this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) is { Length: > 0 } name)
                 {

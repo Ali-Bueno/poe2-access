@@ -184,6 +184,12 @@ namespace Poe2Accessibility
         /// <summary>Arriving with the guide: delivery level.</summary>
         public string SpeechArrivals = "holds";
 
+        /// <summary>Charges, infusions, surges and Rage: delivery level.</summary>
+        public string SpeechCharges = "waits";
+
+        /// <summary>Combo points: delivery level.</summary>
+        public string SpeechCombo = "waits";
+
         /// <summary>Say what the cursor takes in hand in the inventory and when it lets go (D2R item in hand).</summary>
         public bool AnnounceHand = true;
 
@@ -233,10 +239,19 @@ namespace Poe2Accessibility
         public bool StatusAlerts = true;
 
         /// <summary>
-        ///     Charges, the Sorceress's Infusions, the Surges, Druidic Prowess and Arcane Surge: a tick per one held as one is
-        ///     gained, a lower one as one goes, and the count said; Rage when it fills and when it runs out.
+        ///     Charges, the Sorceress's Infusions, the Surges, Druidic Prowess and Arcane Surge: the count said once it settles;
+        ///     Rage when it fills and when it runs out. Replaces "ChargeAlerts", which also held the ticks and the Combo.
         /// </summary>
-        public bool ChargeAlerts = true;
+        public bool ChargeSpeech = true;
+
+        /// <summary>The same as <see cref="ChargeSpeech"/>, heard: a tick per one held as one is gained, a lower one as one goes.</summary>
+        public bool ChargeSounds = true;
+
+        /// <summary>Tempest Bell's Combo: its count said once it settles.</summary>
+        public bool ComboSpeech = true;
+
+        /// <summary>Tempest Bell's Combo heard: a tick per point held as one is gained, a lower one as it drains.</summary>
+        public bool ComboSounds = true;
 
         /// <summary>Volume of all the mod's sounds, percent (0-300; above 100 a cue is driven louder, see AudioCueService).</summary>
         public int SoundVolume = 100;

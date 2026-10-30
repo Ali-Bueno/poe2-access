@@ -228,6 +228,8 @@ namespace Poe2Accessibility
             SpeechKind.Quest => this.Settings.SpeechQuest,
             SpeechKind.Places => this.Settings.SpeechPlaces,
             SpeechKind.GroundItems => this.Settings.SpeechGroundItems,
+            SpeechKind.Charges => this.Settings.SpeechCharges,
+            SpeechKind.Combo => this.Settings.SpeechCombo,
             _ => this.Settings.SpeechArrivals,
         };
 

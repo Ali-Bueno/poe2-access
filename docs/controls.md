@@ -72,16 +72,22 @@ closed"; the ping goes on by itself once the barrier opens.
 
 ## Settings menu (gameplay)
 
-Hold L3 for a second and a half: "Mod settings. Help: the L3 button in play, 1 of 128" (five help topics, then the settings, then the sound glossary). Without holding L3,
-flick the right stick up or down to move through the list and left or right to change the value (switches
-toggle, volumes move in steps of 25 percent up to 300, language: same as the game, Spanish, English). Tap L3 to close:
-"Settings saved" (written to `config/settings.txt`). Opening a game panel closes it too.
+Hold L3 for a second and a half: "Mod settings. Help, submenu, 1 of 12". The settings come in submenus (D2R):
+Help (five controls topics), Your character (life, mana, energy shield, flasks, states, charges and combo, placed
+objects, level up), Enemies, Defence (dodge, parry, shield, stun bar, harmful ground), Navigation (radar, walls,
+unexplored ground, turns, places), Things and people nearby, Items, Chat, Speech priority, Volumes, General
+(language, local co-op, updates) and the Sound glossary. Without holding L3, flick the right stick up or down to move
+and left or right to open a submenu, change a value or play a sound (switches toggle, volumes move in steps of 25
+percent up to 300, language: same as the game, Spanish, English). Tap L3 to go back to the submenus, on the one just
+left; tap it there, or double tap anywhere, to close: "Settings saved" (written to `config/settings.txt`). The menu and
+each submenu reopen where they were left. Opening a game panel closes it too.
 
-**Speech priority** (D2R): nine "Speech: …" entries choose how each kind of news is delivered — waits its turn,
+**Speech priority** (D2R): eleven "Speech: …" entries choose how each kind of news is delivered — waits its turn,
 cuts in when urgent, cuts in, or cuts in and cannot be cut off (later news queues behind it for 1.5 s). Defaults:
 a harmful state beginning and an arrival with the guide hold; a state ending cuts in; low life/mana, boss life,
 enemy names (aimed and coming into view) and places cut in only when urgent (life at or under `LowLifeBelow`, 25 %, mana at 10 %, a boss at
-30 % or defeated, a rare enemy coming into view, a quick sweep of the aim); objectives and picked-up items wait.
+30 % or defeated, a rare enemy coming into view, a quick sweep of the aim); objectives, picked-up items, charges and
+combo points wait.
 
 **Items heard and named** (D2R loot filter): which items on the ground get their drop sound and are named on
 approach — all (default), magic or better, or only currency, gold, gems, quest items, rares and uniques. The
@@ -216,7 +222,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   `tools/README.md`: `item-sounds`, then `sounds`), then a rebuild.
 - **Culling Strike** (setting "Aviso de golpe de gracia": by default only while one of your skills culls, else always or
   never): a gong struck from the side of an enemy that has just dropped to its culling threshold, as the game defines
-  it (35% life normal, 20% magic, 10% rare, 5% unique), trembling as a big gong does under a cymbal sizzle; a rare or
+  it (35% life normal, 20% magic, 10% rare, 5% unique): a recorded gong, sped up and cut short (`assets/cull.wav`; the
+  synthesized trembling gong when it is missing); a rare or
   unique one is also named ("Beira, de la manada putrefacta: golpe de gracia"). The skills that cull come from the game
   files (`catalog/cull-skills.txt`: Killing Palm, Reap, Cull the Weak, Crushing Fear, Mist Raven, His Winnowing Flame);
   culling from a support gem, an item or a passive needs "siempre". A raised threshold (Enhanced Culling) is not taken
@@ -298,12 +305,16 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - A boss's life as it falls past 75, 50, 40, 30, 20, 10 and 5 percent, and "… defeated" (`AnnounceBossLife`).
 - Harmful states as they begin ("Poisoned", "Frozen", "Stunned"…) and end ("No longer poisoned")
   (`StatusAlerts`).
-- What you build up and spend (`ChargeAlerts`, "Cargas, infusiones, sobrecargas y furia", on by default): Power,
+- What you build up and spend, said and heard by separate switches, all on by default: `ChargeSpeech` / `ChargeSounds`
+  ("Decir…" / "Sonidos de cargas, infusiones, sobrecargas y furia") and, for the Combo alone, `ComboSpeech` /
+  `ComboSounds` ("Decir…" / "Sonidos de puntos de combo"); their speech levels are "Voz: cargas" and "Voz: puntos de
+  combo" (see Speech priority). Power,
   Frenzy, Endurance and Spirit charges, the Sorceress's Fire, Cold and Lightning Infusions, the Fire, Cold, Lightning
   and Chaos Surges of bows and crossbows, Druidic Prowess, Arcane Surge and the Monk's Tempest Bell Combo (4 ring the
-  bell; "Combo: 4", "sin combo" when it drains after 8 s). Gaining one plays a glass tick for each
-  one now held (Power highest, then Spirit, Frenzy, Endurance lowest; the others share one pitch); spending one or
-  losing it plays one softer, lower tick. The count is said once it stops changing, so a chain of Killing Palm kills
+  bell; "Combo: 4", "sin combo" when it drains after 8 s). A power charge gained plays an electric crackle (the game's
+  own, from an electric charge cosmetic); a combo point plays the mod's combo sound, a semitone higher for each point
+  held, the first on C. Both are your own character's, so they play in stereo from the middle, not from a side. Gaining any other plays a glass tick for each one now held (Spirit highest, then Frenzy,
+  Endurance lowest; the others share one pitch); spending one or losing it plays one softer, lower tick. The count is said once it stops changing, so a chain of Killing Palm kills
   is one "3 cargas de poder"; the others by name and count ("Infusión de fuego: 2"), Arcane Surge by name. Rage
   moves with every hit, so it is said only as it fills ("Furia al máximo", a low tick) and as it runs out ("sin
   furia"). A build without any of them never hears it. The partner's are said, not ticked.

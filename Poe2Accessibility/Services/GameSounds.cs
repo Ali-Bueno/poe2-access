@@ -10,7 +10,8 @@ namespace Poe2Accessibility.Services
     ///     can pan them; each is cut to a short cue with a fade so repeats stay clear. The idle beds in <c>loops/</c> are
     ///     kept whole and brought to one loudness; the breakables' sounds in <c>breakables/</c> (one per material, got as
     ///     <c>breakables/rock</c>) are dulled and brought low, since many play at once; a searched body's is brought up
-    ///     near a chest's, its sample being far quieter.
+    ///     near a chest's, its sample being far quieter. A cue the player's own news plays unpanned is also read with its two
+    ///     channels on first use (<see cref="GetStereo"/>).
     /// </summary>
     public sealed class GameSounds
     {
@@ -49,9 +50,14 @@ namespace Poe2Accessibility.Services
 
         private readonly Dictionary<string, float[]> sounds = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, float[]> loops = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, StereoSound?> stereo = new(StringComparer.OrdinalIgnoreCase);
+        private readonly string directory;
+        private readonly float maxSeconds;
 
-        private GameSounds()
+        private GameSounds(string directory, float maxSeconds)
         {
+            this.directory = directory;
+            this.maxSeconds = maxSeconds;
         }
 
         public int Count => this.sounds.Count;
@@ -59,7 +65,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Loads every <c>name.wav</c> of <paramref name="directory"/>; a missing folder gives an empty set.</summary>
         public static GameSounds Load(string directory, float maxSeconds, PluginLog log)
         {
-            var set = new GameSounds();
+            var set = new GameSounds(directory, maxSeconds);
             if (!Directory.Exists(directory))
             {
                 log.Info($"No game sounds in {directory} (run tools/Poe2UiExtract sounds); synthesized cues only");
@@ -107,6 +113,22 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The cue, or null when it was not extracted.</summary>
         public float[]? Get(string name) => this.sounds.TryGetValue(name, out var samples) ? samples : null;
+
+        /// <summary>The cue with both its channels (a mono file on both sides), read once; null when it was not extracted.</summary>
+        public StereoSound? GetStereo(string name)
+        {
+            lock (this.stereo)
+            {
+                if (!this.stereo.TryGetValue(name, out var sound))
+                {
+                    sound = this.stereo[name] = this.sounds.ContainsKey(name) && this.ReadFile(name) is { } channels
+                        ? new StereoSound(channels[0], channels[^1])
+                        : null;
+                }
+
+                return sound;
+            }
+        }
 
         /// <summary>The idle bed of a kind of place (portal, exit, waypoint, checkpoint), or null when it was not extracted.</summary>
         public float[]? GetLoop(string name) => this.loops.TryGetValue(name, out var samples) ? samples : null;
@@ -161,8 +183,42 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        private float[][]? ReadFile(string name)
+        {
+            try
+            {
+                return ReadChannels(File.ReadAllBytes(Path.Join(this.directory, name + ".wav")), this.maxSeconds, true);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                return null;
+            }
+        }
+
         /// <summary>Mono samples of a 16-bit PCM WAV at the mixer rate; null for any other format.</summary>
         private static float[]? ReadWav(byte[] data, float maxSeconds, bool fadeOut)
+        {
+            if (ReadChannels(data, maxSeconds, fadeOut) is not { } channels)
+            {
+                return null;
+            }
+
+            if (channels.Length == 1)
+            {
+                return channels[0];
+            }
+
+            var mono = new float[channels[0].Length];
+            for (var i = 0; i < mono.Length; i++)
+            {
+                mono[i] = (channels[0][i] + channels[1][i]) / 2f;
+            }
+
+            return mono;
+        }
+
+        /// <summary>Each channel's samples of a 16-bit PCM WAV at the mixer rate (one or two); null for any other format.</summary>
+        private static float[][]? ReadChannels(byte[] data, float maxSeconds, bool fadeOut)
         {
             if (data.Length < 44 || BitConverter.ToUInt32(data, 0) != 0x46464952 || BitConverter.ToUInt32(data, 8) != 0x45564157)
             {
@@ -192,17 +248,15 @@ namespace Poe2Accessibility.Services
 
                     var frames = Math.Min(Math.Min(size, data.Length - body) / (2 * channels), (int)(maxSeconds * rate));
                     var fade = fadeOut ? Math.Min(frames, rate / 20) : 0;
-                    var samples = new float[frames];
-                    for (var i = 0; i < frames; i++)
+                    var samples = new float[channels][];
+                    for (var c = 0; c < channels; c++)
                     {
-                        var sum = 0f;
-                        for (var c = 0; c < channels; c++)
+                        samples[c] = new float[frames];
+                        for (var i = 0; i < frames; i++)
                         {
-                            sum += BitConverter.ToInt16(data, body + (((i * channels) + c) * 2)) / 32768f;
+                            var tail = frames - i;
+                            samples[c][i] = BitConverter.ToInt16(data, body + (((i * channels) + c) * 2)) / 32768f * (tail < fade ? (float)tail / fade : 1f);
                         }
-
-                        var tail = frames - i;
-                        samples[i] = sum / channels * (tail < fade ? (float)tail / fade : 1f);
                     }
 
                     return samples;

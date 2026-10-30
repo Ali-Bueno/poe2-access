@@ -206,7 +206,7 @@ namespace Poe2Accessibility.Services
             this.beacon.Lock(choice);
         }
 
-        /// <summary>Settings menu: up/down move, left/right change the value, a tap closes and saves.</summary>
+        /// <summary>Settings menu: up/down move, left/right open a group or change the value, a tap goes back or closes and saves.</summary>
         private void InSettings(PadGesture gesture)
         {
             if (this.Settings?.Invoke() is not { } settings)
@@ -224,6 +224,12 @@ namespace Poe2Accessibility.Services
                     break;
                 case PadGesture.FlickLeft:
                 case PadGesture.FlickRight:
+                    if (!this.settingsMenu.InGroup)
+                    {
+                        this.output.Speak(this.settingsMenu.Enter(settings), true);
+                        break;
+                    }
+
                     var changed = this.settingsMenu.Change(settings, gesture == PadGesture.FlickRight ? 1 : -1);
                     if (changed.Length > 0)
                     {
@@ -233,6 +239,12 @@ namespace Poe2Accessibility.Services
                     break;
                 case PadGesture.Tap:
                 case PadGesture.DoubleTap:
+                    if (gesture == PadGesture.Tap && this.settingsMenu.InGroup)
+                    {
+                        this.output.Speak(this.settingsMenu.Back(settings), true);
+                        break;
+                    }
+
                     this.output.Speak(this.settingsMenu.Close(), true);
                     this.SettingsChanged?.Invoke(settings);
                     break;

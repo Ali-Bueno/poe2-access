@@ -7,7 +7,8 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     Plays short synthesized cues: mono sample arrays mixed into one stereo stream through winmm's waveOut
-    ///     (part of Windows, no extra DLL), each at a pitch ratio with an equal-power pan, on a mixer thread.
+    ///     (part of Windows, no extra DLL), each at a pitch ratio with an equal-power pan, on a mixer thread; a recorded
+    ///     stereo cue of the player's own news plays unpanned, as recorded.
     /// </summary>
     public sealed class AudioCueService : IDisposable
     {
@@ -94,16 +95,20 @@ namespace Poe2Accessibility.Services
             }
 
             var angle = (Math.Clamp(pan, -1f, 1f) + 1f) * MathF.PI / 4f;
-            lock (this.voices)
-            {
-                if (this.voices.Count >= MaxVoices)
-                {
-                    this.voices.RemoveAt(0);
-                }
+            var level = MathF.Min(gain, 1f);
+            this.Add(new Voice(samples, samples, pitch, MathF.Cos(angle) * level, MathF.Sin(angle) * level, MathF.Max(gain, 1f)));
+        }
 
-                var level = MathF.Min(gain, 1f);
-                this.voices.Add(new Voice(samples, pitch, MathF.Cos(angle) * level, MathF.Sin(angle) * level, MathF.Max(gain, 1f)));
+        /// <summary>Starts a recorded stereo cue as recorded, unpanned (the player's own news); pitch and gain as for a mono cue.</summary>
+        public void Play(StereoSound sound, float pitch, float gain)
+        {
+            if (!this.IsAvailable || sound.Left.Length == 0 || pitch <= 0)
+            {
+                return;
             }
+
+            var level = MathF.Min(gain, 1f);
+            this.Add(new Voice(sound.Left, sound.Right, pitch, level, level, MathF.Max(gain, 1f)));
         }
 
         /// <summary>A looping sound mixed under the cues until the caller sets it silent (wall tones).</summary>
@@ -278,19 +283,34 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        /// <summary>One playing cue: read with linear interpolation at the pitch ratio.</summary>
+        private void Add(Voice voice)
+        {
+            lock (this.voices)
+            {
+                if (this.voices.Count >= MaxVoices)
+                {
+                    this.voices.RemoveAt(0);
+                }
+
+                this.voices.Add(voice);
+            }
+        }
+
+        /// <summary>One playing cue, a channel per side (the same one for a mono cue): read with linear interpolation at the pitch ratio.</summary>
         private sealed class Voice
         {
             private readonly float[] samples;
+            private readonly float[] rightSamples;
             private readonly double step;
             private readonly float left;
             private readonly float right;
             private readonly float drive;
             private double position;
 
-            public Voice(float[] samples, double step, float left, float right, float drive)
+            public Voice(float[] samples, float[] rightSamples, double step, float left, float right, float drive)
             {
                 this.samples = samples;
+                this.rightSamples = rightSamples;
                 this.step = step;
                 this.left = left;
                 this.right = right;
@@ -309,18 +329,18 @@ namespace Poe2Accessibility.Services
                     }
 
                     var fraction = (float)(this.position - index);
-                    var sample = this.samples[index] + ((this.samples[index + 1] - this.samples[index]) * fraction);
-                    if (this.drive > 1f)
-                    {
-                        sample = CueSynth.Limit(sample * this.drive);
-                    }
-
-                    mix[frame * Channels] += sample * this.left;
-                    mix[(frame * Channels) + 1] += sample * this.right;
+                    mix[frame * Channels] += this.Read(this.samples, index, fraction) * this.left;
+                    mix[(frame * Channels) + 1] += this.Read(this.rightSamples, index, fraction) * this.right;
                     this.position += this.step;
                 }
 
                 return false;
+            }
+
+            private float Read(float[] channel, int index, float fraction)
+            {
+                var sample = channel[index] + ((channel[index + 1] - channel[index]) * fraction);
+                return this.drive > 1f ? CueSynth.Limit(sample * this.drive) : sample;
             }
         }
 
@@ -367,4 +387,7 @@ namespace Poe2Accessibility.Services
         [DllImport("winmm.dll")]
         private static extern int waveOutClose(IntPtr device);
     }
+
+    /// <summary>A recorded cue's two channels, of equal length, at the mixer rate.</summary>
+    public sealed record StereoSound(float[] Left, float[] Right);
 }

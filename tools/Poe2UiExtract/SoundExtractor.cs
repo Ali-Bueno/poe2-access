@@ -17,6 +17,9 @@ internal static class SoundExtractor
         double FreezeFrom = 0, double FreezeTo = 0);
 
     private const double LoopMaxSeconds = 20;
+
+    /// <summary>Research dumps keep a sample's first seconds: enough to judge a cue.</summary>
+    private const double DumpMaxSeconds = 4;
     private const double LoopSeamSeconds = 0.05;
 
     // Freeze: 120 ms Hann grains every 30 ms (four overlap, a constant sum of 2), from seeded random points, wrapped
@@ -61,6 +64,8 @@ internal static class SoundExtractor
         // Deployed-object locators: the Monk's Tempest Bell toll when it is struck, and the Frozen Locus crystal as it forms.
         new("tempest_bell", "Four_TempestBell", "TempestBell_FX_OnHit_01", 2.5),
         new("ice_crystal",  "Four_FrozenLocus", "FrozenLocus_FX_Appear_01", 2.5),
+        // A power charge gained: an electric charge cosmetic's gain sound, the user's pick of the game's (2026-10-30).
+        new("power_charge", "Four_ElectroChargesMTX", "ChargeGain_Fork_01"),
         new("loops/portal",     "PortalScrollPortal", "PortalScroll_Effects_Po_IdleActive_01", LoopMaxSeconds, true),
         // Area transitions have no idle sound: the crossing's own sound, held at its loud first half second.
         new("loops/exit",       "UI_General",         "WorldAreaTransition_02", LoopMaxSeconds, true, 0.05, 0.5),
@@ -102,17 +107,11 @@ internal static class SoundExtractor
 
     public static int Run(string gameDir, string outDir, string itemCatalog)
     {
-        System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
         string bankDir = Path.Combine(gameDir, "FMOD", "Desktop");
-        string fmodPath = Path.Combine(gameDir, "fmod.dll");
-        if (!File.Exists(fmodPath) || !Directory.Exists(bankDir))
+        if (OpenFmod(gameDir) is not { } sys)
         {
-            Console.WriteLine($"Not a PoE2 install (need fmod.dll and FMOD\\Desktop): {gameDir}");
             return 1;
         }
-
-        NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(),
-            (name, _, _) => name == Lib ? NativeLibrary.Load(fmodPath) : IntPtr.Zero);
 
         Directory.CreateDirectory(outDir);
         Directory.CreateDirectory(Path.Combine(outDir, "items"));
@@ -120,31 +119,14 @@ internal static class SoundExtractor
         // Every drop sample the item catalog (Poe2UiExtract item-sounds) points to, extracted as items/<sample>.wav.
         var cues = Cues.Concat(ItemSoundExtractor.ReadSamples(itemCatalog)
             .Select(sample => new Cue("items/" + sample, ItemSoundExtractor.Bank, sample))).ToArray();
-        string tmp = Path.Combine(Path.GetTempPath(), "poe2-sounds-" + Environment.ProcessId + ".fsb");
-
-        if (FMOD_System_Create(out var sys, HeaderVersion(fmodPath)) != 0 || FMOD_System_SetOutput(sys, 2 /*NOSOUND*/) != 0
-            || FMOD_System_Init(sys, 8, 0, IntPtr.Zero) != 0)
-        {
-            Console.WriteLine("FMOD init failed (header version mismatch).");
-            return 1;
-        }
-
+        string tmp = TempFsb();
         var manifest = new List<string>();
         int ok = 0;
         try
         {
             foreach (var group in cues.GroupBy(c => c.Bank))
             {
-                string bankPath = Path.Combine(bankDir, group.Key + ".bank");
-                if (!File.Exists(bankPath)) { Console.WriteLine($"SKIP bank missing: {group.Key}"); continue; }
-
-                byte[] bank = File.ReadAllBytes(bankPath);
-                int fsb = bank.AsSpan().IndexOf("FSB5"u8);
-                if (fsb < 0) { Console.WriteLine($"SKIP no FSB5 in {group.Key}"); continue; }
-                File.WriteAllBytes(tmp, bank.AsSpan(fsb).ToArray());
-
-                if (FMOD_System_CreateSound(sys, tmp, ModeSample, IntPtr.Zero, out var snd) != 0)
-                { Console.WriteLine($"SKIP cannot open FSB of {group.Key}"); continue; }
+                if (OpenBank(sys, bankDir, group.Key, tmp) is not { } snd) continue;
 
                 FMOD_Sound_GetNumSubSounds(snd, out int count);
                 foreach (var cue in group)
@@ -179,15 +161,109 @@ internal static class SoundExtractor
         return ok > 0 ? 0 : 1;
     }
 
-    private static IntPtr FindSub(IntPtr snd, int count, string sample)
+    /// <summary>
+    /// Research aid: every sample of <paramref name="banks"/> whose name holds <paramref name="filter"/>, written to
+    /// <paramref name="outDir"/> as "bank__sample.wav" (trimmed, capped) with its length and peak printed.
+    /// </summary>
+    public static int DumpBanks(string gameDir, string outDir, string[] banks, string filter)
+    {
+        if (OpenFmod(gameDir) is not { } sys)
+        {
+            return 1;
+        }
+
+        Directory.CreateDirectory(outDir);
+        string tmp = TempFsb();
+        int ok = 0;
+        try
+        {
+            foreach (var name in banks)
+            {
+                if (OpenBank(sys, Path.Combine(gameDir, "FMOD", "Desktop"), name, tmp) is not { } snd) continue;
+
+                FMOD_Sound_GetNumSubSounds(snd, out int count);
+                for (int i = 0; i < count; i++)
+                {
+                    if (FMOD_Sound_GetSubSound(snd, i, out var sub) != 0 || sub == IntPtr.Zero) continue;
+                    string sample = SampleName(sub);
+                    if (!sample.Contains(filter, StringComparison.OrdinalIgnoreCase)) continue;
+
+                    var (pcm, ch, rate) = Decode(sub);
+                    (pcm, double secs) = TrimAndCap(pcm, ch, rate, DumpMaxSeconds);
+                    float peak = pcm.Length == 0 ? 0 : pcm.Max(Math.Abs);
+                    string file = string.Concat($"{name}__{sample}".Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
+                    WriteWav(Path.Combine(outDir, file + ".wav"), pcm, ch, rate);
+                    Console.WriteLine($"{name}/{sample}\t{secs:F2}s\tpeak {peak:F2}\t{ch}ch");
+                    ok++;
+                }
+                FMOD_Sound_Release(snd);
+            }
+        }
+        finally
+        {
+            FMOD_System_Release(sys);
+            try { File.Delete(tmp); } catch { /* best effort */ }
+        }
+
+        Console.WriteLine($"Wrote {ok} samples to {outDir}");
+        return ok > 0 ? 0 : 1;
+    }
+
+    /// <summary>The game's fmod.dll loaded and an FMOD system without output; null (reason printed) when it fails.</summary>
+    private static IntPtr? OpenFmod(string gameDir)
+    {
+        System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+        string fmodPath = Path.Combine(gameDir, "fmod.dll");
+        if (!File.Exists(fmodPath) || !Directory.Exists(Path.Combine(gameDir, "FMOD", "Desktop")))
+        {
+            Console.WriteLine($"Not a PoE2 install (need fmod.dll and FMOD\\Desktop): {gameDir}");
+            return null;
+        }
+
+        NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(),
+            (name, _, _) => name == Lib ? NativeLibrary.Load(fmodPath) : IntPtr.Zero);
+        if (FMOD_System_Create(out var sys, HeaderVersion(fmodPath)) != 0 || FMOD_System_SetOutput(sys, 2 /*NOSOUND*/) != 0
+            || FMOD_System_Init(sys, 8, 0, IntPtr.Zero) != 0)
+        {
+            Console.WriteLine("FMOD init failed (header version mismatch).");
+            return null;
+        }
+
+        return sys;
+    }
+
+    private static string TempFsb() => Path.Combine(Path.GetTempPath(), "poe2-sounds-" + Environment.ProcessId + ".fsb");
+
+    /// <summary>A bank's FSB5 chunk opened as a sound with sub-sounds (copied to <paramref name="tmp"/>); null when it cannot be.</summary>
+    private static IntPtr? OpenBank(IntPtr sys, string bankDir, string name, string tmp)
+    {
+        string bankPath = Path.Combine(bankDir, name + ".bank");
+        if (!File.Exists(bankPath)) { Console.WriteLine($"SKIP bank missing: {name}"); return null; }
+
+        byte[] bank = File.ReadAllBytes(bankPath);
+        int fsb = bank.AsSpan().IndexOf("FSB5"u8);
+        if (fsb < 0) { Console.WriteLine($"SKIP no FSB5 in {name}"); return null; }
+        File.WriteAllBytes(tmp, bank.AsSpan(fsb).ToArray());
+
+        if (FMOD_System_CreateSound(sys, tmp, ModeSample, IntPtr.Zero, out var snd) != 0)
+        { Console.WriteLine($"SKIP cannot open FSB of {name}"); return null; }
+        return snd;
+    }
+
+    private static string SampleName(IntPtr sub)
     {
         var buf = new byte[256];
+        if (FMOD_Sound_GetName(sub, buf, buf.Length) != 0) return string.Empty;
+        int n = Array.IndexOf(buf, (byte)0);
+        return Encoding.UTF8.GetString(buf, 0, n < 0 ? buf.Length : n);
+    }
+
+    private static IntPtr FindSub(IntPtr snd, int count, string sample)
+    {
         for (int i = 0; i < count; i++)
         {
             if (FMOD_Sound_GetSubSound(snd, i, out var sub) != 0 || sub == IntPtr.Zero) continue;
-            if (FMOD_Sound_GetName(sub, buf, buf.Length) != 0) continue;
-            int n = Array.IndexOf(buf, (byte)0);
-            if (Encoding.UTF8.GetString(buf, 0, n < 0 ? buf.Length : n) == sample) return sub;
+            if (SampleName(sub) == sample) return sub;
         }
         return IntPtr.Zero;
     }

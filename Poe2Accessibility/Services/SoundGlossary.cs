@@ -12,6 +12,7 @@ namespace Poe2Accessibility.Services
     {
         private readonly AudioCueService audio;
         private readonly Dictionary<string, float[]> sounds = new();
+        private readonly Dictionary<string, StereoSound> stereo = new();
         private readonly List<string> keys = new();
 
         public SoundGlossary(AudioCueService audio, GameSounds gameSounds, GameSounds modSounds)
@@ -27,9 +28,18 @@ namespace Poe2Accessibility.Services
             this.Add("weak_point", CueSynth.Heartbeat(rate));
             this.Add("shield_up", CueSynth.ShieldUp(rate));
             this.Add("shield_down", CueSynth.ShieldDown(rate));
-            this.Add("cull", CueSynth.Cull(rate));
-            this.Add("charge_gained", CueSynth.ChargeGained(ChargeKind.Power, 3, rate));
-            this.Add("charge_lost", CueSynth.ChargeLost(ChargeKind.Power, rate));
+            this.Add("cull", modSounds.Get("cull") ?? CueSynth.Cull(rate));
+            this.Add("charge_gained", CueSynth.ChargeGained(ChargeKind.Frenzy, 3, rate));
+            this.Add("charge_lost", CueSynth.ChargeLost(ChargeKind.Frenzy, rate));
+            if (gameSounds.GetStereo("power_charge") is { } power)
+            {
+                this.AddStereo("power_charge", power);
+            }
+
+            if (modSounds.GetStereo("combo") is { } combo)
+            {
+                this.AddStereo("combo", combo);
+            }
             this.Add("deployed", CueSynth.Deployed(rate));
             foreach (var state in Enum.GetValues<EnemyState>())
             {
@@ -100,14 +110,18 @@ namespace Poe2Accessibility.Services
             _ when key.StartsWith("state_", StringComparison.Ordinal) => nameof(AccessibilitySettings.EnemyVolume),
             "bump" or "wall_tone" => nameof(AccessibilitySettings.RadarVolume),
             _ when key.StartsWith("radar", StringComparison.Ordinal) => nameof(AccessibilitySettings.RadarVolume),
-            "shield_up" or "shield_down" or "charge_gained" or "charge_lost" => null,
+            "shield_up" or "shield_down" or "charge_gained" or "charge_lost" or "power_charge" or "combo" => null,
             _ => nameof(AccessibilitySettings.ObjectVolume),
         };
 
         /// <summary>Plays a sound as loud as the game would: <paramref name="gain"/> is its volume setting, 1 = 100 %.</summary>
         public void Play(string key, float gain)
         {
-            if (this.sounds.TryGetValue(key, out var samples))
+            if (this.stereo.TryGetValue(key, out var sound))
+            {
+                this.audio.Play(sound, 1f, gain);
+            }
+            else if (this.sounds.TryGetValue(key, out var samples))
             {
                 this.audio.Play(samples, 0f, 1f, gain);
             }
@@ -116,6 +130,13 @@ namespace Poe2Accessibility.Services
         private void Add(string key, float[] samples)
         {
             this.sounds[key] = samples;
+            this.keys.Add(key);
+        }
+
+        /// <summary>A sound the player's own news plays unpanned, as recorded.</summary>
+        private void AddStereo(string key, StereoSound sound)
+        {
+            this.stereo[key] = sound;
             this.keys.Add(key);
         }
     }

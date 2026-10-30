@@ -32,6 +32,10 @@ trimmed 16-bit WAVs plus `manifest.txt` (cue -> bank/sample). Uses the game's ow
 (no oo2core needed). The WAVs are gitignored game data. To change a cue, edit the `Cues` table in `SoundExtractor.cs`.
 Details: `docs/research/game-audio.md`.
 
+To audition a bank before choosing a cue, `bank-samples <gameDir> <outDir> <bank,bank...> [filter]` writes every sample
+whose name holds the filter as `bank__sample.wav` (first 4 s) and prints each one's length and peak; keep `outDir` in the
+session scratch folder.
+
 ### `batch` command - several catalogs on one opened index
 `Poe2UiExtract batch <gameDir> <command> <outFile> [<command> <outFile> ...]` runs `item-sounds`, `areas`,
 `dat-columns`, `experience`, `hit-times`, `hazards`, `cull-skills`, `places` and `ui-catalog` (the `.ui` extraction plus `catalog`, through a temp

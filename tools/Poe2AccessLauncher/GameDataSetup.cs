@@ -79,7 +79,7 @@ internal static class GameDataSetup
             new Step("cull skills", 2, "cull-skills.txt", "cull-skills", true),
             new Step("places", 1, "places.json", "places", true),
             new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
-            new Step(SoundsStep, 2, null, null, Input: ItemSoundsStep),
+            new Step(SoundsStep, 3, null, null, Input: ItemSoundsStep),
         };
 
         var stamp = LoadStamp(stampFile, install, pluginCatalog, catalog, steps);

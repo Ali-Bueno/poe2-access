@@ -65,7 +65,7 @@ namespace Poe2Accessibility.Services
             this.WatchLife(entity, settings);
             this.WatchLevel(entity, settings);
             this.Statuses.Tick(playing && settings.StatusAlerts);
-            this.Charges.Tick(playing && settings.ChargeAlerts);
+            this.Charges.Tick(playing, settings);
         }
 
         /// <summary>"Level 3" when the character levels up; the first reading of a character is only remembered.</summary>
