@@ -145,6 +145,12 @@ if (args.Length > 1 && string.Equals(args[0], "hazards", StringComparison.Ordina
     return HazardExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hazards.txt");
 }
 
+// Args: cull-skills <gameDir> [outFile]  -- granted effects that deal Culling Strike, for the mod's culling cue.
+if (args.Length > 1 && string.Equals(args[0], "cull-skills", StringComparison.OrdinalIgnoreCase))
+{
+    return CullSkillExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\cull-skills.txt");
+}
+
 // Args: places <gameDir> [outFile]  -- named map pieces and props for the place announcements (docs/research/places.md).
 if (args.Length > 1 && string.Equals(args[0], "places", StringComparison.OrdinalIgnoreCase))
 {
@@ -185,7 +191,7 @@ if (args.Length > 0 && string.Equals(args[0], "dat-columns", StringComparison.Or
     return DatColumnExtractor.Run(args[1], args[2]);
 }
 
-// Args: batch <gameDir> <command> <outFile> [...]  -- item-sounds, areas, dat-columns, experience, hit-times, hazards, places and
+// Args: batch <gameDir> <command> <outFile> [...]  -- item-sounds, areas, dat-columns, experience, hit-times, hazards, cull-skills, places and
 // ui-catalog on one opened index (the launcher after a game patch); each output complete or absent.
 if (args.Length > 3 && string.Equals(args[0], "batch", StringComparison.OrdinalIgnoreCase))
 {

@@ -166,6 +166,52 @@ namespace Poe2Accessibility
         /// <summary>A rare or unique enemy now within culling range: "Beira, de la manada putrefacta: golpe de gracia".</summary>
         public static string Cullable(string name) => T($"{name}: culling strike", $"{name}: golpe de gracia");
 
+        /// <summary>
+        ///     What the player holds now, in the game's words: "3 cargas de poder", "sin cargas de aguante"; the others by
+        ///     name and count ("Infusión de fuego: 2"), Arcane Surge by name alone.
+        /// </summary>
+        public static string Charges(Services.ChargeKind kind, int count) => (kind, count) switch
+        {
+            (Services.ChargeKind.Power, 0) => T("no power charges", "sin cargas de poder"),
+            (Services.ChargeKind.Power, 1) => T("1 power charge", "1 carga de poder"),
+            (Services.ChargeKind.Power, _) => T($"{count} power charges", $"{count} cargas de poder"),
+            (Services.ChargeKind.Frenzy, 0) => T("no frenzy charges", "sin cargas de frenesí"),
+            (Services.ChargeKind.Frenzy, 1) => T("1 frenzy charge", "1 carga de frenesí"),
+            (Services.ChargeKind.Frenzy, _) => T($"{count} frenzy charges", $"{count} cargas de frenesí"),
+            (Services.ChargeKind.Endurance, 0) => T("no endurance charges", "sin cargas de aguante"),
+            (Services.ChargeKind.Endurance, 1) => T("1 endurance charge", "1 carga de aguante"),
+            (Services.ChargeKind.Endurance, _) => T($"{count} endurance charges", $"{count} cargas de aguante"),
+            (Services.ChargeKind.Spirit, 0) => T("no spirit charges", "sin cargas de espíritu"),
+            (Services.ChargeKind.Spirit, 1) => T("1 spirit charge", "1 carga de espíritu"),
+            (Services.ChargeKind.Spirit, _) => T($"{count} spirit charges", $"{count} cargas de espíritu"),
+            (Services.ChargeKind.ArcaneSurge, 0) => T("Arcane Surge ended", "Sobrecarga arcana terminada"),
+            (Services.ChargeKind.ArcaneSurge, _) => ChargeName(kind),
+            _ => T($"{ChargeName(kind)}: {count}", $"{ChargeName(kind)}: {count}"),
+        };
+
+        /// <summary>The game's name for a resource counted by name (BuffDefinitions, read 2026-10-29).</summary>
+        public static string ChargeName(Services.ChargeKind kind) => kind switch
+        {
+            Services.ChargeKind.FireInfusion => T("Fire Infusion", "Infusión de fuego"),
+            Services.ChargeKind.ColdInfusion => T("Cold Infusion", "Infusión de hielo"),
+            Services.ChargeKind.LightningInfusion => T("Lightning Infusion", "Infusión de rayo"),
+            Services.ChargeKind.FireSurge => T("Fire Surge", "Sobrecarga de fuego"),
+            Services.ChargeKind.ColdSurge => T("Cold Surge", "Sobrecarga de hielo"),
+            Services.ChargeKind.LightningSurge => T("Lightning Surge", "Sobrecarga de rayo"),
+            Services.ChargeKind.ChaosSurge => T("Chaos Surge", "Sobrecarga de caos"),
+            Services.ChargeKind.DruidicProwess => T("Druidic Prowess", "Proeza druídica"),
+            Services.ChargeKind.ArcaneSurge => T("Arcane Surge", "Sobrecarga arcana"),
+            _ => T("Rage", "Furia"),
+        };
+
+        /// <summary>Rage reaching its maximum: "Furia al máximo".</summary>
+        public static string RageFull => T("Rage full", "Furia al máximo");
+
+        public static string RageEmpty => T("no Rage", "sin furia");
+
+        /// <summary>Rage in the vitals report: "Furia 18 de 30".</summary>
+        public static string Rage(int count, int max) => T($"Rage {count} of {max}", $"Furia {count} de {max}");
+
         /// <summary>An enemy state's name, as the game's KeywordPopups call it (read 2026-10-26).</summary>
         public static string EnemyStateName(Services.EnemyState state) => state switch
         {
@@ -235,6 +281,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceFlasks) => T("Flask uses", "Usos de los frascos"),
             nameof(AccessibilitySettings.AnnounceBossLife) => T("Boss life", "Vida de jefes"),
             nameof(AccessibilitySettings.StatusAlerts) => T("Harmful states", "Estados alterados"),
+            nameof(AccessibilitySettings.ChargeAlerts) => T("Charges, infusions, surges and Rage", "Cargas, infusiones, sobrecargas y furia"),
             nameof(AccessibilitySettings.AnnounceNearby) => T("Name nearby things", "Nombrar cosas cercanas"),
             nameof(AccessibilitySettings.AnnouncePlaces) => T("Name places you walk into", "Nombrar los lugares por los que pasas"),
             nameof(AccessibilitySettings.AnnounceInteractTarget) => T("What the interact button uses", "Lo que usa el botón de interactuar"),
@@ -282,7 +329,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.BossWeakPoint) => T("Boss weak point heartbeat", "Latido del punto débil del jefe"),
             nameof(AccessibilitySettings.ShieldSounds) => T("Shield raised and lowered", "Escudo levantado y bajado"),
             nameof(AccessibilitySettings.AnnounceStunBar) => T("Stun bar while blocking", "Barra de aturdimiento al bloquear"),
-            nameof(AccessibilitySettings.CullCues) => T("Culling Strike cue", "Aviso de golpe de gracia"),
+            nameof(AccessibilitySettings.CullCue) => T("Culling Strike cue", "Aviso de golpe de gracia"),
             nameof(AccessibilitySettings.EnemyStateCues) => T("Enemy state sounds", "Sonidos de estados del enemigo"),
             nameof(AccessibilitySettings.PrimedStunCues) => T("Primed for Stun sound", "Sonido de listo para el aturdimiento"),
             nameof(AccessibilitySettings.CrosshairBeep) => T("Crosshair beep", "Pitido de mira"),
@@ -415,6 +462,8 @@ namespace Poe2Accessibility
             "weak_point" => T("Boss weak point", "Punto débil del jefe"),
             "shield_up" => T("Shield raised", "Escudo levantado"),
             "cull" => T("Culling Strike", "Golpe de gracia"),
+            "charge_gained" => T("Charge gained", "Carga ganada"),
+            "charge_lost" => T("Charge lost", "Carga perdida"),
             _ when StateOfSound(key) is { } state => EnemyStateName(state),
             "shield_down" => T("Shield lowered", "Escudo bajado"),
             "reach" => T("Reach ping", "Aviso de alcance"),
@@ -475,6 +524,10 @@ namespace Poe2Accessibility
             "cull" => T(
                 "an enemy on that side is low enough for a Culling Strike: 35% life normal, 20% magic, 10% rare, 5% unique",
                 "un enemigo de ese lado ya cae con un golpe de gracia: 35% de vida si es normal, 20% mágico, 10% raro, 5% único"),
+            "charge_gained" => T(
+                "you gained a charge, an infusion or a surge: one tick for each you hold, highest for power charges, lowest for endurance; Rage ticks as it fills",
+                "ganaste una carga, una infusión o una sobrecarga: un toque por cada una que tienes, más agudo para las cargas de poder, más grave para las de aguante; la furia suena al llenarse"),
+            "charge_lost" => T("you spent one or it ran out; Rage ticks this way as it empties", "gastaste una o se te acabó; la furia suena así al vaciarse"),
             "state_PrimedForStun" => T(
                 "an enemy on that side has enough stun buildup that a heavy hit stuns it (Boneshatter): 40% normal, 50% magic, 60% rare, 70% unique",
                 "un enemigo de ese lado ya acumula aturdimiento suficiente para que un golpe fuerte lo aturda (Destrozahuesos): 40% si es normal, 50% mágico, 60% raro, 70% único"),
@@ -710,6 +763,9 @@ namespace Poe2Accessibility
             Services.LootFilter.All => T("all", "todos"),
             Services.LootFilter.Magic => T("magic or better", "mágicos o mejores"),
             Services.LootFilter.Valuable => T("only currency, gems, quest items, rares and uniques", "solo monedas, gemas, objetos de misión, raros y únicos"),
+            Services.CullThreshold.WithSkill => T("when one of your skills culls", "si una de tus habilidades remata"),
+            Services.CullThreshold.Always => T("always", "siempre"),
+            Services.CullThreshold.Never => T("never", "nunca"),
             _ => LanguageName(value),
         };
 

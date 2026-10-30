@@ -27,6 +27,7 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.AnnounceFlasks)),
             Switch(nameof(AccessibilitySettings.AnnounceBossLife)),
             Switch(nameof(AccessibilitySettings.StatusAlerts)),
+            Switch(nameof(AccessibilitySettings.ChargeAlerts)),
             Switch(nameof(AccessibilitySettings.AnnounceNearby)),
             Switch(nameof(AccessibilitySettings.AnnouncePlaces)),
             Switch(nameof(AccessibilitySettings.AnnounceInteractTarget)),
@@ -59,7 +60,7 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.BossWeakPoint)),
             Switch(nameof(AccessibilitySettings.ShieldSounds)),
             Switch(nameof(AccessibilitySettings.AnnounceStunBar)),
-            Switch(nameof(AccessibilitySettings.CullCues)),
+            Choice(nameof(AccessibilitySettings.CullCue), CullThreshold.Modes),
             Switch(nameof(AccessibilitySettings.EnemyStateCues)),
             Switch(nameof(AccessibilitySettings.PrimedStunCues)),
             Switch(nameof(AccessibilitySettings.CrosshairBeep)),
@@ -139,7 +140,7 @@ namespace Poe2Accessibility.Services
             var item = this.items[this.index];
             if (item.Kind == Kind.Sound)
             {
-                this.glossary?.Play(item.Name);
+                this.glossary?.Play(item.Name, SoundGlossary.VolumeSetting(item.Name) is { } volume ? (int)Field(volume).GetValue(settings)! / 100f : 1f);
                 return string.Empty;
             }
 
@@ -172,9 +173,14 @@ namespace Poe2Accessibility.Services
             return item.Kind == Kind.Help
                 ? Announcements.SettingLine(Announcements.HelpTitle(item.Name), Announcements.HelpText(item.Name), this.index + 1, this.items.Length)
                 : item.Kind == Kind.Sound
-                ? Announcements.SettingLine(Announcements.SoundName(item.Name), Announcements.SoundMeaning(item.Name), this.index + 1, this.items.Length)
+                ? Announcements.SettingLine(Announcements.SoundName(item.Name), SoundLine(item.Name), this.index + 1, this.items.Length)
                 : Announcements.SettingLine(Announcements.SettingName(item.Name), this.Value(settings, item), this.index + 1, this.items.Length);
         }
+
+        /// <summary>A sound's meaning and the volume that sets it ("…, Volumen de enemigos"), so the player knows which to raise.</summary>
+        private static string SoundLine(string key) => SoundGlossary.VolumeSetting(key) is { } volume
+            ? $"{Announcements.SoundMeaning(key)}, {Announcements.SettingName(volume)}"
+            : Announcements.SoundMeaning(key);
 
         private string Value(AccessibilitySettings settings, Item item)
         {

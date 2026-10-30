@@ -111,6 +111,7 @@ namespace Poe2Accessibility
             if (this.culls != null)
             {
                 this.culls.Gain = Fraction(settings.EnemyVolume);
+                this.culls.Mode = settings.CullCue;
             }
 
             if (this.enemyStates != null)

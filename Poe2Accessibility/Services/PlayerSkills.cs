@@ -2,16 +2,18 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using GameHelper.RemoteObjects.Components;
 
     /// <summary>
-    ///     Whether the followed player can parry: Parry is granted by a buckler, a targe or two swords (KeywordPopups
-    ///     "Parry") and shows as the granted effect "ParryPlayer" among the skills the player's Actor lists.
+    ///     The granted effect Ids of the skills the followed player's Actor lists ("KillingPalmPlayer"): Parry is granted by
+    ///     a buckler, a targe or two swords (KeywordPopups "Parry") and shows as "ParryPlayer"; the skills that cull come
+    ///     from <see cref="CullSkills"/>.
     /// </summary>
-    public sealed class ParrySkill
+    public sealed class PlayerSkills
     {
         /// <summary>GrantedEffects Id of the Parry skill (row 433, dat-strings 2026-10-28).</summary>
-        private const string ParryEffectId = "ParryPlayer";
+        public const string Parry = "ParryPlayer";
 
         /// <summary>Gear changes now and then: the skills are read again this often.</summary>
         private const int PollMs = 2000;
@@ -26,35 +28,37 @@ namespace Poe2Accessibility.Services
         private readonly PluginLog log;
         private string logged = string.Empty;
         private long lastPoll = long.MinValue / 2;
-        private bool has;
+        private List<string> ids = new();
 
-        public ParrySkill(HostMemoryReader memory, UiElementReader elements, PluginLog log)
+        public PlayerSkills(HostMemoryReader memory, UiElementReader elements, PluginLog log)
         {
             this.memory = memory;
             this.elements = elements;
             this.log = log;
         }
 
-        /// <summary>Whether the followed player has Parry now; the skills are read at most every <see cref="PollMs"/>.</summary>
-        public bool Has()
+        /// <summary>Whether the followed player has the skill now.</summary>
+        public bool Has(string id) => this.Ids().Contains(id);
+
+        /// <summary>The followed player's skills now; read at most every <see cref="PollMs"/>.</summary>
+        public IReadOnlyList<string> Ids()
         {
             var now = Environment.TickCount64;
             if (now - this.lastPoll < PollMs)
             {
-                return this.has;
+                return this.ids;
             }
 
             this.lastPoll = now;
-            var ids = Seats.Followed.TryGetComponent<Actor>(out var actor) ? this.SkillIds(actor.Address) : new List<string>();
-            this.has = ids.Contains(ParryEffectId);
-            var joined = string.Join(", ", ids);
+            this.ids = Seats.Followed.TryGetComponent<Actor>(out var actor) ? this.SkillIds(actor.Address) : new List<string>();
+            var joined = string.Join(", ", this.ids);
             if (joined != this.logged)
             {
                 this.logged = joined;
                 this.log.Info($"Player skills: {joined}");
             }
 
-            return this.has;
+            return this.ids;
         }
 
         /// <summary>The granted effect Id of each skill the actor lists, through its level row, each key checked against its table.</summary>

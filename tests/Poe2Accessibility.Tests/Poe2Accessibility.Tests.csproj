@@ -49,6 +49,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\BuffIds.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\HazardGround.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CullThreshold.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\CullSkills.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\PlayerCharges.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\EnemyStates.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PrimedThreshold.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Switches.cs" />

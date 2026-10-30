@@ -84,8 +84,12 @@ namespace Poe2Accessibility
         /// <summary>Say the heavy stun bar that blocking with a raised shield or parrying fills, at half, three quarters and nine tenths.</summary>
         public bool AnnounceStunBar = true;
 
-        /// <summary>Culling Strike (Killing Palm): a falling chime from an enemy now low enough to be culled. Off by default: only builds that cull need it.</summary>
-        public bool CullCues = false;
+        /// <summary>
+        ///     Culling Strike (Killing Palm): a falling chime from an enemy now low enough to be culled. By default only while a
+        ///     skill of the character's culls (<see cref="Services.CullThreshold.WithSkill"/>); always, for culling from gear;
+        ///     or never. Replaces the switch "CullCues", off by default, that a Monk never found.
+        /// </summary>
+        public string CullCue = Services.CullThreshold.WithSkill;
 
         /// <summary>
         ///     A sound of its own for each enemy state skills pay off on — heavy stunned, frozen, electrocuted, pinned,
@@ -224,6 +228,12 @@ namespace Poe2Accessibility
 
         /// <summary>Say when a harmful state begins and ends: frozen, chilled, shocked, ignited, poisoned, bleeding, stunned, slowed, cursed.</summary>
         public bool StatusAlerts = true;
+
+        /// <summary>
+        ///     Charges, the Sorceress's Infusions, the Surges, Druidic Prowess and Arcane Surge: a tick per one held as one is
+        ///     gained, a lower one as one goes, and the count said; Rage when it fills and when it runs out.
+        /// </summary>
+        public bool ChargeAlerts = true;
 
         /// <summary>Volume of all the mod's sounds, percent (0-300; above 100 a cue is driven louder, see AudioCueService).</summary>
         public int SoundVolume = 100;

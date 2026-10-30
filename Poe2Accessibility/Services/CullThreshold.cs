@@ -9,6 +9,13 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public static class CullThreshold
     {
+        /// <summary>When the culling cue plays (setting CullCue): while a skill of the character's culls, always, never.</summary>
+        public const string WithSkill = "with_skill";
+        public const string Always = "always";
+        public const string Never = "never";
+
+        public static readonly string[] Modes = { WithSkill, Always, Never };
+
         public static int Percent(Rarity rarity) => rarity switch
         {
             Rarity.Unique => 5,

@@ -95,7 +95,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The extra cue at the wind-up of an attack the game marks as impossible to block (with the dodge warnings on).</summary>
         public bool UnblockableCues { get; set; } = true;
 
-        /// <summary>Whether the followed player has Parry now (<see cref="ParrySkill"/>); asked only with <see cref="ParryCues"/> on.</summary>
+        /// <summary>Whether the followed player has Parry now (<see cref="PlayerSkills"/>); asked only with <see cref="ParryCues"/> on.</summary>
         public Func<bool> CanParry { get; set; } = () => false;
 
         /// <summary>How long before a blow the parry cue stops, the moment to press Parry: time for the parry to come up.</summary>

@@ -118,7 +118,8 @@
 | Scanner Quest category (objective's proper nouns) | done (live) | "Misión. El molinero hinchado, único, 5 pasos"; `QuestMatcher`. A name's words also match in the plural ("Busca los altares de ritual" → "Altar de ritual", unit-tested). Places are never targets ("Encuentra la entrada al Valle rojo" led to an "entrada" tile, "Busca a Asinia en la Tumba de la consorte" to a "tumba" prop); a radar tile note that is no area name (`QuestMatcher.TileNote`, `LandmarkTable.IsAreaName`) only by its whole name ("Ogham" in "El tesoro salvaje de Ogham" led to "Ogham Farmlands Or Deadend", a dead end; user 2026-10-28) |
 | Boss life + dodge warning | done (live) | "El molinero hinchado 72 por ciento"; whoosh + snap only on attack animations (`DodgeThreats`), a rare's blow within 150 units, louder when closer; timed half a second before the blow as learnt from the hits taken (`DodgeTimings`, `config/dodge-timings.txt`; MudGolem GroundSlam 1156 ms), at the wind-up until learnt (`docs/research/dodge-timing.md`); fuller since 2026-10-28 (sweep floor 0.6, snap 35 ms, far gain 0.8, same peak: a tester found it hard to hear in boss fights) |
 | League encounter in the vitals readout (L3 double tap): "Encuentro de ritual. 100 Tributo. 0 rituales restantes" | done (code) | `EncounterReader`: visible texts under the HUD's `tertiary_hud_layout` except the quest pages (UI dump 2026-10-26); changes during play were already said as HUD news |
-| Culling Strike cue (off by default) | done (code) | `CullWatch` + pure `CullThreshold` (KeywordPopups "CullingStrike": 35/20/10/5% by rarity); falling two-note chime on the enemy's side, rares and uniques named |
+| Culling Strike cue (on while a skill culls) | done (code; skills read live) | `CullWatch` + pure `CullThreshold` (KeywordPopups "CullingStrike": 35/20/10/5% by rarity); a trembling gong with a cymbal sizzle (`CueSynth.Cull`, user's pick H5 of four rounds, samples page https://claude.ai/artifact/NVEVcncyDggik2bhT11PnJ) on the enemy's side, rares and uniques named. Setting `CullCue`: with a culling skill (default) / always / never; the skills from `catalog/cull-skills.txt` (`CullSkills`, extractor `cull-skills`) against `PlayerSkills` (KillingPalmPlayer seen live 2026-10-29). Was a switch off by default that a Monk never found |
+| Charges, infusions, surges, Rage | done (live: power charges) | `ChargeWatch` (in `PlayerAlerts`) + pure `PlayerCharges`: buff stacks of `power/frenzy/endurance/spirit_charge`, `fire/cold/lightning_infusion`, `instilling_fire/cold/lightning/chaos`, `druidic_prowess`, `arcane_surge`; a glass tick per one held, a lower tick per one lost, the count said after 400 ms of quiet; Rage from Stats `current_rage` / `virtual_maximum_rage`, said only full or empty; in the vitals readout. Heard live 2026-10-29: "1 carga de poder", "sin cargas de poder" (Falling Thunder spends them), "2 cargas de poder". Not yet live: the other kinds, Rage. Enraged: no player buff found by name (the BuffDefinitions "enrage" rows are monsters'); "Player buff seen" will name it |
 | Primed for Stun cue (Boneshatter: heavy stun and shockwave) | done (code) | `EnemyStateWatch` (own switch `PrimedStunCues`) + pure `PrimedThreshold` (KeywordPopups "PrimedStun": 40/50/60/70% by rarity) on `GameLayout.ActorComponent` (threshold Actor+0x4E4, buildup +0x4E8; stun traces 2026-10-26: a hag at 54 of 60 stunned by the next hit); not heard live yet. Freeze / Electrocution / Pin buildups: not found (the second and third 0x1C entries after the stun one stayed 0 against a Warrior; `stuntrace` logs Actor 0x4C0-0x5C0) |
 | Enemy state sounds: heavy stunned, frozen, electrocuted, pinned, armour broken, dazed, parried | done (code) | `EnemyStateWatch` + pure `EnemyStates`/`EnemyStateNews`: buffs `frozen`, `electrocute_display_buff`, `pinned`, `broken_armour_debuff`, `dazed`, `parried` and the animations HeavyStun[Back|Forward] / Electrocute*; a sound per state (`CueSynth.StateCue`) on the enemy's side as it begins, rares and uniques named with the game's own term; on by default (only states the party causes happen); heavy stun seen in traces, the others not yet heard live |
 | Raise Shield feedback: clank up as the shield rises, down as it falls | done (live) | `ShieldWatch` + pure `ShieldStance` on the player's animation name (game Animation rows 0x1DF-0x1E2: ActiveBlockChannel[Moving] held, ActiveBlockEnd[Moving] lowering); a blocked hit's flicker is ignored for 300 ms; heard live 2026-10-26 (log: raised ActiveBlockChannel, lowered at ActiveBlockEnd or by attacking) |
@@ -192,6 +193,16 @@
 
 ## Derived facts (with source)
 - Heavy stun buildup is "poise" in the game's data (Stats.dat: `poise_threshold`, `base_poise_threshold`, `poise_decay_delay_ms`, `is_heavy_stunned`, `cannot_accumulate_heavy_stun_poise`). GameHelper's `GameStats` enum is about 3 rows behind the 2026-10-26 Stats.dat (`poise_threshold` 17371+1 there, row 17374 now): compare raw keys, not enum names. Stat keys are row + 1.
+- **Culling Strike skills:** granted effects whose main stat set (GrantedEffects +0xA8 → GrantedEffectStatSets, row 0x65,
+  ImplicitStats key list +0x18) holds `kill_enemy_on_hit_if_under_10%_life` (Stats row 579; skill_stat_descriptions.csd
+  describes it as "[CullingStrike|Culling Strike]"). Killing Palm's ActiveSkills description does not mention culling. 2026-10-29.
+- **Player resources** (BuffDefinitions, 2026-10-29): charges, infusions, surges (`instilling_*`), Druidic Prowess and Arcane
+  Surge are player buffs whose stack count is the number held (`power_charge_79` live, GameHelper adds "_79"). Rage, Combo,
+  Glory and Valour are not buffs: Rage is Stats `current_rage` (enum 6994+1) / `virtual_maximum_rage`, default maximum 30
+  (KeywordPopups); Combo and Glory are per skill. No buff counts crossbow rounds.
+- **Sound glossary volumes:** each glossary sound plays at its game volume (`SoundGlossary.VolumeSetting`); it played all at
+  100 %, so a tester saw the harmful-ground alarm and the wall bump "not go above 100 %" (they do in play: +9.6 / +8.2 dB
+  from 100 to 300 %, measured on the mixer's code 2026-10-29).
 - Enemy state buff ids and display names: BuffDefinitions and KeywordPopups (`Poe2UiExtract dat-strings <game> KeywordPopups <Language> 1100`; the language name as the game spells it, e.g. "Spanish", "Traditional Chinese"; run from PowerShell with `[Console]::OutputEncoding = UTF8` or the text is mangled).
 - Plugin contract, hotkeys (`Utils.IsKeyPressedAndNotTimeout`), events (`RemoteEvents.AreaChanged` public,
   `StateChanged` internal → poll), logging convention: `docs/research/gamehelper2-plugin-api.md`.
@@ -349,8 +360,9 @@
   `ObjectSounds` + `GameSounds` + `ItemDropSounds` (game WAVs), `CheckpointPlaces` (+ pure `MapPlaces`),
   `ScreenProjection` (world offset → screen, on-screen test), `FlaskWatch`, `ExperienceTable`, `LootFilter`.
   Combat state cues: `CullWatch` (+ pure `CullThreshold`), `EnemyStateWatch` (+ pure `EnemyStates`, `EnemyStateNews`),
-  `ShieldWatch` (+ pure `ShieldStance`, `StunMeter`), `WeakPointGuide` (+ pure `WeakPoints`); parry: `ParrySkill` (player skill ids via
-  `DatKey`), pure `ParryTiming`; research: `StunTrace` (dev `stuntrace`).
+  `ShieldWatch` (+ pure `ShieldStance`, `StunMeter`), `WeakPointGuide` (+ pure `WeakPoints`); player skills: `PlayerSkills` (granted
+  effect ids via `DatKey`, Parry and `CullSkills`), pure `ParryTiming`; research: `StunTrace` (dev `stuntrace`).
+  Player resources: `ChargeWatch` (+ pure `PlayerCharges`) in `PlayerAlerts`, beside `StatusWatch`.
   Speech priority: `IAccessibilityOutputService.Urge` (later interrupts queue for 1.5 s), `.Keep` (tutorial lessons; `SpeechFloor` holds what comes meanwhile).
 - Tests: `tests/Poe2Accessibility.Tests` (differ, text edits, chat diff, gestures, scanner, route legs, life
   alarm, beacon, quest matching, cooldown, ailments, dodge threats, map markers). Dev tools: `tools/computer_use/`; dev commands
@@ -360,6 +372,12 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
+Next (2026-10-29, twelfth batch, deployed into the user's `dist`): hear the culling gong on a Killing Palm Monk (rares named),
+the charge ticks and counts (power heard live), Rage full/empty once "Furia al impactar" is taken, the other resources on
+other classes, and the sound glossary at raised volumes ("…, Volumen de enemigos"). An Enraged buff id will show in a
+"Player buff seen" line. Also in this batch, untested live: the bind screen's spirit panel naming each value's weapon set
+("set de armas I: 0 de espíritu", `WeaponSetRows`; which box shows while managing set II, docs/research/skill-bar.md) and
+a layout id no longer spoken before a caption ("action binding display", a tester).
 Next (2026-10-29, eleventh batch, deployed into the user's `dist`): in Freythorn, hear the remaining altars named on approach
 and listed in Misión and Encuentros, then "Altar de ritual del jefe" in the arena; a "Minimap mark not listed" log line is a
 gap to classify. The quest page is said on area changes and on returning to the game window (heard live).

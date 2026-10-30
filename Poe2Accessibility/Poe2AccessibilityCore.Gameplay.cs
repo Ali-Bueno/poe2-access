@@ -103,7 +103,7 @@ namespace Poe2Accessibility
             this.Isolated("weak point", () => this.weakPoint?.Tick(playing && this.Settings.BossWeakPoint));
             this.Isolated("hazards", () => this.hazards?.Tick(playing && this.Settings.HazardAlarm));
             this.Isolated("shield", () => this.shield?.Tick(playing, this.Settings.ShieldSounds, this.Settings.AnnounceStunBar));
-            this.Isolated("cull", () => this.culls?.Tick(playing && this.Settings.CullCues));
+            this.Isolated("cull", () => this.culls?.Tick(playing));
             this.Isolated("enemy states", () => this.enemyStates?.Tick(playing, this.Settings.EnemyStateCues, this.Settings.PrimedStunCues));
             this.Isolated("object sounds", () => this.objectSounds?.Tick(playing && this.Settings.ObjectSounds));
             // A town is not explored; the guide, while it leads, is the one sound to follow.
@@ -202,7 +202,10 @@ namespace Poe2Accessibility
                 life.Health.CurrentInPercent(),
                 life.Mana.Total > 0 ? life.Mana.CurrentInPercent() : 0,
                 life.EnergyShield.Total > 0 ? life.EnergyShield.CurrentInPercent() : null);
-            var states = (Seats.AskingSecond && Seats.Partner != null ? this.partnerAlerts : this.alerts)?.Statuses.Active.Select(Announcements.AilmentName).ToList() ?? new System.Collections.Generic.List<string>();
+            var alerts = Seats.AskingSecond && Seats.Partner != null ? this.partnerAlerts : this.alerts;
+            var states = alerts?.Statuses.Active.Select(Announcements.AilmentName).ToList() ?? new System.Collections.Generic.List<string>();
+            var charges = string.Join(", ", (alerts?.Charges.Held.Select(held => Announcements.Charges(held.Kind, held.Count)) ?? Enumerable.Empty<string>())
+                .Concat(alerts?.Charges.Rage is { Count: > 0 } rage ? new[] { Announcements.Rage(rage.Count, rage.Max) } : Array.Empty<string>()));
             var player = Seats.Asking.TryGetComponent<GameHelper.RemoteObjects.Components.Player>(out var me) ? me : null;
             var character = player?.Level ?? 0;
             var levels = Announcements.Levels(character, AreaLevel(), player == null ? null : this.experience?.PercentToNext(character, unchecked((uint)player.Xp)));
@@ -210,7 +213,7 @@ namespace Poe2Accessibility
             var explored = this.entities?.ExploredPercent() is { } percent ? Announcements.Explored(percent) : string.Empty;
             var gold = this.gold?.Amount is { } coins ? Announcements.Amount(coins.ToString(System.Globalization.CultureInfo.CurrentCulture), Announcements.Gold, false) : string.Empty;
             var encounter = Announcements.Sentences(this.encounters?.Lines(this.narrator?.HudLayer ?? IntPtr.Zero) ?? Array.Empty<string>());
-            return Announcements.Sentences(new[] { vitals, string.Join(", ", states), this.bosses?.Status() ?? string.Empty, flasks, levels, gold, encounter, explored }.Where(part => part.Length > 0));
+            return Announcements.Sentences(new[] { vitals, string.Join(", ", states), charges, this.bosses?.Status() ?? string.Empty, flasks, levels, gold, encounter, explored }.Where(part => part.Length > 0));
         }
 
         /// <summary>The delivery level the player chose for a kind of news (speech priority).</summary>

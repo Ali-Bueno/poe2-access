@@ -264,8 +264,8 @@ namespace Poe2Accessibility
                 var followedVoice = new SeatOutput(this.output, () => Seats.Partner == null ? string.Empty : PlayerAlerts.Name(Seats.Followed));
                 var partnerVoice = new SeatOutput(this.output, () => PlayerAlerts.Name(Seats.Partner));
                 Func<int> followedSeat = () => Seats.FollowsSecond ? 2 : 1;
-                this.alerts = new PlayerAlerts(() => Seats.Followed, followedVoice, this.log);
-                this.partnerAlerts = new PlayerAlerts(() => Seats.Partner, partnerVoice, this.log);
+                this.alerts = new PlayerAlerts(() => Seats.Followed, this.audio, followedVoice, this.log);
+                this.partnerAlerts = new PlayerAlerts(() => Seats.Partner, null, partnerVoice, this.log);
                 this.pickups = new InventoryWatch(inventory, followedVoice, this.log) { Seat = followedSeat };
                 this.partnerPickups = new InventoryWatch(inventory, partnerVoice, this.log) { Seat = () => 2 };
                 this.flasks = new FlaskWatch(inventory, followedVoice) { Seat = followedSeat };
@@ -283,13 +283,15 @@ namespace Poe2Accessibility
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = timings, TimingsPath = this.DodgeTimingsPath };
                 this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log);
                 this.shield = new ShieldWatch(this.audio, this.output, memory, this.log);
-                var parrySkill = new ParrySkill(memory, elements, this.log);
-                this.bosses.CanParry = parrySkill.Has;
+                var skills = new PlayerSkills(memory, elements, this.log);
+                this.bosses.CanParry = () => skills.Has(PlayerSkills.Parry);
                 var hazardGround = HazardGround.Load(Path.Join(this.DllDirectory, "catalog", "hazards.txt"));
                 this.log.Info($"Hazard ground: {hazardGround.Count} buffs from the game files");
                 this.hazards = new HazardWatch(this.audio, hazardGround, this.log);
                 this.encounters = new EncounterReader(elements);
-                this.culls = new CullWatch(this.audio, this.output, elements);
+                var cullSkills = CullSkills.Load(Path.Join(this.DllDirectory, "catalog", "cull-skills.txt"));
+                this.log.Info($"Cull skills: {cullSkills.Count} skills from the game files");
+                this.culls = new CullWatch(this.audio, this.output, elements) { HasCullingSkill = () => cullSkills.AnyCulls(skills.Ids()) };
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
                 var drops = ItemDropSounds.Load(
@@ -806,6 +808,8 @@ namespace Poe2Accessibility
             this.enemyStates?.Reset();
             this.alerts?.Statuses.Reset();
             this.partnerAlerts?.Statuses.Reset();
+            this.alerts?.Charges.Reset();
+            this.partnerAlerts?.Charges.Reset();
             this.pickups?.Reset();
             this.partnerPickups?.Reset();
             this.gold?.Reset();

@@ -11,7 +11,7 @@ toggles the map legend). Turn the controller commands off with `ControllerComman
 | Gesture | In menus (something has the focus) | In gameplay |
 |---|---|---|
 | Tap | Next line of the focused element: its name first, then each tooltip line | Where the scanner's choice is now; nothing chosen: repeat the last speech |
-| Double tap | Previous line | Life, mana, energy shield, harmful states, the boss's life, the flasks' uses left, then your level, how far to the next, the area's, your gold, the league encounter the HUD shows (tribute, rituals left), and how much of the ground you can reach you have seen ("Life 80 percent, mana 40 percent. Poisoned. The Bloated Miller 55 percent. Lesser Life Flask, 6 uses, Lesser Mana Flask, 2 uses. Level 4, 35 percent to level 5, area level 2. 113 gold. Ritual encounter. 100 Tribute. 0 rituals remaining. Explored 40 percent") |
+| Double tap | Previous line | Life, mana, energy shield, harmful states, charges and Rage held, the boss's life, the flasks' uses left, then your level, how far to the next, the area's, your gold, the league encounter the HUD shows (tribute, rituals left), and how much of the ground you can reach you have seen ("Life 80 percent, mana 40 percent. Poisoned. The Bloated Miller 55 percent. Lesser Life Flask, 6 uses, Lesser Mana Flask, 2 uses. Level 4, 35 percent to level 5, area level 2. 113 gold. Ritual encounter. 100 Tribute. 0 rituals remaining. Explored 40 percent") |
 | Hold (half a second) | Whole tooltip (item mods, gem stats, definitions) | Read the screen (quest tracker, HUD texts), then the skill bar: each set's buttons with what they fire, the empty ones last |
 | Hold + right stick flick | — (the game navigates with the right stick in menus) | Scanner (below) |
 | Hold + right stick press (R3) | — | Guide beacon on the scanner's choice (below); while it guides, the same gesture turns it off |
@@ -72,7 +72,7 @@ closed"; the ping goes on by itself once the barrier opens.
 
 ## Settings menu (gameplay)
 
-Hold L3 for a second and a half: "Mod settings. Help: the L3 button in play, 1 of 121" (five help topics, then the settings, then the sound glossary). Without holding L3,
+Hold L3 for a second and a half: "Mod settings. Help: the L3 button in play, 1 of 124" (five help topics, then the settings, then the sound glossary). Without holding L3,
 flick the right stick up or down to move through the list and left or right to change the value (switches
 toggle, volumes move in steps of 25 percent up to 300, language: same as the game, Spanish, English). Tap L3 to close:
 "Settings saved" (written to `config/settings.txt`). Opening a game panel closes it too.
@@ -118,8 +118,10 @@ player 2" (off) choose whom the mod reads for — one, the other or both ([local
   body: "Revive, A"), "You are down. The other player can revive you", and who is back on their feet. The NPC tap leaves
   the other local player out; the scanner's Players category lists them.
 
-The last group is the **sound glossary**: every sound of the mod by name and meaning ("Dodge warning, a rare
-or unique monster starts an attack, dodge"); left or right plays it.
+The last group is the **sound glossary**: every sound of the mod by name, meaning and the volume setting that sets it
+("Dodge warning, a rare or unique monster starts an attack, dodge, Dodge and parry volume"); left or right plays it
+as loud as the game would (that volume, then the master volume). The harmful-ground alarm and the Culling Strike
+cue follow the enemy volume, the wall bump the radar volume.
 
 ## Passive tree
 
@@ -212,10 +214,13 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   a crossbow, a gem each their own; the rare layer over a rare or unique; the generic item, currency, gold and
   quest sounds only for bases without one). They need the sounds extracted once from your game (see
   `tools/README.md`: `item-sounds`, then `sounds`), then a rebuild.
-- **Culling Strike** (off by default, setting "Aviso de golpe de gracia"; for culling builds such as the Monk's Killing
-  Palm): two bright notes falling a fifth from the side of an enemy that has just dropped to its culling threshold,
-  as the game defines it (35% life normal, 20% magic, 10% rare, 5% unique); a rare or unique one is also named
-  ("Beira, de la manada putrefacta: golpe de gracia"). A raised threshold (Enhanced Culling) is not taken into account.
+- **Culling Strike** (setting "Aviso de golpe de gracia": by default only while one of your skills culls, else always or
+  never): a gong struck from the side of an enemy that has just dropped to its culling threshold, as the game defines
+  it (35% life normal, 20% magic, 10% rare, 5% unique), trembling as a big gong does under a cymbal sizzle; a rare or
+  unique one is also named ("Beira, de la manada putrefacta: golpe de gracia"). The skills that cull come from the game
+  files (`catalog/cull-skills.txt`: Killing Palm, Reap, Cull the Weak, Crushing Fear, Mist Raven, His Winnowing Flame);
+  culling from a support gem, an item or a passive needs "siempre". A raised threshold (Enhanced Culling) is not taken
+  into account.
 - **Primed for Stun** (setting "Sonido de listo para el aturdimiento", on by default; for Boneshatter and other
   heavy hits): a wind-up rising an octave and a half from the side of an enemy whose heavy stun buildup has reached
   the game's threshold (40% normal, 50% magic, 60% rare, 70% unique), once until it drops below again or is stunned;
@@ -287,6 +292,14 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - A boss's life as it falls past 75, 50, 40, 30, 20, 10 and 5 percent, and "… defeated" (`AnnounceBossLife`).
 - Harmful states as they begin ("Poisoned", "Frozen", "Stunned"…) and end ("No longer poisoned")
   (`StatusAlerts`).
+- What you build up and spend (`ChargeAlerts`, "Cargas, infusiones, sobrecargas y furia", on by default): Power,
+  Frenzy, Endurance and Spirit charges, the Sorceress's Fire, Cold and Lightning Infusions, the Fire, Cold, Lightning
+  and Chaos Surges of bows and crossbows, Druidic Prowess and Arcane Surge. Gaining one plays a glass tick for each
+  one now held (Power highest, then Spirit, Frenzy, Endurance lowest; the others share one pitch); spending one or
+  losing it plays one softer, lower tick. The count is said once it stops changing, so a chain of Killing Palm kills
+  is one "3 cargas de poder"; the others by name and count ("Infusión de fuego: 2"), Arcane Surge by name. Rage
+  moves with every hit, so it is said only as it fills ("Furia al máximo", a low tick) and as it runs out ("sin
+  furia"). A build without any of them never hears it. The partner's are said, not ticked.
 - What the right stick aims at, while you aim: "Drowned", "The Bloated Miller, unique, 40 percent"
   (`AnnounceTarget`), read from the game's own target bar at the top of the screen.
 - Death: "You have died. Resurrect at Checkpoint", then the focused button (A). Y shows or hides the death

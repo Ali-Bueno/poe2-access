@@ -28,6 +28,8 @@ namespace Poe2Accessibility.Services
             this.Add("shield_up", CueSynth.ShieldUp(rate));
             this.Add("shield_down", CueSynth.ShieldDown(rate));
             this.Add("cull", CueSynth.Cull(rate));
+            this.Add("charge_gained", CueSynth.ChargeGained(ChargeKind.Power, 3, rate));
+            this.Add("charge_lost", CueSynth.ChargeLost(ChargeKind.Power, rate));
             foreach (var state in Enum.GetValues<EnemyState>())
             {
                 this.Add($"state_{state}", CueSynth.StateCue(state, rate));
@@ -83,11 +85,30 @@ namespace Poe2Accessibility.Services
             return excerpt;
         }
 
-        public void Play(string key)
+        /// <summary>
+        ///     The volume setting a sound plays under in the game (Poe2AccessibilityCore.ApplySoundVolumes), null for one
+        ///     only the master volume sets: the glossary played every sound at 100 %, so a tester raising the enemy volume
+        ///     to 300 % heard the harmful-ground alarm no louder there (2026-10-29).
+        /// </summary>
+        public static string? VolumeSetting(string key) => key switch
+        {
+            "beacon" => nameof(AccessibilitySettings.BeaconVolume),
+            "dodge" or "parry" or "unblockable" => nameof(AccessibilitySettings.DodgeVolume),
+            "hazard" or "cull" or "crosshair" or "weak_point" or "reach" or "enemy" or "elite" or "boss" or "friend" or "player" or "player_down" =>
+                nameof(AccessibilitySettings.EnemyVolume),
+            _ when key.StartsWith("state_", StringComparison.Ordinal) => nameof(AccessibilitySettings.EnemyVolume),
+            "bump" or "wall_tone" => nameof(AccessibilitySettings.RadarVolume),
+            _ when key.StartsWith("radar", StringComparison.Ordinal) => nameof(AccessibilitySettings.RadarVolume),
+            "shield_up" or "shield_down" or "charge_gained" or "charge_lost" => null,
+            _ => nameof(AccessibilitySettings.ObjectVolume),
+        };
+
+        /// <summary>Plays a sound as loud as the game would: <paramref name="gain"/> is its volume setting, 1 = 100 %.</summary>
+        public void Play(string key, float gain)
         {
             if (this.sounds.TryGetValue(key, out var samples))
             {
-                this.audio.Play(samples, 0f, 1f, 1f);
+                this.audio.Play(samples, 0f, 1f, gain);
             }
         }
 

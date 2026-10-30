@@ -59,6 +59,7 @@ Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\lang\*.json') (Join-Path $
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\dodge-timings.txt') (Join-Path $plugin 'catalog') # measured dodge timings
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\hit-times.txt') (Join-Path $plugin 'catalog') # hit times from the game files
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\hazards.txt') (Join-Path $plugin 'catalog') # harmful-ground buffs from the game files
+Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\cull-skills.txt') (Join-Path $plugin 'catalog') # skills that deal Culling Strike, from the game files
 Copy-Item (Join-Path $repo 'Poe2Accessibility\assets') $plugin -Recurse # the mod's own recorded sounds (unexplored-area loop)
 Copy-Item (Join-Path $repo 'external\GameHelper2\Plugins\Radar\important_tgt_files.txt') (Join-Path $plugin 'catalog') # named places; Radar is not shipped
 Set-Content -Path (Join-Path $plugin 'config\settings.txt') -Value '{ "ResearchMode": false }' -Encoding utf8

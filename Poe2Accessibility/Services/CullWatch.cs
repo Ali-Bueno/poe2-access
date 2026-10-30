@@ -10,7 +10,8 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     Culling Strike cue (the Monk's Killing Palm): a falling chime from the side of an enemy that has just come within
-    ///     culling range (<see cref="CullThreshold"/>), once until it heals out of it; a rare or unique one is named too.
+    ///     culling range (<see cref="CullThreshold"/>), once until it heals out of it; a rare or unique one is named too. By
+    ///     default it plays only while one of the character's skills culls (<see cref="CullSkills"/>).
     /// </summary>
     public sealed class CullWatch
     {
@@ -37,6 +38,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Chime gain under the master volume.</summary>
         public float Gain { get; set; } = 1f;
 
+        /// <summary>When it plays: one of <see cref="CullThreshold.Modes"/> (setting CullCue).</summary>
+        public string Mode { get; set; } = CullThreshold.WithSkill;
+
+        /// <summary>Whether one of the followed player's skills culls now.</summary>
+        public Func<bool> HasCullingSkill { get; set; } = () => false;
+
         /// <summary>A new area: no enemy is known.</summary>
         public void Reset() => this.cullable.Clear();
 
@@ -44,7 +51,8 @@ namespace Poe2Accessibility.Services
         public void Tick(bool playing)
         {
             var now = Environment.TickCount64;
-            if (!playing || now - this.lastPoll < PollMs || !Seats.Followed.TryGetComponent<Render>(out var player))
+            if (!playing || now - this.lastPoll < PollMs || this.Mode == CullThreshold.Never ||
+                (this.Mode == CullThreshold.WithSkill && !this.HasCullingSkill()) || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return;
             }

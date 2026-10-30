@@ -1,0 +1,8 @@
+# Granted effects that deal Culling Strike (tools/Poe2UiExtract cull-skills), regenerated after patches;
+# one GrantedEffects id a line, as the player's Actor lists it.
+CrushingFearPlayer
+CullTheWeakPlayer
+HisWinnowingFlamePlayer
+KillingPalmPlayer
+ReapPlayer
+SummonMistRavenPlayer

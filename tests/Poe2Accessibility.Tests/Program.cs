@@ -89,6 +89,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(HarmfulGroundIsKnownByItsBuff), HarmfulGroundIsKnownByItsBuff);
             Run(nameof(HazardAlarmLoopsWithoutASeam), HazardAlarmLoopsWithoutASeam);
             Run(nameof(CullingThresholdsByRarity), CullingThresholdsByRarity);
+            Run(nameof(CullingSkillsComeFromTheCatalog), CullingSkillsComeFromTheCatalog);
+            Run(nameof(ChargesAreKnownByTheirBuff), ChargesAreKnownByTheirBuff);
             Run(nameof(EnemyStatesFromBuffsAndAnimations), EnemyStatesFromBuffsAndAnimations);
             Run(nameof(PrimedForStunByRarity), PrimedForStunByRarity);
             Run(nameof(EnemyStatesAreNewsOnlyAsTheyBegin), EnemyStatesAreNewsOnlyAsTheyBegin);
@@ -1081,6 +1083,44 @@ namespace Poe2Accessibility.Tests
             Equal(true, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Rare, 100, 1000), "rare at 10%");
             Equal(true, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Unique, 2500, 50000), "unique at 5%");
             Equal(false, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Unique, 0, 50000), "dead is not cullable");
+        }
+
+        private static void CullingSkillsComeFromTheCatalog()
+        {
+            var skills = new CullSkills(new[] { "# GrantedEffects that cull", "KillingPalmPlayer", " ReapPlayer ", string.Empty });
+            Equal(2, skills.Count, "comments and blank lines skipped");
+            Equal(true, skills.AnyCulls(new[] { "DodgeRollPlayer", "KillingPalmPlayer" }), "Killing Palm culls");
+            Equal(true, skills.Culls("ReapPlayer"), "trimmed");
+            Equal(false, skills.AnyCulls(new[] { "DodgeRollPlayer", "ParryPlayer" }), "no culling skill");
+            Equal(0, CullSkills.Load(System.IO.Path.Join(System.IO.Path.GetTempPath(), "no-such-cull-skills.txt")).Count, "a missing catalog culls nothing");
+            Equal(true, CullThreshold.Modes[0] == CullThreshold.WithSkill, "only with a culling skill by default");
+            var gong = CueSynth.Cull(44100);
+            Equal(true, gong.Length == (int)(0.75f * 44100) && MathF.Abs(gong.Max(MathF.Abs) - 0.75f) < 0.001f, "the gong: 0.75 s at its level, 5 dB over the sample");
+            Equal(true, MathF.Abs(gong[^1]) < 0.01f, "it fades out without a click");
+            Equal(true, gong.Length > CueSynth.StateCue(EnemyState.HeavyStunned, 44100).Length, "longer than the heavy-stun gong");
+        }
+
+        private static void ChargesAreKnownByTheirBuff()
+        {
+            Equal(ChargeKind.Power, PlayerCharges.FromBuffId("power_charge_79"), "suffix dropped");
+            Equal(ChargeKind.Frenzy, PlayerCharges.FromBuffId("frenzy_charge"), "bare id");
+            Equal(ChargeKind.Endurance, PlayerCharges.FromBuffId("endurance_charge_79"), "endurance");
+            Equal(null, PlayerCharges.FromBuffId("power_charge_on_crit"), "another buff");
+            Equal(ChargeKind.ColdInfusion, PlayerCharges.FromBuffId("cold_infusion_79"), "the Sorceress's infusions");
+            Equal(ChargeKind.ChaosSurge, PlayerCharges.FromBuffId("instilling_chaos"), "a surge");
+            Equal(ChargeKind.ArcaneSurge, PlayerCharges.FromBuffId("arcane_surge_79"), "Arcane Surge");
+            Equal(true, PlayerCharges.RageEdge(29, 30, 30), "Rage fills");
+            Equal(null, PlayerCharges.RageEdge(30, 30, 30), "full and still full is no news");
+            Equal(null, PlayerCharges.RageEdge(30, 25, 30), "draining is no news");
+            Equal(false, PlayerCharges.RageEdge(3, 0, 30), "Rage runs out");
+            Equal(null, PlayerCharges.RageEdge(0, 0, 30), "a character without Rage");
+            Equal(1, PlayerCharges.Held(0), "a charge buff with no stack count holds one");
+            Equal(3, PlayerCharges.Held(3), "the stack count");
+            var three = CueSynth.ChargeGained(ChargeKind.Power, 3, 44100);
+            var one = CueSynth.ChargeGained(ChargeKind.Power, 1, 44100);
+            Equal(true, three.Length > one.Length * 2, "one tick per charge held");
+            Equal(true, CueSynth.ChargeGained(ChargeKind.Power, 50, 44100).Length < 44100, "capped under a second");
+            Equal(true, CueSynth.ChargeLost(ChargeKind.Endurance, 44100).All(sample => MathF.Abs(sample) <= 0.2f), "the loss is softer");
         }
 
         private static void EnemyStatesFromBuffsAndAnimations()
