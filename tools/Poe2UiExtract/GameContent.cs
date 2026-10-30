@@ -72,19 +72,67 @@ internal static class GameContent
     }
 
     /// <summary>
-    ///     Each bundle read from its own copy in memory: LibBundledGGPK3's factory opens a GGFileStream, of which LibGGPK3
-    ///     allows one per file at a time, so the batch's extractions reading one bundle side by side failed ("An instance
-    ///     of GGFileStream is already created for this FileRecord", places, 2026-10-31). FileRecord.Read locks the GGPK.
+    ///     Each bundle read through its own <see cref="RecordStream" />: LibBundledGGPK3's factory opens a GGFileStream, of
+    ///     which LibGGPK3 allows one per file at a time, so the batch's extractions reading one bundle side by side failed
+    ///     ("An instance of GGFileStream is already created for this FileRecord", places, 2026-10-31). Copying the whole
+    ///     bundle for every read instead made the batch four times slower (83 s instead of 20 s).
     /// </summary>
     private sealed class GgpkBundles(DirectoryRecord bundles2) : IBundleFactory
     {
         public Bundle GetBundle(BundleRecord record) =>
             bundles2.TryFindNode(record.Path, out var node) && node is FileRecord file
-                ? new Bundle(new MemoryStream(file.Read(), false), false, record)
+                ? new Bundle(new RecordStream(file), false, record)
                 : throw new FileNotFoundException($"No Bundles2/{record.Path} in {GgpkName}");
 
         public Stream CreateBundle(string bundlePath) => throw new NotSupportedException("The game's bundles are only read.");
 
         public bool DeleteBundle(string bundlePath) => throw new NotSupportedException("The game's bundles are only read.");
+    }
+
+    /// <summary>A read-only view of one file of the GGPK, any number at once: FileRecord.Read locks the GGPK's stream.</summary>
+    private sealed class RecordStream(FileRecord record) : Stream
+    {
+        private long position;
+
+        public override bool CanRead => true;
+        public override bool CanSeek => true;
+        public override bool CanWrite => false;
+        public override long Length => record.DataLength;
+
+        public override long Position
+        {
+            get => this.position;
+            set => this.position = Math.Clamp(value, 0, this.Length);
+        }
+
+        public override int Read(Span<byte> buffer)
+        {
+            var count = (int)Math.Min(buffer.Length, this.Length - this.position);
+            if (count <= 0)
+            {
+                return 0;
+            }
+
+            record.Read(buffer[..count], (int)this.position);
+            this.position += count;
+            return count;
+        }
+
+        public override int Read(byte[] buffer, int offset, int count) => this.Read(buffer.AsSpan(offset, count));
+
+        public override long Seek(long offset, SeekOrigin origin) => this.Position = origin switch
+        {
+            SeekOrigin.Begin => offset,
+            SeekOrigin.Current => this.position + offset,
+            _ => this.Length + offset,
+        };
+
+        public override void Flush()
+        {
+        }
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 }
