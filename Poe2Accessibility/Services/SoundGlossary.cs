@@ -23,20 +23,11 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, StereoSound> stereo = new();
         private readonly List<string> keys = new();
 
+        /// <remarks>Grouped as the settings menu's submenus: your skills, enemies, combat, defence, navigation, nearby, items.</remarks>
         public SoundGlossary(AudioCueService audio, GameSounds gameSounds, GameSounds modSounds, ItemDropSounds drops)
         {
             this.audio = audio;
             var rate = AudioCueService.SampleRate;
-            this.Add("beacon", CueSynth.Ping(rate));
-            this.Add("dodge", CueSynth.Dodge(rate));
-            this.Add("parry", CueSynth.Parry(rate));
-            this.Add("unblockable", CueSynth.Unblockable(rate));
-            this.Add("hazard", CueSynth.HazardAlarm(rate));
-            this.Add("crosshair", CueSynth.Crosshair(rate));
-            this.Add("weak_point", CueSynth.Heartbeat(rate));
-            this.Add("shield_up", CueSynth.ShieldUp(rate));
-            this.Add("shield_down", CueSynth.ShieldDown(rate));
-            this.Add("cull", modSounds.Get("cull") ?? CueSynth.Cull(rate));
             this.Add("charge_gained", CueSynth.ChargeGained(ChargeKind.Frenzy, 3, rate));
             this.Add("charge_lost", CueSynth.ChargeLost(ChargeKind.Frenzy, rate));
             if (gameSounds.GetStereo("power_charge") is { } power)
@@ -48,20 +39,31 @@ namespace Poe2Accessibility.Services
             {
                 this.AddStereo("combo", combo);
             }
+
             this.Add("deployed", CueSynth.Deployed(rate));
+            this.AddGame(gameSounds, rate, "tempest_bell", "ice_crystal");
+
+            this.Add("enemy", CueSynth.Enemy(CueSynth.Layer.None, rate));
+            this.Add("elite", CueSynth.Enemy(CueSynth.Layer.Elite, rate));
+            this.Add("boss", CueSynth.Enemy(CueSynth.Layer.Boss, rate));
+            this.Add("reach", CueSynth.ReachPing(rate));
+            this.Add("crosshair", CueSynth.Crosshair(rate));
+
+            this.Add("weak_point", CueSynth.Heartbeat(rate));
             foreach (var state in Enum.GetValues<EnemyState>())
             {
                 this.Add($"state_{state}", CueSynth.StateCue(state, rate));
             }
 
-            this.Add("reach", CueSynth.ReachPing(rate));
-            this.Add("enemy", CueSynth.Enemy(CueSynth.Layer.None, rate));
-            this.Add("elite", CueSynth.Enemy(CueSynth.Layer.Elite, rate));
-            this.Add("boss", CueSynth.Enemy(CueSynth.Layer.Boss, rate));
-            this.Add("friend", CueSynth.Enemy(CueSynth.Layer.Friend, rate));
-            this.Add("player", CueSynth.Enemy(CueSynth.Layer.Player, rate));
-            this.Add("player_down", CueSynth.Enemy(CueSynth.Layer.PlayerDown, rate));
-            this.Add("npc_quest", CueSynth.Ring(rate));
+            this.Add("cull", modSounds.Get("cull") ?? CueSynth.Cull(rate));
+
+            this.Add("dodge", CueSynth.Dodge(rate));
+            this.Add("unblockable", CueSynth.Unblockable(rate));
+            this.Add("parry", CueSynth.Parry(rate));
+            this.Add("shield_up", CueSynth.ShieldUp(rate));
+            this.Add("shield_down", CueSynth.ShieldDown(rate));
+            this.Add("hazard", CueSynth.HazardAlarm(rate));
+
             this.Add("radar_wall", RadarSynth.Cue(RadarReading.Wall, RadarSynth.Direction.Left, rate));
             this.Add("radar_open", RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Left, rate));
             this.Add("radar_exit", RadarSynth.Cue(RadarReading.Exit, RadarSynth.Direction.Left, rate));
@@ -72,12 +74,25 @@ namespace Poe2Accessibility.Services
                 this.Add(UnexploredLoop.LoopName, Excerpt(unexplored, rate));
             }
 
+            this.Add("wall_tone", Excerpt(RadarSynth.WallTone(RadarSynth.Direction.Up, rate), rate));
+            this.Add("bump", RadarSynth.Bump(rate));
+            this.Add("beacon", CueSynth.Ping(rate));
+            if (gameSounds.Get("waypoint") is { } chime)
+            {
+                this.Add(DiscoveryNarrator.SoundKey, chime);
+            }
+
             this.Add("radar2_wall", RadarSynth.Cue(RadarReading.Wall, RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));
             this.Add("radar2_open", RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));
             this.Add("radar2_exit", RadarSynth.Cue(RadarReading.Exit, RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));
             this.Add("radar2_obstacle", RadarSynth.Obstacle(RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));
-            this.Add("bump", RadarSynth.Bump(rate));
-            this.Add("wall_tone", Excerpt(RadarSynth.WallTone(RadarSynth.Direction.Up, rate), rate));
+
+            this.AddGame(gameSounds, rate, "exit", "portal", "waypoint", "checkpoint", "chest", "corpse", "breakable", "switch", "shrine", "ritual");
+            this.Add("friend", CueSynth.Enemy(CueSynth.Layer.Friend, rate));
+            this.Add("npc_quest", CueSynth.Ring(rate));
+            this.Add("player", CueSynth.Enemy(CueSynth.Layer.Player, rate));
+            this.Add("player_down", CueSynth.Enemy(CueSynth.Layer.PlayerDown, rate));
+
             foreach (var (key, sample) in ItemGroupSamples)
             {
                 if (drops.Sample(sample) is { } samples)
@@ -86,18 +101,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            foreach (var game in new[] { "item", "item_rare", "currency", "gold", "quest_item", "chest", "corpse", "breakable", "switch", "shrine", "ritual", "exit", "portal", "waypoint", "checkpoint", "tempest_bell", "ice_crystal" })
-            {
-                if ((gameSounds.GetLoop(game) is { } loop ? Excerpt(loop, rate) : gameSounds.Get(game)) is { } samples)
-                {
-                    this.Add(game, samples);
-                }
-            }
-
-            if (gameSounds.Get("waypoint") is { } chime)
-            {
-                this.Add(DiscoveryNarrator.SoundKey, chime);
-            }
+            this.AddGame(gameSounds, rate, "item", "item_rare", "currency", "gold", "quest_item");
         }
 
         /// <summary>Sound keys in menu order.</summary>
@@ -145,6 +149,18 @@ namespace Poe2Accessibility.Services
             else if (this.sounds.TryGetValue(key, out var samples))
             {
                 this.audio.Play(samples, 0f, 1f, gain, key);
+            }
+        }
+
+        /// <summary>The game's own sounds that were extracted, a loop by a second of it.</summary>
+        private void AddGame(GameSounds gameSounds, int rate, params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                if ((gameSounds.GetLoop(key) is { } loop ? Excerpt(loop, rate) : gameSounds.Get(key)) is { } samples)
+                {
+                    this.Add(key, samples);
+                }
             }
         }
 

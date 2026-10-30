@@ -718,7 +718,9 @@ namespace Poe2Accessibility
         {
             "help" => T("Help", "Ayuda"),
             "character" => T("Your character", "Tu personaje"),
+            "skills" => T("Charges and skills", "Cargas y habilidades"),
             "enemies" => T("Enemies", "Enemigos"),
+            "combat" => T("Combat", "Combate"),
             "defence" => T("Defence", "Defensa"),
             "navigation" => T("Navigation", "Navegación"),
             "surroundings" => T("Things and people nearby", "Cosas y personas cercanas"),

@@ -72,11 +72,13 @@ closed"; the ping goes on by itself once the barrier opens.
 
 ## Settings menu (gameplay)
 
-Hold L3 for a second and a half: "Mod settings. Help, submenu, 1 of 13". The settings come in submenus (D2R):
-Help (five controls topics), Your character (life, mana, energy shield, flasks, states, charges and combo, placed
-objects, level up), Enemies, Defence (dodge, parry, shield, stun bar, harmful ground), Navigation (radar, walls,
-unexplored ground, turns, places), Things and people nearby, Items, Chat, Speech priority, Volumes, Volume of each
-sound, General (language, local co-op, updates) and the Sound glossary. Without holding L3, flick the right stick up or down to move
+Hold L3 for a second and a half: "Mod settings. Help, submenu, 1 of 15". The settings come in submenus (D2R):
+Help (five controls topics), Your character (life, mana, energy shield, flasks, states, level up), Charges and skills
+(charges, combo, placed objects), Enemies (coming into view, aim, enemy sounds, melee reach), Combat (boss life and weak
+point, enemy states, Culling Strike, what falls quiet in fights), Defence (dodge, parry, shield, stun bar, harmful
+ground), Navigation (radar, walls, unexplored ground, turns, places), Things and people nearby, Items, Chat, Speech
+priority, Volumes, Volume of each sound, General (language, local co-op, updates) and the Sound glossary, whose sounds
+come in the same order as the submenus. Without holding L3, flick the right stick up or down to move
 and left or right to open a submenu, change a value or play a sound (switches toggle, volumes move in steps of 25
 percent up to 300, language: same as the game, Spanish, English). Tap L3 to go back to the submenus, on the one just
 left; tap it there, or double tap anywhere, to close: "Settings saved" (written to `config/settings.txt`). The menu and
@@ -93,7 +95,7 @@ combo points wait.
 approach — all (default), magic or better, or only currency, gold, gems, quest items, rares and uniques. The
 scanner's Items category still lists every item (`LootSounds`: `all`, `magic`, `valuable`).
 
-**Silence items on the ground in fights** (Items): while an enemy it counts is alive within about a screen (the range
+**Silence items on the ground in fights** (Combat): while an enemy it counts is alive within about a screen (the range
 the item sounds carry) and for 2 s after, items on the ground neither sound nor are named, on approach, as what A uses,
 or by their tooltip; once the fight is over, what dropped is named as usual. Against rares and uniques (default), against
 any enemy, or never (`QuietItemsInFights`: `rares`, `any`, `never`). The scanner still lists them.
@@ -385,7 +387,7 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   even with chat reading off, so you know it went out ("yarkey: WTS boots"). In a fight (as for items on the ground:
   against rares and uniques by default, against any enemy, or never), what characters say aloud nearby, a boss's
   taunts, NPC shouts and local chat, is skipped, not kept for later; whispers, party, guild, system notices and your
-  own lines are still read ("Silence characters' lines in fights", `QuietChatInFights`).
+  own lines are still read ("Silence characters' lines in fights" in Combat, `QuietChatInFights`).
 - Weapon swap (RT in the inventory, `AnnounceMoves`): "Weapon set 2: Crude Bow, Blunt Quiver" or "Weapon set 2, empty".
 - Legends with inline item art name the item: "Identify Scroll of Wisdom x 1, X" (catalog/item-names.json).
 - Requirements drawn in red come right after the item name (and price): "Cannot use: Requires Level 5".

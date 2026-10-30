@@ -28,12 +28,15 @@ namespace Poe2Accessibility.Services
                 Switch(nameof(AccessibilitySettings.AnnounceEnergyShield)),
                 Switch(nameof(AccessibilitySettings.AnnounceFlasks)),
                 Switch(nameof(AccessibilitySettings.StatusAlerts)),
+                Switch(nameof(AccessibilitySettings.AnnounceLevelUp)),
+            }),
+            new("skills", new[]
+            {
                 Switch(nameof(AccessibilitySettings.ChargeSpeech)),
                 Switch(nameof(AccessibilitySettings.ChargeSounds)),
                 Switch(nameof(AccessibilitySettings.ComboSpeech)),
                 Switch(nameof(AccessibilitySettings.ComboSounds)),
                 Switch(nameof(AccessibilitySettings.DeployedCues)),
-                Switch(nameof(AccessibilitySettings.AnnounceLevelUp)),
             }),
             new("enemies", new[]
             {
@@ -41,15 +44,20 @@ namespace Poe2Accessibility.Services
                 Switch(nameof(AccessibilitySettings.EnemyDirections)),
                 Switch(nameof(AccessibilitySettings.AnnounceTarget)),
                 Switch(nameof(AccessibilitySettings.AnnounceMonsterMods)),
-                Switch(nameof(AccessibilitySettings.AnnounceBossLife)),
                 Switch(nameof(AccessibilitySettings.EnemySounds)),
-                Switch(nameof(AccessibilitySettings.CrosshairBeep)),
                 Switch(nameof(AccessibilitySettings.MeleeReach)),
                 Number(nameof(AccessibilitySettings.MeleeReachRange), 0, 200, 10),
+                Switch(nameof(AccessibilitySettings.CrosshairBeep)),
+            }),
+            new("combat", new[]
+            {
+                Switch(nameof(AccessibilitySettings.AnnounceBossLife)),
+                Switch(nameof(AccessibilitySettings.BossWeakPoint)),
                 Switch(nameof(AccessibilitySettings.EnemyStateCues)),
                 Switch(nameof(AccessibilitySettings.PrimedStunCues)),
                 Choice(nameof(AccessibilitySettings.CullCue), CullThreshold.Modes),
-                Switch(nameof(AccessibilitySettings.BossWeakPoint)),
+                Choice(nameof(AccessibilitySettings.QuietItemsInFights), FightState.Modes),
+                Choice(nameof(AccessibilitySettings.QuietChatInFights), FightState.Modes),
             }),
             new("defence", new[]
             {
@@ -85,7 +93,6 @@ namespace Poe2Accessibility.Services
             new("items", new[]
             {
                 Choice(nameof(AccessibilitySettings.LootSounds), LootFilter.Levels),
-                Choice(nameof(AccessibilitySettings.QuietItemsInFights), FightState.Modes),
                 Switch(nameof(AccessibilitySettings.AnnouncePickups)),
                 Switch(nameof(AccessibilitySettings.AnnounceHand)),
                 Switch(nameof(AccessibilitySettings.AnnounceMoves)),
@@ -95,28 +102,27 @@ namespace Poe2Accessibility.Services
             {
                 Switch(nameof(AccessibilitySettings.AnnounceChat)),
                 Switch(nameof(AccessibilitySettings.AnnouncePlayerChat)),
-                Choice(nameof(AccessibilitySettings.QuietChatInFights), FightState.Modes),
             }),
             new("speech", new[]
             {
+                Choice(nameof(AccessibilitySettings.SpeechLifeAndMana), SpeechPriority.Levels),
                 Choice(nameof(AccessibilitySettings.SpeechStatusBegins), SpeechPriority.Levels),
                 Choice(nameof(AccessibilitySettings.SpeechStatusEnds), SpeechPriority.Levels),
-                Choice(nameof(AccessibilitySettings.SpeechLifeAndMana), SpeechPriority.Levels),
                 Choice(nameof(AccessibilitySettings.SpeechCharges), SpeechPriority.Levels),
                 Choice(nameof(AccessibilitySettings.SpeechCombo), SpeechPriority.Levels),
-                Choice(nameof(AccessibilitySettings.SpeechBossLife), SpeechPriority.Levels),
                 Choice(nameof(AccessibilitySettings.SpeechEnemyNames), SpeechPriority.Levels),
-                Choice(nameof(AccessibilitySettings.SpeechQuest), SpeechPriority.Levels),
+                Choice(nameof(AccessibilitySettings.SpeechBossLife), SpeechPriority.Levels),
                 Choice(nameof(AccessibilitySettings.SpeechPlaces), SpeechPriority.Levels),
-                Choice(nameof(AccessibilitySettings.SpeechGroundItems), SpeechPriority.Levels),
                 Choice(nameof(AccessibilitySettings.SpeechArrivals), SpeechPriority.Levels),
+                Choice(nameof(AccessibilitySettings.SpeechQuest), SpeechPriority.Levels),
+                Choice(nameof(AccessibilitySettings.SpeechGroundItems), SpeechPriority.Levels),
             }),
             new(VolumesGroup, new[]
             {
                 Volume(nameof(AccessibilitySettings.SoundVolume)),
-                Volume(nameof(AccessibilitySettings.RadarVolume)),
                 Volume(nameof(AccessibilitySettings.EnemyVolume)),
                 Volume(nameof(AccessibilitySettings.DodgeVolume)),
+                Volume(nameof(AccessibilitySettings.RadarVolume)),
                 Volume(nameof(AccessibilitySettings.BeaconVolume)),
                 Volume(nameof(AccessibilitySettings.ObjectVolume)),
             }),
