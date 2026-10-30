@@ -107,7 +107,6 @@ internal static class SoundExtractor
 
     public static int Run(string gameDir, string outDir, string itemCatalog)
     {
-        string bankDir = Path.Combine(gameDir, "FMOD", "Desktop");
         if (OpenFmod(gameDir) is not { } sys)
         {
             return 1;
@@ -126,7 +125,7 @@ internal static class SoundExtractor
         {
             foreach (var group in cues.GroupBy(c => c.Bank))
             {
-                if (OpenBank(sys, bankDir, group.Key, tmp) is not { } snd) continue;
+                if (OpenBank(sys, gameDir, group.Key, tmp) is not { } snd) continue;
 
                 FMOD_Sound_GetNumSubSounds(snd, out int count);
                 foreach (var cue in group)
@@ -179,7 +178,7 @@ internal static class SoundExtractor
         {
             foreach (var name in banks)
             {
-                if (OpenBank(sys, Path.Combine(gameDir, "FMOD", "Desktop"), name, tmp) is not { } snd) continue;
+                if (OpenBank(sys, gameDir, name, tmp) is not { } snd) continue;
 
                 FMOD_Sound_GetNumSubSounds(snd, out int count);
                 for (int i = 0; i < count; i++)
@@ -214,9 +213,9 @@ internal static class SoundExtractor
     {
         System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
         string fmodPath = Path.Combine(gameDir, "fmod.dll");
-        if (!File.Exists(fmodPath) || !Directory.Exists(Path.Combine(gameDir, "FMOD", "Desktop")))
+        if (!File.Exists(fmodPath) || !GameContent.HasBanks(gameDir))
         {
-            Console.WriteLine($"Not a PoE2 install (need fmod.dll and FMOD\\Desktop): {gameDir}");
+            Console.WriteLine($"Not a PoE2 install (need fmod.dll and FMOD\\Desktop or Content.ggpk): {gameDir}");
             return null;
         }
 
@@ -235,12 +234,10 @@ internal static class SoundExtractor
     private static string TempFsb() => Path.Combine(Path.GetTempPath(), "poe2-sounds-" + Environment.ProcessId + ".fsb");
 
     /// <summary>A bank's FSB5 chunk opened as a sound with sub-sounds (copied to <paramref name="tmp"/>); null when it cannot be.</summary>
-    private static IntPtr? OpenBank(IntPtr sys, string bankDir, string name, string tmp)
+    private static IntPtr? OpenBank(IntPtr sys, string gameDir, string name, string tmp)
     {
-        string bankPath = Path.Combine(bankDir, name + ".bank");
-        if (!File.Exists(bankPath)) { Console.WriteLine($"SKIP bank missing: {name}"); return null; }
+        if (GameContent.ReadBank(gameDir, name) is not { } bank) { Console.WriteLine($"SKIP bank missing: {name}"); return null; }
 
-        byte[] bank = File.ReadAllBytes(bankPath);
         int fsb = bank.AsSpan().IndexOf("FSB5"u8);
         if (fsb < 0) { Console.WriteLine($"SKIP no FSB5 in {name}"); return null; }
         File.WriteAllBytes(tmp, bank.AsSpan(fsb).ToArray());

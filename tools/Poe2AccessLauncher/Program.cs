@@ -13,7 +13,7 @@ internal static partial class Program
         "  --host   GameHelper folder (default: this folder, or the repository build output)";
 
     private const uint MessageBoxError = 0x10;
-    private const uint MessageBoxInformation = 0x40;
+    internal const uint MessageBoxInformation = 0x40;
     private const int AttachParentProcess = -1;
 
     [LibraryImport("user32.dll", EntryPoint = "MessageBoxW", StringMarshalling = StringMarshalling.Utf16)]

@@ -55,6 +55,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(ReleaseManifestPinsThePackageToItsTag), ReleaseManifestPinsThePackageToItsTag);
             Run(nameof(GameDataStepsRerunAlone), GameDataStepsRerunAlone);
             Run(nameof(OldGameDataStampCarriesOver), OldGameDataStampCarriesOver);
+            Run(nameof(GameContentIsFoundInEitherLayout), GameContentIsFoundInEitherLayout);
+            Run(nameof(KakaoClientIsAGameProcess), KakaoClientIsAGameProcess);
             Run(nameof(TradeListingSaysItemPriceThenSeller), TradeListingSaysItemPriceThenSeller);
             Run(nameof(NearbyThingsWaitForTheCooldown), NearbyThingsWaitForTheCooldown);
             Run(nameof(StickClickWhileHoldingL3), StickClickWhileHoldingL3);
@@ -1678,6 +1680,33 @@ namespace Poe2Accessibility.Tests
             Equal(0, Poe2AccessLauncher.GameDataStamp.FromLegacy("format=2\n" + install, install, steps, "sounds").Steps.Count, "a format before hit times and places covers nothing");
             Equal(0, Poe2AccessLauncher.GameDataStamp.FromLegacy("format=7\nindex=9:20\nexe=30:40\nfmod=2.03.06\n", install, steps, "sounds").Steps.Count, "another install covers nothing");
             Equal(0, Poe2AccessLauncher.GameDataStamp.FromLegacy(null, install, steps, "sounds").Steps.Count, "no old stamp covers nothing");
+        }
+
+        private static void GameContentIsFoundInEitherLayout()
+        {
+            var root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "poe2-install-" + Guid.NewGuid().ToString("N"));
+            var ggpk = System.IO.Path.Combine(root, "Content.ggpk");
+            var index = System.IO.Path.Combine(root, "Bundles2", "_.index.bin");
+            try
+            {
+                System.IO.Directory.CreateDirectory(root);
+                Equal(null, Poe2AccessLauncher.GameInstall.ContentFile(root), "a folder without game content is no install");
+                System.IO.File.WriteAllText(ggpk, string.Empty);
+                Equal(ggpk, Poe2AccessLauncher.GameInstall.ContentFile(root), "the Kakao Games client keeps everything in Content.ggpk");
+                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(index)!);
+                System.IO.File.WriteAllText(index, string.Empty);
+                Equal(index, Poe2AccessLauncher.GameInstall.ContentFile(root), "a Steam install's bundle index comes first");
+            }
+            finally
+            {
+                System.IO.Directory.Delete(root, true);
+            }
+        }
+
+        private static void KakaoClientIsAGameProcess()
+        {
+            Equal(true, Poe2AccessLauncher.GameInstall.ProcessNames.Contains("PathOfExile_KG"), "the Korean (Kakao Games) client's process");
+            Equal(true, Poe2AccessLauncher.GameInstall.ProcessNames.Contains("PathOfExileSteam"), "the Steam client's process");
         }
 
         private static void ReleaseTagsOrderByDayThenNumber()
