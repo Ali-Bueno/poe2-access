@@ -49,6 +49,27 @@ internal static partial class GameLauncher
         throw new TimeoutException($"The game window did not appear within {Timeout.TotalSeconds:0} seconds.");
     }
 
+    /// <summary>The process name of the running game, or null when it is not running.</summary>
+    public static string? RunningProcessName() =>
+        ProcessNames.FirstOrDefault(name =>
+        {
+            var processes = Process.GetProcessesByName(name);
+            Array.ForEach(processes, process => process.Dispose());
+            return processes.Length > 0;
+        });
+
+    /// <summary>Starts this launcher again as administrator (the UAC prompt), with the same arguments.</summary>
+    public static void RestartAsAdministrator(string[] args)
+    {
+        var info = new ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = true, Verb = "runas" };
+        foreach (var arg in args)
+        {
+            info.ArgumentList.Add(arg);
+        }
+
+        using var started = Process.Start(info);
+    }
+
     /// <summary>The folder of the running game (its fmod.dll and FMOD banks), or null when it cannot be read.</summary>
     public static string? InstallDirectory()
     {

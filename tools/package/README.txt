@@ -7,7 +7,7 @@ This is an unofficial tool. It reads the game's memory, but it never changes it 
 
 WHAT YOU NEED
 - Windows 10 or 11, 64-bit.
-- Path of Exile 2 on Steam. The mod adapts by itself to most game updates. If an update changes something it cannot find, it tells you when it starts ("Compatibility warning: cannot find..."). If that happens, wait for a new version of the mod.
+- Path of Exile 2 on Steam, or the Korean client (Kakao Games). The mod adapts by itself to most game updates. If an update changes something it cannot find, it tells you when it starts ("Compatibility warning: cannot find..."). If that happens, wait for a new version of the mod.
 - A screen reader. NVDA is recommended. Without one, the Windows voice is used.
 - An Xbox or PlayStation controller. The mod is built for playing with a controller.
 Nothing else needs installing: everything is inside this folder. Poe2Access.exe starts the mod; everything else is in the "app" folder and does not need touching.
@@ -17,6 +17,7 @@ GETTING STARTED
 1. Unzip the folder anywhere.
    If Windows says "Windows protected your PC" when you open the mod, choose "More info", then "Run anyway". To avoid it, before unzipping, open the Properties of the downloaded file (.zip or .7z), tick "Unblock" and accept.
 2. Start Steam.
+   With the Korean client (Kakao Games), Poe2Access.exe asks you instead to start the game from the Kakao Games website, because the game needs your login there; start it, then press OK. It also asks to run as administrator (the Windows prompt); accept it: the Korean client lets only an administrator read it, and stopping the mod asks the same.
 3. Double-click Poe2Access.exe. It starts the game if it was not running, then the mod. The first time, and after each game update, it prepares the sounds and data from your own installation. It takes about half a minute, and you hear nothing meanwhile; wait. New versions of the mod keep what was prepared (they redo only what they changed, in seconds) when they update themselves or are unzipped over the old folder; a new, empty folder prepares everything again.
 4. You will hear "Path of Exile 2 accessibility ready" and, when the mod connects to the game, "Game detected" with the screen you are on.
 5. At the game's title screen, press a button on the CONTROLLER, not the mouse or keyboard. The game picks the control method at that moment, and if you go in with the mouse, it ignores the controller until you return to the main menu.
