@@ -104,6 +104,7 @@ namespace Poe2Accessibility
             this.Isolated("hazards", () => this.hazards?.Tick(playing && this.Settings.HazardAlarm));
             this.Isolated("shield", () => this.shield?.Tick(playing, this.Settings.ShieldSounds, this.Settings.AnnounceStunBar));
             this.Isolated("cull", () => this.culls?.Tick(playing));
+            this.Isolated("deployed", () => this.deployed?.Tick(playing && this.Settings.DeployedCues));
             this.Isolated("enemy states", () => this.enemyStates?.Tick(playing, this.Settings.EnemyStateCues, this.Settings.PrimedStunCues));
             this.Isolated("object sounds", () => this.objectSounds?.Tick(playing && this.Settings.ObjectSounds));
             // A town is not explored; the guide, while it leads, is the one sound to follow.

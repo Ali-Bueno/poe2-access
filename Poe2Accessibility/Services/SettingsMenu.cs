@@ -61,6 +61,7 @@ namespace Poe2Accessibility.Services
             Switch(nameof(AccessibilitySettings.ShieldSounds)),
             Switch(nameof(AccessibilitySettings.AnnounceStunBar)),
             Choice(nameof(AccessibilitySettings.CullCue), CullThreshold.Modes),
+            Switch(nameof(AccessibilitySettings.DeployedCues)),
             Switch(nameof(AccessibilitySettings.EnemyStateCues)),
             Switch(nameof(AccessibilitySettings.PrimedStunCues)),
             Switch(nameof(AccessibilitySettings.CrosshairBeep)),

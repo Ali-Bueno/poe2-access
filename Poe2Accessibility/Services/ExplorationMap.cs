@@ -38,6 +38,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The place being sounded is kept until another is less than half as far (no flipping between two).</summary>
         private const float KeepRatio = 2f;
 
+        /// <summary>More blocks than any area holds (a 4000-cell square): a kept map claiming more is not one.</summary>
+        private const long MaxBlocks = 500 * 500;
+
         /// <summary>cos 45°: the edge of a ray's quarter.</summary>
         private static readonly float QuarterCos = MathF.Sqrt(0.5f);
 
@@ -50,6 +53,48 @@ namespace Poe2Accessibility.Services
         {
             this.seen = Array.Empty<bool>();
             this.blocksX = this.blocksY = 0;
+        }
+
+        /// <summary>The seen blocks as bytes, to be kept past the area and the host (<see cref="AreaMemory"/>): two ints, a bit a block.</summary>
+        public byte[] Save()
+        {
+            var bytes = new byte[8 + ((this.seen.Length + 7) / 8)];
+            BitConverter.TryWriteBytes(bytes.AsSpan(0, 4), this.blocksX);
+            BitConverter.TryWriteBytes(bytes.AsSpan(4, 4), this.blocksY);
+            for (var i = 0; i < this.seen.Length; i++)
+            {
+                if (this.seen[i])
+                {
+                    bytes[8 + (i >> 3)] |= (byte)(1 << (i & 7));
+                }
+            }
+
+            return bytes;
+        }
+
+        /// <summary>Blocks kept by <see cref="Save"/>; false, and nothing changed, for bytes that cannot be such.</summary>
+        public bool Load(byte[] bytes)
+        {
+            if (bytes.Length < 8)
+            {
+                return false;
+            }
+
+            var bx = BitConverter.ToInt32(bytes, 0);
+            var by = BitConverter.ToInt32(bytes, 4);
+            if (bx <= 0 || by <= 0 || (long)bx * by > MaxBlocks || bytes.Length != 8 + (((bx * by) + 7) / 8))
+            {
+                return false;
+            }
+
+            var seen = new bool[bx * by];
+            for (var i = 0; i < seen.Length; i++)
+            {
+                seen[i] = (bytes[8 + (i >> 3)] & (1 << (i & 7))) != 0;
+            }
+
+            (this.blocksX, this.blocksY, this.seen) = (bx, by, seen);
+            return true;
         }
 
         /// <summary>Marks the blocks around <paramref name="at"/> (grid cells) as seen.</summary>

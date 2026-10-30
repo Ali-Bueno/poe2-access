@@ -3,7 +3,7 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     What a player builds up and spends, by class: charges (Power from the Monk's Killing Palm, Frenzy, Endurance,
     ///     Spirit), the Sorceress's elemental Infusions, the bow and crossbow Surges, the Druid's Druidic Prowess, Arcane
-    ///     Surge, and Rage (Warrior, Druid, "Rage on Hit" passives).
+    ///     Surge, the Monk's Tempest Bell Combo, and Rage (Warrior, Druid, "Rage on Hit" passives).
     /// </summary>
     public enum ChargeKind
     {
@@ -20,6 +20,12 @@ namespace Poe2Accessibility.Services
         ChaosSurge,
         DruidicProwess,
         ArcaneSurge,
+
+        /// <summary>
+        ///     Tempest Bell's Combo: built by hitting with other skills, 4 needed to ring the bell, lost after 8 s without
+        ///     building (its tooltip, 2026-10-29). The only combo kept as a buff: the hidden `tempest_bell_combo_tracker`.
+        /// </summary>
+        Combo,
         Rage,
     }
 
@@ -48,6 +54,7 @@ namespace Poe2Accessibility.Services
             "instilling_chaos" => ChargeKind.ChaosSurge,
             "druidic_prowess" => ChargeKind.DruidicProwess,
             "arcane_surge" => ChargeKind.ArcaneSurge,
+            "tempest_bell_combo_tracker" => ChargeKind.Combo,
             _ => null,
         };
 

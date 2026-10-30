@@ -17,7 +17,7 @@ namespace Poe2Accessibility.Services
     ///     named as the game names them, nearest first. Only what a sighted player has seen (the minimap shows no
     ///     more): enemies while on screen, everything else once it has been on screen or on explored ground, and the
     ///     area's named tiles once their ground is explored. Exits, waypoints and NPCs then stay listed at their last
-    ///     known place (the game unloads far entities), until the area changes.
+    ///     known place (the game unloads far entities), for as long as the area instance lives (<see cref="AreaMemory"/>).
     /// </summary>
     public sealed partial class EntityCatalog
     {
@@ -84,6 +84,9 @@ namespace Poe2Accessibility.Services
 
         private const int TrackMs = 250;
 
+        /// <summary>The explored ground is written this often while playing, so a host restart loses little.</summary>
+        private const int SaveExploredMs = 15000;
+
         /// <summary>Live walkable grids kept for routing, one per SampleMs: a cell must be walkable in all of them.</summary>
         private const int MaxSamples = 4;
 
@@ -117,6 +120,14 @@ namespace Poe2Accessibility.Services
         private IReadOnlyList<ScanEntry> unexplored = Array.Empty<ScanEntry>();
         private long unexploredAt = long.MinValue / 2;
         private long trackedAt = long.MinValue / 2;
+        private long savedAt;
+
+        /// <summary>The area instance being read (AreaInstance.AreaHash) and its name.</summary>
+        private string instance = string.Empty;
+        private string areaName = string.Empty;
+
+        /// <summary>The area this instance was first entered from: the exit back there is not the way on.</summary>
+        private string cameFrom = string.Empty;
 
         public EntityCatalog(HostMemoryReader memory, UiElementReader elements, InventoryReader inventory, LandmarkTable landmarks, Func<string> areaId, PluginLog log)
         {
@@ -151,6 +162,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The current area's name in the client language (its name in an objective is not a destination).</summary>
         public Func<string> AreaName { get; set; } = () => string.Empty;
 
+        /// <summary>What each area instance left held, to restore it on return (set by the plugin).</summary>
+        public AreaMemory? Memory { get; set; }
+
         /// <summary>The spoken name of the ground item whose tooltip holds these texts (empty for gold); null when none does.</summary>
         public string? ItemOfTooltip(IEnumerable<string> texts)
         {
@@ -168,8 +182,50 @@ namespace Poe2Accessibility.Services
         /// <summary>A thing in the world, not a named place of the area's tiles.</summary>
         public static bool IsEntity(ScanEntry entry) => entry.Id < LandmarkIdBase;
 
-        /// <summary>A new area: nothing seen yet.</summary>
-        public void Forget()
+        /// <summary>
+        ///     Another area instance (<paramref name="newInstance"/>, AreaInstance.AreaHash): what this one held is kept, and
+        ///     what was known of the new one returns; a new one starts with nothing seen.
+        /// </summary>
+        public void Forget(string newInstance, string newAreaName)
+        {
+            if (this.Memory != null && this.instance.Length > 0)
+            {
+                lock (this.samplesLock)
+                {
+                    this.Memory.Keep(this.instance, new AreaMemory.Snapshot(this.explored.Save(), this.cameFrom, new(this.remembered), new(this.sighted), new(this.closedBarriers)));
+                }
+            }
+
+            var leaving = this.areaName;
+            this.Clear();
+            if (newInstance.Length > 0 && this.Memory?.Recall(newInstance) is { } known)
+            {
+                this.explored.Load(known.Explored);
+                foreach (var (id, entry) in known.Remembered)
+                {
+                    this.remembered[id] = entry;
+                }
+
+                this.sighted.UnionWith(known.Sighted);
+                lock (this.samplesLock)
+                {
+                    foreach (var (id, at) in known.ClosedBarriers)
+                    {
+                        this.closedBarriers[id] = at;
+                    }
+                }
+
+                this.cameFrom = known.CameFrom;
+            }
+            else
+            {
+                this.cameFrom = leaving;
+            }
+
+            (this.instance, this.areaName) = (newInstance, newAreaName);
+        }
+
+        private void Clear()
         {
             this.remembered.Clear();
             this.sighted.Clear();
@@ -201,6 +257,12 @@ namespace Poe2Accessibility.Services
             if (row > 0 && Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 this.explored.Visit(new Vector2(player.GridPosition.X, player.GridPosition.Y), row * 2, area.GridWalkableData.Length / row);
+            }
+
+            if (this.Memory != null && this.instance.Length > 0 && now - this.savedAt >= SaveExploredMs)
+            {
+                this.savedAt = now;
+                this.Memory.Save(this.instance, this.explored.Save(), this.cameFrom);
             }
         }
 
@@ -315,7 +377,7 @@ namespace Poe2Accessibility.Services
             // The quest marker: what the objective names is found wherever the game knows it, seen or not (user,
             // 2026-10-24: the objective guided before the scanner kept to what is seen; docs/research/minimap.md).
             var questPool = sorted.Concat(unseen.Where(entry => !found.ContainsKey(entry.Id))).OrderBy(entry => Distance(origin, entry)).ToList();
-            sorted.InsertRange(0, QuestMatcher.Targets(questPool, this.QuestTexts(), this.AreaName()));
+            sorted.InsertRange(0, QuestMatcher.Targets(questPool, this.QuestTexts(), this.AreaName(), this.cameFrom));
             return sorted;
         }
 

@@ -91,6 +91,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(CullingThresholdsByRarity), CullingThresholdsByRarity);
             Run(nameof(CullingSkillsComeFromTheCatalog), CullingSkillsComeFromTheCatalog);
             Run(nameof(ChargesAreKnownByTheirBuff), ChargesAreKnownByTheirBuff);
+            Run(nameof(PlacedObjectsSoundByDistance), PlacedObjectsSoundByDistance);
             Run(nameof(EnemyStatesFromBuffsAndAnimations), EnemyStatesFromBuffsAndAnimations);
             Run(nameof(PrimedForStunByRarity), PrimedForStunByRarity);
             Run(nameof(EnemyStatesAreNewsOnlyAsTheyBegin), EnemyStatesAreNewsOnlyAsTheyBegin);
@@ -112,6 +113,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(TileGridIsFoundByWhatItsRecordsHold), TileGridIsFoundByWhatItsRecordsHold);
             Run(nameof(BaseNamesAreCheckedAgainstTooltipTitles), BaseNamesAreCheckedAgainstTooltipTitles);
             Run(nameof(MinimapMarksNameBossRoomsAndLandmarks), MinimapMarksNameBossRoomsAndLandmarks);
+            Run(nameof(CrossingAnAreaLeadsToTheWayOn), CrossingAnAreaLeadsToTheWayOn);
+            Run(nameof(ExploredGroundIsKeptAsBytes), ExploredGroundIsKeptAsBytes);
             Run(nameof(SignsAreNeverQuestTargetsAndQuestIconsAlways), SignsAreNeverQuestTargetsAndQuestIconsAlways);
             Run(nameof(UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay), UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay);
             Run(nameof(SpiritValuesNameTheirWeaponSet), SpiritValuesNameTheirWeaponSet);
@@ -1100,6 +1103,50 @@ namespace Poe2Accessibility.Tests
             Equal(true, gong.Length > CueSynth.StateCue(EnemyState.HeavyStunned, 44100).Length, "longer than the heavy-stun gong");
         }
 
+        private static void CrossingAnAreaLeadsToTheWayOn()
+        {
+            var back = new ScanEntry(1, ScanCategory.Exits, "El bosque singular", 0, 0, 0, QuestMatcher.ExitKind);
+            var on = new ScanEntry(2, ScanCategory.Exits, "Cementerio de los eternos", 0, 0, 0, QuestMatcher.ExitKind);
+            var waypoint = new ScanEntry(3, ScanCategory.Exits, "Punto de paso", 0, 0, 0, "waypoint");
+            var frontier = new ScanEntry(4, ScanCategory.Unexplored, "Sin explorar", 0, 0, 0);
+            string Names(IReadOnlyList<ScanEntry> entries, params string[] texts) =>
+                string.Join(" | ", QuestMatcher.Targets(entries, texts, "El enredo sombrío", "El bosque singular").Select(entry => entry.Name));
+            var crossing = new[] { "La sombra misteriosa", "Sigue a través del Enredo sombrío" };
+            Equal("Cementerio de los eternos", Names(new[] { back, on, waypoint, frontier }, crossing), "the way on, not back, not the waypoint");
+            Equal("Sin explorar", Names(new[] { back, waypoint, frontier }, crossing), "no way on known yet: the unexplored ground");
+            Equal(string.Empty, Names(new[] { back, on, frontier }, "Busca la semilla de la corrupción"), "an objective not about this area");
+            Equal(string.Empty, Names(new[] { back, on, frontier }, "Registra el Enredo sombrío para encontrar al Conde"), "a name to find: not the way on");
+        }
+
+        private static void ExploredGroundIsKeptAsBytes()
+        {
+            var map = new ExplorationMap();
+            map.Visit(new Vector2(100, 100), 800, 600);
+            var copy = new ExplorationMap();
+            Equal(true, copy.Load(map.Save()), "a saved map loads");
+            Equal(true, copy.IsSeen(new Vector2(100, 100)) && !copy.IsSeen(new Vector2(700, 500)), "the same ground seen");
+            Equal(false, copy.Load(new byte[] { 1, 0, 0, 0 }), "too short");
+            Equal(false, copy.Load(BitConverter.GetBytes(100000).Concat(BitConverter.GetBytes(100000)).ToArray()), "claims more blocks than any area");
+            Equal(true, copy.IsSeen(new Vector2(100, 100)), "a bad load changes nothing");
+            Equal("ice_crystal", DeployedObjects.SoundKey("Metadata/MiscellaneousObjects/FrostWall/OrbOfIce"), "the crystal's own sound");
+            Equal("tempest_bell", DeployedObjects.SoundKey("Metadata/Effects/Spells/monk_bell/mtx_BellAurora"), "a bell skin tolls the bell");
+        }
+
+        private static void PlacedObjectsSoundByDistance()
+        {
+            Equal(false, DeployedObjects.Moved(new Vector2(100, 100), new Vector2(120, 110)), "a bell standing still");
+            Equal(true, DeployedObjects.Moved(new Vector2(100, 100), new Vector2(200, 100)), "a minion walking off");
+            Equal(true, DeployedObjects.IntervalMs(100) < DeployedObjects.IntervalMs(1200), "more often near");
+            Equal(true, DeployedObjects.IsPlaced("Metadata/MiscellaneousObjects/FrostWall/OrbOfIce"), "Frozen Locus's crystal (seen live)");
+            Equal(true, DeployedObjects.IsPlaced("Metadata/Effects/Spells/monk_bell/tempest_bell"), "Tempest Bell");
+            Equal(true, DeployedObjects.IsPlaced("Metadata/Effects/Spells/monk_bell/mtx_BellAurora"), "a bell skin");
+            Equal(false, DeployedObjects.IsPlaced("Metadata/MiscellaneousObjects/FrostWall/FrostWall"), "a wall segment is not struck");
+            Equal(false, DeployedObjects.IsPlaced("Metadata/Monsters/Wolves/FungalWolf1_@6"), "a monster");
+            Equal(true, DeployedObjects.GainAt(100) > DeployedObjects.GainAt(1200) && DeployedObjects.GainAt(5000) > 0, "louder near, never silent in range");
+            var bell = CueSynth.Deployed(44100);
+            Equal(true, bell.Length < CueSynth.Cull(44100).Length / 2 && bell.Max(MathF.Abs) < 0.3f, "short and soft beside the gong");
+        }
+
         private static void ChargesAreKnownByTheirBuff()
         {
             Equal(ChargeKind.Power, PlayerCharges.FromBuffId("power_charge_79"), "suffix dropped");
@@ -1109,6 +1156,8 @@ namespace Poe2Accessibility.Tests
             Equal(ChargeKind.ColdInfusion, PlayerCharges.FromBuffId("cold_infusion_79"), "the Sorceress's infusions");
             Equal(ChargeKind.ChaosSurge, PlayerCharges.FromBuffId("instilling_chaos"), "a surge");
             Equal(ChargeKind.ArcaneSurge, PlayerCharges.FromBuffId("arcane_surge_79"), "Arcane Surge");
+            Equal(ChargeKind.Combo, PlayerCharges.FromBuffId("tempest_bell_combo_tracker_79"), "Tempest Bell's combo (logged live)");
+            Equal(null, PlayerCharges.FromBuffId("tempest_bell_active"), "the bell itself is not combo");
             Equal(true, PlayerCharges.RageEdge(29, 30, 30), "Rage fills");
             Equal(null, PlayerCharges.RageEdge(30, 30, 30), "full and still full is no news");
             Equal(null, PlayerCharges.RageEdge(30, 25, 30), "draining is no news");

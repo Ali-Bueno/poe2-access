@@ -186,6 +186,7 @@ namespace Poe2Accessibility
             (Services.ChargeKind.Spirit, _) => T($"{count} spirit charges", $"{count} cargas de espíritu"),
             (Services.ChargeKind.ArcaneSurge, 0) => T("Arcane Surge ended", "Sobrecarga arcana terminada"),
             (Services.ChargeKind.ArcaneSurge, _) => ChargeName(kind),
+            (Services.ChargeKind.Combo, 0) => T("no Combo", "sin combo"),
             _ => T($"{ChargeName(kind)}: {count}", $"{ChargeName(kind)}: {count}"),
         };
 
@@ -201,6 +202,7 @@ namespace Poe2Accessibility
             Services.ChargeKind.ChaosSurge => T("Chaos Surge", "Sobrecarga de caos"),
             Services.ChargeKind.DruidicProwess => T("Druidic Prowess", "Proeza druídica"),
             Services.ChargeKind.ArcaneSurge => T("Arcane Surge", "Sobrecarga arcana"),
+            Services.ChargeKind.Combo => T("Combo", "Combo"),
             _ => T("Rage", "Furia"),
         };
 
@@ -330,6 +332,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.ShieldSounds) => T("Shield raised and lowered", "Escudo levantado y bajado"),
             nameof(AccessibilitySettings.AnnounceStunBar) => T("Stun bar while blocking", "Barra de aturdimiento al bloquear"),
             nameof(AccessibilitySettings.CullCue) => T("Culling Strike cue", "Aviso de golpe de gracia"),
+            nameof(AccessibilitySettings.DeployedCues) => T("Sound of what your skills place", "Sonido de lo que colocan tus habilidades"),
             nameof(AccessibilitySettings.EnemyStateCues) => T("Enemy state sounds", "Sonidos de estados del enemigo"),
             nameof(AccessibilitySettings.PrimedStunCues) => T("Primed for Stun sound", "Sonido de listo para el aturdimiento"),
             nameof(AccessibilitySettings.CrosshairBeep) => T("Crosshair beep", "Pitido de mira"),
@@ -464,6 +467,9 @@ namespace Poe2Accessibility
             "cull" => T("Culling Strike", "Golpe de gracia"),
             "charge_gained" => T("Charge gained", "Carga ganada"),
             "charge_lost" => T("Charge lost", "Carga perdida"),
+            "deployed" => T("Placed by a skill", "Colocado por una habilidad"),
+            "tempest_bell" => T("Tempest Bell", "Campana de tempestad"),
+            "ice_crystal" => T("Ice crystal", "Cristal de hielo"),
             _ when StateOfSound(key) is { } state => EnemyStateName(state),
             "shield_down" => T("Shield lowered", "Escudo bajado"),
             "reach" => T("Reach ping", "Aviso de alcance"),
@@ -528,6 +534,9 @@ namespace Poe2Accessibility
                 "you gained a charge, an infusion or a surge: one tick for each you hold, highest for power charges, lowest for endurance; Rage ticks as it fills",
                 "ganaste una carga, una infusión o una sobrecarga: un toque por cada una que tienes, más agudo para las cargas de poder, más grave para las de aguante; la furia suena al llenarse"),
             "charge_lost" => T("you spent one or it ran out; Rage ticks this way as it empties", "gastaste una o se te acabó; la furia suena así al vaciarse"),
+            "deployed" or "tempest_bell" or "ice_crystal" => T(
+                "something a skill of yours placed and left standing, such as a bell, a crystal or a totem, from where it is; more often as you get closer",
+                "algo que una de tus habilidades colocó y dejó en el suelo, como una campana, un cristal o un tótem, desde donde está; más seguido cuanto más cerca"),
             "state_PrimedForStun" => T(
                 "an enemy on that side has enough stun buildup that a heavy hit stuns it (Boneshatter): 40% normal, 50% magic, 60% rare, 70% unique",
                 "un enemigo de ese lado ya acumula aturdimiento suficiente para que un golpe fuerte lo aturda (Destrozahuesos): 40% si es normal, 50% mágico, 60% raro, 70% único"),

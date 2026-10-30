@@ -7,6 +7,9 @@ namespace Poe2Accessibility.Services
     /// <summary>The scanner's Quest category: entries the quest tracker's objective names. Pure.</summary>
     public static class QuestMatcher
     {
+        /// <summary>An area transition's kind (EntityCatalog.Classify), apart from portals, waypoints and checkpoints.</summary>
+        public const string ExitKind = "exit";
+
         /// <summary>
         ///     The kind of a radar table's note on a tile ("Ogham Farmlands Or Deadend"): the quest means it only when it
         ///     names it whole, not by a word they share — "Ogham" in "The Wild Treasure of Ogham" led to that dead end
@@ -23,7 +26,8 @@ namespace Poe2Accessibility.Services
         ///     The area the player is in: its name in the objective ("Registra Sierraclara para encontrar la entrada al
         ///     Lodazal") is where to search, not where to go — it made the exit back to Campamento de Sierraclara the target.
         /// </param>
-        public static List<ScanEntry> Targets(IReadOnlyList<ScanEntry> entries, IReadOnlyList<string> questTexts, string currentArea = "")
+        /// <param name="cameFrom">The area the player entered this one from: the exit there is the way back.</param>
+        public static List<ScanEntry> Targets(IReadOnlyList<ScanEntry> entries, IReadOnlyList<string> questTexts, string currentArea = "", string cameFrom = "")
         {
             var texts = questTexts.Select(Fold).Where(text => text.Length > 0).ToList();
             // What the minimap marks with the quest's own icon is the objective, whatever the tracker says.
@@ -73,6 +77,18 @@ namespace Poe2Accessibility.Services
                 {
                     targets.Add(entry with { Category = ScanCategory.Quest });
                 }
+            }
+
+            // "Sigue a través del Enredo sombrío" names only the area the player is in: crossing it, the way on is every
+            // exit but the one back, and while none is known, the unexplored ground nearest, where it will be (the marker
+            // stayed empty and the exit was lost, user 2026-10-29).
+            var here = Fold(currentArea).Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(word => word.Length >= 4).ToList();
+            if (targets.Count == 0 && properNouns.Count == 0 && here.Count > 0 && texts.Any(text => here.All(word => Words(text).Contains(word))))
+            {
+                var back = Fold(cameFrom);
+                var onward = entries.Where(entry => entry.Category == ScanCategory.Exits && entry.Kind == ExitKind && Fold(entry.Name) != back).ToList();
+                targets.AddRange((onward.Count > 0 ? onward : entries.Where(entry => entry.Category == ScanCategory.Unexplored).Take(1))
+                    .Select(entry => entry with { Category = ScanCategory.Quest }));
             }
 
             return targets;

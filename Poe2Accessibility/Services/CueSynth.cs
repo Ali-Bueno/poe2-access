@@ -174,6 +174,15 @@ namespace Poe2Accessibility.Services
         private const float CullSizzleAttackSeconds = 0.004f;
         private const int CullSizzleSeed = 3;
 
+        /// <summary>
+        ///     Something a skill placed and left standing (DeployedWatch: Tempest Bell, an ice crystal): a small bell, one
+        ///     short high strike, apart from the culling gong, the glass charge ticks and the NPC ring.
+        /// </summary>
+        private const float DeployedHz = 2093f;
+        private const float DeployedSeconds = 0.2f;
+        private const float DeployedDecay = 0.06f;
+        private const float DeployedLevel = 0.26f;
+
         /// <summary>The gong's own mix level, before the thump and the sizzle are laid over it at their levels.</summary>
         private const float CullGongLevel = 0.32f;
         private const float CullMixLevel = 0.42f;
@@ -659,6 +668,9 @@ namespace Poe2Accessibility.Services
 
             return Normalized(samples, CullLevel);
         }
+
+        public static float[] Deployed(int sampleRate) =>
+            Struck(new[] { new StateNote(0f, DeployedSeconds, DeployedHz, DeployedHz, Bell, DeployedDecay) }, DeployedLevel, sampleRate);
 
         /// <summary>A charge gained: one tick for each of the <paramref name="held"/> charges now held.</summary>
         public static float[] ChargeGained(ChargeKind kind, int held, int sampleRate)

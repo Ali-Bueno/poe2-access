@@ -72,7 +72,7 @@ closed"; the ping goes on by itself once the barrier opens.
 
 ## Settings menu (gameplay)
 
-Hold L3 for a second and a half: "Mod settings. Help: the L3 button in play, 1 of 124" (five help topics, then the settings, then the sound glossary). Without holding L3,
+Hold L3 for a second and a half: "Mod settings. Help: the L3 button in play, 1 of 128" (five help topics, then the settings, then the sound glossary). Without holding L3,
 flick the right stick up or down to move through the list and left or right to change the value (switches
 toggle, volumes move in steps of 25 percent up to 300, language: same as the game, Spanish, English). Tap L3 to close:
 "Settings saved" (written to `config/settings.txt`). Opening a game panel closes it too.
@@ -221,6 +221,12 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   files (`catalog/cull-skills.txt`: Killing Palm, Reap, Cull the Weak, Crushing Fear, Mist Raven, His Winnowing Flame);
   culling from a support gem, an item or a passive needs "siempre". A raised threshold (Enhanced Culling) is not taken
   into account.
+- **Placed by a skill** (setting "Sonido de lo que colocan tus habilidades", on by default): the game's own sound of
+  what your skills place to be struck, Tempest Bell's toll (and its skins') and Frozen Locus's ice crystal forming (a
+  small high bell until the sounds are extracted), on its side, more
+  often and louder as you get closer, from the centre once you stand at it (object volume); several are heard one after
+  another, never at once. Each new kind is logged
+  ("Placed by a skill: …"); others are added by their entity path in `DeployedObjects`.
 - **Primed for Stun** (setting "Sonido de listo para el aturdimiento", on by default; for Boneshatter and other
   heavy hits): a wind-up rising an octave and a half from the side of an enemy whose heavy stun buildup has reached
   the game's threshold (40% normal, 50% magic, 60% rare, 70% unique), once until it drops below again or is stunned;
@@ -294,7 +300,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   (`StatusAlerts`).
 - What you build up and spend (`ChargeAlerts`, "Cargas, infusiones, sobrecargas y furia", on by default): Power,
   Frenzy, Endurance and Spirit charges, the Sorceress's Fire, Cold and Lightning Infusions, the Fire, Cold, Lightning
-  and Chaos Surges of bows and crossbows, Druidic Prowess and Arcane Surge. Gaining one plays a glass tick for each
+  and Chaos Surges of bows and crossbows, Druidic Prowess, Arcane Surge and the Monk's Tempest Bell Combo (4 ring the
+  bell; "Combo: 4", "sin combo" when it drains after 8 s). Gaining one plays a glass tick for each
   one now held (Power highest, then Spirit, Frenzy, Endurance lowest; the others share one pitch); spending one or
   losing it plays one softer, lower tick. The count is said once it stops changing, so a chain of Killing Palm kills
   is one "3 cargas de poder"; the others by name and count ("Infusión de fuego: 2"), Arcane Surge by name. Rage

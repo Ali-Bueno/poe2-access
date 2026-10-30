@@ -91,6 +91,9 @@ namespace Poe2Accessibility
         /// </summary>
         public string CullCue = Services.CullThreshold.WithSkill;
 
+        /// <summary>A small bell from what your skills placed and left standing (Tempest Bell, an ice crystal, a totem), to find it again.</summary>
+        public bool DeployedCues = true;
+
         /// <summary>
         ///     A sound of its own for each enemy state skills pay off on — heavy stunned, frozen, electrocuted, pinned,
         ///     armour broken, dazed, parried — from the enemy's side as it begins; a rare or unique enemy is named too.

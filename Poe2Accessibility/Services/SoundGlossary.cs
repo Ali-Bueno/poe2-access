@@ -30,6 +30,7 @@ namespace Poe2Accessibility.Services
             this.Add("cull", CueSynth.Cull(rate));
             this.Add("charge_gained", CueSynth.ChargeGained(ChargeKind.Power, 3, rate));
             this.Add("charge_lost", CueSynth.ChargeLost(ChargeKind.Power, rate));
+            this.Add("deployed", CueSynth.Deployed(rate));
             foreach (var state in Enum.GetValues<EnemyState>())
             {
                 this.Add($"state_{state}", CueSynth.StateCue(state, rate));
@@ -59,7 +60,7 @@ namespace Poe2Accessibility.Services
             this.Add("radar2_obstacle", RadarSynth.Obstacle(RadarSynth.Direction.Left, rate, RadarSynth.Voice.Second));
             this.Add("bump", RadarSynth.Bump(rate));
             this.Add("wall_tone", Excerpt(RadarSynth.WallTone(RadarSynth.Direction.Up, rate), rate));
-            foreach (var game in new[] { "item", "item_rare", "currency", "gold", "quest_item", "chest", "corpse", "breakable", "switch", "shrine", "ritual", "exit", "portal", "waypoint", "checkpoint" })
+            foreach (var game in new[] { "item", "item_rare", "currency", "gold", "quest_item", "chest", "corpse", "breakable", "switch", "shrine", "ritual", "exit", "portal", "waypoint", "checkpoint", "tempest_bell", "ice_crystal" })
             {
                 if ((gameSounds.GetLoop(game) is { } loop ? Excerpt(loop, rate) : gameSounds.Get(game)) is { } samples)
                 {

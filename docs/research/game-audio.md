@@ -60,6 +60,24 @@ heartbeat), `PortalScroll_Effects_Id_IdleInactive_*` (about -39 dB and uneven), 
 
 The `warning` and `heartbeat` placeholders were dropped (2026-10-24): the game plays its own low-life heartbeat.
 
+## Deployed-object locators (2026-10-29)
+Skill audio lives in per-skill banks named `Four_<Skill>` (bank sample names are readable from the FSB5 name table; the
+banks hold no `.ot`/`.ao` strings). Found by listing `FMOD/Desktop` for `TempestBell`, `FrozenLocus`, `FrostWall`.
+
+| cue | bank | sample | length / peak | why |
+|---|---|---|---|---|
+| tempest_bell | Four_TempestBell | TempestBell_FX_OnHit_01 | 1.78 s, stereo, peak 0.46 | a single bell toll that rings out (envelope 0.46 -> 0.01 over ~1.2 s) |
+| ice_crystal | Four_FrozenLocus | FrozenLocus_FX_Appear_01 | 1.66 s, stereo, peak 0.70 | the crystal forming; the bank has no idle sound for it |
+
+- `Four_TempestBell` (81 samples): `OnHit_01..06` (1.8-2 s), `Impact_01..06` (2-2.5 s), `Pulse_01..06`, `SmallBellPulse/Break_*`
+  (2 s), `BellLong_01..06` (5-6 s), `SmallBellLoop_01..09` (7.86 s, a loop), `Swish*`, `Return_*`, `Added{Fire,Cold,Lightning}_*`
+  (5 s elemental layers). `Four_Aurora_/Breach_/Djinn_/DiseaseVector_/StoneBender_TempestBell` are league/MTX variants.
+  The bell has no true idle sound in the bank: `SmallBellLoop_*` is the loop the event plays while it hangs (not tried);
+  the other `OnHit` takes are interchangeable alternatives.
+- `Four_FrozenLocus` (25): `FrozenLocus_FX_Appear_01..06` (1.7-2 s), `Explode_01..06` (2-2.7 s), `Hit_01..06` (1.6 s),
+  `FrozenGround_FX_Loop_01..07` (5 s, the frozen ground, not the crystal). `Four_FrostWall` is the Frost Wall's own bank.
+- Not auditioned by ear; chosen by name and envelope.
+
 ## Item drop sounds (2026-10-24)
 Every item base has its own drop sound; `item-sounds` reads which from the game's tables (offsets from the PoE2
 `poe-tool-dev/dat-schema`, checked against the row sizes 360 / 968 / 33):

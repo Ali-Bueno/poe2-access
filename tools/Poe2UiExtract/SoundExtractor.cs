@@ -58,6 +58,9 @@ internal static class SoundExtractor
         new("checkpoint", "BossCheckpoints",   "BossCheckpoints_Activate_01"),
         new("npc",        "General_Gameplay",  "Quest_UI_Offer_01"),
         new("switch",     "Foley",             "PlayerCharacter_Foley_HandGrabLever_01"),
+        // Deployed-object locators: the Monk's Tempest Bell toll when it is struck, and the Frozen Locus crystal as it forms.
+        new("tempest_bell", "Four_TempestBell", "TempestBell_FX_OnHit_01", 2.5),
+        new("ice_crystal",  "Four_FrozenLocus", "FrozenLocus_FX_Appear_01", 2.5),
         new("loops/portal",     "PortalScrollPortal", "PortalScroll_Effects_Po_IdleActive_01", LoopMaxSeconds, true),
         // Area transitions have no idle sound: the crossing's own sound, held at its loud first half second.
         new("loops/exit",       "UI_General",         "WorldAreaTransition_02", LoopMaxSeconds, true, 0.05, 0.5),

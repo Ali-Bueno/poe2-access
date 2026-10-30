@@ -72,6 +72,7 @@ namespace Poe2Accessibility
         private HazardWatch? hazards;
         private EncounterReader? encounters;
         private CullWatch? culls;
+        private DeployedWatch? deployed;
         private EnemyStateWatch? enemyStates;
         private ObjectSounds? objectSounds;
         private PlayerAlerts? alerts;
@@ -292,8 +293,10 @@ namespace Poe2Accessibility
                 var cullSkills = CullSkills.Load(Path.Join(this.DllDirectory, "catalog", "cull-skills.txt"));
                 this.log.Info($"Cull skills: {cullSkills.Count} skills from the game files");
                 this.culls = new CullWatch(this.audio, this.output, elements) { HasCullingSkill = () => cullSkills.AnyCulls(skills.Ids()) };
+                this.deployed = new DeployedWatch(this.audio, this.log);
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
+                this.deployed.GameSound = gameSounds.Get;
                 var drops = ItemDropSounds.Load(
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds, drops);
@@ -313,6 +316,7 @@ namespace Poe2Accessibility
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
+                this.entities.Memory = new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds, modSounds));
                 this.commands.Settings = () => this.Settings;
                 this.commands.SkillBar = this.ReadSkillBar;
@@ -805,6 +809,7 @@ namespace Poe2Accessibility
             this.weakPoint?.Reset();
             this.shield?.Reset();
             this.culls?.Reset();
+            this.deployed?.Reset();
             this.enemyStates?.Reset();
             this.alerts?.Statuses.Reset();
             this.partnerAlerts?.Statuses.Reset();
@@ -820,7 +825,7 @@ namespace Poe2Accessibility
             this.targets?.Reset();
             this.discoveries?.Reset(areaName, resumed);
             this.enemyNews?.Reset();
-            this.entities?.Forget();
+            this.entities?.Forget(Core.States.InGameStateObject.CurrentAreaInstance.AreaHash, areaName);
             this.unexploredLoop?.Reset();
             this.nearby?.Reset();
             this.places?.Reset();
