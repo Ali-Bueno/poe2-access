@@ -7,9 +7,6 @@ using System.Text.Json;
 
 namespace Poe2AccessLauncher;
 
-/// <summary>A published release: its tag, notes, and the package's download link and SHA-256.</summary>
-internal sealed record Release(string Tag, Version Version, string Notes, string ZipUrl, string Sha256);
-
 /// <summary>
 ///     Installs the latest GitHub release over this package before GameHelper starts, when nothing in "app" is in use:
 ///     asks first, keeps the player's settings, moves the running launcher aside and puts everything back on a failure.
@@ -18,9 +15,6 @@ internal static class Updater
 {
     public const string VersionFile = "version.txt";
     private const string LauncherExe = "Poe2Access.exe";
-    private const string LatestReleaseApi = "https://api.github.com/repos/Ali-Bueno/poe2-access/releases/latest";
-    private const string PackageAsset = "Poe2Access.zip";
-    private const string DigestPrefix = "sha256:";
     private const int NotesShown = 1500;
     private const int LeftoverTries = 10;
     private const int LeftoverWaitMilliseconds = 300;
@@ -186,32 +180,10 @@ internal static class Updater
     private static Release Latest(string installedTag)
     {
         using var client = Client(installedTag, CheckTimeout);
-        using var request = new HttpRequestMessage(HttpMethod.Get, LatestReleaseApi);
-        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-        using var response = client.Send(request);
+        using var response = client.Send(new HttpRequestMessage(HttpMethod.Get, ReleaseManifest.LatestUrl));
         response.EnsureSuccessStatusCode();
-        using var json = JsonDocument.Parse(response.Content.ReadAsStream());
-        var root = json.RootElement;
-        var tag = root.GetProperty("tag_name").GetString() ?? string.Empty;
-        var version = ReleaseTag.Parse(tag) ?? throw new InvalidDataException($"Unknown release tag {tag}");
-        foreach (var asset in root.GetProperty("assets").EnumerateArray())
-        {
-            if (asset.GetProperty("name").GetString() != PackageAsset)
-            {
-                continue;
-            }
-
-            var digest = asset.TryGetProperty("digest", out var value) ? value.GetString() ?? string.Empty : string.Empty;
-            if (!digest.StartsWith(DigestPrefix, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidDataException($"Release {tag} has no checksum for {PackageAsset}");
-            }
-
-            var notes = root.TryGetProperty("body", out var body) ? body.GetString() ?? string.Empty : string.Empty;
-            return new Release(tag, version, notes.Trim(), asset.GetProperty("browser_download_url").GetString() ?? string.Empty, digest[DigestPrefix.Length..].Trim());
-        }
-
-        throw new InvalidDataException($"Release {tag} has no {PackageAsset}");
+        using var reader = new StreamReader(response.Content.ReadAsStream());
+        return ReleaseManifest.Parse(reader.ReadToEnd());
     }
 
     private static void Install(Release release, string installedTag, HostController controller)
@@ -219,7 +191,7 @@ internal static class Updater
         var work = Path.Join(WorkRoot, release.Tag);
         TryDeleteDirectory(work);
         Directory.CreateDirectory(work);
-        var zip = Path.Join(work, PackageAsset);
+        var zip = Path.Join(work, ReleaseManifest.PackageAsset);
         using (var client = Client(installedTag, DownloadTimeout))
         using (var response = client.Send(new HttpRequestMessage(HttpMethod.Get, release.ZipUrl), HttpCompletionOption.ResponseHeadersRead))
         {
@@ -242,7 +214,7 @@ internal static class Updater
         var package = Directory.EnumerateFiles(extracted, LauncherExe, SearchOption.AllDirectories)
             .Select(Path.GetDirectoryName)
             .FirstOrDefault(folder => folder is not null && Directory.Exists(Path.Join(folder, "app")))
-            ?? throw new InvalidDataException($"{PackageAsset} holds no {LauncherExe} beside an app folder");
+            ?? throw new InvalidDataException($"{ReleaseManifest.PackageAsset} holds no {LauncherExe} beside an app folder");
         controller.Stop();
         Replace(package, Path.Join(work, "backup"));
     }

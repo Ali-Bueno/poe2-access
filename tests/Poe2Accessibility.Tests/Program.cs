@@ -52,6 +52,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(QuestTrackerPageIsSaidWhenItChanges), QuestTrackerPageIsSaidWhenItChanges);
             Run(nameof(ItemMovesAreSaidAsDeeds), ItemMovesAreSaidAsDeeds);
             Run(nameof(ReleaseTagsOrderByDayThenNumber), ReleaseTagsOrderByDayThenNumber);
+            Run(nameof(ReleaseManifestPinsThePackageToItsTag), ReleaseManifestPinsThePackageToItsTag);
             Run(nameof(GameDataStepsRerunAlone), GameDataStepsRerunAlone);
             Run(nameof(OldGameDataStampCarriesOver), OldGameDataStampCarriesOver);
             Run(nameof(TradeListingSaysItemPriceThenSeller), TradeListingSaysItemPriceThenSeller);
@@ -1688,6 +1689,33 @@ namespace Poe2Accessibility.Tests
             Equal<Version?>(null, Poe2AccessLauncher.ReleaseTag.Parse("latest"), "not a dated tag");
             Equal<Version?>(null, Poe2AccessLauncher.ReleaseTag.Parse("v2026.10"), "a tag without its day");
             Equal<Version?>(null, Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.28-0"), "releases are numbered from 2");
+        }
+
+        private static void ReleaseManifestPinsThePackageToItsTag()
+        {
+            var sha256 = new string('A', 64);
+            var release = Poe2AccessLauncher.ReleaseManifest.Parse($"{{\"tag\": \"v2026.10.30-2\", \"sha256\": \"{sha256}\", \"notes\": \" Changes \"}}");
+            Equal("https://github.com/Ali-Bueno/poe2-access/releases/download/v2026.10.30-2/Poe2Access.zip", release.ZipUrl, "the package of that release, not of whatever is latest");
+            Equal(new Version(2026, 10, 30, 2), release.Version, "the tag as a version");
+            Equal(sha256, release.Sha256, "the checksum as written");
+            Equal("Changes", release.Notes, "notes trimmed");
+
+            string Refused(string json)
+            {
+                try
+                {
+                    Poe2AccessLauncher.ReleaseManifest.Parse(json);
+                    return "accepted";
+                }
+                catch (System.IO.InvalidDataException)
+                {
+                    return "refused";
+                }
+            }
+
+            Equal("refused", Refused("{\"tag\": \"v2026.10.30\", \"sha256\": \"abc\"}"), "a short checksum");
+            Equal("refused", Refused($"{{\"tag\": \"v2026.10.30\", \"sha256\": \"{new string('g', 64)}\"}}"), "a checksum that is not hex");
+            Equal("refused", Refused($"{{\"tag\": \"latest\", \"sha256\": \"{sha256}\"}}"), "a tag that is not a date");
         }
 
         private static void ItemMovesAreSaidAsDeeds()

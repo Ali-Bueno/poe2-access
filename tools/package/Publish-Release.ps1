@@ -6,7 +6,8 @@
 .DESCRIPTION
     The assets keep the same names in every release; that is what keeps the "latest" links stable. The tag is the date
     (v2026.10.26), with -2, -3... for a second release the same day. The notes are -Notes, or else the subjects of the
-    commits since the previous release. Refuses to run with uncommitted changes or unpushed commits, so a release is
+    commits since the previous release. release.json (tag, the zip's SHA-256, notes) is what the launcher reads to
+    update, since GitHub's API refuses addresses past 60 requests an hour. Refuses to run with uncommitted changes or unpushed commits, so a release is
     always the code on GitHub. Needs the GitHub CLI (gh) signed in.
 #>
 param(
@@ -45,8 +46,12 @@ if (Test-Path $output) { Remove-Item $output -Recurse -Force }
 $built = Get-ChildItem $output -File | Where-Object { $_.Name -like 'Poe2Access-test-*' }
 foreach ($file in $built) { Move-Item $file.FullName (Join-Path $output ('Poe2Access' + $file.Extension)) -Force }
 # Relative to the repository: gh reads "path#label", and the repository's path holds a '#' (c#).
-$files = $assets | Where-Object { Test-Path (Join-Path $output $_) } | ForEach-Object { "dist/release/$_" }
+$files = @($assets | Where-Object { Test-Path (Join-Path $output $_) } | ForEach-Object { "dist/release/$_" })
 if (-not $files) { throw "No package in $output" }
+
+$manifest = [ordered]@{ tag = $tag; sha256 = (Get-FileHash (Join-Path $output 'Poe2Access.zip') -Algorithm SHA256).Hash; notes = $Notes }
+[IO.File]::WriteAllText((Join-Path $output 'release.json'), ($manifest | ConvertTo-Json), [Text.UTF8Encoding]::new($false))
+$files += 'dist/release/release.json'
 
 $notesFile = Join-Path $output 'notes.md'
 Set-Content -Path $notesFile -Value $Notes -Encoding utf8
