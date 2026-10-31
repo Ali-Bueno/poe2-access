@@ -7,7 +7,7 @@ namespace Poe2Accessibility.Services
     using GameHelper.RemoteObjects.States.InGameStateObjects;
 
     /// <summary>
-    ///     A skill whose cooldown runs out (<see cref="SkillCooldowns"/>): its name said and a bell heard as it can be used
+    ///     A skill whose cooldown runs out (<see cref="SkillCooldowns"/>): its name said and a bolt's click heard as it can be used
     ///     again. Read from the player's Actor: its skills by id and name, and its cooldown entries keyed by the same id.
     /// </summary>
     public sealed class SkillCooldownWatch
@@ -37,7 +37,7 @@ namespace Poe2Accessibility.Services
         private IntPtr namesActor;
         private long namesReadAt = long.MinValue / 2;
         private long lastPoll;
-        private float[]? bell;
+        private float[]? click;
 
         /// <summary><paramref name="audio"/> null: speech only (the partner's skills must not ring like the player's).</summary>
         public SkillCooldownWatch(Func<Entity?> subject, HostMemoryReader memory, UiElementReader elements, AudioCueService? audio, IAccessibilityOutputService output, PluginLog log)
@@ -84,7 +84,7 @@ namespace Poe2Accessibility.Services
             this.log.Info($"Skill ready: {string.Join(", ", ready)}");
             if (settings.CooldownSounds)
             {
-                this.audio?.Play(this.bell ??= CueSynth.SkillReady(AudioCueService.SampleRate), 0f, 1f, 1f, SoundKey);
+                this.audio?.Play(this.click ??= CueSynth.SkillReady(AudioCueService.SampleRate), 0f, 1f, 1f, SoundKey);
             }
 
             if (settings.CooldownSpeech)

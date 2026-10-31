@@ -262,7 +262,7 @@ namespace Poe2Accessibility
         /// <summary>Name a skill when its cooldown runs out and it can be used again: "Granada explosiva disponible".</summary>
         public bool CooldownSpeech = true;
 
-        /// <summary>The same as <see cref="CooldownSpeech"/>, heard: a bell as a skill can be used again.</summary>
+        /// <summary>The same as <see cref="CooldownSpeech"/>, heard: a bolt's click as a skill can be used again.</summary>
         public bool CooldownSounds = true;
 
         /// <summary>Volume of all the mod's sounds, percent (0-300; above 100 a cue is driven louder, see AudioCueService).</summary>

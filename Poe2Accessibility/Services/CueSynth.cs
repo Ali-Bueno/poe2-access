@@ -294,12 +294,16 @@ namespace Poe2Accessibility.Services
         private const float UnblockableLevel = 0.7f;
 
         /// <summary>
-        ///     A skill usable again (SkillCooldownWatch): one warm bell strike on G5 in a small stone room, a single note so
-        ///     it never rises; lower and longer than the bell of what a skill places (C7).
+        ///     A skill usable again (SkillCooldownWatch): a bolt sliding home, two equal gritty metal clicks 90 ms apart in a
+        ///     small stone room, so nothing rises (chosen by the user from three candidates, 2026-10-31).
         /// </summary>
-        private static readonly StateNote[] SkillReadyNotes = { new(0f, 0.6f, 784f, 784f, Bell, 0.2f) };
+        private static readonly StateNote[] SkillReadyNotes =
+        {
+            new(0f, 0.05f, 1400f, 1300f, Metal, 0.012f, Grit: 0.5f),
+            new(0.09f, 0.07f, 1400f, 1300f, Metal, 0.02f, Grit: 0.5f),
+        };
 
-        private const float SkillReadyRoom = 0.35f;
+        private const float SkillReadyRoom = 0.3f;
         private const float SkillReadyLevel = 0.3f;
 
         /// <summary>

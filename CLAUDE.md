@@ -174,3 +174,18 @@ Every message re-sends the whole context, so its size is what costs. Evidence an
   lookup is cheaper done directly. Always pass `model` — without it the subagent runs on the main model.
 - **No code-index tooling:** graphify, Serena and vector-search MCPs were rejected, LSP plugins deferred.
 - **Measure** with `/usage` (`w` = last 7 days) and `/context`.
+
+## 13. Working with the user (this mod)
+
+The user's standing rules; the same list, with the PoE2 commands, is in [`AGENTS.md`](AGENTS.md) (rules 20-24).
+
+- **No assistant memory for this project:** every note, preference and finding goes in a repo document
+  (`AGENTS.md`, `STATUS.md`, `docs/`), never in the auto-memory.
+- **Unattended tests:** once everything asked has been tested and works, close the game, the host and the
+  virtual pad (`AGENTS.md` rule 21).
+- **Nothing pending:** fix every finding of a test or sweep before reporting, then commit, push and deploy;
+  leave something open only when truly blocked, and say why.
+- **New sounds:** render candidates from the mod's own synth code and publish one Artifact page with a
+  "Reproducir" button per clip, beside the sounds it must not be confused with; iterate on the same URL. The
+  user listens on an iPhone; rising tones sound cartoonish, serious cues suit.
+- **Shell patches:** inline Python scripts lose doubled backslashes; use raw strings, a script file or the editor.
