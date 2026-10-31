@@ -215,7 +215,8 @@ namespace Poe2Accessibility
             var explored = this.entities?.ExploredPercent() is { } percent ? Announcements.Explored(percent) : string.Empty;
             var gold = this.gold?.Amount is { } coins ? Announcements.Amount(coins.ToString(System.Globalization.CultureInfo.CurrentCulture), Announcements.Gold, false) : string.Empty;
             var encounter = Announcements.Sentences(this.encounters?.Lines(this.narrator?.HudLayer ?? IntPtr.Zero) ?? Array.Empty<string>());
-            return Announcements.Sentences(new[] { vitals, string.Join(", ", states), charges, this.bosses?.Status() ?? string.Empty, flasks, levels, gold, encounter, explored }.Where(part => part.Length > 0));
+            var minions = this.minions == null ? string.Empty : MinionGroups.Describe(this.minions.Near());
+            return Announcements.Sentences(new[] { vitals, string.Join(", ", states), charges, minions, this.bosses?.Status() ?? string.Empty, flasks, levels, gold, encounter, explored }.Where(part => part.Length > 0));
         }
 
         /// <summary>The delivery level the player chose for a kind of news (speech priority).</summary>

@@ -299,6 +299,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Skill and support gems, uncut ones too, live under Metadata/Items/Gems/.</summary>
         private const string GemPath = "/Gems/";
 
+        /// <summary>A skill or support gem, uncut ones too.</summary>
+        public bool IsGem(IntPtr entity) => this.ItemBaseId(entity).Contains(GemPath, StringComparison.Ordinal);
+
         /// <summary>The item's base type id (its metadata path, "Metadata/Items/Currency/CurrencyIdentification"); empty if unreadable.</summary>
         public string ItemBaseId(IntPtr entity) =>
             entity == IntPtr.Zero || !this.IsItemEntity(entity)

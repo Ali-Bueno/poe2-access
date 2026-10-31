@@ -276,7 +276,7 @@ namespace Poe2Accessibility
         public string LootSounds = Services.LootFilter.All;
 
         /// <summary>
-        ///     When items on the ground stop sounding and being named: in a fight with a rare or unique monster ("rares"),
+        ///     When loot (items on the ground, chests, bodies, breakables, league altars) stops sounding and being named: in a fight with a rare or unique monster ("rares"),
         ///     with any enemy ("any"), or "never" (<see cref="Services.FightState"/>).
         /// </summary>
         public string QuietItemsInFights = Services.FightState.RaresAndUniques;

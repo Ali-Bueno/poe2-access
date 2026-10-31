@@ -29,7 +29,8 @@ namespace Poe2Accessibility.Services
     ///     the stash or taken out, dropped. Not "left the inventory" (user 2026-10-28). Gold that rose with a departure
     ///     is a sale (Y on a merchant sells at once), gold that fell with an arrival a purchase; otherwise the panel open
     ///     beside the inventory names where it went or came from (the stash, the skills: the game's own title), the hand's
-    ///     item counting from the panel it was picked up in. Pure.
+    ///     item counting from the panel it was picked up in, unless that panel cannot hold it (the skills hold only gems:
+    ///     an orb used or an item dropped beside them was "moved to Skills", user 2026-10-31). Pure.
     /// </summary>
     public static class ItemMoves
     {
@@ -40,8 +41,10 @@ namespace Poe2Accessibility.Services
             bool inPanel,
             long goldChange,
             string sidePanel,
-            string handFrom = "")
+            string handFrom = "",
+            Func<string, bool>? sideTakes = null)
         {
+            bool Beside(string name) => sidePanel.Length > 0 && (sideTakes?.Invoke(name) ?? true);
             bool IsEquipment(InventoryName name) => slotName(name) != null;
             var left = new List<(InventoryName From, string Name)>(departures);
             var moves = new List<ItemMove>();
@@ -70,7 +73,7 @@ namespace Poe2Accessibility.Services
                     else if (Take(source => source == InventoryName.MainInventory1) == null && inPanel)
                     {
                         moves.Add(goldChange < 0 ? new ItemMove(ItemMoveKind.Bought, name)
-                            : sidePanel.Length > 0 ? new ItemMove(ItemMoveKind.TakenFrom, name, sidePanel)
+                            : Beside(name) ? new ItemMove(ItemMoveKind.TakenFrom, name, sidePanel)
                             : new ItemMove(ItemMoveKind.Obtained, name));
                     }
                 }
@@ -89,7 +92,7 @@ namespace Poe2Accessibility.Services
                     }
 
                     moves.Add(goldChange > 0 ? new ItemMove(ItemMoveKind.Sold, name)
-                        : sidePanel.Length > 0 ? new ItemMove(ItemMoveKind.MovedTo, name, sidePanel)
+                        : Beside(name) ? new ItemMove(ItemMoveKind.MovedTo, name, sidePanel)
                         : new ItemMove(ItemMoveKind.DroppedOrUsed, name));
                 }
             }

@@ -85,10 +85,10 @@ namespace Poe2Accessibility.Services
         public string LootLevel { get; set; } = LootFilter.All;
 
         /// <summary>
-        ///     True while items on the ground are not named (a fight, <see cref="FightWatch"/>); kept out of the tracker,
-        ///     so what dropped is named once the fight is over.
+        ///     True while loot is not named (a fight, <see cref="FightWatch"/>; <see cref="FightState.QuietsInFight"/>); kept
+        ///     out of the tracker, so what dropped is named once the fight is over.
         /// </summary>
-        public Func<bool> QuietItems { get; set; } = () => false;
+        public Func<bool> QuietLoot { get; set; } = () => false;
 
         /// <summary>A new area: everything near is news again.</summary>
         public void Reset()
@@ -125,9 +125,10 @@ namespace Poe2Accessibility.Services
             {
                 this.lastPoll = now;
                 // Gold is said once, as it is picked up ("Recogido 2 de oro", GoldWatch); its sound leads the way to it.
-                var quietItems = this.QuietItems();
+                var quietLoot = this.QuietLoot();
                 var near = this.catalog.Entries().Where(entry => EntityCatalog.IsEntity(entry) && Announced.Contains(entry.Category) && entry.Kind != "gold" &&
-                    (entry.Category != ScanCategory.Items || (!quietItems && LootFilter.Allows(this.LootLevel, entry.Loot))));
+                    !(quietLoot && FightState.QuietsInFight(entry.Category, entry.Kind)) &&
+                    (entry.Category != ScanCategory.Items || LootFilter.Allows(this.LootLevel, entry.Loot)));
                 foreach (var entry in this.tracker.Update(player.WorldPosition.X, player.WorldPosition.Y, near, now))
                 {
                     this.pending.Enqueue((entry, now));
@@ -143,7 +144,7 @@ namespace Poe2Accessibility.Services
                     // Already named with the button: not again. The one A uses is its own sentence, so the button
                     // is not heard as part of the list ("Finn, Alijo, A", 2026-10-24).
                     var entry = this.pending.Dequeue().Entry;
-                    if (entry.Id == this.targetSpoken || (entry.Category == ScanCategory.Items && this.QuietItems()))
+                    if (entry.Id == this.targetSpoken || (FightState.QuietsInFight(entry.Category, entry.Kind) && this.QuietLoot()))
                     {
                         continue;
                     }
@@ -170,7 +171,7 @@ namespace Poe2Accessibility.Services
         private void TrackTarget(long now)
         {
             var current = this.catalog.InteractTarget();
-            if (current?.Category == ScanCategory.Items && this.QuietItems())
+            if (current != null && FightState.QuietsInFight(current.Category, current.Kind) && this.QuietLoot())
             {
                 current = null;
             }

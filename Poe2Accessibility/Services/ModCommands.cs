@@ -224,7 +224,7 @@ namespace Poe2Accessibility.Services
                     break;
                 case PadGesture.FlickLeft:
                 case PadGesture.FlickRight:
-                    if (!this.settingsMenu.InGroup)
+                    if (this.settingsMenu.OnSubmenu)
                     {
                         this.output.Speak(this.settingsMenu.Enter(settings), true);
                         break;

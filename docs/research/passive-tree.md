@@ -124,3 +124,34 @@ Foreign key = (row ptr, file ptr), file `+8` = std::wstring table name (same che
 
 OPEN: `+0x648` values and `T+0x1A8` entry layout with several or weapon-set allocations; the ascendancy view
 (hidden nodes); start-node screen position; whether the stick can stop between nodes (`M+0x760` = 0).
+
+## Stick movement (2026-10-31, kehgan, Spanish client)
+
+- MEASURED: a push of the left stick (an octant) lands on the node scoring lowest within **45 degrees** of the push:
+  **distance × (1 + 1.5 × tan(angle off the push))**, in screen pixels between element rect centres. Fitted to 127 moves
+  recorded with the dev command `passivenear` (hovered node, the nodes around it with angle, distance and link, then
+  the push and where it landed) at zoom x1,0, x1,9 and x0,6: 120 right (35/37, 30/30, 28/30, 27/30); the misses are
+  near-ties or nodes 20-40 px apart at the farthest zoom. Links play no part: a node 800 px away is reached in one push
+  when nothing lies nearer within the cone. Other forms tried and worse: distance × (1 + k × angle/45) (116),
+  distance + c × angle (scale-dependent), links first (104). `PassiveStick` (pure, unit-tested).
+- So a link is named by the push that reaches it (the nearest octant among those whose pick it is), or "not in one push"
+  when none does; checked live on six links in a row (all landed as said).
+- Zoom: LT/RT; the factor is the text "x1,4" beside the "Zoom" label (P child 7); the screen differ took its change for
+  a counter tick until 2026-10-31.
+
+## Build Planner (patch 0.5, 2026-10-31)
+
+- MEASURED: **node element `+0x70C` byte = 1** while the node is in the active build (the same five elements read with a
+  build chosen and with "None": nothing else of them changed). Weapon sets are drawn as ring colours (red set I, green
+  set II); the author's note (`additional_text`) is drawn beside the hovered node **outside the UI tree** (absent from a
+  full dump; its text lives in a text-layout object and in the parsed JSON, both found by a memory scan, neither on a
+  path from the tree).
+- The files: `Documents\My Games\Path of Exile 2\BuildPlanner\*.build`, JSON (GGG developer docs, "Build Planner" v1):
+  `passives` = ids (PassiveSkills `Id`) or objects {id, level_interval, weapon_set 0-2, additional_text}; the GGG example
+  writes attribute advice as notes ("<m>{<red>{Strength +5 is recommended}}"); Mobalytics exports carry no passive notes.
+  The mod reads the file whose passives cover at least half of the marked nodes (`BuildPlanFolder`): step = place in the
+  file, weapon set, note without markup, and for an attribute node (`strength17`, `attributes65`…) whose note shows the
+  attribute only by colour, that attribute. A website-only build has marks but no file: no notes.
+- UI: in the tree, L3 opens "Filters/Build Planner"; D-pad right twice reaches the planner button (`collapse_button`,
+  A expands it), D-pad down the list (`BuildPlannerComboBox`, "Active Build"). The gem engraving window has the same
+  list (`build_planner_combobox`) and a first category of the build's gems.

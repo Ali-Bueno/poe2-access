@@ -155,11 +155,23 @@ namespace Poe2Accessibility
         ///     A label for a control known only by its id (nothing on screen names it): the humanised id ("league"),
         ///     translated where the game's own word is known; other ids stay as they are.
         /// </summary>
+        public static string Percent(int value) => T($"{value} percent", $"{value} por ciento");
+
+        /// <summary>"3 Skeletal Archer, 80 percent" (one: no count).</summary>
+        public static string MinionGroup(string name, int count, int lifePercent) => count > 1 ? $"{count} {name}, {Percent(lifePercent)}" : $"{name}, {Percent(lifePercent)}";
+
+        public static string Minions(System.Collections.Generic.IEnumerable<string> groups) => T("Minions: ", "Esbirros: ") + string.Join("; ", groups);
+
         public static string ControlLabel(string humanisedId) => humanisedId switch
         {
             "league" => T("League", "Liga"),
             "gateway" => T("Gateway", "Servidor"),
             "language" => T("Language", "Idioma"),
+            "options" => T("Options", "Opciones"),
+            "collapse" => T("Collapse", "Contraer"),
+
+            // The build planner's list (passive tree, gem engraving window): the game's "Active Build" (ClientStrings).
+            "BuildPlannerComboBox" or "build planner" => T("Active Build", "Build activa"),
             _ => humanisedId,
         };
 

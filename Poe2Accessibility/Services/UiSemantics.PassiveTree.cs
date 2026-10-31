@@ -10,7 +10,7 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Passive tree nodes for <see cref="UiSemantics"/> (D2R skill tree readout, adapted): the hovered node's name,
     ///     kind and state from its dat row and the tree's allocated list, its stats from the tooltip, then the nodes it
-    ///     links to with their direction on screen — the free cursor moves by distance, not along links
+    ///     links to with the push of the stick that reaches each — the free cursor moves by distance, not along links
     ///     (docs/research/passive-tree.md).
     /// </summary>
     public sealed partial class UiSemantics
@@ -29,6 +29,7 @@ namespace Poe2Accessibility.Services
         private const int MaxStateLineChars = 24;
 
         private PassiveGraph? passiveGraph;
+        private PassivePlaces? passivePlaces;
 
         /// <summary>The player's metadata path, to find the class's own start node.</summary>
         public Func<string>? PlayerPath { get; set; }
@@ -69,11 +70,30 @@ namespace Poe2Accessibility.Services
                 tooltip.RemoveAt(tooltip.Count - 1); // the game's "Unallocated": the state word says it
             }
 
+            // The Build Planner's active build: the nodes the tree marks, with the author's notes when the file is here.
+            var marked = this.BuildMarks(graph);
+            var plan = marked.Count > 0 ? this.buildPlans.Matching(marked.Select(this.PassiveIdOf).ToHashSet()) : null;
+            var next = marked.Count > 0 ? this.NextBuildNode(graph, marked, plan, allocated, record) : null;
+            var buildWord = marked.Contains(record) ? Announcements.InBuild(next == record) : string.Empty;
+
             // Before the game builds the tooltip the name and state are said alone; stats, then links, follow with it.
-            var links = tooltipPending ? string.Empty : this.DescribeLinks(graph, info.Address, record, allocated);
-            if (links.Length > 0)
+            if (!tooltipPending)
             {
-                tooltip.Add(links);
+                if (plan != null && marked.Contains(record))
+                {
+                    tooltip.AddRange(this.BuildLines(plan, record, node));
+                }
+
+                var links = this.DescribeLinks(graph, info.Address, record, allocated, marked);
+                if (links.Length > 0)
+                {
+                    tooltip.Add(links);
+                }
+
+                if (next is { } nextRecord && nextRecord != record)
+                {
+                    tooltip.Add(this.DescribeBuildNext(graph, record, nextRecord, allocated));
+                }
             }
 
             return new AccessibleUiNode
@@ -81,7 +101,7 @@ namespace Poe2Accessibility.Services
                 Address = info.Address,
                 Name = info.Name,
                 Role = UiRole.Panel,
-                Text = Announcements.PassiveNode(node.Name, node.Kind, StateWord(state)),
+                Text = Announcements.PassiveNode(node.Name, node.Kind, string.Join(", ", new[] { StateWord(state), buildWord }.Where(part => part.Length > 0))),
                 IsVisible = this.elements.IsVisible(info),
                 IsHovered = hovered,
                 Context = this.PanelTitle(info),
@@ -90,8 +110,12 @@ namespace Poe2Accessibility.Services
             };
         }
 
-        /// <summary>"Up: Armour and Evasion, allocated; down left: Attribute, reachable", clockwise from up.</summary>
-        private string DescribeLinks(PassiveGraph graph, IntPtr element, IntPtr record, HashSet<int> allocated)
+        /// <summary>
+        ///     "Up: Armour and Evasion, allocated; down left: Attribute, reachable", clockwise from up; each link named by the
+        ///     push of the stick that lands on it (<see cref="PassiveStick"/>), not its bare angle: the stick moves by
+        ///     distance, and a link 60 degrees up-right is reached with up (user 2026-10-31).
+        /// </summary>
+        private string DescribeLinks(PassiveGraph graph, IntPtr element, IntPtr record, HashSet<int> allocated, HashSet<IntPtr> marked)
         {
             if (!graph.Links.TryGetValue(record, out var linked) ||
                 !PluginUiElementReflection.TryGetAbsoluteRect(element, out var position, out var size))
@@ -100,6 +124,8 @@ namespace Poe2Accessibility.Services
             }
 
             var here = position + (size / 2);
+            var places = this.PlacesOf(graph);
+            var offsets = places.Index.TryGetValue(record, out var hereIndex) ? places.OffsetsFrom(hereIndex) : null;
             var parts = new List<(double Order, string Text)>();
             foreach (var other in linked)
             {
@@ -121,7 +147,8 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                var words = Announcements.PassiveLink(node.Name, StateWord(this.StateOf(graph, node, allocated)));
+                var state = StateWord(this.StateOf(graph, node, allocated));
+                var words = Announcements.PassiveLink(node.Name, marked.Contains(other) ? $"{state}, {Announcements.InBuild(false)}" : state);
                 if (!graph.Elements.TryGetValue(other, out var otherElement) ||
                     !PluginUiElementReflection.TryGetAbsoluteRect(otherElement, out var otherPosition, out var otherSize))
                 {
@@ -132,12 +159,86 @@ namespace Poe2Accessibility.Services
                 // Screen y grows downwards; StickDirections count counter-clockwise from right. Clockwise from up.
                 var offset = otherPosition + (otherSize / 2) - here;
                 var angle = Math.Atan2(-offset.Y, offset.X) * 180 / Math.PI;
-                var octant = (int)(((Math.Round(angle / 45) % 8) + 8) % 8);
+                var geometric = Announcements.StickDirections[PassiveStick.Nearest(offset)];
+                var direction = offsets == null || !places.Index.TryGetValue(other, out var otherIndex)
+                    ? geometric // a node the cursor never lands on (hidden): its side only
+                    : PassiveStick.OctantTo(offsets, otherIndex) is { } octant ? Announcements.StickDirections[octant] : Announcements.NoDirectPush(geometric);
                 var clockwiseFromUp = (((112.5 - angle) % 360) + 360) % 360; // from the up sector's left edge, so sectors keep their order
-                parts.Add((clockwiseFromUp, $"{Announcements.StickDirections[octant]}, {words}"));
+                parts.Add((clockwiseFromUp, $"{direction}, {words}"));
             }
 
             return parts.Count == 0 ? string.Empty : Announcements.PassiveLinks(parts.OrderBy(part => part.Order).Select(part => part.Text));
+        }
+
+        /// <summary>
+        ///     Research (dev command "passivenear"): the hovered node and the drawn nodes nearest it on screen, each with its
+        ///     angle (degrees, counter-clockwise from right), distance in pixels, whether it is linked, name and id.
+        /// </summary>
+        public IEnumerable<string> PassiveNeighbours(IntPtr hovered, int count)
+        {
+            if (!this.elements.TryReadElement(hovered, out var info) || !this.elements.TryReadElement(info.Raw.ParentPtr, out var group) ||
+                this.NodeRecord(hovered) is not { } record || this.PassiveGraphOf(group.Raw.ParentPtr, info) is not { } graph ||
+                !PluginUiElementReflection.TryGetAbsoluteRect(hovered, out var position, out var size))
+            {
+                yield break;
+            }
+
+            var here = position + (size / 2);
+            var linked = graph.Links.GetValueOrDefault(record) ?? new List<IntPtr>();
+            yield return $"hovered {this.PassiveIdOf(record)} at {here.X:F0},{here.Y:F0} size {size.X:F0}";
+            var marked = this.BuildMarks(graph).Select(this.PassiveIdOf).ToHashSet();
+            yield return $"build marks {marked.Count}: {string.Join(' ', marked.Take(12))}; file: {this.buildPlans.Matching(marked)?.Name ?? "none"}";
+            var near = new List<(double Distance, string Line)>();
+            foreach (var (other, element) in graph.Elements)
+            {
+                if (other == record || this.PassiveRow(other) is not { } row || this.ReadPassiveRow(other, row) is not { IconOnly: false } node ||
+                    !this.elements.TryReadElement(element, out var otherInfo) || !otherInfo.IsVisibleFlag ||
+                    !PluginUiElementReflection.TryGetAbsoluteRect(element, out var otherPosition, out var otherSize))
+                {
+                    continue;
+                }
+
+                var offset = otherPosition + (otherSize / 2) - here;
+                var angle = Math.Atan2(-offset.Y, offset.X) * 180 / Math.PI;
+                near.Add((offset.Length(), $"{angle,7:F1} deg {offset.Length(),6:F0} px {(linked.Contains(other) ? "linked" : "      ")} {node.Name} ({this.PassiveIdOf(other)}) @{element:X}"));
+            }
+
+            foreach (var (_, line) in near.OrderBy(entry => entry.Distance).Take(count))
+            {
+                yield return line;
+            }
+        }
+
+        private string PassiveIdOf(IntPtr record) =>
+            this.PassiveRow(record) is { } row && this.reader.TryRead<IntPtr>(row, out var id) ? this.elements.ReadUtf16BufferAt(id, MaxPassiveNameChars) ?? "?" : "?";
+
+        /// <summary>
+        ///     The drawn nodes' screen centres (icon-only ones never take the cursor), read once per graph: the tree only
+        ///     pans and zooms, so one frame's pixels keep every angle and every ratio of distances.
+        /// </summary>
+        private PassivePlaces PlacesOf(PassiveGraph graph)
+        {
+            if (this.passivePlaces is { } cached && cached.State == graph.State)
+            {
+                return cached;
+            }
+
+            var records = new List<IntPtr>();
+            var positions = new List<Vector2>();
+            foreach (var (record, element) in graph.Elements)
+            {
+                if (this.elements.TryReadElement(element, out var info) && info.IsVisibleFlag &&
+                    this.PassiveRow(record) is { } row && !this.ReadPassiveRow(record, row).IconOnly &&
+                    PluginUiElementReflection.TryGetAbsoluteRect(element, out var position, out var size))
+                {
+                    records.Add(record);
+                    positions.Add(position + (size / 2));
+                }
+            }
+
+            var places = new PassivePlaces(graph.State, positions.ToArray(), records.Select((record, index) => (record, index)).ToDictionary(pair => pair.record, pair => pair.index));
+            this.passivePlaces = places;
+            return places;
         }
 
         private PassiveState StateOf(PassiveGraph graph, PassiveNodeRow node, HashSet<int> allocated)
@@ -380,5 +481,12 @@ namespace Poe2Accessibility.Services
         private sealed record PassiveGraph(IntPtr Canvas, IntPtr State, Dictionary<IntPtr, List<IntPtr>> Links, Dictionary<IntPtr, IntPtr> Elements, IntPtr OwnStart);
 
         private sealed record PassiveNodeRow(IntPtr Record, int GraphId, string Name, string Kind, bool IconOnly, bool IsStart);
+
+        /// <summary>Drawn nodes' centres in one frame's pixels, by record.</summary>
+        private sealed record PassivePlaces(IntPtr State, Vector2[] Positions, Dictionary<IntPtr, int> Index)
+        {
+            /// <summary>Every node's offset from the one at <paramref name="here"/> (itself at zero, never landed on).</summary>
+            public Vector2[] OffsetsFrom(int here) => this.Positions.Select((position, index) => index == here ? Vector2.Zero : position - this.Positions[here]).ToArray();
+        }
     }
 }

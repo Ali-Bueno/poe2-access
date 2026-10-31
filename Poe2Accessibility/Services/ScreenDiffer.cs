@@ -15,6 +15,9 @@ namespace Poe2Accessibility.Services
     {
         private static readonly Regex Digits = new(@"\d+", RegexOptions.Compiled);
 
+        /// <summary>A zoom factor ("x1,4", the passive tree's LT/RT): news when it changes, unlike a counter.</summary>
+        public static readonly Regex ZoomFactor = new(@"^x\d+([.,]\d+)?$", RegexOptions.Compiled);
+
         /// <summary>Snapshots after texts went away within which arrivals in the same layer count as a scroll.</summary>
         private const int ScrollSnapshots = 3;
 
@@ -86,7 +89,7 @@ namespace Poe2Accessibility.Services
                         continue;
                     }
 
-                    var counterTick = known != null && Digits.Replace(known, "#") == Digits.Replace(text.Text, "#");
+                    var counterTick = known != null && Digits.Replace(known, "#") == Digits.Replace(text.Text, "#") && !ZoomFactor.IsMatch(text.Text);
                     this.stableTexts[text.Address] = text.Text;
                     if (!opened && !counterTick)
                     {

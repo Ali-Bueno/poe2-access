@@ -1,6 +1,6 @@
 namespace Poe2Accessibility.Services
 {
-    /// <summary>Whether a fight is on, for ground items or characters' lines to fall quiet (settings QuietItemsInFights, QuietChatInFights).</summary>
+    /// <summary>Whether a fight is on, for loot or characters' lines to fall quiet (settings QuietItemsInFights, QuietChatInFights).</summary>
     public sealed class FightState
     {
         public const string RaresAndUniques = "rares";
@@ -26,5 +26,12 @@ namespace Poe2Accessibility.Services
         }
 
         public bool IsOn(long now) => this.lastEngagedAt is { } at && now - at < HoldMs;
+
+        /// <summary>
+        ///     What keeps quiet in a fight (setting QuietItemsInFights): items on the ground, chests, bodies, breakables and
+        ///     league altars (user 2026-10-31); exits, waypoints, shrines and characters still guide.
+        /// </summary>
+        public static bool QuietsInFight(ScanCategory category, string kind) =>
+            category is ScanCategory.Items or ScanCategory.Encounters || kind is "chest" or "corpse" or "breakable";
     }
 }

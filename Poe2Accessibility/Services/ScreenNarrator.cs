@@ -15,8 +15,19 @@ namespace Poe2Accessibility.Services
         /// <summary>Two snapshots (~300 ms) confirm a text; one that lands this soon after a focus move belongs to it.</summary>
         private const int FocusTextMergeMs = 700;
 
-        /// <summary>The panel tab bar's title label (control id in the game layout, 2026-10-23).</summary>
-        private const string TabTitleName = "label_tab_title";
+        /// <summary>
+        ///     Tab titles by control id: the panel tab bar's (2026-10-23) and the gem engraving window's category, a weapon
+        ///     kind for skills and the skill for supports (LB/RB; dump 2026-10-31).
+        /// </summary>
+        private static readonly string[] TabTitleNames = { "label_tab_title", EngraveCategoryName };
+
+        /// <summary>The longest label a zoom factor is joined to ("Zoom"; any language's word for it).</summary>
+        private const int ZoomLabelChars = 16;
+
+        private const string EngraveCategoryName = "category_name_label";
+
+        /// <summary>A choice of the gem engraving window (control id, dump 2026-10-31).</summary>
+        private const string EngraveChoiceName = "new_option";
 
         /// <summary>A batch this large arriving with a focus move is a new page (tab switch), not a popup message.</summary>
         private const int PageChangeTexts = 6;
@@ -171,6 +182,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Read a screen's message with its first focus (delete character); off for the game menu.</summary>
         public bool ReadScreenMessages { get; set; } = true;
+
+        /// <summary>
+        ///     The gem engraving window's last focused choice ("Furia I") and category (for supports the skill they go
+        ///     into: the game sockets the engraved support there; the window's tab, LB/RB).
+        /// </summary>
+        public (string Choice, string Category) Engraving { get; private set; } = (string.Empty, string.Empty);
 
         /// <summary>The screen's title as the state announcement already said it ("Menú del juego."); empty for none.</summary>
         public string SaidTitle { get; set; } = string.Empty;
@@ -452,6 +469,11 @@ namespace Poe2Accessibility.Services
         public void OnFocusChanged(AccessibleUiNode node)
         {
             this.lastFocusAt = DateTime.UtcNow;
+            if (node.Name == EngraveChoiceName && node.Text.Length > 0)
+            {
+                this.Engraving = (node.Text, this.Engraving.Category);
+            }
+
             this.unnamedFocus = node.Text.Length == 0 && node.Value.Length == 0 ? node.Address : IntPtr.Zero;
             if (this.inGame && node.NamedByControlId && node.Role is UiRole.Panel or UiRole.Unknown)
             {
@@ -971,7 +993,15 @@ namespace Poe2Accessibility.Services
             var parts = new List<string>();
             foreach (var text in texts)
             {
-                var labelled = Announcements.WithButton(Announcements.Capitalised(text.Text), text.Button);
+                if (ScreenDiffer.ZoomFactor.IsMatch(text.Text) && parts.Count > 0 && parts[^1].Length <= ZoomLabelChars && !parts[^1].Any(char.IsDigit))
+                {
+                    parts[^1] = $"{parts[^1]} {text.Text}"; // the label beside it ("Zoom x1,9"), whatever the language calls it
+                    continue;
+                }
+
+                var labelled = ScreenDiffer.ZoomFactor.IsMatch(text.Text)
+                    ? Announcements.Zoom(text.Text)
+                    : Announcements.WithButton(Announcements.Capitalised(text.Text), text.Button);
                 var spoken = text.IsControl && !text.IsEnabled ? Announcements.Unavailable(labelled) : labelled;
                 if (!parts.Contains(spoken))
                 {

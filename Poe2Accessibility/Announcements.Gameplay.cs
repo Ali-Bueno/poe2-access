@@ -42,6 +42,38 @@ namespace Poe2Accessibility
         /// <summary>"Links: up, Armour and Evasion, allocated; down left, Attribute, can be allocated".</summary>
         public static string PassiveLinks(IEnumerable<string> links) => T("Links: ", "Conexiones: ") + string.Join("; ", links);
 
+        /// <summary>The passive tree's zoom factor as the game shows it beside its "Zoom" label ("Zoom x1,4").</summary>
+        public static string Zoom(string factor) => $"Zoom {factor}";
+
+        /// <summary>A link no single push of the stick reaches: another node lies nearer that way.</summary>
+        public static string NoDirectPush(string direction) => T($"{direction}, not in one push", $"{direction}, sin paso directo");
+
+        /// <summary>A node the Build Planner's active build includes; the next one to take is named so.</summary>
+        public static string InBuild(bool next) => next ? T("next in the build", "siguiente de la build") : T("in the build", "en la build");
+
+        /// <summary>The build's weapon set for a node (the game rings it red for set I, green for set II).</summary>
+        public static string BuildWeaponSet(int set) => T($"weapon set {set}", $"set de armas {set}");
+
+        /// <summary>"Build: step 4 of 8".</summary>
+        public static string BuildStep(int step, int steps) => T($"Build: step {step} of {steps}", $"Build: paso {step} de {steps}");
+
+        /// <summary>"Attribute recommended: Strength", for a note that names the attribute only by its colour.</summary>
+        public static string RecommendedAttribute(Services.BuildNotes.Attribute attribute) => T("Recommended attribute: ", "Atributo recomendado: ") + AttributeName(attribute);
+
+        public static string AttributeName(Services.BuildNotes.Attribute attribute) => attribute switch
+        {
+            Services.BuildNotes.Attribute.Strength => T("Strength", "Fuerza"),
+            Services.BuildNotes.Attribute.Dexterity => T("Dexterity", "Destreza"),
+            _ => T("Intelligence", "Inteligencia"),
+        };
+
+        /// <summary>"Next in the build: Attribute, reachable: up right, up", the pushes that lead there.</summary>
+        public static string BuildNext(string node, IEnumerable<string> pushes) =>
+            T("Next in the build: ", "Siguiente de la build: ") + node + (pushes.Any() ? ": " + string.Join(", ", pushes) : string.Empty);
+
+        /// <summary>The next build node beyond the pushes counted: its direction only.</summary>
+        public static string Far(string direction) => T($"far, {direction}", $"lejos, {direction}");
+
         /// <summary>A skill bar set when the game gives no title for it.</summary>
         public static string SkillSetTitle(int set) =>
             set == 0 ? T("Primary skill set", "Set de habilidades principal") : T("Secondary skill set", "Set de habilidades secundario");
@@ -297,7 +329,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceDiscoveries) => T("Discoveries", "Descubrimientos"),
             nameof(AccessibilitySettings.AnnounceEnemies) => T("Enemies coming into view", "Enemigos que aparecen"),
             nameof(AccessibilitySettings.EnemyDirections) => T("Direction of enemies coming into view", "Dirección de los enemigos que aparecen"),
-            nameof(AccessibilitySettings.QuietItemsInFights) => T("Silence items on the ground in fights", "Silenciar objetos del suelo en combate"),
+            nameof(AccessibilitySettings.QuietItemsInFights) => T("Silence loot, chests and altars in fights", "Silenciar objetos, cofres y altares en combate"),
             nameof(AccessibilitySettings.QuietChatInFights) => T("Silence characters' lines in fights", "Silenciar frases de personajes en combate"),
             nameof(AccessibilitySettings.AnnounceHand) => T("Item in hand", "Objeto en la mano"),
             nameof(AccessibilitySettings.AnnounceMoves) => T("Equipped and moved items", "Objetos equipados y movidos"),
@@ -395,6 +427,12 @@ namespace Poe2Accessibility
         public static string Sold(string names, long gold) => T($"Sold: {names}, for {gold} gold", $"Vendido: {names}, por {gold} de oro");
 
         public static string Bought(string names, long gold) => T($"Bought: {names}, for {gold} gold", $"Comprado: {names}, por {gold} de oro");
+
+        /// <summary>The game's Skills panel title (ClientStrings SkillGemPanelTitle), to know it beside the inventory.</summary>
+        public static string SkillGemPanel => T("Skills", "Habilidades");
+
+        /// <summary>"Furia I, engarzada en Campana de tempestad".</summary>
+        public static string SupportEngraved(string support, string skill) => T($"{support}, socketed in {skill}", $"{support}, engarzada en {skill}");
 
         public static string MovedTo(string name, string panel) => T($"Moved to {panel}: {name}", $"Movido a {panel}: {name}");
 
@@ -709,26 +747,33 @@ namespace Poe2Accessibility
                 "In menus L3 reads the next line of the focused thing, double tap the previous, hold the whole description",
                 "En los menús L3 lee la siguiente línea de lo enfocado, doble toque la anterior, mantener la descripción completa"),
             _ => T(
-                "Right stick up and down move, left and right open a submenu, change a value or play a sound. Tap L3 to go back to the submenus, tap it there to close and save; a double tap closes from anywhere",
-                "Stick derecho arriba y abajo para moverte, izquierda y derecha para abrir un submenú, cambiar un valor o escuchar un sonido. Toca L3 para volver a los submenús, y tócalo allí para cerrar y guardar; un doble toque cierra desde cualquier sitio"),
+                "Right stick up and down move, left and right open a submenu, change a value or play a sound. Tap L3 to go back up one level, tap it at the top to close and save; a double tap closes from anywhere",
+                "Stick derecho arriba y abajo para moverte, izquierda y derecha para abrir un submenú, cambiar un valor o escuchar un sonido. Toca L3 para subir un nivel, y tócalo arriba del todo para cerrar y guardar; un doble toque cierra desde cualquier sitio"),
         };
 
-        /// <summary>The settings menu's groups (D2R submenus), by key.</summary>
+        /// <summary>The settings menu's submenus (D2R submenus, nested), by key.</summary>
         public static string SettingsGroupName(string key) => key switch
         {
             "help" => T("Help", "Ayuda"),
             "character" => T("Your character", "Tu personaje"),
-            "skills" => T("Charges and skills", "Cargas y habilidades"),
-            "enemies" => T("Enemies", "Enemigos"),
             "combat" => T("Combat", "Combate"),
+            "enemies" => T("Enemies", "Enemigos"),
+            "bosses" => T("Bosses and enemy states", "Jefes y estados de los enemigos"),
             "defence" => T("Defence", "Defensa"),
+            "skills" => T("Charges and skills", "Cargas y habilidades"),
+            "fight_quiet" => T("Quiet in fights", "Silencio en combate"),
             "navigation" => T("Navigation", "Navegación"),
             "surroundings" => T("Things and people nearby", "Cosas y personas cercanas"),
             "items" => T("Items", "Objetos"),
             "chat" => T("Chat", "Chat"),
             "speech" => T("Speech priority", "Prioridad de voz"),
-            "volumes" => T("Volumes", "Volúmenes"),
-            "sound_levels" => T("Volume of each sound", "Volumen de cada sonido"),
+            "sound" => T("Sound", "Sonido"),
+            "sound_enemies" => T("Enemies, characters and combat", "Enemigos, personajes y combate"),
+            "sound_dodge" => T("Dodge and parry", "Esquiva y Parada"),
+            "sound_radar" => T("Radar and walls", "Radar y paredes"),
+            "sound_beacon" => T("Guide", "Guía"),
+            "sound_objects" => T("Objects and places", "Objetos y lugares"),
+            "sound_charges" => T("Charges and shield", "Cargas y escudo"),
             "general" => T("General", "General"),
             _ => T("Sound glossary", "Glosario de sonidos"),
         };
@@ -746,7 +791,6 @@ namespace Poe2Accessibility
 
         public static string Off => T("off", "desactivado");
 
-        public static string Percent(int value) => T($"{value} percent", $"{value} por ciento");
 
         /// <summary>A named map piece or prop of the terrain files (catalog/places.json kinds).</summary>
         public static string PlaceName(string kind) => kind switch

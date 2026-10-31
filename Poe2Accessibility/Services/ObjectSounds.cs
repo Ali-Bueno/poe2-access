@@ -99,8 +99,8 @@ namespace Poe2Accessibility.Services
         /// <summary>Which items sound (<see cref="LootFilter"/> level, settings).</summary>
         public string LootLevel { get; set; } = LootFilter.All;
 
-        /// <summary>True while items on the ground keep quiet (a fight, <see cref="FightWatch"/>).</summary>
-        public Func<bool> QuietItems { get; set; } = () => false;
+        /// <summary>True while loot keeps quiet (a fight, <see cref="FightWatch"/>; what falls quiet: <see cref="FightState.QuietsInFight"/>).</summary>
+        public Func<bool> QuietLoot { get; set; } = () => false;
 
         /// <summary>Per frame while playing.</summary>
         public void Tick(bool playing)
@@ -119,10 +119,12 @@ namespace Poe2Accessibility.Services
                 this.lastPoll = now;
                 this.nearest.Clear();
                 var entries = this.catalog.Entries().Where(entry => EntityCatalog.IsEntity(entry) && entry.Category != ScanCategory.Quest).ToList();
-                var quietItems = this.QuietItems();
+                var quietLoot = this.QuietLoot();
                 foreach (var (group, voices, member) in Groups)
                 {
-                    foreach (var entry in entries.Where(member).Where(entry => group != LootGroup || (!quietItems && LootFilter.Allows(this.LootLevel, entry.Loot)))
+                    foreach (var entry in entries.Where(member)
+                                 .Where(entry => !(quietLoot && FightState.QuietsInFight(entry.Category, entry.Kind)) &&
+                                                 (group != LootGroup || LootFilter.Allows(this.LootLevel, entry.Loot)))
                                  .Where(entry => Distance(here, entry) <= RangeWorld).Take(voices))
                     {
                         // Items take turns with the other groups, one at a time, so each drop is heard apart.

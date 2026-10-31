@@ -353,6 +353,12 @@ namespace Poe2Accessibility
             /// <summary>On a node element: its PassiveSkillGraph node record.</summary>
             public const int NodeRecordOffset = 0x2C8;
 
+            /// <summary>
+            ///     On a node element: byte 1 while the node is in the Build Planner's active build, 0 otherwise (the same
+            ///     elements read with a build chosen and with none, 2026-10-31; nothing else of them changed).
+            /// </summary>
+            public const int NodeInBuildOffset = 0x70C;
+
             /// <summary>Record +0x00: foreign key to the PassiveSkills row.</summary>
             public const int RecordSkillKeyOffset = 0x0;
 

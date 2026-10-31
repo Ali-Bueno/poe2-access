@@ -66,6 +66,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The title of the panel open beside the inventory (stash, skills, merchant), empty when none.</summary>
         public Func<string>? SidePanel { get; set; }
 
+        /// <summary>The engraving window's last choice and category (<see cref="ScreenNarrator.Engraving"/>).</summary>
+        public Func<(string Choice, string Category)>? Engraving { get; set; }
+
         /// <summary>Ids of the items on the ground, and the title of one: an item gone from the inventory that lands there was dropped.</summary>
         public Func<IReadOnlyCollection<uint>>? GroundItemIds { get; set; }
 
@@ -229,6 +232,7 @@ namespace Poe2Accessibility.Services
                     if (!located.ContainsKey(entity))
                     {
                         this.departures.Add((from, this.NameOf(entity)));
+                        this.NoteGem(entity);
                         (this.lastMoveAt, this.movedInPanel) = (now, this.movedInPanel || !playing);
                     }
                 }
@@ -238,6 +242,7 @@ namespace Poe2Accessibility.Services
                     if (!this.where.ContainsKey(entity))
                     {
                         this.arrivals.Add((to, this.NameOf(entity)));
+                        this.NoteGem(entity);
                         (this.lastMoveAt, this.movedInPanel) = (now, this.movedInPanel || !playing);
                     }
                 }
@@ -251,6 +256,8 @@ namespace Poe2Accessibility.Services
             {
                 this.arrivals.Clear();
                 this.departures.Clear();
+                this.batchGems.Clear();
+                this.batchUncutSupports.Clear();
             }
 
             foreach (var gone in new List<IntPtr>(this.names.Keys))
@@ -258,6 +265,7 @@ namespace Poe2Accessibility.Services
                 if (!located.ContainsKey(gone))
                 {
                     this.names.Remove(gone);
+                    this.gems.Remove(gone);
                 }
             }
 
@@ -307,7 +315,9 @@ namespace Poe2Accessibility.Services
         {
             var goldChange = this.Gold?.Invoke() is { } now && this.goldBefore is { } before ? now - before : 0;
             var side = this.movedInPanel ? this.SidePanel?.Invoke() ?? string.Empty : string.Empty;
-            var moves = ItemMoves.Read(this.arrivals, this.departures, Announcements.SlotName, this.movedInPanel, goldChange, side, this.handFrom);
+            // The skills panel takes and gives back gems only: anything else that leaves beside it was dropped or used.
+            Func<string, bool>? sideTakes = side == Announcements.SkillGemPanel ? this.batchGems.Contains : null;
+            var moves = ItemMoves.Read(this.arrivals, this.departures, Announcements.SlotName, this.movedInPanel, goldChange, side, this.handFrom, sideTakes);
             if (this.arrivals.Any(arrival => arrival.To == InventoryName.Cursor1))
             {
                 // Picked up with nothing tracked leaving: from the panel beside (a stash tab), said when set down.
@@ -320,6 +330,9 @@ namespace Poe2Accessibility.Services
 
             this.arrivals.Clear();
             this.departures.Clear();
+            var uncutSupports = this.batchUncutSupports.ToList();
+            this.batchGems.Clear();
+            this.batchUncutSupports.Clear();
             this.movedInPanel = false;
             if (moves.Count > 0)
             {
@@ -350,6 +363,11 @@ namespace Poe2Accessibility.Services
                         {
                             ItemMoveKind.Equipped => Announcements.Equipped(move.Name, move.Where),
                             ItemMoveKind.Unequipped => Announcements.Unequipped(move.Name),
+                            // An uncut support gem gone into the skills was engraved and socketed into the engraving
+                            // window's category, the skill it was chosen for (user 2026-10-31: where did it go?).
+                            ItemMoveKind.MovedTo when move.Where == Announcements.SkillGemPanel && uncutSupports.Contains(move.Name) &&
+                                                      this.Engraving?.Invoke() is { Choice.Length: > 0, Category.Length: > 0 } engraving =>
+                                Announcements.SupportEngraved(engraving.Choice, engraving.Category),
                             ItemMoveKind.MovedTo => Announcements.MovedTo(move.Name, move.Where),
                             ItemMoveKind.TakenFrom => Announcements.TakenFrom(move.Name, move.Where),
                             _ => Announcements.Obtained(move.Name),
@@ -422,6 +440,12 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<IntPtr, string> names = new();
         private readonly List<(InventoryName To, string Name)> arrivals = new();
         private readonly List<(InventoryName From, string Name)> departures = new();
+        private readonly HashSet<string> batchGems = new();
+        private readonly HashSet<string> batchUncutSupports = new();
+
+        /// <summary>The uncut support gem's base type (BaseItemTypes, dat-rows 2026-10-31): engraving one sockets the support at once.</summary>
+        private const string UncutSupportBase = "/Gems/SupportGemUncut";
+        private readonly Dictionary<IntPtr, bool> gems = new();
         private readonly List<(string Name, long Due, IReadOnlyCollection<uint> GroundBefore)> drops = new();
         private readonly Queue<(long? Gold, IReadOnlyCollection<uint> Ground)> recent = new();
         private long? goldBefore;
@@ -442,6 +466,19 @@ namespace Poe2Accessibility.Services
         private long lastMoveAt;
 
         /// <summary>An item's name, kept after it leaves (a sold item can no longer be read).</summary>
+        /// <summary>Remembers a moved item that is a gem, by name, for the batch (its entity may be gone when the batch settles).</summary>
+        private void NoteGem(IntPtr entity)
+        {
+            if (this.gems.TryGetValue(entity, out var gem) ? gem : this.reader.IsGem(entity))
+            {
+                this.batchGems.Add(this.NameOf(entity));
+                if (this.reader.ItemBaseId(entity).EndsWith(UncutSupportBase, StringComparison.Ordinal))
+                {
+                    this.batchUncutSupports.Add(this.NameOf(entity));
+                }
+            }
+        }
+
         private string NameOf(IntPtr entity)
         {
             if (this.names.TryGetValue(entity, out var name))
@@ -455,6 +492,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.names[entity] = read;
+            this.gems[entity] = this.reader.IsGem(entity);
             return read;
         }
 

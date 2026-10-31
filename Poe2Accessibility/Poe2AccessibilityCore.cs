@@ -71,6 +71,7 @@ namespace Poe2Accessibility
         private ShieldWatch? shield;
         private HazardWatch? hazards;
         private EncounterReader? encounters;
+        private MinionReport? minions;
         private CullWatch? culls;
         private DeployedWatch? deployed;
         private EnemyStateWatch? enemyStates;
@@ -275,6 +276,7 @@ namespace Poe2Accessibility
                 this.gold = new GoldWatch(memory, elements, this.output, this.log) { Fields = this.locator.Fields };
                 this.pickups.Gold = () => this.gold?.ReadNow();
                 this.focus.InGameHighlightRoot = this.ShopPage;
+                this.pickups.Engraving = () => this.narrator?.Engraving ?? (string.Empty, string.Empty);
                 this.pickups.SidePanel = () => this.semantics?.SidePanelTitle(
                     this.locator.Fields.Find(this.focus?.LayerContainer ?? IntPtr.Zero, InGameField.InventoryPanel)) ?? string.Empty;
                 this.pickups.GroundItemIds = this.partnerPickups.GroundItemIds = () => this.entities?.GroundItemIds() ?? Array.Empty<uint>();
@@ -291,6 +293,7 @@ namespace Poe2Accessibility
                 this.log.Info($"Hazard ground: {hazardGround.Count} buffs from the game files");
                 this.hazards = new HazardWatch(this.audio, hazardGround, this.log);
                 this.encounters = new EncounterReader(elements);
+                this.minions = new MinionReport(elements);
                 var cullSkills = CullSkills.Load(Path.Join(this.DllDirectory, "catalog", "cull-skills.txt"));
                 this.log.Info($"Cull skills: {cullSkills.Count} skills from the game files");
                 this.culls = new CullWatch(this.audio, this.output, elements) { HasCullingSkill = () => cullSkills.AnyCulls(skills.Ids()) };
@@ -303,8 +306,8 @@ namespace Poe2Accessibility
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds, drops);
                 this.fights = new FightWatch();
                 Func<bool> inFight = () => this.fights?.InFight(this.Settings.QuietItemsInFights) ?? false;
-                this.objectSounds.QuietItems = inFight;
-                this.nearby.QuietItems = inFight;
+                this.objectSounds.QuietLoot = inFight;
+                this.nearby.QuietLoot = inFight;
                 this.narrator.QuietGroundItems = inFight;
                 // The mod's own recorded sounds (assets/, shipped), loaded like the game's.
                 var modSounds = GameSounds.Load(Path.Join(this.DllDirectory, "assets"), GameSoundSeconds, this.log);

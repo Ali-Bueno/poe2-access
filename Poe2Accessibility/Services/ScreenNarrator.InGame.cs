@@ -11,7 +11,7 @@ namespace Poe2Accessibility.Services
         /// <summary>In game: the focus layer speaks; panels, popups, the death screen and new texts follow the in-game rules.</summary>
         private void OnInGameChange(ScreenChange change, ScreenSnapshot snapshot, AccessibleUiNode? focus, IntPtr focusLayer, System.Collections.Generic.List<ScreenText> legends)
         {
-            var tabTitle = change.Texts.FirstOrDefault(text => text.Name == TabTitleName);
+            var tabTitle = change.Texts.FirstOrDefault(text => TabTitleNames.Contains(text.Name));
             if (tabTitle == null && change.Kind == ScreenChangeKind.TopLayerChanged)
             {
                 this.lastTabLayer = IntPtr.Zero; // another screen came on top: the panel's tab is news again
@@ -21,6 +21,11 @@ namespace Poe2Accessibility.Services
                 this.lastContext == tabTitle.Text && !this.JustFocused())
             {
                 return; // the same panel and tab reported again (an item's count on the cursor came and went)
+            }
+
+            if (tabTitle?.Name == EngraveCategoryName)
+            {
+                this.Engraving = (this.Engraving.Choice, tabTitle.Text);
             }
 
             if (tabTitle != null)

@@ -119,6 +119,19 @@ namespace Poe2Accessibility
                 case "entities":
                     this.entityDump?.Write(80);
                     break;
+                case var describe when describe.StartsWith("describe 0x", StringComparison.Ordinal):
+                    // Research: what the reader makes of any element, focused or not (an icon's item, a row's parts).
+                    var node = this.semantics?.Describe((IntPtr)Convert.ToInt64(describe["describe 0x".Length..], 16), true);
+                    this.log.Info($"Describe {describe[9..]}: {node?.Role} \"{node?.Text}\" value \"{node?.Value}\" tooltip \"{string.Join(" | ", node?.Tooltip ?? Array.Empty<string>())}\"");
+                    break;
+                case "passivenear":
+                    // Research: the nodes around the hovered passive, to compare the stick's moves with the links said.
+                    foreach (var line in this.semantics?.PassiveNeighbours(this.focus?.Current?.Address ?? IntPtr.Zero, 400) ?? Enumerable.Empty<string>())
+                    {
+                        this.log.Info($"Passive near: {line}");
+                    }
+
+                    break;
                 case "entities all":
                     // Research: every entity the client knows (the network bubble), e.g. far quest icons.
                     this.entityDump?.Write(int.MaxValue);

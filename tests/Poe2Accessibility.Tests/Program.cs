@@ -61,6 +61,9 @@ namespace Poe2Accessibility.Tests
             Run(nameof(WallTonesSwellNearWalls), WallTonesSwellNearWalls);
             Run(nameof(NewsFollowItsDeliveryLevel), NewsFollowItsDeliveryLevel);
             Run(nameof(SettingsMenuOpensGroupsAndGoesBack), SettingsMenuOpensGroupsAndGoesBack);
+            Run(nameof(PassiveStickLandsWhereTheGameDoes), PassiveStickLandsWhereTheGameDoes);
+            Run(nameof(BuildFilesAreReadWithTheirNotes), BuildFilesAreReadWithTheirNotes);
+            Run(nameof(MinionsAreCountedByKind), MinionsAreCountedByKind);
             Run(nameof(DodgeTimingIsLearntFromBlows), DodgeTimingIsLearntFromBlows);
             Run(nameof(ProjectileWarningsAddTheFlight), ProjectileWarningsAddTheFlight);
             Run(nameof(RockStandsAloneWallDoesNot), RockStandsAloneWallDoesNot);
@@ -750,6 +753,10 @@ namespace Poe2Accessibility.Tests
             Equal(true, fight.Update(false, 2000 + FightState.HoldMs - 1), "held a moment after it is gone");
             Equal(false, fight.Update(false, 2000 + FightState.HoldMs), "then over");
             Equal(true, FightState.Modes.Contains(CullThreshold.Never), "the setting can be turned off");
+            Equal("True True True True True", string.Join(" ", new[] { (ScanCategory.Items, "rare"), (ScanCategory.Chests, "chest"), (ScanCategory.Chests, "corpse"), (ScanCategory.Chests, "breakable"), (ScanCategory.Encounters, "ritual") }
+                .Select(entry => FightState.QuietsInFight(entry.Item1, entry.Item2))), "loot, chests, bodies, breakables and altars keep quiet");
+            Equal("False False False", string.Join(" ", new[] { (ScanCategory.Exits, "exit"), (ScanCategory.Chests, "shrine"), (ScanCategory.Waypoints, "checkpoint") }
+                .Select(entry => FightState.QuietsInFight(entry.Item1, entry.Item2))), "exits, shrines and checkpoints still guide");
         }
 
         private static void OnlyLinesSaidAloudNearbyAreLocalSpeech()
@@ -1596,24 +1603,92 @@ namespace Poe2Accessibility.Tests
             Equal(false, DodgeTimings.CanStillHit(2000, 1800 + 1500, 600, 2100), "a later swing that ended before its release fired nothing");
         }
 
+        private static void BuildFilesAreReadWithTheirNotes()
+        {
+            // The GGG docs' example shape: plain ids and objects with a weapon set and a note.
+            var plan = BuildPlan.Parse("{\"name\":\"Titan\",\"passives\":[\"melee17\",{\"id\":\"strength17\",\"additional_text\":\"<m>{<red>{Strength +5 is recommended}}\"},{\"id\":\"melee25\",\"weapon_set\":2}],\"skills\":[]}");
+            Equal("Titan 3", $"{plan?.Name} {plan?.Passives.Count}", "name and passives");
+            Equal("strength17 1 0", $"{plan?.Passives[1].Id} {plan?.Passives[1].Order} {plan?.Passives[1].WeaponSet}", "an object entry keeps its place");
+            Equal(2, plan?.Passives[2].WeaponSet ?? 0, "weapon set");
+            Equal(true, BuildPlan.Parse("not json") == null && BuildPlan.Parse("{\"name\":\"x\"}") == null, "no build file");
+            Equal("Strength +5 is recommended", BuildNotes.Plain("<m>{<red>{Strength +5 is recommended}}"), "markup out");
+            var words = new[] { "Strength", "Dexterity", "Intelligence", "Fuerza", "Destreza", "Inteligencia" };
+            Equal(true, BuildNotes.ColourOnly("<m>{<red>{Strength +5 is recommended}}", words) == null, "a note naming the attribute needs nothing added");
+            Equal(BuildNotes.Attribute.Strength, BuildNotes.ColourOnly("<red>{Attribute is recommended}", words), "red alone means strength");
+            Equal(BuildNotes.Attribute.Dexterity, BuildNotes.ColourOnly("<green>{+5}", words), "green dexterity");
+            Equal(true, BuildNotes.ColourOnly("<grey>{Point #1}", words) == null, "other colours say nothing");
+            Equal("True True True False", string.Join(" ", new[] { "strength89", "intelligence36_", "attributes65", "melee17" }.Select(BuildNotes.IsAttributeNode)), "attribute nodes by id");
+        }
+
+        private static void MinionsAreCountedByKind()
+        {
+            Equal(string.Empty, MinionGroups.Describe(Array.Empty<(string, int)>()), "none: nothing said");
+            var said = MinionGroups.Describe(new[] { ("Arquero", 100), ("Lobo", 45), ("Arquero", 60), ("Arquero", 80) });
+            Equal(true, said.EndsWith("3 Arquero, 80 percent; Lobo, 45 percent") || said.EndsWith("3 Arquero, 80 por ciento; Lobo, 45 por ciento"), $"the most first, life averaged: {said}");
+        }
+
+        private static void PassiveStickLandsWhereTheGameDoes()
+        {
+            // Moves recorded in the game (2026-10-31): screen offsets of the nearest nodes, the push, where it landed.
+            var mana18 = new Vector2[] { new(66, -66), new(-67, -67), new(126, 0), new(-126, 0), new(-23, -201), new(27, -201), new(-181, -134), new(-236, 0), new(-181, 178), new(2, 273), new(-128, 241), new(-120, -260) };
+            Equal(9, PassiveStick.Pick(mana18, 6), "down: the node straight below, past a nearer one off to the side");
+            var notable = new Vector2[] { new(-59, 112), new(0, 129), new(-130, 31), new(-130, -31), new(-103, 156), new(16, 188), new(-184, 94), new(-184, -95), new(102, 186), new(228, 11), new(-238, 30), new(-238, -31) };
+            Equal(9, PassiveStick.Pick(notable, 0), "right: the only node within 45 degrees, however far");
+            var castSpeed = new Vector2[] { new(-54, 63), new(54, 63), new(-54, 125), new(54, 125), new(-181, -13), new(-54, -178), new(55, -178), new(0, 189), new(-181, 95), new(184, 95), new(-180, -108), new(125, 207) };
+            Equal(10, PassiveStick.Pick(castSpeed, 3), "up-left");
+            Equal(-1, PassiveStick.Pick(new Vector2[] { new(100, 0) }, 4), "nothing within the cone");
+
+            // A link 60 degrees up from the right is reached with up when nothing else lies that way (the game moved
+            // there with up while the old readout said up-right, user 2026-10-31).
+            var link = new Vector2[] { new(50, -87), new(200, 0), new(70, -70) };
+            Equal((int?)2, PassiveStick.OctantTo(link, 0), "named by the push that reaches it");
+            Equal((int?)null, PassiveStick.OctantTo(new Vector2[] { new(100, -10), new(300, -100) }, 1), "a node a nearer one hides is reached by no single push");
+
+            var line = new Vector2[] { new(0, 0), new(100, 0), new(200, 0), new(200, -100) };
+            Equal("0 1", string.Join(" ", PassiveStick.Route(line, 0, 3, 8) ?? new List<int>()), "right, then up-right lands on it");
+            Equal(true, PassiveStick.Route(line, 0, 3, 1) == null, "too far for the moves allowed");
+        }
+
         private static void SettingsMenuOpensGroupsAndGoesBack()
         {
-            var cursor = new SettingsCursor(new[] { 5, 12, 7 });
+            static SettingsCursor.Node Menu(int settings, params SettingsCursor.Node[] submenus) =>
+                new(Enumerable.Repeat(SettingsCursor.Node.Setting, settings).Concat(submenus).ToArray());
+
+            // Top level: a group of 5, one of 12, and Sound: one volume, then a submenu of 3 and one of 2.
+            var cursor = new SettingsCursor(Menu(0, Menu(5), Menu(12), Menu(1, Menu(3), Menu(2))));
             Equal(false, cursor.InGroup, "opens on the groups");
             Equal((1, 3), cursor.Place, "the top level lists the groups");
             cursor.Move(1);
-            cursor.Enter();
-            Equal((true, 1, 0), (cursor.InGroup, cursor.Group, cursor.Entry), "a group opens on its first entry");
+            Equal(true, cursor.Enter(), "a group opens");
+            Equal((true, 1, 0), (cursor.InGroup, cursor.Path[0], cursor.Path[1]), "a group opens on its first entry");
             Equal((1, 12), cursor.Place, "within a group, the place is the group's");
+            Equal(false, cursor.Enter(), "a setting is no submenu");
             cursor.Move(-1);
-            Equal(11, cursor.Entry, "a group wraps");
-            cursor.Back();
-            Equal((false, 1), (cursor.InGroup, cursor.Group), "back lands on the group left");
+            Equal(11, cursor.Path[1], "a group wraps");
+            Equal(true, cursor.Back(), "back");
+            Equal((false, 1), (cursor.InGroup, cursor.Path[0]), "back lands on the group left");
+            Equal(false, cursor.Back(), "nothing above the top level");
             cursor.Move(-2);
-            Equal(2, cursor.Group, "the groups wrap");
+            Equal(2, cursor.Path[0], "the groups wrap");
             cursor.Move(-1);
             cursor.Enter();
-            Equal(11, cursor.Entry, "a group opens on the entry it was left on");
+            Equal(11, cursor.Path[1], "a group opens on the entry it was left on");
+            cursor.Back();
+            cursor.Move(1);
+            cursor.Enter();
+            Equal(false, cursor.OnSubmenu, "Sound opens on its volume");
+            cursor.Move(2);
+            Equal(true, cursor.OnSubmenu, "then its submenus");
+            cursor.Enter();
+            Equal((3, 0, 2), (cursor.Path.Count, cursor.Place.Position - 1, cursor.Place.Count), "a nested submenu opens a level deeper");
+            cursor.Move(1);
+            cursor.Back();
+            Equal((2, 2), (cursor.Path.Count, cursor.Path[1]), "back one level, on the submenu left");
+            cursor.Back();
+            cursor.Enter();
+            Equal(2, cursor.Path[1], "each submenu reopens where it was left");
+            cursor.Enter();
+            Equal(1, cursor.Path[2], "nested ones too");
         }
 
         private static void NewsFollowItsDeliveryLevel()
@@ -1786,6 +1861,13 @@ namespace Poe2Accessibility.Tests
                   "the hand picked it up in the stash and set it down in the inventory");
             Equal(string.Empty, Said(ItemMoves.Read(none, new List<(InventoryName, string)> { (InventoryName.Cursor1, "Runa") }, Announcements.SlotName, true, 0, "Alijo", "Alijo")),
                   "picked up and set down in the stash: rearranging, not news");
+            Func<string, bool> gemsOnly = name => name == "Furia I";
+            Equal("DroppedOrUsed Orbe | MovedTo Furia I Habilidades", Said(ItemMoves.Read(none, new List<(InventoryName, string)> { (main, "Orbe"), (main, "Furia I") },
+                                                                                          Announcements.SlotName, true, 0, "Habilidades", "", gemsOnly)),
+                  "beside the skills only a gem goes into them; an orb was used or dropped");
+            Equal("Obtained Arco | TakenFrom Furia I Habilidades", Said(ItemMoves.Read(new List<(InventoryName, string)> { (main, "Arco"), (main, "Furia I") }, none,
+                                                                                          Announcements.SlotName, true, 0, "Habilidades", "", gemsOnly)),
+                  "and only a gem comes out of them");
             Equal("Orbe de aumento", ItemMoves.Title("Orbe de aumento, 3"), "the title without the stack");
         }
 

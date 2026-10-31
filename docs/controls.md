@@ -72,17 +72,24 @@ closed"; the ping goes on by itself once the barrier opens.
 
 ## Settings menu (gameplay)
 
-Hold L3 for a second and a half: "Mod settings. Help, submenu, 1 of 15". The settings come in submenus (D2R):
-Help (five controls topics), Your character (life, mana, energy shield, flasks, states, level up), Charges and skills
-(charges, combo, placed objects), Enemies (coming into view, aim, enemy sounds, melee reach), Combat (boss life and weak
-point, enemy states, Culling Strike, what falls quiet in fights), Defence (dodge, parry, shield, stun bar, harmful
-ground), Navigation (radar, walls, unexplored ground, turns, places), Things and people nearby, Items, Chat, Speech
-priority, Volumes, Volume of each sound, General (language, local co-op, updates) and the Sound glossary, whose sounds
-come in the same order as the submenus. Without holding L3, flick the right stick up or down to move
-and left or right to open a submenu, change a value or play a sound (switches toggle, volumes move in steps of 25
-percent up to 300, language: same as the game, Spanish, English). Tap L3 to go back to the submenus, on the one just
-left; tap it there, or double tap anywhere, to close: "Settings saved" (written to `config/settings.txt`). The menu and
-each submenu reopen where they were left. Opening a game panel closes it too.
+Hold L3 for a second and a half: "Mod settings. Help, submenu, 1 of 10". The settings come in submenus (D2R), some
+with submenus of their own:
+
+- Help (five controls topics); Your character (life, mana, energy shield, flasks, states, level up);
+- Combat: Enemies (coming into view, aim, enemy sounds, melee reach), Bosses and enemy states (boss life and weak
+  point, enemy states, primed for stun, Culling Strike), Defence (dodge, parry, shield, stun bar, harmful ground),
+  Charges and skills (charges, combo, placed objects), Quiet in fights (loot, chests and altars; characters' lines);
+- Navigation (radar, walls, unexplored ground, turns, places); Things and people nearby; Items; Chat; Speech priority;
+- Sound: the master volume, then a submenu per kind of sound — Enemies, characters and combat; Dodge and parry; Radar
+  and walls; Guide; Objects and places; Charges and shield — each with its volume first and then every sound's own
+  volume, and the Sound glossary split the same way;
+- General (language, local co-op, updates).
+
+Without holding L3, flick the right stick up or down to move and left or right to open a submenu, change a value or
+play a sound (switches toggle, volumes move in steps of 25 percent up to 300, language: same as the game, Spanish,
+English). Tap L3 to go back up one level, on the submenu just left; tap it at the top, or double tap anywhere, to
+close: "Settings saved" (written to `config/settings.txt`). The menu and each submenu reopen where they were left.
+Opening a game panel closes it too.
 
 **Speech priority** (D2R): eleven "Speech: …" entries choose how each kind of news is delivered — waits its turn,
 cuts in when urgent, cuts in, or cuts in and cannot be cut off (later news queues behind it for 1.5 s). Defaults:
@@ -147,11 +154,20 @@ currency, gold, quest items, other items, and the rare layer. Kept in `config/se
 
 ## Passive tree
 
-The free cursor (left stick) moves by distance, not along the tree's lines, so each node is read with where its
-links go: "Attack Speed, small node, reachable, 3% increased Attack Speed. Links: up, Armour and
-Evasion, allocated; down left, …" (clockwise from up). Kinds: small node, notable, keystone, jewel socket. States:
-allocated, reachable (linked to an allocated node or the class's start), not linked. Opening the tree reads the skill
-points and attributes.
+The free cursor (left stick) moves by distance, not along the tree's lines, so each node is read with the push of
+the stick that reaches each of its links: "Attack Speed, small node, reachable, 3% increased Attack Speed. Links: up,
+Armour and Evasion, allocated; down left, …" (clockwise from up). A link no single push reaches (another node lies
+nearer that way) is said "…, not in one push". Kinds: small node, notable, keystone, jewel socket. States: allocated,
+reachable (linked to an allocated node or the class's start), not linked. Opening the tree reads the skill points and
+attributes; LT/RT say the zoom ("Zoom x1,4"); the directions hold at any zoom.
+
+**Build Planner** (the game's, patch 0.5): put a build guide's `.build` file in `Documents\My Games\Path of Exile
+2\BuildPlanner` (or subscribe on the website), then in the tree press L3 ("Filters/Build Planner"), D-pad right twice
+to "Build Planner", A, D-pad down to "Active Build" and pick it. Its nodes are then read "in the build", the next one
+to take "next in the build", and every node ends with the way there: "Next in the build: Attribute, not linked: down
+left, down". With the file in that folder (not for a website-only build) each build node also says its step, weapon
+set and the author's note ("Build: step 2 of 8. Strength +5 is recommended"); an attribute node whose note shows the
+attribute only by colour gets it named ("Recommended attribute: Strength").
 
 ## Radial menu
 
@@ -162,8 +178,12 @@ right Skills, down Bind Screen, down-left Character, left Passives, up-left Ques
 
 In the Skills panel (beside the inventory: D-pad left from the first column) each skill is read with its tags,
 cost and description; entering the panel says first what it shows above and below the list ("0 Spirit. Equipped Gem
-Capacity: Str (0/1), Dex (0/2), Int (0/2)"). Manage Sockets: the support sockets are "Support Gem Slot, 1 of 2" (the
-greyed places after them are only drawn on the row: a socket added later becomes "3 of 3"). X on a skill opens the bind screen: "Select button to bind Chaos Bolt. Primary Skill Set.
+Capacity: Str (0/1), Dex (0/2), Int (0/2)"). Manage Sockets (A on a skill) reads the supports socketed in it: "Fury I, 1
+of 2", an empty one "Support Gem Slot, 1 of 2" (the greyed places after them are only drawn on the row: a socket added
+later becomes "3 of 3"). Engraving (X on an uncut gem): LB/RB change the list's category, said first ("Staff. Thunder
+Strike, Level 2, 1 of 21"; the build planner's recommendations are a category of their own). For an uncut support gem
+each category is one of your skills: the support chosen there is engraved straight into that skill, said when done
+("Fury I, socketed in Tempest Bell"). X on a skill opens the bind screen: "Select button to bind Chaos Bolt. Primary Skill Set.
 LB, empty"; the D-pad moves between buttons and names the other set when you enter
 it; A binds. The Bind Screen (radial menu, down) starts on a button ("Primary Skill Set. A, empty");
 A on an empty button (X on a bound one) opens the grid of every skill and action that can go on it, read by name,
@@ -353,7 +373,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   Makeshift Crossbow, Main hand" (`AnnounceHand`). These cut in on what is being read; the next D-pad move cuts them.
 - Inventory moves (`AnnounceMoves`) are said as what you did: "Equipped: …, Main hand", "Unequipped: …", "Sold:
   Padded Boots, for 9 gold" (Y at a merchant), "Bought: …, for 9 gold", "Moved to Stash: …" and "Taken from Stash: …"
-  (any panel beside the inventory, by its own title: the stash, the skills), "Dropped: …" (it lands on the ground),
+  (any panel beside the inventory, by its own title: the stash, the skills — which take and give back only gems:
+  anything else that leaves beside them was dropped or used), "Dropped: …" (it lands on the ground),
   "Used: …" (a currency's last orb, a rune socketed), "Obtained: …" (a ritual favour, a reward). The focus update the
   move causes waits for them instead of cutting them off.
 - Messages the game or your action produces ("Inventory full", "The item has no room for more mods", "Game menu",
