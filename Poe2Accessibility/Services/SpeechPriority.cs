@@ -16,6 +16,7 @@ namespace Poe2Accessibility.Services
         Arrivals,
         Charges,
         Combo,
+        Cooldowns,
     }
 
     /// <summary>
@@ -36,12 +37,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The player's level for a kind (from the settings); unset, the D2R defaults apply.</summary>
         public static Func<SpeechKind, string>? Chosen { get; set; }
 
-        /// <summary>D2R defaults: a state beginning and an arrival hold, a state ending cuts in; quest lines, pick-ups, charges and combo wait.</summary>
+        /// <summary>D2R defaults: a state beginning and an arrival hold, a state ending cuts in; quest lines, pick-ups, charges, combo and skills ready wait.</summary>
         public static string Default(SpeechKind kind) => kind switch
         {
             SpeechKind.StatusBegins or SpeechKind.Arrivals => Holds,
             SpeechKind.StatusEnds => CutsIn,
-            SpeechKind.Quest or SpeechKind.GroundItems or SpeechKind.Charges or SpeechKind.Combo => Waits,
+            SpeechKind.Quest or SpeechKind.GroundItems or SpeechKind.Charges or SpeechKind.Combo or SpeechKind.Cooldowns => Waits,
             _ => Urgent,
         };
 

@@ -40,6 +40,7 @@ namespace Poe2Accessibility.Services
                 this.AddStereo("combo", combo);
             }
 
+            this.Add(SkillCooldownWatch.SoundKey, CueSynth.SkillReady(rate));
             this.Add("deployed", CueSynth.Deployed(rate));
             this.AddGame(gameSounds, rate, "tempest_bell", "ice_crystal");
 
@@ -135,7 +136,7 @@ namespace Poe2Accessibility.Services
             _ when key.StartsWith("state_", StringComparison.Ordinal) => nameof(AccessibilitySettings.EnemyVolume),
             "bump" or "wall_tone" => nameof(AccessibilitySettings.RadarVolume),
             _ when key.StartsWith("radar", StringComparison.Ordinal) => nameof(AccessibilitySettings.RadarVolume),
-            "shield_up" or "shield_down" or "charge_gained" or "charge_lost" or "power_charge" or "combo" => null,
+            "shield_up" or "shield_down" or "charge_gained" or "charge_lost" or "power_charge" or "combo" or SkillCooldownWatch.SoundKey => null,
             _ => nameof(AccessibilitySettings.ObjectVolume),
         };
 

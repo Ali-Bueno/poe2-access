@@ -23,6 +23,8 @@ namespace Poe2Accessibility.Services
 
         private const int MaxIdChars = 64;
 
+        private const int MaxNameChars = 128;
+
         private readonly HostMemoryReader memory;
         private readonly UiElementReader elements;
         private readonly PluginLog log;
@@ -36,6 +38,15 @@ namespace Poe2Accessibility.Services
             this.elements = elements;
             this.log = log;
         }
+
+        /// <summary>A skill's localized name ("Saeta básica") from its GrantedEffectsPerLevel row, each key checked against its table; "" when none.</summary>
+        public static string DisplayedName(HostMemoryReader memory, UiElementReader elements, IntPtr levelRow) =>
+            DatKey.Row(memory, elements, levelRow + GameLayout.SkillSlot.EffectKeyOffset, GameLayout.SkillSlot.EffectTable) is { } effect &&
+            DatKey.Row(memory, elements, effect + GameLayout.SkillSlot.SkillKeyOffset, GameLayout.SkillSlot.SkillTable) is { } skill &&
+            memory.TryRead<IntPtr>(skill + GameLayout.SkillSlot.DisplayedNameOffset, out var name) &&
+            elements.ReadUtf16BufferAt(name, MaxNameChars) is { Length: > 0 } text
+                ? text
+                : string.Empty;
 
         /// <summary>Whether the followed player has the skill now.</summary>
         public bool Has(string id) => this.Ids().Contains(id);

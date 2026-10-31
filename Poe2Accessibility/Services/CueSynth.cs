@@ -294,6 +294,15 @@ namespace Poe2Accessibility.Services
         private const float UnblockableLevel = 0.7f;
 
         /// <summary>
+        ///     A skill usable again (SkillCooldownWatch): one warm bell strike on G5 in a small stone room, a single note so
+        ///     it never rises; lower and longer than the bell of what a skill places (C7).
+        /// </summary>
+        private static readonly StateNote[] SkillReadyNotes = { new(0f, 0.6f, 784f, 784f, Bell, 0.2f) };
+
+        private const float SkillReadyRoom = 0.35f;
+        private const float SkillReadyLevel = 0.3f;
+
+        /// <summary>
         ///     Harmful ground under the player: a soft low tone (110 Hz and two overtones) swelling and fading twice a loop, so
         ///     it pulses like a quiet alarm while it lasts; a whole number of cycles per loop, silent at the seam.
         /// </summary>
@@ -730,6 +739,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>An attack that cannot be blocked (<see cref="UnblockableNotes"/>).</summary>
         public static float[] Unblockable(int sampleRate) => Struck(UnblockableNotes, UnblockableLevel, sampleRate);
+
+        /// <summary>A skill usable again (<see cref="SkillReadyNotes"/>).</summary>
+        public static float[] SkillReady(int sampleRate) => Normalized(Room(Struck(SkillReadyNotes, 1f, sampleRate), sampleRate, SkillReadyRoom), SkillReadyLevel);
 
         /// <summary>The hazard alarm's loop (<see cref="HazardHz"/>): each pulse swells and fades within its first half.</summary>
         public static float[] HazardAlarm(int sampleRate)

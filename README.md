@@ -51,8 +51,9 @@ of the game's languages). The full instructions are in `README.txt`, inside the 
 - **Finding your way:** a radar for walls, open floor and exits; a scanner for the quest, exits, places, waypoints,
   characters, enemies, items and chests; and a guide ping that leads you along a free path and tells you the turns.
 - **Combat:** positional sounds for enemies, warnings when a rare monster or a boss starts an attack, the boss's
-  life and weak point, life, mana, flasks and status effects, and a sound for enemy states that skills pay off on
-  (primed for stun, heavy stunned, frozen, electrocuted, pinned, armour broken, dazed, parried, culling strike).
+  life and weak point, life, mana, flasks and status effects, skills ready again after their cooldown, and a sound
+  for enemy states that skills pay off on (primed for stun, heavy stunned, frozen, electrocuted, pinned, armour
+  broken, dazed, parried, culling strike).
 - **Local co-op:** two controllers on one PC, with speech for either player or both.
 
 Every control: [docs/controls.md](docs/controls.md). The mod's L3 menu (hold L3 for a second and a half) has the

@@ -173,6 +173,28 @@ namespace Poe2Accessibility
             public const int SkillsOffset = 0xB08;
 
             public const int SkillEntrySize = 0x10;
+
+            /// <summary>
+            ///     std::vector of the actor's skill cooldowns, 0x48-byte entries (GameHelper ActorOffsets.CooldownsPtr,
+            ///     ActiveSkillCooldown; docs/research/skill-cooldowns.md).
+            /// </summary>
+            public const int CooldownsOffset = 0xB20;
+
+            public const int CooldownEntrySize = 0x48;
+
+            /// <summary>Cooldown entry: std::vector of the uses now recharging, one 16-byte element each.</summary>
+            public const int CooldownUsesOffset = 0x10;
+
+            public const int CooldownUseSize = 0x10;
+
+            /// <summary>Cooldown entry: int32 uses the skill holds; with that many recharging it cannot be used.</summary>
+            public const int CooldownMaxUsesOffset = 0x30;
+
+            /// <summary>Cooldown entry: int32 the cooldown's length, ms (research only).</summary>
+            public const int CooldownTimeOffset = 0x34;
+
+            /// <summary>Cooldown entry: uint32 id of its skill, the one at <see cref="SkillSlot.SkillIdOffset"/>.</summary>
+            public const int CooldownSkillIdOffset = 0x3C;
         }
 
         /// <summary>Entity Render component.</summary>
@@ -428,6 +450,9 @@ namespace Poe2Accessibility
 
             /// <summary>On the slot's icon child: the ActiveSkillDetails listed in the player's skills (Actor+0xB08).</summary>
             public const int SkillDetailsOffset = 0x2D8;
+
+            /// <summary>ActiveSkillDetails: uint32 id of the skill (GameHelper UnknownIdAndEquipmentInfo, 0x80401040), its cooldown entry's key.</summary>
+            public const int SkillIdOffset = 0x40;
 
             /// <summary>A dat foreign key is (row, file); the file's table name is a std::wstring at file+8.</summary>
             public const int KeyFileOffset = 0x8;

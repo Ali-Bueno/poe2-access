@@ -195,6 +195,9 @@ namespace Poe2Accessibility
 
         public static string BossDefeated(string name) => T($"{name} defeated", $"{name} derrotado");
 
+        /// <summary>A skill whose cooldown ran out: "Granada explosiva disponible".</summary>
+        public static string SkillReady(string name) => T($"{name} ready", $"{name} disponible");
+
         /// <summary>A rare or unique enemy now within culling range: "Beira, de la manada putrefacta: golpe de gracia".</summary>
         public static string Cullable(string name) => T($"{name}: culling strike", $"{name}: golpe de gracia");
 
@@ -319,6 +322,8 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.ChargeSounds) => T("Sounds of charges, infusions, surges and Rage", "Sonidos de cargas, infusiones, sobrecargas y furia"),
             nameof(AccessibilitySettings.ComboSpeech) => T("Say combo points", "Decir puntos de combo"),
             nameof(AccessibilitySettings.ComboSounds) => T("Sounds of combo points", "Sonidos de puntos de combo"),
+            nameof(AccessibilitySettings.CooldownSpeech) => T("Say skills ready after their cooldown", "Decir habilidades listas tras recargarse"),
+            nameof(AccessibilitySettings.CooldownSounds) => T("Sound of skills ready after their cooldown", "Sonido de habilidades listas tras recargarse"),
             nameof(AccessibilitySettings.AnnounceNearby) => T("Name nearby things", "Nombrar cosas cercanas"),
             nameof(AccessibilitySettings.AnnouncePlaces) => T("Name places you walk into", "Nombrar los lugares por los que pasas"),
             nameof(AccessibilitySettings.AnnounceInteractTarget) => T("What the interact button uses", "Lo que usa el botón de interactuar"),
@@ -354,6 +359,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.SpeechArrivals) => T("Speech: arrivals", "Voz: llegadas"),
             nameof(AccessibilitySettings.SpeechCharges) => T("Speech: charges", "Voz: cargas"),
             nameof(AccessibilitySettings.SpeechCombo) => T("Speech: combo points", "Voz: puntos de combo"),
+            nameof(AccessibilitySettings.SpeechCooldowns) => T("Speech: skills ready", "Voz: habilidades listas"),
             nameof(AccessibilitySettings.WallToneRange) => T("Wall tone range", "Alcance de los tonos de pared"),
             nameof(AccessibilitySettings.MeleeReach) => T("Reach ping", "Aviso de alcance cuerpo a cuerpo"),
             nameof(AccessibilitySettings.MeleeReachRange) => T("Reach distance", "Distancia de alcance"),
@@ -515,6 +521,7 @@ namespace Poe2Accessibility
             "charge_lost" => T("Charge lost", "Carga perdida"),
             "power_charge" => T("Power charge", "Carga de poder"),
             "combo" => T("Combo point", "Punto de combo"),
+            "skill_ready" => T("Skill ready", "Habilidad lista"),
             "deployed" => T("Placed by a skill", "Colocado por una habilidad"),
             "tempest_bell" => T("Tempest Bell", "Campana de tempestad"),
             "ice_crystal" => T("Ice crystal", "Cristal de hielo"),
@@ -590,6 +597,9 @@ namespace Poe2Accessibility
                 "Tempest Bell's combo grew: a semitone higher for each point, the first on C; at 4 the bell can ring",
                 "subió el combo de la campana de tempestad: un semitono más agudo por cada punto, el primero en do; con 4 ya puede sonar la campana"),
             "charge_lost" => T("you spent one or it ran out; Rage ticks this way as it empties", "gastaste una o se te acabó; la furia suena así al vaciarse"),
+            "skill_ready" => T(
+                "a skill of yours finished its cooldown and can be used again; its name is said too",
+                "una de tus habilidades terminó de recargarse y ya puedes volver a usarla; también se dice su nombre"),
             "deployed" or "tempest_bell" or "ice_crystal" => T(
                 "something a skill of yours placed and left standing, such as a bell, a crystal or a totem, from where it is; more often as you get closer",
                 "algo que una de tus habilidades colocó y dejó en el suelo, como una campana, un cristal o un tótem, desde donde está; más seguido cuanto más cerca"),
@@ -773,7 +783,7 @@ namespace Poe2Accessibility
             "sound_radar" => T("Radar and walls", "Radar y paredes"),
             "sound_beacon" => T("Guide", "Guía"),
             "sound_objects" => T("Objects and places", "Objetos y lugares"),
-            "sound_charges" => T("Charges and shield", "Cargas y escudo"),
+            "sound_charges" => T("Charges, skills and shield", "Cargas, habilidades y escudo"),
             "general" => T("General", "General"),
             _ => T("Sound glossary", "Glosario de sonidos"),
         };

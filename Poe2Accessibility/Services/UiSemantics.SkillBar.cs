@@ -14,8 +14,6 @@ namespace Poe2Accessibility.Services
 
         private const int MaxGlyphNodes = 64;
 
-        private const int MaxSkillNameChars = 128;
-
         /// <summary>Binding index → button and set index → set title, from the hidden bind screen.</summary>
         private (IntPtr Display, Dictionary<int, string> Buttons, string[] Titles)? bindTable;
 
@@ -132,10 +130,7 @@ namespace Poe2Accessibility.Services
             foreach (var child in children)
             {
                 if (child != IntPtr.Zero && this.SkillLevelRow(child, shift) is { } level &&
-                    this.DatRow(level + GameLayout.SkillSlot.EffectKeyOffset, GameLayout.SkillSlot.EffectTable) is { } effect &&
-                    this.DatRow(effect + GameLayout.SkillSlot.SkillKeyOffset, GameLayout.SkillSlot.SkillTable) is { } skill &&
-                    this.reader.TryRead<IntPtr>(skill + GameLayout.SkillSlot.DisplayedNameOffset, out var name) &&
-                    this.elements.ReadUtf16BufferAt(name, MaxSkillNameChars) is { Length: > 0 } text)
+                    PlayerSkills.DisplayedName(this.reader, this.elements, level) is { Length: > 0 } text)
                 {
                     return text;
                 }

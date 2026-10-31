@@ -232,6 +232,7 @@ namespace Poe2Accessibility
             SpeechKind.GroundItems => this.Settings.SpeechGroundItems,
             SpeechKind.Charges => this.Settings.SpeechCharges,
             SpeechKind.Combo => this.Settings.SpeechCombo,
+            SpeechKind.Cooldowns => this.Settings.SpeechCooldowns,
             _ => this.Settings.SpeechArrivals,
         };
 

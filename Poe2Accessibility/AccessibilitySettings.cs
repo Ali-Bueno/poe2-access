@@ -190,6 +190,9 @@ namespace Poe2Accessibility
         /// <summary>Combo points: delivery level.</summary>
         public string SpeechCombo = "waits";
 
+        /// <summary>Skills usable again after their cooldown: delivery level.</summary>
+        public string SpeechCooldowns = "waits";
+
         /// <summary>Say what the cursor takes in hand in the inventory and when it lets go (D2R item in hand).</summary>
         public bool AnnounceHand = true;
 
@@ -255,6 +258,12 @@ namespace Poe2Accessibility
 
         /// <summary>Tempest Bell's Combo heard: a tick per point held as one is gained, a lower one as it drains.</summary>
         public bool ComboSounds = true;
+
+        /// <summary>Name a skill when its cooldown runs out and it can be used again: "Granada explosiva disponible".</summary>
+        public bool CooldownSpeech = true;
+
+        /// <summary>The same as <see cref="CooldownSpeech"/>, heard: a bell as a skill can be used again.</summary>
+        public bool CooldownSounds = true;
 
         /// <summary>Volume of all the mod's sounds, percent (0-300; above 100 a cue is driven louder, see AudioCueService).</summary>
         public int SoundVolume = 100;

@@ -96,6 +96,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(CullingThresholdsByRarity), CullingThresholdsByRarity);
             Run(nameof(CullingSkillsComeFromTheCatalog), CullingSkillsComeFromTheCatalog);
             Run(nameof(ChargesAreKnownByTheirBuff), ChargesAreKnownByTheirBuff);
+            Run(nameof(SkillsAreReadyOnceTheirCooldownEnds), SkillsAreReadyOnceTheirCooldownEnds);
             Run(nameof(PlacedObjectsSoundByDistance), PlacedObjectsSoundByDistance);
             Run(nameof(EnemyStatesFromBuffsAndAnimations), EnemyStatesFromBuffsAndAnimations);
             Run(nameof(PrimedForStunByRarity), PrimedForStunByRarity);
@@ -1194,6 +1195,33 @@ namespace Poe2Accessibility.Tests
             Equal(true, DeployedObjects.GainAt(100) > DeployedObjects.GainAt(1200) && DeployedObjects.GainAt(5000) > 0, "louder near, never silent in range");
             var bell = CueSynth.Deployed(44100);
             Equal(true, bell.Length < CueSynth.Cull(44100).Length / 2 && bell.Max(MathF.Abs) < 0.3f, "short and soft beside the gong");
+        }
+
+        private static void SkillsAreReadyOnceTheirCooldownEnds()
+        {
+            const uint grenade = 0x80401040, bell = 0x80401050;
+            var cooldowns = new SkillCooldowns();
+            Dictionary<uint, bool> Usable(bool grenadeUsable, bool bellUsable = true) => new() { [grenade] = grenadeUsable, [bell] = bellUsable };
+
+            Equal(0, cooldowns.Update(Usable(true), 0).Count, "usable from the start is no news");
+            Equal(0, cooldowns.Update(Usable(false), 100).Count, "spent");
+            Equal(0, cooldowns.Update(Usable(false), 2000).Count, "still recharging");
+            Equal(grenade, cooldowns.Update(Usable(true), 3100).Single(), "ready again after its cooldown");
+            Equal(0, cooldowns.Update(Usable(true), 3200).Count, "said once");
+
+            cooldowns.Update(Usable(false), 4000);
+            Equal(0, cooldowns.Update(Usable(true), 4000 + SkillCooldowns.MinSpentMs - 100).Count, "a short cooldown is not news");
+
+            cooldowns.Update(Usable(false, false), 5000);
+            Equal("80401040,80401050", string.Join(",", cooldowns.Update(Usable(true), 9000).Select(id => id.ToString("X8"))), "two ready at once, in order");
+
+            cooldowns.Update(Usable(false), 10000);
+            Equal(0, cooldowns.Update(new Dictionary<uint, bool> { [bell] = true }, 11000).Count, "a skill taken off is forgotten");
+            Equal(0, cooldowns.Update(Usable(true), 13000).Count, "and not news when it comes back usable");
+
+            cooldowns.Reset();
+            Equal(0, cooldowns.Update(Usable(false), 20000).Count, "a new area only remembers what is spent");
+            Equal(grenade, cooldowns.Update(Usable(true), 20100).Single(), "spent since before the area: its end is news at once");
         }
 
         private static void ChargesAreKnownByTheirBuff()

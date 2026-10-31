@@ -5,7 +5,7 @@ namespace Poe2Accessibility.Services
     using GameHelper.RemoteObjects.States.InGameStateObjects;
 
     /// <summary>
-    ///     One local player's own news: low life and mana, level up, states begun and ended, charges. The plugin keeps one
+    ///     One local player's own news: low life and mana, level up, states begun and ended, charges, skills ready. The plugin keeps one
     ///     for the player it follows and one for the partner while both local players are read (<see cref="Seats"/>).
     /// </summary>
     public sealed class PlayerAlerts
@@ -38,18 +38,21 @@ namespace Poe2Accessibility.Services
 
         private (string Character, int Level) lastLevel;
 
-        /// <summary><paramref name="audio"/> null: the charges are only said (the partner's).</summary>
-        public PlayerAlerts(Func<Entity?> subject, AudioCueService? audio, IAccessibilityOutputService output, PluginLog log)
+        /// <summary><paramref name="audio"/> null: the charges and skills ready are only said (the partner's).</summary>
+        public PlayerAlerts(Func<Entity?> subject, HostMemoryReader memory, UiElementReader elements, AudioCueService? audio, IAccessibilityOutputService output, PluginLog log)
         {
             this.subject = subject;
             this.output = output;
             this.Statuses = new StatusWatch(subject, output, log);
             this.Charges = new ChargeWatch(subject, audio, output, log);
+            this.Cooldowns = new SkillCooldownWatch(subject, memory, elements, audio, output, log);
         }
 
         public StatusWatch Statuses { get; }
 
         public ChargeWatch Charges { get; }
+
+        public SkillCooldownWatch Cooldowns { get; }
 
         /// <summary>The player's character name, "" when there is none.</summary>
         public static string Name(Entity? entity) => entity != null && entity.TryGetComponent<Player>(out var player) ? player.Name : string.Empty;
@@ -66,6 +69,7 @@ namespace Poe2Accessibility.Services
             this.WatchLevel(entity, settings);
             this.Statuses.Tick(playing && settings.StatusAlerts);
             this.Charges.Tick(playing, settings);
+            this.Cooldowns.Tick(playing, settings);
         }
 
         /// <summary>"Level 3" when the character levels up; the first reading of a character is only remembered.</summary>

@@ -221,6 +221,9 @@ namespace Poe2Accessibility
                 case "flasks":
                     this.log?.Info(this.flasks?.Diagnose() ?? "Flasks off");
                     break;
+                case "cooldowns":
+                    this.log?.Info(this.alerts?.Cooldowns.Diagnose() ?? "Cooldowns off");
+                    break;
                 case "screen":
                     this.narrator?.SpeakScreen(this.screen?.Current ?? ScreenSnapshot.Empty, this.focus?.CurrentLayer ?? IntPtr.Zero);
                     break;

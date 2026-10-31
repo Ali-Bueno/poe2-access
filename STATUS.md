@@ -167,6 +167,7 @@
 | Discoveries, pick-ups, unmet requirements | done (code) | `DiscoveryNarrator` ("Jefe a la vista" heard live), `InventoryWatch` (ServerData MainInventory1 via reflection), red tooltip lines with digits |
 | Checkpoint travel map markers | done (live); place names (code) | `UiSemantics.MapMarkers` + `CheckpointPlaces`/`MapPlaces`: markers matched to seen checkpoints by one scale, "Viajar al punto de control, cerca de …, abajo, a 35 pasos, 2 de 2" (the game names none) |
 | Skill bar readout (after the screen on the gameplay hold) | done (live) | `UiSemantics.SkillBar`: "Set de habilidades principal: LT, Activar set… X, Saeta básica… Vacío: LB, cruceta arriba, Y"; bind screen names skills from their dat rows (`docs/research/skill-bar.md`) |
+| Skills ready after their cooldown ("Grito infernal disponible" + a bell; speech, sound and speech level in the settings) | done (live) | `SkillCooldownWatch`: cooldown entries at `Actor+0xB20` keyed by the skill id; heard on a warcry (8 s) and a flash grenade (5 s), switches checked (`docs/research/skill-cooldowns.md`) |
 | Route turn prompts, partial routes, controls help in the settings menu | done (live) | "Ahora arriba a la derecha, 10"; help topics open the L3 menu; the menu edge knock was removed (user 2026-10-24) |
 | Game updates: layout found again, data regenerated, losses said | done (every part judged live 2026-10-25: login, character creation, town with a quest marker, options, inventory, passive tree, skill bar, left trigger) | `LayoutProbe` (+ image textures), `InGameFields`, `ControlFields` (+ tabs, skill slots, passive canvas and nodes, class selector, panel title, hint, check box and list seen changing), `EntityFields` (in-play flag, quest marker), `FlagBits`, `PadButtonCheck`, `PassiveTreeFields`, `TileGridSearch`, `BaseNameField`, `GameStateService.AreaRowOffset`, `CompatibilityReport`; `tools/package/Update-GameHelper.ps1`; launcher `GameDataSetup` + `DatContentColumns` (passive flags, skill keys by content); dev command `layout`; `docs/compatibility.md` |
 | Game data survives mod updates | done (simulated on a copy of the user's `dist`: carry-over 2 s, update restored, one step rerun alone) | `GameDataSetup` + pure `GameDataStamp`: per-step versions, catalogs in `app/GameData` copied over the shipped ones, sounds in the plugin; a game patch reruns all in ~33 s: one extractor `batch` run on one opened index (`Batch.cs`); `tools/README.md` |
@@ -371,18 +372,22 @@
   Combat state cues: `CullWatch` (+ pure `CullThreshold`), `EnemyStateWatch` (+ pure `EnemyStates`, `EnemyStateNews`),
   `ShieldWatch` (+ pure `ShieldStance`, `StunMeter`), `WeakPointGuide` (+ pure `WeakPoints`); player skills: `PlayerSkills` (granted
   effect ids via `DatKey`, Parry and `CullSkills`), pure `ParryTiming`; research: `StunTrace` (dev `stuntrace`).
+  Skills ready: `SkillCooldownWatch` (+ pure `SkillCooldowns`) in `PlayerAlerts`; dev command `cooldowns`.
   Player resources: `ChargeWatch` (+ pure `PlayerCharges`) in `PlayerAlerts`, beside `StatusWatch`.
   Speech priority: `IAccessibilityOutputService.Urge` (later interrupts queue for 1.5 s), `.Keep` (tutorial lessons; `SpeechFloor` holds what comes meanwhile).
 - Passive tree: `UiSemantics.PassiveTree` + pure `PassiveStick` (the game's stick pick), `BuildPlanFolder` + pure `BuildPlan`/`BuildNotes`
   (Build Planner files); dev command `passivenear` (nodes around the hovered one, build marks). Minions: `MinionReport` + `MinionGroups`.
 - Tests: `tests/Poe2Accessibility.Tests` (differ, text edits, chat diff, gestures, scanner, route legs, life
-  alarm, beacon, quest matching, cooldown, ailments, dodge threats, map markers). Dev tools: `tools/computer_use/`; dev commands
+  alarm, beacon, quest matching, cooldown, skills ready, ailments, dodge threats, map markers). Dev tools: `tools/computer_use/`; dev commands
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 - Launcher (`tools/Poe2AccessLauncher`): `Updater` + pure `ReleaseTag` (auto-update), `HostController`, `GameDataSetup` + pure
   `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates); the
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
+First (2026-10-31, fifteenth batch, deployed into the user's `dist`: DLL, translations): the user picks the skills-ready
+cue on https://claude.ai/artifact/7Hfug5uzj2CU3mZwNzFdZb (A, the bell, is in the mod; B bowl, C bolt). A multi-use skill
+(Explosive Grenade, 3 uses) is named only when a use returns after all were spent: not heard live (not on yarkey's bar).
 First (2026-10-31, fourteenth batch, deployed into the user's `dist`: DLL, translations): the passive tree's stick-true link
 directions at several zooms, a downloaded build guide's `.build` in the BuildPlanner folder ("en la build", steps, notes,
 the route to the next node), the nested settings menu (Sound by kind), chests and ritual altars quiet in a boss fight,

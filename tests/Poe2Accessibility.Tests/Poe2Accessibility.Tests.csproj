@@ -57,6 +57,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\CullThreshold.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CullSkills.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PlayerCharges.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\SkillCooldowns.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\DeployedObjects.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\EnemyStates.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PrimedThreshold.cs" />

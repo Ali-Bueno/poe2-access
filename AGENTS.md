@@ -19,3 +19,18 @@
 17. Preserve raw evidence/logs for uncertain structures (`Poe2Accessibility/debug/`, `logs/`).
 18. If the game patches and a read breaks, stop and validate offsets rather than adding hacks.
 19. Screen-reader output goes through PRISM (Prismatoid binding) behind `IAccessibilityOutputService` only.
+
+## Working with the user
+
+20. Project knowledge and the user's working preferences live in the repository (this file, `STATUS.md`, `docs/`),
+    never in an assistant's own memory.
+21. Unattended tests (the user away): once everything asked has been tested and works, quit the game (game menu, "Salir
+    de Path of Exile"), then `py -B tools/computer_use/pad.py quit` and `py -B tools/computer_use/launch.py stop`.
+22. Leave nothing pending: fix every finding of a test or sweep before reporting, then commit, push and deploy; leave
+    something open only when truly blocked, and say why.
+23. A new sound needs the user's ear: render candidates with the plugin's own synth code (a scratch project referencing
+    the tests project) and publish one Artifact page with a "Reproducir" button per clip, beside the sounds it must not be
+    confused with; iterate on the same URL. The user listens remotely on an iPhone; rising tones sound cartoonish to
+    them, serious, emergency-like cues suit.
+24. Inline Python patch scripts sent through the shell lose doubled backslashes: use raw strings, write the script to a
+    file first, or use the editor for lines with escapes.

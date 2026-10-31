@@ -267,8 +267,8 @@ namespace Poe2Accessibility
                 var followedVoice = new SeatOutput(this.output, () => Seats.Partner == null ? string.Empty : PlayerAlerts.Name(Seats.Followed));
                 var partnerVoice = new SeatOutput(this.output, () => PlayerAlerts.Name(Seats.Partner));
                 Func<int> followedSeat = () => Seats.FollowsSecond ? 2 : 1;
-                this.alerts = new PlayerAlerts(() => Seats.Followed, this.audio, followedVoice, this.log);
-                this.partnerAlerts = new PlayerAlerts(() => Seats.Partner, null, partnerVoice, this.log);
+                this.alerts = new PlayerAlerts(() => Seats.Followed, memory, elements, this.audio, followedVoice, this.log);
+                this.partnerAlerts = new PlayerAlerts(() => Seats.Partner, memory, elements, null, partnerVoice, this.log);
                 this.pickups = new InventoryWatch(inventory, followedVoice, this.log) { Seat = followedSeat };
                 this.partnerPickups = new InventoryWatch(inventory, partnerVoice, this.log) { Seat = () => 2 };
                 this.flasks = new FlaskWatch(inventory, followedVoice) { Seat = followedSeat };
@@ -827,6 +827,8 @@ namespace Poe2Accessibility
             this.partnerAlerts?.Statuses.Reset();
             this.alerts?.Charges.Reset();
             this.partnerAlerts?.Charges.Reset();
+            this.alerts?.Cooldowns.Reset();
+            this.partnerAlerts?.Cooldowns.Reset();
             this.pickups?.Reset();
             this.partnerPickups?.Reset();
             this.gold?.Reset();
