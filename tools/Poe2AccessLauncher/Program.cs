@@ -95,9 +95,8 @@ internal static partial class Program
         {
             Log.Write($"--- {command}");
             var controller = new HostController(HostController.ResolveDirectory(host));
-            // With the Korean client running, GameHelper runs as administrator: only an administrator launcher can
-            // stop or replace it (a plain one cannot even tell it from other processes).
-            if (elevate = NeedsAdministrator())
+            // With the Korean client, GameHelper runs as administrator: only an administrator launcher can stop or replace it.
+            if (elevate = NeedsAdministrator(controller))
             {
                 Log.Write("Done");
                 return 0;
@@ -113,7 +112,7 @@ internal static partial class Program
                     }
 
                     GameLauncher.EnsureRunning();
-                    if (elevate = NeedsAdministrator())
+                    if (elevate = NeedsAdministrator(controller))
                     {
                         break; // the game has just been started: the administrator launcher carries on
                     }
@@ -143,12 +142,15 @@ internal static partial class Program
         }
     }
 
-    private static bool NeedsAdministrator()
+    private static bool NeedsAdministrator(HostController controller)
     {
-        var needed = GameInstall.NeedsAdministrator(GameLauncher.RunningProcessName(), Environment.IsPrivilegedProcess);
+        var host = controller.HostNeedsAdministrator();
+        var needed = GameInstall.NeedsAdministrator(GameLauncher.RunningProcessName(), host, Environment.IsPrivilegedProcess);
         if (needed)
         {
-            Log.Write("Korean client running: restarting as administrator, which GameHelper needs to read it");
+            Log.Write(host
+                ? "GameHelper runs as administrator: restarting as administrator to stop or replace it"
+                : "Korean client running: restarting as administrator, which GameHelper needs to read it");
         }
 
         return needed;

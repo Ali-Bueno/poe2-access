@@ -50,7 +50,7 @@ internal sealed class HostController(string hostDirectory)
         {
             using (process)
             {
-                if (process.Id == Environment.ProcessId || !IsHostImage(process, out var path))
+                if (!IsHost(process, out var path))
                 {
                     continue;
                 }
@@ -66,6 +66,25 @@ internal sealed class HostController(string hostDirectory)
                     Log.Write($"Could not stop pid {process.Id}: {error.Message}");
                 }
             }
+        }
+    }
+
+    /// <summary>Whether a GameHelper runs that only an administrator may stop, as one started for the Korean client.</summary>
+    // Matched by name: a process run as administrator may hide its path from a launcher that is not.
+    public bool HostNeedsAdministrator()
+    {
+        var names = Directory.GetFiles(hostDirectory, "*.exe")
+            .Where(file => !string.Equals(Path.GetFileName(file), OriginalLauncherExe, StringComparison.OrdinalIgnoreCase))
+            .Select(Path.GetFileNameWithoutExtension)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var processes = Process.GetProcesses();
+        try
+        {
+            return processes.Any(process => names.Contains(process.ProcessName) && ProcessAccess.TerminateDenied(process.Id));
+        }
+        finally
+        {
+            Array.ForEach(processes, process => process.Dispose());
         }
     }
 
@@ -88,7 +107,7 @@ internal sealed class HostController(string hostDirectory)
             UseShellExecute = false,
             CreateNoWindow = true,
         };
-        info.Environment["__COMPAT_LAYER"] = "RunAsInvoker"; // GameHelper only reads game memory, no elevation needed
+        info.Environment["__COMPAT_LAYER"] = "RunAsInvoker"; // never its own prompt: it runs with this launcher's rights
         using var host = Process.Start(info) ?? throw new InvalidOperationException("GameHelper did not start.");
         if (host.WaitForExit(StartupCheckMilliseconds))
         {
@@ -98,19 +117,11 @@ internal sealed class HostController(string hostDirectory)
         Log.Write($"Started GameHelper (pid {host.Id})");
     }
 
-    private bool IsHostImage(Process process, out string path)
+    private bool IsHost(Process process, out string path)
     {
-        path = string.Empty;
-        try
-        {
-            path = process.MainModule?.FileName ?? string.Empty;
-        }
-        catch (Exception error) when (error is InvalidOperationException or Win32Exception)
-        {
-            return false; // protected or already exited
-        }
-
-        return string.Equals(Path.GetDirectoryName(path), hostDirectory.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)
+        path = ProcessAccess.ImagePath(process.Id) ?? string.Empty;
+        return process.Id != Environment.ProcessId
+            && string.Equals(Path.GetDirectoryName(path), hostDirectory.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)
             && !string.Equals(Path.GetFileName(path), OriginalLauncherExe, StringComparison.OrdinalIgnoreCase);
     }
 }

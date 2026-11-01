@@ -48,11 +48,13 @@ internal static class GameInstall
     }
 
     /// <summary>
-    ///     Whether the launcher must restart as administrator for GameHelper to read the running game: the Korean client
-    ///     denies its memory to other processes unless they run as administrator (tested 2026-10-31).
+    ///     Whether the launcher must restart as administrator: for GameHelper to read the running Korean client, which
+    ///     denies its memory to other processes unless they run as administrator (tested 2026-10-31), or to stop or
+    ///     replace a GameHelper left running as administrator after that game closed.
     /// </summary>
-    public static bool NeedsAdministrator(string? runningProcessName, bool isAdministrator) =>
-        !isAdministrator && string.Equals(runningProcessName, KakaoProcessName, System.StringComparison.OrdinalIgnoreCase);
+    public static bool NeedsAdministrator(string? runningProcessName, bool hostNeedsAdministrator, bool isAdministrator) =>
+        !isAdministrator &&
+        (hostNeedsAdministrator || string.Equals(runningProcessName, KakaoProcessName, System.StringComparison.OrdinalIgnoreCase));
 
     /// <summary>The file listing every bundle, so its size and time move with each content patch, or null when the folder holds no game content.</summary>
     public static string? ContentFile(string gameDirectory)
