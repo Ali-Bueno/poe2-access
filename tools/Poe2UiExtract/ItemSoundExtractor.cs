@@ -30,10 +30,9 @@ internal static partial class ItemSoundExtractor
     /// <summary>On an index already opened with its paths parsed (the batch command); the bank is read from the install.</summary>
     public static int Run(string gameDir, Index index, string outFile)
     {
-        var bankPath = Path.Combine(gameDir, "FMOD", "Desktop", Bank + ".bank");
-        if (!File.Exists(bankPath))
+        if (GameContent.ReadBank(gameDir, Bank) is not { } bank)
         {
-            Console.WriteLine($"Bank missing: {bankPath}");
+            Console.WriteLine($"Bank missing: FMOD/Desktop/{Bank}.bank in {gameDir}");
             return 1;
         }
 
@@ -46,7 +45,7 @@ internal static partial class ItemSoundExtractor
             return 1;
         }
 
-        var resolver = new SampleResolver(Fsb5.Names(File.ReadAllBytes(bankPath)));
+        var resolver = new SampleResolver(Fsb5.Names(bank));
         if (!FindColumns(items, visuals, sounds, resolver, out var columns))
         {
             Console.WriteLine("The sound columns were not found again (update the offsets from the dat schema).");

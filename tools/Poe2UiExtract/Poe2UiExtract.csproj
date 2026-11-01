@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="LibGGPK3.LibBundle3" Version="2.7.5" />
+    <!-- The Korean client (Kakao Games) keeps Bundles2 and the FMOD banks inside Content.ggpk. -->
+    <PackageReference Include="LibGGPK3.LibGGPK3" Version="2.7.5" />
   </ItemGroup>
 
   <ItemGroup>

@@ -203,16 +203,17 @@ internal static class GameDataSetup
         }
     }
 
-    // The index lists every bundle, so its size and time move with each content patch; the game executable (whose
-    // version resource is empty) and fmod.dll cover patches that leave the bundles alone.
+    // The index (in the Korean client, the Content.ggpk holding it) lists every bundle, so its size and time move with
+    // each content patch; the game executable (whose version resource is empty) and fmod.dll cover patches that leave
+    // the bundles alone.
     private static string? DescribeInstall(string gameDirectory)
     {
-        var index = new FileInfo(Path.Join(gameDirectory, "Bundles2", "_.index.bin"));
-        if (!index.Exists)
+        if (GameInstall.ContentFile(gameDirectory) is not { } content)
         {
             return null;
         }
 
+        var index = new FileInfo(content);
         var executable = Directory.GetFiles(gameDirectory, "PathOfExile*.exe").Order(StringComparer.OrdinalIgnoreCase).FirstOrDefault();
         var fmod = Path.Join(gameDirectory, "fmod.dll");
         return $"index={Describe(index)}\nexe={(executable is null ? "-" : Describe(new FileInfo(executable)))}\n" +

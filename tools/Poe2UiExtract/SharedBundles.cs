@@ -22,7 +22,7 @@ internal sealed class SharedBundles : IBundleFactory
     /// <summary>The install's index with its paths parsed (a few never parse, a known PoE2 quirk: their count is printed).</summary>
     public static Index OpenParsed(string gameDir)
     {
-        var index = Open(Path.Combine(gameDir, "Bundles2", "_.index.bin"));
+        var index = GameContent.OpenIndex(gameDir);
         Console.WriteLine($"ParsePaths failed count: {index.ParsePaths()}");
         return index;
     }
