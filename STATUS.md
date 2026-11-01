@@ -473,6 +473,11 @@ live: the loot filter's quieter settings (kehgan carries no normal item; a white
 must stay silent).
 
 ## Known issues / open questions
+- Never seen in game (no test character got there, 2026-11-01): the ascendancy view of the passive tree (its 197 nodes
+  are hidden in the main canvas; state and links untested), the trials (Sekhemas, Chaos), the Atlas, its passive tree
+  and the map device (GameHelper knows `AtlasSkillsPanel` and the atlas node fingerprint `0x542EF3`), and Act 4.
+  Act 4 sails between its islands from Kingsmarch through a destination map (Rog / Makoru; fan guides of 0.3): a
+  menu, not steering, so the radar is not involved; take an F6 dump of that map the first time it opens.
 - GameHelper marks a monster Useless once the game flags it dead (stat `is_dead`) and stops reading it, so its life can freeze mid-hit ("Ezomita antiguo" 16/50 in TakeHitBackward, heard and listed as an enemy that could not be hit, 2026-10-26): `EntityCatalog.IsFrozenDead` makes it dead for enemies and boss defeats.
 - League devices with life are typed Monster by GameHelper (Ritual rune, `Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable`, alive and hostile by the Devourer, 2026-10-26): enemies are only paths under `Metadata/Monsters/` (`EntityCatalog.CreatureFolder`; all 89 living hostiles in 47 dev dumps are). The rune is nameless and named by its minimap icon (Encounters category). Untargetable in two dumps (13:42, 14:06) and targetable in one (13:18): which ritual states those are is not known.
 - Landmark labels that are not area names are players' notes from GameHelper Radar: in Spanish their common words and
