@@ -92,6 +92,9 @@ namespace Poe2Accessibility.Services
 
         private const int SampleMs = 500;
 
+        /// <summary>An area's name this soon after its instance was bound unnamed belongs to that instance (its loading screen lagged).</summary>
+        private const long LateNameMs = 15000;
+
         private readonly HostMemoryReader memory;
         private readonly UiElementReader elements;
         private readonly InventoryReader inventory;
@@ -122,9 +125,17 @@ namespace Poe2Accessibility.Services
         private long trackedAt = long.MinValue / 2;
         private long savedAt;
 
-        /// <summary>The area instance being read (AreaInstance.AreaHash) and its name.</summary>
+        /// <summary>The area instance being read (AreaInstance.AreaHash), its map (<see cref="AreaMemory.Layout"/>) and its name.</summary>
         private string instance = string.Empty;
+        private ulong layout;
         private string areaName = string.Empty;
+
+        /// <summary>The tile table the layout was last computed from: a new one is a reloaded area.</summary>
+        private object? layoutTiles;
+
+        /// <summary>An area entered before the game had its instance loaded; that instance takes the name.</summary>
+        private string? pendingName;
+        private long unnamedAt = long.MinValue / 2;
 
         /// <summary>The area this instance was first entered from: the exit back there is not the way on.</summary>
         private string cameFrom = string.Empty;
@@ -183,22 +194,58 @@ namespace Poe2Accessibility.Services
         public static bool IsEntity(ScanEntry entry) => entry.Id < LandmarkIdBase;
 
         /// <summary>
-        ///     Another area instance (<paramref name="newInstance"/>, AreaInstance.AreaHash): what this one held is kept, and
-        ///     what was known of the new one returns; a new one starts with nothing seen.
+        ///     The game entered the area <paramref name="name"/> (its loading screen): bound to the instance the game holds
+        ///     once that instance is the new one, which may come later than the name.
         /// </summary>
-        public void Forget(string newInstance, string newAreaName)
+        public void AreaEntered(string name)
         {
+            if (this.Rebind(name))
+            {
+                return;
+            }
+
+            if (Environment.TickCount64 - this.unnamedAt < LateNameMs)
+            {
+                this.areaName = name;
+                this.unnamedAt = long.MinValue / 2;
+            }
+            else
+            {
+                this.pendingName = name;
+            }
+        }
+
+        /// <summary>
+        ///     Binds the scanner to the instance the game holds when it is another (hash or map): what the old one held is
+        ///     kept, and what was known of the new one returns if its map is the same; true when it switched.
+        /// </summary>
+        private bool Rebind(string? name)
+        {
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            var hash = area.AreaHash;
+            var tiles = area.TgtTilesLocations;
+            if (hash.Length == 0 || (hash == this.instance && ReferenceEquals(tiles, this.layoutTiles)))
+            {
+                return false;
+            }
+
+            var layout = AreaMemory.Layout(tiles, area.TerrainMetadata.BytesPerRow, area.GridWalkableData.Length);
+            this.layoutTiles = tiles;
+            if (hash == this.instance && layout == this.layout)
+            {
+                return false;
+            }
+
             if (this.Memory != null && this.instance.Length > 0)
             {
-                lock (this.samplesLock)
-                {
-                    this.Memory.Keep(this.instance, new AreaMemory.Snapshot(this.explored.Save(), this.cameFrom, new(this.remembered), new(this.sighted), new(this.closedBarriers)));
-                }
+                this.Memory.Keep(this.instance, this.Snapshot());
             }
 
             var leaving = this.areaName;
             this.Clear();
-            if (newInstance.Length > 0 && this.Memory?.Recall(newInstance) is { } known)
+            name ??= this.pendingName;
+            var known = this.Memory?.Recall(hash, layout);
+            if (known != null)
             {
                 this.explored.Load(known.Explored);
                 foreach (var (id, entry) in known.Remembered)
@@ -214,15 +261,26 @@ namespace Poe2Accessibility.Services
                         this.closedBarriers[id] = at;
                     }
                 }
-
-                this.cameFrom = known.CameFrom;
             }
-            else
+
+            this.cameFrom = known?.CameFrom ?? leaving;
+            (this.instance, this.layout, this.areaName) = (hash, layout, name ?? leaving);
+            this.unnamedAt = name == null ? Environment.TickCount64 : long.MinValue / 2;
+            this.pendingName = null;
+            this.savedAt = Environment.TickCount64;
+            this.log.Info(known != null
+                ? $"Instance {hash} ({this.areaName}): same map, {known.Remembered.Count} places and its explored ground restored"
+                : $"Instance {hash} ({this.areaName}): new map {layout:X16}, unexplored");
+            return true;
+        }
+
+        /// <summary>A copy of what is known of this instance, for <see cref="AreaMemory"/>.</summary>
+        private AreaMemory.Snapshot Snapshot()
+        {
+            lock (this.samplesLock)
             {
-                this.cameFrom = leaving;
+                return new AreaMemory.Snapshot(this.layout, this.explored.Save(), this.cameFrom, new(this.remembered), new(this.sighted), new(this.closedBarriers));
             }
-
-            (this.instance, this.areaName) = (newInstance, newAreaName);
         }
 
         private void Clear()
@@ -252,7 +310,13 @@ namespace Poe2Accessibility.Services
             }
 
             this.trackedAt = now;
+            this.Rebind(null);
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            if (area.AreaHash != this.instance)
+            {
+                return;
+            }
+
             var row = area.TerrainMetadata.BytesPerRow;
             if (row > 0 && Seats.Followed.TryGetComponent<Render>(out var player))
             {
@@ -262,13 +326,14 @@ namespace Poe2Accessibility.Services
             if (this.Memory != null && this.instance.Length > 0 && now - this.savedAt >= SaveExploredMs)
             {
                 this.savedAt = now;
-                this.Memory.Save(this.instance, this.explored.Save(), this.cameFrom);
+                this.Memory.Save(this.instance, this.Snapshot());
             }
         }
 
         /// <summary>Everything the scanner can name, nearest first.</summary>
         public IReadOnlyList<ScanEntry> Entries()
         {
+            this.Rebind(null);
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             if (!Seats.Followed.TryGetComponent<Render>(out var player))
             {

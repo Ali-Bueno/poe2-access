@@ -138,9 +138,6 @@ namespace Poe2Accessibility.Services
         private static readonly float[] RoomCombMs = { 29.7f, 37.1f, 41.1f, 43.7f };
         private static readonly float[] RoomAllPassMs = { 5f, 1.7f };
 
-        /// <summary>The mixer's output stays linear up to this level, then rounds off toward full scale.</summary>
-        private const float LimitKnee = 0.8f;
-
         /// <summary>
         ///     Culling Strike in range: a gong, the player's pick of four rounds of samples (H5, 2026-10-29). A small temple
         ///     gong struck at 400 Hz whose pitch sags 3.5 % in its first tenth of a second, eleven inharmonic modes each a
@@ -824,19 +821,6 @@ namespace Poe2Accessibility.Services
         public static float[] ShieldUp(int sampleRate) => Shield(sampleRate, ShieldLowHz, ShieldHighHz, ShieldUpLevel);
 
         public static float[] ShieldDown(int sampleRate) => Shield(sampleRate, ShieldHighHz, ShieldLowHz, ShieldDownLevel);
-
-        /// <summary>The mixer's output stage: linear to the knee, then a soft curve that never passes full scale.</summary>
-        public static float Limit(float sample)
-        {
-            var magnitude = MathF.Abs(sample);
-            if (magnitude <= LimitKnee)
-            {
-                return sample;
-            }
-
-            var over = (magnitude - LimitKnee) / (1f - LimitKnee);
-            return MathF.CopySign(LimitKnee + ((1f - LimitKnee) * MathF.Tanh(over)), sample);
-        }
 
         /// <summary>The cue followed by its stone-room tail, <paramref name="wet"/> of the cue's level; the tail fades to silence.</summary>
         internal static float[] Room(float[] dry, int sampleRate, float wet)

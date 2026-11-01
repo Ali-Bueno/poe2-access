@@ -86,7 +86,7 @@ with submenus of their own:
 - General (language, local co-op, updates).
 
 Without holding L3, flick the right stick up or down to move and left or right to open a submenu, change a value or
-play a sound (switches toggle, volumes move in steps of 25 percent up to 300, language: same as the game, Spanish,
+play a sound (switches toggle, volumes move in steps of 5 percent up to 300, language: same as the game, Spanish,
 English). Tap L3 to go back up one level, on the submenu just left; tap it at the top, or double tap anywhere, to
 close: "Settings saved" (written to `config/settings.txt`). The menu and each submenu reopen where they were left.
 Opening a game panel closes it too.
@@ -147,7 +147,7 @@ as loud as the game would (that volume, its own, then the master volume). The ha
 cue follow the enemy volume, the wall bump the radar volume.
 
 **Volume of each sound** (after Volumes): the same sounds, each with its own volume, a percentage of its group's
-("Flask on the ground, 75 percent"); left or right moves it 25 percent, 0 to 300, and plays it at the new level.
+("Flask on the ground, 75 percent"); left or right moves it 5 percent, 0 to 300, and plays it at the new level.
 Items on the ground are grouped by kind: flasks, equipment (armour, weapons, quivers, jewellery, jewels), gems,
 currency, gold, quest items, other items, and the rare layer. Kept in `config/settings.txt` as `SoundLevels`
 (`{"item_flask": 75, "dodge": 150}`; a sound not listed is at 100).
@@ -322,8 +322,9 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   `AnnounceNearby`, `AnnounceLevelUp`, `ObjectSounds`, `LootSounds`, `DodgeWarnings`, `ParryCues`, `ParryLeadMs`, `CrosshairBeep`,
   `LowLifeBelow`, volumes `SoundVolume`, `RadarVolume`, `EnemyVolume`, `DodgeVolume` (dodge warning and parry cue),
   `BeaconVolume`, `ObjectVolume` and each sound's own `SoundLevels` in `config/settings.txt`, each 0-300 percent: above
-  100 a sound is driven into a soft limit on its own, so it grows louder (the dodge warning about 5 dB at 200, 7 dB at
-  300) without clipping the rest.
+  100 a sound is raised under a look-ahead limiter of its own, so its body grows louder (the dodge warning about 4 dB at
+  200, 5 dB at 300) while its peaks are held under full scale, without the distortion of clipping; the whole mix goes
+  through the same kind of limiter.
 
 ## Warnings and speech
 

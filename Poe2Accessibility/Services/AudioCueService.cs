@@ -24,6 +24,12 @@ namespace Poe2Accessibility.Services
         /// <summary>A cue lasts ~0.1 s; more voices than this means stale cues piled up.</summary>
         private const int MaxVoices = 16;
 
+        /// <summary>Drives within a twentieth of each other share one limited copy of a cue.</summary>
+        private const float DriveStep = 0.05f;
+
+        /// <summary>Limited copies kept; past this the cache starts over.</summary>
+        private const int MaxDriven = 64;
+
         private const int WaitMs = 50;
         private const uint WaveMapper = 0xFFFFFFFF;
         private const uint CallbackEvent = 0x00050000;
@@ -40,6 +46,8 @@ namespace Poe2Accessibility.Services
         private readonly IntPtr[] headers = new IntPtr[BufferCount];
         private readonly float[] mix = new float[BufferFrames * Channels];
         private readonly short[] pcm = new short[BufferFrames * Channels];
+        private readonly PeakLimiter output = new(SampleRate);
+        private readonly Dictionary<(float[] Left, float[] Right, int Drive), (float[] Left, float[] Right)> driven = new();
         private readonly Thread? mixer;
         private volatile IReadOnlyDictionary<string, float> levels = new Dictionary<string, float>();
         private IntPtr device;
@@ -100,8 +108,8 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Starts a cue. <paramref name="pan"/> -1 left … 1 right; <paramref name="pitch"/> 1 = as synthesized. A
-        ///     <paramref name="gain"/> above 1 drives the cue alone into the soft limit, so its quiet body grows while its
-        ///     peaks stay under full scale: louder, where a plain gain would only be clipped by the output stage.
+        ///     <paramref name="gain"/> above 1 plays a limited copy (<see cref="PeakLimiter.Drive"/>): its quiet body grows while
+        ///     its peaks are held under full scale, without the distortion of clipping them.
         ///     <paramref name="sound"/> is its glossary key, whose own volume scales the gain.
         /// </summary>
         public void Play(float[] samples, float pan, float pitch, float gain, string sound)
@@ -114,7 +122,8 @@ namespace Poe2Accessibility.Services
 
             var angle = (Math.Clamp(pan, -1f, 1f) + 1f) * MathF.PI / 4f;
             var level = MathF.Min(gain, 1f);
-            this.Add(new Voice(samples, samples, pitch, MathF.Cos(angle) * level, MathF.Sin(angle) * level, MathF.Max(gain, 1f)));
+            var (left, right) = this.Driven(samples, samples, gain);
+            this.Add(new Voice(left, right, pitch, MathF.Cos(angle) * level, MathF.Sin(angle) * level));
         }
 
         /// <summary>Starts a recorded stereo cue as recorded, unpanned (the player's own news); pitch and gain as for a mono cue.</summary>
@@ -127,7 +136,34 @@ namespace Poe2Accessibility.Services
             }
 
             var level = MathF.Min(gain, 1f);
-            this.Add(new Voice(sound.Left, sound.Right, pitch, level, level, MathF.Max(gain, 1f)));
+            var (left, right) = this.Driven(sound.Left, sound.Right, gain);
+            this.Add(new Voice(left, right, pitch, level, level));
+        }
+
+        /// <summary>The cue as is up to a gain of 1; above it a limited copy at that drive, made once and kept.</summary>
+        private (float[] Left, float[] Right) Driven(float[] left, float[] right, float gain)
+        {
+            var step = (int)MathF.Round(gain / DriveStep);
+            if (step * DriveStep <= 1f)
+            {
+                return (left, right);
+            }
+
+            lock (this.driven)
+            {
+                if (!this.driven.TryGetValue((left, right, step), out var copy))
+                {
+                    if (this.driven.Count >= MaxDriven)
+                    {
+                        this.driven.Clear();
+                    }
+
+                    copy = PeakLimiter.Drive(left, right, step * DriveStep, SampleRate);
+                    this.driven[(left, right, step)] = copy;
+                }
+
+                return copy;
+            }
         }
 
         /// <summary>A looping sound mixed under the cues until the caller sets it silent (wall tones); its own volume by <paramref name="sound"/>.</summary>
@@ -237,9 +273,13 @@ namespace Poe2Accessibility.Services
             }
 
             var volume = this.Volume;
-            for (var i = 0; i < this.mix.Length; i++)
+            for (var i = 0; i < this.mix.Length; i += Channels)
             {
-                this.pcm[i] = (short)(CueSynth.Limit(this.mix[i] * volume) * short.MaxValue);
+                var left = this.mix[i] * volume;
+                var right = this.mix[i + 1] * volume;
+                this.output.Process(ref left, ref right);
+                this.pcm[i] = (short)(Math.Clamp(left, -1f, 1f) * short.MaxValue);
+                this.pcm[i + 1] = (short)(Math.Clamp(right, -1f, 1f) * short.MaxValue);
             }
         }
 
@@ -329,17 +369,15 @@ namespace Poe2Accessibility.Services
             private readonly double step;
             private readonly float left;
             private readonly float right;
-            private readonly float drive;
             private double position;
 
-            public Voice(float[] samples, float[] rightSamples, double step, float left, float right, float drive)
+            public Voice(float[] samples, float[] rightSamples, double step, float left, float right)
             {
                 this.samples = samples;
                 this.rightSamples = rightSamples;
                 this.step = step;
                 this.left = left;
                 this.right = right;
-                this.drive = drive;
             }
 
             /// <summary>Adds the next buffer's worth; true once the cue has ended.</summary>
@@ -364,8 +402,7 @@ namespace Poe2Accessibility.Services
 
             private float Read(float[] channel, int index, float fraction)
             {
-                var sample = channel[index] + ((channel[index + 1] - channel[index]) * fraction);
-                return this.drive > 1f ? CueSynth.Limit(sample * this.drive) : sample;
+                return channel[index] + ((channel[index + 1] - channel[index]) * fraction);
             }
         }
 

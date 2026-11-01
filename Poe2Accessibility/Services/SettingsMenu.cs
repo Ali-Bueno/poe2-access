@@ -125,13 +125,13 @@ namespace Poe2Accessibility.Services
             ("sound_charges", null),
         };
 
-        /// <summary>Highest volume, percent; above 100 a cue is driven into a soft limit rather than only clipped (AudioCueService).</summary>
+        /// <summary>Highest volume, percent; above 100 a cue is made louder under a limiter, not clipped (AudioCueService).</summary>
         public const int MaxVolume = 300;
 
         /// <summary>A sound's own volume when the player has not changed it, percent.</summary>
         private const int DefaultLevel = 100;
 
-        private const int VolumeStep = 25;
+        private const int VolumeStep = 5;
 
         private readonly Entry root;
         private readonly SoundGlossary? glossary;

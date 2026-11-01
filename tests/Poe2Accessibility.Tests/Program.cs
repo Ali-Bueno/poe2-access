@@ -31,6 +31,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(EnemyCuesPulseFasterWhenNearAndTakeTurns), EnemyCuesPulseFasterWhenNearAndTakeTurns);
             Run(nameof(EnemyCueSoundsStayInRangeAndDiffer), EnemyCueSoundsStayInRangeAndDiffer);
             Run(nameof(CuesRingOutAndTheMixerRoundsOff), CuesRingOutAndTheMixerRoundsOff);
+            Run(nameof(LoudCuesAreLimitedNotSaturated), LoudCuesAreLimitedNotSaturated);
+            Run(nameof(AreaMemoryKeepsTheSameMapOnly), AreaMemoryKeepsTheSameMapOnly);
             Run(nameof(PassageScanMeasuresTheWayAhead), PassageScanMeasuresTheWayAhead);
             Run(nameof(RadarSoundsConfirmedChangesOnly), RadarSoundsConfirmedChangesOnly);
             Run(nameof(RadarSoundsStayInRangeAndDiffer), RadarSoundsStayInRangeAndDiffer);
@@ -368,10 +370,76 @@ namespace Poe2Accessibility.Tests
                 Equal(true, MathF.Abs(sound[^1]) < 0.01f, $"{name}'s room tail fades to silence");
                 Equal(true, sound.Length < rate * seconds, $"{name} is over within {seconds} s");
             }
+        }
 
-            Equal(0.5f, CueSynth.Limit(0.5f), "below the knee the mix is untouched");
-            Equal(true, CueSynth.Limit(3f) <= 1f && CueSynth.Limit(-3f) >= -1f, "a pile-up never passes full scale");
-            Equal(true, CueSynth.Limit(0.95f) > CueSynth.Limit(0.9f), "louder stays louder");
+        private static void LoudCuesAreLimitedNotSaturated()
+        {
+            const int rate = 44100;
+            var tone = Enumerable.Range(0, rate / 2).Select(i => 0.85f * MathF.Sin(2 * MathF.PI * 220 * i / rate)).ToArray();
+            var (quiet, _) = PeakLimiter.Drive(tone, tone, 1f, rate);
+            Equal(true, quiet.Zip(tone).All(pair => MathF.Abs(pair.First - pair.Second) < 1e-6f), "under the ceiling a cue is untouched");
+
+            // A steady tone at full scale has no quiet body to raise; a cue's decaying body grows.
+            foreach (var (name, sound, louder) in new[] { ("tone", tone, 1.1f), ("dodge", CueSynth.Dodge(rate), 1.5f), ("parry", CueSynth.Parry(rate), 1.5f) })
+            {
+                var (loud, _) = PeakLimiter.Drive(sound, sound, 3f, rate);
+                Equal(sound.Length, loud.Length, $"{name} keeps its length at 300%");
+                Equal(true, loud.Max(MathF.Abs) <= PeakLimiter.Ceiling + 1e-4f, $"{name} at 300% stays under the ceiling");
+                Equal(true, Rms(loud) > Rms(sound) * louder, $"{name} at 300% is louder ({Rms(loud) / Rms(sound):0.00} times)");
+
+                // Limited, not saturated: the output is the input times a gain that glides, never a reshaped wave.
+                var gains = sound.Zip(loud).Where(pair => MathF.Abs(pair.First) > 0.05f).Select(pair => pair.Second / (pair.First * 3f)).ToArray();
+                Equal(true, gains.All(gain => gain is > 0f and <= 1.0001f), $"{name}: only a gain, same sign");
+                var jumps = sound.Select((sample, i) => i > 0 && MathF.Abs(sample) > 0.05f && MathF.Abs(sound[i - 1]) > 0.05f
+                    ? MathF.Abs((loud[i] / (sample * 3f)) - (loud[i - 1] / (sound[i - 1] * 3f))) : 0f).Max();
+                Equal(true, jumps < 0.02f, $"{name}: the gain glides ({jumps:0.0000} a sample at most)");
+            }
+
+            var output = new PeakLimiter(rate);
+            var peak = 0f;
+            for (var i = 0; i < rate; i++)
+            {
+                var left = 3f * MathF.Sin(2 * MathF.PI * 110 * i / rate);
+                var right = -left;
+                output.Process(ref left, ref right);
+                peak = MathF.Max(peak, MathF.Max(MathF.Abs(left), MathF.Abs(right)));
+            }
+
+            Equal(true, peak <= PeakLimiter.Ceiling + 1e-4f, "a pile-up at the output never passes the ceiling");
+
+            static float Rms(float[] samples) => MathF.Sqrt(samples.Average(sample => sample * sample));
+        }
+
+        private static void AreaMemoryKeepsTheSameMapOnly()
+        {
+            var directory = System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests", "explored-" + Guid.NewGuid().ToString("N"));
+            var log = new PluginLog(System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests"), false);
+            var tiles = new Dictionary<string, List<Vector2>> { ["forest_a"] = new() { new(23, 0), new(0, 0) }, ["exit"] = new() { new(46, 23) } };
+            var shuffled = new Dictionary<string, List<Vector2>> { ["exit"] = new() { new(46, 23) }, ["forest_a"] = new() { new(0, 0), new(23, 0) } };
+            var regenerated = new Dictionary<string, List<Vector2>> { ["forest_a"] = new() { new(0, 0), new(23, 23) }, ["exit"] = new() { new(46, 0) } };
+            var map = AreaMemory.Layout(tiles, 100, 20000);
+            Equal(map, AreaMemory.Layout(shuffled, 100, 20000), "the same tiles in another order are the same map");
+            Equal(true, map != AreaMemory.Layout(regenerated, 100, 20000), "other tiles are another map");
+            Equal(true, map != AreaMemory.Layout(tiles, 120, 20000), "another grid is another map");
+
+            var exit = new ScanEntry(7, ScanCategory.Exits, "Sierraclara", 1f, 2f, 3f, "exit", Sound: "exit", QuestMarked: true, Subject: "way");
+            var snapshot = new AreaMemory.Snapshot(map, new byte[] { 1, 2, 3 }, "Campamento", new() { [7] = exit }, new() { 7, 9 }, new() { [11] = new Vector2(4, 5) });
+            var memory = new AreaMemory(directory, log);
+            memory.Keep("ABC", snapshot);
+            Equal(true, memory.Recall("ABC", map) == snapshot, "back in the same instance: everything returns");
+
+            var restarted = new AreaMemory(directory, log);
+            var fromDisk = restarted.Recall("ABC", map);
+            Equal(true, fromDisk != null, "after a host restart it returns from disk");
+            Equal(exit, fromDisk!.Remembered[7], "with its exits as they were");
+            Equal("Campamento", fromDisk.CameFrom, "and the way in");
+            Equal(true, fromDisk.Explored.SequenceEqual(snapshot.Explored) && fromDisk.Sighted.SetEquals(snapshot.Sighted), "and the explored ground");
+            Equal(new Vector2(4, 5), fromDisk.ClosedBarriers[11], "and the closed barriers");
+
+            Equal(true, restarted.Recall("ABC", AreaMemory.Layout(regenerated, 100, 20000)) == null, "a regenerated map under the same hash starts unexplored");
+            Equal(true, new AreaMemory(directory, log).Recall("ABC", map) == null, "and its old file is gone");
+            Equal(true, memory.Recall("XYZ", map) == null, "an instance never seen is new");
+            System.IO.Directory.Delete(directory, true);
         }
 
         /// <summary>A walkable nibble grid (two cells per byte) with the given cells blocked.</summary>
@@ -1405,7 +1473,7 @@ namespace Poe2Accessibility.Tests
             var edge = 441;
             Equal(true, parry.Take(edge).Max(MathF.Abs) < parry.Skip(parry.Length - edge).Max(MathF.Abs) / 4f, "a reverse hit: it swells in");
             Equal(true, parry.Skip(parry.Length - edge).Max(MathF.Abs) > 0.3f, "and stops dead, loud to its last 10 ms");
-            Equal(true, parry.Select(sample => MathF.Abs(CueSynth.Limit(sample * 3f))).Max() <= 1f, "driven to 300% it stays under full scale");
+            Equal(true, PeakLimiter.Drive(parry, parry, 3f, 44100).Left.Max(MathF.Abs) <= 1f, "driven to 300% it stays under full scale");
         }
 
         private static void FarBarrierStaysClosedUntilSeenNear()

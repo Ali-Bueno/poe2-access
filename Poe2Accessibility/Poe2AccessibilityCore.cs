@@ -839,7 +839,7 @@ namespace Poe2Accessibility
             this.targets?.Reset();
             this.discoveries?.Reset(areaName, resumed);
             this.enemyNews?.Reset();
-            this.entities?.Forget(Core.States.InGameStateObject.CurrentAreaInstance.AreaHash, areaName);
+            this.entities?.AreaEntered(areaName);
             this.unexploredLoop?.Reset();
             this.nearby?.Reset();
             this.places?.Reset();
