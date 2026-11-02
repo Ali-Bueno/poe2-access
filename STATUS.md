@@ -391,9 +391,9 @@
 First (2026-11-02, seventeenth batch): the scanner keeps a fixed campaign map's exits and checkpoints in a new instance
 (Clearfell), the game's exit and its named tile are one entry, "Área: X, nivel N" waits for the instance it names (a
 new Clearfell said the town's 15), and the salvage bench is found and read first. Not heard yet: a real salvage's
-"Reciclado: … Recibes: …" (no salvageable loose item; the user decides about Renly's +7% crossbow), and the exit sound:
-the user picks one of six candidates on https://claude.ai/artifact/SK2WgvTwUM7jpTkgbFjpkL (current: exit.wav, game
-`UI_General/WorldAreaTransition_02`, hard to tell from the checkpoint beside it).
+"Reciclado: … Recibes: …" (no salvageable loose item; Renly's +7% crossbow was not bought). Exits now sound as a
+repeated low rush of air (`CaptainSandstorm/Whoosh_Foley_GoblinGiantBoss_02`, the user's pick on
+https://claude.ai/artifact/SK2WgvTwUM7jpTkgbFjpkL) instead of a bed lost beside a checkpoint's; not heard in game yet.
 First (2026-11-01, sixteenth batch, released): area memory by instance hash + layout (above); cue volumes step by 5;
 loud cues and the whole mix go through a look-ahead limiter instead of a saturating soft clip (a tester heard the dodge
 warning distort when turned up). Not yet heard by the user: the dodge at 200-300 %.

@@ -13,8 +13,11 @@ internal static class SoundExtractor
     // name -> (bank file, sample name inside the FSB, max seconds). Sample names come from the FSB5 name table.
     // A loop is kept whole (the game's own idle beds) and its seam crossfaded, so it repeats without a click. A frozen
     // loop is a one-shot held still: grains of its [FreezeFrom, FreezeTo) seconds layered into a steady bed.
+    // Rms, when set, brings a one-shot to that loudness (peaks under PeakCap): a sample far louder than its neighbours.
     private sealed record Cue(string Name, string Bank, string Sample, double MaxSeconds = 1.5, bool Loop = false,
-        double FreezeFrom = 0, double FreezeTo = 0);
+        double FreezeFrom = 0, double FreezeTo = 0, double Rms = 0);
+
+    private const double PeakCap = 0.9;
 
     private const double LoopMaxSeconds = 20;
 
@@ -55,7 +58,9 @@ internal static class SoundExtractor
         new("breakables/basket",  "CarverTribeWickerBaskets", "Fall_B_3",                      1.0),
         new("shrine",     "ChallengeShrines",  "Gameplay_Shrines_ChallengeShrine_Activate_Stinger_01"),
         new("ritual",     "RitualEncounter",   "RituaStart_01"),
-        new("exit",       "UI_General",        "WorldAreaTransition_02"),
+        // An exit: a low rush of air, repeated faster as the player nears it (user's pick 2026-11-02 of seven wind and
+        // whirl sounds; the old crossing sound held as a bed was hard to hear beside a checkpoint's).
+        new("exit",       "CaptainSandstorm",  "Whoosh_Foley_GoblinGiantBoss_02", Rms: 0.10),
         new("portal",     "PortalScrollPortal", "PortalScroll_Effects_Po_Activate_01"),
         new("waypoint",   "Waypoint4.0",       "WaypointActivate_01"),
         new("checkpoint", "BossCheckpoints",   "BossCheckpoints_Activate_01"),
@@ -67,8 +72,6 @@ internal static class SoundExtractor
         // A power charge gained: an electric charge cosmetic's gain sound, the user's pick of the game's (2026-10-30).
         new("power_charge", "Four_ElectroChargesMTX", "ChargeGain_Fork_01"),
         new("loops/portal",     "PortalScrollPortal", "PortalScroll_Effects_Po_IdleActive_01", LoopMaxSeconds, true),
-        // Area transitions have no idle sound: the crossing's own sound, held at its loud first half second.
-        new("loops/exit",       "UI_General",         "WorldAreaTransition_02", LoopMaxSeconds, true, 0.05, 0.5),
         new("loops/waypoint",   "Waypoint4.0",        "WaypointActive_01", LoopMaxSeconds, true),
         new("loops/checkpoint", "BossCheckpoints",    "BossCheckpoints_Loop_01", LoopMaxSeconds, true),
     };
@@ -137,6 +140,11 @@ internal static class SoundExtractor
                     (pcm, double secs) = !cue.Loop ? TrimAndCap(pcm, ch, rate, cue.MaxSeconds)
                         : cue.FreezeTo > cue.FreezeFrom ? Freeze(pcm, ch, rate, cue.FreezeFrom, cue.FreezeTo)
                         : Seamless(pcm, ch, rate, cue.MaxSeconds);
+                    if (cue.Rms > 0)
+                    {
+                        pcm = Level(pcm, cue.Rms);
+                    }
+
                     var wavPath = Path.Combine(outDir, cue.Name + ".wav");
                     Directory.CreateDirectory(Path.GetDirectoryName(wavPath)!);
                     WriteWav(wavPath, pcm, ch, rate);
@@ -293,6 +301,18 @@ internal static class SoundExtractor
     }
 
     /// <summary>Drops leading silence (below about -50 dBFS), caps the length and fades the tail out.</summary>
+    // The whoosh chosen for exits plays at RMS 0.31 with full-scale peaks, three times the checkpoint's 0.10.
+    private static float[] Level(float[] pcm, double rms)
+    {
+        if (pcm.Length == 0) return pcm;
+        double sum = 0, peak = 0;
+        foreach (float v in pcm) { sum += v * v; peak = Math.Max(peak, Math.Abs(v)); }
+        double now = Math.Sqrt(sum / pcm.Length);
+        if (now <= 0 || peak <= 0) return pcm;
+        float gain = (float)Math.Min(rms / now, PeakCap / peak);
+        return pcm.Select(v => v * gain).ToArray();
+    }
+
     private static (float[] pcm, double seconds) TrimAndCap(float[] pcm, int ch, int rate, double maxSeconds)
     {
         int frames = pcm.Length / ch, start = 0;

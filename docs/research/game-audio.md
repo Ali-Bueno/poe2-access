@@ -47,7 +47,7 @@ checked for a steady level (RMS of 100 ms windows) and distinct spectra.
 | portal | PortalScrollPortal | PortalScroll_Effects_Po_IdleActive_01 | 4 s, mid (centroid ~2.2 kHz) |
 | waypoint | Waypoint4.0 | WaypointActive_01 | 19 s, low hum, very steady |
 | checkpoint | BossCheckpoints | BossCheckpoints_Loop_01 | 19 s, bright (~3.9 kHz), steady |
-| exit | UI_General | WorldAreaTransition_02, frozen | 6 s of 120 ms grains from its 0.05–0.5 s (granular freeze) |
+| ~~exit~~ | UI_General | WorldAreaTransition_02, frozen | 6 s of 120 ms grains from its 0.05–0.5 s (granular freeze); dropped 2026-11-02 |
 
 Area transitions have no idle sound of their own, and the crossing sounds (`WorldAreaTransition_02`, `Travel_1..3`)
 are one-shots that die out within 2 s, so the exit loop holds the crossing's loud start still (user's choice
@@ -57,6 +57,12 @@ shimmer, far from the ritual stinger's spectrum) was heard as the ritual sound, 
 noise breath), `Doodads/SubTransition_01` (a sub-bass throb once a second that dies out, like the weak-point
 heartbeat), `PortalScroll_Effects_Id_IdleInactive_*` (about -39 dB and uneven), the tormented-spirit wisp loop
 (same spectrum as the waypoint).
+
+Since 2026-11-02 an exit has no bed: testers could hardly hear the frozen crossing beside a checkpoint's
+bright bed. It is a one-shot, `CaptainSandstorm/Whoosh_Foley_GoblinGiantBoss_02` (a low rush of air, 0.9 s), repeated
+faster and louder as the player nears it, the user's pick among seven game wind and whirl sounds after six dark
+candidates (stone doors, knocks, synth notes) were all rejected; extracted at RMS 0.10 (`Cue.Rms`: raw it is 0.31 with
+full-scale peaks, the checkpoint 0.10). The sounds step is version 4, so every install extracts again once.
 
 The `warning` and `heartbeat` placeholders were dropped (2026-10-24): the game plays its own low-life heartbeat.
 

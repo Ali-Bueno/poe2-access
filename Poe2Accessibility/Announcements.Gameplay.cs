@@ -662,7 +662,10 @@ namespace Poe2Accessibility
             Services.DiscoveryNarrator.SoundKey => T(
                 "a new exit, waypoint, checkpoint or unique monster came into view, with its name",
                 "una salida, punto de ruta, punto de control o monstruo único nuevo a la vista, con su nombre"),
-            "exit" or "portal" or "waypoint" or "checkpoint" => T(
+            "exit" => T(
+                "the nearest one, on its side, repeated faster and louder as you get closer",
+                "la más cercana, a su lado, se repite más rápido y más fuerte al acercarte"),
+            "portal" or "waypoint" or "checkpoint" => T(
                 "the nearest one, on its side, without a break; louder when closer, from the centre once you stand on it",
                 "el más cercano, a su lado, sin parar; más fuerte al acercarte, al centro cuando estás encima"),
             "chest" or "corpse" or "breakable" => T("every one within about a screen, each on its side", "todos los que hay a una pantalla, cada uno a su lado"),
