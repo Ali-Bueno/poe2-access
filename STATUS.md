@@ -481,10 +481,10 @@ live: the loot filter's quieter settings (kehgan carries no normal item; a white
 must stay silent).
 
 ## Known issues / open questions
-- Radar-table labels are English notes (GameHelper's `important_tgt_files.txt`): only area names and the notes in
-  brackets are translated, so a boss arena reads "Sala del jefe: Beira of the Rotten (10% de resistencia al frío)" and
-  a Grelwood place "The Corpse Tree (punto de ruta)" (2026-11-02). Boss names could come from MonsterVarieties in each
-  language (like `area-names.json`); "The Corpse Tree" is not a game name.
+- Radar-table labels are English notes (GameHelper's `important_tgt_files.txt`): area names, bracketed notes and, since
+  2026-11-02, 11 boss names (`catalog/monster-names.json` from MonsterVarieties: "Sala del jefe: Beira, de la manada
+  putrefacta") are said in the game's language. Still English: places ("The Corpse Tree (punto de ruta)", not a game
+  name) and 17 bosses whose game name is not the label plus a suffix (The Moving Bramble, Queen of Filth, Siren…).
 - Yarkey's chat showed his own lines ("¡Abajo!", "Matando el tiempo.", "¡Retrocede o muere!") while X or RT were held
   (2026-11-02), absent from Client.txt; probably the Mercenary's voice lines shown in chat (not verified: whether
   other players see them).
