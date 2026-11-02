@@ -66,6 +66,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Switches.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Breakables.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ItemMoves.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\SalvageOutcome.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CardText.cs" />
     <Compile Include="..\..\tools\Poe2AccessLauncher\ReleaseTag.cs" Link="Launcher\ReleaseTag.cs" />
     <Compile Include="..\..\tools\Poe2AccessLauncher\ReleaseManifest.cs" Link="Launcher\ReleaseManifest.cs" />

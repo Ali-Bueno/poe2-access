@@ -33,6 +33,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(CuesRingOutAndTheMixerRoundsOff), CuesRingOutAndTheMixerRoundsOff);
             Run(nameof(LoudCuesAreLimitedNotSaturated), LoudCuesAreLimitedNotSaturated);
             Run(nameof(AreaMemoryKeepsTheSameMapOnly), AreaMemoryKeepsTheSameMapOnly);
+            Run(nameof(AreaMemoryCarriesAFixedMapsExits), AreaMemoryCarriesAFixedMapsExits);
             Run(nameof(PassageScanMeasuresTheWayAhead), PassageScanMeasuresTheWayAhead);
             Run(nameof(RadarSoundsConfirmedChangesOnly), RadarSoundsConfirmedChangesOnly);
             Run(nameof(RadarSoundsStayInRangeAndDiffer), RadarSoundsStayInRangeAndDiffer);
@@ -53,6 +54,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(QuestNamesItsTargets), QuestNamesItsTargets);
             Run(nameof(QuestTrackerPageIsSaidWhenItChanges), QuestTrackerPageIsSaidWhenItChanges);
             Run(nameof(ItemMovesAreSaidAsDeeds), ItemMovesAreSaidAsDeeds);
+            Run(nameof(SalvageSaysWhatWentAndWhatCame), SalvageSaysWhatWentAndWhatCame);
             Run(nameof(ReleaseTagsOrderByDayThenNumber), ReleaseTagsOrderByDayThenNumber);
             Run(nameof(ReleaseManifestPinsThePackageToItsTag), ReleaseManifestPinsThePackageToItsTag);
             Run(nameof(GameDataStepsRerunAlone), GameDataStepsRerunAlone);
@@ -442,6 +444,42 @@ namespace Poe2Accessibility.Tests
             Equal(true, restarted.Recall("ABC", AreaMemory.Layout(regenerated, 100, 20000)) == null, "a regenerated map under the same hash starts unexplored");
             Equal(true, new AreaMemory(directory, log).Recall("ABC", map) == null, "and its old file is gone");
             Equal(true, memory.Recall("XYZ", map) == null, "an instance never seen is new");
+            System.IO.Directory.Delete(directory, true);
+        }
+
+        private static void AreaMemoryCarriesAFixedMapsExits()
+        {
+            var directory = System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests", "explored-" + Guid.NewGuid().ToString("N"));
+            var log = new PluginLog(System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests"), false);
+            const string Transition = "Metadata/Terrain/Woods/AreaTransitions/Clearfell_OldForest_Transition_01.tdtx:0-y:0";
+            var first = new Dictionary<string, List<Vector2>> { ["Metadata/Terrain/Woods/Stump_A.tdtx:0-y:0"] = new() { new(23, 0) }, [Transition] = new() { new(1311, 552) } };
+            var varied = new Dictionary<string, List<Vector2>> { ["Metadata/Terrain/Woods/Stump_B.tdtx:0-y:0"] = new() { new(23, 0) }, [Transition] = new() { new(1311, 552) } };
+            var moved = new Dictionary<string, List<Vector2>> { ["Metadata/Terrain/Woods/Stump_A.tdtx:0-y:0"] = new() { new(23, 0) }, [Transition] = new() { new(207, 1173) } };
+            var frame = AreaMemory.Frame(first, 100, 20000);
+            Equal(true, AreaMemory.Layout(first, 100, 20000) != AreaMemory.Layout(varied, 100, 20000), "Clearfell again: other pieces, another layout");
+            Equal(frame, AreaMemory.Frame(varied, 100, 20000), "but its exits where they were: the same frame");
+            Equal(true, frame != AreaMemory.Frame(moved, 100, 20000), "a regenerated map moves its exits: another frame");
+            Equal(0UL, AreaMemory.Frame(new Dictionary<string, List<Vector2>> { ["Metadata/Terrain/Woods/Stump_A.tdtx:0-y:0"] = new() { new(23, 0) } }, 100, 20000),
+                  "a map without transition pieces has no frame");
+
+            var exit = new ScanEntry(7, ScanCategory.Exits, "El bosque singular", 1f, 2f, 3f, "exit");
+            var checkpoint = new ScanEntry(8, ScanCategory.Waypoints, "Punto de control", 4f, 5f, 6f, "checkpoint");
+            var chest = new ScanEntry(9, ScanCategory.Chests, "Cofre", 7f, 8f, 9f, "chest");
+            var death = new ScanEntry(10, ScanCategory.Exits, "Donde moriste", 7f, 8f, 9f);
+            var npc = new ScanEntry(11, ScanCategory.Npcs, "Una", 7f, 8f, 9f, "npc");
+            var left = new AreaMemory.Snapshot(1, new byte[] { 1, 2, 3 }, "Campamento", new() { [7] = exit, [8] = checkpoint, [9] = chest, [10] = death, [11] = npc },
+                                               new() { 7 }, new(), frame);
+            new AreaMemory(directory, log).Keep("OLD", left);
+
+            var restarted = new AreaMemory(directory, log);
+            Equal(true, restarted.Recall("NEW", AreaMemory.Layout(varied, 100, 20000)) == null, "the new instance itself is unknown");
+            var inherited = restarted.Inherit(frame, "NEW");
+            Equal("OLD", inherited?.Instance, "but the instance left with the same frame is found on disk");
+            Equal("El bosque singular|Punto de control", string.Join("|", AreaMemory.Framed(inherited!.Value.Snapshot).Select(entry => entry.Name)),
+                  "and only its exits and checkpoints come along: no chest, death place or character");
+            Equal(true, restarted.Inherit(AreaMemory.Frame(moved, 100, 20000), "NEW") == null, "a map whose exits moved inherits nothing");
+            Equal(true, restarted.Inherit(frame, "OLD") == null, "nor does the instance itself");
+            Equal(true, restarted.Inherit(0, "NEW") == null, "nor a frameless map");
             System.IO.Directory.Delete(directory, true);
         }
 
@@ -2033,6 +2071,24 @@ namespace Poe2Accessibility.Tests
                                                                                           Announcements.SlotName, true, 0, "Habilidades", "", gemsOnly)),
                   "and only a gem comes out of them");
             Equal("Orbe de aumento", ItemMoves.Title("Orbe de aumento, 3"), "the title without the stack");
+        }
+
+        private static void SalvageSaysWhatWentAndWhatCame()
+        {
+            string Said(SalvageOutcome outcome) =>
+                string.Join(" | ", outcome.Salvaged) + " -> " + string.Join(" | ", outcome.Received.Select(item => $"{item.Title} {item.Count}"));
+            var helmet = ("Corona con cuernos, raro", 1);
+            var scrolls = ("Pergamino de sabiduría, 23", 23);
+            Equal("Corona con cuernos, raro -> Esquirla del artesano 1",
+                  Said(SalvageOutcome.Read(new[] { helmet, scrolls }, new[] { scrolls, ("Esquirla del artesano", 1) })),
+                  "the item went and a new stack came");
+            Equal("Corona con cuernos, raro -> Chatarra de armero 2",
+                  Said(SalvageOutcome.Read(new[] { helmet, ("Chatarra de armero, 3", 3) }, new[] { ("Chatarra de armero, 5", 5) })),
+                  "a stack that grew counts only what came");
+            Equal(" -> ", Said(SalvageOutcome.Read(new[] { helmet, scrolls }, new[] { scrolls, helmet })), "moved within the inventory: nothing");
+            Equal("Gorro de fieltro -> ", Said(SalvageOutcome.Read(new[] { ("Gorro de fieltro", 1), ("Gorro de fieltro, mágico", 1) },
+                                                                    new[] { ("Gorro de fieltro, mágico", 1) })),
+                  "of two items of one base, the one that went");
         }
 
         private static void QuestNamesItsTargets()

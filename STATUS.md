@@ -119,7 +119,8 @@
 | Boss life + dodge warning | done (live) | "El molinero hinchado 72 por ciento"; whoosh + snap only on attack animations (`DodgeThreats`), a rare's blow within 150 units, louder when closer; timed half a second before the blow as learnt from the hits taken (`DodgeTimings`, `config/dodge-timings.txt`; MudGolem GroundSlam 1156 ms), at the wind-up until learnt (`docs/research/dodge-timing.md`); fuller since 2026-10-28 (sweep floor 0.6, snap 35 ms, far gain 0.8, same peak: a tester found it hard to hear in boss fights) |
 | League encounter in the vitals readout (L3 double tap): "Encuentro de ritual. 100 Tributo. 0 rituales restantes" | done (code) | `EncounterReader`: visible texts under the HUD's `tertiary_hud_layout` except the quest pages (UI dump 2026-10-26); changes during play were already said as HUD news |
 | Culling Strike cue (on while a skill culls) | done (code; skills read live) | `CullWatch` + pure `CullThreshold` (KeywordPopups "CullingStrike": 35/20/10/5% by rarity); a recorded gong sped up and cut to 0.85 s (`assets/cull.wav`, user's recording 2026-10-30; take G2 of https://claude.ai/artifact/1fXBPHVbfmPkZrh7Dxh669), else the synthesized trembling gong (`CueSynth.Cull`, pick H5 of https://claude.ai/artifact/NVEVcncyDggik2bhT11PnJ) on the enemy's side, rares and uniques named. Setting `CullCue`: with a culling skill (default) / always / never; the skills from `catalog/cull-skills.txt` (`CullSkills`, extractor `cull-skills`) against `PlayerSkills` (KillingPalmPlayer seen live 2026-10-29). Was a switch off by default that a Monk never found |
-| Area memory: explored ground, remembered exits/NPCs, way in | done (live) | `AreaMemory` by instance hash + map layout (D2R: seed + level + room digest), bound to the instance the game holds, not the loading screen (the town was once saved under Clearfell's hash); a regenerated map starts unexplored; everything kept on disk (v2); live 2026-11-01: restart, town ↔ Clearfell "same map" ([area memory](docs/research/area-memory.md)) |
+| Area memory: explored ground, remembered exits/NPCs, way in | done (live) | `AreaMemory` by instance hash + map layout (D2R: seed + level + room digest), bound to the instance the game holds, not the loading screen (the town was once saved under Clearfell's hash); a regenerated map starts unexplored; everything kept on disk (v3); live 2026-11-01: restart, town ↔ Clearfell "same map"; since 2026-11-02 a new instance of a campaign map whose area-transition tiles stand where they stood (`AreaMemory.Frame`: Clearfell yes, the Grelwood no) inherits the last one's exits and checkpoints, not its explored ground (testers heard Clearfell's exits forgotten; live: "El bosque singular, 194 pasos" on arrival) ([area memory](docs/research/area-memory.md)) |
+| Salvage bench | done (live, except a real salvage) | bench found by its label (`UiSemantics.FirstLabel`: no framed title, so its salvages went unsaid), its text before the inventory cell (`ScreenNarrator.SidePanel`), "Reciclado: X. Recibes: Y, 2" (`SalvageOutcome`, unit-tested); A salvages, Y is drop, B closes it; [salvage bench](docs/research/salvage-bench.md) |
 | Quest marker for "cross this area" objectives | done (code) | `QuestMatcher`: an objective that names only the current area and no other proper noun ("Sigue a través del Enredo sombrío") targets every area exit but the one back (`AreaMemory` way in), else the nearest unexplored ground; it named nothing before (user 2026-10-29) |
 | Placed-object cue (Tempest Bell, Frozen Locus crystal) | done (live) | `DeployedWatch` + pure `DeployedObjects`: entities by path (`Metadata/Effects/Spells/monk_bell/`, `monk_spectral_bells/`, `Metadata/MiscellaneousObjects/FrostWall/OrbOfIce` seen live 2026-10-29); heard once standing 400 ms; the game's own sound (`tempest_bell` = `Four_TempestBell.bank` TempestBell_FX_OnHit_01, `ice_crystal` = `Four_FrozenLocus.bank` FrozenLocus_FX_Appear_01; launcher sounds step v2), the small bell `CueSynth.Deployed` until extracted, on its side, 700-2200 ms by distance, spaced 180 ms apart, object volume; both heard live 2026-10-29. GameHelper's Actor deployed list (0xC28) was empty, and no Actor vector in its first 0x1400 bytes held the crystal's id (survey 2026-10-29) |
 | Charges, infusions, surges, Rage | done (live: power charges) | `ChargeWatch` (in `PlayerAlerts`) + pure `PlayerCharges`: buff stacks of `power/frenzy/endurance/spirit_charge`, `fire/cold/lightning_infusion`, `instilling_fire/cold/lightning/chaos`, `druidic_prowess`, `arcane_surge`, Tempest Bell's hidden `tempest_bell_combo_tracker` (seen live 2026-10-29; its stacks taken as the Combo, 4 to ring the bell); a glass tick per one held, a lower tick per one lost, the count said after 400 ms of quiet (power charges: the game's electric `power_charge`, the Combo the user's `assets/combo.wav` a semitone higher per point from C, both stereo and unpanned; 2026-10-30); Rage from Stats `current_rage` / `virtual_maximum_rage`, said only full or empty; in the vitals readout. Said and heard by separate switches, the Combo apart (`ChargeSpeech`/`ChargeSounds`, `ComboSpeech`/`ComboSounds`, levels "Voz: cargas" / "Voz: puntos de combo"; were under life and mana's, which re-said them before any interruption; user 2026-10-30: too much speech). Heard live 2026-10-29: "1 carga de poder", "sin cargas de poder" (Falling Thunder spends them), "2 cargas de poder". Not yet live: the other kinds, Rage. Enraged: no player buff found by name (the BuffDefinitions "enrage" rows are monsters'); "Player buff seen" will name it |
@@ -358,10 +359,11 @@
 - Scanner: `EntityCatalog` (entries, landmarks, `Describe`; `.Classify` categories and names, `.Terrain` live grid and barriers) → `RoutePlanner` (A*, corners,
   legs) and `ScanModel` (`ScanBrowser`, `StickDirection`); `LandmarkTable`. Map marks: pure `MinimapMarks` (signs, boss
   rooms by icon or tile, pointer reach), `MinimapIconLabel` (an icon's translated label). Exploring: `ExplorationMap`
-  (frontier), `UnexploredLoop` (D2R loop, `assets/loops/`), the radar's unexplored mark. Warnings: `VitalAlarm`.
+  (frontier), `UnexploredLoop` (D2R loop, `assets/loops/`), the radar's unexplored mark. Memory: `AreaMemory` (instance + layout; `Frame`/`Inherit`/`Framed`: a fixed map's exits into a new instance). Warnings: `VitalAlarm`.
 - Sounds: `AudioCueService` (winmm mixer; each sound's own level by glossary key, `SetLevels`) ← `EnemyCues` (`EnemyCueScheduler`, `CueSynth`) and `Radar`
   (`PassageScan`, `RadarSensor`, `RadarSynth`; a second `Radar` follows `Seats.Partner`); with `ProximityNarrator` (`ProximityTracker`) gated in
   `Poe2AccessibilityCore.TickSounds`.
+- Salvage bench: `InventoryWatch.Salvage` (+ pure `SalvageOutcome`), `UiSemantics.FirstLabel` (side panel without a framed title).
 - Shop/stash: tooltip `cost` → `CurrencyIcons`, red price via `UiElementReader.IsTextRed`; grid tabs `UiSemantics.GridTab`.
   Microtransaction shop: `UiSemantics.ShopPage`, `.Cards` `ShopEntryOf` (cards, position), `CardText.ShopImageTitle`
   (featured banners), `FocusTracker.InGameHighlightRoot` (the shop's highlight markers; the game focuses nothing there).
@@ -386,6 +388,12 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
+First (2026-11-02, seventeenth batch): the scanner keeps a fixed campaign map's exits and checkpoints in a new instance
+(Clearfell), the game's exit and its named tile are one entry, "Área: X, nivel N" waits for the instance it names (a
+new Clearfell said the town's 15), and the salvage bench is found and read first. Not heard yet: a real salvage's
+"Reciclado: … Recibes: …" (no salvageable loose item; the user decides about Renly's +7% crossbow), and the exit sound:
+the user picks one of six candidates on https://claude.ai/artifact/SK2WgvTwUM7jpTkgbFjpkL (current: exit.wav, game
+`UI_General/WorldAreaTransition_02`, hard to tell from the checkpoint beside it).
 First (2026-11-01, sixteenth batch, released): area memory by instance hash + layout (above); cue volumes step by 5;
 loud cues and the whole mix go through a look-ahead limiter instead of a saturating soft clip (a tester heard the dodge
 warning distort when turned up). Not yet heard by the user: the dodge at 200-300 %.
@@ -473,6 +481,13 @@ live: the loot filter's quieter settings (kehgan carries no normal item; a white
 must stay silent).
 
 ## Known issues / open questions
+- Radar-table labels are English notes (GameHelper's `important_tgt_files.txt`): only area names and the notes in
+  brackets are translated, so a boss arena reads "Sala del jefe: Beira of the Rotten (10% de resistencia al frío)" and
+  a Grelwood place "The Corpse Tree (punto de ruta)" (2026-11-02). Boss names could come from MonsterVarieties in each
+  language (like `area-names.json`); "The Corpse Tree" is not a game name.
+- Yarkey's chat showed his own lines ("¡Abajo!", "Matando el tiempo.", "¡Retrocede o muere!") while X or RT were held
+  (2026-11-02), absent from Client.txt; probably the Mercenary's voice lines shown in chat (not verified: whether
+  other players see them).
 - Never seen in game (no test character got there, 2026-11-01): the ascendancy view of the passive tree (its 197 nodes
   are hidden in the main canvas; state and links untested), the trials (Sekhemas, Chaos), the Atlas, its passive tree
   and the map device (GameHelper knows `AtlasSkillsPanel` and the atlas node fingerprint `0x542EF3`), and Act 4.

@@ -16,7 +16,7 @@ namespace Poe2Accessibility.Services
     ///     reached by reflection like the rest of the host's internals); the first reading of an area is silent.
     ///     Only while no panel is open: moving things around in the inventory is not news.
     /// </summary>
-    public sealed class InventoryWatch
+    public sealed partial class InventoryWatch
     {
         private const int PollMs = 250;
 
@@ -225,7 +225,8 @@ namespace Poe2Accessibility.Services
                 (this.goldBefore, this.groundBefore) = this.recent.Peek();
             }
 
-            if (!this.movesBaseline && enabled)
+            var salvaging = !playing && enabled && this.TickSalvage(now);
+            if (!this.movesBaseline && enabled && !salvaging)
             {
                 foreach (var (entity, from) in this.where)
                 {

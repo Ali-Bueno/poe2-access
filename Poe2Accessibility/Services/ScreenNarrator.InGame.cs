@@ -218,7 +218,16 @@ namespace Poe2Accessibility.Services
                 var near = focus == null || this.InOtherControlGroup is not { } other
                     ? texts
                     : Describe(kept.Where(text => !other(text.Address, focus.Address)));
-                this.Speak("opened with focus", Announcements.Sentences(new[] { near, this.lastFocusSpeech }), true);
+                // A panel opened beside the inventory with the focus on an inventory item (salvage bench): the panel and
+                // what it says first, or the item alone sounds like the inventory (user, 2026-11-01: "se lía con el
+                // inventario").
+                var side = focus == null || this.InOtherControlGroup is not { } group || this.SidePanel?.Invoke() is not { Length: > 0 } title
+                    ? string.Empty
+                    : kept.Where(text => group(text.Address, focus.Address)).ToList() is var beside && beside.Any(text => text.Text == title)
+                        ? Describe(beside)
+                        : string.Empty;
+                this.log.Debug($"Opened with focus: side panel \"{this.SidePanel?.Invoke()}\", said first \"{side}\"");
+                this.Speak("opened with focus", Announcements.Sentences(new[] { side, near, this.lastFocusSpeech }), true);
             }
             else if (change.Kind == ScreenChangeKind.LayerOpened)
             {

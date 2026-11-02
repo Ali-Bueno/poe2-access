@@ -13,6 +13,10 @@ namespace Poe2Accessibility.Services
 
         private const int MaxPanelTitleLength = 40;
 
+        /// <summary>How deep and how many elements <see cref="FirstLabel"/> looks under a panel without a framed title.</summary>
+        private const int LabelSearchDepth = 4;
+        private const int LabelSearchNodes = 60;
+
         /// <summary>Grid → page → pages container → tab container (vendor stock and stash: 3 hops, 2026-10-23).</summary>
         private const int GridTabHops = 4;
 
@@ -315,6 +319,7 @@ namespace Poe2Accessibility.Services
             }
 
             var shift = this.elements.Controls?.Current(ControlGroup.PanelTitle) ?? 0;
+            var labelled = string.Empty;
             foreach (var child in this.elements.ReadChildren(root))
             {
                 if (!this.elements.TryReadElement(child, out var parent) || parent.Name != GameLayout.InGameUi.PanelsParentName)
@@ -331,11 +336,57 @@ namespace Poe2Accessibility.Services
 
                     foreach (var panel in this.elements.ReadChildren(groupInfo))
                     {
-                        if (this.elements.TryReadElement(panel, out var info) && info.IsVisibleFlag && this.TitleAt(panel, shift) is { Length: > 0 } title &&
-                            !this.HoldsMainInventory(info))
+                        if (!this.elements.TryReadElement(panel, out var info) || !info.IsVisibleFlag)
+                        {
+                            continue;
+                        }
+
+                        var title = this.TitleAt(panel, shift);
+                        if (title.Length > 0 && !this.HoldsMainInventory(info))
                         {
                             return title;
                         }
+
+                        if (title.Length == 0 && labelled.Length == 0 && !this.HoldsMainInventory(info))
+                        {
+                            labelled = this.FirstLabel(info);
+                        }
+                    }
+                }
+            }
+
+            return labelled;
+        }
+
+        /// <summary>
+        ///     The first visible label within a few levels of a panel without a framed title: the salvage bench keeps
+        ///     "Mesa de reciclaje" in a label three levels down (dump 2026-11-01, `[0,1,17,2,1,25,0,2,1]`, alone visible in
+        ///     its group), so its title was never found and its salvages went unsaid (2026-11-02).
+        /// </summary>
+        private string FirstLabel(in UiElementReader.ElementInfo panel)
+        {
+            var budget = LabelSearchNodes;
+            var queue = new Queue<(UiElementReader.ElementInfo Node, int Depth)>();
+            queue.Enqueue((panel, 0));
+            while (queue.Count > 0 && budget-- > 0)
+            {
+                var (node, depth) = queue.Dequeue();
+                if (depth > 0 && this.elements.TryReadText(node.Address, out var text) && text.Trim() is { Length: >= 3 and <= MaxPanelTitleLength } label &&
+                    label.Count(char.IsLetter) >= 3 && !label.Contains('/') && !label.Contains('_'))
+                {
+                    return label;
+                }
+
+                if (depth >= LabelSearchDepth)
+                {
+                    continue;
+                }
+
+                foreach (var child in this.elements.ReadChildren(node))
+                {
+                    if (this.elements.TryReadElement(child, out var info) && info.IsVisibleFlag)
+                    {
+                        queue.Enqueue((info, depth + 1));
                     }
                 }
             }

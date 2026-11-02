@@ -130,6 +130,15 @@ namespace Poe2Accessibility
         /// <summary>The state announcement waiting out <see cref="StateSettleMs"/>; Detected keeps "Game detected" when replaced.</summary>
         private (string Text, bool Detected, long At, bool Queued)? pendingState;
 
+        /// <summary>
+        ///     "Area: X, level N" waiting for the instance it names: the area row can change before the game loads the new
+        ///     instance (a new Clearfell from the instance list said the town's level 15, 2026-11-02).
+        /// </summary>
+        private (string Name, bool Resumed, long At)? pendingArea;
+
+        /// <summary>An area announcement waits at most this long for its instance, then says what it has.</summary>
+        private const long AreaInstanceWaitMs = 15000;
+
         /// <summary>The language setting last applied to <see cref="Localization"/>.</summary>
         private string? appliedLanguage;
         private bool confirmDown;
@@ -334,6 +343,7 @@ namespace Poe2Accessibility
                 SpeechPriority.Chosen = this.SpeechLevel;
                 this.narrator.InPanel = this.semantics.IsInPanel;
                 this.narrator.InOtherControlGroup = this.semantics.InOtherControlGroup;
+                this.narrator.SidePanel = () => this.pickups?.SidePanel?.Invoke() ?? string.Empty;
                 this.narrator.InSiblingRow = this.semantics.InSiblingRow;
                 this.narrator.InAnotherShopCard = this.semantics.InAnotherShopCard;
                 this.narrator.SelectorPosition = this.semantics.SelectorPosition;
@@ -448,6 +458,7 @@ namespace Poe2Accessibility
             this.gameState.Tick();
             this.AnnounceLastingClose();
             this.AnnounceSettledState();
+            this.AnnounceLoadedArea();
             if (!this.gameState.IsAttached)
             {
                 this.processProbe?.Tick();
@@ -851,10 +862,34 @@ namespace Poe2Accessibility
                     this.pendingState = null;
                 }
 
-                var level = AreaLevel();
-                this.log?.Info($"Area level {level} (instance {Core.States.InGameStateObject.CurrentAreaInstance.AreaHash})");
-                this.output.Say(SpeechKind.Places, Announcements.Area(areaName, level));
+                this.pendingArea = (areaName, resumed, Environment.TickCount64);
+                this.AnnounceLoadedArea();
             }
+        }
+
+        /// <summary>The tile table of the instance the last area announcement read: GameHelper makes a new one each load.</summary>
+        private object? areaTilesSaid;
+
+        /// <summary>Per frame: the pending area announcement once the game has loaded an instance since the last one said.</summary>
+        private void AnnounceLoadedArea()
+        {
+            if (this.pendingArea is not var (name, resumed, at))
+            {
+                return;
+            }
+
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            var tiles = area.TgtTilesLocations;
+            if (!resumed && (area.AreaHash.Length == 0 || ReferenceEquals(tiles, this.areaTilesSaid)) && Environment.TickCount64 - at < AreaInstanceWaitMs)
+            {
+                return;
+            }
+
+            this.pendingArea = null;
+            this.areaTilesSaid = tiles;
+            var level = AreaLevel();
+            this.log?.Info($"Area level {level} (instance {area.AreaHash})");
+            this.output.Say(SpeechKind.Places, Announcements.Area(name, level));
         }
 
     }

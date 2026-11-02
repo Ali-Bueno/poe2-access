@@ -69,6 +69,21 @@ namespace Poe2Accessibility.Services
         private const uint DeathPlaceId = UnexploredIdBase - 1;
 
         /// <summary>
+        ///     Exits and checkpoints brought from another instance of the same map (<see cref="AreaMemory.Inherit"/>): ids
+        ///     above the mod's places, below the death place, until the game's own entity there is seen.
+        /// </summary>
+        private const uint InheritedIdBase = 0xB0000000;
+
+        /// <summary>The game's entity this near an inherited place (world units) is that place in this instance.</summary>
+        private const float InheritedMatchWorld = 400f;
+
+        /// <summary>An inherited place the player stands this near with no such entity awake is not in this instance.</summary>
+        private const float InheritedGoneWorld = 500f;
+
+        /// <summary>A named exit tile this near (grid cells) the game's exit of the same name is that exit, said once.</summary>
+        private const float TileExitMatchCells = 60f;
+
+        /// <summary>
         ///     Where the player last died (D2R death place), with the area instance it belongs to: listed among the exits
         ///     whenever that instance is current, until the next death.
         /// </summary>
@@ -128,6 +143,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The area instance being read (AreaInstance.AreaHash), its map (<see cref="AreaMemory.Layout"/>) and its name.</summary>
         private string instance = string.Empty;
         private ulong layout;
+
+        /// <summary>Its exits' frame (<see cref="AreaMemory.Frame"/>): another instance with the same one is the same map.</summary>
+        private ulong frame;
         private string areaName = string.Empty;
 
         /// <summary>The tile table the layout was last computed from: a new one is a reloaded area.</summary>
@@ -244,7 +262,23 @@ namespace Poe2Accessibility.Services
             var leaving = this.areaName;
             this.Clear();
             name ??= this.pendingName;
+            var frame = AreaMemory.Frame(tiles, area.TerrainMetadata.BytesPerRow, area.GridWalkableData.Length);
             var known = this.Memory?.Recall(hash, layout);
+            var inherited = known == null ? this.Memory?.Inherit(frame, hash) : null;
+            if (inherited is { } same)
+            {
+                // The same campaign map in a new instance (Clearfell: exits and checkpoints at the same cells, other
+                // tiles varied; testers heard its exits forgotten, 2026-11-02): the exits and checkpoints seen there, at
+                // their places, until the game's own are seen again. Not the explored ground: Beira's arena stood
+                // elsewhere in the next instance and was announced "on the map" before the player saw it.
+                var index = 0u;
+                foreach (var entry in AreaMemory.Framed(same.Snapshot))
+                {
+                    var id = InheritedIdBase + index++;
+                    this.remembered[id] = entry with { Id = id };
+                }
+            }
+
             if (known != null)
             {
                 this.explored.Load(known.Explored);
@@ -264,13 +298,15 @@ namespace Poe2Accessibility.Services
             }
 
             this.cameFrom = known?.CameFrom ?? leaving;
-            (this.instance, this.layout, this.areaName) = (hash, layout, name ?? leaving);
+            (this.instance, this.layout, this.frame, this.areaName) = (hash, layout, frame, name ?? leaving);
             this.unnamedAt = name == null ? Environment.TickCount64 : long.MinValue / 2;
             this.pendingName = null;
             this.savedAt = Environment.TickCount64;
             this.log.Info(known != null
                 ? $"Instance {hash} ({this.areaName}): same map, {known.Remembered.Count} places and its explored ground restored"
-                : $"Instance {hash} ({this.areaName}): new map {layout:X16}, unexplored");
+                : this.remembered.Count > 0 || inherited != null
+                    ? $"Instance {hash} ({this.areaName}): new instance of the map of {inherited?.Instance} (frame {frame:X16}), its {this.remembered.Count} exits and checkpoints kept"
+                    : $"Instance {hash} ({this.areaName}): new map {layout:X16}, frame {frame:X16}, unexplored");
             return true;
         }
 
@@ -279,7 +315,7 @@ namespace Poe2Accessibility.Services
         {
             lock (this.samplesLock)
             {
-                return new AreaMemory.Snapshot(this.layout, this.explored.Save(), this.cameFrom, new(this.remembered), new(this.sighted), new(this.closedBarriers));
+                return new AreaMemory.Snapshot(this.layout, this.explored.Save(), this.cameFrom, new(this.remembered), new(this.sighted), new(this.closedBarriers), this.frame);
             }
         }
 
@@ -401,11 +437,23 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
+                if (landmark.Id is >= InheritedIdBase and < DeathPlaceId && !KeepInherited(landmark, here, found.Values, unseen))
+                {
+                    this.remembered.Remove(landmark.Id); // the game's own is listed now, or this instance has none there
+                    continue;
+                }
+
                 found.Add(landmark.Id, landmark);
             }
 
+            var toCells = area.WorldToGridConvertor;
             foreach (var landmark in this.TileLandmarks(area, player.WorldPosition.Z))
             {
+                if (landmark.Category == ScanCategory.Exits && found.Values.Any(exit => exit.Category == ScanCategory.Exits && SameExit(exit, landmark, toCells)))
+                {
+                    continue; // the exit's own tile beside the game's exit: one place, said once (two "El bosque singular", 2026-11-02)
+                }
+
                 var place = new StdTuple3D<float> { X = landmark.WorldX, Y = landmark.WorldY, Z = landmark.WorldZ };
                 if (this.Pointed(landmark, player, area.WorldToGridConvertor) || this.Sighted(landmark, place, area.WorldToGridConvertor, false))
                 {
@@ -537,6 +585,24 @@ namespace Poe2Accessibility.Services
             Seats.Followed.TryGetComponent<Render>(out var player)
                 ? this.TileLandmarks(Core.States.InGameStateObject.CurrentAreaInstance, player.WorldPosition.Z).ToList()
                 : Array.Empty<ScanEntry>();
+
+        /// <summary>
+        ///     An exit or checkpoint inherited from another instance of this map stays until the game's own entity of that
+        ///     name is listed beside it, or the player stands by its place and the game has none there.
+        /// </summary>
+        private static bool KeepInherited(ScanEntry inherited, Vector2 here, IEnumerable<ScanEntry> listed, IEnumerable<ScanEntry> unseen)
+        {
+            var at = new Vector2(inherited.WorldX, inherited.WorldY);
+            bool Same(ScanEntry entry) => IsEntity(entry) && entry.Category == inherited.Category &&
+                                          string.Equals(entry.Name, inherited.Name, StringComparison.OrdinalIgnoreCase) &&
+                                          Vector2.Distance(at, new Vector2(entry.WorldX, entry.WorldY)) <= InheritedMatchWorld;
+            return !listed.Any(Same) && (unseen.Any(Same) || Vector2.Distance(here, at) > InheritedGoneWorld);
+        }
+
+        /// <summary>The game's exit and a named tile of the same name this near it are one exit.</summary>
+        private static bool SameExit(ScanEntry exit, ScanEntry tile, float worldPerCell) =>
+            string.Equals(exit.Name, tile.Name, StringComparison.OrdinalIgnoreCase) &&
+            Vector2.Distance(new Vector2(exit.WorldX, exit.WorldY), new Vector2(tile.WorldX, tile.WorldY)) <= TileExitMatchCells * worldPerCell;
 
         /// <summary>
         ///     Named tiles of this area (<see cref="LandmarkTable"/>), placed from the area's tile grid, and the boss arenas

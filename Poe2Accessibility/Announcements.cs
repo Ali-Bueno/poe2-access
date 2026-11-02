@@ -378,12 +378,17 @@ namespace Poe2Accessibility
         /// <summary>"100%" or "(0/1)" still need a full stop; these already end a sentence or lead into the next.</summary>
         private const string SentenceEnds = ".!?:;";
 
-        /// <summary>Screen texts read in a row: each one is its own sentence unless it already ends in punctuation.</summary>
+        /// <summary>Screen texts read in a row: each one is its own sentence unless it already ends in punctuation; empty ones are skipped.</summary>
         public static string Sentences(System.Collections.Generic.IEnumerable<string> parts)
         {
             var builder = new System.Text.StringBuilder();
             foreach (var part in parts)
             {
+                if (part.Length == 0)
+                {
+                    continue; // "artesano. . Vacío" when nothing stood between the bench and the focus (2026-11-02)
+                }
+
                 if (builder.Length > 0)
                 {
                     builder.Append(SentenceEnds.Contains(builder[^1]) ? " " : ". ");

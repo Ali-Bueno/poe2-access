@@ -174,6 +174,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether a text (first) belongs to another group of controls than the focus (second).</summary>
         public Func<IntPtr, IntPtr, bool>? InOtherControlGroup { get; set; }
 
+        /// <summary>The title of the panel open beside the inventory (salvage bench, stash), empty when none.</summary>
+        public Func<string>? SidePanel { get; set; }
+
         /// <summary>Whether a text lies in another row of the list the focus is a row of (text, focus).</summary>
         public Func<IntPtr, IntPtr, bool>? InSiblingRow { get; set; }
 

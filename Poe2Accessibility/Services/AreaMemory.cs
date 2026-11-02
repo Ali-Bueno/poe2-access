@@ -9,7 +9,9 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     What the scanner knew of each area instance it left: explored ground, remembered places, the way in. An instance
     ///     is its hash (AreaInstance.AreaHash) and its layout (<see cref="Layout"/>); a regenerated map has another layout and
-    ///     starts unexplored (the D2R mod keys by seed, level and room layout). Kept whole on disk, `config/explored/`.
+    ///     starts unexplored (the D2R mod keys by seed, level and room layout). A new instance of a campaign area whose exits
+    ///     stand where they stood (<see cref="Frame"/>) is the map the player walked: its exits and checkpoints come along
+    ///     (<see cref="Inherit"/>; its boss arena may move). Kept whole on disk, `config/explored/`.
     /// </summary>
     public sealed class AreaMemory
     {
@@ -19,10 +21,16 @@ namespace Poe2Accessibility.Services
         /// <summary>Instance files kept; the oldest go (an instance the game has closed is never entered again).</summary>
         private const int KeptOnDisk = 40;
 
-        private const byte FileVersion = 2;
+        private const byte FileVersion = 3;
+
+        /// <summary>Files before the frame was kept: read with no frame.</summary>
+        private const byte FramelessVersion = 2;
         private const string Extension = ".bin";
         private const ulong FnvOffset = 14695981039346656037;
         private const ulong FnvPrime = 1099511628211;
+
+        /// <summary>The folder of a tile set's area-transition pieces (`Metadata/Terrain/Woods/AreaTransitions/…`).</summary>
+        private const string TransitionFolder = "/AreaTransitions/";
 
         private readonly string directory;
         private readonly PluginLog log;
@@ -41,11 +49,7 @@ namespace Poe2Accessibility.Services
             var hash = Mix(Mix(FnvOffset, (uint)bytesPerRow), (uint)gridBytes);
             foreach (var name in tiles.Keys.OrderBy(name => name, StringComparer.Ordinal))
             {
-                foreach (var c in name)
-                {
-                    hash = Mix(hash, c);
-                }
-
+                hash = Name(hash, name);
                 foreach (var spot in tiles[name].OrderBy(spot => spot.X).ThenBy(spot => spot.Y))
                 {
                     hash = Mix(Mix(hash, (uint)(int)spot.X), (uint)(int)spot.Y);
@@ -53,16 +57,53 @@ namespace Poe2Accessibility.Services
             }
 
             return hash;
+        }
 
-            static ulong Mix(ulong hash, uint value)
+        /// <summary>
+        ///     The map's frame: its area-transition tiles (name and grid spot) and grid size; 0 when it has none. Clearfell
+        ///     kept its exits, checkpoints and grid in four instances while about a tenth of its other tiles changed
+        ///     (entity dumps 2026-10-23 to 2026-11-02), so its layout differed every time; a regenerated map moves its exits.
+        /// </summary>
+        public static ulong Frame(IReadOnlyDictionary<string, List<Vector2>> tiles, int bytesPerRow, int gridBytes)
+        {
+            var hash = Mix(Mix(FnvOffset, (uint)bytesPerRow), (uint)gridBytes);
+            var any = false;
+            foreach (var name in tiles.Keys.Where(name => name.Contains(TransitionFolder, StringComparison.OrdinalIgnoreCase)).OrderBy(name => name, StringComparer.Ordinal))
             {
-                for (var i = 0; i < 4; i++, value >>= 8)
+                any = true;
+                hash = Name(hash, name);
+                foreach (var spot in tiles[name].OrderBy(spot => spot.X).ThenBy(spot => spot.Y))
                 {
-                    hash = (hash ^ (value & 0xFF)) * FnvPrime;
+                    hash = Mix(Mix(hash, (uint)(int)spot.X), (uint)(int)spot.Y);
                 }
-
-                return hash;
             }
+
+            return any ? hash : 0;
+        }
+
+        /// <summary>What another instance of the same map tells of this one: its exits and checkpoints, fixed by the frame.</summary>
+        public static IEnumerable<ScanEntry> Framed(Snapshot from) =>
+            from.Remembered.Values.Where(entry => entry.Category == ScanCategory.Waypoints ||
+                                                  (entry.Category == ScanCategory.Exits && entry.Kind == QuestMatcher.ExitKind));
+
+        private static ulong Name(ulong hash, string name)
+        {
+            foreach (var c in name)
+            {
+                hash = Mix(hash, c);
+            }
+
+            return hash;
+        }
+
+        private static ulong Mix(ulong hash, uint value)
+        {
+            for (var i = 0; i < 4; i++, value >>= 8)
+            {
+                hash = (hash ^ (value & 0xFF)) * FnvPrime;
+            }
+
+            return hash;
         }
 
         /// <summary>Remembers what was known of <paramref name="instance"/> as the player leaves it, and writes it.</summary>
@@ -101,6 +142,49 @@ namespace Poe2Accessibility.Services
             return known;
         }
 
+        /// <summary>
+        ///     The newest other instance left with this <see cref="Frame"/>: the same campaign map in a new instance (the
+        ///     game makes one when the last expires or the player asks for it). Null for a frameless map.
+        /// </summary>
+        public (string Instance, Snapshot Snapshot)? Inherit(ulong frame, string except)
+        {
+            if (frame == 0)
+            {
+                return null;
+            }
+
+            for (var i = this.order.Count - 1; i >= 0; i--)
+            {
+                if (this.order[i] != except && this.left[this.order[i]].Frame == frame)
+                {
+                    return (this.order[i], this.left[this.order[i]]);
+                }
+            }
+
+            try
+            {
+                if (!Directory.Exists(this.directory))
+                {
+                    return null;
+                }
+
+                foreach (var file in new DirectoryInfo(this.directory).GetFiles("*" + Extension).OrderByDescending(file => file.LastWriteTimeUtc))
+                {
+                    var instance = Path.GetFileNameWithoutExtension(file.Name);
+                    if (instance != except && !this.left.ContainsKey(instance) && this.Load(instance) is { } kept && kept.Frame == frame)
+                    {
+                        return (instance, kept);
+                    }
+                }
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // Unreadable folder: the new instance starts unexplored.
+            }
+
+            return null;
+        }
+
         /// <summary>Writes an instance's snapshot (also while playing, so a host restart loses little).</summary>
         public void Save(string instance, Snapshot snapshot)
         {
@@ -127,6 +211,7 @@ namespace Poe2Accessibility.Services
         {
             writer.Write(FileVersion);
             writer.Write(snapshot.Layout);
+            writer.Write(snapshot.Frame);
             writer.Write(snapshot.CameFrom);
             writer.Write(snapshot.Explored.Length);
             writer.Write(snapshot.Explored);
@@ -164,12 +249,14 @@ namespace Poe2Accessibility.Services
 
         private static Snapshot? Read(BinaryReader reader)
         {
-            if (reader.ReadByte() != FileVersion)
+            var version = reader.ReadByte();
+            if (version != FileVersion && version != FramelessVersion)
             {
                 return null;
             }
 
             var layout = reader.ReadUInt64();
+            var frame = version == FileVersion ? reader.ReadUInt64() : 0;
             var cameFrom = reader.ReadString();
             var explored = reader.ReadBytes(reader.ReadInt32());
             var remembered = new Dictionary<uint, ScanEntry>();
@@ -193,7 +280,7 @@ namespace Poe2Accessibility.Services
                 barriers[reader.ReadUInt32()] = new Vector2(reader.ReadSingle(), reader.ReadSingle());
             }
 
-            return new Snapshot(layout, explored, cameFrom, remembered, sighted, barriers);
+            return new Snapshot(layout, explored, cameFrom, remembered, sighted, barriers, frame);
         }
 
         private Snapshot? Load(string instance)
@@ -231,6 +318,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>One instance as it was left; the area it was entered from tells the way on from the way back.</summary>
         public sealed record Snapshot(
-            ulong Layout, byte[] Explored, string CameFrom, Dictionary<uint, ScanEntry> Remembered, HashSet<uint> Sighted, Dictionary<uint, Vector2> ClosedBarriers);
+            ulong Layout, byte[] Explored, string CameFrom, Dictionary<uint, ScanEntry> Remembered, HashSet<uint> Sighted, Dictionary<uint, Vector2> ClosedBarriers,
+            ulong Frame = 0);
     }
 }

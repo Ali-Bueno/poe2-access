@@ -437,6 +437,28 @@ namespace Poe2Accessibility
         /// <summary>The game's Skills panel title (ClientStrings SkillGemPanelTitle), to know it beside the inventory.</summary>
         public static string SkillGemPanel => T("Skills", "Habilidades");
 
+        /// <summary>The game's salvage bench title (ClientStrings SalvageBenchTitle), to know it beside the inventory.</summary>
+        public static string SalvageBenchPanel => T("Salvage Bench", "Mesa de reciclaje");
+
+        /// <summary>"Reciclado: Corona con cuernos, raro. Recibes: Chatarra de armero, 2".</summary>
+        public static string Salvaged(Services.SalvageOutcome outcome)
+        {
+            var lines = new System.Collections.Generic.List<string>();
+            if (outcome.Salvaged.Count > 0)
+            {
+                var names = string.Join(", ", outcome.Salvaged);
+                lines.Add(T($"Salvaged: {names}", $"Reciclado: {names}"));
+            }
+
+            if (outcome.Received.Count > 0)
+            {
+                var items = string.Join("; ", outcome.Received.Select(item => Item(item.Title, GameHelper.RemoteEnums.Rarity.Normal, item.Count)));
+                lines.Add(T($"Received: {items}", $"Recibes: {items}"));
+            }
+
+            return string.Join(". ", lines);
+        }
+
         /// <summary>"Furia I, engarzada en Campana de tempestad".</summary>
         public static string SupportEngraved(string support, string skill) => T($"{support}, socketed in {skill}", $"{support}, engarzada en {skill}");
 

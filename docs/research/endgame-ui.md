@@ -127,6 +127,26 @@ a prior live dump; **INFERRED** = consistent with the sources; **OPEN** = unknow
 - First time live: stand at Rog, F6 dump before and after opening the destination map; record whether the root/title
   matches the acts 1-3 map (`map_control`), whether Act 4 islands are hotspots or buttons, and what the confirm step says.
 
+## 5. Live, 2026-11-02 (yarkey, Act 1 only)
+- MEASURED (`debug/ui-tree-InGameState-20261102-023623.txt`, `dump visible` with the town waypoint open; the full
+  `dump` of the same screen ran out of its 20000-node budget inside the hidden passive tree and never reached the map):
+  the world map is `panels_parent` child 3, `[0,1,17,2,3]` (frame title "Misiones" at `+0x2E8`), holding `WorldScreen`
+  `[0,1,17,2,3,0]` (18 children). GameHelper's `{22,0}` is stale here; the panel is found by its name `WorldScreen`.
+  - `header` → `title_label` "Teletransporte"; `act_buttons_layout` → one `ActButton` per unlocked act (label "acto 1"
+    only for this character: the Act 2-4, Interlude and Atlas buttons appear as they unlock, so they are the place to
+    look for the Atlas and Act 4 entries).
+  - `map_control` → a 94-child pin layer: each area is a 110x110 pin (`visual_pin_layout`, some `dialogue_button`) with
+    no text; the name, monster level, bosses and "Viajar, A" come from the hovered pin's tooltip, which the plugin
+    already reads ("El bosque singular. Nivel de monstruos: 4. … Viajar, A. Administrador de instancias, mantener A").
+    An area without its waypoint ("El valle rojo") reads the same minus "Viajar, A".
+  - `quest_selector` holds an `endgame_quick_travel_buttons_container` (the endgame's quick travel, empty in Act 1).
+  - The right edge button "Selecciona para alternar entre por encima y por debajo del suelo, debajo del suelo" toggles the
+    map layer; it is reached by the stick like the pins.
+- Act 4 sailing: if Rog/Makoru open this same `WorldScreen` (likely: one widget for every act), the islands read like
+  any pin. Still unseen; the first time, `dump visible` (not `dump`) with that map open.
+- The passive tree's ascendancy view: no ascendancy toggle among the dumped passive-tree elements (the tree was hidden
+  then); still needs a character with an ascendancy.
+
 ## Priority for the next live session
 1. Atlas (largest unknown, best prepared: GameHelper already has nodes/edges/status; build the navigator offline).
 2. Ascendancy toggle (cheap: one dump with the view on/off).

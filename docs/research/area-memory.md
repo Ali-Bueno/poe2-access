@@ -48,3 +48,26 @@ when it is the same map. Code: `Services/AreaMemory.cs`, `EntityCatalog.AreaEnte
 - The town keeps hash 3533F5D5 for days (114 entries, 2026-10-25 to 2026-10-31). Each Clearfell visit after a session
   break had a new hash.
 - Unit test `AreaMemoryKeepsTheSameMapOnly`.
+
+## A campaign map in a new instance (2026-11-02)
+
+- Testers heard the scanner forget Clearfell's exits. Each visit after the last instance closed (8 to 15 minutes empty,
+  or "Sin jugadores" in the instance list held on the exit) is a new instance with a new hash, so nothing was
+  recalled; the layout digest differed too.
+- Four Clearfell entity dumps (2026-10-23, 10-24, 10-29, 11-02) put the transition tiles
+  (`Clearfell_OldForest_Transition_01` at 1311,552, `FallenTreeWoods_in` at 207,1173), the checkpoints (485,534;
+  267,1182), the Mud Burrow entrance (249,1207) and the 5184-cell grid at the same spots; about 130 of its 1270 tile
+  names changed each time, and Beira's arena stood elsewhere in the next instance. A second Grelwood instance moved its
+  Grim Tangle transition (the Red Vale one stayed).
+- **Frame** = FNV-1a over the grid size and the tiles under `/AreaTransitions/` (name and spot); 0 when there are none
+  (`AreaMemory.Frame`). Kept in the v3 file (v2 files read with frame 0).
+- A new instance that knows nothing takes the newest instance left with the same frame (`AreaMemory.Inherit`, memory
+  then disk) and brings only its exits to other areas and its waypoints/checkpoints (`AreaMemory.Framed`), with ids from
+  `0xB0000000`. Not the explored ground, places or the boss arena: those vary. An inherited entry leaves once the game's
+  entity of that category and name is listed within 400 world units, or when the player is within 500 of its place and
+  the game has none there (`EntityCatalog.KeepInherited`).
+- Live: town → instance list "Sin jugadores" → Clearfell BF37D51 "new instance of the map of D30D6AAA … 6 exits and
+  checkpoints kept": "El bosque singular, 194 pasos", three checkpoints and the waypoint at once; later 46210ECF took 8
+  from BF37D51 and the guide walked to the forest exit by it. Grelwood D98686FB → 1EFD95CF: other frame, unexplored.
+- The game's exit entity and the radar table's named exit tile were two entries ("El bosque singular" at 3 and 8
+  steps): a named exit tile within 60 cells of a listed exit of the same name is now dropped (`EntityCatalog.SameExit`).
