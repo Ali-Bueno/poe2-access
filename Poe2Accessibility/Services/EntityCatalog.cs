@@ -80,8 +80,11 @@ namespace Poe2Accessibility.Services
         /// <summary>An inherited place the player stands this near with no such entity awake is not in this instance.</summary>
         private const float InheritedGoneWorld = 500f;
 
-        /// <summary>A named exit tile this near (grid cells) the game's exit of the same name is that exit, said once.</summary>
-        private const float TileExitMatchCells = 60f;
+        /// <summary>
+        ///     A named exit tile this near (grid cells) the game's exit of the same name is that exit, said once: Clearfell's
+        ///     forest transition is a metatile nine 23-cell pieces wide, its exit entity 65 cells from the named piece.
+        /// </summary>
+        private const float TileExitMatchCells = 250f;
 
         /// <summary>
         ///     Where the player last died (D2R death place), with the area instance it belongs to: listed among the exits

@@ -186,6 +186,17 @@ if (args.Length > 0 && string.Equals(args[0], "areas", StringComparison.OrdinalI
     return AreaExtractor.Run(args[1], args[2]);
 }
 
+// Args: monster-names <gameDir> <radarTableFile> <outFile>  -- the radar table's boss names per language from MonsterVarieties.
+if (args.Length > 0 && string.Equals(args[0], "monster-names", StringComparison.OrdinalIgnoreCase))
+{
+    if (args.Length < 4)
+    {
+        Console.WriteLine("Usage: Poe2UiExtract.exe monster-names <gameDir> <radarTableFile> <outFile>");
+        return 1;
+    }
+    return MonsterNameExtractor.Run(args[1], args[2], args[3]);
+}
+
 // Args: dat-columns <gameDir> <outFile>  -- the dat columns the plugin reads names from, found again in this install.
 if (args.Length > 0 && string.Equals(args[0], "dat-columns", StringComparison.OrdinalIgnoreCase))
 {

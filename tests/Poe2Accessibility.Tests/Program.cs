@@ -117,6 +117,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(QuestRewardIconsAreNamed), QuestRewardIconsAreNamed);
             Run(nameof(PlacesAreSaidOnceAsTheyChange), PlacesAreSaidOnceAsTheyChange);
             Run(nameof(RadarLabelsSpeakSpanish), RadarLabelsSpeakSpanish);
+            Run(nameof(RadarBossNamesSpeakTheGamesMonsterName), RadarBossNamesSpeakTheGamesMonsterName);
             Run(nameof(ExperienceProgressIsWithinTheLevel), ExperienceProgressIsWithinTheLevel);
             Run(nameof(LootFilterKeepsWhatThePlayerChose), LootFilterKeepsWhatThePlayerChose);
             Run(nameof(ItemsSoundUnderTheirGroupsVolume), ItemsSoundUnderTheirGroupsVolume);
@@ -822,6 +823,25 @@ namespace Poe2Accessibility.Tests
             Equal("Kabala (+2 puntos de pasiva)", Announcements.LandmarkLabel("Kabala (+2 Passive)"), "passive points");
             Localization.Detect("en");
             Equal("Stairs Up", Announcements.LandmarkLabel("Stairs Up"), "English untouched");
+        }
+
+        private static void RadarBossNamesSpeakTheGamesMonsterName()
+        {
+            var directory = System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests", "bosses-" + Guid.NewGuid().ToString("N"));
+            System.IO.Directory.CreateDirectory(directory);
+            var landmarks = System.IO.Path.Join(directory, "landmarks.json");
+            System.IO.File.WriteAllText(landmarks, "{}");
+            System.IO.File.WriteAllText(System.IO.Path.Join(directory, "monster-names.json"),
+                "{\"es\":{\"Beira of the Rotten\":\"Beira, de la manada putrefacta\"},\"en\":{\"Beira of the Rotten\":\"Beira of the Rotten Pack\"}}");
+            var log = new PluginLog(System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests"), false);
+            var table = LandmarkTable.Load(log, landmarks);
+            Localization.Detect("es");
+            Equal("Beira, de la manada putrefacta (10% de resistencia al frío)", table.Localize("Beira of the Rotten (10% Cold Res)"), "a boss's name and note");
+            Equal("Beira, de la manada putrefacta", table.Localize("Beira of the Rotten"), "a boss's name alone");
+            Equal("The Moving Bramble (gema de habilidad de nivel 2)", table.Localize("The Moving Bramble (Skill Gem Level 2)"), "no monster: the name kept, the note translated");
+            Localization.Detect("fr");
+            Equal("Beira of the Rotten", table.Localize("Beira of the Rotten"), "a language without the table keeps the label");
+            Localization.Detect("en");
         }
 
         private static void ExperienceProgressIsWithinTheLevel()

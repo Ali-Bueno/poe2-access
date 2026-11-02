@@ -70,4 +70,5 @@ when it is the same map. Code: `Services/AreaMemory.cs`, `EntityCatalog.AreaEnte
   checkpoints kept": "El bosque singular, 194 pasos", three checkpoints and the waypoint at once; later 46210ECF took 8
   from BF37D51 and the guide walked to the forest exit by it. Grelwood D98686FB → 1EFD95CF: other frame, unexplored.
 - The game's exit entity and the radar table's named exit tile were two entries ("El bosque singular" at 3 and 8
-  steps): a named exit tile within 60 cells of a listed exit of the same name is now dropped (`EntityCatalog.SameExit`).
+  steps): a named exit tile within 250 cells of a listed exit of the same name is now dropped (`EntityCatalog.SameExit`;
+  the forest transition is a metatile nine 23-cell pieces wide, its entity 65 cells from the named piece).
