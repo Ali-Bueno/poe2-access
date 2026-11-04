@@ -393,7 +393,7 @@
 ## Next step
 First (2026-11-04, twentieth batch, released as v2026.11.04-2): the user hears the Diablo IV set as loops in play. It was heard to stop, start and distort
 (repeated cuts of the recordings); the loops were only checked offline, since the user was playing at the time. Also not heard: a
-finished ritual altar is silent now (`MinimapMarks.DeviceKind`; the log shows its icon changing live, 15:12 to 15:14 that day). A boss waiting in its arena no longer counts as a fight: seen live at 18:44 (dev command `fight`: Lachlann out of play, not counted, no fight), but the altar's sound beside him not heard yet. That plugin is in the user's install only; no release has it.
+finished ritual altar is silent now (`MinimapMarks.DeviceKind`; the log shows its icon changing live, 15:12 to 15:14 that day). A boss waiting in its arena no longer counts as a fight: seen live at 18:44 (dev command `fight`: Lachlann out of play, not counted, no fight) and in the user's play from 18:46 (items and the altar named beside him again), released as v2026.11.04-3. A not yet done altar beside a waiting boss still to hear.
 First (2026-11-04, nineteenth batch, released as v2026.11.04): hear the new harmful ground alarm in a real fight.
 First (2026-11-04, eighteenth batch, released as v2026.11.04): the Steam launch option works, seen in the user's own start that
 day (`--- start`, then the game with `--nopatch`, and the launcher still alive following it). With the game open from Steam, update
