@@ -108,8 +108,9 @@ thing is in range and where equipment sounds by rarity
 (`ItemSounds`: `poe2`, `diablo4`). Exits, waypoints, breakables and the rest keep the game's sounds. The sound glossary
 plays the chosen set, and lists the two Diablo IV sounds the game's set has no row for.
 
-**Silence items on the ground in fights** (Combat): while an enemy it counts is alive within about a screen (the range
-the item sounds carry) and for 2 s after, items on the ground neither sound nor are named, on approach, as what A uses,
+**Silence items on the ground in fights** (Combat): while an enemy it counts is alive and in play within about a screen
+(the range the item sounds carry; a boss still waiting in its arena does not count, one between phases does) and for 2 s
+after, items on the ground neither sound nor are named, on approach, as what A uses,
 or by their tooltip; once the fight is over, what dropped is named as usual. Against rares and uniques (default), against
 any enemy, or never (`QuietItemsInFights`: `rares`, `any`, `never`). The scanner still lists them.
 

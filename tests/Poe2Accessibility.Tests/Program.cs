@@ -126,6 +126,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(APileOfLoopsLeavesHeadroom), APileOfLoopsLeavesHeadroom);
             Run(nameof(SteamsCommandIsFoundInTheLaunchersArguments), SteamsCommandIsFoundInTheLaunchersArguments);
             Run(nameof(FightsLastWhileAnEngagingEnemyIsNear), FightsLastWhileAnEngagingEnemyIsNear);
+            Run(nameof(AWaitingBossMakesNoFight), AWaitingBossMakesNoFight);
             Run(nameof(OnlyLinesSaidAloudNearbyAreLocalSpeech), OnlyLinesSaidAloudNearbyAreLocalSpeech);
             Run(nameof(InPlayFlagIsFoundFromStoryVariants), InPlayFlagIsFoundFromStoryVariants);
             Run(nameof(MovedFieldsAreFoundByWatchingThemChange), MovedFieldsAreFoundByWatchingThemChange);
@@ -973,6 +974,18 @@ namespace Poe2Accessibility.Tests
                 .Select(entry => FightState.QuietsInFight(entry.Item1, entry.Item2))), "loot, chests, bodies, breakables and altars keep quiet");
             Equal("False False False", string.Join(" ", new[] { (ScanCategory.Exits, "exit"), (ScanCategory.Chests, "shrine"), (ScanCategory.Waypoints, "checkpoint") }
                 .Select(entry => FightState.QuietsInFight(entry.Item1, entry.Item2))), "exits, shrines and checkpoints still guide");
+        }
+
+        private static void AWaitingBossMakesNoFight()
+        {
+            var roster = new FightRoster();
+            Equal(false, roster.Counts(706, false, 1000), "waiting in its arena, never in play");
+            Equal(false, roster.Counts(706, false, 600000), "however long the player stays around");
+            Equal(true, roster.Counts(706, true, 700000), "awake once the player walks in");
+            Equal(true, roster.Counts(706, false, 700000 + FightRoster.OutOfPlayMs - 1), "between phases it still counts");
+            Equal(false, roster.Counts(706, false, 700000 + FightRoster.OutOfPlayMs), "gone for good, it stops counting");
+            roster.Prune(700000 + FightRoster.OutOfPlayMs);
+            Equal(false, roster.Counts(706, false, 700000 + FightRoster.OutOfPlayMs - 1), "forgotten: the next area uses the same ids");
         }
 
         private static void OnlyLinesSaidAloudNearbyAreLocalSpeech()

@@ -211,6 +211,9 @@ namespace Poe2Accessibility
                 case "enemies":
                     this.log?.Info(this.enemyCues?.Diagnose() ?? "Enemy cues off");
                     break;
+                case "fight":
+                    this.log?.Info(this.fights?.Diagnose() ?? "Fight watch off");
+                    break;
                 case "tiles":
                     // Research: the area's tile grid with rotations and anchors, for docs/research/places.md.
                     this.places?.Dump(Path.Join(this.DllDirectory, "debug", $"tiles-{this.gameState?.CurrentAreaId}-{DateTime.Now:yyyyMMdd-HHmmss}.txt"));
