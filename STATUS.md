@@ -391,7 +391,7 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
-First (2026-11-04, twentieth batch): the user hears the Diablo IV set as loops in play. It was heard to stop, start and distort
+First (2026-11-04, twentieth batch, released as v2026.11.04-2): the user hears the Diablo IV set as loops in play. It was heard to stop, start and distort
 (repeated cuts of the recordings); the loops were only checked offline, since the user was playing at the time. Also not heard: a
 finished ritual altar is silent now (`MinimapMarks.DeviceKind`; the log shows its icon changing live, 15:12 to 15:14 that day).
 First (2026-11-04, nineteenth batch, released as v2026.11.04): hear the new harmful ground alarm in a real fight.
