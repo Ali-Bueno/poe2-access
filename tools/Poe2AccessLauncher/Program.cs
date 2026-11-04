@@ -5,12 +5,13 @@ namespace Poe2AccessLauncher;
 internal static partial class Program
 {
     private const string Usage =
-        "Poe2Access [start|restart|stop|update] [--host <dir>]\n" +
+        "Poe2Access [start|restart|stop|update] [--host <dir>] [<game exe> <its arguments>]\n" +
         "  start    (default) offer a newer version if there is one, open Path of Exile 2 if needed, then restart GameHelper\n" +
         "  restart  restart GameHelper only\n" +
         "  stop     stop GameHelper only\n" +
         "  update   look for a newer version now and offer to install it\n" +
-        "  --host   GameHelper folder (default: this folder, or the repository build output)";
+        "  --host   GameHelper folder (default: this folder, or the repository build output)\n" +
+        "  Steam starts the mod with the game from the launch options: \"<this file's path>\" %command%";
 
     private const uint MessageBoxError = 0x10;
     internal const uint MessageBoxInformation = 0x40;
@@ -28,44 +29,53 @@ internal static partial class Program
     {
         var command = "start";
         string? host = null;
-        for (var i = 0; i < args.Length; i++)
+        var (ownArgs, steamCommand) = GameInstall.SplitArguments(args);
+        for (var i = 0; i < ownArgs.Length; i++)
         {
-            switch (args[i].ToLowerInvariant())
+            switch (ownArgs[i].ToLowerInvariant())
             {
                 case "--help" or "-h" or "/?":
                     ShowUsage();
                     return 0;
-                case "--host" when i + 1 < args.Length:
-                    host = args[++i];
+                case "--host" when i + 1 < ownArgs.Length:
+                    host = ownArgs[++i];
                     break;
                 case "start" or "restart" or "stop" or "update":
-                    command = args[i].ToLowerInvariant();
+                    command = ownArgs[i].ToLowerInvariant();
                     break;
                 default:
-                    Fail($"Unknown argument: {args[i]}\n\n{Usage}");
+                    Fail($"Unknown argument: {ownArgs[i]}\n\n{Usage}");
                     return 1;
             }
         }
 
         Updater.DeleteLeftover();
-        int code;
+        var code = 0;
         var updated = false;
         var elevate = false;
         using (var mutex = new Mutex(true, @"Local\Poe2Access", out var owned))
         {
-            if (!owned)
+            if (owned)
+            {
+                code = Run(command, host, steamCommand, ref updated, ref elevate);
+                mutex.ReleaseMutex();
+            }
+            else if (steamCommand is null)
             {
                 Fail("Poe2Access is already running.");
                 return 1;
             }
-
-            code = Run(command, host, ref updated, ref elevate);
-            mutex.ReleaseMutex();
+            else
+            {
+                // Steam answering a launcher that asked it for the game: that one goes on once the window is up.
+                Log.Write("--- start from Steam, for the launcher already running");
+                StartGame(steamCommand);
+            }
         }
 
         if (updated && command == "start")
         {
-            Updater.StartInstalled(args);
+            Updater.StartInstalled(args, wait: steamCommand is not null);
         }
         else if (elevate)
         {
@@ -85,11 +95,42 @@ internal static partial class Program
                 return 1;
             }
         }
+        else if (steamCommand is not null)
+        {
+            FollowGame();
+        }
 
         return code;
     }
 
-    private static int Run(string command, string? host, ref bool updated, ref bool elevate)
+    private static void StartGame(string[] steamCommand)
+    {
+        try
+        {
+            GameLauncher.Start(steamCommand);
+        }
+        catch (Exception error)
+        {
+            Log.Write(error.ToString());
+            Fail($"Path of Exile 2 could not start: {error.Message}");
+        }
+    }
+
+    /// <summary>Stays until the game closes: Steam counts it running while the launcher it started lives. GameHelper closes with the game by itself.</summary>
+    private static void FollowGame()
+    {
+        try
+        {
+            GameLauncher.WaitForExit();
+            Log.Write("Game closed");
+        }
+        catch (Exception error)
+        {
+            Log.Write(error.ToString());
+        }
+    }
+
+    private static int Run(string command, string? host, string[]? steamCommand, ref bool updated, ref bool elevate)
     {
         try
         {
@@ -111,7 +152,7 @@ internal static partial class Program
                         break; // the launcher just installed carries on
                     }
 
-                    GameLauncher.EnsureRunning();
+                    GameLauncher.EnsureRunning(steamCommand);
                     if (elevate = NeedsAdministrator(controller))
                     {
                         break; // the game has just been started: the administrator launcher carries on

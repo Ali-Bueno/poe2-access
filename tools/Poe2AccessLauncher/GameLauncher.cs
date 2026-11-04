@@ -14,7 +14,8 @@ internal static class GameLauncher
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(240); // first start compiles shaders
     private static readonly TimeSpan Poll = TimeSpan.FromMilliseconds(500);
 
-    public static void EnsureRunning()
+    /// <param name="steamCommand">The game's command when Steam started this launcher (%command%), else null: Steam is asked for the game.</param>
+    public static void EnsureRunning(string[]? steamCommand)
     {
         if (FindWindow())
         {
@@ -23,7 +24,11 @@ internal static class GameLauncher
         }
 
         var kakao = KakaoDirectory();
-        if (GameInstall.StartsKakaoClient(GameInstall.SteamHasGame(SteamDirectory()), kakao))
+        if (steamCommand is not null)
+        {
+            Start(steamCommand);
+        }
+        else if (GameInstall.StartsKakaoClient(GameInstall.SteamHasGame(SteamDirectory()), kakao))
         {
             // The Korean client only starts from the Kakao Games website, which hands it the login token.
             Log.Write($"Korean client installed in {kakao}: waiting for it to be started from the Kakao Games website");
@@ -48,6 +53,39 @@ internal static class GameLauncher
         }
 
         throw new TimeoutException($"The game window did not appear within {Timeout.TotalSeconds:0} seconds.");
+    }
+
+    /// <summary>Starts the game from the command Steam gave, unless it runs already; it inherits Steam's environment from this launcher.</summary>
+    public static void Start(string[] steamCommand)
+    {
+        if (RunningProcessName() is not null)
+        {
+            return;
+        }
+
+        Log.Write($"Starting {string.Join(' ', steamCommand)}");
+        var info = new ProcessStartInfo(steamCommand[0]) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(steamCommand[0]) };
+        foreach (var arg in steamCommand.Skip(1))
+        {
+            info.ArgumentList.Add(arg);
+        }
+
+        Process.Start(info)?.Dispose();
+    }
+
+    /// <summary>Returns once no game process is left.</summary>
+    public static void WaitForExit()
+    {
+        while (ProcessNames.SelectMany(Process.GetProcessesByName).ToArray() is { Length: > 0 } running)
+        {
+            foreach (var process in running)
+            {
+                using (process)
+                {
+                    process.WaitForExit();
+                }
+            }
+        }
     }
 
     /// <summary>The process name of the running game, or null when it is not running.</summary>

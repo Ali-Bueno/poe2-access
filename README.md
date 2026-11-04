@@ -42,6 +42,16 @@ Nothing else needs installing: everything is inside the folder.
 5. At the game's title screen, press a button on the **controller**, not the mouse or keyboard: the game picks the
    control method then.
 
+To start the game and the mod with Steam's Play button, open the game's Properties in Steam and, under General,
+write this in Launch Options, with the path of your own copy:
+
+```
+"C:\Games\Poe2Access\Poe2Access.exe" %command%
+```
+
+In File Explorer, Ctrl+Shift+C on `Poe2Access.exe` copies its path with the quotes. Running `Poe2Access.exe` yourself
+keeps working as before.
+
 From then on `Poe2Access.exe` looks for a newer version when it starts and asks before installing it, keeping your
 settings (the setting "Check for updates at start" turns the question off; `Poe2Access.exe update` looks now).
 The mod closes with the game; `Stop the mod.bat` stops it too. It speaks the language the game is set to (all ten
@@ -57,6 +67,8 @@ of the game's languages). The full instructions are in `README.txt`, inside the 
   life and weak point, life, mana, flasks and status effects, skills ready again after their cooldown, and a sound
   for enemy states that skills pay off on (primed for stun, heavy stunned, frozen, electrocuted, pinned, armour
   broken, dazed, parried, culling strike).
+- **Item sounds:** the game's own sounds by default, or the Diablo IV set of the Diablo II Resurrected mod (the
+  Sound menu's "Item sound set").
 - **Local co-op:** two controllers on one PC, with speech for either player or both.
 
 Every control: [docs/controls.md](docs/controls.md). The mod's L3 menu (hold L3 for a second and a half) has the

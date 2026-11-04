@@ -124,7 +124,9 @@ internal static class Updater
     }
 
     /// <summary>Starts the launcher just installed, with the same arguments, once this one has let go of its mutex.</summary>
-    public static void StartInstalled(string[] args)
+    /// <param name="args">This launcher's arguments, passed on.</param>
+    /// <param name="wait">Stay until the new launcher ends: Steam follows the launcher it started.</param>
+    public static void StartInstalled(string[] args, bool wait)
     {
         var info = new ProcessStartInfo(Path.Join(InstallRoot, LauncherExe)) { UseShellExecute = false, WorkingDirectory = InstallRoot };
         foreach (var arg in args)
@@ -133,6 +135,10 @@ internal static class Updater
         }
 
         using var started = Process.Start(info);
+        if (wait)
+        {
+            started?.WaitForExit();
+        }
     }
 
     /// <summary>The launcher an update moved aside is still exiting when the new one starts: retry its deletion briefly.</summary>

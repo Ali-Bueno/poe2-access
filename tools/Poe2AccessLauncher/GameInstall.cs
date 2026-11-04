@@ -23,6 +23,28 @@ internal static class GameInstall
     public static bool StartsKakaoClient(bool steamHasGame, string? kakaoDirectory) => !steamHasGame && kakaoDirectory is not null;
 
     /// <summary>
+    ///     Splits the launcher's arguments from the game's command, which Steam passes for %command% in the game's launch
+    ///     options ("...\Poe2Access.exe" %command%): the game's path, then its arguments. Game is null without one.
+    /// </summary>
+    public static (string[] Own, string[]? Game) SplitArguments(string[] args)
+    {
+        var exe = System.Array.FindIndex(args, IsGameExe);
+        if (exe < 0)
+        {
+            return (args, null);
+        }
+
+        // A path that came unquoted is split at its spaces: it begins at the nearest rooted argument.
+        var start = System.Array.FindLastIndex(args, exe, Path.IsPathRooted);
+        start = start < 0 ? exe : start;
+        return (args[..start], [string.Join(' ', args[start..(exe + 1)]), .. args[(exe + 1)..]]);
+    }
+
+    private static bool IsGameExe(string path) =>
+        string.Equals(Path.GetExtension(path), ".exe", System.StringComparison.OrdinalIgnoreCase) &&
+        System.Array.Exists(ProcessNames, name => string.Equals(name, Path.GetFileNameWithoutExtension(path), System.StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
     ///     Whether one of the Steam libraries holds the game's manifest: Steam's own folder and every library listed in
     ///     its steamapps\libraryfolders.vdf (whose paths escape their backslashes).
     /// </summary>

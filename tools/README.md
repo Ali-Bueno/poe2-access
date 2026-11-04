@@ -73,7 +73,12 @@ update check, no key prompt, no visible window.
 ```
 dotnet build tools/Poe2AccessLauncher -c Release     # also copies the exe + dlls beside GameHelper.exe
 Poe2Access.exe [start|restart|stop] [--host <dir>]   # start (default): open PoE2 via Steam if needed, then restart the host
+"<path>\Poe2Access.exe" %command%                    # in Steam's launch options: Steam's Play button starts the game and the mod
 ```
+Started by Steam, the launcher gets the game's command (`PathOfExileSteam.exe --nopatch`, from Steam's app info), so it runs
+that instead of asking Steam, and it stays until the game closes: Steam counts the game running while that launcher lives.
+A launcher opened by hand with these options set asks Steam for the game; the one Steam then starts finds the first still
+running (the single-instance mutex), starts the game and waits, and the first goes on to the host once the window is up.
 `restart` stops every process whose image is in the host folder (not `Launcher.exe`), deletes the previous random-named
 copies, makes a new copy of `GameHelper.exe` with rewritten version-info strings and starts it with
 `__COMPAT_LAYER=RunAsInvoker`. Single instance; steps go to `Poe2Access.log` next to the exe; a failure shows a message box

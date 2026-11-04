@@ -20,7 +20,8 @@
 - **Run:** double-click `Poe2Access.exe` in the host folder (`tools/Poe2AccessLauncher`, built with the
   host): starts PoE2 through Steam if needed and a hidden, renamed GameHelper copy without UAC
   (`__COMPAT_LAYER=RunAsInvoker`), no console, no update check, no prompt; `restart`/`stop` for testing; errors
-  in `Poe2Access.log` + a message box. Dev: `py -B tools/computer_use/launch.py all|host|stop` wraps it.
+  in `Poe2Access.log` + a message box. From Steam's Play button: launch options `"<path>\Poe2Access.exe" %command%` (`tools/README.md`).
+  Dev: `py -B tools/computer_use/launch.py all|host|stop` wraps it.
 - **Releases:** public repo (2026-10-26); `tools/package/Publish-Release.ps1` builds the package and makes it the latest GitHub release (tag `vYYYY.MM.DD[-n]`, assets always `Poe2Access.zip` / `.7z`), so `https://github.com/Ali-Bueno/poe2-access/releases/latest/download/Poe2Access.zip` is always the newest.
 - **Test package:** `tools/package/New-TestPackage.ps1` → `dist/Poe2Access-test-<date>.zip` and `.7z` (~29 MB, fits a chat upload; top folder: `Poe2Access.exe`, README.txt, Controls.md, Stop the mod.bat
   shortcut; everything else in `app/`; self-contained, unzip and
@@ -194,6 +195,8 @@
 | Login: gateway list | done (live) | "Servidor, Sao Paulo (BR), lista desplegable, 5 de 7"; open list reads the highlighted entry "Japan, 16 de 19" |
 | NPC dialogue and vendor (town) | done (live) | speaker first ("Renly. Comprar o vender objetos, 7 de 8"); vendor stock "Coraza oxidada, columna 10, fila 10, 50 oro, no alcanza… Comprar objeto, X"; reward and vendor openings without the gold chrome |
 | Trade market (game menu, "Mercado de comercio") | done (live 2026-10-28) | RB searches once a filter is set; a listing (focusable card: seller column, item column with a `cost` block) is read item, price, seller and status, position, then properties and mods (`CardText`, pure, unit-tested; `UiSemantics.Cards`); listings scrolling into view are not mixed in. Its untitled panel had let the panel-title search adopt the root's "HUD" (+0x378) for the session: titles are now searched only below `panels_parent` |
+| Item sound sets (D2R) | done (code; samples load live) | setting `ItemSounds`: Path of Exile 2 (default) or Diablo IV (`ItemSoundSet`, `assets/diablo4/`); items, chests, bodies, shrines; a unique has its own sound in both sets (`item_unique`, launcher sounds step v5); [notes](docs/research/game-audio.md#the-diablo-iv-item-set-assetsdiablo4-shipped-2026-11-04); not heard in play |
+| Start from Steam's Play button | done (Steam's command run by hand on the real game; Steam's own launch options not tried) | `GameInstall.SplitArguments`, `GameLauncher.Start`/`WaitForExit`; double click still starts the game through Steam; `tools/README.md` |
 | Auto-update | done (live against the GitHub release 2026-10-28; manifest from v2026.10.30-2) | `Poe2Access.exe` (`Updater`, `ReleaseTag`, `ReleaseManifest`) compares `app/version.txt` (written by `Publish-Release.ps1`) with the latest release's `release.json` asset (tag, zip SHA-256, notes; GitHub's API gave the user's address 403 rate limit all of 2026-10-30, 60 requests an hour per address), asks (message box), downloads the zip, checks its SHA-256, keeps `app/configs/` and the plugin's `config/`, renames itself aside, rolls everything back on a failure (tested with a locked DLL), starts the new launcher; setting `CheckForUpdates`, `Poe2Access.exe update` for a manual check; ported from D4 Assist |
 | Korean client (Kakao Games, `PathOfExile_KG`) | done (live by a Korean player 2026-10-31, PR #1 from dnz3d4c) | pure `GameInstall` (Steam first when both are installed; start from the Kakao website); data from `Content.ggpk` (`Poe2UiExtract` `GameContent`); the client denies its memory to non-administrators, so the launcher restarts as administrator while it runs or while an administrator GameHelper is left (`ProcessAccess`, `HostController.HostNeedsAdministrator`; the leftover case is code only). Not checked: whether `Content.ggpk`'s time stamp moves without a patch (would regenerate the data each start) |
 | Minimap marks: signs, boss rooms, points of interest, quest icons | done (signs and tile boss rooms live; icon boss rooms code) | `MinimapMarks` + `MinimapIconLabel` (row +0x1A, `dat-columns` `MinimapIcons.Label`): story glyphs "Letrero: Decreto del conde" among objects, never quest targets (the Hunting Grounds signpost "Pueblo de Ogham" was a character and the quest's village, user 2026-10-28); scanner category Puntos de interés. Boss rooms from the area's tiles (`EntityCatalog.TileLandmarks`: radar-table arenas "Sala del jefe: Asinia", unnamed arena tiles by file name), listed once within the minimap's pointer reach (MinimapIcons +0x12: 400 cells campaign bosses, 250 map boss) or seen, as the game points a sighted player to them (user 2026-10-29: mimic the map, not lost); live in Clearfell, "En el mapa: Sala del jefe: Beira of the Rotten…" at 398 cells. Boss room objects (`BossRoomMinimapIcon`, "…, derrotado") and labelled icons ("Taller de Renly") when the client lists them; `QuestObject`/`QuestItem` icons copied into Quest ([minimap](docs/research/minimap.md)) |
@@ -370,7 +373,7 @@
 - Gameplay guides: `Beacon` (+ pure `BeaconMath`), `QuestMatcher`, `BossWatch` (boss life + dodge whoosh, pure
   `DodgeThreats`), `TargetNarrator` (aim names + crosshair), `StatusWatch` (+ pure `StatusAilments`), `EnemyNarrator`, `DeathWatch`,
   `ObjectSounds` + `GameSounds` + `ItemDropSounds` (game WAVs), `CheckpointPlaces` (+ pure `MapPlaces`),
-  `ScreenProjection` (world offset → screen, on-screen test), `FlaskWatch`, `ExperienceTable`, `LootFilter`, `ItemSoundGroup`,
+  `ScreenProjection` (world offset → screen, on-screen test), `FlaskWatch`, `ExperienceTable`, `LootFilter`, `ItemSoundGroup`, `ItemSoundSet`,
   `FightWatch` (+ pure `FightState`: ground items and characters' chat lines quiet in fights).
   Combat state cues: `CullWatch` (+ pure `CullThreshold`), `EnemyStateWatch` (+ pure `EnemyStates`, `EnemyStateNews`),
   `ShieldWatch` (+ pure `ShieldStance`, `StunMeter`), `WeakPointGuide` (+ pure `WeakPoints`); player skills: `PlayerSkills` (granted
@@ -388,6 +391,10 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
+First (2026-11-04, eighteenth batch, deployed into the user's `dist`, not released): the user puts `"<path>\Poe2Access.exe" %command%` in
+Steam's launch options and presses Play (the one thing not tried: Steam's own expansion of `%command%`; the launcher takes the
+path quoted or not), and hears a unique on the ground (`Items_UniqueDrop_01`; alternatives B and C on
+https://claude.ai/artifact/BwkQFbDHU1bEpxfqkPwpa2). The Diablo IV set read and saved in the menu, its 13 samples load; not heard in play.
 First (2026-11-02, seventeenth batch): the scanner keeps a fixed campaign map's exits and checkpoints in a new instance
 (Clearfell), the game's exit and its named tile are one entry, "Área: X, nivel N" waits for the instance it names (a
 new Clearfell said the town's 15), and the salvage bench is found and read first. Not heard yet: a real salvage's

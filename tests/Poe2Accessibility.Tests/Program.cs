@@ -121,6 +121,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(ExperienceProgressIsWithinTheLevel), ExperienceProgressIsWithinTheLevel);
             Run(nameof(LootFilterKeepsWhatThePlayerChose), LootFilterKeepsWhatThePlayerChose);
             Run(nameof(ItemsSoundUnderTheirGroupsVolume), ItemsSoundUnderTheirGroupsVolume);
+            Run(nameof(DiabloIVSetCoversLootByKindAndRarity), DiabloIVSetCoversLootByKindAndRarity);
+            Run(nameof(SteamsCommandIsFoundInTheLaunchersArguments), SteamsCommandIsFoundInTheLaunchersArguments);
             Run(nameof(FightsLastWhileAnEngagingEnemyIsNear), FightsLastWhileAnEngagingEnemyIsNear);
             Run(nameof(OnlyLinesSaidAloudNearbyAreLocalSpeech), OnlyLinesSaidAloudNearbyAreLocalSpeech);
             Run(nameof(InPlayFlagIsFoundFromStoryVariants), InPlayFlagIsFoundFromStoryVariants);
@@ -857,6 +859,49 @@ namespace Poe2Accessibility.Tests
             Equal("Nivel 4, 35 por ciento hacia el nivel 5, nivel del área 2", Announcements.Levels(4, 2, 35), "vitals line");
             Equal("Nivel 4, nivel del área 2", Announcements.Levels(4, 2), "without the table");
             Localization.Detect("en");
+        }
+
+        private static void DiabloIVSetCoversLootByKindAndRarity()
+        {
+            string? Sample(string kind, string baseId = "", LootTier tier = LootTier.Normal, string? gameDrop = null) =>
+                ItemSoundSet.DiabloIVSample(kind, baseId, tier, gameDrop);
+
+            Equal(ItemSoundSet.Game, ItemSoundSet.Sets[0], "the game's own sounds stay the default");
+            Equal("gold", Sample("gold"), "gold");
+            Equal("quest item", Sample("quest", gameDrop: "Scroll_Drop_01"), "a quest scroll is a quest item");
+            Equal("rune", Sample("currency", "Metadata/Items/Currency/CurrencyUpgradeToRare", LootTier.Valuable), "an orb");
+            Equal("scroll", Sample("currency", "Metadata/Items/Currency/CurrencyIdentification", LootTier.Valuable, "Scroll_Drop_01"), "a Scroll of Wisdom");
+            Equal("potion", Sample("item", "Metadata/Items/Flasks/FlaskLife1"), "a flask");
+            Equal("potion", Sample("item", "Metadata/Items/Flasks/FlaskLife1", LootTier.Magic), "a magic flask stays a flask");
+            Equal("gem", Sample("item", "Metadata/Items/Gems/SkillGemFireball", LootTier.Valuable), "a gem");
+            Equal("normal equipment", Sample("item", "Metadata/Items/Armours/Helmets/FourHelmetStr1"), "normal gear");
+            Equal("magic equipment", Sample("item", "Metadata/Items/Rings/FourRing1", LootTier.Magic), "magic gear");
+            Equal("rare equipment", Sample("rare", "Metadata/Items/Rings/FourRing1", LootTier.Valuable), "rare gear");
+            Equal("legendary equipment", Sample("unique", "Metadata/Items/Rings/FourRing1", LootTier.Valuable), "unique gear");
+            Equal("normal equipment", Sample("item", "Metadata/Items/Maps/MapKeyTier1", LootTier.Valuable), "worth unread: the plain sound");
+            Equal("chest", Sample("chest"), "a chest");
+            Equal("corpse", Sample("corpse"), "a body");
+            Equal("shrine", Sample("shrine"), "a shrine");
+            Equal(null, Sample("breakable"), "a breakable keeps the game's sound");
+            Equal(null, Sample("waypoint"), "places keep the game's sounds");
+        }
+
+        private static void SteamsCommandIsFoundInTheLaunchersArguments()
+        {
+            const string Game = @"D:\games\steam\steamapps\common\Path of Exile 2\PathOfExileSteam.exe";
+            string Split(params string[] args)
+            {
+                var (own, game) = Poe2AccessLauncher.GameInstall.SplitArguments(args);
+                return $"{string.Join('|', own)} > {(game is null ? "none" : string.Join('|', game))}";
+            }
+
+            Equal($" > {Game}|--nopatch", Split(Game, "--nopatch"), "%command%: the game's path, then its arguments");
+            Equal($"--host|C:\\mod\\app > {Game}|--nopatch", Split("--host", @"C:\mod\app", Game, "--nopatch"), "the launcher's own arguments come first");
+            Equal($" > {Game}|--nopatch", Split(@"D:\games\steam\steamapps\common\Path", "of", "Exile", @"2\PathOfExileSteam.exe", "--nopatch"), "a path that came unquoted");
+            Equal($"restart > {Game}", Split("restart", Game), "a command before it");
+            Equal(" > none", Split(), "a double click");
+            Equal("restart|--host|C:\\PathOfExile > none", Split("restart", "--host", @"C:\PathOfExile"), "a folder named like the game");
+            Equal("C:\\tools\\notes.exe > none", Split(@"C:\tools\notes.exe"), "another program");
         }
 
         private static void ItemsSoundUnderTheirGroupsVolume()
