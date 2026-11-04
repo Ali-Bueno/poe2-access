@@ -1563,8 +1563,9 @@ namespace Poe2Accessibility.Tests
         private static void HazardAlarmLoopsWithoutASeam()
         {
             var loop = CueSynth.HazardAlarm(44100);
-            Equal(true, loop.Max(MathF.Abs) <= 0.31f && loop.Max(MathF.Abs) > 0.2f, "soft, as asked");
+            Equal(true, loop.Max(MathF.Abs) <= 0.5f && loop.Max(MathF.Abs) > 0.3f, "clear, under the combat warnings");
             Equal(true, MathF.Abs(loop[0]) < 0.01f && MathF.Abs(loop[^1]) < 0.01f, "silent at the seam");
+            Equal(true, loop.Skip((int)(0.33f * 44100)).All(sample => sample == 0f), "a rest after the stabs, so it pulses");
             var stab = CueSynth.Unblockable(44100);
             Equal(true, stab.All(sample => MathF.Abs(sample) <= 1f) && stab.Length < CueSynth.Dodge(44100).Length, "the unblockable cue is short and in range");
         }

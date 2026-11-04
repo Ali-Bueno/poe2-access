@@ -5,7 +5,7 @@ namespace Poe2Accessibility.Services
     using GameHelper.RemoteObjects.Components;
 
     /// <summary>
-    ///     The hazard alarm: a soft, low pulsing loop (<see cref="CueSynth.HazardAlarm"/>) while the followed player stands in
+    ///     The hazard alarm: a loop of grinding stabs (<see cref="CueSynth.HazardAlarm"/>) while the followed player stands in
     ///     harmful ground or an enemy's damaging zone, known by the buff it puts on the player (<see cref="HazardGround"/>);
     ///     silence means safe ground.
     /// </summary>

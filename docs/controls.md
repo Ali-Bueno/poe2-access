@@ -307,10 +307,10 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   rare's or unique's attack the game marks as impossible to block (its red glow): neither a shield nor Parry stops it,
   so dodge; the dodge warning then times the roll as usual. Attacks you can block or parry keep the plain dodge
   warning. Setting "Aviso de ataque imbloqueable" (on), volume "Volumen de esquiva y Parada".
-- **Harmful ground:** a soft, low pulse (110 Hz, a little over two a second) that repeats while you stand in harmful
+- **Harmful ground:** two harsh stabs of low notes that grind against each other, kin to the unblockable cue, that repeat while you stand in harmful
   ground or an enemy's damaging zone — burning, caustic, desecrated or bloody ground, a vortex, a boss's flames or
   beam — and stops as you leave it: silence means safe ground. Known by the state the game puts on you there (61 from
-  the game files, `catalog/hazards.txt`). Setting "Alarma de suelo peligroso" (on), volume with the enemy sounds.
+  the game files, `catalog/hazards.txt`). Setting "Alarma de suelo peligroso" (on), volume with the enemy sounds, and its own under Sound.
 - **Parry cue** (only for a character with the Parry skill: a buckler, a targe or two swords): a reverse hit, a
   struck buckler played backwards, that swells in for a third of a second and stops dead, from the attacker's side;
   press Parry on the stop, which falls 150 ms before a blow you can parry. Strikes from any monster within about a

@@ -304,14 +304,19 @@ namespace Poe2Accessibility.Services
         private const float SkillReadyLevel = 0.3f;
 
         /// <summary>
-        ///     Harmful ground under the player: a soft low tone (110 Hz and two overtones) swelling and fading twice a loop, so
-        ///     it pulses like a quiet alarm while it lasts; a whole number of cycles per loop, silent at the seam.
+        ///     Harmful ground under the player: two stabs of notes a semitone apart, grinding against each other, kin to the
+        ///     unblockable cue's tritone but repeating; in the low mids a fight leaves free (chosen by the user, 2026-11-04).
         /// </summary>
-        private const float HazardHz = 110f;
-        private const float HazardPulseSeconds = 0.4f;
-        private const int HazardPulses = 2;
-        private const float HazardLevel = 0.3f;
-        private static readonly float[] HazardHarmonics = { 1f, 0.35f, 0.15f };
+        private static readonly StateNote[] HazardNotes =
+        {
+            new(0f, 0.12f, 165f, 165f, Buzz, 0.1f, Grit: 0.3f),
+            new(0f, 0.12f, 175f, 175f, Buzz, 0.1f, Grit: 0.3f),
+            new(0.2f, 0.12f, 165f, 165f, Buzz, 0.1f, Grit: 0.3f),
+            new(0.2f, 0.12f, 175f, 175f, Buzz, 0.1f, Grit: 0.3f),
+        };
+
+        private const float HazardLoopSeconds = 0.56f;
+        private const float HazardLevel = 0.4f;
 
         /// <summary>Crosshair (D2R crosshair.md): two flat 24 ms blips at 1175 Hz, 40 ms apart, odd harmonics.</summary>
         private const float ReachLowHz = 1320f;
@@ -744,25 +749,13 @@ namespace Poe2Accessibility.Services
         /// <summary>A skill usable again (<see cref="SkillReadyNotes"/>).</summary>
         public static float[] SkillReady(int sampleRate) => Normalized(Room(Struck(SkillReadyNotes, 1f, sampleRate), sampleRate, SkillReadyRoom), SkillReadyLevel);
 
-        /// <summary>The hazard alarm's loop (<see cref="HazardHz"/>): each pulse swells and fades within its first half.</summary>
+        /// <summary>The hazard alarm's loop (<see cref="HazardNotes"/>): its stabs, then a rest up to the seam.</summary>
         public static float[] HazardAlarm(int sampleRate)
         {
-            var samples = new float[(int)(HazardPulseSeconds * HazardPulses * sampleRate)];
-            for (var i = 0; i < samples.Length; i++)
-            {
-                var t = (float)i / sampleRate;
-                var phase = (t % HazardPulseSeconds) / HazardPulseSeconds;
-                var swell = phase < 0.5f ? MathF.Pow(MathF.Sin(MathF.PI * phase * 2f), 2f) : 0f;
-                var tone = 0f;
-                for (var h = 0; h < HazardHarmonics.Length; h++)
-                {
-                    tone += HazardHarmonics[h] * MathF.Sin(2 * MathF.PI * HazardHz * (h + 1) * t);
-                }
-
-                samples[i] = tone * swell;
-            }
-
-            return Normalized(samples, HazardLevel);
+            var stabs = Struck(HazardNotes, HazardLevel, sampleRate);
+            var loop = new float[(int)(HazardLoopSeconds * sampleRate)];
+            Array.Copy(stabs, loop, stabs.Length);
+            return loop;
         }
 
         /// <summary>A hit and its room played backwards, the last <see cref="ParrySwellSeconds"/> of it: a swell into a dead stop.</summary>
