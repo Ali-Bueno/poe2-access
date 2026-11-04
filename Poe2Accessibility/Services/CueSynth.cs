@@ -303,20 +303,23 @@ namespace Poe2Accessibility.Services
         private const float SkillReadyRoom = 0.3f;
         private const float SkillReadyLevel = 0.3f;
 
+        /// <summary>Twice the unblockable's harmonics: an octave lower, they keep the hazard alarm's body in the mids.</summary>
+        private static readonly float[] HazardBuzz = { 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f };
+
         /// <summary>
         ///     Harmful ground under the player: two stabs of notes a semitone apart, grinding against each other, kin to the
-        ///     unblockable cue's tritone but repeating; in the low mids a fight leaves free (chosen by the user, 2026-11-04).
+        ///     unblockable cue's tritone but repeating, an octave under it (chosen by the user, 2026-11-04).
         /// </summary>
         private static readonly StateNote[] HazardNotes =
         {
-            new(0f, 0.12f, 147f, 147f, Buzz, 0.1f, Grit: 0.3f),
-            new(0f, 0.12f, 156f, 156f, Buzz, 0.1f, Grit: 0.3f),
-            new(0.2f, 0.12f, 147f, 147f, Buzz, 0.1f, Grit: 0.3f),
-            new(0.2f, 0.12f, 156f, 156f, Buzz, 0.1f, Grit: 0.3f),
+            new(0f, 0.12f, 73.5f, 73.5f, HazardBuzz, 0.1f, Grit: 0.3f),
+            new(0f, 0.12f, 78f, 78f, HazardBuzz, 0.1f, Grit: 0.3f),
+            new(0.2f, 0.12f, 73.5f, 73.5f, HazardBuzz, 0.1f, Grit: 0.3f),
+            new(0.2f, 0.12f, 78f, 78f, HazardBuzz, 0.1f, Grit: 0.3f),
         };
 
         private const float HazardLoopSeconds = 0.56f;
-        private const float HazardLevel = 0.4f;
+        private const float HazardLevel = 0.47f;
 
         /// <summary>Crosshair (D2R crosshair.md): two flat 24 ms blips at 1175 Hz, 40 ms apart, odd harmonics.</summary>
         private const float ReachLowHz = 1320f;

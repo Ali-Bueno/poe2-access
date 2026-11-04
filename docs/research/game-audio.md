@@ -135,6 +135,16 @@ other items by rarity → normal, magic, rare, legendary; chest; corpse; shrine.
 Exits, portals, waypoints, breakables, switches and altars keep the game's sounds: the D2R setting is about items, and those
 were tuned here by ear. Last Epoch and the D2 drops were left out (user's request).
 
+## Harmful ground alarm (2026-11-04)
+A tester asked for something more urgent than the 110 Hz pulse. The user went through alarms (too shrill), a family built like the
+unblockable cue, and chose notes a semitone apart, lowered in steps to 73.5 + 78 Hz. An octave down the unblockable's seven harmonics
+stop near 550 Hz, so it has fourteen.
+
+Measured against a mock fight (the game's hit and shout samples, the mod's enemy cues) in third-octave bands, at about one loudness:
+the old pulse, the seven-harmonic and the fourteen-harmonic versions all peak about 7-8 dB over it, so that figure does not tell them
+apart. They differ in the mids: at 630 / 1000 Hz the old pulse sits -13 / -20 dB under the fight, seven harmonics -9 / -18, fourteen
+-5 / -10; the new alarm also has a hard attack and grit where the old one swelled. Not judged in a real fight yet.
+
 ## The mod's own recordings (`Poe2Accessibility/assets/`, shipped)
 - `combo.wav` (2026-10-30): the user's "combo build.mp3" (its note E2), lowered 4 semitones to C by resampling, stereo
   44.1 kHz, first 1.5 s faded from 1.1 s. `ChargeWatch` plays it and `power_charge` unpanned in stereo
