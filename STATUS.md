@@ -395,9 +395,11 @@ First (2026-11-04, twentieth batch, released as v2026.11.04-2): the user hears t
 (repeated cuts of the recordings); the loops were only checked offline, since the user was playing at the time. Also not heard: a
 finished ritual altar is silent now (`MinimapMarks.DeviceKind`; the log shows its icon changing live, 15:12 to 15:14 that day).
 First (2026-11-04, nineteenth batch, released as v2026.11.04): hear the new harmful ground alarm in a real fight.
-First (2026-11-04, eighteenth batch, released as v2026.11.04): the user puts `"<path>\Poe2Access.exe" %command%` in
-Steam's launch options and presses Play (the one thing not tried: Steam's own expansion of `%command%`; the launcher takes the
-path quoted or not), and hears a unique on the ground (`Items_UniqueDrop_01`, the user's pick, A on
+First (2026-11-04, eighteenth batch, released as v2026.11.04): the Steam launch option works, seen in the user's own start that
+day (`--- start`, then the game with `--nopatch`, and the launcher still alive following it). With the game open from Steam, update
+by stopping only the host: the launcher is what Steam counts as running, so move it aside as `Updater.Replace` does instead of
+closing it, then `Poe2Access.exe restart` (done live for v2026.11.04-2; the host attached to the running game). Still to hear: a
+unique on the ground (`Items_UniqueDrop_01`, the user's pick, A on
 https://claude.ai/artifact/BwkQFbDHU1bEpxfqkPwpa2). The Diablo IV set read and saved in the menu, its 13 samples load; not heard in play.
 First (2026-11-02, seventeenth batch): the scanner keeps a fixed campaign map's exits and checkpoints in a new instance
 (Clearfell), the game's exit and its named tile are one entry, "Área: X, nivel N" waits for the instance it names (a
