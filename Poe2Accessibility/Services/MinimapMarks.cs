@@ -28,7 +28,15 @@ namespace Poe2Accessibility.Services
 
         public const string RitualDoneIcon = "RitualRuneFinished";
 
+        public const string RitualDoneKind = "ritual_done";
+
         public static bool IsRitualAltar(string icon) => icon.StartsWith(RitualIcon, StringComparison.Ordinal);
+
+        /// <summary>
+        ///     The scanner kind of a league device by its icon. A finished altar has its own: it stays listed, the tribute is
+        ///     spent there, but its sound drew the player to nothing (user 2026-11-04).
+        /// </summary>
+        public static string DeviceKind(string icon) => icon == RitualDoneIcon ? RitualDoneKind : IsRitualAltar(icon) ? "ritual" : "encounter";
 
         /// <summary>
         ///     How far (grid cells) the minimap points to a campaign boss's room: MinimapIcons +0x12 (the pointer's reach) is

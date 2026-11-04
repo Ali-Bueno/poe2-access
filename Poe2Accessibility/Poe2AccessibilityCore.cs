@@ -312,7 +312,7 @@ namespace Poe2Accessibility
                 this.deployed.GameSound = gameSounds.Get;
                 var drops = ItemDropSounds.Load(
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
-                var diabloSounds = GameSounds.Load(Path.Join(this.DllDirectory, "assets", ItemSoundSet.Folder), GameSoundSeconds, this.log);
+                var diabloSounds = GameSounds.LoadLoops(Path.Join(this.DllDirectory, "assets", ItemSoundSet.Folder), this.log);
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds, drops, diabloSounds);
                 this.fights = new FightWatch();
                 Func<bool> inFight = () => this.fights?.InFight(this.Settings.QuietItemsInFights) ?? false;

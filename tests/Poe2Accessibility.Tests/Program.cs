@@ -122,6 +122,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(LootFilterKeepsWhatThePlayerChose), LootFilterKeepsWhatThePlayerChose);
             Run(nameof(ItemsSoundUnderTheirGroupsVolume), ItemsSoundUnderTheirGroupsVolume);
             Run(nameof(DiabloIVSetCoversLootByKindAndRarity), DiabloIVSetCoversLootByKindAndRarity);
+            Run(nameof(LoopReaderKeepsAPitchedLoopClean), LoopReaderKeepsAPitchedLoopClean);
+            Run(nameof(APileOfLoopsLeavesHeadroom), APileOfLoopsLeavesHeadroom);
             Run(nameof(SteamsCommandIsFoundInTheLaunchersArguments), SteamsCommandIsFoundInTheLaunchersArguments);
             Run(nameof(FightsLastWhileAnEngagingEnemyIsNear), FightsLastWhileAnEngagingEnemyIsNear);
             Run(nameof(OnlyLinesSaidAloudNearbyAreLocalSpeech), OnlyLinesSaidAloudNearbyAreLocalSpeech);
@@ -859,6 +861,45 @@ namespace Poe2Accessibility.Tests
             Equal("Nivel 4, 35 por ciento hacia el nivel 5, nivel del área 2", Announcements.Levels(4, 2, 35), "vitals line");
             Equal("Nivel 4, nivel del área 2", Announcements.Levels(4, 2), "without the table");
             Localization.Detect("en");
+        }
+
+        private static void LoopReaderKeepsAPitchedLoopClean()
+        {
+            const int length = 44100;
+            const int hertz = 8000;
+            static double Tone(double position) => Math.Sin(2 * Math.PI * hertz * position / length);
+            var loop = Enumerable.Range(0, length).Select(i => (float)Tone(i)).ToArray();
+
+            Equal(true, MathF.Abs(LoopReader.At(loop, 5) - loop[5]) < 1e-4f, "on a sample it reads that sample");
+            Equal(true, MathF.Abs(LoopReader.At(loop, 3) - loop[3]) < 1e-4f, "by the start it reads round the end");
+            Equal(true, MathF.Abs(LoopReader.At(loop, length - 2) - loop[length - 2]) < 1e-4f, "by the end it reads round the start");
+
+            foreach (var pitch in new[] { 0.8, 1.26 })
+            {
+                var error = 0.0;
+                var count = 0;
+                for (var position = length - 500.0; position < length + 500.0; position += pitch)
+                {
+                    var wrapped = position >= length ? position - length : position;
+                    var difference = LoopReader.At(loop, wrapped) - Tone(position);
+                    error += difference * difference;
+                    count++;
+                }
+
+                Equal(true, Math.Sqrt(error / count) < 0.003, $"over the seam at pitch {pitch} the error stays 50 dB under a bright tone");
+            }
+        }
+
+        private static void APileOfLoopsLeavesHeadroom()
+        {
+            const float near = 0.7f;
+            const float far = near * 0.3f;
+            Equal(1f, ItemSoundSet.PileScale(near * near, near), "one item by the player keeps its level");
+            Equal(1f, ItemSoundSet.PileScale((near * near) + (3 * far * far), near), "nor do three far ones lower it");
+            Equal(1f, ItemSoundSet.PileScale(0f, 0f), "with the volume off nothing is scaled");
+            var each = near * ItemSoundSet.PileScale(4 * near * near, near);
+            Equal(true, MathF.Abs(MathF.Sqrt(4 * each * each) - (1.25f * near)) < 1e-4f, "four near items are a little louder than one");
+            Equal(true, each > near / 2f, "and each stays heard");
         }
 
         private static void DiabloIVSetCoversLootByKindAndRarity()
@@ -1652,6 +1693,10 @@ namespace Poe2Accessibility.Tests
 
         private static void MinimapMarksNameBossRoomsAndLandmarks()
         {
+            Equal("ritual", MinimapMarks.DeviceKind(MinimapMarks.RitualIcon), "an altar still to do sounds");
+            Equal(MinimapMarks.RitualDoneKind, MinimapMarks.DeviceKind(MinimapMarks.RitualDoneIcon), "a finished one has its own kind, out of the sounds");
+            Equal("encounter", MinimapMarks.DeviceKind("ExpeditionDevice"), "another league's device stays an encounter");
+
             const string crowbellRoom = "Metadata/Monsters/Crowbell/Objects/BossRoomMinimapIcon";
             Equal((MinimapMarks.BossRoomKind, "El pilar de caza", false),
                   MinimapMarks.PointOfInterest(crowbellRoom, "CrowbellActive", "El pilar de caza"), "a campaign boss's arena by its label");

@@ -130,17 +130,17 @@ namespace Poe2Accessibility.Services
             this.AddGame(gameSounds, rate, "item", "item_rare", "item_unique", "currency", "gold", "quest_item");
             foreach (var (key, sample) in DiabloIVSamples)
             {
-                if (diabloSounds.Get(sample) is { } samples)
+                if (diabloSounds.GetLoop(sample) is { } loop)
                 {
-                    this.diablo[key] = samples;
+                    this.diablo[key] = Excerpt(loop, rate);
                 }
             }
 
             foreach (var (key, sample, _) in DiabloIVOnly)
             {
-                if (diabloSounds.Get(sample) is { } samples)
+                if (diabloSounds.GetLoop(sample) is { } loop)
                 {
-                    this.Add(key, samples);
+                    this.Add(key, Excerpt(loop, rate));
                 }
             }
         }
@@ -148,15 +148,14 @@ namespace Poe2Accessibility.Services
         /// <summary>Sound keys in menu order.</summary>
         public IReadOnlyList<string> Keys => this.keys;
 
-        /// <summary>A second of a loop with soft edges: what a wall right ahead sounds like.</summary>
+        /// <summary>A second of a loop with soft edges, a short loop going round as in the game: what a wall right ahead sounds like.</summary>
         private static float[] Excerpt(float[] loop, int rate)
         {
-            var length = Math.Min(loop.Length, rate);
             var fade = rate / 20;
-            var excerpt = new float[length];
-            for (var i = 0; i < length; i++)
+            var excerpt = new float[rate];
+            for (var i = 0; i < rate; i++)
             {
-                excerpt[i] = loop[i] * Math.Min(1f, Math.Min(i, length - 1 - i) / (float)fade);
+                excerpt[i] = loop[i % loop.Length] * Math.Min(1f, Math.Min(i, rate - 1 - i) / (float)fade);
             }
 
             return excerpt;

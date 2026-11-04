@@ -103,7 +103,8 @@ approach — all (default), magic or better, or only currency, gold, gems, quest
 scanner's Items category still lists every item (`LootSounds`: `all`, `magic`, `valuable`).
 
 **Item sound set** (Sound, after the master volume; D2R item sound sets): the sounds of items on the ground, chests, searchable bodies and shrines:
-Path of Exile 2, the game's own (default), or Diablo IV, the D2R mod's set, where equipment sounds by rarity
+Path of Exile 2, the game's own (default), or Diablo IV, the D2R mod's set, which plays without a break while the
+thing is in range and where equipment sounds by rarity
 (`ItemSounds`: `poe2`, `diablo4`). Exits, waypoints, breakables and the rest keep the game's sounds. The sound glossary
 plays the chosen set, and lists the two Diablo IV sounds the game's set has no row for.
 
@@ -252,7 +253,7 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   `AnnounceInteractTarget` ("What the interact button uses").
 - **Things worth walking to:** the game's own sounds repeat for every chest in range at once (a body to search, such
   as the Ogham village's victims, with the game's rummage through a corpse instead), the nearest shrine (a hand on a
-  lever for switches), ritual altar, every breakable in range at once (each with its material's breaking sound,
+  lever for switches), ritual altar (not one already done, which the scanner still lists), every breakable in range at once (each with its material's breaking sound,
   softened and kept low), and for up to four items at once, on their side, higher
   when up the screen and lower when down, more often as you get closer, from the centre once you stand on them. The
   nearest portal and the nearest waypoint or checkpoint sound without a break (a portal's hum, a waypoint's low drone,

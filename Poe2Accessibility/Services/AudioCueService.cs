@@ -166,13 +166,19 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        /// <summary>A looping sound mixed under the cues until the caller sets it silent (wall tones); its own volume by <paramref name="sound"/>.</summary>
-        public Bed AddBed(float[] loop, string sound)
+        /// <summary>
+        ///     A looping sound mixed under the cues until the caller sets it silent (wall tones) or stops it for good; its own
+        ///     volume by <paramref name="sound"/>, heard from sample <paramref name="start"/> on.
+        /// </summary>
+        public Bed AddBed(float[] loop, string sound, int start = 0)
         {
-            var bed = new Bed(loop, () => this.Level(sound));
-            lock (this.beds)
+            var bed = new Bed(loop, () => this.Level(sound), start);
+            if (this.IsAvailable)
             {
-                this.beds.Add(bed);
+                lock (this.beds)
+                {
+                    this.beds.Add(bed);
+                }
             }
 
             return bed;
@@ -266,9 +272,12 @@ namespace Poe2Accessibility.Services
 
             lock (this.beds)
             {
-                foreach (var bed in this.beds)
+                for (var b = this.beds.Count - 1; b >= 0; b--)
                 {
-                    bed.MixInto(this.mix);
+                    if (this.beds[b].MixInto(this.mix))
+                    {
+                        this.beds.RemoveAt(b);
+                    }
                 }
             }
 
@@ -300,11 +309,13 @@ namespace Poe2Accessibility.Services
             private volatile float targetLeft;
             private volatile float targetRight;
             private volatile float targetPitch = 1f;
+            private volatile bool stopped;
 
-            internal Bed(float[] loop, Func<float> level)
+            internal Bed(float[] loop, Func<float> level, int start)
             {
                 this.loop = loop;
                 this.level = level;
+                this.position = start;
             }
 
             /// <summary>Equal-power pan as for cues; gain 0 fades it out; pitch 1 = as recorded.</summary>
@@ -316,7 +327,16 @@ namespace Poe2Accessibility.Services
                 this.targetPitch = pitch > 0 ? pitch : 1f;
             }
 
-            internal void MixInto(float[] mix)
+            /// <summary>Fades it out for good: the mixer lets it go once silent.</summary>
+            public void Stop()
+            {
+                this.targetLeft = 0f;
+                this.targetRight = 0f;
+                this.stopped = true;
+            }
+
+            /// <summary>Adds the next buffer's worth; true once stopped and silent.</summary>
+            internal bool MixInto(float[] mix)
             {
                 var level = this.level();
                 var toLeft = this.targetLeft * level;
@@ -325,7 +345,7 @@ namespace Poe2Accessibility.Services
                 {
                     this.left = 0;
                     this.right = 0;
-                    return;
+                    return this.stopped;
                 }
 
                 var toPitch = this.targetPitch;
@@ -334,9 +354,7 @@ namespace Poe2Accessibility.Services
                     this.left += (toLeft - this.left) * Glide;
                     this.right += (toRight - this.right) * Glide;
                     this.pitch += (toPitch - this.pitch) * Glide;
-                    var index = (int)this.position;
-                    var next = index + 1 < this.loop.Length ? index + 1 : 0;
-                    var sample = this.loop[index] + ((this.loop[next] - this.loop[index]) * (float)(this.position - index));
+                    var sample = LoopReader.At(this.loop, this.position);
                     this.position += this.pitch;
                     if (this.position >= this.loop.Length)
                     {
@@ -345,6 +363,8 @@ namespace Poe2Accessibility.Services
                     mix[frame * Channels] += sample * this.left;
                     mix[(frame * Channels) + 1] += sample * this.right;
                 }
+
+                return false;
             }
         }
 

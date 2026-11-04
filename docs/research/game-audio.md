@@ -121,19 +121,36 @@ cues instead); auditioned on the page https://claude.ai/artifact/1fXBPHVbfmPkZrh
   (`EssenceMonoliths_Stinger_Activate[Unique]_01`), all 3-4 s: only their first second or so works as a hit.
 
 ## The Diablo IV item set (`assets/diablo4/`, shipped, 2026-11-04)
-Testers asked for sound sets as in the D2R mod; setting `ItemSounds`, default the game's own (`ItemSoundSet`). The 13 WAVs
-come from that mod's `sounds/item loop sounds/` (`loot/`, and `exploration/shrine.ogg`). This mod repeats a short cue instead of
-looping, so each was rendered with ffmpeg to the mixer's format (44.1 kHz, mono, 16-bit):
-- Gold, potion and the four equipment sounds are 14 s textures there: the loudest 0.9 s (`GameSoundSeconds`; found in 50 ms
-  steps), 20 ms fade in, 150 ms fade out. Near an item the 600 ms repeat overlaps them, close to D2R's continuous loop.
-- The rest are single sounds: kept from the start, cut at 0.9 s, 150 ms fade out.
-- All brought to -20 dB RMS (the game's item drops have a median of -19.4) with peaks under -1 dB; a sound that reaches the
-  peak first stays quieter.
+Testers asked for sound sets as in the D2R mod; setting `ItemSounds`, default the game's own (`ItemSoundSet`). The 13 WAVs are
+the loops that mod builds (`build/item-sounds/`, from `sounds/item loop sounds/loot/` and `exploration/shrine.ogg`, so with its
+boosts for the short clicks and its quest bell cut to 0.7 s), played as it plays them: each item, chest, body or shrine heard
+keeps one voice going (`GameSounds.LoadLoops`, `AudioCueService.Bed`), from a random place in the recording so two of one sound
+are not in step. Rendered to the mixer's format (44.1 kHz, mono, 16-bit):
+- Resampled by cutting the spectrum to the new length, which keeps the sound periodic: the last sample still leads into the first.
+- Peak at 0.9 x 0.4 / 0.7: D2R normalizes to 0.9 and plays a near item at 0.4, and the object volume here defaults to 70 %. The
+  chest 4 dB over that (D2R's `ChestLevelDb`). No level is applied on loading.
+
+What the first version got wrong (v2026.11.04; the user: distorted, heard to stop and start). It cut the loudest 0.9 s of the 14 s
+textures and repeated it every 600-3200 ms, as the game's cues are:
+- Near, the level swung 8.5 dB at every repeat; from 1.2 s on there was silence between the repeats.
+- It was not clipping: the clips peaked around -7 dB, and four items at once reached -5 dB, under the limiter's ceiling.
+- Pitch is the direction here (0.8-1.26), and these recordings are bright. What no linear filter explains, under 12 kHz, at pitch
+  1.26: gold -24 dB, magic -28 with linear reading; -27, -33 with cubic; -54, -64 with a 16-tap sinc, which `LoopReader` now is for
+  every bed. Cues keep the linear reading: they are short, and the game's own sounds were never heard as distorted.
+
+D2R also limits the plain sum of its loops' gains to 1.25 near items. Starting at unrelated places they add in power, so that left
+four near items quieter than one (-31 against -28 dB) and each 10 dB down, and this mod's far gain of 0.3 would set it off for
+items merely scattered over the screen. It protected nothing here: ten loops at full gain peak at -0.3 dB, under the ceiling, at
+-15 dB overall. `ItemSoundSet.PileScale` limits their power instead: four come to -25 dB, ten to -23.
+
+Checked offline with the real `Bed`, `LoopReader` and `PeakLimiter` (no device): no gaps walking past an item, every seam under
+the sound's own largest step at pitch 1 and 1.26, a stopped voice gone in 160 ms without a click. Not heard in a game yet.
 
 Map: gold; flask → potion; currency → rune; scrolls (the game's `Scroll_Drop` sample) → scroll; gem; quest item; equipment and
 other items by rarity → normal, magic, rare, legendary; chest; corpse; shrine. Uniques have their own scanner kind for this.
 Exits, portals, waypoints, breakables, switches and altars keep the game's sounds: the D2R setting is about items, and those
-were tuned here by ear. Last Epoch and the D2 drops were left out (user's request).
+were tuned here by ear. Last Epoch and the D2 drops were left out (user's request). The distance curve stays this mod's, as for the
+idle beds: D2R fades to nothing at its range, and items going silent on screen was a complaint here (2026-10-27).
 
 ## Harmful ground alarm (2026-11-04)
 A tester asked for something more urgent than the 110 Hz pulse. The user went through alarms (too shrill), a family built like the

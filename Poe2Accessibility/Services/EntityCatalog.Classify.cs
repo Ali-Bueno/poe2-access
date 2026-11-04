@@ -101,7 +101,7 @@ namespace Poe2Accessibility.Services
                 // once done, where its tribute is spent ("Interactúa para ver los favores").
                 category = ScanCategory.Encounters;
                 name = name.Length > 0 ? name : Announcements.LeagueDevice(leagueIcon, path.Contains(BossDevice, StringComparison.Ordinal));
-                kind = MinimapMarks.IsRitualAltar(leagueIcon) ? "ritual" : "encounter";
+                kind = MinimapMarks.DeviceKind(leagueIcon);
             }
             else if (entity.EntityType == EntityTypes.Monster && (path.StartsWith(CreatureFolder, StringComparison.Ordinal) || !entity.TryGetComponent<MinimapIcon>(out _)))
             {

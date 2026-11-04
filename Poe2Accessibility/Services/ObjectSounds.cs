@@ -16,7 +16,9 @@ namespace Poe2Accessibility.Services
     ///     were heard as one, user 2026-10-24); voices take turns so two never start together. Every breakable in range
     ///     sounds, each with its material's sound (user 2026-10-27), and every chest and searchable body (user 2026-10-28),
     ///     each crowd staggered only among itself. A portal, exit, waypoint or checkpoint plays its idle bed without a
-    ///     break instead (user 2026-10-27), louder as the player nears.
+    ///     break instead (user 2026-10-27), louder as the player nears. The Diablo IV set (<see cref="ItemSoundSet"/>) is
+    ///     all loops: each item, chest or shrine heard keeps its own voice going, as in D2R; repeating a piece of those
+    ///     recordings was heard to stop and start (user 2026-11-04).
     /// </summary>
     public sealed class ObjectSounds
     {
@@ -67,7 +69,7 @@ namespace Poe2Accessibility.Services
             ("chests", MaxChestVoices, entry => entry.Kind is "chest" or "corpse"),
             ("breakables", MaxBreakableVoices, entry => entry.Kind == "breakable"),
             ("shrines", 1, entry => entry.Category == ScanCategory.Chests && entry.Kind is not ("chest" or "corpse" or "breakable")),
-            ("encounters", 1, entry => entry.Category == ScanCategory.Encounters),
+            ("encounters", 1, entry => entry.Category == ScanCategory.Encounters && entry.Kind != MinimapMarks.RitualDoneKind),
             ("exits", 1, entry => entry.Category == ScanCategory.Exits || entry.Kind == "portal"),
             ("waypoints", 1, entry => entry.Kind is "waypoint" or "checkpoint"),
             ("quests", 1, entry => entry.Kind == "npc_quest"),
@@ -83,7 +85,8 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, (string Crowd, ScanEntry Entry)> nearest = new();
         private readonly Dictionary<string, long> crowdStarted = new();
         private readonly Dictionary<string, AudioCueService.Bed> beds = new();
-        private readonly Dictionary<string, (float Pan, float Pitch, float Gain)> heardBeds = new();
+        private readonly Dictionary<string, HeardLoop> heardBeds = new();
+        private readonly List<string> goneBeds = new();
         private long lastPoll;
         private long lastAnyPlayed;
 
@@ -157,9 +160,15 @@ namespace Poe2Accessibility.Services
                 var spread = Math.Min(1f, distance / CentreWorld);
                 var (pan, pitch) = (side * spread, 1f + ((height - 1f) * spread));
                 var gain = this.Gain * (FarGain + ((1f - FarGain) * closeness));
-                if (this.sounds.GetLoop(entry.Kind) != null)
+                if (this.sounds.GetLoop(entry.Kind) is { } idle)
                 {
-                    this.heardBeds[entry.Kind] = (pan, pitch, gain);
+                    this.heardBeds[entry.Kind] = new HeardLoop(idle, entry.Kind, pan, pitch, gain, false);
+                    continue;
+                }
+
+                if (this.DiabloLoop(entry) is { } loop)
+                {
+                    this.heardBeds[group] = new HeardLoop(loop, this.SoundKey(entry), pan, pitch, gain, true);
                     continue;
                 }
 
@@ -195,38 +204,51 @@ namespace Poe2Accessibility.Services
             this.SetBeds();
         }
 
-        /// <summary>Each idle bed follows the place heard this frame; the rest fade out.</summary>
+        /// <summary>Each loop follows what was heard this frame, kept going while it is; the rest fade out and go.</summary>
         private void SetBeds()
         {
-            foreach (var (kind, (pan, pitch, gain)) in this.heardBeds)
+            var power = 0f;
+            foreach (var voice in this.heardBeds.Values)
             {
-                if (!this.beds.ContainsKey(kind) && this.sounds.GetLoop(kind) is { } loop)
+                power += voice.InPile ? voice.Gain * voice.Gain : 0f;
+            }
+
+            var pile = ItemSoundSet.PileScale(power, this.Gain);
+            foreach (var (key, voice) in this.heardBeds)
+            {
+                if (!this.beds.TryGetValue(key, out var bed))
                 {
-                    this.beds[kind] = this.audio.AddBed(loop, kind);
+                    // From anywhere in the recording: two of one sound must not play in step.
+                    bed = this.beds[key] = this.audio.AddBed(voice.Loop, voice.Sound, Random.Shared.Next(voice.Loop.Length));
+                }
+
+                bed.Set(voice.Pan, voice.InPile ? voice.Gain * pile : voice.Gain, voice.Pitch);
+            }
+
+            this.goneBeds.Clear();
+            foreach (var (key, bed) in this.beds)
+            {
+                if (!this.heardBeds.ContainsKey(key))
+                {
+                    bed.Stop();
+                    this.goneBeds.Add(key);
                 }
             }
 
-            foreach (var (kind, bed) in this.beds)
+            foreach (var key in this.goneBeds)
             {
-                if (this.heardBeds.TryGetValue(kind, out var voice))
-                {
-                    bed.Set(voice.Pan, voice.Gain, voice.Pitch);
-                }
-                else
-                {
-                    bed.Set(0f, 0f);
-                }
+                this.beds.Remove(key);
             }
         }
 
-        /// <summary>The Diablo IV sound of an entry when that set is chosen and has one.</summary>
-        private float[]? DiabloSound(ScanEntry entry) =>
+        /// <summary>The Diablo IV loop of an entry when that set is chosen and has one.</summary>
+        private float[]? DiabloLoop(ScanEntry entry) =>
             this.SoundSet == ItemSoundSet.DiabloIV &&
             ItemSoundSet.DiabloIVSample(entry.Kind, entry.BaseId, entry.Loot, this.drops.SampleName(entry.BaseId)) is { } sample
-                ? this.diabloSounds.Get(sample)
+                ? this.diabloSounds.GetLoop(sample)
                 : null;
 
-        private float[]? SoundFor(ScanEntry entry) => this.DiabloSound(entry) ?? this.drops.For(entry.BaseId) ?? entry.Kind switch
+        private float[]? SoundFor(ScanEntry entry) => this.drops.For(entry.BaseId) ?? entry.Kind switch
         {
             "gold" => this.sounds.Get("gold"),
             "currency" => this.sounds.Get("currency"),
@@ -267,5 +289,7 @@ namespace Poe2Accessibility.Services
 
         private static float Distance(Vector2 here, ScanEntry entry) => Vector2.Distance(here, new Vector2(entry.WorldX, entry.WorldY));
 
+        /// <summary>A loop heard this frame; one in a pile shares <see cref="ItemSoundSet.PileScale"/> with the others.</summary>
+        private readonly record struct HeardLoop(float[] Loop, string Sound, float Pan, float Pitch, float Gain, bool InPile);
     }
 }

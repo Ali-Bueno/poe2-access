@@ -111,6 +111,19 @@ namespace Poe2Accessibility.Services
             return set;
         }
 
+        /// <summary>Loads every <c>name.wav</c> of <paramref name="directory"/> as a loop (<see cref="GetLoop"/>), whole and at the level it was rendered.</summary>
+        public static GameSounds LoadLoops(string directory, PluginLog log)
+        {
+            var set = new GameSounds(directory, LoopMaxSeconds);
+            if (Directory.Exists(directory))
+            {
+                LoadFolder(directory, LoopMaxSeconds, false, set.loops, log);
+                log.Info($"Loops loaded from {directory}: {string.Join(", ", set.loops.Keys)}");
+            }
+
+            return set;
+        }
+
         /// <summary>The cue, or null when it was not extracted.</summary>
         public float[]? Get(string name) => this.sounds.TryGetValue(name, out var samples) ? samples : null;
 
