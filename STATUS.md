@@ -391,8 +391,8 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
-First (2026-11-04, nineteenth batch, deployed into the user's `dist`, not released): hear the new harmful ground alarm in a real fight.
-First (2026-11-04, eighteenth batch, deployed into the user's `dist`, not released): the user puts `"<path>\Poe2Access.exe" %command%` in
+First (2026-11-04, nineteenth batch, released as v2026.11.04): hear the new harmful ground alarm in a real fight.
+First (2026-11-04, eighteenth batch, released as v2026.11.04): the user puts `"<path>\Poe2Access.exe" %command%` in
 Steam's launch options and presses Play (the one thing not tried: Steam's own expansion of `%command%`; the launcher takes the
 path quoted or not), and hears a unique on the ground (`Items_UniqueDrop_01`, the user's pick, A on
 https://claude.ai/artifact/BwkQFbDHU1bEpxfqkPwpa2). The Diablo IV set read and saved in the menu, its 13 samples load; not heard in play.
