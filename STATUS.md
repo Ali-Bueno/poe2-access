@@ -393,7 +393,7 @@
 ## Next step
 First (2026-11-04, eighteenth batch, deployed into the user's `dist`, not released): the user puts `"<path>\Poe2Access.exe" %command%` in
 Steam's launch options and presses Play (the one thing not tried: Steam's own expansion of `%command%`; the launcher takes the
-path quoted or not), and hears a unique on the ground (`Items_UniqueDrop_01`; alternatives B and C on
+path quoted or not), and hears a unique on the ground (`Items_UniqueDrop_01`, the user's pick, A on
 https://claude.ai/artifact/BwkQFbDHU1bEpxfqkPwpa2). The Diablo IV set read and saved in the menu, its 13 samples load; not heard in play.
 First (2026-11-02, seventeenth batch): the scanner keeps a fixed campaign map's exits and checkpoints in a new instance
 (Clearfell), the game's exit and its named tile are one entry, "Área: X, nivel N" waits for the instance it names (a

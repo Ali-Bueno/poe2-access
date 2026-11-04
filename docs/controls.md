@@ -102,6 +102,11 @@ combo points wait.
 approach — all (default), magic or better, or only currency, gold, gems, quest items, rares and uniques. The
 scanner's Items category still lists every item (`LootSounds`: `all`, `magic`, `valuable`).
 
+**Item sound set** (Sound, after the master volume; D2R item sound sets): the sounds of items on the ground, chests, searchable bodies and shrines:
+Path of Exile 2, the game's own (default), or Diablo IV, the D2R mod's set, where equipment sounds by rarity
+(`ItemSounds`: `poe2`, `diablo4`). Exits, waypoints, breakables and the rest keep the game's sounds. The sound glossary
+plays the chosen set, and lists the two Diablo IV sounds the game's set has no row for.
+
 **Silence items on the ground in fights** (Combat): while an enemy it counts is alive within about a screen (the range
 the item sounds carry) and for 2 s after, items on the ground neither sound nor are named, on approach, as what A uses,
 or by their tooltip; once the fight is over, what dropped is named as usual. Against rares and uniques (default), against
@@ -319,7 +324,7 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - **Crosshair:** two short blips when the game's target lands on a living enemy.
 - The game's own low-life heartbeat and menu sounds are left to the game: the mod has none of its own.
 - All stop while a panel, menu or dialogue is open. Settings: `Radar`, `WallBump`, `EnemySounds`, `NpcSounds`, `PlayerSounds`,
-  `AnnounceNearby`, `AnnounceLevelUp`, `ObjectSounds`, `LootSounds`, `DodgeWarnings`, `ParryCues`, `ParryLeadMs`, `CrosshairBeep`,
+  `AnnounceNearby`, `AnnounceLevelUp`, `ObjectSounds`, `LootSounds`, `ItemSounds`, `DodgeWarnings`, `ParryCues`, `ParryLeadMs`, `CrosshairBeep`,
   `LowLifeBelow`, volumes `SoundVolume`, `RadarVolume`, `EnemyVolume`, `DodgeVolume` (dodge warning and parry cue),
   `BeaconVolume`, `ObjectVolume` and each sound's own `SoundLevels` in `config/settings.txt`, each 0-300 percent: above
   100 a sound is raised under a look-ahead limiter of its own, so its body grows louder (the dodge warning about 4 dB at
