@@ -309,10 +309,10 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private static readonly StateNote[] HazardNotes =
         {
-            new(0f, 0.12f, 165f, 165f, Buzz, 0.1f, Grit: 0.3f),
-            new(0f, 0.12f, 175f, 175f, Buzz, 0.1f, Grit: 0.3f),
-            new(0.2f, 0.12f, 165f, 165f, Buzz, 0.1f, Grit: 0.3f),
-            new(0.2f, 0.12f, 175f, 175f, Buzz, 0.1f, Grit: 0.3f),
+            new(0f, 0.12f, 147f, 147f, Buzz, 0.1f, Grit: 0.3f),
+            new(0f, 0.12f, 156f, 156f, Buzz, 0.1f, Grit: 0.3f),
+            new(0.2f, 0.12f, 147f, 147f, Buzz, 0.1f, Grit: 0.3f),
+            new(0.2f, 0.12f, 156f, 156f, Buzz, 0.1f, Grit: 0.3f),
         };
 
         private const float HazardLoopSeconds = 0.56f;
