@@ -18,13 +18,38 @@ namespace Poe2Accessibility.Services
             (ItemSoundGroup.Gem, "SupportGem_Drop_01"),
         };
 
+        /// <summary>The Diablo IV sound each key plays while that set is chosen (<see cref="ItemSoundSet.DiabloIVSample"/>).</summary>
+        private static readonly (string Key, string Sample)[] DiabloIVSamples =
+        {
+            ("gold", "gold"),
+            ("currency", "rune"),
+            ("quest_item", "quest item"),
+            (ItemSoundGroup.Flask, "potion"),
+            (ItemSoundGroup.Equipment, "normal equipment"),
+            (ItemSoundGroup.Gem, "gem"),
+            ("item", "normal equipment"),
+            ("item_rare", "rare equipment"),
+            ("item_unique", ItemSoundSet.LegendarySample),
+            ("chest", "chest"),
+            ("corpse", "corpse"),
+            ("shrine", "shrine"),
+        };
+
+        /// <summary>Diablo IV sounds with no key of the game's, listed to be heard; each plays at the level of the group it belongs to.</summary>
+        private static readonly (string Key, string Sample, string Level)[] DiabloIVOnly =
+        {
+            ("d4_magic", ItemSoundSet.MagicSample, ItemSoundGroup.Equipment),
+            ("d4_scroll", ItemSoundSet.ScrollSample, "currency"),
+        };
+
         private readonly AudioCueService audio;
         private readonly Dictionary<string, float[]> sounds = new();
+        private readonly Dictionary<string, float[]> diablo = new();
         private readonly Dictionary<string, StereoSound> stereo = new();
         private readonly List<string> keys = new();
 
         /// <remarks>Grouped as the settings menu's submenus: your skills, enemies, combat, defence, navigation, nearby, items.</remarks>
-        public SoundGlossary(AudioCueService audio, GameSounds gameSounds, GameSounds modSounds, ItemDropSounds drops)
+        public SoundGlossary(AudioCueService audio, GameSounds gameSounds, GameSounds modSounds, ItemDropSounds drops, GameSounds diabloSounds)
         {
             this.audio = audio;
             var rate = AudioCueService.SampleRate;
@@ -102,7 +127,22 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            this.AddGame(gameSounds, rate, "item", "item_rare", "currency", "gold", "quest_item");
+            this.AddGame(gameSounds, rate, "item", "item_rare", "item_unique", "currency", "gold", "quest_item");
+            foreach (var (key, sample) in DiabloIVSamples)
+            {
+                if (diabloSounds.Get(sample) is { } samples)
+                {
+                    this.diablo[key] = samples;
+                }
+            }
+
+            foreach (var (key, sample, _) in DiabloIVOnly)
+            {
+                if (diabloSounds.Get(sample) is { } samples)
+                {
+                    this.Add(key, samples);
+                }
+            }
         }
 
         /// <summary>Sound keys in menu order.</summary>
@@ -140,16 +180,23 @@ namespace Poe2Accessibility.Services
             _ => nameof(AccessibilitySettings.ObjectVolume),
         };
 
-        /// <summary>Plays a sound as loud as the game would: <paramref name="gain"/> is its volume setting, 1 = 100 %.</summary>
-        public void Play(string key, float gain)
+        /// <summary>Whether a key has no level of its own in the Sound menu: it follows its group's.</summary>
+        public static bool ListenOnly(string key) => Array.Exists(DiabloIVOnly, sound => sound.Key == key);
+
+        /// <summary>Plays a sound as loud as the game would, from the chosen set: <paramref name="gain"/> is its volume setting, 1 = 100 %.</summary>
+        public void Play(string key, float gain, string soundSet)
         {
-            if (this.stereo.TryGetValue(key, out var sound))
+            if (soundSet == ItemSoundSet.DiabloIV && this.diablo.TryGetValue(key, out var chosen))
+            {
+                this.audio.Play(chosen, 0f, 1f, gain, key);
+            }
+            else if (this.stereo.TryGetValue(key, out var sound))
             {
                 this.audio.Play(sound, 1f, gain, key);
             }
             else if (this.sounds.TryGetValue(key, out var samples))
             {
-                this.audio.Play(samples, 0f, 1f, gain, key);
+                this.audio.Play(samples, 0f, 1f, gain, Array.Find(DiabloIVOnly, only => only.Key == key).Level ?? key);
             }
         }
 

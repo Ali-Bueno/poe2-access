@@ -46,7 +46,9 @@ namespace Poe2Accessibility.Services
         public float[]? Sample(string name) => this.sounds.Get(name);
 
         /// <summary>The game's drop sound for an item base id, or null when it has none of its own.</summary>
-        public float[]? For(string baseId) =>
-            baseId.Length > 0 && this.samples.TryGetValue(baseId, out var sample) ? this.sounds.Get(sample) : null;
+        public float[]? For(string baseId) => this.SampleName(baseId) is { } sample ? this.sounds.Get(sample) : null;
+
+        /// <summary>The name of an item base's drop sample ("Flask_Drop_01"), null when it has none of its own.</summary>
+        public string? SampleName(string baseId) => this.samples.GetValueOrDefault(baseId);
     }
 }

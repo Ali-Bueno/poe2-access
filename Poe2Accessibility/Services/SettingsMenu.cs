@@ -256,22 +256,23 @@ namespace Poe2Accessibility.Services
         {
             if (this.IsOpen && this.Current.Setting is { Kind: Kind.Sound or Kind.SoundLevel } item)
             {
-                this.glossary?.Play(item.Name, SoundGlossary.VolumeSetting(item.Name) is { } volume ? (int)Field(volume).GetValue(settings)! / 100f : 1f);
+                this.glossary?.Play(item.Name, SoundGlossary.VolumeSetting(item.Name) is { } volume ? (int)Field(volume).GetValue(settings)! / 100f : 1f, settings.ItemSounds);
             }
         }
 
         /// <summary>
-        ///     Sound: the master volume, a submenu per volume (that volume, then each of its sounds' own) and the glossary
+        ///     Sound: the master volume, the item sound set, a submenu per volume (that volume, then each of its sounds' own) and the glossary
         ///     split the same way; a kind with no sound in the glossary has no submenu.
         /// </summary>
         private static Entry SoundMenu(IReadOnlyList<string> keys)
         {
-            var entries = new List<Entry> { Volume(nameof(AccessibilitySettings.SoundVolume)) };
+            var entries = new List<Entry> { Volume(nameof(AccessibilitySettings.SoundVolume)), Choice(nameof(AccessibilitySettings.ItemSounds), ItemSoundSet.Sets) };
             var glossary = new List<Entry>();
             foreach (var (menu, volume) in SoundKinds)
             {
                 var sounds = keys.Where(key => SoundGlossary.VolumeSetting(key) == volume).ToList();
-                var levels = sounds.Select(key => new Entry(key, new Item(key, Kind.SoundLevel, 0, MaxVolume, VolumeStep, Array.Empty<string>())));
+                var levels = sounds.Where(key => !SoundGlossary.ListenOnly(key))
+                    .Select(key => new Entry(key, new Item(key, Kind.SoundLevel, 0, MaxVolume, VolumeStep, Array.Empty<string>())));
                 var own = volume == null ? levels : levels.Prepend(Volume(volume));
                 if (own.Any())
                 {

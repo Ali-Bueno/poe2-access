@@ -36,6 +36,7 @@ internal static class SoundExtractor
     {
         new("item",       "ItemDrops",         "Item_Drop_Magic_01"),
         new("item_rare",  "ItemDrops",         "Item_Drop_Rare_01"),
+        new("item_unique", "ItemDrops",        "Items_UniqueDrop_01"),
         new("currency",   "ItemDrops",         "OrbDrop_Chaos_01"),
         new("gold",       "ItemDrops",         "GoldDrop_01"),
         new("quest_item", "ItemDrops",         "Item_Drop_Quest_01"),

@@ -10,7 +10,7 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Proximity sounds for things worth walking to (D2R proximity loops): the nearest item, chest or shrine, exit
     ///     or portal, and waypoint or checkpoint on screen each repeat the game's own sound for them (an item its own drop
-    ///     sound, <see cref="ItemDropSounds"/>, with the rare layer over it for a rare or unique), on their side,
+    ///     sound, <see cref="ItemDropSounds"/>, with a rarity layer over it for a rare or unique), on their side,
     ///     louder and more often as the player gets closer, higher above and lower below, centred when the player stands
     ///     on them. One voice per group so chests and exits stay apart, one per item for the nearest few (several drops
     ///     were heard as one, user 2026-10-24); voices take turns so two never start together. Every breakable in range
@@ -52,7 +52,7 @@ namespace Poe2Accessibility.Services
         /// <summary>A crowd's voices (chests, breakables) never start within this time of each other, so a cluster is heard as several.</summary>
         private const int CrowdGapMs = 70;
 
-        /// <summary>The rare drop layer under a rare or unique item's own sound.</summary>
+        /// <summary>The rarity layer under a rare or unique item's own sound.</summary>
         private const float RareLayerGain = 0.6f;
 
         private const string LootGroup = "loot";
@@ -77,6 +77,7 @@ namespace Poe2Accessibility.Services
         private readonly EntityCatalog catalog;
         private readonly GameSounds sounds;
         private readonly ItemDropSounds drops;
+        private readonly GameSounds diabloSounds;
         private readonly float[] questRing = CueSynth.Ring(AudioCueService.SampleRate);
         private readonly Dictionary<string, long> lastPlayed = new();
         private readonly Dictionary<string, (string Crowd, ScanEntry Entry)> nearest = new();
@@ -86,18 +87,22 @@ namespace Poe2Accessibility.Services
         private long lastPoll;
         private long lastAnyPlayed;
 
-        public ObjectSounds(AudioCueService audio, EntityCatalog catalog, GameSounds sounds, ItemDropSounds drops)
+        public ObjectSounds(AudioCueService audio, EntityCatalog catalog, GameSounds sounds, ItemDropSounds drops, GameSounds diabloSounds)
         {
             this.audio = audio;
             this.catalog = catalog;
             this.sounds = sounds;
             this.drops = drops;
+            this.diabloSounds = diabloSounds;
         }
 
         public float Gain { get; set; } = 1f;
 
         /// <summary>Which items sound (<see cref="LootFilter"/> level, settings).</summary>
         public string LootLevel { get; set; } = LootFilter.All;
+
+        /// <summary>The loot sounds chosen (<see cref="ItemSoundSet"/>, settings).</summary>
+        public string SoundSet { get; set; } = ItemSoundSet.Game;
 
         /// <summary>True while loot keeps quiet (a fight, <see cref="FightWatch"/>; what falls quiet: <see cref="FightState.QuietsInFight"/>).</summary>
         public Func<bool> QuietLoot { get; set; } = () => false;
@@ -170,10 +175,10 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                this.audio.Play(samples, pan, pitch, gain, SoundKey(entry));
-                if (entry.Kind == "rare" && samples != this.sounds.Get("item_rare") && this.sounds.Get("item_rare") is { } rare)
+                this.audio.Play(samples, pan, pitch, gain, this.SoundKey(entry));
+                if (this.SoundSet == ItemSoundSet.Game && this.RarityLayer(entry.Kind) is { } key && this.sounds.Get(key) is { } layer && layer != samples)
                 {
-                    this.audio.Play(rare, pan, pitch, gain * RareLayerGain, "item_rare");
+                    this.audio.Play(layer, pan, pitch, gain * RareLayerGain, key);
                 }
 
                 this.lastPlayed[group] = now;
@@ -214,12 +219,19 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        private float[]? SoundFor(ScanEntry entry) => this.drops.For(entry.BaseId) ?? entry.Kind switch
+        /// <summary>The Diablo IV sound of an entry when that set is chosen and has one.</summary>
+        private float[]? DiabloSound(ScanEntry entry) =>
+            this.SoundSet == ItemSoundSet.DiabloIV &&
+            ItemSoundSet.DiabloIVSample(entry.Kind, entry.BaseId, entry.Loot, this.drops.SampleName(entry.BaseId)) is { } sample
+                ? this.diabloSounds.Get(sample)
+                : null;
+
+        private float[]? SoundFor(ScanEntry entry) => this.DiabloSound(entry) ?? this.drops.For(entry.BaseId) ?? entry.Kind switch
         {
             "gold" => this.sounds.Get("gold"),
             "currency" => this.sounds.Get("currency"),
             "quest" => this.sounds.Get("quest_item"),
-            "rare" => this.sounds.Get("item_rare"),
+            "rare" or "unique" => this.sounds.Get(this.RarityLayer(entry.Kind)!),
             "chest" => this.sounds.Get("chest"),
             "corpse" => this.sounds.Get(GameSounds.Corpse) ?? this.sounds.Get("chest"),
             "breakable" => this.sounds.Get($"{GameSounds.BreakableFolder}/{entry.Sound}") ?? this.sounds.Get(GameSounds.BreakableFallback),
@@ -234,8 +246,24 @@ namespace Poe2Accessibility.Services
             _ => entry.Category == ScanCategory.Items ? this.sounds.Get("item") : null,
         };
 
-        /// <summary>The glossary key whose volume the entry's sound follows: an item by its group, the rest by kind.</summary>
-        private static string SoundKey(ScanEntry entry) => entry.Category == ScanCategory.Items ? ItemSoundGroup.Of(entry.Kind, entry.BaseId) : entry.Kind;
+        /// <summary>The sound marking a rare or unique item, null for another kind; uniques use the rare one until their own is extracted.</summary>
+        private string? RarityLayer(string kind) => kind switch
+        {
+            "rare" => "item_rare",
+            "unique" => this.sounds.Get("item_unique") != null ? "item_unique" : "item_rare",
+            _ => null,
+        };
+
+        /// <summary>The glossary key whose volume the entry's sound follows: an item by its group (a Diablo IV rare or unique by its rarity), the rest by kind.</summary>
+        private string SoundKey(ScanEntry entry)
+        {
+            if (entry.Category != ScanCategory.Items)
+            {
+                return entry.Kind;
+            }
+
+            return this.SoundSet == ItemSoundSet.DiabloIV && this.RarityLayer(entry.Kind) is { } rarity ? rarity : ItemSoundGroup.Of(entry.Kind, entry.BaseId);
+        }
 
         private static float Distance(Vector2 here, ScanEntry entry) => Vector2.Distance(here, new Vector2(entry.WorldX, entry.WorldY));
 

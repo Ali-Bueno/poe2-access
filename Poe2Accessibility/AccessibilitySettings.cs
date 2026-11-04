@@ -284,6 +284,9 @@ namespace Poe2Accessibility
         /// </summary>
         public string LootSounds = Services.LootFilter.All;
 
+        /// <summary>The sounds of loot (items, chests, bodies, shrines): "poe2", the game's own, or "diablo4" (D2R item sound sets).</summary>
+        public string ItemSounds = Services.ItemSoundSet.Game;
+
         /// <summary>
         ///     When loot (items on the ground, chests, bodies, breakables, league altars) stops sounding and being named: in a fight with a rare or unique monster ("rares"),
         ///     with any enemy ("any"), or "never" (<see cref="Services.FightState"/>).

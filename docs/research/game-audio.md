@@ -24,6 +24,7 @@ The header version is derived from `fmod.dll`'s product version (2.3.11 -> `0x00
 |---|---|---|
 | item | ItemDrops | Item_Drop_Magic_01 |
 | item_rare | ItemDrops | Item_Drop_Rare_01 |
+| item_unique | ItemDrops | Items_UniqueDrop_01 (4 s swell, peak at 0.5 s; a unique used `item_rare` until 2026-11-04, the user could not tell them apart) |
 | currency | ItemDrops | OrbDrop_Chaos_01 |
 | gold | ItemDrops | GoldDrop_01 (0.34 s) |
 | quest_item | ItemDrops | Item_Drop_Quest_01 |
@@ -118,6 +119,21 @@ cues instead); auditioned on the page https://claude.ai/artifact/1fXBPHVbfmPkZrh
   `Slash_Finisher_01..04` (2 s). Musical stingers: `BreachStingers` (`Gameplay_Breach_WaveStart/EncounterEnrage/
   EncounterCollapse_Stinger_01`, `BreachMonsterAggro_01..04`, `TeaserLayer_UI_*`) and `Four_EssenceStingers`
   (`EssenceMonoliths_Stinger_Activate[Unique]_01`), all 3-4 s: only their first second or so works as a hit.
+
+## The Diablo IV item set (`assets/diablo4/`, shipped, 2026-11-04)
+Testers asked for sound sets as in the D2R mod; setting `ItemSounds`, default the game's own (`ItemSoundSet`). The 13 WAVs
+come from that mod's `sounds/item loop sounds/` (`loot/`, and `exploration/shrine.ogg`). This mod repeats a short cue instead of
+looping, so each was rendered with ffmpeg to the mixer's format (44.1 kHz, mono, 16-bit):
+- Gold, potion and the four equipment sounds are 14 s textures there: the loudest 0.9 s (`GameSoundSeconds`; found in 50 ms
+  steps), 20 ms fade in, 150 ms fade out. Near an item the 600 ms repeat overlaps them, close to D2R's continuous loop.
+- The rest are single sounds: kept from the start, cut at 0.9 s, 150 ms fade out.
+- All brought to -20 dB RMS (the game's item drops have a median of -19.4) with peaks under -1 dB; a sound that reaches the
+  peak first stays quieter.
+
+Map: gold; flask → potion; currency → rune; scrolls (the game's `Scroll_Drop` sample) → scroll; gem; quest item; equipment and
+other items by rarity → normal, magic, rare, legendary; chest; corpse; shrine. Uniques have their own scanner kind for this.
+Exits, portals, waypoints, breakables, switches and altars keep the game's sounds: the D2R setting is about items, and those
+were tuned here by ear. Last Epoch and the D2 drops were left out (user's request).
 
 ## The mod's own recordings (`Poe2Accessibility/assets/`, shipped)
 - `combo.wav` (2026-10-30): the user's "combo build.mp3" (its note E2), lowered 4 semitones to C by resampling, stereo

@@ -13,7 +13,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Base item folders (Metadata/Items/&lt;folder&gt;/…, catalog/item-sounds.json) of gear worn or wielded.</summary>
         private static readonly string[] EquipmentFolders = { "Armours", "Weapons", "Quivers", "Rings", "Amulets", "Belts", "Jewels" };
 
-        /// <param name="kind">The item's scanner kind (<see cref="ScanEntry.Kind"/>: "gold", "currency", "quest", "rare", "item").</param>
+        /// <param name="kind">The item's scanner kind (<see cref="ScanEntry.Kind"/>: "gold", "currency", "quest", "rare", "unique", "item").</param>
         /// <param name="baseId">Its base type id, "Metadata/Items/Flasks/FlaskLife1"; empty when unread.</param>
         public static string Of(string kind, string baseId)
         {

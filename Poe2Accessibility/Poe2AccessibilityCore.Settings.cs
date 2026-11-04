@@ -135,6 +135,7 @@ namespace Poe2Accessibility
             {
                 this.objectSounds.Gain = Fraction(settings.ObjectVolume);
                 this.objectSounds.LootLevel = settings.LootSounds;
+                this.objectSounds.SoundSet = settings.ItemSounds;
             }
 
             if (this.unexploredLoop != null)

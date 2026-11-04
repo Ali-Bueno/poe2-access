@@ -255,7 +255,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     Which drop sound an item on the ground gets — "gold", "currency", "quest", "rare" (rare and unique) or
+        ///     Which drop sound an item on the ground gets — "gold", "currency", "quest", "rare", "unique" or
         ///     "item", from its metadata path (Metadata/Items/Currency/…, …/QuestItems/…) and its rarity — and its worth
         ///     for the loot filter (gems are valuable too).
         /// </summary>
@@ -290,7 +290,7 @@ namespace Poe2Accessibility.Services
 
             if (mods.Rarity is Rarity.Rare or Rarity.Unique)
             {
-                return ("rare", LootTier.Valuable);
+                return (mods.Rarity == Rarity.Unique ? "unique" : "rare", LootTier.Valuable);
             }
 
             return ("item", path.Contains(GemPath, StringComparison.Ordinal) ? LootTier.Valuable : mods.Rarity == Rarity.Magic ? LootTier.Magic : LootTier.Normal);
