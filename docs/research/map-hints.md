@@ -1,7 +1,8 @@
 # Navigation hints GGG placed in the campaign (patch 0.5.0)
 
 What a sighted player reads off the world, and what the mod can get of it (2026-11-05, 0.5.5e). Nothing here is built
-yet. The radar's own reading of the map is in [radar](../radar.md).
+yet. The radar's own reading of the map is in [radar](../radar.md). Every area, act by act:
+[map-hints-by-act](map-hints-by-act.md).
 
 ## Sources
 
@@ -21,7 +22,7 @@ yet. The radar's own reading of the map is in [radar](../radar.md).
 | Grelwood (G1_4) | River, upstream | Red Vale entrance | not found |
 | Grelwood | Glowing roots | Tree of Souls | `Objects/TreeRoot` entities from `tree_root_01..03.arm`, `BreadcrumbTreeRoot01..03.ao` |
 | Grelwood | Mushrooms | Grim Tangle entrance | not looked for |
-| Hunting Grounds (G1_11) | Signpost on the road | Ogham Village (or Farmlands) | `Metadata/NPC/Four_Act1/HuntingGroundsSignpostGlyph`, row 964 of `Npcs`, "Pueblo de Ogham"; the only sign glyph in the campaign |
+| Hunting Grounds (G1_11) | Signpost on the road | Ogham Village (or Farmlands) | `Metadata/NPC/Four_Act1/HuntingGroundsSignpostGlyph`, row 964 of `Npcs`, "Pueblo de Ogham" |
 | Hunting Grounds | Slaughtered cattle | The Crowbell | `Rooms/DeadBull_01/02.arm`, `Objects/DeadBull.ot/.ao`, eight blood footprints over about 55 cells |
 | Hunting Grounds, Freythorn, endgame | Locust trail after a Ritual | Freythorn, the next Ritual | not looked for |
 | Traitor's Passage | Maraketh parchment at a fork | Balbala, the exit | not looked for |
@@ -35,6 +36,8 @@ a path names the feature; Azak Bog `breadcrumb_direction/fire_direction_01.ao`, 
 ## What the mod can get
 
 - **No hint table.** No dat table, tile tag or folder lists them: each cue is an asset of its own, listed by hand.
+- **The sign is one of 51 story glyphs** (`StoryGlyphBase`), not the only one, as read here at first: many stand in
+  `entrance_`, `exit_` and `boss_` rooms and label that transition, so they are worth a line when near.
 - **The sign has no direction in the data.** One NPC id, one text, one model for every post, no arrow variants. The
   placement has a rotation, but GameHelper reads none (`Render.cs:24-25` commented out, none in `Positioned.cs`), and
   it would say how the post is turned, not what its arrow shows. The posts sit on the graph's `post_cnr` road nodes.
