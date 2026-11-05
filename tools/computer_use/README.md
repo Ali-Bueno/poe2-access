@@ -63,10 +63,13 @@ new `serve`, which disconnects the game to the login screen.
   valid player index"). With the Xbox pad (`serve --xbox`) plugged in before the game starts, Enter on the keyboard
   starts the game and the pad drives it; the virtual DS4 never got past that screen (2026-10-24). Entering with the
   mouse binds the keyboard instead, and the input method can only change out of the game.
-- Pad and keyboard do not mix at the start (2026-11-05): after Enter at login a pad press at character selection joins
-  as J2 ("Modo cooperativo local activado", B leaves it), and entering with Enter alone gave a keyboard HUD where the
-  pad did nothing, W/E/R are skills and a left click on the ground did not walk; a click on a labelled object (a portal)
-  does work. So no scripted walking that way; the game's two menus also differ ("Juego pausado" has Salir at another height).
+- **The start that works** (2026-11-05): `pad.py serve --xbox` running before the game starts, then at login one `pad cross`
+  (it says "Método de entrada configurado para Control/Mando" and does not log in) and `key enter`: the last character
+  enters and the pad is player 1, stick and menus. Enter alone gives a keyboard HUD the pad cannot reach, where a click on
+  the ground does not walk either; a pad press at selection after Enter joins as J2 ("Modo cooperativo local activado",
+  B leaves it). `stick left vec:X,Y --seconds S` walks in any screen direction, up to 2 s a call.
+- Scripted walking on the live servers: packs kill a character that only walks, and one session ended in "Abnormal
+  disconnect" 40 s after a death with no reason given (Client.txt, 2026-11-05). Cause unknown; keep it short.
 - Steam's launch options start the `dist` host: `dist/Poe2Access/Poe2Access.exe stop`, then `launch.py host`, to test the build output.
 - `--wait` accepts at most 5 seconds: a larger value fails before sending anything (filtered output hides the error).
 - Escape on the login screen quits the game; GameHelper closes with it (`CloseWhenGameExit`), so start both again with

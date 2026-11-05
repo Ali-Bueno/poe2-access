@@ -214,6 +214,32 @@ namespace Poe2Accessibility
                 case "fight":
                     this.log?.Info(this.fights?.Diagnose() ?? "Fight watch off");
                     break;
+                case "paths":
+                    // Research: what the client knows that is no monster, awake or sleeping, by path and cell (docs/research/map-hints.md).
+                    var known = new System.Collections.Concurrent.ConcurrentBag<string>();
+                    void Note(GameHelper.RemoteObjects.States.InGameStateObjects.Entity entity)
+                    {
+                        var path = entity.Path ?? string.Empty;
+                        if (path.Length > 0 && !path.StartsWith("Metadata/Monsters", StringComparison.Ordinal) && !path.StartsWith("Metadata/Characters", StringComparison.Ordinal))
+                        {
+                            var at = entity.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var place) ? FormattableString.Invariant($"{place.GridPosition.X:0},{place.GridPosition.Y:0}") : "-";
+                            var model = entity.TryGetComponent<GameHelper.RemoteObjects.Components.Animated>(out var animated) ? $"{animated.Path} {animated.ModelPath}" : string.Empty;
+                            known.Add($"{path} at {at} id={entity.Id} model={model}");
+                        }
+                    }
+
+                    foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+                    {
+                        Note(entity);
+                    }
+
+                    Core.States.InGameStateObject.CurrentAreaInstance.ScanSleepingEntities(_ => true, (_, entity) => Note(entity));
+                    foreach (var line in known.OrderBy(line => line, StringComparer.Ordinal))
+                    {
+                        this.log?.Info($"Path {line}");
+                    }
+
+                    break;
                 case "tiles":
                     // Research: the area's tile grid with rotations and anchors, for docs/research/places.md.
                     this.places?.Dump(Path.Join(this.DllDirectory, "debug", $"tiles-{this.gameState?.CurrentAreaId}-{DateTime.Now:yyyyMMdd-HHmmss}.txt"));
