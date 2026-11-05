@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using GameHelper;
     using GameHelper.RemoteEnums;
     using GameHelper.RemoteEnums.Entity;
@@ -263,9 +264,14 @@ namespace Poe2Accessibility.Services
 
         private bool InPlay(Entity entity) => IsInPlay(this.memory, entity);
 
-        /// <summary>Targetable by its own flag (<see cref="GameLayout.TargetableComponent"/>); no component: in play.</summary>
+        /// <summary>Set aside by the game (<see cref="BuffIds.HiddenMonster"/>): alive and flagged targetable, yet out of the fight.</summary>
+        public static bool IsHidden(Entity entity) =>
+            entity.TryGetComponent<Buffs>(out var buffs) && buffs.StatusEffects.Keys.Any(BuffIds.IsHiddenMonster);
+
+        /// <summary>Not hidden and targetable by its own flag (<see cref="GameLayout.TargetableComponent"/>); no component: in play.</summary>
         public static bool IsInPlay(HostMemoryReader memory, Entity entity) =>
-            !EntityFields.InPlayTrusted || !entity.TryGetComponent<Targetable>(out var target) ||
-            (memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.IsTargetableOffset, out var flag) && flag != 0);
+            !IsHidden(entity) &&
+            (!EntityFields.InPlayTrusted || !entity.TryGetComponent<Targetable>(out var target) ||
+             (memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.IsTargetableOffset, out var flag) && flag != 0));
     }
 }

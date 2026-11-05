@@ -54,6 +54,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\MinionGroups.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\BuildPlan.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\SpeechFloor.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\SpeechRepeats.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\FocusDetails.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\LessonReminder.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\WeakPoints.cs" />

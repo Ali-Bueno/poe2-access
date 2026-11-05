@@ -178,7 +178,7 @@ namespace Poe2Accessibility.Services
                     this.WatchLife(entity, render);
                 }
 
-                if (attacks && EntityCatalog.IsAliveEnemy(entity) && entity.TryGetComponent<Actor>(out var actor))
+                if (attacks && EntityCatalog.IsAliveEnemy(entity) && !EntityCatalog.IsHidden(entity) && entity.TryGetComponent<Actor>(out var actor))
                 {
                     var gap = offset.Length() - render.ModelBounds.X - player.ModelBounds.X;
                     this.WatchAttack(entity, (int)actor.Animation, rarity, render, offset, gap, now, parrying);
@@ -223,6 +223,12 @@ namespace Poe2Accessibility.Services
                 }
 
                 this.bosses[entity.Id] = (boss.Name, 0, false, 0);
+                return;
+            }
+
+            if (EntityCatalog.IsHidden(entity))
+            {
+                this.bosses[entity.Id] = (boss.Name, boss.Step, false, boss.Percent);
                 return;
             }
 

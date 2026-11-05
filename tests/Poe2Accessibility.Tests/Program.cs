@@ -130,6 +130,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(SteamsCommandIsFoundInTheLaunchersArguments), SteamsCommandIsFoundInTheLaunchersArguments);
             Run(nameof(FightsLastWhileAnEngagingEnemyIsNear), FightsLastWhileAnEngagingEnemyIsNear);
             Run(nameof(AWaitingBossMakesNoFight), AWaitingBossMakesNoFight);
+            Run(nameof(AHiddenMonsterIsToldByItsBuff), AHiddenMonsterIsToldByItsBuff);
+            Run(nameof(ABossOfSeveralBodiesIsHeardOnce), ABossOfSeveralBodiesIsHeardOnce);
             Run(nameof(OnlyLinesSaidAloudNearbyAreLocalSpeech), OnlyLinesSaidAloudNearbyAreLocalSpeech);
             Run(nameof(InPlayFlagIsFoundFromStoryVariants), InPlayFlagIsFoundFromStoryVariants);
             Run(nameof(MovedFieldsAreFoundByWatchingThemChange), MovedFieldsAreFoundByWatchingThemChange);
@@ -997,6 +999,25 @@ namespace Poe2Accessibility.Tests
             Equal(false, roster.Counts(706, false, 700000 + FightRoster.OutOfPlayMs), "gone for good, it stops counting");
             roster.Prune(700000 + FightRoster.OutOfPlayMs);
             Equal(false, roster.Counts(706, false, 700000 + FightRoster.OutOfPlayMs - 1), "forgotten: the next area uses the same ids");
+        }
+
+        private static void AHiddenMonsterIsToldByItsBuff()
+        {
+            Equal(true, BuffIds.IsHiddenMonster("hidden_monster_79"), "as GameHelper keys it, read on Count Geonor");
+            Equal(true, BuffIds.IsHiddenMonster("hidden_monster"), "without the suffix");
+            Equal(false, BuffIds.IsHiddenMonster("kitava_heart_damage_taken_79"), "his other buff");
+            Equal(false, BuffIds.IsHiddenMonster("frozen"), "a buff a fought enemy has");
+        }
+
+        private static void ABossOfSeveralBodiesIsHeardOnce()
+        {
+            var repeats = new SpeechRepeats();
+            var start = new DateTime(2026, 11, 5, 20, 24, 27, DateTimeKind.Utc);
+            Equal(false, repeats.IsRepeat("Geonor: Congelado", start), "the first body");
+            repeats.Note("Geonor: Congelado", start);
+            Equal(true, repeats.IsRepeat("Geonor: Congelado", start.AddMilliseconds(1)), "the next body in the same look");
+            Equal(false, repeats.IsRepeat("Geonor 9 por ciento", start.AddMilliseconds(1)), "another line goes through");
+            Equal(false, repeats.IsRepeat("Geonor: Congelado", start.AddMilliseconds(SpeechRepeats.WindowMs)), "frozen again later is news");
         }
 
         private static void OnlyLinesSaidAloudNearbyAreLocalSpeech()

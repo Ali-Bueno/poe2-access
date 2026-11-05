@@ -3,7 +3,7 @@
 After the D2R mod's design (`d2r-access/docs/entity-cues.md`). Code: `EnemyCues` (selection), `EnemyCueScheduler`
 (timing, pure), `CueSynth` (sounds), `AudioCueService` (winmm mixer, part of Windows: no new DLL).
 
-- Every living hostile monster on screen, in play (not still buried or dormant: Targetable `+0x69`) and in line of
+- Every living hostile monster on screen, in play (not still buried or dormant: Targetable `+0x69`; not set aside by the game: buff `hidden_monster`) and in line of
   sight on the terrain's projectile layer (`TerrainMetadata.GridLandscapeData`, read once per area; more than two
   blocking cells in a row hide it); uniques are heard through walls. The walkable grid was tried first and hid
   almost everything: it marks every log and rock. It stays the fallback (runs over 8 cells) if the layer is unreadable.

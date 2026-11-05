@@ -15,9 +15,6 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class PrismOutputService : IAccessibilityOutputService
     {
-        /// <summary>Identical text arriving within this window is a frame-level duplicate, not new information.</summary>
-        private const int DuplicateSuppressionMs = 300;
-
         /// <summary>
         ///     How long a mentioned warning may still be unheard: "Vida 50 por ciento" queued behind a line was dropped
         ///     by "Aturdido" 80 ms later (2026-10-24); about the time to say such a line.
@@ -42,8 +39,8 @@ namespace Poe2Accessibility.Services
         private readonly AutoResetEvent pendingSignal = new(false);
         private Thread? worker;
         private volatile bool stopping;
+        private readonly SpeechRepeats repeats = new();
         private string lastText = string.Empty;
-        private DateTime lastSpokenAt = DateTime.MinValue;
 
         private PrismOutputService(PluginLog log)
         {
@@ -213,13 +210,13 @@ namespace Poe2Accessibility.Services
             }
 
             var now = DateTime.UtcNow;
-            if (!interrupt && text == this.lastText &&
-                (now - this.lastSpokenAt).TotalMilliseconds < DuplicateSuppressionMs)
+            if ((!interrupt || delivery == Delivery.Urgent) && this.repeats.IsRepeat(text, now))
             {
                 this.log.Info($"Speech held back (duplicate): {text}");
                 return;
             }
 
+            this.repeats.Note(text, now);
             if (interrupt && now < this.urgedUntil)
             {
                 interrupt = false; // an urgent phrase is still being heard: wait behind it
@@ -236,7 +233,6 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastText = text;
-            this.lastSpokenAt = now;
             var goesOut = true;
             lock (this.queueGate)
             {
