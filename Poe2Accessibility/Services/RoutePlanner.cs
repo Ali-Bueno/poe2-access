@@ -53,6 +53,10 @@ namespace Poe2Accessibility.Services
         public static List<Vector2>? FindRoute(byte[] grid, int bytesPerRow, Vector2 start, Vector2 goal) =>
             FindRoute(grid, bytesPerRow, start, goal, false, out _);
 
+        /// <summary>The walkable cell a route to <paramref name="goal"/> would end on; null when none is near it.</summary>
+        public static Vector2? Snap(byte[] grid, int bytesPerRow, Vector2 goal) =>
+            TrySnap(grid, bytesPerRow, (int)MathF.Round(goal.X), (int)MathF.Round(goal.Y), GoalSnapRadius, out var cell) ? new Vector2(cell.X, cell.Y) : null;
+
         /// <summary>
         ///     Like <see cref="FindRoute(byte[], int, Vector2, Vector2)"/>, but when the goal cannot be reached (a gate
         ///     still closed) and <paramref name="orNearest"/> is set, the route to the reachable cell closest to it:

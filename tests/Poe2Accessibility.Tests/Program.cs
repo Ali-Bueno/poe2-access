@@ -138,6 +138,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(CrossingAnAreaLeadsToTheWayOn), CrossingAnAreaLeadsToTheWayOn);
             Run(nameof(ExploredGroundIsKeptAsBytes), ExploredGroundIsKeptAsBytes);
             Run(nameof(SignsAreNeverQuestTargetsAndQuestIconsAlways), SignsAreNeverQuestTargetsAndQuestIconsAlways);
+            Run(nameof(FrontierTellsNooksFromGroundThatGoesOn), FrontierTellsNooksFromGroundThatGoesOn);
+            Run(nameof(QuestWayLeavesTheSeenGroundTowardTheGoal), QuestWayLeavesTheSeenGroundTowardTheGoal);
             Run(nameof(UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay), UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay);
             Run(nameof(SpiritValuesNameTheirWeaponSet), SpiritValuesNameTheirWeaponSet);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
@@ -1687,7 +1689,7 @@ namespace Poe2Accessibility.Tests
             map.Visit(new System.Numerics.Vector2(40, 100), width, height);
             var firstLook = map.ExploredPercent(grid, row, new System.Numerics.Vector2(40, 100));
             Equal(true, firstLook is > 0 and < 50, "a first look sees part of the reachable west field");
-            var targets = map.Frontier(grid, row, new System.Numerics.Vector2(40, 100), 8);
+            var targets = map.Frontier(grid, row, new System.Numerics.Vector2(40, 100), 8).Select(place => place.Cell).ToList();
             Equal(true, targets.Count > 0, "unseen ground east of the start is offered");
             Equal(true, targets.All(cell => cell.X < 200), "nothing past the unbroken wall");
             Equal(true, targets.All(cell => System.Numerics.Vector2.Distance(cell, new System.Numerics.Vector2(40, 100)) > ExplorationMap.SeenRadiusCells - ExplorationMap.BlockCells),
@@ -1702,6 +1704,56 @@ namespace Poe2Accessibility.Tests
 
             Equal(0, map.Frontier(grid, row, new System.Numerics.Vector2(120, 100), 8).Count, "the west field walked through: nothing left");
             Equal(100, map.ExploredPercent(grid, row, new System.Numerics.Vector2(120, 100)), "the unreachable east field does not count");
+        }
+
+        /// <summary>A walled grid with rectangles carved open (x even: two cells per byte).</summary>
+        private static byte[] Carved(int width, int height, params (int Left, int Top, int Right, int Bottom)[] rooms)
+        {
+            var grid = new byte[width / 2 * height];
+            foreach (var (left, top, right, bottom) in rooms)
+            {
+                for (var y = top; y < bottom; y++)
+                {
+                    Array.Fill(grid, (byte)0x11, (y * width / 2) + (left / 2), (right - left) / 2);
+                }
+            }
+
+            return grid;
+        }
+
+        private static void FrontierTellsNooksFromGroundThatGoesOn()
+        {
+            const int width = 400, height = 200;
+            var player = new System.Numerics.Vector2(60, 100);
+            // A hall; a corridor east to a great room; a short dead end south.
+            var grid = Carved(width, height, (20, 80, 100, 120), (100, 96, 300, 104), (300, 10, 390, 190), (60, 120, 68, 190));
+            var map = new ExplorationMap();
+            map.Visit(player, width, height);
+            var places = map.Frontier(grid, width / 2, player, 8);
+            Equal(2, places.Count, "the corridor and the dead end");
+            Equal(false, places[0].Pocket, "ground that goes on comes first");
+            Equal(true, places[0].Cell.X > 100, "it is the corridor");
+            Equal(true, places[1].Pocket, "the dead end is a nook");
+            Equal(true, places[1].Cell.Y > 120, "south of the hall");
+        }
+
+        private static void QuestWayLeavesTheSeenGroundTowardTheGoal()
+        {
+            const int width = 400, height = 200;
+            var player = new System.Numerics.Vector2(60, 100);
+            var goal = new System.Numerics.Vector2(350, 100);
+            // A hall with two ways on: north to one room, east to the goal's; a walled-off room apart.
+            var grid = Carved(width, height, (20, 80, 100, 120), (40, 30, 48, 80), (40, 2, 390, 30), (100, 96, 300, 104), (300, 40, 390, 160), (200, 170, 240, 195));
+            var map = new ExplorationMap();
+            map.Visit(player, width, height);
+            var way = map.WayOn(grid, width / 2, player, goal);
+            Equal(true, way is { X: > 100 and < 140, Y: > 94 and < 106 }, "the east corridor, at the edge of the seen ground, not the north way nor the goal");
+            Equal(null, map.WayOn(grid, width / 2, player, new System.Numerics.Vector2(220, 180)), "no ground leads to a walled-off room");
+            var further = new System.Numerics.Vector2(200, 100);
+            map.Visit(further, width, height);
+            Equal(true, map.WayOn(grid, width / 2, further, goal) is { X: > 240 and < 280 }, "the way moves on with the player");
+            map.Visit(goal, width, height);
+            Equal(null, map.WayOn(grid, width / 2, further, goal), "ground seen: the place itself is known");
         }
 
         private static void MinimapMarksNameBossRoomsAndLandmarks()
@@ -2250,6 +2302,14 @@ namespace Poe2Accessibility.Tests
                   "a tile note shares a word with the quest, an area name may");
             Equal("Ogham Farmlands Or Deadend", string.Join(" | ", QuestMatcher.Targets(notes.Take(1).ToList(), new[] { "Find Ogham Farmlands Or Deadend" }).Select(entry => entry.Name)),
                   "a tile note named whole");
+            var ramparts = new[]
+            {
+                new ScanEntry(14, ScanCategory.Exits, "Mansión de Ogham", 0, 0, 0),
+                new ScanEntry(15, ScanCategory.Exits, "Camino de vuelta", 0, 0, 0, QuestMatcher.TileNote),
+            };
+            Equal("Mansión de Ogham", string.Join(" | ", QuestMatcher.Targets(ramparts, new[] { "El lobo rabioso de Ogham", "Infíltrate en la Mansión más allá del pueblo. Encuentra al Conde Geonor" },
+                                                                               "Las murallas de la mansión", "Pueblo de Ogham").Select(entry => entry.Name)),
+                  "the Manor from its ramparts, never the way back (user 2026-11-05)");
             var altars = new[]
             {
                 new ScanEntry(11, ScanCategory.Encounters, "Altar de ritual", 0, 0, 0, "ritual"),

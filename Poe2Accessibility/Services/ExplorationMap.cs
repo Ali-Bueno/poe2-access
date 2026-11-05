@@ -17,6 +17,9 @@ namespace Poe2Accessibility.Services
     {
         public const int BlockCells = 8;
 
+        /// <summary>A scanner entry's kind for a pocket (<see cref="FrontierPlace"/>).</summary>
+        public const string PocketKind = "pocket";
+
         /// <summary>Ground this near the player counts as seen (about half the screen's height).</summary>
         public const float SeenRadiusCells = 60f;
 
@@ -29,7 +32,7 @@ namespace Poe2Accessibility.Services
         /// <summary>A block with fewer walkable cells is wall (a corridor three cells wide crossing it still counts).</summary>
         private const int MinWalkableCells = 6;
 
-        /// <summary>Smaller frontier groups are nooks, not places to explore.</summary>
+        /// <summary>Smaller frontier groups before a pocket are not worth a place of their own.</summary>
         private const int MinGroupBlocks = 2;
 
         /// <summary>The frontier is recomputed every two seconds: a place still this near where it was is the same one, moved.</summary>
@@ -37,6 +40,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The place being sounded is kept until another is less than half as far (no flipping between two).</summary>
         private const float KeepRatio = 2f;
+
+        /// <summary>Unseen ground smaller than this is a pocket: half the reveal disc, what one look from its edge shows whole.</summary>
+        private const int PocketBlocks = (int)(Math.PI * SeenRadiusCells * SeenRadiusCells / (2 * BlockCells * BlockCells));
 
         /// <summary>More blocks than any area holds (a 4000-cell square): a kept map claiming more is not one.</summary>
         private const long MaxBlocks = 500 * 500;
@@ -139,14 +145,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Whole percent of the ground reachable from <paramref name="from"/> that has been seen (D2R explored share); null without a grid.</summary>
         public int? ExploredPercent(byte[] grid, int bytesPerRow, Vector2 from)
         {
-            if (this.seen.Length == 0 || bytesPerRow <= 0 || grid.Length / bytesPerRow < 1)
-            {
-                return null;
-            }
-
-            var width = bytesPerRow * 2;
-            var height = grid.Length / bytesPerRow;
-            if ((width + BlockCells - 1) / BlockCells != this.blocksX || (height + BlockCells - 1) / BlockCells != this.blocksY)
+            if (!this.Fits(grid, bytesPerRow, out var width, out var height))
             {
                 return null;
             }
@@ -162,19 +161,12 @@ namespace Poe2Accessibility.Services
             return total == 0 ? null : seenBlocks * 100 / total;
         }
 
-        /// <summary>Walkable grid cells to head for, one per unexplored group and direction, nearest first.</summary>
-        public IReadOnlyList<Vector2> Frontier(byte[] grid, int bytesPerRow, Vector2 from, int maxEntries)
+        /// <summary>Places to head for, one per unexplored group and direction: ground that goes on first, then pockets, nearest first.</summary>
+        public IReadOnlyList<FrontierPlace> Frontier(byte[] grid, int bytesPerRow, Vector2 from, int maxEntries)
         {
-            if (this.seen.Length == 0 || bytesPerRow <= 0 || grid.Length / bytesPerRow < 1)
+            if (!this.Fits(grid, bytesPerRow, out var width, out var height))
             {
-                return Array.Empty<Vector2>();
-            }
-
-            var width = bytesPerRow * 2;
-            var height = grid.Length / bytesPerRow;
-            if ((width + BlockCells - 1) / BlockCells != this.blocksX || (height + BlockCells - 1) / BlockCells != this.blocksY)
-            {
-                return Array.Empty<Vector2>();
+                return Array.Empty<FrontierPlace>();
             }
 
             var open = WalkableBlocks(grid, bytesPerRow, width, height);
@@ -217,22 +209,75 @@ namespace Poe2Accessibility.Services
             }
 
             var groups = frontier.GroupBy(block => (run[block], Octant(this.Centre(block) - from)));
-            var targets = new List<(Vector2 Cell, float Distance)>();
+            var unseenGround = this.UnseenGround(reachable);
+            var targets = new List<(FrontierPlace Place, float Distance)>();
             foreach (var group in groups)
             {
-                if (group.Count() < MinGroupBlocks)
+                var nearest = group.OrderBy(block => Vector2.DistanceSquared(this.Centre(block), from)).First();
+                if (group.Count() < MinGroupBlocks && unseenGround[nearest] < PocketBlocks)
+                {
+                    continue; // a narrow gap counts when ground goes on behind it
+                }
+
+                if (NearestWalkable(grid, bytesPerRow, width, height, this.Centre(nearest)) is { } cell)
+                {
+                    targets.Add((new FrontierPlace(cell, unseenGround[nearest] < PocketBlocks), Vector2.Distance(cell, from)));
+                }
+            }
+
+            return targets.OrderBy(target => target.Place.Pocket).ThenBy(target => target.Distance).Take(maxEntries).Select(target => target.Place).ToList();
+        }
+
+        /// <summary>
+        ///     Where the shortest walk to <paramref name="goal"/> leaves the seen ground: what a look at the map suggests,
+        ///     without saying where the goal lies. Null when no unseen ground leads there, or the goal's ground is seen.
+        /// </summary>
+        public Vector2? WayOn(byte[] grid, int bytesPerRow, Vector2 from, Vector2 goal)
+        {
+            if (!this.Fits(grid, bytesPerRow, out var width, out var height) || this.IsSeen(goal) ||
+                NearestWalkable(grid, bytesPerRow, width, height, from) is not { } start ||
+                RoutePlanner.Snap(grid, bytesPerRow, goal) is not { } end)
+            {
+                return null;
+            }
+
+            var toPlayer = Walk(grid, bytesPerRow, width, height, start);
+            var toGoal = Walk(grid, bytesPerRow, width, height, end);
+            Vector2? best = null;
+            var bestWalk = int.MaxValue;
+            var bestLeft = float.MaxValue;
+            for (var block = 0; block < this.seen.Length; block++)
+            {
+                if (this.seen[block] || !this.Neighbours4(block).Any(n => this.seen[n]))
                 {
                     continue;
                 }
 
-                var nearest = group.OrderBy(block => Vector2.DistanceSquared(this.Centre(block), from)).First();
-                if (NearestWalkable(grid, bytesPerRow, width, height, this.Centre(nearest)) is { } cell)
+                var left = (block % this.blocksX) * BlockCells;
+                var top = (block / this.blocksX) * BlockCells;
+                for (var y = top; y < Math.Min(top + BlockCells, height); y++)
                 {
-                    targets.Add((cell, Vector2.Distance(cell, from)));
+                    for (var x = left; x < Math.Min(left + BlockCells, width); x++)
+                    {
+                        var index = (y * width) + x;
+                        if (toPlayer[index] < 0 || toGoal[index] < 0)
+                        {
+                            continue;
+                        }
+
+                        // Four-neighbour walks tie across open ground: the straight line to the goal settles it.
+                        var walk = toPlayer[index] + toGoal[index];
+                        var cell = new Vector2(x + 0.5f, y + 0.5f);
+                        var remaining = Vector2.DistanceSquared(cell, end);
+                        if (walk < bestWalk || (walk == bestWalk && remaining < bestLeft))
+                        {
+                            (best, bestWalk, bestLeft) = (cell, walk, remaining);
+                        }
+                    }
                 }
             }
 
-            return targets.OrderBy(target => target.Distance).Take(maxEntries).Select(target => target.Cell).ToList();
+            return best;
         }
 
         /// <summary>
@@ -279,6 +324,46 @@ namespace Poe2Accessibility.Services
         {
             var value = grid[(y * bytesPerRow) + (x / 2)];
             return ((x & 1) == 0 ? value & 0xF : value >> 4) != 0;
+        }
+
+        /// <summary>Steps from <paramref name="start"/> to every walkable cell joined to it (four neighbours), -1 for the rest.</summary>
+        private static int[] Walk(byte[] grid, int bytesPerRow, int width, int height, Vector2 start)
+        {
+            var steps = new int[width * height];
+            Array.Fill(steps, -1);
+            var queue = new int[width * height];
+            var head = 0;
+            var tail = 0;
+            var first = ((int)start.Y * width) + (int)start.X;
+            steps[first] = 0;
+            queue[tail++] = first;
+            while (head < tail)
+            {
+                var cell = queue[head++];
+                var x = cell % width;
+                var y = cell / width;
+                Step(x - 1, y, steps[cell] + 1);
+                Step(x + 1, y, steps[cell] + 1);
+                Step(x, y - 1, steps[cell] + 1);
+                Step(x, y + 1, steps[cell] + 1);
+            }
+
+            return steps;
+
+            void Step(int x, int y, int count)
+            {
+                if (x < 0 || y < 0 || x >= width || y >= height)
+                {
+                    return;
+                }
+
+                var index = (y * width) + x;
+                if (steps[index] < 0 && Walkable(grid, bytesPerRow, x, y))
+                {
+                    steps[index] = count;
+                    queue[tail++] = index;
+                }
+            }
         }
 
         private static bool[] WalkableBlocks(byte[] grid, int bytesPerRow, int width, int height)
@@ -344,41 +429,65 @@ namespace Poe2Accessibility.Services
                 return reachable;
             }
 
-            var visited = new bool[width * height];
-            var queue = new int[width * height];
-            var head = 0;
-            var tail = 0;
-            var first = ((int)start.Y * width) + (int)start.X;
-            visited[first] = true;
-            queue[tail++] = first;
-            while (head < tail)
+            var walk = Walk(grid, bytesPerRow, width, height, start);
+            for (var cell = 0; cell < walk.Length; cell++)
             {
-                var cell = queue[head++];
-                var x = cell % width;
-                var y = cell / width;
-                reachable[((y / BlockCells) * this.blocksX) + (x / BlockCells)] = true;
-                Step(x - 1, y);
-                Step(x + 1, y);
-                Step(x, y - 1);
-                Step(x, y + 1);
+                if (walk[cell] >= 0)
+                {
+                    reachable[((cell / width / BlockCells) * this.blocksX) + (cell % width / BlockCells)] = true;
+                }
             }
 
             return reachable;
+        }
 
-            void Step(int x, int y)
+        /// <summary>Per block, how many blocks its connected unseen ground holds (8 neighbours: ground that goes on is never called a pocket).</summary>
+        private int[] UnseenGround(bool[] reachable)
+        {
+            var sizes = new int[reachable.Length];
+            var done = new bool[reachable.Length];
+            var members = new List<int>();
+            var stack = new Stack<int>();
+            for (var first = 0; first < reachable.Length; first++)
             {
-                if (x < 0 || y < 0 || x >= width || y >= height)
+                if (done[first] || !reachable[first] || this.seen[first])
                 {
-                    return;
+                    continue;
                 }
 
-                var index = (y * width) + x;
-                if (!visited[index] && Walkable(grid, bytesPerRow, x, y))
+                members.Clear();
+                done[first] = true;
+                stack.Push(first);
+                while (stack.Count > 0)
                 {
-                    visited[index] = true;
-                    queue[tail++] = index;
+                    var block = stack.Pop();
+                    members.Add(block);
+                    foreach (var n in this.Neighbours8(block))
+                    {
+                        if (!done[n] && reachable[n] && !this.seen[n])
+                        {
+                            done[n] = true;
+                            stack.Push(n);
+                        }
+                    }
+                }
+
+                foreach (var block in members)
+                {
+                    sizes[block] = members.Count;
                 }
             }
+
+            return sizes;
+        }
+
+        /// <summary>The grid has this map's size and something has been seen on it.</summary>
+        private bool Fits(byte[] grid, int bytesPerRow, out int width, out int height)
+        {
+            width = bytesPerRow * 2;
+            height = bytesPerRow > 0 ? grid.Length / bytesPerRow : 0;
+            return this.seen.Length > 0 && height >= 1 &&
+                   (width + BlockCells - 1) / BlockCells == this.blocksX && (height + BlockCells - 1) / BlockCells == this.blocksY;
         }
 
         private IEnumerable<int> Neighbours4(int block)
@@ -422,4 +531,7 @@ namespace Poe2Accessibility.Services
             }
         }
     }
+
+    /// <summary>An unexplored place: a pocket is unseen ground one look from its edge would show whole, a nook with no way on.</summary>
+    public readonly record struct FrontierPlace(Vector2 Cell, bool Pocket);
 }

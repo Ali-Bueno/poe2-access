@@ -214,6 +214,9 @@ namespace Poe2Accessibility
         /// <summary>D2R unexplored mark: a radar open-way or exit cue toward unseen ground ends in two pips.</summary>
         public bool UnexploredMark = true;
 
+        /// <summary>A quest place not seen yet gives the way into unseen ground toward it; off lists the place itself at any distance.</summary>
+        public bool QuestWayOnly = true;
+
         /// <summary>How far ahead a wall starts to sound for the wall tones, in world units (~400 per second of walking).</summary>
         public int WallToneRange = 600;
 

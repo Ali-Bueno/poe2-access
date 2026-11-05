@@ -173,7 +173,8 @@
 | Route turn prompts, partial routes, controls help in the settings menu | done (live) | "Ahora arriba a la derecha, 10"; help topics open the L3 menu; the menu edge knock was removed (user 2026-10-24) |
 | Game updates: layout found again, data regenerated, losses said | done (every part judged live 2026-10-25: login, character creation, town with a quest marker, options, inventory, passive tree, skill bar, left trigger) | `LayoutProbe` (+ image textures), `InGameFields`, `ControlFields` (+ tabs, skill slots, passive canvas and nodes, class selector, panel title, hint, check box and list seen changing), `EntityFields` (in-play flag, quest marker), `FlagBits`, `PadButtonCheck`, `PassiveTreeFields`, `TileGridSearch`, `BaseNameField`, `GameStateService.AreaRowOffset`, `CompatibilityReport`; `tools/package/Update-GameHelper.ps1`; launcher `GameDataSetup` + `DatContentColumns` (passive flags, skill keys by content); dev command `layout`; `docs/compatibility.md` |
 | Game data survives mod updates | done (simulated on a copy of the user's `dist`: carry-over 2 s, update restored, one step rerun alone) | `GameDataSetup` + pure `GameDataStamp`: per-step versions, catalogs in `app/GameData` copied over the shipped ones, sounds in the plugin; a game patch reruns all in ~33 s: one extractor `batch` run on one opened index (`Batch.cs`); `tools/README.md` |
-| Scanner limited to what a sighted player sees | done (live) | `EntityCatalog.Sighted`: enemies on screen, minimap-icon things once the client has them, the rest once seen or explored; Quest category at any distance ("Misión. Campamento de Sierraclara, 130 pasos" from unexplored Riverbank); `docs/research/minimap.md` |
+| Scanner limited to what a sighted player sees | done (live) | `EntityCatalog.Sighted`: enemies on screen, minimap-icon things once the client has them, the rest once seen or explored; Quest category at any distance, a place not seen yet as the way toward it (next row); `docs/research/minimap.md` |
+| Quest way and unexplored nooks (no gamble at forks) | done (live scan; not heard) | "Camino a Mansión de Ogham, 7 pasos": a quest place not seen gives only where the way enters unseen ground (`ExplorationMap.WayOn`, setting `QuestWayOnly`); "Rincón sin explorar" for dead ends, listed last (`FrontierPlace.Pocket`); [radar](docs/radar.md) |
 | Enemies coming into view | done (code) | `EnemyNarrator`: once per monster per area, packs grouped: "Ahogado, 3, derecha"; uniques stay discoveries |
 | Inventory actions cut in | done (code) | "En la mano" held 400 ms (was 1.5 s, which queued the moves after it); equip/unequip/hand empty/arrivals interrupt |
 | Social, Challenges, Cosmetics, Quests, Character, Skills panels | done (live) | filter box as an edit field; Challenges rows by their `selected_*` marker frame ("El relicario, 0/50, 5 de 8", expand reads the goal); free-cursor pages read after the tab; icon buttons named by their tooltip ("Efecto para arma") |
@@ -362,7 +363,7 @@
 - Scanner: `EntityCatalog` (entries, landmarks, `Describe`; `.Classify` categories and names, `.Terrain` live grid and barriers) → `RoutePlanner` (A*, corners,
   legs) and `ScanModel` (`ScanBrowser`, `StickDirection`); `LandmarkTable`. Map marks: pure `MinimapMarks` (signs, boss
   rooms by icon or tile, pointer reach), `MinimapIconLabel` (an icon's translated label). Exploring: `ExplorationMap`
-  (frontier), `UnexploredLoop` (D2R loop, `assets/loops/`), the radar's unexplored mark. Memory: `AreaMemory` (instance + layout; `Frame`/`Inherit`/`Framed`: a fixed map's exits into a new instance). Warnings: `VitalAlarm`.
+  (frontier, pockets, `WayOn`), `UnexploredLoop` (D2R loop, `assets/loops/`), the radar's unexplored mark. Memory: `AreaMemory` (instance + layout; `Frame`/`Inherit`/`Framed`: a fixed map's exits into a new instance). Warnings: `VitalAlarm`.
 - Sounds: `AudioCueService` (winmm mixer; each sound's own level by glossary key, `SetLevels`) ← `EnemyCues` (`EnemyCueScheduler`, `CueSynth`) and `Radar`
   (`PassageScan`, `RadarSensor`, `RadarSynth`; a second `Radar` follows `Seats.Partner`); with `ProximityNarrator` (`ProximityTracker`) gated in
   `Poe2AccessibilityCore.TickSounds`.
@@ -391,6 +392,8 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
+First (2026-11-05): the user hears "Camino a Mansión de Ogham" and "Rincón sin explorar" on the Manor Ramparts, and says whether the way alone is enough
+or too little (setting `QuestWayOnly`; the user wants the scanner like a look at the map, yet not a gamble). Seen in a live scan and followed to the tile on the real grid; not heard in play. In the user's `dist`, no release made.
 First (2026-11-04, twentieth batch, released as v2026.11.04-2): the user hears the Diablo IV set as loops in play. It was heard to stop, start and distort
 (repeated cuts of the recordings); the loops were only checked offline, since the user was playing at the time. Also not heard: a
 finished ritual altar is silent now (`MinimapMarks.DeviceKind`; the log shows its icon changing live, 15:12 to 15:14 that day). A boss waiting in its arena no longer counts as a fight: seen live at 18:44 (dev command `fight`: Lachlann out of play, not counted, no fight) and in the user's play from 18:46 (items and the altar named beside him again), released as v2026.11.04-3. A not yet done altar beside a waiting boss still to hear.
@@ -494,6 +497,7 @@ live: the loot filter's quieter settings (kehgan carries no normal item; a white
 must stay silent).
 
 ## Known issues / open questions
+- `catalog/landmarks.json` corrects the Radar table's labels that were no area name by a typo ("Oghams Manor", 5 found by near match) and G1_14's "Entrance", the way back read as the Manor's.
 - Radar-table labels are English notes (GameHelper's `important_tgt_files.txt`): area names, bracketed notes and, since
   2026-11-02, 11 boss names (`catalog/monster-names.json` from MonsterVarieties: "Sala del jefe: Beira, de la manada
   putrefacta") are said in the game's language. Still English: places ("The Corpse Tree (punto de ruta)", not a game

@@ -87,7 +87,7 @@ namespace Poe2Accessibility.Services
             {
                 var back = Fold(cameFrom);
                 var onward = entries.Where(entry => entry.Category == ScanCategory.Exits && entry.Kind == ExitKind && Fold(entry.Name) != back).ToList();
-                targets.AddRange((onward.Count > 0 ? onward : entries.Where(entry => entry.Category == ScanCategory.Unexplored).Take(1))
+                targets.AddRange((onward.Count > 0 ? onward : entries.Where(entry => entry.Category == ScanCategory.Unexplored).OrderBy(entry => entry.Kind == ExplorationMap.PocketKind).Take(1))
                     .Select(entry => entry with { Category = ScanCategory.Quest }));
             }
 

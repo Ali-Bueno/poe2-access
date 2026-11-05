@@ -51,13 +51,20 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
 - **Mark:** an open-way or exit cue whose ray points toward unseen ground ends in D2R's tail: 30 ms gap, two 900 Hz
   pips of 35 ms, 30 ms apart, a little lower downward (`RadarSynth.WithUnexploredTail`). The ray's quarter (±45°)
   must hold a frontier place of the scanner's Unexplored category within 3 × the 60-cell reveal radius
-  (`ExplorationMap.AnyToward`). Setting `UnexploredMark`.
+  (`ExplorationMap.AnyToward`). Pockets count only once nothing else is left. Setting `UnexploredMark`.
 - **Loop:** the D2R mod's "unexplored room" recording (supplied by the user for D2R, resampled to the mixer's
   44.1 kHz, shipped in `assets/loops/`) plays without a break at the nearest frontier place, panned and pitched like
   the guide, from full level near to a quarter at 6000 world units, silent beyond (`UnexploredLoop`). It keeps its
   place while the recomputed frontier still holds it within three blocks, unless another is less than half as far
   (`ExplorationMap.Follow`). Silent in towns and hideouts, menus, dialogue, and while the guide leads. Setting
   `UnexploredLoop`, at the object sounds' volume. PoE2 has no rooms: the frontier stands for D2R's unvisited rooms.
+- **Pockets:** unseen ground under half the reveal disc (88 blocks), joined to nothing else, is a nook with no way on:
+  the scanner says "Unexplored nook" and lists it after the ground that goes on (`FrontierPlace.Pocket`). A frontier of
+  one block is kept when ground goes on behind it: a narrow gap can be the way.
+- **The way to a quest place not seen yet** (`ExplorationMap.WayOn`, setting `QuestWayOnly`): the frontier cell on the
+  shortest walk there, what a sighted player reads off the map's shape, never the place. On the Manor Ramparts
+  (2026-11-05, the user's own explored ground and grid) the nearest of four frontier places was a pocket, and following
+  the way reached the Manor's tile in 21 hops; 33 ms every 2 s beside the frontier's 31.
 
 ## Not ported yet
 

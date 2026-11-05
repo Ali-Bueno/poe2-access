@@ -348,6 +348,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.WallTones) => T("Wall tones", "Tonos de pared"),
             nameof(AccessibilitySettings.UnexploredLoop) => T("Unexplored area loop", "Bucle de zona sin explorar"),
             nameof(AccessibilitySettings.UnexploredMark) => T("Radar: unexplored mark", "Radar: marca de sin explorar"),
+            nameof(AccessibilitySettings.QuestWayOnly) => T("Quest: the way, not the exact place", "Misión: el camino, no el lugar exacto"),
             nameof(AccessibilitySettings.SpeechStatusBegins) => T("Speech: a state begins", "Voz: empieza un estado"),
             nameof(AccessibilitySettings.SpeechStatusEnds) => T("Speech: a state ends", "Voz: termina un estado"),
             nameof(AccessibilitySettings.SpeechLifeAndMana) => T("Speech: low life and mana", "Voz: vida y maná bajos"),
@@ -477,6 +478,12 @@ namespace Poe2Accessibility
 
         /// <summary>A scanner entry of the unexplored category: where unseen ground begins.</summary>
         public static string UnexploredArea => T("Unexplored ground", "Zona sin explorar");
+
+        /// <summary>Unseen ground with no way on: one look from its edge shows it all.</summary>
+        public static string UnexploredPocket => T("Unexplored nook", "Rincón sin explorar");
+
+        /// <summary>A quest place not seen yet: the scanner gives the way toward it, not where it lies.</summary>
+        public static string QuestWay(string place) => T($"Way to {place}", $"Camino a {place}");
 
         /// <summary>The scanner's entry for the place of the last death in this area (D2R).</summary>
         public static string DeathPlace => T("Where you died", "Donde moriste");

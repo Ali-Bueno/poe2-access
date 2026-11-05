@@ -686,6 +686,7 @@ namespace Poe2Accessibility
             "stairs up" => T("Stairs Up", "Escaleras hacia arriba"),
             "stairs down" => T("Stairs Down", "Escaleras hacia abajo"),
             "entrance" => T("Entrance", "Entrada"),
+            "way back" => T("Way back", "Camino de vuelta"),
             "transition" => T("Transition", "Paso a otra zona"),
             "beacon" => T("Beacon", "Baliza"),
             "ancient seal" => T("Ancient Seal", "Sello antiguo"),

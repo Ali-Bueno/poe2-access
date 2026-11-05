@@ -128,6 +128,9 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private readonly Dictionary<string, string> itemTitles = new(StringComparer.Ordinal);
         private readonly ExplorationMap explored = new();
+
+        /// <summary>The way to each quest place not seen yet, by entry id, worked out every UnexploredRefreshMs.</summary>
+        private readonly Dictionary<uint, (long At, Vector2? Cell)> questWays = new();
         /// <summary>Recent live walkable grids (GameLayout-free: whole copies), oldest first.</summary>
         private readonly Queue<byte[]> samples = new();
         private readonly BarrierMemory barriers = new();
@@ -193,6 +196,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The current area's name in the client language (its name in an objective is not a destination).</summary>
         public Func<string> AreaName { get; set; } = () => string.Empty;
+
+        /// <summary>A quest place not seen yet gives only the way toward it (<see cref="WayTo"/>); false lists the place itself.</summary>
+        public Func<bool> QuestWayOnly { get; set; } = () => true;
 
         /// <summary>What each area instance left held, to restore it on return (set by the plugin).</summary>
         public AreaMemory? Memory { get; set; }
@@ -328,6 +334,7 @@ namespace Poe2Accessibility.Services
             this.sighted.Clear();
             this.itemTitles.Clear();
             this.explored.Reset();
+            this.questWays.Clear();
             lock (this.samplesLock)
             {
                 this.samples.Clear();
@@ -489,12 +496,38 @@ namespace Poe2Accessibility.Services
             }
 
             var origin = player.WorldPosition;
-            var sorted = found.Values.OrderBy(entry => Distance(origin, entry)).ToList();
+            var sorted = found.Values.OrderBy(entry => entry.Kind == ExplorationMap.PocketKind).ThenBy(entry => Distance(origin, entry)).ToList();
             // The quest marker: what the objective names is found wherever the game knows it, seen or not (user,
             // 2026-10-24: the objective guided before the scanner kept to what is seen; docs/research/minimap.md).
             var questPool = sorted.Concat(unseen.Where(entry => !found.ContainsKey(entry.Id))).OrderBy(entry => Distance(origin, entry)).ToList();
-            sorted.InsertRange(0, QuestMatcher.Targets(questPool, this.QuestTexts(), this.AreaName(), this.cameFrom));
+            var targets = QuestMatcher.Targets(questPool, this.QuestTexts(), this.AreaName(), this.cameFrom);
+            sorted.InsertRange(0, targets.Select(target => found.ContainsKey(target.Id) ? target : this.WayTo(target, area, player)));
             return sorted;
+        }
+
+        /// <summary>
+        ///     A quest place not seen yet, as a look at the map finds it: not where it lies, only where the way there enters
+        ///     unseen ground (user 2026-11-05). Same id: a guide locked on it walks on with the way, and ends on the place once seen.
+        /// </summary>
+        private ScanEntry WayTo(ScanEntry target, AreaInstance area, Render player)
+        {
+            if (target.QuestMarked || !this.QuestWayOnly())
+            {
+                return target;
+            }
+
+            var toWorld = area.WorldToGridConvertor;
+            var now = Environment.TickCount64;
+            if (!this.questWays.TryGetValue(target.Id, out var way) || now - way.At >= UnexploredRefreshMs)
+            {
+                var here = new Vector2(player.GridPosition.X, player.GridPosition.Y);
+                var cell = this.TryLiveGrid(out var grid, out var row) ? this.explored.WayOn(grid, row, here, new Vector2(target.WorldX, target.WorldY) / toWorld) : null;
+                this.questWays[target.Id] = way = (now, cell);
+            }
+
+            return way.Cell is { } at
+                ? target with { Name = Announcements.QuestWay(target.Name), WorldX = at.X * toWorld, WorldY = at.Y * toWorld, Kind = string.Empty }
+                : target;
         }
 
         /// <summary>
@@ -711,14 +744,19 @@ namespace Poe2Accessibility.Services
                 : null;
         }
 
-        /// <summary>Where unseen ground begins, in grid cells, nearest first (the Unexplored category's places).</summary>
+        /// <summary>Where unseen ground begins, in grid cells, nearest first; pockets only once nothing else is left (the radar's mark, the loop).</summary>
         public IReadOnlyList<Vector2> UnexploredCells()
         {
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             var toWorld = area.WorldToGridConvertor;
-            return toWorld > 0 && Seats.Followed.TryGetComponent<Render>(out var player)
-                ? this.Unexplored(area, player).Select(entry => new Vector2(entry.WorldX, entry.WorldY) / toWorld).ToList()
-                : Array.Empty<Vector2>();
+            if (toWorld <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return Array.Empty<Vector2>();
+            }
+
+            var places = this.Unexplored(area, player);
+            var onward = places.Where(entry => entry.Kind != ExplorationMap.PocketKind).ToList();
+            return (onward.Count > 0 ? onward : places).Select(entry => new Vector2(entry.WorldX, entry.WorldY) / toWorld).ToList();
         }
 
         /// <summary>Where unseen ground begins (<see cref="ExplorationMap"/>), refreshed every UnexploredRefreshMs.</summary>
@@ -734,13 +772,14 @@ namespace Poe2Accessibility.Services
             var toWorld = area.WorldToGridConvertor;
             var from = new Vector2(player.GridPosition.X, player.GridPosition.Y);
             this.unexplored = this.explored.Frontier(grid, row, from, MaxUnexplored)
-                .Select(cell => new ScanEntry(
-                    UnexploredIdBase + (uint)(((int)cell.Y / ExplorationMap.BlockCells) << 15) + (uint)((int)cell.X / ExplorationMap.BlockCells),
+                .Select(place => new ScanEntry(
+                    UnexploredIdBase + (uint)(((int)place.Cell.Y / ExplorationMap.BlockCells) << 15) + (uint)((int)place.Cell.X / ExplorationMap.BlockCells),
                     ScanCategory.Unexplored,
-                    Announcements.UnexploredArea,
-                    cell.X * toWorld,
-                    cell.Y * toWorld,
-                    player.WorldPosition.Z))
+                    place.Pocket ? Announcements.UnexploredPocket : Announcements.UnexploredArea,
+                    place.Cell.X * toWorld,
+                    place.Cell.Y * toWorld,
+                    player.WorldPosition.Z,
+                    place.Pocket ? ExplorationMap.PocketKind : string.Empty))
                 .ToList();
             return this.unexplored;
         }
