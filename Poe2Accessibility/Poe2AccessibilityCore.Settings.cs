@@ -71,6 +71,7 @@ namespace Poe2Accessibility
                 {
                     radar.Gain = Fraction(settings.RadarVolume);
                     radar.SmallObstacles = settings.SmallObstacles;
+                    radar.Rooms = settings.RadarRooms;
                 }
             }
 

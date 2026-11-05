@@ -236,6 +236,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   ([radar](radar.md)). An open way or exit that leads toward ground you have not seen yet ends in two short pips
   (D2R's unexplored mark; setting "Radar: unexplored mark"). In local co-op with both players read, player 2 has a radar of their own: the same
   meanings in other sounds, plucked strings for walls, obstacles and exits, a whistle for the open way.
+- **Another room:** the radar's tin also marks a doorway ahead: the way narrows between walls and leads to another
+  space, a hall, a corridor, it is not only floor (setting "Radar: tin at the way into another room").
 - **Unexplored area loop:** the D2R mod's "unexplored room" sound plays without a break where the nearest ground you
   have not seen yet begins, on its side and quieter when far (up to about 60 steps), so you always hear which way is
   left to explore (nooks only once nothing else is left, as for the radar's unexplored mark); silent in towns, menus and dialogue and while the guide leads (setting "Unexplored area loop").
@@ -376,6 +378,10 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   screen, so a Y meant for a skill can hide it: then "The death screen is hidden: Y shows it".
 - Discoveries: the first time the game shows an exit, a waypoint or checkpoint, or a boss in the area: "New
   exit: Clearfell", "New checkpoint, near Clearfell Encampment", "Boss in sight: The Bloated Miller" (`AnnounceDiscoveries`).
+  Said once, so it holds through a fight for a moment; other spoken news waits behind it.
+- Where you start: the area's line ends in the part of the map you are in, in screen directions: "Area: The Manor
+  Ramparts, level 14. Bottom left corner." From there the way on lies the other way (setting "Say the map corner on
+  entering an area"; not in towns and hideouts).
 - Enemies coming into view, each monster once per area, a pack in one line by name, count and the direction of its
   middle: "Drowned, 3, right. Rotten Wolf, rare, up" (`AnnounceEnemies`; bosses are discoveries); without the
   direction when `EnemyDirections` is off.

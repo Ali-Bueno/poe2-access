@@ -142,6 +142,9 @@ namespace Poe2Accessibility
         /// <summary>The radar's wall cue knocks hollow when the wall is a small obstacle the player can step round.</summary>
         public bool SmallObstacles = true;
 
+        /// <summary>The radar's tin also marks a doorway ahead: the way leads to another space, it is not only floor.</summary>
+        public bool RadarRooms = true;
+
         /// <summary>Local co-op: the mod reads for player 1 (alone, always player 1).</summary>
         public bool ReadPlayer1 = true;
 

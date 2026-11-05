@@ -345,6 +345,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.ReadPlayer2) => T("Local co-op: read for player 2", "Cooperativo local: lectura para el jugador 2"),
             nameof(AccessibilitySettings.CheckForUpdates) => T("Check for updates at start", "Buscar actualizaciones al iniciar"),
             nameof(AccessibilitySettings.SmallObstacles) => T("Small obstacles sound hollow", "Obstáculos pequeños con toc hueco"),
+            nameof(AccessibilitySettings.RadarRooms) => T("Radar: tin at the way into another room", "Radar: ding al pasar a otra sala"),
             nameof(AccessibilitySettings.WallTones) => T("Wall tones", "Tonos de pared"),
             nameof(AccessibilitySettings.UnexploredLoop) => T("Unexplored area loop", "Bucle de zona sin explorar"),
             nameof(AccessibilitySettings.UnexploredMark) => T("Radar: unexplored mark", "Radar: marca de sin explorar"),

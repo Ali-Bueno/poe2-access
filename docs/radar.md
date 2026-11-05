@@ -11,7 +11,7 @@ Four rays along the screen's up, left, right and down (the stick directions). Ea
 |---|---|---|
 | Wall (the way ends within ~half a second of walking) | low wooden tock (260 Hz) | left/right by stereo (±0.9), down 14% lower |
 | Open floor | filtered-noise breath, 180 ms | rises ahead, falls behind, steady to the sides |
-| Exit (an area transition in the ray's quarter, even in the wall ahead) | bright tin (1100 Hz) | as the wall |
+| Exit (an area transition in the ray's quarter, even in the wall ahead), or a doorway on the ray | bright tin (1100 Hz) | as the wall |
 
 A ray sounds only when its reading **changes** and the change is **confirmed**: the player walked ~30 world units with
 it, or stood still 200 ms and the reading held 100 ms. Walls first, then exits, then floor; one cue at a time with
@@ -75,6 +75,19 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
   minimap does not point to yet (400 cells, 43 steps). Not in the Quest category, whatever the objective: about 40
   areas hold a boss room and one exit or none in the table, and the objective seldom names the room (Ogham Village's
   way on lies behind Executioner's Block, found only at 43 steps on 2026-11-05).
+
+## Another room
+
+D2R's tin means "the route leads out: into another chamber, or to a level exit"; the breath, "floor, it leads nowhere
+new". PoE2 has no rooms, so the port kept only exits and the tin was rare. `PassageScan.Doorway` finds the chamber's half
+on the grid, D2R's `Rooms::Doorways` along each ray, as PoE2's walls run at any angle: a gap under 200 units with 125 of
+wall either side (a pillar has ground behind it), the ground wider before or after it within 250, and the way going on
+a gap's width past it. So a hall to a hall, a hall to a corridor and a corridor to a hall each sound, a corridor itself
+does not. The doorway last walked through is taken as read (D2R's way back). Setting `RadarRooms`.
+
+Width from walking 1500 steps of two real outdoor maps with the four rays (2026-10-24 grids, 2026-11-05): D2R's two tiles
+scaled (23 cells) gave a tin every 5 and 15 s, 20 cells 8 and 16, **18 cells 12 and 15**, 16 cells 18 and 76. Indoor maps
+not measured: a door wider than 200 units stays silent.
 
 ## Where the map starts
 

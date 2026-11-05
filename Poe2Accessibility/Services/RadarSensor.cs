@@ -52,6 +52,7 @@ namespace Poe2Accessibility.Services
         /// <summary>One poll of this ray; returns the reading to sound now, if any.</summary>
         /// <param name="position">Player position in cells.</param>
         /// <param name="axis">The ray's unit direction in cells.</param>
+        /// <param name="exitAhead">The ray leads out: to an exit, or through a doorway to another space.</param>
         public RadarReading? Update(long now, Vector2 position, Vector2 axis, PassageScan.Result scan, bool exitAhead)
         {
             if (Vector2.Distance(position, this.lastPosition) > 0)

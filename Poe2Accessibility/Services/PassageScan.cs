@@ -14,6 +14,13 @@ namespace Poe2Accessibility.Services
         /// <summary>Depth in cells along the ray; Unknown when the grid ends before the opening depth.</summary>
         public readonly record struct Result(float Depth, bool Unknown);
 
+        /// <summary>
+        ///     What makes a doorway, in cells (D2R `Rooms::Doorways`, its tiles scaled as the radar's): a gap at most
+        ///     <paramref name="MaxWidth"/> wide, a wall of at least <paramref name="Flank"/> either side, and ground
+        ///     <paramref name="Widens"/> wider each side of it within <paramref name="Depth"/> along the ray.
+        /// </summary>
+        public readonly record struct DoorwayLimits(float MaxWidth, float Flank, float Widens, float Depth);
+
         /// <summary>How far past the open depth the obstacle test looks for the blocked cell that stopped the ray.</summary>
         private const float ObstacleSearchCells = 3f;
 
@@ -75,6 +82,96 @@ namespace Poe2Accessibility.Services
 
             return new Result(depth, unknown);
         }
+
+        /// <summary>
+        ///     The first doorway the ray walks through within <paramref name="depthCells"/>, at its middle: where it leaves one
+        ///     space for another (D2R's "another chamber"). Null over plain floor and along a corridor; the way must go on a
+        ///     doorway's width past it, as touching the border is not leaving through it.
+        /// </summary>
+        public static Vector2? Doorway(byte[] grid, int bytesPerRow, Vector2 start, Vector2 axis, float depthCells, DoorwayLimits limits)
+        {
+            if (bytesPerRow <= 0 || grid.Length < bytesPerRow)
+            {
+                return null;
+            }
+
+            var side = new Vector2(-axis.Y, axis.X);
+            for (var along = 1f; along <= depthCells; along += 1f)
+            {
+                var row = start + (axis * along);
+                if (!Open(grid, bytesPerRow, row))
+                {
+                    return null;
+                }
+
+                var left = Clear(grid, bytesPerRow, row, -side, limits.MaxWidth + 1);
+                var right = Clear(grid, bytesPerRow, row, side, limits.MaxWidth + 1);
+                var width = left + right;
+                if (width > limits.MaxWidth || along + width > depthCells ||
+                    !Walled(grid, bytesPerRow, row - (side * (left + 1)), -side, limits.Flank) ||
+                    !Walled(grid, bytesPerRow, row + (side * (right + 1)), side, limits.Flank))
+                {
+                    continue;
+                }
+
+                if (Widens(grid, bytesPerRow, row, axis, side, width, limits) || Widens(grid, bytesPerRow, row, -axis, side, width, limits))
+                {
+                    return row + (side * ((right - left) / 2f));
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>The ground goes wider than the gap within the doorway's depth, one way along the ray.</summary>
+        private static bool Widens(byte[] grid, int bytesPerRow, Vector2 gap, Vector2 way, Vector2 side, float width, DoorwayLimits limits)
+        {
+            var wider = width + (2 * limits.Widens);
+            for (var depth = 1f; depth <= limits.Depth; depth += 1f)
+            {
+                var row = gap + (way * depth);
+                if (!Open(grid, bytesPerRow, row))
+                {
+                    return false;
+                }
+
+                if (Clear(grid, bytesPerRow, row, side, wider + 1) + Clear(grid, bytesPerRow, row, -side, wider + 1) >= wider)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>Open cells from <paramref name="from"/> along <paramref name="way"/>, up to <paramref name="limit"/>.</summary>
+        private static float Clear(byte[] grid, int bytesPerRow, Vector2 from, Vector2 way, float limit)
+        {
+            var clear = 0f;
+            while (clear < limit && Open(grid, bytesPerRow, from + (way * (clear + 1))))
+            {
+                clear += 1f;
+            }
+
+            return clear;
+        }
+
+        /// <summary>Blocked for <paramref name="length"/> cells: a wall, not a pillar with ground behind it.</summary>
+        private static bool Walled(byte[] grid, int bytesPerRow, Vector2 from, Vector2 way, float length)
+        {
+            for (var step = 0f; step < length; step += 1f)
+            {
+                if (Open(grid, bytesPerRow, from + (way * step)))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool Open(byte[] grid, int bytesPerRow, Vector2 cell) =>
+            cell.X >= 0 && cell.Y >= 0 && RoutePlanner.IsWalkable(grid, bytesPerRow, (int)cell.X, (int)cell.Y);
 
         /// <summary>
         ///     An exit belongs to the ray whose quarter holds it, within <paramref name="reachCells"/>, with open ground up to

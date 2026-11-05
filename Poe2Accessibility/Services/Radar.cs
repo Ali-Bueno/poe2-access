@@ -37,6 +37,18 @@ namespace Poe2Accessibility.Services
         /// <summary>How far an exit is heard, in opening depths: the ray's reach and one more.</summary>
         private const float ExitReachOpenings = 3f;
 
+        /// <summary>A doorway's widest gap: two steps, a tin every 12-15 s on real outdoor maps (docs/radar.md; D2R's two tiles scaled, every 5 s on one).</summary>
+        private const float DoorwayWidthWorld = 200f;
+
+        /// <summary>D2R: a tile of wall either side of the gap.</summary>
+        private const float DoorwayFlankWorld = 125f;
+
+        /// <summary>D2R: the ground past a gap reaches two cells beyond each of its edges.</summary>
+        private const float DoorwayWidensWorld = 50f;
+
+        /// <summary>This near a doorway's middle the player is walking through it.</summary>
+        private const float DoorwayPassedWorld = 90f;
+
         /// <summary>The lane either side of a ray, in cells: the staircase of a diagonal line plus a body's width.</summary>
         private const float LaneCells = 2f;
 
@@ -76,6 +88,10 @@ namespace Poe2Accessibility.Services
         /// <summary>Directions whose confirmed wall is a small obstacle the player can step round.</summary>
         private readonly HashSet<RadarSynth.Direction> smallObstacles = new();
         private List<Vector2> exits = new();
+        private PassageScan.DoorwayLimits doorway;
+
+        /// <summary>The doorway last walked through: it is behind the player, not news (D2R `Sensor::wayBack`).</summary>
+        private Vector2? passedDoorway;
         private float scale;
         private string area = string.Empty;
         private Vector2 lastPosition;
@@ -117,6 +133,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A wall that is a rock, tree or pillar standing alone knocks hollow instead (D2R small obstacles).</summary>
         public bool SmallObstacles { get; set; } = true;
+
+        /// <summary>A doorway on a ray sounds as an exit: the way leads to another space, it is not only floor.</summary>
+        public bool Rooms { get; set; } = true;
 
         /// <summary>Per frame; <paramref name="active"/> false silences and forgets every reading.</summary>
         public void Tick(bool active)
@@ -187,8 +206,9 @@ namespace Poe2Accessibility.Services
 
                 this.axes[direction] = axis;
                 var scan = PassageScan.Scan(grid, row, position, axis, LaneCells, 2 * open, open);
-                var exitAhead = this.exits.Any(exit => PassageScan.ExitToward(grid, row, position, axis, exit, ExitReachOpenings * open, open));
-                if (this.sensors[direction].Update(now, position, axis, scan, exitAhead) is { } reading)
+                var leadsOut = this.exits.Any(exit => PassageScan.ExitToward(grid, row, position, axis, exit, ExitReachOpenings * open, open)) ||
+                               this.DoorwayAhead(grid, row, position, axis, scan.Depth);
+                if (this.sensors[direction].Update(now, position, axis, scan, leadsOut) is { } reading)
                 {
                     this.pending[direction] = reading;
                     if (reading == RadarReading.Wall && this.SmallObstacles &&
@@ -204,6 +224,22 @@ namespace Poe2Accessibility.Services
                     this.log.Debug($"{this.label} {direction}: {reading} (depth {scan.Depth * cellSize:0} units, at {position.X:0.00},{position.Y:0.00}, axis {axis.X:0.000},{axis.Y:0.000})");
                 }
             }
+        }
+
+        /// <summary>A doorway on the ray, not the one just walked through.</summary>
+        private bool DoorwayAhead(byte[] grid, int row, Vector2 position, Vector2 axis, float depth)
+        {
+            if (!this.Rooms || PassageScan.Doorway(grid, row, position, axis, depth, this.doorway) is not { } gap)
+            {
+                return false;
+            }
+
+            if (Vector2.Distance(gap, position) * this.scale <= DoorwayPassedWorld)
+            {
+                this.passedDoorway = gap;
+            }
+
+            return this.passedDoorway is not { } passed || Vector2.Distance(passed, gap) * this.scale > OpenWorld;
         }
 
         /// <summary>The most urgent cue still true (walls, then exits, then floor; equals take turns), one at a time.</summary>
@@ -246,12 +282,14 @@ namespace Poe2Accessibility.Services
             }
 
             this.pending.Clear();
+            this.passedDoorway = null;
         }
 
         /// <summary>Cell sizes differ per area, so the thresholds in cells follow the area's grid.</summary>
         private void ApplyScale(float cellSize)
         {
             this.scale = cellSize;
+            this.doorway = new PassageScan.DoorwayLimits(DoorwayWidthWorld / cellSize, DoorwayFlankWorld / cellSize, DoorwayWidensWorld / cellSize, OpenWorld / cellSize);
             var limits = new RadarThresholds(OpenWorld / cellSize, CloseWorld / cellSize, ConfirmWorld / cellSize, StillMs, StillConfirmMs, OpeningIntervalMs);
             foreach (var direction in Directions)
             {

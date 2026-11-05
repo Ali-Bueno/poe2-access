@@ -141,6 +141,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(FrontierTellsNooksFromGroundThatGoesOn), FrontierTellsNooksFromGroundThatGoesOn);
             Run(nameof(RadarHearsAnExitInItsWallAndOffItsLane), RadarHearsAnExitInItsWallAndOffItsLane);
             Run(nameof(MapCornerFollowsTheScreenNotTheGrid), MapCornerFollowsTheScreenNotTheGrid);
+            Run(nameof(RadarFindsTheDoorwayToAnotherRoom), RadarFindsTheDoorwayToAnotherRoom);
             Run(nameof(QuestWayLeavesTheSeenGroundTowardTheGoal), QuestWayLeavesTheSeenGroundTowardTheGoal);
             Run(nameof(UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay), UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay);
             Run(nameof(SpiritValuesNameTheirWeaponSet), SpiritValuesNameTheirWeaponSet);
@@ -1718,6 +1719,48 @@ namespace Poe2Accessibility.Tests
                 {
                     Array.Fill(grid, (byte)0x11, (y * width / 2) + (left / 2), (right - left) / 2);
                 }
+            }
+
+            return grid;
+        }
+
+        private static void RadarFindsTheDoorwayToAnotherRoom()
+        {
+            var limits = new PassageScan.DoorwayLimits(23, 11, 4, 23);
+            var east = new System.Numerics.Vector2(1, 0);
+            var start = new System.Numerics.Vector2(40, 100);
+            System.Numerics.Vector2? Door(byte[] grid, System.Numerics.Vector2 from) => PassageScan.Doorway(grid, 200, from, east, 80, limits);
+            // Two halls joined by a gap 12 cells wide through a wall.
+            var halls = Carved(400, 200, (10, 40, 80, 160), (80, 94, 92, 106), (92, 40, 200, 160));
+            Equal(true, Door(halls, start) is { X: > 70 and < 100, Y: > 94 and < 106 }, "a doorway ahead, at its middle");
+            Equal(null, PassageScan.Doorway(halls, 200, start, new System.Numerics.Vector2(0, 1), 80, limits), "toward the plain wall of the hall");
+            Equal(null, Door(Carved(400, 200, (10, 40, 300, 160)), start), "one great hall: only floor");
+            var corridor = Carved(400, 200, (10, 94, 390, 106));
+            Equal(null, Door(corridor, new System.Numerics.Vector2(150, 100)), "along a corridor, nothing but corridor");
+            var mouth = Carved(400, 200, (10, 40, 80, 160), (80, 94, 390, 106));
+            Equal(true, Door(mouth, start) is { X: > 70 }, "out of a hall into a corridor");
+            var opening = Carved(400, 200, (10, 94, 200, 106), (200, 40, 390, 160));
+            Equal(true, Door(opening, new System.Numerics.Vector2(160, 100)) is { X: > 170 }, "from a corridor into a hall");
+            var pillars = Carved(400, 200, (10, 40, 300, 160));
+            for (var y = 60; y < 140; y += 20)
+            {
+                if (y != 100)
+                {
+                    pillars = Blocked(pillars, 200, 90, y, 94, y + 6);
+                }
+            }
+
+            Equal(null, Door(pillars, start), "between pillars the ground runs on either side");
+            var shallow = Carved(400, 200, (10, 40, 80, 160), (80, 94, 86, 106));
+            var depth = PassageScan.Scan(shallow, 200, start, east, 2, 80, 23).Depth;
+            Equal(null, PassageScan.Doorway(shallow, 200, start, east, depth, limits), "a nook no deeper than its gap: the way must go on past it");
+        }
+
+        private static byte[] Blocked(byte[] grid, int bytesPerRow, int left, int top, int right, int bottom)
+        {
+            for (var y = top; y < bottom; y++)
+            {
+                Array.Fill(grid, (byte)0, (y * bytesPerRow) + (left / 2), (right - left) / 2);
             }
 
             return grid;

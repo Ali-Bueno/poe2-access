@@ -67,6 +67,7 @@ namespace Poe2Accessibility.Services
             Menu("navigation",
                 Switch(nameof(AccessibilitySettings.Radar)),
                 Switch(nameof(AccessibilitySettings.SmallObstacles)),
+                Switch(nameof(AccessibilitySettings.RadarRooms)),
                 Switch(nameof(AccessibilitySettings.UnexploredMark)),
                 Switch(nameof(AccessibilitySettings.UnexploredLoop)),
                 Switch(nameof(AccessibilitySettings.QuestWayOnly)),
