@@ -361,7 +361,7 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   (blocked and parried hits fill it; full, the guard breaks and you are heavily stunned), the real value, once per
   rise (`AnnounceStunBar`, "Barra de aturdimiento al bloquear"; from 75 it cuts in when urgent).
 - A boss's life as it falls past 75, 50, 40, 30, 20, 10 and 5 percent, and "… defeated" (`AnnounceBossLife`).
-- Harmful states as they begin ("Poisoned", "Frozen", "Stunned"…) and end ("No longer poisoned")
+- Harmful states as they begin ("Poisoned", "Frozen", "Stunned"…) and end ("No longer poisoned"); a crossbow at Rapid Shot's maximum heat: "Weapon overheated", then "Weapon ready"
   (`StatusAlerts`).
 - What you build up and spend, said and heard by separate switches, all on by default: `ChargeSpeech` / `ChargeSounds`
   ("Decir…" / "Sonidos de cargas, infusiones, sobrecargas y furia") and, for the Combo alone, `ComboSpeech` /

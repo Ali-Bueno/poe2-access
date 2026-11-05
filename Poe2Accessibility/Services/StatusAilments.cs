@@ -26,6 +26,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A boss's rule: keep moving or be imprisoned (voodoo_king_punishment_stationary).</summary>
         KeepMoving,
+
+        /// <summary>The crossbow at Rapid Shot's maximum heat: no firing or reloading those bolts for a while.</summary>
+        Overheated,
     }
 
     /// <summary>Buff definition id → ailment, by its words (pure).</summary>
@@ -49,6 +52,7 @@ namespace Poe2Accessibility.Services
             (new[] { "hinder", "hindered", "slow", "slowed" }, StatusAilment.Slowed),
             (new[] { "maim", "maimed" }, StatusAilment.Maimed),
             (new[] { "blind", "blinded" }, StatusAilment.Blinded),
+            (new[] { "overheated" }, StatusAilment.Overheated),
             (new[] { "curse", "cursed" }, StatusAilment.Cursed),
         };
 

@@ -286,9 +286,12 @@ namespace Poe2Accessibility
         };
 
         /// <summary>"No longer poisoned" once it has been gone for half a second.</summary>
-        public static string AilmentEnds(Services.StatusAilment ailment) => ailment is Services.StatusAilment.StopMoving or Services.StatusAilment.KeepMoving
-            ? T("You may move freely", "Ya puedes moverte libremente")
-            : T($"No longer {AilmentName(ailment).ToLowerInvariant()}", $"Ya no estás {AilmentName(ailment).ToLowerInvariant()}");
+        public static string AilmentEnds(Services.StatusAilment ailment) => ailment switch
+        {
+            Services.StatusAilment.StopMoving or Services.StatusAilment.KeepMoving => T("You may move freely", "Ya puedes moverte libremente"),
+            Services.StatusAilment.Overheated => T("Weapon ready", "Arma lista"),
+            _ => T($"No longer {AilmentName(ailment).ToLowerInvariant()}", $"Ya no estás {AilmentName(ailment).ToLowerInvariant()}"),
+        };
 
         public static string AilmentName(Services.StatusAilment ailment) => ailment switch
         {
@@ -304,6 +307,7 @@ namespace Poe2Accessibility
             Services.StatusAilment.Slowed => T("Slowed", "Ralentizado"),
             Services.StatusAilment.Maimed => T("Maimed", "Mutilado"),
             Services.StatusAilment.Blinded => T("Blinded", "Cegado"),
+            Services.StatusAilment.Overheated => T("Weapon overheated", "Arma sobrecalentada"),
             _ => T("Cursed", "Maldito"),
         };
 

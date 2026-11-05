@@ -2673,6 +2673,8 @@ namespace Poe2Accessibility.Tests
             Equal(true, StatusAilments.FromBuffId("chill_immunity") == null, "immunities are not ailments");
             Equal(true, StatusAilments.FromBuffId("flask_effect_life") == null, "flasks are not ailments");
             Equal(true, StatusAilments.FromBuffId("flammability_ignite_chance_buildup_79") == null, "build-up is not the ailment yet");
+            Equal(StatusAilment.Overheated, StatusAilments.FromBuffId("overheated_79") ?? StatusAilment.Cursed, "the crossbow at maximum heat");
+            Equal(true, StatusAilments.FromBuffId("heat_79") == null, "heat still building is not overheated");
             // Ids of the game's BuffDefinitions that only mention a state (seen as false stuns live, 2026-10-24).
             foreach (var mention in new[] { "sprint_heavy_stunnable_79", "number_of_times_stunned_in_past_duration_from_ot_79", "have_been_stunned_recently",
                          "stunning_magic_buff", "chill_prevention", "flask_bonus_reduced_self_poison_duration", "have_ignited_an_enemy_recently", "frozen_damage_increase" })
