@@ -143,7 +143,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(MapCornerFollowsTheScreenNotTheGrid), MapCornerFollowsTheScreenNotTheGrid);
             Run(nameof(RadarFindsTheDoorwayToAnotherRoom), RadarFindsTheDoorwayToAnotherRoom);
             Run(nameof(QuestWayLeavesTheSeenGroundTowardTheGoal), QuestWayLeavesTheSeenGroundTowardTheGoal);
-            Run(nameof(UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay), UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay);
+            Run(nameof(RadarMarksTheWayToUnseenGround), RadarMarksTheWayToUnseenGround);
+            Run(nameof(LostMeansWalkingWithoutNewGround), LostMeansWalkingWithoutNewGround);
             Run(nameof(SpiritValuesNameTheirWeaponSet), SpiritValuesNameTheirWeaponSet);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
@@ -1840,22 +1841,19 @@ namespace Poe2Accessibility.Tests
             var grid = Carved(width, height, (20, 80, 100, 120), (40, 30, 48, 80), (40, 2, 390, 30), (100, 96, 700, 104), (700, 40, 790, 160), (200, 170, 240, 195));
             var map = new ExplorationMap();
             map.Visit(player, width, height);
-            var way = map.WayOn(grid, width / 2, player, goal, out _);
+            var way = map.WayOn(grid, width / 2, player, goal);
             Equal(true, way is { X: > 100 and < 140, Y: > 94 and < 106 }, "the east corridor, at the edge of the seen ground, not the north way nor the goal");
-            Equal(null, map.WayOn(grid, width / 2, player, new System.Numerics.Vector2(220, 180), out var cut), "no ground leads to a walled-off room");
-            Equal(false, cut, "and it is not close by walking, however near it lies");
+            Equal(null, map.WayOn(grid, width / 2, player, new System.Numerics.Vector2(220, 180)), "no ground leads to a walled-off room");
             var further = new System.Numerics.Vector2(200, 100);
             map.Visit(further, width, height);
-            Equal(true, map.WayOn(grid, width / 2, further, goal, out _) is { X: > 240 and < 280 }, "the way moves on with the player");
-            var close = new System.Numerics.Vector2(goal.X - ExplorationMap.NearCells + 50, 100);
-            map.Visit(close, width, height);
-            Equal(null, map.WayOn(grid, width / 2, close, goal, out var near), "the way stops short of the place");
-            Equal(true, near, "close: the rest is the player's to search");
+            Equal(true, map.WayOn(grid, width / 2, further, goal) is { X: > 240 and < 280 }, "the way moves on with the player");
+            var seen = map.SeenBlocks;
             map.Visit(goal, width, height);
-            Equal(null, map.WayOn(grid, width / 2, close, goal, out near), "ground seen: the place itself is known");
-            Equal(false, near, "nothing left to search for");
-            Equal(true, ExplorationMap.ListOrder(ExplorationMap.WayKind) < ExplorationMap.ListOrder(string.Empty) &&
-                        ExplorationMap.ListOrder(string.Empty) < ExplorationMap.ListOrder(ExplorationMap.PocketKind), "the way first, pockets last");
+            Equal(true, map.SeenBlocks > seen, "new ground counts");
+            seen = map.SeenBlocks;
+            map.Visit(goal, width, height);
+            Equal(seen, map.SeenBlocks, "ground seen twice does not");
+            Equal(null, map.WayOn(grid, width / 2, further, goal), "ground seen: the place itself is known");
         }
 
         private static void MinimapMarksNameBossRoomsAndLandmarks()
@@ -1928,17 +1926,37 @@ namespace Poe2Accessibility.Tests
             Equal("Mecanismo antiguo", string.Join(" | ", QuestMatcher.Targets(entries, Array.Empty<string>()).Select(entry => entry.Name)), "the quest icon needs no tracker text");
         }
 
-        private static void UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay()
+        private static void LostMeansWalkingWithoutNewGround()
+        {
+            var watch = new LostWatch();
+            const int after = 3000;
+            bool Polls(long from, long to, int seen, bool walking)
+            {
+                var due = false;
+                for (var now = from; now <= to; now += 250)
+                {
+                    due |= watch.Update(now, seen, walking, after);
+                }
+
+                return due;
+            }
+
+            Equal(false, Polls(1000, 3000, 5, true), "the count starts with the area's ground");
+            Equal(true, Polls(3250, 4500, 5, true), "walking that long without new ground");
+            Equal(false, Polls(4750, 6000, 5, true), "then it counts again from nothing");
+            Equal(false, Polls(6250, 9000, 6, true) | Polls(9250, 9500, 7, true), "new ground: not lost");
+            Equal(false, Polls(9750, 60000, 7, false), "standing still or fighting is not being lost");
+            Equal(true, Polls(60250, 63500, 7, true), "only walking counts, and it adds up");
+            watch.Reset();
+            Equal(false, watch.Update(70000, 7, true, after), "a new area starts again");
+            Equal(false, watch.Update(90000, 7, true, after), "a gap is not walking");
+        }
+
+        private static void RadarMarksTheWayToUnseenGround()
         {
             var from = new System.Numerics.Vector2(100, 100);
             var east = new System.Numerics.Vector2(170, 100);
             var north = new System.Numerics.Vector2(100, 40);
-            Equal(north, ExplorationMap.Follow(null, new[] { east, north }, from), "the nearest first");
-            Equal(east + new System.Numerics.Vector2(10, 0), ExplorationMap.Follow(east, new[] { east + new System.Numerics.Vector2(10, 0), north }, from),
-                  "the place sounded keeps sounding, moved, while the frontier still holds it");
-            Equal(new System.Numerics.Vector2(100, 90), ExplorationMap.Follow(east, new[] { east, new System.Numerics.Vector2(100, 90) }, from),
-                  "another less than half as far takes over");
-            Equal(null, ExplorationMap.Follow(east, Array.Empty<System.Numerics.Vector2>(), from), "nothing left");
             var right = new System.Numerics.Vector2(1, 0);
             Equal(true, ExplorationMap.AnyToward(from, right, new[] { east }, ExplorationMap.MarkReachCells), "unseen ground ahead marks the ray");
             Equal(true, ExplorationMap.AnyToward(from, right, new[] { new System.Numerics.Vector2(160, 150) }, ExplorationMap.MarkReachCells), "within the ray's quarter");

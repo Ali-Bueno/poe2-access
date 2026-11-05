@@ -28,11 +28,8 @@ first; both wrap and empty categories are skipped. The category is named only wh
 
 - Categories: **quest** (what the quest tracker names: the exit to the area it asks for, the boss to kill, the
   NPC to talk to, and whatever the minimap marks with the quest's own icon; never a place or prop the sentence happens
-  to mention, such as "entrance" or "tomb", nor a sign that names a place; a place you have not seen yet is said as
-  "Way to Ogham Manor": its steps lead only to where the way enters unseen ground and it moves on as you walk; about
-  30 steps of walking from the place it stops with "Ogham Manor is close, search around here", no direction, and the
-  guide lets go, so the last stretch is yours to find until the game's map shows it; setting "Quest: the way, not the
-  exact place", off for the place itself at any distance), exits (area transitions and named places, in the game's language; "Where you died" after a
+  to mention, such as "entrance" or "tomb", nor a sign that names a place; a place you have not seen yet is not listed:
+  it comes once you see it, or once the game marks it with the quest's icon), exits (area transitions and named places, in the game's language; "Where you died" after a
   death, while that area instance lasts), **points of interest** (what the minimap marks: a boss's arena
   as "Boss room: Asinia" from the moment the minimap points to it, within about 400 cells for a campaign boss and 250
   for a map boss, or once you have seen its place; the quest naming that boss then leads there; "Boss room, defeated"
@@ -40,10 +37,7 @@ first; both wrap and empty categories are skipped. The category is named only wh
   draws only near; each said once as "On the map: …"), **places** (named map pieces and props from the game's terrain files:
   bridges, stairs, doors, ruins, graveyards, a cart, a well, an anvil; [places](research/places.md)), **unexplored** (where
   ground never seen begins, one entry per stretch and direction: "Unexplored ground, 7 steps, left" where it goes
-  on, nearest first, then "Unexplored nook" where one look from its edge would show it all, a dead end; first of all
-  "Way to Boss room: …" while the minimap does not point to a boss room yet: its steps lead only to where the way
-  enters unseen ground, and the room itself comes among the points of interest (setting "Unexplored: the way to the
-  boss room"); ground within about 60 cells of where you walked counts as seen, and a wall with no way through
+  on, nearest first, then "Unexplored nook" where one look from its edge would show it all, a dead end; ground within about 60 cells of where you walked counts as seen, and a wall with no way through
   hides what lies behind it; forgotten on leaving the area), waypoints and
   checkpoints, **encounters** (league devices: "Ritual altar", where a ritual starts and, once done, where its
   tribute is spent: A on it says "view favours"; listed during the ritual too), characters (NPCs in play; "Renly, has a quest" when the game shows its quest indicator over them,
@@ -238,9 +232,11 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   meanings in other sounds, plucked strings for walls, obstacles and exits, a whistle for the open way.
 - **Another room:** the radar's tin also marks a doorway ahead: the way narrows between walls and leads to another
   space, a hall, a corridor, it is not only floor (setting "Radar: tin at the way into another room").
-- **Unexplored area loop:** the D2R mod's "unexplored room" sound plays without a break where the nearest ground you
-  have not seen yet begins, on its side and quieter when far (up to about 60 steps), so you always hear which way is
-  left to explore (nooks only once nothing else is left, as for the radar's unexplored mark); silent in towns, menus and dialogue and while the guide leads (setting "Unexplored area loop").
+- **Hint when lost:** after about three minutes walking without finding new ground (fights, menus and standing still
+  do not count), the D2R mod's "unexplored room" sound plays for four seconds on the side the way on lies, then stops.
+  It points to where the walk to what the quest asks leaves the ground you have seen, else toward a boss room not found
+  yet, else to the nearest ground that goes on. Silent in towns and while the guide leads (settings "Sound hint when
+  lost" and "Sound hint: seconds walking without new ground", 60 to 600).
 - **Enemies:** a short growl for each enemy on screen, faster as it gets closer; magic and rare enemies buzz on top,
   uniques ring ([enemy sounds](enemy-sounds.md)).
 - **NPCs and players:** a light wooden tap for each of the two nearest NPCs on screen, a quicker, higher double tap

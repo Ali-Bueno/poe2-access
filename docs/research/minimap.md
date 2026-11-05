@@ -38,9 +38,8 @@ bubble, and the unit of the pointer distance.
 - Things with a minimap icon (exits, waypoints, checkpoints, NPCs, stash, shrines, quest objects): as soon as the
   client has them; the game draws their icon or the edge pointer.
 - Everything else, named tiles included: once on screen or on explored ground.
-- Quest category: what the objective names, wherever the game knows it (bubble entities and the area's tiles),
-  seen or not — the quest marker (user, 2026-10-24: the scanner had stopped guiding to the objective). A place not
-  seen gives only the way toward it, and stops short of it ([radar](../radar.md), user 2026-11-05).
+- Quest category: what the objective names, once seen or marked with the quest's icon (user, 2026-11-05, over the
+  quest marker of 2026-10-24). It is still found wherever the game knows it, for the lost hint ([radar](../radar.md)).
 
 ## Labels, signs, boss rooms (2026-10-29, 0.5.5e)
 - **Label:** MinimapIcons row +0x1A, a pointer to the label in the client's language (Spanish table: `WifeActive`

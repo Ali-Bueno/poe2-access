@@ -109,8 +109,9 @@ namespace Poe2Accessibility
             this.Isolated("enemy states", () => this.enemyStates?.Tick(playing, this.Settings.EnemyStateCues, this.Settings.PrimedStunCues));
             this.Isolated("object sounds", () => this.objectSounds?.Tick(playing && this.Settings.ObjectSounds));
             // A town is not explored; the guide, while it leads, is the one sound to follow.
-            this.Isolated("unexplored loop", () => this.unexploredLoop?.Tick(
-                playing && this.Settings.UnexploredLoop && this.beacon?.Target == null && !InTownOrHideout()));
+            this.Isolated("lost hint", () => this.lostHint?.Tick(
+                playing && this.Settings.LostHint && this.beacon?.Target == null && !InTownOrHideout(),
+                this.fights?.InFight(FightState.AnyEnemy) == true));
             this.Isolated("discoveries", () => this.discoveries?.Tick(playing && this.Settings.AnnounceDiscoveries));
             this.Isolated("enemy news", () => this.enemyNews?.Tick(playing && this.Settings.AnnounceEnemies));
             this.Isolated("wall bump", () =>

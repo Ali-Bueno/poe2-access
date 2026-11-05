@@ -20,17 +20,6 @@ namespace Poe2Accessibility.Services
         /// <summary>A scanner entry's kind for a pocket (<see cref="FrontierPlace"/>).</summary>
         public const string PocketKind = "pocket";
 
-        /// <summary>A scanner entry's kind for the way to a place not seen yet (<see cref="WayOn"/>).</summary>
-        public const string WayKind = "way";
-
-        /// <summary>A scanner entry's kind for a place the way has come close to: said with no direction, it is the player's to find.</summary>
-        public const string NearKind = "near";
-
-        /// <summary>
-        ///     Walking cells from the place at which the way stops (user 2026-11-05: the end is the player's to search): past the
-        ///     client's ~200-cell reach on any heading, four-neighbour steps reading up to √2 long, so before the game shows it.
-        /// </summary>
-        public const int NearCells = 300;
 
         /// <summary>Ground this near the player counts as seen (about half the screen's height).</summary>
         public const float SeenRadiusCells = 60f;
@@ -47,12 +36,6 @@ namespace Poe2Accessibility.Services
         /// <summary>Smaller frontier groups before a pocket are not worth a place of their own.</summary>
         private const int MinGroupBlocks = 2;
 
-        /// <summary>The frontier is recomputed every two seconds: a place still this near where it was is the same one, moved.</summary>
-        public const float SamePlaceCells = 3 * BlockCells;
-
-        /// <summary>The place being sounded is kept until another is less than half as far (no flipping between two).</summary>
-        private const float KeepRatio = 2f;
-
         /// <summary>Unseen ground smaller than this is a pocket: half the reveal disc, what one look from its edge shows whole.</summary>
         private const int PocketBlocks = (int)(Math.PI * SeenRadiusCells * SeenRadiusCells / (2 * BlockCells * BlockCells));
 
@@ -66,14 +49,15 @@ namespace Poe2Accessibility.Services
         private int blocksX;
         private int blocksY;
 
-        /// <summary>Where a scanner entry stands among those as near: the way first, pockets last.</summary>
-        public static int ListOrder(string kind) => kind is WayKind or NearKind ? 0 : kind == PocketKind ? 2 : 1;
+        /// <summary>How many blocks have been seen: it grows while the player finds new ground.</summary>
+        public int SeenBlocks { get; private set; }
 
         /// <summary>A new area: nothing seen.</summary>
         public void Reset()
         {
             this.seen = Array.Empty<bool>();
             this.blocksX = this.blocksY = 0;
+            this.SeenBlocks = 0;
         }
 
         /// <summary>The seen blocks as bytes, to be kept past the area and the host (<see cref="AreaMemory"/>): two ints, a bit a block.</summary>
@@ -115,6 +99,7 @@ namespace Poe2Accessibility.Services
             }
 
             (this.blocksX, this.blocksY, this.seen) = (bx, by, seen);
+            this.SeenBlocks = seen.Count(block => block);
             return true;
         }
 
@@ -131,6 +116,7 @@ namespace Poe2Accessibility.Services
             if (bx != this.blocksX || by != this.blocksY)
             {
                 (this.blocksX, this.blocksY, this.seen) = (bx, by, new bool[bx * by]);
+                this.SeenBlocks = 0;
             }
 
             var radius = (int)MathF.Ceiling(SeenRadiusCells / BlockCells);
@@ -141,9 +127,10 @@ namespace Poe2Accessibility.Services
                 for (var x = Math.Max(0, cx - radius); x <= Math.Min(bx - 1, cx + radius); x++)
                 {
                     var centre = new Vector2((x + 0.5f) * BlockCells, (y + 0.5f) * BlockCells);
-                    if (Vector2.Distance(centre, at) <= SeenRadiusCells)
+                    if (Vector2.Distance(centre, at) <= SeenRadiusCells && !this.seen[(y * bx) + x])
                     {
                         this.seen[(y * bx) + x] = true;
+                        this.SeenBlocks++;
                     }
                 }
             }
@@ -245,12 +232,10 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Where the shortest walk to <paramref name="goal"/> leaves the seen ground: what a look at the map suggests,
-        ///     without saying where the goal lies. Null when no unseen ground leads there, the goal's ground is seen, or the
-        ///     walk left is under <see cref="NearCells"/> (<paramref name="near"/>).
+        ///     without saying where the goal lies. Null when no unseen ground leads there, or the goal's ground is seen.
         /// </summary>
-        public Vector2? WayOn(byte[] grid, int bytesPerRow, Vector2 from, Vector2 goal, out bool near)
+        public Vector2? WayOn(byte[] grid, int bytesPerRow, Vector2 from, Vector2 goal)
         {
-            near = false;
             if (!this.Fits(grid, bytesPerRow, out var width, out var height) || this.IsSeen(goal) ||
                 NearestWalkable(grid, bytesPerRow, width, height, from) is not { } start ||
                 RoutePlanner.Snap(grid, bytesPerRow, goal) is not { } end)
@@ -260,12 +245,6 @@ namespace Poe2Accessibility.Services
 
             var toPlayer = Walk(grid, bytesPerRow, width, height, start);
             var toGoal = Walk(grid, bytesPerRow, width, height, end);
-            if (toGoal[((int)start.Y * width) + (int)start.X] is >= 0 and <= NearCells)
-            {
-                near = true;
-                return null;
-            }
-
             Vector2? best = null;
             var bestWalk = int.MaxValue;
             var bestLeft = float.MaxValue;
@@ -301,29 +280,6 @@ namespace Poe2Accessibility.Services
             }
 
             return best;
-        }
-
-        /// <summary>
-        ///     The unexplored place to sound next (<see cref="UnexploredLoop"/>): the one sounded before while the
-        ///     recomputed frontier still holds it (within <see cref="SamePlaceCells"/>) and nothing is less than half as far;
-        ///     else the nearest. Null when nothing is left.
-        /// </summary>
-        public static Vector2? Follow(Vector2? current, IReadOnlyList<Vector2> frontier, Vector2 from)
-        {
-            if (frontier.Count == 0)
-            {
-                return null;
-            }
-
-            var nearest = frontier.MinBy(cell => Vector2.DistanceSquared(cell, from));
-            if (current is not { } last)
-            {
-                return nearest;
-            }
-
-            var kept = frontier.Where(cell => Vector2.Distance(cell, last) <= SamePlaceCells).OrderBy(cell => Vector2.DistanceSquared(cell, last))
-                .Select(cell => (Vector2?)cell).FirstOrDefault();
-            return kept is { } same && Vector2.Distance(same, from) <= KeepRatio * Vector2.Distance(nearest, from) ? same : nearest;
         }
 
         /// <summary>Any of <paramref name="cells"/> lies within <paramref name="reach"/> of <paramref name="from"/>, within 45° of <paramref name="axis"/>.</summary>

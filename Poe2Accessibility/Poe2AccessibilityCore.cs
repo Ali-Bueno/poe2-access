@@ -40,7 +40,7 @@ namespace Poe2Accessibility
 
         private EnemyCues? enemyCues;
         private Radar? radar;
-        private UnexploredLoop? unexploredLoop;
+        private LostHint? lostHint;
         private Radar? partnerRadar;
         private LocalPlayers? localPlayers;
         private ProximityNarrator? nearby;
@@ -323,7 +323,7 @@ namespace Poe2Accessibility
                 var modSounds = GameSounds.Load(Path.Join(this.DllDirectory, "assets"), GameSoundSeconds, this.log);
                 this.alerts.Charges.RecordedSound = key => modSounds.GetStereo(key) ?? gameSounds.GetStereo(key);
                 this.culls.Chime = modSounds.Get("cull") ?? this.culls.Chime;
-                this.unexploredLoop = new UnexploredLoop(this.audio, this.entities, modSounds.GetLoop(UnexploredLoop.LoopName), this.log);
+                this.lostHint = new LostHint(this.audio, this.entities, modSounds.GetLoop(LostHint.LoopName), this.log);
                 this.radar.Unexplored = () => this.Settings.UnexploredMark ? this.entities.UnexploredCells() : Array.Empty<System.Numerics.Vector2>();
                 this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds, new KnownPlaces(Path.Join(this.DllDirectory, "config", "known-places.txt")));
                 this.enemyNews = new EnemyNarrator(this.entities, this.output);
@@ -336,8 +336,6 @@ namespace Poe2Accessibility
                 this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
-                this.entities.QuestWayOnly = () => this.Settings.QuestWayOnly;
-                this.entities.BossRoomWay = () => this.Settings.BossRoomWay;
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
                 this.entities.Memory = new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds, modSounds, drops, diabloSounds));
@@ -417,7 +415,7 @@ namespace Poe2Accessibility
             this.screen = null;
             this.enemyCues = null;
             this.radar = null;
-            this.unexploredLoop = null;
+            this.lostHint = null;
             this.partnerRadar = null;
             Seats.Attach(null, null);
             this.localPlayers = null;
@@ -854,7 +852,7 @@ namespace Poe2Accessibility
             this.discoveries?.Reset(areaName, resumed);
             this.enemyNews?.Reset();
             this.entities?.AreaEntered(areaName);
-            this.unexploredLoop?.Reset();
+            this.lostHint?.Reset();
             this.nearby?.Reset();
             this.places?.Reset();
             this.narrator?.NewArea(resumed);

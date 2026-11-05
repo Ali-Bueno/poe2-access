@@ -347,10 +347,9 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.SmallObstacles) => T("Small obstacles sound hollow", "Obstáculos pequeños con toc hueco"),
             nameof(AccessibilitySettings.RadarRooms) => T("Radar: tin at the way into another room", "Radar: ding al pasar a otra sala"),
             nameof(AccessibilitySettings.WallTones) => T("Wall tones", "Tonos de pared"),
-            nameof(AccessibilitySettings.UnexploredLoop) => T("Unexplored area loop", "Bucle de zona sin explorar"),
+            nameof(AccessibilitySettings.LostHint) => T("Sound hint when lost", "Pista sonora si te pierdes"),
+            nameof(AccessibilitySettings.LostHintSeconds) => T("Sound hint: seconds walking without new ground", "Pista sonora: segundos andando sin terreno nuevo"),
             nameof(AccessibilitySettings.UnexploredMark) => T("Radar: unexplored mark", "Radar: marca de sin explorar"),
-            nameof(AccessibilitySettings.QuestWayOnly) => T("Quest: the way, not the exact place", "Misión: el camino, no el lugar exacto"),
-            nameof(AccessibilitySettings.BossRoomWay) => T("Unexplored: the way to the boss room", "Sin explorar: camino a la sala del jefe"),
             nameof(AccessibilitySettings.AreaCorner) => T("Say the map corner on entering an area", "Decir la esquina del mapa al entrar en un área"),
             nameof(AccessibilitySettings.SpeechStatusBegins) => T("Speech: a state begins", "Voz: empieza un estado"),
             nameof(AccessibilitySettings.SpeechStatusEnds) => T("Speech: a state ends", "Voz: termina un estado"),
@@ -485,9 +484,6 @@ namespace Poe2Accessibility
         /// <summary>Unseen ground with no way on: one look from its edge shows it all.</summary>
         public static string UnexploredPocket => T("Unexplored nook", "Rincón sin explorar");
 
-        /// <summary>A quest place or boss room not seen yet: the scanner gives the way toward it, not where it lies.</summary>
-        public static string WayTo(string place) => T($"Way to {place}", $"Camino a {place}");
-
         /// <summary>Which part of the map a place lies in, by thirds across and down (-1, 0, 1), as the screen draws it.</summary>
         public static string CornerOfMap(int across, int down) => (across, down) switch
         {
@@ -502,8 +498,6 @@ namespace Poe2Accessibility
             _ => T("Middle of the map", "Centro del mapa"),
         };
 
-        /// <summary>The way has come close to a place not seen yet and stops there: the rest is for the player to find.</summary>
-        public static string CloseBy(string place) => T($"{place} is close, search around here", $"{place} está cerca, busca por aquí");
 
         /// <summary>The scanner's entry for the place of the last death in this area (D2R).</summary>
         public static string DeathPlace => T("Where you died", "Donde moriste");
@@ -590,7 +584,7 @@ namespace Poe2Accessibility
             "radar_open" => T("Radar: open way", "Radar: camino libre"),
             "radar_exit" => T("Radar: exit", "Radar: salida"),
             "radar_unexplored" => T("Radar: toward unexplored ground", "Radar: hacia terreno sin explorar"),
-            Services.UnexploredLoop.LoopName => T("Unexplored area", "Zona sin explorar"),
+            Services.LostHint.LoopName => T("Hint when lost", "Pista si te pierdes"),
             "radar2_wall" => T("Player 2 radar: wall", "Radar del jugador 2: pared"),
             "radar2_open" => T("Player 2 radar: open way", "Radar del jugador 2: camino libre"),
             "radar2_exit" => T("Player 2 radar: exit", "Radar del jugador 2: salida"),
@@ -686,9 +680,9 @@ namespace Poe2Accessibility
             "radar_unexplored" => T(
                 "an open way or exit followed by two pips: that side leads to ground you have not seen yet",
                 "un camino libre o una salida seguidos de dos pitidos: ese lado lleva a terreno que aún no viste"),
-            Services.UnexploredLoop.LoopName => T(
-                "without a break, where the nearest unexplored ground begins, on its side; louder when closer",
-                "sin parar, donde empieza el terreno sin explorar más cercano, a su lado; más fuerte al acercarte"),
+            Services.LostHint.LoopName => T(
+                "for a few seconds after you have walked a while without finding new ground: that side leads on",
+                "unos segundos tras andar un rato sin encontrar terreno nuevo: por ese lado se sigue"),
             "bump" => T("you pushed into a wall", "empujaste contra una pared"),
             Services.DiscoveryNarrator.SoundKey => T(
                 "a new exit, waypoint, checkpoint or unique monster came into view, with its name",

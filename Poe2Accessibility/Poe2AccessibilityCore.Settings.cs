@@ -139,9 +139,10 @@ namespace Poe2Accessibility
                 this.objectSounds.SoundSet = settings.ItemSounds;
             }
 
-            if (this.unexploredLoop != null)
+            if (this.lostHint != null)
             {
-                this.unexploredLoop.Gain = Fraction(settings.ObjectVolume);
+                this.lostHint.Gain = Fraction(settings.ObjectVolume);
+                this.lostHint.LostAfterMs = settings.LostHintSeconds * 1000;
             }
 
             if (this.nearby != null)

@@ -211,17 +211,14 @@ namespace Poe2Accessibility
         /// <summary>Wall tones (D2R): a soft noise band per screen direction that swells as a wall closes in. Off by default.</summary>
         public bool WallTones = false;
 
-        /// <summary>D2R unexplored loop: the nearest place where unseen ground begins plays a loop where it lies.</summary>
-        public bool UnexploredLoop = true;
+        /// <summary>After a while walking without new ground, a sound plays for a few seconds on the side the way on lies.</summary>
+        public bool LostHint = true;
+
+        /// <summary>How long the player walks without new ground before that sound plays.</summary>
+        public int LostHintSeconds = 180;
 
         /// <summary>D2R unexplored mark: a radar open-way or exit cue toward unseen ground ends in two pips.</summary>
         public bool UnexploredMark = true;
-
-        /// <summary>A quest place not seen yet gives the way into unseen ground toward it; off lists the place itself at any distance.</summary>
-        public bool QuestWayOnly = true;
-
-        /// <summary>The Unexplored category gives the way to a boss room the minimap does not point to yet, never the room.</summary>
-        public bool BossRoomWay = true;
 
         /// <summary>The area's announcement says which part of the map the player starts in.</summary>
         public bool AreaCorner = true;

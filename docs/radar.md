@@ -53,28 +53,27 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
   pips of 35 ms, 30 ms apart, a little lower downward (`RadarSynth.WithUnexploredTail`). The ray's quarter (±45°)
   must hold a frontier place of the scanner's Unexplored category within 3 × the 60-cell reveal radius
   (`ExplorationMap.AnyToward`). Pockets count only once nothing else is left. Setting `UnexploredMark`.
-- **Loop:** the D2R mod's "unexplored room" recording (supplied by the user for D2R, resampled to the mixer's
-  44.1 kHz, shipped in `assets/loops/`) plays without a break at the nearest frontier place, panned and pitched like
-  the guide, from full level near to a quarter at 6000 world units, silent beyond (`UnexploredLoop`). It keeps its
-  place while the recomputed frontier still holds it within three blocks, unless another is less than half as far
-  (`ExplorationMap.Follow`). Silent in towns and hideouts, menus, dialogue, and while the guide leads. Setting
-  `UnexploredLoop`, at the object sounds' volume. PoE2 has no rooms: the frontier stands for D2R's unvisited rooms.
+- **Hint when lost** (`LostHint`, `LostWatch`; settings `LostHint`, `LostHintSeconds`, at the object sounds' volume): the
+  D2R mod's "unexplored room" recording (supplied by the user for D2R, resampled to the mixer's 44.1 kHz, shipped in
+  `assets/loops/`) is not a constant loop any more (user 2026-11-05: the radar is what explores). After 180 s spent
+  walking with no new block seen, it plays for 4 s on the side of the way on, panned and pitched like the guide, then
+  stops, and the count starts again. Fights, standing still, menus, towns and hideouts do not count, and it stays silent
+  while the guide leads. Both times are first guesses, to tune by ear.
 - **Pockets:** unseen ground under half the reveal disc (88 blocks), joined to nothing else, is a nook with no way on:
   the scanner says "Unexplored nook" and lists it after the ground that goes on (`FrontierPlace.Pocket`). A frontier of
   one block is kept when ground goes on behind it: a narrow gap can be the way.
-- **The way to a quest place not seen yet** (`ExplorationMap.WayOn`, setting `QuestWayOnly`): the frontier cell on the
-  shortest walk there, what a sighted player reads off the map's shape, never the place. On the Manor Ramparts
-  (2026-11-05, the user's own explored ground and grid) the nearest of four frontier places was a pocket, and following
-  the way reached the Manor's tile in 21 hops; 33 ms every 2 s beside the frontier's 31.
-  It stops `NearCells` (300) of walking from the place, past the client's ~200-cell reach on any heading, so that it
-  never leads to the door (user 2026-11-05): "… is close, search around here", no direction, the guide released; it
-  comes back if the player walks away. The game's own exit, once in reach, is listed as any exit.
-  The guide locked on a way never arrives at it: running outpaces the 2 s refresh (the way lies 60 cells ahead, 1.6 s),
-  so it waits for the next stretch and says the arrival at the place itself (same id, `ExplorationMap.WayKind`).
-- **The way to a boss room** (setting `BossRoomWay`): the same, first in the Unexplored category, for a boss room the
-  minimap does not point to yet (400 cells, 43 steps). Not in the Quest category, whatever the objective: about 40
-  areas hold a boss room and one exit or none in the table, and the objective seldom names the room (Ogham Village's
-  way on lies behind Executioner's Block, found only at 43 steps on 2026-11-05).
+- **Where the hint points** (`EntityCatalog.LostHintCell`): what the objective names, else the nearest boss room not
+  found yet, else the nearest ground that goes on. For the first two, `ExplorationMap.WayOn` gives the frontier cell on
+  the shortest walk there, what a sighted player reads off the map's shape: a straight line would send the player at a
+  wall. On the Manor Ramparts (2026-11-05, the user's own explored ground and grid) the nearest of four frontier places
+  was a pocket, and following the way reached the Manor's tile in 21 hops; 33 ms a call, once per hint. With no unseen
+  ground leading there, or the goal's ground seen, the goal itself. The boss room counts because about 40 areas hold one
+  and one exit or none in the table, and the objective seldom names the room (Ogham Village's way on lies behind
+  Executioner's Block, found only at 43 steps on 2026-11-05).
+- **No way in the scanner.** Until 2026-11-05 it listed "Way to …" for quest places and boss rooms not seen. The user
+  found the Manor with it in four minutes after 40 lost, then judged it too easy, so the way is only heard through the
+  hint: a quest place not seen is not listed, unless the game's quest icon marks it. The game's own exit, once in reach,
+  is listed as any exit.
 
 ## Another room
 
