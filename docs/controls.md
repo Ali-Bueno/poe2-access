@@ -39,7 +39,10 @@ first; both wrap and empty categories are skipped. The category is named only wh
   draws only near; each said once as "On the map: …"), **places** (named map pieces and props from the game's terrain files:
   bridges, stairs, doors, ruins, graveyards, a cart, a well, an anvil; [places](research/places.md)), **unexplored** (where
   ground never seen begins, one entry per stretch and direction: "Unexplored ground, 7 steps, left" where it goes
-  on, nearest first, then "Unexplored nook" where one look from its edge would show it all, a dead end; ground within about 60 cells of where you walked counts as seen, and a wall with no way through
+  on, nearest first, then "Unexplored nook" where one look from its edge would show it all, a dead end; first of all
+  "Way to Boss room: …" while the minimap does not point to a boss room yet: its steps lead only to where the way
+  enters unseen ground, and the room itself comes among the points of interest (setting "Unexplored: the way to the
+  boss room"); ground within about 60 cells of where you walked counts as seen, and a wall with no way through
   hides what lies behind it; forgotten on leaving the area), waypoints and
   checkpoints, **encounters** (league devices: "Ritual altar", where a ritual starts and, once done, where its
   tribute is spent: A on it says "view favours"; listed during the ritual too), characters (NPCs in play; "Renly, has a quest" when the game shows its quest indicator over them,

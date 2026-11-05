@@ -100,6 +100,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The frontier scans the whole grid: recomputed at most this often (the many Entries() callers share it).</summary>
         private const int UnexploredRefreshMs = 2000;
 
+        /// <summary>A way walks the whole grid twice (33 ms on the Manor Ramparts): several refresh apart, not in one frame.</summary>
+        private const int WaySpacingMs = 700;
+
         private const int TrackMs = 250;
 
         /// <summary>The explored ground is written this often while playing, so a host restart loses little.</summary>
@@ -129,8 +132,11 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, string> itemTitles = new(StringComparer.Ordinal);
         private readonly ExplorationMap explored = new();
 
-        /// <summary>The way to each quest place not seen yet, by entry id, worked out every UnexploredRefreshMs.</summary>
-        private readonly Dictionary<uint, (long At, Vector2? Cell)> questWays = new();
+        /// <summary>The way to each place not seen yet, by entry id, worked out every UnexploredRefreshMs.</summary>
+        private readonly Dictionary<uint, (long At, Vector2? Cell)> ways = new();
+
+        /// <summary>When a way was last refreshed (<see cref="WaySpacingMs"/>).</summary>
+        private long wayRefreshedAt = long.MinValue / 2;
         /// <summary>Recent live walkable grids (GameLayout-free: whole copies), oldest first.</summary>
         private readonly Queue<byte[]> samples = new();
         private readonly BarrierMemory barriers = new();
@@ -199,6 +205,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A quest place not seen yet gives only the way toward it (<see cref="WayTo"/>); false lists the place itself.</summary>
         public Func<bool> QuestWayOnly { get; set; } = () => true;
+
+        /// <summary>The Unexplored category gives the way to a boss room the minimap does not point to yet (<see cref="WayEntry"/>).</summary>
+        public Func<bool> BossRoomWay { get; set; } = () => true;
 
         /// <summary>What each area instance left held, to restore it on return (set by the plugin).</summary>
         public AreaMemory? Memory { get; set; }
@@ -334,7 +343,7 @@ namespace Poe2Accessibility.Services
             this.sighted.Clear();
             this.itemTitles.Clear();
             this.explored.Reset();
-            this.questWays.Clear();
+            this.ways.Clear();
             lock (this.samplesLock)
             {
                 this.samples.Clear();
@@ -471,8 +480,12 @@ namespace Poe2Accessibility.Services
                 }
                 else if (landmark.Kind != MinimapMarks.BossRoomKind)
                 {
-                    // A boss room the minimap neither shows nor points to is unknown to the quest marker too.
                     unseen.Add(landmark);
+                }
+                else if (this.BossRoomWay() && this.WayEntry(landmark, area, player) is { } way)
+                {
+                    // A boss room the minimap neither shows nor points to is unknown to the quest marker too: only the way is said.
+                    found.TryAdd(way.Id, way with { Category = ScanCategory.Unexplored });
                 }
             }
 
@@ -496,7 +509,7 @@ namespace Poe2Accessibility.Services
             }
 
             var origin = player.WorldPosition;
-            var sorted = found.Values.OrderBy(entry => entry.Kind == ExplorationMap.PocketKind).ThenBy(entry => Distance(origin, entry)).ToList();
+            var sorted = found.Values.OrderBy(entry => ExplorationMap.ListOrder(entry.Kind)).ThenBy(entry => Distance(origin, entry)).ToList();
             // The quest marker: what the objective names is found wherever the game knows it, seen or not (user,
             // 2026-10-24: the objective guided before the scanner kept to what is seen; docs/research/minimap.md).
             var questPool = sorted.Concat(unseen.Where(entry => !found.ContainsKey(entry.Id))).OrderBy(entry => Distance(origin, entry)).ToList();
@@ -505,29 +518,30 @@ namespace Poe2Accessibility.Services
             return sorted;
         }
 
-        /// <summary>
-        ///     A quest place not seen yet, as a look at the map finds it: not where it lies, only where the way there enters
-        ///     unseen ground (user 2026-11-05). Same id: a guide locked on it walks on with the way, and ends on the place once seen.
-        /// </summary>
-        private ScanEntry WayTo(ScanEntry target, AreaInstance area, Render player)
-        {
-            if (target.QuestMarked || !this.QuestWayOnly())
-            {
-                return target;
-            }
+        /// <summary>A quest place not seen yet gives the way there; the place itself when no unseen ground leads to it.</summary>
+        private ScanEntry WayTo(ScanEntry target, AreaInstance area, Render player) =>
+            target.QuestMarked || !this.QuestWayOnly() ? target : this.WayEntry(target, area, player) ?? target;
 
+        /// <summary>
+        ///     A place not seen yet, as a look at the map finds it: not where it lies, only where the way there enters unseen
+        ///     ground (user 2026-11-05). Same id: a guide locked on it walks on with the way, and ends on the place once known.
+        /// </summary>
+        private ScanEntry? WayEntry(ScanEntry target, AreaInstance area, Render player)
+        {
             var toWorld = area.WorldToGridConvertor;
             var now = Environment.TickCount64;
-            if (!this.questWays.TryGetValue(target.Id, out var way) || now - way.At >= UnexploredRefreshMs)
+            var known = this.ways.TryGetValue(target.Id, out var way);
+            if (!known || (now - way.At >= UnexploredRefreshMs && now - this.wayRefreshedAt >= WaySpacingMs))
             {
                 var here = new Vector2(player.GridPosition.X, player.GridPosition.Y);
                 var cell = this.TryLiveGrid(out var grid, out var row) ? this.explored.WayOn(grid, row, here, new Vector2(target.WorldX, target.WorldY) / toWorld) : null;
-                this.questWays[target.Id] = way = (now, cell);
+                this.ways[target.Id] = way = (now, cell);
+                this.wayRefreshedAt = now;
             }
 
             return way.Cell is { } at
-                ? target with { Name = Announcements.QuestWay(target.Name), WorldX = at.X * toWorld, WorldY = at.Y * toWorld, Kind = string.Empty }
-                : target;
+                ? target with { Name = Announcements.WayTo(target.Name), WorldX = at.X * toWorld, WorldY = at.Y * toWorld, Kind = ExplorationMap.WayKind }
+                : null;
         }
 
         /// <summary>

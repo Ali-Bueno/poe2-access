@@ -65,6 +65,10 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
   shortest walk there, what a sighted player reads off the map's shape, never the place. On the Manor Ramparts
   (2026-11-05, the user's own explored ground and grid) the nearest of four frontier places was a pocket, and following
   the way reached the Manor's tile in 21 hops; 33 ms every 2 s beside the frontier's 31.
+- **The way to a boss room** (setting `BossRoomWay`): the same, first in the Unexplored category, for a boss room the
+  minimap does not point to yet (400 cells, 43 steps). Not in the Quest category, whatever the objective: about 40
+  areas hold a boss room and one exit or none in the table, and the objective seldom names the room (Ogham Village's
+  way on lies behind Executioner's Block, found only at 43 steps on 2026-11-05).
 
 ## Not ported yet
 

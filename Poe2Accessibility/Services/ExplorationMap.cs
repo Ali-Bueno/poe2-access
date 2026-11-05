@@ -20,6 +20,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A scanner entry's kind for a pocket (<see cref="FrontierPlace"/>).</summary>
         public const string PocketKind = "pocket";
 
+        /// <summary>A scanner entry's kind for the way to a place not seen yet (<see cref="WayOn"/>).</summary>
+        public const string WayKind = "way";
+
         /// <summary>Ground this near the player counts as seen (about half the screen's height).</summary>
         public const float SeenRadiusCells = 60f;
 
@@ -53,6 +56,9 @@ namespace Poe2Accessibility.Services
         private bool[] seen = Array.Empty<bool>();
         private int blocksX;
         private int blocksY;
+
+        /// <summary>Where a scanner entry stands among those as near: the way first, pockets last.</summary>
+        public static int ListOrder(string kind) => kind == WayKind ? 0 : kind == PocketKind ? 2 : 1;
 
         /// <summary>A new area: nothing seen.</summary>
         public void Reset()

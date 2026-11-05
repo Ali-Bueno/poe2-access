@@ -217,6 +217,9 @@ namespace Poe2Accessibility
         /// <summary>A quest place not seen yet gives the way into unseen ground toward it; off lists the place itself at any distance.</summary>
         public bool QuestWayOnly = true;
 
+        /// <summary>The Unexplored category gives the way to a boss room the minimap does not point to yet, never the room.</summary>
+        public bool BossRoomWay = true;
+
         /// <summary>How far ahead a wall starts to sound for the wall tones, in world units (~400 per second of walking).</summary>
         public int WallToneRange = 600;
 

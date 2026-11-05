@@ -1754,6 +1754,8 @@ namespace Poe2Accessibility.Tests
             Equal(true, map.WayOn(grid, width / 2, further, goal) is { X: > 240 and < 280 }, "the way moves on with the player");
             map.Visit(goal, width, height);
             Equal(null, map.WayOn(grid, width / 2, further, goal), "ground seen: the place itself is known");
+            Equal(true, ExplorationMap.ListOrder(ExplorationMap.WayKind) < ExplorationMap.ListOrder(string.Empty) &&
+                        ExplorationMap.ListOrder(string.Empty) < ExplorationMap.ListOrder(ExplorationMap.PocketKind), "the way first, pockets last");
         }
 
         private static void MinimapMarksNameBossRoomsAndLandmarks()

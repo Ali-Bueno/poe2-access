@@ -337,6 +337,7 @@ namespace Poe2Accessibility
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
                 this.entities.QuestWayOnly = () => this.Settings.QuestWayOnly;
+                this.entities.BossRoomWay = () => this.Settings.BossRoomWay;
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
                 this.entities.Memory = new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds, modSounds, drops, diabloSounds));
