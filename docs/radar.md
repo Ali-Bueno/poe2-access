@@ -65,6 +65,8 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
   shortest walk there, what a sighted player reads off the map's shape, never the place. On the Manor Ramparts
   (2026-11-05, the user's own explored ground and grid) the nearest of four frontier places was a pocket, and following
   the way reached the Manor's tile in 21 hops; 33 ms every 2 s beside the frontier's 31.
+  The guide locked on a way never arrives at it: running outpaces the 2 s refresh (the way lies 60 cells ahead, 1.6 s),
+  so it waits for the next stretch and says the arrival at the place itself (same id, `ExplorationMap.WayKind`).
 - **The way to a boss room** (setting `BossRoomWay`): the same, first in the Unexplored category, for a boss room the
   minimap does not point to yet (400 cells, 43 steps). Not in the Quest category, whatever the objective: about 40
   areas hold a boss room and one exit or none in the table, and the objective seldom names the room (Ogham Village's
