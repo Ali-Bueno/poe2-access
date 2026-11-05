@@ -34,6 +34,9 @@ namespace Poe2Accessibility.Services
         private const float ConfirmWorld = 30f;
         private const float JumpWorld = 800f;
 
+        /// <summary>How far an exit is heard, in opening depths: the ray's reach and one more.</summary>
+        private const float ExitReachOpenings = 3f;
+
         /// <summary>The lane either side of a ray, in cells: the staircase of a diagonal line plus a body's width.</summary>
         private const float LaneCells = 2f;
 
@@ -184,7 +187,7 @@ namespace Poe2Accessibility.Services
 
                 this.axes[direction] = axis;
                 var scan = PassageScan.Scan(grid, row, position, axis, LaneCells, 2 * open, open);
-                var exitAhead = this.exits.Any(exit => IsAhead(exit - position, axis, scan.Depth, open));
+                var exitAhead = this.exits.Any(exit => PassageScan.ExitToward(grid, row, position, axis, exit, ExitReachOpenings * open, open));
                 if (this.sensors[direction].Update(now, position, axis, scan, exitAhead) is { } reading)
                 {
                     this.pending[direction] = reading;
@@ -254,14 +257,6 @@ namespace Poe2Accessibility.Services
             {
                 this.sensors[direction] = new RadarSensor(limits);
             }
-        }
-
-        /// <summary>An exit counts on a ray when it lies ahead within the open way plus an opening, and near its line.</summary>
-        private static bool IsAhead(Vector2 offset, Vector2 axis, float depth, float open)
-        {
-            var ahead = Vector2.Dot(offset, axis);
-            var aside = MathF.Abs(Vector2.Dot(offset, new Vector2(-axis.Y, axis.X)));
-            return ahead > 0 && ahead <= depth + open && aside <= open / 2;
         }
 
         /// <summary>The grid direction that the camera draws as this screen direction.</summary>

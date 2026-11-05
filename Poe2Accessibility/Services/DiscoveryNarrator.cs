@@ -139,7 +139,8 @@ namespace Poe2Accessibility.Services
             string Near(ScanEntry entry) => entry.Kind == "checkpoint"
                 ? MapPlaces.NamedNear(new Vector2(entry.WorldX, entry.WorldY), entries, CheckpointPlaces.NearPlaceWorld)?.Name ?? string.Empty
                 : string.Empty;
-            this.output.Say(SpeechKind.Places, string.Join(". ", this.waiting.Select(entry => Announcements.Discovered(entry, Near(entry)))));
+            // Said once, ever: "Ya no estás enfriado" cut "Nueva salida: Mansión de Ogham" 15 ms in and it was never heard (2026-11-05).
+            this.output.Say(SpeechKind.Places, string.Join(". ", this.waiting.Select(entry => Announcements.Discovered(entry, Near(entry)))), urgent: true);
             if (this.sound != null)
             {
                 this.audio.Play(this.sound, 0f, 1f, this.Gain, SoundKey);

@@ -11,7 +11,7 @@ Four rays along the screen's up, left, right and down (the stick directions). Ea
 |---|---|---|
 | Wall (the way ends within ~half a second of walking) | low wooden tock (260 Hz) | left/right by stereo (±0.9), down 14% lower |
 | Open floor | filtered-noise breath, 180 ms | rises ahead, falls behind, steady to the sides |
-| Exit (an area transition on the ray) | bright tin (1100 Hz) | as the wall |
+| Exit (an area transition in the ray's quarter, even in the wall ahead) | bright tin (1100 Hz) | as the wall |
 
 A ray sounds only when its reading **changes** and the change is **confirmed**: the player walked ~30 world units with
 it, or stood still 200 ms and the reading held 100 ms. Walls first, then exits, then floor; one cue at a time with
@@ -24,7 +24,8 @@ last heard. The first reading after a reset (area change, menu, a jump, a poll g
 - `PassageScan`: breadth-first over walkable cells, never stepping back along the ray, within ±2 cells of it, up to
   twice the opening depth. The depth is the connected way ahead, so a one-cell post inside the lane does not block.
 - Distances are D2R's scaled by walking speed (PoE2 ~400 world units/s, ~10.9 units per grid cell): wall ≤ 200 units,
-  open ≥ 250 (hysteresis between), exits within the open way plus 250 ahead and 125 aside.
+  open ≥ 250 (hysteresis between), exits within 750 in the ray's quarter, open ground up to 250 short of them
+  (`PassageScan.ExitToward`). 125 aside of four lanes missed a door approached on a diagonal, and a wall under 200 hid one.
 - The grid is GameHelper's per-area copy; tutorial barriers that open later are not seen (the scanner reads it live).
 
 ## Wall bump

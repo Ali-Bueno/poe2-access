@@ -139,6 +139,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(ExploredGroundIsKeptAsBytes), ExploredGroundIsKeptAsBytes);
             Run(nameof(SignsAreNeverQuestTargetsAndQuestIconsAlways), SignsAreNeverQuestTargetsAndQuestIconsAlways);
             Run(nameof(FrontierTellsNooksFromGroundThatGoesOn), FrontierTellsNooksFromGroundThatGoesOn);
+            Run(nameof(RadarHearsAnExitInItsWallAndOffItsLane), RadarHearsAnExitInItsWallAndOffItsLane);
             Run(nameof(QuestWayLeavesTheSeenGroundTowardTheGoal), QuestWayLeavesTheSeenGroundTowardTheGoal);
             Run(nameof(UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay), UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay);
             Run(nameof(SpiritValuesNameTheirWeaponSet), SpiritValuesNameTheirWeaponSet);
@@ -1719,6 +1720,30 @@ namespace Poe2Accessibility.Tests
             }
 
             return grid;
+        }
+
+        private static void RadarHearsAnExitInItsWallAndOffItsLane()
+        {
+            var sensor = new RadarSensor(new RadarThresholds(20, 15, 3, 200, 100, 500));
+            var east = new System.Numerics.Vector2(1, 0);
+            var wall = new PassageScan.Result(12, false);
+            sensor.Update(0, System.Numerics.Vector2.Zero, east, wall, false);
+            RadarReading? heard = null;
+            for (var step = 1; step <= 6 && heard == null; step++)
+            {
+                heard = sensor.Update(step * 100, new System.Numerics.Vector2(step, 0), east, wall, true);
+            }
+
+            Equal(RadarReading.Exit, heard, "a door in the wall ahead is the exit, not the wall");
+            var south = new System.Numerics.Vector2(0, 1);
+            var start = new System.Numerics.Vector2(30, 50);
+            var door = new System.Numerics.Vector2(62, 40);
+            var field = Carved(100, 100, (0, 0, 60, 100));
+            Equal(true, PassageScan.ExitToward(field, 50, start, east, door, 69, 23), "off the lane, in the wall, inside the ray's quarter");
+            Equal(false, PassageScan.ExitToward(field, 50, start, south, door, 69, 23), "not on another ray");
+            Equal(false, PassageScan.ExitToward(field, 50, start, east, door, 20, 23), "out of reach");
+            var walled = Carved(100, 100, (0, 0, 40, 100), (70, 0, 100, 100));
+            Equal(false, PassageScan.ExitToward(walled, 50, start, east, new System.Numerics.Vector2(75, 50), 69, 23), "behind a wall of its own");
         }
 
         private static void FrontierTellsNooksFromGroundThatGoesOn()

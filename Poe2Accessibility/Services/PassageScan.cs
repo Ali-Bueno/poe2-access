@@ -77,6 +77,22 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
+        ///     An exit belongs to the ray whose quarter holds it, within <paramref name="reachCells"/>, with open ground up to
+        ///     <paramref name="slackCells"/> short of it: a door stands in its wall, and a lane missed one on a diagonal.
+        /// </summary>
+        public static bool ExitToward(byte[] grid, int bytesPerRow, Vector2 start, Vector2 axis, Vector2 exit, float reachCells, float slackCells)
+        {
+            if (!ExplorationMap.AnyToward(start, axis, new[] { exit }, reachCells))
+            {
+                return false;
+            }
+
+            var offset = exit - start;
+            var length = offset.Length();
+            return length <= slackCells || BeaconMath.LineWalkable(grid, bytesPerRow, start, exit - (offset / length * slackCells));
+        }
+
+        /// <summary>
         ///     Whether the blocked cells that stop a ray form a small obstacle the player can step round (D2R
         ///     small-obstacle timbre): the first blocked cell within a few cells past <paramref name="depthCells"/>, its
         ///     8-connected blocked group no wider or taller than <paramref name="maxSide"/> cells and clear of the map's edge.

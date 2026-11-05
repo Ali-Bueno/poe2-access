@@ -66,9 +66,10 @@ namespace Poe2Accessibility.Services
                 return this.Deliver(now, position, axis, scan);
             }
 
-            var observed = scan.Depth <= this.limits.CloseCells || (scan.Depth < this.limits.OpenCells && this.confirmed == RadarReading.Wall)
-                ? RadarReading.Wall
-                : exitAhead ? RadarReading.Exit : RadarReading.Open;
+            // An exit first: a door stands in the wall that stops the ray.
+            var observed = exitAhead ? RadarReading.Exit
+                : scan.Depth <= this.limits.CloseCells || (scan.Depth < this.limits.OpenCells && this.confirmed == RadarReading.Wall) ? RadarReading.Wall
+                : RadarReading.Open;
             if (this.baseline)
             {
                 this.baseline = false;
@@ -115,7 +116,7 @@ namespace Poe2Accessibility.Services
 
             if (cue != RadarReading.Wall)
             {
-                if (this.frontier is { } wall)
+                if (cue == RadarReading.Open && this.frontier is { } wall)
                 {
                     // Backing away from the wall just heard reads open again without any new way ahead: not news.
                     var lateral = MathF.Abs(Vector2.Dot(position - wall.Origin, new Vector2(-axis.Y, axis.X)));
