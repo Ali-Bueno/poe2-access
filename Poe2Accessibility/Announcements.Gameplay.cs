@@ -349,6 +349,8 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.WallTones) => T("Wall tones", "Tonos de pared"),
             nameof(AccessibilitySettings.LostHint) => T("Sound hint when lost", "Pista sonora si te pierdes"),
             nameof(AccessibilitySettings.LostHintSeconds) => T("Sound hint: seconds walking without new ground", "Pista sonora: segundos andando sin terreno nuevo"),
+            nameof(AccessibilitySettings.MapHints) => T("Map hints when passing them", "Pistas del mapa al pasar"),
+            nameof(AccessibilitySettings.MapHintSides) => T("Map hints: say which way they go", "Pistas del mapa: decir hacia qué lado van"),
             nameof(AccessibilitySettings.UnexploredMark) => T("Radar: unexplored mark", "Radar: marca de sin explorar"),
             nameof(AccessibilitySettings.AreaCorner) => T("Say the map corner on entering an area", "Decir la esquina del mapa al entrar en un área"),
             nameof(AccessibilitySettings.SpeechStatusBegins) => T("Speech: a state begins", "Voz: empieza un estado"),
@@ -539,6 +541,31 @@ namespace Poe2Accessibility
 
         /// <summary>A readable sign or plaque (the game's story glyphs: "Pueblo de Ogham" by the road, "Proclamación de Asinia").</summary>
         public static string Sign(string name) => T($"Sign: {name}", $"Letrero: {name}");
+
+        /// <summary>The eight sides a map hint can go, by <see cref="Services.StickDirection"/> octant: "sigue a la derecha".</summary>
+        public static string[] HintSides => new[]
+        {
+            T("to the right", "a la derecha"), T("up right", "arriba a la derecha"), T("up", "arriba"), T("up left", "arriba a la izquierda"),
+            T("to the left", "a la izquierda"), T("down left", "abajo a la izquierda"), T("down", "abajo"), T("down right", "abajo a la derecha"),
+        };
+
+        /// <summary>A line and the side it goes, when known: "Letrero: Pueblo de Ogham, a la derecha".</summary>
+        public static string WithSide(string line, string side) => side.Length > 0 ? $"{line}, {side}" : line;
+
+        /// <summary>A cue GGG placed on the map, as its look tells where it goes (<see cref="Services.MapHintRow.Hint"/>); side empty when not known.</summary>
+        public static string MapHint(string hint, string side) => (hint, side.Length > 0) switch
+        {
+            ("cattle", true) => T($"Dead cattle, the blood trail goes {side}", $"Reses muertas, el rastro de sangre sigue {side}"),
+            ("cattle", false) => T("Dead cattle", "Reses muertas"),
+            ("mushrooms", true) => T($"Mushrooms, thicker {side}", $"Setas, más espesas {side}"),
+            ("mushrooms", false) => T("Mushrooms", "Setas"),
+            ("roots", true) => T($"Glowing roots, running {side}", $"Raíces luminosas, siguen {side}"),
+            ("roots", false) => T("Glowing roots", "Raíces luminosas"),
+            ("river", true) => T($"River, upstream {side}", $"Río, corriente arriba {side}"),
+            ("river", false) => T("River", "Río"),
+            ("camp", _) => T("Explorer camp", "Campamento de exploradores"),
+            _ => hint,
+        };
 
         /// <summary>An NPC with the quest indicator over its head.</summary>
         public static string NpcWithQuest(string name) => T($"{name}, has a quest", $"{name}, con misión");

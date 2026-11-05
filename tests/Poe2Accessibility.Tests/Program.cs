@@ -145,6 +145,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(QuestWayLeavesTheSeenGroundTowardTheGoal), QuestWayLeavesTheSeenGroundTowardTheGoal);
             Run(nameof(RadarMarksTheWayToUnseenGround), RadarMarksTheWayToUnseenGround);
             Run(nameof(LostMeansWalkingWithoutNewGround), LostMeansWalkingWithoutNewGround);
+            Run(nameof(MapHintsAreSaidOncePerPlace), MapHintsAreSaidOncePerPlace);
+            Run(nameof(ShippedMapHintsAreWellFormed), ShippedMapHintsAreWellFormed);
             Run(nameof(SpiritValuesNameTheirWeaponSet), SpiritValuesNameTheirWeaponSet);
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
@@ -1924,6 +1926,44 @@ namespace Poe2Accessibility.Tests
             Equal("Mecanismo antiguo | Tierras de cultivo de Ogham", string.Join(" | ", targets.Select(entry => entry.Name)),
                   "the quest's icon first, the exit by its proper noun, never the sign that names the village (user 2026-10-28)");
             Equal("Mecanismo antiguo", string.Join(" | ", QuestMatcher.Targets(entries, Array.Empty<string>()).Select(entry => entry.Name)), "the quest icon needs no tracker text");
+        }
+
+        private static void MapHintsAreSaidOncePerPlace()
+        {
+            var memory = new MapHintMemory();
+            var start = new System.Numerics.Vector2(100, 100);
+            Equal(true, memory.Note("mushrooms", start), "the first time");
+            Equal(false, memory.Note("mushrooms", start + new System.Numerics.Vector2(MapHintMemory.AgainCells - 1, 0)), "the same patch, walking through it");
+            Equal(true, memory.Note("roots", start), "another cue is news");
+            Equal(true, memory.Note("mushrooms", start + new System.Numerics.Vector2(MapHintMemory.AgainCells, 0)), "far on, it may go another way");
+            Equal(false, memory.Note("mushrooms", start), "back where it was said");
+
+            var table = MapHintTable.Parse("{ 'G1_4': [ { 'match': 'FungiCluster', 'hint': 'mushrooms', 'goal': 'The Grim Tangle' }, { 'tile': 'Woods/RedvaleRiver/', 'hint': 'river' } ] }");
+            Equal(2, table.For("G1_4").Count, "an area's rows");
+            Equal(0, table.For("G1_5").Count, "an area with none");
+            Equal("mushrooms", MapHintTable.Matching(table.For("G1_4"), "Metadata/Doodads/fungicluster03.ao")?.Hint, "a model, in any case");
+            Equal(null, MapHintTable.Matching(table.For("G1_4"), "Metadata/Terrain/Woods/RedvaleRiver/ccmm_01.tdt"), "a tile row is not an entity's");
+        }
+
+        private static void ShippedMapHintsAreWellFormed()
+        {
+            var directory = AppContext.BaseDirectory;
+            while (!System.IO.File.Exists(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", "map-hints.json")))
+            {
+                directory = System.IO.Path.GetDirectoryName(directory.TrimEnd(System.IO.Path.DirectorySeparatorChar))!;
+            }
+
+            var table = MapHintTable.Parse(System.IO.File.ReadAllText(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", "map-hints.json")));
+            foreach (var area in table.Areas)
+            {
+                foreach (var row in table.For(area))
+                {
+                    var sources = new[] { row.Match, row.Tile, row.Sign }.Count(source => source.Length > 0);
+                    Equal(1, sources, $"{area}: found one way");
+                    Equal(true, row.Sign.Length > 0 || row.Hint.Length > 0, $"{area}: a cue has its line");
+                    Equal(true, !row.Reveals || row.Goal.Length > 0, $"{area}: reveals something");
+                }
+            }
         }
 
         private static void LostMeansWalkingWithoutNewGround()

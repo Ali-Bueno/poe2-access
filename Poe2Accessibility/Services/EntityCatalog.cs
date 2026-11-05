@@ -197,6 +197,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The current area's name in the client language (its name in an objective is not a destination).</summary>
         public Func<string> AreaName { get; set; } = () => string.Empty;
 
+        /// <summary>Closer than this a place has no side (ObjectSounds' centre distance).</summary>
+        private const float HereWorld = 300f;
+
         /// <summary>How much ground has been seen in this area: it grows while the player finds new ground.</summary>
         public int SeenBlocks => this.explored.SeenBlocks;
 
@@ -528,9 +531,55 @@ namespace Poe2Accessibility.Services
                 return this.UnexploredCells() is { Count: > 0 } onward ? onward[0] : null;
             }
 
-            var cell = new Vector2(goal.WorldX, goal.WorldY) / toWorld;
-            return this.TryLiveGrid(out var grid, out var row) ? this.explored.WayOn(grid, row, here / toWorld, cell) ?? cell : cell;
+            return this.WayCell(new Vector2(goal.WorldX, goal.WorldY) / toWorld, here / toWorld);
         }
+
+        /// <summary>The place a map hint leads to, seen or not: the nearest boss room, or an exit by its English label.</summary>
+        public ScanEntry? HintGoal(string label)
+        {
+            if (label != MapHintTable.BossGoal)
+            {
+                var name = this.landmarks.Localize(label);
+                return this.Entries().Concat(this.AreaLandmarks()).FirstOrDefault(entry => entry.Category == ScanCategory.Exits && string.Equals(entry.Name, name, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return Seats.Followed.TryGetComponent<Render>(out var player)
+                ? this.AreaLandmarks().Where(entry => entry.Kind == MinimapMarks.BossRoomKind).OrderBy(entry => Distance(player.WorldPosition, entry)).FirstOrDefault()
+                : null;
+        }
+
+        /// <summary>An English label as the game says it.</summary>
+        public string Localized(string label) => this.landmarks.Localize(label);
+
+        /// <summary>The game has shown this place on the map: the scanner lists it from now on. False when it was known.</summary>
+        public bool Reveal(ScanEntry place) => this.sighted.Add(place.Id);
+
+        /// <inheritdoc cref="SideToward(Vector2)"/>
+        public string SideToward(ScanEntry place) =>
+            Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor is > 0 and var toWorld
+                ? this.SideToward(new Vector2(place.WorldX, place.WorldY) / toWorld)
+                : string.Empty;
+
+        /// <summary>
+        ///     The side a place lies on by the walk, in words, not the straight line: empty with no player or when the player stands
+        ///     there. A map hint's direction: "a la derecha".
+        /// </summary>
+        public string SideToward(Vector2 goal)
+        {
+            var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
+            if (toWorld <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return string.Empty;
+            }
+
+            var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
+            var offset = (this.WayCell(goal, here / toWorld) * toWorld) - here;
+            return offset.Length() < HereWorld ? string.Empty : Announcements.HintSides[ScreenProjection.Octant(player.WorldPosition, offset)];
+        }
+
+        /// <summary>Where the way to a cell leaves the seen ground, or the cell when no unseen ground leads there.</summary>
+        private Vector2 WayCell(Vector2 goal, Vector2 from) =>
+            this.TryLiveGrid(out var grid, out var row) ? this.explored.WayOn(grid, row, from, goal) ?? goal : goal;
 
         /// <summary>
         ///     "Clearfell Encampment, 116 steps, down 3, then left": the length of the walkable route, the leg to walk

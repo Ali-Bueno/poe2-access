@@ -1,8 +1,43 @@
 # Navigation hints GGG placed in the campaign (patch 0.5.0)
 
-What a sighted player reads off the world, and what the mod can get of it (2026-11-05, 0.5.5e). Nothing here is built
-yet. The radar's own reading of the map is in [radar](../radar.md). Every area, act by act:
-[map-hints-by-act](map-hints-by-act.md).
+What a sighted player reads off the world, and what the mod can get of it (2026-11-05, 0.5.5e). The radar's own reading
+of the map is in [radar](../radar.md). Every area, act by act: [map-hints-by-act](map-hints-by-act.md).
+
+## What the mod says
+
+`MapHintNarrator`, with the cues listed by hand in `catalog/map-hints.json`; dev command `maphints` lists what was found.
+Walking within 60 cells of a cue (the ground the mod counts as seen) it is said once, again only 200 cells on
+(`MapHintMemory`: the Grelwood's mushrooms are one patch). Every story sign is said, with no row needed.
+
+| Cue | Area | Found by | Side toward |
+|---|---|---|---|
+| Dead cattle | Clearfell | model `DeadBull_01`, listed at arrival | the boss room |
+| Dead cattle | Hunting Grounds | entity `Objects/DeadBull`, near | the boss room |
+| Mushrooms | Grelwood | model `FungiCluster`, listed at arrival | The Grim Tangle |
+| Glowing roots | Grelwood | entity `Objects/TreeRoot`, near | quest object `TreeOfSoulsRoots`, once the client has shown it: no side before |
+| River | Grelwood | tiles `Woods/RedvaleRiver/` | The Red Vale |
+| Explorer camp | Infested Barrens, Jungle Ruins, Chimeral Wetlands | model `AbandonedExpedition/Camp` | none: the entrance is added to the scanner |
+| Sign | anywhere | `StoryGlyph` icon | the exit of its name, if known |
+
+**Checked live** (2026-11-05, Mercenary, standing at Clearfell's waypoint, dev command `maphints`): 3 cattle spots found, "Reses
+muertas, el rastro de sangre sigue arriba a la derecha". The Grelwood's rows only against the logged list of that area: 411
+`FungiCluster` models, `TreeOfSoulsRoots` a near entity. Not seen: the roots' and the river's rows, a line said walking, the camps.
+
+**The side is the mod's, not the game's:** where the walk to the goal leaves the seen ground, as the lost hint. The goals are
+judgement: nothing in the files ties the bulls to a boss.
+
+**The camps are an approximation.** The transition object holds a shared state `entrance_revealed` whose client script runs
+`RevealMinimapInRadius(80)`, but what sets that state is in the server scripts. `TroubledCampLandmarkTitle` fires at radius 50 and
+stops on quest flag `JungleOutskirtsLandmarkComplete`, so the reveal may need more than arriving. The mod adds the entrance
+when the player reaches the camp: check it in Act 3.
+
+**The road's sign says no side on a first visit:** it names Ogham Village, the exit is Ogham Farmlands, and the mod does not
+know where that exit is until it is seen or kept from another instance. `Bramble_Cnr_transition_01` ("Or Deadend") cannot
+stand in for it. `AreaTransitionBlockage` doodads mark closed transitions in Clearfell (three, each with an
+`AreaTransitionDoodad`, seen live) but none was listed in the Hunting Grounds, so they do not settle it there.
+
+Left out: arrival-room caravan tracks (they mark where the player came from), Khari Crossing's wayfinders (no target
+known), the line effects (`direction.ao`, `fire_direction_01.ao`, `ritual_direction_01.ao`: spawned by server script), title cards.
 
 ## Sources
 

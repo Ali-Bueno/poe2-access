@@ -237,6 +237,12 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   It points to where the walk to what the quest asks leaves the ground you have seen, else toward a boss room not found
   yet, else to the nearest ground that goes on. Silent in towns and while the guide leads (settings "Sound hint when
   lost" and "Sound hint: seconds walking without new ground", 60 to 600).
+- **Map hints:** walking past a cue the game's designers placed on the map, the reader says it once: "Dead cattle, the
+  blood trail goes to the right", "Mushrooms, thicker down", "Glowing roots, running up", "River, upstream to the left",
+  and any sign ("Sign: Ogham Village"). In Act 3 an explorer camp also adds the next entrance to the scanner: "Explorer
+  camp. New exit: Chimeral Wetlands". The side is the mod's own working out, by the walk to where the cue leads, not something
+  the game shows; a sign says none while the place it names is unknown (settings "Map hints when passing them" and
+  "Map hints: say which way they go").
 - **Enemies:** a short growl for each enemy on screen, faster as it gets closer; magic and rare enemies buzz on top,
   uniques ring ([enemy sounds](enemy-sounds.md)).
 - **NPCs and players:** a light wooden tap for each of the two nearest NPCs on screen, a quicker, higher double tap

@@ -217,6 +217,12 @@ namespace Poe2Accessibility
         /// <summary>How long the player walks without new ground before that sound plays.</summary>
         public int LostHintSeconds = 180;
 
+        /// <summary>The cues GGG placed on the maps are said once on walking past them.</summary>
+        public bool MapHints = true;
+
+        /// <summary>A map hint says which way it goes, by the walk to where it leads.</summary>
+        public bool MapHintSides = true;
+
         /// <summary>D2R unexplored mark: a radar open-way or exit cue toward unseen ground ends in two pips.</summary>
         public bool UnexploredMark = true;
 

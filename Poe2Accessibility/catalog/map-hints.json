@@ -1,0 +1,23 @@
+{
+  "G1_2": [
+    { "match": "DeadBull_01", "hint": "cattle", "goal": "boss" }
+  ],
+  "G1_4": [
+    { "match": "FungiCluster", "hint": "mushrooms", "goal": "The Grim Tangle" },
+    { "match": "Objects/TreeRoot", "hint": "roots", "goal": "TreeOfSoulsRoots" },
+    { "tile": "Woods/RedvaleRiver/", "hint": "river", "goal": "The Red Vale" }
+  ],
+  "G1_11": [
+    { "match": "Objects/DeadBull", "hint": "cattle", "goal": "boss" },
+    { "sign": "Ogham Village", "goal": "Ogham Farmlands" }
+  ],
+  "G3_2_1": [
+    { "match": "AbandonedExpedition/Camp", "hint": "camp", "goal": "Chimeral Wetlands", "reveals": true }
+  ],
+  "G3_3": [
+    { "match": "AbandonedExpedition/Camp", "hint": "camp", "goal": "Infested Barrens", "reveals": true }
+  ],
+  "G3_5": [
+    { "match": "AbandonedExpedition/Camp", "hint": "camp", "goal": "The Temple of Chaos", "reveals": true }
+  ]
+}

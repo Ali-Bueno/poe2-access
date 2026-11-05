@@ -112,6 +112,7 @@ namespace Poe2Accessibility
             this.Isolated("lost hint", () => this.lostHint?.Tick(
                 playing && this.Settings.LostHint && this.beacon?.Target == null && !InTownOrHideout(),
                 this.fights?.InFight(FightState.AnyEnemy) == true));
+            this.Isolated("map hints", () => this.mapHints?.Tick(playing && this.Settings.MapHints && !InTownOrHideout()));
             this.Isolated("discoveries", () => this.discoveries?.Tick(playing && this.Settings.AnnounceDiscoveries));
             this.Isolated("enemy news", () => this.enemyNews?.Tick(playing && this.Settings.AnnounceEnemies));
             this.Isolated("wall bump", () =>

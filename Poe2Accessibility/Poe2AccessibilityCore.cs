@@ -41,6 +41,7 @@ namespace Poe2Accessibility
         private EnemyCues? enemyCues;
         private Radar? radar;
         private LostHint? lostHint;
+        private MapHintNarrator? mapHints;
         private Radar? partnerRadar;
         private LocalPlayers? localPlayers;
         private ProximityNarrator? nearby;
@@ -324,6 +325,8 @@ namespace Poe2Accessibility
                 this.alerts.Charges.RecordedSound = key => modSounds.GetStereo(key) ?? gameSounds.GetStereo(key);
                 this.culls.Chime = modSounds.Get("cull") ?? this.culls.Chime;
                 this.lostHint = new LostHint(this.audio, this.entities, modSounds.GetLoop(LostHint.LoopName), this.log);
+                this.mapHints = new MapHintNarrator(this.entities, this.output, MapHintTable.Load(this.log, Path.Join(this.DllDirectory, "catalog", "map-hints.json")),
+                                                    () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
                 this.radar.Unexplored = () => this.Settings.UnexploredMark ? this.entities.UnexploredCells() : Array.Empty<System.Numerics.Vector2>();
                 this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds, new KnownPlaces(Path.Join(this.DllDirectory, "config", "known-places.txt")));
                 this.enemyNews = new EnemyNarrator(this.entities, this.output);
@@ -416,6 +419,7 @@ namespace Poe2Accessibility
             this.enemyCues = null;
             this.radar = null;
             this.lostHint = null;
+            this.mapHints = null;
             this.partnerRadar = null;
             Seats.Attach(null, null);
             this.localPlayers = null;

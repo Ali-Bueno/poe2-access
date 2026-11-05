@@ -68,6 +68,8 @@ new `serve`, which disconnects the game to the login screen.
   enters and the pad is player 1, stick and menus. Enter alone gives a keyboard HUD the pad cannot reach, where a click on
   the ground does not walk either; a pad press at selection after Enter joins as J2 ("Modo cooperativo local activado",
   B leaves it). `stick left vec:X,Y --seconds S` walks in any screen direction, up to 2 s a call.
+- A second `key enter` at character selection also entered the game, but then A at the Transportador only cast a skill and
+  no map opened (2026-11-05): after the login, check the pad before relying on it.
 - Scripted walking on the live servers: packs kill a character that only walks, and one session ended in "Abnormal
   disconnect" 40 s after a death with no reason given (Client.txt, 2026-11-05). Cause unknown; keep it short.
 - Steam's launch options start the `dist` host: `dist/Poe2Access/Poe2Access.exe stop`, then `launch.py host`, to test the build output.

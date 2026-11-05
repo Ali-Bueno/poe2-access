@@ -240,6 +240,14 @@ namespace Poe2Accessibility
                     }
 
                     break;
+                case "maphints":
+                    // Research: the map hints found here and what each would say from where the player stands.
+                    foreach (var line in this.mapHints?.Diagnose() ?? Array.Empty<string>())
+                    {
+                        this.log?.Info(line);
+                    }
+
+                    break;
                 case "tiles":
                     // Research: the area's tile grid with rotations and anchors, for docs/research/places.md.
                     this.places?.Dump(Path.Join(this.DllDirectory, "debug", $"tiles-{this.gameState?.CurrentAreaId}-{DateTime.Now:yyyyMMdd-HHmmss}.txt"));

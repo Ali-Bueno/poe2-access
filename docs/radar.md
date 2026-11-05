@@ -70,6 +70,7 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
   ground leading there, or the goal's ground seen, the goal itself. The boss room counts because about 40 areas hold one
   and one exit or none in the table, and the objective seldom names the room (Ogham Village's way on lies behind
   Executioner's Block, found only at 43 steps on 2026-11-05).
+- **Map hints** use the same walk for their side (`EntityCatalog.SideToward`, [map hints](research/map-hints.md)).
 - **No way in the scanner.** Until 2026-11-05 it listed "Way to …" for quest places and boss rooms not seen. The user
   found the Manor with it in four minutes after 40 lost, then judged it too easy, so the way is only heard through the
   hint: a quest place not seen is not listed, unless the game's quest icon marks it. The game's own exit, once in reach,

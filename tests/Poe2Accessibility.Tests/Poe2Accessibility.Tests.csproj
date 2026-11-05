@@ -81,6 +81,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\ExplorationMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\MapCorner.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\LostWatch.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\MapHintTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\MinimapMarks.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\BarrierMemory.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\DodgeThreats.cs" />

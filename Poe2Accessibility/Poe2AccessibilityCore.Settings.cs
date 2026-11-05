@@ -145,6 +145,11 @@ namespace Poe2Accessibility
                 this.lostHint.LostAfterMs = settings.LostHintSeconds * 1000;
             }
 
+            if (this.mapHints != null)
+            {
+                this.mapHints.SaySide = settings.MapHintSides;
+            }
+
             if (this.nearby != null)
             {
                 this.nearby.LootLevel = settings.LootSounds;
