@@ -24,7 +24,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>Screen vectors of a probe step along world +X and +Y at a place.</summary>
-        private static (Vector2 AlongX, Vector2 AlongY) Axes(StdTuple3D<float> origin)
+        public static (Vector2 AlongX, Vector2 AlongY) Axes(StdTuple3D<float> origin)
         {
             var world = Core.States.InGameStateObject.CurrentWorldInstance;
             var here = world.WorldToScreen(origin);

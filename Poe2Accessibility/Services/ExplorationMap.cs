@@ -389,7 +389,7 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        private static bool[] WalkableBlocks(byte[] grid, int bytesPerRow, int width, int height)
+        internal static bool[] WalkableBlocks(byte[] grid, int bytesPerRow, int width, int height)
         {
             var bx = (width + BlockCells - 1) / BlockCells;
             var by = (height + BlockCells - 1) / BlockCells;

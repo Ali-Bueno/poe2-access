@@ -268,6 +268,25 @@ namespace Poe2Accessibility
             return this.shopPage;
         }
 
+        /// <summary>A moment for the player's place to be read in a new instance.</summary>
+        private const int PlayerSettlesMs = 300;
+
+        /// <summary>" Bottom left corner." after the area's name, where the player starts on the map; not in towns and hideouts.</summary>
+        private string AreaCornerLine()
+        {
+            if (!this.Settings.AreaCorner || InTownOrHideout() || !Seats.Followed.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var player))
+            {
+                return string.Empty;
+            }
+
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            var (alongX, alongY) = ScreenProjection.Axes(player.WorldPosition);
+            var cell = new System.Numerics.Vector2(player.GridPosition.X, player.GridPosition.Y);
+            return MapCorner.Of(area.GridWalkableData, area.TerrainMetadata.BytesPerRow, cell, alongX, alongY) is { } corner
+                ? $" {Announcements.CornerOfMap(corner.Across, corner.Down)}."
+                : string.Empty;
+        }
+
         private static bool InTownOrHideout() =>
             Core.States.InGameStateObject.CurrentWorldInstance.AreaDetails is { } area && (area.IsTown || area.IsHideout);
 

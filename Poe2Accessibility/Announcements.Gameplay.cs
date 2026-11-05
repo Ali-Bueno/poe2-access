@@ -350,6 +350,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.UnexploredMark) => T("Radar: unexplored mark", "Radar: marca de sin explorar"),
             nameof(AccessibilitySettings.QuestWayOnly) => T("Quest: the way, not the exact place", "Misión: el camino, no el lugar exacto"),
             nameof(AccessibilitySettings.BossRoomWay) => T("Unexplored: the way to the boss room", "Sin explorar: camino a la sala del jefe"),
+            nameof(AccessibilitySettings.AreaCorner) => T("Say the map corner on entering an area", "Decir la esquina del mapa al entrar en un área"),
             nameof(AccessibilitySettings.SpeechStatusBegins) => T("Speech: a state begins", "Voz: empieza un estado"),
             nameof(AccessibilitySettings.SpeechStatusEnds) => T("Speech: a state ends", "Voz: termina un estado"),
             nameof(AccessibilitySettings.SpeechLifeAndMana) => T("Speech: low life and mana", "Voz: vida y maná bajos"),
@@ -485,6 +486,20 @@ namespace Poe2Accessibility
 
         /// <summary>A quest place or boss room not seen yet: the scanner gives the way toward it, not where it lies.</summary>
         public static string WayTo(string place) => T($"Way to {place}", $"Camino a {place}");
+
+        /// <summary>Which part of the map a place lies in, by thirds across and down (-1, 0, 1), as the screen draws it.</summary>
+        public static string CornerOfMap(int across, int down) => (across, down) switch
+        {
+            (-1, -1) => T("Top left corner", "Esquina superior izquierda"),
+            (1, -1) => T("Top right corner", "Esquina superior derecha"),
+            (-1, 1) => T("Bottom left corner", "Esquina inferior izquierda"),
+            (1, 1) => T("Bottom right corner", "Esquina inferior derecha"),
+            (0, -1) => T("Top edge", "Borde superior"),
+            (0, 1) => T("Bottom edge", "Borde inferior"),
+            (-1, 0) => T("Left edge", "Borde izquierdo"),
+            (1, 0) => T("Right edge", "Borde derecho"),
+            _ => T("Middle of the map", "Centro del mapa"),
+        };
 
         /// <summary>The way has come close to a place not seen yet and stops there: the rest is for the player to find.</summary>
         public static string CloseBy(string place) => T($"{place} is close, search around here", $"{place} está cerca, busca por aquí");

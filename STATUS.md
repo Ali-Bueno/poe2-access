@@ -363,7 +363,7 @@
 - Scanner: `EntityCatalog` (entries, landmarks, `Describe`; `.Classify` categories and names, `.Terrain` live grid and barriers) → `RoutePlanner` (A*, corners,
   legs) and `ScanModel` (`ScanBrowser`, `StickDirection`); `LandmarkTable`. Map marks: pure `MinimapMarks` (signs, boss
   rooms by icon or tile, pointer reach), `MinimapIconLabel` (an icon's translated label). Exploring: `ExplorationMap`
-  (frontier, pockets, `WayOn`), `UnexploredLoop` (D2R loop, `assets/loops/`), the radar's unexplored mark. Memory: `AreaMemory` (instance + layout; `Frame`/`Inherit`/`Framed`: a fixed map's exits into a new instance). Warnings: `VitalAlarm`.
+  (frontier, pockets, `WayOn`), `MapCorner` (the part of the map, for the area's line), `UnexploredLoop` (D2R loop, `assets/loops/`), the radar's unexplored mark. Memory: `AreaMemory` (instance + layout; `Frame`/`Inherit`/`Framed`: a fixed map's exits into a new instance). Warnings: `VitalAlarm`.
 - Sounds: `AudioCueService` (winmm mixer; each sound's own level by glossary key, `SetLevels`) ← `EnemyCues` (`EnemyCueScheduler`, `CueSynth`) and `Radar`
   (`PassageScan`, `RadarSensor`, `RadarSynth`; a second `Radar` follows `Seats.Partner`); with `ProximityNarrator` (`ProximityTracker`) gated in
   `Poe2AccessibilityCore.TickSounds`.
@@ -392,7 +392,7 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
-First (2026-11-05): none of this heard yet, all in the user's `dist` for the next start, no release made: a discovery's line holding through a fight (`DiscoveryNarrator`, urgent: "Ya no estás enfriado" cut "Nueva salida: Mansión de Ogham" 15 ms in, and it is said once ever), the radar's exit in its wall and off its lane (`PassageScan.ExitToward`), "Camino a Sala del jefe" (dev command `scan`), the guide staying on a way past each stretch ("Llegaste a Camino…" must not be said), and "… está cerca, busca por aquí" stopping the way 300 walking cells short. The user wants the end left to search; whether that leaves enough to find is theirs to judge (`ExplorationMap.NearCells`).
+First (2026-11-05): none of this heard yet, all in the user's `dist` for the next start, no release made: "Área: …, nivel N. Esquina inferior izquierda." on entering (`MapCorner`, `AreaCorner`; check the corner against where the map really goes, unit-tested only), a discovery's line holding through a fight (`DiscoveryNarrator`, urgent: "Ya no estás enfriado" cut "Nueva salida: Mansión de Ogham" 15 ms in, and it is said once ever), the radar's exit in its wall and off its lane (`PassageScan.ExitToward`), "Camino a Sala del jefe" (dev command `scan`), the guide staying on a way past each stretch ("Llegaste a Camino…" must not be said), and "… está cerca, busca por aquí" stopping the way 300 walking cells short. The user wants the end left to search; whether that leaves enough to find is theirs to judge (`ExplorationMap.NearCells`).
 The user followed "Camino a Mansión de Ogham" live: locked 05:10:20, "Nueva salida: Mansión de Ogham" 05:14:43, after about 40 minutes lost there. Whether the way alone is enough stays the user's call (`QuestWayOnly`; they want the scanner like a look at the map, yet not a gamble).
 First (2026-11-04, twentieth batch, released as v2026.11.04-2): the user hears the Diablo IV set as loops in play. It was heard to stop, start and distort
 (repeated cuts of the recordings); the loops were only checked offline, since the user was playing at the time. Also not heard: a

@@ -866,12 +866,16 @@ namespace Poe2Accessibility
                 }
 
                 this.pendingArea = (areaName, resumed, Environment.TickCount64);
+                this.areaReadyAt = null;
                 this.AnnounceLoadedArea();
             }
         }
 
         /// <summary>The tile table of the instance the last area announcement read: GameHelper makes a new one each load.</summary>
         private object? areaTilesSaid;
+
+        /// <summary>When the instance to announce was first there; the corner waits for the player's place in it.</summary>
+        private long? areaReadyAt;
 
         /// <summary>Per frame: the pending area announcement once the game has loaded an instance since the last one said.</summary>
         private void AnnounceLoadedArea()
@@ -888,11 +892,18 @@ namespace Poe2Accessibility
                 return;
             }
 
+            var now = Environment.TickCount64;
+            this.areaReadyAt ??= now;
+            if (this.Settings.AreaCorner && now - this.areaReadyAt < PlayerSettlesMs)
+            {
+                return; // the line waits behind "Loading area" anyway; the player's place may still be the last area's
+            }
+
             this.pendingArea = null;
             this.areaTilesSaid = tiles;
             var level = AreaLevel();
             this.log?.Info($"Area level {level} (instance {area.AreaHash})");
-            this.output.Say(SpeechKind.Places, Announcements.Area(name, level));
+            this.output.Say(SpeechKind.Places, Announcements.Area(name, level) + this.AreaCornerLine());
         }
 
     }

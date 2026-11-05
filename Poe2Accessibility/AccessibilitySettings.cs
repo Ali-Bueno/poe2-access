@@ -220,6 +220,9 @@ namespace Poe2Accessibility
         /// <summary>The Unexplored category gives the way to a boss room the minimap does not point to yet, never the room.</summary>
         public bool BossRoomWay = true;
 
+        /// <summary>The area's announcement says which part of the map the player starts in.</summary>
+        public bool AreaCorner = true;
+
         /// <summary>How far ahead a wall starts to sound for the wall tones, in world units (~400 per second of walking).</summary>
         public int WallToneRange = 600;
 

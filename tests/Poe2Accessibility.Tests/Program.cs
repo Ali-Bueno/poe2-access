@@ -140,6 +140,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(SignsAreNeverQuestTargetsAndQuestIconsAlways), SignsAreNeverQuestTargetsAndQuestIconsAlways);
             Run(nameof(FrontierTellsNooksFromGroundThatGoesOn), FrontierTellsNooksFromGroundThatGoesOn);
             Run(nameof(RadarHearsAnExitInItsWallAndOffItsLane), RadarHearsAnExitInItsWallAndOffItsLane);
+            Run(nameof(MapCornerFollowsTheScreenNotTheGrid), MapCornerFollowsTheScreenNotTheGrid);
             Run(nameof(QuestWayLeavesTheSeenGroundTowardTheGoal), QuestWayLeavesTheSeenGroundTowardTheGoal);
             Run(nameof(UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay), UnexploredLoopKeepsItsPlaceAndRadarMarksTheWay);
             Run(nameof(SpiritValuesNameTheirWeaponSet), SpiritValuesNameTheirWeaponSet);
@@ -1720,6 +1721,31 @@ namespace Poe2Accessibility.Tests
             }
 
             return grid;
+        }
+
+        private static void MapCornerFollowsTheScreenNotTheGrid()
+        {
+            const int width = 400, height = 400;
+            var grid = Carved(width, height, (0, 0, width, height));
+            var flatX = new System.Numerics.Vector2(1, 0);
+            var flatY = new System.Numerics.Vector2(0, 1);
+            (int, int)? Flat(float x, float y) => MapCorner.Of(grid, width / 2, new System.Numerics.Vector2(x, y), flatX, flatY);
+            Equal(((int, int)?)(-1, 1), Flat(20, 380), "bottom left, a flat camera");
+            Equal(((int, int)?)(1, -1), Flat(380, 20), "top right");
+            Equal(((int, int)?)(0, 0), Flat(200, 200), "the middle");
+            Equal(((int, int)?)(-1, 0), Flat(20, 200), "the left edge");
+            // The game's camera: grid +X draws up and right, +Y down and right, so the grid's corners are the screen's edges.
+            var isoX = new System.Numerics.Vector2(1, -0.5f);
+            var isoY = new System.Numerics.Vector2(1, 0.5f);
+            (int, int)? Iso(float x, float y) => MapCorner.Of(grid, width / 2, new System.Numerics.Vector2(x, y), isoX, isoY);
+            Equal(((int, int)?)(-1, 0), Iso(10, 10), "the grid's first corner is the screen's left");
+            Equal(((int, int)?)(1, 0), Iso(390, 390), "its opposite, the right");
+            Equal(((int, int)?)(0, -1), Iso(390, 10), "up");
+            Equal(((int, int)?)(0, 1), Iso(10, 390), "down");
+            Equal(((int, int)?)(-1, 1), Iso(10, 200), "between left and down, a corner of the screen");
+            var stray = Carved(1000, 400, (0, 0, 400, 400), (990, 0, 1000, 8));
+            Equal(((int, int)?)(1, 0), MapCorner.Of(stray, 500, new System.Numerics.Vector2(380, 200), flatX, flatY), "a stray patch far out is no edge");
+            Equal(null, MapCorner.Of(new byte[200 * 400], 200, new System.Numerics.Vector2(10, 10), flatX, flatY), "no ground");
         }
 
         private static void RadarHearsAnExitInItsWallAndOffItsLane()

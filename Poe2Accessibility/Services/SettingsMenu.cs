@@ -71,6 +71,7 @@ namespace Poe2Accessibility.Services
                 Switch(nameof(AccessibilitySettings.UnexploredLoop)),
                 Switch(nameof(AccessibilitySettings.QuestWayOnly)),
                 Switch(nameof(AccessibilitySettings.BossRoomWay)),
+                Switch(nameof(AccessibilitySettings.AreaCorner)),
                 Switch(nameof(AccessibilitySettings.WallTones)),
                 Number(nameof(AccessibilitySettings.WallToneRange), 200, 1600, 100),
                 Switch(nameof(AccessibilitySettings.WallBump)),

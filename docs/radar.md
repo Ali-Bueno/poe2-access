@@ -76,6 +76,14 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
   areas hold a boss room and one exit or none in the table, and the objective seldom names the room (Ogham Village's
   way on lies behind Executioner's Block, found only at 43 steps on 2026-11-05).
 
+## Where the map starts
+
+The area's line ends in the part of the map the player is in, by thirds across and down ("Bottom left corner", "Left
+edge", "Middle of the map"; `MapCorner`, setting `AreaCorner`, user's idea 2026-11-05): from that corner the way on lies
+the other way. Screen directions, the stick's: the camera draws the grid's corners as the screen's edges. Measured over
+all the walkable ground, not what is reachable (a closed gate would shrink the map), leaving out 2% at each end for
+stray patches. More than a sighted player knows on arrival, as `WayOn` is. Not in towns and hideouts.
+
 ## Not ported yet
 
 Doors (no door bit in PoE2's walkable grid), small-obstacle timbre, wall repeat, the "inside unexplored room" cue. Wall tones (LeAccess `reference/navigation-radar.md`) are the alternative style for later.
