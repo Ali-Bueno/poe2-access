@@ -87,7 +87,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Locks <paramref name="entry"/> in place of any earlier target.</summary>
         public void Lock(ScanEntry entry)
         {
-            if (this.catalog.DistanceTo(entry) <= ArrivalWorld)
+            if (entry.Kind != ExplorationMap.WayKind && this.catalog.DistanceTo(entry) <= ArrivalWorld)
             {
                 // Already there: locking would say the way and then the arrival at once.
                 this.output.Speak(Announcements.Here(entry.Name), true);
@@ -157,7 +157,9 @@ namespace Poe2Accessibility.Services
             }
 
             this.CollectSearch();
-            if (Vector2.Distance(here, new Vector2(goal.WorldX, goal.WorldY)) <= ArrivalWorld)
+            // A way is a stretch toward a place: its end moves on as ground is seen, the guide stays until the place itself.
+            var stretch = goal.Kind == ExplorationMap.WayKind;
+            if (!stretch && Vector2.Distance(here, new Vector2(goal.WorldX, goal.WorldY)) <= ArrivalWorld)
             {
                 this.Arrive(goal);
                 return;
@@ -173,6 +175,11 @@ namespace Poe2Accessibility.Services
             var remainingWorld = BeaconMath.Remaining(path, from, playerGrid) * gridSize;
             if (remainingWorld <= ArrivalWorld)
             {
+                if (stretch)
+                {
+                    return;
+                }
+
                 if (!this.partialRoute)
                 {
                     this.Arrive(goal);
@@ -254,6 +261,12 @@ namespace Poe2Accessibility.Services
             {
                 this.target = current with { Category = goal.Category };
                 return true;
+            }
+
+            if (goal.Kind == ExplorationMap.WayKind)
+            {
+                this.Clear(true); // no unseen ground leads there any more: nothing to wait for
+                return false;
             }
 
             if (EntityCatalog.IsEntity(goal) && Vector2.Distance(here, new Vector2(goal.WorldX, goal.WorldY)) <= GoneNearWorld)
