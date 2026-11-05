@@ -1,5 +1,21 @@
 {
   "G1_1": {
     "Metadata/Terrain/Woods/Lumbermill/EncampmentFront_01": "Clearfell Encampment"
+  },
+  "G1_14": {
+    "Metadata/Terrain/Woods/Manor/CourtyardFeatures/Manor_GrandEntrance_Transition_01.tdtx:2-y:4": "Ogham Manor",
+    "Metadata/Terrain/Woods/Village/Huts/VillageArena_02_courtyard_side.tdtx:0-y:0": "Way back"
+  },
+  "G4_2_1": {
+    "Metadata/Terrain/Islands/Tiles/Island/Features/UnwalkableCliff_Transition_Up_01.tdtx:0-y:0": "Journey's End"
+  },
+  "G4_4_1": {
+    "Metadata/Terrain/Islands/Tiles/CoralDungeon/Features/Spiral_Eighths/Sinkhole_Spiral_QuarterHeight_WalkableHalf_01.tdtx:4-y:4": "Halls of the Dead"
+  },
+  "P1_1": {
+    "Metadata/Terrain/interlude/part1/p1_1/feature/monolith_transition_01.tdtx:0-y:0": "Stones of Serle"
+  },
+  "P1_4": {
+    "Metadata/Terrain/interlude/part1/p1_4/holton_estate_transition_01.tdtx:0-y:0": "Holten Estate"
   }
 }
