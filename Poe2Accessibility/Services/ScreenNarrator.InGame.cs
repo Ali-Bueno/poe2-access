@@ -315,12 +315,28 @@ namespace Poe2Accessibility.Services
                 ? new List<ScreenText>()
                 : hud.Texts.Where(text => text.Name is GameLayout.InGameUi.QuestTitleName or GameLayout.InGameUi.QuestLineName &&
                                           (this.IsQuestTrackerText?.Invoke(text.Address) ?? false)).ToList();
-            if (this.questPage.News(Describe(tracker)) is { Length: > 0 } page)
+            if (this.questPage.News(Describe(tracker), this.InMenu) is { Length: > 0 } page)
             {
                 this.Speak("quest page", Announcements.QuestPage(page), SpeechPriority.Interrupts(SpeechKind.Quest), Hold.Lesson);
             }
 
             return tracker;
+        }
+
+        /// <summary>A panel with no focus covers the game (<see cref="ScreenSnapshot.PanelOver"/>).</summary>
+        public Func<bool>? PanelOverGame { get; set; }
+
+        /// <summary>A quest page that waited for a menu can be said now.</summary>
+        public bool QuestPageDue => this.questPage.Waiting && !this.InMenu;
+
+        /// <summary>The player is in a menu: the focus is in a panel, or a panel without focus covers the game.</summary>
+        private bool InMenu
+        {
+            get
+            {
+                var layer = this.FocusLayer?.Invoke() ?? IntPtr.Zero;
+                return (layer != IntPtr.Zero && layer != this.HudLayer) || this.PanelOverGame?.Invoke() == true;
+            }
         }
 
         private void OnHudChange(ScreenChange change, ScreenSnapshot snapshot)

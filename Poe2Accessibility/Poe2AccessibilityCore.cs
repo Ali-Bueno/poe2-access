@@ -220,6 +220,7 @@ namespace Poe2Accessibility
                 this.focus = new FocusTracker(memory, elements, this.locator, this.semantics, this.log);
                 this.narrator = new ScreenNarrator(this.output, this.log, layer => this.semantics?.SelectedTab(layer) ?? string.Empty);
                 this.narrator.FocusLayer = () => this.focus?.CurrentLayer ?? IntPtr.Zero;
+                this.narrator.PanelOverGame = () => this.PanelOverGame() != null;
                 this.narrator.SinceConfirm = () => Environment.TickCount64 - this.lastConfirmAt;
                 this.narrator.SinceDirection = () => Environment.TickCount64 - this.lastDirectionAt;
                 this.focus.FocusChanged += this.narrator.OnFocusChanged;
@@ -571,9 +572,9 @@ namespace Poe2Accessibility
                 }
             }
 
-            if (watching && !this.wasWatching)
+            if (watching && (!this.wasWatching || this.narrator.QuestPageDue))
             {
-                this.narrator.CheckQuestPage(this.screen.Current); // an objective that changed while another window was in front
+                this.narrator.CheckQuestPage(this.screen.Current); // an objective that changed behind another window or a menu
             }
 
             this.wasWatching = watching;

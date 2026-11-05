@@ -576,6 +576,13 @@ namespace Poe2Accessibility
             ? T($"Picked up {added} more: {name}", $"Recogido {added} más: {name}")
             : T($"Picked up: {name}", $"Recogido: {name}");
 
+        /// <summary>A sound's own volume listed beside its switch, among settings that are not volumes.</summary>
+        public static string SoundVolumeName(string key)
+        {
+            var name = SoundName(key);
+            return T($"{name} volume", $"Volumen: {name}");
+        }
+
         /// <summary>Sound glossary: the name of each of the mod's sounds.</summary>
         public static string SoundName(string key) => key switch
         {

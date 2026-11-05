@@ -24,6 +24,10 @@ namespace Poe2Accessibility.Models
         /// <summary>The game moves an opened popup above the screen it covers, so the highest layer with controls owns input.</summary>
         public ScreenLayer? TopInteractive => this.Layers.Where(layer => layer.HasControls && !layer.IsHintBar && !layer.IsBase).MaxBy(layer => layer.Index);
 
+        /// <summary>The panel covering the game: the top layer with controls, unless it is the HUD or the tutorial box; none while the HUD is unknown.</summary>
+        public ScreenLayer? PanelOver(IntPtr hud, IntPtr tutorial) =>
+            hud != IntPtr.Zero && this.TopInteractive is { } top && top.Address != hud && top.Address != tutorial ? top : null;
+
         public ScreenSnapshot WithBase(IReadOnlySet<IntPtr> baseLayers) => baseLayers.Count == 0
             ? this
             : this with { Layers = this.Layers.Select(layer => layer with { IsBase = baseLayers.Contains(layer.Address) }).ToList() };

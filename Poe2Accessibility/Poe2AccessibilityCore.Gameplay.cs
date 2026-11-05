@@ -4,11 +4,18 @@ namespace Poe2Accessibility
     using System.Linq;
     using GameHelper;
     using GameHelper.RemoteEnums;
+    using Poe2Accessibility.Models;
     using Poe2Accessibility.Services;
 
     /// <summary>Gameplay ticks, warnings and readouts of <see cref="Poe2AccessibilityCore"/>, each service isolated from the others' faults.</summary>
     public sealed partial class Poe2AccessibilityCore
     {
+        /// <summary>A panel's first texts name it in the log.</summary>
+        private const int PanelTextsLogged = 3;
+
+        private readonly WorldGate worldGate = new();
+        private IntPtr panelSeen;
+
         /// <summary>
         ///     Per frame: radar, enemy sounds and what is nearby, only in gameplay. Each service runs on its own (D2R
         ///     crash containment): one that throws is logged (throttled per service) and the others still run.
@@ -18,7 +25,7 @@ namespace Poe2Accessibility
             bool inWorld, playing;
             try
             {
-                inWorld = Core.Process.Foreground && this.focus?.Current == null && this.gameState?.CurrentState == GameStateTypes.InGameState;
+                inWorld = this.WorldInFront() && Core.Process.Foreground && this.gameState?.CurrentState == GameStateTypes.InGameState;
                 playing = inWorld && IsPlayerAlive();
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
@@ -124,6 +131,27 @@ namespace Poe2Accessibility
             });
         }
 
+        /// <summary>The panel covering the game; none in local co-op, where it may be the other player's and this one's game goes on.</summary>
+        private ScreenLayer? PanelOverGame() =>
+            this.narrator == null || Seats.Other != null ? null : this.screen?.Current.PanelOver(this.narrator.HudLayer, this.narrator.TutorialLayer);
+
+        /// <summary>
+        ///     Nothing covers the game: no focus and no panel. The focus alone is not enough: a panel can hold none (a
+        ///     confirmation box, the passive tree between nodes), and the world's sounds then played over it.
+        /// </summary>
+        private bool WorldInFront()
+        {
+            var panel = this.PanelOverGame();
+            var address = panel?.Address ?? IntPtr.Zero;
+            if (address != this.panelSeen)
+            {
+                this.panelSeen = address;
+                this.log?.Info(panel == null ? "Panel over the game: none" : $"Panel over the game: layer {panel.Index}, {string.Join(" | ", panel.Texts.Take(PanelTextsLogged).Select(text => text.Text))}");
+            }
+
+            return this.worldGate.InFront(this.focus?.Current != null || panel != null, Environment.TickCount64);
+        }
+
         /// <summary>Runs one gameplay service; an exception is logged (throttled per service) and the frame goes on.</summary>
         private void Isolated(string service, Action tick)
         {
@@ -161,7 +189,7 @@ namespace Poe2Accessibility
                 return;
             }
 
-            var inWorld = Core.Process.Foreground && this.focus?.Current == null;
+            var inWorld = this.WorldInFront() && Core.Process.Foreground;
             this.alerts?.Tick(this.Settings, inWorld && IsPlayerAlive());
             if (Seats.Partner is { } partner)
             {

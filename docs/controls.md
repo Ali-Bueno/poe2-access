@@ -81,6 +81,8 @@ with submenus of their own:
   point, enemy states, primed for stun, Culling Strike), Defence (dodge, parry, shield, stun bar, harmful ground),
   Charges and skills (charges, combo, placed objects), Quiet in fights (loot, chests and altars; characters' lines);
 - Navigation (radar, walls, unexplored ground, turns, places); Things and people nearby; Items; Chat; Speech priority;
+- Power charges, combo points and harmful ground also have their own volume right after their switch, in Charges and
+  skills and in Defence: the same volume Sound lists;
 - Sound: the master volume, then a submenu per kind of sound — Enemies, characters and combat; Dodge and parry; Radar
   and walls; Guide; Objects and places; Charges and shield — each with its volume first and then every sound's own
   volume, and the Sound glossary split the same way;

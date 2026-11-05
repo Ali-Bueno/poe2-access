@@ -52,12 +52,15 @@ namespace Poe2Accessibility.Services
                     Number(nameof(AccessibilitySettings.ParryLeadMs), 0, 600, 50),
                     Switch(nameof(AccessibilitySettings.ShieldSounds)),
                     Switch(nameof(AccessibilitySettings.AnnounceStunBar)),
-                    Switch(nameof(AccessibilitySettings.HazardAlarm))),
+                    Switch(nameof(AccessibilitySettings.HazardAlarm)),
+                    OwnVolume("hazard")),
                 Menu("skills",
                     Switch(nameof(AccessibilitySettings.ChargeSpeech)),
                     Switch(nameof(AccessibilitySettings.ChargeSounds)),
+                    OwnVolume("power_charge"),
                     Switch(nameof(AccessibilitySettings.ComboSpeech)),
                     Switch(nameof(AccessibilitySettings.ComboSounds)),
+                    OwnVolume("combo"),
                     Switch(nameof(AccessibilitySettings.CooldownSpeech)),
                     Switch(nameof(AccessibilitySettings.CooldownSounds)),
                     Switch(nameof(AccessibilitySettings.DeployedCues))),
@@ -276,8 +279,7 @@ namespace Poe2Accessibility.Services
             foreach (var (menu, volume) in SoundKinds)
             {
                 var sounds = keys.Where(key => SoundGlossary.VolumeSetting(key) == volume).ToList();
-                var levels = sounds.Where(key => !SoundGlossary.ListenOnly(key))
-                    .Select(key => new Entry(key, new Item(key, Kind.SoundLevel, 0, MaxVolume, VolumeStep, Array.Empty<string>())));
+                var levels = sounds.Where(key => !SoundGlossary.ListenOnly(key)).Select(key => SoundLevel(key));
                 var own = volume == null ? levels : levels.Prepend(Volume(volume));
                 if (own.Any())
                 {
@@ -330,7 +332,7 @@ namespace Poe2Accessibility.Services
             {
                 Kind.Help => Announcements.SettingLine(Announcements.HelpTitle(item.Name), Announcements.HelpText(item.Name), position, count),
                 Kind.Sound => Announcements.SettingLine(Announcements.SoundName(item.Name), Announcements.SoundMeaning(item.Name), position, count),
-                Kind.SoundLevel => Announcements.SettingLine(Announcements.SoundName(item.Name), this.Value(settings, item), position, count),
+                Kind.SoundLevel => Announcements.SettingLine(item.BesideItsSwitch ? Announcements.SoundVolumeName(item.Name) : Announcements.SoundName(item.Name), this.Value(settings, item), position, count),
                 _ => Announcements.SettingLine(Announcements.SettingName(item.Name), this.Value(settings, item), position, count),
             };
         }
@@ -363,6 +365,12 @@ namespace Poe2Accessibility.Services
 
         private static Entry Volume(string name) => new(name, new Item(name, Kind.Volume, 0, MaxVolume, VolumeStep, Array.Empty<string>()));
 
+        private static Entry SoundLevel(string sound, bool besideItsSwitch = false) =>
+            new(sound, new Item(sound, Kind.SoundLevel, 0, MaxVolume, VolumeStep, Array.Empty<string>(), besideItsSwitch));
+
+        /// <summary>A sound's own volume where its switch is, the same one Sound lists: that is where it was looked for.</summary>
+        private static Entry OwnVolume(string sound) => SoundLevel(sound, true);
+
         private static Entry Choice(string name, params string[] choices) => new(name, new Item(name, Kind.Choice, 0, 0, 0, choices));
 
         private enum Kind
@@ -384,7 +392,7 @@ namespace Poe2Accessibility.Services
             Help,
         }
 
-        private sealed record Item(string Name, Kind Kind, int Min, int Max, int Step, string[] Choices);
+        private sealed record Item(string Name, Kind Kind, int Min, int Max, int Step, string[] Choices, bool BesideItsSwitch = false);
 
         /// <summary>A menu entry: a setting, or a submenu named by its key (<see cref="Announcements.SettingsGroupName"/>).</summary>
         private sealed record Entry(string Name, Item? Setting, params Entry[] Entries);

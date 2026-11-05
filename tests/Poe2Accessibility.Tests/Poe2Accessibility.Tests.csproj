@@ -46,6 +46,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\BeaconMath.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\QuestMatcher.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\QuestTrackerPage.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\WorldGate.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\StatusAilments.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\SpeechPriority.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\SettingsCursor.cs" />

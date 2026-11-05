@@ -57,3 +57,13 @@ with controls" does not find the owning panel there. In game the layers present 
 base; only panels/popups opened later take the context, and chat is never read automatically
 (a chat reader with channel filters is its own feature). Typed panels from GameHelper
 (`ImportantUiElements`: ChatParent, LeftPanel, RightPanel, LargeMap, Atlas…) identify them.
+
+A panel in game does not always hold the focus: the engrave confirmation box ("Mejorar. Palma mortal. Confirmar, A"), the
+world map and the passive tree between two nodes have none. The world's sounds and news go by `WorldGate`: quiet while there
+is a focus or a panel over the game (`ScreenSnapshot.PanelOver`: the top layer with controls that is neither the HUD nor the
+tutorial box), back 400 ms after both end. Panels whose controls lack the interactive flag (inventory, NPC options) are
+covered by their focus. Local co-op goes by the focus alone: a panel may be the other player's. Each change is logged
+("Panel over the game: …"): that line tells a panel from a layer that silences the game by mistake.
+
+The quest tracker's page is said whole, so it holds the floor: at an NPC it kept the options silent for seven seconds
+(Leitis, 2026-11-04, 18:05:51). In a menu it waits (`QuestTrackerPage`) and is said once the menu closes, the latest page only.

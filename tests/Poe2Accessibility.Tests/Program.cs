@@ -53,6 +53,9 @@ namespace Poe2Accessibility.Tests
             Run(nameof(ClosedWayLeadsToItsNearestPoint), ClosedWayLeadsToItsNearestPoint);
             Run(nameof(QuestNamesItsTargets), QuestNamesItsTargets);
             Run(nameof(QuestTrackerPageIsSaidWhenItChanges), QuestTrackerPageIsSaidWhenItChanges);
+            Run(nameof(QuestPageWaitsForTheMenuToClose), QuestPageWaitsForTheMenuToClose);
+            Run(nameof(WorldIsBackOnlyOnceNothingCoversIt), WorldIsBackOnlyOnceNothingCoversIt);
+            Run(nameof(PanelOverTheGameIsTheTopLayerThatIsNotTheHud), PanelOverTheGameIsTheTopLayerThatIsNotTheHud);
             Run(nameof(ItemMovesAreSaidAsDeeds), ItemMovesAreSaidAsDeeds);
             Run(nameof(SalvageSaysWhatWentAndWhatCame), SalvageSaysWhatWentAndWhatCame);
             Run(nameof(ReleaseTagsOrderByDayThenNumber), ReleaseTagsOrderByDayThenNumber);
@@ -2489,6 +2492,45 @@ namespace Poe2Accessibility.Tests
             Equal("Altares siniestros. Busca los altares de ritual", page.News("Altares siniestros. Busca los altares de ritual"), "the objective changed on entering the area");
             Equal("El rastro de la corrupción. Viaja a Ogham", page.News("El rastro de la corrupción. Viaja a Ogham"), "another page");
             Equal("Altares siniestros. Busca los altares de ritual", page.News("Altares siniestros. Busca los altares de ritual"), "paged back to it");
+        }
+
+        private static void QuestPageWaitsForTheMenuToClose()
+        {
+            var page = new QuestTrackerPage();
+            page.News("Noticias graves. Habla con Leitis");
+            Equal(string.Empty, page.News("El lobo rabioso de Ogham. Encuentra al Conde Geonor", inMenu: true), "accepted at the NPC: not over its options");
+            Equal(true, page.Waiting, "it waits");
+            Equal(string.Empty, page.News("El lobo rabioso de Ogham. Entra en la mansión", inMenu: true), "changed again in the same conversation");
+            Equal("El lobo rabioso de Ogham. Entra en la mansión", page.News("El lobo rabioso de Ogham. Entra en la mansión"), "the menu closed: the latest page, whole");
+            Equal(false, page.Waiting, "said");
+            Equal(string.Empty, page.News("El lobo rabioso de Ogham. Entra en la mansión", inMenu: true), "the same page in a menu is no news");
+            Equal(false, page.Waiting, "and nothing waits");
+        }
+
+        private static void WorldIsBackOnlyOnceNothingCoversIt()
+        {
+            var gate = new WorldGate();
+            Equal(true, gate.InFront(false, 1000), "playing from the start");
+            Equal(false, gate.InFront(true, 2000), "a panel opened: quiet at once");
+            Equal(false, gate.InFront(false, 2100), "between two panels, before the snapshots show the next one");
+            Equal(false, gate.InFront(true, 2200), "the confirmation box shows");
+            Equal(false, gate.InFront(false, 2200 + WorldGate.ReturnMs - 1), "the box answered, a moment later");
+            Equal(true, gate.InFront(false, 2200 + WorldGate.ReturnMs), "the world again");
+        }
+
+        private static void PanelOverTheGameIsTheTopLayerThatIsNotTheHud()
+        {
+            IntPtr hud = 12, tutorial = 30, panel = 57;
+            ScreenLayer Layer(IntPtr address, bool controls = true, bool hints = false, bool isBase = false) =>
+                new(address, (int)address, Array.Empty<ScreenText>(), controls, hints, isBase);
+            ScreenLayer? Over(params ScreenLayer[] layers) => new ScreenSnapshot(1, layers).PanelOver(hud, tutorial);
+            Equal(null, Over(Layer(hud))?.Address, "playing: the HUD on top");
+            Equal(null, Over(Layer(hud, isBase: true))?.Address, "playing: the HUD taken as a base layer");
+            Equal(null, Over(Layer(hud), Layer(tutorial))?.Address, "the tutorial box covers nothing");
+            Equal(null, Over(Layer(hud), Layer(panel, controls: false))?.Address, "a box to read without controls (radial menu) is not a panel");
+            Equal(null, Over(Layer(hud), Layer(panel, hints: true))?.Address, "nor a hint bar");
+            Equal(panel, Over(Layer(hud), Layer(panel))?.Address, "a panel, focus or not");
+            Equal(null, new ScreenSnapshot(1, new[] { Layer(panel) }).PanelOver(IntPtr.Zero, IntPtr.Zero)?.Address, "HUD not found: never silence the game on a guess");
         }
 
         private static void NearbyThingsWaitForTheCooldown()

@@ -68,6 +68,8 @@ new `serve`, which disconnects the game to the login screen.
   enters and the pad is player 1, stick and menus. Enter alone gives a keyboard HUD the pad cannot reach, where a click on
   the ground does not walk either; a pad press at selection after Enter joins as J2 ("Modo cooperativo local activado",
   B leaves it). `stick left vec:X,Y --seconds S` walks in any screen direction, up to 2 s a call.
+- With the DualSense paired, that `pad cross` logs in straight away (2026-11-05): then one `key enter` at selection and no pad
+  input until the area has loaded, or the pad joins as J2. Check it walks: an unchanged `cell=` in the `beacon` command means it does not.
 - A second `key enter` at character selection also entered the game, but then A at the Transportador only cast a skill and
   no map opened (2026-11-05): after the login, check the pad before relying on it.
 - Scripted walking on the live servers: packs kill a character that only walks, and one session ended in "Abnormal
