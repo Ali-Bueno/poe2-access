@@ -39,7 +39,8 @@ bubble, and the unit of the pointer distance.
   client has them; the game draws their icon or the edge pointer.
 - Everything else, named tiles included: once on screen or on explored ground.
 - Quest category: what the objective names, wherever the game knows it (bubble entities and the area's tiles),
-  seen or not — the quest marker (user, 2026-10-24: the scanner had stopped guiding to the objective).
+  seen or not — the quest marker (user, 2026-10-24: the scanner had stopped guiding to the objective). A place not
+  seen gives only the way toward it, and stops short of it ([radar](../radar.md), user 2026-11-05).
 
 ## Labels, signs, boss rooms (2026-10-29, 0.5.5e)
 - **Label:** MinimapIcons row +0x1A, a pointer to the label in the client's language (Spanish table: `WifeActive`

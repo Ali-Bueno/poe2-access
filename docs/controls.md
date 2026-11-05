@@ -29,9 +29,10 @@ first; both wrap and empty categories are skipped. The category is named only wh
 - Categories: **quest** (what the quest tracker names: the exit to the area it asks for, the boss to kill, the
   NPC to talk to, and whatever the minimap marks with the quest's own icon; never a place or prop the sentence happens
   to mention, such as "entrance" or "tomb", nor a sign that names a place; a place you have not seen yet is said as
-  "Way to Ogham Manor": its steps lead only to where the way enters unseen ground, it moves on as you walk, and it
-  becomes the place itself once seen, so the map stays yours to discover; setting "Quest: the way, not the exact
-  place", off for the place itself at any distance), exits (area transitions and named places, in the game's language; "Where you died" after a
+  "Way to Ogham Manor": its steps lead only to where the way enters unseen ground and it moves on as you walk; about
+  30 steps of walking from the place it stops with "Ogham Manor is close, search around here", no direction, and the
+  guide lets go, so the last stretch is yours to find until the game's map shows it; setting "Quest: the way, not the
+  exact place", off for the place itself at any distance), exits (area transitions and named places, in the game's language; "Where you died" after a
   death, while that area instance lasts), **points of interest** (what the minimap marks: a boss's arena
   as "Boss room: Asinia" from the moment the minimap points to it, within about 400 cells for a campaign boss and 250
   for a map boss, or once you have seen its place; the quest naming that boss then leads there; "Boss room, defeated"

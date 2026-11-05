@@ -133,7 +133,7 @@ namespace Poe2Accessibility.Services
         private readonly ExplorationMap explored = new();
 
         /// <summary>The way to each place not seen yet, by entry id, worked out every UnexploredRefreshMs.</summary>
-        private readonly Dictionary<uint, (long At, Vector2? Cell)> ways = new();
+        private readonly Dictionary<uint, (long At, Vector2? Cell, bool Near)> ways = new();
 
         /// <summary>When a way was last refreshed (<see cref="WaySpacingMs"/>).</summary>
         private long wayRefreshedAt = long.MinValue / 2;
@@ -534,9 +534,16 @@ namespace Poe2Accessibility.Services
             if (!known || (now - way.At >= UnexploredRefreshMs && now - this.wayRefreshedAt >= WaySpacingMs))
             {
                 var here = new Vector2(player.GridPosition.X, player.GridPosition.Y);
-                var cell = this.TryLiveGrid(out var grid, out var row) ? this.explored.WayOn(grid, row, here, new Vector2(target.WorldX, target.WorldY) / toWorld) : null;
-                this.ways[target.Id] = way = (now, cell);
+                var near = false;
+                var cell = this.TryLiveGrid(out var grid, out var row) ? this.explored.WayOn(grid, row, here, new Vector2(target.WorldX, target.WorldY) / toWorld, out near) : null;
+                this.ways[target.Id] = way = (now, cell, near);
                 this.wayRefreshedAt = now;
+            }
+
+            if (way.Near)
+            {
+                // At the player, so nothing in the entry points anywhere: the last stretch is theirs to search.
+                return target with { Name = Announcements.CloseBy(target.Name), WorldX = player.WorldPosition.X, WorldY = player.WorldPosition.Y, Kind = ExplorationMap.NearKind };
             }
 
             return way.Cell is { } at
@@ -566,6 +573,11 @@ namespace Poe2Accessibility.Services
         public string Describe(ScanEntry entry, out bool cut)
         {
             cut = false;
+            if (entry.Kind == ExplorationMap.NearKind)
+            {
+                return entry.Name;
+            }
+
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             if (!Seats.Followed.TryGetComponent<Render>(out var player))
             {

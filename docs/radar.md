@@ -65,6 +65,9 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
   shortest walk there, what a sighted player reads off the map's shape, never the place. On the Manor Ramparts
   (2026-11-05, the user's own explored ground and grid) the nearest of four frontier places was a pocket, and following
   the way reached the Manor's tile in 21 hops; 33 ms every 2 s beside the frontier's 31.
+  It stops `NearCells` (300) of walking from the place, past the client's ~200-cell reach on any heading, so that it
+  never leads to the door (user 2026-11-05): "… is close, search around here", no direction, the guide released; it
+  comes back if the player walks away. The game's own exit, once in reach, is listed as any exit.
   The guide locked on a way never arrives at it: running outpaces the 2 s refresh (the way lies 60 cells ahead, 1.6 s),
   so it waits for the next stretch and says the arrival at the place itself (same id, `ExplorationMap.WayKind`).
 - **The way to a boss room** (setting `BossRoomWay`): the same, first in the Unexplored category, for a boss room the

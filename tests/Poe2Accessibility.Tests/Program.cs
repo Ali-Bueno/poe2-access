@@ -1739,21 +1739,27 @@ namespace Poe2Accessibility.Tests
 
         private static void QuestWayLeavesTheSeenGroundTowardTheGoal()
         {
-            const int width = 400, height = 200;
+            const int width = 800, height = 200;
             var player = new System.Numerics.Vector2(60, 100);
-            var goal = new System.Numerics.Vector2(350, 100);
+            var goal = new System.Numerics.Vector2(750, 100);
             // A hall with two ways on: north to one room, east to the goal's; a walled-off room apart.
-            var grid = Carved(width, height, (20, 80, 100, 120), (40, 30, 48, 80), (40, 2, 390, 30), (100, 96, 300, 104), (300, 40, 390, 160), (200, 170, 240, 195));
+            var grid = Carved(width, height, (20, 80, 100, 120), (40, 30, 48, 80), (40, 2, 390, 30), (100, 96, 700, 104), (700, 40, 790, 160), (200, 170, 240, 195));
             var map = new ExplorationMap();
             map.Visit(player, width, height);
-            var way = map.WayOn(grid, width / 2, player, goal);
+            var way = map.WayOn(grid, width / 2, player, goal, out _);
             Equal(true, way is { X: > 100 and < 140, Y: > 94 and < 106 }, "the east corridor, at the edge of the seen ground, not the north way nor the goal");
-            Equal(null, map.WayOn(grid, width / 2, player, new System.Numerics.Vector2(220, 180)), "no ground leads to a walled-off room");
+            Equal(null, map.WayOn(grid, width / 2, player, new System.Numerics.Vector2(220, 180), out var cut), "no ground leads to a walled-off room");
+            Equal(false, cut, "and it is not close by walking, however near it lies");
             var further = new System.Numerics.Vector2(200, 100);
             map.Visit(further, width, height);
-            Equal(true, map.WayOn(grid, width / 2, further, goal) is { X: > 240 and < 280 }, "the way moves on with the player");
+            Equal(true, map.WayOn(grid, width / 2, further, goal, out _) is { X: > 240 and < 280 }, "the way moves on with the player");
+            var close = new System.Numerics.Vector2(goal.X - ExplorationMap.NearCells + 50, 100);
+            map.Visit(close, width, height);
+            Equal(null, map.WayOn(grid, width / 2, close, goal, out var near), "the way stops short of the place");
+            Equal(true, near, "close: the rest is the player's to search");
             map.Visit(goal, width, height);
-            Equal(null, map.WayOn(grid, width / 2, further, goal), "ground seen: the place itself is known");
+            Equal(null, map.WayOn(grid, width / 2, close, goal, out near), "ground seen: the place itself is known");
+            Equal(false, near, "nothing left to search for");
             Equal(true, ExplorationMap.ListOrder(ExplorationMap.WayKind) < ExplorationMap.ListOrder(string.Empty) &&
                         ExplorationMap.ListOrder(string.Empty) < ExplorationMap.ListOrder(ExplorationMap.PocketKind), "the way first, pockets last");
         }

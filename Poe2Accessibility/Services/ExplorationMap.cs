@@ -23,6 +23,15 @@ namespace Poe2Accessibility.Services
         /// <summary>A scanner entry's kind for the way to a place not seen yet (<see cref="WayOn"/>).</summary>
         public const string WayKind = "way";
 
+        /// <summary>A scanner entry's kind for a place the way has come close to: said with no direction, it is the player's to find.</summary>
+        public const string NearKind = "near";
+
+        /// <summary>
+        ///     Walking cells from the place at which the way stops (user 2026-11-05: the end is the player's to search): past the
+        ///     client's ~200-cell reach on any heading, four-neighbour steps reading up to √2 long, so before the game shows it.
+        /// </summary>
+        public const int NearCells = 300;
+
         /// <summary>Ground this near the player counts as seen (about half the screen's height).</summary>
         public const float SeenRadiusCells = 60f;
 
@@ -58,7 +67,7 @@ namespace Poe2Accessibility.Services
         private int blocksY;
 
         /// <summary>Where a scanner entry stands among those as near: the way first, pockets last.</summary>
-        public static int ListOrder(string kind) => kind == WayKind ? 0 : kind == PocketKind ? 2 : 1;
+        public static int ListOrder(string kind) => kind is WayKind or NearKind ? 0 : kind == PocketKind ? 2 : 1;
 
         /// <summary>A new area: nothing seen.</summary>
         public void Reset()
@@ -236,10 +245,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Where the shortest walk to <paramref name="goal"/> leaves the seen ground: what a look at the map suggests,
-        ///     without saying where the goal lies. Null when no unseen ground leads there, or the goal's ground is seen.
+        ///     without saying where the goal lies. Null when no unseen ground leads there, the goal's ground is seen, or the
+        ///     walk left is under <see cref="NearCells"/> (<paramref name="near"/>).
         /// </summary>
-        public Vector2? WayOn(byte[] grid, int bytesPerRow, Vector2 from, Vector2 goal)
+        public Vector2? WayOn(byte[] grid, int bytesPerRow, Vector2 from, Vector2 goal, out bool near)
         {
+            near = false;
             if (!this.Fits(grid, bytesPerRow, out var width, out var height) || this.IsSeen(goal) ||
                 NearestWalkable(grid, bytesPerRow, width, height, from) is not { } start ||
                 RoutePlanner.Snap(grid, bytesPerRow, goal) is not { } end)
@@ -249,6 +260,12 @@ namespace Poe2Accessibility.Services
 
             var toPlayer = Walk(grid, bytesPerRow, width, height, start);
             var toGoal = Walk(grid, bytesPerRow, width, height, end);
+            if (toGoal[((int)start.Y * width) + (int)start.X] is >= 0 and <= NearCells)
+            {
+                near = true;
+                return null;
+            }
+
             Vector2? best = null;
             var bestWalk = int.MaxValue;
             var bestLeft = float.MaxValue;

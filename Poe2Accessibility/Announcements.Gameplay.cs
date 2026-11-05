@@ -486,6 +486,9 @@ namespace Poe2Accessibility
         /// <summary>A quest place or boss room not seen yet: the scanner gives the way toward it, not where it lies.</summary>
         public static string WayTo(string place) => T($"Way to {place}", $"Camino a {place}");
 
+        /// <summary>The way has come close to a place not seen yet and stops there: the rest is for the player to find.</summary>
+        public static string CloseBy(string place) => T($"{place} is close, search around here", $"{place} está cerca, busca por aquí");
+
         /// <summary>The scanner's entry for the place of the last death in this area (D2R).</summary>
         public static string DeathPlace => T("Where you died", "Donde moriste");
 

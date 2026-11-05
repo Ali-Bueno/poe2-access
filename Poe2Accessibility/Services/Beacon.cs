@@ -87,6 +87,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Locks <paramref name="entry"/> in place of any earlier target.</summary>
         public void Lock(ScanEntry entry)
         {
+            if (entry.Kind == ExplorationMap.NearKind)
+            {
+                this.output.Speak(entry.Name, true); // no place to lead to: the player searches from here
+                return;
+            }
+
             if (entry.Kind != ExplorationMap.WayKind && this.catalog.DistanceTo(entry) <= ArrivalWorld)
             {
                 // Already there: locking would say the way and then the arrival at once.
@@ -257,6 +263,13 @@ namespace Poe2Accessibility.Services
         {
             var goal = this.target!;
             var current = this.catalog.Entries().FirstOrDefault(entry => entry.Id == goal.Id);
+            if (current?.Kind == ExplorationMap.NearKind)
+            {
+                this.output.Say(SpeechKind.Arrivals, current.Name);
+                this.Clear(false);
+                return false;
+            }
+
             if (current != null)
             {
                 this.target = current with { Category = goal.Category };
