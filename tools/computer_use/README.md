@@ -63,6 +63,11 @@ new `serve`, which disconnects the game to the login screen.
   valid player index"). With the Xbox pad (`serve --xbox`) plugged in before the game starts, Enter on the keyboard
   starts the game and the pad drives it; the virtual DS4 never got past that screen (2026-10-24). Entering with the
   mouse binds the keyboard instead, and the input method can only change out of the game.
+- Pad and keyboard do not mix at the start (2026-11-05): after Enter at login a pad press at character selection joins
+  as J2 ("Modo cooperativo local activado", B leaves it), and entering with Enter alone gave a keyboard HUD where the
+  pad did nothing, W/E/R are skills and a left click on the ground did not walk; a click on a labelled object (a portal)
+  does work. So no scripted walking that way; the game's two menus also differ ("Juego pausado" has Salir at another height).
+- Steam's launch options start the `dist` host: `dist/Poe2Access/Poe2Access.exe stop`, then `launch.py host`, to test the build output.
 - `--wait` accepts at most 5 seconds: a larger value fails before sending anything (filtered output hides the error).
 - Escape on the login screen quits the game; GameHelper closes with it (`CloseWhenGameExit`), so start both again with
   `launch.py all`.

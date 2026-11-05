@@ -86,8 +86,8 @@ a gap's width past it. So a hall to a hall, a hall to a corridor and a corridor 
 does not. The doorway last walked through is taken as read (D2R's way back). Setting `RadarRooms`.
 
 Width from walking 1500 steps of two real outdoor maps with the four rays (2026-10-24 grids, 2026-11-05): D2R's two tiles
-scaled (23 cells) gave a tin every 5 and 15 s, 20 cells 8 and 16, **18 cells 12 and 15**, 16 cells 18 and 76. Indoor maps
-not measured: a door wider than 200 units stays silent.
+scaled (23 cells) gave a tin every 5 and 15 s, 20 cells 8 and 16, **18 cells 12 and 15**, 16 cells 18 and 76; Ogham
+Village, houses and all, 8 s at 23 cells and 15 s at 18. Inside a building not measured: a door wider than 200 units stays silent.
 
 ## Where the map starts
 
