@@ -157,6 +157,12 @@ if (args.Length > 1 && string.Equals(args[0], "game-ids", StringComparison.Ordin
     return GameIdExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\game-ids.txt");
 }
 
+// Args: game-keys <gameDir> [outFile]  -- the Ids of the tables a player meets, to tell what a patch added.
+if (args.Length > 1 && string.Equals(args[0], "game-keys", StringComparison.OrdinalIgnoreCase))
+{
+    return GameKeyExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\game-keys.txt");
+}
+
 // Args: cull-skills <gameDir> [outFile]  -- granted effects that deal Culling Strike, for the mod's culling cue.
 if (args.Length > 1 && string.Equals(args[0], "cull-skills", StringComparison.OrdinalIgnoreCase))
 {

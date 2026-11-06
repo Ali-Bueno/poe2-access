@@ -160,6 +160,13 @@ stat next to it (`current_rage` is 6996, the enum says 6995). Names now come fro
 enum only stands in with no catalog. A stat's key is its row plus one, read live: key 1 is `level`, 22270 is
 `total_socketed_red_skill_support_gems` with 2, where the enum says a freeze multiplier. Only the stats the mod reads are listed.
 
+`game-keys` (`GameKeyExtractor`) lists the Ids of the tables a player meets and the `.ui` screens. At start the plugin compares it
+with the list it saw last (`config/game-keys-known.txt`, `GameNews`): what a patch added is logged, written to
+`config/game-news.txt` with what the mod makes of each new buff, and said once in play ("Novedades de esta actualización del juego:
+efectos 9, zonas 23. La lista está en el archivo game-news.txt"). This is what the mod cannot know by itself: a new buff passes
+in silence if no rule names it, a new screen needs a look. For whoever keeps the mod the same list is in git: the diff of
+`catalog/game-keys.txt` is the patch. The first run has nothing to compare with and says nothing.
+
 `dat-columns` (`DatColumnExtractor`) finds the dat columns names are read from: a display name is the first string column
 whose text differs between the English table and its Spanish copy (a string column holds the offset of a string's first
 character in 80% of rows; the name differs in a quarter of the rows that have one). In a datc64 a string is 8 bytes, as

@@ -350,6 +350,29 @@ namespace Poe2Accessibility
             {
                 this.output.Speak(survived, false);
             }
+
+            if (this.gameNewsLine is { } news && this.gameState?.CurrentState == GameStateTypes.InGameState)
+            {
+                this.gameNewsLine = null;
+                this.output.Speak(news, false);
+            }
+        }
+
+        /// <summary>Compares the game's keys with those last seen: what an update added is logged, listed and said once in play.</summary>
+        private void CheckGameNews()
+        {
+            var config = Path.Join(this.DllDirectory, "config");
+            var news = GameNews.Check(
+                Path.Join(this.DllDirectory, "catalog", "game-keys.txt"),
+                Path.Join(config, "game-keys-known.txt"),
+                Path.Join(config, "game-news.txt"),
+                (table, key) => table == BuffTable ? StatusAilments.FromBuffId(key)?.ToString() ?? EnemyStates.FromBuffId(key)?.ToString() : null);
+            foreach (var table in news)
+            {
+                this.log.Info($"Game news: {table.Table} {table.Added.Count} new, {table.Removed.Count} gone");
+            }
+
+            this.gameNewsLine = Announcements.GameNews(news.Select(table => (table.Table, table.Added.Count)));
         }
 
         /// <summary>Logs which build of the game this is; a new game process is checked against the layout again.</summary>

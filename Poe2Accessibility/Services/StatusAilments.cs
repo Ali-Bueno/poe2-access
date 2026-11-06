@@ -59,12 +59,15 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     Words of ids that only mention a state: immunities and auras, build-up meters, counters and "recently"
         ///     markers, flask bonuses, effects on enemies, and vulnerabilities ("sprint_heavy_stunnable" and
-        ///     "number_of_times_stunned_in_past_duration_from_ot" read as stuns, 2026-10-24).
+        ///     "number_of_times_stunned_in_past_duration_from_ot" read as stuns, 2026-10-24). The second line came from running
+        ///     every BuffDefinitions id through this (2026-11-06): what a state grants ("life_regeneration_from_curse",
+        ///     "fire_resistance_from_ignite"), supports and passives that only mention one.
         /// </summary>
         private static readonly HashSet<string> NotTheState = new(StringComparer.Ordinal)
         {
             "immunity", "immune", "aura", "avoid", "avoidance", "buildup", "chance", "prevention", "recently", "number",
             "count", "reserve", "cannot", "flask", "have", "was", "enemy", "enemies", "stunnable", "damage", "duration",
+            "from", "support", "tracker", "while", "unravelling", "placeholder", "delay", "enrage",
         };
 
         /// <summary>A boss's movement rule ("Stop moving or you will be imprisoned"): the id names what is punished.</summary>

@@ -71,6 +71,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\DeployedObjects.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\EnemyStates.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\GameIds.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\GameNews.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PrimedThreshold.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Switches.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Breakables.cs" />

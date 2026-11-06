@@ -37,7 +37,10 @@ namespace Poe2Accessibility
         private ModCommands? commands;
         private L3Gestures gestures = new();
         private AudioCueService? audio;
+        private const string BuffTable = "buffdefinitions";
+
         private WorldLayoutWatch? worldLayout;
+        private string? gameNewsLine;
         private TradeOfferWatch? tradeOffers;
 
         private EnemyCues? enemyCues;
@@ -300,6 +303,7 @@ namespace Poe2Accessibility
                 this.pickups.GroundItemTitle = this.partnerPickups.GroundItemTitle = id => this.entities?.GroundItemName(id);
                 this.barriers = new BarrierWatch(this.entities, this.output, this.log);
                 GameIds.Load(Path.Join(this.DllDirectory, "catalog", "game-ids.txt"));
+                this.CheckGameNews();
                 var timings = DodgeTimings.Load(Path.Join(this.DllDirectory, "catalog", "hit-times.txt"), this.DodgeTimingsSeedPath, this.DodgeTimingsPath);
                 this.log.Info($"Dodge timings: {timings.FileTimes} attacks timed by the game files");
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = timings, TimingsPath = this.DodgeTimingsPath };

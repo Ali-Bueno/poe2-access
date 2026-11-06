@@ -765,6 +765,37 @@ namespace Poe2Accessibility
         public static string Nothing => T("nothing", "nada");
 
         /// <summary>A new game build read with nothing lost.</summary>
+        /// <summary>What an update added, as table and count; null with nothing a player would meet (<see cref="Services.GameNews"/>).</summary>
+        public static string? GameNews(IEnumerable<(string Table, int Added)> news)
+        {
+            var parts = news.Where(item => item.Added > 0).Select(item => (Noun: NewsNoun(item.Table), item.Added))
+                .Where(item => item.Noun != null).Select(item => $"{item.Noun} {item.Added}").ToList();
+            if (parts.Count == 0)
+            {
+                return null;
+            }
+
+            var list = string.Join(", ", parts);
+            return T($"New in this game update: {list}. The list is in the file game-news.txt", $"Novedades de esta actualización del juego: {list}. La lista está en el archivo game-news.txt");
+        }
+
+        private static string? NewsNoun(string table) => table switch
+        {
+            "buffdefinitions" => T("effects", "efectos"),
+            "worldareas" => T("areas", "zonas"),
+            "monstervarieties" => T("monsters", "monstruos"),
+            "activeskills" => T("skills", "habilidades"),
+            "minimapicons" => T("map icons", "iconos del mapa"),
+            "chests" => T("chests and objects", "cofres y objetos"),
+            "shrines" => T("shrines", "santuarios"),
+            "npcs" => T("characters", "personajes"),
+            "npctalkcategory" => T("kinds of dialogue", "tipos de diálogo"),
+            "groundeffecttypes" => T("ground effects", "efectos de suelo"),
+            "questrewardtype" => T("quest rewards", "recompensas de misión"),
+            "screens" => T("screens", "pantallas"),
+            _ => null,
+        };
+
         public static string GameUpdateSurvived => T("The game was updated: the mod found everything again", "El juego se ha actualizado: el mod lo ha encontrado todo");
 
         /// <summary>The layout parts not found after a game update, in one line.</summary>

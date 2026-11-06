@@ -78,6 +78,7 @@ internal static class GameDataSetup
             new Step("hazards", 2, "hazards.txt", "hazards", true),
             new Step("cull skills", 2, "cull-skills.txt", "cull-skills", true),
             new Step("game ids", 1, "game-ids.txt", "game-ids", true),
+            new Step("game keys", 1, "game-keys.txt", "game-keys", true),
             new Step("places", 1, "places.json", "places", true),
             new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
             new Step(SoundsStep, 5, null, null, Input: ItemSoundsStep),

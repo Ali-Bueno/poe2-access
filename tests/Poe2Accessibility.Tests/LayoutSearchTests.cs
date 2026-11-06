@@ -43,6 +43,8 @@ namespace Poe2Accessibility.Tests
             (nameof(AStackThatGrewInATradeIsNoDeparture), AStackThatGrewInATradeIsNoDeparture),
             (nameof(AReactionSaysFriendForThePlayerAndFoeForMonsters), AReactionSaysFriendForThePlayerAndFoeForMonsters),
             (nameof(GameIdsAreReadFromTheCatalog), GameIdsAreReadFromTheCatalog),
+            (nameof(WhatAStateGrantsIsNotTheState), WhatAStateGrantsIsNotTheState),
+            (nameof(ANewKeyIsNewsAndAReaderUpdateIsNot), ANewKeyIsNewsAndAReaderUpdateIsNot),
             (nameof(EveryHeavyStunIsAHeavyStun), EveryHeavyStunIsAHeavyStun),
             (nameof(TheAnimationIsTheFieldThatHasACopy), TheAnimationIsTheFieldThatHasACopy),
             (nameof(TheAnimationIsFoundWhereAPatchLeftIt), TheAnimationIsFoundWhereAPatchLeftIt),
@@ -208,6 +210,38 @@ namespace Poe2Accessibility.Tests
             Equal(1, moves.Count, "one thing really left");
             Equal("Frasco de vida", moves[0].Name, "the flask left, not the shards");
             Equal(ItemMoveKind.DroppedOrUsed, moves[0].Kind, "it left for nowhere tracked");
+        }
+
+        private static void ANewKeyIsNewsAndAReaderUpdateIsNot()
+        {
+            var known = new[] { "# header", "buffdefinitions\tfrozen", "buffdefinitions\told", "worldareas\tG1_1" };
+            var fresh = new[] { "buffdefinitions\tfrozen", "buffdefinitions\tslimed", "worldareas\tG1_1", "shrines\tArc" };
+            var news = GameNews.Compare(known, fresh);
+            Equal(1, news.Count, "one table changed, and a table the old list lacked is not news");
+            Equal("slimed", news[0].Added.Single(), "the new buff");
+            Equal("old", news[0].Removed.Single(), "the one gone");
+            Equal(0, GameNews.Compare(fresh, fresh).Count, "nothing changed");
+            var report = GameNews.Report(news, (table, key) => key == "slimed" ? "Slowed" : null).ToList();
+            Equal("buffdefinitions: 1 new, 1 gone", report[0], "the table's line");
+            Equal("  + slimed (Slowed)", report[1], "what the mod makes of it");
+            Equal("  - old", report[2], "what left");
+        }
+
+        private static void WhatAStateGrantsIsNotTheState()
+        {
+            foreach (var id in new[]
+            {
+                "life_regeneration_from_curse", "fire_resistance_from_ignite", "support_electrocute_lineage_explode_on_death",
+                "stormfire_support_shock_tracker", "unravelling_ignite", "compound_ignite_spreading_placeholder",
+                "frozen_claws_dash_delay", "blind_beast_enrage", "unique_boots_shocked_ground_while_moving",
+            })
+            {
+                Equal(null, StatusAilments.FromBuffId(id), id);
+            }
+
+            Equal(StatusAilment.Ignited, StatusAilments.FromBuffId("additional_ignite"), "'You're on fire' in the game's description");
+            Equal(StatusAilment.Ignited, StatusAilments.FromBuffId("herald_of_ash_burning"), "an enemy's Herald of Ash burning the player");
+            Equal(StatusAilment.Cursed, StatusAilments.FromBuffId("curse_enfeeble"), "a curse");
         }
 
         private static void GameIdsAreReadFromTheCatalog()
