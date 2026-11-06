@@ -135,9 +135,12 @@ namespace Poe2Accessibility.Services
         private static (bool Speech, bool Sound) Outputs(ChargeKind kind, AccessibilitySettings settings) =>
             PlayerCharges.SpeechKindOf(kind) == SpeechKind.Combo ? (settings.ComboSpeech, settings.ComboSounds) : (settings.ChargeSpeech, settings.ChargeSounds);
 
-        /// <summary>Stat that a buff or action changed, else one items changed, else 0.</summary>
-        private static int Stat(Stats stats, GameStats stat) =>
-            stats.StatsChangedByBuffAndActions.TryGetValue(stat, out var value) ? value : stats.StatsChangedByItems.GetValueOrDefault(stat);
+        /// <summary>Stat that a buff or action changed, else one items changed, else 0; by its key in the game, not GameHelper's.</summary>
+        private static int Stat(Stats stats, GameStats stat)
+        {
+            var key = (GameStats)GameIds.Current.Stat(stat.ToString(), (int)stat);
+            return stats.StatsChangedByBuffAndActions.TryGetValue(key, out var value) ? value : stats.StatsChangedByItems.GetValueOrDefault(key);
+        }
 
         private void WatchRage(Entity entity, AccessibilitySettings settings)
         {

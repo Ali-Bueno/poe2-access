@@ -223,7 +223,7 @@
   describes it as "[CullingStrike|Culling Strike]"). Killing Palm's ActiveSkills description does not mention culling. 2026-10-29.
 - **Player resources** (BuffDefinitions, 2026-10-29): charges, infusions, surges (`instilling_*`), Druidic Prowess and Arcane
   Surge are player buffs whose stack count is the number held (`power_charge_79` live, GameHelper adds "_79"). Rage, Combo,
-  Glory and Valour are not buffs: Rage is Stats `current_rage` (enum 6994+1) / `virtual_maximum_rage`, default maximum 30
+  Glory and Valour are not buffs: Rage is Stats `current_rage` / `virtual_maximum_rage` (keys from `catalog/game-ids.txt`, not the stale enum), default maximum 30
   (KeywordPopups); Combo and Glory are per skill. No buff counts crossbow rounds.
 - **Sound glossary volumes:** each glossary sound plays at its game volume (`SoundGlossary.VolumeSetting`); it played all at
   100 %, so a tester saw the harmful-ground alarm and the wall bump "not go above 100 %" (they do in play: +9.6 / +8.2 dB

@@ -5,6 +5,7 @@ namespace Poe2Accessibility.Services
     using System.IO;
     using System.Linq;
     using GameHelper;
+    using GameHelper.RemoteObjects.Components;
     using GameHelper.RemoteObjects.States.InGameStateObjects;
     using GameHelper.Utils;
     using GameOffsets.Objects.Components;
@@ -27,6 +28,10 @@ namespace Poe2Accessibility.Services
         /// <summary>The layout holds for the whole process; a few areas give every struct something live to be judged on.</summary>
         private const int MaxSweeps = 3;
 
+        private const string MonsterFolder = "Metadata/Monsters/";
+        private const long WatchActorsEveryMs = 100;
+        private const int MaxActorsWatched = 32;
+
         private readonly CompatibilityReport report;
         private readonly PluginLog log;
         private readonly string buildFile;
@@ -38,6 +43,9 @@ namespace Poe2Accessibility.Services
         private bool levelSeen;
         private IntPtr sweptArea;
         private long settledAt;
+        private AnimationFieldSearch? animation = new();
+        private bool reactionJudged;
+        private long nextActorsAt;
 
         public WorldLayoutWatch(CompatibilityReport report, PluginLog log, string buildFile)
         {
@@ -65,6 +73,7 @@ namespace Poe2Accessibility.Services
                 this.lostSince = -1;
                 this.Report(layout, true);
                 this.SweepStructs(area);
+                this.WatchActors(area);
             }
             else if (this.lostSince < 0)
             {
@@ -85,7 +94,60 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>A new game process: everything is judged again.</summary>
-        public void Reset() => (this.lostSince, this.levelSeen, this.sweptArea, this.settledAt, this.sweeps, this.positionsRetried) = (-1, false, IntPtr.Zero, 0, 0, false);
+        public void Reset()
+        {
+            (this.lostSince, this.levelSeen, this.sweptArea, this.settledAt, this.sweeps, this.positionsRetried) = (-1, false, IntPtr.Zero, 0, 0, false);
+            this.animation = new AnimationFieldSearch();
+            this.reactionJudged = false;
+        }
+
+        /// <summary>Until the animation is judged, a look at what the actors around are doing (<see cref="AnimationFieldSearch"/>).</summary>
+        private void WatchActors(AreaInstance area)
+        {
+            var now = Environment.TickCount64;
+            if ((this.animation == null && this.reactionJudged) || now < this.nextActorsAt)
+            {
+                return;
+            }
+
+            this.nextActorsAt = now + WatchActorsEveryMs;
+            this.JudgeReaction(area);
+            if (this.animation == null)
+            {
+                return;
+            }
+
+            var actors = area.AwakeEntities.Values
+                .Select(entity => entity.TryGetComponent<Actor>(out var actor) ? actor.Address : IntPtr.Zero)
+                .Where(address => address != IntPtr.Zero)
+                .Take(MaxActorsWatched);
+            if (OffsetHealer.JudgeAnimation(this.animation, actors) is { } outcome)
+            {
+                this.animation = null;
+                this.Note(outcome);
+                this.log.Info($"Animation field: {outcome.Health} at +0x{outcome.To:X} {outcome.Detail}");
+            }
+        }
+
+        private void JudgeReaction(AreaInstance area)
+        {
+            if (this.reactionJudged)
+            {
+                return;
+            }
+
+            var monsters = area.AwakeEntities.Values
+                .Where(entity => entity.Path.StartsWith(MonsterFolder, StringComparison.Ordinal))
+                .Select(entity => entity.TryGetComponent<Positioned>(out var positioned) ? positioned.Address : IntPtr.Zero)
+                .Where(address => address != IntPtr.Zero)
+                .Take(MaxActorsWatched)
+                .ToList();
+            if (OffsetHealer.JudgeReaction(area.Player, monsters) is { } outcome)
+            {
+                this.reactionJudged = true;
+                this.Note(outcome);
+            }
+        }
 
         /// <summary>The line that says a patch was survived, once; null otherwise.</summary>
         public string? TakeSurvived()

@@ -574,6 +574,193 @@ index 0000000..6a078c9
 +        }
 +    }
 +}
+diff --git a/GameHelper/Utils/AnimationFieldSearch.cs b/GameHelper/Utils/AnimationFieldSearch.cs
+new file mode 100644
+index 0000000..366f31a
+--- /dev/null
++++ b/GameHelper/Utils/AnimationFieldSearch.cs
+@@ -0,0 +1,181 @@
++// <copyright file="AnimationFieldSearch.cs" company="None">
++// Copyright (c) None. All rights reserved.
++// </copyright>
++
++namespace GameHelper.Utils
++{
++    using System;
++    using System.Collections.Generic;
++    using System.Linq;
++    using System.Runtime.InteropServices;
++
++    /// <summary>
++    ///     Finds an Actor's current animation by watching actors act. One reading says nothing: the id is a small number, zero
++    ///     at rest. But the game keeps it twice, far apart in the struct, and both copies agree in every reading (0.5.5f:
++    ///     +0x380 and +0x8B0, the only such pair in 4100 readings of 25 actors; docs/compatibility.md). Pure.
++    /// </summary>
++    public sealed class AnimationFieldSearch
++    {
++        // An id is a row of the Animation table, some 1100 of them in 0.5.5f.
++        private const int RowLimit = 0x1000;
++
++        // At rest, in action and at rest again.
++        private const int MinChanges = 2;
++
++        // A flag or a speed stored twice agrees too, with one value; the id of a run and of a blow do not.
++        private const int MinValues = 2;
++        private const int MaxValues = 8;
++
++        // Readings in action, and neighbours are one value stored twice, not two copies of it.
++        private const int MinAgreed = 20;
++        private const int MinGap = 0x100;
++
++        // The game writes while it is read: now and then one copy is seen ahead of the other.
++        private const int AgreedPerDiffered = 50;
++        private const int ReadingsPerOutside = 100;
++
++        // The upper half of a pointer is a small number too, after a large one.
++        private const int PointerHalfFrom = 0x100;
++        private const uint PointerLowFrom = 0x10000;
++
++        // Actors that did something: with this many a pair must have shown.
++        private const int EnoughActors = 8;
++        private const int MaxRemembered = 256;
++
++        private readonly Dictionary<long, int[]> last = new();
++        private readonly Dictionary<(int First, int Second), (int Agreed, int Differed)> pairs = new();
++        private readonly HashSet<long> acted = new();
++        private readonly List<int> live = new();
++        private int[] changes = Array.Empty<int>();
++        private int[] outside = Array.Empty<int>();
++        private int[] nonZero = Array.Empty<int>();
++        private int[] pointerHalves = Array.Empty<int>();
++        private HashSet<int>[] values = Array.Empty<HashSet<int>>();
++        private int readings;
++
++        /// <summary>Gets a value indicating whether enough actors acted for the pair to have shown, if there is one.</summary>
++        public bool Enough => this.acted.Count >= EnoughActors;
++
++        /// <summary>One reading of one actor, from the struct's start.</summary>
++        public void Add(long actor, ReadOnlySpan<byte> block)
++        {
++            var fields = MemoryMarshal.Cast<byte, int>(block);
++            if (fields.Length < 2 || (fields[0] == 0 && fields[1] == 0))
++            {
++                return; // no longer an actor: its table pointer is gone
++            }
++
++            this.Size(fields.Length);
++            this.readings++;
++            this.last.TryGetValue(actor, out var before);
++            for (var index = 0; index < fields.Length && (before == null || index < before.Length); index++)
++            {
++                this.Read(actor, index, fields, before);
++            }
++
++            foreach (var (first, second) in this.pairs.Keys.ToArray())
++            {
++                if (fields[first] != 0 || fields[second] != 0)
++                {
++                    var (agreed, differed) = this.pairs[(first, second)];
++                    this.pairs[(first, second)] = fields[first] == fields[second] ? (agreed + 1, differed) : (agreed, differed + 1);
++                }
++            }
++
++            if (this.last.Count >= MaxRemembered)
++            {
++                this.last.Clear();
++            }
++
++            this.last[actor] = fields.ToArray();
++        }
++
++        /// <summary>The copy nearest <paramref name="near"/>; -1 until exactly one set of fields has agreed. Both read the same.</summary>
++        public int Find(int near)
++        {
++            var agreeing = this.pairs.Where(pair => this.Agrees(pair.Key.First, pair.Key.Second, pair.Value)).Select(pair => pair.Key).ToList();
++            var fields = agreeing.SelectMany(pair => new[] { pair.First, pair.Second }).Distinct().ToList();
++            if (fields.Count == 0 || agreeing.Count != fields.Count * (fields.Count - 1) / 2)
++            {
++                return -1;
++            }
++
++            return fields.Select(field => field * sizeof(int)).OrderBy(offset => Math.Abs(offset - near)).First();
++        }
++
++        /// <summary>Whether the field at <paramref name="offset"/> behaves as an id on its own, for a game that stopped keeping a copy.</summary>
++        public bool Behaves(int offset)
++        {
++            var field = offset / sizeof(int);
++            return field < this.changes.Length && this.Fits(field) && this.changes[field] >= MinChanges && this.values[field].Count >= MinValues;
++        }
++
++        private void Size(int length)
++        {
++            if (this.changes.Length < length)
++            {
++                var known = this.changes.Length;
++                Array.Resize(ref this.changes, length);
++                Array.Resize(ref this.outside, length);
++                Array.Resize(ref this.nonZero, length);
++                Array.Resize(ref this.pointerHalves, length);
++                Array.Resize(ref this.values, length);
++                for (var index = known; index < length; index++)
++                {
++                    this.values[index] = new HashSet<int>();
++                }
++            }
++        }
++
++        private void Read(long actor, int index, ReadOnlySpan<int> fields, int[]? before)
++        {
++            var value = fields[index];
++            if (value is < 0 or >= RowLimit)
++            {
++                this.outside[index]++;
++            }
++            else if (value != 0)
++            {
++                this.nonZero[index]++;
++                this.pointerHalves[index] += value >= PointerHalfFrom && index > 0 && (uint)fields[index - 1] >= PointerLowFrom ? 1 : 0;
++                if (this.values[index].Count < MaxValues)
++                {
++                    this.values[index].Add(value);
++                }
++            }
++
++            if (before != null && (before[index] == 0) != (value == 0) && ++this.changes[index] >= MinChanges)
++            {
++                this.Watch(index);
++                if (this.Fits(index))
++                {
++                    this.acted.Add(actor);
++                }
++            }
++        }
++
++        private void Watch(int index)
++        {
++            if (!this.live.Contains(index))
++            {
++                foreach (var other in this.live)
++                {
++                    this.pairs[(Math.Min(index, other), Math.Max(index, other))] = default;
++                }
++
++                this.live.Add(index);
++            }
++        }
++
++        private bool Agrees(int first, int second, (int Agreed, int Differed) seen) =>
++            (second - first) * sizeof(int) >= MinGap &&
++            seen.Agreed >= MinAgreed &&
++            seen.Differed * AgreedPerDiffered <= seen.Agreed &&
++            this.Fits(first) && this.Fits(second) &&
++            this.values[first].Count >= MinValues && this.values[second].Count >= MinValues;
++
++        private bool Fits(int field) =>
++            this.outside[field] * ReadingsPerOutside <= this.readings &&
++            this.pointerHalves[field] * 2 <= this.nonZero[field];
++    }
++}
 diff --git a/GameHelper/Utils/GameStatesSearch.cs b/GameHelper/Utils/GameStatesSearch.cs
 new file mode 100644
 index 0000000..0691ab9
@@ -656,10 +843,10 @@ index 0000000..0691ab9
 +}
 diff --git a/GameHelper/Utils/OffsetHealer.cs b/GameHelper/Utils/OffsetHealer.cs
 new file mode 100644
-index 0000000..3d5edcd
+index 0000000..55d9ea9
 --- /dev/null
 +++ b/GameHelper/Utils/OffsetHealer.cs
-@@ -0,0 +1,358 @@
+@@ -0,0 +1,435 @@
 +// <copyright file="OffsetHealer.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -711,8 +898,16 @@ index 0000000..3d5edcd
 +        /// <summary>The part that says where things stand.</summary>
 +        public const string PositionsPart = "positions";
 +
++        /// <summary>The part that says what actors are doing.</summary>
++        public const string AnimationPart = "animations";
++
++        /// <summary>The part that tells friend from foe.</summary>
++        public const string ReactionPart = "reaction";
++
 +        private const int SearchRadius = 0x200;
 +        private const int GameStateBytes = 0x1000;
++        private const int MinMonstersForReaction = 5;
++        private const int ReactionRadius = 0x40;
 +
 +        // The player stands near the screen's middle; a wrong position lands anywhere (0.8 of the half screen).
 +        private const float CentreShare = 0.8f;
@@ -838,8 +1033,18 @@ index 0000000..3d5edcd
 +                return new StructOutcome(name, StructHealth.Intact, measured, found, string.Empty);
 +            }
 +
-+            Remap(typeof(T), StructRemapper.Segments(new[] { new RemapSegment(measured, found - measured) }));
++            Remap(typeof(T), Merged(typeof(T), new RemapSegment(measured, found - measured)));
 +            return new StructOutcome(name, StructHealth.Moved, measured, found, string.Empty);
++        }
++
++        /// <summary>The struct's segments with <paramref name="moved"/> in them: a struct can have fields moved apart.</summary>
++        private static RemapSegment[] Merged(Type structType, params RemapSegment[] moved)
++        {
++            lock (Healed)
++            {
++                var kept = Healed.TryGetValue(structType, out var segments) ? segments : Array.Empty<RemapSegment>();
++                return StructRemapper.Segments(kept.Where(segment => moved.All(other => other.From != segment.From)).Concat(moved));
++            }
 +        }
 +
 +        private static StructOutcome NotJudged(string name, string why) => new(name, StructHealth.NotJudged, 0, 0, why);
@@ -951,6 +1156,65 @@ index 0000000..3d5edcd
 +            var measured = OffsetOf<ActorOffset>(nameof(ActorOffset.ActiveSkillsPtr));
 +            var block = Block(actor.Address, measured + SearchRadius);
 +            return Placed<ActorOffset>(name, measured, StructShapes.Nearest(measured, sizeof(long), block.Length - 1, at => StructShapes.IsSkillList(block, at, memory)));
++        }
++
++        /// <summary>
++        ///     Whether friend and foe still read apart: the player is always a friend. Only a player who reads as anything else
++        ///     moves the field, so a crowd of minions cannot; null when it did and no monsters are near to find it by.
++        /// </summary>
++        public static StructOutcome? JudgeReaction(Entity player, IReadOnlyList<IntPtr> monsters)
++        {
++            if (!player.TryGetComponent<Positioned>(out var own))
++            {
++                return null;
++            }
++
++            var measured = OffsetOf<PositionedOffsets>(nameof(PositionedOffsets.Reaction));
++            var size = measured + SearchRadius;
++            var block = Block(own.Address, size);
++            if (block.Length < size || StructShapes.IsFriendly(block[measured]))
++            {
++                return block.Length < size ? null : new StructOutcome(ReactionPart, StructHealth.Intact, measured, measured, string.Empty);
++            }
++
++            if (monsters.Count < MinMonstersForReaction)
++            {
++                return null;
++            }
++
++            var others = monsters.Select(monster => Block(monster, size)).ToList();
++            return Placed<PositionedOffsets>(ReactionPart, measured, StructShapes.FindReaction(block, others, measured, ReactionRadius));
++        }
++
++        /// <summary>
++        ///     One round of watching <paramref name="actors"/> act; null until they told where the animation is. Its own judgment,
++        ///     apart from the sweep: only actors in motion say it, and upstream's history shows it moving without the skills.
++        /// </summary>
++        public static StructOutcome? JudgeAnimation(AnimationFieldSearch search, IEnumerable<IntPtr> actors)
++        {
++            var measured = OffsetOf<ActorOffset>(nameof(ActorOffset.AnimationId));
++            foreach (var actor in actors)
++            {
++                search.Add(actor.ToInt64(), Block(actor, measured + SearchRadius));
++            }
++
++            var found = search.Find(measured);
++            if (found < 0)
++            {
++                return !search.Enough ? null
++                    : search.Behaves(measured) ? new StructOutcome(AnimationPart, StructHealth.Intact, measured, measured, "no copy, but it behaves")
++                    : new StructOutcome(AnimationPart, StructHealth.Lost, measured, 0, "no two fields agree on what the actors do");
++            }
++
++            if (found == measured)
++            {
++                return new StructOutcome(AnimationPart, StructHealth.Intact, measured, found, string.Empty);
++            }
++
++            // Only this field moves: the skills after it stay where they were judged.
++            var next = OffsetOf<ActorOffset>(nameof(ActorOffset.ActiveSkillsPtr));
++            Remap(typeof(ActorOffset), Merged(typeof(ActorOffset), new RemapSegment(measured, found - measured), new RemapSegment(next, Follow(typeof(ActorOffset), next) - next)));
++            return new StructOutcome(AnimationPart, StructHealth.Moved, measured, found, string.Empty);
 +        }
 +
 +        private static StructOutcome JudgeStats(Entity player, IAreaMemory memory)
@@ -1147,10 +1411,10 @@ index 0000000..dff3317
 +}
 diff --git a/GameHelper/Utils/StructShapes.cs b/GameHelper/Utils/StructShapes.cs
 new file mode 100644
-index 0000000..d39d0b3
+index 0000000..8ee57e4
 --- /dev/null
 +++ b/GameHelper/Utils/StructShapes.cs
-@@ -0,0 +1,198 @@
+@@ -0,0 +1,229 @@
 +// <copyright file="StructShapes.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -1178,11 +1442,42 @@ index 0000000..d39d0b3
 +        private const int CooldownEntry = 0x48;
 +        private const int MaxStats = 8192;
 +        private const int StatEntry = 8;
++        private const int FriendlyMask = 0x7F;
++        private const int Friendly = 1;
++        private const int FoesPerFriendAllowed = 5;
 +        private const int MaxStatKey = 100000;
 +        private const int MatrixBytes = 64;
 +        private const float MaxWorld = 1e7f;
 +
 +        /// <summary>The offset nearest <paramref name="start"/> that fits, within 0..<paramref name="limit"/>; negative when none does.</summary>
++        /// <summary>Friend or foe as the game writes it, in <see cref="GameOffsets.Objects.Components.PositionedOffsets"/>.</summary>
++        public static bool IsFriendly(byte reaction) => (reaction & FriendlyMask) == Friendly;
++
++        /// <summary>
++        ///     A byte that says friend for the player and foe for nearly every monster. Nearly: a player's minions are monsters
++        ///     too.
++        /// </summary>
++        public static bool IsReaction(byte[] player, IReadOnlyList<byte[]> monsters, int at) =>
++            at >= 0 && at < player.Length && IsFriendly(player[at]) &&
++            monsters.Count(monster => at < monster.Length && !IsFriendly(monster[at])) * FoesPerFriendAllowed >= monsters.Count * (FoesPerFriendAllowed - 1);
++
++        /// <summary>
++        ///     The reaction around <paramref name="near"/>, or -1. The first that fits: a byte 0x1B after it reads the same on the
++        ///     player and on monsters (0.5.5f, +0x1FB), and the nearest would take that one after a shift back.
++        /// </summary>
++        public static int FindReaction(byte[] player, IReadOnlyList<byte[]> monsters, int near, int radius)
++        {
++            for (var at = near - radius; at <= near + radius; at++)
++            {
++                if (IsReaction(player, monsters, at))
++                {
++                    return at;
++                }
++            }
++
++            return -1;
++        }
++
 +        public static int Nearest(int start, int step, int limit, Func<int, bool> fits)
 +        {
 +            for (var distance = 0; distance <= limit; distance += step)

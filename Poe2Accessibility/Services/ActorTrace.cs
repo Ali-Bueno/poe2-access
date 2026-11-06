@@ -110,7 +110,7 @@ namespace Poe2Accessibility.Services
                 var animation = (int)actor.Animation;
                 this.animations.TryGetValue(monster.Id, out var lastAnimation);
                 this.animations[monster.Id] = animation;
-                var calm = DodgeThreats.Of(animation, value => Enum.GetName(typeof(Animation), value)) == DodgeThreat.None;
+                var calm = DodgeThreats.Of(animation, AnimationNames.Of) == DodgeThreat.None;
                 if (calm && animation == lastAnimation)
                 {
                     this.previous.Remove(monster.Id);

@@ -92,7 +92,7 @@ namespace Poe2Accessibility.Services
 
                 if (entity.TryGetComponent<Actor>(out var actor))
                 {
-                    if (others && EnemyStates.FromAnimation(Enum.GetName(actor.Animation) ?? string.Empty) is { } shown)
+                    if (others && EnemyStates.FromAnimation(AnimationNames.Of(actor.Animation) ?? string.Empty) is { } shown)
                     {
                         this.states.Add(shown);
                     }

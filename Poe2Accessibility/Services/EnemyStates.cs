@@ -42,7 +42,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The state an animation shows (GameHelper's Animation names); the stun deaths are deaths.</summary>
         public static EnemyState? FromAnimation(string name) => name switch
         {
-            "HeavyStun" or "HeavyStunBack" or "HeavyStunForward" => EnemyState.HeavyStunned,
+            "HeavyStun" or "HeavyStunBack" or "HeavyStunForward" or "HeavyStunForesight" => EnemyState.HeavyStunned,
             "ElectrocuteForward" or "ElectrocuteBackward" or "ElectrocuteLeft" or "ElectrocuteRight" => EnemyState.Electrocuted,
             _ => null,
         };

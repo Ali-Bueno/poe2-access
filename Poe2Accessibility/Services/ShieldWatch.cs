@@ -55,7 +55,7 @@ namespace Poe2Accessibility.Services
 
             if (sounds)
             {
-                this.WatchStance(Enum.GetName(actor.Animation));
+                this.WatchStance(AnimationNames.Of(actor.Animation));
             }
             else
             {

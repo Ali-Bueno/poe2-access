@@ -151,6 +151,12 @@ if (args.Length > 1 && string.Equals(args[0], "hazards", StringComparison.Ordina
     return HazardExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hazards.txt");
 }
 
+// Args: game-ids <gameDir> [outFile]  -- the game's numbers for animations and stats, in place of GameHelper's old enums.
+if (args.Length > 1 && string.Equals(args[0], "game-ids", StringComparison.OrdinalIgnoreCase))
+{
+    return GameIdExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\game-ids.txt");
+}
+
 // Args: cull-skills <gameDir> [outFile]  -- granted effects that deal Culling Strike, for the mod's culling cue.
 if (args.Length > 1 && string.Equals(args[0], "cull-skills", StringComparison.OrdinalIgnoreCase))
 {

@@ -41,6 +41,16 @@ namespace Poe2Accessibility.Tests
             (nameof(MeasuredVitalsLandOnTheOnesFound), MeasuredVitalsLandOnTheOnesFound),
             (nameof(ATradeOfferIsSaidWhenItChanges), ATradeOfferIsSaidWhenItChanges),
             (nameof(AStackThatGrewInATradeIsNoDeparture), AStackThatGrewInATradeIsNoDeparture),
+            (nameof(AReactionSaysFriendForThePlayerAndFoeForMonsters), AReactionSaysFriendForThePlayerAndFoeForMonsters),
+            (nameof(GameIdsAreReadFromTheCatalog), GameIdsAreReadFromTheCatalog),
+            (nameof(EveryHeavyStunIsAHeavyStun), EveryHeavyStunIsAHeavyStun),
+            (nameof(TheAnimationIsTheFieldThatHasACopy), TheAnimationIsTheFieldThatHasACopy),
+            (nameof(TheAnimationIsFoundWhereAPatchLeftIt), TheAnimationIsFoundWhereAPatchLeftIt),
+            (nameof(ACopyAheadOfTheOtherForAMomentBreaksNothing), ACopyAheadOfTheOtherForAMomentBreaksNothing),
+            (nameof(OneActionIsNotEnoughToName), OneActionIsNotEnoughToName),
+            (nameof(AFlagStoredTwiceIsNoAnimation), AFlagStoredTwiceIsNoAnimation),
+            (nameof(PointerHalvesAreNoAnimation), PointerHalvesAreNoAnimation),
+            (nameof(ActorsWithNoCopyLeaveTheFieldToItsBehaviour), ActorsWithNoCopyLeaveTheFieldToItsBehaviour),
             (nameof(BuffListsEndInAnId), BuffListsEndInAnId),
             (nameof(TheCameraIsKeptTwice), TheCameraIsKeptTwice),
             (nameof(PositionsLieInsideTheMap), PositionsLieInsideTheMap),
@@ -198,6 +208,170 @@ namespace Poe2Accessibility.Tests
             Equal(1, moves.Count, "one thing really left");
             Equal("Frasco de vida", moves[0].Name, "the flask left, not the shards");
             Equal(ItemMoveKind.DroppedOrUsed, moves[0].Kind, "it left for nowhere tracked");
+        }
+
+        private static void GameIdsAreReadFromTheCatalog()
+        {
+            var ids = GameIds.Parse(new[]
+            {
+                "# a header",
+                "animation 0 Idle",
+                "animation 2 MoltenSlam",
+                "stat current_rage 6996",
+                "stat broken",
+                "animation x Nothing",
+            });
+            Equal(true, ids.HasAnimations, "the table is known");
+            Equal("Idle", ids.Animation(0), "a row");
+            Equal("MoltenSlam", ids.Animation(2), "a later row");
+            Equal(null, ids.Animation(1), "a row the catalog lacks");
+            Equal(null, ids.Animation(3), "beyond the table");
+            Equal(null, ids.Animation(-1), "no row");
+            Equal(6996, ids.Stat("current_rage", 6995), "the game's key over the compiled one");
+            Equal(7, ids.Stat("level", 7), "a stat not listed keeps the compiled key");
+            Equal(false, GameIds.Parse(Array.Empty<string>()).HasAnimations, "no catalog");
+        }
+
+        private static void EveryHeavyStunIsAHeavyStun()
+        {
+            Equal(EnemyState.HeavyStunned, EnemyStates.FromAnimation("HeavyStunForesight"), "a variant the old list lacked");
+            Equal(EnemyState.HeavyStunned, EnemyStates.FromAnimation("HeavyStun"), "the plain one");
+            Equal(null, EnemyStates.FromAnimation("Stun"), "a light stun is no heavy one");
+        }
+
+        private static void AReactionSaysFriendForThePlayerAndFoeForMonsters()
+        {
+            var player = new byte[0x10];
+            player[4] = 0x81; // the friendly bit carries a flag above it
+            player[6] = 1;
+            var foe = new byte[0x10];
+            foe[6] = 1;
+            var minion = new byte[0x10];
+            minion[4] = 1;
+            var monsters = new[] { foe, foe, foe, foe, minion };
+            Equal(true, StructShapes.IsReaction(player, monsters, 4), "friend to the player, foe to most");
+            Equal(false, StructShapes.IsReaction(player, monsters, 6), "the same for both says nothing");
+            Equal(false, StructShapes.IsReaction(player, new[] { minion, minion, minion, foe }, 4), "a crowd of minions");
+            Equal(false, StructShapes.IsReaction(player, monsters, 0x20), "past the block");
+
+            var twin = player.ToArray();
+            twin[0xB] = 1;
+            Equal(4, StructShapes.FindReaction(twin, monsters, 8, 8), "the first of two that read alike, whichever is nearer");
+            Equal(-1, StructShapes.FindReaction(twin, monsters, 0x40, 8), "nothing around");
+        }
+
+        private const int ActorBlock = 0xA00;
+        private const int AnimationAt = 0x8B0;
+        private const int CopyAt = 0x380;
+
+        /// <summary>An actor's reading: its table pointer, and the given fields.</summary>
+        private static byte[] ActorReading(params (int Offset, int Value)[] fields)
+        {
+            var block = new byte[ActorBlock];
+            BitConverter.TryWriteBytes(block.AsSpan(0), Heap);
+            foreach (var (offset, value) in fields)
+            {
+                BitConverter.TryWriteBytes(block.AsSpan(offset), value);
+            }
+
+            return block;
+        }
+
+        /// <summary>Actors running and striking, the id in both copies; then at rest again.</summary>
+        private static AnimationFieldSearch Acting(int copy, int field, int differEvery = 0)
+        {
+            var search = new AnimationFieldSearch();
+            var readings = 0;
+            for (var round = 0; round < 12; round++)
+            {
+                var id = round % 2 == 0 ? 4 : 195;
+                for (var actor = 0; actor < 10; actor++)
+                {
+                    search.Add(actor, ActorReading());
+                    for (var moment = 0; moment < 3; moment++)
+                    {
+                        var ahead = differEvery > 0 && ++readings % differEvery == 0;
+                        search.Add(actor, ActorReading((copy, id), (field, ahead ? 0 : id)));
+                    }
+                }
+            }
+
+            return search;
+        }
+
+        private static void TheAnimationIsTheFieldThatHasACopy()
+        {
+            var search = Acting(CopyAt, AnimationAt);
+            Equal(AnimationAt, search.Find(AnimationAt), "the copy nearest the measured place");
+            Equal(true, search.Enough, "ten actors acted");
+        }
+
+        private static void TheAnimationIsFoundWhereAPatchLeftIt() =>
+            Equal(AnimationAt + 0x10, Acting(CopyAt + 8, AnimationAt + 0x10).Find(AnimationAt), "both copies moved");
+
+        private static void ACopyAheadOfTheOtherForAMomentBreaksNothing() =>
+            Equal(AnimationAt, Acting(CopyAt, AnimationAt, 100).Find(AnimationAt), "the game writes while it is read");
+
+        private static void OneActionIsNotEnoughToName()
+        {
+            var search = new AnimationFieldSearch();
+            for (var round = 0; round < 40; round++)
+            {
+                search.Add(1, ActorReading());
+                search.Add(1, ActorReading((CopyAt, 195), (AnimationAt, 195)));
+            }
+
+            Equal(-1, search.Find(AnimationAt), "a run alone could be anything stored twice");
+            Equal(false, search.Enough, "one actor, in town: nothing can be said to be lost");
+        }
+
+        private static void AFlagStoredTwiceIsNoAnimation()
+        {
+            var search = new AnimationFieldSearch();
+            for (var round = 0; round < 40; round++)
+            {
+                for (var actor = 0; actor < 10; actor++)
+                {
+                    search.Add(actor, ActorReading());
+                    search.Add(actor, ActorReading((0x100, 1), (0x600, 1)));
+                }
+            }
+
+            Equal(-1, search.Find(AnimationAt), "one value only");
+        }
+
+        private static void PointerHalvesAreNoAnimation()
+        {
+            var search = new AnimationFieldSearch();
+            for (var round = 0; round < 40; round++)
+            {
+                for (var actor = 0; actor < 10; actor++)
+                {
+                    var half = 972 + (round % 2);
+                    search.Add(actor, ActorReading());
+                    search.Add(actor, ActorReading((0x100, 0x12345678), (0x104, half), (0x600, 0x12345678), (0x604, half)));
+                }
+            }
+
+            Equal(-1, search.Find(AnimationAt), "the upper half of a pointer, twice");
+        }
+
+        private static void ActorsWithNoCopyLeaveTheFieldToItsBehaviour()
+        {
+            var search = new AnimationFieldSearch();
+            for (var round = 0; round < 12; round++)
+            {
+                for (var actor = 0; actor < 10; actor++)
+                {
+                    search.Add(actor, ActorReading());
+                    search.Add(actor, ActorReading((AnimationAt, round % 2 == 0 ? 4 : 195)));
+                }
+            }
+
+            Equal(-1, search.Find(AnimationAt), "no pair");
+            Equal(true, search.Enough, "plenty of actors moved");
+            Equal(true, search.Behaves(AnimationAt), "it still rests at zero and takes several ids");
+            Equal(false, search.Behaves(CopyAt), "this one never moved");
         }
 
         private static string Hex(IEnumerable<int> offsets) => string.Join(' ', offsets.Select(at => at.ToString("X")));

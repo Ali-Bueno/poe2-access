@@ -18,6 +18,7 @@ internal static class Batch
         ["hit-times"] = (_, index, output) => HitTimeExtractor.Run(index, output),
         ["hazards"] = (_, index, output) => HazardExtractor.Run(index, output),
         ["cull-skills"] = (_, index, output) => CullSkillExtractor.Run(index, output),
+        ["game-ids"] = (_, index, output) => GameIdExtractor.Run(index, output),
         ["places"] = (_, index, output) => PlaceExtractor.Run(index, output),
         ["ui-catalog"] = (_, index, output) => UiScripts.BuildCatalog(index, output),
     };

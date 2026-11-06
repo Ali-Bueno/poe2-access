@@ -44,6 +44,20 @@ coroutines of the event with it). `WorldLayoutWatch` runs the sweep on a settled
 process (80-110 ms each); a field missing is said, and a new build read with nothing lost says "El juego se ha actualizado:
 el mod lo ha encontrado todo" (`config/game-build.txt`).
 
+**Two fields are judged apart from the sweep,** in `WorldLayoutWatch`, because they need live evidence a single look cannot give:
+
+- `Actor.AnimationId` (`AnimationFieldSearch`): nothing in one reading says "animation", but the game keeps it twice, far apart
+  (0.5.5f: +0x380 and +0x8B0). A pair counts when both rest at zero, both take a row of the Animation table, they agree in every
+  reading but the odd one caught mid-write, and they take more than one value: 4100 readings of 25 actors gave this one pair and no
+  other. Either copy reads the same, so the nearest is taken. It is read ten times a second until judged, normally in the first
+  fight, and then not again. With eight actors seen acting and no pair, a lone field that still behaves is kept, otherwise lost and
+  said. Simulated: the constant set to +0x8A8 came back to +0x8B0 in 12 seconds, with `Run` and `Idle` read through it.
+- `Positioned.Reaction` (`JudgeReaction`): the player is always a friend, so a player read as anything else means the field
+  moved. Only then is it searched, as the first byte around it that says friend for the player and foe for four monsters in five.
+  The first, because a byte 0x1B after it reads the same on both (+0x1FB) and the nearest would take that one after a shift back.
+  A crowd of minions cannot trigger it, as nothing but the player does. A wrong byte here would hide every enemy behind `IsFriendly`.
+  The rule was checked against real bytes (21 monsters); the live repair still needs five awake monsters to run through.
+
 **Why not only the verifier:** a simulated patch (compile-time offsets shifted by 8 and by -0x18, the same as the game moving
 them) showed it spotting Life, Buffs and Actor but calling their repairs ambiguous, and not seeing Render at all: the player
 projected to (-287, -3187) and it said intact. The shapes above recovered all five, in both directions, to the exact offsets.
@@ -138,6 +152,14 @@ exe, `fmod.dll` product version, each step's version) and, when the install chan
 the game's files and the sounds from the player's own install (about 35 s, each step independent, old files kept on
 failure); a mod update reruns only the steps whose version it raised (`tools/README.md`). The FMOD header version is read from `fmod.dll` (`SoundExtractor`).
 
+`game-ids` (`GameIdExtractor`) writes the game's numbers for what the mod knows by name, because GameHelper's enums were
+generated long ago and a row inserted in a table shifts every name after it. In 0.5.5f the Animation table has four rows the enum
+lacks (584, 599, 904, 1087): 500 of its 1084 names were wrong, and every animation the dodge warning sorted by name after row 583
+was sorted by another's (Faridun Olroth's `MoltenSlam` read as calm, as did Doryani's beam). Stats moved the same way: Rage read the
+stat next to it (`current_rage` is 6996, the enum says 6995). Names now come from the table (`AnimationNames`, `GameIds`), and the
+enum only stands in with no catalog. A stat's key is its row plus one, read live: key 1 is `level`, 22270 is
+`total_socketed_red_skill_support_gems` with 2, where the enum says a freeze multiplier. Only the stats the mod reads are listed.
+
 `dat-columns` (`DatColumnExtractor`) finds the dat columns names are read from: a display name is the first string column
 whose text differs between the English table and its Spanish copy (a string column holds the offset of a string's first
 character in 80% of rows; the name differs in a quarter of the rows that have one). In a datc64 a string is 8 bytes, as
@@ -173,9 +195,8 @@ Asked 2026-10-24 to leave nothing fragile; since 2026-10-25 every field the plug
   change at a time; a field moved farther, or two fields of one judgment moved at once, is reported lost.
 - Parts whose evidence is rare are judged late: the quest marker needs an NPC that shows one, check boxes and
   selectable lists a change by the player; the enabled bit is only noticed lost.
-- Fields with nothing to recognise them by are not followed: `Actor.AnimationId` (dodge and shield cues), `Positioned.Reaction`,
-  `TerrainStruct`'s inside (never moved so far), the cooldown entries' inner fields. A shift before them in the same struct
-  carries them along; one of their own is not seen, and `Update-GameHelper.ps1` brings upstream's value.
+- Fields with nothing to recognise them by are not followed: `TerrainStruct`'s inside (never moved so far), the cooldown entries'
+  inner fields. `Update-GameHelper.ps1` brings upstream's value.
 - A structure redesigned rather than shifted (a component split in two, a list that becomes a map), or a pattern other than
   the game states' gone: their readings stop and the mod says so. No search can promise more; what it promises is that the
   common patch costs nothing, and that the rest is heard, not guessed from silence.

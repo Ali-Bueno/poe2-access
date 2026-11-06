@@ -97,7 +97,7 @@ namespace Poe2Accessibility.Services
                     continue; // not fought yet
                 }
 
-                var animation = Enum.GetName(actor.Animation) ?? $"{(int)actor.Animation}";
+                var animation = AnimationNames.Of(actor.Animation) ?? $"{(int)actor.Animation}";
                 var effects = monster.TryGetComponent<Buffs>(out var buffs)
                     ? string.Join(",", buffs.StatusEffects.Keys.Order(StringComparer.Ordinal))
                     : string.Empty;

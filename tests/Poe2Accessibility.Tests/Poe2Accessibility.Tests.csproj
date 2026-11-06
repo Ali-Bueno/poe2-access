@@ -70,6 +70,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\SkillCooldowns.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\DeployedObjects.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\EnemyStates.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\GameIds.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PrimedThreshold.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Switches.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Breakables.cs" />
@@ -115,6 +116,7 @@
     <Compile Include="..\..\external\GameHelper2\GameHelper\RemoteObjects\States\InGameStateObjects\AreaLayoutSearch.cs" Link="Host\AreaLayoutSearch.cs" />
     <Compile Include="..\..\external\GameHelper2\GameHelper\Utils\StructRemap.cs" Link="Host\StructRemap.cs" />
     <Compile Include="..\..\external\GameHelper2\GameHelper\Utils\StructShapes.cs" Link="Host\StructShapes.cs" />
+    <Compile Include="..\..\external\GameHelper2\GameHelper\Utils\AnimationFieldSearch.cs" Link="Host\AnimationFieldSearch.cs" />
     <Compile Include="..\..\external\GameHelper2\GameOffsets\Objects\States\InGameState\AreaInstanceOffsets.cs" Link="Host\AreaInstanceOffsets.cs" />
     <Compile Include="..\..\external\GameHelper2\GameOffsets\Objects\States\InGameState\ServerDataOffset.cs" Link="Host\ServerDataOffset.cs" />
     <Compile Include="..\..\external\GameHelper2\GameOffsets\Natives\*.cs" LinkBase="Host\Natives" />

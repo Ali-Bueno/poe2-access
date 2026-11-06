@@ -264,7 +264,7 @@ namespace Poe2Accessibility.Services
                     this.attacks[id] = attack;
                 }
 
-                var threat = DodgeThreats.Of(animation, value => Enum.GetName(typeof(Animation), value));
+                var threat = DodgeThreats.Of(animation, AnimationNames.Of);
                 if (threat == DodgeThreat.None)
                 {
                     if (attack == null)
@@ -357,7 +357,7 @@ namespace Poe2Accessibility.Services
                 this.lastParryCue = now;
                 var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
                 this.audio.Play(this.parry, pan, pitch, this.WarningGain(offset), "parry");
-                this.log.Debug($"Parry cue: monster {id} animation {(Animation)attack.Animation} ({attack.Threat}, gap {gap:F0}, {now - attack.StartedAt} ms in, blow in {blowAt - now} ms)");
+                this.log.Debug($"Parry cue: monster {id} animation {AnimationNames.Of(attack.Animation)} ({attack.Threat}, gap {gap:F0}, {now - attack.StartedAt} ms in, blow in {blowAt - now} ms)");
             }
 
             return attack with { ParryBlowAt = attack.Swing is { } swing ? blowAt + swing : null };

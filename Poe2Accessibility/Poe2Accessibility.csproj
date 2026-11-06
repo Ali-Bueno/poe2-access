@@ -59,6 +59,8 @@
     <!-- The total experience each level starts at (tools/Poe2UiExtract experience). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\experience.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\experience.json')" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\dodge-timings.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\dodge-timings.txt')" />
+    <!-- The game's numbers for animations and stats (tools/Poe2UiExtract game-ids). -->
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\game-ids.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\game-ids.txt')" />
     <!-- When monster attacks land, from the game's animation data (tools/Poe2UiExtract hit-times). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\hit-times.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\hit-times.txt')" />
     <!-- Buffs from standing in harmful ground, for the hazard alarm (tools/Poe2UiExtract hazards). -->
