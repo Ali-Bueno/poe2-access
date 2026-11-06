@@ -1,0 +1,1129 @@
+[
+ {
+  "field": "ObjectMagicProperties.Rarity",
+  "struct": "ObjectMagicPropertiesOffsets",
+  "csfield": "Details1.Rarity",
+  "value": "0x144",
+  "size": 4,
+  "patterns": [
+   "8B 8F ^ ?? ?? ?? ?? 48 8B D8 E8 ?? ?? ?? ?? 48 83 78 ?? ?? 4C 8B 40",
+   "4D 85 F6 74 ?? 41 8B 86 ^ ?? ?? ?? ?? EB ?? 33 C0 89 86",
+   "E8 ?? ?? ?? ?? 48 85 C0 74 ?? 8B 4B ?? 8B 80 ^ ?? ?? ?? ?? 0F A3 C1"
+  ],
+  "proof": "A",
+  "site": "dump 0x1dd53e0 label 'Rarity: '; GetComponent<ObjectMagicProperties>. Functions in 0.5.5f: 0x1cba3e0, 0x1dd53e0, 0x1ef33c0; hits at 0x1dd5437, 0x1cba5b5, 0x1ef3472",
+  "values_by_build": {
+   "25244054": "0x144",
+   "25740136": "0x144",
+   "26261440": "0x144",
+   "26473991": "0x144",
+   "26476662": "0x144"
+  }
+ },
+ {
+  "field": "Mods.Rarity",
+  "struct": "ModsOffsets",
+  "csfield": "Details0.Rarity",
+  "value": "0x94",
+  "size": 4,
+  "patterns": [
+   "48 8B CB E8 ?? ?? ?? ?? 49 8B D5 83 BB ^ ?? ?? ?? ?? ?? 0F 94 C2",
+   "44 8B BB ^ ?? ?? ?? ?? EB ?? 41 BF ?? ?? ?? ?? 0F 57 C0 0F 11 45",
+   "75 ?? 48 8B C8 E8 ?? ?? ?? ?? 8B 8F ^ ?? ?? ?? ?? 85 C9 74 ?? 83 E9"
+  ],
+  "proof": "B",
+  "site": "GetComponent<Mods> return. Functions in 0.5.5f: 0x37cd40, 0x4313c5, 0xbb8cc0; hits at 0xbb9127, 0x37cda1, 0x43154a",
+  "values_by_build": {
+   "25244054": "0x94",
+   "25740136": "0x94",
+   "26261440": "0x94",
+   "26473991": "0x94",
+   "26476662": "0x94"
+  }
+ },
+ {
+  "field": "ObjectMagicProperties.ImplicitMods",
+  "struct": "ObjectMagicPropertiesOffsets",
+  "csfield": "Details1.Mods.ImplicitMods",
+  "value": "0x150",
+  "size": 4,
+  "patterns": [
+   "FF C3 48 2B 8F ^ ?? ?? ?? ?? 48 C1 F9 ?? 8B C3 48 3B C1",
+   "48 8B 88 ^ ?? ?? ?? ?? 48 3B CA 74 ?? 66 0F 1F 84 00"
+  ],
+  "proof": "A",
+  "site": "dump label 'Implicit Mods: '. Functions in 0.5.5f: 0x19b1610, 0x1dd53e0; hits at 0x1dd5505, 0x19b172b",
+  "values_by_build": {
+   "25244054": "0x150",
+   "25740136": "0x150",
+   "26261440": "0x150",
+   "26473991": "0x150",
+   "26476662": "0x150"
+  }
+ },
+ {
+  "field": "ObjectMagicProperties.ExplicitMods",
+  "struct": "ObjectMagicPropertiesOffsets",
+  "csfield": "Details1.Mods.ExplicitMods",
+  "value": "0x168",
+  "size": 4,
+  "patterns": [
+   "49 8B 8F ^ ?? ?? ?? ?? 48 3B CA 74 ?? 48 8B 41 ?? 83 78",
+   "48 8B 9B ^ ?? ?? ?? ?? 48 3B DF 74 ?? 66 0F 1F 44 00 ?? 48 8B 43"
+  ],
+  "proof": "B",
+  "site": "GetComponent<ObjectMagicProperties> return, matches dump sub-object +0xC8 +0xA0. Functions in 0.5.5f: 0x16b3c20, 0x1f62960; hits at 0x16b4598, 0x1f629ee",
+  "values_by_build": {
+   "25244054": "0x168",
+   "25740136": "0x168",
+   "26261440": "0x168",
+   "26473991": "0x168",
+   "26476662": "0x168"
+  }
+ },
+ {
+  "field": "ObjectMagicProperties.ExplicitMods(sub)",
+  "struct": "ObjectMagicPropertiesOffsets",
+  "csfield": "Details1.Mods.ExplicitMods - 0xC8",
+  "value": "0xa0",
+  "size": 4,
+  "patterns": [
+   "48 8B 8F ^ ?? ?? ?? ?? 8B D5 48 C1 E2 ?? 48 8B 54 0A",
+   "4C 2B 87 ^ ?? ?? ?? ?? 49 C1 F8 ?? 8B C5 49 3B C0 72"
+  ],
+  "proof": "A",
+  "site": "dump label 'Explicit Mods: ', rdi = OMP+0xC8. Functions in 0.5.5f: 0x1dd53e0; hits at 0x1dd55ba, 0x1dd55e8",
+  "values_by_build": {
+   "25244054": "0xa0",
+   "25740136": "0xa0",
+   "26261440": "0xa0",
+   "26473991": "0xa0",
+   "26476662": "0xa0"
+  }
+ },
+ {
+  "field": "ModArrayStruct.ModsPtr",
+  "struct": "ModArrayStruct",
+  "csfield": "ModsPtr",
+  "value": "0x28",
+  "size": 1,
+  "patterns": [
+   "8B D3 48 C1 E2 ?? 48 8B 54 0A ^ ?? 48 8B C8",
+   "48 8B 41 ^ ?? 44 39 80 ?? ?? ?? ?? 74 ?? 48 83 C1 ?? 48 3B CA",
+   "49 8B 8F ?? ?? ?? ?? 48 3B CA 74 ?? 48 8B 41 ^ ?? 83 78"
+  ],
+  "proof": "A",
+  "site": "dump, entry field printed as the mod's Id. Functions in 0.5.5f: 0x16b3c20, 0x19b1610, 0x1dd53e0; hits at 0x1dd54ec, 0x19b1740, 0x16b45a4",
+  "values_by_build": {
+   "25244054": "0x28",
+   "25740136": "0x28",
+   "26261440": "0x28",
+   "26473991": "0x28",
+   "26476662": "0x28"
+  }
+ },
+ {
+  "field": "ModArrayStruct.StrideShift",
+  "struct": "ModArrayStruct",
+  "csfield": "1 << operand = Marshal.SizeOf<ModArrayStruct>()",
+  "value": "0x6",
+  "size": 1,
+  "patterns": [
+   "8B D3 48 C1 E2 ^ ?? 48 8B 54 0A ?? 48 8B C8",
+   "8B D5 48 C1 E2 ^ ?? 48 8B 54 0A ?? 48 8B CB"
+  ],
+  "proof": "A",
+  "site": "dump, sar/shl of the vector length. Functions in 0.5.5f: 0x1dd53e0; hits at 0x1dd54e8, 0x1dd55c3",
+  "values_by_build": {
+   "25244054": "0x6",
+   "25740136": "0x6",
+   "26261440": "0x6",
+   "26473991": "0x6",
+   "26476662": "0x6"
+  }
+ },
+ {
+  "field": "ModArrayStruct.Size",
+  "struct": "ModArrayStruct",
+  "csfield": "Marshal.SizeOf<ModArrayStruct>()",
+  "value": "0x40",
+  "size": 1,
+  "patterns": [
+   "48 83 C1 ^ ?? 48 3B CA 75 ?? 48 3B CA 0F 95 C3",
+   "48 83 C1 ?? 48 3B CA 75 ?? 48 83 C3 ^ ?? 48 8B CE",
+   "48 8B 41 ?? 44 39 80 ?? ?? ?? ?? 74 ?? 48 83 C1 ^ ?? 48 3B CA"
+  ],
+  "proof": "B",
+  "site": "loops over GetComponent<ObjectMagicProperties> +0x150 and +0x168. Functions in 0.5.5f: 0x16b3c20, 0x17b5fb0, 0x19b1610; hits at 0x16b45ae, 0x17b635a, 0x19b174d",
+  "values_by_build": {
+   "25244054": "0x40",
+   "25740136": "0x40",
+   "26261440": "0x40",
+   "26473991": "0x40",
+   "26476662": "0x40"
+  }
+ },
+ {
+  "field": "Chest.ChestsDataPtr",
+  "struct": "ChestOffsets",
+  "csfield": "ChestsDataPtr",
+  "value": "0x160",
+  "size": 4,
+  "patterns": [
+   "75 ?? 48 8B CB E8 ?? ?? ?? ?? 48 85 C0 74 ?? 48 8B 80 ^ ?? ?? ?? ??",
+   "48 8B 88 ^ ?? ?? ?? ?? 48 8D 3D ?? ?? ?? ?? 48 83 79 ?? ?? 74 ?? 49 8B 4F",
+   "48 8B 88 ^ ?? ?? ?? ?? 48 8B 51 ?? 4C 8B 49 ?? 48 85 D2"
+  ],
+  "proof": "B",
+  "site": "GetComponent<Chest> return. Functions in 0.5.5f: 0x1f3e3f0, 0xe50b90, 0xe592d0; hits at 0xe59725, 0xe512e9, 0x1f3e431",
+  "values_by_build": {
+   "25244054": "0x160",
+   "25740136": "0x160",
+   "26261440": "0x160",
+   "26473991": "0x160",
+   "26476662": "0x160"
+  }
+ },
+ {
+  "field": "Chest.IsOpened",
+  "struct": "ChestOffsets",
+  "csfield": "IsOpened",
+  "value": "0x168",
+  "size": 4,
+  "patterns": [
+   "0F B6 97 ^ ?? ?? ?? ?? 48 8B C8 E8 ?? ?? ?? ?? 48 8B C8 48 8D 15 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 48 8B CB E8 ?? ?? ?? ?? 0F B6 97 ?? ?? ?? ?? 48 8B C8 E8 ?? ?? ?? ?? 48 8B C8 48 8D 15 ?? ?? ?? ?? 48 8B 5C 24",
+   "41 80 BE ^ ?? ?? ?? ?? ?? 75 ?? B1 ?? EB ?? 32 C9 44 0F B6 6E",
+   "40 0F B6 F6 44 38 B8 ^ ?? ?? ?? ?? 0F 44 F3 40 0F B6 DE"
+  ],
+  "proof": "A",
+  "site": "dump 0x1dc4c10 label 'Chest open: '. Functions in 0.5.5f: 0x1b1c6c0, 0x1dc4c10, 0x2143450; hits at 0x1dc4c8a, 0x2144e7a, 0x1b1cbfe",
+  "values_by_build": {
+   "25244054": "0x168",
+   "25740136": "0x168",
+   "26261440": "0x168",
+   "26473991": "0x168",
+   "26476662": "0x168"
+  }
+ },
+ {
+  "field": "ChestsStructInternal.IsLabelVisible",
+  "struct": "ChestsStructInternal",
+  "csfield": "IsLabelVisible",
+  "value": "0x21",
+  "size": 1,
+  "patterns": [
+   "40 88 77 ^ ?? B0 ?? E9 ?? ?? ?? ?? 48 8B CB 49 83 FE ?? 76 ?? 48 8B 0B 48 83 FD ?? 75 ?? 4C 8B C5 48 8D 15 ?? ?? ?? ?? E8 ?? ?? ?? ?? 85 C0 75 ?? C6 47",
+   "48 85 C0 74 ?? 48 8B 80 ?? ?? ?? ?? 80 78 ^ ?? ?? 75 ?? 48 83 78"
+  ],
+  "proof": "A",
+  "site": "key parser 0x1dc39b0 names it 'large'; GetComponent<Chest> +0x160. Functions in 0.5.5f: 0x1dc39b0, 0xe592d0; hits at 0x1dc3a31, 0xe5972c",
+  "values_by_build": {
+   "25244054": "0x21",
+   "25740136": "0x21",
+   "26261440": "0x21",
+   "26473991": "0x21",
+   "26476662": "0x21"
+  }
+ },
+ {
+  "field": "ChestsStructInternal.StrongboxKey",
+  "struct": "ChestsStructInternal",
+  "csfield": "StrongboxDatPtr - 8",
+  "value": "0x48",
+  "size": 1,
+  "patterns": [
+   "48 83 78 ^ ?? ?? 75 ?? B0 ?? EB ?? 32 C0 48 8B 5C 24",
+   "48 8D 3D ?? ?? ?? ?? 48 83 79 ^ ?? ?? 74 ?? 49 8B 4F ?? 48 85 C9",
+   "48 39 58 ^ ?? 74 ?? 32 C0 EB ?? B0 ?? 48 85 D2 74"
+  ],
+  "proof": "B",
+  "site": "GetComponent<Chest> +0x160 then +0x48. Functions in 0.5.5f: 0x1f3e3f0, 0xe50b90, 0xe592d0; hits at 0xe59732, 0xe512f7, 0x1f3e45e",
+  "values_by_build": {
+   "25244054": "0x48",
+   "25740136": "0x48",
+   "26261440": "0x48",
+   "26473991": "0x48",
+   "26476662": "0x48"
+  }
+ },
+ {
+  "field": "Shrine.IsUsed",
+  "struct": "ShrineOffsets",
+  "csfield": "IsUsed",
+  "value": "0x24",
+  "size": 1,
+  "patterns": [
+   "41 0F B6 C6 C0 E8 ?? 88 46 ^ ?? 48 8D 4D ?? E8",
+   "75 ?? C6 46 ^ ?? ?? E9 ?? ?? ?? ?? 41 0F B6 C6 C0 E8 ?? 88 46"
+  ],
+  "proof": "B",
+  "site": "Shrine vtable 0x34e61c0 slot 19, from pool creator. Functions in 0.5.5f: 0x1df8e40; hits at 0x1df8eb5, 0x1df8ea5",
+  "values_by_build": {
+   "25244054": "0x24",
+   "25740136": "0x24",
+   "26261440": "0x24",
+   "26473991": "0x24",
+   "26476662": "0x24"
+  }
+ },
+ {
+  "field": "TriggerableBlockage.IsBlocked",
+  "struct": "TriggerableBlockageOffsets",
+  "csfield": "IsBlocked",
+  "value": "0x30",
+  "size": 1,
+  "patterns": [
+   "49 8B CC E8 ?? ?? ?? ?? 41 0F B6 56 ^ ?? 48 8B C8 E8",
+   "0F B6 46 ^ ?? 48 8B 13 41 88 04 10 48 FF 43",
+   "80 79 ^ ?? ?? 74 ?? 48 8B 01 48 8D 54 24 ?? C6 41"
+  ],
+  "proof": "A",
+  "site": "dump 0x1e0f1c0 label 'Enabled: '; GetComponent<TriggerableBlockage>; vtable 0x34ed910. Functions in 0.5.5f: 0x1e0e780, 0x1e0ebb0, 0x1e0f1c0; hits at 0x1e0f225, 0x1e0e7a1, 0x1e0ebc4",
+  "values_by_build": {
+   "25244054": "0x30",
+   "25740136": "0x30",
+   "26261440": "0x30",
+   "26473991": "0x30",
+   "26476662": "0x30"
+  }
+ },
+ {
+  "field": "Transitionable.CurrentState",
+  "struct": "TransitionableOffsets",
+  "csfield": "CurrentStateEnum",
+  "value": "0x120",
+  "size": 4,
+  "patterns": [
+   "48 85 C0 0F 84 ?? ?? ?? ?? 0F B6 80 ^ ?? ?? ?? ?? 89 45 ?? C6 45",
+   "0F B6 97 ^ ?? ?? ?? ?? 48 8B C8 E8 ?? ?? ?? ?? 48 8B C8 48 8D 15 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8B 8F",
+   "45 33 FF 48 8B 49 ?? E8 ?? ?? ?? ?? 48 85 C0 74 ?? 80 B8 ^ ?? ?? ?? ??"
+  ],
+  "proof": "A",
+  "site": "GEAL GetTransitionState; dump label 'Transitionable state: '. Functions in 0.5.5f: 0x1936d90, 0x1e0d490, 0x2073a70; hits at 0x2073ab1, 0x1e0d4dd, 0x1936dc2",
+  "values_by_build": {
+   "25244054": "0x120",
+   "25740136": "0x120",
+   "26261440": "0x120",
+   "26473991": "0x120",
+   "26476662": "0x120"
+  }
+ },
+ {
+  "field": "Player.Name",
+  "struct": "PlayerOffsets",
+  "csfield": "Name",
+  "value": "0x1b0",
+  "size": 4,
+  "patterns": [
+   "48 8B CF 49 8D 9E ^ ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 83 7B ?? ?? 4C 8B 43",
+   "0F 84 ?? ?? ?? ?? 48 8B 4D ?? 48 8B 09 E8 ?? ?? ?? ?? 48 8D 88 ^ ?? ?? ?? ??",
+   "48 8D 88 ^ ?? ?? ?? ?? 0F 57 C0 0F 57 C9 0F 11 44 24"
+  ],
+  "proof": "A",
+  "site": "dump 0x1ddf160 label 'Character Name: '. Functions in 0.5.5f: 0x17e5120, 0x1ddf160, 0xfe67f0; hits at 0x1ddf1df, 0x17e58e3, 0xfe68c7",
+  "values_by_build": {
+   "25244054": "0x1b0",
+   "25740136": "0x1b0",
+   "26261440": "0x1b0",
+   "26473991": "0x1b0",
+   "26476662": "0x1b0"
+  }
+ },
+ {
+  "field": "Player.Xp",
+  "struct": "PlayerOffsets",
+  "csfield": "Xp",
+  "value": "0x1d8",
+  "size": 4,
+  "patterns": [
+   "E8 ?? ?? ?? ?? 41 8B 96 ^ ?? ?? ?? ?? 48 8B C8 E8 ?? ?? ?? ?? 48 8B C8 E8",
+   "48 8B 53 ?? 48 8B 0B 8B 86 ^ ?? ?? ?? ?? 89 04 0A 49 83 07",
+   "48 FF 43 ?? BA ?? ?? ?? ?? 48 8B CB E8 ?? ?? ?? ?? 48 8B 53 ?? 48 8B 0B 41 8B 86 ^ ?? ?? ?? ??"
+  ],
+  "proof": "A",
+  "site": "dump label 'Experience: '; Player vtable 0x34e79d8 slots 17, 20. Functions in 0.5.5f: 0x1ddc800, 0x1ddd420, 0x1ddf160; hits at 0x1ddf2f2, 0x1ddd509, 0x1ddc8e8",
+  "values_by_build": {
+   "25244054": "0x1d8",
+   "25740136": "0x1d8",
+   "26261440": "0x1d8",
+   "26473991": "0x1d8",
+   "26476662": "0x1d8"
+  }
+ },
+ {
+  "field": "Player.Level",
+  "struct": "PlayerOffsets",
+  "csfield": "Level",
+  "value": "0x204",
+  "size": 4,
+  "patterns": [
+   "41 0F B6 96 ^ ?? ?? ?? ?? 48 8B C8 E8 ?? ?? ?? ?? 48 8B C8 48 8B 5C 24",
+   "0F B6 80 ^ ?? ?? ?? ?? 3C ?? 76 ?? 3C ?? 74 ?? C6 86 ?? ?? ?? ?? ?? 4C 89 6D",
+   "4C 8B F0 48 85 C0 74 ?? 44 0F B6 B8 ^ ?? ?? ?? ?? EB"
+  ],
+  "proof": "A",
+  "site": "dump label 'Level: '. Functions in 0.5.5f: 0x1ddf160, 0x1e09d30, 0xfe0390; hits at 0x1ddf318, 0xfe517c, 0x1e09d91",
+  "values_by_build": {
+   "25244054": "0x204",
+   "25740136": "0x204",
+   "26261440": "0x204",
+   "26473991": "0x204",
+   "26476662": "0x204"
+  }
+ },
+ {
+  "field": "StatusEffect.Charges",
+  "struct": "StatusEffectStruct",
+  "csfield": "Charges",
+  "value": "0x40",
+  "size": 1,
+  "patterns": [
+   "41 8B C7 66 89 41 ?? 41 0F B7 40 ?? 66 89 41 ^ ??",
+   "0F B7 53 ^ ?? 48 8B C8 E8 ?? ?? ?? ?? 48 8B 83 ?? ?? ?? ?? 33 FF"
+  ],
+  "proof": "B",
+  "site": "Buffs dump entry printer 0x1dc2c90; Buff ctor 0x1d7e650. Functions in 0.5.5f: 0x1d7e650, 0x1dc2c90; hits at 0x1d7e6f4, 0x1dc2ccd",
+  "values_by_build": {
+   "25244054": "0x40",
+   "25740136": "0x40",
+   "26261440": "0x40",
+   "26473991": "0x40",
+   "26476662": "0x40"
+  }
+ },
+ {
+  "field": "StatusEffect.TimeLeft",
+  "struct": "StatusEffectStruct",
+  "csfield": "TimeLeft",
+  "value": "0x1c",
+  "size": 1,
+  "patterns": [
+   "F3 0F 59 D1 F3 0F 10 41 ^ ?? F3 0F 5C C2",
+   "75 ?? F3 0F 10 43 ^ ?? 0F 2F C1 76 ?? 0F 28 CE",
+   "4D 89 78 ?? 41 8B 40 ?? 89 41 ?? 41 8B 40 ?? 89 41 ^ ??"
+  ],
+  "proof": "B",
+  "site": "Buffs tick 0x1dc10f0, Buff::Tick 0x1d7f410 subtracts dt. Functions in 0.5.5f: 0x1d7e650, 0x1d7f410, 0x1dc10f0; hits at 0x1d7f44f, 0x1dc118f, 0x1d7e69e",
+  "values_by_build": {
+   "25244054": "0x1c",
+   "25740136": "0x1c",
+   "26261440": "0x1c",
+   "26473991": "0x1c",
+   "26476662": "0x1c"
+  }
+ },
+ {
+  "field": "StatusEffect.TotalTime",
+  "struct": "StatusEffectStruct",
+  "csfield": "TotalTime",
+  "value": "0x18",
+  "size": 1,
+  "patterns": [
+   "0F B7 43 ?? 66 89 46 ?? 8B 43 ?? 89 46 ?? 8B 43 ^ ??",
+   "4D 89 78 ?? 41 8B 40 ?? 89 41 ^ ?? 41 8B 40 ?? 89 41"
+  ],
+  "proof": "B",
+  "site": "Buff ctor 0x1d7e650; Buff copy 0x1d7ec00 (same +0x18..+0x48 layout, called from the Buffs code at 0x1dc2318). Functions in 0.5.5f: 0x1d7e650, 0x1d7ec00; hits at 0x1d7ed41, 0x1d7e697",
+  "values_by_build": {
+   "25244054": "0x18",
+   "25740136": "0x18",
+   "26261440": "0x18",
+   "26473991": "0x18",
+   "26476662": "0x18"
+  }
+ },
+ {
+  "field": "Charges.Current",
+  "struct": "ChargesOffsets",
+  "csfield": "current",
+  "value": "0x18",
+  "size": 1,
+  "patterns": [
+   "40 0F B6 D7 48 8B CE 0F 42 EB 89 6E ^ ??",
+   "44 8B C0 33 D2 8B 46 ^ ?? 41 F7 F0 85 C0",
+   "39 47 ^ ?? 73 ?? 4C 8B 74 24 ?? 32 C0 48 8B 6C 24"
+  ],
+  "proof": "B",
+  "site": "Charges method 0x2684c00; GetComponent<Charges> return. Functions in 0.5.5f: 0x2684c00, 0x33d05a, 0x3f3170; hits at 0x2684c34, 0x3f3293, 0x33d0cb",
+  "values_by_build": {
+   "25244054": "0x18",
+   "25740136": "0x18",
+   "26261440": "0x18",
+   "26473991": "0x18",
+   "26476662": "0x18"
+  }
+ },
+ {
+  "field": "Charges.InternalPtr",
+  "struct": "ChargesOffsets",
+  "csfield": "ChargesInternalPtr",
+  "value": "0x10",
+  "size": 1,
+  "patterns": [
+   "83 C0 ?? 48 8B 73 ^ ?? 66 0F 6E F0 0F 5B F6",
+   "4C 8B 47 ^ ?? 48 8B E8 40 84 F6 74 ?? 41 8B 58",
+   "48 89 48 ?? 88 48 ?? 48 89 78 ^ ?? 48 83 C4 ?? 5F"
+  ],
+  "proof": "B",
+  "site": "creator 0x2684900 stores it; Charges methods. Functions in 0.5.5f: 0x2684900, 0x2684b80, 0x2684cd0; hits at 0x2684d08, 0x2684ba3, 0x268493d",
+  "values_by_build": {
+   "25244054": "0x10",
+   "25740136": "0x10",
+   "26261440": "0x10",
+   "26473991": "0x10",
+   "26476662": "0x10"
+  }
+ },
+ {
+  "field": "ChargesInternal.PerUse",
+  "struct": "ChargesInternalStruct",
+  "csfield": "PerUseCharges",
+  "value": "0x18",
+  "size": 1,
+  "patterns": [
+   "89 7E ^ ?? B0 ?? 89 7E ?? EB ?? 32 C0 48 8B 5C 24",
+   "41 8B 58 ^ ?? 44 0F B6 CE 45 33 C0 33 D2",
+   "EB ?? 48 8B 43 ?? 40 84 FF 74 ?? 8B 78 ?? EB ?? 8B 78 ^ ??"
+  ],
+  "proof": "A",
+  "site": "key parser 0x2684980 'charges_per_use'; Charges methods. Functions in 0.5.5f: 0x2684980, 0x2684a20, 0x2684b80; hits at 0x26849f7, 0x2684bb5, 0x2684ad4",
+  "values_by_build": {
+   "25244054": "0x18",
+   "25740136": "0x18",
+   "26261440": "0x18",
+   "26473991": "0x18",
+   "26476662": "0x18"
+  }
+ },
+ {
+  "field": "Stack.Count",
+  "struct": "StackOffsets",
+  "csfield": "Count",
+  "value": "0x18",
+  "size": 1,
+  "patterns": [
+   "44 8B 78 ^ ?? 45 8B 66 ?? 48 8B 43 ?? 8B 8C 24",
+   "39 79 ^ ?? 0F 97 C0 84 C0 41 0F 45 FC 8B C7",
+   "8B 68 ^ ?? 41 8B C5 41 2B 06 3B C5 0F 42 E8"
+  ],
+  "proof": "B",
+  "site": "GetComponent<Stack> return. Functions in 0.5.5f: 0x1768b00, 0x1d043d0, 0x1d8e300; hits at 0x1d8ef35, 0x1768e93, 0x1d044c4",
+  "values_by_build": {
+   "25244054": "0x18",
+   "25740136": "0x18",
+   "26261440": "0x18",
+   "26473991": "0x18",
+   "26476662": "0x18"
+  }
+ },
+ {
+  "field": "Stack.StackSizeData",
+  "struct": "StackOffsets",
+  "csfield": "StackSizeDataPtr",
+  "value": "0x10",
+  "size": 1,
+  "patterns": [
+   "48 8B 47 ^ ?? 8B 50 ?? 8B 7F ?? 3B D7 0F 42 FA",
+   "48 8B 47 ^ ?? 8B 48 ?? 8B 7F ?? 3B CF 0F 42 F9",
+   "EB ?? 49 8B 46 ^ ?? 8B 78 ?? 89 7C 24 ?? 48 8B CE"
+  ],
+  "proof": "B",
+  "site": "GetComponent<Stack> return. Functions in 0.5.5f: 0x476680, 0x484ee0, 0x487690; hits at 0x47688a, 0x4850dd, 0x4877f1",
+  "values_by_build": {
+   "25244054": "0x10",
+   "25740136": "0x10",
+   "26261440": "0x10",
+   "26473991": "0x10",
+   "26476662": "0x10"
+  }
+ },
+ {
+  "field": "StackSizeData.MaxStack",
+  "struct": "StackSizeDataOffsets",
+  "csfield": "MaxStack",
+  "value": "0x28",
+  "size": 1,
+  "patterns": [
+   "85 C0 75 ?? 89 7E ^ ?? B0 ?? E9 ?? ?? ?? ?? 48 83 7B ?? ?? 48 8B CB",
+   "48 8B 47 ?? 8B 50 ^ ?? 8B 7F ?? 3B D7 0F 42 FA",
+   "48 8B 47 ?? 8B 48 ^ ?? 8B 7F ?? 3B CF 0F 42 F9"
+  ],
+  "proof": "A",
+  "site": "key parser 0x25ddcd0 'max_stack_size'; GetComponent<Stack> +0x10. Functions in 0.5.5f: 0x25ddcd0, 0x476680, 0x484ee0; hits at 0x25ddd17, 0x47688e, 0x4850e1",
+  "values_by_build": {
+   "25244054": "0x28",
+   "25740136": "0x28",
+   "26261440": "0x28",
+   "26473991": "0x28",
+   "26476662": "0x28"
+  }
+ },
+ {
+  "field": "ActorCooldown.Uses",
+  "struct": "ActiveSkillCooldown",
+  "csfield": "CooldownsList",
+  "value": "0x10",
+  "size": 1,
+  "patterns": [
+   "48 8B 08 48 8B 51 ^ ?? 4C 8B 41 ?? 49 3B D0",
+   "49 3B C0 48 8D 48 ^ ?? 48 0F 44 CE 48 8B C1",
+   "49 8D 7E ^ ?? 4C 8B 32 48 8B D7 48 8D 4D"
+  ],
+  "proof": "B",
+  "site": "vector dtor 0x1ae03f0 called on sub+0x160; sub-object method 0x1e98410. Functions in 0.5.5f: 0x1e969f0, 0x1e98410, 0x1e987e0; hits at 0x1e99c09, 0x1e984d8, 0x1e96b3c",
+  "values_by_build": {
+   "25244054": "0x10",
+   "25740136": "0x10",
+   "26261440": "0x10",
+   "26473991": "0x10",
+   "26476662": "0x10"
+  }
+ },
+ {
+  "field": "ActorCooldown.MaxUses",
+  "struct": "ActiveSkillCooldown",
+  "csfield": "MaxUses",
+  "value": "0x30",
+  "size": 1,
+  "patterns": [
+   "48 8B 08 8B 44 24 ?? 3B 41 ^ ?? 0F 85 ?? ?? ?? ?? 8B 45",
+   "E8 ?? ?? ?? ?? 48 8B 43 ?? 49 89 46 ?? 8B 43 ^ ?? 41 89 46"
+  ],
+  "proof": "B",
+  "site": "vector move 0x1ae4f00 of the same element. Functions in 0.5.5f: 0x1ae4f00, 0x1e987e0; hits at 0x1e99c39, 0x1ae4f5d",
+  "values_by_build": {
+   "25244054": "0x30",
+   "25740136": "0x30",
+   "26261440": "0x30",
+   "26473991": "0x30",
+   "26476662": "0x30"
+  }
+ },
+ {
+  "field": "ActorCooldown.Time",
+  "struct": "ActiveSkillCooldown",
+  "csfield": "TotalCooldownTimeInMs",
+  "value": "0x34",
+  "size": 1,
+  "patterns": [
+   "48 8B 08 8B 44 24 ?? 3B 41 ?? 0F 85 ?? ?? ?? ?? 8B 45 ?? 3B 41 ^ ??",
+   "8B 43 ^ ?? 41 89 46 ?? 8B 43 ?? 41 89 46 ?? 8B 4B"
+  ],
+  "proof": "B",
+  "site": "vector move 0x1ae4f00. Functions in 0.5.5f: 0x1ae4f00, 0x1e987e0; hits at 0x1e99c45, 0x1ae4f64",
+  "values_by_build": {
+   "25244054": "0x34",
+   "25740136": "0x34",
+   "26261440": "0x34",
+   "26473991": "0x34",
+   "26476662": "0x34"
+  }
+ },
+ {
+  "field": "ActorCooldown.SkillId",
+  "struct": "ActiveSkillCooldown",
+  "csfield": "UnknownIdAndEquipmentInf0",
+  "value": "0x3c",
+  "size": 1,
+  "patterns": [
+   "38 0B 75 ?? 4C 8B 02 45 8B 48 ?? 44 39 4B ^ ??",
+   "8B 4B ^ ?? 41 89 4E ?? 0F B7 4B ?? 66 41 89 4E",
+   "8B 4B ?? 39 48 ^ ?? 74 ?? 48 83 C0 ?? 49 3B C0 75"
+  ],
+  "proof": "B",
+  "site": "sub-object methods compare it with skill +0x40. Functions in 0.5.5f: 0x1ae4f00, 0x1e969f0, 0x1e98410; hits at 0x1e96b2d, 0x1ae4f72, 0x1e984c7",
+  "values_by_build": {
+   "25244054": "0x3c",
+   "25740136": "0x3c",
+   "26261440": "0x3c",
+   "26473991": "0x3c",
+   "26476662": "0x3c"
+  }
+ },
+ {
+  "field": "ActorCooldown.EntrySize",
+  "struct": "ActiveSkillCooldown",
+  "csfield": "Marshal.SizeOf",
+  "value": "0x48",
+  "size": 1,
+  "patterns": [
+   "48 83 C0 ^ ?? 49 3B C0 75 ?? 49 3B C0 48 8D 48",
+   "48 83 C3 ^ ?? 49 3B DB 75 ?? 49 8D 7E ?? 4C 8B 32",
+   "48 83 C7 ^ ?? 49 3B F8 75 ?? 48 89 7D ?? 48 8B CB"
+  ],
+  "proof": "B",
+  "site": "stride of the same loops. Functions in 0.5.5f: 0x1e969f0, 0x1e98410, 0x1e9aeb0; hits at 0x1e984cc, 0x1e96b33, 0x1e9af8a",
+  "values_by_build": {
+   "25244054": "0x48",
+   "25740136": "0x48",
+   "26261440": "0x48",
+   "26473991": "0x48",
+   "26476662": "0x48"
+  }
+ },
+ {
+  "field": "ActiveSkill.SkillId",
+  "struct": "ActiveSkillDetails",
+  "csfield": "UnknownIdAndEquipmentInfo",
+  "value": "0x40",
+  "size": 1,
+  "patterns": [
+   "38 0B 75 ?? 4C 8B 02 45 8B 48 ^ ?? 44 39 4B",
+   "8B 4B ^ ?? 39 48 ?? 74 ?? 48 83 C0 ?? 49 3B C0 75",
+   "8B 53 ^ ?? 39 57 ?? 74 ?? 48 83 C7 ?? 49 3B F8 75"
+  ],
+  "proof": "B",
+  "site": "loaded and compared with cooldown +0x3C. Functions in 0.5.5f: 0x1e969f0, 0x1e98410, 0x1e9aeb0; hits at 0x1e96b29, 0x1e984c4, 0x1e9af82",
+  "values_by_build": {
+   "25244054": "0x40",
+   "25740136": "0x40",
+   "26261440": "0x40",
+   "26473991": "0x40",
+   "26476662": "0x40"
+  }
+ },
+ {
+  "field": "ActiveSkill.LevelKey",
+  "struct": "ActiveSkillDetails",
+  "csfield": "GrantedEffectsPerLevelDatRow",
+  "value": "0x58",
+  "size": 1,
+  "patterns": [
+   "48 8B 51 ^ ?? 48 8B 0A 48 89 4C 24 ?? 48 8B 7A",
+   "48 83 7A ^ ?? ?? 48 8B DA 48 8B F9 0F 84 ?? ?? ?? ?? 45 33 C0"
+  ],
+  "proof": "A",
+  "site": "Actor dump label 'Active Skills: '. Functions in 0.5.5f: 0x1e6abe0, 0x1e98410; hits at 0x1e6af06, 0x1e9841f",
+  "values_by_build": {
+   "25244054": "0x58",
+   "25740136": "0x58",
+   "26261440": "0x58",
+   "26473991": "0x58",
+   "26476662": "0x58"
+  }
+ },
+ {
+  "field": "MinimapIcon.Row",
+  "struct": "(GameLayout.MinimapIconRow)",
+  "csfield": "ComponentRowOffset",
+  "value": "0x20",
+  "size": 1,
+  "patterns": [
+   "48 8B F1 48 8B 41 ?? 4C 8B 40 ?? 4C 39 41 ^ ??",
+   "89 4A ?? 49 89 40 ^ ?? 49 8D 48 ?? 48 8D 44 24",
+   "75 ?? 48 8B CF E8 ?? ?? ?? ?? 48 85 C0 74 ?? 48 8D 48 ^ ??"
+  ],
+  "proof": "B",
+  "site": "MinimapIcon vtable 0x34df258 slot 20; GetComponent<MinimapIcon>. Functions in 0.5.5f: 0x1796d99, 0x1d9dcb0, 0x2093830; hits at 0x1d9dcd6, 0x209386e, 0x1796dfa",
+  "values_by_build": {
+   "25244054": "0x20",
+   "25740136": "0x20",
+   "26261440": "0x20",
+   "26473991": "0x20",
+   "26476662": "0x20"
+  }
+ },
+ {
+  "field": "Positioned.Reaction",
+  "struct": "PositionedOffsets",
+  "csfield": "Reaction",
+  "value": "0x1e0",
+  "size": 4,
+  "patterns": [
+   "0F B7 80 ^ ?? ?? ?? ?? 66 23 C3 0F B7 D0 49 8B C8",
+   "41 0F B7 86 ^ ?? ?? ?? ?? 66 C1 E8 ?? 0F B6 D0 49 8B C8"
+  ],
+  "proof": "A",
+  "site": "dump 0x1deb600 label 'Team: '; Actor dump 'Team: '. Functions in 0.5.5f: 0x1deb600, 0x1e6abe0; hits at 0x1e6ad69, 0x1debb2d",
+  "values_by_build": {
+   "25244054": "0x1e0",
+   "25740136": "0x1e0",
+   "26261440": "0x1e0",
+   "26473991": "0x1e0",
+   "26476662": "0x1e0"
+  }
+ },
+ {
+  "field": "Targetable.IsTargetable",
+  "struct": "(GameLayout.Targetable)",
+  "csfield": "IsTargetableOffset",
+  "value": "0x69",
+  "size": 1,
+  "patterns": [
+   "48 8D 15 ?? ?? ?? ?? 48 8B C8 E8 ?? ?? ?? ?? 48 8B C8 48 8D 15 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 48 8B CB E8 ?? ?? ?? ?? 0F B6 57 ^ ??",
+   "75 ?? 48 8B 01 48 8B 48 ?? E8 ?? ?? ?? ?? 48 85 C0 74 ?? C6 40 ^ ??",
+   "48 85 C0 74 ?? 48 8B C8 C6 40 ^ ?? ?? 48 83 C4"
+  ],
+  "proof": "A",
+  "site": "dump 0x17eb130 label 'Targetable: '. Functions in 0.5.5f: 0x16f1400, 0x17eb130, 0x188eb60; hits at 0x17eb17d, 0x188ede0, 0x16f141e",
+  "values_by_build": {
+   "25244054": "0x69",
+   "25740136": "0x69",
+   "26261440": "0x69",
+   "26473991": "0x69",
+   "26476662": "0x69"
+  }
+ },
+ {
+  "field": "Targetable.IsTargeted",
+  "struct": "(GameLayout.Targetable)",
+  "csfield": "IsTargetedOffset",
+  "value": "0x6b",
+  "size": 1,
+  "patterns": [
+   "48 8B F8 48 85 C0 74 ?? C6 40 ^ ?? ?? 48 8B C8",
+   "48 8B D8 48 85 C0 74 ?? C6 40 ^ ?? ?? 48 8B C8",
+   "80 78 ?? ?? 74 ?? 80 78 ^ ?? ?? 74 ?? 48 8B C8 48 83 C4"
+  ],
+  "proof": "B",
+  "site": "GetComponent<Targetable> return. Functions in 0.5.5f: 0x1666070, 0x16f9440, 0x1932220; hits at 0x16660f7, 0x1932241, 0x16f9481",
+  "values_by_build": {
+   "25244054": "0x6b",
+   "25740136": "0x6b",
+   "26261440": "0x6b",
+   "26473991": "0x6b",
+   "26476662": "0x6b"
+  }
+ },
+ {
+  "field": "Render.Bounds",
+  "struct": "RenderOffsets",
+  "csfield": "CharactorModelBounds",
+  "value": "0x144",
+  "size": 4,
+  "patterns": [
+   "F3 0F 5C 88 ^ ?? ?? ?? ?? F3 0F 10 46 ?? F3 0F 58 C7"
+  ],
+  "proof": "B",
+  "site": "GetComponent<Render> return. Functions in 0.5.5f: 0x1805f10; hits at 0x1806097",
+  "values_by_build": {
+   "25244054": "0x144",
+   "25740136": "0x144",
+   "26261440": "0x144",
+   "26473991": "0x144",
+   "26476662": "0x144"
+  }
+ },
+ {
+  "field": "Render.Bounds.Y",
+  "struct": "RenderOffsets",
+  "csfield": "CharactorModelBounds + 4",
+  "value": "0x148",
+  "size": 4,
+  "patterns": [
+   "F2 44 0F 10 80 ^ ?? ?? ?? ?? 48 8B 40 ?? 48 63 51 ?? 0F 11 7C 24",
+   "48 8B 8B ?? ?? ?? ?? E8 ?? ?? ?? ?? 0F 10 B0 ?? ?? ?? ?? 0F 11 74 24 ?? F2 0F 10 80 ^ ?? ?? ?? ??",
+   "FF E1 49 8B 8E ?? ?? ?? ?? 48 85 C9 0F 84 ?? ?? ?? ?? E8 ?? ?? ?? ?? 0F 10 B0 ?? ?? ?? ?? 0F 11 74 24 ?? F2 0F 10 80 ^ ?? ?? ?? ??"
+  ],
+  "proof": "B",
+  "site": "GetComponent<Render> return. Functions in 0.5.5f: 0xe4f3cc, 0xf3e6b0, 0xf44180; hits at 0xe4f441, 0xf445bd, 0xf3e773",
+  "values_by_build": {
+   "25244054": "0x148",
+   "25740136": "0x148",
+   "26261440": "0x148",
+   "26473991": "0x148",
+   "26476662": "0x148"
+  }
+ },
+ {
+  "field": "Render.Bounds.Z",
+  "struct": "RenderOffsets",
+  "csfield": "CharactorModelBounds + 8",
+  "value": "0x14c",
+  "size": 4,
+  "patterns": [
+   "F3 41 0F 58 D2 F3 0F 5C 90 ^ ?? ?? ?? ?? F3 0F 5C D6",
+   "48 8D 4C 24 ?? F3 0F 5C 88 ^ ?? ?? ?? ?? 66 0F 6E 42",
+   "F3 0F 5C 80 ^ ?? ?? ?? ?? F3 0F 11 4C 24 ?? F3 41 0F 5C C3"
+  ],
+  "proof": "B",
+  "site": "GetComponent<Render> return. Functions in 0.5.5f: 0x188f8bb, 0x2695e0, 0x269e64; hits at 0x269a9e, 0x188f8ff, 0x26a2c1",
+  "values_by_build": {
+   "25244054": "0x14c",
+   "25740136": "0x14c",
+   "26261440": "0x14c",
+   "26473991": "0x14c",
+   "26476662": "0x14c"
+  }
+ },
+ {
+  "field": "UiElement.Self",
+  "struct": "UiElementBaseOffset",
+  "csfield": "UiElementBaseOffset.Self",
+  "value": "0x8",
+  "size": 1,
+  "patterns": [
+   "48 8B D9 48 8D 05 ?? ?? ?? ?? 48 89 01 48 89 49 ^ ??",
+   "89 9C 24 ?? ?? ?? ?? 48 8D 05 ?? ?? ?? ?? 48 89 01 48 89 49 ^ ??"
+  ],
+  "proof": "B",
+  "site": "element ctors 0x27c0670 and 0x27c0850. Functions in 0.5.5f: 0x27c0670, 0x27c0850; hits at 0x27c0683, 0x27c0884",
+  "values_by_build": {
+   "25244054": "0x8",
+   "25740136": "0x8",
+   "26261440": "0x8",
+   "26473991": "0x8",
+   "26476662": "0x8"
+  }
+ },
+ {
+  "field": "UiElement.Manager",
+  "struct": "UiElementBaseOffset",
+  "csfield": "GameLayout.Element.ManagerOffset",
+  "value": "0x90",
+  "size": 4,
+  "patterns": [
+   "48 8B 89 ^ ?? ?? ?? ?? 48 81 C1 ?? ?? ?? ?? 4C 8D 44 24 ?? 48 8D 54 24",
+   "48 89 81 ^ ?? ?? ?? ?? 0F 57 C0 0F 11 81 ?? ?? ?? ?? 48 89 99"
+  ],
+  "proof": "B",
+  "site": "element ctors 0x27c0670 and 0x27c0850. Functions in 0.5.5f: 0x27c0670, 0x27c0850; hits at 0x27c07e7, 0x27c08c5",
+  "values_by_build": {
+   "25244054": "0x90",
+   "25740136": "0x90",
+   "26261440": "0x90",
+   "26473991": "0x90",
+   "26476662": "0x90"
+  }
+ },
+ {
+  "field": "UiElement.Name",
+  "struct": "UiElementBaseOffset",
+  "csfield": "GameLayout.Element.NameOffset",
+  "value": "0x98",
+  "size": 4,
+  "patterns": [
+   "48 89 91 ?? ?? ?? ?? 0F 57 C0 0F 11 81 ^ ?? ?? ?? ?? 48 89 81",
+   "48 89 81 ?? ?? ?? ?? 0F 57 C0 0F 11 81 ^ ?? ?? ?? ?? 48 89 99"
+  ],
+  "proof": "B",
+  "site": "element ctors 0x27c0670 and 0x27c0850. Functions in 0.5.5f: 0x27c0670, 0x27c0850; hits at 0x27c06cb, 0x27c08cf",
+  "values_by_build": {
+   "25244054": "0x98",
+   "25740136": "0x98",
+   "26261440": "0x98",
+   "26473991": "0x98",
+   "26476662": "0x98"
+  }
+ },
+ {
+  "field": "UiElement.Parent",
+  "struct": "UiElementBaseOffset",
+  "csfield": "UiElementBaseOffset.ParentPtr",
+  "value": "0xb8",
+  "size": 4,
+  "patterns": [
+   "66 89 99 ?? ?? ?? ?? 48 89 99 ^ ?? ?? ?? ?? 48 81 C1 ?? ?? ?? ?? 48 81 C2",
+   "66 89 81 ?? ?? ?? ?? 48 89 81 ^ ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? 0F 11 81"
+  ],
+  "proof": "B",
+  "site": "element ctors 0x27c0670 and 0x27c0850. Functions in 0.5.5f: 0x27c0670, 0x27c0850; hits at 0x27c08ef, 0x27c06eb",
+  "values_by_build": {
+   "25244054": "0xb8",
+   "25740136": "0xb8",
+   "26261440": "0xb8",
+   "26473991": "0xb8",
+   "26476662": "0xb8"
+  }
+ },
+ {
+  "field": "UiElement.Font",
+  "struct": "UiElementBaseOffset",
+  "csfield": "GameLayout.Element.FontOffset",
+  "value": "0xc0",
+  "size": 4,
+  "patterns": [
+   "66 89 81 ^ ?? ?? ?? ?? 66 89 81 ?? ?? ?? ?? 88 81 ?? ?? ?? ?? 66 89 81 ?? ?? ?? ?? 88 81",
+   "66 89 81 ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? 0F 11 81 ^ ?? ?? ?? ??"
+  ],
+  "proof": "B",
+  "site": "element ctors 0x27c0670 and 0x27c0850. Functions in 0.5.5f: 0x27c0670; hits at 0x27c0720, 0x27c0707",
+  "values_by_build": {
+   "25244054": "0xc0",
+   "25740136": "0xc0",
+   "26261440": "0xc0",
+   "26473991": "0xc0",
+   "26476662": "0xc0"
+  }
+ },
+ {
+  "field": "UiElement.Children",
+  "struct": "UiElementBaseOffset",
+  "csfield": "UiElementBaseOffset.ChildrensPtr",
+  "value": "0x10",
+  "size": 1,
+  "patterns": [
+   "83 C8 ?? 89 85 ?? ?? ?? ?? 4D 8B 75 ^ ?? 4D 8B 65 ?? 4D 3B F4",
+   "48 8B D9 48 8D 05 ?? ?? ?? ?? 48 89 01 48 89 49 ?? 48 8D 41 ?? 48 89 41 ^ ??"
+  ],
+  "proof": "B",
+  "site": "element ctors 0x27c0670 and 0x27c0850. Functions in 0.5.5f: 0x27c0670, 0x27c0850; hits at 0x27c0a6b, 0x27c068b",
+  "values_by_build": {
+   "25244054": "0x10",
+   "25740136": "0x10",
+   "26261440": "0x10",
+   "26473991": "0x10",
+   "26476662": "0x10"
+  }
+ },
+ {
+  "field": "UiElement.RelativePosition",
+  "struct": "UiElementBaseOffset",
+  "csfield": "UiElementBaseOffset.RelativePosition",
+  "value": "0x100",
+  "size": 4,
+  "patterns": [
+   "F2 0F 11 85 ^ ?? ?? ?? ?? F2 41 0F 10 8D ?? ?? ?? ?? F2 0F 11 8D",
+   "88 81 ?? ?? ?? ?? 88 81 ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? C7 81 ?? ?? ?? ?? ?? ?? ?? ?? 48 89 81 ^ ?? ?? ?? ??"
+  ],
+  "proof": "B",
+  "site": "element ctors 0x27c0670 and 0x27c0850. Functions in 0.5.5f: 0x27c0670, 0x27c0850; hits at 0x27c0913, 0x27c0758",
+  "values_by_build": {
+   "25244054": "0x100",
+   "25740136": "0x100",
+   "26261440": "0x100",
+   "26473991": "0x100",
+   "26476662": "0x100"
+  }
+ },
+ {
+  "field": "UiElement.PositionModifier",
+  "struct": "UiElementBaseOffset",
+  "csfield": "UiElementBaseOffset.PositionModifier",
+  "value": "0x108",
+  "size": 4,
+  "patterns": [
+   "F2 41 0F 10 8D ^ ?? ?? ?? ?? F2 0F 11 8D ?? ?? ?? ?? 41 8B 85",
+   "88 81 ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? C7 81 ?? ?? ?? ?? ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? 48 89 81 ^ ?? ?? ?? ??"
+  ],
+  "proof": "B",
+  "site": "element ctors 0x27c0670 and 0x27c0850. Functions in 0.5.5f: 0x27c0670, 0x27c0850; hits at 0x27c091b, 0x27c075f",
+  "values_by_build": {
+   "25244054": "0x108",
+   "25740136": "0x108",
+   "26261440": "0x108",
+   "26473991": "0x108",
+   "26476662": "0x108"
+  }
+ },
+ {
+  "field": "UiElement.LocalScale",
+  "struct": "UiElementBaseOffset",
+  "csfield": "UiElementBaseOffset.LocalScaleMultiplier",
+  "value": "0x118",
+  "size": 4,
+  "patterns": [
+   "89 85 ?? ?? ?? ?? 41 8B 85 ?? ?? ?? ?? 89 85 ?? ?? ?? ?? 41 8B 85 ^ ?? ?? ?? ?? 89 85",
+   "48 89 81 ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? C7 81 ^ ?? ?? ?? ?? ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? 48 89 81"
+  ],
+  "proof": "B",
+  "site": "element ctors 0x27c0670 and 0x27c0850. Functions in 0.5.5f: 0x27c0670, 0x27c0850; hits at 0x27c0946, 0x27c076d",
+  "values_by_build": {
+   "25244054": "0x118",
+   "25740136": "0x118",
+   "26261440": "0x118",
+   "26473991": "0x118",
+   "26476662": "0x118"
+  }
+ },
+ {
+  "field": "UiElement.Tooltips",
+  "struct": "UiElementBaseOffset",
+  "csfield": "GameLayout.Element.TooltipsOffset",
+  "value": "0x120",
+  "size": 4,
+  "patterns": [
+   "90 49 83 C6 ?? 4D 3B F4 0F 85 ?? ?? ?? ?? 4D 8B B5 ^ ?? ?? ?? ??",
+   "48 89 81 ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? C7 81 ?? ?? ?? ?? ?? ?? ?? ?? 48 89 81 ^ ?? ?? ?? ?? 48 89 81"
+  ],
+  "proof": "B",
+  "site": "element ctors 0x27c0670 and 0x27c0850. Functions in 0.5.5f: 0x27c0670, 0x27c0850; hits at 0x27c0b18, 0x27c0777",
+  "values_by_build": {
+   "25244054": "0x120",
+   "25740136": "0x120",
+   "26261440": "0x120",
+   "26473991": "0x120",
+   "26476662": "0x120"
+  }
+ },
+ {
+  "field": "UiElement.Flags",
+  "struct": "UiElementBaseOffset",
+  "csfield": "UiElementBaseOffset.Flags",
+  "value": "0x168",
+  "size": 4,
+  "patterns": [
+   "83 C8 ?? 89 85 ^ ?? ?? ?? ?? 4D 8B 75 ?? 4D 8B 65 ?? 4D 3B F4",
+   "48 89 81 ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? 88 81 ?? ?? ?? ?? C7 81 ^ ?? ?? ?? ??"
+  ],
+  "proof": "B",
+  "site": "element ctors 0x27c0670 and 0x27c0850. Functions in 0.5.5f: 0x27c0670, 0x27c0850; hits at 0x27c0a65, 0x27c07a0",
+  "values_by_build": {
+   "25244054": "0x168",
+   "25740136": "0x168",
+   "26261440": "0x168",
+   "26473991": "0x168",
+   "26476662": "0x168"
+  }
+ },
+ {
+  "field": "UiElement.ScaleIndex",
+  "struct": "UiElementBaseOffset",
+  "csfield": "UiElementBaseOffset.ScaleIndex",
+  "value": "0x172",
+  "size": 4,
+  "patterns": [
+   "66 89 85 ?? ?? ?? ?? 41 0F B6 85 ^ ?? ?? ?? ?? 88 85 ?? ?? ?? ?? 41 0F B6 85",
+   "66 89 85 ?? ?? ?? ?? 41 0F B6 85 ?? ?? ?? ?? 88 85 ^ ?? ?? ?? ?? 41 0F B6 85"
+  ],
+  "proof": "B",
+  "site": "element ctors 0x27c0670 and 0x27c0850. Functions in 0.5.5f: 0x27c0850; hits at 0x27c09a5, 0x27c09ad",
+  "values_by_build": {
+   "25244054": "0x172",
+   "25740136": "0x172",
+   "26261440": "0x172",
+   "26473991": "0x172",
+   "26476662": "0x172"
+  }
+ },
+ {
+  "field": "UiElement.TooltipEntrySize",
+  "struct": "UiElementBaseOffset",
+  "csfield": "GameLayout.Element.TooltipEntrySize",
+  "value": "0x18",
+  "size": 1,
+  "patterns": [
+   "41 0F B6 56 ?? 48 8B CD E8 ?? ?? ?? ?? 49 83 C6 ^ ?? 4D 3B F7"
+  ],
+  "proof": "B",
+  "site": "clone loop over +0x120 in ctor 0x27c0850. Functions in 0.5.5f: 0x27c0850; hits at 0x27c0bb8",
+  "values_by_build": {
+   "25244054": "0x18",
+   "25740136": "0x18",
+   "26261440": "0x18",
+   "26473991": "0x18",
+   "26476662": "0x18"
+  }
+ },
+ {
+  "field": "InGameState.UiManager",
+  "struct": "(GameLayout.InGameState)",
+  "csfield": "UiManagerOffset",
+  "value": "0x310",
+  "size": 4,
+  "patterns": [
+   "48 8B D0 48 8B CB 41 FF D0 48 8B 96 ^ ?? ?? ?? ??",
+   "4C 89 A6 ^ ?? ?? ?? ?? 48 89 BE ?? ?? ?? ?? 0F 10 03 0F 11 86",
+   "48 8B D9 41 8B F8 48 8B 89 ^ ?? ?? ?? ?? 48 85 C9"
+  ],
+  "proof": "B",
+  "site": "InGameState vtable 0x317c240 method, this+0x310. Functions in 0.5.5f: 0xfd24b0, 0xfe0390, 0xfe9e00; hits at 0xfe4c3c, 0xfd2572, 0xfe9e10",
+  "values_by_build": {
+   "25244054": "0x310",
+   "25740136": "0x310",
+   "26261440": "0x310",
+   "26473991": "0x310",
+   "26476662": "0x310"
+  }
+ }
+]

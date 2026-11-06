@@ -47,6 +47,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(TwoNpcsAPlayerAndABodyAreAllHeard), TwoNpcsAPlayerAndABodyAreAllHeard);
             Run(nameof(SwitchesAreToldFromBreakables), SwitchesAreToldFromBreakables);
             Run(nameof(ObjectsPlayTheSoundTheGameGivesThem), ObjectsPlayTheSoundTheGameGivesThem);
+            Run(nameof(CodeFieldsNeedTwoSignaturesThatAgree), CodeFieldsNeedTwoSignaturesThatAgree);
+            Run(nameof(CodeFieldCatalogParses), CodeFieldCatalogParses);
             Run(nameof(OpeningSoundsComeFromTheOpeningAnimation), OpeningSoundsComeFromTheOpeningAnimation);
             Run(nameof(PhrasesFollowTheGameLanguage), PhrasesFollowTheGameLanguage);
             Run(nameof(OtherLanguagesUsePhraseTables), OtherLanguagesUsePhraseTables);
@@ -2739,6 +2741,55 @@ namespace Poe2Accessibility.Tests
             Equal(2, played.Where(id => id != 99).Distinct().Count(), "the NPC does not take an enemy stream");
             var tap = CueSynth.Enemy(CueSynth.Layer.Friend, 44100);
             Equal(true, tap.Length < CueSynth.Growl(44100).Length && tap.All(sample => MathF.Abs(sample) <= 1f), "the tap is short and in range");
+        }
+
+        private static void CodeFieldsNeedTwoSignaturesThatAgree()
+        {
+            var one = GameHelper.Utils.CodeFieldSearch.Parse("field", "AA BB ^ ?? ?? ?? ?? CC", 4);
+            var two = GameHelper.Utils.CodeFieldSearch.Parse("field", "DD EE ^ ?? CC", 1);
+            var absent = GameHelper.Utils.CodeFieldSearch.Parse("field", "77 88 ^ ?? 99", 1);
+            byte[] Code(byte first, byte second) => new byte[] { 0xAA, 0xBB, first, 0, 0, 0, 0xCC, 0x11, 0xDD, 0xEE, second, 0xCC };
+            Equal(0x40, GameHelper.Utils.CodeFieldSearch.Agreed(Code(0x40, 0x40), new[] { one, two }), "two agree");
+            Equal(0x40, GameHelper.Utils.CodeFieldSearch.Agreed(Code(0x40, 0x40), new[] { one, two, absent }), "a miss does not stop two that agree");
+            Equal(null, GameHelper.Utils.CodeFieldSearch.Agreed(Code(0x40, 0x48), new[] { one, two }), "two that differ say nothing");
+            Equal(null, GameHelper.Utils.CodeFieldSearch.Agreed(Code(0x40, 0x40), new[] { one, absent }), "one alone says nothing");
+            var doubled = Code(0x40, 0x40).Concat(Code(0x48, 0x40)).ToArray();
+            Equal(null, GameHelper.Utils.CodeFieldSearch.Agreed(doubled, new[] { one, two }), "a second hit voids a signature");
+
+            var biased = new CodeFieldEntry("Render.Bounds.Y", "RenderOffsets:CharactorModelBounds:4", 0x148, new[] { one, two });
+            Equal(0x3C, CodeFieldCatalog.Read(Code(0x40, 0x40), new[] { biased })[0].Found, "the bias comes off");
+            Equal("CharactorModelBounds", biased.Field, "the field");
+            Equal("RenderOffsets", biased.Struct, "the struct");
+        }
+
+        private static void CodeFieldCatalogParses()
+        {
+            var lines = new[]
+            {
+                "# a comment",
+                "Player.Level\tPlayerOffsets:Level\t0x204\t4\tAA ^ ?? ?? ?? ?? BB\tCC ^ ?? ?? ?? ?? DD",
+                "Targetable.IsTargeted\tlayout:IsTargeted\t0x6b\t1\tAA ^ ?? BB\tCC ^ ?? DD",
+                "Shrine.IsUsed\treport\t0x24\t1\tAA ^ ?? BB\tCC ^ ?? DD",
+                "broken\tPlayerOffsets:Level\t204\t4\tAA ^ ?? BB",
+                "short\treport",
+            };
+            var entries = CodeFieldCatalog.Parse(lines);
+            Equal(3, entries.Count, "comments and broken lines are left out");
+            Equal(0x204, entries[0].Value, "the value");
+            Equal(2, entries[0].Signatures.Count, "the signatures");
+            Equal("IsTargeted", entries[1].Layout, "a plugin offset");
+            Equal(null, entries[1].Struct, "not a host struct");
+            Equal(true, entries[2].IsReport, "only told");
+
+            var directory = AppContext.BaseDirectory;
+            while (!System.IO.File.Exists(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", "code-fields.txt")))
+            {
+                directory = System.IO.Path.GetDirectoryName(directory)!;
+            }
+
+            var shipped = CodeFieldCatalog.Parse(System.IO.File.ReadLines(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", "code-fields.txt")));
+            Equal(39, shipped.Count, "every shipped line parses");
+            Equal(true, shipped.All(entry => entry.Signatures.Count >= 2), "two can agree on each");
         }
 
         private static void ObjectsPlayTheSoundTheGameGivesThem()

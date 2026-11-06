@@ -805,10 +805,10 @@ index 0000000..83c861f
 +}
 diff --git a/GameHelper/Utils/CodeFieldSearch.cs b/GameHelper/Utils/CodeFieldSearch.cs
 new file mode 100644
-index 0000000..02d4d32
+index 0000000..fae8b72
 --- /dev/null
 +++ b/GameHelper/Utils/CodeFieldSearch.cs
-@@ -0,0 +1,153 @@
+@@ -0,0 +1,178 @@
 +// <copyright file="CodeFieldSearch.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -847,6 +847,9 @@ index 0000000..02d4d32
 +        private const int SectionRawAt = 20;
 +        private const string CodeSection = ".text";
 +
++        /// <summary>Signatures that must agree: a single hit can be another function's lookalike.</summary>
++        private const int MinAgreeing = 2;
++
 +        /// <summary>A pattern as "48 8B 88 ^ ?? ?? ?? ?? 48 8B 11", the mark before the operand.</summary>
 +        public static CodeField Parse(string name, string pattern, int size = sizeof(int))
 +        {
@@ -859,6 +862,28 @@ index 0000000..02d4d32
 +                bytes.Select(token => token != AnyByte).ToArray(),
 +                operand,
 +                size);
++        }
++
++        /// <summary>The value at least two of the sequences read, when none that hit says otherwise; null otherwise.</summary>
++        public static int? Agreed(ReadOnlySpan<byte> code, IReadOnlyList<CodeField> fields)
++        {
++            int? value = null;
++            var agreeing = 0;
++            foreach (var field in fields)
++            {
++                if (Read(code, field) is { } read)
++                {
++                    if (value is { } known && known != read)
++                    {
++                        return null;
++                    }
++
++                    value = read;
++                    agreeing++;
++                }
++            }
++
++            return agreeing >= MinAgreeing ? value : null;
 +        }
 +
 +        /// <summary>The offset the code holds, when the sequence appears exactly once; null otherwise, as a second hit could be anything.</summary>
@@ -1044,10 +1069,10 @@ index 0000000..0691ab9
 +}
 diff --git a/GameHelper/Utils/OffsetHealer.cs b/GameHelper/Utils/OffsetHealer.cs
 new file mode 100644
-index 0000000..4cac902
+index 0000000..4a5c192
 --- /dev/null
 +++ b/GameHelper/Utils/OffsetHealer.cs
-@@ -0,0 +1,459 @@
+@@ -0,0 +1,526 @@
 +// <copyright file="OffsetHealer.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -1123,6 +1148,9 @@ index 0000000..4cac902
 +        };
 +
 +        private static readonly Dictionary<Type, RemapSegment[]> Healed = new();
++
++        /// <summary>Which segments the code placed, so a later build's reading replaces them and a live one is left alone.</summary>
++        private static readonly Dictionary<Type, HashSet<int>> FromCode = new();
 +
 +        /// <summary>Checks every struct with something live to judge it on; call on the render thread.</summary>
 +        public static IReadOnlyList<StructOutcome> Sweep()
@@ -1202,6 +1230,70 @@ index 0000000..4cac902
 +            {
 +                Remap(typeof(EntityOffsets), StructRemapper.Segments(new[] { new RemapSegment(MeasuredEntityId, found - MeasuredEntityId) }));
 +            }
++        }
++
++        /// <summary>
++        ///     Puts a struct's fields where the game's code reads them (<see cref="CodeFieldSearch"/>). A segment a live
++        ///     judgment placed stays: what memory shows beats what the code suggests.
++        /// </summary>
++        /// <param name="structName">The <c>GameOffsets</c> struct.</param>
++        /// <param name="fields">Each field, where the signatures were made for it, and where the code reads it now.</param>
++        /// <returns>
++        ///     Each field's outcome; null, moving nothing, when a field is unknown or not where its signatures were made:
++        ///     a wrong line in the catalog must not move a right field.
++        /// </returns>
++        public static IReadOnlyList<StructOutcome>? PlaceFromCode(string structName, IReadOnlyList<(string Field, int Expected, int Found)> fields)
++        {
++            if (typeof(EntityOffsets).Assembly.GetTypes().FirstOrDefault(type => type.Name == structName) is not { } structType)
++            {
++                return null;
++            }
++
++            var outcomes = new List<StructOutcome>(fields.Count);
++            var placed = new List<RemapSegment>(fields.Count);
++            foreach (var (field, expected, found) in fields)
++            {
++                if (OffsetOfPath(structType, field) is not { } measured || measured != expected)
++                {
++                    return null;
++                }
++
++                placed.Add(new RemapSegment(measured, found - measured));
++                outcomes.Add(new StructOutcome(field, found == measured ? StructHealth.Intact : StructHealth.Moved, measured, found, string.Empty));
++            }
++
++            lock (Healed)
++            {
++                var kept = Healed.TryGetValue(structType, out var segments) ? segments : Array.Empty<RemapSegment>();
++                var fromCode = FromCode.TryGetValue(structType, out var known) ? known : new HashSet<int>();
++                var live = kept.Where(segment => !fromCode.Contains(segment.From)).ToList();
++                var wanted = placed.Where(segment => live.All(other => other.From != segment.From)).ToList();
++                if (wanted.Any(segment => segment.Shift != 0) || fromCode.Count > 0)
++                {
++                    FromCode[structType] = wanted.Select(segment => segment.From).ToHashSet();
++                    Remap(structType, StructRemapper.Segments(live.Concat(wanted).OrderBy(segment => segment.From)));
++                }
++            }
++
++            return outcomes;
++        }
++
++        /// <summary>A field's place in a struct, through the nested structs of a dotted path; null when there is no such field.</summary>
++        private static int? OffsetOfPath(Type structType, string path)
++        {
++            var offset = 0;
++            foreach (var name in path.Split('.'))
++            {
++                if (structType.GetField(name) is not { } field)
++                {
++                    return null;
++                }
++
++                offset += Marshal.OffsetOf(structType, name).ToInt32();
++                structType = field.FieldType;
++            }
++
++            return offset;
 +        }
 +
 +        /// <summary>Sets where a struct's fields moved.</summary>

@@ -145,6 +145,32 @@ out in 5 shapes. Upstream's patterns changed registers twice (`4C 8B 06` to
 0x148 in 0.5.5) while offsets moved in five patches, so code shape often survives; but those six are short and hand-picked, which bounds
 nothing for field-reading code. `GameProcess.cs:344` treats every hit as RIP-relative, so reading a field would need a second list.
 
+### In use since 2026-11-06
+
+A second study made 137 signatures for 55 fields ([evidence/code-fields-0.5.5f.json](evidence/code-fields-0.5.5f.json)); 39 lines of
+them went into `catalog/code-fields.txt` ([how they are used](../compatibility.md#read-from-the-games-code)). Its new anchors: 29
+per-component debug dumps labelled in the exe (`=== Player ===`, `Experience: `, `Chest open: `, `Team: `) and the `.ot` key parsers
+(`charges_per_use`, `max_stack_size`, `large`). Each pattern hits once in `.text` in all five builds, reads the right value, and wildcards
+only operands. 6 of the 45 earlier signatures keep operand bytes fixed, because capstone misreports a displacement after a 66 prefix;
+these decode ModRM.
+
+Control, on signatures built from 0.5.5f alone and not picked to pass:
+
+| Sample | Sites | Still one hit | Gone | Many hits |
+|---|---|---|---|---|
+| Random field reads, two months | 813 | about 99% | 1.1% | 0.1% |
+| Functions that changed, two months | about 1,300 | 81 to 83% | 16 to 18% | 0.2 to 0.4% |
+| Functions that changed, hotfix | 328 | 96.6% | 3.4% | 0 |
+
+1.6 to 2.4% of 108,000 functions changed shape between builds, 0.9% on the hotfix. So expect one signature in five to miss in a changed
+function, which is safe. The risk is a wrong value: about 5.5% of single hits in changed functions read another operand, some certainly
+real moves, not all provable. That is why two from different functions must agree and a live judgment wins. All five builds are one
+two-month line, and upstream's jump from March to May rewrote all six of its patterns, so none of this speaks for a major patch.
+
+The study also corrected the structs: `IsStrongbox` reads +0x50 where the code reads the key at +0x48 (the other half of it, so it works),
+`IsLabelVisible` is the `.ot` key `large`, and Transitionable is a byte with a separate flag at +0x121, which the C# `short` mixes.
+`UnscaledSize` 0x270, `BackgroundColor` 0x28C and `StringIdPtr` 0x128 are stale upstream fields; the mod reads none of them.
+
 ## How far it goes
 
 | Approach | Changed registers | Changed inlining | Cost |

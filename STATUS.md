@@ -403,6 +403,7 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
+First (2026-11-06, morning): the user hears the objects' own sounds in play (`object-sounds`; 617 objects, none heard by ear: the lookup was proved live on real entities with boulders standing in, and the levels measured), and reads `Code fields: 39 of 39 read` on the next patch.
 After each patch: `py -B -I tools/exe_reader/reader.py`, keep its output in `docs/research/evidence/`, and if the user can get old exes, run it on them: that is what would decide whether a run-time reader is worth a decoder dependency ([study](docs/research/exe-layouts.md#what-would-measure-it)).
 First (2026-11-06, night): the user hears the dodge warning on Faridun Olroth's `MoltenSlam` and Doryani's beam, calm until now, and Rage on a character that has it (the keys were checked live, Rage itself was not: no such character). `AnimationFieldSearch` and `JudgeReaction` were each simulated live.
 First (2026-11-06, 0.5.5f, released as v2026.11.06-2, checked from Steam through the launcher's own update): the user hears everything again in play; it was all driven by the bot, sounds counted with the `sounds` dev command. Not exercised that night: Frozen Locus's crystal, parry, unblockable and harmful ground cues, a trade with a player. On the next real game patch, watch the log's "Layout:" and "Struct sweep" lines: that is the first true test of the searches on a patch not seen while writing them.

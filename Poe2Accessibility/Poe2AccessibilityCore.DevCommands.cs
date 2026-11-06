@@ -479,12 +479,74 @@ namespace Poe2Accessibility
                         this.worldLayout.GameBuild = $"{file.Length}:{file.LastWriteTimeUtc.Ticks}";
                     }
 
+                    this.CheckCodeFields(path);
                     this.log?.Info($"Game build: {path}, {file.Length} bytes, written {file.LastWriteTimeUtc:yyyy-MM-dd HH:mm} UTC");
                 }
             }
             catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception)
             {
                 this.log?.Debug($"Game build unreadable: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        ///     Reads where the game's code holds the fields no live check judges, and follows what moved: a patch that
+        ///     moved one would otherwise read wrong in silence. Before the first area, so a live judgment comes after.
+        /// </summary>
+        private void CheckCodeFields(string exe)
+        {
+            try
+            {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                var entries = CodeFieldCatalog.Parse(File.ReadLines(Path.Join(this.DllDirectory, "catalog", CodeFieldFile)));
+                var file = File.ReadAllBytes(exe);
+                var (start, length) = GameHelper.Utils.CodeFieldSearch.CodeOf(file);
+                var read = CodeFieldCatalog.Read(file.AsSpan(start, length), entries);
+                var moved = new System.Collections.Generic.List<string>();
+                var stuck = false;
+                foreach (var group in read.Where(field => field.Found != null && field.Entry.Struct != null).GroupBy(field => field.Entry.Struct!))
+                {
+                    var fields = group.Select(field => (field.Entry.Field, field.Entry.Value - field.Entry.Bias, field.Found!.Value)).Distinct().ToList();
+                    if (GameHelper.Utils.OffsetHealer.PlaceFromCode(group.Key, fields) is not { } outcomes)
+                    {
+                        this.log?.Info($"Code fields: {group.Key} does not match the catalog, left where it is");
+                        continue;
+                    }
+
+                    moved.AddRange(outcomes.Where(outcome => outcome.Health == GameHelper.Utils.StructHealth.Moved)
+                        .Select(outcome => $"{group.Key}.{outcome.Name} +0x{outcome.From:X} to +0x{outcome.To:X}"));
+                }
+
+                foreach (var (entry, found) in read)
+                {
+                    if (found is not { } value || value == entry.Value)
+                    {
+                        continue;
+                    }
+
+                    if (entry.Layout is { } layout && LayoutFields.TryGetValue(layout, out var place))
+                    {
+                        place(value);
+                        moved.Add($"{entry.Name} +0x{entry.Value:X} to +0x{value:X}");
+                    }
+                    else if (entry.IsReport)
+                    {
+                        stuck = true;
+                        this.log?.Info($"Code fields: {entry.Name} moved from +0x{entry.Value:X} to +0x{value:X}, and nothing can follow it");
+                    }
+                }
+
+                var unsettled = read.Where(field => field.Found == null).Select(field => field.Entry.Name).ToList();
+                this.log?.Info($"Code fields: {read.Count - unsettled.Count} of {read.Count} read in {watch.ElapsedMilliseconds} ms; moved: {(moved.Count == 0 ? "none" : string.Join(", ", moved))}"
+                    + (unsettled.Count == 0 ? string.Empty : $"; not settled: {string.Join(", ", unsettled)}"));
+                if (stuck)
+                {
+                    this.compatibility?.Missing(CodeFieldsPart);
+                }
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
+            {
+                this.log?.Debug($"Code fields unread: {ex.Message}");
             }
         }
 

@@ -196,7 +196,7 @@ new dialogue categories and NPC types, new quest reward types, new keyword text,
 3. **Buff vocabulary check**: run `StatusAilments`/`EnemyStates`/`PlayerCharges` over every `BuffDefinitions` row and list unclassified-but-suspect ids by description; fix the 5 visible false positives.
 4. **QuestRewardType-driven reward names in all languages** (replaces 12 hand cases, covers 9 missing kinds).
 5. **Self-checks at start**: row size / row count of each table the extractor or the plugin assumes (Animation 0x6A, MinimapIcons 0x2A and 1,050, MonsterVarieties 0x406...) and presence of every hard-coded id (the 22 buff ids, the 6 icon names).
-6. **`.ot` structural classification** (components + base class + `MinimapIcon.icon` + `display_text`) to replace Breakables/Switches/Boss path words; needs a new extractor (data ready in `..\data-extract-ot`).
+6. **`.ot` structural classification** (components + base class + `MinimapIcon.icon` + `display_text`) to replace Switches/Boss path words; needs a new extractor. Not needed for breakables: `object-sounds` takes their sound from the Chests row's `.ao` files, and of 285 rows a word names only one disagreed with the game (`SnakeLadyPotionChest`).
 7. **NPCTalkCategory / NPCType** set as the closed list of dialogue kinds to cover; new rows are new window types.
 8. Keep hand lists only where no source exists (map-hints, landmarks, DeployedObjects), but validate their keys against `.tdt`/`.ot` paths and `WorldAreas` ids on each patch.
 

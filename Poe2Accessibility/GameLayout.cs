@@ -186,21 +186,21 @@ namespace Poe2Accessibility
             /// <summary>Where the cooldowns stand in this build (<see cref="MeasuredCooldownsOffset"/> plus what the struct sweep found).</summary>
             public static int CooldownsOffset { get; internal set; } = MeasuredCooldownsOffset;
 
-            public const int CooldownEntrySize = 0x48;
+            public static int CooldownEntrySize { get; internal set; } = 0x48;
 
             /// <summary>Cooldown entry: std::vector of the uses now recharging, one 16-byte element each.</summary>
-            public const int CooldownUsesOffset = 0x10;
+            public static int CooldownUsesOffset { get; internal set; } = 0x10;
 
             public const int CooldownUseSize = 0x10;
 
             /// <summary>Cooldown entry: int32 uses the skill holds; with that many recharging it cannot be used.</summary>
-            public const int CooldownMaxUsesOffset = 0x30;
+            public static int CooldownMaxUsesOffset { get; internal set; } = 0x30;
 
             /// <summary>Cooldown entry: int32 the cooldown's length, ms (research only).</summary>
-            public const int CooldownTimeOffset = 0x34;
+            public static int CooldownTimeOffset { get; internal set; } = 0x34;
 
             /// <summary>Cooldown entry: uint32 id of its skill, the one at <see cref="SkillSlot.SkillIdOffset"/>.</summary>
-            public const int CooldownSkillIdOffset = 0x3C;
+            public static int CooldownSkillIdOffset { get; internal set; } = 0x3C;
         }
 
         /// <summary>Entity Render component.</summary>
@@ -458,7 +458,7 @@ namespace Poe2Accessibility
             public const int SkillDetailsOffset = 0x2D8;
 
             /// <summary>ActiveSkillDetails: uint32 id of the skill (GameHelper UnknownIdAndEquipmentInfo, 0x80401040), its cooldown entry's key.</summary>
-            public const int SkillIdOffset = 0x40;
+            public static int SkillIdOffset { get; internal set; } = 0x40;
 
             /// <summary>A dat foreign key is (row, file); the file's table name is a std::wstring at file+8.</summary>
             public const int KeyFileOffset = 0x8;
@@ -466,7 +466,7 @@ namespace Poe2Accessibility
             public const int FileNameOffset = 0x8;
 
             /// <summary>ActiveSkillDetails → GrantedEffectsPerLevel (GameHelper's +0x48 reads ActionTypes in 0.5.5e).</summary>
-            public const int LevelKeyOffset = 0x58;
+            public static int LevelKeyOffset { get; internal set; } = 0x58;
 
             public const string LevelTable = "Data/Balance/GrantedEffectsPerLevel.dat";
 
@@ -564,7 +564,7 @@ namespace Poe2Accessibility
         /// </summary>
         public static class MinimapIconRow
         {
-            public const int ComponentRowOffset = 0x20;
+            public static int ComponentRowOffset { get; internal set; } = 0x20;
 
             /// <summary>Row size of MinimapIcons.datc64 (1049 rows of 0x2A bytes, 0.5.5e); the rows sit back to back in memory.</summary>
             public const int RowSize = 0x2A;

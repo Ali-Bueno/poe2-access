@@ -200,6 +200,24 @@ the class list the only key list into Characters, the per-level effect key the k
 GrantedEffects row, and the ActiveSkills key the one whose target Ids appear inside the effect Ids (0.5.5e: 1160 rows,
 the next column 41). A PassiveSkills column a launcher did not write follows the name's shift.
 
+## Read from the game's code
+Some fields have nothing in memory to recognise them by: a level, an opened flag, a rarity. `catalog/code-fields.txt` holds 39
+of them with the machine code that reads each, wildcarded so only the operand is taken (`CodeFieldCatalog`, `CodeFieldSearch`,
+called from `CheckCodeFields`; 0.6 s at attach, on the exe on disk, nothing touches the game). A value counts only when two
+sequences hit exactly once and agree; a miss keeps the constant, and a miss is the usual result for a function a patch
+recompiled. What the code settles:
+
+- a host struct field moves through `OffsetHealer.PlaceFromCode`, unless a live judgment already placed it, because memory beats code;
+- a plugin offset (`layout:`, `LayoutFields`) is set;
+- a `report` field, read where a remap does not reach, is only said ("parte de los datos del juego").
+
+`PlaceFromCode` refuses a field that is not where its signatures were made: when the first run flagged a move on the unchanged
+build, it was a wrong line in the catalog (the plugin's skill key is +0x58, the host's +0x48 is another field), so a wrong line
+must move nothing. **After changing a `FieldOffset` these fields use, update the value in the catalog**, and on any new build
+read the line `Code fields: 39 of 39 read in … ms; moved: none`. Simulated 2026-11-06: `PlayerOffsets.Level` at +0x20C went
+back to +0x204 and the level read 19; `Shrine.IsUsed` off by 8 gave the spoken warning. None of these fields has moved in a
+real patch yet, so this is proved on simulations and on five past builds that all read the same.
+
 ## After a real patch
 The first patch after this work landed by chance at 02:42 on 2026-11-06, with nothing prepared for it: a 73 MB hotfix that moved no
 field. The mod said "El juego se ha actualizado: el mod lo ha encontrado todo", the sweep read 17 intact and 0 lost, and enemies, gold and
@@ -219,15 +237,19 @@ the radar sounded. `tools/exe_reader/reader.py` tells what moved from the exe al
 - Run the `layout` self-test (above) and a short session through login, a menu, the inventory and a fight.
 
 ## What a search cannot recover
-Asked 2026-10-24 to leave nothing fragile; since 2026-10-25 every field the plugin reads from the game has a check
-(above), and each was judged live. What remains is by design:
+Asked 2026-10-24 to leave nothing fragile. This section used to say every field the plugin reads has a check; an audit on
+2026-11-06 showed it did not. The code signatures above cover most of that list. Still with no check of any kind: the
+walkable grid's meaning, `ModelBounds` +0x144 (one read in the code, so two cannot agree), Poise 0x4E4/0x4E8, `WorldArea`
+Act (IsTown falls back on the Id), `Characters` Id and Name, the name columns of BaseItemTypes (0x20) and MonsterVarieties
+(0x110), dat columns read by offset in the extractors (a table that collapses is refused, a shifted column is not), and
+`ButtonMenu`, `NodeInBuildOffset`, `PlayerStride`, `TextColorOffset`. What else remains is by design:
 
 - A search finds a field moved near where it was measured (within 0x40 to 0x100 bytes, or a bit renumbered), one
   change at a time; a field moved farther, or two fields of one judgment moved at once, is reported lost.
 - Parts whose evidence is rare are judged late: the quest marker needs an NPC that shows one, check boxes and
   selectable lists a change by the player; the enabled bit is only noticed lost.
-- Fields with nothing to recognise them by are not followed: `TerrainStruct`'s inside (never moved so far), the cooldown entries'
-  inner fields. `Update-GameHelper.ps1` brings upstream's value.
+- Fields with nothing to recognise them by and no signature are not followed: `TerrainStruct`'s inside (never moved so far).
+  `Update-GameHelper.ps1` brings upstream's value.
 - A structure redesigned rather than shifted (a component split in two, a list that becomes a map): its readings stop and the mod
   says so. No search can promise more; what it promises is that the common patch costs nothing, and that the rest is heard, not
   guessed from silence.

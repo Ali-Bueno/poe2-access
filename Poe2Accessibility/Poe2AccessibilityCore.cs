@@ -41,6 +41,23 @@ namespace Poe2Accessibility
         private const string AnimationTable = "animation";
         private const string NamedKindsPart = "effect names";
         private const string GameDataPart = "game data";
+        private const string CodeFieldsPart = "code fields";
+        private const string CodeFieldFile = "code-fields.txt";
+
+        /// <summary>The plugin's own offsets the game's code can place (catalog/code-fields.txt, <c>layout:</c>).</summary>
+        private static readonly System.Collections.Generic.Dictionary<string, Action<int>> LayoutFields = new()
+        {
+            ["IsTargetable"] = value => GameLayout.TargetableComponent.IsTargetableOffset = value,
+            ["IsTargeted"] = value => GameLayout.TargetableComponent.IsTargetedOffset = value,
+            ["MinimapIconComponentRow"] = value => GameLayout.MinimapIconRow.ComponentRowOffset = value,
+            ["SkillId"] = value => GameLayout.SkillSlot.SkillIdOffset = value,
+            ["SkillLevelKey"] = value => GameLayout.SkillSlot.LevelKeyOffset = value,
+            ["CooldownUses"] = value => GameLayout.ActorComponent.CooldownUsesOffset = value,
+            ["CooldownMaxUses"] = value => GameLayout.ActorComponent.CooldownMaxUsesOffset = value,
+            ["CooldownTime"] = value => GameLayout.ActorComponent.CooldownTimeOffset = value,
+            ["CooldownSkillId"] = value => GameLayout.ActorComponent.CooldownSkillIdOffset = value,
+            ["CooldownEntrySize"] = value => GameLayout.ActorComponent.CooldownEntrySize = value,
+        };
 
         private WorldLayoutWatch? worldLayout;
         private string? gameNewsLine;

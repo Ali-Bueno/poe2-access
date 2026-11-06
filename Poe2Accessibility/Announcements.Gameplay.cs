@@ -823,6 +823,7 @@ namespace Poe2Accessibility
             "stats" => T("your stats", "tus estadísticas"),
             "game data" => T("part of the game's data after its update, so some warnings may be out of date", "parte de los datos del juego tras su actualización, así que algunos avisos pueden estar desfasados"),
             "cooldowns" => T("when your skills are ready", "cuándo están listas tus habilidades"),
+            "code fields" => T("some of the game's data, so some readings may be wrong", "parte de los datos del juego, así que alguna lectura puede ser errónea"),
             "effect names" => T("some effects by their name, so they stay silent", "algunos efectos por su nombre, así que no sonarán"),
             "reaction" => T("who is an enemy and who is not, so enemies may stay silent", "quién es enemigo y quién no, así que los enemigos pueden no sonar"),
             "animations" => T("what enemies are doing, so dodge and shield warnings stay silent", "lo que hacen los enemigos, así que los avisos de esquivar y de escudo no sonarán"),

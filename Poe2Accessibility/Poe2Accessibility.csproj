@@ -60,6 +60,7 @@
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\experience.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\experience.json')" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\dodge-timings.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\dodge-timings.txt')" />
     <!-- The Ids of the tables a player meets, to tell what a patch added (tools/Poe2UiExtract game-keys). -->
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\code-fields.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\game-keys.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\game-keys.txt')" />
     <!-- The game's numbers for animations and stats (tools/Poe2UiExtract game-ids). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\game-ids.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\game-ids.txt')" />
