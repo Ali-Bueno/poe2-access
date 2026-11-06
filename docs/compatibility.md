@@ -56,7 +56,7 @@ el mod lo ha encontrado todo" (`config/game-build.txt`).
   moved. Only then is it searched, as the first byte around it that says friend for the player and foe for four monsters in five.
   The first, because a byte 0x1B after it reads the same on both (+0x1FB) and the nearest would take that one after a shift back.
   A crowd of minions cannot trigger it, as nothing but the player does. A wrong byte here would hide every enemy behind `IsFriendly`.
-  The rule was checked against real bytes (21 monsters); the live repair still needs five awake monsters to run through.
+  Simulated: the constant set to +0x1E8 came back to +0x1E0 on arriving among monsters, 93 ms after the area loaded.
 
 **Why not only the verifier:** a simulated patch (compile-time offsets shifted by 8 and by -0x18, the same as the game moving
 them) showed it spotting Life, Buffs and Actor but calling their repairs ambiguous, and not seeing Render at all: the player
