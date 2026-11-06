@@ -60,6 +60,11 @@ namespace Poe2Accessibility
             ["CooldownTime"] = value => GameLayout.ActorComponent.CooldownTimeOffset = value,
             ["CooldownSkillId"] = value => GameLayout.ActorComponent.CooldownSkillIdOffset = value,
             ["CooldownEntrySize"] = value => GameLayout.ActorComponent.CooldownEntrySize = value,
+            ["PoiseThreshold"] = value => GameLayout.ActorComponent.PoiseThresholdOffset = value,
+            ["Poise"] = value => GameLayout.ActorComponent.PoiseOffset = value,
+            ["NodeInBuild"] = value => GameLayout.PassiveTree.NodeInBuildOffset = value,
+            ["ButtonMenuIndex"] = value => GameLayout.ButtonMenu.SelectedIndexOffset = value,
+            ["PlayerStride"] = value => GameLayout.UiManager.PlayerStride = value,
         };
 
         private WorldLayoutWatch? worldLayout;

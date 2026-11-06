@@ -47,6 +47,9 @@ namespace Poe2Accessibility.Services
         private const string HexPrefix = "0x";
         private const int FirstSignature = 4;
 
+        /// <summary>Fields have moved by a few bytes at a time; a value this far off is a hit on something else.</summary>
+        private const int MaxMove = 0x400;
+
         /// <summary>The entries of the file; a line that does not parse is left out.</summary>
         public static IReadOnlyList<CodeFieldEntry> Parse(IEnumerable<string> lines)
         {
@@ -77,7 +80,7 @@ namespace Poe2Accessibility.Services
             foreach (var entry in entries)
             {
                 var found = CodeFieldSearch.Agreed(code, entry.Signatures);
-                read.Add((entry, found - entry.Bias));
+                read.Add((entry, found is { } value && Math.Abs(value - entry.Value) <= MaxMove ? value - entry.Bias : null));
             }
 
             return read;

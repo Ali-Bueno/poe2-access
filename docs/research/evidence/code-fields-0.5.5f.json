@@ -1125,5 +1125,235 @@
    "26473991": "0x310",
    "26476662": "0x310"
   }
+ },
+ {
+  "field": "Actor.PoiseThreshold",
+  "struct": "(GameLayout.ActorComponent)",
+  "csfield": "PoiseThresholdOffset",
+  "value": "0x4e4",
+  "size": 4,
+  "patterns": [
+   "48 8B F1 49 6B DE ?? 44 8B BC 0B ^ ?? ?? ?? ?? 45 85 FF",
+   "66 0F 6E 84 29 ^ ?? ?? ?? ?? 0F 5B C9 0F 5B C0 F3 0F 5E C8",
+   "48 85 C0 74 ?? 8B 90 ^ ?? ?? ?? ?? 8B CA 2B 88 ?? ?? ?? ?? 85 C9"
+  ],
+  "proof": "B",
+  "site": "Actor+0x4D8 array, entry 0. 0x1e56e50(actor, index): rbx=index*0x1C, [rbx+this+0x4E4] must be >0, then [rbx+this+0x4E8]*100/threshold against a percentage set by rarity (ObjectMagicProperties+0x144). 0x19c0d60: GetComponent<Actor>, loop over indexes 0-2, imul 0x1C, buildup/threshold. 0x1b88220: GetComponent<Actor>, if threshold>buildup then buildup=threshold, timer +0x4F0=+0x4DC. 0x1e57ac0 clamps buildup+hit to 0..threshold. No text names the threshold itself: it is proved as the cap and divisor of the buildup. Functions in 0.5.5f (26476662): 0x19c0d60, 0x1b88220, 0x1e56e50; hits at 0x1e56e65, 0x19c0dc9, 0x1b88533",
+  "values_by_build": {
+   "25244054": "0x4e4",
+   "25740136": "0x4e4",
+   "26261440": "0x4e4",
+   "26473991": "0x4e4",
+   "26476662": "0x4e4"
+  }
+ },
+ {
+  "field": "Actor.Poise",
+  "struct": "(GameLayout.ActorComponent)",
+  "csfield": "PoiseOffset",
+  "value": "0x4e8",
+  "size": 4,
+  "patterns": [
+   "48 85 C0 0F 84 ?? ?? ?? ?? 66 0F 6E 90 ^ ?? ?? ?? ?? 0F 5B D2",
+   "74 ?? 0F B6 C3 48 6B C8 ?? 66 0F 6E 8C 29 ^ ?? ?? ?? ??",
+   "8B CA 2B 88 ^ ?? ?? ?? ?? 85 C9 7E ?? 85 D2 41 0F 48 D4"
+  ],
+  "proof": "A",
+  "site": "0x28c400 is slot 45 of vtable 0x2faf180, set by ctor 0x28b610, which loads Art/2DArt/UIImages/InGame/HUD/PlayerPoiseBarFill: GetComponent<Actor> of its entity, [rax+0x4E8] as float, divided by the bar's maximum, clamped 0..1, sent to the fill. 0x19c0d60 and 0x1b88220 as for the threshold.. Functions in 0.5.5f (26476662): 0x28c400, 0x19c0d60, 0x1b88220; hits at 0x28c430, 0x19c0dc0, 0x1b8853b",
+  "values_by_build": {
+   "25244054": "0x4e8",
+   "25740136": "0x4e8",
+   "26261440": "0x4e8",
+   "26473991": "0x4e8",
+   "26476662": "0x4e8"
+  }
+ },
+ {
+  "field": "PassiveTree.NodeInBuild",
+  "struct": "(GameLayout.PassiveTree)",
+  "csfield": "NodeInBuildOffset",
+  "value": "0x70c",
+  "size": 4,
+  "patterns": [
+   "84 D2 0F 84 ?? ?? ?? ?? 0F 57 C0 0F 11 81 ?? ?? ?? ?? 80 B9 ^ ?? ?? ?? ??",
+   "48 8B 58 ?? 48 85 DB 74 ?? 80 BB ?? ?? ?? ?? ?? 74 ?? C6 83 ^ ?? ?? ?? ??",
+   "41 80 BF ^ ?? ?? ?? ?? ?? 75 ?? 49 8B 87 ?? ?? ?? ?? 48 8B 08 48 85 C9"
+  ],
+  "proof": "A",
+  "site": "0x9f5da0(node, on): sets +0x70C to on, then walks the active build's passive entries (0x40 bytes) for the one whose key equals [[node+0x2C8]] (the PassiveSkills key) and copies entry+0x10/+0x14 to node+0x6FC/+0x700 only while +0x70C is set. Those entry fields are filled by the .build JSON parser from keys 'weapon_set' (0x166d694: +0x10, flag +0x11) and 'level_interval' (+0x14; the node reads its flag at +0x1C); 'passives' at 0x166f4c5. Called with dl=1 from a loop over 0x40-byte entries at 0xa40a80 and 0xa40db0. 0x9b92a0 clears it across a list of nodes; 0x9b0de0 reads it with [same reg+0x2C8]; node ctor 0x9f2a70 zeroes it. Functions in 0.5.5f (26476662): 0x9b0de0, 0x9b92a0, 0x9f5da0; hits at 0x9f5dd0, 0x9b9a35, 0x9b197e",
+  "values_by_build": {
+   "25244054": "0x70c",
+   "25740136": "0x70c",
+   "26261440": "0x70c",
+   "26473991": "0x70c",
+   "26476662": "0x70c"
+  }
+ },
+ {
+  "field": "ButtonMenu.SelectedIndex",
+  "struct": "(GameLayout.ButtonMenu)",
+  "csfield": "SelectedIndexOffset",
+  "value": "0x348",
+  "size": 4,
+  "patterns": [
+   "49 8B 8A ^ ?? ?? ?? ?? 48 2B C2 48 C1 F8 ?? 48 3B C8",
+   "4C 8B 81 ^ ?? ?? ?? ?? 48 2B C2 48 C1 F8 ?? 4C 3B C0",
+   "48 89 04 24 0F 10 04 24 0F 11 81 ^ ?? ?? ?? ?? 48 83 C4"
+  ],
+  "proof": "A",
+  "site": "Base class (ctor 0x2815dc0) whose methods sit in five vtables, among them vtable 0x3104150 of the class built by ctor 0xc3c880 and named 'PlayerContextMenu' at 0xf9ab78 and 0x2d2084. 0x2817e70, its input handler, only while a global input-mode byte is 2: buttons=[+0x358,+0x360), index=[+0x348] if [+0x350] is set, buttons[index] goes to 0x28185c0. 0x2818090 moves it: dec, inc, clamp. 0x28186c0 sets it to 0 on first use and clamps it to count-1; 0x28181a0 passes buttons[index] to the UiManager (+0x90) method 0x278b660. A std::optional<size_t>: 8-byte index, has-value byte at +0x350. Functions in 0.5.5f (26476662): 0x2817e70, 0x28181a0, 0x28186c0; hits at 0x2817ee6, 0x28181ca, 0x2818722",
+  "values_by_build": {
+   "25244054": "0x348",
+   "25740136": "0x348",
+   "26261440": "0x348",
+   "26473991": "0x348",
+   "26476662": "0x348"
+  }
+ },
+ {
+  "field": "UiManager.PlayerStride",
+  "struct": "(GameLayout.UiManager)",
+  "csfield": "PlayerStride",
+  "value": "0x240",
+  "size": 4,
+  "patterns": [
+   "49 8B C7 BE ^ ?? ?? ?? ?? 48 0F AF F0 49 8B 0C 24",
+   "48 81 C7 ^ ?? ?? ?? ?? 49 3B FE 0F 85 ?? ?? ?? ?? 0F 28 74 24",
+   "48 81 C6 ^ ?? ?? ?? ?? 48 3B F5 0F 85 ?? ?? ?? ?? 48 8B 6C 24"
+  ],
+  "proof": "B",
+  "site": "UiManager destructor 0x2785b10 (it clears root +0x688) destroys an array at +0x740: edx=0x240 size, r8d=2 count, element destructor. 0x2794510: mov esi,0x240; imul rsi,index; [rsi+this+0x748], the focused element. 0x27863a0 and 0x2794420: rdi=this+0x740, end=rdi+0x480, add rdi,0x240. So two 0x240-byte records from +0x740; player 1 current +0x748 is record 0 +8, player 2 +0x988 is record 1 +8. Functions in 0.5.5f (26476662): 0x27863a0, 0x2794420, 0x2794510; hits at 0x2794582, 0x27865d2, 0x27944e9",
+  "values_by_build": {
+   "25244054": "0x240",
+   "25740136": "0x240",
+   "26261440": "0x240",
+   "26473991": "0x240",
+   "26476662": "0x240"
+  }
+ },
+ {
+  "field": "Terrain.TotalTiles",
+  "struct": "TerrainStruct",
+  "csfield": "TotalTiles",
+  "value": "0x18",
+  "size": 1,
+  "patterns": [
+   "44 8B 52 ?? 45 85 D2 78 ?? 6B 41 ^ ?? ?? 44 3B D8",
+   "8B C2 48 0F AF 41 ^ ?? 44 8B D2 49 03 C3",
+   "0F 4C 74 24 ?? 45 85 D2 78 ?? 85 F6 78 ?? 6B 47 ^ ??"
+  ],
+  "proof": "A",
+  "site": "Relative to TerrainStruct (this), not AreaInstance. Grid lookup 0x1d1a980, reached from GEAL IsWalkable (table row 0x444b9a0, factory 0x203a7c0, vtable 0x3515a70 slot 2, call at 0x207598f): bounds x<[+0x18]*23, y<[+0x20]*23. Height lookup 0x1d19ef0: tile=y*[+0x18]+x (64-bit imul), element 0x38 bytes. 0x1d1b1a0 sizes the grids from it. Functions in 0.5.5f (26476662): 0x1d19ef0, 0x1d1a980, 0x1d1b1a0; hits at 0x1d1a994, 0x1d19f5f, 0x1d1baf8",
+  "values_by_build": {
+   "25244054": "0x18",
+   "25740136": "0x18",
+   "26261440": "0x18",
+   "26473991": "0x18",
+   "26476662": "0x18"
+  }
+ },
+ {
+  "field": "Terrain.TileDetailsPtr",
+  "struct": "TerrainStruct",
+  "csfield": "TileDetailsPtr",
+  "value": "0x28",
+  "size": 1,
+  "patterns": [
+   "48 6B F8 ?? 48 03 79 ^ ?? 48 8B 0F 48 85 C9",
+   "48 6B E9 ?? 49 03 68 ^ ?? 4D 8D B0 ?? ?? ?? ?? 49 8B CE",
+   "48 03 7E ^ ?? 4C 03 34 C8 48 39 2F 0F 84"
+  ],
+  "proof": "B",
+  "site": "Relative to TerrainStruct, not AreaInstance. Height lookup 0x1d19ef0: rdi=tile*0x38+[this+0x28], then [rdi] sub-tile, [rdi+0x36] rotation, [rdi+0x30] tile height: TileStructure exactly. 0x1d26e80 and 0x15ad1a0 index it the same way (imul 0x38 after y*[+0x18]+x). Functions in 0.5.5f (26476662): 0x15ad1a0, 0x1d19ef0, 0x1d26e80; hits at 0x1d19f6e, 0x1d26f04, 0x15ad59b",
+  "values_by_build": {
+   "25244054": "0x28",
+   "25740136": "0x28",
+   "26261440": "0x28",
+   "26473991": "0x28",
+   "26476662": "0x28"
+  }
+ },
+ {
+  "field": "Terrain.GridWalkableData",
+  "struct": "TerrainStruct",
+  "csfield": "GridWalkableData",
+  "value": "0xd0",
+  "size": 4,
+  "patterns": [
+   "41 0F B6 C0 48 8D 0C 40 4D 8B 84 C9 ^ ?? ?? ?? ??",
+   "48 8D 87 ^ ?? ?? ?? ?? 48 8B D8 4C 8D 70 ?? 49 3B C6",
+   "48 8D BE ^ ?? ?? ?? ?? 45 32 C0 45 8B F2 41 83 E6"
+  ],
+  "proof": "A",
+  "site": "Relative to TerrainStruct, not AreaInstance. Lookup 0x1d1a980 (GEAL IsWalkable): layer*0x18+0xD0 is a vector, cell=row*[+0x130]+x/2, nibble by x parity; 293 of 430 call sites pass layer 0. Terrain ctor 0x1d17a60 builds 4 vectors of 0x18 at +0xD0; grid builder 0x1d1b1a0 takes rax=this+0xD0, end rax+0x60. Functions in 0.5.5f (26476662): 0x1d1a980, 0x1d1b1a0, 0x1d1c040; hits at 0x1d1a9b4, 0x1d1b1f4, 0x1d1c493",
+  "values_by_build": {
+   "25244054": "0xd0",
+   "25740136": "0xd0",
+   "26261440": "0xd0",
+   "26473991": "0xd0",
+   "26476662": "0xd0"
+  }
+ },
+ {
+  "field": "Terrain.GridLandscapeData",
+  "struct": "TerrainStruct",
+  "csfield": "GridLandscapeData",
+  "value": "0xe8",
+  "size": 4,
+  "patterns": [
+   "0F 44 C2 EB ?? 4C 8D 97 ^ ?? ?? ?? ?? 32 C0 45 8B CF",
+   "0F 44 C2 EB ?? 4C 8D 9F ^ ?? ?? ?? ?? 32 C0 41 8B F2"
+  ],
+  "proof": "B",
+  "site": "Relative to TerrainStruct, not AreaInstance. Second of the four 0x18-byte vectors from +0xD0 (layer 1, 67 call sites of the lookup): 0x1d1b1a0 and 0x1d1c040 take its address and read the same row*[+0x130]+x/2 nibble. The code proves the place and shape, not that it means landscape: that name is upstream's, and the mod's live use is the sight layer. Functions in 0.5.5f (26476662): 0x1d1b1a0, 0x1d1c040; hits at 0x1d1bf01, 0x1d1c56e",
+  "values_by_build": {
+   "25244054": "0xe8",
+   "25740136": "0xe8",
+   "26261440": "0xe8",
+   "26473991": "0xe8",
+   "26476662": "0xe8"
+  }
+ },
+ {
+  "field": "Terrain.BytesPerRow",
+  "struct": "TerrainStruct",
+  "csfield": "BytesPerRow",
+  "value": "0x130",
+  "size": 4,
+  "patterns": [
+   "45 0F AF 91 ^ ?? ?? ?? ?? 41 8B C3 99 2B C2 BA ?? ?? ?? ?? D1 F8",
+   "89 8F ^ ?? ?? ?? ?? 0F AF C8 45 33 FF 4C 89 7C 24",
+   "0F AF 96 ^ ?? ?? ?? ?? D1 F8 03 C2 42 0F B6 14 00"
+  ],
+  "proof": "A",
+  "site": "Relative to TerrainStruct, not AreaInstance. Store at 0x1d1b1db in grid builder 0x1d1b1a0: ([+0x18]*23+1)>>1, two cells a byte. Lookup 0x1d1a980 (GEAL IsWalkable) multiplies y by it. Functions in 0.5.5f (26476662): 0x1d1a980, 0x1d1b1a0, 0x1d1c040; hits at 0x1d1a9c6, 0x1d1b1db, 0x1d1c452",
+  "values_by_build": {
+   "25244054": "0x130",
+   "25740136": "0x130",
+   "26261440": "0x130",
+   "26473991": "0x130",
+   "26476662": "0x130"
+  }
+ },
+ {
+  "field": "Terrain.TileHeightMultiplier",
+  "struct": "TerrainStruct",
+  "csfield": "TileHeightMultiplier",
+  "value": "0x134",
+  "size": 4,
+  "patterns": [
+   "0F BF 93 ^ ?? ?? ?? ?? 0F BF 4F ?? 0F AF D1 03 C2 48 8B 5C 24",
+   "49 8B 45 ?? 48 8B 48 ?? 0F B6 81 ?? ?? ?? ?? 66 89 83 ^ ?? ?? ?? ??",
+   "48 8B 48 ?? 0F B6 81 ?? ?? ?? ?? 66 89 83 ^ ?? ?? ?? ?? 48 8D 5F"
+  ],
+  "proof": "B",
+  "site": "Relative to TerrainStruct, not AreaInstance. Height lookup 0x1d19ef0: subtile height + (short)[this+0x134]*(short)[tile+0x30]. 0x1ffeda0 and 0x2001400 store a word there on the terrain object (rbx loaded from +0x28 of the builder, just bound-checked against [rbx+0x18] and [rbx+0x20]) from byte +0x14A of a level record. Functions in 0.5.5f (26476662): 0x1d19ef0, 0x1ffeda0, 0x2001400; hits at 0x1d19fa1, 0x1fff202, 0x2001773",
+  "values_by_build": {
+   "25244054": "0x134",
+   "25740136": "0x134",
+   "26261440": "0x134",
+   "26473991": "0x134",
+   "26476662": "0x134"
+  }
  }
 ]

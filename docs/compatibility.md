@@ -201,7 +201,7 @@ GrantedEffects row, and the ActiveSkills key the one whose target Ids appear ins
 the next column 41). A PassiveSkills column a launcher did not write follows the name's shift.
 
 ## Read from the game's code
-Some fields have nothing in memory to recognise them by: a level, an opened flag, a rarity. `catalog/code-fields.txt` holds 39
+Some fields have nothing in memory to recognise them by: a level, an opened flag, a rarity. `catalog/code-fields.txt` holds 50
 of them with the machine code that reads each, wildcarded so only the operand is taken (`CodeFieldCatalog`, `CodeFieldSearch`,
 called from `CheckCodeFields`; 0.6 s at attach, on the exe on disk, nothing touches the game). A value counts only when two
 sequences hit exactly once and agree; a miss keeps the constant, and a miss is the usual result for a function a patch
@@ -214,8 +214,9 @@ recompiled. What the code settles:
 `PlaceFromCode` refuses a field that is not where its signatures were made: when the first run flagged a move on the unchanged
 build, it was a wrong line in the catalog (the plugin's skill key is +0x58, the host's +0x48 is another field), so a wrong line
 must move nothing. **After changing a `FieldOffset` these fields use, update the value in the catalog**, and on any new build
-read the line `Code fields: 39 of 39 read in … ms; moved: none`. Simulated 2026-11-06: `PlayerOffsets.Level` at +0x20C went
-back to +0x204 and the level read 19; `Shrine.IsUsed` off by 8 gave the spoken warning. None of these fields has moved in a
+read the line `Code fields: 50 of 50 read in … ms; moved: none`. A value more than 0x400 from the catalog's is not believed.
+Simulated 2026-11-06: `PlayerOffsets.Level` at +0x20C went back to +0x204 and the level read 19; `TerrainStruct.BytesPerRow` at
++0x138 went back to +0x130 and the world read as usual; `Shrine.IsUsed` off by 8 gave the spoken warning. None of these fields has moved in a
 real patch yet, so this is proved on simulations and on five past builds that all read the same.
 
 ## After a real patch
@@ -250,8 +251,13 @@ Asked 2026-10-24 to leave nothing fragile. This section used to say every field 
 - Extractors: MonsterVarieties' lists, the skill's animation key and the Chests AOFiles are found by what they hold, starting
   from the measured offset: with every one of those offsets set wrong, `hit-times` came out byte for byte the same. The other
   tables have a row size guard (`HitTimeExtractor.Sized`): a table that changed is left out and the old file stays.
+- Code signatures closed the rest: the terrain's six fields (`AreaInstanceLayout.ReadTerrain` and `IsTerrain` follow the remap),
+  `ButtonMenu.SelectedIndexOffset`, `NodeInBuildOffset`, `PlayerStride`, and the stun fields as a second source.
 - `ModelBounds` needs no signature of its own: the Y and Z reads place the whole tuple. `TextColorOffset` follows `LayoutProbe`.
   `WorldArea` Act is not read by the plugin.
+
+The code also says two things the mod does not use: +0x348 is a 64-bit optional index with a has-value byte at +0x350, so the
+index could be stale while unset (the mod reads the int, as tested live), and +0x4E0 is a float, which reads the same at zero.
 
 What else remains is by design:
 
@@ -259,8 +265,6 @@ What else remains is by design:
   change at a time; a field moved farther, or two fields of one judgment moved at once, is reported lost.
 - Parts whose evidence is rare are judged late: the quest marker needs an NPC that shows one, check boxes and
   selectable lists a change by the player; the enabled bit is only noticed lost.
-- Fields with nothing to recognise them by and no signature are not followed: `TerrainStruct`'s inside (never moved so far).
-  `Update-GameHelper.ps1` brings upstream's value.
 - A structure redesigned rather than shifted (a component split in two, a list that becomes a map): its readings stop and the mod
   says so. No search can promise more; what it promises is that the common patch costs nothing, and that the rest is heard, not
   guessed from silence.

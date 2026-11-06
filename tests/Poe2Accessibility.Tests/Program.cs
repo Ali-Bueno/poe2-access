@@ -2761,6 +2761,8 @@ namespace Poe2Accessibility.Tests
             var biased = new CodeFieldEntry("Render.Bounds.Y", "RenderOffsets:CharactorModelBounds:4", 0x148, new[] { one, two });
             Equal(0x3C, CodeFieldCatalog.Read(Code(0x40, 0x40), new[] { biased })[0].Found, "the bias comes off");
             Equal("CharactorModelBounds", biased.Field, "the field");
+            var far = new CodeFieldEntry("Far", "report", 0x4000, new[] { one, two });
+            Equal(null, CodeFieldCatalog.Read(Code(0x40, 0x40), new[] { far })[0].Found, "too far off to be the field");
             Equal("RenderOffsets", biased.Struct, "the struct");
         }
 
@@ -2833,7 +2835,7 @@ namespace Poe2Accessibility.Tests
             }
 
             var shipped = CodeFieldCatalog.Parse(System.IO.File.ReadLines(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", "code-fields.txt")));
-            Equal(39, shipped.Count, "every shipped line parses");
+            Equal(50, shipped.Count, "every shipped line parses");
             Equal(true, shipped.All(entry => entry.Signatures.Count >= 2), "two can agree on each");
         }
 

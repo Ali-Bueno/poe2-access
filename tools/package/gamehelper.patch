@@ -121,10 +121,10 @@ index 47fcf12..1e5981c 100644
                  500000,
 diff --git a/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstanceLayout.cs b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstanceLayout.cs
 new file mode 100644
-index 0000000..08e9115
+index 0000000..c50d60f
 --- /dev/null
 +++ b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstanceLayout.cs
-@@ -0,0 +1,126 @@
+@@ -0,0 +1,140 @@
 +// <copyright file="AreaInstanceLayout.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -193,8 +193,22 @@ index 0000000..08e9115
 +            data.PlayerInfo.ServerDataPtr = MemoryMarshal.Read<IntPtr>(block.AsSpan(at.ServerData));
 +            data.PlayerInfo.LocalPlayerPtr = MemoryMarshal.Read<IntPtr>(block.AsSpan(at.LocalPlayer));
 +            data.Entities = MemoryMarshal.Read<EntityListStruct>(block.AsSpan(at.Entities));
-+            data.TerrainMetadata = MemoryMarshal.Read<TerrainStruct>(block.AsSpan(at.Terrain));
++            data.TerrainMetadata = ReadTerrain(block, at.Terrain);
 +            return data;
++        }
++
++        /// <summary>The terrain, read from the block: its fields move as the struct's remap says.</summary>
++        private static TerrainStruct ReadTerrain(byte[] block, int at)
++        {
++            var size = Marshal.SizeOf<TerrainStruct>();
++            if (StructRemap<TerrainStruct>.Segments is not { } moved || at + StructRemapper.ReadSize(size, moved) > block.Length)
++            {
++                return MemoryMarshal.Read<TerrainStruct>(block.AsSpan(at));
++            }
++
++            var target = new byte[size];
++            StructRemapper.Apply(block.AsSpan(at), target, moved);
++            return MemoryMarshal.Read<TerrainStruct>(target);
 +        }
 +
 +        private bool Judge(SafeMemoryHandle reader, IntPtr address, byte[] block)
@@ -253,10 +267,10 @@ index 0000000..08e9115
 +}
 diff --git a/GameHelper/RemoteObjects/States/InGameStateObjects/AreaLayoutSearch.cs b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaLayoutSearch.cs
 new file mode 100644
-index 0000000..6a078c9
+index 0000000..906f587
 --- /dev/null
 +++ b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaLayoutSearch.cs
-@@ -0,0 +1,317 @@
+@@ -0,0 +1,321 @@
 +// <copyright file="AreaLayoutSearch.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -266,6 +280,7 @@ index 0000000..6a078c9
 +    using System;
 +    using System.Linq;
 +    using System.Runtime.InteropServices;
++    using GameHelper.Utils;
 +    using GameOffsets.Natives;
 +    using GameOffsets.Objects.States.InGameState;
 +
@@ -558,17 +573,20 @@ index 0000000..6a078c9
 +
 +        private bool IsTerrain(byte[] block, int at)
 +        {
-+            var tilesX = Int64At(block, at + TotalTiles);
-+            var tilesY = Int64At(block, at + TotalTiles + PointerStep);
-+            if (tilesX is <= 0 or > MaxTiles || tilesY is <= 0 or > MaxTiles || !IsVector(block, at + TileDetails) ||
-+                Int64At(block, at + TileDetails) == 0 || !IsVector(block, at + Walkable))
++            var moved = StructRemap<TerrainStruct>.Segments;
++            var (total, details, walkable, row) = (at + StructRemapper.Follow(moved, TotalTiles), at + StructRemapper.Follow(moved, TileDetails),
++                at + StructRemapper.Follow(moved, Walkable), at + StructRemapper.Follow(moved, BytesPerRow));
++            var tilesX = Int64At(block, total);
++            var tilesY = Int64At(block, total + PointerStep);
++            if (tilesX is <= 0 or > MaxTiles || tilesY is <= 0 or > MaxTiles || !IsVector(block, details) ||
++                Int64At(block, details) == 0 || !IsVector(block, walkable))
 +            {
 +                return false;
 +            }
 +
-+            var tileBytes = Int64At(block, at + TileDetails + PointerStep) - Int64At(block, at + TileDetails);
-+            var walkableBytes = Int64At(block, at + Walkable + PointerStep) - Int64At(block, at + Walkable);
-+            var bytesPerRow = BitConverter.ToInt32(block, at + BytesPerRow);
++            var tileBytes = Int64At(block, details + PointerStep) - Int64At(block, details);
++            var walkableBytes = Int64At(block, walkable + PointerStep) - Int64At(block, walkable);
++            var bytesPerRow = BitConverter.ToInt32(block, row);
 +            return tileBytes == tilesX * tilesY * TileRecord && bytesPerRow > 0 &&
 +                   walkableBytes == bytesPerRow * tilesY * TileStructure.TileToGridConversion;
 +        }
@@ -1668,10 +1686,10 @@ index 282d4fe..4999273 100644
          ///     the target process. Rejects the reserved low memory range and addresses beyond
 diff --git a/GameHelper/Utils/StructRemap.cs b/GameHelper/Utils/StructRemap.cs
 new file mode 100644
-index 0000000..dff3317
+index 0000000..79641ff
 --- /dev/null
 +++ b/GameHelper/Utils/StructRemap.cs
-@@ -0,0 +1,57 @@
+@@ -0,0 +1,61 @@
 +// <copyright file="StructRemap.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -1702,6 +1720,10 @@ index 0000000..dff3317
 +
 +            return result.ToArray();
 +        }
++
++        /// <summary>Where a field measured at <paramref name="offset"/> reads now.</summary>
++        public static int Follow(RemapSegment[]? segments, int offset) =>
++            offset + (segments?.LastOrDefault(segment => segment.From <= offset).Shift ?? 0);
 +
 +        /// <summary>How many bytes to read for a struct of <paramref name="size"/> bytes.</summary>
 +        public static int ReadSize(int size, RemapSegment[] segments) => size + Math.Max(0, segments.Max(segment => segment.Shift));

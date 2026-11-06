@@ -387,7 +387,7 @@ namespace Poe2Accessibility
             ///     On a node element: byte 1 while the node is in the Build Planner's active build, 0 otherwise (the same
             ///     elements read with a build chosen and with none, 2026-10-31; nothing else of them changed).
             /// </summary>
-            public const int NodeInBuildOffset = 0x70C;
+            public static int NodeInBuildOffset { get; internal set; } = 0x70C;
 
             /// <summary>Record +0x00: foreign key to the PassiveSkills row.</summary>
             public const int RecordSkillKeyOffset = 0x0;
@@ -517,7 +517,7 @@ namespace Poe2Accessibility
         /// </summary>
         public static class ButtonMenu
         {
-            public const int SelectedIndexOffset = 0x348;
+            public static int SelectedIndexOffset { get; internal set; } = 0x348;
         }
 
         /// <summary>
@@ -703,7 +703,7 @@ namespace Poe2Accessibility
             ///     and +0x9AC was 1.0 while player 2's left stick was pushed right; in town +0x9A8 held A (0x400) while player
             ///     2 held A, and player 2's inventory slot was at +0x988 (docs/research/local-coop.md).
             /// </summary>
-            public const int PlayerStride = 0x240;
+            public static int PlayerStride { get; internal set; } = 0x240;
         }
     }
 }

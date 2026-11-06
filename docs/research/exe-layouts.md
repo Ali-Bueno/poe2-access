@@ -147,7 +147,7 @@ nothing for field-reading code. `GameProcess.cs:344` treats every hit as RIP-rel
 
 ### In use since 2026-11-06
 
-A second study made 137 signatures for 55 fields ([evidence/code-fields-0.5.5f.json](evidence/code-fields-0.5.5f.json)); 39 lines of
+Two more studies made 169 signatures for 66 fields ([evidence/code-fields-0.5.5f.json](evidence/code-fields-0.5.5f.json)); 50 lines of
 them went into `catalog/code-fields.txt` ([how they are used](../compatibility.md#read-from-the-games-code)). Its new anchors: 29
 per-component debug dumps labelled in the exe (`=== Player ===`, `Experience: `, `Chest open: `, `Team: `) and the `.ot` key parsers
 (`charges_per_use`, `max_stack_size`, `large`). Each pattern hits once in `.text` in all five builds, reads the right value, and wildcards
@@ -166,6 +166,10 @@ Control, on signatures built from 0.5.5f alone and not picked to pass:
 function, which is safe. The risk is a wrong value: about 5.5% of single hits in changed functions read another operand, some certainly
 real moves, not all provable. That is why two from different functions must agree and a live judgment wins. All five builds are one
 two-month line, and upstream's jump from March to May rewrote all six of its patterns, so none of this speaks for a major patch.
+
+The last 11 fields (the stun record, `NodeInBuild`, `ButtonMenu`, `PlayerStride`, the terrain) each have two or three signatures from
+different functions. Their functions did not change across the five builds, so they say nothing yet about surviving a recompile.
+`GridLandscapeData` is proved only as the second of four grids of one format: "landscape" is upstream's name.
 
 The study also corrected the structs: `IsStrongbox` reads +0x50 where the code reads the key at +0x48 (the other half of it, so it works),
 `IsLabelVisible` is the `.ot` key `large`, and Transitionable is a byte with a separate flag at +0x121, which the C# `short` mixes.
