@@ -408,7 +408,7 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
-First (2026-11-06, evening, in the repository, not in `dist`): a respawn read the whole HUD and chat (user, on death); while an
+First (2026-11-06, evening, deployed into the user's `dist`, not released): a respawn read the whole HUD and chat (user, on death); while an
 area loads only the loading screen speaks now. Not checked live: judge it on the next death or area change.
 Then (2026-11-06, evening, deployed into the user's `dist` with GameHelper, not released): the warning "cannot find the area's level" at
 the Riverbank reproduced on the user's new character; the level is one byte and a flag beside it read as 257
