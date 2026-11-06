@@ -576,10 +576,10 @@ index 0000000..6a078c9
 +}
 diff --git a/GameHelper/Utils/AnimationFieldSearch.cs b/GameHelper/Utils/AnimationFieldSearch.cs
 new file mode 100644
-index 0000000..366f31a
+index 0000000..e1f6cff
 --- /dev/null
 +++ b/GameHelper/Utils/AnimationFieldSearch.cs
-@@ -0,0 +1,181 @@
+@@ -0,0 +1,183 @@
 +// <copyright file="AnimationFieldSearch.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -620,8 +620,10 @@ index 0000000..366f31a
 +        private const int PointerHalfFrom = 0x100;
 +        private const uint PointerLowFrom = 0x10000;
 +
-+        // Actors that did something: with this many a pair must have shown.
++        // With this many actors seen acting over this many readings, some minutes of play, a pair must have shown. Something in
++        // eight actors changes within half a second of arriving (a false alarm, live 2026-11-06): the readings are what count.
 +        private const int EnoughActors = 8;
++        private const int EnoughReadings = 60000;
 +        private const int MaxRemembered = 256;
 +
 +        private readonly Dictionary<long, int[]> last = new();
@@ -636,7 +638,7 @@ index 0000000..366f31a
 +        private int readings;
 +
 +        /// <summary>Gets a value indicating whether enough actors acted for the pair to have shown, if there is one.</summary>
-+        public bool Enough => this.acted.Count >= EnoughActors;
++        public bool Enough => this.acted.Count >= EnoughActors && this.readings >= EnoughReadings;
 +
 +        /// <summary>One reading of one actor, from the struct's start.</summary>
 +        public void Add(long actor, ReadOnlySpan<byte> block)

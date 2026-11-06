@@ -337,7 +337,7 @@ namespace Poe2Accessibility.Tests
         {
             var search = Acting(CopyAt, AnimationAt);
             Equal(AnimationAt, search.Find(AnimationAt), "the copy nearest the measured place");
-            Equal(true, search.Enough, "ten actors acted");
+            Equal(false, search.Enough, "a moment of play proves nothing: only a pair ends the search this early");
         }
 
         private static void TheAnimationIsFoundWhereAPatchLeftIt() =>
@@ -393,12 +393,15 @@ namespace Poe2Accessibility.Tests
         private static void ActorsWithNoCopyLeaveTheFieldToItsBehaviour()
         {
             var search = new AnimationFieldSearch();
-            for (var round = 0; round < 12; round++)
+            var rest = ActorReading();
+            var run = ActorReading((AnimationAt, 4));
+            var blow = ActorReading((AnimationAt, 195));
+            for (var round = 0; round < 3000; round++)
             {
                 for (var actor = 0; actor < 10; actor++)
                 {
-                    search.Add(actor, ActorReading());
-                    search.Add(actor, ActorReading((AnimationAt, round % 2 == 0 ? 4 : 195)));
+                    search.Add(actor, rest);
+                    search.Add(actor, round % 2 == 0 ? run : blow);
                 }
             }
 

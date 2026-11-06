@@ -50,8 +50,8 @@ el mod lo ha encontrado todo" (`config/game-build.txt`).
   (0.5.5f: +0x380 and +0x8B0). A pair counts when both rest at zero, both take a row of the Animation table, they agree in every
   reading but the odd one caught mid-write, and they take more than one value: 4100 readings of 25 actors gave this one pair and no
   other. Either copy reads the same, so the nearest is taken. It is read ten times a second until judged, normally in the first
-  fight, and then not again. With eight actors seen acting and no pair, a lone field that still behaves is kept, otherwise lost and
-  said. Simulated: the constant set to +0x8A8 came back to +0x8B0 in 12 seconds, with `Run` and `Idle` read through it.
+  fight, and then not again. After some minutes of actors acting (60000 readings) with no pair, a lone field that still behaves is
+  kept, otherwise lost and said: judged sooner it gave a false alarm half a second after arriving. Simulated: the constant set to +0x8A8 came back to +0x8B0 in 12 seconds, with `Run` and `Idle` read through it.
 - `Positioned.Reaction` (`JudgeReaction`): the player is always a friend, so a player read as anything else means the field
   moved. Only then is it searched, as the first byte around it that says friend for the player and foe for four monsters in five.
   The first, because a byte 0x1B after it reads the same on both (+0x1FB) and the nearest would take that one after a shift back.
