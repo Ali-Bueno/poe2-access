@@ -16,6 +16,7 @@ namespace Poe2Accessibility.Services
     {
         private const char Separator = '\t';
         private const char Comment = '#';
+        private const string PartSuffix = ".part";
 
         /// <summary>The tables that changed, in the order of the fresh list.</summary>
         public static IReadOnlyList<TableNews> Compare(IEnumerable<string> known, IEnumerable<string> fresh)
@@ -76,9 +77,29 @@ namespace Poe2Accessibility.Services
                 File.WriteAllLines(reportFile, Report(news, note));
             }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(knownFile)!);
-            File.WriteAllLines(knownFile, fresh);
             return news;
+        }
+
+        /// <summary>The catalog becomes the list last seen, once its news was said: quitting before play must not lose them.</summary>
+        public static void Remember(string catalog, string knownFile)
+        {
+            if (!File.Exists(catalog))
+            {
+                return;
+            }
+
+            var fresh = File.ReadAllLines(catalog);
+            var part = knownFile + PartSuffix;
+            Directory.CreateDirectory(Path.GetDirectoryName(knownFile)!);
+            File.WriteAllLines(part, Merged(File.Exists(knownFile) ? File.ReadAllLines(knownFile) : Array.Empty<string>(), fresh));
+            File.Move(part, knownFile, true);
+        }
+
+        /// <summary>The fresh list plus the tables it lacks: one table missing from an extraction must not lose its baseline.</summary>
+        public static IEnumerable<string> Merged(IEnumerable<string> known, IReadOnlyCollection<string> fresh)
+        {
+            var tables = Group(fresh);
+            return fresh.Concat(known.Where(line => line.IndexOf(Separator) is > 0 and var at && !tables.ContainsKey(line[..at])));
         }
 
         /// <summary>The keys of one table in a list.</summary>

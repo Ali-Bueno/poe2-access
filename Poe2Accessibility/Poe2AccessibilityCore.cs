@@ -39,6 +39,7 @@ namespace Poe2Accessibility
         private AudioCueService? audio;
         private const string BuffTable = "buffdefinitions";
         private const string NamedKindsPart = "effect names";
+        private const string GameDataPart = "game data";
 
         private WorldLayoutWatch? worldLayout;
         private string? gameNewsLine;
@@ -219,7 +220,10 @@ namespace Poe2Accessibility
                 var inventory = new InventoryReader(memory, elements) { Controls = this.controls, Report = this.compatibility, Locals = new LocalInventories(memory) };
                 this.inventoryReader = inventory;
                 var comboBoxes = new ComboBoxReader(elements, this.log);
-                this.semantics = new UiSemantics(memory, elements, catalog, comboBoxes, inventory);
+                this.semantics = new UiSemantics(memory, elements, catalog, comboBoxes, inventory)
+                {
+                    TooltipsMoved = (from, to) => this.compatibility?.Moved("tooltips", from, to),
+                };
                 this.semantics.TreeFields.Report = this.compatibility;
                 this.semantics.TreeFields.Log = message => this.log?.Info(message);
                 this.semantics.Trace = message => this.log.Debug(message);
@@ -304,7 +308,6 @@ namespace Poe2Accessibility
                 this.pickups.GroundItemTitle = this.partnerPickups.GroundItemTitle = id => this.entities?.GroundItemName(id);
                 this.barriers = new BarrierWatch(this.entities, this.output, this.log);
                 GameIds.Load(Path.Join(this.DllDirectory, "catalog", "game-ids.txt"));
-                this.CheckGameNews();
                 var timings = DodgeTimings.Load(Path.Join(this.DllDirectory, "catalog", "hit-times.txt"), this.DodgeTimingsSeedPath, this.DodgeTimingsPath);
                 this.log.Info($"Dodge timings: {timings.FileTimes} attacks timed by the game files");
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = timings, TimingsPath = this.DodgeTimingsPath };

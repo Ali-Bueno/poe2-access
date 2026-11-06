@@ -37,9 +37,16 @@ namespace Poe2Accessibility.Services
         /// <summary>Loads the catalog, if it is there; the compiled names stand without it.</summary>
         public static void Load(string path)
         {
-            if (File.Exists(path))
+            try
             {
-                Current = Parse(File.ReadLines(path));
+                if (File.Exists(path))
+                {
+                    Current = Parse(File.ReadLines(path));
+                }
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+            {
+                // A locked file leaves the compiled names; it must not stop the mod from starting.
             }
         }
 

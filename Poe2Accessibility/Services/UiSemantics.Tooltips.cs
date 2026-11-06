@@ -15,7 +15,64 @@ namespace Poe2Accessibility.Services
         /// <summary>The English name a localised client prints under a tooltip's title ("Escudo de energía", "(Energy Shield)").</summary>
         private static readonly Regex EnglishName = new(@"^\([A-Za-z' -]+\)$", RegexOptions.Compiled);
 
+        private const int TooltipRadius = 0x80;
+
+        private bool tooltipsRead;
+
+        /// <summary>Told where the tooltips moved, from and to.</summary>
+        public Action<int, int>? TooltipsMoved { get; set; }
+
         private static string ShownText(Match link) => link.Groups[2].Success ? link.Groups[2].Value : link.Groups[1].Value;
+
+        /// <summary>
+        ///     The root of the element's tooltip. The field follows the element names' shift, but it can move alone, and every item,
+        ///     skill and passive would fall silent with nothing said: until a tooltip has been read, the bytes around it are searched.
+        /// </summary>
+        private UiElementReader.ElementInfo? TooltipRoot(in UiElementReader.ElementInfo owner)
+        {
+            if (this.TooltipRootAt(owner, GameLayout.Element.TooltipsOffset) is { } root)
+            {
+                this.tooltipsRead = true;
+                return root;
+            }
+
+            if (this.tooltipsRead)
+            {
+                return null;
+            }
+
+            var element = owner;
+            if (OffsetSearch.First(GameLayout.Element.TooltipsOffset, TooltipRadius, IntPtr.Size, at => this.TooltipRootAt(element, at) != null) is not { } found)
+            {
+                return null;
+            }
+
+            this.TooltipsMoved?.Invoke(GameLayout.Element.TooltipsOffset, found);
+            GameLayout.Element.TooltipsOffset = found;
+            this.tooltipsRead = true;
+            return this.TooltipRootAt(owner, found);
+        }
+
+        /// <summary>A vector of tooltip entries at this offset: the first one's element has the owner as parent, yet is not its child.</summary>
+        private UiElementReader.ElementInfo? TooltipRootAt(in UiElementReader.ElementInfo owner, int offset)
+        {
+            if (!this.reader.TryRead<StdVector>(owner.Address + offset, out var tooltips))
+            {
+                return null;
+            }
+
+            var bytes = tooltips.Last.ToInt64() - tooltips.First.ToInt64();
+            if (bytes < GameLayout.Element.TooltipEntrySize || bytes % GameLayout.Element.TooltipEntrySize != 0 ||
+                !this.reader.TryRead<IntPtr>(tooltips.First, out var root) ||
+                !this.elements.TryReadElement(root, out var rootInfo) ||
+                rootInfo.Raw.ParentPtr != owner.Address ||
+                this.elements.ReadChildren(owner).Contains(root))
+            {
+                return null;
+            }
+
+            return rootInfo;
+        }
 
         /// <summary>
         ///     Lines of the tooltip the game shows for this element, in reading order; a text's own children (keyword
@@ -24,11 +81,7 @@ namespace Poe2Accessibility.Services
         private List<string> TooltipLines(in UiElementReader.ElementInfo owner)
         {
             var lines = new List<string>();
-            if (!this.reader.TryRead<StdVector>(owner.Address + GameLayout.Element.TooltipsOffset, out var tooltips) ||
-                tooltips.Last.ToInt64() - tooltips.First.ToInt64() < GameLayout.Element.TooltipEntrySize ||
-                !this.reader.TryRead<IntPtr>(tooltips.First, out var root) ||
-                !this.elements.TryReadElement(root, out var rootInfo) ||
-                rootInfo.Raw.ParentPtr != owner.Address)
+            if (this.TooltipRoot(owner) is not { } rootInfo)
             {
                 return lines;
             }

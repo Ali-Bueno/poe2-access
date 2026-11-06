@@ -139,7 +139,7 @@ namespace Poe2Accessibility.Services
 
                 this.previous[monster.Id] = bytes;
                 var full = before.Length == 0 ? $" FULL {Convert.ToHexString(bytes)}" : string.Empty; // window, then the action object
-                this.lines.AppendLine($"{now - this.startedAt,6} id={monster.Id} {monster.Path.Split('/').Last()} anim={animation} {actor.Animation} gap={gap:F0} " +
+                this.lines.AppendLine($"{now - this.startedAt,6} id={monster.Id} {monster.Path.Split('/').Last()} anim={animation} {AnimationNames.Of(animation)} gap={gap:F0} " +
                                       $"skills[{this.Skills(actor.Address)}] {string.Join(' ', changes.Take(120))}{full}");
             }
         }

@@ -257,6 +257,7 @@ namespace Poe2Accessibility
                     break;
                 case "structs":
                     this.worldLayout?.Sweep();
+                    this.log.Info($"Animation search: {this.worldLayout?.AnimationSearchState}");
                     break;
                 case "sounds":
                     this.log?.Info(this.audio?.Diagnose() ?? "Audio off");
@@ -355,6 +356,23 @@ namespace Poe2Accessibility
             {
                 this.gameNewsLine = null;
                 this.output.Speak(news, false);
+                this.RememberGameKeys();
+            }
+        }
+
+        private string GameKeysCatalog => Path.Join(this.DllDirectory, "catalog", "game-keys.txt");
+
+        private string KnownGameKeys => Path.Join(this.DllDirectory, "config", "game-keys-known.txt");
+
+        private void RememberGameKeys()
+        {
+            try
+            {
+                GameNews.Remember(this.GameKeysCatalog, this.KnownGameKeys);
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+            {
+                this.log.Info($"Game news: could not keep the list: {error.Message}");
             }
         }
 
@@ -367,6 +385,11 @@ namespace Poe2Accessibility
             }
 
             var buffs = GameNews.Keys(File.ReadLines(catalog), BuffTable);
+            if (buffs.Count == 0)
+            {
+                return; // the table was not read, which says nothing of what is in it
+            }
+
             var animations = GameIds.Current.AnimationNames.ToList();
             var charges = Enum.GetValues<ChargeKind>().Where(kind => kind != ChargeKind.Rage); // a stat, not a buff
             var buffStates = Enum.GetValues<EnemyState>().Where(state => state is not (EnemyState.PrimedForStun or EnemyState.HeavyStunned));
@@ -387,29 +410,50 @@ namespace Poe2Accessibility
             }
         }
 
-        /// <summary>Compares the game's keys with those last seen: what an update added is logged, listed and said once in play.</summary>
+        /// <summary>
+        ///     Once per game process, after the report's reset: the kinds the mod names, the catalogs a patch left behind, and what an
+        ///     update added, which is logged, listed and said once in play. Files in use must not stop anything: they only cost the news.
+        /// </summary>
         private void CheckGameNews()
         {
-            var config = Path.Join(this.DllDirectory, "config");
-            var catalog = Path.Join(this.DllDirectory, "catalog", "game-keys.txt");
-            this.CheckNamedKinds(catalog);
-            var news = GameNews.Check(
-                catalog,
-                Path.Join(config, "game-keys-known.txt"),
-                Path.Join(config, "game-news.txt"),
-                (table, key) => table == BuffTable ? StatusAilments.FromBuffId(key)?.ToString() ?? EnemyStates.FromBuffId(key)?.ToString() : null);
-            foreach (var table in news)
+            try
             {
-                this.log.Info($"Game news: {table.Table} {table.Added.Count} new, {table.Removed.Count} gone");
+                this.CheckNamedKinds(this.GameKeysCatalog);
+                var failed = Path.Join(this.DllDirectory, "catalog", "game-data-failed.txt");
+                if (File.Exists(failed))
+                {
+                    this.log.Info($"Game news: not regenerated after the update: {string.Join(", ", File.ReadAllLines(failed))}");
+                    this.compatibility?.Missing(GameDataPart);
+                }
+
+                var news = GameNews.Check(
+                    this.GameKeysCatalog,
+                    this.KnownGameKeys,
+                    Path.Join(this.DllDirectory, "config", "game-news.txt"),
+                    (table, key) => table == BuffTable ? StatusAilments.FromBuffId(key)?.ToString() ?? EnemyStates.FromBuffId(key)?.ToString() : null);
+                foreach (var table in news)
+                {
+                    this.log.Info($"Game news: {table.Table} {table.Added.Count} new, {table.Removed.Count} gone");
+                }
+
+                this.gameNewsLine = Announcements.GameNews(news.Select(table => (table.Table, table.Added.Count)));
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+            {
+                this.log.Info($"Game news: not checked: {error.Message}");
             }
 
-            this.gameNewsLine = Announcements.GameNews(news.Select(table => (table.Table, table.Added.Count)));
+            if (this.gameNewsLine == null)
+            {
+                this.RememberGameKeys();
+            }
         }
 
         /// <summary>Logs which build of the game this is; a new game process is checked against the layout again.</summary>
         private void NoteGameBuild()
         {
             this.compatibility?.Reset();
+            this.CheckGameNews();
             this.worldLayout?.Reset();
             this.layoutProbe?.Reset();
             this.locator?.Fields.Reset();

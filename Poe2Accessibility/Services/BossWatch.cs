@@ -317,7 +317,7 @@ namespace Poe2Accessibility.Services
                 attack = attack with { UnblockableCued = true };
                 var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
                 this.audio.Play(this.unblockable, pan, pitch, this.WarningGain(offset), "unblockable");
-                this.log.Debug($"Unblockable attack: monster {id} animation {(Animation)animation}");
+                this.log.Debug($"Unblockable attack: monster {id} animation {AnimationNames.Of(animation)}");
             }
 
             if (this.DodgeWarnings && attack.Warns && !attack.Warned && attack.CanStillHit(now) && now >= attack.WarnAt)
@@ -330,7 +330,7 @@ namespace Poe2Accessibility.Services
                 var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
                 if (inReach && this.Warn(id, pan, pitch, this.WarningGain(offset), now))
                 {
-                    this.log.Debug($"Dodge warning: monster {id} animation {(Animation)animation} ({attack.Threat}, gap {gap:F0}, " +
+                    this.log.Debug($"Dodge warning: monster {id} animation {AnimationNames.Of(animation)} ({attack.Threat}, gap {gap:F0}, " +
                                    $"{(attack.Learnt is { } delay ? $"{now - attack.StartedAt} ms into a blow learnt at {delay} ms" : "at the wind-up")}" +
                                    $"{(attack.TravelMs > 0 ? $", {attack.TravelMs} ms of flight" : string.Empty)})");
                 }

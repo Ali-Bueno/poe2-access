@@ -31,7 +31,7 @@ namespace Poe2Accessibility.Services
         {
             "Melee", "Strike", "Slash", "Slam", "Cleave", "Chop", "Stomp", "Smash", "Bite", "Claw", "Swipe", "Combo", "Stab", "Bash",
             "Rake", "Maul", "Punch", "Kick", "Sweep", "Whirl", "Spin", "Impale", "Execute", "Puncture", "Reap", "Hammer", "Sunder",
-            "Flurry", "Crash", "Attack", "Backstab",
+            "Flurry", "Crash", "Attack", "Backstab", "Frenzy", "Cyclone", "SliceAndDice", "Boneshatter",
         };
 
         /// <summary>Hits that cross the distance: projectiles, spells, areas, and leaps or charges at the player.</summary>
@@ -40,6 +40,7 @@ namespace Poe2Accessibility.Services
             "Projectile", "Spell", "Cast", "Channel", "Shot", "Shoot", "Throw", "Toss", "Spit", "Breath", "Nova", "Bolt", "Blast", "Beam",
             "Leap", "Lunge", "Charge", "Dash", "Pounce", "Fling", "Grenade", "Volley", "Barrage", "Rain", "Storm", "Wave", "Comet",
             "Fireball", "Flame", "Cascade", "Earthquake", "Orb", "Wall", "AreaOfEffect", "Aoe", "Rampage", "Devour", "Arrow",
+            "Snipe", "Spark", "Fissure", "LayTrap",
         };
 
         /// <summary>The threat of an animation id; an id missing from the table (a game update) is taken as a hit from afar.</summary>

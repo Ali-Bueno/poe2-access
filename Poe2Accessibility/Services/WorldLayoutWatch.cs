@@ -45,6 +45,7 @@ namespace Poe2Accessibility.Services
         private long settledAt;
         private AnimationFieldSearch? animation = new();
         private bool reactionJudged;
+        private StructHealth? animationSaid;
         private long nextActorsAt;
 
         public WorldLayoutWatch(CompatibilityReport report, PluginLog log, string buildFile)
@@ -99,7 +100,11 @@ namespace Poe2Accessibility.Services
             (this.lostSince, this.levelSeen, this.sweptArea, this.settledAt, this.sweeps, this.positionsRetried) = (-1, false, IntPtr.Zero, 0, 0, false);
             this.animation = new AnimationFieldSearch();
             this.reactionJudged = false;
+            this.animationSaid = null;
         }
+
+        /// <summary>Gets the animation search's state, for the dev command "structs".</summary>
+        public string AnimationSearchState => this.animation?.Describe() ?? "animation judged";
 
         /// <summary>Until the animation is judged, a look at what the actors around are doing (<see cref="AnimationFieldSearch"/>).</summary>
         private void WatchActors(AreaInstance area)
@@ -117,15 +122,22 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var actors = area.AwakeEntities.Values
+            var enemies = area.AwakeEntities.Values
+                .Where(EntityCatalog.IsAliveEnemy)
                 .Select(entity => entity.TryGetComponent<Actor>(out var actor) ? actor.Address : IntPtr.Zero)
                 .Where(address => address != IntPtr.Zero)
                 .Take(MaxActorsWatched);
-            if (OffsetHealer.JudgeAnimation(this.animation, actors) is { } outcome)
+            var player = area.Player.TryGetComponent<Actor>(out var own) ? own.Address : IntPtr.Zero;
+            if (OffsetHealer.JudgeAnimation(this.animation, player, enemies) is { } outcome)
             {
-                this.animation = null;
+                // Lost is said once and the search goes on: the next fight can still find the pair and repair it.
+                this.animation = outcome.Health == StructHealth.Lost ? this.animation : null;
                 this.Note(outcome);
-                this.log.Info($"Animation field: {outcome.Health} at +0x{outcome.To:X} {outcome.Detail}");
+                if (outcome.Health != this.animationSaid)
+                {
+                    this.animationSaid = outcome.Health;
+                    this.log.Info($"Animation field: {outcome.Health} at +0x{outcome.To:X} {outcome.Detail}");
+                }
             }
         }
 
@@ -144,7 +156,7 @@ namespace Poe2Accessibility.Services
                 .ToList();
             if (OffsetHealer.JudgeReaction(area.Player, monsters) is { } outcome)
             {
-                this.reactionJudged = true;
+                this.reactionJudged = outcome.Health != StructHealth.Lost;
                 this.Note(outcome);
             }
         }

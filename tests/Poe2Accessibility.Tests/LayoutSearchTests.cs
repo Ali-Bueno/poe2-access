@@ -43,10 +43,17 @@ namespace Poe2Accessibility.Tests
             (nameof(AStackThatGrewInATradeIsNoDeparture), AStackThatGrewInATradeIsNoDeparture),
             (nameof(AReactionSaysFriendForThePlayerAndFoeForMonsters), AReactionSaysFriendForThePlayerAndFoeForMonsters),
             (nameof(GameIdsAreReadFromTheCatalog), GameIdsAreReadFromTheCatalog),
+            (nameof(TheCodeSaysWhereAFieldIs), TheCodeSaysWhereAFieldIs),
+            (nameof(TwoHitsSayNothing), TwoHitsSayNothing),
+            (nameof(TheCodeSectionIsFoundInAPeFile), TheCodeSectionIsFoundInAPeFile),
+            (nameof(ACollapsedCatalogKeepsTheOldOne), ACollapsedCatalogKeepsTheOldOne),
+            (nameof(AttacksWithAHitTimeAreThreats), AttacksWithAHitTimeAreThreats),
             (nameof(WhatAStateGrantsIsNotTheState), WhatAStateGrantsIsNotTheState),
             (nameof(ANewKeyIsNewsAndAReaderUpdateIsNot), ANewKeyIsNewsAndAReaderUpdateIsNot),
             (nameof(EveryHeavyStunIsAHeavyStun), EveryHeavyStunIsAHeavyStun),
             (nameof(TheAnimationIsTheFieldThatHasACopy), TheAnimationIsTheFieldThatHasACopy),
+            (nameof(AHealthyFieldIsNotMovedOnALittleEvidence), AHealthyFieldIsNotMovedOnALittleEvidence),
+            (nameof(AOnlyRunningPlayerProvesNothing), AOnlyRunningPlayerProvesNothing),
             (nameof(TheAnimationIsFoundWhereAPatchLeftIt), TheAnimationIsFoundWhereAPatchLeftIt),
             (nameof(ACopyAheadOfTheOtherForAMomentBreaksNothing), ACopyAheadOfTheOtherForAMomentBreaksNothing),
             (nameof(OneActionIsNotEnoughToName), OneActionIsNotEnoughToName),
@@ -235,6 +242,10 @@ namespace Poe2Accessibility.Tests
                 new[] { ChargeKind.Power, ChargeKind.Frenzy, ChargeKind.Endurance },
                 PlayerCharges.FromBuffId);
             Equal(ChargeKind.Endurance, gone.Single(), "the kind no id reads as");
+
+            var merged = GameNews.Merged(new[] { "npcs\tUna", "buffdefinitions\told" }, new[] { "buffdefinitions\tfrozen" }).ToList();
+            Equal(2, merged.Count, "a table missing from the extraction keeps its baseline, a table present is replaced");
+            Equal(true, merged.Contains("npcs\tUna"), "the table kept");
         }
 
         private static void WhatAStateGrantsIsNotTheState()
@@ -252,6 +263,67 @@ namespace Poe2Accessibility.Tests
             Equal(StatusAilment.Ignited, StatusAilments.FromBuffId("additional_ignite"), "'You're on fire' in the game's description");
             Equal(StatusAilment.Ignited, StatusAilments.FromBuffId("herald_of_ash_burning"), "an enemy's Herald of Ash burning the player");
             Equal(StatusAilment.Cursed, StatusAilments.FromBuffId("curse_enfeeble"), "a curse");
+        }
+
+        // Names the word lists missed though hit-times.txt times them on monsters (96 entries for Frenzy alone, 2026-11-06).
+        private static void AttacksWithAHitTimeAreThreats()
+        {
+            foreach (var name in new[] { "Frenzy", "OffFrenzy", "Cyclone", "SliceAndDice", "Boneshatter", "BoneshatterMoving" })
+            {
+                Equal(DodgeThreat.Melee, DodgeThreats.Of(1, _ => name), name);
+            }
+
+            foreach (var name in new[] { "Snipe", "Spark", "VolcanicFissure", "LayTrap" })
+            {
+                Equal(DodgeThreat.Ranged, DodgeThreats.Of(1, _ => name), name);
+            }
+        }
+
+        private static void ACollapsedCatalogKeepsTheOldOne()
+        {
+            Equal(true, Poe2AccessLauncher.GameDataStamp.Collapsed(531187, 40000), "a moved column reads few rows");
+            Equal(false, Poe2AccessLauncher.GameDataStamp.Collapsed(531187, 530000), "a patch that removed a little");
+            Equal(false, Poe2AccessLauncher.GameDataStamp.Collapsed(531187, 700000), "a patch that added a lot");
+        }
+
+        private static readonly byte[] CompiledRead = { 0x90, 0x48, 0x8B, 0x88, 0xB0, 0x08, 0x00, 0x00, 0x48, 0x8B, 0x11, 0xFF, 0xD0, 0xC3 };
+
+        private static void TheCodeSaysWhereAFieldIs()
+        {
+            var field = CodeFieldSearch.Parse("Actor.AnimationId", "48 8B 88 ^ ?? ?? ?? ?? 48 8B 11");
+            Equal(0x8B0, CodeFieldSearch.Read(CompiledRead, field), "the displacement of the one hit");
+            Equal(3, field.Operand, "the mark is where the operand starts");
+
+            var small = CodeFieldSearch.Parse("byte", "48 8B 88 ^ ?? 08 00 00", sizeof(byte));
+            Equal(0xB0, CodeFieldSearch.Read(CompiledRead, small), "an operand of one byte");
+
+            var cut = CompiledRead.AsSpan(0, 5);
+            Equal(null, CodeFieldSearch.Read(cut, field), "a sequence cut by the end of the code");
+            Equal(null, CodeFieldSearch.Read(new byte[64], field), "nothing there");
+        }
+
+        private static void TwoHitsSayNothing()
+        {
+            var field = CodeFieldSearch.Parse("x", "48 8B 88 ^ ?? ?? ?? ?? 48 8B 11");
+            Equal(null, CodeFieldSearch.Read(CompiledRead.Concat(CompiledRead).ToArray(), field), "one of them is the wrong one, and nothing says which");
+        }
+
+        private static void TheCodeSectionIsFoundInAPeFile()
+        {
+            const int header = 0x40;
+            const int optional = 0x10;
+            var file = new byte[0x200];
+            BitConverter.TryWriteBytes(file.AsSpan(0x3C), header);
+            BitConverter.TryWriteBytes(file.AsSpan(header + 6), (ushort)2);
+            BitConverter.TryWriteBytes(file.AsSpan(header + 20), (ushort)optional);
+            var sections = header + 24 + optional;
+            System.Text.Encoding.ASCII.GetBytes(".rdata").CopyTo(file, sections);
+            System.Text.Encoding.ASCII.GetBytes(".text").CopyTo(file, sections + 40);
+            BitConverter.TryWriteBytes(file.AsSpan(sections + 40 + 8), 0x30);
+            BitConverter.TryWriteBytes(file.AsSpan(sections + 40 + 16), 0x40);
+            BitConverter.TryWriteBytes(file.AsSpan(sections + 40 + 20), 0x100);
+            Equal((0x100, 0x30), CodeFieldSearch.CodeOf(file), "the raw place and the used length");
+            Equal((0, 0), CodeFieldSearch.CodeOf(new byte[8]), "not a PE file");
         }
 
         private static void GameIdsAreReadFromTheCatalog()
@@ -302,6 +374,14 @@ namespace Poe2Accessibility.Tests
             twin[0xB] = 1;
             Equal(4, StructShapes.FindReaction(twin, monsters, 8, 8), "the first of two that read alike, whichever is nearer");
             Equal(-1, StructShapes.FindReaction(twin, monsters, 0x40, 8), "nothing around");
+
+            var noise = Enumerable.Range(0, 10).Select(value =>
+            {
+                var monster = new byte[0x10];
+                monster[4] = (byte)(0x10 + value);
+                return monster;
+            }).ToArray();
+            Equal(false, StructShapes.IsReaction(player, noise, 4), "a byte of a pointer differs from monster to monster");
         }
 
         private const int ActorBlock = 0xA00;
@@ -328,7 +408,7 @@ namespace Poe2Accessibility.Tests
             var readings = 0;
             for (var round = 0; round < 12; round++)
             {
-                var id = round % 2 == 0 ? 4 : 195;
+                var id = new[] { 4, 195, 438 }[round % 3];
                 for (var actor = 0; actor < 10; actor++)
                 {
                     search.Add(actor, ActorReading());
@@ -348,6 +428,37 @@ namespace Poe2Accessibility.Tests
             var search = Acting(CopyAt, AnimationAt);
             Equal(AnimationAt, search.Find(AnimationAt), "the copy nearest the measured place");
             Equal(false, search.Enough, "a moment of play proves nothing: only a pair ends the search this early");
+            Equal(true, search.Proven(AnimationAt), "three ids in hundreds of readings can move a field");
+        }
+
+        private static void AHealthyFieldIsNotMovedOnALittleEvidence()
+        {
+            var search = new AnimationFieldSearch();
+            for (var round = 0; round < 12; round++)
+            {
+                search.Add(1, ActorReading());
+                for (var moment = 0; moment < 3; moment++)
+                {
+                    search.Add(1, ActorReading((CopyAt, round % 2 == 0 ? 4 : 195), (0x900, round % 2 == 0 ? 4 : 195)));
+                }
+            }
+
+            Equal(0x900, search.Find(0x8B0), "a pair has shown");
+            Equal(false, search.Proven(0x900), "but two ids in a few readings confirm a place, they do not move a field");
+        }
+
+        private static void AOnlyRunningPlayerProvesNothing()
+        {
+            var search = new AnimationFieldSearch();
+            var rest = ActorReading();
+            var run = ActorReading((CopyAt, 195), (AnimationAt, 195));
+            for (var round = 0; round < 40000; round++)
+            {
+                search.Add(1, rest, false);
+                search.Add(1, run, false);
+            }
+
+            Equal(false, search.Enough, "however long, a player's run is no proof that the pair is gone");
         }
 
         private static void TheAnimationIsFoundWhereAPatchLeftIt() =>

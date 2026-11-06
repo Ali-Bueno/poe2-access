@@ -50,13 +50,20 @@ el mod lo ha encontrado todo" (`config/game-build.txt`).
   (0.5.5f: +0x380 and +0x8B0). A pair counts when both rest at zero, both take a row of the Animation table, they agree in every
   reading but the odd one caught mid-write, and they take more than one value: 4100 readings of 25 actors gave this one pair and no
   other. Either copy reads the same, so the nearest is taken. It is read ten times a second until judged, normally in the first
-  fight, and then not again. After some minutes of actors acting (60000 readings) with no pair, a lone field that still behaves is
-  kept, otherwise lost and said: judged sooner it gave a false alarm half a second after arriving. Simulated: the constant set to +0x8A8 came back to +0x8B0 in 12 seconds, with `Run` and `Idle` read through it.
-- `Positioned.Reaction` (`JudgeReaction`): the player is always a friend, so a player read as anything else means the field
-  moved. Only then is it searched, as the first byte around it that says friend for the player and foe for four monsters in five.
+  fight, and then not again. Confirming the measured place takes 20 readings and two ids; moving a field takes 200 and three, so a
+  coincidence cannot move a healthy one. After some minutes of enemies acting (60000 readings) with no pair, a lone field that still
+  behaves is kept, otherwise lost and said, and the search goes on so the next fight can repair it. Only enemies count for that: a
+  player who only runs shows one id, and judged sooner it gave a false alarm half a second after arriving. Simulated: the constant set to +0x8A8 came back to +0x8B0 in 12 seconds, with `Run` and `Idle` read through it.
+- `Positioned.Reaction` (`JudgeReaction`): judged with five monsters around, which say foe. The player is always a friend, so a player
+  read as anything else means the field moved. Only then is it searched, as the first byte around it that says friend for the
+  player and foe for four monsters in five, with three values at most (a byte of a pointer differs from monster to monster).
   The first, because a byte 0x1B after it reads the same on both (+0x1FB) and the nearest would take that one after a shift back.
   A crowd of minions cannot trigger it, as nothing but the player does. A wrong byte here would hide every enemy behind `IsFriendly`.
   Simulated: the constant set to +0x1E8 came back to +0x1E0 on arriving among monsters, 93 ms after the area loaded.
+
+**Tooltips** (`UiSemantics.TooltipRoot`): the offset followed the element names' shift, but moved alone every item, skill and
+passive would fall silent with nothing said. Until a tooltip has been read, the bytes around it are searched for a vector of 0x18-byte
+entries whose first element has the owner as parent yet is not its child. Simulated: +0x118 came back to +0x120 on the first item focused.
 
 **Why not only the verifier:** a simulated patch (compile-time offsets shifted by 8 and by -0x18, the same as the game moving
 them) showed it spotting Life, Buffs and Actor but calling their repairs ambiguous, and not seeing Render at all: the player
@@ -166,6 +173,11 @@ with the list it saw last (`config/game-keys-known.txt`, `GameNews`): what a pat
 efectos 9, zonas 23. La lista está en el archivo game-news.txt"). This is what the mod cannot know by itself: a new buff passes
 in silence if no rule names it, a new screen needs a look. For whoever keeps the mod the same list is in git: the diff of
 `catalog/game-keys.txt` is the patch. The first run has nothing to compare with and says nothing.
+
+A regenerated catalog under half the size of the old one is refused and the old one kept (`GameDataStamp.Collapsed`): a column that
+moved with the row size unchanged reads few rows and exits with no error. A step that fails leaves its name in
+`catalog/game-data-failed.txt`, and the plugin says it ("parte de los datos del juego tras su actualización"), which until now
+stayed in the launcher's log.
 
 `dat-columns` (`DatColumnExtractor`) finds the dat columns names are read from: a display name is the first string column
 whose text differs between the English table and its Spanish copy (a string column holds the offset of a string's first

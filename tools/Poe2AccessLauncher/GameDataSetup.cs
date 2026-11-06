@@ -18,6 +18,7 @@ internal static class GameDataSetup
     private const string SoundsManifest = "manifest.txt";
     private const string NewSuffix = ".new"; // an output before it replaces the previous one
     private const string PartSuffix = ".part"; // the extractor's batch output still being written (Batch.cs)
+    private const string FailedStepsFile = "game-data-failed.txt";
     private const string BatchLinePrefix = "batch "; // the extractor's batch result lines, "batch places done in 15.2 s"
 
     /// <param name="Version">Raise it when the step's output changes: that step alone reruns, once, on every machine.</param>
@@ -77,8 +78,9 @@ internal static class GameDataSetup
             new Step("hit times", 2, "hit-times.txt", "hit-times", true),
             new Step("hazards", 2, "hazards.txt", "hazards", true),
             new Step("cull skills", 2, "cull-skills.txt", "cull-skills", true),
-            new Step("game ids", 1, "game-ids.txt", "game-ids", true),
-            new Step("game keys", 1, "game-keys.txt", "game-keys", true),
+            // At 2: a stamp from the old layout vouches for every step at 1, these two included, though they never ran.
+            new Step("game ids", 2, "game-ids.txt", "game-ids", true),
+            new Step("game keys", 2, "game-keys.txt", "game-keys", true),
             new Step("places", 1, "places.json", "places", true),
             new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
             new Step(SoundsStep, 5, null, null, Input: ItemSoundsStep),
@@ -106,11 +108,13 @@ internal static class GameDataSetup
 
         Log.Write($"Game data is {(stamp.Steps.Count == 0 ? "missing" : "out of date")}: regenerating {string.Join(", ", stale)} from {gameDirectory}");
         var watch = Stopwatch.StartNew();
+        var failed = new List<string>();
         void Finish(Step step, string? error)
         {
             if (error is not null)
             {
                 Log.Write($"Game data: {step.Name} failed, previous kept ({error})");
+                failed.Add(step.Name);
             }
             else if (step.Output is { } output)
             {
@@ -131,13 +135,25 @@ internal static class GameDataSetup
             var error = Guarded(() => RunBatch(extractor, gameDirectory, catalogs.Select(step => step.Command!).Zip(made.Select(file => file + NewSuffix))));
             foreach (var (step, file) in catalogs.Zip(made))
             {
-                Finish(step, Promote(file + NewSuffix, file) is null ? null : error ?? "not made");
+                var promoted = Promote(file + NewSuffix, file);
+                Finish(step, promoted is null ? null : error ?? promoted);
             }
         }
 
         if (stale.Contains(SoundsStep))
         {
             Finish(steps.Single(step => step.Name == SoundsStep), Guarded(() => ReplaceSounds(extractor, gameDirectory, sounds, Path.Join(pluginCatalog, "item-sounds.json"))));
+        }
+
+        // The plugin says it: a catalog left behind by a patch would otherwise only show in this log.
+        var failedFile = Path.Join(pluginCatalog, FailedStepsFile);
+        if (failed.Count > 0)
+        {
+            File.WriteAllLines(failedFile, failed);
+        }
+        else
+        {
+            File.Delete(failedFile);
         }
 
         Log.Write($"Game data: regenerated in {watch.Elapsed.TotalSeconds:0.0} s");
@@ -284,6 +300,13 @@ internal static class GameDataSetup
         {
             File.Delete(temp);
             return "empty output";
+        }
+
+        if (File.Exists(target) && GameDataStamp.Collapsed(new FileInfo(target).Length, new FileInfo(temp).Length))
+        {
+            var sizes = $"{new FileInfo(target).Length} to {new FileInfo(temp).Length} bytes";
+            File.Delete(temp);
+            return $"output fell from {sizes}, a column probably moved";
         }
 
         File.Move(temp, target, true);

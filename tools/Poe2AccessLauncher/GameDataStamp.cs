@@ -18,6 +18,9 @@ internal sealed record GameDataStamp(string Install, IReadOnlyDictionary<string,
     private const int LegacyCurrentFormat = 7; // made every step as LegacyVersion does
     private const int LegacyCatalogFormat = 3; // the first whose stamp covered every catalog step; later ones changed only the sounds
 
+    /// <summary>A regenerated file under half the old one: a column that moved reads few rows, and the old file serves better.</summary>
+    public static bool Collapsed(long before, long now) => now * 2 < before;
+
     public static GameDataStamp Parse(string? text)
     {
         var install = new List<string>();

@@ -37,8 +37,8 @@ internal static class GameKeyExtractor
             var table = DatTable.Open(index, name);
             if (table == null)
             {
-                Console.WriteLine($"Table {name} missing: left out of the {Skipped}.");
-                continue;
+                Console.WriteLine($"Table {name} missing: {Skipped} left out.");
+                return 1;
             }
 
             for (var row = 0; row < table.RowCount; row++)

@@ -576,10 +576,10 @@ index 0000000..6a078c9
 +}
 diff --git a/GameHelper/Utils/AnimationFieldSearch.cs b/GameHelper/Utils/AnimationFieldSearch.cs
 new file mode 100644
-index 0000000..e1f6cff
+index 0000000..4d9f224
 --- /dev/null
 +++ b/GameHelper/Utils/AnimationFieldSearch.cs
-@@ -0,0 +1,183 @@
+@@ -0,0 +1,222 @@
 +// <copyright file="AnimationFieldSearch.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -612,6 +612,10 @@ index 0000000..e1f6cff
 +        private const int MinAgreed = 20;
 +        private const int MinGap = 0x100;
 +
++        // Confirming the measured place is cheap; moving a healthy field is not, so a move takes far more.
++        private const int MinAgreedToMove = 200;
++        private const int MinValuesToMove = 3;
++
 +        // The game writes while it is read: now and then one copy is seen ahead of the other.
 +        private const int AgreedPerDiffered = 50;
 +        private const int ReadingsPerOutside = 100;
@@ -627,7 +631,7 @@ index 0000000..e1f6cff
 +        private const int MaxRemembered = 256;
 +
 +        private readonly Dictionary<long, int[]> last = new();
-+        private readonly Dictionary<(int First, int Second), (int Agreed, int Differed)> pairs = new();
++        private readonly List<Pair> pairs = new();
 +        private readonly HashSet<long> acted = new();
 +        private readonly List<int> live = new();
 +        private int[] changes = Array.Empty<int>();
@@ -636,12 +640,16 @@ index 0000000..e1f6cff
 +        private int[] pointerHalves = Array.Empty<int>();
 +        private HashSet<int>[] values = Array.Empty<HashSet<int>>();
 +        private int readings;
++        private int evidence;
 +
 +        /// <summary>Gets a value indicating whether enough actors acted for the pair to have shown, if there is one.</summary>
-+        public bool Enough => this.acted.Count >= EnoughActors && this.readings >= EnoughReadings;
++        public bool Enough => this.acted.Count >= EnoughActors && this.evidence >= EnoughReadings;
 +
-+        /// <summary>One reading of one actor, from the struct's start.</summary>
-+        public void Add(long actor, ReadOnlySpan<byte> block)
++        /// <summary>
++        ///     One reading of one actor, from the struct's start. <paramref name="counts"/> is false for a reading that helps find the
++        ///     pair but says nothing of its absence: a player who only runs shows a single id, however long.
++        /// </summary>
++        public void Add(long actor, ReadOnlySpan<byte> block, bool counts = true)
 +        {
 +            var fields = MemoryMarshal.Cast<byte, int>(block);
 +            if (fields.Length < 2 || (fields[0] == 0 && fields[1] == 0))
@@ -651,18 +659,19 @@ index 0000000..e1f6cff
 +
 +            this.Size(fields.Length);
 +            this.readings++;
++            this.evidence += counts ? 1 : 0;
 +            this.last.TryGetValue(actor, out var before);
 +            for (var index = 0; index < fields.Length && (before == null || index < before.Length); index++)
 +            {
-+                this.Read(actor, index, fields, before);
++                this.Read(actor, index, fields, before, counts);
 +            }
 +
-+            foreach (var (first, second) in this.pairs.Keys.ToArray())
++            foreach (var pair in this.pairs)
 +            {
-+                if (fields[first] != 0 || fields[second] != 0)
++                if (pair.First < fields.Length && pair.Second < fields.Length && (fields[pair.First] != 0 || fields[pair.Second] != 0))
 +                {
-+                    var (agreed, differed) = this.pairs[(first, second)];
-+                    this.pairs[(first, second)] = fields[first] == fields[second] ? (agreed + 1, differed) : (agreed, differed + 1);
++                    pair.Agreed += fields[pair.First] == fields[pair.Second] ? 1 : 0;
++                    pair.Differed += fields[pair.First] == fields[pair.Second] ? 0 : 1;
 +                }
 +            }
 +
@@ -677,7 +686,7 @@ index 0000000..e1f6cff
 +        /// <summary>The copy nearest <paramref name="near"/>; -1 until exactly one set of fields has agreed. Both read the same.</summary>
 +        public int Find(int near)
 +        {
-+            var agreeing = this.pairs.Where(pair => this.Agrees(pair.Key.First, pair.Key.Second, pair.Value)).Select(pair => pair.Key).ToList();
++            var agreeing = this.pairs.Where(this.Agrees).ToList();
 +            var fields = agreeing.SelectMany(pair => new[] { pair.First, pair.Second }).Distinct().ToList();
 +            if (fields.Count == 0 || agreeing.Count != fields.Count * (fields.Count - 1) / 2)
 +            {
@@ -685,6 +694,22 @@ index 0000000..e1f6cff
 +            }
 +
 +            return fields.Select(field => field * sizeof(int)).OrderBy(offset => Math.Abs(offset - near)).First();
++        }
++
++        /// <summary>What the search has seen so far, for the log.</summary>
++        public string Describe()
++        {
++            var best = this.pairs.OrderByDescending(pair => pair.Agreed).Take(6)
++                .Select(pair => $"+0x{pair.First * sizeof(int):X}/+0x{pair.Second * sizeof(int):X} {pair.Agreed}/{pair.Differed} values {this.values[pair.First].Count}");
++            return $"{this.readings} readings, {this.evidence} of enemies, {this.acted.Count} acted, {this.live.Count} live fields, {this.pairs.Count} pairs: {string.Join("; ", best)}";
++        }
++
++        /// <summary>Whether what the pair at <paramref name="offset"/> showed is enough to move a field: a healthy one must not move on a coincidence.</summary>
++        public bool Proven(int offset)
++        {
++            var field = offset / sizeof(int);
++            return this.pairs.Any(pair => (pair.First == field || pair.Second == field) && this.Agrees(pair) && pair.Agreed >= MinAgreedToMove &&
++                                          this.values[pair.First].Count >= MinValuesToMove);
 +        }
 +
 +        /// <summary>Whether the field at <paramref name="offset"/> behaves as an id on its own, for a game that stopped keeping a copy.</summary>
@@ -711,7 +736,7 @@ index 0000000..e1f6cff
 +            }
 +        }
 +
-+        private void Read(long actor, int index, ReadOnlySpan<int> fields, int[]? before)
++        private void Read(long actor, int index, ReadOnlySpan<int> fields, int[]? before, bool counts)
 +        {
 +            var value = fields[index];
 +            if (value is < 0 or >= RowLimit)
@@ -728,10 +753,10 @@ index 0000000..e1f6cff
 +                }
 +            }
 +
-+            if (before != null && (before[index] == 0) != (value == 0) && ++this.changes[index] >= MinChanges)
++            if (before != null && (before[index] == 0) != (value == 0) && ++this.changes[index] >= MinChanges && this.Fits(index))
 +            {
 +                this.Watch(index);
-+                if (this.Fits(index))
++                if (counts)
 +                {
 +                    this.acted.Add(actor);
 +                }
@@ -744,23 +769,196 @@ index 0000000..e1f6cff
 +            {
 +                foreach (var other in this.live)
 +                {
-+                    this.pairs[(Math.Min(index, other), Math.Max(index, other))] = default;
++                    this.pairs.Add(new Pair(Math.Min(index, other), Math.Max(index, other)));
 +                }
 +
 +                this.live.Add(index);
 +            }
 +        }
 +
-+        private bool Agrees(int first, int second, (int Agreed, int Differed) seen) =>
-+            (second - first) * sizeof(int) >= MinGap &&
-+            seen.Agreed >= MinAgreed &&
-+            seen.Differed * AgreedPerDiffered <= seen.Agreed &&
-+            this.Fits(first) && this.Fits(second) &&
-+            this.values[first].Count >= MinValues && this.values[second].Count >= MinValues;
++        private bool Agrees(Pair pair) =>
++            (pair.Second - pair.First) * sizeof(int) >= MinGap &&
++            pair.Agreed >= MinAgreed &&
++            pair.Differed * AgreedPerDiffered <= pair.Agreed &&
++            this.Fits(pair.First) && this.Fits(pair.Second) &&
++            this.values[pair.First].Count >= MinValues && this.values[pair.Second].Count >= MinValues;
 +
 +        private bool Fits(int field) =>
 +            this.outside[field] * ReadingsPerOutside <= this.readings &&
 +            this.pointerHalves[field] * 2 <= this.nonZero[field];
++
++        /// <summary>Two fields watched together, and how often they agreed while either was not at rest.</summary>
++        private sealed class Pair
++        {
++            public Pair(int first, int second) => (this.First, this.Second) = (first, second);
++
++            public int First { get; }
++
++            public int Second { get; }
++
++            public int Agreed { get; set; }
++
++            public int Differed { get; set; }
++        }
++    }
++}
+diff --git a/GameHelper/Utils/CodeFieldSearch.cs b/GameHelper/Utils/CodeFieldSearch.cs
+new file mode 100644
+index 0000000..02d4d32
+--- /dev/null
++++ b/GameHelper/Utils/CodeFieldSearch.cs
+@@ -0,0 +1,153 @@
++// <copyright file="CodeFieldSearch.cs" company="None">
++// Copyright (c) None. All rights reserved.
++// </copyright>
++
++namespace GameHelper.Utils
++{
++    using System;
++    using System.Collections.Generic;
++    using System.Globalization;
++    using System.Linq;
++
++    /// <summary>One instruction sequence of the game's code, with the field's offset as its wildcarded operand.</summary>
++    /// <param name="Name">the field, as struct.field.</param>
++    /// <param name="Bytes">the sequence, zero where <paramref name="Fixed"/> is false.</param>
++    /// <param name="Fixed">the bytes that must match.</param>
++    /// <param name="Operand">where the offset lies in the sequence.</param>
++    /// <param name="Size">the operand's bytes: 1, 2 or 4.</param>
++    public sealed record CodeField(string Name, byte[] Bytes, bool[] Fixed, int Operand, int Size);
++
++    /// <summary>
++    ///     Reads a struct's offset out of the game's code: a compiled <c>mov eax,[rcx+0x8B0]</c> holds it. Signatures that kept to
++    ///     one hit across five builds, from September to November, read 0.5.5f's move of AreaInstance with no measuring
++    ///     (docs/research/exe-layouts.md). Pure.
++    /// </summary>
++    public static class CodeFieldSearch
++    {
++        private const string OperandMark = "^";
++        private const string AnyByte = "??";
++        private const int PeHeaderPointer = 0x3C;
++        private const int SectionCountAt = 6;
++        private const int OptionalSizeAt = 20;
++        private const int OptionalAt = 24;
++        private const int SectionSize = 40;
++        private const int SectionVirtualSizeAt = 8;
++        private const int SectionRawSizeAt = 16;
++        private const int SectionRawAt = 20;
++        private const string CodeSection = ".text";
++
++        /// <summary>A pattern as "48 8B 88 ^ ?? ?? ?? ?? 48 8B 11", the mark before the operand.</summary>
++        public static CodeField Parse(string name, string pattern, int size = sizeof(int))
++        {
++            var tokens = pattern.Split(' ', StringSplitOptions.RemoveEmptyEntries);
++            var operand = Array.IndexOf(tokens, OperandMark);
++            var bytes = tokens.Where(token => token != OperandMark).ToArray();
++            return new CodeField(
++                name,
++                bytes.Select(token => token == AnyByte ? (byte)0 : byte.Parse(token, NumberStyles.HexNumber, CultureInfo.InvariantCulture)).ToArray(),
++                bytes.Select(token => token != AnyByte).ToArray(),
++                operand,
++                size);
++        }
++
++        /// <summary>The offset the code holds, when the sequence appears exactly once; null otherwise, as a second hit could be anything.</summary>
++        public static int? Read(ReadOnlySpan<byte> code, CodeField field)
++        {
++            var (anchorAt, anchorLength) = LongestFixedRun(field.Fixed);
++            var anchor = field.Bytes.AsSpan(anchorAt, anchorLength);
++            var hit = -1;
++            var from = 0;
++            while (from < code.Length)
++            {
++                var found = code[from..].IndexOf(anchor);
++                if (found < 0)
++                {
++                    break;
++                }
++
++                var start = from + found - anchorAt;
++                from += found + 1;
++                if (start >= 0 && start + field.Bytes.Length <= code.Length && Matches(code, start, field))
++                {
++                    if (hit >= 0)
++                    {
++                        return null;
++                    }
++
++                    hit = start;
++                }
++            }
++
++            return hit < 0 ? null : Operand(code, hit + field.Operand, field.Size);
++        }
++
++        /// <summary>The code section of a PE file, as raw offset and length; empty when the file is not one.</summary>
++        public static (int Start, int Length) CodeOf(ReadOnlySpan<byte> file)
++        {
++            if (file.Length < PeHeaderPointer + sizeof(int))
++            {
++                return default;
++            }
++
++            var header = BitConverter.ToInt32(file[PeHeaderPointer..]);
++            if (header < 0 || header + OptionalAt > file.Length)
++            {
++                return default;
++            }
++
++            var sections = header + OptionalAt + BitConverter.ToUInt16(file[(header + OptionalSizeAt)..]);
++            int count = BitConverter.ToUInt16(file[(header + SectionCountAt)..]);
++            for (var index = 0; index < count && sections + ((index + 1) * SectionSize) <= file.Length; index++)
++            {
++                var section = file.Slice(sections + (index * SectionSize), SectionSize);
++                if (section[..CodeSection.Length].SequenceEqual(CodeSection.Select(letter => (byte)letter).ToArray()))
++                {
++                    var start = BitConverter.ToInt32(section[SectionRawAt..]);
++                    var length = Math.Min(BitConverter.ToInt32(section[SectionVirtualSizeAt..]), BitConverter.ToInt32(section[SectionRawSizeAt..]));
++                    return start >= 0 && length > 0 && start + length <= file.Length ? (start, length) : default;
++                }
++            }
++
++            return default;
++        }
++
++        private static bool Matches(ReadOnlySpan<byte> code, int start, CodeField field)
++        {
++            for (var index = 0; index < field.Bytes.Length; index++)
++            {
++                if (field.Fixed[index] && code[start + index] != field.Bytes[index])
++                {
++                    return false;
++                }
++            }
++
++            return true;
++        }
++
++        private static int Operand(ReadOnlySpan<byte> code, int at, int size) => size switch
++        {
++            sizeof(byte) => code[at],
++            sizeof(short) => BitConverter.ToInt16(code[at..]),
++            _ => BitConverter.ToInt32(code[at..]),
++        };
++
++        private static (int At, int Length) LongestFixedRun(IReadOnlyList<bool> mask)
++        {
++            var (bestAt, bestLength, at) = (0, 0, -1);
++            for (var index = 0; index <= mask.Count; index++)
++            {
++                if (index < mask.Count && mask[index])
++                {
++                    at = at < 0 ? index : at;
++                }
++                else if (at >= 0)
++                {
++                    (bestAt, bestLength) = index - at > bestLength ? (at, index - at) : (bestAt, bestLength);
++                    at = -1;
++                }
++            }
++
++            return (bestAt, bestLength);
++        }
 +    }
 +}
 diff --git a/GameHelper/Utils/GameStatesSearch.cs b/GameHelper/Utils/GameStatesSearch.cs
@@ -845,10 +1043,10 @@ index 0000000..0691ab9
 +}
 diff --git a/GameHelper/Utils/OffsetHealer.cs b/GameHelper/Utils/OffsetHealer.cs
 new file mode 100644
-index 0000000..55d9ea9
+index 0000000..4cac902
 --- /dev/null
 +++ b/GameHelper/Utils/OffsetHealer.cs
-@@ -0,0 +1,435 @@
+@@ -0,0 +1,459 @@
 +// <copyright file="OffsetHealer.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -1032,11 +1230,21 @@ index 0000000..55d9ea9
 +
 +            if (found == measured)
 +            {
++                Unmove(typeof(T), measured);
 +                return new StructOutcome(name, StructHealth.Intact, measured, found, string.Empty);
 +            }
 +
 +            Remap(typeof(T), Merged(typeof(T), new RemapSegment(measured, found - measured)));
 +            return new StructOutcome(name, StructHealth.Moved, measured, found, string.Empty);
++        }
++
++        /// <summary>A field found where it was measured reads from there, whatever a repair of another build left behind.</summary>
++        private static void Unmove(Type structType, int measured)
++        {
++            if (Follow(structType, measured) != measured)
++            {
++                Remap(structType, Merged(structType, new RemapSegment(measured, 0)));
++            }
 +        }
 +
 +        /// <summary>The struct's segments with <paramref name="moved"/> in them: a struct can have fields moved apart.</summary>
@@ -1161,12 +1369,13 @@ index 0000000..55d9ea9
 +        }
 +
 +        /// <summary>
-+        ///     Whether friend and foe still read apart: the player is always a friend. Only a player who reads as anything else
-+        ///     moves the field, so a crowd of minions cannot; null when it did and no monsters are near to find it by.
++        ///     Whether friend and foe still read apart, judged on the player and the monsters around; null with too few of them, or
++        ///     while nothing can be said. Only a player who is no friend moves the field: a crowd of minions reads friend as well, and a
++        ///     bool that happens to read 1 on the player is not taken for the field until monsters read foe in it.
 +        /// </summary>
 +        public static StructOutcome? JudgeReaction(Entity player, IReadOnlyList<IntPtr> monsters)
 +        {
-+            if (!player.TryGetComponent<Positioned>(out var own))
++            if (!player.TryGetComponent<Positioned>(out var own) || monsters.Count < MinMonstersForReaction)
 +            {
 +                return null;
 +            }
@@ -1174,30 +1383,37 @@ index 0000000..55d9ea9
 +            var measured = OffsetOf<PositionedOffsets>(nameof(PositionedOffsets.Reaction));
 +            var size = measured + SearchRadius;
 +            var block = Block(own.Address, size);
-+            if (block.Length < size || StructShapes.IsFriendly(block[measured]))
-+            {
-+                return block.Length < size ? null : new StructOutcome(ReactionPart, StructHealth.Intact, measured, measured, string.Empty);
-+            }
-+
-+            if (monsters.Count < MinMonstersForReaction)
++            if (block.Length < size)
 +            {
 +                return null;
 +            }
 +
 +            var others = monsters.Select(monster => Block(monster, size)).ToList();
-+            return Placed<PositionedOffsets>(ReactionPart, measured, StructShapes.FindReaction(block, others, measured, ReactionRadius));
++            if (StructShapes.IsReaction(block, others, measured))
++            {
++                return Placed<PositionedOffsets>(ReactionPart, measured, measured);
++            }
++
++            return StructShapes.IsFriendly(block[measured]) ? null
++                : Placed<PositionedOffsets>(ReactionPart, measured, StructShapes.FindReaction(block, others, measured, ReactionRadius));
 +        }
 +
 +        /// <summary>
-+        ///     One round of watching <paramref name="actors"/> act; null until they told where the animation is. Its own judgment,
-+        ///     apart from the sweep: only actors in motion say it, and upstream's history shows it moving without the skills.
++        ///     One round of watching the player and <paramref name="enemies"/> act; null until they told where the animation is. Its
++        ///     own judgment, apart from the sweep: only actors in motion say it, and upstream's history shows it moving without the
++        ///     skills. The player helps find the pair; only enemies count as proof that there is none.
 +        /// </summary>
-+        public static StructOutcome? JudgeAnimation(AnimationFieldSearch search, IEnumerable<IntPtr> actors)
++        public static StructOutcome? JudgeAnimation(AnimationFieldSearch search, IntPtr player, IEnumerable<IntPtr> enemies)
 +        {
 +            var measured = OffsetOf<ActorOffset>(nameof(ActorOffset.AnimationId));
-+            foreach (var actor in actors)
++            if (player != IntPtr.Zero)
 +            {
-+                search.Add(actor.ToInt64(), Block(actor, measured + SearchRadius));
++                search.Add(player.ToInt64(), Block(player, measured + SearchRadius), false);
++            }
++
++            foreach (var enemy in enemies)
++            {
++                search.Add(enemy.ToInt64(), Block(enemy, measured + SearchRadius));
 +            }
 +
 +            var found = search.Find(measured);
@@ -1210,7 +1426,13 @@ index 0000000..55d9ea9
 +
 +            if (found == measured)
 +            {
++                Unmove(typeof(ActorOffset), measured);
 +                return new StructOutcome(AnimationPart, StructHealth.Intact, measured, found, string.Empty);
++            }
++
++            if (!search.Proven(found))
++            {
++                return null;
 +            }
 +
 +            // Only this field moves: the skills after it stay where they were judged.
@@ -1413,10 +1635,10 @@ index 0000000..dff3317
 +}
 diff --git a/GameHelper/Utils/StructShapes.cs b/GameHelper/Utils/StructShapes.cs
 new file mode 100644
-index 0000000..8ee57e4
+index 0000000..dc9b0c5
 --- /dev/null
 +++ b/GameHelper/Utils/StructShapes.cs
-@@ -0,0 +1,229 @@
+@@ -0,0 +1,231 @@
 +// <copyright file="StructShapes.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -1447,6 +1669,7 @@ index 0000000..8ee57e4
 +        private const int FriendlyMask = 0x7F;
 +        private const int Friendly = 1;
 +        private const int FoesPerFriendAllowed = 5;
++        private const int MaxReactions = 3;
 +        private const int MaxStatKey = 100000;
 +        private const int MatrixBytes = 64;
 +        private const float MaxWorld = 1e7f;
@@ -1457,11 +1680,12 @@ index 0000000..8ee57e4
 +
 +        /// <summary>
 +        ///     A byte that says friend for the player and foe for nearly every monster. Nearly: a player's minions are monsters
-+        ///     too.
++        ///     too. A few values only: a byte of a pointer or a float differs from monster to monster, and that noise reads as foes.
 +        /// </summary>
 +        public static bool IsReaction(byte[] player, IReadOnlyList<byte[]> monsters, int at) =>
 +            at >= 0 && at < player.Length && IsFriendly(player[at]) &&
-+            monsters.Count(monster => at < monster.Length && !IsFriendly(monster[at])) * FoesPerFriendAllowed >= monsters.Count * (FoesPerFriendAllowed - 1);
++            monsters.Count(monster => at < monster.Length && !IsFriendly(monster[at])) * FoesPerFriendAllowed >= monsters.Count * (FoesPerFriendAllowed - 1) &&
++            monsters.Where(monster => at < monster.Length).Select(monster => monster[at]).Distinct().Count() <= MaxReactions;
 +
 +        /// <summary>
 +        ///     The reaction around <paramref name="near"/>, or -1. The first that fits: a byte 0x1B after it reads the same on the
