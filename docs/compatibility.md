@@ -204,6 +204,10 @@ Asked 2026-10-24 to leave nothing fragile; since 2026-10-25 every field the plug
   selectable lists a change by the player; the enabled bit is only noticed lost.
 - Fields with nothing to recognise them by are not followed: `TerrainStruct`'s inside (never moved so far), the cooldown entries'
   inner fields. `Update-GameHelper.ps1` brings upstream's value.
-- A structure redesigned rather than shifted (a component split in two, a list that becomes a map), or a pattern other than
-  the game states' gone: their readings stop and the mod says so. No search can promise more; what it promises is that the
-  common patch costs nothing, and that the rest is heard, not guessed from silence.
+- A structure redesigned rather than shifted (a component split in two, a list that becomes a map): its readings stop and the mod
+  says so. No search can promise more; what it promises is that the common patch costs nothing, and that the rest is heard, not
+  guessed from silence.
+- Of the six byte patterns only `Game States` and `GameCullSize` matter, and both have a search. The other four (`File Root`,
+  `AreaChangeCounter`, the two terrain rotation ones) were broken on purpose on 2026-11-06: the sweep, enemies, radar and walls went
+  on as before, since nothing the plugin reads goes through them. Build with `--no-incremental` to try it: a pattern edit alone
+  left `GameOffsets.dll` unbuilt.
