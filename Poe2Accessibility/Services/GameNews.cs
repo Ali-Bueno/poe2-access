@@ -81,6 +81,21 @@ namespace Poe2Accessibility.Services
             return news;
         }
 
+        /// <summary>The keys of one table in a list.</summary>
+        public static IReadOnlyCollection<string> Keys(IEnumerable<string> lines, string table) =>
+            Group(lines).TryGetValue(table, out var keys) ? keys : Array.Empty<string>();
+
+        /// <summary>
+        ///     The kinds no key of the game reads as: the mod's rules name them by id, so a renamed buff would silence its cue with no
+        ///     error anywhere.
+        /// </summary>
+        public static IReadOnlyList<T> Unmatched<T>(IEnumerable<string> keys, IEnumerable<T> kinds, Func<string, T?> classify)
+            where T : struct
+        {
+            var seen = keys.Select(classify).OfType<T>().ToHashSet();
+            return kinds.Where(kind => !seen.Contains(kind)).ToList();
+        }
+
         private static Dictionary<string, HashSet<string>> Group(IEnumerable<string> lines)
         {
             var tables = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);

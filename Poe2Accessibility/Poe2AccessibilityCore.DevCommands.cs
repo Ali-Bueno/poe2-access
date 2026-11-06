@@ -358,12 +358,43 @@ namespace Poe2Accessibility
             }
         }
 
+        /// <summary>Every kind the mod's rules name by id must still exist in the game's tables; a rename is said, not left silent.</summary>
+        private void CheckNamedKinds(string catalog)
+        {
+            if (!File.Exists(catalog))
+            {
+                return;
+            }
+
+            var buffs = GameNews.Keys(File.ReadLines(catalog), BuffTable);
+            var animations = GameIds.Current.AnimationNames.ToList();
+            var charges = Enum.GetValues<ChargeKind>().Where(kind => kind != ChargeKind.Rage); // a stat, not a buff
+            var buffStates = Enum.GetValues<EnemyState>().Where(state => state is not (EnemyState.PrimedForStun or EnemyState.HeavyStunned));
+            var animationStates = new[] { EnemyState.HeavyStunned, EnemyState.Electrocuted };
+            var lost = GameNews.Unmatched(buffs, charges, PlayerCharges.FromBuffId).Select(kind => kind.ToString())
+                .Concat(GameNews.Unmatched(buffs, buffStates, EnemyStates.FromBuffId).Select(state => state.ToString()))
+                .Concat(GameNews.Unmatched(buffs, Enum.GetValues<StatusAilment>(), StatusAilments.FromBuffId).Select(ailment => ailment.ToString()))
+                .Concat(animations.Count == 0 ? Array.Empty<string>() : GameNews.Unmatched(animations, animationStates, EnemyStates.FromAnimation).Select(state => $"{state} animation"))
+                .ToList();
+            if (lost.Count == 0)
+            {
+                this.compatibility?.Found(NamedKindsPart);
+            }
+            else
+            {
+                this.log.Info($"Game news: no id in the game reads as {string.Join(", ", lost)}");
+                this.compatibility?.Missing(NamedKindsPart);
+            }
+        }
+
         /// <summary>Compares the game's keys with those last seen: what an update added is logged, listed and said once in play.</summary>
         private void CheckGameNews()
         {
             var config = Path.Join(this.DllDirectory, "config");
+            var catalog = Path.Join(this.DllDirectory, "catalog", "game-keys.txt");
+            this.CheckNamedKinds(catalog);
             var news = GameNews.Check(
-                Path.Join(this.DllDirectory, "catalog", "game-keys.txt"),
+                catalog,
                 Path.Join(config, "game-keys-known.txt"),
                 Path.Join(config, "game-news.txt"),
                 (table, key) => table == BuffTable ? StatusAilments.FromBuffId(key)?.ToString() ?? EnemyStates.FromBuffId(key)?.ToString() : null);

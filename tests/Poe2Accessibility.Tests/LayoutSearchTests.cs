@@ -225,6 +225,16 @@ namespace Poe2Accessibility.Tests
             Equal("buffdefinitions: 1 new, 1 gone", report[0], "the table's line");
             Equal("  + slimed (Slowed)", report[1], "what the mod makes of it");
             Equal("  - old", report[2], "what left");
+            Equal("buffdefinitions: 1 new, 1 gone", report[0], "the table's line");
+
+            var keys = GameNews.Keys(fresh, "buffdefinitions");
+            Equal(2, keys.Count, "one table's keys");
+            Equal(0, GameNews.Keys(fresh, "npcs").Count, "a table not listed");
+            var gone = GameNews.Unmatched(
+                new[] { "power_charge_79", "frenzy_charge" },
+                new[] { ChargeKind.Power, ChargeKind.Frenzy, ChargeKind.Endurance },
+                PlayerCharges.FromBuffId);
+            Equal(ChargeKind.Endurance, gone.Single(), "the kind no id reads as");
         }
 
         private static void WhatAStateGrantsIsNotTheState()

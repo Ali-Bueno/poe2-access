@@ -31,6 +31,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets a value indicating whether the game's table is known, so a name it lacks is new rather than unread.</summary>
         public bool HasAnimations => this.animations.Length > 0;
 
+        /// <summary>Gets every animation the game's table names.</summary>
+        public IEnumerable<string> AnimationNames => this.animations.OfType<string>();
+
         /// <summary>Loads the catalog, if it is there; the compiled names stand without it.</summary>
         public static void Load(string path)
         {

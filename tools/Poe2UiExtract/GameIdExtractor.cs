@@ -8,6 +8,8 @@ using Index = LibBundle3.Index;
 internal static class GameIdExtractor
 {
     private const string Skipped = "game ids";
+    private const string FirstAnimation = "Idle";
+    private const string FirstStat = "level";
 
     // A stat's key in memory is its row plus one (Stats row 0 is "level", key 1: read live on a Monk, 2026-11-06).
     private const int StatKeyFromRow = 1;
@@ -29,6 +31,13 @@ internal static class GameIdExtractor
         if (animations == null || stats == null)
         {
             Console.WriteLine($"Animation or Stats table missing: {Skipped} left out.");
+            return 1;
+        }
+
+        // Row 0 of each is known: a table that reads otherwise has moved its Id, and an old file beats a wrong one.
+        if (animations.String(0, 0) != FirstAnimation || stats.String(0, 0) != FirstStat)
+        {
+            Console.WriteLine($"Animation or Stats does not start as it did: {Skipped} left out.");
             return 1;
         }
 

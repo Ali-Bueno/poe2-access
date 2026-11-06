@@ -821,6 +821,7 @@ namespace Poe2Accessibility
             "buffs" => T("buffs and harmful states", "los efectos y estados"),
             "skills" => T("your skills and cooldowns", "tus habilidades y enfriamientos"),
             "stats" => T("your stats", "tus estadísticas"),
+            "effect names" => T("some effects by their name, so they stay silent", "algunos efectos por su nombre, así que no sonarán"),
             "reaction" => T("who is an enemy and who is not, so enemies may stay silent", "quién es enemigo y quién no, así que los enemigos pueden no sonar"),
             "animations" => T("what enemies are doing, so dodge and shield warnings stay silent", "lo que hacen los enemigos, así que los avisos de esquivar y de escudo no sonarán"),
             "positions" => T("where things stand, so sounds lose their side", "dónde está cada cosa, así que los sonidos pierden su lado"),
