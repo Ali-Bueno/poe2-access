@@ -98,9 +98,13 @@ component, through 0x358, so nothing depends on it.
 `SetActorType` writes `[Actor+0x8B0]` right after `GetComponent<Actor>`: the same immediate at D and D+0x18, then qword, word and byte
 stores at D+8, +0x10, +0x12. All 12 matches of that shape, with 6 different base registers, are this field (0x738 at 3 sites: a
 sub-object at +0x178). The same record sits at +0x380 and +0x398, which is the pair `AnimationFieldSearch` found live with no knowledge
-of the code. `CurrentAnimationTypeMatches` reads +0x380, and `0x1E4F7A0` treats +0x8B0 like a pending record, a guess. In 2674
-readings in action the two never differed. The immediate is 0x440, which is 1088, the row count of the Animation table: a "none" past
-its last row, so it moves with the table. +0x3B4 was seen holding 1088 at rest.
+of the code. `CurrentAnimationTypeMatches` reads +0x380. The immediate is 0x440, which is 1088, the row count of the Animation table: a
+"none" past its last row, so it moves with the table.
+
+Live, the record is layered. For a run or a monk's blow, +0x380 and +0x8B0 hold the same id and +0x398 holds 1088. While a crossbow shoots,
++0x380 stays on `IdleLayerBaseStatic` (443) and +0x398 and +0x8B0 go `PowerShotPiercing` (362), `ChangeAmmoAfterFirePiercing` (638),
+`PowerShotPiercing`. So +0x8B0 is the animation that shows, and it is the right field for the dodge and shield cues. The study's guess that it
+was a pending record was wrong.
 
 ## Signatures
 

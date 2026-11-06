@@ -46,14 +46,16 @@ el mod lo ha encontrado todo" (`config/game-build.txt`).
 
 **Two fields are judged apart from the sweep,** in `WorldLayoutWatch`, because they need live evidence a single look cannot give:
 
-- `Actor.AnimationId` (`AnimationFieldSearch`): nothing in one reading says "animation", but the game keeps it twice, far apart
-  (0.5.5f: +0x380 and +0x8B0). A pair counts when both rest at zero, both take a row of the Animation table, they agree in every
-  reading but the odd one caught mid-write, and they take more than one value: 4100 readings of 25 actors gave this one pair and no
-  other. Either copy reads the same, so the nearest is taken. It is read ten times a second until judged, normally in the first
+- `Actor.AnimationId` (`AnimationFieldSearch`): nothing in one reading says "animation", but the game keeps a base layer far from the
+  animation that shows (0.5.5f: +0x380 and +0x8B0; +0x398 holds a second layer, 1088 when there is none). The two agree unless a layer
+  plays on top: never apart for a run or a monk's blow, a third of the time while a crossbow shoots (`IdleLayerBaseStatic` under
+  `PowerShotPiercing`; +0x8B0 shows the shot, which is the field the mod wants). A pair counts when both rest at zero, both take a row of
+  the Animation table, they agree at least as often as not, they lie far apart and they take more than one value: 4100 readings of 25
+  actors gave this one pair and no other, and so did the Mercenary. The one nearest the measured place is taken. It is read ten times a second until judged, normally in the first
   fight, and then not again. Confirming the measured place takes 20 readings and two ids; moving a field takes 200 and three, so a
   coincidence cannot move a healthy one. After some minutes of enemies acting (60000 readings) with no pair, a lone field that still
   behaves is kept, otherwise lost and said, and the search goes on so the next fight can repair it. Only enemies count for that: a
-  player who only runs shows one id, and judged sooner it gave a false alarm half a second after arriving. Simulated: the constant set to +0x8A8 came back to +0x8B0 in 12 seconds, with `Run` and `Idle` read through it.
+  player who only runs shows one id, and judged sooner it gave a false alarm half a second after arriving. Simulated: the constant set to +0x8A8 came back to +0x8B0 with `Run` and `Idle` read through it.
 - `Positioned.Reaction` (`JudgeReaction`): judged with five monsters around, which say foe. The player is always a friend, so a player
   read as anything else means the field moved. Only then is it searched, as the first byte around it that says friend for the
   player and foe for four monsters in five, with three values at most (a byte of a pointer differs from monster to monster).

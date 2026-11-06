@@ -576,10 +576,10 @@ index 0000000..6a078c9
 +}
 diff --git a/GameHelper/Utils/AnimationFieldSearch.cs b/GameHelper/Utils/AnimationFieldSearch.cs
 new file mode 100644
-index 0000000..4d9f224
+index 0000000..83c861f
 --- /dev/null
 +++ b/GameHelper/Utils/AnimationFieldSearch.cs
-@@ -0,0 +1,222 @@
+@@ -0,0 +1,223 @@
 +// <copyright file="AnimationFieldSearch.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -593,8 +593,9 @@ index 0000000..4d9f224
 +
 +    /// <summary>
 +    ///     Finds an Actor's current animation by watching actors act. One reading says nothing: the id is a small number, zero
-+    ///     at rest. But the game keeps it twice, far apart in the struct, and both copies agree in every reading (0.5.5f:
-+    ///     +0x380 and +0x8B0, the only such pair in 4100 readings of 25 actors; docs/compatibility.md). Pure.
++    ///     at rest. But the game keeps a base layer far from the animation that shows, and the two agree unless a second layer
++    ///     plays on top (0.5.5f: +0x380 and +0x8B0; a crossbow's shot shows on the idle base layer, which is why they differ a third of the
++    ///     time while shooting and never for a run or a monk's blow; docs/compatibility.md). Pure.
 +    /// </summary>
 +    public sealed class AnimationFieldSearch
 +    {
@@ -616,8 +617,8 @@ index 0000000..4d9f224
 +        private const int MinAgreedToMove = 200;
 +        private const int MinValuesToMove = 3;
 +
-+        // The game writes while it is read: now and then one copy is seen ahead of the other.
-+        private const int AgreedPerDiffered = 50;
++        // A layer on top parts them for a while (a third of the readings while shooting), and no more.
++        private const int AgreedPerDiffered = 1;
 +        private const int ReadingsPerOutside = 100;
 +
 +        // The upper half of a pointer is a small number too, after a large one.
