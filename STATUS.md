@@ -408,10 +408,10 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
-First (2026-11-06, evening, in the repository, not in `dist` and not released): the warning "cannot find the area's level" at
+First (2026-11-06, evening, deployed into the user's `dist` with GameHelper, not released): the warning "cannot find the area's level" at
 the Riverbank reproduced on the user's new character; the level is one byte and a flag beside it read as 257
-([notes](docs/research/ui-layers.md#area-level-on-a-new-character-055f-2026-11-06)). Fixed, proven on those bytes in a test; to
-check live on a level 1 character in the Riverbank once deployed. Diablo IV loops stop at pitch 1.12, not heard yet. Cinematic subtitles: nothing on disk, needs an F6 dump during a cinematic ([notes](docs/research/cinematic-subtitles.md)).
+([notes](docs/research/ui-layers.md#area-level-on-a-new-character-055f-2026-11-06)). Fixed and checked live on that
+character: "Área: La orilla del río, nivel 1", real instance hash, no warning. Diablo IV loops stop at pitch 1.12, not heard yet. Cinematic subtitles: nothing on disk, needs an F6 dump during a cinematic ([notes](docs/research/cinematic-subtitles.md)).
 Then (2026-11-06, afternoon, deployed into the user's `dist`, no release yet): ask the tester who could not type a name what
 they typed and heard, and whether Steam runs in Big Picture. Not reproduced as a block: typing worked here, and every silent
 dead end found is now said. The account window (new accounts: name on Y, Create on LB) was never tested live.
