@@ -1,0 +1,26 @@
+GEAL table rows: 506 | getters: {'Life': '0x153b40', 'Actor': '0x153470', 'Buffs': '0x1553e0', 'Stats': '0x153bc0'}
+terrain getter votes: {'0x8f8': 2} | slot 0x1a8
+Entity.Details                                 got 0x8      want 0x8      OK
+Entity.Components                              got 0x10     want 0x10     OK
+Entity.Id                                      got 0x88     want 0x88     OK
+Life.Health.Current                            got 0x1e0    want 0x1e0    OK
+Life.Health (GameHelper base)                  got 0x1b0    want 0x1b0    OK
+Life.Mana (GameHelper base)                    got 0x208    want 0x208    OK
+Life.EnergyShield (GameHelper base)            got 0x248    want 0x248    OK
+Life.Ward (GameHelper base)                    got 0x2e8    want 0x2e8    OK
+Life.Divinity (GameHelper base)                got 0x338    want 0x338    OK
+Terrain.TotalTiles                             got 0x18     want 0x18     OK
+Terrain.GridWalkable                           got 0xd0     want 0xd0     OK
+Terrain.BytesPerRow                            got 0x130    want 0x130    OK
+Area.Terrain                                   got 0x8f8    want 0x8f8    OK
+Area.LocalPlayer                               got 0x5d8    want 0x5d8    OK
+Area.ServerData                                got 0x5b8    want 0x5b8    OK
+Actor.AnimationId                              got 0x8b0    want 0x8b0    OK
+Actor.ActiveSkills                             got 0xb08    want 0xb08    OK
+Actor.Cooldowns (ActiveSkills+0x18, assumed)   got 0xb20    want 0xb20    OK
+Actor.Deployed                                 got 0xc28    want 0xc28    OK
+Buffs.StatusEffects                            got 0x160    want 0x160    OK
+Stats (top field)                              got 0x160    want 0x160    OK
+matched 21 of 21
+sizes: {'Life': '0x408', 'Actor': '0x9b8', 'ClientActor': '0xcd0', 'Render': '0x620', 'Positioned': '0x540', 'Buffs': '0x180', 'Stats': '0x1b8', 'Targetable': '0x90', 'Player': '0x400'}
+seconds: 6.57 (Python, includes PE load and two passes over .text)

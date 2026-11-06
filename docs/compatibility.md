@@ -181,6 +181,11 @@ the class list the only key list into Characters, the per-level effect key the k
 GrantedEffects row, and the ActiveSkills key the one whose target Ids appear inside the effect Ids (0.5.5e: 1160 rows,
 the next column 41). A PassiveSkills column a launcher did not write follows the name's shift.
 
+## After a real patch
+The first patch after this work landed by chance at 02:42 on 2026-11-06, with nothing prepared for it: a 73 MB hotfix that moved no
+field. The mod said "El juego se ha actualizado: el mod lo ha encontrado todo", the sweep read 17 intact and 0 lost, and enemies, gold and
+the radar sounded. `tools/exe_reader/reader.py` tells what moved from the exe alone, before starting the game ([study](research/exe-layouts.md)).
+
 ## Still needs a person after a patch
 - Normally nothing: the host follows its own offsets (above). When something is said lost, `pwsh
   tools/package/Update-GameHelper.ps1` (with GameHelper stopped) fetches upstream, lists the new commits, fast-forwards

@@ -49,6 +49,12 @@ uses it after a game patch: 33 s for all seven instead of 85 s as separate runs 
 byte offset (the same offset in a row in memory), English by default or a translated copy (`spanish`). It is how
 `Characters` +0x08 was found to hold the localized class name ("Monje") read for the passive tree's class starts.
 
+## exe_reader — struct offsets from the game's exe
+`py -B -I tools/exe_reader/reader.py [exe]` reads offsets and component sizes out of `PathOfExileSteam.exe` as a data file, in about 7
+seconds, from the names the game keeps for its own script language and the shape of the code around them. Run it after a patch, before
+starting the game: a WRONG line is a field that moved or a rule the patch broke, and only a live check tells which. Keep the output
+in `docs/research/evidence/`. Development only, needs `capstone` and `numpy`; the mod does not use it ([study](../docs/research/exe-layouts.md)).
+
 ## ooz-shim — Oodle-compatible `oo2core.dll`
 PoE2 links Oodle statically, so no `oo2core_9_win64.dll` is available. `oodle_shim.cpp` re-exports
 `OodleLZ_Decompress` (the signature LibBundle3 P/Invokes) on top of the open-source decompressor
