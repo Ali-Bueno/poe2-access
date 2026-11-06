@@ -23,7 +23,7 @@ was seen while a cinematic played. **MEASURED** = found in the files; **INFERRED
 
 ## To check live
 
-A UI dump (F6) while a cinematic plays:
+A cinematic plays right after creating a character (user, 2026-11-06). A UI dump (F6) while it plays:
 - A new element in the tree: its label, text, parent, and whether it changes with each line.
 - The `Art/Videos/...bk2` path on a control: that names the cinematic and marks its start and end.
 - If nothing shows: compare `enable_subtitles` off and on (needs a restart); text that stays is burned in.
