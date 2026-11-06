@@ -651,6 +651,8 @@
  "what is around you, so enemies, items and exits stay silent": "周囲の情報。敵、アイテム、出口は鳴りません",
  "when one of your skills culls": "スキルがとどめを刺したとき",
  "when your skills are ready": "スキルが使えるようになる時",
+ "where you can walk, so the guide and the radar may fail": "歩ける場所。ガイドとレーダーが正しく働かない可能性があります",
+ "when an enemy is about to be stunned, so that warning stays silent": "敵がスタン寸前かどうか。この警告は鳴りません",
  "some of the game's data, so some readings may be wrong": "ゲームのデータの一部。読み上げの一部が誤っている可能性があります",
  "where things stand, so sounds lose their side": "物の位置。音の左右がなくなります",
  "which characters have a quest": "クエストのあるキャラクター",

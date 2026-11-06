@@ -1069,10 +1069,10 @@ index 0000000..0691ab9
 +}
 diff --git a/GameHelper/Utils/OffsetHealer.cs b/GameHelper/Utils/OffsetHealer.cs
 new file mode 100644
-index 0000000..4a5c192
+index 0000000..3aedf1c
 --- /dev/null
 +++ b/GameHelper/Utils/OffsetHealer.cs
-@@ -0,0 +1,526 @@
+@@ -0,0 +1,529 @@
 +// <copyright file="OffsetHealer.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -1312,6 +1312,9 @@ index 0000000..4a5c192
 +        private static int OffsetOf<T>(string field) => Marshal.OffsetOf<T>(field).ToInt32();
 +
 +        private static byte[] Block(IntPtr address, int size) => Core.Process.Handle.ReadMemoryArray<byte>(address, size);
++
++        /// <summary>Bytes of the game, for a search the plugin runs.</summary>
++        public static byte[] ReadBlock(IntPtr address, int size) => Block(address, size);
 +
 +        /// <summary>The outcome of a field found at <paramref name="found"/>, moving what follows it in the struct.</summary>
 +        private static StructOutcome Placed<T>(string name, int measured, int found)

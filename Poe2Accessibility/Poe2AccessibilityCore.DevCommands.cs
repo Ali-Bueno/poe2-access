@@ -489,6 +489,26 @@ namespace Poe2Accessibility
             }
         }
 
+        /// <summary>The host reads WorldAreas rows by struct: its columns follow the table as the plugin's own do.</summary>
+        private static void PlaceWorldAreaColumns(System.Collections.Generic.IReadOnlyDictionary<string, int>? columns)
+        {
+            var fields = new System.Collections.Generic.List<(string Field, int Expected, int Found)>();
+            if (columns?.TryGetValue("WorldAreas.Name", out var name) == true)
+            {
+                fields.Add(("NamePtr", WorldAreaNameMeasured, name));
+            }
+
+            if (columns?.TryGetValue("WorldAreas.IsTown", out var town) == true)
+            {
+                fields.Add(("IsTown", WorldAreaIsTownMeasured, town));
+            }
+
+            if (fields.Count > 0)
+            {
+                GameHelper.Utils.OffsetHealer.PlaceFromCode(WorldAreaStruct, fields);
+            }
+        }
+
         /// <summary>
         ///     Reads where the game's code holds the fields no live check judges, and follows what moved: a patch that
         ///     moved one would otherwise read wrong in silence. Before the first area, so a live judgment comes after.

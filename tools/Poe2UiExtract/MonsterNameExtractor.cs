@@ -10,7 +10,7 @@ using Index = LibBundle3.Index;
 /// </summary>
 internal static class MonsterNameExtractor
 {
-    private const int NameOffset = 0x110;
+    private const int MeasuredName = 0x110;
     private const int MinPrefixLabel = 4;
     private const string BossPrefix = "Boss - ";
 
@@ -18,6 +18,7 @@ internal static class MonsterNameExtractor
     {
         using var index = SharedBundles.OpenParsed(gameDir);
         var wanted = RadarNames(radarFile);
+        var nameColumn = DatColumnExtractor.NameColumn(index, "monstervarieties") ?? MeasuredName;
         var english = DatTable.Open(index, "monstervarieties");
         if (english == null)
         {
@@ -32,7 +33,7 @@ internal static class MonsterNameExtractor
             var bestName = string.Empty;
             for (var row = 0; row < english.RowCount; row++)
             {
-                var name = english.StringOrNull(row, NameOffset)?.Trim();
+                var name = english.StringOrNull(row, nameColumn)?.Trim();
                 if (!string.IsNullOrEmpty(name) && Matches(label, name) && (best < 0 || Rank(label, name) < Rank(label, bestName)))
                 {
                     best = row;
@@ -61,7 +62,7 @@ internal static class MonsterNameExtractor
             var names = new SortedDictionary<string, string>(StringComparer.Ordinal);
             foreach (var (label, row) in rowByLabel)
             {
-                var name = row < table.RowCount ? table.StringOrNull(row, NameOffset)?.Trim() : null;
+                var name = row < table.RowCount ? table.StringOrNull(row, nameColumn)?.Trim() : null;
                 if (!string.IsNullOrEmpty(name))
                 {
                     names[label] = name;

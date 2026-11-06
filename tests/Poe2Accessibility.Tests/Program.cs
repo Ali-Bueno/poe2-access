@@ -49,6 +49,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(ObjectsPlayTheSoundTheGameGivesThem), ObjectsPlayTheSoundTheGameGivesThem);
             Run(nameof(CodeFieldsNeedTwoSignaturesThatAgree), CodeFieldsNeedTwoSignaturesThatAgree);
             Run(nameof(CodeFieldCatalogParses), CodeFieldCatalogParses);
+            Run(nameof(TheStunRecordIsFoundByItsHead), TheStunRecordIsFoundByItsHead);
+            Run(nameof(TheGridMustHoldWhereThePlayerWalks), TheGridMustHoldWhereThePlayerWalks);
             Run(nameof(OpeningSoundsComeFromTheOpeningAnimation), OpeningSoundsComeFromTheOpeningAnimation);
             Run(nameof(PhrasesFollowTheGameLanguage), PhrasesFollowTheGameLanguage);
             Run(nameof(OtherLanguagesUsePhraseTables), OtherLanguagesUsePhraseTables);
@@ -2760,6 +2762,49 @@ namespace Poe2Accessibility.Tests
             Equal(0x3C, CodeFieldCatalog.Read(Code(0x40, 0x40), new[] { biased })[0].Found, "the bias comes off");
             Equal("CharactorModelBounds", biased.Field, "the field");
             Equal("RenderOffsets", biased.Struct, "the struct");
+        }
+
+        private static void TheStunRecordIsFoundByItsHead()
+        {
+            byte[] Actor(int head, int threshold)
+            {
+                var block = new byte[0x100];
+                BitConverter.TryWriteBytes(block.AsSpan(head), 5);
+                BitConverter.TryWriteBytes(block.AsSpan(head + 4), 8f);
+                BitConverter.TryWriteBytes(block.AsSpan(head + PoiseSearch.ThresholdFromHead), threshold);
+                return block;
+            }
+
+            Equal(0x40, PoiseSearch.Heads(Actor(0x40, 60)).Single(), "the head with a threshold");
+            Equal(0, PoiseSearch.Heads(Actor(0x40, 0)).Count, "no threshold, no record");
+            var five = Enumerable.Repeat(PoiseSearch.Heads(Actor(0x48, 24)), 5).ToList();
+            Equal(0x48, PoiseSearch.Agreed(five, 0x40), "five actors agree on a moved record");
+            Equal(null, PoiseSearch.Agreed(five.Take(4).ToList(), 0x40), "four are too few");
+            var split = five.Take(3).Concat(Enumerable.Repeat(PoiseSearch.Heads(Actor(0x60, 24)), 2)).ToList();
+            Equal(null, PoiseSearch.Agreed(split, 0x40), "three of five do not agree");
+            IReadOnlyList<int> both = new[] { 0x48, 0x64 };
+            Equal(0x48, PoiseSearch.Agreed(Enumerable.Repeat(both, 5).ToList(), 0x40), "of two shared places, the nearest");
+        }
+
+        private static void TheGridMustHoldWhereThePlayerWalks()
+        {
+            var check = new WalkableCheck();
+            bool? verdict = null;
+            for (var x = 0; x < 30; x++)
+            {
+                verdict = check.Add(x, 0, x % 10 != 0);
+            }
+
+            Equal(true, verdict, "a few cells at a wall's edge do not count against it");
+            Equal(null, check.Add(1, 1, true), "the count starts again");
+            Equal(null, check.Add(1, 1, false), "the same cell twice is one cell");
+            check = new WalkableCheck();
+            for (var x = 0; x < 30; x++)
+            {
+                verdict = check.Add(x, 0, x % 2 == 0);
+            }
+
+            Equal(false, verdict, "half the path closed: the grid no longer means that");
         }
 
         private static void CodeFieldCatalogParses()

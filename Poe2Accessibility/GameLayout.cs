@@ -165,6 +165,8 @@ namespace Poe2Accessibility
         /// </summary>
         public static class ActorComponent
         {
+            public const int MeasuredPoiseHead = 0x4D8;
+
             public static int PoiseThresholdOffset { get; internal set; } = 0x4E4;
 
             public static int PoiseOffset { get; internal set; } = 0x4E8;
@@ -437,7 +439,7 @@ namespace Poe2Accessibility
             public const int CharacterIdOffset = 0x0;
 
             /// <summary>Characters row +0x08: the class's localized name ("Monje"; dat-strings characters, 2026-10-24).</summary>
-            public const int CharacterNameOffset = 0x8;
+            public static int CharacterNameOffset { get; internal set; } = 0x8;
 
             public const int KeySize = 0x10;
         }
@@ -567,7 +569,7 @@ namespace Poe2Accessibility
             public static int ComponentRowOffset { get; internal set; } = 0x20;
 
             /// <summary>Row size of MinimapIcons.datc64 (1049 rows of 0x2A bytes, 0.5.5e); the rows sit back to back in memory.</summary>
-            public const int RowSize = 0x2A;
+            public static int RowSize { get; internal set; } = 0x2A;
 
             public static int LabelOffset { get; internal set; } = 0x1A;
         }

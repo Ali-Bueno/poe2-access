@@ -31,6 +31,15 @@ namespace Poe2Accessibility.Services
         private const string MonsterFolder = "Metadata/Monsters/";
         private const long WatchActorsEveryMs = 100;
         private const int MaxActorsWatched = 32;
+        private const string PoisePart = "poise";
+        private const string WalkablePart = "walkable";
+
+        // The heavy stun record's search reaches this far around where it was measured.
+        private const int PoiseBlockStart = 0x400;
+        private const int PoiseBlockSize = 0x200;
+
+        /// <summary>Readings of a full room with no record before it is said lost; the search goes on.</summary>
+        private const int PoiseMissesToSay = 30;
 
         private readonly CompatibilityReport report;
         private readonly PluginLog log;
@@ -47,6 +56,9 @@ namespace Poe2Accessibility.Services
         private bool reactionJudged;
         private StructHealth? animationSaid;
         private long nextActorsAt;
+        private bool poiseJudged;
+        private int poiseMisses;
+        private WalkableCheck? walkable = new();
 
         public WorldLayoutWatch(CompatibilityReport report, PluginLog log, string buildFile)
         {
@@ -101,6 +113,9 @@ namespace Poe2Accessibility.Services
             this.animation = new AnimationFieldSearch();
             this.reactionJudged = false;
             this.animationSaid = null;
+            this.poiseJudged = false;
+            this.poiseMisses = 0;
+            this.walkable = new WalkableCheck();
         }
 
         /// <summary>Gets the animation search's state, for the dev command "structs".</summary>
@@ -110,13 +125,15 @@ namespace Poe2Accessibility.Services
         private void WatchActors(AreaInstance area)
         {
             var now = Environment.TickCount64;
-            if ((this.animation == null && this.reactionJudged) || now < this.nextActorsAt)
+            if ((this.animation == null && this.reactionJudged && this.poiseJudged && this.walkable == null) || now < this.nextActorsAt)
             {
                 return;
             }
 
             this.nextActorsAt = now + WatchActorsEveryMs;
             this.JudgeReaction(area);
+            this.JudgePoise(area);
+            this.JudgeWalkable(area);
             if (this.animation == null)
             {
                 return;
@@ -138,6 +155,72 @@ namespace Poe2Accessibility.Services
                     this.animationSaid = outcome.Health;
                     this.log.Info($"Animation field: {outcome.Health} at +0x{outcome.To:X} {outcome.Detail}");
                 }
+            }
+        }
+
+        /// <summary>Where the heavy stun record stands, by its head in the actors around (<see cref="PoiseSearch"/>).</summary>
+        private void JudgePoise(AreaInstance area)
+        {
+            if (this.poiseJudged)
+            {
+                return;
+            }
+
+            var actors = area.AwakeEntities.Values
+                .Where(EntityCatalog.IsAliveEnemy)
+                .Select(entity => entity.TryGetComponent<Actor>(out var actor) ? actor.Address : IntPtr.Zero)
+                .Where(address => address != IntPtr.Zero)
+                .Take(MaxActorsWatched)
+                .Select(address => PoiseSearch.Heads(OffsetHealer.ReadBlock(address + PoiseBlockStart, PoiseBlockSize)))
+                .ToList();
+            if (actors.Count < PoiseSearch.MinActors)
+            {
+                return;
+            }
+
+            var measured = GameLayout.ActorComponent.MeasuredPoiseHead;
+            if (PoiseSearch.Agreed(actors, measured - PoiseBlockStart) is not { } found)
+            {
+                if (++this.poiseMisses == PoiseMissesToSay)
+                {
+                    this.report.Missing(PoisePart);
+                }
+
+                return;
+            }
+
+            var head = found + PoiseBlockStart;
+            GameLayout.ActorComponent.PoiseThresholdOffset = head + PoiseSearch.ThresholdFromHead;
+            GameLayout.ActorComponent.PoiseOffset = head + PoiseSearch.BuildupFromHead;
+            this.poiseJudged = true;
+            if (head == measured)
+            {
+                this.report.Found(PoisePart);
+            }
+            else
+            {
+                this.report.Moved(PoisePart, measured, head);
+            }
+        }
+
+        /// <summary>The cells the player walks on must read walkable (<see cref="WalkableCheck"/>).</summary>
+        private void JudgeWalkable(AreaInstance area)
+        {
+            if (this.walkable == null || !area.Player.TryGetComponent<Render>(out var render))
+            {
+                return;
+            }
+
+            var (x, y) = ((int)render.GridPosition.X, (int)render.GridPosition.Y);
+            var held = this.walkable.Add(x, y, RoutePlanner.IsWalkable(area.GridWalkableData, area.TerrainMetadata.BytesPerRow, x, y));
+            if (held == true)
+            {
+                this.walkable = null;
+                this.report.Found(WalkablePart);
+            }
+            else if (held == false)
+            {
+                this.report.Missing(WalkablePart);
             }
         }
 

@@ -22,6 +22,8 @@ namespace Poe2Accessibility.Services
         {
             ("Mods.Name", GameLayout.ModsDat.NameOffset, offset => GameLayout.ModsDat.NameOffset = offset),
             ("MinimapIcons.Label", GameLayout.MinimapIconRow.LabelOffset, offset => GameLayout.MinimapIconRow.LabelOffset = offset),
+            ("MinimapIcons.RowSize", GameLayout.MinimapIconRow.RowSize, offset => GameLayout.MinimapIconRow.RowSize = offset),
+            ("Characters.Name", GameLayout.PassiveTree.CharacterNameOffset, offset => GameLayout.PassiveTree.CharacterNameOffset = offset),
             ("ActiveSkills.DisplayedName", GameLayout.SkillSlot.DisplayedNameOffset, offset => GameLayout.SkillSlot.DisplayedNameOffset = offset),
             ("GrantedEffectsPerLevel.GrantedEffect", GameLayout.SkillSlot.EffectKeyOffset, offset => GameLayout.SkillSlot.EffectKeyOffset = offset),
             ("GrantedEffects.ActiveSkill", GameLayout.SkillSlot.SkillKeyOffset, offset => GameLayout.SkillSlot.SkillKeyOffset = offset),
@@ -34,7 +36,8 @@ namespace Poe2Accessibility.Services
             ("PassiveSkills.IsJewelSocket", GameLayout.PassiveTree.RowJewelSocketOffset, offset => GameLayout.PassiveTree.RowJewelSocketOffset = offset),
         };
 
-        public static void Apply(string path, PluginLog log)
+        /// <returns>The columns of the file, null without one, for the host structs that read them.</returns>
+        public static IReadOnlyDictionary<string, int>? Apply(string path, PluginLog log)
         {
             Dictionary<string, int>? columns = null;
             try
@@ -48,7 +51,7 @@ namespace Poe2Accessibility.Services
 
             if (columns == null)
             {
-                return;
+                return null;
             }
 
             var nameShift = 0;
@@ -66,6 +69,8 @@ namespace Poe2Accessibility.Services
                 nameShift = column == PassiveName ? offset - measured : nameShift;
                 log.Info(offset == measured ? $"Dat columns: {column} where measured" : $"Dat columns: {column} moved from +0x{measured:X} to +0x{offset:X}");
             }
+
+            return columns;
         }
     }
 }

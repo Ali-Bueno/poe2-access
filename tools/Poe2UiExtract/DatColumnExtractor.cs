@@ -17,6 +17,8 @@ internal static class DatColumnExtractor
         ("passiveskills", "PassiveSkills.Name", 0x32),
         ("activeskills", "ActiveSkills.DisplayedName", 0x8),
         ("minimapicons", "MinimapIcons.Label", 0x1A),
+        ("characters", "Characters.Name", 0x8),
+        ("worldareas", "WorldAreas.Name", 0x8),
     };
 
     private const string Translation = "spanish";
@@ -75,12 +77,26 @@ internal static class DatColumnExtractor
             return 1;
         }
 
+        if (DatTable.Open(index, "minimapicons") is { } icons)
+        {
+            found["MinimapIcons.RowSize"] = icons.RowSize;
+        }
+
         File.WriteAllText(outFile, JsonSerializer.Serialize(found, new JsonSerializerOptions { WriteIndented = true }));
         return 0;
     }
 
+    /// <summary>The display name's column of a table, for an extractor that reads it; null when it cannot be told.</summary>
+    internal static int? NameColumn(Index index, string table) =>
+        DatTable.Open(index, table) is { } english && DatTable.OpenTranslated(index, table, Translation) is { } translated &&
+        english.RowCount == translated.RowCount && english.RowSize == translated.RowSize
+            ? FirstTranslated(english, translated)
+            : null;
+
     private static int? FirstTranslated(DatTable english, DatTable translated)
     {
+        // A table of a dozen classes has fewer rows than the rule asks of a long one.
+        var minTranslated = Math.Min(MinTranslatedRows, english.RowCount / 2);
         for (var offset = 1; offset + 8 <= english.RowSize; offset++)
         {
             int strings = 0, named = 0, differing = 0;
@@ -99,7 +115,7 @@ internal static class DatColumnExtractor
                 }
             }
 
-            if (strings >= english.RowCount * StringRows && differing >= MinTranslatedRows && differing >= named * TranslatedRows)
+            if (strings >= english.RowCount * StringRows && differing >= minTranslated && differing >= named * TranslatedRows)
             {
                 return offset;
             }

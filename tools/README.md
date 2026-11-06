@@ -40,6 +40,10 @@ doodads) or are strongboxes, whose event sits outside the chest banks; they keep
 prints every object and its sound. It runs as its own process after `sounds`: it calls native code `sounds` does not,
 and failing costs only these sounds.
 
+Columns an extractor reads should be found by what they hold (`DatContentColumns.Nearest` with `IsStringListColumn`,
+`IsKeyListColumn`, `IsKeyColumn`), or guarded by the table's row size (`HitTimeExtractor.Sized`): a wrong column must fail, not
+write a wrong catalog.
+
 To audition a bank before choosing a cue, `bank-samples <gameDir> <outDir> <bank,bank...> [filter]` writes every sample
 whose name holds the filter as `bank__sample.wav` (first 4 s) and prints each one's length and peak; keep `outDir` in the
 session scratch folder.

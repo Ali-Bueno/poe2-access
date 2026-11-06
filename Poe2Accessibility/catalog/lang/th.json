@@ -651,6 +651,8 @@
  "what is around you, so enemies, items and exits stay silent": "สิ่งรอบตัวคุณ ศัตรู ไอเทม และทางออกจึงเงียบ",
  "when one of your skills culls": "เมื่อสกิลของคุณปลิดชีพ",
  "when your skills are ready": "เมื่อสกิลของคุณพร้อม",
+ "where you can walk, so the guide and the radar may fail": "บริเวณที่เดินได้ ดังนั้นตัวนำทางและเรดาร์อาจผิดพลาด",
+ "when an enemy is about to be stunned, so that warning stays silent": "ศัตรูใกล้จะมึนงงเมื่อไร ดังนั้นคำเตือนนี้จะไม่ดัง",
  "some of the game's data, so some readings may be wrong": "ข้อมูลบางส่วนของเกม ดังนั้นบางค่าที่อ่านอาจผิด",
  "where things stand, so sounds lose their side": "ตำแหน่งของสิ่งต่าง ๆ เสียงจึงไม่บอกด้านซ้ายขวา",
  "which characters have a quest": "ตัวละครที่มีเควส",

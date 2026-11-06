@@ -25,6 +25,8 @@ internal static class HitTimeExtractor
     private const int SkillAnimationOffset = 0x71;
 
     private const string MeleeAction = "Melee";
+    private const string ActExtension = ".act";
+    private const string AoExtension = ".ao";
 
     private enum Source
     {
@@ -52,6 +54,17 @@ internal static class HitTimeExtractor
             return 1;
         }
 
+        // Found by what they hold: this table has no row size to guard it, and a shifted list would read as an empty one.
+        var actFiles = DatContentColumns.Nearest(monsters, ActFilesOffset, offset => monsters.IsStringListColumn(offset, text => text.EndsWith(ActExtension, StringComparison.OrdinalIgnoreCase)));
+        var aoFiles = DatContentColumns.Nearest(monsters, AoFilesOffset, offset => monsters.IsStringListColumn(offset, text => text.EndsWith(AoExtension, StringComparison.OrdinalIgnoreCase)));
+        var grantedEffects = DatContentColumns.Nearest(monsters, GrantedEffectsOffset, offset => monsters.IsKeyListColumn(offset, skills.RowCount));
+        var skillAnimation = DatContentColumns.Nearest(skills, SkillAnimationOffset, offset => skills.IsKeyColumn(offset, animations.RowCount));
+        if (actFiles == null || aoFiles == null || grantedEffects == null || skillAnimation == null)
+        {
+            Console.WriteLine("A MonsterVarieties or GrantedEffects column was not found again.");
+            return 1;
+        }
+
         var animationRows = new Dictionary<string, int>(StringComparer.Ordinal);
         for (var row = 0; row < animations.RowCount; row++)
         {
@@ -67,8 +80,8 @@ internal static class HitTimeExtractor
         for (var row = 0; row < monsters.RowCount; row++)
         {
             var id = monsters.StringOrNull(row, MonsterIdOffset);
-            var act = monsters.StringList(row, ActFilesOffset).FirstOrDefault();
-            var ao = monsters.StringList(row, AoFilesOffset).FirstOrDefault();
+            var act = monsters.StringList(row, actFiles.Value).FirstOrDefault();
+            var ao = monsters.StringList(row, aoFiles.Value).FirstOrDefault();
             if (id == null || act == null || ao == null)
             {
                 continue;
@@ -87,9 +100,9 @@ internal static class HitTimeExtractor
                 skillsOf[melee] = new List<int>();
             }
 
-            foreach (var skill in monsters.KeyList(row, GrantedEffectsOffset).Where(key => key >= 0 && key < skills.RowCount))
+            foreach (var skill in monsters.KeyList(row, grantedEffects.Value).Where(key => key >= 0 && key < skills.RowCount))
             {
-                var animation = skills.Int64((int)skill, SkillAnimationOffset);
+                var animation = skills.Int64((int)skill, skillAnimation.Value);
                 if (animation >= 0 && animation < animations.RowCount)
                 {
                     if (!skillsOf.TryGetValue((int)animation, out var list))

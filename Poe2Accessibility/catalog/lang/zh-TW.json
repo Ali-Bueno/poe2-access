@@ -651,6 +651,8 @@
  "what is around you, so enemies, items and exits stay silent": "你周圍的環境，因此敵人、物品和出口不會發聲",
  "when one of your skills culls": "當你的技能剔除敵人時",
  "when your skills are ready": "技能何時就緒",
+ "where you can walk, so the guide and the radar may fail": "可行走的位置，因此導引與雷達可能失準",
+ "when an enemy is about to be stunned, so that warning stays silent": "敵人何時快被暈眩，因此這個警告不會響起",
  "some of the game's data, so some readings may be wrong": "部分遊戲資料，因此部分讀取內容可能有誤",
  "where things stand, so sounds lose their side": "各物的位置，因此聲音失去左右方向",
  "which characters have a quest": "哪些角色有任務",

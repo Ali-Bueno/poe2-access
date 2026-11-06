@@ -43,6 +43,9 @@ namespace Poe2Accessibility
         private const string GameDataPart = "game data";
         private const string CodeFieldsPart = "code fields";
         private const string CodeFieldFile = "code-fields.txt";
+        private const string WorldAreaStruct = "WorldAreaDatOffsets";
+        private const int WorldAreaNameMeasured = 0x8;
+        private const int WorldAreaIsTownMeasured = 0x14;
 
         /// <summary>The plugin's own offsets the game's code can place (catalog/code-fields.txt, <c>layout:</c>).</summary>
         private static readonly System.Collections.Generic.Dictionary<string, Action<int>> LayoutFields = new()
@@ -224,7 +227,7 @@ namespace Poe2Accessibility
                 var elements = new UiElementReader(memory);
                 this.elements = elements;
                 var catalog = UiCatalog.Load(Path.Join(this.DllDirectory, "catalog", "ui-catalog.json"), this.log);
-                DatColumns.Apply(Path.Join(this.DllDirectory, "catalog", "dat-columns.json"), this.log);
+                PlaceWorldAreaColumns(DatColumns.Apply(Path.Join(this.DllDirectory, "catalog", "dat-columns.json"), this.log));
                 this.experience = ExperienceTable.Load(Path.Join(this.DllDirectory, "catalog", "experience.json"), this.log);
                 this.compatibility = new CompatibilityReport(this.log);
                 this.worldLayout = new WorldLayoutWatch(this.compatibility, this.log, Path.Join(this.DllDirectory, "config", "game-build.txt"));

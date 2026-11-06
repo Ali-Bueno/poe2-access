@@ -176,6 +176,44 @@ internal sealed class DatTable
         return strings >= this.RowCount * NearlyAll && filled >= MinFilledRows && hits >= filled * NearlyAll;
     }
 
+    /// <summary>A list column of strings: every item of every row matches, with enough rows filled.</summary>
+    public bool IsStringListColumn(int offset, Func<string, bool> matches)
+    {
+        var filled = 0;
+        for (var row = 0; row < this.RowCount; row++)
+        {
+            var items = this.ListItems(row, offset, 8).ToList();
+            filled += items.Count > 0 ? 1 : 0;
+            foreach (var at in items)
+            {
+                var value = BitConverter.ToInt64(this.data, at);
+                if (value < Marker.Length || value >= this.data.Length - this.varStart || !matches(this.ReadString(value)))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return filled >= MinFilledRows;
+    }
+
+    /// <summary>A list column of keys into a table of <paramref name="targetRows"/> rows, with enough rows filled.</summary>
+    public bool IsKeyListColumn(int offset, int targetRows)
+    {
+        var filled = 0;
+        for (var row = 0; row < this.RowCount; row++)
+        {
+            var keys = this.KeyList(row, offset);
+            filled += keys.Count > 0 ? 1 : 0;
+            if (keys.Any(key => key != NullKey && (key < 0 || key >= targetRows)))
+            {
+                return false;
+            }
+        }
+
+        return filled >= MinFilledRows;
+    }
+
     private const double NearlyAll = 0.9;
 
     private const int MinFilledRows = 50;

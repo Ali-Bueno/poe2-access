@@ -823,6 +823,8 @@ namespace Poe2Accessibility
             "stats" => T("your stats", "tus estadísticas"),
             "game data" => T("part of the game's data after its update, so some warnings may be out of date", "parte de los datos del juego tras su actualización, así que algunos avisos pueden estar desfasados"),
             "cooldowns" => T("when your skills are ready", "cuándo están listas tus habilidades"),
+            "poise" => T("when an enemy is about to be stunned, so that warning stays silent", "cuándo un enemigo está a punto de aturdirse, así que ese aviso no sonará"),
+            "walkable" => T("where you can walk, so the guide and the radar may fail", "por dónde se puede andar, así que el guía y el radar pueden fallar"),
             "code fields" => T("some of the game's data, so some readings may be wrong", "parte de los datos del juego, así que alguna lectura puede ser errónea"),
             "effect names" => T("some effects by their name, so they stay silent", "algunos efectos por su nombre, así que no sonarán"),
             "reaction" => T("who is an enemy and who is not, so enemies may stay silent", "quién es enemigo y quién no, así que los enemigos pueden no sonar"),

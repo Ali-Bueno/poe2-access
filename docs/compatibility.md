@@ -238,11 +238,22 @@ the radar sounded. `tools/exe_reader/reader.py` tells what moved from the exe al
 
 ## What a search cannot recover
 Asked 2026-10-24 to leave nothing fragile. This section used to say every field the plugin reads has a check; an audit on
-2026-11-06 showed it did not. The code signatures above cover most of that list. Still with no check of any kind: the
-walkable grid's meaning, `ModelBounds` +0x144 (one read in the code, so two cannot agree), Poise 0x4E4/0x4E8, `WorldArea`
-Act (IsTown falls back on the Id), `Characters` Id and Name, the name columns of BaseItemTypes (0x20) and MonsterVarieties
-(0x110), dat columns read by offset in the extractors (a table that collapses is refused, a shifted column is not), and
-`ButtonMenu`, `NodeInBuildOffset`, `PlayerStride`, `TextColorOffset`. What else remains is by design:
+2026-11-06 showed it did not, and the same day closed that list:
+
+- Heavy stun (`PoiseSearch`, `JudgePoise`): the record starts {int 5, float 8.0, int 0} in every monster, so five monsters that
+  agree place it, nobody needing to be hit. Live: found where measured; a constant set 8 too low was corrected.
+- Walkable grid (`WalkableCheck`, `JudgeWalkable`): 30 cells the player stood on must read walkable, at least 70% of them. It
+  can only tell, not repair. Live: passed; with the reading inverted it said the part was lost.
+- Name columns: `Characters.Name`, `WorldAreas.Name`, `WorldAreas.IsTown` and the MinimapIcons row size come from
+  `dat-columns`, the WorldAreas ones through `PlaceFromCode`. BaseItemTypes and MonsterVarieties names are found the same way by
+  their extractors, and in memory the base name has its own search (`BaseNames`).
+- Extractors: MonsterVarieties' lists, the skill's animation key and the Chests AOFiles are found by what they hold, starting
+  from the measured offset: with every one of those offsets set wrong, `hit-times` came out byte for byte the same. The other
+  tables have a row size guard (`HitTimeExtractor.Sized`): a table that changed is left out and the old file stays.
+- `ModelBounds` needs no signature of its own: the Y and Z reads place the whole tuple. `TextColorOffset` follows `LayoutProbe`.
+  `WorldArea` Act is not read by the plugin.
+
+What else remains is by design:
 
 - A search finds a field moved near where it was measured (within 0x40 to 0x100 bytes, or a bit renumbered), one
   change at a time; a field moved farther, or two fields of one judgment moved at once, is reported lost.

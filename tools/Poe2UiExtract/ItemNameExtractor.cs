@@ -17,6 +17,7 @@ internal static class ItemNameExtractor
     {
         using var index = SharedBundles.Open(Path.Combine(gameDir, "Bundles2", "_.index.bin"));
         index.ParsePaths();
+        var nameColumn = DatColumnExtractor.NameColumn(index, "baseitemtypes") ?? NameOffset;
         var result = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
         var languages = AreaExtractor.LanguageCodes.Select(pair => (Code: pair.Value, Folder: (string?)pair.Key)).Prepend(("en", null));
         foreach (var (code, folder) in languages)
@@ -32,7 +33,7 @@ internal static class ItemNameExtractor
             for (var row = 0; row < table.RowCount; row++)
             {
                 var id = table.StringOrNull(row, IdOffset);
-                var name = table.StringOrNull(row, NameOffset)?.Trim();
+                var name = table.StringOrNull(row, nameColumn)?.Trim();
                 if (id != null && id.StartsWith(CurrencyPrefix, StringComparison.Ordinal) && !string.IsNullOrEmpty(name))
                 {
                     names[id[CurrencyPrefix.Length..]] = name;

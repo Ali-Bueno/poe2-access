@@ -10,7 +10,7 @@ internal static class ObjectSoundLinks
 {
     private const string Table = "chests";
 
-    // Chests: the Id at the row's start, the AOFiles string list at +0x15 (row 1 read by hand, 2026-11-06).
+    // Chests: the Id at the row's start, the AOFiles string list near +0x15 (row 1 read by hand, 2026-11-06).
     private const int IdColumn = 0;
     private const int AoFilesColumn = 0x15;
     private const string AoExtension = ".ao";
@@ -28,10 +28,15 @@ internal static class ObjectSoundLinks
             .ToDictionary(file => file.Path!, StringComparer.OrdinalIgnoreCase);
         string? Text(string path) => files.TryGetValue(path, out var file) ? Encoding.Unicode.GetString(file.Read().ToArray()) : null;
 
+        if (DatContentColumns.Nearest(table, AoFilesColumn, offset => table.IsStringListColumn(offset, text => text.EndsWith(AoExtension, StringComparison.OrdinalIgnoreCase))) is not { } aoFiles)
+        {
+            return null;
+        }
+
         var links = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         for (var row = 0; row < table.RowCount; row++)
         {
-            var sound = table.StringList(row, AoFilesColumn).Select(path => AoSoundEvents.OpeningEventOf(path, Text)).FirstOrDefault(found => found != null);
+            var sound = table.StringList(row, aoFiles).Select(path => AoSoundEvents.OpeningEventOf(path, Text)).FirstOrDefault(found => found != null);
             if (sound != null)
             {
                 links[table.String(row, IdColumn)] = sound;

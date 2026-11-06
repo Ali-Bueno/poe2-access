@@ -9,6 +9,9 @@ internal static class DatContentColumns
     /// <summary>A flag column is recognised by the rows whose Id carries its word: at least this many of them.</summary>
     private const int MinMarkedRows = 10;
 
+    /// <summary>The campaign has few towns: one an act.</summary>
+    private const int MinTowns = 3;
+
     /// <summary>...and at least this share of the rows the flag is set on (0.5.5e: notable 37%, keystone 40%; others ≤ 1%).</summary>
     private const double MinMarkedShare = 0.25;
 
@@ -34,6 +37,11 @@ internal static class DatContentColumns
             yield return ("PassiveSkills.IsJewelSocket", FlagOfIds(passives, "jewel"), 0x65);
         }
 
+        if (DatTable.Open(index, "worldareas") is { } areas)
+        {
+            yield return ("WorldAreas.IsTown", FlagOfIds(areas, "town", MinTowns), 0x14);
+        }
+
         var effects = DatTable.Open(index, "grantedeffects");
         if (effects != null && DatTable.Open(index, "grantedeffectsperlevel") is { } levels)
         {
@@ -47,7 +55,7 @@ internal static class DatContentColumns
     }
 
     /// <summary>The fitting offset nearest to where the column was measured.</summary>
-    private static int? Nearest(DatTable table, int measured, Func<int, bool> fits) =>
+    internal static int? Nearest(DatTable table, int measured, Func<int, bool> fits) =>
         Enumerable.Range(0, table.RowSize).OrderBy(offset => Math.Abs(offset - measured)).Where(fits).Select(offset => (int?)offset).FirstOrDefault();
 
     private static bool IsUniqueUInt16(DatTable table, int offset)
@@ -87,13 +95,13 @@ internal static class DatContentColumns
     }
 
     /// <summary>The flag column set on the most rows whose Id carries <paramref name="word"/>, those being a fair share of its rows.</summary>
-    private static int? FlagOfIds(DatTable table, string word)
+    private static int? FlagOfIds(DatTable table, string word, int minRows = MinMarkedRows)
     {
         var marked = Enumerable.Range(0, table.RowCount).Where(row => table.String(row, 0).Contains(word, StringComparison.OrdinalIgnoreCase)).ToList();
         return Enumerable.Range(0, table.RowSize)
             .Where(table.IsFlagColumn)
             .Select(offset => (Offset: offset, Marked: marked.Count(row => table.Bool(row, offset)), Set: Enumerable.Range(0, table.RowCount).Count(row => table.Bool(row, offset))))
-            .Where(column => column.Marked >= MinMarkedRows && column.Marked >= column.Set * MinMarkedShare)
+            .Where(column => column.Marked >= minRows && column.Marked >= column.Set * MinMarkedShare)
             .OrderByDescending(column => column.Marked)
             .Select(column => (int?)column.Offset)
             .FirstOrDefault();
