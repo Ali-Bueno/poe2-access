@@ -27,6 +27,7 @@ reader exists only for a genuine quirk. Status column: **done** = implemented in
 | Tabbed screen opens (options) | title, tab, focus; never the page's labels | yes | done |
 | A press the game ignores in silence (character name) | why, once per press | yes | done |
 | A long text closes (terms) | the focus underneath again | yes | done |
+| An area loads | only the loading screen's own lines; the HUD and chat stay in the tree and are never read | — | done |
 | Popup / modal with no focus inside | title + message + controls with state ("create, unavailable") | yes | done |
 | Popup closes | the focused item underneath again | yes | done |
 | Panel opened with nothing focused | its prompt and legends (bound buttons) | yes | done (legend glyphs todo) |

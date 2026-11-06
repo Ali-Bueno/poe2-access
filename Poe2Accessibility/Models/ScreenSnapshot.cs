@@ -8,7 +8,11 @@ namespace Poe2Accessibility.Models
     ///     One visible text of a layer, in tree (reading) order; control texts carry the control's enabled state,
     ///     and <paramref name="Button"/> names the controller button shown next to it (hint bars, popups).
     /// </summary>
-    public sealed record ScreenText(IntPtr Address, string Text, string Name, bool IsControl, bool IsEnabled, string Button = "");
+    public sealed record ScreenText(IntPtr Address, string Text, string Name, bool IsControl, bool IsEnabled, string Button = "")
+    {
+        /// <summary>A line of the area loading screen itself (loading_screen_tip_label, loading_screen_area_name).</summary>
+        public bool IsLoadingScreen => this.Name.StartsWith("loading_screen_", StringComparison.Ordinal);
+    }
 
     /// <summary>
     ///     A visible top-level child of the UI root: a screen, panel, popup or the controller hint bar.

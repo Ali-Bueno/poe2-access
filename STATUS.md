@@ -408,7 +408,9 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
-First (2026-11-06, evening, deployed into the user's `dist` with GameHelper, not released): the warning "cannot find the area's level" at
+First (2026-11-06, evening, in the repository, not in `dist`): a respawn read the whole HUD and chat (user, on death); while an
+area loads only the loading screen speaks now. Not checked live: judge it on the next death or area change.
+Then (2026-11-06, evening, deployed into the user's `dist` with GameHelper, not released): the warning "cannot find the area's level" at
 the Riverbank reproduced on the user's new character; the level is one byte and a flag beside it read as 257
 ([notes](docs/research/ui-layers.md#area-level-on-a-new-character-055f-2026-11-06)). Fixed and checked live on that
 character: "Área: La orilla del río, nivel 1", real instance hash, no warning. Diablo IV loops stop at pitch 1.12, not heard yet. Cinematic subtitles: nothing on disk, needs an F6 dump during a cinematic ([notes](docs/research/cinematic-subtitles.md)).

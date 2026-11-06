@@ -24,6 +24,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(TypingIsReportedAsTheEdit), TypingIsReportedAsTheEdit);
             Run(nameof(CreationNameDeadEndsAreSaid), CreationNameDeadEndsAreSaid);
             Run(nameof(DiabloLoopsStopAtTheirTopPitch), DiabloLoopsStopAtTheirTopPitch);
+            Run(nameof(OnlyTheLoadingScreenSpeaksWhileAnAreaLoads), OnlyTheLoadingScreenSpeaksWhileAnAreaLoads);
             Run(nameof(ChatReportsOnlyAppendedLines), ChatReportsOnlyAppendedLines);
             Run(nameof(L3GesturesAreToldApart), L3GesturesAreToldApart);
             Run(nameof(StickDirectionsBinInWorldSpace), StickDirectionsBinInWorldSpace);
@@ -252,6 +253,15 @@ namespace Poe2Accessibility.Tests
             Equal(new TextEdit(string.Empty, "s"), TextEdit.Between("Yarkidius", "Yarkidiu"), "deleted one");
             Equal(new TextEdit("Yarkidius", string.Empty), TextEdit.Between(string.Empty, "Yarkidius"), "pasted into empty");
             Equal<TextEdit?>(null, TextEdit.Between("abc", "abd"), "replaced");
+        }
+
+        private static void OnlyTheLoadingScreenSpeaksWhileAnAreaLoads()
+        {
+            ScreenText Text(string name) => new(IntPtr.Zero, "text", name, false, true);
+            Equal(true, Text("loading_screen_tip_label").IsLoadingScreen, "the tip");
+            Equal(true, Text("loading_screen_area_name").IsLoadingScreen, "the area's name");
+            Equal(false, Text("quest_title").IsLoadingScreen, "the HUD left in the tree");
+            Equal(false, Text(string.Empty).IsLoadingScreen, "a chat line");
         }
 
         private static void DiabloLoopsStopAtTheirTopPitch()

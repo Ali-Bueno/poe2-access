@@ -228,6 +228,12 @@ colour to apply …"), so the
   pointer) and the compatibility warning. `AreaLayoutSearch.IsHeader` now reads one byte, as `Compose` always did.
 - OPEN: what the flag means.
 
+## HUD during an area load (0.5.5f, 2026-11-06)
+
+- MEASURED: on an area change or a respawn, `AreaLoadingState` can still show the in-game layers: a `TopLayerChanged` with the
+  whole HUD and the chat (1875 characters on a death). 7 such lines in the logs, 3 of them on 2026-11-06. The state's own lines
+  are `loading_screen_tip_label` and `loading_screen_area_name`.
+
 ## Account flow seen (new Steam account)
 
 Log In → Terms of Use window (I Agree on R3, Continue on A, Back on B) → Account window (Create

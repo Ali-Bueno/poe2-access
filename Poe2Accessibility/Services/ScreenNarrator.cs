@@ -186,6 +186,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Read a screen's message with its first focus (delete character); off for the game menu.</summary>
         public bool ReadScreenMessages { get; set; } = true;
 
+        /// <summary>An area is loading: the HUD and the chat can stay in the tree, so only the loading screen's own lines are news.</summary>
+        public bool LoadingArea { get; set; }
+
         /// <summary>
         ///     The gem engraving window's last focused choice ("Furia I") and category (for supports the skill they go
         ///     into: the game sockets the engraved support there; the window's tab, LB/RB).
@@ -818,6 +821,15 @@ namespace Poe2Accessibility.Services
             {
                 this.OnHintBarChange(change, snapshot, focus, focusLayer);
                 return;
+            }
+
+            if (this.LoadingArea)
+            {
+                change = change with { Texts = change.Texts.Where(text => text.IsLoadingScreen).ToList() };
+                if (change.Texts.Count == 0)
+                {
+                    return;
+                }
             }
 
             // Legends inside a content layer (the game menu's own hint bar) are read on request, not with the content.
