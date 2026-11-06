@@ -32,6 +32,7 @@ namespace Poe2Accessibility.Tests
             (nameof(FieldsAreFollowedHoweverFarTheyMoved), FieldsAreFollowedHoweverFarTheyMoved),
             (nameof(AnEmptyAreaHasNoWorld), AnEmptyAreaHasNoWorld),
             (nameof(TheLevelSurvivesFlagsAndFullVectors), TheLevelSurvivesFlagsAndFullVectors),
+            (nameof(TheLevelIsOneByteBesideItsFlag), TheLevelIsOneByteBesideItsFlag),
             (nameof(TheTopHalfOfAPointerIsNoHash), TheTopHalfOfAPointerIsNoHash),
             (nameof(AFieldNotFoundKeepsTheLastOne), AFieldNotFoundKeepsTheLastOne),
             (nameof(TheEntityIdIsTheListsKey), TheEntityIdIsTheListsKey),
@@ -118,6 +119,14 @@ namespace Poe2Accessibility.Tests
             block[fields.Level + 11] = 1; // a flag after the level, seen in a cave of 0.5.5f
             Put(block, fields.Level + 12, Heap, Heap + 8, Heap + 8); // the vector a town fills
             Equal(fields.Level, new AreaLayoutSearch(World()).Find(block, fields).Level, "the level beside a flag and a full vector");
+        }
+
+        private static void TheLevelIsOneByteBesideItsFlag()
+        {
+            var fields = AreaFields.Measured;
+            var block = Area(fields);
+            BitConverter.TryWriteBytes(block.AsSpan(fields.Level), 0x0101u); // a new character's Riverbank, read live on 0.5.5f
+            Equal(fields.Level, new AreaLayoutSearch(World()).Find(block, fields).Level, "level 1 with the flag beside it");
         }
 
         private static void TheTopHalfOfAPointerIsNoHash()

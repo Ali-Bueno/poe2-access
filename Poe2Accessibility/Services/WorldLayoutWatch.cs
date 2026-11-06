@@ -49,7 +49,7 @@ namespace Poe2Accessibility.Services
         private int sweeps;
         private string? survived;
         private bool positionsRetried;
-        private AreaLevelJudge level = new();
+        private bool levelSeen;
         private IntPtr sweptArea;
         private long settledAt;
         private AnimationFieldSearch? animation = new();
@@ -84,7 +84,7 @@ namespace Poe2Accessibility.Services
             if (layout.HasWorld && area.AwakeEntities.Count > 0)
             {
                 this.lostSince = -1;
-                this.Report(layout, area.Address);
+                this.Report(layout, true);
                 this.SweepStructs(area);
                 this.WatchActors(area);
             }
@@ -101,7 +101,7 @@ namespace Poe2Accessibility.Services
                 }
                 else if (!OffsetHealer.LocateArea())
                 {
-                    this.Report(layout, IntPtr.Zero);
+                    this.Report(layout, false);
                 }
             }
         }
@@ -109,8 +109,7 @@ namespace Poe2Accessibility.Services
         /// <summary>A new game process: everything is judged again.</summary>
         public void Reset()
         {
-            (this.lostSince, this.sweptArea, this.settledAt, this.sweeps, this.positionsRetried) = (-1, IntPtr.Zero, 0, 0, false);
-            this.level = new AreaLevelJudge();
+            (this.lostSince, this.levelSeen, this.sweptArea, this.settledAt, this.sweeps, this.positionsRetried) = (-1, false, IntPtr.Zero, 0, 0, false);
             this.animation = new AnimationFieldSearch();
             this.reactionJudged = false;
             this.animationSaid = null;
@@ -335,9 +334,7 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        /// <param name="layout">What the last search found.</param>
-        /// <param name="world">The area whose world was found, zero when none was.</param>
-        private void Report(AreaInstanceLayout layout, IntPtr world)
+        private void Report(AreaInstanceLayout layout, bool hasWorld)
         {
             var measured = AreaFields.Measured;
             var (found, now) = (layout.LastFound, layout.Fields);
@@ -345,15 +342,11 @@ namespace Poe2Accessibility.Services
             this.Part("entity lists", found.Entities, measured.Entities, now.Entities);
             this.Part("terrain", found.Terrain, measured.Terrain, now.Terrain);
 
-            if (world == IntPtr.Zero)
+            // A level found once stays where it is: an area that misses the shape alone says nothing about the build.
+            this.levelSeen |= found.Level >= 0;
+            if (hasWorld)
             {
-                return;
-            }
-
-            var lost = this.level.Lost(world, found.Level >= 0);
-            if (lost || this.level.Seen)
-            {
-                this.Part("area level", lost ? -1 : now.Level, measured.Level, now.Level);
+                this.Part("area level", this.levelSeen ? now.Level : -1, measured.Level, now.Level);
             }
         }
 

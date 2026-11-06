@@ -17,7 +17,6 @@
     <Compile Include="..\..\Poe2Accessibility\Services\ScreenDiffer.cs" Link="Plugin\ScreenDiffer.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TextEdit.cs" Link="Plugin\TextEdit.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CreationNameGuide.cs" Link="Plugin\CreationNameGuide.cs" />
-    <Compile Include="..\..\Poe2Accessibility\Services\AreaLevelJudge.cs" Link="Plugin\AreaLevelJudge.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ChatDiff.cs" Link="Plugin\ChatDiff.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\WeaponSetRows.cs" Link="Plugin\WeaponSetRows.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\QuestRewards.cs" Link="Plugin\QuestRewards.cs" />

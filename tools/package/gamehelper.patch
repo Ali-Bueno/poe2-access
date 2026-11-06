@@ -83,7 +83,7 @@ index 961485f..df7d1ec 100644
              }
          }
 diff --git a/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstance.cs b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstance.cs
-index 47fcf12..2faee4f 100644
+index 47fcf12..1e5981c 100644
 --- a/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstance.cs
 +++ b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstance.cs
 @@ -94,6 +94,11 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
@@ -98,24 +98,19 @@ index 47fcf12..2faee4f 100644
          /// <summary>
          ///     Gets the level of the current Area.
          /// </summary>
-@@ -254,9 +259,14 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
+@@ -254,9 +259,9 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
          protected override void UpdateData(bool hasAddressChanged)
          {
              var reader = Core.Process.Handle;
 -            var data = reader.ReadMemory<AreaInstanceOffsets>(this.Address);
 +            var data = this.Layout.Read(reader, this.Address, out var moved);
-+
-+            if (this.CurrentAreaLevel == 0)
-+            {
-+                this.CurrentAreaLevel = data.CurrentAreaLevel; // the game fills it a moment after the area appears
-+            }
  
 -            if (hasAddressChanged)
 +            if (hasAddressChanged || moved)
              {
                  this.Cleanup(true);
                  this.TerrainMetadata = data.TerrainMetadata;
-@@ -753,7 +763,7 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
+@@ -753,7 +758,7 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
              }
  
              var reader = Core.Process.Handle;
@@ -126,10 +121,10 @@ index 47fcf12..2faee4f 100644
                  500000,
 diff --git a/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstanceLayout.cs b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstanceLayout.cs
 new file mode 100644
-index 0000000..545aa89
+index 0000000..c50d60f
 --- /dev/null
 +++ b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstanceLayout.cs
-@@ -0,0 +1,145 @@
+@@ -0,0 +1,140 @@
 +// <copyright file="AreaInstanceLayout.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -152,12 +147,8 @@ index 0000000..545aa89
 +        internal const int BlockSize = 0x2000;
 +        private const long SearchEveryMs = 500;
 +
-+        // A new area can be read before the game fills its level: this many searches, 2 s, before the area stands without one.
-+        private const int LevelSearches = 4;
-+
 +        private IntPtr judged;
 +        private long nextSearchAt;
-+        private int levelSearches;
 +
 +        /// <summary>Gets where the fields are read from now.</summary>
 +        public AreaFields Fields { get; private set; } = AreaFields.Measured;
@@ -234,10 +225,9 @@ index 0000000..545aa89
 +            this.LastFound = found;
 +            this.Fields = fields;
 +            this.HasWorld = found.HasWorld;
-+            if (found.HasWorld && (found.Level >= 0 || ++this.levelSearches >= LevelSearches))
++            if (found.HasWorld)
 +            {
 +                this.judged = address;
-+                this.levelSearches = 0;
 +            }
 +            else
 +            {
@@ -277,10 +267,10 @@ index 0000000..545aa89
 +}
 diff --git a/GameHelper/RemoteObjects/States/InGameStateObjects/AreaLayoutSearch.cs b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaLayoutSearch.cs
 new file mode 100644
-index 0000000..906f587
+index 0000000..0f694e2
 --- /dev/null
 +++ b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaLayoutSearch.cs
-@@ -0,0 +1,321 @@
+@@ -0,0 +1,322 @@
 +// <copyright file="AreaLayoutSearch.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -365,7 +355,8 @@ index 0000000..906f587
 +        private const int MaxEnvironments = 1024;
 +        private const int NearWindow = 0x100;
 +
-+        // The level, 8 bytes that hold flags, then three vectors, any of them empty (0.5.5f: a mine, a town, a cave).
++        // The level is one byte in a 4-byte slot: the next can hold a flag (0x0101 on a new character's Riverbank, 0.5.5f).
++        // Then 8 bytes that hold flags and three vectors, any of them empty (0.5.5f: a mine, a town, a cave).
 +        private const int LevelGap = 8;
 +        private const int HeaderVectors = 3;
 +        private const int VectorSize = 0x18;
@@ -482,7 +473,7 @@ index 0000000..906f587
 +
 +        private static bool IsHeader(byte[] block, int level, int hashDistance)
 +        {
-+            var value = BitConverter.ToUInt32(block, level);
++            var value = block[level];
 +            if (value is 0 or > MaxAreaLevel || level + hashDistance < 0 || level + hashDistance + sizeof(uint) > block.Length ||
 +                BitConverter.ToUInt32(block, level + hashDistance) < MinHash)
 +            {

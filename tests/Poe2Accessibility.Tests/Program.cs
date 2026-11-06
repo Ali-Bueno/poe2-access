@@ -23,7 +23,6 @@ namespace Poe2Accessibility.Tests
             Run(nameof(InGameBaseLayersNeverOwnInput), InGameBaseLayersNeverOwnInput);
             Run(nameof(TypingIsReportedAsTheEdit), TypingIsReportedAsTheEdit);
             Run(nameof(CreationNameDeadEndsAreSaid), CreationNameDeadEndsAreSaid);
-            Run(nameof(OneAreaMissingItsLevelIsNoWarning), OneAreaMissingItsLevelIsNoWarning);
             Run(nameof(DiabloLoopsStopAtTheirTopPitch), DiabloLoopsStopAtTheirTopPitch);
             Run(nameof(ChatReportsOnlyAppendedLines), ChatReportsOnlyAppendedLines);
             Run(nameof(L3GesturesAreToldApart), L3GesturesAreToldApart);
@@ -253,22 +252,6 @@ namespace Poe2Accessibility.Tests
             Equal(new TextEdit(string.Empty, "s"), TextEdit.Between("Yarkidius", "Yarkidiu"), "deleted one");
             Equal(new TextEdit("Yarkidius", string.Empty), TextEdit.Between(string.Empty, "Yarkidius"), "pasted into empty");
             Equal<TextEdit?>(null, TextEdit.Between("abc", "abd"), "replaced");
-        }
-
-        private static void OneAreaMissingItsLevelIsNoWarning()
-        {
-            var (riverbank, clearfell) = (new IntPtr(0x1000), new IntPtr(0x2000));
-            var judge = new AreaLevelJudge();
-            Equal(false, judge.Lost(riverbank, false), "the first area read too early");
-            Equal(false, judge.Lost(riverbank, false), "nor while it stays there");
-            Equal(false, judge.Seen, "nothing to report yet");
-            Equal(true, judge.Lost(clearfell, false), "a second area without it");
-
-            judge = new AreaLevelJudge();
-            judge.Lost(riverbank, false);
-            Equal(false, judge.Lost(riverbank, true), "found on a later search");
-            Equal(true, judge.Seen, "and reported as found");
-            Equal(false, judge.Lost(clearfell, false), "found once, an area without it says nothing");
         }
 
         private static void DiabloLoopsStopAtTheirTopPitch()

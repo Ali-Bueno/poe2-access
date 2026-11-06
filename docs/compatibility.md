@@ -25,7 +25,7 @@ mod's own changes to the host, `tools/package/gamehelper.patch`, read those fiel
 | Area: server data | a player list leading to inventories, before the player | `AreaLayoutSearch` |
 | Area: entity lists | two adjacent MSVC maps, sentinel flagged, root's value an entity | `AreaLayoutSearch` |
 | Area: terrain | tile vector = X × Y × 0x38 bytes, walkable = bytes per row × rows | `AreaLayoutSearch` |
-| Area: level, hash | level 1-100, then 8 bytes of flags and three vectors (any empty); a hash too large to be the top of a pointer, at the measured distance; searched for 2 s on an area read before its level is filled, and said lost only when a second area misses it too (`AreaLevelJudge`) | `AreaLayoutSearch` |
+| Area: level, hash | level 1-100 in one byte (the next can hold a flag), then 8 bytes of flags and three vectors (any empty); a hash too large to be the top of a pointer, at the measured distance | `AreaLayoutSearch` |
 | Entity id, valid flag | the list's key equals the id, on the root and its child | `AreaLayoutSearch.FindEntityId` |
 | Life | every vital points back at its component; one shift lands the measured ones on them (the game has seven vitals, GameHelper reads five) | `StructShapes.PlaceVitals` |
 | Buffs | a pointer list that ends in a lower-case id such as `herald_of_thunder` (no buff on the player: not judged) | `StructShapes.IsBuffList` |

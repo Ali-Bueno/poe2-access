@@ -220,6 +220,14 @@ colour to apply …"), so the
   desde la cual migrar el progreso." (hold Y), "> Se ha producido una desconexión inesperada.".
 - MEASURED: a short stick push moves the terms up to 8 paragraphs over 2-3 polls of 150 ms.
 
+## Area level on a new character (0.5.5f, 2026-11-06)
+
+- MEASURED: live on the user's new character in the Riverbank: `+0xC4` holds `01 01 00 00`, the level byte and a flag beside it,
+  with the empty vectors at `+0xD0`, `+0xE8`, a full one at `+0x100` and the hash at `+0x11C`. Read as 32 bits it was 257, over
+  the limit of 100, so the search refused the level and kept the stale offsets: "Area level 0", instance "47F" (the top of a
+  pointer) and the compatibility warning. `AreaLayoutSearch.IsHeader` now reads one byte, as `Compose` always did.
+- OPEN: what the flag means.
+
 ## Account flow seen (new Steam account)
 
 Log In → Terms of Use window (I Agree on R3, Continue on A, Back on B) → Account window (Create
