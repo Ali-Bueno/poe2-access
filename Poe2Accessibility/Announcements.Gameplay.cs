@@ -758,6 +758,9 @@ namespace Poe2Accessibility
             return shown ? read : $"{read}. {DeathScreenHidden}";
         }
 
+        /// <summary>A new game build read with nothing lost.</summary>
+        public static string GameUpdateSurvived => T("The game was updated: the mod found everything again", "El juego se ha actualizado: el mod lo ha encontrado todo");
+
         /// <summary>The layout parts not found after a game update, in one line.</summary>
         public static string CompatibilityMissing(IReadOnlyList<string> parts)
         {
@@ -773,6 +776,16 @@ namespace Poe2Accessibility
             "element names" => T("the interface's control names", "los nombres de la interfaz"),
             "element texts" => T("the interface's texts", "los textos de la interfaz"),
             "entity names" => T("the names of characters and monsters", "los nombres de personajes y monstruos"),
+            "local player" => T("your character in the world", "tu personaje en el mundo"),
+            "entity lists" => T("what is around you, so enemies, items and exits stay silent", "lo que hay a tu alrededor, así que enemigos, objetos y salidas no sonarán"),
+            "terrain" => T("the terrain, so the radar stays silent", "el terreno, así que el radar no sonará"),
+            "area level" => T("the area's level", "el nivel del área"),
+            "life" => T("life, mana and energy shield", "la vida, el maná y el escudo de energía"),
+            "buffs" => T("buffs and harmful states", "los efectos y estados"),
+            "skills" => T("your skills and cooldowns", "tus habilidades y enfriamientos"),
+            "stats" => T("your stats", "tus estadísticas"),
+            "positions" => T("where things stand, so sounds lose their side", "dónde está cada cosa, así que los sonidos pierden su lado"),
+            "camera" => T("the camera, so enemies on screen are not told apart", "la cámara, así que no sé qué enemigos hay en pantalla"),
             "targetable flag" => T("which monsters and characters are in play", "qué monstruos y personajes están en juego"),
             "HUD" => T("the HUD", "el HUD"),
             "death screen" => T("the death screen", "la pantalla de muerte"),

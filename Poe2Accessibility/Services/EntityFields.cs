@@ -133,6 +133,7 @@ namespace Poe2Accessibility.Services
         {
             var groups = this.Groups();
             var flag = this.inPlay.Count < InPlayFlag.MinInPlay ? "in-play flag: too little in play to judge"
+                : !groups.Any(group => group.Any(block => block[GameLayout.TargetableComponent.IsTargetableOffset] == 0)) ? "in-play flag: no story variant out of play in the sample"
                 : OffsetSearch.Outward(GameLayout.TargetableComponent.IsTargetableOffset, FlagRadius, 1).Where(at => InPlayFlag.Fits(this.inPlay, groups, at)).ToList() is var fits &&
                   fits.Count == 1 && fits[0] == GameLayout.TargetableComponent.IsTargetableOffset ? "in-play flag ok"
                 : $"in-play flag FAIL (fits at {string.Join(", ", fits.Select(at => $"+0x{at:X}"))}, is +0x{GameLayout.TargetableComponent.IsTargetableOffset:X})";

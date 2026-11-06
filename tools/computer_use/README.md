@@ -28,6 +28,10 @@ Plugin rebuild loop: `launch.py stop` → `dotnet build Poe2Accessibility -c Rel
 `tools/Poe2AccessLauncher`, which skips the update check and the "path contains poe" prompt and runs the host
 unelevated via `__COMPAT_LAYER=RunAsInvoker` — it only needs read access).
 
+Dev commands for a patch day: `layout`, `structs` (the host's struct sweep), `sounds` (what played since last asked and the
+output peak: the only proof of audio). A panel opened by the radial: `chord share right up|up-right|right|down-right|down|down-left|left|up-left --seconds 0.8 --select`
+= inventory, cosmetics, skills, not available, bind screen, character, passives, quests. RT fires a crossbow's loaded ammo (X, Y… only load it).
+
 Every action prints JSON with the plugin log lines written since it started (`Speech interrupts|queued`,
 `Focus ->`, `Screen <change>`); that log is the test oracle. Research commands go through
 `Plugins/Poe2Accessibility/debug/command.txt` (`dump`, `dump visible`, `hints`, `status`, `repeat`;
@@ -72,6 +76,7 @@ new `serve`, which disconnects the game to the login screen.
   input until the area has loaded, or the pad joins as J2. Check it walks: an unchanged `cell=` in the `beacon` command means it does not.
 - A second `key enter` at character selection also entered the game, but then A at the Transportador only cast a skill and
   no map opened (2026-11-05): after the login, check the pad before relying on it.
+- Never stand still among monsters reading logs: on 2026-11-06 a level 19 Mercenary died in a level 6 area that way.
 - Scripted walking on the live servers: packs kill a character that only walks, and one session ended in "Abnormal
   disconnect" 40 s after a death with no reason given (Client.txt, 2026-11-05). Cause unknown; keep it short.
 - Steam's launch options start the `dist` host: `dist/Poe2Access/Poe2Access.exe stop`, then `launch.py host`, to test the build output.

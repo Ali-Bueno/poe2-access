@@ -111,6 +111,12 @@
     <Compile Include="..\..\Poe2Accessibility\Announcements.cs" Link="Plugin\Announcements.cs" />
     <Compile Include="..\..\Poe2Accessibility\Models\AccessibleUiNode.cs" Link="Plugin\AccessibleUiNode.cs" />
     <Compile Include="..\..\external\GameHelper2\GameHelper\RemoteEnums\GameStateTypes.cs" Link="Plugin\GameStateTypes.cs" />
+    <Compile Include="..\..\external\GameHelper2\GameHelper\RemoteObjects\States\InGameStateObjects\AreaLayoutSearch.cs" Link="Host\AreaLayoutSearch.cs" />
+    <Compile Include="..\..\external\GameHelper2\GameHelper\Utils\StructRemap.cs" Link="Host\StructRemap.cs" />
+    <Compile Include="..\..\external\GameHelper2\GameHelper\Utils\StructShapes.cs" Link="Host\StructShapes.cs" />
+    <Compile Include="..\..\external\GameHelper2\GameOffsets\Objects\States\InGameState\AreaInstanceOffsets.cs" Link="Host\AreaInstanceOffsets.cs" />
+    <Compile Include="..\..\external\GameHelper2\GameOffsets\Objects\States\InGameState\ServerDataOffset.cs" Link="Host\ServerDataOffset.cs" />
+    <Compile Include="..\..\external\GameHelper2\GameOffsets\Natives\*.cs" LinkBase="Host\Natives" />
     <Compile Include="..\..\external\GameHelper2\GameHelper\RemoteEnums\InventoryName.cs" Link="Plugin\InventoryName.cs" />
   </ItemGroup>
 

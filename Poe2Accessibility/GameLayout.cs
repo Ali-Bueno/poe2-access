@@ -170,7 +170,10 @@ namespace Poe2Accessibility
             public static int PoiseOffset { get; internal set; } = 0x4E8;
 
             /// <summary>std::vector of the actor's skills, 16-byte entries whose first pointer is an ActiveSkillDetails (GameHelper ActorOffsets.ActiveSkillsPtr).</summary>
-            public const int SkillsOffset = 0xB08;
+            public const int MeasuredSkillsOffset = 0xB08;
+
+            /// <summary>Where the skills stand in this build (<see cref="MeasuredSkillsOffset"/> plus what the struct sweep found).</summary>
+            public static int SkillsOffset { get; internal set; } = MeasuredSkillsOffset;
 
             public const int SkillEntrySize = 0x10;
 
@@ -178,7 +181,10 @@ namespace Poe2Accessibility
             ///     std::vector of the actor's skill cooldowns, 0x48-byte entries (GameHelper ActorOffsets.CooldownsPtr,
             ///     ActiveSkillCooldown; docs/research/skill-cooldowns.md).
             /// </summary>
-            public const int CooldownsOffset = 0xB20;
+            public const int MeasuredCooldownsOffset = 0xB20;
+
+            /// <summary>Where the cooldowns stand in this build (<see cref="MeasuredCooldownsOffset"/> plus what the struct sweep found).</summary>
+            public static int CooldownsOffset { get; internal set; } = MeasuredCooldownsOffset;
 
             public const int CooldownEntrySize = 0x48;
 

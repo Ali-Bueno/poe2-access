@@ -83,7 +83,8 @@ Send these two files, with what you were doing and at what time:
 
 ## Credits
 
-- [GameHelper2](https://github.com/Gordin/GameHelper2) (GPLv3), the overlay the mod runs in, shipped unmodified.
+- [GameHelper2](https://github.com/Gordin/GameHelper2) (GPLv3), the overlay the mod runs in, shipped with the changes in
+  [`tools/package/gamehelper.patch`](tools/package/gamehelper.patch), which find its offsets again after a game patch.
 - [PRISM](https://github.com/ethindp/prism), the screen reader output.
 
 ## For developers

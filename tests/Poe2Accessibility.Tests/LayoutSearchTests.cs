@@ -1,0 +1,323 @@
+namespace Poe2Accessibility.Tests
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using GameHelper.RemoteObjects.States.InGameStateObjects;
+    using GameHelper.Utils;
+
+    /// <summary>The host's runtime layout search against a fake game memory: a patch moves the fields, the search must follow.</summary>
+    public static class LayoutSearchTests
+    {
+        private const long Heap = 0x10_0000_0000;
+        private const long Player = Heap + 0x1000;
+        private const long Monster = Heap + 0x2000;
+        private const long Sentinel = Heap + 0x3000;
+        private const long Root = Heap + 0x4000;
+        private const long Left = Heap + 0x5000;
+        private const long ServerData = Heap + 0x6000;
+        private const long SleepSentinel = Heap + 0x7000;
+        private const long PlayerList = Heap + 0x8000;
+        private const long ServerPlayer = Heap + 0x9000;
+        private const long Tiles = Heap + 0xA000;
+        private const long Walkable = Heap + 0xB000;
+        private const int TilesX = 10;
+        private const int TilesY = 20;
+        private const int BytesPerRow = 115;
+
+        public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
+        {
+            (nameof(FieldsWhereMeasuredStayThere), FieldsWhereMeasuredStayThere),
+            (nameof(FieldsAreFollowedHoweverFarTheyMoved), FieldsAreFollowedHoweverFarTheyMoved),
+            (nameof(AnEmptyAreaHasNoWorld), AnEmptyAreaHasNoWorld),
+            (nameof(TheLevelSurvivesFlagsAndFullVectors), TheLevelSurvivesFlagsAndFullVectors),
+            (nameof(TheTopHalfOfAPointerIsNoHash), TheTopHalfOfAPointerIsNoHash),
+            (nameof(AFieldNotFoundKeepsTheLastOne), AFieldNotFoundKeepsTheLastOne),
+            (nameof(TheEntityIdIsTheListsKey), TheEntityIdIsTheListsKey),
+            (nameof(MovedBytesComeBackWhereTheStructWantsThem), MovedBytesComeBackWhereTheStructWantsThem),
+            (nameof(SegmentsDropWhatContinuesTheLastShift), SegmentsDropWhatContinuesTheLastShift),
+            (nameof(VitalsPointBackAtTheirComponent), VitalsPointBackAtTheirComponent),
+            (nameof(MeasuredVitalsLandOnTheOnesFound), MeasuredVitalsLandOnTheOnesFound),
+            (nameof(BuffListsEndInAnId), BuffListsEndInAnId),
+            (nameof(TheCameraIsKeptTwice), TheCameraIsKeptTwice),
+            (nameof(PositionsLieInsideTheMap), PositionsLieInsideTheMap),
+        };
+
+        private static void FieldsWhereMeasuredStayThere()
+        {
+            var fields = AreaFields.Measured;
+            var found = new AreaLayoutSearch(World()).Find(Area(fields), fields);
+            Equal(fields, found, "fields that did not move");
+        }
+
+        private static void FieldsAreFollowedHoweverFarTheyMoved()
+        {
+            var measured = AreaFields.Measured;
+            foreach (var shift in new[] { 8, 0x28, -0x20, 0x480 })
+            {
+                var moved = measured with
+                {
+                    Level = measured.Level + shift,
+                    Hash = measured.Hash + shift,
+                    Environments = measured.Environments + shift,
+                    ServerData = measured.ServerData + shift,
+                    LocalPlayer = measured.LocalPlayer + shift,
+                    Entities = measured.Entities + shift,
+                    Terrain = measured.Terrain + shift,
+                };
+                Equal(moved, new AreaLayoutSearch(World()).Find(Area(moved), measured), $"fields moved by {shift:X}");
+            }
+
+            // 0.5.5f: the first fields moved 8 bytes, the entities and the terrain 0x28.
+            var patch = measured with
+            {
+                Level = measured.Level + 8,
+                Hash = measured.Hash + 8,
+                Environments = measured.Environments + 8,
+                ServerData = measured.ServerData + 8,
+                LocalPlayer = measured.LocalPlayer + 8,
+                Entities = measured.Entities + 0x28,
+                Terrain = measured.Terrain + 0x28,
+            };
+            Equal(patch, new AreaLayoutSearch(World()).Find(Area(patch), measured), "fields moved apart");
+        }
+
+        private static void AnEmptyAreaHasNoWorld()
+        {
+            var found = new AreaLayoutSearch(World()).Find(new byte[0x2000], AreaFields.Measured);
+            Equal(false, found.HasWorld, "a block of zeros");
+            Equal(-1, found.LocalPlayer, "no player in zeros");
+        }
+
+        private static void TheLevelSurvivesFlagsAndFullVectors()
+        {
+            var fields = AreaFields.Measured;
+            var block = Area(fields);
+            block[fields.Level + 11] = 1; // a flag after the level, seen in a cave of 0.5.5f
+            Put(block, fields.Level + 12, Heap, Heap + 8, Heap + 8); // the vector a town fills
+            Equal(fields.Level, new AreaLayoutSearch(World()).Find(block, fields).Level, "the level beside a flag and a full vector");
+        }
+
+        private static void TheTopHalfOfAPointerIsNoHash()
+        {
+            var fields = AreaFields.Measured;
+            var block = Area(fields);
+            BitConverter.TryWriteBytes(block.AsSpan(fields.Hash), 0x3E8u);
+            Equal(-1, new AreaLayoutSearch(World()).Find(block, fields).Hash, "0x3E8, the top of a pointer");
+        }
+
+        private static void AFieldNotFoundKeepsTheLastOne()
+        {
+            var known = AreaFields.Measured;
+            var found = new AreaFields(-1, -1, -1, known.ServerData + 8, known.LocalPlayer + 8, known.Entities, known.Terrain);
+            var kept = found.Over(known);
+            Equal(known.Level, kept.Level, "a level not found");
+            Equal(known.LocalPlayer + 8, kept.LocalPlayer, "a player found");
+        }
+
+        private static void TheEntityIdIsTheListsKey()
+        {
+            const int measured = 0x88;
+            foreach (var moved in new[] { 0x88, 0x80, 0x90 })
+            {
+                var fields = AreaFields.Measured;
+                var memory = World(moved);
+                Equal(moved, new AreaLayoutSearch(memory).FindEntityId(Area(fields), fields.Entities, measured), $"id at {moved:X}");
+            }
+        }
+
+        private static void MovedBytesComeBackWhereTheStructWantsThem()
+        {
+            var raw = Enumerable.Range(0, 32).Select(value => (byte)value).ToArray();
+            var target = new byte[16];
+            var segments = new[] { new RemapSegment(4, 8), new RemapSegment(8, 0), new RemapSegment(12, 4) };
+            StructRemapper.Apply(raw, target, segments);
+            Equal("0 1 2 3 12 13 14 15 8 9 10 11 16 17 18 19", string.Join(' ', target), "fields read from where they moved");
+            Equal(24, StructRemapper.ReadSize(16, segments), "the read reaches the farthest field");
+        }
+
+        private static void SegmentsDropWhatContinuesTheLastShift()
+        {
+            var segments = StructRemapper.Segments(new[] { new RemapSegment(0x20, 8), new RemapSegment(0x10, 0), new RemapSegment(0x30, 8), new RemapSegment(0x40, 16) });
+            Equal("0x20 8; 0x40 16", string.Join("; ", segments.Select(segment => $"0x{segment.From:X} {segment.Shift}")), "only real changes of shift");
+            Equal(0, StructRemapper.Segments(new[] { new RemapSegment(0x20, 0) }).Length, "nothing moved");
+        }
+
+        private static void VitalsPointBackAtTheirComponent()
+        {
+            const long life = 0x1234_5678;
+            var block = new byte[0x200];
+            foreach (var at in new[] { 0x40, 0xA0, 0x100 })
+            {
+                BitConverter.TryWriteBytes(block.AsSpan(at + 8), life);
+                BitConverter.TryWriteBytes(block.AsSpan(at + 0x2C), 100);
+                BitConverter.TryWriteBytes(block.AsSpan(at + 0x30), 60);
+            }
+
+            BitConverter.TryWriteBytes(block.AsSpan(0x160 + 8), life);
+            BitConverter.TryWriteBytes(block.AsSpan(0x160 + 0x2C), 10);
+            BitConverter.TryWriteBytes(block.AsSpan(0x160 + 0x30), 60); // more than its total: no vital
+            Equal("40 A0 100", string.Join(' ', StructShapes.Vitals(block, life, 8, 0x2C, 0x30).Select(at => at.ToString("X"))), "the vitals, in order");
+        }
+
+        private static void MeasuredVitalsLandOnTheOnesFound()
+        {
+            // 0.5.5f: seven vitals, of which GameHelper reads five.
+            int[] measured = { 0x1B0, 0x208, 0x248, 0x2E8, 0x338 };
+            int[] found = { 0x1B0, 0x208, 0x248, 0x2A0, 0x2E8, 0x338, 0x3A0 };
+            Equal("1B0 208 248 2E8 338", Hex(StructShapes.PlaceVitals(measured, found)), "a struct that did not move");
+            Equal("1B8 210 250 2F0 340", Hex(StructShapes.PlaceVitals(measured, found.Select(at => at + 8).ToArray())), "all moved together");
+            Equal("1A0 1F8 238 2D8 328", Hex(StructShapes.PlaceVitals(measured, found.Select(at => at - 0x10).ToArray())), "all moved back");
+            Equal("1B0 208 250 2F0 340", Hex(StructShapes.PlaceVitals(measured, new[] { 0x1B0, 0x208, 0x250, 0x2F0, 0x340 })), "the later ones moved");
+            Equal(string.Empty, Hex(StructShapes.PlaceVitals(measured, Array.Empty<int>())), "none");
+        }
+
+        private static string Hex(IEnumerable<int> offsets) => string.Join(' ', offsets.Select(at => at.ToString("X")));
+
+        private static void BuffListsEndInAnId()
+        {
+            var memory = World();
+            var block = new byte[0x40];
+            Put(block, 0x10, Heap + 0x100, Heap + 0x108, Heap + 0x110);
+            memory.Pointers[Heap + 0x100] = Heap + 0x200;
+            memory.Pointers[Heap + 0x208] = Heap + 0x300;
+            memory.Pointers[Heap + 0x300] = Heap + 0x400;
+            memory.Texts[Heap + 0x400] = "herald_of_thunder";
+            Equal(true, StructShapes.IsBuffList(block, 0x10, memory, 8), "a chain that ends in an id");
+            memory.Texts[Heap + 0x400] = "Not an Id";
+            Equal(false, StructShapes.IsBuffList(block, 0x10, memory, 8), "a chain that ends in other text");
+            Equal(false, StructShapes.IsBuffList(block, 0x18, memory, 8), "no vector");
+        }
+
+        private static void TheCameraIsKeptTwice()
+        {
+            var block = new byte[0x100];
+            for (var cell = 0; cell < 16; cell++)
+            {
+                BitConverter.TryWriteBytes(block.AsSpan(0x20 + (cell * 4)), cell + 1f);
+                BitConverter.TryWriteBytes(block.AsSpan(0x60 + (cell * 4)), cell + 1f);
+            }
+
+            Equal(true, StructShapes.IsCameraMatrix(block, 0x20), "a matrix and its copy");
+            Equal(false, StructShapes.IsCameraMatrix(block, 0x24), "next to it");
+            Equal(false, StructShapes.IsCameraMatrix(new byte[0x100], 0x20), "zeros equal zeros");
+            BitConverter.TryWriteBytes(block.AsSpan(0x60), 99f);
+            Equal(false, StructShapes.IsCameraMatrix(block, 0x20), "two different matrices");
+        }
+
+        private static void PositionsLieInsideTheMap()
+        {
+            var block = new byte[0x20];
+            BitConverter.TryWriteBytes(block.AsSpan(4), 2500f);
+            BitConverter.TryWriteBytes(block.AsSpan(8), 1200f);
+            BitConverter.TryWriteBytes(block.AsSpan(12), -50f);
+            Equal(true, StructShapes.IsWorldPosition(block, 4, 5000f, 5000f), "inside");
+            Equal(false, StructShapes.IsWorldPosition(block, 4, 1000f, 5000f), "beyond the width");
+            Equal(false, StructShapes.IsWorldPosition(block, 0, 5000f, 5000f), "a zero");
+            BitConverter.TryWriteBytes(block.AsSpan(4), float.NaN);
+            Equal(false, StructShapes.IsWorldPosition(block, 4, 5000f, 5000f), "not a number");
+        }
+
+        private static void Equal<T>(T expected, T actual, string what)
+        {
+            if (!EqualityComparer<T>.Default.Equals(expected, actual))
+            {
+                throw new InvalidOperationException($"{what}: expected {expected}, got {actual}");
+            }
+        }
+
+        private static void Put(byte[] block, int at, params long[] values)
+        {
+            foreach (var value in values)
+            {
+                BitConverter.TryWriteBytes(block.AsSpan(at), value);
+                at += 8;
+            }
+        }
+
+        /// <summary>An area instance with every field at <paramref name="at"/>, and noise a search must not take for them.</summary>
+        private static byte[] Area(AreaFields at)
+        {
+            var block = new byte[0x2000];
+            BitConverter.TryWriteBytes(block.AsSpan(at.Level), 18);
+            BitConverter.TryWriteBytes(block.AsSpan(at.Hash), 0x2E570612u);
+            Put(block, at.Environments, Heap + 0xC00, Heap + 0xC10, Heap + 0xC10);
+            Put(block, at.ServerData, ServerData);
+            Put(block, at.LocalPlayer, Player);
+
+            // The same player again, as in the game, with no server data before it.
+            Put(block, at.LocalPlayer + 0x600, Player);
+            Put(block, at.Entities, Sentinel, 234, SleepSentinel, 0);
+            Put(block, at.Terrain + 0x18, TilesX, TilesY);
+            Put(block, at.Terrain + 0x28, Tiles, Tiles + (TilesX * TilesY * 0x38), Tiles + (TilesX * TilesY * 0x38));
+            Put(block, at.Terrain + 0xD0, Walkable, Walkable + (BytesPerRow * TilesY * 23), Walkable + (BytesPerRow * TilesY * 23));
+            BitConverter.TryWriteBytes(block.AsSpan(at.Terrain + 0x130), BytesPerRow);
+            return block;
+        }
+
+        private static FakeMemory World(int entityId = 0x88)
+        {
+            var memory = new FakeMemory();
+            memory.Paths[Player] = "Metadata/Characters/StrDex/StrDexFourb";
+            memory.Paths[Monster] = "Metadata/Monsters/FungusZombie/FungusZombieFungalmancer";
+            memory.Node(Sentinel, 0, Root, 0, true, 0, 0);
+            memory.Node(Root, Left, Sentinel, 0, false, 0xC000050C, Monster);
+            memory.Node(Left, 0, Root, 0, false, 0x987, Player);
+            memory.Node(SleepSentinel, 0, SleepSentinel, 0, true, 0, 0);
+            memory.Blocks[Monster] = Body(entityId, 0xC000050C);
+            memory.Blocks[Player] = Body(entityId, 0x987);
+            memory.Vector(ServerData + 0x48, PlayerList, 8);
+            memory.Pointers[PlayerList] = ServerPlayer;
+            memory.Vector(ServerPlayer + 0x320, Heap + 0xD000, 0x18 * 117);
+            return memory;
+        }
+
+        private static byte[] Body(int idAt, uint id)
+        {
+            var body = new byte[0x100];
+            BitConverter.TryWriteBytes(body.AsSpan(idAt), id);
+            return body;
+        }
+
+        private sealed class FakeMemory : IAreaMemory
+        {
+            public Dictionary<long, string> Paths { get; } = new();
+
+            public Dictionary<long, string> Texts { get; } = new();
+
+            public Dictionary<long, byte[]> Blocks { get; } = new();
+
+            public Dictionary<long, long> Pointers { get; } = new();
+
+            public byte[] Read(long address, int size)
+            {
+                if (this.Blocks.TryGetValue(address, out var block))
+                {
+                    return block.Length >= size ? block[..size] : Array.Empty<byte>();
+                }
+
+                return size == 8 && this.Pointers.TryGetValue(address, out var pointer) ? BitConverter.GetBytes(pointer) : Array.Empty<byte>();
+            }
+
+            public string EntityPath(long entity) => this.Paths.GetValueOrDefault(entity, string.Empty);
+
+            public string WideText(long address) => this.Texts.GetValueOrDefault(address, string.Empty);
+
+            public void Node(long at, long left, long parent, long right, bool isNil, long key, long value)
+            {
+                var node = new byte[0x38];
+                Put(node, 0, left, parent, right);
+                node[0x19] = isNil ? (byte)1 : (byte)0;
+                Put(node, 0x20, key, value);
+                this.Blocks[at] = node;
+            }
+
+            public void Vector(long at, long first, long bytes)
+            {
+                var vector = new byte[0x18];
+                Put(vector, 0, first, first + bytes, first + bytes);
+                this.Blocks[at] = vector;
+            }
+        }
+    }
+}

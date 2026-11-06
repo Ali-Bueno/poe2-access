@@ -153,6 +153,11 @@ namespace Poe2Accessibility.Tests
             Run(nameof(MapHintsAreSaidOncePerPlace), MapHintsAreSaidOncePerPlace);
             Run(nameof(ShippedMapHintsAreWellFormed), ShippedMapHintsAreWellFormed);
             Run(nameof(SpiritValuesNameTheirWeaponSet), SpiritValuesNameTheirWeaponSet);
+            foreach (var (name, test) in LayoutSearchTests.All())
+            {
+                Run(name, test);
+            }
+
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }

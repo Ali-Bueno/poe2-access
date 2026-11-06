@@ -1,0 +1,1351 @@
+diff --git a/GameHelper/Core.cs b/GameHelper/Core.cs
+index fed0230..16b20b0 100644
+--- a/GameHelper/Core.cs
++++ b/GameHelper/Core.cs
+@@ -199,7 +199,7 @@ namespace GameHelper
+             while (true)
+             {
+                 yield return new Wait(Process.OnStaticAddressFound);
+-                GameCull.Address = Process.StaticAddresses["GameCullSize"];
++                GameCull.Address = Process.StaticAddresses.GetValueOrDefault("GameCullSize");
+                 GameScale.Refresh();
+             }
+         }
+@@ -213,7 +213,7 @@ namespace GameHelper
+             while (true)
+             {
+                 yield return new Wait(Process.OnStaticAddressFound);
+-                AreaChangeCounter.Address = Process.StaticAddresses["AreaChangeCounter"];
++                AreaChangeCounter.Address = Process.StaticAddresses.GetValueOrDefault("AreaChangeCounter");
+             }
+         }
+ 
+@@ -226,7 +226,7 @@ namespace GameHelper
+             while (true)
+             {
+                 yield return new Wait(Process.OnStaticAddressFound);
+-                CurrentAreaLoadedFiles.Address = Process.StaticAddresses["File Root"];
++                CurrentAreaLoadedFiles.Address = Process.StaticAddresses.GetValueOrDefault("File Root");
+             }
+         }
+ 
+@@ -239,7 +239,7 @@ namespace GameHelper
+             while (true)
+             {
+                 yield return new Wait(Process.OnStaticAddressFound);
+-                States.Address = Process.StaticAddresses["Game States"];
++                States.Address = Process.StaticAddresses.GetValueOrDefault("Game States");
+             }
+         }
+ 
+@@ -252,7 +252,7 @@ namespace GameHelper
+             while (true)
+             {
+                 yield return new Wait(Process.OnStaticAddressFound);
+-                RotationSelector.Address = Process.StaticAddresses["Terrain Rotation Selector"];
++                RotationSelector.Address = Process.StaticAddresses.GetValueOrDefault("Terrain Rotation Selector");
+             }
+         }
+ 
+@@ -265,7 +265,7 @@ namespace GameHelper
+             while (true)
+             {
+                 yield return new Wait(Process.OnStaticAddressFound);
+-                RotatorHelper.Address = Process.StaticAddresses["Terrain Rotator Helper"];
++                RotatorHelper.Address = Process.StaticAddresses.GetValueOrDefault("Terrain Rotator Helper");
+             }
+         }
+ 
+diff --git a/GameHelper/GameProcess.cs b/GameHelper/GameProcess.cs
+index 961485f..df7d1ec 100644
+--- a/GameHelper/GameProcess.cs
++++ b/GameHelper/GameProcess.cs
+@@ -86,6 +86,8 @@ namespace GameHelper
+         /// </summary>
+         public Rectangle WindowArea { get; private set; } = Rectangle.Empty;
+ 
++        private const string GameStatesPattern = "Game States";
++
+         /// <summary>
+         ///     Gets the Base Address of the game.
+         /// </summary>
+@@ -344,6 +346,12 @@ namespace GameHelper
+                     this.StaticAddresses[patternInfo.Key] = address;
+                 }
+ 
++                if (!patternsInfo.ContainsKey(GameStatesPattern) &&
++                    GameStatesSearch.Find(this.Handle, baseAddress, procSize) is var found && found != IntPtr.Zero)
++                {
++                    this.StaticAddresses[GameStatesPattern] = found;
++                }
++
+                 CoroutineHandler.RaiseEvent(this.OnStaticAddressFound);
+             }
+         }
+diff --git a/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstance.cs b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstance.cs
+index 47fcf12..1e5981c 100644
+--- a/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstance.cs
++++ b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstance.cs
+@@ -94,6 +94,11 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
+                 this.OnPerFrame(), "[AreaInstance] Update Area Data", int.MaxValue - 4));
+         }
+ 
++        /// <summary>
++        ///     Gets where this game build keeps the area's fields.
++        /// </summary>
++        public AreaInstanceLayout Layout { get; } = new();
++
+         /// <summary>
+         ///     Gets the level of the current Area.
+         /// </summary>
+@@ -254,9 +259,9 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
+         protected override void UpdateData(bool hasAddressChanged)
+         {
+             var reader = Core.Process.Handle;
+-            var data = reader.ReadMemory<AreaInstanceOffsets>(this.Address);
++            var data = this.Layout.Read(reader, this.Address, out var moved);
+ 
+-            if (hasAddressChanged)
++            if (hasAddressChanged || moved)
+             {
+                 this.Cleanup(true);
+                 this.TerrainMetadata = data.TerrainMetadata;
+@@ -753,7 +758,7 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
+             }
+ 
+             var reader = Core.Process.Handle;
+-            var data = reader.ReadMemory<AreaInstanceOffsets>(this.Address);
++            var data = this.Layout.Read(reader, this.Address);
+             return reader.ReadStdMap<EntityNodeKey, EntityNodeValue>(
+                 data.Entities.SleepingEntities,
+                 500000,
+diff --git a/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstanceLayout.cs b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstanceLayout.cs
+new file mode 100644
+index 0000000..08e9115
+--- /dev/null
++++ b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstanceLayout.cs
+@@ -0,0 +1,126 @@
++// <copyright file="AreaInstanceLayout.cs" company="None">
++// Copyright (c) None. All rights reserved.
++// </copyright>
++
++namespace GameHelper.RemoteObjects.States.InGameStateObjects
++{
++    using System;
++    using System.Runtime.InteropServices;
++    using GameHelper.Utils;
++    using GameOffsets.Natives;
++    using GameOffsets.Objects.States.InGameState;
++
++    /// <summary>
++    ///     Reads an area instance through the offsets this game build really uses: judged once per area, searched again
++    ///     while they do not hold what they must, so a patch that moves a field does not need a new GameHelper.
++    /// </summary>
++    public sealed class AreaInstanceLayout
++    {
++        // Past every field seen so far (0.5.3 reached 0xE90) and inside what the game allocates.
++        internal const int BlockSize = 0x2000;
++        private const long SearchEveryMs = 500;
++
++        private IntPtr judged;
++        private long nextSearchAt;
++
++        /// <summary>Gets where the fields are read from now.</summary>
++        public AreaFields Fields { get; private set; } = AreaFields.Measured;
++
++        /// <summary>Gets the outcome of the last search; negative fields were not found.</summary>
++        public AreaFields LastFound { get; private set; } = AreaFields.Measured;
++
++        /// <summary>Gets a value indicating whether the current area's world fields were all found.</summary>
++        public bool HasWorld { get; private set; }
++
++        /// <summary>The area instance at <paramref name="address"/>; <paramref name="moved"/> says the fields changed.</summary>
++        internal AreaInstanceOffsets Read(SafeMemoryHandle reader, IntPtr address, out bool moved)
++        {
++            moved = false;
++            var block = reader.ReadMemoryArray<byte>(address, BlockSize);
++            if (block.Length == 0)
++            {
++                return reader.ReadMemory<AreaInstanceOffsets>(address);
++            }
++
++            if (address != this.judged && Environment.TickCount64 >= this.nextSearchAt)
++            {
++                moved = this.Judge(reader, address, block);
++            }
++
++            return Compose(block, this.Fields);
++        }
++
++        /// <summary>The area instance at <paramref name="address"/> through the fields known now.</summary>
++        internal AreaInstanceOffsets Read(SafeMemoryHandle reader, IntPtr address)
++        {
++            var block = reader.ReadMemoryArray<byte>(address, BlockSize);
++            return block.Length == 0 ? reader.ReadMemory<AreaInstanceOffsets>(address) : Compose(block, this.Fields);
++        }
++
++        private static AreaInstanceOffsets Compose(byte[] block, AreaFields at)
++        {
++            var data = default(AreaInstanceOffsets);
++            data.CurrentAreaLevel = block[at.Level];
++            data.CurrentAreaHash = MemoryMarshal.Read<uint>(block.AsSpan(at.Hash));
++            data.Environments = MemoryMarshal.Read<StdVector>(block.AsSpan(at.Environments));
++            data.PlayerInfo.ServerDataPtr = MemoryMarshal.Read<IntPtr>(block.AsSpan(at.ServerData));
++            data.PlayerInfo.LocalPlayerPtr = MemoryMarshal.Read<IntPtr>(block.AsSpan(at.LocalPlayer));
++            data.Entities = MemoryMarshal.Read<EntityListStruct>(block.AsSpan(at.Entities));
++            data.TerrainMetadata = MemoryMarshal.Read<TerrainStruct>(block.AsSpan(at.Terrain));
++            return data;
++        }
++
++        private bool Judge(SafeMemoryHandle reader, IntPtr address, byte[] block)
++        {
++            var search = new AreaLayoutSearch(new GameMemory(reader));
++            var found = search.Find(block, this.Fields);
++            var fields = found.Over(this.Fields);
++            if (found.Entities >= 0)
++            {
++                OffsetHealer.FollowEntityId(search.FindEntityId(block, found.Entities, OffsetHealer.MeasuredEntityId));
++            }
++
++            var moved = fields != this.Fields;
++            this.LastFound = found;
++            this.Fields = fields;
++            this.HasWorld = found.HasWorld;
++            if (found.HasWorld)
++            {
++                this.judged = address;
++            }
++            else
++            {
++                this.nextSearchAt = Environment.TickCount64 + SearchEveryMs;
++            }
++
++            return moved;
++        }
++
++    }
++
++    /// <summary>The searches' view of the game's memory.</summary>
++    internal sealed class GameMemory : IAreaMemory
++    {
++        private readonly SafeMemoryHandle reader;
++
++        internal GameMemory(SafeMemoryHandle reader)
++        {
++            this.reader = reader;
++        }
++
++        /// <inheritdoc />
++        public byte[] Read(long address, int size) => this.reader.ReadMemoryArray<byte>(new IntPtr(address), size);
++
++        /// <inheritdoc />
++        public string EntityPath(long entity)
++        {
++            return this.reader.TryReadMemory<ItemStruct>(new IntPtr(entity), out var item) &&
++                   this.reader.TryReadMemory<EntityDetails>(item.EntityDetailsPtr, out var details)
++                ? this.reader.ReadStdWString(details.name)
++                : string.Empty;
++        }
++
++        /// <inheritdoc />
++        public string WideText(long address) => this.reader.ReadUnicodeString(new IntPtr(address));
++    }
++}
+diff --git a/GameHelper/RemoteObjects/States/InGameStateObjects/AreaLayoutSearch.cs b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaLayoutSearch.cs
+new file mode 100644
+index 0000000..6a078c9
+--- /dev/null
++++ b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaLayoutSearch.cs
+@@ -0,0 +1,317 @@
++// <copyright file="AreaLayoutSearch.cs" company="None">
++// Copyright (c) None. All rights reserved.
++// </copyright>
++
++namespace GameHelper.RemoteObjects.States.InGameStateObjects
++{
++    using System;
++    using System.Linq;
++    using System.Runtime.InteropServices;
++    using GameOffsets.Natives;
++    using GameOffsets.Objects.States.InGameState;
++
++    /// <summary>Where the fields of <see cref="AreaInstanceOffsets"/> sit in an area instance; negative when not found.</summary>
++    public readonly record struct AreaFields(int Level, int Hash, int Environments, int ServerData, int LocalPlayer, int Entities, int Terrain)
++    {
++        /// <summary>The offsets this build of GameHelper was written for.</summary>
++        public static AreaFields Measured { get; } = new(
++            OffsetOf<AreaInstanceOffsets>(nameof(AreaInstanceOffsets.CurrentAreaLevel)),
++            OffsetOf<AreaInstanceOffsets>(nameof(AreaInstanceOffsets.CurrentAreaHash)),
++            OffsetOf<AreaInstanceOffsets>(nameof(AreaInstanceOffsets.Environments)),
++            OffsetOf<AreaInstanceOffsets>(nameof(AreaInstanceOffsets.PlayerInfo)) + OffsetOf<LocalPlayerStruct>(nameof(LocalPlayerStruct.ServerDataPtr)),
++            OffsetOf<AreaInstanceOffsets>(nameof(AreaInstanceOffsets.PlayerInfo)) + OffsetOf<LocalPlayerStruct>(nameof(LocalPlayerStruct.LocalPlayerPtr)),
++            OffsetOf<AreaInstanceOffsets>(nameof(AreaInstanceOffsets.Entities)),
++            OffsetOf<AreaInstanceOffsets>(nameof(AreaInstanceOffsets.TerrainMetadata)));
++
++        /// <summary>Gets a value indicating whether the fields everything else hangs from were all found.</summary>
++        public bool HasWorld => this.LocalPlayer >= 0 && this.Entities >= 0 && this.Terrain >= 0;
++
++        /// <summary>These fields, keeping <paramref name="known"/>'s where one was not found.</summary>
++        public AreaFields Over(AreaFields known) => new(
++            this.Level >= 0 ? this.Level : known.Level,
++            this.Hash >= 0 ? this.Hash : known.Hash,
++            this.Environments >= 0 ? this.Environments : known.Environments,
++            this.ServerData >= 0 ? this.ServerData : known.ServerData,
++            this.LocalPlayer >= 0 ? this.LocalPlayer : known.LocalPlayer,
++            this.Entities >= 0 ? this.Entities : known.Entities,
++            this.Terrain >= 0 ? this.Terrain : known.Terrain);
++
++        private static int OffsetOf<T>(string field) => Marshal.OffsetOf<T>(field).ToInt32();
++    }
++
++    /// <summary>What <see cref="AreaLayoutSearch"/> needs to read from the game.</summary>
++    public interface IAreaMemory
++    {
++        /// <summary>The bytes at <paramref name="address"/>; empty when they cannot be read.</summary>
++        byte[] Read(long address, int size);
++
++        /// <summary>The metadata path of the entity at <paramref name="entity"/>; empty when it is not one.</summary>
++        string EntityPath(long entity);
++
++        /// <summary>The zero-ended UTF-16 text at <paramref name="address"/>; empty when it cannot be read.</summary>
++        string WideText(long address);
++    }
++
++    /// <summary>
++    ///     Finds an area instance's fields by what they hold, nearest to where they were last first, so a game patch that
++    ///     inserts a member does not cost the mod its world (docs/compatibility.md in the accessibility mod).
++    /// </summary>
++    public sealed class AreaLayoutSearch
++    {
++        private const long MinPointer = 0x10000;
++        private const long MaxPointer = 0x7FFFFFFFFFFF;
++        private const int PointerStep = 8;
++        private const int Int32Step = 4;
++
++        // MSVC std::map: a sentinel node (nil flag set) whose parent is the root; the key and value follow the links.
++        private const int NodeParent = 0x08;
++        private const int NodeLeft = 0x00;
++        private const int NodeIsNil = 0x19;
++        private const int NodeKey = 0x20;
++        private const int NodeValue = 0x28;
++        private const int NodeSize = 0x30;
++        private const int MaxEntities = 500000;
++        private const int EntityBytes = 0x100;
++
++        // Bytes of the terrain tile record; the terrain's own fields have never moved, only the terrain itself.
++        private const int MaxTiles = 10000;
++
++        private const int MaxLocalPlayers = 4;
++        private const int MaxAreaLevel = 100;
++        private const int MaxEnvironments = 1024;
++        private const int NearWindow = 0x100;
++
++        // The level, 8 bytes that hold flags, then three vectors, any of them empty (0.5.5f: a mine, a town, a cave).
++        private const int LevelGap = 8;
++        private const int HeaderVectors = 3;
++        private const int VectorSize = 0x18;
++
++        // A real hash is random: a value this small is the top half of a pointer.
++        private const uint MinHash = 0x10000;
++
++        private static readonly int TileRecord = Marshal.SizeOf<TileStructure>();
++        private static readonly int TotalTiles = Marshal.OffsetOf<TerrainStruct>(nameof(TerrainStruct.TotalTiles)).ToInt32();
++        private static readonly int TileDetails = Marshal.OffsetOf<TerrainStruct>(nameof(TerrainStruct.TileDetailsPtr)).ToInt32();
++        private static readonly int Walkable = Marshal.OffsetOf<TerrainStruct>(nameof(TerrainStruct.GridWalkableData)).ToInt32();
++        private static readonly int BytesPerRow = Marshal.OffsetOf<TerrainStruct>(nameof(TerrainStruct.BytesPerRow)).ToInt32();
++        private static readonly int PlayerList = Marshal.OffsetOf<ServerDataOffsets>(nameof(ServerDataOffsets.PlayerServerDataPtr)).ToInt32();
++        private static readonly int Inventories = Marshal.OffsetOf<ServerDataStructure>(nameof(ServerDataStructure.PlayerInventories)).ToInt32();
++        private static readonly int InventoryEntry = Marshal.SizeOf<InventoryArrayStruct>();
++        private static readonly int EntityMapSize = Marshal.SizeOf<StdMap>();
++
++        private readonly IAreaMemory memory;
++
++        /// <summary>Initializes a new instance of the <see cref="AreaLayoutSearch"/> class.</summary>
++        public AreaLayoutSearch(IAreaMemory memory)
++        {
++            this.memory = memory;
++        }
++
++        /// <summary>The fields found in <paramref name="block"/>, the start of an area instance, nearest to <paramref name="near"/>.</summary>
++        public AreaFields Find(byte[] block, AreaFields near)
++        {
++            var player = Nearest(near.LocalPlayer, PointerStep, block.Length - PointerStep, at => this.IsLocalPlayer(block, at));
++            var server = player < 0 ? -1 : this.FindServerData(block, player, near);
++            var level = Nearest(near.Level, Int32Step, block.Length - HeaderSize, at => IsHeader(block, at, near.Hash - near.Level));
++            return new AreaFields(
++                level,
++                level < 0 ? -1 : level + near.Hash - near.Level,
++                NearestIn(near.Environments + (player < 0 ? 0 : player - near.LocalPlayer), block, at => IsIntVector(block, at)),
++                server,
++                player,
++                Nearest(near.Entities, PointerStep, block.Length - (2 * EntityMapSize), at => this.IsEntityLists(block, at)),
++                Nearest(near.Terrain, PointerStep, block.Length - BytesPerRow - sizeof(int), at => this.IsTerrain(block, at)));
++        }
++
++        /// <summary>
++        ///     Where an entity keeps its id, nearest <paramref name="near"/>: the lists' key is that id, so the root and its
++        ///     left child must agree. Negative when they cannot be read or no place fits.
++        /// </summary>
++        public int FindEntityId(byte[] block, int entities, int near)
++        {
++            var sentinel = this.memory.Read(Int64At(block, entities), NodeSize);
++            if (sentinel.Length < NodeSize)
++            {
++                return -1;
++            }
++
++            var root = this.memory.Read(Int64At(sentinel, NodeParent), NodeSize);
++            if (root.Length < NodeSize)
++            {
++                return -1;
++            }
++
++            var left = this.memory.Read(Int64At(root, NodeLeft), NodeSize);
++            var samples = left.Length == NodeSize && left[NodeIsNil] == 0 ? new[] { root, left } : new[] { root };
++            var bodies = samples.Select(node => (Key: BitConverter.ToUInt32(node, NodeKey), Body: this.memory.Read(Int64At(node, NodeValue), EntityBytes))).ToList();
++            if (bodies.Any(entity => entity.Body.Length < EntityBytes))
++            {
++                return -1;
++            }
++
++            return Nearest(near, Int32Step, EntityBytes - sizeof(uint), at => bodies.All(entity => BitConverter.ToUInt32(entity.Body, at) == entity.Key));
++        }
++
++        private static int HeaderSize => sizeof(uint) + LevelGap + (HeaderVectors * VectorSize);
++
++        private static int Nearest(int start, int step, int limit, Func<int, bool> fits)
++        {
++            for (var distance = 0; distance <= limit; distance += step)
++            {
++                if (start + distance >= 0 && start + distance <= limit && fits(start + distance))
++                {
++                    return start + distance;
++                }
++
++                if (distance > 0 && start - distance >= 0 && start - distance <= limit && fits(start - distance))
++                {
++                    return start - distance;
++                }
++            }
++
++            return -1;
++        }
++
++        private static int NearestIn(int start, byte[] block, Func<int, bool> fits)
++        {
++            var found = Nearest(start, PointerStep, block.Length - VectorSize, fits);
++            return Math.Abs(found - start) <= NearWindow ? found : -1;
++        }
++
++        private static long Int64At(byte[] bytes, int at) => BitConverter.ToInt64(bytes, at);
++
++        private static bool IsPointer(long value) => value > MinPointer && value < MaxPointer;
++
++        private static bool IsVector(byte[] block, int at)
++        {
++            var first = Int64At(block, at);
++            var last = Int64At(block, at + PointerStep);
++            var end = Int64At(block, at + (2 * PointerStep));
++            return first == 0 ? last == 0 && end == 0 : IsPointer(first) && IsPointer(end) && first <= last && last <= end;
++        }
++
++        private static bool IsIntVector(byte[] block, int at)
++        {
++            var size = Int64At(block, at + PointerStep) - Int64At(block, at);
++            return IsVector(block, at) && Int64At(block, at) != 0 && size % sizeof(int) == 0 && size / sizeof(int) <= MaxEnvironments;
++        }
++
++        private static bool IsHeader(byte[] block, int level, int hashDistance)
++        {
++            var value = BitConverter.ToUInt32(block, level);
++            if (value is 0 or > MaxAreaLevel || level + hashDistance < 0 || level + hashDistance + sizeof(uint) > block.Length ||
++                BitConverter.ToUInt32(block, level + hashDistance) < MinHash)
++            {
++                return false;
++            }
++
++            var vectors = level + sizeof(uint) + LevelGap;
++            if (vectors % PointerStep != 0)
++            {
++                return false;
++            }
++
++            for (var vector = 0; vector < HeaderVectors; vector++)
++            {
++                if (!IsVector(block, vectors + (vector * VectorSize)))
++                {
++                    return false;
++                }
++            }
++
++            return true;
++        }
++
++        private bool IsLocalPlayer(byte[] block, int at) =>
++            IsPointer(Int64At(block, at)) &&
++            this.memory.EntityPath(Int64At(block, at)).StartsWith("Metadata/Characters/", StringComparison.Ordinal);
++
++        private int FindServerData(byte[] block, int player, AreaFields near)
++        {
++            var gap = near.LocalPlayer - near.ServerData;
++            var found = Nearest(player - gap, PointerStep, player, at => this.IsServerData(Int64At(block, at)));
++            return found >= 0 ? found : player - gap;
++        }
++
++        private bool IsServerData(long pointer)
++        {
++            if (!IsPointer(pointer))
++            {
++                return false;
++            }
++
++            var list = this.memory.Read(pointer + PlayerList, VectorSize);
++            if (list.Length < VectorSize || !IsVector(list, 0))
++            {
++                return false;
++            }
++
++            var bytes = Int64At(list, PointerStep) - Int64At(list, 0);
++            if (bytes <= 0 || bytes % PointerStep != 0 || bytes / PointerStep > MaxLocalPlayers)
++            {
++                return false;
++            }
++
++            var entry = this.memory.Read(Int64At(list, 0), PointerStep);
++            if (entry.Length < PointerStep || !IsPointer(Int64At(entry, 0)))
++            {
++                return false;
++            }
++
++            var inventories = this.memory.Read(Int64At(entry, 0) + Inventories, VectorSize);
++            if (inventories.Length < VectorSize || !IsVector(inventories, 0))
++            {
++                return false;
++            }
++
++            var size = Int64At(inventories, PointerStep) - Int64At(inventories, 0);
++            return size > 0 && size % InventoryEntry == 0;
++        }
++
++        private bool IsEntityLists(byte[] block, int at) =>
++            this.IsEntityMap(block, at, false) && this.IsEntityMap(block, at + EntityMapSize, true);
++
++        private bool IsEntityMap(byte[] block, int at, bool mayBeEmpty)
++        {
++            var head = Int64At(block, at);
++            var size = Int64At(block, at + PointerStep);
++            if (!IsPointer(head) || size < (mayBeEmpty ? 0 : 1) || size > MaxEntities)
++            {
++                return false;
++            }
++
++            var sentinel = this.memory.Read(head, NodeSize);
++            if (sentinel.Length < NodeSize || sentinel[NodeIsNil] == 0)
++            {
++                return false;
++            }
++
++            var root = Int64At(sentinel, NodeParent);
++            if (size == 0)
++            {
++                return root == head;
++            }
++
++            var node = IsPointer(root) ? this.memory.Read(root, NodeSize + PointerStep) : Array.Empty<byte>();
++            return node.Length > NodeValue + PointerStep - 1 && node[NodeIsNil] == 0 && Int64At(node, NodeParent) == head &&
++                   this.memory.EntityPath(Int64At(node, NodeValue)).StartsWith("Metadata/", StringComparison.Ordinal);
++        }
++
++        private bool IsTerrain(byte[] block, int at)
++        {
++            var tilesX = Int64At(block, at + TotalTiles);
++            var tilesY = Int64At(block, at + TotalTiles + PointerStep);
++            if (tilesX is <= 0 or > MaxTiles || tilesY is <= 0 or > MaxTiles || !IsVector(block, at + TileDetails) ||
++                Int64At(block, at + TileDetails) == 0 || !IsVector(block, at + Walkable))
++            {
++                return false;
++            }
++
++            var tileBytes = Int64At(block, at + TileDetails + PointerStep) - Int64At(block, at + TileDetails);
++            var walkableBytes = Int64At(block, at + Walkable + PointerStep) - Int64At(block, at + Walkable);
++            var bytesPerRow = BitConverter.ToInt32(block, at + BytesPerRow);
++            return tileBytes == tilesX * tilesY * TileRecord && bytesPerRow > 0 &&
++                   walkableBytes == bytesPerRow * tilesY * TileStructure.TileToGridConversion;
++        }
++    }
++}
+diff --git a/GameHelper/Utils/GameStatesSearch.cs b/GameHelper/Utils/GameStatesSearch.cs
+new file mode 100644
+index 0000000..0691ab9
+--- /dev/null
++++ b/GameHelper/Utils/GameStatesSearch.cs
+@@ -0,0 +1,74 @@
++// <copyright file="GameStatesSearch.cs" company="None">
++// Copyright (c) None. All rights reserved.
++// </copyright>
++
++namespace GameHelper.Utils
++{
++    using System;
++    using System.Collections.Generic;
++    using GameOffsets.Objects;
++
++    /// <summary>
++    ///     Finds the game's state list when its byte pattern no longer matches: a static pointer to an object whose state
++    ///     stack ends in one of its states, a shape nothing else in the image has.
++    /// </summary>
++    internal static class GameStatesSearch
++    {
++        private const int Chunk = 1 << 22;
++        private const int Pointer = 8;
++        private const int HeapAlignment = 16;
++        private const int StackEntry = 0x10;
++        private const int MaxStack = 0x400;
++        private const int MinStates = 8;
++
++        /// <summary>The address of the pointer to the state list; zero when no place fits.</summary>
++        internal static IntPtr Find(SafeMemoryHandle reader, IntPtr module, int size)
++        {
++            var start = module.ToInt64();
++            for (var offset = 0; offset < size; offset += Chunk)
++            {
++                var bytes = reader.ReadMemoryArray<byte>(new IntPtr(start + offset), Math.Min(Chunk, size - offset));
++                for (var at = 0; at + Pointer <= bytes.Length; at += Pointer)
++                {
++                    var value = BitConverter.ToInt64(bytes, at);
++                    if (value % HeapAlignment == 0 && (value < start || value >= start + size) &&
++                        SafeMemoryHandle.IsValidAddress(new IntPtr(value)) && IsStateList(reader, new IntPtr(value)))
++                    {
++                        return new IntPtr(start + offset + at);
++                    }
++                }
++            }
++
++            return IntPtr.Zero;
++        }
++
++        private static bool IsStateList(SafeMemoryHandle reader, IntPtr candidate)
++        {
++            if (!reader.TryReadMemory<GameStateOffset>(candidate, out var data))
++            {
++                return false;
++            }
++
++            var stack = data.CurrentStatePtr;
++            var bytes = stack.Last.ToInt64() - stack.First.ToInt64();
++            if (stack.First == IntPtr.Zero || bytes <= 0 || bytes > MaxStack || bytes % StackEntry != 0 ||
++                stack.End.ToInt64() < stack.Last.ToInt64())
++            {
++                return false;
++            }
++
++            // A state the game has not used yet is null (0.5.5f: two of thirteen).
++            var states = new HashSet<IntPtr>();
++            for (var index = 0; index < GameStateHelper.TOTAL_STATES; index++)
++            {
++                var state = data.States[index].X;
++                if (state != IntPtr.Zero && (!SafeMemoryHandle.IsValidAddress(state) || !states.Add(state)))
++                {
++                    return false;
++                }
++            }
++
++            return states.Count >= MinStates && reader.TryReadMemory<IntPtr>(stack.Last - StackEntry, out var current) && states.Contains(current);
++        }
++    }
++}
+diff --git a/GameHelper/Utils/OffsetHealer.cs b/GameHelper/Utils/OffsetHealer.cs
+new file mode 100644
+index 0000000..3d5edcd
+--- /dev/null
++++ b/GameHelper/Utils/OffsetHealer.cs
+@@ -0,0 +1,358 @@
++// <copyright file="OffsetHealer.cs" company="None">
++// Copyright (c) None. All rights reserved.
++// </copyright>
++
++namespace GameHelper.Utils
++{
++    using System;
++    using System.Collections.Generic;
++    using System.Linq;
++    using System.Numerics;
++    using System.Reflection;
++    using System.Runtime.InteropServices;
++    using GameHelper.RemoteObjects.Components;
++    using GameHelper.RemoteObjects.States.InGameStateObjects;
++    using GameHelper.Ui;
++    using GameOffsets.Natives;
++    using GameOffsets.Objects.Components;
++    using GameOffsets.Objects.FilesStructures;
++    using GameOffsets.Objects.States;
++    using GameOffsets.Objects.States.InGameState;
++    using GameOffsets.Objects.UiElement;
++
++    /// <summary>What a sweep of the game's structs found for one of them.</summary>
++    public enum StructHealth
++    {
++        /// <summary>Its checked fields hold what they must.</summary>
++        Intact,
++
++        /// <summary>It was broken and now reads from where its fields moved.</summary>
++        Moved,
++
++        /// <summary>It is broken and no place fits.</summary>
++        Lost,
++
++        /// <summary>Nothing live to judge it on, or nothing in it can be checked.</summary>
++        NotJudged,
++    }
++
++    /// <summary>One struct's outcome: its name, its health, where its first moved field went, and the reason.</summary>
++    public readonly record struct StructOutcome(string Name, StructHealth Health, int From, int To, string Detail);
++
++    /// <summary>
++    ///     Finds where a patch left the game's structs, with no one at the keyboard: the fields the mod lives on by what they
++    ///     must hold (<see cref="StructShapes"/>), the rest by GameHelper's offset verifier. A struct that holds what it must
++    ///     is never touched; one that moved is read through <see cref="StructRemap{T}"/>.
++    /// </summary>
++    public static class OffsetHealer
++    {
++        /// <summary>The part that says where things stand.</summary>
++        public const string PositionsPart = "positions";
++
++        private const int SearchRadius = 0x200;
++        private const int GameStateBytes = 0x1000;
++
++        // The player stands near the screen's middle; a wrong position lands anywhere (0.8 of the half screen).
++        private const float CentreShare = 0.8f;
++
++        private const float WorldPerTile = 250f;
++
++        // Judged here or by their own searches (AreaInstanceLayout, the plugin's UI probes), not by the verifier.
++        private static readonly HashSet<Type> OwnJudgment = new()
++        {
++            typeof(AreaInstanceOffsets), typeof(UiElementBaseOffset), typeof(LifeOffset), typeof(BuffsOffsets),
++            typeof(ActorOffset), typeof(RenderOffsets), typeof(StatsOffsets),
++        };
++
++        private static readonly Dictionary<Type, RemapSegment[]> Healed = new();
++
++        /// <summary>Checks every struct with something live to judge it on; call on the render thread.</summary>
++        public static IReadOnlyList<StructOutcome> Sweep()
++        {
++            var state = Core.States.InGameStateObject;
++            var area = state.CurrentAreaInstance;
++            var memory = new GameMemory(Core.Process.Handle);
++            bool cameraKnown;
++            lock (Healed)
++            {
++                cameraKnown = Healed.ContainsKey(typeof(WorldDataOffset));
++            }
++
++            var camera = JudgeCamera(state.CurrentWorldInstance.Address);
++            var outcomes = new List<StructOutcome>
++            {
++                camera,
++                JudgeLife(area.Player),
++                JudgeBuffs(area.Player, memory),
++                JudgeSkills(area.Player, memory),
++                JudgeStats(area.Player, memory),
++            };
++
++            // The position is judged through the camera, which only reads from its new place on the next frame.
++            outcomes.Add(camera.Health == StructHealth.Moved && !cameraKnown ? NotJudged(PositionsPart, "the camera just moved") : JudgePosition(area));
++            foreach (var probe in OffsetHelperEngine.RunSweep().Probes)
++            {
++                if (probe.StructType is { } type && !OwnJudgment.Contains(type))
++                {
++                    outcomes.Add(Verified(probe, type));
++                }
++            }
++
++            return outcomes;
++        }
++
++        /// <summary>Gets the offset of an entity's id this GameHelper was written for.</summary>
++        internal static int MeasuredEntityId { get; } = OffsetOf<EntityOffsets>(nameof(EntityOffsets.Id));
++
++        /// <summary>
++        ///     Looks through the game state for the area instance when its pointer leads to no world; true once found.
++        ///     Call on the render thread, in game.
++        /// </summary>
++        public static bool LocateArea()
++        {
++            var state = Core.States.InGameStateObject;
++            var area = state.CurrentAreaInstance;
++            var search = new AreaLayoutSearch(new GameMemory(Core.Process.Handle));
++            bool HoldsWorld(long pointer)
++            {
++                var candidate = Block(new IntPtr(pointer), AreaInstanceLayout.BlockSize);
++                return candidate.Length > 0 && search.Find(candidate, area.Layout.Fields).HasWorld;
++            }
++
++            return LocatePointer(state.Address, nameof(InGameStateOffset.AreaInstanceData), HoldsWorld);
++        }
++
++        /// <summary>Where <paramref name="offset"/> of a struct stands in this game build, for readers outside the struct.</summary>
++        public static int Follow(Type structType, int offset)
++        {
++            lock (Healed)
++            {
++                if (!Healed.TryGetValue(structType, out var segments))
++                {
++                    return offset;
++                }
++
++                var last = segments.LastOrDefault(segment => segment.From <= offset);
++                return offset + last.Shift;
++            }
++        }
++
++        /// <summary>The entity id stands at <paramref name="found"/> (negative: unknown); what follows it moves along.</summary>
++        internal static void FollowEntityId(int found)
++        {
++            if (found >= 0 && found != MeasuredEntityId)
++            {
++                Remap(typeof(EntityOffsets), StructRemapper.Segments(new[] { new RemapSegment(MeasuredEntityId, found - MeasuredEntityId) }));
++            }
++        }
++
++        /// <summary>Sets where a struct's fields moved.</summary>
++        internal static void Remap(Type structType, RemapSegment[] segments)
++        {
++            lock (Healed)
++            {
++                Healed[structType] = segments;
++            }
++
++            typeof(StructRemap<>).MakeGenericType(structType)
++                .GetMethod("Set", BindingFlags.Static | BindingFlags.NonPublic)!
++                .Invoke(null, new object[] { segments });
++        }
++
++        private static int OffsetOf<T>(string field) => Marshal.OffsetOf<T>(field).ToInt32();
++
++        private static byte[] Block(IntPtr address, int size) => Core.Process.Handle.ReadMemoryArray<byte>(address, size);
++
++        /// <summary>The outcome of a field found at <paramref name="found"/>, moving what follows it in the struct.</summary>
++        private static StructOutcome Placed<T>(string name, int measured, int found)
++        {
++            if (found < 0)
++            {
++                return new StructOutcome(name, StructHealth.Lost, measured, 0, "nothing nearby holds what it must");
++            }
++
++            if (found == measured)
++            {
++                return new StructOutcome(name, StructHealth.Intact, measured, found, string.Empty);
++            }
++
++            Remap(typeof(T), StructRemapper.Segments(new[] { new RemapSegment(measured, found - measured) }));
++            return new StructOutcome(name, StructHealth.Moved, measured, found, string.Empty);
++        }
++
++        private static StructOutcome NotJudged(string name, string why) => new(name, StructHealth.NotJudged, 0, 0, why);
++
++        /// <summary>A pointer of the game state moved: finds the one <paramref name="fits"/> accepts and reads that one alone from there.</summary>
++        private static bool LocatePointer(IntPtr gameState, string field, Func<long, bool> fits)
++        {
++            var measured = OffsetOf<InGameStateOffset>(field);
++            var block = Block(gameState, GameStateBytes);
++            var found = StructShapes.Nearest(measured, sizeof(long), block.Length - sizeof(long), at => fits(BitConverter.ToInt64(block, at)));
++            if (found < 0)
++            {
++                return false;
++            }
++
++            if (found != measured)
++            {
++                lock (Healed)
++                {
++                    var segments = Healed.TryGetValue(typeof(InGameStateOffset), out var known) ? known.ToList() : new List<RemapSegment>();
++                    segments.RemoveAll(segment => segment.From == measured || segment.From == measured + sizeof(long));
++                    segments.Add(new RemapSegment(measured, found - measured));
++                    segments.Add(new RemapSegment(measured + sizeof(long), 0));
++                    Remap(typeof(InGameStateOffset), segments.OrderBy(segment => segment.From).ToArray());
++                }
++            }
++
++            return true;
++        }
++
++        private static StructOutcome JudgeCamera(IntPtr world)
++        {
++            const string name = "camera";
++            var measured = OffsetOf<WorldDataOffset>(nameof(WorldDataOffset.CameraStructurePtr)) +
++                           OffsetOf<CameraStructure>(nameof(CameraStructure.WorldToScreenMatrix));
++
++            int FindMatrix(IntPtr address)
++            {
++                var block = Block(address, measured + SearchRadius);
++                return block.Length == 0 ? -1 : StructShapes.Nearest(measured, sizeof(int), block.Length - 1, at => StructShapes.IsCameraMatrix(block, at));
++            }
++
++            var found = FindMatrix(world);
++            if (found < 0 && LocatePointer(Core.States.InGameStateObject.Address, nameof(InGameStateOffset.WorldData), pointer => FindMatrix(new IntPtr(pointer)) >= 0))
++            {
++                return new StructOutcome(name, StructHealth.Moved, measured, measured, "the world pointer moved");
++            }
++
++            return Placed<WorldDataOffset>(name, measured, found);
++        }
++
++        private static StructOutcome JudgeLife(Entity player)
++        {
++            const string name = "life";
++            if (!player.TryGetComponent<Life>(out var life))
++            {
++                return NotJudged(name, "no player");
++            }
++
++            string[] fields = { nameof(LifeOffset.Health), nameof(LifeOffset.Mana), nameof(LifeOffset.EnergyShield), nameof(LifeOffset.Ward), nameof(LifeOffset.Divinity) };
++            var measured = fields.Select(field => OffsetOf<LifeOffset>(field)).ToArray();
++            var block = Block(life.Address, measured[^1] + SearchRadius);
++            var vitals = StructShapes.Vitals(
++                block,
++                life.Address.ToInt64(),
++                OffsetOf<VitalStruct>(nameof(VitalStruct.PtrToLifeComponent)),
++                OffsetOf<VitalStruct>(nameof(VitalStruct.Total)),
++                OffsetOf<VitalStruct>(nameof(VitalStruct.Current)));
++            var placed = StructShapes.PlaceVitals(measured, vitals);
++            if (placed.Length == 0)
++            {
++                return new StructOutcome(name, StructHealth.Lost, measured[0], 0, "no vitals found");
++            }
++
++            if (placed.SequenceEqual(measured))
++            {
++                return new StructOutcome(name, StructHealth.Intact, measured[0], measured[0], string.Empty);
++            }
++
++            Remap(typeof(LifeOffset), StructRemapper.Segments(measured.Select((at, index) => new RemapSegment(at, placed[index] - at))));
++            return new StructOutcome(name, StructHealth.Moved, measured[0], placed[0], string.Empty);
++        }
++
++        private static StructOutcome JudgeBuffs(Entity player, IAreaMemory memory)
++        {
++            const string name = "buffs";
++            if (!player.TryGetComponent<Buffs>(out var buffs))
++            {
++                return NotJudged(name, "no player");
++            }
++
++            var measured = OffsetOf<BuffsOffsets>(nameof(BuffsOffsets.StatusEffectPtr));
++            var definition = OffsetOf<StatusEffectStruct>(nameof(StatusEffectStruct.BuffDefinationPtr));
++            var block = Block(buffs.Address, measured + SearchRadius);
++            var found = StructShapes.Nearest(measured, sizeof(long), block.Length - 1, at => StructShapes.IsBuffList(block, at, memory, definition));
++
++            // With no buff on the player no list reads as one, and that says nothing about the field.
++            return found < 0 ? NotJudged(name, "no buff to judge it on") : Placed<BuffsOffsets>(name, measured, found);
++        }
++
++        private static StructOutcome JudgeSkills(Entity player, IAreaMemory memory)
++        {
++            const string name = "skills";
++            if (!player.TryGetComponent<Actor>(out var actor))
++            {
++                return NotJudged(name, "no player");
++            }
++
++            var measured = OffsetOf<ActorOffset>(nameof(ActorOffset.ActiveSkillsPtr));
++            var block = Block(actor.Address, measured + SearchRadius);
++            return Placed<ActorOffset>(name, measured, StructShapes.Nearest(measured, sizeof(long), block.Length - 1, at => StructShapes.IsSkillList(block, at, memory)));
++        }
++
++        private static StructOutcome JudgeStats(Entity player, IAreaMemory memory)
++        {
++            const string name = "stats";
++            if (!player.TryGetComponent<Stats>(out var stats))
++            {
++                return NotJudged(name, "no player");
++            }
++
++            var measured = OffsetOf<StatsOffsets>(nameof(StatsOffsets.StatsChangedByItemsPtr));
++            var list = OffsetOf<StatsStructInternal>(nameof(StatsStructInternal.Stats));
++            var block = Block(stats.Address, measured + SearchRadius);
++            return Placed<StatsOffsets>(name, measured, StructShapes.Nearest(measured, sizeof(long), block.Length - 1, at => StructShapes.IsStatsPointer(block, at, memory, list)));
++        }
++
++        private static StructOutcome JudgePosition(AreaInstance area)
++        {
++            if (!area.Player.TryGetComponent<Render>(out var render))
++            {
++                return NotJudged(PositionsPart, "no player");
++            }
++
++            var world = Core.States.InGameStateObject.CurrentWorldInstance;
++            var (mapWidth, mapHeight) = (area.TerrainMetadata.TotalTiles.X * WorldPerTile, area.TerrainMetadata.TotalTiles.Y * WorldPerTile);
++            var window = Core.Process.WindowArea;
++            var centre = new Vector2(window.Width / 2f, window.Height / 2f);
++            var measured = OffsetOf<RenderOffsets>(nameof(RenderOffsets.CurrentWorldPosition));
++            var block = Block(render.Address, measured + SearchRadius);
++
++            bool Fits(int at)
++            {
++                if (!StructShapes.IsWorldPosition(block, at, mapWidth, mapHeight))
++                {
++                    return false;
++                }
++
++                var position = MemoryMarshal.Read<StdTuple3D<float>>(block.AsSpan(at));
++                var offScreen = Vector2.Abs(world.WorldToScreen(position) - centre);
++                return offScreen.X < centre.X * CentreShare && offScreen.Y < centre.Y * CentreShare;
++            }
++
++            return Placed<RenderOffsets>(PositionsPart, measured, StructShapes.Nearest(measured, sizeof(int), block.Length - 1, Fits));
++        }
++
++        private static StructOutcome Verified(ProbeResult probe, Type type)
++        {
++            switch (probe.Verdict)
++            {
++                case OffsetHelperEngine.ProbeVerdict.Intact:
++                    return new StructOutcome(probe.Name, StructHealth.Intact, 0, 0, probe.Detail);
++                case OffsetHelperEngine.ProbeVerdict.Degraded:
++                    var moves = probe.Recoveries.Where(recovery => !recovery.IsAmbiguous).ToList();
++                    if (moves.Count == 0)
++                    {
++                        return new StructOutcome(probe.Name, StructHealth.Lost, 0, 0, probe.Detail);
++                    }
++
++                    Remap(type, StructRemapper.Segments(moves.Select(move => new RemapSegment(move.ConfiguredOffset, move.Shift))));
++                    var first = moves.OrderBy(move => move.ConfiguredOffset).First();
++                    return new StructOutcome(probe.Name, StructHealth.Moved, first.ConfiguredOffset, first.CandidateOffset, probe.Detail);
++                default:
++                    return new StructOutcome(probe.Name, StructHealth.NotJudged, 0, 0, probe.Detail);
++            }
++        }
++    }
++}
+diff --git a/GameHelper/Utils/PatternFinder.cs b/GameHelper/Utils/PatternFinder.cs
+index f145284..cfafcc2 100644
+--- a/GameHelper/Utils/PatternFinder.cs
++++ b/GameHelper/Utils/PatternFinder.cs
+@@ -185,15 +185,15 @@ namespace GameHelper.Utils
+                 {
+                     Console.WriteLine($"[PatternFinder] Missing pattern: {missingPattern}");
+                 }
+-
+-                throw new Exception(
+-                    $"Couldn't find {missingPatterns.Length}/{totalPatterns} patterns. " +
+-                    $"Missing: {missingPatternNames}. Kindly fix the patterns.");
+             }
+ 
++            // What was found still works: most patterns feed one reading, and the game states have a search of their own.
+             for (var i = 0; i < totalPatterns; i++)
+             {
+-                result.Add(Patterns[i].Name, patternOffsets[i] + Patterns[i].BytesToSkip);
++                if (isPatternFound[i])
++                {
++                    result.Add(Patterns[i].Name, patternOffsets[i] + Patterns[i].BytesToSkip);
++                }
+             }
+ 
+             return result;
+diff --git a/GameHelper/Utils/SafeMemoryHandle.cs b/GameHelper/Utils/SafeMemoryHandle.cs
+index 282d4fe..4999273 100644
+--- a/GameHelper/Utils/SafeMemoryHandle.cs
++++ b/GameHelper/Utils/SafeMemoryHandle.cs
+@@ -118,6 +118,11 @@ namespace GameHelper.Utils
+                 return false;
+             }
+ 
++            if (StructRemap<T>.Segments is { } moved)
++            {
++                return this.TryReadMoved(address, moved, out result);
++            }
++
+             try
+             {
+                 if (!NativeWrapper.ReadProcessMemory(this.handle, address, ref result))
+@@ -153,6 +158,22 @@ namespace GameHelper.Utils
+             Ui.MemoryReadDiagnostics.RecordFailure(typeName, DescribeCaller(), address.ToInt64());
+         }
+ 
++        /// <summary>Reads a struct whose fields a game patch moved (<see cref="StructRemap{T}"/>).</summary>
++        private bool TryReadMoved<T>(IntPtr address, RemapSegment[] moved, out T result)
++            where T : unmanaged
++        {
++            result = default;
++            var target = MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref result, 1));
++            var raw = this.ReadMemoryArray<byte>(address, StructRemapper.ReadSize(target.Length, moved));
++            if (raw.Length == 0)
++            {
++                return false;
++            }
++
++            StructRemapper.Apply(raw, target, moved);
++            return true;
++        }
++
+         /// <summary>
+         ///     Cheap sanity check that an address could plausibly back a real allocation in
+         ///     the target process. Rejects the reserved low memory range and addresses beyond
+diff --git a/GameHelper/Utils/StructRemap.cs b/GameHelper/Utils/StructRemap.cs
+new file mode 100644
+index 0000000..dff3317
+--- /dev/null
++++ b/GameHelper/Utils/StructRemap.cs
+@@ -0,0 +1,57 @@
++// <copyright file="StructRemap.cs" company="None">
++// Copyright (c) None. All rights reserved.
++// </copyright>
++
++namespace GameHelper.Utils
++{
++    using System;
++    using System.Collections.Generic;
++    using System.Linq;
++
++    /// <summary>From this offset of a struct up to the next segment, its bytes sit <paramref name="Shift"/> away in the game.</summary>
++    public readonly record struct RemapSegment(int From, int Shift);
++
++    /// <summary>Rebuilds a struct whose fields a game patch moved, so every read keeps its compile-time layout.</summary>
++    public static class StructRemapper
++    {
++        /// <summary>The segments in order, dropping those that continue the shift before them.</summary>
++        public static RemapSegment[] Segments(IEnumerable<RemapSegment> moved)
++        {
++            var result = new List<RemapSegment>();
++            foreach (var segment in moved.OrderBy(segment => segment.From))
++            {
++                if ((result.Count == 0 && segment.Shift != 0) || (result.Count > 0 && result[^1].Shift != segment.Shift))
++                {
++                    result.Add(segment);
++                }
++            }
++
++            return result.ToArray();
++        }
++
++        /// <summary>How many bytes to read for a struct of <paramref name="size"/> bytes.</summary>
++        public static int ReadSize(int size, RemapSegment[] segments) => size + Math.Max(0, segments.Max(segment => segment.Shift));
++
++        /// <summary>Fills <paramref name="target"/> from <paramref name="raw"/>, the game's bytes from the struct's start.</summary>
++        public static void Apply(ReadOnlySpan<byte> raw, Span<byte> target, RemapSegment[] segments)
++        {
++            raw[..target.Length].CopyTo(target);
++            for (var index = 0; index < segments.Length; index++)
++            {
++                var (from, shift) = (segments[index].From, segments[index].Shift);
++                var to = index + 1 < segments.Length ? segments[index + 1].From : target.Length;
++                raw.Slice(from + shift, to - from).CopyTo(target[from..]);
++            }
++        }
++    }
++
++    /// <summary>The segments of <typeparamref name="T"/>; null while the struct stands where it was measured.</summary>
++    /// <typeparam name="T">the struct read from the game.</typeparam>
++    internal static class StructRemap<T>
++        where T : unmanaged
++    {
++        internal static RemapSegment[]? Segments;
++
++        internal static void Set(RemapSegment[] segments) => Segments = segments.Length == 0 ? null : segments;
++    }
++}
+diff --git a/GameHelper/Utils/StructShapes.cs b/GameHelper/Utils/StructShapes.cs
+new file mode 100644
+index 0000000..d39d0b3
+--- /dev/null
++++ b/GameHelper/Utils/StructShapes.cs
+@@ -0,0 +1,198 @@
++// <copyright file="StructShapes.cs" company="None">
++// Copyright (c) None. All rights reserved.
++// </copyright>
++
++namespace GameHelper.Utils
++{
++    using System;
++    using System.Collections.Generic;
++    using System.Linq;
++    using GameHelper.RemoteObjects.States.InGameStateObjects;
++
++    /// <summary>
++    ///     What a field must hold, so it is recognised wherever a game patch left it: facts that cannot hold by chance, such
++    ///     as a pointer back to its own component or a chain that ends in a buff's name.
++    /// </summary>
++    public static class StructShapes
++    {
++        private const long MinPointer = 0x10000;
++        private const long MaxPointer = 0x7FFFFFFFFFFF;
++        private const int Pointer = 8;
++        private const int VectorSize = 3 * Pointer;
++        private const int MaxBuffs = 1024;
++        private const int MaxSkills = 512;
++        private const int SkillEntry = 0x10;
++        private const int CooldownEntry = 0x48;
++        private const int MaxStats = 8192;
++        private const int StatEntry = 8;
++        private const int MaxStatKey = 100000;
++        private const int MatrixBytes = 64;
++        private const float MaxWorld = 1e7f;
++
++        /// <summary>The offset nearest <paramref name="start"/> that fits, within 0..<paramref name="limit"/>; negative when none does.</summary>
++        public static int Nearest(int start, int step, int limit, Func<int, bool> fits)
++        {
++            for (var distance = 0; distance <= limit; distance += step)
++            {
++                if (start + distance <= limit && fits(start + distance))
++                {
++                    return start + distance;
++                }
++
++                if (distance > 0 && start - distance >= 0 && fits(start - distance))
++                {
++                    return start - distance;
++                }
++            }
++
++            return -1;
++        }
++
++        /// <summary>Every vital in a Life component, in order: each points back at the component.</summary>
++        public static List<int> Vitals(byte[] block, long component, int backPointer, int total, int current)
++        {
++            var found = new List<int>();
++            for (var at = 0; at + current + sizeof(int) <= block.Length; at += Pointer)
++            {
++                if (BitConverter.ToInt64(block, at + backPointer) == component &&
++                    BitConverter.ToInt32(block, at + total) >= 0 &&
++                    BitConverter.ToInt32(block, at + current) >= 0 &&
++                    BitConverter.ToInt32(block, at + current) <= BitConverter.ToInt32(block, at + total))
++                {
++                    found.Add(at);
++                }
++            }
++
++            return found;
++        }
++
++        /// <summary>
++        ///     Where each measured vital stands among those found (the game has more vitals than GameHelper reads): the
++        ///     smallest shift that lands them all on one, else each on the nearest. Empty with no vitals.
++        /// </summary>
++        public static int[] PlaceVitals(int[] measured, IReadOnlyList<int> vitals)
++        {
++            if (vitals.Count == 0)
++            {
++                return Array.Empty<int>();
++            }
++
++            var shifts = vitals.Select(vital => vital - measured[0]).OrderBy(Math.Abs);
++            foreach (var shift in shifts)
++            {
++                if (measured.All(field => vitals.Contains(field + shift)))
++                {
++                    return measured.Select(field => field + shift).ToArray();
++                }
++            }
++
++            return measured.Select(field => vitals.OrderBy(vital => Math.Abs(vital - field)).First()).ToArray();
++        }
++
++        /// <summary>A list of buffs: pointers whose definitions begin with a lower-case id such as "herald_of_thunder".</summary>
++        public static bool IsBuffList(byte[] block, int at, IAreaMemory memory, int definition)
++        {
++            if (!IsVector(block, at, out var first, out var bytes) || bytes <= 0 || bytes % Pointer != 0 || bytes / Pointer > MaxBuffs)
++            {
++                return false;
++            }
++
++            var entry = Long(memory.Read(first, Pointer), 0);
++            var row = IsPointer(entry) ? Long(memory.Read(entry + definition, Pointer), 0) : 0;
++            var name = IsPointer(row) ? Long(memory.Read(row, Pointer), 0) : 0;
++            return IsPointer(name) && IsId(memory.WideText(name));
++        }
++
++        /// <summary>The skills (16-byte entries, the first a pointer) with the cooldowns right after them.</summary>
++        public static bool IsSkillList(byte[] block, int at, IAreaMemory memory)
++        {
++            if (!IsVector(block, at, out var first, out var bytes) || bytes <= 0 || bytes % SkillEntry != 0 || bytes / SkillEntry > MaxSkills)
++            {
++                return false;
++            }
++
++            return IsPointer(Long(memory.Read(first, Pointer), 0)) &&
++                   IsVector(block, at + VectorSize, out _, out var cooldowns) && cooldowns % CooldownEntry == 0;
++        }
++
++        /// <summary>A pointer to a stat list: key and value pairs with small keys.</summary>
++        public static bool IsStatsPointer(byte[] block, int at, IAreaMemory memory, int list)
++        {
++            var pointer = at + Pointer <= block.Length ? BitConverter.ToInt64(block, at) : 0;
++            var vector = IsPointer(pointer) ? memory.Read(pointer + list, VectorSize) : Array.Empty<byte>();
++            if (vector.Length < VectorSize || !IsVector(vector, 0, out var first, out var bytes) || bytes <= 0 ||
++                bytes % StatEntry != 0 || bytes / StatEntry > MaxStats)
++            {
++                return false;
++            }
++
++            var entry = memory.Read(first, StatEntry);
++            return entry.Length == StatEntry && BitConverter.ToInt32(entry, 0) is > 0 and < MaxStatKey;
++        }
++
++        /// <summary>The camera matrix: the game keeps it twice, one copy right after the other.</summary>
++        public static bool IsCameraMatrix(byte[] block, int at)
++        {
++            if (at + (2 * MatrixBytes) > block.Length)
++            {
++                return false;
++            }
++
++            var matrix = block.AsSpan(at, MatrixBytes);
++            if (!matrix.SequenceEqual(block.AsSpan(at + MatrixBytes, MatrixBytes)))
++            {
++                return false;
++            }
++
++            var cells = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, float>(matrix);
++            var nonZero = 0;
++            foreach (var cell in cells)
++            {
++                if (!float.IsFinite(cell))
++                {
++                    return false;
++                }
++
++                nonZero += cell != 0 ? 1 : 0;
++            }
++
++            return nonZero >= cells.Length / 2;
++        }
++
++        /// <summary>Three floats that could be a world position inside the map.</summary>
++        public static bool IsWorldPosition(byte[] block, int at, float mapWidth, float mapHeight)
++        {
++            if (at + (3 * sizeof(float)) > block.Length)
++            {
++                return false;
++            }
++
++            var (x, y, z) = (BitConverter.ToSingle(block, at), BitConverter.ToSingle(block, at + 4), BitConverter.ToSingle(block, at + 8));
++            return float.IsFinite(x) && float.IsFinite(y) && float.IsFinite(z) &&
++                   x > 0 && x < mapWidth && y > 0 && y < mapHeight && MathF.Abs(z) < MaxWorld;
++        }
++
++        private static bool IsPointer(long value) => value > MinPointer && value < MaxPointer;
++
++        private static long Long(byte[] bytes, int at) => bytes.Length >= at + Pointer ? BitConverter.ToInt64(bytes, at) : 0;
++
++        private static bool IsVector(byte[] block, int at, out long first, out long bytes)
++        {
++            first = 0;
++            bytes = 0;
++            if (at < 0 || at + VectorSize > block.Length)
++            {
++                return false;
++            }
++
++            first = BitConverter.ToInt64(block, at);
++            var last = BitConverter.ToInt64(block, at + Pointer);
++            var end = BitConverter.ToInt64(block, at + (2 * Pointer));
++            bytes = last - first;
++            return first == 0 ? last == 0 && end == 0 : IsPointer(first) && IsPointer(end) && first <= last && last <= end;
++        }
++
++        private static bool IsId(string text) =>
++            text.Length >= 3 && text.All(letter => letter is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '_');
++    }
++}

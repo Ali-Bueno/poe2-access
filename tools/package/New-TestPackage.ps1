@@ -28,6 +28,10 @@ function Invoke-Dotnet([string[]]$Arguments) {
     if ($LASTEXITCODE -ne 0) { throw "dotnet $($Arguments -join ' ') failed" }
 }
 
+# A package without the patch would need a new release after every game patch again.
+. (Join-Path $PSScriptRoot 'GameHelperPatch.ps1')
+Add-GameHelperPatch (Join-Path $repo 'external\GameHelper2')
+
 if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 New-Item -ItemType Directory -Force $stage | Out-Null
 

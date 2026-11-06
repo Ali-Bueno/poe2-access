@@ -37,6 +37,7 @@ namespace Poe2Accessibility
         private ModCommands? commands;
         private L3Gestures gestures = new();
         private AudioCueService? audio;
+        private WorldLayoutWatch? worldLayout;
 
         private EnemyCues? enemyCues;
         private Radar? radar;
@@ -202,6 +203,7 @@ namespace Poe2Accessibility
                 DatColumns.Apply(Path.Join(this.DllDirectory, "catalog", "dat-columns.json"), this.log);
                 this.experience = ExperienceTable.Load(Path.Join(this.DllDirectory, "catalog", "experience.json"), this.log);
                 this.compatibility = new CompatibilityReport(this.log);
+                this.worldLayout = new WorldLayoutWatch(this.compatibility, this.log, Path.Join(this.DllDirectory, "config", "game-build.txt"));
                 this.layoutProbe = new LayoutProbe(memory, elements, this.compatibility);
                 var probe = this.layoutProbe;
                 this.controls = new ControlFields(this.compatibility, () => probe.TextShift);

@@ -6,9 +6,9 @@
 ## Identity
 - **Game:** Path of Exile 2, Steam (`PathOfExileSteam.exe`, app 2694490), proprietary GGG engine, DX12,
   no kernel anti-cheat (server-side detection). Install: `D:\games\steam\steamapps\common\Path of Exile 2`
-  (download started 2026-09-14, ~138 GB). Current patch 0.5.5b.
+  (download started 2026-09-14, ~138 GB). Current patch 0.5.5f.
 - **Approach:** external, **read-only** memory reading, no input automation (see brief §3/§25 and `AGENTS.md`).
-- **Host:** **GameHelper2** v2.8.0 (`external/GameHelper2`, `net10.0-windows`, GPLv3); game patch 0.5.5e.
+- **Host:** **GameHelper2** v2.8.0 (`external/GameHelper2`, `net10.0-windows`, GPLv3) plus `tools/package/gamehelper.patch` (runtime layout searches; [compatibility](docs/compatibility.md)).
   ExileCore2 rejected (binary-only, obfuscated, Discord-gated — `docs/research/exilecore2-study.md`);
   CoreExile2 no longer exists (now `coussiraty/ExileBridge`, an HTTP/MCP API without UI tree).
 - **Speech transport:** PRISM through the **Prismatoid 0.4.0** NuGet binding (net10.0; bundles
@@ -177,6 +177,7 @@
 | Skills ready after their cooldown ("Grito infernal disponible" + a bolt's click; speech, sound and speech level in the settings) | done (live) | `SkillCooldownWatch`: cooldown entries at `Actor+0xB20` keyed by the skill id; heard on a warcry (8 s) and a flash grenade (5 s), switches checked (`docs/research/skill-cooldowns.md`) |
 | Route turn prompts, partial routes, controls help in the settings menu | done (live) | "Ahora arriba a la derecha, 10"; help topics open the L3 menu; the menu edge knock was removed (user 2026-10-24) |
 | Game updates: layout found again, data regenerated, losses said | done (every part judged live 2026-10-25: login, character creation, town with a quest marker, options, inventory, passive tree, skill bar, left trigger) | `LayoutProbe` (+ image textures), `InGameFields`, `ControlFields` (+ tabs, skill slots, passive canvas and nodes, class selector, panel title, hint, check box and list seen changing), `EntityFields` (in-play flag, quest marker), `FlagBits`, `PadButtonCheck`, `PassiveTreeFields`, `TileGridSearch`, `BaseNameField`, `GameStateService.AreaRowOffset`, `CompatibilityReport`; `tools/package/Update-GameHelper.ps1`; launcher `GameDataSetup` + `DatContentColumns` (passive flags, skill keys by content); dev command `layout`; `docs/compatibility.md` |
+| Host follows its own offsets after a patch | done (live on 0.5.5f; simulated) | `AreaLayoutSearch`, `OffsetHealer`, `StructRemap`, `GameStatesSearch`, `WorldLayoutWatch`; 0.5.5f silenced enemies, radar and items until this; [compatibility](docs/compatibility.md#found-again-at-runtime-host) |
 | Game data survives mod updates | done (simulated on a copy of the user's `dist`: carry-over 2 s, update restored, one step rerun alone) | `GameDataSetup` + pure `GameDataStamp`: per-step versions, catalogs in `app/GameData` copied over the shipped ones, sounds in the plugin; a game patch reruns all in ~33 s: one extractor `batch` run on one opened index (`Batch.cs`); `tools/README.md` |
 | Scanner limited to what a sighted player sees | done (live) | `EntityCatalog.Sighted`: enemies on screen, minimap-icon things once the client has them, the rest once seen or explored; Quest category at any distance, a place not seen yet as the way toward it (next row); `docs/research/minimap.md` |
 | Unexplored nooks (no gamble at forks) | done (live) | "Rincón sin explorar" for dead ends, listed last (`FrontierPlace.Pocket`). "Camino a …" was walked live and removed on 2026-11-05, too easy by the user's call: a quest place not seen is not listed; [radar](docs/radar.md) |
@@ -400,6 +401,7 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
+First (2026-11-06, 0.5.5f): the user hears everything again in play; it was all driven by the bot, sounds counted with the `sounds` dev command. On the next real game patch, watch the log's "Layout:" and "Struct sweep" lines: that is the first true test of the searches on a patch not seen while writing them.
 First (2026-11-05, released as v2026.11.05-2): the user hears one "Congelado" per freeze on the next boss of several bodies. The hidden Count was seen live at 20:36: not counted as a fight, 0 enemy targets, the six drops scanned and picked up.
 First (2026-11-05, released as v2026.11.05): the user confirms in play the three fixes: no world sounds at the gem's confirmation or in the tree, the NPC options read at once after a quest (the page after the conversation; not seen live, no quest at hand), and the three new volumes. A layer silencing the game by mistake would show as "Panel over the game: …" with nothing open: none in a live walk.
 Next idea (2026-11-05): the user hears the map hints in play; the road sign of the Hunting Grounds says no side on a first visit, since the exit is unknown until seen, and the camps' reveal needs checking in Act 3 ([map hints](docs/research/map-hints.md)).

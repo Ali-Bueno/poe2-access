@@ -255,6 +255,12 @@ namespace Poe2Accessibility
                 case "layout":
                     this.LayoutSelfTest();
                     break;
+                case "structs":
+                    this.worldLayout?.Sweep();
+                    break;
+                case "sounds":
+                    this.log?.Info(this.audio?.Diagnose() ?? "Audio off");
+                    break;
                 case "flasks":
                     this.log?.Info(this.flasks?.Diagnose() ?? "Flasks off");
                     break;
@@ -334,9 +340,15 @@ namespace Poe2Accessibility
         /// <summary>Per frame: the parts of the game's layout that could not be found, said once together.</summary>
         private void SayCompatibility()
         {
+            this.worldLayout?.Tick(this.gameState?.CurrentState == GameStateTypes.InGameState);
             if (this.compatibility?.TakeUnsaid() is { Count: > 0 } missing)
             {
                 this.output.Speak(Announcements.CompatibilityMissing(missing), false);
+            }
+
+            if (this.worldLayout?.TakeSurvived() is { } survived)
+            {
+                this.output.Speak(survived, false);
             }
         }
 
@@ -344,6 +356,7 @@ namespace Poe2Accessibility
         private void NoteGameBuild()
         {
             this.compatibility?.Reset();
+            this.worldLayout?.Reset();
             this.layoutProbe?.Reset();
             this.locator?.Fields.Reset();
             this.controls?.Reset();
@@ -362,6 +375,11 @@ namespace Poe2Accessibility
                 if (game.MainModule?.FileName is { Length: > 0 } path)
                 {
                     var file = new FileInfo(path);
+                    if (this.worldLayout != null)
+                    {
+                        this.worldLayout.GameBuild = $"{file.Length}:{file.LastWriteTimeUtc.Ticks}";
+                    }
+
                     this.log?.Info($"Game build: {path}, {file.Length} bytes, written {file.LastWriteTimeUtc:yyyy-MM-dd HH:mm} UTC");
                 }
             }

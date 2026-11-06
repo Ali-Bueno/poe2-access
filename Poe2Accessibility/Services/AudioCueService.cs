@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Runtime.InteropServices;
     using System.Threading;
 
@@ -47,6 +48,8 @@ namespace Poe2Accessibility.Services
         private readonly float[] mix = new float[BufferFrames * Channels];
         private readonly short[] pcm = new short[BufferFrames * Channels];
         private readonly PeakLimiter output = new(SampleRate);
+        private readonly Dictionary<string, int> started = new(StringComparer.Ordinal);
+        private volatile float outputPeak;
         private readonly Dictionary<(float[] Left, float[] Right, int Drive), (float[] Left, float[] Right)> driven = new();
         private readonly Thread? mixer;
         private volatile IReadOnlyDictionary<string, float> levels = new Dictionary<string, float>();
@@ -120,6 +123,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            this.Note(sound);
             var angle = (Math.Clamp(pan, -1f, 1f) + 1f) * MathF.PI / 4f;
             var level = MathF.Min(gain, 1f);
             var (left, right) = this.Driven(samples, samples, gain);
@@ -135,9 +139,39 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            this.Note(key);
             var level = MathF.Min(gain, 1f);
             var (left, right) = this.Driven(sound.Left, sound.Right, gain);
             this.Add(new Voice(left, right, pitch, level, level));
+        }
+
+        /// <summary>Research (dev command "sounds"): what started and how loud the output got since last asked, and the beds heard now.</summary>
+        public string Diagnose()
+        {
+            string started;
+            lock (this.started)
+            {
+                started = string.Join(", ", this.started.OrderByDescending(sound => sound.Value).Select(sound => $"{sound.Key} {sound.Value}"));
+                this.started.Clear();
+            }
+
+            string beds;
+            lock (this.beds)
+            {
+                beds = string.Join(", ", this.beds.Where(bed => bed.IsHeard).Select(bed => bed.Sound).Distinct());
+            }
+
+            var peak = this.outputPeak;
+            this.outputPeak = 0f;
+            return $"Sounds: output peak {peak:F3}; started: {(started.Length == 0 ? "none" : started)}; beds heard: {(beds.Length == 0 ? "none" : beds)}";
+        }
+
+        private void Note(string sound)
+        {
+            lock (this.started)
+            {
+                this.started[sound] = this.started.GetValueOrDefault(sound) + 1;
+            }
         }
 
         /// <summary>The cue as is up to a gain of 1; above it a limited copy at that drive, made once and kept.</summary>
@@ -172,7 +206,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public Bed AddBed(float[] loop, string sound, int start = 0)
         {
-            var bed = new Bed(loop, () => this.Level(sound), start);
+            var bed = new Bed(loop, sound, () => this.Level(sound), start);
             if (this.IsAvailable)
             {
                 lock (this.beds)
@@ -287,6 +321,7 @@ namespace Poe2Accessibility.Services
                 var left = this.mix[i] * volume;
                 var right = this.mix[i + 1] * volume;
                 this.output.Process(ref left, ref right);
+                this.outputPeak = MathF.Max(this.outputPeak, MathF.Max(MathF.Abs(left), MathF.Abs(right)));
                 this.pcm[i] = (short)(Math.Clamp(left, -1f, 1f) * short.MaxValue);
                 this.pcm[i + 1] = (short)(Math.Clamp(right, -1f, 1f) * short.MaxValue);
             }
@@ -311,12 +346,19 @@ namespace Poe2Accessibility.Services
             private volatile float targetPitch = 1f;
             private volatile bool stopped;
 
-            internal Bed(float[] loop, Func<float> level, int start)
+            internal Bed(float[] loop, string sound, Func<float> level, int start)
             {
                 this.loop = loop;
+                this.Sound = sound;
                 this.level = level;
                 this.position = start;
             }
+
+            /// <summary>Its glossary key.</summary>
+            public string Sound { get; }
+
+            /// <summary>Whether it is sounding now.</summary>
+            public bool IsHeard => this.left >= Silence || this.right >= Silence;
 
             /// <summary>Equal-power pan as for cues; gain 0 fades it out; pitch 1 = as recorded.</summary>
             public void Set(float pan, float gain, float pitch = 1f)

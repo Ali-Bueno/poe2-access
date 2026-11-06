@@ -4,12 +4,15 @@
     fast-forwards the clone, rebuilds the host and the plugin and runs the tests. Then start the host, run the "layout"
     dev command in game (docs/compatibility.md) and package with New-TestPackage.ps1 (or pass -Package).
 .DESCRIPTION
-    Refuses to pull over local changes in the clone: the mod keeps none there (what it needs from GameHelper is read at
-    run time or reimplemented). Run with GameHelper stopped: both builds deploy into its folder.
+    The mod's only changes to the clone are gamehelper.patch (the runtime layout searches, docs/compatibility.md): it is
+    taken out before the pull and applied again after it; anything else in the clone stops the script. -SavePatch writes
+    what the clone holds now into that file. Run with GameHelper stopped: both builds deploy into its folder.
 #>
 param(
     # Only list the new upstream commits.
     [switch]$CheckOnly,
+    # Save the clone's changes as gamehelper.patch and stop.
+    [switch]$SavePatch,
     # Also build the test package once everything passed.
     [switch]$Package
 )
@@ -28,6 +31,12 @@ if (-not (Test-Path (Join-Path $clone '.git'))) {
     throw "No GameHelper2 clone at $clone (git clone https://github.com/Gordin/GameHelper2 external\GameHelper2)"
 }
 
+. (Join-Path $PSScriptRoot 'GameHelperPatch.ps1')
+if ($SavePatch) {
+    Save-GameHelperPatch $clone
+    return
+}
+
 Invoke-Native git @('-C', $clone, 'fetch', '--quiet', 'origin')
 $new = @(git -C $clone log --oneline 'HEAD..@{u}')
 if ($LASTEXITCODE -ne 0) { throw 'external\GameHelper2 has no upstream branch to compare with (detached HEAD?).' }
@@ -41,9 +50,11 @@ if ($new.Count -eq 0) {
 if ($CheckOnly) { return }
 
 if ($new.Count -gt 0) {
-    if (git -C $clone status --porcelain) { throw 'external\GameHelper2 has local changes: commit or stash them first.' }
+    Remove-GameHelperPatch $clone
+    if (git -C $clone status --porcelain) { throw 'external\GameHelper2 has changes beyond gamehelper.patch: commit or stash them first.' }
     Invoke-Native git @('-C', $clone, 'merge', '--ff-only', '--quiet', '@{u}')
 }
+Add-GameHelperPatch $clone
 
 # The launcher starts the host under a renamed copy of GameHelper.exe, so it is found by its folder, not its name.
 $running = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($devHost, [System.StringComparison]::OrdinalIgnoreCase) }
