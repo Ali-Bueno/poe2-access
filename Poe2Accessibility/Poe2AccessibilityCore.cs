@@ -290,6 +290,7 @@ namespace Poe2Accessibility
                 var partnerVoice = new SeatOutput(this.output, () => PlayerAlerts.Name(Seats.Partner));
                 Func<int> followedSeat = () => Seats.FollowsSecond ? 2 : 1;
                 this.alerts = new PlayerAlerts(() => Seats.Followed, memory, elements, this.audio, followedVoice, this.log);
+                this.alerts.Cooldowns.Report = this.compatibility;
                 this.partnerAlerts = new PlayerAlerts(() => Seats.Partner, memory, elements, null, partnerVoice, this.log);
                 var tradeOffers = new TradeOfferWatch(elements, inventory, line => this.output.Speak(line, false));
                 this.tradeOffers = tradeOffers;

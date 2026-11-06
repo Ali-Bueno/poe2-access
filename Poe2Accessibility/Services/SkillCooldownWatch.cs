@@ -26,6 +26,9 @@ namespace Poe2Accessibility.Services
 
         private const int MaxUses = 32;
 
+        private const string EntriesPart = "cooldowns";
+        private const int MaxUnreadEntries = 20;
+
         private readonly Func<Entity?> subject;
         private readonly HostMemoryReader memory;
         private readonly UiElementReader elements;
@@ -38,6 +41,11 @@ namespace Poe2Accessibility.Services
         private long namesReadAt = long.MinValue / 2;
         private long lastPoll;
         private float[]? click;
+        private bool entriesJudged;
+        private int unreadEntries;
+
+        /// <summary>Told whether the cooldown entries still read; only the player's watch has it.</summary>
+        public CompatibilityReport? Report { get; set; }
 
         /// <summary><paramref name="audio"/> null: speech only (the partner's skills must not ring like the player's).</summary>
         public SkillCooldownWatch(Func<Entity?> subject, HostMemoryReader memory, UiElementReader elements, AudioCueService? audio, IAccessibilityOutputService output, PluginLog log)
@@ -75,6 +83,7 @@ namespace Poe2Accessibility.Services
                 usable[id] = uses < max;
             }
 
+            this.JudgeEntries(actor.Address);
             var ready = this.cooldowns.Update(usable, now).Select(id => names[id]).Distinct().ToList();
             if (ready.Count == 0)
             {
@@ -90,6 +99,30 @@ namespace Poe2Accessibility.Services
             if (settings.CooldownSpeech)
             {
                 this.output.Say(SpeechKind.Cooldowns, Announcements.Sentences(ready.Select(Announcements.SkillReady)));
+            }
+        }
+
+        /// <summary>
+        ///     Entries that exist and none of which reads: their inner fields moved, and skills would stop saying they are ready with
+        ///     nothing else to tell. Nothing can move them back, as nothing in an entry has a shape of its own.
+        /// </summary>
+        private void JudgeEntries(IntPtr actor)
+        {
+            if (this.Report == null || this.entriesJudged ||
+                (this.Vector(actor + GameLayout.ActorComponent.CooldownsOffset, GameLayout.ActorComponent.CooldownEntrySize, MaxCooldowns)?.Count ?? 0) == 0)
+            {
+                return;
+            }
+
+            if (this.Cooldowns(actor).Any())
+            {
+                this.entriesJudged = true;
+                this.Report.Found(EntriesPart);
+            }
+            else if (++this.unreadEntries >= MaxUnreadEntries)
+            {
+                this.entriesJudged = true;
+                this.Report.Missing(EntriesPart);
             }
         }
 
