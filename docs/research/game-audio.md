@@ -138,6 +138,11 @@ textures and repeated it every 600-3200 ms, as the game's cues are:
   1.26: gold -24 dB, magic -28 with linear reading; -27, -33 with cubic; -54, -64 with a 16-tap sinc, which `LoopReader` now is for
   every bed. Cues keep the linear reading: they are short, and the game's own sounds were never heard as distorted.
 
+A tester found them shrill and clashing as they neared loot (2026-11-06), on the latest version. Pitch never follows distance:
+the 1.26 is a thing straight up on screen, and it stays until 150 units away while the gain rises. `ItemSoundSet.LoopPitch`
+stops the loops at D2R's own 1.12; down stays at 0.8, so up and down still differ. The game's own sounds keep the 1.26 the user
+asked for on 2026-10-24. Not heard yet by the user or the tester.
+
 D2R also limits the plain sum of its loops' gains to 1.25 near items. Starting at unrelated places they add in power, so that left
 four near items quieter than one (-31 against -28 dB) and each 10 dB down, and this mod's far gain of 0.3 would set it off for
 items merely scattered over the screen. It protected nothing here: ten loops at full gain peak at -0.3 dB, under the ceiling, at

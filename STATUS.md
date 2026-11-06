@@ -408,7 +408,11 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
-First (2026-11-06, afternoon, deployed into the user's `dist`, no release yet): ask the tester who could not type a name what
+First (2026-11-06, evening, in the repository, not in `dist` and not released): a tester heard "cannot find the area's level"
+at the Riverbank; judged once on the area's first read, it could miss for the whole area (not reproduced; the log shows one
+such case, 00:17:37 that day). Now searched for 2 s, and only a second area warns. Diablo IV loops stop at pitch 1.12. Neither
+checked live: judge them on the user's new character and by ear, then deploy. Cinematic subtitles: under research.
+Then (2026-11-06, afternoon, deployed into the user's `dist`, no release yet): ask the tester who could not type a name what
 they typed and heard, and whether Steam runs in Big Picture. Not reproduced as a block: typing worked here, and every silent
 dead end found is now said. The account window (new accounts: name on Y, Create on LB) was never tested live.
 First (2026-11-06, morning, released as v2026.11.06-7): the user hears the objects' own sounds in play (`object-sounds`; 617 objects, none heard by ear: the lookup was proved live on real entities with boulders standing in, and the levels measured), and on the next patch check `Code fields: 50 of 50 read`, `Layout: poise` and `Layout: walkable` in the log.

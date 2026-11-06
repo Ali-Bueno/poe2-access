@@ -168,7 +168,7 @@ namespace Poe2Accessibility.Services
 
                 if (this.DiabloLoop(entry) is { } loop)
                 {
-                    this.heardBeds[group] = new HeardLoop(loop, this.SoundKey(entry), pan, pitch, gain, true);
+                    this.heardBeds[group] = new HeardLoop(loop, this.SoundKey(entry), pan, ItemSoundSet.LoopPitch(pitch), gain, true);
                     continue;
                 }
 

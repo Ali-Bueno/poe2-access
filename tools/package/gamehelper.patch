@@ -83,7 +83,7 @@ index 961485f..df7d1ec 100644
              }
          }
 diff --git a/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstance.cs b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstance.cs
-index 47fcf12..1e5981c 100644
+index 47fcf12..2faee4f 100644
 --- a/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstance.cs
 +++ b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstance.cs
 @@ -94,6 +94,11 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
@@ -98,19 +98,24 @@ index 47fcf12..1e5981c 100644
          /// <summary>
          ///     Gets the level of the current Area.
          /// </summary>
-@@ -254,9 +259,9 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
+@@ -254,9 +259,14 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
          protected override void UpdateData(bool hasAddressChanged)
          {
              var reader = Core.Process.Handle;
 -            var data = reader.ReadMemory<AreaInstanceOffsets>(this.Address);
 +            var data = this.Layout.Read(reader, this.Address, out var moved);
++
++            if (this.CurrentAreaLevel == 0)
++            {
++                this.CurrentAreaLevel = data.CurrentAreaLevel; // the game fills it a moment after the area appears
++            }
  
 -            if (hasAddressChanged)
 +            if (hasAddressChanged || moved)
              {
                  this.Cleanup(true);
                  this.TerrainMetadata = data.TerrainMetadata;
-@@ -753,7 +758,7 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
+@@ -753,7 +763,7 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
              }
  
              var reader = Core.Process.Handle;
@@ -121,10 +126,10 @@ index 47fcf12..1e5981c 100644
                  500000,
 diff --git a/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstanceLayout.cs b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstanceLayout.cs
 new file mode 100644
-index 0000000..c50d60f
+index 0000000..545aa89
 --- /dev/null
 +++ b/GameHelper/RemoteObjects/States/InGameStateObjects/AreaInstanceLayout.cs
-@@ -0,0 +1,140 @@
+@@ -0,0 +1,145 @@
 +// <copyright file="AreaInstanceLayout.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -147,8 +152,12 @@ index 0000000..c50d60f
 +        internal const int BlockSize = 0x2000;
 +        private const long SearchEveryMs = 500;
 +
++        // A new area can be read before the game fills its level: this many searches, 2 s, before the area stands without one.
++        private const int LevelSearches = 4;
++
 +        private IntPtr judged;
 +        private long nextSearchAt;
++        private int levelSearches;
 +
 +        /// <summary>Gets where the fields are read from now.</summary>
 +        public AreaFields Fields { get; private set; } = AreaFields.Measured;
@@ -225,9 +234,10 @@ index 0000000..c50d60f
 +            this.LastFound = found;
 +            this.Fields = fields;
 +            this.HasWorld = found.HasWorld;
-+            if (found.HasWorld)
++            if (found.HasWorld && (found.Level >= 0 || ++this.levelSearches >= LevelSearches))
 +            {
 +                this.judged = address;
++                this.levelSearches = 0;
 +            }
 +            else
 +            {

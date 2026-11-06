@@ -27,8 +27,18 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private const float PileLimit = 1.25f;
 
+        /// <summary>
+        ///     The highest a Diablo IV loop plays, D2R's own step up: these recordings are bright, and at the 1.26 of a cue
+        ///     straight up they came out shrill over everything else as the player neared them (tester, 2026-11-06).
+        /// </summary>
+        private const float MaxLoopPitch = 1.12f;
+
         /// <summary>The choices in the settings menu's order, the default first.</summary>
         public static readonly string[] Sets = { Game, DiabloIV };
+
+        /// <param name="pitch">The pitch of the thing's direction (<see cref="BeaconMath.Voice"/>).</param>
+        /// <returns>The pitch its Diablo IV loop plays at; below the recording's it stays, so down still sounds down.</returns>
+        public static float LoopPitch(float pitch) => MathF.Min(pitch, MaxLoopPitch);
 
         /// <param name="power">The gains of the loops heard together, each squared, summed.</param>
         /// <param name="near">One item's gain when the player stands by it.</param>

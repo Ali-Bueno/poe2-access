@@ -107,8 +107,8 @@ scanner's Items category still lists every item (`LootSounds`: `all`, `magic`, `
 
 **Item sound set** (Sound, after the master volume; D2R item sound sets): the sounds of items on the ground, chests, searchable bodies and shrines:
 Path of Exile 2, the game's own (default), or Diablo IV, the D2R mod's set, which plays without a break while the
-thing is in range and where equipment sounds by rarity
-(`ItemSounds`: `poe2`, `diablo4`). Exits, waypoints, breakables and the rest keep the game's sounds. The sound glossary
+thing is in range and where equipment sounds by rarity; up on screen it rises only two semitones, since these
+recordings are bright (`ItemSounds`: `poe2`, `diablo4`). Exits, waypoints, breakables and the rest keep the game's sounds. The sound glossary
 plays the chosen set, and lists the two Diablo IV sounds the game's set has no row for.
 
 **Silence items on the ground in fights** (Combat): while an enemy it counts is alive and in play within about a screen
