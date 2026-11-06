@@ -38,6 +38,7 @@ namespace Poe2Accessibility
         private L3Gestures gestures = new();
         private AudioCueService? audio;
         private WorldLayoutWatch? worldLayout;
+        private TradeOfferWatch? tradeOffers;
 
         private EnemyCues? enemyCues;
         private Radar? radar;
@@ -282,6 +283,8 @@ namespace Poe2Accessibility
                 Func<int> followedSeat = () => Seats.FollowsSecond ? 2 : 1;
                 this.alerts = new PlayerAlerts(() => Seats.Followed, memory, elements, this.audio, followedVoice, this.log);
                 this.partnerAlerts = new PlayerAlerts(() => Seats.Partner, memory, elements, null, partnerVoice, this.log);
+                var tradeOffers = new TradeOfferWatch(elements, inventory, line => this.output.Speak(line, false));
+                this.tradeOffers = tradeOffers;
                 this.pickups = new InventoryWatch(inventory, followedVoice, this.log) { Seat = followedSeat };
                 this.partnerPickups = new InventoryWatch(inventory, partnerVoice, this.log) { Seat = () => 2 };
                 this.flasks = new FlaskWatch(inventory, followedVoice) { Seat = followedSeat };
@@ -290,6 +293,7 @@ namespace Poe2Accessibility
                 this.pickups.Gold = () => this.gold?.ReadNow();
                 this.focus.InGameHighlightRoot = this.ShopPage;
                 this.pickups.Engraving = () => this.narrator?.Engraving ?? (string.Empty, string.Empty);
+                this.pickups.InTrade = () => tradeOffers.Open;
                 this.pickups.SidePanel = () => this.semantics?.SidePanelTitle(
                     this.locator.Fields.Find(this.focus?.LayerContainer ?? IntPtr.Zero, InGameField.InventoryPanel)) ?? string.Empty;
                 this.pickups.GroundItemIds = this.partnerPickups.GroundItemIds = () => this.entities?.GroundItemIds() ?? Array.Empty<uint>();
@@ -367,7 +371,17 @@ namespace Poe2Accessibility
                 };
                 this.chat = new ChatWatcher(elements, comboBoxes, line =>
                 {
-                    if (this.Settings.AnnounceChat)
+                    if (!this.Settings.AnnounceChat)
+                    {
+                        return;
+                    }
+
+                    // A notice can arrive as the window it belongs to closes: closing must not cut "Intercambio aceptado".
+                    if (ChatDiff.IsNotice(line))
+                    {
+                        this.output.Keep(line, SpeechFloor.MessageHoldMs(line));
+                    }
+                    else
                     {
                         this.output.Speak(line, false);
                     }
@@ -481,6 +495,7 @@ namespace Poe2Accessibility
                 var state = this.gameState.CurrentState;
                 this.Isolated("pad", this.ReadModButton);
                 this.Isolated("focus", () => this.focus?.Tick(state, stateObject));
+                this.Isolated("trade offer", () => this.tradeOffers?.Tick(this.focus?.Current?.Address ?? IntPtr.Zero));
                 this.Isolated("text field", this.WatchTextFieldClosing);
                 this.Isolated("player news", this.TickPlayerNews);
                 this.Isolated("sounds", this.TickSounds);

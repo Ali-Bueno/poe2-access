@@ -480,6 +480,9 @@ namespace Poe2Accessibility
 
         public static string Dropped(string name) => T($"Dropped: {name}", $"Tirado: {name}");
 
+        /// <summary>What a trade took, a disenchanted item among them.</summary>
+        public static string HandedOver(string names) => T($"Handed over: {names}", $"Entregado: {names}");
+
         public static string UsedUp(string name) => T($"Used: {name}", $"Usado: {name}");
 
         public static string HandEmpty => T("You no longer hold an item", "Ya no llevas ningún objeto");
@@ -757,6 +760,9 @@ namespace Poe2Accessibility
             var read = texts.Count > 0 ? string.Join(". ", texts) : T("You have died", "Has muerto");
             return shown ? read : $"{read}. {DeathScreenHidden}";
         }
+
+        /// <summary>A trade's other side with nothing on it.</summary>
+        public static string Nothing => T("nothing", "nada");
 
         /// <summary>A new game build read with nothing lost.</summary>
         public static string GameUpdateSurvived => T("The game was updated: the mod found everything again", "El juego se ha actualizado: el mod lo ha encontrado todo");

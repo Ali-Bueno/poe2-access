@@ -22,6 +22,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A line said aloud nearby, an NPC's shout or local chat: a speaker before a colon and no channel sign.</summary>
         public static bool IsLocalSpeech(string line) => line.Length > 0 && Array.IndexOf(ChannelSigns, line[0]) < 0 && line.IndexOf(':') > 0;
 
+        /// <summary>A line from the game itself, with no channel and no speaker ("Intercambio aceptado.").</summary>
+        public static bool IsNotice(string line) => line.Length > 0 && Array.IndexOf(ChannelSigns, line[0]) < 0 && !line.Contains(':');
+
         /// <summary>
         ///     A line one of these characters wrote, in any channel: its speaker before the colon is the name, after a
         ///     guild tag ("#<TAG> yarkey:hola") if any. A whisper's "Para Dahnte" names the one it went to, not the writer.

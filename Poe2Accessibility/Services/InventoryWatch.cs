@@ -66,6 +66,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The title of the panel open beside the inventory (stash, skills, merchant), empty when none.</summary>
         public Func<string>? SidePanel { get; set; }
 
+        /// <summary>A trade window is open: what leaves the inventory was handed over, not dropped or used.</summary>
+        public Func<bool>? InTrade { get; set; }
+
         /// <summary>The engraving window's last choice and category (<see cref="ScreenNarrator.Engraving"/>).</summary>
         public Func<(string Choice, string Category)>? Engraving { get; set; }
 
@@ -351,6 +354,9 @@ namespace Poe2Accessibility.Services
                         break;
                     case ItemMoveKind.Bought:
                         lines.Add(Announcements.Bought(names, -goldChange));
+                        break;
+                    case ItemMoveKind.DroppedOrUsed when this.InTrade?.Invoke() == true:
+                        lines.Add(Announcements.HandedOver(names));
                         break;
                     case ItemMoveKind.DroppedOrUsed:
                         foreach (var move in group)

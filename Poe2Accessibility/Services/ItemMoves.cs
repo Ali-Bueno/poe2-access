@@ -70,7 +70,7 @@ namespace Poe2Accessibility.Services
                             moves.Add(new ItemMove(ItemMoveKind.TakenFrom, placed == Announcements.UnknownItem ? name : placed, handFrom));
                         }
                     }
-                    else if (Take(source => source == InventoryName.MainInventory1) == null && inPanel)
+                    else if ((TakeSame(name) ?? Take(source => source == InventoryName.MainInventory1)) == null && inPanel)
                     {
                         moves.Add(goldChange < 0 ? new ItemMove(ItemMoveKind.Bought, name)
                             : Beside(name) ? new ItemMove(ItemMoveKind.TakenFrom, name, sidePanel)
@@ -98,6 +98,20 @@ namespace Poe2Accessibility.Services
             }
 
             return moves;
+
+            // A stack that grew is a new entity of the same item, whatever else left with it (a trade).
+            string? TakeSame(string arrival)
+            {
+                var index = left.FindIndex(departure => departure.From == InventoryName.MainInventory1 && Title(departure.Name) == Title(arrival));
+                if (index < 0)
+                {
+                    return null;
+                }
+
+                var same = left[index].Name;
+                left.RemoveAt(index);
+                return same;
+            }
 
             string? Take(Func<InventoryName, bool> source)
             {

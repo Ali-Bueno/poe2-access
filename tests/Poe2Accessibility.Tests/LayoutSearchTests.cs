@@ -5,6 +5,7 @@ namespace Poe2Accessibility.Tests
     using System.Linq;
     using GameHelper.RemoteObjects.States.InGameStateObjects;
     using GameHelper.Utils;
+    using Poe2Accessibility.Services;
 
     /// <summary>The host's runtime layout search against a fake game memory: a patch moves the fields, the search must follow.</summary>
     public static class LayoutSearchTests
@@ -38,6 +39,8 @@ namespace Poe2Accessibility.Tests
             (nameof(SegmentsDropWhatContinuesTheLastShift), SegmentsDropWhatContinuesTheLastShift),
             (nameof(VitalsPointBackAtTheirComponent), VitalsPointBackAtTheirComponent),
             (nameof(MeasuredVitalsLandOnTheOnesFound), MeasuredVitalsLandOnTheOnesFound),
+            (nameof(ATradeOfferIsSaidWhenItChanges), ATradeOfferIsSaidWhenItChanges),
+            (nameof(AStackThatGrewInATradeIsNoDeparture), AStackThatGrewInATradeIsNoDeparture),
             (nameof(BuffListsEndInAnId), BuffListsEndInAnId),
             (nameof(TheCameraIsKeptTwice), TheCameraIsKeptTwice),
             (nameof(PositionsLieInsideTheMap), PositionsLieInsideTheMap),
@@ -170,6 +173,31 @@ namespace Poe2Accessibility.Tests
             Equal("1A0 1F8 238 2D8 328", Hex(StructShapes.PlaceVitals(measured, found.Select(at => at - 0x10).ToArray())), "all moved back");
             Equal("1B0 208 250 2F0 340", Hex(StructShapes.PlaceVitals(measured, new[] { 0x1B0, 0x208, 0x250, 0x2F0, 0x340 })), "the later ones moved");
             Equal(string.Empty, Hex(StructShapes.PlaceVitals(measured, Array.Empty<int>())), "none");
+        }
+
+        private static void ATradeOfferIsSaidWhenItChanges()
+        {
+            string? said = null;
+            var nothing = Array.Empty<string>();
+            Equal(null, TradeOfferNews.Line("La oferta de Una", nothing, "nada", ref said), "a new empty window says nothing");
+            Equal("La oferta de Una: Esquirla, 1", TradeOfferNews.Line("La oferta de Una", new[] { "Esquirla, 1" }, "nada", ref said), "an offer appears");
+            Equal(null, TradeOfferNews.Line("La oferta de Una", new[] { "Esquirla, 1" }, "nada", ref said), "the same offer is said once");
+            Equal("La oferta de Una: Esquirla, 1, Orbe", TradeOfferNews.Line("La oferta de Una", new[] { "Esquirla, 1", "Orbe" }, "nada", ref said), "it grows");
+            Equal("La oferta de Una: nada", TradeOfferNews.Line("La oferta de Una", nothing, "nada", ref said), "it empties");
+        }
+
+        private static void AStackThatGrewInATradeIsNoDeparture()
+        {
+            var moves = ItemMoves.Read(
+                new[] { (GameHelper.RemoteEnums.InventoryName.MainInventory1, "Esquirla de transmutación, 2") },
+                new[] { (GameHelper.RemoteEnums.InventoryName.MainInventory1, "Frasco de vida"), (GameHelper.RemoteEnums.InventoryName.MainInventory1, "Esquirla de transmutación") },
+                _ => null,
+                true,
+                0,
+                string.Empty);
+            Equal(1, moves.Count, "one thing really left");
+            Equal("Frasco de vida", moves[0].Name, "the flask left, not the shards");
+            Equal(ItemMoveKind.DroppedOrUsed, moves[0].Kind, "it left for nowhere tracked");
         }
 
         private static string Hex(IEnumerable<int> offsets) => string.Join(' ', offsets.Select(at => at.ToString("X")));

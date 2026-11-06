@@ -55,8 +55,11 @@ namespace Poe2Accessibility.Services
         /// <summary>A kept line's hold and what waits behind it; guarded by <see cref="queueGate"/>.</summary>
         private readonly SpeechFloor floor = new();
 
+        /// <summary>How long a kept line outlives a stop: the time from a window's last notice to the mod seeing it closed.</summary>
+        private const int KeptThroughStopMs = 1200;
+
         /// <summary>What went out lately and when, for <see cref="StopBefore"/>.</summary>
-        private readonly List<(string Text, DateTime At)> sent = new();
+        private readonly List<(string Text, DateTime At, bool Kept)> sent = new();
 
         /// <summary>How far back <see cref="sent"/> reaches.</summary>
         private const int SentKeptMs = 3000;
@@ -134,7 +137,8 @@ namespace Poe2Accessibility.Services
             {
                 foreach (var line in this.sent)
                 {
-                    if (line.At >= since)
+                    // A kept line can arrive as the window it belongs to closes, a moment before the close is seen.
+                    if (line.At >= since || (line.Kept && (DateTime.UtcNow - line.At).TotalMilliseconds < KeptThroughStopMs))
                     {
                         again.Add(line.Text);
                     }
@@ -258,7 +262,7 @@ namespace Poe2Accessibility.Services
                 {
                     this.EnqueueLocked(new SpeechRequest(text, interrupt));
                     this.sent.RemoveAll(line => (now - line.At).TotalMilliseconds > SentKeptMs);
-                    this.sent.Add((text, now));
+                    this.sent.Add((text, now, delivery is Delivery.Kept or Delivery.KeptMessage));
                 }
             }
 

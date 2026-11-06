@@ -67,3 +67,22 @@ covered by their focus. Local co-op goes by the focus alone: a panel may be the 
 
 The quest tracker's page is said whole, so it holds the floor: at an NPC it kept the options silent for seven seconds
 (Leitis, 2026-11-04, 18:05:51). In a menu it waits (`QuestTrackerPage`) and is said once the menu closes, the latest page only.
+
+### Trade windows: disenchanting
+
+"Desencantar objetos" (Una, Zarka: the Y option of their dialogue) is the game's own trade window, with its words: "La oferta
+de Una", "Tu oferta", "Aceptar comercio, RB", and in the chat "Intercambio cancelado." / "Intercambio aceptado.". Nothing
+to translate: that is how the game calls it.
+
+- The pad's cursor reaches the player's grid and never the other side's, so what the deal gives could not be read.
+  `TradeOfferWatch` says it when it changes ("La oferta de Una: Esquirla de transmutación", "La oferta de Una: nada"), one
+  poll after the cell's own line, which would cut it. It finds the window by shape from the focused grid: two grids, then
+  their two titles. A trade with a player has the same shape, not tried.
+- An offered item stays in the inventory until the deal is accepted; then it, the old stack and the new stack change at once.
+  `ItemMoves` pairs an arrival with the departure of the same name first, or the stack that grew reads as "Usado" and the
+  flask as nothing. What leaves during a trade is "Entregado: …".
+- The game's own notices (a chat line with no channel and no speaker, `ChatDiff.IsNotice`) are kept, and a kept line outlives
+  the stop of a panel closing: "Intercambio aceptado." arrives some 200 ms before the close is seen.
+- With a pad, A on an item marks it where it lies ("Reemplazar, A. Devolver objeto, B"): the cursor inventory stays empty, so
+  no "En la mano". Rejected items go back with no message, for a sighted player too: normal items are not disenchanted
+  (a Lapis Ring's blue line is its implicit mod). Live 2026-11-06 with three magic flasks bought from Una.

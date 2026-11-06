@@ -1027,6 +1027,9 @@ namespace Poe2Accessibility.Tests
 
         private static void OnlyLinesSaidAloudNearbyAreLocalSpeech()
         {
+            Equal(true, ChatDiff.IsNotice("Intercambio aceptado."), "the game's own notice");
+            Equal(false, ChatDiff.IsNotice("Renly:Esto es lo que tengo."), "an NPC's line is no notice");
+            Equal(false, ChatDiff.IsNotice("@De Dahnte:hola"), "a whisper is no notice");
             Equal(true, ChatDiff.IsLocalSpeech("El rey vudú:¡Arrodillaos!"), "a boss's shout");
             Equal(true, ChatDiff.IsLocalSpeech("Renly:Esto es lo que tengo."), "an NPC's line");
             Equal(false, ChatDiff.IsLocalSpeech("@De Dahnte:hola"), "a whisper");
