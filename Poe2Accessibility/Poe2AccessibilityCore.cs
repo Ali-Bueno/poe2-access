@@ -184,7 +184,6 @@ namespace Poe2Accessibility
         private string DodgeTimingsSeedPath => Path.Join(this.DllDirectory, "catalog", "dodge-timings.txt");
 
         /// <summary>The creation screen's name help was said for this visit (a refused name comes back to it).</summary>
-        private bool creationHelpSaid;
 
         /// <summary>The HUD's skill bar this frame (zero outside gameplay or when not found).</summary>
         private IntPtr skillBar;
@@ -398,6 +397,7 @@ namespace Poe2Accessibility
                 this.narrator.IsSkillBarText = this.IsSkillBarText;
                 this.narrator.IsQuestTrackerText = this.IsQuestTrackerText;
                 this.focus.FocusChanged += this.OnCreationFocus;
+                this.focus.FocusChanged += this.OnPreGameFocus;
                 this.narrator.Refresh = node => this.semantics?.Describe(node.Address, node.IsHovered);
                 this.semantics.PlayerPath = () => Seats.Followed.Path ?? string.Empty;
                 this.commands.SettingsChanged = changed =>
@@ -432,6 +432,7 @@ namespace Poe2Accessibility
                 };
                 this.mapOverlay = new MapOverlayWatch(elements, text => this.output.Speak(text, true));
                 this.longText = new LongTextReader(elements, this.output);
+                this.longText.Closed += this.RepeatFocus;
                 this.research = new ResearchSession(this.dumper, new FocusResearchLog(elements, debugDirectory, this.log), this.log)
                 {
                     Enabled = this.Settings.ResearchMode,
@@ -533,6 +534,7 @@ namespace Poe2Accessibility
                 this.Isolated("focus", () => this.focus?.Tick(state, stateObject));
                 this.Isolated("trade offer", () => this.tradeOffers?.Tick(this.focus?.Current?.Address ?? IntPtr.Zero));
                 this.Isolated("text field", this.WatchTextFieldClosing);
+                this.Isolated("creation name", this.TickCreationName);
                 this.Isolated("player news", this.TickPlayerNews);
                 this.Isolated("sounds", this.TickSounds);
                 this.Isolated("screen", () => this.NarrateScreenChanges(stateObject));
@@ -729,11 +731,19 @@ namespace Poe2Accessibility
             this.previousFocus = current;
         }
 
-        private void RepeatLast()
+        private void RepeatFocus()
         {
             if (this.focus?.Current != null)
             {
                 this.output.Speak(Announcements.Focused(this.focus.Current, this.Settings.ReadTooltipsOnFocus), true);
+            }
+        }
+
+        private void RepeatLast()
+        {
+            if (this.focus?.Current != null)
+            {
+                this.RepeatFocus();
             }
             else
             {
@@ -771,25 +781,13 @@ namespace Poe2Accessibility
             info.Name is GameLayout.InGameUi.QuestTitleName or GameLayout.InGameUi.QuestLineName &&
             this.elements.ReadAncestors(info, GameLayout.InGameUi.QuestLineDepth).Any(ancestor => ancestor.Name == GameLayout.InGameUi.QuestPagesName);
 
-        /// <summary>
-        ///     The creation screen's name field takes typing at once and nothing on screen says how to finish: once per
-        ///     visit, after the field, how to create the character (user, 2026-10-24).
-        /// </summary>
-        private void OnCreationFocus(AccessibleUiNode node)
-        {
-            if (!this.creationHelpSaid && node.Role == UiRole.TextField && this.gameState?.CurrentState == GameStateTypes.CreateCharacterState)
-            {
-                this.creationHelpSaid = true;
-                this.narrator?.SayAfterFocus(Announcements.CreationNameHelp);
-            }
-        }
-
         private void OnGameStateChanged(GameStateTypes previous, GameStateTypes current)
         {
             this.research?.OnStateChanged(current);
             if (current == GameStateTypes.SelectCharacterState)
             {
                 this.creationHelpSaid = false;
+                this.classHelpSaid = false;
             }
 
             if (current == GameStateTypes.AreaLoadingState)
@@ -855,6 +853,8 @@ namespace Poe2Accessibility
                 this.pendingState = this.pendingState.Value with { At = long.MinValue / 2 };
                 this.AnnounceSettledState();
             }
+
+            this.SayCreationClassHelp(current);
         }
 
         /// <summary>Per frame: the state reached, once it has settled; a passing one is replaced unsaid.</summary>

@@ -77,6 +77,11 @@ new `serve`, which disconnects the game to the login screen.
 - A second `key enter` at character selection also entered the game, but then A at the Transportador only cast a skill and
   no map opened (2026-11-05): after the login, check the pad before relying on it.
 - A start from Steam with a newer release waits on two launcher dialogs (install it, then "updated"): `Get-Process Poe2Access` shows a window title while one is open, and the log stops at "Installed …, latest …".
+- Create Character and the characters want A held (`pad cross --seconds 1.6`); a short press does nothing.
+- LB at login opens the patch notes in the browser as a child of the game: after the game closes Steam still says "App
+  Running" and a new launch fails (AppError_16 in `logs/console_log.txt`) until that browser closes (2026-11-06).
+- Exit at login quits at once. Never test names that could be free: Enter or A on Continue creates the character; an
+  existing one ("yarkey") tests the whole refusal safely.
 - Never stand still among monsters reading logs: on 2026-11-06 a level 19 Mercenary died in a level 6 area that way.
 - Scripted walking on the live servers: packs kill a character that only walks, and one session ended in "Abnormal
   disconnect" 40 s after a death with no reason given (Client.txt, 2026-11-05). Cause unknown; keep it short.

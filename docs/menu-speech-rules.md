@@ -23,7 +23,10 @@ reader exists only for a genuine quirk. Status column: **done** = implemented in
 | New screen / menu | title, then the focused item; never list all items | yes | partly (title todo) |
 | Focus moves | name, value/state, role, then position ("3 of 12") last | yes | done except position |
 | Value changes in place (slider, toggle, combo) | only the new value | yes | done |
-| Tab change | only the tab name | yes | todo |
+| Tab change | only the tab name | yes | done |
+| Tabbed screen opens (options) | title, tab, focus; never the page's labels | yes | done |
+| A press the game ignores in silence (character name) | why, once per press | yes | done |
+| A long text closes (terms) | the focus underneath again | yes | done |
 | Popup / modal with no focus inside | title + message + controls with state ("create, unavailable") | yes | done |
 | Popup closes | the focused item underneath again | yes | done |
 | Panel opened with nothing focused | its prompt and legends (bound buttons) | yes | done (legend glyphs todo) |

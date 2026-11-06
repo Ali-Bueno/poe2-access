@@ -48,6 +48,9 @@ namespace Poe2Accessibility.Models
         /// <summary>Where the value stands among its choices (combo boxes: "3 de 4"), said when the value changes.</summary>
         public string ValuePosition { get; init; } = string.Empty;
 
+        /// <summary>The frame around a text box: A opens it, and until then keys type nothing.</summary>
+        public bool OpensWithA { get; init; }
+
         /// <summary>A combo box whose choices are open (in game: stepped in place with the D-pad), a collapsible row shown open.</summary>
         public bool IsExpanded { get; init; }
 

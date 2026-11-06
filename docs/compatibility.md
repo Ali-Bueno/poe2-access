@@ -125,6 +125,7 @@ Their fields sit after the base control, so when it grows they all move as far a
 | Passive node (a child of a group of that canvas): its record leads to a PassiveSkills row | node record | `UiSemantics.NodeRecord` |
 | Class selector: its index and the class id beside it name the same class of the first row (`ClassSelector.FirstRowClassIds`; a variant highlighted proves nothing) | index, class id | `UiSemantics.SelectorAgrees` |
 | Panel title (only under `panels_parent`): an ancestor of the panel reads a title there | title | `UiSemantics.TitleAt` |
+| Character creation's Continue: nothing fixed to judge it by, so it follows the text; a wrong byte only adds or loses "Name too short" | grey byte | `UiSemantics.ContinueGrey` |
 | Text field hint: reads as words other than the field's font face (the field holds its font 0x50 before the hint) | hint | `UiSemantics.Placeholder` |
 | Options section (weak): on a focused options row, the section two levels above its list has the active byte set and the row's index after it | active, highlighted row | `UiElementReader.IsSectionRow` |
 | Check box, selectable list, quest map depth: nothing static, so judged the way they were measured, by watching them change: the shift whose value changes as the player toggles or moves is the field; another shift that changes twice while the expected one stays put takes its place | state, selected index | `ControlFields.Changing` (pure `ChangingField`) |

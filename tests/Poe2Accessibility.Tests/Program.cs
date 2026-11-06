@@ -22,6 +22,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(ClosedPopupIsNewsAgain), ClosedPopupIsNewsAgain);
             Run(nameof(InGameBaseLayersNeverOwnInput), InGameBaseLayersNeverOwnInput);
             Run(nameof(TypingIsReportedAsTheEdit), TypingIsReportedAsTheEdit);
+            Run(nameof(CreationNameDeadEndsAreSaid), CreationNameDeadEndsAreSaid);
             Run(nameof(ChatReportsOnlyAppendedLines), ChatReportsOnlyAppendedLines);
             Run(nameof(L3GesturesAreToldApart), L3GesturesAreToldApart);
             Run(nameof(StickDirectionsBinInWorldSpace), StickDirectionsBinInWorldSpace);
@@ -250,6 +251,62 @@ namespace Poe2Accessibility.Tests
             Equal(new TextEdit(string.Empty, "s"), TextEdit.Between("Yarkidius", "Yarkidiu"), "deleted one");
             Equal(new TextEdit("Yarkidius", string.Empty), TextEdit.Between(string.Empty, "Yarkidius"), "pasted into empty");
             Equal<TextEdit?>(null, TextEdit.Between("abc", "abd"), "replaced");
+        }
+
+        private static void CreationNameDeadEndsAreSaid()
+        {
+            const int Max = 23;
+            var typed = new CreationPresses(true, false, false);
+            var enter = new CreationPresses(false, true, false);
+            var a = new CreationPresses(false, false, true);
+            var grey = new Func<bool>(() => true);
+            var lit = new Func<bool>(() => false);
+            var unread = new Func<bool>(() => throw new InvalidOperationException("Continue read for nothing"));
+            CreationAdvice Typing(CreationNameGuide guide, long now, string name, CreationPresses presses, Func<bool> state) =>
+                guide.Tick(now, CreationSpot.Typing, name, presses, state);
+
+            var guide = new CreationNameGuide(Max);
+            Equal(CreationAdvice.None, Typing(guide, 0, "ab", default, unread), "entering the field");
+            Equal(CreationAdvice.None, Typing(guide, 10, "ab", typed, unread), "a key is judged later");
+            Equal(CreationAdvice.None, Typing(guide, 100, "ab", default, unread), "too soon to judge");
+            Equal(CreationAdvice.CharacterRefused, Typing(guide, 300, "ab", default, unread), "a digit changes nothing");
+
+            guide = new CreationNameGuide(Max);
+            Typing(guide, 0, "ab", default, unread);
+            Typing(guide, 10, "ab", typed, unread);
+            Equal(CreationAdvice.None, Typing(guide, 40, "abc", default, unread), "a letter shows up");
+            Equal(CreationAdvice.None, Typing(guide, 400, "abc", default, unread), "and nothing is said later");
+
+            guide = new CreationNameGuide(Max);
+            var full = new string('a', Max);
+            Typing(guide, 0, full, default, unread);
+            Typing(guide, 10, full, typed, unread);
+            Equal(CreationAdvice.NameFull, Typing(guide, 300, full, default, unread), "a letter past the limit");
+
+            guide = new CreationNameGuide(Max);
+            Typing(guide, 0, "ab", default, unread);
+            Equal(CreationAdvice.NameTooShort, Typing(guide, 10, "ab", enter, grey), "Enter with Continue grey");
+            Equal(CreationAdvice.None, Typing(guide, 20, "ab", enter, grey), "a held Enter says it once");
+            Equal(CreationAdvice.NameTooShort, Typing(guide, 2000, "ab", enter, grey), "pressed again later");
+            Equal(CreationAdvice.None, Typing(guide, 3000, "abc", enter, lit), "Enter with a good name creates");
+            Equal(CreationAdvice.HowToFinish, Typing(guide, 4000, "abc", a, lit), "A in the field does not create");
+            Equal(CreationAdvice.NameTooShort, Typing(guide, 6000, "ab", a, grey), "A in the field, name too short");
+
+            guide = new CreationNameGuide(Max);
+            Equal(CreationAdvice.None, Typing(guide, 0, "abc", a, unread), "the A that opened the field");
+
+            guide = new CreationNameGuide(Max);
+            Typing(guide, 0, "ab", default, unread);
+            Equal(CreationAdvice.NameTooShort, guide.Tick(10, CreationSpot.Outside, "ab", default, grey), "B with Continue grey");
+            Equal(CreationAdvice.TypeOnTheName, guide.Tick(20, CreationSpot.Outside, "ab", typed, unread), "typing on the frame");
+            Equal(CreationAdvice.None, guide.Tick(30, CreationSpot.Outside, "ab", typed, unread), "a held key says it once");
+
+            guide = new CreationNameGuide(Max);
+            Typing(guide, 0, "abc", default, unread);
+            Equal(CreationAdvice.None, guide.Tick(10, CreationSpot.Outside, "abc", default, lit), "B with a good name lands on Continue");
+
+            guide = new CreationNameGuide(Max);
+            Equal(CreationAdvice.None, guide.Tick(0, CreationSpot.Elsewhere, string.Empty, typed, unread), "typing on the class choice");
         }
 
         private static void ChatReportsOnlyAppendedLines()

@@ -22,6 +22,9 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private const int RowSearchHops = 5;
 
+        /// <summary>The frame of the login's news banner, a picture: only its tooltip ("Opens in a web browser") is text.</summary>
+        private const string NewsBannerFrame = "motd_frame";
+
         /// <summary>A named container right above an unnamed widget names it (news panel inside motd_frame).</summary>
         private const int NamedAncestorHops = 2;
 
@@ -238,6 +241,11 @@ namespace Poe2Accessibility.Services
                 value = reward;
             }
 
+            if (role == UiRole.Button && ownText.Length == 0 && this.elements.ReadAncestors(info, NamedAncestorHops).Any(ancestor => ancestor.Name == NewsBannerFrame))
+            {
+                (label, namedById) = (Announcements.NewsBanner, false);
+            }
+
             var tooltip = cardDetails.Count > 0 ? cardDetails : this.TooltipLines(info);
             var context = this.InGame ? this.PanelTitle(info) : string.Empty;
             if ((namedById || hovered || label.Length == 0 || label == context) && tooltip.Count > 0)
@@ -296,6 +304,7 @@ namespace Poe2Accessibility.Services
                 Group = group,
                 Tooltip = tooltip,
                 IsHovered = hovered,
+                OpensWithA = input != IntPtr.Zero,
                 IsEnabled = !info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) || !FlagBits.EnabledTrusted || info.HasFlagBit(GameLayout.Element.EnabledFlagBit),
             };
         }

@@ -443,11 +443,21 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   "You are here, near …". A checkpoint not seen since the host started has only its direction.
 - Before the game (login, character selection and creation) the controller hints are read when a screen
   opens, and only the new ones when the focus changes them ("Start Game").
-- Character creation: the left stick picks the class ("Witch, 4 of 6", its quote), A selects it. The name field
-  then takes typing at once; the mod says how to finish once per visit: Enter creates the character, or B ends the
-  typing and A creates it. After B the left stick moves between name, league ("League, Forbidden Rites", A opens the
-  list of 12) and Continue. X swaps the class for its variant when it has one ("Witch" ↔ "Sorceress"), said with its
-  quote. A name in use is refused with "A character with this name already exists".
+- Login: the news banner is a picture, read as "News, button, opens in a web browser" (A opens it). LB opens the patch
+  notes in the browser; Steam counts the game as running until that browser is closed. Exit quits at once, with no question.
+- Character selection: Create Character and the characters are entered by holding A. The left stick click opens the
+  league filter ("League filter, [Show all], combo box, expanded"), the stick walks it, A picks, B closes.
+- Character creation: no class is highlighted when the screen opens and A does nothing until the left stick has moved:
+  the stick picks the class ("Witch, 4 of 6", its quote), A selects it. The name field then takes typing at once; the mod
+  says how to finish once per visit: Enter creates the character, or B ends the typing and A on Continue creates it.
+  After B the left stick moves between name, league ("League, Forbidden Rites", A opens the list of 12) and Continue,
+  and A on the name ("A to type") goes back to typing. X swaps the class for its variant when it has one ("Witch" ↔
+  "Sorceress"), said with its quote, and goes back to typing too.
+- Names take 3 to 23 letters or underscores. The game ignores the rest in silence, so the mod says it: "Not allowed:
+  letters and underscore only" for a number, a space or a hyphen; "Name full: 23 characters at most"; "Name too short:
+  at least 3 letters" on Enter, A or B while Continue is off (the stick cannot reach Continue then); "Not typing: go to
+  the name and press A" for keys pressed outside the field; and A inside the field says how to create. A name in use is
+  refused with "A character with this name already exists"; the league can no longer be changed after that refusal.
 - The mod speaks Spanish when the game does (`Language`: auto, en, es).
 
 ## Keyboard (development)

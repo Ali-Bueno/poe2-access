@@ -182,13 +182,35 @@ namespace Poe2Accessibility
             ? T($"{value}, editing done", $"{value}, edición terminada")
             : T("Editing done, field empty", "Edición terminada, campo vacío");
 
+        /// <summary>The creation screen opens with no class highlighted: A does nothing before the stick moves.</summary>
+        public static string CreationClassHelp => T(
+            "Choose your class: move the left stick, then press A.",
+            "Elige tu clase: mueve el stick izquierdo y pulsa A.");
+
         /// <summary>
         ///     Character creation's name step: the field takes typing at once and the stick only moves once B has left it;
-        ///     Enter, or A on Continue, creates the character (verified live 2026-10-28).
+        ///     Enter, or A on Continue, creates the character. The name's limits are the game's, measured live 2026-11-06.
         /// </summary>
         public static string CreationNameHelp => T(
-            "Type the name. B leaves the field, then the left stick moves between name, league and Continue. To create the character: Enter, or A on Continue.",
-            "Escribe el nombre. Con B sales del campo y el stick izquierdo pasa por nombre, liga y Continuar. Para crear el personaje: Intro, o A en Continuar.");
+            "Type the name: 3 to 23 letters or underscores, no numbers or spaces. Enter creates the character. B leaves the field; the left stick then moves between name, league and Continue, and A on the name types again.",
+            "Escribe el nombre: de 3 a 23 letras o guiones bajos, sin números ni espacios. Intro crea el personaje. B sale del campo; luego el stick izquierdo pasa por nombre, liga y Continuar, y A en el nombre vuelve a escribir.");
+
+        /// <summary>Character selection's filter: only a stick glyph beside it says how to reach it.</summary>
+        public static string LeagueFilterHint => T("League filter, left stick click", "Filtro de liga, clic del stick izquierdo");
+
+        /// <summary>The login's globe button: only a glyph beside it shows its button.</summary>
+        public static string PatchNotesHint => T("Patch notes in the web browser, LB", "Notas del parche en el navegador, LB");
+
+        /// <summary>Why a press on the name step did nothing; the game says none of it.</summary>
+        public static string ForCreation(Services.CreationAdvice advice) => advice switch
+        {
+            Services.CreationAdvice.TypeOnTheName => T("Not typing: go to the name and press A.", "No estás escribiendo: ve al nombre y pulsa A."),
+            Services.CreationAdvice.CharacterRefused => T("Not allowed: letters and underscore only.", "No admitido: solo letras y guion bajo."),
+            Services.CreationAdvice.NameFull => T("Name full: 23 characters at most.", "Nombre completo: máximo 23 caracteres."),
+            Services.CreationAdvice.NameTooShort => T("Name too short: at least 3 letters. Continue stays off until then.", "Nombre demasiado corto: mínimo 3 letras. Continuar sigue desactivado hasta entonces."),
+            Services.CreationAdvice.HowToFinish => T("To create the character: Enter, or B and then A on Continue.", "Para crear el personaje: Intro, o B y luego A en Continuar."),
+            _ => string.Empty,
+        };
 
         /// <summary>A boss's life fell past a step: "The Bloated Miller 40 percent".</summary>
         public static string BossLife(string name, int percent) => T($"{name} {percent} percent", $"{name} {percent} por ciento");

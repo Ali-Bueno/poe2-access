@@ -141,6 +141,7 @@ namespace Poe2Accessibility.Services
             if (state != this.lastState)
             {
                 this.lastState = state;
+                this.markersRoot = IntPtr.Zero; // the root outlives its screen: a second visit rebuilds the controls under it
                 this.Reset();
             }
 

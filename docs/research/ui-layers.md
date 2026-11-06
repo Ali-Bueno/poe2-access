@@ -191,6 +191,35 @@ colour to apply …"), so the
   real DualSense connected, a virtual pad reconnected later is player 2: it navigates but A on the
   character list did not start the game (Enter did).
 
+## Character creation (0.5.5f, 2026-11-06)
+
+- MEASURED: the screen opens with no class highlighted: A does nothing until the left stick has moved.
+- MEASURED: the name step has two states. `name_textbox` focused takes keys; `name_frame` (after B or the stick,
+  hint "Entrada [A]"), the league and Continue drop them with no sound or text. X on the frame swaps the variant
+  and goes back to `name_textbox`; in `name_textbox` X, the stick and A do nothing.
+- MEASURED: the field keeps letters (accents included) and `_`; digits, space, `-`, `'` and `.` are dropped in silence.
+  26 letters typed left 23.
+- MEASURED: Continue is grey under 3 characters ("", "a", "ab", "aé"; lit on "abc", "___", "aéé", "yarkey"). Grey, the
+  stick skips it, Enter does nothing, B lands on `name_frame`. Lit, B lands on Continue. Its flags do not change
+  (`0x8542EF1` in both): **button +0x3FA is 1 while grey** (also +0x177 0 and a pointer at +0x128 differ). Found by
+  comparing the button at "ab" and "abc", held on a second, rebuilt button.
+- MEASURED: `Core::OpenVirtualKeyboard called with mode '0', default text '' and title 'Nombre'` (Client.txt) when the
+  field opens. Nothing showed on this desktop. OPEN: whether Big Picture or a Steam Deck opens Steam's keyboard there.
+- MEASURED: a name in use goes Loading and back to the screen with the `message` label ("Ya existe un personaje con
+  este nombre."), which stays after the name changes. The league combo is disabled from then on (`0x8554EF1`, bit 0x0D off).
+- MEASURED: leaving and entering the screen rebuilds its controls under the same root, so highlight markers kept by root
+  went stale: `FocusTracker` forgets them on a state change.
+
+## Other pre-game findings (0.5.5f, 2026-11-06)
+
+- MEASURED: the login's `motd_frame` banner is a picture; its only text is the tooltip "Se abre en un navegador web".
+- MEASURED: LB at login (`patch_notes_button`) opens the patch notes in the browser as a child of the game: Steam keeps
+  the app "Running" and refuses a new launch (AppError_16) until that browser closes.
+- MEASURED: the selection's filter opens with L3, a glyph beside it and not in the hint bar.
+- MEASURED: the notice corner's `> ` lines hold news as well as connection progress: "> No hay ninguna liga disponible
+  desde la cual migrar el progreso." (hold Y), "> Se ha producido una desconexión inesperada.".
+- MEASURED: a short stick push moves the terms up to 8 paragraphs over 2-3 polls of 150 ms.
+
 ## Account flow seen (new Steam account)
 
 Log In → Terms of Use window (I Agree on R3, Continue on A, Back on B) → Account window (Create

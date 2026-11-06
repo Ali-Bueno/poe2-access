@@ -61,7 +61,8 @@
 | World quiet behind a panel without focus | done (live: passive tree, world map; the engrave box in code) | `WorldGate` + `ScreenSnapshot.PanelOver`: the world's sounds and news played over the engrave confirmation and the tree between nodes (user 2026-11-05); [rules](docs/menu-speech-rules.md) |
 | Screen layers: popups, no-focus panels, closing popups, disabled controls | done (live) | `ScreenWatcher`/`ScreenDiffer`/`ScreenNarrator`; rules in `docs/menu-speech-rules.md` |
 | Terms / account windows read | done (code) | layer model; verified on creation screen, terms accepted before it existed |
-| Character creation (class, quote, name field) | done (live) | said once on the name field: B leaves it, then the stick reaches league and Continue; Enter or A on Continue creates; X variant "Bruja" ↔ "Hechicera" with its quote; league list read open, all 12 with their descriptions (user, 2026-10-28) |
+| Character creation (class, quote, name field) | done (live) | full sweep 2026-11-06: every silent dead end said (`CreationNameGuide`); [findings](docs/research/ui-layers.md#character-creation-055f-2026-11-06) |
+| Pre-game sweep (login, selection, options, terms) | done (live 2026-11-06) | all read; news banner named, L3 filter and LB told, migrations notice read, terms no longer skip paragraphs |
 | **Boot to gameplay** | done (live) | account `yarkidius`, Witch `Yarkidius`, Act 1 beach (2026-10-23) |
 | Hint bar button names (glyph images) | wip | Opus research on `entry_icon` |
 | Human labels for id-named controls (gateway, exit, options, motd) | todo | tooltip / localisation |
@@ -351,7 +352,8 @@
 
 ## Code map
 - `Poe2AccessibilityCore` — wiring + per-frame tick (GameHelper `DrawUI`), no logic; partial files `.Gameplay` (service
-  ticks isolated per service, vitals and skill bar readouts), `.DevCommands` (command file, status, layout self-test),
+  ticks isolated per service, vitals and skill bar readouts), `.Creation` (pre-game help, `CreationNameGuide`),
+  `.DevCommands` (command file, status, layout self-test),
   `.Settings` (host panel, applying settings, hotkey checks).
 - Patch survival, offline: `CheckCodeFields` + `CodeFieldCatalog` (`catalog/code-fields.txt`) → `OffsetHealer.PlaceFromCode`;
   live: `WorldLayoutWatch.JudgePoise`/`JudgeWalkable` (`PoiseSearch`, `WalkableCheck`);
@@ -406,6 +408,9 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
+First (2026-11-06, afternoon, deployed into the user's `dist`, no release yet): ask the tester who could not type a name what
+they typed and heard, and whether Steam runs in Big Picture. Not reproduced as a block: typing worked here, and every silent
+dead end found is now said. The account window (new accounts: name on Y, Create on LB) was never tested live.
 First (2026-11-06, morning, released as v2026.11.06-7): the user hears the objects' own sounds in play (`object-sounds`; 617 objects, none heard by ear: the lookup was proved live on real entities with boulders standing in, and the levels measured), and on the next patch check `Code fields: 50 of 50 read`, `Layout: poise` and `Layout: walkable` in the log.
 After each patch: `py -B -I tools/exe_reader/reader.py`, keep its output in `docs/research/evidence/`, and if the user can get old exes, run it on them: that is what would decide whether a run-time reader is worth a decoder dependency ([study](docs/research/exe-layouts.md#what-would-measure-it)).
 First (2026-11-06, night): the user hears the dodge warning on Faridun Olroth's `MoltenSlam` and Doryani's beam, calm until now, and Rage on a character that has it (the keys were checked live, Rage itself was not: no such character). `AnimationFieldSearch` and `JudgeReaction` were each simulated live.

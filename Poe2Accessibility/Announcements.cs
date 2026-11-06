@@ -201,6 +201,11 @@ namespace Poe2Accessibility
 
         public static string UnavailableState => T("unavailable", "no disponible");
 
+        public static string NewsBanner => T("News", "Anuncio");
+
+        /// <summary>Said with the frame around a text box.</summary>
+        public static string TypeWithA => T("A to type", "A para escribir");
+
         /// <summary>Spoken controller button for a glyph file (same name in every controller family); unknown glyphs keep their file name.</summary>
         public static string ButtonName(string glyphFile, bool playStation) =>
             ButtonNames(glyphFile) is { } names ? (playStation ? names.PlayStation : names.Xbox) : glyphFile;
@@ -476,7 +481,12 @@ namespace Poe2Accessibility
                 parts.Add(role);
             }
 
-            if (node.IsCollapsible)
+            if (node.OpensWithA)
+            {
+                parts.Add(TypeWithA);
+            }
+
+            if (node.IsCollapsible || (node.Role == Models.UiRole.ComboBox && node.IsExpanded))
             {
                 parts.Add(node.IsExpanded ? Expanded : Collapsed);
             }

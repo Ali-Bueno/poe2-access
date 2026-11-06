@@ -189,6 +189,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A new game process (perhaps a patched one): every group is judged again.</summary>
         public void Reset() => this.states.Clear();
 
+        /// <summary>How far the label text moved: the shift of a subclass field with nothing of its own to check.</summary>
+        public int TextShift => this.textShift();
+
         /// <summary>
         ///     Research (dev command "layout"): on the last control each group was judged on, every other shift within reach
         ///     that would also fit; any of them could be taken for the true one after an update moves the fields.

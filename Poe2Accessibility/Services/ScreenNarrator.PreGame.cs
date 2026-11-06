@@ -32,6 +32,13 @@ namespace Poe2Accessibility.Services
                             this.SayAfterFocus(Describe(lines));
                         }
                     }
+                    else if (focus != null && focusLayer == change.Layer.Address && this.ReadScreenMessages && (this.JustFocused() || this.deferredFocus != null) &&
+                             this.selectedTab(change.Layer.Address) is { Length: > 0 } openedTab)
+                    {
+                        // A tabbed page (the options) shows its rows as labels: its title, the tab, the focus, never the list.
+                        var title = change.Texts.FirstOrDefault(text => !text.IsControl)?.Text ?? string.Empty;
+                        this.Speak("tabbed screen", Announcements.Sentences(new[] { title, Announcements.InContext(Announcements.TabTitle(openedTab), this.lastFocusSpeech) }), true);
+                    }
                     else if (focus != null && focusLayer == change.Layer.Address && this.ReadScreenMessages && (this.JustFocused() || this.deferredFocus != null))
                     {
                         // A screen opened with its focus (delete character: "Are you sure…? yarkey…", then Cancel):
@@ -102,8 +109,9 @@ namespace Poe2Accessibility.Services
                 case ScreenChangeKind.TextsAppeared when !this.inGame && change.Layer.Name == NoticeLayerName && IsBehind(change.Layer, top):
                     // The pre-game notice corner sits under the screen it reports on ("Input method set to Controller"
                     // on a fresh install's first button press, 2026-10-24); its connection log ("> Connecting…") is
-                    // the state's own announcement.
-                    var notices = change.Texts.Where(text => !text.Text.StartsWith('>')).ToList();
+                    // the state's own announcement, its other lines are news ("> No league to migrate from", a disconnect).
+                    var notices = change.Texts.Where(text => !IsConnectionProgress(text.Text))
+                        .Select(text => text with { Text = text.Text.TrimStart('>', ' ') }).ToList();
                     if (notices.Count > 0 && this.deferredFocus != null)
                     {
                         // The press that switched the input also moved the focus: the focus first, the notice after.
@@ -146,6 +154,10 @@ namespace Poe2Accessibility.Services
                     break;
             }
         }
+
+        /// <summary>A line of the notice corner's log still under way: "> Connecting to login server...".</summary>
+        private static bool IsConnectionProgress(string text) =>
+            text.StartsWith('>') && (text.EndsWith("...", StringComparison.Ordinal) || text.EndsWith('…'));
 
         /// <summary>
         ///     Per frame before the game (login, character selection and creation): the controller hints are how a

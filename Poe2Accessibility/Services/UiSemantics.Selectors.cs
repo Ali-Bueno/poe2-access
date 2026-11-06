@@ -75,6 +75,11 @@ namespace Poe2Accessibility.Services
             return found.Selector != IntPtr.Zero && this.reader.TryRead<int>(found.Selector + GameLayout.ClassSelector.ClassIdOffset + shift, out var id) ? id : null;
         }
 
+        /// <summary>Character creation's Continue is grey (GameLayout.CreateCharacter); false when it is not found.</summary>
+        public bool ContinueGrey(IntPtr layer) =>
+            this.FindNamed(layer, GameLayout.CreateCharacter.Continue, GameLayout.CreateCharacter.ContinueDepth) is { } button &&
+            this.reader.TryRead<byte>(button + GameLayout.CreateCharacter.ContinueGreyOffset + (this.elements.Controls?.TextShift ?? 0), out var grey) && grey == 1;
+
         /// <summary>
         ///     The selector's index and class id, read with the fields moved by a shift, name the same class of its first row
         ///     (the row of variants proves nothing: the selector is judged again once the highlight is back on a class).

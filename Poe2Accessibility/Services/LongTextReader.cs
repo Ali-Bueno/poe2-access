@@ -13,10 +13,13 @@ namespace Poe2Accessibility.Services
         private const int PollMs = 150;
 
         /// <summary>
-        ///     Scrolling forward past at most this many paragraphs reads the ones passed too, in order: a short push of
-        ///     the stick went from 67 to 70 (2026-10-24). A longer jump, or back, reads only where it lands.
+        ///     One push forward past at most this many paragraphs reads the ones passed too, in order: a short push of the
+        ///     stick passed up to 8 (live 2026-11-06). A longer jump, or back, reads only where it lands.
         /// </summary>
-        private const int ReadThroughParagraphs = 4;
+        private const int ReadThroughParagraphs = 8;
+
+        /// <summary>A push lasts several polls; scrolling again after this long is a new push, which replaces what is being read.</summary>
+        private const long NewPushMs = 500;
 
         private readonly UiElementReader elements;
         private readonly IAccessibilityOutputService output;
@@ -26,6 +29,11 @@ namespace Poe2Accessibility.Services
         private int total;
         private int spoken = -1;
         private long lastPoll;
+        private long lastMove;
+        private int passedInPush;
+
+        /// <summary>The text left the screen: nothing else tells the player it closed.</summary>
+        public event Action? Closed;
 
         public LongTextReader(UiElementReader elements, IAccessibilityOutputService output)
         {
@@ -38,6 +46,11 @@ namespace Poe2Accessibility.Services
         {
             if (longText != this.text)
             {
+                if (longText == IntPtr.Zero)
+                {
+                    this.Closed?.Invoke();
+                }
+
                 this.text = longText;
                 this.spoken = -1;
                 this.paragraphs = Array.Empty<string>();
@@ -52,10 +65,8 @@ namespace Poe2Accessibility.Services
                         this.total += this.paragraphs[i].Length;
                     }
 
-                    if (this.paragraphs.Length > 0)
-                    {
-                        this.output.Speak(Announcements.LongText(this.paragraphs.Length), false);
-                    }
+                    // One poll later than usual: the screen's own title goes first.
+                    this.lastPoll = Environment.TickCount64 + PollMs;
                 }
             }
 
@@ -71,17 +82,29 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (this.spoken < 0)
+            {
+                this.output.Speak(Announcements.LongText(this.paragraphs.Length), false);
+            }
+
             var index = ParagraphAt(this.starts, (int)(fraction * this.total));
             if (index == this.spoken)
             {
                 return;
             }
 
-            // The first paragraph follows the screen's own lines; a paragraph scrolled to replaces the one being read.
-            var first = this.spoken >= 0 && index > this.spoken && index - this.spoken <= ReadThroughParagraphs ? this.spoken + 1 : index;
+            // The first paragraph follows the screen's own lines; a paragraph scrolled to replaces the one being read,
+            // unless the same push brought it.
+            var sameMove = now - this.lastMove < NewPushMs;
+            this.passedInPush = sameMove ? this.passedInPush : 0;
+            var passes = this.spoken >= 0 && index > this.spoken && this.passedInPush + index - this.spoken <= ReadThroughParagraphs;
+            var first = passes ? this.spoken + 1 : index;
+            var interrupt = this.spoken >= 0 && !(passes && sameMove);
+            this.passedInPush = passes ? this.passedInPush + index - this.spoken : 0;
+            this.lastMove = now;
             for (var paragraph = first; paragraph <= index; paragraph++)
             {
-                this.output.Speak(Announcements.LongTextParagraph(this.paragraphs[paragraph], paragraph + 1, this.paragraphs.Length), this.spoken >= 0 && paragraph == first);
+                this.output.Speak(Announcements.LongTextParagraph(this.paragraphs[paragraph], paragraph + 1, this.paragraphs.Length), interrupt && paragraph == first);
             }
 
             this.spoken = index;

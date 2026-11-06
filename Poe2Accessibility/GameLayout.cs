@@ -606,6 +606,30 @@ namespace Poe2Accessibility
         }
 
         /// <summary>
+        ///     Character creation's name step (createcharacterscreen.ui, live 2026-11-06). Only the text box takes typing; its
+        ///     frame, the league and Continue hold the cursor once B has left it.
+        /// </summary>
+        public static class CreateCharacter
+        {
+            public const string NameBox = "name_textbox";
+            public const string NameFrame = "name_frame";
+            public const string League = "league_combobox";
+            public const string Continue = "create_button";
+
+            /// <summary>Layer, create_character_frame, create_button.</summary>
+            public const int ContinueDepth = 2;
+
+            /// <summary>The field drops every character past this many (26 typed, 23 kept).</summary>
+            public const int MaxNameLength = 23;
+
+            /// <summary>
+            ///     Byte, 1 while Continue is grey: the stick skips it and Enter does nothing. Its flags stay the same. Found by
+            ///     comparing the button at "ab" and "abc", then held on a rebuilt button for 7 names.
+            /// </summary>
+            public const int ContinueGreyOffset = 0x3FA;
+        }
+
+        /// <summary>
         ///     The area's tile grid (GameHelper's TerrainStruct.TileDetailsPtr: TileStructure records, row by row; each
         ///     points at a TgtFileStruct holding the tile's .tdt path), as measured with GameHelper's structs on 0.5.5e
         ///     (Act 1 town, 990 sub-tiles). Read raw: when a patch moves them, PlaceNarrator reads where TileGridSearch found them.
