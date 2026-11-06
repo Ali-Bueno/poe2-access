@@ -3,17 +3,36 @@
 Static study of `PathOfExileSteam.exe`, build of 2026-11-05 (0.5.5f), read as a data file: no process attached, nothing run or
 changed. The question: can the exe tell the mod its struct offsets, so a patch needs no measuring?
 
-**Answer:** yes, and further than byte signatures, but a single small patch is all the evidence that it lasts.
-`tools/exe_reader/reader.py` recovers 21 of 21 checked offsets in about 7 seconds with no fixed address and no signature. Its rules were
-written looking at the answers. The mod does not use it at run time: the shape searches ([compatibility](../compatibility.md)) already
-cover these fields and are proven live. It stays a development tool until more patches are measured.
+**Answer:** yes. `tools/exe_reader/reader.py` recovers 21 of 21 checked offsets in about 7 seconds with no fixed address and no signature,
+and signatures with the operand wildcarded proved better than expected: measured on five builds, they read the very move that silenced
+the mod.
 
-**First real measure.** Steam installed a new build at 02:42 on 2026-11-06, minutes after the study ended (buildid 26476662, exe linked
-2026-11-06 03:24 UTC, 73 MB downloaded, `.text` 256 bytes larger). Nothing was changed for it. On the new exe the reader still gives 21 of 21,
-and all 45 signatures still hit once with the same value, at addresses shifted by 0, 224, 1136 or 1376 bytes. No table key or animation
-row changed. In play: "El juego se ha actualizado: el mod lo ha encontrado todo", 17 structs intact, 0 lost, the animation
-found at +0x8B0, 100 enemy cues in a short fight. This is a hotfix that moved no field, so it says signatures survive small recompiles and
-says nothing about a patch that reorders a struct.
+## Measured on five builds
+
+Steam's own log (`logs/content_log.txt`) keeps the manifest of every build installed, and the exe lives in the small depot (2694492, 117 MB),
+not in the 154 GB one. Steam's console fetches an old one in four seconds with no password and no other tool:
+`steam://open/console`, then `download_depot 2694490 2694492 <manifest>`; it lands in `steamapps/content/app_2694490/`, apart from the
+install. Depot manifests of the builds found:
+
+| Build | Manifest of 2694492 | Exe linked (UTC) | Exe size |
+|---|---|---|---|
+| 25244054, 25379396, 25568465 | 1823245192867123891, 7923567827680705977, 3364810464343845204 | 2026-09-10 03:17 | 78,325,080 (the same file in all three) |
+| 25740136 | 246779027001700092 | 2026-10-05 01:52 | 78,335,832 |
+| 26261440 (0.5.5e) | 4973272861086296374 | 2026-10-27 22:23 | 78,336,856 |
+| 26473991 (0.5.5f) | 8359096664145304946 | 2026-11-05 10:04 | 78,439,768 |
+| 26476662 (hotfix, still called 0.5.5f) | 3411296386151915616 | 2026-11-06 03:24 | 78,440,792 |
+
+- **Signatures:** all 45 hit exactly once in all five distinct exes. Before 0.5.5f eight of them read other values: `Area.Level` 0xBC, `Hash`
+  0x114, `Environments` 0x4C0, `ServerData` 0x5B0 and the rest of AreaInstance's old layout, exactly what upstream's constants said. So the
+  signatures read, unchanged, the move of 0.5.5f that silenced enemies, radar and items. 0 false hits.
+- **Reader:** 21 of 21 on the last two; on the older ones its three AreaInstance lines read the true old values (0x8D0, 0x5D0, 0x5B0),
+  which is right. On 25740136 two rules fall through and those fields read None: the rules are less sturdy than the signatures.
+- **The hotfix of 2026-11-06** landed at 02:42, minutes after the study ended, with nothing prepared for it (73 MB, `.text` 256 bytes
+  larger). No field moved, no table key or animation row changed, the addresses of the hits shifted by 0 to 1376 bytes. In play: "El juego se ha
+  actualizado: el mod lo ha encontrado todo", 17 structs intact, 0 lost.
+
+These five span eight weeks of hotfixes and one real patch, on one compiler setup. They say nothing of a major version, and the build
+of 0.5.5 itself and earlier are not in Steam's log here.
 
 Proof levels below: **A** a string of the game names the function; **B** the class is proven by construction (a `GetComponent` return,
 a vtable, a constructor); **C** weak. Everything was read at the addresses given; the meaning of several fields comes from our own tables,
@@ -119,8 +138,9 @@ Render pos   F3 0F 10 80 ^ ?? ?? ?? ?? F3 0F 10 88 ?? ?? ?? ?? F3 0F 11 44 24 ??
 Walkable     41 0F B6 C0 48 8D 0C 40 4D 8B 84 C9 ^ ?? ?? ?? ??
 ```
 
-They are the weakest route. Within this one build, Stats+0x160 has 1,918 sites with 44 encodings of the anchor and 283 three-instruction
-skeletons; even 135 wrappers from one template come out in 5 shapes. Upstream's patterns changed registers twice (`4C 8B 06` to
+Before they were measured they looked like the weakest route, and that reasoning still marks where they will break: within one build,
+Stats+0x160 has 1,918 sites with 44 encodings of the anchor and 283 three-instruction skeletons; even 135 wrappers from one template come
+out in 5 shapes. Upstream's patterns changed registers twice (`4C 8B 06` to
 `4D 8B 06`, `45 0F 57 C9` to `0F 57 FF`), and one jump between March and May rewrote all six. After that only one changed (0x140 to
 0x148 in 0.5.5) while offsets moved in five patches, so code shape often survives; but those six are short and hand-picked, which bounds
 nothing for field-reading code. `GameProcess.cs:344` treats every hit as RIP-relative, so reading a field would need a second list.
@@ -143,12 +163,10 @@ name `rcx` or `rax`.
 
 ## What would measure it
 
-The hotfix above is one point. Steam app 2694490, depot 2694491. DepotDownloader with the owner's login can fetch only the exe of an old manifest
-(`-app 2694490 -depot 2694491 -manifest <id> -filelist files.txt`; not tried, and old manifests may not be served); manifest ids come
-from SteamDB, which refuses scripts. Ground truth for old builds is upstream's commits: `98ef3ad` (0.5.1), `4183681` (0.5.4), `3293e56`
-(0.5.4c), `a99b8ba` (0.5.5). With none of that, each future patch adds a point: run the reader on the new exe and keep the output beside
+Each future patch adds a point: Steam's log gains the manifest, the reader and the signatures run on the new exe, and the output goes beside
 [evidence/exe-reader-0.5.5f.txt](evidence/exe-reader-0.5.5f.txt), which is the 2026-11-06 build. That also answers, before anyone starts
-the game, what moved.
+the game, what moved. Ground truth for old builds is upstream's commits: `98ef3ad` (0.5.1), `4183681` (0.5.4), `3293e56` (0.5.4c), `a99b8ba`
+(0.5.5). SteamDB would give older manifests, but it refuses scripts.
 
 ## Mistakes worth not repeating
 
