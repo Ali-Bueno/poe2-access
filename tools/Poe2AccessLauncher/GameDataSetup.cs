@@ -80,7 +80,7 @@ internal static class GameDataSetup
             new Step("cull skills", 2, "cull-skills.txt", "cull-skills", true),
             // At 2: a stamp from the old layout vouches for every step at 1, these two included, though they never ran.
             new Step("game ids", 2, "game-ids.txt", "game-ids", true),
-            new Step("game keys", 2, "game-keys.txt", "game-keys", true),
+            new Step("game keys", 3, "game-keys.txt", "game-keys", true),
             new Step("places", 1, "places.json", "places", true),
             new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
             new Step(SoundsStep, 5, null, null, Input: ItemSoundsStep),

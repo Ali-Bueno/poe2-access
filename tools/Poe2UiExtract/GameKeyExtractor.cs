@@ -16,7 +16,7 @@ internal static class GameKeyExtractor
     private static readonly string[] Tables =
     {
         "buffdefinitions", "worldareas", "monstervarieties", "activeskills", "minimapicons", "chests", "shrines",
-        "npcs", "npctalkcategory", "groundeffecttypes", "questrewardtype", "keywordpopups",
+        "npcs", "npctalkcategory", "groundeffecttypes", "questrewardtype", "keywordpopups", "animation",
     };
 
     public static int Run(string gameDir, string outFile)

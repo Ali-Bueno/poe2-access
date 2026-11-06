@@ -38,6 +38,7 @@ namespace Poe2Accessibility
         private L3Gestures gestures = new();
         private AudioCueService? audio;
         private const string BuffTable = "buffdefinitions";
+        private const string AnimationTable = "animation";
         private const string NamedKindsPart = "effect names";
         private const string GameDataPart = "game data";
 

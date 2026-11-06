@@ -430,7 +430,8 @@ namespace Poe2Accessibility
                     this.GameKeysCatalog,
                     this.KnownGameKeys,
                     Path.Join(this.DllDirectory, "config", "game-news.txt"),
-                    (table, key) => table == BuffTable ? StatusAilments.FromBuffId(key)?.ToString() ?? EnemyStates.FromBuffId(key)?.ToString() : null);
+                    (table, key) => table == BuffTable ? StatusAilments.FromBuffId(key)?.ToString() ?? EnemyStates.FromBuffId(key)?.ToString()
+                        : table == AnimationTable ? DodgeThreats.Of(1, _ => key).ToString() : null);
                 foreach (var table in news)
                 {
                     this.log.Info($"Game news: {table.Table} {table.Added.Count} new, {table.Removed.Count} gone");
