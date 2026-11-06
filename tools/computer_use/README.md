@@ -76,6 +76,7 @@ new `serve`, which disconnects the game to the login screen.
   input until the area has loaded, or the pad joins as J2. Check it walks: an unchanged `cell=` in the `beacon` command means it does not.
 - A second `key enter` at character selection also entered the game, but then A at the Transportador only cast a skill and
   no map opened (2026-11-05): after the login, check the pad before relying on it.
+- A start from Steam with a newer release waits on two launcher dialogs (install it, then "updated"): `Get-Process Poe2Access` shows a window title while one is open, and the log stops at "Installed …, latest …".
 - Never stand still among monsters reading logs: on 2026-11-06 a level 19 Mercenary died in a level 6 area that way.
 - Scripted walking on the live servers: packs kill a character that only walks, and one session ended in "Abnormal
   disconnect" 40 s after a death with no reason given (Client.txt, 2026-11-05). Cause unknown; keep it short.
