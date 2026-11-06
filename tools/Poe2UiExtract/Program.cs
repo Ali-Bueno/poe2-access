@@ -79,6 +79,25 @@ if (args.Length > 2 && string.Equals(args[0], "ao-sounds", StringComparison.Ordi
     return 0;
 }
 
+// Args: object-sounds <gameDir> <outDir>  -- the sound the game gives each object the word list does not name.
+if (args.Length > 2 && string.Equals(args[0], "object-sounds", StringComparison.OrdinalIgnoreCase))
+{
+    return ObjectSoundExtractor.Run(args[1], args[2]);
+}
+
+// Args: object-links <gameDir>  -- research aid: every chest-like object and the sound the game gives it.
+if (args.Length > 1 && string.Equals(args[0], "object-links", StringComparison.OrdinalIgnoreCase))
+{
+    using var linkIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+    linkIndex.ParsePaths();
+    foreach (var (path, sound) in ObjectSoundLinks.Read(linkIndex) ?? new())
+    {
+        Console.WriteLine($"{path}	{sound}");
+    }
+
+    return 0;
+}
+
 // Args: dat-strings <gameDir> <table> [language] [rows]  -- research aid: every string column of a table's first rows.
 if (args.Length > 2 && string.Equals(args[0], "dat-strings", StringComparison.OrdinalIgnoreCase))
 {

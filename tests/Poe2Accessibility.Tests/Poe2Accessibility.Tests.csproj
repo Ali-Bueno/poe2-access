@@ -79,6 +79,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\SalvageOutcome.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CardText.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TradeOfferNews.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\AoSoundEvents.cs" Link="Extract\AoSoundEvents.cs" />
     <Compile Include="..\..\tools\Poe2AccessLauncher\ReleaseTag.cs" Link="Launcher\ReleaseTag.cs" />
     <Compile Include="..\..\tools\Poe2AccessLauncher\ReleaseManifest.cs" Link="Launcher\ReleaseManifest.cs" />
     <Compile Include="..\..\tools\Poe2AccessLauncher\GameDataStamp.cs" Link="Launcher\GameDataStamp.cs" />

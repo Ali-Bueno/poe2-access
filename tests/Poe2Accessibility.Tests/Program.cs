@@ -46,6 +46,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(FriendsGetTheirOwnStream), FriendsGetTheirOwnStream);
             Run(nameof(TwoNpcsAPlayerAndABodyAreAllHeard), TwoNpcsAPlayerAndABodyAreAllHeard);
             Run(nameof(SwitchesAreToldFromBreakables), SwitchesAreToldFromBreakables);
+            Run(nameof(ObjectsPlayTheSoundTheGameGivesThem), ObjectsPlayTheSoundTheGameGivesThem);
+            Run(nameof(OpeningSoundsComeFromTheOpeningAnimation), OpeningSoundsComeFromTheOpeningAnimation);
             Run(nameof(PhrasesFollowTheGameLanguage), PhrasesFollowTheGameLanguage);
             Run(nameof(OtherLanguagesUsePhraseTables), OtherLanguagesUsePhraseTables);
             Run(nameof(ConfirmGlyphMarksTheEntryBesideIt), ConfirmGlyphMarksTheEntryBesideIt);
@@ -2737,6 +2739,37 @@ namespace Poe2Accessibility.Tests
             Equal(2, played.Where(id => id != 99).Distinct().Count(), "the NPC does not take an enemy stream");
             var tap = CueSynth.Enemy(CueSynth.Layer.Friend, 44100);
             Equal(true, tap.Length < CueSynth.Growl(44100).Length && tap.All(sample => MathF.Abs(sample) <= 1f), "the tap is short and in range");
+        }
+
+        private static void ObjectsPlayTheSoundTheGameGivesThem()
+        {
+            Breakables.UseObjectSounds(new[] { "Metadata/Chests/Badlands/Effigy_01\tEffigies_Open_01", "Metadata/Chests/G2_1/SnakeLadyPotionChest\tCorpses_Open", "not a line" });
+            Equal("Effigies_Open_01", Breakables.Material("Metadata/Chests/Badlands/Effigy_01"), "an object no word names");
+            Equal("Effigies_Open_01", Breakables.Material("Metadata/Chests/Badlands/Effigy_01@73"), "an instance's level is not part of its name");
+            Equal("Corpses_Open", Breakables.Material("Metadata/Chests/G2_1/SnakeLadyPotionChest"), "a potion is no pot");
+            Equal("urn", Breakables.Material("Metadata/Chests/Urns/Urn1"), "a word keeps its tuned sound");
+            Equal("", Breakables.Material("Metadata/Chests/Gold/GoldPileSmall"), "the game gives it none: the common sound");
+            Breakables.UseObjectSounds(Array.Empty<string>());
+        }
+
+        private static void OpeningSoundsComeFromTheOpeningAnimation()
+        {
+            const string Lid = "Audio/Sound Effects/Chests/Keth/Lid";
+            const string Sounds = "SoundEvents\n{\n animations = '[{\"name\": \"idle\", \"events\": [{\"time\": 0.0, \"filename\": \"Audio/Sound Effects/Hum\"}]},"
+                + "{\"name\": \"open\", \"events\": [{\"time\": 0.6, \"filename\": \"Audio/Sound Effects/Chests/Keth/Impact\"}, {\"time\": 0.0, \"filename\": \"" + Lid + "\"}]}]'\n}\n";
+            const string Particles = "ParticleEffects\n{\n animations = '[{\"name\": \"open\", \"events\": [{\"time\": 0.0, \"filename\": \"Metadata/fx/dust.pet\"}]}]'\n}\n";
+            Equal(Lid, AoSoundEvents.OpeningEvent(Particles + Sounds), "the earliest sound of the open animation, past other blocks' lists");
+            Equal(null, AoSoundEvents.OpeningEvent("SoundEvents\n{\n}\n" + Particles), "an empty block does not borrow the next block's list");
+            Equal(null, AoSoundEvents.OpeningEvent("SkinMesh\n{\n}\n"), "no sounds");
+            Equal(null, AoSoundEvents.OpeningEvent("SoundEvents\n{\n animations = '[{broken]'\n}\n"), "a broken list");
+
+            var files = new Dictionary<string, string> { ["Metadata/Child.ao"] = "version 3\nextends \"Metadata/Base\"\n", ["Metadata/Base.ao"] = Sounds };
+            Equal(Lid, AoSoundEvents.OpeningEventOf("Metadata/Child.ao", path => files.GetValueOrDefault(path)), "a parent's sounds");
+            Equal(null, AoSoundEvents.OpeningEventOf("Metadata/None.ao", path => files.GetValueOrDefault(path)), "a missing file");
+
+            Equal("event:/Sound Effects/Chests/Keth/LidSG", AoSoundEvents.EventPaths(Lid)[0], "the event name");
+            Equal("event:/Sound Effects/Chests/Spawn.ogg", AoSoundEvents.EventPaths("Audio/Sound Effects/Chests/Spawn.ogg%70")[1], "an older name, its volume dropped");
+            Equal("Chests_4_0_G2_5_1_Effigies_Open_01", AoSoundEvents.FileName("Audio/Sound Effects/Chests/4.0/G2_5_1/Effigies/Open_01"), "a file name");
         }
 
         private static void SwitchesAreToldFromBreakables()

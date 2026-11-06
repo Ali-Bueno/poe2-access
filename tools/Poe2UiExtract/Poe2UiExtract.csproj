@@ -16,6 +16,7 @@
   <ItemGroup>
     <!-- The plugin's own sorting of attack animations (pure), so hit-times counts the attacks the mod warns of. -->
     <Compile Include="..\..\Poe2Accessibility\Services\DodgeThreats.cs" Link="DodgeThreats.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Breakables.cs" Link="Breakables.cs" />
   </ItemGroup>
 
   <ItemGroup>

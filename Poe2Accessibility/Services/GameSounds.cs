@@ -22,6 +22,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The one breakable sound of older extractions, for a material without its own.</summary>
         public const string BreakableFallback = "breakable";
 
+        /// <summary>Which object plays which file of <see cref="BreakableFolder"/>, beside that folder.</summary>
+        private const string ObjectCatalog = "breakables.txt";
+
         /// <summary>A body searched for loot: the game's own rummage through a corpse (Corpses/Open_04).</summary>
         public const string Corpse = "corpse";
 
@@ -107,6 +110,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            LoadObjectCatalog(Path.Join(directory, ObjectCatalog), log);
             log.Info($"Game sounds loaded: {string.Join(", ", set.sounds.Keys)}; loops: {string.Join(", ", set.loops.Keys)}");
             return set;
         }
@@ -145,6 +149,21 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The idle bed of a kind of place (portal, exit, waypoint, checkpoint), or null when it was not extracted.</summary>
         public float[]? GetLoop(string name) => this.loops.TryGetValue(name, out var samples) ? samples : null;
+
+        private static void LoadObjectCatalog(string file, PluginLog log)
+        {
+            try
+            {
+                if (File.Exists(file))
+                {
+                    Breakables.UseObjectSounds(File.ReadAllLines(file));
+                }
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                log.Error($"Object sounds {file} unreadable", ex);
+            }
+        }
 
         private static void LoadFolder(string folder, float maxSeconds, bool fadeOut, Dictionary<string, float[]> into, PluginLog log)
         {

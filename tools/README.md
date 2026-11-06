@@ -32,6 +32,14 @@ trimmed 16-bit WAVs plus `manifest.txt` (cue -> bank/sample). Uses the game's ow
 (no oo2core needed). The WAVs are gitignored game data. To change a cue, edit the `Cues` table in `SoundExtractor.cs`.
 Details: `docs/research/game-audio.md`.
 
+`object-sounds <gameDir> <soundsDir>` gives every chest-like object no material word names the sound the game gives it:
+Chests row, its `.ao` files, the `open` animation's first sound in `SoundEvents`, that FMOD event played offline by the
+game's own `fmodstudio.dll` (`EventRenderer`, 15 s for all) into `breakables/<name>.wav`, plus `breakables.txt` (object,
+sound). In 0.5.5f: 617 of 682 objects, 140 sounds. The rest have none in the game (`Chests/Gold/invisible_chest.ao`, terrain
+doodads) or are strongboxes, whose event sits outside the chest banks; they keep the common break. `object-links <gameDir>`
+prints every object and its sound. It runs as its own process after `sounds`: it calls native code `sounds` does not,
+and failing costs only these sounds.
+
 To audition a bank before choosing a cue, `bank-samples <gameDir> <outDir> <bank,bank...> [filter]` writes every sample
 whose name holds the filter as `bank__sample.wav` (first 4 s) and prints each one's length and peak; keep `outDir` in the
 session scratch folder.

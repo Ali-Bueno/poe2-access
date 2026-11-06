@@ -199,7 +199,7 @@ namespace Poe2Accessibility
                     // Research: every scanner entry, as the categories would say them, then the area's named tiles seen or not.
                     foreach (var entry in this.entities?.Entries() ?? Array.Empty<ScanEntry>())
                     {
-                        this.log?.Info($"Scan {entry.Category} id={entry.Id} kind={entry.Kind} \"{entry.Name}\" {this.entities!.DistanceTo(entry):F0}");
+                        this.log?.Info($"Scan {entry.Category} id={entry.Id} kind={entry.Kind} sound={entry.Sound} \"{entry.Name}\" {this.entities!.DistanceTo(entry):F0}");
                     }
 
                     foreach (var entry in this.entities?.AreaLandmarks() ?? Array.Empty<ScanEntry>())

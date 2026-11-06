@@ -98,7 +98,7 @@ internal static class SoundExtractor
     [DllImport(Lib)] private static extern int FMOD_Sound_Unlock(IntPtr sound, IntPtr p1, IntPtr p2, uint l1, uint l2);
 
     // FMOD writes its version as 0x00MMmmpp with each part in decimal digits: 2.3.11 -> 0x00020311.
-    private static uint HeaderVersion(string fmodPath)
+    internal static uint HeaderVersion(string fmodPath)
     {
         var parts = System.Diagnostics.FileVersionInfo.GetVersionInfo(fmodPath).ProductVersion?.Split(' ')[0].Split('.');
         if (parts is { Length: >= 3 } && parts.Take(3).All(part => int.TryParse(part, out var n) && n < 100))
@@ -314,7 +314,7 @@ internal static class SoundExtractor
         return pcm.Select(v => v * gain).ToArray();
     }
 
-    private static (float[] pcm, double seconds) TrimAndCap(float[] pcm, int ch, int rate, double maxSeconds)
+    internal static (float[] pcm, double seconds) TrimAndCap(float[] pcm, int ch, int rate, double maxSeconds)
     {
         int frames = pcm.Length / ch, start = 0;
         while (start < frames)
@@ -377,7 +377,7 @@ internal static class SoundExtractor
         return (res, (double)len / rate);
     }
 
-    private static void WriteWav(string path, float[] pcm, int ch, int rate)
+    internal static void WriteWav(string path, float[] pcm, int ch, int rate)
     {
         using var w = new BinaryWriter(File.Create(path));
         int dataBytes = pcm.Length * 2;

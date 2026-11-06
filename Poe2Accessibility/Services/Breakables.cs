@@ -1,9 +1,11 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
-    ///     A breakable's material by its metadata path, naming its sound in <c>sounds/breakables/</c>. The game's own
+    ///     A breakable's material by its metadata path, naming its sound in <c>sounds/breakables/</c>; an object no word
+    ///     names plays what the game gives it (<see cref="UseObjectSounds"/>). The game's own
     ///     link: each <c>Metadata/Chests/**.ao</c> plays an FMOD event (<c>…/G2_2/Urns/Urn</c>, <c>…/Boulders/BouldersDirty/Open_2</c>)
     ///     whose bank holds the sample (<c>Poe2UiExtract ao-sounds</c>, 2026-10-27); crates have no bank of their own and
     ///     take a generic wood smash. More specific names first: a Titan Valley pot is big, an Ezomyte stone pot a statue.
@@ -12,6 +14,7 @@ namespace Poe2Accessibility.Services
     {
         private static readonly (string Name, string Material)[] Materials =
         {
+            ("potion", string.Empty), // Not a pot: SnakeLadyPotionChest plays the game's corpse sounds.
             ("titanvalleypots", "bigpot"),
             ("pillars", "bigpot"),
             ("ezomytestatue", "statue"),
@@ -39,21 +42,46 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private static readonly string[] Corpses = { "corpse", "mummified", "unworthychest", "hangsaw", "impale", "stocks", "witchstake", "crucifix" };
 
+        /// <summary>The sound the game gives each object no word names, by its metadata path.</summary>
+        private static Dictionary<string, string> objectSounds = new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>Takes <c>sounds/breakables.txt</c> (<c>Poe2UiExtract object-sounds</c>): an object and its sound, a line each.</summary>
+        public static void UseObjectSounds(IEnumerable<string> lines)
+        {
+            var sounds = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var line in lines)
+            {
+                var tab = line.IndexOf('\t');
+                if (tab > 0)
+                {
+                    sounds[line[..tab]] = line[(tab + 1)..];
+                }
+            }
+
+            objectSounds = sounds;
+        }
+
         /// <summary>A body searched for loot, not a chest.</summary>
         public static bool IsCorpse(string path) => Array.Exists(Corpses, name => path.Contains(name, StringComparison.OrdinalIgnoreCase));
 
-        /// <summary>The material's sound name, or empty for the common breaking sound.</summary>
+        /// <summary>The object's sound name, or empty for the common breaking sound.</summary>
         public static string Material(string path)
         {
             foreach (var (name, material) in Materials)
             {
                 if (path.Contains(name, StringComparison.OrdinalIgnoreCase))
                 {
-                    return material;
+                    return material.Length > 0 ? material : ObjectSound(path);
                 }
             }
 
-            return string.Empty;
+            return ObjectSound(path);
+        }
+
+        private static string ObjectSound(string path)
+        {
+            var at = path.IndexOf('@');
+            return objectSounds.GetValueOrDefault(at < 0 ? path : path[..at], string.Empty);
         }
     }
 }

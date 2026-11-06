@@ -161,6 +161,11 @@ exe, `fmod.dll` product version, each step's version) and, when the install chan
 the game's files and the sounds from the player's own install (about 35 s, each step independent, old files kept on
 failure); a mod update reruns only the steps whose version it raised (`tools/README.md`). The FMOD header version is read from `fmod.dll` (`SoundExtractor`).
 
+`object-sounds` follows the game's own link from an object to its sound (Chests row, `.ao`, FMOD event), so an object a patch
+adds has its sound with nobody extending the word list in `Breakables`. If the render fails the objects fall back on the
+common break and the other sounds are safe, because it is a separate process. The AOFiles column at +0x15 is read by
+offset: a patch moving it leaves the list empty, which costs these sounds and nothing else.
+
 `game-ids` (`GameIdExtractor`) writes the game's numbers for what the mod knows by name, because GameHelper's enums were
 generated long ago and a row inserted in a table shifts every name after it. In 0.5.5f the Animation table has four rows the enum
 lacks (584, 599, 904, 1087): 500 of its 1084 names were wrong, and every animation the dodge warning sorted by name after row 583

@@ -83,7 +83,7 @@ internal static class GameDataSetup
             new Step("game keys", 3, "game-keys.txt", "game-keys", true),
             new Step("places", 1, "places.json", "places", true),
             new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
-            new Step(SoundsStep, 5, null, null, Input: ItemSoundsStep),
+            new Step(SoundsStep, 6, null, null, Input: ItemSoundsStep),
         };
 
         var stamp = LoadStamp(stampFile, install, pluginCatalog, catalog, steps);
@@ -278,6 +278,12 @@ internal static class GameDataSetup
         if (error is not null)
         {
             return error;
+        }
+
+        // Apart: failing costs only the objects' own sounds, and they fall back on the common break.
+        if (Run(extractor, ["object-sounds", gameDirectory, fresh], StepTimeoutMilliseconds) is { } objectError)
+        {
+            Log.Write($"Game data: object sounds failed: {objectError}");
         }
 
         if (Directory.Exists(sounds))
