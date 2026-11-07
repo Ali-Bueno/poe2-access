@@ -31,6 +31,9 @@ namespace Poe2Accessibility.Services
         public const float RangeWorld = 1300f;
         private const float CentreWorld = 150f;
 
+        /// <summary>Where the last of a sound dies away (<see cref="ProximityFade"/>): walking off it fades, it never stops short.</summary>
+        private const float ReachWorld = RangeWorld + ProximityFade.TailWorld;
+
         /// <summary>
         ///     Repeat interval near / far, and the gain at the edge of the range. Near, often enough that its side stays
         ///     true while walking (1.3 s was heard as misplaced, user 2026-10-26).
@@ -133,7 +136,7 @@ namespace Poe2Accessibility.Services
                     foreach (var entry in entries.Where(member)
                                  .Where(entry => !(quietLoot && FightState.QuietsInFight(entry.Category, entry.Kind)) &&
                                                  (group != LootGroup || LootFilter.Allows(this.LootLevel, entry.Loot)))
-                                 .Where(entry => Distance(here, entry) <= RangeWorld).Take(voices))
+                                 .Where(entry => Distance(here, entry) <= ReachWorld).Take(voices))
                     {
                         // Items take turns with the other groups, one at a time, so each drop is heard apart.
                         var crowd = voices > 1 && group != LootGroup ? group : string.Empty;
@@ -150,7 +153,7 @@ namespace Poe2Accessibility.Services
             foreach (var (group, (crowd, entry)) in this.nearest)
             {
                 var distance = Distance(here, entry);
-                if (distance > RangeWorld)
+                if (distance > ReachWorld)
                 {
                     continue;
                 }
@@ -159,7 +162,7 @@ namespace Poe2Accessibility.Services
                 var (side, height) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, new Vector2(entry.WorldX, entry.WorldY) - here));
                 var spread = Math.Min(1f, distance / CentreWorld);
                 var (pan, pitch) = (side * spread, 1f + ((height - 1f) * spread));
-                var gain = this.Gain * (FarGain + ((1f - FarGain) * closeness));
+                var gain = this.Gain * ProximityFade.Gain(distance, RangeWorld, FarGain);
                 if (this.sounds.GetLoop(entry.Kind) is { } idle)
                 {
                     this.heardBeds[entry.Kind] = new HeardLoop(idle, entry.Kind, pan, pitch, gain, false);

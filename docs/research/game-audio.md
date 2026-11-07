@@ -59,6 +59,11 @@ noise breath), `Doodads/SubTransition_01` (a sub-bass throb once a second that d
 heartbeat), `PortalScroll_Effects_Id_IdleInactive_*` (about -39 dB and uneven), the tormented-spirit wisp loop
 (same spectrum as the waypoint).
 
+A loop on disk wins over the cue of that name (`ObjectSounds`). The launcher swaps the whole folder, so packaged installs were never
+affected, but `Poe2Accessibility/sounds/` (gitignored, copied to the dev host by every build) was extracted over the last run: its
+`loops/exit.wav` of 2026-10-30 kept the old crossing playing in dev sessions until 2026-11-07 (user: "está con el sonido antiguo"). The
+extractor now drops loops it no longer makes there; the build only adds, so a loop dropped later must also go from the host's folder.
+
 Since 2026-11-02 an exit has no bed: testers could hardly hear the frozen crossing beside a checkpoint's
 bright bed. It is a one-shot, `CaptainSandstorm/Whoosh_Foley_GoblinGiantBoss_02` (a low rush of air, 0.9 s), repeated
 faster and louder as the player nears it, the user's pick among seven game wind and whirl sounds after six dark
@@ -154,8 +159,24 @@ the sound's own largest step at pitch 1 and 1.26, a stopped voice gone in 160 ms
 Map: gold; flask → potion; currency → rune; scrolls (the game's `Scroll_Drop` sample) → scroll; gem; quest item; equipment and
 other items by rarity → normal, magic, rare, legendary; chest; corpse; shrine. Uniques have their own scanner kind for this.
 Exits, portals, waypoints, breakables, switches and altars keep the game's sounds: the D2R setting is about items, and those
-were tuned here by ear. Last Epoch and the D2 drops were left out (user's request). The distance curve stays this mod's, as for the
-idle beds: D2R fades to nothing at its range, and items going silent on screen was a complaint here (2026-10-27).
+were tuned here by ear. Last Epoch and the D2 drops were left out (user's request). The distance curve stays this mod's on screen,
+as for the idle beds: items going silent on screen was a complaint here (2026-10-27). Past it, see [how sounds end](#how-sounds-end-2026-11-07).
+
+## How sounds end (2026-11-07)
+A tester: every sound stopped dead on walking off it, gold in both sets, town portals, waypoints; they remembered it fading. The
+code had not changed there, the step had always been in it: 30 % of the level at the edge of the range (1300), then silence, in the bed's
+11 ms glide. Four things cut, all softened:
+- `ProximityFade`: unchanged up to the range, then to nothing over 600 more units (squared), for object sounds and placed
+  objects. Measured through the real `Bed` on the portal loop, walking off at 388 units/s: before, a 75 dB fall within 100 ms at
+  -41 dB; after, -41, -49, -51, -55, -65, -69 dB every 250 ms. Live: the waypoint still heard at 18 steps, gone at 20.
+- `Bed.Stop`: a 120 ms release (it was the 11 ms glide), so a picked up item or an opened menu dies away: 60 dB down in 759 ms, not 92.
+- Cues let go early (`StopAll`, more than `MaxVoices`) fade over 20 ms instead of stopping mid-wave. `MaxVoices` went from 16 to 32:
+  its comment assumed 0.1 s cues, the game's last 0.9 s.
+- The loader's 0.9 s cap left recordings still ringing behind a 50 ms fade (dB under their peak at the cut: ritual and corpse
+  -12, shrine -13, portal -14, unique -15, quest item -16, waypoint -18, chest -20). A recording that is cut now dies away over its last
+  0.3 s; one that ends by itself keeps the 50 ms.
+Repeated cues are spaced 3.2 s apart at the far edge, about 1200 units of walking, so gold in the game's own set fades in one or
+two quieter hits, not smoothly. The interval was left alone: it was tuned by ear.
 
 ## Harmful ground alarm (2026-11-04)
 A tester asked for something more urgent than the 110 Hz pulse. The user went through alarms (too shrill), a family built like the

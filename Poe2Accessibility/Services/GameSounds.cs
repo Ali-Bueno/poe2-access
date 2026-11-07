@@ -32,6 +32,14 @@ namespace Poe2Accessibility.Services
         private const float CorpseRms = 0.1f;
         private const float CorpsePeak = 0.8f;
 
+        /// <summary>
+        ///     A recording longer than a cue is still ringing where it is cut (portal, shrine, chest: -12 to -20 dB of their
+        ///     peak), so it dies away over its last moments; a sound that ends by itself needs only its end smoothed.
+        /// </summary>
+        private const float CutFadeSeconds = 0.3f;
+
+        private const float EndFadeSeconds = 0.05f;
+
         /// <summary>The extractor's cap on a loop's length.</summary>
         private const float LoopMaxSeconds = 20f;
 
@@ -278,8 +286,10 @@ namespace Poe2Accessibility.Services
                         return null;
                     }
 
-                    var frames = Math.Min(Math.Min(size, data.Length - body) / (2 * channels), (int)(maxSeconds * rate));
-                    var fade = fadeOut ? Math.Min(frames, rate / 20) : 0;
+                    var recorded = Math.Min(size, data.Length - body) / (2 * channels);
+                    var frames = Math.Min(recorded, (int)(maxSeconds * rate));
+                    var cut = frames < recorded;
+                    var fade = fadeOut ? Math.Min(frames, (int)((cut ? CutFadeSeconds : EndFadeSeconds) * rate)) : 0;
                     var samples = new float[channels][];
                     for (var c = 0; c < channels; c++)
                     {
@@ -287,7 +297,8 @@ namespace Poe2Accessibility.Services
                         for (var i = 0; i < frames; i++)
                         {
                             var tail = frames - i;
-                            samples[c][i] = BitConverter.ToInt16(data, body + (((i * channels) + c) * 2)) / 32768f * (tail < fade ? (float)tail / fade : 1f);
+                            var left = tail < fade ? (float)tail / fade : 1f;
+                            samples[c][i] = BitConverter.ToInt16(data, body + (((i * channels) + c) * 2)) / 32768f * (cut ? left * left : left);
                         }
                     }
 

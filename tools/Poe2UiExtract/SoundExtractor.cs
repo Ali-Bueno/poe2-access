@@ -119,6 +119,16 @@ internal static class SoundExtractor
         Directory.CreateDirectory(outDir);
         Directory.CreateDirectory(Path.Combine(outDir, "items"));
         Directory.CreateDirectory(Path.Combine(outDir, "loops"));
+
+        // A loop wins over its cue, so one no longer extracted must not outlive a run into the same folder.
+        foreach (var loop in Directory.GetFiles(Path.Combine(outDir, "loops"), "*.wav"))
+        {
+            if (!Cues.Any(cue => cue.Name == "loops/" + Path.GetFileNameWithoutExtension(loop)))
+            {
+                File.Delete(loop);
+            }
+        }
+
         // Every drop sample the item catalog (Poe2UiExtract item-sounds) points to, extracted as items/<sample>.wav.
         var cues = Cues.Concat(ItemSoundExtractor.ReadSamples(itemCatalog)
             .Select(sample => new Cue("items/" + sample, ItemSoundExtractor.Bank, sample))).ToArray();

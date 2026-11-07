@@ -59,7 +59,7 @@ of the game's languages). The full instructions are in `README.txt`, inside the 
 
 ## What it makes accessible
 
-- **Menus and screens:** menus, the inventory, item tooltips, skill gems, the passive tree, quests and their
+- **Menus and screens:** menus, the inventory, item tooltips, skill gems, the passive tree with a finder for keystones and notables, quests and their
   rewards, NPC dialogue, chat and the mod's own settings.
 - **Finding your way:** a radar for walls, open floor and exits; a scanner for the quest, exits, places, waypoints,
   characters, enemies, items and chests; and a guide ping that leads you along a free path and tells you the turns.

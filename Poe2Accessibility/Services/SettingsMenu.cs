@@ -81,6 +81,8 @@ namespace Poe2Accessibility.Services
                 Number(nameof(AccessibilitySettings.WallToneRange), 200, 1600, 100),
                 Switch(nameof(AccessibilitySettings.WallBump)),
                 Switch(nameof(AccessibilitySettings.RoutePrompts)),
+                Switch(nameof(AccessibilitySettings.AutoGuide)),
+                Switch(nameof(AccessibilitySettings.PassiveFinder)),
                 Switch(nameof(AccessibilitySettings.AnnouncePlaces)),
                 Switch(nameof(AccessibilitySettings.AnnounceDiscoveries))),
             Menu("surroundings",

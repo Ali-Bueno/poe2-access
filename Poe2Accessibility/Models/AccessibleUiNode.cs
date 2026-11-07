@@ -71,6 +71,9 @@ namespace Poe2Accessibility.Models
         /// <summary>Under the free cursor rather than focused (passive tree node): its tooltip is all there is to read.</summary>
         public bool IsHovered { get; init; }
 
+        /// <summary>A node of the passive tree: the D-pad is the finder's there.</summary>
+        public bool IsPassiveNode { get; init; }
+
         /// <summary>Lines of the element's tooltip (short ones are read with the focus, long ones on request).</summary>
         public System.Collections.Generic.IReadOnlyList<string> Tooltip { get; init; } = Array.Empty<string>();
 

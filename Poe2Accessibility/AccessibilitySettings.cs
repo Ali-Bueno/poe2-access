@@ -238,6 +238,12 @@ namespace Poe2Accessibility
         /// <summary>While the guide beacon leads, name each turn as you reach it: "Ahora arriba a la derecha, 12".</summary>
         public bool RoutePrompts = true;
 
+        /// <summary>In the passive tree the D-pad finds keystones, notables and jewel sockets, and locked nodes say what they cost.</summary>
+        public bool PassiveFinder = true;
+
+        /// <summary>The guide beacon starts on whatever the scanner names, with no press to confirm it (D2R).</summary>
+        public bool AutoGuide;
+
         /// <summary>Name the first sighting of an exit, waypoint, checkpoint or boss in an area, and a barrier that opens.</summary>
         public bool AnnounceDiscoveries = true;
 

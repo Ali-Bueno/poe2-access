@@ -81,6 +81,10 @@ namespace Poe2Accessibility.Tests
             Run(nameof(NewsFollowItsDeliveryLevel), NewsFollowItsDeliveryLevel);
             Run(nameof(SettingsMenuOpensGroupsAndGoesBack), SettingsMenuOpensGroupsAndGoesBack);
             Run(nameof(PassiveStickLandsWhereTheGameDoes), PassiveStickLandsWhereTheGameDoes);
+            Run(nameof(PassiveStepsCountThePointsAlongTheLinks), PassiveStepsCountThePointsAlongTheLinks);
+            Run(nameof(PassiveZoneNamesTheSideAndRing), PassiveZoneNamesTheSideAndRing);
+            Run(nameof(PassiveFinderWalksItsLists), PassiveFinderWalksItsLists);
+            Run(nameof(ObjectSoundsDieAwayPastTheirRange), ObjectSoundsDieAwayPastTheirRange);
             Run(nameof(BuildFilesAreReadWithTheirNotes), BuildFilesAreReadWithTheirNotes);
             Run(nameof(MinionsAreCountedByKind), MinionsAreCountedByKind);
             Run(nameof(DodgeTimingIsLearntFromBlows), DodgeTimingIsLearntFromBlows);
@@ -1544,7 +1548,8 @@ namespace Poe2Accessibility.Tests
             Equal(true, DeployedObjects.IsPlaced("Metadata/Effects/Spells/monk_bell/mtx_BellAurora"), "a bell skin");
             Equal(false, DeployedObjects.IsPlaced("Metadata/MiscellaneousObjects/FrostWall/FrostWall"), "a wall segment is not struck");
             Equal(false, DeployedObjects.IsPlaced("Metadata/Monsters/Wolves/FungalWolf1_@6"), "a monster");
-            Equal(true, DeployedObjects.GainAt(100) > DeployedObjects.GainAt(1200) && DeployedObjects.GainAt(5000) > 0, "louder near, never silent in range");
+            Equal(true, DeployedObjects.GainAt(100) > DeployedObjects.GainAt(1200) && DeployedObjects.GainAt(DeployedObjects.RangeWorld) > 0, "louder near, never silent in range");
+            Equal(0f, DeployedObjects.GainAt(DeployedObjects.ReachWorld), "and dying away to nothing past it");
             var bell = CueSynth.Deployed(44100);
             Equal(true, bell.Length < CueSynth.Cull(44100).Length / 2 && bell.Max(MathF.Abs) < 0.3f, "short and soft beside the gong");
         }
@@ -2214,6 +2219,79 @@ namespace Poe2Accessibility.Tests
             Equal(string.Empty, MinionGroups.Describe(Array.Empty<(string, int)>()), "none: nothing said");
             var said = MinionGroups.Describe(new[] { ("Arquero", 100), ("Lobo", 45), ("Arquero", 60), ("Arquero", 80) });
             Equal(true, said.EndsWith("3 Arquero, 80 percent; Lobo, 45 percent") || said.EndsWith("3 Arquero, 80 por ciento; Lobo, 45 por ciento"), $"the most first, life averaged: {said}");
+        }
+
+        private static void PassiveStepsCountThePointsAlongTheLinks()
+        {
+            // 0 - 1 - 2 - 3, with 4 linked to nothing.
+            var links = new[] { new[] { 1 }, new[] { 0, 2 }, new[] { 1, 3 }, new[] { 2 }, Array.Empty<int>() };
+            var steps = PassiveMap.Steps(links, new[] { 0 });
+            Equal(3, steps[3], "three links from what is taken");
+            Equal(0, steps[0], "taken costs nothing");
+            Equal(PassiveMap.NoPath, steps[4], "no link leads there");
+            Equal(1, PassiveMap.Steps(links, new[] { 0, 2 })[3], "the nearest taken node counts");
+        }
+
+        private static void PassiveZoneNamesTheSideAndRing()
+        {
+            var positions = new[] { new Vector2(-100, 0), new Vector2(100, 0), new Vector2(0, -100), new Vector2(0, 100), new Vector2(10, 0), new Vector2(50, -50) };
+            Equal((0, 2), PassiveMap.Zone(positions, 1), "the far right edge: right, outer");
+            Equal((2, 2), PassiveMap.Zone(positions, 2), "screen y grows down: the top is up");
+            Equal((0, 0), PassiveMap.Zone(positions, 4), "beside the centre: inner");
+            Equal((1, 2), PassiveMap.Zone(positions, 5), "up right, at 0.7 of the radius: outer");
+        }
+
+        private static void PassiveFinderWalksItsLists()
+        {
+            var (keystone, nearNotable, farNotable, reachable) = ((IntPtr)1, (IntPtr)2, (IntPtr)3, (IntPtr)4);
+            IReadOnlyList<IntPtr> Members(PassiveCategory category) => category switch
+            {
+                PassiveCategory.Keystones => new[] { keystone },
+                PassiveCategory.Notables => new[] { nearNotable, farNotable },
+                PassiveCategory.Reachable => new[] { reachable },
+                _ => Array.Empty<IntPtr>(),
+            };
+
+            var finder = new PassiveFinder();
+            finder.ChangeCategory(1, Members);
+            Equal(PassiveCategory.Keystones, finder.Category, "down: the first list");
+            Equal(keystone, finder.Target, "the list's nearest is chosen at once");
+            finder.ChangeCategory(1, Members);
+            finder.ChangeEntry(1, Members(finder.Category));
+            Equal(farNotable, finder.Target, "right: the next entry");
+            finder.ChangeEntry(1, Members(finder.Category));
+            Equal(nearNotable, finder.Target, "and round");
+            finder.ChangeEntry(-1, new[] { farNotable, nearNotable });
+            Equal(farNotable, finder.Target, "the list re-sorted under the choice: it moves from where the choice is now");
+            finder.ChangeCategory(1, Members);
+            Equal(PassiveCategory.Reachable, finder.Category, "an empty list is passed over");
+            finder.ChangeCategory(1, Members);
+            Equal(PassiveCategory.Position, finder.Category, "the lists wrap to the position");
+            Equal(IntPtr.Zero, finder.Target, "which lets the target go");
+
+            finder.ChangeCategory(1, Members);
+            Equal(false, finder.Arrive(reachable), "another node");
+            Equal(keystone, finder.Target, "keeps the guide");
+            Equal(true, finder.Arrive(keystone), "landing on the target");
+            Equal(IntPtr.Zero, finder.Target, "ends the guide");
+            Equal(false, finder.Arrive(keystone), "once");
+        }
+
+        private static void ObjectSoundsDieAwayPastTheirRange()
+        {
+            const float Range = 1300f;
+            const float Far = 0.3f;
+            Equal(1f, ProximityFade.Gain(0f, Range, Far), "on it");
+            Equal(Far, ProximityFade.Gain(Range, Range, Far), "the edge of the range keeps its level");
+            Equal(0f, ProximityFade.Gain(Range + ProximityFade.TailWorld, Range, Far), "silent where it stops");
+            var previous = 2f;
+            for (var distance = 0f; distance <= Range + ProximityFade.TailWorld; distance += 10f)
+            {
+                var gain = ProximityFade.Gain(distance, Range, Far);
+                Equal(true, gain < previous, $"falls all the way ({distance})");
+                Equal(true, previous - gain < 0.02f || previous == 2f, $"with no step ({distance})");
+                previous = gain;
+            }
         }
 
         private static void PassiveStickLandsWhereTheGameDoes()

@@ -94,16 +94,23 @@ namespace Poe2Accessibility.Services
                 {
                     tooltip.Add(this.DescribeBuildNext(graph, record, nextRecord, allocated));
                 }
+
+                if (this.FinderLine(graph, record, node) is { Length: > 0 } way)
+                {
+                    tooltip.Add(way);
+                }
             }
 
+            var stateWords = state == PassiveState.Locked ? this.LockedState(graph, record, allocated) : StateWord(state);
             return new AccessibleUiNode
             {
                 Address = info.Address,
                 Name = info.Name,
                 Role = UiRole.Panel,
-                Text = Announcements.PassiveNode(node.Name, node.Kind, string.Join(", ", new[] { StateWord(state), buildWord }.Where(part => part.Length > 0))),
+                Text = Announcements.PassiveNode(node.Name, node.Kind, string.Join(", ", new[] { stateWords, buildWord }.Where(part => part.Length > 0))),
                 IsVisible = this.elements.IsVisible(info),
                 IsHovered = hovered,
+                IsPassiveNode = true,
                 Context = this.PanelTitle(info),
                 Tooltip = tooltip,
                 TooltipPending = tooltipPending,
@@ -316,18 +323,18 @@ namespace Poe2Accessibility.Services
             var bytes = this.elements.ReadBlock(row, GameLayout.PassiveTree.RowBytes);
             if (bytes.Length < GameLayout.PassiveTree.RowBytes)
             {
-                return new PassiveNodeRow(record, -1, string.Empty, string.Empty, false, false);
+                return new PassiveNodeRow(record, -1, string.Empty, string.Empty, false, false, PassiveClass.Other);
             }
 
-            var name = this.elements.ReadUtf16BufferAt((IntPtr)BitConverter.ToInt64(bytes, GameLayout.PassiveTree.RowNameOffset), MaxPassiveNameChars) ?? string.Empty;
+            var name = KeywordLink.Replace(this.elements.ReadUtf16BufferAt((IntPtr)BitConverter.ToInt64(bytes, GameLayout.PassiveTree.RowNameOffset), MaxPassiveNameChars) ?? string.Empty, ShownText);
             var isStart = BitConverter.ToInt64(bytes, GameLayout.PassiveTree.RowCharactersOffset) > 0;
             var iconOnly = bytes[GameLayout.PassiveTree.RowIconOnlyOffset] == 1;
-            var kind = bytes[GameLayout.PassiveTree.RowKeystoneOffset] == 1 ? Announcements.PassiveKeystone
-                : bytes[GameLayout.PassiveTree.RowNotableOffset] == 1 ? Announcements.PassiveNotable
-                : bytes[GameLayout.PassiveTree.RowJewelSocketOffset] == 1 ? Announcements.PassiveJewelSocket
-                : isStart || iconOnly ? string.Empty
-                : Announcements.PassiveSmall;
-            return new PassiveNodeRow(record, BitConverter.ToUInt16(bytes, GameLayout.PassiveTree.RowGraphIdOffset), name, kind, iconOnly, isStart);
+            var kind = bytes[GameLayout.PassiveTree.RowKeystoneOffset] == 1 ? PassiveClass.Keystone
+                : bytes[GameLayout.PassiveTree.RowNotableOffset] == 1 ? PassiveClass.Notable
+                : bytes[GameLayout.PassiveTree.RowJewelSocketOffset] == 1 ? PassiveClass.JewelSocket
+                : isStart || iconOnly ? PassiveClass.Other
+                : PassiveClass.Small;
+            return new PassiveNodeRow(record, BitConverter.ToUInt16(bytes, GameLayout.PassiveTree.RowGraphIdOffset), name, Announcements.PassiveKind(kind), iconOnly, isStart, kind);
         }
 
         /// <summary>The tree's links and node elements, read once per canvas (they persist while the tree is closed).</summary>
@@ -480,11 +487,15 @@ namespace Poe2Accessibility.Services
 
         private sealed record PassiveGraph(IntPtr Canvas, IntPtr State, Dictionary<IntPtr, List<IntPtr>> Links, Dictionary<IntPtr, IntPtr> Elements, IntPtr OwnStart);
 
-        private sealed record PassiveNodeRow(IntPtr Record, int GraphId, string Name, string Kind, bool IconOnly, bool IsStart);
+        private sealed record PassiveNodeRow(IntPtr Record, int GraphId, string Name, string Kind, bool IconOnly, bool IsStart, PassiveClass Class);
 
         /// <summary>Drawn nodes' centres in one frame's pixels, by record.</summary>
         private sealed record PassivePlaces(IntPtr State, Vector2[] Positions, Dictionary<IntPtr, int> Index)
         {
+            /// <summary>The indexes of those records that are drawn.</summary>
+            public int[] IndexesOf(IEnumerable<IntPtr>? records) =>
+                records?.Where(this.Index.ContainsKey).Select(record => this.Index[record]).ToArray() ?? Array.Empty<int>();
+
             /// <summary>Every node's offset from the one at <paramref name="here"/> (itself at zero, never landed on).</summary>
             public Vector2[] OffsetsFrom(int here) => this.Positions.Select((position, index) => index == here ? Vector2.Zero : position - this.Positions[here]).ToArray();
         }

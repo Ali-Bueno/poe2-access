@@ -13,6 +13,9 @@ namespace Poe2Accessibility.Services
         /// <summary>About a screen: as far as the object sounds reach.</summary>
         public const float RangeWorld = 1300f;
 
+        /// <summary>Where the last of its sound dies away (<see cref="ProximityFade"/>).</summary>
+        public const float ReachWorld = RangeWorld + ProximityFade.TailWorld;
+
         /// <summary>Within this the sound comes from the centre: the player stands at it.</summary>
         public const float CentreWorld = 150f;
 
@@ -59,6 +62,6 @@ namespace Poe2Accessibility.Services
         /// <summary>Time between two sounds: often near, seldom far.</summary>
         public static int IntervalMs(float distance) => (int)(FarIntervalMs - (Closeness(distance) * (FarIntervalMs - NearIntervalMs)));
 
-        public static float GainAt(float distance) => FarGain + ((1f - FarGain) * Closeness(distance));
+        public static float GainAt(float distance) => ProximityFade.Gain(distance, RangeWorld, FarGain);
     }
 }

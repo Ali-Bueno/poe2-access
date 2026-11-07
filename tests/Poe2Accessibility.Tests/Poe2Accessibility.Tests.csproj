@@ -52,6 +52,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\SpeechPriority.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\SettingsCursor.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PassiveStick.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\PassiveMap.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ProximityFade.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\MinionGroups.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\BuildPlan.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\SpeechFloor.cs" />

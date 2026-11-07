@@ -36,6 +36,7 @@ namespace Poe2Accessibility
         private GamepadReader? pad;
         private ModCommands? commands;
         private L3Gestures gestures = new();
+        private uint lastPadButtons;
         private AudioCueService? audio;
         private const string BuffTable = "buffdefinitions";
         private const string AnimationTable = "animation";
@@ -699,6 +700,7 @@ namespace Poe2Accessibility
                 return;
             }
 
+            this.FindOnTree(state);
             this.gestures.FlicksWithoutL3 = this.commands.InSettingsMenu;
             if (this.commands.InSettingsMenu && this.focus?.Current != null)
             {
@@ -708,6 +710,22 @@ namespace Poe2Accessibility
             foreach (var gesture in this.gestures.Update(Environment.TickCount64, state.IsDown(GameLayout.PadButtons.LeftStick), state.RightX, state.RightY, state.IsDown(GameLayout.PadButtons.RightStick)))
             {
                 this.commands.OnGesture(gesture);
+            }
+        }
+
+        /// <summary>A D-pad press, which does nothing in the passive tree, goes to the tree's finder.</summary>
+        private void FindOnTree(GamepadReader.PadState state)
+        {
+            var pressed = state.Buttons & ~this.lastPadButtons;
+            this.lastPadButtons = state.Buttons;
+            var (list, entry) = (pressed & GameLayout.PadButtons.DPadDown) != 0 ? (1, 0)
+                : (pressed & GameLayout.PadButtons.DPadUp) != 0 ? (-1, 0)
+                : (pressed & GameLayout.PadButtons.DPadRight) != 0 ? (0, 1)
+                : (pressed & GameLayout.PadButtons.DPadLeft) != 0 ? (0, -1)
+                : (0, 0);
+            if (list != 0 || entry != 0)
+            {
+                this.commands?.OnTreeDirection(list, entry);
             }
         }
 

@@ -88,7 +88,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 var distance = Vector2.Distance(here, at);
-                if (now - first.Since < DeployedObjects.SettleMs || distance > DeployedObjects.RangeWorld || now - this.lastAnyPlayed < DeployedObjects.GapMs ||
+                if (now - first.Since < DeployedObjects.SettleMs || distance > DeployedObjects.ReachWorld || now - this.lastAnyPlayed < DeployedObjects.GapMs ||
                     (this.lastPlayed.TryGetValue(entity.Id, out var last) && now - last < DeployedObjects.IntervalMs(distance)))
                 {
                     continue;

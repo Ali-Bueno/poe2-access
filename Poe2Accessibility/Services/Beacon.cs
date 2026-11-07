@@ -94,6 +94,29 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            this.Aim(entry);
+            this.output.Speak(Announcements.BeaconLocked(this.catalog.Describe(entry, out var cut)), true);
+            this.partialSaid = cut; // the lock already said the way stops short: not again when the route arrives
+        }
+
+        /// <summary>
+        ///     Guides to what the scanner just named (setting AutoGuide), in place of any earlier target, adding nothing to what
+        ///     was said; <paramref name="cut"/> is whether that said the way stops short.
+        /// </summary>
+        public void Follow(ScanEntry entry, bool cut)
+        {
+            if (this.catalog.DistanceTo(entry) <= ArrivalWorld)
+            {
+                this.Clear(false); // already there: nothing to guide to, and no ping left going to the last one
+                return;
+            }
+
+            this.Aim(entry);
+            this.partialSaid = cut;
+        }
+
+        private void Aim(ScanEntry entry)
+        {
             this.target = entry;
             this.route = null;
             this.search = null;
@@ -102,8 +125,6 @@ namespace Poe2Accessibility.Services
             this.closestSaid = false;
             this.lockedAt = Environment.TickCount64;
             this.lastRefresh = long.MinValue / 2;
-            this.output.Speak(Announcements.BeaconLocked(this.catalog.Describe(entry, out var cut)), true);
-            this.partialSaid = cut; // the lock already said the way stops short: not again when the route arrives
             this.log.Info($"Beacon locked on {entry.Name} ({entry.Category})");
         }
 

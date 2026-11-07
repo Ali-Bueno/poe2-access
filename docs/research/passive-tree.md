@@ -139,6 +139,34 @@ OPEN: `+0x648` values and `T+0x1A8` entry layout with several or weapon-set allo
 - Zoom: LT/RT; the factor is the text "x1,4" beside the "Zoom" label (P child 7); the screen differ took its change for
   a counter tick until 2026-10-31.
 
+## Finder and what the pad does in the tree (0.5.5f, 2026-11-07, malgdhler)
+
+- MEASURED, the virtual pad on a node (hint bar: "Editar filtro [L3]", "Modo inspección [R3]", "Zoom [RT]", "Centrar [Y]",
+  "Seleccionar [A]"): L3 opens the filter, R3 inspect mode, Y centres on the allocated nodes, LB goes to the Character panel and
+  RB back, X did nothing with no change pending. The **right stick moves the cursor too**, so it is not free. **The D-pad does
+  nothing in any direction**: it is the finder's (`Poe2AccessibilityCore.FindOnTree`, `ModCommands.OnTreeDirection`).
+- MEASURED: "No cumples los requisitos" ends the tooltip of every node not linked yet, small ones and keystones alike, and
+  not one reachable ("Atributo … alcanzable"). No node of the tree was seen with a level condition.
+- MEASURED (dev command `passivemap`: links from each class start, drawn nodes only, other starts not walked through):
+
+  | Start | Nearest keystones | Nearest notables | Keystones within 20 / 30 / 40 points |
+  |---|---|---|---|
+  | Ranger, Huntress | 11, 12, 12 | 5, 5, 7 | 13 / 28 / 33 |
+  | Marauder, Warrior | 12, 12, 13 | 5, 5, 7 | 18 / 29 / 33 |
+  | Duelist, Mercenary | 11, 12, 12 | 5, 5, 7 | 13 / 29 / 33 |
+  | Druid | 9, 11, 13 | 5, 5, 7 | 19 / 31 / 33 |
+  | Witch, Sorceress | 11, 13, 13 | 5, 5, 7 | 19 / 32 / 33 |
+  | Shadow, Monk | 12, 13, 13 | 5, 5, 7 | 17 / 30 / 33 |
+
+- 3910 drawn nodes: rings by thirds of the tree's half-size hold 336 / 1476 / 2098 (`PassiveMap.Zone`, centre of the bounding box).
+- Cost is `PassiveMap.Steps`: breadth-first along the links from the allocated ids and the own start. The way is
+  `PassiveStick.Route` (cursor pushes, not links: the cursor needs no link to look at a node), recomputed on every hover, so a
+  push that lands elsewhere corrects itself. Followed live from the far side of the tree: 31 pushes, the count falling, to
+  "Llegaste a Fe cicatrizada"; beyond 30 pushes it says "lejos" and the direction.
+- A target chosen on a node must not change that node's tooltip: the narrator says a line replaced in place, which cut off the
+  finder's own answer 10 ms after it began (`UiSemantics.FinderLine` keeps the line while the cursor stays).
+- Row names may hold keyword markup ("Engarce de [Jewel|joya]"); `ReadPassiveRow` shows the display text.
+
 ## Build Planner (patch 0.5, 2026-10-31)
 
 - MEASURED: **node element `+0x70C` byte = 1** while the node is in the active build (the same five elements read with a

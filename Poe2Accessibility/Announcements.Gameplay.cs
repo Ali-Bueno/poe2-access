@@ -10,6 +10,49 @@ namespace Poe2Accessibility
         /// <summary>"Guiding to Clearfell, 116 steps, down 3, then left" (the scanner's route description).</summary>
         public static string BeaconLocked(string described) => T($"Guiding to {described}", $"Guiando hacia {described}");
 
+        /// <summary>A passive node's kind, for the row's own flags.</summary>
+        public static string PassiveKind(Services.PassiveClass kind) => kind switch
+        {
+            Services.PassiveClass.Keystone => PassiveKeystone,
+            Services.PassiveClass.Notable => PassiveNotable,
+            Services.PassiveClass.JewelSocket => PassiveJewelSocket,
+            Services.PassiveClass.Small => PassiveSmall,
+            _ => string.Empty,
+        };
+
+        public static string PassiveCategoryName(Services.PassiveCategory category) => category switch
+        {
+            Services.PassiveCategory.Keystones => T("Keystones", "Piedras angulares"),
+            Services.PassiveCategory.Notables => T("Notables", "Notables"),
+            Services.PassiveCategory.JewelSockets => T("Jewel sockets", "Engarces de joya"),
+            Services.PassiveCategory.Reachable => T("Reachable now", "Alcanzables ahora"),
+            _ => T("Position", "Posición"),
+        };
+
+        /// <summary>A node's ring of the tree, 0 innermost.</summary>
+        public static string PassiveRing(int ring) => ring switch
+        {
+            0 => T("inner ring", "anillo interior"),
+            1 => T("middle ring", "anillo medio"),
+            _ => T("outer ring", "anillo exterior"),
+        };
+
+        /// <summary>What a node costs from what is taken.</summary>
+        public static string PassivePoints(int points) => points == 1 ? T("1 point away", "a 1 punto") : T($"{points} points away", $"a {points} puntos");
+
+        /// <summary>The cursor's place: "Position: down right, outer ring, 7 points away".</summary>
+        public static string PassivePosition(string place) => T($"Position: {place}", $"Posición: {place}");
+
+        /// <summary>The finder's choice with its place and the way from the cursor.</summary>
+        public static string PassiveFound(string name, string place, string way) => T($"{name}, {place}. From here: {way}", $"{name}, {place}. Desde aquí: {way}");
+
+        /// <summary>The first push toward the finder's target and how many it takes.</summary>
+        public static string PassivePushes(string direction, int pushes) =>
+            pushes == 1 ? T($"{direction}, 1 push", $"{direction}, 1 empujón") : T($"{direction}, {pushes} pushes", $"{direction}, {pushes} empujones");
+
+        /// <summary>The way to the finder's target, at the end of every node.</summary>
+        public static string PassiveToward(string name, string way) => T($"Toward {name}: {way}", $"Hacia {name}: {way}");
+
         /// <summary>Passive node kinds and states.</summary>
         public static string PassiveKeystone => T("keystone", "piedra angular");
 
@@ -365,6 +408,8 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceHand) => T("Item in hand", "Objeto en la mano"),
             nameof(AccessibilitySettings.AnnounceMoves) => T("Equipped and moved items", "Objetos equipados y movidos"),
             nameof(AccessibilitySettings.RoutePrompts) => T("Turn prompts", "Indicaciones de giro"),
+            nameof(AccessibilitySettings.PassiveFinder) => T("Passive tree finder on the D-pad", "Buscador del árbol de pasivas en la cruceta"),
+            nameof(AccessibilitySettings.AutoGuide) => T("Guide to the scanner's choice without confirming", "Guiar a lo elegido en el escáner sin confirmar"),
             nameof(AccessibilitySettings.AnnounceLevelUp) => T("Level up", "Subida de nivel"),
             nameof(AccessibilitySettings.Radar) => T("Radar", "Radar"),
             nameof(AccessibilitySettings.ReadPlayer1) => T("Local co-op: read for player 1", "Cooperativo local: lectura para el jugador 1"),

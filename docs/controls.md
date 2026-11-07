@@ -71,6 +71,10 @@ yet: "No route to … yet". When the way stops short it says so once ("A closed 
 to …; guiding as close as it goes") and, at that point, "As close to … as the way goes; it is still
 closed"; the ping goes on by itself once the barrier opens.
 
+**Guide without confirming** (setting "Guide to the scanner's choice without confirming", Navigation, off by default): the
+ping starts on whatever the scanner names, as in the D2R mod, and the next flick moves it to the next choice. Nothing extra
+is said. The same gesture turns it off.
+
 ## Settings menu (gameplay)
 
 Hold L3 for a second and a half: "Mod settings. Help, submenu, 1 of 10". The settings come in submenus (D2R), some
@@ -169,7 +173,19 @@ the stick that reaches each of its links: "Attack Speed, small node, reachable, 
 Armour and Evasion, allocated; down left, …" (clockwise from up). A link no single push reaches (another node lies
 nearer that way) is said "…, not in one push". Kinds: small node, notable, keystone, jewel socket. States: allocated,
 reachable (linked to an allocated node or the class's start), not linked. Opening the tree reads the skill points and
-attributes; LT/RT say the zoom ("Zoom x1,4"); the directions hold at any zoom.
+attributes; LT/RT say the zoom ("Zoom x1,4"); the directions hold at any zoom. A node not linked yet says what it costs
+("not linked, 7 points away": the nodes to take along the links from what you have).
+
+**Finder (D-pad, which does nothing else in the tree;** setting "Passive tree finder on the D-pad", Navigation, on by
+default): D-pad down and up walk the lists Keystones, Notables, Jewel sockets and Reachable now, and left and right walk a
+list, those costing fewest points first. What it names is the target, with nothing to confirm: "Keystones. Scarred Faith, up
+left, middle ring, 8 points away. From here: up, 10 pushes". Then every node ends with the way, "Toward Scarred Faith: up left,
+4 pushes"; push the left stick that way and it counts down to "Arrived at Scarred Faith". The target is only a place to
+look at: nothing is allocated. Back at the first list, Position, it says where the cursor is on the tree ("Position: down
+right, outer ring, 7 points away") and drops the target. Y centres the view on what you have allocated.
+
+Keystones need no level: a node only needs a line of allocated nodes reaching it. The nearest are 9 to 13 points from any
+class's start, notables 5; the game's "You do not meet the requirements" on a node means it is not linked yet.
 
 **Build Planner** (the game's, patch 0.5): put a build guide's `.build` file in `Documents\My Games\Path of Exile
 2\BuildPlanner` (or subscribe on the website), then in the tree press L3 ("Filters/Build Planner"), D-pad right twice
@@ -272,7 +288,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   when up the screen and lower when down, more often as you get closer, from the centre once you stand on them. The
   nearest portal and the nearest waypoint or checkpoint sound without a break (a portal's hum, a waypoint's low drone,
   a checkpoint's bright ring), louder as you get closer; the nearest exit is a low rush of air from the game, repeated
-  faster and louder as you get closer, so it stands out beside a checkpoint. An item plays the drop sound the game gives its base (a scroll rustles, an orb clinks, a belt,
+  faster and louder as you get closer, so it stands out beside a checkpoint. Walking off any of them, the sound dies away
+  over about six steps past the edge of the screen. An item plays the drop sound the game gives its base (a scroll rustles, an orb clinks, a belt,
   a crossbow, a gem each their own; the rare layer over a rare or unique; the generic item, currency, gold and
   quest sounds only for bases without one). They need the sounds extracted once from your game (see
   `tools/README.md`: `item-sounds`, then `sounds`), then a rebuild.

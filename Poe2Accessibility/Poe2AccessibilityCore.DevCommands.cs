@@ -124,6 +124,14 @@ namespace Poe2Accessibility
                     var node = this.semantics?.Describe((IntPtr)Convert.ToInt64(describe["describe 0x".Length..], 16), true);
                     this.log.Info($"Describe {describe[9..]}: {node?.Role} \"{node?.Text}\" value \"{node?.Value}\" tooltip \"{string.Join(" | ", node?.Tooltip ?? Array.Empty<string>())}\"");
                     break;
+                case "passivemap":
+                    // Research: from each class's start, what the nearest keystones and notables cost.
+                    foreach (var line in this.semantics?.PassiveMapReport(this.focus?.Current?.Address ?? IntPtr.Zero) ?? Enumerable.Empty<string>())
+                    {
+                        this.log.Info($"Passive map: {line}");
+                    }
+
+                    break;
                 case "passivenear":
                     // Research: the nodes around the hovered passive, to compare the stick's moves with the links said.
                     foreach (var line in this.semantics?.PassiveNeighbours(this.focus?.Current?.Address ?? IntPtr.Zero, 400) ?? Enumerable.Empty<string>())

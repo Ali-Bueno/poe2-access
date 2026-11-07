@@ -37,6 +37,11 @@ namespace Poe2Accessibility
         private void ApplySettings(AccessibilitySettings settings)
         {
             this.Settings = settings;
+            if (this.semantics != null)
+            {
+                this.semantics.PassiveFinderOn = settings.PassiveFinder;
+            }
+
             if (this.log != null)
             {
                 this.log.Verbose = settings.VerboseLogging;

@@ -172,8 +172,12 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var spoken = this.catalog.Describe(answer.Entry);
+            var spoken = this.catalog.Describe(answer.Entry, out var cut);
             this.output.Speak(answer.CategoryChanged ? Announcements.InContext(Announcements.ScanCategoryName(answer.Entry.Category), spoken) : spoken, true);
+            if (this.Settings?.Invoke().AutoGuide == true)
+            {
+                this.beacon?.Follow(answer.Entry, cut);
+            }
         }
 
         /// <summary>
@@ -204,6 +208,15 @@ namespace Poe2Accessibility.Services
             }
 
             this.beacon.Lock(choice);
+        }
+
+        /// <summary>A D-pad press on a passive node: up and down change the finder's list, left and right its entry.</summary>
+        public void OnTreeDirection(int listStep, int entryStep)
+        {
+            if (this.focus.Current is { IsPassiveNode: true } node && this.semantics.PassiveFinderMove(node.Address, listStep, entryStep) is { } said)
+            {
+                this.output.Speak(said, true);
+            }
         }
 
         /// <summary>Settings menu: up/down move, left/right open a group or change the value, a tap goes back or closes and saves.</summary>

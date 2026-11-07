@@ -22,8 +22,11 @@ namespace Poe2Accessibility.Services
         private const int BufferFrames = 1024;
         private const int BufferCount = 3;
 
-        /// <summary>A cue lasts ~0.1 s; more voices than this means stale cues piled up.</summary>
-        private const int MaxVoices = 16;
+        /// <summary>The game's cues last up to 0.9 s and a room's chests and urns all sound: past this the oldest fades out.</summary>
+        private const int MaxVoices = 32;
+
+        /// <summary>A cue let go before its end fades over this many frames (20 ms): cut dead it clicks.</summary>
+        private const int LetGoFrames = SampleRate / 50;
 
         /// <summary>Drives within a twentieth of each other share one limited copy of a cue.</summary>
         private const float DriveStep = 0.05f;
@@ -218,12 +221,15 @@ namespace Poe2Accessibility.Services
             return bed;
         }
 
-        /// <summary>Cuts every cue at once (a menu opened, the area changed).</summary>
+        /// <summary>Lets every cue go at once (a menu opened, the area changed).</summary>
         public void StopAll()
         {
             lock (this.voices)
             {
-                this.voices.Clear();
+                foreach (var voice in this.voices)
+                {
+                    voice.LetGo();
+                }
             }
         }
 
@@ -333,6 +339,9 @@ namespace Poe2Accessibility.Services
             /// <summary>Per-sample step toward the target level: ~11 ms, so changes never click.</summary>
             private const float Glide = 0.002f;
 
+            /// <summary>The step once stopped: ~120 ms, a thing gone or a menu opened dies away instead of cutting.</summary>
+            private const float Release = 1f / (0.12f * SampleRate);
+
             private const float Silence = 1e-5f;
 
             private readonly float[] loop;
@@ -391,10 +400,11 @@ namespace Poe2Accessibility.Services
                 }
 
                 var toPitch = this.targetPitch;
+                var glide = this.stopped ? Release : Glide;
                 for (var frame = 0; frame < mix.Length / Channels; frame++)
                 {
-                    this.left += (toLeft - this.left) * Glide;
-                    this.right += (toRight - this.right) * Glide;
+                    this.left += (toLeft - this.left) * glide;
+                    this.right += (toRight - this.right) * glide;
                     this.pitch += (toPitch - this.pitch) * Glide;
                     var sample = LoopReader.At(this.loop, this.position);
                     this.position += this.pitch;
@@ -414,9 +424,9 @@ namespace Poe2Accessibility.Services
         {
             lock (this.voices)
             {
-                if (this.voices.Count >= MaxVoices)
+                if (this.voices.Count(playing => !playing.IsLetGo) >= MaxVoices)
                 {
-                    this.voices.RemoveAt(0);
+                    this.voices.First(playing => !playing.IsLetGo).LetGo();
                 }
 
                 this.voices.Add(voice);
@@ -432,6 +442,7 @@ namespace Poe2Accessibility.Services
             private readonly float left;
             private readonly float right;
             private double position;
+            private int letGoFrames = -1;
 
             public Voice(float[] samples, float[] rightSamples, double step, float left, float right)
             {
@@ -442,20 +453,32 @@ namespace Poe2Accessibility.Services
                 this.right = right;
             }
 
+            public bool IsLetGo => this.letGoFrames >= 0;
+
+            /// <summary>Fades it out now, wherever it is.</summary>
+            public void LetGo()
+            {
+                if (!this.IsLetGo)
+                {
+                    this.letGoFrames = LetGoFrames;
+                }
+            }
+
             /// <summary>Adds the next buffer's worth; true once the cue has ended.</summary>
             public bool MixInto(float[] mix)
             {
                 for (var frame = 0; frame < mix.Length / Channels; frame++)
                 {
                     var index = (int)this.position;
-                    if (index + 1 >= this.samples.Length)
+                    if (index + 1 >= this.samples.Length || this.letGoFrames == 0)
                     {
                         return true;
                     }
 
+                    var level = this.IsLetGo ? (float)this.letGoFrames-- / LetGoFrames : 1f;
                     var fraction = (float)(this.position - index);
-                    mix[frame * Channels] += this.Read(this.samples, index, fraction) * this.left;
-                    mix[(frame * Channels) + 1] += this.Read(this.rightSamples, index, fraction) * this.right;
+                    mix[frame * Channels] += this.Read(this.samples, index, fraction) * this.left * level;
+                    mix[(frame * Channels) + 1] += this.Read(this.rightSamples, index, fraction) * this.right * level;
                     this.position += this.step;
                 }
 
