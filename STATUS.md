@@ -411,7 +411,7 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
-First (2026-11-07): the user and the tester judge by ear how sounds die away (`ProximityFade.TailWorld` 600 and the 120 ms release are a first guess; gold in the game's own set only gets quieter hits), and the user tries the tree's finder on the D-pad. The target is only said on the node's last line, so a long node reads it late: shorten if it annoys.
+First (2026-11-07, released as v2026.11.07): the user and the tester judge by ear how sounds die away (`ProximityFade.TailWorld` 600 and the 120 ms release are a first guess; gold in the game's own set only gets quieter hits), and the user tries the tree's finder on the D-pad. The target is only said on the node's last line, so a long node reads it late: shorten if it annoys.
 Then (2026-11-06, night, released as v2026.11.06-9): pressing Y again and again on a talisman cuts the last form, seen in the log
 in play (`FocusDetails.LineSwapped`; a number ticking in a tooltip must not cut). User test still due: a game notice must not silence
 the inventory, no notice has come since the fix. Using the Winter Wolf's Head held the cursor's speech 8.4 s: the chat notice queued behind the item's text as a line moves
