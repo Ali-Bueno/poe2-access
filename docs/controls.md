@@ -27,7 +27,8 @@ first; both wrap and empty categories are skipped. The category is named only wh
 "Characters. Una, 14 steps, right 3, then up right".
 
 - Categories: **quest** (what the quest tracker names: the exit to the area it asks for, the boss to kill, the
-  NPC to talk to, and whatever the minimap marks with the quest's own icon; never a place or prop the sentence happens
+  NPC to talk to, and whatever the minimap marks with the quest's own icon, such as "Risu's cage", which the game leaves
+  unnamed and which sounds like a quest item; never a place or prop the sentence happens
   to mention, such as "entrance" or "tomb", nor a sign that names a place; a place you have not seen yet is not listed:
   it comes once you see it, or once the game marks it with the quest's icon), exits (area transitions and named places, in the game's language; "Where you died" after a
   death, while that area instance lasts), **points of interest** (what the minimap marks: a boss's arena
