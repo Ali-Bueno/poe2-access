@@ -41,6 +41,15 @@ namespace Poe2Accessibility
         /// <summary>How often the guide looks for the next Death Crystal: a disabled one leaves the list at the scanner's pace.</summary>
         private const int TimedGuideMs = 400;
 
+        /// <summary>
+        ///     A room's crystals span about 5400 and the floor's other rooms stand 20,000 or more away, in the same instance: past the room's
+        ///     last the guide went on to one of theirs (log 2026-11-07 12:07).
+        /// </summary>
+        private const float TimedRoomWorld = 10000f;
+
+        /// <summary>Routes searched to choose the next crystal: the most a room was seen to hold is 7.</summary>
+        private const int MaxTimedRoutes = 8;
+
         private readonly TimedGuide timedGuide = new();
         private long nextTimedGuide;
         private AudioCueService? audio;

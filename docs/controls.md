@@ -28,7 +28,7 @@ first; both wrap and empty categories are skipped. The category is named only wh
 
 - The Trial of the Sekhemas' map reads each room's place: "column 2 of 8, room 3 of 3", columns running from the entrance to the boss, and whether it is your column,
   left behind or not reachable yet; a room you can enter says so with its button, one not revealed is "Hidden room".
-- In a Trial room that asks to disable the crystals the guide locks by itself on the nearest Death Crystal and on the next once it is disabled, along a route that goes
+- In a Trial room that asks to disable the crystals the guide locks by itself on the Death Crystal quickest to reach and on the next once it is disabled, along a route that goes
   round walls, and lets go when the room is done; you walk, and your own target is left alone (setting "Guide to each Death Crystal by itself").
 - A clock falling on the HUD, such as the Trial's, is said when first seen and as it passes 60, 30, 20, 10 and 5 seconds (setting "Countdown timers").
 - Categories: **quest** (what the quest tracker names: the exit to the area it asks for, the boss to kill, the

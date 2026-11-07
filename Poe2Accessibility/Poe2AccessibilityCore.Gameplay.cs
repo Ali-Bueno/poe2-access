@@ -331,11 +331,15 @@ namespace Poe2Accessibility
             }
 
             this.nextTimedGuide = now + TimedGuideMs;
-            var timed = this.entities.Entries().Where(entry => entry.Timed && entry.Category != Services.ScanCategory.Quest).ToList();
+            var timed = this.entities.Entries().Where(entry => entry.Timed && entry.Category != Services.ScanCategory.Quest &&
+                                                               this.entities.DistanceTo(entry) <= TimedRoomWorld).ToList();
             var (next, release) = this.timedGuide.Look(timed.Select(entry => entry.Id).ToList(), this.beacon!.Target?.Id);
             if (next != null)
             {
-                this.beacon.Lock(timed.First(entry => entry.Id == next));
+                // The quickest to reach, not the nearest through a wall (user 2026-11-07); with no way known, the nearest.
+                var quickest = timed.Take(MaxTimedRoutes).OrderBy(this.entities.WalkTo).First();
+                this.timedGuide.Aim(quickest.Id);
+                this.beacon.Lock(quickest);
             }
             else if (release)
             {

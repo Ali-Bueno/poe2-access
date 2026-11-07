@@ -2802,6 +2802,11 @@ namespace Poe2Accessibility.Tests
             paged.Look(Array.Empty<uint>(), 7);
             paged.Look(Array.Empty<uint>(), 7);
             Equal((null, true), paged.Look(Array.Empty<uint>(), 7), "and the looks count from there");
+            var walked = new TimedGuide();
+            Equal((7u, false), walked.Look(new uint[] { 7, 8 }, null), "the nearest in a straight line");
+            walked.Aim(8);
+            Equal((null, false), walked.Look(new uint[] { 7, 8 }, 8), "the one chosen for its route is the one that stands");
+            Equal((7u, false), walked.Look(new uint[] { 7 }, 8), "until it is disabled");
             var other = new TimedGuide();
             Equal((null, false), other.Look(new uint[] { 7 }, 42), "the player's own target is left alone");
             Equal((7u, false), other.Look(new uint[] { 7 }, null), "until released");

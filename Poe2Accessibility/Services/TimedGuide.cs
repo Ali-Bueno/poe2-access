@@ -15,6 +15,9 @@ namespace Poe2Accessibility.Services
         private uint? aimed;
         private int emptyLooks;
 
+        /// <summary>The entry chosen in place of the one <see cref="Look"/> gave, nearest in a straight line.</summary>
+        public void Aim(uint id) => this.aimed = id;
+
         /// <summary>
         ///     The entry to guide to now, if any, and whether to let go of the guide. Null leaves it as it is: while the one chosen
         ///     stands, even after arriving or the player's release, and while the player guides to something else. With the room

@@ -598,6 +598,21 @@ namespace Poe2Accessibility.Services
                 : null;
         }
 
+        /// <summary>How far the walk to an entry is, in world units; infinite with no way there. A search on the frame thread: for a few entries.</summary>
+        public float WalkTo(ScanEntry entry)
+        {
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            if (!Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return float.PositiveInfinity;
+            }
+
+            var gridSize = area.WorldToGridConvertor;
+            var start = new Vector2(player.WorldPosition.X, player.WorldPosition.Y) / gridSize;
+            var route = RoutePlanner.FindRoute(this.WalkableGrid(area), area.TerrainMetadata.BytesPerRow, start, new Vector2(entry.WorldX, entry.WorldY) / gridSize);
+            return route == null ? float.PositiveInfinity : RoutePlanner.Length(route) * gridSize;
+        }
+
         /// <inheritdoc cref="Describe(ScanEntry)"/>
         /// <param name="cut">The phrase says the way stops short or a closed barrier cuts it.</param>
         public string Describe(ScanEntry entry, out bool cut)
