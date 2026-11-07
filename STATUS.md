@@ -408,9 +408,9 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
-First (2026-11-06, night, deployed into the user's `dist`, not released): user test: pressing Y again and again on a talisman must
-cut the last form (`FocusDetails.LineSwapped`; a number ticking in a tooltip must not cut), and a game notice must not silence the
-inventory. Using the Winter Wolf's Head held the cursor's speech 8.4 s: the chat notice queued behind the item's text as a line moves
+First (2026-11-06, night, released as v2026.11.06-9): pressing Y again and again on a talisman cuts the last form, seen in the log
+in play (`FocusDetails.LineSwapped`; a number ticking in a tooltip must not cut). User test still due: a game notice must not silence
+the inventory, no notice has come since the fix. Using the Winter Wolf's Head held the cursor's speech 8.4 s: the chat notice queued behind the item's text as a line moves
 could not end, its hold counted from the end of that text (`MaxAheadMs` 6 s + 2.3 s). Notices now cut in and yield to moves, and the
 screen's copy of one is dropped (`SpeechFloor.Echoes`). Both forms are said now, confirmed by the user: a tooltip line the focus held
 was never news, even replaced in place (`FocusDetails.NewTooltipLines`). Cinematics: the F6 dump and the watcher show no subtitle text in the UI tree
