@@ -20,6 +20,9 @@ namespace Poe2Accessibility.Services
 
         public const string LandmarkKind = "landmark";
 
+        /// <summary>A point of interest under the quest's own icon; also the key of the sound it makes, whose volume it follows.</summary>
+        public const string QuestObjectKind = "quest_item";
+
         /// <summary>
         ///     A ritual altar's icon, "RitualRuneFinished" once done: the league's altars and the campaign's own (Freythorn's
         ///     CanopyRitualAltar, the King in the Mists' CanopyBossRitualAltar; their .ot files, 2026-10-29).
@@ -168,7 +171,16 @@ namespace Poe2Accessibility.Services
                 return (BossRoomKind, label, IsSpent(icon));
             }
 
-            return label.Length > 0 && !IsSpent(icon) && icon != StoryGlyph ? (LandmarkKind, label, false) : null;
+            return label.Length > 0 && !IsSpent(icon) && icon != StoryGlyph ? (IsQuestIcon(icon) ? QuestObjectKind : LandmarkKind, label, false) : null;
         }
+
+        /// <summary>
+        ///     A cage the quest wants opened by its file (RisuCage, KaruiElderCage): of the 62 objects with a quest icon only these
+        ///     and three others have no display_text (sweep of the .ot files, 2026-11-07).
+        /// </summary>
+        public static bool IsCage(string path) => path.EndsWith("Cage", StringComparison.Ordinal);
+
+        /// <summary>A character's name without their title: "Risu" of "Risu, Desertora faridun".</summary>
+        public static string BareName(string name) => name.Split(',')[0].Trim();
     }
 }

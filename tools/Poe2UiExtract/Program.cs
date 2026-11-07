@@ -59,6 +59,22 @@ if (args.Length > 2 && string.Equals(args[0], "cat", StringComparison.OrdinalIgn
     return 0;
 }
 
+// Args: ot-with <gameDir> <text>  -- research aid: every .ot whose text holds <text>, one path a line.
+if (args.Length > 2 && string.Equals(args[0], "ot-with", StringComparison.OrdinalIgnoreCase))
+{
+    using var otIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+    otIndex.ParsePaths();
+    foreach (var file in otIndex.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(".ot", StringComparison.Ordinal)))
+    {
+        if (System.Text.Encoding.Unicode.GetString(file.Read().ToArray()).Contains(args[2], StringComparison.Ordinal))
+        {
+            Console.WriteLine(file.Path);
+        }
+    }
+
+    return 0;
+}
+
 // Args: ao-sounds <gameDir> <pathPart>  -- research aid: every .ao whose path contains <pathPart> with the sound
 // events it plays (path <TAB> distinct "Audio/..." filenames).
 if (args.Length > 2 && string.Equals(args[0], "ao-sounds", StringComparison.OrdinalIgnoreCase))

@@ -76,6 +76,7 @@ namespace Poe2Accessibility.Services
             ("exits", 1, entry => entry.Category == ScanCategory.Exits || entry.Kind == "portal"),
             ("waypoints", 1, entry => entry.Kind is "waypoint" or "checkpoint"),
             ("quests", 1, entry => entry.Kind == "npc_quest"),
+            ("quest objects", 1, entry => entry.Kind == MinimapMarks.QuestObjectKind),
         };
 
         private readonly AudioCueService audio;
@@ -255,7 +256,7 @@ namespace Poe2Accessibility.Services
         {
             "gold" => this.sounds.Get("gold"),
             "currency" => this.sounds.Get("currency"),
-            "quest" => this.sounds.Get("quest_item"),
+            "quest" or MinimapMarks.QuestObjectKind => this.sounds.Get("quest_item"),
             "rare" or "unique" => this.sounds.Get(this.Layer(entry.Kind)!),
             "chest" => this.sounds.Get("chest"),
             "corpse" => this.sounds.Get(GameSounds.Corpse) ?? this.sounds.Get("chest"),

@@ -2002,6 +2002,12 @@ namespace Poe2Accessibility.Tests
             Equal((MinimapMarks.LandmarkKind, "Ritual driádico", false),
                   MinimapMarks.PointOfInterest("Metadata/Terrain/Gallows/Act1/1_11/Objects/SecretRoomMinimapIcon", "HuntingGroundsSecretActive", "Ritual driádico"), "a secret by its label");
             Equal(null, MinimapMarks.PointOfInterest("Metadata/Terrain/Gallows/Act1/1_11/Objects/SecretRoomMinimapIcon", "HuntingGroundsSecretInactive", string.Empty), "a secret found is gone");
+            Equal(MinimapMarks.QuestObjectKind, MinimapMarks.PointOfInterest("Metadata/Terrain/Gallows/Act2/2_10_2/Objects/RisuCage", "QuestObject", "Jaula de Risu")?.Kind,
+                  "what the quest's icon marks sounds as a quest object");
+            Equal(true, MinimapMarks.IsCage("Metadata/Terrain/Gallows/Act4/4_7/Objects/KaruiElderCage"), "a cage by its file");
+            Equal(false, MinimapMarks.IsCage("Metadata/Terrain/Doodads/Desert/DreadnoughtVanguard/BossRoomCageDoor"), "and only by its end");
+            Equal("Risu", MinimapMarks.BareName("Risu, Desertora faridun"), "a cage says who is inside without the title");
+            Equal("Una", MinimapMarks.BareName("Una"), "a name with no title stays");
             Equal(null, MinimapMarks.PointOfInterest("Metadata/NPC/Four_Act1/HuntingGroundsSignpostGlyph", MinimapMarks.StoryGlyph, string.Empty), "a sign is no point of interest");
             Equal(true, MinimapMarks.IsQuestIcon("QuestObject") && MinimapMarks.IsQuestIcon("QuestItem") && !MinimapMarks.IsQuestIcon("NPC"), "the quest's own icons");
             Equal(true, MinimapMarks.IsSpent("TitanGrottoEntranceInActive"), "the table's other spelling of inactive");

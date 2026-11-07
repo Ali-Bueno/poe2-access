@@ -60,7 +60,7 @@ namespace Poe2Accessibility.Services
             {
                 case "gold":
                     return "gold";
-                case "quest":
+                case "quest" or MinimapMarks.QuestObjectKind:
                     return "quest item";
                 case "chest" or "corpse" or "shrine":
                     return kind;

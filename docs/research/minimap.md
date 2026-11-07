@@ -77,7 +77,12 @@ bubble, and the unit of the pointer distance.
   the Quest category whatever the tracker says. It can have no name at all: `Metadata/Terrain/Gallows/Act2/2_10_2/Objects/RisuCage`
   (Mawdun Mine, the lock Risu asks to break) has no render name, an empty `QuestObject` label and an empty world label, and was listed
   nowhere until 2026-11-07 ("Minimap mark not listed" in the log, the place to look for the next one). It is now a point of interest
-  called "Objeto de misión", forgotten once used. Risu inside is an NPC out of play (Targetable off), so the cage is the only thing to find.
+  with the quest item's sound, forgotten once used. Risu inside is an NPC out of play (Targetable off), one cell from the cage, so the
+  cage is the only thing to find.
+- **Names of quest objects:** an object's name is the `display_text` of its `.ot`, a ClientStrings key. Of the 62 `.ot` with a quest icon
+  (`Poe2UiExtract ot-with`, 2026-11-07) only six have none: `RisuCage`, `KaruiElderCage` twice, `MiniBossChasm`, `WaterDjinnBayraIconOffset`,
+  `TowerFloorBeamTurrets`. ClientStrings has no word for such a cage, so a cage is named by the mod after the character at its place,
+  "Jaula de Risu" (`EntityCatalog.HeldBy`; the Karui elders' not seen yet), and another object "Objeto de misión".
 - **Title cards:** the big area-part banners (ClientStrings `TitleCardCrowbellArena`, `TitleCardUnasHome`,
   `TitleCardRenlysWorkshop`…, 70 of them) come from server-only proximity objects (`CrowbellArenaEntranceTitle.ot`:
   radius 50, off once the quest flag is set). None was seen on screen during the 2026-10-29 session, so where the UI

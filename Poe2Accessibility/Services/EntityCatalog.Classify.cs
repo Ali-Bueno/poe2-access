@@ -3,6 +3,7 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Numerics;
     using GameHelper;
     using GameHelper.RemoteEnums;
     using GameHelper.RemoteEnums.Entity;
@@ -12,6 +13,9 @@ namespace Poe2Accessibility.Services
     /// <summary>How <see cref="EntityCatalog"/> sorts an entity into a scanner category and names it, and the component flags it reads.</summary>
     public sealed partial class EntityCatalog
     {
+        /// <summary>How far from a cage the one it holds may be: Risu was one cell (about 11) from hers; the Karui elders are not measured.</summary>
+        private const float CageWorld = 100f;
+
         /// <summary>Files of minimap marks the scanner left out, logged once each.</summary>
         private readonly HashSet<string> silentMarks = new(StringComparer.Ordinal);
 
@@ -133,7 +137,7 @@ namespace Poe2Accessibility.Services
 
             // Only a plain object can be a mark: a used shrine, an opened chest or a minion stays out whatever its icon says.
             if (plain && (category == null || name.Length == 0) && icon.Length > 0 &&
-                MinimapMarks.PointOfInterest(path, icon, this.MarkLabel(icon, minimap!)) is { } point)
+                MinimapMarks.PointOfInterest(path, icon, this.MarkLabel(path, icon, minimap!, render)) is { } point)
             {
                 // A boss's arena, a secret or a quest landmark as the minimap labels it: the objects carry no name of their own.
                 category = ScanCategory.PointsOfInterest;
@@ -169,12 +173,39 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     What the minimap labels a mark. The quest's own icon needs no label to be what the quest wants: Risu's cage in the
-        ///     Mawdun Mine has none, no name and an empty world label, and was found by neither the scanner nor the button (user 2026-11-07).
+        ///     Mawdun Mine has none, no name and an empty world label, and was found by neither the scanner nor the button; said
+        ///     as a bare "Objeto de misión" it did not tell what it was (user 2026-11-07).
         /// </summary>
-        private string MarkLabel(string icon, MinimapIcon minimap)
+        private string MarkLabel(string path, string icon, MinimapIcon minimap, Render render)
         {
             var label = MinimapIconLabel.Of(this.memory, this.elements, minimap);
-            return label.Length == 0 && MinimapMarks.IsQuestIcon(icon) ? Announcements.QuestObject : label;
+            if (label.Length > 0 || !MinimapMarks.IsQuestIcon(icon))
+            {
+                return label;
+            }
+
+            if (!MinimapMarks.IsCage(path))
+            {
+                return Announcements.QuestObject;
+            }
+
+            return this.HeldBy(render) is { Length: > 0 } held ? Announcements.CageOf(held) : Announcements.Cage;
+        }
+
+        /// <summary>The name of the character at a cage, in the client's language; caged, they are out of play and listed nowhere.</summary>
+        private string HeldBy(Render cage)
+        {
+            var place = new Vector2(cage.WorldPosition.X, cage.WorldPosition.Y);
+            foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+            {
+                if (entity.IsValid && entity.EntityType == EntityTypes.NPC && entity.TryGetComponent<Render>(out var render) &&
+                    Vector2.Distance(place, new Vector2(render.WorldPosition.X, render.WorldPosition.Y)) < CageWorld)
+                {
+                    return MinimapMarks.BareName(this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty);
+                }
+            }
+
+            return string.Empty;
         }
 
         /// <summary>Feeds the entity name check (judged once on enough monsters, characters and players).</summary>
