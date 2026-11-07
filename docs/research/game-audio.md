@@ -162,6 +162,11 @@ Exits, portals, waypoints, breakables, switches and altars keep the game's sound
 were tuned here by ear. Last Epoch and the D2 drops were left out (user's request). The distance curve stays this mod's on screen,
 as for the idle beds: items going silent on screen was a complaint here (2026-10-27). Past it, see [how sounds end](#how-sounds-end-2026-11-07).
 
+## Quest items (2026-11-07)
+A quest item keeps its own drop sound with the quest sound laid over it at the rarity layer's gain, in the game's own set: the Runic Belt's
+`RunedBelt_Drop_01` alone was not told from a belt (user). It is the game's layering too: `ItemVisualIdentity.DropSoundEffect` gives
+quest items `Item_Quest.ogg` beside the base's sound. Every `kind` "quest" gets it, books and scrolls among them. Not heard yet.
+
 ## How sounds end (2026-11-07)
 A tester: every sound stopped dead on walking off it, gold in both sets, town portals, waypoints; they remembered it fading. The
 code had not changed there, the step had always been in it: 30 % of the level at the edge of the range (1300), then silence, in the bed's
