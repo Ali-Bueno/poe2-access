@@ -30,5 +30,12 @@ namespace Poe2Accessibility.Services
             var inPlace = said.Count == tooltip.Count;
             return tooltip.Where(line => !said.Contains(line) && (inPlace || !focusSpeech.Contains(line, StringComparison.Ordinal))).ToList();
         }
+
+        /// <summary>
+        ///     A line replaced by another answers a press, and the next press cuts it ("Forma de oso", "Forma de hombre lobo", Y pressed
+        ///     again and again, 2026-11-06); a number ticking in a line ("Actualmente tiene 6 cargas") is no reason to cut what is said.
+        /// </summary>
+        public static bool LineSwapped(IReadOnlyList<string> said, IReadOnlyList<string> tooltip) =>
+            said.Count == tooltip.Count && said.Zip(tooltip).Any(pair => !ScreenDiffer.SameBesideNumbers(pair.First, pair.Second));
     }
 }

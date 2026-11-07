@@ -59,6 +59,9 @@ namespace Poe2Accessibility.Services
             this.hasBaseline = false;
         }
 
+        /// <summary>The same text with only its numbers changed: a counter ticking, not a new line.</summary>
+        public static bool SameBesideNumbers(string a, string b) => Digits.Replace(a, "#") == Digits.Replace(b, "#");
+
         public IReadOnlyList<ScreenChange> Apply(ScreenSnapshot current)
         {
             current = current.WithBase(this.baseLayers);
@@ -89,7 +92,7 @@ namespace Poe2Accessibility.Services
                         continue;
                     }
 
-                    var counterTick = known != null && Digits.Replace(known, "#") == Digits.Replace(text.Text, "#") && !ZoomFactor.IsMatch(text.Text);
+                    var counterTick = known != null && SameBesideNumbers(known, text.Text) && !ZoomFactor.IsMatch(text.Text);
                     this.stableTexts[text.Address] = text.Text;
                     if (!opened && !counterTick)
                     {

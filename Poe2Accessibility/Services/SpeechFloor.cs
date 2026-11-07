@@ -23,6 +23,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The part of the hold the player's own move does not end (a lesson's).</summary>
         private DateTime lessonUntil = DateTime.MinValue;
 
+        /// <summary>The last kept line and when it is estimated said, whatever move ended its hold.</summary>
+        private (string Text, DateTime Until) lastKept = (string.Empty, DateTime.MinValue);
+
         public static int SpokenMs(string text) => text.Length * SpokenMsPerChar;
 
         /// <summary>
@@ -37,6 +40,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Whether a kept line has the floor now.</summary>
         public bool Held(DateTime now) => now < this.keptUntil;
+
+        /// <summary>
+        ///     The kept line being said already holds this message: "+10% a la resistencia al hielo" on screen as the chat says
+        ///     "malgdhler ha recibido +10% a la resistencia al hielo." (2026-11-06).
+        /// </summary>
+        public bool Echoes(string text, DateTime now) => now < this.lastKept.Until && this.lastKept.Text.Contains(text, StringComparison.Ordinal);
 
         /// <summary>True when the phrase goes out now; false when it waits for the kept line (an interrupt drops what waited).</summary>
         public bool Admit(string text, bool interrupt, DateTime now)
@@ -68,6 +77,7 @@ namespace Poe2Accessibility.Services
             this.Sent(text, interrupt, now);
             var until = startsAt.AddMilliseconds(holdMs);
             this.keptUntil = until > this.keptUntil ? until : this.keptUntil;
+            this.lastKept = (text, until);
             if (!yieldsToMoves && until > this.lessonUntil)
             {
                 this.lessonUntil = until;
@@ -131,6 +141,7 @@ namespace Poe2Accessibility.Services
             this.held.Clear();
             this.keptUntil = DateTime.MinValue;
             this.lessonUntil = DateTime.MinValue;
+            this.lastKept = (string.Empty, DateTime.MinValue);
             this.speechEndsAt = now;
         }
     }

@@ -214,6 +214,15 @@ namespace Poe2Accessibility.Services
             }
 
             var now = DateTime.UtcNow;
+            lock (this.queueGate)
+            {
+                if (delivery == Delivery.KeptMessage && this.floor.Echoes(text, now))
+                {
+                    this.log.Info($"Speech held back (in the kept line): {text}");
+                    return;
+                }
+            }
+
             if ((!interrupt || delivery == Delivery.Urgent) && this.repeats.IsRepeat(text, now))
             {
                 this.log.Info($"Speech held back (duplicate): {text}");

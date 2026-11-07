@@ -412,10 +412,11 @@ namespace Poe2Accessibility
                         return;
                     }
 
-                    // A notice can arrive as the window it belongs to closes: closing must not cut "Intercambio aceptado".
+                    // A notice can arrive as the window it belongs to closes: closing must not cut "Intercambio aceptado". It cuts in
+                    // and yields to moves: queued behind an item's text it held the inventory silent for 8 s (2026-11-06).
                     if (ChatDiff.IsNotice(line))
                     {
-                        this.output.Keep(line, SpeechFloor.MessageHoldMs(line));
+                        this.output.Keep(line, SpeechFloor.MessageHoldMs(line), true, yieldsToMoves: true);
                     }
                     else
                     {

@@ -591,7 +591,7 @@ namespace Poe2Accessibility.Services
                 var fresh = FocusDetails.NewTooltipLines(said, node.Tooltip, this.lastFocusSpeech);
                 if (fresh.Count > 0)
                 {
-                    this.Speak("tooltip of focus", Announcements.Sentences(fresh), false);
+                    this.Speak("tooltip of focus", Announcements.Sentences(fresh), FocusDetails.LineSwapped(said, node.Tooltip));
                 }
             }
         }

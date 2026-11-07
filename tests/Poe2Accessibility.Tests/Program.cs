@@ -129,6 +129,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(QuestRewardIconsAreNamed), QuestRewardIconsAreNamed);
             Run(nameof(PlacesAreSaidOnceAsTheyChange), PlacesAreSaidOnceAsTheyChange);
             Run(nameof(ATooltipLineSwappedInPlaceIsSaid), ATooltipLineSwappedInPlaceIsSaid);
+            Run(nameof(OnlyASwappedLineCutsIn), OnlyASwappedLineCutsIn);
+            Run(nameof(AGameNoticeLetsTheCursorThroughAndIsNotSaidTwice), AGameNoticeLetsTheCursorThroughAndIsNotSaidTwice);
             Run(nameof(RadarLabelsSpeakSpanish), RadarLabelsSpeakSpanish);
             Run(nameof(RadarBossNamesSpeakTheGamesMonsterName), RadarBossNamesSpeakTheGamesMonsterName);
             Run(nameof(ExperienceProgressIsWithinTheLevel), ExperienceProgressIsWithinTheLevel);
@@ -3162,6 +3164,33 @@ namespace Poe2Accessibility.Tests
             Equal(string.Empty, New(bear, bear, focused), "nothing changed");
             Equal(string.Empty, New(Array.Empty<string>(), bear, focused), "built after the focus: all of it was said");
             Equal("Daño", New(new[] { "Talismán" }, new[] { "Talismán", "Daño" }, "Talismán"), "still building: only what the focus did not hold");
+        }
+
+        private static void OnlyASwappedLineCutsIn()
+        {
+            var bear = new[] { "Talismán", "Forma de oso" };
+            Equal(true, FocusDetails.LineSwapped(bear, new[] { "Talismán", "Forma de hombre lobo" }), "another form");
+            Equal(false, FocusDetails.LineSwapped(new[] { "Frasco", "Actualmente tiene 6 cargas" }, new[] { "Frasco", "Actualmente tiene 7 cargas" }), "a number ticking");
+            Equal(false, FocusDetails.LineSwapped(new[] { "Talismán" }, bear), "still being built");
+            Equal(false, FocusDetails.LineSwapped(bear, bear), "nothing changed");
+        }
+
+        private static void AGameNoticeLetsTheCursorThroughAndIsNotSaidTwice()
+        {
+            const string notice = "malgdhler ha recibido +10% a la resistencia al hielo.";
+            const string copy = "+10% a la resistencia al hielo";
+            var floor = new SpeechFloor();
+            var start = new DateTime(2026, 11, 6, 23, 5, 4, DateTimeKind.Utc);
+            floor.Sent(new string('x', 200), true, start); // an item's long text, 9 s
+            var hold = SpeechFloor.MessageHoldMs(notice);
+            Equal(true, floor.Keep(notice, true, hold, start.AddMilliseconds(400), yieldsToMoves: true), "the notice cuts the long text");
+            Equal(true, floor.Echoes(copy, start.AddMilliseconds(600)), "the copy on screen is no news");
+            Equal(false, floor.Echoes("Inventario lleno", start.AddMilliseconds(600)), "another message is");
+            var moved = true;
+            Equal(true, floor.Move("Grebas rústicas", ref moved, start.AddMilliseconds(900)), "the cursor goes out at once");
+            Equal(false, moved, "behind the notice, not over it");
+            Equal(true, floor.Echoes(copy, start.AddMilliseconds(1000)), "a move does not bring the copy back");
+            Equal(false, floor.Echoes(copy, start.AddMilliseconds(400 + hold + 1)), "said again once it is over");
         }
 
         private static void ConfirmGlyphMarksTheEntryBesideIt()

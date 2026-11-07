@@ -408,9 +408,12 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
-First (2026-11-06, night, deployed into the user's `dist`, not released): user test: Y on an equipped talisman in the inventory
-must say both forms. "Forma de oso" was dropped when the focus had said it: a tooltip line the focus held was never news, even
-replaced in place (`FocusDetails.NewTooltipLines`). Cinematics: the F6 dump and the watcher show no subtitle text in the UI tree
+First (2026-11-06, night, deployed into the user's `dist`, not released): user test: pressing Y again and again on a talisman must
+cut the last form (`FocusDetails.LineSwapped`; a number ticking in a tooltip must not cut), and a game notice must not silence the
+inventory. Using the Winter Wolf's Head held the cursor's speech 8.4 s: the chat notice queued behind the item's text as a line moves
+could not end, its hold counted from the end of that text (`MaxAheadMs` 6 s + 2.3 s). Notices now cut in and yield to moves, and the
+screen's copy of one is dropped (`SpeechFloor.Echoes`). Both forms are said now, confirmed by the user: a tooltip line the focus held
+was never news, even replaced in place (`FocusDetails.NewTooltipLines`). Cinematics: the F6 dump and the watcher show no subtitle text in the UI tree
 over 13 s of the one after creating a character ([notes](docs/research/cinematic-subtitles.md)); next, one left to run to its end.
 Then (2026-11-06, evening, released as v2026.11.06-8): a respawn read the whole HUD and chat (user, on death); while an
 area loads only the loading screen speaks now, confirmed by the user in play.
