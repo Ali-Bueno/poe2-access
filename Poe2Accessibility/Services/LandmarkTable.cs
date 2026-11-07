@@ -132,12 +132,19 @@ namespace Poe2Accessibility.Services
         ///     The name an object shows only in its WorldDescription, in the client's language, empty for none
         ///     (catalog/world-titles.json, `Poe2UiExtract world-titles`).
         /// </summary>
-        public string WorldTitle(string path)
+        public string WorldTitle(string path) => this.Title(FileOf(path));
+
+        /// <summary>The tracker line without which an object means nothing, empty for most.</summary>
+        public string ObjectiveOf(string path) => this.Title("objective:" + FileOf(path));
+
+        private static string FileOf(string path)
         {
             var at = path.IndexOf('@');
-            var file = (at < 0 ? path : path[..at]).ToLowerInvariant();
-            return this.worldTitles.TryGetValue(Localization.Language, out var titles) && titles.TryGetValue(file, out var title) ? title : string.Empty;
+            return (at < 0 ? path : path[..at]).ToLowerInvariant();
         }
+
+        private string Title(string key) =>
+            this.worldTitles.TryGetValue(Localization.Language, out var titles) && titles.TryGetValue(key, out var title) ? title : string.Empty;
 
         private void LoadByLanguage(PluginLog log, string file, Dictionary<string, Dictionary<string, string>> table, string what)
         {

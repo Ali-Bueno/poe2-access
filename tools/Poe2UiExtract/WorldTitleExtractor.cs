@@ -5,7 +5,8 @@ using System.Text.RegularExpressions;
 /// <summary>
 ///     `world-titles` command: the names objects show only in a WorldDescription, { language: { .ot path without its extension:
 ///     title } }. The game gives such an object no render name: the real Relic Altar, the Trial's Death Crystals. A .ot's
-///     title_text is a ClientStrings key: +0x00 Id, +0x08 Text (dat-strings, 0.5.5f). Read-only on the game.
+///     title_text is a ClientStrings key: +0x00 Id, +0x08 Text (dat-strings, 0.5.5f). Also "objective:" + path: the tracker line
+///     without which an object means nothing, QuestStates +0x2C (row 655 for the crystals). Read-only on the game.
 /// </summary>
 internal static class WorldTitleExtractor
 {
@@ -13,8 +14,17 @@ internal static class WorldTitleExtractor
     private const int TextColumn = 0x8;
     private const string ObjectExtension = ".ot";
     private const string StringsTable = "clientstrings";
+    private const string ObjectivesTable = "queststates";
+    private const int ObjectiveColumn = 0x2C;
+    private const string ObjectivePrefix = "objective:";
 
     private static readonly Regex TitleKey = new("title_text\\s*=\\s*\"([^\"]+)\"", RegexOptions.Compiled);
+
+    /// <summary>Death Crystals stand in rooms of other kinds too, still targetable: only this objective makes them real.</summary>
+    private static readonly (string Path, string Objective)[] Objectives =
+    {
+        ("metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal", "Disable the Crystals before time runs out"),
+    };
 
     public static int Run(string gameDir, string outFile)
     {
@@ -29,6 +39,9 @@ internal static class WorldTitleExtractor
             }
         }
 
+        var englishObjectives = DatTable.Open(index, ObjectivesTable);
+        var objectiveRows = Objectives.Select(wanted => (wanted.Path, Row: Enumerable.Range(0, englishObjectives?.RowCount ?? 0)
+            .FirstOrDefault(row => englishObjectives!.StringOrNull(row, ObjectiveColumn) == wanted.Objective, -1))).ToList();
         var result = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
         var languages = AreaExtractor.LanguageCodes.Select(pair => (Code: pair.Value, Folder: (string?)pair.Key)).Prepend(("en", null));
         foreach (var (code, folder) in languages)
@@ -58,7 +71,16 @@ internal static class WorldTitleExtractor
                 }
             }
 
-            Console.WriteLine($"  {code}: {titles.Count} of {keys.Count} titles");
+            var objectives = folder == null ? englishObjectives : DatTable.OpenTranslated(index, ObjectivesTable, folder);
+            foreach (var (path, row) in objectiveRows)
+            {
+                if (row >= 0 && objectives?.StringOrNull(row, ObjectiveColumn)?.Trim() is { Length: > 0 } text)
+                {
+                    titles[ObjectivePrefix + path] = text;
+                }
+            }
+
+            Console.WriteLine($"  {code}: {titles.Count} of {keys.Count + Objectives.Length} titles");
             result[code] = titles;
         }
 

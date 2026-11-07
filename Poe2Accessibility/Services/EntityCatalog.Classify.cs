@@ -137,6 +137,13 @@ namespace Poe2Accessibility.Services
             {
                 category = entity.TryGetComponent<Targetable>(out _) ? ScanCategory.Objects : null; // stash, bench, well
                 plain = true;
+                if (this.landmarks.ObjectiveOf(path) is { Length: > 0 } objective && !this.QuestTexts().Any(text => text.Contains(objective, StringComparison.Ordinal)))
+                {
+                    return null; // a Death Crystal in a room of another kind, called out from 352 steps off (user 2026-11-07)
+                }
+
+                // Levers in Trial rooms open the way out: SanctumGenericLever, a plain object, sounded nothing (user 2026-11-07).
+                kind = Switches.IsSwitch(path) ? "switch" : kind;
                 if (name.Length == 0)
                 {
                     // Named only in a WorldDescription, which the mod cannot read: the real Relic Altar, after its named stand-in leaves

@@ -75,6 +75,7 @@ namespace Poe2Accessibility.Services
             ("encounters", 1, entry => entry.Category == ScanCategory.Encounters && entry.Kind != MinimapMarks.RitualDoneKind && SoundKind(entry) != MinimapMarks.QuestObjectKind),
             ("exits", 1, entry => entry.Category == ScanCategory.Exits || entry.Kind == "portal"),
             ("waypoints", 1, entry => entry.Kind is "waypoint" or "checkpoint"),
+            ("switches", 1, entry => entry.Kind == "switch" && entry.Category != ScanCategory.Chests),
             ("quests", 1, entry => entry.Kind == "npc_quest"),
             ("quest objects", 1, entry => SoundKind(entry) == MinimapMarks.QuestObjectKind),
         };

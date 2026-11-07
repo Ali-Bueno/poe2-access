@@ -75,6 +75,24 @@ if (args.Length > 2 && string.Equals(args[0], "ot-with", StringComparison.Ordina
     return 0;
 }
 
+// Args: file-with <gameDir> <pathPart> <text>  -- research aid: every file under a path holding <text> in UTF-16 or UTF-32, as the game's tables keep strings.
+if (args.Length > 3 && string.Equals(args[0], "file-with", StringComparison.OrdinalIgnoreCase))
+{
+    using var withIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+    withIndex.ParsePaths();
+    var needles = new[] { System.Text.Encoding.Unicode.GetBytes(args[3]), System.Text.Encoding.UTF32.GetBytes(args[3]) };
+    foreach (var file in withIndex.Files.Values.Where(file => file.Path != null && file.Path.Contains(args[2], StringComparison.OrdinalIgnoreCase)))
+    {
+        var bytes = file.Read().ToArray();
+        if (needles.Any(needle => bytes.AsSpan().IndexOf(needle) >= 0))
+        {
+            Console.WriteLine(file.Path);
+        }
+    }
+
+    return 0;
+}
+
 // Args: ao-sounds <gameDir> <pathPart>  -- research aid: every .ao whose path contains <pathPart> with the sound
 // events it plays (path <TAB> distinct "Audio/..." filenames).
 if (args.Length > 2 && string.Equals(args[0], "ao-sounds", StringComparison.OrdinalIgnoreCase))

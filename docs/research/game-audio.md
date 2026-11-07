@@ -174,6 +174,8 @@ Everything else under a quest icon sounds too (user 2026-11-07, "para todos"): w
 An object or device the quest tracker names sounds the same while it names it (`QuestMatcher`, `ObjectSounds.WhileWanted`, user 2026-11-07):
 the Relic Altar (`Act2/2_13/Objects/SanctumRelicDevice`) carries no quest icon, only "Coloca tu barya en el Altar de reliquias".
 
+A lever built as a plain object (`SanctumGenericLever`, Trial rooms; 2026-11-07) has the switch sound of one built as a chest.
+
 A named barrier sounds the same when a campaign area made it (`Metadata/Terrain/Gallows/Act*`, user 2026-11-07): the Ancient Seal at
 Balbala's door (`Act2/2_2/Objects/BossDoor`), with secret doors, the Mawdun explodable wall, the Act 4 gates and prison doors. 33 of the
 271 `.ot` with `TriggerableBlockage` have a `display_text`; the

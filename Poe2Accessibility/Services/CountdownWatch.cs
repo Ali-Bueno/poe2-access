@@ -9,7 +9,8 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class CountdownWatch
     {
-        private static readonly Regex Clock = new(@"^(\d{1,2}):(\d{2})$", RegexOptions.Compiled);
+        /// <summary>Two digits of minutes: a buff's duration on the HUD reads "0:06", and burning was taken for the room's clock (2026-11-07).</summary>
+        private static readonly Regex Clock = new(@"^(\d{2}):(\d{2})$", RegexOptions.Compiled);
         private static readonly int[] Marks = { 60, 30, 20, 10, 5 };
 
         private int last = -1;

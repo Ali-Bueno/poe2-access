@@ -42,7 +42,8 @@
     "metadata/terrain/leagues/delve/objects/delverobottrigger": "Startpunkt",
     "metadata/terrain/leagues/expedition/objects/expeditionbeastskin": "<white>{Bestienhaut}",
     "metadata/terrain/leagues/legion/objects/legioninitiator": "Immerwährender Monolith",
-    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "Prüfungs-Karte"
+    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "Prüfungs-Karte",
+    "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "Deaktiviert die Kristalle vor Ablauf der Zeit."
   },
   "en": {
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Altar of Ascendancy",
@@ -87,7 +88,8 @@
     "metadata/terrain/leagues/delve/objects/delverobottrigger": "Start Delve",
     "metadata/terrain/leagues/expedition/objects/expeditionbeastskin": "<white>{Beast Skin}",
     "metadata/terrain/leagues/legion/objects/legioninitiator": "Timeless Monolith",
-    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "Trial Map"
+    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "Trial Map",
+    "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "Disable the Crystals before time runs out"
   },
   "es": {
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Altar de ascendencia",
@@ -132,7 +134,8 @@
     "metadata/terrain/leagues/delve/objects/delverobottrigger": "Empezar excavación",
     "metadata/terrain/leagues/expedition/objects/expeditionbeastskin": "<white>{Aspecto para bestia}",
     "metadata/terrain/leagues/legion/objects/legioninitiator": "Monolito atemporal",
-    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "Mapa de la prueba"
+    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "Mapa de la prueba",
+    "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "Desactiva los cristales antes de que se agote el tiempo"
   },
   "fr": {
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Autel d'Ascendance",
@@ -177,7 +180,8 @@
     "metadata/terrain/leagues/delve/objects/delverobottrigger": "Commencer l'expédition",
     "metadata/terrain/leagues/expedition/objects/expeditionbeastskin": "<white>{Peau de bête}",
     "metadata/terrain/leagues/legion/objects/legioninitiator": "Monolithe intemporel",
-    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "Carte de l'Épreuve"
+    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "Carte de l'Épreuve",
+    "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "Désactivez les Cristaux avant que le temps ne soit écoulé"
   },
   "ja": {
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "アセンダンシーの祭壇",
@@ -222,7 +226,8 @@
     "metadata/terrain/leagues/delve/objects/delverobottrigger": "デルヴ開始",
     "metadata/terrain/leagues/expedition/objects/expeditionbeastskin": "<white>{獣の皮}",
     "metadata/terrain/leagues/legion/objects/legioninitiator": "時知らずの石柱",
-    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "試練の地図"
+    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "試練の地図",
+    "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "時間切れになる前に結晶を無効化しろ"
   },
   "ko": {
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "전직 제단",
@@ -267,7 +272,8 @@
     "metadata/terrain/leagues/delve/objects/delverobottrigger": "탐광 시작",
     "metadata/terrain/leagues/expedition/objects/expeditionbeastskin": "<white>{야수 가죽}",
     "metadata/terrain/leagues/legion/objects/legioninitiator": "고대의 돌기둥",
-    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "시련 지도"
+    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "시련 지도",
+    "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "시간 안에 수정 비활성화하기"
   },
   "pt": {
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Altar de Ascendência",
@@ -312,7 +318,8 @@
     "metadata/terrain/leagues/delve/objects/delverobottrigger": "Iniciar Escavação",
     "metadata/terrain/leagues/expedition/objects/expeditionbeastskin": "<white>{Pele de Fera}",
     "metadata/terrain/leagues/legion/objects/legioninitiator": "Monólito Atemporal",
-    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "Mapa da Provação"
+    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "Mapa da Provação",
+    "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "Desative os cristais antes de o tempo acabar"
   },
   "ru": {
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Алтарь Восхождения",
@@ -357,7 +364,8 @@
     "metadata/terrain/leagues/delve/objects/delverobottrigger": "Начать спуск",
     "metadata/terrain/leagues/expedition/objects/expeditionbeastskin": "<white>{Звериная шкура}",
     "metadata/terrain/leagues/legion/objects/legioninitiator": "Вневременной монолит",
-    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "Карта испытания"
+    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "Карта испытания",
+    "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "Отключите кристаллы до истечения времени"
   },
   "th": {
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "แท่นครองอำนาจ",
@@ -402,7 +410,8 @@
     "metadata/terrain/leagues/delve/objects/delverobottrigger": "เริ่มการลงเหมือง",
     "metadata/terrain/leagues/expedition/objects/expeditionbeastskin": "<white>{หนังสัตว์ร้าย}",
     "metadata/terrain/leagues/legion/objects/legioninitiator": "เสาหินเหนือกาลเวลา",
-    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "แผนที่บททดสอบ"
+    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "แผนที่บททดสอบ",
+    "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "ปิด​คริสตัล​ทั้งหมด​ก่อน​ที่​จะ​หมด​เวลา"
   },
   "zh-TW": {
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "昇華之殿",
@@ -447,6 +456,7 @@
     "metadata/terrain/leagues/delve/objects/delverobottrigger": "開始掘獄",
     "metadata/terrain/leagues/expedition/objects/expeditionbeastskin": "<white>{獸皮}",
     "metadata/terrain/leagues/legion/objects/legioninitiator": "永恆石陣",
-    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "試煉地圖"
+    "metadata/terrain/leagues/sanctum/objects/sanctummapdevice": "試煉地圖",
+    "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "在時間耗盡前關閉水晶"
   }
 }
