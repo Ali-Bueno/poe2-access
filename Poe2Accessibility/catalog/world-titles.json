@@ -1,5 +1,6 @@
 {
   "de": {
+    "label:honour": "Ehre",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Altar der Aszendenz",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "Zünder",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "Zünder",
@@ -46,6 +47,7 @@
     "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "Deaktiviert die Kristalle vor Ablauf der Zeit."
   },
   "en": {
+    "label:honour": "Honour",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Altar of Ascendancy",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "Detonator",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "Detonator",
@@ -92,6 +94,7 @@
     "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "Disable the Crystals before time runs out"
   },
   "es": {
+    "label:honour": "Honor",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Altar de ascendencia",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "Detonador",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "Detonador",
@@ -138,6 +141,7 @@
     "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "Desactiva los cristales antes de que se agote el tiempo"
   },
   "fr": {
+    "label:honour": "Honneur",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Autel d'Ascendance",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "Détonateur",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "Détonateur",
@@ -184,6 +188,7 @@
     "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "Désactivez les Cristaux avant que le temps ne soit écoulé"
   },
   "ja": {
+    "label:honour": "名誉",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "アセンダンシーの祭壇",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "起爆装置",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "起爆装置",
@@ -230,6 +235,7 @@
     "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "時間切れになる前に結晶を無効化しろ"
   },
   "ko": {
+    "label:honour": "명예",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "전직 제단",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "기폭 장치",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "기폭 장치",
@@ -276,6 +282,7 @@
     "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "시간 안에 수정 비활성화하기"
   },
   "pt": {
+    "label:honour": "Honra",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Altar de Ascendência",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "Detonador",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "Detonador",
@@ -322,6 +329,7 @@
     "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "Desative os cristais antes de o tempo acabar"
   },
   "ru": {
+    "label:honour": "Честь",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Алтарь Восхождения",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "Взорвать заряды",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "Взорвать заряды",
@@ -368,6 +376,7 @@
     "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "Отключите кристаллы до истечения времени"
   },
   "th": {
+    "label:honour": "เกียรติ",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "แท่นครองอำนาจ",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "ตัวจุดชนวน",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "ตัวจุดชนวน",
@@ -414,6 +423,7 @@
     "objective:metadata/monsters/marakethsanctumtrial/hazards/hourglasslethal": "ปิด​คริสตัล​ทั้งหมด​ก่อน​ที่​จะ​หมด​เวลา"
   },
   "zh-TW": {
+    "label:honour": "榮譽",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "昇華之殿",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "引爆器",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "引爆器",

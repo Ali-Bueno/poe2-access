@@ -411,6 +411,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.PassiveFinder) => T("Passive tree finder on the D-pad", "Buscador del árbol de pasivas en la cruceta"),
             nameof(AccessibilitySettings.AutoGuide) => T("Guide to the scanner's choice without confirming", "Guiar a lo elegido en el escáner sin confirmar"),
             nameof(AccessibilitySettings.AnnounceTimers) => T("Countdown timers", "Cuentas atrás"),
+            nameof(AccessibilitySettings.AnnounceHonour) => T("Honour in the Trial", "Honor en la Prueba"),
             nameof(AccessibilitySettings.GuideTimed) => T("Guide to each Death Crystal by itself", "Guiar solo a cada cristal de la muerte"),
             nameof(AccessibilitySettings.AnnounceLevelUp) => T("Level up", "Subida de nivel"),
             nameof(AccessibilitySettings.Radar) => T("Radar", "Radar"),
@@ -601,6 +602,9 @@ namespace Poe2Accessibility
                 _ => place,
             };
         }
+
+        /// <summary>The Trial's honour: "Honor 25 por ciento", in the game's word for it.</summary>
+        public static string HonourLeft(string label, int percent) => T($"{label} {percent} percent", $"{label} {percent} por ciento");
 
         /// <summary>A clock falling on the HUD: "Quedan 10 segundos".</summary>
         public static string SecondsLeft(int seconds) => T($"{seconds} seconds left", $"Quedan {seconds} segundos");

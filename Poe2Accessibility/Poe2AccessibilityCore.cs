@@ -397,6 +397,7 @@ namespace Poe2Accessibility
                 this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
+                this.narrator.HonourLabel = () => this.entities?.HonourLabel ?? string.Empty;
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
                 this.entities.Memory = new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds, modSounds, drops, diabloSounds));
@@ -652,6 +653,11 @@ namespace Poe2Accessibility
             if (watching && this.Settings.AnnounceTimers)
             {
                 this.narrator.CheckCountdown(this.screen.Current);
+            }
+
+            if (watching && this.Settings.AnnounceHonour)
+            {
+                this.narrator.CheckHonour(this.screen.Current);
             }
 
             this.wasWatching = watching;

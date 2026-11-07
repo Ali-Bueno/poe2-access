@@ -90,6 +90,7 @@ namespace Poe2Accessibility.Services
                 Switch(nameof(AccessibilitySettings.AnnounceNearby)),
                 Switch(nameof(AccessibilitySettings.AnnounceInteractTarget)),
                 Switch(nameof(AccessibilitySettings.AnnounceTimers)),
+                Switch(nameof(AccessibilitySettings.AnnounceHonour)),
                 Switch(nameof(AccessibilitySettings.ObjectSounds)),
                 Switch(nameof(AccessibilitySettings.NpcSounds)),
                 Switch(nameof(AccessibilitySettings.PlayerSounds))),

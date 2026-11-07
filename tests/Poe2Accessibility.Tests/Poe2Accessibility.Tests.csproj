@@ -50,6 +50,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\CountdownWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TrialMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TimedGuide.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\HonourWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\WorldGate.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\StatusAilments.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\SpeechPriority.cs" />

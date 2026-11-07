@@ -337,6 +337,24 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>What the Trial's honour line starts with, empty for none known.</summary>
+        public Func<string>? HonourLabel { get; set; }
+
+        /// <summary>Says the Trial's honour as it falls past a mark, cutting in: at nothing the run ends.</summary>
+        public void CheckHonour(ScreenSnapshot snapshot)
+        {
+            if (!this.inGame || this.HonourLabel?.Invoke() is not { Length: > 0 } label ||
+                snapshot.Find(this.HudLayer)?.Texts.FirstOrDefault(text => text.Text.StartsWith(label + ":", StringComparison.Ordinal)) is not { } line)
+            {
+                return;
+            }
+
+            if (this.honour.Heard(line.Text) is { } percent)
+            {
+                this.output.Urge(Announcements.HonourLeft(label, percent));
+            }
+        }
+
         /// <summary>The tracker's quests, each its title and the lines under it, as they are said.</summary>
         private static List<string> QuestsOf(IEnumerable<ScreenText> tracker)
         {

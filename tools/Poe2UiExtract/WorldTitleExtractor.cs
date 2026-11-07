@@ -18,10 +18,17 @@ internal static class WorldTitleExtractor
     private const int ObjectiveColumn = 0x2C;
     private const string ObjectivePrefix = "objective:";
 
+    /// <summary>"[Honour|Honor]: &lt;white&gt;{{0}/{1}}": what the Trial's HUD line starts with, a key of its own in the table.</summary>
+    private const string HonourKey = "SanctumResolveValue";
+    private const string HonourEntry = "label:honour";
+
     private static readonly Regex TitleKey = new("title_text\\s*=\\s*\"([^\"]+)\"", RegexOptions.Compiled);
 
     /// <summary>A colour around a title: "&lt;white&gt;{Torre petrolífera}".</summary>
     private static readonly Regex Colour = new(@"^<\w+>\{(.*)\}$", RegexOptions.Compiled);
+
+    /// <summary>A linked word, "[Honour|Honor]" or "[Honour]", shown as its last half, up to the colon of the line.</summary>
+    private static readonly Regex LinkedLabel = new(@"^\[(?:[^|\]]*\|)?([^\]]*)\]", RegexOptions.Compiled);
 
     /// <summary>Death Crystals stand in rooms of other kinds too, still targetable: only this objective makes them real.</summary>
     private static readonly (string Path, string Objective)[] Objectives =
@@ -72,6 +79,11 @@ internal static class WorldTitleExtractor
                 {
                     titles[path] = Colour.Replace(text, "$1");
                 }
+            }
+
+            if (texts.TryGetValue(HonourKey, out var honour) && LinkedLabel.Match(honour) is { Success: true } label)
+            {
+                titles[HonourEntry] = label.Groups[1].Value;
             }
 
             var objectives = folder == null ? englishObjectives : DatTable.OpenTranslated(index, ObjectivesTable, folder);

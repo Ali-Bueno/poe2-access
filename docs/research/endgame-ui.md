@@ -75,6 +75,9 @@ a prior live dump; **INFERRED** = consistent with the sources; **OPEN** = unknow
   buttons: the first and last 141 px wide, the rest 108; a room shows its name and tooltip ("Otorga una llave de bronce", the affliction, "Entrar, A" when it can be
   entered); one not revealed has neither, and no children. `UiSemantics.TrialRoomPlace` says "columna 2 de 8, sala 3 de 3". Not known: which rooms link to which
   (the canvas), and which room of a column the player is in past the entrance; both need a dump further on in a run.
+- MEASURED (2026-11-07): honour is a HUD line, `[Honour|Honor]: <white>{444/513}` (ClientStrings `SanctumResolveValue`), shown as "Honor: 474/513". Its label by language is
+  `label:honour` in `catalog/world-titles.json`. A run ended on it with no death line in the log (12:17). The Blood Chalice's room has no clock of its own
+  (`SanctumKillCounterBody`: "Defeat all Rare Monsters in the area to fill the Chalice"); a HUD "0:04" is a buff's.
 - INFERRED: the room-choice map is a node graph (path from entrance to the boss at the right, per `SanctumMapWindowInfo`),
   with selectable rooms: a dedicated reader, like the atlas. Choice popups (fountain, vendor, pledge, deferral) are
   ordinary windows with buttons: the generic focus reader probably reads them; honour/inspiration bars are HUD labels

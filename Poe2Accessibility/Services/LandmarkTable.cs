@@ -134,6 +134,9 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public string WorldTitle(string path) => this.Title(FileOf(path));
 
+        /// <summary>What the Trial's honour line starts with in the client's language, empty when the table has none.</summary>
+        public string HonourLabel => this.Title("label:honour");
+
         /// <summary>The tracker line without which an object means nothing, empty for most.</summary>
         public string ObjectiveOf(string path) => this.Title("objective:" + FileOf(path));
 

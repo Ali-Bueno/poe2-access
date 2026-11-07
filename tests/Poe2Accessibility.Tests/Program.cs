@@ -69,6 +69,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(AFallingClockIsSaidAtItsMarks), AFallingClockIsSaidAtItsMarks);
             Run(nameof(TrialMapIsColumnsFromEntranceToBoss), TrialMapIsColumnsFromEntranceToBoss);
             Run(nameof(TheGuideGoesFromCrystalToCrystal), TheGuideGoesFromCrystalToCrystal);
+            Run(nameof(HonourIsSaidAsItFalls), HonourIsSaidAsItFalls);
             Run(nameof(WorldIsBackOnlyOnceNothingCoversIt), WorldIsBackOnlyOnceNothingCoversIt);
             Run(nameof(PanelOverTheGameIsTheTopLayerThatIsNotTheHud), PanelOverTheGameIsTheTopLayerThatIsNotTheHud);
             Run(nameof(ItemMovesAreSaidAsDeeds), ItemMovesAreSaidAsDeeds);
@@ -2813,6 +2814,20 @@ namespace Poe2Accessibility.Tests
             other.Look(Array.Empty<uint>(), 42);
             other.Look(Array.Empty<uint>(), 42);
             Equal((null, false), other.Look(Array.Empty<uint>(), 42), "and it is not let go when the room ends");
+        }
+
+        private static void HonourIsSaidAsItFalls()
+        {
+            var watch = new HonourWatch();
+            Equal(null, watch.Heard("Honor: 474/513"), "the first reading is no fall");
+            Equal(null, watch.Heard("Honor: 400/513"), "78%: no mark passed");
+            Equal(74, watch.Heard("Honor: 380/513"), "past 75");
+            Equal(null, watch.Heard("Honor: 300/513"), "not again above the next");
+            Equal(24, watch.Heard("Honor: 125/513"), "two marks at one blow say the amount once");
+            Equal(null, watch.Heard("Honor: 400/513"), "a fountain raises it");
+            Equal(49, watch.Heard("Honor: 255/513"), "and the marks count again");
+            Equal(null, watch.Heard("Honor"), "a line with no amount says nothing");
+            Equal(9, watch.Heard("Honor: 50/513"), "and leaves the last reading");
         }
 
         private static void TakingTheFloorCutsAKeptLine()
