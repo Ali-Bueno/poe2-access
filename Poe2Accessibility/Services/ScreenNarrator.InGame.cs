@@ -327,6 +327,16 @@ namespace Poe2Accessibility.Services
             return tracker;
         }
 
+        /// <summary>Says a clock falling on the HUD, cutting in: running out it can kill.</summary>
+        public void CheckCountdown(ScreenSnapshot snapshot)
+        {
+            var clock = this.inGame ? snapshot.Find(this.HudLayer)?.Texts.FirstOrDefault(text => CountdownWatch.IsClock(text.Text))?.Text : null;
+            if (this.countdown.Heard(clock) is { } left)
+            {
+                this.output.Urge(Announcements.SecondsLeft(left));
+            }
+        }
+
         /// <summary>The tracker's quests, each its title and the lines under it, as they are said.</summary>
         private static List<string> QuestsOf(IEnumerable<ScreenText> tracker)
         {

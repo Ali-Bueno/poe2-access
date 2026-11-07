@@ -25,6 +25,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> areaNames = new(StringComparer.Ordinal);
         private readonly Dictionary<(string Area, string Language), IReadOnlyDictionary<string, string>> localized = new();
         private readonly Dictionary<string, Dictionary<string, string>> monsterNames = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, Dictionary<string, string>> worldTitles = new(StringComparer.Ordinal);
         private readonly HashSet<string> namesLoaded = new(StringComparer.OrdinalIgnoreCase);
 
         public static LandmarkTable Load(PluginLog log, params string[] files)
@@ -33,7 +34,8 @@ namespace Poe2Accessibility.Services
             foreach (var file in files)
             {
                 table.LoadAreaNames(log, Path.Join(Path.GetDirectoryName(file) ?? string.Empty, "area-names.json"));
-                table.LoadMonsterNames(log, Path.Join(Path.GetDirectoryName(file) ?? string.Empty, "monster-names.json"));
+                table.LoadByLanguage(log, Path.Join(Path.GetDirectoryName(file) ?? string.Empty, "monster-names.json"), table.monsterNames, "boss names");
+                table.LoadByLanguage(log, Path.Join(Path.GetDirectoryName(file) ?? string.Empty, "world-titles.json"), table.worldTitles, "object titles");
                 if (!File.Exists(file))
                 {
                     continue;
@@ -126,7 +128,18 @@ namespace Poe2Accessibility.Services
             return Announcements.LandmarkLabel(label);
         }
 
-        private void LoadMonsterNames(PluginLog log, string file)
+        /// <summary>
+        ///     The name an object shows only in its WorldDescription, in the client's language, empty for none
+        ///     (catalog/world-titles.json, `Poe2UiExtract world-titles`).
+        /// </summary>
+        public string WorldTitle(string path)
+        {
+            var at = path.IndexOf('@');
+            var file = (at < 0 ? path : path[..at]).ToLowerInvariant();
+            return this.worldTitles.TryGetValue(Localization.Language, out var titles) && titles.TryGetValue(file, out var title) ? title : string.Empty;
+        }
+
+        private void LoadByLanguage(PluginLog log, string file, Dictionary<string, Dictionary<string, string>> table, string what)
         {
             if (!this.namesLoaded.Add(file) || !File.Exists(file))
             {
@@ -138,10 +151,10 @@ namespace Poe2Accessibility.Services
                 var parsed = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(File.ReadAllText(file)) ?? new();
                 foreach (var (language, byLabel) in parsed)
                 {
-                    this.monsterNames[language] = byLabel.ToDictionary(pair => pair.Key, pair => pair.Value.Trim(), StringComparer.Ordinal);
+                    table[language] = byLabel.ToDictionary(pair => pair.Key, pair => pair.Value.Trim(), StringComparer.Ordinal);
                 }
 
-                log.Info($"Landmarks: boss names for {parsed.Count} languages from {file}");
+                log.Info($"Landmarks: {what} for {parsed.Count} languages from {file}");
             }
             catch (Exception ex) when (ex is IOException or JsonException)
             {

@@ -88,6 +88,7 @@ namespace Poe2Accessibility.Services
             Menu("surroundings",
                 Switch(nameof(AccessibilitySettings.AnnounceNearby)),
                 Switch(nameof(AccessibilitySettings.AnnounceInteractTarget)),
+                Switch(nameof(AccessibilitySettings.AnnounceTimers)),
                 Switch(nameof(AccessibilitySettings.ObjectSounds)),
                 Switch(nameof(AccessibilitySettings.NpcSounds)),
                 Switch(nameof(AccessibilitySettings.PlayerSounds))),

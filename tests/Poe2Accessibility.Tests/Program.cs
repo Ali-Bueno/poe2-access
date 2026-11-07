@@ -66,6 +66,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(QuestPageSaysOnlyTheQuestThatChanged), QuestPageSaysOnlyTheQuestThatChanged);
             Run(nameof(TurnedQuestPageIsToldFromTheObjectivesOwnChange), TurnedQuestPageIsToldFromTheObjectivesOwnChange);
             Run(nameof(TakingTheFloorCutsAKeptLine), TakingTheFloorCutsAKeptLine);
+            Run(nameof(AFallingClockIsSaidAtItsMarks), AFallingClockIsSaidAtItsMarks);
             Run(nameof(WorldIsBackOnlyOnceNothingCoversIt), WorldIsBackOnlyOnceNothingCoversIt);
             Run(nameof(PanelOverTheGameIsTheTopLayerThatIsNotTheHud), PanelOverTheGameIsTheTopLayerThatIsNotTheHud);
             Run(nameof(ItemMovesAreSaidAsDeeds), ItemMovesAreSaidAsDeeds);
@@ -2743,6 +2744,24 @@ namespace Poe2Accessibility.Tests
             Equal(string.Empty, page.News(new[] { placed, trail }, legend: "Página de misiones 3/6 LT + cruceta derecha"), "a new quest only raises the total");
             Equal(placed, page.News(new[] { placed }, legend: "Página de misiones 4/6 LT + cruceta derecha"), "a page turned to with nothing new is said whole: the player asked");
             Equal(true, page.Turned, "and turned");
+        }
+
+        private static void AFallingClockIsSaidAtItsMarks()
+        {
+            var watch = new CountdownWatch();
+            Equal(null, watch.Heard("00:20"), "a clock first seen may not be falling");
+            Equal(19, watch.Heard("00:19"), "falling: said at once");
+            Equal(null, watch.Heard("00:19"), "the same second is no news");
+            Equal(null, watch.Heard("00:18"), "nor any second");
+            Equal(null, watch.Heard("00:11"), "before a mark");
+            Equal(10, watch.Heard("00:10"), "the mark of ten");
+            Equal(4, watch.Heard("00:04"), "a mark jumped over is still said, with the time left");
+            Equal(null, watch.Heard(null), "gone");
+            Equal(null, watch.Heard("00:01"), "a clock that counts up");
+            Equal(null, watch.Heard("00:02"), "is never said");
+            Equal(true, CountdownWatch.IsClock("00:19") && CountdownWatch.IsClock("1:05"), "minutes and seconds");
+            Equal(false, CountdownWatch.IsClock("9") || CountdownWatch.IsClock("1/5"), "a flask's charges and a page are no clock");
+            Equal(true, MinimapMarks.IsQuestIcon("SanctumFountain"), "the Death Crystal is what the Trial's room wants");
         }
 
         private static void TakingTheFloorCutsAKeptLine()

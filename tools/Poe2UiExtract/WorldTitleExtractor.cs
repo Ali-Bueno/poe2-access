@@ -1,0 +1,74 @@
+using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+
+/// <summary>
+///     `world-titles` command: the names objects show only in a WorldDescription, { language: { .ot path without its extension:
+///     title } }. The game gives such an object no render name: the real Relic Altar, the Trial's Death Crystals. A .ot's
+///     title_text is a ClientStrings key: +0x00 Id, +0x08 Text (dat-strings, 0.5.5f). Read-only on the game.
+/// </summary>
+internal static class WorldTitleExtractor
+{
+    private const int KeyColumn = 0x0;
+    private const int TextColumn = 0x8;
+    private const string ObjectExtension = ".ot";
+    private const string StringsTable = "clientstrings";
+
+    private static readonly Regex TitleKey = new("title_text\\s*=\\s*\"([^\"]+)\"", RegexOptions.Compiled);
+
+    public static int Run(string gameDir, string outFile)
+    {
+        using var index = SharedBundles.OpenParsed(gameDir);
+        var keys = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var file in index.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(ObjectExtension, StringComparison.Ordinal)))
+        {
+            var title = TitleKey.Match(Encoding.Unicode.GetString(file.Read().ToArray()));
+            if (title.Success)
+            {
+                keys[file.Path![..^ObjectExtension.Length]] = title.Groups[1].Value;
+            }
+        }
+
+        var result = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
+        var languages = AreaExtractor.LanguageCodes.Select(pair => (Code: pair.Value, Folder: (string?)pair.Key)).Prepend(("en", null));
+        foreach (var (code, folder) in languages)
+        {
+            var table = folder == null ? DatTable.Open(index, StringsTable) : DatTable.OpenTranslated(index, StringsTable, folder);
+            if (table == null)
+            {
+                Console.WriteLine($"  {code}: no ClientStrings");
+                continue;
+            }
+
+            var texts = new Dictionary<string, string>(StringComparer.Ordinal);
+            for (var row = 0; row < table.RowCount; row++)
+            {
+                if (table.StringOrNull(row, KeyColumn) is { Length: > 0 } key && table.StringOrNull(row, TextColumn)?.Trim() is { Length: > 0 } text)
+                {
+                    texts[key] = text;
+                }
+            }
+
+            var titles = new SortedDictionary<string, string>(StringComparer.Ordinal);
+            foreach (var (path, key) in keys)
+            {
+                if (texts.TryGetValue(key, out var text))
+                {
+                    titles[path] = text;
+                }
+            }
+
+            Console.WriteLine($"  {code}: {titles.Count} of {keys.Count} titles");
+            result[code] = titles;
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
+        File.WriteAllText(outFile, JsonSerializer.Serialize(result, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        }));
+        Console.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
+        return 0;
+    }
+}

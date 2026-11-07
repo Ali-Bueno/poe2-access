@@ -222,6 +222,12 @@ if (args.Length > 1 && string.Equals(args[0], "item-names", StringComparison.Ord
     return ItemNameExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-names.json");
 }
 
+// Args: world-titles <gameDir> <outFile>  -- the names objects show only in a WorldDescription, as { lang: { .ot path: title } }.
+if (args.Length > 2 && string.Equals(args[0], "world-titles", StringComparison.OrdinalIgnoreCase))
+{
+    return WorldTitleExtractor.Run(args[1], args[2]);
+}
+
 // Args: areas <gameDir> <outFile>  -- localized world-area names from WorldAreas.datc64 as { lang: { id: name } }.
 if (args.Length > 0 && string.Equals(args[0], "areas", StringComparison.OrdinalIgnoreCase))
 {

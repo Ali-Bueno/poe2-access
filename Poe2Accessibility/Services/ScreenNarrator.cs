@@ -76,6 +76,7 @@ namespace Poe2Accessibility.Services
         private string lastGroup = string.Empty;
         private readonly HashSet<string> hudSpoken = new();
         private readonly QuestTrackerPage questPage = new();
+        private readonly CountdownWatch countdown = new();
         /// <summary>Tutorial hints said in this area and when.</summary>
         private readonly Dictionary<string, DateTime> tutorialSpoken = new();
 

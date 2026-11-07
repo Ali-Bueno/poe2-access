@@ -54,7 +54,8 @@ namespace Poe2Accessibility.Services
         private const string BossRoomObject = "/BossRoomMinimapIcon";
 
         /// <summary>Icons the game draws on what the quest wants used or picked up (MinimapIcons rows 5, 6, 15).</summary>
-        private static readonly string[] QuestIcons = { "QuestObject", "QuestItem", "MissionTarget" };
+        /// <summary>The quest's own, and the Death Crystal's, the Trial room's objective and the icon's only user (sweep of the .ot files, 2026-11-07).</summary>
+        private static readonly string[] QuestIcons = { "QuestObject", "QuestItem", "MissionTarget", "SanctumFountain" };
 
         /// <summary>A radar-table label "Boss - Captain Hartlin": the name follows.</summary>
         private const string BossLabelPrefix = "Boss - ";

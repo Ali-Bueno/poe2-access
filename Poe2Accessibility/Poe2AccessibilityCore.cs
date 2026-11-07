@@ -634,6 +634,11 @@ namespace Poe2Accessibility
                 this.narrator.CheckQuestPage(this.screen.Current); // an objective that changed behind another window or a menu
             }
 
+            if (watching && this.Settings.AnnounceTimers)
+            {
+                this.narrator.CheckCountdown(this.screen.Current);
+            }
+
             this.wasWatching = watching;
 
             if (this.gameState.CurrentState is GameStateTypes.LoginState or GameStateTypes.SelectCharacterState or

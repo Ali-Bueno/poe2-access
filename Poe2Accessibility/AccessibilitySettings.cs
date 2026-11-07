@@ -241,6 +241,9 @@ namespace Poe2Accessibility
         /// <summary>In the passive tree the D-pad finds keystones, notables and jewel sockets, and locked nodes say what they cost.</summary>
         public bool PassiveFinder = true;
 
+        /// <summary>A clock falling on the HUD is said as it passes 60, 30, 20, 10 and 5 seconds.</summary>
+        public bool AnnounceTimers = true;
+
         /// <summary>The guide beacon starts on whatever the scanner names, with no press to confirm it (D2R).</summary>
         public bool AutoGuide;
 
