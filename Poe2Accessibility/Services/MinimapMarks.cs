@@ -20,7 +20,7 @@ namespace Poe2Accessibility.Services
 
         public const string LandmarkKind = "landmark";
 
-        /// <summary>A point of interest under the quest's own icon; also the key of the sound it makes, whose volume it follows.</summary>
+        /// <summary>What the quest's own icon marks and has no kind of its own; also the key of the sound it makes, whose volume it follows.</summary>
         public const string QuestObjectKind = "quest_item";
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Poe2Accessibility.Services
         ///     The scanner kind of a league device by its icon. A finished altar has its own: it stays listed, the tribute is
         ///     spent there, but its sound drew the player to nothing (user 2026-11-04).
         /// </summary>
-        public static string DeviceKind(string icon) => icon == RitualDoneIcon ? RitualDoneKind : IsRitualAltar(icon) ? "ritual" : "encounter";
+        public static string DeviceKind(string icon) => icon == RitualDoneIcon ? RitualDoneKind : IsRitualAltar(icon) ? "ritual" : IsQuestIcon(icon) ? QuestObjectKind : "encounter";
 
         /// <summary>
         ///     How far (grid cells) the minimap points to a campaign boss's room: MinimapIcons +0x12 (the pointer's reach) is
@@ -173,6 +173,9 @@ namespace Poe2Accessibility.Services
 
             return label.Length > 0 && !IsSpent(icon) && icon != StoryGlyph ? (IsQuestIcon(icon) ? QuestObjectKind : LandmarkKind, label, false) : null;
         }
+
+        /// <summary>The kind of an entity with this icon: under the quest's own, one without a kind is a quest object, and sounds like one (user 2026-11-07).</summary>
+        public static string KindUnder(string icon, string kind) => kind.Length == 0 && IsQuestIcon(icon) ? QuestObjectKind : kind;
 
         /// <summary>
         ///     A cage the quest wants opened by its file (RisuCage, KaruiElderCage): of the 62 objects with a quest icon only these

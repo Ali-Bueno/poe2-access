@@ -72,7 +72,7 @@ namespace Poe2Accessibility.Services
             ("chests", MaxChestVoices, entry => entry.Kind is "chest" or "corpse"),
             ("breakables", MaxBreakableVoices, entry => entry.Kind == "breakable"),
             ("shrines", 1, entry => entry.Category == ScanCategory.Chests && entry.Kind is not ("chest" or "corpse" or "breakable")),
-            ("encounters", 1, entry => entry.Category == ScanCategory.Encounters && entry.Kind != MinimapMarks.RitualDoneKind),
+            ("encounters", 1, entry => entry.Category == ScanCategory.Encounters && entry.Kind is not (MinimapMarks.RitualDoneKind or MinimapMarks.QuestObjectKind)),
             ("exits", 1, entry => entry.Category == ScanCategory.Exits || entry.Kind == "portal"),
             ("waypoints", 1, entry => entry.Kind is "waypoint" or "checkpoint"),
             ("quests", 1, entry => entry.Kind == "npc_quest"),
@@ -189,7 +189,8 @@ namespace Poe2Accessibility.Services
                 }
 
                 this.audio.Play(samples, pan, pitch, gain, this.SoundKey(entry));
-                if (this.SoundSet == ItemSoundSet.Game && this.Layer(entry.Kind) is { } key && this.sounds.Get(key) is { } layer && layer != samples)
+                if (this.SoundSet == ItemSoundSet.Game && (entry.QuestMarked ? MinimapMarks.QuestObjectKind : this.Layer(entry.Kind)) is { } key &&
+                    this.sounds.Get(key) is { } layer && layer != samples)
                 {
                     this.audio.Play(layer, pan, pitch, gain * LayerGain, key);
                 }

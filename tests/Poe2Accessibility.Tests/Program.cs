@@ -2004,6 +2004,11 @@ namespace Poe2Accessibility.Tests
             Equal(null, MinimapMarks.PointOfInterest("Metadata/Terrain/Gallows/Act1/1_11/Objects/SecretRoomMinimapIcon", "HuntingGroundsSecretInactive", string.Empty), "a secret found is gone");
             Equal(MinimapMarks.QuestObjectKind, MinimapMarks.PointOfInterest("Metadata/Terrain/Gallows/Act2/2_10_2/Objects/RisuCage", "QuestObject", "Jaula de Risu")?.Kind,
                   "what the quest's icon marks sounds as a quest object");
+            Equal(MinimapMarks.QuestObjectKind, MinimapMarks.KindUnder("QuestObject", string.Empty), "a named object under the quest's icon sounds as a quest object");
+            Equal("chest", MinimapMarks.KindUnder("QuestObject", "chest"), "a chest there keeps its kind, the quest sound goes over its own");
+            Equal(string.Empty, MinimapMarks.KindUnder("Stash", string.Empty), "and another icon gives no kind");
+            Equal(MinimapMarks.QuestObjectKind, MinimapMarks.DeviceKind("QuestObject"), "a league's summon under the quest's icon too");
+            Equal("encounter", MinimapMarks.DeviceKind("Strongbox"), "while another device stays an encounter");
             Equal(true, MinimapMarks.IsCage("Metadata/Terrain/Gallows/Act4/4_7/Objects/KaruiElderCage"), "a cage by its file");
             Equal(false, MinimapMarks.IsCage("Metadata/Terrain/Doodads/Desert/DreadnoughtVanguard/BossRoomCageDoor"), "and only by its end");
             Equal("Risu", MinimapMarks.BareName("Risu, Desertora faridun"), "a cage says who is inside without the title");

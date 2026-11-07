@@ -167,6 +167,10 @@ A quest item keeps its own drop sound with the quest sound laid over it at the r
 `RunedBelt_Drop_01` alone was not told from a belt (user). It is the game's layering too: `ItemVisualIdentity.DropSoundEffect` gives
 quest items `Item_Quest.ogg` beside the base's sound. Every `kind` "quest" gets it, books and scrolls among them. Not heard yet.
 
+Everything else under a quest icon sounds too (user 2026-11-07, "para todos"): with no sound of its own it plays `quest_item`, with one
+(a chest, in the game's set) the quest sound goes over it. The icon is the only sign read: the map device always carries `QuestObject`
+(`show_league_flag` only hides the icon, and no hidden flag of `MinimapIcon` is known), so it sounds in the hideout too.
+
 ## How sounds end (2026-11-07)
 A tester: every sound stopped dead on walking off it, gold in both sets, town portals, waypoints; they remembered it fading. The
 code had not changed there, the step had always been in it: 30 % of the level at the edge of the range (1300), then silence, in the bed's

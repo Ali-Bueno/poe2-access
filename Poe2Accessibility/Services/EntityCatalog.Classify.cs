@@ -167,7 +167,7 @@ namespace Poe2Accessibility.Services
             }
 
             var position = render.WorldPosition;
-            return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, kind, baseId, loot, sound,
+            return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, MinimapMarks.KindUnder(icon, kind), baseId, loot, sound,
                 MinimapMarks.IsQuestIcon(icon), subject);
         }
 
