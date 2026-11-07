@@ -193,9 +193,7 @@ namespace Poe2Accessibility.Services
                 this.lastExitRefresh = now;
             }
 
-            var here = world.WorldToScreen(origin);
-            var alongX = world.WorldToScreen(Offset(origin, ProbeWorld, 0)) - here;
-            var alongY = world.WorldToScreen(Offset(origin, 0, ProbeWorld)) - here;
+            var (alongX, alongY) = ScreenProjection.Axes(origin);
             var open = OpenWorld / cellSize;
             foreach (var direction in Directions)
             {

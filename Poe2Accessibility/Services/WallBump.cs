@@ -58,9 +58,7 @@ namespace Poe2Accessibility.Services
             var blocked = false;
             if (push.Length() >= Limits.MinPush)
             {
-                var here = world.WorldToScreen(origin);
-                var alongX = world.WorldToScreen(Offset(origin, ProbeWorld, 0)) - here;
-                var alongY = world.WorldToScreen(Offset(origin, 0, ProbeWorld)) - here;
+                var (alongX, alongY) = ScreenProjection.Axes(origin);
                 blocked = StickDirection.WorldDirection(push, alongX, alongY) is { } direction &&
                           BlockedAhead(area.GridWalkableData, area.TerrainMetadata.BytesPerRow, position / cellSize, direction, ReachWorld / cellSize);
             }

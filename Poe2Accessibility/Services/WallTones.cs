@@ -77,9 +77,7 @@ namespace Poe2Accessibility.Services
 
             var origin = player.WorldPosition;
             var position = new Vector2(origin.X, origin.Y) / cellSize;
-            var here = world.WorldToScreen(origin);
-            var alongX = world.WorldToScreen(Radar.Offset(origin, ProbeWorld, 0)) - here;
-            var alongY = world.WorldToScreen(Radar.Offset(origin, 0, ProbeWorld)) - here;
+            var (alongX, alongY) = ScreenProjection.Axes(origin);
             var range = this.RangeWorld / cellSize;
             foreach (var direction in Directions)
             {

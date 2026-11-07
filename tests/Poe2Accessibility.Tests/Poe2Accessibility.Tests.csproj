@@ -51,6 +51,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\TrialMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\SheetStats.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TrialHud.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\CameraView.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TrialTraps.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TimedGuide.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\HonourWatch.cs" />

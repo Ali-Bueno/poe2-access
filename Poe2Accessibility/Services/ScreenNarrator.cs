@@ -458,6 +458,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A layer over the focused panel with at most this many texts is a message, not a page.</summary>
         private const int MessageTexts = 2;
 
+        /// <summary>A value that arrives this soon after its widget was named is part of naming it.</summary>
+        private const int LateValueMs = 400;
+
         /// <summary>The same refusal or alert shown again this soon is the same press repeated, not news.</summary>
         private const int AlertRepeatMs = 2500;
 
@@ -744,6 +747,15 @@ namespace Poe2Accessibility.Services
         public void OnValueChanged(AccessibleUiNode node)
         {
             var before = node.Address == this.valueOwner ? this.lastValue : string.Empty;
+            if (before.Length == 0 && node.Address == this.valueOwner && node.Role == UiRole.Panel && node.Value.Length > 0 &&
+                (DateTime.UtcNow - this.lastFocusAt).TotalMilliseconds < LateValueMs)
+            {
+                // A sheet's number comes with its widget's tooltip markup, which the game can finish a frame after the
+                // tooltip's text (a resistance read "-1%" after its whole description, 2026-11-07): the widget again, whole.
+                this.OnFocusChanged(node);
+                return;
+            }
+
             var wasExpanded = node.Address == this.valueOwner && this.lastExpanded;
             this.lastExpanded = node.IsExpanded;
             this.valueOwner = node.Address;

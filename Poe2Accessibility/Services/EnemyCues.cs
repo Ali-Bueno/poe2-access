@@ -156,15 +156,11 @@ namespace Poe2Accessibility.Services
             var found = new List<CueTarget>();
             this.nearestEdge = null;
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            var world = Core.States.InGameStateObject.CurrentWorldInstance;
-            var window = Core.Process.WindowArea;
-            if (window.Width <= 0 || window.Height <= 0 || !Seats.Followed.TryGetComponent<Render>(out var player))
+            if (!Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return found;
             }
 
-            var half = new Vector2(window.Width / 2f, window.Height / 2f);
-            var here = world.WorldToScreen(player.WorldPosition);
             var (grid, maxBlocked) = this.SightGrid(area);
             var row = area.TerrainMetadata.BytesPerRow;
             var toGrid = area.WorldToGridConvertor;
@@ -191,8 +187,8 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                var screen = world.WorldToScreen(render.WorldPosition);
-                if (!down && (screen.X < 0 || screen.Y < 0 || screen.X > window.Width || screen.Y > window.Height))
+                var (dx, dy) = (render.WorldPosition.X - player.WorldPosition.X, render.WorldPosition.Y - player.WorldPosition.Y);
+                if (!down && !CameraView.InView(dx, dy))
                 {
                     continue;
                 }
@@ -203,7 +199,7 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                var offset = (screen - here) / half;
+                var offset = CameraView.HalfScreens(dx, dy);
                 if (enemy)
                 {
                     var gap = Vector2.Distance(new Vector2(render.WorldPosition.X, render.WorldPosition.Y), new Vector2(player.WorldPosition.X, player.WorldPosition.Y)) -

@@ -70,6 +70,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(TrialMapIsColumnsFromEntranceToBoss), TrialMapIsColumnsFromEntranceToBoss);
             Run(nameof(SheetWidgetsAreToldByTheirTooltipsKeys), SheetWidgetsAreToldByTheirTooltipsKeys);
             Run(nameof(TrialHudCountsWaterAndKeys), TrialHudCountsWaterAndKeys);
+            Run(nameof(CameraViewIsASixteenByNineScreenAroundThePlayer), CameraViewIsASixteenByNineScreenAroundThePlayer);
             Run(nameof(TrialTrapsAreToldByTheirFiles), TrialTrapsAreToldByTheirFiles);
             Run(nameof(TheGuideGoesFromCrystalToCrystal), TheGuideGoesFromCrystalToCrystal);
             Run(nameof(HonourIsSaidAsItFalls), HonourIsSaidAsItFalls);
@@ -2770,6 +2771,24 @@ namespace Poe2Accessibility.Tests
             Equal(false, CountdownWatch.IsClock("0:06"), "nor a buff's duration");
             Equal(true, MinimapMarks.IsQuestIcon("SanctumFountain"), "the Death Crystal is what the Trial's room wants");
             Equal(MinimapMarks.QuestObjectKind, MinimapMarks.DeviceKind("MarakethSanctumRoomSelector"), "and a Trial's reward, under Leagues, sounds as a quest object");
+        }
+
+        private static void CameraViewIsASixteenByNineScreenAroundThePlayer()
+        {
+            // World +X draws right and up, +Y left and up (2560x1440: 85.3 px across and 63.1 px up per 100 units of either).
+            Equal(true, CameraView.Offset(100, 0).X > 0 && CameraView.Offset(100, 0).Y < 0, "world +X: right and up");
+            Equal(true, CameraView.Offset(0, 100).X < 0 && CameraView.Offset(0, 100).Y < 0, "world +Y: left and up");
+            Equal(true, CameraView.InView(0, 0), "the player");
+            Equal(true, CameraView.InView(600, -600), "0.71 heights right: on screen");
+            Equal(false, CameraView.InView(800, -800), "0.95 heights right: past a 16:9 edge at 0.89");
+            Equal(true, CameraView.InView(-600, -600), "below, 0.47 from the centre");
+            Equal(false, CameraView.InView(-700, -700), "lower, 0.56 from the centre");
+            Equal(true, CameraView.InView(480, 480), "above, 0.42 heights: the player stands high, so less is seen above");
+            Equal(false, CameraView.InView(530, 530), "higher, 0.46: past the top edge at 0.44");
+            Equal(1f, MathF.Round(CameraView.HalfScreens(750.6f, -750.6f).X, 2), "a 16:9 screen's right edge is one half screen");
+            Equal(false, CameraView.IsUsable(System.Numerics.Vector2.Zero, System.Numerics.Vector2.Zero), "no window: nothing drawn");
+            Equal(false, CameraView.IsUsable(new System.Numerics.Vector2(float.NaN, 1), new System.Numerics.Vector2(1, 1)), "a camera not drawn yet");
+            Equal(true, CameraView.IsUsable(CameraView.Offset(100, 0), CameraView.Offset(0, 100)), "the measured camera itself");
         }
 
         private static void TrialHudCountsWaterAndKeys()

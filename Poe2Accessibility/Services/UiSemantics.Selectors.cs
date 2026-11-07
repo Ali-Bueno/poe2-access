@@ -3,7 +3,6 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using GameHelper.Plugin;
 
     /// <summary>Selector widgets without a focus (the class choice of character creation) of <see cref="UiSemantics"/>.</summary>
     public sealed partial class UiSemantics
@@ -13,9 +12,6 @@ namespace Poe2Accessibility.Services
 
         /// <summary>An icon grid has at least this many children.</summary>
         private const int MinSelectorIcons = 4;
-
-        /// <summary>Icons whose tops differ by less than this many pixels are on the same row.</summary>
-        private const float SameRowPixels = 4f;
 
         private readonly Dictionary<IntPtr, (IntPtr Selector, IntPtr Grid)> selectors = new();
 
@@ -47,14 +43,16 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            if (index < 0 || index >= icons.Length || !PluginUiElementReflection.TryGetAbsoluteRect(icons[index], out var current, out _))
+            if (index < 0 || index >= icons.Length || !this.elements.TryReadElement(icons[index], out var current))
             {
                 return null;
             }
 
-            // The row the highlight is on: the classes, or their variants once X swapped one (the stick then walks those).
+            // The row the highlight is on: the classes, or their variants once X swapped one (the stick then walks those). The
+            // icons are siblings: their places compare in the game's own units at any window size, a row within half an icon.
             var row = Enumerable.Range(0, icons.Length)
-                .Where(at => PluginUiElementReflection.TryGetAbsoluteRect(icons[at], out var place, out _) && Math.Abs(place.Y - current.Y) < SameRowPixels)
+                .Where(at => this.elements.TryReadElement(icons[at], out var place) &&
+                             Math.Abs(place.Raw.RelativePosition.Y - current.Raw.RelativePosition.Y) < current.Raw.UnscaledSize.Y / 2)
                 .ToList();
             return Announcements.ListPosition(row.IndexOf(index) + 1, row.Count);
         }

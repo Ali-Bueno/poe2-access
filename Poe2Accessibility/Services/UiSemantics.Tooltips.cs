@@ -124,6 +124,21 @@ namespace Poe2Accessibility.Services
             return string.Join('\n', parts);
         }
 
+        /// <summary>A child caption the game keeps but hides ("Life" over "513" in a 5:4 window), empty for none.</summary>
+        private string HiddenCaption(in UiElementReader.ElementInfo info)
+        {
+            foreach (var childAddress in this.elements.ReadChildren(info))
+            {
+                if (this.elements.TryReadElement(childAddress, out var child) && !child.IsVisibleFlag &&
+                    this.elements.TryReadText(childAddress, out var text) && text.Length > 0 && !BareNumber.IsMatch(text))
+                {
+                    return text;
+                }
+            }
+
+            return string.Empty;
+        }
+
         /// <summary>A character sheet widget's number, from the player's stats; null for any other widget.</summary>
         private (string Value, BuildNotes.Attribute? Attribute)? SheetValue(in UiElementReader.ElementInfo info)
         {

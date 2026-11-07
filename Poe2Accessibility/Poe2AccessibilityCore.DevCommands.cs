@@ -11,6 +11,43 @@
     /// <summary>Research and test commands of <see cref="Poe2AccessibilityCore"/> (debug/command.txt, hotkeys) and the status and compatibility reports.</summary>
     public sealed partial class Poe2AccessibilityCore
     {
+        /// <summary>How the camera draws the world now: the window, the player on it, and the world axes per window height.</summary>
+        private void LogCamera()
+        {
+            if (!Seats.Followed.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var player))
+            {
+                return;
+            }
+
+            var window = Core.Process.WindowArea;
+            var here = Core.States.InGameStateObject.CurrentWorldInstance.WorldToScreen(player.WorldPosition);
+            var (alongX, alongY) = ScreenProjection.Axes(player.WorldPosition);
+            var height = Math.Max(window.Height, 1);
+            this.log?.Info($"Camera: window {window.Width}x{window.Height} foreground {Core.Process.Foreground} world {player.WorldPosition.X:0},{player.WorldPosition.Y:0},{player.WorldPosition.Z:0} " +
+                           $"screen {here.X:0.0},{here.Y:0.0} axes {alongX} {alongY} per height {alongX / height} {alongY / height} centre offset {(here.X - (window.Width / 2f)) / height:0.0000},{(here.Y - (window.Height / 2f)) / height:0.0000}");
+
+            // The fixed 16:9 view against what this window draws: they should part only near its edges, or where it is not 16:9.
+            var (agree, windowOnly, viewOnly) = (0, 0, 0);
+            foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+            {
+                if (!entity.IsValid || !entity.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var render))
+                {
+                    continue;
+                }
+
+                var drawn = Core.States.InGameStateObject.CurrentWorldInstance.WorldToScreen(render.WorldPosition);
+                var onWindow = drawn.X >= 0 && drawn.Y >= 0 && drawn.X <= window.Width && drawn.Y <= window.Height;
+                var inView = ScreenProjection.InView(render.WorldPosition);
+                (agree, windowOnly, viewOnly) = onWindow == inView ? (agree + 1, windowOnly, viewOnly) : onWindow ? (agree, windowOnly + 1, viewOnly) : (agree, windowOnly, viewOnly + 1);
+                if (onWindow != inView)
+                {
+                    this.log?.Info($"Camera view differs: {entity.Path} drawn at {drawn.X / height:0.000},{drawn.Y / height:0.000} heights, in view {inView}");
+                }
+            }
+
+            this.log?.Info($"Camera view: {agree} agree, {windowOnly} only on the window, {viewOnly} only in the 16:9 view");
+        }
+
         /// <summary>Every stat the player's Stats component holds, key and value, to debug/player-stats-*.txt.</summary>
         private void DumpPlayerStats()
         {
@@ -294,6 +331,9 @@
                     break;
                 case "focusinfo":
                     this.log?.Info($"Focus info: {(this.focus?.Current is { } focused ? this.semantics?.RawInfo(focused.Address) : "no focus")}");
+                    break;
+                case "camera":
+                    this.LogCamera();
                     break;
                 case "playerstats":
                     this.DumpPlayerStats();

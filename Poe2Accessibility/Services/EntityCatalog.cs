@@ -671,10 +671,7 @@ namespace Poe2Accessibility.Services
                 return Announcements.ScanEntry(entry.Name, 0, string.Empty, 0, null, true);
             }
 
-            var world = Core.States.InGameStateObject.CurrentWorldInstance;
-            var here = world.WorldToScreen(origin);
-            var alongX = world.WorldToScreen(Offset(origin, ProbeWorldUnits, 0)) - here;
-            var alongY = world.WorldToScreen(Offset(origin, 0, ProbeWorldUnits)) - here;
+            var (alongX, alongY) = ScreenProjection.Axes(origin);
             int DirectionOf(Vector2 delta) => StickDirection.Octant(alongX, alongY, delta.X, delta.Y);
             var legs = route == null
                 ? new List<(int Direction, float Length)>()
@@ -869,7 +866,7 @@ namespace Poe2Accessibility.Services
         {
             if (entry.Category == ScanCategory.Enemies && !onMinimap)
             {
-                return ScreenProjection.IsOnScreen(place);
+                return ScreenProjection.InView(place);
             }
 
             if (entry.Category == ScanCategory.Players || this.sighted.Contains(entry.Id))
@@ -877,7 +874,7 @@ namespace Poe2Accessibility.Services
                 return true;
             }
 
-            if (!onMinimap && !ScreenProjection.IsOnScreen(place) && !this.explored.IsSeen(new Vector2(place.X, place.Y) / worldToGrid))
+            if (!onMinimap && !ScreenProjection.InView(place) && !this.explored.IsSeen(new Vector2(place.X, place.Y) / worldToGrid))
             {
                 return false;
             }

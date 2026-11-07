@@ -275,9 +275,14 @@ namespace Poe2Accessibility.Services
 
             if (this.InGame && role == UiRole.Panel && tooltip.Count > 0 && BareNumber.IsMatch(label))
             {
-                // A sheet widget whose caption the game hides at some window sizes shows only its number ("513", title "Life").
-                label = Announcements.LabelValue(tooltip[0], label);
-                tooltip.RemoveAt(0);
+                // A sheet widget whose caption the game hides in a 5:4 window shows only its number ("513"): its hidden
+                // caption names it as at other sizes, else the tooltip's title.
+                var caption = this.HiddenCaption(info);
+                label = Announcements.LabelValue(caption.Length > 0 ? caption : tooltip[0], label);
+                if (caption.Length == 0 || caption == tooltip[0])
+                {
+                    tooltip.RemoveAt(0);
+                }
             }
 
             var group = string.Empty;

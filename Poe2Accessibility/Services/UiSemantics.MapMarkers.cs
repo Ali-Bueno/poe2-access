@@ -3,7 +3,6 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
-    using GameHelper.Plugin;
     using Poe2Accessibility.Models;
 
     /// <summary>
@@ -18,9 +17,6 @@ namespace Poe2Accessibility.Services
     {
         /// <summary>Fewer markers than this is not a map.</summary>
         private const int MinMapMarkers = 2;
-
-        /// <summary>Markers closer than this (pixels) to the player's own are "here".</summary>
-        private const float SameSpotPixels = 8f;
 
         /// <summary>Debug log for research (set by the plugin).</summary>
         public System.Action<string>? Trace { get; set; }
@@ -81,7 +77,8 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            var markers = new List<(System.IntPtr Address, string Label, Vector2 Centre)>();
+            // Markers are siblings: their centres in the map's own units, the same at any window size or zoom level.
+            var markers = new List<(System.IntPtr Address, string Label, Vector2 Centre, float Width)>();
             foreach (var siblingAddress in this.elements.ReadChildren(parent))
             {
                 if (!this.elements.TryReadElement(siblingAddress, out var sibling) || !sibling.IsVisibleFlag ||
@@ -91,12 +88,13 @@ namespace Poe2Accessibility.Services
                 }
 
                 var tooltip = this.TooltipLines(sibling);
-                if (tooltip.Count != 1 || !PluginUiElementReflection.TryGetAbsoluteRect(siblingAddress, out var position, out var size))
+                if (tooltip.Count != 1)
                 {
                     return null; // a marker is named by exactly one tooltip line
                 }
 
-                markers.Add((siblingAddress, tooltip[0], position + (size / 2)));
+                var (corner, size) = (sibling.Raw.RelativePosition, sibling.Raw.UnscaledSize);
+                markers.Add((siblingAddress, tooltip[0], new Vector2(corner.X + (size.X / 2), corner.Y + (size.Y / 2)), size.X));
             }
 
             var focusAddress = info.Address;
@@ -129,7 +127,7 @@ namespace Poe2Accessibility.Services
             if (hereIndex >= 0 && hereIndex != self)
             {
                 var offset = markers[self].Centre - markers[hereIndex].Centre;
-                if (offset.Length() >= SameSpotPixels)
+                if (offset.Length() >= markers[hereIndex].Width / 2)
                 {
                     // Screen y grows downwards; StickDirections count counter-clockwise from right.
                     var angle = System.Math.Atan2(-offset.Y, offset.X) * 180 / System.Math.PI;
