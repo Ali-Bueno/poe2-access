@@ -2878,9 +2878,9 @@ namespace Poe2Accessibility.Tests
             Equal(null, watch.Heard("Honor: 400/513"), "a fountain raises it");
             Equal(49, watch.Heard("Honor: 255/513"), "and the marks count again");
             Equal(null, watch.Heard("Honor"), "a line with no amount says nothing");
+            Equal(9, watch.Heard("Honor: 50/513"), "and leaves the last reading");
             Equal(0, watch.Heard("Honor: 0/513"), "running out is said");
             Equal(null, watch.Heard("Honor: 0/513"), "once, and the hub's stale line after the failed run stays silent");
-            Equal(9, watch.Heard("Honor: 50/513"), "and leaves the last reading");
         }
 
         private static void TakingTheFloorCutsAKeptLine()
