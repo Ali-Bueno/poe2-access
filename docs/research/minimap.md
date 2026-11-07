@@ -83,6 +83,10 @@ bubble, and the unit of the pointer distance.
   the fight) have the component, `blocking = false`, and read as not blocked, so the barrier branch of `Classify` dropped them; the log said
   "Minimap mark not listed" for each. Under a quest icon the component no longer makes an object a barrier. Not seen listed: the user's
   were pressed by then.
+- **The Relic Altar is two objects on one cell** (Trial of the Sekhemas, `Act2/2_13/Objects/`): `SanctumRelicDeviceDummy`, named by `display_text`,
+  is targetable until the league flag `SanctumIntroSeenRelicDevice`, set by the first use; then `SanctumRelicDevice` is the one in play, with no render
+  name, its title only in a `WorldDescription` the mod cannot read. Same icon, `MarakethSanctumRoomSelector`, no label. A nameless object takes the name
+  of a same-icon neighbour on its cell (`EntityCatalog.NameNear`), in or out of play.
 - **Names of quest objects:** an object's name is the `display_text` of its `.ot`, a ClientStrings key. Of the 62 `.ot` with a quest icon
   (`Poe2UiExtract ot-with`, 2026-11-07) only six have none: `RisuCage`, `KaruiElderCage` twice, `MiniBossChasm`, `WaterDjinnBayraIconOffset`,
   `TowerFloorBeamTurrets`. ClientStrings has no word for such a cage, so a cage is named by the mod after the character at its place,

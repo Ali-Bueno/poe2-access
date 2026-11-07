@@ -16,6 +16,9 @@ namespace Poe2Accessibility.Services
         /// <summary>How far from a cage the one it holds may be: Risu was one cell (about 11) from hers; the Karui elders are not measured.</summary>
         private const float CageWorld = 100f;
 
+        /// <summary>How far apart two objects stand to be one in the player's eyes: the Relic Altar's two share a cell.</summary>
+        private const float TwinWorld = 30f;
+
         /// <summary>Files of minimap marks the scanner left out, logged once each.</summary>
         private readonly HashSet<string> silentMarks = new(StringComparer.Ordinal);
 
@@ -137,6 +140,12 @@ namespace Poe2Accessibility.Services
             {
                 category = entity.TryGetComponent<Targetable>(out _) ? ScanCategory.Objects : null; // stash, bench, well
                 plain = true;
+                if (name.Length == 0 && icon.Length > 0)
+                {
+                    // The game can swap an object for a nameless twin: the Relic Altar's named SanctumRelicDeviceDummy goes out of
+                    // play after its first use and SanctumRelicDevice takes over, with its name only in a WorldDescription (user 2026-11-07).
+                    name = this.NameNear(render, TwinWorld, other => other.TryGetComponent<MinimapIcon>(out var mark) && mark.IconName == icon);
+                }
             }
 
             // Only a plain object can be a mark: a used shrine, an opened chest or a minion stays out whatever its icon says.
@@ -193,19 +202,22 @@ namespace Poe2Accessibility.Services
                 return Announcements.QuestObject;
             }
 
-            return this.HeldBy(render) is { Length: > 0 } held ? Announcements.CageOf(held) : Announcements.Cage;
+            // The character at a cage: caged, they are out of play and listed nowhere.
+            var held = MinimapMarks.BareName(this.NameNear(render, CageWorld, other => other.EntityType == EntityTypes.NPC));
+            return held.Length > 0 ? Announcements.CageOf(held) : Announcements.Cage;
         }
 
-        /// <summary>The name of the character at a cage, in the client's language; caged, they are out of play and listed nowhere.</summary>
-        private string HeldBy(Render cage)
+        /// <summary>The first name, in the client's language, of an awake entity within reach of a place that passes the test, in play or not.</summary>
+        private string NameNear(Render thing, float reach, Func<Entity, bool> passes)
         {
-            var place = new Vector2(cage.WorldPosition.X, cage.WorldPosition.Y);
+            var place = new Vector2(thing.WorldPosition.X, thing.WorldPosition.Y);
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
             {
-                if (entity.IsValid && entity.EntityType == EntityTypes.NPC && entity.TryGetComponent<Render>(out var render) &&
-                    Vector2.Distance(place, new Vector2(render.WorldPosition.X, render.WorldPosition.Y)) < CageWorld)
+                if (entity.IsValid && passes(entity) && entity.TryGetComponent<Render>(out var render) &&
+                    Vector2.Distance(place, new Vector2(render.WorldPosition.X, render.WorldPosition.Y)) < reach &&
+                    this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) is { Length: > 0 } name)
                 {
-                    return MinimapMarks.BareName(this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty);
+                    return name;
                 }
             }
 
