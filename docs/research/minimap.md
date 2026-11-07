@@ -79,6 +79,10 @@ bubble, and the unit of the pointer distance.
   nowhere until 2026-11-07 ("Minimap mark not listed" in the log, the place to look for the next one). It is now a point of interest
   with the quest item's sound, forgotten once used. Risu inside is an NPC out of play (Targetable off), one cell from the cage, so the
   cage is the only thing to find.
+- **Quest objects with `TriggerableBlockage`:** Balbala's three Runic Seals (`BossChainAnchor_1..3`, Traitor's Passage arena, pressed to start
+  the fight) have the component, `blocking = false`, and read as not blocked, so the barrier branch of `Classify` dropped them; the log said
+  "Minimap mark not listed" for each. Under a quest icon the component no longer makes an object a barrier. Not seen listed: the user's
+  were pressed by then.
 - **Names of quest objects:** an object's name is the `display_text` of its `.ot`, a ClientStrings key. Of the 62 `.ot` with a quest icon
   (`Poe2UiExtract ot-with`, 2026-11-07) only six have none: `RisuCage`, `KaruiElderCage` twice, `MiniBossChasm`, `WaterDjinnBayraIconOffset`,
   `TowerFloorBeamTurrets`. ClientStrings has no word for such a cage, so a cage is named by the mod after the character at its place,

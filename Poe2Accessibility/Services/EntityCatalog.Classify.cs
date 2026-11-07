@@ -122,13 +122,14 @@ namespace Poe2Accessibility.Services
             {
                 category = ScanCategory.Npcs;
             }
-            else if (entity.TryGetComponent<TriggerableBlockage>(out var blockage))
+            else if (!MinimapMarks.IsQuestIcon(icon) && entity.TryGetComponent<TriggerableBlockage>(out var blockage))
             {
                 // Tutorial beams and gates: where the way is shut, while it is (BarrierWatch says when one opens).
-                // A barrier stays one for the guide, so what the story wants opened sounds as a quest object through its Sound:
-                // the Ancient Seal, and the Runic Seals beside it, which also carry the quest's icon.
+                // A barrier stays one for the guide, so what the story wants opened sounds as a quest object through its Sound: the
+                // Ancient Seal. Under the quest's icon it is no barrier but a quest object: Balbala's three Runic Seals have this
+                // component too, walk-through and not blocked, and were listed nowhere, so the fight's start was found by luck (user 2026-11-07).
                 category = blockage.IsBlocked ? ScanCategory.Objects : null;
-                sound = name.Length > 0 && (MinimapMarks.IsStoryBarrier(path) || MinimapMarks.IsQuestIcon(icon)) ? MinimapMarks.QuestObjectKind : string.Empty;
+                sound = name.Length > 0 && MinimapMarks.IsStoryBarrier(path) ? MinimapMarks.QuestObjectKind : string.Empty;
                 name = name.Length > 0 ? name : Announcements.ClosedBarrier;
                 kind = "barrier";
             }

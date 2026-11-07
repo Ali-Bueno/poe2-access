@@ -171,9 +171,9 @@ Everything else under a quest icon sounds too (user 2026-11-07, "para todos"): w
 (a chest, in the game's set) the quest sound goes over it. The icon is the only sign read: the map device always carries `QuestObject`
 (`show_league_flag` only hides the icon, and no hidden flag of `MinimapIcon` is known), so it sounds in the hideout too.
 
-A named barrier sounds the same when the quest's icon is on it or a campaign area made it (`Metadata/Terrain/Gallows/Act*`, user 2026-11-07):
-the Ancient Seal at Balbala's door (`Act2/2_2/Objects/BossDoor`) and the Runic Seals beside it (`BossChainAnchor`), with secret doors,
-the Mawdun explodable wall, the Act 4 gates and prison doors. 33 of the 271 `.ot` with `TriggerableBlockage` have a `display_text`; the
+A named barrier sounds the same when a campaign area made it (`Metadata/Terrain/Gallows/Act*`, user 2026-11-07): the Ancient Seal at
+Balbala's door (`Act2/2_2/Objects/BossDoor`), with secret doors, the Mawdun explodable wall, the Act 4 gates and prison doors. 33 of the
+271 `.ot` with `TriggerableBlockage` have a `display_text`; the
 plain doors of dungeons, hideouts, leagues and maps stay silent. Such an entry keeps the kind "barrier", which the guide reads, and marks
 the sound in `ScanEntry.Sound`.
 
