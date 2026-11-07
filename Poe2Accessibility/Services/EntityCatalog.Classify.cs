@@ -40,6 +40,7 @@ namespace Poe2Accessibility.Services
             var baseId = string.Empty;
             var loot = LootTier.Valuable;
             var sound = string.Empty;
+            var timed = false;
             var icon = entity.TryGetComponent<MinimapIcon>(out var minimap) ? minimap.IconName ?? string.Empty : string.Empty;
             ScanCategory? category;
             if (icon == MinimapMarks.StoryGlyph)
@@ -139,9 +140,14 @@ namespace Poe2Accessibility.Services
             {
                 category = entity.TryGetComponent<Targetable>(out _) ? ScanCategory.Objects : null; // stash, bench, well
                 plain = true;
-                if (this.landmarks.ObjectiveOf(path) is { Length: > 0 } objective && !this.QuestTexts().Any(text => text.Contains(objective, StringComparison.Ordinal)))
+                if (this.landmarks.ObjectiveOf(path) is { Length: > 0 } objective)
                 {
-                    return null; // a Death Crystal in a room of another kind, called out from 352 steps off (user 2026-11-07)
+                    if (!this.QuestTexts().Any(text => text.Contains(objective, StringComparison.Ordinal)))
+                    {
+                        return null; // a Death Crystal in a room of another kind, called out from 352 steps off (user 2026-11-07)
+                    }
+
+                    timed = true;
                 }
 
                 // Levers in Trial rooms open the way out: SanctumGenericLever, a plain object, sounded nothing, and must stand out (user 2026-11-07).
@@ -187,7 +193,7 @@ namespace Poe2Accessibility.Services
 
             var position = render.WorldPosition;
             return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, MinimapMarks.KindUnder(icon, kind), baseId, loot, sound,
-                MinimapMarks.IsQuestIcon(icon), subject);
+                MinimapMarks.IsQuestIcon(icon), subject, timed);
         }
 
         /// <summary>

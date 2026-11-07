@@ -35,6 +35,12 @@ namespace Poe2Accessibility.Services
         private const float ReachWorld = RangeWorld + ProximityFade.TailWorld;
 
         /// <summary>
+        ///     The range of what a clock runs against: a room's crystals stand 2000 to 2800 apart (dump 2026-11-07), so past the first the
+        ///     next was out of hearing, and the 20 seconds went on finding it (user 2026-11-07).
+        /// </summary>
+        private const float TimedRangeWorld = 4000f;
+
+        /// <summary>
         ///     Repeat interval near / far, and the gain at the edge of the range. Near, often enough that its side stays
         ///     true while walking (1.3 s was heard as misplaced, user 2026-10-26).
         /// </summary>
@@ -139,7 +145,7 @@ namespace Poe2Accessibility.Services
                     foreach (var entry in entries.Where(member)
                                  .Where(entry => !(quietLoot && FightState.QuietsInFight(entry.Category, entry.Kind)) &&
                                                  (group != LootGroup || LootFilter.Allows(this.LootLevel, entry.Loot)))
-                                 .Where(entry => Distance(here, entry) <= ReachWorld).Take(voices))
+                                 .Where(entry => Distance(here, entry) <= ReachOf(entry)).Take(voices))
                     {
                         // Items take turns with the other groups, one at a time, so each drop is heard apart.
                         var crowd = voices > 1 && group != LootGroup ? group : string.Empty;
@@ -156,16 +162,16 @@ namespace Poe2Accessibility.Services
             foreach (var (group, (crowd, entry)) in this.nearest)
             {
                 var distance = Distance(here, entry);
-                if (distance > ReachWorld)
+                if (distance > ReachOf(entry))
                 {
                     continue;
                 }
 
-                var closeness = 1f - Math.Clamp(distance / RangeWorld, 0f, 1f);
+                var closeness = 1f - Math.Clamp(distance / RangeOf(entry), 0f, 1f);
                 var (side, height) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, new Vector2(entry.WorldX, entry.WorldY) - here));
                 var spread = Math.Min(1f, distance / CentreWorld);
                 var (pan, pitch) = (side * spread, 1f + ((height - 1f) * spread));
-                var gain = this.Gain * ProximityFade.Gain(distance, RangeWorld, FarGain);
+                var gain = this.Gain * ProximityFade.Gain(distance, RangeOf(entry), FarGain);
                 if (this.sounds.GetLoop(entry.Kind) is { } idle)
                 {
                     this.heardBeds[entry.Kind] = new HeardLoop(idle, entry.Kind, pan, pitch, gain, false);
@@ -263,6 +269,10 @@ namespace Poe2Accessibility.Services
             entry.Category is ScanCategory.Objects or ScanCategory.Encounters && wanted.Contains(entry.Id) && entry.Sound.Length == 0 && entry.Kind is not MinimapMarks.RitualDoneKind and not "ritual"
                 ? entry with { Sound = MinimapMarks.QuestObjectKind }
                 : entry;
+
+        private static float RangeOf(ScanEntry entry) => entry.Timed ? TimedRangeWorld : RangeWorld;
+
+        private static float ReachOf(ScanEntry entry) => RangeOf(entry) + ProximityFade.TailWorld;
 
         /// <summary>The kind an entry sounds as: a barrier keeps its own for the guide, and it or a lever can sound as a quest object.</summary>
         private static string SoundKind(ScanEntry entry) => entry.Sound == MinimapMarks.QuestObjectKind ? entry.Sound : entry.Kind;
