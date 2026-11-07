@@ -579,7 +579,10 @@ namespace Poe2Accessibility.Tests
             var chest = new ScanEntry(9, ScanCategory.Chests, "Cofre", 7f, 8f, 9f, "chest");
             var death = new ScanEntry(10, ScanCategory.Exits, "Donde moriste", 7f, 8f, 9f);
             var npc = new ScanEntry(11, ScanCategory.Npcs, "Una", 7f, 8f, 9f, "npc");
-            var left = new AreaMemory.Snapshot(1, new byte[] { 1, 2, 3 }, "Campamento", new() { [7] = exit, [8] = checkpoint, [9] = chest, [10] = death, [11] = npc },
+            var portal = new ScanEntry(12, ScanCategory.Waypoints, "Pueblo de Ogham", 7f, 8f, 9f, ScanEntry.PortalKind);
+            Equal(true, portal.CanVanish && chest.CanVanish, "a portal closes as a chest is opened");
+            Equal(false, checkpoint.CanVanish || exit.CanVanish || npc.CanVanish, "a checkpoint, an exit and a character stay");
+            var left = new AreaMemory.Snapshot(1, new byte[] { 1, 2, 3 }, "Campamento", new() { [7] = exit, [8] = checkpoint, [9] = chest, [10] = death, [11] = npc, [12] = portal },
                                                new() { 7 }, new(), frame);
             new AreaMemory(directory, log).Keep("OLD", left);
 
@@ -588,7 +591,7 @@ namespace Poe2Accessibility.Tests
             var inherited = restarted.Inherit(frame, "NEW");
             Equal("OLD", inherited?.Instance, "but the instance left with the same frame is found on disk");
             Equal("El bosque singular|Punto de control", string.Join("|", AreaMemory.Framed(inherited!.Value.Snapshot).Select(entry => entry.Name)),
-                  "and only its exits and checkpoints come along: no chest, death place or character");
+                  "and only its exits and checkpoints come along: no chest, death place, character or portal");
             Equal(true, restarted.Inherit(AreaMemory.Frame(moved, 100, 20000), "NEW") == null, "a map whose exits moved inherits nothing");
             Equal(true, restarted.Inherit(frame, "OLD") == null, "nor does the instance itself");
             Equal(true, restarted.Inherit(0, "NEW") == null, "nor a frameless map");

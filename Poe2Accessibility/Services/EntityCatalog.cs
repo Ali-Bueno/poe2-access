@@ -444,9 +444,9 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                if (Loot.Contains(landmark.Category) && Vector2.Distance(here, new Vector2(landmark.WorldX, landmark.WorldY)) < AwakeWorld)
+                if (landmark.CanVanish && Vector2.Distance(here, new Vector2(landmark.WorldX, landmark.WorldY)) < AwakeWorld)
                 {
-                    this.remembered.Remove(landmark.Id); // near its place and no longer listed: opened or picked up
+                    this.remembered.Remove(landmark.Id); // near its place and no longer listed: opened, picked up or closed
                     continue;
                 }
 

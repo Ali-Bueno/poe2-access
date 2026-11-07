@@ -83,7 +83,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>What another instance of the same map tells of this one: its exits and checkpoints, fixed by the frame.</summary>
         public static IEnumerable<ScanEntry> Framed(Snapshot from) =>
-            from.Remembered.Values.Where(entry => entry.Category == ScanCategory.Waypoints ||
+            from.Remembered.Values.Where(entry => (entry.Category == ScanCategory.Waypoints && entry.Kind != ScanEntry.PortalKind) ||
                                                   (entry.Category == ScanCategory.Exits && entry.Kind == QuestMatcher.ExitKind));
 
         private static ulong Name(ulong hash, string name)

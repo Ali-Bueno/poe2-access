@@ -39,7 +39,13 @@ namespace Poe2Accessibility.Services
     /// <param name="QuestMarked">The minimap draws the quest's own icon on it (<see cref="MinimapMarks.IsQuestIcon"/>).</param>
     /// <param name="Subject">For a boss room, whom or what its label names ("Asinia"): what an objective would name.</param>
     public sealed record ScanEntry(uint Id, ScanCategory Category, string Name, float WorldX, float WorldY, float WorldZ, string Kind = "", string BaseId = "",
-        LootTier Loot = LootTier.Valuable, string Sound = "", bool QuestMarked = false, string Subject = "");
+        LootTier Loot = LootTier.Valuable, string Sound = "", bool QuestMarked = false, string Subject = "")
+    {
+        public const string PortalKind = "portal";
+
+        /// <summary>It may be gone by the time the player is back: opened, picked up, or a portal that closed.</summary>
+        public bool CanVanish => this.Category is ScanCategory.Chests or ScanCategory.Items || this.Kind == PortalKind;
+    }
 
     /// <summary>
     ///     The eight directions the left stick walks, for a world offset. The stick's right is the world direction
