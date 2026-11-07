@@ -22,6 +22,10 @@ internal static class WorldTitleExtractor
     private const string HonourKey = "SanctumResolveValue";
     private const string HonourEntry = "label:honour";
 
+    /// <summary>The last line of an unallocated passive's tooltip.</summary>
+    private const string UnallocatedKey = "PassiveNodeUnallocated";
+    private const string UnallocatedEntry = "label:unallocated";
+
     private static readonly Regex TitleKey = new("title_text\\s*=\\s*\"([^\"]+)\"", RegexOptions.Compiled);
 
     /// <summary>A colour around a title: "&lt;white&gt;{Torre petrolífera}".</summary>
@@ -84,6 +88,11 @@ internal static class WorldTitleExtractor
             if (texts.TryGetValue(HonourKey, out var honour) && LinkedLabel.Match(honour) is { Success: true } label)
             {
                 titles[HonourEntry] = label.Groups[1].Value;
+            }
+
+            if (texts.TryGetValue(UnallocatedKey, out var unallocated))
+            {
+                titles[UnallocatedEntry] = unallocated;
             }
 
             var objectives = folder == null ? englishObjectives : DatTable.OpenTranslated(index, ObjectivesTable, folder);

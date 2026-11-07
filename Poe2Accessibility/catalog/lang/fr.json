@@ -726,6 +726,7 @@
  "{0} {1} percent": "{0} {1} pour cent",
  "{0} {1}, not enough": "{0} {1}, insuffisant",
  "{0} {1}, then {2}": "{0} {1}, puis {2}",
+ "{0}%, uncapped {1}%": "{0} %, sans plafond {1} %",
  "{0}'s cage": "Cage de {0}",
  "{0}, 1 push": "{0}, 1 poussée",
  "{0}, 1 use": "{0}, 1 utilisation",

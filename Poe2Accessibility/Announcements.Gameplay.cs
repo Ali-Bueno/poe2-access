@@ -103,6 +103,10 @@ namespace Poe2Accessibility
         /// <summary>"Attribute recommended: Strength", for a note that names the attribute only by its colour.</summary>
         public static string RecommendedAttribute(Services.BuildNotes.Attribute attribute) => T("Recommended attribute: ", "Atributo recomendado: ") + AttributeName(attribute);
 
+        /// <summary>A resistance as the sheet gives it: "27%", and what it would be without its cap when that differs.</summary>
+        public static string Resistance(int value, int uncapped) =>
+            uncapped == value ? $"{value}%" : T($"{value}%, uncapped {uncapped}%", $"{value}%, sin tope {uncapped}%");
+
         public static string AttributeName(Services.BuildNotes.Attribute attribute) => attribute switch
         {
             Services.BuildNotes.Attribute.Strength => T("Strength", "Fuerza"),

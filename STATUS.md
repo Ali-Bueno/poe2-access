@@ -77,7 +77,7 @@
 | Options opened in game: tab + focus on open and on LB/RB, never the page's labels | done (live) | "Graphics. VSync, Locked (Default), combo box" |
 | Item details (the item element's own tooltip) via `details` | done (live) | "Stack Size: 3/40. Identifies an item. X to use, then A …"; no controller binding for `details` yet |
 | Character selection list (selected entry, position) | done (live) | "Yarkidius, Level 1 Witch, Act 1: The Riverbank, 2 of 2" |
-| Character panel stats as "label, value" rows | done (code) | merged rows in snapshots; stats navigation untested |
+| Character panel stats as "label, value" rows | done (live) | numbers from the player's Stats (`SheetStats`, `PlayerStats`), at any resolution ([notes](docs/research/ui-layers.md)) |
 | Area announcement on entering / changing area | done (live) | own read of AreaLoadingState+0xEA0 (GameHelper offset stale) |
 | In-game context menus (skill: Manage Sockets…) with "x of n" | done (live) | same-class siblings |
 | Hover tooltips (element+0x120): title names id-only controls, short ones spoken, `details` reads all | done (live) | "Support Gem Slot, Socket a Support Gem of any colour …"; skill gem details |
@@ -411,6 +411,7 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
+First (2026-11-07): a tester's two reports reproduced with the game in English at 1280x1024. The sheet's attributes and resistances read no number: captions hide at some sizes and the value was matched by place; now from the player's Stats. A build node with a note read the note alone: it owns two tooltips; now both, stats first. Both read live; the exact "Unallocated" line replaces the old short-line guess, which could drop a real short stat.
 First (2026-11-07, released as v2026.11.07-7): the Trial's honour is said as it falls (`HonourWatch`, setting `AnnounceHonour`); not heard yet, and whether the HUD line is always among the texts read is to be seen.
 Then (2026-11-07, released as v2026.11.07-7): a plain object named only by a WorldDescription sounds as a quest object, such as the Blood Chalice (`Classify`, [notes](docs/research/game-audio.md)).
 Then (2026-11-07, released as v2026.11.07-7): the guide locks by itself on the crystal of the room quickest to reach, in turn, and lets go with the room done (`TimedGuide`, `EntityCatalog.WalkTo`, setting `GuideTimed`), as their sound goes through walls; the user completed such a room with the nearest first; the next crystal is heard from 4000 (`ScanEntry.Timed`); the clock was heard live, 18, 10 and 5.

@@ -117,7 +117,14 @@ colour to apply …"), so the
 - MEASURED: Cosmetics has no focus until the d-pad is pressed; then ordinary buttons ("Weapon Effect").
 - MEASURED: Character tab, inspect mode (R3) moves the focus over the stat widgets: the attribute circles
   hold only "STR" while the "7" is a **sibling drawn inside the circle**; a resistance icon has no text
-  and its "0%" sibling sits **just above it**; each widget's +0x120 tooltip explains it. In the stat
+  and its "0%" sibling sits **just above it**; each widget's +0x120 tooltip explains it. At 1280x1024 in
+  English (2026-11-07) the game **hides the captions** ("STR", "Life", the "Resistances" heading: flag 0x5026F1,
+  text still there) and the "0%" no longer falls in the icon's rect: a tester's report reproduced as "1 Strength = +2 Life"
+  with no number. So nothing is matched by place any more: `SheetStats` tells a widget by the English keys of its tooltip's
+  markup (`[Cold]`, `[UncappedResist|…]`, `[Strength|…]` + `[SupportGem|…]`, the same in every language, ClientStrings
+  `CharacterPanelFireResistDesc`…), and `PlayerStats` reads the number from the Stats component (`strength` 563,
+  `fire_damage_resistance_%` 299…, keys in `catalog/game-ids.txt`; dev command `playerstats`). A stat missing from Stats
+  is 0 (chaos resistance at 0% is absent). A number left bare by a hidden caption is named by the tooltip's title. In the stat
   list the cursor lands on keyword links only; the link's own +0x120 tooltip is the definition, and its
   row is text → cell → row (label cell + value cell: "Evasion Rating" | "7").
 - MEASURED: Skills panel rows: "LVL: 1, Punch, DPS: 6,1"; empty skill rows have no text (their gem

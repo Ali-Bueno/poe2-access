@@ -25,14 +25,14 @@ namespace Poe2Accessibility.Services
         /// <summary>The tree's canvas holds dozens of node groups; an element with fewer children is never searched as one.</summary>
         private const int MinCanvasGroups = 10;
 
-        /// <summary>The longest "Unallocated" line a tooltip ends with; the state word replaces it.</summary>
-        private const int MaxStateLineChars = 24;
-
         private PassiveGraph? passiveGraph;
         private PassivePlaces? passivePlaces;
 
         /// <summary>The player's metadata path, to find the class's own start node.</summary>
         public Func<string>? PlayerPath { get; set; }
+
+        /// <summary>The line an unallocated node's tooltip ends with, in the client's language.</summary>
+        public Func<string>? UnallocatedLabel { get; set; }
 
         private enum PassiveState
         {
@@ -57,7 +57,10 @@ namespace Poe2Accessibility.Services
             var allocated = this.AllocatedIds(graph.State);
             var node = this.ReadPassiveRow(record, row);
             var state = this.StateOf(graph, node, allocated);
-            var tooltip = this.TooltipLines(info);
+            // The node's own tooltip comes last; before it, the author's note of a Build Planner build.
+            var entries = this.TooltipEntries(info);
+            var tooltip = entries.Count > 0 ? entries[^1] : new List<string>();
+            var notes = entries.SkipLast(1).SelectMany(lines => lines).ToList();
             var tooltipPending = tooltip.Count == 0;
             if (tooltip.Count > 0 && tooltip[0] == node.Name)
             {
@@ -65,9 +68,9 @@ namespace Poe2Accessibility.Services
             }
 
             tooltip.RemoveAll(line => line.StartsWith('(') && line.EndsWith(')')); // the English name under the title
-            if (state != PassiveState.Allocated && tooltip.Count > 0 && tooltip[^1].Length <= MaxStateLineChars && !tooltip[^1].Any(char.IsDigit))
+            if (tooltip.Count > 0 && tooltip[^1] == this.UnallocatedLabel?.Invoke())
             {
-                tooltip.RemoveAt(tooltip.Count - 1); // the game's "Unallocated": the state word says it
+                tooltip.RemoveAt(tooltip.Count - 1); // the state word says it
             }
 
             // The Build Planner's active build: the nodes the tree marks, with the author's notes when the file is here.
@@ -79,10 +82,9 @@ namespace Poe2Accessibility.Services
             // Before the game builds the tooltip the name and state are said alone; stats, then links, follow with it.
             if (!tooltipPending)
             {
-                if (plan != null && marked.Contains(record))
-                {
-                    tooltip.AddRange(this.BuildLines(plan, record, node));
-                }
+                var buildLines = plan != null && marked.Contains(record) ? this.BuildLines(plan, record, node).ToList() : new List<string>();
+                tooltip.AddRange(buildLines);
+                tooltip.AddRange(notes.Except(buildLines));
 
                 var links = this.DescribeLinks(graph, info.Address, record, allocated, marked);
                 if (links.Length > 0)

@@ -138,8 +138,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Stat that a buff or action changed, else one items changed, else 0; by its key in the game, not GameHelper's.</summary>
         private static int Stat(Stats stats, GameStats stat)
         {
-            var key = (GameStats)GameIds.Current.Stat(stat.ToString(), (int)stat);
-            return stats.StatsChangedByBuffAndActions.TryGetValue(key, out var value) ? value : stats.StatsChangedByItems.GetValueOrDefault(key);
+            return PlayerStats.Value(stats, (GameStats)GameIds.Current.Stat(stat.ToString(), (int)stat));
         }
 
         private void WatchRage(Entity entity, AccessibilitySettings settings)

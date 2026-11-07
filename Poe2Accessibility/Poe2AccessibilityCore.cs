@@ -264,6 +264,7 @@ namespace Poe2Accessibility
                 this.semantics = new UiSemantics(memory, elements, catalog, comboBoxes, inventory)
                 {
                     TooltipsMoved = (from, to) => this.compatibility?.Moved("tooltips", from, to),
+                    PlayerStat = name => PlayerStats.Of(Seats.Asking, name),
                 };
                 this.semantics.TreeFields.Report = this.compatibility;
                 this.semantics.TreeFields.Log = message => this.log?.Info(message);
@@ -398,6 +399,7 @@ namespace Poe2Accessibility
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
                 this.narrator.HonourLabel = () => this.entities?.HonourLabel ?? string.Empty;
+                this.semantics.UnallocatedLabel = () => this.entities?.UnallocatedLabel ?? string.Empty;
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
                 this.entities.Memory = new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds, modSounds, drops, diabloSounds));

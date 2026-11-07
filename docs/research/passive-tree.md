@@ -174,6 +174,11 @@ OPEN: `+0x648` values and `T+0x1A8` entry layout with several or weapon-set allo
   set II); the author's note (`additional_text`) is drawn beside the hovered node **outside the UI tree** (absent from a
   full dump; its text lives in a text-layout object and in the parsed JSON, both found by a memory scan, neither on a
   path from the tree).
+- MEASURED (2026-11-07, a test build): a node with a note owns **two tooltips** (vector +0x120, 0x18 bytes each): first the
+  note, then the node's stats. Reading the first alone said the note and never what the node does (a tester: "it simply just
+  tells you that they are in the build"). `TooltipEntries` reads them all: stats first, then the note, so a website build's notes
+  are read too. The string at +0x620 ("Fuerza\nStrength\n\n+8 a la fuerza") is no fallback: all nodes had it in a Spanish session
+  that had used the tree's search, none in an English one.
 - The files: `Documents\My Games\Path of Exile 2\BuildPlanner\*.build`, JSON (GGG developer docs, "Build Planner" v1):
   `passives` = ids (PassiveSkills `Id`) or objects {id, level_interval, weapon_set 0-2, additional_text}; the GGG example
   writes attribute advice as notes ("<m>{<red>{Strength +5 is recommended}}"); Mobalytics exports carry no passive notes.

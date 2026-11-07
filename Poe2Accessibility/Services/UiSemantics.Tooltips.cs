@@ -17,10 +17,19 @@ namespace Poe2Accessibility.Services
 
         private const int TooltipRadius = 0x80;
 
+        /// <summary>More tooltips than an element is seen to own (a passive node: two) are taken for a misread vector.</summary>
+        private const int MaxTooltips = 4;
+
+        /// <summary>A text that is nothing but a number ("513", "46%").</summary>
+        private static readonly Regex BareNumber = new(@"^[-+]?\d[\d.,]*%?$", RegexOptions.Compiled);
+
         private bool tooltipsRead;
 
         /// <summary>Told where the tooltips moved, from and to.</summary>
         public Action<int, int>? TooltipsMoved { get; set; }
+
+        /// <summary>Reads a stat of the player the panels belong to, by its name in the game.</summary>
+        public Func<string, int?>? PlayerStat { get; set; }
 
         private static string ShownText(Match link) => link.Groups[2].Success ? link.Groups[2].Value : link.Groups[1].Value;
 
@@ -74,18 +83,95 @@ namespace Poe2Accessibility.Services
             return rootInfo;
         }
 
+        /// <summary>What a widget is made of, for research (dev command focusinfo): its art and its tooltip's markup.</summary>
+        public string RawInfo(IntPtr address)
+        {
+            if (!this.elements.TryReadElement(address, out var info))
+            {
+                return "unreadable";
+            }
+
+            return $"art={this.elements.ReadTextureKey(info)} tooltip={this.TooltipMarkup(info)}";
+        }
+
+        /// <summary>The tagged text of the element's tooltip, its keyword keys in English whatever the language.</summary>
+        private string TooltipMarkup(in UiElementReader.ElementInfo owner)
+        {
+            var parts = new List<string>();
+            var stack = new Stack<UiElementReader.ElementInfo>();
+            if (this.TooltipRoot(owner) is { } root)
+            {
+                stack.Push(root);
+            }
+
+            for (var budget = MaxTooltipNodes; stack.Count > 0 && budget > 0; budget--)
+            {
+                var node = stack.Pop();
+                if (this.elements.TryReadText(node.Address, out var text, out var tagged) && text.Length > 0)
+                {
+                    parts.Add(tagged);
+                }
+
+                foreach (var child in this.elements.ReadChildren(node))
+                {
+                    if (this.elements.TryReadElement(child, out var element))
+                    {
+                        stack.Push(element);
+                    }
+                }
+            }
+
+            return string.Join('\n', parts);
+        }
+
+        /// <summary>A character sheet widget's number, from the player's stats; null for any other widget.</summary>
+        private (string Value, BuildNotes.Attribute? Attribute)? SheetValue(in UiElementReader.ElementInfo info)
+        {
+            if (this.PlayerStat == null || SheetStats.FromMarkup(this.TooltipMarkup(info)) is not { } sheet || this.PlayerStat(sheet.Stat) is not { } number)
+            {
+                return null;
+            }
+
+            return sheet.Uncapped == null
+                ? (number.ToString(System.Globalization.CultureInfo.InvariantCulture), sheet.Attribute)
+                : (Announcements.Resistance(number, this.PlayerStat(sheet.Uncapped) ?? number), null);
+        }
+
         /// <summary>
         ///     Lines of the tooltip the game shows for this element, in reading order; a text's own children (keyword
         ///     link boxes) are skipped and hidden lines ("Account-bound") left out.
         /// </summary>
-        private List<string> TooltipLines(in UiElementReader.ElementInfo owner)
+        private List<string> TooltipLines(in UiElementReader.ElementInfo owner) =>
+            this.TooltipRoot(owner) is { } root ? this.LinesOf(root) : new List<string>();
+
+        /// <summary>
+        ///     The lines of each tooltip the element owns: a passive node with a Build Planner note keeps the note in a tooltip of
+        ///     its own, before the node's (2026-11-07).
+        /// </summary>
+        private List<List<string>> TooltipEntries(in UiElementReader.ElementInfo owner)
         {
-            var lines = new List<string>();
-            if (this.TooltipRoot(owner) is not { } rootInfo)
+            var entries = new List<List<string>>();
+            if (this.TooltipRoot(owner) == null || !this.reader.TryRead<StdVector>(owner.Address + GameLayout.Element.TooltipsOffset, out var tooltips))
             {
-                return lines;
+                return entries;
             }
 
+            var count = (tooltips.Last.ToInt64() - tooltips.First.ToInt64()) / GameLayout.Element.TooltipEntrySize;
+            for (var index = 0; index < Math.Min(count, MaxTooltips); index++)
+            {
+                if (this.reader.TryRead<IntPtr>(tooltips.First + (index * GameLayout.Element.TooltipEntrySize), out var root) &&
+                    this.elements.TryReadElement(root, out var rootInfo) && rootInfo.Raw.ParentPtr == owner.Address)
+                {
+                    entries.Add(this.LinesOf(rootInfo));
+                }
+            }
+
+            return entries;
+        }
+
+        private List<string> LinesOf(in UiElementReader.ElementInfo rootInfo)
+        {
+            var lines = new List<string>();
             var stack = new Stack<UiElementReader.ElementInfo>();
             stack.Push(rootInfo);
             var budget = MaxTooltipNodes;

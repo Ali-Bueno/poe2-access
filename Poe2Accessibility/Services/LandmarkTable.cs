@@ -137,6 +137,9 @@ namespace Poe2Accessibility.Services
         /// <summary>What the Trial's honour line starts with in the client's language, empty when the table has none.</summary>
         public string HonourLabel => this.Title("label:honour");
 
+        /// <summary>The line an unallocated passive's tooltip ends with in the client's language, empty when the table has none.</summary>
+        public string UnallocatedLabel => this.Title("label:unallocated");
+
         /// <summary>The tracker line without which an object means nothing, empty for most.</summary>
         public string ObjectiveOf(string path) => this.Title("objective:" + FileOf(path));
 

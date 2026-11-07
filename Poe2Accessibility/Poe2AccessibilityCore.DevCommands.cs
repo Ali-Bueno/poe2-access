@@ -1,4 +1,4 @@
-namespace Poe2Accessibility
+﻿namespace Poe2Accessibility
 {
     using System;
     using System.IO;
@@ -11,6 +11,22 @@ namespace Poe2Accessibility
     /// <summary>Research and test commands of <see cref="Poe2AccessibilityCore"/> (debug/command.txt, hotkeys) and the status and compatibility reports.</summary>
     public sealed partial class Poe2AccessibilityCore
     {
+        /// <summary>Every stat the player's Stats component holds, key and value, to debug/player-stats-*.txt.</summary>
+        private void DumpPlayerStats()
+        {
+            if (!Seats.Asking.TryGetComponent<GameHelper.RemoteObjects.Components.Stats>(out var stats))
+            {
+                this.log?.Warn("playerstats: no Stats component");
+                return;
+            }
+
+            var lines = stats.StatsChangedByItems.OrderBy(stat => (int)stat.Key).Select(stat => $"items {(int)stat.Key} {stat.Value}")
+                .Concat(stats.StatsChangedByBuffAndActions.OrderBy(stat => (int)stat.Key).Select(stat => $"buffs {(int)stat.Key} {stat.Value}"));
+            var file = Path.Join(this.DllDirectory, "debug", $"player-stats-{DateTime.Now:yyyyMMdd-HHmmss}.txt");
+            File.WriteAllLines(file, lines);
+            this.log?.Info($"Player stats written: {file}");
+        }
+
         private void RunDevCommand(string command)
         {
             if (command.StartsWith("gesture ", StringComparison.Ordinal) &&
@@ -275,6 +291,12 @@ namespace Poe2Accessibility
                     break;
                 case "cooldowns":
                     this.log?.Info(this.alerts?.Cooldowns.Diagnose() ?? "Cooldowns off");
+                    break;
+                case "focusinfo":
+                    this.log?.Info($"Focus info: {(this.focus?.Current is { } focused ? this.semantics?.RawInfo(focused.Address) : "no focus")}");
+                    break;
+                case "playerstats":
+                    this.DumpPlayerStats();
                     break;
                 case "screen":
                     this.narrator?.SpeakScreen(this.screen?.Current ?? ScreenSnapshot.Empty, this.focus?.CurrentLayer ?? IntPtr.Zero);

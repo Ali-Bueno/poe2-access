@@ -248,7 +248,17 @@ namespace Poe2Accessibility.Services
 
             var tooltip = cardDetails.Count > 0 ? cardDetails : this.TooltipLines(info);
             var context = this.InGame ? this.PanelTitle(info) : string.Empty;
-            if ((namedById || hovered || label.Length == 0 || label == context) && tooltip.Count > 0)
+            var sheet = this.InGame && value.Length == 0 && role is UiRole.Panel or UiRole.Unknown ? this.SheetValue(info) : null;
+            if (sheet is { } stat)
+            {
+                value = stat.Value;
+            }
+
+            if (sheet?.Attribute is { } attribute)
+            {
+                (label, namedById) = (Announcements.AttributeName(attribute), false);
+            }
+            else if ((namedById || hovered || label.Length == 0 || label == context) && tooltip.Count > 0)
             {
                 // Only a control id named it, nothing did (cosmetic slots: an icon), the label found is the panel's
                 // title (the quest map's underground toggle), or the free cursor rests on it (passive node): the
@@ -263,11 +273,11 @@ namespace Poe2Accessibility.Services
                 tooltip.RemoveAt(0);
             }
 
-            if (this.InGame && value.Length == 0 && tooltip.Count > 0 && role is UiRole.Panel or UiRole.Unknown && !label.Any(char.IsDigit))
+            if (this.InGame && role == UiRole.Panel && tooltip.Count > 0 && BareNumber.IsMatch(label))
             {
-                // An inspectable widget (character panel stat): its number is drawn by a sibling, unless its own caption
-                // holds it ("Armour, 0%").
-                value = this.OverlayValue(info, label);
+                // A sheet widget whose caption the game hides at some window sizes shows only its number ("513", title "Life").
+                label = Announcements.LabelValue(tooltip[0], label);
+                tooltip.RemoveAt(0);
             }
 
             var group = string.Empty;

@@ -1,6 +1,7 @@
 {
   "de": {
     "label:honour": "Ehre",
+    "label:unallocated": "Nicht zugewiesen",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Altar der Aszendenz",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "Zünder",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "Zünder",
@@ -48,6 +49,7 @@
   },
   "en": {
     "label:honour": "Honour",
+    "label:unallocated": "Unallocated",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Altar of Ascendancy",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "Detonator",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "Detonator",
@@ -95,6 +97,7 @@
   },
   "es": {
     "label:honour": "Honor",
+    "label:unallocated": "Sin asignar",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Altar de ascendencia",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "Detonador",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "Detonador",
@@ -142,6 +145,7 @@
   },
   "fr": {
     "label:honour": "Honneur",
+    "label:unallocated": "Talent non attribué",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Autel d'Ascendance",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "Détonateur",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "Détonateur",
@@ -189,6 +193,7 @@
   },
   "ja": {
     "label:honour": "名誉",
+    "label:unallocated": "割り当てられていない",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "アセンダンシーの祭壇",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "起爆装置",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "起爆装置",
@@ -236,6 +241,7 @@
   },
   "ko": {
     "label:honour": "명예",
+    "label:unallocated": "미할당",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "전직 제단",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "기폭 장치",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "기폭 장치",
@@ -283,6 +289,7 @@
   },
   "pt": {
     "label:honour": "Honra",
+    "label:unallocated": "Não atribuído",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Altar de Ascendência",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "Detonador",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "Detonador",
@@ -330,6 +337,7 @@
   },
   "ru": {
     "label:honour": "Честь",
+    "label:unallocated": "Не выбрано",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Алтарь Восхождения",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "Взорвать заряды",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "Взорвать заряды",
@@ -377,6 +385,7 @@
   },
   "th": {
     "label:honour": "เกียรติ",
+    "label:unallocated": "ยังไม่ได้อัพ",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "แท่นครองอำนาจ",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "ตัวจุดชนวน",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "ตัวจุดชนวน",
@@ -424,6 +433,7 @@
   },
   "zh-TW": {
     "label:honour": "榮譽",
+    "label:unallocated": "已取消配置",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "昇華之殿",
     "metadata/miscellaneousobjects/expedition/expeditiondetonator": "引爆器",
     "metadata/miscellaneousobjects/expedition/expeditiondetonatortreasureisland": "引爆器",

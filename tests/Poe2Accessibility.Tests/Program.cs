@@ -68,6 +68,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(TakingTheFloorCutsAKeptLine), TakingTheFloorCutsAKeptLine);
             Run(nameof(AFallingClockIsSaidAtItsMarks), AFallingClockIsSaidAtItsMarks);
             Run(nameof(TrialMapIsColumnsFromEntranceToBoss), TrialMapIsColumnsFromEntranceToBoss);
+            Run(nameof(SheetWidgetsAreToldByTheirTooltipsKeys), SheetWidgetsAreToldByTheirTooltipsKeys);
             Run(nameof(TheGuideGoesFromCrystalToCrystal), TheGuideGoesFromCrystalToCrystal);
             Run(nameof(HonourIsSaidAsItFalls), HonourIsSaidAsItFalls);
             Run(nameof(WorldIsBackOnlyOnceNothingCoversIt), WorldIsBackOnlyOnceNothingCoversIt);
@@ -2767,6 +2768,17 @@ namespace Poe2Accessibility.Tests
             Equal(false, CountdownWatch.IsClock("0:06"), "nor a buff's duration");
             Equal(true, MinimapMarks.IsQuestIcon("SanctumFountain"), "the Death Crystal is what the Trial's room wants");
             Equal(MinimapMarks.QuestObjectKind, MinimapMarks.DeviceKind("MarakethSanctumRoomSelector"), "and a Trial's reward, under Leagues, sounds as a quest object");
+        }
+
+        private static void SheetWidgetsAreToldByTheirTooltipsKeys()
+        {
+            Equal("chaos_damage_resistance_%", SheetStats.FromMarkup("<valuedefault>{Chaos Resistance}\nYou take this much less [Chaos] damage.\nMaximum [Resistances|Resistance] is capped at 75%. The number in brackets is the [UncappedResist|Uncapped] value.")?.Stat, "a resistance in English");
+            Equal("uncapped_fire_damage_resistance_%", SheetStats.FromMarkup("<valuedefault>{Resistencia al fuego}\nRecibes esta cantidad menos de daño de [Fire|fuego].\n[Resistances|Resistencia] máxima [UncappedResist|sin tope]")?.Uncapped, "the keys stay English in Spanish");
+            Equal(BuildNotes.Attribute.Strength, SheetStats.FromMarkup("1 [Strength|Strength] = +2 Life\n5 [Strength|Strength] = +1 Strength [SupportGem|Support Gem] Capacity")?.Attribute, "an attribute");
+            Equal("intelligence", SheetStats.FromMarkup("1 [Intelligence] = +2 Mana\n5 [Intelligence|Intelligence] = +1 Intelligence [SupportGem|Support Gem] Capacity")?.Stat, "a key without its shown half");
+            Equal(null, SheetStats.FromMarkup("<valuedefault>{Estimated Armour Mitigation}\n[Armour] reduces the [Physical|Physical Damage] you take"), "any other tooltip");
+            Equal(null, SheetStats.FromMarkup("+10 to [Strength]\n+20% to [Fire] [Resistances|Resistance]"), "an item's lines are no sheet widget");
+            Equal(null, SheetStats.FromMarkup(string.Empty), "no tooltip");
         }
 
         private static void TrialMapIsColumnsFromEntranceToBoss()

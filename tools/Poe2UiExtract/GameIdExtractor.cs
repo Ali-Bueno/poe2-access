@@ -15,7 +15,13 @@ internal static class GameIdExtractor
     private const int StatKeyFromRow = 1;
 
     // The stats the mod reads, by the Id column.
-    private static readonly string[] Stats = { "current_rage", "maximum_rage", "virtual_maximum_rage" };
+    private static readonly string[] Stats =
+    {
+        "current_rage", "maximum_rage", "virtual_maximum_rage",
+        "strength", "dexterity", "intelligence",
+        "fire_damage_resistance_%", "cold_damage_resistance_%", "lightning_damage_resistance_%", "chaos_damage_resistance_%",
+        "uncapped_fire_damage_resistance_%", "uncapped_cold_damage_resistance_%", "uncapped_lightning_damage_resistance_%", "uncapped_chaos_damage_resistance_%",
+    };
 
     public static int Run(string gameDir, string outFile)
     {
