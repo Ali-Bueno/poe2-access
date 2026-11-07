@@ -107,6 +107,14 @@ namespace Poe2Accessibility.Services
             return this.Admit(text, interrupt, now);
         }
 
+        /// <summary>What the player just asked for: no kept line holds it back, and what waited is stale.</summary>
+        public void Take(string text, DateTime now)
+        {
+            this.keptUntil = this.lessonUntil = now;
+            this.held.Clear();
+            this.Sent(text, true, now);
+        }
+
         /// <summary>A phrase that goes out regardless of the floor (urgent warnings queue right behind the kept line).</summary>
         public void Sent(string text, bool interrupt, DateTime now)
         {

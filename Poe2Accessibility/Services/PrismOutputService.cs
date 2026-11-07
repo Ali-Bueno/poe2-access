@@ -119,6 +119,8 @@ namespace Poe2Accessibility.Services
 
         public void Moved(string text) => this.Say(text, true, Delivery.Move, 0);
 
+        public void TakeFloor(string text) => this.Say(text, true, Delivery.Floor, 0);
+
         public void Repeat()
         {
             if (string.IsNullOrEmpty(this.lastText))
@@ -257,6 +259,9 @@ namespace Poe2Accessibility.Services
                         break;
                     case Delivery.Move:
                         goesOut = this.floor.Move(text, ref interrupt, now);
+                        break;
+                    case Delivery.Floor:
+                        this.floor.Take(text, now);
                         break;
                     case Delivery.Urgent:
                         interrupt &= !this.floor.Held(now); // right behind the lesson being kept, never dropped with what waits
@@ -420,6 +425,7 @@ namespace Poe2Accessibility.Services
             Kept,
             KeptMessage,
             Move,
+            Floor,
         }
 
         private readonly record struct SpeechRequest(string? Text, bool Interrupt);

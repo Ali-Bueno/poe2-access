@@ -3,11 +3,19 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.RegularExpressions;
 
     /// <summary>The quest tracker's shown page, said whenever it is not the page last said, across areas. Pure.</summary>
     public sealed class QuestTrackerPage
     {
+        private static readonly Regex PageNumber = new(@"(\d+)/\d+", RegexOptions.Compiled);
+
         private IReadOnlyList<string> lastSaid = Array.Empty<string>();
+        private string shownPage = string.Empty;
+        private bool turning;
+
+        /// <summary>The news last given is a page the player turned to: its number on the tracker's legend changed.</summary>
+        public bool Turned { get; private set; }
 
         /// <summary>A new page waits for the menu over the game to close.</summary>
         public bool Waiting { get; private set; }
@@ -20,8 +28,11 @@ namespace Poe2Accessibility.Services
         /// </summary>
         /// <param name="quests">Each shown quest, title and objectives, as it would be said.</param>
         /// <param name="inMenu">A menu covers the game.</param>
-        public string News(IReadOnlyList<string> quests, bool inMenu = false)
+        /// <param name="legend">The tracker's page legend: it is read after the pages, so a turn can show there first.</param>
+        public string News(IReadOnlyList<string> quests, bool inMenu = false, string legend = "")
         {
+            this.NoteLegend(legend);
+            this.Turned = false;
             var fresh = quests.Count > 0 && !quests.SequenceEqual(this.lastSaid);
             this.Waiting = fresh && inMenu;
             if (!fresh || inMenu)
@@ -30,9 +41,23 @@ namespace Poe2Accessibility.Services
             }
 
             var changed = quests.Except(this.lastSaid).ToList();
-            var keepsOne = changed.Count < quests.Count;
+            var rest = changed.Count < quests.Count && (changed.Count > 0 || !this.turning);
             this.lastSaid = quests;
-            return Announcements.Sentences(keepsOne ? changed : quests);
+            var news = Announcements.Sentences(rest ? changed : quests);
+            this.Turned = this.turning && news.Length > 0;
+            this.turning &= news.Length == 0;
+            return news;
+        }
+
+        private void NoteLegend(string legend)
+        {
+            if (PageNumber.Match(legend) is not { Success: true } number)
+            {
+                return;
+            }
+
+            this.turning |= this.shownPage.Length > 0 && number.Groups[1].Value != this.shownPage;
+            this.shownPage = number.Groups[1].Value;
         }
     }
 }

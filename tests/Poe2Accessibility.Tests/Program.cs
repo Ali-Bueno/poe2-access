@@ -64,6 +64,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(QuestTrackerPageIsSaidWhenItChanges), QuestTrackerPageIsSaidWhenItChanges);
             Run(nameof(QuestPageWaitsForTheMenuToClose), QuestPageWaitsForTheMenuToClose);
             Run(nameof(QuestPageSaysOnlyTheQuestThatChanged), QuestPageSaysOnlyTheQuestThatChanged);
+            Run(nameof(TurnedQuestPageIsToldFromTheObjectivesOwnChange), TurnedQuestPageIsToldFromTheObjectivesOwnChange);
+            Run(nameof(TakingTheFloorCutsAKeptLine), TakingTheFloorCutsAKeptLine);
             Run(nameof(WorldIsBackOnlyOnceNothingCoversIt), WorldIsBackOnlyOnceNothingCoversIt);
             Run(nameof(PanelOverTheGameIsTheTopLayerThatIsNotTheHud), PanelOverTheGameIsTheTopLayerThatIsNotTheHud);
             Run(nameof(ItemMovesAreSaidAsDeeds), ItemMovesAreSaidAsDeeds);
@@ -2721,6 +2723,38 @@ namespace Poe2Accessibility.Tests
             Equal(string.Empty, page.News(new[] { ivory, crown }, inMenu: true), "the same page in a menu is no news");
             Equal(string.Empty, page.News(new[] { ivory, placed }, inMenu: true), "a change waits for the menu");
             Equal(placed, page.News(new[] { ivory, placed }), "and says only itself");
+        }
+
+        private static void TurnedQuestPageIsToldFromTheObjectivesOwnChange()
+        {
+            var page = new QuestTrackerPage();
+            var (rising, trail, city) = ("Ascenso al poder. Busca el altar", "El rastro. Sigue a Orbala", "La ciudad. Viaja a Keth");
+            page.News(new[] { rising, trail }, legend: "Página de misiones 1/5 LT + cruceta derecha");
+            Equal(false, page.Turned, "the first page is no turn");
+            Equal(city, page.News(new[] { rising, city }, legend: "Página de misiones 2/5 LT + cruceta derecha"), "the next page");
+            Equal(true, page.Turned, "its number changed: the player turned it");
+            var placed = "Ascenso al poder. Coloca tu barya";
+            Equal(placed, page.News(new[] { placed, city }, legend: "Página de misiones 2/5 LT + cruceta derecha"), "an objective on the same page");
+            Equal(false, page.Turned, "is no turn");
+            Equal(string.Empty, page.News(new[] { placed, city }, legend: "Página de misiones 3/5 LT + cruceta derecha"), "the legend is read after the pages, a turn can show there first");
+            Equal(false, page.Turned, "with nothing to say yet");
+            Equal(trail, page.News(new[] { placed, trail }, legend: "Página de misiones 3/5 LT + cruceta derecha"), "the page follows");
+            Equal(true, page.Turned, "and is that turn");
+            Equal(string.Empty, page.News(new[] { placed, trail }, legend: "Página de misiones 3/6 LT + cruceta derecha"), "a new quest only raises the total");
+            Equal(placed, page.News(new[] { placed }, legend: "Página de misiones 4/6 LT + cruceta derecha"), "a page turned to with nothing new is said whole: the player asked");
+            Equal(true, page.Turned, "and turned");
+        }
+
+        private static void TakingTheFloorCutsAKeptLine()
+        {
+            var now = new DateTime(2026, 11, 7, 10, 0, 0, DateTimeKind.Utc);
+            var floor = new SpeechFloor();
+            floor.Keep("Misión: una página larga", false, 5000, now);
+            Equal(true, floor.Held(now.AddSeconds(1)), "a kept line holds");
+            Equal(false, floor.Admit("Oro recogido", false, now.AddSeconds(1)), "and what comes waits");
+            floor.Take("Misión: la página siguiente", now.AddSeconds(2));
+            Equal(false, floor.Held(now.AddSeconds(2)), "the player's turn takes the floor");
+            Equal(0, floor.Release(now.AddSeconds(2)).Count, "and what waited is stale");
         }
 
         private static void QuestPageWaitsForTheMenuToClose()

@@ -26,6 +26,9 @@ namespace Poe2Accessibility.Services
         /// </summary>
         void Keep(string text, int holdMs, bool interrupt = false, bool yieldsToMoves = false) => this.Speak(text, interrupt);
 
+        /// <summary>What the player just asked for: cuts what is being said, even a kept line, and drops what waited behind it.</summary>
+        void TakeFloor(string text) => this.Speak(text, true);
+
         /// <summary>The cursor moved by the player: interrupts, but follows a message being kept rather than waiting it out.</summary>
         void Moved(string text) => this.Speak(text, true);
 

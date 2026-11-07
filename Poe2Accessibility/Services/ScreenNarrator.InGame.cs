@@ -311,13 +311,17 @@ namespace Poe2Accessibility.Services
         /// <returns>The tracker's texts, for the HUD's own news to leave out.</returns>
         public List<ScreenText> CheckQuestPage(ScreenSnapshot snapshot)
         {
-            var tracker = !this.inGame || snapshot.Find(this.HudLayer) is not { } hud
+            var hud = this.inGame ? snapshot.Find(this.HudLayer) : null;
+            var tracker = hud == null
                 ? new List<ScreenText>()
                 : hud.Texts.Where(text => text.Name is GameLayout.InGameUi.QuestTitleName or GameLayout.InGameUi.QuestLineName &&
                                           (this.IsQuestTrackerText?.Invoke(text.Address) ?? false)).ToList();
-            if (this.questPage.News(QuestsOf(tracker), this.InMenu) is { Length: > 0 } page)
+            var legend = hud?.Texts.FirstOrDefault(text => text.Name == GameLayout.InGameUi.QuestLegendName)?.Text ?? string.Empty;
+            if (this.questPage.News(QuestsOf(tracker), this.InMenu, legend) is { Length: > 0 } page)
             {
-                this.Speak("quest page", Announcements.QuestPage(page), SpeechPriority.Interrupts(SpeechKind.Quest), Hold.Lesson);
+                // Held whole, pages turned one after another queued up behind each other (user 2026-11-07).
+                var turned = this.questPage.Turned;
+                this.Speak("quest page", Announcements.QuestPage(page), turned || SpeechPriority.Interrupts(SpeechKind.Quest), turned ? Hold.Floor : Hold.Lesson);
             }
 
             return tracker;

@@ -69,8 +69,10 @@ tutorial box), back 400 ms after both end. Panels whose controls lack the intera
 covered by their focus. Local co-op goes by the focus alone: a panel may be the other player's. Each change is logged
 ("Panel over the game: …"): that line tells a panel from a layer that silences the game by mistake.
 
-The quest tracker's page is said whole, so it holds the floor: at an NPC it kept the options silent for seven seconds
-(Leitis, 2026-11-04, 18:05:51). In a menu it waits (`QuestTrackerPage`) and is said once the menu closes, the latest page only.
+News of the quest tracker holds the floor: at an NPC it kept the options silent for seven seconds (Leitis, 2026-11-04, 18:05:51). In a
+menu it waits (`QuestTrackerPage`) and is said once the menu closes, the latest page only. Of a page that keeps a quest of the last one
+only the rest is said. A page the player turns, known by the number on `page_cycling_legend`, holds nothing: it cuts what is being said
+and drops what waited (`SpeechFloor.Take`), or turned pages queue up behind each other (user 2026-11-07).
 
 ### Trade windows: disenchanting
 

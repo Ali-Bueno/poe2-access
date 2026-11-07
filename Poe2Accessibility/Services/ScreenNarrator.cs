@@ -1037,6 +1037,9 @@ namespace Poe2Accessibility.Services
             None,
             Message,
             Lesson,
+
+            /// <summary>The player asked for it: it cuts even a held line, and holds nothing back itself.</summary>
+            Floor,
         }
 
         private void Speak(string reason, string text, bool interrupt, Hold hold = Hold.None)
@@ -1078,6 +1081,12 @@ namespace Poe2Accessibility.Services
             if (interrupt)
             {
                 this.cutInAt = now;
+            }
+
+            if (hold == Hold.Floor)
+            {
+                this.output.TakeFloor(text);
+                return;
             }
 
             if (hold != Hold.None)

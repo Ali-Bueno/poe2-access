@@ -344,6 +344,9 @@ namespace Poe2Accessibility
 
             public const string QuestLineName = "quest_info";
 
+            /// <summary>"Página de misiones 2/5 LT + cruceta derecha" beside the tracker; absent with one page.</summary>
+            public const string QuestLegendName = "page_cycling_legend";
+
             public const int QuestLineDepth = 8;
 
             /// <summary>
@@ -584,7 +587,7 @@ namespace Poe2Accessibility
             public const string ColumnName = "tertiary_hud_layout";
 
             /// <summary>The quest tracker and its page legend share the column: not the encounter.</summary>
-            public static readonly string[] SkippedNames = { "quests_display_pages_root", "page_cycling_legend" };
+            public static readonly string[] SkippedNames = { "quests_display_pages_root", InGameUi.QuestLegendName };
 
             /// <summary>The column sits this deep under the HUD layer (1) — a little slack for a game patch.</summary>
             public const int SearchDepth = 3;
