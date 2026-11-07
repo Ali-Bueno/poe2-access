@@ -142,8 +142,8 @@ namespace Poe2Accessibility.Services
                     return null; // a Death Crystal in a room of another kind, called out from 352 steps off (user 2026-11-07)
                 }
 
-                // Levers in Trial rooms open the way out: SanctumGenericLever, a plain object, sounded nothing (user 2026-11-07).
-                kind = Switches.IsSwitch(path) ? "switch" : kind;
+                // Levers in Trial rooms open the way out: SanctumGenericLever, a plain object, sounded nothing, and must stand out (user 2026-11-07).
+                sound = Switches.IsSwitch(path) ? MinimapMarks.QuestObjectKind : sound;
                 if (name.Length == 0)
                 {
                     // Named only in a WorldDescription, which the mod cannot read: the real Relic Altar, after its named stand-in leaves

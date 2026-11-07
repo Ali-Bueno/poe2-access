@@ -75,7 +75,6 @@ namespace Poe2Accessibility.Services
             ("encounters", 1, entry => entry.Category == ScanCategory.Encounters && entry.Kind != MinimapMarks.RitualDoneKind && SoundKind(entry) != MinimapMarks.QuestObjectKind),
             ("exits", 1, entry => entry.Category == ScanCategory.Exits || entry.Kind == "portal"),
             ("waypoints", 1, entry => entry.Kind is "waypoint" or "checkpoint"),
-            ("switches", 1, entry => entry.Kind == "switch" && entry.Category != ScanCategory.Chests),
             ("quests", 1, entry => entry.Kind == "npc_quest"),
             ("quest objects", 1, entry => SoundKind(entry) == MinimapMarks.QuestObjectKind),
         };
@@ -265,7 +264,7 @@ namespace Poe2Accessibility.Services
                 ? entry with { Sound = MinimapMarks.QuestObjectKind }
                 : entry;
 
-        /// <summary>The kind an entry sounds as: a barrier keeps its own for the guide and can sound as a quest object.</summary>
+        /// <summary>The kind an entry sounds as: a barrier keeps its own for the guide, and it or a lever can sound as a quest object.</summary>
         private static string SoundKind(ScanEntry entry) => entry.Sound == MinimapMarks.QuestObjectKind ? entry.Sound : entry.Kind;
 
         private float[]? SoundFor(ScanEntry entry) => this.drops.For(entry.BaseId) ?? SoundKind(entry) switch
