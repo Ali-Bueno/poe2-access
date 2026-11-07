@@ -128,6 +128,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(SmallCapsCaptionsGetACapital), SmallCapsCaptionsGetACapital);
             Run(nameof(QuestRewardIconsAreNamed), QuestRewardIconsAreNamed);
             Run(nameof(PlacesAreSaidOnceAsTheyChange), PlacesAreSaidOnceAsTheyChange);
+            Run(nameof(ATooltipLineSwappedInPlaceIsSaid), ATooltipLineSwappedInPlaceIsSaid);
             Run(nameof(RadarLabelsSpeakSpanish), RadarLabelsSpeakSpanish);
             Run(nameof(RadarBossNamesSpeakTheGamesMonsterName), RadarBossNamesSpeakTheGamesMonsterName);
             Run(nameof(ExperienceProgressIsWithinTheLevel), ExperienceProgressIsWithinTheLevel);
@@ -3146,6 +3147,21 @@ namespace Poe2Accessibility.Tests
             Equal("cart", Walk(null, 110), "and said again on the way back");
             Equal("", Walk("stairs", 300), "a new kind waits");
             Equal("stairs", Walk("stairs", 302), "and is said");
+        }
+
+        private static void ATooltipLineSwappedInPlaceIsSaid()
+        {
+            var bear = new[] { "Talismán", "Forma de oso", "Equipado: Set de armas" };
+            var wolf = new[] { "Talismán", "Forma de hombre lobo", "Equipado: Set de armas" };
+            const string focused = "Talismán cambiaformas, Talismán. Forma de oso. Equipado: Set de armas";
+            string New(IReadOnlyList<string> said, IReadOnlyList<string> tooltip, string speech) =>
+                string.Join(" | ", FocusDetails.NewTooltipLines(said, tooltip, speech));
+
+            Equal("Forma de hombre lobo", New(bear, wolf, focused), "the form changed");
+            Equal("Forma de oso", New(wolf, bear, focused), "and changed back, though the focus said it");
+            Equal(string.Empty, New(bear, bear, focused), "nothing changed");
+            Equal(string.Empty, New(Array.Empty<string>(), bear, focused), "built after the focus: all of it was said");
+            Equal("Daño", New(new[] { "Talismán" }, new[] { "Talismán", "Daño" }, "Talismán"), "still building: only what the focus did not hold");
         }
 
         private static void ConfirmGlyphMarksTheEntryBesideIt()

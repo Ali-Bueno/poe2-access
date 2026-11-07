@@ -588,7 +588,7 @@ namespace Poe2Accessibility.Services
                 // links follow; a title the focus announcement already holds is not news either.
                 var said = this.tooltipSaid;
                 this.tooltipSaid = node.Tooltip;
-                var fresh = node.Tooltip.Where(line => !said.Contains(line) && !this.lastFocusSpeech.Contains(line, StringComparison.Ordinal)).ToList();
+                var fresh = FocusDetails.NewTooltipLines(said, node.Tooltip, this.lastFocusSpeech);
                 if (fresh.Count > 0)
                 {
                     this.Speak("tooltip of focus", Announcements.Sentences(fresh), false);
