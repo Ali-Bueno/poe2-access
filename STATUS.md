@@ -411,7 +411,8 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
-First (2026-11-07): the Relic Altar sounds after a failed run, with the Trial's map, floor doors and rewards (`MarakethSanctumRoomSelector`, [notes](docs/research/minimap.md)); not released.
+First (2026-11-07): the Trial's map says each room's column and standing (`TrialMap`, [notes](docs/research/endgame-ui.md)); links between rooms and the player's room past the entrance still unread; not released.
+Then (2026-11-07): the Relic Altar sounds after a failed run, with the Trial's map, floor doors and rewards (`MarakethSanctumRoomSelector`, [notes](docs/research/minimap.md)); not released.
 Then (2026-11-07, released as v2026.11.07-6): a Trial lever sounds as a quest object, a crystal is listed only under its objective, and a buff's "0:06" is no longer taken for the clock (`Classify`, `CountdownWatch`).
 Then (2026-11-07, released as v2026.11.07-5): the Trial's Death Crystals are listed, named and sound like quest objects, and the HUD's clock is said (`world-titles.json`, `CountdownWatch`, [notes](docs/research/minimap.md)); the user's run died of the clock, 20 s unheard, in room 2; none of it seen live. The real Relic Altar, heard live under its stand-in's name, now takes it from the same table.
 Then (2026-11-07, released as v2026.11.07-5): the quest tracker says only the quest that changed (heard live while paging), a page the player turns cuts what is being said, known by the number on its legend (`QuestTrackerPage.Turned`, `SpeechFloor.Take`), and an object the tracker names sounds as a quest object while it does (`ObjectSounds.WhileWanted`).

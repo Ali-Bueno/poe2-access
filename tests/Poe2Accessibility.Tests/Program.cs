@@ -67,6 +67,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(TurnedQuestPageIsToldFromTheObjectivesOwnChange), TurnedQuestPageIsToldFromTheObjectivesOwnChange);
             Run(nameof(TakingTheFloorCutsAKeptLine), TakingTheFloorCutsAKeptLine);
             Run(nameof(AFallingClockIsSaidAtItsMarks), AFallingClockIsSaidAtItsMarks);
+            Run(nameof(TrialMapIsColumnsFromEntranceToBoss), TrialMapIsColumnsFromEntranceToBoss);
             Run(nameof(WorldIsBackOnlyOnceNothingCoversIt), WorldIsBackOnlyOnceNothingCoversIt);
             Run(nameof(PanelOverTheGameIsTheTopLayerThatIsNotTheHud), PanelOverTheGameIsTheTopLayerThatIsNotTheHud);
             Run(nameof(ItemMovesAreSaidAsDeeds), ItemMovesAreSaidAsDeeds);
@@ -2764,6 +2765,20 @@ namespace Poe2Accessibility.Tests
             Equal(false, CountdownWatch.IsClock("0:06"), "nor a buff's duration");
             Equal(true, MinimapMarks.IsQuestIcon("SanctumFountain"), "the Death Crystal is what the Trial's room wants");
             Equal(MinimapMarks.QuestObjectKind, MinimapMarks.DeviceKind("MarakethSanctumRoomSelector"), "and a Trial's reward, under Leagues, sounds as a quest object");
+        }
+
+        private static void TrialMapIsColumnsFromEntranceToBoss()
+        {
+            Equal(true, TrialMap.IsMap(new[] { 1, 3, 4, 3, 5, 3, 6, 1 }), "the floor seen on 2026-11-07");
+            Equal(false, TrialMap.IsMap(new[] { 3, 3, 3, 3 }), "a grid of buttons has no entrance");
+            Equal(false, TrialMap.IsMap(new[] { 1, 2, 1 }), "too few columns");
+            Equal(false, TrialMap.IsMap(new[] { 1, 0, 3, 1 }), "and every column holds rooms");
+            Equal(TrialRoomStanding.Open, TrialMap.Standing(1, true, 1), "the room offers to enter");
+            Equal(TrialRoomStanding.Here, TrialMap.Standing(0, false, 1), "the column before the first to enter is the player's");
+            Equal(TrialRoomStanding.Behind, TrialMap.Standing(1, false, 3), "before it, left behind");
+            Equal(TrialRoomStanding.Ahead, TrialMap.Standing(2, false, 1), "after it, not reachable");
+            Equal(TrialRoomStanding.Ahead, TrialMap.Standing(1, false, 1), "nor is a room beside the open ones that does not offer");
+            Equal(TrialRoomStanding.Ahead, TrialMap.Standing(0, false, -1), "with nothing open nothing can be told");
         }
 
         private static void TakingTheFloorCutsAKeptLine()

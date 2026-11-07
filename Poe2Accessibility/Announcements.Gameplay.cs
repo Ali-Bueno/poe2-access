@@ -585,6 +585,22 @@ namespace Poe2Accessibility
         /// <summary>A closed barrier in the scanner's objects (a tutorial beam, a gate); it has no name of its own.</summary>
         public static string ClosedBarrier => T("Closed barrier", "Barrera cerrada");
 
+        /// <summary>A room of the Trial's map not revealed yet: the map shows only a few rooms ahead.</summary>
+        public static string HiddenRoom => T("Hidden room", "Sala oculta");
+
+        /// <summary>A room's place on the Trial's map, columns running from the entrance to the boss; to enter a room, its tooltip says so.</summary>
+        public static string TrialRoomPlace(int column, int columns, int room, int rooms, Services.TrialRoomStanding standing)
+        {
+            var place = T($"column {column} of {columns}, room {room} of {rooms}", $"columna {column} de {columns}, sala {room} de {rooms}");
+            return standing switch
+            {
+                Services.TrialRoomStanding.Here => $"{place}, {T("your column", "tu columna")}",
+                Services.TrialRoomStanding.Behind => $"{place}, {T("left behind", "ya quedó atrás")}",
+                Services.TrialRoomStanding.Ahead => $"{place}, {T("not reachable yet", "aún no puedes entrar")}",
+                _ => place,
+            };
+        }
+
         /// <summary>A clock falling on the HUD: "Quedan 10 segundos".</summary>
         public static string SecondsLeft(int seconds) => T($"{seconds} seconds left", $"Quedan {seconds} segundos");
 

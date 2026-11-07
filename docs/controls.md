@@ -26,6 +26,8 @@ Hold L3 and flick the right stick: up and down change the category, left and rig
 first; both wrap and empty categories are skipped. The category is named only when it changes:
 "Characters. Una, 14 steps, right 3, then up right".
 
+- The Trial of the Sekhemas' map reads each room's place: "column 2 of 8, room 3 of 3", columns running from the entrance to the boss, and whether it is your column,
+  left behind or not reachable yet; a room you can enter says so with its button, one not revealed is "Hidden room".
 - A clock falling on the HUD, such as the Trial's, is said when first seen and as it passes 60, 30, 20, 10 and 5 seconds (setting "Countdown timers").
 - Categories: **quest** (what the quest tracker names: the exit to the area it asks for, the boss to kill, the
   NPC to talk to, and whatever the minimap marks with the quest's own icon, such as "Risu's cage", which the game leaves

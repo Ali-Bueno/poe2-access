@@ -286,6 +286,15 @@ namespace Poe2Accessibility.Services
                 (label, namedById) = (Announcements.Empty, false);
             }
 
+            if (role == UiRole.Button && this.InGame && this.TrialRoomPlace(info) is { Length: > 0 } room)
+            {
+                (label, position) = (label.Length > 0 ? label : Announcements.HiddenRoom, room);
+            }
+            else if (role == UiRole.Panel && label.Length > MaxCellText)
+            {
+                position = string.Empty; // a paragraph is no cell: the Trial map's tutorial was read with "columna 1, fila 1" inside (2026-11-07)
+            }
+
             return new AccessibleUiNode
             {
                 Address = address,
@@ -308,6 +317,9 @@ namespace Poe2Accessibility.Services
                 IsEnabled = !info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) || !FlagBits.EnabledTrusted || info.HasFlagBit(GameLayout.Element.EnabledFlagBit),
             };
         }
+
+        /// <summary>The longest caption a grid's cell has.</summary>
+        private const int MaxCellText = 80;
 
         /// <summary>Visible text first (login gateway combo shows it in a text field); otherwise the selected entry from the object.</summary>
         private string ComboBoxValue(in UiElementReader.ElementInfo info, string ownText)

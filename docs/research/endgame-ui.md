@@ -70,6 +70,11 @@ a prior live dump; **INFERRED** = consistent with the sources; **OPEN** = unknow
   `UltimatumWindowPreviewRewardsButtonText`, `UltimatumActiveModifierLegendsTitle`, `UltimatumBarDisplayName`,
   `UltimatumWorldDescriptionBeginButton/InfoButton`, `UltimatumWindowGamblingModeTitle/Description`,
   `UltimatumWindowBeginButtonNotInstanceOwner`. Key: `ItemFunctionUltimatumQuestKey` (Temple of Chaos).
+- MEASURED (2026-11-07, dump of the open map, `dump 0x<panel>`: the whole tree stops at 20,000 nodes before it): under `panels_parent`, the map element's children are
+  one canvas with no children, where the links are drawn, and one element whose children are the columns, 8 on the floor seen (1, 3, 4, 3, 5, 3, 6, 1 rooms). Rooms are
+  buttons: the first and last 141 px wide, the rest 108; a room shows its name and tooltip ("Otorga una llave de bronce", the affliction, "Entrar, A" when it can be
+  entered); one not revealed has neither, and no children. `UiSemantics.TrialRoomPlace` says "columna 2 de 8, sala 3 de 3". Not known: which rooms link to which
+  (the canvas), and which room of a column the player is in past the entrance; both need a dump further on in a run.
 - INFERRED: the room-choice map is a node graph (path from entrance to the boss at the right, per `SanctumMapWindowInfo`),
   with selectable rooms: a dedicated reader, like the atlas. Choice popups (fountain, vendor, pledge, deferral) are
   ordinary windows with buttons: the generic focus reader probably reads them; honour/inspiration bars are HUD labels
