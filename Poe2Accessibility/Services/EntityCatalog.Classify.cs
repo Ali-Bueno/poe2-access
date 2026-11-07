@@ -155,8 +155,10 @@ namespace Poe2Accessibility.Services
                 if (name.Length == 0)
                 {
                     // Named only in a WorldDescription, which the mod cannot read: the real Relic Altar, after its named stand-in leaves
-                    // play on the first use, and the Trial's Death Crystals (user 2026-11-07).
+                    // play on the first use, and the Trial's Death Crystals (user 2026-11-07). The game explains such an object in a box
+                    // of its own because it is there to be used, so it sounds as a quest object: the Blood Chalice, the Sand Hourglass.
                     name = this.landmarks.WorldTitle(path);
+                    sound = name.Length > 0 ? MinimapMarks.QuestObjectKind : sound;
                 }
             }
 

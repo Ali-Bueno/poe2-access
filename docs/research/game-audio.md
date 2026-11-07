@@ -174,6 +174,10 @@ Everything else under a quest icon sounds too (user 2026-11-07, "para todos"): w
 An object or device the quest tracker names sounds the same while it names it (`QuestMatcher`, `ObjectSounds.WhileWanted`, user 2026-11-07):
 the Relic Altar (`Act2/2_13/Objects/SanctumRelicDevice`) carries no quest icon, only "Coloca tu barya en el Altar de reliquias".
 
+A plain object named only by a `WorldDescription` sounds the same, whatever the tracker says: the game gives it a box of its own because it is there to be used (Blood
+Chalice, `SanctumEncounterKillCounter`; Sand Hourglass, `SanctumEncounterTimerLever`; user 2026-11-07, after several of them one by one). A league device of that table
+has its own rules and stays silent: out of play it would go on sounding.
+
 A lever built as a plain object (`SanctumGenericLever`, Trial rooms) has the quest sound, chosen over the switch sound because it must stand out (user
 2026-11-07); one built as a chest keeps the switch sound.
 

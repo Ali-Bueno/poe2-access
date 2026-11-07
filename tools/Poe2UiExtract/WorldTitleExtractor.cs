@@ -20,6 +20,9 @@ internal static class WorldTitleExtractor
 
     private static readonly Regex TitleKey = new("title_text\\s*=\\s*\"([^\"]+)\"", RegexOptions.Compiled);
 
+    /// <summary>A colour around a title: "&lt;white&gt;{Torre petrolífera}".</summary>
+    private static readonly Regex Colour = new(@"^<\w+>\{(.*)\}$", RegexOptions.Compiled);
+
     /// <summary>Death Crystals stand in rooms of other kinds too, still targetable: only this objective makes them real.</summary>
     private static readonly (string Path, string Objective)[] Objectives =
     {
@@ -67,7 +70,7 @@ internal static class WorldTitleExtractor
             {
                 if (texts.TryGetValue(key, out var text))
                 {
-                    titles[path] = text;
+                    titles[path] = Colour.Replace(text, "$1");
                 }
             }
 
