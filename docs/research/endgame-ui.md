@@ -78,6 +78,16 @@ a prior live dump; **INFERRED** = consistent with the sources; **OPEN** = unknow
 - MEASURED (2026-11-07): honour is a HUD line, `[Honour|Honor]: <white>{444/513}` (ClientStrings `SanctumResolveValue`), shown as "Honor: 474/513". Its label by language is
   `label:honour` in `catalog/world-titles.json`. A run ended on it with no death line in the log (12:17). The Blood Chalice's room has no clock of its own
   (`SanctumKillCounterBody`: "Defeat all Rare Monsters in the area to fill the Chalice"); a HUD "0:04" is a buff's.
+- MEASURED (2026-11-07, game files and logs of seven runs): five runs failed on the Death Crystal clock (the crystals left kill about 4 s after it ends;
+  `SanctumLethalHourglassBody`), two on honour reaching 0 (buff `sanctum_honour_failure`, no death line). Honour fell only in fights in those runs: no gauntlet room was entered, so no trap
+  was met; the mod has no line for a hit. Honour is the game's "Resolve": max `total_sanctum_honour` in Stats (513 = max life), the current amount only on the HUD line. The buffs that say they
+  drain it: `sanctum_fire_beam` (Unholy Scalding, the laser), `ground_sanctum` (Enervation), `invisible_holy_fire_sanctum`, and `sanctum_resolve_vulnerability` makes 50% more of it go.
+- MEASURED: traps are monsters under `Metadata/Monsters/MarakethSanctumTrial/Hazards/` (`HazardBase`: Positioned, Render, StateMachine, Targetable false, stat `is_hidden_monster`): `GroundSpike` states
+  `rumble`/`spike`, `LaserCrossBeamTurret` `active`/`fire`, `ProxMine` `prime`, `TimeRewindTrap` `active`; floor 1 has spikes and lasers in gauntlet rooms. `TrialTraps`/`TrapWatch` go by those; NOT SEEN LIVE:
+  no dump was taken in a gauntlet room, so whether the client lists them and what the states read comes from the `.ot` files: the log's "Trial trap seen" lines will say.
+- MEASURED: the HUD row beside the honour line holds four counters, each an icon and a number: sacred water ("39(+7)"), bronze, silver, gold keys (`TrialHud`; dump 2026-11-07 11:36, order from a key
+  won as the second went to 1). The "(+7)" is read as it stands: what it adds up to is not known.
+- Trial of Chaos: HUD `UltimatumBarDisplayName`, `UltimatumWindowRound` ("Ronda {0}/{1}"), clock `UltimatumTimer`; the turrets of `Metadata/Monsters/LeagueUltimatum/` are named as traps. Not seen in game.
 - INFERRED: the room-choice map is a node graph (path from entrance to the boss at the right, per `SanctumMapWindowInfo`),
   with selectable rooms: a dedicated reader, like the atlas. Choice popups (fountain, vendor, pledge, deferral) are
   ordinary windows with buttons: the generic focus reader probably reads them; honour/inspiration bars are HUD labels

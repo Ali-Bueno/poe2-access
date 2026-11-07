@@ -1,11 +1,33 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>The Trial of the Sekhemas' map: a room's place, as the tutorial explains the floor (user 2026-11-07).</summary>
     public sealed partial class UiSemantics
     {
+        /// <summary>The counts beside the Trial's honour line on the HUD, in their order: each counter holds an icon and its number.</summary>
+        public IReadOnlyList<string> TrialCounters(IntPtr honourLine)
+        {
+            var counts = new List<string>();
+            if (!this.elements.TryReadElement(honourLine, out var line) || !this.elements.TryReadElement(line.Raw.ParentPtr, out var row))
+            {
+                return counts;
+            }
+
+            foreach (var address in this.elements.ReadChildren(row).TakeWhile(address => address != honourLine))
+            {
+                if (this.elements.TryReadElement(address, out var counter) && this.elements.ReadChildren(counter) is { Length: 2 } parts &&
+                    this.elements.TryReadText(parts[1], out var count) && count.Length > 0)
+                {
+                    counts.Add(count);
+                }
+            }
+
+            return counts;
+        }
+
         /// <summary>
         ///     "columna 2 de 8, sala 3 de 3" and how the room stands, or empty for any other button. Each column of the map is a
         ///     child of one element, its rooms buttons; only a room the player can enter has the interact button in its tooltip.

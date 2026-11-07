@@ -121,6 +121,7 @@ namespace Poe2Accessibility
         private ShieldWatch? shield;
         private HazardWatch? hazards;
         private EncounterReader? encounters;
+        private TrapWatch? traps;
         private MinionReport? minions;
         private CullWatch? culls;
         private DeployedWatch? deployed;
@@ -367,6 +368,7 @@ namespace Poe2Accessibility
                 this.log.Info($"Cull skills: {cullSkills.Count} skills from the game files");
                 this.culls = new CullWatch(this.audio, this.output, elements) { HasCullingSkill = () => cullSkills.AnyCulls(skills.Ids()) };
                 this.deployed = new DeployedWatch(this.audio, this.log);
+                this.traps = new TrapWatch(this.audio, this.log);
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
                 this.deployed.GameSound = gameSounds.Get;
@@ -393,12 +395,15 @@ namespace Poe2Accessibility
                 {
                     Died = () => this.entities?.RememberDeath(),
                     Revivable = () => Seats.Other is { } other && IsAlive(other),
+                    EndsWithoutDeathScreen = () => TrialHud.IsRunArea(this.gameState?.CurrentAreaId ?? string.Empty),
                 };
                 this.ApplySoundVolumes(this.Settings);
                 this.commands = new ModCommands(this.output, this.focus, this.semantics, this.narrator, () => this.screen?.Current ?? ScreenSnapshot.Empty, this.entities, this.beacon, this.ReadVitals, this.log);
                 this.screen = new ScreenWatcher(elements, this.log);
                 this.entities.QuestTexts = this.QuestTexts;
                 this.narrator.HonourLabel = () => this.entities?.HonourLabel ?? string.Empty;
+                this.narrator.WaterLabel = () => this.entities?.WaterLabel ?? string.Empty;
+                this.narrator.TrialCountersBeside = this.semantics.TrialCounters;
                 this.semantics.UnallocatedLabel = () => this.entities?.UnallocatedLabel ?? string.Empty;
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
                 this.entities.Memory = new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
@@ -660,6 +665,11 @@ namespace Poe2Accessibility
             if (watching && this.Settings.AnnounceHonour)
             {
                 this.narrator.CheckHonour(this.screen.Current);
+            }
+
+            if (watching && this.Settings.AnnounceTrialCounters)
+            {
+                this.narrator.CheckTrialCounters(this.screen.Current);
             }
 
             this.wasWatching = watching;
@@ -940,6 +950,7 @@ namespace Poe2Accessibility
             this.shield?.Reset();
             this.culls?.Reset();
             this.deployed?.Reset();
+            this.traps?.Reset();
             this.enemyStates?.Reset();
             this.alerts?.Statuses.Reset();
             this.partnerAlerts?.Statuses.Reset();

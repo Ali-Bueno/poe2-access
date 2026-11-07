@@ -28,7 +28,8 @@ namespace Poe2Accessibility.Services
             var path = entity.Path ?? string.Empty;
             var leagueIcon = LeagueDeviceIcon(entity, path);
             // A league's altar stays listed out of play; what a quest icon marks does not: a Trial's reward is spent once used.
-            if ((leagueIcon == null || MinimapMarks.IsQuestIcon(leagueIcon)) && !this.InPlay(entity))
+            var trap = TrialTraps.KindOf(path);
+            if ((leagueIcon == null || MinimapMarks.IsQuestIcon(leagueIcon)) && trap == null && !this.InPlay(entity))
             {
                 return null;
             }
@@ -110,6 +111,13 @@ namespace Poe2Accessibility.Services
                 name = name.Length > 0 ? name : this.landmarks.WorldTitle(path);
                 name = name.Length > 0 ? name : Announcements.LeagueDevice(leagueIcon, path.Contains(BossDevice, StringComparison.Ordinal));
                 kind = MinimapMarks.DeviceKind(leagueIcon);
+            }
+            else if (trap is { } kindOfTrap)
+            {
+                // Untargetable and flagged hidden, yet there on the floor for anyone who can see.
+                category = TrialTraps.IsSeenBeforeItStrikes(kindOfTrap) ? ScanCategory.PointsOfInterest : null;
+                name = Announcements.TrialTrapName(kindOfTrap);
+                kind = TrapKind;
             }
             else if (entity.EntityType == EntityTypes.Monster && (path.StartsWith(CreatureFolder, StringComparison.Ordinal) || !entity.TryGetComponent<MinimapIcon>(out _)))
             {
@@ -313,6 +321,9 @@ namespace Poe2Accessibility.Services
         ///     Ritual rune, Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable, sounded as an enemy, 2026-10-26).
         /// </summary>
         public const string CreatureFolder = "Metadata/Monsters/";
+
+        /// <summary>The scanner's kind of a Trial's trap.</summary>
+        private const string TrapKind = "trap";
 
         /// <summary>
         ///     The minimap icon of a league device (the Ritual altar, Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable,

@@ -29,6 +29,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The crossbow at Rapid Shot's maximum heat: no firing or reloading those bolts for a while.</summary>
         Overheated,
+
+        /// <summary>A Trial's Resolve Weakness: 50% more honour lost.</summary>
+        HonourWeakness,
+
+        /// <summary>A Trial's Binding Chains, slowing the player.</summary>
+        BindingChains,
     }
 
     /// <summary>Buff definition id → ailment, by its words (pure).</summary>
@@ -53,6 +59,8 @@ namespace Poe2Accessibility.Services
             (new[] { "maim", "maimed" }, StatusAilment.Maimed),
             (new[] { "blind", "blinded" }, StatusAilment.Blinded),
             (new[] { "overheated" }, StatusAilment.Overheated),
+            (new[] { "resolve" }, StatusAilment.HonourWeakness),
+            (new[] { "binding" }, StatusAilment.BindingChains),
             (new[] { "curse", "cursed" }, StatusAilment.Cursed),
         };
 

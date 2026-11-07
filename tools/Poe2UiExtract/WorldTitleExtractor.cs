@@ -26,6 +26,10 @@ internal static class WorldTitleExtractor
     private const string UnallocatedKey = "PassiveNodeUnallocated";
     private const string UnallocatedEntry = "label:unallocated";
 
+    /// <summary>"Sacred Water: {0}": the Trial's currency, up to its colon.</summary>
+    private const string WaterKey = "ItemDisplaySanctumGold";
+    private const string WaterEntry = "label:water";
+
     private static readonly Regex TitleKey = new("title_text\\s*=\\s*\"([^\"]+)\"", RegexOptions.Compiled);
 
     /// <summary>A colour around a title: "&lt;white&gt;{Torre petrolífera}".</summary>
@@ -88,6 +92,11 @@ internal static class WorldTitleExtractor
             if (texts.TryGetValue(HonourKey, out var honour) && LinkedLabel.Match(honour) is { Success: true } label)
             {
                 titles[HonourEntry] = label.Groups[1].Value;
+            }
+
+            if (texts.TryGetValue(WaterKey, out var water) && water.IndexOf('{') is > 0 and var hole)
+            {
+                titles[WaterEntry] = water[..hole].TrimEnd(' ', ':', '：');
             }
 
             if (texts.TryGetValue(UnallocatedKey, out var unallocated))

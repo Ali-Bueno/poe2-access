@@ -359,6 +359,8 @@ namespace Poe2Accessibility
         {
             Services.StatusAilment.StopMoving or Services.StatusAilment.KeepMoving => T("You may move freely", "Ya puedes moverte libremente"),
             Services.StatusAilment.Overheated => T("Weapon ready", "Arma lista"),
+            Services.StatusAilment.HonourWeakness => T("Honour weakness gone", "Se acabó la debilidad de resolución"),
+            Services.StatusAilment.BindingChains => T("Chains gone", "Se soltaron las cadenas"),
             _ => T($"No longer {AilmentName(ailment).ToLowerInvariant()}", $"Ya no estás {AilmentName(ailment).ToLowerInvariant()}"),
         };
 
@@ -377,6 +379,8 @@ namespace Poe2Accessibility
             Services.StatusAilment.Maimed => T("Maimed", "Mutilado"),
             Services.StatusAilment.Blinded => T("Blinded", "Cegado"),
             Services.StatusAilment.Overheated => T("Weapon overheated", "Arma sobrecalentada"),
+            Services.StatusAilment.HonourWeakness => T("Honour weakness: 50% more honour lost", "Debilidad de resolución: pierdes un 50% más de honor"),
+            Services.StatusAilment.BindingChains => T("Binding chains", "Cadenas apresantes"),
             _ => T("Cursed", "Maldito"),
         };
 
@@ -416,6 +420,8 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AutoGuide) => T("Guide to the scanner's choice without confirming", "Guiar a lo elegido en el escáner sin confirmar"),
             nameof(AccessibilitySettings.AnnounceTimers) => T("Countdown timers", "Cuentas atrás"),
             nameof(AccessibilitySettings.AnnounceHonour) => T("Honour in the Trial", "Honor en la Prueba"),
+            nameof(AccessibilitySettings.AnnounceTrialCounters) => T("Sacred water and keys in the Trial", "Agua sagrada y llaves en la Prueba"),
+            nameof(AccessibilitySettings.TrialTrapCues) => T("Trial traps about to strike", "Trampas de la Prueba a punto de saltar"),
             nameof(AccessibilitySettings.GuideTimed) => T("Guide to each Death Crystal by itself", "Guiar solo a cada cristal de la muerte"),
             nameof(AccessibilitySettings.AnnounceLevelUp) => T("Level up", "Subida de nivel"),
             nameof(AccessibilitySettings.Radar) => T("Radar", "Radar"),
@@ -606,6 +612,40 @@ namespace Poe2Accessibility
                 _ => place,
             };
         }
+
+        /// <summary>A trap of the Trials as the scanner and the approach name it.</summary>
+        public static string TrialTrapName(Services.TrialTrap trap) => trap switch
+        {
+            Services.TrialTrap.Spikes => T("Spike trap", "Trampa de pinchos"),
+            Services.TrialTrap.Laser => T("Laser turret", "Torreta láser"),
+            Services.TrialTrap.Mine => T("Proximity mine", "Mina de proximidad"),
+            Services.TrialTrap.Turret => T("Projectile turret", "Torreta de proyectiles"),
+            Services.TrialTrap.Quicksand => T("Quicksand", "Arenas movedizas"),
+            Services.TrialTrap.PressurePlate => T("Pressure plate", "Placa de presión"),
+            Services.TrialTrap.TimeTrap => T("Time trap", "Trampa temporal"),
+            Services.TrialTrap.ProjectilePortal => T("Projectile portal", "Portal de proyectiles"),
+            _ => T("Petrifying statue", "Estatua petrificadora"),
+        };
+
+        /// <summary>"Honor 474 de 513", in the game's word for it.</summary>
+        public static string HonourAmount(string label, int now, int most) => T($"{label} {now} of {most}", $"{label} {now} de {most}");
+
+        /// <summary>"Agua sagrada 39, más 7": the second number is the HUD's "(+7)".</summary>
+        public static string SacredWater(string label, int water, int toCome) =>
+            toCome > 0 ? T($"{label} {water}, plus {toCome}", $"{label} {water}, más {toCome}") : T($"{label} {water}", $"{label} {water}");
+
+        /// <summary>"Llaves: bronce 1, plata 0, oro 0".</summary>
+        public static string TrialKeys(int bronze, int silver, int gold) =>
+            T($"Keys: bronze {bronze}, silver {silver}, gold {gold}", $"Llaves: bronce {bronze}, plata {silver}, oro {gold}");
+
+        /// <summary>A key just gained: "Llave de bronce, 1".</summary>
+        public static string BronzeKey(int count) => T($"Bronze key, {count}", $"Llave de bronce, {count}");
+
+        /// <inheritdoc cref="BronzeKey"/>
+        public static string SilverKey(int count) => T($"Silver key, {count}", $"Llave de plata, {count}");
+
+        /// <inheritdoc cref="BronzeKey"/>
+        public static string GoldKey(int count) => T($"Gold key, {count}", $"Llave de oro, {count}");
 
         /// <summary>The Trial's honour: "Honor 25 por ciento", in the game's word for it.</summary>
         public static string HonourLeft(string label, int percent) => T($"{label} {percent} percent", $"{label} {percent} por ciento");

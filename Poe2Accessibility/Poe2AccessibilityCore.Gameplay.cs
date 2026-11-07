@@ -114,6 +114,7 @@ namespace Poe2Accessibility
             this.Isolated("shield", () => this.shield?.Tick(playing, this.Settings.ShieldSounds, this.Settings.AnnounceStunBar));
             this.Isolated("cull", () => this.culls?.Tick(playing));
             this.Isolated("deployed", () => this.deployed?.Tick(playing && this.Settings.DeployedCues));
+            this.Isolated("traps", () => this.traps?.Tick(playing && this.Settings.TrialTrapCues));
             this.Isolated("enemy states", () => this.enemyStates?.Tick(playing, this.Settings.EnemyStateCues, this.Settings.PrimedStunCues));
             this.Isolated("object sounds", () => this.objectSounds?.Tick(playing && this.Settings.ObjectSounds));
             // A town is not explored; the guide, while it leads, is the one sound to follow.
@@ -245,7 +246,8 @@ namespace Poe2Accessibility
             var flasks = string.Join(", ", (Seats.AskingSecond && Seats.Partner != null ? this.partnerFlasks : this.flasks)?.Flasks().Select(flask => Announcements.Flask(flask.Name, flask.Uses)) ?? Enumerable.Empty<string>());
             var explored = this.entities?.ExploredPercent() is { } percent ? Announcements.Explored(percent) : string.Empty;
             var gold = this.gold?.Amount is { } coins ? Announcements.Amount(coins.ToString(System.Globalization.CultureInfo.CurrentCulture), Announcements.Gold, false) : string.Empty;
-            var encounter = Announcements.Sentences(this.encounters?.Lines(this.narrator?.HudLayer ?? IntPtr.Zero) ?? Array.Empty<string>());
+            var encounter = Announcements.Sentences((this.encounters?.Lines(this.narrator?.HudLayer ?? IntPtr.Zero) ?? Array.Empty<string>())
+                .Prepend(this.screen is { } watcher ? this.narrator?.TrialStatus(watcher.Current) ?? string.Empty : string.Empty));
             var minions = this.minions == null ? string.Empty : MinionGroups.Describe(this.minions.Near());
             return Announcements.Sentences(new[] { vitals, string.Join(", ", states), charges, minions, this.bosses?.Status() ?? string.Empty, flasks, levels, gold, encounter, explored }.Where(part => part.Length > 0));
         }

@@ -601,6 +601,9 @@ namespace Poe2Accessibility.Services
         /// <inheritdoc cref="LandmarkTable.HonourLabel"/>
         public string HonourLabel => this.landmarks.HonourLabel;
 
+        /// <inheritdoc cref="LandmarkTable.WaterLabel"/>
+        public string WaterLabel => this.landmarks.WaterLabel;
+
         /// <inheritdoc cref="LandmarkTable.UnallocatedLabel"/>
         public string UnallocatedLabel => this.landmarks.UnallocatedLabel;
 

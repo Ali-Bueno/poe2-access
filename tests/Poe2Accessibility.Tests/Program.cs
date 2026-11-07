@@ -69,6 +69,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(AFallingClockIsSaidAtItsMarks), AFallingClockIsSaidAtItsMarks);
             Run(nameof(TrialMapIsColumnsFromEntranceToBoss), TrialMapIsColumnsFromEntranceToBoss);
             Run(nameof(SheetWidgetsAreToldByTheirTooltipsKeys), SheetWidgetsAreToldByTheirTooltipsKeys);
+            Run(nameof(TrialHudCountsWaterAndKeys), TrialHudCountsWaterAndKeys);
+            Run(nameof(TrialTrapsAreToldByTheirFiles), TrialTrapsAreToldByTheirFiles);
             Run(nameof(TheGuideGoesFromCrystalToCrystal), TheGuideGoesFromCrystalToCrystal);
             Run(nameof(HonourIsSaidAsItFalls), HonourIsSaidAsItFalls);
             Run(nameof(WorldIsBackOnlyOnceNothingCoversIt), WorldIsBackOnlyOnceNothingCoversIt);
@@ -2770,6 +2772,43 @@ namespace Poe2Accessibility.Tests
             Equal(MinimapMarks.QuestObjectKind, MinimapMarks.DeviceKind("MarakethSanctumRoomSelector"), "and a Trial's reward, under Leagues, sounds as a quest object");
         }
 
+        private static void TrialHudCountsWaterAndKeys()
+        {
+            Equal(new TrialCounters(39, 7, 1, 0, 0), TrialHud.Parse(new[] { "39(+7)", "1", "0", "0" }), "the HUD of 2026-11-07");
+            Equal(new TrialCounters(46, 0, 0, 0, 2), TrialHud.Parse(new[] { "46", "0", "0", "2" }), "water without what is to come");
+            Equal(null, TrialHud.Parse(new[] { "39(+7)", "1" }), "not all the counters");
+            Equal(null, TrialHud.Parse(new[] { "x", "1", "0", "0" }), "no number");
+            Equal((474, 513), TrialHud.HonourOf("Honor: 474/513"), "the honour line");
+            Equal(null, TrialHud.HonourOf("Honor"), "with no amount");
+
+            var watch = new TrialCounterWatch();
+            Equal(default, watch.Heard(new TrialCounters(39, 0, 0, 0, 0), 0), "the first reading is no news");
+            Equal(default, watch.Heard(new TrialCounters(41, 0, 0, 0, 0), 100), "water still falling into the purse");
+            Equal(default, watch.Heard(new TrialCounters(46, 0, 0, 0, 0), 800), "more of it");
+            Equal(46, watch.Heard(new TrialCounters(46, 0, 0, 0, 0), 2400).Water, "said once it settles");
+            Equal(null, watch.Heard(new TrialCounters(46, 0, 0, 0, 0), 4000).Water, "and only once");
+            Equal(1, watch.Heard(new TrialCounters(46, 0, 1, 0, 0), 4100).Bronze, "a key at once");
+            Equal(default, watch.Heard(new TrialCounters(30, 0, 1, 0, 0), 4200), "water spent is no news");
+            Equal(null, watch.Heard(new TrialCounters(30, 0, 1, 0, 0), 6000).Water, "nor once settled");
+            Equal(31, watch.Heard(new TrialCounters(31, 0, 1, 0, 0), 6100) is var _ ? watch.Heard(new TrialCounters(31, 0, 1, 0, 0), 7700).Water : null, "the next gain counts from there");
+        }
+
+        private static void TrialTrapsAreToldByTheirFiles()
+        {
+            const string Hazards = "Metadata/Monsters/MarakethSanctumTrial/Hazards/";
+            Equal(TrialTrap.Spikes, TrialTraps.KindOf(Hazards + "GroundSpike"), "a floor's spikes");
+            Equal(TrialTrap.Laser, TrialTraps.KindOf(Hazards + "LaserCrossBeamTurret@22"), "whatever its level");
+            Equal(null, TrialTraps.KindOf(Hazards + "GroundSpikeSpawner"), "what spawns them is no trap");
+            Equal(null, TrialTraps.KindOf(Hazards + "HourglassLethal"), "the Death Crystal is its own object");
+            Equal(null, TrialTraps.KindOf("Metadata/Monsters/Wolves/Wolf"), "a monster");
+            Equal(false, TrialTraps.IsSeenBeforeItStrikes(TrialTrap.Spikes), "spikes lie hidden");
+            Equal(true, TrialTraps.IsSeenBeforeItStrikes(TrialTrap.Laser), "a turret stands in the open");
+            Equal(true, TrialTraps.IsFiring(Hazards + "GroundSpike", new[] { ("rumble", 1L), ("spike", 0L) }), "the ground rumbling warns of them");
+            Equal(false, TrialTraps.IsFiring(Hazards + "GroundSpike", new[] { ("rumble", 0L), ("spike", 0L) }), "at rest");
+            Equal(false, TrialTraps.IsFiring(Hazards + "LaserCrossBeamTurret", new[] { ("active", 1L), ("fire", 0L) }), "armed is not firing");
+            Equal(true, TrialTraps.IsFiring(Hazards + "LaserCrossBeamTurret", new[] { ("fire", 1L) }), "firing");
+        }
+
         private static void SheetWidgetsAreToldByTheirTooltipsKeys()
         {
             Equal("chaos_damage_resistance_%", SheetStats.FromMarkup("<valuedefault>{Chaos Resistance}\nYou take this much less [Chaos] damage.\nMaximum [Resistances|Resistance] is capped at 75%. The number in brackets is the [UncappedResist|Uncapped] value.")?.Stat, "a resistance in English");
@@ -2832,13 +2871,15 @@ namespace Poe2Accessibility.Tests
         {
             var watch = new HonourWatch();
             Equal(null, watch.Heard("Honor: 474/513"), "the first reading is no fall");
-            Equal(null, watch.Heard("Honor: 400/513"), "78%: no mark passed");
-            Equal(74, watch.Heard("Honor: 380/513"), "past 75");
-            Equal(null, watch.Heard("Honor: 300/513"), "not again above the next");
-            Equal(24, watch.Heard("Honor: 125/513"), "two marks at one blow say the amount once");
+            Equal(null, watch.Heard("Honor: 470/513"), "91%: no mark passed");
+            Equal(77, watch.Heard("Honor: 400/513"), "past 90 and 80, said once");
+            Equal(null, watch.Heard("Honor: 370/513"), "not again above the next");
+            Equal(24, watch.Heard("Honor: 125/513"), "marks passed at one blow say the amount once");
             Equal(null, watch.Heard("Honor: 400/513"), "a fountain raises it");
             Equal(49, watch.Heard("Honor: 255/513"), "and the marks count again");
             Equal(null, watch.Heard("Honor"), "a line with no amount says nothing");
+            Equal(0, watch.Heard("Honor: 0/513"), "running out is said");
+            Equal(null, watch.Heard("Honor: 0/513"), "once, and the hub's stale line after the failed run stays silent");
             Equal(9, watch.Heard("Honor: 50/513"), "and leaves the last reading");
         }
 

@@ -75,6 +75,7 @@ namespace Poe2Accessibility.Services
         private string lastFocusSpeech = string.Empty;
         private string lastGroup = string.Empty;
         private readonly HashSet<string> hudSpoken = new();
+        private readonly TrialCounterWatch trialCounters = new();
         private readonly QuestTrackerPage questPage = new();
         private readonly CountdownWatch countdown = new();
         private readonly HonourWatch honour = new();
@@ -311,6 +312,7 @@ namespace Poe2Accessibility.Services
         public void NewArea(bool resumed)
         {
             this.hudSpoken.Clear();
+            this.trialCounters.Reset();
             this.tutorialSpoken.Clear();
             this.hudQuietUntil = resumed ? DateTime.UtcNow.AddMilliseconds(ResumedHudMs) : DateTime.MinValue;
             this.hudBaseline = resumed;

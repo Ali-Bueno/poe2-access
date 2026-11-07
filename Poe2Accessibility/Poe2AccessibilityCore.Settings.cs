@@ -121,6 +121,11 @@ namespace Poe2Accessibility
                 this.culls.Mode = settings.CullCue;
             }
 
+            if (this.traps != null)
+            {
+                this.traps.Gain = Fraction(settings.DodgeVolume);
+            }
+
             if (this.deployed != null)
             {
                 this.deployed.Gain = Fraction(settings.ObjectVolume);

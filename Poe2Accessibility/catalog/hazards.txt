@@ -39,6 +39,7 @@ ground_spores
 ground_sulphite
 ground_tar_slow
 ignited_ground
+invisible_holy_fire_sanctum
 jagged_ground
 lightning_vortex
 machinarium_fire_beam_debuff
@@ -53,6 +54,8 @@ poison_cloud
 quicksand_aura
 rain_of_spores_vines_aura
 rooted_spore_ground
+sanctum_fire_beam
+sanctum_vortex_degen
 sapped_ground
 scorched_ground
 shocked_ground

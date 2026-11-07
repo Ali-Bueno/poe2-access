@@ -10,7 +10,7 @@ namespace Poe2Accessibility.Services
     public sealed class HonourWatch
     {
         private static readonly Regex Amount = new(@"(\d+)/(\d+)$", RegexOptions.Compiled);
-        private static readonly int[] Marks = { 75, 50, 25, 10 };
+        private static readonly int[] Marks = { 90, 80, 70, 60, 50, 40, 30, 20, 10, 0 };
 
         private int last = -1;
 

@@ -340,19 +340,69 @@ namespace Poe2Accessibility.Services
         /// <summary>What the Trial's honour line starts with, empty for none known.</summary>
         public Func<string>? HonourLabel { get; set; }
 
+        /// <summary>What the Trial's sacred water is called, empty for none known.</summary>
+        public Func<string>? WaterLabel { get; set; }
+
+        /// <summary>Reads the counters beside the Trial's honour line.</summary>
+        public Func<IntPtr, IReadOnlyList<string>>? TrialCountersBeside { get; set; }
+
+        /// <summary>The Trial's honour line on the HUD, null away from a run.</summary>
+        private ScreenText? HonourLine(ScreenSnapshot snapshot) =>
+            this.inGame && this.HonourLabel?.Invoke() is { Length: > 0 } label
+                ? snapshot.Find(this.HudLayer)?.Texts.FirstOrDefault(text => text.Text.StartsWith(label + ":", StringComparison.Ordinal))
+                : null;
+
         /// <summary>Says the Trial's honour as it falls past a mark, cutting in: at nothing the run ends.</summary>
         public void CheckHonour(ScreenSnapshot snapshot)
         {
-            if (!this.inGame || this.HonourLabel?.Invoke() is not { Length: > 0 } label ||
-                snapshot.Find(this.HudLayer)?.Texts.FirstOrDefault(text => text.Text.StartsWith(label + ":", StringComparison.Ordinal)) is not { } line)
+            if (this.HonourLine(snapshot) is { } line && this.honour.Heard(line.Text) is { } percent)
+            {
+                this.output.Urge(Announcements.HonourLeft(this.HonourLabel!.Invoke(), percent));
+            }
+        }
+
+        /// <summary>Says the sacred water and the keys a run gains, none of it urgent.</summary>
+        public void CheckTrialCounters(ScreenSnapshot snapshot)
+        {
+            if (this.HonourLine(snapshot) is not { } line || TrialHud.Parse(this.TrialCountersBeside?.Invoke(line.Address) ?? Array.Empty<string>()) is not { } counters)
             {
                 return;
             }
 
-            if (this.honour.Heard(line.Text) is { } percent)
+            var (bronze, silver, gold, water) = this.trialCounters.Heard(counters, Environment.TickCount64);
+            var news = new[]
             {
-                this.output.Urge(Announcements.HonourLeft(label, percent));
+                bronze > 0 ? Announcements.BronzeKey(bronze) : string.Empty,
+                silver > 0 ? Announcements.SilverKey(silver) : string.Empty,
+                gold > 0 ? Announcements.GoldKey(gold) : string.Empty,
+                water is { } amount && this.WaterLabel?.Invoke() is { Length: > 0 } label ? Announcements.SacredWater(label, amount, 0) : string.Empty,
+            };
+            if (news.Any(part => part.Length > 0))
+            {
+                this.Speak("trial counters", Announcements.Sentences(news), false);
             }
+        }
+
+        /// <summary>A run's honour, water and keys for the vitals readout, empty away from a run.</summary>
+        public string TrialStatus(ScreenSnapshot snapshot)
+        {
+            if (this.HonourLine(snapshot) is not { } line || TrialHud.HonourOf(line.Text) is not { } honour)
+            {
+                return string.Empty;
+            }
+
+            var parts = new List<string> { Announcements.HonourAmount(this.HonourLabel!.Invoke(), honour.Now, honour.Most) };
+            if (TrialHud.Parse(this.TrialCountersBeside?.Invoke(line.Address) ?? Array.Empty<string>()) is { } counters)
+            {
+                if (this.WaterLabel?.Invoke() is { Length: > 0 } label)
+                {
+                    parts.Add(Announcements.SacredWater(label, counters.Water, counters.WaterToCome));
+                }
+
+                parts.Add(Announcements.TrialKeys(counters.Bronze, counters.Silver, counters.Gold));
+            }
+
+            return Announcements.Sentences(parts);
         }
 
         /// <summary>The tracker's quests, each its title and the lines under it, as they are said.</summary>

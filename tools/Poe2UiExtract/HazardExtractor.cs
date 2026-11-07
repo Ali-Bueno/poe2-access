@@ -9,6 +9,9 @@ using Index = LibBundle3.Index;
 /// </summary>
 internal static class HazardExtractor
 {
+    /// <summary>Trial buffs no ground names, by BuffDefinitions: the laser's beam and the fire that drain honour, the vortex's chaos.</summary>
+    private static readonly string[] TrialHazards = { "sanctum_fire_beam", "invisible_holy_fire_sanctum", "sanctum_vortex_degen" };
+
     // GroundEffectTypes: the BuffDefinitions row a creature standing in the ground gets (IgnitedGround → ignited_ground;
     // a scan of the row's keys, 2026-10-28).
     private const int TypeRowSize = 0x40;
@@ -76,6 +79,7 @@ internal static class HazardExtractor
             }
         }
 
+        ids.UnionWith(TrialHazards);
         var header = new[]
         {
             "# Buffs a player gets from standing in harmful ground or an enemy's damaging zone (tools/Poe2UiExtract hazards),",

@@ -241,8 +241,14 @@ namespace Poe2Accessibility
         /// <summary>In the passive tree the D-pad finds keystones, notables and jewel sockets, and locked nodes say what they cost.</summary>
         public bool PassiveFinder = true;
 
-        /// <summary>The Trial's honour is said as it falls past 75, 50, 25 and 10 percent.</summary>
+        /// <summary>The Trial's honour is said as it falls past every tenth.</summary>
         public bool AnnounceHonour = true;
+
+        /// <summary>The Trial's sacred water and keys are said as they are gained.</summary>
+        public bool AnnounceTrialCounters = true;
+
+        /// <summary>The dodge warning from where a Trial's trap is about to strike.</summary>
+        public bool TrialTrapCues = true;
 
         /// <summary>A clock falling on the HUD is said as it passes 60, 30, 20, 10 and 5 seconds.</summary>
         public bool AnnounceTimers = true;

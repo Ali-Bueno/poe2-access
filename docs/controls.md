@@ -229,6 +229,7 @@ here..., edit field", the "x" at its end "Clear search, button".
 
 ## Other panels
 
+- Trials: the mod says honour each time it falls past a tenth, sacred water and keys as they are gained, and the L3 double tap adds them to the vitals ("Honour 474 of 513. Sacred Water 39, plus 7. Keys: bronze 1, silver 0, gold 0"). A trap about to strike plays the dodge warning from its side; those in the open are in the scanner and named on approach. Both are switches in Surroundings.
 - Character: entering it says the class and the resistances' heading ("Monk. Resistances. DEX, 11, 8 of 14"); in
   the stat list (inspect mode) each section is named as the links move into it ("Armour. Estimated Physical Damage
   Reduction, 0%. physical, link").

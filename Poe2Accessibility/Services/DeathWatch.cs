@@ -16,6 +16,9 @@ namespace Poe2Accessibility.Services
     {
         private const int PollMs = 250;
 
+        /// <summary>A death in a Trial ends the run on the Trial's own panel: there is no death screen to miss (2026-11-07).</summary>
+        public Func<bool>? EndsWithoutDeathScreen { get; set; }
+
         /// <summary>The screen opened about 0.7 s after the death on four deaths (2026-10-24); past this it was missed.</summary>
         private const int ScreenDueMs = 2000;
 
@@ -123,9 +126,9 @@ namespace Poe2Accessibility.Services
             }
 
             this.said = true;
-            if (this.seenAt >= this.diedAt - PollMs)
+            if (this.seenAt >= this.diedAt - PollMs || this.EndsWithoutDeathScreen?.Invoke() == true)
             {
-                return; // the screen narrator read it
+                return; // the screen narrator read it, or the game shows its own ending
             }
 
             var texts = this.screen == IntPtr.Zero ? new List<string>() : this.Texts(this.screen);
