@@ -43,8 +43,8 @@ namespace Poe2Accessibility.Services
     {
         public const string PortalKind = "portal";
 
-        /// <summary>It may be gone by the time the player is back: opened, picked up, or a portal that closed.</summary>
-        public bool CanVanish => this.Category is ScanCategory.Chests or ScanCategory.Items || this.Kind == PortalKind;
+        /// <summary>It may be gone by the time the player is back: opened, picked up, a portal that closed or a quest's object once used.</summary>
+        public bool CanVanish => this.Category is ScanCategory.Chests or ScanCategory.Items || this.Kind == PortalKind || this.QuestMarked;
     }
 
     /// <summary>

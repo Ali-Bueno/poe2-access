@@ -318,6 +318,7 @@
  "Process {0} is running with the expected window title; Game Helper should attach within seconds.": "O processo {0} está em execução com o título de janela esperado; o Game Helper deve se conectar em alguns segundos.",
  "Quest": "Missão",
  "Quest item": "Item de missão",
+ "Quest object": "Objeto de missão",
  "Quest: ": "Missão: ",
  "Quiet in fights": "Silêncio em combate",
  "Radar": "Radar",

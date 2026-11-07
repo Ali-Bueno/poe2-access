@@ -318,6 +318,7 @@
  "Process {0} is running with the expected window title; Game Helper should attach within seconds.": "Процесс {0} запущен с ожидаемым заголовком окна; Game Helper должен подключиться в течение нескольких секунд.",
  "Quest": "Задание",
  "Quest item": "Предмет задания",
+ "Quest object": "Предмет задания",
  "Quest: ": "Задание: ",
  "Quiet in fights": "Тишина в бою",
  "Radar": "Радар",

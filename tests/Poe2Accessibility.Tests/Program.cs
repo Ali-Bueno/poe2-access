@@ -581,6 +581,8 @@ namespace Poe2Accessibility.Tests
             var npc = new ScanEntry(11, ScanCategory.Npcs, "Una", 7f, 8f, 9f, "npc");
             var portal = new ScanEntry(12, ScanCategory.Waypoints, "Pueblo de Ogham", 7f, 8f, 9f, ScanEntry.PortalKind);
             Equal(true, portal.CanVanish && chest.CanVanish, "a portal closes as a chest is opened");
+            Equal(true, new ScanEntry(13, ScanCategory.PointsOfInterest, "Jaula", 7f, 8f, 9f, MinimapMarks.LandmarkKind, QuestMarked: true).CanVanish, "a quest's object goes once used");
+            Equal(false, new ScanEntry(14, ScanCategory.PointsOfInterest, "Pozo", 7f, 8f, 9f, MinimapMarks.LandmarkKind).CanVanish, "a labelled place on the map stays");
             Equal(false, checkpoint.CanVanish || exit.CanVanish || npc.CanVanish, "a checkpoint, an exit and a character stay");
             var left = new AreaMemory.Snapshot(1, new byte[] { 1, 2, 3 }, "Campamento", new() { [7] = exit, [8] = checkpoint, [9] = chest, [10] = death, [11] = npc, [12] = portal },
                                                new() { 7 }, new(), frame);

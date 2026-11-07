@@ -411,7 +411,8 @@
   plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
 
 ## Next step
-First (2026-11-07): the user hears a quest item with the quest sound over its own (`ObjectSounds.Layer`, [notes](docs/research/game-audio.md#quest-items-2026-11-07)).
+First (2026-11-07): the user frees Risu in the Mawdun Mine with the cage now listed and named on the target as "Objeto de misión" (`EntityCatalog.MarkLabel`, [notes](docs/research/minimap.md)).
+Then (2026-11-07): the user hears a quest item with the quest sound over its own (`ObjectSounds.Layer`, [notes](docs/research/game-audio.md#quest-items-2026-11-07)).
 Then (2026-11-07, released as v2026.11.07-2, confirmed by the user in play): the camp's portal spot no longer reads a list of areas (user: "un montón de áreas"). Portals were remembered as landmarks and saved per area for good, so every portal ever seen there came back, sounded and could take the exits' one voice; now one is forgotten once the player is near its place and it is not listed (`ScanEntry.CanVanish`), and never inherited by a new instance.
 Then (2026-11-07, released as v2026.11.07): the user and the tester judge by ear how sounds die away (`ProximityFade.TailWorld` 600 and the 120 ms release are a first guess; gold in the game's own set only gets quieter hits), and the user tries the tree's finder on the D-pad. The target is only said on the node's last line, so a long node reads it late: shorten if it annoys.
 Then (2026-11-06, night, released as v2026.11.06-9): pressing Y again and again on a talisman cuts the last form, seen in the log

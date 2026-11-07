@@ -318,6 +318,7 @@
  "Process {0} is running with the expected window title; Game Helper should attach within seconds.": "โปรเซส {0} กำลังทำงานด้วยชื่อหน้าต่างที่คาดไว้ Game Helper ควรเชื่อมต่อได้ภายในไม่กี่วินาที",
  "Quest": "เควส",
  "Quest item": "ไอเทมเควส",
+ "Quest object": "วัตถุภารกิจ",
  "Quest: ": "เควส: ",
  "Quiet in fights": "เงียบระหว่างต่อสู้",
  "Radar": "เรดาร์",

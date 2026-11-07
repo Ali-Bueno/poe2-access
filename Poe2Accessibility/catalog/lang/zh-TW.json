@@ -318,6 +318,7 @@
  "Process {0} is running with the expected window title; Game Helper should attach within seconds.": "程序 {0} 正以預期的視窗標題執行，Game Helper 應該會在幾秒內連接。",
  "Quest": "任務",
  "Quest item": "任務物品",
+ "Quest object": "任務物件",
  "Quest: ": "任務： ",
  "Quiet in fights": "戰鬥中靜音",
  "Radar": "雷達",

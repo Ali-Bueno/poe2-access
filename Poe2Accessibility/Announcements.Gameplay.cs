@@ -584,6 +584,9 @@ namespace Poe2Accessibility
         /// <summary>A closed barrier in the scanner's objects (a tutorial beam, a gate); it has no name of its own.</summary>
         public static string ClosedBarrier => T("Closed barrier", "Barrera cerrada");
 
+        /// <summary>What the minimap marks with the quest's icon and the game gives no name: Risu's cage shows no label at all.</summary>
+        public static string QuestObject => T("Quest object", "Objeto de misión");
+
         /// <summary>
         ///     A league device by its minimap icon (MinimapIcons.dat id), as the game's own strings call it (ClientStrings
         ///     "Altar de ritual {0}", "Interactúa para ver los favores"); the devices have no render name.

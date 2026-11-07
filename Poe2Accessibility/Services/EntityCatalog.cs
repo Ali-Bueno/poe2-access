@@ -446,7 +446,7 @@ namespace Poe2Accessibility.Services
 
                 if (landmark.CanVanish && Vector2.Distance(here, new Vector2(landmark.WorldX, landmark.WorldY)) < AwakeWorld)
                 {
-                    this.remembered.Remove(landmark.Id); // near its place and no longer listed: opened, picked up or closed
+                    this.remembered.Remove(landmark.Id); // near its place and no longer listed: opened, picked up, closed or used
                     continue;
                 }
 

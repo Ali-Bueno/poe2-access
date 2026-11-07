@@ -133,7 +133,7 @@ namespace Poe2Accessibility.Services
 
             // Only a plain object can be a mark: a used shrine, an opened chest or a minion stays out whatever its icon says.
             if (plain && (category == null || name.Length == 0) && icon.Length > 0 &&
-                MinimapMarks.PointOfInterest(path, icon, MinimapIconLabel.Of(this.memory, this.elements, minimap!)) is { } point)
+                MinimapMarks.PointOfInterest(path, icon, this.MarkLabel(icon, minimap!)) is { } point)
             {
                 // A boss's arena, a secret or a quest landmark as the minimap labels it: the objects carry no name of their own.
                 category = ScanCategory.PointsOfInterest;
@@ -165,6 +165,16 @@ namespace Poe2Accessibility.Services
             var position = render.WorldPosition;
             return new ScanEntry(entity.Id, category.Value, name, position.X, position.Y, position.Z, kind, baseId, loot, sound,
                 MinimapMarks.IsQuestIcon(icon), subject);
+        }
+
+        /// <summary>
+        ///     What the minimap labels a mark. The quest's own icon needs no label to be what the quest wants: Risu's cage in the
+        ///     Mawdun Mine has none, no name and an empty world label, and was found by neither the scanner nor the button (user 2026-11-07).
+        /// </summary>
+        private string MarkLabel(string icon, MinimapIcon minimap)
+        {
+            var label = MinimapIconLabel.Of(this.memory, this.elements, minimap);
+            return label.Length == 0 && MinimapMarks.IsQuestIcon(icon) ? Announcements.QuestObject : label;
         }
 
         /// <summary>Feeds the entity name check (judged once on enough monsters, characters and players).</summary>
