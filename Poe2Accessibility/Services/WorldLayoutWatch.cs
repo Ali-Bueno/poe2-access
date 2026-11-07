@@ -265,7 +265,7 @@ namespace Poe2Accessibility.Services
             this.NoteBuild(outcomes);
             if (!this.positionsRetried && outcomes.Any(outcome => outcome.Name == OffsetHealer.PositionsPart && outcome.Health == StructHealth.NotJudged))
             {
-                // The camera moved in this sweep: another pass judges the positions through it.
+                // The camera moved in this sweep or was not on the player yet: another pass judges the positions through it.
                 this.positionsRetried = true;
                 this.sweptArea = IntPtr.Zero;
                 this.sweeps--;

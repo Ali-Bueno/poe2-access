@@ -32,7 +32,7 @@ mod's own changes to the host, `tools/package/gamehelper.patch`, read those fiel
 | Skills, cooldowns | 16-byte entries with a 0x48-byte vector right after | `StructShapes.IsSkillList` |
 | Stats | a pointer to key and value pairs with small keys | `StructShapes.IsStatsPointer` |
 | Camera | the game keeps the matrix twice, one copy after the other | `StructShapes.IsCameraMatrix` |
-| Positions | a point inside the map that projects near the screen's middle (the camera follows the player) | `OffsetHealer.JudgePosition` |
+| Positions | a point inside the map that projects near the screen's middle (the camera follows the player); no such point while the measured field still holds a point of the map is not judged: the camera is elsewhere, and the field has not moved | `OffsetHealer.JudgePosition` |
 | Game state's area and world pointers | the pointer whose target holds a world / a camera matrix | `OffsetHealer.LocateArea` |
 | Game states, when their pattern fails | a static pointer to an object whose state stack ends in one of its states (at least 8 states; two of 13 are null until used) | `GameStatesSearch` |
 | Any other component | GameHelper's own verifier, run with no one at the keyboard (`OffsetHelperEngine.RunSweep`): a repair only when it is not ambiguous | `OffsetHealer.Verified` |

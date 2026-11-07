@@ -1088,10 +1088,10 @@ index 0000000..0691ab9
 +}
 diff --git a/GameHelper/Utils/OffsetHealer.cs b/GameHelper/Utils/OffsetHealer.cs
 new file mode 100644
-index 0000000..3aedf1c
+index 0000000..c66b96f
 --- /dev/null
 +++ b/GameHelper/Utils/OffsetHealer.cs
-@@ -0,0 +1,529 @@
+@@ -0,0 +1,536 @@
 +// <copyright file="OffsetHealer.cs" company="None">
 +// Copyright (c) None. All rights reserved.
 +// </copyright>
@@ -1596,7 +1596,14 @@ index 0000000..3aedf1c
 +                return offScreen.X < centre.X * CentreShare && offScreen.Y < centre.Y * CentreShare;
 +            }
 +
-+            return Placed<RenderOffsets>(PositionsPart, measured, StructShapes.Nearest(measured, sizeof(int), block.Length - 1, Fits));
++            var found = StructShapes.Nearest(measured, sizeof(int), block.Length - 1, Fits);
++            if (found < 0 && StructShapes.IsWorldPosition(block, measured, mapWidth, mapHeight))
++            {
++                // Nothing near the screen's middle, yet the field still holds a point of the map: it is the camera that is not on the player.
++                return NotJudged(PositionsPart, "the camera is not on the player");
++            }
++
++            return Placed<RenderOffsets>(PositionsPart, measured, found);
 +        }
 +
 +        private static StructOutcome Verified(ProbeResult probe, Type type)
