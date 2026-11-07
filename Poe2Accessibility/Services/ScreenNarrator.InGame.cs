@@ -315,12 +315,29 @@ namespace Poe2Accessibility.Services
                 ? new List<ScreenText>()
                 : hud.Texts.Where(text => text.Name is GameLayout.InGameUi.QuestTitleName or GameLayout.InGameUi.QuestLineName &&
                                           (this.IsQuestTrackerText?.Invoke(text.Address) ?? false)).ToList();
-            if (this.questPage.News(Describe(tracker), this.InMenu) is { Length: > 0 } page)
+            if (this.questPage.News(QuestsOf(tracker), this.InMenu) is { Length: > 0 } page)
             {
                 this.Speak("quest page", Announcements.QuestPage(page), SpeechPriority.Interrupts(SpeechKind.Quest), Hold.Lesson);
             }
 
             return tracker;
+        }
+
+        /// <summary>The tracker's quests, each its title and the lines under it, as they are said.</summary>
+        private static List<string> QuestsOf(IEnumerable<ScreenText> tracker)
+        {
+            var quests = new List<List<ScreenText>>();
+            foreach (var text in tracker)
+            {
+                if (quests.Count == 0 || text.Name == GameLayout.InGameUi.QuestTitleName)
+                {
+                    quests.Add(new List<ScreenText>());
+                }
+
+                quests[^1].Add(text);
+            }
+
+            return quests.Select(Describe).ToList();
         }
 
         /// <summary>A panel with no focus covers the game (<see cref="ScreenSnapshot.PanelOver"/>).</summary>

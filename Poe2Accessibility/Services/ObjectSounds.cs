@@ -72,7 +72,7 @@ namespace Poe2Accessibility.Services
             ("chests", MaxChestVoices, entry => entry.Kind is "chest" or "corpse"),
             ("breakables", MaxBreakableVoices, entry => entry.Kind == "breakable"),
             ("shrines", 1, entry => entry.Category == ScanCategory.Chests && entry.Kind is not ("chest" or "corpse" or "breakable")),
-            ("encounters", 1, entry => entry.Category == ScanCategory.Encounters && entry.Kind is not (MinimapMarks.RitualDoneKind or MinimapMarks.QuestObjectKind)),
+            ("encounters", 1, entry => entry.Category == ScanCategory.Encounters && entry.Kind != MinimapMarks.RitualDoneKind && SoundKind(entry) != MinimapMarks.QuestObjectKind),
             ("exits", 1, entry => entry.Category == ScanCategory.Exits || entry.Kind == "portal"),
             ("waypoints", 1, entry => entry.Kind is "waypoint" or "checkpoint"),
             ("quests", 1, entry => entry.Kind == "npc_quest"),
@@ -130,7 +130,9 @@ namespace Poe2Accessibility.Services
             {
                 this.lastPoll = now;
                 this.nearest.Clear();
-                var entries = this.catalog.Entries().Where(entry => EntityCatalog.IsEntity(entry) && entry.Category != ScanCategory.Quest).ToList();
+                var listed = this.catalog.Entries().Where(EntityCatalog.IsEntity).ToList();
+                var wanted = listed.Where(entry => entry.Category == ScanCategory.Quest).Select(entry => entry.Id).ToHashSet();
+                var entries = listed.Where(entry => entry.Category != ScanCategory.Quest).Select(entry => WhileWanted(entry, wanted)).ToList();
                 var quietLoot = this.QuietLoot();
                 foreach (var (group, voices, member) in Groups)
                 {
@@ -252,6 +254,15 @@ namespace Poe2Accessibility.Services
             ItemSoundSet.DiabloIVSample(SoundKind(entry), entry.BaseId, entry.Loot, this.drops.SampleName(entry.BaseId)) is { } sample
                 ? this.diabloSounds.GetLoop(sample)
                 : null;
+
+        /// <summary>
+        ///     An object the quest tracker names sounds as a quest object while it does: the Relic Altar has no quest icon, only
+        ///     "Coloca tu barya en el Altar de reliquias" (user 2026-11-07). Characters and enemies have their own cues.
+        /// </summary>
+        private static ScanEntry WhileWanted(ScanEntry entry, HashSet<uint> wanted) =>
+            entry.Category is ScanCategory.Objects or ScanCategory.Encounters && wanted.Contains(entry.Id) && entry.Sound.Length == 0 && entry.Kind is not MinimapMarks.RitualDoneKind and not "ritual"
+                ? entry with { Sound = MinimapMarks.QuestObjectKind }
+                : entry;
 
         /// <summary>The kind an entry sounds as: a barrier keeps its own for the guide and can sound as a quest object.</summary>
         private static string SoundKind(ScanEntry entry) => entry.Sound == MinimapMarks.QuestObjectKind ? entry.Sound : entry.Kind;

@@ -63,6 +63,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(QuestNamesItsTargets), QuestNamesItsTargets);
             Run(nameof(QuestTrackerPageIsSaidWhenItChanges), QuestTrackerPageIsSaidWhenItChanges);
             Run(nameof(QuestPageWaitsForTheMenuToClose), QuestPageWaitsForTheMenuToClose);
+            Run(nameof(QuestPageSaysOnlyTheQuestThatChanged), QuestPageSaysOnlyTheQuestThatChanged);
             Run(nameof(WorldIsBackOnlyOnceNothingCoversIt), WorldIsBackOnlyOnceNothingCoversIt);
             Run(nameof(PanelOverTheGameIsTheTopLayerThatIsNotTheHud), PanelOverTheGameIsTheTopLayerThatIsNotTheHud);
             Run(nameof(ItemMovesAreSaidAsDeeds), ItemMovesAreSaidAsDeeds);
@@ -2696,24 +2697,42 @@ namespace Poe2Accessibility.Tests
         private static void QuestTrackerPageIsSaidWhenItChanges()
         {
             var page = new QuestTrackerPage();
-            Equal("Altares siniestros. Busca Villafrey", page.News("Altares siniestros. Busca Villafrey"), "the first page");
-            Equal(string.Empty, page.News(string.Empty), "the tracker hidden by a panel");
-            Equal(string.Empty, page.News("Altares siniestros. Busca Villafrey"), "back the same: no news");
-            Equal("Altares siniestros. Busca los altares de ritual", page.News("Altares siniestros. Busca los altares de ritual"), "the objective changed on entering the area");
-            Equal("El rastro de la corrupción. Viaja a Ogham", page.News("El rastro de la corrupción. Viaja a Ogham"), "another page");
-            Equal("Altares siniestros. Busca los altares de ritual", page.News("Altares siniestros. Busca los altares de ritual"), "paged back to it");
+            Equal("Altares siniestros. Busca Villafrey", page.News(new[] { "Altares siniestros. Busca Villafrey" }), "the first page");
+            Equal(string.Empty, page.News(Array.Empty<string>()), "the tracker hidden by a panel");
+            Equal(string.Empty, page.News(new[] { "Altares siniestros. Busca Villafrey" }), "back the same: no news");
+            Equal("Altares siniestros. Busca los altares de ritual", page.News(new[] { "Altares siniestros. Busca los altares de ritual" }), "the objective changed on entering the area");
+            Equal("El rastro de la corrupción. Viaja a Ogham", page.News(new[] { "El rastro de la corrupción. Viaja a Ogham" }), "another page");
+            Equal("Altares siniestros. Busca los altares de ritual", page.News(new[] { "Altares siniestros. Busca los altares de ritual" }), "paged back to it");
+        }
+
+        private static void QuestPageSaysOnlyTheQuestThatChanged()
+        {
+            var page = new QuestTrackerPage();
+            var (rising, trail) = ("Ascenso al poder. Encuentra un Altar de reliquias", "El rastro de la corrupción. Vuelve sobre los pasos de Orbala");
+            Equal($"{rising}. {trail}", page.News(new[] { rising, trail }), "the first page, whole");
+            var placed = "Ascenso al poder. Coloca tu barya en el Altar de reliquias";
+            Equal(placed, page.News(new[] { placed, trail }), "one objective changed: only that quest");
+            var city = "La ciudad de los siete ríos. Usa el Mapa del desierto";
+            Equal(city, page.News(new[] { placed, city }), "paged on: the quest in hand opens every page, so only the other");
+            Equal(string.Empty, page.News(new[] { placed }), "a quest gone leaves nothing new");
+            var ivory = "Un robo de marfil. Viaja al Páramo";
+            var crown = "Una corona de piedra. Encuentra la Gruta";
+            Equal($"{ivory}. {crown}", page.News(new[] { ivory, crown }), "a page with nothing in common is said whole");
+            Equal(string.Empty, page.News(new[] { ivory, crown }, inMenu: true), "the same page in a menu is no news");
+            Equal(string.Empty, page.News(new[] { ivory, placed }, inMenu: true), "a change waits for the menu");
+            Equal(placed, page.News(new[] { ivory, placed }), "and says only itself");
         }
 
         private static void QuestPageWaitsForTheMenuToClose()
         {
             var page = new QuestTrackerPage();
-            page.News("Noticias graves. Habla con Leitis");
-            Equal(string.Empty, page.News("El lobo rabioso de Ogham. Encuentra al Conde Geonor", inMenu: true), "accepted at the NPC: not over its options");
+            page.News(new[] { "Noticias graves. Habla con Leitis" });
+            Equal(string.Empty, page.News(new[] { "El lobo rabioso de Ogham. Encuentra al Conde Geonor" }, inMenu: true), "accepted at the NPC: not over its options");
             Equal(true, page.Waiting, "it waits");
-            Equal(string.Empty, page.News("El lobo rabioso de Ogham. Entra en la mansión", inMenu: true), "changed again in the same conversation");
-            Equal("El lobo rabioso de Ogham. Entra en la mansión", page.News("El lobo rabioso de Ogham. Entra en la mansión"), "the menu closed: the latest page, whole");
+            Equal(string.Empty, page.News(new[] { "El lobo rabioso de Ogham. Entra en la mansión" }, inMenu: true), "changed again in the same conversation");
+            Equal("El lobo rabioso de Ogham. Entra en la mansión", page.News(new[] { "El lobo rabioso de Ogham. Entra en la mansión" }), "the menu closed: the latest page, whole");
             Equal(false, page.Waiting, "said");
-            Equal(string.Empty, page.News("El lobo rabioso de Ogham. Entra en la mansión", inMenu: true), "the same page in a menu is no news");
+            Equal(string.Empty, page.News(new[] { "El lobo rabioso de Ogham. Entra en la mansión" }, inMenu: true), "the same page in a menu is no news");
             Equal(false, page.Waiting, "and nothing waits");
         }
 
