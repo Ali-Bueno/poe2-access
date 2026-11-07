@@ -86,6 +86,11 @@ bubble, and the unit of the pointer distance.
 - **The Relic Altar is two objects on one cell** (Trial of the Sekhemas, `Act2/2_13/Objects/`): `SanctumRelicDeviceDummy`, named by `display_text`,
   is targetable until the league flag `SanctumIntroSeenRelicDevice`, set by the first use; then `SanctumRelicDevice` is the one in play, with no render
   name, its title only in a `WorldDescription`. Same icon, `MarakethSanctumRoomSelector`, no label.
+- **`MarakethSanctumRoomSelector`** marks what moves a Trial on: `SanctumRelicDevice` and its dummy, `SanctumMapDevice`, `FloorTransitionDoor`, `SanctumRewardObjectBase`
+  (fountains, shrines). It counts as a quest icon: the tracker names the altar only until the first room, then says "Completa la Prueba de las sekhemas", and
+  the altar went silent after a failed run (user 2026-11-07). Those under `Leagues/` are league devices, listed out of play, so a quest icon takes that back.
+- **The Trial's room objectives** (QuestStates +0x2C, rows 650-669): survive the clock, kill the ritual conjurers to shut the portals, disable the crystals, kill
+  all rares, kill all enemies, find the exit, kill the floor's boss. `SanctumRoomTypes`: TimerArena, PortalArena, Lair, Maze, Gauntlet, Miniboss, Vault, Puzzle, Boss.
 - **Names in a `WorldDescription`:** its `title_text` is a ClientStrings key the mod cannot read from memory, so `Poe2UiExtract world-titles` lists the 57
   `.ot` that have one, in every language, in `catalog/world-titles.json`, a nameless object's name (`LandmarkTable.WorldTitle`): the Relic Altar, the Sekhemas'
   fountains and shrines, the Death Crystals (`Metadata/Monsters/MarakethSanctumTrial/Hazards/HourglassLethal`, no Life, so a plain object; icon

@@ -54,8 +54,11 @@ namespace Poe2Accessibility.Services
         private const string BossRoomObject = "/BossRoomMinimapIcon";
 
         /// <summary>Icons the game draws on what the quest wants used or picked up (MinimapIcons rows 5, 6, 15).</summary>
-        /// <summary>The quest's own, and the Death Crystal's, the Trial room's objective and the icon's only user (sweep of the .ot files, 2026-11-07).</summary>
-        private static readonly string[] QuestIcons = { "QuestObject", "QuestItem", "MissionTarget", "SanctumFountain" };
+        /// <summary>
+        ///     The quest's own, the Death Crystal's, a Trial room's objective, and that of what moves a Trial on: the Relic Altar, its map, the floor
+        ///     doors and the rooms' rewards. The tracker stops naming the altar once a run fails (.ot sweep; user 2026-11-07).
+        /// </summary>
+        private static readonly string[] QuestIcons = { "QuestObject", "QuestItem", "MissionTarget", "SanctumFountain", "MarakethSanctumRoomSelector" };
 
         /// <summary>A radar-table label "Boss - Captain Hartlin": the name follows.</summary>
         private const string BossLabelPrefix = "Boss - ";

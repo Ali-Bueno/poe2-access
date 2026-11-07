@@ -2763,6 +2763,7 @@ namespace Poe2Accessibility.Tests
             Equal(false, CountdownWatch.IsClock("9") || CountdownWatch.IsClock("1/5"), "a flask's charges and a page are no clock");
             Equal(false, CountdownWatch.IsClock("0:06"), "nor a buff's duration");
             Equal(true, MinimapMarks.IsQuestIcon("SanctumFountain"), "the Death Crystal is what the Trial's room wants");
+            Equal(MinimapMarks.QuestObjectKind, MinimapMarks.DeviceKind("MarakethSanctumRoomSelector"), "and a Trial's reward, under Leagues, sounds as a quest object");
         }
 
         private static void TakingTheFloorCutsAKeptLine()

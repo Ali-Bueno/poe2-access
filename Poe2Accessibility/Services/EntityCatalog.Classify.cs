@@ -27,7 +27,8 @@ namespace Poe2Accessibility.Services
         {
             var path = entity.Path ?? string.Empty;
             var leagueIcon = LeagueDeviceIcon(entity, path);
-            if (leagueIcon == null && !this.InPlay(entity))
+            // A league's altar stays listed out of play; what a quest icon marks does not: a Trial's reward is spent once used.
+            if ((leagueIcon == null || MinimapMarks.IsQuestIcon(leagueIcon)) && !this.InPlay(entity))
             {
                 return null;
             }
@@ -105,6 +106,7 @@ namespace Poe2Accessibility.Services
                 // Listed while the game makes it untargetable too (during the ritual): it is where the fight is and,
                 // once done, where its tribute is spent ("Interactúa para ver los favores").
                 category = ScanCategory.Encounters;
+                name = name.Length > 0 ? name : this.landmarks.WorldTitle(path);
                 name = name.Length > 0 ? name : Announcements.LeagueDevice(leagueIcon, path.Contains(BossDevice, StringComparison.Ordinal));
                 kind = MinimapMarks.DeviceKind(leagueIcon);
             }
