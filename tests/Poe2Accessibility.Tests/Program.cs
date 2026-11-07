@@ -2009,6 +2009,9 @@ namespace Poe2Accessibility.Tests
             Equal(string.Empty, MinimapMarks.KindUnder("Stash", string.Empty), "and another icon gives no kind");
             Equal(MinimapMarks.QuestObjectKind, MinimapMarks.DeviceKind("QuestObject"), "a league's summon under the quest's icon too");
             Equal("encounter", MinimapMarks.DeviceKind("Strongbox"), "while another device stays an encounter");
+            Equal(true, MinimapMarks.IsStoryBarrier("Metadata/Terrain/Gallows/Act2/2_2/Objects/BossDoor"), "the Ancient Seal is a campaign area's own barrier");
+            Equal(false, MinimapMarks.IsStoryBarrier("Metadata/MiscellaneousObjects/Door"), "a dungeon's plain door is not");
+            Equal(false, MinimapMarks.IsStoryBarrier("Metadata/Terrain/Gallows/Leagues/Incursion/Objects/RoomDoor"), "nor a league's");
             Equal(true, MinimapMarks.IsCage("Metadata/Terrain/Gallows/Act4/4_7/Objects/KaruiElderCage"), "a cage by its file");
             Equal(false, MinimapMarks.IsCage("Metadata/Terrain/Doodads/Desert/DreadnoughtVanguard/BossRoomCageDoor"), "and only by its end");
             Equal("Risu", MinimapMarks.BareName("Risu, Desertora faridun"), "a cage says who is inside without the title");

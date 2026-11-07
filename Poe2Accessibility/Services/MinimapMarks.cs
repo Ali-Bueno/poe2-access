@@ -178,6 +178,12 @@ namespace Poe2Accessibility.Services
         public static string KindUnder(string icon, string kind) => kind.Length == 0 && IsQuestIcon(icon) ? QuestObjectKind : kind;
 
         /// <summary>
+        ///     A named barrier a campaign area made for itself, such as the Ancient Seal at Balbala's door (Act2/2_2/Objects/BossDoor,
+        ///     user 2026-11-07), and not a dungeon's plain door (Metadata/MiscellaneousObjects/Door), a hideout's or a league's.
+        /// </summary>
+        public static bool IsStoryBarrier(string path) => path.StartsWith("Metadata/Terrain/Gallows/Act", StringComparison.Ordinal);
+
+        /// <summary>
         ///     A cage the quest wants opened by its file (RisuCage, KaruiElderCage): of the 62 objects with a quest icon only these
         ///     and three others have no display_text (sweep of the .ot files, 2026-11-07).
         /// </summary>

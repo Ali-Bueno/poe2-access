@@ -76,7 +76,7 @@ namespace Poe2Accessibility.Services
             ("exits", 1, entry => entry.Category == ScanCategory.Exits || entry.Kind == "portal"),
             ("waypoints", 1, entry => entry.Kind is "waypoint" or "checkpoint"),
             ("quests", 1, entry => entry.Kind == "npc_quest"),
-            ("quest objects", 1, entry => entry.Kind == MinimapMarks.QuestObjectKind),
+            ("quest objects", 1, entry => SoundKind(entry) == MinimapMarks.QuestObjectKind),
         };
 
         private readonly AudioCueService audio;
@@ -249,11 +249,14 @@ namespace Poe2Accessibility.Services
         /// <summary>The Diablo IV loop of an entry when that set is chosen and has one.</summary>
         private float[]? DiabloLoop(ScanEntry entry) =>
             this.SoundSet == ItemSoundSet.DiabloIV &&
-            ItemSoundSet.DiabloIVSample(entry.Kind, entry.BaseId, entry.Loot, this.drops.SampleName(entry.BaseId)) is { } sample
+            ItemSoundSet.DiabloIVSample(SoundKind(entry), entry.BaseId, entry.Loot, this.drops.SampleName(entry.BaseId)) is { } sample
                 ? this.diabloSounds.GetLoop(sample)
                 : null;
 
-        private float[]? SoundFor(ScanEntry entry) => this.drops.For(entry.BaseId) ?? entry.Kind switch
+        /// <summary>The kind an entry sounds as: a barrier keeps its own for the guide and can sound as a quest object.</summary>
+        private static string SoundKind(ScanEntry entry) => entry.Sound == MinimapMarks.QuestObjectKind ? entry.Sound : entry.Kind;
+
+        private float[]? SoundFor(ScanEntry entry) => this.drops.For(entry.BaseId) ?? SoundKind(entry) switch
         {
             "gold" => this.sounds.Get("gold"),
             "currency" => this.sounds.Get("currency"),
@@ -290,7 +293,7 @@ namespace Poe2Accessibility.Services
         {
             if (entry.Category != ScanCategory.Items)
             {
-                return entry.Kind;
+                return SoundKind(entry);
             }
 
             return this.SoundSet == ItemSoundSet.DiabloIV && this.Layer(entry.Kind) is { } layer ? layer : ItemSoundGroup.Of(entry.Kind, entry.BaseId);

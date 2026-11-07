@@ -125,7 +125,10 @@ namespace Poe2Accessibility.Services
             else if (entity.TryGetComponent<TriggerableBlockage>(out var blockage))
             {
                 // Tutorial beams and gates: where the way is shut, while it is (BarrierWatch says when one opens).
+                // A barrier stays one for the guide, so what the story wants opened sounds as a quest object through its Sound:
+                // the Ancient Seal, and the Runic Seals beside it, which also carry the quest's icon.
                 category = blockage.IsBlocked ? ScanCategory.Objects : null;
+                sound = name.Length > 0 && (MinimapMarks.IsStoryBarrier(path) || MinimapMarks.IsQuestIcon(icon)) ? MinimapMarks.QuestObjectKind : string.Empty;
                 name = name.Length > 0 ? name : Announcements.ClosedBarrier;
                 kind = "barrier";
             }

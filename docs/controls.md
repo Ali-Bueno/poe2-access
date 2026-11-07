@@ -291,7 +291,7 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   a checkpoint's bright ring), louder as you get closer; the nearest exit is a low rush of air from the game, repeated
   faster and louder as you get closer, so it stands out beside a checkpoint. Walking off any of them, the sound dies away
   over about six steps past the edge of the screen. An item plays the drop sound the game gives its base (a scroll rustles, an orb clinks, a belt,
-  a crossbow, a gem each their own; the rare layer over a rare or unique, the quest sound over a quest item and over whatever the quest's icon marks; the generic item,
+  a crossbow, a gem each their own; the rare layer over a rare or unique, the quest sound over a quest item, over whatever the quest's icon marks and on the campaign's named barriers, such as the Ancient Seal; the generic item,
   currency, gold and quest sounds alone only for bases without one). They need the sounds extracted once from your game (see
   `tools/README.md`: `item-sounds`, then `sounds`), then a rebuild.
 - **Culling Strike** (setting "Aviso de golpe de gracia": by default only while one of your skills culls, else always or
