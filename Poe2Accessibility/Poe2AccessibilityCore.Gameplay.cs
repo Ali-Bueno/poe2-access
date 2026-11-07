@@ -63,6 +63,7 @@ namespace Poe2Accessibility
                 if (this.beacon != null)
                 {
                     this.beacon.TurnPrompts = this.Settings.RoutePrompts;
+                    this.GuideToTimed(playing);
                     this.beacon.Tick(playing);
                 }
             });
@@ -319,6 +320,23 @@ namespace Poe2Accessibility
 
         private static bool InTownOrHideout() =>
             Core.States.InGameStateObject.CurrentWorldInstance.AreaDetails is { } area && (area.IsTown || area.IsHideout);
+
+        /// <summary>Puts the guide on the nearest Death Crystal, and on the next once that one is disabled.</summary>
+        private void GuideToTimed(bool playing)
+        {
+            var now = Environment.TickCount64;
+            if (!playing || !this.Settings.GuideTimed || this.entities == null || now < this.nextTimedGuide)
+            {
+                return;
+            }
+
+            this.nextTimedGuide = now + TimedGuideMs;
+            var timed = this.entities.Entries().Where(entry => entry.Timed && entry.Category != Services.ScanCategory.Quest).ToList();
+            if (this.timedGuide.Next(timed.Select(entry => entry.Id).ToList(), this.beacon!.Target?.Id) is { } next)
+            {
+                this.beacon.Lock(timed.First(entry => entry.Id == next));
+            }
+        }
 
         private System.Collections.Generic.IReadOnlyList<string> QuestTexts()
         {

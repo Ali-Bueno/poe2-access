@@ -37,6 +37,12 @@ namespace Poe2Accessibility
         private ModCommands? commands;
         private L3Gestures gestures = new();
         private uint lastPadButtons;
+
+        /// <summary>How often the guide looks for the next Death Crystal: a disabled one leaves the list at the scanner's pace.</summary>
+        private const int TimedGuideMs = 400;
+
+        private readonly TimedGuide timedGuide = new();
+        private long nextTimedGuide;
         private AudioCueService? audio;
         private const string BuffTable = "buffdefinitions";
         private const string AnimationTable = "animation";

@@ -68,6 +68,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(TakingTheFloorCutsAKeptLine), TakingTheFloorCutsAKeptLine);
             Run(nameof(AFallingClockIsSaidAtItsMarks), AFallingClockIsSaidAtItsMarks);
             Run(nameof(TrialMapIsColumnsFromEntranceToBoss), TrialMapIsColumnsFromEntranceToBoss);
+            Run(nameof(TheGuideGoesFromCrystalToCrystal), TheGuideGoesFromCrystalToCrystal);
             Run(nameof(WorldIsBackOnlyOnceNothingCoversIt), WorldIsBackOnlyOnceNothingCoversIt);
             Run(nameof(PanelOverTheGameIsTheTopLayerThatIsNotTheHud), PanelOverTheGameIsTheTopLayerThatIsNotTheHud);
             Run(nameof(ItemMovesAreSaidAsDeeds), ItemMovesAreSaidAsDeeds);
@@ -2779,6 +2780,21 @@ namespace Poe2Accessibility.Tests
             Equal(TrialRoomStanding.Ahead, TrialMap.Standing(2, false, 1), "after it, not reachable");
             Equal(TrialRoomStanding.Ahead, TrialMap.Standing(1, false, 1), "nor is a room beside the open ones that does not offer");
             Equal(TrialRoomStanding.Ahead, TrialMap.Standing(0, false, -1), "with nothing open nothing can be told");
+        }
+
+        private static void TheGuideGoesFromCrystalToCrystal()
+        {
+            var guide = new TimedGuide();
+            Equal(null, guide.Next(Array.Empty<uint>(), null), "no crystal, nothing to do");
+            Equal(7u, guide.Next(new uint[] { 7, 8, 9 }, null), "the nearest first");
+            Equal(null, guide.Next(new uint[] { 8, 7, 9 }, 7), "while it stands the guide stays, whichever is now nearer");
+            Equal(null, guide.Next(new uint[] { 7, 8, 9 }, null), "arrived or released, not again until it is disabled");
+            Equal(8u, guide.Next(new uint[] { 8, 9 }, null), "disabled: the next");
+            Equal(9u, guide.Next(new uint[] { 9 }, 8), "and straight on from the one gone");
+            Equal(null, guide.Next(Array.Empty<uint>(), 9), "the last one done");
+            var other = new TimedGuide();
+            Equal(null, other.Next(new uint[] { 7 }, 42), "the player's own target is left alone");
+            Equal(7u, other.Next(new uint[] { 7 }, null), "until released");
         }
 
         private static void TakingTheFloorCutsAKeptLine()
