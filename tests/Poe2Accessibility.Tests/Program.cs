@@ -2785,16 +2785,29 @@ namespace Poe2Accessibility.Tests
         private static void TheGuideGoesFromCrystalToCrystal()
         {
             var guide = new TimedGuide();
-            Equal(null, guide.Next(Array.Empty<uint>(), null), "no crystal, nothing to do");
-            Equal(7u, guide.Next(new uint[] { 7, 8, 9 }, null), "the nearest first");
-            Equal(null, guide.Next(new uint[] { 8, 7, 9 }, 7), "while it stands the guide stays, whichever is now nearer");
-            Equal(null, guide.Next(new uint[] { 7, 8, 9 }, null), "arrived or released, not again until it is disabled");
-            Equal(8u, guide.Next(new uint[] { 8, 9 }, null), "disabled: the next");
-            Equal(9u, guide.Next(new uint[] { 9 }, 8), "and straight on from the one gone");
-            Equal(null, guide.Next(Array.Empty<uint>(), 9), "the last one done");
+            Equal((null, false), guide.Look(Array.Empty<uint>(), null), "no crystal, nothing to do");
+            Equal((7u, false), guide.Look(new uint[] { 7, 8, 9 }, null), "the nearest first");
+            Equal((null, false), guide.Look(new uint[] { 8, 7, 9 }, 7), "while it stands the guide stays, whichever is now nearer");
+            Equal((null, false), guide.Look(new uint[] { 7, 8, 9 }, null), "arrived or released, not again until it is disabled");
+            Equal((8u, false), guide.Look(new uint[] { 8, 9 }, null), "disabled: the next");
+            Equal((9u, false), guide.Look(new uint[] { 9 }, 8), "and straight on from the one gone");
+            Equal((null, false), guide.Look(Array.Empty<uint>(), 9), "the room done: a page turned hides the objective too, so not at once");
+            Equal((null, false), guide.Look(Array.Empty<uint>(), 9), "nor on the second look");
+            Equal((null, true), guide.Look(Array.Empty<uint>(), 9), "then the guide lets go of the last crystal");
+            Equal((null, false), guide.Look(Array.Empty<uint>(), null), "once");
+            var paged = new TimedGuide();
+            paged.Look(new uint[] { 7 }, null);
+            paged.Look(Array.Empty<uint>(), 7);
+            Equal((null, false), paged.Look(new uint[] { 7 }, 7), "the objective back in a moment: the guide stays");
+            paged.Look(Array.Empty<uint>(), 7);
+            paged.Look(Array.Empty<uint>(), 7);
+            Equal((null, true), paged.Look(Array.Empty<uint>(), 7), "and the looks count from there");
             var other = new TimedGuide();
-            Equal(null, other.Next(new uint[] { 7 }, 42), "the player's own target is left alone");
-            Equal(7u, other.Next(new uint[] { 7 }, null), "until released");
+            Equal((null, false), other.Look(new uint[] { 7 }, 42), "the player's own target is left alone");
+            Equal((7u, false), other.Look(new uint[] { 7 }, null), "until released");
+            other.Look(Array.Empty<uint>(), 42);
+            other.Look(Array.Empty<uint>(), 42);
+            Equal((null, false), other.Look(Array.Empty<uint>(), 42), "and it is not let go when the room ends");
         }
 
         private static void TakingTheFloorCutsAKeptLine()

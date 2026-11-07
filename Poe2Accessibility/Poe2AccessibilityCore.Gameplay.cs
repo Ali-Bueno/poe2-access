@@ -332,9 +332,14 @@ namespace Poe2Accessibility
 
             this.nextTimedGuide = now + TimedGuideMs;
             var timed = this.entities.Entries().Where(entry => entry.Timed && entry.Category != Services.ScanCategory.Quest).ToList();
-            if (this.timedGuide.Next(timed.Select(entry => entry.Id).ToList(), this.beacon!.Target?.Id) is { } next)
+            var (next, release) = this.timedGuide.Look(timed.Select(entry => entry.Id).ToList(), this.beacon!.Target?.Id);
+            if (next != null)
             {
                 this.beacon.Lock(timed.First(entry => entry.Id == next));
+            }
+            else if (release)
+            {
+                this.beacon.Clear(false);
             }
         }
 
