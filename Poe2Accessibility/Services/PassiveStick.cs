@@ -51,6 +51,14 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>
+        ///     Where the cursor's node sits once the view has settled: the game pans the canvas until the hovered node is at the
+        ///     centre of the canvas's frame (1279.8,781.2 in a 2560×1440 client whose frame is 0,122 2560×1318, 2026-11-08).
+        ///     Right after a push the view is still panning (the node drawn at 1307,699 a frame later), and a window placed
+        ///     there let far nodes in: the finder said 3 pushes where the next push landed 7 away.
+        /// </summary>
+        public static Vector2 SettledCursor(Vector2 framePosition, Vector2 frameSize) => framePosition + (frameSize / 2);
+
         /// <summary>The unit vector of a push in the octant, y down as the game flips the stick's y (0x9B9BA0 entry).</summary>
         public static Vector2 Direction(int octant)
         {
