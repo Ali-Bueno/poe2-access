@@ -8,18 +8,20 @@
   no kernel anti-cheat (server-side detection). Install: `D:\games\steam\steamapps\common\Path of Exile 2`
   (download started 2026-09-14, ~138 GB). Current patch 0.5.5f.
 - **Approach:** external, **read-only** memory reading, no input automation (see brief §3/§25 and `AGENTS.md`).
-- **Host:** **GameHelper2** v2.8.0 (`external/GameHelper2`, `net10.0-windows`, GPLv3) plus `tools/package/gamehelper.patch` (runtime layout searches; [compatibility](docs/compatibility.md)).
+- **Host:** the mod's own headless `Poe2AccessHost.exe` (`host/`, since 2026-11-08; [host](host/README.md)): GameHelper2 v2.8.0's
+  memory model vendored as a library with the runtime layout searches ([compatibility](docs/compatibility.md)), no overlay, no
+  administrator rights, 60 frames a second; GameHelper2 itself is no longer used (it took 70% of a core in town, the host 36%).
   ExileCore2 rejected (binary-only, obfuscated, Discord-gated — `docs/research/exilecore2-study.md`);
   CoreExile2 no longer exists (now `coussiraty/ExileBridge`, an HTTP/MCP API without UI tree).
 - **Speech transport:** PRISM through the **Prismatoid 0.4.0** NuGet binding (net10.0; bundles
   `runtimes/win-x64/native/prism.dll`). Plugin ships `Poe2Accessibility.dll + Prismatoid.dll + prism.dll`.
 - **Plugin:** `Poe2Accessibility/` (sealed `Poe2AccessibilityCore : PCore<AccessibilitySettings>`).
-- **Build:** `dotnet build external/GameHelper2/GameOverlay.sln -c Release` once (host), then
+- **Build:** `dotnet build host/Poe2AccessHost -c Release` (host), then
   `dotnet build Poe2Accessibility -c Release` → auto-deploys to
-  `external/GameHelper2/GameHelper/bin/Release/net10.0-windows/win-x64/Plugins/Poe2Accessibility/`.
+  `host/Poe2AccessHost/bin/Release/net10.0-windows/win-x64/Plugins/Poe2Accessibility/`.
 - **Run:** double-click `Poe2Access.exe` in the host folder (`tools/Poe2AccessLauncher`, built with the
-  host): starts PoE2 through Steam if needed and a hidden, renamed GameHelper copy without UAC
-  (`__COMPAT_LAYER=RunAsInvoker`), no console, no update check, no prompt; `restart`/`stop` for testing; errors
+  host): starts PoE2 through Steam if needed and `Poe2AccessHost.exe` (no window, stopped through the event
+  `Local\Poe2AccessHost.Stop`), no update check, no prompt; `restart`/`stop` for testing; errors
   in `Poe2Access.log` + a message box. From Steam's Play button: launch options `"<path>\Poe2Access.exe" %command%` (`tools/README.md`).
   Dev: `py -B tools/computer_use/launch.py all|host|stop` wraps it.
 - **Releases:** public repo (2026-10-26); `tools/package/Publish-Release.ps1` builds the package and makes it the latest GitHub release (tag `vYYYY.MM.DD[-n]`, assets always `Poe2Access.zip` / `.7z`), so `https://github.com/Ali-Bueno/poe2-access/releases/latest/download/Poe2Access.zip` is always the newest.
@@ -31,9 +33,9 @@
 - **Autonomous testing (controller only):** virtual DualShock 4 + speech log oracle — `tools/computer_use/README.md`. Plugin logs: `Plugins/Poe2Accessibility/logs/accessibility.log`;
   UI dumps: `Plugins/Poe2Accessibility/debug/ui-tree-<State>-<timestamp>.txt`;
   settings: `Plugins/Poe2Accessibility/config/settings.txt` (hotkeys by key name).
-- **Hotkeys (defaults):** F6 dump UI tree, F7 repeat last announcement, F8 speak status
-  (F9/F10/F12 are GameHelper's own keys and the overlay's key-timeout table is process-wide — a collision
-  is logged at enable). `settings.txt` is re-read automatically when edited while GameHelper runs.
+- **Hotkeys (defaults):** F6 dump UI tree, F7 repeat last announcement, F8 speak status (the host has no keys of
+  its own). `settings.txt` is re-read automatically when edited while the host runs.
+- **Cost:** `Poe2AccessHost.log` says what the frames cost once a minute; dev command `costs` logs the plugin's parts.
 
 ## Section status
 | Section | Status | Notes |
