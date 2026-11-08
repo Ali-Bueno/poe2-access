@@ -13,7 +13,7 @@ using Index = LibBundle3.Index;
 ///     - monster_mortar / geometry_mortars → MonsterMortar: the impact visual.
 ///     Writes telegraph-skills.txt (one line a skill), telegraph-effects.txt (one line an .ao the client may show for
 ///     one of them: its role, and its shapes with times where the file has an EffectDrivenEvent block) and
-///     telegraph-monsters.txt (monster path → its skills with a line). Not wired into the batch yet.
+///     telegraph-monsters.txt (monster path → its skills with a line). The batch runs the skills and the effects files as two commands (RunSkills, RunEffects), each from its own read of the tables; only skills a MonsterVarieties row grants are kept.
 /// </summary>
 internal static class TelegraphExtractor
 {
@@ -61,14 +61,55 @@ internal static class TelegraphExtractor
     private const int MonsterSkillsOffset = 0xD0;
     private const string AoExtension = ".ao";
 
+    private const string SkillsHeader1 = "# Monster skills whose tables describe the danger area the client draws (tools/Poe2UiExtract telegraph-skills), regenerated after patches.";
+    private const string SkillsHeader2 = "# skill id|kind|area (shape=circle|cone|rectangle|donut; length or radius, width, angle in degrees, delay ms, range, count)|visual .ao files|spawned objects";
+    private const string EffectsHeader1 = "# Effect files the client plays for those skills: a ServerEffect entity's .ao names one of them (tools/Poe2UiExtract telegraph-effects).";
+    private const string EffectsHeader2 = "# .ao path|roles (visual, marker, impact, effect)|shapes of its EffectDrivenEvent block as shape:ms from start:length:width:angle";
+
+    /// <summary>The three files' lines, header apart.</summary>
+    internal sealed record Lines(IReadOnlyCollection<string> Skills, IReadOnlyCollection<string> Effects, IReadOnlyCollection<string> Monsters);
+
     public static int Run(string gameDir, string outDir)
     {
         using var index = SharedBundles.OpenParsed(gameDir);
         return Run(index, outDir);
     }
 
-    /// <summary>On an index already opened with its paths parsed.</summary>
+    /// <summary>Writes the three files into a directory.</summary>
     public static int Run(Index index, string outDir)
+    {
+        if (Build(index) is not { } lines)
+        {
+            return 1;
+        }
+
+        Directory.CreateDirectory(outDir);
+        File.WriteAllLines(System.IO.Path.Combine(outDir, SkillsFile), new[] { SkillsHeader1, SkillsHeader2 }.Concat(lines.Skills));
+        File.WriteAllLines(System.IO.Path.Combine(outDir, EffectsFile), new[] { EffectsHeader1, EffectsHeader2 }.Concat(lines.Effects));
+        File.WriteAllLines(System.IO.Path.Combine(outDir, MonstersFile), new[] { "# monster path|its skills with a line in " + SkillsFile }.Concat(lines.Monsters));
+        return 0;
+    }
+
+    /// <summary>`telegraph-skills` batch command: the skills file alone (the batch makes one output per command).</summary>
+    public static int RunSkills(Index index, string outFile) => RunOne(index, outFile, lines => new[] { SkillsHeader1, SkillsHeader2 }.Concat(lines.Skills));
+
+    /// <summary>`telegraph-effects` batch command: the effects file alone.</summary>
+    public static int RunEffects(Index index, string outFile) => RunOne(index, outFile, lines => new[] { EffectsHeader1, EffectsHeader2 }.Concat(lines.Effects));
+
+    private static int RunOne(Index index, string outFile, Func<Lines, IEnumerable<string>> content)
+    {
+        if (Build(index) is not { } lines)
+        {
+            return 1;
+        }
+
+        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(outFile))!);
+        File.WriteAllLines(outFile, content(lines));
+        return 0;
+    }
+
+    /// <summary>Reads the tables; null, and said, when one moved. Only skills some MonsterVarieties row grants are kept.</summary>
+    internal static Lines? Build(Index index)
     {
         if (Sized(index, "grantedeffects", SkillRowSize) is not { } skills || Sized(index, "geometryattack", GeometryRowSize) is not { } geometry ||
             Sized(index, "geometrytrigger", TriggerRowSize) is not { } triggers || Sized(index, "spawnobject", SpawnRowSize) is not { } spawns ||
@@ -76,7 +117,7 @@ internal static class TelegraphExtractor
             Sized(index, "activeskills") is not { } activeSkills || Sized(index, "miscanimated") is not { } animated ||
             Sized(index, "miscobjects") is not { } objects || Sized(index, "monstervarieties") is not { } monsters)
         {
-            return 1;
+            return null;
         }
 
         var activeSkill = DatContentColumns.Nearest(skills, SkillActiveSkillOffset, offset => skills.IsKeyColumn(offset, activeSkills.RowCount));
@@ -90,7 +131,13 @@ internal static class TelegraphExtractor
         if (activeSkill == null || aoFile == null || otFile == null || monsterSkills == null || geometryAnimation == null || triggerMarkers == null || spawnObjects == null || effectAnimation == null)
         {
             Console.WriteLine("A list or path column of the telegraph tables was not found again (dat-strings, dat-schema).");
-            return 1;
+            return null;
+        }
+
+        var granted = new HashSet<long>();
+        for (var row = 0; row < monsters.RowCount; row++)
+        {
+            granted.UnionWith(monsters.KeyList(row, monsterSkills.Value));
         }
 
         var kindOf = new Dictionary<int, string>();
@@ -108,7 +155,7 @@ internal static class TelegraphExtractor
         if (skillId == null || !geometry.IsFlagLike(GeometryShapeOffset, MaxGeometryShape))
         {
             Console.WriteLine("GrantedEffects' SkillID or GeometryAttack's shape column was not found again (docs/research/attack-telegraphs.md).");
-            return 1;
+            return null;
         }
 
         var tables = new Dictionary<string, Dictionary<int, int>>
@@ -122,6 +169,11 @@ internal static class TelegraphExtractor
         var withLine = new HashSet<int>();
         foreach (var (row, kind) in kindOf)
         {
+            if (!granted.Contains(row))
+            {
+                continue; // no monster has it
+            }
+
             if (!tables[kind].TryGetValue(skills.Int32(row, skillId.Value), out var target))
             {
                 Count(tally, $"{kind}: no table row");
@@ -205,25 +257,13 @@ internal static class TelegraphExtractor
             }
         }
 
-        Directory.CreateDirectory(outDir);
-        File.WriteAllLines(System.IO.Path.Combine(outDir, SkillsFile), new[]
-        {
-            "# Monster skills whose tables describe the danger area the client draws (tools/Poe2UiExtract telegraphs, prototype).",
-            "# skill id|kind|area (shape=circle|cone|rectangle|donut; length or radius, width, angle in degrees, delay ms, range, count)|visual .ao files|spawned objects",
-        }.Concat(skillLines));
-        File.WriteAllLines(System.IO.Path.Combine(outDir, EffectsFile), new[]
-        {
-            "# Effect files the client plays for those skills: a ServerEffect entity's .ao names one of them.",
-            "# .ao path|roles (visual, marker, impact, effect)|shapes of its EffectDrivenEvent block as shape:ms from start:length:width:angle",
-        }.Concat(effectLines));
-        File.WriteAllLines(System.IO.Path.Combine(outDir, MonstersFile), new[] { "# monster path|its skills with a line in " + SkillsFile }.Concat(monsterLines));
-        Console.WriteLine($"Wrote {outDir}: {skillLines.Count} skills, {effectLines.Count} effect files ({shaped} with shapes), {monsterLines.Count} monsters.");
+        Console.WriteLine($"Telegraphs: {skillLines.Count} skills, {effectLines.Count} effect files ({shaped} with shapes), {monsterLines.Count} monsters.");
         foreach (var (what, count) in tally.OrderBy(pair => pair.Key, StringComparer.Ordinal))
         {
             Console.WriteLine($"  {what}: {count}");
         }
 
-        return 0;
+        return new Lines(skillLines, effectLines, monsterLines);
     }
 
     /// <summary>

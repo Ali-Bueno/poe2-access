@@ -238,6 +238,24 @@ if (args.Length > 1 && string.Equals(args[0], "hazards", StringComparison.Ordina
     return HazardExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hazards.txt");
 }
 
+// Args: attack-reach <gameDir> [outFile]  -- how far each monster animation clip's blow reaches and lands, from the .ao files.
+if (args.Length > 1 && string.Equals(args[0], "attack-reach", StringComparison.OrdinalIgnoreCase))
+{
+    return AttackReachExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\attack-reach.txt");
+}
+
+// Args: action-types <gameDir> [outFile]  -- the Id of every ActionTypes row.
+if (args.Length > 1 && string.Equals(args[0], "action-types", StringComparison.OrdinalIgnoreCase))
+{
+    return ActionTypeExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\action-types.txt");
+}
+
+// Args: telegraphs <gameDir> [outDir]  -- what the game draws before a monster skill lands: telegraph-skills, -effects and -monsters.txt.
+if (args.Length > 1 && string.Equals(args[0], "telegraphs", StringComparison.OrdinalIgnoreCase))
+{
+    return TelegraphExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog");
+}
+
 // Args: game-ids <gameDir> [outFile]  -- the game's numbers for animations and stats, in place of GameHelper's old enums.
 if (args.Length > 1 && string.Equals(args[0], "game-ids", StringComparison.OrdinalIgnoreCase))
 {
@@ -346,7 +364,7 @@ if (args.Length > 0 && string.Equals(args[0], "dat-columns", StringComparison.Or
     return DatColumnExtractor.Run(args[1], args[2]);
 }
 
-// Args: batch <gameDir> <command> <outFile> [...]  -- item-sounds, areas, dat-columns, experience, hit-times, hazards, cull-skills, places and
+// Args: batch <gameDir> <command> <outFile> [...]  -- item-sounds, areas, dat-columns, experience, hit-times, hazards, attack-reach, action-types, telegraph-skills, telegraph-effects, cull-skills, places and
 // ui-catalog on one opened index (the launcher after a game patch); each output complete or absent.
 if (args.Length > 3 && string.Equals(args[0], "batch", StringComparison.OrdinalIgnoreCase))
 {
