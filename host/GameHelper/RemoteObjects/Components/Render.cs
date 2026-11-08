@@ -14,8 +14,8 @@ namespace GameHelper.RemoteObjects.Components
     /// </summary>
     public class Render : ComponentBase
     {
-        private static readonly float WorldToGridRatio =
-            TileStructure.TileToWorldConversion / TileStructure.TileToGridConversion;
+        // Computed on each read: the terrain search sets the cells per tile from what the terrain holds (AreaLayoutSearch).
+        private static float WorldToGridRatio => TileStructure.TileToWorldConversion / TileStructure.TileToGridConversion;
 
         private GridPos2DSnap gridSnap = new(0f, 0f);
 

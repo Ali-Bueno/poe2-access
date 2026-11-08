@@ -208,6 +208,7 @@ namespace GameHelper
                 GameCull.Address = IntPtr.Zero;
                 RotationSelector.Address = IntPtr.Zero;
                 RotatorHelper.Address = IntPtr.Zero;
+                OffsetHealer.Forget();
 
                 if (GHSettings.CloseWhenGameExit)
                 {

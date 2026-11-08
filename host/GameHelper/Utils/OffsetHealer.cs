@@ -246,10 +246,6 @@ namespace GameHelper.Utils
         }
 
         /// <summary>
-        ///     Judges the UI element base fields on <paramref name="root"/> (<see cref="UiElementLayoutSearch"/>) and reads every
-        ///     element from there. Empty when it is no UI root (no self pointer, no element of the base resolution's size).
-        /// </summary>
-        /// <summary>
         ///     Reads pointer fields of a struct from where a search of the plugin found them, each (measured, found); what
         ///     follows each pointer stays where it reads now.
         /// </summary>
@@ -264,6 +260,10 @@ namespace GameHelper.Utils
         public static UiElementFields FindUiElementBase(IntPtr root, UiElementFields near) =>
             new UiElementLayoutSearch(new GameMemory(Core.Process.Handle)).Find(root.ToInt64(), near);
 
+        /// <summary>
+        ///     Judges the UI element base fields on <paramref name="root"/> (<see cref="UiElementLayoutSearch"/>) and reads every
+        ///     element from there. Empty when it is no UI root (no self pointer, no element of the base resolution's size).
+        /// </summary>
         public static IReadOnlyList<StructOutcome> JudgeUiElementBase(IntPtr root)
         {
             var measured = UiElementFields.Measured;
@@ -396,6 +396,32 @@ namespace GameHelper.Utils
             }
 
             return offset;
+        }
+
+        /// <summary>
+        ///     The game closed: every struct reads where it was measured again, so a host that outlives the game process judges
+        ///     the next one from scratch instead of reading through the last one's repairs.
+        /// </summary>
+        internal static void Forget()
+        {
+            List<Type> moved;
+            lock (Healed)
+            {
+                moved = Healed.Keys.ToList();
+                FromCode.Clear();
+            }
+
+            foreach (var type in moved)
+            {
+                Remap(type, Array.Empty<RemapSegment>());
+            }
+
+            lock (Healed)
+            {
+                Healed.Clear();
+            }
+
+            TileStructure.TileToGridConversion = TileStructure.MeasuredTileToGridConversion;
         }
 
         /// <summary>Sets where a struct's fields moved.</summary>
@@ -548,12 +574,20 @@ namespace GameHelper.Utils
                 return new StructOutcome(name, StructHealth.Lost, measured[0], 0, $"life reads {healthCurrent} of {healthTotal}");
             }
 
-            if (placed.SequenceEqual(measured) && (foundBack, foundTotal) == (back, total))
+            // With no vital full the measured places cannot tell a total read one field late: a code placement then stays.
+            var intact = placed.SequenceEqual(measured) && (foundBack, foundTotal) == (back, total);
+            bool codePlaced;
+            lock (Healed)
             {
-                return new StructOutcome(name, StructHealth.Intact, measured[0], measured[0], string.Empty);
+                codePlaced = FromCode.TryGetValue(typeof(LifeOffset), out var placedByCode) && placedByCode.Count > 0;
             }
 
-            // Each vital: its start, its back-pointer (the reserves after it follow) and its regeneration, total and current.
+            if (intact && codePlaced && StructShapes.Full(block, vitals, total, currentAfterTotal) == 0)
+            {
+                return NotJudged(name, "no vital full to judge the code's placement on");
+            }
+
+            // Every outcome sets the whole remap, so nothing a misjudged sweep or the code left behind is read through.
             var regeneration = OffsetOf<VitalStruct>(nameof(VitalStruct.Regeneration)) - total;
             Remap(typeof(LifeOffset), StructRemapper.Segments(measured.SelectMany((at, index) => new[]
             {
@@ -561,7 +595,13 @@ namespace GameHelper.Utils
                 new RemapSegment(at + back, placed[index] + foundBack - (at + back)),
                 new RemapSegment(at + total + regeneration, placed[index] + foundTotal - (at + total)),
             })));
-            return (foundBack, foundTotal) == (back, total) ? new StructOutcome(name, StructHealth.Moved, measured[0], placed[0], string.Empty)
+            lock (Healed)
+            {
+                FromCode.Remove(typeof(LifeOffset));
+            }
+
+            return intact ? new StructOutcome(name, StructHealth.Intact, measured[0], measured[0], string.Empty)
+                : (foundBack, foundTotal) == (back, total) ? new StructOutcome(name, StructHealth.Moved, measured[0], placed[0], string.Empty)
                 : new StructOutcome(name, StructHealth.Moved, total, foundTotal, "inside each vital");
         }
 
