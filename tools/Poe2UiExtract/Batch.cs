@@ -35,6 +35,7 @@ internal static class Batch
         ["ui-catalog"] = (_, index, output) => UiScripts.BuildCatalog(index, output),
         ["trial-data"] = (_, index, output) => TrialDataExtractor.Run(index, output),
         ["inline-icons"] = (_, index, output) => InlineIconExtractor.Run(index, output),
+        ["boss-mechanics"] = (_, index, output) => BossMechanicsExtractor.Run(index, output),
     };
 
     /// <param name="pairs">Command and output file, repeated.</param>
