@@ -34,6 +34,7 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(GoldCostIsSaidAfterItsAmount), GoldCostIsSaidAfterItsAmount),
             (nameof(SpiritAfterItsNumberAndNeverTwice), SpiritAfterItsNumberAndNeverTwice),
+            (nameof(SpiritPictureBesideItsNumberIsItsUnit), SpiritPictureBesideItsNumberIsItsUnit),
             (nameof(TickAndCheckBoxesAreTheLinesState), TickAndCheckBoxesAreTheLinesState),
             (nameof(UnnamedPicturesStayDropped), UnnamedPicturesStayDropped),
             (nameof(PortalCountAndWeaponSetAreRead), PortalCountAndWeaponSetAreRead),
@@ -124,6 +125,20 @@ namespace Poe2Accessibility.Tests
             Localization.Set("es", new());
             Expect("100 de espíritu", ControllerGlyphs.Plain("100 de espíritu <<spirit_resource_icon>>"), "Spanish says it too");
             Expect("30 espíritu", ControllerGlyphs.Plain("30 <<spirit_resource_icon>>"), "Spanish unit");
+        }
+
+        /// <summary>
+        ///     Live, the pad's spirit tab draws assigned spirit as "30" with the spirit icon as a child picture, not the markup
+        ///     (assigned_spirit_value_label, 2026-11-08): the picture's art gives the unit.
+        /// </summary>
+        private static void SpiritPictureBesideItsNumberIsItsUnit()
+        {
+            English();
+            const string spiritArt = "Art/2DArt/UIImages/InGame/SpiritIcon";
+            Expect("30 spirit", InlineIcons.WithPicture("30", spiritArt), "a number and its unit picture");
+            Expect("Activated", InlineIcons.WithPicture("Activated", spiritArt), "a word keeps its picture unsaid");
+            Expect("30", InlineIcons.WithPicture("30", "Art/2DArt/UIImages/Common/IconDiamondSmall"), "a picture that means nothing");
+            Expect("500 gold", InlineIcons.WithPicture("500", "Art/2DArt/UIImages/InGame/Market/MarketIconGold"), "a price picture too");
         }
 
         /// <summary>SplinterInfoComplete "&lt;&lt;TickIcon&gt;&gt; &lt;rgb(214, 186, 139)&gt;{{{0}}}"; check boxes drawn inline.</summary>

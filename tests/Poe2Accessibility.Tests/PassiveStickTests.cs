@@ -37,6 +37,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheFirstLinkInEdgeOrderWins), TheFirstLinkInEdgeOrderWins),
             (nameof(TheConeKeepsTheLowestWeightedDistance), TheConeKeepsTheLowestWeightedDistance),
             (nameof(ANodeOutsideTheWindowIsNeverLandedOn), ANodeOutsideTheWindowIsNeverLandedOn),
+            (nameof(TheWindowIsTheSettledViewNotTheMidPanOne), TheWindowIsTheSettledViewNotTheMidPanOne),
             (nameof(WithoutAWindowTheFittedModelStandsIn), WithoutAWindowTheFittedModelStandsIn),
             (nameof(ALinkIsNamedByThePushThatReachesIt), ALinkIsNamedByThePushThatReachesIt),
             (nameof(ARouteFollowsThePushesThatNear), ARouteFollowsThePushesThatNear),
@@ -110,6 +111,18 @@ namespace Poe2Accessibility.Tests
             Expect(1, PassiveStick.Pick(Offsets((-90, 600), (-70, 490)), 6, new[] { 0 }, window), "a link off the screen yields to the cone");
             Expect(-1, PassiveStick.Pick(Offsets((90, 586)), 2, NoLinks, window), "the top edge is outside (y must be at least 0)");
             Expect(0, PassiveStick.Pick(Offsets((90, 585.9)), 2, NoLinks, window), "y = 0 is inside");
+        }
+
+        private static void TheWindowIsTheSettledViewNotTheMidPanOne()
+        {
+            // Measured 2026-11-08 (2560x1440, x1.9): the frame 0,122 2560x1318; the node rests at 1279.8,781.2 and is drawn at
+            // 1307,699 a frame after the push that reached it. A node 700 px below is off the screen once settled, on it mid-pan.
+            var settled = PassiveStick.SettledCursor(new Vector2(0, 122), new Vector2(2560, 1318));
+            Expect(new Vector2(1280, 781), settled, "the frame's centre");
+            var client = new Vector2(2560, 1440);
+            var below = Offsets((-90, 700));
+            Expect(0, PassiveStick.Pick(below, 6, NoLinks, new PassiveStick.Window(new Vector2(1307, 699), client, PixelsPerPixel)), "mid-pan the far node is drawn");
+            Expect(-1, PassiveStick.Pick(below, 6, NoLinks, new PassiveStick.Window(settled, client, PixelsPerPixel)), "settled it is off the screen: no move");
         }
 
         private static void WithoutAWindowTheFittedModelStandsIn()

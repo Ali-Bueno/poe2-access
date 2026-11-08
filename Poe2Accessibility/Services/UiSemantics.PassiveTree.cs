@@ -329,8 +329,17 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            return new PassiveStick.Window(position + (size / 2), new Vector2(area.Width, area.Height), size.X / laid.Size.X);
+            // The game pans until the hovered node sits at its frame's centre; the readout comes while the view still pans.
+            var cursor = this.SettledCursor(graph) ?? position + (size / 2);
+            return new PassiveStick.Window(cursor, new Vector2(area.Width, area.Height), size.X / laid.Size.X);
         }
+
+        /// <summary>The centre of the canvas's frame, where the hovered node rests once the view stops panning; null when unreadable.</summary>
+        private Vector2? SettledCursor(PassiveGraph graph) =>
+            this.elements.TryReadElement(graph.Canvas, out var canvas) &&
+            PluginUiElementReflection.TryGetAbsoluteRect(canvas.Raw.ParentPtr, out var framePosition, out var frameSize) && frameSize.X > 0 && frameSize.Y > 0
+                ? PassiveStick.SettledCursor(framePosition, frameSize)
+                : null;
 
         /// <summary>
         ///     The nodes linked to a record in the order the stick step walks them: the record's own edge vectors when they

@@ -179,7 +179,7 @@ OPEN: `+0x648` values and `T+0x1A8` entry layout with several or weapon-set allo
   panel's centre: 1279.75, 585.9 at 2560x1080; 1279.75, 781.2 at 2560x1440) at 240/240; the recordings hold no edge order,
   so the three pushes with two links in the cone (down from armour_and_evasion2) feed the links by the game's linked score.
 
-### Live confirmation protocol (pending)
+### Live confirmation protocol (run 2026-11-08, yarkey, Mercenary level 22, 2560x1440)
 
 On the passive tree with the virtual pad, ResearchMode on so `passivenear` logs (`debug/command.txt`), screen reader on:
 
@@ -199,6 +199,20 @@ On the passive tree with the virtual pad, ResearchMode on so `passivenear` logs 
    correction (a push landing elsewhere shows as a count that does not fall).
 6. Any miss: `passivenear` on the node before the push and paste the `picks`, `window` and `edge order` lines with the
    landing into docs/research/passive-tree.md.
+
+Results (0.5.5f, virtual Xbox pad): (1) after Y `window 2560x1440 cursor 1279,8,781,2 px per unit 0,3780`, `edge order record:
+duelist597 strength34 attack_speed2_ armour_and_evasion1; file:` the same ids in the same order, `no linked step False`.
+(2) attack_speed2_ before armour_and_evasion1: the first-wins reading holds. (3) The 8 pushes from armour_and_evasion2 landed
+on the picks' ids 8/8 at x1.0 (`up -`: no move), 8/8 at x0.5 (up then picks spells18, which entered the window, and landed
+there) and 8/8 at x1.9. (4) Six links followed by the push said (down, down-right, down-right, down, down, down-right): 6/6.
+(5) Oasis from the end of that walk: one miss. On dexterity66 (Attribute) the way said "down-right, 3 pushes" and the push
+landed on lightning11 (as the picks said), which said 7; reached again from lightning11 the same node said 8. Cause: the
+readout comes a frame after the push while the view still pans: `passivenear` at once gave `hovered dexterity66 at 1309,695`,
+`cursor 1307,3,699,5`, settled 1.5 s later `1280,781`. A window placed on the mid-pan node lets far nodes in, so the route and
+even the links line ("right, not in one push, Lightning Damage" then, a frame later, "down-right, Lightning Damage") changed
+with the side the node was reached from. The window now sits where the node rests, the centre of the canvas's frame (the
+panel element `0,122 2560x1318`, `PassiveStick.SettledCursor`): dexterity66 says 8 from both sides and a walk from
+armour_and_evasion2 counted 15, 14 … 1, "Arrived at Oasis" with no correction.
 
 ## Finder and what the pad does in the tree (0.5.5f, 2026-11-07, malgdhler)
 

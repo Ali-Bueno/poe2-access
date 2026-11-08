@@ -179,7 +179,7 @@ Every new field has a live rule; four also have the game's code:
 | Field | Live rule (`AttackFieldCheck`) | From the exe |
 |---|---|---|
 | Animated +0x350 | the object's details path ends in `.ao` and its name map holds `AnimationController` | — (2,564 code sites; a signature can be made) |
-| AnimationController position, speed, global, clip | the position advances at the rate between frames (`ClockAdvances`, 25% slack) on 20 readings; `IsPlausible` | `semantic`: index ×2 (geal CurrentAnimationIndex, GetCurrentAnimationLength), speed ×2 (geal, label), global ×2 (geal, label), global off (geal), position (label "Current Animation Position: ") |
+| AnimationController position, speed, global, clip | the position advances at the rate between readings at least 200 ms apart (`ClockBaseline`, `ClockAdvances`, 25% slack) on 20 pairs (frame to frame it was judged lost live in Clearfell on 2026-11-08: the game steps a monster's clip coarser than the host's frames and the ms clock ticks every 15.6 ms; 200 ms apart it was intact with the same imps and hags); `IsPlausible` | `semantic`: index ×2 (geal CurrentAnimationIndex, GetCurrentAnimationLength), speed ×2 (geal, label), global ×2 (geal, label), global off (geal), position (label "Current Animation Position: ") |
 | clip events (+0x180 → +0x10; +0x0C, +0x18, +0x38, +0x40) | each event's id equals the hash of its name (`EventLayoutHolds`) | — (five-build helper check above) |
 | Actor +0x238 | readable pointer while acting; its type known (below) | `semantic`: geal GetTarget, GetTargetLocation, GetCurrentActionStat (all 0x238) |
 | Actor +0x2A0 | bit 0x2 set while +0x238 is set | `semantic`: geal IsCurrentAction |

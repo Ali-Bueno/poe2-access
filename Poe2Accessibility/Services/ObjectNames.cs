@@ -9,6 +9,7 @@ namespace Poe2Accessibility.Services
         private const char VariantMark = '@';
         private const char FolderSeparator = '/';
         private const string LeagueFolder = "/Leagues/";
+        private const string DoodadWord = "Doodad ";
 
         /// <summary>"Metadata/Terrain/RitualAltar_Small@12" becomes "Ritual Altar Small"; empty when the path has no file name.</summary>
         public static string FromPath(string path)
@@ -36,7 +37,9 @@ namespace Poe2Accessibility.Services
                 text.Append(c);
             }
 
-            return text.ToString().Trim();
+            // "Doodad" is the engine's word for set dressing, not a player's: the town chair one can sit on is a "Chair" (2026-11-08).
+            var name = text.ToString().Trim();
+            return name.StartsWith(DoodadWord, StringComparison.Ordinal) && name.Length > DoodadWord.Length ? name[DoodadWord.Length..] : name;
         }
 
         /// <summary>The game's label, else the league folder of the path ("Metadata/Terrain/Leagues/Delirium/..." gives "Delirium"), else empty.</summary>

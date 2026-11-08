@@ -37,6 +37,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AnAttackerOffScreenWarnsOnlyOnceItsProjectileShows), AnAttackerOffScreenWarnsOnlyOnceItsProjectileShows),
             (nameof(AClockThatAdvancesAtItsRateIsIntact), AClockThatAdvancesAtItsRateIsIntact),
             (nameof(AClockRunningOffItsRateIsLost), AClockRunningOffItsRateIsLost),
+            (nameof(AClockTheGameStepsSlowerThanTheHostReadsIsIntact), AClockTheGameStepsSlowerThanTheHostReadsIsIntact),
             (nameof(ARestartAPauseOrNoClipSaysNothing), ARestartAPauseOrNoClipSaysNothing),
             (nameof(EventsAndActionsCheckThemselves), EventsAndActionsCheckThemselves),
             (nameof(ASweepThatReachesThePlayerWarnsWhateverItAimsAt), ASweepThatReachesThePlayerWarnsWhateverItAimsAt),
@@ -235,6 +236,39 @@ namespace Poe2Accessibility.Tests
             check.Observe(AttackFieldCheck.ClockAdvances(Clip(0.1f), Clip(0.15f), 16));
             Equal(FieldTrust.Lost, check.Trust, "a position running three times its rate is not a position");
             Equal(false, AttackFieldCheck.ClockAdvances(Clip(0.1f), Clip(float.NaN), 16), "garbage");
+        }
+
+        /// <summary>
+        ///     A monster's clip the game moves every 50 ms, read by the host every 16.7 ms on a clock of 15.6 ms ticks: frame-to-frame
+        ///     pairs run at none or several times the rate, pairs 200 ms apart keep it (the clock judged lost live, 2026-11-08).
+        /// </summary>
+        private static void AClockTheGameStepsSlowerThanTheHostReadsIsIntact()
+        {
+            var frameByFrame = new AttackFieldCheck();
+            var baseline = new AttackFieldCheck();
+            var pairs = new ClockBaseline();
+            AnimationReading? previous = null;
+            long previousAt = 0;
+            for (var frame = 0; frame < 400; frame++)
+            {
+                var real = frame * 1000.0 / 60;
+                var now = (long)(Math.Floor(real / 15.625) * 15.625);
+                var reading = Clip((float)(Math.Floor(real / 50) * 0.05), end: 10f);
+                if (previous is { } before)
+                {
+                    frameByFrame.Observe(AttackFieldCheck.ClockAdvances(before, reading, now - previousAt));
+                }
+
+                (previous, previousAt) = (reading, now);
+                baseline.Observe(pairs.Offer(42, reading, now));
+            }
+
+            Equal(true, frameByFrame.Trust != FieldTrust.Intact, "frame to frame the steps alias");
+            Equal(FieldTrust.Intact, baseline.Trust, "200 ms apart the rate holds");
+            var garbage = new ClockBaseline();
+            Equal(null, garbage.Offer(1, Clip(0.1f), 0), "a first reading closes nothing");
+            Equal(null, garbage.Offer(1, Clip(0.2f), 100), "too soon");
+            Equal(false, garbage.Offer(1, Clip(0.9f), 250), "running three times its rate");
         }
 
         private static void ARestartAPauseOrNoClipSaysNothing()
