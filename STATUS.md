@@ -271,7 +271,7 @@
   In-game root chain: `InGameState+0x2F0 → UiRootStruct+0x340` (controller: `+0x318`). Mouse-over entity
   chain `+0x300 → +0x3F0 → +0xA8`: `docs/research/gamehelper2-ui-tree.md`.
 - Rect of any element from a plugin: `PluginUiElementReflection.TryGetAbsoluteRect(addr, out pos, out size)`.
-- **Pre-game UI root (validated live 2026-09-14, PoE2 0.5.5b, LoginState):** `LoginState+0x10` → an object holding
+- **Pre-game UI root (validated live 2026-09-14, PoE2 0.5.5b, LoginState; read on every start since, last 2026-11-08; no public tool documents it):** `LoginState+0x10` → an object holding
   element pointers at `+0x2B8, +0x2C0, +0x2C8, +0x2D0, +0x328…+0x438` (20 slots); climbing `ParentPtr` from any of
   them reaches the same root (`root_control`, rect 0,0 2560x1440, 12 children, 4104 nodes). The in-game chain
   (`InGameState+0x2F0`) is null pre-game. Evidence: `docs/research/evidence/ui-tree-LoginState-20260914-223105.txt`.
@@ -495,7 +495,6 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   No tienes cosméticos…"): by design, so the name is never cut off; the first readout is interrupted.
 - Passive tree: allocation checked on two characters (Duelist pending/applied, Witch applied, 2026-10-24); a class
   start is said without a direction (the portrait has no node element): "inicio de tu clase, Monje".
-- Pre-game UI root unknown to every public tool; our scan heuristic (self-pointer + no parent + children) is unvalidated.
 - Panel notes (`UiSemantics.PanelNotes`) are a heuristic: a titled panel's texts outside navigable elements and outside
   parts holding more than three; checked on Skills ("0 de espíritu", gem capacity) and Character ("Monje.
   Resistencias"), the inventory and stash give none. A panel whose loose lines change while open says them only on
