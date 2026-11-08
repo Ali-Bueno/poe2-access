@@ -102,6 +102,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\CardText.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TradeOfferNews.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\AoSoundEvents.cs" Link="Extract\AoSoundEvents.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\TelegraphShapes.cs" Link="Extract\TelegraphShapes.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\ClassMechanics.cs" Link="Extract\ClassMechanics.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ClassMechanicCatalog.cs" Link="Plugin\ClassMechanicCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ResourceTracker.cs" Link="Plugin\ResourceTracker.cs" />
