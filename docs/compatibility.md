@@ -141,7 +141,7 @@ restarted in the Act 2 town each time, then reverted; a field at the start of it
 | State machines | list +8 with the stride -8; both +0x18 | `state machine states moved from +0x18 (+0x28) to +0x10` |
 | The shrine flag | not searched (see the [audit](research/field-protection-audit.md), section 2) | — |
 
-**Gap pass 2026-11-08, not simulated live yet** (unit tests and the five archived builds only; the
+**Gap pass 2026-11-08, simulated live the same afternoon** (results below the table; before that unit tests and the five archived builds only; the
 [audit](research/field-protection-audit.md), section 2). Each is simulated as the passes above: shift the constant and, for a code
 rule, the catalogs' value with it (so the code's reading is believed and differs), rebuild with `--no-incremental`, restart, then
 revert. Dev commands go to `Plugins/Poe2Accessibility/debug/command.txt`.
@@ -157,6 +157,28 @@ revert. Dev commands go to `Plugins/Poe2Accessibility/debug/command.txt`.
 | Animated object (code) | `AnimatedOffsets.AnimatedObjectPtr` 0x348 and the `Animated.Object` catalog lines | `AnimatedOffsets.AnimatedObjectPtr +0x348 to +0x350`; `fight` and the dodge warnings as usual |
 | Class and skill Ids (dat) | `GameLayout.PassiveTree.CharacterIdOffset` and `SkillSlot.EffectIdOffset` 0x8, `dat-columns.json` untouched | `Dat columns: Characters.Id moved from +0x8 to +0x0` (and `GrantedEffects.Id`); the passive tree finds the class's start, `skills` names the skills |
 | WorldAreas Id (code and dat) | not simulable: a field at the start of its struct can only be moved later | — |
+
+**Results (2026-11-08, 13:41-13:59, yarkey, dev host, all eight shifted in one build).** At attach `Code fields: 52 of 52 … moved:`
+TileDetailsPtr, AnimatedObjectPtr, WorldAreas NamePtr and IsTown, IsTargeted, ModArray row and size, StateList and StateStride, each
+"+shifted to +measured"; `Semantic fields: 80 of 80 … moved:` the same nine; `Dat columns: Characters.Id moved from +0x8 to +0x0` and
+`GrantedEffects.Id`; `Layout: state machine states moved from +0x18 to +0x10`. Then, feature by feature: a magic Grelwood monster's
+mods read ("de precisión"); the dodge reader's animated object, clock and clip events "where measured"; the town named on arrival and its
+world-map pin said "Pueblo"; the interaction target said in town; `skills` named every skill. Two protections failed and were fixed,
+then passed the same simulation:
+- **Tile array:** the moved line came, but the area had been read a second before the check and kept the tile array from the
+  compiled place: no tile in `tiles`, no tile landmark in the scanner. The area now reads its terrain again when the struct's remap
+  changes (`cd9a64d`): 5227 tile lines and the place names.
+- **Hovered pin:** with both pin fields moved the canvas was never recognised, so the hovered pin's search never ran and no pin was
+  read (the names spoken came from the pins' own texts). The current pin's key is now looked for within the search's reach before
+  the hovered pin is proved (`2aca1f2`): `world map hovered pin moved from +0x370 to +0x378`, `mappin` named G1_5, `layout` "ok".
+- Not shown live: the passive tree's class start under the Characters.Id shift (the dat search put the column back where it reads
+  unshifted, so the reading is the normal one).
+- **A4** (no simulation: a live check, dev command `arearow`): the host's WorldData chain reaches no row in 0.5.5f
+  (`[[WorldData+0x98]+0x98]` reads 0) while `[AreaInstance+0xA0]` holds G1_town: in town the area's corner was said and the lost hint
+  and map hints were not held back. The town check now reads the town flag from the area row the loading state holds (`8c5bd17`).
+
+Reverted afterwards: `git diff` showed no shifted constant or catalog line; the next attach said `52 of 52 … moved: none` and
+`80 of 80 … moved: none`.
 
 
 
