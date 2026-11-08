@@ -578,6 +578,17 @@ namespace Poe2Accessibility
         }
 
         /// <summary>
+        ///     A popup list the stick navigates while the game focuses nothing (the options' "Notificaciones emergentes", Edit
+        ///     Settings): int, the highlighted row among the rows two levels down. Raw bytes of the popup diffed per stick step,
+        ///     2026-11-08 (0.5.5f): 0 → 1 → 2 down, then 4 → 5 → 6 → 5 (down, down, up); no row element changed. Trusted only
+        ///     once it moves between rows (<see cref="Services.MovingIndexWatch"/>).
+        /// </summary>
+        public static class HighlightList
+        {
+            public const int RowIndexOffset = 0x398;
+        }
+
+        /// <summary>
         ///     A section of an options page (a heading over a list of rows; Gráficos has four). The byte is set on the
         ///     page's active section, the qword is that section's highlighted row, disabled rows included, which the game
         ///     highlights but never focuses: Gráficos went 0 → 11 down the first section, the "Pantalla" (1),

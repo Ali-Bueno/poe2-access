@@ -16,6 +16,7 @@
     <Compile Include="..\..\Poe2Accessibility\Models\ScreenSnapshot.cs" Link="Plugin\ScreenSnapshot.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ScreenDiffer.cs" Link="Plugin\ScreenDiffer.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TextEdit.cs" Link="Plugin\TextEdit.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\MovingIndexWatch.cs" Link="Plugin\MovingIndexWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CreationNameGuide.cs" Link="Plugin\CreationNameGuide.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ChatDiff.cs" Link="Plugin\ChatDiff.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\WeaponSetRows.cs" Link="Plugin\WeaponSetRows.cs" />

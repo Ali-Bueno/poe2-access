@@ -52,6 +52,10 @@ namespace Poe2Accessibility.Services
         private readonly Stopwatch sincePendingCheck = Stopwatch.StartNew();
         private readonly Stopwatch sinceValuePoll = Stopwatch.StartNew();
         private readonly Stopwatch sinceMarkerScan = Stopwatch.StartNew();
+        private readonly NoFocusList noFocusList;
+
+        /// <summary>The layer of the last focus: a popup it opens without a focus is looked for there.</summary>
+        private IntPtr focusLayer;
         private System.Collections.Generic.List<IntPtr> markers = new();
         private IntPtr markersRoot;
         private long inGameRescanMs = InGameMarkerRescanMs;
@@ -81,6 +85,7 @@ namespace Poe2Accessibility.Services
             this.locator = locator;
             this.semantics = semantics;
             this.log = log;
+            this.noFocusList = new NoFocusList(reader, elements);
         }
 
         public event Action<AccessibleUiNode>? FocusChanged;
@@ -197,6 +202,7 @@ namespace Poe2Accessibility.Services
 
             this.Current = node;
             this.CurrentPanelIndex = this.PanelIndexOf(focused);
+            this.focusLayer = this.CurrentLayer;
             this.optionSections = this.OptionSectionsOf(focused);
             this.sinceValuePoll.Restart();
             this.log.Info($"Focus -> 0x{focused.ToInt64():X} panel={this.CurrentPanelIndex} name=\"{node.Name}\" role={node.Role} text=\"{node.Text}\" value=\"{node.Value}\" context=\"{node.Context}\" group=\"{node.Group}\" notes=\"{string.Join(". ", node.PanelNotes)}\"");
@@ -313,6 +319,7 @@ namespace Poe2Accessibility.Services
             this.TrackNewest(current, hovered, highlighted);
             if (current != IntPtr.Zero)
             {
+                this.noFocusList.Reset();
                 return (current, false);
             }
 
@@ -322,7 +329,9 @@ namespace Poe2Accessibility.Services
             }
 
             var disabledRow = this.DisabledOptionRow();
-            return disabledRow != IntPtr.Zero ? (disabledRow, false) : (highlighted, false);
+            return disabledRow != IntPtr.Zero ? (disabledRow, false)
+                : highlighted != IntPtr.Zero ? (highlighted, false)
+                : (this.noFocusList.Row(this.focusLayer), false);
         }
 
         private IntPtr ElementAt(IntPtr slot) =>

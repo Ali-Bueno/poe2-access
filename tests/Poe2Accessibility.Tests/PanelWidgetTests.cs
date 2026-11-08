@@ -46,6 +46,8 @@ namespace Poe2Accessibility.Tests
             (nameof(InstanceManagerRowSaysWhatEachNumberCounts), InstanceManagerRowSaysWhatEachNumberCounts),
             (nameof(LadderRowUnderATitleKeepsItsColumns), LadderRowUnderATitleKeepsItsColumns),
             (nameof(LabelsThatAreNoHeadingRowAreLeftAlone), LabelsThatAreNoHeadingRowAreLeftAlone),
+            (nameof(APopupListIsReadOnlyOnceItsIndexMoves), APopupListIsReadOnlyOnceItsIndexMoves),
+            (nameof(AnIndexOutsideTheRowsIsNoRow), AnIndexOutsideTheRowsIsNoRow),
         };
 
         private static TableHeadings.Box Box(string text, float x, float width, float y = 0, float height = 20) => new(text, x, y, width, height);
@@ -248,6 +250,39 @@ namespace Poe2Accessibility.Tests
                    System.IO.File.Exists(System.IO.Path.Combine(repo, "Poe2Accessibility", "catalog", name))
                 ? System.IO.Path.Combine(repo, "Poe2Accessibility", "catalog", name)
                 : null;
+        }
+
+        /// <summary>
+        ///     The options' "Notificaciones emergentes" popup: no focus, its index field 0 → 1 → 2 as the stick moved (2026-11-08)
+        ///     while the options sections behind kept theirs. Nothing is read before a move; then the moved list's row.
+        /// </summary>
+        private static void APopupListIsReadOnlyOnceItsIndexMoves()
+        {
+            var watch = new MovingIndexWatch();
+            var (popup, popupRows, section, sectionRows) = ((IntPtr)0x100, (IntPtr)0x110, (IntPtr)0x200, (IntPtr)0x210);
+            MovingIndexWatch.Reading[] Frame(long popupIndex) =>
+                new[] { new MovingIndexWatch.Reading(section, sectionRows, 8, 9), new MovingIndexWatch.Reading(popup, popupRows, popupIndex, 31) };
+            Expect(false, watch.Observe(Frame(0)) != null, "the list as it appears");
+            Expect(false, watch.Observe(Frame(0)) != null, "the list unmoved");
+            Expect(true, watch.Observe(Frame(1)) is { Row: 1 } moved && moved.Owner == popup && moved.Rows == popupRows, "one step down");
+            Expect(true, watch.Observe(Frame(1)) is { Row: 1 }, "the row stays while the stick rests");
+            Expect(true, watch.Observe(Frame(0)) is { Row: 0 }, "back up to the first row");
+            watch.Reset();
+            Expect(false, watch.Observe(Frame(5)) != null, "after a reset, a move is needed again");
+        }
+
+        /// <summary>A field read outside its rows (a wrong offset, a list rebuilt shorter) never counts as a move or a row.</summary>
+        private static void AnIndexOutsideTheRowsIsNoRow()
+        {
+            var watch = new MovingIndexWatch();
+            var (owner, rows) = ((IntPtr)0x100, (IntPtr)0x110);
+            MovingIndexWatch.Reading[] Frame(long index, int count = 31) => new[] { new MovingIndexWatch.Reading(owner, rows, index, count) };
+            watch.Observe(Frame(0));
+            Expect(false, watch.Observe(Frame(-1)) != null, "a negative index");
+            Expect(false, watch.Observe(Frame(40)) != null, "an index past the rows");
+            Expect(false, watch.Observe(Frame(3)) != null, "from no row to a row is no move");
+            Expect(true, watch.Observe(Frame(4)) is { Row: 4 }, "a move between rows");
+            Expect(false, watch.Observe(Frame(4, 3)) != null, "the same index once the rows shrank below it");
         }
 
         private static void Expect(bool expected, bool actual, string what)
