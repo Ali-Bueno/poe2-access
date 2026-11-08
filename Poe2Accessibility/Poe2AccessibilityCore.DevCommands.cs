@@ -661,7 +661,8 @@ namespace Poe2Accessibility
             }
 
             this.codeFields = null;
-            var reading = task.Result;
+            var reading = task.IsCompletedSuccessfully ? task.Result
+                : new CodeFieldReading(Array.Empty<(CodeFieldEntry, int?)>(), 0, Array.Empty<(CodeFieldEntry, int?)>(), 0, task.Exception?.GetBaseException().Message, null);
             if (reading.Error != null)
             {
                 this.log?.Debug($"Code fields unread: {reading.Error}");
@@ -706,8 +707,9 @@ namespace Poe2Accessibility
             var semanticMoves = reading.Semantic.Where(field => field.Found is { } value && value != field.Entry.Value)
                 .Select(field => $"{field.Entry.Name} +0x{field.Entry.Value:X} to +0x{field.Found:X}").Distinct().ToList();
             this.log?.Info(Tally("Code fields", reading.Code, reading.CodeMilliseconds, moved));
-            this.log?.Info(Tally("Semantic fields", reading.Semantic, reading.SemanticMilliseconds, semanticMoves)
-                + (disagree.Count == 0 ? string.Empty : $"; disagree, left where they are: {string.Join(", ", disagree)}"));
+            this.log?.Info(reading.SemanticError is { } error ? $"Semantic fields unread: {error}"
+                : Tally("Semantic fields", reading.Semantic, reading.SemanticMilliseconds, semanticMoves)
+                    + (disagree.Count == 0 ? string.Empty : $"; disagree, left where they are: {string.Join(", ", disagree)}"));
             if (stuck)
             {
                 this.compatibility?.Missing(CodeFieldsPart);
@@ -723,6 +725,19 @@ namespace Poe2Accessibility
                 + (unsettled.Count == 0 ? string.Empty : $"; not settled: {string.Join(", ", unsettled)}");
         }
 
+        /// <summary>The semantic rules' reading, or why there is none: a reader that fails leaves the code fields standing.</summary>
+        private static (System.Collections.Generic.IReadOnlyList<(CodeFieldEntry Entry, int? Found)> Read, string? Error) ReadSemanticFields(byte[] file, string rules)
+        {
+            try
+            {
+                return (CodeFieldCatalog.ReadSemantic(file, CodeFieldCatalog.ParseSemantic(File.ReadLines(rules))), null);
+            }
+            catch (Exception ex) when (ex is IOException or ArgumentException or IndexOutOfRangeException or InvalidOperationException or OverflowException)
+            {
+                return (Array.Empty<(CodeFieldEntry, int?)>(), ex.Message);
+            }
+        }
+
         /// <summary>Both readings of the exe on disk; nothing touches the game. For a worker thread.</summary>
         private static CodeFieldReading ReadCodeFields(string exe, string catalog)
         {
@@ -734,15 +749,12 @@ namespace Poe2Accessibility
                 var (start, length) = GameHelper.Utils.CodeFieldSearch.CodeOf(file);
                 var code = CodeFieldCatalog.Read(file.AsSpan(start, length), entries);
                 var codeTime = watch.ElapsedMilliseconds;
-                var rules = Path.Join(catalog, SemanticFieldFile);
-                var semantic = File.Exists(rules)
-                    ? CodeFieldCatalog.ReadSemantic(file, CodeFieldCatalog.ParseSemantic(File.ReadLines(rules)))
-                    : Array.Empty<(CodeFieldEntry, int?)>();
-                return new CodeFieldReading(code, codeTime, semantic, watch.ElapsedMilliseconds - codeTime, null);
+                var (semantic, semanticError) = ReadSemanticFields(file, Path.Join(catalog, SemanticFieldFile));
+                return new CodeFieldReading(code, codeTime, semantic, watch.ElapsedMilliseconds - codeTime, null, semanticError);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
             {
-                return new CodeFieldReading(Array.Empty<(CodeFieldEntry, int?)>(), 0, Array.Empty<(CodeFieldEntry, int?)>(), 0, ex.Message);
+                return new CodeFieldReading(Array.Empty<(CodeFieldEntry, int?)>(), 0, Array.Empty<(CodeFieldEntry, int?)>(), 0, ex.Message, null);
             }
         }
 
@@ -791,6 +803,7 @@ namespace Poe2Accessibility
             long CodeMilliseconds,
             System.Collections.Generic.IReadOnlyList<(CodeFieldEntry Entry, int? Found)> Semantic,
             long SemanticMilliseconds,
-            string? Error);
+            string? Error,
+            string? SemanticError);
     }
 }

@@ -175,6 +175,101 @@ The study also corrected the structs: `IsStrongbox` reads +0x50 where the code r
 `IsLabelVisible` is the `.ot` key `large`, and Transitionable is a byte with a separate flag at +0x121, which the C# `short` mixes.
 `UnscaledSize` 0x270, `BackgroundColor` 0x28C and `StringIdPtr` 0x128 are stale upstream fields; the mod reads none of them.
 
+## The semantic source
+
+Since 2026-11-08 the host reads a third set of offsets from the exe on disk, beside the live searches and the signatures:
+`host/GameHelper/Utils/CodeReader/`, rules in `catalog/semantic-fields.txt`, ported from `re/semantic.py` and `re/semantic_ext.py`
+(poe2-research). A rule names no byte and no register beyond the calling convention (`this` in rcx, a result in rax). It starts from
+a name the game carries and takes what the code does next to it, so a recompile that moves registers or inlining does not stop it
+the way it stops a signature.
+
+| Kind | Starts from | Takes |
+|---|---|---|
+| `label` | a dump's wide label (`L"Life: "`) | the k-th field loaded after the call that prints it, up to the next label |
+| `field` | the same | the k-th distinct field of the dump's `this` in a linear sweep; a virtual slot that is `lea rax,[rcx+X]; ret` in every vtable holding the dump adds X |
+| `called` | the same | in the n-th function called after the label, the value it returns or the k-th field of argument i |
+| `geal` | a GEAL row, then the node vtable's slot 2, then the evaluator (through a thunk) | the k-th field read through `GetComponent<T>`'s result |
+| `world` | the same, after `GEAL::GetGameWorld()` (the one function loading that string) | an AreaInstance field |
+| `callee` | the same | the lowest `[rcx+D]` read by the callee that follows `GetComponent<T>` |
+| `getter` | `GetComponent<T>`: the 0xA0-byte or smaller function loading T's name that has the most callers | details, lookup, map, components |
+
+**Fields.** There are 38 rules for 26 fields, and all 38 read the 0.5.5f value:
+
+- **Life:** Health, Mana and ES, Current and Total. Health.Current also comes from GEAL `IsAlive`.
+- **Player:** Xp. Level, from the `Level: ` printed in the function that also prints `Experience: `. Name, through an address-of.
+- **Chest:** IsOpened.
+- **Targetable:** the plugin's IsTargetable.
+- **Transitionable:** the state, from the label and from `GetTransitionState`.
+- **Stats:** the weapon index, and 0x160 from `GetStat` and `IfStat`.
+- **ObjectMagicProperties:** Rarity and ImplicitMods. ExplicitMods comes from the field rule: `add rdi,0xC8` and then +0xA0.
+- **Buffs:** the effect vector, from `HasBuff`, `Buffs: ` and `GetBuffTotalCount`.
+- **StatusEffect:** the definition at +0x8 and the charges at +0x40. Both come from the printer `Buffs: ` calls, which takes the entry as its second argument.
+- **Positioned:** Reaction. The `Team: ` getter returns `word [+0x1E0] & 0x7FFF`.
+- **Actor:** AnimationId, from `SetActorType`. This is the weakest naming, because 0x440 is the Animation table's row count, not a name. ActiveSkills comes from virtual slot 0x170 (`lea rax,[rcx+0x9C0]`) plus 0x148.
+- **StateMachine:** 0x158 and 0x160, from two dumps.
+- **Area:** the level, from `IsLevel` and `IfLevel`. The hash comes from `Tile hash: `, which is the area's own tile hash in slot 0x1E0 of both world vtables, not the terrain's.
+- **Entity:** 0x8 and 0x10, the details' lookup at 0x28 and its map at 0x28, from the Life and Render getters.
+
+No name reaches these:
+
+- Render: it has no dump and no GEAL getter call.
+- Actor cooldowns and deployed.
+- Stats 0x1C8 and the stat vector.
+- Base.
+- Mods.Rarity.
+- Targetable.IsTargeted.
+- Animated 0x358.
+- Chest 0x160.
+- StatusEffect timers and source.
+
+**Simulated move.** In a copy of the exe, the displacement at the `Level: ` site was changed to 0x20C and the two `IsLevel`/`IfLevel` sites to 0xBC. The rules read 0x20C and 0xBC, and the other 35 rules were unchanged.
+
+**Decoder.** It is our own, so no dependency was added. It handles:
+
+- the 66, F2, F3, segment and lock prefixes, and REX;
+- the one-byte, 0F, 0F38 and 0F3A maps, and VEX;
+- per instruction: the length, the memory operand, the branch target, the immediate, and the general registers it writes.
+
+An encoding it does not know decodes to nothing, so a rule never guesses. This covers x87, system opcodes, EVEX, the 67 prefix, moffs, SHA and AES.
+
+`re/decoder_truth.py` dumps capstone 5.0.7 on every instruction of N random `.pdata` fragments and every instruction the prototype rules walk (70 forms, 2,069 instructions). `dotnet run --project tests/Poe2Accessibility.Tests -- x64-truth <tsv>` compares, for each instruction:
+
+- the length;
+- base, index, scale and displacement;
+- the branch target;
+- the first operand's kind;
+- the kind (mov, lea, call, jmp, jcc, ret, cmp, test, add, ...);
+- the registers a mov or lea names, and its size;
+- add's immediate;
+- that its written registers include capstone's.
+
+| Sample | Instructions | Decoded | Disagree |
+|---|---|---|---|
+| 2,000 fragments | 151,946 | 151,928 (99.99%) | 0 |
+| 12,040 fragments | 880,112 | 879,970 (99.98%) | 0 |
+
+- **Writes:** exactly capstone's on 879,868 instructions. The rest are a safe superset, such as `cdq` and `test eax,imm`, which capstone counts as writing rax.
+- **Unknown:** data read as code (`cli`, `in`, `out`, `retf`), x87, and VEX `ldmxcsr`.
+- **Fixture:** three rows per encoding shape (2,598 rows) are committed as `tests/Poe2Accessibility.Tests/Fixtures/x64-capstone.tsv` and checked by the test suite.
+- **Whole fragments:** 154,714 of 154,738 decode (99.98%).
+
+**Switch tables.** MSVC puts switch tables inside the fragment, after the code. Decoding therefore stops at a table the code indexes ahead of itself (`[base+index*4+table]`). At an unknown encoding the code ends after the last ret, jmp or int3 and the rest counts as data; with neither, the fragment does not decode. Every rule takes the first k of something, so a cut can remove a candidate but never change one. The two rules that need a whole stretch check that they have it: the returned load needs its ret, and the field sweep must reach the label.
+
+**Wiring.** At attach, `StartCodeFields` reads the signatures and the rules on a worker, from one read of the file. Each frame, `TakeCodeFields` (in `SayCompatibility`) places what came back:
+
+- `CodeFieldCatalog.Settle` keeps one value per target. A target that the signatures and the rules read differently stays where it is and is logged.
+- The value then goes through `PlaceFromCode` or `LayoutFields` as before. A live segment wins, and a value more than 0x400 from the catalog is not believed.
+- The log line reads `Semantic fields: 38 of 38 read in … ms; moved: none`. On the warm 0.5.5f exe, the index takes 0.32 s (every E8 call and RIP `lea`, 154,738 fragments) and the rules take 0.15 s.
+- `dotnet run --project tests/Poe2Accessibility.Tests -- semantic <exe> <catalog>` prints each rule's candidates for any build.
+
+**Limits.**
+
+- It is proven on one build only. No archived older exe was at hand, so the five builds above were not rerun.
+- `label` relies on the dump printing in order, and `field`'s sweep ignores control flow.
+- A removed dump, a renamed GEAL function or an inlined getter only stops a rule.
+- The worst case is unchanged: a restructured function that reads another field of the same shape. That is why its values are candidates that must agree with the signatures, and why a live judgment still wins.
+- Placement now comes about a second after attach instead of before the first frame. A live host-struct judgment made in that second still wins. A plugin `layout:` offset set live in that second would be overwritten by a differing code value.
+
 ## How far it goes
 
 | Approach | Changed registers | Changed inlining | Cost |
@@ -182,10 +277,10 @@ The study also corrected the structs: `IsStrongbox` reads +0x50 where the code r
 | Byte signature plus read | breaks (twice upstream) | breaks | least code, most upkeep |
 | Virtual getter | immune | immune | few fields have one |
 | Pool size | immune | immune | says a struct grew, not where |
-| Name anchor plus operand rule | survives if rules name no register | partly | one rule per field, needs a decoder |
+| Name anchor plus operand rule | survives if rules name no register | partly | one rule per field; in use, [above](#the-semantic-source) |
 | Function matching across builds | mostly | mostly | offline tooling, better at development time |
 
-A run-time reader would need a real decoder (Iced: a new dependency, so not without asking), `.pdata` plus decoding leaves up to `ret`, and
+A run-time reader would need a real decoder (Iced: a new dependency, so not without asking; the host now has its own, [above](#the-semantic-source)), `.pdata` plus decoding leaves up to `ret`, and
 one pass collecting `E8` and RIP-relative `lea` targets. Its worst failure is a restructured function making a rule return a wrong value
 in silence, so any result must be a candidate for `OffsetHealer`, never the truth. A renamed GEAL name just stops the rule, which is safe.
 Assumptions in `reader.py`: vital Current at +0x30, Cooldowns = ActiveSkills + 0x18, LocalPlayer = head + 0x18, vitals by order; some rules
