@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using Poe2Accessibility.Services;
 
     /// <summary>
@@ -74,6 +75,9 @@ namespace Poe2Accessibility.Tests
             Expect("Rank: 1|Name: Yarkidius|Class: Witch|Level: 95", string.Join("|", TableHeadings.Pair(headings, row) ?? new()), "ladder row");
             var withHeadingWord = new[] { Box("1", 10, 15, 40), Box("Yarkidius", 100, 120, 40), Box("Class", 350, 70, 40), Box("Level 95", 505, 80, 40) };
             Expect("Rank: 1|Name: Yarkidius|Class|Level 95", string.Join("|", TableHeadings.Pair(headings, withHeadingWord) ?? new()), "a cell that says its heading");
+            var wide = headings.Concat(new[] { Box("Points", 600, 60), Box("Deaths", 700, 60), Box("Kills", 800, 60) }).ToArray();
+            var wideRow = row.Concat(new[] { Box("1200", 605, 40, 40), Box("0", 720, 10, 40), Box("31", 810, 20, 40) }).ToArray();
+            Expect("Rank: 1|Name: Yarkidius|Class: Witch|Level: 95|Points: 1200|Deaths: 0|Kills: 31", string.Join("|", TableHeadings.Pair(wide, wideRow) ?? new()), "seven columns");
         }
 
         private static void LabelsThatAreNoHeadingRowAreLeftAlone()

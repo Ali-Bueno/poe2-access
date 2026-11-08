@@ -505,9 +505,9 @@ namespace Poe2Accessibility.Services
             this.CollectTexts(info, 0, RowCellDepth, walk);
             var sets = walk.Icons.Count > 0 ? WeaponSetRows.Pair(walk.Parents, walk.Indices, walk.Icons, walk.Texts.Select(text => text.Node)) : null;
             var cells = walk.Texts.Select(text => sets != null && sets.TryGetValue(text.Node, out var set) ? Announcements.WeaponSetValue(set, text.Text) : text.Text).ToList();
-            if (this.InGame && cells.Count is > 1 and <= MaxRowCells && this.HeadedCells(info, walk.TextAddresses, cells) is { } headed)
+            if (this.InGame && cells.Count is > 1 and <= MaxHeadedRowCells && this.HeadedCells(info, walk.TextAddresses, cells) is { } headed)
             {
-                cells = headed; // a table row under shown column headings ("Players: 3, Time Left: 9 minutes")
+                return Announcements.Cells(headed); // a table row under shown column headings ("Players: 3, Time Left: 9 minutes")
             }
 
             return cells.Count is > 0 and <= MaxRowCells ? Announcements.Cells(cells) : this.FindDescendantText(info, CaptionSearchDepth, null);
@@ -515,7 +515,7 @@ namespace Poe2Accessibility.Services
 
         private void CollectTexts(in UiElementReader.ElementInfo node, int nodeId, int depth, RowWalk walk)
         {
-            if (depth < 0 || walk.Texts.Count > MaxRowCells)
+            if (depth < 0 || walk.Texts.Count > MaxHeadedRowCells)
             {
                 return;
             }

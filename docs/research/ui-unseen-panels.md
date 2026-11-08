@@ -56,7 +56,7 @@ Widgets come from the window's strings (PROVEN as strings) and the web (poe2wiki
 | **Expedition merchants** (Tujen haggle, Gwennen gamble, Rog deal, Dannig exchange) | vendor grids priced in artifacts; haggle: an offer amount and Confirm, "New Offer"/"Same Offer" notices; gamble: "<<bag_icon>>{0}/{1}" stock; deal: Upgrade / Take Item | grids and prices as vendors (artifacts are currency items: named); the bag picture is not named (no word for it yet) | LIKELY, haggle control UNSURE | price, the offer and its answer, stock left |
 | **Guild stash** (`GuildStashPanelTitle`) | stash tabs and grids, "Your guild does not yet have a stash", tab permissions (member type × add/view/remove check boxes) | as the stash; permissions as check boxes in rows | LIKELY | the same as the stash; permission rows' column (`TableHeadings` if headed) |
 | **Instance Manager** (`InstanceChooserTitle`; hold A on an area exit: the "hold for options" prompt) | rows: players, time left, created, realm, with headings and subheadings; Enter / New; "You are about to enter {0}" | rows now "Jugadores: 3, Tiempo restante: …" (`TableHeadings`, subheadings dropped) | LIKELY | which instance, how full, how long it stays |
-| **Ladder / Events** (`LadderPanelTitle`, `EventsPanelTitle`; PC keys, maybe no pad route) | ladder table (Rank, Name, Class, Level, Points…), filters; events list, PvP tab | rows with headings (`TableHeadings`); more than 6 cells falls back to the first caption (`MaxRowCells`) | UNSURE (reach), LIKELY (rows) | rank and class per row |
+| **Ladder / Events** (`LadderPanelTitle`, `EventsPanelTitle`; PC keys, maybe no pad route) | ladder table (Rank, Name, Class, Level, Points…), filters; events list, PvP tab | rows with headings (`TableHeadings`), up to 10 cells when headed (6 otherwise) | UNSURE (reach), LIKELY (rows) | rank and class per row |
 | **Help panel** (`TutorialPanelName`; keyboard H) | topic list (left), article (right): TITLE / CONTENT / SUBTITLE labels and captioned pictures, videos (`tutorialhelper.ui`) | topic buttons read; the article's labels arrive with the focus move and are read after the topic, all at once | LIKELY | the article paragraph by paragraph (L3 steps lines only in tooltips today) |
 | **Options: Input, Game, Notifications, Controller** | rows of label + key buttons (Input), combos and check boxes, the item filter list (`OptionsItemFilterFileList`) + Reload | options rows (label, value, position) as on the seen tabs | LIKELY | key rows: the action, then each bound key |
 | **Item filter selection** (Options > Game) | combo of filter files, Reload button, "Item Filter loaded successfully." | combo; the load result as a message | LIKELY | the chosen filter, the load result |
@@ -101,8 +101,6 @@ Widgets come from the window's strings (PROVEN as strings) and the web (poe2wiki
 - Help articles: read the article paragraph by paragraph with the L3 line gesture, as tooltips are (the article is a
   stack of labels, `tutorialhelper.ui` templates) — UNSURE how long articles arrive; check in game first.
 - The gamble stock's bag picture (`bag_icon`) has no word; the Expedition haggle offer control is unknown.
-- Rows of more than six cells (ladder with Points/Deaths) fall back to the first caption: raise `MaxRowCells` for
-  headed tables once one is seen.
 - Launcher step: `inline-icons` is in the extractor's `batch`; the launcher's `GameDataSetup` (moving to
   `host/Poe2Access`) needs one step `inline-icons → catalog/inline-icons.txt` so the table is regenerated after a patch.
 

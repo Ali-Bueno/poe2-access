@@ -16,6 +16,12 @@ namespace Poe2Accessibility.Services
         /// <summary>At most this many pictures are looked at under one control.</summary>
         private const int MaxArtKeys = 8;
 
+        /// <summary>
+        ///     A row under column headings may have more cells than a plain row (`MaxRowCells`): the ladder's Rank, Name,
+        ///     Class, Level, Points, Deaths, Kills (ClientStrings LadderColumn*).
+        /// </summary>
+        private const int MaxHeadedRowCells = 10;
+
         /// <summary>A row's list and the headings block before it sit at most this many wrappers above the row.</summary>
         private const int HeadingSearchLevels = 2;
 
