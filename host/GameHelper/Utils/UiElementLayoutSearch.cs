@@ -10,6 +10,7 @@ namespace GameHelper.Utils
     using System.Runtime.InteropServices;
     using GameHelper.RemoteObjects.States.InGameStateObjects;
     using GameOffsets.Objects.UiElement;
+    using static GameHelper.Utils.StructShapes;
 
     /// <summary>
     ///     Where a UI element keeps its base fields (<see cref="UiElementBaseOffset"/>): self, children, parent, the position
@@ -43,8 +44,6 @@ namespace GameHelper.Utils
         /// <summary>The root's scale index (GameHelper: root 3, child of root 3, first child of that 2).</summary>
         public const int RootScaleIndex = 3;
 
-        private const long MinPointer = 0x10000;
-        private const long MaxPointer = 0x7FFFFFFFFFFF;
         private const int Pointer = 8;
         private const int MaxChildren = 1024;
         private const int ChildrenChecked = 8;
@@ -56,6 +55,7 @@ namespace GameHelper.Utils
 
         private readonly IAreaMemory memory;
         private readonly Dictionary<long, byte[]> blocks = new();
+        private readonly Dictionary<(long Element, int At), long[]> childLists = new();
 
         /// <summary>Initializes a new instance of the <see cref="UiElementLayoutSearch"/> class.</summary>
         public UiElementLayoutSearch(IAreaMemory memory)
@@ -85,27 +85,7 @@ namespace GameHelper.Utils
 
         private static int Offset(string field) => Marshal.OffsetOf<UiElementBaseOffset>(field).ToInt32();
 
-        private static int Nearest(int start, int step, Func<int, bool> fits)
-        {
-            for (var distance = 0; distance <= BlockBytes; distance += step)
-            {
-                if (start + distance < BlockBytes && fits(start + distance))
-                {
-                    return start + distance;
-                }
-
-                if (distance > 0 && start - distance >= 0 && fits(start - distance))
-                {
-                    return start - distance;
-                }
-            }
-
-            return -1;
-        }
-
-        private static bool IsPointer(long value) => value > MinPointer && value < MaxPointer;
-
-        private static long Long(byte[] bytes, int at) => at >= 0 && at + Pointer <= bytes.Length ? BitConverter.ToInt64(bytes, at) : 0;
+        private static int Nearest(int start, int step, Func<int, bool> fits) => StructShapes.Nearest(start, step, BlockBytes - 1, fits);
 
         /// <summary>The root stands at the origin with no modifier and a scale of 1.</summary>
         private static bool IsRootPosition(byte[] root, int at) =>
@@ -128,23 +108,27 @@ namespace GameHelper.Utils
             return block;
         }
 
-        private long[] Children(byte[] element, int at)
+        /// <summary>The children the vector at <paramref name="at"/> of the element at <paramref name="address"/> holds, read once per search.</summary>
+        private long[] Children(long address, int at)
         {
-            var (first, last) = (Long(element, at), Long(element, at + Pointer));
-            var bytes = last - first;
-            if (!IsPointer(first) || bytes <= 0 || bytes % Pointer != 0 || bytes / Pointer > MaxChildren || Long(element, at + (2 * Pointer)) < last)
+            if (this.childLists.TryGetValue((address, at), out var known))
             {
-                return Array.Empty<long>();
+                return known;
             }
 
-            var pointers = this.memory.Read(first, (int)bytes);
-            return pointers.Length < bytes ? Array.Empty<long>() : Enumerable.Range(0, (int)(bytes / Pointer)).Select(index => Long(pointers, index * Pointer)).ToArray();
+            var element = this.Block(address);
+            var pointers = !IsVector(element, at, out var first, out var bytes) || bytes <= 0 || bytes % Pointer != 0 || bytes / Pointer > MaxChildren
+                ? Array.Empty<byte>() : this.memory.Read(first, (int)bytes);
+            var found = pointers.Length < bytes || pointers.Length == 0 ? Array.Empty<long>()
+                : Enumerable.Range(0, (int)(bytes / Pointer)).Select(index => Long(pointers, index * Pointer)).ToArray();
+            this.childLists[(address, at)] = found;
+            return found;
         }
 
         /// <summary>The vector at <paramref name="at"/> holds elements (each its own self) whose parent field points at the root.</summary>
         private bool ChildrenPointBack(byte[] root, long address, int at, int self, int parent)
         {
-            var children = this.Children(root, at);
+            var children = this.Children(address, at);
             return children.Length > 0 && children.Take(ChildrenChecked).All(child =>
                 this.Block(child) is { Length: > 0 } body && Long(body, self) == child && Long(body, parent) == address);
         }
@@ -158,7 +142,7 @@ namespace GameHelper.Utils
             }
 
             var (shown, hidden) = (false, false);
-            var queue = new Queue<long>(this.Children(root, children));
+            var queue = new Queue<long>(this.Children(address, children));
             for (var walked = 0; walked < NodesWalked && queue.Count > 0 && !(shown && hidden); walked++)
             {
                 var node = queue.Dequeue();
@@ -170,7 +154,7 @@ namespace GameHelper.Utils
 
                 var visible = UiElementBaseFuncs.IsVisibleChecker(BitConverter.ToUInt32(body, at));
                 (shown, hidden) = (shown || visible, hidden || !visible);
-                foreach (var child in this.Children(body, children))
+                foreach (var child in this.Children(node, children))
                 {
                     queue.Enqueue(child);
                 }

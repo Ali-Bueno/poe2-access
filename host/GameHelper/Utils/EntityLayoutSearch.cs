@@ -13,6 +13,7 @@ namespace GameHelper.Utils
     using GameOffsets.Natives;
     using GameOffsets.Objects.Components;
     using GameOffsets.Objects.States.InGameState;
+    using static GameHelper.Utils.StructShapes;
 
     /// <summary>
     ///     Where an entity keeps what leads to its path and components: the details pointer, the path in the details, the
@@ -41,8 +42,6 @@ namespace GameHelper.Utils
         /// <summary>Bytes searched in an entity, its details and its lookup: every field seen so far sits in the first 0x30.</summary>
         public const int BlockBytes = 0x100;
 
-        private const long MinPointer = 0x10000;
-        private const long MaxPointer = 0x7FFFFFFFFFFF;
         private const int Pointer = 8;
         private const int VectorBytes = 3 * Pointer;
         private const string PathRoot = "Metadata/";
@@ -105,34 +104,10 @@ namespace GameHelper.Utils
             return first < 0 ? (-1, -1) : (first, second);
         }
 
-        private static int Nearest(int start, int limit, Func<int, bool> fits)
-        {
-            for (var distance = 0; distance <= limit; distance += Pointer)
-            {
-                if (start + distance <= limit && fits(start + distance))
-                {
-                    return start + distance;
-                }
+        private static int Nearest(int start, int limit, Func<int, bool> fits) => StructShapes.Nearest(start, Pointer, limit, fits);
 
-                if (distance > 0 && start - distance >= 0 && fits(start - distance))
-                {
-                    return start - distance;
-                }
-            }
-
-            return -1;
-        }
-
-        private static bool IsPointer(long value) => value > MinPointer && value < MaxPointer;
-
-        private static long Long(byte[] bytes, int at) => at >= 0 && at + Pointer <= bytes.Length ? BitConverter.ToInt64(bytes, at) : 0;
-
-        private static bool IsVector(byte[] block, int at, out long first, out long bytes)
-        {
-            (first, bytes) = (Long(block, at), Long(block, at + Pointer) - Long(block, at));
-            var end = Long(block, at + (2 * Pointer));
-            return at + VectorBytes <= block.Length && IsPointer(first) && IsPointer(end) && bytes > 0 && first + bytes <= end;
-        }
+        /// <summary>A vector that holds something.</summary>
+        private static bool IsVector(byte[] block, int at, out long first, out long bytes) => StructShapes.IsVector(block, at, out first, out bytes) && bytes > 0;
 
         /// <summary>A component's name as the map holds it: ASCII letters, as "Render" or "ObjectMagicProperties".</summary>
         private static bool IsComponentName(string name) => name.Length >= 2 && char.IsUpper(name[0]) && name.All(char.IsAsciiLetterOrDigit);

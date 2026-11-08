@@ -10,6 +10,7 @@ namespace GameHelper.Utils
     using System.Runtime.InteropServices;
     using GameHelper.RemoteObjects.States.InGameStateObjects;
     using GameOffsets.Objects.States.InGameState;
+    using static GameHelper.Utils.StructShapes;
 
     /// <summary>
     ///     Where the server data keeps the local players, a player its inventories, and an inventory its size and its cells;
@@ -35,8 +36,6 @@ namespace GameHelper.Utils
         /// <summary>Bytes searched around each measured field.</summary>
         public const int Reach = 0x200;
 
-        private const long MinPointer = 0x10000;
-        private const long MaxPointer = 0x7FFFFFFFFFFF;
         private const int Pointer = 8;
         private const int VectorBytes = 3 * Pointer;
         private const int MaxPlayers = 4;
@@ -83,29 +82,7 @@ namespace GameHelper.Utils
             return players < 0 ? new InventoryFields(-1, -1, -1, -1) : new InventoryFields(players, inventories, boxes, cells);
         }
 
-        private static int Nearest(int start, int limit, Func<int, bool> fits)
-        {
-            for (var distance = 0; distance <= Reach; distance += Pointer)
-            {
-                if (start + distance <= limit && fits(start + distance))
-                {
-                    return start + distance;
-                }
-
-                if (distance > 0 && start - distance >= 0 && start - distance <= limit && fits(start - distance))
-                {
-                    return start - distance;
-                }
-            }
-
-            return -1;
-        }
-
-        private static bool IsPointer(long value) => value > MinPointer && value < MaxPointer;
-
-        private static long Long(byte[] bytes, int at) => at >= 0 && at + Pointer <= bytes.Length ? BitConverter.ToInt64(bytes, at) : 0;
-
-        private static int Int(byte[] bytes, int at) => at >= 0 && at + sizeof(int) <= bytes.Length ? BitConverter.ToInt32(bytes, at) : 0;
+        private static int Nearest(int start, int limit, Func<int, bool> fits) => StructShapes.Nearest(start, Pointer, limit, fits);
 
         private byte[] Block(long address, int size)
         {
@@ -126,9 +103,7 @@ namespace GameHelper.Utils
         /// <summary>The entries of the vector at <paramref name="at"/>, of <paramref name="size"/> bytes each; empty when it is no such vector.</summary>
         private byte[] Vector(byte[] block, int at, int size, int max)
         {
-            var (first, last, end) = (Long(block, at), Long(block, at + Pointer), Long(block, at + (2 * Pointer)));
-            var bytes = last - first;
-            return !IsPointer(first) || bytes <= 0 || bytes % size != 0 || bytes / size > max || end < last ? Array.Empty<byte>() : this.Block(first, (int)bytes);
+            return !IsVector(block, at, out var first, out var bytes) || bytes <= 0 || bytes % size != 0 || bytes / size > max ? Array.Empty<byte>() : this.Block(first, (int)bytes);
         }
 
         private long[] Pointers(byte[] block, int at, int max)

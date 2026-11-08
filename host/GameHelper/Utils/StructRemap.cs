@@ -52,19 +52,28 @@ namespace GameHelper.Utils
     /// <summary>Reads the game's structs from bytes already read, through the remap when a patch moved their fields.</summary>
     public static class HostStructs
     {
-        /// <summary>The struct in <paramref name="raw"/>, the game's bytes from its start (too few for the remap: read as they lie).</summary>
-        public static T Read<T>(ReadOnlySpan<byte> raw)
+        /// <summary>
+        ///     The struct in <paramref name="raw"/>, the game's bytes from its start, through the remap; false when they are fewer
+        ///     than the struct takes as the game lays it out now (<see cref="Size{T}"/>), rather than reading fields from where
+        ///     they no longer are.
+        /// </summary>
+        public static bool TryRead<T>(ReadOnlySpan<byte> raw, out T value)
             where T : unmanaged
         {
-            var result = default(T);
-            var target = System.Runtime.InteropServices.MemoryMarshal.AsBytes(System.Runtime.InteropServices.MemoryMarshal.CreateSpan(ref result, 1));
-            if (StructRemap<T>.Segments is not { } moved || raw.Length < StructRemapper.ReadSize(target.Length, moved))
+            value = default;
+            if (raw.Length < Size<T>())
             {
-                return System.Runtime.InteropServices.MemoryMarshal.Read<T>(raw);
+                return false;
             }
 
-            StructRemapper.Apply(raw, target, moved);
-            return result;
+            if (StructRemap<T>.Segments is not { } moved)
+            {
+                value = System.Runtime.InteropServices.MemoryMarshal.Read<T>(raw);
+                return true;
+            }
+
+            StructRemapper.Apply(raw, System.Runtime.InteropServices.MemoryMarshal.AsBytes(System.Runtime.InteropServices.MemoryMarshal.CreateSpan(ref value, 1)), moved);
+            return true;
         }
 
         /// <summary>Where a field of <typeparamref name="T"/> measured at <paramref name="offset"/> reads now.</summary>

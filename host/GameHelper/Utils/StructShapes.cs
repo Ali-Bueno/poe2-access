@@ -41,7 +41,6 @@ namespace GameHelper.Utils
         private const int MaxVitalTotal = 10_000_000;
         private const int MinFullVitals = 2;
 
-        /// <summary>The offset nearest <paramref name="start"/> that fits, within 0..<paramref name="limit"/>; negative when none does.</summary>
         /// <summary>Friend or foe as the game writes it, in <see cref="GameOffsets.Objects.Components.PositionedOffsets"/>.</summary>
         public static bool IsFriendly(byte reaction) => (reaction & FriendlyMask) == Friendly;
 
@@ -71,16 +70,17 @@ namespace GameHelper.Utils
             return -1;
         }
 
+        /// <summary>The offset nearest <paramref name="start"/> that fits, within 0..<paramref name="limit"/>; negative when none does.</summary>
         public static int Nearest(int start, int step, int limit, Func<int, bool> fits)
         {
-            for (var distance = 0; distance <= limit; distance += step)
+            for (var distance = 0; distance <= Math.Max(limit, start); distance += step)
             {
                 if (start + distance <= limit && fits(start + distance))
                 {
                     return start + distance;
                 }
 
-                if (distance > 0 && start - distance >= 0 && fits(start - distance))
+                if (distance > 0 && start - distance >= 0 && start - distance <= limit && fits(start - distance))
                 {
                     return start - distance;
                 }
@@ -256,11 +256,17 @@ namespace GameHelper.Utils
                    x > 0 && x < mapWidth && y > 0 && y < mapHeight && MathF.Abs(z) < MaxWorld;
         }
 
-        private static bool IsPointer(long value) => value > MinPointer && value < MaxPointer;
+        /// <summary>A value that can be a pointer into the game's user space.</summary>
+        public static bool IsPointer(long value) => value > MinPointer && value < MaxPointer;
 
-        private static long Long(byte[] bytes, int at) => bytes.Length >= at + Pointer ? BitConverter.ToInt64(bytes, at) : 0;
+        /// <summary>The 8 bytes at <paramref name="at"/>; zero outside <paramref name="bytes"/>.</summary>
+        public static long Long(byte[] bytes, int at) => at >= 0 && bytes.Length >= at + Pointer ? BitConverter.ToInt64(bytes, at) : 0;
 
-        private static bool IsVector(byte[] block, int at, out long first, out long bytes)
+        /// <summary>The 4 bytes at <paramref name="at"/>; zero outside <paramref name="bytes"/>.</summary>
+        public static int Int(byte[] bytes, int at) => at >= 0 && bytes.Length >= at + sizeof(int) ? BitConverter.ToInt32(bytes, at) : 0;
+
+        /// <summary>An MSVC vector (first, last, end) at <paramref name="at"/>, empty or of pointers in order; its first and its size in bytes.</summary>
+        public static bool IsVector(byte[] block, int at, out long first, out long bytes)
         {
             first = 0;
             bytes = 0;
