@@ -14,6 +14,7 @@ namespace GameHelper.Utils
     using GameHelper.RemoteObjects.States.InGameStateObjects;
     using GameHelper.Ui;
     using GameOffsets.Natives;
+    using GameOffsets.Objects;
     using GameOffsets.Objects.Components;
     using GameOffsets.Objects.FilesStructures;
     using GameOffsets.Objects.States;
@@ -63,6 +64,12 @@ namespace GameHelper.Utils
 
         /// <summary>The part that names an entity's components (lookup pointer, name map).</summary>
         public const string LookUpPart = "component lookup";
+
+        /// <summary>The part that says which state is current (the game state object's stack).</summary>
+        public const string StateStackPart = "game state stack";
+
+        /// <summary>The part that lists the game's states.</summary>
+        public const string StateListPart = "game state list";
 
         // Entities the sweep judges the entity layout on, besides the player.
         private const int EntitiesJudged = 4;
@@ -224,8 +231,16 @@ namespace GameHelper.Utils
             return outcomes.Any(outcome => outcome.Health == StructHealth.Moved);
         }
 
+        /// <summary>Reads the game state object's stack and state list from where <paramref name="found"/> says; their outcomes.</summary>
+        internal static IReadOnlyList<StructOutcome> PlaceGameStates(GameStateFields found)
+        {
+            var measured = GameStateFields.Measured;
+            Place(typeof(GameStateOffset), (measured.Stack, found.Stack), (measured.States, found.States));
+            return new[] { Outcome(StateStackPart, (measured.Stack, found.Stack)), Outcome(StateListPart, (measured.States, found.States)) };
+        }
+
         /// <summary>A part's outcome over its fields, each (measured, found); the first that moved says where.</summary>
-        private static StructOutcome Outcome(string name, params (int Measured, int Found)[] fields)
+        internal static StructOutcome Outcome(string name, params (int Measured, int Found)[] fields)
         {
             if (fields.Any(field => field.Found < 0))
             {

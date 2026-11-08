@@ -1,9 +1,11 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using GameHelper;
     using GameHelper.RemoteEnums;
+    using GameHelper.Utils;
 
     /// <summary>
     ///     Diff-gated view of the host's game state. GameHelper2 keeps its StateChanged event internal, so we
@@ -43,6 +45,7 @@ namespace Poe2Accessibility.Services
 
         private long attachedAt;
         private bool stateRead;
+        private IReadOnlyList<StructOutcome>? layoutNoted;
 
         public GameStateService(PluginLog log, HostMemoryReader reader, UiElementReader elements)
         {
@@ -227,6 +230,7 @@ namespace Poe2Accessibility.Services
                 this.AttachedChanged?.Invoke(pid != 0);
             }
 
+            this.NoteLayout();
             var state = Core.States.GameCurrentState;
             if (state != GameStateTypes.GameNotLoaded)
             {
@@ -261,5 +265,33 @@ namespace Poe2Accessibility.Services
                 }
             }
         }
+
+        /// <summary>What the host found of the state object (its stack, its list, the states in play and loading), each once.</summary>
+        private void NoteLayout()
+        {
+            var outcomes = Core.States.LayoutOutcomes;
+            if (ReferenceEquals(outcomes, this.layoutNoted) || this.Report == null)
+            {
+                return;
+            }
+
+            this.layoutNoted = outcomes;
+            foreach (var outcome in outcomes)
+            {
+                switch (outcome.Health)
+                {
+                    case StructHealth.Intact:
+                        this.Report.Found(outcome.Name);
+                        break;
+                    case StructHealth.Moved:
+                        this.Report.Moved(outcome.Name, outcome.From, outcome.To);
+                        break;
+                    case StructHealth.Lost:
+                        this.Report.Missing(outcome.Name);
+                        break;
+                }
+            }
+        }
     }
 }
+

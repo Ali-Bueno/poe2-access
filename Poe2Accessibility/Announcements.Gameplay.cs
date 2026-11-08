@@ -999,7 +999,7 @@ namespace Poe2Accessibility
             "passive tree links" or "passive tree allocations" => T("the passive tree's links and allocated nodes", "las conexiones y los nodos asignados del árbol de pasivas"),
             "quest marker" => T("which characters have a quest", "qué personajes tienen misión"),
             "interactive flag" or "text input flag" or "navigable flag" or "enabled flag" => T("the kinds of interface controls", "los tipos de controles de la interfaz"),
-            "game states" => T("the game's state (GameHelper needs an update)", "el estado del juego (GameHelper necesita una actualización)"),
+            "game states" or "game state stack" or "game state list" or "in-game state" or "area loading state" => T("the game's state (GameHelper needs an update)", "el estado del juego (GameHelper necesita una actualización)"),
             _ => part,
         };
 

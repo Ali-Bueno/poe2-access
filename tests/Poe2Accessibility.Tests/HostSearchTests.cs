@@ -19,7 +19,90 @@ namespace Poe2Accessibility.Tests
             (nameof(EntityFieldsAreFoundWhereAPatchMovedThem), EntityFieldsAreFoundWhereAPatchMovedThem),
             (nameof(WhatIsNoEntityGivesNoEntityLayout), WhatIsNoEntityGivesNoEntityLayout),
             (nameof(AMapOfOtherNamesIsNoComponentMap), AMapOfOtherNamesIsNoComponentMap),
+            (nameof(TheStateListAndStackAreFoundWhereverTheyMoved), TheStateListAndStackAreFoundWhereverTheyMoved),
+            (nameof(PointersThatRepeatAreNoStateList), PointersThatRepeatAreNoStateList),
+            (nameof(TheStateInPlayIsTheOneThatLeadsToAnArea), TheStateInPlayIsTheOneThatLeadsToAnArea),
+            (nameof(TheLoadingStateIsWhatCameBeforeTwoNewAreas), TheLoadingStateIsWhatCameBeforeTwoNewAreas),
         };
+
+        private static void TheStateListAndStackAreFoundWhereverTheyMoved()
+        {
+            var measured = GameStateFields.Measured;
+            foreach (var shift in new[] { 0, 8, -8, 0x18 })
+            {
+                var (memory, block, _) = StateObject(measured.Stack + shift, measured.States + shift);
+                Equal(new GameStateFields(measured.Stack + shift, measured.States + shift), GameStateLayout.Locate(block, measured, memory), $"state fields moved by {shift:X}");
+            }
+        }
+
+        private static void PointersThatRepeatAreNoStateList()
+        {
+            var (memory, block, _) = StateObject(GameStateFields.Measured.Stack, GameStateFields.Measured.States);
+            for (var slot = 0; slot < 13; slot++)
+            {
+                Put(block, GameStateFields.Measured.States + (slot * 0x10), Heap + 0x500, Heap + 0x600);
+            }
+
+            Equal(new GameStateFields(-1, -1), GameStateLayout.Locate(block, GameStateFields.Measured, memory), "one state thirteen times");
+        }
+
+        private static void TheStateInPlayIsTheOneThatLeadsToAnArea()
+        {
+            var states = Slots();
+            var roles = new GameStateRoles(states);
+            roles.See(states[6], 0);
+            Equal((-1, -1), (roles.InGame, roles.AreaLoading), "a login screen says nothing");
+            roles.See(states[5], Heap + 0x9000);
+            Equal((5, -1), (roles.InGame, roles.AreaLoading), "the state that leads to an area is in play");
+        }
+
+        private static void TheLoadingStateIsWhatCameBeforeTwoNewAreas()
+        {
+            var states = Slots();
+            var roles = new GameStateRoles(states);
+            roles.See(states[4], Heap + 0x9000);
+            roles.See(states[3], 0);
+            roles.See(states[4], Heap + 0x9000);
+            Equal(-1, roles.AreaLoading, "a menu over the same area loads nothing");
+            roles.See(states[0], 0);
+            roles.See(states[4], Heap + 0xA000);
+            Equal(-1, roles.AreaLoading, "one new area is not proof yet");
+            roles.See(states[0], 0);
+            roles.See(states[4], Heap + 0xB000);
+            Equal((4, 0), (roles.InGame, roles.AreaLoading), "the state before two new areas loads them");
+        }
+
+        private static long[] Slots()
+        {
+            var states = new long[13];
+            for (var slot = 0; slot < states.Length; slot++)
+            {
+                states[slot] = slot is 1 or 2 ? 0 : Heap + 0x40000 + (slot * 0x1000); // 0.5.5f: two unused slots after the first
+            }
+
+            return states;
+        }
+
+        /// <summary>A game state object with its stack at <paramref name="stack"/> (current: slot 4) and its list at <paramref name="list"/>.</summary>
+        private static (FakeMemory Memory, byte[] Block, long[] States) StateObject(int stack, int list)
+        {
+            var memory = new FakeMemory();
+            var block = new byte[GameStateLayout.BlockBytes];
+            var states = Slots();
+            for (var slot = 0; slot < states.Length; slot++)
+            {
+                Put(block, list + (slot * 0x10), states[slot], states[slot] == 0 ? 0 : states[slot] + 0x800);
+            }
+
+            var entries = Heap + 0x30000;
+            Put(block, stack, entries, entries + 0x20, entries + 0x40);
+            memory.Pointers[entries + 0x10] = states[4];
+
+            // After the list a pointer with no control block (0.5.5f); before the stack, a vector whose last entry is no state.
+            Put(block, list + 0xD0, Heap + 0x700, 0);
+            Put(block, stack + 0x18, entries + 0x100, entries + 0x120, entries + 0x120);
+            return (memory, block, states);
+        }
 
         private static void EntityFieldsWhereMeasuredStayThere()
         {

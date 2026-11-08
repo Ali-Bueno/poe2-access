@@ -36,6 +36,8 @@ host's searches (once a patch to GameHelper2, now in `host/`) read those fields 
 | Positions | a point inside the map that projects near the screen's middle (the camera follows the player); no such point while the measured field still holds a point of the map is not judged: the camera is elsewhere, and the field has not moved | `OffsetHealer.JudgePosition` |
 | Game state's area and world pointers | the pointer whose target holds a world / a camera matrix | `OffsetHealer.LocateArea` |
 | Game states, when their pattern fails | a static pointer to an object whose state stack ends in one of its states (at least 8 states; two of 13 are null until used) | `GameStatesSearch` |
+| Game state object: stack and state list (every attach) | 13 slots of (object, control block), the used ones distinct and heap-aligned, and a stack of 16-byte entries whose last is one of them; of a list and one a slot off (it reads too, one state short at an end) the one with more states | `GameStateLayout.Locate`, `GameStates.JudgeLayout` |
+| In-game and area-loading states (not by slot) | in play: the current state whose area pointer leads to an area with a local player (looked at on every state change, and once a second until found); loading: the state current just before a new area appeared, twice the same (a menu over the same area loads nothing) | `GameStateRoles`, `GameStates.ApplyRoles` |
 | Other components with a vector, map, owner or entity pointer | GameHelper's own verifier, run with no one at the keyboard (`OffsetHelperEngine.RunSweep`): a repair only when it is not ambiguous; a component with none of these (Chest, Shrine, Player, Positioned, Base, WorldItem, Animated, Charges, Stack, Targetable, TriggerableBlockage) reads intact on its header alone | `OffsetHealer.Verified` |
 
 A struct that holds what it must is never touched. One that moved is read through `StructRemap<T>`: `TryReadMemory<T>`
@@ -86,6 +88,9 @@ the host rebuilt with `--no-incremental` and restarted in the Act 2 town, then r
 |---|---|---|
 | Entity layout | details +8, path +0x18, components +0x18, lookup -0x18, map +8, all at once | no world, so the area check searched: all five back where measured before the first area read; friends, portal and waypoint sounded |
 | Entity layout | details -8, path -8, components -8, lookup +8, map -0x18 | the same |
+| Game states | stack +8, list -0x18, and `InGameState` swapped with `PreGameState` in the enum (a state inserted) | stack +0x10 and list +0x50 found at attach, the in-game state taken from slot 4 (`slot 5 -> 4`); "En juego", the sweep and the sounds as usual |
+| Game states | stack -8, list +8, `InGameState` swapped with `EscapeState` | the same (`slot 3 -> 4`). The loading state needs two area changes (left town is not allowed in these tests): unit test only |
+
 
 
 **Upstream:** the host is no longer a patched GameHelper2 clone (2026-11-08): its reader lives in `host/`, so an offset that
