@@ -264,11 +264,17 @@ An encoding it does not know decodes to nothing, so a rule never guesses. This c
 
 **Limits.**
 
-- It is proven on one build only. No archived older exe was at hand, so the five builds above were not rerun.
+- Rerun on the five builds of the table above (archived under `D:\code\decompilers\projects\poe2-research\builds\<build>`,
+  2026-11-08): every rule read the true value of each build. On the three builds before 0.5.5f the area level read 0xBC and
+  the hash 0x114, the old layout upstream's constants had, so it reads the very move that silenced the mod; 0.5.5f and its
+  hotfix read 0xC4 and 0x11C. 35 of 38 "right" against the current constants on the old builds means exactly those three.
+  Still one compiler setup over two months: a major version is untested.
 - `label` relies on the dump printing in order, and `field`'s sweep ignores control flow.
 - A removed dump, a renamed GEAL function or an inlined getter only stops a rule.
 - The worst case is unchanged: a restructured function that reads another field of the same shape. That is why its values are candidates that must agree with the signatures, and why a live judgment still wins.
-- Placement now comes about a second after attach instead of before the first frame. A live host-struct judgment made in that second still wins. A plugin `layout:` offset set live in that second would be overwritten by a differing code value.
+- Placement now comes about a second after attach instead of before the first frame. A live judgment made in that second
+  wins, for host structs (segments) and for plugin `layout:` offsets alike (a moved constant is kept, logged "kept … where a
+  live search put it").
 
 ## How far it goes
 
