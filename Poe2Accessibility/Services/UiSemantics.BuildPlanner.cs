@@ -113,7 +113,7 @@ namespace Poe2Accessibility.Services
                 return Announcements.BuildNext(named, Array.Empty<string>());
             }
 
-            var pushes = PassiveStick.Route(places.Positions, here, there, MaxBuildPushes);
+            var pushes = this.PushesBetween(graph, places, from, here, there, MaxBuildPushes);
             return pushes != null
                 ? Announcements.BuildNext(named, pushes.Select(octant => Announcements.StickDirections[octant]))
                 : Announcements.BuildNext(named, new[] { Announcements.Far(Announcements.StickDirections[PassiveStick.Nearest(places.Positions[there] - places.Positions[here])]) });

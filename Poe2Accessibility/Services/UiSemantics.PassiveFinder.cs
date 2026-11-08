@@ -54,7 +54,7 @@ namespace Poe2Accessibility.Services
                 return hadTarget && this.finder.Target == IntPtr.Zero ? $"{position}. {Announcements.BeaconOff}" : position;
             }
 
-            var found = Announcements.PassiveFound(atlas.Nodes[target].Name, Where(atlas, target, steps), this.WayTo(atlas, record, this.finder.Target));
+            var found = Announcements.PassiveFound(atlas.Nodes[target].Name, Where(atlas, target, steps), this.WayTo(graph, atlas, record, this.finder.Target));
             return listStep != 0 ? Announcements.InContext(Announcements.PassiveCategoryName(this.finder.Category), found) : found;
         }
 
@@ -111,14 +111,14 @@ namespace Poe2Accessibility.Services
 
             var atlas = this.AtlasOf(graph);
             var line = this.finder.Arrive(record) ? Announcements.BeaconArrived(node.Name)
-                : atlas.Places.Index.TryGetValue(this.finder.Target, out var target) ? Announcements.PassiveToward(atlas.Nodes[target].Name, this.WayTo(atlas, record, this.finder.Target))
+                : atlas.Places.Index.TryGetValue(this.finder.Target, out var target) ? Announcements.PassiveToward(atlas.Nodes[target].Name, this.WayTo(graph, atlas, record, this.finder.Target))
                 : string.Empty;
             this.finderLine = (record, line);
             return line;
         }
 
         /// <summary>"up, 7 pushes" from one node to another, its direction alone when it is too far to count.</summary>
-        private string WayTo(PassiveAtlas atlas, IntPtr from, IntPtr to)
+        private string WayTo(PassiveGraph graph, PassiveAtlas atlas, IntPtr from, IntPtr to)
         {
             if (this.finderWay is { } cached && cached.From == from && cached.To == to)
             {
@@ -131,7 +131,7 @@ namespace Poe2Accessibility.Services
                 return string.Empty;
             }
 
-            var pushes = PassiveStick.Route(places.Positions, here, there, MaxFinderPushes);
+            var pushes = this.PushesBetween(graph, places, from, here, there, MaxFinderPushes);
             var words = pushes is { Count: > 0 }
                 ? Announcements.PassivePushes(Announcements.StickDirections[pushes[0]], pushes.Count)
                 : Announcements.Far(Announcements.StickDirections[PassiveStick.Nearest(places.Positions[there] - places.Positions[here])]);

@@ -4,14 +4,16 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
+    using GameOffsets.Natives;
+    using GameReader;
     using GameReader.Plugin;
     using Poe2Accessibility.Models;
 
     /// <summary>
     ///     Passive tree nodes for <see cref="UiSemantics"/> (D2R skill tree readout, adapted): the hovered node's name,
     ///     kind and state from its dat row and the tree's allocated list, its stats from the tooltip, then the nodes it
-    ///     links to with the push of the stick that reaches each — the free cursor moves by distance, not along links
-    ///     (docs/research/passive-tree.md).
+    ///     links to with the push of the stick that reaches each, as the game's own stick rule lands it
+    ///     (<see cref="PassiveStick"/>, docs/research/passive-tree.md).
     /// </summary>
     public sealed partial class UiSemantics
     {
@@ -21,6 +23,9 @@ namespace Poe2Accessibility.Services
         private const int MaxPassiveEdges = 20000;
 
         private const int MaxPassiveElements = 20000;
+
+        /// <summary>A node links to a handful of nodes; a record edge vector longer than this is a misread.</summary>
+        private const int MaxRecordEdges = 64;
 
         /// <summary>The tree's canvas holds dozens of node groups; an element with fewer children is never searched as one.</summary>
         private const int MinCanvasGroups = 10;
@@ -121,8 +126,8 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     "Up: Armour and Evasion, allocated; down left: Attribute, reachable", clockwise from up; each link named by the
-        ///     push of the stick that lands on it (<see cref="PassiveStick"/>), not its bare angle: the stick moves by
-        ///     distance, and a link 60 degrees up-right is reached with up (user 2026-10-31).
+        ///     push of the stick that lands on it (<see cref="PassiveStick"/>), not its bare angle: a link 60 degrees
+        ///     up-right is reached with up when nothing lies nearer that way (user 2026-10-31).
         /// </summary>
         private string DescribeLinks(PassiveGraph graph, IntPtr element, IntPtr record, HashSet<int> allocated, HashSet<IntPtr> marked)
         {
@@ -133,6 +138,8 @@ namespace Poe2Accessibility.Services
 
             var places = this.PlacesOf(graph);
             var offsets = places.Index.TryGetValue(record, out var hereIndex) ? places.OffsetsFrom(hereIndex) : null;
+            var stickLinks = places.IndexesOf(this.StickLinksOf(graph, record));
+            var window = this.StickWindow(graph, element);
             var parts = new List<(double Order, string Text)>();
             foreach (var other in linked)
             {
@@ -168,7 +175,7 @@ namespace Poe2Accessibility.Services
                 var geometric = Announcements.StickDirections[PassiveStick.Nearest(offset)];
                 var direction = offsets == null || !places.Index.TryGetValue(other, out var otherIndex)
                     ? geometric // a node the cursor never lands on (hidden): its side only
-                    : PassiveStick.OctantTo(offsets, otherIndex) is { } octant ? Announcements.StickDirections[octant] : Announcements.NoDirectPush(geometric);
+                    : PassiveStick.OctantTo(offsets, otherIndex, stickLinks, window) is { } octant ? Announcements.StickDirections[octant] : Announcements.NoDirectPush(geometric);
                 var clockwiseFromUp = (((112.5 - angle) % 360) + 360) % 360; // from the up sector's left edge, so sectors keep their order
                 parts.Add((clockwiseFromUp, $"{direction}, {words}"));
             }
@@ -193,14 +200,22 @@ namespace Poe2Accessibility.Services
             var linked = graph.Links.GetValueOrDefault(record) ?? new List<IntPtr>();
             var shown = graph.Elements.Count(pair => this.elements.TryReadElement(pair.Value, out var element) && element.IsVisibleFlag);
             yield return $"hovered {this.PassiveIdOf(record)} at {here.X:F0},{here.Y:F0} size {size.X:F0}; {shown} of {graph.Elements.Count} node elements shown";
-            // What the stick model says each push lands on (octants counter-clockwise from right), to check against the game.
+            // What the stick rule says each push lands on (octants counter-clockwise from right), to check against the game,
+            // with its inputs: the window, the record's own edge order against the graph file's, the row's linked-stage gate.
             var places = this.PlacesOf(graph);
             if (places.Index.TryGetValue(record, out var hereIndex))
             {
                 var records = places.Index.OrderBy(pair => pair.Value).Select(pair => pair.Key).ToArray();
                 var offsets = places.OffsetsFrom(hereIndex);
+                var stickLinks = places.IndexesOf(this.StickLinksOf(graph, record));
+                var window = this.StickWindow(graph, hovered);
                 yield return "picks " + string.Join(", ", Enumerable.Range(0, 8).Select(octant =>
-                    $"{Announcements.StickDirections[octant]} {(PassiveStick.Pick(offsets, octant) is var pick and >= 0 ? this.PassiveIdOf(records[pick]) : "-")}"));
+                    $"{Announcements.StickDirections[octant]} {(PassiveStick.Pick(offsets, octant, stickLinks, window) is var pick and >= 0 ? this.PassiveIdOf(records[pick]) : "-")}"));
+                yield return $"window {(window is { } seen ? $"{seen.Size.X:F0}x{seen.Size.Y:F0} cursor {seen.Cursor.X:F1},{seen.Cursor.Y:F1} px per unit {seen.PixelsPerUnit:F4}" : "none (fitted model)")}";
+                var fromRecord = this.RecordEdgeOrder(graph, record);
+                yield return $"edge order record: {(fromRecord == null ? "unreadable" : string.Join(" ", fromRecord.Select(this.PassiveIdOf)))}; " +
+                             $"file: {string.Join(" ", (graph.StickLinks.GetValueOrDefault(record) ?? new List<IntPtr>()).Select(this.PassiveIdOf))}; " +
+                             $"no linked step {(this.PassiveRow(record) is { } hoveredRow ? this.ReadPassiveRow(record, hoveredRow).NoLinkedStep : "?")}";
             }
 
             var marked = this.BuildMarks(graph).Select(this.PassiveIdOf).ToHashSet();
@@ -255,7 +270,9 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            var places = new PassivePlaces(graph.State, positions.ToArray(), records.Select((record, index) => (record, index)).ToDictionary(pair => pair.record, pair => pair.index));
+            var index = records.Select((record, at) => (record, at)).ToDictionary(pair => pair.record, pair => pair.at);
+            var places = new PassivePlaces(graph.State, positions.ToArray(), index, Array.Empty<int[]>());
+            places = places with { Links = records.Select(record => places.IndexesOf(graph.StickLinks.GetValueOrDefault(record))).ToArray() };
             this.passivePlaces = places;
             return places;
         }
@@ -263,6 +280,83 @@ namespace Poe2Accessibility.Services
         /// <summary>A node's centre in the canvas's units (y down, as on screen), null when its chain does not reach the canvas.</summary>
         private Vector2? NodeCentre(PassiveGraph graph, IntPtr element) =>
             this.LayoutRect(element, graph.Canvas) is { } rect ? rect.Position + (rect.Size / 2) : null;
+
+        /// <summary>
+        ///     What the game's stick step sees through: the hovered node's centre and screen size against its canvas size
+        ///     give the scale, the client area its bounds. Null when either is unreadable; the fitted model then stands in.
+        /// </summary>
+        private PassiveStick.Window? StickWindow(PassiveGraph graph, IntPtr hoveredElement)
+        {
+            var area = Core.Process.WindowArea;
+            if (area.Width <= 0 || area.Height <= 0 ||
+                !PluginUiElementReflection.TryGetAbsoluteRect(hoveredElement, out var position, out var size) || size.X <= 0 ||
+                this.LayoutRect(hoveredElement, graph.Canvas) is not { } laid || laid.Size.X <= 0)
+            {
+                return null;
+            }
+
+            return new PassiveStick.Window(position + (size / 2), new Vector2(area.Width, area.Height), size.X / laid.Size.X);
+        }
+
+        /// <summary>
+        ///     The nodes linked to a record in the order the stick step walks them: the record's own edge vectors when they
+        ///     read back whole (<see cref="RecordEdgeOrder"/>), else the same order rebuilt from the graph file's edge list.
+        /// </summary>
+        private List<IntPtr> StickLinksOf(PassiveGraph graph, IntPtr record) =>
+            this.RecordEdgeOrder(graph, record) ?? graph.StickLinks.GetValueOrDefault(record) ?? new List<IntPtr>();
+
+        /// <summary>
+        ///     The other ends of a record's in-edges then its out-edges, as the game's stick step walks them (0x9B9BA0); null
+        ///     unless every edge names the record at its end and a node the file links it to (self-loops skipped).
+        /// </summary>
+        private List<IntPtr>? RecordEdgeOrder(PassiveGraph graph, IntPtr record)
+        {
+            var known = graph.Links.GetValueOrDefault(record) ?? new List<IntPtr>();
+            var order = new List<IntPtr>();
+            foreach (var (offset, thisEnd) in new[] { (GameLayout.PassiveTree.RecordInEdgesOffset, 1), (GameLayout.PassiveTree.RecordOutEdgesOffset, 0) })
+            {
+                if (!this.reader.TryRead<StdVector>(record + offset, out var vector) ||
+                    (vector.Last.ToInt64() - vector.First.ToInt64()) / IntPtr.Size is var count && count is < 0 or > MaxRecordEdges)
+                {
+                    return null;
+                }
+
+                foreach (var edge in this.reader.ReadArray<IntPtr>(vector.First, (int)count))
+                {
+                    var ends = this.reader.ReadArray<IntPtr>(edge, 2);
+                    if (ends.Length < 2 || ends[thisEnd] != record)
+                    {
+                        return null;
+                    }
+
+                    var other = ends[1 - thisEnd];
+                    if (other == record)
+                    {
+                        continue;
+                    }
+
+                    if (!known.Contains(other))
+                    {
+                        return null;
+                    }
+
+                    order.Add(other);
+                }
+            }
+
+            return order;
+        }
+
+        /// <summary>
+        ///     The pushes from a drawn node to another as the game lands them, the first with the node's own edge order; null
+        ///     when the way is longer than <paramref name="maxMoves"/> or a push lands nowhere nearer.
+        /// </summary>
+        private List<int>? PushesBetween(PassiveGraph graph, PassivePlaces places, IntPtr from, int here, int there, int maxMoves)
+        {
+            var window = graph.Elements.TryGetValue(from, out var element) ? this.StickWindow(graph, element) : null;
+            var first = places.IndexesOf(this.StickLinksOf(graph, from));
+            return PassiveStick.Route(places.Positions, here, there, maxMoves, index => index == here ? first : places.Links[index], window);
+        }
 
         private PassiveState StateOf(PassiveGraph graph, PassiveNodeRow node, HashSet<int> allocated)
         {
@@ -353,7 +447,8 @@ namespace Poe2Accessibility.Services
                 : bytes[GameLayout.PassiveTree.RowJewelSocketOffset] == 1 ? PassiveClass.JewelSocket
                 : isStart || iconOnly ? PassiveClass.Other
                 : PassiveClass.Small;
-            return new PassiveNodeRow(record, BitConverter.ToUInt16(bytes, GameLayout.PassiveTree.RowGraphIdOffset), name, Announcements.PassiveKind(kind), iconOnly, isStart, kind);
+            var noLinkedStep = BitConverter.ToInt64(bytes, GameLayout.PassiveTree.RowNoLinkedStepOffset) != 0;
+            return new PassiveNodeRow(record, BitConverter.ToUInt16(bytes, GameLayout.PassiveTree.RowGraphIdOffset), name, Announcements.PassiveKind(kind), iconOnly, isStart, kind, noLinkedStep);
         }
 
         /// <summary>The tree's links and node elements, read once per canvas (they persist while the tree is closed).</summary>
@@ -375,8 +470,11 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            // Links in both directions: a record lists only its out-edges.
+            // Links in both directions: a record lists only its out-edges. For the stick's order, a record's in-edges
+            // (file order) then its out-edges, as its own two edge vectors hold them.
             var links = new Dictionary<IntPtr, List<IntPtr>>();
+            var inLinks = new Dictionary<IntPtr, List<IntPtr>>();
+            var outLinks = new Dictionary<IntPtr, List<IntPtr>>();
             var edgeCount = (int)Math.Clamp((edgeVector.Last.ToInt64() - edgeVector.First.ToInt64()) / IntPtr.Size, 0, MaxPassiveEdges);
             foreach (var edge in this.reader.ReadArray<IntPtr>(edgeVector.First, edgeCount))
             {
@@ -388,7 +486,11 @@ namespace Poe2Accessibility.Services
 
                 Link(links, ends[0], ends[1]);
                 Link(links, ends[1], ends[0]);
+                Link(outLinks, ends[0], ends[1]);
+                Link(inLinks, ends[1], ends[0]);
             }
+
+            var stickLinks = links.Keys.ToDictionary(record => record, record => (inLinks.GetValueOrDefault(record) ?? new List<IntPtr>()).Concat(outLinks.GetValueOrDefault(record) ?? new List<IntPtr>()).ToList());
 
             // Node elements by record, for the screen positions of linked nodes.
             var elementsByRecord = new Dictionary<IntPtr, IntPtr>();
@@ -416,7 +518,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            var graph = new PassiveGraph(canvasAddress, state, links, elementsByRecord, this.OwnStart(links.Keys));
+            var graph = new PassiveGraph(canvasAddress, state, links, stickLinks, elementsByRecord, this.OwnStart(links.Keys));
             this.passiveGraph = graph;
             return graph;
         }
@@ -504,12 +606,14 @@ namespace Poe2Accessibility.Services
             return names.Count == 0 ? null : Announcements.Either(names);
         }
 
-        private sealed record PassiveGraph(IntPtr Canvas, IntPtr State, Dictionary<IntPtr, List<IntPtr>> Links, Dictionary<IntPtr, IntPtr> Elements, IntPtr OwnStart);
+        /// <summary>The tree's graph: links both ways, the same in the stick step's edge order (<see cref="StickLinksOf"/>), the drawn element of each record.</summary>
+        private sealed record PassiveGraph(IntPtr Canvas, IntPtr State, Dictionary<IntPtr, List<IntPtr>> Links, Dictionary<IntPtr, List<IntPtr>> StickLinks, Dictionary<IntPtr, IntPtr> Elements, IntPtr OwnStart);
 
-        private sealed record PassiveNodeRow(IntPtr Record, int GraphId, string Name, string Kind, bool IconOnly, bool IsStart, PassiveClass Class);
+        /// <summary>A node's row; <paramref name="NoLinkedStep"/> when the stick step skips its linked stage (<see cref="GameLayout.PassiveTree.RowNoLinkedStepOffset"/>).</summary>
+        private sealed record PassiveNodeRow(IntPtr Record, int GraphId, string Name, string Kind, bool IconOnly, bool IsStart, PassiveClass Class, bool NoLinkedStep = false);
 
-        /// <summary>Drawn nodes' centres in one frame's pixels, by record.</summary>
-        private sealed record PassivePlaces(IntPtr State, Vector2[] Positions, Dictionary<IntPtr, int> Index)
+        /// <summary>Drawn nodes' centres in the canvas's units, by record, with each one's links in the stick step's edge order.</summary>
+        private sealed record PassivePlaces(IntPtr State, Vector2[] Positions, Dictionary<IntPtr, int> Index, int[][] Links)
         {
             /// <summary>The indexes of those records that are drawn.</summary>
             public int[] IndexesOf(IEnumerable<IntPtr>? records) =>
