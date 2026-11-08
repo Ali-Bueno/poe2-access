@@ -66,6 +66,9 @@ namespace Poe2Accessibility
         /// <summary>The dodge warning for every monster's attacks too, not only rares' and uniques': a pack can then warn many times a second.</summary>
         public bool DodgeWarningsAllMonsters = false;
 
+        /// <summary>In a trial (the Sekhemas, the Trial of Chaos) every monster's attacks are warned of whatever the switch above says.</summary>
+        public bool DodgeWarningsAllMonstersInTrials = true;
+
         /// <summary>Parry (buckler, targe or two swords): a reverse hit that swells in and stops dead on the moment to press Parry before a blow you can parry.</summary>
         public bool ParryCues = true;
 

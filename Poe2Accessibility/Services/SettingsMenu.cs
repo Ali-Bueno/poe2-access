@@ -48,6 +48,7 @@ namespace Poe2Accessibility.Services
                 Menu("defence",
                     Switch(nameof(AccessibilitySettings.DodgeWarnings)),
                     Switch(nameof(AccessibilitySettings.DodgeWarningsAllMonsters)),
+                    Switch(nameof(AccessibilitySettings.DodgeWarningsAllMonstersInTrials)),
                     Switch(nameof(AccessibilitySettings.UnblockableCues)),
                     Switch(nameof(AccessibilitySettings.ParryCues)),
                     Number(nameof(AccessibilitySettings.ParryLeadMs), 0, 600, 50),

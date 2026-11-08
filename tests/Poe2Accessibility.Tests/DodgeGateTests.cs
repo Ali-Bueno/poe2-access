@@ -15,6 +15,7 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(TheClockFollowsTheSpeedTheClipPlaysAt), TheClockFollowsTheSpeedTheClipPlaysAt),
             (nameof(BlowsTogetherGiveOneCue), BlowsTogetherGiveOneCue),
+            (nameof(ATrialWarnsOfEveryMonsterUnlessItsSwitchIsOff), ATrialWarnsOfEveryMonsterUnlessItsSwitchIsOff),
             (nameof(TheMostDangerousOfAFramePlays), TheMostDangerousOfAFramePlays),
             (nameof(ALesserCueNeverCoversARare), ALesserCueNeverCoversARare),
             (nameof(UntimedWindUpsMergeByWhenTheyAreIssued), UntimedWindUpsMergeByWhenTheyAreIssued),
@@ -439,6 +440,26 @@ namespace Poe2Accessibility.Tests
             var polluted = DodgeTimings.FromLines(new[] { $"{swing}=609,625,594,1078,31,110" });
             polluted.AddHitTimes(new[] { $"{swing}=576/1500;melee" });
             Equal(609, polluted.Delay(swing), "blows saved before the rule are judged again when asked");
+        }
+
+        /// <summary>In a trial every monster warns while the trial switch is on, whatever the general switch; outside, the general switch alone.</summary>
+        private static void ATrialWarnsOfEveryMonsterUnlessItsSwitchIsOff()
+        {
+            Equal(true, TrialDodgeScope.AllMonsters(always: false, inTrials: true, inTrial: true), "in a trial, the trial switch on");
+            Equal(false, TrialDodgeScope.AllMonsters(always: false, inTrials: false, inTrial: true), "in a trial, the trial switch off");
+            Equal(false, TrialDodgeScope.AllMonsters(always: false, inTrials: true, inTrial: false), "outside, the general switch off");
+            Equal(true, TrialDodgeScope.AllMonsters(always: true, inTrials: false, inTrial: false), "outside, the general switch on");
+            Equal(true, TrialDodgeScope.AllMonsters(always: true, inTrials: false, inTrial: true), "the general switch on covers a trial too");
+
+            var scope = new TrialDodgeScope();
+            Equal(false, scope.InTrial(1000), "no trial seen");
+            scope.Saw(true, 1000);
+            scope.Saw(false, 2000);
+            Equal(true, scope.InTrial(2000 + 1000), "a HUD line missed for a moment");
+            Equal(false, scope.InTrial(1000 + TrialDodgeScope.HoldMs + 1), "left the trial: back to the setting");
+            scope.Saw(true, 9000);
+            scope.Reset();
+            Equal(false, scope.InTrial(9000), "a new area ends it at once");
         }
 
         private static DodgeCueMerge.Candidate Cue(uint id, int rank, float distance, long? blowAt, long issuedAt) => new(id, rank, distance, blowAt, issuedAt);

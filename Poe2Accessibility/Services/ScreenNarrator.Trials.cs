@@ -12,6 +12,14 @@ namespace Poe2Accessibility.Services
         /// <summary>The HUD formats (catalog/trials.json).</summary>
         public TrialCatalog Trials { get; set; } = TrialCatalog.Empty;
 
+        /// <summary>Whether the HUD shows a trial under way: the Sekhemas' honour line or a Trial of Chaos round, in the game's words.</summary>
+        public bool TrialShown(ScreenSnapshot snapshot)
+        {
+            var hud = this.inGame ? snapshot.Find(this.HudLayer) : null;
+            return hud != null && (this.HonourLine(snapshot) != null ||
+                                   TrialLines.Read(this.Trials.Pattern(TrialCatalog.RoundLabel), hud.Texts.Select(text => text.Text)) != null);
+        }
+
         /// <summary>Says a round beginning (cutting in: a new fight) and the crystals left as one is disabled: digits alone are no news to the differ.</summary>
         public void CheckTrialLines(ScreenSnapshot snapshot)
         {

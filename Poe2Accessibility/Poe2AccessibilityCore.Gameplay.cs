@@ -104,7 +104,15 @@ namespace Poe2Accessibility
                 {
                     this.bosses.AnnounceLife = this.Settings.AnnounceBossLife;
                     this.bosses.DodgeWarnings = this.Settings.DodgeWarnings;
-                    this.bosses.AllMonsters = this.Settings.DodgeWarningsAllMonsters;
+                    var now = Environment.TickCount64;
+                    this.trialScope.Saw(this.screen != null && this.narrator?.TrialShown(this.screen.Current) == true, now);
+                    var allMonsters = TrialDodgeScope.AllMonsters(this.Settings.DodgeWarningsAllMonsters, this.Settings.DodgeWarningsAllMonstersInTrials, this.trialScope.InTrial(now));
+                    if (allMonsters != this.bosses.AllMonsters)
+                    {
+                        this.log?.Info($"Dodge warnings for every monster: {(allMonsters ? "on" : "off")}{(this.trialScope.InTrial(now) ? " (a trial)" : string.Empty)}");
+                    }
+
+                    this.bosses.AllMonsters = allMonsters;
                     this.bosses.ParryCues = this.Settings.ParryCues;
                     this.bosses.UnblockableCues = this.Settings.UnblockableCues;
                     this.bosses.CatalogDirectory = System.IO.Path.Join(this.DllDirectory, "catalog");

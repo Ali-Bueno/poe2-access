@@ -126,6 +126,7 @@ namespace Poe2Accessibility
         private Beacon? beacon;
         private TargetNarrator? targets;
         private BossWatch? bosses;
+        private readonly TrialDodgeScope trialScope = new();
         private WeakPointGuide? weakPoint;
         private ShieldWatch? shield;
         private HazardWatch? hazards;
@@ -991,6 +992,7 @@ namespace Poe2Accessibility
         {
             this.beacon?.Clear(false);
             this.bosses?.Reset();
+            this.trialScope.Reset();
             this.weakPoint?.Reset();
             this.shield?.Reset();
             this.culls?.Reset();
