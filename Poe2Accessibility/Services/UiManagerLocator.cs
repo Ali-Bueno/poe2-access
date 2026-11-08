@@ -127,17 +127,6 @@ namespace Poe2Accessibility.Services
                 : IntPtr.Zero;
         }
 
-        /// <summary>The chat layer element in game (never read automatically); zero when unknown.</summary>
-        public IntPtr InGameChatLayer(IntPtr inGameState) => this.Fields.Find(this.InGameLayerContainer(inGameState), InGameField.Chat);
-
-        public IntPtr InGameTutorialLayer(IntPtr inGameState) => this.Fields.Find(this.InGameLayerContainer(inGameState), InGameField.Tutorial);
-
-        public IntPtr InGameHudLayer(IntPtr inGameState) => this.Fields.Find(this.InGameLayerContainer(inGameState), InGameField.Hud);
-
-        public IntPtr InGameMapOverlay(IntPtr inGameState) => this.Fields.Find(this.InGameLayerContainer(inGameState), InGameField.MapOverlay);
-
-        public IntPtr InGameSkillBar(IntPtr inGameState) => this.Fields.Find(this.InGameLayerContainer(inGameState), InGameField.SkillBar);
-
         public IntPtr InGameDeathScreen(IntPtr inGameState) => this.Fields.Find(this.InGameLayerContainer(inGameState), InGameField.DeathScreen);
 
         /// <summary>

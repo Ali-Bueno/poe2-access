@@ -36,8 +36,6 @@ namespace Poe2Accessibility.Models
             ? this
             : this with { Layers = this.Layers.Select(layer => layer with { IsBase = baseLayers.Contains(layer.Address) }).ToList() };
 
-        public ScreenLayer? HintBar => this.Layers.FirstOrDefault(layer => layer.IsHintBar);
-
         public ScreenLayer? Find(IntPtr address) => this.Layers.FirstOrDefault(layer => layer.Address == address);
     }
 
