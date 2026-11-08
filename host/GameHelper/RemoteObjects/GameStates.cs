@@ -33,12 +33,21 @@ namespace GameHelper.RemoteObjects
         // While no state has led to an area, the current one is looked at this often.
         private const long LookEveryMs = 1000;
 
+        // A state list not found at attach (the game still starting) is looked for again this often, and said lost only after
+        // two minutes of it, as the plugin waits for a first state (GameStateService.StatesUnreadMs).
+        private const long LayoutRetryMs = 2000;
+        private const int LayoutTries = 60;
+
         private static readonly int AreaPointer = Marshal.OffsetOf<InGameStateOffset>(nameof(InGameStateOffset.AreaInstanceData)).ToInt32();
 
         private readonly object gameStatesLock = new();
         private long[] slots = Array.Empty<long>();
         private GameStateRoles roles = new(Array.Empty<long>());
         private long nextLookAt;
+        private int layoutTried;
+        private long nextLayoutAt;
+        private bool layoutPending;
+        private int namesShifted;
         private IntPtr currentStateAddress = IntPtr.Zero;
         private GameStateTypes currentStateName = GameStateTypes.GameNotLoaded;
         private GameStateStaticOffset myStaticObj;
@@ -103,6 +112,8 @@ namespace GameHelper.RemoteObjects
                     this.myStaticObj = reader.ReadMemory<GameStateStaticOffset>(this.Address);
                     this.LayoutOutcomes = this.JudgeLayout(reader);
                     var data = reader.ReadMemory<GameStateOffset>(this.myStaticObj.GameState);
+                    this.AllStates.Clear();
+                    this.namesShifted = 0;
                     this.slots = new long[GameStateHelper.TOTAL_STATES];
                     for (var i = 0; i < GameStateHelper.TOTAL_STATES; i++)
                     {
@@ -118,13 +129,19 @@ namespace GameHelper.RemoteObjects
             else
             {
                 // Caller (OnPerFrame) takes gameStatesLock around this call.
+                if (this.layoutPending && Environment.TickCount64 >= this.nextLayoutAt)
+                {
+                    this.nextLayoutAt = Environment.TickCount64 + LayoutRetryMs;
+                    this.UpdateData(true);
+                }
+
                 var data = reader.ReadMemory<GameStateOffset>(this.myStaticObj.GameState);
                 var cStateAddr = reader.ReadMemory<IntPtr>(data.CurrentStatePtr.Last - GameStateLayout.StackEntry); // the last entry's object
                 var changed = cStateAddr != IntPtr.Zero && cStateAddr != this.currentStateAddress;
                 if (changed || (this.roles.InGame < 0 && cStateAddr != IntPtr.Zero && Environment.TickCount64 >= this.nextLookAt))
                 {
                     this.nextLookAt = Environment.TickCount64 + LookEveryMs;
-                    this.roles.See(cStateAddr.ToInt64(), this.AreaOf(reader, cStateAddr));
+                    this.roles.See(cStateAddr.ToInt64(), this.AreaOf(reader, cStateAddr), this.InGameArea(reader));
                     this.ApplyRoles();
                 }
 
@@ -160,6 +177,7 @@ namespace GameHelper.RemoteObjects
                 this.slots = Array.Empty<long>();
                 this.roles = new GameStateRoles(this.slots);
                 this.LayoutOutcomes = Array.Empty<StructOutcome>();
+                (this.layoutTried, this.layoutPending, this.namesShifted) = (0, false, 0);
             }
         }
 
@@ -173,7 +191,19 @@ namespace GameHelper.RemoteObjects
             }
 
             var found = GameStateLayout.Locate(block, GameStateFields.Measured, new GameMemory(reader));
-            return OffsetHealer.PlaceGameStates(found);
+            var outcomes = OffsetHealer.PlaceGameStates(found);
+            this.layoutPending = outcomes.Any(outcome => outcome.Health == StructHealth.Lost) && ++this.layoutTried < LayoutTries;
+            return this.layoutPending
+                ? outcomes.Select(outcome => outcome.Health == StructHealth.Lost ? outcome with { Health = StructHealth.NotJudged, Detail = "no state list yet" } : outcome).ToList()
+                : outcomes;
+        }
+
+        /// <summary>The area pointer the in-game state holds now (the slot judged in play, else the measured one); zero when none.</summary>
+        private long InGameArea(SafeMemoryHandle reader)
+        {
+            var slot = this.roles.InGame >= 0 ? this.roles.InGame : (int)GameStateTypes.InGameState;
+            return slot < this.slots.Length && reader.TryReadMemory<IntPtr>(new IntPtr(this.slots[slot]) + OffsetHealer.Follow(typeof(InGameStateOffset), AreaPointer), out var area)
+                ? area.ToInt64() : 0;
         }
 
         /// <summary>The area <paramref name="state"/> leads to when a local player stands in it; zero otherwise.</summary>
@@ -191,6 +221,19 @@ namespace GameHelper.RemoteObjects
         /// <summary>Names the states by what they were seen doing when that differs from their slot.</summary>
         private void ApplyRoles()
         {
+            if (this.roles.WholeShift is { } shift && shift != this.namesShifted)
+            {
+                // Both roles one slot off the same way: the whole list reads shifted, so every state takes the name of its slot.
+                this.namesShifted = shift;
+                for (var slot = 0; slot < this.slots.Length; slot++)
+                {
+                    var named = slot - shift;
+                    this.AllStates[new IntPtr(this.slots[slot])] = named is >= 0 and < GameStateHelper.TOTAL_STATES ? (GameStateTypes)named : GameStateTypes.UnknownState;
+                }
+
+                Console.WriteLine($"[GameStates] every state moved {shift} slots");
+            }
+
             var outcomes = this.LayoutOutcomes.Where(outcome => outcome.Name is not (InGamePart or AreaLoadingPart)).ToList();
             outcomes.Add(this.Role(InGamePart, this.roles.InGame, GameStateTypes.InGameState, this.InGameStateObject));
             outcomes.Add(this.Role(AreaLoadingPart, this.roles.AreaLoading, GameStateTypes.AreaLoadingState, this.AreaLoading));

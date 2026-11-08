@@ -8,6 +8,7 @@ namespace GameHelper.Utils
     using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.InteropServices;
+    using GameHelper.RemoteEnums;
     using GameHelper.RemoteObjects.States.InGameStateObjects;
     using GameOffsets.Natives;
     using GameOffsets.Objects;
@@ -46,7 +47,8 @@ namespace GameHelper.Utils
 
         /// <summary>
         ///     The fields nearest <paramref name="near"/> that fit together: a list read 8 bytes off pairs each control block
-        ///     with the next state and passes for one, but the stack's top is not in it. Both negative when nothing fits.
+        ///     with the next state and passes for one, but the stack's top is not in it. Both negative when nothing fits. A list
+        ///     read a whole slot off fits too and shifts every name by one: only what the states do tells it (<see cref="GameStateRoles.WholeShift"/>).
         /// </summary>
         public static GameStateFields Locate(byte[] block, GameStateFields near, IAreaMemory memory)
         {
@@ -57,12 +59,12 @@ namespace GameHelper.Utils
             }
 
             var first = StructShapes.Nearest(near.States, Pointer, block.Length - (Slot * GameStateHelper.TOTAL_STATES), at => StackFor(at) >= 0);
-            if (first < 0)
+            if (first < 0 || first == near.States)
             {
-                return new GameStateFields(-1, -1);
+                return first < 0 ? new GameStateFields(-1, -1) : new GameStateFields(StackFor(first), first);
             }
 
-            // One slot off still reads as a list, short of the state it drops at one end (0.5.5f: null slots on either side).
+            // Moved: of the list found and those a slot either side, the one with the most states (a slot off drops one at an end).
             var best = new[] { first, first - Slot, first + Slot }.Where(at => StackFor(at) >= 0)
                 .OrderByDescending(at => States(block, at)!.Count(state => state != 0)).First();
             return new GameStateFields(StackFor(best), best);
@@ -113,8 +115,8 @@ namespace GameHelper.Utils
 
     /// <summary>
     ///     Which of the game's states plays an area and which loads one, told by what they do rather than by their slot: the
-    ///     state in play leads to an area with a local player in it; the state current just before a new area appeared loaded
-    ///     it (twice the same, as a menu or a wait could stand in between once).
+    ///     state in play leads to an area with a local player in it; the state that was current while the in-game state's area
+    ///     pointer changed loaded it (twice the same: a wait after the load holds the new area from its start, a menu the old).
     /// </summary>
     public sealed class GameStateRoles
     {
@@ -123,8 +125,7 @@ namespace GameHelper.Utils
 
         private readonly IReadOnlyList<long> states;
         private long present;
-        private long previous;
-        private long lastArea;
+        private long areaAtStart;
         private int candidate = -1;
         private int proofs;
 
@@ -140,29 +141,36 @@ namespace GameHelper.Utils
         /// <summary>Gets the slot of the state that loads areas; negative until proven.</summary>
         public int AreaLoading { get; private set; } = -1;
 
-        /// <summary>One look at the current state; <paramref name="area"/> is the area it leads to with a player in it, zero when none.</summary>
-        public void See(long current, long area)
+        /// <summary>
+        ///     Gets how many slots every state moved when both roles were found that far from their measured slots (a list read a
+        ///     whole slot off, or a state inserted before all of them); null otherwise.
+        /// </summary>
+        public int? WholeShift =>
+            this.InGame >= 0 && this.AreaLoading >= 0 && this.InGame - (int)GameStateTypes.InGameState is var shift && shift != 0 &&
+            this.AreaLoading - (int)GameStateTypes.AreaLoadingState == shift ? shift : null;
+
+        /// <summary>
+        ///     One look at the current state, on every change: <paramref name="area"/> is the area it leads to with a player in
+        ///     it (zero when none), <paramref name="inGameArea"/> the area pointer the in-game state holds now (zero when none).
+        /// </summary>
+        public void See(long current, long area, long inGameArea)
         {
             if (current != this.present)
             {
-                (this.previous, this.present) = (this.present, current);
+                var ended = this.IndexOf(this.present);
+                if (ended >= 0 && ended != this.InGame && inGameArea != 0 && inGameArea != this.areaAtStart)
+                {
+                    (this.candidate, this.proofs) = ended == this.candidate ? (ended, this.proofs + 1) : (ended, 1);
+                    this.AreaLoading = this.proofs >= LoadingProofs ? ended : this.AreaLoading;
+                }
+
+                (this.present, this.areaAtStart) = (current, inGameArea);
             }
 
-            var index = this.IndexOf(current);
-            if (area == 0 || index < 0)
+            if (area != 0 && this.IndexOf(current) is var index and >= 0)
             {
-                return;
+                this.InGame = index;
             }
-
-            this.InGame = index;
-            var before = this.IndexOf(this.previous);
-            if (area != this.lastArea && this.lastArea != 0 && before >= 0 && before != index)
-            {
-                (this.candidate, this.proofs) = before == this.candidate ? (before, this.proofs + 1) : (before, 1);
-                this.AreaLoading = this.proofs >= LoadingProofs ? before : this.AreaLoading;
-            }
-
-            this.lastArea = area;
         }
 
         private int IndexOf(long state)
