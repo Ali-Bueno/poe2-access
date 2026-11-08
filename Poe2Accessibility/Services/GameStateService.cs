@@ -46,6 +46,7 @@ namespace Poe2Accessibility.Services
         private long attachedAt;
         private bool stateRead;
         private IReadOnlyList<StructOutcome>? layoutNoted;
+        private StructOutcome cullNoted;
 
         public GameStateService(PluginLog log, HostMemoryReader reader, UiElementReader elements)
         {
@@ -270,13 +271,19 @@ namespace Poe2Accessibility.Services
         private void NoteLayout()
         {
             var outcomes = Core.States.LayoutOutcomes;
-            if (ReferenceEquals(outcomes, this.layoutNoted) || this.Report == null)
+            var cull = Core.GameCull.Judged;
+            if ((ReferenceEquals(outcomes, this.layoutNoted) && cull == this.cullNoted) || this.Report == null)
             {
                 return;
             }
 
-            this.layoutNoted = outcomes;
-            foreach (var outcome in outcomes)
+            if (cull != this.cullNoted && cull.Health == StructHealth.Lost)
+            {
+                this.log.Info($"Window cull: the pattern read {cull.From}, {cull.Detail}");
+            }
+
+            (this.layoutNoted, this.cullNoted) = (outcomes, cull);
+            foreach (var outcome in outcomes.Append(cull))
             {
                 switch (outcome.Health)
                 {

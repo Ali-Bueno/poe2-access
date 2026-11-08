@@ -8,8 +8,9 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Finds the memory layout a game update can move (docs/compatibility.md). Each field is first tried where it was
     ///     measured and only looked for around it when it no longer holds what it must; fields of one structure that
-    ///     move together follow their anchor (element base fields follow the control name, label fields the text,
-    ///     manager fields the root pointer). Outcomes go to the <see cref="CompatibilityReport"/>.
+    ///     move together follow their anchor (font, manager and tooltips the control name, label fields the text, manager
+    ///     fields the root pointer); the element base itself is the host's judgment (<see cref="ProbeElementBase"/>).
+    ///     Outcomes go to the <see cref="CompatibilityReport"/>.
     /// </summary>
     public sealed class LayoutProbe
     {
@@ -67,6 +68,7 @@ namespace Poe2Accessibility.Services
         private readonly int measuredAltTexture = GameLayout.Image.AltTextureOffset;
 
         private bool namesKnown;
+        private bool elementBaseKnown;
         private bool textKnown;
         private bool managerKnown;
         private bool renderKnown;
@@ -80,6 +82,36 @@ namespace Poe2Accessibility.Services
             this.reader = reader;
             this.elements = elements;
             this.report = report;
+        }
+
+        /// <summary>
+        ///     The element base fields every walk of the tree reads (self, children, parent, flags, rects), judged by the host on
+        ///     the UI root (<see cref="GameHelper.Utils.UiElementLayoutSearch"/>) before anything else reads through them.
+        /// </summary>
+        public void ProbeElementBase(IntPtr root)
+        {
+            if (this.elementBaseKnown || root == IntPtr.Zero)
+            {
+                return;
+            }
+
+            var outcomes = GameHelper.Utils.OffsetHealer.JudgeUiElementBase(root);
+            this.elementBaseKnown = outcomes.Count > 0;
+            foreach (var outcome in outcomes)
+            {
+                switch (outcome.Health)
+                {
+                    case GameHelper.Utils.StructHealth.Intact:
+                        this.report.Found(outcome.Name);
+                        break;
+                    case GameHelper.Utils.StructHealth.Moved:
+                        this.report.Moved(outcome.Name, outcome.From, outcome.To);
+                        break;
+                    case GameHelper.Utils.StructHealth.Lost:
+                        this.report.Missing(outcome.Name);
+                        break;
+                }
+            }
         }
 
         /// <summary>Control names: the root or its layers must carry a known name (<paramref name="conclusive"/>: in game, where the HUD always does).</summary>
@@ -250,6 +282,7 @@ namespace Poe2Accessibility.Services
         public void Reset()
         {
             (this.namesKnown, this.textKnown, this.managerKnown, this.renderKnown, this.texturesKnown) = (false, false, false, false, false);
+            this.elementBaseKnown = false;
             this.namesTriedAt = this.textTriedAt = this.texturesTriedAt = long.MinValue / 2;
         }
 
@@ -267,7 +300,23 @@ namespace Poe2Accessibility.Services
                 offset => offset / IntPtr.Size < slots.Length && slots[offset / IntPtr.Size] == root);
             var textures = OffsetSearch.First(GameLayout.Image.TextureOffset + SelfTestShift, Radius, Step, this.TextureFits(root), Step);
             return string.Join("; ", SelfTestLine("element names", GameLayout.Element.NameOffset, names), SelfTestLine("element texts", textShift, text),
-                SelfTestLine("UI manager", GameLayout.UiManager.RootOffset, rootSlot), SelfTestLine("image textures", GameLayout.Image.TextureOffset, textures));
+                SelfTestLine("UI manager", GameLayout.UiManager.RootOffset, rootSlot), SelfTestLine("image textures", GameLayout.Image.TextureOffset, textures),
+                ElementBaseSelfTest(root));
+        }
+
+        /// <summary>The host's element base search started <see cref="SelfTestShift"/> off every field must come back where they read now.</summary>
+        private static string ElementBaseSelfTest(IntPtr root)
+        {
+            var measured = GameHelper.Utils.UiElementFields.Measured;
+            var now = new GameHelper.Utils.UiElementFields(
+                Follow(measured.Self), Follow(measured.Children), Follow(measured.Parent), Follow(measured.Position), Follow(measured.Flags), Follow(measured.Size));
+            var off = new GameHelper.Utils.UiElementFields(now.Self + SelfTestShift, now.Children + SelfTestShift, now.Parent + SelfTestShift,
+                now.Position + SelfTestShift, now.Flags + SelfTestShift, now.Size + SelfTestShift);
+            var found = GameHelper.Utils.OffsetHealer.FindUiElementBase(root, off);
+            return string.Join("; ", SelfTestLine("element tree", now.Parent, found.Parent), SelfTestLine("element rects", now.Size, found.Size),
+                SelfTestLine("element flags", now.Flags, found.Flags));
+
+            static int Follow(int field) => GameHelper.Utils.HostStructs.Follow<GameOffsets.Objects.UiElement.UiElementBaseOffset>(field);
         }
 
         /// <summary>How far a field is pretended to have moved in <see cref="SelfTest"/>.</summary>

@@ -5,6 +5,7 @@ namespace Poe2Accessibility.Services
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
     using GameHelper;
+    using GameHelper.Utils;
     using GameOffsets.Natives;
 
     /// <summary>
@@ -68,17 +69,18 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>Reads a struct as the host does: through the host's remap when a game patch moved its fields.</summary>
         public bool TryRead<T>(IntPtr address, out T value)
             where T : unmanaged
         {
-            var bytes = this.ReadBytes(address, Unsafe.SizeOf<T>());
+            var bytes = this.ReadBytes(address, HostStructs.Size<T>());
             if (bytes.Length == 0)
             {
                 value = default;
                 return false;
             }
 
-            value = MemoryMarshal.Read<T>(bytes);
+            value = HostStructs.Read<T>(bytes);
             return true;
         }
 

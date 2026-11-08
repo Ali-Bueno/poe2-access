@@ -60,6 +60,13 @@ namespace Poe2Accessibility.Services
 
             var how = "InGameState";
             var inGame = state == GameStateTypes.InGameState;
+            if (inGame && this.reader.TryRead<IntPtr>(stateObject + GameLayout.InGameState.UiManagerOffset, out var slot) &&
+                this.reader.TryRead<IntPtr>(slot + GameLayout.UiManager.RootOffset, out var slotRoot))
+            {
+                // Every walk below climbs and descends through the element base fields: they are judged first.
+                this.probe.ProbeElementBase(slotRoot);
+            }
+
             if (inGame)
             {
                 // Names first: the manager pointer every element holds sits beside its name and moves with it.
@@ -147,6 +154,11 @@ namespace Poe2Accessibility.Services
                     }
 
                     how = $"element at state+0x{chunk + (i * IntPtr.Size):X}";
+                    if (this.reader.TryRead<IntPtr>(manager + GameLayout.UiManager.RootOffset, out var managerRoot))
+                    {
+                        this.probe.ProbeElementBase(managerRoot);
+                    }
+
                     this.probe.ProbeNames(this.RootOf(slots[i]), false);
                     if (this.IsManager(manager))
                     {

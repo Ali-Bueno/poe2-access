@@ -49,6 +49,37 @@ namespace GameHelper.Utils
         }
     }
 
+    /// <summary>Reads the game's structs from bytes already read, through the remap when a patch moved their fields.</summary>
+    public static class HostStructs
+    {
+        /// <summary>The struct in <paramref name="raw"/>, the game's bytes from its start (too few for the remap: read as they lie).</summary>
+        public static T Read<T>(ReadOnlySpan<byte> raw)
+            where T : unmanaged
+        {
+            var result = default(T);
+            var target = System.Runtime.InteropServices.MemoryMarshal.AsBytes(System.Runtime.InteropServices.MemoryMarshal.CreateSpan(ref result, 1));
+            if (StructRemap<T>.Segments is not { } moved || raw.Length < StructRemapper.ReadSize(target.Length, moved))
+            {
+                return System.Runtime.InteropServices.MemoryMarshal.Read<T>(raw);
+            }
+
+            StructRemapper.Apply(raw, target, moved);
+            return result;
+        }
+
+        /// <summary>Where a field of <typeparamref name="T"/> measured at <paramref name="offset"/> reads now.</summary>
+        public static int Follow<T>(int offset)
+            where T : unmanaged => StructRemapper.Follow(StructRemap<T>.Segments, offset);
+
+        /// <summary>How many bytes hold <typeparamref name="T"/> as the game lays it out now.</summary>
+        public static int Size<T>()
+            where T : unmanaged
+        {
+            var size = System.Runtime.CompilerServices.Unsafe.SizeOf<T>();
+            return StructRemap<T>.Segments is { } moved ? StructRemapper.ReadSize(size, moved) : size;
+        }
+    }
+
     /// <summary>The segments of <typeparamref name="T"/>; null while the struct stands where it was measured.</summary>
     /// <typeparam name="T">the struct read from the game.</typeparam>
     internal static class StructRemap<T>

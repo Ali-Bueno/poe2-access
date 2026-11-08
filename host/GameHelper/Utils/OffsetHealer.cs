@@ -71,6 +71,15 @@ namespace GameHelper.Utils
         /// <summary>The part that lists the game's states.</summary>
         public const string StateListPart = "game state list";
 
+        /// <summary>The part every walk of the UI tree needs (self, children, parent).</summary>
+        public const string ElementTreePart = "element tree";
+
+        /// <summary>The part that places UI elements on the screen (position, scale, size).</summary>
+        public const string ElementRectsPart = "element rects";
+
+        /// <summary>The part that says whether a UI element shows (flags, scale index).</summary>
+        public const string ElementFlagsPart = "element flags";
+
         // Entities the sweep judges the entity layout on, besides the player.
         private const int EntitiesJudged = 4;
 
@@ -84,7 +93,7 @@ namespace GameHelper.Utils
 
         private const float WorldPerTile = 250f;
 
-        // Judged here or by their own searches (AreaInstanceLayout, the plugin's UI probes), not by the verifier.
+        // Judged here or by their own searches (AreaInstanceLayout, JudgeEntityLayout, JudgeUiElementBase), not by the verifier.
         private static readonly HashSet<Type> OwnJudgment = new()
         {
             typeof(AreaInstanceOffsets), typeof(EntityOffsets), typeof(UiElementBaseOffset), typeof(LifeOffset), typeof(BuffsOffsets),
@@ -229,6 +238,39 @@ namespace GameHelper.Utils
             }
 
             return outcomes.Any(outcome => outcome.Health == StructHealth.Moved);
+        }
+
+        /// <summary>
+        ///     Judges the UI element base fields on <paramref name="root"/> (<see cref="UiElementLayoutSearch"/>) and reads every
+        ///     element from there. Empty when it is no UI root (no self pointer, no element of the base resolution's size).
+        /// </summary>
+        /// <summary>Where the UI element base fields are on <paramref name="root"/>, searched nearest <paramref name="near"/>; moves nothing.</summary>
+        public static UiElementFields FindUiElementBase(IntPtr root, UiElementFields near) =>
+            new UiElementLayoutSearch(new GameMemory(Core.Process.Handle)).Find(root.ToInt64(), near);
+
+        public static IReadOnlyList<StructOutcome> JudgeUiElementBase(IntPtr root)
+        {
+            var measured = UiElementFields.Measured;
+            var found = FindUiElementBase(root, measured);
+            if (found.Self < 0 || found.Size < 0)
+            {
+                return Array.Empty<StructOutcome>();
+            }
+
+            Place(
+                typeof(UiElementBaseOffset),
+                (measured.Self, found.Self),
+                (measured.Children, found.Children),
+                (measured.Parent, found.Parent),
+                (measured.Position, found.Position),
+                (measured.Flags, found.Flags),
+                (measured.Size, found.Size));
+            return new[]
+            {
+                Outcome(ElementTreePart, (measured.Self, found.Self), (measured.Children, found.Children), (measured.Parent, found.Parent)),
+                Outcome(ElementRectsPart, (measured.Position, found.Position), (measured.Size, found.Size)),
+                Outcome(ElementFlagsPart, (measured.Flags, found.Flags)),
+            };
         }
 
         /// <summary>Reads the game state object's stack and state list from where <paramref name="found"/> says; their outcomes.</summary>

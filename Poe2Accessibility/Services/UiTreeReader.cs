@@ -99,7 +99,7 @@ namespace Poe2Accessibility.Services
                 return false;
             }
 
-            var raw = MemoryMarshal.Read<UiElementBaseOffset>(block);
+            var raw = GameHelper.Utils.HostStructs.Read<UiElementBaseOffset>(block);
             if (raw.Self != IntPtr.Zero && raw.Self != address)
             {
                 return false;

@@ -23,7 +23,76 @@ namespace Poe2Accessibility.Tests
             (nameof(PointersThatRepeatAreNoStateList), PointersThatRepeatAreNoStateList),
             (nameof(TheStateInPlayIsTheOneThatLeadsToAnArea), TheStateInPlayIsTheOneThatLeadsToAnArea),
             (nameof(TheLoadingStateIsWhatCameBeforeTwoNewAreas), TheLoadingStateIsWhatCameBeforeTwoNewAreas),
+            (nameof(ElementBaseFieldsWhereMeasuredStayThere), ElementBaseFieldsWhereMeasuredStayThere),
+            (nameof(ElementBaseGroupsFollowTheShiftThatFits), ElementBaseGroupsFollowTheShiftThatFits),
+            (nameof(AnElementOfAnotherSizeIsNoRoot), AnElementOfAnotherSizeIsNoRoot),
         };
+
+        private static void ElementBaseFieldsWhereMeasuredStayThere()
+        {
+            var measured = UiElementFields.Measured;
+            var (memory, root) = UiTree(measured);
+            Equal(measured, new UiElementLayoutSearch(memory).Find(root, measured), "element fields that did not move");
+        }
+
+        private static void ElementBaseGroupsFollowTheShiftThatFits()
+        {
+            var measured = UiElementFields.Measured;
+            foreach (var (tree, rest) in new[] { (8, 8), (8, 0x18), (-8, 0x10), (0, -0x18) })
+            {
+                var moved = new UiElementFields(measured.Self + tree, measured.Children + tree, measured.Parent + tree, measured.Position + rest, measured.Flags + rest, measured.Size + rest);
+                var (memory, root) = UiTree(moved);
+                Equal(moved, new UiElementLayoutSearch(memory).Find(root, measured), $"tree moved {tree:X}, the rest {rest:X}");
+            }
+        }
+
+        private static void AnElementOfAnotherSizeIsNoRoot()
+        {
+            var measured = UiElementFields.Measured;
+            var (memory, root) = UiTree(measured, 1920);
+            Equal(-1, new UiElementLayoutSearch(memory).Find(root, measured).Size, "an element 1920 wide is no root");
+        }
+
+        /// <summary>A UI root laid out as <paramref name="at"/> says, with three layers (one hidden) and a grandchild.</summary>
+        private static (FakeMemory Memory, long Root) UiTree(UiElementFields at, float width = 2560)
+        {
+            var memory = new FakeMemory();
+            var root = Heap + 0x200000;
+            var layers = new[] { root + 0x1000, root + 0x2000, root + 0x3000 };
+            Element(memory, at, root, 0, layers, true, width);
+            Element(memory, at, layers[0], root, new[] { root + 0x4000 }, true, 800);
+            Element(memory, at, layers[1], root, Array.Empty<long>(), false, 800);
+            Element(memory, at, layers[2], root, Array.Empty<long>(), true, 800);
+            Element(memory, at, root + 0x4000, layers[0], Array.Empty<long>(), true, 100);
+            return (memory, root);
+        }
+
+        private static void Element(FakeMemory memory, UiElementFields at, long address, long parent, long[] children, bool visible, float width)
+        {
+            var body = new byte[UiElementLayoutSearch.BlockBytes];
+            Put(body, 0, Heap + 0x900000); // the vtable
+            Put(body, at.Self, address);
+            var storage = address + 0x800;
+            Put(body, at.Children, storage, storage + (children.Length * 8), storage + (children.Length * 8));
+            Put(body, at.Parent, parent);
+            Put(body, at.Position, 0, 0);
+            BitConverter.TryWriteBytes(body.AsSpan(at.Position + 0x18), 1f);
+            BitConverter.TryWriteBytes(body.AsSpan(at.Flags), visible ? 0x00502EF4u : 0x00502EF4u & ~(1u << 0x0B));
+            body[at.Flags + 0xA] = parent == 0 ? (byte)3 : (byte)2;
+            BitConverter.TryWriteBytes(body.AsSpan(at.Size), width);
+            BitConverter.TryWriteBytes(body.AsSpan(at.Size + 4), 1600f);
+            memory.Blocks[address] = body;
+            if (children.Length > 0)
+            {
+                var vector = new byte[children.Length * 8];
+                for (var i = 0; i < children.Length; i++)
+                {
+                    Put(vector, i * 8, children[i]);
+                }
+
+                memory.Blocks[storage] = vector;
+            }
+        }
 
         private static void TheStateListAndStackAreFoundWhereverTheyMoved()
         {

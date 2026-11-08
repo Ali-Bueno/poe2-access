@@ -133,6 +133,8 @@
     <Compile Include="..\..\host\GameHelper\Utils\StructShapes.cs" Link="Host\StructShapes.cs" />
     <Compile Include="..\..\host\GameHelper\Utils\EntityLayoutSearch.cs" Link="Host\EntityLayoutSearch.cs" />
     <Compile Include="..\..\host\GameHelper\Utils\GameStateLayout.cs" Link="Host\GameStateLayout.cs" />
+    <Compile Include="..\..\host\GameHelper\Utils\UiElementLayoutSearch.cs" Link="Host\UiElementLayoutSearch.cs" />
+    <Compile Include="..\..\host\GameOffsets\Objects\UiElement\UiElementBaseOffset.cs" Link="Host\UiElementBaseOffset.cs" />
     <Compile Include="..\..\host\GameOffsets\Objects\GameStateOffsets.cs" Link="Host\GameStateOffsets.cs" />
     <Compile Include="..\..\host\GameOffsets\Objects\States\InGameState\EntityOffsets.cs" Link="Host\EntityOffsets.cs" />
     <Compile Include="..\..\host\GameOffsets\Objects\Components\ComponentHeader.cs" Link="Host\ComponentHeader.cs" />

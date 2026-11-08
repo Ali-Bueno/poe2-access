@@ -73,7 +73,7 @@ namespace GameHelper
         /// <summary>
         ///     Gets the size of the cull (black bar) area in the game window.
         /// </summary>
-        internal static GameWindowCull GameCull { get; } = new(IntPtr.Zero);
+        public static GameWindowCull GameCull { get; } = new(IntPtr.Zero);
 
         /// <summary>
         ///     Gets the values associated with the terrain rotation selector.

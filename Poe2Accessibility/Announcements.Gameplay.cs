@@ -967,6 +967,8 @@ namespace Poe2Accessibility
             "local player" => T("your character in the world", "tu personaje en el mundo"),
             "entity lists" => T("what is around you, so enemies, items and exits stay silent", "lo que hay a tu alrededor, así que enemigos, objetos y salidas no sonarán"),
             "terrain" => T("the terrain, so the radar stays silent", "el terreno, así que el radar no sonará"),
+            "element tree" => T("the interface's controls, so menus stay silent", "los controles de la interfaz, así que los menús no se leerán"),
+            "element rects" or "element flags" or "window cull" => T("where the interface's controls are and which show", "dónde están los controles de la interfaz y cuáles se ven"),
             "entity path" or "entity components" or "component lookup" => T("what each thing around you is, so enemies, items and exits stay silent", "qué es cada cosa a tu alrededor, así que enemigos, objetos y salidas no sonarán"),
             "area level" => T("the area's level", "el nivel del área"),
             "life" => T("life, mana and energy shield", "la vida, el maná y el escudo de energía"),

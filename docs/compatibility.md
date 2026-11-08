@@ -37,6 +37,8 @@ host's searches (once a patch to GameHelper2, now in `host/`) read those fields 
 | Game state's area and world pointers | the pointer whose target holds a world / a camera matrix | `OffsetHealer.LocateArea` |
 | Game states, when their pattern fails | a static pointer to an object whose state stack ends in one of its states (at least 8 states; two of 13 are null until used) | `GameStatesSearch` |
 | Game state object: stack and state list (every attach) | 13 slots of (object, control block), the used ones distinct and heap-aligned, and a stack of 16-byte entries whose last is one of them; of a list and one a slot off (it reads too, one state short at an end) the one with more states | `GameStateLayout.Locate`, `GameStates.JudgeLayout` |
+| UI element base (`UiElementBaseOffset`: self, children, parent; position, modifier, scale; flags, scale index; size) | on the UI root, before any walk reads through them: its own address; children that are elements whose parent field points back at it; its size, the base resolution 2560 x 1600. The position group (the root at 0,0 with scale 1) and the flags group (the root visible with scale index 3, its descendants not all alike) have no such mark, so each takes the parent's or the size's shift, whichever fits. The plugin's readers of the struct (`UiElementReader`, `UiTreeReader`, `HostMemoryReader.TryRead`) go through the host's remap (`HostStructs`) | `UiElementLayoutSearch`, `OffsetHealer.JudgeUiElementBase` (called by `LayoutProbe.ProbeElementBase`) |
+| Window cull (`GameCullSize` pattern) | a check only: a value that is no cull of this window (negative, half the width or more) reads 0 and is said lost. Nothing in memory gives it: 2560 x 1440 reads 0, so it is not the 16:10 base resolution's bar (that would be 128) | `GameWindowCull.Judge` |
 | In-game and area-loading states (not by slot) | in play: the current state whose area pointer leads to an area with a local player (looked at on every state change, and once a second until found); loading: the state current just before a new area appeared, twice the same (a menu over the same area loads nothing) | `GameStateRoles`, `GameStates.ApplyRoles` |
 | Other components with a vector, map, owner or entity pointer | GameHelper's own verifier, run with no one at the keyboard (`OffsetHelperEngine.RunSweep`): a repair only when it is not ambiguous; a component with none of these (Chest, Shrine, Player, Positioned, Base, WorldItem, Animated, Charges, Stack, Targetable, TriggerableBlockage) reads intact on its header alone | `OffsetHealer.Verified` |
 
@@ -78,7 +80,9 @@ projected to (-287, -3187) and it said intact. The shapes above recovered all fi
 
 **How it was tested:** real data first (upstream's stale 0.5.5e constants against 0.5.5f), then the simulations above, the
 entity id and both game state pointers moved, and the `Game States` and `GameCullSize` patterns broken on purpose: each time
-the world came back, with enemies, items and chests sounding. To repeat one: shift a `FieldOffset` in `GameOffsets`, rebuild
+the world came back, with enemies, items and chests sounding (the cull does not touch the world: that one proved only that a
+missing pattern stops nothing else).
+ To repeat one: shift a `FieldOffset` in `GameOffsets`, rebuild
 the host, read the log's "Struct sweep" line, then `git checkout -- GameOffsets`.
 
 **Simulated 2026-11-08** (the searches added for the [audit](research/field-protection-audit.md)'s gaps; each constant shifted,
@@ -89,6 +93,8 @@ the host rebuilt with `--no-incremental` and restarted in the Act 2 town, then r
 | Entity layout | details +8, path +0x18, components +0x18, lookup -0x18, map +8, all at once | no world, so the area check searched: all five back where measured before the first area read; friends, portal and waypoint sounded |
 | Entity layout | details -8, path -8, components -8, lookup +8, map -0x18 | the same |
 | Game states | stack +8, list -0x18, and `InGameState` swapped with `PreGameState` in the enum (a state inserted) | stack +0x10 and list +0x50 found at attach, the in-game state taken from slot 4 (`slot 5 -> 4`); "En juego", the sweep and the sounds as usual |
+| UI element base | self, children, parent +8; position group, flags group, size +0x18 | tree back +8, rects and flags +0x18 (the size's shift) before the first walk; the inventory read its items; `layout` all ok |
+| UI element base | self, children, parent -8; position group, flags group, size -0x18 | the same |
 | Game states | stack -8, list +8, `InGameState` swapped with `EscapeState` | the same (`slot 3 -> 4`). The loading state needs two area changes (left town is not allowed in these tests): unit test only |
 
 
@@ -284,7 +290,7 @@ What else remains is by design:
   says so. No search can promise more; what it promises is that the common patch costs nothing, and that the rest is heard, not
   guessed from silence.
 - Of the six byte patterns only `Game States` and `GameCullSize` matter; `Game States` has a search, `GameCullSize` (the
-  window cull the UI rects use) has none yet. The other four (`File Root`,
+  window cull the UI rects use) only a plausibility check (above). The other four (`File Root`,
   `AreaChangeCounter`, the two terrain rotation ones) were broken on purpose on 2026-11-06: the sweep, enemies, radar and walls went
   on as before, since nothing the plugin reads goes through them. Build with `--no-incremental` to try it: a pattern edit alone
   left `GameOffsets.dll` unbuilt.
