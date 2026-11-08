@@ -15,7 +15,7 @@ internal static class CatalogGenerator
     {
         if (!Directory.Exists(uiRootDir))
         {
-            Console.WriteLine($"UI root directory not found: {uiRootDir}");
+            Say.Out.WriteLine($"UI root directory not found: {uiRootDir}");
             return 1;
         }
 
@@ -24,7 +24,7 @@ internal static class CatalogGenerator
             .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        Console.WriteLine($"Found {uiFiles.Count} .ui files under {uiRootDir} (credits.ui excluded).");
+        Say.Out.WriteLine($"Found {uiFiles.Count} .ui files under {uiRootDir} (credits.ui excluded).");
 
         var templates = new Dictionary<string, TemplateInfo>();
         var controls = new List<RawControl>();
@@ -44,7 +44,7 @@ internal static class CatalogGenerator
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ERROR reading {relScreen}: {ex.Message}");
+                Say.Out.WriteLine($"ERROR reading {relScreen}: {ex.Message}");
                 continue;
             }
 
@@ -55,7 +55,7 @@ internal static class CatalogGenerator
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ERROR parsing {relScreen}: {ex.Message}");
+                Say.Out.WriteLine($"ERROR parsing {relScreen}: {ex.Message}");
             }
         }
 
@@ -96,23 +96,23 @@ internal static class CatalogGenerator
         File.WriteAllText(outJsonPath, JsonSerializer.Serialize(root, jsonOptions));
 
         PrintSummary(uiFiles.Count, parsedCount, controls);
-        Console.WriteLine($"Catalog written to: {outJsonPath}");
+        Say.Out.WriteLine($"Catalog written to: {outJsonPath}");
         return 0;
     }
 
     private static void PrintSummary(int fileCount, int parsedCount, List<RawControl> controls)
     {
-        Console.WriteLine($"Files parsed: {parsedCount} / {fileCount}");
-        Console.WriteLine($"Controls emitted: {controls.Count}");
+        Say.Out.WriteLine($"Files parsed: {parsedCount} / {fileCount}");
+        Say.Out.WriteLine($"Controls emitted: {controls.Count}");
 
         var byClass = controls
             .GroupBy(c => c.ResolvedClass)
             .OrderByDescending(g => g.Count())
             .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
             .ToList();
-        Console.WriteLine($"Distinct resolvedClass values: {byClass.Count}");
+        Say.Out.WriteLine($"Distinct resolvedClass values: {byClass.Count}");
         foreach (var g in byClass)
-            Console.WriteLine($"  {g.Key}: {g.Count()}");
+            Say.Out.WriteLine($"  {g.Key}: {g.Count()}");
 
         var topIds = controls
             .GroupBy(c => c.Id)
@@ -120,8 +120,8 @@ internal static class CatalogGenerator
             .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
             .Take(10)
             .ToList();
-        Console.WriteLine("Top 10 most common ids:");
+        Say.Out.WriteLine("Top 10 most common ids:");
         foreach (var g in topIds)
-            Console.WriteLine($"  {g.Key}: {g.Count()}");
+            Say.Out.WriteLine($"  {g.Key}: {g.Count()}");
     }
 }

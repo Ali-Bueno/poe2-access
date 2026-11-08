@@ -18,7 +18,7 @@ internal static class BuffNameExtractor
         var result = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
         if (DatTable.Open(index, "buffdefinitions") is not { } english || BuffColumns.Find(english, "buff-names") is not { } columns)
         {
-            Console.WriteLine("  BuffDefinitions missing or its columns not found");
+            Say.Out.WriteLine("  BuffDefinitions missing or its columns not found");
             return 1;
         }
 
@@ -28,7 +28,7 @@ internal static class BuffNameExtractor
             var table = folder == null ? english : DatTable.OpenTranslated(index, "buffdefinitions", folder);
             if (table == null)
             {
-                Console.WriteLine($"  {code}: no BuffDefinitions");
+                Say.Out.WriteLine($"  {code}: no BuffDefinitions");
                 continue;
             }
 
@@ -46,11 +46,11 @@ internal static class BuffNameExtractor
 
             if (names.Count == 0)
             {
-                Console.WriteLine($"  {code}: the Name column moved (check with dat-strings)");
+                Say.Out.WriteLine($"  {code}: the Name column moved (check with dat-strings)");
                 return 1;
             }
 
-            Console.WriteLine($"  {code}: {names.Count} buff names");
+            Say.Out.WriteLine($"  {code}: {names.Count} buff names");
             result[code] = names;
         }
 
@@ -60,7 +60,7 @@ internal static class BuffNameExtractor
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         }));
-        Console.WriteLine($"Wrote {outFile}");
+        Say.Out.WriteLine($"Wrote {outFile}");
         return 0;
     }
 }

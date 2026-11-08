@@ -30,12 +30,12 @@ internal static class MonsterNameExtractor
             var english = DatTable.Open(index, table);
             if (english == null)
             {
-                Console.WriteLine($"{table} not found.");
+                Say.Out.WriteLine($"{table} not found.");
                 continue;
             }
 
             var column = BestColumn(index, english, table, measured, wanted);
-            Console.WriteLine($"  {table}: name column +0x{column:X}");
+            Say.Out.WriteLine($"  {table}: name column +0x{column:X}");
             sources.Add(new Source(table, english, column, prefix));
         }
 
@@ -66,7 +66,7 @@ internal static class MonsterNameExtractor
             if (best != null)
             {
                 rowByLabel[label] = best.Value;
-                Console.WriteLine($"  {label} -> {bestName}");
+                Say.Out.WriteLine($"  {label} -> {bestName}");
             }
         }
 
@@ -79,7 +79,7 @@ internal static class MonsterNameExtractor
                 source => folder == null ? source.English : DatTable.OpenTranslated(index, source.Table, folder));
             if (tables.Values.Any(table => table == null))
             {
-                Console.WriteLine($"  {code}: a table is missing");
+                Say.Out.WriteLine($"  {code}: a table is missing");
                 continue;
             }
 
@@ -94,13 +94,13 @@ internal static class MonsterNameExtractor
                 }
             }
 
-            Console.WriteLine($"  {code}: {names.Count} of {rowByLabel.Count} names");
+            Say.Out.WriteLine($"  {code}: {names.Count} of {rowByLabel.Count} names");
             result[code] = names;
         }
 
         foreach (var missing in wanted.Where(name => !rowByLabel.ContainsKey(name)).OrderBy(name => name, StringComparer.Ordinal))
         {
-            Console.WriteLine($"  unmatched: {missing}");
+            Say.Out.WriteLine($"  unmatched: {missing}");
         }
 
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
@@ -109,7 +109,7 @@ internal static class MonsterNameExtractor
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         }));
-        Console.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
+        Say.Out.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
         return 0;
     }
 

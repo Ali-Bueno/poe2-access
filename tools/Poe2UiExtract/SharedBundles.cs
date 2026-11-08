@@ -30,7 +30,7 @@ internal sealed class SharedBundles : IBundleFactory
     public static Index OpenParsed(string gameDir)
     {
         var index = GameContent.OpenIndex(gameDir);
-        Console.WriteLine($"ParsePaths failed count: {index.ParsePaths()}");
+        Say.Out.WriteLine($"ParsePaths failed count: {index.ParsePaths()}");
         return index;
     }
 

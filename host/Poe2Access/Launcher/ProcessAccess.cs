@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Poe2AccessLauncher;
+namespace Poe2Access;
 
 /// <summary>
 ///     What a launcher may learn of another process without reading its memory, which Process.MainModule needs and the

@@ -29,7 +29,7 @@ internal static class InlineIconExtractor
         var file = index.Files.Values.FirstOrDefault(candidate => string.Equals(candidate.Path, SettingsPath, StringComparison.OrdinalIgnoreCase));
         if (file == null)
         {
-            Console.WriteLine($"inline-icons: {SettingsPath} missing");
+            Say.Out.WriteLine($"inline-icons: {SettingsPath} missing");
             return 1;
         }
 
@@ -37,12 +37,12 @@ internal static class InlineIconExtractor
         var lines = Parse(text);
         if (lines.Count == 0)
         {
-            Console.WriteLine("inline-icons: no MarkupImages entries");
+            Say.Out.WriteLine("inline-icons: no MarkupImages entries");
             return 1;
         }
 
         File.WriteAllLines(outFile, lines.Select(pair => $"{pair.Token}\t{pair.Art}"));
-        Console.WriteLine($"inline-icons: {lines.Count} markup images");
+        Say.Out.WriteLine($"inline-icons: {lines.Count} markup images");
         return 0;
     }
 

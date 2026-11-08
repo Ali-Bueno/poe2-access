@@ -209,7 +209,7 @@ namespace Poe2Accessibility.Tests
                 Run(name, test);
             }
 
-            foreach (var (name, test) in EndgameTests.All().Concat(BossMechanicsTests.All()))
+            foreach (var (name, test) in EndgameTests.All().Concat(BossMechanicsTests.All()).Concat(StartUpTests.All()).Concat(StartupSpeechTests.All()))
             {
                 Run(name, test);
             }
@@ -1084,7 +1084,7 @@ namespace Poe2Accessibility.Tests
             const string Game = @"D:\games\steam\steamapps\common\Path of Exile 2\PathOfExileSteam.exe";
             string Split(params string[] args)
             {
-                var (own, game) = Poe2AccessLauncher.GameInstall.SplitArguments(args);
+                var (own, game) = Poe2Access.GameInstall.SplitArguments(args);
                 return $"{string.Join('|', own)} > {(game is null ? "none" : string.Join('|', game))}";
             }
 
@@ -2487,8 +2487,8 @@ namespace Poe2Accessibility.Tests
         private static void GameDataStepsRerunAlone()
         {
             const string install = "index=10:20\nexe=30:40\nfmod=2.03.06\n";
-            var stamp = Poe2AccessLauncher.GameDataStamp.Parse(null).With(install, "sounds", 2).With(install, "places", 1);
-            var read = Poe2AccessLauncher.GameDataStamp.Parse(stamp.ToString().Replace("\n", "\r\n"));
+            var stamp = Poe2Access.GameDataStamp.Parse(null).With(install, "sounds", 2).With(install, "places", 1);
+            var read = Poe2Access.GameDataStamp.Parse(stamp.ToString().Replace("\n", "\r\n"));
             Equal(install, read.Install, "the install lines survive the file");
             Equal(true, read.IsCurrent(install, "sounds", 2), "a step done at its version is current");
             Equal(true, read.IsCurrent(install, "places", 1), "the other steps are kept");
@@ -2502,15 +2502,15 @@ namespace Poe2Accessibility.Tests
         {
             const string install = "index=10:20\nexe=30:40\nfmod=2.03.06\n";
             string[] steps = { "item sounds", "places", "sounds" };
-            var current = Poe2AccessLauncher.GameDataStamp.FromLegacy("format=7\r\n" + install.Replace("\n", "\r\n"), install, steps, "sounds");
+            var current = Poe2Access.GameDataStamp.FromLegacy("format=7\r\n" + install.Replace("\n", "\r\n"), install, steps, "sounds");
             Equal(3, current.Steps.Count, "the last format vouches for every step");
-            Equal(true, current.IsCurrent(install, "sounds", Poe2AccessLauncher.GameDataStamp.LegacyVersion), "at the first version");
-            var older = Poe2AccessLauncher.GameDataStamp.FromLegacy("format=5\n" + install, install, steps, "sounds");
+            Equal(true, current.IsCurrent(install, "sounds", Poe2Access.GameDataStamp.LegacyVersion), "at the first version");
+            var older = Poe2Access.GameDataStamp.FromLegacy("format=5\n" + install, install, steps, "sounds");
             Equal(false, older.Steps.ContainsKey("sounds"), "an earlier format reruns the sounds");
             Equal(true, older.IsCurrent(install, "places", 1), "and keeps the catalogs it covered");
-            Equal(0, Poe2AccessLauncher.GameDataStamp.FromLegacy("format=2\n" + install, install, steps, "sounds").Steps.Count, "a format before hit times and places covers nothing");
-            Equal(0, Poe2AccessLauncher.GameDataStamp.FromLegacy("format=7\nindex=9:20\nexe=30:40\nfmod=2.03.06\n", install, steps, "sounds").Steps.Count, "another install covers nothing");
-            Equal(0, Poe2AccessLauncher.GameDataStamp.FromLegacy(null, install, steps, "sounds").Steps.Count, "no old stamp covers nothing");
+            Equal(0, Poe2Access.GameDataStamp.FromLegacy("format=2\n" + install, install, steps, "sounds").Steps.Count, "a format before hit times and places covers nothing");
+            Equal(0, Poe2Access.GameDataStamp.FromLegacy("format=7\nindex=9:20\nexe=30:40\nfmod=2.03.06\n", install, steps, "sounds").Steps.Count, "another install covers nothing");
+            Equal(0, Poe2Access.GameDataStamp.FromLegacy(null, install, steps, "sounds").Steps.Count, "no old stamp covers nothing");
         }
 
         private static void GameContentIsFoundInEitherLayout()
@@ -2521,12 +2521,12 @@ namespace Poe2Accessibility.Tests
             try
             {
                 System.IO.Directory.CreateDirectory(root);
-                Equal(null, Poe2AccessLauncher.GameInstall.ContentFile(root), "a folder without game content is no install");
+                Equal(null, Poe2Access.GameInstall.ContentFile(root), "a folder without game content is no install");
                 System.IO.File.WriteAllText(ggpk, string.Empty);
-                Equal(ggpk, Poe2AccessLauncher.GameInstall.ContentFile(root), "the Kakao Games client keeps everything in Content.ggpk");
+                Equal(ggpk, Poe2Access.GameInstall.ContentFile(root), "the Kakao Games client keeps everything in Content.ggpk");
                 System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(index)!);
                 System.IO.File.WriteAllText(index, string.Empty);
-                Equal(index, Poe2AccessLauncher.GameInstall.ContentFile(root), "a Steam install's bundle index comes first");
+                Equal(index, Poe2Access.GameInstall.ContentFile(root), "a Steam install's bundle index comes first");
             }
             finally
             {
@@ -2536,14 +2536,14 @@ namespace Poe2Accessibility.Tests
 
         private static void KakaoClientIsAGameProcess()
         {
-            Equal(true, Poe2AccessLauncher.GameInstall.ProcessNames.Contains("PathOfExile_KG"), "the Korean (Kakao Games) client's process");
-            Equal(true, Poe2AccessLauncher.GameInstall.ProcessNames.Contains("PathOfExileSteam"), "the Steam client's process");
-            Equal(true, Poe2AccessLauncher.GameInstall.NeedsAdministrator("PathOfExile_KG", false, false), "the Korean client is read only by an administrator");
-            Equal(false, Poe2AccessLauncher.GameInstall.NeedsAdministrator("PathOfExile_KG", false, true), "an administrator launcher carries on");
-            Equal(false, Poe2AccessLauncher.GameInstall.NeedsAdministrator("PathOfExileSteam", false, false), "the Steam client needs no administrator");
-            Equal(false, Poe2AccessLauncher.GameInstall.NeedsAdministrator(null, false, false), "no game running needs no administrator");
-            Equal(true, Poe2AccessLauncher.GameInstall.NeedsAdministrator(null, true, false), "an administrator host left after the Korean client closed");
-            Equal(false, Poe2AccessLauncher.GameInstall.NeedsAdministrator(null, true, true), "an administrator launcher stops it itself");
+            Equal(true, Poe2Access.GameInstall.ProcessNames.Contains("PathOfExile_KG"), "the Korean (Kakao Games) client's process");
+            Equal(true, Poe2Access.GameInstall.ProcessNames.Contains("PathOfExileSteam"), "the Steam client's process");
+            Equal(true, Poe2Access.GameInstall.NeedsAdministrator("PathOfExile_KG", false, false), "the Korean client is read only by an administrator");
+            Equal(false, Poe2Access.GameInstall.NeedsAdministrator("PathOfExile_KG", false, true), "an administrator launcher carries on");
+            Equal(false, Poe2Access.GameInstall.NeedsAdministrator("PathOfExileSteam", false, false), "the Steam client needs no administrator");
+            Equal(false, Poe2Access.GameInstall.NeedsAdministrator(null, false, false), "no game running needs no administrator");
+            Equal(true, Poe2Access.GameInstall.NeedsAdministrator(null, true, false), "an administrator host left after the Korean client closed");
+            Equal(false, Poe2Access.GameInstall.NeedsAdministrator(null, true, true), "an administrator launcher stops it itself");
         }
 
         private static void SteamGameIsStartedBeforeTheKakaoClient()
@@ -2556,21 +2556,21 @@ namespace Poe2Accessibility.Tests
             {
                 System.IO.Directory.CreateDirectory(System.IO.Path.Combine(steam, "steamapps"));
                 System.IO.Directory.CreateDirectory(System.IO.Path.Combine(library, "steamapps"));
-                Equal(false, Poe2AccessLauncher.GameInstall.SteamHasGame(null), "no Steam has no game");
-                Equal(false, Poe2AccessLauncher.GameInstall.SteamHasGame(steam), "Steam without the game");
+                Equal(false, Poe2Access.GameInstall.SteamHasGame(null), "no Steam has no game");
+                Equal(false, Poe2Access.GameInstall.SteamHasGame(steam), "Steam without the game");
 
                 // libraryfolders.vdf escapes the backslashes of each library's path.
                 System.IO.File.WriteAllText(
                     System.IO.Path.Combine(steam, "steamapps", "libraryfolders.vdf"),
                     "\"libraryfolders\"\n{\n\t\"0\"\n\t{\n\t\t\"path\"\t\t\"" + steam.Replace("\\", "\\\\") + "\"\n\t}\n\t\"1\"\n\t{\n\t\t\"path\"\t\t\"" +
                     library.Replace("\\", "\\\\") + "\"\n\t\t\"apps\"\n\t\t{\n\t\t\t\"2694490\"\t\t\"1\"\n\t\t}\n\t}\n}\n");
-                Equal(false, Poe2AccessLauncher.GameInstall.SteamHasGame(steam), "a library listing the game but holding no manifest");
+                Equal(false, Poe2Access.GameInstall.SteamHasGame(steam), "a library listing the game but holding no manifest");
                 System.IO.File.WriteAllText(System.IO.Path.Combine(library, "steamapps", "appmanifest_2694490.acf"), string.Empty);
-                Equal(true, Poe2AccessLauncher.GameInstall.SteamHasGame(steam), "the game in a second library");
+                Equal(true, Poe2Access.GameInstall.SteamHasGame(steam), "the game in a second library");
 
-                Equal(false, Poe2AccessLauncher.GameInstall.StartsKakaoClient(true, kakao), "both installed: Steam starts the game");
-                Equal(true, Poe2AccessLauncher.GameInstall.StartsKakaoClient(false, kakao), "only the Korean client installed");
-                Equal(false, Poe2AccessLauncher.GameInstall.StartsKakaoClient(false, null), "neither found: Steam, as before");
+                Equal(false, Poe2Access.GameInstall.StartsKakaoClient(true, kakao), "both installed: Steam starts the game");
+                Equal(true, Poe2Access.GameInstall.StartsKakaoClient(false, kakao), "only the Korean client installed");
+                Equal(false, Poe2Access.GameInstall.StartsKakaoClient(false, null), "neither found: Steam, as before");
             }
             finally
             {
@@ -2580,19 +2580,19 @@ namespace Poe2Accessibility.Tests
 
         private static void ReleaseTagsOrderByDayThenNumber()
         {
-            Equal(new Version(2026, 10, 28, 1), Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.28"), "an unnumbered tag is the day's first release");
-            Equal(true, Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.28-2") > Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.28"), "-2 follows the day's first");
-            Equal(true, Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.29") > Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.28-3"), "a later day follows any number");
-            Equal(true, Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.28-10") > Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.28-9"), "numbers compare as numbers");
-            Equal<Version?>(null, Poe2AccessLauncher.ReleaseTag.Parse("latest"), "not a dated tag");
-            Equal<Version?>(null, Poe2AccessLauncher.ReleaseTag.Parse("v2026.10"), "a tag without its day");
-            Equal<Version?>(null, Poe2AccessLauncher.ReleaseTag.Parse("v2026.10.28-0"), "releases are numbered from 2");
+            Equal(new Version(2026, 10, 28, 1), Poe2Access.ReleaseTag.Parse("v2026.10.28"), "an unnumbered tag is the day's first release");
+            Equal(true, Poe2Access.ReleaseTag.Parse("v2026.10.28-2") > Poe2Access.ReleaseTag.Parse("v2026.10.28"), "-2 follows the day's first");
+            Equal(true, Poe2Access.ReleaseTag.Parse("v2026.10.29") > Poe2Access.ReleaseTag.Parse("v2026.10.28-3"), "a later day follows any number");
+            Equal(true, Poe2Access.ReleaseTag.Parse("v2026.10.28-10") > Poe2Access.ReleaseTag.Parse("v2026.10.28-9"), "numbers compare as numbers");
+            Equal<Version?>(null, Poe2Access.ReleaseTag.Parse("latest"), "not a dated tag");
+            Equal<Version?>(null, Poe2Access.ReleaseTag.Parse("v2026.10"), "a tag without its day");
+            Equal<Version?>(null, Poe2Access.ReleaseTag.Parse("v2026.10.28-0"), "releases are numbered from 2");
         }
 
         private static void ReleaseManifestPinsThePackageToItsTag()
         {
             var sha256 = new string('A', 64);
-            var release = Poe2AccessLauncher.ReleaseManifest.Parse($"{{\"tag\": \"v2026.10.30-2\", \"sha256\": \"{sha256}\", \"notes\": \" Changes \"}}");
+            var release = Poe2Access.ReleaseManifest.Parse($"{{\"tag\": \"v2026.10.30-2\", \"sha256\": \"{sha256}\", \"notes\": \" Changes \"}}");
             Equal("https://github.com/Ali-Bueno/poe2-access/releases/download/v2026.10.30-2/Poe2Access.zip", release.ZipUrl, "the package of that release, not of whatever is latest");
             Equal(new Version(2026, 10, 30, 2), release.Version, "the tag as a version");
             Equal(sha256, release.Sha256, "the checksum as written");
@@ -2602,7 +2602,7 @@ namespace Poe2Accessibility.Tests
             {
                 try
                 {
-                    Poe2AccessLauncher.ReleaseManifest.Parse(json);
+                    Poe2Access.ReleaseManifest.Parse(json);
                     return "accepted";
                 }
                 catch (System.IO.InvalidDataException)

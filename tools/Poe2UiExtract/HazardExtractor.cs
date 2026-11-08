@@ -44,7 +44,7 @@ internal static class HazardExtractor
         var buffs = DatTable.Open(index, "buffdefinitions");
         if (types == null || buffs == null)
         {
-            Console.WriteLine("GroundEffectTypes or BuffDefinitions not found: hazards left out.");
+            Say.Out.WriteLine("GroundEffectTypes or BuffDefinitions not found: hazards left out.");
             return 1;
         }
 
@@ -86,7 +86,7 @@ internal static class HazardExtractor
         };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllLines(outFile, header.Concat(ids));
-        Console.WriteLine($"Wrote {outFile}: {ids.Count} hazard buffs.");
+        Say.Out.WriteLine($"Wrote {outFile}: {ids.Count} hazard buffs.");
         return 0;
     }
 }

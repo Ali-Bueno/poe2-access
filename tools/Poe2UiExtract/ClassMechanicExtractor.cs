@@ -40,7 +40,7 @@ internal static class ClassMechanicExtractor
         var buffs = DatTable.Open(index, "buffdefinitions");
         if (stats == null || buffs == null || stats.String(0, 0) != "level")
         {
-            Console.WriteLine($"Stats or BuffDefinitions missing or not as before: {Skipped} left out.");
+            Say.Out.WriteLine($"Stats or BuffDefinitions missing or not as before: {Skipped} left out.");
             return 1;
         }
 
@@ -54,7 +54,7 @@ internal static class ClassMechanicExtractor
         var limits = ClassMechanics.Limits(ids);
         if (resources.Count == 0 || limits.Count == 0)
         {
-            Console.WriteLine($"No current/maximum or active/allowed stat pairs: {Skipped} left out.");
+            Say.Out.WriteLine($"No current/maximum or active/allowed stat pairs: {Skipped} left out.");
             return 1;
         }
 
@@ -71,7 +71,7 @@ internal static class ClassMechanicExtractor
             WriteIndented = false,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         }));
-        Console.WriteLine($"Wrote {outFile}: {result.stats.Count} resources, {result.limits.Count} limits, {result.buffs.Count} named buffs, {result.skills.Count} typed skills.");
+        Say.Out.WriteLine($"Wrote {outFile}: {result.stats.Count} resources, {result.limits.Count} limits, {result.buffs.Count} named buffs, {result.skills.Count} typed skills.");
         return 0;
     }
 
@@ -95,7 +95,7 @@ internal static class ClassMechanicExtractor
             var table = DatTable.OpenTranslated(index, "buffdefinitions", folder);
             if (table == null || table.RowCount != english.RowCount)
             {
-                Console.WriteLine($"  {code}: no BuffDefinitions of the same size");
+                Say.Out.WriteLine($"  {code}: no BuffDefinitions of the same size");
                 continue;
             }
 
@@ -122,7 +122,7 @@ internal static class ClassMechanicExtractor
         var types = DatTable.Open(index, "activeskilltype");
         if (effects == null || skills == null || types == null)
         {
-            Console.WriteLine("GrantedEffects, ActiveSkills or ActiveSkillType missing: skill types left out.");
+            Say.Out.WriteLine("GrantedEffects, ActiveSkills or ActiveSkillType missing: skill types left out.");
             return result;
         }
 
@@ -130,7 +130,7 @@ internal static class ClassMechanicExtractor
         var typesOffset = TypesColumn(skills, types.RowCount, typeNames);
         if (typesOffset < 0)
         {
-            Console.WriteLine("No ActiveSkills column gives war_banner 'Banner' and explosive_grenade 'Grenade': skill types left out.");
+            Say.Out.WriteLine("No ActiveSkills column gives war_banner 'Banner' and explosive_grenade 'Grenade': skill types left out.");
             return result;
         }
 
@@ -138,7 +138,7 @@ internal static class ClassMechanicExtractor
             : Enumerable.Range(0, effects.RowSize - 8).FirstOrDefault(offset => effects.IsKeyColumn(offset, skills.RowCount), -1);
         if (skillOffset < 0)
         {
-            Console.WriteLine("No GrantedEffects column keys into ActiveSkills: skill types left out.");
+            Say.Out.WriteLine("No GrantedEffects column keys into ActiveSkills: skill types left out.");
             return result;
         }
 

@@ -315,9 +315,9 @@ namespace Poe2Accessibility.Tests
 
         private static void ACollapsedCatalogKeepsTheOldOne()
         {
-            Equal(true, Poe2AccessLauncher.GameDataStamp.Collapsed(531187, 40000), "a moved column reads few rows");
-            Equal(false, Poe2AccessLauncher.GameDataStamp.Collapsed(531187, 530000), "a patch that removed a little");
-            Equal(false, Poe2AccessLauncher.GameDataStamp.Collapsed(531187, 700000), "a patch that added a lot");
+            Equal(true, Poe2Access.GameDataStamp.Collapsed(531187, 40000), "a moved column reads few rows");
+            Equal(false, Poe2Access.GameDataStamp.Collapsed(531187, 530000), "a patch that removed a little");
+            Equal(false, Poe2Access.GameDataStamp.Collapsed(531187, 700000), "a patch that added a lot");
         }
 
         private static readonly byte[] CompiledRead = { 0x90, 0x48, 0x8B, 0x88, 0xB0, 0x08, 0x00, 0x00, 0x48, 0x8B, 0x11, 0xFF, 0xD0, 0xC3 };

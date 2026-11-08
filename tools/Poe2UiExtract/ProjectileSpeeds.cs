@@ -15,9 +15,28 @@ internal static class ProjectileSpeeds
 
     private static (Index Index, ProjectileColumns.Tables Tables, ProjectileColumns Columns)? shared;
     private static Index? failedFor;
+    private static readonly object Gate = new();
+
+    /// <summary>Lets go of the index the tables were found in, once a run is over.</summary>
+    internal static void Release()
+    {
+        lock (Gate)
+        {
+            shared = null;
+            failedFor = null;
+        }
+    }
 
     /// <summary>The skill tables of this index and their columns, found once by content and shared by the extractors that read them; null (said once) when a table or column is missing.</summary>
     internal static (ProjectileColumns.Tables Tables, ProjectileColumns Columns)? Columns(Index index)
+    {
+        lock (Gate)
+        {
+            return FindColumns(index);
+        }
+    }
+
+    private static (ProjectileColumns.Tables Tables, ProjectileColumns Columns)? FindColumns(Index index)
     {
         if (shared is { } cached && cached.Index == index)
         {
@@ -33,7 +52,7 @@ internal static class ProjectileSpeeds
         var opened = new[] { "stats", "grantedeffects", "grantedeffectstatsets", "activeskills", "activeskilltype", "monsterprojectilespell", "monsterprojectileattack", "projectiles" }.Select(name => DatTable.Open(index, name)).ToArray();
         if (opened.Any(table => table == null))
         {
-            Console.WriteLine($"A skill table is missing: {Skipped} and the skill kinds left out.");
+            Say.Out.WriteLine($"A skill table is missing: {Skipped} and the skill kinds left out.");
             return null;
         }
 
@@ -62,7 +81,7 @@ internal static class ProjectileSpeeds
         var attackType = Find(t.SkillTypes, AttackType);
         if (variation < 0 || spellType < 0 || attackType < 0)
         {
-            Console.WriteLine($"Stats '{VariationStat}' or ActiveSkillType {SpellType}/{AttackType} not found: {Skipped} left out.");
+            Say.Out.WriteLine($"Stats '{VariationStat}' or ActiveSkillType {SpellType}/{AttackType} not found: {Skipped} left out.");
             return speeds;
         }
 

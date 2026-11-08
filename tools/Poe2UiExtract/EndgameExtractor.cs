@@ -97,7 +97,7 @@ internal static class EndgameExtractor
         {
             if (DatTable.Open(index, name) is not { } table)
             {
-                Console.WriteLine($"  no {name}");
+                Say.Out.WriteLine($"  no {name}");
                 return 1;
             }
 
@@ -212,19 +212,19 @@ internal static class EndgameExtractor
             var graph = SkillGraphFile.Parse(file.Read().ToArray());
             if (graph == null || (!graph.VersionKnown && !graph.IsConsistent))
             {
-                Console.WriteLine($"  {file.Path}: version {(graph?.Version ?? file.Read().ToArray().FirstOrDefault())} not read as a graph (known: {SkillGraphFile.KnownVersion}); endgame keeps its previous catalog");
+                Say.Out.WriteLine($"  {file.Path}: version {(graph?.Version ?? file.Read().ToArray().FirstOrDefault())} not read as a graph (known: {SkillGraphFile.KnownVersion}); endgame keeps its previous catalog");
                 return 1;
             }
 
             if (!graph.VersionKnown)
             {
-                Console.WriteLine($"  {file.Path}: version {graph.Version} read with the version {SkillGraphFile.KnownVersion} layout; it holds together");
+                Say.Out.WriteLine($"  {file.Path}: version {graph.Version} read with the version {SkillGraphFile.KnownVersion} layout; it holds together");
             }
 
             var resolved = graph.Nodes.Count(node => byGraphId.ContainsKey(node.Id));
             if (resolved < graph.Nodes.Count * ResolvedShare)
             {
-                Console.WriteLine($"  {file.Path}: {resolved} of {graph.Nodes.Count} nodes found in PassiveSkills: the graph id column moved");
+                Say.Out.WriteLine($"  {file.Path}: {resolved} of {graph.Nodes.Count} nodes found in PassiveSkills: the graph id column moved");
                 return 1;
             }
 
@@ -239,7 +239,7 @@ internal static class EndgameExtractor
                 namedPassives.Add(byGraphId[node.Id]);
             }
 
-            Console.WriteLine($"  {file.Path}: {graph.Nodes.Count} nodes{(twice > 0 ? $", {twice} listed twice" : string.Empty)}");
+            Say.Out.WriteLine($"  {file.Path}: {graph.Nodes.Count} nodes{(twice > 0 ? $", {twice} listed twice" : string.Empty)}");
         }
 
         // What each Atlas node holds: the pin it shows, the maps and biomes it can be, its objective and messages.
@@ -406,7 +406,7 @@ internal static class EndgameExtractor
                 }
             }
 
-            Console.WriteLine($"  {code}: {words.Count} texts");
+            Say.Out.WriteLine($"  {code}: {words.Count} texts");
             if (words.Count > 0)
             {
                 text[code] = words;
@@ -430,7 +430,7 @@ internal static class EndgameExtractor
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault,
         }));
-        Console.WriteLine($"Wrote {outFile}: {objectiveOut.Count} objectives, {contentOut.Count} contents, {mapOut.Count} areas, {nodeOut.Count} graph nodes");
+        Say.Out.WriteLine($"Wrote {outFile}: {objectiveOut.Count} objectives, {contentOut.Count} contents, {mapOut.Count} areas, {nodeOut.Count} graph nodes");
         return 0;
     }
 

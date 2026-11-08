@@ -32,7 +32,7 @@ internal static partial class ItemSoundExtractor
     {
         if (GameContent.ReadBank(gameDir, Bank) is not { } bank)
         {
-            Console.WriteLine($"Bank missing: FMOD/Desktop/{Bank}.bank in {gameDir}");
+            Say.Out.WriteLine($"Bank missing: FMOD/Desktop/{Bank}.bank in {gameDir}");
             return 1;
         }
 
@@ -41,14 +41,14 @@ internal static partial class ItemSoundExtractor
         var sounds = DatTable.Open(index, "soundeffects");
         if (items == null || visuals == null || sounds == null)
         {
-            Console.WriteLine("A dat table is missing.");
+            Say.Out.WriteLine("A dat table is missing.");
             return 1;
         }
 
         var resolver = new SampleResolver(Fsb5.Names(bank));
         if (!FindColumns(items, visuals, sounds, resolver, out var columns))
         {
-            Console.WriteLine("The sound columns were not found again (update the offsets from the dat schema).");
+            Say.Out.WriteLine("The sound columns were not found again (update the offsets from the dat schema).");
             return 1;
         }
 
@@ -98,11 +98,11 @@ internal static partial class ItemSoundExtractor
 
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllText(outFile, JsonSerializer.Serialize(map, new JsonSerializerOptions { WriteIndented = true }));
-        Console.WriteLine($"Wrote {outFile}: {map.Count} base types -> {map.Values.Distinct().Count()} samples; "
+        Say.Out.WriteLine($"Wrote {outFile}: {map.Count} base types -> {map.Values.Distinct().Count()} samples; "
             + $"{unresolved.Count} drop events without a sample in {Bank} (left {unresolved.Values.Sum()} base types silent)");
         foreach (var (name, count) in unresolved.OrderByDescending(p => p.Value).Take(15))
         {
-            Console.WriteLine($"  unresolved {count,4}  {name}");
+            Say.Out.WriteLine($"  unresolved {count,4}  {name}");
         }
 
         return map.Count > 0 ? 0 : 1;
@@ -142,7 +142,7 @@ internal static partial class ItemSoundExtractor
         var baseSound = KeyColumns(items, sounds.RowCount, BaseDrops, measured ? new[] { BaseSoundEffect } : null, 1);
         var baseVisual = visualKeys.Count == 0 ? new List<int>() : KeyColumns(items, visuals.RowCount, VisualDrops, measured ? new[] { BaseVisual } : null, 1);
         columns = (baseSound.FirstOrDefault(-1), baseVisual.FirstOrDefault(-1), visualKeys.FirstOrDefault(-1), visualKeys.LastOrDefault(-1), file, file2D);
-        Console.WriteLine($"Sound columns: BaseItemTypes {columns.BaseSound}/{columns.BaseVisual}, ItemVisualIdentity {columns.VisualInventory}/{columns.VisualDrop}, "
+        Say.Out.WriteLine($"Sound columns: BaseItemTypes {columns.BaseSound}/{columns.BaseVisual}, ItemVisualIdentity {columns.VisualInventory}/{columns.VisualDrop}, "
             + $"SoundEffects {file}/{file2D} ({(measured ? "row sizes as measured" : "a table changed: found by content")})");
         return baseSound.Count == 1 && baseVisual.Count == 1 && visualKeys.Count > 0;
     }

@@ -21,7 +21,7 @@ internal static class ObjectSoundExtractor
         using var index = SharedBundles.OpenParsed(gameDir);
         if (ObjectSoundLinks.Read(index) is not { } links)
         {
-            Console.WriteLine("Chests table not found.");
+            Say.Out.WriteLine("Chests table not found.");
             return 1;
         }
 
@@ -38,20 +38,20 @@ internal static class ObjectSoundExtractor
         {
             if (mix.Length == 0 || mix.Max(Math.Abs) < SilentPeak)
             {
-                Console.WriteLine($"SKIP silent: {sound}");
+                Say.Out.WriteLine($"SKIP silent: {sound}");
                 continue;
             }
 
             var (pcm, seconds) = SoundExtractor.TrimAndCap(mix, 1, render.Rate, MaxSeconds);
             SoundExtractor.WriteWav(Path.Combine(outDir, Folder, AoSoundEvents.FileName(sound) + ".wav"), pcm, 1, render.Rate);
-            Console.WriteLine($"{AoSoundEvents.FileName(sound)}  {seconds:F2}s");
+            Say.Out.WriteLine($"{AoSoundEvents.FileName(sound)}  {seconds:F2}s");
             written.Add(sound);
         }
 
         var lines = wanted.Where(link => written.Contains(link.Value))
             .Select(link => $"{link.Key}\t{AoSoundEvents.FileName(link.Value)}").Order(StringComparer.Ordinal).ToList();
         File.WriteAllLines(Path.Combine(outDir, CatalogFile), lines);
-        Console.WriteLine($"{lines.Count} of {wanted.Count} objects have a sound; {written.Count} of {sounds.Count} sounds");
+        Say.Out.WriteLine($"{lines.Count} of {wanted.Count} objects have a sound; {written.Count} of {sounds.Count} sounds");
         return written.Count > 0 ? 0 : 1;
     }
 }

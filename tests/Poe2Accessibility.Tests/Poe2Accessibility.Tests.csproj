@@ -102,10 +102,14 @@
     <Compile Include="..\..\Poe2Accessibility\Services\CardText.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TradeOfferNews.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\AoSoundEvents.cs" Link="Extract\AoSoundEvents.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\Say.cs" Link="Extract\Say.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\TelegraphShapes.cs" Link="Extract\TelegraphShapes.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\SkillGraphFile.cs" Link="Extract\SkillGraphFile.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\DatTable.cs" Link="Extract\DatTable.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\DatColumnSearch.cs" Link="Extract\DatColumnSearch.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\TelegraphColumns.cs" Link="Extract\TelegraphColumns.cs" />
+    <Compile Include="..\..\host\Poe2Access\Launcher\StartupPhrases.cs" Link="Launcher\StartupPhrases.cs" />
+    <Compile Include="..\..\host\Poe2Access\Launcher\ProgressPacer.cs" Link="Launcher\ProgressPacer.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BuffColumns.cs" Link="Extract\BuffColumns.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\HazardColumns.cs" Link="Extract\HazardColumns.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\AnimationColumns.cs" Link="Extract\AnimationColumns.cs" />
@@ -123,10 +127,13 @@
     <Compile Include="..\..\Poe2Accessibility\Services\BossPhaseTracker.cs" Link="Plugin\BossPhaseTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\BossMechanicsCatalog.cs" Link="Plugin\BossMechanicsCatalog.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BossScripts.cs" Link="Extract\BossScripts.cs" />
-    <Compile Include="..\..\tools\Poe2AccessLauncher\ReleaseTag.cs" Link="Launcher\ReleaseTag.cs" />
-    <Compile Include="..\..\tools\Poe2AccessLauncher\ReleaseManifest.cs" Link="Launcher\ReleaseManifest.cs" />
-    <Compile Include="..\..\tools\Poe2AccessLauncher\GameDataStamp.cs" Link="Launcher\GameDataStamp.cs" />
-    <Compile Include="..\..\tools\Poe2AccessLauncher\GameInstall.cs" Link="Launcher\GameInstall.cs" />
+    <Compile Include="..\..\host\Poe2Access\Launcher\ReleaseTag.cs" Link="Launcher\ReleaseTag.cs" />
+    <Compile Include="..\..\host\Poe2Access\Launcher\ReleaseManifest.cs" Link="Launcher\ReleaseManifest.cs" />
+    <Compile Include="..\..\host\Poe2Access\Launcher\GameDataStamp.cs" Link="Launcher\GameDataStamp.cs" />
+    <Compile Include="..\..\host\Poe2Access\Launcher\GameInstall.cs" Link="Launcher\GameInstall.cs" />
+    <Compile Include="..\..\host\Poe2Access\AppFolders.cs" Link="Launcher\AppFolders.cs" />
+    <Compile Include="..\..\host\Poe2Access\AppCleanup.cs" Link="Launcher\AppCleanup.cs" />
+    <Compile Include="..\..\host\Poe2Access\CommandLine.cs" Link="Launcher\CommandLine.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ExplorationMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\MapCorner.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\LostWatch.cs" />

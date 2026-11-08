@@ -4,7 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text.Json;
 
-namespace Poe2AccessLauncher;
+namespace Poe2Access;
 
 /// <summary>A published release: its tag, notes, and the package's download link and SHA-256.</summary>
 internal sealed record Release(string Tag, Version Version, string Notes, string ZipUrl, string Sha256);

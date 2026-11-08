@@ -38,7 +38,7 @@ internal static class BossMechanicsExtractor
             DatTable.Open(index, "stats") is not { } stats || DatTable.Open(index, "npctextaudio") is not { } lines ||
             DatTable.Open(index, "grantedeffects") is not { } skills || DatTable.Open(index, "activeskills") is not { } kinds)
         {
-            Console.WriteLine("MonsterVarieties, BuffDefinitions, Stats, NPCTextAudio, GrantedEffects or ActiveSkills not found: boss mechanics left out.");
+            Say.Out.WriteLine("MonsterVarieties, BuffDefinitions, Stats, NPCTextAudio, GrantedEffects or ActiveSkills not found: boss mechanics left out.");
             return 1;
         }
 
@@ -115,7 +115,7 @@ internal static class BossMechanicsExtractor
         output.AddRange(voiced);
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllLines(outFile, output);
-        Console.WriteLine($"Wrote {outFile}: {bosses} bosses, {buffLines.Count - rules} boss buffs, {rules} movement rules, {voiced.Count} mechanic lines.");
+        Say.Out.WriteLine($"Wrote {outFile}: {bosses} bosses, {buffLines.Count - rules} boss buffs, {rules} movement rules, {voiced.Count} mechanic lines.");
         return 0;
     }
 

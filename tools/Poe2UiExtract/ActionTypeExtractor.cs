@@ -29,7 +29,7 @@ internal static class ActionTypeExtractor
         var header = new[] { "# The Id of every ActionTypes row, one a line (tools/Poe2UiExtract action-types), regenerated after patches." };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllLines(outFile, header.Concat(ids));
-        Console.WriteLine($"Wrote {outFile}: {ids.Count} action types.");
+        Say.Out.WriteLine($"Wrote {outFile}: {ids.Count} action types.");
         return 0;
     }
 }

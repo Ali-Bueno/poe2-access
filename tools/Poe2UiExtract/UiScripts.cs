@@ -7,18 +7,18 @@ internal static class UiScripts
 
     public static int Extract(Index index, string outDir)
     {
-        Console.WriteLine($"Total files in index: {index.Files.Count}");
-        Console.WriteLine($"Total bundles: {index.Bundles.Length}");
+        Say.Out.WriteLine($"Total files in index: {index.Files.Count}");
+        Say.Out.WriteLine($"Total bundles: {index.Bundles.Length}");
 
         var uiFiles = index.Files.Values
             .Where(f => f.Path != null && f.Path.Contains("metadata/ui", StringComparison.OrdinalIgnoreCase))
             .OrderBy(f => f.Path, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        Console.WriteLine($"Metadata/UI path count: {uiFiles.Count}");
-        Console.WriteLine("First 200 paths:");
+        Say.Out.WriteLine($"Metadata/UI path count: {uiFiles.Count}");
+        Say.Out.WriteLine("First 200 paths:");
         foreach (var f in uiFiles.Take(200))
-            Console.WriteLine(f.Path);
+            Say.Out.WriteLine(f.Path);
 
         // Extensions of interest (or no extension at all)
         var toExtract = uiFiles.Where(f =>
@@ -30,7 +30,7 @@ internal static class UiScripts
             return ext.Length == 0 || WantedExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase);
         }).ToList();
 
-        Console.WriteLine($"Files selected for extraction: {toExtract.Count}");
+        Say.Out.WriteLine($"Files selected for extraction: {toExtract.Count}");
 
         Directory.CreateDirectory(outDir);
         int extracted = 0, errors = 0;
@@ -48,11 +48,11 @@ internal static class UiScripts
             catch (Exception ex)
             {
                 errors++;
-                Console.WriteLine($"ERROR extracting {f.Path}: {ex.Message}");
+                Say.Out.WriteLine($"ERROR extracting {f.Path}: {ex.Message}");
             }
         }
 
-        Console.WriteLine($"Extracted: {extracted}, Errors: {errors}");
+        Say.Out.WriteLine($"Extracted: {extracted}, Errors: {errors}");
         return 0;
     }
 

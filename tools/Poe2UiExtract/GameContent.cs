@@ -49,6 +49,20 @@ internal static class GameContent
         return null;
     }
 
+    /// <summary>Closes the GGPKs this run opened, so a long-lived process lets go of the game's file.</summary>
+    public static void CloseAll()
+    {
+        lock (Opened)
+        {
+            foreach (var ggpk in Opened.Values)
+            {
+                ggpk.Dispose();
+            }
+
+            Opened.Clear();
+        }
+    }
+
     private static string BankDirectory(string gameDir) => Path.Combine(gameDir, "FMOD", "Desktop");
 
     private static GGPK? Ggpk(string gameDir)

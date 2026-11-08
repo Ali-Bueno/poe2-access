@@ -47,13 +47,13 @@ internal static class HitTimeExtractor
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
     public static int Run(Index index, string outFile, string? auditFile = null)
     {
-        var files = index.Files.Values.Where(f => f.Path != null).GroupBy(f => f.Path!.ToLowerInvariant()).ToDictionary(g => g.Key, g => g.First());
+        var files = BundleFiles.ByLowerPath(index);
         var monsters = DatTable.Open(index, "monstervarieties");
         var skills = DatTable.Open(index, "grantedeffects");
         var animations = DatTable.Open(index, "animation");
         if (monsters == null || skills == null || animations == null)
         {
-            Console.WriteLine("MonsterVarieties, GrantedEffects or Animation not found.");
+            Say.Out.WriteLine("MonsterVarieties, GrantedEffects or Animation not found.");
             return 1;
         }
 
@@ -64,7 +64,7 @@ internal static class HitTimeExtractor
         var skillAnimation = DatContentColumns.Nearest(skills, SkillAnimationOffset, offset => skills.IsKeyColumn(offset, animations.RowCount));
         if (actFiles == null || aoFiles == null || grantedEffects == null || skillAnimation == null)
         {
-            Console.WriteLine("A MonsterVarieties or GrantedEffects column was not found again.");
+            Say.Out.WriteLine("A MonsterVarieties or GrantedEffects column was not found again.");
             return 1;
         }
 
@@ -100,7 +100,7 @@ internal static class HitTimeExtractor
 
             if (!act.EndsWith(".act", StringComparison.OrdinalIgnoreCase) || !ao.EndsWith(".ao", StringComparison.OrdinalIgnoreCase))
             {
-                Console.WriteLine($"MonsterVarieties columns moved (row {row}: '{act}', '{ao}'); find them again with dat-strings.");
+                Say.Out.WriteLine($"MonsterVarieties columns moved (row {row}: '{act}', '{ao}'); find them again with dat-strings.");
                 return 1;
             }
 
@@ -188,7 +188,7 @@ internal static class HitTimeExtractor
         if (auditFile != null)
         {
             File.WriteAllLines(auditFile, audit);
-            Console.WriteLine($"Wrote {auditFile}: {audit.Count - 1} attacks whose kind from the data disagrees with the animation's name.");
+            Say.Out.WriteLine($"Wrote {auditFile}: {audit.Count - 1} attacks whose kind from the data disagrees with the animation's name.");
         }
 
         var header = new[]
@@ -200,7 +200,7 @@ internal static class HitTimeExtractor
         };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllLines(outFile, header.Concat(lines));
-        Console.WriteLine($"Wrote {outFile}: {lines.Count} lines, {lines.Count(line => line.Contains(SkillFlags.NoBlock) || line.Contains(SkillFlags.NoParry))} attacks the player cannot block or parry.");
+        Say.Out.WriteLine($"Wrote {outFile}: {lines.Count} lines, {lines.Count(line => line.Contains(SkillFlags.NoBlock) || line.Contains(SkillFlags.NoParry))} attacks the player cannot block or parry.");
         tally.Print();
         return 0;
     }
@@ -269,7 +269,7 @@ internal static class HitTimeExtractor
             return true;
         }
 
-        Console.WriteLine($"{name} {(table == null ? "not found" : $"rows are 0x{table.RowSize:X} bytes, not 0x{rowSize:X}")}: {skipped} left out; " +
+        Say.Out.WriteLine($"{name} {(table == null ? "not found" : $"rows are 0x{table.RowSize:X} bytes, not 0x{rowSize:X}")}: {skipped} left out; " +
                           "find the columns again (dat-strings, dat-schema).");
         return false;
     }
@@ -333,7 +333,7 @@ internal static class HitTimeExtractor
                         .OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => $"{pair.Key[prefix.Length..]} {pair.Value}").ToList();
                     if (parts.Count > 0)
                     {
-                        Console.WriteLine($"{prefix[..^1]}: {string.Join(", ", parts)}");
+                        Say.Out.WriteLine($"{prefix[..^1]}: {string.Join(", ", parts)}");
                     }
                 }
             }

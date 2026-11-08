@@ -89,8 +89,8 @@ Send these two files, with what you were doing and at what time:
 
 ## For developers
 
-- Build: `dotnet build host/Poe2AccessHost -c Release` (the headless host, once), then `dotnet build Poe2Accessibility -c Release`
-  (the plugin, deployed into the host's build folder); run with `Poe2Access.exe` from that folder (`tools/README.md`).
+- Build: `dotnet build host/Poe2Access -c Release` (the executable, once), then `dotnet build Poe2Accessibility -c Release`
+  (the plugin, deployed into the executable's build folder); run with `Poe2Access.exe` from that folder (`tools/README.md`).
   Tests: `dotnet run --project tests/Poe2Accessibility.Tests -c Release`.
 - Test package: `tools/package/New-TestPackage.ps1`. Release (builds it and makes it the latest download):
   `tools/package/Publish-Release.ps1`.

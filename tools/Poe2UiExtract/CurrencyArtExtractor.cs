@@ -32,7 +32,7 @@ internal static class CurrencyArtExtractor
         var nameColumn = DatColumnExtractor.NameColumn(index, "baseitemtypes") ?? NameOffset;
         if (items == null || visuals == null || VisualColumn(items, visuals, ddsColumn) is not { } visualColumn)
         {
-            Console.WriteLine("  the ItemVisualIdentity column of BaseItemTypes was not found (check with dat-strings)");
+            Say.Out.WriteLine("  the ItemVisualIdentity column of BaseItemTypes was not found (check with dat-strings)");
             return 1;
         }
 
@@ -67,7 +67,7 @@ internal static class CurrencyArtExtractor
                 }
             }
 
-            Console.WriteLine($"  {code}: {names.Count} currency icons ({byArt.Count(pair => pair.Value == null)} shared by several items)");
+            Say.Out.WriteLine($"  {code}: {names.Count} currency icons ({byArt.Count(pair => pair.Value == null)} shared by several items)");
             result[code] = names;
         }
 
@@ -77,7 +77,7 @@ internal static class CurrencyArtExtractor
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         }));
-        Console.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
+        Say.Out.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
         return 0;
     }
 

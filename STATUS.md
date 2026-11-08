@@ -8,7 +8,7 @@
   no kernel anti-cheat (server-side detection). Install: `D:\games\steam\steamapps\common\Path of Exile 2`
   (download started 2026-09-14, ~138 GB). Current patch 0.5.5f.
 - **Approach:** external, **read-only** memory reading, no input automation (see brief §3/§25 and `AGENTS.md`).
-- **Host:** the mod's own headless `Poe2AccessHost.exe` (`host/`, since 2026-11-08; [host](host/README.md)): the
+- **Host:** the mod's own headless `Poe2Access.exe` (`host/Poe2Access`, one process with the launcher steps since 2026-11-08; [host](host/README.md)): the
   `GameReader` library (GameHelper2 v2.8.0's memory model, vendored and renamed) with the runtime layout searches and the
   exe's code reader ([compatibility](docs/compatibility.md), [patch day](docs/patch-day.md)), no overlay, no administrator rights,
   60 frames a second (20 behind another window); GameHelper2 itself is no longer used (70% of a core in town; the host 17%).
@@ -17,16 +17,16 @@
 - **Speech transport:** PRISM through the **Prismatoid 0.4.0** NuGet binding (net10.0; bundles
   `runtimes/win-x64/native/prism.dll`). Plugin ships `Poe2Accessibility.dll + Prismatoid.dll + prism.dll`.
 - **Plugin:** `Poe2Accessibility/` (sealed `Poe2AccessibilityCore : PCore<AccessibilitySettings>`).
-- **Build:** `dotnet build host/Poe2AccessHost -c Release` (host), then
+- **Build:** `dotnet build host/Poe2Access -c Release` (executable, with `tools/Poe2UiExtract` as a library), then
   `dotnet build Poe2Accessibility -c Release` → auto-deploys to
-  `host/Poe2AccessHost/bin/Release/net10.0-windows/win-x64/Plugins/Poe2Accessibility/`.
-- **Run:** double-click `Poe2Access.exe` in the host folder (`tools/Poe2AccessLauncher`, built with the
-  host): starts PoE2 through Steam if needed and `Poe2AccessHost.exe` (no window, stopped through the event
-  `Local\Poe2AccessHost.Stop`), no update check, no prompt; `restart`/`stop` for testing; errors
-  in `Poe2Access.log` + a message box. From Steam's Play button: launch options `"<path>\Poe2Access.exe" %command%` (`tools/README.md`).
+  `host/Poe2Access/bin/Release/net10.0-windows/win-x64/Plugins/Poe2Accessibility/`.
+- **Run:** double-click `Poe2Access.exe` in that folder: starts PoE2 through Steam if needed, updates the game data, then
+  runs the host loop in the same process (no window; stopped by `Poe2Access.exe stop`, event `Local\Poe2Access.Stop`) until
+  the game closes; `restart` (no game start) / `stop` for testing; errors
+  in `Poe2Access.log` (one log, `app\` in the package) + a message box. From Steam's Play button: launch options `"<path>\Poe2Access.exe" %command%` (`tools/README.md`).
   Dev: `py -B tools/computer_use/launch.py all|host|stop` wraps it.
 - **Releases:** public repo (2026-10-26); `tools/package/Publish-Release.ps1` builds the package and makes it the latest GitHub release (tag `vYYYY.MM.DD[-n]`, assets always `Poe2Access.zip` / `.7z`), so `https://github.com/Ali-Bueno/poe2-access/releases/latest/download/Poe2Access.zip` is always the newest.
-- **Test package:** `tools/package/New-TestPackage.ps1` → `dist/package/Poe2Access-test-<date>.zip` and `.7z` (zip ~51 MB, 7z ~35 MB since the recorded item sounds; top folder: `Poe2Access.exe`, README.txt, Controls.md, Stop the mod.bat
+- **Test package:** `tools/package/New-TestPackage.ps1` → `dist/package/Poe2Access-test-<date>.zip` and `.7z` (zip ~47 MB, 7z ~33 MB since the recorded item sounds; top folder: `Poe2Access.exe`, README.txt, Controls.md, Stop the mod.bat
   shortcut; everything else in `app/`; self-contained, unzip and
   run; sounds extracted from the tester's install on the first start); `tools/README.md`.
 - **Repository:** private GitHub `Ali-Bueno/poe2-access` (created 2026-10-23).
@@ -36,7 +36,7 @@
   settings: `Plugins/Poe2Accessibility/config/settings.txt` (hotkeys by key name).
 - **Hotkeys (defaults):** F6 dump UI tree, F7 repeat last announcement, F8 speak status (the host has no keys of
   its own). `settings.txt` is re-read automatically when edited while the host runs.
-- **Cost:** `Poe2AccessHost.log` says what the frames cost once a minute; dev command `costs` logs the plugin's parts.
+- **Cost:** `Poe2Access.log` says what the frames cost once a minute; dev command `costs` logs the plugin's parts.
 
 ## Section status
 | Section | Status | Notes |
@@ -414,7 +414,7 @@
 - Tests: `tests/Poe2Accessibility.Tests` (differ, text edits, chat diff, gestures, scanner, route legs, life
   alarm, beacon, quest matching, cooldown, skills ready, ailments, dodge threats, map markers). Dev tools: `tools/computer_use/`; dev commands
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
-- Launcher (`tools/Poe2AccessLauncher`): `Updater` + pure `ReleaseTag` (auto-update), `HostController`, pure `GameInstall`
+- Start-up (`host/Poe2Access`, `Launcher/`): `Updater` + pure `ReleaseTag` (auto-update), `Instance` (mutex, stop event, strays), pure `AppFolders`/`AppCleanup`/`CommandLine`, pure `GameInstall`
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step

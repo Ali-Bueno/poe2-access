@@ -24,8 +24,8 @@ Couch co-op: `pad.py serve --xbox --second` plugs a second pad on its own pipe; 
 ([local co-op](../../docs/research/local-coop.md)).
 
 Plugin rebuild loop: `launch.py stop` → `dotnet build Poe2Accessibility -c Release` → `launch.py host`
-(the host locks the plugin DLL; `launch.py` drives `Poe2Access.exe restart|stop` from
-`tools/Poe2AccessLauncher`, which stops the host through its named event and starts `Poe2AccessHost.exe` unelevated — it
+(the mod locks the plugin DLL; `launch.py` drives the development `Poe2Access.exe` in `host/Poe2Access/bin/Release/net10.0-windows/win-x64`:
+`restart` starts it detached and returns once the plugin attached, `stop` runs `Poe2Access.exe stop`; it runs unelevated — it
 only needs read access).
 
 Dev commands for a patch day: `layout`, `structs` (the host's struct sweep), `sounds` (what played since last asked and the

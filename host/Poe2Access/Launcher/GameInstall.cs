@@ -1,6 +1,6 @@
 using System.IO; // also built into the tests, which have no implicit usings
 
-namespace Poe2AccessLauncher;
+namespace Poe2Access;
 
 /// <summary>
 ///     The two layouts of a Path of Exile 2 install: Steam's loose Bundles2 folder, and the Korean client's (Kakao Games,

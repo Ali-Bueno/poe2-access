@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-SOURCES = sorted((REPO / "Poe2Accessibility").glob("Announcements*.cs"))
+SOURCES = sorted((REPO / "Poe2Accessibility").glob("Announcements*.cs")) + [REPO / "host" / "Poe2Access" / "Launcher" / "StartupPhrases.cs"]  # the start-up lines the exe speaks
 LANG_DIR = REPO / "Poe2Accessibility" / "catalog" / "lang"
 LANGUAGES = ["pt", "fr", "de", "ru", "th", "ja", "ko", "zh-TW"]
 ESCAPES = {"n": "\n", "t": "\t", "r": "\r", "0": "\0", "\\": "\\", '"': '"', "'": "'", "a": "\a", "b": "\b", "f": "\f", "v": "\v"}

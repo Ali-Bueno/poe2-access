@@ -92,8 +92,7 @@ namespace GameReader
         {
             try
             {
-                var versionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
-                var versionStr = versionInfo.FileVersion;
+                var versionStr = Assembly.GetExecutingAssembly().GetName().Version?.ToString(); // the file version is unreadable inside a single-file executable
                 if (string.IsNullOrEmpty(versionStr) || versionStr == "1.0.0.0")
                 {
                     version = "Dev";

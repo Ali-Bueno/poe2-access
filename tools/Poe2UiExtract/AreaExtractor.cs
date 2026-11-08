@@ -46,7 +46,7 @@ internal static class AreaExtractor
             }
             else if (!LanguageCodes.TryGetValue(folder, out code!))
             {
-                Console.WriteLine($"  skip unknown folder: {f.Path}");
+                Say.Out.WriteLine($"  skip unknown folder: {f.Path}");
                 continue;
             }
 
@@ -59,13 +59,13 @@ internal static class AreaExtractor
             }
 
             var names = Parse(table, nameColumn);
-            Console.WriteLine($"  {f.Path} -> {code}: {names.Count} areas");
+            Say.Out.WriteLine($"  {f.Path} -> {code}: {names.Count} areas");
             result[code] = names;
         }
 
         if (!result.ContainsKey("en"))
         {
-            Console.WriteLine("English WorldAreas.datc64 not found.");
+            Say.Out.WriteLine("English WorldAreas.datc64 not found.");
             return 1;
         }
 
@@ -75,7 +75,7 @@ internal static class AreaExtractor
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         }));
-        Console.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
+        Say.Out.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
         return 0;
     }
 

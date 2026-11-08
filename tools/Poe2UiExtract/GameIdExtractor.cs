@@ -38,14 +38,14 @@ internal static class GameIdExtractor
         var stats = DatTable.Open(index, "stats");
         if (animations == null || stats == null)
         {
-            Console.WriteLine($"Animation or Stats table missing: {Skipped} left out.");
+            Say.Out.WriteLine($"Animation or Stats table missing: {Skipped} left out.");
             return 1;
         }
 
         // Row 0 of each is known: a table that reads otherwise has moved its Id, and an old file beats a wrong one.
         if (animations.String(0, 0) != FirstAnimation || stats.String(0, 0) != FirstStat)
         {
-            Console.WriteLine($"Animation or Stats does not start as it did: {Skipped} left out.");
+            Say.Out.WriteLine($"Animation or Stats does not start as it did: {Skipped} left out.");
             return 1;
         }
 
@@ -64,7 +64,7 @@ internal static class GameIdExtractor
             var row = ProjectileSpeeds.Find(stats, stat);
             if (row < 0)
             {
-                Console.WriteLine($"Stat '{stat}' not found: the mod falls back on the host's number for it.");
+                Say.Out.WriteLine($"Stat '{stat}' not found: the mod falls back on the host's number for it.");
                 continue;
             }
 
@@ -72,7 +72,7 @@ internal static class GameIdExtractor
         }
 
         File.WriteAllLines(outFile, lines);
-        Console.WriteLine($"{animations.RowCount} animations and {Stats.Length} stats written to {outFile}");
+        Say.Out.WriteLine($"{animations.RowCount} animations and {Stats.Length} stats written to {outFile}");
         return 0;
     }
 }

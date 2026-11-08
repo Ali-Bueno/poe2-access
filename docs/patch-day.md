@@ -23,7 +23,7 @@ protects it: [field protection audit](research/field-protection-audit.md).
 
 ## 3. After the first start: read the log
 In `Plugins/Poe2Accessibility/logs/accessibility.log` look for `NOT FOUND`, `moved from`, `lost`, `does not match the
-catalog`, `Aviso de compatibilidad`, and in `Poe2AccessHost.log` for `threw`. Then run the dev commands (write the word to
+catalog`, `Aviso de compatibilidad`, and in `Poe2Access.log` for `threw`. Then run the dev commands (write the word to
 `Plugins/Poe2Accessibility/debug/command.txt`): `structs` (the host sweep), `layout` (every plugin search started 0x18 off
 target: each must come back; run it at login, character creation, in town near a quest NPC, in the options, the inventory,
 the passive tree and with the left trigger held), `sounds` (what played), `costs` (what the frame costs).
@@ -54,7 +54,7 @@ left as it is), and a field a live search already placed stays there. The plugin
 build …` and lists the move with the code fields (`moved: override …`). A new build ignores the lines, so put the fix into
 the source afterwards.
 
-Change one thing at a time, rebuild (`dotnet build host/Poe2AccessHost -c Release`, `dotnet build Poe2Accessibility -c Release`,
+Change one thing at a time, rebuild (`dotnet build host/Poe2Access -c Release`, `dotnet build Poe2Accessibility -c Release`,
 with the host stopped: `Poe2Access.exe stop`), restart (`Poe2Access.exe restart`), and read the same log lines again. Record
 what moved and why it was found or not in [surviving game updates](compatibility.md), and the new build's results beside the
 earlier ones in `research/evidence/`.

@@ -40,7 +40,7 @@ internal static class AttackReachExtractor
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
     public static int Run(Index index, string outFile)
     {
-        var files = index.Files.Values.Where(f => f.Path != null).GroupBy(f => f.Path!.ToLowerInvariant()).ToDictionary(g => g.Key, g => g.First());
+        var files = BundleFiles.ByLowerPath(index);
         var own = new Dictionary<string, (string? Parent, ClipValues Values)>(StringComparer.Ordinal);
         (string? Parent, ClipValues Values) Own(string path)
         {
@@ -91,7 +91,7 @@ internal static class AttackReachExtractor
 
         if (lines.Count == 0)
         {
-            Console.WriteLine("No monster .ao file gave a melee pattern or a contact position (docs/research/attack-telegraphs.md).");
+            Say.Out.WriteLine("No monster .ao file gave a melee pattern or a contact position (docs/research/attack-telegraphs.md).");
             return 1;
         }
 
@@ -103,7 +103,7 @@ internal static class AttackReachExtractor
         };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllLines(outFile, header.Concat(lines));
-        Console.WriteLine($"Wrote {outFile}: {lines.Count} clips in {withLine} of {fileCount} .ao files ({melee} with a melee pattern).");
+        Say.Out.WriteLine($"Wrote {outFile}: {lines.Count} clips in {withLine} of {fileCount} .ao files ({melee} with a melee pattern).");
         return 0;
     }
 

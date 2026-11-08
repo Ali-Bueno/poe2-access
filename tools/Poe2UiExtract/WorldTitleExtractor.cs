@@ -73,7 +73,7 @@ internal static class WorldTitleExtractor
             var table = folder == null ? DatTable.Open(index, StringsTable) : DatTable.OpenTranslated(index, StringsTable, folder);
             if (table == null)
             {
-                Console.WriteLine($"  {code}: no ClientStrings");
+                Say.Out.WriteLine($"  {code}: no ClientStrings");
                 continue;
             }
 
@@ -130,7 +130,7 @@ internal static class WorldTitleExtractor
                 }
             }
 
-            Console.WriteLine($"  {code}: {titles.Count} of {keys.Count + Objectives.Length} titles");
+            Say.Out.WriteLine($"  {code}: {titles.Count} of {keys.Count + Objectives.Length} titles");
             result[code] = titles;
         }
 
@@ -140,7 +140,7 @@ internal static class WorldTitleExtractor
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         }));
-        Console.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
+        Say.Out.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
         return 0;
     }
 }

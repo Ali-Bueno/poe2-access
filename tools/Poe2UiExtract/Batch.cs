@@ -9,6 +9,9 @@ internal static class Batch
 {
     private const string PartSuffix = ".part";
 
+    /// <summary>How many commands run at once on the shared index: each holds tables and file reads in memory.</summary>
+    internal static int MaxParallel { get; set; } = 3;
+
     private static readonly Dictionary<string, Func<string, Index, string, int>> Commands = new(StringComparer.OrdinalIgnoreCase)
     {
         ["item-sounds"] = ItemSoundExtractor.Run,
@@ -42,12 +45,24 @@ internal static class Batch
         var commands = pairs.Where((_, i) => i % 2 == 0).ToList();
         if (pairs.Length == 0 || pairs.Length % 2 != 0 || commands.Any(command => !Commands.ContainsKey(command)))
         {
-            Console.WriteLine($"Usage: Poe2UiExtract.exe batch <gameDir> <command> <outFile> [...]; commands: {string.Join(", ", Commands.Keys)}");
+            Say.Out.WriteLine($"Usage: Poe2UiExtract.exe batch <gameDir> <command> <outFile> [...]; commands: {string.Join(", ", Commands.Keys)}");
             return 1;
         }
 
         using var index = SharedBundles.OpenParsed(gameDir);
-        var runs = pairs.Chunk(2).Select(pair => Task.Run(() => RunOne(gameDir, index, pair[0], pair[1]))).ToArray();
+        using var slots = new SemaphoreSlim(Math.Max(1, MaxParallel));
+        var runs = pairs.Chunk(2).Select(pair => Task.Run(() =>
+        {
+            slots.Wait();
+            try
+            {
+                return RunOne(gameDir, index, pair[0], pair[1]);
+            }
+            finally
+            {
+                slots.Release();
+            }
+        })).ToArray();
         Task.WaitAll(runs);
         return runs.All(run => run.Result) ? 0 : 1;
     }
@@ -65,7 +80,7 @@ internal static class Batch
         }
         catch (Exception error)
         {
-            Console.WriteLine($"{command}: {error}");
+            Say.Out.WriteLine($"{command}: {error}");
             code = 1;
         }
 
@@ -79,7 +94,7 @@ internal static class Batch
             File.Delete(part);
         }
 
-        Console.WriteLine($"batch {command} {(made ? "done" : "failed")} in {watch.Elapsed.TotalSeconds:0.0} s");
+        Say.Out.WriteLine($"batch {command} {(made ? "done" : "failed")} in {watch.Elapsed.TotalSeconds:0.0} s");
         return made;
     }
 }

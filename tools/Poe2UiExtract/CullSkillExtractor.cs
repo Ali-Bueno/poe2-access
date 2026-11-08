@@ -28,7 +28,7 @@ internal static class CullSkillExtractor
         var cull = ProjectileSpeeds.Find(t.Stats, CullStat);
         if (cull < 0)
         {
-            Console.WriteLine($"Stat '{CullStat}' not found: {Skipped} left out.");
+            Say.Out.WriteLine($"Stat '{CullStat}' not found: {Skipped} left out.");
             return 1;
         }
 
@@ -44,7 +44,7 @@ internal static class CullSkillExtractor
 
         if (ids.Count == 0)
         {
-            Console.WriteLine($"No granted effect lists '{CullStat}': the stat set columns moved; find them again (dat-rows, dat-strings).");
+            Say.Out.WriteLine($"No granted effect lists '{CullStat}': the stat set columns moved; find them again (dat-rows, dat-strings).");
             return 1;
         }
 
@@ -55,7 +55,7 @@ internal static class CullSkillExtractor
         };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllLines(outFile, header.Concat(ids));
-        Console.WriteLine($"Wrote {outFile}: {ids.Count} cull skills.");
+        Say.Out.WriteLine($"Wrote {outFile}: {ids.Count} cull skills.");
         return 0;
     }
 }

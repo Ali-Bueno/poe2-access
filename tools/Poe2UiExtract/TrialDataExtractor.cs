@@ -70,13 +70,13 @@ internal static class TrialDataExtractor
                 var table = folder == null ? english : DatTable.OpenTranslated(index, source.Table, folder);
                 if (english == null)
                 {
-                    Console.WriteLine($"  no {source.Table}");
+                    Say.Out.WriteLine($"  no {source.Table}");
                     return 1;
                 }
 
                 if (table == null)
                 {
-                    Console.WriteLine($"  {code}: no {source.Table}");
+                    Say.Out.WriteLine($"  {code}: no {source.Table}");
                     texts.Clear();
                     break;
                 }
@@ -95,13 +95,13 @@ internal static class TrialDataExtractor
                 continue; // a language the game has no tables for (zh-CN)
             }
 
-            Console.WriteLine($"  {code}: {texts.Count} texts");
+            Say.Out.WriteLine($"  {code}: {texts.Count} texts");
             result[code] = texts;
         }
 
         if (icons.Count == 0)
         {
-            Console.WriteLine("  no icon column found (check with dat-strings)");
+            Say.Out.WriteLine("  no icon column found (check with dat-strings)");
             return 1;
         }
 
@@ -112,7 +112,7 @@ internal static class TrialDataExtractor
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         }));
-        Console.WriteLine($"Wrote {outFile}: {icons.Count} icons");
+        Say.Out.WriteLine($"Wrote {outFile}: {icons.Count} icons");
         return 0;
     }
 

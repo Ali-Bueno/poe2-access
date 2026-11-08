@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace Poe2AccessLauncher;
+namespace Poe2Access;
 
 /// <summary>Starts Path of Exile 2 through Steam (or asks for the Korean client to be started) and waits for its main window.</summary>
 internal static class GameLauncher
@@ -14,13 +14,15 @@ internal static class GameLauncher
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(240); // first start compiles shaders
     private static readonly TimeSpan Poll = TimeSpan.FromMilliseconds(500);
 
-    /// <param name="steamCommand">The game's command when Steam started this launcher (%command%), else null: Steam is asked for the game.</param>
-    public static void EnsureRunning(string[]? steamCommand)
+    /// <param name="steamCommand">The game's command when Steam started this program (%command%), else null: Steam is asked for the game.</param>
+    /// <param name="stop">Set when the mod is asked to stop while it waits.</param>
+    /// <returns>True once the game window is up; false when the wait ended because of <paramref name="stop"/>.</returns>
+    public static bool EnsureRunning(string[]? steamCommand, WaitHandle stop)
     {
         if (FindWindow())
         {
             Log.Write("Game already running");
-            return;
+            return true;
         }
 
         var kakao = KakaoDirectory();
@@ -32,7 +34,7 @@ internal static class GameLauncher
         {
             // The Korean client only starts from the Kakao Games website, which hands it the login token.
             Log.Write($"Korean client installed in {kakao}: waiting for it to be started from the Kakao Games website");
-            Program.MessageBox(IntPtr.Zero, "Start Path of Exile 2 from the Kakao Games website, then press OK.", "Poe2Access", Program.MessageBoxInformation);
+            Dialogs.Show(IntPtr.Zero, "Start Path of Exile 2 from the Kakao Games website, then press OK.", "Poe2Access", Dialogs.Information);
         }
         else
         {
@@ -46,16 +48,19 @@ internal static class GameLauncher
             if (FindWindow())
             {
                 Log.Write("Game window is up");
-                return;
+                return true;
             }
 
-            Thread.Sleep(Poll);
+            if (stop.WaitOne(Poll))
+            {
+                return false;
+            }
         }
 
         throw new TimeoutException($"The game window did not appear within {Timeout.TotalSeconds:0} seconds.");
     }
 
-    /// <summary>Starts the game from the command Steam gave, unless it runs already; it inherits Steam's environment from this launcher.</summary>
+    /// <summary>Starts the game from the command Steam gave, unless it runs already; it inherits Steam's environment from this program.</summary>
     public static void Start(string[] steamCommand)
     {
         if (RunningProcessName() is not null)
@@ -98,12 +103,15 @@ internal static class GameLauncher
         });
 
     /// <summary>
-    ///     Runs this launcher again as administrator (the UAC prompt), with the same arguments, and returns its exit code
-    ///     once it ends: whoever ran "stop" (Stop the mod.bat, the build scripts) goes on only once the host is stopped.
+    ///     Runs this program again as administrator (the UAC prompt), with the same arguments, and returns its exit code
+    ///     once it ends: whoever ran "stop" (Stop the mod.bat, the build scripts) goes on only once the mod is stopped.
+    ///     The new process is told this one's id, so it does not kill it as a stray copy.
     /// </summary>
     public static int RunAsAdministrator(string[] args)
     {
         var info = new ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = true, Verb = "runas" };
+        info.ArgumentList.Add(CommandLine.ParentOption);
+        info.ArgumentList.Add(Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture));
         foreach (var arg in args)
         {
             info.ArgumentList.Add(arg);

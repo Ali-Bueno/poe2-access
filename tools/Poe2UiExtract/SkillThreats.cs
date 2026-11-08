@@ -78,7 +78,7 @@ internal sealed class SkillThreats
         var fromAfar = Rows(t.SkillTypes, FromAfarTypes);
         if (projectile.Count == 0 || damage.Count == 0 || noDamage.Count == 0 || fromAfar.Count == 0)
         {
-            Console.WriteLine($"Stats or ActiveSkillType rows for {Skipped} not found: every skill left mute.");
+            Say.Out.WriteLine($"Stats or ActiveSkillType rows for {Skipped} not found: every skill left mute.");
             return result;
         }
 

@@ -208,12 +208,12 @@ internal sealed class DatColumnSearch
     {
         foreach (var line in this.moved)
         {
-            Console.WriteLine($"  {line}");
+            Say.Out.WriteLine($"  {line}");
         }
 
         foreach (var line in this.missing)
         {
-            Console.WriteLine($"  {line}: not found (check with dat-strings), {step} keeps its previous catalog");
+            Say.Out.WriteLine($"  {line}: not found (check with dat-strings), {step} keeps its previous catalog");
         }
 
         return this.AllFound;

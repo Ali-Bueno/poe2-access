@@ -25,7 +25,7 @@ internal static class ItemNameExtractor
             var table = folder == null ? DatTable.Open(index, "baseitemtypes") : DatTable.OpenTranslated(index, "baseitemtypes", folder);
             if (table == null)
             {
-                Console.WriteLine($"  {code}: no BaseItemTypes");
+                Say.Out.WriteLine($"  {code}: no BaseItemTypes");
                 continue;
             }
 
@@ -43,11 +43,11 @@ internal static class ItemNameExtractor
             // A moved column reads metadata paths or nothing: the offsets need updating from dat-strings.
             if (names.Count == 0 || names.Values.Any(name => name.StartsWith("Metadata/", StringComparison.Ordinal)))
             {
-                Console.WriteLine($"  {code}: the Id/Name columns moved (check with dat-strings)");
+                Say.Out.WriteLine($"  {code}: the Id/Name columns moved (check with dat-strings)");
                 return 1;
             }
 
-            Console.WriteLine($"  {code}: {names.Count} currency items");
+            Say.Out.WriteLine($"  {code}: {names.Count} currency items");
             result[code] = names;
         }
 
@@ -57,7 +57,7 @@ internal static class ItemNameExtractor
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         }));
-        Console.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
+        Say.Out.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
         return 0;
     }
 }
