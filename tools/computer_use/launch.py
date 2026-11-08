@@ -1,4 +1,4 @@
-"""Development launcher: starts PoE2 and drives Poe2Access.exe to (re)start or stop the mod's host."""
+"""Development launcher: starts PoE2 and drives the development Poe2Access.exe to (re)start or stop the mod."""
 import argparse
 import json
 import os
@@ -10,13 +10,13 @@ import time
 import win32 as w
 
 REPOSITORY = Path(__file__).resolve().parents[2]
-HOST_DIRECTORY = REPOSITORY / 'host/Poe2AccessHost/bin/Release/net10.0-windows/win-x64'
+HOST_DIRECTORY = REPOSITORY / 'host/Poe2Access/bin/Release/net10.0-windows/win-x64'
 PLUGIN_LOG = HOST_DIRECTORY / 'Plugins/Poe2Accessibility/logs/accessibility.log'
 STEAM_RUN_URL = 'steam://rungameid/2694490'  # Path of Exile 2 Steam app id
 GAME_START_SECONDS = 240  # first start compiles shaders
 HOST_START_SECONDS = 60
 POLL_SECONDS = 0.5
-LAUNCHER = HOST_DIRECTORY / 'Poe2Access.exe'  # tools/Poe2AccessLauncher, deployed beside Poe2AccessHost.exe
+EXECUTABLE = HOST_DIRECTORY / 'Poe2Access.exe'  # host/Poe2Access: the launcher and the host in one process
 
 
 def wait_for(condition, seconds, what):
@@ -30,7 +30,7 @@ def wait_for(condition, seconds, what):
 
 
 def host_processes():
-    """Every process whose image is in the host folder: the host, or an old GameHelper copy under a random name."""
+    """Every process whose image is in the build folder: the running mod, or an old GameHelper copy under a random name."""
     output = subprocess.run(['powershell', '-NoProfile', '-Command',
                              'Get-Process | Where-Object Path | Select-Object Id,Path | ConvertTo-Json'],
                             capture_output=True, text=True, check=True).stdout
@@ -48,10 +48,10 @@ def start_game():
     return windows[0]
 
 
-def run_launcher(command):
-    """Runs Poe2Access.exe <command>; on failure it shows a message box, so the wait is bounded."""
+def run_command(command):
+    """Runs Poe2Access.exe <command> to its end (stop); on failure it shows a message box, so the wait is bounded."""
     try:
-        done = subprocess.run([str(LAUNCHER), command], cwd=HOST_DIRECTORY, timeout=HOST_START_SECONDS)
+        done = subprocess.run([str(EXECUTABLE), command], cwd=HOST_DIRECTORY, timeout=HOST_START_SECONDS)
     except subprocess.TimeoutExpired:
         raise RuntimeError(f'Poe2Access.exe {command} did not finish; see Poe2Access.log') from None
     if done.returncode:
@@ -59,19 +59,23 @@ def run_launcher(command):
 
 
 def stop_host():
-    """The host locks the deployed plugin DLL, so stop it before every plugin build."""
+    """The mod locks the deployed plugin DLL, so stop it before every plugin build."""
     stopped = [row['Id'] for row in host_processes()]
-    run_launcher('stop')
-    wait_for(lambda: not host_processes(), HOST_START_SECONDS, 'the host to exit')
+    run_command('stop')
+    wait_for(lambda: not host_processes(), HOST_START_SECONDS, 'the mod to exit')
     return stopped
 
 
 def restart_host():
+    """Starts `Poe2Access.exe restart` detached (it stays running as the host) and waits for the plugin to attach."""
     log_start = PLUGIN_LOG.stat().st_size if PLUGIN_LOG.exists() else 0
-    run_launcher('restart')
-    host = wait_for(host_processes, HOST_START_SECONDS, 'the host')
+    process = subprocess.Popen([str(EXECUTABLE), 'restart'], cwd=HOST_DIRECTORY, close_fds=True,
+                               stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                               creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
 
     def enabled_lines():
+        if process.poll() is not None:
+            raise RuntimeError(f'Poe2Access.exe restart exited ({process.returncode}); see Poe2Access.log')
         if not PLUGIN_LOG.exists() or PLUGIN_LOG.stat().st_size <= log_start:
             return None
         with PLUGIN_LOG.open('rb') as stream:
@@ -79,8 +83,8 @@ def restart_host():
             lines = stream.read().decode('utf-8', errors='replace').splitlines()
         return lines if any('Attached to game' in line or 'game open: True' in line for line in lines) else None
 
-    return dict(host=host, log=wait_for(enabled_lines, HOST_START_SECONDS, 'the plugin to attach')[-8:])
-
+    lines = wait_for(enabled_lines, HOST_START_SECONDS, 'the plugin to attach')
+    return dict(host=host_processes(), log=lines[-8:])
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)

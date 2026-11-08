@@ -6,14 +6,17 @@ using System.Diagnostics;
 /// <summary>The one running instance: the mutex it holds, the event that asks it to stop, and the other copies in the install.</summary>
 internal sealed class Instance(int? spareProcessId = null) : IDisposable
 {
-    public const string StopEventName = @"Local\Poe2Access.Stop";
-    private const string MutexName = @"Local\Poe2Access";
+    /// <summary>A test sets it to run an instance apart from the player's own: its mutex and event get this suffix.</summary>
+    public const string IsolationVariable = "POE2ACCESS_INSTANCE";
     private const string LegacyStopEventName = @"Local\Poe2AccessHost.Stop"; // the separate host of earlier versions
     private const int GracefulExitMilliseconds = 5_000;
     private const int ExitWaitMilliseconds = 10_000;
     private static readonly string[] LegacyProcessNames = ["Poe2AccessHost", "GameHelper"];
 
-    private readonly Mutex mutex = new(false, MutexName);
+    private static readonly string Isolation = Environment.GetEnvironmentVariable(IsolationVariable) ?? string.Empty;
+    private readonly Mutex mutex = new(false, @"Local\Poe2Access" + Isolation);
+
+    public static string StopEventName { get; } = @"Local\Poe2Access.Stop" + Isolation;
 
     public bool Owned { get; private set; }
 
@@ -92,7 +95,7 @@ internal sealed class Instance(int? spareProcessId = null) : IDisposable
 
     private static void SignalStop()
     {
-        foreach (var name in new[] { StopEventName, LegacyStopEventName })
+        foreach (var name in Isolation.Length > 0 ? new[] { StopEventName } : new[] { StopEventName, LegacyStopEventName })
         {
             try
             {

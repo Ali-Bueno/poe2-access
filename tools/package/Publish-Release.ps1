@@ -6,7 +6,7 @@
 .DESCRIPTION
     The assets keep the same names in every release; that is what keeps the "latest" links stable. The tag is the date
     (v2026.10.26), with -2, -3... for a second release the same day. The notes are -Notes, or else the subjects of the
-    commits since the previous release. release.json (tag, the zip's SHA-256, notes) is what the launcher reads to
+    commits since the previous release. release.json (tag, the zip's SHA-256, notes) is what the mod reads to
     update, since GitHub's API refuses addresses past 60 requests an hour. Refuses to run with uncommitted changes or unpushed commits, so a release is
     always the code on GitHub. Needs the GitHub CLI (gh) signed in.
 #>

@@ -53,7 +53,7 @@ session scratch folder.
 `dat-columns`, `experience`, `hit-times`, `hazards`, `cull-skills`, `game-ids`, `game-keys`, `places` and `ui-catalog` (the `.ui` extraction plus `catalog`, through a temp
 folder) side by side on one opened index (`Batch.cs`). Opening and parsing the index costs ~10 s and most of the ~2 GB a
 run takes; LibBundle3 opens a bundle stream per file read and the commands only read the index, so they share it safely.
-Each output is written as `<outFile>.part` and renamed when complete; exit code 1 if any command failed. The launcher
+Each output is written as `<outFile>.part` and renamed when complete; exit code 1 if any command failed. The mod
 uses it after a game patch: 33 s for all seven instead of 85 s as separate runs (2026-10-28).
 
 ### `dat-strings` command - research aid
@@ -84,59 +84,62 @@ cmake --build ooz\build --target libooz --config Release
 ```
 The built binary is kept at `external/oodle/oo2core.dll` (gitignored). Decompression only; compression exports are stubs.
 
-## Poe2AccessLauncher — one-click start for the player
-.NET 10 WinExe (no console window, assembly `Poe2Access`) that starts the game and the mod's host (`host/Poe2AccessHost`,
-headless) with no visible window.
+## Poe2Access — the mod's one executable
+.NET 10 WinExe (`host/Poe2Access`, no console window, headless) that starts the game, updates the game data and runs the
+host loop in the same process: no separate host or extractor process.
 
 ```
-dotnet build tools/Poe2AccessLauncher -c Release     # also copies the exe + dlls beside Poe2AccessHost.exe (host build output)
-Poe2Access.exe [start|restart|stop] [--host <dir>]   # start (default): open PoE2 via Steam if needed, then restart the host
-"<path>\Poe2Access.exe" %command%                    # in Steam's launch options: Steam's Play button starts the game and the mod
+dotnet build host/Poe2Access -c Release                # the executable (Poe2UiExtract is built in as a library)
+Poe2Access.exe [start|restart|stop|update|extract ...]  # start (default): open PoE2 via Steam if needed, update the data, run until the game closes
+"<path>\Poe2Access.exe" %command%                       # in Steam's launch options: Steam's Play button starts the game and the mod
 ```
-Started by Steam, the launcher gets the game's command (`PathOfExileSteam.exe --nopatch`, from Steam's app info), so it runs
-that instead of asking Steam, and it stays until the game closes: Steam counts the game running while that launcher lives.
-A launcher opened by hand with these options set asks Steam for the game; the one Steam then starts finds the first still
-running (the single-instance mutex), starts the game and waits, and the first goes on to the host once the window is up.
-`stop` sets the host's named event `Local\Poe2AccessHost.Stop`, gives it 5 s to exit, then kills it; every other process whose
-image is in the host folder (an old GameHelper copy) is killed outright. `restart` stops, deletes what packages before the own
-host left (`GameHelper.exe`, its random-named copies listed in `Poe2Access.copies.txt` / `tempFileLocations.dat`, the overlay's libraries such as ImGui and ImageSharp, and its `configs`, `fonts` and `Localization` folders; `LegacyHost.cs`)
-and starts `Poe2AccessHost.exe` plainly (no window; its manifest asks for no administrator rights). Single instance; steps go
-to `Poe2Access.log` next to the exe; a failure shows a message box and exits 1. The host folder defaults to the exe's own
-folder when it holds `Poe2AccessHost.exe`, else `app` beside it, else the repository build output
-(`host/Poe2AccessHost/bin/Release/net10.0-windows/win-x64`).
-In a test package `start` also keeps the game data current (`GameDataSetup.cs`): when `Poe2UiExtract.exe` sits beside it, it
-compares a stamp of the install (size and time of `Bundles2/_.index.bin` and of the game exe, `fmod.dll` version) and of
-each step's version with `app/GameData/game-version.txt` (`GameDataStamp.cs`). It reruns the steps whose stamp differs:
-all of them after a game patch or on the first run, only the ones whose version a mod update raised otherwise. The
-catalog steps (`item-sounds`, `areas`, `dat-columns`, `experience`, `hit-times`, `hazards`, `cull-skills`, `game-ids`, `game-keys`, `places`, `ui-catalog`) go to one
-silent `batch` run of the extractor, then `sounds` (rerun with `item-sounds`) on its own, with 3 minutes per step,
-logging to `Poe2Access.log`. Outputs are written to a temp file or folder and replace the old ones only on success; each
-step is stamped as it succeeds (a failed one is retried on the next start, an optional one is stamped anyway). About
-33 s for all of them (85 s as separate runs), about 15 s for one catalog, 2 s for the sounds alone. Everything stays in the mod's folder: the catalogs in `app/GameData/catalog`,
-copied over the plugin's shipped copies on every start (an update or an unzip over the mod puts those back), the sounds
-in the plugin's `sounds/`; no package carries either, so a mod update keeps them. **Raise a step's version in
-`GameDataSetup` when its output changes**, so that step alone reruns once on every machine. The first start after the old
-layout (one `format=` number in `Plugins/Poe2Accessibility/catalog/game-version.txt`) carries over what that stamp
-vouched for on the same install. The extractor opens the bundles sharing them with the running game (`SharedBundles`): the game locks some
-once in game, and the launcher starts it before regenerating.
+- `start`: single instance (mutex `Local\Poe2Access`; a second `start` only says it runs, or, from Steam, starts the game and waits
+  for it), update check, game started if needed and its window awaited, game data regenerated, leftovers deleted, then the host
+  loop on the main thread until the game exits or the stop event `Local\Poe2Access.Stop` is set.
+- `stop` sets the event, gives the running instance 5 s to exit (it holds the mutex), then kills any other `Poe2Access.exe`, old
+  `Poe2AccessHost.exe` or GameHelper copy whose image is in the install (the exe's folder or `app`), never the caller.
+- `restart` stops the running instance, then this process becomes the host (the game is not started). `update` looks for a newer release.
+- `extract <Poe2UiExtract arguments>` runs an extractor command in this process (`Poe2Access.exe extract batch <gameDir> areas out.json`).
+- Started by Steam it gets the game's command (`PathOfExileSteam.exe --nopatch`) and runs that instead of asking Steam. A hand-opened
+  instance with these options set asks Steam for the game; the one Steam then starts finds the first still running, starts the game and waits.
+- Folders (`AppFolders.cs`): Plugins beside the exe when that folder exists (development build), else `app\Plugins` (package); the
+  data (`Poe2Access.log` + `.old`, `version.txt`, `GameData`) lives next to Plugins. One log with the launcher's and the host's
+  lines (4 MB cap, the previous one kept as `.old`); the per-minute `Frames:` line stays.
+- Each `start`/`restart` deletes GameHelper's leftovers (`LegacyHost.cs`) and, in the package, every file at the top of `app\`
+  the layout does not ship (`AppCleanup.cs`: only `*.log`, `*.log.old`, `version.txt`, `oo2core.dll` stay; folders `Plugins`, `GameData`).
+- Elevation: with the Korean client, or an instance left running as administrator, it runs itself again as administrator (`--parent <pid>` keeps the child from killing it).
+- Tests may set `POE2ACCESS_INSTANCE=<suffix>` to run apart from the player's own instance (separate mutex and event).
+
+`start` keeps the game data current (`GameDataSetup.cs`): it compares a stamp of the install (size and time of `Bundles2/_.index.bin`
+and of the game exe, `fmod.dll` version) and of each step's version with `app/GameData/game-version.txt` (`GameDataStamp.cs`). It
+reruns the steps whose stamp differs: all of them after a game patch or on the first run, only the ones whose version a mod update
+raised otherwise. The catalog steps (`item-sounds`, `areas`, `dat-columns`, `experience`, `hit-times`, `hazards`, `cull-skills`,
+`game-ids`, `game-keys`, `places`, `ui-catalog`) go to one `Extractor.Run(["batch", ...])` call, then `sounds` (rerun with
+`item-sounds`) on its own, each on a worker task with 3 minutes per step (a step that overruns is logged and abandoned, the host
+goes on); the extractor's output is redirected (`Say`) and only its `batch` result lines reach the log, and the memory is collected
+afterwards. `oo2core.dll` is found beside the exe or in `app\` (`OodleLibrary.cs`, a `NativeLibrary` resolver for LibBundle3). Outputs
+are written to a temp file or folder and replace the old ones only on success; each step is stamped as it succeeds (a failed one is
+retried on the next start, an optional one is stamped anyway). About 33 s for all of them, about 15 s for one catalog, 2 s for the
+sounds alone. Everything stays in the mod's folder: the catalogs in `app/GameData/catalog`, copied over the plugin's shipped copies
+on every start (an update or an unzip over the mod puts those back), the sounds in the plugin's `sounds/`; no package carries either,
+so a mod update keeps them. **Raise a step's version in `GameDataSetup` when its output changes**, so that step alone reruns once on
+every machine. The first start after the old layout (one `format=` number in `Plugins/Poe2Accessibility/catalog/game-version.txt`)
+carries over what that stamp vouched for on the same install. The extractor opens the bundles sharing them with the running game
+(`SharedBundles`): the game locks some once in game, and the mod starts it before regenerating. Two extractor processes at once can
+lock each other's index out (a sharing violation); the next start retries.
 
 ## package — test build for other players
 ```
-pwsh tools/package/New-TestPackage.ps1      # with the host stopped; writes dist/package/Poe2Access-test-<date>.zip (+ .7z with 7-Zip)
+pwsh tools/package/New-TestPackage.ps1      # with the mod stopped; writes dist/package/Poe2Access-test-<date>.zip (+ .7z with 7-Zip)
 ```
-The top folder holds only `Poe2Access.exe` (the launcher as one self-contained, trimmed file, ~14 MB, left uncompressed so the archive compresses it better), `README.txt`,
-the controls and the stop shortcut; the host (`host/Poe2AccessHost`) and Poe2UiExtract are published self-contained into `app/`
-(they share the .NET 10 runtime files, nothing to install; the launcher finds `app/Poe2AccessHost.exe` and logs to
-`app/Poe2Access.log`), with only the accessibility plugin (dll, PRISM, catalogs including `important_tgt_files.txt`, research
-mode off), `README.txt` (English instructions), the controls doc (`Controls.md`) and a stop shortcut (`Stop the mod.bat`). No
-game sounds are shipped: the launcher regenerates them, and the catalogs, from the tester's install (`oo2core.dll` ships for
-bundle reading). The runtime's native PDB reader and `createdump.exe` are left out. The .7z (LZMA2, about 35 MB since the recorded item sounds; the zip about 51 MB) no longer fits a 30 MB chat
-upload, and Windows 11 opens it (Windows 10 needs 7-Zip or WinRAR). `dist/` is gitignored; publishing a release stays a
-manual decision. Updating an install made before the own host: the launcher keeps `app/Plugins/Poe2Accessibility/config`
-and the extracted sounds, deletes the loose files in `app/` the new package lacks (GameHelper and its libraries, keeping
-`*.log`) and its old folders (`Updater.Prune`). An update made by a launcher from before the own host copies without
-deleting, so every start also deletes GameHelper's exe, copies, libraries and folders by name (`LegacyHost.cs`).
-
+The top folder holds `Poe2Access.exe` (one self-contained, single-file, not trimmed, uncompressed, ReadyToRun build, ~94 MB: the plugin
+is loaded at run time and uses framework APIs the exe does not, so trimming is off), `README.txt`, the controls and the stop shortcut.
+`app/` holds only `oo2core.dll` (bundle reading), `version.txt` and `Plugins/Poe2Accessibility` (dll, PRISM, catalogs including
+`important_tgt_files.txt`, research mode off): nothing of the .NET runtime. No game sounds are shipped: the mod regenerates them, and
+the catalogs, from the tester's install. The .7z (LZMA2, about 33 MB; the zip about 47 MB) no longer fits a 30 MB chat upload, and
+Windows 11 opens it (Windows 10 needs 7-Zip or WinRAR). `dist/` is gitignored; publishing a release stays a manual decision.
+Updating an install made by the previous layout (`Poe2Access.exe` plus ~250 runtime files, `Poe2AccessHost.exe` and `Poe2UiExtract.exe`
+in `app/`): the update copies the new package over it and the next start deletes what the new layout never ships from the top of `app/`.
 ## localization — the mod's phrases in the game's other languages
 Spoken strings are `T(english, spanish)` calls in `Poe2Accessibility/Announcements*.cs`; pt, fr, de, ru, th, ja, ko and
 zh-TW look the English text up in `Poe2Accessibility/catalog/lang/<code>.json` (an interpolated phrase by its composite
