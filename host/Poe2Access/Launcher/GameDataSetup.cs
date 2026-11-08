@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime;
+using Step = Poe2Access.GameDataSteps.Step;
 
 namespace Poe2Access;
 
@@ -14,8 +15,8 @@ internal static class GameDataSetup
     private const int PollMilliseconds = 1_000; // how often the wait lets the narrator speak
     private const string DataFolder = "GameData"; // beside the host: the catalogs made here, kept over the plugin's shipped copies
     private const string StampName = "game-version.txt";
-    private const string ItemSoundsStep = "item sounds";
-    private const string SoundsStep = "sounds";
+    private const string ItemSoundsStep = GameDataSteps.ItemSounds;
+    private const string SoundsStep = GameDataSteps.Sounds;
     private const string SoundsManifest = "manifest.txt";
     private const string NewSuffix = ".new"; // an output before it replaces the previous one
     private const string PartSuffix = ".part"; // the extractor's batch output still being written (Batch.cs)
@@ -23,13 +24,6 @@ internal static class GameDataSetup
     private static GameDataNarrator? narrator;
     private const string BatchLinePrefix = "batch "; // the extractor's batch result lines, "batch places done in 15.2 s"
 
-    /// <param name="Version">Raise it when the step's output changes: that step alone reruns, once, on every machine.</param>
-    /// <param name="Output">The catalog file it makes, or null for the sounds (the plugin's own folder, never shipped).</param>
-    /// <param name="Command">The extractor's batch command making the catalog; the stale ones share one opened index.</param>
-    /// <param name="Optional">Its failure keeps the previous file and still counts as done: a patch that moves the
-    /// tables these read must not rerun the step on every start (review 2026-10-25).</param>
-    /// <param name="Input">The step whose output it reads: it reruns whenever that one does.</param>
-    private sealed record Step(string Name, int Version, string? Output, string? Command, bool Optional = false, string? Input = null);
 
     public static void EnsureCurrent(AppFolders folders, string? gameDirectory)
     {
@@ -69,34 +63,7 @@ internal static class GameDataSetup
         var catalog = Path.Join(data, "catalog");
         var stampFile = Path.Join(data, StampName);
         Directory.CreateDirectory(catalog);
-        var steps = new[]
-        {
-            new Step(ItemSoundsStep, 1, "item-sounds.json", "item-sounds"),
-            new Step("area names", 1, "area-names.json", "areas"),
-            new Step("dat columns", 4, "dat-columns.json", "dat-columns"),
-            new Step("experience", 1, "experience.json", "experience"),
-            new Step("hit times", 3, "hit-times.txt", "hit-times", true),
-            new Step("hazards", 3, "hazards.txt", "hazards", true),
-            new Step("attack reach", 1, "attack-reach.txt", "attack-reach", true),
-            new Step("action types", 1, "action-types.txt", "action-types", true),
-            new Step("telegraph skills", 1, "telegraph-skills.txt", "telegraph-skills", true),
-            new Step("telegraph effects", 1, "telegraph-effects.txt", "telegraph-effects", true),
-            new Step("boss mechanics", 1, "boss-mechanics.txt", "boss-mechanics", true),
-            new Step("buff names", 1, "buff-names.json", "buff-names", true),
-            new Step("class mechanics", 1, "class-mechanics.json", "class-mechanics", true),
-            new Step("currency art", 1, "currency-art.json", "currency-art", true),
-            new Step("inline icons", 1, "inline-icons.txt", "inline-icons", true),
-            new Step("boss mechanics", 1, "boss-mechanics.txt", "boss-mechanics", true),
-            new Step("cull skills", 2, "cull-skills.txt", "cull-skills", true),
-            // At 2: a stamp from the old layout vouches for every step at 1, these two included, though they never ran.
-            new Step("game ids", 4, "game-ids.txt", "game-ids", true),
-            new Step("game keys", 3, "game-keys.txt", "game-keys", true),
-            new Step("places", 1, "places.json", "places", true),
-            new Step("endgame", 3, "endgame.json", "endgame", true),
-            new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
-            new Step("trial data", 1, "trials.json", "trial-data", true),
-            new Step(SoundsStep, 6, null, null, Input: ItemSoundsStep),
-        };
+        var steps = GameDataSteps.All;
 
         var stamp = LoadStamp(stampFile, install, pluginCatalog, catalog, steps);
         var stale = new HashSet<string>();

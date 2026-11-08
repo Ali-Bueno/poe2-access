@@ -101,6 +101,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(ReleaseManifestPinsThePackageToItsTag), ReleaseManifestPinsThePackageToItsTag);
             Run(nameof(GameDataStepsRerunAlone), GameDataStepsRerunAlone);
             Run(nameof(OldGameDataStampCarriesOver), OldGameDataStampCarriesOver);
+            Run(nameof(GameDataStepsAreEachListedOnce), GameDataStepsAreEachListedOnce);
             Run(nameof(GameContentIsFoundInEitherLayout), GameContentIsFoundInEitherLayout);
             Run(nameof(KakaoClientIsAGameProcess), KakaoClientIsAGameProcess);
             Run(nameof(SteamGameIsStartedBeforeTheKakaoClient), SteamGameIsStartedBeforeTheKakaoClient);
@@ -2496,6 +2497,15 @@ namespace Poe2Accessibility.Tests
             Equal(false, read.IsCurrent(install, "area names", 1), "a step never done runs");
             Equal(false, read.IsCurrent("index=11:20\nexe=30:40\nfmod=2.03.06\n", "places", 1), "a game patch reruns every step");
             Equal(1, read.With("index=11:20\n", "sounds", 2).Steps.Count, "a step done on a patched install forgets the others");
+        }
+
+        private static void GameDataStepsAreEachListedOnce()
+        {
+            // A step listed twice ran twice in one batch and the second run failed on the first's output (2026-11-08).
+            var steps = Poe2Access.GameDataSteps.All;
+            Equal(steps.Length, steps.Select(step => step.Name).Distinct().Count(), "each step name once");
+            Equal(steps.Count(step => step.Output != null), steps.Where(step => step.Output != null).Select(step => step.Output).Distinct().Count(), "each output once");
+            Equal(steps.Count(step => step.Command != null), steps.Where(step => step.Command != null).Select(step => step.Command).Distinct().Count(), "each command once");
         }
 
         private static void OldGameDataStampCarriesOver()
