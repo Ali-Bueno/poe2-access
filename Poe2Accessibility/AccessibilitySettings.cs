@@ -250,6 +250,12 @@ namespace Poe2Accessibility
         /// <summary>The dodge warning from where a Trial's trap is about to strike.</summary>
         public bool TrialTrapCues = true;
 
+        /// <summary>The Trial of Chaos' round and the Death Crystals left are said as they change; the room door the Trial opens is said with the way to it.</summary>
+        public bool AnnounceTrialProgress = true;
+
+        /// <summary>The guide goes to the room door the Trial opens while nothing else is guided.</summary>
+        public bool GuideTrialDoors = true;
+
         /// <summary>A clock falling on the HUD is said as it passes 60, 30, 20, 10 and 5 seconds.</summary>
         public bool AnnounceTimers = true;
 

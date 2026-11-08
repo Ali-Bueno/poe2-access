@@ -23,6 +23,7 @@ internal static class Batch
         ["buff-names"] = (_, index, output) => BuffNameExtractor.Run(index, output),
         ["currency-art"] = (_, index, output) => CurrencyArtExtractor.Run(index, output),
         ["places"] = (_, index, output) => PlaceExtractor.Run(index, output),
+        ["endgame"] = (_, index, output) => EndgameExtractor.Run(index, output),
         ["ui-catalog"] = (_, index, output) => UiScripts.BuildCatalog(index, output),
         ["inline-icons"] = (_, index, output) => InlineIconExtractor.Run(index, output),
     };

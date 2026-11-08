@@ -126,6 +126,7 @@ namespace Poe2Accessibility
         private HazardWatch? hazards;
         private EncounterReader? encounters;
         private TrapWatch? traps;
+        private TrialDoorWatch? trialDoors;
         private MapPinNarrator? mapPins;
         private MinionReport? minions;
         private CullWatch? culls;
@@ -385,6 +386,7 @@ namespace Poe2Accessibility
                 this.deployed.GameSound = gameSounds.Get;
                 var drops = ItemDropSounds.Load(
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
+                this.trialDoors = new TrialDoorWatch(this.entities, this.beacon, this.output, this.log);
                 var diabloSounds = GameSounds.LoadLoops(Path.Join(this.DllDirectory, "assets", ItemSoundSet.Folder), this.log);
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds, drops, diabloSounds);
                 this.fights = new FightWatch(memory);
@@ -420,6 +422,7 @@ namespace Poe2Accessibility
                 this.semantics.PinTownLabel = () => this.entities?.PinTownLabel ?? string.Empty;
                 this.mapPins = new MapPinNarrator(this.semantics, this.output, this.log);
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
+                this.narrator.Trials = this.semantics.Trials = TrialCatalog.Load(Path.Join(this.DllDirectory, "catalog", "trials.json"), this.log);
                 this.entities.Memory = new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds, modSounds, drops, diabloSounds));
                 this.commands.Settings = () => this.Settings;
@@ -690,6 +693,11 @@ namespace Poe2Accessibility
             if (watching && this.Settings.AnnounceAppearingText)
             {
                 this.mapPins?.Tick(this.gameState.CurrentState == GameStateTypes.InGameState ? this.WorldScreen() : IntPtr.Zero);
+            }
+
+            if (watching && this.Settings.AnnounceTrialProgress)
+            {
+                this.narrator.CheckTrialLines(this.screen.Current);
             }
 
             this.wasWatching = watching;
@@ -976,6 +984,7 @@ namespace Poe2Accessibility
             this.partnerAlerts?.Statuses.Reset();
             this.alerts?.Charges.Reset();
             this.partnerAlerts?.Charges.Reset();
+            this.trialDoors?.Reset();
             this.alerts?.Cooldowns.Reset();
             this.partnerAlerts?.Cooldowns.Reset();
             this.pickups?.Reset();

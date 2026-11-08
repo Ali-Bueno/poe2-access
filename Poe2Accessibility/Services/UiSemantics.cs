@@ -250,6 +250,10 @@ namespace Poe2Accessibility.Services
             {
                 (label, namedById) = (Announcements.NewsBanner, false);
             }
+            else if (this.InGame && value.Length == 0 && this.TrialIcon(info) is { Length: > 0 } trialIcon)
+            {
+                value = trialIcon; // an affliction, boon or modifier icon of the trials
+            }
 
             var tooltip = cardDetails.Count > 0 ? cardDetails : this.TooltipLines(info);
             var context = this.InGame ? this.PanelTitle(info) : string.Empty;

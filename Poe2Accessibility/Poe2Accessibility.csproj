@@ -74,6 +74,8 @@
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\inline-icons.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\inline-icons.txt')" />
     <!-- Harmful buffs' names per language (tools/Poe2UiExtract buff-names). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\buff-names.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\buff-names.json')" />
+    <!-- Map objectives, contents and the Atlas's graphs (tools/Poe2UiExtract endgame). -->
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\endgame.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\endgame.json')" />
     <!-- Buffs from standing in harmful ground, for the hazard alarm (tools/Poe2UiExtract hazards). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\hazards.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\hazards.txt')" />
     <!-- Granted effects that deal Culling Strike, for the culling cue (tools/Poe2UiExtract cull-skills). -->

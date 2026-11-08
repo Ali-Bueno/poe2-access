@@ -59,6 +59,10 @@
     <Compile Include="..\..\Poe2Accessibility\Services\TrialTraps.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TimedGuide.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\HonourWatch.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\TrialCatalog.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\TrialLines.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\TrialDoors.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Trials.cs" Link="Plugin\Announcements.Trials.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\WorldGate.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\StatusAilments.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\SpeechPriority.cs" />

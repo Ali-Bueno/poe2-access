@@ -293,6 +293,13 @@ if (args.Length > 2 && string.Equals(args[0], "currency-art", StringComparison.O
     return CurrencyArtExtractor.Run(bundles, args[2]);
 }
 
+// Args: endgame <gameDir> <outFile>  -- map objectives, contents, endgame areas and the Atlas's graphs (docs/research/endgame.md).
+if (args.Length > 2 && string.Equals(args[0], "endgame", StringComparison.OrdinalIgnoreCase))
+{
+    using var bundles = SharedBundles.OpenParsed(args[1]);
+    return EndgameExtractor.Run(bundles, args[2]);
+}
+
 // Args: world-titles <gameDir> <outFile>  -- the names objects show only in a WorldDescription, as { lang: { .ot path: title } }.
 if (args.Length > 2 && string.Equals(args[0], "world-titles", StringComparison.OrdinalIgnoreCase))
 {
