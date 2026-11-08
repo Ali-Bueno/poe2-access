@@ -140,7 +140,7 @@ namespace Poe2Accessibility.Tests
             var directory = AppContext.BaseDirectory;
             while (!File.Exists(Path.Join(directory, "tests", "Poe2Accessibility.Tests", "Fixtures", FixtureName)))
             {
-                directory = Path.GetDirectoryName(directory)!;
+                directory = Path.GetDirectoryName(directory) ?? throw new FileNotFoundException($"{FixtureName} is not under any folder above the tests");
             }
 
             var result = Compare(File.ReadLines(Path.Join(directory, "tests", "Poe2Accessibility.Tests", "Fixtures", FixtureName)));

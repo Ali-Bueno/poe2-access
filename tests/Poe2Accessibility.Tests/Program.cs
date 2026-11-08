@@ -3274,7 +3274,7 @@ namespace Poe2Accessibility.Tests
             var directory = AppContext.BaseDirectory;
             while (!System.IO.File.Exists(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", "code-fields.txt")))
             {
-                directory = System.IO.Path.GetDirectoryName(directory)!;
+                directory = System.IO.Path.GetDirectoryName(directory) ?? throw new System.IO.FileNotFoundException("code-fields.txt is not under any folder above the tests");
             }
 
             var shipped = CodeFieldCatalog.Parse(System.IO.File.ReadLines(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", "code-fields.txt")));
