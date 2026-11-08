@@ -12,6 +12,13 @@ namespace Poe2Access;
 internal static class GameDataSetup
 {
     private const int StepTimeoutMilliseconds = 180_000;
+
+    /// <summary>
+    ///     The whole batch's wait: 3 minutes a step added up to an hour for 22 steps, all of it in silence if one hung. The
+    ///     batch takes about 30 s here (2026-11-08; 150 s before the path index), so ten minutes leaves a slow disk its time;
+    ///     what has not finished then is not stamped and is retried on the next start.
+    /// </summary>
+    private const int BatchTimeoutMilliseconds = 600_000;
     private const int PollMilliseconds = 1_000; // how often the wait lets the narrator speak
     private const string DataFolder = "GameData"; // beside the host: the catalogs made here, kept over the plugin's shipped copies
     private const string StampName = "game-version.txt";
@@ -235,7 +242,7 @@ internal static class GameDataSetup
         leftovers.ForEach(File.Delete);
         try
         {
-            return Run(["batch", gameDirectory, .. list.SelectMany(job => new[] { job.Command, job.Output })], StepTimeoutMilliseconds * list.Count,
+            return Run(["batch", gameDirectory, .. list.SelectMany(job => new[] { job.Command, job.Output })], Math.Min(StepTimeoutMilliseconds * list.Count, BatchTimeoutMilliseconds),
                 line =>
                 {
                     if (line.StartsWith(BatchLinePrefix, StringComparison.Ordinal))
@@ -247,7 +254,18 @@ internal static class GameDataSetup
         }
         finally
         {
-            leftovers.Where(file => file.EndsWith(PartSuffix, StringComparison.Ordinal)).ToList().ForEach(File.Delete); // a timed-out run's unfinished outputs
+            // A timed-out run's unfinished outputs; the abandoned worker may still hold one open, which the next start clears.
+            foreach (var part in leftovers.Where(file => file.EndsWith(PartSuffix, StringComparison.Ordinal)))
+            {
+                try
+                {
+                    File.Delete(part);
+                }
+                catch (IOException error)
+                {
+                    Log.Write($"Could not delete {part}: {error.Message}");
+                }
+            }
         }
     }
 

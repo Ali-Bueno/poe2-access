@@ -157,6 +157,14 @@ internal static class Program
         }
 
         GameDataSetup.EnsureCurrent(folders, GameLauncher.InstallDirectory());
+        if (GameLauncher.RunningProcessName() is null)
+        {
+            // Closed while the data was rebuilt: the loop would wait for a game that is not coming, the mutex held and Steam
+            // still showing the game as running.
+            Log.Write("The game closed during the game data update");
+            stop.Set();
+        }
+
         return Next.Finished;
     }
 
