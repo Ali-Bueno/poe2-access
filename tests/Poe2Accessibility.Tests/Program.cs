@@ -31,6 +31,11 @@ namespace Poe2Accessibility.Tests
                 return SemanticRuleTests.CheckExe(exe, catalog);
             }
 
+            if (args is [PrismTests.CheckCommand, var prismFolder])
+            {
+                return PrismTests.Check(prismFolder);
+            }
+
             Run(nameof(BaselineIsSilentExceptTopLayer), BaselineIsSilentExceptTopLayer);
             Run(nameof(PopupNeedsTwoSnapshots), PopupNeedsTwoSnapshots);
             Run(nameof(ChangedTextIsReportedOnce), ChangedTextIsReportedOnce);
@@ -213,7 +218,7 @@ namespace Poe2Accessibility.Tests
                 Run(name, test);
             }
 
-            foreach (var (name, test) in EndgameTests.All().Concat(BossMechanicsTests.All()).Concat(StartUpTests.All()).Concat(StartupSpeechTests.All()))
+            foreach (var (name, test) in EndgameTests.All().Concat(BossMechanicsTests.All()).Concat(StartUpTests.All()).Concat(StartupSpeechTests.All()).Concat(PrismTests.All()))
             {
                 Run(name, test);
             }

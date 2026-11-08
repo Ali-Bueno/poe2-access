@@ -182,17 +182,25 @@ internal static class Program
         LegacyHost.Delete(folders.Data);
         if (folders.Packaged && Directory.Exists(folders.Data))
         {
-            foreach (var name in AppCleanup.Unshipped(Directory.EnumerateFiles(folders.Data).Select(Path.GetFileName).OfType<string>()))
+            DeleteUnshipped(folders.Data, AppCleanup.Unshipped(Directory.EnumerateFiles(folders.Data).Select(Path.GetFileName).OfType<string>()));
+        }
+
+        var plugin = folders.Plugin(HostRun.PluginName);
+        DeleteUnshipped(plugin, AppCleanup.UnshippedPluginFiles.Where(name => File.Exists(Path.Join(plugin, name))));
+    }
+
+    private static void DeleteUnshipped(string folder, IEnumerable<string> names)
+    {
+        foreach (var name in names)
+        {
+            try
             {
-                try
-                {
-                    File.Delete(Path.Join(folders.Data, name));
-                    Log.Write($"Deleted {name}: the package no longer ships it");
-                }
-                catch (Exception error) when (error is IOException or UnauthorizedAccessException)
-                {
-                    Log.Write($"Could not delete {name}: {error.Message}");
-                }
+                File.Delete(Path.Join(folder, name));
+                Log.Write($"Deleted {name}: the package no longer ships it");
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+            {
+                Log.Write($"Could not delete {name}: {error.Message}");
             }
         }
     }

@@ -46,9 +46,20 @@ Invoke-Dotnet @('build', (Join-Path $repo 'Poe2Accessibility'), '-c', 'Release',
 $pluginBuild = Join-Path $repo 'Poe2Accessibility\bin\Release\net10.0-windows\win-x64'
 $plugin = Join-Path $app 'Plugins\Poe2Accessibility'
 New-Item -ItemType Directory -Force (Join-Path $plugin 'catalog\lang'), (Join-Path $plugin 'config') | Out-Null
-foreach ($file in 'Poe2Accessibility.dll', 'Poe2Accessibility.pdb', 'Prismatoid.dll', 'prism.dll') {
+foreach ($file in 'Poe2Accessibility.dll', 'Poe2Accessibility.pdb', 'prism.dll') {
     Copy-Item (Join-Path $pluginBuild $file) $plugin
 }
+# PRISM's Wine bridges (docs/proton.md): the placeholders beside prism.dll, their Unix halves in wine\, all from the same
+# release and never renamed; inert on Windows. Then PRISM's license and its notices.
+$bridges = 'prism_orca_bridge', 'prism_speech_dispatcher_bridge', 'prism_spiel_bridge'
+New-Item -ItemType Directory -Force (Join-Path $plugin 'wine') | Out-Null
+foreach ($bridge in $bridges) {
+    Copy-Item (Join-Path $pluginBuild "$bridge.dll") $plugin
+    Copy-Item (Join-Path $pluginBuild "wine\$bridge.dll.so") (Join-Path $plugin 'wine')
+}
+$prismLicenses = Join-Path $plugin 'licenses\prism'
+New-Item -ItemType Directory -Force $prismLicenses | Out-Null
+Copy-Item (Join-Path $repo 'third_party\prism\NOTICE'), (Join-Path $repo 'third_party\prism\LICENSES') $prismLicenses -Recurse
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\*.json') (Join-Path $plugin 'catalog')
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\lang\*.json') (Join-Path $plugin 'catalog\lang') # phrases in the other game languages
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\dodge-timings.txt') (Join-Path $plugin 'catalog') # measured dodge timings
