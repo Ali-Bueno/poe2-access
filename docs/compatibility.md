@@ -3,21 +3,21 @@
 What a PoE2 patch can break, what follows it on its own, and what needs a person. Code: `LayoutProbe`,
 `InGameFields`, `ControlFields`, `EntityFields`, `FlagBits`, `PassiveTreeFields`, `CompatibilityReport`,
 `WorldLayoutWatch` (plugin); `AreaLayoutSearch`, `AreaInstanceLayout`, `OffsetHealer`, `StructShapes`, `StructRemap`,
-`GameStatesSearch` (host, kept in `tools/package/gamehelper.patch`); `GameDataSetup` (launcher);
-`tools/package/Update-GameHelper.ps1` (host).
+`GameStatesSearch` (host, `host/GameHelper`); `GameDataSetup` (launcher). Which fields have how many of these, and
+the gaps: [field protection audit](research/field-protection-audit.md).
 
 ## What depends on the game's build
 | Layer | Examples | After a patch |
 |---|---|---|
-| GameHelper2 (upstream) | 6 byte patterns; struct offsets in `GameOffsets` (area, entities, components) | Found again at run time by the host patch below, whatever upstream does; pulling upstream only adds what a search cannot judge. |
+| The host's reader (`host/`, from GameHelper2) | 6 byte patterns; struct offsets in `GameOffsets` (area, entities, components) | Found again at run time by the searches below; the constants are kept at the current build's values. |
 | The plugin's own offsets (`GameLayout`, ~86) | control name and text fields, UI manager focus fields, in-game layer fields, Render name, Targetable flag, dat row columns | The ones below are found again at runtime; the rest are checked only by the readings that use them. |
 | Data from the game's files | `catalog/item-sounds.json`, `area-names.json`, `ui-catalog.json`, `dat-columns.json`, the extracted sounds | Regenerated on the player's machine by the launcher when the game's files change. |
 
 ## Found again at runtime (host)
-GameHelper's offsets are compiled in, so a patch that moved them silenced the whole world until a new host shipped: 0.5.5f
+The host's offsets are compiled in, so a patch that moved them silenced the whole world until a new host shipped: 0.5.5f
 moved `AreaInstance` (level, hash, player +8; entities, terrain +0x28) and enemies, radar and items went quiet while the
 menus kept reading. History says this is the common case: `AreaInstance` moved in 0.5.4, 0.5.4c, 0.5.5 and 0.5.5f. The
-mod's own changes to the host, `tools/package/gamehelper.patch`, read those fields wherever they are.
+host's searches (once a patch to GameHelper2, now in `host/`) read those fields wherever they are.
 
 | Field | How it is recognised | Where |
 |---|---|---|
@@ -26,7 +26,7 @@ mod's own changes to the host, `tools/package/gamehelper.patch`, read those fiel
 | Area: entity lists | two adjacent MSVC maps, sentinel flagged, root's value an entity | `AreaLayoutSearch` |
 | Area: terrain | tile vector = X × Y × 0x38 bytes, walkable = bytes per row × rows | `AreaLayoutSearch` |
 | Area: level, hash | level 1-100 in one byte (the next can hold a flag), then 8 bytes of flags and three vectors (any empty); a hash too large to be the top of a pointer, at the measured distance | `AreaLayoutSearch` |
-| Entity id, valid flag | the list's key equals the id, on the root and its child | `AreaLayoutSearch.FindEntityId` |
+| Entity id (the valid flag follows it) | the list's key equals the id, on the root and its child | `AreaLayoutSearch.FindEntityId` |
 | Life | every vital points back at its component; one shift lands the measured ones on them (the game has seven vitals, GameHelper reads five) | `StructShapes.PlaceVitals` |
 | Buffs | a pointer list that ends in a lower-case id such as `herald_of_thunder` (no buff on the player: not judged) | `StructShapes.IsBuffList` |
 | Skills, cooldowns | 16-byte entries with a 0x48-byte vector right after | `StructShapes.IsSkillList` |
@@ -35,10 +35,12 @@ mod's own changes to the host, `tools/package/gamehelper.patch`, read those fiel
 | Positions | a point inside the map that projects near the screen's middle (the camera follows the player); no such point while the measured field still holds a point of the map is not judged: the camera is elsewhere, and the field has not moved | `OffsetHealer.JudgePosition` |
 | Game state's area and world pointers | the pointer whose target holds a world / a camera matrix | `OffsetHealer.LocateArea` |
 | Game states, when their pattern fails | a static pointer to an object whose state stack ends in one of its states (at least 8 states; two of 13 are null until used) | `GameStatesSearch` |
-| Any other component | GameHelper's own verifier, run with no one at the keyboard (`OffsetHelperEngine.RunSweep`): a repair only when it is not ambiguous | `OffsetHealer.Verified` |
+| Other components with a vector, map, owner or entity pointer | GameHelper's own verifier, run with no one at the keyboard (`OffsetHelperEngine.RunSweep`): a repair only when it is not ambiguous; a component with none of these (Chest, Shrine, Player, Positioned, Base, WorldItem, Animated, Charges, Stack, Targetable, TriggerableBlockage) reads intact on its header alone | `OffsetHealer.Verified` |
 
 A struct that holds what it must is never touched. One that moved is read through `StructRemap<T>`: `TryReadMemory<T>`
-checks a generic static (one null test on the hot path) and only moved structs pay for a rebuild, so no read site changes.
+checks a generic static (one null test on the hot path) and only moved structs pay for a rebuild, so no read site of the host
+changes. The plugin's own raw reads of host structs (`HostMemoryReader.TryRead`: the area name row in `GameStateService`,
+`LocalInventories`, `UiManagerLocator`) do not go through it.
 A pattern not found no longer stops the rest (`PatternFinder` threw, and a missing key in `Core` could take the other
 coroutines of the event with it). `WorldLayoutWatch` runs the sweep on a settled area, in the first three areas of a game
 process (80-110 ms each); a field missing is said, and a new build read with nothing lost says "El juego se ha actualizado:
@@ -76,9 +78,8 @@ entity id and both game state pointers moved, and the `Game States` and `GameCul
 the world came back, with enemies, items and chests sounding. To repeat one: shift a `FieldOffset` in `GameOffsets`, rebuild
 the host, read the log's "Struct sweep" line, then `git checkout -- GameOffsets`.
 
-**The patch in practice:** `external/` is not in the repository, so `Update-GameHelper.ps1` takes the patch out before a pull
-and applies it after, `-SavePatch` writes the clone's changes back, and `New-TestPackage.ps1` refuses to package without it.
-The patch leaves the `FieldOffset` lines alone, so an upstream offset update cannot conflict with it.
+**Upstream:** the host is no longer a patched GameHelper2 clone (2026-11-08): its reader lives in `host/`, so an offset that
+upstream learns is copied by hand into `host/GameOffsets` (upstream had no commit from 2026-09-14 on).
 
 ## Found again at runtime (plugin)
 Each field is tried where it was measured first, so a build that did not move it behaves exactly as before; only
@@ -93,7 +94,7 @@ nearest fit wins). Fields of one structure that move together follow an anchor.
 | UI manager root slot: holds the root of the elements that point at the manager (2 elements must agree before an unproven manager is trusted; the direct in-game slot is taken only as measured) | focus, last focused, hovered, pad state | `LayoutProbe.AdoptManager` |
 | In-game layers by name (`HUD`, `death_screen`, `skill_bar`, `bind_management_display`) or shape (inventory: child `panels_parent`; chat: `textField` and `scrollbar` below) | the objective box (no name or shape) follows the nearest one found | `InGameFields` |
 | Entity names: half of 30 monsters, characters and players read a name | — | `LayoutProbe.ProbeRenderNames` |
-| Targetable in-play flag: set on what is always in play (players, waypoint, stash, checkpoint, living monsters) and, of an NPC's story variants (one Render name), on at most one; the nearest byte that fits when the measured one does not | targeted flag; everything counts as in play while unjudged or lost | `EntityFields` (pure `InPlayFlag`) |
+| Targetable in-play flag: set on what is always in play (players, waypoint, stash, checkpoint, living monsters) and, of an NPC's story variants (one Render name), on at most one; the nearest byte that fits when the measured one does not | targeted flag; the measured byte is used while unjudged, everything counts as in play once lost | `EntityFields` (pure `InPlayFlag`) |
 | NPC quest marker: the NPC component's dat reference leads to the MiscAnimated row `NPCQuestMarker…` on some NPC (a town with no marker proves nothing; the self-test lists the row ids it sees) | — | `EntityFields.HasMarkerAt` |
 | Control flag bits: interactive is on most controls with a click sound and on no plain label; text input on combo boxes and text fields and on no label (some buttons carry it too); navigable on what the in-game controller focus lands on, rarely on its container (grids left out); a bit is kept while half its carriers still have it | — | `FlagBits` (pure `BitSearch`) |
 | Enabled flag bit: nothing tells it apart (a disabled control is rare), so it is only noticed lost (under 20% of a screen's controls): then every control counts as enabled | — | `FlagBits.EnabledTrusted` |
@@ -226,10 +227,8 @@ field. The mod said "El juego se ha actualizado: el mod lo ha encontrado todo", 
 the radar sounded. `tools/exe_reader/reader.py` tells what moved from the exe alone, before starting the game ([study](research/exe-layouts.md)).
 
 ## Still needs a person after a patch
-- Normally nothing: the host follows its own offsets (above). When something is said lost, `pwsh
-  tools/package/Update-GameHelper.ps1` (with GameHelper stopped) fetches upstream, lists the new commits, fast-forwards
-  `external/GameHelper2` keeping the patch, rebuilds the host and the plugin and runs the tests; `-CheckOnly` only lists,
-  `-Package` also builds the test package. The plugin says what it lost: the world ("lo que hay a tu alrededor, así que
+- Normally nothing: the host follows its own offsets (above). When something is said lost, follow the patch-day
+  runbook ([patch day](patch-day.md)). The plugin says what it lost: the world ("lo que hay a tu alrededor, así que
   enemigos, objetos y salidas no sonarán"), a struct by name, or attached two minutes without ever reading a game state
   (`GameStateService`, part "game states": "no encuentro el estado del juego (GameHelper necesita una actualización)").
 - A part the self-test reports lost after a patch: each search assumes one change at a time near where the field was
@@ -269,7 +268,8 @@ What else remains is by design:
 - A structure redesigned rather than shifted (a component split in two, a list that becomes a map): its readings stop and the mod
   says so. No search can promise more; what it promises is that the common patch costs nothing, and that the rest is heard, not
   guessed from silence.
-- Of the six byte patterns only `Game States` and `GameCullSize` matter, and both have a search. The other four (`File Root`,
+- Of the six byte patterns only `Game States` and `GameCullSize` matter; `Game States` has a search, `GameCullSize` (the
+  window cull the UI rects use) has none yet. The other four (`File Root`,
   `AreaChangeCounter`, the two terrain rotation ones) were broken on purpose on 2026-11-06: the sweep, enemies, radar and walls went
   on as before, since nothing the plugin reads goes through them. Build with `--no-incremental` to try it: a pattern edit alone
   left `GameOffsets.dll` unbuilt.
