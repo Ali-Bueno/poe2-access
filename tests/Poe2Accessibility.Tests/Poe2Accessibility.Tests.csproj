@@ -106,6 +106,9 @@
     <Compile Include="..\..\tools\Poe2UiExtract\SkillGraphFile.cs" Link="Extract\SkillGraphFile.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\DatTable.cs" Link="Extract\DatTable.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\DatColumnSearch.cs" Link="Extract\DatColumnSearch.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\BuffColumns.cs" Link="Extract\BuffColumns.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\HazardColumns.cs" Link="Extract\HazardColumns.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\AnimationColumns.cs" Link="Extract\AnimationColumns.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\StickCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\StickRuleCode.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\GameMarkup.cs" Link="Extract\GameMarkup.cs" />
