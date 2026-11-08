@@ -395,6 +395,9 @@ namespace Poe2Accessibility.Services
             /// <summary>The clip time (s) of the contact last warned of, so a clip's next contact warns again.</summary>
             public float? WarnedContact { get; init; }
 
+            /// <summary>The clip time (s) of a contact the last warning covers (too close after it for a sound of its own).</summary>
+            public float? CoveredContact { get; init; }
+
             /// <summary>Where the time to the blow came from on the last frame.</summary>
             public BlowTiming Timing { get; init; }
 

@@ -6,8 +6,8 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     The danger area a monster skill's table describes (<c>telegraph-skills.txt</c>: GeometryAttack and GeometryTrigger
-    ///     rows, docs/research/attack-telegraphs.md): its shape, length or radius, width, angle in degrees, range and delay. Sizes
-    ///     are taken as world units, as the study's cross-check says; the live protocol measures them.
+    ///     rows, docs/research/attack-telegraphs.md): its shape, length or radius, width, angle in degrees, range and delay. The
+    ///     tables' sizes are grid cells; <see cref="AttackAreas.InWorld"/> turns them into world units for the checks.
     /// </summary>
     public readonly record struct AttackArea(string Shape, float Length, float Width, float AngleDegrees, float Range, int DelayMs)
     {
@@ -26,6 +26,23 @@ namespace Poe2Accessibility.Services
 
         private const char Pair = ';';
         private const char KeyValue = '=';
+
+        /// <summary>
+        ///     World units in one grid cell (the terrain's 250/23), the unit of the tables' lengths, widths and ranges. Measured
+        ///     live on 2026-11-08 (docs/research/attack-telegraphs.md, "Unit scale, live"): the Devourer's bite_vomit_01
+        ///     (GAMudBurrowerHeadSlam, circle 18, range 100) took 41 life 84 ms after its contact from a player 346 world units
+        ///     from its centre, and Mud Golems' ground_slam_01 (MudGolemSlam, circle 15, range 66) hit at 212-217; read as world
+        ///     units neither area reaches past 260.
+        /// </summary>
+        public const float WorldPerCell = 250f / 23f;
+
+        /// <summary>The area with its sizes (length, width, range) in world units; angle, delay and count are kept.</summary>
+        public static AttackArea InWorld(AttackArea area) => area with
+        {
+            Length = area.Length * WorldPerCell,
+            Width = area.Width * WorldPerCell,
+            Range = area.Range * WorldPerCell,
+        };
 
         /// <summary>
         ///     The area of a <c>geometry</c> line ("shape=cone;length=10;angle=100;delay=33;range=85") or a <c>trigger</c> line

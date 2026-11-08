@@ -69,7 +69,7 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                this.areas[columns[0]] = area;
+                this.areas[columns[0]] = AttackAreas.InWorld(area);
             }
         }
 

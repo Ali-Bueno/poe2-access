@@ -66,6 +66,28 @@ namespace Poe2Accessibility.Services
         /// <summary>A clip event that times a blow: a contact past the cast mark.</summary>
         public static bool IsBlow(ClipEvent clipEvent) => clipEvent.Name == Contact && clipEvent.Time > CastMarkSeconds;
 
+        /// <summary>
+        ///     The clip time of the next blow still ahead of <paramref name="position"/> and after <paramref name="covered"/>: a
+        ///     contact too close behind the last warning for a sound of its own (one per monster each 600 ms) is covered by that
+        ///     warning, and the one after it is timed in its place. Beira's ice_spear_combo_01 strikes at 0.50, 0.95, 1.40, 1.70 and
+        ///     2.17 s; with the covered contact marked warned, the third and fifth were warned only as the second and fourth landed,
+        ///     450 ms ahead instead of 500 (Clearfell, 2026-11-08). Null when none is ahead.
+        /// </summary>
+        public static float? NextBlow(float position, IReadOnlyList<ClipEvent> events, float? covered)
+        {
+            float? next = null;
+            foreach (var clipEvent in events)
+            {
+                if (IsBlow(clipEvent) && clipEvent.Time >= position && (covered == null || clipEvent.Time > covered) &&
+                    (next == null || clipEvent.Time < next))
+                {
+                    next = clipEvent.Time;
+                }
+            }
+
+            return next;
+        }
+
         /// <summary>Real milliseconds until a moment of the clip (seconds into it); 0 once it is behind.</summary>
         public static int MsUntil(AnimationReading reading, float clipSeconds) =>
             (int)Math.Round(Math.Max(0f, clipSeconds - reading.Position) / Rate(reading) * MsPerSecond);

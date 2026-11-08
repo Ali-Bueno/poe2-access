@@ -16,6 +16,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheClockFollowsTheSpeedTheClipPlaysAt), TheClockFollowsTheSpeedTheClipPlaysAt),
             (nameof(TheGlobalSpeedCountsUnlessItsFlagSaysOne), TheGlobalSpeedCountsUnlessItsFlagSaysOne),
             (nameof(OnlyABlowAheadOfThePositionIsNext), OnlyABlowAheadOfThePositionIsNext),
+            (nameof(AContactCoveredByTheLastWarningPassesTheTurnToTheNext), AContactCoveredByTheLastWarningPassesTheTurnToTheNext),
             (nameof(TheFilesNominalHitIsTimedFromWhereTheClipIs), TheFilesNominalHitIsTimedFromWhereTheClipIs),
             (nameof(EventAndActionIdsAreTheGamesHashes), EventAndActionIdsAreTheGamesHashes),
             (nameof(AnImplausibleReadingIsNoClock), AnImplausibleReadingIsNoClock),
@@ -45,6 +46,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ASkillAreaIsReadFromItsCatalogLine), ASkillAreaIsReadFromItsCatalogLine),
             (nameof(AnAreaCatchesThePlayerOnlyInsideItsShape), AnAreaCatchesThePlayerOnlyInsideItsShape),
             (nameof(TheAttackCatalogsGiveReachAreasAndActionNames), TheAttackCatalogsGiveReachAreasAndActionNames),
+            (nameof(TheTablesAreaSizesAreGridCells), TheTablesAreaSizesAreGridCells),
             (nameof(ALearntBlowFarFromTheFilesIsNotBelieved), ALearntBlowFarFromTheFilesIsNotBelieved),
         };
 
@@ -71,6 +73,23 @@ namespace Poe2Accessibility.Tests
             var events = new[] { new ClipEvent(AttackClock.Contact, 0.9f), new ClipEvent("footstep", 0.6f), new ClipEvent(AttackClock.Contact, 0.3f) };
             Equal(400, AttackClock.MsToNext(Clip(0.5f), events, AttackClock.Contact), "the second contact");
             Equal(null, AttackClock.MsToNext(Clip(0.95f), events, AttackClock.Contact), "none left in this swing");
+        }
+
+        private static void AContactCoveredByTheLastWarningPassesTheTurnToTheNext()
+        {
+            // Beira's ice_spear_combo_01 (Clearfell, 2026-11-08): five spears; the 0.0 contact of a cast is no blow.
+            var events = new[]
+            {
+                new ClipEvent(AttackClock.Contact, 0.0f), new ClipEvent(AttackClock.Contact, 0.5018f), new ClipEvent("face", 0.7224f),
+                new ClipEvent(AttackClock.Contact, 0.95f), new ClipEvent(AttackClock.Contact, 1.4f), new ClipEvent(AttackClock.Contact, 1.7037f),
+                new ClipEvent(AttackClock.Contact, 2.1712f),
+            };
+            Near(0.5018f, AttackClock.NextBlow(0f, events, null), "the first spear, not the cast mark");
+            Near(0.95f, AttackClock.NextBlow(0.51f, events, null), "the second spear once the first passed");
+            Near(1.4f, AttackClock.NextBlow(0.51f, events, 0.95f), "the second covered: the third is next");
+            Near(2.1712f, AttackClock.NextBlow(1.41f, events, 1.7037f), "the fourth covered: the fifth");
+            Equal(null, AttackClock.NextBlow(2.2f, events, null), "none left");
+            Equal(null, AttackClock.NextBlow(1.8f, events, 2.1712f), "the last one covered: none left to warn");
         }
 
         private static void TheFilesNominalHitIsTimedFromWhereTheClipIs()
@@ -356,6 +375,34 @@ namespace Poe2Accessibility.Tests
             var line = new AttackArea(AttackAreas.Rectangle, 400f, 60f, 0f, 0f, 0);
             Equal(true, AttackAreas.Catches(line, monster, new Vector2(300, 0), new Vector2(0, 50), 25f, 10f), "a rectangle's edge on the body");
             Equal(false, AttackAreas.Catches(line, monster, new Vector2(300, 0), new Vector2(0, 100), 25f, 10f), "beside it");
+        }
+
+        /// <summary>Live 2026-11-08: hits that landed farther than the tables' sizes read as world units allow.</summary>
+        private static void TheTablesAreaSizesAreGridCells()
+        {
+            var data = new AttackData();
+            data.AddTelegraphSkills(new[]
+            {
+                "GAMudBurrowerHeadSlam|geometry|shape=circle;length=18;delay=33;range=100|Metadata/Effects/Spells/monsters_effects/Act1_FOUR/MudBurrower/bite_vomit.ao|",
+                "MudGolemSlam|geometry|shape=circle;length=15;delay=33;range=66|Metadata/Effects/Spells/monsters_effects/Gallows/Act1/MudGolem/slam.ao|",
+            });
+            Near(18f * 250f / 23f, data.Area("GAMudBurrowerHeadSlam")?.Length, "a radius of 18 cells");
+            Near(100f * 250f / 23f, data.Area("GAMudBurrowerHeadSlam")?.Range, "a range of 100 cells");
+
+            // The Devourer at (1832, 2364) slammed the player's place (2076, 2609); the player stood at (2082, 2614): 41 life.
+            var devourer = new Vector2(1832, 2364);
+            var target = new Vector2(2076, 2609);
+            var player = new Vector2(2082, 2614);
+            Equal(true, AttackAreas.Catches(data.Area("GAMudBurrowerHeadSlam")!.Value, devourer, target, player, 30f, 40f), "the slam that hit at 346 units");
+            Equal(false, AttackAreas.Catches(AttackAreas.Parse("geometry", "shape=circle;length=18;delay=33;range=100")!.Value, devourer, target, player, 30f, 40f),
+                "read as world units it could not have");
+
+            // A Mud Golem 217 units from the player, its slam aimed at the player's place: hit live.
+            var golem = new Vector2(0, 0);
+            var standing = new Vector2(217, 0);
+            Equal(true, AttackAreas.Catches(data.Area("MudGolemSlam")!.Value, golem, standing, standing, 30f, 40f), "a golem slam at 217 units");
+            Equal(false, AttackAreas.Catches(data.Area("MudGolemSlam")!.Value, golem, new Vector2(900, 0), new Vector2(1300, 0), 30f, 40f),
+                "still nothing far past the slam's range");
         }
 
         private static void TheAttackCatalogsGiveReachAreasAndActionNames()

@@ -172,6 +172,12 @@ namespace Poe2Accessibility.Services
                                    $"aim {facts.Aim}, reach {facts.InReach?.ToString() ?? "?"}, blow in {blowIn?.ToString() ?? "?"} ms" +
                                    $"{(attack.TravelMs > 0 ? $", {attack.TravelMs} ms of flight" : string.Empty)}, clip {snapshot?.Clip ?? "?"})");
                 }
+                else if (attack.Warned && contact is { } covered)
+                {
+                    // Too soon after this monster's last warning for a sound of its own: that warning covers this contact, and
+                    // the next one is timed in full (AttackClock.NextBlow).
+                    attack = attack with { Warned = false, WarnedContact = null, CoveredContact = covered };
+                }
             }
 
             if (parrying && threatens)
@@ -205,7 +211,7 @@ namespace Poe2Accessibility.Services
 
             if (attack.LastClock is { } before && AttackClock.NewSwing(before, now))
             {
-                attack = attack with { ClipMoved = AttackClock.LeftStartClip(attack.StartClip, now, acting), Warned = false, WarnedContact = null };
+                attack = attack with { ClipMoved = AttackClock.LeftStartClip(attack.StartClip, now, acting), Warned = false, WarnedContact = null, CoveredContact = null };
             }
 
             // A clip with several contacts warns again for each one still ahead.
@@ -227,7 +233,7 @@ namespace Poe2Accessibility.Services
             {
                 if (snapshot.Events.Any(AttackClock.IsBlow))
                 {
-                    contact = NextContact(clock, snapshot.Events);
+                    contact = AttackClock.NextBlow(clock.Position, snapshot.Events, attack.CoveredContact);
                     (release, timing) = (contact is { } at ? AttackClock.MsUntil(clock, at) : 0, BlowTiming.Live);
                 }
                 else if (!attack.ClipMoved && attack.Learnt is { } hit)
