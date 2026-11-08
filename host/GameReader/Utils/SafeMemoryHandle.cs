@@ -202,14 +202,17 @@ namespace GameReader.Utils
         internal T[] ReadStdVector<T>(StdVector nativeContainer)
             where T : unmanaged
         {
-            var typeSize = Marshal.SizeOf<T>();
+            var typeSize = HostStructs.Stride<T>();
             var length = nativeContainer.Last.ToInt64() - nativeContainer.First.ToInt64();
             if (length <= 0 || length % typeSize != 0 || length > 50_000_000)
             {
                 return Array.Empty<T>();
             }
 
-            return this.ReadMemoryArray<T>(nativeContainer.First, (int)length / typeSize);
+            // An entry a patch changed (a field moved, or the entry grew) is rebuilt from the game's bytes.
+            return HostStructs.AsCompiled<T>()
+                ? this.ReadMemoryArray<T>(nativeContainer.First, (int)length / typeSize)
+                : HostStructs.ReadElements<T>(this.ReadMemoryArray<byte>(nativeContainer.First, (int)length));
         }
 
         /// <summary>

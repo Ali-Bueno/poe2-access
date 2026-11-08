@@ -65,6 +65,15 @@ namespace GameReader.Utils
         /// <summary>The part that names an entity's components (lookup pointer, name map).</summary>
         public const string LookUpPart = "component lookup";
 
+        /// <summary>An entry of the component name map (its size, name and index); judged where its map is found.</summary>
+        public const string NameEntryPart = "component name entry";
+
+        /// <summary>An entry of a player's inventory list (its size, id and inventory); judged where the inventories are found.</summary>
+        public const string InventoryEntryPart = "inventory entry";
+
+        /// <summary>Where an inventory's cell keeps its item; judged where the inventories are found.</summary>
+        public const string InventoryCellPart = "inventory cell";
+
         /// <summary>The part that says which state is current (the game state object's stack).</summary>
         public const string StateStackPart = "game state stack";
 
@@ -105,6 +114,9 @@ namespace GameReader.Utils
 
         private static readonly Dictionary<Type, RemapSegment[]> Healed = new();
 
+        /// <summary>The element sizes set for vectors of a struct (<see cref="Restride"/>).</summary>
+        private static readonly Dictionary<Type, int> Strides = new();
+
         /// <summary>Which segments the code placed, so a later build's reading replaces them and a live one is left alone.</summary>
         private static readonly Dictionary<Type, HashSet<int>> FromCode = new();
 
@@ -131,9 +143,18 @@ namespace GameReader.Utils
             };
 
             outcomes.Add(JudgeGroundItems(area, memory));
-            outcomes.Add(JudgeInventories(area, memory));
-            outcomes.AddRange(JudgeEntityLayout(memory, area.AwakeEntities.Values.Where(entity => entity.IsValid).Take(EntitiesJudged)
-                .Select(entity => entity.Address.ToInt64()).Prepend(area.Player.Address.ToInt64()).ToList()));
+            outcomes.AddRange(JudgeInventories(area, memory));
+            var entityLayout = JudgeEntityLayout(memory, area.AwakeEntities.Values.Where(entity => entity.IsValid).Take(EntitiesJudged)
+                .Select(entity => entity.Address.ToInt64()).Prepend(area.Player.Address.ToInt64()).ToList());
+            outcomes.AddRange(entityLayout);
+            if (entityLayout.Any(outcome => outcome.Name == NameEntryPart && outcome.Health == StructHealth.Moved))
+            {
+                // Entities read their component maps once, through the old entry: those already met read them again.
+                foreach (var entity in area.AwakeEntities.Values.Append(area.Player))
+                {
+                    entity.ReadComponentsAgain();
+                }
+            }
 
             // The position is judged through the camera, which only reads from its new place on the next frame.
             outcomes.Add(camera.Health == StructHealth.Moved && !cameraKnown ? NotJudged(PositionsPart, "the camera just moved") : JudgePosition(area));
@@ -209,12 +230,47 @@ namespace GameReader.Utils
             Place(typeof(EntityOffsets), (measured.Details, found.Details), (measured.Components, found.Components), (MeasuredEntityId, Follow(typeof(EntityOffsets), MeasuredEntityId)));
             Place(typeof(EntityDetails), (measured.Path, found.Path), (measured.LookUp, found.LookUp));
             Place(typeof(ComponentLookUpStruct), (measured.NameMap, found.NameMap));
+            var entry = found.NameMap < 0 ? NotJudged(NameEntryPart, "its map is not found") : PlaceEntry<ComponentNameAndIndexStruct>(
+                NameEntryPart,
+                (measured.Entry.Stride, found.Entry.Stride),
+                (measured.Entry.Name, found.Entry.Name),
+                (measured.Entry.Index, found.Entry.Index));
             return new[]
             {
                 Outcome(EntityPathPart, (measured.Details, found.Details), (measured.Path, found.Path)),
                 Outcome(ComponentsPart, (measured.Components, found.Components)),
                 Outcome(LookUpPart, (measured.LookUp, found.LookUp), (measured.NameMap, found.NameMap)),
+                entry,
             };
+        }
+
+        /// <summary>
+        ///     Reads every element of a vector of <typeparamref name="T"/> as the game lays it out now: <paramref name="stride"/> bytes
+        ///     each (measured, found), and each field (measured, found) from where it was found; the outcome names the size when
+        ///     only it changed, else the first field that moved.
+        /// </summary>
+        internal static StructOutcome PlaceEntry<T>(string name, (int Measured, int Found) stride, params (int Measured, int Found)[] fields)
+            where T : unmanaged
+        {
+            Place(typeof(T), fields);
+            Restride(typeof(T), stride.Found);
+            var outcome = Outcome(name, fields);
+            return outcome.Health == StructHealth.Intact && stride.Found != stride.Measured
+                ? new StructOutcome(name, StructHealth.Moved, stride.Measured, stride.Found, "the entry's size")
+                : outcome;
+        }
+
+        /// <summary>Sets how many bytes an element of a vector of <paramref name="structType"/> takes in the game.</summary>
+        internal static void Restride(Type structType, int stride)
+        {
+            lock (Healed)
+            {
+                Strides[structType] = stride;
+            }
+
+            typeof(StructRemap<>).MakeGenericType(structType)
+                .GetMethod("SetStride", BindingFlags.Static | BindingFlags.NonPublic)!
+                .Invoke(null, new object[] { stride });
         }
 
         /// <summary>
@@ -405,9 +461,11 @@ namespace GameReader.Utils
         internal static void Forget()
         {
             List<Type> moved;
+            List<Type> restrided;
             lock (Healed)
             {
                 moved = Healed.Keys.ToList();
+                restrided = Strides.Keys.ToList();
                 FromCode.Clear();
             }
 
@@ -416,9 +474,15 @@ namespace GameReader.Utils
                 Remap(type, Array.Empty<RemapSegment>());
             }
 
+            foreach (var type in restrided)
+            {
+                Restride(type, Marshal.SizeOf(type));
+            }
+
             lock (Healed)
             {
                 Healed.Clear();
+                Strides.Clear();
             }
 
             TileStructure.TileToGridConversion = TileStructure.MeasuredTileToGridConversion;
@@ -623,20 +687,26 @@ namespace GameReader.Utils
         }
 
         /// <summary>The player's inventories by what they hold (<see cref="InventoryLayoutSearch"/>); each field found is read from there.</summary>
-        private static StructOutcome JudgeInventories(AreaInstance area, IAreaMemory memory)
+        private static IReadOnlyList<StructOutcome> JudgeInventories(AreaInstance area, IAreaMemory memory)
         {
             const string name = "inventories";
             var server = area.ServerDataObject.Address;
             if (server == IntPtr.Zero)
             {
-                return NotJudged(name, "no server data");
+                return new[] { NotJudged(name, "no server data") };
             }
 
             var measured = InventoryFields.Measured;
             var found = new InventoryLayoutSearch(memory).Find(server.ToInt64(), measured);
             if (found.Players < 0)
             {
-                return new StructOutcome(name, StructHealth.Lost, measured.Players, 0, "no inventory of the player holds an item");
+                // The entry and the cell are judged only through inventories found: the lost inventories say it for them.
+                return new[]
+                {
+                    new StructOutcome(name, StructHealth.Lost, measured.Players, 0, "no inventory of the player holds an item"),
+                    NotJudged(InventoryEntryPart, "no inventory found"),
+                    NotJudged(InventoryCellPart, "no inventory found"),
+                };
             }
 
             // Each field, then where the bytes after it read now: a vector is three pointers, the size two ints.
@@ -649,13 +719,23 @@ namespace GameReader.Utils
                 (measured.Boxes + sizeof(long), Follow(typeof(InventoryStruct), measured.Boxes + sizeof(long))),
                 (measured.Cells, found.Cells),
                 (measured.Cells + vector, Follow(typeof(InventoryStruct), measured.Cells + vector)));
+            var (entries, foundEntries) = (measured.Entries, found.Entries);
+            var stride = HostStructs.Stride<InventoryArrayStruct>();
+            var entry = PlaceEntry<InventoryArrayStruct>(InventoryEntryPart, (entries.Stride, foundEntries.Stride), (entries.Id, foundEntries.Id), (entries.Inventory, foundEntries.Inventory));
+            moved |= stride != foundEntries.Stride || entry.Health == StructHealth.Moved;
+            var cell = Placed<InventoryItemStruct>(InventoryCellPart, entries.Item, foundEntries.Item);
             if (moved)
             {
                 // The server data reads its inventories once per area: what it read through the old fields is read again.
                 area.ServerDataObject.Refresh();
             }
 
-            return Outcome(name, (measured.Players, found.Players), (measured.Inventories, found.Inventories), (measured.Boxes, found.Boxes), (measured.Cells, found.Cells));
+            return new[]
+            {
+                Outcome(name, (measured.Players, found.Players), (measured.Inventories, found.Inventories), (measured.Boxes, found.Boxes), (measured.Cells, found.Cells)),
+                entry,
+                cell,
+            };
         }
 
         /// <summary>Ground items lead to their item's entity: every one looked at must, through the same field.</summary>

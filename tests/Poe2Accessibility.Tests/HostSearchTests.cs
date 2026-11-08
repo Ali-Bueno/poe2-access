@@ -32,7 +32,59 @@ namespace Poe2Accessibility.Tests
             (nameof(AVitalThatGrewInsideIsReadAgain), AVitalThatGrewInsideIsReadAgain),
             (nameof(AGroundItemLeadsToAnItem), AGroundItemLeadsToAnItem),
             (nameof(InventoriesAreFoundByTheItemsInThem), InventoriesAreFoundByTheItemsInThem),
+            (nameof(AnInventoryEntryThatChangedIsReadAgain), AnInventoryEntryThatChangedIsReadAgain),
+            (nameof(ANameEntryThatChangedIsReadAgain), ANameEntryThatChangedIsReadAgain),
+            (nameof(TheInventoryIsNotItsBase), TheInventoryIsNotItsBase),
         };
+
+        private static void AnInventoryEntryThatChangedIsReadAgain()
+        {
+            var measured = InventoryFields.Measured;
+            var game = measured.Entries;
+            foreach (var host in new[] { game with { Stride = 0x20, Id = 8, Inventory = 0x10 }, game with { Id = 8, Inventory = 0 }, game with { Stride = 0x30, Id = 0x18, Inventory = 0x20 } })
+            {
+                var (memory, server) = Inventories(measured, "Metadata/Items/Weapons/TwoHandWeapons/TwoHandMaces/TwoHandMace1");
+                Equal(measured, new InventoryLayoutSearch(memory).Find(server, measured with { Entries = host }), $"an entry the host reads as {host}");
+            }
+
+            foreach (var moved in new[] { game with { Stride = 0x20, Id = 8, Inventory = 0x10, Item = 8 }, game with { Stride = 0x28, Item = 0x18 } })
+            {
+                var at = measured with { Entries = moved };
+                var (memory, server) = Inventories(at, "Metadata/Items/Weapons/TwoHandWeapons/TwoHandMaces/TwoHandMace1");
+                Equal(at, new InventoryLayoutSearch(memory).Find(server, measured), $"an entry the game lays out as {moved}");
+            }
+        }
+
+        private static void ANameEntryThatChangedIsReadAgain()
+        {
+            var measured = EntityLayout.Measured;
+            var game = measured.Entry;
+            foreach (var host in new[] { new NameEntryLayout(0x18, 8, 0x10), new NameEntryLayout(0x10, 8, 0), new NameEntryLayout(0x28, 0x10, 0x20) })
+            {
+                var memory = new FakeMemory();
+                var entities = new[] { Entity(memory, 0, measured), Entity(memory, 1, measured) };
+                Equal(measured, new EntityLayoutSearch(memory).Find(entities, measured with { Entry = host }), $"a name entry the host reads as {host}");
+            }
+
+            foreach (var moved in new[] { new NameEntryLayout(0x18, 8, 0), new NameEntryLayout(0x20, 0, 0x18) })
+            {
+                var memory = new FakeMemory();
+                var at = measured with { Entry = moved };
+                var entities = new[] { Entity(memory, 0, at), Entity(memory, 1, at) };
+                Equal(at, new EntityLayoutSearch(memory).Find(entities, measured), $"a name entry the game lays out as {moved}");
+            }
+
+            Equal(game, new EntityLayoutSearch(new FakeMemory()).Find(Array.Empty<long>(), measured).Entry, "nothing to judge it on");
+        }
+
+        private static void TheInventoryIsNotItsBase()
+        {
+            // Read from its second pointer, 0x10 before the inventory, an inventory still fits with every field 0x10 later.
+            var measured = InventoryFields.Measured;
+            var (memory, server) = Inventories(measured, "Metadata/Items/Weapons/TwoHandWeapons/TwoHandMaces/TwoHandMace1");
+            var host = measured with { Entries = measured.Entries with { Inventory = measured.Entries.Inventory + 8 } };
+            Equal(measured, new InventoryLayoutSearch(memory).Find(server, host), "the pointer the base pointer sits beside");
+        }
 
         private static void InventoriesAreFoundByTheItemsInThem()
         {
@@ -59,14 +111,16 @@ namespace Poe2Accessibility.Tests
             memory.Blocks[players] = BitConverter.GetBytes(player);
             var playerBody = new byte[InventoryFields.Measured.Inventories + InventoryLayoutSearch.Reach];
             var sizes = new[] { (12, 5), (5, 1), (2, 4) };
-            Put(playerBody, at.Inventories, entries, entries + (sizes.Length * 0x18), entries + (sizes.Length * 0x18));
+            var stride = at.Entries.Stride;
+            Put(playerBody, at.Inventories, entries, entries + (sizes.Length * stride), entries + (sizes.Length * stride));
             memory.Blocks[player] = playerBody;
-            var entryBytes = new byte[sizes.Length * 0x18];
+            var entryBytes = new byte[sizes.Length * stride];
             for (var i = 0; i < sizes.Length; i++)
             {
                 var inventory = Heap + 0x310000 + (i * 0x1000);
                 var cells = inventory + 0x800;
-                Put(entryBytes, i * 0x18, i + 1, inventory, inventory - 0x10);
+                BitConverter.TryWriteBytes(entryBytes.AsSpan((i * stride) + at.Entries.Id), i + 1);
+                Put(entryBytes, (i * stride) + at.Entries.Inventory, inventory, inventory - 0x10);
                 var body = new byte[InventoryFields.Measured.Cells + InventoryLayoutSearch.Reach];
                 BitConverter.TryWriteBytes(body.AsSpan(at.Boxes), sizes[i].Item1);
                 BitConverter.TryWriteBytes(body.AsSpan(at.Boxes + 4), sizes[i].Item2);
@@ -83,7 +137,9 @@ namespace Poe2Accessibility.Tests
             }
 
             memory.Blocks[entries] = entryBytes;
-            memory.Blocks[item] = BitConverter.GetBytes(entity);
+            var cell = new byte[InventoryLayoutSearch.CellBytes];
+            Put(cell, at.Entries.Item, entity);
+            memory.Blocks[item] = cell;
             memory.Paths[entity] = itemPath;
             return (memory, server);
         }
@@ -420,11 +476,12 @@ namespace Poe2Accessibility.Tests
             memory.Blocks[details] = detailsBody;
             memory.Texts[text] = path;
 
+            var stride = at.Entry.Stride;
             var lookUpBody = new byte[EntityLayoutSearch.BlockBytes];
-            Put(lookUpBody, at.NameMap, entries, entries + (names.Length * 0x10), entries + (names.Length * 0x10));
+            Put(lookUpBody, at.NameMap, entries, entries + (names.Length * stride), entries + (names.Length * stride));
             memory.Blocks[lookUp] = lookUpBody;
 
-            var map = new byte[names.Length * 0x10];
+            var map = new byte[names.Length * stride];
             var components = new byte[names.Length * 8];
             for (var i = 0; i < names.Length; i++)
             {
@@ -432,7 +489,8 @@ namespace Poe2Accessibility.Tests
                 var bytes = new byte[0x40];
                 Encoding.ASCII.GetBytes(names[i]).CopyTo(bytes, 0);
                 memory.Blocks[name] = bytes;
-                Put(map, i * 0x10, name, names.Length - 1 - i);
+                Put(map, (i * stride) + at.Entry.Name, name);
+                BitConverter.TryWriteBytes(map.AsSpan((i * stride) + at.Entry.Index), names.Length - 1 - i);
                 var component = entity + 0x7000 + (i * 0x100);
                 Put(components, i * 8, component);
                 memory.Pointers[component + 8] = entity;

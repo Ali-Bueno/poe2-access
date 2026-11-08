@@ -104,7 +104,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         private static readonly int BytesPerRow = Marshal.OffsetOf<TerrainStruct>(nameof(TerrainStruct.BytesPerRow)).ToInt32();
         private static readonly int PlayerList = Marshal.OffsetOf<ServerDataOffsets>(nameof(ServerDataOffsets.PlayerServerDataPtr)).ToInt32();
         private static readonly int Inventories = Marshal.OffsetOf<ServerDataStructure>(nameof(ServerDataStructure.PlayerInventories)).ToInt32();
-        private static readonly int InventoryEntry = Marshal.SizeOf<InventoryArrayStruct>();
         private static readonly int EntityMapSize = Marshal.SizeOf<StdMap>();
 
         private readonly IAreaMemory memory;
@@ -302,8 +301,9 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 return false;
             }
 
+            // Entries of pointers, whatever their size: a patch that grows the entry is found by the inventory search.
             var size = Int64At(inventories, PointerStep) - Int64At(inventories, 0);
-            return size > 0 && size % InventoryEntry == 0;
+            return size > 0 && size % PointerStep == 0;
         }
 
         private bool IsEntityLists(byte[] block, int at) =>

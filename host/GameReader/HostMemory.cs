@@ -34,6 +34,17 @@ namespace GameReader
             return false;
         }
 
+        /// <summary>
+        ///     The elements of a game vector, at most <paramref name="maxElements"/>, as the host reads them: one per element size
+        ///     the game uses now, through the remap; empty when it cannot be read or holds more.
+        /// </summary>
+        public static T[] ReadStdVector<T>(StdVector vector, int maxElements)
+            where T : unmanaged
+        {
+            var bytes = vector.Last.ToInt64() - vector.First.ToInt64();
+            return bytes / HostStructs.Stride<T>() > maxElements ? Array.Empty<T>() : Handle()?.ReadStdVector<T>(vector) ?? Array.Empty<T>();
+        }
+
         /// <summary>The text of a game string; empty when it cannot be read.</summary>
         public static string ReadStdWString(StdWString value) => Handle()?.ReadStdWString(value) ?? string.Empty;
 
