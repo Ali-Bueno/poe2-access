@@ -16,7 +16,14 @@ internal sealed class SharedBundles : IBundleFactory
     public static Index Open(string indexPath)
     {
         var directory = Path.GetDirectoryName(Path.GetFullPath(indexPath))!;
-        return new Index(indexPath, false, new SharedBundles(directory));
+
+        // The index too is read through a shared handle, copied to memory: LibBundle3 opens a path exclusively, and two
+        // extractions at once (the launcher beside a research run) failed on the second (2026-11-08).
+        using var file = new FileStream(indexPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        var copy = new MemoryStream();
+        file.CopyTo(copy);
+        copy.Position = 0;
+        return new Index(copy, false, false, new SharedBundles(directory));
     }
 
     /// <summary>The install's index with its paths parsed (a few never parse, a known PoE2 quirk: their count is printed).</summary>
