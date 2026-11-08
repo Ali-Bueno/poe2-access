@@ -114,6 +114,8 @@ namespace Poe2Accessibility.Tests
             Equal(0, tracker.Update(Facts(engaged: false, gone: true, phase: 0), 0).Count, "waiting hidden in its arena");
             Equal(0, tracker.Update(Facts(engaged: false, gone: false, phase: 1), 2000).Count, "emerging, its music starting");
             Equal(0, tracker.Update(Facts(gone: false, phase: 1), 4000).Count, "the first hit is no news");
+            Equal(0, tracker.Update(Facts(gone: false, phase: 2), 5000).Count, "its music stepping up with the aggro");
+            Equal(BossNews.NextPhase, tracker.Update(Facts(gone: false, phase: 3), 4000 + BossPhaseTracker.EngageGraceMs + 1000).Single(), "a later rise");
         }
 
         private static void InvulnerableEnragedAndPhaseAreSaidOnce()

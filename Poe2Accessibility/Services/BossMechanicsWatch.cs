@@ -48,6 +48,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> formsSaid = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<uint> addsSaid = new();
         private readonly HashSet<(uint, long)> worded = new();
+        private readonly HashSet<string> logged = new(StringComparer.Ordinal);
         private int phase = 1;
         private long lastPhaseAt = long.MinValue / 2;
         private long lastWordAt = long.MinValue / 2;
@@ -110,7 +111,13 @@ namespace Poe2Accessibility.Services
             }
 
             boss.Engaged |= life.Health.CurrentInPercent() < 100;
-            boss.Facts = this.FactsOf(entity, monster, boss.Engaged, inPlay);
+            var facts = this.FactsOf(entity, monster, boss.Engaged, inPlay);
+            if (facts != boss.Facts)
+            {
+                this.LogStates(entity, monster, facts);
+            }
+
+            boss.Facts = facts;
             boss.SeenAt = now;
             if (firstInPlay)
             {
@@ -201,6 +208,20 @@ namespace Poe2Accessibility.Services
             var hidden = states.Any(state => this.Catalog.Hides(monster, state.Name, state.Value));
             var enraged = buffs.Any(this.Catalog.IsEnrage) || states.Any(state => state.Value > 0 && this.Catalog.IsEnrageState(monster, state.Name));
             return new BossFacts(engaged, !inPlay || hidden, buffs.Any(this.Catalog.IsUnhurtable), enraged, phase);
+        }
+
+        /// <summary>Each distinct reading of a boss's facts, states set and buffs, once: the live protocol's evidence (docs/research/boss-mechanics.md).</summary>
+        private void LogStates(Entity entity, string monster, in BossFacts facts)
+        {
+            var states = entity.TryGetComponent<StateMachine>(out var machine)
+                ? string.Join(",", machine.States.Where(state => state.Value != 0).Select(state => $"{state.Name}={state.Value}"))
+                : "-";
+            var buffs = entity.TryGetComponent<Buffs>(out var effects) ? string.Join(",", effects.StatusEffects.Keys.Select(BuffIds.Base).Distinct()) : "-";
+            var line = $"{monster} {facts} states [{states}] buffs [{buffs}]";
+            if (this.logged.Add(line))
+            {
+                this.log.Info($"Boss facts: {line}");
+            }
         }
 
         /// <summary>A boss coming into play that an engaged boss turns into: its fight's next phase, said by the new name.</summary>

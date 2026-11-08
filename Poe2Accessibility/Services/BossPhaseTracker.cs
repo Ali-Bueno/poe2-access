@@ -35,7 +35,11 @@ namespace Poe2Accessibility.Services
         /// <summary>A change this long-lived is news (ms): longer than a teleport slam's vanish, shorter than a burrow.</summary>
         public const int SettleMs = 800;
 
+        /// <summary>Phase rises this soon after the fight began are its start (ms): the music turns on with the boss's aggro.</summary>
+        public const int EngageGraceMs = 3000;
+
         private readonly int goneSettleMs;
+        private long? engagedAt;
         private Flag gone;
         private Flag invulnerable;
         private bool enragedSaid;
@@ -71,9 +75,15 @@ namespace Poe2Accessibility.Services
             }
 
             this.enragedSaid |= facts.Enraged;
+            if (facts.Engaged && this.engagedAt == null)
+            {
+                this.engagedAt = now;
+            }
+
             if (facts.Phase is { } value)
             {
-                if (facts.Engaged && this.phase is { } before && value > before)
+                // The music's first step comes with the first hits (aggro): a rise that early is the fight starting, not its next part.
+                if (facts.Engaged && now - this.engagedAt >= EngageGraceMs && this.phase is { } before && value > before)
                 {
                     news.Add(BossNews.NextPhase);
                 }
