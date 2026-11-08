@@ -105,7 +105,9 @@ namespace Poe2Accessibility.Tests
             Equal(BossNews.Gone, tracker.Update(Facts(gone: true), 1000 + BossPhaseTracker.SettleMs).Single(), "it stayed away");
             Equal(0, tracker.Update(Facts(gone: true), 5000).Count, "said once");
             Equal(0, tracker.Update(Facts(gone: false), 6000).Count, "back, not yet settled");
-            Equal(BossNews.Back, tracker.Update(Facts(gone: false), 6000 + BossPhaseTracker.SettleMs).Single(), "back for good");
+            Equal(BossNews.Back, tracker.Update(Facts(gone: false), 6000 + BossPhaseTracker.BackSettleMs).Single(), "back for good, sooner than a leaving");
+            Equal(0, tracker.Update(Facts(gone: true), 9000).Count, "gone again");
+            Equal(0, tracker.Update(Facts(gone: true), 9000 + BossPhaseTracker.BackSettleMs).Count, "a leaving still waits the full settle");
         }
 
         private static void NothingIsSaidBeforeTheFightIsOn()

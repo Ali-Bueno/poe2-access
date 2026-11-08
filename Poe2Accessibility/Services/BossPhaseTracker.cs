@@ -35,6 +35,13 @@ namespace Poe2Accessibility.Services
         /// <summary>A change this long-lived is news (ms): longer than a teleport slam's vanish, shorter than a burrow.</summary>
         public const int SettleMs = 800;
 
+        /// <summary>
+        ///     The boss back in play after its leaving was said is news this soon (ms). The Devourer's flag held at least 1.9 s on
+        ///     each of its five returns (Mud Burrow, 2026-11-08), while waiting <see cref="SettleMs"/> said "back" a second after it
+        ///     had already risen and struck.
+        /// </summary>
+        public const int BackSettleMs = 400;
+
         /// <summary>Phase rises this soon after the fight began are its start (ms): the music turns on with the boss's aggro.</summary>
         public const int EngageGraceMs = 3000;
 
@@ -59,12 +66,12 @@ namespace Poe2Accessibility.Services
                 return news;
             }
 
-            if (this.gone.Step(facts.Gone, facts.Engaged, now, this.goneSettleMs) is { } left)
+            if (this.gone.Step(facts.Gone, facts.Engaged, now, this.goneSettleMs, BackSettleMs) is { } left)
             {
                 news.Add(left ? BossNews.Gone : BossNews.Back);
             }
 
-            if (this.invulnerable.Step(facts.Invulnerable, facts.Engaged, now, SettleMs) is { } shielded)
+            if (this.invulnerable.Step(facts.Invulnerable, facts.Engaged, now, SettleMs, SettleMs) is { } shielded)
             {
                 news.Add(shielded ? BossNews.Invulnerable : BossNews.Vulnerable);
             }
@@ -101,8 +108,8 @@ namespace Poe2Accessibility.Services
             private long changedAt;
             private bool said;
 
-            /// <summary>The value to say now, if it changed and held; null otherwise.</summary>
-            public bool? Step(bool now, bool engaged, long at, int settleMs)
+            /// <summary>The value to say now, if it changed and held (<paramref name="settleMs"/> set, <paramref name="clearMs"/> cleared); null otherwise.</summary>
+            public bool? Step(bool now, bool engaged, long at, int settleMs, int clearMs)
             {
                 if (now != this.value)
                 {
@@ -115,7 +122,7 @@ namespace Poe2Accessibility.Services
                     return null;
                 }
 
-                if (this.value == this.said || at - this.changedAt < settleMs)
+                if (this.value == this.said || at - this.changedAt < (this.value ? settleMs : clearMs))
                 {
                     return null;
                 }
