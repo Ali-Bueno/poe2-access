@@ -143,7 +143,7 @@ namespace Poe2Accessibility.Services
         {
             var parrying = playing && this.ParryCues && this.CanParry();
             var attacks = this.DodgeWarnings || parrying;
-            if (!playing || (!this.AnnounceLife && !attacks))
+            if (!playing || (!this.AnnounceLife && !attacks && this.Mechanics == null))
             {
                 this.lastPlayerLife = -1; // life lost while nothing is watched is no blow
                 return;
@@ -156,21 +156,22 @@ namespace Poe2Accessibility.Services
             }
 
             var now = Environment.TickCount64;
-            var pollLife = this.AnnounceLife && now - this.lastLifePoll >= LifePollMs;
-            if (pollLife)
+            // The boss's turns (gone, back, phase) are polled whether or not its life is said: muting the life must not mute them.
+            var poll = (this.AnnounceLife || this.Mechanics != null) && now - this.lastLifePoll >= LifePollMs;
+            if (poll)
             {
                 this.lastLifePoll = now;
             }
 
             try
             {
-                this.WatchNear(area, player, now, pollLife, attacks, parrying);
+                this.WatchNear(area, player, now, poll, attacks, parrying);
             }
             finally
             {
                 // A throw in the walk must not leave its address map or the mechanics' poll half done for later frames.
                 this.entityAddresses = null;
-                if (pollLife)
+                if (poll)
                 {
                     this.Mechanics?.EndPoll(now);
                 }
@@ -191,7 +192,7 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        private void WatchNear(AreaInstance area, Render player, long now, bool pollLife, bool attacks, bool parrying)
+        private void WatchNear(AreaInstance area, Render player, long now, bool poll, bool attacks, bool parrying)
         {
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
             foreach (var entity in area.AwakeEntities.Values)
@@ -209,12 +210,12 @@ namespace Poe2Accessibility.Services
                 }
 
                 var rarity = entity.TryGetComponent<ObjectMagicProperties>(out var magic) ? magic.Rarity : Rarity.Normal;
-                if (rarity == Rarity.Unique && pollLife)
+                if (rarity == Rarity.Unique && poll && this.AnnounceLife)
                 {
                     this.WatchLife(entity, render);
                 }
 
-                if (pollLife)
+                if (poll)
                 {
                     this.Mechanics?.Observe(entity, render, rarity, now);
                 }
