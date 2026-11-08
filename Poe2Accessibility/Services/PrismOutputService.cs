@@ -4,14 +4,12 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
-    using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using Prismatoid;
 
     /// <summary>
-    ///     PRISM screen-reader output via the official Prismatoid binding (bundles prism.dll for win-x64).
-    ///     Every PRISM call runs on one worker thread because a backend speak can block for hundreds of ms.
+    ///     PRISM screen-reader output through the mod's own binding (<see cref="PrismLibrary"/>) of the prism.dll shipped
+    ///     next to the plugin. Every PRISM call runs on one worker thread because a backend speak can block for hundreds of ms.
     /// </summary>
     public sealed class PrismOutputService : IAccessibilityOutputService
     {
@@ -21,17 +19,11 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private const int MentionMs = 1500;
 
-        /// <summary>Library name used by Prismatoid's DllImport (verified by reflection on Prismatoid 0.4.0).</summary>
-        private const string NativeLibraryName = "prism";
-
         /// <summary>A backend call slower than this is logged, to measure how long speech blocks.</summary>
         private const int SlowCallMs = 100;
 
         /// <summary>How long Dispose waits for the worker to release PRISM before giving up.</summary>
         private const int ShutdownWaitMs = 2000;
-
-        private static bool resolverInstalled;
-        private static IntPtr nativeHandle;
 
         private readonly PluginLog log;
         private readonly object queueGate = new();
@@ -201,36 +193,6 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        /// <summary>
-        ///     Plugins load in their own AssemblyLoadContext and the host's resolver knows nothing about
-        ///     our folder, so point Prismatoid's DllImport at the prism.dll shipped next to the plugin.
-        /// </summary>
-        private static void InstallNativeResolver(string pluginDirectory, PluginLog log)
-        {
-            if (resolverInstalled)
-            {
-                return;
-            }
-
-            var nativePath = Path.GetFullPath(Path.Join(pluginDirectory, "prism.dll"));
-            NativeLibrary.SetDllImportResolver(typeof(PrismContext).Assembly, (name, _, _) =>
-            {
-                if (!name.StartsWith(NativeLibraryName, StringComparison.OrdinalIgnoreCase) || !File.Exists(nativePath))
-                {
-                    return IntPtr.Zero;
-                }
-
-                if (nativeHandle == IntPtr.Zero)
-                {
-                    nativeHandle = NativeLibrary.Load(nativePath);
-                }
-
-                return nativeHandle;
-            });
-            resolverInstalled = true;
-            log.Debug($"Native resolver installed for {nativePath}");
-        }
-
         private void Say(string text, bool interrupt, Delivery delivery, int holdMs)
         {
             if (string.IsNullOrWhiteSpace(text))
@@ -366,20 +328,32 @@ namespace Poe2Accessibility.Services
 
         private void Run(string pluginDirectory, TaskCompletionSource<bool> ready)
         {
-            PrismContext context;
-            IPrismBackend backend;
+            PrismLibrary prism;
             try
             {
-                InstallNativeResolver(pluginDirectory, this.log);
-                context = new PrismContext();
-                foreach (var info in context.AvailableBackends)
+                prism = PrismLibrary.Load(Path.Join(pluginDirectory, PrismLibrary.FileName));
+                var failure = prism.Start();
+                foreach (var (name, priority) in prism.Backends())
                 {
-                    this.log.Debug($"PRISM backend available: {info.Name} (priority {info.Priority})");
+                    this.log.Debug($"PRISM backend registered: {name} (priority {priority})");
                 }
 
-                backend = context.AcquireBestBackend();
-                this.BackendName = backend.Name;
-                this.log.Info($"PRISM initialised, backend: {backend.Name}");
+                if (prism.LibraryConfigVersion != PrismLibrary.ConfigVersion)
+                {
+                    this.log.Warn($"prism.dll {prism.Version} writes config version {prism.LibraryConfigVersion}; the binding matches {PrismLibrary.ConfigVersion}");
+                }
+
+                if (failure != null)
+                {
+                    this.log.Error($"PRISM {prism.Version}: {failure}");
+                    prism.Dispose();
+                    ready.SetResult(false);
+                    return;
+                }
+
+                this.BackendName = prism.BackendName;
+                var wine = PrismLibrary.WineVersion();
+                this.log.Info($"PRISM {prism.Version} initialised, backend: {prism.BackendName}" + (wine == null ? string.Empty : $" (under Wine {wine})"));
             }
             catch (Exception ex)
             {
@@ -398,7 +372,7 @@ namespace Poe2Accessibility.Services
                     waitMs = this.ReleaseWaiting();
                     while (!this.stopping && this.TryDequeue(out var request))
                     {
-                        this.Execute(backend, request);
+                        this.Execute(prism, request);
                     }
                 }
             }
@@ -407,8 +381,7 @@ namespace Poe2Accessibility.Services
                 // An exception escaping this thread would end the host process.
                 try
                 {
-                    backend.Dispose();
-                    context.Dispose();
+                    prism.Dispose();
                 }
                 catch (Exception ex)
                 {
@@ -425,22 +398,24 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        private void Execute(IPrismBackend backend, SpeechRequest request)
+        private void Execute(PrismLibrary prism, SpeechRequest request)
         {
             var timer = Stopwatch.StartNew();
             try
             {
-                if (request.Text == null)
+                var error = request.Text == null ? prism.Stop() : prism.Speak(request.Text, request.Interrupt);
+                if (error != 0 && request.Text != null)
                 {
-                    backend.Stop();
+                    this.log.Error($"Speak failed: {prism.ErrorText(error)}");
                 }
-                else
+                else if (error != 0)
                 {
-                    backend.Speak(request.Text, request.Interrupt);
+                    this.log.Debug($"Stop: {prism.ErrorText(error)}"); // some backends call a stop with nothing to stop an error
                 }
             }
             catch (Exception ex)
             {
+                // An exception escaping this thread would end the host process.
                 this.log.Error(request.Text == null ? "Stop failed" : "Speak failed", ex);
             }
 

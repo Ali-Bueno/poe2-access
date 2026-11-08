@@ -6,6 +6,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
+    <!-- PrismLibrary (the PRISM binding) calls prism.dll through function pointers. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -181,6 +183,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\InputSeat.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CoopDowns.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\IAccessibilityOutputService.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\PrismLibrary.cs" Link="Plugin\PrismLibrary.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\WallBumpDetector.cs" Link="Plugin\WallBumpDetector.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\UiSemantics.Nearest.cs" Link="Plugin\UiSemantics.Nearest.cs" />
     <Compile Include="..\..\Poe2Accessibility\Localization.cs" Link="Plugin\Localization.cs" />

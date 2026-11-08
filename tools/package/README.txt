@@ -11,6 +11,7 @@ WHAT YOU NEED
 - A screen reader. NVDA is recommended. Without one, the Windows voice is used.
 - An Xbox or PlayStation controller. The mod is built for playing with a controller.
 Nothing else needs installing: everything is inside this folder. Poe2Access.exe starts the mod; everything else is in the "app" folder and does not need touching.
+Linux and Steam Deck (Proton): not tried yet. How to start the mod there: https://github.com/Ali-Bueno/poe2-access/blob/main/docs/proton.md
 The mod speaks the language the game is set to (all ten of the game's languages).
 
 GETTING STARTED
@@ -52,4 +53,4 @@ Newest version and source code: https://github.com/Ali-Bueno/poe2-access
 
 CREDITS
 - GameHelper2 (GPLv3 license), whose memory-reading code the mod's host is built on: https://github.com/Gordin/GameHelper2
-- PRISM, for the screen reader output: https://github.com/ethindp/prism
+- PRISM 0.18.3 (MPL-2.0 license), for the screen reader output: https://github.com/ethindp/prism (its licenses are in app\Plugins\Poe2Accessibility\licenses\prism)

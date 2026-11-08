@@ -27,6 +27,9 @@ network traffic. Use it at your own risk.
 
 Nothing else needs installing: everything is inside the folder.
 
+Linux and Steam Deck (Proton): the mod carries what its speech needs there, but it has not been tried yet; how to
+start it, and what is still unknown, is in [docs/proton.md](docs/proton.md).
+
 ## Getting started
 
 1. Unzip the folder anywhere. If Windows says it protected your PC when you open the mod, choose "More info", then

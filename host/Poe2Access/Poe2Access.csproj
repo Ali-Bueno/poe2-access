@@ -21,6 +21,8 @@
 
   <ItemGroup>
     <Compile Include="..\..\Poe2Accessibility\Localization.cs" Link="Launcher\Localization.cs" />
+    <!-- The plugin's PRISM binding, for the startup speech. -->
+    <Compile Include="..\..\Poe2Accessibility\Services\PrismLibrary.cs" Link="Launcher\PrismLibrary.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,46 +1,43 @@
 namespace Poe2Access;
 
 using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
-using System.Text;
+using Poe2Accessibility.Services;
 
 /// <summary>
 ///     Says a few lines through the plugin folder's prism.dll while the game data is regenerated, then lets PRISM go,
 ///     since the plugin initialises it again. Every PRISM call runs on one worker thread, as in the plugin.
 /// </summary>
-internal sealed unsafe class StartupSpeech : IDisposable
+internal sealed class StartupSpeech : IDisposable
 {
-    private const string LibraryFile = "prism.dll";
     private const int ShutdownWaitMilliseconds = 3_000;
-    private const int ConfigurationBytes = 256; // room for any release's PrismConfig
 
     private readonly BlockingCollection<(string Text, bool Interrupt)> queue = [];
     private readonly Thread worker;
-    private IntPtr library;
+    private readonly PrismLibrary prism;
     private volatile int holdMilliseconds;
 
-    private StartupSpeech(IntPtr library)
+    private StartupSpeech(PrismLibrary prism)
     {
-        this.library = library;
+        this.prism = prism;
         this.worker = new Thread(this.Run) { IsBackground = true, Name = "Poe2Access startup speech" };
         this.worker.Start();
     }
 
-    /// <summary>Null (after logging) when the plugin folder has no prism.dll or PRISM cannot start.</summary>
+    /// <summary>Null (after logging) when the plugin folder has no prism.dll or it cannot be loaded.</summary>
     public static StartupSpeech? TryCreate(string pluginFolder)
     {
-        var path = Path.Join(pluginFolder, LibraryFile);
+        var path = Path.Join(pluginFolder, PrismLibrary.FileName);
         if (!File.Exists(path))
         {
-            Log.Write($"No {LibraryFile} in {pluginFolder}: the game data update is not spoken");
+            Log.Write($"No {PrismLibrary.FileName} in {pluginFolder}: the game data update is not spoken");
             return null;
         }
 
         try
         {
-            return new StartupSpeech(NativeLibrary.Load(path));
+            return new StartupSpeech(PrismLibrary.Load(path));
         }
-        catch (Exception error) when (error is DllNotFoundException or BadImageFormatException)
+        catch (Exception error) when (error is DllNotFoundException or BadImageFormatException or EntryPointNotFoundException)
         {
             Log.Write($"PRISM not loaded, the game data update is not spoken: {error.Message}");
             return null;
@@ -55,7 +52,7 @@ internal sealed unsafe class StartupSpeech : IDisposable
         }
     }
 
-    /// <summary>Lets the queued lines finish, then releases PRISM and the library: the plugin starts it afresh.</summary>
+    /// <summary>Lets the queued lines finish, then releases PRISM: the plugin starts it afresh.</summary>
     public void Dispose() => this.Dispose(0);
 
     /// <param name="holdMilliseconds">How long the last line is left to be heard before PRISM goes.</param>
@@ -65,50 +62,30 @@ internal sealed unsafe class StartupSpeech : IDisposable
         this.queue.CompleteAdding();
         if (!this.worker.Join(ShutdownWaitMilliseconds + holdMilliseconds))
         {
-            // Unloading the library under a thread still inside it would crash the mod: it stays loaded.
             Log.Write("The startup speech did not stop in time");
-            return;
-        }
-
-        if (this.library != IntPtr.Zero)
-        {
-            NativeLibrary.Free(this.library);
-            this.library = IntPtr.Zero;
         }
     }
 
     private void Run()
     {
-        var configInit = (delegate* unmanaged[Cdecl]<byte*, IntPtr>)this.Export("prism_config_init");
-        var init = (delegate* unmanaged[Cdecl]<byte*, IntPtr>)this.Export("prism_init");
-        var shutdown = (delegate* unmanaged[Cdecl]<IntPtr, void>)this.Export("prism_shutdown");
-        var acquireBest = (delegate* unmanaged[Cdecl]<IntPtr, IntPtr>)this.Export("prism_registry_acquire_best");
-        var initialize = (delegate* unmanaged[Cdecl]<IntPtr, int>)this.Export("prism_backend_initialize");
-        var speak = (delegate* unmanaged[Cdecl]<IntPtr, byte*, byte, int>)this.Export("prism_backend_speak");
-        var free = (delegate* unmanaged[Cdecl]<IntPtr, void>)this.Export("prism_backend_free");
-        var context = init(this.Configuration(configInit, stackalloc byte[ConfigurationBytes]));
-        var backend = context == IntPtr.Zero ? IntPtr.Zero : acquireBest(context);
-        if (backend == IntPtr.Zero)
+        var failure = this.prism.Start();
+        if (failure is null)
         {
-            Log.Write("PRISM found no speech backend: the game data update is not spoken");
+            Log.Write($"PRISM {this.prism.Version}, backend: {this.prism.BackendName}"
+                + (PrismLibrary.WineVersion() is { } wine ? $" (under Wine {wine})" : string.Empty));
         }
         else
         {
-            initialize(backend); // acquire_best may have done it already
+            Log.Write($"PRISM {this.prism.Version}: {failure}: the game data update is not spoken");
         }
 
         var spoke = false;
         foreach (var (text, interrupt) in this.queue.GetConsumingEnumerable())
         {
-            if (backend == IntPtr.Zero)
+            if (failure is null)
             {
-                continue;
-            }
-
-            spoke = true;
-            fixed (byte* utf8 = Encoding.UTF8.GetBytes(text + '\0'))
-            {
-                var result = speak(backend, utf8, interrupt ? (byte)1 : (byte)0);
+                spoke = true;
+                var result = this.prism.Speak(text, interrupt);
                 Log.Write($"Spoken ({result}): {text}");
             }
         }
@@ -118,35 +95,6 @@ internal sealed unsafe class StartupSpeech : IDisposable
             Thread.Sleep(this.holdMilliseconds);
         }
 
-        if (backend != IntPtr.Zero)
-        {
-            free(backend);
-        }
-
-        if (context != IntPtr.Zero)
-        {
-            shutdown(context);
-        }
+        this.prism.Dispose();
     }
-
-    /// <summary>
-    ///     PRISM's config struct has grown between releases (one byte, now several pointers): it is returned in memory when
-    ///     it is large (the hidden pointer comes back) and in the return register when it is one byte.
-    /// </summary>
-    private byte* Configuration(delegate* unmanaged[Cdecl]<byte*, IntPtr> configInit, Span<byte> buffer)
-    {
-        buffer.Clear();
-        fixed (byte* config = buffer)
-        {
-            var returned = configInit(config);
-            if (returned != (IntPtr)config)
-            {
-                config[0] = (byte)(long)returned;
-            }
-
-            return config;
-        }
-    }
-
-    private IntPtr Export(string name) => NativeLibrary.GetExport(this.library, name);
 }

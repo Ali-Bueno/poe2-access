@@ -106,7 +106,10 @@ Poe2Access.exe [start|restart|stop|update|extract ...]  # start (default): open 
   data (`Poe2Access.log` + `.old`, `version.txt`, `GameData`) lives next to Plugins. One log with the launcher's and the host's
   lines (4 MB cap, the previous one kept as `.old`); the per-minute `Frames:` line stays.
 - Each `start`/`restart` deletes GameHelper's leftovers (`LegacyHost.cs`) and, in the package, every file at the top of `app\`
-  the layout does not ship (`AppCleanup.cs`: only `*.log`, `*.log.old`, `version.txt`, `oo2core.dll` stay; folders `Plugins`, `GameData`).
+  the layout does not ship (`AppCleanup.cs`: only `*.log`, `*.log.old`, `version.txt`, `oo2core.dll` stay; folders `Plugins`, `GameData`),
+  and the plugin folder's files no version ships any more (`AppCleanup.UnshippedPluginFiles`: `Prismatoid.dll`).
+- The update writes each file beside its target (`.new`) and moves it over, so a library a process still maps (a Wine
+  bridge's `.dll.so` under Proton) is never truncated in place; a file Windows refuses to replace rolls the update back.
 - Elevation: with the Korean client, or an instance left running as administrator, it runs itself again as administrator (`--parent <pid>` keeps the child from killing it).
 - Tests may set `POE2ACCESS_INSTANCE=<suffix>` to run apart from the player's own instance (separate mutex and event).
 
@@ -125,7 +128,7 @@ open cost 55 s in `trial-data` and 75 s in `endgame`), then `sounds` (about 22 s
 before the host starts. While it runs the mod speaks through the plugin folder's `prism.dll` (`StartupSpeech`, `GameDataNarrator`): an
 opening line, a progress line every 30 s ("Game data: 8 of 22") and a closing one, in the plugin's language (settings.txt, else the
 game's, else the system's; Spanish and English in code, the others from `catalog/lang/<code>.json` by the English text; the three
-phrases are in `StartupPhrases.cs`, listed by `phrases.py missing <lang>`); PRISM is released before the plugin starts it again. Everything stays in the mod's folder: the catalogs in `app/GameData/catalog`, copied over the plugin's shipped copies
+phrases are in `StartupPhrases.cs`, listed by `phrases.py missing <lang>`); PRISM's backend and context are released before the plugin starts them again (`prism.dll` stays loaded: the plugin loads the same file). Everything stays in the mod's folder: the catalogs in `app/GameData/catalog`, copied over the plugin's shipped copies
 on every start (an update or an unzip over the mod puts those back), the sounds in the plugin's `sounds/`; no package carries either,
 so a mod update keeps them. **Raise a step's version in `GameDataSetup` when its output changes**, so that step alone reruns once on
 every machine. The first start after the old layout (one `format=` number in `Plugins/Poe2Accessibility/catalog/game-version.txt`)
@@ -137,8 +140,11 @@ pwsh tools/package/New-TestPackage.ps1      # with the mod stopped; writes dist/
 ```
 The top folder holds `Poe2Access.exe` (one self-contained, single-file, not trimmed, uncompressed, ReadyToRun build, ~94 MB: the plugin
 is loaded at run time and uses framework APIs the exe does not, so trimming is off), `README.txt`, the controls and the stop shortcut.
-`app/` holds only `oo2core.dll` (bundle reading), `version.txt` and `Plugins/Poe2Accessibility` (dll, PRISM, catalogs including
-`important_tgt_files.txt`, research mode off): nothing of the .NET runtime. No game sounds are shipped: the mod regenerates them, and
+`app/` holds only `oo2core.dll` (bundle reading), `version.txt` and `Plugins/Poe2Accessibility` (dll, catalogs including
+`important_tgt_files.txt`, research mode off, and PRISM v0.18.3 from `third_party/prism`: `prism.dll`, the Wine bridges'
+placeholders `prism_{orca,speech_dispatcher,spiel}_bridge.dll` beside it, their Unix halves in `wine/*.dll.so`, its
+licenses in `licenses/prism`; [Proton](../docs/proton.md)): nothing of the .NET runtime. All of it sits under `Plugins`,
+which the start-up cleanup of `app/` never touches; the cleanup deletes the plugin folder's old `Prismatoid.dll`. No game sounds are shipped: the mod regenerates them, and
 the catalogs, from the tester's install. The .7z (LZMA2, about 33 MB; the zip about 47 MB) no longer fits a 30 MB chat upload, and
 Windows 11 opens it (Windows 10 needs 7-Zip or WinRAR). `dist/` is gitignored; publishing a release stays a manual decision.
 Updating an install made by the previous layout (`Poe2Access.exe` plus ~250 runtime files, `Poe2AccessHost.exe` and `Poe2UiExtract.exe`
