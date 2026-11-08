@@ -30,9 +30,6 @@ internal static class Updater
     /// <summary>The player's own settings, kept over the package's defaults.</summary>
     private static readonly string[] KeptFolders = { Path.Join("app", "Plugins", "Poe2Accessibility", "config") };
 
-    /// <summary>Folders of the GameHelper host that packages before Poe2AccessHost carried; nothing reads them now.</summary>
-    private static readonly string[] ObsoleteFolders = { "configs", "fonts" };
-
     private static string InstallRoot => AppContext.BaseDirectory;
 
     private static string WorkRoot => Path.Join(Path.GetTempPath(), "Poe2AccessUpdate");
@@ -254,7 +251,7 @@ internal static class Updater
             }
         }
 
-        foreach (var folder in ObsoleteFolders.Where(folder => !Directory.Exists(Path.Join(app, folder))))
+        foreach (var folder in LegacyHost.Folders.Where(folder => !Directory.Exists(Path.Join(app, folder))))
         {
             TryDeleteDirectory(Path.Join(installed, folder));
         }

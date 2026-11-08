@@ -99,7 +99,7 @@ A launcher opened by hand with these options set asks Steam for the game; the on
 running (the single-instance mutex), starts the game and waits, and the first goes on to the host once the window is up.
 `stop` sets the host's named event `Local\Poe2AccessHost.Stop`, gives it 5 s to exit, then kills it; every other process whose
 image is in the host folder (an old GameHelper copy) is killed outright. `restart` stops, deletes what packages before the own
-host left (`GameHelper.exe`, its random-named copies listed in `Poe2Access.copies.txt` / `tempFileLocations.dat`; `LegacyHost.cs`)
+host left (`GameHelper.exe`, its random-named copies listed in `Poe2Access.copies.txt` / `tempFileLocations.dat`, the overlay's libraries such as ImGui and ImageSharp, and its `configs`, `fonts` and `Localization` folders; `LegacyHost.cs`)
 and starts `Poe2AccessHost.exe` plainly (no window; its manifest asks for no administrator rights). Single instance; steps go
 to `Poe2Access.log` next to the exe; a failure shows a message box and exits 1. The host folder defaults to the exe's own
 folder when it holds `Poe2AccessHost.exe`, else `app` beside it, else the repository build output
@@ -134,8 +134,8 @@ bundle reading). The runtime's native PDB reader and `createdump.exe` are left o
 upload, and Windows 11 opens it (Windows 10 needs 7-Zip or WinRAR). `dist/` is gitignored; publishing a release stays a
 manual decision. Updating an install made before the own host: the launcher keeps `app/Plugins/Poe2Accessibility/config`
 and the extracted sounds, deletes the loose files in `app/` the new package lacks (GameHelper and its libraries, keeping
-`*.log`) and its `configs/` and `fonts/` folders (`Updater.Prune`), and the first start deletes `GameHelper.exe` and the
-random-named copies (`LegacyHost.cs`).
+`*.log`) and its old folders (`Updater.Prune`). An update made by a launcher from before the own host copies without
+deleting, so every start also deletes GameHelper's exe, copies, libraries and folders by name (`LegacyHost.cs`).
 
 ## localization — the mod's phrases in the game's other languages
 Spoken strings are `T(english, spanish)` calls in `Poe2Accessibility/Announcements*.cs`; pt, fr, de, ru, th, ja, ko and
