@@ -114,8 +114,8 @@ def main():
     for mid, rs in rows.items():
         cur = None
         for r in rs:
-            if r.get('clip_index') is None or r.get('pos') is None:
-                continue
+            if r.get('clip_index') is None or r.get('pos') is None or r.get('clip') is None:
+                continue  # a restart reads no clip for one frame (the Devourer's spit_01, 2026-11-08): not a swing of its own
             if cur is None or r['clip_index'] != cur['clip_index'] or r['pos'] < cur['last_pos'] - 0.01:
                 cur = dict(id=mid, monster=r['monster'].split('@')[0], clip=r.get('clip'), clip_index=r['clip_index'], anim=r.get('anim'),
                            rows=[], last_pos=r['pos'], rarity=r.get('rarity'))
@@ -171,7 +171,10 @@ def main():
         for s in cands:
             nxt = [c for c in s['contacts'] if c >= w['wall'] - 250]
             w['swing'] = s
-            w['contact'] = nxt[0] if nxt else None
+            # A clip of several contacts (Beira's ice_spear_combo_01: five) is warned again for a later one: the warning's
+            # own estimate names which; the first contact ahead made those warnings look 450 ms late.
+            aimed_at = w['wall'] + w['blow_in'] - w['flight']
+            w['contact'] = min(nxt, key=lambda c: abs(c - aimed_at)) if nxt and w['blow_in'] > 0 else (nxt[0] if nxt else None)
             s.setdefault('warns', []).append(w)
             break
 

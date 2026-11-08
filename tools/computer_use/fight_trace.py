@@ -29,7 +29,10 @@ LIFE_CURRENT, RENDER_POSITION, POSITIONED_GRID = 0x1E0, 0x138, 0x444
 ANIMATION_ID, ACTION, ACTION_FLAGS = 0x8B0, 0x238, 0x2A0
 ACTION_SKILL, ACTION_TYPE, ACTION_TARGET, ACTION_PLACE = 0xF8, 0x120, 0x148, 0x150
 ANIMATED_OBJECT = 0x350
-RARITY = 0x94  # ObjectMagicProperties (host/GameOffsets ModsAndObjectMagicProperties.cs): 0 normal, 1 magic, 2 rare, 3 unique
+# ObjectMagicProperties: Details1 (+0xB0) + Rarity (+0x94), host/GameOffsets ModsAndObjectMagicProperties.cs, read the same way
+# by the host's ObjectMagicProperties; 0 normal, 1 magic, 2 rare, 3 unique. +0x94 alone (the Mods component's Details0) read 0
+# for Beira, a unique, on 2026-11-08: every trace before then has a wrong rarity column.
+RARITY = 0xB0 + 0x94
 AC_GLOBAL, AC_DATA, AC_CLIP, AC_POSITION, AC_SPEED, AC_START, AC_END, AC_GLOBAL_OFF = 0x178, 0x180, 0x190, 0x1A4, 0x1B0, 0x1B8, 0x1BC, 0x1D4
 DATA_CLIP_EVENTS, AMD_PATH, AMD_TABLE, TABLE_CLIPS, CLIP_SIZE = 0x10, 0x8, 0x28, 0x38, 0x138
 EVENT_KIND, EVENT_TIME, EVENT_NAME, EVENT_ID, EVENT_NEXT = 0x8, 0xC, 0x18, 0x38, 0x40

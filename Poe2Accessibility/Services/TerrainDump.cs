@@ -13,9 +13,6 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class TerrainDump
     {
-        /// <summary>Terrain struct inside the area instance (GameOffsets AreaInstanceOffsets.TerrainMetadata).</summary>
-        private const int TerrainOffset = 0x8D0;
-
         /// <summary>Std vectors of the terrain struct: walkable, "landscape", layer 3, layer 4 (POE2Radar Poe2Offsets).</summary>
         private static readonly int[] LayerOffsets = { 0xD0, 0xE8, 0x100, 0x118 };
 
@@ -50,7 +47,9 @@ namespace Poe2Accessibility.Services
             byte[]? walkable = null;
             foreach (var offset in LayerOffsets)
             {
-                var address = area.Address + TerrainOffset + offset;
+                // The terrain struct where the area layout search found it (0x8D0 when this was written, 0x8F8 in 0.5.5f: the old
+                // constant read four empty layers on 2026-11-08).
+                var address = area.Address + area.Layout.Fields.Terrain + offset;
                 if (!this.memory.TryRead<StdVector>(address, out var vector))
                 {
                     continue;
