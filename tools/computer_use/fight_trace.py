@@ -29,6 +29,7 @@ LIFE_CURRENT, RENDER_POSITION, POSITIONED_GRID = 0x1E0, 0x138, 0x444
 ANIMATION_ID, ACTION, ACTION_FLAGS = 0x8B0, 0x238, 0x2A0
 ACTION_SKILL, ACTION_TYPE, ACTION_TARGET, ACTION_PLACE = 0xF8, 0x120, 0x148, 0x150
 ANIMATED_OBJECT = 0x350
+RARITY = 0x94  # ObjectMagicProperties (host/GameOffsets ModsAndObjectMagicProperties.cs): 0 normal, 1 magic, 2 rare, 3 unique
 AC_GLOBAL, AC_DATA, AC_CLIP, AC_POSITION, AC_SPEED, AC_START, AC_END, AC_GLOBAL_OFF = 0x178, 0x180, 0x190, 0x1A4, 0x1B0, 0x1B8, 0x1BC, 0x1D4
 DATA_CLIP_EVENTS, AMD_PATH, AMD_TABLE, TABLE_CLIPS, CLIP_SIZE = 0x10, 0x8, 0x28, 0x38, 0x138
 EVENT_KIND, EVENT_TIME, EVENT_NAME, EVENT_ID, EVENT_NEXT = 0x8, 0xC, 0x18, 0x38, 0x40
@@ -214,6 +215,8 @@ def sample(game, out, reach, last):
         if 'Life' in parts and (memory.one('<i', parts['Life'] + LIFE_CURRENT) or 0) <= 0:
             continue
         row = dict(stamp, id=entity_id, monster=path.split('/')[-1], anim=memory.one('<i', actor + ANIMATION_ID), at=[round(v) for v in place[:2]])
+        if 'ObjectMagicProperties' in parts:
+            row['rarity'] = memory.one('<i', parts['ObjectMagicProperties'] + RARITY)
         action = memory.q(actor + ACTION)
         if action:
             target = memory.q(action + ACTION_TARGET)
