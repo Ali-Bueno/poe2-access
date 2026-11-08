@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text;
     using GameReader.Utils;
     using static LayoutSearchTests;
@@ -35,7 +36,37 @@ namespace Poe2Accessibility.Tests
             (nameof(AnInventoryEntryThatChangedIsReadAgain), AnInventoryEntryThatChangedIsReadAgain),
             (nameof(ANameEntryThatChangedIsReadAgain), ANameEntryThatChangedIsReadAgain),
             (nameof(TheInventoryIsNotItsBase), TheInventoryIsNotItsBase),
+            (nameof(TheGameMenuIsOpenedAndClosedInPlay), TheGameMenuIsOpenedAndClosedInPlay),
+            (nameof(StatesAreNamedFromTheRolesAroundThem), StatesAreNamedFromTheRolesAroundThem),
         };
+
+        private static void TheGameMenuIsOpenedAndClosedInPlay()
+        {
+            var states = Slots();
+            var roles = new GameStateRoles(states);
+            var (a, b) = (Heap + 0x9000, Heap + 0xA000);
+            roles.See(states[4], a, a);
+            roles.See(states[0], 0, a);
+            roles.See(states[4], b, b);
+            Equal(-1, roles.Escape, "a load from play changes the area");
+            roles.See(states[3], 0, b);
+            roles.See(states[4], b, b);
+            Equal(-1, roles.Escape, "one opening is not proof yet");
+            roles.See(states[3], 0, b);
+            roles.See(states[4], b, b);
+            Equal(3, roles.Escape, "opened in play and closed back to it over the same area, twice");
+        }
+
+        private static void StatesAreNamedFromTheRolesAroundThem()
+        {
+            static string Named(int slots, params (int, int)[] roles) => string.Join(",", GameStateRoles.Names(slots, 13, roles));
+            Equal(string.Join(",", Enumerable.Range(0, 13)), Named(13, (0, 0), (3, 3), (4, 4)), "roles where measured");
+            Equal(string.Join(",", Enumerable.Range(0, 13)), Named(13), "no role seen yet");
+            Equal("0,1,2,-1,3,4,5,6,7,8,9,10,11,12", Named(14, (0, 0), (3, 4), (4, 5)), "a state inserted before the game menu");
+            Equal("0,1,2,3,-1,4,5,6,7,8,9,10,11,12", Named(14, (0, 0), (4, 5)), "between roles that disagree, by slot");
+            Equal("0,1,2,4,5,6,7,8,9,10,11,12,-1", Named(13, (0, -1), (4, 3)), "after the only role, its shift; before it, by slot");
+            Equal("0,1,3,4,5,6,7,8,9,10,11,12,-1", Named(13, (0, -1), (3, 2), (4, 3)), "every state one slot earlier: those before every role stay, until loading is proven");
+        }
 
         private static void AnInventoryEntryThatChangedIsReadAgain()
         {

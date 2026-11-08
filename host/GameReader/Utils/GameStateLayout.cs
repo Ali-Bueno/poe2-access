@@ -114,9 +114,11 @@ namespace GameReader.Utils
     }
 
     /// <summary>
-    ///     Which of the game's states plays an area and which loads one, told by what they do rather than by their slot: the
-    ///     state in play leads to an area with a local player in it; the state that was current while the in-game state's area
-    ///     pointer changed loaded it (twice the same: a wait after the load holds the new area from its start, a menu the old).
+    ///     Which of the game's states plays an area, which loads one and which is the game menu, told by what they do rather
+    ///     than by their slot: the state in play leads to an area with a local player in it; the state that was current while the
+    ///     in-game state's area pointer changed loaded it (twice the same: a wait after the load holds the new area from its
+    ///     start, a menu the old); the game menu is entered from play and left back to it over the same area (twice the same).
+    ///     The other states are named from these (<see cref="Names"/>).
     /// </summary>
     public sealed class GameStateRoles
     {
@@ -128,6 +130,9 @@ namespace GameReader.Utils
         private long areaAtStart;
         private int candidate = -1;
         private int proofs;
+        private int enteredFrom = -1;
+        private int menuCandidate = -1;
+        private int menuProofs;
 
         /// <summary>Initializes a new instance of the <see cref="GameStateRoles"/> class over the slots' objects.</summary>
         public GameStateRoles(IReadOnlyList<long> states)
@@ -140,6 +145,9 @@ namespace GameReader.Utils
 
         /// <summary>Gets the slot of the state that loads areas; negative until proven.</summary>
         public int AreaLoading { get; private set; } = -1;
+
+        /// <summary>Gets the slot of the game menu (escape) state; negative until proven.</summary>
+        public int Escape { get; private set; } = -1;
 
         /// <summary>
         ///     Gets how many slots every state moved when both roles were found that far from their measured slots (a list read a
@@ -164,13 +172,62 @@ namespace GameReader.Utils
                     this.AreaLoading = this.proofs >= LoadingProofs ? ended : this.AreaLoading;
                 }
 
-                (this.present, this.areaAtStart) = (current, inGameArea);
+                // Opened in play and closed back to it over the same area: the game menu.
+                var next = this.IndexOf(current);
+                if (ended >= 0 && this.InGame >= 0 && ended != this.InGame && this.enteredFrom == this.InGame && next == this.InGame &&
+                    inGameArea != 0 && inGameArea == this.areaAtStart)
+                {
+                    (this.menuCandidate, this.menuProofs) = ended == this.menuCandidate ? (ended, this.menuProofs + 1) : (ended, 1);
+                    this.Escape = this.menuProofs >= LoadingProofs ? ended : this.Escape;
+                }
+
+                (this.present, this.areaAtStart, this.enteredFrom) = (current, inGameArea, ended);
             }
 
             if (area != 0 && this.IndexOf(current) is var index and >= 0)
             {
                 this.InGame = index;
             }
+        }
+
+        /// <summary>
+        ///     Which state each of <paramref name="slots"/> slots holds (its measured index, negative when unknown), from the roles
+        ///     found, each (measured index, slot found, negative while unknown). A state inserted in the game's list moves every one
+        ///     after it, so a state after every role takes the shift of the last, one between two roles that agree takes theirs, and
+        ///     the rest keep their slot (a role says nothing of the states before it): with no role moved, every one.
+        /// </summary>
+        public static int[] Names(int slots, int states, IReadOnlyList<(int Measured, int Found)> roles)
+        {
+            var names = new int[slots];
+            Array.Fill(names, -1);
+            var known = roles.Where(role => role.Found is >= 0 && role.Found < slots).OrderBy(role => role.Measured).ToList();
+            foreach (var (measured, found) in known)
+            {
+                names[found] = measured;
+            }
+
+            for (var state = 0; state < states; state++)
+            {
+                if (known.Any(role => role.Measured == state))
+                {
+                    continue;
+                }
+
+                var below = known.LastOrDefault(role => role.Measured < state, (Measured: -1, Found: -1));
+                var above = known.FirstOrDefault(role => role.Measured > state, (Measured: -1, Found: -1));
+                var shift = (below.Measured >= 0, above.Measured >= 0) switch
+                {
+                    (true, true) when below.Found - below.Measured == above.Found - above.Measured => below.Found - below.Measured,
+                    (true, false) => below.Found - below.Measured,
+                    _ => 0,
+                };
+                if (state + shift is var slot && slot >= 0 && slot < slots && names[slot] < 0)
+                {
+                    names[slot] = state;
+                }
+            }
+
+            return names;
         }
 
         private int IndexOf(long state)

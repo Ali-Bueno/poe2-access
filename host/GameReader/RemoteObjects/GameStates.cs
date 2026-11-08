@@ -28,6 +28,12 @@ namespace GameReader.RemoteObjects
         /// <summary>The part that says which state loads an area.</summary>
         public const string AreaLoadingPart = "area loading state";
 
+        /// <summary>The part that is the game menu (told by being opened in play and closed back to it).</summary>
+        public const string EscapePart = "game menu state";
+
+        // The names that are states of the game's list: every slot up to the one 0.5.x added unnamed.
+        private const int StateNames = (int)GameStateTypes.UnknownState + 1;
+
         private const string LocalPlayerFolder = "Metadata/Characters/";
 
         // While no state has led to an area, the current one is looked at this often.
@@ -47,7 +53,7 @@ namespace GameReader.RemoteObjects
         private int layoutTried;
         private long nextLayoutAt;
         private bool layoutPending;
-        private int namesShifted;
+        private int[] named = Array.Empty<int>();
         private IntPtr currentStateAddress = IntPtr.Zero;
         private GameStateTypes currentStateName = GameStateTypes.GameNotLoaded;
         private GameStateStaticOffset myStaticObj;
@@ -113,7 +119,7 @@ namespace GameReader.RemoteObjects
                     this.LayoutOutcomes = this.JudgeLayout(reader);
                     var data = reader.ReadMemory<GameStateOffset>(this.myStaticObj.GameState);
                     this.AllStates.Clear();
-                    this.namesShifted = 0;
+                    this.named = Enumerable.Range(0, GameStateHelper.TOTAL_STATES).ToArray();
                     this.slots = new long[GameStateHelper.TOTAL_STATES];
                     for (var i = 0; i < GameStateHelper.TOTAL_STATES; i++)
                     {
@@ -177,7 +183,7 @@ namespace GameReader.RemoteObjects
                 this.slots = Array.Empty<long>();
                 this.roles = new GameStateRoles(this.slots);
                 this.LayoutOutcomes = Array.Empty<StructOutcome>();
-                (this.layoutTried, this.layoutPending, this.namesShifted) = (0, false, 0);
+                (this.layoutTried, this.layoutPending, this.named) = (0, false, Array.Empty<int>());
             }
         }
 
@@ -218,30 +224,41 @@ namespace GameReader.RemoteObjects
             return new GameMemory(reader).EntityPath(player.ToInt64()).StartsWith(LocalPlayerFolder, StringComparison.Ordinal) ? area.ToInt64() : 0;
         }
 
-        /// <summary>Names the states by what they were seen doing when that differs from their slot.</summary>
+        /// <summary>
+        ///     Names the states from the roles they were seen in (<see cref="GameStateRoles.Names"/>): a state inserted in the game's
+        ///     list moves the names after it, so the roles found on both sides of a state tell its slot.
+        /// </summary>
         private void ApplyRoles()
         {
-            if (this.roles.WholeShift is { } shift && shift != this.namesShifted)
+            var roles = new[]
             {
-                // Both roles one slot off the same way: the whole list reads shifted, so every state takes the name of its slot.
-                this.namesShifted = shift;
+                ((int)GameStateTypes.AreaLoadingState, this.roles.AreaLoading),
+                ((int)GameStateTypes.EscapeState, this.roles.Escape),
+                ((int)GameStateTypes.InGameState, this.roles.InGame),
+            };
+            var names = GameStateRoles.Names(this.slots.Length, StateNames, roles);
+            if (!names.SequenceEqual(this.named))
+            {
+                this.named = names;
                 for (var slot = 0; slot < this.slots.Length; slot++)
                 {
-                    var named = slot - shift;
-                    this.AllStates[new IntPtr(this.slots[slot])] = named is >= 0 and < GameStateHelper.TOTAL_STATES ? (GameStateTypes)named : GameStateTypes.UnknownState;
+                    this.AllStates[new IntPtr(this.slots[slot])] = names[slot] >= 0 ? (GameStateTypes)names[slot] : GameStateTypes.UnknownState;
                 }
 
-                Console.WriteLine($"[GameStates] every state moved {shift} slots");
+                var moved = names.Select((name, slot) => (name, slot)).Where(pair => pair.name != pair.slot)
+                    .Select(pair => $"slot {pair.slot} {(pair.name >= 0 ? ((GameStateTypes)pair.name).ToString() : "unknown")}");
+                Console.WriteLine($"[GameStates] states named by their roles: {string.Join(", ", moved)}");
             }
 
-            var outcomes = this.LayoutOutcomes.Where(outcome => outcome.Name is not (InGamePart or AreaLoadingPart)).ToList();
+            var outcomes = this.LayoutOutcomes.Where(outcome => outcome.Name is not (InGamePart or AreaLoadingPart or EscapePart)).ToList();
             outcomes.Add(this.Role(InGamePart, this.roles.InGame, GameStateTypes.InGameState, this.InGameStateObject));
             outcomes.Add(this.Role(AreaLoadingPart, this.roles.AreaLoading, GameStateTypes.AreaLoadingState, this.AreaLoading));
+            outcomes.Add(this.Role(EscapePart, this.roles.Escape, GameStateTypes.EscapeState, null));
             this.LayoutOutcomes = outcomes;
         }
 
-        /// <summary>The outcome of a state's role; a state seen at it in another slot takes its name and its object.</summary>
-        private StructOutcome Role(string part, int found, GameStateTypes type, RemoteObjectBase holder)
+        /// <summary>The outcome of a state's role; a state seen at it in another slot gives its object to the holder.</summary>
+        private StructOutcome Role(string part, int found, GameStateTypes type, RemoteObjectBase? holder)
         {
             var measured = (int)type;
             if (found < 0)
@@ -250,21 +267,14 @@ namespace GameReader.RemoteObjects
             }
 
             var address = new IntPtr(this.slots[found]);
-            if (holder.Address != address)
+            if (holder is not null && holder.Address != address)
             {
-                foreach (var stale in this.AllStates.Where(pair => pair.Value == type).Select(pair => pair.Key).ToList())
-                {
-                    this.AllStates[stale] = GameStateTypes.UnknownState;
-                }
-
-                this.AllStates[address] = type;
                 holder.Address = address;
                 Console.WriteLine($"[GameStates] {part}: slot {measured} -> {found}");
             }
 
             return new StructOutcome(part, found == measured ? StructHealth.Intact : StructHealth.Moved, measured, found, string.Empty);
         }
-
 
         private IEnumerator<Wait> OnPerFrame()
         {
