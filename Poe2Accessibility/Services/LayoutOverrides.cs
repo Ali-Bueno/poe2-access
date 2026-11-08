@@ -79,12 +79,9 @@ namespace Poe2Accessibility.Services
                 return read;
             }
 
-            var replaced = overrides.Select(field => Key(field.Entry)).ToHashSet(StringComparer.Ordinal);
-            return read.Where(field => field.Entry.IsReport || !replaced.Contains(Key(field.Entry))).Concat(overrides).ToList();
+            var replaced = overrides.Select(field => field.Entry.SettleKey).ToHashSet(StringComparer.Ordinal);
+            return read.Where(field => !replaced.Contains(field.Entry.SettleKey)).Concat(overrides).ToList();
         }
-
-        /// <summary>A plugin offset or a struct's field; the code's bias (how far past the field it reads) does not count.</summary>
-        private static string Key(CodeFieldEntry entry) => entry.Layout is { } layout ? CodeFieldCatalog.LayoutPrefix + layout : $"{entry.Struct}{TargetSeparator}{entry.Field}";
 
         /// <summary><c>Struct:Field</c> (a dotted path) or <c>layout:Name</c>; never a report, never a bias.</summary>
         private static bool IsTarget(string target)

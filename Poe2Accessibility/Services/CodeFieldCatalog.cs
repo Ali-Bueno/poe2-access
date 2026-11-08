@@ -35,6 +35,13 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The field's own place when the signatures were made: what a reading (bias off) compares with.</summary>
         public int Measured => this.Value - this.Bias;
+
+        /// <summary>
+        ///     The field itself, whatever source reads it: a report by its name (reports share one target), a plugin offset
+        ///     by name, a struct's field without the bias the code reads it at.
+        /// </summary>
+        public string SettleKey => this.IsReport ? $"{CodeFieldCatalog.ReportTarget}{Separator}{this.Name}"
+            : this.Layout is { } layout ? CodeFieldCatalog.LayoutPrefix + layout : $"{this.Struct}{Separator}{this.Field}";
     }
 
     /// <summary>
@@ -109,15 +116,15 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     One value per target from both sources, the first entry naming it: a target the sources read differently is
-        ///     left unsettled, and listed.
+        ///     One value per field (<see cref="CodeFieldEntry.SettleKey"/>) from both sources, the first entry naming it: a
+        ///     field the sources read differently is left unsettled, and listed.
         /// </summary>
         public static (IReadOnlyList<(CodeFieldEntry Entry, int? Found)> Settled, IReadOnlyList<string> Disagree) Settle(
             IReadOnlyList<(CodeFieldEntry Entry, int? Found)> code, IReadOnlyList<(CodeFieldEntry Entry, int? Found)> semantic)
         {
             var settled = new List<(CodeFieldEntry, int?)>();
             var disagree = new List<string>();
-            foreach (var target in code.Concat(semantic).GroupBy(read => read.Entry.Target))
+            foreach (var target in code.Concat(semantic).GroupBy(read => read.Entry.SettleKey))
             {
                 var values = target.Where(read => read.Found != null).Select(read => read.Found!.Value).Distinct().ToList();
                 if (values.Count > 1)

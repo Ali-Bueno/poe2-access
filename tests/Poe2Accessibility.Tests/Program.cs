@@ -69,6 +69,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(CodeFieldsNeedTwoSignaturesThatAgree), CodeFieldsNeedTwoSignaturesThatAgree);
             Run(nameof(CodeFieldCatalogParses), CodeFieldCatalogParses);
             Run(nameof(LayoutOverridesCountOnlyForTheirBuild), LayoutOverridesCountOnlyForTheirBuild);
+            Run(nameof(CodeFieldsSettleEachFieldApart), CodeFieldsSettleEachFieldApart);
             Run(nameof(TheStunRecordIsFoundByItsHead), TheStunRecordIsFoundByItsHead);
             Run(nameof(TheGridMustHoldWhereThePlayerWalks), TheGridMustHoldWhereThePlayerWalks);
             Run(nameof(OpeningSoundsComeFromTheOpeningAnimation), OpeningSoundsComeFromTheOpeningAnimation);
@@ -3286,6 +3287,28 @@ namespace Poe2Accessibility.Tests
             var shipped = CodeFieldCatalog.Parse(System.IO.File.ReadLines(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", "code-fields.txt")));
             Equal(51, shipped.Count, "every shipped line parses");
             Equal(true, shipped.All(entry => entry.Signatures.Count >= 2), "two can agree on each");
+        }
+
+        private static void CodeFieldsSettleEachFieldApart()
+        {
+            var none = Array.Empty<GameReader.Utils.CodeField>();
+            var code = new (CodeFieldEntry, int?)[]
+            {
+                (new CodeFieldEntry("Mods.Ptr", "report", 0x28, none), 0x28),
+                (new CodeFieldEntry("Mods.Size", "report", 0x40, none), 0x40),
+                (new CodeFieldEntry("Area.Player", "AreaInstanceOffsets:PlayerInfo:8", 0x5C0, none), 0x5B8),
+            };
+            var semantic = new (CodeFieldEntry, int?)[]
+            {
+                (new CodeFieldEntry("Area.Player", "AreaInstanceOffsets:PlayerInfo", 0x5B8, none), 0x5B8),
+            };
+            var (settled, disagree) = CodeFieldCatalog.Settle(code, semantic);
+            Equal(0, disagree.Count, "two reports are two fields, and a bias does not make a second field");
+            Equal(3, settled.Count, "each field once");
+            Equal(0x40, settled.Single(field => field.Entry.Name == "Mods.Size").Found, "a report keeps its own value");
+
+            var moved = new (CodeFieldEntry, int?)[] { (new CodeFieldEntry("Area.Player", "AreaInstanceOffsets:PlayerInfo", 0x5B8, none), 0x5C0) };
+            Equal(1, CodeFieldCatalog.Settle(code, moved).Disagree.Count, "the code and the rules reading one field apart");
         }
 
         private static void LayoutOverridesCountOnlyForTheirBuild()
