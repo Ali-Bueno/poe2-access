@@ -21,6 +21,8 @@ namespace Poe2Accessibility.Tests
             (nameof(AMapOfOtherNamesIsNoComponentMap), AMapOfOtherNamesIsNoComponentMap),
             (nameof(TheStateListAndStackAreFoundWhereverTheyMoved), TheStateListAndStackAreFoundWhereverTheyMoved),
             (nameof(PointersThatRepeatAreNoStateList), PointersThatRepeatAreNoStateList),
+            (nameof(AValidListStaysWhereMeasured), AValidListStaysWhereMeasured),
+            (nameof(TooFewBytesAreNoStruct), TooFewBytesAreNoStruct),
             (nameof(TheStateInPlayIsTheOneThatLeadsToAnArea), TheStateInPlayIsTheOneThatLeadsToAnArea),
             (nameof(TheLoadingStateIsWhatCameBeforeTwoNewAreas), TheLoadingStateIsWhatCameBeforeTwoNewAreas),
             (nameof(ElementBaseFieldsWhereMeasuredStayThere), ElementBaseFieldsWhereMeasuredStayThere),
@@ -134,17 +136,19 @@ namespace Poe2Accessibility.Tests
         private static void TheFocusIsTheSlotThatTakesEachElementFirst()
         {
             const int measured = 0x748;
+            const int lag = 8;
+            const int hovered = 0x18;
             foreach (var shift in new[] { 0, 8, -0x18 })
             {
-                var check = new Poe2Accessibility.Services.FocusSlotCheck(measured);
+                var check = new Poe2Accessibility.Services.FocusSlotCheck(measured, lag);
                 var focus = measured + shift;
                 int? judged = null;
                 long previous = 0;
 
-                // A root-like element that never changes sits beside them; the previous-focus slot lags one step behind.
-                foreach (var element in new long[] { 0x1000, 0x2000, 0x3000, 0x4000, 0x5000 })
+                // A root-like element that never changes sits out of the way; the previous-focus slot lags one step behind.
+                foreach (var element in new long[] { 0x1000, 0x2000, 0x3000, 0x4000, 0x5000, 0x6000 })
                 {
-                    var slots = new Dictionary<int, long> { [measured - 0x10] = 0x9000, [focus] = element, [focus + 8] = previous };
+                    var slots = new Dictionary<int, long> { [measured + 0x38] = 0x9000, [focus] = element, [focus + lag] = previous, [focus + hovered] = 0 };
                     slots.TryAdd(measured, 0);
                     judged = check.See(slots);
                     previous = element;
@@ -153,13 +157,22 @@ namespace Poe2Accessibility.Tests
                 Equal((int?)focus, judged, $"focus moved by {shift:X}");
             }
 
-            var still = new Poe2Accessibility.Services.FocusSlotCheck(measured);
+            var still = new Poe2Accessibility.Services.FocusSlotCheck(measured, lag);
             for (var look = 0; look < 10; look++)
             {
-                still.See(new Dictionary<int, long> { [measured] = 0x1000, [measured + 8] = 0x2000 });
+                still.See(new Dictionary<int, long> { [measured] = 0x1000, [measured + lag] = 0x2000 });
             }
 
             Equal((int?)null, still.Judged, "a focus that never moves proves nothing");
+
+            // The passive tree: a free cursor fills the hovered slot with new elements while nothing has the focus.
+            var tree = new Poe2Accessibility.Services.FocusSlotCheck(measured, lag);
+            for (var node = 1; node <= 20; node++)
+            {
+                tree.See(new Dictionary<int, long> { [measured] = 0, [measured + lag] = 0x2000, [measured + hovered] = 0x10000 + (node * 0x100) });
+            }
+
+            Equal((int?)null, tree.Judged, "the hovered slot is no focus");
         }
 
         private static void ElementBaseFieldsWhereMeasuredStayThere()
@@ -253,9 +266,9 @@ namespace Poe2Accessibility.Tests
         {
             var states = Slots();
             var roles = new GameStateRoles(states);
-            roles.See(states[6], 0);
+            roles.See(states[6], 0, 0);
             Equal((-1, -1), (roles.InGame, roles.AreaLoading), "a login screen says nothing");
-            roles.See(states[5], Heap + 0x9000);
+            roles.See(states[5], Heap + 0x9000, Heap + 0x9000);
             Equal((5, -1), (roles.InGame, roles.AreaLoading), "the state that leads to an area is in play");
         }
 
@@ -263,16 +276,54 @@ namespace Poe2Accessibility.Tests
         {
             var states = Slots();
             var roles = new GameStateRoles(states);
-            roles.See(states[4], Heap + 0x9000);
-            roles.See(states[3], 0);
-            roles.See(states[4], Heap + 0x9000);
+            var (a, b, c) = (Heap + 0x9000, Heap + 0xA000, Heap + 0xB000);
+            roles.See(states[4], a, a);
+            roles.See(states[3], 0, a);
+            roles.See(states[4], a, a);
             Equal(-1, roles.AreaLoading, "a menu over the same area loads nothing");
-            roles.See(states[0], 0);
-            roles.See(states[4], Heap + 0xA000);
+
+            // Loading, then a wait that already holds the new area: the area pointer changed while the loading state was current.
+            roles.See(states[0], 0, a);
+            roles.See(states[7], 0, b);
+            roles.See(states[4], b, b);
             Equal(-1, roles.AreaLoading, "one new area is not proof yet");
-            roles.See(states[0], 0);
-            roles.See(states[4], Heap + 0xB000);
-            Equal((4, 0), (roles.InGame, roles.AreaLoading), "the state before two new areas loads them");
+            roles.See(states[0], 0, 0);
+            roles.See(states[7], 0, c);
+            roles.See(states[4], c, c);
+            Equal((4, 0), (roles.InGame, roles.AreaLoading), "the state current while the area changed, not the wait after it");
+            Equal((int?)null, roles.WholeShift, "both roles where measured");
+
+            // Every state three slots later: both roles say so.
+            var shifted = new GameStateRoles(states);
+            foreach (var area in new[] { a, b, c })
+            {
+                shifted.See(states[3], 0, 0);
+                shifted.See(states[7], area, area);
+            }
+
+            Equal(((int, int))(7, 3), (shifted.InGame, shifted.AreaLoading), "roles three slots later");
+            Equal((int?)3, shifted.WholeShift, "the whole list reads three slots off");
+        }
+
+        private static void TooFewBytesAreNoStruct()
+        {
+            var size = System.Runtime.CompilerServices.Unsafe.SizeOf<GameOffsets.Objects.UiElement.UiElementBaseOffset>();
+            Equal(size, HostStructs.Size<GameOffsets.Objects.UiElement.UiElementBaseOffset>(), "a struct no patch moved takes its own size");
+            Equal(false, HostStructs.TryRead<GameOffsets.Objects.UiElement.UiElementBaseOffset>(new byte[size - 1], out _), "a byte short");
+            var block = new byte[size];
+            Put(block, 8, Heap);
+            Equal((true, new IntPtr(Heap)), (HostStructs.TryRead<GameOffsets.Objects.UiElement.UiElementBaseOffset>(block, out var element), element.Self), "read as laid out");
+        }
+
+        private static void AValidListStaysWhereMeasured()
+        {
+            var measured = GameStateFields.Measured;
+            var (memory, block, states) = StateObject(measured.Stack, measured.States);
+
+            // The last slot not used yet and an aligned pointer pair before the list: a slot earlier reads one state more.
+            Put(block, measured.States + (12 * 0x10), 0, 0);
+            Put(block, measured.States - 0x10, Heap + 0x7000, Heap + 0x7800);
+            Equal(measured, GameStateLayout.Locate(block, measured, memory), "the measured list, not the longer one a slot off");
         }
 
         private static long[] Slots()
@@ -342,9 +393,12 @@ namespace Poe2Accessibility.Tests
         {
             var memory = new FakeMemory();
             var measured = EntityLayout.Measured;
-            var entity = Entity(memory, 0, measured, new[] { "abc_def", "x", "Unheard" });
+            var entity = Entity(memory, 0, measured, new[] { "Unheard", "Whatever", "Nothing" });
             var found = new EntityLayoutSearch(memory).Find(new[] { entity }, measured);
-            Equal((measured.Details, measured.Components, -1), (found.Details, found.Components, found.LookUp), "names that are no known components");
+            Equal((measured.Details, measured.Components, -1), (found.Details, found.Components, found.LookUp), "component names none of which is known");
+            var odd = new FakeMemory();
+            var shaped = Entity(odd, 0, measured, new[] { "abc_def", "x", "Render" });
+            Equal(-1, new EntityLayoutSearch(odd).Find(new[] { shaped }, measured).LookUp, "a known name among names that are no components");
         }
 
         /// <summary>Entity <paramref name="index"/> laid out as <paramref name="at"/> says, with its details, path, lookup and components.</summary>
