@@ -423,6 +423,12 @@ Next: (1) **Release** — everything since v2026.11.07-8, the own host included,
 Earlier chunks, newest first: [status history](docs/status-history.md).
 
 ## Known issues / open questions
+- Live test 2026-11-08 (yarkey, own host): the options' popup notification settings ("Notificaciones emergentes", Edit
+  Settings) move a highlight that is neither the UI focus nor the hover slot, and a dump diff shows no flag change: its rows
+  are read only as the list appears, not as the stick moves. The Mercenary's crossbow clip is still not found: `skills`
+  showed only a use counter (+0xD8, up by one per bolt); Permafrost Bolts reloaded within two shots. Heat is said without a
+  maximum ("Calor: 8"; the player's max stat reads 0). The help panel has no pad route seen (keyboard H would switch the
+  input mode). Instance Manager rows with headings need an existing instance (only "New instance" was offered).
 - `catalog/landmarks.json` corrects the Radar table's labels that were no area name by a typo ("Oghams Manor", 5 found by near match) and G1_14's "Entrance", the way back read as the Manor's.
 - Radar-table labels are English notes (GameHelper's `important_tgt_files.txt`): area names, bracketed notes and, since
   2026-11-02, boss names are said in the game's language. Since 2026-11-08 every piece of a label (cut at " - ", slashes,
