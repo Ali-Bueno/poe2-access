@@ -63,6 +63,7 @@ namespace Poe2Accessibility.Tests
             (nameof(PointerHalvesAreNoAnimation), PointerHalvesAreNoAnimation),
             (nameof(ActorsWithNoCopyLeaveTheFieldToItsBehaviour), ActorsWithNoCopyLeaveTheFieldToItsBehaviour),
             (nameof(BuffListsEndInAnId), BuffListsEndInAnId),
+            (nameof(TheStatPairsHoldThePlayersLevel), TheStatPairsHoldThePlayersLevel),
             (nameof(TheCameraIsKeptTwice), TheCameraIsKeptTwice),
             (nameof(PositionsLieInsideTheMap), PositionsLieInsideTheMap),
             (nameof(ADatKeyIsFoundByTheTableItsFileNames), ADatKeyIsFoundByTheTableItsFileNames),
@@ -579,6 +580,35 @@ namespace Poe2Accessibility.Tests
             memory.Texts[Heap + 0x400] = "Not an Id";
             Equal(false, StructShapes.IsBuffList(block, 0x10, memory, 8), "a chain that ends in other text");
             Equal(false, StructShapes.IsBuffList(block, 0x18, memory, 8), "no vector");
+
+            // The definition's id read 8 bytes into its row: found there, not at its start.
+            memory.Texts[Heap + 0x400] = "herald_of_thunder";
+            memory.Pointers.Remove(Heap + 0x300);
+            memory.Pointers[Heap + 0x308] = Heap + 0x400;
+            Equal(false, StructShapes.IsBuffList(block, 0x10, memory, 8), "the id no longer at the row's start");
+            Equal(true, StructShapes.IsBuffList(block, 0x10, memory, 8, 8), "the id where the row keeps it now");
+        }
+
+        private static void TheStatPairsHoldThePlayersLevel()
+        {
+            var memory = World();
+            var (pairs, level) = (Heap + 0x2000, 22);
+            var measured = new StatLayout(0xF8, 8, 0, 4);
+            foreach (var (game, what) in new[] { (measured, "where measured"), (new StatLayout(0x100, 8, 4, 0), "the list later, the pair swapped"), (new StatLayout(0xE0, 0xC, 0, 8), "the list earlier, a field added to the pair") })
+            {
+                var list = new byte[0x200];
+                var bytes = new byte[3 * game.Stride];
+                foreach (var (index, key, value) in new[] { (0, 28, 53), (1, 1, level), (2, 239, 513) })
+                {
+                    BitConverter.TryWriteBytes(bytes.AsSpan((index * game.Stride) + game.Key), key);
+                    BitConverter.TryWriteBytes(bytes.AsSpan((index * game.Stride) + game.Value), value);
+                }
+
+                Put(list, game.List, pairs, pairs + bytes.Length, pairs + bytes.Length);
+                memory.Blocks[pairs] = bytes;
+                Equal((StatLayout?)game, StructShapes.FindStatLayout(list, memory, measured, 1, level), what);
+                Equal((StatLayout?)null, StructShapes.FindStatLayout(list, memory, measured, 1, level + 1), $"{what}, another level");
+            }
         }
 
         private static void TheCameraIsKeptTwice()

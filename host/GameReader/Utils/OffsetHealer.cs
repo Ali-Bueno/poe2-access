@@ -65,6 +65,12 @@ namespace GameReader.Utils
         /// <summary>The part that names an entity's components (lookup pointer, name map).</summary>
         public const string LookUpPart = "component lookup";
 
+        /// <summary>Where a buff's definition keeps its id; judged with the buff list.</summary>
+        public const string BuffNamesPart = "buff names";
+
+        /// <summary>A stat list's pairs (the list in its struct, a pair's size, key and value); judged by the player's level.</summary>
+        public const string StatEntriesPart = "stat entries";
+
         /// <summary>An entry of the component name map (its size, name and index); judged where its map is found.</summary>
         public const string NameEntryPart = "component name entry";
 
@@ -96,6 +102,9 @@ namespace GameReader.Utils
         private const int EntitiesJudged = 4;
 
         private const int SearchRadius = 0x200;
+
+        // A buff definition's id is its row's first column; a patch would not move it far.
+        private const int MaxBuffNameField = 0x40;
         private const int GameStateBytes = 0x1000;
         private const int MinMonstersForReaction = 5;
         private const int ReactionRadius = 0x40;
@@ -137,12 +146,16 @@ namespace GameReader.Utils
             {
                 camera,
                 JudgeLife(area.Player),
-                JudgeBuffs(area.Player, memory),
                 JudgeSkills(area.Player, memory),
-                JudgeStats(area.Player, memory),
             };
 
+            // The stat pairs first: the stats pointer is judged by the list it leads to.
+            var statEntries = JudgeStatEntries(area.Player, memory, out var statLayout);
+            outcomes.Add(JudgeStats(area.Player, memory, statLayout));
+            outcomes.Add(statEntries);
+
             outcomes.Add(JudgeGroundItems(area, memory));
+            outcomes.AddRange(JudgeBuffs(area.Player, memory));
             outcomes.AddRange(JudgeInventories(area, memory));
             var entityLayout = JudgeEntityLayout(memory, area.AwakeEntities.Values.Where(entity => entity.IsValid).Take(EntitiesJudged)
                 .Select(entity => entity.Address.ToInt64()).Prepend(area.Player.Address.ToInt64()).ToList());
@@ -669,21 +682,39 @@ namespace GameReader.Utils
                 : new StructOutcome(name, StructHealth.Moved, total, foundTotal, "inside each vital");
         }
 
-        private static StructOutcome JudgeBuffs(Entity player, IAreaMemory memory)
+        private static IReadOnlyList<StructOutcome> JudgeBuffs(Entity player, IAreaMemory memory)
         {
             const string name = "buffs";
             if (!player.TryGetComponent<Buffs>(out var buffs))
             {
-                return NotJudged(name, "no player");
+                return new[] { NotJudged(name, "no player"), NotJudged(BuffNamesPart, "no player") };
             }
 
             var measured = OffsetOf<BuffsOffsets>(nameof(BuffsOffsets.StatusEffectPtr));
             var definition = OffsetOf<StatusEffectStruct>(nameof(StatusEffectStruct.BuffDefinationPtr));
             var block = Block(buffs.Address, measured + SearchRadius);
-            var found = StructShapes.Nearest(measured, sizeof(long), block.Length - 1, at => StructShapes.IsBuffList(block, at, memory, definition));
+            var id = OffsetOf<BuffDefinitionsOffset>(nameof(BuffDefinitionsOffset.Name));
+            int List(int at) => StructShapes.Nearest(measured, sizeof(long), block.Length - 1, list => StructShapes.IsBuffList(block, list, memory, definition, at));
+            var found = List(id);
+
+            // The definition's id read elsewhere in its row: the list is found through it, the id moves with it.
+            var foundId = found >= 0 ? id : StructShapes.Nearest(id, sizeof(long), MaxBuffNameField, at => at != id && List(at) >= 0);
+            found = found >= 0 || foundId < 0 ? found : List(foundId);
 
             // With no buff on the player no list reads as one, and that says nothing about the field.
-            return found < 0 ? NotJudged(name, "no buff to judge it on") : Placed<BuffsOffsets>(name, measured, found);
+            if (found < 0)
+            {
+                return new[] { NotJudged(name, "no buff to judge it on"), NotJudged(BuffNamesPart, "no buff to judge it on") };
+            }
+
+            var names = Placed<BuffDefinitionsOffset>(BuffNamesPart, id, foundId);
+            if (names.Health == StructHealth.Moved)
+            {
+                // Buff names are kept per definition once read: those read through the old field are read again.
+                Core.GgpkObjectCache.Clear();
+            }
+
+            return new[] { Placed<BuffsOffsets>(name, measured, found), names };
         }
 
         /// <summary>The player's inventories by what they hold (<see cref="InventoryLayoutSearch"/>); each field found is read from there.</summary>
@@ -841,7 +872,7 @@ namespace GameReader.Utils
             return new StructOutcome(AnimationPart, StructHealth.Moved, measured, found, string.Empty);
         }
 
-        private static StructOutcome JudgeStats(Entity player, IAreaMemory memory)
+        private static StructOutcome JudgeStats(Entity player, IAreaMemory memory, StatLayout layout)
         {
             const string name = "stats";
             if (!player.TryGetComponent<Stats>(out var stats))
@@ -850,9 +881,45 @@ namespace GameReader.Utils
             }
 
             var measured = OffsetOf<StatsOffsets>(nameof(StatsOffsets.StatsChangedByItemsPtr));
-            var list = OffsetOf<StatsStructInternal>(nameof(StatsStructInternal.Stats));
             var block = Block(stats.Address, measured + SearchRadius);
-            return Placed<StatsOffsets>(name, measured, StructShapes.Nearest(measured, sizeof(long), block.Length - 1, at => StructShapes.IsStatsPointer(block, at, memory, list)));
+            return Placed<StatsOffsets>(name, measured, StructShapes.Nearest(measured, sizeof(long), block.Length - 1, at => StructShapes.IsStatsPointer(block, at, memory, layout)));
+        }
+
+        /// <summary>
+        ///     Where a stat list keeps its pairs and how a pair is laid out, by a value check: the player's level, read from the
+        ///     Player component, must stand as the <c>level</c> stat in the list of stats from buffs and actions. Never said lost:
+        ///     a list without it says nothing about the layout.
+        /// </summary>
+        private static StructOutcome JudgeStatEntries(Entity player, IAreaMemory memory, out StatLayout layout)
+        {
+            const string name = StatEntriesPart;
+            var near = new StatLayout(
+                OffsetOf<StatsStructInternal>(nameof(StatsStructInternal.Stats)),
+                Marshal.SizeOf<StatArrayStruct>(),
+                OffsetOf<StatArrayStruct>(nameof(StatArrayStruct.key)),
+                OffsetOf<StatArrayStruct>(nameof(StatArrayStruct.value)));
+            layout = new StatLayout(
+                Follow(typeof(StatsStructInternal), near.List),
+                HostStructs.Stride<StatArrayStruct>(),
+                Follow(typeof(StatArrayStruct), near.Key),
+                Follow(typeof(StatArrayStruct), near.Value));
+            if (!player.TryGetComponent<Stats>(out var stats) || !player.TryGetComponent<GameReader.RemoteObjects.Components.Player>(out var hero) || hero.Level <= 0)
+            {
+                return NotJudged(name, "no player");
+            }
+
+            var field = Follow(typeof(StatsOffsets), OffsetOf<StatsOffsets>(nameof(StatsOffsets.StatsChangedByBuffAndActions)));
+            var list = Block(stats.Address + field, sizeof(long)) is { Length: sizeof(long) } pointer ? new IntPtr(BitConverter.ToInt64(pointer, 0)) : IntPtr.Zero;
+            var block = list == IntPtr.Zero ? Array.Empty<byte>() : Block(list, near.List + SearchRadius);
+            if (block.Length == 0 || StructShapes.FindStatLayout(block, memory, near, (int)RemoteEnums.GameStats.level, hero.Level) is not { } found)
+            {
+                return NotJudged(name, "no pair holds the player's level");
+            }
+
+            Place(typeof(StatsStructInternal), (near.List, found.List));
+            var entry = PlaceEntry<StatArrayStruct>(name, (near.Stride, found.Stride), (near.Key, found.Key), (near.Value, found.Value));
+            layout = found;
+            return found.List != near.List ? new StructOutcome(name, StructHealth.Moved, near.List, found.List, "the list") : entry;
         }
 
         private static StructOutcome JudgePosition(AreaInstance area)

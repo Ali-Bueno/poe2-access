@@ -43,6 +43,9 @@ namespace GameReader.Cache
             throw new Exception($"Object tried to load 0x{key.ToInt64():X} in the cache.") :
             this.cache.GetOrAdd(key, valueFactory);
 
+        /// <summary>Forgets every object read: a search moved a field they were read through.</summary>
+        public void Clear() => this.cache.Clear();
+
         private IEnumerable<Wait> OnGameClose()
         {
             while (true)
