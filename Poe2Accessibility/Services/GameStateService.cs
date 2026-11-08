@@ -73,6 +73,9 @@ namespace Poe2Accessibility.Services
         /// <summary>World-area id ("G1_1" is The Riverbank); keys the landmark tables.</summary>
         public string CurrentAreaId { get; private set; } = string.Empty;
 
+        /// <summary>Whether the current area is a town or a hideout, from its own row (<see cref="AreaKind"/>).</summary>
+        public bool InTownOrHideout { get; private set; }
+
         public uint AttachedPid { get; private set; }
 
         public bool IsAttached => this.AttachedPid != 0;
@@ -102,6 +105,7 @@ namespace Poe2Accessibility.Services
             this.lastAreaRow = row;
             this.CurrentAreaName = name;
             this.CurrentAreaId = id;
+            this.InTownOrHideout = AreaKind.IsTownOrHideout(id, this.reader.TryRead<byte>(row + GameLayout.WorldAreaRow.IsTownOffset, out var town) && town != 0);
             this.log.Info($"Area: {name} ({this.CurrentAreaId}){(this.resuming ? " resumed" : string.Empty)}");
             this.AreaChanged?.Invoke(name, this.resuming);
             this.resuming = false;

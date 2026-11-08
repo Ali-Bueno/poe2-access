@@ -20,6 +20,28 @@ namespace Poe2Accessibility
         /// <summary>The hand-written fields for this game build (config/layout-overrides.txt), applied with the code fields.</summary>
         private System.Collections.Generic.IReadOnlyList<(CodeFieldEntry Entry, int? Found)> layoutOverrides = Array.Empty<(CodeFieldEntry, int?)>();
 
+        /// <summary>The area's offset that the game's own functions read the WorldAreas row at (field audit A4).</summary>
+        private const int AreaInstanceAreaRowOffset = 0xA0;
+
+        /// <summary>
+        ///     Research (dev command "arearow", field audit A4): the WorldAreas row the WorldData chain reaches
+        ///     (WorldAreaDetailsPtr +0x98, then the row) beside the one at [AreaInstance+0xA0], with each row's Id.
+        /// </summary>
+        private void LogAreaRows()
+        {
+            var game = Core.States.InGameStateObject;
+            var chain = game.CurrentWorldInstance.AreaDetails.Address;
+            var area = game.CurrentAreaInstance.Address;
+            var direct = area != IntPtr.Zero && this.memoryReader.TryRead<IntPtr>(area + AreaInstanceAreaRowOffset, out var row) ? row : IntPtr.Zero;
+            string Id(IntPtr at) => at != IntPtr.Zero && this.memoryReader.TryRead<IntPtr>(at, out var text) ? this.elements?.ReadUtf16BufferAt(text, 64) ?? "?" : "-";
+            var world = game.CurrentWorldInstance.Address;
+            var details = world != IntPtr.Zero && this.memoryReader.TryRead<IntPtr>(world + 0x98, out var held) ? held : IntPtr.Zero;
+            var detailsRow = details != IntPtr.Zero && this.memoryReader.TryRead<IntPtr>(details + 0x98, out var rowHeld) ? rowHeld : IntPtr.Zero;
+            this.log?.Info($"Area rows: WorldData chain 0x{chain.ToInt64():X} ({Id(chain)}), [AreaInstance+0x{AreaInstanceAreaRowOffset:X}] 0x{direct.ToInt64():X} ({Id(direct)}), " +
+                           $"{(chain == direct && chain != IntPtr.Zero ? "the same row" : "DIFFERENT")}; WorldData 0x{world.ToInt64():X}, [+0x98] 0x{details.ToInt64():X}, " +
+                           $"[[+0x98]+0x98] 0x{detailsRow.ToInt64():X} ({Id(detailsRow)})");
+        }
+
         private void LogCamera()
         {
             if (!Seats.Followed.TryGetComponent<GameReader.RemoteObjects.Components.Render>(out var player))
@@ -399,6 +421,9 @@ namespace Poe2Accessibility
                     break;
                 case "skills":
                     this.log?.Info(this.skillDump?.Dump() ?? "Skill dump off");
+                    break;
+                case "arearow":
+                    this.LogAreaRows();
                     break;
                 case "focusinfo":
                     this.log?.Info($"Focus info: {(this.focus?.Current is { } focused ? this.semantics?.RawInfo(focused.Address) : "no focus")}");

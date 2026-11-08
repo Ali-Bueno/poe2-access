@@ -366,8 +366,10 @@ namespace Poe2Accessibility
                 : string.Empty;
         }
 
-        private static bool InTownOrHideout() =>
-            Core.States.InGameStateObject.CurrentWorldInstance.AreaDetails is { } area && (area.IsTown || area.IsHideout);
+        /// <summary>From the area row the loading state holds; the host's WorldData row only before that row was read.</summary>
+        private bool InTownOrHideout() =>
+            this.gameState is { CurrentAreaId.Length: > 0 } state ? state.InTownOrHideout
+                : Core.States.InGameStateObject.CurrentWorldInstance.AreaDetails is { } area && (area.IsTown || area.IsHideout);
 
         /// <summary>Puts the guide on the nearest Death Crystal, and on the next once that one is disabled.</summary>
         private void GuideToTimed(bool playing)

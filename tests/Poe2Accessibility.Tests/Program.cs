@@ -130,6 +130,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(MovedFieldsAreFoundNearestFirst), MovedFieldsAreFoundNearestFirst);
             Run(nameof(MovedControlFieldsAreTrustedOnceTwoControlsAgree), MovedControlFieldsAreTrustedOnceTwoControlsAgree);
             Run(nameof(ALayoutLostTooEarlyIsJudgedAgain), ALayoutLostTooEarlyIsJudgedAgain);
+            Run(nameof(TownsAndHideoutsAreToldByTheirRow), TownsAndHideoutsAreToldByTheirRow);
             Run(nameof(TheHoveredPinIsTheKeyThatChangesWithTheCursor), TheHoveredPinIsTheKeyThatChangesWithTheCursor);
             Run(nameof(CheckpointsAreNamedByTheirNeighbour), CheckpointsAreNamedByTheirNeighbour);
             Run(nameof(FarBarrierStaysClosedUntilSeenNear), FarBarrierStaysClosedUntilSeenNear);
@@ -3068,6 +3069,14 @@ namespace Poe2Accessibility.Tests
             Equal(0xA0, OffsetSearch.First(0x98, 0x100, 8, offset => offset is 0xA0 or 0x40) ?? -1, "the nearest fit wins");
             Equal(-8, OffsetSearch.First(0, 0x100, 8, shift => shift == -8, -0x100) ?? 1, "a shift may be negative");
             Equal(true, OffsetSearch.First(0x98, 0x20, 8, offset => offset == 0x200) == null, "nothing within reach: lost");
+        }
+
+        private static void TownsAndHideoutsAreToldByTheirRow()
+        {
+            Equal(true, AreaKind.IsTownOrHideout("G1_town", true), "the encampment: its row's town flag");
+            Equal(false, AreaKind.IsTownOrHideout("G1_2", false), "Clearfell");
+            Equal(true, AreaKind.IsTownOrHideout("HideoutFelled", false), "a hideout by its Id");
+            Equal(false, AreaKind.IsTownOrHideout("MapHideoutFelled", false), "a hideout's map is a map");
         }
 
         private static void ALayoutLostTooEarlyIsJudgedAgain()
