@@ -398,6 +398,12 @@ namespace Poe2Accessibility.Services
             /// <summary>The clip time (s) of a contact the last warning covers (too close after it for a sound of its own).</summary>
             public float? CoveredContact { get; init; }
 
+            /// <summary>Where the monster stood when the attack began (world), to see whether the attack carried it.</summary>
+            public System.Numerics.Vector2? StartPlace { get; init; }
+
+            /// <summary>The place the attack aimed at when first read (world): a leap's landing.</summary>
+            public System.Numerics.Vector2? AimedPlace { get; init; }
+
             /// <summary>Where the time to the blow came from on the last frame.</summary>
             public BlowTiming Timing { get; init; }
 

@@ -5,6 +5,7 @@ namespace Poe2Accessibility.Services
     using System.Globalization;
     using System.IO;
     using System.Linq;
+    using System.Numerics;
 
     /// <summary>
     ///     When each monster attack lands, learnt from the hits the player takes: the time from the attack animation's
@@ -57,6 +58,24 @@ namespace Poe2Accessibility.Services
         private const string MeleeFlag = "melee";
         private const string RangedFlag = "ranged";
         private const string CalmFlag = "calm";
+
+        /// <summary>The token a timings line carries for an attack that moves its user (older readers skip it: not a number).</summary>
+        private const string MovesToken = "moves";
+
+        /// <summary>Attacks seen this many times carrying their user to the place they aim at are leaps (<see cref="Moves"/>).</summary>
+        public const int MoveSamples = 2;
+
+        /// <summary>A monster that moved less than this (world units) during its attack stayed where it struck from.</summary>
+        public const float MoveMinWorld = 80f;
+
+        /// <summary>
+        ///     Attacks that carry their user to the place they aim at, and how often each was seen doing it. A leap is judged
+        ///     by its reach from that place, not from where the monster stands: the urchins' Puncture (melee_launch_01,
+        ///     UrchinLeapGeometryAttack) read "out of reach" until it had landed, then "blow in 64 ms" (Clearfell, 2026-11-08).
+        ///     No table marks such skills (a leap is a plain geometry_attack: docs/research/dodge-timing.md), so the monsters' own
+        ///     moves teach them.
+        /// </summary>
+        private readonly Dictionary<string, int> moves = new(StringComparer.Ordinal);
 
         /// <summary>"Metadata/Monsters/MudGolem/MudGolemWet1|13": the monster kind without its "@level" suffix.</summary>
         public static string Key(string monsterPath, int animation)
@@ -124,6 +143,35 @@ namespace Poe2Accessibility.Services
 
             this.Changed = true;
             return true;
+        }
+
+        /// <summary>
+        ///     Notes an attack of <paramref name="key"/> that took its user from <paramref name="start"/> to <paramref name="end"/>
+        ///     while it aimed at <paramref name="target"/>; true when that made it a leap (<see cref="Moves"/>).
+        /// </summary>
+        public bool LearnMove(string key, Vector2 start, Vector2 end, Vector2 target)
+        {
+            if (!MovedToward(start, end, target) || this.Moves(key))
+            {
+                return false;
+            }
+
+            this.moves[key] = this.moves.GetValueOrDefault(key) + 1;
+            this.Changed |= this.Moves(key);
+            return this.Moves(key);
+        }
+
+        /// <summary>The attack carries its user to the place it aims at: judge its reach from there.</summary>
+        public bool Moves(string key) => this.moves.GetValueOrDefault(key) >= MoveSamples;
+
+        /// <summary>
+        ///     The monster went at least <see cref="MoveMinWorld"/> and most of the way it went brought it nearer the aimed place:
+        ///     a leap or a charge, not a step aside or a knock-back.
+        /// </summary>
+        public static bool MovedToward(Vector2 start, Vector2 end, Vector2 target)
+        {
+            var went = Vector2.Distance(start, end);
+            return went >= MoveMinWorld && Vector2.Distance(start, target) - Vector2.Distance(end, target) >= went / 2f;
         }
 
         /// <summary>
@@ -220,10 +268,10 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        /// <summary>One line per attack: "key=delay,delay,…".</summary>
+        /// <summary>One line per attack: "key=delay,delay,…", with "moves" among the values of a leap.</summary>
         public IEnumerable<string> ToLines() =>
-            this.delays.OrderBy(pair => pair.Key, StringComparer.Ordinal)
-                .Select(pair => $"{pair.Key}={string.Join(',', pair.Value.Select(value => value.ToString(CultureInfo.InvariantCulture)))}");
+            this.delays.Keys.Concat(this.moves.Keys.Where(this.Moves)).Distinct(StringComparer.Ordinal).OrderBy(key => key, StringComparer.Ordinal)
+                .Select(key => $"{key}={string.Join(',', this.delays.GetValueOrDefault(key, new List<int>()).Select(value => value.ToString(CultureInfo.InvariantCulture)).Concat(this.Moves(key) ? new[] { MovesToken } : Array.Empty<string>()))}");
 
         public static DodgeTimings FromLines(IEnumerable<string> lines)
         {
@@ -241,6 +289,10 @@ namespace Poe2Accessibility.Services
                     if (int.TryParse(part, NumberStyles.Integer, CultureInfo.InvariantCulture, out var delay))
                     {
                         timings.Learn(line[..split], delay);
+                    }
+                    else if (part == MovesToken)
+                    {
+                        timings.moves[line[..split]] = MoveSamples;
                     }
                 }
             }

@@ -34,7 +34,39 @@ namespace Poe2Accessibility.Tests
             (nameof(TheNewsReportSaysWhatCoversEachKey), TheNewsReportSaysWhatCoversEachKey),
             (nameof(TheNewsSummaryCountsTheUnclassified), TheNewsSummaryCountsTheUnclassified),
             (nameof(NotesClassifyMonstersBuffsAreasIconsAndScreens), NotesClassifyMonstersBuffsAreasIconsAndScreens),
+            (nameof(ALeapIsLearntFromWhereItCarriesItsUser), ALeapIsLearntFromWhereItCarriesItsUser),
         };
+
+        /// <summary>
+        ///     The urchins' leap (Clearfell, 2026-11-08): from 327 units away it landed 110 from the place it aimed at, 74 from the
+        ///     player; seen twice, it is a leap, kept with the timings and read back by older lines as before.
+        /// </summary>
+        private static void ALeapIsLearntFromWhereItCarriesItsUser()
+        {
+            const string leap = "Metadata/Monsters/Urchins/MeleeUrchin1|106";
+            var start = new System.Numerics.Vector2(0, 0);
+            var landed = new System.Numerics.Vector2(400, 0);
+            var aimed = new System.Numerics.Vector2(470, 30);
+            Equal(true, DodgeTimings.MovedToward(start, landed, aimed), "carried most of the way toward its aim");
+            Equal(false, DodgeTimings.MovedToward(start, new System.Numerics.Vector2(40, 0), aimed), "a step is no leap");
+            Equal(false, DodgeTimings.MovedToward(start, new System.Numerics.Vector2(-300, 0), aimed), "knocked back, away from its aim");
+            Equal(false, DodgeTimings.MovedToward(start, new System.Numerics.Vector2(0, 300), aimed), "sideways is no leap");
+
+            var timings = new DodgeTimings();
+            Equal(false, timings.LearnMove(leap, start, landed, aimed), "once could be a knock or a pull");
+            Equal(false, timings.Moves(leap), "not yet a leap");
+            Equal(true, timings.LearnMove(leap, start, landed, aimed), "twice: a leap");
+            Equal(true, timings.Moves(leap), "judged from its landing");
+            Equal(false, timings.Moves("Metadata/Monsters/Urchins/MeleeUrchin1|1"), "its other attacks are not");
+
+            timings.Learn(leap, 300);
+            var lines = timings.ToLines().ToList();
+            Equal(leap + "=300,moves", string.Join("|", lines.Where(line => line.StartsWith(leap, StringComparison.Ordinal))), "kept with its delays");
+            var read = DodgeTimings.FromLines(lines);
+            Equal(true, read.Moves(leap), "read back");
+            Equal(300, read.Delay(leap), "its delay read back beside it");
+            Equal(true, DodgeTimings.FromLines(new[] { "Metadata/Monsters/Urchins/MeleeUrchin1|1=moves" }).Moves("Metadata/Monsters/Urchins/MeleeUrchin1|1"), "a leap with no delay yet");
+        }
 
         private static DodgeTimings Timings()
         {

@@ -86,6 +86,10 @@ namespace Poe2Accessibility.Services
                 {
                     attack = attack with { EndedAt = now }; // a blow can still arrive for it
                     this.attacks[id] = attack;
+                    if (attack is { StartPlace: { } start, AimedPlace: { } aimedAt } && this.Timings.LearnMove(attack.Key, start, new Vector2(player.WorldPosition.X, player.WorldPosition.Y) + offset, aimedAt))
+                    {
+                        this.log.Info($"Dodge: {attack.Key} carries its user to its target: its reach is judged from there");
+                    }
                 }
 
                 var key = DodgeTimings.Key(entity.Path, animation);
@@ -128,6 +132,7 @@ namespace Poe2Accessibility.Services
                         Swing = this.Timings.Swing(key), TravelMs = travel, ReleaseAt = learnt is { } release ? now + release : null,
                         ParryBlowAt = learnt is { } blow && this.Timings.CanParry(key) ? now + blow + travel : null,
                         Unblockable = !this.Timings.CanBlock(key),
+                        StartPlace = new Vector2(player.WorldPosition.X, player.WorldPosition.Y) + offset,
                     };
                 }
             }
@@ -138,6 +143,10 @@ namespace Poe2Accessibility.Services
             // About a dozen reads a frame per attack: spent where a cue can follow, or while the live checks still judge.
             var snapshot = attack.Warns || parrying || this.reader?.Judging == true ? this.reader?.Read(id, actor.Address, animated, monster, worldPerGrid, this.EntityAt, now) : null;
             attack = this.FollowClock(attack, snapshot?.Clock, snapshot?.Events, snapshot is { ActionType: not 0 });
+            if (attack.AimedPlace == null && snapshot?.Aim?.TargetPoint is { } aimed)
+            {
+                attack = attack with { AimedPlace = aimed };
+            }
             var (blowIn, timing, contact) = this.BlowIn(attack, snapshot, now);
             var facts = this.Facts(attack, snapshot, rarity, render, player, here, monster, gap, blowIn, timing, id);
             var decision = DodgeGate.Decide(facts, LeadMs);
@@ -263,7 +272,9 @@ namespace Poe2Accessibility.Services
             bool? inReach = null;
             if (attack.Threat == DodgeThreat.Melee && snapshot is { AnimatedObject: { } ao, Clip: { } clip } && this.attackData.Reach(ao, clip) is { } reach)
             {
-                inReach = AttackReach.MeleeReaches(reach, monster, here, playerRadius, AttackAim.MarginWorld);
+                // A leap strikes where it lands (DodgeTimings.Moves): its reach counts from the place it aims at.
+                var from = this.Timings.Moves(attack.Key) && snapshot.Aim?.TargetPoint is { } landing ? landing : monster;
+                inReach = AttackReach.MeleeReaches(reach, from, here, playerRadius, AttackAim.MarginWorld);
             }
 
             if (snapshot?.SkillId is { } skill && this.attackData.Area(skill) is { } area &&
