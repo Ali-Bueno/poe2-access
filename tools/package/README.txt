@@ -35,6 +35,7 @@ The mod button is L3, the left stick click.
 - When you die, Y shows or hides the death screen. A revives you at the checkpoint.
 - Local co-op (two controllers on the same PC): at the end of the mod's settings, "Local co-op: read for player 1" (on) and "read for player 2" (off) choose who the mod reads for: one, the other or both. With both, the mod reads the menus and commands of whoever pressed last, each player hears their own life, level and status effects with their name first, and player 2 has their own radar with sounds of its own: plucked strings for walls, obstacles and exits, and a whistle for the free path. If a player goes down, the other revives them by holding A next to their body; the mod says who went down.
 You will find every control in "Controls.md".
+If you use Steam's desktop controller layout, the DualSense turns into a mouse and keyboard while the game is in the background, and a drifting stick or the touchpad can disturb your screen reader in other windows; turn that layout off in Steam for Path of Exile 2.
 
 TO CLOSE IT
 The mod closes by itself when you quit the game. You can also use "Stop the mod.bat".

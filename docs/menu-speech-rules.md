@@ -34,8 +34,8 @@ reader exists only for a genuine quirk. Status column: **done** = implemented in
 | Disabled control | append "unavailable"; never skip it | — | done |
 | Text appears in the owning layer (description, tooltip, class info) | the new text, after the control | queued; interrupt when the screen has no focus (navigation result) | done |
 | Live counters (timers, queue position) | never automatically | — | done (digit-only changes ignored) |
-| Text field | label (row label or placeholder), "edit field", contents; echo typed characters | — | label done, echo todo |
-| Password field | never read the contents; say the length | — | todo |
+| Text field | label (row label or placeholder), "edit field", contents; echo typed characters | — | done (label; typed or deleted characters echoed by `ScreenNarrator.OnValueChanged`) |
+| Password field | never read the contents; say the length | — | done (`UiSemantics`, `Announcements.PasswordLength`; commit 34f9512) |
 | Hint bar | spoken on request; with a no-focus popup, name the button bound to each action, not the glyph | — | on request done (glyph names todo) |
 | Promo / news text (MOTD, deal of the day) | only on request | — | done (baseline silence) |
 | Full-text screens (terms, loading tips, help) | title + summary automatically, full text on request | — | todo (text capped at 1024 chars) |

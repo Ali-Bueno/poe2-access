@@ -442,9 +442,6 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   them (Crop Circle, Kabala) stay as written, since the game's own Spanish name is not known for them.
 - Radar: once, near the encampment exit, Up and Left flipped wall/exit every ~2 s with depths 100 ↔ 500 units while
   the character oscillated between two cells; not reproduced standing still.
-- Steam's desktop controller layout turns the DualSense into mouse/keyboard while the game is in the back; a
-  drifting stick or the touchpad then disturbs NVDA in other windows (seen 2026-10-23, not the mod).
-- L3 is also seen by the game: on the world map it toggles the legend while the mod reads a line.
 - Scanner: long routes take ~200 ms on the host's frame thread; a route along an octant boundary alternates
   "up 2, then up left" / "up left 2, then up". The exit prompt "Mantener presionado (Mostrar opciones)" is drawn
   outside the UI tree (not in a full dump while on screen): the A target says "mantén A para opciones" instead.
@@ -459,8 +456,6 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   No tienes cosméticos…"): by design, so the name is never cut off; the first readout is interrupted.
 - Passive tree: allocation checked on two characters (Duelist pending/applied, Witch applied, 2026-10-24); a class
   start is said without a direction (the portrait has no node element): "inicio de tu clase, Monje".
-- Closing the game menu is silent now (D2R); Options opened from it starts with its page.
-- A `settings.txt` that fails to parse is ignored (spoken warning) and never overwritten with defaults.
 - Pre-game UI root unknown to every public tool; our scan heuristic (self-pointer + no parent + children) is unvalidated.
 - Native `prism.dll` loads from the plugin folder through the host's `PluginLoadContext` (NVDA heard, 2026-11-08).
 - Panel notes (`UiSemantics.PanelNotes`) are a heuristic: a titled panel's texts outside navigable elements and outside

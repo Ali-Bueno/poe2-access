@@ -4,7 +4,13 @@ The mod reads the controller state the game itself receives, so it works with an
 (Xbox, DualSense, DualShock, with or without Steam Input). It cannot hide a press from the game: the mod
 button is L3 because the game does nothing with it in gameplay or the inventory (on the world map it also
 toggles the map legend). Turn the controller commands off with `ControllerCommands` in
-`config/settings.txt`.
+`config/settings.txt`. A `settings.txt` that fails to parse is ignored (the mod says so) and is never overwritten with
+defaults; fix the line and it is read again, as it is whenever it is edited while the host runs.
+
+Closing the game menu is silent (the focus underneath is not read again); Options opened from the game menu starts with
+its page. If Steam's desktop controller layout is active, the DualSense acts as mouse and keyboard while the game is in
+the background, and a drifting stick or the touchpad can disturb the screen reader in other windows: turn that layout
+off in Steam's controller settings for Path of Exile 2.
 
 ## L3, the mod button
 
