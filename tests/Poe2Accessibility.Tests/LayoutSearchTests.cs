@@ -259,11 +259,10 @@ namespace Poe2Accessibility.Tests
             Equal("slimed", news[0].Added.Single(), "the new buff");
             Equal("old", news[0].Removed.Single(), "the one gone");
             Equal(0, GameNews.Compare(fresh, fresh).Count, "nothing changed");
-            var report = GameNews.Report(news, (table, key) => key == "slimed" ? "Slowed" : null).ToList();
-            Equal("buffdefinitions: 1 new, 1 gone", report[0], "the table's line");
+            var report = GameNews.Report(news, (table, key) => key == "slimed" ? new NewsNote("Slowed", true) : null).ToList();
+            Equal("buffdefinitions: 1 new, 1 gone; all covered", report[0], "the table's line");
             Equal("  + slimed (Slowed)", report[1], "what the mod makes of it");
             Equal("  - old", report[2], "what left");
-            Equal("buffdefinitions: 1 new, 1 gone", report[0], "the table's line");
 
             var keys = GameNews.Keys(fresh, "buffdefinitions");
             Equal(2, keys.Count, "one table's keys");

@@ -559,18 +559,15 @@ namespace Poe2Accessibility
                     this.compatibility?.Missing(GameDataPart);
                 }
 
-                var news = GameNews.Check(
-                    this.GameKeysCatalog,
-                    this.KnownGameKeys,
-                    Path.Join(this.DllDirectory, "config", "game-news.txt"),
-                    (table, key) => table == BuffTable ? StatusAilments.FromBuffId(key)?.ToString() ?? EnemyStates.FromBuffId(key)?.ToString()
-                        : table == AnimationTable ? DodgeThreats.Of(1, _ => key).ToString() : null);
-                foreach (var table in news)
+                var notes = GameNewsNotes.Load(Path.Join(this.DllDirectory, "catalog"));
+                var news = GameNews.Check(this.GameKeysCatalog, this.KnownGameKeys, Path.Join(this.DllDirectory, "config", "game-news.txt"), notes.Of);
+                var summary = GameNews.Summary(news, notes.Of);
+                foreach (var (table, added, unclassified) in summary)
                 {
-                    this.log?.Info($"Game news: {table.Table} {table.Added.Count} new, {table.Removed.Count} gone");
+                    this.log?.Info($"Game news: {table} {added} new ({unclassified} unclassified), {news.First(item => item.Table == table).Removed.Count} gone");
                 }
 
-                this.gameNewsLine = Announcements.GameNews(news.Select(table => (table.Table, table.Added.Count, 0)));
+                this.gameNewsLine = Announcements.GameNews(summary);
             }
             catch (Exception error) when (error is IOException or UnauthorizedAccessException)
             {

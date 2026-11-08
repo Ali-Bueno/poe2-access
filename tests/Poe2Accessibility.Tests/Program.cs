@@ -205,7 +205,7 @@ namespace Poe2Accessibility.Tests
                 Run(name, test);
             }
 
-            foreach (var (name, test) in LayoutSearchTests.All().Concat(HostSearchTests.All()).Concat(NameFallbackTests.All()).Concat(TrialDataTests.All()).Concat(PanelWidgetTests.All()))
+            foreach (var (name, test) in LayoutSearchTests.All().Concat(HostSearchTests.All()).Concat(NameFallbackTests.All()).Concat(TrialDataTests.All()).Concat(PanelWidgetTests.All()).Concat(DodgeDataTests.All()))
             {
                 Run(name, test);
             }
@@ -3133,7 +3133,7 @@ namespace Poe2Accessibility.Tests
             Equal(DodgeThreat.Melee, DodgeThreats.Of(8, NameOf), "a heavy strike");
             Equal(DodgeThreat.Ranged, DodgeThreats.Of(9, NameOf), "a toss, not a cry");
             Equal(DodgeThreat.None, DodgeThreats.Of(10, NameOf), "standing");
-            Equal(DodgeThreat.Ranged, DodgeThreats.Of(99, NameOf), "an id the table lacks (a game update) still warns");
+            Equal(DodgeThreat.None, DodgeThreats.Of(99, NameOf), "an id the table lacks (a game update) stays quiet and is logged");
             Equal(DodgeThreat.None, DodgeThreats.Of(0, NameOf), "no animation");
         }
 

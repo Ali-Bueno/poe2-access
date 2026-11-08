@@ -8,6 +8,9 @@ namespace Poe2Accessibility.Services
     /// <summary>What one table gained and lost between two extractions of the game's files.</summary>
     public sealed record TableNews(string Table, IReadOnlyList<string> Added, IReadOnlyList<string> Removed);
 
+    /// <summary>What the mod makes of one new key: a note for the file, and whether one of its rules or catalogs covers it.</summary>
+    public sealed record NewsNote(string Text, bool Covered);
+
     /// <summary>
     ///     What a game update added, from two lists of the game's own keys (catalog/game-keys.txt): new buffs, monsters, areas and
     ///     screens are what the mod does not know yet, and they would otherwise pass in silence (docs/compatibility.md).
@@ -41,15 +44,23 @@ namespace Poe2Accessibility.Services
             return news;
         }
 
-        /// <summary>The report's lines; <paramref name="note"/> says what the mod makes of a new key, or null.</summary>
-        public static IEnumerable<string> Report(IReadOnlyList<TableNews> news, Func<string, string, string?> note)
+        private const string Unclassified = "unclassified";
+
+        /// <summary>
+        ///     The report's lines: per table its counts and how many new keys no rule or catalog covers, then each key with what
+        ///     the mod makes of it (<paramref name="note"/>, null for a key it cannot classify).
+        /// </summary>
+        public static IEnumerable<string> Report(IReadOnlyList<TableNews> news, Func<string, string, NewsNote?> note)
         {
             foreach (var table in news)
             {
-                yield return $"{table.Table}: {table.Added.Count} new, {table.Removed.Count} gone";
-                foreach (var key in table.Added)
+                var notes = table.Added.Select(key => (Key: key, Note: note(table.Table, key))).ToList();
+                var unclassified = notes.Count(item => item.Note is not { Covered: true });
+                yield return $"{table.Table}: {table.Added.Count} new, {table.Removed.Count} gone" +
+                             (table.Added.Count == 0 ? string.Empty : unclassified == 0 ? "; all covered" : $"; {unclassified} {Unclassified}");
+                foreach (var (key, found) in notes)
                 {
-                    yield return note(table.Table, key) is { } said ? $"  + {key} ({said})" : $"  + {key}";
+                    yield return $"  + {key} ({found?.Text ?? Unclassified})";
                 }
 
                 foreach (var key in table.Removed)
@@ -59,11 +70,15 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>Per table with news: how many keys came and how many the mod cannot classify, for the spoken line.</summary>
+        public static IReadOnlyList<(string Table, int Added, int Unclassified)> Summary(IReadOnlyList<TableNews> news, Func<string, string, NewsNote?> note) =>
+            news.Select(table => (table.Table, table.Added.Count, table.Added.Count(key => note(table.Table, key) is not { Covered: true }))).ToList();
+
         /// <summary>
         ///     Compares the catalog with the list last seen and leaves the report beside it. Nothing is news the first time: there
         ///     is nothing to compare with.
         /// </summary>
-        public static IReadOnlyList<TableNews> Check(string catalog, string knownFile, string reportFile, Func<string, string, string?> note)
+        public static IReadOnlyList<TableNews> Check(string catalog, string knownFile, string reportFile, Func<string, string, NewsNote?> note)
         {
             if (!File.Exists(catalog))
             {
