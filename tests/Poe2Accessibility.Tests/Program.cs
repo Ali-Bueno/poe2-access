@@ -71,6 +71,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(SheetWidgetsAreToldByTheirTooltipsKeys), SheetWidgetsAreToldByTheirTooltipsKeys);
             Run(nameof(TrialHudCountsWaterAndKeys), TrialHudCountsWaterAndKeys);
             Run(nameof(CameraViewIsASixteenByNineScreenAroundThePlayer), CameraViewIsASixteenByNineScreenAroundThePlayer);
+            Run(nameof(CameraViewDrawsFromTheMatrixWhateverTheWindow), CameraViewDrawsFromTheMatrixWhateverTheWindow);
             Run(nameof(TrialTrapsAreToldByTheirFiles), TrialTrapsAreToldByTheirFiles);
             Run(nameof(TheGuideGoesFromCrystalToCrystal), TheGuideGoesFromCrystalToCrystal);
             Run(nameof(HonourIsSaidAsItFalls), HonourIsSaidAsItFalls);
@@ -2789,6 +2790,43 @@ namespace Poe2Accessibility.Tests
             Equal(false, CameraView.IsUsable(System.Numerics.Vector2.Zero, System.Numerics.Vector2.Zero), "no window: nothing drawn");
             Equal(false, CameraView.IsUsable(new System.Numerics.Vector2(float.NaN, 1), new System.Numerics.Vector2(1, 1)), "a camera not drawn yet");
             Equal(true, CameraView.IsUsable(CameraView.Offset(100, 0), CameraView.Offset(0, 100)), "the measured camera itself");
+        }
+
+        private static void CameraViewDrawsFromTheMatrixWhateverTheWindow()
+        {
+            // A camera like the game's: above and behind the player, looking down at it; the game widens the view with the
+            // window (the same vertical angle), so its matrix differs per aspect while the place drawn per height must not.
+            var target = new System.Numerics.Vector3(5000, 3000, 0);
+            var eye = target + new System.Numerics.Vector3(-700, -700, 1200);
+            var view = System.Numerics.Matrix4x4.CreateLookAt(eye, target, System.Numerics.Vector3.UnitZ);
+            System.Numerics.Matrix4x4 Camera(float aspect) => view * System.Numerics.Matrix4x4.CreatePerspectiveFieldOfView(0.6f, aspect, 10f, 20000f);
+            var point = target + new System.Numerics.Vector3(300, -200, 0);
+            var wide = CameraView.Draw(Camera(16f / 9f), point);
+            var square = CameraView.Draw(Camera(5f / 4f), point);
+            var ultra = CameraView.Draw(Camera(21f / 9f), point);
+            Equal(true, wide is { } w && square is { } s && ultra is { } u && System.Numerics.Vector2.Distance(w, s) < 1e-5f && System.Numerics.Vector2.Distance(w, u) < 1e-5f,
+                  "the same place at 16:9, 5:4 and 21:9");
+            Equal(true, CameraView.Draw(Camera(16f / 9f), target) is { } centre && centre.Length() < 1e-5f, "what the camera looks at: the centre");
+
+            // What GameHelper's WorldToScreen gives on a 1280x1024 window, in heights from its centre: the same numbers.
+            System.Numerics.Vector2 OnWindow(System.Numerics.Matrix4x4 camera, float width, float height)
+            {
+                var clip = System.Numerics.Vector4.Transform(new System.Numerics.Vector4(point, 1f), camera);
+                var (x, y) = ((clip.X / clip.W + 1f) * width / 2f, (1f - (clip.Y / clip.W)) * height / 2f);
+                return new System.Numerics.Vector2(x - (width / 2f), y - (height / 2f)) / height;
+            }
+
+            Equal(true, square is { } s2 && System.Numerics.Vector2.Distance(s2, OnWindow(Camera(5f / 4f), 1280, 1024)) < 1e-5f, "as a 5:4 window draws it");
+
+            // A view shifted off its centre (as a camera keeping the player high on the screen could be) keeps its aspect.
+            var (near, half) = (10f, 10f * MathF.Tan(0.3f));
+            var shifted = view * System.Numerics.Matrix4x4.CreatePerspectiveOffCenter(-half * 16f / 9f, half * 16f / 9f, -half * 0.9f, half * 1.1f, near, 20000f);
+            Equal(true, CameraView.Draw(shifted, point) is { } off && System.Numerics.Vector2.Distance(off, OnWindow(shifted, 2560, 1440)) < 1e-5f, "an off-centre view");
+
+            Equal(false, CameraView.Draw(Camera(16f / 9f), eye + (eye - target)).HasValue, "behind the camera: not drawn");
+            Equal(false, CameraView.Draw(System.Numerics.Matrix4x4.Identity, point).HasValue, "GameHelper's placeholder before the first frame draws nothing");
+            Equal(true, wide is { } w2 && CameraView.InView(w2), "a place near the player is in view");
+            Equal(false, CameraView.Draw(Camera(16f / 9f), target + new System.Numerics.Vector3(4000, -4000, 0)) is { } far && CameraView.InView(far), "far off: out of view");
         }
 
         private static void TrialHudCountsWaterAndKeys()

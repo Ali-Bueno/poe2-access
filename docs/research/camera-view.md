@@ -15,16 +15,31 @@ divided by the window height. Measured in the Trial hub (G2_13), standing still:
 World +X draws right and up, world +Y left and up: the isometric camera with its tilt. Every size gave the same numbers to five
 digits; walking moves them about 1.5% (perspective, and the camera trails the player). `CameraView` holds them.
 
+## The camera's own matrix, with no window
+
+GameHelper reads the game's camera matrix (world to clip space, `CameraStructure.WorldToScreenMatrix`) every frame and keeps it
+private (`WorldData.matrixSnap.M`); its `WorldToScreen` only maps clip space onto `Core.Process.WindowArea`. `ScreenProjection`
+reads the matrix itself (a compiled field accessor) and `CameraView.Draw` turns a world point into screen heights from the
+centre: clip y / w spans the height, clip x / w the width, and the width-to-height ratio is the matrix's own (its across and up
+columns' lengths with their part along the view column removed, exact for an off-centre view too). So nothing depends on the
+window's size, aspect, a minimised game or a missing window rectangle, and the view follows any camera the game sets.
+
+Checked live with `camera` (2026-11-07, 2560x1440, town G2_town): matrix aspect 1.7778 = window aspect, the player drawn at
+-0.0563 heights (measured earlier 0.0566 above the centre), and the matrix read straight and GameHelper's window mapping parted
+by 0.00000 heights over all 50 awake entities. A matrix is used only while it draws the followed player within the view
+(GameHelper's identity before the first frame does not); otherwise the measured constants below stand in. Unit test:
+`CameraViewDrawsFromTheMatrixWhateverTheWindow` (16:9, 5:4 and 21:9 projections of one camera give one place).
+
 ## What a sighted player sees is a 16:9 screen around the player
 
 `ScreenProjection.InView` (the scanner's enemies and what counts as seen, `EntityCatalog.Sighted`) and `EnemyCues` (the cut at
-the screen's edge, pan and nearness) used to test the point against the window through the game's matrix: a 5:4 window heard
-fewer enemies, an ultrawide more, and nothing at all without a window rectangle. They now take a 16:9 screen around the player
-from `CameraView`. Checked live with `camera`: at 2560x1440 the fixed view and the window agreed on all 11 entities of the hub;
-at 1280x1024 one guard 0.500 heights below the centre was in the 16:9 view only, as expected of a 5:4 window.
+the screen's edge, pan and nearness) used to test the point against the window: a 5:4 window heard fewer enemies, an ultrawide
+more, and nothing at all without a window rectangle. They now test a 16:9 screen centred where the camera centres, from the
+matrix (the measured `CameraView` constants without one). At 1280x1024 one guard 0.500 heights below the centre was in the
+16:9 view only, as expected of a 5:4 window.
 
-Directions (pan, octants, the radar's rays, route legs) still come from the game's matrix, which follows the camera wherever
-it turns; `ScreenProjection.Axes` falls back on `CameraView` when the matrix gives nothing usable (not finite, or flat).
+Directions (pan, octants, the radar's rays, route legs) come from the same matrix in screen heights (`ScreenProjection.Axes`),
+which follows the camera wherever it turns, and fall back on `CameraView` when it gives nothing usable.
 
 ## The game hides captions in a 5:4 window
 

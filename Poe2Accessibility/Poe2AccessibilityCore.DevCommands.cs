@@ -26,8 +26,13 @@
             this.log?.Info($"Camera: window {window.Width}x{window.Height} foreground {Core.Process.Foreground} world {player.WorldPosition.X:0},{player.WorldPosition.Y:0},{player.WorldPosition.Z:0} " +
                            $"screen {here.X:0.0},{here.Y:0.0} axes {alongX} {alongY} per height {alongX / height} {alongY / height} centre offset {(here.X - (window.Width / 2f)) / height:0.0000},{(here.Y - (window.Height / 2f)) / height:0.0000}");
 
-            // The fixed 16:9 view against what this window draws: they should part only near its edges, or where it is not 16:9.
-            var (agree, windowOnly, viewOnly) = (0, 0, 0);
+            // The matrix read straight (no window) against GameHelper's mapping onto this window, both in heights from the
+            // centre: they must agree to rounding at any window size. Then the 16:9 view against what this window draws.
+            var camera = ScreenProjection.Camera();
+            var playerDrawn = ScreenProjection.Draw(player.WorldPosition);
+            this.log?.Info($"Camera matrix: readable {ScreenProjection.MatrixReadable}, usable {camera != null}, player drawn {playerDrawn?.ToString() ?? "none"} heights from the centre" +
+                           (camera is { } m ? $", matrix aspect {CameraAspect(m):0.0000} window aspect {window.Width / (float)height:0.0000}" : string.Empty));
+            var (agree, windowOnly, viewOnly, worst) = (0, 0, 0, 0f);
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
             {
                 if (!entity.IsValid || !entity.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var render))
@@ -36,6 +41,12 @@
                 }
 
                 var drawn = Core.States.InGameStateObject.CurrentWorldInstance.WorldToScreen(render.WorldPosition);
+                if (ScreenProjection.Draw(render.WorldPosition) is { } straight)
+                {
+                    var mapped = new System.Numerics.Vector2(drawn.X - (window.Width / 2f), drawn.Y - (window.Height / 2f)) / height;
+                    worst = Math.Max(worst, System.Numerics.Vector2.Distance(straight, mapped));
+                }
+
                 var onWindow = drawn.X >= 0 && drawn.Y >= 0 && drawn.X <= window.Width && drawn.Y <= window.Height;
                 var inView = ScreenProjection.InView(render.WorldPosition);
                 (agree, windowOnly, viewOnly) = onWindow == inView ? (agree + 1, windowOnly, viewOnly) : onWindow ? (agree, windowOnly + 1, viewOnly) : (agree, windowOnly, viewOnly + 1);
@@ -45,7 +56,15 @@
                 }
             }
 
-            this.log?.Info($"Camera view: {agree} agree, {windowOnly} only on the window, {viewOnly} only in the 16:9 view");
+            this.log?.Info($"Camera view: {agree} agree, {windowOnly} only on the window, {viewOnly} only in the 16:9 view; matrix and window part by {worst:0.00000} heights at most");
+        }
+
+        /// <summary>The camera matrix's own width-to-height ratio: its up column's length over its across column's, view part removed.</summary>
+        private static float CameraAspect(System.Numerics.Matrix4x4 m)
+        {
+            var view = System.Numerics.Vector3.Normalize(new System.Numerics.Vector3(m.M14, m.M24, m.M34));
+            float Flat(System.Numerics.Vector3 column) => (column - (System.Numerics.Vector3.Dot(column, view) * view)).Length();
+            return Flat(new System.Numerics.Vector3(m.M12, m.M22, m.M32)) / Flat(new System.Numerics.Vector3(m.M11, m.M21, m.M31));
         }
 
         /// <summary>Every stat the player's Stats component holds, key and value, to debug/player-stats-*.txt.</summary>

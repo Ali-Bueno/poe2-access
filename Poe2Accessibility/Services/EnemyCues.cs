@@ -187,8 +187,7 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                var (dx, dy) = (render.WorldPosition.X - player.WorldPosition.X, render.WorldPosition.Y - player.WorldPosition.Y);
-                if (!down && !CameraView.InView(dx, dy))
+                if (!down && !ScreenProjection.InView(render.WorldPosition))
                 {
                     continue;
                 }
@@ -199,7 +198,7 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                var offset = CameraView.HalfScreens(dx, dy);
+                var offset = ScreenProjection.HalfScreens(player.WorldPosition, render.WorldPosition);
                 if (enemy)
                 {
                     var gap = Vector2.Distance(new Vector2(render.WorldPosition.X, render.WorldPosition.Y), new Vector2(player.WorldPosition.X, player.WorldPosition.Y)) -
