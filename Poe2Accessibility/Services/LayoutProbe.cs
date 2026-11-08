@@ -80,6 +80,7 @@ namespace Poe2Accessibility.Services
 
         private bool namesKnown;
         private bool elementBaseKnown;
+        private long? elementBaseLostAt;
         private readonly Dictionary<IntPtr, long> elementBaseTried = new();
         private bool layerRootsKnown;
         private long layerRootsTriedAt = long.MinValue / 2;
@@ -123,7 +124,20 @@ namespace Poe2Accessibility.Services
             this.elementBaseTried[root] = now;
 
             var outcomes = GameReader.Utils.OffsetHealer.JudgeUiElementBase(root);
-            this.elementBaseKnown = outcomes.Count > 0;
+            if (outcomes.Count == 0)
+            {
+                return;
+            }
+
+            // A root judged before its children exist reads the tree lost: judged again on the next roots (LayoutVerdict).
+            var lost = outcomes.Any(outcome => outcome.Health == GameReader.Utils.StructHealth.Lost);
+            this.elementBaseLostAt ??= lost ? now : null;
+            if (!LayoutVerdict.Settled(lost, this.elementBaseLostAt ?? now, now))
+            {
+                return;
+            }
+
+            this.elementBaseKnown = true;
             foreach (var outcome in outcomes)
             {
                 this.report.Record(outcome);
@@ -417,6 +431,7 @@ namespace Poe2Accessibility.Services
         {
             (this.namesKnown, this.textKnown, this.managerKnown, this.renderKnown, this.texturesKnown) = (false, false, false, false, false);
             (this.elementBaseKnown, this.layerRootsKnown, this.focusKnown, this.focusCheck) = (false, false, false, null);
+            this.elementBaseLostAt = null;
             this.elementBaseTried.Clear();
             this.layerRootsTriedAt = long.MinValue / 2;
             this.namesTriedAt = this.textTriedAt = this.texturesTriedAt = long.MinValue / 2;

@@ -158,6 +158,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\DatKeySearch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ControlFields.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CompatibilityReport.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\LayoutVerdict.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PluginLog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\LandmarkTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ControllerGlyphs.cs" />

@@ -129,6 +129,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(MapMarkersFindTheirCheckpoints), MapMarkersFindTheirCheckpoints);
             Run(nameof(MovedFieldsAreFoundNearestFirst), MovedFieldsAreFoundNearestFirst);
             Run(nameof(MovedControlFieldsAreTrustedOnceTwoControlsAgree), MovedControlFieldsAreTrustedOnceTwoControlsAgree);
+            Run(nameof(ALayoutLostTooEarlyIsJudgedAgain), ALayoutLostTooEarlyIsJudgedAgain);
             Run(nameof(TheHoveredPinIsTheKeyThatChangesWithTheCursor), TheHoveredPinIsTheKeyThatChangesWithTheCursor);
             Run(nameof(CheckpointsAreNamedByTheirNeighbour), CheckpointsAreNamedByTheirNeighbour);
             Run(nameof(FarBarrierStaysClosedUntilSeenNear), FarBarrierStaysClosedUntilSeenNear);
@@ -3067,6 +3068,16 @@ namespace Poe2Accessibility.Tests
             Equal(0xA0, OffsetSearch.First(0x98, 0x100, 8, offset => offset is 0xA0 or 0x40) ?? -1, "the nearest fit wins");
             Equal(-8, OffsetSearch.First(0, 0x100, 8, shift => shift == -8, -0x100) ?? 1, "a shift may be negative");
             Equal(true, OffsetSearch.First(0x98, 0x20, 8, offset => offset == 0x200) == null, "nothing within reach: lost");
+        }
+
+        private static void ALayoutLostTooEarlyIsJudgedAgain()
+        {
+            // 13:27:15 cold start: the PreGameState root had no children yet; the login's root a second later read every field.
+            Equal(true, LayoutVerdict.Settled(false, 0, 0), "found at once: kept");
+            Equal(false, LayoutVerdict.Settled(true, 1000, 1000), "lost on the first root: judged again on the next");
+            Equal(true, LayoutVerdict.Settled(false, 1000, 2000), "found on the login's root: kept, no warning");
+            Equal(false, LayoutVerdict.Settled(true, 1000, 1000 + LayoutVerdict.LostWaitMs - 1), "still waiting");
+            Equal(true, LayoutVerdict.Settled(true, 1000, 1000 + LayoutVerdict.LostWaitMs), "lost for good: reported");
         }
 
         private static void MovedControlFieldsAreTrustedOnceTwoControlsAgree()
