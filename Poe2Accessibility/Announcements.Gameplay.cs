@@ -961,8 +961,9 @@ namespace Poe2Accessibility
         /// <summary>The layout parts not found after a game update, in one line.</summary>
         public static string CompatibilityMissing(IReadOnlyList<string> parts)
         {
-            var names = parts.Select(CompatibilityPart).ToList();
-            var list = names.Count == 1 ? names[0] : $"{string.Join(", ", names.Take(names.Count - 1))} {T("and", "y")} {names[^1]}";
+            // Parts carry their own "so …" clause and commas: joined by "and" two of them ran into one clause ("los controles de la
+            // interfaz, así que los menús no se leerán y dónde están los controles…", heard 2026-11-08), so each is its own item.
+            var list = string.Join("; ", parts.Select(CompatibilityPart).Distinct());
             return T(
                 $"Compatibility warning: cannot find {list}. The game may have been updated; those readings may fail",
                 $"Aviso de compatibilidad: no encuentro {list}. Puede que el juego se haya actualizado; esas lecturas pueden fallar");
