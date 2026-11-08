@@ -156,7 +156,7 @@ namespace Poe2Accessibility.Services
                     monster, snapshot?.Aim?.TargetPoint ?? here, here, player.ModelBounds.X, player.WorldPosition, blowIn, now);
             }
 
-            this.NoteReason(attack.Key, animation, decision.Reason, facts, snapshot);
+            this.NoteReason(attack.Key, animation, decision.Reason, facts, snapshot, attack.Warns || parrying);
             var threatens = decision.Verdict != DodgeVerdict.Silent;
             attack = attack with { InReach = threatens, Threatens = threatens, Timing = timing };
 
@@ -328,9 +328,23 @@ namespace Poe2Accessibility.Services
             return next;
         }
 
-        /// <summary>Each gate reason once per attack kind, for the live audit (docs/research/dodge-timing.md, "Live protocol").</summary>
-        private void NoteReason(string key, int animation, string reason, in DodgeFacts facts, AttackSnapshot? snapshot)
+        /// <summary>
+        ///     Each gate reason once per attack kind, for the live audit (docs/research/dodge-timing.md, "Live protocol"). An attack
+        ///     no cue follows (a normal monster's with <c>DodgeWarningsAllMonsters</c> off) is not read, and says so: its line was
+        ///     "aim Unknown, clip ?" and, logged first, hid the read line of a rare of the same kind (Ogham Manor, 2026-11-08).
+        /// </summary>
+        private void NoteReason(string key, int animation, string reason, in DodgeFacts facts, AttackSnapshot? snapshot, bool followed)
         {
+            if (snapshot == null && !followed)
+            {
+                if (this.gateReasons.Add($"{key}|{reason}|unread"))
+                {
+                    this.log.Info($"Dodge gate: {key} {AnimationNames.Of(animation) ?? "?"} -> {reason} (not read: no warning follows this monster's attacks)");
+                }
+
+                return;
+            }
+
             if (this.gateReasons.Add($"{key}|{reason}"))
             {
                 this.log.Info($"Dodge gate: {key} {AnimationNames.Of(animation) ?? "?"} -> {reason} (aim {facts.Aim}, reach {facts.InReach?.ToString() ?? "?"}, " +
