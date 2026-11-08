@@ -118,7 +118,7 @@ changes or hides its icon, so it drops out by itself.
    revives: the game's lines.
 6. **Towers and tablets.** Tower map nodes are Atlas nodes (step 2); the tower's tablet window (3 slots) LIKELY reads as
    slots; the "Tower" region action button is an ordinary button. Which nodes a tower reaches is in the data
-   (`EndgameMapAtlasTowers.AtlasNodes`), not yet said.
+   (`EndgameMapAtlasTowers.AtlasNodes`): a node says the side of the towers that reach it.
 7. **League mechanics in play.** Breach: walk into the hand, kill what comes out before it closes (fight cues as usual).
    Delirium: walk into the mirror, the fog moves with the player. Ritual: done. Abyss: pits along a crack. Vaal beacons:
    energise. Essence: free the monster from the monolith (interact). Expedition: **placing explosives** on a chain with a
@@ -131,7 +131,7 @@ changes or hides its icon, so it drops out by itself.
 | Atlas node reading (name, contents, links, needs) | code done, UNSURE live | First live hover: `atlasnode` dev command; fix the record search or the canvas walk if the Atlas draws nodes another way. |
 | Atlas node state (completed, reachable, corrupted) | UNSURE | Read from the popup's words first; then look for a MiscAnimated key on the node (EndgameMapPins Unavailable/Available/Active/Failed/Complete pins) with `datkeys`. |
 | A finder on the Atlas ("nearest tower / citadel / not completed") | LIKELY feasible | The graph and pins are in the catalog; needs node state from memory for "not completed". |
-| Which nodes a tower reaches; tablet effect on them | PROVEN data, not used | `EndgameMapAtlasTowers.AtlasNodes` into the catalog; say "in the reach of 2 towers" on a node. |
+| Which nodes a tower reaches | code done, UNSURE live | `EndgameMapAtlasTowers` (Reach list 0x14, the tower's own node 0x34): the 8 Fortress wall towers reach 24-50 nodes each; a node says "Al alcance de una torre: arriba a la izquierda", a tower "Alcanza 26 mapas". What a slotted tablet adds is the tower's window, not read yet. |
 | Azmeri spirits in the scanner | UNSURE | Check live whether the spirit is hostile/targetable; list it by its icon if it is a friendly creature. |
 | Expedition explosive placement | gap | Needs its own reader (placement cursor, chain length, remnants' places): research when reached. |
 | Map objectives as quest targets | LIKELY | Match the HUD's objective text to `objective/<id>` and make the icon's objects Quest targets. |
