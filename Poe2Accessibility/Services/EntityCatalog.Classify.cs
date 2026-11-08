@@ -343,7 +343,8 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private static string? LeagueDeviceIcon(Entity entity, string path) =>
             entity.TryGetComponent<MinimapIcon>(out var icon) && !string.IsNullOrEmpty(icon.IconName) &&
-            (path.Contains("/Leagues/", StringComparison.Ordinal) || MinimapMarks.IsRitualAltar(icon.IconName))
+            (path.Contains("/Leagues/", StringComparison.Ordinal) || MinimapMarks.IsRitualAltar(icon.IconName) ||
+             (!path.StartsWith(CreatureFolder, StringComparison.Ordinal) && EndgameCatalog.Shared.IsObjectiveIcon(icon.IconName))) // a breach, an essence: what a map objective asks for
                 ? icon.IconName
                 : null;
 
