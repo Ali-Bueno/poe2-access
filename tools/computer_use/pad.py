@@ -199,10 +199,13 @@ def serve(xbox):
     with Listener(ADDRESS, family='AF_PIPE', authkey=AUTHKEY) as listener:
         while True:
             with listener.accept() as connection:
-                request = connection.recv()
+                try:
+                    request = connection.recv()
+                except (EOFError, OSError):
+                    continue  # the client left before asking
                 try:
                     if request['action'] == 'quit':
-                        connection.send(dict(ok=True))
+                        reply(connection, dict(ok=True))
                         return 0
                     if request['action'] == 'press':
                         press(pad, vg, request['name'], request['seconds'])
@@ -214,9 +217,18 @@ def serve(xbox):
                         stick(pad, request['side'], request['direction'], request['amount'], request['seconds'])
                     else:
                         raise ValueError(f'Unknown action {request["action"]}')
-                    connection.send(dict(ok=True))
+                    reply(connection, dict(ok=True))
                 except (KeyError, ValueError, OSError) as error:
-                    connection.send(dict(ok=False, error=str(error)))
+                    reply(connection, dict(ok=False, error=str(error)))
+
+
+def reply(connection, message):
+    """A client killed while its input played is gone when the answer comes: the pad must stay plugged in. The server died
+    of that twice on 2026-11-08 (BrokenPipeError, WinError 232), which the game took as a controller disconnect."""
+    try:
+        connection.send(message)
+    except OSError:
+        pass
 
 
 def use_second(second):

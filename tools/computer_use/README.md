@@ -89,9 +89,9 @@ new `serve`, which disconnects the game to the login screen.
 - Never stand still among monsters reading logs: on 2026-11-06 a level 19 Mercenary died in a level 6 area that way.
 - Scripted walking on the live servers: packs kill a character that only walks, and one session ended in "Abnormal
   disconnect" 40 s after a death with no reason given (Client.txt, 2026-11-05). Cause unknown; keep it short.
-- The pad server stopped by itself on 2026-11-08 while a scripted walker that drove `desktop.py` was killed mid-command; the
-  game then showed "Conecta un mando o presiona A…". A new `pad.py serve --xbox` and one `pad cross` resumed play (cause not
-  confirmed; stop a script that sends input before killing it).
+- The pad server died twice on 2026-11-08 when a client was killed while its input played: the reply hit a closed pipe
+  (BrokenPipeError) and the game showed "Conecta un mando o presiona A…". Fixed in `serve` (a vanished client is ignored); a
+  new `pad.py serve --xbox` and one `pad cross` resume play if it ever happens again.
 - ffmpeg's `gdigrab` records the DX12 game window black; `-f lavfi -i ddagrab=output_idx=0` (Desktop Duplication) works.
 - Steam's launch options start the `dist` host: `dist/Poe2Access/Poe2Access.exe stop`, then `launch.py host`, to test the build output.
 - `--wait` accepts at most 5 seconds: a larger value fails before sending anything (filtered output hides the error).
