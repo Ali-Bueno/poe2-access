@@ -4,7 +4,7 @@ Legend: PROVEN = read in code/docs/page, linked. UNCERTAIN = inferred or not ver
 
 ## 1. How other memory tools survive patches
 
-### GameHelper2 (Gordin) - local clone `external/GameHelper2`
+### GameHelper2 (Gordin) - local clone `external/GameHelper2` (deleted 2026-11-08; its memory model lives on in `host/GameReader`)
 - PROVEN: two layers (CLAUDE.md "Memory offset / patch-day recovery", lines ~65-72).
   1. 6 signature patterns in `GameOffsets/StaticOffsetsPatterns.cs`, found in Ghidra by starting from a string XREF
      ("Unable to get InGameState", "Mods.dat", "Got Instance Details from login server") and writing a wildcard pattern for the

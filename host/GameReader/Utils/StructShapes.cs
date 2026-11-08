@@ -9,6 +9,9 @@ namespace GameReader.Utils
     using System.Linq;
     using GameReader.RemoteObjects.States.InGameStateObjects;
 
+    /// <summary>Where a stat list keeps its vector of pairs, how long a pair is, and where it keeps the stat's key and value.</summary>
+    public readonly record struct StatLayout(int List, int Stride, int Key, int Value);
+
     /// <summary>
     ///     What a field must hold, so it is recognised wherever a game patch left it: facts that cannot hold by chance, such
     ///     as a pointer back to its own component or a chain that ends in a buff's name.
@@ -25,6 +28,19 @@ namespace GameReader.Utils
         private const int CooldownEntry = 0x48;
         private const int MaxStats = 8192;
         private const int StatEntry = 8;
+
+        // A pair of ints in 0.5.5f; a patch may add a field or two to it.
+        private const int MaxStatEntry = 0x18;
+
+        // A state machine's states: the reader's own bound on their count, a definition 0xC0 bytes in 0.5.5f with its name
+        // first, as an MSVC string (text or pointer, then length at +0x10 and capacity at +0x18, 15 characters inline).
+        private const int MaxStates = 256;
+        private const int MaxStateStride = 0x200;
+        private const int MaxStateName = 64;
+        private const int StdStringBytes = 0x20;
+        private const int StdStringLength = 0x10;
+        private const int StdStringCapacity = 0x18;
+        private const int StdStringInline = 15;
         private const int FriendlyMask = 0x7F;
         private const int Friendly = 1;
         private const int FoesPerFriendAllowed = 5;
@@ -168,8 +184,11 @@ namespace GameReader.Utils
             return measured.Select(field => vitals.OrderBy(vital => Math.Abs(vital - field)).First()).ToArray();
         }
 
-        /// <summary>A list of buffs: pointers whose definitions begin with a lower-case id such as "herald_of_thunder".</summary>
-        public static bool IsBuffList(byte[] block, int at, IAreaMemory memory, int definition)
+        /// <summary>
+        ///     A list of buffs: pointers whose definitions hold, at <paramref name="name"/> (their start in 0.5.5f), a pointer to a
+        ///     lower-case id such as "herald_of_thunder".
+        /// </summary>
+        public static bool IsBuffList(byte[] block, int at, IAreaMemory memory, int definition, int name = 0)
         {
             if (!IsVector(block, at, out var first, out var bytes) || bytes <= 0 || bytes % Pointer != 0 || bytes / Pointer > MaxBuffs)
             {
@@ -178,8 +197,8 @@ namespace GameReader.Utils
 
             var entry = Long(memory.Read(first, Pointer), 0);
             var row = IsPointer(entry) ? Long(memory.Read(entry + definition, Pointer), 0) : 0;
-            var name = IsPointer(row) ? Long(memory.Read(row, Pointer), 0) : 0;
-            return IsPointer(name) && IsId(memory.WideText(name));
+            var id = IsPointer(row) ? Long(memory.Read(row + name, Pointer), 0) : 0;
+            return IsPointer(id) && IsId(memory.WideText(id));
         }
 
         /// <summary>The skills (16-byte entries, the first a pointer) with the cooldowns right after them.</summary>
@@ -194,19 +213,94 @@ namespace GameReader.Utils
                    IsVector(block, at + VectorSize, out _, out var cooldowns) && cooldowns % CooldownEntry == 0;
         }
 
-        /// <summary>A pointer to a stat list: key and value pairs with small keys.</summary>
-        public static bool IsStatsPointer(byte[] block, int at, IAreaMemory memory, int list)
+        /// <summary>A pointer to a stat list laid out as <paramref name="layout"/>: key and value pairs with small keys.</summary>
+        public static bool IsStatsPointer(byte[] block, int at, IAreaMemory memory, StatLayout layout)
         {
             var pointer = at + Pointer <= block.Length ? BitConverter.ToInt64(block, at) : 0;
-            var vector = IsPointer(pointer) ? memory.Read(pointer + list, VectorSize) : Array.Empty<byte>();
+            var vector = IsPointer(pointer) ? memory.Read(pointer + layout.List, VectorSize) : Array.Empty<byte>();
             if (vector.Length < VectorSize || !IsVector(vector, 0, out var first, out var bytes) || bytes <= 0 ||
-                bytes % StatEntry != 0 || bytes / StatEntry > MaxStats)
+                bytes % layout.Stride != 0 || bytes / layout.Stride > MaxStats)
             {
                 return false;
             }
 
-            var entry = memory.Read(first, StatEntry);
-            return entry.Length == StatEntry && BitConverter.ToInt32(entry, 0) is > 0 and < MaxStatKey;
+            var entry = memory.Read(first, layout.Stride);
+            return entry.Length == layout.Stride && BitConverter.ToInt32(entry, layout.Key) is > 0 and < MaxStatKey;
+        }
+
+        /// <summary>
+        ///     Where a stat list keeps its vector and how a pair is laid out, nearest <paramref name="near"/> (the measured layout
+        ///     first, then the smallest pair that fits, as a multiple of the pair fits too): every key small and distinct, and one
+        ///     pair holds stat <paramref name="key"/> with <paramref name="value"/>, a value the game shows elsewhere (the player's
+        ///     level, from the Player component). Null when none does.
+        /// </summary>
+        public static StatLayout? FindStatLayout(byte[] list, IAreaMemory memory, StatLayout near, int key, int value)
+        {
+            StatLayout? found = null;
+            Nearest(near.List, Pointer, list.Length - VectorSize, at =>
+            {
+                if (!IsVector(list, at, out var first, out var bytes) || bytes <= 0 || bytes > MaxStats * MaxStatEntry)
+                {
+                    return false;
+                }
+
+                var pairs = memory.Read(first, (int)bytes);
+                if (pairs.Length < bytes)
+                {
+                    return false;
+                }
+
+                var measured = near with { List = at };
+                if (HoldsStat(pairs, measured, key, value))
+                {
+                    found = measured;
+                    return true;
+                }
+
+                for (var stride = StatEntry; stride <= MaxStatEntry && found is null; stride += sizeof(int))
+                {
+                    var size = stride;
+                    Nearest(near.Key, sizeof(int), size - sizeof(int), keyAt => Nearest(near.Value, sizeof(int), size - sizeof(int), valueAt =>
+                    {
+                        var layout = new StatLayout(at, size, keyAt, valueAt);
+                        found = keyAt != valueAt && layout != measured && HoldsStat(pairs, layout, key, value) ? layout : null;
+                        return found is not null;
+                    }) >= 0);
+                }
+
+                return found is not null;
+            });
+            return found;
+        }
+
+        /// <summary>
+        ///     Where a state machine's states object keeps its list of state definitions and how long a definition is, nearest
+        ///     <paramref name="near"/>: every one of the <paramref name="count"/> definitions begins with its name, distinct ASCII
+        ///     words such as "activated". Null when none does.
+        /// </summary>
+        public static (int List, int Stride)? FindStateLayout(byte[] states, IAreaMemory memory, int count, (int List, int Stride) near)
+        {
+            if (count <= 0 || count > MaxStates)
+            {
+                return null;
+            }
+
+            (int List, int Stride)? found = null;
+            Nearest(near.List, Pointer, states.Length - Pointer, at =>
+            {
+                var first = Long(states, at);
+                if (!IsPointer(first))
+                {
+                    return false;
+                }
+
+                // Read as long as each stride makes the list: past the list's end the game may have nothing mapped.
+                var stride = Nearest(near.Stride, Pointer, MaxStateStride, size =>
+                    size >= StdStringBytes && memory.Read(first, count * size) is { } bytes && bytes.Length == count * size && NamesStates(bytes, size, count, memory));
+                found = stride > 0 ? (at, stride) : null;
+                return found is not null;
+            });
+            return found;
         }
 
         /// <summary>A pointer to an item's entity, as a ground item holds it: its path lies under <c>Metadata/Items/</c>.</summary>
@@ -280,6 +374,56 @@ namespace GameReader.Utils
             var end = BitConverter.ToInt64(block, at + (2 * Pointer));
             bytes = last - first;
             return first == 0 ? last == 0 && end == 0 : IsPointer(first) && IsPointer(end) && first <= last && last <= end;
+        }
+
+        /// <summary>Whether <paramref name="count"/> definitions of <paramref name="stride"/> bytes each begin with a distinct state name.</summary>
+        private static bool NamesStates(byte[] definitions, int stride, int count, IAreaMemory memory)
+        {
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            for (var index = 0; index < count; index++)
+            {
+                var at = index * stride;
+                var length = Long(definitions, at + StdStringLength);
+                var capacity = Long(definitions, at + StdStringCapacity);
+                if (length is <= 0 or > MaxStateName || capacity < length)
+                {
+                    return false;
+                }
+
+                // An MSVC string keeps up to 15 characters inline, longer ones behind a pointer.
+                var text = capacity <= StdStringInline ? definitions.AsSpan(at, (int)length).ToArray() : memory.Read(Long(definitions, at), (int)length);
+                if (text.Length != length || !text.All(letter => letter is (>= (byte)'a' and <= (byte)'z') or (>= (byte)'A' and <= (byte)'Z') or (>= (byte)'0' and <= (byte)'9') or (byte)'_') ||
+                    !names.Add(System.Text.Encoding.ASCII.GetString(text)))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>Pairs laid out as <paramref name="layout"/>: every key small and distinct, one of them <paramref name="key"/> holding <paramref name="value"/>.</summary>
+        private static bool HoldsStat(byte[] pairs, StatLayout layout, int key, int value)
+        {
+            if (pairs.Length % layout.Stride != 0)
+            {
+                return false;
+            }
+
+            var keys = new HashSet<int>();
+            var holds = false;
+            for (var at = 0; at < pairs.Length; at += layout.Stride)
+            {
+                var stat = BitConverter.ToInt32(pairs, at + layout.Key);
+                if (stat is <= 0 or >= MaxStatKey || !keys.Add(stat))
+                {
+                    return false;
+                }
+
+                holds |= stat == key && BitConverter.ToInt32(pairs, at + layout.Value) == value;
+            }
+
+            return holds;
         }
 
         private static bool IsId(string text) =>

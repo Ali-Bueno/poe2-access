@@ -71,15 +71,15 @@ namespace Poe2Accessibility.Services
         public T[] ReadStdVector<T>(StdVector vector, int maxElements)
             where T : unmanaged
         {
-            var elementSize = Unsafe.SizeOf<T>();
-            var bytes = vector.Last.ToInt64() - vector.First.ToInt64();
-            if (bytes <= 0 || bytes % elementSize != 0)
+            // As the host reads it: an entry a patch grew or rearranged is read where the host's searches found its fields.
+            try
+            {
+                return HostMemory.ReadStdVector<T>(vector, maxElements);
+            }
+            catch (Exception ex) when (ex is ObjectDisposedException or InvalidOperationException)
             {
                 return Array.Empty<T>();
             }
-
-            var count = bytes / elementSize;
-            return count > maxElements ? Array.Empty<T>() : this.ReadArray<T>(vector.First, (int)count);
         }
 
         public string ReadStdWString(StdWString value)

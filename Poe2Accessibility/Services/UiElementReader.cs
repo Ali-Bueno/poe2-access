@@ -165,8 +165,9 @@ namespace Poe2Accessibility.Services
                 return false;
             }
 
-            // The stripped copy leaves a gap where inline item art was ("Identificar   x 1"): the item is named there.
-            text = ControllerGlyphs.HasUnnamedItemArt(taggedText) ? ControllerGlyphs.Plain(taggedText) : stripped.Trim();
+            // The stripped copy leaves a gap where inline item art was ("Identificar   x 1"): the item is named there; so is
+            // a picture that means a word ("<<village_gold>> 500" → "500 oro", InlineIcons).
+            text = ControllerGlyphs.HasUnnamedItemArt(taggedText) || InlineIcons.HasNamed(taggedText) ? ControllerGlyphs.Plain(taggedText) : stripped.Trim();
             tagged = taggedText;
             return true;
         }

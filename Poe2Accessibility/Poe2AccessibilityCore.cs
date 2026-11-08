@@ -79,6 +79,7 @@ namespace Poe2Accessibility
             ["CooldownTime"] = (() => GameLayout.ActorComponent.CooldownTimeOffset, value => GameLayout.ActorComponent.CooldownTimeOffset = value),
             ["CooldownSkillId"] = (() => GameLayout.ActorComponent.CooldownSkillIdOffset, value => GameLayout.ActorComponent.CooldownSkillIdOffset = value),
             ["CooldownEntrySize"] = (() => GameLayout.ActorComponent.CooldownEntrySize, value => GameLayout.ActorComponent.CooldownEntrySize = value),
+            ["SkillEntrySize"] = (() => GameLayout.ActorComponent.SkillEntrySize, value => GameLayout.ActorComponent.SkillEntrySize = value),
             ["PoiseThreshold"] = (() => GameLayout.ActorComponent.PoiseThresholdOffset, value => GameLayout.ActorComponent.PoiseThresholdOffset = value),
             ["Poise"] = (() => GameLayout.ActorComponent.PoiseOffset, value => GameLayout.ActorComponent.PoiseOffset = value),
             ["NodeInBuild"] = (() => GameLayout.PassiveTree.NodeInBuildOffset, value => GameLayout.PassiveTree.NodeInBuildOffset = value),
@@ -125,6 +126,7 @@ namespace Poe2Accessibility
         private HazardWatch? hazards;
         private EncounterReader? encounters;
         private TrapWatch? traps;
+        private TrialDoorWatch? trialDoors;
         private MapPinNarrator? mapPins;
         private MinionReport? minions;
         private CullWatch? culls;
@@ -134,6 +136,7 @@ namespace Poe2Accessibility
         private FightWatch? fights;
         private PlayerAlerts? alerts;
         private PlayerAlerts? partnerAlerts;
+        private SkillDetailsDump? skillDump;
         private InventoryWatch? pickups;
         private InventoryWatch? partnerPickups;
         private InventoryReader? inventoryReader;
@@ -292,6 +295,9 @@ namespace Poe2Accessibility
                 this.actorTrace = new ActorTrace(memory, this.log, debugDirectory);
                 this.stunTrace = new StunTrace(memory, this.log, debugDirectory);
                 ItemNames.Load(this.log, Path.Join(this.DllDirectory, "catalog", "item-names.json"));
+                CurrencyIcons.Load(this.log, Path.Join(this.DllDirectory, "catalog", "currency-art.json"));
+                EndgameCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "endgame.json"));
+            InlineIcons.Load(this.log, Path.Join(this.DllDirectory, "catalog", "inline-icons.txt"));
                 // Named tiles from GameHelper2's Radar table (kept in the catalog), then the mod's own additions.
                 var landmarks = LandmarkTable.Load(
                     this.log,
@@ -357,10 +363,17 @@ namespace Poe2Accessibility
                 this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log);
                 this.shield = new ShieldWatch(this.audio, this.output, memory, this.log);
                 var skills = new PlayerSkills(memory, elements, this.log);
+                this.skillDump = new SkillDetailsDump(memory, elements);
                 this.bosses.CanParry = () => skills.Has(PlayerSkills.Parry);
                 var hazardGround = HazardGround.Load(Path.Join(this.DllDirectory, "catalog", "hazards.txt"));
                 this.log.Info($"Hazard ground: {hazardGround.Count} buffs from the game files");
                 this.hazards = new HazardWatch(this.audio, hazardGround, this.log);
+                var harmfulBuffs = HarmfulBuffs.Load(Path.Join(this.DllDirectory, "catalog", "buff-names.json"));
+                this.log.Info($"Harmful buffs: {harmfulBuffs.Count} named by the game files");
+                this.alerts.Statuses.Harmful = harmfulBuffs;
+                var mechanics = ClassMechanicCatalog.Load(Path.Join(this.DllDirectory, "catalog", "class-mechanics.json"));
+                this.log.Info($"Class mechanics: {mechanics.Resources.Count} resources, {mechanics.Limits.Count} limits, {mechanics.BuffCount} buffs, {mechanics.SkillCount} skills from the game files");
+                this.alerts.Statuses.IsCovered = hazardGround.IsHazard;
                 this.encounters = new EncounterReader(elements);
                 this.minions = new MinionReport(elements);
                 var cullSkills = CullSkills.Load(Path.Join(this.DllDirectory, "catalog", "cull-skills.txt"));
@@ -378,6 +391,7 @@ namespace Poe2Accessibility
                 this.deployed.GameSound = gameSounds.Get;
                 var drops = ItemDropSounds.Load(
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
+                this.trialDoors = new TrialDoorWatch(this.entities, this.beacon, this.output, this.log);
                 var diabloSounds = GameSounds.LoadLoops(Path.Join(this.DllDirectory, "assets", ItemSoundSet.Folder), this.log);
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds, drops, diabloSounds);
                 this.fights = new FightWatch(memory);
@@ -413,6 +427,7 @@ namespace Poe2Accessibility
                 this.semantics.PinTownLabel = () => this.entities?.PinTownLabel ?? string.Empty;
                 this.mapPins = new MapPinNarrator(this.semantics, this.output, this.log);
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
+                this.narrator.Trials = this.semantics.Trials = TrialCatalog.Load(Path.Join(this.DllDirectory, "catalog", "trials.json"), this.log);
                 this.entities.Memory = new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds, modSounds, drops, diabloSounds));
                 this.commands.Settings = () => this.Settings;
@@ -683,6 +698,11 @@ namespace Poe2Accessibility
             if (watching && this.Settings.AnnounceAppearingText)
             {
                 this.mapPins?.Tick(this.gameState.CurrentState == GameStateTypes.InGameState ? this.WorldScreen() : IntPtr.Zero);
+            }
+
+            if (watching && this.Settings.AnnounceTrialProgress)
+            {
+                this.narrator.CheckTrialLines(this.screen.Current);
             }
 
             this.wasWatching = watching;
@@ -969,6 +989,9 @@ namespace Poe2Accessibility
             this.partnerAlerts?.Statuses.Reset();
             this.alerts?.Charges.Reset();
             this.partnerAlerts?.Charges.Reset();
+            this.alerts?.Resources.Reset();
+            this.partnerAlerts?.Resources.Reset();
+            this.trialDoors?.Reset();
             this.alerts?.Cooldowns.Reset();
             this.partnerAlerts?.Cooldowns.Reset();
             this.pickups?.Reset();

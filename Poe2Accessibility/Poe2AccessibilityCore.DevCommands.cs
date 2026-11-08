@@ -236,6 +236,12 @@ namespace Poe2Accessibility
                     // Research: the world map's hovered pin as its data tells it, and whether the game built its popup.
                     this.log?.Info($"Map pin: {this.semantics?.PinReport(this.WorldScreen()) ?? "no semantics"}");
                     break;
+                case "atlasnode":
+                    // Research: the hovered element as a node of the Atlas or its trees (docs/research/endgame.md).
+                    var atlasHovered = IntPtr.Zero;
+                    this.memoryReader?.TryRead(this.focus?.Manager is { } atlasManager ? atlasManager + GameLayout.UiManager.HoveredOffset : IntPtr.Zero, out atlasHovered);
+                    this.log?.Info($"Atlas node: {this.semantics?.EndgameNodeReport(atlasHovered) ?? "no semantics"}");
+                    break;
                 case "uilayout":
                     // Research: the focused element's parent chain, drawn rect against the window-free layout rect.
                     foreach (var line in this.semantics?.LayoutChain(this.focus?.Current?.Address ?? IntPtr.Zero) ?? Enumerable.Empty<string>())
@@ -390,6 +396,9 @@ namespace Poe2Accessibility
                     break;
                 case "cooldowns":
                     this.log?.Info(this.alerts?.Cooldowns.Diagnose() ?? "Cooldowns off");
+                    break;
+                case "skills":
+                    this.log?.Info(this.skillDump?.Dump() ?? "Skill dump off");
                     break;
                 case "focusinfo":
                     this.log?.Info($"Focus info: {(this.focus?.Current is { } focused ? this.semantics?.RawInfo(focused.Address) : "no focus")}");
@@ -559,18 +568,15 @@ namespace Poe2Accessibility
                     this.compatibility?.Missing(GameDataPart);
                 }
 
-                var news = GameNews.Check(
-                    this.GameKeysCatalog,
-                    this.KnownGameKeys,
-                    Path.Join(this.DllDirectory, "config", "game-news.txt"),
-                    (table, key) => table == BuffTable ? StatusAilments.FromBuffId(key)?.ToString() ?? EnemyStates.FromBuffId(key)?.ToString()
-                        : table == AnimationTable ? DodgeThreats.Of(1, _ => key).ToString() : null);
-                foreach (var table in news)
+                var notes = GameNewsNotes.Load(Path.Join(this.DllDirectory, "catalog"));
+                var news = GameNews.Check(this.GameKeysCatalog, this.KnownGameKeys, Path.Join(this.DllDirectory, "config", "game-news.txt"), notes.Of);
+                var summary = GameNews.Summary(news, notes.Of);
+                foreach (var (table, added, unclassified) in summary)
                 {
-                    this.log?.Info($"Game news: {table.Table} {table.Added.Count} new, {table.Removed.Count} gone");
+                    this.log?.Info($"Game news: {table} {added} new ({unclassified} unclassified), {news.First(item => item.Table == table).Removed.Count} gone");
                 }
 
-                this.gameNewsLine = Announcements.GameNews(news.Select(table => (table.Table, table.Added.Count)));
+                this.gameNewsLine = Announcements.GameNews(summary);
             }
             catch (Exception error) when (error is IOException or UnauthorizedAccessException)
             {

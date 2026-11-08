@@ -18,6 +18,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Files of minimap marks the scanner left out, logged once each.</summary>
         private readonly HashSet<string> silentMarks = new(StringComparer.Ordinal);
+        private readonly HashSet<string> namedFromPath = new(StringComparer.Ordinal);
 
         /// <summary>
         ///     Category and name, or null for what the scanner leaves out (self, dead, opened, unnamed, and what is
@@ -109,7 +110,8 @@ namespace Poe2Accessibility.Services
                 // once done, where its tribute is spent ("Interactúa para ver los favores").
                 category = ScanCategory.Encounters;
                 name = name.Length > 0 ? name : this.landmarks.WorldTitle(path);
-                name = name.Length > 0 ? name : Announcements.LeagueDevice(leagueIcon, path.Contains(BossDevice, StringComparison.Ordinal));
+                name = name.Length > 0 ? name : Announcements.LeagueDevice(leagueIcon, path.Contains(BossDevice, StringComparison.Ordinal),
+                    ObjectNames.LeagueName(minimap is null ? string.Empty : MinimapIconLabel.Of(this.memory, this.elements, minimap), path));
                 kind = MinimapMarks.DeviceKind(leagueIcon);
             }
             else if (trap is { } kindOfTrap)
@@ -180,6 +182,16 @@ namespace Poe2Accessibility.Services
                 subject = point.Kind == MinimapMarks.BossRoomKind ? point.Label : string.Empty;
                 name = point.Kind != MinimapMarks.BossRoomKind ? point.Label
                     : point.Defeated ? Announcements.BossRoomDefeated(point.Label) : Announcements.BossRoom(point.Label);
+            }
+
+            if (plain && category == ScanCategory.Objects && name.Length == 0)
+            {
+                // A new interactable no table names yet: its metadata file name, so it is heard instead of dropped.
+                name = ObjectNames.FromPath(path);
+                if (name.Length > 0 && this.namedFromPath.Add(path))
+                {
+                    this.log.Info($"Object named from its file: {path} -> {name}");
+                }
             }
 
             if (category == null || name.Length == 0)
@@ -331,7 +343,8 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private static string? LeagueDeviceIcon(Entity entity, string path) =>
             entity.TryGetComponent<MinimapIcon>(out var icon) && !string.IsNullOrEmpty(icon.IconName) &&
-            (path.Contains("/Leagues/", StringComparison.Ordinal) || MinimapMarks.IsRitualAltar(icon.IconName))
+            (path.Contains("/Leagues/", StringComparison.Ordinal) || MinimapMarks.IsRitualAltar(icon.IconName) ||
+             (!path.StartsWith(CreatureFolder, StringComparison.Ordinal) && EndgameCatalog.Shared.IsObjectiveIcon(icon.IconName))) // a breach, an essence: what a map objective asks for
                 ? icon.IconName
                 : null;
 

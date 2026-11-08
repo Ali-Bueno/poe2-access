@@ -41,8 +41,14 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> unblockable = new(StringComparer.Ordinal);
         private readonly HashSet<string> unparryable = new(StringComparer.Ordinal);
 
+        /// <summary>What the monster's skills make of each attack (a blow, a hit from afar, or nothing), where the tables say.</summary>
+        private readonly Dictionary<string, DodgeThreat> threats = new(StringComparer.Ordinal);
+
         private const string NoBlockFlag = "noblock";
         private const string NoParryFlag = "noparry";
+        private const string MeleeFlag = "melee";
+        private const string RangedFlag = "ranged";
+        private const string CalmFlag = "calm";
 
         /// <summary>"Metadata/Monsters/MudGolem/MudGolemWet1|13": the monster kind without its "@level" suffix.</summary>
         public static string Key(string monsterPath, int animation)
@@ -119,9 +125,16 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether the player can parry the attack: a parry is a block, and some attacks only refuse the parry.</summary>
         public bool CanParry(string key) => this.CanBlock(key) && !this.unparryable.Contains(key);
 
+        /// <summary>The kind of threat the game's tables give the attack; null where they are mute and the animation's name must say.</summary>
+        public DodgeThreat? Threat(string key) => this.threats.TryGetValue(key, out var threat) ? threat : null;
+
+        /// <summary>How many attacks the tables give a kind.</summary>
+        public int FileKinds => this.threats.Count;
+
         /// <summary>
-        ///     Lines "key=hit/swing[/speed][;flags]" (catalog/hit-times.txt; "-" for an untimed attack with flags); "#" lines
-        ///     are comments. A hit later than a blow is learnt is still believed within its own swing (long boss attacks).
+        ///     Lines "key=hit/swing[/speed][;kind,flags]" (catalog/hit-times.txt; "-" for an untimed attack with a kind or
+        ///     flags); "#" lines are comments. A hit later than a blow is learnt is still believed within its own swing (long
+        ///     boss attacks).
         /// </summary>
         public void AddHitTimes(IEnumerable<string> lines)
         {
@@ -139,6 +152,19 @@ namespace Poe2Accessibility.Services
                 if (flags.Contains(NoParryFlag))
                 {
                     this.unparryable.Add(line[..split]);
+                }
+
+                if (flags.Contains(RangedFlag))
+                {
+                    this.threats[line[..split]] = DodgeThreat.Ranged;
+                }
+                else if (flags.Contains(MeleeFlag))
+                {
+                    this.threats[line[..split]] = DodgeThreat.Melee;
+                }
+                else if (flags.Contains(CalmFlag))
+                {
+                    this.threats[line[..split]] = DodgeThreat.None;
                 }
 
                 var parts = split > 0 ? line[(split + 1)..].Split('/') : Array.Empty<string>();

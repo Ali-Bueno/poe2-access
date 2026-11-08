@@ -120,10 +120,10 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static string Render(string tagged)
         {
-            var source = WideGap.Replace(NameItemArt(tagged), ", ");
+            var source = WideGap.Replace(NameItemArt(InlineIcons.MarkNamed(tagged)), ", ");
             var spoken = MarkupToken.Replace(source, match =>
             {
-                if (!MarkupFiles.TryGetValue(match.Groups[1].Value, out var file))
+                if (GlyphFileOf(match.Groups[1].Value) is not { } file)
                 {
                     return " ";
                 }
@@ -133,8 +133,14 @@ namespace Poe2Accessibility.Services
                 return NamedBefore(source[..match.Index], name) ? " " : $" {name} ";
             });
             spoken = Tag.Replace(spoken, string.Empty).Replace("{", string.Empty).Replace("}", string.Empty);
-            return SpaceBeforeStop.Replace(Spaces.Replace(spoken, " ").Trim(), "$1"); // "press A ." from "<<a>>."
+            return InlineIcons.Place(SpaceBeforeStop.Replace(Spaces.Replace(spoken, " ").Trim(), "$1")); // "press A ." from "<<a>>."
         }
+
+        /// <summary>
+        ///     The glyph file of a pad token: the known ones, then the game's own markup table (`catalog/inline-icons.txt`:
+        ///     "Controller/Button4"), so a glyph token a patch adds is still named.
+        /// </summary>
+        private static string? GlyphFileOf(string token) => MarkupFiles.TryGetValue(token, out var file) ? file : InlineIcons.GlyphFile(token);
 
         /// <summary>True when the text shows an item only by its art, one <see cref="ItemNames"/> can name.</summary>
         public static bool HasUnnamedItemArt(string tagged) =>
@@ -146,8 +152,8 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static string Plain(string tagged)
         {
-            var plain = Tag.Replace(MarkupToken.Replace(NameItemArt(tagged), " "), string.Empty).Replace("{", string.Empty).Replace("}", string.Empty);
-            return SpaceBeforeStop.Replace(HorizontalSpaces.Replace(plain, " "), "$1").Trim();
+            var plain = Tag.Replace(MarkupToken.Replace(NameItemArt(InlineIcons.MarkNamed(tagged)), " "), string.Empty).Replace("{", string.Empty).Replace("}", string.Empty);
+            return InlineIcons.Place(SpaceBeforeStop.Replace(HorizontalSpaces.Replace(plain, " "), "$1").Trim());
         }
 
         /// <summary>Item art the text does not name itself is named; all other art tokens go.</summary>
@@ -173,7 +179,7 @@ namespace Poe2Accessibility.Services
             var previousEnd = -1;
             foreach (Match match in MarkupToken.Matches(tagged))
             {
-                if (!MarkupFiles.TryGetValue(match.Groups[1].Value, out var file))
+                if (GlyphFileOf(match.Groups[1].Value) is not { } file)
                 {
                     continue;
                 }

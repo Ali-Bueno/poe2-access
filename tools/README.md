@@ -50,7 +50,7 @@ session scratch folder.
 
 ### `batch` command - several catalogs on one opened index
 `Poe2UiExtract batch <gameDir> <command> <outFile> [<command> <outFile> ...]` runs `item-sounds`, `areas`,
-`dat-columns`, `experience`, `hit-times`, `hazards`, `cull-skills`, `game-ids`, `game-keys`, `places` and `ui-catalog` (the `.ui` extraction plus `catalog`, through a temp
+`dat-columns`, `experience`, `hit-times`, `hazards`, `attack-reach`, `action-types`, `telegraph-skills`, `telegraph-effects`, `cull-skills`, `game-ids`, `game-keys`, `places` and `ui-catalog` (the `.ui` extraction plus `catalog`, through a temp
 folder) side by side on one opened index (`Batch.cs`). Opening and parsing the index costs ~10 s and most of the ~2 GB a
 run takes; LibBundle3 opens a bundle stream per file read and the commands only read the index, so they share it safely.
 Each output is written as `<outFile>.part` and renamed when complete; exit code 1 if any command failed. The mod
@@ -113,8 +113,7 @@ Poe2Access.exe [start|restart|stop|update|extract ...]  # start (default): open 
 `start` keeps the game data current (`GameDataSetup.cs`): it compares a stamp of the install (size and time of `Bundles2/_.index.bin`
 and of the game exe, `fmod.dll` version) and of each step's version with `app/GameData/game-version.txt` (`GameDataStamp.cs`). It
 reruns the steps whose stamp differs: all of them after a game patch or on the first run, only the ones whose version a mod update
-raised otherwise. The catalog steps (`item-sounds`, `areas`, `dat-columns`, `experience`, `hit-times`, `hazards`, `cull-skills`,
-`game-ids`, `game-keys`, `places`, `ui-catalog`) go to one `Extractor.Run(["batch", ...])` call, then `sounds` (rerun with
+raised otherwise. The catalog steps (`item-sounds`, `areas`, `dat-columns`, `experience`, `hit-times`, `hazards`, `attack-reach`, `action-types`, `telegraph-skills`, `telegraph-effects`, `buff-names`, `class-mechanics`, `currency-art`, `inline-icons`, `cull-skills`, `game-ids`, `game-keys`, `places`, `endgame`, `ui-catalog`, `trial-data`) go to one `Extractor.Run(["batch", ...])` call, then `sounds` (rerun with
 `item-sounds`) on its own, each on a worker task with 3 minutes per step (a step that overruns is logged and abandoned, the host
 goes on); the extractor's output is redirected (`Say`) and only its `batch` result lines reach the log, and the memory is collected
 afterwards. `oo2core.dll` is found beside the exe or in `app\` (`OodleLibrary.cs`, a `NativeLibrary` resolver for LibBundle3). Outputs
@@ -126,9 +125,7 @@ so a mod update keeps them. **Raise a step's version in `GameDataSetup` when its
 every machine. The first start after the old layout (one `format=` number in `Plugins/Poe2Accessibility/catalog/game-version.txt`)
 carries over what that stamp vouched for on the same install. The extractor opens the bundles sharing them with the running game
 (`SharedBundles`): the game locks some once in game, and the mod starts it before regenerating. Two extractor processes at once can
-lock each other's index out (a sharing violation); the next start retries.
-
-## package — test build for other players
+lock each other's index out (a sharing violation); the next start retries.## package — test build for other players
 ```
 pwsh tools/package/New-TestPackage.ps1      # with the mod stopped; writes dist/package/Poe2Access-test-<date>.zip (+ .7z with 7-Zip)
 ```

@@ -63,8 +63,12 @@ namespace Poe2Accessibility.Tests
             (nameof(PointerHalvesAreNoAnimation), PointerHalvesAreNoAnimation),
             (nameof(ActorsWithNoCopyLeaveTheFieldToItsBehaviour), ActorsWithNoCopyLeaveTheFieldToItsBehaviour),
             (nameof(BuffListsEndInAnId), BuffListsEndInAnId),
+            (nameof(TheStatPairsHoldThePlayersLevel), TheStatPairsHoldThePlayersLevel),
+            (nameof(StateDefinitionsBeginWithTheirNames), StateDefinitionsBeginWithTheirNames),
             (nameof(TheCameraIsKeptTwice), TheCameraIsKeptTwice),
             (nameof(PositionsLieInsideTheMap), PositionsLieInsideTheMap),
+            (nameof(ADatKeyIsFoundByTheTableItsFileNames), ADatKeyIsFoundByTheTableItsFileNames),
+            (nameof(AKeyIsFoundNearWhereAStructKeptIt), AKeyIsFoundNearWhereAStructKeptIt),
         };
 
         private static void FieldsWhereMeasuredStayThere()
@@ -259,11 +263,10 @@ namespace Poe2Accessibility.Tests
             Equal("slimed", news[0].Added.Single(), "the new buff");
             Equal("old", news[0].Removed.Single(), "the one gone");
             Equal(0, GameNews.Compare(fresh, fresh).Count, "nothing changed");
-            var report = GameNews.Report(news, (table, key) => key == "slimed" ? "Slowed" : null).ToList();
-            Equal("buffdefinitions: 1 new, 1 gone", report[0], "the table's line");
+            var report = GameNews.Report(news, (table, key) => key == "slimed" ? new NewsNote("Slowed", true) : null).ToList();
+            Equal("buffdefinitions: 1 new, 1 gone; all covered", report[0], "the table's line");
             Equal("  + slimed (Slowed)", report[1], "what the mod makes of it");
             Equal("  - old", report[2], "what left");
-            Equal("buffdefinitions: 1 new, 1 gone", report[0], "the table's line");
 
             var keys = GameNews.Keys(fresh, "buffdefinitions");
             Equal(2, keys.Count, "one table's keys");
@@ -578,6 +581,67 @@ namespace Poe2Accessibility.Tests
             memory.Texts[Heap + 0x400] = "Not an Id";
             Equal(false, StructShapes.IsBuffList(block, 0x10, memory, 8), "a chain that ends in other text");
             Equal(false, StructShapes.IsBuffList(block, 0x18, memory, 8), "no vector");
+
+            // The definition's id read 8 bytes into its row: found there, not at its start.
+            memory.Texts[Heap + 0x400] = "herald_of_thunder";
+            memory.Pointers.Remove(Heap + 0x300);
+            memory.Pointers[Heap + 0x308] = Heap + 0x400;
+            Equal(false, StructShapes.IsBuffList(block, 0x10, memory, 8), "the id no longer at the row's start");
+            Equal(true, StructShapes.IsBuffList(block, 0x10, memory, 8, 8), "the id where the row keeps it now");
+        }
+
+        private static void StateDefinitionsBeginWithTheirNames()
+        {
+            var memory = World();
+            var (definitions, longName) = (Heap + 0x3000, Heap + 0x4000);
+            var near = (List: 0x10, Stride: 0xC0);
+            foreach (var game in new[] { near, (List: 0x18, Stride: 0xC8), (List: 0x10, Stride: 0xA0) })
+            {
+                var states = new byte[0x100];
+                Put(states, game.List, definitions);
+                var bytes = new byte[3 * game.Stride];
+                foreach (var (index, name) in new[] { (0, "activated"), (1, "trap_triggered_and_resetting"), (2, "phase2") })
+                {
+                    var at = index * game.Stride;
+                    if (name.Length <= 15)
+                    {
+                        System.Text.Encoding.ASCII.GetBytes(name).CopyTo(bytes, at);
+                        Put(bytes, at + 0x10, name.Length, 15);
+                    }
+                    else
+                    {
+                        Put(bytes, at, longName, 0, name.Length, 0x1F);
+                        memory.Blocks[longName] = System.Text.Encoding.ASCII.GetBytes(name);
+                    }
+                }
+
+                memory.Blocks[definitions] = bytes;
+                Equal(((int, int)?)game, StructShapes.FindStateLayout(states, memory, 3, near), $"states laid out as {game}");
+            }
+
+            Equal(((int, int)?)null, StructShapes.FindStateLayout(new byte[0x100], memory, 3, near), "no list");
+        }
+
+        private static void TheStatPairsHoldThePlayersLevel()
+        {
+            var memory = World();
+            var (pairs, level) = (Heap + 0x2000, 22);
+            var measured = new StatLayout(0xF8, 8, 0, 4);
+            foreach (var (game, what) in new[] { (measured, "where measured"), (new StatLayout(0x100, 8, 4, 0), "the list later, the pair swapped"), (new StatLayout(0xE0, 0xC, 0, 8), "the list earlier, a field added to the pair") })
+            {
+                var list = new byte[0x200];
+                var bytes = new byte[3 * game.Stride];
+                foreach (var (index, key, value) in new[] { (0, 28, 53), (1, 1, level), (2, 239, 513) })
+                {
+                    BitConverter.TryWriteBytes(bytes.AsSpan((index * game.Stride) + game.Key), key);
+                    BitConverter.TryWriteBytes(bytes.AsSpan((index * game.Stride) + game.Value), value);
+                }
+
+                Put(list, game.List, pairs, pairs + bytes.Length, pairs + bytes.Length);
+                memory.Blocks[pairs] = bytes;
+                Equal((StatLayout?)game, StructShapes.FindStatLayout(list, memory, measured, 1, level), what);
+                Equal((StatLayout?)null, StructShapes.FindStatLayout(list, memory, measured, 1, level + 1), $"{what}, another level");
+            }
         }
 
         private static void TheCameraIsKeptTwice()
@@ -607,6 +671,30 @@ namespace Poe2Accessibility.Tests
             Equal(false, StructShapes.IsWorldPosition(block, 0, 5000f, 5000f), "a zero");
             BitConverter.TryWriteBytes(block.AsSpan(4), float.NaN);
             Equal(false, StructShapes.IsWorldPosition(block, 4, 5000f, 5000f), "not a number");
+        }
+
+        private static void ADatKeyIsFoundByTheTableItsFileNames()
+        {
+            const string table = "Data/Balance/GrantedEffects.dat";
+            var (key, file, other) = (new IntPtr(Heap + 0x1000), new IntPtr(Heap + 0x2000), new IntPtr(Heap + 0x3000));
+            foreach (var (fileAt, nameAt) in new[] { (8, 8), (0x10, 0x18), (8, 0) })
+            {
+                var block = new byte[DatKeySearch.Reach];
+                Put(block, 0, Heap + 0x500, other.ToInt64());
+                Put(block, fileAt, file.ToInt64());
+                var texts = new Dictionary<long, string> { [file.ToInt64() + nameAt] = table, [other.ToInt64() + 8] = "Data/Balance/ActiveSkills.dat" };
+                byte[] Read(IntPtr at, int size) => at == key ? block[..size] : Array.Empty<byte>();
+                string? Text(IntPtr at) => texts.GetValueOrDefault(at.ToInt64());
+                Equal(((int, int)?)(fileAt, nameAt), DatKeySearch.KeyLayout(Read, Text, key, (8, 8), table), $"a key's file at +0x{fileAt:X} named at +0x{nameAt:X}");
+                Equal(((int, int)?)null, DatKeySearch.KeyLayout(Read, Text, key, (8, 8), "Data/Balance/MapPins.dat"), "a key of another table");
+            }
+        }
+
+        private static void AKeyIsFoundNearWhereAStructKeptIt()
+        {
+            Equal((int?)0x18, DatKeySearch.Site(0, at => at == 0x18), "a key moved from the struct's start");
+            Equal((int?)0x2C8, DatKeySearch.Site(0x2D0, at => at is 0x2C8 or 0x2F0), "the nearer of two places");
+            Equal((int?)null, DatKeySearch.Site(0x2D0, at => at == 0x2D0 + DatKeySearch.Reach + 8), "nothing within reach");
         }
 
         internal static void Equal<T>(T expected, T actual, string what)

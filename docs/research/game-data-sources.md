@@ -42,7 +42,7 @@ Legend: **OK-live** = already derived from the game; **STALE-RISK** = hand list 
 
 | Where | What is hand-written | Authoritative source I opened | Verdict |
 |---|---|---|---|
-| `external/GameHelper2/.../RemoteEnums/Animation.cs` (cast in `Actor.cs:256`) | 1,084 animation names | `Animation.datc64` col +0x00 string Id, 1,088 rows (section 3) | **BROKEN** for 500 names |
+| `host/GameReader/RemoteEnums/Animation.cs` (cast in `Actor.cs:256`) | 1,084 animation names | `Animation.datc64` col +0x00 string Id, 1,088 rows (section 3) | **BROKEN** for 500 names |
 | `.../RemoteEnums/GameStats.cs` (26,943 stats) | stat key -> name | `Stats.datc64` +0x00 Id, 27,299 rows | **BROKEN** after row 4402 (22,541 names off) |
 | `.../RemoteEnums/InventoryName.cs` (120) | inventory ids | `Inventories.datc64` +0x00 Id, 121 rows | OK for the first 119 (93 compared agree by row+1... see below), mismatched from value 120 (`UltimatumKey1` vs row `TrialOfChaosBench`), the mod uses only Cursor/Main/Weapon/Offhand/Helm/Ring/Gloves/Boots/Flask (low values) |
 | `Services/DodgeThreats.cs` | 3 word lists (49 "calm", 31 melee, 36 ranged words) matched as substrings of the animation NAME | `Animation.datc64` names; plus per-monster `.act` and `GrantedEffects` (already used by `HitTimeExtractor`) | STALE-RISK (names wrong because of the enum; word lists fuzzy) |
@@ -73,7 +73,7 @@ Notes on evidence:
 
 ## 3. The Animation question
 
-Compared `external/GameHelper2/GameHelper/RemoteEnums/Animation.cs` (1,084 named values 0x0-0x42B) with `Animation.datc64`
+Compared `host/GameReader/RemoteEnums/Animation.cs` (then in the GameHelper2 clone) (1,084 named values 0x0-0x42B) with `Animation.datc64`
 (1,088 rows, row size 0x6A, name = string at +0x00). Script `FILES/cmp_anim.py`, rows `FILES/ids/animation.tsv`, diff `FILES/anim_diff.txt`.
 
 * **Row index = enum value** for the first 584 rows (0-583): all 584 agree, name for name.

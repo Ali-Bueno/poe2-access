@@ -20,3 +20,6 @@ Poe2Accessibility/sounds/
 
 # Test packages (tools/package/New-TestPackage.ps1)
 dist/
+
+# Agent worktrees (Claude Code)
+.claude/worktrees/

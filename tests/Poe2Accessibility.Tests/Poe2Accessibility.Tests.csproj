@@ -22,6 +22,9 @@
     <Compile Include="..\..\Poe2Accessibility\Services\QuestRewards.cs" Link="Plugin\QuestRewards.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\L3Gestures.cs" Link="Plugin\L3Gestures.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ScanModel.cs" Link="Plugin\ScanModel.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ObjectNames.cs" Link="Plugin\ObjectNames.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\CurrencyIcons.cs" Link="Plugin\CurrencyIcons.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\HarmfulBuffs.cs" Link="Plugin\HarmfulBuffs.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\RoutePlanner.cs" Link="Plugin\RoutePlanner.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\VitalAlarm.cs" Link="Plugin\VitalAlarm.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ExperienceTable.cs" Link="Plugin\ExperienceTable.cs" />
@@ -56,6 +59,10 @@
     <Compile Include="..\..\Poe2Accessibility\Services\TrialTraps.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TimedGuide.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\HonourWatch.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\TrialCatalog.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\TrialLines.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\TrialDoors.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Trials.cs" Link="Plugin\Announcements.Trials.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\WorldGate.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\StatusAilments.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\SpeechPriority.cs" />
@@ -95,6 +102,15 @@
     <Compile Include="..\..\Poe2Accessibility\Services\CardText.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TradeOfferNews.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\AoSoundEvents.cs" Link="Extract\AoSoundEvents.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\TelegraphShapes.cs" Link="Extract\TelegraphShapes.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\ClassMechanics.cs" Link="Extract\ClassMechanics.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ClassMechanicCatalog.cs" Link="Plugin\ClassMechanicCatalog.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ResourceTracker.cs" Link="Plugin\ResourceTracker.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.ClassMechanics.cs" Link="Plugin\Announcements.ClassMechanics.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\SkillGraphFile.cs" Link="Extract\SkillGraphFile.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\GameMarkup.cs" Link="Extract\GameMarkup.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\EndgameCatalog.cs" Link="Plugin\EndgameCatalog.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\AtlasLinks.cs" Link="Plugin\AtlasLinks.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\ReleaseTag.cs" Link="Launcher\ReleaseTag.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\ReleaseManifest.cs" Link="Launcher\ReleaseManifest.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\GameDataStamp.cs" Link="Launcher\GameDataStamp.cs" />
@@ -110,15 +126,29 @@
     <Compile Include="..\..\Poe2Accessibility\Services\BarrierMemory.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\DodgeThreats.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\DodgeTimings.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\AttackClock.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\AttackAim.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\AttackReach.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\AttackSight.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\AttackFieldCheck.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\DodgeGate.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\DodgeCoverage.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\GameNewsNotes.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\MapPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\OffsetSearch.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\DatKeySearch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ControlFields.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CompatibilityReport.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PluginLog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\LandmarkTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ControllerGlyphs.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\InlineIcons.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ArtCaptions.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\TableHeadings.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Panels.cs" Link="Plugin\Announcements.Panels.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ItemNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PlaceMap.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Radar.cs" Link="Plugin\Announcements.Radar.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PlaceTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\KnownPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\GameLayout.cs" />

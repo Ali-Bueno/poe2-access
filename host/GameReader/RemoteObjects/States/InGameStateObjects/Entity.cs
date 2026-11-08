@@ -9,6 +9,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Threading;
     using Components;
     using GameReader.RemoteEnums;
     using GameReader.RemoteEnums.Entity;
@@ -52,6 +53,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         private int unresolvedRetryCount;
         private long componentsReadAt;
         private int consecutiveInvalidFrames;
+        private int componentsStale;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="Entity" /> class.
@@ -243,6 +245,9 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             return this.componentAddresses;
         }
 
+        /// <summary>Reads the component map again at the next update, as for a new entity: a search moved its layout.</summary>
+        internal void ReadComponentsAgain() => Interlocked.Exchange(ref this.componentsStale, 1);
+
         /// <summary>
         ///     Updates the component data associated with the Entity base object (i.e. item).
         /// </summary>
@@ -353,6 +358,15 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             }
 
             this.Id = entityData.Id;
+
+            // A search moved what the component map is read through: read it again, as for a new entity.
+            if (Volatile.Read(ref this.componentsStale) == 1 && Interlocked.Exchange(ref this.componentsStale, 0) == 1)
+            {
+                hasAddressChanged = true;
+                this.EntityType = EntityTypes.Unidentified;
+                this.EntitySubtype = EntitySubtypes.Unidentified;
+                this.EntityState = EntityStates.None;
+            }
 
             if (hasAddressChanged)
             {

@@ -17,11 +17,21 @@ internal static class Batch
         ["experience"] = (_, index, output) => ExperienceExtractor.Run(index, output),
         ["hit-times"] = (_, index, output) => HitTimeExtractor.Run(index, output),
         ["hazards"] = (_, index, output) => HazardExtractor.Run(index, output),
+        ["attack-reach"] = (_, index, output) => AttackReachExtractor.Run(index, output),
+        ["action-types"] = (_, index, output) => ActionTypeExtractor.Run(index, output),
+        ["telegraph-skills"] = (_, index, output) => TelegraphExtractor.RunSkills(index, output),
+        ["telegraph-effects"] = (_, index, output) => TelegraphExtractor.RunEffects(index, output),
         ["cull-skills"] = (_, index, output) => CullSkillExtractor.Run(index, output),
         ["game-ids"] = (_, index, output) => GameIdExtractor.Run(index, output),
         ["game-keys"] = (_, index, output) => GameKeyExtractor.Run(index, output),
+        ["buff-names"] = (_, index, output) => BuffNameExtractor.Run(index, output),
+        ["class-mechanics"] = (_, index, output) => ClassMechanicExtractor.Run(index, output),
+        ["currency-art"] = (_, index, output) => CurrencyArtExtractor.Run(index, output),
         ["places"] = (_, index, output) => PlaceExtractor.Run(index, output),
+        ["endgame"] = (_, index, output) => EndgameExtractor.Run(index, output),
         ["ui-catalog"] = (_, index, output) => UiScripts.BuildCatalog(index, output),
+        ["trial-data"] = (_, index, output) => TrialDataExtractor.Run(index, output),
+        ["inline-icons"] = (_, index, output) => InlineIconExtractor.Run(index, output),
     };
 
     /// <param name="pairs">Command and output file, repeated.</param>

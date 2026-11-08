@@ -10,10 +10,10 @@ using System.Text.RegularExpressions;
 /// </summary>
 internal static class WorldTitleExtractor
 {
-    private const int KeyColumn = 0x0;
-    private const int TextColumn = 0x8;
+    internal const int KeyColumn = 0x0;
+    internal const int TextColumn = 0x8;
     private const string ObjectExtension = ".ot";
-    private const string StringsTable = "clientstrings";
+    internal const string StringsTable = "clientstrings";
     private const string ObjectivesTable = "queststates";
     private const int ObjectiveColumn = 0x2C;
     private const string ObjectivePrefix = "objective:";

@@ -32,8 +32,12 @@ host's searches (once a patch to GameHelper2, now in `host/`) read those fields 
 | Entity path and components (details pointer, path, component vector, lookup, name map) | the details lead to a wide string under `Metadata/`; the first and last component point back at the entity; the lookup's map names components (half its entries or more, one of `Positioned`, `Render`, `Life`…) with indexes inside the vector. Judged in the sweep on the player and four entities; searched whenever an area shows no world, since every area check asks an entity for its path. `ItemStruct` moves with `EntityOffsets` | `EntityLayoutSearch`, `OffsetHealer.JudgeEntityLayout` |
 | Life | every vital points back at its component; one shift lands the measured ones on them (the game has seven vitals, GameHelper reads five). Inside a vital: when the measured back-pointer and total find under three vitals, or find them but none full (a total read one field late takes the current for the total), the pair nearest them under which three vitals point back with a total above zero, life above zero on one and, in the second case, two full. Then the living player's life total must be above zero and its life no higher. Every judgment sets the whole remap (intact clears it), except an intact one with no vital full over a code placement, which is not judged | `StructShapes.PlaceVitals`, `StructShapes.VitalLayout` |
 | Buffs | a pointer list that ends in a lower-case id such as `herald_of_thunder` (no buff on the player: not judged) | `StructShapes.IsBuffList` |
+| Buff definition's id | the definition row's field nearest its start that reads as such an id, found with the list; names read through the old field are read again | `OffsetHealer.JudgeBuffs` |
+| Stat pairs (the list in the stat struct, a pair's size, key and value) | a value check: the `level` stat holds the level the Player component reads, every key small and distinct; the stats pointer is judged through what it finds | `StructShapes.FindStatLayout`, `OffsetHealer.JudgeStatEntries` |
+| State machines' definitions (list +0x10, 0xC0 each; trial traps) | every state of up to four machines in the area reads a distinct name (an ASCII word); the reader's offsets are settable for a code rule | `StructShapes.FindStateLayout`, `StateMachine.StateListOffset` |
+| Entries of a vector (the component name map, the inventory list) and an inventory's cell | inside the parent the search found: the entry's size (the smallest that fits, as any multiple fits too), then each field nearest where measured; a name map's indexes distinct, four names before a move; an inventory id list distinct with the main inventory's, its pointer not the base pointer 0x10 before the inventory; a cell's pointer leads to an item. Vectors of a struct whose entry changed are read one game entry at a time through the remap (`StructRemap` stride, `HostMemory.ReadStdVector`), and entities met read their component maps again | `EntityLayoutSearch`, `InventoryLayoutSearch` |
 | Skills, cooldowns | 16-byte entries with a 0x48-byte vector right after | `StructShapes.IsSkillList` |
-| Stats | a pointer to key and value pairs with small keys | `StructShapes.IsStatsPointer` |
+| Stats | a pointer to key and value pairs with small keys, laid out as the stat pairs were found | `StructShapes.IsStatsPointer` |
 | Camera | the game keeps the matrix twice, one copy after the other | `StructShapes.IsCameraMatrix` |
 | Positions | a point inside the map that projects near the screen's middle (the camera follows the player); no such point while the measured field still holds a point of the map is not judged: the camera is elsewhere, and the field has not moved | `OffsetHealer.JudgePosition` |
 | Game state's area and world pointers | the pointer whose target holds a world / a camera matrix | `OffsetHealer.LocateArea` |
@@ -42,6 +46,7 @@ host's searches (once a patch to GameHelper2, now in `host/`) read those fields 
 | UI element base (`UiElementBaseOffset`: self, children, parent; position, modifier, scale; flags, scale index; size) | on the UI root, before any walk reads through them: its own address; children that are elements whose parent field points back at it; its size, the base resolution 2560 x 1600. The position group (the root at 0,0 with scale 1) and the flags group (the root visible with scale index 3, its descendants not all alike) have no such mark, so each takes the parent's or the size's shift, whichever fits. The plugin's readers of the struct (`UiElementReader`, `UiTreeReader`, `HostMemoryReader.TryRead`) go through the host's remap (`HostStructs`) | `UiElementLayoutSearch`, `OffsetHealer.JudgeUiElementBase` (called by `LayoutProbe.ProbeElementBase`) |
 | Window cull (`GameCullSize` pattern) | a check only: a value that is no cull of this window (negative, half the width or more) reads 0 and is said lost. Nothing in memory gives it: 2560 x 1440 reads 0, so it is not the 16:10 base resolution's bar (that would be 128) | `GameWindowCull.Judge` |
 | In-game and area-loading states (not by slot) | in play: the current state whose area pointer leads to an area with a local player (looked at on every state change, and once a second until found); loading: the state that was current while the in-game state's area pointer changed, twice the same (a wait after the load starts with the new area, a menu ends with the old one) | `GameStateRoles`, `GameStates.ApplyRoles` |
+| The game menu and the other states' names | the menu: the state opened in play and closed back to it over the same area, twice. The rest from the roles found: a state inserted in the game's list moves every one after it, so a state after every role takes the last role's shift, one between two roles that agree takes theirs, the rest keep their slot (`[GameStates] states named by their roles`) | `GameStateRoles.Escape`, `GameStateRoles.Names` |
 | Other components with a vector, map, owner or entity pointer | GameHelper's own verifier, run with no one at the keyboard (`OffsetHelperEngine.RunSweep`): a repair only when it is not ambiguous; a component with none of these (Chest, Shrine, Player, Positioned, Base, WorldItem, Animated, Charges, Stack, Targetable, TriggerableBlockage) reads intact on its header alone | `OffsetHealer.Verified` |
 
 A struct that holds what it must is never touched. One that moved is read through `StructRemap<T>`: `TryReadMemory<T>`
@@ -109,16 +114,32 @@ the host rebuilt with `--no-incremental` and restarted in the Act 2 town, then r
 | Ground items | not simulated: no item lies on the ground in town (dropping one there could lose it); unit test only | — |
 | Co-op list, icon row, `is_dead` | `PlayerInfo` +8; icon row 0x28 in the plugin, the host and `code-fields.txt`; `is_dead` one past the table in the enum | `local player list ok` (the area search moved the player back, the list with it); `Code fields: … moved: MinimapIcon.Row +0x28 to +0x20` and the waypoint named by its icon in the `entities` dump (before the names were read again, none was); `Stat is_dead: the game says 2423, the host's enum 2424` |
 | Co-op list, icon row | `PlayerInfo` -0x18; icon row 0x18 everywhere | the same |
-| Terrain | `TileStructure` size 0x40 and 24 cells per tile |
-
-
-
- terrain found as before, tiles `moved from +0x40 to +0x38`, cells `from +0x18 to +0x17`; the wall radar sounded |
+| Terrain | `TileStructure` size 0x40 and 24 cells per tile | terrain found as before, tiles `moved from +0x40 to +0x38`, cells `from +0x18 to +0x17`; the wall radar sounded |
 | Terrain | size 0x30 (fields packed) and 22 cells | the same, back to 0x38 and 23 |
-| UI element base | self, children, parent +8; position group, flags group, size +0x18 |
- tree back +8, rects and flags +0x18 (the size's shift) before the first walk; the inventory read its items; `layout` all ok |
+| UI element base | self, children, parent +8; position group, flags group, size +0x18 | tree back +8, rects and flags +0x18 (the size's shift) before the first walk; the inventory read its items; `layout` all ok |
 | UI element base | self, children, parent -8; position group, flags group, size -0x18 | the same |
 | Game states | stack -8, list +8, `InGameState` swapped with `EscapeState` | the same (`slot 3 -> 4`). The loading state needs two area changes (left town is not allowed in these tests): unit test only |
+
+**Simulated 2026-11-08, second pass** (the entry layouts, dat keys, state names and value checks; the host or plugin rebuilt and
+restarted in the Act 2 town each time, then reverted; a field at the start of its struct can only be moved later):
+
+| Search | Shifted | Outcome |
+|---|---|---|
+| Component name entry | name +8, index +8, entry 0x18 | `component name entry moved from +0x8 to +0x0` in the first sweep; friends, portal and waypoint sounded |
+| Component name entry | name and index swapped (index 0, name 8) | the same |
+| Component name entry | name +0x10, index +0x18, entry 0x28 | `moved from +0x10 to +0x0`; the same sounds |
+| Inventory entry | id +8, pointers +8, entry 0x20 | `inventory entry moved from +0x8 to +0x0`, the main inventory watched at its own address; "Mano principal", "Segundo set de armas" named by their inventories |
+| Inventory entry | pointer at 0, id at 8 | the same |
+| Inventory entry | id +0x18, pointers +0x18, entry 0x30 | the same (`moved from +0x18`); the sweep took 312 ms that once |
+| Inventory cell | item +8; item +0x18 | `inventory cell moved from +0x8 (+0x18) to +0x0`; the `flasks` command read the belt's three flasks |
+| Dat keys | file +8 and name +8; file +8 and name -8; name +0x18 | `dat keys moved from +0x10 to +0x8` (and from +0x20) on the first key read; `cooldowns` named the skills ("Disparo con ballesta") |
+| Passive node key | +8; +0x18 | `passive node key moved from +0x8 (+0x18) to +0x0` on the first node; the nodes read in full ("nodo pequeño, sin conexión, a 3 puntos…") |
+| Map pin key | +8; -0x18 | `map pin key moved from +0x2D8 (+0x2B8) to +0x2D0` on the world map; the area's pins listed ("Santuario de huesos. Abismo") |
+| Game states | a state inserted before `EscapeState` in the enum | at attach `in-game state moved from +0x5 to +0x4` and the states after it named one slot earlier; the menu said "Pantalla desconocida" twice, then `game menu state moved from +0x4 to +0x3` and "Menú del juego"; a trip to character selection logged `WaitingState`, `SelectCharacterState`, `LoadingState`, `AreaLoadingState` |
+| Stat pairs | list +8; list -8 with the pair swapped; list +0x18 with a field added to the pair (0xC) | `stat entries moved from +0x100 (+0xF0, +0x110) to +0xF8`, `stats where measured`; `playerstats` read the 250 stats, `level` 22 |
+| Buff id | +8; +0x18 | before the sweep the buff read as its description ("Si matas a un enemigo electrocutado…") or empty; then `buff names moved from +0x8 (+0x18) to +0x0` and `herald_of_thunder_79` |
+| State machines | list +8 with the stride -8; both +0x18 | `state machine states moved from +0x18 (+0x28) to +0x10` |
+| Hovered pin, the ids at +0 of Characters and GrantedEffects rows, mod entries, the shrine flag | not searched (see the [audit](research/field-protection-audit.md), section 2) | — |
 
 
 
@@ -156,6 +177,8 @@ nearest fit wins). Fields of one structure that move together follow an anchor.
 | Player 2's skill bar: player 1's located field plus `PartnerSkillBarShift`, named `skill_bar` and another element than player 1's | — | `InGameFields.PartnerSkillBar` |
 | Skill bar slots: the class found twice in each of the twelve frames, alone (children 1..12) or in co-op (nested in the first child) | — | `UiSemantics.SlotElements` |
 | Area row of the loading state: points at a world-area row with a name and an id shaped like `G1_1` (searched only in game, when it must hold the area) | — | `GameStateService.AreaRowOffset` |
+| Dat keys (row, then the file at +0x8 whose name sits at +0x8): before any key has read, a key that does not read is searched once a second for the file pointer and the name nearest where measured that name the table the caller expects; that layout reads the key, and every key once a key of a second table reads through it | — | `DatKey`, pure `DatKeySearch` |
+| A struct's dat key (a passive node record's PassiveSkills key at +0, a map pin element's MapPins key at +0x2D0): a key into the table nearest where measured, taken once two structs agree. The canvas's hovered pin is not searched: the canvas holds two keys into MapPins (the hovered and the current pin) and a table name cannot tell them apart | — | `DatKeySite` |
 
 ### Control subclasses
 Their fields sit after the base control, so when it grows they all move as far as the label text did
@@ -189,7 +212,7 @@ Outcomes are logged once each ("Layout: HUD where measured", "moved from +0x558 
 found are said once together ("Aviso de compatibilidad: no encuentro el chat y la barra de habilidades…"). A new game
 process (`OnAttachedChanged`) logs the game exe's size and time and checks everything again.
 
-**Dev commands after a patch:** `structs` runs the sweep and logs it ("Struct sweep: 18 intact, 0 moved, 0 lost, 9 not
+**Dev commands after a patch:** `structs` runs the sweep and logs it ("Struct sweep: 24 intact, 0 moved, 0 lost, 9 not
 judged"; those have no field that can be checked, or nothing live to judge it on, such as a ground item in town). `sounds` logs what really played since last asked ("output peak 0,950;
 started: enemy 128, boss 42, dodge 5…; beds heard: waypoint"): the oracle for audio, since a log of speech says nothing of it.
 
@@ -230,6 +253,10 @@ with the list it saw last (`config/game-keys-known.txt`, `GameNews`): what a pat
 efectos 9, zonas 23. La lista está en el archivo game-news.txt"). This is what the mod cannot know by itself: a new buff passes
 in silence if no rule names it, a new screen needs a look. For whoever keeps the mod the same list is in git: the diff of
 `catalog/game-keys.txt` is the patch. The first run has nothing to compare with and says nothing.
+
+`attack-reach` (`AttackReachExtractor`) lists, per monster `.ao` clip (parents followed, a child's clip replacing its parent's), the farthest reach of its Melee damage patterns and the distance of its `contact` event, as `path|clip=reach/impact`.
+`action-types` (`ActionTypeExtractor`) lists the Id of every ActionTypes row (row size guarded at 0xE); a separate step because a step makes one file.
+`telegraph-skills` and `telegraph-effects` (`TelegraphExtractor`, docs/research/attack-telegraphs.md) write the danger area of each skill some monster grants (by GrantedEffects id) and the effect `.ao` files they play (by path); two steps over the same tables, because a step makes one file.
 
 A regenerated catalog under half the size of the old one is refused and the old one kept (`GameDataStamp.Collapsed`): a column that
 moved with the row size unchanged reads few rows and exits with no error. A step that fails leaves its name in

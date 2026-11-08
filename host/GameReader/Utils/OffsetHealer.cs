@@ -65,6 +65,24 @@ namespace GameReader.Utils
         /// <summary>The part that names an entity's components (lookup pointer, name map).</summary>
         public const string LookUpPart = "component lookup";
 
+        /// <summary>Where a state machine keeps its states' definitions and how long one is; judged by their names.</summary>
+        public const string StateMachinePart = "state machine states";
+
+        /// <summary>Where a buff's definition keeps its id; judged with the buff list.</summary>
+        public const string BuffNamesPart = "buff names";
+
+        /// <summary>A stat list's pairs (the list in its struct, a pair's size, key and value); judged by the player's level.</summary>
+        public const string StatEntriesPart = "stat entries";
+
+        /// <summary>An entry of the component name map (its size, name and index); judged where its map is found.</summary>
+        public const string NameEntryPart = "component name entry";
+
+        /// <summary>An entry of a player's inventory list (its size, id and inventory); judged where the inventories are found.</summary>
+        public const string InventoryEntryPart = "inventory entry";
+
+        /// <summary>Where an inventory's cell keeps its item; judged where the inventories are found.</summary>
+        public const string InventoryCellPart = "inventory cell";
+
         /// <summary>The part that says which state is current (the game state object's stack).</summary>
         public const string StateStackPart = "game state stack";
 
@@ -87,6 +105,9 @@ namespace GameReader.Utils
         private const int EntitiesJudged = 4;
 
         private const int SearchRadius = 0x200;
+
+        // A buff definition's id is its row's first column; a patch would not move it far.
+        private const int MaxBuffNameField = 0x40;
         private const int GameStateBytes = 0x1000;
         private const int MinMonstersForReaction = 5;
         private const int ReactionRadius = 0x40;
@@ -104,6 +125,9 @@ namespace GameReader.Utils
         };
 
         private static readonly Dictionary<Type, RemapSegment[]> Healed = new();
+
+        /// <summary>The element sizes set for vectors of a struct (<see cref="Restride"/>).</summary>
+        private static readonly Dictionary<Type, int> Strides = new();
 
         /// <summary>Which segments the code placed, so a later build's reading replaces them and a live one is left alone.</summary>
         private static readonly Dictionary<Type, HashSet<int>> FromCode = new();
@@ -125,15 +149,29 @@ namespace GameReader.Utils
             {
                 camera,
                 JudgeLife(area.Player),
-                JudgeBuffs(area.Player, memory),
                 JudgeSkills(area.Player, memory),
-                JudgeStats(area.Player, memory),
             };
 
+            // The stat pairs first: the stats pointer is judged by the list it leads to.
+            var statEntries = JudgeStatEntries(area.Player, memory, out var statLayout);
+            outcomes.Add(JudgeStats(area.Player, memory, statLayout));
+            outcomes.Add(statEntries);
+
             outcomes.Add(JudgeGroundItems(area, memory));
-            outcomes.Add(JudgeInventories(area, memory));
-            outcomes.AddRange(JudgeEntityLayout(memory, area.AwakeEntities.Values.Where(entity => entity.IsValid).Take(EntitiesJudged)
-                .Select(entity => entity.Address.ToInt64()).Prepend(area.Player.Address.ToInt64()).ToList()));
+            outcomes.AddRange(JudgeBuffs(area.Player, memory));
+            outcomes.Add(JudgeStateMachines(area, memory));
+            outcomes.AddRange(JudgeInventories(area, memory));
+            var entityLayout = JudgeEntityLayout(memory, area.AwakeEntities.Values.Where(entity => entity.IsValid).Take(EntitiesJudged)
+                .Select(entity => entity.Address.ToInt64()).Prepend(area.Player.Address.ToInt64()).ToList());
+            outcomes.AddRange(entityLayout);
+            if (entityLayout.Any(outcome => outcome.Name == NameEntryPart && outcome.Health == StructHealth.Moved))
+            {
+                // Entities read their component maps once, through the old entry: those already met read them again.
+                foreach (var entity in area.AwakeEntities.Values.Append(area.Player))
+                {
+                    entity.ReadComponentsAgain();
+                }
+            }
 
             // The position is judged through the camera, which only reads from its new place on the next frame.
             outcomes.Add(camera.Health == StructHealth.Moved && !cameraKnown ? NotJudged(PositionsPart, "the camera just moved") : JudgePosition(area));
@@ -209,12 +247,47 @@ namespace GameReader.Utils
             Place(typeof(EntityOffsets), (measured.Details, found.Details), (measured.Components, found.Components), (MeasuredEntityId, Follow(typeof(EntityOffsets), MeasuredEntityId)));
             Place(typeof(EntityDetails), (measured.Path, found.Path), (measured.LookUp, found.LookUp));
             Place(typeof(ComponentLookUpStruct), (measured.NameMap, found.NameMap));
+            var entry = found.NameMap < 0 ? NotJudged(NameEntryPart, "its map is not found") : PlaceEntry<ComponentNameAndIndexStruct>(
+                NameEntryPart,
+                (measured.Entry.Stride, found.Entry.Stride),
+                (measured.Entry.Name, found.Entry.Name),
+                (measured.Entry.Index, found.Entry.Index));
             return new[]
             {
                 Outcome(EntityPathPart, (measured.Details, found.Details), (measured.Path, found.Path)),
                 Outcome(ComponentsPart, (measured.Components, found.Components)),
                 Outcome(LookUpPart, (measured.LookUp, found.LookUp), (measured.NameMap, found.NameMap)),
+                entry,
             };
+        }
+
+        /// <summary>
+        ///     Reads every element of a vector of <typeparamref name="T"/> as the game lays it out now: <paramref name="stride"/> bytes
+        ///     each (measured, found), and each field (measured, found) from where it was found; the outcome names the size when
+        ///     only it changed, else the first field that moved.
+        /// </summary>
+        internal static StructOutcome PlaceEntry<T>(string name, (int Measured, int Found) stride, params (int Measured, int Found)[] fields)
+            where T : unmanaged
+        {
+            Place(typeof(T), fields);
+            Restride(typeof(T), stride.Found);
+            var outcome = Outcome(name, fields);
+            return outcome.Health == StructHealth.Intact && stride.Found != stride.Measured
+                ? new StructOutcome(name, StructHealth.Moved, stride.Measured, stride.Found, "the entry's size")
+                : outcome;
+        }
+
+        /// <summary>Sets how many bytes an element of a vector of <paramref name="structType"/> takes in the game.</summary>
+        internal static void Restride(Type structType, int stride)
+        {
+            lock (Healed)
+            {
+                Strides[structType] = stride;
+            }
+
+            typeof(StructRemap<>).MakeGenericType(structType)
+                .GetMethod("SetStride", BindingFlags.Static | BindingFlags.NonPublic)!
+                .Invoke(null, new object[] { stride });
         }
 
         /// <summary>
@@ -405,9 +478,11 @@ namespace GameReader.Utils
         internal static void Forget()
         {
             List<Type> moved;
+            List<Type> restrided;
             lock (Healed)
             {
                 moved = Healed.Keys.ToList();
+                restrided = Strides.Keys.ToList();
                 FromCode.Clear();
             }
 
@@ -416,12 +491,19 @@ namespace GameReader.Utils
                 Remap(type, Array.Empty<RemapSegment>());
             }
 
+            foreach (var type in restrided)
+            {
+                Restride(type, Marshal.SizeOf(type));
+            }
+
             lock (Healed)
             {
                 Healed.Clear();
+                Strides.Clear();
             }
 
             TileStructure.TileToGridConversion = TileStructure.MeasuredTileToGridConversion;
+            (StateMachine.StateListOffset, StateMachine.StateStride) = (StateMachine.MeasuredStateListOffset, StateMachine.MeasuredStateStride);
         }
 
         /// <summary>Sets where a struct's fields moved.</summary>
@@ -605,38 +687,62 @@ namespace GameReader.Utils
                 : new StructOutcome(name, StructHealth.Moved, total, foundTotal, "inside each vital");
         }
 
-        private static StructOutcome JudgeBuffs(Entity player, IAreaMemory memory)
+        private static IReadOnlyList<StructOutcome> JudgeBuffs(Entity player, IAreaMemory memory)
         {
             const string name = "buffs";
             if (!player.TryGetComponent<Buffs>(out var buffs))
             {
-                return NotJudged(name, "no player");
+                return new[] { NotJudged(name, "no player"), NotJudged(BuffNamesPart, "no player") };
             }
 
             var measured = OffsetOf<BuffsOffsets>(nameof(BuffsOffsets.StatusEffectPtr));
             var definition = OffsetOf<StatusEffectStruct>(nameof(StatusEffectStruct.BuffDefinationPtr));
             var block = Block(buffs.Address, measured + SearchRadius);
-            var found = StructShapes.Nearest(measured, sizeof(long), block.Length - 1, at => StructShapes.IsBuffList(block, at, memory, definition));
+            var id = OffsetOf<BuffDefinitionsOffset>(nameof(BuffDefinitionsOffset.Name));
+            int List(int at) => StructShapes.Nearest(measured, sizeof(long), block.Length - 1, list => StructShapes.IsBuffList(block, list, memory, definition, at));
+            var found = List(id);
+
+            // The definition's id read elsewhere in its row: the list is found through it, the id moves with it.
+            var foundId = found >= 0 ? id : StructShapes.Nearest(id, sizeof(long), MaxBuffNameField, at => at != id && List(at) >= 0);
+            found = found >= 0 || foundId < 0 ? found : List(foundId);
 
             // With no buff on the player no list reads as one, and that says nothing about the field.
-            return found < 0 ? NotJudged(name, "no buff to judge it on") : Placed<BuffsOffsets>(name, measured, found);
+            if (found < 0)
+            {
+                return new[] { NotJudged(name, "no buff to judge it on"), NotJudged(BuffNamesPart, "no buff to judge it on") };
+            }
+
+            var names = Placed<BuffDefinitionsOffset>(BuffNamesPart, id, foundId);
+            if (names.Health == StructHealth.Moved)
+            {
+                // Buff names are kept per definition once read: those read through the old field are read again.
+                Core.GgpkObjectCache.Clear();
+            }
+
+            return new[] { Placed<BuffsOffsets>(name, measured, found), names };
         }
 
         /// <summary>The player's inventories by what they hold (<see cref="InventoryLayoutSearch"/>); each field found is read from there.</summary>
-        private static StructOutcome JudgeInventories(AreaInstance area, IAreaMemory memory)
+        private static IReadOnlyList<StructOutcome> JudgeInventories(AreaInstance area, IAreaMemory memory)
         {
             const string name = "inventories";
             var server = area.ServerDataObject.Address;
             if (server == IntPtr.Zero)
             {
-                return NotJudged(name, "no server data");
+                return new[] { NotJudged(name, "no server data") };
             }
 
             var measured = InventoryFields.Measured;
             var found = new InventoryLayoutSearch(memory).Find(server.ToInt64(), measured);
             if (found.Players < 0)
             {
-                return new StructOutcome(name, StructHealth.Lost, measured.Players, 0, "no inventory of the player holds an item");
+                // The entry and the cell are judged only through inventories found: the lost inventories say it for them.
+                return new[]
+                {
+                    new StructOutcome(name, StructHealth.Lost, measured.Players, 0, "no inventory of the player holds an item"),
+                    NotJudged(InventoryEntryPart, "no inventory found"),
+                    NotJudged(InventoryCellPart, "no inventory found"),
+                };
             }
 
             // Each field, then where the bytes after it read now: a vector is three pointers, the size two ints.
@@ -649,13 +755,23 @@ namespace GameReader.Utils
                 (measured.Boxes + sizeof(long), Follow(typeof(InventoryStruct), measured.Boxes + sizeof(long))),
                 (measured.Cells, found.Cells),
                 (measured.Cells + vector, Follow(typeof(InventoryStruct), measured.Cells + vector)));
+            var (entries, foundEntries) = (measured.Entries, found.Entries);
+            var stride = HostStructs.Stride<InventoryArrayStruct>();
+            var entry = PlaceEntry<InventoryArrayStruct>(InventoryEntryPart, (entries.Stride, foundEntries.Stride), (entries.Id, foundEntries.Id), (entries.Inventory, foundEntries.Inventory));
+            moved |= stride != foundEntries.Stride || entry.Health == StructHealth.Moved;
+            var cell = Placed<InventoryItemStruct>(InventoryCellPart, entries.Item, foundEntries.Item);
             if (moved)
             {
                 // The server data reads its inventories once per area: what it read through the old fields is read again.
                 area.ServerDataObject.Refresh();
             }
 
-            return Outcome(name, (measured.Players, found.Players), (measured.Inventories, found.Inventories), (measured.Boxes, found.Boxes), (measured.Cells, found.Cells));
+            return new[]
+            {
+                Outcome(name, (measured.Players, found.Players), (measured.Inventories, found.Inventories), (measured.Boxes, found.Boxes), (measured.Cells, found.Cells)),
+                entry,
+                cell,
+            };
         }
 
         /// <summary>Ground items lead to their item's entity: every one looked at must, through the same field.</summary>
@@ -761,7 +877,7 @@ namespace GameReader.Utils
             return new StructOutcome(AnimationPart, StructHealth.Moved, measured, found, string.Empty);
         }
 
-        private static StructOutcome JudgeStats(Entity player, IAreaMemory memory)
+        private static StructOutcome JudgeStats(Entity player, IAreaMemory memory, StatLayout layout)
         {
             const string name = "stats";
             if (!player.TryGetComponent<Stats>(out var stats))
@@ -770,9 +886,88 @@ namespace GameReader.Utils
             }
 
             var measured = OffsetOf<StatsOffsets>(nameof(StatsOffsets.StatsChangedByItemsPtr));
-            var list = OffsetOf<StatsStructInternal>(nameof(StatsStructInternal.Stats));
             var block = Block(stats.Address, measured + SearchRadius);
-            return Placed<StatsOffsets>(name, measured, StructShapes.Nearest(measured, sizeof(long), block.Length - 1, at => StructShapes.IsStatsPointer(block, at, memory, list)));
+            return Placed<StatsOffsets>(name, measured, StructShapes.Nearest(measured, sizeof(long), block.Length - 1, at => StructShapes.IsStatsPointer(block, at, memory, layout)));
+        }
+
+        /// <summary>
+        ///     Where a stat list keeps its pairs and how a pair is laid out, by a value check: the player's level, read from the
+        ///     Player component, must stand as the <c>level</c> stat in the list of stats from buffs and actions. Never said lost:
+        ///     a list without it says nothing about the layout.
+        /// </summary>
+        private static StructOutcome JudgeStatEntries(Entity player, IAreaMemory memory, out StatLayout layout)
+        {
+            const string name = StatEntriesPart;
+            var near = new StatLayout(
+                OffsetOf<StatsStructInternal>(nameof(StatsStructInternal.Stats)),
+                Marshal.SizeOf<StatArrayStruct>(),
+                OffsetOf<StatArrayStruct>(nameof(StatArrayStruct.key)),
+                OffsetOf<StatArrayStruct>(nameof(StatArrayStruct.value)));
+            layout = new StatLayout(
+                Follow(typeof(StatsStructInternal), near.List),
+                HostStructs.Stride<StatArrayStruct>(),
+                Follow(typeof(StatArrayStruct), near.Key),
+                Follow(typeof(StatArrayStruct), near.Value));
+            if (!player.TryGetComponent<Stats>(out var stats) || !player.TryGetComponent<GameReader.RemoteObjects.Components.Player>(out var hero) || hero.Level <= 0)
+            {
+                return NotJudged(name, "no player");
+            }
+
+            var field = Follow(typeof(StatsOffsets), OffsetOf<StatsOffsets>(nameof(StatsOffsets.StatsChangedByBuffAndActions)));
+            var list = Block(stats.Address + field, sizeof(long)) is { Length: sizeof(long) } pointer ? new IntPtr(BitConverter.ToInt64(pointer, 0)) : IntPtr.Zero;
+            var block = list == IntPtr.Zero ? Array.Empty<byte>() : Block(list, near.List + SearchRadius);
+            if (block.Length == 0 || StructShapes.FindStatLayout(block, memory, near, (int)RemoteEnums.GameStats.level, hero.Level) is not { } found)
+            {
+                return NotJudged(name, "no pair holds the player's level");
+            }
+
+            Place(typeof(StatsStructInternal), (near.List, found.List));
+            var entry = PlaceEntry<StatArrayStruct>(name, (near.Stride, found.Stride), (near.Key, found.Key), (near.Value, found.Value));
+            layout = found;
+            return found.List != near.List ? new StructOutcome(name, StructHealth.Moved, near.List, found.List, "the list") : entry;
+        }
+
+        /// <summary>
+        ///     Where a state machine (trial traps, devices) keeps its states' definitions and how long one is: every state of up to
+        ///     four machines in the area must read a distinct name through them. Never said lost: a machine with odd names says
+        ///     nothing of the layout.
+        /// </summary>
+        private static StructOutcome JudgeStateMachines(AreaInstance area, IAreaMemory memory)
+        {
+            const string name = StateMachinePart;
+            var near = (StateMachine.MeasuredStateListOffset, StateMachine.MeasuredStateStride);
+            var machines = new List<(byte[] States, int Count)>();
+            foreach (var entity in area.AwakeEntities.Values)
+            {
+                if (machines.Count >= EntitiesJudged || !entity.IsValid || !entity.TryGetComponent<StateMachine>(out var machine) ||
+                    !Core.Process.Handle.TryReadMemory<StateMachineComponentOffsets>(machine.Address, out var data))
+                {
+                    continue;
+                }
+
+                var count = (data.StatesValues.Last.ToInt64() - data.StatesValues.First.ToInt64()) / sizeof(long);
+                var states = count > 0 ? Block(data.StatesPtr, near.MeasuredStateListOffset + SearchRadius) : Array.Empty<byte>();
+                if (states.Length > 0)
+                {
+                    machines.Add((states, (int)count));
+                }
+            }
+
+            if (machines.Count == 0)
+            {
+                return NotJudged(name, "no state machine with states");
+            }
+
+            // The layout every machine reads its names through, nearest the measured one; the machine with most states decides.
+            machines = machines.OrderByDescending(machine => machine.Count).ToList();
+            var found = StructShapes.FindStateLayout(machines[0].States, memory, machines[0].Count, near);
+            if (found is not { } layout || machines.Skip(1).Any(other => StructShapes.FindStateLayout(other.States, memory, other.Count, layout) != layout))
+            {
+                return NotJudged(name, "the states read no names");
+            }
+
+            (StateMachine.StateListOffset, StateMachine.StateStride) = layout;
+            return Outcome(name, (near.MeasuredStateListOffset, layout.List), (near.MeasuredStateStride, layout.Stride));
         }
 
         private static StructOutcome JudgePosition(AreaInstance area)

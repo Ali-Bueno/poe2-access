@@ -18,8 +18,6 @@ namespace Poe2Accessibility
 
         public static string Language { get; private set; } = "en";
 
-        public static bool IsSpanish => Language == "es";
-
         /// <summary>Where catalog/lang/&lt;language&gt;.json tables live (English and Spanish are in the code).</summary>
         public static string? PhraseDirectory { get; set; }
 

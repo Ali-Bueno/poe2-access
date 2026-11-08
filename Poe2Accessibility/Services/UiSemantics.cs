@@ -82,6 +82,11 @@ namespace Poe2Accessibility.Services
                 return passiveNode;
             }
 
+            if (this.DescribeEndgameNode(info, hovered) is { } endgameNode)
+            {
+                return endgameNode;
+            }
+
             if (this.DescribeLink(info) is { } linkNode)
             {
                 return linkNode;
@@ -138,6 +143,11 @@ namespace Poe2Accessibility.Services
                     break;
                 case UiRole.TextField:
                     value = ownText.Length > 0 ? ownText : this.FindDescendantText(info, CaptionSearchDepth, null);
+                    if (this.catalog.TryGet(info.Name, out var field) && field.IsPassword)
+                    {
+                        value = Announcements.PasswordLength(value.Length); // never the contents
+                    }
+
                     label = this.FindRowLabel(info);
                     if (label.Length == 0)
                     {
@@ -245,6 +255,10 @@ namespace Poe2Accessibility.Services
             {
                 (label, namedById) = (Announcements.NewsBanner, false);
             }
+            else if (this.InGame && value.Length == 0 && this.TrialIcon(info) is { Length: > 0 } trialIcon)
+            {
+                value = trialIcon; // an affliction, boon or modifier icon of the trials
+            }
 
             var tooltip = cardDetails.Count > 0 ? cardDetails : this.TooltipLines(info);
             var context = this.InGame ? this.PanelTitle(info) : string.Empty;
@@ -271,6 +285,13 @@ namespace Poe2Accessibility.Services
             {
                 // The tooltip's title repeats what the widget shows ("Mana, 64" → title "Mana").
                 tooltip.RemoveAt(0);
+            }
+
+            if (label.Length == 0 && this.InGame)
+            {
+                // Nothing names it and it has no tooltip: an icon-only control showing an item (a picker once a currency is
+                // chosen) is that item (docs/research/ui-unseen-panels.md).
+                label = this.ArtCaption(info);
             }
 
             if (this.InGame && role == UiRole.Panel && tooltip.Count > 0 && BareNumber.IsMatch(label))
@@ -493,12 +514,17 @@ namespace Poe2Accessibility.Services
             this.CollectTexts(info, 0, RowCellDepth, walk);
             var sets = walk.Icons.Count > 0 ? WeaponSetRows.Pair(walk.Parents, walk.Indices, walk.Icons, walk.Texts.Select(text => text.Node)) : null;
             var cells = walk.Texts.Select(text => sets != null && sets.TryGetValue(text.Node, out var set) ? Announcements.WeaponSetValue(set, text.Text) : text.Text).ToList();
+            if (this.InGame && cells.Count is > 1 and <= MaxHeadedRowCells && this.HeadedCells(info, walk.TextAddresses, cells) is { } headed)
+            {
+                return Announcements.Cells(headed); // a table row under shown column headings ("Players: 3, Time Left: 9 minutes")
+            }
+
             return cells.Count is > 0 and <= MaxRowCells ? Announcements.Cells(cells) : this.FindDescendantText(info, CaptionSearchDepth, null);
         }
 
         private void CollectTexts(in UiElementReader.ElementInfo node, int nodeId, int depth, RowWalk walk)
         {
-            if (depth < 0 || walk.Texts.Count > MaxRowCells)
+            if (depth < 0 || walk.Texts.Count > MaxHeadedRowCells)
             {
                 return;
             }
@@ -515,6 +541,7 @@ namespace Poe2Accessibility.Services
                 if (this.elements.TryReadSpokenText(children[index], out var text) && text.Length > 0)
                 {
                     walk.Texts.Add((id, text));
+                    walk.TextAddresses.Add(children[index]);
                 }
                 else if (this.elements.ReadTextureKey(child) is { } key && WeaponSetRows.FromTextureKey(key) is { } set)
                 {
@@ -535,6 +562,9 @@ namespace Poe2Accessibility.Services
             public List<(int Node, int Set)> Icons { get; } = new();
 
             public List<(int Node, string Text)> Texts { get; } = new();
+
+            /// <summary>The element of each of <see cref="Texts"/>, in the same order (where it is drawn, for column headings).</summary>
+            public List<IntPtr> TextAddresses { get; } = new();
 
             public int Add(int parent, int index)
             {

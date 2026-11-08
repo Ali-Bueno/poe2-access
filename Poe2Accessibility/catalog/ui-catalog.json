@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-28T15:19:27.9920021Z",
+  "generatedAt": "2026-11-08T09:56:16.7061760Z",
   "sourceCount": 126,
   "controls": [
     {
@@ -736,6 +736,7 @@
       "tabIndex": null,
       "tag": null,
       "keyboardEnabled": null,
+      "mode": "password",
       "depth": 3
     },
     {
@@ -11120,6 +11121,7 @@
       "tabIndex": null,
       "tag": null,
       "keyboardEnabled": null,
+      "mode": "password",
       "depth": 5
     },
     {
@@ -11568,6 +11570,7 @@
       "tabIndex": null,
       "tag": null,
       "keyboardEnabled": null,
+      "mode": "password",
       "depth": 5
     },
     {
@@ -12400,6 +12403,7 @@
       "tabIndex": 1,
       "tag": null,
       "keyboardEnabled": null,
+      "mode": "password",
       "depth": 1
     },
     {
@@ -12848,6 +12852,7 @@
       "tabIndex": 1,
       "tag": null,
       "keyboardEnabled": null,
+      "mode": "password",
       "depth": 0
     },
     {
@@ -13264,6 +13269,7 @@
       "tabIndex": 1,
       "tag": null,
       "keyboardEnabled": null,
+      "mode": "password",
       "depth": 1
     },
     {

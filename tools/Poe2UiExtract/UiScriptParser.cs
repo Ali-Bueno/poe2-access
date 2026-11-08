@@ -111,7 +111,7 @@ internal sealed class UiScriptParser
         _depth++;
 
         string? id = null;
-        string? textKey = null, textLiteral = null, tipTextKey = null, tag = null;
+        string? textKey = null, textLiteral = null, tipTextKey = null, tag = null, mode = null;
         bool? focusable = null, keyboardEnabled = null;
         int? tabIndex = null;
         bool pushedId = false;
@@ -153,6 +153,10 @@ internal sealed class UiScriptParser
                 case "can_focus_with_controller":
                     focusable = ReadBoolValue();
                     break;
+                case "mode":
+                    if (Peek().Kind == TokenKind.Word) mode = Peek().Text; // a text box's "password"
+                    SkipToSemicolon();
+                    break;
                 case "keyboard_enabled":
                     keyboardEnabled = ReadBoolValue();
                     break;
@@ -190,6 +194,7 @@ internal sealed class UiScriptParser
             TabIndex = tabIndex,
             Tag = tag,
             KeyboardEnabled = keyboardEnabled,
+            Mode = mode,
         };
         _controls.Add(control);
 

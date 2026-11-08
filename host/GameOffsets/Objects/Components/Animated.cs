@@ -9,6 +9,10 @@ namespace GameOffsets.Objects.Components
         [FieldOffset(0x0000)] public ComponentHeader Header;
         [FieldOffset(0x0280)] public IntPtr AnimatedEntityPtr;
 
+        // The animated object (an entity-like object of the .ao, with its own components such as AnimationController and
+        // Melee): the GEAL helper that turns a game object into its animated object reads it (docs/research/dodge-timing.md).
+        [FieldOffset(0x0350)] public IntPtr AnimatedObjectPtr;
+
         // Points to the model-info object that ultimately references the loaded .ao model file
         // (see AnimatedModelInfoOffsets). The .ao path is what distinguishes otherwise-identical
         // entities that share a metadata path (e.g. the different ExpeditionMarker flag models).

@@ -7,6 +7,8 @@ code at commit `e9fdbd2`, 2026-11-08 (build 0.5.5f offsets); the game's exe was 
 
 Updated the same day after closing the gaps of section 2 (commits `28bf763`..`61972ec`): the rows changed are those the new
 searches cover, and the semantic rules of `catalog/semantic-fields.txt` (added after the audit) are counted as **SEM**.
+Updated again that day for the second pass (commits `bc488f1`..`ad7e92d`: entry layouts, dat keys, the game states' names, value
+checks) and the code rules of `f8010c7`, `4ed525e`, `b507d8b` ([exe-layouts.md](exe-layouts.md), "The entry fields", "The window cull").
 
 ## How to read the tables
 
@@ -33,8 +35,11 @@ searches cover, and the semantic rules of `catalog/semantic-fields.txt` (added a
 | G1 | static "Game States" pointer | 1 | `StaticOffsetsPatterns` | everything | pattern; LIVE `GameStatesSearch` only when the pattern is absent (`GameProcess.cs:272`) | 2 | world and menus silent | said after two minutes with no state (`GameStateService`) |
 | G2 | `CurrentStatePtr` +0x10 (the last stack entry's object) | 1 | `GameStateOffset` | current state (login, select, loading, in game) | LIVE `GameStateLayout.Locate` on every attach: a stack of 16-byte entries whose top is one of the listed states | 1 | menus and world mode silent | `GameStates.JudgeLayout` |
 | G3 | `States` +0x50 | 1 | `GameStateOffset` | state addresses | LIVE `GameStateLayout.Locate`: 13 slots of distinct heap-aligned objects; of a list and one a slot off, the one with more states | 1 | world silent | |
-| G3b | slot indexes (0 = AreaLoading, 4 = InGame) | 1 | `GameStates` | `InGameStateObject`, `AreaLoading` | LIVE `GameStateRoles`: in play the state that leads to an area with a local player, loading the one current before two new areas | 1 | world silent | the other eleven names stay by slot; loading needs two area changes |
-| G4 | `GameCullSize` static (black-bar width) | 1 | pattern only | UI rect x (`PluginUiElementReflection.cs`) | pattern; CHECK plausible (0 to half the window, else 0 and said, `GameWindowCull.Judge`) | 1 | cosmetic: UI rects shifted on non-16:9 windows | the window's shape does not give it: 2560 x 1440 reads 0, not the 16:10 bar (128) |
+| G3b | slot indexes (0 = AreaLoading, 4 = InGame) | 1 | `GameStates` | `InGameStateObject`, `AreaLoading` | LIVE `GameStateRoles`: in play the state that leads to an area with a local player, loading the one current before two new areas | 1 | world silent | loading needs two area changes |
+| G3c | the game menu's slot (3 = EscapeState) | 1 | `GameStates` | "Menú del juego", screen messages off in the menu | LIVE `GameStateRoles.Escape`: the state opened in play and closed back to it over the same area, twice | 1 | cosmetic: the menu said as another state | |
+| G3d | the states after the in-game one (PreGame, Login, Waiting, CreateCharacter, SelectCharacter, DeleteCharacter, Loading, the unnamed 0.5.x one) | 8 | `GameStates` | the state said on a change, login and creation hints, appearing texts | FOLLOW the last role's shift (`GameStateRoles.Names`: a state inserted moves every one after it) | 1 (f) | cosmetic: a state said by another's name | a state inserted after the in-game one is not seen |
+| G3e | ChangePassword, Credits (slots 1, 2; null in 0.5.5f) | 2 | `GameStates` | the state said on a change | by slot; between two roles that disagree a state keeps its slot | 0 | cosmetic | |
+| G4 | `GameCullSize` static (black-bar width) | 1 | pattern only | UI rect x (`PluginUiElementReflection.cs`) | pattern; fallback pattern `GameCullSize (alt)` (`StaticOffsetsPatterns`, `Core.UpdateCullData`); CHECK plausible (0 to half the window, else 0 and said, `GameWindowCull.Judge`) | 2 | cosmetic: UI rects shifted on non-16:9 windows | the window's shape does not give it: 2560 x 1440 reads 0, not the 16:10 bar (128) |
 
 Not audited (not read by the mod): the other four patterns (`File Root`, `AreaChangeCounter`, the two terrain rotation ones;
 `Core.cs:170-250`, the preload scan is left off in `UpdateFilesData`, `Core.cs:183-196`), `AreaLoadingStateOffset` (`IsLoading`, `TotalLoadingScreenTimeMs`,
@@ -58,9 +63,9 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 | A10 | `LocalPlayerPtr` (+0x5B8+0x20) | 1 | `LocalPlayerStruct` | player entity | LIVE `IsLocalPlayer` (path under `Metadata/Characters/`); SEM `slot GetLocalPlayer "Tile hash: " inline` | 2 | world silent | |
 | A11 | `ServerDataPtr` (+0x5B8) | 1 | `LocalPlayerStruct` | flasks, inventory news | LIVE `IsServerData` (falls back to the player gap if nothing fits) | 1 | one feature: flask and inventory news | `AreaLayoutSearch.cs:231-236` |
 | A12 | `PlayerServerDataPtr` +0x48, `PlayerInventories` +0x320 | 2 | `ServerDataOffsets`, `ServerDataStructure` | `LocalInventories`, `ServerData.PlayerInventories` | LIVE `InventoryLayoutSearch` (a short player list, the first with a list of inventory entries whose inventories hold items under `Metadata/Items/`) | 1 | one feature: pick-up, hand, flask news, salvage | a move makes the server data read its inventories again |
-| A12b | `InventoryArrayStruct` layout (id, pointer, 0x18 bytes) | 1 | `InventoryArrayStruct` | the same | CHECK: the search reads through it | 0 | one feature: as A12 | |
+| A12b | `InventoryArrayStruct` layout (id, pointer, 0x18 bytes) | 1 | `InventoryArrayStruct` | the same | LIVE `InventoryLayoutSearch`: the entry's size (the smallest that fits), its id (distinct, the main inventory's among them) and its inventory (not the base pointer 0x10 before it) nearest where measured; vectors read one game entry at a time through the remap (`StructRemap` stride) | 1 | one feature: as A12 | simulated: entry +8, id and pointer swapped, +0x18 |
 | A13 | `TotalBoxes` +0x150, `ItemList` +0x170 | 2 | `InventoryStruct` | `FlaskWatch`, `InventoryWatch` | LIVE `InventoryLayoutSearch` (three in four inventories X by Y cells with one pointer per cell, their items under `Metadata/Items/`) | 1 | one feature: flask belt, pick-up and salvage news | |
-| A13b | `InventoryItemStruct` (Item, SlotStart, SlotEnd) | 1 | `InventoryItemStruct` | the same | CHECK: the item pointer at +0 leads to an item (the search reads it); the slots none | 0 | one feature: as A13 | |
+| A13b | `InventoryItemStruct.Item` | 1 | `InventoryItemStruct` | the same | LIVE `InventoryLayoutSearch`: the cell's pointer nearest where measured that leads to items (the slots are not read by the mod) | 1 | one feature: as A13 | simulated +8, +0x18 |
 | A14 | `Entities` (awake and sleeping maps) +0x718 | 1 | `AreaInstanceOffsets` | all entities | LIVE `IsEntityLists`; SEM `slot GetGameObjectById "Tile hash: " then` | 2 | world silent | the MSVC node shape (nil flag 0x19, key 0x20, value 0x28) is a constant of that check |
 | A15 | `TerrainMetadata` +0x8F8 | 1 | `AreaInstanceOffsets` | walls, routes, exits | LIVE `IsTerrain`; SEM `slot IsWalkable "Tile hash: "` | 2 | world silent | |
 | A16 | local player list `PlayerInfo`+0x08 | 1 | plugin | co-op partner (`LocalPlayers.cs`) | FOLLOW the area search's local player (`area.Layout.Fields`); CHECK `LocalPlayerList`, `layout` self-test | 1 (f) | cosmetic: no player 2 | |
@@ -69,10 +74,10 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 
 | ID | Field | n | Struct | Used by | Protections | N | If lost | Notes |
 |---|---|---|---|---|---|---|---|---|
-| T1 | `TotalTiles` +0x18 | 1 | `TerrainStruct` | `IsTerrain`, grid | SIG L49; `IsTerrain` relation (tile bytes = X*Y*0x38) is detect-only | 1 | world silent | `AreaLayoutSearch.cs:302-320` follows the remap |
+| T1 | `TotalTiles` +0x18 | 1 | `TerrainStruct` | `IsTerrain`, grid | SIG L49; SEM `leaf IsWalkable`; `IsTerrain` relation (tile bytes = X*Y*0x38) is detect-only | 2 | world silent | `AreaLayoutSearch.cs:302-320` follows the remap |
 | T2 | `TileDetailsPtr` +0x28 | 1 | `TerrainStruct` | `IsTerrain`, place names | SIG L50; `IsTerrain` | 1 | world silent | |
-| T3 | `GridWalkableData` +0xD0 | 1 | `TerrainStruct` | walls, routes, sight | SIG L51; `IsTerrain`; `WalkableCheck` (detect only) | 1 | world silent | |
-| T4 | `BytesPerRow` +0x130 | 1 | `TerrainStruct` | every grid index | SIG L53; `IsTerrain`; `WalkableCheck` | 1 | world silent | |
+| T3 | `GridWalkableData` +0xD0 | 1 | `TerrainStruct` | walls, routes, sight | SIG L51; SEM `leaf IsWalkable`; `IsTerrain`; `WalkableCheck` (detect only) | 2 | world silent | |
+| T4 | `BytesPerRow` +0x130 | 1 | `TerrainStruct` | every grid index | SIG L53; SEM `leaf IsWalkable`; `IsTerrain`; `WalkableCheck` | 2 | world silent | |
 | T5 | `GridLandscapeData` +0xE8 | 1 | `TerrainStruct` | enemy line of sight (`EnemyCues.cs:309`) | SIG L52 | 1 | one feature: sight layer | not part of `IsTerrain` |
 | T6 | `TileStructure` size 0x38 and `TileToGridConversion` 0x17 | 2 | `TileStructure` | `IsTerrain`, every grid reader | LIVE: `IsTerrain` reads both from the terrain (bytes over tiles; walkable rows over tile rows, two cells to a byte); the cells per tile go to `TileToGridConversion` | 1 | world silent | the host's own tile array still reads 0x38 records (place names have `TileGridSearch`) |
 | T7 | `Stride` 0x38, `FileOffset` 8, `PathOffset` 8, `IdsOffset` 0x34 | 4 | plugin `TileGrid` | place names, props | LIVE `TileGridSearch` | 1 | cosmetic | |
@@ -87,14 +92,14 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 | E4 | `EntityDetailsPtr` +0x8 | 1 | `ItemStruct` (moves with `EntityOffsets`) | classification of everything, `IsLocalPlayer` | LIVE `EntityLayoutSearch` (the details lead to a path under `Metadata/`; searched when an area shows no world); SEM `getter Life details` | 2 | world silent | |
 | E4b | `EntityDetails.name` +0x8 (the path) | 1 | `EntityDetails` | the same | LIVE `EntityLayoutSearch`; SEM `deref TypeContains arg 3 2` | 2 | world silent | |
 | E5 | `ComponentLookUpPtr` +0x28, `ComponentsNameAndIndex` +0x28 | 2 | `EntityDetails`, `ComponentLookUpStruct` | every `TryGetComponent` | LIVE `EntityLayoutSearch` (a map whose entries name components, one of `Positioned`, `Render`, `Life`…, with indexes inside the vector); SEM `getter Life lookup`, `getter Life map` | 2 | world silent | |
-| E5b | name/index entry (pointer, index, 0x10 bytes) | 1 | `ComponentLookUpStruct` | the same | CHECK: the search reads through it | 0 | world silent | |
+| E5b | name/index entry (pointer, index, 0x10 bytes) | 1 | `ComponentNameAndIndexStruct` | the same | LIVE `EntityLayoutSearch`: the entry's size (the smallest that fits), name and index nearest where measured, every index distinct, four names over the entities judged before a move; the entities met read their maps again | 1 | world silent | simulated: +8, name and index swapped, +0x18 |
 
 ### 1.5 Components the plugin reads
 
 | ID | Field | n | Struct | Used by | Protections | N | If lost | Notes |
 |---|---|---|---|---|---|---|---|---|
 | C1 | `CurrentWorldPosition` +0x138 | 1 | `RenderOffsets` | every distance and direction | LIVE `JudgePosition`; SIG two (`Render.WorldPosition`) | 2 | world silent | not judged while the camera is off the player |
-| C2 | `CharactorModelBounds` X/Y/Z +0x144 | 3 | `RenderOffsets` | body-edge gaps, weak-point guide | SIG L31 (Y), L32 (Z); X follows | 1 | one feature: enemy and boss gaps | X (the one used) is never read by the signatures |
+| C2 | `CharactorModelBounds` X/Y/Z +0x144 | 3 | `RenderOffsets` | body-edge gaps, weak-point guide | SIG L31 (Y), L32 (Z); X follows | 1 | one feature: enemy and boss gaps | X (the one used) moves with the field through the Y and Z lines' bias |
 | C3 | `RenderComponent.NameOffset` 0x160 | 1 | plugin | entity names | LIVE `ProbeRenderNames` | 1 | cosmetic | judged once per game |
 | C4 | `Health` +0x1B0 | 1 | `LifeOffset` | `IsAlive` (gates every enemy), player life | LIVE `StructShapes.PlaceVitals`; SEM `label "Life: "`, `geal IsAlive` | 2 | world silent | the living player's total must be above zero and its life no higher |
 | C5 | `Mana` +0x208, `EnergyShield` +0x248 | 2 | `LifeOffset` | mana and shield alerts | LIVE `PlaceVitals` (same measurement); SEM `label "Mana: "`, `label "ES: "` | 2 | one feature: alerts | |
@@ -104,33 +109,34 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 | C8 | `AnimationId` +0x8B0 | 1 | `ActorOffset` | dodge and parry warnings, enemy states | LIVE `AnimationFieldSearch`; SEM `geal SetActorType` | 2 | one feature: combat warnings | judged in the first fight |
 | C9 | `ActiveSkillsPtr` +0xB08 | 1 | `ActorOffset` | skill names, cooldown pairing | LIVE `IsSkillList`; SEM `field "Active Skills: "` | 2 | one feature: skills | `SkillsOffset` follows (`WorldLayoutWatch.cs:277-278`) |
 | C10 | `CooldownsPtr` +0xB20 | 1 | `ActorOffset` | cooldown cues | LIVE `IsSkillList` (vector right after the skills, multiple of 0x48) | 1 (f) | one feature: cooldown cues | follows the skills' shift; no own check |
-| C11 | `SkillEntrySize` 0x10 | 1 | plugin | skill list stride | CHECK `IsSkillList` (bytes % 0x10) | 0 | one feature: skills | |
+| C11 | `SkillEntrySize` 0x10 | 1 | plugin | skill list stride | SEM two rules on two functions (`layout:SkillEntrySize`); CHECK `IsSkillList` (bytes % 0x10) | 1 | one feature: skills | |
 | C12 | cooldown entry: `EntrySize` 0x48 (L43), `Uses` 0x10 (L39), `MaxUses` 0x30 (L40), `Time` 0x34 (L41), `SkillId` 0x3C (L42) | 5 | plugin | `SkillCooldownWatch` | SIG | 1 | one feature: cooldown cues | |
 | C13 | `ActiveSkillDetails.SkillId` +0x40 (host and plugin) | 2 | `ActiveSkillDetails` | skill identity | SIG L27, L28 | 1 | one feature: skill names | |
-| C14 | `LevelKey` +0x58 | 1 | plugin | skill names | SIG L29 | 1 | one feature | |
+| C14 | `LevelKey` +0x58 | 1 | plugin | skill names | SIG L29; SEM | 2 | one feature | |
 | C15 | `PoiseThreshold` 0x4E4, `Poise` 0x4E8 | 2 | plugin | heavy-stun bar | SIG L44-45; LIVE `PoiseSearch` | 2 | one feature: stun bar | |
 | C16 | `StatusEffectPtr` +0x160 | 1 | `BuffsOffsets` | ailments, hazards, enemy states, hidden-monster filter | LIVE `IsBuffList` (not judged with no buff on the player); SEM `callee HasBuff`, `label "Buffs: "`, `geal GetBuffTotalCount` | 2 | one feature family: statuses | |
 | C17 | `BuffDefinationPtr` +0x8 | 1 | `StatusEffectStruct` | buff ids | CHECK: the chain `IsBuffList` walks; SEM `called "Buffs: " 1 arg 2 0` | 1 | one feature family: statuses | |
-| C17b | `BuffDefinitions.Name` +0x0 | 1 | `BuffDefinitions` | buff ids | CHECK: the chain `IsBuffList` walks | 0 | one feature family: statuses | |
+| C17b | `BuffDefinitions.Name` +0x0 | 1 | `BuffDefinitionsOffset` | buff ids | LIVE `JudgeBuffs`: the row's field nearest +0 that reads as a lower-case id, found with the list (names read before are read again); SEM `called "Buffs: " 1 arg 2 deref 1` | 2 | one feature family: statuses | |
 | C18 | `StatusEffectStruct.Charges` +0x40 | 1 | `StatusEffectStruct` | charge speech | SIG L18; SEM `called "Buffs: " 1 arg 2 1` | 2 | one feature: charges | |
 | C19 | `StatsChangedByItemsPtr` +0x160 | 1 | `StatsOffsets` | rage and stat readouts, stun trace | LIVE `IsStatsPointer`; SEM `geal GetStat`, `geal IfStat` | 2 | one feature: stats | |
 | C20 | `StatsChangedByBuffAndActions` +0x1C8 | 1 | `StatsOffsets` | stats | FOLLOW the +0x160 segment | 1 (f) | one feature: stats | |
 | C20b | `CurrentWeaponIndex` +0x168 | 1 | `StatsOffsets` | weapon set | FOLLOW the +0x160 segment; SEM `label "Weapon Set: "`; CHECK 0 or 1 | 2 | one feature: weapon-set news | |
-| C21 | `StatsStructInternal.Stats` +0xF8 and the key/value pair layout | 2 | `StatsStructInternal` | stats | CHECK: parameters of `IsStatsPointer` | 0 | one feature: stats | |
+| C21 | `StatsStructInternal.Stats` +0xF8 and the key/value pair layout | 2 | `StatsStructInternal`, `StatArrayStruct` | stats | LIVE value check `JudgeStatEntries`: the list and the pair (size, key, value) under which the `level` stat holds the Player component's level, every key distinct; `IsStatsPointer` judges through it | 1 | one feature: stats | |
 | C22 | `Name` +0x1B0, `Xp` +0x1D8, `Level` +0x204 | 3 | `PlayerOffsets` | level-up, other players' names, XP | SIG L15-17; level range check; SEM `label "Character Name: "`, `"Experience: "`, `"Level: "` | 2 | cosmetic | |
 | C23 | `ObjectMagicProperties.Rarity` (+0x144) | 1 | `ObjectMagicPropertiesOffsets` | monster rarity cues, target narration | SIG L5; SEM `label "Rarity: "` | 2 | one feature: rarity cues | the sweep's vectors start after it (+0x150) and do not cover it |
 | C24 | `Mods.Rarity` +0x94 | 1 | `ModsOffsets` | item rarity speech | SIG L6 | 1 | one feature: item rarity | |
 | C25 | `ImplicitMods` +0x150, `ExplicitMods` +0x168 | 2 | `ObjectMagicPropertiesOffsets` | monster mod names | SIG L7-8; LIVE sweep vector anchor; SEM `label "Implicit Mods: "`, `field "Explicit Mods: "` | 3 | cosmetic | |
-| C26 | `ModArrayStruct.ModsPtr` +0x28 and stride 0x40 | 2 | `ModArrayStruct` | monster mod names | REPORT L36-37 | 0 | cosmetic | `Values` stride 4 is hard-coded (`ObjectMagicProperties.cs:94`) |
+| C26 | `ModArrayStruct.ModsPtr` +0x28 and stride 0x40 | 2 | `ModArrayStruct` | monster mod names | REPORT L36-37 | 0 | cosmetic | `Values` stride 4 is hard-coded (`ObjectMagicProperties.cs:94`); no code anchor (code rules, 2026-11-08); a stride search (now possible, `StructRemap` stride) needs a known mod to check against |
 | C27 | `IsTargetable` byte 0x69 | 1 | plugin | in-play filter | SIG L33; LIVE `InPlayFlag`; SEM `label "Targetable: "` | 3 | one feature: in-play filter (everything counts as in play when lost) | |
 | C28 | `IsTargeted` byte 0x6B | 1 | plugin | interaction target | SIG L34; FOLLOW the flag's shift (`EntityFields.cs:173`) | 2 (f) | one feature: interaction target | |
 | C29 | NPC marker row 0x50 | 1 | plugin | quest marker | LIVE `EntityFields.JudgeMarker` (needs an NPC that shows one) | 1 | cosmetic | |
 | C30 | `ChestsDataPtr` +0x160 (L9) | 1 | `ChestOffsets` | chest radar | SIG | 1 | one feature: chests | |
 | C30b | `IsOpened` +0x168 (L10) | 1 | `ChestOffsets` | chest radar | SIG; SEM `label "Chest open: "` | 2 | one feature: chests | |
 | C31 | `IsLabelVisible` +0x21 (L11), `StrongboxDatPtr` +0x50 (L12) | 2 | `ChestsStructInternal` | chest, breakable, strongbox kind | SIG | 1 | one feature: chests | |
-| C32 | `Shrine.IsUsed` +0x24 | 1 | `ShrineOffsets` | shrine radar | REPORT L38 | 0 | one feature: used shrines still announced | |
+| C32 | `Shrine.IsUsed` +0x24 | 1 | `ShrineOffsets` | shrine radar | SIG L38 (placed, no longer a report) | 1 | one feature: used shrines still announced | no live check: no shrine in town, and a used shrine is told only by its use |
 | C33 | `IsBlocked` +0x30 | 1 | `TriggerableBlockageOffsets` | barriers, doors | SIG L13 | 1 | one feature: barriers | |
-| C34 | `StatesValues` +0x160 | 1 | `StateMachineComponentOffsets` | trial traps | LIVE sweep vector anchor; SEM `field "StateMachine state "` | 2 | one feature: traps | entry layout hard-coded (`StateMachine.cs:12,32`: +0x10, 0xC0) |
+| C34 | `StatesValues` +0x160 | 1 | `StateMachineComponentOffsets` | trial traps | LIVE sweep vector anchor; SEM `field "StateMachine state "` | 2 | one feature: traps | |
+| C34b | state list +0x10 and definition stride 0xC0 | 2 | `StateMachine` (settable `StateListOffset`, `StateStride`) | trial traps | LIVE `JudgeStateMachines`: every state of up to four machines reads a distinct name | 1 | one feature: traps | the exe reads `[StatesPtr+0x10]`, stride 0xC0: a code rule can set them |
 | C35 | charges: `InternalPtr` +0x10 (L22), `current` +0x18 (L21), `PerUseCharges` +0x18 (L23) | 3 | `ChargesOffsets` | flask charges | SIG | 1 | one feature: flasks | |
 | C36 | `Stack.Count` +0x18 | 1 | `StackOffsets` | stack counts in item speech and pick-up news | SIG L24 | 1 | cosmetic | |
 | C37 | `BaseItemTypesRowPtr` +0x18, `DisplayNameRowPtr` +0x10 | 2 | `BaseOffsets` | item base name | LIVE `BaseNameField` (tooltip titles are the fallback, not a re-find) | 1 | cosmetic | |
@@ -199,8 +205,9 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 | K16 | options section active 0x368, row index 0x370 | 2 | plugin | options | LIVE `IsSectionRow` (weak) | 1 | cosmetic | |
 | K17 | world-map depth byte 0x566 | 1 | plugin | world map | LIVE `Changing` | 1 | cosmetic | |
 | K18 | `ContinueGreyOffset` 0x3FA | 1 | plugin | name too short | FOLLOW text shift (`UiSemantics.Selectors.cs:79`) | 1 (f) | cosmetic | |
-| K19 | world-map pins: hovered 0x378, current 0x358, `MapPinRow.ElementPinOffset` 0x2D0 | 3 | plugin | world-map pins | CHECK `DatKey.Row` table name; no text shift applied (`UiSemantics.WorldMapPins.cs`) | 0 | one feature: world-map pins | |
-| K20 | dat key layout: `KeyFileOffset` 0x8, `FileNameOffset` 0x8 | 2 | `GameLayout.SkillSlot` | every dat foreign key | CHECK table name (`DatKey.cs`) | 0 | one feature family: skill, passive, class and pin names | |
+| K19 | a pin element's key, `MapPinRow.ElementPinOffset` 0x2D0 | 1 | plugin | world-map pins of an area | LIVE `DatKeySite`: a key into MapPins nearest where measured, two pins agree | 1 | one feature: the pins an area lists | simulated +8, -0x18 |
+| K19b | the canvas's hovered pin 0x378 | 1 | plugin | the pin under the cursor, which canvas shows | CHECK `DatKey.Row` table name | 0 | one feature: world-map pins | the canvas holds two keys into MapPins (hovered, and the current pin at 0x358, which the mod does not read): a table name cannot tell them apart; only a judgment by the cursor's movement could |
+| K20 | dat key layout: `KeyFileOffset` 0x8, `FileNameOffset` 0x8 | 2 | `DatKey` (from `GameLayout.SkillSlot`) | every dat foreign key | LIVE `DatKey`: before any key has read, a key that does not read is searched (once a second) for the file pointer and the name nearest where measured that name the expected table; taken for every key once a key of a second table reads through it | 1 | one feature family: skill, passive, class and pin names | simulated: both +8; file +8 and name -8; name +0x18 |
 
 ### 1.9 Dat columns
 
@@ -209,7 +216,8 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 | D1 | 20 columns of `dat-columns.json` the plugin applies: Mods.Name, MinimapIcons Label and RowSize, Characters.Name, ActiveSkills.DisplayedName, GrantedEffectsPerLevel.GrantedEffect, GrantedEffects.ActiveSkill, PassiveSkills x7, MapPins x4, WorldAreas AreaLevel and IsTown | 20 | plugin `GameLayout.*Row`, `DatColumns` | names, passive flags, pins | DAT `DatColumnExtractor` / `DatContentColumns` (measured offset stays if the file lacks it) | 1 | cosmetic for names; one feature for passive flags and pin content | plugin applies 20 of them (`DatColumns.cs:21-42`); `WorldAreas.Name` goes to the host only |
 | D2 | `WorldAreaDatOffsets.NamePtr` +0x8, `IsTown` +0x14 (host remap) | 2 | `WorldAreaDatOffsets` | area name, town flag | DAT via `PlaceFromCode` (`Poe2AccessibilityCore.DevCommands.cs:617-633`) | 1 | cosmetic | the plugin's own read of `NamePtr` (`GameStateService.cs:172`) bypasses the remap (3.1 item 6) |
 | D3 | `WorldAreaDatOffsets.IdPtr` +0x0 | 1 | `WorldAreaDatOffsets` | area id shape | none | 0 | cosmetic | |
-| D4 | row id at +0 assumed: `CharacterIdOffset`, `EffectIdOffset`, `RecordSkillKeyOffset` | 3 | `GameLayout.PassiveTree`, `SkillSlot` | class, effect and skill ids | none | 0 | one feature: skill and passive names | |
+| D4 | a passive node record's PassiveSkills key at +0, `RecordSkillKeyOffset` | 1 | `GameLayout.PassiveTree` | every passive node | LIVE `DatKeySite`: a key into PassiveSkills nearest +0, two records agree | 1 | one feature: passive tree | simulated +8, +0x18 |
+| D4b | row id at +0 assumed: `CharacterIdOffset`, `EffectIdOffset` | 2 | `GameLayout.PassiveTree`, `SkillSlot` | the player's class start, Parry and cull skills by id | none | 0 | one feature: start node, parry and cull cues | a dat table's first column is its Id; nothing in memory names a column, and the extractor could check it in the file (DAT) |
 | D5 | `AreaLoadingState.CurrentAreaRowOffset` 0xEA0 | 1 | plugin | area name on load | LIVE `GameStateService.AreaRowOffset` | 1 | cosmetic | said when lost |
 
 ## 2. Gap list (fields with 0 or 1 protection, most impactful first)
@@ -222,18 +230,24 @@ in-game layer roots (A5), the vitals' inner fields with a value check (C4-C6), t
 item on the ground in town), the player's inventories (A12, A13, `InventoryLayoutSearch`), the host's icon row (C40) and the
 co-op list (A16). The plugin reads host structs through the host's remap and a public host API (section 3.1 item 6).
 
+Closed in the second pass the same day, each simulated live unless said ([surviving game updates](../compatibility.md)): the entry
+layouts the searches read through (E5b, A12b, A13b), the dat key layout (K20), a pin's and a passive node's key (K19, D4), the game
+menu by what it does and the other states' names from the roles around them (G3b-G3e), and value checks on the stat pairs (C21,
+the player's level), the buff id (C17b) and the state machines' definitions (C34b, the states' names). The code rules added C11,
+C14, C17b, C32, T1, T3, T4 and G4's fallback pattern.
+
 What is left:
 
 | Rank | Fields | N | Impact | Suggested anchor |
 |---|---|---|---|---|
 | 1 | A1, A10, A14, A15, E1, C1, E4b: area pointer, local player, entity lists, terrain, entity id, position, entity path (one shape each) | 2 | world silent | done 2026-11-08: six semantic rules and two signatures ([exe-layouts.md, the world fields](exe-layouts.md#the-world-fields)) |
-| 2 | E5b, A12b, A13b: entry layouts the searches read through (name map entry, inventory entry, inventory cell) | 0 | world silent (E5b), inventories | a change shows as the parent lost; a stride search inside the entry would repair it |
-| 3 | K19, K20, D4: world-map pins, dat key layout, id-at-0 assumptions | 0 | pins and all dat-key names | a search around the key for the table name string, as `DatKey` already tests |
-| 4 | C17b, C21, C11, C34 entry layouts, C26, C32 | 0 | statuses, stats, traps, mod names, shrine radar | a signature from the function that reads the entry, or a value check on a known buff or stat |
+| 2 | E5b, A12b, A13b | 1 | world silent (E5b), inventories | done 2026-11-08 (second pass) |
+| 3 | K19b (the hovered pin), D4b (ids at +0 of Characters and GrantedEffects rows) | 0 | world-map pins, start node, parry and cull | K19b: a judgment by the cursor's movement (`ControlFields.Changing` over keys into MapPins); D4b: the extractor checking the Id column in the file |
+| 4 | C26 (mod entries), C32 (shrine used) | 0 / 1 | monster mod names, shrine radar | C26: a stride search with a known mod to check against; C32: a shrine to judge it on |
 | 5 | U3b (position-modifier bit), A4, A6, C39, D3, U5, P10 | 0 | rects and cosmetic | low priority |
-| 6 | G3b: the eleven state names other than in game and loading | by slot | the state said on a change (login, selection, menus) | each by what its screen holds (the plugin knows the screens' controls) |
-| 7 | single-protection features (C2, C10, C12-C14, C20, C24, C29, C31-C33, C35-C37, T1-T5 beyond world, K1-K18, P1-P15) | 1 | one feature each | a second anchor where a function reads the field, or a value check on a known value |
-| 8 | G4: `GameCullSize` | 1 and a check | UI rect offset on non-16:9 | a signature from the code that reads it (the window's shape does not give it) |
+| 6 | G3e (ChangePassword, Credits), a state inserted after the in-game one | 0 | the state said on a change | the login screen's own anchor (`login_frame`, `character_selection_panel_*` in its UI tree) would pin the states after the in-game one |
+| 7 | single-protection features (C2, C10, C12, C13, C20, C24, C29, C31, C33, C35-C37, T2, T5, K1-K18, P1-P15, A12b, A13b, E5b, K19, K20, C21, C34b) | 1 | one feature each | a second anchor where a function reads the field, or a value check on a known value |
+| 8 | G4: `GameCullSize` | 2 and a check | UI rect offset on non-16:9 | done 2026-11-08: a fallback pattern |
 
 ## 3. Doc and code mismatches
 
@@ -300,12 +314,15 @@ state slots are judged by `GameStateRoles`). `Rarity` now has a semantic rule as
 
 Counted from the tables of section 1 (sum of `n` per `N`; a `(f)` follower counts as 1).
 
-| N | Fields 2026-11-08 (before) | Rows |
+| N | Fields after the second pass (after the first pass and the world rules; before the audit) | Rows |
 |---|---|---|
-| 0 | 32 (63) | 19 |
-| 1 | 156 (149), of which 17 are 1 only because they follow another field's anchor (A16, E2, C10, C20, U4b, U4c, P2, P3, P6, P8, P12b, P13, L3, K18) | 89 |
-| 2 or more | 34 (10) | 27 |
-| Total audited | 222 | 135 (rows split where a search covers part of one) |
+| 0 | 21 (32; 63) | 12 (19) |
+| 1 | 166 (149; 149), of which 25 are 1 only because they follow another field's anchor (A16, E2, C10, C20, U4b, U4c, P2, P3, P6, P8, P12b, P13, L3, K18, G3d) | 89 (82) |
+| 2 or more | 47 (41; 10) | 40 (34) |
+| Total audited | 234 (222) | 141 (135; rows split where a search covers part of one; the game states' other names are counted now, K19's current pin no longer: the mod does not read it) |
+
+Counted from the tables by script; the figures this section gave after the world rules (156 at 1, 34 at 2 or more) had not
+been recounted after them.
 
 History says where to look first: the area and entity structs moved in 0.5.4, 0.5.4c, 0.5.5 and 0.5.5f
 (`docs/compatibility.md:18-19`), and no other field has moved in a real patch yet (`docs/compatibility.md:220-221`).

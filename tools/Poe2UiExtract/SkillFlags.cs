@@ -11,8 +11,8 @@ internal static class SkillFlags
     public const string NoParry = "noparry";
     private const string Skipped = "unblockable skills";
 
-    /// <summary>GrantedEffectStatSets: a stat key list holding the skill's flag stats (66 sets carry one of these; scan 2026-10-28).</summary>
-    private const int FlagStatsOffset = 0x18;
+    /// <summary>GrantedEffectStatSets: the implicit stats, a key list holding the skill's flag stats (66 sets carry one of these; scan 2026-10-28).</summary>
+    internal const int ImplicitStatsOffset = 0x18;
 
     private static readonly Dictionary<string, string> FlagOfStat = new(StringComparer.Ordinal)
     {
@@ -49,7 +49,7 @@ internal static class SkillFlags
                 continue;
             }
 
-            var found = statSets.KeyList((int)statSet, FlagStatsOffset).Where(flagOfRow.ContainsKey).Select(key => flagOfRow[key]).ToList();
+            var found = statSets.KeyList((int)statSet, ImplicitStatsOffset).Where(flagOfRow.ContainsKey).Select(key => flagOfRow[key]).ToList();
             if (found.Count > 0)
             {
                 flags[skill] = new SortedSet<string>(found, StringComparer.Ordinal);

@@ -45,3 +45,11 @@ Area.Terrain	AreaInstanceOffsets:TerrainMetadata	0x8f8	slot IsWalkable "Tile has
 Area.Entities	AreaInstanceOffsets:Entities	0x718	slot GetGameObjectById "Tile hash: " then
 Area.LocalPlayer	AreaInstanceOffsets:PlayerInfo.LocalPlayerPtr	0x5d8	slot GetLocalPlayer "Tile hash: " inline
 InGameState.Area	InGameStateOffset:AreaInstanceData	0x290	this "league" 0 with "class"
+StatusEffect.BuffDefinition.Name	BuffDefinitionsOffset:Name	0x0	called "Buffs: " 1 arg 2 deref 1
+Actor.SkillEntrySize	layout:SkillEntrySize	0x10	stride label "Active Skills: "
+Actor.SkillEntrySize	layout:SkillEntrySize	0x10	stride geal ConsumeSkillUse
+ActiveSkill.LevelKey	layout:SkillLevelKey	0x58	entry label "Active Skills: " 0
+ActiveSkill.LevelKey	layout:SkillLevelKey	0x58	entry geal ConsumeSkillUse 1
+Terrain.TotalTiles	TerrainStruct:TotalTiles	0x18	leaf IsWalkable 0
+Terrain.GridWalkableData	TerrainStruct:GridWalkableData	0xd0	leaf IsWalkable 2
+Terrain.BytesPerRow	TerrainStruct:BytesPerRow	0x130	leaf IsWalkable 4

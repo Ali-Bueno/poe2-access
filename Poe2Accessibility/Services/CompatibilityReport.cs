@@ -22,7 +22,14 @@ namespace Poe2Accessibility.Services
         public CompatibilityReport(PluginLog log)
         {
             this.log = log;
+            Current = this;
         }
+
+        /// <summary>Gets the plugin's report, for the static readers that judge a layout of their own (<see cref="DatKey"/>).</summary>
+        public static CompatibilityReport? Current { get; private set; }
+
+        /// <summary>Gets how many times everything was to be checked again (a new game process); what was judged before is stale.</summary>
+        public int Generation { get; private set; }
 
         /// <summary>The part holds what it must where it was measured.</summary>
         public void Found(string part) => this.Note(part, "ok", $"Layout: {part} where measured");
@@ -50,6 +57,7 @@ namespace Poe2Accessibility.Services
         {
             this.outcomes.Clear();
             this.unsaid.Clear();
+            this.Generation++;
         }
 
         /// <summary>The missing parts not said yet, once they have gathered; empty otherwise.</summary>

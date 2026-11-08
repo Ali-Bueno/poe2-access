@@ -83,10 +83,15 @@ namespace Poe2Accessibility.Tests
             Equal(true, SemanticRule.Parse("slot GetGameObjectById \"Tile hash: \" then")!.Then, "slot, then");
             Equal(true, SemanticRule.Parse("slot GetLocalPlayer \"Tile hash: \" inline")!.Inline, "slot, inline");
             Equal(new SemanticRule(SemanticKind.This, "league", With: "class"), SemanticRule.Parse("this \"league\" 0 with \"class\""), "this");
+            Equal(new SemanticRule(SemanticKind.Called, "Buffs: ", Call: 1, Argument: 2, Depth: 1), SemanticRule.Parse("called \"Buffs: \" 1 arg 2 deref 1"), "called, deref");
+            Equal(new SemanticRule(SemanticKind.Stride, "Active Skills: ", Source: SemanticRule.FromLabel), SemanticRule.Parse("stride label \"Active Skills: \""), "stride");
+            Equal(new SemanticRule(SemanticKind.Entry, "ConsumeSkillUse", K: 1, Source: SemanticRule.FromGeal), SemanticRule.Parse("entry geal ConsumeSkillUse 1"), "entry");
+            Equal(new SemanticRule(SemanticKind.Leaf, "IsWalkable", K: 2), SemanticRule.Parse("leaf IsWalkable 2"), "leaf");
             foreach (var broken in new[]
             {
                 "label \"Life: 0", "label Life", "getter Life heap", "called \"Team: \" 0 returns", "called \"Buffs: \" 1 arg 5", "teleport x", "label \"A\" 0 site",
                 "object GetObjectId", "deref TypeContains arg 5 2", "deref TypeContains arg 3 0", "slot IsWalkable", "slot IsWalkable \"T\" then inline", "this \"league\" with \"class\"",
+                "called \"Buffs: \" 1 arg 2 deref 0", "called \"Buffs: \" 1 arg 2 deref", "stride dump \"A\"", "stride label", "entry label \"A\"", "leaf IsWalkable",
             })
             {
                 Equal(null, SemanticRule.Parse(broken), $"'{broken}' does not parse");

@@ -87,6 +87,46 @@ namespace GameReader.Utils
             var size = System.Runtime.CompilerServices.Unsafe.SizeOf<T>();
             return StructRemap<T>.Segments is { } moved ? StructRemapper.ReadSize(size, moved) : size;
         }
+
+        /// <summary>How many bytes one <typeparamref name="T"/> takes in a vector of the game now.</summary>
+        public static int Stride<T>()
+            where T : unmanaged => StructRemap<T>.Stride > 0 ? StructRemap<T>.Stride : System.Runtime.CompilerServices.Unsafe.SizeOf<T>();
+
+        /// <summary>Whether a vector of <typeparamref name="T"/> reads as compiled: no field moved and the same element size.</summary>
+        public static bool AsCompiled<T>()
+            where T : unmanaged => StructRemap<T>.Segments is null && StructRemap<T>.Stride == 0;
+
+        /// <summary>
+        ///     The elements of a vector in <paramref name="raw"/>, one per <see cref="Stride{T}"/> bytes, each through the remap;
+        ///     empty when the bytes are no whole number of elements.
+        /// </summary>
+        public static T[] ReadElements<T>(ReadOnlySpan<byte> raw)
+            where T : unmanaged
+        {
+            var stride = Stride<T>();
+            if (raw.Length == 0 || raw.Length % stride != 0)
+            {
+                return Array.Empty<T>();
+            }
+
+            var elements = new T[raw.Length / stride];
+            if (AsCompiled<T>())
+            {
+                System.Runtime.InteropServices.MemoryMarshal.Cast<byte, T>(raw).CopyTo(elements);
+                return elements;
+            }
+
+            // An element smaller in the game than the struct reads zeros past its end, not the next element.
+            var element = new byte[Math.Max(stride, Size<T>())];
+            for (var index = 0; index < elements.Length; index++)
+            {
+                Array.Clear(element);
+                raw.Slice(index * stride, stride).CopyTo(element);
+                TryRead(element, out elements[index]);
+            }
+
+            return elements;
+        }
     }
 
     /// <summary>The segments of <typeparamref name="T"/>; null while the struct stands where it was measured.</summary>
@@ -96,6 +136,11 @@ namespace GameReader.Utils
     {
         internal static RemapSegment[]? Segments;
 
+        /// <summary>The game's element size in a vector when it is not the struct's; 0 while it is.</summary>
+        internal static int Stride;
+
         internal static void Set(RemapSegment[] segments) => Segments = segments.Length == 0 ? null : segments;
+
+        internal static void SetStride(int stride) => Stride = stride == System.Runtime.CompilerServices.Unsafe.SizeOf<T>() ? 0 : stride;
     }
 }

@@ -177,7 +177,7 @@ namespace Poe2Accessibility
             /// <summary>Where the skills stand in this build (<see cref="MeasuredSkillsOffset"/> plus what the struct sweep found).</summary>
             public static int SkillsOffset { get; internal set; } = MeasuredSkillsOffset;
 
-            public const int SkillEntrySize = 0x10;
+            public static int SkillEntrySize { get; internal set; } = 0x10;
 
             /// <summary>
             ///     std::vector of the actor's skill cooldowns, 0x48-byte entries (GameHelper ActorOffsets.CooldownsPtr,
@@ -449,6 +449,23 @@ namespace Poe2Accessibility
 
             public const int EdgeToOffset = 0x8;
 
+            /// <summary>
+            ///     Node record +0x38: std::vector of the edges ending at it (edge +0 the other end); +0x50 the edges starting
+            ///     at it (<see cref="EdgeToOffset"/> the other end; measured 2026-10-24, 5385/5386 edges). The stick step walks
+            ///     the first then the second (RVA 0x9B9BA0 at 0x9B9DF0–0x9B9E4B, build 26476662); trusted only while every edge
+            ///     names the record.
+            /// </summary>
+            public const int RecordInEdgesOffset = 0x38;
+
+            public const int RecordOutEdgesOffset = 0x50;
+
+            /// <summary>
+            ///     PassiveSkills row +0x66: 8 bytes the stick step compares with 0 (0x9B9DE2); non-zero skips its linked stage
+            ///     and shifts the node by the sub-canvas (0x9A1470, an ascendancy's?). Column unknown; main-tree nodes should
+            ///     read 0 (dev command passivenear shows it).
+            /// </summary>
+            public static int RowNoLinkedStepOffset { get; internal set; } = 0x66;
+
             /// <summary>T +0x1A8: std::vector of 4-byte entries whose low u16 is an allocated node's graph id.</summary>
             public static int AllocatedOffset { get; internal set; } = 0x1A8;
 
@@ -472,7 +489,7 @@ namespace Poe2Accessibility
             public static int RowJewelSocketOffset { get; internal set; } = 0x65;
 
             /// <summary>Bytes of the row read at once: up to the last column read.</summary>
-            public static int RowBytes => System.Math.Max(System.Math.Max(System.Math.Max(RowNameOffset + 8, RowCharactersOffset + KeySize), RowGraphIdOffset + 2),
+            public static int RowBytes => System.Math.Max(System.Math.Max(System.Math.Max(RowNameOffset + 8, RowCharactersOffset + KeySize), System.Math.Max(RowGraphIdOffset + 2, RowNoLinkedStepOffset + sizeof(long))),
                 System.Math.Max(System.Math.Max(RowKeystoneOffset, RowNotableOffset), System.Math.Max(RowIconOnlyOffset, RowJewelSocketOffset)) + 1);
 
             /// <summary>Characters row +0x00: its Id, the player's metadata path ("Metadata/Characters/StrDex/StrDexFourb").</summary>

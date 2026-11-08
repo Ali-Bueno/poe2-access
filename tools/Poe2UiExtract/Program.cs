@@ -22,6 +22,7 @@ public static class Extractor
 
     private static int Dispatch(string[] args)
     {
+
         // Args: catalog <uiRootDir> <outJson>  -- parse extracted .ui scripts into a JSON control catalog.
         if (args.Length > 0 && string.Equals(args[0], "catalog", StringComparison.OrdinalIgnoreCase))
         {
@@ -244,16 +245,35 @@ public static class Extractor
             return ItemSoundExtractor.Run(game, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-sounds.json");
         }
 
-        // Args: hit-times <gameDir> [outFile]  -- when each monster attack lands, from the animation data, for dodge warnings.
+        // Args: hit-times <gameDir> [outFile] [auditFile]  -- when each monster attack lands and what kind of threat it is, from the
+        // animation data and the skill tables, for dodge warnings; the audit lists where the kind disagrees with the name.
         if (args.Length > 1 && string.Equals(args[0], "hit-times", StringComparison.OrdinalIgnoreCase))
         {
-            return HitTimeExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hit-times.txt");
+            return HitTimeExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hit-times.txt", args.Length > 3 ? args[3] : null);
         }
 
         // Args: hazards <gameDir> [outFile]  -- buffs from standing in harmful ground, for the hazard alarm.
         if (args.Length > 1 && string.Equals(args[0], "hazards", StringComparison.OrdinalIgnoreCase))
         {
             return HazardExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hazards.txt");
+        }
+
+        // Args: attack-reach <gameDir> [outFile]  -- how far each monster animation clip's blow reaches and lands, from the .ao files.
+        if (args.Length > 1 && string.Equals(args[0], "attack-reach", StringComparison.OrdinalIgnoreCase))
+        {
+            return AttackReachExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\attack-reach.txt");
+        }
+
+        // Args: action-types <gameDir> [outFile]  -- the Id of every ActionTypes row.
+        if (args.Length > 1 && string.Equals(args[0], "action-types", StringComparison.OrdinalIgnoreCase))
+        {
+            return ActionTypeExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\action-types.txt");
+        }
+
+        // Args: telegraphs <gameDir> [outDir]  -- what the game draws before a monster skill lands: telegraph-skills, -effects and -monsters.txt.
+        if (args.Length > 1 && string.Equals(args[0], "telegraphs", StringComparison.OrdinalIgnoreCase))
+        {
+            return TelegraphExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog");
         }
 
         // Args: game-ids <gameDir> [outFile]  -- the game's numbers for animations and stats, in place of GameHelper's old enums.
@@ -274,6 +294,12 @@ public static class Extractor
             return CullSkillExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\cull-skills.txt");
         }
 
+        // Args: class-mechanics <gameDir> [outFile]  -- resources, limits, buff names and skill types for the class mechanics (docs/research/class-mechanics.md).
+        if (args.Length > 1 && string.Equals(args[0], "class-mechanics", StringComparison.OrdinalIgnoreCase))
+        {
+            return ClassMechanicExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\class-mechanics.json");
+        }
+
         // Args: places <gameDir> [outFile]  -- named map pieces and props for the place announcements (docs/research/places.md).
         if (args.Length > 1 && string.Equals(args[0], "places", StringComparison.OrdinalIgnoreCase))
         {
@@ -286,10 +312,37 @@ public static class Extractor
             return ExperienceExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\experience.json");
         }
 
+        // Args: inline-icons <gameDir> [outFile]  -- the markup images a text shows as pictures (<<village_gold>>), token TAB art.
+        if (args.Length > 1 && string.Equals(args[0], "inline-icons", StringComparison.OrdinalIgnoreCase))
+        {
+            return InlineIconExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\inline-icons.txt");
+        }
+
         // Args: item-names <gameDir> [outFile]  -- currency item names per language, for inline item art in legends.
         if (args.Length > 1 && string.Equals(args[0], "item-names", StringComparison.OrdinalIgnoreCase))
         {
             return ItemNameExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-names.json");
+        }
+
+        // Args: buff-names <gameDir> <outFile>  -- the display names of buffs per language, { lang: { buff id: name } }.
+        if (args.Length > 2 && string.Equals(args[0], "buff-names", StringComparison.OrdinalIgnoreCase))
+        {
+            using var bundles = SharedBundles.OpenParsed(args[1]);
+            return BuffNameExtractor.Run(bundles, args[2]);
+        }
+
+        // Args: currency-art <gameDir> <outFile>  -- the item each currency icon shows, { lang: { art file: name } }.
+        if (args.Length > 2 && string.Equals(args[0], "currency-art", StringComparison.OrdinalIgnoreCase))
+        {
+            using var bundles = SharedBundles.OpenParsed(args[1]);
+            return CurrencyArtExtractor.Run(bundles, args[2]);
+        }
+
+        // Args: endgame <gameDir> <outFile>  -- map objectives, contents, endgame areas and the Atlas's graphs (docs/research/endgame.md).
+        if (args.Length > 2 && string.Equals(args[0], "endgame", StringComparison.OrdinalIgnoreCase))
+        {
+            using var bundles = SharedBundles.OpenParsed(args[1]);
+            return EndgameExtractor.Run(bundles, args[2]);
         }
 
         // Args: world-titles <gameDir> <outFile>  -- the names objects show only in a WorldDescription, as { lang: { .ot path: title } }.
@@ -309,12 +362,12 @@ public static class Extractor
             return AreaExtractor.Run(args[1], args[2]);
         }
 
-        // Args: monster-names <gameDir> <radarTableFile> <outFile>  -- the radar table's boss names per language from MonsterVarieties.
+        // Args: monster-names <gameDir> <radarTableFile[;more]> <outFile>  -- the radar table's boss names per language from MonsterVarieties.
         if (args.Length > 0 && string.Equals(args[0], "monster-names", StringComparison.OrdinalIgnoreCase))
         {
             if (args.Length < 4)
             {
-                Say.Out.WriteLine("Usage: Poe2UiExtract.exe monster-names <gameDir> <radarTableFile> <outFile>");
+                Say.Out.WriteLine("Usage: Poe2UiExtract.exe monster-names <gameDir> <radarTableFile[;more]> <outFile>");
                 return 1;
             }
             return MonsterNameExtractor.Run(args[1], args[2], args[3]);
@@ -331,7 +384,7 @@ public static class Extractor
             return DatColumnExtractor.Run(args[1], args[2]);
         }
 
-        // Args: batch <gameDir> <command> <outFile> [...]  -- item-sounds, areas, dat-columns, experience, hit-times, hazards, cull-skills, places and
+        // Args: batch <gameDir> <command> <outFile> [...]  -- item-sounds, areas, dat-columns, experience, hit-times, hazards, attack-reach, action-types, telegraph-skills, telegraph-effects, cull-skills, places and
         // ui-catalog on one opened index (the launcher after a game patch); each output complete or absent.
         if (args.Length > 3 && string.Equals(args[0], "batch", StringComparison.OrdinalIgnoreCase))
         {

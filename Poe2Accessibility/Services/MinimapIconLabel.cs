@@ -18,6 +18,11 @@ namespace Poe2Accessibility.Services
             }
 
             var own = LabelAt(memory, reader, row);
+            if (own.Length == 0 && EndgameCatalog.Shared.DeviceName(icon.IconName ?? string.Empty, Localization.Language) is { Length: > 0 } objectiveWord)
+            {
+                return objectiveWord; // the Breach icon has no label: "Fisura", the word its map objective links
+            }
+
             if (own.Length > 0 || icon.IconName is not { } name || !MinimapMarks.IsSpent(name))
             {
                 return own;

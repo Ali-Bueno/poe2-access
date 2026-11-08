@@ -67,9 +67,9 @@
 | Character creation (class, quote, name field) | done (live) | full sweep 2026-11-06: every silent dead end said (`CreationNameGuide`); [findings](docs/research/ui-layers.md#character-creation-055f-2026-11-06) |
 | Pre-game sweep (login, selection, options, terms) | done (live 2026-11-06) | all read; news banner named, L3 filter and LB told, migrations notice read, terms no longer skip paragraphs |
 | **Boot to gameplay** | done (live) | account `yarkidius`, Witch `Yarkidius`, Act 1 beach (2026-10-23) |
-| Hint bar button names (glyph images) | wip | Opus research on `entry_icon` |
-| Human labels for id-named controls (gateway, exit, options, motd) | todo | tooltip / localisation |
-| Text-field echo, password masking, list position "x of n", tab titles | todo | `docs/menu-speech-rules.md` |
+| Hint bar button names (glyph images) | done | `ControllerGlyphs` renders glyph art and markup as button names; heard in the 2026-10-26 log ("mantener A", "LT más mantener A", "Y") |
+| Human labels for id-named controls (gateway, exit, options, motd) | done (code) | `Announcements.ControlLabel` (league, gateway, language, options, collapse); the rest read as the humanised id; promo text is on request |
+| Text-field echo, password masking, list position "x of n", tab titles | done (code) | `Announcements.Typed`, `PasswordLength` (the .ui script's `mode = password`, length only; not heard live), `ListPosition` ("4 de 86" in the 2026-10-26 log), `TabTitle`; [rules](docs/menu-speech-rules.md) |
 | UI manager per state via `element+0x90`; in-game focus `M+0x748` | done (live) | `UiManagerLocator`; game menu has its own manager |
 | In-game layer policy (arrival layers are base, chat ignored via `ChatParent`) | done (live) | quiet on arrival; panels need focus-layer ownership (in-game controls lack bit 0x1B) |
 | Inventory: grid cells, equipment slot names, flasks, item base name/rarity/stack | done (live) | `InventoryReader`; "Inventory. Scroll of Wisdom, 3, column 12, row 5", "Gloves, empty" |
@@ -139,7 +139,7 @@
 | Raise Shield feedback: clank up as the shield rises, down as it falls | done (live) | `ShieldWatch` + pure `ShieldStance` on the player's animation name (game Animation rows 0x1DF-0x1E2: ActiveBlockChannel[Moving] held, ActiveBlockEnd[Moving] lowering); a blocked hit's flicker is ignored for 300 ms; heard live 2026-10-26 (log: raised ActiveBlockChannel, lowered at ActiveBlockEnd or by attacking) |
 | Parry cue (Parry: buckler, targe, two swords) | done (code; skills read live) | reverse hit whose dead stop falls `ParryLeadMs` (150) before a timed blow (`BossWatch` + pure `ParryTiming`, `CueSynth.Parry`); only when the player's skills list `ParryPlayer` (`ParrySkill`, chain verified live on a Warrior 2026-10-28); never on the 191 attacks the files mark unblockable/unparryable (`hit-times` `;noblock,noparry`, `SkillFlags`; launcher step v2); user picked reverse hit A; [notes](docs/research/parry-and-stun-bar.md) |
 | Unblockable attack cue | done (code) | two brass stabs at the wind-up of a rare's/unique's attack marked `;noblock` (`BossWatch`, `CueSynth.Unblockable`, `DodgeTimings.CanBlock`); the plain dodge warning stays for blockable ones (user, 2026-10-28; picked sample A) |
-| Harmful ground alarm | done (code) | grinding stabs (73.5 + 78 Hz, the user's pick on https://claude.ai/artifact/2E1BvgiEmJS2QYoCtmRV8P; [notes](docs/research/game-audio.md#harmful-ground-alarm-2026-11-04)) while a buff of `catalog/hazards.txt` is on the player (`HazardWatch`, pure `HazardGround`, extractor `hazards` from GroundEffectTypes +0x20 and "standing in" descriptions, 61 ids); a tester's ask; user picked sample A; not heard live |
+| Harmful ground alarm | done | grinding stabs (73.5 + 78 Hz, the user's pick on https://claude.ai/artifact/2E1BvgiEmJS2QYoCtmRV8P; [notes](docs/research/game-audio.md#harmful-ground-alarm-2026-11-04)) while a buff of `catalog/hazards.txt` is on the player (`HazardWatch`, pure `HazardGround`, extractor `hazards` from GroundEffectTypes +0x20 and "standing in" descriptions, 61 ids); a tester's ask; user picked sample A; fired live: "Hazard ground: vortex_79" in the 2026-10-28 log |
 | Stun bar while blocking / parrying | done (code; bar read live 0/263) | `ShieldWatch` + pure `StunMeter`: "Barra de aturdimiento N por ciento" past 50/75/90; a blocked hit not heard live |
 | Energy shield warnings | done (code) | `PlayerAlerts`: 75/50/25 and "agotado", pool ≥ a fifth of life; no live DPS meter exists (per-skill DPS already read in the Skills panel) |
 | Own volume beside its switch: power charge, combo, harmful ground | done (live) | the same levels Sound lists (`SettingsMenu.OwnVolume`), which the user never opened: "Volumen: Punto de combo, 100 por ciento, 6 de 9" (2026-11-05) |
@@ -168,7 +168,8 @@
 | Enemies coming into view without direction | done (code) | `EnemyDirections` (on); off: "Ahogado, 3" (user 2026-10-30: too many words while a boss talks) |
 | Target from the HUD target bar (controller) | done (live) | HUD > entity_info_container > entity_info_display > name_label; MouseOverEntity is 0 with a pad |
 | Dodge timing before the first blow (game files) | done (unit, values checked against blows timed live) | `catalog/hit-times.txt` from `Poe2UiExtract hit-times` (6929 attacks loaded; 6084 of the 7398 warned of timed; projectiles add their flight at the files' speed, unit not timed live); repeat swings warned each period; `docs/research/dodge-timing.md` |
-| Death place "Donde moriste" among the exits (D2R) | done (code) | `DeathWatch.Died` → `EntityCatalog.RememberDeath` (area hash + position); not seen live (no death since) |
+| Dodge precision: aim, reach, on screen, real clock | wip (research and pure classes, unit; not wired) | the clip's position and speed (animated object's AnimationController), its events and the action's target (Actor +0x238) found in the exe on five builds; pure `AttackClock`, `AttackAim`, `AttackReach`, `AttackSight`, `DodgeGate`, `AttackFieldCheck`; next: the live protocol (`tools/computer_use/fight_trace.py`) and the [integration plan](docs/research/dodge-timing.md#integration-plan) |
+| Death place "Donde moriste" among the exits (D2R) | done | `DeathWatch.Died` → `EntityCatalog.RememberDeath` (area hash + position); heard live: "Donde moriste, 40 pasos" in the 2026-10-26 log |
 | Fresh install (no game config): login read at once, language list, input-method notice | done (live) | off-screen controls do not make a layer the top (the "Deal of the Day" panel hid the login); `visible_area` notices said after the focus; Steam logs in without a form; language re-detected on attach |
 | Long scrolled texts (terms of use) by paragraph | done (live) | text over 1024 chars in a frame: `ScreenWatcher.LongText` → `LongTextReader`; scroll = frame `PositionModifier.Y` (+0x10C, negative) against text − frame `UnscaledSize.Y` |
 | Map overlay shown / hidden (D-pad down) | done (live) | `map_overlay` (G+0xB88) hint `gamepad_move_map_hint` visible only while open; `MapOverlayWatch` |
@@ -424,9 +425,15 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
 ## Known issues / open questions
 - `catalog/landmarks.json` corrects the Radar table's labels that were no area name by a typo ("Oghams Manor", 5 found by near match) and G1_14's "Entrance", the way back read as the Manor's.
 - Radar-table labels are English notes (GameHelper's `important_tgt_files.txt`): area names, bracketed notes and, since
-  2026-11-02, 11 boss names (`catalog/monster-names.json` from MonsterVarieties: "Sala del jefe: Beira, de la manada
-  putrefacta") are said in the game's language. Still English: places ("The Corpse Tree (punto de ruta)", not a game
-  name) and 17 bosses whose game name is not the label plus a suffix (The Moving Bramble, Queen of Filth, Siren…).
+  2026-11-02, boss names are said in the game's language. Since 2026-11-08 every piece of a label (cut at " - ", slashes,
+  "&", commas, brackets) that is a name the game has (area, MonsterVarieties or NPCs row, object title, item) is said as
+  the game names it, whatever its case or apostrophes (`LandmarkTable.Localize`; `catalog/monster-names.json` regenerated
+  with `Poe2UiExtract monster-names` over pieces and NPCs; its name-column detection took a garbage column in 0.5.6,
+  now the measured one wins): 92 of the 211 labels in Spanish (74 before). 61 stay untouched, and others keep
+  their names with only common words/notes translated: players' notes ("Dungeon entrance down"), places the game has no name for ("The
+  Corpse Tree (punto de ruta)") and names with no row (Siren, Shark, The Moving Bramble, Narag, Areagne, Renly). Words the
+  table shares with the radar ("Boss", "Quest", "Exit"…) are phrases of `Announcements.Radar.cs`: their other-language
+  translations wait for the final translation pass.
 - Yarkey's chat showed his own lines ("¡Abajo!", "Matando el tiempo.", "¡Retrocede o muere!") while X or RT were held
   (2026-11-02), absent from Client.txt; probably the Mercenary's voice lines shown in chat (not verified: whether
   other players see them).
@@ -435,18 +442,15 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   and the map device (GameHelper knows `AtlasSkillsPanel` and the atlas node fingerprint `0x542EF3`), and Act 4.
   Act 4 sails between its islands from Kingsmarch through a destination map (Rog / Makoru; fan guides of 0.3): a
   menu, not steering, so the radar is not involved; take an F6 dump of that map the first time it opens.
-- GameHelper marks a monster Useless once the game flags it dead (stat `is_dead`) and stops reading it, so its life can freeze mid-hit ("Ezomita antiguo" 16/50 in TakeHitBackward, heard and listed as an enemy that could not be hit, 2026-10-26): `EntityCatalog.IsFrozenDead` makes it dead for enemies and boss defeats.
-- League devices with life are typed Monster by GameHelper (Ritual rune, `Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable`, alive and hostile by the Devourer, 2026-10-26): enemies are only paths under `Metadata/Monsters/` (`EntityCatalog.CreatureFolder`; all 89 living hostiles in 47 dev dumps are). The rune is nameless and named by its minimap icon (Encounters category). Untargetable in two dumps (13:42, 14:06) and targetable in one (13:18): which ritual states those are is not known.
+- Ritual rune (`RitualRuneInteractable`): untargetable in two dumps (13:42, 14:06), targetable in one (13:18); which ritual states those are is not known. Typing is settled: the league-icon branch of `EntityCatalog.Classify` takes it before the Monster rule.
 - Landmark labels that are not area names are players' notes from GameHelper Radar: in Spanish their common words and
   reward notes are translated ("Escaleras hacia arriba", "Crop Circle (gema de habilidad de nivel 4)"); the names in
-  them (Crop Circle, Kabala) stay as written, since the game's own Spanish name is not known for them.
+  them the game has no row for (Crop Circle) stay as written; Kabala, Torbik, Zelina… are the game's names (above).
 - Radar: once, near the encampment exit, Up and Left flipped wall/exit every ~2 s with depths 100 ↔ 500 units while
   the character oscillated between two cells; not reproduced standing still.
-- The bot died twice to Rotten Wolves while testing (Clearfell, 2026-10-23): don't fight with scripted input.
-- Steam's desktop controller layout turns the DualSense into mouse/keyboard while the game is in the back; a
-  drifting stick or the touchpad then disturbs NVDA in other windows (seen 2026-10-23, not the mod).
-- L3 is also seen by the game: on the world map it toggles the legend while the mod reads a line.
-- Scanner: long routes take ~200 ms on the host's frame thread; a route along an octant boundary alternates
+- Scanner: long routes searched ~200 ms on the frame thread; since 2026-11-08 `RoutePlanner` is a jump point search over a
+  cached cell map (same optimal routes, `RouteSpeedTests`): 1600x1600 cave grids take 2-10 ms, a walled-off goal ~12 ms
+  (it was 35-280 and 270), measured offline only. A route along an octant boundary alternates
   "up 2, then up left" / "up left 2, then up". The exit prompt "Mantener presionado (Mostrar opciones)" is drawn
   outside the UI tree (not in a full dump while on screen): the A target says "mantén A para opciones" instead.
   A barrier never seen closed and past the network bubble still reads open (nothing to know it by).
@@ -460,8 +464,6 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   No tienes cosméticos…"): by design, so the name is never cut off; the first readout is interrupted.
 - Passive tree: allocation checked on two characters (Duelist pending/applied, Witch applied, 2026-10-24); a class
   start is said without a direction (the portrait has no node element): "inicio de tu clase, Monje".
-- Closing the game menu is silent now (D2R); Options opened from it starts with its page.
-- A `settings.txt` that fails to parse is ignored (spoken warning) and never overwritten with defaults.
 - Pre-game UI root unknown to every public tool; our scan heuristic (self-pointer + no parent + children) is unvalidated.
 - Native `prism.dll` loads from the plugin folder through the host's `PluginLoadContext` (NVDA heard, 2026-11-08).
 - Panel notes (`UiSemantics.PanelNotes`) are a heuristic: a titled panel's texts outside navigable elements and outside

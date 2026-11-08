@@ -111,7 +111,6 @@ namespace Poe2Accessibility.Tests
             Run(nameof(StashOpenedOnInventoryNamesTheInventory), StashOpenedOnInventoryNamesTheInventory);
             Run(nameof(NewsFollowItsDeliveryLevel), NewsFollowItsDeliveryLevel);
             Run(nameof(SettingsMenuOpensGroupsAndGoesBack), SettingsMenuOpensGroupsAndGoesBack);
-            Run(nameof(PassiveStickLandsWhereTheGameDoes), PassiveStickLandsWhereTheGameDoes);
             Run(nameof(PassiveStepsCountThePointsAlongTheLinks), PassiveStepsCountThePointsAlongTheLinks);
             Run(nameof(PassiveZoneNamesTheSideAndRing), PassiveZoneNamesTheSideAndRing);
             Run(nameof(PassiveFinderWalksItsLists), PassiveFinderWalksItsLists);
@@ -205,7 +204,12 @@ namespace Poe2Accessibility.Tests
                 Run(name, test);
             }
 
-            foreach (var (name, test) in LayoutSearchTests.All().Concat(HostSearchTests.All()).Concat(StartUpTests.All()))
+            foreach (var (name, test) in LayoutSearchTests.All().Concat(HostSearchTests.All()).Concat(NameFallbackTests.All()).Concat(TrialDataTests.All()).Concat(PanelWidgetTests.All()).Concat(DodgeGateTests.All()).Concat(ClassMechanicTests.All()).Concat(DodgeDataTests.All()).Concat(TelegraphTests.All()).Concat(RouteSpeedTests.All()).Concat(RadarLabelTests.All()).Concat(PassiveStickTests.All()))
+            {
+                Run(name, test);
+            }
+
+            foreach (var (name, test) in EndgameTests.All().Concat(StartUpTests.All()))
             {
                 Run(name, test);
             }
@@ -2353,28 +2357,6 @@ namespace Poe2Accessibility.Tests
             }
         }
 
-        private static void PassiveStickLandsWhereTheGameDoes()
-        {
-            // Moves recorded in the game (2026-10-31): screen offsets of the nearest nodes, the push, where it landed.
-            var mana18 = new Vector2[] { new(66, -66), new(-67, -67), new(126, 0), new(-126, 0), new(-23, -201), new(27, -201), new(-181, -134), new(-236, 0), new(-181, 178), new(2, 273), new(-128, 241), new(-120, -260) };
-            Equal(9, PassiveStick.Pick(mana18, 6), "down: the node straight below, past a nearer one off to the side");
-            var notable = new Vector2[] { new(-59, 112), new(0, 129), new(-130, 31), new(-130, -31), new(-103, 156), new(16, 188), new(-184, 94), new(-184, -95), new(102, 186), new(228, 11), new(-238, 30), new(-238, -31) };
-            Equal(9, PassiveStick.Pick(notable, 0), "right: the only node within 45 degrees, however far");
-            var castSpeed = new Vector2[] { new(-54, 63), new(54, 63), new(-54, 125), new(54, 125), new(-181, -13), new(-54, -178), new(55, -178), new(0, 189), new(-181, 95), new(184, 95), new(-180, -108), new(125, 207) };
-            Equal(10, PassiveStick.Pick(castSpeed, 3), "up-left");
-            Equal(-1, PassiveStick.Pick(new Vector2[] { new(100, 0) }, 4), "nothing within the cone");
-
-            // A link 60 degrees up from the right is reached with up when nothing else lies that way (the game moved
-            // there with up while the old readout said up-right, user 2026-10-31).
-            var link = new Vector2[] { new(50, -87), new(200, 0), new(70, -70) };
-            Equal((int?)2, PassiveStick.OctantTo(link, 0), "named by the push that reaches it");
-            Equal((int?)null, PassiveStick.OctantTo(new Vector2[] { new(100, -10), new(300, -100) }, 1), "a node a nearer one hides is reached by no single push");
-
-            var line = new Vector2[] { new(0, 0), new(100, 0), new(200, 0), new(200, -100) };
-            Equal("0 1", string.Join(" ", PassiveStick.Route(line, 0, 3, 8) ?? new List<int>()), "right, then up-right lands on it");
-            Equal(true, PassiveStick.Route(line, 0, 3, 1) == null, "too far for the moves allowed");
-        }
-
         private static void SettingsMenuOpensGroupsAndGoesBack()
         {
             static SettingsCursor.Node Menu(int settings, params SettingsCursor.Node[] submenus) =>
@@ -3133,7 +3115,7 @@ namespace Poe2Accessibility.Tests
             Equal(DodgeThreat.Melee, DodgeThreats.Of(8, NameOf), "a heavy strike");
             Equal(DodgeThreat.Ranged, DodgeThreats.Of(9, NameOf), "a toss, not a cry");
             Equal(DodgeThreat.None, DodgeThreats.Of(10, NameOf), "standing");
-            Equal(DodgeThreat.Ranged, DodgeThreats.Of(99, NameOf), "an id the table lacks (a game update) still warns");
+            Equal(DodgeThreat.None, DodgeThreats.Of(99, NameOf), "an id the table lacks (a game update) stays quiet and is logged");
             Equal(DodgeThreat.None, DodgeThreats.Of(0, NameOf), "no animation");
         }
 

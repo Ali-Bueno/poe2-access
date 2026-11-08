@@ -1,0 +1,114 @@
+namespace Poe2Accessibility.Services
+{
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using Newtonsoft.Json.Linq;
+
+    /// <summary>
+    ///     What the game's tables say a class builds up and spends (catalog/class-mechanics.json, `Poe2UiExtract
+    ///     class-mechanics`; docs/research/class-mechanics.md): counted resources as Stats pairs current/maximum, limits as
+    ///     active/allowed, the names per language of the buffs that are not harmful, and the skill types of each granted
+    ///     effect the player's Actor can list. Pure apart from <see cref="Load"/>.
+    /// </summary>
+    public sealed class ClassMechanicCatalog
+    {
+        /// <summary>BuffDefinitions type of a flask effect: the flasks are <see cref="FlaskWatch"/>'s.</summary>
+        public const int FlaskBuffType = 4;
+
+        private const string Fallback = "en";
+
+        private readonly Dictionary<string, (int Type, Dictionary<string, string> Names)> buffs;
+        private readonly Dictionary<string, string[]> skills;
+
+        private ClassMechanicCatalog(
+            List<Resource> resources, List<Limit> limits, Dictionary<string, (int, Dictionary<string, string>)> buffs, Dictionary<string, string[]> skills)
+        {
+            this.Resources = resources;
+            this.Limits = limits;
+            this.buffs = buffs;
+            this.skills = skills;
+        }
+
+        /// <summary>A counted resource: its name after "current_" and the Stats keys of its value and maximum (0 when the table has none).</summary>
+        public sealed record Resource(string Name, int Current, int Maximum, int VirtualMaximum);
+
+        /// <summary>A limit: its name after "number_of_active_" and the Stats keys of the active and allowed counts.</summary>
+        public sealed record Limit(string Name, int Active, int Allowed);
+
+        /// <summary>Gets the catalog in use: empty until loaded.</summary>
+        public static ClassMechanicCatalog Current { get; private set; } = Empty();
+
+        public IReadOnlyList<Resource> Resources { get; }
+
+        public IReadOnlyList<Limit> Limits { get; }
+
+        public int BuffCount => this.buffs.Count;
+
+        public int SkillCount => this.skills.Count;
+
+        public static ClassMechanicCatalog Empty() => new(new(), new(), new(StringComparer.Ordinal), new(StringComparer.Ordinal));
+
+        /// <summary>Loads the catalog if it is there; without it nothing of this domain is said.</summary>
+        public static ClassMechanicCatalog Load(string path)
+        {
+            try
+            {
+                Current = File.Exists(path) ? Parse(File.ReadAllText(path)) : Empty();
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException or Newtonsoft.Json.JsonException)
+            {
+                Current = Empty();
+            }
+
+            return Current;
+        }
+
+        public static ClassMechanicCatalog Parse(string json)
+        {
+            var root = JObject.Parse(json);
+            var resources = (root["stats"] as JArray ?? new JArray())
+                .Select(entry => new Resource(entry.Value<string>("name") ?? string.Empty, entry.Value<int>("current"), entry.Value<int>("maximum"), entry.Value<int>("virtualMaximum")))
+                .Where(resource => resource.Name.Length > 0 && resource.Current > 0)
+                .ToList();
+            var limits = (root["limits"] as JArray ?? new JArray())
+                .Select(entry => new Limit(entry.Value<string>("name") ?? string.Empty, entry.Value<int>("active"), entry.Value<int>("allowed")))
+                .Where(limit => limit.Name.Length > 0 && limit.Active > 0 && limit.Allowed > 0)
+                .ToList();
+            var buffs = new Dictionary<string, (int, Dictionary<string, string>)>(StringComparer.Ordinal);
+            foreach (var (id, entry) in root["buffs"] as JObject ?? new JObject())
+            {
+                var names = (entry?["names"] as JObject ?? new JObject()).Properties().ToDictionary(name => name.Name, name => name.Value.ToString(), StringComparer.Ordinal);
+                buffs[id] = (entry?.Value<int>("type") ?? 0, names);
+            }
+
+            var skills = new Dictionary<string, string[]>(StringComparer.Ordinal);
+            foreach (var (id, entry) in root["skills"] as JObject ?? new JObject())
+            {
+                skills[id] = (entry as JArray ?? new JArray()).Select(type => type.ToString()).ToArray();
+            }
+
+            return new ClassMechanicCatalog(resources, limits, buffs, skills);
+        }
+
+        /// <summary>The BuffDefinitions type of a named buff; -1 for a buff the catalog does not name.</summary>
+        public int BuffType(string buffId) => this.buffs.TryGetValue(BuffIds.Base(buffId), out var buff) ? buff.Type : -1;
+
+        /// <summary>The game's name for a buff in the language (English when it has none there), empty for any other buff.</summary>
+        public string BuffName(string buffId, string language)
+        {
+            if (!this.buffs.TryGetValue(BuffIds.Base(buffId), out var buff))
+            {
+                return string.Empty;
+            }
+
+            return buff.Names.TryGetValue(language, out var name) ? name : buff.Names.GetValueOrDefault(Fallback, string.Empty);
+        }
+
+        /// <summary>The ActiveSkillType names of a granted effect ("Banner", "Grenade", "Warcry"…); empty when the catalog lacks it.</summary>
+        public IReadOnlyList<string> SkillTypes(string grantedEffectId) => this.skills.GetValueOrDefault(grantedEffectId, Array.Empty<string>());
+
+        public bool SkillHasType(string grantedEffectId, string type) => this.SkillTypes(grantedEffectId).Contains(type, StringComparer.Ordinal);
+    }
+}

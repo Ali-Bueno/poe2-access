@@ -429,6 +429,8 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceTrialCounters) => T("Sacred water and keys in the Trial", "Agua sagrada y llaves en la Prueba"),
             nameof(AccessibilitySettings.TrialTrapCues) => T("Trial traps about to strike", "Trampas de la Prueba a punto de saltar"),
             nameof(AccessibilitySettings.GuideTimed) => T("Guide to each Death Crystal by itself", "Guiar solo a cada cristal de la muerte"),
+            nameof(AccessibilitySettings.AnnounceTrialProgress) => T("Trial rounds, crystals left and room doors", "Rondas, cristales restantes y puertas de la Prueba"),
+            nameof(AccessibilitySettings.GuideTrialDoors) => T("Guide to the room door the Trial opens", "Guiar a la puerta que abre la Prueba"),
             nameof(AccessibilitySettings.AnnounceLevelUp) => T("Level up", "Subida de nivel"),
             nameof(AccessibilitySettings.Radar) => T("Radar", "Radar"),
             nameof(AccessibilitySettings.ReadPlayer1) => T("Local co-op: read for player 1", "Cooperativo local: lectura para el jugador 1"),
@@ -672,12 +674,14 @@ namespace Poe2Accessibility
         ///     A league device by its minimap icon (MinimapIcons.dat id), as the game's own strings call it (ClientStrings
         ///     "Altar de ritual {0}", "Interactúa para ver los favores"); the devices have no render name.
         /// </summary>
+        /// <param name="gameName">The device's own label (minimap icon, else its league folder), empty when the game gives none.</param>
         /// <param name="boss">The altar that summons an area's boss, not one of those its quest sends the player to.</param>
-        public static string LeagueDevice(string icon, bool boss) => icon switch
+        public static string LeagueDevice(string icon, bool boss, string gameName) => icon switch
         {
             Services.MinimapMarks.RitualDoneIcon => T("Ritual altar, done", "Altar de ritual, completado"),
             Services.MinimapMarks.RitualIcon when boss => T("Boss's ritual altar", "Altar de ritual del jefe"),
             Services.MinimapMarks.RitualIcon => T("Ritual altar", "Altar de ritual"),
+            _ when gameName.Length > 0 => gameName,
             _ => T("League encounter", "Encuentro de liga"),
         };
 
@@ -915,18 +919,22 @@ namespace Poe2Accessibility
         /// <summary>A trade's other side with nothing on it.</summary>
         public static string Nothing => T("nothing", "nada");
 
-        /// <summary>A new game build read with nothing lost.</summary>
-        /// <summary>What an update added, as table and count; null with nothing a player would meet (<see cref="Services.GameNews"/>).</summary>
-        public static string? GameNews(IEnumerable<(string Table, int Added)> news)
+        /// <summary>
+        ///     What an update added, as table, count and how many of them the mod cannot classify yet; null with nothing a
+        ///     player would meet (<see cref="Services.GameNews"/>).
+        /// </summary>
+        public static string? GameNews(IEnumerable<(string Table, int Added, int Unclassified)> news)
         {
-            var parts = news.Where(item => item.Added > 0).Select(item => (Noun: NewsNoun(item.Table), item.Added))
-                .Where(item => item.Noun != null).Select(item => $"{item.Noun} {item.Added}").ToList();
+            var parts = news.Where(item => item.Added > 0).Select(item => (Noun: NewsNoun(item.Table), item.Added, item.Unclassified))
+                .Where(item => item.Noun != null)
+                .Select(item => $"{item.Noun} {item.Added}, {(item.Unclassified == 0 ? T("all covered", "todo cubierto") : T($"{item.Unclassified} unclassified", $"{item.Unclassified} sin clasificar"))}")
+                .ToList();
             if (parts.Count == 0)
             {
                 return null;
             }
 
-            var list = string.Join(", ", parts);
+            var list = string.Join("; ", parts);
             return T($"New in this game update: {list}. The list is in the file game-news.txt", $"Novedades de esta actualización del juego: {list}. La lista está en el archivo game-news.txt");
         }
 

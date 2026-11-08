@@ -29,7 +29,20 @@ namespace GameReader.Utils
             OffsetOf<EntityDetails>(nameof(EntityDetails.ComponentLookUpPtr)),
             OffsetOf<ComponentLookUpStruct>(nameof(ComponentLookUpStruct.ComponentsNameAndIndex)));
 
+        /// <summary>Gets how an entry of the name map is laid out; as measured while the map is not found.</summary>
+        public NameEntryLayout Entry { get; init; } = NameEntryLayout.Measured;
+
         private static int OffsetOf<T>(string field) => Marshal.OffsetOf<T>(field).ToInt32();
+    }
+
+    /// <summary>An entry of an entity's component name map: its size, where it keeps the name and where the component's index.</summary>
+    public readonly record struct NameEntryLayout(int Stride, int Name, int Index)
+    {
+        /// <summary>The layout the host was written for.</summary>
+        public static NameEntryLayout Measured { get; } = new(
+            Marshal.SizeOf<ComponentNameAndIndexStruct>(),
+            Marshal.OffsetOf<ComponentNameAndIndexStruct>(nameof(ComponentNameAndIndexStruct.NamePtr)).ToInt32(),
+            Marshal.OffsetOf<ComponentNameAndIndexStruct>(nameof(ComponentNameAndIndexStruct.Index)).ToInt32());
     }
 
     /// <summary>
@@ -64,11 +77,17 @@ namespace GameReader.Utils
         private static readonly int StringCapacity = Marshal.OffsetOf<StdWString>(nameof(StdWString.Capacity)).ToInt32();
         private static readonly int StringBytes = Marshal.SizeOf<StdWString>();
         private static readonly int Owner = Marshal.OffsetOf<ComponentHeader>(nameof(ComponentHeader.EntityPtr)).ToInt32();
-        private static readonly int NameEntry = Marshal.SizeOf<ComponentNameAndIndexStruct>();
-        private static readonly int EntryIndex = Marshal.OffsetOf<ComponentNameAndIndexStruct>(nameof(ComponentNameAndIndexStruct.Index)).ToInt32();
+        // An entry holds at least a name pointer and an index, so 0x10 bytes once aligned; a patch may grow it a little.
+        private const int MinEntry = 0x10;
+        private const int MaxEntry = 0x40;
+
+        // A layout other than the measured one must name this many components over the entities judged: a single name read
+        // through an entry as long as the whole map proves nothing.
+        private const int MinNamesToMove = 4;
 
         private readonly IAreaMemory memory;
         private readonly Dictionary<long, byte[]> blocks = new();
+        private readonly Dictionary<long, string> names = new();
 
         /// <summary>Initializes a new instance of the <see cref="EntityLayoutSearch"/> class.</summary>
         public EntityLayoutSearch(IAreaMemory memory)
@@ -86,11 +105,78 @@ namespace GameReader.Utils
             var (details, path) = Pair(near.Details, near.Path, (d, p) => bodies.All(entity => this.IsPath(entity.Body, d, p)));
             var components = Nearest(near.Components, BlockBytes - VectorBytes, at => bodies.All(entity => this.Components(entity.Body, at, entity.Address) > 0));
             var counts = components < 0 ? null : bodies.Select(entity => this.Components(entity.Body, components, entity.Address)).ToList();
-            var (lookUp, map) = details < 0 ? (-1, -1) : Pair(
-                near.LookUp,
-                near.NameMap,
-                (l, m) => bodies.Select((entity, index) => this.IsNameMap(this.Block(Long(entity.Body, details)), l, m, counts?[index] ?? MaxComponents)).All(fits => fits));
-            return bodies.Count == 0 ? new EntityLayout(-1, -1, -1, -1, -1) : new EntityLayout(details, path, components, lookUp, map);
+            var entry = NameEntryLayout.Measured;
+            bool IsMap(int l, int m)
+            {
+                var maps = bodies.Select((entity, index) => (this.Block(Long(entity.Body, details)), counts?[index] ?? MaxComponents)).ToList();
+                if (this.NameEntry(maps, l, m, near.Entry) is not { } fits)
+                {
+                    return false;
+                }
+
+                entry = fits;
+                return true;
+            }
+
+            var (lookUp, map) = details < 0 ? (-1, -1) : Pair(near.LookUp, near.NameMap, IsMap);
+            return bodies.Count == 0 ? new EntityLayout(-1, -1, -1, -1, -1)
+                : new EntityLayout(details, path, components, lookUp, map) { Entry = map < 0 ? NameEntryLayout.Measured : entry };
+        }
+
+        /// <summary>
+        ///     How the entries of the name map at <paramref name="map"/> of each lookup are laid out, when every map reads as one
+        ///     (<see cref="Named"/>); null otherwise. The layout <paramref name="near"/> is tried first, then the smallest size
+        ///     that fits (a multiple of the true size fits too, reading every other entry), each field nearest where measured.
+        /// </summary>
+        private NameEntryLayout? NameEntry(IReadOnlyList<(byte[] Details, int Components)> maps, int lookUp, int map, NameEntryLayout near)
+        {
+            var entries = new List<(byte[] Bytes, int Components)>(maps.Count);
+            foreach (var (details, components) in maps)
+            {
+                var block = this.Block(Long(details, lookUp));
+                if (!IsVector(block, map, out var first, out var bytes) || bytes > MaxComponents * MaxEntry)
+                {
+                    return null;
+                }
+
+                var read = this.memory.Read(first, (int)bytes);
+                if (read.Length < bytes)
+                {
+                    return null;
+                }
+
+                entries.Add((read, components));
+            }
+
+            if (entries.All(entry => this.Named(entry.Bytes, near, entry.Components) > 0))
+            {
+                return near;
+            }
+
+            for (var stride = MinEntry; stride <= MaxEntry; stride += Pointer)
+            {
+                var size = stride;
+                if (entries.Any(entry => entry.Bytes.Length % size != 0))
+                {
+                    continue;
+                }
+
+                var found = (NameEntryLayout?)null;
+                Nearest(near.Name, size - Pointer, name => StructShapes.Nearest(near.Index, sizeof(int), size - sizeof(int), index =>
+                {
+                    var layout = new NameEntryLayout(size, name, index);
+                    var apart = index + sizeof(int) <= name || index >= name + Pointer;
+                    var named = apart && layout != near ? entries.Select(entry => this.Named(entry.Bytes, layout, entry.Components)).ToList() : null;
+                    found = named is not null && named.All(count => count > 0) && named.Sum() >= MinNamesToMove ? layout : null;
+                    return found is not null;
+                }) >= 0);
+                if (found is { } layout)
+                {
+                    return layout;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>Whether the entity at <paramref name="entity"/> leads to its path through <paramref name="layout"/>.</summary>
@@ -162,47 +248,53 @@ namespace GameReader.Utils
         }
 
         /// <summary>
-        ///     The map at <paramref name="map"/> of the lookup that <paramref name="lookUp"/> points at: name and index entries, most
-        ///     named as components, at least one a component nearly every entity has, every index inside the component vector.
+        ///     How many components <paramref name="entries"/>, a map's bytes, name when they are name and index entries laid out
+        ///     as <paramref name="layout"/>: most named as components, at least one a component nearly every entity has, every
+        ///     index inside the component vector and no two alike (each component has one name); 0 when they are not.
         /// </summary>
-        private bool IsNameMap(byte[] details, int lookUp, int map, int components)
+        private int Named(byte[] entries, NameEntryLayout layout, int components)
         {
-            var block = this.Block(Long(details, lookUp));
-            if (!IsVector(block, map, out var first, out var bytes) || bytes % NameEntry != 0 || bytes / NameEntry > MaxComponents)
+            if (entries.Length == 0 || entries.Length % layout.Stride != 0 || entries.Length / layout.Stride > MaxComponents)
             {
-                return false;
+                return 0;
             }
 
-            var entries = this.memory.Read(first, (int)bytes);
-            if (entries.Length < bytes)
+            var named = new List<string>();
+            var indexes = new HashSet<int>();
+            for (var at = 0; at < entries.Length; at += layout.Stride)
             {
-                return false;
-            }
-
-            var names = new List<string>();
-            for (var at = 0; at < entries.Length; at += NameEntry)
-            {
-                var index = BitConverter.ToInt32(entries, at + EntryIndex);
-                var name = this.AsciiName(Long(entries, at));
+                var name = this.AsciiName(Long(entries, at + layout.Name));
                 if (IsComponentName(name))
                 {
-                    if (index < 0 || index >= components)
+                    var index = Int(entries, at + layout.Index);
+                    if (index < 0 || index >= components || !indexes.Add(index))
                     {
-                        return false;
+                        return 0;
                     }
 
-                    names.Add(name);
+                    named.Add(name);
                 }
             }
 
-            return names.Count * 2 >= entries.Length / NameEntry && names.Any(KnownComponents.Contains);
+            return named.Count * 2 >= entries.Length / layout.Stride && named.Any(KnownComponents.Contains) ? named.Count : 0;
         }
 
         private string AsciiName(long address)
         {
-            var bytes = IsPointer(address) ? this.memory.Read(address, MaxNameBytes) : Array.Empty<byte>();
-            var end = Array.IndexOf(bytes, (byte)0);
-            return end > 0 ? Encoding.ASCII.GetString(bytes, 0, end) : string.Empty;
+            if (!IsPointer(address))
+            {
+                return string.Empty;
+            }
+
+            if (!this.names.TryGetValue(address, out var name))
+            {
+                var bytes = this.memory.Read(address, MaxNameBytes);
+                var end = Array.IndexOf(bytes, (byte)0);
+                name = end > 0 ? Encoding.ASCII.GetString(bytes, 0, end) : string.Empty;
+                this.names[address] = name;
+            }
+
+            return name;
         }
     }
 }

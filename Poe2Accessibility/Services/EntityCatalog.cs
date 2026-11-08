@@ -656,14 +656,15 @@ namespace Poe2Accessibility.Services
             var row = area.TerrainMetadata.BytesPerRow;
             var start = new Vector2(origin.X, origin.Y) / gridSize;
             var goal = new Vector2(entry.WorldX, entry.WorldY) / gridSize;
-            var route = RoutePlanner.FindRoute(grid, row, start, goal);
+            // One search for both: the whole way, or the ground as close as it goes.
+            var route = RoutePlanner.FindRoute(grid, row, start, goal, true, out var whole);
             var partial = false;
-            if (route == null && RoutePlanner.FindRoute(grid, row, start, goal, true, out _) is { Count: > 1 } nearest &&
-                RoutePlanner.Length(nearest) * gridSize >= StepWorldUnits)
+            if (!whole)
             {
                 // No way all the way (a gate the quest opens, a bridge out of the grid): the legs lead as close as the
                 // ground goes, like the guide beacon; the distance stays the straight line.
-                (route, partial) = (nearest, true);
+                partial = route is { Count: > 1 } && RoutePlanner.Length(route) * gridSize >= StepWorldUnits;
+                route = partial ? route : null;
             }
 
             // A target inside a wall snaps to the nearest walkable cell, which can lie on this side of a closed barrier
