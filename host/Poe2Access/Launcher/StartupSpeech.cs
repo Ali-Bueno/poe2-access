@@ -65,7 +65,9 @@ internal sealed unsafe class StartupSpeech : IDisposable
         this.queue.CompleteAdding();
         if (!this.worker.Join(ShutdownWaitMilliseconds + holdMilliseconds))
         {
+            // Unloading the library under a thread still inside it would crash the mod: it stays loaded.
             Log.Write("The startup speech did not stop in time");
+            return;
         }
 
         if (this.library != IntPtr.Zero)
