@@ -12,6 +12,7 @@ internal sealed class Instance(int? spareProcessId = null) : IDisposable
     private const int GracefulExitMilliseconds = 5_000;
     private const int ExitWaitMilliseconds = 10_000;
     private const int LeaveMilliseconds = 2_000; // an instance that answered the stop finishes its exit
+    private const int MaxAncestors = 32; // parent ids are reused, so a chain can loop back on itself
     private static readonly string[] LegacyProcessNames = ["Poe2AccessHost", "GameHelper"];
 
     private static readonly string Isolation = Environment.GetEnvironmentVariable(IsolationVariable) ?? string.Empty;
@@ -97,6 +98,22 @@ internal sealed class Instance(int? spareProcessId = null) : IDisposable
         }
     }
 
+    /// <summary>
+    ///     The processes this one descends from: a launcher that installed an update (or asked for administrator rights)
+    ///     waits for this one while Steam follows it, so it is never a stray copy.
+    /// </summary>
+    private static HashSet<int> Ancestors()
+    {
+        var ancestors = new HashSet<int>();
+        var id = ProcessAccess.ParentId(Environment.ProcessId);
+        while (id is > 0 && ancestors.Count < MaxAncestors && ancestors.Add(id.Value))
+        {
+            id = ProcessAccess.ParentId(id.Value);
+        }
+
+        return ancestors;
+    }
+
     private static void SignalStop()
     {
         foreach (var name in Isolation.Length > 0 ? new[] { StopEventName } : new[] { StopEventName, LegacyStopEventName })
@@ -122,11 +139,13 @@ internal sealed class Instance(int? spareProcessId = null) : IDisposable
     /// <see cref="LeaveMilliseconds"/> to end by itself before it is killed (it was killed 50 ms after logging "Stopped").</param>
     private void KillOthers(AppFolders folders, bool answered)
     {
+        var ancestors = Ancestors();
         foreach (var process in Process.GetProcesses())
         {
             using (process)
             {
-                if (process.Id == Environment.ProcessId || process.Id == spareProcessId || ProcessAccess.ImagePath(process.Id) is not { } path || !folders.OwnsImage(path))
+                if (process.Id == Environment.ProcessId || process.Id == spareProcessId || ancestors.Contains(process.Id)
+                    || ProcessAccess.ImagePath(process.Id) is not { } path || !folders.OwnsImage(path))
                 {
                     continue;
                 }
