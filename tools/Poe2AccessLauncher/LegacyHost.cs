@@ -14,10 +14,13 @@ internal static class LegacyHost
     private const string LauncherStoreFile = "Poe2Access.copies.txt"; // one file name per line
     private static readonly string[] Kept = ["Poe2AccessHost.exe", "Poe2Access.exe", "Poe2UiExtract.exe"]; // a corrupt list must never delete these
 
-    /// <summary>GameHelper's own files and its overlay's (ImGui, Direct3D, ImageSharp); the host's library is GameReader.dll.</summary>
+    /// <summary>
+    ///     GameHelper's own files (its crash log Error.log included) and its overlay's (ImGui, Direct3D, ImageSharp); the
+    ///     host's library is GameReader.dll and the host logs to Poe2AccessHost.log.
+    /// </summary>
     private static readonly string[] OverlayFiles =
     [
-        "GameHelper.dll", "GameHelper.pdb", "GameHelper.deps.json", "GameHelper.runtimeconfig.json", "imgui.ini",
+        "GameHelper.dll", "GameHelper.pdb", "GameHelper.deps.json", "GameHelper.runtimeconfig.json", "imgui.ini", "Error.log",
         "cimgui.dll", "ImGui.NET.dll", "ClickableTransparentOverlay.dll", "SixLabors.ImageSharp.dll",
         "SharpGen.Runtime.dll", "SharpGen.Runtime.COM.dll", "Vortice.D3DCompiler.dll", "Vortice.Direct3D11.dll",
         "Vortice.DirectX.dll", "Vortice.DXGI.dll", "Vortice.Mathematics.dll",
