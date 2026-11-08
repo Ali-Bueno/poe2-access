@@ -231,6 +231,10 @@ efectos 9, zonas 23. La lista está en el archivo game-news.txt"). This is what 
 in silence if no rule names it, a new screen needs a look. For whoever keeps the mod the same list is in git: the diff of
 `catalog/game-keys.txt` is the patch. The first run has nothing to compare with and says nothing.
 
+`attack-reach` (`AttackReachExtractor`) lists, per monster `.ao` clip (parents followed, a child's clip replacing its parent's), the farthest reach of its Melee damage patterns and the distance of its `contact` event, as `path|clip=reach/impact`.
+`action-types` (`ActionTypeExtractor`) lists the Id of every ActionTypes row (row size guarded at 0xE); a separate step because a step makes one file.
+`telegraph-skills` and `telegraph-effects` (`TelegraphExtractor`, docs/research/attack-telegraphs.md) write the danger area of each skill some monster grants (by GrantedEffects id) and the effect `.ao` files they play (by path); two steps over the same tables, because a step makes one file.
+
 A regenerated catalog under half the size of the old one is refused and the old one kept (`GameDataStamp.Collapsed`): a column that
 moved with the row size unchanged reads few rows and exits with no error. A step that fails leaves its name in
 `catalog/game-data-failed.txt`, and the plugin says it ("parte de los datos del juego tras su actualización"), which until now

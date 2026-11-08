@@ -57,6 +57,10 @@ Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\lang\*.json') (Join-Path $
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\dodge-timings.txt') (Join-Path $plugin 'catalog') # measured dodge timings
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\hit-times.txt') (Join-Path $plugin 'catalog') # hit times from the game files
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\hazards.txt') (Join-Path $plugin 'catalog') # harmful-ground buffs from the game files
+Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\attack-reach.txt') (Join-Path $plugin 'catalog') # how far monster blows reach, from the game files
+Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\action-types.txt') (Join-Path $plugin 'catalog') # the game's action names
+Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\telegraph-skills.txt') (Join-Path $plugin 'catalog') # what the game draws before a monster skill lands
+Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\telegraph-effects.txt') (Join-Path $plugin 'catalog') # the effect files those skills play
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\code-fields.txt') (Join-Path $plugin 'catalog') # what the game's code reads; no step makes it
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\semantic-fields.txt') (Join-Path $plugin 'catalog') # the semantic rules, read with it
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\cull-skills.txt') (Join-Path $plugin 'catalog') # skills that deal Culling Strike, from the game files
