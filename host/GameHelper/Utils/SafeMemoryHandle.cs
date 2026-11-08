@@ -398,7 +398,8 @@ namespace GameHelper.Utils
             var first64Childrens = new Queue<StdMapNode<TKey, TValue>>(64);
             if (nativeContainer.Size < ParallelMinNodes)
             {
-                return processSubTree(first64Childrens, parent, maxSizeAllowed);
+                // A torn tree with a cycle must not walk the full cap on the frame thread: a few nodes past the size is enough.
+                return processSubTree(first64Childrens, parent, Math.Min(maxSizeAllowed, nativeContainer.Size + 2));
             }
 
             // processing first 63 nodes will gives us 64 childrens

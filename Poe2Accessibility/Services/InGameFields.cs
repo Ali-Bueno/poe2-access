@@ -63,6 +63,7 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<InGameField, int> misses = new();
         private readonly Dictionary<InGameField, (long At, IntPtr Element)> held = new();
         private IntPtr container;
+        private (IntPtr Address, string Hash) heldArea;
 
         public InGameFields(HostMemoryReader reader, UiElementReader elements, CompatibilityReport report)
         {
@@ -87,6 +88,14 @@ namespace Poe2Accessibility.Services
                 this.container = layerContainer;
                 this.missedAt.Clear();
                 this.misses.Clear();
+                this.held.Clear();
+            }
+
+            // A new area can rebuild the container in place: what was held may be freed children.
+            var area = GameHelper.Core.States.InGameStateObject.CurrentAreaInstance;
+            if (area.Address != this.heldArea.Address || area.AreaHash != this.heldArea.Hash)
+            {
+                this.heldArea = (area.Address, area.AreaHash);
                 this.held.Clear();
             }
 

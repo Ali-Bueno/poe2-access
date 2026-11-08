@@ -105,7 +105,7 @@ namespace Poe2Accessibility.Services
         /// <summary>One listing serves every caller for this long: they poll every 250 ms or more, and each rebuild walks every entity.</summary>
         private const int EntriesFreshMs = 100;
 
-        private (long At, IntPtr Area, IReadOnlyList<ScanEntry> List)? listed;
+        private (long At, IntPtr Area, string Instance, IReadOnlyList<ScanEntry> List)? listed;
 
         /// <summary>The explored ground is written this often while playing, so a host restart loses little.</summary>
         private const int SaveExploredMs = 15000;
@@ -390,7 +390,7 @@ namespace Poe2Accessibility.Services
             this.Rebind(null);
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             var now = Environment.TickCount64;
-            if (this.listed is { } recent && recent.Area == area.Address && now - recent.At < EntriesFreshMs)
+            if (this.listed is { } recent && recent.Area == area.Address && recent.Instance == this.instance && now - recent.At < EntriesFreshMs)
             {
                 return recent.List;
             }
@@ -516,7 +516,7 @@ namespace Poe2Accessibility.Services
             var questPool = sorted.Concat(unseen.Where(entry => !found.ContainsKey(entry.Id))).OrderBy(entry => Distance(origin, entry)).ToList();
             this.questTargets = QuestMatcher.Targets(questPool, this.QuestTexts(), this.AreaName(), this.cameFrom);
             sorted.InsertRange(0, this.questTargets.Where(target => target.QuestMarked || found.ContainsKey(target.Id)));
-            this.listed = (now, area.Address, sorted);
+            this.listed = (now, area.Address, this.instance, sorted);
             return sorted;
         }
 
