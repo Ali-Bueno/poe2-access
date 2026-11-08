@@ -118,6 +118,11 @@
     <Compile Include="..\..\Poe2Accessibility\Services\ClassMechanicCatalog.cs" Link="Plugin\ClassMechanicCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ResourceTracker.cs" Link="Plugin\ResourceTracker.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.ClassMechanics.cs" Link="Plugin\Announcements.ClassMechanics.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Bosses.cs" Link="Plugin\Announcements.Bosses.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\BossCounterplay.cs" Link="Plugin\BossCounterplay.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\BossPhaseTracker.cs" Link="Plugin\BossPhaseTracker.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\BossMechanicsCatalog.cs" Link="Plugin\BossMechanicsCatalog.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\BossScripts.cs" Link="Extract\BossScripts.cs" />
     <Compile Include="..\..\tools\Poe2AccessLauncher\ReleaseTag.cs" Link="Launcher\ReleaseTag.cs" />
     <Compile Include="..\..\tools\Poe2AccessLauncher\ReleaseManifest.cs" Link="Launcher\ReleaseManifest.cs" />
     <Compile Include="..\..\tools\Poe2AccessLauncher\GameDataStamp.cs" Link="Launcher\GameDataStamp.cs" />

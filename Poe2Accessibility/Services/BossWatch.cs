@@ -122,6 +122,9 @@ namespace Poe2Accessibility.Services
         /// <summary>When each kind of attack lands (loaded by the plugin).</summary>
         public DodgeTimings Timings { get; set; } = new();
 
+        /// <summary>A boss fight's turns and the way out of its danger areas, fed from this watch's walk (docs/research/boss-mechanics.md).</summary>
+        public BossMechanicsWatch? Mechanics { get; set; }
+
         /// <summary>Where <see cref="Timings"/> is saved after each blow learnt (the host is often stopped, not closed).</summary>
         public string TimingsPath { get; set; } = string.Empty;
 
@@ -134,6 +137,7 @@ namespace Poe2Accessibility.Services
             this.warnedAt.Clear();
             this.bosses.Clear();
             this.lastPlayerLife = -1;
+            this.Mechanics?.Reset();
         }
 
         /// <summary>Per frame while playing.</summary>
@@ -180,6 +184,11 @@ namespace Poe2Accessibility.Services
                     this.WatchLife(entity, render);
                 }
 
+                if (pollLife)
+                {
+                    this.Mechanics?.Observe(entity, render, rarity, now);
+                }
+
                 if (attacks && EntityCatalog.IsAliveEnemy(entity) && !EntityCatalog.IsHidden(entity) && entity.TryGetComponent<Actor>(out var actor))
                 {
                     var gap = offset.Length() - render.ModelBounds.X - player.ModelBounds.X;
@@ -188,6 +197,10 @@ namespace Poe2Accessibility.Services
             }
 
             this.entityAddresses = null;
+            if (pollLife)
+            {
+                this.Mechanics?.EndPoll(now);
+            }
 
             if (this.DodgeWarnings)
             {

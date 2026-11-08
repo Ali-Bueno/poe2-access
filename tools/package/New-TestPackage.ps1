@@ -61,6 +61,7 @@ Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\attack-reach.txt') (Join-P
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\action-types.txt') (Join-Path $plugin 'catalog') # the game's action names
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\telegraph-skills.txt') (Join-Path $plugin 'catalog') # what the game draws before a monster skill lands
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\telegraph-effects.txt') (Join-Path $plugin 'catalog') # the effect files those skills play
+Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\boss-mechanics.txt') (Join-Path $plugin 'catalog') # boss fights' turns and mechanic lines, from the game files
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\code-fields.txt') (Join-Path $plugin 'catalog') # what the game's code reads; no step makes it
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\semantic-fields.txt') (Join-Path $plugin 'catalog') # the semantic rules, read with it
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\cull-skills.txt') (Join-Path $plugin 'catalog') # skills that deal Culling Strike, from the game files

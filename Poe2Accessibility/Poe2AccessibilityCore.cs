@@ -360,6 +360,7 @@ namespace Poe2Accessibility
                 var timings = DodgeTimings.Load(Path.Join(this.DllDirectory, "catalog", "hit-times.txt"), this.DodgeTimingsSeedPath, this.DodgeTimingsPath);
                 this.log.Info($"Dodge timings: {timings.FileTimes} attacks timed by the game files");
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = timings, TimingsPath = this.DodgeTimingsPath };
+                this.bosses.Mechanics = this.BossMechanics(elements, this.log);
                 this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log);
                 this.shield = new ShieldWatch(this.audio, this.output, memory, this.log);
                 var skills = new PlayerSkills(memory, elements, this.log);
@@ -476,6 +477,7 @@ namespace Poe2Accessibility
                     OwnNames = () => new[] { PlayerAlerts.Name(Seats.Of(1)), PlayerAlerts.Name(Seats.Other) },
                     SpeakOwn = line => this.output.Speak(line, false),
                     QuietLocal = () => this.fights?.InFight(this.Settings.QuietChatInFights) ?? false,
+                    KeepInFight = line => BossMechanicsCatalog.Shared.IsMechanicLine(line),
                 };
                 this.mapOverlay = new MapOverlayWatch(elements, text => this.output.Speak(text, true));
                 this.longText = new LongTextReader(elements, this.output);

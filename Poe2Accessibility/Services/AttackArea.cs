@@ -9,7 +9,11 @@ namespace Poe2Accessibility.Services
     ///     rows, docs/research/attack-telegraphs.md): its shape, length or radius, width, angle in degrees, range and delay. Sizes
     ///     are taken as world units, as the study's cross-check says; the live protocol measures them.
     /// </summary>
-    public readonly record struct AttackArea(string Shape, float Length, float Width, float AngleDegrees, float Range, int DelayMs);
+    public readonly record struct AttackArea(string Shape, float Length, float Width, float AngleDegrees, float Range, int DelayMs)
+    {
+        /// <summary>How many ground markers a trigger scatters within its range (meteors, ice spikes); 1 for one area.</summary>
+        public int Count { get; init; } = 1;
+    }
 
     /// <summary>Reads an area from its catalog line and tells whether it catches the player. Pure.</summary>
     public static class AttackAreas
@@ -32,6 +36,7 @@ namespace Poe2Accessibility.Services
             string? shape = null;
             float length = 0f, width = 0f, angle = 0f, range = 0f;
             var delay = 0;
+            var count = 1;
             foreach (var part in area.Split(Pair, StringSplitOptions.RemoveEmptyEntries))
             {
                 var at = part.IndexOf(KeyValue);
@@ -69,11 +74,14 @@ namespace Poe2Accessibility.Services
                     case "delay":
                         delay = (int)value;
                         break;
+                    case "count":
+                        count = Math.Max(1, (int)value);
+                        break;
                 }
             }
 
             shape = kind == "trigger" ? Circle : kind == "geometry" ? shape : null;
-            return shape != null && length > 0f ? new AttackArea(shape, length, width, angle, range, delay) : null;
+            return shape != null && length > 0f ? new AttackArea(shape, length, width, angle, range, delay) { Count = count } : null;
         }
 
         /// <summary>

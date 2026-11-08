@@ -141,6 +141,12 @@ namespace Poe2Accessibility.Services
             var (blowIn, timing, contact) = this.BlowIn(attack, snapshot, now);
             var facts = this.Facts(attack, snapshot, rarity, render, player, here, monster, gap, blowIn, timing, id);
             var decision = DodgeGate.Decide(facts, LeadMs);
+            if (this.DodgeWarnings)
+            {
+                this.Mechanics?.Attack(id, attack.Unique, attack.StartedAt, decision, snapshot?.SkillId is { } skillId ? this.attackData.Area(skillId) : null,
+                    monster, snapshot?.Aim?.TargetPoint ?? here, here, player.ModelBounds.X, player.WorldPosition, blowIn, now);
+            }
+
             this.NoteReason(attack.Key, animation, decision.Reason, facts, snapshot);
             var threatens = decision.Verdict != DodgeVerdict.Silent;
             attack = attack with { InReach = threatens, Threatens = threatens, Timing = timing };
