@@ -30,6 +30,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Root candidates to expand per dump (more than this means the heuristic misfired).</summary>
         private const int MaxRootsPerDump = 4;
 
+        /// <summary>Tree dumps kept in the folder (each up to a few MB; 57 of them filled 200 MB).</summary>
+        private const int KeptDumps = 20;
+
         private readonly UiTreeReader reader;
         private readonly string outputDirectory;
         private readonly PluginLog log;
@@ -81,7 +84,26 @@ namespace Poe2Accessibility.Services
             this.AppendElementPointerSlots(sb, stateObject, roots);
             File.WriteAllText(path, sb.ToString());
             this.log.Info($"UI tree written to {path} ({visited.Count} nodes, {Math.Max(1, maxNodes) - budget} lines)");
+            this.PruneOldDumps();
             return path;
+        }
+
+        /// <summary>Deletes all but the newest <see cref="KeptDumps"/> tree dumps: research mode writes one per screen.</summary>
+        private void PruneOldDumps()
+        {
+            try
+            {
+                var dumps = new DirectoryInfo(this.outputDirectory).GetFiles("ui-tree-*.txt");
+                Array.Sort(dumps, (a, b) => b.LastWriteTimeUtc.CompareTo(a.LastWriteTimeUtc));
+                for (var i = KeptDumps; i < dumps.Length; i++)
+                {
+                    dumps[i].Delete();
+                }
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                this.log.Warn($"Old UI dumps not pruned: {ex.Message}");
+            }
         }
 
         private List<IntPtr> CollectRoots(GameStateTypes state, IntPtr stateObject, string rootOverrideHex, out string report)
