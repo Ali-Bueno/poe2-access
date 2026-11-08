@@ -34,6 +34,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A focused row reads at most this many cells, from at most this deep (stat rows: cell → text).</summary>
         private const int MaxRowCells = 6;
 
+        /// <summary>An interactive control with this many texts under it is a row of cells, not a button and its caption.</summary>
+        private const int MinButtonCells = 3;
+
         private const int RowCellDepth = 2;
 
         /// <summary>Last words of layout ids; "_display" holds a whole screen (the bind screen's "action_binding_display").</summary>
@@ -133,6 +136,7 @@ namespace Poe2Accessibility.Services
             var cardDetails = new List<string>();
             var shopPosition = string.Empty;
             var longestCell = int.MaxValue;
+            var cellRow = false;
             string label;
             switch (role)
             {
@@ -205,7 +209,7 @@ namespace Poe2Accessibility.Services
                         break;
                     }
 
-                    label = ownText.Length > 0 ? ownText : this.RowText(info, out longestCell);
+                    label = ownText.Length > 0 ? ownText : this.RowText(info, out longestCell, out cellRow);
                     if (role == UiRole.Button && label.Length > 0 && this.ButtonRowLabel(info) is { Length: > 0 } rowLabel &&
                         !string.Equals(rowLabel, label, StringComparison.OrdinalIgnoreCase))
                     {
@@ -280,7 +284,7 @@ namespace Poe2Accessibility.Services
             {
                 (label, namedById) = (Announcements.AttributeName(attribute), false);
             }
-            else if ((namedById || hovered || label.Length == 0 || label == context) && tooltip.Count > 0)
+            else if ((namedById || (hovered && !cellRow) || label.Length == 0 || (label == context && !cellRow)) && tooltip.Count > 0)
             {
                 // Only a control id named it, nothing did (cosmetic slots: an icon), the label found is the panel's
                 // title (the quest map's underground toggle), or the free cursor rests on it (passive node): the
@@ -512,14 +516,32 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The caption of a control, or every cell of a focused table row ("Maximum Life, 42").</summary>
-        private string RowText(in UiElementReader.ElementInfo info) => this.RowText(info, out _);
+        private string RowText(in UiElementReader.ElementInfo info) => this.RowText(info, out _, out _);
 
-        /// <summary>Same, with the length of its longest cell (a row of short cells is no paragraph, however long together).</summary>
-        private string RowText(in UiElementReader.ElementInfo info, out int longestCell)
+        /// <summary>
+        ///     Same, with the length of its longest cell (a row of short cells is no paragraph, however long together) and
+        ///     whether it is an interactive row of several cells.
+        /// </summary>
+        private string RowText(in UiElementReader.ElementInfo info, out int longestCell, out bool cellRow)
         {
+            cellRow = false;
             if (info.HasFlagBit(GameLayout.Element.InteractiveFlagBit))
             {
                 var caption = this.FindDescendantText(info, CaptionSearchDepth, null);
+                if (this.InGame && caption.Length > 0)
+                {
+                    // A choice drawn as a row of cells: the Instance Manager's "Enter the instance | Sao Paulo (BR) | Created:
+                    // 12:28:45 | 18 minutes 34 seconds" said only its tooltip's "No players" (2026-11-08); all its texts, in screen order.
+                    var rowCells = new RowWalk();
+                    this.CollectTexts(info, 0, RowCellDepth, rowCells);
+                    if (rowCells.Texts.Count is >= MinButtonCells and <= MaxRowCells)
+                    {
+                        cellRow = true;
+                        longestCell = rowCells.Texts.Max(text => text.Text.Length);
+                        return this.ScreenOrderText(info);
+                    }
+                }
+
                 longestCell = caption.Length;
                 return caption;
             }

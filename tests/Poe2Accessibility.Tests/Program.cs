@@ -261,6 +261,11 @@ namespace Poe2Accessibility.Tests
             var after = Snapshot(Layer(1, 0, true, Text(10, "Ranger"), Text(12, "Time Left: 0H 0M 4S")));
             differ.Apply(after);
             Equal(0, differ.Apply(after).Count, "digit-only change");
+            Equal(true, ScreenDiffer.SameBesideNumbers("11 minutos 2 segundos", "11 minutos 1 segundo"), "a clock passing 1 (Spanish)");
+            Equal(true, ScreenDiffer.SameBesideNumbers("11 minutos 1 segundo", "11 minutos 0 segundos"), "and on to 0");
+            Equal(true, ScreenDiffer.SameBesideNumbers("1 Sekunde", "2 Sekunden"), "German plural");
+            Equal(true, ScreenDiffer.SameBesideNumbers("1 minute 5 seconds", "2 minutes 5 seconds"), "English plural");
+            Equal(false, ScreenDiffer.SameBesideNumbers("3 rounds left", "3 lives left"), "another word is news");
         }
 
         private static void ClosedPopupIsNewsAgain()

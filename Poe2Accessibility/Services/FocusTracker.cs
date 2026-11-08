@@ -271,6 +271,14 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (fresh.Value == this.Current.Value && fresh.IsExpanded == this.Current.IsExpanded && ScreenDiffer.SameBesideNumbers(fresh.Text, this.Current.Text))
+            {
+                // A clock in the focused row ticking (the Instance Manager's "11 minutes 45 seconds" left, 2026-11-08) is no
+                // news, as on the screen (ScreenDiffer): the row was said once, with the time it showed then.
+                this.Current = fresh;
+                return;
+            }
+
             this.log.Info($"Value -> 0x{fresh.Address.ToInt64():X} \"{fresh.Text}\" = \"{fresh.Value}\"");
             this.Current = fresh;
             this.ValueChanged?.Invoke(fresh);

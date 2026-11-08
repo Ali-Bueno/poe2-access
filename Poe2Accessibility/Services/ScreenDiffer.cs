@@ -15,6 +15,12 @@ namespace Poe2Accessibility.Services
     {
         private static readonly Regex Digits = new(@"\d+", RegexOptions.Compiled);
 
+        /// <summary>
+        ///     A number and the unit word after it, whose ending follows the number ("1 segundo" / "0 segundos", "1 Sekunde" /
+        ///     "2 Sekunden"): a clock passing 1 is still a tick (the Instance Manager's time left, 2026-11-08).
+        /// </summary>
+        private static readonly Regex CountedWord = new(@"\d+(\s+\p{L}+?)(?:s|n)?\b", RegexOptions.Compiled);
+
         /// <summary>A zoom factor ("x1,4", the passive tree's LT/RT): news when it changes, unlike a counter.</summary>
         public static readonly Regex ZoomFactor = new(@"^x\d+([.,]\d+)?$", RegexOptions.Compiled);
 
@@ -60,7 +66,9 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The same text with only its numbers changed: a counter ticking, not a new line.</summary>
-        public static bool SameBesideNumbers(string a, string b) => Digits.Replace(a, "#") == Digits.Replace(b, "#");
+        public static bool SameBesideNumbers(string a, string b) => Ticked(a) == Ticked(b);
+
+        private static string Ticked(string text) => Digits.Replace(CountedWord.Replace(text, "#$1"), "#");
 
         public IReadOnlyList<ScreenChange> Apply(ScreenSnapshot current)
         {
