@@ -8,7 +8,6 @@ namespace GameHelper.RemoteObjects.UiElement
     using System.Numerics;
     using GameHelper.Cache;
     using GameOffsets.Objects.UiElement;
-    using ImGuiNET;
 
     /// <summary>
     ///     Points to the Map UiElement.
@@ -41,17 +40,6 @@ namespace GameHelper.RemoteObjects.UiElement
         ///     Normally values are between 0.5f  - 1.5f.
         /// </summary>
         public float Zoom { get; private set; } = 0.5f;
-
-        /// <summary>
-        ///     Converts the <see cref="LargeMapUiElement" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Shift {this.shift}");
-            ImGui.Text($"Default Shift {this.defaultShift}");
-            ImGui.Text($"Zoom {this.Zoom}");
-        }
 
         /// <inheritdoc />
         protected override void CleanUpData()

@@ -6,7 +6,6 @@ namespace GameHelper.RemoteObjects.Components
 {
     using System;
     using GameOffsets.Objects.Components;
-    using ImGuiNET;
 
     /// <summary>
     ///     The <see cref="Chest" /> component in the entity.
@@ -34,17 +33,6 @@ namespace GameHelper.RemoteObjects.Components
         ///     Gets the Level of the player.
         /// </summary>
         public int Level { get; private set; }
-
-        /// <summary>
-        ///     Converts the <see cref="Player" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Player Name: {this.Name}");
-            ImGui.Text($"Xp: {this.Xp}");
-            ImGui.Text($"Level: {this.Level}");
-        }
 
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)

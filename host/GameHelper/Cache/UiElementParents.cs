@@ -13,7 +13,6 @@ namespace GameHelper.Cache
     using GameHelper.RemoteObjects.UiElement;
     using GameHelper.CoroutineEvents;
     using GameOffsets.Objects.UiElement;
-    using ImGuiNET;
     using GameHelper.RemoteEnums;
     using System.Threading.Tasks;
 
@@ -166,31 +165,6 @@ namespace GameHelper.Cache
             lock (this.cache)
             {
                 this.cache.Clear();
-            }
-        }
-
-        public void ToImGui()
-        {
-            KeyValuePair<IntPtr, UiElementBase>[] snapshot;
-            lock (this.cache)
-            {
-                snapshot = new KeyValuePair<IntPtr, UiElementBase>[this.cache.Count];
-                ((ICollection<KeyValuePair<IntPtr, UiElementBase>>)this.cache).CopyTo(snapshot, 0);
-            }
-
-            ImGui.Text($"Total Size: {snapshot.Length}");
-            if (ImGui.TreeNode($"{this.name} Parent UiElements"))
-            {
-                foreach (var (key, value) in snapshot)
-                {
-                    if (ImGui.TreeNode($"0x{key.ToInt64():X}"))
-                    {
-                        value.ToImGui();
-                        ImGui.TreePop();
-                    }
-                }
-
-                ImGui.TreePop();
             }
         }
 

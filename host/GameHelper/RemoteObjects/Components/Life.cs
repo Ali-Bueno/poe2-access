@@ -6,7 +6,6 @@ namespace GameHelper.RemoteObjects.Components
 {
     using System;
     using GameOffsets.Objects.Components;
-    using ImGuiNET;
     using Utils;
 
     /// <summary>
@@ -51,44 +50,6 @@ namespace GameHelper.RemoteObjects.Components
         /// </summary>
         public VitalStruct Divinity { get; private set; }
 
-        /// <summary>
-        ///     Converts the <see cref="Life" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-
-            if (ImGui.TreeNode("Health"))
-            {
-                this.VitalToImGui(this.Health);
-                ImGui.TreePop();
-            }
-
-            if (ImGui.TreeNode("Energy Shield"))
-            {
-                this.VitalToImGui(this.EnergyShield);
-                ImGui.TreePop();
-            }
-
-            if (ImGui.TreeNode("Mana"))
-            {
-                this.VitalToImGui(this.Mana);
-                ImGui.TreePop();
-            }
-
-            if (ImGui.TreeNode("Ward"))
-            {
-                this.VitalToImGui(this.Ward);
-                ImGui.TreePop();
-            }
-
-            if (ImGui.TreeNode("Divinity"))
-            {
-                this.VitalToImGui(this.Divinity);
-                ImGui.TreePop();
-            }
-        }
-
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)
         {
@@ -103,15 +64,5 @@ namespace GameHelper.RemoteObjects.Components
             this.IsAlive = data.Health.Current > 0;
         }
 
-        private void VitalToImGui(VitalStruct data)
-        {
-            ImGuiHelper.IntPtrToImGui("PtrToSelf", data.PtrToLifeComponent);
-            ImGui.Text($"Regeneration: {data.Regeneration}");
-            ImGui.Text($"Total: {data.Total}");
-            ImGui.Text($"ReservedFlat: {data.ReservedFlat}");
-            ImGui.Text($"Current: {data.Current}");
-            ImGui.Text($"Reserved(%%): {data.ReservedPercent}");
-            ImGui.Text($"Current(%%): {data.CurrentInPercent()}");
-        }
     }
 }

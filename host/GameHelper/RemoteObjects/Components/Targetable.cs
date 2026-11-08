@@ -7,7 +7,6 @@ namespace GameHelper.RemoteObjects.Components
     using System;
     using System.Runtime.InteropServices;
     using GameOffsets.Objects.Components;
-    using ImGuiNET;
 
     /// <summary>
     ///     The <see cref="Targetable" /> component in the entity.
@@ -27,22 +26,6 @@ namespace GameHelper.RemoteObjects.Components
         ///     Gets the value indicating whether the entity is targetable or not.
         /// </summary>
         public bool IsTargetable { get; private set; } = false;
-
-        /// <summary>
-        ///     Converts the <see cref="Targetable" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"IsHighlightable: {this.cache.IsHighlightable}");
-            ImGui.Text($"IsTargettedByPlayer: {this.cache.IsTargettedByPlayer}");
-
-            ImGui.Text($"IsTargetable: {this.cache.IsTargetable}");
-            ImGui.Text($"HiddenfromPlayer: {this.cache.HiddenfromPlayer}");
-            ImGui.Text($"NeedsTrue: {this.cache.NeedsTrue}");
-            ImGui.Text($"MeetsQuestState: {this.cache.MeetsQuestState}");
-            ImGui.Text($"NeedsFalse: {this.cache.NeedsFalse}");
-        }
 
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)

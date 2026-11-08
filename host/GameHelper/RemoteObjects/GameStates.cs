@@ -9,7 +9,6 @@ namespace GameHelper.RemoteObjects
     using Coroutine;
     using CoroutineEvents;
     using GameOffsets.Objects;
-    using ImGuiNET;
     using RemoteEnums;
     using States;
     using Utils;
@@ -66,25 +65,6 @@ namespace GameHelper.RemoteObjects
                     }
                 }
             }
-        }
-
-        /// <summary>
-        ///     Converts the <see cref="GameStates" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            if (ImGui.TreeNode("All States Info"))
-            {
-                foreach (var state in this.AllStates)
-                {
-                    ImGuiHelper.IntPtrToImGui($"{state.Value}", state.Key);
-                }
-
-                ImGui.TreePop();
-            }
-
-            ImGui.Text($"Current State: {this.GameCurrentState}");
         }
 
         /// <inheritdoc />

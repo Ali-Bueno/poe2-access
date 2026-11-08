@@ -7,7 +7,7 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>false</SelfContained>
     <!-- Class libraries don't copy NuGet assemblies to bin by default; we need Prismatoid.dll + prism.dll there.
-         Only the curated list in DeployToHost reaches the plugin folder (never a second ImGui.NET). -->
+         Only the curated list in DeployToHost reaches the plugin folder. -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <PlatformTarget>x64</PlatformTarget>
     <Nullable>enable</Nullable>
@@ -21,7 +21,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
     <PackageReference Include="Prismatoid" Version="0.4.0" />
   </ItemGroup>
 

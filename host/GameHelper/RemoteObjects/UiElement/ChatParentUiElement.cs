@@ -2,7 +2,6 @@
 {
     using GameHelper.Cache;
     using GameOffsets.Natives;
-    using ImGuiNET;
     using System;
 
     /// <summary>
@@ -25,13 +24,5 @@
 
         public bool IsChatActive => Util.isBitSetUint(this.flags, CHAT_ACTIVE_BINARY_POS);
 
-        /// <summary>
-        ///     Converts the <see cref="ChatParentUiElement" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"IsChatActive: {this.IsChatActive} (flags: {this.flags:X})");
-        }
     }
 }

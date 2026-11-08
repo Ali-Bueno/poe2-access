@@ -32,7 +32,7 @@ namespace GameHelper.CoroutineEvents
         internal static readonly Event PerFrameDataUpdate = new();
 
         /// <summary>
-        ///     To submit ImGui code for generating the UI.
+        ///     To submit the per-frame UI drawing.
         /// </summary>
         internal static readonly Event OnRender = new();
 

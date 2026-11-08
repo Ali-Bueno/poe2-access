@@ -8,7 +8,6 @@ namespace GameHelper.RemoteObjects
     using System.Collections.Generic;
     using Coroutine;
     using CoroutineEvents;
-    using ImGuiNET;
 
     /// <summary>
     ///     Reads the Game Window Cull (black bar on each side) values from the game.
@@ -31,15 +30,6 @@ namespace GameHelper.RemoteObjects
         ///     Gets the current game window scale values.
         /// </summary>
         public int Value { get; private set; }
-
-        /// <summary>
-        ///     Converts the <see cref="GameWindowCull" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Game Window Cull Size: {this.Value}");
-        }
 
         /// <inheritdoc />
         protected override void CleanUpData()

@@ -7,7 +7,6 @@ namespace GameHelper.RemoteObjects.Components
     using System;
     using GameOffsets.Objects.Components;
     using GameOffsets.Objects.States.InGameState;
-    using ImGuiNET;
 
     /// <summary>
     ///     The <see cref="Positioned" /> component in the entity.
@@ -31,16 +30,6 @@ namespace GameHelper.RemoteObjects.Components
         ///     Gets a value indicating whether the entity is friendly or not.
         /// </summary>
         public bool IsFriendly { get; private set; }
-
-        /// <summary>
-        ///     Converts the <see cref="Positioned" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Flags: {this.Flags:X}");
-            ImGui.Text($"IsFriendly: {this.IsFriendly}");
-        }
 
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)

@@ -14,7 +14,6 @@ namespace GameHelper.RemoteObjects
     using Coroutine;
     using CoroutineEvents;
     using GameOffsets.Objects;
-    using ImGuiNET;
     using Utils;
 
     /// <summary>
@@ -22,7 +21,6 @@ namespace GameHelper.RemoteObjects
     /// </summary>
     public class LoadedFiles : RemoteObjectBase
     {
-        private bool areaAlreadyDone;
         private string areaHashCache = string.Empty;
         private string filename = string.Empty;
         private string searchText = string.Empty;
@@ -46,87 +44,11 @@ namespace GameHelper.RemoteObjects
 
             = new();
 
-        /// <summary>
-        ///     Converts the <see cref="LoadedFiles" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Total Loaded Files in current area: {this.PathNames.Count}");
-            ImGui.TextWrapped("NOTE: The Overlay caches the preloads when you enter a new map. " +
-                              "This cache is only cleared & updated when you enter a new Map. Going to town or " +
-                              "hideout isn't considered a new Map. So basically you can find important preloads " +
-                              "even after you have completed the whole map/gone to town/hideouts and " +
-                              "entered the same Map again.");
-
-            ImGui.Text("File Name: ");
-            ImGui.SameLine();
-            ImGui.InputText("##filename", ref this.filename, 100);
-            ImGui.SameLine();
-            if (!this.areaAlreadyDone)
-            {
-                if (ImGui.Button("Save"))
-                {
-                    var dir_name = "preload_dumps";
-                    Directory.CreateDirectory(dir_name);
-                    var dataToWrite = this.PathNames.Keys.ToList();
-                    dataToWrite.Sort();
-                    File.WriteAllText(
-                        Path.Join(dir_name, this.filename),
-                        string.Join("\n", dataToWrite));
-                    this.areaAlreadyDone = true;
-                }
-            }
-            else
-            {
-                ImGuiHelper.DrawDisabledButton("Save");
-            }
-
-            ImGui.Text("Search:    ");
-            ImGui.SameLine();
-            if (ImGui.InputText("##LoadedFiles", ref this.searchText, 50))
-            {
-                this.searchTextSplit = this.searchText.ToLower().Split(",", StringSplitOptions.RemoveEmptyEntries);
-            }
-
-            ImGui.Text("NOTE: Search is Case-Insensitive. Use commas (,) to narrow down the resulting files.");
-            if (!string.IsNullOrEmpty(this.searchText))
-            {
-                if (ImGui.BeginChild("Result##loadedfiles", Vector2.Zero, ImGuiChildFlags.Borders))
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
-                    foreach (var kv in this.PathNames)
-                    {
-                        var containsAll = true;
-                        for (var i = 0; i < this.searchTextSplit.Length; i++)
-                        {
-                            if (!kv.Key.ToLower().Contains(this.searchTextSplit[i]))
-                            {
-                                containsAll = false;
-                            }
-                        }
-
-                        if (containsAll)
-                        {
-                            if (ImGui.SmallButton($"AreaId: {kv.Value} Path: {kv.Key}"))
-                            {
-                                ImGui.SetClipboardText(kv.Key);
-                            }
-                        }
-                    }
-
-                    ImGui.PopStyleColor();
-                    ImGui.EndChild();
-                }
-            }
-        }
-
         /// <inheritdoc />
         protected override void CleanUpData()
         {
             this.PathNames.Clear();
             this.areaHashCache = string.Empty;
-            this.areaAlreadyDone = false;
             this.filename = string.Empty;
         }
 
@@ -190,7 +112,6 @@ namespace GameHelper.RemoteObjects
 
                     this.CleanUpData();
                     this.filename = $"{name}_{areaHash}.txt";
-                    this.areaAlreadyDone = false;
                     this.areaHashCache = areaHash;
 
                     filesRootObjs = this.GetAllPointers();

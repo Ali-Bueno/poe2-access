@@ -8,7 +8,6 @@ namespace GameHelper.RemoteObjects.Components
     using System.Collections.Concurrent;
     using GameOffsets.Objects.Components;
     using GameOffsets.Objects.FilesStructures;
-    using ImGuiNET;
     using Utils;
 
     /// <summary>
@@ -31,34 +30,6 @@ namespace GameHelper.RemoteObjects.Components
         public ConcurrentDictionary<string, StatusEffectStruct> StatusEffects { get; } = new();
 
         public bool[] FlaskActive { get; private set; } = new bool[5];
-
-        /// <inheritdoc />
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            if (ImGui.TreeNode("Status Effect (Buffs/Debuffs)"))
-            {
-                foreach (var kv in this.StatusEffects)
-                {
-                    if (ImGui.TreeNode($"{kv.Key}"))
-                    {
-                        ImGuiHelper.DisplayTextAndCopyOnClick($"Name: {kv.Key}", kv.Key);
-                        ImGuiHelper.IntPtrToImGui("BuffDefinationPtr", kv.Value.BuffDefinationPtr);
-                        ImGuiHelper.DisplayFloatWithInfinitySupport("Total Time:", kv.Value.TotalTime);
-                        ImGuiHelper.DisplayFloatWithInfinitySupport("Time Left:", kv.Value.TimeLeft);
-                        ImGui.Text($"Source Entity Id: {kv.Value.SourceEntityId}");
-                        ImGui.Text($"Raw Stage: {kv.Value.RawStage}");
-                        ImGui.Text($"Charges: {kv.Value.Charges}");
-                        ImGui.Text($"Source FlaskSlot: {kv.Value.FlaskSlot}");
-                        ImGui.Text($"Source Effectiveness: {100 + kv.Value.Effectiveness} (raw value: {kv.Value.Effectiveness})");
-                        ImGui.Text($"Source UnknownIdAndEquipmentInfo: {kv.Value.UnknownIdAndEquipmentInfo:X}");
-                        ImGui.TreePop();
-                    }
-                }
-
-                ImGui.TreePop();
-            }
-        }
 
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)

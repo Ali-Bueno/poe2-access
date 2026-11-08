@@ -7,7 +7,6 @@ namespace GameHelper.RemoteObjects.UiElement
     using System;
     using GameHelper.Cache;
     using GameOffsets.Objects.UiElement;
-    using ImGuiNET;
 
     /// <summary>
     ///     Points to the Map UiElement.
@@ -26,15 +25,6 @@ namespace GameHelper.RemoteObjects.UiElement
         ///     Gets the graph ID associated with the skill.
         /// </summary>
         public int SkillGraphId { get; private set; } = 0x00;
-
-        /// <summary>
-        ///     Converts the <see cref="LargeMapUiElement" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"SkillGraphId = {this.SkillGraphId}");
-        }
 
         /// <inheritdoc />
         protected override void CleanUpData()

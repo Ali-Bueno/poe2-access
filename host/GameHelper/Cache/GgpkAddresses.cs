@@ -7,7 +7,6 @@ namespace GameHelper.Cache
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using ImGuiNET;
     using Coroutine;
     using GameHelper.Utils;
 
@@ -43,24 +42,6 @@ namespace GameHelper.Cache
         public T AddOrGetExisting(IntPtr key, Func<IntPtr,T> valueFactory) => key == IntPtr.Zero ?
             throw new Exception($"Object tried to load 0x{key.ToInt64():X} in the cache.") :
             this.cache.GetOrAdd(key, valueFactory);
-
-        /// <summary>
-        ///     Draws a widget for this class.
-        /// </summary>
-        public void ToImGui()
-        {
-            ImGui.Text($"Total Size: {this.cache.Count}");
-            if (ImGui.TreeNode("GGPK Addresses"))
-            {
-                foreach(var (key, value) in this.cache)
-                {
-                    var addr = $"0x{key.ToInt64():X}";
-                    ImGuiHelper.DisplayTextAndCopyOnClick($"{addr} - {value}", addr);
-                }
-
-                ImGui.TreePop();
-            }
-        }
 
         private IEnumerable<Wait> OnGameClose()
         {

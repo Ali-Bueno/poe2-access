@@ -12,7 +12,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
     using GameHelper.RemoteObjects.FilesStructures;
     using GameOffsets.Natives;
     using GameOffsets.Objects.States.InGameState;
-    using ImGuiNET;
 
     /// <summary>
     ///     Points to InGameState -> WorldData object.
@@ -133,23 +132,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         {
             Core.CoroutinesRegistrar.Add(CoroutineHandler.Start(
                 this.OnPerFrame(), "[AreaInstance] Update World Data"));
-        }
-
-        /// <summary>
-        ///     Converts the <see cref="WorldData" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            if (ImGui.TreeNode("WindowToScreenMatrix"))
-            {
-                var d = System.Threading.Volatile.Read(ref this.matrixSnap).M;
-                ImGui.Text($"{d.M11:0.00}\t{d.M12:0.00}\t{d.M13:0.00}\t{d.M14:0.00}");
-                ImGui.Text($"{d.M21:0.00}\t{d.M22:0.00}\t{d.M23:0.00}\t{d.M24:0.00}");
-                ImGui.Text($"{d.M31:0.00}\t{d.M32:0.00}\t{d.M33:0.00}\t{d.M34:0.00}");
-                ImGui.Text($"{d.M41:0.00}\t{d.M42:0.00}\t{d.M43:0.00}\t{d.M44:0.00}");
-                ImGui.TreePop();
-            }
         }
 
         /// <inheritdoc />

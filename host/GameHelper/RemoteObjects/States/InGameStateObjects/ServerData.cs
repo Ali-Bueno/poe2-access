@@ -8,7 +8,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
     using System.Collections.Generic;
     using Coroutine;
     using GameOffsets.Objects.States.InGameState;
-    using ImGuiNET;
     using RemoteEnums;
     using Utils;
 
@@ -17,7 +16,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
     /// </summary>
     public class ServerData : RemoteObjectBase
     {
-        private InventoryName selectedInvName = InventoryName.NoInvSelected;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="ServerData" /> class.
@@ -51,47 +49,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         internal Dictionary<InventoryName, IntPtr> PlayerInventories { get; }
 
             = new();
-
-        /// <inheritdoc />
-        internal override void ToImGui()
-        {
-            if (this.selectedInvName != InventoryName.NoInvSelected &&
-                !this.PlayerInventories.ContainsKey(this.selectedInvName))
-            {
-                this.ClearCurrentlySelectedInventory();
-            }
-
-            ImGuiHelper.IntPtrToImGui("Address", this.Address);
-            if (ImGui.TreeNode("FlaskInventory"))
-            {
-                this.FlaskInventory.ToImGui();
-                ImGui.TreePop();
-            }
-
-            ImGui.Text("please click Clear Selected before leaving this window.");
-            if (ImGuiHelper.IEnumerableComboBox(
-                "###Inventory Selector",
-                this.PlayerInventories.Keys,
-                ref this.selectedInvName))
-            {
-                this.SelectedInv.Address = this.PlayerInventories[this.selectedInvName];
-            }
-
-            ImGui.SameLine();
-            if (ImGui.Button("Clear Selected"))
-            {
-                this.ClearCurrentlySelectedInventory();
-            }
-
-            if (this.selectedInvName != InventoryName.NoInvSelected)
-            {
-                if (ImGui.TreeNode("Currently Selected Inventory"))
-                {
-                    this.SelectedInv.ToImGui();
-                    ImGui.TreePop();
-                }
-            }
-        }
 
         /// <inheritdoc />
         protected override void CleanUpData()
@@ -134,7 +91,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
 
         private void ClearCurrentlySelectedInventory()
         {
-            this.selectedInvName = InventoryName.NoInvSelected;
             this.SelectedInv.Address = IntPtr.Zero;
         }
 

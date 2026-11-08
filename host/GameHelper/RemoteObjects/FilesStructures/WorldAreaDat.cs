@@ -6,7 +6,6 @@ namespace GameHelper.RemoteObjects.FilesStructures
 {
     using System;
     using GameOffsets.Objects.FilesStructures;
-    using ImGuiNET;
     using States;
 
     /// <summary>
@@ -56,20 +55,6 @@ namespace GameHelper.RemoteObjects.FilesStructures
         ///     Gets a value indicating whether area has a waypoint or not.
         /// </summary>
         public bool HasWaypoint { get; private set; }
-
-        /// <summary>
-        ///     Converts the <see cref="WorldAreaDat" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Id: {this.Id}");
-            ImGui.Text($"Name: {this.Name}");
-            ImGui.Text($"Is Town: {this.IsTown}");
-            ImGui.Text($"Is Hideout: {this.IsHideout}");
-            ImGui.Text($"Is BattleRoyale: {this.IsBattleRoyale}");
-            ImGui.Text($"Has Waypoint: {this.HasWaypoint}");
-        }
 
         /// <inheritdoc />
         protected override void CleanUpData()

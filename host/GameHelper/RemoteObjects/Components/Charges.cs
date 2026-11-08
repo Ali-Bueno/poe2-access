@@ -6,7 +6,6 @@ namespace GameHelper.RemoteObjects.Components
 {
     using System;
     using GameOffsets.Objects.Components;
-    using ImGuiNET;
 
     /// <summary>
     ///     The <see cref="Charges" /> component in the entity.
@@ -29,16 +28,6 @@ namespace GameHelper.RemoteObjects.Components
         ///     Gets the value indicating the number of cahrges required per flask use.
         /// </summary>
         public int PerUseCharge { get; private set; }
-
-        /// <summary>
-        ///     Converts the <see cref="Charges" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Current Charges: {this.Current}");
-            ImGui.Text($"PerUse Charges: {this.PerUseCharge}");
-        }
 
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)

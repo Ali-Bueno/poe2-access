@@ -5,7 +5,6 @@
 namespace GameHelper.RemoteObjects
 {
     using System;
-    using ImGuiNET;
 
     /// <summary>
     ///     Contains the static data for calculating the terrain height.
@@ -27,13 +26,6 @@ namespace GameHelper.RemoteObjects
         ///     Gets the values associated with this class.
         /// </summary>
         public byte[] Values { get; private set; }
-
-        /// <inheritdoc />
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text(string.Join(' ', this.Values));
-        }
 
         /// <inheritdoc />
         protected override void CleanUpData()

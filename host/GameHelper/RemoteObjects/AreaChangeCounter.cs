@@ -9,7 +9,6 @@ namespace GameHelper.RemoteObjects
     using Coroutine;
     using CoroutineEvents;
     using GameOffsets.Objects;
-    using ImGuiNET;
 
     /// <summary>
     ///     Points to the AreaChangeCounter object and read/cache it's value
@@ -31,15 +30,6 @@ namespace GameHelper.RemoteObjects
         ///     Gets the cached value of the AreaChangeCounter.
         /// </summary>
         public int Value { get; private set; } = int.MaxValue;
-
-        /// <summary>
-        ///     Converts the <see cref="AreaChangeCounter" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Area Change Counter: {this.Value}");
-        }
 
         /// <inheritdoc />
         protected override void CleanUpData()

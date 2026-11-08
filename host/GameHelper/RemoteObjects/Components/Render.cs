@@ -8,7 +8,6 @@ namespace GameHelper.RemoteObjects.Components
     using GameOffsets.Natives;
     using GameOffsets.Objects.Components;
     using GameOffsets.Objects.States.InGameState;
-    using ImGuiNET;
 
     /// <summary>
     ///     The <see cref="Render" /> component in the entity.
@@ -58,18 +57,6 @@ namespace GameHelper.RemoteObjects.Components
         ///     Gets the terrain height on which the Entity is standing.
         /// </summary>
         public float TerrainHeight { get; private set; }
-
-        /// <summary>
-        ///     Converts the <see cref="Render" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Grid Position: {this.GridPosition}");
-            ImGui.Text($"World Position: {this.WorldPosition}");
-            ImGui.Text($"Terrain Height (Z-Axis): {this.TerrainHeight}");
-            ImGui.Text($"Model Bounds: {this.ModelBounds}");
-        }
 
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)

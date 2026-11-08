@@ -9,7 +9,6 @@ namespace GameHelper.RemoteObjects.UiElement
     using System.Numerics;
     using GameHelper.Cache;
     using GameOffsets.Objects.UiElement;
-    using ImGuiNET;
     using Ui;
     using Utils;
 
@@ -19,7 +18,6 @@ namespace GameHelper.RemoteObjects.UiElement
     public class UiElementBase : RemoteObjectBase
     {
         private Vector2 positionModifier;
-        private bool show;
         private IntPtr[] childrenAddresses = Array.Empty<IntPtr>();
         // F-136: cache of materialised UiElementBase children — lazily built by the
         // this[int] indexer, invalidated on address change. Slots are null until
@@ -137,7 +135,6 @@ namespace GameHelper.RemoteObjects.UiElement
         /// </summary>
         /// <param name="i">index of the child Ui Element.</param>
         /// <returns>the child Ui Element.</returns>
-        [SkipImGuiReflection]
         public UiElementBase? this[int i]
         {
             get
@@ -161,39 +158,10 @@ namespace GameHelper.RemoteObjects.UiElement
             }
         }
 
-        /// <summary>
-        ///     Converts the <see cref="UiElementBase" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            ImGui.Checkbox("Show", ref this.show);
-
-            base.ToImGui();
-            if (this.show)
-            {
-                ImGuiHelper.DrawRect(this.Position, this.Size, 255, 255, 0);
-            }
-
-            ImGui.Text($"Position  {this.Position}");
-            ImGui.Text($"Size  {this.Size}");
-            ImGui.Text($"Unscaled Size {this.unScaledSize}");
-            ImGui.Text($"IsVisible  {this.IsVisible}");
-            ImGui.Text($"Total Childrens  {this.TotalChildrens}");
-            ImGui.Text($"Parent  {this.parentAddress.ToInt64():X}");
-            ImGui.Text($"Position Modifier {this.positionModifier}");
-            ImGui.Text($"Scale Index {this.scaleIndex}");
-            ImGui.Text($"Local Scale Multiplier {this.localScaleMultiplier}");
-            ImGui.Text($"Flags: {this.flags:X}");
-            ImGui.Text("Background Color");
-            ImGui.SameLine();
-            ImGui.ColorButton("##UiElementBackgroundColor", this.backgroundColor);
-        }
-
         /// <inheritdoc />
         protected override void CleanUpData()
         {
             this.positionModifier = Vector2.Zero;
-            this.show = false;
             this.childrenAddresses = Array.Empty<IntPtr>();
             // F-136: rebuild cache slots to match the new childrenAddresses length.
             // Existing materialised children are dropped; they'll be re-allocated
@@ -249,7 +217,20 @@ namespace GameHelper.RemoteObjects.UiElement
             this.unScaledSize.X = data.UnscaledSize.X;
             this.unScaledSize.Y = data.UnscaledSize.Y;
 
-            this.backgroundColor = ImGuiHelper.Color(data.BackgroundColor);
+            this.backgroundColor = UiElementBase.UnpackColor(data.BackgroundColor);
+        }
+
+        private static Vector4 UnpackColor(uint color)
+        {
+            var ret = Vector4.Zero;
+            ret.Z = (color & 0xFF) / 255f;
+            color >>= 8;
+            ret.Y = (color & 0xFF) / 255f;
+            color >>= 8;
+            ret.X = (color & 0xFF) / 255f;
+            color >>= 8;
+            ret.W = (color & 0xFF) / 255f;
+            return ret;
         }
 
         private const int MaxParentChainDepth = 64;

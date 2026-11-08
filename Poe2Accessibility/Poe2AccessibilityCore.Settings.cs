@@ -2,34 +2,11 @@ namespace Poe2Accessibility
 {
     using System;
     using GameHelper;
-    using ImGuiNET;
     using Poe2Accessibility.Services;
 
-    /// <summary>Settings of <see cref="Poe2AccessibilityCore"/>: the host's settings panel, applying them to the services, hotkey checks.</summary>
+    /// <summary>Settings of <see cref="Poe2AccessibilityCore"/>: applying them to the services, hotkey checks.</summary>
     public sealed partial class Poe2AccessibilityCore
     {
-        /// <inheritdoc />
-        public override void DrawSettings()
-        {
-            ImGui.TextWrapped("Blind users: edit config/settings.txt directly (hotkeys by key name); it is reloaded automatically.");
-            ImGui.Checkbox("Speech enabled (restart plugin to apply)", ref this.Settings.SpeechEnabled);
-            ImGui.Checkbox("Announce game state changes", ref this.Settings.AnnounceGameState);
-            ImGui.Checkbox("Announce area changes", ref this.Settings.AnnounceArea);
-            ImGui.Checkbox("Read NPC, system, whisper and party chat", ref this.Settings.AnnounceChat);
-            ImGui.Checkbox("Also read global and trade chat", ref this.Settings.AnnouncePlayerChat);
-            ImGui.Checkbox("Read whole tooltips when the focus lands", ref this.Settings.ReadTooltipsOnFocus);
-            ImGui.Checkbox("L3 is the mod button (lines, details, hints, screen)", ref this.Settings.ControllerCommands);
-            ImGui.Checkbox("Say when life falls below half and a quarter", ref this.Settings.AnnounceLowLife);
-            if (ImGui.Checkbox("Verbose logging", ref this.Settings.VerboseLogging) && this.log != null)
-            {
-                this.log.Verbose = this.Settings.VerboseLogging;
-            }
-
-            ImGui.Checkbox("UI dump: visible elements only", ref this.Settings.UiDumpVisibleOnly);
-            ImGui.Text($"Hotkeys: dump UI tree {this.Settings.DumpUiTreeHotKey}, repeat {this.Settings.RepeatLastHotKey}, status {this.Settings.SpeakStatusHotKey}");
-            ImGui.Text($"Speech backend: {this.output.BackendName}");
-        }
-
         /// <inheritdoc />
         public override void SaveSettings() => this.settingsStore?.Save(this.Settings);
 

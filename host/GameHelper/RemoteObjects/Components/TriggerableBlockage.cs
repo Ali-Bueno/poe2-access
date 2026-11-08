@@ -6,7 +6,6 @@ namespace GameHelper.RemoteObjects.Components
 {
     using System;
     using GameOffsets.Objects.Components;
-    using ImGuiNET;
 
     /// <summary>
     ///     The <see cref="TriggerableBlockage" /> component in the entity.
@@ -24,15 +23,6 @@ namespace GameHelper.RemoteObjects.Components
         ///     Gets a value indicating whether TriggerableBlockage is closed or not.
         /// </summary>
         public bool IsBlocked { get; private set; }
-
-        /// <summary>
-        ///     Converts the <see cref="Chest" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Is Blocked: {this.IsBlocked}");
-        }
 
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)

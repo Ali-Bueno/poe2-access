@@ -90,12 +90,12 @@ namespace GameHelper.Settings
         public int KeyPressTimeout = 80;
 
         /// <summary>
-        ///     Gets the font pathname to load in ImGui.
+        ///     Gets the font pathname.
         /// </summary>
         public string FontPathName = @"C:\Windows\Fonts\msyh.ttc";
 
         /// <summary>
-        ///     Gets the font size to load in ImGui.
+        ///     Gets the font size.
         /// </summary>
         public int FontSize = 18;
 

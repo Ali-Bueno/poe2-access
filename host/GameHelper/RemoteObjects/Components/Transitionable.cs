@@ -7,7 +7,6 @@ namespace GameHelper.RemoteObjects.Components
 
     using System;
     using GameOffsets.Objects.Components;
-    using ImGuiNET;
 
     /// <summary>
     ///     The <see cref="Transitionable" /> component in the entity.
@@ -26,15 +25,6 @@ namespace GameHelper.RemoteObjects.Components
         ///     Gets the transitionable state that the entity is currently in.
         /// </summary>
         public int CurrentState { get; private set; }
-
-        /// <summary>
-        ///     Converts to <see cref="Transitionable"/> class data to Imgui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Current State: {this.CurrentState}");
-        }
 
         /// <inheritdoc/>
         protected override void UpdateData(bool hasAddressChanged)

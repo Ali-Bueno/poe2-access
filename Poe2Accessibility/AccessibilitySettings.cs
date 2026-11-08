@@ -7,7 +7,7 @@ namespace Poe2Accessibility
 
     /// <summary>
     ///     Persisted plugin settings (config/settings.txt, JSON). Hotkeys are stored by key name so a blind
-    ///     user can edit the file directly; the ImGui settings window is not screen-reader accessible.
+    ///     user can edit the file directly; it is the only way to change settings.
     ///     The file is re-read automatically when it changes on disk.
     ///     Defaults avoid GameHelper2's own keys (F9 disables all plugin rendering, F10 element finder, F12 main menu).
     /// </summary>

@@ -48,9 +48,6 @@ namespace GameHelper.Plugin
         public abstract void OnEnable(bool isGameOpened);
 
         /// <inheritdoc />
-        public abstract void DrawSettings();
-
-        /// <inheritdoc />
         public abstract void DrawUI();
 
         /// <inheritdoc />

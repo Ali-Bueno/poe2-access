@@ -12,7 +12,6 @@ namespace GameHelper
     using Coroutine;
     using CoroutineEvents;
     using GameHelper.Cache;
-    using ImGuiNET;
     using RemoteObjects;
     using Settings;
     using Utils;
@@ -58,11 +57,6 @@ namespace GameHelper
         ///     Gets the GameHelper settings.
         /// </summary>
         public static State GHSettings { get; } = new(); // the mod's defaults; the host keeps no settings file
-
-        /// <summary>
-        ///     Gets a value indicating whether the GameHelper settings window is currently open.
-        /// </summary>
-        public static bool IsSettingsMenuOpen { get; internal set; }
 
         /// <summary>
         ///     Gets the cache for all the GGPK data with value type string.
@@ -156,37 +150,6 @@ namespace GameHelper
         internal static void Dispose()
         {
             Process.Close(false);
-        }
-
-        /// <summary>
-        ///     Converts the RemoteObjects to ImGui Widgets.
-        /// </summary>
-        internal static void RemoteObjectsToImGuiCollapsingHeader()
-        {
-            const BindingFlags propertyFlags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static;
-            foreach (var property in RemoteObjectBase.GetToImGuiMethods(typeof(Core), propertyFlags, null))
-            {
-                if (ImGui.CollapsingHeader(property.Name))
-                {
-                    property.ToImGui?.Invoke(property.Value, null);
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Show the cache details on ImGui.
-        /// </summary>
-        internal static void CacheImGui()
-        {
-            if (ImGui.CollapsingHeader("GGPK String Data Cache"))
-            {
-                GgpkStringCache.ToImGui();
-            }
-
-            if (ImGui.CollapsingHeader("GGPK Object Cache"))
-            {
-                GgpkObjectCache.ToImGui();
-            }
         }
 
         /// <summary>

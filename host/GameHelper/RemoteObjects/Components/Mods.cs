@@ -8,7 +8,6 @@ namespace GameHelper.RemoteObjects.Components
     using System.Collections.Generic;
     using GameHelper.RemoteEnums;
     using GameOffsets.Objects.Components;
-    using ImGuiNET;
 
     /// <summary>
     ///     The <see cref="Mods" /> component in the entity.
@@ -37,19 +36,6 @@ namespace GameHelper.RemoteObjects.Components
             ExplicitMods = new(),
             EnchantMods = new(),
             HellscapeMods = new();
-
-        /// <summary>
-        ///     Converts the <see cref="Mods" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Rarity: {this.Rarity}");
-            ObjectMagicProperties.ModsToImGui("ImplicitMods", this.ImplicitMods);
-            ObjectMagicProperties.ModsToImGui("ExplicitMods", this.ExplicitMods);
-            ObjectMagicProperties.ModsToImGui("EnchantMods", this.EnchantMods);
-            ObjectMagicProperties.ModsToImGui("HellscapeMods", this.HellscapeMods);
-        }
 
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)

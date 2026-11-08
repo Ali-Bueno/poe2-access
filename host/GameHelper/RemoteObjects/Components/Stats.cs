@@ -9,7 +9,6 @@ namespace GameHelper.RemoteObjects.Components
     using GameHelper.RemoteEnums;
     using GameHelper.Utils;
     using GameOffsets.Objects.Components;
-    using ImGuiNET;
 
     /// <summary>
     ///     The <see cref="Stats" /> component in the entity.
@@ -42,16 +41,6 @@ namespace GameHelper.RemoteObjects.Components
         /// <param name="address">address of the <see cref="Stats" /> component.</param>
         public Stats(IntPtr address)
             : base(address) { }
-
-        /// <inheritdoc/>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"CurrentWeaponIndex: {this.CurrentWeaponIndex}");
-            ImGui.Text($"IsInShapeshiftedForm: {this.IsInShapeshiftedForm}");
-            ImGuiHelper.StatsWidget(this.StatsChangedByItems, "Entity Stats Changed By Items");
-            ImGuiHelper.StatsWidget(this.StatsChangedByBuffAndActions, "Entity Stats Changed By BuffAndActions");
-        }
 
         /// <inheritdoc/>
         protected override void UpdateData(bool hasAddressChanged)

@@ -13,7 +13,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
     using GameHelper.RemoteEnums;
     using GameHelper.RemoteEnums.Entity;
     using GameOffsets.Objects.States.InGameState;
-    using ImGuiNET;
     using Utils;
 
     /// <summary>
@@ -232,58 +231,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
             var toCheck = this.EntitySubtype == EntitySubtypes.POIMonster ?
                 this.oldSubtypeWithoutPOI : this.EntitySubtype;
             return toCheck == subType;
-        }
-
-        /// <summary>
-        ///     Converts the <see cref="Entity" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Path: {this.Path}");
-            ImGui.Text($"Id: {this.Id}");
-            ImGui.Text($"Is Valid: {this.IsValid}");
-            ImGui.Text($"Nearby Zone: {this.Zones}");
-            ImGui.Text($"Entity Type: {this.EntityType}");
-            ImGui.Text($"Entity SubType: {this.EntitySubtype}");
-            if (this.EntitySubtype == EntitySubtypes.POIMonster)
-            {
-                ImGui.Text($"Entity Old SubType: {this.oldSubtypeWithoutPOI}");
-            }
-
-            ImGui.Text($"Entity Custom Group: {this.EntityCustomGroup}");
-            ImGui.Text($"Entity State: {this.EntityState}");
-            if (ImGui.TreeNode("Components"))
-            {
-                foreach (var kv in this.componentAddresses)
-                {
-                    if (this.componentCache.TryGetValue(kv.Key, out var value))
-                    {
-                        if (ImGui.TreeNode($"{kv.Key}"))
-                        {
-                            value.ToImGui();
-                            ImGui.TreePop();
-                        }
-                    }
-                    else
-                    {
-                        var componentType = Type.GetType($"{typeof(NPC).Namespace}.{kv.Key}");
-                        if (componentType != null)
-                        {
-                            if (ImGui.SmallButton($"Load##{kv.Key}"))
-                            {
-                                this.LoadComponent(componentType);
-                            }
-
-                            ImGui.SameLine();
-                        }
-
-                        ImGuiHelper.IntPtrToImGui(kv.Key, kv.Value);
-                    }
-                }
-
-                ImGui.TreePop();
-            }
         }
 
         internal IEnumerable<string> GetComponentNames()

@@ -57,13 +57,6 @@ namespace GameHelper.RemoteObjects.States
         public Entity MouseOverEntity { get; } = new();
 
         /// <inheritdoc />
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGuiHelper.IntPtrToImGui("UiRoot", this.uiRootAddress);
-        }
-
-        /// <inheritdoc />
         protected override void CleanUpData()
         {
             this.CurrentAreaInstance.Address = IntPtr.Zero;

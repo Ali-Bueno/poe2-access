@@ -7,7 +7,6 @@ namespace GameHelper.RemoteObjects.UiElement
     using System;
     using System.Numerics;
     using GameHelper.Cache;
-    using ImGuiNET;
 
     /// <summary>
     ///     Points to the LargeMap UiElement.
@@ -34,13 +33,5 @@ namespace GameHelper.RemoteObjects.UiElement
         /// </summary>
         public Vector2 Center => base.Position;
 
-        /// <summary>
-        ///     Converts the <see cref="LargeMapUiElement" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Center (without shift/default-shift) {this.Center}");
-        }
     }
 }

@@ -6,7 +6,6 @@ namespace GameHelper.RemoteObjects.Components
 {
     using System;
     using GameOffsets.Objects.Components;
-    using ImGuiNET;
 
     /// <summary>
     ///     The <see cref="WorldItem" /> component — present on a dropped/ground item entity. The ground
@@ -27,15 +26,6 @@ namespace GameHelper.RemoteObjects.Components
         ///     <see cref="IntPtr.Zero" /> when unavailable.
         /// </summary>
         public IntPtr ItemEntityAddress { get; private set; } = IntPtr.Zero;
-
-        /// <summary>
-        ///     Converts the <see cref="WorldItem" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Item Entity: {this.ItemEntityAddress.ToInt64():X}");
-        }
 
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)

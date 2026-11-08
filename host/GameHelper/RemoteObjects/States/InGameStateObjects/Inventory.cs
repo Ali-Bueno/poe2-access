@@ -12,7 +12,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
     using Coroutine;
     using GameOffsets.Natives;
     using GameOffsets.Objects.States.InGameState;
-    using ImGuiNET;
 
     /// <summary>
     ///     Knows how to parse player, NPC, Crafting, stash inventories available in ServerData
@@ -63,7 +62,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         /// <param name="y">Inventory slot row, starting from 0.</param>
         /// <param name="x">Inventory slot column, starting from 0.</param>
         /// <returns>Item on the given slot.</returns>
-        [SkipImGuiReflection]
         public Item this[int y, int x]
         {
             get
@@ -91,50 +89,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
                 }
 
                 return new Item(IntPtr.Zero);
-            }
-        }
-
-        /// <inheritdoc />
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Total Boxes: {this.TotalBoxes}");
-            ImGui.Text($"Server Request Counter: {this.ServerRequestCounter}");
-            if (ImGui.TreeNode("Inventory Slots"))
-            {
-                for (var y = 0; y < this.TotalBoxes.Y; y++)
-                {
-                    var data = string.Empty;
-                    for (var x = 0; x < this.TotalBoxes.X; x++)
-                    {
-                        if (this.itemsToInventorySlotMapping[y * this.TotalBoxes.X + x] != IntPtr.Zero)
-                        {
-                            data += " 1";
-                        }
-                        else
-                        {
-                            data += " 0";
-                        }
-                    }
-
-                    ImGui.Text(data);
-                }
-
-                ImGui.TreePop();
-            }
-
-            if (ImGui.TreeNode("Items"))
-            {
-                foreach (var item in this.Items)
-                {
-                    if (ImGui.TreeNode($"{item.Value.Path}##{item.Value.Address.ToInt64()}"))
-                    {
-                        item.Value.ToImGui();
-                        ImGui.TreePop();
-                    }
-                }
-
-                ImGui.TreePop();
             }
         }
 

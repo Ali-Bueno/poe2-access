@@ -9,7 +9,6 @@ namespace GameHelper.Cache
     using Coroutine;
     using GameHelper.RemoteObjects.States.InGameStateObjects;
     using GameOffsets.Objects.States.InGameState;
-    using ImGuiNET;
 
     /// <summary>
     ///     The purpose of this class is to solve the disappearing entity problem.
@@ -103,19 +102,6 @@ namespace GameHelper.Cache
         {
             this.isActivated = false;
             this.cache.Clear();
-        }
-
-        /// <summary>
-        ///     Draws a widget for this class.
-        /// </summary>
-        internal void ToImGui()
-        {
-            if (ImGui.TreeNode(this.name))
-            {
-                ImGui.Text($"Is Activated: {this.isActivated}");
-                ImGui.Text($"Total Entities: {this.cache.Count}");
-                ImGui.TreePop();
-            }
         }
 
         /// <summary>

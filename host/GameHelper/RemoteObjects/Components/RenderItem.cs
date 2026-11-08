@@ -6,7 +6,6 @@ namespace GameHelper.RemoteObjects.Components
 {
     using System;
     using GameOffsets.Objects.Components;
-    using ImGuiNET;
 
     /// <summary>
     ///     The <see cref="RenderItem" /> component in the entity. Present on item entities, it
@@ -31,15 +30,6 @@ namespace GameHelper.RemoteObjects.Components
         ///     Gets the full 2D art (.dds) resource path of the item's own icon. Empty when unavailable.
         /// </summary>
         public string ResourcePath { get; private set; } = string.Empty;
-
-        /// <summary>
-        ///     Converts the <see cref="RenderItem" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Resource Path: {this.ResourcePath}");
-        }
 
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)

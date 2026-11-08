@@ -6,7 +6,6 @@ namespace GameHelper.RemoteObjects.Components
 {
     using System;
     using GameOffsets.Objects.Components;
-    using ImGuiNET;
 
     /// <summary>
     ///     The <see cref="Chest" /> component in the entity.
@@ -35,17 +34,6 @@ namespace GameHelper.RemoteObjects.Components
         ///     NOTE: Breach chests, Legion chests, Normal Chests labels are visible.
         /// </summary>
         public bool IsLabelVisible { get; private set; }
-
-        /// <summary>
-        ///     Converts the <see cref="Chest" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"IsOpened: {this.IsOpened}");
-            ImGui.Text($"IsStrongbox: {this.IsStrongbox}");
-            ImGui.Text($"IsLabelVisible: {this.IsLabelVisible}");
-        }
 
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)

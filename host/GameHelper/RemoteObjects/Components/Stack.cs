@@ -2,7 +2,6 @@ namespace GameHelper.RemoteObjects.Components
 {
     using System;
     using GameOffsets.Objects.Components;
-    using ImGuiNET;
 
     public class Stack : ComponentBase
     {
@@ -23,14 +22,6 @@ namespace GameHelper.RemoteObjects.Components
         ///     Gets the currency stash tab stack cap.
         /// </summary>
         public int MaxStackTab { get; private set; }
-
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Stack Count: {this.Count}");
-            ImGui.Text($"Max Stack: {this.MaxStack}");
-            ImGui.Text($"Max Stack (Currency Tab): {this.MaxStackTab}");
-        }
 
         protected override void UpdateData(bool hasAddressChanged)
         {

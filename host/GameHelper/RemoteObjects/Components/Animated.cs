@@ -9,7 +9,6 @@ namespace GameHelper.RemoteObjects.Components
     using GameOffsets.Objects;
     using GameOffsets.Objects.Components;
     using GameOffsets.Objects.States.InGameState;
-    using ImGuiNET;
 
     /// <summary>
     ///     The <see cref="Animated" /> component in the entity.
@@ -40,17 +39,6 @@ namespace GameHelper.RemoteObjects.Components
         ///     metadata <see cref="Entity"/> path. Empty when it can't be resolved.
         /// </summary>
         public string ModelPath { get; private set; } = string.Empty;
-
-        /// <summary>
-        ///     Converts to <see cref="Animated"/> class data to Imgui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Path: {this.Path}");
-            ImGui.Text($"Id: {this.Id}");
-            ImGui.Text($"Model Path: {this.ModelPath}");
-        }
 
         /// <inheritdoc/>
         protected override void UpdateData(bool hasAddressChanged)

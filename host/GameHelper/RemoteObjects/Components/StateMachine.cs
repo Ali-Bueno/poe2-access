@@ -2,7 +2,6 @@
 {
     using GameOffsets.Natives;
     using GameOffsets.Objects.Components;
-    using ImGuiNET;
     using System;
     using System.Collections.Generic;
 
@@ -13,17 +12,6 @@
         private const int StateStructSize = 0xC0;
 
         public IReadOnlyList<StateMachineState> States { get; private set; } = [];
-
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"State Count: {States.Count}");
-            for (int i = 0; i < States.Count; i++)
-            {
-                var state = States[i];
-                ImGui.Text($"State[{i}]: Name='{state.Name}', Value={state.Value}");
-            }
-        }
 
         private const int MaxStateMachineStates = 256;
 

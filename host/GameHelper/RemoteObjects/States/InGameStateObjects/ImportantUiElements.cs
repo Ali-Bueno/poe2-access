@@ -18,7 +18,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
     using GameOffsets.Natives;
     using GameOffsets.Objects.States.InGameState;
     using GameOffsets.Objects.UiElement;
-    using ImGuiNET;
     using RemoteEnums;
     using UiElement;
 
@@ -344,131 +343,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         ///     GameUi -> child 24 -> child 2 -> all children.
         /// </summary>
         public List<SkillTreeNodeUiElement> SkillTreeNodesUiElements { get; }
-
-        internal override void ToImGui()
-        {
-            this.displayParentsCache();
-            base.ToImGui();
-            ImGui.Text($"Passive Skill Tree Panel Visible: {this.passiveskilltreenodes.IsVisible}");
-            ImGui.Text($"Total Atlas Maps: {this.AtlasMaps.Count}");
-            if (ImGui.TreeNode("Atlas Maps"))
-            {
-                foreach (var map in this.AtlasMaps)
-                {
-                    if (ImGui.TreeNode($"{map.Index}: {map.DisplayName}##AtlasMap{map.Index}"))
-                    {
-                        ImGui.Text($"Internal Id: {map.MapId}");
-                        ImGui.Text($"Address: 0x{map.Address.ToInt64():X}");
-                        ImGui.Text($"Grid Position: {map.GridPosition.X}, {map.GridPosition.Y}");
-                        ImGui.Text($"Biome: {map.BiomeId}");
-                        ImGui.Text($"State: {map.State}");
-                        ImGui.Text($"Raw Status: 0x{map.RawStatus:X2}");
-                        if (ImGui.SmallButton($"Copy layout scan##AtlasMapLayout{map.Index}"))
-                        {
-                            ImGui.SetClipboardText(BuildAtlasNodeLayoutReport(map));
-                        }
-
-                        ImGui.Text($"Type: {map.Type}");
-                        ImGui.Text($"Tags: {string.Join(", ", map.Tags)}");
-                        ImGui.Text($"Connected Nodes: {map.ConnectedGridPositions.Count}");
-                        foreach (var connected in map.ConnectedGridPositions)
-                        {
-                            ImGui.Text($"- {connected.X}, {connected.Y}");
-                        }
-
-                        ImGui.Text($"Badge UI Children: {map.BadgeCount}");
-                        foreach (var badgeAddress in map.BadgeAddresses)
-                        {
-                            ImGui.Text($"- 0x{badgeAddress.ToInt64():X}");
-                        }
-
-                        ImGui.Text($"Badge Names: {map.ContentNames.Count}");
-                        foreach (var badge in map.ContentNames)
-                        {
-                            ImGui.Text($"- {badge}");
-                        }
-
-                        ImGui.Text($"Content Tokens: {map.ContentTokens.Count}");
-                        string? deliriousContent = null;
-                        foreach (var content in map.GetContentDisplayNames(includeUnmapped: true))
-                        {
-                            if (content.Contains("Delirious", StringComparison.Ordinal))
-                            {
-                                deliriousContent = content;
-                                break;
-                            }
-                        }
-
-                        var displayedDeliriousContent = false;
-                        foreach (var token in map.ContentTokens)
-                        {
-                            if ((token & 0xFFFFu) is 0x685Au or 0x685Cu)
-                            {
-                                if (!displayedDeliriousContent && deliriousContent != null)
-                                {
-                                    ImGui.Text($"- {deliriousContent}");
-                                    displayedDeliriousContent = true;
-                                }
-
-                                continue;
-                            }
-
-                            var tokenName = AtlasMapNode.GetContentTokenName(token);
-                            ImGui.Text(tokenName != null ? $"- {tokenName} (0x{token:X8})" : $"- 0x{token:X8}");
-                        }
-
-                        ImGui.Text($"Badge Content Ids: {map.BadgeContentIds.Count}");
-                        foreach (var id in map.BadgeContentIds)
-                        {
-                            var badgeName = AtlasMapNode.GetBadgeContentName(id);
-                            ImGui.Text(badgeName != null ? $"- {badgeName} (0x{id:X8})" : $"- 0x{id:X8}");
-                        }
-
-                        ImGui.TreePop();
-                    }
-                }
-
-                ImGui.TreePop();
-            }
-
-            ImGui.Text($"Player Marker: {(this.AtlasMarkers.Count > 0 ? $"on node {this.AtlasMarkers[0].MapNodeIndex}" : "none")}");
-            if (ImGui.TreeNode("Player Marker"))
-            {
-                foreach (var marker in this.AtlasMarkers)
-                {
-                    var mapNode = this.atlasMaps.Find(m => m.Index == marker.MapNodeIndex);
-                    var label = mapNode != null
-                        ? $"{marker.Index} -> {mapNode.DisplayName} (idx {marker.MapNodeIndex})"
-                        : $"{marker.Index}: Marker##AtlasMarker{marker.Index}";
-                    if (ImGui.TreeNode($"{label}##AtlasMarker{marker.Index}"))
-                    {
-                        ImGui.Text($"Address: 0x{marker.Address.ToInt64():X}");
-                        ImGui.Text($"Map Node Index: {marker.MapNodeIndex}");
-                        if (mapNode != null)
-                        {
-                            ImGui.Text($"Map Node: {mapNode.DisplayName}");
-                            ImGui.Text($"Map Node Grid: {mapNode.GridPosition.X}, {mapNode.GridPosition.Y}");
-                        }
-                        ImGui.TreePop();
-                    }
-                }
-
-                ImGui.TreePop();
-            }
-
-            ImGui.Text($"Total Skill Tree Nodes: {this.SkillTreeNodesUiElements.Count}");
-            if (ImGui.TreeNode("Skill Tree Nodes"))
-            {
-                for (var i = 0; i < this.SkillTreeNodesUiElements.Count; i++)
-                {
-                    var skillId = this.SkillTreeNodesUiElements[i].SkillGraphId;
-                    ImGuiHelper.DisplayTextAndCopyOnClick($"index: {i}, skillId: {skillId}", $"{skillId}");
-                    ImGui.GetForegroundDrawList().AddText(this.SkillTreeNodesUiElements[i].Position, 0xFF0000FF, $"{i}");
-                }
-
-                ImGui.TreePop();
-            }
-        }
 
         /// <inheritdoc />
         protected override void CleanUpData()
@@ -1157,12 +1031,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
                     this.SkillTreeNodesUiElements.Add(skillNode);
                 }
             }
-        }
-
-        private void displayParentsCache()
-        {
-            this.rootCache.ToImGui();
-            this.passiveSkillTreeCache.ToImGui();
         }
 
         private void UpdateParentsCache()

@@ -134,13 +134,13 @@ namespace GameHelper.Localization
             string.Format(CultureInfo.CurrentCulture, T(key, fallback), args);
 
         /// <summary>
-        ///     Resolves a localized label and appends a stable ImGui hidden ID.
+        ///     Resolves a localized label and appends a stable hidden ID.
         /// </summary>
         public static string Label(string key, string fallback, string id) =>
             $"{T(key, fallback)}##{id}";
 
         /// <summary>
-        ///     Resolves a localized visible title while keeping the ImGui window/item ID stable.
+        ///     Resolves a localized visible title while keeping the item ID stable.
         /// </summary>
         public static string Title(string key, string fallback, string id) =>
             $"{T(key, fallback)}###{id}";

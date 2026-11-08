@@ -43,13 +43,6 @@ namespace GameHelper.RemoteObjects.Components
         }
 
         /// <inheritdoc />
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGuiHelper.IntPtrToImGui("Owner Address", this.OwnerEntityAddress);
-        }
-
-        /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)
         {
             var data = Core.Process.Handle.ReadMemory<ComponentHeader>(this.Address);

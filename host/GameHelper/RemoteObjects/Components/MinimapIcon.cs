@@ -6,7 +6,6 @@ namespace GameHelper.RemoteObjects.Components
 {
     using System;
     using GameOffsets.Objects.Components;
-    using ImGuiNET;
 
     /// <summary>
     ///     The <see cref="MinimapIcon" /> component in the entity.
@@ -24,13 +23,6 @@ namespace GameHelper.RemoteObjects.Components
         ///     The icon name from MinimapIcons.dat (e.g. "RewardChestExpedition").
         /// </summary>
         public string? IconName { get; private set; }
-
-        /// <inheritdoc/>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Icon Name: {this.IconName ?? "(none)"}");
-        }
 
         private string? TryReadUtf16String(IntPtr address)
         {

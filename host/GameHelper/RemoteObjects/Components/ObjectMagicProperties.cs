@@ -10,7 +10,6 @@ namespace GameHelper.RemoteObjects.Components
     using GameHelper.Utils;
     using GameOffsets.Natives;
     using GameOffsets.Objects.Components;
-    using ImGuiNET;
     using RemoteEnums;
 
     /// <summary>
@@ -47,27 +46,6 @@ namespace GameHelper.RemoteObjects.Components
         /// </summary>
         public Dictionary<GameStats, int> ModStats = new();
 
-        /// <summary>
-        ///     Converts the <see cref="ObjectMagicProperties" /> class data to ImGui.
-        /// </summary>
-        internal override void ToImGui()
-        {
-            base.ToImGui();
-            ImGui.Text($"Rarity: {this.Rarity}");
-            ModsToImGui("All Mods", this.Mods);
-            if (ImGui.TreeNode("All Mod names"))
-            {
-                foreach (var mod in this.ModNames)
-                {
-                    ImGuiHelper.DisplayTextAndCopyOnClick($"{mod}", mod);
-                }
-
-                ImGui.TreePop();
-            }
-
-            ImGuiHelper.StatsWidget(this.ModStats, "Stats from Mods");
-        }
-
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)
         {
@@ -87,20 +65,6 @@ namespace GameHelper.RemoteObjects.Components
                 AddToMods(this.Mods, reader.ReadStdVector<ModArrayStruct>(data.Details1.Mods.CrucibleMods));
                 _ = this.Mods.All(k => this.ModNames.Add(k.name));
                 base.StatUpdator(this.ModStats, data.Details1.StatsFromMods);
-            }
-        }
-
-        internal static void ModsToImGui(string text, List<(string name, (float value0, float value1) values)> collection)
-        {
-            if (ImGui.TreeNode(text))
-            {
-                for (var i = 0; i < collection.Count; i++)
-                {
-                    var (name, values) = collection[i];
-                    ImGuiHelper.DisplayTextAndCopyOnClick($"{name}: {values.value0} - {values.value1}", name);
-                }
-
-                ImGui.TreePop();
             }
         }
 

@@ -47,15 +47,7 @@ namespace GameHelper.Plugin
         public void OnDisable();
 
         /// <summary>
-        ///     Called to draw the plugin settings on the GameHelper Settings window.
-        ///     Should use ImGui objects to draw the settings.
-        /// </summary>
-        public void DrawSettings();
-
-        /// <summary>
         ///     Draws the plugin UI. This function isn't called when the plugin is disabled.
-        ///     HUD primitives should use ImGui.GetBackgroundDrawList so GameHelper management
-        ///     windows remain visible above plugin overlays.
         /// </summary>
         public void DrawUI();
 
