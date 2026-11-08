@@ -346,7 +346,7 @@ the radar sounded. `tools/exe_reader/reader.py` tells what moved from the exe al
 - Normally nothing: the host follows its own offsets (above). When something is said lost, follow the patch-day
   runbook ([patch day](patch-day.md)). The plugin says what it lost: the world ("lo que hay a tu alrededor, así que
   enemigos, objetos y salidas no sonarán"), a struct by name, or attached two minutes without ever reading a game state
-  (`GameStateService`, part "game states": "no encuentro el estado del juego (GameHelper necesita una actualización)").
+  (`GameStateService`, part "game states": "Aviso de compatibilidad: no encuentro el estado del juego").
 - A part the self-test reports lost after a patch: each search assumes one change at a time near where the field was
   measured, so a redesign (a new structure, a field moved far) still needs a new measurement. A wrong part makes its
   reading fall back (a mod without its name, an item without its base name) rather than speak garbage, since every

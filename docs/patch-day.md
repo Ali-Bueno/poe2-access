@@ -7,11 +7,11 @@ protects it: [field protection audit](research/field-protection-audit.md).
 ## 1. What happens by itself
 | When | What | Where it shows |
 |---|---|---|
-| The launcher starts after the install changed | the catalogs made from the game's files and the extracted sounds are rebuilt (about 35 s; a step that fails keeps the old file) | `Poe2Access.log`; `catalog/game-data-failed.txt`; spoken "parte de los datos del juego…" |
+| `Poe2Access.exe` starts after the install changed | the catalogs made from the game's files and the extracted sounds are rebuilt in the same process (about 53 s on the first run, 18 s after a patch; a step that fails keeps the old file; columns that moved are found by their content) | `Poe2Access.log`; `catalog/game-data-failed.txt`; spoken "Actualizando los datos del juego tras el parche…", then "Datos del juego listos", or "parte de los datos del juego…" for a failed step |
 | The host attaches to a new game process | the game's code on disk is matched against `catalog/code-fields.txt` | plugin log `Code fields: N of M read in … ms; moved: …` |
 | The first three areas of a game process | the struct sweep and the shape searches judge every host struct; the plugin's probes judge the UI and entity fields | `Layout: <part> where measured / moved from … to … / NOT FOUND`, `Struct sweep: … intact, … moved, … lost` |
 | Anything lost | said once ("Aviso de compatibilidad: no encuentro …"); a new build with nothing lost says "El juego se ha actualizado: el mod lo ha encontrado todo" | speech log, `config/game-build.txt` |
-| New game content | new buffs, areas, screens are listed | `config/game-news.txt`, spoken once |
+| New game content | new monsters, skills, buffs, areas, map icons and screens are listed, each with what the mod will make of it from its catalogs (dodge data, buff rule or hazard, area name, icon kind, place in the UI catalog: `GameNewsNotes`) | `config/game-news.txt`, a short summary spoken once |
 
 ## 2. Before playing: check the new exe
 1. Keep a copy of every build: `D:\code\decompilers\projects\poe2-research\builds\<build id>\PathOfExileSteam.exe` (the build id
