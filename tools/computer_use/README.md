@@ -37,6 +37,10 @@ Every action prints JSON with the plugin log lines written since it started (`Sp
 `Plugins/Poe2Accessibility/debug/command.txt` (`dump`, `dump visible`, `hints`, `status`, `repeat`;
 ResearchMode only) so no key press knocks the game out of controller mode.
 
+`fight_trace.py` records each monster's action, clip and place and the player's life and place (read-only, JSON lines);
+`dodge_audit.py` sets it against the plugin log's `Dodge warning` lines (VerboseLogging) and prints the dodge warning's recall,
+false warnings and timing ([dodge timing](../../docs/research/dodge-timing.md#live-protocol)).
+
 `peek.py` reads game memory (read-only) for offset research: `ptr`, `wstr`, `hex`, `find` on chains
 like `31A928F1010+988`.
 
@@ -85,6 +89,10 @@ new `serve`, which disconnects the game to the login screen.
 - Never stand still among monsters reading logs: on 2026-11-06 a level 19 Mercenary died in a level 6 area that way.
 - Scripted walking on the live servers: packs kill a character that only walks, and one session ended in "Abnormal
   disconnect" 40 s after a death with no reason given (Client.txt, 2026-11-05). Cause unknown; keep it short.
+- The pad server stopped by itself on 2026-11-08 while a scripted walker that drove `desktop.py` was killed mid-command; the
+  game then showed "Conecta un mando o presiona A…". A new `pad.py serve --xbox` and one `pad cross` resumed play (cause not
+  confirmed; stop a script that sends input before killing it).
+- ffmpeg's `gdigrab` records the DX12 game window black; `-f lavfi -i ddagrab=output_idx=0` (Desktop Duplication) works.
 - Steam's launch options start the `dist` host: `dist/Poe2Access/Poe2Access.exe stop`, then `launch.py host`, to test the build output.
 - `--wait` accepts at most 5 seconds: a larger value fails before sending anything (filtered output hides the error).
 - Escape on the login screen quits the game; the host closes with it, so start both again with

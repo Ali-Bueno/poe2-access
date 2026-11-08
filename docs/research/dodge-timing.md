@@ -180,7 +180,7 @@ Every new field has a live rule; four also have the game's code:
 |---|---|---|
 | Animated +0x350 | the object's details path ends in `.ao` and its name map holds `AnimationController` | — (2,564 code sites; a signature can be made) |
 | AnimationController position, speed, global, clip | the position advances at the rate between readings at least 200 ms apart (`ClockBaseline`, `ClockAdvances`, 25% slack) on 20 pairs (frame to frame it was judged lost live in Clearfell on 2026-11-08: the game steps a monster's clip coarser than the host's frames and the ms clock ticks every 15.6 ms; 200 ms apart it was intact with the same imps and hags); `IsPlausible` | `semantic`: index ×2 (geal CurrentAnimationIndex, GetCurrentAnimationLength), speed ×2 (geal, label), global ×2 (geal, label), global off (geal), position (label "Current Animation Position: ") |
-| clip events (+0x180 → +0x10; +0x0C, +0x18, +0x38, +0x40) | each event's id equals the hash of its name (`EventLayoutHolds`) | — (five-build helper check above) |
+| clip events (+0x180 → +0x10; +0x0C, +0x18, +0x38, +0x40) | each event's id equals the hash of its name (`EventLayoutHolds`; a chain's end marker, no name and id 0, says nothing), on 6 events (`EventSamples`: a chance match is 1 in 32768) | — (five-build helper check above) |
 | Actor +0x238 | readable pointer while acting; its type known (below) | `semantic`: geal GetTarget, GetTargetLocation, GetCurrentActionStat (all 0x238) |
 | Actor +0x2A0 | bit 0x2 set while +0x238 is set | `semantic`: geal IsCurrentAction |
 | action +0x120 | one of ActionTypes.dat's +0x08 values (`ActionTypeKnown`) | five-build GEAL check |
@@ -199,7 +199,7 @@ no animated object → the old behaviour whole. Each part goes to the compatibil
 
 ## Integration (2026-11-08, offline)
 
-The design above is wired into the live dodge warning; it has not been run in the game yet (the live protocol below).
+The design above is wired into the live dodge warning and was run in the game on 2026-11-08 ([live results](#live-results-2026-11-08-055f)), which fixed three misses (steps 3 and 4 below say how it works now).
 
 **Files.** `Services/AttackReader.cs` (memory: one `AttackSnapshot` per monster and frame, the six live checks),
 `Services/BossWatch.Dodge.cs` (the gate: per frame facts, decision, cues, logs; the telegraph hook), `Services/BossWatch.cs`
@@ -221,8 +221,10 @@ sends each check's verdict to the compatibility report); the twelve rules in `ca
 
    Each part is handed out only once its check says Intact; a part judged Lost is not read again that session.
 3. Swing: a new swing (the clip restarted or changed) re-arms the warning, and so does a further `contact` in the same clip.
-4. Blow time: the next `contact` ÷ the real rate (Live); else, on the clip the attack started with, the files' hit time at
-   that clip's rate (`MsToNominal`, Nominal); else the start plus the files' or learnt delay on the wall clock (Nominal).
+4. Blow time: the next `contact` ÷ the real rate (Live; a contact in the clip's first 50 ms marks a cast, not a blow:
+   `AttackClock.IsBlow`); else the files' (or learnt) hit time at the swing's clip and rate (`MsToNominal`, Nominal), for
+   the clip the attack started with, the same clip started over, or another clip while the action is still under way (an
+   alternate swing, `AttackClock.LeftStartClip`); else the start plus the files' or learnt delay on the wall clock (Nominal).
    A projectile adds its flight (gap ÷ the files' speed).
 5. Facts: the aim (`AttackAim.Of`); the reach: for melee, the clip's reach from `attack-reach.txt` (the larger of its
    damage patterns and its impact place) against the centre distance with the body and 40 units of slack; a skill area
@@ -312,6 +314,70 @@ once, and the player's life and place, with `t` and `wall` (UTC ms) stamps.
    timed nominal, timed by its telegraph, wind-up). The same figures for normal monsters decide the setting's default.
 8. Then tune `LeadMs` (the tutorial says 300 ms before the blow; today 500), the 40-unit slack, and whether path B may
    also silence an attack (once the area units are measured).
+
+Steps 4, 6 and 7 are automated: `py -B tools/computer_use/dodge_audit.py fight.jsonl [--start HH:MM:SS] [--end HH:MM:SS]
+[--rarity 2,3] [--detail]` reads the trace and the plugin log and prints recall, false warnings and the timing error per
+timing source. The video is not needed for the wind-up: the clip position the trace reads is the animation drawn, so the
+wind-up starts at the clip's start (`gdigrab` records the DX12 window black; `ddagrab` works if a video is wanted).
+
+## Live results (2026-11-08, 0.5.5f)
+
+Character yarkey (level 22 Mercenary) standing still among Act 1 packs (area level 2-3) in Clearfell and the Mud Burrow,
+`DodgeWarningsAllMonsters` on, `VerboseLogging` on, `fight_trace.py` beside the host, audited with `dodge_audit.py`
+(attacks = swings aimed at the player, attacker within 700 units, of a kind the gate judged threatening).
+
+**Attach.** `Semantic fields: 64 of 64 read in 465 ms; moved: none`, `Code fields: 51 of 51`, `Dodge gate: 7309 clips with
+a reach, 1997 skill areas, 964 action types`, then within the first fight the six `Layout: dodge: … where measured` (the clip
+events only after the first fix below).
+
+**Three misses found and fixed** (commit "Fix the dodge warning's misses found live"):
+
+| Miss | Seen | Fix |
+|---|---|---|
+| The clip events never judged | every chain of named events ends with an end marker (no name, id 0, at the clip's end; the hag's attack_01: `contact` 0.697, marker 1.5), counted as broken: about half kept, so the check stayed unjudged and no attack was ever timed live | the marker says nothing; six events settle the check (`EventSamples`) |
+| Back-to-back swings unwarned | the hag's attack_01 restarts under the same animation id (1.5 s apart); skeletons and golems alternate attack_01/attack_02; any restart or other clip set `ClipMoved` for good, the files' time stopped and every later swing was "blow passed" | the files' time holds for the start clip, its restarts, and another clip while the action is under way (`LeftStartClip`) |
+| The hag's DelayedBlast silenced once timed live | spellcast_01 holds its `contact` at 0.0 (the cast); the blast lands 1453 ms later (life drops 1465, 1486 ms after the start, about 30 ms of network) | a contact in the clip's first 50 ms marks a cast (`IsBlow`); the delay ships in `catalog/dodge-timings.txt` |
+
+**Recall, false warnings** (normal monsters: hags, imps, urchins, flesh larvae, mud golems, skeletons):
+
+| Window | Attacks at the player | Recall | False |
+|---|---|---|---|
+| Clearfell, before the fixes (hag) | 50 | 52 % | 0 of 27 |
+| Mud Burrow, restart fix only | 376 | 85 % | 2 of 323 |
+| Mud Burrow, all fixes (19 min) | 1558 | **98.4 %** | **0.9 %** (16 of 1763) |
+
+The remaining misses are larvae (`HuhuGrubLarvaeEmergeSummoned1_`) and false ones mostly larvae with no target read: spawned
+larvae took a dead one's address and the trace kept its old components (fixed in `fight_trace.py` afterwards), so both
+figures are bounds. Six skeleton and golem warnings matched swings the audit placed 1200-1800 units away: the trace writes
+the player's place only when life changes, so after a walk that distance is stale (likely, not verified).
+
+**Timing** (error = warning − (contact − 500 ms); contact = the swing's start + the clip's `contact` ÷ its rate):
+
+| Source | n | median | p90 of \|error\| | vs the earliest possible, max(contact − 500, wind-up start): p90 | blows ≥ 500 ms after the wind-up: n, p90 |
+|---|---|---|---|---|---|
+| timed live | 1228 | +45 ms | 66 ms | 33 ms | 74, **35 ms** |
+| timed nominal | 138 | +46 ms | 72 ms | 41 ms | 15, **48 ms** |
+
+Most blows of these monsters land under 500 ms after the wind-up (larvae 430-466 ms, skeletons), where the warning comes with
+the wind-up's first frame: a median 14-17 ms after the clip starts (one host frame). Where the full lead fits, the warning is
+a median 22 ms (live) / 34 ms (nominal) late, within the 50 ms goal at p90. The blow's estimate itself is close: "blow in"
+against the real contact, median −4 ms live, −11 ms nominal. The life drop follows the contact by a median 31-41 ms
+(network and server). The clip start is taken as the visible wind-up, since the trace's clip position is the animation the
+game draws (inferred, not checked frame by frame: the video was black, see the protocol).
+
+**Not covered on 2026-11-08.** Every attacker was a normal monster (the trace's rarity column): no rare or unique, no
+boss (scripted walking never reached an arena: the Mud Burrow's loops, Clearfell's tree lines and the encampment's broken
+west bridge stopped it), no hasted rare, no minion of the player's (the Mercenary has none), no archer firing from off
+screen. Mud golems' ground slams were among the attacks. The rarity gate itself is unchanged code; the boss fights and
+`Boss counterplay` words stay for the next live run ([boss mechanics §7](boss-mechanics.md#7-live-protocol-the-current-character-level-22-mercenary-in-act-2)).
+
+**Knobs.** `LeadMs` stays 500: no run measured a reaction need (the tutorial's 300 ms needs a new character); the 40-unit
+slack stays (no blow landed from beyond the clip's reach plus 40 in this data); path B still never silences (area units
+not measured: no skill area hit the player at a known distance).
+
+**`DodgeWarningsAllMonsters` stays off.** The precision would allow it (98 % recall, under 1 % false), but a pack warns
+densely: in seconds with any warning, 2.3 a second on average, 5-7 a second in 49 seconds of a larva swarm (620 of 804
+warnings were larvae), for blows of a few life points each. Rares and uniques keep the dodge cue meaningful.
 
 ## First study (2026-10-24, 0.5.5e, Mud Burrow)
 

@@ -153,6 +153,15 @@ Read-only; the dev host as usual, `VerboseLogging` true. After each fight: `grep
    on screen (from the video), the hide lengths, and any `Invulnerable` buff seen. Append the numbers here; tune
    `SettleMs`, `EngageGraceMs`, `WordGapMs`, `MinWordLeadMs`.
 
+### Live run of 2026-11-08 (not reached)
+
+Step 1 passed: `Boss mechanics: 409 bosses, 936 mechanic lines, 15 movement rules` on the development host and on the installed
+package (after its game data update). Steps 2-7 were not reached: the test drove the character by script through the Mud Burrow
+(20 minutes of its loops without the Devourer's arena coming into view), Clearfell (two instances, Beira's arena not seen; the
+route stopped at tree lines) and the Clearfell Encampment (its west bridge toward the Riverbank does not walk through), so no
+`Boss turn`, `Boss facts` or `Boss counterplay` line was produced and no tuning was done. The dodge part of these fights was
+measured on normal monsters instead ([dodge timing, live results](dodge-timing.md#live-results-2026-11-08-055f)).
+
 ## 8. Not done
 
 - Objects to hide behind or to break that are not monsters (no data says so); arena-wide blasts with a gap; following
