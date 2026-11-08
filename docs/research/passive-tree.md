@@ -138,6 +138,17 @@ OPEN: `+0x648` values and `T+0x1A8` entry layout with several or weapon-set allo
   when none does; checked live on six links in a row (all landed as said).
 - Zoom: LT/RT; the factor is the text "x1,4" beside the "Zoom" label (P child 7); the screen differ took its change for
   a counter tick until 2026-10-31.
+- MEASURED (2026-11-08, yarkey, `stick-test`/`stick-walk` with the virtual pad, Y centring on armour_and_evasion2): the
+  game lands on the same nodes at 1280x1024, 2560x1080 and 2560x1440 (eight pushes from one node, identical), so it picks
+  in the tree's own coordinates. The model's input was one frame's screen pixels cached when the tree opened, and that
+  frame gave other picks at 5:4 and 21:9 (2 of 8 right at 21:9). `PlacesOf` now takes laid-out places under the canvas
+  (`UiSemantics.LayoutRect`: node and node holder are scale index 2 at local scale 0.42, the holder's RelativePosition is
+  the tree place), the same at every window, zoom and pan: picks became identical at 5:4 and 21:9. Accuracy on random
+  walks: 100/120 at 21:9 (seed 7, many pushes in the dense start area), 107/120 at 16:9 (seed 11). Refits on the 21:9 walk
+  (angle penalty 0.75-1.0, linked nodes ×0.85-0.9) scored 108-110 there but 102-105 on the 16:9 walk, worse than the
+  current rule's 108: kept as fitted. Misses: a linked node chosen over a nearer one straight ahead (down from
+  armour_and_evasion2 lands on attack_speed2_, not attack_speed1), and pushes that do not move although a node lies
+  ~800 px (21 node sizes) within the cone, while one 959 px at 15 degrees was reached.
 
 ## Finder and what the pad does in the tree (0.5.5f, 2026-11-07, malgdhler)
 
