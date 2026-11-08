@@ -155,12 +155,50 @@ OPEN: `+0x648` values and `T+0x1A8` entry layout with several or weapon-set allo
   direction (y flipped, not snapped to octants). (1) Linked nodes first: a link within 19.95 degrees (`dot >= 0.94`) is
   taken; the code computes `(1.5 - 8.333 * (dot - 0.94)) * distance` but stores the dot instead, so likely the first such
   link in the node's edge list wins; this stage is skipped when the node's row has a non-zero byte at `+0x66` (ascendancy?).
-  (2) Else the lowest `(5 - 4 * dot) * distance` among nodes with `dot > 0.70710677` (45 degrees). (3) In both, only nodes
-  whose centre is inside the game window, visible and selectable; no other distance limit (the pushes that did not move had
-  their nodes off the window's top or bottom; the cursor sits at the panel's centre). (4) None: no move. Applied to the 240
-  recorded pushes: 240/240 (the fitted model 208; without the on-screen test 229, without the linked stage 234). Holding
-  the stick past half deflection for 0.16 s pans the view and snaps on release to the on-screen node nearest the centre
-  (0xA194C0, 0xA19920, 0xA1A410). Open: confirm the edge order live (armour_and_evasion2's edge vectors `+0x38`, `+0x50`).
+  (2) Else the lowest `(5 - 4 * dot) * distance` among nodes with `dot > 0.7071` (the constant at 0x9CA139 is 0x3F350481 =
+  0.7071f, acos 45.0005 degrees, so a node at exactly 45 degrees is in the cone: 4 recorded pushes landed on one). (3) In
+  both, only nodes whose centre is inside the game window, visible and selectable; no other distance limit (the pushes that
+  did not move had their nodes off the window's top or bottom; the cursor sits at the panel's centre). (4) None: no move.
+  Applied to the 240 recorded pushes: 240/240 (the fitted model 208; without the on-screen test 229, without the linked
+  stage 234). Holding the stick past half deflection for 0.16 s pans the view and snaps on release to the on-screen node
+  nearest the centre (0xA194C0, 0xA19920, 0xA1A410).
+- IMPLEMENTED (2026-11-08): `PassiveStick.Pick(offsets, octant, linked, window)` is the game's rule, stages 1 and 2 with the
+  game's float constants and comparisons (the linked stage keeps the cosine as its best score, as the code does, so the first
+  link in edge order wins). Inputs from `UiSemantics.PassiveTree`: offsets are the laid-out places under the canvas;
+  `linked` is the hovered record's own edge vectors (`+0x38` in-edges, other end at edge `+0`; `+0x50` out-edges, other end
+  at `+8`; `GameLayout.PassiveTree.RecordInEdgesOffset/RecordOutEdgesOffset`), trusted only when every edge names the record
+  and a node the file links it to, else the same order rebuilt from the graph file's edge list (in-edges in file order, then
+  out-edges; `PassiveGraph.StickLinks`); the `Window` is the hovered node's screen centre (GameHelper's absolute rect),
+  `Core.Process.WindowArea`'s client size and the scale = the node's screen width / its canvas width. The row's 8 bytes at
+  `+0x66` (`RowNoLinkedStepOffset`, column unknown; the code also shifts such nodes by the sub-canvas, likely ascendancy)
+  are read but not yet applied: the linked stage is skipped by the game when they are non-zero. The multiple-choice redirect
+  (`row+0x8B`, `elem+0x648`) is not implemented. When the window or the rects are unreadable, the fitted model stands in
+  (`PassiveStick.PickFitted`, 208/240). `Route` (finder and Build Planner ways) uses the same rule, the first step with the
+  hovered record's live edge order and every other with the file order. Tests: `PassiveStickTests` replays the 240 pushes
+  from `tests/Poe2Accessibility.Tests/Fixtures/stick-walks.txt` (cone candidates only, screen pixels, the cursor at the
+  panel's centre: 1279.75, 585.9 at 2560x1080; 1279.75, 781.2 at 2560x1440) at 240/240; the recordings hold no edge order,
+  so the three pushes with two links in the cone (down from armour_and_evasion2) feed the links by the game's linked score.
+
+### Live confirmation protocol (pending)
+
+On the passive tree with the virtual pad, ResearchMode on so `passivenear` logs (`debug/command.txt`), screen reader on:
+
+1. Y to centre on the allocated nodes; `passivenear` for the hovered node. The log must show `window WxH cursor X,Y px per
+   unit S` with W, H the client size and X, Y about the panel's centre (not `none (fitted model)`), and `edge order record:
+   … ; file: … ; no linked step False`. The record's order must list the same ids as the file's; note whether in the same
+   order (if `unreadable`, the record vectors moved: the file order is in use).
+2. Hover armour_and_evasion2 (Duelist/Mercenary start area, the node where the walks began) and `passivenear`: the record's
+   edge order must have attack_speed2_ before armour_and_evasion1 (the game landed on attack_speed2_ with down, three
+   times); if the opposite, the first-wins reading is wrong and 0x9B9F1A-0x9B9F26 must be re-read.
+3. From that node push each of the 8 directions once (0.2 s), returning with the opposite push or Y: every landing must be the
+   id the `picks` line named before the push, including the `-` ones (no move). Then at zoom x0.6 and x1.9 (LT/RT) the
+   same 8 pushes: the picks line must change where nodes leave or enter the window, and the landings must match it.
+4. Each hovered node's links line ("arriba: …, abajo izquierda: …") must name the push that lands on it: follow six links in
+   a row by the push said; six of six must land on the node named.
+5. Finder: pick a keystone with the D-pad and follow its "N pushes" way; the count must fall by one per push with no
+   correction (a push landing elsewhere shows as a count that does not fall).
+6. Any miss: `passivenear` on the node before the push and paste the `picks`, `window` and `edge order` lines with the
+   landing into docs/research/passive-tree.md.
 
 ## Finder and what the pad does in the tree (0.5.5f, 2026-11-07, malgdhler)
 
