@@ -29,6 +29,7 @@ namespace Poe2Accessibility.Tests
         private const int Table = TextRva + 0x190;
         private const int FallThrough = TextRva + 0x1C0;
         private const int Tracked = TextRva + 0x1D0;
+        private const int Chained = TextRva + 0x1F0;
 
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
@@ -76,7 +77,17 @@ namespace Poe2Accessibility.Tests
             Equal(new SemanticRule(SemanticKind.Called, "Buffs: ", K: 1, Call: 1, Argument: 2), SemanticRule.Parse("called \"Buffs: \" 1 arg 2 1"), "called, an argument");
             Equal(new SemanticRule(SemanticKind.Field, "Active Skills: "), SemanticRule.Parse("field \"Active Skills: \" 0"), "field");
             Equal(new SemanticRule(SemanticKind.Getter, SemanticRule.Lookup, "Life"), SemanticRule.Parse("getter Life lookup"), "getter");
-            foreach (var broken in new[] { "label \"Life: 0", "label Life", "getter Life heap", "called \"Team: \" 0 returns", "called \"Buffs: \" 1 arg 5", "teleport x", "label \"A\" 0 site" })
+            Equal(new SemanticRule(SemanticKind.Object, "GetObjectId"), SemanticRule.Parse("object GetObjectId 0"), "object");
+            Equal(new SemanticRule(SemanticKind.Deref, "TypeContains", K: 2, Argument: 3), SemanticRule.Parse("deref TypeContains arg 3 2"), "deref");
+            Equal(new SemanticRule(SemanticKind.Slot, "IsWalkable", With: "Tile hash: "), SemanticRule.Parse("slot IsWalkable \"Tile hash: \""), "slot");
+            Equal(true, SemanticRule.Parse("slot GetGameObjectById \"Tile hash: \" then")!.Then, "slot, then");
+            Equal(true, SemanticRule.Parse("slot GetLocalPlayer \"Tile hash: \" inline")!.Inline, "slot, inline");
+            Equal(new SemanticRule(SemanticKind.This, "league", With: "class"), SemanticRule.Parse("this \"league\" 0 with \"class\""), "this");
+            foreach (var broken in new[]
+            {
+                "label \"Life: 0", "label Life", "getter Life heap", "called \"Team: \" 0 returns", "called \"Buffs: \" 1 arg 5", "teleport x", "label \"A\" 0 site",
+                "object GetObjectId", "deref TypeContains arg 5 2", "deref TypeContains arg 3 0", "slot IsWalkable", "slot IsWalkable \"T\" then inline", "this \"league\" with \"class\"",
+            })
             {
                 Equal(null, SemanticRule.Parse(broken), $"'{broken}' does not parse");
             }
@@ -116,6 +127,11 @@ namespace Poe2Accessibility.Tests
             var index = new CodeIndex(PeImage.Read(TinyExe())!);
             var accesses = RegisterTracker.Track(index, Tracked, new Dictionary<int, long> { [X64.Rcx] = 0 }, 20)!;
             Equal("0x20, 0x28, 0x30", string.Join(", ", accesses.Select(access => $"0x{access.Field:X}")), "the lea itself, through its rax, then through rbx after the call");
+
+            var chain = RegisterTracker.Track(index.Body(Chained)!, new Dictionary<int, long> { [X64.Rcx] = 0 }, follow: 2);
+            Equal("0:0x0, 1:0x8, 2:0x20, 2:0x18", string.Join(", ", chain.Select(access => $"{access.Level}:0x{access.Field:X}")), "two pointers followed, then the fields of the last");
+            Equal("0:0x0, 1:0x8", string.Join(", ", RegisterTracker.Track(index.Body(Chained)!, new Dictionary<int, long> { [X64.Rcx] = 0 }, follow: 1)
+                .Select(access => $"{access.Level}:0x{access.Field:X}")), "one level: the second load drops the register");
         }
 
         private static string Values(IReadOnlyList<long> values) => string.Join(", ", values.Select(value => $"0x{value:X}"));
@@ -153,6 +169,13 @@ namespace Poe2Accessibility.Tests
             text.Bytes(0x8B, 0x43, 0x30);                               // mov eax,[rbx+0x30]
             text.Bytes(0xC3);
             var tracked = text.At;
+            text.Pad(Chained);
+            text.Bytes(0x48, 0x8B, 0x01);                               // mov rax,[rcx]
+            text.Bytes(0x48, 0x8B, 0x40, 0x08);                         // mov rax,[rax+8]
+            text.Bytes(0x83, 0x78, 0x20, 0x07);                         // cmp dword [rax+0x20],7
+            text.Bytes(0x8B, 0x50, 0x18);                               // mov edx,[rax+0x18]
+            text.Bytes(0xC3);
+            var chained = text.At;
 
             var rdata = new byte[SectionBytes];
             System.Text.Encoding.Unicode.GetBytes("Life: ").CopyTo(rdata, 2);
@@ -160,7 +183,7 @@ namespace Poe2Accessibility.Tests
             const int unwind = 0x100;
             rdata[unwind] = 1;
             var pdata = new List<byte>();
-            foreach (var (start, end) in new[] { (TextRva, dump), (Print, Print + 1), (Switch, Table + 0x10), (FallThrough, FallThrough + 3), (Tracked, tracked) })
+            foreach (var (start, end) in new[] { (TextRva, dump), (Print, Print + 1), (Switch, Table + 0x10), (FallThrough, FallThrough + 3), (Tracked, tracked), (Chained, chained) })
             {
                 pdata.AddRange(BitConverter.GetBytes(start).Concat(BitConverter.GetBytes(end)).Concat(BitConverter.GetBytes(RdataRva + unwind)));
             }

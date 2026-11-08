@@ -6,6 +6,7 @@ namespace GameHelper.Utils.CodeReader
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text;
 
     /// <summary>
@@ -16,6 +17,9 @@ namespace GameHelper.Utils.CodeReader
     {
         /// <summary>A GEAL function's name, to find the table by: its row points at this string.</summary>
         private const string GealTableAnchor = "IsWalkable";
+
+        /// <summary>A factory's own arity error names its function: how the functions of the other GEAL tables are found.</summary>
+        private const string GealFactoryError = "GEAL::`anonymous-namespace'::";
 
         /// <summary>The getter wrappers are 116 bytes; a fragment this small holding the name is one.</summary>
         private const int MaxGetterBytes = 0xA0;
@@ -109,10 +113,16 @@ namespace GameHelper.Utils.CodeReader
             return best;
         }
 
+        /// <summary>The starts of the functions with a <c>lea</c> of the whole ASCII string.</summary>
+        public IReadOnlySet<long> FunctionsLoading(string text) => this.FunctionsOf(this.AsciiStrings(text));
+
+        /// <summary>The starts of the functions with a <c>lea</c> of an ASCII string containing <paramref name="text"/>.</summary>
+        public IReadOnlySet<long> FunctionsMentioning(string text) => this.FunctionsOf(this.AsciiContaining(text));
+
         /// <summary>The code a GEAL function runs: its factory's node, that node's evaluator, through a thunk; null when it is not there.</summary>
         public long? Evaluator(string name)
         {
-            if (!this.Geal.TryGetValue(name, out var factory) || this.Index.Body(factory) is not { } body)
+            if (this.Factory(name) is not { } factory || this.Index.Body(factory) is not { } body)
             {
                 return null;
             }
@@ -152,6 +162,21 @@ namespace GameHelper.Utils.CodeReader
 
             return evaluator;
         }
+
+        /// <summary>A GEAL function's factory: its table row, else the one function loading its arity error (other tables exist).</summary>
+        private long? Factory(string name)
+        {
+            if (this.Geal.TryGetValue(name, out var factory))
+            {
+                return factory;
+            }
+
+            var functions = this.FunctionsLoading(GealFactoryError + name);
+            return functions.Count == 1 ? functions.First() : null;
+        }
+
+        private HashSet<long> FunctionsOf(IEnumerable<long> strings) =>
+            strings.SelectMany(text => this.Index.LeaSites(text).ToArray()).Select(site => this.Index.FunctionStart(site)).OfType<long>().ToHashSet();
 
         private List<long> Find(byte[] needle, Func<long, long> result, Func<ReadOnlySpan<byte>, long, bool> accept)
         {

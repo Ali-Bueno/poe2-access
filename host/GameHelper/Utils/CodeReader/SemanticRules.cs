@@ -11,7 +11,7 @@ namespace GameHelper.Utils.CodeReader
     ///     Runs the semantic rules on one exe: each yields one candidate per site it reads, none when anything it needs is not
     ///     there or does not decode. Registers are named only by the calling convention (this in rcx, the result in rax).
     /// </summary>
-    public sealed class SemanticRules
+    public sealed partial class SemanticRules
     {
         /// <summary>The game's own error string inside <c>GEAL::GetGameWorld()</c>, the one function loading it.</summary>
         private const string GameWorldName = "GEAL::GetGameWorld()";
@@ -42,13 +42,17 @@ namespace GameHelper.Utils.CodeReader
         public IReadOnlyList<long> Candidates(SemanticRule rule) => rule.Kind switch
         {
             SemanticKind.Label => this.Label(rule),
-            SemanticKind.Geal => this.AfterCall(rule.Name, this.anchors.Getter(rule.Component), rule.K),
-            SemanticKind.World => this.AfterCall(rule.Name, this.GameWorld(), rule.K),
+            SemanticKind.Geal => this.AfterCall(rule.Name, Only(this.anchors.Getter(rule.Component)), rule.K),
+            SemanticKind.World => this.AfterCall(rule.Name, Only(this.GameWorld()), rule.K),
             SemanticKind.Callee => this.Callee(rule),
             SemanticKind.Called => this.Called(rule),
             SemanticKind.Field => this.LabelSites(rule.Name, rule.With).Select(site => this.fields.Field(site, rule.K, this.LabelWalk(site)))
                 .OfType<long>().ToList(),
             SemanticKind.Getter => this.Getter(rule) is { } value ? new[] { value } : new long[0],
+            SemanticKind.Object => this.Object(rule),
+            SemanticKind.Deref => this.Deref(rule),
+            SemanticKind.Slot => this.Slot(rule),
+            SemanticKind.This => this.This(rule),
             _ => new long[0],
         };
 
@@ -141,17 +145,27 @@ namespace GameHelper.Utils.CodeReader
             return found;
         }
 
-        /// <summary>In a GEAL function's evaluator, the k-th field read through what the first call to <paramref name="target"/> returns.</summary>
-        private List<long> AfterCall(string name, long? target, int k)
+        /// <summary>The lowest <c>[rcx+D]</c> a function's first instructions load: the field a callee reads first from its argument.</summary>
+        private static long? LowestRcxRead(List<X64Instruction>? body)
         {
-            if (target is not { } function || this.anchors.Evaluator(name) is not { } evaluator || this.Index.AllOf(evaluator) is not { } code)
+            var reads = body?.Take(CalleeInstructions).Where(instruction => instruction.Kind == InstructionKind.Mov && instruction.HasMemory && instruction.Base == X64.Rcx)
+                .Select(instruction => instruction.Displacement).ToList();
+            return reads is { Count: > 0 } ? reads.Min() : null;
+        }
+
+        private static IReadOnlySet<long> Only(long? function) => function is { } start ? new HashSet<long> { start } : new HashSet<long>();
+
+        /// <summary>In a GEAL function's evaluator, the k-th field read through what the first call to one of <paramref name="targets"/> returns.</summary>
+        private List<long> AfterCall(string name, IReadOnlySet<long> targets, int k)
+        {
+            if (targets.Count == 0 || this.anchors.Evaluator(name) is not { } evaluator || this.Index.AllOf(evaluator) is not { } code)
             {
                 return new List<long>();
             }
 
             foreach (var instruction in code)
             {
-                if (instruction.Kind == InstructionKind.Call && instruction.DirectTarget == function)
+                if (instruction.Kind == InstructionKind.Call && targets.Contains(instruction.DirectTarget))
                 {
                     var reads = RegisterTracker.Track(this.Index, instruction.End, new Dictionary<int, long> { [X64.Rax] = 0 }, ResultInstructions);
                     var through = reads?.Where(access => access.Offset == 0).Select(access => access.Field).ToList();
@@ -172,14 +186,7 @@ namespace GameHelper.Utils.CodeReader
 
             var after = code.SkipWhile(instruction => instruction.Kind != InstructionKind.Call || instruction.DirectTarget != getter).Skip(1);
             var callee = after.FirstOrDefault(instruction => instruction.Kind == InstructionKind.Call && instruction.DirectTarget > 0);
-            if (callee.Length == 0 || this.Index.Body(callee.DirectTarget) is not { } body)
-            {
-                return new List<long>();
-            }
-
-            var reads = body.Take(CalleeInstructions).Where(instruction => instruction.Kind == InstructionKind.Mov && instruction.HasMemory && instruction.Base == X64.Rcx)
-                .Select(instruction => instruction.Displacement).ToList();
-            return reads.Count > 0 ? new List<long> { reads.Min() } : new List<long>();
+            return callee.Length > 0 && LowestRcxRead(this.Index.Body(callee.DirectTarget)) is { } lowest ? new List<long> { lowest } : new List<long>();
         }
 
         private List<long> Called(SemanticRule rule)
@@ -266,9 +273,8 @@ namespace GameHelper.Utils.CodeReader
         {
             if (this.gameWorld is null)
             {
-                var functions = this.anchors.AsciiContaining(GameWorldName).SelectMany(text => this.Index.LeaSites(text).ToArray())
-                    .Select(site => this.Index.FunctionStart(site)).OfType<long>().Distinct().ToList();
-                this.gameWorld = functions.Count == 1 ? functions[0] : -1;
+                var functions = this.anchors.FunctionsMentioning(GameWorldName);
+                this.gameWorld = functions.Count == 1 ? functions.First() : -1;
             }
 
             return this.gameWorld >= 0 ? this.gameWorld : null;

@@ -149,18 +149,22 @@ namespace GameHelper.Utils.CodeReader
             var offsets = new HashSet<long>();
             foreach (var table in this.VtablesHolding(function))
             {
-                if (this.Index.Body(this.Image.Pointer(table + slot)) is { Count: >= SubObjectGetter } code && code[0].Kind == InstructionKind.Lea
-                    && code[0].FirstRegister == X64.Rax && code[0].Base == X64.Rcx && code[0].Index == X64.NoRegister && code[1].Kind == InstructionKind.Ret)
+                if (LeaGetter(this.Index.Body(this.Image.Pointer(table + slot))) is { } offset)
                 {
-                    offsets.Add(code[0].Displacement);
+                    offsets.Add(offset);
                 }
             }
 
             return offsets.Count == 1 ? offsets.First() : null;
         }
 
+        /// <summary>X when the function is <c>lea rax,[rcx+X]; ret</c>, a sub-object getter; null for anything else.</summary>
+        internal static long? LeaGetter(List<X64Instruction>? code) =>
+            code is { Count: >= SubObjectGetter } && code[0].Kind == InstructionKind.Lea && code[0].FirstRegister == X64.Rax && code[0].Base == X64.Rcx
+            && code[0].Index == X64.NoRegister && code[1].Kind == InstructionKind.Ret ? code[0].Displacement : null;
+
         /// <summary>The vtables with the function as a slot: each <c>.rdata</c> pointer to it, walked back over code pointers to an address some <c>lea</c> loads.</summary>
-        private List<long> VtablesHolding(long function)
+        internal List<long> VtablesHolding(long function)
         {
             if (this.vtables.TryGetValue(function, out var known))
             {
