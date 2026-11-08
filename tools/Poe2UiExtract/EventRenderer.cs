@@ -67,12 +67,8 @@ internal static class EventRenderer
     /// <returns>The mixes and their sample rate; null when FMOD would not start.</returns>
     public static (Dictionary<string, float[]> Mixes, int Rate)? Render(string gameDir, uint headerVersion, IReadOnlyDictionary<string, string[]> sounds, string folder)
     {
-        NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), (name, _, _) => name switch
-        {
-            CoreLib => NativeLibrary.Load(Path.Combine(gameDir, CoreFile)),
-            StudioLib => NativeLibrary.Load(Path.Combine(gameDir, StudioFile)),
-            _ => IntPtr.Zero,
-        });
+        ExtractorLibraries.Use(CoreLib, Path.Combine(gameDir, CoreFile));
+        ExtractorLibraries.Use(StudioLib, Path.Combine(gameDir, StudioFile));
 
         // FMOD takes the file as bytes: a plain name in the temp folder, whatever letters the user's folder has.
         var file = $"poe2-events-{Environment.ProcessId}.wav";

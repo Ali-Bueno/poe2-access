@@ -238,8 +238,7 @@ internal static class SoundExtractor
             return null;
         }
 
-        NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(),
-            (name, _, _) => name == Lib ? NativeLibrary.Load(fmodPath) : IntPtr.Zero);
+        ExtractorLibraries.Use(Lib, fmodPath);
         if (FMOD_System_Create(out var sys, HeaderVersion(fmodPath)) != 0 || FMOD_System_SetOutput(sys, 2 /*NOSOUND*/) != 0
             || FMOD_System_Init(sys, 8, 0, IntPtr.Zero) != 0)
         {
