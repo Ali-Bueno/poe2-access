@@ -548,7 +548,7 @@ namespace Poe2Accessibility
 
             if (outcome.Received.Count > 0)
             {
-                var items = string.Join("; ", outcome.Received.Select(item => Item(item.Title, GameHelper.RemoteEnums.Rarity.Normal, item.Count)));
+                var items = string.Join("; ", outcome.Received.Select(item => Item(item.Title, GameReader.RemoteEnums.Rarity.Normal, item.Count)));
                 lines.Add(T($"Received: {items}", $"Recibes: {items}"));
             }
 
@@ -890,9 +890,9 @@ namespace Poe2Accessibility
         } + T(". Left or right plays it", ". Izquierda o derecha lo reproduce");
 
         /// <summary>The rarity word that ends a unique monster's scanner name ("El molinero hinchado, único").</summary>
-        public static string UniqueRarityWord => RarityName(GameHelper.RemoteEnums.Rarity.Unique);
+        public static string UniqueRarityWord => RarityName(GameReader.RemoteEnums.Rarity.Unique);
 
-        public static string RareRarityWord => RarityName(GameHelper.RemoteEnums.Rarity.Rare);
+        public static string RareRarityWord => RarityName(GameReader.RemoteEnums.Rarity.Rare);
 
         /// <summary>Enemies coming into view, biggest pack first: "Ahogado, 3, derecha. Lobo podrido, raro, arriba".</summary>
         public static string EnemiesAppeared(IEnumerable<(string Name, int Count, int Direction)> groups, bool directions = true) =>

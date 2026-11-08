@@ -3,9 +3,9 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using GameHelper.RemoteEnums.Entity;
-    using GameHelper.RemoteObjects.Components;
-    using GameHelper.RemoteObjects.States.InGameStateObjects;
+    using GameReader.RemoteEnums.Entity;
+    using GameReader.RemoteObjects.Components;
+    using GameReader.RemoteObjects.States.InGameStateObjects;
 
     /// <summary>
     ///     Entity component fields a game update can move, found again from what they hold (docs/compatibility.md): the

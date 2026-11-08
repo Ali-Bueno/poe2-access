@@ -2,9 +2,9 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Runtime.InteropServices;
-    using GameHelper;
-    using GameHelper.RemoteObjects.Components;
-    using GameHelper.RemoteObjects.States.InGameStateObjects;
+    using GameReader;
+    using GameReader.RemoteObjects.Components;
+    using GameReader.RemoteObjects.States.InGameStateObjects;
     using GameOffsets.Natives;
     using GameOffsets.Objects.States.InGameState;
 

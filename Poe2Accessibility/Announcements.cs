@@ -2,7 +2,7 @@ namespace Poe2Accessibility
 {
     using System;
     using System.Linq;
-    using GameHelper.RemoteEnums;
+    using GameReader.RemoteEnums;
 
     /// <summary>
     ///     Every spoken string lives here (single translatable layer; no text inside services or hooks).
@@ -169,14 +169,14 @@ namespace Poe2Accessibility
             _ => humanisedId,
         };
 
-        public static string EnemyWithRarity(string name, GameHelper.RemoteEnums.Rarity rarity) => $"{name}, {RarityName(rarity)}";
+        public static string EnemyWithRarity(string name, GameReader.RemoteEnums.Rarity rarity) => $"{name}, {RarityName(rarity)}";
 
-        internal static string RarityName(GameHelper.RemoteEnums.Rarity rarity) => rarity switch
+        internal static string RarityName(GameReader.RemoteEnums.Rarity rarity) => rarity switch
         {
-            GameHelper.RemoteEnums.Rarity.Normal => T("normal", "normal"),
-            GameHelper.RemoteEnums.Rarity.Magic => T("magic", "mágico"),
-            GameHelper.RemoteEnums.Rarity.Rare => T("rare", "raro"),
-            GameHelper.RemoteEnums.Rarity.Unique => T("unique", "único"),
+            GameReader.RemoteEnums.Rarity.Normal => T("normal", "normal"),
+            GameReader.RemoteEnums.Rarity.Magic => T("magic", "mágico"),
+            GameReader.RemoteEnums.Rarity.Rare => T("rare", "raro"),
+            GameReader.RemoteEnums.Rarity.Unique => T("unique", "único"),
             _ => rarity.ToString().ToLowerInvariant(),
         };
 
@@ -257,9 +257,9 @@ namespace Poe2Accessibility
         ///     Item text and position for a grid cell: equipment slots name the slot ("Gloves, empty") and have no
         ///     position, flasks say their slot number, the main inventory and other grids (stash, vendor) column and row.
         /// </summary>
-        public static (string Text, string Value) InventoryCell(GameHelper.RemoteEnums.InventoryName? inventory, string item, int column, int row)
+        public static (string Text, string Value) InventoryCell(GameReader.RemoteEnums.InventoryName? inventory, string item, int column, int row)
         {
-            if (inventory == GameHelper.RemoteEnums.InventoryName.Flask1)
+            if (inventory == GameReader.RemoteEnums.InventoryName.Flask1)
             {
                 return (item, T($"flask slot {column + 1}", $"ranura de frasco {column + 1}"));
             }
@@ -268,20 +268,20 @@ namespace Poe2Accessibility
             return inventory is { } slot && SlotName(slot) is { } name ? ($"{name}, {item}", string.Empty) : (item, GridPosition(column, row));
         }
 
-        public static string? SlotName(GameHelper.RemoteEnums.InventoryName inventory) => inventory switch
+        public static string? SlotName(GameReader.RemoteEnums.InventoryName inventory) => inventory switch
         {
-            GameHelper.RemoteEnums.InventoryName.BodyArmour1 => T("Body armour", "Armadura corporal"),
-            GameHelper.RemoteEnums.InventoryName.Weapon1 => T("Main hand", "Mano principal"),
-            GameHelper.RemoteEnums.InventoryName.Offhand1 => T("Off hand", "Mano secundaria"),
-            GameHelper.RemoteEnums.InventoryName.Weapon2 => T("Second weapon set, main hand", "Segundo set de armas, mano principal"),
-            GameHelper.RemoteEnums.InventoryName.Offhand2 => T("Second weapon set, off hand", "Segundo set de armas, mano secundaria"),
-            GameHelper.RemoteEnums.InventoryName.Helm1 => T("Helmet", "Casco"),
-            GameHelper.RemoteEnums.InventoryName.Amulet1 => T("Amulet", "Amuleto"),
-            GameHelper.RemoteEnums.InventoryName.Ring1 => T("Left ring", "Anillo izquierdo"),
-            GameHelper.RemoteEnums.InventoryName.Ring2 => T("Right ring", "Anillo derecho"),
-            GameHelper.RemoteEnums.InventoryName.Gloves1 => T("Gloves", "Guantes"),
-            GameHelper.RemoteEnums.InventoryName.Boots1 => T("Boots", "Botas"),
-            GameHelper.RemoteEnums.InventoryName.Belt1 => T("Belt", "Cinturón"),
+            GameReader.RemoteEnums.InventoryName.BodyArmour1 => T("Body armour", "Armadura corporal"),
+            GameReader.RemoteEnums.InventoryName.Weapon1 => T("Main hand", "Mano principal"),
+            GameReader.RemoteEnums.InventoryName.Offhand1 => T("Off hand", "Mano secundaria"),
+            GameReader.RemoteEnums.InventoryName.Weapon2 => T("Second weapon set, main hand", "Segundo set de armas, mano principal"),
+            GameReader.RemoteEnums.InventoryName.Offhand2 => T("Second weapon set, off hand", "Segundo set de armas, mano secundaria"),
+            GameReader.RemoteEnums.InventoryName.Helm1 => T("Helmet", "Casco"),
+            GameReader.RemoteEnums.InventoryName.Amulet1 => T("Amulet", "Amuleto"),
+            GameReader.RemoteEnums.InventoryName.Ring1 => T("Left ring", "Anillo izquierdo"),
+            GameReader.RemoteEnums.InventoryName.Ring2 => T("Right ring", "Anillo derecho"),
+            GameReader.RemoteEnums.InventoryName.Gloves1 => T("Gloves", "Guantes"),
+            GameReader.RemoteEnums.InventoryName.Boots1 => T("Boots", "Botas"),
+            GameReader.RemoteEnums.InventoryName.Belt1 => T("Belt", "Cinturón"),
             _ => null,
         };
 
@@ -289,7 +289,7 @@ namespace Poe2Accessibility
         public static string GridPosition(int column, int row) => T($"column {column + 1}, row {row + 1}", $"columna {column + 1}, fila {row + 1}");
 
         /// <summary>Base name, stack size when more than one, rarity unless normal.</summary>
-        public static string Item(string name, GameHelper.RemoteEnums.Rarity rarity, int count)
+        public static string Item(string name, GameReader.RemoteEnums.Rarity rarity, int count)
         {
             var parts = new System.Collections.Generic.List<string> { name.Length > 0 ? name : UnknownItem };
             if (count > 1)
@@ -297,7 +297,7 @@ namespace Poe2Accessibility
                 parts.Add(count.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
 
-            if (rarity != GameHelper.RemoteEnums.Rarity.Normal)
+            if (rarity != GameReader.RemoteEnums.Rarity.Normal)
             {
                 parts.Add(RarityName(rarity));
             }

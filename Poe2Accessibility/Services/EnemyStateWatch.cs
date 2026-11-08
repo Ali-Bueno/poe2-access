@@ -4,10 +4,10 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
-    using GameHelper;
-    using GameHelper.RemoteEnums;
-    using GameHelper.RemoteEnums.Entity;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader;
+    using GameReader.RemoteEnums;
+    using GameReader.RemoteEnums.Entity;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     Enemy states that skills pay off on (<see cref="EnemyState"/>): each has its own short sound, played from the

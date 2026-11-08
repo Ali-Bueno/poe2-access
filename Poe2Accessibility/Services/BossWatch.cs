@@ -4,11 +4,11 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
-    using GameHelper;
-    using GameHelper.RemoteEnums;
-    using GameHelper.RemoteEnums.Entity;
-    using GameHelper.RemoteObjects.Components;
-    using GameHelper.RemoteObjects.States.InGameStateObjects;
+    using GameReader;
+    using GameReader.RemoteEnums;
+    using GameReader.RemoteEnums.Entity;
+    using GameReader.RemoteObjects.Components;
+    using GameReader.RemoteObjects.States.InGameStateObjects;
 
     /// <summary>
     ///     Bosses and rare monsters near the player. Boss life (D2R boss-life.md) is spoken as the real percentage at

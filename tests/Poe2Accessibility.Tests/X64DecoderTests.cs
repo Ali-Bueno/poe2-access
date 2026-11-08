@@ -5,7 +5,7 @@ namespace Poe2Accessibility.Tests
     using System.Globalization;
     using System.IO;
     using System.Linq;
-    using GameHelper.Utils.CodeReader;
+    using GameReader.Utils.CodeReader;
 
     /// <summary>The host's x64 decoder: known encodings, and agreement with capstone on the game's own code.</summary>
     public static class X64DecoderTests

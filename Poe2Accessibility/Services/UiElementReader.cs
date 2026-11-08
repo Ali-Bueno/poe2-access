@@ -61,7 +61,7 @@ namespace Poe2Accessibility.Services
         private static int TextBlockSize => GameLayout.Element.TextCopyOffset + WStringDecoder.Size;
 
         /// <summary>The base struct, and the control name wherever it lies now.</summary>
-        private static int ElementBlockSize => Math.Max(Math.Max(GameHelper.Utils.HostStructs.Size<UiElementBaseOffset>(), GameLayout.Element.NameOffset + WStringDecoder.Size),
+        private static int ElementBlockSize => Math.Max(Math.Max(GameReader.Utils.HostStructs.Size<UiElementBaseOffset>(), GameLayout.Element.NameOffset + WStringDecoder.Size),
             Math.Max(GameLayout.Image.TextureOffset, GameLayout.Image.AltTextureOffset) + IntPtr.Size);
 
         private readonly HostMemoryReader reader;
@@ -103,7 +103,7 @@ namespace Poe2Accessibility.Services
                 return false;
             }
 
-            if (!GameHelper.Utils.HostStructs.TryRead<UiElementBaseOffset>(block, out var raw) || (raw.Self != address && raw.Self != IntPtr.Zero))
+            if (!GameReader.Utils.HostStructs.TryRead<UiElementBaseOffset>(block, out var raw) || (raw.Self != address && raw.Self != IntPtr.Zero))
             {
                 return false;
             }

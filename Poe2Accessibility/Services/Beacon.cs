@@ -5,8 +5,8 @@ namespace Poe2Accessibility.Services
     using System.Linq;
     using System.Numerics;
     using System.Threading.Tasks;
-    using GameHelper;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     Guide beacon (D2R docs/beacon.md): once the player locks a scanner entry, a short ping repeats, faster as the

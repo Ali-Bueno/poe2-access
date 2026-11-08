@@ -4,8 +4,8 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
-    using GameHelper.Utils;
-    using GameHelper.Utils.CodeReader;
+    using GameReader.Utils;
+    using GameReader.Utils.CodeReader;
 
     /// <summary>A field the game's code reads, and what follows from where it reads it.</summary>
     /// <param name="Name">The field, for the log.</param>

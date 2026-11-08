@@ -4,10 +4,10 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
-    using GameHelper;
-    using GameHelper.RemoteEnums;
-    using GameHelper.RemoteEnums.Entity;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader;
+    using GameReader.RemoteEnums;
+    using GameReader.RemoteEnums.Entity;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     Presence sounds in gameplay: every living hostile monster on screen and in line of sight (uniques always), and
@@ -257,7 +257,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The sound for this entity, or null when it gets none (or its kind is switched off).</summary>
-        private CueSynth.Layer? LayerOf(GameHelper.RemoteObjects.States.InGameStateObjects.Entity entity)
+        private CueSynth.Layer? LayerOf(GameReader.RemoteObjects.States.InGameStateObjects.Entity entity)
         {
             if (entity.EntityType == EntityTypes.Monster && EntityCatalog.IsAliveEnemy(entity))
             {
@@ -304,7 +304,7 @@ namespace Poe2Accessibility.Services
         ///     The terrain layer that blocks sight (GameLayout.Terrain.SightLayer), read once per area; the walkable grid,
         ///     which also blocks at every prop, with a thicker tolerance when that layer cannot be read.
         /// </summary>
-        private (byte[] Grid, int MaxBlocked) SightGrid(GameHelper.RemoteObjects.States.InGameStateObjects.AreaInstance area)
+        private (byte[] Grid, int MaxBlocked) SightGrid(GameReader.RemoteObjects.States.InGameStateObjects.AreaInstance area)
         {
             var walkable = area.GridWalkableData;
             var layer = area.TerrainMetadata.GridLandscapeData;

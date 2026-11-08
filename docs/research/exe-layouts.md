@@ -178,7 +178,7 @@ The study also corrected the structs: `IsStrongbox` reads +0x50 where the code r
 ## The semantic source
 
 Since 2026-11-08 the host reads a third set of offsets from the exe on disk, beside the live searches and the signatures:
-`host/GameHelper/Utils/CodeReader/`, rules in `catalog/semantic-fields.txt`, ported from `re/semantic.py` and `re/semantic_ext.py`
+`host/GameReader/Utils/CodeReader/`, rules in `catalog/semantic-fields.txt`, ported from `re/semantic.py` and `re/semantic_ext.py`
 (poe2-research). A rule names no byte and no register beyond the calling convention (`this` in rcx, a result in rax). It starts from
 a name the game carries and takes what the code does next to it, so a recompile that moves registers or inlining does not stop it
 the way it stops a signature.

@@ -4,10 +4,10 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using GameHelper;
-    using GameHelper.RemoteEnums;
-    using GameHelper.RemoteObjects.Components;
-    using GameHelper.RemoteObjects.States.InGameStateObjects;
+    using GameReader;
+    using GameReader.RemoteEnums;
+    using GameReader.RemoteObjects.Components;
+    using GameReader.RemoteObjects.States.InGameStateObjects;
 
     /// <summary>
     ///     The flasks on the belt (D2R belt readout): the uses each has left from its charges, for the vitals readout and

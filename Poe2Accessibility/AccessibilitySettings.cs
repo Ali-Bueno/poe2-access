@@ -1,7 +1,7 @@
 namespace Poe2Accessibility
 {
-    using GameHelper.Utils;
-    using GameHelper.Plugin;
+    using GameReader.Utils;
+    using GameReader.Plugin;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
 

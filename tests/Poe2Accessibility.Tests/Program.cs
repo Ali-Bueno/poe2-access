@@ -4,7 +4,7 @@ namespace Poe2Accessibility.Tests
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
-    using GameHelper.RemoteEnums;
+    using GameReader.RemoteEnums;
     using Poe2Accessibility.Models;
     using Poe2Accessibility.Services;
 
@@ -1525,16 +1525,16 @@ namespace Poe2Accessibility.Tests
 
         private static void CullingThresholdsByRarity()
         {
-            Equal(true, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 35, 100), "normal at 35%");
-            Equal(false, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 36, 100), "normal above 35%");
-            Equal(false, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Magic, 21, 100), "magic above 20%");
-            Equal(true, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Rare, 100, 1000), "rare at 10%");
-            Equal(true, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Unique, 2500, 50000), "unique at 5%");
-            Equal(false, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Unique, 0, 50000), "dead is not cullable");
-            Equal(true, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 42, 100, 20), "35% increased by 20%: 42%");
-            Equal(false, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 43, 100, 20), "above 42%");
-            Equal(true, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Rare, 15, 100, 0, 50), "rare: 10% increased by 50% against rares");
-            Equal(false, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Magic, 25, 100, 0, 50), "the rare-or-unique increase leaves magic alone");
+            Equal(true, CullThreshold.Reached(GameReader.RemoteEnums.Rarity.Normal, 35, 100), "normal at 35%");
+            Equal(false, CullThreshold.Reached(GameReader.RemoteEnums.Rarity.Normal, 36, 100), "normal above 35%");
+            Equal(false, CullThreshold.Reached(GameReader.RemoteEnums.Rarity.Magic, 21, 100), "magic above 20%");
+            Equal(true, CullThreshold.Reached(GameReader.RemoteEnums.Rarity.Rare, 100, 1000), "rare at 10%");
+            Equal(true, CullThreshold.Reached(GameReader.RemoteEnums.Rarity.Unique, 2500, 50000), "unique at 5%");
+            Equal(false, CullThreshold.Reached(GameReader.RemoteEnums.Rarity.Unique, 0, 50000), "dead is not cullable");
+            Equal(true, CullThreshold.Reached(GameReader.RemoteEnums.Rarity.Normal, 42, 100, 20), "35% increased by 20%: 42%");
+            Equal(false, CullThreshold.Reached(GameReader.RemoteEnums.Rarity.Normal, 43, 100, 20), "above 42%");
+            Equal(true, CullThreshold.Reached(GameReader.RemoteEnums.Rarity.Rare, 15, 100, 0, 50), "rare: 10% increased by 50% against rares");
+            Equal(false, CullThreshold.Reached(GameReader.RemoteEnums.Rarity.Magic, 25, 100, 0, 50), "the rare-or-unique increase leaves magic alone");
         }
 
         private static void CullingSkillsComeFromTheCatalog()
@@ -1674,14 +1674,14 @@ namespace Poe2Accessibility.Tests
 
         private static void PrimedForStunByRarity()
         {
-            Equal(false, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 18, 60), "hag at 30%: not yet");
-            Equal(true, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 24, 60), "normal at 40%");
-            Equal(true, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 54, 60), "hag at 54 of 60 (stunned by the next hit)");
-            Equal(false, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Magic, 19, 40), "magic below 50%");
-            Equal(true, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Rare, 600, 1000), "rare at 60%");
-            Equal(false, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Unique, 690, 1000), "unique below 70%");
-            Equal(false, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 10, 0), "no threshold read");
-            Equal(false, PrimedThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 1_000_000, 60), "not a buildup");
+            Equal(false, PrimedThreshold.Reached(GameReader.RemoteEnums.Rarity.Normal, 18, 60), "hag at 30%: not yet");
+            Equal(true, PrimedThreshold.Reached(GameReader.RemoteEnums.Rarity.Normal, 24, 60), "normal at 40%");
+            Equal(true, PrimedThreshold.Reached(GameReader.RemoteEnums.Rarity.Normal, 54, 60), "hag at 54 of 60 (stunned by the next hit)");
+            Equal(false, PrimedThreshold.Reached(GameReader.RemoteEnums.Rarity.Magic, 19, 40), "magic below 50%");
+            Equal(true, PrimedThreshold.Reached(GameReader.RemoteEnums.Rarity.Rare, 600, 1000), "rare at 60%");
+            Equal(false, PrimedThreshold.Reached(GameReader.RemoteEnums.Rarity.Unique, 690, 1000), "unique below 70%");
+            Equal(false, PrimedThreshold.Reached(GameReader.RemoteEnums.Rarity.Normal, 10, 0), "no threshold read");
+            Equal(false, PrimedThreshold.Reached(GameReader.RemoteEnums.Rarity.Normal, 1_000_000, 60), "not a buildup");
         }
 
         private static void EnemyStatesAreNewsOnlyAsTheyBegin()
@@ -3196,16 +3196,16 @@ namespace Poe2Accessibility.Tests
 
         private static void CodeFieldsNeedTwoSignaturesThatAgree()
         {
-            var one = GameHelper.Utils.CodeFieldSearch.Parse("field", "AA BB ^ ?? ?? ?? ?? CC", 4);
-            var two = GameHelper.Utils.CodeFieldSearch.Parse("field", "DD EE ^ ?? CC", 1);
-            var absent = GameHelper.Utils.CodeFieldSearch.Parse("field", "77 88 ^ ?? 99", 1);
+            var one = GameReader.Utils.CodeFieldSearch.Parse("field", "AA BB ^ ?? ?? ?? ?? CC", 4);
+            var two = GameReader.Utils.CodeFieldSearch.Parse("field", "DD EE ^ ?? CC", 1);
+            var absent = GameReader.Utils.CodeFieldSearch.Parse("field", "77 88 ^ ?? 99", 1);
             byte[] Code(byte first, byte second) => new byte[] { 0xAA, 0xBB, first, 0, 0, 0, 0xCC, 0x11, 0xDD, 0xEE, second, 0xCC };
-            Equal(0x40, GameHelper.Utils.CodeFieldSearch.Agreed(Code(0x40, 0x40), new[] { one, two }), "two agree");
-            Equal(0x40, GameHelper.Utils.CodeFieldSearch.Agreed(Code(0x40, 0x40), new[] { one, two, absent }), "a miss does not stop two that agree");
-            Equal(null, GameHelper.Utils.CodeFieldSearch.Agreed(Code(0x40, 0x48), new[] { one, two }), "two that differ say nothing");
-            Equal(null, GameHelper.Utils.CodeFieldSearch.Agreed(Code(0x40, 0x40), new[] { one, absent }), "one alone says nothing");
+            Equal(0x40, GameReader.Utils.CodeFieldSearch.Agreed(Code(0x40, 0x40), new[] { one, two }), "two agree");
+            Equal(0x40, GameReader.Utils.CodeFieldSearch.Agreed(Code(0x40, 0x40), new[] { one, two, absent }), "a miss does not stop two that agree");
+            Equal(null, GameReader.Utils.CodeFieldSearch.Agreed(Code(0x40, 0x48), new[] { one, two }), "two that differ say nothing");
+            Equal(null, GameReader.Utils.CodeFieldSearch.Agreed(Code(0x40, 0x40), new[] { one, absent }), "one alone says nothing");
             var doubled = Code(0x40, 0x40).Concat(Code(0x48, 0x40)).ToArray();
-            Equal(null, GameHelper.Utils.CodeFieldSearch.Agreed(doubled, new[] { one, two }), "a second hit voids a signature");
+            Equal(null, GameReader.Utils.CodeFieldSearch.Agreed(doubled, new[] { one, two }), "a second hit voids a signature");
 
             var biased = new CodeFieldEntry("Render.Bounds.Y", "RenderOffsets:CharactorModelBounds:4", 0x148, new[] { one, two });
             Equal(0x3C, CodeFieldCatalog.Read(Code(0x40, 0x40), new[] { biased })[0].Found, "the bias comes off");
@@ -3314,8 +3314,8 @@ namespace Poe2Accessibility.Tests
 
             var code = new (CodeFieldEntry, int?)[]
             {
-                (new CodeFieldEntry("Area.Player", "AreaInstanceOffsets:PlayerInfo:8", 0x5C0, Array.Empty<GameHelper.Utils.CodeField>()), 0x5B8),
-                (new CodeFieldEntry("Area.Level", "AreaInstanceOffsets:CurrentAreaLevel", 0xC4, Array.Empty<GameHelper.Utils.CodeField>()), 0xC4),
+                (new CodeFieldEntry("Area.Player", "AreaInstanceOffsets:PlayerInfo:8", 0x5C0, Array.Empty<GameReader.Utils.CodeField>()), 0x5B8),
+                (new CodeFieldEntry("Area.Level", "AreaInstanceOffsets:CurrentAreaLevel", 0xC4, Array.Empty<GameReader.Utils.CodeField>()), 0xC4),
             };
             var merged = LayoutOverrides.Apply(code, fields);
             Equal(3, merged.Count, "the overridden reading is replaced, the others stay");

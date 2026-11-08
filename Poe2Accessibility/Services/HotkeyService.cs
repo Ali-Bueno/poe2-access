@@ -1,7 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System.Linq;
-    using GameHelper.Utils;
+    using GameReader.Utils;
 
     /// <summary>Debounced global key check (the host's physical key state), so hotkeys fire while the game has focus.</summary>
     public sealed class HotkeyService

@@ -4,8 +4,8 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
-    using GameHelper;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     Names what the player walks up to or stands on (checkpoints, NPCs, the stash, chests, items on the ground,

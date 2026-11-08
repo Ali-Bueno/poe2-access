@@ -2,7 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Linq;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     The hazard alarm: a loop of grinding stabs (<see cref="CueSynth.HazardAlarm"/>) while the followed player stands in

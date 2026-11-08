@@ -64,7 +64,7 @@ internal static class GameIdExtractor
             var row = ProjectileSpeeds.Find(stats, stat);
             if (row < 0)
             {
-                Console.WriteLine($"Stat '{stat}' not found: the mod falls back on GameHelper's number for it.");
+                Console.WriteLine($"Stat '{stat}' not found: the mod falls back on the host's number for it.");
                 continue;
             }
 

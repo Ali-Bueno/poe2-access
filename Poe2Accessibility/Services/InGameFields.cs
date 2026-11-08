@@ -92,7 +92,7 @@ namespace Poe2Accessibility.Services
             }
 
             // A new area can rebuild the container in place: what was held may be freed children.
-            var area = GameHelper.Core.States.InGameStateObject.CurrentAreaInstance;
+            var area = GameReader.Core.States.InGameStateObject.CurrentAreaInstance;
             if (area.Address != this.heldArea.Address || area.AreaHash != this.heldArea.Hash)
             {
                 this.heldArea = (area.Address, area.AreaHash);

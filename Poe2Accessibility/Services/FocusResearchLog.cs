@@ -3,7 +3,7 @@ namespace Poe2Accessibility.Services
     using System;
     using System.IO;
     using System.Text;
-    using GameHelper.RemoteEnums;
+    using GameReader.RemoteEnums;
     using Poe2Accessibility.Models;
 
     /// <summary>

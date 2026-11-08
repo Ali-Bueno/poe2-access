@@ -4,10 +4,10 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
-    using GameHelper;
-    using GameHelper.RemoteEnums;
-    using GameHelper.RemoteEnums.Entity;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader;
+    using GameReader.RemoteEnums;
+    using GameReader.RemoteEnums.Entity;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     Boss weak point: while a boss whose tail is not the part to strike is near (<see cref="WeakPoints"/>), a

@@ -6,9 +6,9 @@ namespace Poe2Accessibility.Services
     using System.Linq;
     using System.Numerics;
     using System.Threading.Tasks;
-    using GameHelper;
-    using GameHelper.RemoteObjects.Components;
-    using GameHelper.RemoteObjects.States.InGameStateObjects;
+    using GameReader;
+    using GameReader.RemoteObjects.Components;
+    using GameReader.RemoteObjects.States.InGameStateObjects;
 
     /// <summary>
     ///     The cues GGG placed on the maps (docs/research/map-hints.md): walking past one it is said once, with the side it goes

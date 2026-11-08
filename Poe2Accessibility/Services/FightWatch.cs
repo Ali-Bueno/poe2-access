@@ -3,10 +3,10 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Numerics;
-    using GameHelper;
-    using GameHelper.RemoteEnums;
-    using GameHelper.RemoteEnums.Entity;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader;
+    using GameReader.RemoteEnums;
+    using GameReader.RemoteEnums.Entity;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     Whether the player is in a fight, so items on the ground and characters' lines fall quiet (user 2026-10-30: a
@@ -86,7 +86,7 @@ namespace Poe2Accessibility.Services
             return (any, rare);
         }
 
-        private IEnumerable<GameHelper.RemoteObjects.States.InGameStateObjects.Entity> AliveInRange(Render player)
+        private IEnumerable<GameReader.RemoteObjects.States.InGameStateObjects.Entity> AliveInRange(Render player)
         {
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)

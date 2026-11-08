@@ -3,7 +3,7 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using GameHelper.RemoteEnums;
+    using GameReader.RemoteEnums;
 
     /// <summary>What happened to an item, told by where it went and what else changed with it.</summary>
     public enum ItemMoveKind

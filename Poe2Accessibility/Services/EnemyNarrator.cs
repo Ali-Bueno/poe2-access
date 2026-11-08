@@ -4,8 +4,8 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
-    using GameHelper;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     Enemies coming into view: each monster the camera shows for the first time in this area is named once, a

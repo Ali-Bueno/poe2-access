@@ -3,7 +3,7 @@ namespace Poe2AccessHost
     using System;
     using System.IO;
     using System.Threading;
-    using GameHelper;
+    using GameReader;
 
     /// <summary>Starts the reader, loads the accessibility plugin and runs both until asked to stop.</summary>
     internal static class Program

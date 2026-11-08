@@ -4,7 +4,7 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
-    using GameHelper.Plugin;
+    using GameReader.Plugin;
     using GameOffsets.Natives;
     using GameOffsets.Objects.States;
     using GameOffsets.Objects.UiElement;
@@ -57,7 +57,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The UI tree is nowhere near this deep; a longer parent chain means a corrupt pointer loop.</summary>
         private const int MaxParentChainDepth = 64;
 
-        private static int ElementBlockSize => GameHelper.Utils.HostStructs.Size<UiElementBaseOffset>();
+        private static int ElementBlockSize => GameReader.Utils.HostStructs.Size<UiElementBaseOffset>();
 
         /// <summary>Raw bytes of any object, chunked (for diagnostic hex dumps); missing chunks are zero-filled and reported.</summary>
         public (byte[] Bytes, List<int> UnreadableChunks) ReadObjectBytes(IntPtr address, int bytes)
@@ -99,7 +99,7 @@ namespace Poe2Accessibility.Services
                 return false;
             }
 
-            if (!GameHelper.Utils.HostStructs.TryRead<UiElementBaseOffset>(block, out var raw) || (raw.Self != IntPtr.Zero && raw.Self != address))
+            if (!GameReader.Utils.HostStructs.TryRead<UiElementBaseOffset>(block, out var raw) || (raw.Self != IntPtr.Zero && raw.Self != address))
             {
                 return false;
             }

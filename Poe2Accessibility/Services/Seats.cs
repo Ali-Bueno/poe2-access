@@ -1,8 +1,8 @@
 namespace Poe2Accessibility.Services
 {
     using System;
-    using GameHelper;
-    using GameHelper.RemoteObjects.States.InGameStateObjects;
+    using GameReader;
+    using GameReader.RemoteObjects.States.InGameStateObjects;
 
     /// <summary>
     ///     The local (couch co-op) players the mod reads for, settings <c>ReadPlayer1</c> and <c>ReadPlayer2</c>

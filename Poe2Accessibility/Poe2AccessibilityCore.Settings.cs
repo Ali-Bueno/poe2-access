@@ -1,7 +1,7 @@
 namespace Poe2Accessibility
 {
     using System;
-    using GameHelper;
+    using GameReader;
     using Poe2Accessibility.Services;
 
     /// <summary>Settings of <see cref="Poe2AccessibilityCore"/>: applying them to the services, hotkey checks.</summary>

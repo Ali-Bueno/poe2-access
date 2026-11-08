@@ -1,7 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>Reads a minimap icon's label from its MinimapIcons.dat row in game memory (<see cref="GameLayout.MinimapIconRow"/>).</summary>
     public static class MinimapIconLabel

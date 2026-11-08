@@ -1,8 +1,8 @@
 namespace Poe2Accessibility
 {
     using System;
-    using GameHelper;
-    using GameHelper.RemoteEnums;
+    using GameReader;
+    using GameReader.RemoteEnums;
     using Poe2Accessibility.Models;
     using Poe2Accessibility.Services;
 

@@ -3,9 +3,9 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using GameHelper;
-    using GameHelper.RemoteEnums;
-    using GameHelper.Utils;
+    using GameReader;
+    using GameReader.RemoteEnums;
+    using GameReader.Utils;
 
     /// <summary>
     ///     Diff-gated view of the host's game state. GameHelper2 keeps its StateChanged event internal, so we

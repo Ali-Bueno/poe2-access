@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(HostRoot)GameHelper\GameHelper.csproj">
+    <ProjectReference Include="$(HostRoot)GameReader\GameReader.csproj">
       <Private>false</Private>
       <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
     </ProjectReference>

@@ -4,10 +4,10 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using GameHelper;
-    using GameHelper.RemoteObjects.Components;
-    using GameHelper.RemoteObjects.States.InGameStateObjects;
-    using GameHelper.Utils;
+    using GameReader;
+    using GameReader.RemoteObjects.Components;
+    using GameReader.RemoteObjects.States.InGameStateObjects;
+    using GameReader.Utils;
     using GameOffsets.Objects.Components;
 
     /// <summary>

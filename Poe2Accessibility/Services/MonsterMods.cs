@@ -4,7 +4,7 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Runtime.InteropServices;
     using System.Text.RegularExpressions;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader.RemoteObjects.Components;
     using GameOffsets.Objects.Components;
 
     /// <summary>

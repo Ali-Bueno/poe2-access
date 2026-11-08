@@ -2,8 +2,8 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
-    using GameHelper;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     The death screen, read from its own pointer (<see cref="GameLayout.InGameUi.DeathScreenOffset"/>) when the

@@ -1,7 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System.Numerics;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     A slight hint for a lost player: after a while walking without new ground, the D2R unexplored-room sound plays for a
@@ -62,7 +62,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var area = GameHelper.Core.States.InGameStateObject.CurrentAreaInstance;
+            var area = GameReader.Core.States.InGameStateObject.CurrentAreaInstance;
             if (!playing || !Seats.Followed.TryGetComponent<Render>(out var player) || area.WorldToGridConvertor <= 0)
             {
                 this.target = null;

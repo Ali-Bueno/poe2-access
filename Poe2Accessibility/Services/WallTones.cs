@@ -3,8 +3,8 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Numerics;
-    using GameHelper;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     Wall tones (D2R `[wall_tones]`): one soft noise band per screen direction that swells as the walkable ground

@@ -1,9 +1,9 @@
 namespace Poe2Accessibility.Services
 {
     using System.Collections.Generic;
-    using GameHelper.RemoteEnums;
-    using GameHelper.RemoteObjects.Components;
-    using GameHelper.RemoteObjects.States.InGameStateObjects;
+    using GameReader.RemoteEnums;
+    using GameReader.RemoteObjects.Components;
+    using GameReader.RemoteObjects.States.InGameStateObjects;
 
     /// <summary>The numbers the game keeps for a character (its Stats component), by stat name.</summary>
     public static class PlayerStats

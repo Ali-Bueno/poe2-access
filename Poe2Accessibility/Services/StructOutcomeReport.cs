@@ -1,6 +1,6 @@
 namespace Poe2Accessibility.Services
 {
-    using GameHelper.Utils;
+    using GameReader.Utils;
 
     /// <summary>The host's judgments (<see cref="StructOutcome"/>) said the way every other layout part is.</summary>
     public static class StructOutcomeReport

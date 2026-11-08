@@ -2,8 +2,8 @@ namespace Poe2Accessibility
 {
     using System;
     using System.Linq;
-    using GameHelper;
-    using GameHelper.RemoteEnums;
+    using GameReader;
+    using GameReader.RemoteEnums;
     using Poe2Accessibility.Models;
     using Poe2Accessibility.Services;
 
@@ -182,8 +182,8 @@ namespace Poe2Accessibility
 
         private static bool IsPlayerAlive() => IsAlive(Seats.Followed);
 
-        private static bool IsAlive(GameHelper.RemoteObjects.States.InGameStateObjects.Entity entity) =>
-            entity.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) && life.IsAlive;
+        private static bool IsAlive(GameReader.RemoteObjects.States.InGameStateObjects.Entity entity) =>
+            entity.TryGetComponent<GameReader.RemoteObjects.Components.Life>(out var life) && life.IsAlive;
 
         /// <summary>Per frame in the game: each read player's own news (life, mana, level, states).</summary>
         private void TickPlayerNews()
@@ -212,8 +212,8 @@ namespace Poe2Accessibility
             }
         }
 
-        private static bool LifeKnown(GameHelper.RemoteObjects.States.InGameStateObjects.Entity entity) =>
-            entity.IsValid && entity.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) && life.Health.Total > 0;
+        private static bool LifeKnown(GameReader.RemoteObjects.States.InGameStateObjects.Entity entity) =>
+            entity.IsValid && entity.TryGetComponent<GameReader.RemoteObjects.Components.Life>(out var life) && life.Health.Total > 0;
 
         /// <summary>
         ///     The current area's level, which is its monsters' level (GameHelper AreaInstance +0xBC, "Monster Level" in its
@@ -228,11 +228,11 @@ namespace Poe2Accessibility
         /// <summary>The host's dormant-monster check reads <c>is_dead</c> by the key the game's own table gives it.</summary>
         private void HandDeadStat()
         {
-            var key = (GameHelper.RemoteEnums.GameStats)GameIds.Current.Stat(nameof(GameHelper.RemoteEnums.GameStats.is_dead), (int)GameHelper.RemoteEnums.GameStats.is_dead);
-            if (key != GameHelper.RemoteObjects.States.InGameStateObjects.Entity.DeadStat)
+            var key = (GameReader.RemoteEnums.GameStats)GameIds.Current.Stat(nameof(GameReader.RemoteEnums.GameStats.is_dead), (int)GameReader.RemoteEnums.GameStats.is_dead);
+            if (key != GameReader.RemoteObjects.States.InGameStateObjects.Entity.DeadStat)
             {
-                this.log?.Info($"Stat is_dead: the game says {(int)key}, the host's enum {(int)GameHelper.RemoteObjects.States.InGameStateObjects.Entity.DeadStat}");
-                GameHelper.RemoteObjects.States.InGameStateObjects.Entity.DeadStat = key;
+                this.log?.Info($"Stat is_dead: the game says {(int)key}, the host's enum {(int)GameReader.RemoteObjects.States.InGameStateObjects.Entity.DeadStat}");
+                GameReader.RemoteObjects.States.InGameStateObjects.Entity.DeadStat = key;
             }
         }
 
@@ -240,7 +240,7 @@ namespace Poe2Accessibility
         private string? ReadVitals()
         {
             if (this.gameState?.CurrentState != GameStateTypes.InGameState ||
-                !Seats.Asking.TryGetComponent<GameHelper.RemoteObjects.Components.Life>(out var life) ||
+                !Seats.Asking.TryGetComponent<GameReader.RemoteObjects.Components.Life>(out var life) ||
                 life.Health.Total <= 0)
             {
                 return null;
@@ -254,7 +254,7 @@ namespace Poe2Accessibility
             var states = alerts?.Statuses.Active.Select(Announcements.AilmentName).ToList() ?? new System.Collections.Generic.List<string>();
             var charges = string.Join(", ", (alerts?.Charges.Held.Select(held => Announcements.Charges(held.Kind, held.Count)) ?? Enumerable.Empty<string>())
                 .Concat(alerts?.Charges.Rage is { Count: > 0 } rage ? new[] { Announcements.Rage(rage.Count, rage.Max) } : Array.Empty<string>()));
-            var player = Seats.Asking.TryGetComponent<GameHelper.RemoteObjects.Components.Player>(out var me) ? me : null;
+            var player = Seats.Asking.TryGetComponent<GameReader.RemoteObjects.Components.Player>(out var me) ? me : null;
             var character = player?.Level ?? 0;
             var levels = Announcements.Levels(character, AreaLevel(), player == null ? null : this.experience?.PercentToNext(character, unchecked((uint)player.Xp)));
             var flasks = string.Join(", ", (Seats.AskingSecond && Seats.Partner != null ? this.partnerFlasks : this.flasks)?.Flasks().Select(flask => Announcements.Flask(flask.Name, flask.Uses)) ?? Enumerable.Empty<string>());
@@ -337,7 +337,7 @@ namespace Poe2Accessibility
         /// <summary>" Bottom left corner." after the area's name, where the player starts on the map; not in towns and hideouts.</summary>
         private string AreaCornerLine()
         {
-            if (!this.Settings.AreaCorner || InTownOrHideout() || !Seats.Followed.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var player))
+            if (!this.Settings.AreaCorner || InTownOrHideout() || !Seats.Followed.TryGetComponent<GameReader.RemoteObjects.Components.Render>(out var player))
             {
                 return string.Empty;
             }

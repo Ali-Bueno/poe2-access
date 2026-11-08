@@ -1,7 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     Raise Shield feedback: a rising clank as the player raises the shield, a falling one as it comes down

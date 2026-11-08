@@ -3,8 +3,8 @@ namespace Poe2Accessibility.Tests
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using GameHelper.RemoteObjects.States.InGameStateObjects;
-    using GameHelper.Utils;
+    using GameReader.RemoteObjects.States.InGameStateObjects;
+    using GameReader.Utils;
     using Poe2Accessibility.Services;
 
     /// <summary>The host's runtime layout search against a fake game memory: a patch moves the fields, the search must follow.</summary>
@@ -239,8 +239,8 @@ namespace Poe2Accessibility.Tests
         private static void AStackThatGrewInATradeIsNoDeparture()
         {
             var moves = ItemMoves.Read(
-                new[] { (GameHelper.RemoteEnums.InventoryName.MainInventory1, "Esquirla de transmutación, 2") },
-                new[] { (GameHelper.RemoteEnums.InventoryName.MainInventory1, "Frasco de vida"), (GameHelper.RemoteEnums.InventoryName.MainInventory1, "Esquirla de transmutación") },
+                new[] { (GameReader.RemoteEnums.InventoryName.MainInventory1, "Esquirla de transmutación, 2") },
+                new[] { (GameReader.RemoteEnums.InventoryName.MainInventory1, "Frasco de vida"), (GameReader.RemoteEnums.InventoryName.MainInventory1, "Esquirla de transmutación") },
                 _ => null,
                 true,
                 0,

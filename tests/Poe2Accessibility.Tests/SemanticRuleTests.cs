@@ -5,7 +5,7 @@ namespace Poe2Accessibility.Tests
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using GameHelper.Utils.CodeReader;
+    using GameReader.Utils.CodeReader;
     using Poe2Accessibility.Services;
 
     /// <summary>The semantic rules: their catalog, and a rule run on a tiny synthetic exe.</summary>

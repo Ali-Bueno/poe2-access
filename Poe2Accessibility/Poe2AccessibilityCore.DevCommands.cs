@@ -3,8 +3,8 @@ namespace Poe2Accessibility
     using System;
     using System.IO;
     using System.Linq;
-    using GameHelper;
-    using GameHelper.RemoteEnums;
+    using GameReader;
+    using GameReader.RemoteEnums;
     using Poe2Accessibility.Models;
     using Poe2Accessibility.Services;
 
@@ -22,7 +22,7 @@ namespace Poe2Accessibility
 
         private void LogCamera()
         {
-            if (!Seats.Followed.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var player))
+            if (!Seats.Followed.TryGetComponent<GameReader.RemoteObjects.Components.Render>(out var player))
             {
                 return;
             }
@@ -43,7 +43,7 @@ namespace Poe2Accessibility
             var (agree, windowOnly, viewOnly, worst) = (0, 0, 0, 0f);
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
             {
-                if (!entity.IsValid || !entity.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var render))
+                if (!entity.IsValid || !entity.TryGetComponent<GameReader.RemoteObjects.Components.Render>(out var render))
                 {
                     continue;
                 }
@@ -78,7 +78,7 @@ namespace Poe2Accessibility
         /// <summary>Every stat the player's Stats component holds, key and value, to debug/player-stats-*.txt.</summary>
         private void DumpPlayerStats()
         {
-            if (!Seats.Asking.TryGetComponent<GameHelper.RemoteObjects.Components.Stats>(out var stats))
+            if (!Seats.Asking.TryGetComponent<GameReader.RemoteObjects.Components.Stats>(out var stats))
             {
                 this.log?.Warn("playerstats: no Stats component");
                 return;
@@ -131,7 +131,7 @@ namespace Poe2Accessibility
             }
 
             if (command.StartsWith("guide at ", StringComparison.Ordinal) && command["guide at ".Length..].Split(' ') is [var gx, var gy] &&
-                float.TryParse(gx, out var cellX) && float.TryParse(gy, out var cellY) && Seats.Followed.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var self))
+                float.TryParse(gx, out var cellX) && float.TryParse(gy, out var cellY) && Seats.Followed.TryGetComponent<GameReader.RemoteObjects.Components.Render>(out var self))
             {
                 // Test aid: lock the guide on a grid cell (a tile seen in "entities"), for scripted walking.
                 var toWorld = Core.States.InGameStateObject.CurrentAreaInstance.WorldToGridConvertor;
@@ -155,7 +155,7 @@ namespace Poe2Accessibility
                 // Test aid: lock the guide on any awake entity by id (from "entities"), seen or not, for scripted walking.
                 foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
                 {
-                    if (entity.Id == guideId && entity.IsValid && entity.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var render))
+                    if (entity.Id == guideId && entity.IsValid && entity.TryGetComponent<GameReader.RemoteObjects.Components.Render>(out var render))
                     {
                         var at = render.WorldPosition;
                         this.beacon?.Lock(new ScanEntry(entity.Id, ScanCategory.Objects, $"entity {entity.Id}", at.X, at.Y, at.Z));
@@ -261,7 +261,7 @@ namespace Poe2Accessibility
                     this.log?.Info(this.beacon?.LastAim is { } aim
                         ? FormattableString.Invariant($"Beacon aim {aim.Screen.X:F3},{aim.Screen.Y:F3} remaining {aim.RemainingWorld:F0}")
                         : "Beacon aim none");
-                    var cell = Seats.Followed.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var me)
+                    var cell = Seats.Followed.TryGetComponent<GameReader.RemoteObjects.Components.Render>(out var me)
                         ? FormattableString.Invariant($"{me.GridPosition.X:F0},{me.GridPosition.Y:F0}")
                         : "?";
                     this.log?.Info($"Beacon state: {this.beacon?.Diagnose()}; cell={cell}; playing={Core.Process.Foreground && this.WorldInFront() && IsPlayerAlive()} focus={this.focus?.Current?.Text}");
@@ -288,9 +288,9 @@ namespace Poe2Accessibility
                     var sleepers = new System.Collections.Concurrent.ConcurrentBag<string>();
                     var sleeping = Core.States.InGameStateObject.CurrentAreaInstance.ScanSleepingEntities(_ => true, (_, entity) =>
                     {
-                        var hasIcon = entity.TryGetComponent<GameHelper.RemoteObjects.Components.MinimapIcon>(out var mark) && !string.IsNullOrEmpty(mark.IconName);
+                        var hasIcon = entity.TryGetComponent<GameReader.RemoteObjects.Components.MinimapIcon>(out var mark) && !string.IsNullOrEmpty(mark.IconName);
                         var label = hasIcon && this.memoryReader != null && this.elements != null ? MinimapIconLabel.Of(this.memoryReader, this.elements, mark!) : string.Empty;
-                        var at = entity.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var place) ? FormattableString.Invariant($"{place.GridPosition.X:0},{place.GridPosition.Y:0}") : "-";
+                        var at = entity.TryGetComponent<GameReader.RemoteObjects.Components.Render>(out var place) ? FormattableString.Invariant($"{place.GridPosition.X:0},{place.GridPosition.Y:0}") : "-";
                         if (hasIcon || entity.Path.Contains("MinimapIcon", StringComparison.OrdinalIgnoreCase) || entity.Path.Contains("Transition", StringComparison.Ordinal) || entity.Path.Contains("Glyph", StringComparison.Ordinal) || entity.Path.Contains("Chest", StringComparison.Ordinal))
                         {
                             sleepers.Add($"{entity.Id} {entity.Path} icon={mark?.IconName}|{label} at {at}");
@@ -307,10 +307,10 @@ namespace Poe2Accessibility
                     // Research: awake entities without a Render component (icon-only objects), with their components.
                     foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
                     {
-                        if (entity.IsValid && !entity.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out _))
+                        if (entity.IsValid && !entity.TryGetComponent<GameReader.RemoteObjects.Components.Render>(out _))
                         {
-                            var mark = entity.TryGetComponent<GameHelper.RemoteObjects.Components.MinimapIcon>(out var icon) ? icon.IconName : "-";
-                            this.log?.Info($"Unrendered {entity.Id} {entity.Path} icon={mark} positioned={entity.TryGetComponent<GameHelper.RemoteObjects.Components.Positioned>(out _)}");
+                            var mark = entity.TryGetComponent<GameReader.RemoteObjects.Components.MinimapIcon>(out var icon) ? icon.IconName : "-";
+                            this.log?.Info($"Unrendered {entity.Id} {entity.Path} icon={mark} positioned={entity.TryGetComponent<GameReader.RemoteObjects.Components.Positioned>(out _)}");
                         }
                     }
 
@@ -337,13 +337,13 @@ namespace Poe2Accessibility
                 case "paths":
                     // Research: what the client knows that is no monster, awake or sleeping, by path and cell (docs/research/map-hints.md).
                     var known = new System.Collections.Concurrent.ConcurrentBag<string>();
-                    void Note(GameHelper.RemoteObjects.States.InGameStateObjects.Entity entity)
+                    void Note(GameReader.RemoteObjects.States.InGameStateObjects.Entity entity)
                     {
                         var path = entity.Path ?? string.Empty;
                         if (path.Length > 0 && !path.StartsWith("Metadata/Monsters", StringComparison.Ordinal) && !path.StartsWith("Metadata/Characters", StringComparison.Ordinal))
                         {
-                            var at = entity.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var place) ? FormattableString.Invariant($"{place.GridPosition.X:0},{place.GridPosition.Y:0}") : "-";
-                            var model = entity.TryGetComponent<GameHelper.RemoteObjects.Components.Animated>(out var animated) ? $"{animated.Path} {animated.ModelPath}" : string.Empty;
+                            var at = entity.TryGetComponent<GameReader.RemoteObjects.Components.Render>(out var place) ? FormattableString.Invariant($"{place.GridPosition.X:0},{place.GridPosition.Y:0}") : "-";
+                            var model = entity.TryGetComponent<GameReader.RemoteObjects.Components.Animated>(out var animated) ? $"{animated.Path} {animated.ModelPath}" : string.Empty;
                             known.Add($"{path} at {at} id={entity.Id} model={model}");
                         }
                     }
@@ -638,7 +638,7 @@ namespace Poe2Accessibility
 
             if (fields.Count > 0)
             {
-                GameHelper.Utils.OffsetHealer.PlaceFromCode(WorldAreaStruct, fields);
+                GameReader.Utils.OffsetHealer.PlaceFromCode(WorldAreaStruct, fields);
             }
         }
 
@@ -706,13 +706,13 @@ namespace Poe2Accessibility
             foreach (var group in read.Where(field => field.Found != null && field.Entry.Struct != null).GroupBy(field => field.Entry.Struct!))
             {
                 var fields = group.Select(field => (field.Entry.Field, field.Entry.Measured, field.Found!.Value)).Distinct().ToList();
-                if (GameHelper.Utils.OffsetHealer.PlaceFromCode(group.Key, fields) is not { } outcomes)
+                if (GameReader.Utils.OffsetHealer.PlaceFromCode(group.Key, fields) is not { } outcomes)
                 {
                     this.log?.Info($"Code fields: {group.Key} does not match the catalog, left where it is");
                     continue;
                 }
 
-                moved.AddRange(outcomes.Where(outcome => outcome.Health == GameHelper.Utils.StructHealth.Moved)
+                moved.AddRange(outcomes.Where(outcome => outcome.Health == GameReader.Utils.StructHealth.Moved)
                     .Select(outcome => $"{group.Key}.{outcome.Name} +0x{outcome.From:X} to +0x{outcome.To:X}"));
             }
 
@@ -784,7 +784,7 @@ namespace Poe2Accessibility
                 var watch = System.Diagnostics.Stopwatch.StartNew();
                 var entries = CodeFieldCatalog.Parse(File.ReadLines(Path.Join(catalog, CodeFieldFile)));
                 var file = File.ReadAllBytes(exe);
-                var (start, length) = GameHelper.Utils.CodeFieldSearch.CodeOf(file);
+                var (start, length) = GameReader.Utils.CodeFieldSearch.CodeOf(file);
                 var code = CodeFieldCatalog.Read(file.AsSpan(start, length), entries);
                 var codeTime = watch.ElapsedMilliseconds;
                 var (semantic, semanticError) = ReadSemanticFields(file, Path.Join(catalog, SemanticFieldFile));

@@ -2,8 +2,8 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
-    using GameHelper;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     Barriers that open on their own (TriggerableBlockage, GameOffsets +0x30 IsBlocked): a sighted player sees

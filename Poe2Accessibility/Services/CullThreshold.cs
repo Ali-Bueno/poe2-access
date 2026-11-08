@@ -1,7 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System;
-    using GameHelper.RemoteEnums;
+    using GameReader.RemoteEnums;
 
     /// <summary>
     ///     Culling Strike, as the game defines it (KeywordPopups "CullingStrike", read 2026-10-26): it kills a Normal

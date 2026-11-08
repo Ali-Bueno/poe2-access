@@ -3,7 +3,7 @@ namespace Poe2Accessibility.Tests
     using System;
     using System.Collections.Generic;
     using System.Text;
-    using GameHelper.Utils;
+    using GameReader.Utils;
     using static LayoutSearchTests;
 
     /// <summary>The host's searches added for the field-protection gaps, on synthetic memory (docs/research/field-protection-audit.md).</summary>

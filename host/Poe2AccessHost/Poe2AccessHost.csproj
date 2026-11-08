@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GameHelper\GameHelper.csproj" />
+    <ProjectReference Include="..\GameReader\GameReader.csproj" />
   </ItemGroup>
 
 </Project>

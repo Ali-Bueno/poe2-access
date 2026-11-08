@@ -3,11 +3,11 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Reflection;
-    using GameHelper;
+    using GameReader;
     using System.Runtime.InteropServices;
-    using GameHelper.RemoteEnums;
-    using GameHelper.RemoteObjects.Components;
-    using GameHelper.RemoteObjects.States.InGameStateObjects;
+    using GameReader.RemoteEnums;
+    using GameReader.RemoteObjects.Components;
+    using GameReader.RemoteObjects.States.InGameStateObjects;
     using GameOffsets.Objects.Components;
     using GameOffsets.Objects.States.InGameState;
 
@@ -332,7 +332,7 @@ namespace Poe2Accessibility.Services
                 return false;
             }
 
-            var path = this.elements.ReadWStringStructAt(item.EntityDetailsPtr + GameHelper.Utils.HostStructs.Follow<EntityDetails>(DetailsPathOffset));
+            var path = this.elements.ReadWStringStructAt(item.EntityDetailsPtr + GameReader.Utils.HostStructs.Follow<EntityDetails>(DetailsPathOffset));
             return path != null && path.StartsWith(ItemPathPrefix, StringComparison.Ordinal);
         }
     }

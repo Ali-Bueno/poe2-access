@@ -103,7 +103,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     The element base fields every walk of the tree reads (self, children, parent, flags, rects), judged by the host on
-        ///     the UI root (<see cref="GameHelper.Utils.UiElementLayoutSearch"/>) before anything else reads through them.
+        ///     the UI root (<see cref="GameReader.Utils.UiElementLayoutSearch"/>) before anything else reads through them.
         /// </summary>
         public void ProbeElementBase(IntPtr root)
         {
@@ -122,7 +122,7 @@ namespace Poe2Accessibility.Services
 
             this.elementBaseTried[root] = now;
 
-            var outcomes = GameHelper.Utils.OffsetHealer.JudgeUiElementBase(root);
+            var outcomes = GameReader.Utils.OffsetHealer.JudgeUiElementBase(root);
             this.elementBaseKnown = outcomes.Count > 0;
             foreach (var outcome in outcomes)
             {
@@ -145,7 +145,7 @@ namespace Poe2Accessibility.Services
 
             this.layerRootsTriedAt = now;
             var (mouse, pad) = (MeasuredStateField(nameof(InGameStateOffset.UiRootStructPtr)), MeasuredStateField(nameof(InGameStateOffset.GamepadUiRootStructPtr)));
-            var (mouseNow, padNow) = (GameHelper.Utils.HostStructs.Follow<InGameStateOffset>(mouse), GameHelper.Utils.HostStructs.Follow<InGameStateOffset>(pad));
+            var (mouseNow, padNow) = (GameReader.Utils.HostStructs.Follow<InGameStateOffset>(mouse), GameReader.Utils.HostStructs.Follow<InGameStateOffset>(pad));
             var slots = this.reader.ReadArray<IntPtr>(inGameState, ManagerScanBytes / IntPtr.Size);
             bool Holds(int offset) => offset >= 0 && offset / IntPtr.Size < slots.Length && this.IsLayerContainer(slots[offset / IntPtr.Size]);
             if (Holds(mouseNow) || Holds(padNow))
@@ -164,7 +164,7 @@ namespace Poe2Accessibility.Services
             }
 
             var shift = nearPad is { } p && (nearMouse is not { } m || Math.Abs(p - padNow) <= Math.Abs(m - mouseNow)) ? p - padNow : nearMouse!.Value - mouseNow;
-            GameHelper.Utils.OffsetHealer.PlacePointers(typeof(InGameStateOffset), (mouse, mouseNow + shift), (pad, padNow + shift));
+            GameReader.Utils.OffsetHealer.PlacePointers(typeof(InGameStateOffset), (mouse, mouseNow + shift), (pad, padNow + shift));
             this.layerRootsKnown = true;
             this.report.Moved(LayerRootsPart, mouseNow, mouseNow + shift);
         }
@@ -444,16 +444,16 @@ namespace Poe2Accessibility.Services
         /// <summary>The host's element base search started <see cref="SelfTestShift"/> off every field must come back where they read now.</summary>
         private static string ElementBaseSelfTest(IntPtr root)
         {
-            var measured = GameHelper.Utils.UiElementFields.Measured;
-            var now = new GameHelper.Utils.UiElementFields(
+            var measured = GameReader.Utils.UiElementFields.Measured;
+            var now = new GameReader.Utils.UiElementFields(
                 Follow(measured.Self), Follow(measured.Children), Follow(measured.Parent), Follow(measured.Position), Follow(measured.Flags), Follow(measured.Size));
-            var off = new GameHelper.Utils.UiElementFields(now.Self + SelfTestShift, now.Children + SelfTestShift, now.Parent + SelfTestShift,
+            var off = new GameReader.Utils.UiElementFields(now.Self + SelfTestShift, now.Children + SelfTestShift, now.Parent + SelfTestShift,
                 now.Position + SelfTestShift, now.Flags + SelfTestShift, now.Size + SelfTestShift);
-            var found = GameHelper.Utils.OffsetHealer.FindUiElementBase(root, off);
+            var found = GameReader.Utils.OffsetHealer.FindUiElementBase(root, off);
             return string.Join("; ", SelfTestLine("element tree", now.Parent, found.Parent), SelfTestLine("element rects", now.Size, found.Size),
                 SelfTestLine("element flags", now.Flags, found.Flags));
 
-            static int Follow(int field) => GameHelper.Utils.HostStructs.Follow<GameOffsets.Objects.UiElement.UiElementBaseOffset>(field);
+            static int Follow(int field) => GameReader.Utils.HostStructs.Follow<GameOffsets.Objects.UiElement.UiElementBaseOffset>(field);
         }
 
         /// <summary>How far a field is pretended to have moved in <see cref="SelfTest"/>.</summary>

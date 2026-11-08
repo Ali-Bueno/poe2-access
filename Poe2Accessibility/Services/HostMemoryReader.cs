@@ -3,7 +3,7 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
-    using GameHelper;
+    using GameReader;
     using GameOffsets.Natives;
 
     /// <summary>

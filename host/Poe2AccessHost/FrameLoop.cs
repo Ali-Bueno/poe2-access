@@ -5,7 +5,7 @@ namespace Poe2AccessHost
     using System.Diagnostics;
     using System.Runtime.InteropServices;
     using System.Threading;
-    using GameHelper;
+    using GameReader;
     using Microsoft.Win32.SafeHandles;
 
     /// <summary>Runs the reader and the plugin at a fixed rate on one thread, sleeping between frames.</summary>

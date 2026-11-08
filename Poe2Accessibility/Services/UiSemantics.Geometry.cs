@@ -4,7 +4,7 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
-    using GameHelper.Plugin;
+    using GameReader.Plugin;
 
     /// <summary>Screen geometry for <see cref="UiSemantics"/>: values drawn over a widget, reading order.</summary>
     public sealed partial class UiSemantics

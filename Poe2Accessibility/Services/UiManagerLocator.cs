@@ -2,7 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
-    using GameHelper.RemoteEnums;
+    using GameReader.RemoteEnums;
     using GameOffsets.Objects.States;
 
     /// <summary>

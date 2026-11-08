@@ -2,8 +2,8 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Numerics;
-    using GameHelper;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader;
+    using GameReader.RemoteObjects.Components;
     using GameOffsets.Natives;
 
     /// <summary>

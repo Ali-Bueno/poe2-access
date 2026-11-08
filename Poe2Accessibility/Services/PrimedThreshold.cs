@@ -1,6 +1,6 @@
 namespace Poe2Accessibility.Services
 {
-    using GameHelper.RemoteEnums;
+    using GameReader.RemoteEnums;
 
     /// <summary>
     ///     Primed for Stun (and Freeze, Electrocution, Pin), as the game defines it (KeywordPopups "PrimedStun", read

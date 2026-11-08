@@ -3,9 +3,9 @@ namespace Poe2Accessibility
     using System;
     using System.IO;
     using System.Linq;
-    using GameHelper;
-    using GameHelper.Plugin;
-    using GameHelper.RemoteEnums;
+    using GameReader;
+    using GameReader.Plugin;
+    using GameReader.RemoteEnums;
     using Poe2Accessibility.Models;
     using Poe2Accessibility.Services;
 
@@ -71,7 +71,7 @@ namespace Poe2Accessibility
         {
             ["IsTargetable"] = (() => GameLayout.TargetableComponent.IsTargetableOffset, value => GameLayout.TargetableComponent.IsTargetableOffset = value),
             ["IsTargeted"] = (() => GameLayout.TargetableComponent.IsTargetedOffset, value => GameLayout.TargetableComponent.IsTargetedOffset = value),
-            ["MinimapIconComponentRow"] = (() => GameLayout.MinimapIconRow.ComponentRowOffset, value => GameLayout.MinimapIconRow.ComponentRowOffset = GameHelper.RemoteObjects.Components.MinimapIcon.RowOffset = value),
+            ["MinimapIconComponentRow"] = (() => GameLayout.MinimapIconRow.ComponentRowOffset, value => GameLayout.MinimapIconRow.ComponentRowOffset = GameReader.RemoteObjects.Components.MinimapIcon.RowOffset = value),
             ["SkillId"] = (() => GameLayout.SkillSlot.SkillIdOffset, value => GameLayout.SkillSlot.SkillIdOffset = value),
             ["SkillLevelKey"] = (() => GameLayout.SkillSlot.LevelKeyOffset, value => GameLayout.SkillSlot.LevelKeyOffset = value),
             ["CooldownUses"] = (() => GameLayout.ActorComponent.CooldownUsesOffset, value => GameLayout.ActorComponent.CooldownUsesOffset = value),
@@ -229,7 +229,7 @@ namespace Poe2Accessibility
                 this.log = new PluginLog(Path.Join(this.DllDirectory, "logs"), this.Settings.VerboseLogging);
                 this.settingsStore = new SettingsStore<AccessibilitySettings>(Path.Join(this.DllDirectory, "config", "settings.txt"), this.log);
                 this.ApplySettings(this.settingsStore.Load(this.Settings));
-                this.log.Info($"Enabled. GameHelper {Core.GetVersion()}, game open: {isGameOpened}");
+                this.log.Info($"Enabled. Host library {Core.GetVersion()}, game open: {isGameOpened}");
                 Localization.PhraseDirectory = Path.Join(this.DllDirectory, "catalog", "lang");
                 this.appliedLanguage = this.Settings.Language;
                 Localization.Detect(this.Settings.Language, message => this.log.Info(message));

@@ -7,10 +7,10 @@
 | Project | What it is |
 |---|---|
 | `Poe2AccessHost/` | The executable: frame loop, plugin loading, log (`Poe2AccessHost.log`), single instance, graceful stop. |
-| `GameHelper/` | The game's memory model (states, area, entities, components) and the run-time layout searches. |
+| `GameReader/` | The game's memory model (states, area, entities, components), the run-time layout searches and the exe's code reader. |
 | `GameOffsets/` | The structs that model it. |
 
-`GameHelper/` and `GameOffsets/` started as a copy of [GameHelper2](https://github.com/Gordin/GameHelper2) v2.8.0 (commit
+`GameReader/` (namespace `GameReader`, called `GameHelper` until 2026-11-08) and `GameOffsets/` started as a copy of [GameHelper2](https://github.com/Gordin/GameHelper2) v2.8.0 (commit
 `46cc3bb`, 2026-09-14, recorded as GPLv3 in `docs/research/ecosystem-and-policy.md`; the repository itself carries no
 licence file), with the mod's changes that used to live in `tools/package/gamehelper.patch`. Its overlay, ImGui windows,
 plugin manager, launcher, input sending and connection killer were left out, and with them ClickableTransparentOverlay

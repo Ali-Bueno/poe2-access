@@ -1,8 +1,8 @@
 namespace Poe2Accessibility.Services
 {
     using System;
-    using GameHelper.RemoteObjects.Components;
-    using GameHelper.RemoteObjects.States.InGameStateObjects;
+    using GameReader.RemoteObjects.Components;
+    using GameReader.RemoteObjects.States.InGameStateObjects;
 
     /// <summary>
     ///     One local player's own news: low life and mana, level up, states begun and ended, charges, skills ready. The plugin keeps one

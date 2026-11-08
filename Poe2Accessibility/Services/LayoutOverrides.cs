@@ -4,7 +4,7 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
-    using GameHelper.Utils;
+    using GameReader.Utils;
 
     /// <summary>
     ///     <c>config/layout-overrides.txt</c>: where a field sits in one game build that the mod does not follow yet,

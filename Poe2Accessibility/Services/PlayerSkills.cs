@@ -3,7 +3,7 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     The granted effect Ids of the skills the followed player's Actor lists ("KillingPalmPlayer"): Parry is granted by

@@ -4,7 +4,7 @@ namespace Poe2AccessHost
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using GameHelper;
+    using GameReader;
 
     /// <summary>What the frames cost, logged once a minute: the measure for running on small machines.</summary>
     internal sealed class FrameStats

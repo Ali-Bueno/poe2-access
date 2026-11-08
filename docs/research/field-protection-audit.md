@@ -2,7 +2,7 @@
 
 Which fields the mod reads have fewer than two independent ways to be found again after a game patch. Read-only audit of the
 code at commit `e9fdbd2`, 2026-11-08 (build 0.5.5f offsets); the game's exe was not analysed. Sources: `docs/compatibility.md`,
-`Poe2Accessibility/catalog/code-fields.txt` (`Lnn` below is its line `nn`), `host/GameOffsets/Objects/**`, `host/GameHelper/**`,
+`Poe2Accessibility/catalog/code-fields.txt` (`Lnn` below is its line `nn`), `host/GameOffsets/Objects/**`, `host/GameReader/**`,
 `Poe2Accessibility/**`.
 
 Updated the same day after closing the gaps of section 2 (commits `28bf763`..`61972ec`): the rows changed are those the new
@@ -15,7 +15,7 @@ searches cover, and the semantic rules of `catalog/semantic-fields.txt` (added a
   `code-fields.txt`; two sequences must agree, `CodeFieldSearch.cs:40`), **LIVE** (a shape or value judged on live memory, named),
   **NAME** (anchored on a name the game holds), **DAT** (dat-columns extractor), **FOLLOW** (shifts with another field's anchor, so
   not independent of it; marked `(f)` and counted as 1).
-- **SEM** is a rule of the semantic code reader (`host/GameHelper/Utils/CodeReader`), which reads the field from what the
+- **SEM** is a rule of the semantic code reader (`host/GameReader/Utils/CodeReader`), which reads the field from what the
   code does next to a name the game carries; it reads the exe like SIG but survives a recompiled function, so a field with
   both counts them as two.
 - Not counted, listed so the picture is complete: **CHECK** (the reading is validated, so a break is noticed, but nothing repairs

@@ -1,7 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System;
-    using GameHelper.RemoteEnums;
+    using GameReader.RemoteEnums;
 
     /// <summary>An animation's name: the game's (<see cref="GameIds"/>); the compiled one only with no catalog to read it from.</summary>
     public static class AnimationNames

@@ -8,7 +8,7 @@ namespace Poe2Accessibility.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using GameHelper.Plugin;
+    using GameReader.Plugin;
     using Poe2Accessibility.Models;
 
     /// <summary>

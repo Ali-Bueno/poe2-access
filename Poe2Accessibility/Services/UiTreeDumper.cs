@@ -5,8 +5,8 @@ namespace Poe2Accessibility.Services
     using System.Globalization;
     using System.IO;
     using System.Text;
-    using GameHelper;
-    using GameHelper.RemoteEnums;
+    using GameReader;
+    using GameReader.RemoteEnums;
     using Poe2Accessibility.Models;
 
     /// <summary>
@@ -59,7 +59,7 @@ namespace Poe2Accessibility.Services
             var path = Path.Join(this.outputDirectory, $"ui-tree-{state}-{DateTime.Now:yyyyMMdd-HHmmss}.txt");
             var sb = new StringBuilder();
             sb.AppendLine($"# UI tree dump — {DateTime.Now:O}");
-            sb.AppendLine($"# GameHelper {Core.GetVersion()}, state {state}, state object 0x{stateObject.ToInt64():X}, controller mode {Core.GHSettings.EnableControllerMode}");
+            sb.AppendLine($"# host library {Core.GetVersion()}, state {state}, state object 0x{stateObject.ToInt64():X}, controller mode {Core.GHSettings.EnableControllerMode}");
             sb.AppendLine($"# visibleOnly={visibleOnly} maxDepth={maxDepth} maxNodes={maxNodes}");
             sb.AppendLine("# line format: [child index path] address vis=<own flag> flags=<hex> kids=<n> name=\"<+0x98>\" font=\"<+0xC0>\" rect=(x,y w×h) str@<offset>=\"<probed std::wstring>\"");
             sb.AppendLine("# rect=(none) means the host could not place it: an invisible ancestor OR a zero unscaled size. Known flag bits: 0x0B visible, 0x0A modify-pos, 0x1B interactive widget, 0x10 text input (login dump 2026-09-14).");
@@ -265,7 +265,7 @@ namespace Poe2Accessibility.Services
             var path = Path.Join(this.outputDirectory, $"state-object-{state}-{DateTime.Now:yyyyMMdd-HHmmss}.txt");
             var sb = new StringBuilder();
             sb.AppendLine($"# State object diagnostic — {DateTime.Now:O}");
-            sb.AppendLine($"# GameHelper {Core.GetVersion()}, state {state}, state object 0x{stateObject.ToInt64():X}");
+            sb.AppendLine($"# host library {Core.GetVersion()}, state {state}, state object 0x{stateObject.ToInt64():X}");
             sb.AppendLine(rootReport);
 
             var (bytes, unreadable) = this.reader.ReadObjectBytes(stateObject, StateObjectScanBytes);

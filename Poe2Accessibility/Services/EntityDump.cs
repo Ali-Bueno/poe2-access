@@ -4,8 +4,8 @@ namespace Poe2Accessibility.Services
     using System.IO;
     using System.Linq;
     using System.Text;
-    using GameHelper;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     Research: the awake entities around the player, nearest first (path, GameHelper type, minimap icon,
@@ -19,7 +19,7 @@ namespace Poe2Accessibility.Services
         private static readonly string[] ProbedComponents = { "AreaTransition", "NPC", "Chest", "TriggerableBlockage", "Transitionable", "Counter", "ProximityTrigger", "Timer" };
 
         private static readonly System.Reflection.FieldInfo? ComponentMap =
-            typeof(GameHelper.RemoteObjects.States.InGameStateObjects.Entity).GetField("componentAddresses", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            typeof(GameReader.RemoteObjects.States.InGameStateObjects.Entity).GetField("componentAddresses", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 
         private readonly UiElementReader reader;
         private readonly HostMemoryReader memory;
@@ -86,8 +86,8 @@ namespace Poe2Accessibility.Services
                     if (entity.TryGetComponent<WorldItem>(out var worldItem) && worldItem.ItemEntityAddress != IntPtr.Zero)
                     {
                         // The item a ground entity holds: how its name can be read (gems have no base display name).
-                        var item = (GameHelper.RemoteObjects.States.InGameStateObjects.Item)Activator.CreateInstance(
-                            typeof(GameHelper.RemoteObjects.States.InGameStateObjects.Item),
+                        var item = (GameReader.RemoteObjects.States.InGameStateObjects.Item)Activator.CreateInstance(
+                            typeof(GameReader.RemoteObjects.States.InGameStateObjects.Item),
                             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, new object[] { worldItem.ItemEntityAddress }, null)!;
                         var itemBase = item.TryGetComponent<Base>(out var baseComponent) ? $"\"{baseComponent.BaseItemName}\" ({baseComponent.InternalName})" : "-";
                         var itemComponents = ComponentMap.GetValue(item) is System.Collections.Concurrent.ConcurrentDictionary<string, IntPtr> held

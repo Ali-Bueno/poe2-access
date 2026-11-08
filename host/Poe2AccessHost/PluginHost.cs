@@ -5,8 +5,8 @@ namespace Poe2AccessHost
     using System.Linq;
     using System.Reflection;
     using System.Runtime.Loader;
-    using GameHelper;
-    using GameHelper.Plugin;
+    using GameReader;
+    using GameReader.Plugin;
 
     /// <summary>The accessibility plugin, loaded from its folder, and the calls the host makes on it.</summary>
     internal sealed class PluginHost

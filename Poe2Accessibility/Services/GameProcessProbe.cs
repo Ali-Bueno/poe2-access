@@ -87,7 +87,7 @@ namespace Poe2Accessibility.Services
             this.lastReport = report;
             if (!string.IsNullOrEmpty(report))
             {
-                this.log.Warn($"Game process seen but GameHelper not attached: {report}");
+                this.log.Warn($"Game process seen but the host has not attached: {report}");
                 this.ReportChanged?.Invoke(report);
             }
         }

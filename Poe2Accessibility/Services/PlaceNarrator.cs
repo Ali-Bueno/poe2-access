@@ -6,8 +6,8 @@ namespace Poe2Accessibility.Services
     using System.Numerics;
     using System.Threading;
     using System.Threading.Tasks;
-    using GameHelper;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader;
+    using GameReader.RemoteObjects.Components;
     using GameOffsets.Natives;
     using GameOffsets.Objects.States.InGameState;
 

@@ -403,7 +403,7 @@ namespace Poe2Accessibility.Services
             while (queue.Count > 0 && budget-- > 0)
             {
                 var (node, depth) = queue.Dequeue();
-                if (this.inventory.InventoryOf(node.Address) == GameHelper.RemoteEnums.InventoryName.MainInventory1)
+                if (this.inventory.InventoryOf(node.Address) == GameReader.RemoteEnums.InventoryName.MainInventory1)
                 {
                     return true;
                 }

@@ -6,10 +6,10 @@ namespace Poe2Accessibility.Services
     using System.Linq;
     using System.Numerics;
     using System.Text;
-    using GameHelper;
-    using GameHelper.RemoteEnums;
-    using GameHelper.RemoteEnums.Entity;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader;
+    using GameReader.RemoteEnums;
+    using GameReader.RemoteEnums.Entity;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     Research (dev command "stuntrace [seconds]"): every 100 ms, for each enemy being fought near the player, its life,

@@ -3,10 +3,10 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Numerics;
-    using GameHelper;
-    using GameHelper.RemoteEnums;
-    using GameHelper.RemoteEnums.Entity;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader;
+    using GameReader.RemoteEnums;
+    using GameReader.RemoteEnums.Entity;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     Culling Strike cue (the Monk's Killing Palm): a falling chime from the side of an enemy that has just come within

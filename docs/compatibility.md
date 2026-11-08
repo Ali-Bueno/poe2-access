@@ -3,7 +3,7 @@
 What a PoE2 patch can break, what follows it on its own, and what needs a person. Code: `LayoutProbe`,
 `InGameFields`, `ControlFields`, `EntityFields`, `FlagBits`, `PassiveTreeFields`, `CompatibilityReport`,
 `WorldLayoutWatch` (plugin); `AreaLayoutSearch`, `AreaInstanceLayout`, `OffsetHealer`, `StructShapes`, `StructRemap`,
-`GameStatesSearch` (host, `host/GameHelper`); `GameDataSetup` (launcher). Which fields have how many of these, and
+`GameStatesSearch` (host, `host/GameReader`); `GameDataSetup` (launcher). Which fields have how many of these, and
 the gaps: [field protection audit](research/field-protection-audit.md).
 
 ## What depends on the game's build

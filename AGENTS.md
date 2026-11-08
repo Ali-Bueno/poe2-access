@@ -1,6 +1,6 @@
 # Rules for code agents — Path of Exile 2 accessibility plugin
 
-1. Read the host's reader (`host/GameHelper`, GameHelper2's memory model in the mod's own host) before implementing duplicate memory readers.
+1. Read the host's reader (`host/GameReader`, GameHelper2's memory model in the mod's own host) before implementing duplicate memory readers.
 2. Do not use WriteProcessMemory.
 3. Do not add byte patches or cheat functionality.
 4. Do not implement auto-movement, auto-combat, auto-loot or auto-target.

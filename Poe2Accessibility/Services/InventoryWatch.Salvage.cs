@@ -3,8 +3,8 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using GameHelper.RemoteEnums;
-    using GameHelper.RemoteObjects.Components;
+    using GameReader.RemoteEnums;
+    using GameReader.RemoteObjects.Components;
 
     /// <summary>
     ///     Beside the salvage bench the main inventory is compared as a whole once it settles: the salvaged item goes and
