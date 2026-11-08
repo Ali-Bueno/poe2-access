@@ -10,18 +10,22 @@ using Index = LibBundle3.Index;
 internal static class BuffNameExtractor
 {
     private const int IdOffset = 0x0;
-    private const int NameOffset = 0x12;
-    private const int TypeOffset = 0x67;
     private const int DebuffType = 2;
     private const int CurseType = 5;
 
     public static int Run(Index index, string outFile)
     {
         var result = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
+        if (DatTable.Open(index, "buffdefinitions") is not { } english || BuffColumns.Find(english, "buff-names") is not { } columns)
+        {
+            Console.WriteLine("  BuffDefinitions missing or its columns not found");
+            return 1;
+        }
+
         var languages = AreaExtractor.LanguageCodes.Select(pair => (Code: pair.Value, Folder: (string?)pair.Key)).Prepend(("en", null));
         foreach (var (code, folder) in languages)
         {
-            var table = folder == null ? DatTable.Open(index, "buffdefinitions") : DatTable.OpenTranslated(index, "buffdefinitions", folder);
+            var table = folder == null ? english : DatTable.OpenTranslated(index, "buffdefinitions", folder);
             if (table == null)
             {
                 Console.WriteLine($"  {code}: no BuffDefinitions");
@@ -32,8 +36,8 @@ internal static class BuffNameExtractor
             for (var row = 0; row < table.RowCount; row++)
             {
                 var id = table.StringOrNull(row, IdOffset);
-                var name = table.StringOrNull(row, NameOffset)?.Trim();
-                var type = table.Byte(row, TypeOffset);
+                var name = table.StringOrNull(row, columns.Name)?.Trim();
+                var type = table.Byte(row, columns.Type);
                 if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(name) && type is DebuffType or CurseType)
                 {
                     names[id] = name;

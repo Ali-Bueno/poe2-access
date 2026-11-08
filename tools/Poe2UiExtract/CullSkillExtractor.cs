@@ -10,9 +10,6 @@ internal static class CullSkillExtractor
     private const string CullStat = "kill_enemy_on_hit_if_under_10%_life";
     private const string Skipped = "cull skills";
 
-    // GrantedEffectStatSets: ImplicitStats, a stat key list (6 sets list the stat; scan of every key list column, 2026-10-29).
-    private const int ImplicitStatsOffset = 0x18;
-
     public static int Run(string gameDir, string outFile)
     {
         using var index = SharedBundles.OpenParsed(gameDir);
@@ -22,16 +19,13 @@ internal static class CullSkillExtractor
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
     public static int Run(Index index, string outFile)
     {
-        var skills = DatTable.Open(index, "grantedeffects");
-        var statSets = DatTable.Open(index, "grantedeffectstatsets");
-        var stats = DatTable.Open(index, "stats");
-        if (!HitTimeExtractor.Sized(skills, ProjectileSpeeds.SkillRowSize, "GrantedEffects", Skipped) ||
-            !HitTimeExtractor.Sized(statSets, ProjectileSpeeds.StatSetRowSize, "GrantedEffectStatSets", Skipped) || stats == null)
+        if (ProjectileSpeeds.Columns(index) is not var (t, c))
         {
             return 1;
         }
 
-        var cull = ProjectileSpeeds.Find(stats, CullStat);
+        var (skills, statSets) = (t.Skills, t.StatSets);
+        var cull = ProjectileSpeeds.Find(t.Stats, CullStat);
         if (cull < 0)
         {
             Console.WriteLine($"Stat '{CullStat}' not found: {Skipped} left out.");
@@ -39,10 +33,10 @@ internal static class CullSkillExtractor
         }
 
         var ids = new SortedSet<string>(StringComparer.Ordinal);
-        for (var skill = 0; skill < skills!.RowCount; skill++)
+        for (var skill = 0; skill < skills.RowCount; skill++)
         {
-            var statSet = skills.Key(skill, ProjectileSpeeds.SkillStatSetOffset);
-            if (statSet >= 0 && statSet < statSets!.RowCount && statSets.KeyList((int)statSet, ImplicitStatsOffset).Contains(cull))
+            var statSet = skills.Key(skill, c.SkillStatSet);
+            if (statSet >= 0 && statSet < statSets.RowCount && statSets.KeyList((int)statSet, c.ImplicitStats).Contains(cull))
             {
                 ids.Add(skills.String(skill, 0));
             }

@@ -11,9 +11,6 @@ internal static class SkillFlags
     public const string NoParry = "noparry";
     private const string Skipped = "unblockable skills";
 
-    /// <summary>GrantedEffectStatSets: the implicit stats, a key list holding the skill's flag stats (66 sets carry one of these; scan 2026-10-28).</summary>
-    internal const int ImplicitStatsOffset = 0x18;
-
     private static readonly Dictionary<string, string> FlagOfStat = new(StringComparer.Ordinal)
     {
         ["base_cannot_be_blocked"] = NoBlock,
@@ -26,15 +23,12 @@ internal static class SkillFlags
     public static Dictionary<int, SortedSet<string>> Read(Index index, DatTable skills)
     {
         var flags = new Dictionary<int, SortedSet<string>>();
-        var stats = DatTable.Open(index, "stats");
-        var statSets = DatTable.Open(index, "grantedeffectstatsets");
-        if (!HitTimeExtractor.Sized(skills, ProjectileSpeeds.SkillRowSize, "GrantedEffects", Skipped) ||
-            !HitTimeExtractor.Sized(statSets, ProjectileSpeeds.StatSetRowSize, "GrantedEffectStatSets", Skipped) || stats == null)
+        if (ProjectileSpeeds.Columns(index) is not var (t, c))
         {
             return flags;
         }
 
-        var flagOfRow = FlagOfStat.Select(pair => (Row: ProjectileSpeeds.Find(stats, pair.Key), Flag: pair.Value)).Where(pair => pair.Row >= 0).ToDictionary(pair => pair.Row, pair => pair.Flag);
+        var flagOfRow = FlagOfStat.Select(pair => (Row: ProjectileSpeeds.Find(t.Stats, pair.Key), Flag: pair.Value)).Where(pair => pair.Row >= 0).ToDictionary(pair => pair.Row, pair => pair.Flag);
         if (flagOfRow.Count == 0)
         {
             Console.WriteLine($"Stats {string.Join(", ", FlagOfStat.Keys)} not found: {Skipped} left out.");
@@ -43,13 +37,13 @@ internal static class SkillFlags
 
         for (var skill = 0; skill < skills.RowCount; skill++)
         {
-            var statSet = skills.Key(skill, ProjectileSpeeds.SkillStatSetOffset);
-            if (statSet < 0 || statSet >= statSets!.RowCount)
+            var statSet = skills.Key(skill, c.SkillStatSet);
+            if (statSet < 0 || statSet >= t.StatSets.RowCount)
             {
                 continue;
             }
 
-            var found = statSets.KeyList((int)statSet, ImplicitStatsOffset).Where(flagOfRow.ContainsKey).Select(key => flagOfRow[key]).ToList();
+            var found = t.StatSets.KeyList((int)statSet, c.ImplicitStats).Where(flagOfRow.ContainsKey).Select(key => flagOfRow[key]).ToList();
             if (found.Count > 0)
             {
                 flags[skill] = new SortedSet<string>(found, StringComparer.Ordinal);
