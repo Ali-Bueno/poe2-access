@@ -12,6 +12,7 @@ internal sealed unsafe class StartupSpeech : IDisposable
 {
     private const string LibraryFile = "prism.dll";
     private const int ShutdownWaitMilliseconds = 3_000;
+    private const int ConfigurationBytes = 256; // room for any release's PrismConfig
 
     private readonly BlockingCollection<(string Text, bool Interrupt)> queue = [];
     private readonly Thread worker;
@@ -76,15 +77,14 @@ internal sealed unsafe class StartupSpeech : IDisposable
 
     private void Run()
     {
-        var configInit = (delegate* unmanaged[Cdecl]<byte>)this.Export("prism_config_init");
+        var configInit = (delegate* unmanaged[Cdecl]<byte*, IntPtr>)this.Export("prism_config_init");
         var init = (delegate* unmanaged[Cdecl]<byte*, IntPtr>)this.Export("prism_init");
         var shutdown = (delegate* unmanaged[Cdecl]<IntPtr, void>)this.Export("prism_shutdown");
         var acquireBest = (delegate* unmanaged[Cdecl]<IntPtr, IntPtr>)this.Export("prism_registry_acquire_best");
         var initialize = (delegate* unmanaged[Cdecl]<IntPtr, int>)this.Export("prism_backend_initialize");
         var speak = (delegate* unmanaged[Cdecl]<IntPtr, byte*, byte, int>)this.Export("prism_backend_speak");
         var free = (delegate* unmanaged[Cdecl]<IntPtr, void>)this.Export("prism_backend_free");
-        var configuration = configInit();
-        var context = init(&configuration);
+        var context = init(this.Configuration(configInit, stackalloc byte[ConfigurationBytes]));
         var backend = context == IntPtr.Zero ? IntPtr.Zero : acquireBest(context);
         if (backend == IntPtr.Zero)
         {
@@ -124,6 +124,25 @@ internal sealed unsafe class StartupSpeech : IDisposable
         if (context != IntPtr.Zero)
         {
             shutdown(context);
+        }
+    }
+
+    /// <summary>
+    ///     PRISM's config struct has grown between releases (one byte, now several pointers): it is returned in memory when
+    ///     it is large (the hidden pointer comes back) and in the return register when it is one byte.
+    /// </summary>
+    private byte* Configuration(delegate* unmanaged[Cdecl]<byte*, IntPtr> configInit, Span<byte> buffer)
+    {
+        buffer.Clear();
+        fixed (byte* config = buffer)
+        {
+            var returned = configInit(config);
+            if (returned != (IntPtr)config)
+            {
+                config[0] = (byte)(long)returned;
+            }
+
+            return config;
         }
     }
 

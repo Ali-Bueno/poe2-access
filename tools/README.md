@@ -118,8 +118,14 @@ raised otherwise. The catalog steps (`item-sounds`, `areas`, `dat-columns`, `exp
 goes on); the extractor's output is redirected (`Say`) and only its `batch` result lines reach the log, and the memory is collected
 afterwards. `oo2core.dll` is found beside the exe or in `app\` (`OodleLibrary.cs`, a `NativeLibrary` resolver for LibBundle3). Outputs
 are written to a temp file or folder and replace the old ones only on success; each step is stamped as it succeeds (a failed one is
-retried on the next start, an optional one is stamped anyway). About 33 s for all of them, about 15 s for one catalog, 2 s for the
-sounds alone. Everything stays in the mod's folder: the catalogs in `app/GameData/catalog`, copied over the plugin's shipped copies
+retried on the next start, an optional one is stamped anyway). The first regeneration takes about 53 s on the development machine
+(it was 152 s): the batch opens the index once (about 7 s) and runs the catalogs 3 at a time (`Batch.MaxParallel`; 2 to 21 made no
+difference), the tables are found through one lower-case path index per bundle index (`BundleFiles`: the old linear scan per table
+open cost 55 s in `trial-data` and 75 s in `endgame`), then `sounds` (about 22 s). Peak memory about 2 GB (the parsed index), collected
+before the host starts. While it runs the mod speaks through the plugin folder's `prism.dll` (`StartupSpeech`, `GameDataNarrator`): an
+opening line, a progress line every 30 s ("Game data: 8 of 22") and a closing one, in the plugin's language (settings.txt, else the
+game's, else the system's; Spanish and English in code, the others from `catalog/lang/<code>.json` by the English text; the three
+phrases are in `StartupPhrases.cs`, listed by `phrases.py missing <lang>`); PRISM is released before the plugin starts it again. Everything stays in the mod's folder: the catalogs in `app/GameData/catalog`, copied over the plugin's shipped copies
 on every start (an update or an unzip over the mod puts those back), the sounds in the plugin's `sounds/`; no package carries either,
 so a mod update keeps them. **Raise a step's version in `GameDataSetup` when its output changes**, so that step alone reruns once on
 every machine. The first start after the old layout (one `format=` number in `Plugins/Poe2Accessibility/catalog/game-version.txt`)
