@@ -277,6 +277,45 @@ the class list the only key list into Characters, the per-level effect key the k
 GrantedEffects row, and the ActiveSkills key the one whose target Ids appear inside the effect Ids (0.5.5e: 1160 rows,
 the next column 41). A PassiveSkills column a launcher did not write follows the name's shift.
 
+## Content changes such as 1.0
+GGG has said 1.0 shrinks the Atlas to about 70 nodes and changes the passive tree. A content patch moves table columns,
+renumbers rows, rewrites graph files and may retune rules; what follows is how each catalog and feature takes it
+(audited 2026-11-08; every changed extractor run on today's install came out byte for byte the same, `area-names.json`
+apart, which differs only by the 2026-11-05 patch's six hideouts and seven German renames the shipped copy predates).
+
+**Adapts by itself.** Every dat column the extractors read is found by what it holds, nearest to where it was measured
+(`DatColumnSearch`: the type, a text, key, key list, string list, integer or flag, plus a value check on a row the data
+still has, such as the Breach objective's icon being named Breach, the `frozen` buff's name, `IgnitedGround`'s buff; a row
+that no longer exists skips its check). Columns of one type keep their order, so a column inserted between two texts moves
+both. Thresholds are shares of the rows, never counts: a 70-node Atlas judges as 1,242 did. The finders are shared:
+`EndgameExtractor.Columns` (31 columns over 14 tables), `ProjectileColumns` (skills, projectiles, stat sets; `hit-times`,
+`cull-skills`), `BuffColumns` (`buff-names`, `class-mechanics`, `hazards`), `HazardColumns`, `AnimationColumns`,
+`AreaExtractor`'s name, `CurrencyArtExtractor`'s art, with `TrialDataExtractor` and `dat-columns` as before. A skill graph
+file (`.psg`) of another version is read with the known layout and kept only when it holds together (every link's end a
+node, 99% of its nodes PassiveSkills rows); nothing is guessed. The Atlas's directions come from the graph's coordinates
+and the drawn nodes, never from node ids or counts; the passive tree's edge-list floor is half the groups the canvas
+draws, not a number from today's tree. The stick rule's five constants (0.94, 8.333, 1.5, 0.7071, 4) are read from the
+exe at attach (`StickRuleCode`: one load sequence each, found once with the same values on the five archived builds since
+25244054), so a retuned rule is followed ("Stick rule: … read from the exe, retuned").
+
+**Validated and reported.** A column not found fails its step: the launcher keeps the previous catalog, lists the step
+in `catalog/game-data-failed.txt` and the plugin says "parte de los datos del juego" once (`GameDataSetup.Finish`; the
+Collapsed check also refuses a catalog under half the old size). The extractor's log names the column ("…near +0x68: not
+found (check with dat-strings)"). Live: after each stick push the node the rule predicts is compared with the one the
+game hovers (`StickCheck`: the window seen from the node before the push, the raw stick direction, pushes judged within
+300 ms); three misses in the last ten pushes lose the rule, logged once with the last push, said once ("el paso del stick
+por el árbol"), and links are then given by their side only until the next game process. An Atlas node whose
+PassiveSkills id `catalog/endgame.json` lacks is logged, said once ("los datos del Atlas") and read from the game's own
+popup. A column the search places elsewhere is logged ("moved from +0x8 to +0x10") and used there.
+
+**Still needs a person.** The `Id` column at +0 of every table, which the searches start from and never move. A table
+renamed or split, a column whose content changed kind (a key becoming a list), a graph file whose layout changed (not
+only its version byte), a value check whose row changed meaning: each fails its step and is reported, then needs
+`dat-strings` and a new measured offset. New kinds of content (a league mechanic, a new objective) pass in silence until
+`game-keys` lists them (`GameNews`). The stick rule's shape (linked stage, cone, the on-screen filter) is checked, not
+re-derived: a new rule is heard as "lost" and needs the exe read again. The 240 recorded pushes
+(`tests/Fixtures/stick-walks.txt`) must be recorded again on the new tree before the rule is trusted.
+
 ## Read from the game's code
 Some fields have nothing in memory to recognise them by: a level, an opened flag, a rarity. `catalog/code-fields.txt` holds 50
 of them with the machine code that reads each, wildcarded so only the operand is taken (`CodeFieldCatalog`, `CodeFieldSearch`,

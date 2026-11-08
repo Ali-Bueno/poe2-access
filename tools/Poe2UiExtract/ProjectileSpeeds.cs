@@ -13,89 +13,87 @@ internal static class ProjectileSpeeds
     private const string AttackType = "Attack";
     private const string Skipped = "projectile speeds";
 
-    // Offsets and row sizes from the community dat-schema (2026-10-25), every row size matching this install.
-    // GrantedEffects: ActiveSkill, StatSet.
-    internal const int SkillRowSize = 0x129;
-    internal const int SkillActiveSkillOffset = 0x4F;
-    internal const int SkillStatSetOffset = 0xA8;
+    private static (Index Index, ProjectileColumns.Tables Tables, ProjectileColumns Columns)? shared;
+    private static Index? failedFor;
 
-    // GrantedEffectStatSets: ConstantStats, ConstantStatsValues.
-    internal const int StatSetRowSize = 0x65;
-    internal const int ConstantStatsOffset = 0x28;
-    private const int ConstantValuesOffset = 0x38;
+    /// <summary>The skill tables of this index and their columns, found once by content and shared by the extractors that read them; null (said once) when a table or column is missing.</summary>
+    internal static (ProjectileColumns.Tables Tables, ProjectileColumns Columns)? Columns(Index index)
+    {
+        if (shared is { } cached && cached.Index == index)
+        {
+            return (cached.Tables, cached.Columns);
+        }
 
-    // ActiveSkills: ActiveSkillTypes (ActiveSkillType rows, +0x00 Id).
-    internal const int ActiveSkillRowSize = 0x152;
-    internal const int ActiveSkillTypesOffset = 0x40;
+        if (failedFor == index)
+        {
+            return null;
+        }
 
-    // MonsterProjectileSpell and MonsterProjectileAttack: Id (i32), Projectile.
-    private const int SpellVariationRowSize = 0x2A;
-    private const int AttackVariationRowSize = 0x1B;
-    private const int VariationIdOffset = 0x00;
-    private const int VariationProjectileOffset = 0x04;
+        failedFor = index;
+        var opened = new[] { "stats", "grantedeffects", "grantedeffectstatsets", "activeskills", "activeskilltype", "monsterprojectilespell", "monsterprojectileattack", "projectiles" }.Select(name => DatTable.Open(index, name)).ToArray();
+        if (opened.Any(table => table == null))
+        {
+            Say.Out.WriteLine($"A skill table is missing: {Skipped} and the skill kinds left out.");
+            return null;
+        }
 
-    // Projectiles: ProjectileSpeed (i32), UseTargetLocation (bool).
-    private const int ProjectileRowSize = 0x170;
-    private const int ProjectileSpeedOffset = 0x38;
-    private const int TargetLocationOffset = 0x3C;
+        var tables = new ProjectileColumns.Tables(opened[0]!, opened[1]!, opened[2]!, opened[3]!, opened[4]!, opened[5]!, opened[6]!, opened[7]!);
+        if (ProjectileColumns.Find(tables) is not { } columns)
+        {
+            return null;
+        }
 
-    /// <summary>Skill row → its projectile's speed; empty when a table moved.</summary>
+        failedFor = null;
+        shared = (index, tables, columns);
+        return (tables, columns);
+    }
+
+    /// <summary>Skill row → its projectile's speed; empty when a table or column was not found.</summary>
     public static Dictionary<int, int> Read(Index index, DatTable skills)
     {
         var speeds = new Dictionary<int, int>();
-        var stats = DatTable.Open(index, "stats");
-        var statSets = DatTable.Open(index, "grantedeffectstatsets");
-        var activeSkills = DatTable.Open(index, "activeskills");
-        var skillTypes = DatTable.Open(index, "activeskilltype");
-        var spells = DatTable.Open(index, "monsterprojectilespell");
-        var attacks = DatTable.Open(index, "monsterprojectileattack");
-        var projectiles = DatTable.Open(index, "projectiles");
-        if (!HitTimeExtractor.Sized(skills, SkillRowSize, "GrantedEffects", Skipped) || !HitTimeExtractor.Sized(statSets, StatSetRowSize, "GrantedEffectStatSets", Skipped) ||
-            !HitTimeExtractor.Sized(activeSkills, ActiveSkillRowSize, "ActiveSkills", Skipped) ||
-            !HitTimeExtractor.Sized(spells, SpellVariationRowSize, "MonsterProjectileSpell", Skipped) ||
-            !HitTimeExtractor.Sized(attacks, AttackVariationRowSize, "MonsterProjectileAttack", Skipped) ||
-            !HitTimeExtractor.Sized(projectiles, ProjectileRowSize, "Projectiles", Skipped) || stats == null || skillTypes == null)
+        if (Columns(index) is not var (t, c))
         {
             return speeds;
         }
 
-        var variation = Find(stats, VariationStat);
-        var spellType = Find(skillTypes, SpellType);
-        var attackType = Find(skillTypes, AttackType);
+        var variation = Find(t.Stats, VariationStat);
+        var spellType = Find(t.SkillTypes, SpellType);
+        var attackType = Find(t.SkillTypes, AttackType);
         if (variation < 0 || spellType < 0 || attackType < 0)
         {
             Say.Out.WriteLine($"Stats '{VariationStat}' or ActiveSkillType {SpellType}/{AttackType} not found: {Skipped} left out.");
             return speeds;
         }
 
-        var spellRows = ById(spells!);
-        var attackRows = ById(attacks!);
+        var spellRows = ById(t.Spells, c.SpellId);
+        var attackRows = ById(t.Attacks, c.AttackId);
         for (var skill = 0; skill < skills.RowCount; skill++)
         {
-            var statSet = skills.Key(skill, SkillStatSetOffset);
-            var active = skills.Key(skill, SkillActiveSkillOffset);
-            if (statSet < 0 || statSet >= statSets!.RowCount || active < 0 || active >= activeSkills!.RowCount)
+            var statSet = skills.Key(skill, c.SkillStatSet);
+            var active = skills.Key(skill, c.SkillActive);
+            if (statSet < 0 || statSet >= t.StatSets.RowCount || active < 0 || active >= t.ActiveSkills.RowCount)
             {
                 continue;
             }
 
-            var at = statSets.KeyList((int)statSet, ConstantStatsOffset).ToList().IndexOf(variation);
-            var values = statSets.Int32List((int)statSet, ConstantValuesOffset);
+            var at = t.StatSets.KeyList((int)statSet, c.ConstantStats).ToList().IndexOf(variation);
+            var values = t.StatSets.Int32List((int)statSet, c.ConstantValues);
             if (at < 0 || at >= values.Count)
             {
                 continue;
             }
 
-            var types = activeSkills.KeyList((int)active, ActiveSkillTypesOffset);
+            var types = t.ActiveSkills.KeyList((int)active, c.ActiveTypes);
             var spell = types.Contains(spellType);
             if ((!spell && !types.Contains(attackType)) || !(spell ? spellRows : attackRows).TryGetValue(values[at], out var variationRow))
             {
                 continue;
             }
 
-            var projectile = (spell ? spells! : attacks!).Key(variationRow, VariationProjectileOffset);
-            if (projectile >= 0 && projectile < projectiles!.RowCount && !projectiles.Bool((int)projectile, TargetLocationOffset) &&
-                projectiles.Int32((int)projectile, ProjectileSpeedOffset) is > 0 and var speed)
+            var projectile = (spell ? t.Spells : t.Attacks).Key(variationRow, spell ? c.SpellProjectile : c.AttackProjectile);
+            if (projectile >= 0 && projectile < t.Projectiles.RowCount && !t.Projectiles.Bool((int)projectile, c.TargetLocation) &&
+                t.Projectiles.Int32((int)projectile, c.ProjectileSpeed) is > 0 and var speed)
             {
                 speeds[skill] = speed;
             }
@@ -117,12 +115,12 @@ internal static class ProjectileSpeeds
         return -1;
     }
 
-    private static Dictionary<int, int> ById(DatTable table)
+    private static Dictionary<int, int> ById(DatTable table, int idColumn)
     {
         var rows = new Dictionary<int, int>();
         for (var row = 0; row < table.RowCount; row++)
         {
-            rows.TryAdd(table.Int32(row, VariationIdOffset), row);
+            rows.TryAdd(table.Int32(row, idColumn), row);
         }
 
         return rows;

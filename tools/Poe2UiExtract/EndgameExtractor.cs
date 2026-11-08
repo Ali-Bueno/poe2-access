@@ -7,17 +7,15 @@ using Index = LibBundle3.Index;
 ///     each map content, biome and endgame area, every node of the skill graphs other than the main tree (the Atlas map's
 ///     layout, the Atlas passive tree, the league trees) with its position, links and, for an Atlas map node, its pin,
 ///     maps, biomes and messages. Writes { objectives, contents, nodes, text: { language: { key: text } } }.
-///     Column offsets: the community dat-schema (poe2/_Core.gql of 2026-11-05) on this install's row sizes (2026-11-08);
-///     each column is checked by what it holds, and a column that moved fails the step. Read-only on the game.
+///     Column offsets: the community dat-schema (poe2/_Core.gql of 2026-11-05) on this install's row sizes (2026-11-08) are
+///     where each column is looked for first; every column is found again by what it holds (<see cref="DatColumnSearch"/>),
+///     and one not found fails the step, which keeps the previous catalog. Read-only on the game.
 /// </summary>
 internal static class EndgameExtractor
 {
     private const int IdOffset = 0x0;
 
-    /// <summary>A dat file's null foreign key: all 0xFE bytes.</summary>
-    private const long NullKey = unchecked((long)0xFEFEFEFEFEFEFEFE);
-
-    // EndgameMapObjectives
+    // Measured offsets (0.5.5f), where each column is looked for first. EndgameMapObjectives
     private const int ObjectiveTextOffset = 0x8;
     private const int ObjectiveDoneOffset = 0x10;
     private const int ObjectiveArtOffset = 0x18;
@@ -73,8 +71,20 @@ internal static class EndgameExtractor
     /// <summary>Nodes the game names "do not translate" (the Atlas map's layout nodes) have no name worth saying.</summary>
     private const string UntranslatedMark = "[DNT]";
 
-    /// <summary>A checked column must hold what it should in at least this share of the rows that hold anything there.</summary>
-    private const double CheckedShare = 0.9;
+    /// <summary>Rows the value checks look at while the data has them: an objective, a content, an endgame area and an Atlas node of 0.5.5f.</summary>
+    private const string KnownObjective = "Breach";
+
+    private const string KnownContent = "Abyss";
+
+    private const string KnownArea = "Abyss_Pinnacle";
+
+    private const string KnownNode = "Atlas4thReactor";
+
+    private const string KnownKeyword = "ContainsBreach";
+
+    private const string KnownClient = "EndgameMapObjectiveClickPrecursorBeacon";
+
+    private const string ArtPrefix = "Art/";
 
     /// <summary>Every graph id of a graph file must lead to a PassiveSkills row; fewer is a moved graph id column.</summary>
     private const double ResolvedShare = 0.99;
@@ -94,9 +104,8 @@ internal static class EndgameExtractor
             tables[name] = table;
         }
 
-        if (Moved(tables) is { } moved)
+        if (Columns.Find(tables) is not { } c)
         {
-            Say.Out.WriteLine($"  {moved} moved (check with dat-strings)");
             return 1;
         }
 
@@ -124,8 +133,8 @@ internal static class EndgameExtractor
                 continue;
             }
 
-            var icon = IdOf(icons, objectives.Key(row, ObjectiveIconOffset));
-            var keyword = GameMarkup.FirstKeyword(objectives.StringOrNull(row, ObjectiveTextOffset) ?? string.Empty);
+            var icon = IdOf(icons, objectives.Key(row, c.ObjectiveIcon));
+            var keyword = GameMarkup.FirstKeyword(objectives.StringOrNull(row, c.ObjectiveText) ?? string.Empty);
             if (keyword.Length > 0 && keywordIndex.TryGetValue(keyword, out var keywordRow))
             {
                 keywordRows[keyword] = keywordRow;
@@ -139,7 +148,7 @@ internal static class EndgameExtractor
         {
             if (contents.StringOrNull(row, IdOffset) is { Length: > 0 } id)
             {
-                contentOut[id] = new ContentEntry(Present(IdOf(objectives, contents.Key(row, ContentObjectiveOffset))));
+                contentOut[id] = new ContentEntry(Present(IdOf(objectives, contents.Key(row, c.ContentObjective))));
             }
         }
 
@@ -148,21 +157,21 @@ internal static class EndgameExtractor
         var visuals = tables["endgamemapcontentvisualidentity"];
         var nodeStats = tables["endgamemapnodestats"];
         var iconOut = new SortedDictionary<string, IconEntry>(StringComparer.Ordinal);
-        string IconFile(long visualRow) => visualRow >= 0 && visualRow < visuals.RowCount && visuals.StringOrNull((int)visualRow, VisualIconOffset) is { Length: > 0 } art
+        string IconFile(long visualRow) => visualRow >= 0 && visualRow < visuals.RowCount && visuals.StringOrNull((int)visualRow, c.VisualIcon) is { Length: > 0 } art
             ? art[(art.LastIndexOf('/') + 1)..]
             : string.Empty;
         // An objective's own icon is named by its keyword ("Breach"); an icon several contents share by none of theirs.
         for (var row = 0; row < objectives.RowCount; row++)
         {
             if (objectives.StringOrNull(row, IdOffset) is { Length: > 0 } id && objectiveOut.TryGetValue(id, out var objective) && objective.Keyword is { } keyword &&
-                objectives.StringOrNull(row, ObjectiveArtOffset) is { Length: > 0 } art)
+                objectives.StringOrNull(row, c.ObjectiveArt) is { Length: > 0 } art)
             {
                 iconOut.TryAdd(art[(art.LastIndexOf('/') + 1)..], new IconEntry("term/" + keyword, "objective/" + id));
             }
         }
 
         var contentIcons = Enumerable.Range(0, contents.RowCount)
-            .Select(row => (Id: contents.StringOrNull(row, IdOffset) ?? string.Empty, File: IconFile(contents.Key(row, ContentVisualOffset))))
+            .Select(row => (Id: contents.StringOrNull(row, IdOffset) ?? string.Empty, File: IconFile(contents.Key(row, c.ContentVisual))))
             .Where(pair => pair.Id.Length > 0 && pair.File.Length > 0).GroupBy(pair => pair.File).Where(group => group.Count() == 1).Select(group => group.First());
         foreach (var (id, file) in contentIcons)
         {
@@ -172,15 +181,15 @@ internal static class EndgameExtractor
         var statClients = new List<(string Id, int Row)>();
         for (var row = 0; row < nodeStats.RowCount; row++)
         {
-            var name = IdOf(clients, nodeStats.Key(row, NodeStatNameOffset));
-            var about = IdOf(clients, nodeStats.Key(row, NodeStatTextOffset));
-            if (name.Length > 0 && IconFile(nodeStats.Key(row, NodeStatVisualOffset)) is { Length: > 0 } file)
+            var name = IdOf(clients, nodeStats.Key(row, c.NodeStatName));
+            var about = IdOf(clients, nodeStats.Key(row, c.NodeStatText));
+            if (name.Length > 0 && IconFile(nodeStats.Key(row, c.NodeStatVisual)) is { Length: > 0 } file)
             {
                 iconOut.TryAdd(file, new IconEntry("client/" + name, about.Length > 0 ? "client/" + about : null));
-                statClients.Add((name, (int)nodeStats.Key(row, NodeStatNameOffset)));
+                statClients.Add((name, (int)nodeStats.Key(row, c.NodeStatName)));
                 if (about.Length > 0)
                 {
-                    statClients.Add((about, (int)nodeStats.Key(row, NodeStatTextOffset)));
+                    statClients.Add((about, (int)nodeStats.Key(row, c.NodeStatText)));
                 }
             }
         }
@@ -189,7 +198,7 @@ internal static class EndgameExtractor
         var byGraphId = new Dictionary<int, int>();
         for (var row = 0; row < passives.RowCount; row++)
         {
-            byGraphId.TryAdd(passives.UInt16(row, PassiveGraphIdOffset), row);
+            byGraphId.TryAdd(passives.UInt16(row, c.PassiveGraphId), row);
         }
 
         var nodeOut = new SortedDictionary<string, NodeEntry>(StringComparer.Ordinal);
@@ -199,10 +208,17 @@ internal static class EndgameExtractor
                      .OrderBy(file => file.Path, StringComparer.Ordinal))
         {
             var graphName = Path.GetFileNameWithoutExtension(file.Path!);
-            if (SkillGraphFile.Parse(file.Read().ToArray()) is not { } graph)
+            // A file the known layout does not read, or of another version that reads but does not hold together, fails the step.
+            var graph = SkillGraphFile.Parse(file.Read().ToArray());
+            if (graph == null || (!graph.VersionKnown && !graph.IsConsistent))
             {
-                Say.Out.WriteLine($"  {file.Path}: not a version {SkillGraphFile.KnownVersion} graph, left out");
-                continue;
+                Say.Out.WriteLine($"  {file.Path}: version {(graph?.Version ?? file.Read().ToArray().FirstOrDefault())} not read as a graph (known: {SkillGraphFile.KnownVersion}); endgame keeps its previous catalog");
+                return 1;
+            }
+
+            if (!graph.VersionKnown)
+            {
+                Say.Out.WriteLine($"  {file.Path}: version {graph.Version} read with the version {SkillGraphFile.KnownVersion} layout; it holds together");
             }
 
             var resolved = graph.Nodes.Count(node => byGraphId.ContainsKey(node.Id));
@@ -247,7 +263,7 @@ internal static class EndgameExtractor
 
         string MapArea(long mapRow)
         {
-            var areaRow = mapRow >= 0 && mapRow < maps.RowCount ? maps.Key((int)mapRow, MapAreaOffset) : -1;
+            var areaRow = mapRow >= 0 && mapRow < maps.RowCount ? maps.Key((int)mapRow, c.MapArea) : -1;
             var id = IdOf(areas, areaRow);
             if (id.Length > 0)
             {
@@ -260,34 +276,34 @@ internal static class EndgameExtractor
         for (var row = 0; row < atlas.RowCount; row++)
         {
             // A row of a node drawn in no graph is never seen on screen.
-            if (IdOf(passives, atlas.Key(row, NodePassiveOffset)) is not { Length: > 0 } passive || !nodeOut.TryGetValue(passive, out var placed))
+            if (IdOf(passives, atlas.Key(row, c.NodePassive)) is not { Length: > 0 } passive || !nodeOut.TryGetValue(passive, out var placed))
             {
                 continue;
             }
 
             nodeOut[passive] = placed with
             {
-                Pin = Present(IdOf(pins, atlas.Key(row, NodePinOffset))),
-                Maps = Present(atlas.KeyList(row, NodeMapsOffset).Select(MapArea).Where(id => id.Length > 0).Distinct().ToList()),
-                Biomes = Present(atlas.KeyList(row, NodeBiomesOffset).Select(biome => IdOf(biomes, biome)).Where(id => id.Length > 0).ToList()),
-                Objective = Present(IdOf(objectives, atlas.Key(row, NodeObjectiveOffset))),
-                Blocked = Present(ClientId(atlas.Key(row, NodeBlockedOffset))),
-                Hint = Present(ClientId(atlas.Key(row, NodeHintOffset))),
+                Pin = Present(IdOf(pins, atlas.Key(row, c.NodePin))),
+                Maps = Present(atlas.KeyList(row, c.NodeMaps).Select(MapArea).Where(id => id.Length > 0).Distinct().ToList()),
+                Biomes = Present(atlas.KeyList(row, c.NodeBiomes).Select(biome => IdOf(biomes, biome)).Where(id => id.Length > 0).ToList()),
+                Objective = Present(IdOf(objectives, atlas.Key(row, c.NodeObjective))),
+                Blocked = Present(ClientId(atlas.Key(row, c.NodeBlocked))),
+                Hint = Present(ClientId(atlas.Key(row, c.NodeHint))),
             };
         }
 
         // Which towers reach a node: a tower's tablets work on the maps in its reach.
         var towers = tables["endgamemapatlastowers"];
-        string AtlasPassive(long atlasRow) => atlasRow >= 0 && atlasRow < atlas.RowCount ? IdOf(passives, atlas.Key((int)atlasRow, NodePassiveOffset)) : string.Empty;
+        string AtlasPassive(long atlasRow) => atlasRow >= 0 && atlasRow < atlas.RowCount ? IdOf(passives, atlas.Key((int)atlasRow, c.NodePassive)) : string.Empty;
         for (var row = 0; row < towers.RowCount; row++)
         {
-            var tower = towers.KeyList(row, TowerSelfOffset).Select(AtlasPassive).FirstOrDefault(id => id.Length > 0 && nodeOut.ContainsKey(id));
+            var tower = towers.KeyList(row, c.TowerSelf).Select(AtlasPassive).FirstOrDefault(id => id.Length > 0 && nodeOut.ContainsKey(id));
             if (tower == null)
             {
                 continue;
             }
 
-            foreach (var reached in towers.KeyList(row, TowerReachOffset).Select(AtlasPassive).Where(id => id != tower && nodeOut.ContainsKey(id)))
+            foreach (var reached in towers.KeyList(row, c.TowerReach).Select(AtlasPassive).Where(id => id != tower && nodeOut.ContainsKey(id)))
             {
                 nodeOut[reached] = nodeOut[reached] with { Towers = (nodeOut[reached].Towers ?? new List<string>()).Append(tower).Distinct().ToList() };
             }
@@ -299,7 +315,7 @@ internal static class EndgameExtractor
         {
             if (MapArea(row) is { Length: > 0 } area)
             {
-                mapOut[area] = IdOf(pins, maps.Key(row, MapPinOffset));
+                mapOut[area] = IdOf(pins, maps.Key(row, c.MapPin));
             }
         }
 
@@ -323,8 +339,8 @@ internal static class EndgameExtractor
                 {
                     if (objectives.StringOrNull(row, IdOffset) is { Length: > 0 } id)
                     {
-                        Put("objective/" + id, localObjectives.StringOrNull(row, ObjectiveTextOffset));
-                        Put("done/" + id, localObjectives.StringOrNull(row, ObjectiveDoneOffset));
+                        Put("objective/" + id, localObjectives.StringOrNull(row, c.ObjectiveText));
+                        Put("done/" + id, localObjectives.StringOrNull(row, c.ObjectiveDone));
                     }
                 }
             }
@@ -335,8 +351,8 @@ internal static class EndgameExtractor
                 {
                     if (contents.StringOrNull(row, IdOffset) is { Length: > 0 } id)
                     {
-                        Put("content/" + id, localContents.StringOrNull(row, ContentNameOffset));
-                        Put("contentText/" + id, localContents.StringOrNull(row, ContentTextOffset));
+                        Put("content/" + id, localContents.StringOrNull(row, c.ContentName));
+                        Put("contentText/" + id, localContents.StringOrNull(row, c.ContentText));
                     }
                 }
             }
@@ -347,7 +363,7 @@ internal static class EndgameExtractor
                 {
                     if (biomes.StringOrNull(row, IdOffset) is { Length: > 0 } id)
                     {
-                        Put("biome/" + id, localBiomes.StringOrNull(row, BiomeNameOffset));
+                        Put("biome/" + id, localBiomes.StringOrNull(row, c.BiomeName));
                     }
                 }
             }
@@ -356,8 +372,8 @@ internal static class EndgameExtractor
             {
                 foreach (var (id, row) in keywordRows)
                 {
-                    Put("term/" + id, localKeywords.StringOrNull(row, KeywordTermOffset));
-                    Put("help/" + id, localKeywords.StringOrNull(row, KeywordHelpOffset));
+                    Put("term/" + id, localKeywords.StringOrNull(row, c.KeywordTerm));
+                    Put("help/" + id, localKeywords.StringOrNull(row, c.KeywordHelp));
                 }
             }
 
@@ -365,7 +381,7 @@ internal static class EndgameExtractor
             {
                 foreach (var (id, row) in clientRows)
                 {
-                    Put("client/" + id, localClients.StringOrNull(row, ClientTextOffset));
+                    Put("client/" + id, localClients.StringOrNull(row, c.ClientText));
                 }
             }
 
@@ -373,7 +389,7 @@ internal static class EndgameExtractor
             {
                 foreach (var (id, row) in areaRows)
                 {
-                    Put("area/" + id, localAreas.StringOrNull(row, AreaNameOffset));
+                    Put("area/" + id, localAreas.StringOrNull(row, c.AreaName));
                 }
             }
 
@@ -381,8 +397,8 @@ internal static class EndgameExtractor
             {
                 foreach (var row in namedPassives)
                 {
-                    var name = localPassives.StringOrNull(row, PassiveNameOffset);
-                    var english = passives.StringOrNull(row, PassiveNameOffset) ?? string.Empty;
+                    var name = localPassives.StringOrNull(row, c.PassiveName);
+                    var english = passives.StringOrNull(row, c.PassiveName) ?? string.Empty;
                     if (!english.StartsWith(UntranslatedMark, StringComparison.Ordinal) && passives.StringOrNull(row, IdOffset) is { Length: > 0 } id)
                     {
                         Put("passive/" + id, name);
@@ -419,43 +435,96 @@ internal static class EndgameExtractor
     }
 
 
-    /// <summary>The first column that does not hold what it should, or null when all do.</summary>
-    private static string? Moved(Dictionary<string, DatTable> tables)
+    /// <summary>
+    ///     The columns read, each found by its type near where it was measured and, on a row the data still has, by its
+    ///     value (an objective's icon named like it, a content's objective, an endgame area's pin, an Atlas node's map).
+    /// </summary>
+    private sealed class Columns
     {
-        bool Strings(string table, int offset) => Share(tables[table], row => tables[table].StringOrNull(row, offset) != null) >= CheckedShare;
-        // A key column holds null keys or rows of its table, and at least one of the latter.
-        bool Keys(string table, int offset, string target) =>
-            Share(tables[table], row => tables[table].Int64(row, offset) is var key && (key == NullKey || (key >= 0 && key < tables[target].RowCount))) >= CheckedShare &&
-            Enumerable.Range(0, tables[table].RowCount).Any(row => tables[table].Int64(row, offset) is >= 0 and var key && key < tables[target].RowCount);
-        // A list column of keys: every row's items are rows of its table, and some row has items.
-        bool Lists(string table, int offset, string target) =>
-            Enumerable.Range(0, tables[table].RowCount).All(row => tables[table].KeyList(row, offset).All(key => key >= 0 && key < tables[target].RowCount)) &&
-            Enumerable.Range(0, tables[table].RowCount).Any(row => tables[table].KeyList(row, offset).Count > 0);
-        var checks = new (string Name, Func<bool> Holds)[]
-        {
-            ("EndgameMapObjectives.ObjectiveText", () => Strings("endgamemapobjectives", ObjectiveTextOffset) && Strings("endgamemapobjectives", ObjectiveDoneOffset) && Strings("endgamemapobjectives", ObjectiveArtOffset)),
-            ("EndgameMapObjectives.MiniMapIcon", () => Keys("endgamemapobjectives", ObjectiveIconOffset, "minimapicons")),
-            ("EndgameMapContent.Name", () => Strings("endgamemapcontent", ContentNameOffset) && Strings("endgamemapcontent", ContentTextOffset)),
-            ("EndgameMapContent.MapObjective", () => Keys("endgamemapcontent", ContentObjectiveOffset, "endgamemapobjectives")),
-            ("EndgameMapContent.VisualIdentity", () => Keys("endgamemapcontent", ContentVisualOffset, "endgamemapcontentvisualidentity")),
-            ("EndgameMapContentVisualIdentity.AtlasIcon", () => Strings("endgamemapcontentvisualidentity", VisualIconOffset)),
-            ("EndgameMapNodeStats.Name", () => Keys("endgamemapnodestats", NodeStatNameOffset, "clientstrings2") && Keys("endgamemapnodestats", NodeStatVisualOffset, "endgamemapcontentvisualidentity")),
-            ("EndgameMapBiomes.Name", () => Strings("endgamemapbiomes", BiomeNameOffset)),
-            ("EndgameMaps.WorldArea", () => Keys("endgamemaps", MapAreaOffset, "worldareas") && Keys("endgamemaps", MapPinOffset, "endgamemappins")),
-            ("EndgameMapAtlas.Passives", () => Keys("endgamemapatlas", NodePassiveOffset, "passiveskills") && Keys("endgamemapatlas", NodePinOffset, "endgamemappins")),
-            ("EndgameMapAtlas.BlockedMessage", () => Keys("endgamemapatlas", NodeBlockedOffset, "clientstrings2") && Keys("endgamemapatlas", NodeHintOffset, "clientstrings2")),
-            ("EndgameMapAtlas.MapObjective", () => Keys("endgamemapatlas", NodeObjectiveOffset, "endgamemapobjectives")),
-            ("EndgameMapAtlasTowers.AtlasNodes", () => Lists("endgamemapatlastowers", TowerReachOffset, "endgamemapatlas") && Lists("endgamemapatlastowers", TowerSelfOffset, "endgamemapatlas")),
-            ("KeywordPopups.Term", () => Strings("keywordpopups", KeywordTermOffset)),
-            ("ClientStrings2.Text", () => Strings("clientstrings2", ClientTextOffset)),
-            ("PassiveSkills.Name", () => Strings("passiveskills", PassiveNameOffset)),
-            ("WorldAreas.Name", () => Strings("worldareas", AreaNameOffset)),
-        };
-        return checks.FirstOrDefault(check => !check.Holds()).Name;
-    }
+        public int ObjectiveText, ObjectiveDone, ObjectiveArt, ObjectiveIcon;
+        public int ContentText, ContentName, ContentObjective, ContentVisual;
+        public int VisualIcon;
+        public int NodeStatVisual, NodeStatName, NodeStatText;
+        public int BiomeName;
+        public int MapArea, MapPin;
+        public int NodePassive, NodeMaps, NodeBiomes, NodePin, NodeBlocked, NodeObjective, NodeHint;
+        public int TowerReach, TowerSelf;
+        public int KeywordTerm, KeywordHelp;
+        public int ClientText, AreaName;
+        public int PassiveGraphId, PassiveName;
 
-    private static double Share(DatTable table, Func<int, bool> holds) =>
-        table.RowCount == 0 ? 0 : Enumerable.Range(0, table.RowCount).Count(holds) / (double)table.RowCount;
+        public static Columns? Find(Dictionary<string, DatTable> tables)
+        {
+            var search = new DatColumnSearch();
+            var objectives = tables["endgamemapobjectives"];
+            var contents = tables["endgamemapcontent"];
+            var visuals = tables["endgamemapcontentvisualidentity"];
+            var nodeStats = tables["endgamemapnodestats"];
+            var biomes = tables["endgamemapbiomes"];
+            var maps = tables["endgamemaps"];
+            var pins = tables["endgamemappins"];
+            var atlas = tables["endgamemapatlas"];
+            var towers = tables["endgamemapatlastowers"];
+            var keywords = tables["keywordpopups"];
+            var clients = tables["clientstrings2"];
+            var icons = tables["minimapicons"];
+            var passives = tables["passiveskills"];
+            var areas = tables["worldareas"];
+            static bool Sentence(string text) => text.Contains(' ', StringComparison.Ordinal);
+            static bool Art(string text) => text.StartsWith(ArtPrefix, StringComparison.Ordinal);
+            static bool NotArt(string text) => !Art(text);
+            static bool Filled(string text) => text.Length > 0;
+            Func<long, bool> Named(DatTable target, string word) => key => IdOf(target, key).Contains(word, StringComparison.Ordinal);
+            Func<long, bool> Is(DatTable target, string id) => key => IdOf(target, key) == id;
+
+            var c = new Columns();
+            var objective = DatColumnSearch.RowOf(objectives, KnownObjective);
+            c.ObjectiveText = search.Text(objectives, "EndgameMapObjectives.ObjectiveText", ObjectiveTextOffset, NotArt, known: (objective, text => text.Contains(KnownKeyword, StringComparison.Ordinal)));
+            c.ObjectiveDone = search.Text(objectives, "EndgameMapObjectives.CompletionText", ObjectiveDoneOffset, NotArt, c.ObjectiveText, (objective, Sentence));
+            c.ObjectiveArt = search.Text(objectives, "EndgameMapObjectives.ContentIcon", ObjectiveArtOffset, Art, c.ObjectiveDone);
+            c.ObjectiveIcon = search.Key(objectives, "EndgameMapObjectives.MiniMapIcon", ObjectiveIconOffset, icons, c.ObjectiveArt, (objective, Named(icons, KnownObjective)));
+
+            var content = DatColumnSearch.RowOf(contents, KnownContent);
+            c.ContentText = search.Text(contents, "EndgameMapContent.Description", ContentTextOffset, NotArt, known: (content, Sentence));
+            c.ContentName = search.Text(contents, "EndgameMapContent.Name", ContentNameOffset, NotArt, c.ContentText, (content, Filled));
+            c.ContentObjective = search.Key(contents, "EndgameMapContent.MapObjective", ContentObjectiveOffset, objectives, c.ContentName, (content, Is(objectives, KnownContent)));
+            c.ContentVisual = search.Key(contents, "EndgameMapContent.VisualIdentity", ContentVisualOffset, visuals, c.ContentObjective);
+            c.VisualIcon = search.Text(visuals, "EndgameMapContentVisualIdentity.AtlasIcon", VisualIconOffset, Art);
+
+            c.NodeStatVisual = search.Key(nodeStats, "EndgameMapNodeStats.VisualIdentity", NodeStatVisualOffset, visuals);
+            c.NodeStatName = search.Key(nodeStats, "EndgameMapNodeStats.Name", NodeStatNameOffset, clients, c.NodeStatVisual);
+            c.NodeStatText = search.Key(nodeStats, "EndgameMapNodeStats.Description", NodeStatTextOffset, clients, c.NodeStatName);
+            c.BiomeName = search.Text(biomes, "EndgameMapBiomes.Name", BiomeNameOffset, NotArt);
+
+            // The known area's map row and the known node's Atlas row, looked up through the measured key columns (-1 when they moved: no value check then).
+            var area = DatColumnSearch.RowOf(areas, KnownArea);
+            var map = area >= 0 ? Enumerable.Range(0, maps.RowCount).FirstOrDefault(row => maps.Int64(row, MapAreaOffset) == area, -1) : -1;
+            c.MapArea = search.Key(maps, "EndgameMaps.WorldArea", MapAreaOffset, areas);
+            c.MapPin = search.Key(maps, "EndgameMaps.MapPin", MapPinOffset, pins, c.MapArea, (map, Named(pins, "Hub")));
+
+            var passive = DatColumnSearch.RowOf(passives, KnownNode);
+            var node = passive >= 0 ? Enumerable.Range(0, atlas.RowCount).FirstOrDefault(row => atlas.Int64(row, NodePassiveOffset) == passive, -1) : -1;
+            c.NodePassive = search.Key(atlas, "EndgameMapAtlas.Passives", NodePassiveOffset, passives);
+            c.NodeMaps = search.KeyList(atlas, "EndgameMapAtlas.Maps", NodeMapsOffset, maps, c.NodePassive, (node, list => list.Count > 0));
+            c.NodeBiomes = search.KeyList(atlas, "EndgameMapAtlas.Biomes", NodeBiomesOffset, biomes, c.NodeMaps, (node, list => list.Count > 0));
+            c.NodePin = search.Key(atlas, "EndgameMapAtlas.MapPin", NodePinOffset, pins, c.NodeBiomes, (node, key => key >= 0));
+            c.NodeBlocked = search.Key(atlas, "EndgameMapAtlas.BlockedMessage", NodeBlockedOffset, clients, c.NodePin);
+            c.NodeObjective = search.Key(atlas, "EndgameMapAtlas.MapObjective", NodeObjectiveOffset, objectives, c.NodeBlocked);
+            c.NodeHint = search.Key(atlas, "EndgameMapAtlas.Hint", NodeHintOffset, clients, c.NodeObjective);
+
+            c.TowerReach = search.KeyList(towers, "EndgameMapAtlasTowers.AtlasNodes", TowerReachOffset, atlas);
+            c.TowerSelf = search.KeyList(towers, "EndgameMapAtlasTowers.Tower", TowerSelfOffset, atlas, c.TowerReach);
+
+            var keyword = DatColumnSearch.RowOf(keywords, KnownKeyword);
+            c.KeywordTerm = search.Text(keywords, "KeywordPopups.Term", KeywordTermOffset, NotArt, known: (keyword, text => Filled(text) && text != KnownKeyword));
+            c.KeywordHelp = search.Text(keywords, "KeywordPopups.Definition", KeywordHelpOffset, NotArt, c.KeywordTerm, (keyword, Sentence));
+            c.ClientText = search.Text(clients, "ClientStrings2.Text", ClientTextOffset, known: (DatColumnSearch.RowOf(clients, KnownClient), Sentence));
+            c.AreaName = search.Text(areas, "WorldAreas.Name", AreaNameOffset, NotArt, known: (area, Sentence));
+            c.PassiveGraphId = search.UniqueUInt16(passives, "PassiveSkills.GraphId", PassiveGraphIdOffset);
+            c.PassiveName = search.Text(passives, "PassiveSkills.Name", PassiveNameOffset, NotArt);
+            return search.Report("endgame") ? c : null;
+        }
+    }
 
     private static string IdOf(DatTable table, long row) =>
         row >= 0 && row < table.RowCount ? table.StringOrNull((int)row, IdOffset) ?? string.Empty : string.Empty;

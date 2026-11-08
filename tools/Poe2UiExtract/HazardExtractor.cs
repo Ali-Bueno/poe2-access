@@ -12,15 +12,6 @@ internal static class HazardExtractor
     /// <summary>Trial buffs no ground names, by BuffDefinitions: the laser's beam and the fire that drain honour, the vortex's chaos.</summary>
     private static readonly string[] TrialHazards = { "sanctum_fire_beam", "invisible_holy_fire_sanctum", "sanctum_vortex_degen" };
 
-    // GroundEffectTypes: the BuffDefinitions row a creature standing in the ground gets (IgnitedGround → ignited_ground;
-    // a scan of the row's keys, 2026-10-28).
-    private const int TypeRowSize = 0x40;
-    private const int TypeBuffOffset = 0x20;
-
-    // BuffDefinitions: Description (dat-strings, 2026-10-28).
-    private const int BuffRowSize = 0x15F;
-    private const int BuffDescriptionOffset = 0x08;
-
     /// <summary>Ground types that help the one standing in them, or whose buff is a generic one other effects share (Smoke).</summary>
     private static readonly HashSet<string> NotHazards = new(StringComparer.Ordinal)
     {
@@ -51,24 +42,32 @@ internal static class HazardExtractor
     {
         var types = DatTable.Open(index, "groundeffecttypes");
         var buffs = DatTable.Open(index, "buffdefinitions");
-        if (!HitTimeExtractor.Sized(types, TypeRowSize, "GroundEffectTypes", "hazards") || !HitTimeExtractor.Sized(buffs, BuffRowSize, "BuffDefinitions", "hazards"))
+        if (types == null || buffs == null)
+        {
+            Say.Out.WriteLine("GroundEffectTypes or BuffDefinitions not found: hazards left out.");
+            return 1;
+        }
+
+        var buffColumn = HazardColumns.Find(types, buffs);
+        var buffColumns = BuffColumns.FindWithDescription(buffs, "hazards");
+        if (buffColumn < 0 || buffColumns == null)
         {
             return 1;
         }
 
         var ids = new SortedSet<string>(StringComparer.Ordinal);
-        for (var row = 0; row < types!.RowCount; row++)
+        for (var row = 0; row < types.RowCount; row++)
         {
-            var buff = types.Key(row, TypeBuffOffset);
-            if (!NotHazards.Contains(types.String(row, 0)) && buff >= 0 && buff < buffs!.RowCount)
+            var buff = types.Key(row, buffColumn);
+            if (!NotHazards.Contains(types.String(row, 0)) && buff >= 0 && buff < buffs.RowCount)
             {
                 ids.Add(buffs.String((int)buff, 0));
             }
         }
 
-        for (var row = 0; row < buffs!.RowCount; row++)
+        for (var row = 0; row < buffs.RowCount; row++)
         {
-            if (buffs.StringOrNull(row, BuffDescriptionOffset) is { } description && Standing.IsMatch(description) && Taking.IsMatch(description))
+            if (buffs.StringOrNull(row, buffColumns.Description) is { } description && Standing.IsMatch(description) && Taking.IsMatch(description))
             {
                 ids.Add(buffs.String(row, 0));
             }

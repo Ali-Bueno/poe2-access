@@ -67,21 +67,15 @@ internal sealed class SkillThreats
     public static SkillThreats Read(Index index, DatTable skills, IReadOnlyDictionary<int, int> speeds)
     {
         var result = new SkillThreats();
-        var stats = DatTable.Open(index, "stats");
-        var statSets = DatTable.Open(index, "grantedeffectstatsets");
-        var activeSkills = DatTable.Open(index, "activeskills");
-        var skillTypes = DatTable.Open(index, "activeskilltype");
-        if (!HitTimeExtractor.Sized(skills, ProjectileSpeeds.SkillRowSize, "GrantedEffects", Skipped) ||
-            !HitTimeExtractor.Sized(statSets, ProjectileSpeeds.StatSetRowSize, "GrantedEffectStatSets", Skipped) ||
-            !HitTimeExtractor.Sized(activeSkills, ProjectileSpeeds.ActiveSkillRowSize, "ActiveSkills", Skipped) || stats == null || skillTypes == null)
+        if (ProjectileSpeeds.Columns(index) is not var (t, c))
         {
             return result;
         }
 
-        var projectile = Rows(stats, ProjectileStats);
-        var damage = Rows(stats, DamageStats);
-        var noDamage = Rows(stats, NoDamageStats);
-        var fromAfar = Rows(skillTypes, FromAfarTypes);
+        var projectile = Rows(t.Stats, ProjectileStats);
+        var damage = Rows(t.Stats, DamageStats);
+        var noDamage = Rows(t.Stats, NoDamageStats);
+        var fromAfar = Rows(t.SkillTypes, FromAfarTypes);
         if (projectile.Count == 0 || damage.Count == 0 || noDamage.Count == 0 || fromAfar.Count == 0)
         {
             Say.Out.WriteLine($"Stats or ActiveSkillType rows for {Skipped} not found: every skill left mute.");
@@ -90,17 +84,17 @@ internal sealed class SkillThreats
 
         for (var skill = 0; skill < skills.RowCount; skill++)
         {
-            var active = skills.Key(skill, ProjectileSpeeds.SkillActiveSkillOffset);
-            if (active < 0 || active >= activeSkills!.RowCount)
+            var active = skills.Key(skill, c.SkillActive);
+            if (active < 0 || active >= t.ActiveSkills.RowCount)
             {
                 continue;
             }
 
-            var kind = activeSkills.String((int)active, 0);
-            var types = activeSkills.KeyList((int)active, ProjectileSpeeds.ActiveSkillTypesOffset);
-            var statSet = skills.Key(skill, ProjectileSpeeds.SkillStatSetOffset);
-            var set = statSet >= 0 && statSet < statSets!.RowCount
-                ? statSets.KeyList((int)statSet, SkillFlags.ImplicitStatsOffset).Concat(statSets.KeyList((int)statSet, ProjectileSpeeds.ConstantStatsOffset)).ToHashSet()
+            var kind = t.ActiveSkills.String((int)active, 0);
+            var types = t.ActiveSkills.KeyList((int)active, c.ActiveTypes);
+            var statSet = skills.Key(skill, c.SkillStatSet);
+            var set = statSet >= 0 && statSet < t.StatSets.RowCount
+                ? t.StatSets.KeyList((int)statSet, c.ImplicitStats).Concat(t.StatSets.KeyList((int)statSet, c.ConstantStats)).ToHashSet()
                 : new HashSet<long>();
             result.verdicts[skill] = Judge(kind, types.Any(fromAfar.Contains), set, projectile, damage, noDamage, speeds.ContainsKey(skill));
         }

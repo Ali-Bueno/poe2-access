@@ -602,6 +602,7 @@ namespace Poe2Accessibility
             this.flagBits?.Reset();
             this.padCheck.Reset();
             this.semantics?.TreeFields.Reset();
+            this.semantics?.StickCheck.Reset();
             this.places?.ResetLayout();
             this.inventoryReader?.BaseNames.Reset();
             GameLayout.PadButtons.Shift = 0;
@@ -751,6 +752,10 @@ namespace Poe2Accessibility
             var semanticMoves = reading.Semantic.Where(field => field.Found is { } value && value != field.Entry.Measured)
                 .Select(field => $"{field.Entry.Name} +0x{field.Entry.Measured:X} to +0x{field.Found:X}").Distinct().ToList();
             this.log?.Info(Tally("Code fields", reading.Code, reading.CodeMilliseconds, moved));
+            PassiveStick.Apply(reading.StickRule);
+            this.log?.Info(reading.StickRule is { } rule
+                ? $"Stick rule: cos {rule.LinkedCosine} slope {rule.LinkedSlope} base {rule.LinkedBase}, cone cos {rule.ConeCosine} slope {rule.ConeSlope} read from the exe{(PassiveStick.Retuned ? ", retuned" : ", as measured")}"
+                : "Stick rule: its code not found in the exe, the measured constants stand");
             this.log?.Info(reading.SemanticError is { } error ? $"Semantic fields unread: {error}"
                 : Tally("Semantic fields", reading.Semantic, reading.SemanticMilliseconds, semanticMoves)
                     + (disagree.Count == 0 ? string.Empty : $"; disagree, left where they are: {string.Join(", ", disagree)}"));
@@ -794,7 +799,7 @@ namespace Poe2Accessibility
                 var code = CodeFieldCatalog.Read(file.AsSpan(start, length), entries);
                 var codeTime = watch.ElapsedMilliseconds;
                 var (semantic, semanticError) = ReadSemanticFields(file, Path.Join(catalog, SemanticFieldFile));
-                return new CodeFieldReading(code, codeTime, semantic, watch.ElapsedMilliseconds - codeTime, null, semanticError);
+                return new CodeFieldReading(code, codeTime, semantic, watch.ElapsedMilliseconds - codeTime, null, semanticError) { StickRule = StickRuleCode.Read(file) };
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
             {
@@ -848,6 +853,10 @@ namespace Poe2Accessibility
             System.Collections.Generic.IReadOnlyList<(CodeFieldEntry Entry, int? Found)> Semantic,
             long SemanticMilliseconds,
             string? Error,
-            string? SemanticError);
+            string? SemanticError)
+        {
+            /// <summary>The stick rule's constants as this exe holds them; null when its code was not found.</summary>
+            public StickRuleCode.Rule? StickRule { get; init; }
+        }
     }
 }

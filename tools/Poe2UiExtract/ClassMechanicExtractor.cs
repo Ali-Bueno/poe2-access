@@ -11,10 +11,8 @@ internal static class ClassMechanicExtractor
 {
     private const string Skipped = "class mechanics";
 
-    // BuffDefinitions: Id +0x0, Name +0x12, BuffType byte +0x67 (dat-strings / dat-rows 2026-11-08; the host reads the type).
+    // BuffDefinitions: Id +0x0; the name and type columns are found by BuffColumns.
     private const int BuffIdOffset = 0x0;
-    private const int BuffNameOffset = 0x12;
-    private const int BuffTypeOffset = 0x67;
     private const int DebuffType = 2;
     private const int CurseType = 5;
 
@@ -46,6 +44,11 @@ internal static class ClassMechanicExtractor
             return 1;
         }
 
+        if (BuffColumns.Find(buffs, "class-mechanics") is not { } buffColumns)
+        {
+            return 1;
+        }
+
         var ids = Enumerable.Range(0, stats.RowCount).Select(row => stats.String(row, 0)).ToList();
         var resources = ClassMechanics.Resources(ids);
         var limits = ClassMechanics.Limits(ids);
@@ -59,7 +62,7 @@ internal static class ClassMechanicExtractor
         {
             stats = resources.Select(resource => new { name = resource.Name, current = resource.Current, maximum = resource.Maximum, virtualMaximum = resource.VirtualMaximum }).ToList(),
             limits = limits.Select(limit => new { name = limit.Name, active = limit.Active, allowed = limit.Allowed }).ToList(),
-            buffs = BuffNames(index, buffs),
+            buffs = BuffNames(index, buffs, buffColumns),
             skills = SkillTypes(index),
         };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
@@ -73,14 +76,14 @@ internal static class ClassMechanicExtractor
     }
 
     /// <summary>Every buff that is not a debuff or curse and has a shown name: its type and its name per language ("en" first).</summary>
-    private static SortedDictionary<string, object> BuffNames(Index index, DatTable english)
+    private static SortedDictionary<string, object> BuffNames(Index index, DatTable english, BuffColumns columns)
     {
         var named = new SortedDictionary<string, (int Type, SortedDictionary<string, string> Names)>(StringComparer.Ordinal);
         for (var row = 0; row < english.RowCount; row++)
         {
             var id = english.StringOrNull(row, BuffIdOffset);
-            var name = english.StringOrNull(row, BuffNameOffset)?.Trim();
-            var type = english.Byte(row, BuffTypeOffset);
+            var name = english.StringOrNull(row, columns.Name)?.Trim();
+            var type = english.Byte(row, columns.Type);
             if (!string.IsNullOrEmpty(id) && ClassMechanics.IsShownName(name) && type is not (DebuffType or CurseType))
             {
                 named[id] = (type, new SortedDictionary<string, string>(StringComparer.Ordinal) { ["en"] = name! });
@@ -99,7 +102,7 @@ internal static class ClassMechanicExtractor
             for (var row = 0; row < table.RowCount; row++)
             {
                 var id = table.StringOrNull(row, BuffIdOffset);
-                var name = table.StringOrNull(row, BuffNameOffset)?.Trim();
+                var name = table.StringOrNull(row, columns.Name)?.Trim();
                 if (id != null && ClassMechanics.IsShownName(name) && named.TryGetValue(id, out var entry))
                 {
                     entry.Names[code] = name!;

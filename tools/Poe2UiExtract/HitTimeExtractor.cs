@@ -74,6 +74,12 @@ internal static class HitTimeExtractor
             animationRows.TryAdd(animations.String(row, 0), row);
         }
 
+        // A skill-table column not found would write a catalog with no speeds or threats: the previous one is kept instead.
+        if (ProjectileSpeeds.Columns(index) == null)
+        {
+            return 1;
+        }
+
         var actions = new AnimationActions(animations);
         var speeds = ProjectileSpeeds.Read(index, skills);
         var skillFlags = SkillFlags.Read(index, skills);

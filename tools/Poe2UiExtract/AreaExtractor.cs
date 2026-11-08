@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using Index = LibBundle3.Index;
 
@@ -9,7 +8,9 @@ using Index = LibBundle3.Index;
 /// </summary>
 internal static class AreaExtractor
 {
-    private static readonly byte[] Marker = { 0xBB, 0xBB, 0xBB, 0xBB, 0xBB, 0xBB, 0xBB, 0xBB };
+    // WorldAreas: Id (+0x0, read in place), Name (measured +0x8, where its search starts); G1_1 is the first area of the campaign.
+    private const int NameOffset = 0x8;
+    private const string KnownArea = "G1_1";
 
     internal static readonly Dictionary<string, string> LanguageCodes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -49,7 +50,15 @@ internal static class AreaExtractor
                 continue;
             }
 
-            var names = Parse(f.Read().ToArray());
+            var table = DatTable.FromBytes(f.Read().ToArray());
+            var search = new DatColumnSearch();
+            var nameColumn = search.Text(table, "WorldAreas.Name", NameOffset, known: (DatColumnSearch.RowOf(table, KnownArea), text => text.Length > 0));
+            if (!search.Report("areas"))
+            {
+                return 1;
+            }
+
+            var names = Parse(table, nameColumn);
             Say.Out.WriteLine($"  {f.Path} -> {code}: {names.Count} areas");
             result[code] = names;
         }
@@ -70,18 +79,13 @@ internal static class AreaExtractor
         return 0;
     }
 
-    private static SortedDictionary<string, string> Parse(byte[] d)
+    private static SortedDictionary<string, string> Parse(DatTable table, int nameColumn)
     {
-        int rows = BitConverter.ToInt32(d, 0);
-        int marker = d.AsSpan(4).IndexOf(Marker) + 4;
-        int rowSize = (marker - 4) / rows;
-        int varStart = marker;
         var names = new SortedDictionary<string, string>(StringComparer.Ordinal);
-        for (int i = 0; i < rows; i++)
+        for (var row = 0; row < table.RowCount; row++)
         {
-            int row = 4 + (i * rowSize);
-            var id = ReadString(d, varStart, BitConverter.ToInt64(d, row));
-            var name = ReadString(d, varStart, BitConverter.ToInt64(d, row + 8));
+            var id = table.String(row, 0);
+            var name = table.String(row, nameColumn);
             if (id.Length > 0 && name.Length > 0)
             {
                 names[id] = name.Trim();
@@ -89,17 +93,5 @@ internal static class AreaExtractor
         }
 
         return names;
-    }
-
-    private static string ReadString(byte[] d, int varStart, long offset)
-    {
-        int start = varStart + (int)offset;
-        int end = start;
-        while (end + 1 < d.Length && (d[end] != 0 || d[end + 1] != 0))
-        {
-            end += 2;
-        }
-
-        return Encoding.Unicode.GetString(d, start, end - start);
     }
 }

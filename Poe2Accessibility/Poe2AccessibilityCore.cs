@@ -386,12 +386,12 @@ namespace Poe2Accessibility
                 };
                 this.deployed = new DeployedWatch(this.audio, this.log);
                 this.traps = new TrapWatch(this.audio, this.log);
+                this.trialDoors = new TrialDoorWatch(this.entities, this.beacon, this.output, this.log);
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);
                 var gameSounds = GameSounds.Load(Path.Join(this.DllDirectory, "sounds"), GameSoundSeconds, this.log);
                 this.deployed.GameSound = gameSounds.Get;
                 var drops = ItemDropSounds.Load(
                     Path.Join(this.DllDirectory, "catalog", "item-sounds.json"), Path.Join(this.DllDirectory, "sounds", "items"), GameSoundSeconds, this.log);
-                this.trialDoors = new TrialDoorWatch(this.entities, this.beacon, this.output, this.log);
                 var diabloSounds = GameSounds.LoadLoops(Path.Join(this.DllDirectory, "assets", ItemSoundSet.Folder), this.log);
                 this.objectSounds = new ObjectSounds(this.audio, this.entities, gameSounds, drops, diabloSounds);
                 this.fights = new FightWatch(memory);
@@ -422,12 +422,12 @@ namespace Poe2Accessibility
                 this.narrator.HonourLabel = () => this.entities?.HonourLabel ?? string.Empty;
                 this.narrator.WaterLabel = () => this.entities?.WaterLabel ?? string.Empty;
                 this.narrator.TrialCountersBeside = this.semantics.TrialCounters;
+                this.narrator.Trials = this.semantics.Trials = TrialCatalog.Load(Path.Join(this.DllDirectory, "catalog", "trials.json"), this.log);
                 this.semantics.UnallocatedLabel = () => this.entities?.UnallocatedLabel ?? string.Empty;
                 this.semantics.PinLevelLabel = () => this.entities?.PinLevelLabel ?? string.Empty;
                 this.semantics.PinTownLabel = () => this.entities?.PinTownLabel ?? string.Empty;
                 this.mapPins = new MapPinNarrator(this.semantics, this.output, this.log);
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
-                this.narrator.Trials = this.semantics.Trials = TrialCatalog.Load(Path.Join(this.DllDirectory, "catalog", "trials.json"), this.log);
                 this.entities.Memory = new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds, modSounds, drops, diabloSounds));
                 this.commands.Settings = () => this.Settings;
@@ -695,14 +695,14 @@ namespace Poe2Accessibility
                 this.narrator.CheckTrialCounters(this.screen.Current);
             }
 
-            if (watching && this.Settings.AnnounceAppearingText)
-            {
-                this.mapPins?.Tick(this.gameState.CurrentState == GameStateTypes.InGameState ? this.WorldScreen() : IntPtr.Zero);
-            }
-
             if (watching && this.Settings.AnnounceTrialProgress)
             {
                 this.narrator.CheckTrialLines(this.screen.Current);
+            }
+
+            if (watching && this.Settings.AnnounceAppearingText)
+            {
+                this.mapPins?.Tick(this.gameState.CurrentState == GameStateTypes.InGameState ? this.WorldScreen() : IntPtr.Zero);
             }
 
             this.wasWatching = watching;
@@ -747,6 +747,7 @@ namespace Poe2Accessibility
             }
 
             this.padState = state;
+            this.semantics?.ObserveStick(state.LeftX, state.LeftY, Environment.TickCount64);
             this.CheckPadButtons(state);
             if (IsDirection(state))
             {
@@ -984,6 +985,7 @@ namespace Poe2Accessibility
             this.culls?.Reset();
             this.deployed?.Reset();
             this.traps?.Reset();
+            this.trialDoors?.Reset();
             this.enemyStates?.Reset();
             this.alerts?.Statuses.Reset();
             this.partnerAlerts?.Statuses.Reset();
@@ -991,7 +993,6 @@ namespace Poe2Accessibility
             this.partnerAlerts?.Charges.Reset();
             this.alerts?.Resources.Reset();
             this.partnerAlerts?.Resources.Reset();
-            this.trialDoors?.Reset();
             this.alerts?.Cooldowns.Reset();
             this.partnerAlerts?.Cooldowns.Reset();
             this.pickups?.Reset();
