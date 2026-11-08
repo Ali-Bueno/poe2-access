@@ -80,6 +80,9 @@ namespace GameHelper.Utils
         /// <summary>The part that says whether a UI element shows (flags, scale index).</summary>
         public const string ElementFlagsPart = "element flags";
 
+        // Vitals that must point back before their inner layout is believed (the game has seven, GameHelper reads five).
+        private const int MinVitals = 3;
+
         // Entities the sweep judges the entity layout on, besides the player.
         private const int EntitiesJudged = 4;
 
@@ -516,25 +519,48 @@ namespace GameHelper.Utils
             string[] fields = { nameof(LifeOffset.Health), nameof(LifeOffset.Mana), nameof(LifeOffset.EnergyShield), nameof(LifeOffset.Ward), nameof(LifeOffset.Divinity) };
             var measured = fields.Select(field => OffsetOf<LifeOffset>(field)).ToArray();
             var block = Block(life.Address, measured[^1] + SearchRadius);
-            var vitals = StructShapes.Vitals(
-                block,
-                life.Address.ToInt64(),
-                OffsetOf<VitalStruct>(nameof(VitalStruct.PtrToLifeComponent)),
-                OffsetOf<VitalStruct>(nameof(VitalStruct.Total)),
-                OffsetOf<VitalStruct>(nameof(VitalStruct.Current)));
+            var (back, total) = (OffsetOf<VitalStruct>(nameof(VitalStruct.PtrToLifeComponent)), OffsetOf<VitalStruct>(nameof(VitalStruct.Total)));
+            var currentAfterTotal = OffsetOf<VitalStruct>(nameof(VitalStruct.Current)) - total;
+            var vitals = StructShapes.Vitals(block, life.Address.ToInt64(), back, total, total + currentAfterTotal);
+            var (foundBack, foundTotal) = (back, total);
+            // Enough vitals and none full may be totals read one field late (a current, then whatever follows): full ones decide.
+            var readable = vitals.Count >= MinVitals;
+            if ((!readable || StructShapes.Full(block, vitals, total, currentAfterTotal) == 0) &&
+                StructShapes.VitalLayout(block, life.Address.ToInt64(), back, total, currentAfterTotal, MinVitals, readable) is { } inside)
+            {
+                // A vital that grew or shrank inside: its back-pointer and its total are found again, each vital's start with them.
+                (foundBack, foundTotal) = inside;
+                vitals = StructShapes.Vitals(block, life.Address.ToInt64(), foundBack, foundTotal, foundTotal + currentAfterTotal);
+            }
+
             var placed = StructShapes.PlaceVitals(measured, vitals);
             if (placed.Length == 0)
             {
                 return new StructOutcome(name, StructHealth.Lost, measured[0], 0, "no vitals found");
             }
 
-            if (placed.SequenceEqual(measured))
+            // The living player always has a life total, and its life never exceeds it.
+            var (healthTotal, healthCurrent) = (BitConverter.ToInt32(block, placed[0] + foundTotal), BitConverter.ToInt32(block, placed[0] + foundTotal + currentAfterTotal));
+            if (healthTotal <= 0 || healthCurrent > healthTotal)
+            {
+                return new StructOutcome(name, StructHealth.Lost, measured[0], 0, $"life reads {healthCurrent} of {healthTotal}");
+            }
+
+            if (placed.SequenceEqual(measured) && (foundBack, foundTotal) == (back, total))
             {
                 return new StructOutcome(name, StructHealth.Intact, measured[0], measured[0], string.Empty);
             }
 
-            Remap(typeof(LifeOffset), StructRemapper.Segments(measured.Select((at, index) => new RemapSegment(at, placed[index] - at))));
-            return new StructOutcome(name, StructHealth.Moved, measured[0], placed[0], string.Empty);
+            // Each vital: its start, its back-pointer (the reserves after it follow) and its regeneration, total and current.
+            var regeneration = OffsetOf<VitalStruct>(nameof(VitalStruct.Regeneration)) - total;
+            Remap(typeof(LifeOffset), StructRemapper.Segments(measured.SelectMany((at, index) => new[]
+            {
+                new RemapSegment(at, placed[index] - at),
+                new RemapSegment(at + back, placed[index] + foundBack - (at + back)),
+                new RemapSegment(at + total + regeneration, placed[index] + foundTotal - (at + total)),
+            })));
+            return (foundBack, foundTotal) == (back, total) ? new StructOutcome(name, StructHealth.Moved, measured[0], placed[0], string.Empty)
+                : new StructOutcome(name, StructHealth.Moved, total, foundTotal, "inside each vital");
         }
 
         private static StructOutcome JudgeBuffs(Entity player, IAreaMemory memory)

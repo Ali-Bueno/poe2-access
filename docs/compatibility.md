@@ -28,7 +28,7 @@ host's searches (once a patch to GameHelper2, now in `host/`) read those fields 
 | Area: level, hash | level 1-100 in one byte (the next can hold a flag), then 8 bytes of flags and three vectors (any empty); a hash too large to be the top of a pointer, at the measured distance | `AreaLayoutSearch` |
 | Entity id (the valid flag follows it) | the list's key equals the id, on the root and its child | `AreaLayoutSearch.FindEntityId` |
 | Entity path and components (details pointer, path, component vector, lookup, name map) | the details lead to a wide string under `Metadata/`; the first and last component point back at the entity; the lookup's map names components (half its entries or more, one of `Positioned`, `Render`, `Life`…) with indexes inside the vector. Judged in the sweep on the player and four entities; searched whenever an area shows no world, since every area check asks an entity for its path. `ItemStruct` moves with `EntityOffsets` | `EntityLayoutSearch`, `OffsetHealer.JudgeEntityLayout` |
-| Life | every vital points back at its component; one shift lands the measured ones on them (the game has seven vitals, GameHelper reads five) | `StructShapes.PlaceVitals` |
+| Life | every vital points back at its component; one shift lands the measured ones on them (the game has seven vitals, GameHelper reads five). Inside a vital: when the measured back-pointer and total find under three vitals, or find them but none full (a total read one field late takes the current for the total), the pair nearest them under which three vitals point back with a total above zero, life above zero on one and, in the second case, two full. Then the living player's life total must be above zero and its life no higher | `StructShapes.PlaceVitals`, `StructShapes.VitalLayout` |
 | Buffs | a pointer list that ends in a lower-case id such as `herald_of_thunder` (no buff on the player: not judged) | `StructShapes.IsBuffList` |
 | Skills, cooldowns | 16-byte entries with a 0x48-byte vector right after | `StructShapes.IsSkillList` |
 | Stats | a pointer to key and value pairs with small keys | `StructShapes.IsStatsPointer` |
@@ -95,7 +95,10 @@ the host rebuilt with `--no-incremental` and restarted in the Act 2 town, then r
 | Game states | stack +8, list -0x18, and `InGameState` swapped with `PreGameState` in the enum (a state inserted) | stack +0x10 and list +0x50 found at attach, the in-game state taken from slot 4 (`slot 5 -> 4`); "En juego", the sweep and the sounds as usual |
 | UI focus, layer roots | focus, last focused, hovered +8; both UI roots +8 | roots back at attach; the focus back on the third move in the game menu (the first focus read the lagging slot) |
 | UI focus, layer roots | the same -0x18 | the same |
+| Life (inside a vital) | total, current and regeneration +4, and `semantic-fields.txt` set to match (so the code is believed) | the code rules moved the six Life, Mana and ES fields at attach (`Code fields: … moved: LifeOffset.Health.Current +0x1E4 to +0x1E0 …`), the sweep `life moved from +0x30 to +0x2C`; the player read 513/513 |
+| Life (inside a vital) | back-pointer -8, regeneration, total and current -4, catalog untouched (the code refused: not where its rules were made) | the sweep alone: `life moved from +0x28 to +0x24`, 513/513 |
 | Terrain | `TileStructure` size 0x40 and 24 cells per tile |
+
  terrain found as before, tiles `moved from +0x40 to +0x38`, cells `from +0x18 to +0x17`; the wall radar sounded |
 | Terrain | size 0x30 (fields packed) and 22 cells | the same, back to 0x38 and 23 |
 | UI element base | self, children, parent +8; position group, flags group, size +0x18 |

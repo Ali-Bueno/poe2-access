@@ -33,6 +33,13 @@ namespace GameHelper.Utils
         private const int MatrixBytes = 64;
         private const float MaxWorld = 1e7f;
 
+        // A vital's fields were all measured in its first 0x34 bytes; a patch may grow it a little.
+        private const int MaxVitalField = 0x60;
+
+        // Far above any vital the game shows (life, mana and shield stay well under 100 000); a float read as an int is not.
+        private const int MaxVitalTotal = 10_000_000;
+        private const int MinFullVitals = 2;
+
         /// <summary>The offset nearest <paramref name="start"/> that fits, within 0..<paramref name="limit"/>; negative when none does.</summary>
         /// <summary>Friend or foe as the game writes it, in <see cref="GameOffsets.Objects.Components.PositionedOffsets"/>.</summary>
         public static bool IsFriendly(byte reaction) => (reaction & FriendlyMask) == Friendly;
@@ -85,10 +92,11 @@ namespace GameHelper.Utils
         public static List<int> Vitals(byte[] block, long component, int backPointer, int total, int current)
         {
             var found = new List<int>();
-            for (var at = 0; at + current + sizeof(int) <= block.Length; at += Pointer)
+            var end = Math.Max(current + sizeof(int), backPointer + Pointer);
+            for (var at = 0; at + end <= block.Length; at += Pointer)
             {
                 if (BitConverter.ToInt64(block, at + backPointer) == component &&
-                    BitConverter.ToInt32(block, at + total) >= 0 &&
+                    BitConverter.ToInt32(block, at + total) is >= 0 and <= MaxVitalTotal &&
                     BitConverter.ToInt32(block, at + current) >= 0 &&
                     BitConverter.ToInt32(block, at + current) <= BitConverter.ToInt32(block, at + total))
                 {
@@ -98,6 +106,43 @@ namespace GameHelper.Utils
 
             return found;
         }
+
+        /// <summary>
+        ///     Where a vital keeps its back-pointer and its total (the current follows the total) when the measured places
+        ///     find too few vitals: the pair nearest them under which <paramref name="minVitals"/> vitals point back with a
+        ///     total above zero; with <paramref name="full"/>, two of them full (as at rest in town), which a total read one field
+        ///     late never is. Null when none does.
+        /// </summary>
+        public static (int BackPointer, int Total)? VitalLayout(byte[] block, long component, int backPointer, int total, int currentAfterTotal, int minVitals, bool full = false)
+        {
+            var found = ((int, int)?)null;
+            Nearest(backPointer, Pointer, MaxVitalField, back =>
+            {
+                bool Fits(int place)
+                {
+                    if (place < back + Pointer && place + Pointer > back)
+                    {
+                        return false;
+                    }
+
+                    // A total above zero on enough vitals, and life above zero on one (the player lives): a total read one field
+                    // late takes the current for the total and whatever follows for the current.
+                    var vitals = Vitals(block, component, back, place, place + currentAfterTotal);
+                    return vitals.Count(vital => BitConverter.ToInt32(block, vital + place) > 0) >= minVitals &&
+                           vitals.Any(vital => BitConverter.ToInt32(block, vital + place + currentAfterTotal) > 0) &&
+                           (!full || Full(block, vitals, place, currentAfterTotal) >= MinFullVitals);
+                }
+
+                var at = Nearest(total, sizeof(int), MaxVitalField, Fits);
+                found = at < 0 ? null : (back, at);
+                return at >= 0;
+            });
+            return found;
+        }
+
+        /// <summary>How many of <paramref name="vitals"/> are full: life above zero and as high as its total.</summary>
+        public static int Full(byte[] block, IEnumerable<int> vitals, int total, int currentAfterTotal) =>
+            vitals.Count(vital => BitConverter.ToInt32(block, vital + total) > 0 && BitConverter.ToInt32(block, vital + total) == BitConverter.ToInt32(block, vital + total + currentAfterTotal));
 
         /// <summary>
         ///     Where each measured vital stands among those found (the game has more vitals than GameHelper reads): the

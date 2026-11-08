@@ -27,7 +27,42 @@ namespace Poe2Accessibility.Tests
             (nameof(ElementBaseGroupsFollowTheShiftThatFits), ElementBaseGroupsFollowTheShiftThatFits),
             (nameof(AnElementOfAnotherSizeIsNoRoot), AnElementOfAnotherSizeIsNoRoot),
             (nameof(TheFocusIsTheSlotThatTakesEachElementFirst), TheFocusIsTheSlotThatTakesEachElementFirst),
+            (nameof(AVitalThatGrewInsideIsReadAgain), AVitalThatGrewInsideIsReadAgain),
         };
+
+        private static void AVitalThatGrewInsideIsReadAgain()
+        {
+            const long component = Heap + 0x7000;
+            foreach (var (back, total) in new[] { (8, 0x2C), (0x10, 0x34), (8, 0x1C) })
+            {
+                var block = new byte[0x600];
+                foreach (var (at, life) in new[] { (0x1B0, 812), (0x208, 120), (0x248, 0), (0x2E8, 0), (0x338, 30) })
+                {
+                    Put(block, at + back, component);
+                    BitConverter.TryWriteBytes(block.AsSpan(at + total), life + 100);
+                    BitConverter.TryWriteBytes(block.AsSpan(at + total + 4), life);
+                }
+
+                // A start 8 bytes later with the measured pair reads the same bytes: only the gap between the two says the layout.
+                var found = StructShapes.VitalLayout(block, component, 8, 0x2C, 4, 3);
+                Equal((int?)(total - back), found?.Total - found?.BackPointer, $"vitals with the back-pointer at {back:X} and the total at {total:X}");
+            }
+
+            Equal(((int, int)?)null, StructShapes.VitalLayout(new byte[0x600], component, 8, 0x2C, 4, 3), "no vital at all");
+
+            // Full vitals with the total 4 bytes early: the measured places read each current as a total and a 0 after it.
+            var early = new byte[0x600];
+            foreach (var at in new[] { 0x1B0, 0x208, 0x248 })
+            {
+                Put(early, at + 8, component);
+                BitConverter.TryWriteBytes(early.AsSpan(at + 0x28), 500);
+                BitConverter.TryWriteBytes(early.AsSpan(at + 0x2C), 500);
+            }
+
+            var measuredReads = StructShapes.Vitals(early, component, 8, 0x2C, 0x30);
+            Equal(0, StructShapes.Full(early, measuredReads, 0x2C, 4), "no vital reads full one field late");
+            Equal(((int, int)?)(8, 0x28), StructShapes.VitalLayout(early, component, 8, 0x2C, 4, 3, true), "full vitals place the total");
+        }
 
         private static void TheFocusIsTheSlotThatTakesEachElementFirst()
         {
