@@ -85,6 +85,11 @@ namespace Poe2Accessibility.Services
         {
             var monster = BossMechanicsCatalog.MonsterId(entity.Path);
             var isBoss = this.Catalog.Bosses > 0 ? this.Catalog.IsBoss(monster) : rarity == Rarity.Unique;
+            if (!isBoss && !this.bosses.Values.Any(boss => boss.Engaged))
+            {
+                return; // other monsters matter only as an engaged boss's adds
+            }
+
             if (!EntityCatalog.IsAliveEnemy(entity) || !entity.TryGetComponent<Life>(out var life))
             {
                 this.bosses.Remove(entity.Id);
