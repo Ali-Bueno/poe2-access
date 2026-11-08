@@ -49,6 +49,9 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         private int lastSleepingScanCount;
 
         private StdVector environmentPtr;
+
+        /// <summary>The terrain struct's remap the terrain was last read through (null: as compiled).</summary>
+        private RemapSegment[]? terrainRemap;
         private readonly List<int> environments;
 
         /// <summary>
@@ -172,9 +175,19 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             var reader = Core.Process.Handle;
             var data = this.Layout.Read(reader, this.Address, out var moved);
 
-            if (hasAddressChanged || moved)
+            // The code-field check places the terrain's fields seconds after the host attached in an area: an area read before
+            // that kept a tile array read from where the field was compiled (the gap pass's simulation, 2026-11-08), so the
+            // terrain is read again when its remap changes.
+            var terrainRemap = StructRemap<TerrainStruct>.Segments;
+            var remapped = !ReferenceEquals(terrainRemap, this.terrainRemap);
+            this.terrainRemap = terrainRemap;
+            if (hasAddressChanged || moved || remapped)
             {
-                this.Cleanup(true);
+                if (hasAddressChanged || moved)
+                {
+                    this.Cleanup(true);
+                }
+
                 this.TerrainMetadata = data.TerrainMetadata;
                 this.CurrentAreaLevel = data.CurrentAreaLevel;
                 this.AreaHash = $"{data.CurrentAreaHash:X}";
