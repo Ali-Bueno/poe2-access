@@ -227,15 +227,15 @@
 | Harmful ground and boss movement rules (Freythorn) | done (unit) | 7 ground buffs whose descriptions do not say "standing" added by the `hazards` extractor (swamp, spores, mud, the Voodoo King's rat tornado); "¡Quédate quieto!" / "¡Sigue moviéndote!" on the Voodoo King's punishment buffs (`StatusAilments`). Freythorn has no falls: the void between its treetop platforms is unwalkable ground the radar already calls wall |
 | No mod window in Alt+Tab or the taskbar | done (2026-11-08) | the own host has no window at all (the GameHelper overlay and the plugin's `HostWindowHider` are gone) |
 | Inline pictures in texts (gold, spirit, tribute, portals, revives, tick, check box, deferred, weapon set) | done (unit) | `InlineIcons` from catalog/inline-icons.txt (uisettings MarkupImages, extractor inline-icons); pad glyph tokens and tooltip price units |
-| Table rows under column headings | done (unit) | `TableHeadings` + `UiSemantics.Panels.HeadedCells`; Instance Manager, ladder, exchange; hidden headers and control rows skipped |
+| Table rows under column headings | done (live 2026-11-08: Instance Manager rows, every cell, the clock not ticking) | `TableHeadings` + `UiSemantics.Panels.HeadedCells`; Instance Manager, ladder, exchange; hidden headers and control rows skipped |
 | Icon-only item controls | done (unit) | `ArtCaptions` from currency-art.json, only when nothing else names the control |
 | Unseen panels inventory | done (research) | docs/research/ui-unseen-panels.md: 27 seen, 14 reachable now, 19 later, 50 not in PoE2 |
 | Trial of the Sekhemas: Death Crystals said as they fall, room door opened said/guided | done (code, tested) | `TrialLines`/`CounterWatch`, `TrialDoors`/`TrialDoorWatch`; settings AnnounceTrialProgress, GuideTrialDoors; not seen live (docs/research/trials-and-campaign.md §7) |
 | Trial icons named from the game's tables | done (code, tested) | catalog/trials.json via `trial-data` (242 icons, 10 languages); `UiSemantics.TrialIcon`; `TrialCatalog.PatternOf` |
 | Trial of Chaos: round said on change | done (code) | `CheckTrialLines` on "Round {0}/{1}" |
-| Ascendancy selector and tree view | todo (researched; live check asked 2026-11-08) | needs one UI dump with it open and one closed (trials-and-campaign.md §3) |
+| Ascendancy selector and tree view | todo (blocked: no ascended character) | needs one UI dump with it open and one closed (trials-and-campaign.md §3). 2026-11-08: yarkey's passive tree shows its class art in the centre and no ascendancy view or prompt (Y, LB, RB, X and the d-pad tried); the selector comes from the altar after the Trial of the Sekhemas, which no test character has done |
 | Acts 3-4 puzzle objects and the sailing map | todo (blocked: the character is in Act 2) | trials-and-campaign.md §4 |
-| Class resources from the game's tables | done (code; live: Heat, vitals) | `ResourceWatch` + `ResourceTracker`/`ClassMechanicCatalog`, catalog class-mechanics.json |
+| Class resources from the game's tables | done (code; live: Heat with its maximum, vitals) | `ResourceWatch` + `ResourceTracker`/`ClassMechanicCatalog`, catalog class-mechanics.json; a maximum no player stat holds comes from the skills' level rows (`SkillStatSets`: Rapid Shot's "Calor al máximo, 31", live 2026-11-08) |
 | Endgame data from the game files | done (code) | `endgame` step → catalog/endgame.json; docs/research/endgame.md |
 | Map objective content in the scanner (breach, abyss, essence, Vaal beacon, detonator) | done (code) | Encounters, game's keyword names |
 | Atlas map and tree nodes | done (code, not seen live) | name, content icons, asks/unlocks, links with directions, tower reach; dev `atlasnode` |
@@ -251,6 +251,8 @@
 
 ## Derived facts (with source)
 - **Rapid Shot heat:** player buffs `heat_79` then `overheated_79` 2.4 s later ("Player buff seen", log 2026-11-05 20:46); BuffDefinitions rows 2162 "Heat"/"Calor" and 2855 "Overheated"/"Sobrecalentado". Gem text at level 5: maximum heat 30, no firing or reloading for 10 s at the maximum. Measured "Arma sobrecalentada" to "Arma lista": about 10.4 s (log 2026-11-05 21:36-22:02: the 10 s plus `EndHoldMs`).
+- **Skill level rows (2026-11-08, dat files + live):** `ActiveSkillDetails+0x70` holds the 16-byte key of the skill's GrantedEffectStatSetsPerLevel row (found by the table it names); that row keeps its additional stats as (count, pointer) to Stats keys at +0x81 and their int32 values at +0x2C (rows 0xB9 bytes). Rapid Shot's `maximum_number_of_crossbow_heat_stacks` = 25 + gem level. Stats keys are rows + 1.
+- **Area row (2026-11-08, live, dev command `arearow`):** the host's WorldData chain (`[[WorldData+0x98]+0x98]`) reads 0 in 0.5.5f; `[AreaInstance+0xA0]` and the loading state's row (+0xEA0) hold the WorldAreas row (G1_town).
 - **Count Geonor (Ogham Manor, `Metadata/Monsters/Baron/`):** the Count (`BaronBossHumanForm`) turns into the Wolf (`BaronBossCorruptedWolfForm`) near 49 % and stays behind alive for good: life 4333/9193, animation stuck on `SpellAreaOfEffectChaos`, Targetable `+0x69` still 1; only the buff `hidden_monster_79` tells him apart (`stuntrace`, 2026-11-05). The Wolf is 7 entities on one cell, consecutive ids 2764-2770 (`entities` dump); every life and ailment line came 7 times at once, the Count's too, though one Count remains. Why 7 is not known.
 - Heavy stun buildup is "poise" in the game's data (Stats.dat: `poise_threshold`, `base_poise_threshold`, `poise_decay_delay_ms`, `is_heavy_stunned`, `cannot_accumulate_heavy_stun_poise`). GameHelper's `GameStats` enum is about 3 rows behind the 2026-10-26 Stats.dat (`poise_threshold` 17371+1 there, row 17374 now): compare raw keys, not enum names. Stat keys are row + 1.
 - **Culling Strike skills:** granted effects whose main stat set (GrantedEffects +0xA8 → GrantedEffectStatSets, row 0x65,
@@ -442,18 +444,26 @@
 
 ## Next step
 Done (2026-11-08, live test of the single executable): `Poe2Access.exe` (launcher + host + extractor in one process) passed in development and as the installed package started from Steam (old layout's 208 files deleted, game data regenerated and spoken, one process, exits with the game); the dodge warning was measured live on normal monsters and three misses fixed ([dodge timing](docs/research/dodge-timing.md#live-results-2026-11-08-055f)); the boss mechanics step ran twice per update (fixed); regression sweep passed (game menu, options, inventory, stash, vendor, passive tree, world map, scanner, beacon, character select).
-Next: (1) **Bosses live** — [boss mechanics §7](docs/research/boss-mechanics.md#7-live-protocol-the-current-character-level-22-mercenary-in-act-2) and the dodge warning on rares and uniques: no arena was reached by scripted walking on 2026-11-08; walk the character there by hand (or from a save next to the Miller) and run `fight_trace.py` + `dodge_audit.py --rarity 2,3`. (2) **Release** — everything since v2026.11.07-8 is pushed, not released (the user decides). (3) The passive stick's exact rule (RVA 0x9B9BA0). (4) The fields left with one protection or none ([audit](docs/research/field-protection-audit.md)). (5) Steam Deck.
+Done (2026-11-08, afternoon): bosses live on yarkey (Beira, the Devourer, the user's ritual of four uniques; [boss mechanics §7](docs/research/boss-mechanics.md#live-runs-of-2026-11-08)), the dodge warning on rares and uniques within its goals ([dodge timing](docs/research/dodge-timing.md#rares-and-bosses-2026-11-08)), mortars worded, the walking blocks explained ([route walking](docs/research/route-walking.md)), the gap pass simulated live (two protections fixed) and A4 fixed ([compatibility](docs/compatibility.md)), Heat said with its maximum.
+Characters: every fight was on **yarkey** (level 22 Mercenary). **`acceso_prueba`** (Witch, level 1, Forbidden Rites) was created on 2026-11-08 for the Bloated Miller and left at the Riverbank's start; nothing was deleted (the list held no Witch: hairin, kehgan, malgdhler, yarkey, yarkidius).
+Next: (1) **The Bloated Miller** with `acceso_prueba` (a minion gem first; its tutorial pause times the 300 ms lead), Count Geonor, the King in the Mists and Act 2's bosses: by hand, the script cannot play them without looking like a bot. (2) **Release** — everything since v2026.11.07-8 is pushed, not released (the user decides). (3) The fields left with one protection or none ([audit](docs/research/field-protection-audit.md)). (4) Steam Deck.
 
 Earlier chunks, newest first: [status history](docs/status-history.md).
 
 ## Known issues / open questions
-- Dodge warning, live 2026-11-08: a leap (the urchins' Puncture, `melee_launch_01`, skill `UrchinLeapGeometryAttack`) is judged by the clip's reach from where the monster stands, so it is "out of reach" until it lands close, then warned late ("blow in 64 ms"); 4 of about 120 attacks in Clearfell. The leap's landing is the action's target place; the skill's `range` (100) is in units not yet measured. Not fixed: too few samples to tell a rule.
+- Dodge warning, live 2026-11-08: a leap (the urchins' Puncture, `melee_launch_01`, skill `UrchinLeapGeometryAttack`) was judged by the clip's reach from where the monster stands, so it was "out of reach" until it landed close, then warned late ("blow in 64 ms"); 4 of about 120 attacks in Clearfell. Since then an attack seen twice carrying its user at least 80 units toward the place it aims at is a leap, judged from that place (`DodgeTimings.LearnMove`, kept in `dodge-timings.txt` as "moves"; test `ALeapIsLearntFromWhereItCarriesItsUser`). Not yet seen live: the log line "Dodge: … carries its user to its target" (urchins need `DodgeWarningsAllMonsters`, or a rare urchin).
 - Live test 2026-11-08 (yarkey, own host): the options' popup notification settings ("Notificaciones emergentes", Edit
   Settings) move a highlight that is neither the UI focus nor the hover slot, and a dump diff shows no flag change: its rows
   are read only as the list appears, not as the stick moves. The Mercenary's crossbow clip is still not found: `skills`
-  showed only a use counter (+0xD8, up by one per bolt); Permafrost Bolts reloaded within two shots. Heat is said without a
-  maximum ("Calor: 8"; the player's max stat reads 0). The help panel has no pad route seen (keyboard H would switch the
-  input mode). Instance Manager rows with headings need an existing instance (only "New instance" was offered).
+  showed only a use counter (+0xD8, up by one per bolt); Permafrost Bolts reloaded within two shots. The help panel has no
+  pad route seen (keyboard H would switch the input mode).
+- Live checks asked on 2026-11-08 and not run (time; the bosses and the protection simulations came first): the options' popup
+  notification rows (above, unchanged code), a vendor price in a currency other than gold, breakables, the lost hint and the
+  radar's landmark label, a crossbow monster's clip, the Trial of the Sekhemas (its icons and Death Crystals need a Djinn Barya
+  and the trial; yarkey's "Ascenso al poder" is open). Map objective content needs an endgame character (none). Seen live that
+  day: a rare item's mods (yarkey's equipped armour, helmet, amulet, ring) and a magic monster's ("de precisión").
+- Heat now has its maximum (31 at Rapid Shot level 6), which is above `ResourceTracker`'s counted range: it is said only at its
+  edges ("Calor al máximo, 31", "sin Calor"), no longer "Calor: 8". Whether the user wants the counts back is open.
 - `catalog/landmarks.json` corrects the Radar table's labels that were no area name by a typo ("Oghams Manor", 5 found by near match) and G1_14's "Entrance", the way back read as the Manor's.
 - Radar-table labels are English notes (GameHelper's `important_tgt_files.txt`): area names, bracketed notes and, since
   2026-11-02, boss names are said in the game's language. Since 2026-11-08 every piece of a label (cut at " - ", slashes,
@@ -481,8 +491,7 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   the character oscillated between two cells; not reproduced standing still.
 - Scanner: long routes searched ~200 ms on the frame thread; since 2026-11-08 `RoutePlanner` is a jump point search over a
   cached cell map (same optimal routes, `RouteSpeedTests`): 1600x1600 cave grids take 2-10 ms, a walled-off goal ~12 ms
-  (it was 35-280 and 270), measured offline only. A route along an octant boundary alternates
-  "up 2, then up left" / "up left 2, then up". The exit prompt "Mantener presionado (Mostrar opciones)" is drawn
+  (it was 35-280 and 270), measured offline only. The exit prompt "Mantener presionado (Mostrar opciones)" is drawn
   outside the UI tree (not in a full dump while on screen): the A target says "mantén A para opciones" instead.
   A barrier never seen closed and past the network bubble still reads open (nothing to know it by).
 - Skill tooltips read "Costo." with no value: the game draws the header with nothing under it (Chaos Bolt,
