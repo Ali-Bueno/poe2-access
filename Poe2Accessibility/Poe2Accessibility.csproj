@@ -46,6 +46,8 @@
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\landmarks.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
     <!-- Names objects show only in a WorldDescription, and lines the mod knows by their text (tools/Poe2UiExtract world-titles). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\world-titles.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
+    <!-- The trials' icons and HUD formats per language (tools/Poe2UiExtract trial-data). -->
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\trials.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\trials.json')" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\area-names.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
     <!-- The radar table's boss names as the game names them (tools/Poe2UiExtract monster-names). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\monster-names.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\monster-names.json')" />

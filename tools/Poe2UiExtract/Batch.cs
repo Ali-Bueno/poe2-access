@@ -25,6 +25,7 @@ internal static class Batch
         ["places"] = (_, index, output) => PlaceExtractor.Run(index, output),
         ["endgame"] = (_, index, output) => EndgameExtractor.Run(index, output),
         ["ui-catalog"] = (_, index, output) => UiScripts.BuildCatalog(index, output),
+        ["trial-data"] = (_, index, output) => TrialDataExtractor.Run(index, output),
         ["inline-icons"] = (_, index, output) => InlineIconExtractor.Run(index, output),
     };
 
