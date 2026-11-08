@@ -173,8 +173,14 @@ A and B coincide in time; B adds the "am I inside" answer, A needs no actor fiel
 as ground); effects spawned by the player's own skills (only hostile `Positioned` reactions count; a ServerEffect's
 reaction flag must be checked live); visuals that outlive the hit (`delay` passed → the area is over); several entities
 for one attack (15 ice markers: one warning, not fifteen: dedupe by `.ao` + 200 ms); a skill with no visual and no
-marker (589 geometry rows "area only": path B only). Unit scale: sizes are world units (10.87 per grid cell) by the
-Baron cross-check; §6 measures it.
+marker (589 geometry rows "area only": path B only). Unit scale, MEASURED live 2026-11-08 (Mud Burrow): the sizes are grid
+cells, not world units (the Baron cross-check above misled): the Devourer's `GAMudBurrowerHeadSlam` (radius 18) hit the player
+346 units from the boss with its place on the player, Mud Golems' `MudGolemSlam` (radius 15) at 212-217 units; read as world
+units neither could have. `AttackAreas.InWorld` scales length, width and range by 250/23; the range's own unit was not measured
+apart (it only clamps where a circle lands, so a range too long adds warnings, never removes one). Mortars (`mortar` lines)
+have no blast size in any table (MonsterMortar, its projectile, its stat sets, the impact `.ao`): the plugin takes each as a
+scattered circle around its aimed place (the counterplay's "¡Muévete!"); 9 of 56 share their impact visual with a sized
+geometry skill the extractor could copy, 40 carry only a scatter (`projectile_spread_radius`).
 
 **Patch-proofing.** Tables are opened by name, guarded by row size (`Sized`), and every list or path column is found
 by content near its measured offset (`DatContentColumns.Nearest`); `SkillID` is found as the i32 column whose value is
