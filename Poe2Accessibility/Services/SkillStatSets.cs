@@ -128,8 +128,17 @@ namespace Poe2Accessibility.Services
         private int? StatValue(IntPtr row, IReadOnlyList<string> names)
         {
             if (!this.memory.TryRead<long>(row + StatKeysOffset, out var keyCount) || !this.memory.TryRead<IntPtr>(row + StatKeysOffset + sizeof(long), out var keys) ||
-                !this.memory.TryRead<long>(row + ValuesOffset, out var valueCount) || !this.memory.TryRead<IntPtr>(row + ValuesOffset + sizeof(long), out var values) ||
-                keyCount != valueCount || keyCount is <= 0 or > MaxStats || keys == IntPtr.Zero || values == IntPtr.Zero)
+                !this.memory.TryRead<long>(row + ValuesOffset, out var valueCount) || !this.memory.TryRead<IntPtr>(row + ValuesOffset + sizeof(long), out var values))
+            {
+                return null;
+            }
+
+            if (keyCount == 0 && valueCount == 0)
+            {
+                return null; // a level with no additional stats (most skills): nothing to find, nothing wrong
+            }
+
+            if (keyCount != valueCount || keyCount is < 0 or > MaxStats || keys == IntPtr.Zero || values == IntPtr.Zero)
             {
                 this.Report($"the level row's stat lists do not pair (+0x{StatKeysOffset:X2} and +0x{ValuesOffset:X2}): columns moved?");
                 return null;
