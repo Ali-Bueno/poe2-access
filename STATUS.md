@@ -15,7 +15,8 @@
   ExileCore2 rejected (binary-only, obfuscated, Discord-gated — `docs/research/exilecore2-study.md`);
   CoreExile2 no longer exists (now `coussiraty/ExileBridge`, an HTTP/MCP API without UI tree).
 - **Speech transport:** PRISM through the **Prismatoid 0.4.0** NuGet binding (net10.0; bundles
-  `runtimes/win-x64/native/prism.dll`). Plugin ships `Poe2Accessibility.dll + Prismatoid.dll + prism.dll`.
+  `runtimes/win-x64/native/prism.dll`). Plugin ships `Poe2Accessibility.dll + Prismatoid.dll + prism.dll`; the native
+  `prism.dll` loads from the plugin folder through the host's `PluginLoadContext` (NVDA heard, 2026-11-08).
 - **Plugin:** `Poe2Accessibility/` (sealed `Poe2AccessibilityCore : PCore<AccessibilitySettings>`).
 - **Build:** `dotnet build host/Poe2Access -c Release` (executable, with `tools/Poe2UiExtract` as a library), then
   `dotnet build Poe2Accessibility -c Release` → auto-deploys to
@@ -462,8 +463,8 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   now the measured one wins): 92 of the 211 labels in Spanish (74 before). 61 stay untouched, and others keep
   their names with only common words/notes translated: players' notes ("Dungeon entrance down"), places the game has no name for ("The
   Corpse Tree (punto de ruta)") and names with no row (Siren, Shark, The Moving Bramble, Narag, Areagne, Renly). Words the
-  table shares with the radar ("Boss", "Quest", "Exit"…) are phrases of `Announcements.Radar.cs`: their other-language
-  translations wait for the final translation pass.
+  table shares with the radar ("Boss", "Quest", "Exit"…) are phrases of `Announcements.Radar.cs`, translated into the 8
+  other languages with the rest (`phrases.py check`: 865 phrases, 0 missing, 2026-11-08).
 - Yarkey's chat showed his own lines ("¡Abajo!", "Matando el tiempo.", "¡Retrocede o muere!") while X or RT were held
   (2026-11-02), absent from Client.txt; probably the Mercenary's voice lines shown in chat (not verified: whether
   other players see them).
@@ -495,7 +496,6 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
 - Passive tree: allocation checked on two characters (Duelist pending/applied, Witch applied, 2026-10-24); a class
   start is said without a direction (the portrait has no node element): "inicio de tu clase, Monje".
 - Pre-game UI root unknown to every public tool; our scan heuristic (self-pointer + no parent + children) is unvalidated.
-- Native `prism.dll` loads from the plugin folder through the host's `PluginLoadContext` (NVDA heard, 2026-11-08).
 - Panel notes (`UiSemantics.PanelNotes`) are a heuristic: a titled panel's texts outside navigable elements and outside
   parts holding more than three; checked on Skills ("0 de espíritu", gem capacity) and Character ("Monje.
   Resistencias"), the inventory and stash give none. A panel whose loose lines change while open says them only on
