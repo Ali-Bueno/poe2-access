@@ -26,6 +26,7 @@ namespace Poe2Accessibility.Tests
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(KindsComeFromTheFileFlags), KindsComeFromTheFileFlags),
+            (nameof(TheBasicAttackOfABowOrCrossbowMonsterIsAShot), TheBasicAttackOfABowOrCrossbowMonsterIsAShot),
             (nameof(ACalmActionOfTheDataIsNoThreatWhateverItsName), ACalmActionOfTheDataIsNoThreatWhateverItsName),
             (nameof(AnAttackTheDataIsMuteAboutHasNoKind), AnAttackTheDataIsMuteAboutHasNoKind),
             (nameof(AnAnimationWithoutANameStaysQuiet), AnAnimationWithoutANameStaysQuiet),
@@ -172,6 +173,37 @@ namespace Poe2Accessibility.Tests
             Equal(false, notes.Of("screens", "metadata/ui/ingamestate/brandnew.ui")?.Covered, "a screen the catalog lacks");
             Equal(true, notes.Of("animation", "SpellBuff")?.Text.StartsWith("the name reads as None", StringComparison.Ordinal), "an animation's name reading");
             Equal(null, notes.Of("chests", "Metadata/Chests/New"), "a table nothing classifies");
+        }
+
+        /// <summary>
+        ///     The shipped hit times: a Decrepit Mercenary's basic attack is its crossbow's bolt (it hit from 400-585 units in Ogham
+        ///     Farmlands, 2026-11-08, while the melee reach gate held 14 of 24 shots back); an urchin's stays a blow.
+        /// </summary>
+        private static void TheBasicAttackOfABowOrCrossbowMonsterIsAShot()
+        {
+            if (ShippedHitTimes() is not { } file)
+            {
+                return; // away from the repository
+            }
+
+            var timings = DodgeTimings.Load(file, string.Empty, string.Empty);
+            Equal(DodgeThreat.Ranged, timings.Threat("Metadata/Monsters/Mercenary/Infected/InfectedMercenaryCrossbow|1"), "the crossbow mercenary's basic attack");
+            Equal(DodgeThreat.Ranged, timings.Threat("Metadata/Monsters/Skeletons/Basic/GraveSkeletonBow|1"), "an Act 1 skeleton archer's basic attack");
+            Equal(DodgeThreat.Melee, timings.Threat("Metadata/Monsters/Urchins/MeleeUrchin1|1"), "an urchin's basic attack");
+        }
+
+        private static string? ShippedHitTimes()
+        {
+            for (var folder = new System.IO.DirectoryInfo(AppContext.BaseDirectory); folder != null; folder = folder.Parent)
+            {
+                var file = System.IO.Path.Combine(folder.FullName, "Poe2Accessibility", "catalog", "hit-times.txt");
+                if (System.IO.File.Exists(file))
+                {
+                    return file;
+                }
+            }
+
+            return null;
         }
 
         private static void Equal<T>(T expected, T actual, string what)

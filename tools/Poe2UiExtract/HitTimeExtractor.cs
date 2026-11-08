@@ -24,6 +24,13 @@ internal static class HitTimeExtractor
     private const int AoFilesOffset = 0x38;
     private const int GrantedEffectsOffset = 0xD0;
 
+    // MonsterVarieties: the main hand's ItemClasses row (the schema's MainHand_ItemClass; measured 2026-11-08: every archer and
+    // crossbow monster of the campaign reads "Bow", MeleeUrchin1 none). Its basic attack shoots with that weapon.
+    private const int MainHandClassOffset = 0x154;
+
+    /// <summary>ItemClasses ids of the weapons whose basic attack is a shot (crossbow monsters hold a "Bow" in 0.5.5f).</summary>
+    private static readonly HashSet<string> ShootingClasses = new(StringComparer.Ordinal) { "Bow", "Crossbow" };
+
     // GrantedEffects: the skill's Animation row (inferred from 8 rows).
     private const int SkillAnimationOffset = 0x71;
 
@@ -51,9 +58,10 @@ internal static class HitTimeExtractor
         var monsters = DatTable.Open(index, "monstervarieties");
         var skills = DatTable.Open(index, "grantedeffects");
         var animations = DatTable.Open(index, "animation");
-        if (monsters == null || skills == null || animations == null)
+        var itemClasses = DatTable.Open(index, "itemclasses");
+        if (monsters == null || skills == null || animations == null || itemClasses == null)
         {
-            Say.Out.WriteLine("MonsterVarieties, GrantedEffects or Animation not found.");
+            Say.Out.WriteLine("MonsterVarieties, GrantedEffects, Animation or ItemClasses not found.");
             return 1;
         }
 
@@ -62,7 +70,8 @@ internal static class HitTimeExtractor
         var aoFiles = DatContentColumns.Nearest(monsters, AoFilesOffset, offset => monsters.IsStringListColumn(offset, text => text.EndsWith(AoExtension, StringComparison.OrdinalIgnoreCase)));
         var grantedEffects = DatContentColumns.Nearest(monsters, GrantedEffectsOffset, offset => monsters.IsKeyListColumn(offset, skills.RowCount));
         var skillAnimation = DatContentColumns.Nearest(skills, SkillAnimationOffset, offset => skills.IsKeyColumn(offset, animations.RowCount));
-        if (actFiles == null || aoFiles == null || grantedEffects == null || skillAnimation == null)
+        var mainHand = DatContentColumns.Nearest(monsters, MainHandClassOffset, offset => monsters.IsKeyColumn(offset, itemClasses.RowCount));
+        if (actFiles == null || aoFiles == null || grantedEffects == null || skillAnimation == null || mainHand == null)
         {
             Say.Out.WriteLine("A MonsterVarieties or GrantedEffects column was not found again.");
             return 1;
@@ -133,12 +142,14 @@ internal static class HitTimeExtractor
             var flagsOf = Carried(skillsOf, actions, skill => skillFlags.GetValueOrDefault(skill) ?? Enumerable.Empty<string>());
             var kindsOf = Carried(skillsOf, actions, skill => new[] { SkillThreats.Name(threats.Of(skill).Verdict) });
             var boss = DodgeCoverage.IsBoss(id);
+            var shoots = monsters.Key(row, mainHand.Value) is var weapon and >= 0 && weapon < itemClasses.RowCount &&
+                         ShootingClasses.Contains(itemClasses.String((int)weapon, 0));
             foreach (var action in played)
             {
                 var requested = skillsOf.ContainsKey(action);
                 var name = animations.String(action, 0);
                 var words = DodgeThreats.Of(action, value => value >= 0 && value < animations.RowCount ? animations.String(value, 0) : null);
-                var verdict = KindOf(action, kindsOf, requested && skillsOf[action].Count == 0 && name == MeleeAction);
+                var verdict = KindOf(action, kindsOf, requested && skillsOf[action].Count == 0 && name == MeleeAction, shoots);
                 var flags = Flags(verdict, flagsOf.GetValueOrDefault(action));
                 if (requested && Disagrees(verdict, words))
                 {
@@ -227,9 +238,13 @@ internal static class HitTimeExtractor
         return carried;
     }
 
-    /// <summary>What an action's skills make of it; the basic Melee action, played by no granted skill, is the weapon blow.</summary>
-    private static SkillThreats.Verdict KindOf(int action, Dictionary<int, SortedSet<string>> kindsOf, bool basicMelee) =>
-        basicMelee ? SkillThreats.Verdict.Melee : SkillThreats.Combine((kindsOf.GetValueOrDefault(action) ?? Enumerable.Empty<string>()).Select(SkillThreats.Parse));
+    /// <summary>
+    ///     What an action's skills make of it; the basic Melee action, played by no granted skill, is the weapon's own attack: a
+    ///     blow, or a shot for a bow or crossbow (a Decrepit Mercenary hit from 400-585 units, Ogham Farmlands 2026-11-08).
+    /// </summary>
+    private static SkillThreats.Verdict KindOf(int action, Dictionary<int, SortedSet<string>> kindsOf, bool basicMelee, bool shoots) =>
+        basicMelee ? (shoots ? SkillThreats.Verdict.Ranged : SkillThreats.Verdict.Melee)
+            : SkillThreats.Combine((kindsOf.GetValueOrDefault(action) ?? Enumerable.Empty<string>()).Select(SkillThreats.Parse));
 
     private static string Flags(SkillThreats.Verdict verdict, SortedSet<string>? flags)
     {

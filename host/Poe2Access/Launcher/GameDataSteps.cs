@@ -22,7 +22,7 @@ internal static class GameDataSteps
         new Step("area names", 1, "area-names.json", "areas"),
         new Step("dat columns", 5, "dat-columns.json", "dat-columns"),
         new Step("experience", 1, "experience.json", "experience"),
-        new Step("hit times", 3, "hit-times.txt", "hit-times", true),
+        new Step("hit times", 4, "hit-times.txt", "hit-times", true),
         new Step("hazards", 3, "hazards.txt", "hazards", true),
         new Step("attack reach", 1, "attack-reach.txt", "attack-reach", true),
         new Step("action types", 1, "action-types.txt", "action-types", true),
