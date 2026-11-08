@@ -20,6 +20,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\Poe2Accessibility\Localization.cs" Link="Launcher\Localization.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\GameReader\GameReader.csproj" />
     <ProjectReference Include="..\..\tools\Poe2UiExtract\Poe2UiExtract.csproj" />
   </ItemGroup>

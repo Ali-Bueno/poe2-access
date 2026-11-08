@@ -15,9 +15,28 @@ internal static class ProjectileSpeeds
 
     private static (Index Index, ProjectileColumns.Tables Tables, ProjectileColumns Columns)? shared;
     private static Index? failedFor;
+    private static readonly object Gate = new();
+
+    /// <summary>Lets go of the index the tables were found in, once a run is over.</summary>
+    internal static void Release()
+    {
+        lock (Gate)
+        {
+            shared = null;
+            failedFor = null;
+        }
+    }
 
     /// <summary>The skill tables of this index and their columns, found once by content and shared by the extractors that read them; null (said once) when a table or column is missing.</summary>
     internal static (ProjectileColumns.Tables Tables, ProjectileColumns Columns)? Columns(Index index)
+    {
+        lock (Gate)
+        {
+            return FindColumns(index);
+        }
+    }
+
+    private static (ProjectileColumns.Tables Tables, ProjectileColumns Columns)? FindColumns(Index index)
     {
         if (shared is { } cached && cached.Index == index)
         {

@@ -9,6 +9,9 @@ internal static class Batch
 {
     private const string PartSuffix = ".part";
 
+    /// <summary>How many commands run at once on the shared index: each holds tables and file reads in memory.</summary>
+    internal static int MaxParallel { get; set; } = 3;
+
     private static readonly Dictionary<string, Func<string, Index, string, int>> Commands = new(StringComparer.OrdinalIgnoreCase)
     {
         ["item-sounds"] = ItemSoundExtractor.Run,
@@ -46,7 +49,19 @@ internal static class Batch
         }
 
         using var index = SharedBundles.OpenParsed(gameDir);
-        var runs = pairs.Chunk(2).Select(pair => Task.Run(() => RunOne(gameDir, index, pair[0], pair[1]))).ToArray();
+        using var slots = new SemaphoreSlim(Math.Max(1, MaxParallel));
+        var runs = pairs.Chunk(2).Select(pair => Task.Run(() =>
+        {
+            slots.Wait();
+            try
+            {
+                return RunOne(gameDir, index, pair[0], pair[1]);
+            }
+            finally
+            {
+                slots.Release();
+            }
+        })).ToArray();
         Task.WaitAll(runs);
         return runs.All(run => run.Result) ? 0 : 1;
     }

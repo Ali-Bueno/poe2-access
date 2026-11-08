@@ -129,6 +129,19 @@ namespace Poe2Accessibility
             }
         }
 
+        /// <summary>The language written in the game's config file, lower case; null when the file or the entry is missing.</summary>
+        public static string? GameLanguage()
+        {
+            try
+            {
+                return ReadGameLanguage(ConfigPath());
+            }
+            catch (IOException)
+            {
+                return null;
+            }
+        }
+
         private static string? ReadGameLanguage(string path) => File.Exists(path) ? ParseGameLanguage(File.ReadAllText(path)) : null;
 
         private static string ConfigPath()

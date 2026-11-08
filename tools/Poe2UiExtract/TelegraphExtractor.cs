@@ -21,41 +21,16 @@ internal static class TelegraphExtractor
     public const string EffectsFile = "telegraph-effects.txt";
     public const string MonstersFile = "telegraph-monsters.txt";
 
-    // GrantedEffects (0x129-byte rows, dat-schema poe2 2026-11-08): ActiveSkill key, SkillID (i32, unaligned).
-    private const int SkillRowSize = 0x129;
+    // GrantedEffects: ActiveSkill key and SkillID (i32, unaligned), measured offsets where the searches start; the numeric columns of
+    // GeometryAttack and GeometryTrigger are in TelegraphColumns. The other tables' lists start at +0x4 (Id first).
     private const int SkillActiveSkillOffset = 0x4F;
     private const int SkillIdOffset = 0x9B;
-
-    // GeometryAttack (0x152): Id, Animation list, then unnamed columns read by content (geom3.py, 2026-11-08):
-    // shape 1-5, length or radius, width (rectangles and donuts), cone angle in degrees, delay in ms, range.
-    private const int GeometryRowSize = 0x152;
     private const int GeometryAnimationOffset = 0x4;
-    private const int GeometryShapeOffset = 0x28;
-    private const int GeometryLengthOffset = 0x30;
-    private const int GeometryWidthOffset = 0x34;
-    private const int GeometryAngleOffset = 0x71;
-    private const int GeometryDelayOffset = 0x7A;
-    private const int GeometryRangeOffset = 0x24;
-    private const int MaxGeometryShape = 5;
-
-    // GeometryTrigger (0xEA): Id, GrantedEffect key, Animation, count, delay ms, spread, radius, angle, GroundMarker list.
-    private const int TriggerRowSize = 0xEA;
     private const int TriggerAnimationOffset = 0x14;
-    private const int TriggerCountOffset = 0x24;
-    private const int TriggerDelayOffset = 0x28;
-    private const int TriggerRangeOffset = 0x34;
-    private const int TriggerRadiusOffset = 0x38;
-    private const int TriggerAngleOffset = 0x3C;
     private const int TriggerMarkerOffset = 0x73;
-
-    // SpawnObject (0x56): Id, MiscObjects list. EffectDrivenSkill (0x77): Id, Animation list. MonsterMortar (0x88): Id, ImpactAnimation.
-    private const int SpawnRowSize = 0x56;
     private const int SpawnObjectsOffset = 0x4;
-    private const int EffectRowSize = 0x77;
     private const int EffectAnimationOffset = 0x4;
-    private const int MortarRowSize = 0x88;
-    private const int MortarImpactOffset = 0x24;
-
+    private const int MaxGeometryShape = TelegraphColumns.MaxShape;
     // MiscAnimated / MiscObjects: Id, file path. MonsterVarieties: Id, GrantedEffects list (found by content, as hit-times does).
     private const int FileOffset = 0x8;
     private const int MonsterSkillsOffset = 0xD0;
@@ -111,9 +86,9 @@ internal static class TelegraphExtractor
     /// <summary>Reads the tables; null, and said, when one moved. Only skills some MonsterVarieties row grants are kept.</summary>
     internal static Lines? Build(Index index)
     {
-        if (Sized(index, "grantedeffects", SkillRowSize) is not { } skills || Sized(index, "geometryattack", GeometryRowSize) is not { } geometry ||
-            Sized(index, "geometrytrigger", TriggerRowSize) is not { } triggers || Sized(index, "spawnobject", SpawnRowSize) is not { } spawns ||
-            Sized(index, "effectdrivenskill", EffectRowSize) is not { } effects || Sized(index, "monstermortar", MortarRowSize) is not { } mortars ||
+        if (Sized(index, "grantedeffects") is not { } skills || Sized(index, "geometryattack") is not { } geometry ||
+            Sized(index, "geometrytrigger") is not { } triggers || Sized(index, "spawnobject") is not { } spawns ||
+            Sized(index, "effectdrivenskill") is not { } effects || Sized(index, "monstermortar") is not { } mortars ||
             Sized(index, "activeskills") is not { } activeSkills || Sized(index, "miscanimated") is not { } animated ||
             Sized(index, "miscobjects") is not { } objects || Sized(index, "monstervarieties") is not { } monsters)
         {
@@ -152,17 +127,24 @@ internal static class TelegraphExtractor
 
         var geometryIds = Ids(geometry);
         var skillId = FindSkillIdColumn(skills, kindOf, geometryIds);
-        if (skillId == null || !geometry.IsFlagLike(GeometryShapeOffset, MaxGeometryShape))
+        if (skillId == null)
         {
-            Say.Out.WriteLine("GrantedEffects' SkillID or GeometryAttack's shape column was not found again (docs/research/attack-telegraphs.md).");
+            Say.Out.WriteLine("GrantedEffects' SkillID column was not found again (docs/research/attack-telegraphs.md).");
+            return null;
+        }
+
+        var triggerIds = Ids(triggers);
+        var columns = TelegraphColumns.Find(geometry, triggers, mortars, animated, TelegraphColumns.RowsOf(skills, skillId.Value, geometryIds, triggerIds));
+        if (columns == null)
+        {
             return null;
         }
 
         var tables = new Dictionary<string, Dictionary<int, int>>
         {
-            ["geometry"] = geometryIds, ["trigger"] = Ids(triggers), ["spawn"] = Ids(spawns), ["effect"] = Ids(effects), ["mortar"] = Ids(mortars),
+            ["geometry"] = geometryIds, ["trigger"] = triggerIds, ["spawn"] = Ids(spawns), ["effect"] = Ids(effects), ["mortar"] = Ids(mortars),
         };
-        var files = index.Files.Values.Where(f => f.Path != null).GroupBy(f => f.Path!.ToLowerInvariant()).ToDictionary(g => g.Key, g => g.First());
+        var files = BundleFiles.ByLowerPath(index);
         var skillLines = new SortedSet<string>(StringComparer.Ordinal);
         var effectRoles = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
         var tally = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -186,14 +168,14 @@ internal static class TelegraphExtractor
             switch (kind)
             {
                 case "geometry":
-                    area = TelegraphShapes.PairsOf(("shape", 0), ("length", geometry.Int32(target, GeometryLengthOffset)), ("width", geometry.Int32(target, GeometryWidthOffset)),
-                        ("angle", geometry.Int32(target, GeometryAngleOffset)), ("delay", geometry.Int32(target, GeometryDelayOffset)), ("range", geometry.Int32(target, GeometryRangeOffset)));
-                    area = $"shape={TelegraphShapes.GeometryShape(geometry.Int32(target, GeometryShapeOffset)) ?? "unknown"}" + (area.Length > 0 ? TelegraphShapes.PairSeparator + area : string.Empty);
+                    area = TelegraphShapes.PairsOf(("shape", 0), ("length", geometry.Int32(target, columns.GeometryLength)), ("width", geometry.Int32(target, columns.GeometryWidth)),
+                        ("angle", geometry.Int32(target, columns.GeometryAngle)), ("delay", geometry.Int32(target, columns.GeometryDelay)), ("range", geometry.Int32(target, columns.GeometryRange)));
+                    area = $"shape={TelegraphShapes.GeometryShape(geometry.Int32(target, columns.GeometryShape)) ?? "unknown"}" + (area.Length > 0 ? TelegraphShapes.PairSeparator + area : string.Empty);
                     visuals.AddRange(Paths(geometry, target, geometryAnimation.Value, animated, aoFile.Value));
                     break;
                 case "trigger":
-                    area = TelegraphShapes.PairsOf(("count", triggers.Int32(target, TriggerCountOffset)), ("delay", triggers.Int32(target, TriggerDelayOffset)), ("range", triggers.Int32(target, TriggerRangeOffset)),
-                        ("radius", triggers.Int32(target, TriggerRadiusOffset)), ("angle", triggers.Int32(target, TriggerAngleOffset)));
+                    area = TelegraphShapes.PairsOf(("count", triggers.Int32(target, columns.TriggerCountColumn)), ("delay", triggers.Int32(target, columns.TriggerDelay)), ("range", triggers.Int32(target, columns.TriggerRangeColumn)),
+                        ("radius", triggers.Int32(target, columns.TriggerRadiusColumn)), ("angle", triggers.Int32(target, columns.TriggerAngleColumn)));
                     visuals.AddRange(Paths(triggers, target, triggerMarkers.Value, animated, aoFile.Value).Select(path => path + ":marker"));
                     if (Path(triggers.Key(target, TriggerAnimationOffset), animated, aoFile.Value) is { } animation)
                     {
@@ -211,7 +193,7 @@ internal static class TelegraphExtractor
                     break;
                 default:
                     area = string.Empty;
-                    if (Path(mortars.Key(target, MortarImpactOffset), animated, aoFile.Value) is { } impact)
+                    if (Path(mortars.Key(target, columns.MortarImpact), animated, aoFile.Value) is { } impact)
                     {
                         visuals.Add(impact + ":impact");
                     }
@@ -306,34 +288,16 @@ internal static class TelegraphExtractor
 
     private static void Count(Dictionary<string, int> tally, string what) => tally[what] = tally.GetValueOrDefault(what) + 1;
 
-    /// <summary>A table whose rows still have the size its offsets were read at (any size when none is given); null, and said, otherwise.</summary>
-    private static DatTable? Sized(Index index, string name, int rowSize = 0)
+    /// <summary>A table of the index; null, and said, when it is missing.</summary>
+    private static DatTable? Sized(Index index, string name)
     {
         var table = DatTable.Open(index, name);
-        if (table != null && (rowSize == 0 || table.RowSize == rowSize))
+        if (table != null)
         {
             return table;
         }
 
-        Say.Out.WriteLine($"{name} {(table == null ? "not found" : $"rows are 0x{table.RowSize:X} bytes, not 0x{rowSize:X}")}: telegraphs left out; find the columns again (dat-schema poe2).");
+        Say.Out.WriteLine($"{name} not found: telegraphs left out.");
         return null;
-    }
-}
-
-internal static class TelegraphTableChecks
-{
-    /// <summary>An i32 column holding only values 1..max (GeometryAttack's shape).</summary>
-    public static bool IsFlagLike(this DatTable table, int offset, int max)
-    {
-        for (var row = 0; row < table.RowCount; row++)
-        {
-            var value = table.Int32(row, offset);
-            if (value < 1 || value > max)
-            {
-                return false;
-            }
-        }
-
-        return table.RowCount > 0;
     }
 }

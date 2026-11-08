@@ -40,7 +40,7 @@ internal static class AttackReachExtractor
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
     public static int Run(Index index, string outFile)
     {
-        var files = index.Files.Values.Where(f => f.Path != null).GroupBy(f => f.Path!.ToLowerInvariant()).ToDictionary(g => g.Key, g => g.First());
+        var files = BundleFiles.ByLowerPath(index);
         var own = new Dictionary<string, (string? Parent, ClipValues Values)>(StringComparer.Ordinal);
         (string? Parent, ClipValues Values) Own(string path)
         {

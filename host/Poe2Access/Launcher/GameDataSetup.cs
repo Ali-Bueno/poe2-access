@@ -11,6 +11,7 @@ namespace Poe2Access;
 internal static class GameDataSetup
 {
     private const int StepTimeoutMilliseconds = 180_000;
+    private const int PollMilliseconds = 1_000; // how often the wait lets the narrator speak
     private const string DataFolder = "GameData"; // beside the host: the catalogs made here, kept over the plugin's shipped copies
     private const string StampName = "game-version.txt";
     private const string ItemSoundsStep = "item sounds";
@@ -19,6 +20,7 @@ internal static class GameDataSetup
     private const string NewSuffix = ".new"; // an output before it replaces the previous one
     private const string PartSuffix = ".part"; // the extractor's batch output still being written (Batch.cs)
     private const string FailedStepsFile = "game-data-failed.txt";
+    private static GameDataNarrator? narrator;
     private const string BatchLinePrefix = "batch "; // the extractor's batch result lines, "batch places done in 15.2 s"
 
     /// <param name="Version">Raise it when the step's output changes: that step alone reruns, once, on every machine.</param>
@@ -117,6 +119,8 @@ internal static class GameDataSetup
         Log.Write($"Game data is {(stamp.Steps.Count == 0 ? "missing" : "out of date")}: regenerating {string.Join(", ", stale)} from {gameDirectory}");
         var watch = Stopwatch.StartNew();
         var failed = new List<string>();
+        using var spoken = GameDataNarrator.Start(plugin, stale.Count);
+        narrator = spoken;
         void Finish(Step step, string? error)
         {
             if (error is not null)
@@ -127,6 +131,11 @@ internal static class GameDataSetup
             else if (step.Output is { } output)
             {
                 CopyIntoPlugin(catalog, pluginCatalog, output);
+            }
+
+            if (step.Command is null)
+            {
+                spoken.StepDone(); // the catalogs are counted as the batch reports them
             }
 
             if (error is null || step.Optional)
@@ -164,6 +173,7 @@ internal static class GameDataSetup
             File.Delete(failedFile);
         }
 
+        narrator = null;
         Log.Write($"Game data: regenerated in {watch.Elapsed.TotalSeconds:0.0} s");
     }
 
@@ -257,7 +267,14 @@ internal static class GameDataSetup
         try
         {
             return Run(["batch", gameDirectory, .. list.SelectMany(job => new[] { job.Command, job.Output })], StepTimeoutMilliseconds * list.Count,
-                line => { if (line.StartsWith(BatchLinePrefix, StringComparison.Ordinal)) Log.Write($"Game data: {line[BatchLinePrefix.Length..]}"); });
+                line =>
+                {
+                    if (line.StartsWith(BatchLinePrefix, StringComparison.Ordinal))
+                    {
+                        Log.Write($"Game data: {line[BatchLinePrefix.Length..]}");
+                        narrator?.StepDone();
+                    }
+                });
         }
         finally
         {
@@ -334,10 +351,15 @@ internal static class GameDataSetup
         var work = Task.Factory.StartNew(() => Extractor.Run(arguments), TaskCreationOptions.LongRunning);
         try
         {
-            if (!work.Wait(timeoutMilliseconds))
+            var clock = Stopwatch.StartNew();
+            while (!work.Wait(PollMilliseconds))
             {
-                Say.Redirect(TextWriter.Null); // the abandoned worker goes on without filling the log
-                return "timed out";
+                narrator?.Poll();
+                if (clock.ElapsedMilliseconds > timeoutMilliseconds)
+                {
+                    Say.Redirect(TextWriter.Null); // the abandoned worker goes on without filling the log
+                    return "timed out";
+                }
             }
 
             return work.Result == 0 ? null : $"exit code {work.Result}";
@@ -363,6 +385,29 @@ internal static class GameDataSetup
         private readonly System.Text.StringBuilder line = new();
 
         public override System.Text.Encoding Encoding => System.Text.Encoding.UTF8;
+
+        public override void WriteLine(string? value) => this.Emit(value ?? string.Empty);
+
+        public override void Write(string? value)
+        {
+            lock (this.line)
+            {
+                foreach (var character in value ?? string.Empty)
+                {
+                    this.Write(character);
+                }
+            }
+        }
+
+        /// <summary>One whole line under the lock, so lines from commands running side by side do not interleave.</summary>
+        private void Emit(string text)
+        {
+            lock (this.line)
+            {
+                onLine?.Invoke(this.line.Append(text).ToString().TrimEnd('\r'));
+                this.line.Clear();
+            }
+        }
 
         public override void Write(char value)
         {

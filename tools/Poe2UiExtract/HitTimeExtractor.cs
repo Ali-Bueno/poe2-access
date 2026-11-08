@@ -47,7 +47,7 @@ internal static class HitTimeExtractor
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
     public static int Run(Index index, string outFile, string? auditFile = null)
     {
-        var files = index.Files.Values.Where(f => f.Path != null).GroupBy(f => f.Path!.ToLowerInvariant()).ToDictionary(g => g.Key, g => g.First());
+        var files = BundleFiles.ByLowerPath(index);
         var monsters = DatTable.Open(index, "monstervarieties");
         var skills = DatTable.Open(index, "grantedeffects");
         var animations = DatTable.Open(index, "animation");

@@ -10,6 +10,11 @@ public static class Extractor
     public static int Run(string[] args)
     {
         OodleLibrary.Register();
+        if (int.TryParse(Environment.GetEnvironmentVariable("POE2_EXTRACT_PARALLEL"), out var parallel))
+        {
+            Batch.MaxParallel = parallel; // measuring only
+        }
+
         try
         {
             return Dispatch(args);
@@ -17,6 +22,7 @@ public static class Extractor
         finally
         {
             GameContent.CloseAll();
+            ProjectileSpeeds.Release();
         }
     }
 
