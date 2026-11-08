@@ -389,7 +389,7 @@ namespace Poe2Accessibility.Services
             /// <summary>The clip's reading on the last frame, to notice a new swing.</summary>
             public AnimationReading? LastClock { get; init; }
 
-            /// <summary>The clip went on to another or started over since the attack began.</summary>
+            /// <summary>The swing now plays another clip than the one the attack began with (the files' time is for that one).</summary>
             public bool ClipMoved { get; init; }
 
             /// <summary>The clip time (s) of the contact last warned of, so a clip's next contact warns again.</summary>

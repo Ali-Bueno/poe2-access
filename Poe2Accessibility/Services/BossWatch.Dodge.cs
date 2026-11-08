@@ -137,7 +137,7 @@ namespace Poe2Accessibility.Services
             var animated = entity.TryGetComponent<Animated>(out var animatedComponent) ? animatedComponent.Address : IntPtr.Zero;
             // About a dozen reads a frame per attack: spent where a cue can follow, or while the live checks still judge.
             var snapshot = attack.Warns || parrying || this.reader?.Judging == true ? this.reader?.Read(id, actor.Address, animated, monster, worldPerGrid, this.EntityAt, now) : null;
-            attack = this.FollowClock(attack, snapshot?.Clock, snapshot?.Events);
+            attack = this.FollowClock(attack, snapshot?.Clock, snapshot?.Events, snapshot is { ActionType: not 0 });
             var (blowIn, timing, contact) = this.BlowIn(attack, snapshot, now);
             var facts = this.Facts(attack, snapshot, rarity, render, player, here, monster, gap, blowIn, timing, id);
             var decision = DodgeGate.Decide(facts, LeadMs);
@@ -191,7 +191,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The clip it plays: a new swing (the clip started over or changed) re-arms the warning.</summary>
-        private Attack FollowClock(Attack attack, AnimationReading? clock, IReadOnlyList<ClipEvent>? events)
+        private Attack FollowClock(Attack attack, AnimationReading? clock, IReadOnlyList<ClipEvent>? events, bool acting)
         {
             if (clock is not { } now)
             {
@@ -205,7 +205,7 @@ namespace Poe2Accessibility.Services
 
             if (attack.LastClock is { } before && AttackClock.NewSwing(before, now))
             {
-                attack = attack with { ClipMoved = true, Warned = false, WarnedContact = null };
+                attack = attack with { ClipMoved = AttackClock.LeftStartClip(attack.StartClip, now, acting), Warned = false, WarnedContact = null };
             }
 
             // A clip with several contacts warns again for each one still ahead.
@@ -225,12 +225,12 @@ namespace Poe2Accessibility.Services
             float? contact = null;
             if (snapshot?.Clock is { } clock)
             {
-                if (snapshot.Events.Any(clipEvent => clipEvent.Name == AttackClock.Contact))
+                if (snapshot.Events.Any(AttackClock.IsBlow))
                 {
                     contact = NextContact(clock, snapshot.Events);
                     (release, timing) = (contact is { } at ? AttackClock.MsUntil(clock, at) : 0, BlowTiming.Live);
                 }
-                else if (!attack.ClipMoved && attack.StartClip == clock.Clip && attack.Learnt is { } hit)
+                else if (!attack.ClipMoved && attack.Learnt is { } hit)
                 {
                     (release, timing) = (AttackClock.MsToNominal(clock, hit) ?? 0, BlowTiming.Nominal);
                 }
@@ -302,7 +302,7 @@ namespace Poe2Accessibility.Services
             float? next = null;
             foreach (var clipEvent in events)
             {
-                if (clipEvent.Name == AttackClock.Contact && clipEvent.Time >= clock.Position && (next == null || clipEvent.Time < next))
+                if (AttackClock.IsBlow(clipEvent) && clipEvent.Time >= clock.Position && (next == null || clipEvent.Time < next))
                 {
                     next = clipEvent.Time;
                 }

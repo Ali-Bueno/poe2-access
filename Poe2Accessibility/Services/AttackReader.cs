@@ -65,7 +65,7 @@ namespace Poe2Accessibility.Services
         public AttackFieldCheck Clock { get; } = new();
 
         /// <summary>Each event's id is the hash of its name.</summary>
-        public AttackFieldCheck Events { get; } = new();
+        public AttackFieldCheck Events { get; } = new(AttackFieldCheck.EventSamples);
 
         /// <summary>The action's type is one the files list.</summary>
         public AttackFieldCheck Actions { get; } = new();
@@ -277,7 +277,7 @@ namespace Poe2Accessibility.Services
                     var name = this.Narrow(read.Name);
                     var holds = AttackFieldCheck.EventLayoutHolds(name, read.Id);
                     this.Events.Observe(holds);
-                    if (holds && float.IsFinite(read.Time))
+                    if (holds == true && float.IsFinite(read.Time))
                     {
                         events.Add(new ClipEvent(name!, read.Time));
                     }

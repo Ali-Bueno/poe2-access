@@ -60,6 +60,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Comparable readings a verdict needs.</summary>
         public const int MinSamples = 20;
 
+        /// <summary>
+        ///     Clip events a verdict needs: an id equal to the hash of the name read beside it is one chance in 32768 by accident, and
+        ///     each clip is read once, so twenty took most of a fight's clips to come (Mud Burrow, 2026-11-08: unjudged after ten minutes).
+        /// </summary>
+        public const int EventSamples = 6;
+
         /// <summary>The share of comparable readings that must keep the rule for the field to be intact; at or below the rest it is lost.</summary>
         private const double KeptShare = 0.8;
 
@@ -74,8 +80,11 @@ namespace Poe2Accessibility.Services
         /// <summary>A position must advance at least this much (seconds) to count, else a paused clip proves nothing.</summary>
         private const float MinAdvance = 0.005f;
 
+        private readonly int minSamples;
         private int kept;
         private int broken;
+
+        public AttackFieldCheck(int minSamples = MinSamples) => this.minSamples = minSamples;
 
         public FieldTrust Trust { get; private set; }
 
@@ -105,8 +114,13 @@ namespace Poe2Accessibility.Services
             return Math.Abs(measured - rate) <= RateSlack * rate;
         }
 
-        /// <summary>An event read where the layout says: its id is the game's hash of its name.</summary>
-        public static bool EventLayoutHolds(string? name, ushort id) => !string.IsNullOrEmpty(name) && AttackClock.EventId(name) == id;
+        /// <summary>
+        ///     An event read where the layout says: its id is the game's hash of its name. Null for a chain's end marker (no name,
+        ///     id 0, at the clip's end), which says nothing: every named chain ends with one, so counting it as broken kept the
+        ///     check unjudged at about half and the live clock unused (Clearfell, 2026-11-08).
+        /// </summary>
+        public static bool? EventLayoutHolds(string? name, ushort id) =>
+            string.IsNullOrEmpty(name) && id == 0 ? null : !string.IsNullOrEmpty(name) && AttackClock.EventId(name) == id;
 
         /// <summary>An action read where the layout says: its type id is one of ActionTypes.dat's.</summary>
         public static bool ActionTypeKnown(ushort id, IReadOnlySet<ushort> actionTypes) => actionTypes.Contains(id);
@@ -133,7 +147,7 @@ namespace Poe2Accessibility.Services
             }
 
             var total = this.kept + this.broken;
-            if (total >= MinSamples)
+            if (total >= this.minSamples)
             {
                 var share = this.kept / (double)total;
                 this.Trust = share >= KeptShare ? FieldTrust.Intact : share <= LostShare ? FieldTrust.Lost : FieldTrust.Unjudged;

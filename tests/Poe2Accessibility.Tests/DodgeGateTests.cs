@@ -105,6 +105,13 @@ namespace Poe2Accessibility.Tests
             Equal(true, AttackClock.NewSwing(Clip(1.4f), Clip(0.1f)), "the same clip from its start");
             Equal(true, AttackClock.NewSwing(Clip(0.4f), Clip(0.5f, clip: 8)), "another clip");
             Equal(false, AttackClock.NewSwing(Clip(0.4f), Clip(0.5f)), "the swing goes on");
+            Equal(false, AttackClock.LeftStartClip(7, Clip(0.03f), acting: false), "the clip it started with, started over or come back to: the files' time still holds");
+            Equal(false, AttackClock.LeftStartClip(7, Clip(0.03f, clip: 8), acting: true), "a skeleton's alternate swing while its action goes on");
+            Equal(true, AttackClock.LeftStartClip(7, Clip(0.03f, clip: 8), acting: false), "another clip with no action: a walk under the last animation id");
+            Equal(80, AttackClock.MsToNominal(Clip(0.03f), 110), "a restarted hag swing is timed from its new start");
+            Equal(false, AttackClock.IsBlow(new ClipEvent(AttackClock.Contact, 0f)), "the hag's spellcast contact at 0.0 marks the cast");
+            Equal(true, AttackClock.IsBlow(new ClipEvent(AttackClock.Contact, 0.697f)), "the hag's swing lands at its contact");
+            Equal(false, AttackClock.IsBlow(new ClipEvent("slamtrigger", 0.8f)), "only a contact times a blow");
         }
 
         private static void AnAttackOnThePlayerIsAimedAtThePlayer() =>
@@ -284,6 +291,26 @@ namespace Poe2Accessibility.Tests
             Equal(true, AttackFieldCheck.EventLayoutHolds(AttackClock.Contact, AttackClock.EventId(AttackClock.Contact)), "a contact read where it should be");
             Equal(false, AttackFieldCheck.EventLayoutHolds(AttackClock.Contact, 0x1234), "a name beside another event's id");
             Equal(false, AttackFieldCheck.EventLayoutHolds(null, 0x9B8D), "no name");
+            Equal(null, AttackFieldCheck.EventLayoutHolds(null, 0), "a chain's end marker says nothing");
+            Equal(null, AttackFieldCheck.EventLayoutHolds(string.Empty, 0), "an empty end marker says nothing");
+            var events = new AttackFieldCheck();
+            for (var clip = 0; clip < AttackFieldCheck.MinSamples; clip++)
+            {
+                // Each clip as read live in Clearfell: one contact, then the end marker.
+                events.Observe(AttackFieldCheck.EventLayoutHolds(AttackClock.Contact, AttackClock.EventId(AttackClock.Contact)));
+                events.Observe(AttackFieldCheck.EventLayoutHolds(null, 0));
+            }
+
+            Equal(FieldTrust.Intact, events.Trust, "clips of one contact and an end marker judge the events intact");
+            var few = new AttackFieldCheck(AttackFieldCheck.EventSamples);
+            for (var clip = 0; clip < AttackFieldCheck.EventSamples - 1; clip++)
+            {
+                few.Observe(true);
+            }
+
+            Equal(FieldTrust.Unjudged, few.Trust, "five events are not yet a verdict");
+            few.Observe(true);
+            Equal(FieldTrust.Intact, few.Trust, "six events whose ids are their names' hashes settle the layout");
             var types = new HashSet<ushort> { AttackClock.ActionId("GroundSlam"), AttackClock.ActionId("DodgeRoll") };
             Equal(true, AttackFieldCheck.ActionTypeKnown(0xED4C, types), "DodgeRoll");
             Equal(false, AttackFieldCheck.ActionTypeKnown(0x1111, types), "no such action type");

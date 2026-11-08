@@ -56,6 +56,16 @@ namespace Poe2Accessibility.Services
             reading.End - reading.Start <= MaxClipSeconds && reading.Position >= reading.Start - EndSlack &&
             reading.Position <= reading.End + EndSlack && reading.Speed >= 0f && Rate(reading) <= MaxRate;
 
+        /// <summary>
+        ///     A contact this early in its clip (seconds) marks the cast, not a blow: the hag's DelayedBlast plays spellcast_01 with a
+        ///     contact at 0.0 and its blast lands 1.45 s later (Clearfell, 2026-11-08), so timing it live said "blow passed" at every
+        ///     cast; the player's aim_crossbow holds its contacts at 0.0 too. Such an attack keeps the files' or learnt time.
+        /// </summary>
+        public const float CastMarkSeconds = 0.05f;
+
+        /// <summary>A clip event that times a blow: a contact past the cast mark.</summary>
+        public static bool IsBlow(ClipEvent clipEvent) => clipEvent.Name == Contact && clipEvent.Time > CastMarkSeconds;
+
         /// <summary>Real milliseconds until a moment of the clip (seconds into it); 0 once it is behind.</summary>
         public static int MsUntil(AnimationReading reading, float clipSeconds) =>
             (int)Math.Round(Math.Max(0f, clipSeconds - reading.Position) / Rate(reading) * MsPerSecond);
@@ -88,6 +98,16 @@ namespace Poe2Accessibility.Services
         /// <summary>A new swing began: another clip, or the same one started over (its position went back).</summary>
         public static bool NewSwing(AnimationReading before, AnimationReading now) =>
             now.Clip != before.Clip || now.Position < before.Position;
+
+        /// <summary>
+        ///     Whether a swing has left the attack for the files' time: another clip than the one it started with, played while no
+        ///     action is under way (a walk or idle under the last animation id). The same clip started over or come back to is the
+        ///     same blow again, and another clip of the action still under way is one of its alternate swings (attack_01/_02),
+        ///     which the files time at the earliest of the action's animations, so a warning there comes early, never late.
+        ///     Back-to-back swings went unwarned while any restart or alternate clip stopped the files' time for the rest of the
+        ///     attack (hags, grubs, golems and skeletons, Clearfell and Mud Burrow, 2026-11-08: 40-55% of their swings).
+        /// </summary>
+        public static bool LeftStartClip(int? startClip, AnimationReading now, bool acting) => !acting && now.Clip != startClip;
 
         /// <summary>The id the game gives an animation event name (the part before '#'), as kept beside each event.</summary>
         public static ushort EventId(string name) => (ushort)(Fold(Hash(name, '#')) | NamedEventBit);

@@ -7,3 +7,5 @@ Metadata/Monsters/SwollenMiller/SwollenMillerBoss|11=344
 Metadata/Monsters/SwollenMiller/SwollenMillerBoss|13=1828,1781
 Metadata/Monsters/SwollenMiller/SwollenMillerBoss|62=781
 Metadata/Monsters/SwollenMiller/SwollenMillerBoss|71=625
+# 2026-11-08, 0.5.5f (Clearfell, fight trace): the hag's DelayedBlast lands this long after spellcast_01 starts (its clip contact is at 0.0, the cast).
+Metadata/Monsters/Hags/UrchinHag1|33=1453,1435,1456
