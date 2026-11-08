@@ -425,9 +425,15 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
 ## Known issues / open questions
 - `catalog/landmarks.json` corrects the Radar table's labels that were no area name by a typo ("Oghams Manor", 5 found by near match) and G1_14's "Entrance", the way back read as the Manor's.
 - Radar-table labels are English notes (GameHelper's `important_tgt_files.txt`): area names, bracketed notes and, since
-  2026-11-02, 11 boss names (`catalog/monster-names.json` from MonsterVarieties: "Sala del jefe: Beira, de la manada
-  putrefacta") are said in the game's language. Still English: places ("The Corpse Tree (punto de ruta)", not a game
-  name) and 17 bosses whose game name is not the label plus a suffix (The Moving Bramble, Queen of Filth, Siren…).
+  2026-11-02, boss names are said in the game's language. Since 2026-11-08 every piece of a label (cut at " - ", slashes,
+  "&", commas, brackets) that is a name the game has (area, MonsterVarieties or NPCs row, object title, item) is said as
+  the game names it, whatever its case or apostrophes (`LandmarkTable.Localize`; `catalog/monster-names.json` regenerated
+  with `Poe2UiExtract monster-names` over pieces and NPCs; its name-column detection took a garbage column in 0.5.6,
+  now the measured one wins): 92 of the 211 labels in Spanish (74 before). 61 stay untouched, and others keep
+  their names with only common words/notes translated: players' notes ("Dungeon entrance down"), places the game has no name for ("The
+  Corpse Tree (punto de ruta)") and names with no row (Siren, Shark, The Moving Bramble, Narag, Areagne, Renly). Words the
+  table shares with the radar ("Boss", "Quest", "Exit"…) are phrases of `Announcements.Radar.cs`: their other-language
+  translations wait for the final translation pass.
 - Yarkey's chat showed his own lines ("¡Abajo!", "Matando el tiempo.", "¡Retrocede o muere!") while X or RT were held
   (2026-11-02), absent from Client.txt; probably the Mercenary's voice lines shown in chat (not verified: whether
   other players see them).
@@ -439,10 +445,12 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
 - Ritual rune (`RitualRuneInteractable`): untargetable in two dumps (13:42, 14:06), targetable in one (13:18); which ritual states those are is not known. Typing is settled: the league-icon branch of `EntityCatalog.Classify` takes it before the Monster rule.
 - Landmark labels that are not area names are players' notes from GameHelper Radar: in Spanish their common words and
   reward notes are translated ("Escaleras hacia arriba", "Crop Circle (gema de habilidad de nivel 4)"); the names in
-  them (Crop Circle, Kabala) stay as written, since the game's own Spanish name is not known for them.
+  them the game has no row for (Crop Circle) stay as written; Kabala, Torbik, Zelina… are the game's names (above).
 - Radar: once, near the encampment exit, Up and Left flipped wall/exit every ~2 s with depths 100 ↔ 500 units while
   the character oscillated between two cells; not reproduced standing still.
-- Scanner: long routes take ~200 ms on the host's frame thread; a route along an octant boundary alternates
+- Scanner: long routes searched ~200 ms on the frame thread; since 2026-11-08 `RoutePlanner` is a jump point search over a
+  cached cell map (same optimal routes, `RouteSpeedTests`): 1600x1600 cave grids take 2-10 ms, a walled-off goal ~12 ms
+  (it was 35-280 and 270), measured offline only. A route along an octant boundary alternates
   "up 2, then up left" / "up left 2, then up". The exit prompt "Mantener presionado (Mostrar opciones)" is drawn
   outside the UI tree (not in a full dump while on screen): the A target says "mantén A para opciones" instead.
   A barrier never seen closed and past the network bubble still reads open (nothing to know it by).
