@@ -34,3 +34,5 @@
     them, serious, emergency-like cues suit.
 24. Inline Python patch scripts sent through the shell lose doubled backslashes: use raw strings, write the script to a
     file first, or use the editor for lines with escapes.
+25. Tests that need combat: do not fight with scripted input (the bot died twice to Rotten Wolves in Clearfell,
+    2026-10-23); take a character that survives or avoid the enemies.
