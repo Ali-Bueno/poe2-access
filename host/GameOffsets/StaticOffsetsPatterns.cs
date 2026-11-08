@@ -104,6 +104,14 @@
             new(
                 "GameCullSize",
                 "2B 0D ?? ?? ?? ?? 8B 05 ?? ?? ?? ?? 2B 05 ^ ?? ?? ?? ?? 0F 57 FF"
+                ),
+
+            // A second reader of the same static (sub eax,[cull] before a float conversion), in another function; taken
+            // when the first pattern is gone. Hits once and resolves to the same address on the five builds of
+            // docs/research/exe-layouts.md ("The window cull").
+            new(
+                "GameCullSize (alt)",
+                "2B 05 ^ ?? ?? ?? ?? 0F 57 F6 0F 57 FF 48 8B CF F3 48 0F 2A F8"
                 )
         };
     }

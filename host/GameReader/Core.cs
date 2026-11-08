@@ -140,6 +140,10 @@ namespace GameReader
             Process.Close(false);
         }
 
+        /// <summary>The two static patterns of <c>StaticOffsetsPatterns</c> that read the window cull; the second is the fallback.</summary>
+        private const string CullPattern = "GameCullSize";
+        private const string CullPatternAlt = "GameCullSize (alt)";
+
         /// <summary>
         ///     Co-routine to update the address where the
         ///     Game Cull Value is loaded in the game memory.
@@ -150,7 +154,8 @@ namespace GameReader
             while (true)
             {
                 yield return new Wait(Process.OnStaticAddressFound);
-                GameCull.Address = Process.StaticAddresses.GetValueOrDefault("GameCullSize");
+                var cull = Process.StaticAddresses.GetValueOrDefault(CullPattern);
+                GameCull.Address = cull != IntPtr.Zero ? cull : Process.StaticAddresses.GetValueOrDefault(CullPatternAlt);
                 GameScale.Refresh();
             }
         }
