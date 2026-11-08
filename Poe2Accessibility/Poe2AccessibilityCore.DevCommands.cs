@@ -570,7 +570,7 @@ namespace Poe2Accessibility
                     this.log?.Info($"Game news: {table.Table} {table.Added.Count} new, {table.Removed.Count} gone");
                 }
 
-                this.gameNewsLine = Announcements.GameNews(news.Select(table => (table.Table, table.Added.Count)));
+                this.gameNewsLine = Announcements.GameNews(news.Select(table => (table.Table, table.Added.Count, 0)));
             }
             catch (Exception error) when (error is IOException or UnauthorizedAccessException)
             {

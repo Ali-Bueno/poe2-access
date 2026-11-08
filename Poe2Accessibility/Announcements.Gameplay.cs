@@ -917,18 +917,22 @@ namespace Poe2Accessibility
         /// <summary>A trade's other side with nothing on it.</summary>
         public static string Nothing => T("nothing", "nada");
 
-        /// <summary>A new game build read with nothing lost.</summary>
-        /// <summary>What an update added, as table and count; null with nothing a player would meet (<see cref="Services.GameNews"/>).</summary>
-        public static string? GameNews(IEnumerable<(string Table, int Added)> news)
+        /// <summary>
+        ///     What an update added, as table, count and how many of them the mod cannot classify yet; null with nothing a
+        ///     player would meet (<see cref="Services.GameNews"/>).
+        /// </summary>
+        public static string? GameNews(IEnumerable<(string Table, int Added, int Unclassified)> news)
         {
-            var parts = news.Where(item => item.Added > 0).Select(item => (Noun: NewsNoun(item.Table), item.Added))
-                .Where(item => item.Noun != null).Select(item => $"{item.Noun} {item.Added}").ToList();
+            var parts = news.Where(item => item.Added > 0).Select(item => (Noun: NewsNoun(item.Table), item.Added, item.Unclassified))
+                .Where(item => item.Noun != null)
+                .Select(item => $"{item.Noun} {item.Added}, {(item.Unclassified == 0 ? T("all covered", "todo cubierto") : T($"{item.Unclassified} unclassified", $"{item.Unclassified} sin clasificar"))}")
+                .ToList();
             if (parts.Count == 0)
             {
                 return null;
             }
 
-            var list = string.Join(", ", parts);
+            var list = string.Join("; ", parts);
             return T($"New in this game update: {list}. The list is in the file game-news.txt", $"Novedades de esta actualización del juego: {list}. La lista está en el archivo game-news.txt");
         }
 
