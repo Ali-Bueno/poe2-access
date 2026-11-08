@@ -42,8 +42,8 @@ namespace Poe2Accessibility.Services
         /// <param name="playerRadius">The player's body radius (Render bounds), world units.</param>
         /// <param name="attacker">The monster's place, world units.</param>
         /// <param name="areaRadius">The area the blow covers at its target (world units), 0 when unknown or none.</param>
-        /// <param name="pathHalfWidth">Half the width of a projectile's path (world units), 0 for no projectile.</param>
-        public static AimKind Of(ActionAim aim, uint playerId, Vector2 player, float playerRadius, Vector2 attacker, float areaRadius, float pathHalfWidth)
+        /// <param name="projectile">The attack flies from the monster through its target place (a projectile's width is in no file the mod reads: the slack around the body covers it).</param>
+        public static AimKind Of(ActionAim aim, uint playerId, Vector2 player, float playerRadius, Vector2 attacker, float areaRadius, bool projectile)
         {
             if (aim.TargetId != 0 && aim.TargetId == playerId)
             {
@@ -63,7 +63,7 @@ namespace Poe2Accessibility.Services
                 return AimKind.PlayerArea;
             }
 
-            return pathHalfWidth > 0f && OnPath(attacker, at, player, pathHalfWidth + reach) ? AimKind.PlayerArea : AimKind.Elsewhere;
+            return projectile && OnPath(attacker, at, player, reach) ? AimKind.PlayerArea : AimKind.Elsewhere;
         }
 
         /// <summary>Whether a point lies within <paramref name="halfWidth"/> of the ray from <paramref name="from"/> through <paramref name="toward"/>, ahead of its start.</summary>

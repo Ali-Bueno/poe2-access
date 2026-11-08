@@ -9,9 +9,9 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     When each monster attack lands, learnt from the hits the player takes: the time from the attack animation's
     ///     start to the player's life falling (to a projectile's release, its flight taken off), per monster kind and
-    ///     animation (a rare uses its kind's animations). The
-    ///     game keeps no attack progress readable from the Actor (docs/research/dodge-timing.md), so the warning is timed
-    ///     from these. Pure apart from <see cref="Load"/> and <see cref="Save"/>.
+    ///     animation (a rare uses its kind's animations), where the playing clip's own events do not time it
+    ///     (<see cref="AttackClock"/>). A blow far from the files' time is not believed: it was another monster's, or damage
+    ///     over time (docs/research/dodge-timing.md). Pure apart from <see cref="Load"/> and <see cref="Save"/>.
     /// </summary>
     public sealed class DodgeTimings
     {
@@ -22,6 +22,14 @@ namespace Poe2Accessibility.Services
         public const int MaxDelayMs = 4000;
 
         private const int MinDelayMs = 50;
+
+        /// <summary>
+        ///     How far a learnt blow may fall from the files' time and still be believed: the files and blows felt in play part by a
+        ///     median 86-156 ms (docs/research/dodge-timing.md, "Kinds from the data"), so twice the larger, or a quarter of a long hit.
+        /// </summary>
+        private const int LearnToleranceMs = 300;
+
+        private const float LearnToleranceShare = 0.25f;
 
         private const float MsPerSecond = 1000f;
 
@@ -76,11 +84,30 @@ namespace Poe2Accessibility.Services
         public static bool CanStillHit(long endedAt, long? releaseAt, int travelMs, long now) =>
             endedAt == 0 || (travelMs > 0 && releaseAt is { } release && release <= endedAt && now - endedAt <= travelMs);
 
-        public void Learn(string key, int delayMs)
+        /// <summary>Whether a learnt delay is believed: inside the learnable range, and near the files' time when they give one (a projectile of unknown speed may land later, never sooner).</summary>
+        public bool Believable(string key, int delayMs)
         {
             if (delayMs is < MinDelayMs or > MaxDelayMs)
             {
-                return;
+                return false;
+            }
+
+            if (!this.fromFiles.TryGetValue(key, out var timed))
+            {
+                return true;
+            }
+
+            var tolerance = Math.Max(LearnToleranceMs, (int)(timed.Hit * LearnToleranceShare));
+            var flightUnknown = timed.Speed == 0 && this.Threat(key) == DodgeThreat.Ranged;
+            return delayMs >= timed.Hit - tolerance && (flightUnknown || delayMs <= timed.Hit + tolerance);
+        }
+
+        /// <summary>Keeps a blow's delay; false when it is not believed (<see cref="Believable"/>) and nothing was learnt.</summary>
+        public bool Learn(string key, int delayMs)
+        {
+            if (!this.Believable(key, delayMs))
+            {
+                return false;
             }
 
             if (!this.delays.TryGetValue(key, out var list))
@@ -96,19 +123,26 @@ namespace Poe2Accessibility.Services
             }
 
             this.Changed = true;
+            return true;
         }
 
-        /// <summary>The median learnt delay; before any blow, the one the game's files give; null when neither knows it.</summary>
+        /// <summary>
+        ///     The median of the believed learnt delays (blows learnt before the files were loaded, or before this rule, are
+        ///     judged again here); else the one the game's files give; null when neither knows it.
+        /// </summary>
         public int? Delay(string key)
         {
-            if (!this.delays.TryGetValue(key, out var list) || list.Count == 0)
+            var believed = this.delays.TryGetValue(key, out var list) ? list.Where(value => this.Believable(key, value)).OrderBy(value => value).ToList() : new List<int>();
+            if (believed.Count == 0)
             {
                 return this.fromFiles.TryGetValue(key, out var timed) ? timed.Hit : null;
             }
 
-            var sorted = list.OrderBy(value => value).ToList();
-            return sorted[sorted.Count / 2];
+            return believed[believed.Count / 2];
         }
+
+        /// <summary>The files' own time of the attack's blow (a projectile's release), learnt blows aside; null when they do not time it.</summary>
+        public int? FileHit(string key) => this.fromFiles.TryGetValue(key, out var timed) ? timed.Hit : null;
 
         /// <summary>How many attacks the game's files time.</summary>
         public int FileTimes => this.fromFiles.Count;

@@ -100,7 +100,7 @@ namespace Poe2Accessibility.Tests
             var directory = AppContext.BaseDirectory;
             while (!File.Exists(Path.Join(directory, "Poe2Accessibility", "catalog", CatalogName)))
             {
-                directory = Path.GetDirectoryName(directory)!;
+                directory = Path.GetDirectoryName(directory) ?? throw new FileNotFoundException($"{CatalogName} is not under any folder above the tests");
             }
 
             var lines = File.ReadLines(Path.Join(directory, "Poe2Accessibility", "catalog", CatalogName)).ToList();

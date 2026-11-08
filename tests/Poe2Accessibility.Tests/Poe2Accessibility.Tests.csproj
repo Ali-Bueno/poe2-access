@@ -132,6 +132,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\AttackSight.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\AttackFieldCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\DodgeGate.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\AttackArea.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\AttackData.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\DodgeCoverage.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\GameNewsNotes.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\MapPlaces.cs" />

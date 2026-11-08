@@ -60,8 +60,11 @@ namespace Poe2Accessibility
         /// <summary>Say a boss's life as it falls past 75, 50, 40, 30, 20, 10 and 5 percent, and its defeat.</summary>
         public bool AnnounceBossLife = true;
 
-        /// <summary>A rising whoosh on the side of a rare or unique monster that starts an attack: time to dodge.</summary>
+        /// <summary>A rising whoosh on the side of a rare or unique monster that starts an attack aimed at you, in reach and on screen: time to dodge.</summary>
         public bool DodgeWarnings = true;
+
+        /// <summary>The dodge warning for every monster's attacks too, not only rares' and uniques': a pack can then warn many times a second.</summary>
+        public bool DodgeWarningsAllMonsters = false;
 
         /// <summary>Parry (buckler, targe or two swords): a reverse hit that swells in and stops dead on the moment to press Parry before a blow you can parry.</summary>
         public bool ParryCues = true;

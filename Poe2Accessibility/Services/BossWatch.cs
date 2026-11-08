@@ -13,15 +13,15 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Bosses and rare monsters near the player. Boss life (D2R boss-life.md) is spoken as the real percentage at
     ///     each step it falls past, and the defeat once. The dodge warning (<see cref="CueSynth.Dodge"/>) on the side of a rare or
-    ///     unique monster on screen attacking (<see cref="DodgeThreats"/>; a rare's blow only within reach), louder the
-    ///     closer it is, half a second before the blow lands as learnt from earlier hits of that attack by any monster of
-    ///     its kind or given by the game's files (<see cref="DodgeTimings"/>; a projectile's flight across the gap added, at
-    ///     its speed in the files), at the wind-up until then. For a player who can parry, the parry cue
+    ///     unique monster (every monster with <see cref="AllMonsters"/>) whose attack is aimed at the player, reaches it and
+    ///     shows on screen (<see cref="DodgeGate"/>), louder the closer it is, half a second before the blow: the playing
+    ///     clip's own event at its real speed (<see cref="AttackClock"/>), else the files' or learnt time (<see cref="DodgeTimings"/>;
+    ///     a projectile's flight across the gap added), at the wind-up until then. For a player who can parry, the parry cue
     ///     (<see cref="CueSynth.Parry"/>, a swell into a dead stop) stops <see cref="ParryLeadMs"/> before a timed blow worth
     ///     parrying (<see cref="ParryTiming"/>), from any monster, never one the game marks as impossible to block or parry;
     ///     a rare's or unique's attack that cannot be blocked adds its own cue at the wind-up (<see cref="CueSynth.Unblockable"/>). Animation ids are GameHelper's <c>Actor.Animation</c> (Actor +0x8B0).
     /// </summary>
-    public sealed class BossWatch
+    public sealed partial class BossWatch
     {
         /// <summary>Boss life steps, percent (D2R: 50, then every 10; 75 and 5 added for long PoE fights).</summary>
         private static readonly int[] LifeSteps = { 75, 50, 40, 30, 20, 10, 5 };
@@ -128,6 +128,7 @@ namespace Poe2Accessibility.Services
         /// <summary>A new area: no boss is known.</summary>
         public void Reset()
         {
+            this.reader?.Reset();
             this.attacks.Clear();
             this.flights.Clear();
             this.warnedAt.Clear();
@@ -182,9 +183,11 @@ namespace Poe2Accessibility.Services
                 if (attacks && EntityCatalog.IsAliveEnemy(entity) && !EntityCatalog.IsHidden(entity) && entity.TryGetComponent<Actor>(out var actor))
                 {
                     var gap = offset.Length() - render.ModelBounds.X - player.ModelBounds.X;
-                    this.WatchAttack(entity, (int)actor.Animation, rarity, render, offset, gap, now, parrying);
+                    this.WatchAttack(entity, actor, rarity, render, player, offset, gap, area.WorldToGridConvertor, now, parrying);
                 }
             }
+
+            this.entityAddresses = null;
 
             if (this.DodgeWarnings)
             {
@@ -253,135 +256,6 @@ namespace Poe2Accessibility.Services
             this.bosses[entity.Id] = (boss.Name, step, engaged, percent);
         }
 
-        private void WatchAttack(Entity entity, int animation, Rarity rarity, Render render, Vector2 offset, float gap, long now, bool parrying)
-        {
-            var id = entity.Id;
-            this.attacks.TryGetValue(id, out var attack);
-            if (attack == null || attack.Animation != animation)
-            {
-                if (attack != null && attack.EndedAt == 0)
-                {
-                    attack = attack with { EndedAt = now }; // a blow can still arrive for it
-                    this.attacks[id] = attack;
-                }
-
-                var key = DodgeTimings.Key(entity.Path, animation);
-                var threat = this.Timings.Threat(key) ?? this.ThreatFromName(key, animation);
-                if (threat == DodgeThreat.None)
-                {
-                    if (attack == null)
-                    {
-                        return;
-                    }
-
-                    if (now - attack.EndedAt > LateBlowMs + attack.TravelMs)
-                    {
-                        this.attacks.Remove(id);
-                        return;
-                    }
-
-                    // A projectile released before the monster turned away still comes: its warning stands.
-                    if (!attack.CanStillHit(now))
-                    {
-                        return;
-                    }
-                }
-                else
-                {
-                    if (this.DodgeWarnings && attack is { TravelMs: > 0, Warns: true, Warned: false, InReach: true } flying && flying.CanStillHit(now))
-                    {
-                        // The next attack replaces this record; the projectile it let go is still coming.
-                        var (flightPan, flightPitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
-                        this.flights.Add((id, flying.WarnAt, flightPan, flightPitch, this.WarningGain(offset)));
-                    }
-
-                    var learnt = this.Timings.Delay(key);
-
-                    // A projectile lands its flight across the gap after the release the files and earlier blows time.
-                    var travel = DodgeTimings.TravelMs(gap, this.Timings.ProjectileSpeed(key));
-                    attack = new Attack(animation, key, threat, now, DodgeTimings.WarnAt(now, learnt + travel, LeadMs), learnt,
-                        rarity is Rarity.Rare or Rarity.Unique, rarity == Rarity.Unique)
-                    {
-                        Swing = this.Timings.Swing(key), TravelMs = travel, ReleaseAt = learnt is { } release ? now + release : null,
-                        ParryBlowAt = learnt is { } blow && this.Timings.CanParry(key) ? now + blow + travel : null,
-                        Unblockable = !this.Timings.CanBlock(key),
-                    };
-                }
-            }
-
-            // A rare's blow needs it within reach when it would land; a unique's carries (slam waves).
-            var inReach = attack.Threat != DodgeThreat.Melee || attack.Unique || gap <= MeleeDangerGapWorld;
-            attack = attack with { InReach = inReach };
-            if (this.DodgeWarnings && this.UnblockableCues && attack is { Unblockable: true, UnblockableCued: false, Warns: true } && inReach)
-            {
-                // At the wind-up, as the game's red glow: the dodge warning still times the roll.
-                attack = attack with { UnblockableCued = true };
-                var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
-                this.audio.Play(this.unblockable, pan, pitch, this.WarningGain(offset), "unblockable");
-                this.log.Debug($"Unblockable attack: monster {id} animation {AnimationNames.Of(animation)}");
-            }
-
-            if (this.DodgeWarnings && attack.Warns && !attack.Warned && attack.CanStillHit(now) && now >= attack.WarnAt)
-            {
-                // The same animation id goes on swinging (a golem's blows a swing apart, nothing new written between
-                // them): a timed attack warns again one swing later.
-                attack = attack.Learnt != null && attack.Swing is { } swing
-                    ? attack with { WarnAt = attack.WarnAt + swing, ReleaseAt = attack.ReleaseAt + swing }
-                    : attack with { Warned = true };
-                var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
-                if (inReach && this.Warn(id, pan, pitch, this.WarningGain(offset), now))
-                {
-                    this.log.Debug($"Dodge warning: monster {id} animation {AnimationNames.Of(animation)} ({attack.Threat}, gap {gap:F0}, " +
-                                   $"{(attack.Learnt is { } delay ? $"{now - attack.StartedAt} ms into a blow learnt at {delay} ms" : "at the wind-up")}" +
-                                   $"{(attack.TravelMs > 0 ? $", {attack.TravelMs} ms of flight" : string.Empty)})");
-                }
-            }
-
-            if (parrying && attack.ParryBlowAt is { } blowAt && now >= ParryTiming.StartAt(blowAt, this.ParryLeadMs, this.parryMs) &&
-                attack.CanStillHit(now))
-            {
-                attack = this.CueParry(id, attack, blowAt, rarity, render, offset, gap, now);
-            }
-
-            this.attacks[id] = attack;
-        }
-
-        /// <summary>
-        ///     The kind an attack's animation name gives it, where the game's tables are mute: each such attack is logged once,
-        ///     so a patch's gaps in the data show (docs/research/dodge-timing.md, "Kinds from the data").
-        /// </summary>
-        private DodgeThreat ThreatFromName(string key, int animation)
-        {
-            var threat = DodgeThreats.Of(animation, AnimationNames.Of);
-            if (this.namedThreats.Add(key))
-            {
-                this.log.Info($"Dodge kind from the animation's name: {key} {AnimationNames.Of(animation) ?? "(no name)"} -> {threat}");
-            }
-
-            return threat;
-        }
-
-        /// <summary>How many attacks met so far had their kind from the animation's name, not the game's tables.</summary>
-        public int NamedThreats => this.namedThreats.Count;
-
-        /// <summary>
-        ///     The parry cue for a timed blow worth parrying, at most once per parry and only while its stop still falls
-        ///     before the blow (a blow too quick for the swell gets none); a repeating swing is cued again a swing later.
-        /// </summary>
-        private Attack CueParry(uint id, Attack attack, long blowAt, Rarity rarity, Render render, Vector2 offset, float gap, long now)
-        {
-            if (ParryTiming.InTime(blowAt, this.parryMs, now) && now - this.lastParryCue >= ParryTiming.RepeatMs &&
-                ParryTiming.Worth(attack.Threat, attack.TravelMs > 0, rarity is Rarity.Rare or Rarity.Unique, gap, MeleeDangerGapWorld))
-            {
-                this.lastParryCue = now;
-                var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
-                this.audio.Play(this.parry, pan, pitch, this.WarningGain(offset), "parry");
-                this.log.Debug($"Parry cue: monster {id} animation {AnimationNames.Of(attack.Animation)} ({attack.Threat}, gap {gap:F0}, {now - attack.StartedAt} ms in, blow in {blowAt - now} ms)");
-            }
-
-            return attack with { ParryBlowAt = attack.Swing is { } swing ? blowAt + swing : null };
-        }
-
         /// <summary>Louder the nearer the attacker; never below the far level, so a far archer is still heard.</summary>
         private float WarningGain(Vector2 offset)
         {
@@ -434,7 +308,8 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var hitters = this.attacks.Where(pair => !pair.Value.Learned && pair.Value.InReach &&
+            // An attack the clip's own event times needs no learning; one the gate kept quiet did not hit the player.
+            var hitters = this.attacks.Where(pair => !pair.Value.Learned && pair.Value.InReach && pair.Value.Timing != BlowTiming.Live &&
                                                      (pair.Value.Swing != null || now - pair.Value.StartedAt <= DodgeTimings.MaxDelayMs) &&
                                                      (pair.Value.EndedAt == 0 || now - pair.Value.EndedAt <= LateBlowMs + pair.Value.TravelMs)).ToList();
             if (hitters.Count != 1)
@@ -450,13 +325,18 @@ namespace Poe2Accessibility.Services
                 delay %= swing; // a later swing of the same animation: its blow lands as far into its own swing
             }
 
-            this.Timings.Learn(attack.Key, delay);
+            this.attacks[id] = attack with { Learned = true };
+            if (!this.Timings.Learn(attack.Key, delay))
+            {
+                this.log.Info($"Dodge timing: {attack.Key} hit after {delay} ms, not believed (the files say {this.Timings.FileHit(attack.Key)} ms)");
+                return;
+            }
+
             if (this.TimingsPath.Length > 0)
             {
                 this.Timings.Save(this.TimingsPath);
             }
 
-            this.attacks[id] = attack with { Learned = true };
             this.log.Info($"Dodge timing: {attack.Key} hit after {delay} ms (learnt {this.Timings.Delay(attack.Key)} ms)");
         }
 
@@ -489,6 +369,24 @@ namespace Poe2Accessibility.Services
             public long? ParryBlowAt { get; init; }
 
             public bool CanStillHit(long now) => DodgeTimings.CanStillHit(this.EndedAt, this.ReleaseAt, this.TravelMs, now);
+
+            /// <summary>The clip playing when the attack began, to time the files' hit from its position while it plays on.</summary>
+            public int? StartClip { get; init; }
+
+            /// <summary>The clip's reading on the last frame, to notice a new swing.</summary>
+            public AnimationReading? LastClock { get; init; }
+
+            /// <summary>The clip went on to another or started over since the attack began.</summary>
+            public bool ClipMoved { get; init; }
+
+            /// <summary>The clip time (s) of the contact last warned of, so a clip's next contact warns again.</summary>
+            public float? WarnedContact { get; init; }
+
+            /// <summary>Where the time to the blow came from on the last frame.</summary>
+            public BlowTiming Timing { get; init; }
+
+            /// <summary>The gate's last verdict was not silent.</summary>
+            public bool Threatens { get; init; }
         }
     }
 }
