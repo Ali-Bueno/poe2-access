@@ -20,7 +20,7 @@ internal static class GameDataSteps
     [
         new Step(ItemSounds, 1, "item-sounds.json", "item-sounds"),
         new Step("area names", 1, "area-names.json", "areas"),
-        new Step("dat columns", 4, "dat-columns.json", "dat-columns"),
+        new Step("dat columns", 5, "dat-columns.json", "dat-columns"),
         new Step("experience", 1, "experience.json", "experience"),
         new Step("hit times", 3, "hit-times.txt", "hit-times", true),
         new Step("hazards", 3, "hazards.txt", "hazards", true),

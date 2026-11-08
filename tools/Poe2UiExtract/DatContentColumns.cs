@@ -21,6 +21,9 @@ internal static class DatContentColumns
     /// <summary>The ActiveSkills key: target Ids found inside the effect's Id (0.5.5e: 1160 rows, the next column 41).</summary>
     private const int MinNamedKeys = 100;
 
+    /// <summary>A class's Id is the player's metadata path, which the plugin compares with the player entity's.</summary>
+    private const string CharacterFolder = "Metadata/Characters/";
+
     public static IEnumerable<(string Column, int? Offset, int Measured)> Find(Index index)
     {
         if (DatTable.Open(index, "passiveskills") is { } passives)
@@ -37,8 +40,20 @@ internal static class DatContentColumns
             yield return ("PassiveSkills.IsJewelSocket", FlagOfIds(passives, "jewel"), 0x65);
         }
 
+        // The Ids the plugin reads (a class's metadata path, a skill's effect Id, an area's Id): by format at +0, checked here.
+        if (DatTable.Open(index, "characters") is { } classes)
+        {
+            yield return ("Characters.Id", Nearest(classes, 0x0, offset => DatColumnSearch.IsIdColumn(classes, offset, id => id.StartsWith(CharacterFolder, StringComparison.Ordinal))), 0x0);
+        }
+
+        if (DatTable.Open(index, "grantedeffects") is { } granted)
+        {
+            yield return ("GrantedEffects.Id", Nearest(granted, 0x0, offset => DatColumnSearch.IsIdColumn(granted, offset)), 0x0);
+        }
+
         if (DatTable.Open(index, "worldareas") is { } areas)
         {
+            yield return ("WorldAreas.Id", Nearest(areas, 0x0, offset => DatColumnSearch.IsIdColumn(areas, offset)), 0x0);
             yield return ("WorldAreas.IsTown", FlagOfIds(areas, "town", MinTowns), 0x14);
             yield return ("WorldAreas.AreaLevel", Nearest(areas, 0x26, offset => IsAreaLevel(areas, offset)), 0x26);
 

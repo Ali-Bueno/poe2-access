@@ -493,7 +493,7 @@ namespace Poe2Accessibility
                 System.Math.Max(System.Math.Max(RowKeystoneOffset, RowNotableOffset), System.Math.Max(RowIconOnlyOffset, RowJewelSocketOffset)) + 1);
 
             /// <summary>Characters row +0x00: its Id, the player's metadata path ("Metadata/Characters/StrDex/StrDexFourb").</summary>
-            public const int CharacterIdOffset = 0x0;
+            public static int CharacterIdOffset { get; internal set; } = 0x0;
 
             /// <summary>Characters row +0x08: the class's localized name ("Monje"; dat-strings characters, 2026-10-24).</summary>
             public static int CharacterNameOffset { get; internal set; } = 0x8;
@@ -534,7 +534,7 @@ namespace Poe2Accessibility
             public const string EffectTable = "Data/Balance/GrantedEffects.dat";
 
             /// <summary>GrantedEffects row: pointer to the UTF-16 Id, its first column ("ParryPlayer", row 433; dat-strings 2026-10-28).</summary>
-            public const int EffectIdOffset = 0x0;
+            public static int EffectIdOffset { get; internal set; } = 0x0;
 
             /// <summary>GrantedEffects → ActiveSkills (unaligned).</summary>
             public static int SkillKeyOffset { get; internal set; } = 0x4F;
@@ -615,6 +615,18 @@ namespace Poe2Accessibility
         public static class ModsDat
         {
             public static int NameOffset { get; internal set; } = 0x62;
+        }
+
+        /// <summary>
+        ///     One entry of the ObjectMagicProperties mod vectors (GameHelper's ModArrayStruct): the Mods.dat row at +0x28, 0x40 bytes an
+        ///     entry. The game's code places both (catalog/code-fields.txt and semantic-fields.txt: the dump that prints
+        ///     <c>Implicit Mods: </c> reads the first entry's +0x28 and walks the rest by <c>index &lt;&lt; 6</c>).
+        /// </summary>
+        public static class ModArray
+        {
+            public static int RowOffset { get; internal set; } = 0x28;
+
+            public static int EntrySize { get; internal set; } = 0x40;
         }
 
         /// <summary>

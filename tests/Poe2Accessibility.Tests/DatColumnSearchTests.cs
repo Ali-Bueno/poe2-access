@@ -21,6 +21,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AKnownRowsValueTellsColumnsApart), AKnownRowsValueTellsColumnsApart),
             (nameof(AColumnNotFoundFailsTheStep), AColumnNotFoundFailsTheStep),
             (nameof(ASmallTableJudgesTheSame), ASmallTableJudgesTheSame),
+            (nameof(AnIdIsADistinctIdentifierOnEveryRow), AnIdIsADistinctIdentifierOnEveryRow),
             (nameof(AGraphOfAnotherVersionIsReadWhenItHoldsTogether), AGraphOfAnotherVersionIsReadWhenItHoldsTogether),
             (nameof(TheStickRuleIsLostAfterThreeMissesInTen), TheStickRuleIsLostAfterThreeMissesInTen),
             (nameof(StickConstantsAreReadFromTheCodesLoads), StickConstantsAreReadFromTheCodesLoads),
@@ -204,6 +205,23 @@ namespace Poe2Accessibility.Tests
             Expect(true, search.AllFound, "all found");
             var keyLists = new DatTableBuilder(0x20).Row(w => w.KeyList(0x8, 0, 1)).Row(w => w.KeyList(0x8)).Build();
             Expect(0x8, new DatColumnSearch().KeyList(keyLists, "T.List", 0x8, Icons()), "a list column on two rows, one empty");
+        }
+
+        private static void AnIdIsADistinctIdentifierOnEveryRow()
+        {
+            // Characters: the Id is the class's metadata path, then its translated name; a copy of the Id would not be distinct.
+            var classes = new DatTableBuilder(0x18)
+                .Row(w => w.Text(0, "Metadata/Characters/Str/StrFour").Text(8, "Guerrero").Text(0x10, "Art/A"))
+                .Row(w => w.Text(0, "Metadata/Characters/Dex/DexFour").Text(8, "Cazadora").Text(0x10, "Art/A"))
+                .Build();
+            bool Path(string id) => id.StartsWith("Metadata/Characters/", StringComparison.Ordinal);
+            Expect(true, DatColumnSearch.IsIdColumn(classes, 0, Path), "the paths at +0");
+            Expect(false, DatColumnSearch.IsIdColumn(classes, 8, Path), "a translated name does not fit the path");
+            Expect(false, DatColumnSearch.IsIdColumn(classes, 0x10), "the same text on two rows is not an Id");
+            Expect(false, DatColumnSearch.IsIdColumn(classes, 4), "inside a pointer: no string");
+            var named = new DatTableBuilder(0x10).Row(w => w.Text(0, "Gran Golpe").Text(8, "GreatStrike")).Row(w => w.Text(0, "Parada").Text(8, "ParryPlayer")).Build();
+            Expect(false, DatColumnSearch.IsIdColumn(named, 0), "a name with a blank is not an Id");
+            Expect(true, DatColumnSearch.IsIdColumn(named, 8), "identifiers, one per row");
         }
 
         private static void AGraphOfAnotherVersionIsReadWhenItHoldsTogether()
