@@ -8,9 +8,10 @@
   no kernel anti-cheat (server-side detection). Install: `D:\games\steam\steamapps\common\Path of Exile 2`
   (download started 2026-09-14, ~138 GB). Current patch 0.5.5f.
 - **Approach:** external, **read-only** memory reading, no input automation (see brief §3/§25 and `AGENTS.md`).
-- **Host:** the mod's own headless `Poe2AccessHost.exe` (`host/`, since 2026-11-08; [host](host/README.md)): GameHelper2 v2.8.0's
-  memory model vendored as a library with the runtime layout searches ([compatibility](docs/compatibility.md)), no overlay, no
-  administrator rights, 60 frames a second; GameHelper2 itself is no longer used (it took 70% of a core in town, the host 36%).
+- **Host:** the mod's own headless `Poe2AccessHost.exe` (`host/`, since 2026-11-08; [host](host/README.md)): the
+  `GameReader` library (GameHelper2 v2.8.0's memory model, vendored and renamed) with the runtime layout searches and the
+  exe's code reader ([compatibility](docs/compatibility.md), [patch day](docs/patch-day.md)), no overlay, no administrator rights,
+  60 frames a second (20 behind another window); GameHelper2 itself is no longer used (70% of a core in town; the host 17%).
   ExileCore2 rejected (binary-only, obfuscated, Discord-gated — `docs/research/exilecore2-study.md`);
   CoreExile2 no longer exists (now `coussiraty/ExileBridge`, an HTTP/MCP API without UI tree).
 - **Speech transport:** PRISM through the **Prismatoid 0.4.0** NuGet binding (net10.0; bundles
@@ -25,7 +26,7 @@
   in `Poe2Access.log` + a message box. From Steam's Play button: launch options `"<path>\Poe2Access.exe" %command%` (`tools/README.md`).
   Dev: `py -B tools/computer_use/launch.py all|host|stop` wraps it.
 - **Releases:** public repo (2026-10-26); `tools/package/Publish-Release.ps1` builds the package and makes it the latest GitHub release (tag `vYYYY.MM.DD[-n]`, assets always `Poe2Access.zip` / `.7z`), so `https://github.com/Ali-Bueno/poe2-access/releases/latest/download/Poe2Access.zip` is always the newest.
-- **Test package:** `tools/package/New-TestPackage.ps1` → `dist/Poe2Access-test-<date>.zip` and `.7z` (~29 MB, fits a chat upload; top folder: `Poe2Access.exe`, README.txt, Controls.md, Stop the mod.bat
+- **Test package:** `tools/package/New-TestPackage.ps1` → `dist/package/Poe2Access-test-<date>.zip` and `.7z` (zip ~51 MB, 7z ~35 MB since the recorded item sounds; top folder: `Poe2Access.exe`, README.txt, Controls.md, Stop the mod.bat
   shortcut; everything else in `app/`; self-contained, unzip and
   run; sounds extracted from the tester's install on the first start); `tools/README.md`.
 - **Repository:** private GitHub `Ali-Bueno/poe2-access` (created 2026-10-23).
@@ -221,7 +222,7 @@
 | Map hints (GGG's cues) | wip (Clearfell's found live, nothing said walking yet) | `MapHintNarrator`, `MapHintTable`, `catalog/map-hints.json`: said once on passing, with the side by the walk; signs anywhere; Act 3 camps add the entrance to the scanner (inferred trigger); settings `MapHints`, `MapHintSides`; dev command `maphints` ([map hints](docs/research/map-hints.md)) |
 | Microtransaction shop | done (live, no purchase made) | `UiSemantics.ShopPage` + highlight markers in game (`FocusTracker.InGameHighlightRoot`): tabs, categories "Pestañas de alijo, 27/27, 2 de 13", items "Pestaña extra de alijo, 30 puntos, 5 de 27", flags, featured banners named from their image ([shop](docs/research/shop.md)) |
 | Harmful ground and boss movement rules (Freythorn) | done (unit) | 7 ground buffs whose descriptions do not say "standing" added by the `hazards` extractor (swamp, spores, mud, the Voodoo King's rat tornado); "¡Quédate quieto!" / "¡Sigue moviéndote!" on the Voodoo King's punishment buffs (`StatusAilments`). Freythorn has no falls: the void between its treetop platforms is unwalkable ground the radar already calls wall |
-| GameHelper window out of Alt+Tab and the taskbar | done (live 2026-10-28) | `HostWindowHider`: WS_EX_TOOLWINDOW put back twice a second (the overlay library rewrites the whole extended style on click-through changes); Alt+Tab shows only the game and the terminal |
+| No mod window in Alt+Tab or the taskbar | done (2026-11-08) | the own host has no window at all (the GameHelper overlay and the plugin's `HostWindowHider` are gone) |
 
 ## Derived facts (with source)
 - **Rapid Shot heat:** player buffs `heat_79` then `overheated_79` 2.4 s later ("Player buff seen", log 2026-11-05 20:46); BuffDefinitions rows 2162 "Heat"/"Calor" and 2855 "Overheated"/"Sobrecalentado". Gem text at level 5: maximum heat 30, no firing or reloading for 10 s at the maximum. Measured "Arma sobrecalentada" to "Arma lista": about 10.4 s (log 2026-11-05 21:36-22:02: the 10 s plus `EndHoldMs`).
@@ -412,8 +413,7 @@
   alarm, beacon, quest matching, cooldown, skills ready, ailments, dodge threats, map markers). Dev tools: `tools/computer_use/`; dev commands
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
 - Launcher (`tools/Poe2AccessLauncher`): `Updater` + pure `ReleaseTag` (auto-update), `HostController`, pure `GameInstall`
-  + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates); the
-  plugin's `HostWindowHider` keeps GameHelper out of Alt+Tab.
+  + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
 First (2026-11-08): what the mod says is read from game data, never the window ([data sources](docs/research/data-sources.md)). The world is placed by the camera's own matrix with its aspect divided out (`ScreenProjection`, `CameraView.Draw`; 0.00000 heights from the window's drawing at 16:9 and 5:4); a world map pin is told from its MapPins row when its popup was not heard, and its level when only that was missing (`MapPinNarrator`, endgame-ui.md §6); passive nodes sit on the tree's canvas, so the stick's picks are the same at every window size (the game's landings were identical at 5:4, 21:9 and 16:9; the model 100/120 and 107/120 on random walks); Culling Strike follows the player's threshold stats; reading order and option entries use laid-out rects. Sweeps at 16:9, 21:9 and 5:4 diffed: only 5:4's hidden Smallcaps captions remain, the game's own. Next, asked by the user (2026-11-08): read more from the game's code and files instead of any geometry, and judge whether to drop GameHelper for an own host that survives updates better. (1) The stick's exact rule, found in the executable (RVA 0x9B9BA0; [passive tree](docs/research/passive-tree.md), last bullet of "Stick movement"): linked nodes within 20 degrees first, else the lowest `(5 - 4 dot) * distance` within 45, only nodes inside the window; 240/240 on the recorded pushes against the model's 208. Implement it in `PassiveStick` (linked flag and edge order, the window and the panel's centre), after confirming the edge order live. Report, tools and the 240 pushes: D:\code\decompilers\projects\poe2-research (`re\stick-rule.md`). No RTTI in this build (vtable-8 holds no locator). (2) Ghidra 12.0 is installed at D:\code\decompilers\ghidra_12.0_PUBLIC (12.2 is out, 2026-10-16): run a full headless analysis of PathOfExileSteam.exe into a durable project there (`support\analyzeHeadless.bat <dir> poe2 -import <exe> -max-cpu 12`, GHIDRA_MAXMEM=20G; the PE is not packed, TLS callbacks at 0x142EAC188). (3) The GameHelper question: inventory what the plugin uses from it (attach, 6 signature patterns, states, components, UI elements, frame loop) against what already heals itself ([patch survival](docs/research/patch-survival-survey.md), [compatibility](docs/compatibility.md)), then recommend. Release pending: everything since v2026.11.07-8 (window independence, camera matrix, map pins, culling stats, passive canvas) is committed and pushed but not released.

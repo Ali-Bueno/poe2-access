@@ -122,7 +122,7 @@ once in game, and the launcher starts it before regenerating.
 
 ## package — test build for other players
 ```
-pwsh tools/package/New-TestPackage.ps1      # with the host stopped; writes dist/Poe2Access-test-<date>.zip (+ .7z with 7-Zip)
+pwsh tools/package/New-TestPackage.ps1      # with the host stopped; writes dist/package/Poe2Access-test-<date>.zip (+ .7z with 7-Zip)
 ```
 The top folder holds only `Poe2Access.exe` (the launcher as one self-contained, trimmed file, ~14 MB, left uncompressed so the archive compresses it better), `README.txt`,
 the controls and the stop shortcut; the host (`host/Poe2AccessHost`) and Poe2UiExtract are published self-contained into `app/`
@@ -130,7 +130,7 @@ the controls and the stop shortcut; the host (`host/Poe2AccessHost`) and Poe2UiE
 `app/Poe2Access.log`), with only the accessibility plugin (dll, PRISM, catalogs including `important_tgt_files.txt`, research
 mode off), `README.txt` (English instructions), the controls doc (`Controls.md`) and a stop shortcut (`Stop the mod.bat`). No
 game sounds are shipped: the launcher regenerates them, and the catalogs, from the tester's install (`oo2core.dll` ships for
-bundle reading). The runtime's native PDB reader and `createdump.exe` are left out. The .7z (LZMA2) fits a 30 MB chat
+bundle reading). The runtime's native PDB reader and `createdump.exe` are left out. The .7z (LZMA2, about 35 MB since the recorded item sounds; the zip about 51 MB) no longer fits a 30 MB chat
 upload, and Windows 11 opens it (Windows 10 needs 7-Zip or WinRAR). `dist/` is gitignored; publishing a release stays a
 manual decision. Updating an install made before the own host: the launcher keeps `app/Plugins/Poe2Accessibility/config`
 and the extracted sounds, deletes the loose files in `app/` the new package lacks (GameHelper and its libraries, keeping

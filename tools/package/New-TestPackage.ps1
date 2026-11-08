@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
-    Builds a test package of the mod: unzip, run Poe2Access.exe, play. Writes dist\Poe2Access-test-<date>.zip, and a
-    smaller .7z beside it when 7-Zip is installed (under the 30 MB a chat upload takes; the zip is about 45 MB).
+    Builds a test package of the mod: unzip, run Poe2Access.exe, play. Writes dist\package\Poe2Access-test-<date>.zip, and a
+    smaller .7z beside it when 7-Zip is installed (about 35 MB; the zip is about 51 MB).
 .DESCRIPTION
     The top folder holds only the launcher (one self-contained, trimmed executable), the instructions, the controls and
     a stop shortcut. The host (Poe2AccessHost) and the sound extractor are published self-contained into "app" (they
@@ -12,7 +12,7 @@
     an update; a package without it never updates itself.
 #>
 param(
-    [string]$Output = (Join-Path $PSScriptRoot '..\..\dist'),
+    [string]$Output = (Join-Path $PSScriptRoot '..\..\dist\package'), # never dist itself: dist\Poe2Access is a play install
     [string]$Version = ''
 )
 
