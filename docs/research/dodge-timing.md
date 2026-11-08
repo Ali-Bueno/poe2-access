@@ -98,3 +98,64 @@ projectile attack (`ProjectileSpeed`) lands its flight later: `TravelMs` = the g
 start ÷ speed, added to the release before the 500 ms lead; the warning still sounds after the monster turns away while
 the projectile flies (`CanStillHit`), and a blow is learnt as its release (the flight taken off), since the flight
 differs with each distance.
+
+## Kinds from the data (2026-11-08, 0.5.5f)
+Until now the *kind* of an attack (a blow beside the monster, a hit from afar, or nothing) came only from English words
+in the animation's name (`DodgeThreats`), and the files only timed it. Now `hit-times` also asks the game's skill tables
+what each monster skill does (`SkillThreats`), and the mod reads the name only where the tables are mute.
+
+- Sources, all read-only and regenerated after a patch: `MonsterVarieties.GrantedEffects` → `GrantedEffects.ActiveSkill`
+  (+0x4F) → `ActiveSkills` Id and ActiveSkillTypes (+0x40); the main stat set's implicit (+0x18) and constant (+0x28)
+  stats. The ActiveSkills Id is the game's own kind of skill: `melee`, `geometry_attack` (a shaped blow beside the
+  monster: slams, cleaves), `geometry_spell`, `monster_projectile_spell`/`_weapon`, `monster_mortar`, `table_charge`,
+  `dash_to_target`, `teleport`, `monster_dodge`, `summon_specific_monsters_*`, `empty_action_spell`/`_attack`… (244 kinds
+  among monster skills). No `ActiveSkillTargetTypes` table exists in PoE2, the `.ais` AI scripts are not shipped, and
+  the ActiveSkillTypes of monster skills are too sparse to tell a buff from an area attack (both plain `Spell`).
+- Verdict per skill, in this order: a projectile stat (`base_is_projectile`, `monster_projectile_variation`) or a known
+  projectile speed → **ranged**; a Movement/Travel/Blink type on a melee or damaging skill (charges, leaps) → **ranged**;
+  the `melee`/`player_melee*` kind → **melee**; a damage stat (`is_area_damage`, `spell_minimum_base_*_damage`,
+  `base_chaos_damage_to_deal_per_minute`) → **melee** for `geometry_attack*`, else **ranged**; `base_deal_no_damage`/
+  `deal_no_damage` → **calm**, except on carrier kinds (mortar, projectile, trigger, invoke, beam, geometry, channel,
+  execute: their payload is another skill's, the Ram Giant's wheel throw and Volatile Dead's detonation among them);
+  a calm kind by the game's own name (`teleport*`, `monster_dodge*`, `dodge_roll`, `change_to_stance*`, `transform`,
+  `summon_*`, `revive*`, `raise_*`, `*_warp`, `add_buff*`, `unload_ammo`, warcries) → **calm**; anything else → **mute**.
+  An action combines its skills: ranged wins, then melee, calm only when every skill is calm, mute otherwise; the basic
+  Melee action (no granted skill) is melee; follow-up actions (Charge, ChargeEnd) inherit the kind as they inherit the
+  block flags. The mute kinds are mostly `empty_action_*` (an animation whose damage the AI triggers through skills with
+  no animation of their own, `…TriggerGA`), `execute_geal`, `geometry_trigger` and dashes whose landing slam is a
+  separate skill (55 of 68 LeapSlam dashes have one): the name decides there, as before.
+- A "contact" event is not a blow by itself: 473 actions the name calls calm have one (DodgeForward, Teleport, SpellBuff,
+  Revive, RaiseSpectre, SummonMinion), so "anything with a hit event warns" would have brought the grub's Submerge back.
+  A calm action is written `=-;calm` without its time.
+- `hit-times.txt` lines now carry `;melee|ranged|calm[,noblock,noparry]`; 9025 lines (was 7117: untimed attacks with a
+  kind are written too; launcher step "hit times" v3). `DodgeTimings.Threat(key)` gives the kind; `BossWatch` takes it
+  before the name, and logs each attack it had to read by name once ("Dodge kind from the animation's name: … -> Melee";
+  `NamedThreats` counts them). An animation id with no name at all now stays quiet instead of warning as ranged.
+- Counts on the current files (monster attacks with an animation in their `.act`, 8967): kind from the data 5604 (62 %,
+  5162 of them timed), calm by the data 218, left to the name 3145 (2139 the name warns of, 1006 it calls calm). Before,
+  the name decided all 8967 and warned of 7692. Bosses (406 varieties with "Boss" in the path, 3011 attacks): data 1590
+  (1414 timed), calm 80, name 1341. `hit-times <game> <out> <audit.tsv>` writes every disagreement with the name (668).
+- Judged from the audit: the data **adds** 160 warnings the name missed and they look right: the Giant Starfish's four
+  tentacle attacks play `SpellBuff*` animations with the `melee` kind; the Chimera's lightning breath plays `SpellBuffCold`
+  and is a projectile; `RollingMagma`, `MagneticSalvo`, `FreezingSalvo`, `Spearstorm`, `WindstormLance`,
+  `DoryaniHumanBossLightningZap` carry projectile or damage stats; Quadrilla's commando roll (`DodgeForward`) and the
+  Mutewind spear flicker (`Teleport`) are `melee` skills. The data **silences** 66: summons on `SpellAreaOfEffect*`
+  animations (Lachlann's swarm and wife, the Rust King's skeletons), Balbala's flicker clones (`teleport`), the
+  Ancestral Turtle's bubble (`add_buff_to_target`). Kind swaps: 288 melee by the data (mostly `geometry_attack` slams on
+  `SpellAreaOfEffect*` names: a rare's slam now needs it within 150 units, a unique's still carries) and 166 ranged
+  (slams with `is_area_damage` through `empty_action_attack`/`geometry_spell`, the Hag's ice shard `Puncture`, the Risen
+  Arbalest's basic shot on the `Melee` animation).
+- Needs a live check: the Devourer's and Mud Burrower boss heads' `Submerge` (`minotaur_burrow`, `is_area_damage`,
+  "MudBurrowerBurrowSpam": the data says the burrow hurts and warns every dive); geometry attacks as melee on rares
+  (a far cleave may now go unwarned); the `melee`-kind dodge rolls and teleport strikes (warn only within reach).
+  The grub's Submerge/Hide are not skills of its row: no data, the name keeps them calm.
+- Agreement with blows timed live (363 "Dodge timing" log lines, 60 attacks, plus `dodge-timings.txt`): the files time
+  53 of 60; median error 156 ms, 25 within 150 ms, 34 within 300 ms. Many live samples are a life drop attributed to
+  the one attack in reach (values under 100 ms, a FungusBehemoth multi-hit at 125–3000 ms): on attacks with two or more
+  samples of 100 ms or longer the median error is 86 ms (23 timed, 14 within 150 ms). Untimed yet felt: the Miller's
+  Charge and ChargeEnd (bespoke events), FungusBehemoth 36/38, RustedSoldierBow 448.
+- The per-patch news (`GameNews`, `GameNewsNotes`, `config/game-news.txt`) now says, for each new monster, its boss mark
+  and `DodgeCoverage` ("7 attacks: 5 timed, 6 kinds from the data, 1 from the name"); for a buff its rule or hazard;
+  for an area whether `area-names.json` names it; for a minimap icon its kind; for a screen whether the UI catalog has
+  it; and counts the unclassified per table in the spoken line ("monstruos 12, todo cubierto; efectos 9, 3 sin
+  clasificar").
