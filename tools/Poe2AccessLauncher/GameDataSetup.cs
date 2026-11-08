@@ -85,7 +85,7 @@ internal static class GameDataSetup
             new Step("game ids", 4, "game-ids.txt", "game-ids", true),
             new Step("game keys", 3, "game-keys.txt", "game-keys", true),
             new Step("places", 1, "places.json", "places", true),
-            new Step("endgame", 2, "endgame.json", "endgame", true),
+            new Step("endgame", 3, "endgame.json", "endgame", true),
             new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
             new Step("trial data", 1, "trials.json", "trial-data", true),
             new Step(SoundsStep, 6, null, null, Input: ItemSoundsStep),

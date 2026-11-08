@@ -4563,7 +4563,10 @@
         "AtlasInsideFortressRed65"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed10": {
       "graph": "endgamemaplayoutgraph",
@@ -4574,7 +4577,10 @@
         "AtlasInsideFortressRed70"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed11": {
       "graph": "endgamemaplayoutgraph",
@@ -4586,7 +4592,10 @@
         "AtlasInsideFortressRed10"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed12": {
       "graph": "endgamemaplayoutgraph",
@@ -4597,7 +4606,10 @@
         "AtlasInsideFortressRed13_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed13_": {
       "graph": "endgamemaplayoutgraph",
@@ -4616,7 +4628,10 @@
         "Forest",
         "Desert"
       ],
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed14": {
       "graph": "endgamemaplayoutgraph",
@@ -4628,7 +4643,10 @@
         "AtlasInsideFortressRed13_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed15": {
       "graph": "endgamemaplayoutgraph",
@@ -4639,7 +4657,10 @@
         "AtlasInsideFortressRed16"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed16": {
       "graph": "endgamemaplayoutgraph",
@@ -4650,7 +4671,10 @@
         "AtlasInsideFortressRed18"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed17": {
       "graph": "endgamemaplayoutgraph",
@@ -4662,7 +4686,10 @@
         "AtlasInsideFortressRed15"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed18": {
       "graph": "endgamemaplayoutgraph",
@@ -4674,7 +4701,10 @@
         "AtlasInsideFortressRed16"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed19": {
       "graph": "endgamemaplayoutgraph",
@@ -4685,7 +4715,10 @@
         "AtlasInsideFortressRed18"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed2": {
       "graph": "endgamemaplayoutgraph",
@@ -4696,7 +4729,10 @@
         "AtlasInsideFortressRed65"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed20": {
       "graph": "endgamemaplayoutgraph",
@@ -4708,7 +4744,10 @@
         "AtlasInsideFortressRed70"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed21": {
       "graph": "endgamemaplayoutgraph",
@@ -4720,7 +4759,10 @@
         "AtlasInsideFortressRed66"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed22_": {
       "graph": "endgamemaplayoutgraph",
@@ -4733,7 +4775,10 @@
         "AtlasInsideFortressRed70"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed23": {
       "graph": "endgamemaplayoutgraph",
@@ -4753,7 +4798,10 @@
         "Swamp",
         "Desert"
       ],
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed24_": {
       "graph": "endgamemaplayoutgraph",
@@ -4771,7 +4819,10 @@
         "Forest",
         "Swamp"
       ],
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed25_": {
       "graph": "endgamemaplayoutgraph",
@@ -4783,7 +4834,10 @@
         "AtlasInsideFortressRed64"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed26": {
       "graph": "endgamemaplayoutgraph",
@@ -4802,7 +4856,10 @@
         "Swamp",
         "Desert"
       ],
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed27_": {
       "graph": "endgamemaplayoutgraph",
@@ -4814,7 +4871,10 @@
         "AtlasInsideFortressRed65"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed28": {
       "graph": "endgamemaplayoutgraph",
@@ -4826,7 +4886,10 @@
         "AtlasInsideFortressRed65"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed29": {
       "graph": "endgamemaplayoutgraph",
@@ -4837,7 +4900,10 @@
         "AtlasInsideFortressRed28"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed3": {
       "graph": "endgamemaplayoutgraph",
@@ -4849,7 +4915,10 @@
         "AtlasInsideFortressRed4_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed30": {
       "graph": "endgamemaplayoutgraph",
@@ -4861,7 +4930,10 @@
         "AtlasInsideFortressRed28"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed31_": {
       "graph": "endgamemaplayoutgraph",
@@ -4873,7 +4945,10 @@
         "AtlasInsideFortressRed30"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed32": {
       "graph": "endgamemaplayoutgraph",
@@ -4884,7 +4959,10 @@
         "AtlasInsideFortressRed31_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed33": {
       "graph": "endgamemaplayoutgraph",
@@ -4902,7 +4980,10 @@
         "Forest",
         "Desert"
       ],
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed34": {
       "graph": "endgamemaplayoutgraph",
@@ -4914,7 +4995,10 @@
         "AtlasInsideFortressRed33"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed35": {
       "graph": "endgamemaplayoutgraph",
@@ -4925,7 +5009,10 @@
         "AtlasInsideFortressRed33"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed36_": {
       "graph": "endgamemaplayoutgraph",
@@ -4937,7 +5024,10 @@
         "AtlasInsideFortressRed62"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed37": {
       "graph": "endgamemaplayoutgraph",
@@ -4949,7 +5039,10 @@
         "AtlasInsideFortressRed35"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed38": {
       "graph": "endgamemaplayoutgraph",
@@ -4967,7 +5060,10 @@
         "Swamp",
         "Desert"
       ],
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed39": {
       "graph": "endgamemaplayoutgraph",
@@ -4979,7 +5075,10 @@
         "AtlasInsideFortressRed40"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed40": {
       "graph": "endgamemaplayoutgraph",
@@ -4991,7 +5090,10 @@
         "AtlasInsideFortressRed42"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed41": {
       "graph": "endgamemaplayoutgraph",
@@ -5010,7 +5112,10 @@
         "Swamp",
         "Desert"
       ],
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed42": {
       "graph": "endgamemaplayoutgraph",
@@ -5023,7 +5128,10 @@
         "AtlasInsideFortressRed40"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed43": {
       "graph": "endgamemaplayoutgraph",
@@ -5041,7 +5149,10 @@
         "Forest",
         "Swamp"
       ],
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed44_": {
       "graph": "endgamemaplayoutgraph",
@@ -5052,7 +5163,10 @@
         "AtlasInsideFortressRed42"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed45": {
       "graph": "endgamemaplayoutgraph",
@@ -5070,7 +5184,10 @@
         "Swamp",
         "Desert"
       ],
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed46": {
       "graph": "endgamemaplayoutgraph",
@@ -5082,7 +5199,10 @@
         "AtlasInsideFortressRed59"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed47": {
       "graph": "endgamemaplayoutgraph",
@@ -5093,7 +5213,10 @@
         "AtlasInsideFortressRed45"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed48": {
       "graph": "endgamemaplayoutgraph",
@@ -5104,7 +5227,10 @@
         "AtlasInsideFortressRed52"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed49_": {
       "graph": "endgamemaplayoutgraph",
@@ -5116,7 +5242,10 @@
         "AtlasInsideFortressRed55"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed4_": {
       "graph": "endgamemaplayoutgraph",
@@ -5128,7 +5257,10 @@
         "AtlasInsideFortressRed64"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed5": {
       "graph": "endgamemaplayoutgraph",
@@ -5139,7 +5271,10 @@
         "AtlasInsideFortressRed64"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed50_": {
       "graph": "endgamemaplayoutgraph",
@@ -5150,7 +5285,10 @@
         "AtlasInsideFortressRed54"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed51": {
       "graph": "endgamemaplayoutgraph",
@@ -5161,7 +5299,10 @@
         "AtlasInsideFortressRed52"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed52": {
       "graph": "endgamemaplayoutgraph",
@@ -5173,7 +5314,10 @@
         "AtlasInsideFortressRed48"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed53": {
       "graph": "endgamemaplayoutgraph",
@@ -5185,7 +5329,10 @@
         "AtlasInsideFortressRed50_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed54": {
       "graph": "endgamemaplayoutgraph",
@@ -5196,7 +5343,10 @@
         "AtlasInsideFortressRed55"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed55": {
       "graph": "endgamemaplayoutgraph",
@@ -5207,7 +5357,10 @@
         "AtlasInsideFortressRed54"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed56": {
       "graph": "endgamemaplayoutgraph",
@@ -5218,7 +5371,10 @@
         "AtlasInsideFortressRed57"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed57": {
       "graph": "endgamemaplayoutgraph",
@@ -5230,7 +5386,10 @@
         "AtlasInsideFortressRed56"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed58": {
       "graph": "endgamemaplayoutgraph",
@@ -5242,7 +5401,10 @@
         "AtlasInsideFortressRed57"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed59": {
       "graph": "endgamemaplayoutgraph",
@@ -5261,7 +5423,10 @@
         "Swamp",
         "Desert"
       ],
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed6": {
       "graph": "endgamemaplayoutgraph",
@@ -5272,7 +5437,10 @@
         "AtlasInsideFortressRed25_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed60": {
       "graph": "endgamemaplayoutgraph",
@@ -5283,7 +5451,10 @@
         "AtlasInsideFortressRed42"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed61": {
       "graph": "endgamemaplayoutgraph",
@@ -5294,7 +5465,10 @@
         "AtlasInsideFortressRed43"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed62": {
       "graph": "endgamemaplayoutgraph",
@@ -5306,7 +5480,10 @@
         "AtlasInsideFortressRed38"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower8"
+      ]
     },
     "AtlasInsideFortressRed63_": {
       "graph": "endgamemaplayoutgraph",
@@ -5317,7 +5494,10 @@
         "AtlasInsideFortressRed26"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed64": {
       "graph": "endgamemaplayoutgraph",
@@ -5336,7 +5516,10 @@
         "Swamp",
         "Desert"
       ],
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed65": {
       "graph": "endgamemaplayoutgraph",
@@ -5349,7 +5532,10 @@
         "AtlasInsideFortressRed27_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed66": {
       "graph": "endgamemaplayoutgraph",
@@ -5360,7 +5546,10 @@
         "AtlasInsideFortressRed18"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed67": {
       "graph": "endgamemaplayoutgraph",
@@ -5371,7 +5560,10 @@
         "AtlasInsideFortressRed4_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed68": {
       "graph": "endgamemaplayoutgraph",
@@ -5383,7 +5575,10 @@
         "AtlasInsideFortressRed8"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed69": {
       "graph": "endgamemaplayoutgraph",
@@ -5394,7 +5589,10 @@
         "AtlasInsideFortressRed22_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed7": {
       "graph": "endgamemaplayoutgraph",
@@ -5405,7 +5603,10 @@
         "AtlasInsideFortressRed24_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed70": {
       "graph": "endgamemaplayoutgraph",
@@ -5424,7 +5625,10 @@
         "Swamp",
         "Desert"
       ],
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed8": {
       "graph": "endgamemaplayoutgraph",
@@ -5435,7 +5639,10 @@
         "AtlasInsideFortressRed9"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressRed9": {
       "graph": "endgamemaplayoutgraph",
@@ -5446,7 +5653,10 @@
         "AtlasInsideFortressRed8"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementArbiterOfAsh"
+      "blocked": "MapEntryRequirementArbiterOfAsh",
+      "towers": [
+        "AtlasWallTower7"
+      ]
     },
     "AtlasInsideFortressWhite1": {
       "graph": "endgamemaplayoutgraph",
@@ -5459,7 +5669,10 @@
         "AtlasInsideFortressWhite5"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite10": {
       "graph": "endgamemaplayoutgraph",
@@ -5471,7 +5684,10 @@
         "AtlasInsideFortressWhite11_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite100": {
       "graph": "endgamemaplayoutgraph",
@@ -5483,7 +5699,10 @@
         "AtlasInsideFortressWhite34"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite11_": {
       "graph": "endgamemaplayoutgraph",
@@ -5495,7 +5714,10 @@
         "AtlasInsideFortressWhite66"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite12_": {
       "graph": "endgamemaplayoutgraph",
@@ -5507,7 +5729,10 @@
         "AtlasInsideFortressWhite11_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite13": {
       "graph": "endgamemaplayoutgraph",
@@ -5519,7 +5744,10 @@
         "AtlasInsideFortressWhite83"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite14_": {
       "graph": "endgamemaplayoutgraph",
@@ -5531,7 +5759,10 @@
         "AtlasInsideFortressWhite15"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite15": {
       "graph": "endgamemaplayoutgraph",
@@ -5543,7 +5774,10 @@
         "AtlasInsideFortressWhite83"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite16": {
       "graph": "endgamemaplayoutgraph",
@@ -5556,7 +5790,10 @@
         "AtlasInsideFortressWhite15"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite17": {
       "graph": "endgamemaplayoutgraph",
@@ -5568,7 +5805,10 @@
         "AtlasInsideFortressWhite21"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite18": {
       "graph": "endgamemaplayoutgraph",
@@ -5580,7 +5820,10 @@
         "AtlasInsideFortressWhite97"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite19": {
       "graph": "endgamemaplayoutgraph",
@@ -5592,7 +5835,10 @@
         "AtlasWhiteLock1"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite2": {
       "graph": "endgamemaplayoutgraph",
@@ -5605,7 +5851,10 @@
         "AtlasInsideFortressWhite41"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite20": {
       "graph": "endgamemaplayoutgraph",
@@ -5617,7 +5866,10 @@
         "AtlasInsideFortressWhite19"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite21": {
       "graph": "endgamemaplayoutgraph",
@@ -5629,7 +5881,10 @@
         "AtlasInsideFortressWhite17"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite22__": {
       "graph": "endgamemaplayoutgraph",
@@ -5641,7 +5896,10 @@
         "AtlasInsideFortressWhite30"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite23": {
       "graph": "endgamemaplayoutgraph",
@@ -5653,7 +5911,10 @@
         "AtlasInsideFortressWhite20"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite24": {
       "graph": "endgamemaplayoutgraph",
@@ -5665,7 +5926,10 @@
         "AtlasInsideFortressWhite31"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite25": {
       "graph": "endgamemaplayoutgraph",
@@ -5677,7 +5941,10 @@
         "AtlasInsideFortressWhite26"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite26": {
       "graph": "endgamemaplayoutgraph",
@@ -5689,7 +5956,10 @@
         "AtlasWhiteLock1"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite27": {
       "graph": "endgamemaplayoutgraph",
@@ -5701,7 +5971,10 @@
         "AtlasInsideFortressWhite80"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite28": {
       "graph": "endgamemaplayoutgraph",
@@ -5713,7 +5986,10 @@
         "AtlasInsideFortressWhite31"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite29": {
       "graph": "endgamemaplayoutgraph",
@@ -5726,7 +6002,10 @@
         "AtlasInsideFortressWhite31"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite30": {
       "graph": "endgamemaplayoutgraph",
@@ -5738,7 +6017,10 @@
         "AtlasInsideFortressWhite29"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite31": {
       "graph": "endgamemaplayoutgraph",
@@ -5750,7 +6032,10 @@
         "AtlasInsideFortressWhite28"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite32": {
       "graph": "endgamemaplayoutgraph",
@@ -5763,7 +6048,10 @@
         "AtlasInsideFortressWhite37"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite33": {
       "graph": "endgamemaplayoutgraph",
@@ -5775,7 +6063,10 @@
         "AtlasInsideFortressWhite36"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite34": {
       "graph": "endgamemaplayoutgraph",
@@ -5787,7 +6078,10 @@
         "AtlasInsideFortressWhite100"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite35__": {
       "graph": "endgamemaplayoutgraph",
@@ -5799,7 +6093,10 @@
         "AtlasInsideFortressWhite6__"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite36": {
       "graph": "endgamemaplayoutgraph",
@@ -5811,7 +6108,10 @@
         "AtlasInsideFortressWhite37"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite37": {
       "graph": "endgamemaplayoutgraph",
@@ -5822,7 +6122,10 @@
         "AtlasInsideFortressWhite36"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite38_": {
       "graph": "endgamemaplayoutgraph",
@@ -5834,7 +6137,10 @@
         "AtlasInsideFortressWhite36"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite39_": {
       "graph": "endgamemaplayoutgraph",
@@ -5846,7 +6152,10 @@
         "AtlasInsideFortressWhite100"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite3_": {
       "graph": "endgamemaplayoutgraph",
@@ -5859,7 +6168,10 @@
         "AtlasInsideFortressWhite4"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite4": {
       "graph": "endgamemaplayoutgraph",
@@ -5872,7 +6184,10 @@
         "AtlasInsideFortressWhite78_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite40": {
       "graph": "endgamemaplayoutgraph",
@@ -5883,7 +6198,10 @@
         "AtlasInsideFortressWhite1"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite41": {
       "graph": "endgamemaplayoutgraph",
@@ -5894,7 +6212,10 @@
         "AtlasInsideFortressWhite45"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite42": {
       "graph": "endgamemaplayoutgraph",
@@ -5906,7 +6227,10 @@
         "AtlasInsideFortressWhite96"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite43": {
       "graph": "endgamemaplayoutgraph",
@@ -5918,7 +6242,10 @@
         "AtlasInsideFortressWhite49"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite44": {
       "graph": "endgamemaplayoutgraph",
@@ -5929,7 +6256,10 @@
         "AtlasInsideFortressWhite96"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite45": {
       "graph": "endgamemaplayoutgraph",
@@ -5941,7 +6271,10 @@
         "AtlasInsideFortressWhite99"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite46": {
       "graph": "endgamemaplayoutgraph",
@@ -5952,7 +6285,10 @@
         "AtlasInsideFortressWhite88_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite47": {
       "graph": "endgamemaplayoutgraph",
@@ -5964,7 +6300,10 @@
         "AtlasInsideFortressWhite99"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite48": {
       "graph": "endgamemaplayoutgraph",
@@ -5976,7 +6315,10 @@
         "AtlasInsideFortressWhite47"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite49": {
       "graph": "endgamemaplayoutgraph",
@@ -5988,7 +6330,10 @@
         "AtlasInsideFortressWhite43"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite5": {
       "graph": "endgamemaplayoutgraph",
@@ -5999,7 +6344,10 @@
         "AtlasInsideFortressWhite1"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite50": {
       "graph": "endgamemaplayoutgraph",
@@ -6011,7 +6359,10 @@
         "AtlasInsideFortressWhite73_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite51": {
       "graph": "endgamemaplayoutgraph",
@@ -6023,7 +6374,10 @@
         "AtlasInsideFortressWhite49"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite52": {
       "graph": "endgamemaplayoutgraph",
@@ -6035,7 +6389,10 @@
         "AtlasWhiteLock2"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite53": {
       "graph": "endgamemaplayoutgraph",
@@ -6047,7 +6404,10 @@
         "AtlasInsideFortressWhite54"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite54": {
       "graph": "endgamemaplayoutgraph",
@@ -6058,7 +6418,10 @@
         "AtlasInsideFortressWhite55_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite55_": {
       "graph": "endgamemaplayoutgraph",
@@ -6070,7 +6433,10 @@
         "AtlasInsideFortressWhite70"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite56": {
       "graph": "endgamemaplayoutgraph",
@@ -6082,7 +6448,10 @@
         "AtlasInsideFortressWhite55_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite57_": {
       "graph": "endgamemaplayoutgraph",
@@ -6095,7 +6464,10 @@
         "AtlasInsideFortressWhite48"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite58": {
       "graph": "endgamemaplayoutgraph",
@@ -6107,7 +6479,10 @@
         "AtlasInsideFortressWhite94"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite59": {
       "graph": "endgamemaplayoutgraph",
@@ -6119,7 +6494,10 @@
         "AtlasInsideFortressWhite88_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite60": {
       "graph": "endgamemaplayoutgraph",
@@ -6130,7 +6508,10 @@
         "AtlasInsideFortressWhite62_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite61": {
       "graph": "endgamemaplayoutgraph",
@@ -6142,7 +6523,10 @@
         "AtlasInsideFortressWhite58"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite62_": {
       "graph": "endgamemaplayoutgraph",
@@ -6154,7 +6538,10 @@
         "AtlasInsideFortressWhite94"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite63": {
       "graph": "endgamemaplayoutgraph",
@@ -6166,7 +6553,10 @@
         "AtlasInsideFortressWhite64"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite64": {
       "graph": "endgamemaplayoutgraph",
@@ -6178,7 +6568,10 @@
         "AtlasInsideFortressWhite63"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite65_": {
       "graph": "endgamemaplayoutgraph",
@@ -6190,7 +6583,10 @@
         "AtlasInsideFortressWhite67"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite66": {
       "graph": "endgamemaplayoutgraph",
@@ -6201,7 +6597,10 @@
         "AtlasInsideFortressWhite11_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite67": {
       "graph": "endgamemaplayoutgraph",
@@ -6212,7 +6611,10 @@
         "AtlasInsideFortressWhite65_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite68": {
       "graph": "endgamemaplayoutgraph",
@@ -6223,7 +6625,10 @@
         "AtlasInsideFortressWhite91"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite69": {
       "graph": "endgamemaplayoutgraph",
@@ -6235,7 +6640,10 @@
         "AtlasInsideFortressWhite70"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite6__": {
       "graph": "endgamemaplayoutgraph",
@@ -6246,7 +6654,10 @@
         "AtlasInsideFortressWhite7_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite70": {
       "graph": "endgamemaplayoutgraph",
@@ -6258,7 +6669,10 @@
         "AtlasInsideFortressWhite55_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite71": {
       "graph": "endgamemaplayoutgraph",
@@ -6269,7 +6683,10 @@
         "AtlasInsideFortressWhite63"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite72": {
       "graph": "endgamemaplayoutgraph",
@@ -6280,7 +6697,10 @@
         "AtlasInsideFortressWhite53"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite73_": {
       "graph": "endgamemaplayoutgraph",
@@ -6291,7 +6711,10 @@
         "AtlasWhiteLock2"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite74": {
       "graph": "endgamemaplayoutgraph",
@@ -6302,7 +6725,10 @@
         "AtlasInsideFortressWhite50"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite75": {
       "graph": "endgamemaplayoutgraph",
@@ -6313,7 +6739,10 @@
         "AtlasInsideFortressWhite49"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite76": {
       "graph": "endgamemaplayoutgraph",
@@ -6326,7 +6755,10 @@
         "AtlasInsideFortressWhite43"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite77": {
       "graph": "endgamemaplayoutgraph",
@@ -6338,7 +6770,10 @@
         "AtlasInsideFortressWhite4"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite78_": {
       "graph": "endgamemaplayoutgraph",
@@ -6350,7 +6785,10 @@
         "AtlasInsideFortressWhite4"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite79_": {
       "graph": "endgamemaplayoutgraph",
@@ -6361,7 +6799,10 @@
         "AtlasInsideFortressWhite33"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite7_": {
       "graph": "endgamemaplayoutgraph",
@@ -6373,7 +6814,10 @@
         "AtlasInsideFortressWhite6__"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite8": {
       "graph": "endgamemaplayoutgraph",
@@ -6385,7 +6829,10 @@
         "AtlasInsideFortressWhite29"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite80": {
       "graph": "endgamemaplayoutgraph",
@@ -6396,7 +6843,10 @@
         "AtlasInsideFortressWhite26"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite81": {
       "graph": "endgamemaplayoutgraph",
@@ -6408,7 +6858,10 @@
         "AtlasInsideFortressWhite19"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite82": {
       "graph": "endgamemaplayoutgraph",
@@ -6419,7 +6872,10 @@
         "AtlasInsideFortressWhite81"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite83": {
       "graph": "endgamemaplayoutgraph",
@@ -6430,7 +6886,10 @@
         "AtlasInsideFortressWhite15"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite84": {
       "graph": "endgamemaplayoutgraph",
@@ -6441,7 +6900,10 @@
         "AtlasWallTower1"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite85": {
       "graph": "endgamemaplayoutgraph",
@@ -6452,7 +6914,10 @@
         "AtlasInsideFortressWhite7_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite86_": {
       "graph": "endgamemaplayoutgraph",
@@ -6464,7 +6929,10 @@
         "AtlasInsideFortressWhite5"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite87": {
       "graph": "endgamemaplayoutgraph",
@@ -6476,7 +6944,10 @@
         "AtlasInsideFortressWhite46"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite88_": {
       "graph": "endgamemaplayoutgraph",
@@ -6488,7 +6959,10 @@
         "AtlasInsideFortressWhite46"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite89": {
       "graph": "endgamemaplayoutgraph",
@@ -6500,7 +6974,10 @@
         "AtlasInsideFortressWhite62_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite9": {
       "graph": "endgamemaplayoutgraph",
@@ -6512,7 +6989,10 @@
         "AtlasInsideFortressWhite66"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite90": {
       "graph": "endgamemaplayoutgraph",
@@ -6523,7 +7003,10 @@
         "AtlasInsideFortressWhite91"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite91": {
       "graph": "endgamemaplayoutgraph",
@@ -6535,7 +7018,10 @@
         "AtlasInsideFortressWhite90"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite92": {
       "graph": "endgamemaplayoutgraph",
@@ -6546,7 +7032,10 @@
         "AtlasInsideFortressWhite69"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite93": {
       "graph": "endgamemaplayoutgraph",
@@ -6558,7 +7047,10 @@
         "AtlasInsideFortressWhite67"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower4"
+      ]
     },
     "AtlasInsideFortressWhite94": {
       "graph": "endgamemaplayoutgraph",
@@ -6569,7 +7061,10 @@
         "AtlasInsideFortressWhite62_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite95": {
       "graph": "endgamemaplayoutgraph",
@@ -6581,7 +7076,10 @@
         "AtlasInsideFortressWhite44"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite96": {
       "graph": "endgamemaplayoutgraph",
@@ -6593,7 +7091,10 @@
         "AtlasInsideFortressWhite44"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressWhite97": {
       "graph": "endgamemaplayoutgraph",
@@ -6604,7 +7105,10 @@
         "AtlasInsideFortressWhite81"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower2"
+      ]
     },
     "AtlasInsideFortressWhite98": {
       "graph": "endgamemaplayoutgraph",
@@ -6616,7 +7120,10 @@
         "AtlasInsideFortressWhite100"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower1"
+      ]
     },
     "AtlasInsideFortressWhite99": {
       "graph": "endgamemaplayoutgraph",
@@ -6628,7 +7135,10 @@
         "AtlasInsideFortressWhite47"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementWhiteReactor"
+      "blocked": "MapEntryRequirementWhiteReactor",
+      "towers": [
+        "AtlasWallTower3"
+      ]
     },
     "AtlasInsideFortressYellowLeft1": {
       "graph": "endgamemaplayoutgraph",
@@ -6640,7 +7150,10 @@
         "AtlasInsideFortressYellowLeft33"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft10": {
       "graph": "endgamemaplayoutgraph",
@@ -6652,7 +7165,10 @@
         "AtlasInsideFortressYellowLeft43"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft11": {
       "graph": "endgamemaplayoutgraph",
@@ -6664,7 +7180,10 @@
         "AtlasInsideFortressYellowLeft12_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft12_": {
       "graph": "endgamemaplayoutgraph",
@@ -6676,7 +7195,10 @@
         "AtlasInsideFortressYellowLeft43"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft13": {
       "graph": "endgamemaplayoutgraph",
@@ -6688,7 +7210,10 @@
         "AtlasWallTower5"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft14": {
       "graph": "endgamemaplayoutgraph",
@@ -6700,7 +7225,10 @@
         "AtlasInsideFortressYellowLeft16"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft15_": {
       "graph": "endgamemaplayoutgraph",
@@ -6711,7 +7239,10 @@
         "AtlasInsideFortressYellowLeft14"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft16": {
       "graph": "endgamemaplayoutgraph",
@@ -6722,7 +7253,10 @@
         "AtlasInsideFortressYellowLeft17"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft17": {
       "graph": "endgamemaplayoutgraph",
@@ -6734,7 +7268,10 @@
         "AtlasInsideFortressYellowLeft16"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft18": {
       "graph": "endgamemaplayoutgraph",
@@ -6745,7 +7282,10 @@
         "AtlasInsideFortressYellowLeft17"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft19": {
       "graph": "endgamemaplayoutgraph",
@@ -6756,7 +7296,10 @@
         "AtlasInsideFortressYellowLeft20"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft2": {
       "graph": "endgamemaplayoutgraph",
@@ -6767,7 +7310,10 @@
         "AtlasInsideFortressYellowLeft3"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft20": {
       "graph": "endgamemaplayoutgraph",
@@ -6779,7 +7325,10 @@
         "AtlasInsideFortressYellowLeft21"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft21": {
       "graph": "endgamemaplayoutgraph",
@@ -6791,7 +7340,10 @@
         "AtlasInsideFortressYellowLeft20"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft22": {
       "graph": "endgamemaplayoutgraph",
@@ -6803,7 +7355,10 @@
         "AtlasInsideFortressYellowLeft20"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft23": {
       "graph": "endgamemaplayoutgraph",
@@ -6814,7 +7369,10 @@
         "AtlasInsideFortressYellowLeft21"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft24": {
       "graph": "endgamemaplayoutgraph",
@@ -6825,7 +7383,10 @@
         "AtlasInsideFortressYellowLeft48"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft25": {
       "graph": "endgamemaplayoutgraph",
@@ -6837,7 +7398,10 @@
         "AtlasInsideFortressYellowLeft49_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft26": {
       "graph": "endgamemaplayoutgraph",
@@ -6849,7 +7413,10 @@
         "AtlasInsideFortressYellowLeft49_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft27": {
       "graph": "endgamemaplayoutgraph",
@@ -6861,7 +7428,10 @@
         "AtlasInsideFortressYellowLeft38"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft28": {
       "graph": "endgamemaplayoutgraph",
@@ -6872,7 +7442,10 @@
         "AtlasInsideFortressYellowLeft50_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft29": {
       "graph": "endgamemaplayoutgraph",
@@ -6884,7 +7457,10 @@
         "AtlasInsideFortressYellowLeft28"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft3": {
       "graph": "endgamemaplayoutgraph",
@@ -6895,7 +7471,10 @@
         "AtlasInsideFortressYellowLeft2"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft30_": {
       "graph": "endgamemaplayoutgraph",
@@ -6907,7 +7486,10 @@
         "AtlasInsideFortressYellowLeft31"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft31": {
       "graph": "endgamemaplayoutgraph",
@@ -6918,7 +7500,10 @@
         "AtlasInsideFortressYellowLeft32"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft32": {
       "graph": "endgamemaplayoutgraph",
@@ -6929,7 +7514,10 @@
         "AtlasInsideFortressYellowLeft33"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft33": {
       "graph": "endgamemaplayoutgraph",
@@ -6941,7 +7529,10 @@
         "AtlasInsideFortressYellowLeft1"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft34": {
       "graph": "endgamemaplayoutgraph",
@@ -6953,7 +7544,10 @@
         "AtlasInsideFortressYellowLeft33"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft35": {
       "graph": "endgamemaplayoutgraph",
@@ -6965,7 +7559,10 @@
         "AtlasInsideFortressYellowLeft34"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft36": {
       "graph": "endgamemaplayoutgraph",
@@ -6977,7 +7574,10 @@
         "AtlasInsideFortressYellowLeft37"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft37": {
       "graph": "endgamemaplayoutgraph",
@@ -6989,7 +7589,10 @@
         "AtlasInsideFortressYellowLeft38"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft38": {
       "graph": "endgamemaplayoutgraph",
@@ -7001,7 +7604,10 @@
         "AtlasInsideFortressYellowLeft37"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft39": {
       "graph": "endgamemaplayoutgraph",
@@ -7012,7 +7618,10 @@
         "AtlasInsideFortressYellowLeft38"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft4": {
       "graph": "endgamemaplayoutgraph",
@@ -7024,7 +7633,10 @@
         "AtlasInsideFortressYellowLeft3"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft40_": {
       "graph": "endgamemaplayoutgraph",
@@ -7035,7 +7647,10 @@
         "AtlasInsideFortressYellowLeft47"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft41__": {
       "graph": "endgamemaplayoutgraph",
@@ -7047,7 +7662,10 @@
         "AtlasInsideFortressYellowLeft47"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft42": {
       "graph": "endgamemaplayoutgraph",
@@ -7058,7 +7676,10 @@
         "AtlasInsideFortressYellowLeft47"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft43": {
       "graph": "endgamemaplayoutgraph",
@@ -7070,7 +7691,10 @@
         "AtlasInsideFortressYellowLeft12_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft44": {
       "graph": "endgamemaplayoutgraph",
@@ -7082,7 +7706,10 @@
         "AtlasInsideFortressYellowLeft43"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft45": {
       "graph": "endgamemaplayoutgraph",
@@ -7094,7 +7721,10 @@
         "AtlasInsideFortressYellowLeft17"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft46": {
       "graph": "endgamemaplayoutgraph",
@@ -7106,7 +7736,10 @@
         "AtlasInsideFortressYellowLeft8"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft47": {
       "graph": "endgamemaplayoutgraph",
@@ -7118,7 +7751,10 @@
         "AtlasInsideFortressYellowLeft41__"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft48": {
       "graph": "endgamemaplayoutgraph",
@@ -7129,7 +7765,10 @@
         "AtlasInsideFortressYellowLeft22"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft49_": {
       "graph": "endgamemaplayoutgraph",
@@ -7140,7 +7779,10 @@
         "AtlasInsideFortressYellowLeft26"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft5": {
       "graph": "endgamemaplayoutgraph",
@@ -7152,7 +7794,10 @@
         "AtlasInsideFortressYellowLeft4"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft50_": {
       "graph": "endgamemaplayoutgraph",
@@ -7163,7 +7808,10 @@
         "AtlasInsideFortressYellowLeft28"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft6": {
       "graph": "endgamemaplayoutgraph",
@@ -7175,7 +7823,10 @@
         "AtlasInsideFortressYellowLeft37"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft7": {
       "graph": "endgamemaplayoutgraph",
@@ -7187,7 +7838,10 @@
         "AtlasInsideFortressYellowLeft5"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft8": {
       "graph": "endgamemaplayoutgraph",
@@ -7199,7 +7853,10 @@
         "AtlasInsideFortressYellowLeft41__"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowLeft9": {
       "graph": "endgamemaplayoutgraph",
@@ -7211,7 +7868,10 @@
         "AtlasInsideFortressYellowLeft11"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementLeftYellow"
+      "blocked": "MapEntryRequirementLeftYellow",
+      "towers": [
+        "AtlasWallTower5"
+      ]
     },
     "AtlasInsideFortressYellowRight1": {
       "graph": "endgamemaplayoutgraph",
@@ -7223,7 +7883,10 @@
         "AtlasWhiteLock2"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight10": {
       "graph": "endgamemaplayoutgraph",
@@ -7234,7 +7897,10 @@
         "AtlasInsideFortressYellowRight11"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight11": {
       "graph": "endgamemaplayoutgraph",
@@ -7246,7 +7912,10 @@
         "AtlasInsideFortressYellowRight12"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight12": {
       "graph": "endgamemaplayoutgraph",
@@ -7257,7 +7926,10 @@
         "AtlasInsideFortressYellowRight14"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight13": {
       "graph": "endgamemaplayoutgraph",
@@ -7269,7 +7941,10 @@
         "AtlasInsideFortressYellowRight46"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight14": {
       "graph": "endgamemaplayoutgraph",
@@ -7281,7 +7956,10 @@
         "AtlasInsideFortressYellowRight12"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight15": {
       "graph": "endgamemaplayoutgraph",
@@ -7292,7 +7970,10 @@
         "AtlasInsideFortressYellowRight14"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight16": {
       "graph": "endgamemaplayoutgraph",
@@ -7303,7 +7984,10 @@
         "AtlasInsideFortressYellowRight14"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight17": {
       "graph": "endgamemaplayoutgraph",
@@ -7316,7 +8000,10 @@
         "AtlasInsideFortressYellowRight22_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight18": {
       "graph": "endgamemaplayoutgraph",
@@ -7327,7 +8014,10 @@
         "AtlasInsideFortressYellowRight16"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight19": {
       "graph": "endgamemaplayoutgraph",
@@ -7338,7 +8028,10 @@
         "AtlasInsideFortressYellowRight21"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight2": {
       "graph": "endgamemaplayoutgraph",
@@ -7349,7 +8042,10 @@
         "AtlasInsideFortressYellowRight3"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight20_": {
       "graph": "endgamemaplayoutgraph",
@@ -7361,7 +8057,10 @@
         "AtlasInsideFortressYellowRight17"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight21": {
       "graph": "endgamemaplayoutgraph",
@@ -7372,7 +8071,10 @@
         "AtlasInsideFortressYellowRight19"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight22_": {
       "graph": "endgamemaplayoutgraph",
@@ -7384,7 +8086,10 @@
         "AtlasInsideFortressYellowRight17"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight23": {
       "graph": "endgamemaplayoutgraph",
@@ -7395,7 +8100,10 @@
         "AtlasInsideFortressYellowRight22_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight24": {
       "graph": "endgamemaplayoutgraph",
@@ -7406,7 +8114,10 @@
         "AtlasInsideFortressYellowRight25"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight25": {
       "graph": "endgamemaplayoutgraph",
@@ -7418,7 +8129,10 @@
         "AtlasInsideFortressYellowRight27"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight26_": {
       "graph": "endgamemaplayoutgraph",
@@ -7430,7 +8144,10 @@
         "AtlasInsideFortressYellowRight32"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight27": {
       "graph": "endgamemaplayoutgraph",
@@ -7442,7 +8159,10 @@
         "AtlasInsideFortressYellowRight25"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight28": {
       "graph": "endgamemaplayoutgraph",
@@ -7453,7 +8173,10 @@
         "AtlasInsideFortressYellowRight27"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight29": {
       "graph": "endgamemaplayoutgraph",
@@ -7466,7 +8189,10 @@
         "AtlasInsideFortressYellowRight27"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight3": {
       "graph": "endgamemaplayoutgraph",
@@ -7478,7 +8204,10 @@
         "AtlasInsideFortressYellowRight4"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight30": {
       "graph": "endgamemaplayoutgraph",
@@ -7490,7 +8219,10 @@
         "AtlasInsideFortressYellowRight33"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight31": {
       "graph": "endgamemaplayoutgraph",
@@ -7502,7 +8234,10 @@
         "AtlasInsideFortressYellowRight33"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight32": {
       "graph": "endgamemaplayoutgraph",
@@ -7514,7 +8249,10 @@
         "AtlasInsideFortressYellowRight34__"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight33": {
       "graph": "endgamemaplayoutgraph",
@@ -7526,7 +8264,10 @@
         "AtlasInsideFortressYellowRight34__"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight34__": {
       "graph": "endgamemaplayoutgraph",
@@ -7538,7 +8279,10 @@
         "AtlasInsideFortressYellowRight33"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight35": {
       "graph": "endgamemaplayoutgraph",
@@ -7550,7 +8294,10 @@
         "AtlasInsideFortressYellowRight31"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight36": {
       "graph": "endgamemaplayoutgraph",
@@ -7562,7 +8309,10 @@
         "AtlasInsideFortressYellowRight34__"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight37": {
       "graph": "endgamemaplayoutgraph",
@@ -7574,7 +8324,10 @@
         "AtlasInsideFortressYellowRight38_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight38_": {
       "graph": "endgamemaplayoutgraph",
@@ -7586,7 +8339,10 @@
         "AtlasInsideFortressYellowRight40_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight39_": {
       "graph": "endgamemaplayoutgraph",
@@ -7598,7 +8354,10 @@
         "AtlasInsideFortressYellowRight47"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight4": {
       "graph": "endgamemaplayoutgraph",
@@ -7610,7 +8369,10 @@
         "AtlasInsideFortressYellowRight45_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight40_": {
       "graph": "endgamemaplayoutgraph",
@@ -7622,7 +8384,10 @@
         "AtlasInsideFortressYellowRight41_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight41_": {
       "graph": "endgamemaplayoutgraph",
@@ -7633,7 +8398,10 @@
         "AtlasInsideFortressYellowRight42"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight42": {
       "graph": "endgamemaplayoutgraph",
@@ -7644,7 +8412,10 @@
         "AtlasInsideFortressYellowRight41_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight43": {
       "graph": "endgamemaplayoutgraph",
@@ -7656,7 +8427,10 @@
         "AtlasInsideFortressYellowRight45_"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight44_": {
       "graph": "endgamemaplayoutgraph",
@@ -7668,7 +8442,10 @@
         "AtlasInsideFortressYellowRight42"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight45_": {
       "graph": "endgamemaplayoutgraph",
@@ -7680,7 +8457,10 @@
         "AtlasInsideFortressYellowRight46"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight46": {
       "graph": "endgamemaplayoutgraph",
@@ -7692,7 +8472,10 @@
         "AtlasInsideFortressYellowRight47"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight47": {
       "graph": "endgamemaplayoutgraph",
@@ -7704,7 +8487,10 @@
         "AtlasInsideFortressYellowRight46"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight48": {
       "graph": "endgamemaplayoutgraph",
@@ -7716,7 +8502,10 @@
         "AtlasInsideFortressYellowRight49__"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight49__": {
       "graph": "endgamemaplayoutgraph",
@@ -7728,7 +8517,10 @@
         "AtlasInsideFortressYellowRight47"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight5": {
       "graph": "endgamemaplayoutgraph",
@@ -7739,7 +8531,10 @@
         "AtlasInsideFortressYellowRight6"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight50": {
       "graph": "endgamemaplayoutgraph",
@@ -7751,7 +8546,10 @@
         "AtlasInsideFortressYellowRight17"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight6": {
       "graph": "endgamemaplayoutgraph",
@@ -7763,7 +8561,10 @@
         "AtlasInsideFortressYellowRight8"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight7": {
       "graph": "endgamemaplayoutgraph",
@@ -7775,7 +8576,10 @@
         "AtlasInsideFortressYellowRight6"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight8": {
       "graph": "endgamemaplayoutgraph",
@@ -7786,7 +8590,10 @@
         "AtlasInsideFortressYellowRight6"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasInsideFortressYellowRight9": {
       "graph": "endgamemaplayoutgraph",
@@ -7798,7 +8605,10 @@
         "AtlasInsideFortressYellowRight8"
       ],
       "pin": "PrecursorMap",
-      "blocked": "MapEntryRequirementRightYellow"
+      "blocked": "MapEntryRequirementRightYellow",
+      "towers": [
+        "AtlasWallTower6_"
+      ]
     },
     "AtlasKingsmarch": {
       "graph": "endgamemaplayoutgraph",

@@ -20,6 +20,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AtlasNodeDetailsAreTheGamesWords), AtlasNodeDetailsAreTheGamesWords),
             (nameof(LinksAreSaidClockwiseFromUp), LinksAreSaidClockwiseFromUp),
             (nameof(ContentIconsAreNamedByTheirArt), ContentIconsAreNamedByTheirArt),
+            (nameof(TowersCountWhatTheyReach), TowersCountWhatTheyReach),
         };
 
         private static void Expect<T>(T expected, T actual, string what)
@@ -109,8 +110,8 @@ namespace Poe2Accessibility.Tests
             {
                 ["AtlasSmall1"] = new() { Graph = "atlasskillgraph", X = 0, Y = 0, Links = new() { "AtlasSmall2" } },
                 ["AtlasOuterTower1"] = new() { Graph = "endgamemaplayoutgraph", X = 10, Y = 10, Maps = new() { "MapUniqueInitialTower" }, Biomes = new() { "Forest" }, Hint = "ClickBeacon" },
-                ["AtlasPath1"] = new() { Graph = "endgamemaplayoutgraph", Biomes = new() { "Forest", "Swamp" }, Blocked = "NeedsTower", Objective = "Breach" },
-                ["AtlasPath2"] = new() { Graph = "endgamemaplayoutgraph" },
+                ["AtlasPath1"] = new() { Graph = "endgamemaplayoutgraph", Biomes = new() { "Forest", "Swamp" }, Blocked = "NeedsTower", Objective = "Breach", Towers = new() { "AtlasOuterTower1" } },
+                ["AtlasPath2"] = new() { Graph = "endgamemaplayoutgraph", Towers = new() { "AtlasOuterTower1" } },
             },
             Text = new()
             {
@@ -177,6 +178,16 @@ namespace Poe2Accessibility.Tests
             Expect("Fisura", catalog.IconName("Art/2DArt/UIImages/InGame/AtlasScreen/AtlasIconContent/AtlasIconContentBreach.dds", "es"), "by the file, folder and extension aside");
             Expect("Breach", catalog.IconName(@"Art\2DArt\AtlasIconContentBreach|tint", "en"), "back slashes and a suffix");
             Expect(string.Empty, catalog.IconName("Art/2DArt/UIImages/InGame/Gold.dds", "en"), "other art");
+        }
+
+        private static void TowersCountWhatTheyReach()
+        {
+            var catalog = Catalog();
+            Localization.Set("en", new());
+            Expect(2, catalog.TowerReach("AtlasOuterTower1"), "the nodes in a tower's reach");
+            Expect(0, catalog.TowerReach("AtlasPath1"), "no tower");
+            Expect("up left", AtlasLinks.Side(new Vector2(10, 10), new Vector2(0, 0)), "the side a tower lies on, y down");
+            Expect(string.Empty, AtlasLinks.Side(Vector2.One, Vector2.One), "the same place");
         }
     }
 }

@@ -29,10 +29,14 @@ namespace Poe2Accessibility.Services
                 var offset = there - origin;
                 var angle = Math.Atan2(-offset.Y, offset.X) * 180 / Math.PI;
                 var clockwiseFromUp = (((112.5 - angle) % 360) + 360) % 360; // from the up sector's left edge, so sectors keep their order
-                parts.Add((clockwiseFromUp, $"{Announcements.StickDirections[PassiveStick.Nearest(offset)]}, {label}"));
+                parts.Add((clockwiseFromUp, $"{Side(origin, there)}, {label}"));
             }
 
             return parts.OrderBy(part => part.Order).Select(part => part.Text).ToList();
         }
+
+        /// <summary>The side one place lies on from another ("up left"), empty when they are the same place.</summary>
+        public static string Side(Vector2 here, Vector2 there) =>
+            Vector2.Distance(here, there) < SamePlace ? string.Empty : Announcements.StickDirections[PassiveStick.Nearest(there - here)];
     }
 }

@@ -65,6 +65,23 @@ namespace Poe2Accessibility.Services
                 tooltip.Add(Announcements.PassiveLinks(links));
             }
 
+            if (catalog.TowerReach(id) is > 0 and var reach)
+            {
+                tooltip.Add(Announcements.AtlasTowerReaches(reach));
+            }
+
+            // A tower is far off, beyond the drawn nodes: its side comes from the graph's own places.
+            if (node.Towers is { Count: > 0 } towers)
+            {
+                var here = new Vector2(node.X, node.Y);
+                var sides = towers.Select(tower => catalog.Node(tower) is { } towerNode ? AtlasLinks.Side(here, new Vector2(towerNode.X, towerNode.Y)) : string.Empty)
+                    .Where(side => side.Length > 0).ToList();
+                if (sides.Count > 0)
+                {
+                    tooltip.Add(Announcements.AtlasTowerReach(sides));
+                }
+            }
+
             return new AccessibleUiNode
             {
                 Address = info.Address,

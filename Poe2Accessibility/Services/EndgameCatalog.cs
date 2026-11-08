@@ -17,6 +17,7 @@ namespace Poe2Accessibility.Services
 
         private readonly CatalogData data;
         private readonly Dictionary<string, string> objectiveByIcon;
+        private readonly Dictionary<string, int> towerReach;
 
         public EndgameCatalog(CatalogData data)
         {
@@ -24,6 +25,8 @@ namespace Poe2Accessibility.Services
             this.objectiveByIcon = data.Objectives.Where(pair => !string.IsNullOrEmpty(pair.Value.Icon))
                 .GroupBy(pair => pair.Value.Icon!, StringComparer.Ordinal)
                 .ToDictionary(group => group.Key, group => group.First().Key, StringComparer.Ordinal);
+            this.towerReach = data.Nodes.Values.SelectMany(node => node.Towers ?? new List<string>()).GroupBy(tower => tower, StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
         }
 
         /// <summary>The catalog the plugin loaded; empty until then, so every lookup finds nothing.</summary>
@@ -127,6 +130,9 @@ namespace Poe2Accessibility.Services
             return this.data.Icons.TryGetValue(file, out var icon) ? this.Text(icon.Name, language) : string.Empty;
         }
 
+        /// <summary>How many nodes a tower's reach holds; 0 for a node that is no tower.</summary>
+        public int TowerReach(string passiveId) => this.towerReach.TryGetValue(passiveId, out var count) ? count : 0;
+
         /// <summary>Whether two nodes are drawn in the same graph (a link across graphs is never drawn).</summary>
         public bool SameGraph(string a, string b) => this.Node(a) is { } first && this.Node(b) is { } second && first.Graph == second.Graph;
 
@@ -195,6 +201,9 @@ namespace Poe2Accessibility.Services
             public string? Blocked { get; set; }
 
             public string? Hint { get; set; }
+
+            /// <summary>The towers whose reach holds it: their tablets work on its map.</summary>
+            public List<string>? Towers { get; set; }
         }
     }
 }

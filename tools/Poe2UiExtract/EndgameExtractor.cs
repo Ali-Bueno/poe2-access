@@ -53,6 +53,10 @@ internal static class EndgameExtractor
     private const int NodeObjectiveOffset = 0xA7;
     private const int NodeHintOffset = 0x10D;
 
+    // EndgameMapAtlasTowers: the Atlas nodes a tower reaches, and the tower's own node
+    private const int TowerReachOffset = 0x14;
+    private const int TowerSelfOffset = 0x34;
+
     // KeywordPopups, ClientStrings2, WorldAreas
     private const int KeywordTermOffset = 0x8;
     private const int KeywordHelpOffset = 0x10;
@@ -79,7 +83,7 @@ internal static class EndgameExtractor
     {
         var tables = new Dictionary<string, DatTable>(StringComparer.Ordinal);
         foreach (var name in new[] { "endgamemapobjectives", "endgamemapcontent", "endgamemapbiomes", "endgamemaps", "endgamemappins", "endgamemapatlas", "endgamemapcontentvisualidentity",
-                     "endgamemapnodestats", "keywordpopups", "clientstrings2", "minimapicons", "passiveskills", "worldareas" })
+                     "endgamemapnodestats", "endgamemapatlastowers", "keywordpopups", "clientstrings2", "minimapicons", "passiveskills", "worldareas" })
         {
             if (DatTable.Open(index, name) is not { } table)
             {
@@ -272,6 +276,23 @@ internal static class EndgameExtractor
             };
         }
 
+        // Which towers reach a node: a tower's tablets work on the maps in its reach.
+        var towers = tables["endgamemapatlastowers"];
+        string AtlasPassive(long atlasRow) => atlasRow >= 0 && atlasRow < atlas.RowCount ? IdOf(passives, atlas.Key((int)atlasRow, NodePassiveOffset)) : string.Empty;
+        for (var row = 0; row < towers.RowCount; row++)
+        {
+            var tower = towers.KeyList(row, TowerSelfOffset).Select(AtlasPassive).FirstOrDefault(id => id.Length > 0 && nodeOut.ContainsKey(id));
+            if (tower == null)
+            {
+                continue;
+            }
+
+            foreach (var reached in towers.KeyList(row, TowerReachOffset).Select(AtlasPassive).Where(id => id != tower && nodeOut.ContainsKey(id)))
+            {
+                nodeOut[reached] = nodeOut[reached] with { Towers = (nodeOut[reached].Towers ?? new List<string>()).Append(tower).Distinct().ToList() };
+            }
+        }
+
         // Each endgame area's pin (a map, a tower, a citadel...), and its name.
         var mapOut = new SortedDictionary<string, string>(StringComparer.Ordinal);
         for (var row = 0; row < maps.RowCount; row++)
@@ -406,6 +427,10 @@ internal static class EndgameExtractor
         bool Keys(string table, int offset, string target) =>
             Share(tables[table], row => tables[table].Int64(row, offset) is var key && (key == NullKey || (key >= 0 && key < tables[target].RowCount))) >= CheckedShare &&
             Enumerable.Range(0, tables[table].RowCount).Any(row => tables[table].Int64(row, offset) is >= 0 and var key && key < tables[target].RowCount);
+        // A list column of keys: every row's items are rows of its table, and some row has items.
+        bool Lists(string table, int offset, string target) =>
+            Enumerable.Range(0, tables[table].RowCount).All(row => tables[table].KeyList(row, offset).All(key => key >= 0 && key < tables[target].RowCount)) &&
+            Enumerable.Range(0, tables[table].RowCount).Any(row => tables[table].KeyList(row, offset).Count > 0);
         var checks = new (string Name, Func<bool> Holds)[]
         {
             ("EndgameMapObjectives.ObjectiveText", () => Strings("endgamemapobjectives", ObjectiveTextOffset) && Strings("endgamemapobjectives", ObjectiveDoneOffset) && Strings("endgamemapobjectives", ObjectiveArtOffset)),
@@ -420,6 +445,7 @@ internal static class EndgameExtractor
             ("EndgameMapAtlas.Passives", () => Keys("endgamemapatlas", NodePassiveOffset, "passiveskills") && Keys("endgamemapatlas", NodePinOffset, "endgamemappins")),
             ("EndgameMapAtlas.BlockedMessage", () => Keys("endgamemapatlas", NodeBlockedOffset, "clientstrings2") && Keys("endgamemapatlas", NodeHintOffset, "clientstrings2")),
             ("EndgameMapAtlas.MapObjective", () => Keys("endgamemapatlas", NodeObjectiveOffset, "endgamemapobjectives")),
+            ("EndgameMapAtlasTowers.AtlasNodes", () => Lists("endgamemapatlastowers", TowerReachOffset, "endgamemapatlas") && Lists("endgamemapatlastowers", TowerSelfOffset, "endgamemapatlas")),
             ("KeywordPopups.Term", () => Strings("keywordpopups", KeywordTermOffset)),
             ("ClientStrings2.Text", () => Strings("clientstrings2", ClientTextOffset)),
             ("PassiveSkills.Name", () => Strings("passiveskills", PassiveNameOffset)),
@@ -461,5 +487,8 @@ internal static class EndgameExtractor
         public string? Blocked { get; init; }
 
         public string? Hint { get; init; }
+
+        /// <summary>The towers whose reach holds this node.</summary>
+        public List<string>? Towers { get; init; }
     }
 }
