@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+
 /// <summary>Where the extractor's progress lines go: the console, or the writer the mod's executable gives it.</summary>
 public static class Say
 {
