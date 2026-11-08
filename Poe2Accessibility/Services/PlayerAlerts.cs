@@ -46,7 +46,8 @@ namespace Poe2Accessibility.Services
             this.Statuses = new StatusWatch(subject, output, log);
             this.Charges = new ChargeWatch(subject, audio, output, log);
             this.Cooldowns = new SkillCooldownWatch(subject, memory, elements, audio, output, log);
-            this.Resources = new ResourceWatch(subject, output, log);
+            var skillStats = new SkillStatSets(subject, memory, elements, log);
+            this.Resources = new ResourceWatch(subject, output, log) { SkillMaximum = skillStats.Value };
         }
 
         public StatusWatch Statuses { get; }

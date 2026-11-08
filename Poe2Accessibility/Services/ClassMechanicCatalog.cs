@@ -50,6 +50,38 @@ namespace Poe2Accessibility.Services
 
         public static ClassMechanicCatalog Empty() => new(new(), new(), new(StringComparer.Ordinal), new(StringComparer.Ordinal));
 
+        /// <summary>
+        ///     The Stats names a resource's maximum can have, as the extractor pairs them (`MaximumPrefixes` in
+        ///     tools/Poe2UiExtract/ClassMechanics.cs, the raised one left out): a maximum a skill's level sets rather than a player
+        ///     stat is found by them (Rapid Shot's "maximum_number_of_crossbow_heat_stacks", 25 + the gem's level).
+        /// </summary>
+        public static IEnumerable<string> MaximumNames(string name) => new[] { "maximum_", "max_", "base_maximum_" }.Select(prefix => prefix + name);
+
+        /// <summary>
+        ///     The value of the first of <paramref name="names"/> in a stat list and its values, paired by place
+        ///     (GrantedEffectStatSetsPerLevel's additional stats); null when it is not there or the lists do not pair.
+        /// </summary>
+        public static int? StatValue(IReadOnlyList<string?> stats, IReadOnlyList<int> values, IEnumerable<string> names)
+        {
+            if (stats.Count != values.Count)
+            {
+                return null;
+            }
+
+            foreach (var name in names)
+            {
+                for (var i = 0; i < stats.Count; i++)
+                {
+                    if (string.Equals(stats[i], name, StringComparison.Ordinal))
+                    {
+                        return values[i];
+                    }
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>Loads the catalog if it is there; without it nothing of this domain is said.</summary>
         public static ClassMechanicCatalog Load(string path)
         {

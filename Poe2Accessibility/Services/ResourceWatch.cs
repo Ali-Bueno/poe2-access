@@ -39,6 +39,12 @@ namespace Poe2Accessibility.Services
             this.log = log;
         }
 
+        /// <summary>
+        ///     A maximum the player's skills set at their level (<see cref="SkillStatSets"/>), by the maximum's Stats names: Rapid
+        ///     Shot's Heat ("Calor: 8" was said without one, the player stat reading 0). Null in tests.
+        /// </summary>
+        public Func<IEnumerable<string>, int?>? SkillMaximum { get; set; }
+
         /// <summary>The catalog read; the shared one unless a test sets another.</summary>
         public Func<ClassMechanicCatalog> Catalog { get; set; } = () => ClassMechanicCatalog.Current;
 
@@ -108,6 +114,11 @@ namespace Poe2Accessibility.Services
             {
                 var current = Value(stats, resource.Current);
                 var max = Math.Max(Value(stats, resource.VirtualMaximum), Value(stats, resource.Maximum));
+                if (max == 0 && current > 0 && this.SkillMaximum?.Invoke(ClassMechanicCatalog.MaximumNames(resource.Name)) is int fromSkill && fromSkill > 0)
+                {
+                    max = fromSkill;
+                }
+
                 if (current > 0 || max > 0)
                 {
                     readings.Add(new ResourceTracker.Reading(StatKey + resource.Name, current, max, ResourceTracker.ModeFor(max)));

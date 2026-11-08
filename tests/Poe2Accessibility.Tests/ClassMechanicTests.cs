@@ -20,6 +20,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AMissingResourceEnds), AMissingResourceEnds),
             (nameof(UnknownNamesBecomeWords), UnknownNamesBecomeWords),
             (nameof(ChargeWatchCoversItsOwnStats), ChargeWatchCoversItsOwnStats),
+            (nameof(ASkillLevelsMaximumIsFoundByItsStatName), ASkillLevelsMaximumIsFoundByItsStatName),
         };
 
         private static readonly string[] Stats =
@@ -35,6 +36,18 @@ namespace Poe2Accessibility.Tests
             {
                 throw new Exception($"{what}: expected '{expected}', got '{actual}'");
             }
+        }
+
+        private static void ASkillLevelsMaximumIsFoundByItsStatName()
+        {
+            // Rapid Shot's level 5 row (GrantedEffectStatSetsPerLevel 8689): one additional stat, the maximum Heat, 30.
+            var names = ClassMechanicCatalog.MaximumNames("number_of_crossbow_heat_stacks").ToList();
+            Expect("maximum_number_of_crossbow_heat_stacks", names[0], "the extractor's pairing prefix first");
+            Expect<int?>(30, ClassMechanicCatalog.StatValue(new[] { "maximum_number_of_crossbow_heat_stacks" }, new[] { 30 }, names), "Rapid Shot at level 5");
+            Expect<int?>(45, ClassMechanicCatalog.StatValue(new[] { "base_skill_effect_duration", null, "maximum_number_of_crossbow_heat_stacks" }, new[] { 6600, 3, 45 }, names),
+                "paired by place, an unread name skipped");
+            Expect<int?>(null, ClassMechanicCatalog.StatValue(new[] { "maximum_number_of_crossbow_heat_stacks" }, new[] { 30, 1 }, names), "lists that do not pair give nothing");
+            Expect<int?>(null, ClassMechanicCatalog.StatValue(new[] { "maximum_rage" }, new[] { 30 }, names), "another resource's maximum is not this one");
         }
 
         private static void ResourcesPairCurrentWithItsMaxima()
