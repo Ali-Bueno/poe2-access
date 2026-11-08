@@ -186,7 +186,8 @@ namespace Poe2Accessibility.Services
             var ignoredLayer = this.LayerOf(this.ignoredElement, rootAddress);
             var children = this.elements.ReadChildren(rootInfo);
             var budget = MaxNodes;
-            var screen = PluginUiElementReflection.TryGetAbsoluteRect(rootAddress, out var screenPosition, out var screenSize)
+            var rects = new PluginUiElementReflection.RectCache(); // one snapshot: each ancestor placed once
+            var screen = PluginUiElementReflection.TryGetAbsoluteRect(rootAddress, rects, out var screenPosition, out var screenSize)
                 ? new RectangleF(screenPosition.X, screenPosition.Y, screenSize.X, screenSize.Y)
                 : RectangleF.Empty;
             for (var index = 0; index < children.Length && budget > 0; index++)
@@ -194,7 +195,7 @@ namespace Poe2Accessibility.Services
                 if (children[index] != ignoredLayer && this.elements.TryReadElement(children[index], out var layerInfo) &&
                     layerInfo.IsVisibleFlag && !IsIgnored(layerInfo.Name))
                 {
-                    layers.Add(this.CaptureLayer(layerInfo, index, screen, ref budget));
+                    layers.Add(this.CaptureLayer(layerInfo, index, screen, rects, ref budget));
                 }
             }
 
@@ -221,7 +222,7 @@ namespace Poe2Accessibility.Services
             return info.Raw.ParentPtr == rootAddress ? element : IntPtr.Zero;
         }
 
-        private ScreenLayer CaptureLayer(UiElementReader.ElementInfo layerInfo, int index, RectangleF screen, ref int budget)
+        private ScreenLayer CaptureLayer(UiElementReader.ElementInfo layerInfo, int index, RectangleF screen, PluginUiElementReflection.RectCache rects, ref int budget)
         {
             var nodes = new List<WalkNode>();
             var texts = new List<(int Node, ScreenText Text)>();
@@ -240,7 +241,7 @@ namespace Poe2Accessibility.Services
                 var enabled = above.Enabled;
                 // A control slid out of view does not make its layer one to use: the login screen's "Deal of the Day"
                 // panel waits off screen with its "buy now!" button and hid the screen in front (fresh install, 2026-10-24).
-                if (info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) && !IsOffScreen(info.Address, screen))
+                if (info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) && !IsOffScreen(info.Address, screen, rects))
                 {
                     hasControls = true;
                     control = self;
@@ -250,7 +251,7 @@ namespace Poe2Accessibility.Services
                 var position = info.Raw.RelativePosition;
                 nodes.Add(new WalkNode(parent, childIndex, above.Depth + 1, above.X + position.X, above.Y + position.Y, control, enabled));
                 var children = this.elements.ReadChildren(info);
-                var hasText = this.elements.TryReadText(info.Address, out var text, out var tagged);
+                var hasText = this.elements.TryReadText(info, out var text, out var tagged);
                 if (!hasText && this.capturedLongText == IntPtr.Zero && info.Raw.UnscaledSize.Y >= LongTextMinHeight && this.elements.IsLongText(info.Address))
                 {
                     this.capturedLongText = info.Address; // read a paragraph at a time as it scrolls, not with the screen
@@ -264,7 +265,7 @@ namespace Poe2Accessibility.Services
                 // A chord's icons joined by a plus ("<<rt>>+<<lstick>>", stripped " + ") are an icon too: the label beside
                 // them is the legend (it was read as content and repeated the inventory's focus, 2026-10-24).
                 var glyphsOnly = markupButton.Length > 0 && text.Trim().Trim('+').Trim().Length == 0;
-                if (hasText && text.Length > 0 && IsOffScreen(info.Address, screen))
+                if (hasText && text.Length > 0 && IsOffScreen(info.Address, screen, rects))
                 {
                     continue; // a panel slid out of view keeps its visible flag (the world map's quest list)
                 }
@@ -302,7 +303,7 @@ namespace Poe2Accessibility.Services
                     {
                         units.Add((self, unit));
                     }
-                    else if (QuestRewards.FromTextureKey(key) is { } reward && !IsOffScreen(info.Address, screen))
+                    else if (QuestRewards.FromTextureKey(key) is { } reward && !IsOffScreen(info.Address, screen, rects))
                     {
                         // An icon that says what a quest gives ("Recompensa:" then a support gem and gold).
                         texts.Add((self, new ScreenText(info.Address, reward, info.Name, false, true)));
@@ -332,8 +333,8 @@ namespace Poe2Accessibility.Services
             return new ScreenLayer(layerInfo.Address, index, texts.Select(text => text.Text).ToList(), hasControls, isHintBar, Name: layerInfo.Name);
         }
 
-        private static bool IsOffScreen(IntPtr element, RectangleF screen) =>
-            !screen.IsEmpty && PluginUiElementReflection.TryGetAbsoluteRect(element, out var position, out var size) &&
+        private static bool IsOffScreen(IntPtr element, RectangleF screen, PluginUiElementReflection.RectCache rects) =>
+            !screen.IsEmpty && PluginUiElementReflection.TryGetAbsoluteRect(element, rects, out var position, out var size) &&
             !screen.IntersectsWith(new RectangleF(position.X, position.Y, size.X, size.Y));
 
         /// <summary>A hint-bar entry label or a text paired with its button glyph.</summary>

@@ -135,10 +135,26 @@ namespace Poe2Accessibility.Services
         private static (bool Speech, bool Sound) Outputs(ChargeKind kind, AccessibilitySettings settings) =>
             PlayerCharges.SpeechKindOf(kind) == SpeechKind.Combo ? (settings.ComboSpeech, settings.ComboSounds) : (settings.ChargeSpeech, settings.ChargeSounds);
 
+        /// <summary>The game's key for each stat asked, resolved once per catalog: Enum.ToString on every frame cost a frame's budget.</summary>
+        private static readonly Dictionary<GameStats, GameStats> statKeys = new();
+        private static GameIds? statKeysOf;
+
         /// <summary>Stat that a buff or action changed, else one items changed, else 0; by its key in the game, not GameHelper's.</summary>
         private static int Stat(Stats stats, GameStats stat)
         {
-            return PlayerStats.Value(stats, (GameStats)GameIds.Current.Stat(stat.ToString(), (int)stat));
+            if (!ReferenceEquals(statKeysOf, GameIds.Current))
+            {
+                statKeys.Clear();
+                statKeysOf = GameIds.Current;
+            }
+
+            if (!statKeys.TryGetValue(stat, out var key))
+            {
+                key = (GameStats)GameIds.Current.Stat(stat.ToString(), (int)stat);
+                statKeys[stat] = key;
+            }
+
+            return PlayerStats.Value(stats, key);
         }
 
         private void WatchRage(Entity entity, AccessibilitySettings settings)

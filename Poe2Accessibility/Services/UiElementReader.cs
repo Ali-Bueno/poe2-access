@@ -78,7 +78,8 @@ namespace Poe2Accessibility.Services
         public ControlFields? Controls { get; set; }
 
         /// <param name="Texture">Texture resource of image elements (GameLayout.Image), read with the base block.</param>
-        public readonly record struct ElementInfo(IntPtr Address, UiElementBaseOffset Raw, string Name, IntPtr Texture = default, IntPtr AltTexture = default)
+        /// <param name="Block">The bytes read from the element, for the text fields when they fit (<see cref="TryReadText(in ElementInfo, out string, out string)"/>).</param>
+        public readonly record struct ElementInfo(IntPtr Address, UiElementBaseOffset Raw, string Name, IntPtr Texture = default, IntPtr AltTexture = default, byte[]? Block = null)
         {
             public bool IsVisibleFlag => UiElementBaseFuncs.IsVisibleChecker(this.Raw.Flags);
 
@@ -89,7 +90,14 @@ namespace Poe2Accessibility.Services
         public bool TryReadElement(IntPtr address, out ElementInfo info)
         {
             info = default;
-            var block = this.reader.ReadBytes(address, ElementBlockSize);
+            // One read covers the text fields too (the screen walk asks for them on every node); an element too small
+            // for that, at the end of its heap region, is read as before.
+            var block = this.reader.ReadBytes(address, Math.Max(ElementBlockSize, TextBlockSize));
+            if (block.Length == 0)
+            {
+                block = this.reader.ReadBytes(address, ElementBlockSize);
+            }
+
             if (block.Length == 0)
             {
                 return false;
@@ -108,7 +116,7 @@ namespace Poe2Accessibility.Services
             var altTexture = block.Length >= GameLayout.Image.AltTextureOffset + IntPtr.Size
                 ? MemoryMarshal.Read<IntPtr>(block.AsSpan(GameLayout.Image.AltTextureOffset))
                 : IntPtr.Zero;
-            info = new ElementInfo(address, raw, name, texture, altTexture);
+            info = new ElementInfo(address, raw, name, texture, altTexture, block);
             return true;
         }
 
@@ -131,9 +139,20 @@ namespace Poe2Accessibility.Services
         /// <summary>Same, also returning the text with markup (glyph tokens such as &lt;&lt;xbox_button_a&gt;&gt;).</summary>
         public bool TryReadText(IntPtr address, out string text, out string tagged)
         {
+            var block = this.reader.ReadBytes(address, TextBlockSize);
+            return this.DecodeText(block, out text, out tagged);
+        }
+
+        /// <summary>Same, from the bytes <see cref="TryReadElement"/> already read when they cover the text fields.</summary>
+        public bool TryReadText(in ElementInfo info, out string text, out string tagged) =>
+            info.Block is { } block && block.Length >= TextBlockSize
+                ? this.DecodeText(block, out text, out tagged)
+                : this.TryReadText(info.Address, out text, out tagged);
+
+        private bool DecodeText(byte[] block, out string text, out string tagged)
+        {
             text = string.Empty;
             tagged = string.Empty;
-            var block = this.reader.ReadBytes(address, TextBlockSize);
             if (block.Length == 0)
             {
                 return false;

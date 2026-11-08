@@ -172,15 +172,9 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                // Not in play: still buried or dormant (or a story variant of an NPC), nothing a sighted player sees. A
-                // player down is heard off screen and behind walls too (user 2026-10-26: the body was hard to find).
+                // A player down is heard off screen and behind walls too (user 2026-10-26: the body was hard to find).
                 var layer = this.LayerOf(entity);
                 var down = layer == CueSynth.Layer.PlayerDown;
-                if (!down && !EntityCatalog.IsInPlay(this.memory, entity))
-                {
-                    continue;
-                }
-
                 var enemy = this.Reach && entity.EntityType == EntityTypes.Monster && EntityCatalog.IsAliveEnemy(entity);
                 if (layer == null && !enemy)
                 {
@@ -188,6 +182,13 @@ namespace Poe2Accessibility.Services
                 }
 
                 if (!down && !ScreenProjection.InView(render.WorldPosition))
+                {
+                    continue;
+                }
+
+                // Not in play: still buried or dormant (or a story variant of an NPC), nothing a sighted player sees.
+                // Asked last: it reads the game's memory, the checks above do not.
+                if (!down && !EntityCatalog.IsInPlay(this.memory, entity))
                 {
                     continue;
                 }

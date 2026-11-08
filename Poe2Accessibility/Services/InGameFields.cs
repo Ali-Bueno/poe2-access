@@ -37,6 +37,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Misses in a row before a field counts as lost (fields are empty for a moment while an area loads).</summary>
         private const int MissesToReport = 3;
 
+        /// <summary>
+        ///     A field found is trusted this long before its slot is read and its element checked again: the layers are asked
+        ///     for every frame and the chat's check walks its children, which cost more than the frame's own work.
+        /// </summary>
+        private const int HoldsFreshMs = 100;
+
         private static readonly Dictionary<InGameField, Spec> Specs = new()
         {
             [InGameField.Hud] = new(GameLayout.InGameUi.HudLayerOffset, true, Named("HUD")),
@@ -55,6 +61,7 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<InGameField, int> offsets = new();
         private readonly Dictionary<InGameField, long> missedAt = new();
         private readonly Dictionary<InGameField, int> misses = new();
+        private readonly Dictionary<InGameField, (long At, IntPtr Element)> held = new();
         private IntPtr container;
 
         public InGameFields(HostMemoryReader reader, UiElementReader elements, CompatibilityReport report)
@@ -80,16 +87,23 @@ namespace Poe2Accessibility.Services
                 this.container = layerContainer;
                 this.missedAt.Clear();
                 this.misses.Clear();
-            }
-
-            var spec = Specs[field];
-            if (this.offsets.TryGetValue(field, out var known) && this.Holds(known, spec) is var held && held != IntPtr.Zero)
-            {
-                this.misses.Remove(field); // found again: a miss while an area loaded does not count toward a loss
-                return held;
+                this.held.Clear();
             }
 
             var now = Environment.TickCount64;
+            if (this.held.TryGetValue(field, out var fresh) && now - fresh.At < HoldsFreshMs)
+            {
+                return fresh.Element;
+            }
+
+            var spec = Specs[field];
+            if (this.offsets.TryGetValue(field, out var known) && this.Holds(known, spec) is var element && element != IntPtr.Zero)
+            {
+                this.misses.Remove(field); // found again: a miss while an area loaded does not count toward a loss
+                this.held[field] = (now, element);
+                return element;
+            }
+
             if (this.missedAt.TryGetValue(field, out var missed) && now - missed < RetryMs)
             {
                 return IntPtr.Zero;
@@ -165,6 +179,7 @@ namespace Poe2Accessibility.Services
             this.offsets.Clear();
             this.missedAt.Clear();
             this.misses.Clear();
+            this.held.Clear();
             this.container = IntPtr.Zero;
         }
 
