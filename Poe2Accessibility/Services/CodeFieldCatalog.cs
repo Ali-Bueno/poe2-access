@@ -32,6 +32,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The code reads this far past the field: a vector's second float, a key's other half.</summary>
         public int Bias => this.Target.Split(Separator) is { Length: > 2 } parts ? int.Parse(parts[2], CultureInfo.InvariantCulture) : 0;
+
+        /// <summary>The field's own place when the signatures were made: what a reading (bias off) compares with.</summary>
+        public int Measured => this.Value - this.Bias;
     }
 
     /// <summary>

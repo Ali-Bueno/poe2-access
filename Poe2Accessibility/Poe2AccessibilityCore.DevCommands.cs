@@ -705,7 +705,7 @@ namespace Poe2Accessibility
             var stuck = false;
             foreach (var group in read.Where(field => field.Found != null && field.Entry.Struct != null).GroupBy(field => field.Entry.Struct!))
             {
-                var fields = group.Select(field => (field.Entry.Field, field.Entry.Value - field.Entry.Bias, field.Found!.Value)).Distinct().ToList();
+                var fields = group.Select(field => (field.Entry.Field, field.Entry.Measured, field.Found!.Value)).Distinct().ToList();
                 if (GameHelper.Utils.OffsetHealer.PlaceFromCode(group.Key, fields) is not { } outcomes)
                 {
                     this.log?.Info($"Code fields: {group.Key} does not match the catalog, left where it is");
@@ -718,7 +718,7 @@ namespace Poe2Accessibility
 
             foreach (var (entry, found) in read)
             {
-                if (found is not { } value || value == entry.Value)
+                if (found is not { } value || value == entry.Measured)
                 {
                     continue;
                 }
@@ -726,24 +726,24 @@ namespace Poe2Accessibility
                 if (entry.Layout is { } layout && LayoutFields.TryGetValue(layout, out var field))
                 {
                     // Memory beats code: a live search that moved the field before the code was read keeps its value.
-                    if (field.Get() != entry.Value)
+                    if (field.Get() != entry.Measured)
                     {
                         this.log?.Info($"Code fields: {entry.Name} reads +0x{value:X}, kept at +0x{field.Get():X} where a live search put it");
                         continue;
                     }
 
                     field.Set(value);
-                    moved.Add($"{entry.Name} +0x{entry.Value:X} to +0x{value:X}");
+                    moved.Add($"{entry.Name} +0x{entry.Measured:X} to +0x{value:X}");
                 }
                 else if (entry.IsReport)
                 {
                     stuck = true;
-                    this.log?.Info($"Code fields: {entry.Name} moved from +0x{entry.Value:X} to +0x{value:X}, and nothing can follow it");
+                    this.log?.Info($"Code fields: {entry.Name} moved from +0x{entry.Measured:X} to +0x{value:X}, and nothing can follow it");
                 }
             }
 
-            var semanticMoves = reading.Semantic.Where(field => field.Found is { } value && value != field.Entry.Value)
-                .Select(field => $"{field.Entry.Name} +0x{field.Entry.Value:X} to +0x{field.Found:X}").Distinct().ToList();
+            var semanticMoves = reading.Semantic.Where(field => field.Found is { } value && value != field.Entry.Measured)
+                .Select(field => $"{field.Entry.Name} +0x{field.Entry.Measured:X} to +0x{field.Found:X}").Distinct().ToList();
             this.log?.Info(Tally("Code fields", reading.Code, reading.CodeMilliseconds, moved));
             this.log?.Info(reading.SemanticError is { } error ? $"Semantic fields unread: {error}"
                 : Tally("Semantic fields", reading.Semantic, reading.SemanticMilliseconds, semanticMoves)
