@@ -236,6 +236,12 @@ namespace Poe2Accessibility
                     // Research: the world map's hovered pin as its data tells it, and whether the game built its popup.
                     this.log?.Info($"Map pin: {this.semantics?.PinReport(this.WorldScreen()) ?? "no semantics"}");
                     break;
+                case "atlasnode":
+                    // Research: the hovered element as a node of the Atlas or its trees (docs/research/endgame.md).
+                    var atlasHovered = IntPtr.Zero;
+                    this.memoryReader?.TryRead(this.focus?.Manager is { } atlasManager ? atlasManager + GameLayout.UiManager.HoveredOffset : IntPtr.Zero, out atlasHovered);
+                    this.log?.Info($"Atlas node: {this.semantics?.EndgameNodeReport(atlasHovered) ?? "no semantics"}");
+                    break;
                 case "uilayout":
                     // Research: the focused element's parent chain, drawn rect against the window-free layout rect.
                     foreach (var line in this.semantics?.LayoutChain(this.focus?.Current?.Address ?? IntPtr.Zero) ?? Enumerable.Empty<string>())

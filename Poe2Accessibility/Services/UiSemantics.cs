@@ -82,6 +82,11 @@ namespace Poe2Accessibility.Services
                 return passiveNode;
             }
 
+            if (this.DescribeEndgameNode(info, hovered) is { } endgameNode)
+            {
+                return endgameNode;
+            }
+
             if (this.DescribeLink(info) is { } linkNode)
             {
                 return linkNode;

@@ -210,6 +210,11 @@ namespace Poe2Accessibility.Tests
                 Run(name, test);
             }
 
+            foreach (var (name, test) in EndgameTests.All())
+            {
+                Run(name, test);
+            }
+
             Console.WriteLine(failures == 0 ? "All tests passed." : $"{failures} test(s) failed.");
             return failures == 0 ? 0 : 1;
         }
