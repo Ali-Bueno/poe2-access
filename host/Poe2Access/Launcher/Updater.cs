@@ -15,6 +15,7 @@ internal static class Updater
 {
     public const string VersionFile = "version.txt";
     private const string LauncherExe = "Poe2Access.exe";
+    private const string IncomingSuffix = ".new"; // a file written beside its target before it replaces it
     private const int NotesShown = 1500;
     private const int LeftoverTries = 10;
     private const int LeftoverWaitMilliseconds = 300;
@@ -249,7 +250,8 @@ internal static class Updater
             {
                 var relative = Path.GetRelativePath(package, source);
                 var target = Path.Join(InstallRoot, relative);
-                if (File.Exists(target))
+                var existed = File.Exists(target);
+                if (existed)
                 {
                     if (IsKept(relative))
                     {
@@ -259,15 +261,11 @@ internal static class Updater
                     var saved = Path.Join(backup, relative);
                     Directory.CreateDirectory(Path.GetDirectoryName(saved)!);
                     File.Copy(target, saved, overwrite: true);
-                    replaced.Add(relative);
-                }
-                else
-                {
-                    created.Add(relative);
                 }
 
                 Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-                File.Copy(source, target, overwrite: true);
+                Put(source, target);
+                (existed ? replaced : created).Add(relative); // a refused Put left its target as it was: nothing to undo there
             }
         }
         catch
@@ -279,7 +277,7 @@ internal static class Updater
 
             foreach (var relative in replaced)
             {
-                File.Copy(Path.Join(backup, relative), Path.Join(InstallRoot, relative), overwrite: true);
+                Put(Path.Join(backup, relative), Path.Join(InstallRoot, relative));
             }
 
             if (movedAside && !File.Exists(running))
@@ -287,6 +285,26 @@ internal static class Updater
                 File.Move(OldLauncher, running);
             }
 
+            throw;
+        }
+    }
+
+    /// <summary>
+    ///     Writes the file beside its target, then moves it over: a library a process still maps (prism.dll, or under Proton
+    ///     a Wine bridge's .dll.so, which Wine loads without a Windows handle) is never truncated in place under it, and a
+    ///     move Windows refuses for a loaded file fails the update before anything is half written.
+    /// </summary>
+    private static void Put(string source, string target)
+    {
+        var incoming = target + IncomingSuffix;
+        File.Copy(source, incoming, overwrite: true);
+        try
+        {
+            File.Move(incoming, target, overwrite: true);
+        }
+        catch
+        {
+            TryDeleteFile(incoming);
             throw;
         }
     }
