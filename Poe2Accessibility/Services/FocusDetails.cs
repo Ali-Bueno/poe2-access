@@ -17,6 +17,17 @@ namespace Poe2Accessibility.Services
             texts.Count > 1 && Names(texts[0].Text, focusText) &&
             texts.Skip(1).Any(text => text.Name != labelName && !focusText.Contains(text.Text, StringComparison.Ordinal));
 
+        /// <summary>
+        ///     Where a focus that arrived with a tabbed page is: the page's selected tab when the focus is on that page or
+        ///     names no part of its own (options), else its own part — the stash opens with the cursor on the inventory, and
+        ///     "tab 1" before an inventory item placed it in the stash (2026-11-08).
+        /// </summary>
+        public static string PagePlace(string focusContext, string tab)
+        {
+            var title = Announcements.TabTitle(tab);
+            return focusContext.Length == 0 || focusContext.Split(". ").Contains(title) ? title : focusContext;
+        }
+
         /// <summary>The focus's name alone, as a header over its details ("Terremoto" for "Terremoto, Nivel 1").</summary>
         public static bool Names(string text, string focusText) =>
             text.Length > 0 && (focusText == text || focusText.StartsWith(text + ", ", StringComparison.Ordinal));

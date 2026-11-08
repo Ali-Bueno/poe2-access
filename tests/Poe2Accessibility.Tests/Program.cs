@@ -108,6 +108,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(NearbyThingsWaitForTheCooldown), NearbyThingsWaitForTheCooldown);
             Run(nameof(StickClickWhileHoldingL3), StickClickWhileHoldingL3);
             Run(nameof(WallTonesSwellNearWalls), WallTonesSwellNearWalls);
+            Run(nameof(StashOpenedOnInventoryNamesTheInventory), StashOpenedOnInventoryNamesTheInventory);
             Run(nameof(NewsFollowItsDeliveryLevel), NewsFollowItsDeliveryLevel);
             Run(nameof(SettingsMenuOpensGroupsAndGoesBack), SettingsMenuOpensGroupsAndGoesBack);
             Run(nameof(PassiveStickLandsWhereTheGameDoes), PassiveStickLandsWhereTheGameDoes);
@@ -2459,6 +2460,16 @@ namespace Poe2Accessibility.Tests
             public void Dispose()
             {
             }
+        }
+
+        private static void StashOpenedOnInventoryNamesTheInventory()
+        {
+            // Live 2026-11-08: the stash opened with the cursor on the inventory's first item and the stash's selected
+            // tab "1" was said as its place ("pestaña 1. Orbe de transmutación, columna 1, fila 1"), where a helmet lay.
+            Equal("Inventario", FocusDetails.PagePlace("Inventario", "1"), "an inventory item beside the stash is said in the inventory");
+            Equal(Announcements.TabTitle("1"), FocusDetails.PagePlace("Alijo. " + Announcements.TabTitle("1"), "1"), "a stash item keeps its tab");
+            Equal(Announcements.TabTitle("1"), FocusDetails.PagePlace(string.Empty, "1"), "a page focus with no part of its own (options) takes the tab");
+            Equal("Gráficos", FocusDetails.PagePlace(string.Empty, "Gráficos"), "a named tab keeps its name");
         }
 
         private static void WallTonesSwellNearWalls()

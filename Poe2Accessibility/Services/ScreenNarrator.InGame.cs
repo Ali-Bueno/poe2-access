@@ -188,9 +188,10 @@ namespace Poe2Accessibility.Services
             else if (pageTab.Length > 0)
             {
                 // A tabbed page arrived with the focus (options opened from the game menu, an options tab switch):
-                // the selected tab and the focus, as pre-game — never the page's labels.
+                // the selected tab and the focus, as pre-game — never the page's labels. A focus outside the page (the
+                // inventory beside the stash) is said in its own part.
                 this.tabbedLayer = change.Layer.Address;
-                this.Speak("page with focus", Announcements.InContext(Announcements.TabTitle(pageTab), this.lastFocusSpeech), true);
+                this.Speak("page with focus", Announcements.InContext(FocusDetails.PagePlace(focus?.Context ?? string.Empty, pageTab), this.lastFocusSpeech), true);
             }
             else if (change.Layer.Address != focusLayer)
             {
@@ -204,11 +205,13 @@ namespace Poe2Accessibility.Services
             }
             else if (change.Kind == ScreenChangeKind.LayerOpened && justFocused && this.selectedTab(change.Layer.Address) is { Length: > 0 } openedTab)
             {
-                // A tabbed panel (vendor stock): its tab, what it shows besides controls and stack counts (gold), the focus.
+                // A tabbed panel (vendor stock): its tab, what it shows besides controls and stack counts (gold), the focus;
+                // a focus outside the stock (the inventory) is said in its own part.
                 var shown = Describe(change.Texts.Where(text => !text.IsControl && !IsNumber(text.Text) && !own.Contains(text.Text)));
+                var place = FocusDetails.PagePlace(focus?.Context ?? string.Empty, openedTab);
                 this.tabbedLayer = change.Layer.Address;
-                this.lastContext = openedTab;
-                this.Speak("tabbed panel with focus", Announcements.Sentences(new[] { Announcements.TabTitle(openedTab), shown, this.lastFocusSpeech }), true);
+                this.lastContext = place == Announcements.TabTitle(openedTab) ? openedTab : place;
+                this.Speak("tabbed panel with focus", Announcements.Sentences(new[] { place, shown, this.lastFocusSpeech }), true);
             }
             else if (change.Kind == ScreenChangeKind.LayerOpened && justFocused)
             {
