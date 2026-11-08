@@ -254,7 +254,8 @@ namespace Poe2Accessibility
             var alerts = Seats.AskingSecond && Seats.Partner != null ? this.partnerAlerts : this.alerts;
             var states = alerts?.Statuses.Active.Select(Announcements.AilmentName).ToList() ?? new System.Collections.Generic.List<string>();
             var charges = string.Join(", ", (alerts?.Charges.Held.Select(held => Announcements.Charges(held.Kind, held.Count)) ?? Enumerable.Empty<string>())
-                .Concat(alerts?.Charges.Rage is { Count: > 0 } rage ? new[] { Announcements.Rage(rage.Count, rage.Max) } : Array.Empty<string>()));
+                .Concat(alerts?.Charges.Rage is { Count: > 0 } rage ? new[] { Announcements.Rage(rage.Count, rage.Max) } : Array.Empty<string>())
+                .Concat(alerts?.Resources.Held() ?? Enumerable.Empty<string>()));
             var player = Seats.Asking.TryGetComponent<GameReader.RemoteObjects.Components.Player>(out var me) ? me : null;
             var character = player?.Level ?? 0;
             var levels = Announcements.Levels(character, AreaLevel(), player == null ? null : this.experience?.PercentToNext(character, unchecked((uint)player.Xp)));

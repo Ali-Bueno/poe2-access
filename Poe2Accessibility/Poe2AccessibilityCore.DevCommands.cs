@@ -397,6 +397,9 @@ namespace Poe2Accessibility
                 case "cooldowns":
                     this.log?.Info(this.alerts?.Cooldowns.Diagnose() ?? "Cooldowns off");
                     break;
+                case "skills":
+                    this.log?.Info(this.skillDump?.Dump() ?? "Skill dump off");
+                    break;
                 case "focusinfo":
                     this.log?.Info($"Focus info: {(this.focus?.Current is { } focused ? this.semantics?.RawInfo(focused.Address) : "no focus")}");
                     break;

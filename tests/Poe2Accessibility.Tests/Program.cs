@@ -205,7 +205,7 @@ namespace Poe2Accessibility.Tests
                 Run(name, test);
             }
 
-            foreach (var (name, test) in LayoutSearchTests.All().Concat(HostSearchTests.All()).Concat(NameFallbackTests.All()).Concat(TrialDataTests.All()).Concat(PanelWidgetTests.All()).Concat(DodgeGateTests.All()).Concat(DodgeDataTests.All()))
+            foreach (var (name, test) in LayoutSearchTests.All().Concat(HostSearchTests.All()).Concat(NameFallbackTests.All()).Concat(TrialDataTests.All()).Concat(PanelWidgetTests.All()).Concat(DodgeGateTests.All()).Concat(DodgeDataTests.All()).Concat(ClassMechanicTests.All()))
             {
                 Run(name, test);
             }

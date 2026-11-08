@@ -136,6 +136,7 @@ namespace Poe2Accessibility
         private FightWatch? fights;
         private PlayerAlerts? alerts;
         private PlayerAlerts? partnerAlerts;
+        private SkillDetailsDump? skillDump;
         private InventoryWatch? pickups;
         private InventoryWatch? partnerPickups;
         private InventoryReader? inventoryReader;
@@ -362,6 +363,7 @@ namespace Poe2Accessibility
                 this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log);
                 this.shield = new ShieldWatch(this.audio, this.output, memory, this.log);
                 var skills = new PlayerSkills(memory, elements, this.log);
+                this.skillDump = new SkillDetailsDump(memory, elements);
                 this.bosses.CanParry = () => skills.Has(PlayerSkills.Parry);
                 var hazardGround = HazardGround.Load(Path.Join(this.DllDirectory, "catalog", "hazards.txt"));
                 this.log.Info($"Hazard ground: {hazardGround.Count} buffs from the game files");
@@ -369,6 +371,8 @@ namespace Poe2Accessibility
                 var harmfulBuffs = HarmfulBuffs.Load(Path.Join(this.DllDirectory, "catalog", "buff-names.json"));
                 this.log.Info($"Harmful buffs: {harmfulBuffs.Count} named by the game files");
                 this.alerts.Statuses.Harmful = harmfulBuffs;
+                var mechanics = ClassMechanicCatalog.Load(Path.Join(this.DllDirectory, "catalog", "class-mechanics.json"));
+                this.log.Info($"Class mechanics: {mechanics.Resources.Count} resources, {mechanics.Limits.Count} limits, {mechanics.BuffCount} buffs, {mechanics.SkillCount} skills from the game files");
                 this.alerts.Statuses.IsCovered = hazardGround.IsHazard;
                 this.encounters = new EncounterReader(elements);
                 this.minions = new MinionReport(elements);
@@ -985,6 +989,8 @@ namespace Poe2Accessibility
             this.partnerAlerts?.Statuses.Reset();
             this.alerts?.Charges.Reset();
             this.partnerAlerts?.Charges.Reset();
+            this.alerts?.Resources.Reset();
+            this.partnerAlerts?.Resources.Reset();
             this.trialDoors?.Reset();
             this.alerts?.Cooldowns.Reset();
             this.partnerAlerts?.Cooldowns.Reset();

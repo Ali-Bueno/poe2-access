@@ -46,11 +46,15 @@ namespace Poe2Accessibility.Services
             this.Statuses = new StatusWatch(subject, output, log);
             this.Charges = new ChargeWatch(subject, audio, output, log);
             this.Cooldowns = new SkillCooldownWatch(subject, memory, elements, audio, output, log);
+            this.Resources = new ResourceWatch(subject, output, log);
         }
 
         public StatusWatch Statuses { get; }
 
         public ChargeWatch Charges { get; }
+
+        /// <summary>The class resources the game's tables name, beside the charges (docs/research/class-mechanics.md).</summary>
+        public ResourceWatch Resources { get; }
 
         public SkillCooldownWatch Cooldowns { get; }
 
@@ -69,6 +73,7 @@ namespace Poe2Accessibility.Services
             this.WatchLevel(entity, settings);
             this.Statuses.Tick(playing && settings.StatusAlerts);
             this.Charges.Tick(playing, settings);
+            this.Resources.Tick(playing, settings);
             this.Cooldowns.Tick(playing, settings);
         }
 

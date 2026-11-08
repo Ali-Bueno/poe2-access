@@ -256,6 +256,12 @@ if (args.Length > 1 && string.Equals(args[0], "cull-skills", StringComparison.Or
     return CullSkillExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\cull-skills.txt");
 }
 
+// Args: class-mechanics <gameDir> [outFile]  -- resources, limits, buff names and skill types for the class mechanics (docs/research/class-mechanics.md).
+if (args.Length > 1 && string.Equals(args[0], "class-mechanics", StringComparison.OrdinalIgnoreCase))
+{
+    return ClassMechanicExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\class-mechanics.json");
+}
+
 // Args: places <gameDir> [outFile]  -- named map pieces and props for the place announcements (docs/research/places.md).
 if (args.Length > 1 && string.Equals(args[0], "places", StringComparison.OrdinalIgnoreCase))
 {

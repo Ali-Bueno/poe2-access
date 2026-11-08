@@ -80,6 +80,12 @@ namespace Poe2Accessibility.Services
             _ => null,
         };
 
+        /// <summary>
+        ///     The Stats resources ("current_x") this watch already tells, as buffs or as Rage, so <see cref="ResourceWatch"/>
+        ///     leaves them alone.
+        /// </summary>
+        public static bool CoversStat(string statName) => statName is "rage" or "power_charges" or "frenzy_charges" or "endurance_charges" or "spirit_charges";
+
         /// <summary>The Combo has its own switches and speech level; every other kind follows the charges'.</summary>
         public static SpeechKind SpeechKindOf(ChargeKind kind) => kind == ChargeKind.Combo ? SpeechKind.Combo : SpeechKind.Charges;
 

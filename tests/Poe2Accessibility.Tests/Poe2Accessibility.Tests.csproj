@@ -102,6 +102,10 @@
     <Compile Include="..\..\Poe2Accessibility\Services\CardText.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TradeOfferNews.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\AoSoundEvents.cs" Link="Extract\AoSoundEvents.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\ClassMechanics.cs" Link="Extract\ClassMechanics.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ClassMechanicCatalog.cs" Link="Plugin\ClassMechanicCatalog.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ResourceTracker.cs" Link="Plugin\ResourceTracker.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.ClassMechanics.cs" Link="Plugin\Announcements.ClassMechanics.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\SkillGraphFile.cs" Link="Extract\SkillGraphFile.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\GameMarkup.cs" Link="Extract\GameMarkup.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\EndgameCatalog.cs" Link="Plugin\EndgameCatalog.cs" />
