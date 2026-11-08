@@ -331,8 +331,11 @@ namespace Poe2Accessibility.Services
         private IntPtr? NodeRecordAt(IntPtr node, int shift) =>
             this.reader.TryRead<IntPtr>(node + GameLayout.PassiveTree.NodeRecordOffset + shift, out var record) && record != IntPtr.Zero ? record : null;
 
+        /// <summary>Where a node record keeps its PassiveSkills key: at its start in 0.5.5f, found again by the table its file names.</summary>
+        private static readonly DatKeySite PassiveSkillKey = new("passive node key", GameLayout.PassiveTree.RecordSkillKeyOffset, GameLayout.PassiveTree.SkillTable);
+
         /// <summary>The PassiveSkills row of a node record, trusted only when its key names the table.</summary>
-        private IntPtr? PassiveRow(IntPtr record) => this.DatRow(record + GameLayout.PassiveTree.RecordSkillKeyOffset, GameLayout.PassiveTree.SkillTable);
+        private IntPtr? PassiveRow(IntPtr record) => PassiveSkillKey.Row(this.reader, this.elements, record);
 
         private PassiveNodeRow ReadPassiveRow(IntPtr record, IntPtr row)
         {

@@ -25,6 +25,9 @@ namespace Poe2Accessibility.Services
 
         private static readonly Regex Spaces = new(@"\s+", RegexOptions.Compiled);
 
+        /// <summary>Where a pin element keeps its MapPins key, found again by the table its file names.</summary>
+        private static readonly DatKeySite PinKey = new("map pin key", GameLayout.MapPinRow.ElementPinOffset, GameLayout.WorldMap.PinTable);
+
         /// <summary>The game's "Monster Level: {0}" of a pin's popup in the client's language, empty without the table.</summary>
         public Func<string>? PinLevelLabel { get; set; }
 
@@ -219,7 +222,7 @@ namespace Poe2Accessibility.Services
                 foreach (var pin in this.elements.ReadChildren(layerInfo))
                 {
                     if (this.elements.TryReadElement(pin, out var pinInfo) && pinInfo.IsVisibleFlag &&
-                        DatKey.Row(this.reader, this.elements, pin + GameLayout.MapPinRow.ElementPinOffset, GameLayout.WorldMap.PinTable) is { } row && row != except &&
+                        PinKey.Row(this.reader, this.elements, pin) is { } row && row != except &&
                         DatKey.Row(this.reader, this.elements, row + GameLayout.MapPinRow.AreaKeyOffset, GameLayout.WorldMap.AreaTable) == area &&
                         this.PinText(row, GameLayout.MapPinRow.ContentOffset).StartsWith(ContentPrefix, StringComparison.Ordinal) &&
                         this.PinText(row, GameLayout.MapPinRow.NameOffset) is { Length: > 0 } name && named.Add(name))

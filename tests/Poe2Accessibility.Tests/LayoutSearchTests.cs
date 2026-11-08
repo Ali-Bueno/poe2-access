@@ -65,6 +65,8 @@ namespace Poe2Accessibility.Tests
             (nameof(BuffListsEndInAnId), BuffListsEndInAnId),
             (nameof(TheCameraIsKeptTwice), TheCameraIsKeptTwice),
             (nameof(PositionsLieInsideTheMap), PositionsLieInsideTheMap),
+            (nameof(ADatKeyIsFoundByTheTableItsFileNames), ADatKeyIsFoundByTheTableItsFileNames),
+            (nameof(AKeyIsFoundNearWhereAStructKeptIt), AKeyIsFoundNearWhereAStructKeptIt),
         };
 
         private static void FieldsWhereMeasuredStayThere()
@@ -606,6 +608,30 @@ namespace Poe2Accessibility.Tests
             Equal(false, StructShapes.IsWorldPosition(block, 0, 5000f, 5000f), "a zero");
             BitConverter.TryWriteBytes(block.AsSpan(4), float.NaN);
             Equal(false, StructShapes.IsWorldPosition(block, 4, 5000f, 5000f), "not a number");
+        }
+
+        private static void ADatKeyIsFoundByTheTableItsFileNames()
+        {
+            const string table = "Data/Balance/GrantedEffects.dat";
+            var (key, file, other) = (new IntPtr(Heap + 0x1000), new IntPtr(Heap + 0x2000), new IntPtr(Heap + 0x3000));
+            foreach (var (fileAt, nameAt) in new[] { (8, 8), (0x10, 0x18), (8, 0) })
+            {
+                var block = new byte[DatKeySearch.Reach];
+                Put(block, 0, Heap + 0x500, other.ToInt64());
+                Put(block, fileAt, file.ToInt64());
+                var texts = new Dictionary<long, string> { [file.ToInt64() + nameAt] = table, [other.ToInt64() + 8] = "Data/Balance/ActiveSkills.dat" };
+                byte[] Read(IntPtr at, int size) => at == key ? block[..size] : Array.Empty<byte>();
+                string? Text(IntPtr at) => texts.GetValueOrDefault(at.ToInt64());
+                Equal(((int, int)?)(fileAt, nameAt), DatKeySearch.KeyLayout(Read, Text, key, (8, 8), table), $"a key's file at +0x{fileAt:X} named at +0x{nameAt:X}");
+                Equal(((int, int)?)null, DatKeySearch.KeyLayout(Read, Text, key, (8, 8), "Data/Balance/MapPins.dat"), "a key of another table");
+            }
+        }
+
+        private static void AKeyIsFoundNearWhereAStructKeptIt()
+        {
+            Equal((int?)0x18, DatKeySearch.Site(0, at => at == 0x18), "a key moved from the struct's start");
+            Equal((int?)0x2C8, DatKeySearch.Site(0x2D0, at => at is 0x2C8 or 0x2F0), "the nearer of two places");
+            Equal((int?)null, DatKeySearch.Site(0x2D0, at => at == 0x2D0 + DatKeySearch.Reach + 8), "nothing within reach");
         }
 
         internal static void Equal<T>(T expected, T actual, string what)
