@@ -248,6 +248,16 @@ Account: name field on Y + Create on LB; Link Account on RB) → character creat
 stick, class info on the D-pad, Select on A) → name field + league combo + Continue (Enter submits) →
 Loading → Waiting → AreaLoading → InGameState (beach, Act 1).
 
+## A popup list with no focus: the options' popup notifications (0.5.5f, 2026-11-08)
+
+Options > Interfaz > Chat > "Notificaciones emergentes, editar ajustes" opens "Ventanas emergentes de notificaciones": 31 rows of a
+label and a check box. The stick moves a highlight ("L Navegar", "R Navegación rápida" jumps to the end) while the UI
+manager's focus (+0x748) and hover (+0x760) stay null and no row element changes. Raw bytes of the popup subtree (0xC00 per
+element, `snap.py`-style scratch diff) changed in one place per step: an int at +0x398 of the popup's panel (two levels above
+the rows' holder), 0 → 1 → 2 down, 4 → 5 → 6 → 5 down, down, up (`GameLayout.HighlightList`). `NoFocusList` watches the lists
+under the last focus's layer once the focus is gone and takes the one whose index moves between rows; its row's check box is
+then read as a focus: "Se ha invitado a un compañero al grupo, marcado, casilla de verificación, 8 de 31", A reads "desmarcado".
+
 ## Vendor, stash and waypoint map (2026-10-23, 0.5.5e, Clearfell Encampment)
 
 - MEASURED: vendor window `NPCBuyWindow` (Renly, "Buy or Sell items" on X): stock in a `TabContainer` with

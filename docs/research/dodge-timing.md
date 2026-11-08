@@ -403,6 +403,57 @@ had read the whole Manor run as aimed elsewhere: 92.7 % false), and warnings giv
 - Still not covered: a hasted rare, the player slowed, the player's minions (a Witch, `acceso_prueba`, was created for the Bloated
   Miller but not taken there: see boss mechanics §7), archers off screen. `LeadMs` stays 500.
 
+### Evening checks (2026-11-08, yarkey, `DodgeWarningsAllMonsters` on)
+
+Traces `fight_trace.py` + `dodge_audit.py` in a new Clearfell instance, Ogham Farmlands and the Cemetery of the Eternals.
+
+- **Beira's five-spear combo** (`ice_spear_combo_01`, standing back, not attacking for a minute): 63 warnings, every one timed
+  from the clip's own contacts; recall 26 of 26 casts (`--rarity 3 --screen 900`: she casts from 823 units), 0 false, error p90
+  39 ms (it was 87 ms before the covered-contact fix). Each spear has its own warning about 480 ms ahead.
+- **The leap rule** (urchins' Puncture, `melee_launch_01`, skill `UrchinLeapGeometryAttack`): the third leap logged "Dodge:
+  MeleeUrchin1|106 carries its user to its target". The two leaps before were warned 32-95 ms before landing (out of reach until
+  close); every leap after was warned 128-161 ms before its blow, which is the whole wind-up (the clip's first contact is at
+  0.145 s, rate 0.9). The audit's one miss and one false at 14:37:13.9 are the same swing read with a target, then without.
+- **A crossbow monster's attack clip.** The game's tables put crossbow monsters in Ogham Farmlands, Ogham Village and the
+  Manor Ramparts (Decrepit Mercenary, `InfectedMercenaryCrossbow`, pack and WorldAreas +0x60 links), Act 2's Vastiri
+  Outskirts, Traitor's Passage, the Lost City, Buried Shrines and Titan Grotto; none in the Riverbank or Clearfell. In the
+  Farmlands the skill `Snipe` (`snipe_01`, contact 1.83 s) was warned 479-487 ms ahead, but the **basic attack** (`attack_01`,
+  action Melee, skill `MeleeAtAnimationSpeed`) is the crossbow's bolt: it hit from 400-585 units while the melee reach gate called
+  it out of reach, 14 of 24 shots unwarned. The `hit-times` extractor typed every monster's basic attack as melee; it now reads
+  MonsterVarieties +0x154 (the main hand's ItemClasses row, the schema's `MainHand_ItemClass`; every campaign archer and crossbow
+  monster holds "Bow") and types the basic attack of a Bow or Crossbow holder as ranged: 52 lines changed, all archers
+  (the Cemetery's `GraveSkeletonBow` among them). Step "hit times" v4. Live after the fix: "GraveSkeletonBow|1 Melee (Ranged,
+  timed live, gap 440, aim Player, … blow in 477 ms, clip attack_bow_01)", skill `MeleeAtAnimationSpeedBow`.
+
+### One cue for blows together (2026-11-08)
+
+Several monsters swinging together gave a burst of cues where the player needs one roll (packs; the Trial of the Sekhemas,
+where each hit costs honour). `DodgeCueMerge`: the warnings of a frame are collected, the rarer and then the nearer first; a
+cue played for a blow due at T covers a later warning whose blow falls within 250 ms of T (a wind-up warned before its time is
+known merges by when it is issued); a rare's, unique's or boss's warning is never covered by a normal or magic monster's cue.
+A covered warning is logged "Dodge merged: … covered by monster N"; `dodge_audit.py` counts it as warned, not as a cue
+(`--replay-merge` applies the rule to a log written before it). Counterplay words ("¡Sal!") are not merged.
+
+Replayed on the day's traces (cues per second over the seconds with any warning; recall unchanged by design):
+
+| Trace | Warnings → cues a second | Most in one second | Seconds with 3 or more | Covered |
+|---|---|---|---|---|
+| Mud Burrow, all monsters (larva swarms), 980 s | 2.87 → 1.66 | 7 → 4 | 500 → 117 | 1379 of 2816 |
+| Clearfell morning, all monsters | 3.89 → 2.11 | 10 → 3 | 57 → 33 | 150 of 323 |
+| Clearfell evening, all monsters | 1.55 → 1.33 | 5 → 4 | 35 → 11 | 56 of 373 |
+| Ogham Manor rares, the user's ritual (uniques) | 1.05 → 1.03 | 2 → 2 | 0 → 0 | 0-2 |
+| Cemetery, live with the rule, all monsters | 2.32 → 1.55 | 4 → 2 | 10 → 0 | 17 of 51 |
+
+Cues still played keep their timing (Mud Burrow error p90 34 ms against the earliest feasible moment, the Cemetery 49 ms).
+The window on the Mud Burrow trace: 150 ms leaves 144 seconds with 3+ cues, 250 ms 117, 400 ms 81; most covered blows fall
+within 150 ms of each other, so 250 ms (about one roll) stays.
+
+**In a trial every monster warns** (`DodgeWarningsAllMonstersInTrials`, on): the trial is known by its HUD, the game's own lines
+(the Sekhemas' honour, a Trial of Chaos round), held 3 s across a missed frame; leaving it returns to the general switch.
+Not seen live (no character has entered a trial). The tables tie the Sekhemas' floors to WorldAreas (`SanctumFloors` +0x8:
+`Sanctum_1..4`; the foyers are in no table) and the Trial of Chaos' rooms only to `G3_10`'s terrain folder (`UltimatumRooms`
+ARM paths), so the HUD is the surer sign.
+
 ## First study (2026-10-24, 0.5.5e, Mud Burrow)
 
 ### What memory shows (dev command `trace [seconds]`, `ActorTrace`)

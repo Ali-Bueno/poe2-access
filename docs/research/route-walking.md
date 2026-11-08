@@ -68,5 +68,10 @@ first direction it said for the same target until the way is 10 degrees past the
   steps, down left 8, then left"), so a player following the scanner is not trapped. The driver now counts no progress
   toward its goal as stuck.
 
+- **Deaths of the evening run** (yarkey, level 22): under Beira after a minute standing still to let her cast, frozen, with a
+  ritual cultist's axe on him (the driver beat her on its way back; the casts were audited from the trace); and in Ogham Farmlands (level 12) to a
+  werewolf pack while the explorer only walked. A survey script in a level 12 area must fight back; "let the boss cast" needs a
+  check of life every few seconds, not one 25 s wait.
+
 Scratch tools (not kept): `walk.py` (beacon follower), `legs.py` (spoken-leg follower), `drive.py` (shortest-way driver over
 the routed grid), `dist.py`, `grid.py` (grid renderer).

@@ -59,6 +59,10 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
   walking with no new block seen, it plays for 4 s on the side of the way on, panned and pitched like the guide, then
   stops, and the count starts again. Fights, standing still, menus, towns and hideouts do not count, and it stays silent
   while the guide leads. Both times are first guesses, to tune by ear.
+  Live (2026-11-08, Clearfell, `LostHintSeconds` 3 for the check): "Lost hint toward cell …" walking back over explored
+  ground, and the `sounds` dev command heard the `unexplored_room` bed while it played; at 10 and 30 s it never came in
+  Clearfell, since every monster within 1300 units stops the count and the explored stretches between packs were short.
+  The radar's mark (`radar_unexplored`) played 41 times on the way in.
 - **Pockets:** unseen ground under half the reveal disc (88 blocks), joined to nothing else, is a nook with no way on:
   the scanner says "Unexplored nook" and lists it after the ground that goes on (`FrontierPlace.Pocket`). A frontier of
   one block is kept when ground goes on behind it: a narrow gap can be the way.

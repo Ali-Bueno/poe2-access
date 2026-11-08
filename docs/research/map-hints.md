@@ -101,6 +101,10 @@ readable at arrival, unlike what the game's files alone suggested.
 | Grelwood | `TreeOfSoulsRoots`, `TreeOfSoulsBodies`, `TreeOfSoulsNailStake1..3`, `SummonAlly`, `Scatter_GrimTangleEntrance` | about 694,1198 |
 | Clearfell | 3 `DeadBull_01.ao`, 2 `Slash07.ao` | 1243,844; 388,1434 |
 
+**Said walking past** (2026-11-08, a new Clearfell instance, dev host): the guide walked to the first cattle spot (487,1129)
+and within reach the mod said "Reses muertas, el rastro de sangre sigue arriba a la derecha" unasked; after a death the
+respawn beside another spot said "…sigue abajo a la izquierda". The cue's place differs per instance (`maphints` lists it).
+
 Press confirmed by this: the mushrooms really are by the Grim Tangle's entrance. Not settled: the two bulls' link to the
 boss (136 cells apart, both far from its ground), and the Grelwood's `Objects/TreeRoot` breadcrumbs, not listed from the
 waypoint, so entities that load near.
