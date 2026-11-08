@@ -12,6 +12,7 @@ namespace Poe2Accessibility.Tests
             (nameof(CamelCaseFileBecomesWords), CamelCaseFileBecomesWords),
             (nameof(VariantSuffixAndUnderscoresAreDropped), VariantSuffixAndUnderscoresAreDropped),
             (nameof(AcronymsStayTogether), AcronymsStayTogether),
+            (nameof(TheEngineWordDoodadIsDropped), TheEngineWordDoodadIsDropped),
             (nameof(LeagueNameIsTheGameLabelFirst), LeagueNameIsTheGameLabelFirst),
             (nameof(LeagueNameFallsBackToItsFolder), LeagueNameFallsBackToItsFolder),
             (nameof(AHarmfulBuffIsNamedOnceWhenItBegins), AHarmfulBuffIsNamedOnceWhenItBegins),
@@ -33,6 +34,12 @@ namespace Poe2Accessibility.Tests
 
         private static void VariantSuffixAndUnderscoresAreDropped() =>
             Expect("Sanctum Generic Lever2", ObjectNames.FromPath("Metadata/Terrain/Sanctum_GenericLever2@14"));
+
+        private static void TheEngineWordDoodadIsDropped()
+        {
+            Expect("Chair", ObjectNames.FromPath("Metadata/MiscellaneousObjects/DoodadChair"));
+            Expect("Doodad", ObjectNames.FromPath("Metadata/MiscellaneousObjects/Doodad"));
+        }
 
         private static void AcronymsStayTogether() =>
             Expect("NPC Hideout Door", ObjectNames.FromPath("Metadata/NPCHideoutDoor"));
