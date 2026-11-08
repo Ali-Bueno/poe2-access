@@ -86,7 +86,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.baseline = nowMs - this.baselineAt < BaselineGraceMs;
-            foreach (var reading in readings)
+            foreach (var reading in Merged(readings))
             {
                 seen.Add(reading.Key);
                 this.Take(reading, nowMs, news);
@@ -110,6 +110,11 @@ namespace Poe2Accessibility.Services
 
             return news;
         }
+
+        /// <summary>One reading per key: a buff two skills grant comes twice under one key, its stacks added as the host adds them.</summary>
+        private static IEnumerable<Reading> Merged(IReadOnlyList<Reading> readings) =>
+            readings.GroupBy(reading => reading.Key)
+                .Select(same => same.Skip(1).Any() ? same.First() with { Count = same.Sum(reading => reading.Count) } : same.First());
 
         private void Take(Reading reading, long nowMs, List<News> news)
         {
