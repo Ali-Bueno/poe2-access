@@ -8,6 +8,8 @@ namespace GameOffsets.Objects.Components
     public struct ActorOffset
     {
         [FieldOffset(0x000)] public ComponentHeader Header;
+        [FieldOffset(0x238)] public IntPtr CurrentActionPtr; // ActorActionOffsets, null when idle (GEAL GetTarget; docs/research/dodge-timing.md)
+        [FieldOffset(0x2A0)] public byte ActionFlags; // bit 0x2: an action under way (GEAL IsCurrentAction)
         [FieldOffset(0x8B0)] public int AnimationId;
         [FieldOffset(0xB08)] public StdVector ActiveSkillsPtr; // ActiveSkillStructure // take and remove skill gem.
         [FieldOffset(0xB20)] public StdVector CooldownsPtr;
