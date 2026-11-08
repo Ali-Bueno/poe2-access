@@ -122,6 +122,7 @@ namespace Poe2Accessibility
         private HazardWatch? hazards;
         private EncounterReader? encounters;
         private TrapWatch? traps;
+        private MapPinNarrator? mapPins;
         private MinionReport? minions;
         private CullWatch? culls;
         private DeployedWatch? deployed;
@@ -405,6 +406,9 @@ namespace Poe2Accessibility
                 this.narrator.WaterLabel = () => this.entities?.WaterLabel ?? string.Empty;
                 this.narrator.TrialCountersBeside = this.semantics.TrialCounters;
                 this.semantics.UnallocatedLabel = () => this.entities?.UnallocatedLabel ?? string.Empty;
+                this.semantics.PinLevelLabel = () => this.entities?.PinLevelLabel ?? string.Empty;
+                this.semantics.PinTownLabel = () => this.entities?.PinTownLabel ?? string.Empty;
+                this.mapPins = new MapPinNarrator(this.semantics, this.output, this.log);
                 this.entities.AreaName = () => this.gameState?.CurrentAreaName ?? string.Empty;
                 this.entities.Memory = new AreaMemory(Path.Join(this.DllDirectory, "config", "explored"), this.log);
                 this.commands.UseGlossary(new SoundGlossary(this.audio, gameSounds, modSounds, drops, diabloSounds));
@@ -670,6 +674,11 @@ namespace Poe2Accessibility
             if (watching && this.Settings.AnnounceTrialCounters)
             {
                 this.narrator.CheckTrialCounters(this.screen.Current);
+            }
+
+            if (watching && this.Settings.AnnounceAppearingText)
+            {
+                this.mapPins?.Tick(this.gameState.CurrentState == GameStateTypes.InGameState ? this.WorldScreen() : IntPtr.Zero);
             }
 
             this.wasWatching = watching;

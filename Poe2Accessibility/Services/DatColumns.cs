@@ -34,6 +34,12 @@ namespace Poe2Accessibility.Services
             ("PassiveSkills.IsNotable", GameLayout.PassiveTree.RowNotableOffset, offset => GameLayout.PassiveTree.RowNotableOffset = offset),
             ("PassiveSkills.IsIconOnly", GameLayout.PassiveTree.RowIconOnlyOffset, offset => GameLayout.PassiveTree.RowIconOnlyOffset = offset),
             ("PassiveSkills.IsJewelSocket", GameLayout.PassiveTree.RowJewelSocketOffset, offset => GameLayout.PassiveTree.RowJewelSocketOffset = offset),
+            ("MapPins.WorldArea", GameLayout.MapPinRow.AreaKeyOffset, offset => GameLayout.MapPinRow.AreaKeyOffset = offset),
+            ("MapPins.Name", GameLayout.MapPinRow.NameOffset, offset => GameLayout.MapPinRow.NameOffset = offset),
+            ("MapPins.Description", GameLayout.MapPinRow.DescriptionOffset, offset => GameLayout.MapPinRow.DescriptionOffset = offset),
+            ("MapPins.Content", GameLayout.MapPinRow.ContentOffset, offset => GameLayout.MapPinRow.ContentOffset = offset),
+            ("WorldAreas.AreaLevel", GameLayout.WorldAreaRow.LevelOffset, offset => GameLayout.WorldAreaRow.LevelOffset = offset),
+            ("WorldAreas.IsTown", GameLayout.WorldAreaRow.IsTownOffset, offset => GameLayout.WorldAreaRow.IsTownOffset = offset),
         };
 
         /// <returns>The columns of the file, null without one, for the host structs that read them.</returns>

@@ -143,6 +143,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The line an unallocated passive's tooltip ends with in the client's language, empty when the table has none.</summary>
         public string UnallocatedLabel => this.Title("label:unallocated");
 
+        /// <summary>A world map pin popup's "Monster Level: {0}" in the client's language, empty when the table has none.</summary>
+        public string PinLevelLabel => this.Title("label:pin-level");
+
+        /// <summary>A town pin popup's "Town" in the client's language, empty when the table has none.</summary>
+        public string PinTownLabel => this.Title("label:pin-town");
+
         /// <summary>The tracker line without which an object means nothing, empty for most.</summary>
         public string ObjectiveOf(string path) => this.Title("objective:" + FileOf(path));
 

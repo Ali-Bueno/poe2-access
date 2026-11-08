@@ -40,6 +40,18 @@ internal static class DatContentColumns
         if (DatTable.Open(index, "worldareas") is { } areas)
         {
             yield return ("WorldAreas.IsTown", FlagOfIds(areas, "town", MinTowns), 0x14);
+            yield return ("WorldAreas.AreaLevel", Nearest(areas, 0x26, offset => IsAreaLevel(areas, offset)), 0x26);
+
+            // A world map pin: its area, and the name and words its popup shows (MapPins, 2026-11-07).
+            if (DatTable.Open(index, "mappins") is { } pins)
+            {
+                var area = Nearest(pins, 0x8, offset => pins.IsKeyColumn(offset, areas.RowCount));
+                yield return ("MapPins.WorldArea", area, 0x8);
+                var name = area is { } key ? Nearest(pins, 0x28, offset => IsAreaName(pins, offset, key, areas)) : null;
+                yield return ("MapPins.Name", name, 0x28);
+                yield return ("MapPins.Description", name is { } named ? Nearest(pins, 0x30, offset => offset > named && IsPinText(pins, offset)) : null, 0x30);
+                yield return ("MapPins.Content", Nearest(pins, 0x7C, offset => IsContentIcon(pins, offset)), 0x7C);
+            }
         }
 
         var effects = DatTable.Open(index, "grantedeffects");
@@ -57,6 +69,39 @@ internal static class DatContentColumns
     /// <summary>The fitting offset nearest to where the column was measured.</summary>
     internal static int? Nearest(DatTable table, int measured, Func<int, bool> fits) =>
         Enumerable.Range(0, table.RowSize).OrderBy(offset => Math.Abs(offset - measured)).Where(fits).Select(offset => (int?)offset).FirstOrDefault();
+
+    /// <summary>An area's level: every row 0 to 100, most of them above 1, many values (0.5.5e: +0x26, the Riverbank 1, the Trial's hub 22).</summary>
+    private static bool IsAreaLevel(DatTable areas, int offset)
+    {
+        var values = Enumerable.Range(0, areas.RowCount).Select(row => areas.Int32(row, offset)).ToList();
+        return values.All(value => value is >= 0 and <= 100) && values.Count(value => value > 1) * 2 > values.Count && values.Distinct().Count() >= 20;
+    }
+
+    /// <summary>The pin's name: for the pin named like its area ("G2_13"), the area's own name, on most of them.</summary>
+    private static bool IsAreaName(DatTable pins, int offset, int areaKey, DatTable areas)
+    {
+        var (own, same) = (0, 0);
+        for (var row = 0; row < pins.RowCount; row++)
+        {
+            if (pins.Key(row, areaKey) is var key and >= 0 && key < areas.RowCount && areas.String((int)key, 0) == pins.String(row, 0))
+            {
+                own++;
+                same += pins.StringOrNull(row, offset) is { Length: > 0 } text && text == areas.String((int)key, 0x8) ? 1 : 0;
+            }
+        }
+
+        return own >= MinMarkedRows && same * 2 > own;
+    }
+
+    /// <summary>The content icon of a pin that is something within its area: "WorldMapContentBoss" and the like on many rows.</summary>
+    private static bool IsContentIcon(DatTable pins, int offset) =>
+        Enumerable.Range(0, pins.RowCount).All(row => pins.StringOrNull(row, offset) != null) &&
+        Enumerable.Range(0, pins.RowCount).Count(row => pins.String(row, offset).StartsWith("WorldMapContent", StringComparison.Ordinal)) >= MinMarkedRows;
+
+    /// <summary>A text column: a readable string on every row, a sentence on many.</summary>
+    private static bool IsPinText(DatTable pins, int offset) =>
+        Enumerable.Range(0, pins.RowCount).All(row => pins.StringOrNull(row, offset) != null) &&
+        Enumerable.Range(0, pins.RowCount).Count(row => pins.String(row, offset).Contains(' ', StringComparison.Ordinal)) >= MinMarkedRows;
 
     private static bool IsUniqueUInt16(DatTable table, int offset)
     {

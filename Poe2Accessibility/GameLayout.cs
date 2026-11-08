@@ -271,6 +271,43 @@ namespace Poe2Accessibility
             public const string DepthToggleSound = "DepthToggle";
 
             public const int SurfaceShownOffset = 0x566;
+
+            /// <summary>
+            ///     An act's canvas (a child of map_control) keeps dat keys into MapPins: the pin under the cursor, and the
+            ///     current area's before it; both found by scanning the canvas while the cursor moved between pins (G2_town,
+            ///     then G2_4_1 Keth, then G2_13 the Trial, 2026-11-07).
+            /// </summary>
+            public const int HoveredPinOffset = 0x378;
+
+            public const int CurrentPinOffset = 0x358;
+
+            public const string PinTable = "Data/Balance/MapPins.dat";
+
+            public const string AreaTable = "Data/Balance/WorldAreas.dat";
+        }
+
+        /// <summary>A MapPins row (dat columns followed by DatColumns): its area key, name and description, as its popup shows them.</summary>
+        public static class MapPinRow
+        {
+            public static int AreaKeyOffset { get; internal set; } = 0x8;
+
+            public static int NameOffset { get; internal set; } = 0x28;
+
+            public static int DescriptionOffset { get; internal set; } = 0x30;
+
+            /// <summary>The content icon ("WorldMapContentBoss", "…Chest") of a pin that is something within its area.</summary>
+            public static int ContentOffset { get; internal set; } = 0x7C;
+
+            /// <summary>A pin element keeps its MapPins row (a dat key) here, and its area's WorldAreas row right after.</summary>
+            public const int ElementPinOffset = 0x2D0;
+        }
+
+        /// <summary>A WorldAreas row's level and town flag (dat columns followed by DatColumns).</summary>
+        public static class WorldAreaRow
+        {
+            public static int LevelOffset { get; internal set; } = 0x26;
+
+            public static int IsTownOffset { get; internal set; } = 0x14;
         }
 
         /// <summary>

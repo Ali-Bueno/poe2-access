@@ -48,6 +48,9 @@ namespace Poe2Accessibility.Services
         ///     closing a panel stops its long tooltip but not the world's first words after it ("Alijo, A").
         /// </summary>
         void StopBefore(DateTime since) => this.Stop();
+
+        /// <summary>Whether a phrase holding <paramref name="fragment"/> was asked for since then (the last seconds are kept).</summary>
+        bool SaidSince(string fragment, DateTime since) => false;
     }
 
     /// <summary>Fallback when PRISM cannot be initialised: the plugin keeps logging but stays silent.</summary>

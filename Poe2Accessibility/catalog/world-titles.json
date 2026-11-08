@@ -1,6 +1,8 @@
 {
   "de": {
     "label:honour": "Ehre",
+    "label:pin-level": "Monsterstufe: {0}",
+    "label:pin-town": "Stadt",
     "label:unallocated": "Nicht zugewiesen",
     "label:water": "Heiliges Wasser",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Altar der Aszendenz",
@@ -50,6 +52,8 @@
   },
   "en": {
     "label:honour": "Honour",
+    "label:pin-level": "Monster level: {0}",
+    "label:pin-town": "Town",
     "label:unallocated": "Unallocated",
     "label:water": "Sacred Water",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Altar of Ascendancy",
@@ -99,6 +103,8 @@
   },
   "es": {
     "label:honour": "Honor",
+    "label:pin-level": "Nivel de monstruos: {0}",
+    "label:pin-town": "Pueblo",
     "label:unallocated": "Sin asignar",
     "label:water": "Agua sagrada",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Altar de ascendencia",
@@ -148,6 +154,8 @@
   },
   "fr": {
     "label:honour": "Honneur",
+    "label:pin-level": "Niveau des monstres\u00A0: {0}",
+    "label:pin-town": "Ville",
     "label:unallocated": "Talent non attribué",
     "label:water": "Eaux sacrées",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Autel d'Ascendance",
@@ -197,6 +205,8 @@
   },
   "ja": {
     "label:honour": "名誉",
+    "label:pin-level": "モンスターレベル: {0}",
+    "label:pin-town": "街",
     "label:unallocated": "割り当てられていない",
     "label:water": "神聖な水",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "アセンダンシーの祭壇",
@@ -246,6 +256,8 @@
   },
   "ko": {
     "label:honour": "명예",
+    "label:pin-level": "몬스터 레벨: {0}",
+    "label:pin-town": "마을",
     "label:unallocated": "미할당",
     "label:water": "신성한 물",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "전직 제단",
@@ -295,6 +307,8 @@
   },
   "pt": {
     "label:honour": "Honra",
+    "label:pin-level": "Nível dos Monstros: {0}",
+    "label:pin-town": "Vila",
     "label:unallocated": "Não atribuído",
     "label:water": "Água Sagrada",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Altar de Ascendência",
@@ -344,6 +358,8 @@
   },
   "ru": {
     "label:honour": "Честь",
+    "label:pin-level": "Уровень монстров: {0}",
+    "label:pin-town": "Лагерь",
     "label:unallocated": "Не выбрано",
     "label:water": "Святая вода",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "Алтарь Восхождения",
@@ -393,6 +409,8 @@
   },
   "th": {
     "label:honour": "เกียรติ",
+    "label:pin-level": "มอนสเตอร์เลเวล: {0}",
+    "label:pin-town": "เมือง",
     "label:unallocated": "ยังไม่ได้อัพ",
     "label:water": "วารีศักดิ์สิทธิ์",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "แท่นครองอำนาจ",
@@ -442,6 +460,8 @@
   },
   "zh-TW": {
     "label:honour": "榮譽",
+    "label:pin-level": "怪物等級：{0}",
+    "label:pin-town": "城鎮",
     "label:unallocated": "已取消配置",
     "label:water": "神聖之水",
     "metadata/miscellaneousobjects/ascendancy/ascendancydevice": "昇華之殿",

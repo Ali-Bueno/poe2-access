@@ -3,6 +3,10 @@
   "Characters.Name": 8,
   "GrantedEffects.ActiveSkill": 79,
   "GrantedEffectsPerLevel.GrantedEffect": 0,
+  "MapPins.Content": 124,
+  "MapPins.Description": 48,
+  "MapPins.Name": 40,
+  "MapPins.WorldArea": 8,
   "MinimapIcons.Label": 26,
   "MinimapIcons.RowSize": 42,
   "Mods.Name": 98,
@@ -13,6 +17,7 @@
   "PassiveSkills.IsKeystone": 74,
   "PassiveSkills.IsNotable": 75,
   "PassiveSkills.Name": 50,
+  "WorldAreas.AreaLevel": 38,
   "WorldAreas.IsTown": 20,
   "WorldAreas.Name": 8
 }

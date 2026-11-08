@@ -196,7 +196,8 @@ namespace Poe2Accessibility.Services
 
         private int NearestEntry(in UiElementReader.ElementInfo glyph, List<(UiElementReader.ElementInfo Entry, string Text)> entries)
         {
-            if (!PluginUiElementReflection.TryGetAbsoluteRect(glyph.Address, out var position, out var size))
+            // Laid-out rects (the game's own units, no window), so the match is the same at every window size and scale.
+            if (this.LayoutRect(glyph.Address) is not { } glyphRect)
             {
                 return -1;
             }
@@ -204,15 +205,15 @@ namespace Poe2Accessibility.Services
             var rects = new List<(Vector2 Position, Vector2 Size)>(entries.Count);
             foreach (var (entry, _) in entries)
             {
-                if (!PluginUiElementReflection.TryGetAbsoluteRect(entry.Address, out var entryPosition, out var entrySize))
+                if (this.LayoutRect(entry.Address) is not { } entryRect)
                 {
                     return -1;
                 }
 
-                rects.Add((entryPosition, entrySize));
+                rects.Add(entryRect);
             }
 
-            return NearestRect(rects, position + (size / 2));
+            return NearestRect(rects, glyphRect.Position + (glyphRect.Size / 2));
         }
 
         /// <summary>A controller glyph of the confirm button, drawn as an image or as a markup-only label (as ScreenWatcher pairs them).</summary>

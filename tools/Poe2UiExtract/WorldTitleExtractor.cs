@@ -30,6 +30,12 @@ internal static class WorldTitleExtractor
     private const string WaterKey = "ItemDisplaySanctumGold";
     private const string WaterEntry = "label:water";
 
+    /// <summary>A world map pin's popup: "Monster Level: {0}" and "Town".</summary>
+    private const string PinLevelKey = "WorldPanelPinPopupMonsterLevel";
+    private const string PinLevelEntry = "label:pin-level";
+    private const string PinTownKey = "WorldPanelPinPopupTown";
+    private const string PinTownEntry = "label:pin-town";
+
     private static readonly Regex TitleKey = new("title_text\\s*=\\s*\"([^\"]+)\"", RegexOptions.Compiled);
 
     /// <summary>A colour around a title: "&lt;white&gt;{Torre petrolífera}".</summary>
@@ -102,6 +108,17 @@ internal static class WorldTitleExtractor
             if (texts.TryGetValue(UnallocatedKey, out var unallocated))
             {
                 titles[UnallocatedEntry] = unallocated;
+            }
+
+            // The world map's pin popup, for a pin whose popup the game does not build ("Nivel de monstruos: {0}", "Pueblo").
+            if (texts.TryGetValue(PinLevelKey, out var pinLevel) && pinLevel.Contains("{0}", StringComparison.Ordinal))
+            {
+                titles[PinLevelEntry] = pinLevel;
+            }
+
+            if (texts.TryGetValue(PinTownKey, out var pinTown) && pinTown.Length > 0)
+            {
+                titles[PinTownEntry] = pinTown;
             }
 
             var objectives = folder == null ? englishObjectives : DatTable.OpenTranslated(index, ObjectivesTable, folder);

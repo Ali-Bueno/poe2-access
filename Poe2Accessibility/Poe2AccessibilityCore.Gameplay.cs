@@ -301,6 +301,22 @@ namespace Poe2Accessibility
             return this.shopPage;
         }
 
+        private long worldScreenLookedUpAt = long.MinValue / 2;
+        private IntPtr worldScreen;
+
+        /// <summary>The world map while it is shown (<see cref="UiSemantics.WorldScreen"/>), looked up at most every ShopLookupMs.</summary>
+        private IntPtr WorldScreen()
+        {
+            var now = Environment.TickCount64;
+            if (now - this.worldScreenLookedUpAt >= ShopLookupMs)
+            {
+                this.worldScreenLookedUpAt = now;
+                this.worldScreen = this.semantics?.WorldScreen(this.locator?.Fields.Find(this.focus?.LayerContainer ?? IntPtr.Zero, InGameField.InventoryPanel) ?? IntPtr.Zero) ?? IntPtr.Zero;
+            }
+
+            return this.worldScreen;
+        }
+
         /// <summary>A moment for the player's place to be read in a new instance.</summary>
         private const int PlayerSettlesMs = 300;
 

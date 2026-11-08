@@ -35,6 +35,8 @@ namespace Poe2Accessibility.Services
 
         public void Stop() => this.inner.Stop();
 
+        public bool SaidSince(string fragment, DateTime since) => this.inner.SaidSince(fragment, since);
+
         /// <summary>The plugin's output is not this wrapper's to release.</summary>
         public void Dispose()
         {

@@ -159,6 +159,39 @@ if (args.Length > 2 && string.Equals(args[0], "dat-strings", StringComparison.Or
     return 0;
 }
 
+// Args: dat-row-strings <gameDir> <table> <id substring> [language]  -- research aid: every text column of the rows whose id
+// matches, one "+offset: text" line each.
+if (args.Length > 3 && string.Equals(args[0], "dat-row-strings", StringComparison.OrdinalIgnoreCase))
+{
+    using var bundles = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+    bundles.ParsePaths();
+    var english = DatTable.Open(bundles, args[2]);
+    var table = args.Length > 4 && args[4] != "english" ? DatTable.OpenTranslated(bundles, args[2], args[4]) : english;
+    if (english == null || table == null)
+    {
+        Console.WriteLine($"No table {args[2]}");
+        return 1;
+    }
+
+    for (var row = 0; row < english.RowCount; row++)
+    {
+        var id = english.StringOrNull(row, 0) ?? string.Empty;
+        if (id.Contains(args[3], StringComparison.OrdinalIgnoreCase))
+        {
+            Console.WriteLine($"{row} {id}:");
+            for (var offset = 8; offset + 8 <= table.RowSize; offset += 4)
+            {
+                if (table.StringOrNull(row, offset) is { Length: > 1 } text && text.Any(char.IsLetter))
+                {
+                    Console.WriteLine($"  +0x{offset:X}: {text.Replace("\n", " / ")}");
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
 // Args: dat-rows <gameDir> <table> <id substring>  -- research aid: the raw bytes (as int32s) of the rows whose id matches.
 if (args.Length > 3 && string.Equals(args[0], "dat-rows", StringComparison.OrdinalIgnoreCase))
 {

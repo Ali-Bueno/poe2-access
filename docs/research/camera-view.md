@@ -45,10 +45,16 @@ which follows the camera wherever it turns, and fall back on `CameraView` when i
 
 Five window sizes were walked with the bot and their speech diffed (`sweep.py`, the same panels and presses): 16:9, 16:10 and
 21:9 hid nothing. At 1280x1024 (5:4) the character sheet's captions are kept but hidden (flag 0x5026F1 instead of 0x502EF1:
-"FUE", "Vida", "Armadura", "Resistencias", all Fontin Smallcaps), and the world map builds no area details box ("Nivel de
-monstruos: 22", the area's lore and type are absent from the tree, not hidden). The sheet reads its numbers from the player's
-Stats and names a bare number by its hidden caption (`UiSemantics.HiddenCaption`), so it reads as at 16:9; the map box cannot
-be read where the game never builds it.
+"FUE", "Vida", "Armadura", "Resistencias", all Fontin Smallcaps). The sheet reads its numbers from the player's Stats and
+names a bare number by its hidden caption (`UiSemantics.HiddenCaption`), so it reads as at 16:9.
+
+The world map's pin popup ("Nivel de monstruos: 22", the area's words, "Prueba de ascendencia"): an earlier note here said the
+game never builds it at 5:4. Wrong (2026-11-08): at 1280x1024 the Trial pin's popup is in the tree and shown, but its level
+and words arrive after its title, and the screen reading said only "Prueba de las sekhemas. Completa la Prueba de las
+sekhemas"; Keth's was not heard at all while a kept line held. Pins are now read from their data as well
+(`MapPinNarrator`, [endgame UI](endgame-ui.md) §6): once the cursor rests on a pin whose words were not said, its MapPins row
+gives "Prueba de las sekhemas. Nivel de monstruos: 22. Quienes querían ser sekhemas debían demostrar que eran
+excepcionales. Prueba de ascendencia", word for word what the popup says at 16:9.
 
 ## Pixel tolerances replaced
 

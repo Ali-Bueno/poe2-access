@@ -42,6 +42,13 @@ namespace Poe2Accessibility.Services
         private readonly SpeechRepeats repeats = new();
         private string lastText = string.Empty;
 
+        /// <summary>The phrases asked for in the last SaidKeptMs (at most SaidKept), for <see cref="SaidSince"/>.</summary>
+        private readonly Queue<(DateTime At, string Text)> said = new();
+
+        private const int SaidKept = 64;
+
+        private const int SaidKeptMs = 10000;
+
         private PrismOutputService(PluginLog log)
         {
             this.log = log;
@@ -88,6 +95,22 @@ namespace Poe2Accessibility.Services
         }
 
         public void Speak(string text, bool interrupt = false) => this.Say(text, interrupt, Delivery.Normal, 0);
+
+        public bool SaidSince(string fragment, DateTime since)
+        {
+            lock (this.said)
+            {
+                foreach (var (at, text) in this.said)
+                {
+                    if (at >= since && text.Contains(fragment, StringComparison.Ordinal))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
 
         public void Urge(string text, int holdMs = 1500)
         {
@@ -248,6 +271,15 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastText = text;
+            lock (this.said)
+            {
+                this.said.Enqueue((now, text));
+                while (this.said.Count > SaidKept || (this.said.Count > 0 && (now - this.said.Peek().At).TotalMilliseconds > SaidKeptMs))
+                {
+                    this.said.Dequeue();
+                }
+            }
+
             var goesOut = true;
             lock (this.queueGate)
             {

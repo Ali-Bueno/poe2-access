@@ -165,6 +165,21 @@ a prior live dump; **INFERRED** = consistent with the sources; **OPEN** = unknow
 - The passive tree's ascendancy view: no ascendancy toggle among the dumped passive-tree elements (the tree was hidden
   then); still needs a character with an ascendancy.
 
+## 6. World map pins from data (2026-11-08)
+- MEASURED (dev commands `datkeys`, `mappin`; Act 2 town, cursor moved G2_town → G2_4_1 Keth → G2_13 the Trial): an act's
+  canvas (a child of `map_control`, `[0,1,17,2,3,0,0,1]` for act 2) keeps dat keys (row, file) into
+  `Data/Balance/MapPins.dat`: `+0x378` the pin under the cursor, `+0x358` the current area's (`GameLayout.WorldMap`). Each
+  pin element keeps its own MapPins key at `+0x2D0` and its WorldAreas key at `+0x2E0`.
+- MapPins (577 rows of 0xCA, `dat-row-strings`): `+0x8` WorldAreas key, `+0x28` name, `+0x30` words (the popup's
+  sentence), `+0x7C` content icon (`WorldMapContentBoss`, `…Chest`, `…BossSanctum`) on pins that are something within an area
+  (G2_13_AscendancyTrial "Prueba de ascendencia", G2_2_Balbala); a town's markers (G2_town_marker0..) have none. WorldAreas
+  `+0x26` is the area level (22 for G2_13), `+0x14` the town flag. All found again by `dat-columns` (`MapPins.*`,
+  `WorldAreas.AreaLevel`); the popup's own words come from ClientStrings `WorldPanelPinPopupMonsterLevel` "Nivel de monstruos:
+  {0}" and `WorldPanelPinPopupTown` "Pueblo" (`world-titles.json` `label:pin-level`, `label:pin-town`).
+- The popup (WorldScreen child 17, unnamed) is the hovered pin's: title, level or "Pueblo", words, its quests (e.g. "El rastro
+  de la corrupción / Reconstruye el Cuerno de Vastiri") and its content pins. `MapPinNarrator` tells the pin from its data only
+  when its words were not said since the cursor reached it, so the quests still come from the screen reading.
+
 ## Priority for the next live session
 1. Atlas (largest unknown, best prepared: GameHelper already has nodes/edges/status; build the navigator offline).
 2. Ascendancy toggle (cheap: one dump with the view on/off).

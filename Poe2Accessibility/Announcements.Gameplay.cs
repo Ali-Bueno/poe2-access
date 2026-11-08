@@ -267,6 +267,12 @@ namespace Poe2Accessibility
         /// <summary>A skill whose cooldown ran out: "Granada explosiva disponible".</summary>
         public static string SkillReady(string name) => T($"{name} ready", $"{name} disponible");
 
+        /// <summary>A world map pin's monster level, when the game's own words are not in the table (they normally are).</summary>
+        public static string PinLevel(int level) => T($"Monster level: {level}", $"Nivel de monstruos: {level}");
+
+        /// <summary>A town pin's kind, when the game's own word is not in the table.</summary>
+        public static string PinTown => T("Town", "Pueblo");
+
         /// <summary>A rare or unique enemy now within culling range: "Beira, de la manada putrefacta: golpe de gracia".</summary>
         public static string Cullable(string name) => T($"{name}: culling strike", $"{name}: golpe de gracia");
 

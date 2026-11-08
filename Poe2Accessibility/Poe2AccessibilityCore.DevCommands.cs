@@ -204,6 +204,38 @@
                     }
 
                     break;
+                case var keys when keys.StartsWith("datkeys", StringComparison.Ordinal):
+                    // Research: which game data rows the focused widget holds (a map pin's MapPins row).
+                    var keyed = this.focus?.Current?.Address ?? IntPtr.Zero;
+                    if (command.StartsWith("datkeys 0x", StringComparison.Ordinal))
+                    {
+                        keyed = (IntPtr)Convert.ToInt64(command["datkeys 0x".Length..], 16);
+                    }
+
+                    if (keyed == IntPtr.Zero && this.focus?.Manager is { } manager && manager != IntPtr.Zero)
+                    {
+                        // Nothing focused (a map's pins are only hovered): the element under the cursor.
+                        this.memoryReader?.TryRead(manager + GameLayout.UiManager.HoveredOffset, out keyed);
+                    }
+
+                    foreach (var line in this.semantics?.DatKeys(keyed) ?? Enumerable.Empty<string>())
+                    {
+                        this.log.Info($"Dat key: {line}");
+                    }
+
+                    break;
+                case "mappin":
+                    // Research: the world map's hovered pin as its data tells it, and whether the game built its popup.
+                    this.log.Info($"Map pin: {this.semantics?.PinReport(this.WorldScreen()) ?? "no semantics"}");
+                    break;
+                case "uilayout":
+                    // Research: the focused element's parent chain, drawn rect against the window-free layout rect.
+                    foreach (var line in this.semantics?.LayoutChain(this.focus?.Current?.Address ?? IntPtr.Zero) ?? Enumerable.Empty<string>())
+                    {
+                        this.log.Info($"Layout: {line}");
+                    }
+
+                    break;
                 case "passivenear":
                     // Research: the nodes around the hovered passive, to compare the stick's moves with the links said.
                     foreach (var line in this.semantics?.PassiveNeighbours(this.focus?.Current?.Address ?? IntPtr.Zero, 400) ?? Enumerable.Empty<string>())

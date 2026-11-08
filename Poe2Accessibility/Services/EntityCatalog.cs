@@ -607,6 +607,10 @@ namespace Poe2Accessibility.Services
         /// <inheritdoc cref="LandmarkTable.UnallocatedLabel"/>
         public string UnallocatedLabel => this.landmarks.UnallocatedLabel;
 
+        public string PinLevelLabel => this.landmarks.PinLevelLabel;
+
+        public string PinTownLabel => this.landmarks.PinTownLabel;
+
         /// <summary>How far the walk to an entry is, in world units; infinite with no way there. A search on the frame thread: for a few entries.</summary>
         public float WalkTo(ScanEntry entry)
         {
