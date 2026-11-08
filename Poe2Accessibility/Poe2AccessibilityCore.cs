@@ -293,6 +293,7 @@ namespace Poe2Accessibility
                 this.actorTrace = new ActorTrace(memory, this.log, debugDirectory);
                 this.stunTrace = new StunTrace(memory, this.log, debugDirectory);
                 ItemNames.Load(this.log, Path.Join(this.DllDirectory, "catalog", "item-names.json"));
+                CurrencyIcons.Load(this.log, Path.Join(this.DllDirectory, "catalog", "currency-art.json"));
                 // Named tiles from GameHelper2's Radar table (kept in the catalog), then the mod's own additions.
                 var landmarks = LandmarkTable.Load(
                     this.log,

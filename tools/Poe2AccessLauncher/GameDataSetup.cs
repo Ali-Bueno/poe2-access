@@ -78,6 +78,7 @@ internal static class GameDataSetup
             new Step("hit times", 2, "hit-times.txt", "hit-times", true),
             new Step("hazards", 3, "hazards.txt", "hazards", true),
             new Step("buff names", 1, "buff-names.json", "buff-names", true),
+            new Step("currency art", 1, "currency-art.json", "currency-art", true),
             new Step("cull skills", 2, "cull-skills.txt", "cull-skills", true),
             // At 2: a stamp from the old layout vouches for every step at 1, these two included, though they never ran.
             new Step("game ids", 4, "game-ids.txt", "game-ids", true),

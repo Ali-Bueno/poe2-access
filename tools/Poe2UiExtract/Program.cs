@@ -280,6 +280,13 @@ if (args.Length > 2 && string.Equals(args[0], "buff-names", StringComparison.Ord
     return BuffNameExtractor.Run(bundles, args[2]);
 }
 
+// Args: currency-art <gameDir> <outFile>  -- the item each currency icon shows, { lang: { art file: name } }.
+if (args.Length > 2 && string.Equals(args[0], "currency-art", StringComparison.OrdinalIgnoreCase))
+{
+    using var bundles = SharedBundles.OpenParsed(args[1]);
+    return CurrencyArtExtractor.Run(bundles, args[2]);
+}
+
 // Args: world-titles <gameDir> <outFile>  -- the names objects show only in a WorldDescription, as { lang: { .ot path: title } }.
 if (args.Length > 2 && string.Equals(args[0], "world-titles", StringComparison.OrdinalIgnoreCase))
 {

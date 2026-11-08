@@ -16,6 +16,7 @@ namespace Poe2Accessibility.Tests
             (nameof(LeagueNameFallsBackToItsFolder), LeagueNameFallsBackToItsFolder),
             (nameof(AHarmfulBuffIsNamedOnceWhenItBegins), AHarmfulBuffIsNamedOnceWhenItBegins),
             (nameof(BuffNamesFollowTheLanguageThenEnglish), BuffNamesFollowTheLanguageThenEnglish),
+            (nameof(ACurrencyIconIsNamedByItsArtFile), ACurrencyIconIsNamedByItsArtFile),
         };
 
         private static void Expect(string expected, string actual)
@@ -70,6 +71,15 @@ namespace Poe2Accessibility.Tests
             Expect("Agonía rastrera", buffs.NameOf("creeping_agony", "es"));
             Expect("Creeping Agony", buffs.NameOf("creeping_agony", "de"));
             Expect(string.Empty, buffs.NameOf("sprinting", "en"));
+        }
+
+        private static void ACurrencyIconIsNamedByItsArtFile()
+        {
+            CurrencyIcons.Set(new() { ["en"] = new() { ["art/2ditems/currency/currencyidentification.dds"] = "Scroll of Wisdom" } });
+            Expect("Scroll of Wisdom", CurrencyIcons.FromTextureKey("Art/2DItems/Currency/CurrencyIdentification.dds|0,0,0,0|0") ?? "none");
+            Expect("none", CurrencyIcons.FromTextureKey("Art/2DItems/Currency/Unknown.dds|0,0,0,0|0") ?? "none");
+            Expect("none", CurrencyIcons.FromTextureKey("Art/Other/Thing.dds") ?? "none");
+            Expect(Announcements.Gold, CurrencyIcons.FromTextureKey("Art/2DItems/Currency/Ruthless/CoinPileTier1.dds|0,0,0,0|0") ?? "none");
         }
     }
 }

@@ -21,6 +21,7 @@ internal static class Batch
         ["game-ids"] = (_, index, output) => GameIdExtractor.Run(index, output),
         ["game-keys"] = (_, index, output) => GameKeyExtractor.Run(index, output),
         ["buff-names"] = (_, index, output) => BuffNameExtractor.Run(index, output),
+        ["currency-art"] = (_, index, output) => CurrencyArtExtractor.Run(index, output),
         ["places"] = (_, index, output) => PlaceExtractor.Run(index, output),
         ["ui-catalog"] = (_, index, output) => UiScripts.BuildCatalog(index, output),
     };

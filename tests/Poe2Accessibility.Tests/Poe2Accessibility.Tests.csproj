@@ -23,6 +23,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\L3Gestures.cs" Link="Plugin\L3Gestures.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ScanModel.cs" Link="Plugin\ScanModel.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ObjectNames.cs" Link="Plugin\ObjectNames.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\CurrencyIcons.cs" Link="Plugin\CurrencyIcons.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\HarmfulBuffs.cs" Link="Plugin\HarmfulBuffs.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\RoutePlanner.cs" Link="Plugin\RoutePlanner.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\VitalAlarm.cs" Link="Plugin\VitalAlarm.cs" />

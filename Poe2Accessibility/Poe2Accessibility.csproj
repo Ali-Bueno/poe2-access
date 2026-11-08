@@ -69,6 +69,8 @@
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\game-ids.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\game-ids.txt')" />
     <!-- When monster attacks land, from the game's animation data (tools/Poe2UiExtract hit-times). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\hit-times.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\hit-times.txt')" />
+    <!-- The item each currency icon shows, for prices (tools/Poe2UiExtract currency-art). -->
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\currency-art.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\currency-art.json')" />
     <!-- Harmful buffs' names per language (tools/Poe2UiExtract buff-names). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\buff-names.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\buff-names.json')" />
     <!-- Buffs from standing in harmful ground, for the hazard alarm (tools/Poe2UiExtract hazards). -->
