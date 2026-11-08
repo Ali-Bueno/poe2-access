@@ -68,7 +68,7 @@ def main():
             return None
         day = datetime.datetime.fromtimestamp(first / 1000).strftime('%Y-%m-%d')
         return wall_of(day + ' ' + hms + '.000')
-    rows, clipinfo, lifes, player_id = collections.defaultdict(list), {}, [], None
+    rows, clipinfo, lifes = collections.defaultdict(list), {}, []
     pending = None
     first_wall = last_wall = None
     for line in open(a.trace, encoding='utf-8'):
@@ -80,8 +80,7 @@ def main():
             pending = j['clip_info']
             continue
         if 'life' in j:
-            lifes.append((j['wall'], j['life'], j['at']))
-            player_id = j['player']
+            lifes.append((j['wall'], j['life'], j['at'], j['player']))  # the player's id changes with the area
             continue
         if 'id' in j:
             first_wall = first_wall or j['wall']
@@ -90,13 +89,17 @@ def main():
                 clipinfo[(j['monster'].split('@')[0], j.get('clip'))] = pending['events']
                 pending = None
             rows[j['id']].append(j)
-    life_walls = [w for w, _, _ in lifes]
+    life_walls = [w for w, *_ in lifes]
     t0, t1 = clock(a.start, first_wall), clock(a.end, first_wall)
     t0, t1 = t0 or 0, t1 or 10**15
 
     def player_at(wall):
         i = bisect.bisect_right(life_walls, wall) - 1
         return lifes[max(0, i)][2] if lifes else [0, 0]
+
+    def player_id_at(wall):
+        i = bisect.bisect_right(life_walls, wall) - 1
+        return lifes[max(0, i)][3] if lifes else None
 
     def hit_after(wall, within=450):
         """First life drop in (wall-50, wall+within]."""
@@ -135,6 +138,7 @@ def main():
         s['place'] = acts[0].get('place') if acts else None
         s['at'] = r0['at']
         pa = player_at(r0['wall'])
+        s['player'] = player_id_at(r0['wall'])
         s['dist'] = math.hypot(r0['at'][0] - pa[0], r0['at'][1] - pa[1])
         if s['place']:
             px, py = s['place'][0] * WORLD_PER_GRID, s['place'][1] * WORLD_PER_GRID
@@ -188,12 +192,13 @@ def main():
     def attack_clip(s):
         c = (s['clip'] or '').lower()
         return c and not any(w in c for w in ('idle', 'walk', 'run', 'death', 'hit_react', 'taunt', 'emerge', 'turn', 'flinch', 'stun', 'dodge'))
-    at_player = [s for s in swings if ok_rarity(s) and attack_clip(s) and s['target'] == player_id and s['dist'] <= a.screen
+    at_player = [s for s in swings if ok_rarity(s) and attack_clip(s) and s['target'] == s['player'] and s['dist'] <= a.screen
                  and (s['end_wall'] - s['start']) > 150]
     attacks = [s for s in at_player if (s['monster'], s['anim']) in threatening]
     calm_hits = [s for s in at_player if (s['monster'], s['anim']) not in threatening]
     warned = [s for s in attacks if s.get('warns')]
-    print(f'player {player_id}; swings {len(swings)}; warnings {len(warns)}; attacks at the player on screen {len(attacks)} (+{len(calm_hits)} of kinds never judged threatening)')
+    players = sorted({life[3] for life in lifes if t0 <= life[0] <= t1 and life[3] is not None})
+    print(f'player {",".join(map(str, players))}; swings {len(swings)}; warnings {len(warns)}; attacks at the player on screen {len(attacks)} (+{len(calm_hits)} of kinds never judged threatening)')
     print(f'recall {len(warned)}/{len(attacks)} = {len(warned) / max(1, len(attacks)):.1%}')
     missed = collections.Counter((s['monster'], s['anim'], s['clip']) for s in attacks if not s.get('warns'))
     if missed:
@@ -217,7 +222,7 @@ def main():
         if s is None:
             unmatched.append(w)
             continue
-        aimed = s['target'] == player_id or (s['target'] in (0, None) and s['place_dist'] is not None and s['place_dist'] < 250)
+        aimed = s['target'] == s['player'] or (s['target'] in (0, None) and s['place_dist'] is not None and s['place_dist'] < 250)
         if not aimed or s['dist'] > a.screen + 400:
             false.append(w)
     print(f'false (aimed elsewhere / far): {len(false)}/{len(warns)} = {len(false) / max(1, len(warns)):.1%}; unmatched {len(unmatched)}')
@@ -236,7 +241,7 @@ def main():
     bylife = []
     for w in warns:
         s, c = w['swing'], w.get('contact')
-        if s is not None and c is None and (s['target'] == player_id):
+        if s is not None and c is None and (s['target'] == s['player']):
             h = hit_after(w['wall'] + 50, 1500)
             if h:
                 bylife.append((w['reason'], w['wall'] - (h - 31 - a.lead), w['wall'] + w['blow_in'] - (h - 31)))
