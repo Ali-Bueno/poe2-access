@@ -12,6 +12,11 @@ namespace Poe2Accessibility
     public sealed partial class Poe2AccessibilityCore
     {
         /// <summary>How the camera draws the world now: the window, the player on it, and the world axes per window height.</summary>
+        private const string SemanticFieldFile = "semantic-fields.txt";
+
+        /// <summary>The code fields of this game process, being read off the frame thread.</summary>
+        private System.Threading.Tasks.Task<CodeFieldReading>? codeFields;
+
         private void LogCamera()
         {
             if (!Seats.Followed.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var player))
@@ -465,6 +470,7 @@ namespace Poe2Accessibility
         /// <summary>Per frame: the parts of the game's layout that could not be found, said once together.</summary>
         private void SayCompatibility()
         {
+            this.TakeCodeFields();
             this.worldLayout?.Tick(this.gameState?.CurrentState == GameStateTypes.InGameState);
             if (this.compatibility?.TakeUnsaid() is { Count: > 0 } missing)
             {
@@ -603,7 +609,7 @@ namespace Poe2Accessibility
                         this.worldLayout.GameBuild = $"{file.Length}:{file.LastWriteTimeUtc.Ticks}";
                     }
 
-                    this.CheckCodeFields(path);
+                    this.StartCodeFields(path);
                     this.log?.Info($"Game build: {path}, {file.Length} bytes, written {file.LastWriteTimeUtc:yyyy-MM-dd HH:mm} UTC");
                 }
             }
@@ -634,63 +640,109 @@ namespace Poe2Accessibility
         }
 
         /// <summary>
-        ///     Reads where the game's code holds the fields no live check judges, and follows what moved: a patch that
-        ///     moved one would otherwise read wrong in silence. Before the first area, so a live judgment comes after.
+        ///     Reads, off the frame thread, where the game's code holds the fields no live check judges: the byte signatures
+        ///     and the semantic rules (docs/research/exe-layouts.md). <see cref="TakeCodeFields"/> follows what moved.
         /// </summary>
-        private void CheckCodeFields(string exe)
+        private void StartCodeFields(string exe)
+        {
+            var catalog = Path.Join(this.DllDirectory, "catalog");
+            this.codeFields = System.Threading.Tasks.Task.Run(() => ReadCodeFields(exe, catalog));
+        }
+
+        /// <summary>
+        ///     Per frame: once the reading is done, follows what moved, as a patch that moved a field would otherwise read
+        ///     wrong in silence. A field a live judgment already placed stays (<c>OffsetHealer.PlaceFromCode</c>).
+        /// </summary>
+        private void TakeCodeFields()
+        {
+            if (this.codeFields is not { IsCompleted: true } task)
+            {
+                return;
+            }
+
+            this.codeFields = null;
+            var reading = task.Result;
+            if (reading.Error != null)
+            {
+                this.log?.Debug($"Code fields unread: {reading.Error}");
+                return;
+            }
+
+            var (read, disagree) = CodeFieldCatalog.Settle(reading.Code, reading.Semantic);
+            var moved = new System.Collections.Generic.List<string>();
+            var stuck = false;
+            foreach (var group in read.Where(field => field.Found != null && field.Entry.Struct != null).GroupBy(field => field.Entry.Struct!))
+            {
+                var fields = group.Select(field => (field.Entry.Field, field.Entry.Value - field.Entry.Bias, field.Found!.Value)).Distinct().ToList();
+                if (GameHelper.Utils.OffsetHealer.PlaceFromCode(group.Key, fields) is not { } outcomes)
+                {
+                    this.log?.Info($"Code fields: {group.Key} does not match the catalog, left where it is");
+                    continue;
+                }
+
+                moved.AddRange(outcomes.Where(outcome => outcome.Health == GameHelper.Utils.StructHealth.Moved)
+                    .Select(outcome => $"{group.Key}.{outcome.Name} +0x{outcome.From:X} to +0x{outcome.To:X}"));
+            }
+
+            foreach (var (entry, found) in read)
+            {
+                if (found is not { } value || value == entry.Value)
+                {
+                    continue;
+                }
+
+                if (entry.Layout is { } layout && LayoutFields.TryGetValue(layout, out var place))
+                {
+                    place(value);
+                    moved.Add($"{entry.Name} +0x{entry.Value:X} to +0x{value:X}");
+                }
+                else if (entry.IsReport)
+                {
+                    stuck = true;
+                    this.log?.Info($"Code fields: {entry.Name} moved from +0x{entry.Value:X} to +0x{value:X}, and nothing can follow it");
+                }
+            }
+
+            var semanticMoves = reading.Semantic.Where(field => field.Found is { } value && value != field.Entry.Value)
+                .Select(field => $"{field.Entry.Name} +0x{field.Entry.Value:X} to +0x{field.Found:X}").Distinct().ToList();
+            this.log?.Info(Tally("Code fields", reading.Code, reading.CodeMilliseconds, moved));
+            this.log?.Info(Tally("Semantic fields", reading.Semantic, reading.SemanticMilliseconds, semanticMoves)
+                + (disagree.Count == 0 ? string.Empty : $"; disagree, left where they are: {string.Join(", ", disagree)}"));
+            if (stuck)
+            {
+                this.compatibility?.Missing(CodeFieldsPart);
+            }
+        }
+
+        /// <summary>"Code fields: 50 of 50 read in 600 ms; moved: none", and what read nothing.</summary>
+        private static string Tally(
+            string source, System.Collections.Generic.IReadOnlyList<(CodeFieldEntry Entry, int? Found)> read, long milliseconds, System.Collections.Generic.IReadOnlyList<string> moved)
+        {
+            var unsettled = read.Where(field => field.Found == null).Select(field => field.Entry.Name).Distinct().ToList();
+            return $"{source}: {read.Count(field => field.Found != null)} of {read.Count} read in {milliseconds} ms; moved: {(moved.Count == 0 ? "none" : string.Join(", ", moved))}"
+                + (unsettled.Count == 0 ? string.Empty : $"; not settled: {string.Join(", ", unsettled)}");
+        }
+
+        /// <summary>Both readings of the exe on disk; nothing touches the game. For a worker thread.</summary>
+        private static CodeFieldReading ReadCodeFields(string exe, string catalog)
         {
             try
             {
                 var watch = System.Diagnostics.Stopwatch.StartNew();
-                var entries = CodeFieldCatalog.Parse(File.ReadLines(Path.Join(this.DllDirectory, "catalog", CodeFieldFile)));
+                var entries = CodeFieldCatalog.Parse(File.ReadLines(Path.Join(catalog, CodeFieldFile)));
                 var file = File.ReadAllBytes(exe);
                 var (start, length) = GameHelper.Utils.CodeFieldSearch.CodeOf(file);
-                var read = CodeFieldCatalog.Read(file.AsSpan(start, length), entries);
-                var moved = new System.Collections.Generic.List<string>();
-                var stuck = false;
-                foreach (var group in read.Where(field => field.Found != null && field.Entry.Struct != null).GroupBy(field => field.Entry.Struct!))
-                {
-                    var fields = group.Select(field => (field.Entry.Field, field.Entry.Value - field.Entry.Bias, field.Found!.Value)).Distinct().ToList();
-                    if (GameHelper.Utils.OffsetHealer.PlaceFromCode(group.Key, fields) is not { } outcomes)
-                    {
-                        this.log?.Info($"Code fields: {group.Key} does not match the catalog, left where it is");
-                        continue;
-                    }
-
-                    moved.AddRange(outcomes.Where(outcome => outcome.Health == GameHelper.Utils.StructHealth.Moved)
-                        .Select(outcome => $"{group.Key}.{outcome.Name} +0x{outcome.From:X} to +0x{outcome.To:X}"));
-                }
-
-                foreach (var (entry, found) in read)
-                {
-                    if (found is not { } value || value == entry.Value)
-                    {
-                        continue;
-                    }
-
-                    if (entry.Layout is { } layout && LayoutFields.TryGetValue(layout, out var place))
-                    {
-                        place(value);
-                        moved.Add($"{entry.Name} +0x{entry.Value:X} to +0x{value:X}");
-                    }
-                    else if (entry.IsReport)
-                    {
-                        stuck = true;
-                        this.log?.Info($"Code fields: {entry.Name} moved from +0x{entry.Value:X} to +0x{value:X}, and nothing can follow it");
-                    }
-                }
-
-                var unsettled = read.Where(field => field.Found == null).Select(field => field.Entry.Name).ToList();
-                this.log?.Info($"Code fields: {read.Count - unsettled.Count} of {read.Count} read in {watch.ElapsedMilliseconds} ms; moved: {(moved.Count == 0 ? "none" : string.Join(", ", moved))}"
-                    + (unsettled.Count == 0 ? string.Empty : $"; not settled: {string.Join(", ", unsettled)}"));
-                if (stuck)
-                {
-                    this.compatibility?.Missing(CodeFieldsPart);
-                }
+                var code = CodeFieldCatalog.Read(file.AsSpan(start, length), entries);
+                var codeTime = watch.ElapsedMilliseconds;
+                var rules = Path.Join(catalog, SemanticFieldFile);
+                var semantic = File.Exists(rules)
+                    ? CodeFieldCatalog.ReadSemantic(file, CodeFieldCatalog.ParseSemantic(File.ReadLines(rules)))
+                    : Array.Empty<(CodeFieldEntry, int?)>();
+                return new CodeFieldReading(code, codeTime, semantic, watch.ElapsedMilliseconds - codeTime, null);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
             {
-                this.log?.Debug($"Code fields unread: {ex.Message}");
+                return new CodeFieldReading(Array.Empty<(CodeFieldEntry, int?)>(), 0, Array.Empty<(CodeFieldEntry, int?)>(), 0, ex.Message);
             }
         }
 
@@ -732,5 +784,13 @@ namespace Poe2Accessibility
                 this.output.Speak(Announcements.UiDumpFailed, false);
             }
         }
+
+        /// <summary>What the exe on disk says, from the signatures and from the semantic rules, and how long each took.</summary>
+        private sealed record CodeFieldReading(
+            System.Collections.Generic.IReadOnlyList<(CodeFieldEntry Entry, int? Found)> Code,
+            long CodeMilliseconds,
+            System.Collections.Generic.IReadOnlyList<(CodeFieldEntry Entry, int? Found)> Semantic,
+            long SemanticMilliseconds,
+            string? Error);
     }
 }

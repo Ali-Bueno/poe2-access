@@ -1,0 +1,41 @@
+# Fields read from what the game's code does next to a name it carries (host Utils/CodeReader; docs/research/exe-layouts.md,
+# "The semantic source"). Tab-separated: name, target (as in code-fields.txt), value at 0.5.5f, rule. Lines with one target
+# must agree with each other and with code-fields.txt, or the field is left where it is.
+Life.Health.Current	LifeOffset:Health.Current	0x1e0	label "Life: " 0
+Life.Health.Current	LifeOffset:Health.Current	0x1e0	geal IsAlive Life 0
+Life.Health.Total	LifeOffset:Health.Total	0x1dc	label "Life: " 1
+Life.Mana.Current	LifeOffset:Mana.Current	0x238	label "Mana: " 0
+Life.Mana.Total	LifeOffset:Mana.Total	0x234	label "Mana: " 1
+Life.ES.Current	LifeOffset:EnergyShield.Current	0x278	label "ES: " 0
+Life.ES.Total	LifeOffset:EnergyShield.Total	0x274	label "ES: " 1
+Player.Xp	PlayerOffsets:Xp	0x1d8	label "Experience: " 0
+Player.Level	PlayerOffsets:Level	0x204	label "Level: " 0 with "Experience: "
+Player.Name	PlayerOffsets:Name	0x1b0	label "Character Name: " 0 address
+Chest.IsOpened	ChestOffsets:IsOpened	0x168	label "Chest open: " 0
+Targetable.IsTargetable	layout:IsTargetable	0x69	label "Targetable: " 0
+Transitionable.CurrentState	TransitionableOffsets:CurrentStateEnum	0x120	label "Transitionable state: " 0
+Transitionable.CurrentState	TransitionableOffsets:CurrentStateEnum	0x120	geal GetTransitionState Transitionable 0
+Stats.CurrentWeaponIndex	StatsOffsets:CurrentWeaponIndex	0x168	label "Weapon Set: " 0
+Stats.StatsChangedByItems	StatsOffsets:StatsChangedByItemsPtr	0x160	geal GetStat Stats 0
+Stats.StatsChangedByItems	StatsOffsets:StatsChangedByItemsPtr	0x160	geal IfStat Stats 0
+ObjectMagicProperties.Rarity	ObjectMagicPropertiesOffsets:Details1.Rarity	0x144	label "Rarity: " 0
+ObjectMagicProperties.ImplicitMods	ObjectMagicPropertiesOffsets:Details1.Mods.ImplicitMods	0x150	label "Implicit Mods: " 0
+ObjectMagicProperties.ExplicitMods	ObjectMagicPropertiesOffsets:Details1.Mods.ExplicitMods	0x168	field "Explicit Mods: " 0
+Buffs.StatusEffects	BuffsOffsets:StatusEffectPtr	0x160	callee HasBuff Buffs
+Buffs.StatusEffects	BuffsOffsets:StatusEffectPtr	0x160	label "Buffs: " 0
+Buffs.StatusEffects	BuffsOffsets:StatusEffectPtr	0x160	geal GetBuffTotalCount Buffs 0
+StatusEffect.BuffDefinition	StatusEffectStruct:BuffDefinationPtr	0x8	called "Buffs: " 1 arg 2 0
+StatusEffect.Charges	StatusEffectStruct:Charges	0x40	called "Buffs: " 1 arg 2 1
+Positioned.Reaction	PositionedOffsets:Reaction	0x1e0	called "Team: " 1 returns 0
+Actor.AnimationId	ActorOffset:AnimationId	0x8b0	geal SetActorType Actor 0
+Actor.ActiveSkills	ActorOffset:ActiveSkillsPtr	0xb08	field "Active Skills: " 0
+StateMachine.States	StateMachineComponentOffsets:StatesPtr	0x158	field "StateMachine state " 0
+StateMachine.StatesValues	StateMachineComponentOffsets:StatesValues	0x160	field "StateMachine state " 1
+Area.Level	AreaInstanceOffsets:CurrentAreaLevel	0xc4	world IsLevel 0
+Area.Level	AreaInstanceOffsets:CurrentAreaLevel	0xc4	world IfLevel 0
+Area.Hash	AreaInstanceOffsets:CurrentAreaHash	0x11c	label "Tile hash: " 0
+Entity.Details	EntityOffsets:ItemBase.EntityDetailsPtr	0x8	getter Life details
+Entity.Components	EntityOffsets:ItemBase.ComponentListPtr	0x10	getter Life components
+Entity.Components	EntityOffsets:ItemBase.ComponentListPtr	0x10	getter Render components
+EntityDetails.ComponentLookUp	EntityDetails:ComponentLookUpPtr	0x28	getter Life lookup
+ComponentLookUp.NameAndIndex	ComponentLookUpStruct:ComponentsNameAndIndex	0x28	getter Life map

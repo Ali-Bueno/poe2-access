@@ -11,10 +11,26 @@ namespace Poe2Accessibility.Tests
     /// <summary>Runs every test; exit code 1 when any fails. Run: dotnet run --project tests/Poe2Accessibility.Tests</summary>
     public static class Program
     {
+        /// <summary>Dev command: compare the x64 decoder with a full capstone dump (re/decoder_truth.py).</summary>
+        private const string DecoderTruthCommand = "x64-truth";
+
+        /// <summary>Dev command: run the semantic rules of a catalog on an exe.</summary>
+        private const string SemanticCommand = "semantic";
+
         private static int failures;
 
-        public static int Main()
+        public static int Main(string[] args)
         {
+            if (args is [DecoderTruthCommand, var truth])
+            {
+                return X64DecoderTests.CompareFile(truth);
+            }
+
+            if (args is [SemanticCommand, var exe, var catalog])
+            {
+                return SemanticRuleTests.CheckExe(exe, catalog);
+            }
+
             Run(nameof(BaselineIsSilentExceptTopLayer), BaselineIsSilentExceptTopLayer);
             Run(nameof(PopupNeedsTwoSnapshots), PopupNeedsTwoSnapshots);
             Run(nameof(ChangedTextIsReportedOnce), ChangedTextIsReportedOnce);
@@ -181,6 +197,11 @@ namespace Poe2Accessibility.Tests
             Run(nameof(MapHintsAreSaidOncePerPlace), MapHintsAreSaidOncePerPlace);
             Run(nameof(ShippedMapHintsAreWellFormed), ShippedMapHintsAreWellFormed);
             Run(nameof(SpiritValuesNameTheirWeaponSet), SpiritValuesNameTheirWeaponSet);
+            foreach (var (name, test) in X64DecoderTests.All().Concat(SemanticRuleTests.All()))
+            {
+                Run(name, test);
+            }
+
             foreach (var (name, test) in LayoutSearchTests.All())
             {
                 Run(name, test);
