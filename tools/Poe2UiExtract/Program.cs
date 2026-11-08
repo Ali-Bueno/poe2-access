@@ -273,6 +273,13 @@ if (args.Length > 1 && string.Equals(args[0], "item-names", StringComparison.Ord
     return ItemNameExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-names.json");
 }
 
+// Args: buff-names <gameDir> <outFile>  -- the display names of buffs per language, { lang: { buff id: name } }.
+if (args.Length > 2 && string.Equals(args[0], "buff-names", StringComparison.OrdinalIgnoreCase))
+{
+    using var bundles = SharedBundles.OpenParsed(args[1]);
+    return BuffNameExtractor.Run(bundles, args[2]);
+}
+
 // Args: world-titles <gameDir> <outFile>  -- the names objects show only in a WorldDescription, as { lang: { .ot path: title } }.
 if (args.Length > 2 && string.Equals(args[0], "world-titles", StringComparison.OrdinalIgnoreCase))
 {

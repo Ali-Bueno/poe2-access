@@ -41,7 +41,7 @@
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\ui-catalog.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\ui-catalog.json')" />
     <!-- GGG's map cues by area, listed by hand from docs/research/map-hints-by-act.md. -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\map-hints.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
-    <!-- Named tiles (exits) from GameHelper2's Radar plugin table, then the ones it lacks and corrections to it, in the same format. -->
+    <!-- Named tiles (exits) from the vendored important_tgt_files.txt data file, then the ones it lacks and corrections to it, in the same format. -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\important_tgt_files.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\landmarks.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
     <!-- Names objects show only in a WorldDescription, and lines the mod knows by their text (tools/Poe2UiExtract world-titles). -->
@@ -69,6 +69,8 @@
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\game-ids.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\game-ids.txt')" />
     <!-- When monster attacks land, from the game's animation data (tools/Poe2UiExtract hit-times). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\hit-times.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\hit-times.txt')" />
+    <!-- Harmful buffs' names per language (tools/Poe2UiExtract buff-names). -->
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\buff-names.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\buff-names.json')" />
     <!-- Buffs from standing in harmful ground, for the hazard alarm (tools/Poe2UiExtract hazards). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\hazards.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\hazards.txt')" />
     <!-- Granted effects that deal Culling Strike, for the culling cue (tools/Poe2UiExtract cull-skills). -->

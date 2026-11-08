@@ -14,6 +14,8 @@ namespace Poe2Accessibility.Tests
             (nameof(AcronymsStayTogether), AcronymsStayTogether),
             (nameof(LeagueNameIsTheGameLabelFirst), LeagueNameIsTheGameLabelFirst),
             (nameof(LeagueNameFallsBackToItsFolder), LeagueNameFallsBackToItsFolder),
+            (nameof(AHarmfulBuffIsNamedOnceWhenItBegins), AHarmfulBuffIsNamedOnceWhenItBegins),
+            (nameof(BuffNamesFollowTheLanguageThenEnglish), BuffNamesFollowTheLanguageThenEnglish),
         };
 
         private static void Expect(string expected, string actual)
@@ -40,6 +42,34 @@ namespace Poe2Accessibility.Tests
         {
             Expect("Delirium", ObjectNames.LeagueName(string.Empty, "Metadata/Terrain/Leagues/Delirium/Thing"));
             Expect(string.Empty, ObjectNames.LeagueName(string.Empty, "Metadata/Terrain/Other/Thing"));
+        }
+
+        private static HarmfulBuffs Buffs() => new(new()
+        {
+            ["en"] = new() { ["creeping_agony"] = "Creeping Agony" },
+            ["es"] = new() { ["creeping_agony"] = "Agonía rastrera" },
+        });
+
+        private static void AHarmfulBuffIsNamedOnceWhenItBegins()
+        {
+            var buffs = Buffs();
+            Func<string, bool> none = _ => false;
+            Expect(string.Empty, string.Join(",", buffs.Begun(new[] { "creeping_agony" }, 0, "en", none))); // area entry is no news
+            Expect(string.Empty, string.Join(",", buffs.Begun(new[] { "creeping_agony" }, 100, "en", none)));
+            Expect(string.Empty, string.Join(",", buffs.Begun(new[] { "unknown_buff" }, 200, "en", none)));
+            Expect(string.Empty, string.Join(",", buffs.Begun(Array.Empty<string>(), 1000, "en", none)));
+            Expect("Creeping Agony", string.Join(",", buffs.Begun(new[] { "creeping_agony_1F" }, 1100, "en", none)));
+            Expect(string.Empty, string.Join(",", buffs.Begun(new[] { "creeping_agony_1F" }, 1200, "en", none)));
+            Expect(string.Empty, string.Join(",", buffs.Begun(Array.Empty<string>(), 2000, "en", none)));
+            Expect(string.Empty, string.Join(",", buffs.Begun(new[] { "creeping_agony" }, 2100, "en", _ => true))); // covered by something else
+        }
+
+        private static void BuffNamesFollowTheLanguageThenEnglish()
+        {
+            var buffs = Buffs();
+            Expect("Agonía rastrera", buffs.NameOf("creeping_agony", "es"));
+            Expect("Creeping Agony", buffs.NameOf("creeping_agony", "de"));
+            Expect(string.Empty, buffs.NameOf("sprinting", "en"));
         }
     }
 }

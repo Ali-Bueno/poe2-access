@@ -361,6 +361,10 @@ namespace Poe2Accessibility
                 var hazardGround = HazardGround.Load(Path.Join(this.DllDirectory, "catalog", "hazards.txt"));
                 this.log.Info($"Hazard ground: {hazardGround.Count} buffs from the game files");
                 this.hazards = new HazardWatch(this.audio, hazardGround, this.log);
+                var harmfulBuffs = HarmfulBuffs.Load(Path.Join(this.DllDirectory, "catalog", "buff-names.json"));
+                this.log.Info($"Harmful buffs: {harmfulBuffs.Count} named by the game files");
+                this.alerts.Statuses.Harmful = harmfulBuffs;
+                this.alerts.Statuses.IsCovered = hazardGround.IsHazard;
                 this.encounters = new EncounterReader(elements);
                 this.minions = new MinionReport(elements);
                 var cullSkills = CullSkills.Load(Path.Join(this.DllDirectory, "catalog", "cull-skills.txt"));

@@ -78,6 +78,9 @@ internal sealed class DatTable
     /// <summary>A one-byte flag column.</summary>
     public bool Bool(int row, int offset) => offset >= 0 && offset < this.RowSize && this.data[this.RowStart(row) + offset] != 0;
 
+    /// <summary>One byte at any offset of a row; -1 past its end.</summary>
+    public int Byte(int row, int offset) => offset >= 0 && offset < this.RowSize ? this.data[this.RowStart(row) + offset] : -1;
+
     /// <summary>2 bytes at any offset of a row; -1 past its end.</summary>
     public int UInt16(int row, int offset) => offset >= 0 && offset + 2 <= this.RowSize ? BitConverter.ToUInt16(this.data, this.RowStart(row) + offset) : -1;
 

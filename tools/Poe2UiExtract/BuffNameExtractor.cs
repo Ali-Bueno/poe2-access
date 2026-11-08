@@ -1,0 +1,62 @@
+using System.Text.Json;
+using Index = LibBundle3.Index;
+
+/// <summary>
+///     `buff-names` command: the display name of every harmful buff, { language: { buffId: name } }, so one the mod has no
+///     wording for is spoken by the game's own name. BuffDefinitions Id +0x0, Name +0x12 (dat-strings, 0.5.5e); harmful =
+///     the row's BuffType byte (+0x67, the one the host reads: 4 is a flask) is a debuff or a curse (research 2026-11-08:
+///     1 holds auras and boosts, 2 ailments and boss debuffs, 5 the curses, 7 and 9 shrines). Read-only on the game.
+/// </summary>
+internal static class BuffNameExtractor
+{
+    private const int IdOffset = 0x0;
+    private const int NameOffset = 0x12;
+    private const int TypeOffset = 0x67;
+    private const int DebuffType = 2;
+    private const int CurseType = 5;
+
+    public static int Run(Index index, string outFile)
+    {
+        var result = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
+        var languages = AreaExtractor.LanguageCodes.Select(pair => (Code: pair.Value, Folder: (string?)pair.Key)).Prepend(("en", null));
+        foreach (var (code, folder) in languages)
+        {
+            var table = folder == null ? DatTable.Open(index, "buffdefinitions") : DatTable.OpenTranslated(index, "buffdefinitions", folder);
+            if (table == null)
+            {
+                Console.WriteLine($"  {code}: no BuffDefinitions");
+                continue;
+            }
+
+            var names = new SortedDictionary<string, string>(StringComparer.Ordinal);
+            for (var row = 0; row < table.RowCount; row++)
+            {
+                var id = table.StringOrNull(row, IdOffset);
+                var name = table.StringOrNull(row, NameOffset)?.Trim();
+                var type = table.Byte(row, TypeOffset);
+                if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(name) && type is DebuffType or CurseType)
+                {
+                    names[id] = name;
+                }
+            }
+
+            if (names.Count == 0)
+            {
+                Console.WriteLine($"  {code}: the Name column moved (check with dat-strings)");
+                return 1;
+            }
+
+            Console.WriteLine($"  {code}: {names.Count} buff names");
+            result[code] = names;
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
+        File.WriteAllText(outFile, JsonSerializer.Serialize(result, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        }));
+        Console.WriteLine($"Wrote {outFile}");
+        return 0;
+    }
+}

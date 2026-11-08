@@ -39,10 +39,17 @@ namespace Poe2Accessibility.Services
         /// <summary>States active now, for the vitals report ("Poisoned, chilled").</summary>
         public IReadOnlyCollection<StatusAilment> Active => this.active.Keys;
 
+        /// <summary>The game's other harmful buffs, spoken by their own name; null until the catalog is loaded.</summary>
+        public HarmfulBuffs? Harmful { get; set; }
+
+        /// <summary>Buffs something else already tells the player (a hazard's alarm), so they are not named too.</summary>
+        public Func<string, bool> IsCovered { get; set; } = _ => false;
+
         /// <summary>A new area or character: what is there now is not news.</summary>
         public void Reset()
         {
             this.active.Clear();
+            this.Harmful?.Reset();
             this.baseline = true;
         }
 
@@ -68,6 +75,15 @@ namespace Poe2Accessibility.Services
                 if (StatusAilments.FromBuffId(id) is { } ailment)
                 {
                     present.Add(ailment);
+                }
+            }
+
+            if (this.Harmful is { } harmful)
+            {
+                var language = Localization.Language;
+                foreach (var name in harmful.Begun(buffs.StatusEffects.Keys, now, language, id => StatusAilments.FromBuffId(id) != null || this.IsCovered(id)))
+                {
+                    this.output.Say(SpeechKind.StatusBegins, name);
                 }
             }
 
