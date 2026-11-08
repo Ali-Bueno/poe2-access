@@ -37,6 +37,7 @@ namespace Poe2Accessibility.Tests
         {
             Expect("fr", StartupPhrases.ResolveLanguage("{ \"Language\": \"fr\" }", "spanish", "en-US"), "the setting wins");
             Expect("zh-TW", StartupPhrases.ResolveLanguage("{ \"Language\": \"zh_CN\" }", null, "en-US"), "a code is normalised");
+            Expect("en", StartupPhrases.ResolveLanguage("[]", null, "en-US"), "settings that are not an object are ignored");
         }
 
         private static void AutoFollowsTheGameThenTheSystem()

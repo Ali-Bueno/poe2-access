@@ -63,7 +63,8 @@ internal static class StartupPhrases
         try
         {
             using var settings = JsonDocument.Parse(settingsText, new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
-            return settings.RootElement.TryGetProperty(SettingsLanguage, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
+            return settings.RootElement.ValueKind == JsonValueKind.Object && settings.RootElement.TryGetProperty(SettingsLanguage, out var value) &&
+                   value.ValueKind == JsonValueKind.String ? value.GetString() : null;
         }
         catch (JsonException)
         {
