@@ -39,3 +39,9 @@ Entity.Components	EntityOffsets:ItemBase.ComponentListPtr	0x10	getter Life compo
 Entity.Components	EntityOffsets:ItemBase.ComponentListPtr	0x10	getter Render components
 EntityDetails.ComponentLookUp	EntityDetails:ComponentLookUpPtr	0x28	getter Life lookup
 ComponentLookUp.NameAndIndex	ComponentLookUpStruct:ComponentsNameAndIndex	0x28	getter Life map
+Entity.Id	EntityOffsets:Id	0x88	object GetObjectId 0
+EntityDetails.Path	EntityDetails:name	0x8	deref TypeContains arg 3 2
+Area.Terrain	AreaInstanceOffsets:TerrainMetadata	0x8f8	slot IsWalkable "Tile hash: "
+Area.Entities	AreaInstanceOffsets:Entities	0x718	slot GetGameObjectById "Tile hash: " then
+Area.LocalPlayer	AreaInstanceOffsets:PlayerInfo.LocalPlayerPtr	0x5d8	slot GetLocalPlayer "Tile hash: " inline
+InGameState.Area	InGameStateOffset:AreaInstanceData	0x290	this "league" 0 with "class"
