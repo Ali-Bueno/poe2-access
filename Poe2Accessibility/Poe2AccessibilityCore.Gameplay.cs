@@ -225,6 +225,17 @@ namespace Poe2Accessibility
             return level is > 0 and <= MaxAreaLevel ? level : 0;
         }
 
+        /// <summary>The host's dormant-monster check reads <c>is_dead</c> by the key the game's own table gives it.</summary>
+        private void HandDeadStat()
+        {
+            var key = (GameHelper.RemoteEnums.GameStats)GameIds.Current.Stat(nameof(GameHelper.RemoteEnums.GameStats.is_dead), (int)GameHelper.RemoteEnums.GameStats.is_dead);
+            if (key != GameHelper.RemoteObjects.States.InGameStateObjects.Entity.DeadStat)
+            {
+                this.log?.Info($"Stat is_dead: the game says {(int)key}, the host's enum {(int)GameHelper.RemoteObjects.States.InGameStateObjects.Entity.DeadStat}");
+                GameHelper.RemoteObjects.States.InGameStateObjects.Entity.DeadStat = key;
+            }
+        }
+
         /// <summary>"Life 80 percent, mana 40 percent" for the mod button; null outside gameplay.</summary>
         private string? ReadVitals()
         {

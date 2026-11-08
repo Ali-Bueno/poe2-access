@@ -14,8 +14,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The list changes only when a player joins or leaves, so it is read again this often.</summary>
         private const long RefreshMs = 500;
 
-        private static readonly int ListOffset =
-            (int)Marshal.OffsetOf<AreaInstanceOffsets>(nameof(AreaInstanceOffsets.PlayerInfo)) + GameLayout.LocalPlayers.ListOffset;
+        /// <summary>From GameHelper's local player field to the player list: both live in the area's PlayerInfo.</summary>
+        private static readonly int ListAfterPlayer =
+            GameLayout.LocalPlayers.ListOffset - (int)Marshal.OffsetOf<LocalPlayerStruct>(nameof(LocalPlayerStruct.LocalPlayerPtr));
 
         private readonly HostMemoryReader memory;
         private readonly PluginLog log;
@@ -52,10 +53,20 @@ namespace Poe2Accessibility.Services
             return this.second is { IsValid: true } entity ? entity : null;
         }
 
+        /// <summary>Dev command "layout": the list read where the area search puts it starts with GameHelper's player.</summary>
+        public string SelfTest()
+        {
+            var areaInstance = Core.States.InGameStateObject.CurrentAreaInstance;
+            var entries = this.memory.TryRead<StdVector>(areaInstance.Address + areaInstance.Layout.Fields.LocalPlayer + ListAfterPlayer, out var list)
+                ? this.memory.ReadStdVector<IntPtr>(list, GameLayout.LocalPlayers.MaxPlayers) : Array.Empty<IntPtr>();
+            return entries.Length > 0 && entries[0] == areaInstance.Player.Address ? $"local player list ok ({entries.Length} players)"
+                : $"local player list FAIL ({entries.Length} entries, the first not the player)";
+        }
+
         private Entity? Find(AreaInstance areaInstance)
         {
             if (areaInstance.Address == IntPtr.Zero ||
-                !this.memory.TryRead<StdVector>(areaInstance.Address + ListOffset, out var list) || !this.memory.IsValidAddress(list.First) ||
+                !this.memory.TryRead<StdVector>(areaInstance.Address + areaInstance.Layout.Fields.LocalPlayer + ListAfterPlayer, out var list) || !this.memory.IsValidAddress(list.First) ||
                 LocalPlayerList.Second(this.memory.ReadStdVector<IntPtr>(list, GameLayout.LocalPlayers.MaxPlayers), areaInstance.Player.Address) is not { } address)
             {
                 return null;

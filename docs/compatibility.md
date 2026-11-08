@@ -46,8 +46,10 @@ host's searches (once a patch to GameHelper2, now in `host/`) read those fields 
 
 A struct that holds what it must is never touched. One that moved is read through `StructRemap<T>`: `TryReadMemory<T>`
 checks a generic static (one null test on the hot path) and only moved structs pay for a rebuild, so no read site of the host
-changes. The plugin's own raw reads of host structs (`HostMemoryReader.TryRead`: the area name row in `GameStateService`,
-`LocalInventories`, `UiManagerLocator`) do not go through it.
+changes. The plugin reads through the host too: `HostMemoryReader` calls the host's public `HostMemory` (no reflection), so
+its `TryRead<T>` is the host's `TryReadMemory<T>` and follows the remap (the area name row, `LocalInventories`,
+`UiManagerLocator`, `UiTreeReader`); elements parsed from a block already read go through `HostStructs.Read<T>`, and a field
+offset taken by hand through `HostStructs.Follow<T>` (an item's path in `InventoryReader`).
 A pattern not found no longer stops the rest (`PatternFinder` threw, and a missing key in `Core` could take the other
 coroutines of the event with it). `WorldLayoutWatch` runs the sweep on a settled area, in the first three areas of a game
 process (80-110 ms each); a field missing is said, and a new build read with nothing lost says "El juego se ha actualizado:
@@ -102,7 +104,10 @@ the host rebuilt with `--no-incremental` and restarted in the Act 2 town, then r
 | Inventories | player list +8, inventories -0x18, size and cells +8 | the sweep put them back (`inventories moved from +0x50 to +0x48`), the server data read its inventories again: main and cursor inventories watched; the inventory panel named its grid |
 | Inventories | player list -0x18, inventories +8, size -0x18, cells -8 | the same |
 | Ground items | not simulated: no item lies on the ground in town (dropping one there could lose it); unit test only | — |
+| Co-op list, icon row, `is_dead` | `PlayerInfo` +8; icon row 0x28 in the plugin, the host and `code-fields.txt`; `is_dead` one past the table in the enum | `local player list ok` (the area search moved the player back, the list with it); `Code fields: … moved: MinimapIcon.Row +0x28 to +0x20` and the waypoint named by its icon in the `entities` dump (before the names were read again, none was); `Stat is_dead: the game says 2423, the host's enum 2424` |
+| Co-op list, icon row | `PlayerInfo` -0x18; icon row 0x18 everywhere | the same |
 | Terrain | `TileStructure` size 0x40 and 24 cells per tile |
+
 
 
  terrain found as before, tiles `moved from +0x40 to +0x38`, cells `from +0x18 to +0x17`; the wall radar sounded |
@@ -141,7 +146,8 @@ nearest fit wins). Fields of one structure that move together follow an anchor.
 | Passive tree graph: the tree state holds the graph file (named `Metadata/PassiveSkillGraph.psg`); its content an edge list whose sampled edges join node records; the state's allocated list holds only graph ids of those records (gathered off the frame thread) | links, allocations | `PassiveTreeFields` |
 | Tile grid (GameHelper's `TileDetailsPtr`, read raw): record size = the grid's bytes over its sub-tiles; the file pointer and path where half the sub-tiles name a `.tdt`; the three id bytes where neighbours from one file differ by one step (90% in the Act 1 town) and selectors stay 0..7; searched on every grid, and a layout the search finds wins (the reading's own check looks at the paths and selectors only) | place names, props | `TileGridSearch` (pure), `PlaceNarrator` |
 | Item base name (GameHelper's `BaseOffsets`, no static check): a normal or magic item's tooltip title holds it (each item counted once, case ignored; ground labels do not count); two titles in a row that miss start a search of the row pointer and the name nearby, taken once a second title agrees; none anywhere: titles are used instead | — | `BaseNameField` (pure), `InventoryReader` |
-| Local player list: entry 0 is GameHelper's player and there are at most two (else no player 2, the partner radar stays silent) | — | `LocalPlayers` (pure `LocalPlayerList`) |
+| Local player list: entry 0 is GameHelper's player and there are at most two (else no player 2, the partner radar stays silent); read beside the local player field the area search found, so it moves with it (`layout`: "local player list ok") | — | `LocalPlayers` (pure `LocalPlayerList`) |
+| Minimap icon row (the host's icon names, which classify NPCs and exits): the code catalog's `layout:MinimapIconComponentRow` moves the host's `MinimapIcon.RowOffset` with the plugin's, and names read before it moved are read again | — | `MinimapIcon.RowOffset` |
 | Player 2's focus, hover and pad state: player 1's UI manager fields plus `PlayerStride` (0x240); they move with player 1's (`LayoutProbe`), and the pad is read only while it is plausible | — | `FocusTracker.Seat`, `GamepadReader` |
 | Player 2's server inventories: ServerData's player list (+0x48) has a second entry with an inventory list (+0x320); unreadable or missing, player 2 has no pick-up, hand or flask news | — | `LocalInventories` |
 | Player 2's skill bar: player 1's located field plus `PartnerSkillBarShift`, named `skill_bar` and another element than player 1's | — | `InGameFields.PartnerSkillBar` |
@@ -212,7 +218,8 @@ lacks (584, 599, 904, 1087): 500 of its 1084 names were wrong, and every animati
 was sorted by another's (Faridun Olroth's `MoltenSlam` read as calm, as did Doryani's beam). Stats moved the same way: Rage read the
 stat next to it (`current_rage` is 6996, the enum says 6995). Names now come from the table (`AnimationNames`, `GameIds`), and the
 enum only stands in with no catalog. A stat's key is its row plus one, read live: key 1 is `level`, 22270 is
-`total_socketed_red_skill_support_gems` with 2, where the enum says a freeze multiplier. Only the stats the mod reads are listed.
+`total_socketed_red_skill_support_gems` with 2, where the enum says a freeze multiplier. Only the stats the mod reads are listed;
+the host's dormant-monster check takes `is_dead` from the same list (`Entity.DeadStat`, set by the plugin; 2423 in 0.5.5f, as the enum).
 
 `game-keys` (`GameKeyExtractor`) lists the Ids of the tables a player meets and the `.ui` screens. At start the plugin compares it
 with the list it saw last (`config/game-keys-known.txt`, `GameNews`): what a patch added is logged, written to

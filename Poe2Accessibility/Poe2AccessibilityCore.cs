@@ -71,7 +71,7 @@ namespace Poe2Accessibility
         {
             ["IsTargetable"] = (() => GameLayout.TargetableComponent.IsTargetableOffset, value => GameLayout.TargetableComponent.IsTargetableOffset = value),
             ["IsTargeted"] = (() => GameLayout.TargetableComponent.IsTargetedOffset, value => GameLayout.TargetableComponent.IsTargetedOffset = value),
-            ["MinimapIconComponentRow"] = (() => GameLayout.MinimapIconRow.ComponentRowOffset, value => GameLayout.MinimapIconRow.ComponentRowOffset = value),
+            ["MinimapIconComponentRow"] = (() => GameLayout.MinimapIconRow.ComponentRowOffset, value => GameLayout.MinimapIconRow.ComponentRowOffset = GameHelper.RemoteObjects.Components.MinimapIcon.RowOffset = value),
             ["SkillId"] = (() => GameLayout.SkillSlot.SkillIdOffset, value => GameLayout.SkillSlot.SkillIdOffset = value),
             ["SkillLevelKey"] = (() => GameLayout.SkillSlot.LevelKeyOffset, value => GameLayout.SkillSlot.LevelKeyOffset = value),
             ["CooldownUses"] = (() => GameLayout.ActorComponent.CooldownUsesOffset, value => GameLayout.ActorComponent.CooldownUsesOffset = value),
@@ -350,6 +350,7 @@ namespace Poe2Accessibility
                 this.pickups.GroundItemTitle = this.partnerPickups.GroundItemTitle = id => this.entities?.GroundItemName(id);
                 this.barriers = new BarrierWatch(this.entities, this.output, this.log);
                 GameIds.Load(Path.Join(this.DllDirectory, "catalog", "game-ids.txt"));
+                this.HandDeadStat();
                 var timings = DodgeTimings.Load(Path.Join(this.DllDirectory, "catalog", "hit-times.txt"), this.DodgeTimingsSeedPath, this.DodgeTimingsPath);
                 this.log.Info($"Dodge timings: {timings.FileTimes} attacks timed by the game files");
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = timings, TimingsPath = this.DodgeTimingsPath };

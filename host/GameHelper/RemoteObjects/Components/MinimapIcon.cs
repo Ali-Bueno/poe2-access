@@ -22,7 +22,22 @@ namespace GameHelper.RemoteObjects.Components
         /// <summary>
         ///     The icon name from MinimapIcons.dat (e.g. "RewardChestExpedition").
         /// </summary>
-        public string? IconName { get; private set; }
+        public string? IconName
+        {
+            get
+            {
+                // Read before the code catalog moved the row field (it runs a moment after attach): read again from there.
+                if (this.readWith != RowOffset && this.Address != IntPtr.Zero)
+                {
+                    this.ReadName(Core.Process.Handle);
+                }
+
+                return this.iconName;
+            }
+        }
+
+        private string? iconName;
+        private int readWith;
 
         private string? TryReadUtf16String(IntPtr address)
         {
@@ -47,6 +62,12 @@ namespace GameHelper.RemoteObjects.Components
             return null;
         }
 
+        /// <summary>
+        ///     Gets or sets where the component points at its MinimapIcons row (0.5.5f: 0x20); the plugin's code catalog moves
+        ///     it (target <c>layout:MinimapIconComponentRow</c>).
+        /// </summary>
+        public static int RowOffset { get; set; } = 0x20;
+
         /// <inheritdoc/>
         protected override void UpdateData(bool hasAddressChanged)
         {
@@ -54,16 +75,22 @@ namespace GameHelper.RemoteObjects.Components
             var header = reader.ReadMemory<ComponentHeader>(this.Address);
             this.OwnerEntityAddress = header.EntityPtr;
 
-            // Read icon name: offset 0x20 -> dat row pointer -> +0x00 -> UTF-16 string
+            this.ReadName(reader);
+        }
+
+        private void ReadName(Utils.SafeMemoryHandle reader)
+        {
+            // Read icon name: the MinimapIcons row pointer -> +0x00 -> UTF-16 string
+            (this.readWith, this.iconName) = (RowOffset, null);
             try
             {
-                var ptr20 = reader.ReadMemory<IntPtr>(this.Address + 0x20);
+                var ptr20 = reader.ReadMemory<IntPtr>(this.Address + RowOffset);
                 if (ptr20 != IntPtr.Zero && (long)ptr20 > 0x10000)
                 {
                     var namePtr = reader.ReadMemory<IntPtr>(ptr20);
                     if (namePtr != IntPtr.Zero && (long)namePtr > 0x10000)
                     {
-                        this.IconName = this.TryReadUtf16String(namePtr);
+                        this.iconName = this.TryReadUtf16String(namePtr);
                     }
                 }
             }

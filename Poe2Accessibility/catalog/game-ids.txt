@@ -1104,3 +1104,4 @@ stat uncapped_fire_damage_resistance_% 2032
 stat uncapped_cold_damage_resistance_% 2033
 stat uncapped_lightning_damage_resistance_% 2034
 stat uncapped_chaos_damage_resistance_% 2035
+stat is_dead 2423

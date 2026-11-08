@@ -22,6 +22,12 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
     public class Entity : RemoteObjectBase
     {
         private static readonly int MaxComponentsInAnEntity = 50;
+
+        /// <summary>
+        ///     Gets or sets the game's key of the <c>is_dead</c> stat: GameHelper's enum was generated long ago and a row inserted
+        ///     in the table shifts it, so the plugin sets it from the game's own table (catalog/game-ids.txt).
+        /// </summary>
+        public static GameStats DeadStat { get; set; } = GameStats.is_dead;
         private static readonly string DeliriumHiddenMonsterStarting =
             "Metadata/Monsters/LeagueDelirium/DoodadDaemons/DoodadDaemon";
         private static readonly string DeliriumUselessMonsterStarting =
@@ -462,14 +468,14 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
             }
 
             // Cheap wake-up signals for dormant monsters using the same ptr/id.
-            if (this.TryGetStatValue(GameStats.is_dead, out var isDead) && isDead == 0)
+            if (this.TryGetStatValue(DeadStat, out var isDead) && isDead == 0)
             {
                 return true;
             }
 
             // For monsters marked dead via Life fallback (no is_dead stat),
             // check if Life becomes alive again.
-            if (!this.TryGetStatValue(GameStats.is_dead, out _) &&
+            if (!this.TryGetStatValue(DeadStat, out _) &&
                 this.TryGetComponent<Life>(out var lifeComp, false) && lifeComp.IsAlive)
             {
                 return true;
@@ -760,7 +766,7 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
             }
             else if (this.EntityType == EntityTypes.Monster)
             {
-                var hasDead = this.TryGetStatValue(GameStats.is_dead, out var isDead);
+                var hasDead = this.TryGetStatValue(DeadStat, out var isDead);
                 if (hasDead && isDead > 0)
                 {
                     this.EntityState = EntityStates.Useless;
