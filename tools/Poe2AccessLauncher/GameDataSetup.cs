@@ -75,7 +75,7 @@ internal static class GameDataSetup
             new Step("area names", 1, "area-names.json", "areas"),
             new Step("dat columns", 4, "dat-columns.json", "dat-columns"),
             new Step("experience", 1, "experience.json", "experience"),
-            new Step("hit times", 2, "hit-times.txt", "hit-times", true),
+            new Step("hit times", 3, "hit-times.txt", "hit-times", true),
             new Step("hazards", 3, "hazards.txt", "hazards", true),
             new Step("buff names", 1, "buff-names.json", "buff-names", true),
             new Step("currency art", 1, "currency-art.json", "currency-art", true),

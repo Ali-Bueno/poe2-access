@@ -11,9 +11,10 @@ namespace Poe2Accessibility.Services
     }
 
     /// <summary>
-    ///     Sorts the game's animation names (GameHelper's <c>Animation</c> enum, from the game's Animation table) for the
-    ///     dodge warning. Pure. A name must say harm to warn: the Mud Burrow's grub warned on Submerge and Hide every
-    ///     second (2026-10-24) when anything not calm counted as an attack.
+    ///     Sorts the game's animation names (the game's Animation table) for the dodge warning, where the monster's skills
+    ///     in the game's tables say nothing (<see cref="DodgeTimings.Threat"/>; docs/research/dodge-timing.md, "Kinds from
+    ///     the data"). Pure. A name must say harm to warn: the Mud Burrow's grub warned on Submerge and Hide every second
+    ///     (2026-10-24) when anything not calm counted as an attack.
     /// </summary>
     public static class DodgeThreats
     {
@@ -43,17 +44,15 @@ namespace Poe2Accessibility.Services
             "Snipe", "Spark", "Fissure", "LayTrap",
         };
 
-        /// <summary>The threat of an animation id; an id missing from the table (a game update) is taken as a hit from afar.</summary>
+        /// <summary>
+        ///     The threat of an animation id. An id with no name at all (a catalog older than the game) stays quiet: a false
+        ///     warning costs more than a missed one, and the caller logs the gap.
+        /// </summary>
         public static DodgeThreat Of(int animation, Func<int, string?> nameOf)
         {
-            if (animation <= 0)
+            if (animation <= 0 || nameOf(animation) is not { } name)
             {
                 return DodgeThreat.None;
-            }
-
-            if (nameOf(animation) is not { } name)
-            {
-                return DodgeThreat.Ranged;
             }
 
             if (Contains(name, Calm))

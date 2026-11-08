@@ -9,9 +9,12 @@ using Index = LibBundle3.Index;
 ///     - each action's animations from the monster's .act, through the Animation table's fallbacks when it lacks one;
 ///     - each animation's hit (<see cref="HitOf"/>), the earliest of the action winning;
 ///     - for a skill that fires a projectile, its speed (<see cref="ProjectileSpeeds"/>), so the mod adds its flight;
-///     - whether the player cannot block or parry it (<see cref="SkillFlags"/>), carried to the actions played with it.
+///     - what kind of threat the skills make it (<see cref="SkillThreats"/>: melee, ranged, calm, or nothing when the
+///       tables are mute), and whether the player cannot block or parry it (<see cref="SkillFlags"/>), both carried to
+///       the actions played with it.
 ///     Written as "monster path|animation id=hit ms/animation ms[/projectile speed][;flags]" lines ("-" for an untimed
-///     attack that carries flags); the Actor's animation id is the action's row in Animation.datc64.
+///     attack that carries a kind or flags; a calm action is always "-"); the Actor's animation id is the action's row in
+///     Animation.datc64. An audit file, when asked for, lists where the kind disagrees with the animation's name.
 /// </summary>
 internal static class HitTimeExtractor
 {
@@ -35,14 +38,14 @@ internal static class HitTimeExtractor
         BakedContact,
     }
 
-    public static int Run(string gameDir, string outFile)
+    public static int Run(string gameDir, string outFile, string? auditFile = null)
     {
         using var index = SharedBundles.OpenParsed(gameDir);
-        return Run(index, outFile);
+        return Run(index, outFile, auditFile);
     }
 
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
-    public static int Run(Index index, string outFile)
+    public static int Run(Index index, string outFile, string? auditFile = null)
     {
         var files = index.Files.Values.Where(f => f.Path != null).GroupBy(f => f.Path!.ToLowerInvariant()).ToDictionary(g => g.Key, g => g.First());
         var monsters = DatTable.Open(index, "monstervarieties");
@@ -74,8 +77,10 @@ internal static class HitTimeExtractor
         var actions = new AnimationActions(animations);
         var speeds = ProjectileSpeeds.Read(index, skills);
         var skillFlags = SkillFlags.Read(index, skills);
+        var threats = SkillThreats.Read(index, skills, speeds);
         var reader = new MonsterAnimationFiles(path => files.TryGetValue(path.ToLowerInvariant(), out var file) ? file.Read().ToArray() : null);
         var lines = new SortedSet<string>(StringComparer.Ordinal);
+        var audit = new List<string> { "# monster\taction\tdata kind\tname kind\twhy (tools/Poe2UiExtract hit-times audit)" };
         var tally = new Tally();
         for (var row = 0; row < monsters.RowCount; row++)
         {
@@ -119,16 +124,34 @@ internal static class HitTimeExtractor
             var animated = reader.Ao(ao);
             var clipsData = animated.Amd == null ? new Dictionary<string, AmdClip>() : reader.Amd(animated.Amd);
             var played = actions.WithFollowUps(skillsOf.Keys);
-            var flagsOf = FlagsOf(skillsOf, skillFlags, actions);
+            var flagsOf = Carried(skillsOf, actions, skill => skillFlags.GetValueOrDefault(skill) ?? Enumerable.Empty<string>());
+            var kindsOf = Carried(skillsOf, actions, skill => new[] { SkillThreats.Name(threats.Of(skill).Verdict) });
+            var boss = DodgeCoverage.IsBoss(id);
             foreach (var action in played)
             {
                 var requested = skillsOf.ContainsKey(action);
-                var flags = flagsOf.TryGetValue(action, out var set) ? ";" + string.Join(',', set) : string.Empty;
+                var name = animations.String(action, 0);
+                var words = DodgeThreats.Of(action, value => value >= 0 && value < animations.RowCount ? animations.String(value, 0) : null);
+                var verdict = KindOf(action, kindsOf, requested && skillsOf[action].Count == 0 && name == MeleeAction);
+                var flags = Flags(verdict, flagsOf.GetValueOrDefault(action));
+                if (requested && Disagrees(verdict, words))
+                {
+                    var why = string.Join("; ", skillsOf[action].Select(skill => $"{skills.String(skill, MonsterIdOffset)} ({threats.Of(skill).Reason})").DefaultIfEmpty("the basic attack"));
+                    audit.Add($"{id}\t{name}\t{verdict}\t{words}\t{why}");
+                }
+
                 var (clips, resolved) = actions.Clips(actMap, action);
-                var warned = DodgeThreats.Of(action, value => value >= 0 && value < animations.RowCount ? animations.String(value, 0) : null) != DodgeThreat.None;
+                if (verdict == SkillThreats.Verdict.Calm)
+                {
+                    // A buff's or a summon's "contact" is no blow: the kind alone is written.
+                    lines.Add($"{id}|{action}=-{flags}");
+                    tally.Calm(requested, boss, words);
+                    continue;
+                }
+
                 if (clips.Count == 0)
                 {
-                    tally.NoAnimation(requested, warned);
+                    tally.NoAnimation(requested, boss, verdict, words);
                     AddUntimed(lines, id, action, flags);
                     continue;
                 }
@@ -137,7 +160,7 @@ internal static class HitTimeExtractor
                     .Where(c => c.Hit != null).Select(c => (c.Hit!.Value.Ms, c.Hit.Value.Source, c.Length)).ToList();
                 if (timed.Count == 0)
                 {
-                    tally.Untimed(requested, warned, clips.Any(animated.EventClips.Contains));
+                    tally.Untimed(requested, boss, verdict, words, clips.Any(animated.EventClips.Contains));
                     AddUntimed(lines, id, action, flags);
                     continue;
                 }
@@ -146,7 +169,7 @@ internal static class HitTimeExtractor
                 var speed = requested && skillsOf[action].Count > 0 && skillsOf[action].All(speeds.ContainsKey) ? skillsOf[action].Max(skill => speeds[skill]) : 0;
                 var value = $"{first.Ms}/{first.Length}" + (speed > 0 ? $"/{speed}" : string.Empty);
                 lines.Add($"{id}|{action}={value}{flags}");
-                tally.Timed(requested, warned, first.Source, speed > 0, resolved != action);
+                tally.Timed(requested, boss, verdict, words, first.Source, speed > 0, resolved != action);
 
                 // Which of the two ids the Actor shows for a fallback is not traced: both get the time.
                 if (resolved != action && !played.Contains(resolved))
@@ -156,42 +179,74 @@ internal static class HitTimeExtractor
             }
         }
 
+        if (auditFile != null)
+        {
+            File.WriteAllLines(auditFile, audit);
+            Console.WriteLine($"Wrote {auditFile}: {audit.Count - 1} attacks whose kind from the data disagrees with the animation's name.");
+        }
+
         var header = new[]
         {
             "# When monster attacks land, from the game's animation data (tools/Poe2UiExtract hit-times), regenerated after patches.",
             "# monster path|animation id=ms from the attack's start to its blow (a projectile's release)/ms of one swing (0 unknown)",
-            "# [/the projectile's speed in world units a second][;noblock,noparry: the player cannot block or parry it]; \"-\" untimed.",
+            "# [/the projectile's speed in world units a second][;melee|ranged|calm: the kind the monster's skills give it, else the mod reads the",
+            "# animation's name][,noblock,noparry: the player cannot block or parry it]; \"-\" untimed (always for a calm action).",
         };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllLines(outFile, header.Concat(lines));
-        Console.WriteLine($"Wrote {outFile}: {lines.Count} lines, {lines.Count(line => line.Contains(';'))} attacks the player cannot block or parry.");
+        Console.WriteLine($"Wrote {outFile}: {lines.Count} lines, {lines.Count(line => line.Contains(SkillFlags.NoBlock) || line.Contains(SkillFlags.NoParry))} attacks the player cannot block or parry.");
         tally.Print();
         return 0;
     }
 
-    /// <summary>The flags of the skills playing each action, carried to the actions played with it (the Miller's charge: ChargeStart, Charge, ChargeEnd).</summary>
-    private static Dictionary<int, SortedSet<string>> FlagsOf(Dictionary<int, List<int>> skillsOf, Dictionary<int, SortedSet<string>> skillFlags, AnimationActions actions)
+    /// <summary>The tokens of the skills playing each action, carried to the actions played with it (the Miller's charge: ChargeStart, Charge, ChargeEnd).</summary>
+    private static Dictionary<int, SortedSet<string>> Carried(Dictionary<int, List<int>> skillsOf, AnimationActions actions, Func<int, IEnumerable<string>> tokensOf)
     {
-        var flagsOf = new Dictionary<int, SortedSet<string>>();
+        var carried = new Dictionary<int, SortedSet<string>>();
         foreach (var (action, skills) in skillsOf)
         {
-            var found = skills.Where(skillFlags.ContainsKey).SelectMany(skill => skillFlags[skill]).ToList();
+            var found = skills.SelectMany(tokensOf).ToList();
             foreach (var follow in found.Count == 0 ? new SortedSet<int>() : actions.WithFollowUps(new[] { action }))
             {
-                if (!flagsOf.TryGetValue(follow, out var set))
+                if (!carried.TryGetValue(follow, out var set))
                 {
                     set = new SortedSet<string>(StringComparer.Ordinal);
-                    flagsOf[follow] = set;
+                    carried[follow] = set;
                 }
 
                 set.UnionWith(found);
             }
         }
 
-        return flagsOf;
+        return carried;
     }
 
-    /// <summary>An attack the files do not time is still written when the player cannot block or parry it: a learnt blow times it later.</summary>
+    /// <summary>What an action's skills make of it; the basic Melee action, played by no granted skill, is the weapon blow.</summary>
+    private static SkillThreats.Verdict KindOf(int action, Dictionary<int, SortedSet<string>> kindsOf, bool basicMelee) =>
+        basicMelee ? SkillThreats.Verdict.Melee : SkillThreats.Combine((kindsOf.GetValueOrDefault(action) ?? Enumerable.Empty<string>()).Select(SkillThreats.Parse));
+
+    private static string Flags(SkillThreats.Verdict verdict, SortedSet<string>? flags)
+    {
+        var tokens = new List<string>();
+        if (SkillThreats.Token(verdict) is { } kind)
+        {
+            tokens.Add(kind);
+        }
+
+        tokens.AddRange(flags ?? Enumerable.Empty<string>());
+        return tokens.Count == 0 ? string.Empty : ";" + string.Join(',', tokens);
+    }
+
+    /// <summary>Whether the data's kind and the animation name's kind would warn differently.</summary>
+    private static bool Disagrees(SkillThreats.Verdict verdict, DodgeThreat words) => verdict switch
+    {
+        SkillThreats.Verdict.Melee => words != DodgeThreat.Melee,
+        SkillThreats.Verdict.Ranged => words != DodgeThreat.Ranged,
+        SkillThreats.Verdict.Calm => words != DodgeThreat.None,
+        _ => false,
+    };
+
+    /// <summary>An attack the files do not time is still written when the data gives it a kind or flags: a learnt blow times it later.</summary>
     private static void AddUntimed(SortedSet<string> lines, string id, int action, string flags)
     {
         if (flags.Length > 0)
@@ -233,50 +288,71 @@ internal static class HitTimeExtractor
         return data?.Contact is { } baked ? (baked, Source.BakedContact) : null;
     }
 
-    /// <summary>Counts per outcome, printed so a patch that breaks a source shows at once.</summary>
+    /// <summary>Counts per outcome, printed so a patch that breaks a source shows at once; bosses apart, the data's kind against the name's.</summary>
     private sealed class Tally
     {
         private readonly Dictionary<string, int> counts = new(StringComparer.Ordinal);
 
-        public void Timed(bool requested, bool warned, Source source, bool speed, bool fallback)
+        public void Timed(bool requested, bool boss, SkillThreats.Verdict verdict, DodgeThreat words, Source source, bool speed, bool fallback)
         {
-            this.Add(requested, warned, "timed");
-            this.Add(requested, warned, $"by {source}");
+            this.Add(requested, boss, verdict, words, "timed");
+            this.Add(requested, boss, verdict, words, $"by {source}");
             if (fallback)
             {
-                this.Add(requested, warned, "through a fallback action");
+                this.Add(requested, boss, verdict, words, "through a fallback action");
             }
 
             if (speed)
             {
-                this.Add(requested, warned, "with a projectile speed");
+                this.Add(requested, boss, verdict, words, "with a projectile speed");
             }
         }
 
-        /// <summary>Neither the .act nor its fallbacks give the action an animation: not counted as an attack.</summary>
-        public void NoAnimation(bool requested, bool warned) => this.Add(requested, warned, "no animation in the .act");
+        public void Calm(bool requested, bool boss, DodgeThreat words) => this.Add(requested, boss, SkillThreats.Verdict.Calm, words, "calm");
 
-        public void Untimed(bool requested, bool warned, bool hasEvents) =>
-            this.Add(requested, warned, hasEvents ? "untimed: server events, none a contact" : "untimed: no server event");
+        /// <summary>Neither the .act nor its fallbacks give the action an animation: not counted as an attack.</summary>
+        public void NoAnimation(bool requested, bool boss, SkillThreats.Verdict verdict, DodgeThreat words) => this.Add(requested, boss, verdict, words, "no animation in the .act");
+
+        public void Untimed(bool requested, bool boss, SkillThreats.Verdict verdict, DodgeThreat words, bool hasEvents) =>
+            this.Add(requested, boss, verdict, words, hasEvents ? "untimed: server events, none a contact" : "untimed: no server event");
 
         public void Print()
         {
-            foreach (var group in new[] { "attacks", "follow-ups" })
+            foreach (var group in new[] { "attacks", "follow-ups", "boss attacks" })
             {
-                foreach (var warned in new[] { "warned of", "calm" })
+                foreach (var kind in Kinds)
                 {
-                    var prefix = $"{group}, {warned}|";
+                    var prefix = $"{group}, {kind}|";
                     var parts = this.counts.Where(pair => pair.Key.StartsWith(prefix, StringComparison.Ordinal))
-                        .OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => $"{pair.Key[prefix.Length..]} {pair.Value}");
-                    Console.WriteLine($"{prefix[..^1]}: {string.Join(", ", parts)}");
+                        .OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => $"{pair.Key[prefix.Length..]} {pair.Value}").ToList();
+                    if (parts.Count > 0)
+                    {
+                        Console.WriteLine($"{prefix[..^1]}: {string.Join(", ", parts)}");
+                    }
                 }
             }
         }
 
-        private void Add(bool requested, bool warned, string what)
+        private static readonly string[] Kinds =
         {
-            var key = $"{(requested ? "attacks" : "follow-ups")}, {(warned ? "warned of" : "calm")}|{what}";
-            this.counts[key] = this.counts.GetValueOrDefault(key) + 1;
+            "kind from the data, same by the name", "kind from the data, other by the name", "kind from the data, calm by the name",
+            "calm by the data, calm by the name", "calm by the data, attack by the name", "kind from the name", "calm by the name",
+        };
+
+        private void Add(bool requested, bool boss, SkillThreats.Verdict verdict, DodgeThreat words, string what)
+        {
+            var kind = verdict switch
+            {
+                SkillThreats.Verdict.Calm => words == DodgeThreat.None ? Kinds[3] : Kinds[4],
+                SkillThreats.Verdict.Mute => words == DodgeThreat.None ? Kinds[6] : Kinds[5],
+                SkillThreats.Verdict.Melee => words == DodgeThreat.Melee ? Kinds[0] : words == DodgeThreat.None ? Kinds[2] : Kinds[1],
+                _ => words == DodgeThreat.Ranged ? Kinds[0] : words == DodgeThreat.None ? Kinds[2] : Kinds[1],
+            };
+            foreach (var group in boss && requested ? new[] { "attacks", "boss attacks" } : new[] { requested ? "attacks" : "follow-ups" })
+            {
+                var key = $"{group}, {kind}|{what}";
+                this.counts[key] = this.counts.GetValueOrDefault(key) + 1;
+            }
         }
     }
 }

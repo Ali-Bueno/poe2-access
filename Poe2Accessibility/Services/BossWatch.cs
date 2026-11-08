@@ -71,6 +71,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private readonly List<(uint Id, long WarnAt, float Pan, float Pitch, float Gain)> flights = new();
         private readonly Dictionary<uint, long> warnedAt = new();
+        private readonly HashSet<string> namedThreats = new(StringComparer.Ordinal);
         private int lastPlayerLife = -1;
         private readonly Dictionary<uint, (string Name, int Step, bool Engaged, int Percent)> bosses = new();
         private long lastLifePoll;
@@ -264,7 +265,8 @@ namespace Poe2Accessibility.Services
                     this.attacks[id] = attack;
                 }
 
-                var threat = DodgeThreats.Of(animation, AnimationNames.Of);
+                var key = DodgeTimings.Key(entity.Path, animation);
+                var threat = this.Timings.Threat(key) ?? this.ThreatFromName(key, animation);
                 if (threat == DodgeThreat.None)
                 {
                     if (attack == null)
@@ -293,7 +295,6 @@ namespace Poe2Accessibility.Services
                         this.flights.Add((id, flying.WarnAt, flightPan, flightPitch, this.WarningGain(offset)));
                     }
 
-                    var key = DodgeTimings.Key(entity.Path, animation);
                     var learnt = this.Timings.Delay(key);
 
                     // A projectile lands its flight across the gap after the release the files and earlier blows time.
@@ -344,6 +345,24 @@ namespace Poe2Accessibility.Services
 
             this.attacks[id] = attack;
         }
+
+        /// <summary>
+        ///     The kind an attack's animation name gives it, where the game's tables are mute: each such attack is logged once,
+        ///     so a patch's gaps in the data show (docs/research/dodge-timing.md, "Kinds from the data").
+        /// </summary>
+        private DodgeThreat ThreatFromName(string key, int animation)
+        {
+            var threat = DodgeThreats.Of(animation, AnimationNames.Of);
+            if (this.namedThreats.Add(key))
+            {
+                this.log.Info($"Dodge kind from the animation's name: {key} {AnimationNames.Of(animation) ?? "(no name)"} -> {threat}");
+            }
+
+            return threat;
+        }
+
+        /// <summary>How many attacks met so far had their kind from the animation's name, not the game's tables.</summary>
+        public int NamedThreats => this.namedThreats.Count;
 
         /// <summary>
         ///     The parry cue for a timed blow worth parrying, at most once per parry and only while its stop still falls

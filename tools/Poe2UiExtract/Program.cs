@@ -225,10 +225,11 @@ if (args.Length > 0 && string.Equals(args[0], "item-sounds", StringComparison.Or
     return ItemSoundExtractor.Run(game, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-sounds.json");
 }
 
-// Args: hit-times <gameDir> [outFile]  -- when each monster attack lands, from the animation data, for dodge warnings.
+// Args: hit-times <gameDir> [outFile] [auditFile]  -- when each monster attack lands and what kind of threat it is, from the
+// animation data and the skill tables, for dodge warnings; the audit lists where the kind disagrees with the name.
 if (args.Length > 1 && string.Equals(args[0], "hit-times", StringComparison.OrdinalIgnoreCase))
 {
-    return HitTimeExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hit-times.txt");
+    return HitTimeExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hit-times.txt", args.Length > 3 ? args[3] : null);
 }
 
 // Args: hazards <gameDir> [outFile]  -- buffs from standing in harmful ground, for the hazard alarm.

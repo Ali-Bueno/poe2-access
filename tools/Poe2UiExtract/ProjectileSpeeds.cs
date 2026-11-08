@@ -16,17 +16,17 @@ internal static class ProjectileSpeeds
     // Offsets and row sizes from the community dat-schema (2026-10-25), every row size matching this install.
     // GrantedEffects: ActiveSkill, StatSet.
     internal const int SkillRowSize = 0x129;
-    private const int SkillActiveSkillOffset = 0x4F;
+    internal const int SkillActiveSkillOffset = 0x4F;
     internal const int SkillStatSetOffset = 0xA8;
 
     // GrantedEffectStatSets: ConstantStats, ConstantStatsValues.
     internal const int StatSetRowSize = 0x65;
-    private const int ConstantStatsOffset = 0x28;
+    internal const int ConstantStatsOffset = 0x28;
     private const int ConstantValuesOffset = 0x38;
 
     // ActiveSkills: ActiveSkillTypes (ActiveSkillType rows, +0x00 Id).
-    private const int ActiveSkillRowSize = 0x152;
-    private const int ActiveSkillTypesOffset = 0x40;
+    internal const int ActiveSkillRowSize = 0x152;
+    internal const int ActiveSkillTypesOffset = 0x40;
 
     // MonsterProjectileSpell and MonsterProjectileAttack: Id (i32), Projectile.
     private const int SpellVariationRowSize = 0x2A;
