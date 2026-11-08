@@ -319,19 +319,12 @@ namespace Poe2Accessibility.Services
 
         private void Note(StructOutcome outcome)
         {
-            switch (outcome.Health)
+            if (outcome.Health == StructHealth.Lost)
             {
-                case StructHealth.Intact:
-                    this.report.Found(outcome.Name);
-                    break;
-                case StructHealth.Moved:
-                    this.report.Moved(outcome.Name, outcome.From, outcome.To);
-                    break;
-                case StructHealth.Lost:
-                    this.log.Info($"Struct {outcome.Name}: {outcome.Detail}");
-                    this.report.Missing(outcome.Name);
-                    break;
+                this.log.Info($"Struct {outcome.Name}: {outcome.Detail}");
             }
+
+            this.report.Record(outcome);
         }
 
         private void Report(AreaInstanceLayout layout, bool hasWorld)

@@ -80,6 +80,7 @@ namespace Poe2Accessibility.Services
 
         private bool namesKnown;
         private bool elementBaseKnown;
+        private readonly Dictionary<IntPtr, long> elementBaseTried = new();
         private bool layerRootsKnown;
         private long layerRootsTriedAt = long.MinValue / 2;
         private FocusSlotCheck? focusCheck;
@@ -106,27 +107,26 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public void ProbeElementBase(IntPtr root)
         {
-            if (this.elementBaseKnown || root == IntPtr.Zero)
+            // An element that is no UI root (or a root the search fails on) is tried again only after a while: the manager is
+            // looked for on every frame its cache misses.
+            var now = Environment.TickCount64;
+            if (this.elementBaseKnown || root == IntPtr.Zero || (this.elementBaseTried.TryGetValue(root, out var tried) && now - tried < RetryMs))
             {
                 return;
             }
+
+            if (this.elementBaseTried.Count >= MaxOwnElements)
+            {
+                this.elementBaseTried.Clear();
+            }
+
+            this.elementBaseTried[root] = now;
 
             var outcomes = GameHelper.Utils.OffsetHealer.JudgeUiElementBase(root);
             this.elementBaseKnown = outcomes.Count > 0;
             foreach (var outcome in outcomes)
             {
-                switch (outcome.Health)
-                {
-                    case GameHelper.Utils.StructHealth.Intact:
-                        this.report.Found(outcome.Name);
-                        break;
-                    case GameHelper.Utils.StructHealth.Moved:
-                        this.report.Moved(outcome.Name, outcome.From, outcome.To);
-                        break;
-                    case GameHelper.Utils.StructHealth.Lost:
-                        this.report.Missing(outcome.Name);
-                        break;
-                }
+                this.report.Record(outcome);
             }
         }
 
@@ -181,7 +181,7 @@ namespace Poe2Accessibility.Services
             }
 
             var current = GameLayout.UiManager.CurrentOffset;
-            this.focusCheck ??= new FocusSlotCheck(current);
+            this.focusCheck ??= new FocusSlotCheck(current, GameLayout.UiManager.LastFocusedOffset - current);
             var start = Math.Max(0, current - FocusWindow);
             var slots = this.reader.ReadArray<IntPtr>(manager + start, ((current + FocusWindow - start) / IntPtr.Size) + 1);
             var held = new Dictionary<int, long>(slots.Length);
@@ -417,6 +417,7 @@ namespace Poe2Accessibility.Services
         {
             (this.namesKnown, this.textKnown, this.managerKnown, this.renderKnown, this.texturesKnown) = (false, false, false, false, false);
             (this.elementBaseKnown, this.layerRootsKnown, this.focusKnown, this.focusCheck) = (false, false, false, null);
+            this.elementBaseTried.Clear();
             this.layerRootsTriedAt = long.MinValue / 2;
             this.namesTriedAt = this.textTriedAt = this.texturesTriedAt = long.MinValue / 2;
         }

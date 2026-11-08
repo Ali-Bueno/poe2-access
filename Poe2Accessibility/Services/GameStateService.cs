@@ -285,18 +285,7 @@ namespace Poe2Accessibility.Services
             (this.layoutNoted, this.cullNoted) = (outcomes, cull);
             foreach (var outcome in outcomes.Append(cull))
             {
-                switch (outcome.Health)
-                {
-                    case StructHealth.Intact:
-                        this.Report.Found(outcome.Name);
-                        break;
-                    case StructHealth.Moved:
-                        this.Report.Moved(outcome.Name, outcome.From, outcome.To);
-                        break;
-                    case StructHealth.Lost:
-                        this.Report.Missing(outcome.Name);
-                        break;
-                }
+                this.Report.Record(outcome);
             }
         }
     }
