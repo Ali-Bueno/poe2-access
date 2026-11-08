@@ -67,8 +67,10 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class ControlFields
     {
-        private const int Radius = 0x100;
-        private const int Step = 8;
+        /// <summary>How far from where they were measured a group's fields are looked for, and in what steps.</summary>
+        public const int Radius = 0x100;
+
+        public const int Step = 8;
 
         /// <summary>
         ///     A failed search on a control is not repeated sooner than this (a control can be briefly unreadable); kept per

@@ -203,7 +203,7 @@ namespace Poe2Accessibility.Services
 
                 foreach (var canvas in this.elements.ReadChildren(control))
                 {
-                    if (this.elements.TryReadElement(canvas, out var info) && info.IsVisibleFlag && (this.PinKeyRow(canvas, shift) != null || this.PinKeyRow(canvas, current) != null))
+                    if (this.elements.TryReadElement(canvas, out var info) && info.IsVisibleFlag && this.HoldsPinKey(canvas, shift, current))
                     {
                         return canvas;
                     }
@@ -231,6 +231,27 @@ namespace Poe2Accessibility.Services
 
             this.nextHoveredPinLook = Environment.TickCount64 + HoveredPinLookMs;
             return controls.ChangingAt(ControlGroup.HoveredPin, canvas, shift => this.PinKeyRow(canvas, shift)?.ToInt64() ?? 0);
+        }
+
+        /// <summary>
+        ///     Whether the canvas keeps a key into MapPins at the hovered or the current pin's place, as known or, before the
+        ///     hovered pin is proved, anywhere within the search's reach: with both fields moved the canvas was never found, so
+        ///     the hovered pin's search never ran and no pin was read (the gap pass's simulation, +8, 2026-11-08).
+        /// </summary>
+        private bool HoldsPinKey(IntPtr canvas, int shift, int current)
+        {
+            if (this.PinKeyRow(canvas, shift) != null || this.PinKeyRow(canvas, current) != null)
+            {
+                return true;
+            }
+
+            if (this.elements.Controls is not { } controls || controls.IsKnown(ControlGroup.HoveredPin))
+            {
+                return false;
+            }
+
+            var toCurrent = current - shift;
+            return OffsetSearch.First(shift, ControlFields.Radius, ControlFields.Step, moved => this.PinKeyRow(canvas, moved + toCurrent) != null, shift - ControlFields.Radius) != null;
         }
 
         /// <summary>The MapPins row of the key the canvas keeps at the hovered pin's place moved by <paramref name="shift"/>; null when none.</summary>
