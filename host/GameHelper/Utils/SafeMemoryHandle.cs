@@ -5,7 +5,9 @@
 namespace GameHelper.Utils
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading;
@@ -34,6 +36,29 @@ namespace GameHelper.Utils
         ///     string fragments) that a torn read fed in where a pointer was expected.
         /// </summary>
         private const long MinValidAddress = 0x10000;
+
+        /// <summary>
+        ///     A std::map smaller than this is walked on the calling thread: a town holds some 45 entities, and waking the
+        ///     pool's workers for them cost more than their reads (profile, 2026-11-08). Fights, with hundreds, stay parallel.
+        /// </summary>
+        private const int ParallelMinNodes = 128;
+
+        /// <summary>Gets the reads of the game's memory made so far (each a system call), by the type read: the host logs them per frame.</summary>
+        internal static IEnumerable<KeyValuePair<string, long>> ReadsByType =>
+            counters.Select(pair => new KeyValuePair<string, long>(pair.Key, Interlocked.Read(ref pair.Value.Value)));
+
+        private static readonly ConcurrentDictionary<string, ReadCounter> counters = new();
+
+        internal sealed class ReadCounter
+        {
+            public long Value;
+        }
+
+        /// <summary>One counter per type read, found without a lookup on the hot path.</summary>
+        private static class ReadCount<T>
+        {
+            public static readonly ReadCounter Of = counters.GetOrAdd(typeof(T).Name, _ => new ReadCounter());
+        }
 
         /// <summary>
         ///     Required by SafeHandle infrastructure for finalizer / marshaling support.
@@ -123,6 +148,7 @@ namespace GameHelper.Utils
 
             try
             {
+                Interlocked.Increment(ref ReadCount<T>.Of.Value);
                 if (!NativeWrapper.ReadProcessMemory(this.handle, address, ref result))
                 {
                     result = default;
@@ -211,6 +237,7 @@ namespace GameHelper.Utils
                 // and short reads are routine and recoverable. Record them for the diagnostics
                 // window but keep the console clean, matching TryReadMemory (audit: torn-read noise).
                 var expectedBytes = (long)nsize * Marshal.SizeOf<T>();
+                Interlocked.Increment(ref ReadCount<T[]>.Of.Value);
                 if (!NativeWrapper.ReadProcessMemoryArray(this.handle, address, buffer, out var numBytesRead) ||
                     numBytesRead.ToInt64() < expectedBytes)
                 {
@@ -369,6 +396,10 @@ namespace GameHelper.Utils
             var head = this.ReadMemory<StdMapNode<TKey, TValue>>(nativeContainer.Head);
             var parent = this.ReadMemory<StdMapNode<TKey, TValue>>(head.Parent);
             var first64Childrens = new Queue<StdMapNode<TKey, TValue>>(64);
+            if (nativeContainer.Size < ParallelMinNodes)
+            {
+                return processSubTree(first64Childrens, parent, maxSizeAllowed);
+            }
 
             // processing first 63 nodes will gives us 64 childrens
             // in the first64Childrens list (assuming there is no node with just 1 child).
@@ -410,13 +441,17 @@ namespace GameHelper.Utils
                 // Color is the red/black flag and is always 0 or 1 in a real node; if a torn/bad
                 // pointer lands us on string or float data, Color is almost never 0/1, so this
                 // rejects garbage before we descend into it and propagate the failure further.
-                if (this.TryReadMemory<StdMapNode<TKey, TValue>>(current.Left, out var leftChild) &&
+                // A leaf's children point at the head node (MSVC's nil sentinel): known without a read, which halved
+                // the walk's reads (a town's 250 nodes cost 750 reads a frame, 2026-11-08).
+                if (current.Left != nativeContainer.Head &&
+                    this.TryReadMemory<StdMapNode<TKey, TValue>>(current.Left, out var leftChild) &&
                     !leftChild.IsNil && leftChild.Color <= 1)
                 {
                     childrens.Enqueue(leftChild);
                 }
 
-                if (this.TryReadMemory<StdMapNode<TKey, TValue>>(current.Right, out var rightChild) &&
+                if (current.Right != nativeContainer.Head &&
+                    this.TryReadMemory<StdMapNode<TKey, TValue>>(current.Right, out var rightChild) &&
                     !rightChild.IsNil && rightChild.Color <= 1)
                 {
                     childrens.Enqueue(rightChild);

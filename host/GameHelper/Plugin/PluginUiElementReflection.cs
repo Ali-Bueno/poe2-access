@@ -5,6 +5,7 @@
 namespace GameHelper.Plugin
 {
     using System;
+    using System.Collections.Generic;
     using System.Numerics;
     using System.Reflection;
     using GameHelper.RemoteEnums;
@@ -22,12 +23,25 @@ namespace GameHelper.Plugin
         ///     Plugin-created parent caches are intentionally empty, so relying on
         ///     <c>UiElementBase.Position</c> can return only the element's local position.
         /// </summary>
-        public static bool TryGetAbsoluteRect(IntPtr address, out Vector2 position, out Vector2 size)
+        public static bool TryGetAbsoluteRect(IntPtr address, out Vector2 position, out Vector2 size) =>
+            TryGetAbsoluteRect(address, null, out position, out size);
+
+        /// <summary>
+        ///     The positions of the parent chains walked so far, for a caller placing many elements of one screen at once:
+        ///     each ancestor is read once instead of once per element under it.
+        /// </summary>
+        public sealed class RectCache
+        {
+            internal readonly Dictionary<IntPtr, (Vector2 Position, UiElementBaseOffset Data)> Positions = new();
+        }
+
+        /// <summary>Same, reading each ancestor once per <paramref name="cache"/>.</summary>
+        public static bool TryGetAbsoluteRect(IntPtr address, RectCache? cache, out Vector2 position, out Vector2 size)
         {
             position = Vector2.Zero;
             size = Vector2.Zero;
 
-            if (!TryGetUnscaledPosition(address, 0, out var unscaledPosition, out var data))
+            if (!TryGetUnscaledPosition(address, 0, cache, out var unscaledPosition, out var data))
             {
                 return false;
             }
@@ -45,6 +59,7 @@ namespace GameHelper.Plugin
         private static bool TryGetUnscaledPosition(
             IntPtr address,
             int depth,
+            RectCache? cache,
             out Vector2 position,
             out UiElementBaseOffset data)
         {
@@ -53,6 +68,12 @@ namespace GameHelper.Plugin
             if (address == IntPtr.Zero || depth >= 64)
             {
                 return false;
+            }
+
+            if (cache != null && cache.Positions.TryGetValue(address, out var known))
+            {
+                (position, data) = known;
+                return true;
             }
 
             if (!Core.Process.Handle.TryReadMemory<UiElementBaseOffset>(address, out data))
@@ -69,10 +90,11 @@ namespace GameHelper.Plugin
             if (data.ParentPtr == IntPtr.Zero)
             {
                 position = relative;
+                cache?.Positions.Add(address, (position, data));
                 return true;
             }
 
-            if (!TryGetUnscaledPosition(data.ParentPtr, depth + 1, out var parentPosition, out var parentData))
+            if (!TryGetUnscaledPosition(data.ParentPtr, depth + 1, cache, out var parentPosition, out var parentData))
             {
                 return false;
             }
@@ -86,6 +108,7 @@ namespace GameHelper.Plugin
                 parentData.LocalScaleMultiplier == data.LocalScaleMultiplier)
             {
                 position = parentPosition + relative;
+                cache?.Positions.Add(address, (position, data));
                 return true;
             }
 
@@ -101,6 +124,7 @@ namespace GameHelper.Plugin
             position = new Vector2(
                 (parentPosition.X * parentScaleW / scaleW) + relative.X,
                 (parentPosition.Y * parentScaleH / scaleH) + relative.Y);
+            cache?.Positions.Add(address, (position, data));
             return true;
         }
     }

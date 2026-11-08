@@ -27,6 +27,12 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         private IntPtr[] itemsToInventorySlotMapping = Array.Empty<IntPtr>();
 
         /// <summary>
+        ///     The items are re-read this often (every item a block read plus one per cached component). GameHelper's
+        ///     overlay wanted 50 Hz; the mod reads belts every 500 ms (FlaskWatch), so 10 Hz keeps them fresh.
+        /// </summary>
+        private const double UpdateSeconds = 0.1;
+
+        /// <summary>
         ///     Initializes a new instance of the <see cref="Inventory" /> class.
         /// </summary>
         /// <param name="address">address of the remote memory object.</param>
@@ -119,7 +125,8 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
                 item.Value.IsValid = false;
             }
 
-            Parallel.ForEach(this.itemsToInventorySlotMapping.Distinct(), invItemPtr =>
+            // A belt or bag holds a few dozen items: one thread reads them quicker than the pool wakes for them.
+            foreach (var invItemPtr in this.itemsToInventorySlotMapping.Distinct())
             {
                 if (invItemPtr != IntPtr.Zero)
                 {
@@ -133,16 +140,11 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
                         var item = new Item(invItem.Item);
                         if (!string.IsNullOrEmpty(item.Path))
                         {
-                            // TryAdd returns false when another parallel worker already inserted
-                            // this invItemPtr — legitimate race on duplicate pointers, not an
-                            // error. Drop the previously-thrown bare Exception (audit F-130)
-                            // which would otherwise propagate as AggregateException and kill
-                            // the OnTimeTick coroutine.
                             this.Items.TryAdd(invItemPtr, item);
                         }
                     }
                 }
-            });
+            }
 
             foreach (var item in this.Items)
             {
@@ -157,7 +159,7 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         {
             while (true)
             {
-                yield return new Wait(0.02d);
+                yield return new Wait(UpdateSeconds);
                 try
                 {
                     if (this.Address != IntPtr.Zero)

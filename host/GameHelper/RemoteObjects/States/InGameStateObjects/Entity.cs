@@ -30,6 +30,13 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         private const int DormantCheckInterval = 30;
         private const int MaxUnresolvedRetries = 5;
 
+        /// <summary>
+        ///     Components of what is neither a monster nor a player (chests, NPCs, items, doors, decorations) are re-read
+        ///     this often instead of every frame: the mod polls them at 100 ms or more, and in a town they are nearly every
+        ///     entity. Monsters and players keep every frame: life, animations and positions feed timing cues.
+        /// </summary>
+        private const int RestingComponentsMs = 100;
+
         private readonly ConcurrentDictionary<string, IntPtr> componentAddresses;
         private readonly ConcurrentDictionary<string, ComponentBase> componentCache;
 
@@ -37,6 +44,7 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         private EntitySubtypes oldSubtypeWithoutPOI;
         private int dormantCheckSkip;
         private int unresolvedRetryCount;
+        private long componentsReadAt;
         private int consecutiveInvalidFrames;
 
         /// <summary>
@@ -387,6 +395,14 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
                 isUnresolved ||
                 (isMonster && this.EntityState == EntityStates.Useless);
 
+            var now = Environment.TickCount64;
+            if (!shouldRefreshComponentMap && !isMonster && this.EntityType != EntityTypes.Player &&
+                now - this.componentsReadAt < RestingComponentsMs)
+            {
+                return; // the components keep their last values, as does the state computed from them
+            }
+
+            this.componentsReadAt = now;
             if (!this.UpdateComponentData(entityData.ItemBase, shouldRefreshComponentMap))
             {
                 this.UpdateComponentData(entityData.ItemBase, true);

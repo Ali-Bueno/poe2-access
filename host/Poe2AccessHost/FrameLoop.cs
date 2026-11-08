@@ -14,6 +14,13 @@ namespace Poe2AccessHost
         /// <summary>The rate the mod always ran at (GameHelper's FPS limit of 60, vsync off).</summary>
         private const double FramesPerSecond = 60;
 
+        /// <summary>
+        ///     With the game behind another window (or not open) the plugin plays and says nothing about the world and
+        ///     only keeps its state: chat, area changes and screen changes are still taken in, at their own poll rates
+        ///     of 150 ms and more, so a slower frame costs nothing audible.
+        /// </summary>
+        private const double BackgroundFramesPerSecond = 20;
+
         private readonly Dictionary<string, string> lastFault = new();
         private readonly FrameStats stats = new();
 
@@ -21,7 +28,6 @@ namespace Poe2AccessHost
         {
             using var timer = FrameTimer.Create();
             var frequency = Stopwatch.Frequency;
-            var period = (long)(frequency / FramesPerSecond);
             var clock = Stopwatch.StartNew();
             var last = clock.ElapsedTicks;
             var next = last;
@@ -31,6 +37,7 @@ namespace Poe2AccessHost
                 HostFrame.Run((now - last) / (double)frequency, tick, this.Fault, this.stats.Steps);
                 this.stats.EndFrame(clock.ElapsedTicks - now);
                 last = now;
+                var period = (long)(frequency / (HostFrame.GameOpened && HostFrame.GameForeground ? FramesPerSecond : BackgroundFramesPerSecond));
                 next += period;
                 var wait = next - clock.ElapsedTicks;
                 if (wait <= -period)

@@ -54,6 +54,9 @@ namespace GameHelper
         /// <summary>Gets the current game state's name, for the host's log.</summary>
         public static string GameState => Core.States.GameCurrentState.ToString();
 
+        /// <summary>Gets the reads of the game's memory made so far, by every thread (each a system call), by the type read.</summary>
+        public static System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, long>> MemoryReadsByType => Utils.SafeMemoryHandle.ReadsByType;
+
         /// <summary>Closes the game handle.</summary>
         public static void Stop() => Core.Dispose();
 

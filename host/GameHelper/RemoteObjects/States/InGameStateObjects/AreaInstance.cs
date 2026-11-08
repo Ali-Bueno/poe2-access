@@ -294,14 +294,15 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
             var staleCleanup = Core.GHSettings.EnableStaleEntityCleanup;
             var staleThreshold = Core.GHSettings.StaleEntityFrameThreshold;
             this.uselesssEntities = 0;
-            Parallel.ForEach(data, (kv) =>
+            // No memory is read here: one thread is quicker than waking the pool's for every entity each frame.
+            foreach (var kv in data)
             {
                 if (kv.Value.IsValid)
                 {
                     kv.Value.ResetInvalidFrames();
                     if (dc == false && kv.Value.EntityState == EntityStates.Useless)
                     {
-                        Interlocked.Increment(ref this.uselesssEntities);
+                        this.uselesssEntities++;
                     }
                 }
                 else
@@ -329,13 +330,13 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
                         data.TryRemove(kv.Key, out _);
                         if (dc == false)
                         {
-                            Interlocked.Increment(ref this.totalEntityRemoved);
+                            this.totalEntityRemoved++;
                         }
                     }
                 }
 
                 kv.Value.IsValid = false;
-            });
+            }
 
             this.NetworkBubbleEntityCount = reader.ReadStdMap<EntityNodeKey, EntityNodeValue>(ePtr, 100000, dc == false, (key, value) =>
             {
