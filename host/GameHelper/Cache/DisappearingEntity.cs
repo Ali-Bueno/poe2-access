@@ -111,15 +111,6 @@ namespace GameHelper.Cache
         /// <returns>true in case entity exists otherwise false.</returns>
         public bool Contains(EntityNodeKey entity) => this.cache.ContainsKey(entity);
 
-        /// <summary>
-        ///     checks if the cache is active or not.
-        /// </summary>
-        /// <returns>true in case the cache is active otherwise false.</returns>
-        public bool IsActive()
-        {
-            return this.isActivated;
-        }
-
         private void UpdateActivation(IReadOnlyList<int> environments)
         {
             // F-042: compute the new state into a local first, then publish once.

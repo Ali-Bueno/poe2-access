@@ -44,11 +44,6 @@ namespace GameHelper
         public static GameStates States { get; } = new(IntPtr.Zero);
 
         /// <summary>
-        ///     Gets the files loaded for the current area.
-        /// </summary>
-        public static LoadedFiles CurrentAreaLoadedFiles { get; } = new(IntPtr.Zero);
-
-        /// <summary>
         ///     Gets the GameProcess instance. For details read class description.
         /// </summary>
         public static GameProcess Process { get; } = new();
@@ -69,11 +64,6 @@ namespace GameHelper
         ///     little bit faster than this one.
         /// </summary>
         internal static GgpkAddresses<object> GgpkObjectCache { get;} = new();
-
-        /// <summary>
-        ///     Gets the AreaChangeCounter instance. For details read class description.
-        /// </summary>
-        internal static AreaChangeCounter AreaChangeCounter { get; } = new(IntPtr.Zero);
 
         /// <summary>
         ///     Gets the values associated with the Game Window Scale.
@@ -137,8 +127,6 @@ namespace GameHelper
         {
             CoroutineHandler.Start(GameClosedActions());
             CoroutineHandler.Start(UpdateStatesData(), priority: int.MaxValue - 3);
-            CoroutineHandler.Start(UpdateFilesData(), priority: int.MaxValue - 2);
-            CoroutineHandler.Start(UpdateAreaChangeData(), priority: int.MaxValue - 1);
             CoroutineHandler.Start(UpdateCullData(), priority: int.MaxValue);
             CoroutineHandler.Start(UpdateRotationSelectorData(), priority: int.MaxValue);
             CoroutineHandler.Start(UpdateRotatorHelperData(), priority: int.MaxValue);
@@ -164,33 +152,6 @@ namespace GameHelper
                 yield return new Wait(Process.OnStaticAddressFound);
                 GameCull.Address = Process.StaticAddresses.GetValueOrDefault("GameCullSize");
                 GameScale.Refresh();
-            }
-        }
-
-        /// <summary>
-        ///     Co-routine to update the address where AreaChange object is loaded in the game memory.
-        /// </summary>
-        /// <returns>co-routine IWait.</returns>
-        private static IEnumerator<Wait> UpdateAreaChangeData()
-        {
-            while (true)
-            {
-                yield return new Wait(Process.OnStaticAddressFound);
-                AreaChangeCounter.Address = Process.StaticAddresses.GetValueOrDefault("AreaChangeCounter");
-            }
-        }
-
-        /// <summary>
-        ///     Co-routine to update the address where the Files are loaded in the game memory.
-        /// </summary>
-        /// <returns>co-routine IWait.</returns>
-        private static IEnumerator<Wait> UpdateFilesData()
-        {
-            while (true)
-            {
-                yield return new Wait(Process.OnStaticAddressFound);
-                // GameHelper's preload scan of each area (its PreloadAlert) is not read by the mod: left off.
-                CurrentAreaLoadedFiles.Address = IntPtr.Zero;
             }
         }
 
@@ -244,8 +205,6 @@ namespace GameHelper
             {
                 yield return new Wait(GameHelperEvents.OnClose);
                 States.Address = IntPtr.Zero;
-                CurrentAreaLoadedFiles.Address = IntPtr.Zero;
-                AreaChangeCounter.Address = IntPtr.Zero;
                 GameCull.Address = IntPtr.Zero;
                 RotationSelector.Address = IntPtr.Zero;
                 RotatorHelper.Address = IntPtr.Zero;

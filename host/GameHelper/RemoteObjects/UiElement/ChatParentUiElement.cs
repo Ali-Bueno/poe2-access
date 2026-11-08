@@ -22,7 +22,5 @@
         // UiElement flags when the chat is focused/active.
         private const int CHAT_ACTIVE_BINARY_POS = 0x12;
 
-        public bool IsChatActive => Util.isBitSetUint(this.flags, CHAT_ACTIVE_BINARY_POS);
-
     }
 }

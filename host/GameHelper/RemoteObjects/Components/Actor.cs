@@ -57,13 +57,6 @@ namespace GameHelper.RemoteObjects.Components
         /// </summary>
         public HashSet<string> UsableMinionCommandSkills { get; } = new();
 
-        /// <summary>
-        ///     Gets the number of entities deployed by this entity, keyed by DeployedObjectType id.
-        ///     Index it with a type id; absent ids read as 0. PoE2 uses large (dat-row) type ids, so
-        ///     this is dictionary-backed rather than a fixed array.
-        /// </summary>
-        public DeployedObjectCounter DeployedEntities { get; } = new();
-
         /// <summary>Gets the current deployed entity records, including ownership IDs and source skill IDs.</summary>
         public IReadOnlyList<DeployedEntityStructure> DeployedEntityRecords { get; private set; } = Array.Empty<DeployedEntityStructure>();
 
@@ -134,14 +127,8 @@ namespace GameHelper.RemoteObjects.Components
                 }
             }
 
-            this.DeployedEntities.Clear();
             var deployedEntities = reader.ReadStdVector<DeployedEntityStructure>(data.DeployedEntityArray);
             this.DeployedEntityRecords = Array.AsReadOnly(deployedEntities);
-            for (var i = 0; i < deployedEntities.Length; i++)
-            {
-                this.DeployedEntities.Increment(deployedEntities[i].DeployedObjectType);
-            }
-
             this.UpdateMinionCommandSkills(deployedEntities);
         }
 

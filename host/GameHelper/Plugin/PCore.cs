@@ -4,7 +4,6 @@
 
 namespace GameHelper.Plugin
 {
-    using GameHelper.Localization;
     using System;
     using System.Collections.Generic;
 
@@ -24,22 +23,6 @@ namespace GameHelper.Plugin
         ///     Gets or sets the plugin settings.
         /// </summary>
         public TSettings Settings = new();
-
-        private PluginLocalization? pluginText;
-
-        /// <summary>
-        ///     Gets localized text from the plugin-owned Localization directory.
-        /// </summary>
-        protected PluginLocalization PluginText => this.pluginText ??= new PluginLocalization(this.DllDirectory);
-
-        /// <inheritdoc />
-        public virtual string GetDescription() => this.PluginText.T("plugin.description", string.Empty);
-
-        /// <inheritdoc />
-        public virtual IReadOnlyCollection<string> ConflictsWith => Array.Empty<string>();
-
-        /// <inheritdoc />
-        public virtual int ConflictPriority => 0;
 
         /// <inheritdoc />
         public abstract void OnDisable();

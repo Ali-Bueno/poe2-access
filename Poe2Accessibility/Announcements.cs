@@ -33,7 +33,6 @@ namespace Poe2Accessibility
         public static string NothingToRepeat => T("Nothing to repeat.", "Nada que repetir.");
         public static string SettingsReloaded => T("Settings reloaded.", "Configuración recargada.");
         public static string SettingsInvalid => T("Settings file could not be read, keeping current settings.", "No se pudo leer el archivo de configuración; se mantiene la actual.");
-        public static string UiDumpBlockedByDiagnostics => T("Disable memory diagnostics in Game Helper settings before dumping.", "Desactiva los diagnósticos de memoria en la configuración de Game Helper antes de volcar.");
 
         public static string ForState(GameStateTypes state) => state switch
         {

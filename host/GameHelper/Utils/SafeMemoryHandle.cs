@@ -88,8 +88,7 @@ namespace GameHelper.Utils
             {
                 Console.WriteLine("ERROR: Failed To Read the Memory (T)" +
                                   $" due to Error Number: 0x{NativeWrapper.LastError:X} on " +
-                                  $"adress 0x{address.ToInt64():X} for type {typeof(T).Name}" +
-                                  $" [caller: {DescribeCaller()}]");
+                                  $"adress 0x{address.ToInt64():X} for type {typeof(T).Name}");
             }
 
             return default;
@@ -114,7 +113,6 @@ namespace GameHelper.Utils
             result = default;
             if (this.IsInvalid || !IsValidAddress(address))
             {
-                RecordDiagnosticFailure(typeof(T).Name, address);
                 return false;
             }
 
@@ -128,7 +126,6 @@ namespace GameHelper.Utils
                 if (!NativeWrapper.ReadProcessMemory(this.handle, address, ref result))
                 {
                     result = default;
-                    RecordDiagnosticFailure(typeof(T).Name, address);
                     return false;
                 }
 
@@ -137,25 +134,8 @@ namespace GameHelper.Utils
             catch
             {
                 result = default;
-                RecordDiagnosticFailure(typeof(T).Name, address);
                 return false;
             }
-        }
-
-        /// <summary>
-        ///     Records a failed read into the diagnostics window when it is enabled. Gated up
-        ///     front so the (stack-walking) caller lookup is never paid in normal operation.
-        /// </summary>
-        /// <param name="typeName">name of the type that failed to read.</param>
-        /// <param name="address">the address that failed.</param>
-        private static void RecordDiagnosticFailure(string typeName, IntPtr address)
-        {
-            if (!Core.GHSettings.ShowMemoryDiagnostics)
-            {
-                return;
-            }
-
-            Ui.MemoryReadDiagnostics.RecordFailure(typeName, DescribeCaller(), address.ToInt64());
         }
 
         /// <summary>Reads a struct whose fields a game patch moved (<see cref="StructRemap{T}"/>).</summary>
@@ -220,11 +200,6 @@ namespace GameHelper.Utils
         {
             if (this.IsInvalid || !IsValidAddress(address) || nsize <= 0)
             {
-                if (nsize > 0)
-                {
-                    RecordDiagnosticFailure($"{typeof(T).Name}[]", address);
-                }
-
                 return Array.Empty<T>();
             }
 
@@ -239,7 +214,6 @@ namespace GameHelper.Utils
                 if (!NativeWrapper.ReadProcessMemoryArray(this.handle, address, buffer, out var numBytesRead) ||
                     numBytesRead.ToInt64() < expectedBytes)
                 {
-                    RecordDiagnosticFailure($"{typeof(T).Name}[]", address);
                     return Array.Empty<T>();
                 }
 
@@ -247,7 +221,6 @@ namespace GameHelper.Utils
             }
             catch
             {
-                RecordDiagnosticFailure($"{typeof(T).Name}[]", address);
                 return Array.Empty<T>();
             }
         }
@@ -516,67 +489,6 @@ namespace GameHelper.Utils
             }
 
             return this.ReadStdVector<TValue>(nativeContainer.Data);
-        }
-
-        /// <summary>
-        ///     Walks the current call stack to attribute a bad read to core vs. a specific
-        ///     plugin assembly (each plugin is loaded under its own ALC/name). Skips this
-        ///     class's own frames, then returns the first application frame as
-        ///     "AssemblyName!Type.Method". Because objects are frequently constructed via
-        ///     reflection (Activator.CreateInstance), the real caller can sit above a
-        ///     runtime/reflection trampoline; when the first frame we hit is such infrastructure
-        ///     we keep walking (recording the chain) until we reach real application code, so the
-        ///     trampoline doesn't mask the true origin. Stack capture skips line info to stay cheap.
-        /// </summary>
-        /// <returns>caller chain, or a fallback string if it can't be determined.</returns>
-        private static string DescribeCaller()
-        {
-            try
-            {
-                var stack = new System.Diagnostics.StackTrace(1, false);
-                var parts = new List<string>();
-                foreach (var frame in stack.GetFrames())
-                {
-                    var method = frame?.GetMethod();
-                    var declaringType = method?.DeclaringType;
-                    if (declaringType == null || declaringType == typeof(SafeMemoryHandle))
-                    {
-                        continue;
-                    }
-
-                    var asm = declaringType.Assembly.GetName().Name ?? "?";
-                    parts.Add($"{asm}!{declaringType.Name}.{method!.Name}");
-
-                    // Stop at the first real application frame. Keep collecting through
-                    // runtime/reflection frames (with a hard cap) so a reflection invoke
-                    // shows "trampoline <- realCaller" instead of just the trampoline.
-                    if (!IsInfrastructureAssembly(asm) || parts.Count >= 4)
-                    {
-                        break;
-                    }
-                }
-
-                return parts.Count > 0 ? string.Join(" <- ", parts) : "<unknown>";
-            }
-            catch
-            {
-                return "<unavailable>";
-            }
-        }
-
-        /// <summary>
-        ///     Whether an assembly is .NET runtime / reflection infrastructure rather than
-        ///     application (GameHelper or plugin) code. Used by <see cref="DescribeCaller"/> to
-        ///     walk past reflection trampolines.
-        /// </summary>
-        /// <param name="assemblyName">the assembly's simple name.</param>
-        /// <returns>true if it is a framework/runtime assembly.</returns>
-        private static bool IsInfrastructureAssembly(string assemblyName)
-        {
-            return assemblyName.StartsWith("System", StringComparison.Ordinal) ||
-                   assemblyName == "mscorlib" ||
-                   assemblyName == "netstandard" ||
-                   assemblyName == "?";
         }
 
         /// <summary>

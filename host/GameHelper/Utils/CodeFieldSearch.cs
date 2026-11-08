@@ -26,15 +26,6 @@ namespace GameHelper.Utils
     {
         private const string OperandMark = "^";
         private const string AnyByte = "??";
-        private const int PeHeaderPointer = 0x3C;
-        private const int SectionCountAt = 6;
-        private const int OptionalSizeAt = 20;
-        private const int OptionalAt = 24;
-        private const int SectionSize = 40;
-        private const int SectionVirtualSizeAt = 8;
-        private const int SectionRawSizeAt = 16;
-        private const int SectionRawAt = 20;
-        private const string CodeSection = ".text";
 
         /// <summary>Signatures that must agree: a single hit can be another function's lookalike.</summary>
         private const int MinAgreeing = 2;
@@ -109,27 +100,11 @@ namespace GameHelper.Utils
         /// <summary>The code section of a PE file, as raw offset and length; empty when the file is not one.</summary>
         public static (int Start, int Length) CodeOf(ReadOnlySpan<byte> file)
         {
-            if (file.Length < PeHeaderPointer + sizeof(int))
+            foreach (var section in CodeReader.PeImage.SectionsOf(file))
             {
-                return default;
-            }
-
-            var header = BitConverter.ToInt32(file[PeHeaderPointer..]);
-            if (header < 0 || header + OptionalAt > file.Length)
-            {
-                return default;
-            }
-
-            var sections = header + OptionalAt + BitConverter.ToUInt16(file[(header + OptionalSizeAt)..]);
-            int count = BitConverter.ToUInt16(file[(header + SectionCountAt)..]);
-            for (var index = 0; index < count && sections + ((index + 1) * SectionSize) <= file.Length; index++)
-            {
-                var section = file.Slice(sections + (index * SectionSize), SectionSize);
-                if (section[..CodeSection.Length].SequenceEqual(CodeSection.Select(letter => (byte)letter).ToArray()))
+                if (section.Name == CodeReader.PeImage.CodeName)
                 {
-                    var start = BitConverter.ToInt32(section[SectionRawAt..]);
-                    var length = Math.Min(BitConverter.ToInt32(section[SectionVirtualSizeAt..]), BitConverter.ToInt32(section[SectionRawSizeAt..]));
-                    return start >= 0 && length > 0 && start + length <= file.Length ? (start, length) : default;
+                    return section.Size > 0 && section.RawStart + section.Size <= file.Length ? ((int)section.RawStart, (int)section.Size) : default;
                 }
             }
 

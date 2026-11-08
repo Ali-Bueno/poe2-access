@@ -55,54 +55,6 @@
         private const int StationFromListener = 0x98;    // station = *(node) - 0x98
         private const int StationDeviceBackPtr = 0x10;   // station + 0x10 : back-ptr to device entity
         private const int StationSocketCount = 0x38;     // station + 0x38 : int socket/hole count
-
-        /// <summary>
-        ///     Attempts to read the authoritative socket/hole count from the RuneStation object
-        ///     that listens on this StateMachine. Walks the listener vector at SM + 0x20, resolves
-        ///     each listener back to its station (station = *(node) - 0x98), and verifies the
-        ///     station's device back-pointer (station + 0x10) matches this component's owner entity
-        ///     before reading the count at station + 0x38. Works out of the network bubble since the
-        ///     station persists. Callers should fall back to the "sockets" state if this returns false.
-        /// </summary>
-        /// <param name="count">The resolved socket/hole count, when found.</param>
-        /// <returns>True if a matching RuneStation was resolved; otherwise false.</returns>
-        public bool TryGetRuneStationSocketCount(out int count)
-        {
-            count = 0;
-            if (this.Address == IntPtr.Zero || this.OwnerEntityAddress == IntPtr.Zero)
-            {
-                return false;
-            }
-
-            var reader = Core.Process.Handle;
-            var listeners = reader.ReadMemory<StdVector>(this.Address + ListenerVectorOffset);
-            var nodes = reader.ReadStdVector<long>(listeners);
-            foreach (var nodeValue in nodes)
-            {
-                if (nodeValue == 0)
-                {
-                    continue;
-                }
-
-                var sub = reader.ReadMemory<IntPtr>(new IntPtr(nodeValue));
-                if (sub == IntPtr.Zero)
-                {
-                    continue;
-                }
-
-                var station = sub - StationFromListener;
-                var deviceBackPtr = reader.ReadMemory<IntPtr>(station + StationDeviceBackPtr);
-                if (deviceBackPtr != this.OwnerEntityAddress)
-                {
-                    continue;
-                }
-
-                count = reader.ReadMemory<int>(station + StationSocketCount);
-                return true;
-            }
-
-            return false;
-        }
     }
 
     public class StateMachineState(string name, long value)

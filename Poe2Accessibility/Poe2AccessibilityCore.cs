@@ -219,10 +219,6 @@ namespace Poe2Accessibility
         private UiSemantics? semantics;
 
         /// <inheritdoc />
-        public override string GetDescription() =>
-            "Screen-reader accessibility for blind players: speaks game state and UI through PRISM.";
-
-        /// <inheritdoc />
         public override void OnEnable(bool isGameOpened)
         {
             try

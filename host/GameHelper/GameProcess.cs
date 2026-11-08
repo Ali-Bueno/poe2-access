@@ -13,7 +13,6 @@ namespace GameHelper
     using GameOffsets;
     using System.Drawing;
     using Utils;
-    using L = GameHelper.Localization.OverlayLocalization;
 
     /// <summary>
     ///     Allows process manipulation. It uses the (time/event based) co-routines

@@ -8,7 +8,6 @@ namespace GameHelper.RemoteObjects
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using Ui;
     using Utils;
 
     /// <summary>
@@ -100,7 +99,6 @@ namespace GameHelper.RemoteObjects
                         }
                         else
                         {
-                            using var _ = PerformanceProfiler.Profile(GetType().FullName ?? string.Empty, "UpdateData");
                             this.UpdateData(hasAddressChanged);
                         }
                     }

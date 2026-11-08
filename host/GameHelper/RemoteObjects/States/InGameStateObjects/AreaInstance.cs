@@ -136,11 +136,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         public int NetworkBubbleEntityCount { get; private set; }
 
         /// <summary>
-        ///     Gets the total number of useless entities in the gamehelper cache that are in the network bubble.
-        /// </summary>
-        public int UselessAwakeEntities => this.uselesssEntities;
-
-        /// <summary>
         ///     Gets the terrain metadata data of the current Area/Zone instance.
         /// </summary>
         public TerrainStruct TerrainMetadata { get; private set; }
@@ -376,7 +371,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
                     }
                 }
 
-                entity?.UpdateNearby(this.Player);
                 return true;
             });
         }

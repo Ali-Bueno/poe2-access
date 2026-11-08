@@ -33,7 +33,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         private readonly ConcurrentDictionary<string, IntPtr> componentAddresses;
         private readonly ConcurrentDictionary<string, ComponentBase> componentCache;
 
-        private NearbyZones zone;
         private int customGroup;
         private EntitySubtypes oldSubtypeWithoutPOI;
         private int dormantCheckSkip;
@@ -59,7 +58,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         {
             this.componentAddresses = new();
             this.componentCache = new();
-            this.zone = NearbyZones.None;
             this.Path = string.Empty;
             this.Id = 0;
             this.IsValid = false;
@@ -90,12 +88,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         public uint Id { get; private set; }
 
         /// <summary>
-        ///     Gets a value indicating whether the entity is near the player or not.
-        ///     Useless and Invalid entities are not considered nearby.
-        /// </summary>
-        public NearbyZones Zones => this.IsValid ? this.zone : NearbyZones.None;
-
-        /// <summary>
         ///     Gets or Sets a value indicating whether the entity
         ///     exists in the game or not.
         /// </summary>
@@ -110,12 +102,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         ///     Get a value indicating the sub-type of the entity.
         /// </summary>
         public EntitySubtypes EntitySubtype { get; protected set; }
-
-        /// <summary>
-        ///     Gets the custom group given to a <see cref="EntityTypes.Monster"/> entity type by the user.
-        /// </summary>
-        public int EntityCustomGroup => this.EntitySubtype == EntitySubtypes.POIMonster ||
-            this.EntityType == EntityTypes.OtherImportantObjects ? this.customGroup : 0;
 
         /// <summary>
         ///     Get a value indicating the state the entity is in. This can change on every frame.
@@ -233,11 +219,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
             return toCheck == subType;
         }
 
-        internal IEnumerable<string> GetComponentNames()
-        {
-            return this.componentAddresses.Keys;
-        }
-
         /// <summary>
         ///     Gets the entity's component name -> component memory address pairs. Used by the
         ///     OffsetHelper to bind component offset structs to live addresses for verification.
@@ -246,26 +227,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         internal IEnumerable<KeyValuePair<string, IntPtr>> GetComponentAddressPairs()
         {
             return this.componentAddresses;
-        }
-
-        internal void UpdateNearby(Entity player)
-        {
-            if (this.EntityState != EntityStates.Useless)
-            {
-                var distance = this.DistanceFrom(player);
-                if (distance < Core.GHSettings.InnerCircle.Meaning)
-                {
-                    this.zone = NearbyZones.InnerCircle | NearbyZones.OuterCircle;
-                    return;
-                }
-                else if (distance < Core.GHSettings.OuterCircle.Meaning)
-                {
-                    this.zone = NearbyZones.OuterCircle;
-                    return;
-                }
-            }
-
-            this.zone = NearbyZones.None;
         }
 
         /// <summary>
@@ -346,7 +307,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
             // Address set to Zero means this slot no longer points at an entity (e.g. nothing
             // hovered, or player left the area). Reset the observable identity back to the empty
             // state so stale Path/Id/IsValid from the previous entity aren't reported as current.
-            this.zone = NearbyZones.None;
             this.Path = string.Empty;
             this.Id = 0;
             this.IsValid = false;

@@ -47,12 +47,6 @@ namespace GameHelper.CoroutineEvents
         internal static readonly Event OnOpened = new();
 
         /// <summary>
-        ///     Gets the Game Helper closing event. The event is called whenever
-        ///     all the settings have to be saved.
-        /// </summary>
-        internal static readonly Event TimeToSaveAllSettings = new();
-
-        /// <summary>
         ///     Gets the Game Helper event that is executed very close to rendering of frame
         ///     so the data read in this event is as fresh as possible.
         /// </summary>

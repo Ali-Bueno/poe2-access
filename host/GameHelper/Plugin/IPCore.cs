@@ -19,22 +19,6 @@ namespace GameHelper.Plugin
         public void SetPluginDllLocation(string dllLocation);
 
         /// <summary>
-        ///     Gets the localized one-line plugin description shown in plugin management.
-        /// </summary>
-        public string GetDescription();
-
-        /// <summary>
-        ///     Gets assembly names of plugins that cannot be active at the same time as this plugin.
-        /// </summary>
-        public IReadOnlyCollection<string> ConflictsWith { get; }
-
-        /// <summary>
-        ///     Gets startup precedence when multiple conflicting plugins are persisted as enabled.
-        ///     Higher values win; equal values are resolved by assembly name.
-        /// </summary>
-        public int ConflictPriority { get; }
-
-        /// <summary>
         ///     Called when the plugin is enabled by the user or when GameOverlay
         ///     starts and plugin is already enabled.
         /// </summary>

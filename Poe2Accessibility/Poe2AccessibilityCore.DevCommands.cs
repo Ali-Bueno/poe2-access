@@ -714,15 +714,6 @@ namespace Poe2Accessibility
                 return;
             }
 
-            // The host captures a full stack trace for every failed read while this toggle is on, and the
-            // root scan issues thousands of reads that are expected to fail.
-            if (Core.GHSettings.ShowMemoryDiagnostics)
-            {
-                this.log?.Warn("UI dump refused: disable 'Show memory diagnostics' in GameHelper settings first.");
-                this.output.Speak(Announcements.UiDumpBlockedByDiagnostics, true);
-                return;
-            }
-
             this.output.Speak(Announcements.UiDumpStarted, true);
             try
             {

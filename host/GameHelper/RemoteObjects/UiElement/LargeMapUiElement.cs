@@ -28,10 +28,5 @@ namespace GameHelper.RemoteObjects.UiElement
         /// <inheritdoc />
         public override Vector2 Size => new(Core.Process.WindowArea.Width - (Core.GameCull.Value * 2), Core.Process.WindowArea.Height);
 
-        /// <summary>
-        ///     Gets the center of the map.
-        /// </summary>
-        public Vector2 Center => base.Position;
-
     }
 }

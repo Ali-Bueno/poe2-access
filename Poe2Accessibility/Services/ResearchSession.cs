@@ -121,7 +121,7 @@ namespace Poe2Accessibility.Services
 
             this.settleTimer = null;
             var key = (state, this.pendingPanel);
-            if (stateObject == IntPtr.Zero || !this.dumped.Add(key) || Core.GHSettings.ShowMemoryDiagnostics)
+            if (stateObject == IntPtr.Zero || !this.dumped.Add(key))
             {
                 return;
             }

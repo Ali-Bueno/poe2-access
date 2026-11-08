@@ -22,8 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Data\WorldAreaNames.tsv" />
-    <EmbeddedResource Include="Data\WorldAreaTags.json" />
     <EmbeddedResource Include="Data\MonsterCategories.tsv" />
   </ItemGroup>
 
