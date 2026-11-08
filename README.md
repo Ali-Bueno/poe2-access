@@ -14,8 +14,9 @@ versions and their changes: [Releases](https://github.com/Ali-Bueno/poe2-access/
 ## Warning
 
 This is a test version and it can fail. It is not made or approved by Grinding Gear Games. It reads the game's
-memory, read-only, through its own small background program (built on [GameHelper2](https://github.com/Gordin/GameHelper2)'s
-memory-reading code): it never writes to the game, injects code or touches network traffic. Use it at your own risk.
+memory, read-only, from its own single program, `Poe2Access.exe` (its memory reading is built on
+[GameHelper2](https://github.com/Gordin/GameHelper2)'s code): it never writes to the game, injects code or touches
+network traffic. Use it at your own risk.
 
 ## Requirements
 
@@ -35,7 +36,8 @@ Nothing else needs installing: everything is inside the folder.
    Korean client lets only an administrator read it. With both clients installed, it starts the Steam one; to play the
    Korean one, start it first.
 3. Run `Poe2Access.exe`. It starts the game if it is not running, then the mod. The first time, and after each game
-   update, it prepares the sounds and data from your own installation: about half a minute of silence. A new
+   update, it prepares the sounds and data from your own installation, and says so ("Updating the game data after
+   the patch", then "Game data ready"): about a minute the first time, less after a game update. A new
    version of the mod keeps them (it redoes only what it changed, in seconds) when it updates itself or is unzipped over
    the old folder; a new, empty folder prepares them again.
 4. You hear that the mod is ready, then that the game was detected.
@@ -63,10 +65,17 @@ of the game's languages). The full instructions are in `README.txt`, inside the 
   rewards, NPC dialogue, chat and the mod's own settings.
 - **Finding your way:** a radar for walls, open floor and exits; a scanner for the quest, exits, places, waypoints,
   characters, enemies, items and chests; and a guide ping that leads you along a free path and tells you the turns.
-- **Combat:** positional sounds for enemies, warnings when a rare monster or a boss starts an attack, the boss's
-  life and weak point, life, mana, flasks and status effects, skills ready again after their cooldown, and a sound
-  for enemy states that skills pay off on (primed for stun, heavy stunned, frozen, electrocuted, pinned, armour
-  broken, dazed, parried, culling strike).
+- **Combat:** positional sounds for enemies; a warning when a rare monster or a boss attacks you, timed by the
+  attack's own animation and only when it is aimed at you, within reach and on screen; the boss's life and weak
+  point; life, mana, flasks and status effects; skills ready again after their cooldown; your class's resources
+  (charges, Heat and the like); and a sound for enemy states that skills pay off on (primed for stun, heavy stunned,
+  frozen, electrocuted, pinned, armour broken, dazed, parried, culling strike).
+- **Boss fights:** what a boss is doing that you cannot see: when it vanishes and comes back, turns invulnerable,
+  changes phase or enrages, and the way out of its danger areas as it winds up ("Out!", "To the centre!",
+  "Behind it!", "Move!", or a stick direction). The bosses and their mechanics come from the game's own files, so new
+  bosses are covered without a mod update.
+- **Game updates:** after a game patch the mod finds its way into the game's memory again by itself and rebuilds its
+  data from your installation; anything it cannot find is said once, with what stops working.
 - **Item sounds:** the game's own sounds by default, or the Diablo IV set of the Diablo II Resurrected mod (the
   Sound menu's "Item sound set").
 - **Local co-op:** two controllers on one PC, with speech for either player or both.
