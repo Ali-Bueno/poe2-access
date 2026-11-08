@@ -204,7 +204,7 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                if (key != null && CurrencyIcons.FromTextureKey(key) is { } unit)
+                if (key != null && (CurrencyIcons.FromTextureKey(key) ?? InlineIcons.PriceUnit(key)) is { } unit)
                 {
                     currency = unit; // a price: the coin icon, then the amount
                     continue;

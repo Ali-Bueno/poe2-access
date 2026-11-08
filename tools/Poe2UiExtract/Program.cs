@@ -267,6 +267,12 @@ if (args.Length > 1 && string.Equals(args[0], "experience", StringComparison.Ord
     return ExperienceExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\experience.json");
 }
 
+// Args: inline-icons <gameDir> [outFile]  -- the markup images a text shows as pictures (<<village_gold>>), token TAB art.
+if (args.Length > 1 && string.Equals(args[0], "inline-icons", StringComparison.OrdinalIgnoreCase))
+{
+    return InlineIconExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\inline-icons.txt");
+}
+
 // Args: item-names <gameDir> [outFile]  -- currency item names per language, for inline item art in legends.
 if (args.Length > 1 && string.Equals(args[0], "item-names", StringComparison.OrdinalIgnoreCase))
 {

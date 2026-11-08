@@ -117,6 +117,9 @@
     <Compile Include="..\..\Poe2Accessibility\Services\PluginLog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\LandmarkTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ControllerGlyphs.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\InlineIcons.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\ArtCaptions.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Panels.cs" Link="Plugin\Announcements.Panels.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ItemNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PlaceMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PlaceTracker.cs" />

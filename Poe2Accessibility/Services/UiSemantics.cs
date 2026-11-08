@@ -278,6 +278,13 @@ namespace Poe2Accessibility.Services
                 tooltip.RemoveAt(0);
             }
 
+            if (label.Length == 0 && this.InGame)
+            {
+                // Nothing names it and it has no tooltip: an icon-only control showing an item (a picker once a currency is
+                // chosen) is that item (docs/research/ui-unseen-panels.md).
+                label = this.ArtCaption(info);
+            }
+
             if (this.InGame && role == UiRole.Panel && tooltip.Count > 0 && BareNumber.IsMatch(label))
             {
                 // A sheet widget whose caption the game hides in a 5:4 window shows only its number ("513"): its hidden

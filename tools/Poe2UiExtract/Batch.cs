@@ -24,6 +24,7 @@ internal static class Batch
         ["currency-art"] = (_, index, output) => CurrencyArtExtractor.Run(index, output),
         ["places"] = (_, index, output) => PlaceExtractor.Run(index, output),
         ["ui-catalog"] = (_, index, output) => UiScripts.BuildCatalog(index, output),
+        ["inline-icons"] = (_, index, output) => InlineIconExtractor.Run(index, output),
     };
 
     /// <param name="pairs">Command and output file, repeated.</param>
