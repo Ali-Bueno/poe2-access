@@ -4,7 +4,7 @@ Offline only: GameHelper2 source, ClientStrings (en/es), `ui-catalog.json`, repo
 controller bindings, so every button claim below is OPEN). Confidence: **MEASURED** = read from a file in this repo or
 a prior live dump; **INFERRED** = consistent with the sources; **OPEN** = unknown until the screen is open.
 `G` = GameUi (`S+0x318`). GameHelper paths are child-index paths from `G`
-(`ImportantUiElements.cs` = `external/GameHelper2/GameHelper/RemoteObjects/States/InGameStateObjects/ImportantUiElements.cs`).
+(`ImportantUiElements.cs` = `host/GameReader/RemoteObjects/States/InGameStateObjects/ImportantUiElements.cs`).
 
 ## 0. Cross-cutting
 - MEASURED: the UI catalog has NO layout for any of these screens: its 126 `.ui` sources are mostly tutorial panels;
