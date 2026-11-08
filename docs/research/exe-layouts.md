@@ -189,7 +189,7 @@ the way it stops a signature.
 | `field` | the same | the k-th distinct field of the dump's `this` in a linear sweep; a virtual slot that is `lea rax,[rcx+X]; ret` in every vtable holding the dump adds X |
 | `called` | the same | in the n-th function called after the label, the value it returns or the k-th field of argument i |
 | `geal` | a GEAL row, then the node vtable's slot 2, then the evaluator (through a thunk) | the k-th field read through `GetComponent<T>`'s result |
-| `world` | the same, after `GEAL::GetGameWorld()` (the one function loading that string) | an AreaInstance field |
+| `world` | the same, after `GEAL::GetGameWorld()` (the one function loading that string) | an AreaInstance field; with `deref D`, the first pointer loaded from the world followed D levels down and the lowest field read there |
 | `callee` | the same | the lowest `[rcx+D]` read by the callee that follows `GetComponent<T>` |
 | `getter` | `GetComponent<T>`: the 0xA0-byte or smaller function loading T's name that has the most callers | details, lookup, map, components |
 | `object` | a GEAL row, as `geal` | the k-th field read through the game object the argument helper returns: the function loading `Requires a Game Object (or an Animated Object attached to one)` |
@@ -200,8 +200,9 @@ the way it stops a signature.
 | `stride` | a label's dump, or a GEAL evaluator | the first vector read after the site (a pointer load compared with the next pointer within 6 instructions), then the immediate the loop adds to its iterator right before comparing it with the end again |
 | `entry` | the same | the k-th distinct field that loop reads through the pointer each entry holds (one level down from the iterator) |
 | `leaf` | a GEAL row, after `GEAL::GetGameWorld()` and the world's virtual slot | the k-th distinct field (indexed reads included) the callee taking the slot's result reads through it; the sweep to that callee goes past jumps, because the evaluator short-circuits before it |
+| `scale` | a label's dump | the factor an index is scaled by (`shl r,n`, `lea r,[x+x*s]`, three-operand `imul`) before it meets a pointer the code loaded (`add r,[mem]`, or both in one address): a vector's element size when the code walks it by index |
 
-**Fields.** There are 64 rules for 50 fields, and all 64 read the 0.5.5f value:
+**Fields.** There were 64 rules for 50 fields, and all 64 read the 0.5.5f value (80 rules since [the gap fields](#the-gap-fields)):
 
 - **Life:** Health, Mana and ES, Current and Total. Health.Current also comes from GEAL `IsAlive`.
 - **Player:** Xp. Level, from the `Level: ` printed in the function that also prints `Experience: `. Name, through an address-of.
@@ -291,6 +292,40 @@ reads one of them. A second pattern, `GameCullSize (alt)` in `StaticOffsetsPatte
 static on the five builds (0x458B100, 0x458D210, 0x458D250, 0x45A4BC0, 0x45A4C00). Seven more candidate windows did the same and are
 not shipped.
 
+### The gap fields
+
+Added 2026-11-08 for the fields of the audit left with no protection or one (`field-protection-audit.md`, section 2: C26, C28,
+C34b, C39b, C40, D2, D3, T2). Two forms are new: `world … deref` and `scale` (table above; the decoder now tells `shl` and `imul`
+apart, checked against capstone by the fixture). Each rule hits on all five builds and reads one value; the area row's pointer they
+go through moved in 0.5.5f (`world GetAreaId 0` reads 0x98 on the three older builds, 0xA0 after) and the rules follow it.
+
+| Field (audit) | Rule | What it anchors on | Five builds |
+|---|---|---|---|
+| `WorldAreaDatOffsets.IdPtr` (D3) | `world GetAreaId deref 1` | `mov rdx,[world+0xA0]; mov rdx,[rdx]`, then a `wcslen` loop: the area's WorldAreas row and its Id | 0x0 |
+| `WorldAreaDatOffsets.NamePtr` (D2) | `world GetAreaName deref 1` | the same row, `mov rdx,[rdx+8]` | 0x8 |
+| `WorldAreaDatOffsets.IsTown` (D2) | `world IfTownArea deref 1`, `world IfTownOrHideoutArea deref 1` | `cmp byte [row+0x14],0` (the second also tests +0x12A, the hideout flag the mod does not read) | 0x14 |
+| `layout:MinimapIconComponentRow` (C40) | `geal SetMinimapIcon MinimapIcon 0` | after `GetComponent<MinimapIcon>` the evaluator stores the new row at +0x20 | 0x20 |
+| `TerrainStruct.TileDetailsPtr` (T2) | `leaf IsInSector 2`, `leaf IfInSector 2` | the terrain leaf: `imul eax,[t+0x18],0x17` and `[t+0x20]` bound the tile, then `imul rbp,rcx,0x38; add rbp,[t+0x28]` | 0x28 |
+| `layout:IsTargeted` (C28) | `geal DisableHighlighting Targetable 0` | `mov byte [Targetable+0x6B],0`, then `+0x6A` (the byte `EnableHighlighting` sets) | 0x6B |
+| `layout:ModRowOffset` (C26) | `label "Implicit Mods: " 1`, `label "Explicit Mods: " 1` | the ObjectMagicProperties dump: `mov rax,[this+0x150]; mov rdx,[rax+0x28]; mov rdx,[rdx]`, the first entry's Mods row and its Id | 0x28 |
+| `layout:ModEntrySize` (C26) | `scale label "Implicit Mods: "`, `scale label "Explicit Mods: "` | the rest of the entries: `shl rdx,6; mov rdx,[rdx+rcx+0x28]` | 0x40 |
+| `layout:StateListOffset` (C34b) | `label "StateMachine state " 2` | `mov rdx,[sm+0x158]; mov ecx,[index]; …; add rax,[rdx+0x10]` | 0x10 |
+| `layout:StateStride` (C34b) | `scale label "StateMachine state "` | `lea rax,[rcx+rcx*2]; shl rax,6` | 0xC0 |
+| `AnimatedOffsets.AnimatedObjectPtr` (C39b) | `field "Animated Object: " 0`, `geal IfHasAnimation Animated 0` | the Animated dump prints `[[this+0x350]+8]+8`, the `.ao` path; the GEAL function reads +0x350 right after the getter | 0x350 |
+
+`code-fields.txt` gained `Animated.Object` (three signatures, after `GetComponent<Animated>` in `IfHasAnimation`, `SwitchAOTypeName`
+and the animated-object helper the mesh and effect-pack functions share: each hits once and reads 0x350 on the five builds, no
+operand byte fixed), and its two `ModArrayStruct` lines now place `layout:ModRowOffset` and `layout:ModEntrySize` instead of only
+telling. With them, 80 of 80 rules read their value on the two 0.5.5f builds and 74 of 80 on the three older ones (the six area
+fields that moved in 0.5.5f, as before).
+
+Swept and not found: a scratch run of 191,188 candidate rules (every form above over every dump label ending in `: `, every GEAL
+function of both tables and 48 components) kept only rules whose value was a field the audit wanted on all five builds. Nothing
+anchored on their own component came out for Shrine (its getter has one caller, which reads none of it), TriggerableBlockage
+(`Block: ` is a DelveNode dump), Charges, Stack, Base, Mods.Rarity, the chest data, the actor's cooldowns or Stats 0x1C8; the
+Characters and GrantedEffects Ids (`IsMalePlayer`, `GetAscendancyName` read other columns); the UI flag bits; or the in-game
+state's world data and hover chain (`this "league" … with "class"` reads only the area at k 0).
+
 No name reaches these:
 
 - Render: it has no dump and no GEAL getter call; its position has the two signatures above.
@@ -340,7 +375,7 @@ An encoding it does not know decodes to nothing, so a rule never guesses. This c
 
 - `CodeFieldCatalog.Settle` keeps one value per target. A target that the signatures and the rules read differently stays where it is and is logged.
 - The value then goes through `PlaceFromCode` or `LayoutFields` as before. A live segment wins, and a value more than 0x400 from the catalog is not believed.
-- The log line reads `Semantic fields: 64 of 64 read in … ms; moved: none`. On the warm 0.5.5f exe, the index takes 0.32 s (every E8 call and RIP `lea`, 154,738 fragments) and the rules take 0.15 s.
+- The log line reads `Semantic fields: 80 of 80 read in … ms; moved: none` (64 before the gap fields). On the warm 0.5.5f exe, the index takes 0.32 s (every E8 call and RIP `lea`, 154,738 fragments) and the rules take 0.15 s.
 - `dotnet run --project tests/Poe2Accessibility.Tests -- semantic <exe> <catalog>` prints each rule's candidates for any build.
 
 **Limits.**
@@ -348,7 +383,7 @@ An encoding it does not know decodes to nothing, so a rule never guesses. This c
 - Rerun on the five builds of the table above (archived under `D:\code\decompilers\projects\poe2-research\builds\<build>`,
   2026-11-08): every rule read the true value of each build. On the three builds before 0.5.5f the area level read 0xBC and
   the hash 0x114, the old layout upstream's constants had, so it reads the very move that silenced the mod; 0.5.5f and its
-  hotfix read 0xC4 and 0x11C. With the world, entry and dodge fields of 2026-11-08, 58 of 64 "right" against the current constants
+  hotfix read 0xC4 and 0x11C. With the world, entry and dodge fields of 2026-11-08, 58 of 64 (74 of 80 with the gap fields) "right" against the current constants
   on the old builds means exactly the six that moved in 0.5.5f (level, hash, terrain, entities, local player).
   Still one compiler setup over two months: a major version is untested.
 - `label` relies on the dump printing in order, and `field`'s sweep ignores control flow.
