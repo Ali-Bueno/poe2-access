@@ -341,6 +341,12 @@ namespace Poe2Accessibility.Services
             this.Part("local player", found.LocalPlayer, measured.LocalPlayer, now.LocalPlayer);
             this.Part("entity lists", found.Entities, measured.Entities, now.Entities);
             this.Part("terrain", found.Terrain, measured.Terrain, now.Terrain);
+            if (found.Terrain >= 0)
+            {
+                var (shape, was) = (layout.TerrainShape, AreaInstanceLayout.MeasuredTerrainShape);
+                this.Part("terrain tiles", shape.Record, was.Record, shape.Record);
+                this.Part("terrain cells", shape.CellsPerTile, was.CellsPerTile, shape.CellsPerTile);
+            }
 
             // A level found once stays where it is: an area that misses the shape alone says nothing about the build.
             this.levelSeen |= found.Level >= 0;

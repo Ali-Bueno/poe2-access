@@ -74,8 +74,15 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         private const int MaxEntities = 500000;
         private const int EntityBytes = 0x100;
 
-        // Bytes of the terrain tile record; the terrain's own fields have never moved, only the terrain itself.
         private const int MaxTiles = 10000;
+
+        // The tile record and the cells a tile spans are read from the terrain's own sizes (0.5.5f: 0x38 bytes, 23 cells);
+        // these only bound them. The walkable grid keeps two cells to a byte (RoutePlanner.IsWalkable).
+        private const int MinTileRecord = 0x10;
+        private const int MaxTileRecord = 0x200;
+        private const int MinCellsPerTile = 4;
+        private const int MaxCellsPerTile = 128;
+        private const int CellsPerByte = 2;
 
         private const int MaxLocalPlayers = 4;
         private const int MaxAreaLevel = 100;
@@ -91,7 +98,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         // A real hash is random: a value this small is the top half of a pointer.
         private const uint MinHash = 0x10000;
 
-        private static readonly int TileRecord = Marshal.SizeOf<TileStructure>();
         private static readonly int TotalTiles = Marshal.OffsetOf<TerrainStruct>(nameof(TerrainStruct.TotalTiles)).ToInt32();
         private static readonly int TileDetails = Marshal.OffsetOf<TerrainStruct>(nameof(TerrainStruct.TileDetailsPtr)).ToInt32();
         private static readonly int Walkable = Marshal.OffsetOf<TerrainStruct>(nameof(TerrainStruct.GridWalkableData)).ToInt32();
@@ -108,6 +114,9 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         {
             this.memory = memory;
         }
+
+        /// <summary>Gets the tile record's size and the cells a tile spans, as the last terrain found holds them; zero before.</summary>
+        public (int Record, int CellsPerTile) TerrainShape { get; private set; }
 
         /// <summary>The fields found in <paramref name="block"/>, the start of an area instance, nearest to <paramref name="near"/>.</summary>
         public AreaFields Find(byte[] block, AreaFields near)
@@ -342,8 +351,23 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
             var tileBytes = Int64At(block, details + PointerStep) - Int64At(block, details);
             var walkableBytes = Int64At(block, walkable + PointerStep) - Int64At(block, walkable);
             var bytesPerRow = BitConverter.ToInt32(block, row);
-            return tileBytes == tilesX * tilesY * TileRecord && bytesPerRow > 0 &&
-                   walkableBytes == bytesPerRow * tilesY * TileStructure.TileToGridConversion;
+            if (tileBytes % (tilesX * tilesY) != 0 || bytesPerRow <= 0 || walkableBytes % (bytesPerRow * tilesY) != 0)
+            {
+                return false;
+            }
+
+            // Each tile a record of the same size; each row of tiles as many grid rows as a tile spans cells, a row two cells to a byte.
+            var record = tileBytes / (tilesX * tilesY);
+            var cells = walkableBytes / (bytesPerRow * tilesY);
+            if (record % PointerStep != 0 || record is < MinTileRecord or > MaxTileRecord || cells is < MinCellsPerTile or > MaxCellsPerTile ||
+                bytesPerRow != ((tilesX * cells) + CellsPerByte - 1) / CellsPerByte)
+            {
+                return false;
+            }
+
+            this.TerrainShape = ((int)record, (int)cells);
+            return true;
+
         }
     }
 }

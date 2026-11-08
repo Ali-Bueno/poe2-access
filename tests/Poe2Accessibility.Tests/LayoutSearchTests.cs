@@ -31,6 +31,7 @@ namespace Poe2Accessibility.Tests
             (nameof(FieldsWhereMeasuredStayThere), FieldsWhereMeasuredStayThere),
             (nameof(FieldsAreFollowedHoweverFarTheyMoved), FieldsAreFollowedHoweverFarTheyMoved),
             (nameof(AnEmptyAreaHasNoWorld), AnEmptyAreaHasNoWorld),
+            (nameof(TheTerrainSaysItsTileSizeAndCells), TheTerrainSaysItsTileSizeAndCells),
             (nameof(TheLevelSurvivesFlagsAndFullVectors), TheLevelSurvivesFlagsAndFullVectors),
             (nameof(TheLevelIsOneByteBesideItsFlag), TheLevelIsOneByteBesideItsFlag),
             (nameof(TheTopHalfOfAPointerIsNoHash), TheTopHalfOfAPointerIsNoHash),
@@ -103,6 +104,27 @@ namespace Poe2Accessibility.Tests
                 Terrain = measured.Terrain + 0x28,
             };
             Equal(patch, new AreaLayoutSearch(World()).Find(Area(patch), measured), "fields moved apart");
+        }
+
+        private static void TheTerrainSaysItsTileSizeAndCells()
+        {
+            var fields = AreaFields.Measured;
+            var search = new AreaLayoutSearch(World());
+            Equal(fields, search.Find(Area(fields), fields), "a terrain as measured");
+            Equal((0x38, 23), search.TerrainShape, "0.5.5f's tile record and cells per tile");
+
+            // A patch that grows the record to 0x40 and the tile to 25 cells (a row of 10 tiles: 125 bytes, two cells to a byte).
+            var block = Area(fields);
+            Put(block, fields.Terrain + 0x28, Tiles, Tiles + (TilesX * TilesY * 0x40), Tiles + (TilesX * TilesY * 0x40));
+            Put(block, fields.Terrain + 0xD0, Walkable, Walkable + (125 * TilesY * 25), Walkable + (125 * TilesY * 25));
+            BitConverter.TryWriteBytes(block.AsSpan(fields.Terrain + 0x130), 125);
+            Equal(fields.Terrain, search.Find(block, fields).Terrain, "a terrain of larger tiles");
+            Equal((0x40, 25), search.TerrainShape, "the sizes the terrain holds");
+
+            // Rows that do not hold the tiles' cells two to a byte are no walkable grid.
+            BitConverter.TryWriteBytes(block.AsSpan(fields.Terrain + 0x130), 126);
+            Put(block, fields.Terrain + 0xD0, Walkable, Walkable + (126 * TilesY * 25), Walkable + (126 * TilesY * 25));
+            Equal(-1, search.Find(block, fields).Terrain, "a row too long for its tiles");
         }
 
         private static void AnEmptyAreaHasNoWorld()

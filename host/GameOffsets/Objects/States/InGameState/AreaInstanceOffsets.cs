@@ -137,7 +137,10 @@ namespace GameOffsets.Objects.States.InGameState
         [FieldOffset(0x35)] public byte tileIdY;
         [FieldOffset(0x36)] public byte RotationSelector;
         
-        public static int TileToGridConversion = 0x17;
+        /// <summary>Cells a tile spans at 0.5.5f; the terrain search reads the real number into <see cref="TileToGridConversion"/>.</summary>
+        public const int MeasuredTileToGridConversion = 0x17;
+
+        public static int TileToGridConversion = MeasuredTileToGridConversion;
         public static float TileToWorldConversion = 250f;
     }
 

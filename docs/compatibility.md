@@ -24,7 +24,7 @@ host's searches (once a patch to GameHelper2, now in `host/`) read those fields 
 | Area: local player | an entity under `Metadata/Characters/` | `AreaLayoutSearch` |
 | Area: server data | a player list leading to inventories, before the player | `AreaLayoutSearch` |
 | Area: entity lists | two adjacent MSVC maps, sentinel flagged, root's value an entity | `AreaLayoutSearch` |
-| Area: terrain | tile vector = X × Y × 0x38 bytes, walkable = bytes per row × rows | `AreaLayoutSearch` |
+| Area: terrain | the tile vector holds X × Y records of one size (a multiple of 8, 0x38 in 0.5.5f) and the walkable grid Y rows of tiles, each as many grid rows as a tile spans cells (23), a row two cells to a byte for X tiles; both sizes come from the terrain, and the cells per tile go to every grid reader (`TileStructure.TileToGridConversion`) | `AreaLayoutSearch` |
 | Area: level, hash | level 1-100 in one byte (the next can hold a flag), then 8 bytes of flags and three vectors (any empty); a hash too large to be the top of a pointer, at the measured distance | `AreaLayoutSearch` |
 | Entity id (the valid flag follows it) | the list's key equals the id, on the root and its child | `AreaLayoutSearch.FindEntityId` |
 | Entity path and components (details pointer, path, component vector, lookup, name map) | the details lead to a wide string under `Metadata/`; the first and last component point back at the entity; the lookup's map names components (half its entries or more, one of `Positioned`, `Render`, `Life`…) with indexes inside the vector. Judged in the sweep on the player and four entities; searched whenever an area shows no world, since every area check asks an entity for its path. `ItemStruct` moves with `EntityOffsets` | `EntityLayoutSearch`, `OffsetHealer.JudgeEntityLayout` |
@@ -93,7 +93,10 @@ the host rebuilt with `--no-incremental` and restarted in the Act 2 town, then r
 | Entity layout | details +8, path +0x18, components +0x18, lookup -0x18, map +8, all at once | no world, so the area check searched: all five back where measured before the first area read; friends, portal and waypoint sounded |
 | Entity layout | details -8, path -8, components -8, lookup +8, map -0x18 | the same |
 | Game states | stack +8, list -0x18, and `InGameState` swapped with `PreGameState` in the enum (a state inserted) | stack +0x10 and list +0x50 found at attach, the in-game state taken from slot 4 (`slot 5 -> 4`); "En juego", the sweep and the sounds as usual |
-| UI element base | self, children, parent +8; position group, flags group, size +0x18 | tree back +8, rects and flags +0x18 (the size's shift) before the first walk; the inventory read its items; `layout` all ok |
+| Terrain | `TileStructure` size 0x40 and 24 cells per tile | terrain found as before, tiles `moved from +0x40 to +0x38`, cells `from +0x18 to +0x17`; the wall radar sounded |
+| Terrain | size 0x30 (fields packed) and 22 cells | the same, back to 0x38 and 23 |
+| UI element base | self, children, parent +8; position group, flags group, size +0x18 |
+ tree back +8, rects and flags +0x18 (the size's shift) before the first walk; the inventory read its items; `layout` all ok |
 | UI element base | self, children, parent -8; position group, flags group, size -0x18 | the same |
 | Game states | stack -8, list +8, `InGameState` swapped with `EscapeState` | the same (`slot 3 -> 4`). The loading state needs two area changes (left town is not allowed in these tests): unit test only |
 

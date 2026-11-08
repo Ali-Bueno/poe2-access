@@ -32,6 +32,12 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         /// <summary>Gets a value indicating whether the current area's world fields were all found.</summary>
         public bool HasWorld { get; private set; }
 
+        /// <summary>The tile record's size and the cells a tile spans this host was written for.</summary>
+        public static (int Record, int CellsPerTile) MeasuredTerrainShape { get; } = (Marshal.SizeOf<TileStructure>(), TileStructure.MeasuredTileToGridConversion);
+
+        /// <summary>Gets the tile record's size and the cells a tile spans as the terrain holds them; zero until a terrain was found.</summary>
+        public (int Record, int CellsPerTile) TerrainShape { get; private set; }
+
         /// <summary>The area instance at <paramref name="address"/>; <paramref name="moved"/> says the fields changed.</summary>
         internal AreaInstanceOffsets Read(SafeMemoryHandle reader, IntPtr address, out bool moved)
         {
@@ -99,6 +105,13 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
             if (found.Entities >= 0)
             {
                 OffsetHealer.FollowEntityId(search.FindEntityId(block, found.Entities, OffsetHealer.MeasuredEntityId));
+            }
+
+            if (found.Terrain >= 0)
+            {
+                // Every grid reader converts tiles to cells through this: it follows what the terrain holds.
+                this.TerrainShape = search.TerrainShape;
+                TileStructure.TileToGridConversion = search.TerrainShape.CellsPerTile;
             }
 
             var moved = fields != this.Fields;
