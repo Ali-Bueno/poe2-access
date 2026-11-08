@@ -149,6 +149,18 @@ OPEN: `+0x648` values and `T+0x1A8` entry layout with several or weapon-set allo
   current rule's 108: kept as fitted. Misses: a linked node chosen over a nearer one straight ahead (down from
   armour_and_evasion2 lands on attack_speed2_, not attack_speed1), and pushes that do not move although a node lies
   ~800 px (21 node sizes) within the cone, while one 959 px at 15 degrees was reached.
+- READ FROM THE GAME'S CODE (2026-11-08, static disassembly of the exe, report and tools in
+  D:\code\decompilers\projects\poe2-research\re\stick-rule.md, `validate.py -v`): the step is the function at RVA
+  0x9B9BA0 on the tree canvas (`canvas+0x1368` = current node record = the hovered node's `+0x2C8`), given the stick's own
+  direction (y flipped, not snapped to octants). (1) Linked nodes first: a link within 19.95 degrees (`dot >= 0.94`) is
+  taken; the code computes `(1.5 - 8.333 * (dot - 0.94)) * distance` but stores the dot instead, so likely the first such
+  link in the node's edge list wins; this stage is skipped when the node's row has a non-zero byte at `+0x66` (ascendancy?).
+  (2) Else the lowest `(5 - 4 * dot) * distance` among nodes with `dot > 0.70710677` (45 degrees). (3) In both, only nodes
+  whose centre is inside the game window, visible and selectable; no other distance limit (the pushes that did not move had
+  their nodes off the window's top or bottom; the cursor sits at the panel's centre). (4) None: no move. Applied to the 240
+  recorded pushes: 240/240 (the fitted model 208; without the on-screen test 229, without the linked stage 234). Holding
+  the stick past half deflection for 0.16 s pans the view and snaps on release to the on-screen node nearest the centre
+  (0xA194C0, 0xA19920, 0xA1A410). Open: confirm the edge order live (armour_and_evasion2's edge vectors `+0x38`, `+0x50`).
 
 ## Finder and what the pad does in the tree (0.5.5f, 2026-11-07, malgdhler)
 
