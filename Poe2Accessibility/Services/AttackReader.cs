@@ -51,7 +51,7 @@ namespace Poe2Accessibility.Services
         private readonly PluginLog log;
         private readonly Dictionary<IntPtr, (string? Path, IntPtr Controller)> animatedObjects = new();
         private readonly Dictionary<(IntPtr Data, int Clip), (string? Name, IReadOnlyList<ClipEvent> Events)> clips = new();
-        private readonly Dictionary<uint, (AnimationReading Reading, long At)> lastClock = new();
+        private readonly ClockBaseline clockPairs = new();
 
         public AttackReader(HostMemoryReader memory, UiElementReader elements, AttackData data, PluginLog log)
         {
@@ -86,7 +86,7 @@ namespace Poe2Accessibility.Services
         {
             this.animatedObjects.Clear();
             this.clips.Clear();
-            this.lastClock.Clear();
+            this.clockPairs.Clear();
         }
 
         /// <param name="id">The monster's entity id.</param>
@@ -106,12 +106,7 @@ namespace Poe2Accessibility.Services
                 path = ao.Path;
                 if (this.Clock.Trust != FieldTrust.Lost && this.Reading(ao.Controller) is var (reading, dataPtr))
                 {
-                    if (this.lastClock.TryGetValue(id, out var last))
-                    {
-                        this.Clock.Observe(AttackFieldCheck.ClockAdvances(last.Reading, reading, now - last.At));
-                    }
-
-                    this.lastClock[id] = (reading, now);
+                    this.Clock.Observe(this.clockPairs.Offer(id, reading, now));
                     clock = this.Clock.Trust == FieldTrust.Intact ? reading : null;
                     if (dataPtr != IntPtr.Zero && reading.Clip >= 0 && this.Events.Trust != FieldTrust.Lost)
                     {

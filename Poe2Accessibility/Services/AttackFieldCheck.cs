@@ -17,6 +17,40 @@ namespace Poe2Accessibility.Services
     }
 
     /// <summary>
+    ///     Pairs each monster's clock readings far enough apart to judge a rate: frame to frame the game's own animation updates
+    ///     (a monster's clip moved in steps the host's 60 frames do not match) and the millisecond clock's 15.6 ms ticks made
+    ///     most pairs run at twice or none of their rate, so the clock was judged lost in Clearfell (2026-11-08, imps and hags).
+    ///     Pure.
+    /// </summary>
+    public sealed class ClockBaseline
+    {
+        /// <summary>Readings at least this far apart (ms) are compared; a step of the game's updates is then a small share.</summary>
+        public const long BaselineMs = 200;
+
+        private readonly Dictionary<uint, (AnimationReading Reading, long At)> bases = new();
+
+        /// <summary>A monster's new reading: the verdict of the pair it closes (null: none closed, or it said nothing).</summary>
+        public bool? Offer(uint id, AnimationReading reading, long now)
+        {
+            if (!this.bases.TryGetValue(id, out var start) || reading.Clip < 0 || AttackClock.NewSwing(start.Reading, reading))
+            {
+                this.bases[id] = (reading, now);
+                return null;
+            }
+
+            if (now - start.At < BaselineMs)
+            {
+                return null;
+            }
+
+            this.bases[id] = (reading, now);
+            return AttackFieldCheck.ClockAdvances(start.Reading, reading, now - start.At);
+        }
+
+        public void Clear() => this.bases.Clear();
+    }
+
+    /// <summary>
     ///     The live checks of the fields behind the dodge warning (the animation controller, the clip's events, the current
     ///     action), each a rule the value must keep, so a patch that moves one is noticed and the warning falls back to the
     ///     old rules instead of reading garbage. Pure (docs/research/dodge-timing.md, "Protections").
