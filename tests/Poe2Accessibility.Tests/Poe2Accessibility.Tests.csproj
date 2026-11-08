@@ -131,6 +131,9 @@
     <Compile Include="..\..\host\GameHelper\RemoteObjects\States\InGameStateObjects\AreaLayoutSearch.cs" Link="Host\AreaLayoutSearch.cs" />
     <Compile Include="..\..\host\GameHelper\Utils\StructRemap.cs" Link="Host\StructRemap.cs" />
     <Compile Include="..\..\host\GameHelper\Utils\StructShapes.cs" Link="Host\StructShapes.cs" />
+    <Compile Include="..\..\host\GameHelper\Utils\EntityLayoutSearch.cs" Link="Host\EntityLayoutSearch.cs" />
+    <Compile Include="..\..\host\GameOffsets\Objects\States\InGameState\EntityOffsets.cs" Link="Host\EntityOffsets.cs" />
+    <Compile Include="..\..\host\GameOffsets\Objects\Components\ComponentHeader.cs" Link="Host\ComponentHeader.cs" />
     <Compile Include="..\..\host\GameHelper\Utils\AnimationFieldSearch.cs" Link="Host\AnimationFieldSearch.cs" />
     <Compile Include="..\..\host\GameHelper\Utils\CodeFieldSearch.cs" Link="Host\CodeFieldSearch.cs" />
     <Compile Include="..\..\host\GameHelper\Utils\CodeReader\*.cs" LinkBase="Host\CodeReader" />

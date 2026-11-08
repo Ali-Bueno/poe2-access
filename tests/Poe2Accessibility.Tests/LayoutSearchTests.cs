@@ -587,7 +587,7 @@ namespace Poe2Accessibility.Tests
             Equal(false, StructShapes.IsWorldPosition(block, 4, 5000f, 5000f), "not a number");
         }
 
-        private static void Equal<T>(T expected, T actual, string what)
+        internal static void Equal<T>(T expected, T actual, string what)
         {
             if (!EqualityComparer<T>.Default.Equals(expected, actual))
             {
@@ -595,7 +595,7 @@ namespace Poe2Accessibility.Tests
             }
         }
 
-        private static void Put(byte[] block, int at, params long[] values)
+        internal static void Put(byte[] block, int at, params long[] values)
         {
             foreach (var value in values)
             {
@@ -648,7 +648,7 @@ namespace Poe2Accessibility.Tests
             return body;
         }
 
-        private sealed class FakeMemory : IAreaMemory
+        internal sealed class FakeMemory : IAreaMemory
         {
             public Dictionary<long, string> Paths { get; } = new();
 

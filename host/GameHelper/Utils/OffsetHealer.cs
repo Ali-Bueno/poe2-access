@@ -55,6 +55,18 @@ namespace GameHelper.Utils
         /// <summary>The part that tells friend from foe.</summary>
         public const string ReactionPart = "reaction";
 
+        /// <summary>The part that leads from an entity to its path (details pointer, path string).</summary>
+        public const string EntityPathPart = "entity path";
+
+        /// <summary>The part that holds an entity's components.</summary>
+        public const string ComponentsPart = "entity components";
+
+        /// <summary>The part that names an entity's components (lookup pointer, name map).</summary>
+        public const string LookUpPart = "component lookup";
+
+        // Entities the sweep judges the entity layout on, besides the player.
+        private const int EntitiesJudged = 4;
+
         private const int SearchRadius = 0x200;
         private const int GameStateBytes = 0x1000;
         private const int MinMonstersForReaction = 5;
@@ -68,7 +80,7 @@ namespace GameHelper.Utils
         // Judged here or by their own searches (AreaInstanceLayout, the plugin's UI probes), not by the verifier.
         private static readonly HashSet<Type> OwnJudgment = new()
         {
-            typeof(AreaInstanceOffsets), typeof(UiElementBaseOffset), typeof(LifeOffset), typeof(BuffsOffsets),
+            typeof(AreaInstanceOffsets), typeof(EntityOffsets), typeof(UiElementBaseOffset), typeof(LifeOffset), typeof(BuffsOffsets),
             typeof(ActorOffset), typeof(RenderOffsets), typeof(StatsOffsets),
         };
 
@@ -98,6 +110,9 @@ namespace GameHelper.Utils
                 JudgeSkills(area.Player, memory),
                 JudgeStats(area.Player, memory),
             };
+
+            outcomes.AddRange(JudgeEntityLayout(memory, area.AwakeEntities.Values.Where(entity => entity.IsValid).Take(EntitiesJudged)
+                .Select(entity => entity.Address.ToInt64()).Prepend(area.Player.Address.ToInt64()).ToList()));
 
             // The position is judged through the camera, which only reads from its new place on the next frame.
             outcomes.Add(camera.Health == StructHealth.Moved && !cameraKnown ? NotJudged(PositionsPart, "the camera just moved") : JudgePosition(area));
@@ -148,13 +163,102 @@ namespace GameHelper.Utils
             }
         }
 
-        /// <summary>The entity id stands at <paramref name="found"/> (negative: unknown); what follows it moves along.</summary>
+        /// <summary>The entity id stands at <paramref name="found"/> (negative: unknown); what follows it moves along, what is before it stays.</summary>
         internal static void FollowEntityId(int found)
         {
-            if (found >= 0 && found != MeasuredEntityId)
+            if (found >= 0)
             {
-                Remap(typeof(EntityOffsets), StructRemapper.Segments(new[] { new RemapSegment(MeasuredEntityId, found - MeasuredEntityId) }));
+                Place(typeof(EntityOffsets), (MeasuredEntityId, found));
             }
+        }
+
+        /// <summary>
+        ///     Judges where <paramref name="entities"/> keep their path and components (<see cref="EntityLayoutSearch"/>) and reads
+        ///     every entity from there. Empty when none of them reads as an entity, which says nothing about the layout.
+        /// </summary>
+        internal static IReadOnlyList<StructOutcome> JudgeEntityLayout(IAreaMemory memory, IReadOnlyList<long> entities)
+        {
+            var measured = EntityLayout.Measured;
+            var found = new EntityLayoutSearch(memory).Find(entities, measured);
+            if (found.Details < 0 && found.Components < 0)
+            {
+                return Array.Empty<StructOutcome>();
+            }
+
+            Place(typeof(EntityOffsets), (measured.Details, found.Details), (measured.Components, found.Components), (MeasuredEntityId, Follow(typeof(EntityOffsets), MeasuredEntityId)));
+            Place(typeof(EntityDetails), (measured.Path, found.Path), (measured.LookUp, found.LookUp));
+            Place(typeof(ComponentLookUpStruct), (measured.NameMap, found.NameMap));
+            return new[]
+            {
+                Outcome(EntityPathPart, (measured.Details, found.Details), (measured.Path, found.Path)),
+                Outcome(ComponentsPart, (measured.Components, found.Components)),
+                Outcome(LookUpPart, (measured.LookUp, found.LookUp), (measured.NameMap, found.NameMap)),
+            };
+        }
+
+        /// <summary>
+        ///     Repairs the entity layout from the area's own entities while the area shows no world; true when a field moved.
+        ///     Nothing is searched while one of them reads its path as things stand.
+        /// </summary>
+        internal static bool RepairEntityLayout(IAreaMemory memory, IReadOnlyList<long> entities)
+        {
+            var measured = EntityLayout.Measured;
+            var now = new EntityLayout(
+                Follow(typeof(EntityOffsets), measured.Details),
+                Follow(typeof(EntityDetails), measured.Path),
+                Follow(typeof(EntityOffsets), measured.Components),
+                Follow(typeof(EntityDetails), measured.LookUp),
+                Follow(typeof(ComponentLookUpStruct), measured.NameMap));
+            var search = new EntityLayoutSearch(memory);
+            if (entities.Any(entity => search.ReadsPath(entity, now)))
+            {
+                return false;
+            }
+
+            var outcomes = JudgeEntityLayout(memory, entities);
+            foreach (var outcome in outcomes.Where(outcome => outcome.Health != StructHealth.Intact))
+            {
+                Console.WriteLine($"[OffsetHealer] {outcome.Name}: {outcome.Health} from +0x{outcome.From:X} to +0x{outcome.To:X}");
+            }
+
+            return outcomes.Any(outcome => outcome.Health == StructHealth.Moved);
+        }
+
+        /// <summary>A part's outcome over its fields, each (measured, found); the first that moved says where.</summary>
+        private static StructOutcome Outcome(string name, params (int Measured, int Found)[] fields)
+        {
+            if (fields.Any(field => field.Found < 0))
+            {
+                return new StructOutcome(name, StructHealth.Lost, fields[0].Measured, 0, "nothing nearby holds what it must");
+            }
+
+            var moved = fields.FirstOrDefault(field => field.Found != field.Measured);
+            return moved == default ? new StructOutcome(name, StructHealth.Intact, fields[0].Measured, fields[0].Measured, string.Empty)
+                : new StructOutcome(name, StructHealth.Moved, moved.Measured, moved.Found, string.Empty);
+        }
+
+        /// <summary>
+        ///     Reads each field (measured, found) of a struct from where it was found, one not found from where it reads now;
+        ///     true when that changed anything. What memory shows replaces what the code had placed.
+        /// </summary>
+        private static bool Place(Type structType, params (int Measured, int Found)[] fields)
+        {
+            var segments = fields.Select(field => new RemapSegment(field.Measured, (field.Found < 0 ? Follow(structType, field.Measured) : field.Found) - field.Measured)).ToArray();
+            lock (Healed)
+            {
+                if (FromCode.TryGetValue(structType, out var fromCode))
+                {
+                    fromCode.ExceptWith(segments.Select(segment => segment.From));
+                }
+            }
+
+            if (segments.All(segment => Follow(structType, segment.From) == segment.From + segment.Shift))
+            {
+                return false;
+            }
+
+            Remap(structType, Merged(structType, segments));
+            return true;
         }
 
         /// <summary>
@@ -232,6 +336,12 @@ namespace GameHelper.Utils
             typeof(StructRemap<>).MakeGenericType(structType)
                 .GetMethod("Set", BindingFlags.Static | BindingFlags.NonPublic)!
                 .Invoke(null, new object[] { segments });
+
+            // ItemStruct is the head of EntityOffsets, read alone by the item and path readers: it moves with it.
+            if (structType == typeof(EntityOffsets))
+            {
+                Remap(typeof(ItemStruct), segments.Where(segment => segment.From < Marshal.SizeOf<ItemStruct>()).ToArray());
+            }
         }
 
         private static int OffsetOf<T>(string field) => Marshal.OffsetOf<T>(field).ToInt32();
@@ -525,7 +635,7 @@ namespace GameHelper.Utils
                         return new StructOutcome(probe.Name, StructHealth.Lost, 0, 0, probe.Detail);
                     }
 
-                    Remap(type, StructRemapper.Segments(moves.Select(move => new RemapSegment(move.ConfiguredOffset, move.Shift))));
+                    Remap(type, Merged(type, moves.Select(move => new RemapSegment(move.ConfiguredOffset, move.Shift)).ToArray()));
                     var first = moves.OrderBy(move => move.ConfiguredOffset).First();
                     return new StructOutcome(probe.Name, StructHealth.Moved, first.ConfiguredOffset, first.CandidateOffset, probe.Detail);
                 default:

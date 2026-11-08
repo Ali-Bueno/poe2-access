@@ -202,7 +202,7 @@ namespace Poe2Accessibility.Tests
                 Run(name, test);
             }
 
-            foreach (var (name, test) in LayoutSearchTests.All())
+            foreach (var (name, test) in LayoutSearchTests.All().Concat(HostSearchTests.All()))
             {
                 Run(name, test);
             }

@@ -154,6 +154,33 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
             return Nearest(near, Int32Step, EntityBytes - sizeof(uint), at => bodies.All(entity => BitConverter.ToUInt32(entity.Body, at) == entity.Key));
         }
 
+        /// <summary>
+        ///     What reads as entities through <paramref name="at"/> without asking them anything: the local player and the
+        ///     values of the awake list's root and its left child. For judging the entity layout when no world can be read.
+        /// </summary>
+        public long[] EntitiesAt(byte[] block, AreaFields at)
+        {
+            var found = new System.Collections.Generic.List<long>();
+            if (at.LocalPlayer >= 0 && at.LocalPlayer + PointerStep <= block.Length)
+            {
+                found.Add(Int64At(block, at.LocalPlayer));
+            }
+
+            var sentinel = at.Entities >= 0 && at.Entities + PointerStep <= block.Length ? this.memory.Read(Int64At(block, at.Entities), NodeSize) : Array.Empty<byte>();
+            var root = sentinel.Length == NodeSize ? this.memory.Read(Int64At(sentinel, NodeParent), NodeSize) : Array.Empty<byte>();
+            if (root.Length == NodeSize && root[NodeIsNil] == 0)
+            {
+                found.Add(Int64At(root, NodeValue));
+                var left = this.memory.Read(Int64At(root, NodeLeft), NodeSize);
+                if (left.Length == NodeSize && left[NodeIsNil] == 0)
+                {
+                    found.Add(Int64At(left, NodeValue));
+                }
+            }
+
+            return found.Where(IsPointer).ToArray();
+        }
+
         private static int HeaderSize => sizeof(uint) + LevelGap + (HeaderVectors * VectorSize);
 
         private static int Nearest(int start, int step, int limit, Func<int, bool> fits)

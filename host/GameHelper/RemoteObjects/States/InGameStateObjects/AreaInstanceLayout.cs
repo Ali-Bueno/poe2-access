@@ -86,8 +86,15 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
 
         private bool Judge(SafeMemoryHandle reader, IntPtr address, byte[] block)
         {
-            var search = new AreaLayoutSearch(new GameMemory(reader));
+            var memory = new GameMemory(reader);
+            var search = new AreaLayoutSearch(memory);
             var found = search.Find(block, this.Fields);
+            if (!found.HasWorld && OffsetHealer.RepairEntityLayout(memory, search.EntitiesAt(block, found.Over(this.Fields))))
+            {
+                // Every check of the area asks entities for their path: with it moved, nothing read as a world.
+                found = search.Find(block, this.Fields);
+            }
+
             var fields = found.Over(this.Fields);
             if (found.Entities >= 0)
             {

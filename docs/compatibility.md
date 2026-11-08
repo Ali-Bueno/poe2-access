@@ -27,6 +27,7 @@ host's searches (once a patch to GameHelper2, now in `host/`) read those fields 
 | Area: terrain | tile vector = X × Y × 0x38 bytes, walkable = bytes per row × rows | `AreaLayoutSearch` |
 | Area: level, hash | level 1-100 in one byte (the next can hold a flag), then 8 bytes of flags and three vectors (any empty); a hash too large to be the top of a pointer, at the measured distance | `AreaLayoutSearch` |
 | Entity id (the valid flag follows it) | the list's key equals the id, on the root and its child | `AreaLayoutSearch.FindEntityId` |
+| Entity path and components (details pointer, path, component vector, lookup, name map) | the details lead to a wide string under `Metadata/`; the first and last component point back at the entity; the lookup's map names components (half its entries or more, one of `Positioned`, `Render`, `Life`…) with indexes inside the vector. Judged in the sweep on the player and four entities; searched whenever an area shows no world, since every area check asks an entity for its path. `ItemStruct` moves with `EntityOffsets` | `EntityLayoutSearch`, `OffsetHealer.JudgeEntityLayout` |
 | Life | every vital points back at its component; one shift lands the measured ones on them (the game has seven vitals, GameHelper reads five) | `StructShapes.PlaceVitals` |
 | Buffs | a pointer list that ends in a lower-case id such as `herald_of_thunder` (no buff on the player: not judged) | `StructShapes.IsBuffList` |
 | Skills, cooldowns | 16-byte entries with a 0x48-byte vector right after | `StructShapes.IsSkillList` |
@@ -77,6 +78,15 @@ projected to (-287, -3187) and it said intact. The shapes above recovered all fi
 entity id and both game state pointers moved, and the `Game States` and `GameCullSize` patterns broken on purpose: each time
 the world came back, with enemies, items and chests sounding. To repeat one: shift a `FieldOffset` in `GameOffsets`, rebuild
 the host, read the log's "Struct sweep" line, then `git checkout -- GameOffsets`.
+
+**Simulated 2026-11-08** (the searches added for the [audit](research/field-protection-audit.md)'s gaps; each constant shifted,
+the host rebuilt with `--no-incremental` and restarted in the Act 2 town, then reverted):
+
+| Search | Shifted | Outcome |
+|---|---|---|
+| Entity layout | details +8, path +0x18, components +0x18, lookup -0x18, map +8, all at once | no world, so the area check searched: all five back where measured before the first area read; friends, portal and waypoint sounded |
+| Entity layout | details -8, path -8, components -8, lookup +8, map -0x18 | the same |
+
 
 **Upstream:** the host is no longer a patched GameHelper2 clone (2026-11-08): its reader lives in `host/`, so an offset that
 upstream learns is copied by hand into `host/GameOffsets` (upstream had no commit from 2026-09-14 on).
