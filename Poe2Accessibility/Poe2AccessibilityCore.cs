@@ -102,6 +102,7 @@ namespace Poe2Accessibility
         private readonly CoopDowns coopDowns = new();
         private IntPtr padManager;
         private readonly System.Collections.Generic.Dictionary<string, long> tickFaults = new();
+        private readonly TickCosts tickCosts = new();
         private HostMemoryReader? memoryReader;
 
         /// <summary>A failing sound tick is logged once a minute, not every frame.</summary>

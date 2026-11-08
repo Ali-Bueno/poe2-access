@@ -157,6 +157,7 @@ namespace Poe2Accessibility
         /// <summary>Runs one gameplay service; an exception is logged (throttled per service) and the frame goes on.</summary>
         private void Isolated(string service, Action tick)
         {
+            var start = System.Diagnostics.Stopwatch.GetTimestamp();
             try
             {
                 tick();
@@ -165,6 +166,8 @@ namespace Poe2Accessibility
             {
                 this.ReportTickFault(service, ex);
             }
+
+            this.tickCosts.Add(service, System.Diagnostics.Stopwatch.GetTimestamp() - start);
         }
 
         private void ReportTickFault(string service, Exception ex)

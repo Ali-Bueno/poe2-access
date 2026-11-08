@@ -226,7 +226,8 @@ namespace GameHelper
             while (true)
             {
                 yield return new Wait(Process.OnStaticAddressFound);
-                CurrentAreaLoadedFiles.Address = Process.StaticAddresses.GetValueOrDefault("File Root");
+                // GameHelper's preload scan of each area (its PreloadAlert) is not read by the mod: left off.
+                CurrentAreaLoadedFiles.Address = IntPtr.Zero;
             }
         }
 

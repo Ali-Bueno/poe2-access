@@ -486,6 +486,8 @@ namespace GameHelper.Ui
                 return roots;
             }
 
+            ui.Refresh();
+
             void Add(string name, IntPtr addr)
             {
                 if (addr != IntPtr.Zero && roots.Count < MaxRootsPerType)

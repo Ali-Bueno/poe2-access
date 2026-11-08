@@ -1,4 +1,4 @@
-﻿namespace Poe2Accessibility
+namespace Poe2Accessibility
 {
     using System;
     using System.IO;
@@ -373,6 +373,9 @@
                     break;
                 case "sounds":
                     this.log?.Info(this.audio?.Diagnose() ?? "Audio off");
+                    break;
+                case "costs":
+                    this.log?.Info(this.tickCosts.Report(25));
                     break;
                 case "flasks":
                     this.log?.Info(this.flasks?.Diagnose() ?? "Flasks off");

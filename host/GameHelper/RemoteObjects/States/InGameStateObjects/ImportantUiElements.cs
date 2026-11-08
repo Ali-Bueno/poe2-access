@@ -165,8 +165,19 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
             this.ChatParent = new(IntPtr.Zero, this.rootCache);
 
             this.SkillTreeNodesUiElements = new();
-            Core.CoroutinesRegistrar.Add(CoroutineHandler.Start(
-                this.OnPerFrame(), "[InGameState] Update ImportantUiElements", priority: int.MaxValue - 3));
+        }
+
+        /// <summary>
+        ///     Reads the panels again; the mod reads its own UI tree, so this runs only when the struct sweep asks
+        ///     (it used to run every frame).
+        /// </summary>
+        internal void Refresh()
+        {
+            if (this.Address != IntPtr.Zero &&
+                Core.States.GameCurrentState is GameStateTypes.InGameState or GameStateTypes.EscapeState)
+            {
+                this.UpdateData(false);
+            }
         }
 
         /// <summary>
@@ -1158,28 +1169,6 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
         {
             this.rootCache.UpdateAllParentsParallel();
             this.passiveSkillTreeCache.UpdateAllParentsParallel();
-        }
-
-        private IEnumerator<Wait> OnPerFrame()
-        {
-            while (true)
-            {
-                yield return new Wait(GameHelperEvents.PerFrameDataUpdate);
-                try
-                {
-                    if (this.Address != IntPtr.Zero &&
-                        Core.States.GameCurrentState is GameStateTypes.InGameState or GameStateTypes.EscapeState)
-                    {
-                        // sending false because "true" use-case is handled
-                        // by UpdateData function when address actually gets changed.
-                        this.UpdateData(false);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[ImportantUiElements.OnPerFrame] {ex}");
-                }
-            }
         }
     }
 }
