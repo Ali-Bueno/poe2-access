@@ -2,7 +2,6 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
-    using System.Reflection;
     using GameHelper;
     using GameHelper.RemoteEnums;
     using GameHelper.RemoteObjects.States.InGameStateObjects;
@@ -22,9 +21,6 @@ namespace Poe2Accessibility.Services
         /// <summary>117 inventories per player in 0.5.5e; more than this is not an inventory list.</summary>
         private const int MaxInventories = 512;
 
-        private static readonly PropertyInfo? FirstPlayer =
-            typeof(ServerData).GetProperty("PlayerInventories", BindingFlags.Instance | BindingFlags.NonPublic);
-
         private readonly HostMemoryReader reader;
         private readonly Dictionary<InventoryName, IntPtr> second = new();
         private IntPtr server;
@@ -41,7 +37,7 @@ namespace Poe2Accessibility.Services
             var serverData = Core.States.InGameStateObject.CurrentAreaInstance.ServerDataObject;
             if (seat != 2)
             {
-                return FirstPlayer?.GetValue(serverData) as Dictionary<InventoryName, IntPtr>;
+                return serverData.PlayerInventories;
             }
 
             var now = Environment.TickCount64;

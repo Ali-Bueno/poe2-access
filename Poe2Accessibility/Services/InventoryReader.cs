@@ -28,8 +28,6 @@ namespace Poe2Accessibility.Services
         /// <summary>Slot element → item element depth (slot → frame → item).</summary>
         private const int ItemSearchDepth = 2;
 
-        /// <summary>GameHelper keeps the player's inventories (name → InventoryStruct address) in an internal property.</summary>
-
         private static readonly int DetailsPathOffset = (int)Marshal.OffsetOf<EntityDetails>(nameof(EntityDetails.name));
 
         private readonly HostMemoryReader reader;
@@ -334,7 +332,7 @@ namespace Poe2Accessibility.Services
                 return false;
             }
 
-            var path = this.elements.ReadWStringStructAt(item.EntityDetailsPtr + DetailsPathOffset);
+            var path = this.elements.ReadWStringStructAt(item.EntityDetailsPtr + GameHelper.Utils.HostStructs.Follow<EntityDetails>(DetailsPathOffset));
             return path != null && path.StartsWith(ItemPathPrefix, StringComparison.Ordinal);
         }
     }
