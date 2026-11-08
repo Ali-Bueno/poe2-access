@@ -15,7 +15,7 @@ REPOSITORY = Path(__file__).resolve().parents[2]
 LOG = REPOSITORY / 'host/Poe2Access/bin/Release/net10.0-windows/win-x64/Plugins/Poe2Accessibility/logs/accessibility.log'
 ACTIONS = REPOSITORY / 'Poe2Accessibility/catalog/action-types.txt'
 WORLD_PER_GRID = 250 / 23
-WARN = re.compile(r'^(\S+ \S+) DEBUG Dodge warning: monster (\d+) (\S+)\|(\d+) animation (\S+) \((\w+), ([^,]+), gap (-?\d+), aim (\w+), reach (\S+), blow in (-?\d+) ms(?:, (\d+) ms of flight)?, clip ([^)]*)\)')
+WARN = re.compile(r'^(\S+ \S+) DEBUG Dodge warning: monster (\d+) (\S+)\|(\d+) animation (\S+) \((\w+), ([^,]+), gap (-?\d+), aim (\w+), reach (\S+), blow in (-?\d+|\?) ms(?:, (\d+) ms of flight)?, clip ([^)]*)\)')
 GATE = re.compile(r'^(\S+ \S+) INFO Dodge gate: (\S+)\|(\d+) (\S+) -> ([^(]+) \(')
 
 
@@ -161,7 +161,7 @@ def main():
             if lo <= w <= hi:
                 warns.append(dict(wall=w, id=int(m.group(2)), monster=m.group(3).split('/')[-1], anim=int(m.group(4)), name=m.group(5),
                                   threat=m.group(6), reason=m.group(7), gap=int(m.group(8)), aim=m.group(9), reach=m.group(10),
-                                  blow_in=int(m.group(11)), flight=int(m.group(12) or 0), clip=m.group(13)))
+                                  blow_in=None if m.group(11) == '?' else int(m.group(11)), flight=int(m.group(12) or 0), clip=m.group(13)))
             continue
         g = GATE.match(line)
         if g and lo <= wall_of(g.group(1)) <= hi:
@@ -177,8 +177,9 @@ def main():
             w['swing'] = s
             # A clip of several contacts (Beira's ice_spear_combo_01: five) is warned again for a later one: the warning's
             # own estimate names which; the first contact ahead made those warnings look 450 ms late.
-            aimed_at = w['wall'] + w['blow_in'] - w['flight']
-            w['contact'] = min(nxt, key=lambda c: abs(c - aimed_at)) if nxt and w['blow_in'] > 0 else (nxt[0] if nxt else None)
+            # A warning at the wind-up ("blow in ? ms": no timing known) is for the swing's first contact.
+            aimed_at = w['wall'] + (w['blow_in'] or 0) - w['flight']
+            w['contact'] = min(nxt, key=lambda c: abs(c - aimed_at)) if nxt and (w['blow_in'] or 0) > 0 else (nxt[0] if nxt else None)
             s.setdefault('warns', []).append(w)
             break
 
@@ -231,6 +232,9 @@ def main():
     if unmatched:
         print('  unmatched:', dict(collections.Counter((w['monster'], w['name'], w['clip']) for w in unmatched).most_common(8)))
 
+    def med(values):
+        return statistics.median(values) if values else float('nan')
+
     # Timing: error = warning - (contact - lead), by reason.
     by_reason = collections.defaultdict(list)
     feasible = collections.defaultdict(list)
@@ -244,7 +248,7 @@ def main():
         if s is not None and c is None and (s['target'] == s['player']):
             h = hit_after(w['wall'] + 50, 1500)
             if h:
-                bylife.append((w['reason'], w['wall'] - (h - 31 - a.lead), w['wall'] + w['blow_in'] - (h - 31)))
+                bylife.append((w['reason'], w['wall'] - (h - 31 - a.lead), None if w['blow_in'] is None else w['wall'] + w['blow_in'] - (h - 31)))
         if s is None or c is None:
             continue
         c2 = c + w['flight']
@@ -252,7 +256,8 @@ def main():
         feasible[w['reason']].append(w['wall'] - max(c2 - a.lead, s['start']))
         if c2 - a.lead >= s['start'] + 50:
             fulllead[w['reason']].append(w['wall'] - (c2 - a.lead))
-        est[w['reason']].append(w['wall'] + w['blow_in'] - c2)
+        if w['blow_in'] is not None:
+            est[w['reason']].append(w['wall'] + w['blow_in'] - c2)
         windup[w['reason']].append(w['wall'] - s['start'])
         h = hit_after(c2)
         if h:
@@ -260,7 +265,7 @@ def main():
     for reason, errs in sorted(by_reason.items()):
         ab = [abs(e) for e in errs]
         print(f'timing {reason:15s} n={len(errs):3d} err median {statistics.median(errs):6.0f} p10 {pct(errs, .1):6.0f} p90 {pct(errs, .9):6.0f} |err| p90 {pct(ab, .9):5.0f}'
-              f'  est-vs-real median {statistics.median(est[reason]):6.0f} | warn after wind-up start median {statistics.median(windup[reason]):5.0f}'
+              f'  est-vs-real median {med(est[reason]):6.0f} | warn after wind-up start median {statistics.median(windup[reason]):5.0f}'
               f' | vs max(contact-lead, wind-up) median {statistics.median(feasible[reason]):5.0f} |p90| {pct([abs(x) for x in feasible[reason]], .9):5.0f}')
     for reason, errs in sorted(fulllead.items()):
         print(f'timing {reason:15s} blows at least the lead after the wind-up: n={len(errs):3d} err median {statistics.median(errs):5.0f} p10 {pct(errs, .1):5.0f} p90 {pct(errs, .9):5.0f} |err| p90 {pct([abs(e) for e in errs], .9):5.0f}')
@@ -271,8 +276,8 @@ def main():
     if bylife:
         for reason in sorted({r for r, _, _ in bylife}):
             errs = [e for r, e, _ in bylife if r == reason]
-            ests = [e for r, _, e in bylife if r == reason]
-            print(f'timing by life drop (no contact event) {reason:15s} n={len(errs):3d} err median {statistics.median(errs):6.0f} p10 {pct(errs, .1):6.0f} p90 {pct(errs, .9):6.0f} |err| p90 {pct([abs(e) for e in errs], .9):5.0f} est-vs-real median {statistics.median(ests):6.0f}')
+            ests = [e for r, _, e in bylife if r == reason and e is not None]
+            print(f'timing by life drop (no contact event) {reason:15s} n={len(errs):3d} err median {statistics.median(errs):6.0f} p10 {pct(errs, .1):6.0f} p90 {pct(errs, .9):6.0f} |err| p90 {pct([abs(e) for e in errs], .9):5.0f} est-vs-real median {med(ests):6.0f}')
     if hitlag:
         print(f'life drop after contact: n={len(hitlag)} median {statistics.median(hitlag):.0f} p10 {pct(hitlag, .1):.0f} p90 {pct(hitlag, .9):.0f}')
     if a.detail:
