@@ -99,7 +99,7 @@ namespace GameHelper.Utils
         // Judged here or by their own searches (AreaInstanceLayout, JudgeEntityLayout, JudgeUiElementBase), not by the verifier.
         private static readonly HashSet<Type> OwnJudgment = new()
         {
-            typeof(AreaInstanceOffsets), typeof(EntityOffsets), typeof(UiElementBaseOffset), typeof(LifeOffset), typeof(BuffsOffsets),
+            typeof(AreaInstanceOffsets), typeof(EntityOffsets), typeof(UiElementBaseOffset), typeof(LifeOffset), typeof(BuffsOffsets), typeof(WorldItemOffsets), typeof(InventoryStruct),
             typeof(ActorOffset), typeof(RenderOffsets), typeof(StatsOffsets),
         };
 
@@ -130,6 +130,8 @@ namespace GameHelper.Utils
                 JudgeStats(area.Player, memory),
             };
 
+            outcomes.Add(JudgeGroundItems(area, memory));
+            outcomes.Add(JudgeInventories(area, memory));
             outcomes.AddRange(JudgeEntityLayout(memory, area.AwakeEntities.Values.Where(entity => entity.IsValid).Take(EntitiesJudged)
                 .Select(entity => entity.Address.ToInt64()).Prepend(area.Player.Address.ToInt64()).ToList()));
 
@@ -578,6 +580,59 @@ namespace GameHelper.Utils
 
             // With no buff on the player no list reads as one, and that says nothing about the field.
             return found < 0 ? NotJudged(name, "no buff to judge it on") : Placed<BuffsOffsets>(name, measured, found);
+        }
+
+        /// <summary>The player's inventories by what they hold (<see cref="InventoryLayoutSearch"/>); each field found is read from there.</summary>
+        private static StructOutcome JudgeInventories(AreaInstance area, IAreaMemory memory)
+        {
+            const string name = "inventories";
+            var server = area.ServerDataObject.Address;
+            if (server == IntPtr.Zero)
+            {
+                return NotJudged(name, "no server data");
+            }
+
+            var measured = InventoryFields.Measured;
+            var found = new InventoryLayoutSearch(memory).Find(server.ToInt64(), measured);
+            if (found.Players < 0)
+            {
+                return new StructOutcome(name, StructHealth.Lost, measured.Players, 0, "no inventory of the player holds an item");
+            }
+
+            // Each field, then where the bytes after it read now: a vector is three pointers, the size two ints.
+            const int vector = 3 * sizeof(long);
+            var moved = Place(typeof(ServerDataOffsets), (measured.Players, found.Players), (measured.Players + vector, Follow(typeof(ServerDataOffsets), measured.Players + vector)));
+            moved |= Place(typeof(ServerDataStructure), (measured.Inventories, found.Inventories), (measured.Inventories + vector, Follow(typeof(ServerDataStructure), measured.Inventories + vector)));
+            moved |= Place(
+                typeof(InventoryStruct),
+                (measured.Boxes, found.Boxes),
+                (measured.Boxes + sizeof(long), Follow(typeof(InventoryStruct), measured.Boxes + sizeof(long))),
+                (measured.Cells, found.Cells),
+                (measured.Cells + vector, Follow(typeof(InventoryStruct), measured.Cells + vector)));
+            if (moved)
+            {
+                // The server data reads its inventories once per area: what it read through the old fields is read again.
+                area.ServerDataObject.Refresh();
+            }
+
+            return Outcome(name, (measured.Players, found.Players), (measured.Inventories, found.Inventories), (measured.Boxes, found.Boxes), (measured.Cells, found.Cells));
+        }
+
+        /// <summary>Ground items lead to their item's entity: every one looked at must, through the same field.</summary>
+        private static StructOutcome JudgeGroundItems(AreaInstance area, IAreaMemory memory)
+        {
+            const string name = "ground items";
+            var items = area.AwakeEntities.Values.Select(entity => entity.TryGetComponent<WorldItem>(out var item) ? item.Address : IntPtr.Zero)
+                .Where(address => address != IntPtr.Zero).Take(EntitiesJudged).ToList();
+            if (items.Count == 0)
+            {
+                return NotJudged(name, "no item on the ground");
+            }
+
+            var measured = OffsetOf<WorldItemOffsets>(nameof(WorldItemOffsets.ItemEntityPtr));
+            var blocks = items.Select(item => Block(item, measured + SearchRadius)).Where(block => block.Length > 0).ToList();
+            var found = blocks.Count == 0 ? -1 : StructShapes.Nearest(measured, sizeof(long), blocks.Min(block => block.Length) - sizeof(long), at => blocks.All(block => StructShapes.IsItemEntity(block, at, memory)));
+            return Placed<WorldItemOffsets>(name, measured, found);
         }
 
         private static StructOutcome JudgeSkills(Entity player, IAreaMemory memory)

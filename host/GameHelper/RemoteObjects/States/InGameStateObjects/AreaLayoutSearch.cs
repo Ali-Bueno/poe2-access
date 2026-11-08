@@ -278,7 +278,7 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
                 return false;
             }
 
-            var list = this.memory.Read(pointer + PlayerList, VectorSize);
+            var list = this.memory.Read(pointer + StructRemapper.Follow(StructRemap<ServerDataOffsets>.Segments, PlayerList), VectorSize);
             if (list.Length < VectorSize || !IsVector(list, 0))
             {
                 return false;
@@ -296,7 +296,7 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
                 return false;
             }
 
-            var inventories = this.memory.Read(Int64At(entry, 0) + Inventories, VectorSize);
+            var inventories = this.memory.Read(Int64At(entry, 0) + StructRemapper.Follow(StructRemap<ServerDataStructure>.Segments, Inventories), VectorSize);
             if (inventories.Length < VectorSize || !IsVector(inventories, 0))
             {
                 return false;

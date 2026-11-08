@@ -987,6 +987,8 @@ namespace Poe2Accessibility
             "camera" => T("the camera, so enemies on screen are not told apart", "la cámara, así que no sé qué enemigos hay en pantalla"),
             "targetable flag" => T("which monsters and characters are in play", "qué monstruos y personajes están en juego"),
             "HUD" or "in-game layer roots" => T("the HUD", "el HUD"),
+            "inventories" => T("your inventories, so pick-ups, flasks and salvage stay silent", "tus inventarios, así que recogidas, frascos y desguace no se dirán"),
+            "ground items" => T("the items on the ground, so loot stays silent", "los objetos del suelo, así que el botín no sonará"),
             "death screen" => T("the death screen", "la pantalla de muerte"),
             "inventory panel" => T("the inventory", "el inventario"),
             "chat" => T("the chat", "el chat"),

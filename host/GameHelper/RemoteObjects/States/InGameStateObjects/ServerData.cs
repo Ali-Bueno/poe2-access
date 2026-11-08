@@ -58,6 +58,15 @@ namespace GameHelper.RemoteObjects.States.InGameStateObjects
             this.FlaskInventory.Address = IntPtr.Zero;
         }
 
+        /// <summary>Reads the player's inventories again, after a search moved the fields they are read through.</summary>
+        internal void Refresh()
+        {
+            if (this.Address != IntPtr.Zero)
+            {
+                this.UpdateData(false);
+            }
+        }
+
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)
         {

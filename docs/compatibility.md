@@ -23,6 +23,8 @@ host's searches (once a patch to GameHelper2, now in `host/`) read those fields 
 |---|---|---|
 | Area: local player | an entity under `Metadata/Characters/` | `AreaLayoutSearch` |
 | Area: server data | a player list leading to inventories, before the player | `AreaLayoutSearch` |
+| Server data's player list, a player's inventories, an inventory's size and cells | a list of up to four players, the first with a list of 0x18-byte inventory entries, three in four of those inventories X by Y cells with one pointer per cell, the first few items in them entities under `Metadata/Items/` (at least one item). Judged in the sweep; a move makes the server data read its inventories again (it reads them once per area) | `InventoryLayoutSearch`, `OffsetHealer.JudgeInventories` |
+| Ground items (`WorldItem.ItemEntityPtr`) | the pointer of up to four ground items leads to an entity under `Metadata/Items/` (none on the ground: not judged) | `StructShapes.IsItemEntity`, `OffsetHealer.JudgeGroundItems` |
 | Area: entity lists | two adjacent MSVC maps, sentinel flagged, root's value an entity | `AreaLayoutSearch` |
 | Area: terrain | the tile vector holds X × Y records of one size (a multiple of 8, 0x38 in 0.5.5f) and the walkable grid Y rows of tiles, each as many grid rows as a tile spans cells (23), a row two cells to a byte for X tiles; both sizes come from the terrain, and the cells per tile go to every grid reader (`TileStructure.TileToGridConversion`) | `AreaLayoutSearch` |
 | Area: level, hash | level 1-100 in one byte (the next can hold a flag), then 8 bytes of flags and three vectors (any empty); a hash too large to be the top of a pointer, at the measured distance | `AreaLayoutSearch` |
@@ -97,7 +99,11 @@ the host rebuilt with `--no-incremental` and restarted in the Act 2 town, then r
 | UI focus, layer roots | the same -0x18 | the same |
 | Life (inside a vital) | total, current and regeneration +4, and `semantic-fields.txt` set to match (so the code is believed) | the code rules moved the six Life, Mana and ES fields at attach (`Code fields: … moved: LifeOffset.Health.Current +0x1E4 to +0x1E0 …`), the sweep `life moved from +0x30 to +0x2C`; the player read 513/513 |
 | Life (inside a vital) | back-pointer -8, regeneration, total and current -4, catalog untouched (the code refused: not where its rules were made) | the sweep alone: `life moved from +0x28 to +0x24`, 513/513 |
+| Inventories | player list +8, inventories -0x18, size and cells +8 | the sweep put them back (`inventories moved from +0x50 to +0x48`), the server data read its inventories again: main and cursor inventories watched; the inventory panel named its grid |
+| Inventories | player list -0x18, inventories +8, size -0x18, cells -8 | the same |
+| Ground items | not simulated: no item lies on the ground in town (dropping one there could lose it); unit test only | — |
 | Terrain | `TileStructure` size 0x40 and 24 cells per tile |
+
 
  terrain found as before, tiles `moved from +0x40 to +0x38`, cells `from +0x18 to +0x17`; the wall radar sounded |
 | Terrain | size 0x30 (fields packed) and 22 cells | the same, back to 0x38 and 23 |

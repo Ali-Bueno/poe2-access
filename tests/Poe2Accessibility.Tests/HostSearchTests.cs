@@ -28,7 +28,74 @@ namespace Poe2Accessibility.Tests
             (nameof(AnElementOfAnotherSizeIsNoRoot), AnElementOfAnotherSizeIsNoRoot),
             (nameof(TheFocusIsTheSlotThatTakesEachElementFirst), TheFocusIsTheSlotThatTakesEachElementFirst),
             (nameof(AVitalThatGrewInsideIsReadAgain), AVitalThatGrewInsideIsReadAgain),
+            (nameof(AGroundItemLeadsToAnItem), AGroundItemLeadsToAnItem),
+            (nameof(InventoriesAreFoundByTheItemsInThem), InventoriesAreFoundByTheItemsInThem),
         };
+
+        private static void InventoriesAreFoundByTheItemsInThem()
+        {
+            var measured = InventoryFields.Measured;
+            foreach (var shift in new[] { 0, 8, -0x18 })
+            {
+                var at = new InventoryFields(measured.Players + shift, measured.Inventories - shift, measured.Boxes + shift, measured.Cells + shift);
+                var (memory, server) = Inventories(at, "Metadata/Items/Weapons/TwoHandWeapons/TwoHandMaces/TwoHandMace1");
+                Equal(at, new InventoryLayoutSearch(memory).Find(server, measured), $"inventory fields moved by {shift:X}");
+            }
+
+            var (monsters, address) = Inventories(measured, "Metadata/Monsters/FungusZombie/FungusZombieFungalmancer");
+            Equal(new InventoryFields(-1, -1, -1, -1), new InventoryLayoutSearch(monsters).Find(address, measured), "cells that hold no item");
+        }
+
+        /// <summary>Server data with one player and three inventories (12 x 5 with an item, 5 x 1 empty, 2 x 4 with the same item twice).</summary>
+        private static (FakeMemory Memory, long Server) Inventories(InventoryFields at, string itemPath)
+        {
+            var memory = new FakeMemory();
+            var (server, players, player, entries, item, entity) = (Heap + 0x300000, Heap + 0x301000, Heap + 0x302000, Heap + 0x303000, Heap + 0x304000, Heap + 0x305000);
+            var serverBody = new byte[InventoryFields.Measured.Players + InventoryLayoutSearch.Reach];
+            Put(serverBody, at.Players, players, players + 8, players + 8);
+            memory.Blocks[server] = serverBody;
+            memory.Blocks[players] = BitConverter.GetBytes(player);
+            var playerBody = new byte[InventoryFields.Measured.Inventories + InventoryLayoutSearch.Reach];
+            var sizes = new[] { (12, 5), (5, 1), (2, 4) };
+            Put(playerBody, at.Inventories, entries, entries + (sizes.Length * 0x18), entries + (sizes.Length * 0x18));
+            memory.Blocks[player] = playerBody;
+            var entryBytes = new byte[sizes.Length * 0x18];
+            for (var i = 0; i < sizes.Length; i++)
+            {
+                var inventory = Heap + 0x310000 + (i * 0x1000);
+                var cells = inventory + 0x800;
+                Put(entryBytes, i * 0x18, i + 1, inventory, inventory - 0x10);
+                var body = new byte[InventoryFields.Measured.Cells + InventoryLayoutSearch.Reach];
+                BitConverter.TryWriteBytes(body.AsSpan(at.Boxes), sizes[i].Item1);
+                BitConverter.TryWriteBytes(body.AsSpan(at.Boxes + 4), sizes[i].Item2);
+                var count = sizes[i].Item1 * sizes[i].Item2;
+                Put(body, at.Cells, cells, cells + (count * 8), cells + (count * 8));
+                memory.Blocks[inventory] = body;
+                var slots = new byte[count * 8];
+                if (i != 1)
+                {
+                    Put(slots, 0, item, item);
+                }
+
+                memory.Blocks[cells] = slots;
+            }
+
+            memory.Blocks[entries] = entryBytes;
+            memory.Blocks[item] = BitConverter.GetBytes(entity);
+            memory.Paths[entity] = itemPath;
+            return (memory, server);
+        }
+
+        private static void AGroundItemLeadsToAnItem()
+        {
+            var memory = new FakeMemory();
+            memory.Paths[Heap + 0x100] = "Metadata/Items/Currency/CurrencyRerollRare";
+            memory.Paths[Heap + 0x200] = "Metadata/Monsters/FungusZombie/FungusZombieFungalmancer";
+            var block = new byte[0x80];
+            Put(block, 0x8, Heap + 0x200, 0, 0, 0, Heap + 0x100);
+            Equal(0x28, StructShapes.Nearest(0x30, 8, block.Length - 8, at => StructShapes.IsItemEntity(block, at, memory)), "the item, not the monster beside it");
+            Equal(false, StructShapes.IsItemEntity(block, 0x8, memory), "a monster is no item");
+        }
 
         private static void AVitalThatGrewInsideIsReadAgain()
         {

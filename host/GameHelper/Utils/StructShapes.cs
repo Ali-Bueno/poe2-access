@@ -32,6 +32,7 @@ namespace GameHelper.Utils
         private const int MaxStatKey = 100000;
         private const int MatrixBytes = 64;
         private const float MaxWorld = 1e7f;
+        private const string ItemFolder = "Metadata/Items/";
 
         // A vital's fields were all measured in its first 0x34 bytes; a patch may grow it a little.
         private const int MaxVitalField = 0x60;
@@ -207,6 +208,11 @@ namespace GameHelper.Utils
             var entry = memory.Read(first, StatEntry);
             return entry.Length == StatEntry && BitConverter.ToInt32(entry, 0) is > 0 and < MaxStatKey;
         }
+
+        /// <summary>A pointer to an item's entity, as a ground item holds it: its path lies under <c>Metadata/Items/</c>.</summary>
+        public static bool IsItemEntity(byte[] block, int at, IAreaMemory memory) =>
+            at >= 0 && at + Pointer <= block.Length && IsPointer(BitConverter.ToInt64(block, at)) &&
+            memory.EntityPath(BitConverter.ToInt64(block, at)).StartsWith(ItemFolder, StringComparison.Ordinal);
 
         /// <summary>The camera matrix: the game keeps it twice, one copy right after the other.</summary>
         public static bool IsCameraMatrix(byte[] block, int at)
