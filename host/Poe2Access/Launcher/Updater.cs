@@ -171,7 +171,8 @@ internal static class Updater
         try
         {
             using var settings = JsonDocument.Parse(File.ReadAllText(SettingsPath(folders)), new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
-            return !(settings.RootElement.TryGetProperty("CheckForUpdates", out var value) && value.ValueKind == JsonValueKind.False);
+            return !(settings.RootElement.ValueKind == JsonValueKind.Object && // TryGetProperty throws on anything else
+                     settings.RootElement.TryGetProperty("CheckForUpdates", out var value) && value.ValueKind == JsonValueKind.False);
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or JsonException)
         {

@@ -15,6 +15,7 @@ namespace Poe2Accessibility.Tests
             (nameof(HiddenBuffNamesAreNotShown), HiddenBuffNamesAreNotShown),
             (nameof(CatalogParsesAndFallsBackToEnglish), CatalogParsesAndFallsBackToEnglish),
             (nameof(CountedResourcesSettleBeforeTheyAreSaid), CountedResourcesSettleBeforeTheyAreSaid),
+            (nameof(OneBuffFromTwoSkillsIsOneCount), OneBuffFromTwoSkillsIsOneCount),
             (nameof(PoolsTellOnlyTheirEdges), PoolsTellOnlyTheirEdges),
             (nameof(TheFirstReadingIsOnlyRemembered), TheFirstReadingIsOnlyRemembered),
             (nameof(AMissingResourceEnds), AMissingResourceEnds),
@@ -107,6 +108,21 @@ namespace Poe2Accessibility.Tests
         }
 
         private static ResourceTracker.Reading Counted(string key, int count, int max = 0) => new(key, count, max, ResourceMode.Counted);
+
+        private static void OneBuffFromTwoSkillsIsOneCount()
+        {
+            var tracker = new ResourceTracker();
+            tracker.Update(new[] { Counted("buff:jade", 0) }, 0);
+            var news = new List<ResourceTracker.News>();
+            for (var now = 3000L; now <= 3000 + ResourceTracker.SettleMs + 500; now += 100)
+            {
+                // Two instances of one buff (two skills' gems) share the key: their readings alternated and never settled.
+                news.AddRange(tracker.Update(new[] { Counted("buff:jade", 3), Counted("buff:jade", 1) }, now));
+            }
+
+            Expect(1, news.Count, "said once, settled");
+            Expect(4, news[0].Count, "the stacks added up");
+        }
 
         private static void CountedResourcesSettleBeforeTheyAreSaid()
         {

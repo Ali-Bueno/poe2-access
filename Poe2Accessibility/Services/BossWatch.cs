@@ -23,9 +23,6 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed partial class BossWatch
     {
-        /// <summary>Boss life steps, percent (D2R: 50, then every 10; 75 and 5 added for long PoE fights).</summary>
-        private static readonly int[] LifeSteps = { 75, 50, 40, 30, 20, 10, 5 };
-
         /// <summary>From here down a boss's life cuts in when its kind is set to "cuts in when urgent".</summary>
         private const int UrgentBossPercent = 30;
 
@@ -137,6 +134,7 @@ namespace Poe2Accessibility.Services
             this.warnedAt.Clear();
             this.bosses.Clear();
             this.lastPlayerLife = -1;
+            this.entityAddresses = null;
             this.Mechanics?.Reset();
         }
 
@@ -147,6 +145,7 @@ namespace Poe2Accessibility.Services
             var attacks = this.DodgeWarnings || parrying;
             if (!playing || (!this.AnnounceLife && !attacks))
             {
+                this.lastPlayerLife = -1; // life lost while nothing is watched is no blow
                 return;
             }
 
@@ -163,6 +162,37 @@ namespace Poe2Accessibility.Services
                 this.lastLifePoll = now;
             }
 
+            try
+            {
+                this.WatchNear(area, player, now, pollLife, attacks, parrying);
+            }
+            finally
+            {
+                // A throw in the walk must not leave its address map or the mechanics' poll half done for later frames.
+                this.entityAddresses = null;
+                if (pollLife)
+                {
+                    this.Mechanics?.EndPoll(now);
+                }
+            }
+
+            if (this.DodgeWarnings)
+            {
+                this.WarnFlights(now);
+            }
+
+            if (attacks && Seats.Followed.TryGetComponent<Life>(out var life))
+            {
+                this.LearnFromBlow(life.Health.Current, life.Health.Total, now);
+            }
+            else
+            {
+                this.lastPlayerLife = -1;
+            }
+        }
+
+        private void WatchNear(AreaInstance area, Render player, long now, bool pollLife, bool attacks, bool parrying)
+        {
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
             foreach (var entity in area.AwakeEntities.Values)
             {
@@ -195,22 +225,6 @@ namespace Poe2Accessibility.Services
                     this.WatchAttack(entity, actor, rarity, render, player, offset, gap, area.WorldToGridConvertor, now, parrying);
                 }
             }
-
-            this.entityAddresses = null;
-            if (pollLife)
-            {
-                this.Mechanics?.EndPoll(now);
-            }
-
-            if (this.DodgeWarnings)
-            {
-                this.WarnFlights(now);
-            }
-
-            if (attacks && Seats.Followed.TryGetComponent<Life>(out var life))
-            {
-                this.LearnFromBlow(life.Health.Current, life.Health.Total, now);
-            }
         }
 
         private void WatchLife(Entity entity, Render render)
@@ -223,7 +237,7 @@ namespace Poe2Accessibility.Services
             if (!this.bosses.TryGetValue(entity.Id, out var boss))
             {
                 var name = this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty;
-                boss = (name, 100, false, 100);
+                boss = (name, BossLifeSteps.Full, false, 100);
             }
 
             if (boss.Name.Length == 0)
@@ -251,15 +265,7 @@ namespace Poe2Accessibility.Services
 
             var percent = life.Health.CurrentInPercent();
             var engaged = boss.Engaged || percent < 100;
-            var step = boss.Step;
-            foreach (var threshold in LifeSteps)
-            {
-                if (percent < threshold && threshold < step)
-                {
-                    step = threshold;
-                }
-            }
-
+            var step = BossLifeSteps.Next(boss.Step, percent);
             if (step < boss.Step)
             {
                 // The real value, not the step (D2R): a big hit may skip several steps at once.

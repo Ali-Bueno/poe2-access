@@ -729,7 +729,7 @@ namespace Poe2Accessibility
                 : new CodeFieldReading(Array.Empty<(CodeFieldEntry, int?)>(), 0, Array.Empty<(CodeFieldEntry, int?)>(), 0, task.Exception?.GetBaseException().Message, null);
             if (reading.Error != null)
             {
-                this.log?.Debug($"Code fields unread: {reading.Error}");
+                this.log?.Warn($"Code fields unread: {reading.Error}");
                 if (this.layoutOverrides.Count == 0)
                 {
                     return;

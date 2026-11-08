@@ -25,6 +25,7 @@ namespace Poe2Accessibility.Tests
             (nameof(NothingIsSaidBeforeTheFightIsOn), NothingIsSaidBeforeTheFightIsOn),
             (nameof(InvulnerableEnragedAndPhaseAreSaidOnce), InvulnerableEnragedAndPhaseAreSaidOnce),
             (nameof(AReplacedBossSaysNothingMore), AReplacedBossSaysNothingMore),
+            (nameof(LifeStepsComeBackAfterAHealNotAJitter), LifeStepsComeBackAfterAHealNotAJitter),
             (nameof(TheCatalogReadsItsKinds), TheCatalogReadsItsKinds),
             (nameof(AMechanicLineIsKnownInAnyLanguageAndMarkup), AMechanicLineIsKnownInAnyLanguageAndMarkup),
             (nameof(TheFilesMovementRulesBecomeAilments), TheFilesMovementRulesBecomeAilments),
@@ -301,6 +302,19 @@ namespace Poe2Accessibility.Tests
             Equal(false, BossScripts.IsVariant("SwollenMillerAttackARandom", "SwollenMillerAttackB2"), "another line");
             Equal(false, BossScripts.IsVariant("SwollenMillerAttackC", "SwollenMillerAttackC2"), "a fixed line is only itself");
             Equal(BossScripts.Stem("CorruptWolf_Skill_IceBreath_Random"), BossScripts.Stem("CorruptWolf_Skill_IceBreath_12"), "one stem");
+        }
+
+        private static void LifeStepsComeBackAfterAHealNotAJitter()
+        {
+            Equal(30, BossLifeSteps.Next(BossLifeSteps.Full, 25), "a big hit passes several steps at once");
+            Equal(75, BossLifeSteps.Next(BossLifeSteps.Full, 70), "the first step");
+            Equal(BossLifeSteps.Full, BossLifeSteps.Next(BossLifeSteps.Full, 100), "nothing at full life");
+            Equal(30, BossLifeSteps.Next(30, 31), "regeneration across a step does not repeat it");
+            Equal(30, BossLifeSteps.Next(30, 39), "nor up to the next step");
+            Equal(50, BossLifeSteps.Next(30, 40), "healed back to the step above: it comes again");
+            Equal(BossLifeSteps.Full, BossLifeSteps.Next(30, 100), "full again (the fight restarted after the player died): all of them");
+            Equal(75, BossLifeSteps.Next(BossLifeSteps.Next(30, 100), 74), "then said again from the top");
+            Equal(0, BossLifeSteps.Next(0, 100), "a dead boss read alive for a moment stays dead");
         }
 
         private static void Equal<T>(T expected, T actual, string what)

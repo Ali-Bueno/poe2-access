@@ -164,6 +164,13 @@ internal static class Program
     private static void Cleanup(AppFolders folders, Instance instance)
     {
         instance.Stop(folders);
+        if (!Directory.Exists(folders.Plugin(HostRun.PluginName)))
+        {
+            // The executable without its package (moved alone to the desktop): an "app" beside it is someone else's.
+            Log.Write($"No plugin in {folders.Plugins}: nothing cleaned up");
+            return;
+        }
+
         LegacyHost.Delete(folders.Data);
         if (folders.Packaged && Directory.Exists(folders.Data))
         {

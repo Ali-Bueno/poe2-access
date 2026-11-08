@@ -115,7 +115,7 @@ namespace Poe2Accessibility.Services
                 this.bosses[entity.Id] = boss;
             }
 
-            boss.Engaged |= life.Health.CurrentInPercent() < 100;
+            boss.Engaged |= life.Health.Total > 0 && life.Health.CurrentInPercent() < 100; // a zero total reads as 0 percent
             var facts = this.FactsOf(entity, monster, boss.Engaged, inPlay);
             if (facts != boss.Facts)
             {

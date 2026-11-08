@@ -255,6 +255,11 @@ internal static class GameDataSetup
     {
         var fresh = sounds + ".new";
         var old = sounds + ".old";
+        if (Directory.Exists(old) && !Directory.Exists(sounds))
+        {
+            Directory.Move(old, sounds); // a run stopped between the two moves below
+        }
+
         foreach (var folder in new[] { fresh, old })
         {
             if (Directory.Exists(folder))
@@ -285,7 +290,21 @@ internal static class GameDataSetup
             Directory.Move(sounds, old);
         }
 
-        Directory.Move(fresh, sounds);
+        try
+        {
+            Directory.Move(fresh, sounds);
+        }
+        catch (Exception moveError) when (moveError is IOException or UnauthorizedAccessException)
+        {
+            // A file still open in the new folder (a timed-out step's worker, a virus scan): the previous sounds stay.
+            if (Directory.Exists(old) && !Directory.Exists(sounds))
+            {
+                Directory.Move(old, sounds);
+            }
+
+            throw;
+        }
+
         if (Directory.Exists(old))
         {
             Directory.Delete(old, true);

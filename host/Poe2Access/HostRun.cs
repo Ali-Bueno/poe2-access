@@ -5,7 +5,7 @@ using GameReader;
 /// <summary>Reads the game and runs the accessibility plugin at a fixed rate until asked to stop or the game closes.</summary>
 internal static class HostRun
 {
-    private const string PluginName = "Poe2Accessibility";
+    public const string PluginName = "Poe2Accessibility";
 
     public static void Run(AppFolders folders, EventWaitHandle stop)
     {

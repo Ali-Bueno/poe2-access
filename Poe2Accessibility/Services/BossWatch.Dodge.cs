@@ -80,7 +80,7 @@ namespace Poe2Accessibility.Services
             var id = entity.Id;
             var animation = (int)actor.Animation;
             this.attacks.TryGetValue(id, out var attack);
-            if (attack == null || attack.Animation != animation)
+            if (attack == null || attack.Animation != animation || attack.EndedAt != 0) // the same attack again after a pause is a new one
             {
                 if (attack != null && attack.EndedAt == 0)
                 {
