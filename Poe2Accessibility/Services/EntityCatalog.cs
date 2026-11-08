@@ -65,6 +65,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Pieces of one arena tile this many tiles apart are one arena.</summary>
         private const int ArenaReachTiles = 2;
 
+        /// <summary>
+        ///     Ids a named tile's places take (one per group of its pieces): Ogham Manor's "Stairs Down" stands on two floors,
+        ///     and their average was a point between them that no way leads to (2026-11-08).
+        /// </summary>
+        private const uint LandmarkPlaceStride = 0x100;
+
         /// <summary>Unexplored entries: this base plus their block (row in the high half), above the tile landmarks.</summary>
         private const uint UnexploredIdBase = 0xC0000000;
 
@@ -769,21 +775,33 @@ namespace Poe2Accessibility.Services
                 }
 
                 named.Add(MinimapMarks.TileFile(key));
-                var centre = new Vector2(spots.Average(spot => spot.X), spots.Average(spot => spot.Y)) * toWorld;
                 var english = source.TryGetValue(key, out var written) ? written : label;
-                if (!this.landmarks.IsAreaName(english) && MinimapMarks.ArenaBoss(key, english) is { } boss)
+                var boss = this.landmarks.IsAreaName(english) ? null : MinimapMarks.ArenaBoss(key, english);
+                if (boss != null)
                 {
-                    // The Tomb's and the Mausoleum's arenas were "Asinia" and "MausoleumBoss_ArenaFloor" among the
-                    // exits, a maze's boss not found by that (user 2026-10-29); the boss's name lets the quest find it.
-                    var name = boss.Length == 0 ? string.Empty : boss == english.Trim() ? label : this.landmarks.Localize(boss);
                     namedArenas.Add(MinimapMarks.TileFile(key));
-                    yield return new ScanEntry(LandmarkIdBase + index, ScanCategory.PointsOfInterest, Announcements.BossRoom(name),
-                                               centre.X, centre.Y, height, MinimapMarks.BossRoomKind, Subject: MinimapMarks.WithoutNote(name));
-                    continue;
                 }
 
-                yield return new ScanEntry(LandmarkIdBase + index, ScanCategory.Exits, label, centre.X, centre.Y, height,
-                                           this.landmarks.IsAreaName(label) ? string.Empty : QuestMatcher.TileNote);
+                // One place per group of the tile's pieces: the same tile on two floors is two places, not their middle.
+                var places = MinimapMarks.Groups(spots, ArenaReachTiles * TileStructure.TileToGridConversion);
+                for (var place = 0; place < places.Count; place++)
+                {
+                    var members = places[place];
+                    var centre = new Vector2(members.Average(member => spots[member].X), members.Average(member => spots[member].Y)) * toWorld;
+                    var id = LandmarkIdBase + (index * LandmarkPlaceStride) + (uint)place;
+                    if (boss != null)
+                    {
+                        // The Tomb's and the Mausoleum's arenas were "Asinia" and "MausoleumBoss_ArenaFloor" among the
+                        // exits, a maze's boss not found by that (user 2026-10-29); the boss's name lets the quest find it.
+                        var name = boss.Length == 0 ? string.Empty : boss == english.Trim() ? label : this.landmarks.Localize(boss);
+                        yield return new ScanEntry(id, ScanCategory.PointsOfInterest, Announcements.BossRoom(name),
+                                                   centre.X, centre.Y, height, MinimapMarks.BossRoomKind, Subject: MinimapMarks.WithoutNote(name));
+                        continue;
+                    }
+
+                    yield return new ScanEntry(id, ScanCategory.Exits, label, centre.X, centre.Y, height,
+                                               this.landmarks.IsAreaName(label) ? string.Empty : QuestMatcher.TileNote);
+                }
             }
 
             foreach (var arena in this.UnnamedArenas(tiles, named, namedArenas))
