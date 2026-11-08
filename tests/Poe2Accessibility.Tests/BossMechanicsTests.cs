@@ -14,6 +14,7 @@ namespace Poe2Accessibility.Tests
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(ACircleOnThePlayerIsLeftAnyWay), ACircleOnThePlayerIsLeftAnyWay),
+            (nameof(AMortarAimedAtThePlayerSaysMove), AMortarAimedAtThePlayerSaysMove),
             (nameof(AnOffCentreCircleIsLeftAwayFromItsCentre), AnOffCentreCircleIsLeftAwayFromItsCentre),
             (nameof(ADonutSendsToTheNearerSafety), ADonutSendsToTheNearerSafety),
             (nameof(ALineIsSidesteppedOnTheNearerSide), ALineIsSidesteppedOnTheNearerSide),
@@ -35,6 +36,24 @@ namespace Poe2Accessibility.Tests
 
         private static Counterplay? Answer(AttackArea area, Vector2 target, Vector2 player, Vector2? monster = null) =>
             BossCounterplay.Of(area, monster ?? Vector2.Zero, target, player, 0f, 0f);
+
+        private static void AMortarAimedAtThePlayerSaysMove()
+        {
+            // The ritual's Rotten Druid: "MMSFungusBehemothProjectile|mortar||…/swamp_mortar_spam_impact.ao|", aimed at the player.
+            var data = new AttackData();
+            data.AddTelegraphSkills(new[] { "MMSFungusBehemothProjectile|mortar||Metadata/Effects/Spells/monsters_effects/swamp_mortar_spam_impact.ao|" });
+            var mortar = data.Area("MMSFungusBehemothProjectile");
+            Equal(true, mortar != null, "every mortar has an area: where it was aimed");
+            var druid = new Vector2(0, 0);
+            var spot = new Vector2(500, 0);
+            Equal(CounterplayKind.Move, BossCounterplay.Of(mortar!.Value, druid, spot, spot + new Vector2(10, 0), 30f, 40f)?.Kind, "standing on the aimed spot: move");
+            Equal(null, BossCounterplay.Of(mortar.Value, druid, spot, new Vector2(800, 0), 30f, 40f), "far from where it lands: nothing");
+            var sized = AttackAreas.Parse(AttackAreas.Mortar, "length=12;range=15");
+            Equal(CounterplayKind.Move, sized is { } known ? BossCounterplay.Of(AttackAreas.InWorld(known), druid, spot, spot + new Vector2(250, 0), 30f, 40f)?.Kind : null,
+                "a size the tables give (blast 12, scatter 15 cells) widens it");
+            Equal(true, sized is { } scattered && AttackAreas.Catches(AttackAreas.InWorld(scattered), druid, spot, spot + new Vector2(250, 0), 30f, 40f),
+                "the dodge gate reads its range as the scatter around the aimed spot, not a reach from the druid");
+        }
 
         private static void ACircleOnThePlayerIsLeftAnyWay()
         {

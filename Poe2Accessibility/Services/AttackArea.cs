@@ -36,6 +36,15 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public const float WorldPerCell = 250f / 23f;
 
+        /// <summary>The telegraph kind of a mortar (MonsterMortar).</summary>
+        public const string Mortar = "mortar";
+
+        /// <summary>
+        ///     A mortar's area counts as scattered (<see cref="AttackArea.Count"/> above 1): the counterplay says "move" when the
+        ///     player stands within its size of the aimed place, never a way out of a centre it cannot know.
+        /// </summary>
+        public const int MortarCount = 2;
+
         /// <summary>The area with its sizes (length, width, range) in world units; angle, delay and count are kept.</summary>
         public static AttackArea InWorld(AttackArea area) => area with
         {
@@ -46,7 +55,11 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     The area of a <c>geometry</c> line ("shape=cone;length=10;angle=100;delay=33;range=85") or a <c>trigger</c> line
-        ///     ("count=1;range=15;radius=10;angle=360": a circle); null for other kinds or an area with no size.
+        ///     ("count=1;range=15;radius=10;angle=360": a circle); null for other kinds or an area with no size. A <c>mortar</c>
+        ///     lands where it was aimed (the action's target place) and its tables give no blast size (MonsterMortar, its
+        ///     projectile, its stat sets and its impact .ao were searched, 2026-11-08): it is a circle around its aimed place,
+        ///     with whatever size the line gives, that the player leaves by moving (<see cref="MortarCount"/>), as the ritual's
+        ///     Rotten Druid's mortar landed three times with no word said.
         /// </summary>
         public static AttackArea? Parse(string kind, string area)
         {
@@ -97,6 +110,11 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            if (kind == Mortar)
+            {
+                return new AttackArea(Circle, length, 0f, 0f, range, delay) { Count = Math.Max(count, MortarCount) };
+            }
+
             shape = kind == "trigger" ? Circle : kind == "geometry" ? shape : null;
             return shape != null && length > 0f ? new AttackArea(shape, length, width, angle, range, delay) { Count = count } : null;
         }
@@ -113,6 +131,9 @@ namespace Poe2Accessibility.Services
             var direction = distance > 0f ? toward / distance : Vector2.UnitX;
             switch (area.Shape)
             {
+                case Circle or Donut when area.Count > 1:
+                    // Scattered markers or a mortar: within their spread ("range") of the aimed place, as BossCounterplay reads them.
+                    return Vector2.Distance(target, player) <= area.Range + area.Length + body;
                 case Circle or Donut:
                     var centre = area.Range > 0f && distance > area.Range ? monster + (direction * area.Range) : target;
                     return Vector2.Distance(centre, player) <= area.Length + body;
