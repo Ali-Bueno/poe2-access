@@ -196,8 +196,12 @@ the way it stops a signature.
 | `deref` | the same | from argument i of the evaluator, the first pointer loaded at each level, k levels down; the lowest field read through the last one |
 | `slot` | the same, after `GEAL::GetGameWorld()` | the world's virtual slot called next (in the evaluator, or in the first callee the world is passed to), read in every vtable holding a dump that prints the label: `lea rax,[rcx+X]; ret` gives X, anything else its lowest this-field, and all must agree. `then` adds the lowest field the next callee reads from the result; `inline` takes the address the constructors (the functions loading those vtables) store into the field |
 | `this` | the one function loading an ASCII string (and a second one) | the k-th distinct field it reads through `this` |
+| `called … deref` | a label, as `called … arg` | from the callee's argument i, the first pointer loaded at each level, k levels down; the lowest field read there |
+| `stride` | a label's dump, or a GEAL evaluator | the first vector read after the site (a pointer load compared with the next pointer within 6 instructions), then the immediate the loop adds to its iterator right before comparing it with the end again |
+| `entry` | the same | the k-th distinct field that loop reads through the pointer each entry holds (one level down from the iterator) |
+| `leaf` | a GEAL row, after `GEAL::GetGameWorld()` and the world's virtual slot | the k-th distinct field (indexed reads included) the callee taking the slot's result reads through it; the sweep to that callee goes past jumps, because the evaluator short-circuits before it |
 
-**Fields.** There are 44 rules for 32 fields, and all 44 read the 0.5.5f value:
+**Fields.** There are 52 rules for 38 fields, and all 52 read the 0.5.5f value:
 
 - **Life:** Health, Mana and ES, Current and Total. Health.Current also comes from GEAL `IsAlive`.
 - **Player:** Xp. Level, from the `Level: ` printed in the function that also prints `Experience: `. Name, through an address-of.
@@ -238,6 +242,46 @@ area did not move in these five builds, and the signatures of the earlier study 
 Tried and dropped: `IsType` and `IfType` compare component names (`player`, `monster`, `chest`) through the lookup, not the path;
 `IsSameType` compares the two details pointers; `GEAL::GetGameWorld()` does not read the state but asks the GEAL context (its
 slot 0x28); no leaf `mov rax,[rcx+0x290]; ret` exists, so the state has no getter to find through a vtable.
+
+### The entry fields
+
+Added 2026-11-08 for the fields of the audit that had no protection or one (`field-protection-audit.md`, C17b, C11, C14, T1, T3,
+T4). Each rule reads one value on all five builds; none of these fields moved in them, and the signatures of `code-fields.txt` read
+the same where they have one. The skill entry size became a plugin layout field (`layout:SkillEntrySize`) so the catalog can move it.
+
+| Field | Rule | What it anchors on | Five builds |
+|---|---|---|---|
+| `BuffDefinitionsOffset.Name` | `called "Buffs: " 1 arg 2 deref 1` | the printer the Buffs dump calls per effect does `mov rax,[rdx+8]; mov rdx,[rax]`: the definition is the entry's first pointer and its name the first field of that | 0x0 |
+| `layout:SkillEntrySize` | `stride label "Active Skills: "`, `stride geal ConsumeSkillUse` | the Actor dump loads `[sub+0x148]`, compares it with `[sub+0x150]` and walks it with `add rbx,0x10`; `ConsumeSkillUse` walks the same vector the same way | 0x10 |
+| `layout:SkillLevelKey` | `entry label "Active Skills: " 0`, `entry geal ConsumeSkillUse 1` | each entry's first pointer is the ActiveSkillDetails; the dump reads only `[details+0x58]` (the GrantedEffectsPerLevel key it prints), `ConsumeSkillUse` reads `word [details+0x44]` and then `[details+0x58]` | 0x58 |
+| `TerrainStruct.TotalTiles` | `leaf IsWalkable 0` | after the world's slot 0x1A8 (the terrain) the evaluator calls one leaf with it: `imul eax,[rcx+0x18],0x17; … [rcx+0x20]` | 0x18 |
+| `TerrainStruct.GridWalkableData` | `leaf IsWalkable 2` | the same leaf picks a grid by kind: `mov r8,[r9+rcx*8+0xD0]; cmp r8,[r9+rcx*8+0xD8]` (the five grids are 0x18 apart, so the landscape grid is never named) | 0xD0 |
+| `TerrainStruct.BytesPerRow` | `leaf IsWalkable 4` | the same leaf: `imul r10d,[r9+0x130]`, then half the x (two cells to a byte) | 0x130 |
+
+Tried and dropped the same day:
+
+- `StatsStructInternal.Stats` 0xF8: `GetStat` and `IfStat` read `[Stats+0x160]` and call slot 0 of that object's vtable, and no name
+  reaches that class (the Stats pool's vtable only allocates; `GetMapStat` looks a stat up in another class at world+0x130).
+- `StateMachine` entries: the dump after `StateMachine state ` reads `[StatesPtr+0x10]` and a 0xC0 stride (`lea rax,[rcx+rcx*2];
+  shl rax,6`), but the host's `StateMachine.cs` hard-codes both, so no target can take the value yet.
+- `ModArrayStruct.ModsPtr` and its stride: read raw by `ReadStdVector` and `MonsterMods.cs`, so they stay `report`.
+- Chest 0x160: `AddChestOnOpen` passes the component to a function that reads only its owner at +0x8; the Chest dump prints the
+  bytes at 0x168, 0x169 and 0x16D directly.
+- `ActiveSkillDetails.SkillId` 0x40: `ConsumeSkillUse` compares `word [details+0x44]`, `HasGrenadeSkill` reads no field of the details.
+- Actor cooldowns and the cooldown entry: `IsSkillOnCooldown`, `ForceSkillIntoCooldown` and the like exist as wide strings built into
+  static string objects, not as GEAL factories, and `ForceSkillIntoCooldown` (a real GEAL row) only walks the skills.
+- Render bounds X 0x144: one site reads it through the getter (one unique signature, `F3 0F 5C 88 ^ … F3 0F 58 C7` at 0x1806097),
+  so no second can agree; the Y and Z lines of `code-fields.txt` move the same `CharactorModelBounds` field with a bias, X included.
+- `Shrine.IsUsed`: no dump, no GEAL function; the `Shrine` wide string belongs to a UI function. Its signatures now place the field
+  (`ShrineOffsets:IsUsed`), since the host reads the struct through the remap.
+
+### The window cull
+
+`GameCullSize` is a static the game subtracts from x coordinates (`sub eax,[rip+X]`) in some two hundred functions; the host's pattern
+reads one of them. A second pattern, `GameCullSize (alt)` in `StaticOffsetsPatterns`, reads another (`2B 05 ^ ?? ?? ?? ?? 0F 57 F6 0F 57 FF
+48 8B CF F3 48 0F 2A F8`, 16 fixed bytes) and `Core.UpdateCullData` takes it when the first is gone. Both hit once and resolve to the same
+static on the five builds (0x458B100, 0x458D210, 0x458D250, 0x45A4BC0, 0x45A4C00). Seven more candidate windows did the same and are
+not shipped.
 
 No name reaches these:
 
@@ -288,7 +332,7 @@ An encoding it does not know decodes to nothing, so a rule never guesses. This c
 
 - `CodeFieldCatalog.Settle` keeps one value per target. A target that the signatures and the rules read differently stays where it is and is logged.
 - The value then goes through `PlaceFromCode` or `LayoutFields` as before. A live segment wins, and a value more than 0x400 from the catalog is not believed.
-- The log line reads `Semantic fields: 44 of 44 read in … ms; moved: none`. On the warm 0.5.5f exe, the index takes 0.32 s (every E8 call and RIP `lea`, 154,738 fragments) and the rules take 0.15 s.
+- The log line reads `Semantic fields: 52 of 52 read in … ms; moved: none`. On the warm 0.5.5f exe, the index takes 0.32 s (every E8 call and RIP `lea`, 154,738 fragments) and the rules take 0.15 s.
 - `dotnet run --project tests/Poe2Accessibility.Tests -- semantic <exe> <catalog>` prints each rule's candidates for any build.
 
 **Limits.**
@@ -296,8 +340,8 @@ An encoding it does not know decodes to nothing, so a rule never guesses. This c
 - Rerun on the five builds of the table above (archived under `D:\code\decompilers\projects\poe2-research\builds\<build>`,
   2026-11-08): every rule read the true value of each build. On the three builds before 0.5.5f the area level read 0xBC and
   the hash 0x114, the old layout upstream's constants had, so it reads the very move that silenced the mod; 0.5.5f and its
-  hotfix read 0xC4 and 0x11C. With the world fields of 2026-11-08, 38 of 44 "right" against the current constants on the old
-  builds means exactly the six that moved in 0.5.5f (level, hash, terrain, entities, local player).
+  hotfix read 0xC4 and 0x11C. With the world and entry fields of 2026-11-08, 46 of 52 "right" against the current constants
+  on the old builds means exactly the six that moved in 0.5.5f (level, hash, terrain, entities, local player).
   Still one compiler setup over two months: a major version is untested.
 - `label` relies on the dump printing in order, and `field`'s sweep ignores control flow.
 - A removed dump, a renamed GEAL function or an inlined getter only stops a rule.
