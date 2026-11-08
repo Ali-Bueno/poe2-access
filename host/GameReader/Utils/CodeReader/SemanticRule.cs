@@ -42,6 +42,15 @@ namespace GameReader.Utils.CodeReader
 
         /// <summary>The one function loading a string (and a second): the k-th distinct field it reads through <c>this</c>.</summary>
         This,
+
+        /// <summary>A label or a GEAL function: the immediate the loop over the first vector read after it adds to its iterator.</summary>
+        Stride,
+
+        /// <summary>A label or a GEAL function: the k-th distinct field that loop reads through the pointer each vector entry holds.</summary>
+        Entry,
+
+        /// <summary>A GEAL function: the k-th distinct field the callee taking the world's virtual slot result reads through it.</summary>
+        Leaf,
     }
 
     /// <summary>
@@ -49,7 +58,8 @@ namespace GameReader.Utils.CodeReader
     ///     <c>label "Character Name: " 0 address</c>, <c>geal IsAlive Life 0</c>, <c>world IsLevel 0</c>, <c>callee HasBuff Buffs</c>,
     ///     <c>called "Team: " 1 returns 0</c>, <c>called "Buffs: " 1 arg 2 0</c>, <c>field "Active Skills: " 0</c>, <c>getter Life details</c>,
     ///     <c>object GetObjectId 0</c>, <c>deref TypeContains arg 3 2</c>, <c>slot IsWalkable "Tile hash: "</c> (with <c>then</c> or
-    ///     <c>inline</c>), <c>this "league" 0 with "class"</c>.
+    ///     <c>inline</c>), <c>this "league" 0 with "class"</c>, <c>called "Buffs: " 1 arg 2 deref 1</c>,
+    ///     <c>stride label "Active Skills: "</c>, <c>entry geal ConsumeSkillUse 1</c>, <c>leaf IsWalkable 0</c>.
     /// </summary>
     /// <param name="Kind">What it starts from.</param>
     /// <param name="Name">The label, the GEAL function, the getter's part, or the string a function loads.</param>
@@ -61,18 +71,23 @@ namespace GameReader.Utils.CodeReader
     /// <param name="Argument">The callee's argument, 1 to 4 (Win64 order), or 0 for the value it returns.</param>
     /// <param name="Then">A slot: add the lowest field the next callee reads from the slot's result.</param>
     /// <param name="Inline">A slot: the storage the constructor points the slot's field at.</param>
+    /// <param name="Depth">A called argument: follow its first pointer this many levels and take the lowest field read there.</param>
+    /// <param name="Source">A stride or entry: <c>label</c> when the name is a dump's label, <c>geal</c> when it is a GEAL function.</param>
     public sealed record SemanticRule(
         SemanticKind Kind, string Name, string Component = "", int K = 0, string? With = null, bool Address = false, int Call = 0, int Argument = 0,
-        bool Then = false, bool Inline = false)
+        bool Then = false, bool Inline = false, int Depth = 0, string Source = "")
     {
         public const string Details = "details";
         public const string Lookup = "lookup";
         public const string Map = "map";
         public const string Components = "components";
+        public const string FromLabel = "label";
+        public const string FromGeal = "geal";
 
         private const char Quote = '"';
         private const int MaxArgument = 4;
         private const string ArgumentWord = "arg";
+        private const string DerefWord = "deref";
 
         /// <summary>The rule a catalog column spells, or null when it does not parse.</summary>
         public static SemanticRule? Parse(string text)
@@ -92,7 +107,11 @@ namespace GameReader.Utils.CodeReader
                 "callee" when count == 3 => new SemanticRule(SemanticKind.Callee, tokens[1], tokens[2]),
                 "called" when Number(2) is { } call and >= 1 && count > 3 && tokens[3] == "returns" =>
                     new SemanticRule(SemanticKind.Called, tokens[1], Call: call, K: Number(4) ?? 0),
-                "called" when Number(2) is { } call and >= 1 && count > 4 && tokens[3] == ArgumentWord && Number(4) is { } argument and >= 1 and <= MaxArgument =>
+                "called" when Number(2) is { } call and >= 1 && count == 7 && tokens[3] == ArgumentWord && Number(4) is { } argument and >= 1 and <= MaxArgument
+                    && tokens[5] == DerefWord && Number(6) is { } depth and >= 1 =>
+                    new SemanticRule(SemanticKind.Called, tokens[1], Call: call, Argument: argument, Depth: depth),
+                "called" when Number(2) is { } call and >= 1 && count is 5 or 6 && tokens[3] == ArgumentWord && Number(4) is { } argument and >= 1 and <= MaxArgument
+                    && (count == 5 || Number(5) is { }) =>
                     new SemanticRule(SemanticKind.Called, tokens[1], Call: call, Argument: argument, K: Number(5) ?? 0),
                 "field" when Number(2) is { } k => Options(new SemanticRule(SemanticKind.Field, tokens[1], K: k), tokens, 3),
                 "getter" when count == 3 && tokens[2] is Details or Lookup or Map or Components => new SemanticRule(SemanticKind.Getter, tokens[2], tokens[1]),
@@ -101,6 +120,9 @@ namespace GameReader.Utils.CodeReader
                     new SemanticRule(SemanticKind.Deref, tokens[1], Argument: argument, K: depth),
                 "slot" when count >= 3 => Options(new SemanticRule(SemanticKind.Slot, tokens[1], With: tokens[2]), tokens, 3),
                 "this" when Number(2) is { } k => Options(new SemanticRule(SemanticKind.This, tokens[1], K: k), tokens, 3),
+                "stride" when count == 3 && tokens[1] is FromLabel or FromGeal => new SemanticRule(SemanticKind.Stride, tokens[2], Source: tokens[1]),
+                "entry" when count == 4 && tokens[1] is FromLabel or FromGeal && Number(3) is { } k => new SemanticRule(SemanticKind.Entry, tokens[2], K: k, Source: tokens[1]),
+                "leaf" when count == 3 && Number(2) is { } k => new SemanticRule(SemanticKind.Leaf, tokens[1], K: k),
                 _ => null,
             };
         }

@@ -79,6 +79,7 @@ namespace Poe2Accessibility
             ["CooldownTime"] = (() => GameLayout.ActorComponent.CooldownTimeOffset, value => GameLayout.ActorComponent.CooldownTimeOffset = value),
             ["CooldownSkillId"] = (() => GameLayout.ActorComponent.CooldownSkillIdOffset, value => GameLayout.ActorComponent.CooldownSkillIdOffset = value),
             ["CooldownEntrySize"] = (() => GameLayout.ActorComponent.CooldownEntrySize, value => GameLayout.ActorComponent.CooldownEntrySize = value),
+            ["SkillEntrySize"] = (() => GameLayout.ActorComponent.SkillEntrySize, value => GameLayout.ActorComponent.SkillEntrySize = value),
             ["PoiseThreshold"] = (() => GameLayout.ActorComponent.PoiseThresholdOffset, value => GameLayout.ActorComponent.PoiseThresholdOffset = value),
             ["Poise"] = (() => GameLayout.ActorComponent.PoiseOffset, value => GameLayout.ActorComponent.PoiseOffset = value),
             ["NodeInBuild"] = (() => GameLayout.PassiveTree.NodeInBuildOffset, value => GameLayout.PassiveTree.NodeInBuildOffset = value),

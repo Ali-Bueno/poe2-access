@@ -177,7 +177,7 @@ namespace Poe2Accessibility
             /// <summary>Where the skills stand in this build (<see cref="MeasuredSkillsOffset"/> plus what the struct sweep found).</summary>
             public static int SkillsOffset { get; internal set; } = MeasuredSkillsOffset;
 
-            public const int SkillEntrySize = 0x10;
+            public static int SkillEntrySize { get; internal set; } = 0x10;
 
             /// <summary>
             ///     std::vector of the actor's skill cooldowns, 0x48-byte entries (GameHelper ActorOffsets.CooldownsPtr,

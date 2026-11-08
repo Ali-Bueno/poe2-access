@@ -53,6 +53,9 @@ namespace GameReader.Utils.CodeReader
             SemanticKind.Deref => this.Deref(rule),
             SemanticKind.Slot => this.Slot(rule),
             SemanticKind.This => this.This(rule),
+            SemanticKind.Stride => this.Stride(rule),
+            SemanticKind.Entry => this.Entry(rule),
+            SemanticKind.Leaf => this.Leaf(rule),
             _ => new long[0],
         };
 
@@ -210,6 +213,19 @@ namespace GameReader.Utils.CodeReader
                     if (loads is { } values && values.Count > rule.K)
                     {
                         found.Add(values[values.Count - 1 - rule.K]);
+                    }
+                }
+                else if (rule.Depth > 0)
+                {
+                    // Through the argument's first pointer, k levels down: the lowest field read there (as deref does).
+                    var seeds = new Dictionary<int, long> { [Arguments[rule.Argument - 1]] = 0 };
+                    var fields = this.Index.Body(callee) is { } body
+                        ? RegisterTracker.Track(body.Take(ArgumentInstructions), seeds, rule.Depth)
+                            .Where(access => access.Level == rule.Depth && Load(access.Instruction) != null).Select(access => access.Field).ToList()
+                        : new List<long>();
+                    if (fields.Count > 0)
+                    {
+                        found.Add(fields.Min());
                     }
                 }
                 else

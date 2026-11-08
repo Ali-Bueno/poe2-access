@@ -84,8 +84,11 @@ namespace GameReader.Utils.CodeReader
             return fields.Count > rule.K ? new List<long> { fields[rule.K] } : new List<long>();
         }
 
-        /// <summary>The first direct call made with rcx holding what rax held at <paramref name="from"/>: the callee that takes the result.</summary>
-        private static long? CalleeTaking(List<X64Instruction> code, int from)
+        /// <summary>
+        ///     The first direct call made with rcx holding what rax held at <paramref name="from"/>: the callee that takes the
+        ///     result. The walk stops at a jump unless <paramref name="pastJumps"/>, when it sweeps on in order to the ret.
+        /// </summary>
+        private static long? CalleeTaking(List<X64Instruction> code, int from, bool pastJumps = false)
         {
             var held = RegisterTracker.Seed(new Dictionary<int, long> { [X64.Rax] = 0 });
             for (var at = from; at < code.Count && held.Count > 0; at++)
@@ -97,7 +100,7 @@ namespace GameReader.Utils.CodeReader
                 }
 
                 RegisterTracker.Step(instruction, held);
-                if (instruction.Kind is InstructionKind.Ret or InstructionKind.Jmp)
+                if (instruction.Kind == InstructionKind.Ret || (instruction.Kind == InstructionKind.Jmp && !pastJumps))
                 {
                     break;
                 }
