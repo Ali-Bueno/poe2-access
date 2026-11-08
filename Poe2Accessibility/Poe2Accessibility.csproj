@@ -17,7 +17,7 @@
     <NoWarn>1701;1702;1591</NoWarn>
     <!-- The mod's host (host/) and the folder it loads the plugin from. -->
     <HostRoot>$(MSBuildProjectDirectory)\..\host\</HostRoot>
-    <PluginDeployDir>$(HostRoot)Poe2AccessHost\bin\$(Configuration)\net10.0-windows\win-x64\Plugins\$(MSBuildProjectName)\</PluginDeployDir>
+    <PluginDeployDir>$(HostRoot)Poe2Access\bin\$(Configuration)\net10.0-windows\win-x64\Plugins\$(MSBuildProjectName)\</PluginDeployDir>
   </PropertyGroup>
 
   <ItemGroup>

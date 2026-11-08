@@ -2,7 +2,7 @@ using System; // also built into the tests, which have no implicit usings
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Poe2AccessLauncher;
+namespace Poe2Access;
 
 /// <summary>
 ///     What the game data was made from: the install (lines such as "index=size:time") and the version each

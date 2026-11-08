@@ -1,4 +1,4 @@
-namespace Poe2AccessHost
+namespace Poe2Access
 {
     using System;
     using System.Collections.Generic;

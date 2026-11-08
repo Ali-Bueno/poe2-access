@@ -5,7 +5,7 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text.Json;
 
-namespace Poe2AccessLauncher;
+namespace Poe2Access;
 
 /// <summary>
 ///     Installs the latest GitHub release over this package before the host starts, when nothing in "app" is in use:
@@ -20,8 +20,8 @@ internal static class Updater
     private const int LeftoverWaitMilliseconds = 300;
     private const uint MessageBoxYesNo = 0x4;
     private const uint MessageBoxQuestion = 0x20;
-    private const uint MessageBoxError = 0x10;
-    private const uint MessageBoxInformation = 0x40;
+    private const uint MessageBoxError = Dialogs.Error;
+    private const uint MessageBoxInformation = Dialogs.Information;
     private const uint MessageBoxForeground = 0x10000 | 0x40000; // MB_SETFOREGROUND | MB_TOPMOST: above a running game
     private const int AnswerYes = 6;
     private static readonly TimeSpan CheckTimeout = TimeSpan.FromSeconds(5);
@@ -36,15 +36,15 @@ internal static class Updater
 
     private static string OldLauncher => Path.Join(InstallRoot, LauncherExe + ".old");
 
-    private static string SettingsPath => Path.Join(HostController.PackagedHostDirectory, "Plugins", "Poe2Accessibility", "config", "settings.txt");
+    private static string SettingsPath(AppFolders folders) => Path.Join(folders.Plugin("Poe2Accessibility"), "config", "settings.txt");
 
     /// <summary>
     ///     Looks for a newer release and, if the player agrees, installs it; true when installed. Automatic (at start)
     ///     it is silent unless there is something to install and follows the CheckForUpdates setting.
     /// </summary>
-    public static bool Offer(HostController controller, bool manual)
+    public static bool Offer(AppFolders folders, Action stopRunning, bool manual)
     {
-        var installedTag = InstalledTag();
+        var installedTag = InstalledTag(folders);
         if (installedTag is null || ReleaseTag.Parse(installedTag) is not { } installed)
         {
             Log.Write("No version file: a development build, no update check");
@@ -57,7 +57,7 @@ internal static class Updater
             return false;
         }
 
-        if (!manual && !AutomaticCheckOn())
+        if (!manual && !AutomaticCheckOn(folders))
         {
             Log.Write("Update check off in the settings");
             return false;
@@ -94,7 +94,7 @@ internal static class Updater
         var question = Text(
             $"A new version of Poe2Access is out: {release.Tag} (you have {installedTag}).\n\nDownload and install it now? It takes about a minute with nothing said; your settings are kept and a message tells you when it is done.\n\n{notes}",
             $"Hay una versión nueva de Poe2Access: {release.Tag} (tienes la {installedTag}).\n\n¿Descargarla e instalarla ahora? Tarda alrededor de un minuto sin decir nada; tus ajustes se conservan y un mensaje avisa al terminar.\n\n{notes}");
-        if (Program.MessageBox(IntPtr.Zero, question, "Poe2Access", MessageBoxYesNo | MessageBoxQuestion | MessageBoxForeground) != AnswerYes)
+        if (Dialogs.Show(IntPtr.Zero, question, "Poe2Access", MessageBoxYesNo | MessageBoxQuestion | MessageBoxForeground) != AnswerYes)
         {
             Log.Write("Update declined");
             return false;
@@ -102,7 +102,7 @@ internal static class Updater
 
         try
         {
-            Install(release, installedTag, controller);
+            Install(release, installedTag, stopRunning);
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or HttpRequestException or TaskCanceledException or InvalidDataException)
         {
@@ -126,7 +126,7 @@ internal static class Updater
     /// <summary>Starts the launcher just installed, with the same arguments, once this one has let go of its mutex.</summary>
     /// <param name="args">This launcher's arguments, passed on.</param>
     /// <param name="wait">Stay until the new launcher ends: Steam follows the launcher it started.</param>
-    public static void StartInstalled(string[] args, bool wait)
+    public static int StartInstalled(string[] args, bool wait)
     {
         var info = new ProcessStartInfo(Path.Join(InstallRoot, LauncherExe)) { UseShellExecute = false, WorkingDirectory = InstallRoot };
         foreach (var arg in args)
@@ -135,10 +135,13 @@ internal static class Updater
         }
 
         using var started = Process.Start(info);
-        if (wait)
+        if (!wait || started is null)
         {
-            started?.WaitForExit();
+            return 0;
         }
+
+        started.WaitForExit();
+        return started.ExitCode;
     }
 
     /// <summary>The launcher an update moved aside is still exiting when the new one starts: retry its deletion briefly.</summary>
@@ -157,17 +160,17 @@ internal static class Updater
         }
     }
 
-    private static string? InstalledTag()
+    private static string? InstalledTag(AppFolders folders)
     {
-        var path = Path.Join(HostController.PackagedHostDirectory, VersionFile);
+        var path = Path.Join(folders.Data, VersionFile);
         return File.Exists(path) ? File.ReadAllText(path).Trim() : null;
     }
 
-    private static bool AutomaticCheckOn()
+    private static bool AutomaticCheckOn(AppFolders folders)
     {
         try
         {
-            using var settings = JsonDocument.Parse(File.ReadAllText(SettingsPath), new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
+            using var settings = JsonDocument.Parse(File.ReadAllText(SettingsPath(folders)), new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
             return !(settings.RootElement.TryGetProperty("CheckForUpdates", out var value) && value.ValueKind == JsonValueKind.False);
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or JsonException)
@@ -192,7 +195,7 @@ internal static class Updater
         return ReleaseManifest.Parse(reader.ReadToEnd());
     }
 
-    private static void Install(Release release, string installedTag, HostController controller)
+    private static void Install(Release release, string installedTag, Action stopRunning)
     {
         var work = Path.Join(WorkRoot, release.Tag);
         TryDeleteDirectory(work);
@@ -221,40 +224,8 @@ internal static class Updater
             .Select(Path.GetDirectoryName)
             .FirstOrDefault(folder => folder is not null && Directory.Exists(Path.Join(folder, "app")))
             ?? throw new InvalidDataException($"{ReleaseManifest.PackageAsset} holds no {LauncherExe} beside an app folder");
-        controller.Stop();
+        stopRunning();
         Replace(package, Path.Join(work, "backup"));
-        Prune(package);
-    }
-
-    /// <summary>
-    ///     Deletes what the new package no longer carries in "app": its loose files (GameHelper.exe, its copies and
-    ///     libraries after the host change) and the old host's folders. Logs stay; the plugin's and GameData's folders
-    ///     are the player's. Best effort, once the install succeeded.
-    /// </summary>
-    private static void Prune(string package)
-    {
-        var app = Path.Join(package, "app");
-        var installed = HostController.PackagedHostDirectory;
-        if (!Directory.Exists(app) || !Directory.Exists(installed))
-        {
-            return;
-        }
-
-        var shipped = Directory.EnumerateFiles(app).Select(Path.GetFileName).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        foreach (var file in Directory.EnumerateFiles(installed))
-        {
-            var name = Path.GetFileName(file);
-            if (!shipped.Contains(name) && !name.EndsWith(".log", StringComparison.OrdinalIgnoreCase))
-            {
-                Log.Write($"Deleting {name}: not in the new package");
-                TryDeleteFile(file);
-            }
-        }
-
-        foreach (var folder in LegacyHost.Folders.Where(folder => !Directory.Exists(Path.Join(app, folder))))
-        {
-            TryDeleteDirectory(Path.Join(installed, folder));
-        }
     }
 
     /// <summary>Copies the package over the installation; on any failure the files are as they were.</summary>
@@ -353,5 +324,5 @@ internal static class Updater
     private static string Text(string english, string spanish) =>
         CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "es" ? spanish : english;
 
-    private static void Tell(string message, uint icon) => Program.MessageBox(IntPtr.Zero, message, "Poe2Access", icon | MessageBoxForeground);
+    private static void Tell(string message, uint icon) => Dialogs.Show(IntPtr.Zero, message, "Poe2Access", icon | MessageBoxForeground);
 }

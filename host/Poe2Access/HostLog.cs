@@ -1,10 +1,10 @@
-namespace Poe2AccessHost
+namespace Poe2Access
 {
     using System;
     using System.IO;
     using System.Text;
 
-    /// <summary>The host's own log; the reader's console messages go to it too, up to a size cap.</summary>
+    /// <summary>The mod's log (Poe2Access.log); the reader's console messages go to it too, up to a size cap.</summary>
     internal sealed class HostLog : TextWriter
     {
         private const long MaxBytes = 4 * 1024 * 1024;
@@ -38,7 +38,13 @@ namespace Poe2AccessHost
             return log;
         }
 
-        public static void Line(string line) => current?.WriteLine(line);
+        /// <summary>Writes a line when the log is open; false when it is not.</summary>
+        public static bool Line(string line)
+        {
+            var open = current;
+            open?.WriteLine(line);
+            return open != null;
+        }
 
         public override void Write(char value) => this.Write(value.ToString());
 
@@ -56,6 +62,7 @@ namespace Poe2AccessHost
                     return;
                 }
 
+                this.file.BaseStream.Seek(0, SeekOrigin.End); // short-lived commands append to the same file
                 this.written += value.Length;
                 this.file.Write(this.written > MaxBytes ? "[log full]" + Environment.NewLine : value);
             }

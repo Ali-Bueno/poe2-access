@@ -1,26 +1,26 @@
 using System.Text.Json;
 
-namespace Poe2AccessLauncher;
+namespace Poe2Access;
 
 /// <summary>
 ///     The GameHelper host that packages before Poe2AccessHost carried: GameHelper.exe, the random-named copies the
-///     old launcher started it as (listed in two files), its overlay's libraries and folders. An update by the old
-///     launcher copies the new package over them without removing anything; this removes them.
+///     old launcher started it as (listed in two files), its overlay's libraries and folders, and the separate host's
+///     log. An update by an old launcher copies the new package over them without removing anything; this removes them.
 /// </summary>
 internal static class LegacyHost
 {
     private const string GameHelperExe = "GameHelper.exe";
     private const string GameHelperStoreFile = "tempFileLocations.dat"; // JSON string array, paths relative to the host folder
     private const string LauncherStoreFile = "Poe2Access.copies.txt"; // one file name per line
-    private static readonly string[] Kept = ["Poe2AccessHost.exe", "Poe2Access.exe", "Poe2UiExtract.exe"]; // a corrupt list must never delete these
+    private static readonly string[] Kept = ["Poe2Access.exe"]; // a corrupt list must never delete these
 
     /// <summary>
     ///     GameHelper's own files (its crash log Error.log included) and its overlay's (ImGui, Direct3D, ImageSharp); the
-    ///     host's library is GameReader.dll and the host logs to Poe2AccessHost.log.
+    ///     mod's own reader library is GameReader.dll.
     /// </summary>
     private static readonly string[] OverlayFiles =
     [
-        "GameHelper.dll", "GameHelper.pdb", "GameHelper.deps.json", "GameHelper.runtimeconfig.json", "imgui.ini", "Error.log",
+        "GameHelper.dll", "GameHelper.pdb", "GameHelper.deps.json", "GameHelper.runtimeconfig.json", "imgui.ini", "Error.log", "Poe2AccessHost.log", "Poe2AccessHost.log.old",
         "cimgui.dll", "ImGui.NET.dll", "ClickableTransparentOverlay.dll", "SixLabors.ImageSharp.dll",
         "SharpGen.Runtime.dll", "SharpGen.Runtime.COM.dll", "Vortice.D3DCompiler.dll", "Vortice.Direct3D11.dll",
         "Vortice.DirectX.dll", "Vortice.DXGI.dll", "Vortice.Mathematics.dll",
@@ -29,23 +29,23 @@ internal static class LegacyHost
     /// <summary>GameHelper's settings, fonts and overlay translations; nothing reads them now.</summary>
     public static readonly string[] Folders = ["configs", "fonts", "Localization"];
 
-    public static void Delete(string hostDirectory)
+    public static void Delete(string dataDirectory)
     {
-        var files = new List<string> { Path.Join(hostDirectory, GameHelperExe) };
-        files.AddRange(OverlayFiles.Select(name => Path.Join(hostDirectory, name)));
-        var launcherStore = Path.Join(hostDirectory, LauncherStoreFile);
-        var gameHelperStore = Path.Join(hostDirectory, GameHelperStoreFile);
+        var files = new List<string> { Path.Join(dataDirectory, GameHelperExe) };
+        files.AddRange(OverlayFiles.Select(name => Path.Join(dataDirectory, name)));
+        var launcherStore = Path.Join(dataDirectory, LauncherStoreFile);
+        var gameHelperStore = Path.Join(dataDirectory, GameHelperStoreFile);
         try
         {
             if (File.Exists(launcherStore))
             {
-                files.AddRange(File.ReadAllLines(launcherStore).Where(line => line.Length > 0).Select(line => Path.Join(hostDirectory, line)));
+                files.AddRange(File.ReadAllLines(launcherStore).Where(line => line.Length > 0).Select(line => Path.Join(dataDirectory, line)));
             }
 
             if (File.Exists(gameHelperStore))
             {
                 using var names = JsonDocument.Parse(File.ReadAllText(gameHelperStore));
-                files.AddRange(names.RootElement.EnumerateArray().Select(name => name.GetString()).OfType<string>().Select(name => Path.Join(hostDirectory, name)));
+                files.AddRange(names.RootElement.EnumerateArray().Select(name => name.GetString()).OfType<string>().Select(name => Path.Join(dataDirectory, name)));
             }
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or JsonException or InvalidOperationException)
@@ -57,7 +57,7 @@ internal static class LegacyHost
         files.Add(gameHelperStore);
         foreach (var file in files.Distinct(StringComparer.OrdinalIgnoreCase))
         {
-            if (Kept.Contains(Path.GetFileName(file), StringComparer.OrdinalIgnoreCase) || !File.Exists(file) || !InFolder(file, hostDirectory))
+            if (Kept.Contains(Path.GetFileName(file), StringComparer.OrdinalIgnoreCase) || !File.Exists(file) || !InFolder(file, dataDirectory))
             {
                 continue;
             }
@@ -73,7 +73,7 @@ internal static class LegacyHost
             }
         }
 
-        foreach (var folder in Folders.Select(name => Path.Join(hostDirectory, name)).Where(Directory.Exists))
+        foreach (var folder in Folders.Select(name => Path.Join(dataDirectory, name)).Where(Directory.Exists))
         {
             try
             {

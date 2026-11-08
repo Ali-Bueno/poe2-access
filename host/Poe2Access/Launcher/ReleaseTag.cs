@@ -1,6 +1,6 @@
 using System; // also built into the tests, which have no implicit usings
 
-namespace Poe2AccessLauncher;
+namespace Poe2Access;
 
 /// <summary>Release tags are dates (v2026.10.28), with -2, -3... for later releases the same day (Publish-Release.ps1).</summary>
 internal static class ReleaseTag

@@ -1,15 +1,15 @@
 using System.Diagnostics;
+using System.Runtime;
 
-namespace Poe2AccessLauncher;
+namespace Poe2Access;
 
 /// <summary>
-///     Packaged builds never ship game data: Poe2UiExtract (beside the launcher) regenerates the catalogs and sounds the
+///     Packaged builds never ship game data: Poe2UiExtract (a library of this program) regenerates the catalogs and sounds the
 ///     plugin reads from the player's own install on the first start and after every game patch, and a mod update reruns
 ///     only the steps it changed. All of it stays in the mod's folder, where no package overwrites it.
 /// </summary>
 internal static class GameDataSetup
 {
-    private const string ExtractorExe = "Poe2UiExtract.exe";
     private const int StepTimeoutMilliseconds = 180_000;
     private const string DataFolder = "GameData"; // beside the host: the catalogs made here, kept over the plugin's shipped copies
     private const string StampName = "game-version.txt";
@@ -29,14 +29,8 @@ internal static class GameDataSetup
     /// <param name="Input">The step whose output it reads: it reruns whenever that one does.</param>
     private sealed record Step(string Name, int Version, string? Output, string? Command, bool Optional = false, string? Input = null);
 
-    public static void EnsureCurrent(string hostDirectory, string? gameDirectory)
+    public static void EnsureCurrent(AppFolders folders, string? gameDirectory)
     {
-        var extractor = Path.Join(hostDirectory, ExtractorExe);
-        if (!File.Exists(extractor))
-        {
-            return; // a development checkout extracts by hand (tools/README.md)
-        }
-
         if (gameDirectory is null)
         {
             Log.Write("Game folder unknown: game data not checked, the mod keeps what it has");
@@ -52,20 +46,24 @@ internal static class GameDataSetup
 
         try
         {
-            Regenerate(hostDirectory, extractor, gameDirectory, install);
+            Regenerate(folders, gameDirectory, install);
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
         {
             Log.Write($"Game data not checked, the mod keeps what it has: {error.Message}");
         }
+        finally
+        {
+            ReleaseMemory();
+        }
     }
 
-    private static void Regenerate(string hostDirectory, string extractor, string gameDirectory, string install)
+    private static void Regenerate(AppFolders folders, string gameDirectory, string install)
     {
-        var plugin = Path.Join(hostDirectory, "Plugins", "Poe2Accessibility");
+        var plugin = folders.Plugin("Poe2Accessibility");
         var pluginCatalog = Path.Join(plugin, "catalog");
         var sounds = Path.Join(plugin, "sounds");
-        var data = Path.Join(hostDirectory, DataFolder);
+        var data = Path.Join(folders.Data, DataFolder);
         var catalog = Path.Join(data, "catalog");
         var stampFile = Path.Join(data, StampName);
         Directory.CreateDirectory(catalog);
@@ -132,7 +130,7 @@ internal static class GameDataSetup
         if (catalogs.Count > 0)
         {
             var made = catalogs.Select(step => Path.Join(catalog, step.Output)).ToList();
-            var error = Guarded(() => RunBatch(extractor, gameDirectory, catalogs.Select(step => step.Command!).Zip(made.Select(file => file + NewSuffix))));
+            var error = Guarded(() => RunBatch(gameDirectory, catalogs.Select(step => step.Command!).Zip(made.Select(file => file + NewSuffix))));
             foreach (var (step, file) in catalogs.Zip(made))
             {
                 var promoted = Promote(file + NewSuffix, file);
@@ -142,7 +140,7 @@ internal static class GameDataSetup
 
         if (stale.Contains(SoundsStep))
         {
-            Finish(steps.Single(step => step.Name == SoundsStep), Guarded(() => ReplaceSounds(extractor, gameDirectory, sounds, Path.Join(pluginCatalog, "item-sounds.json"))));
+            Finish(steps.Single(step => step.Name == SoundsStep), Guarded(() => ReplaceSounds(gameDirectory, sounds, Path.Join(pluginCatalog, "item-sounds.json"))));
         }
 
         // The plugin says it: a catalog left behind by a patch would otherwise only show in this log.
@@ -241,14 +239,14 @@ internal static class GameDataSetup
     private static string Describe(FileInfo file) => $"{file.Length}:{file.LastWriteTimeUtc.Ticks}";
 
     /// <summary>One extractor run for all the stale catalogs: it opens the game's index once and makes them side by side.</summary>
-    private static string? RunBatch(string extractor, string gameDirectory, IEnumerable<(string Command, string Output)> jobs)
+    private static string? RunBatch(string gameDirectory, IEnumerable<(string Command, string Output)> jobs)
     {
         var list = jobs.ToList();
         var leftovers = list.SelectMany(job => new[] { job.Output, job.Output + PartSuffix }).ToList();
         leftovers.ForEach(File.Delete);
         try
         {
-            return Run(extractor, ["batch", gameDirectory, .. list.SelectMany(job => new[] { job.Command, job.Output })], StepTimeoutMilliseconds * list.Count,
+            return Run(["batch", gameDirectory, .. list.SelectMany(job => new[] { job.Command, job.Output })], StepTimeoutMilliseconds * list.Count,
                 line => { if (line.StartsWith(BatchLinePrefix, StringComparison.Ordinal)) Log.Write($"Game data: {line[BatchLinePrefix.Length..]}"); });
         }
         finally
@@ -257,7 +255,7 @@ internal static class GameDataSetup
         }
     }
 
-    private static string? ReplaceSounds(string extractor, string gameDirectory, string sounds, string itemSounds)
+    private static string? ReplaceSounds(string gameDirectory, string sounds, string itemSounds)
     {
         var fresh = sounds + ".new";
         var old = sounds + ".old";
@@ -269,7 +267,7 @@ internal static class GameDataSetup
             }
         }
 
-        var error = Run(extractor, ["sounds", gameDirectory, fresh, itemSounds], StepTimeoutMilliseconds);
+        var error = Run(["sounds", gameDirectory, fresh, itemSounds], StepTimeoutMilliseconds);
         if (error is null && !File.Exists(Path.Join(fresh, SoundsManifest)))
         {
             error = "no manifest written";
@@ -281,7 +279,7 @@ internal static class GameDataSetup
         }
 
         // Apart: failing costs only the objects' own sounds, and they fall back on the common break.
-        if (Run(extractor, ["object-sounds", gameDirectory, fresh], StepTimeoutMilliseconds) is { } objectError)
+        if (Run(["object-sounds", gameDirectory, fresh], StepTimeoutMilliseconds) is { } objectError)
         {
             Log.Write($"Game data: object sounds failed: {objectError}");
         }
@@ -319,30 +317,57 @@ internal static class GameDataSetup
         return null;
     }
 
-    private static string? Run(string extractor, string[] arguments, int timeoutMilliseconds, Action<string>? onLine = null)
+    /// <summary>Runs one extractor command in this process on a worker; gives up waiting after the timeout, as the process kill used to.</summary>
+    private static string? Run(string[] arguments, int timeoutMilliseconds, Action<string>? onLine = null)
     {
-        var info = new ProcessStartInfo(extractor)
+        Say.Redirect(new LineWriter(onLine)); // drained: the extractor lists every path it sees
+        var work = Task.Factory.StartNew(() => Extractor.Run(arguments), TaskCreationOptions.LongRunning);
+        try
         {
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            WorkingDirectory = Path.GetDirectoryName(extractor)!,
-        };
-        foreach (var argument in arguments)
-        {
-            info.ArgumentList.Add(argument);
-        }
+            if (!work.Wait(timeoutMilliseconds))
+            {
+                Say.Redirect(TextWriter.Null); // the abandoned worker goes on without filling the log
+                return "timed out";
+            }
 
-        using var process = Process.Start(info) ?? throw new InvalidOperationException("Poe2UiExtract did not start.");
-        process.OutputDataReceived += (_, line) => { if (line.Data is { } text) onLine?.Invoke(text); }; // drained: the extractor lists every path it sees
-        process.BeginOutputReadLine();
-        if (!process.WaitForExit(timeoutMilliseconds))
-        {
-            process.Kill(true);
-            return "timed out";
+            return work.Result == 0 ? null : $"exit code {work.Result}";
         }
+        catch (AggregateException error)
+        {
+            return error.GetBaseException().Message;
+        }
+    }
 
-        process.WaitForExit(); // flush the output handlers
-        return process.ExitCode == 0 ? null : $"exit code {process.ExitCode}";
+    /// <summary>The extraction allocates a lot (the index, every table): hand it back before the frame loop starts.</summary>
+    private static void ReleaseMemory()
+    {
+        GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true);
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+    }
+
+    /// <summary>Hands the lines the extractor prints, whole, to a callback.</summary>
+    private sealed class LineWriter(Action<string>? onLine) : TextWriter
+    {
+        private readonly System.Text.StringBuilder line = new();
+
+        public override System.Text.Encoding Encoding => System.Text.Encoding.UTF8;
+
+        public override void Write(char value)
+        {
+            lock (this.line)
+            {
+                if (value == '\n')
+                {
+                    onLine?.Invoke(this.line.ToString().TrimEnd('\r'));
+                    this.line.Clear();
+                }
+                else
+                {
+                    this.line.Append(value);
+                }
+            }
+        }
     }
 }
