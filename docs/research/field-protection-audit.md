@@ -46,7 +46,7 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 
 | ID | Field | n | Struct | Used by | Protections | N | If lost | Notes |
 |---|---|---|---|---|---|---|---|---|
-| A1 | `AreaInstanceData` +0x290 | 1 | `InGameStateOffset` | the whole world | LIVE `OffsetHealer.LocateArea` (a block that holds a world) | 1 | world silent | runs only after 8 s with no entities, every 3 s (`WorldLayoutWatch.cs:95-97`) |
+| A1 | `AreaInstanceData` +0x290 | 1 | `InGameStateOffset` | the whole world | LIVE `OffsetHealer.LocateArea` (a block that holds a world); SEM `this "league" 0 with "class"` | 2 | world silent | runs only after 8 s with no entities, every 3 s (`WorldLayoutWatch.cs:95-97`) |
 | A2 | `WorldData` +0x368 | 1 | `InGameStateOffset` | camera, area details | LIVE `JudgeCamera` then `LocatePointer` (`OffsetHealer.cs:322`) | 1 | one feature: screen projection (radar falls back to a fixed view, `ScreenProjection.cs:52-60`) | |
 | A3 | camera matrix (+0x98 then +0x108) | 1 | `WorldDataOffset` | direction cues | LIVE `IsCameraMatrix` (matrix kept twice) | 1 | one feature: as A2 | |
 | A4 | `WorldAreaDetailsPtr` +0x98 and `WorldAreaDetailsRowPtr` +0x98 | 2 | `WorldDataOffset`, `WorldAreaDetailsStruct` | `InTownOrHideout` (`Poe2AccessibilityCore.Gameplay.cs:122,124,341`) | none | 0 | cosmetic: lost hint and map hints not suppressed in town | `WorldData.cs:150-154`; `JudgeCamera` remaps from the matrix offset only |
@@ -55,14 +55,14 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 | A7 | `InGameState.UiManagerOffset` 0x310 | 1 | plugin | UI manager | direct slot (validated by `IsManager`); scan of the state object for element pointers whose manager two elements agree on (`UiManagerLocator.FromStateElements`) | 2 | menus silent | |
 | A8 | `CurrentAreaLevel` +0xC4 | 1 | `AreaInstanceOffsets` | area level speech | LIVE `AreaLayoutSearch.IsHeader`; SEM `world IsLevel`, `world IfLevel` | 2 | cosmetic | `Poe2AccessibilityCore.Gameplay.cs:224` |
 | A9 | `CurrentAreaHash` +0x11C | 1 | `AreaInstanceOffsets` | area identity (explored map, death place, map hints) | FOLLOW level at the measured 0x58 distance; CHECK value >= 0x10000; SEM `label "Tile hash: "` | 2 | one feature: area memory and guide | if the distance changes it is not found (`AreaLayoutSearch.cs:117-120`) |
-| A10 | `LocalPlayerPtr` (+0x5B8+0x20) | 1 | `LocalPlayerStruct` | player entity | LIVE `IsLocalPlayer` (path under `Metadata/Characters/`) | 1 | world silent | |
+| A10 | `LocalPlayerPtr` (+0x5B8+0x20) | 1 | `LocalPlayerStruct` | player entity | LIVE `IsLocalPlayer` (path under `Metadata/Characters/`); SEM `slot GetLocalPlayer "Tile hash: " inline` | 2 | world silent | |
 | A11 | `ServerDataPtr` (+0x5B8) | 1 | `LocalPlayerStruct` | flasks, inventory news | LIVE `IsServerData` (falls back to the player gap if nothing fits) | 1 | one feature: flask and inventory news | `AreaLayoutSearch.cs:231-236` |
 | A12 | `PlayerServerDataPtr` +0x48, `PlayerInventories` +0x320 | 2 | `ServerDataOffsets`, `ServerDataStructure` | `LocalInventories`, `ServerData.PlayerInventories` | LIVE `InventoryLayoutSearch` (a short player list, the first with a list of inventory entries whose inventories hold items under `Metadata/Items/`) | 1 | one feature: pick-up, hand, flask news, salvage | a move makes the server data read its inventories again |
 | A12b | `InventoryArrayStruct` layout (id, pointer, 0x18 bytes) | 1 | `InventoryArrayStruct` | the same | CHECK: the search reads through it | 0 | one feature: as A12 | |
 | A13 | `TotalBoxes` +0x150, `ItemList` +0x170 | 2 | `InventoryStruct` | `FlaskWatch`, `InventoryWatch` | LIVE `InventoryLayoutSearch` (three in four inventories X by Y cells with one pointer per cell, their items under `Metadata/Items/`) | 1 | one feature: flask belt, pick-up and salvage news | |
 | A13b | `InventoryItemStruct` (Item, SlotStart, SlotEnd) | 1 | `InventoryItemStruct` | the same | CHECK: the item pointer at +0 leads to an item (the search reads it); the slots none | 0 | one feature: as A13 | |
-| A14 | `Entities` (awake and sleeping maps) +0x718 | 1 | `AreaInstanceOffsets` | all entities | LIVE `IsEntityLists` | 1 | world silent | the MSVC node shape (nil flag 0x19, key 0x20, value 0x28) is a constant of that check |
-| A15 | `TerrainMetadata` +0x8F8 | 1 | `AreaInstanceOffsets` | walls, routes, exits | LIVE `IsTerrain` | 1 | world silent | |
+| A14 | `Entities` (awake and sleeping maps) +0x718 | 1 | `AreaInstanceOffsets` | all entities | LIVE `IsEntityLists`; SEM `slot GetGameObjectById "Tile hash: " then` | 2 | world silent | the MSVC node shape (nil flag 0x19, key 0x20, value 0x28) is a constant of that check |
+| A15 | `TerrainMetadata` +0x8F8 | 1 | `AreaInstanceOffsets` | walls, routes, exits | LIVE `IsTerrain`; SEM `slot IsWalkable "Tile hash: "` | 2 | world silent | |
 | A16 | local player list `PlayerInfo`+0x08 | 1 | plugin | co-op partner (`LocalPlayers.cs`) | FOLLOW the area search's local player (`area.Layout.Fields`); CHECK `LocalPlayerList`, `layout` self-test | 1 (f) | cosmetic: no player 2 | |
 
 ### 1.3 Terrain
@@ -81,11 +81,11 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 
 | ID | Field | n | Struct | Used by | Protections | N | If lost | Notes |
 |---|---|---|---|---|---|---|---|---|
-| E1 | `Id` +0x88 | 1 | `EntityOffsets` | every entity | LIVE `AreaLayoutSearch.FindEntityId` | 1 | world silent | |
+| E1 | `Id` +0x88 | 1 | `EntityOffsets` | every entity | LIVE `AreaLayoutSearch.FindEntityId`; SEM `object GetObjectId 0` | 2 | world silent | |
 | E2 | `IsValid` +0x8C | 1 | `EntityOffsets` | every entity | FOLLOW `Id` (`OffsetHealer.cs:151-158`) | 1 (f) | world silent | doc lists it as found by the key (3.1 item 4) |
 | E3 | `ComponentListPtr` +0x10 | 1 | `EntityOffsets` | component access | LIVE `EntityLayoutSearch` (the first and last component point back at the entity); SEM `getter Life/Render components` | 2 | world silent | the verifier no longer judges `EntityOffsets` |
 | E4 | `EntityDetailsPtr` +0x8 | 1 | `ItemStruct` (moves with `EntityOffsets`) | classification of everything, `IsLocalPlayer` | LIVE `EntityLayoutSearch` (the details lead to a path under `Metadata/`; searched when an area shows no world); SEM `getter Life details` | 2 | world silent | |
-| E4b | `EntityDetails.name` +0x8 (the path) | 1 | `EntityDetails` | the same | LIVE `EntityLayoutSearch` | 1 | world silent | |
+| E4b | `EntityDetails.name` +0x8 (the path) | 1 | `EntityDetails` | the same | LIVE `EntityLayoutSearch`; SEM `deref TypeContains arg 3 2` | 2 | world silent | |
 | E5 | `ComponentLookUpPtr` +0x28, `ComponentsNameAndIndex` +0x28 | 2 | `EntityDetails`, `ComponentLookUpStruct` | every `TryGetComponent` | LIVE `EntityLayoutSearch` (a map whose entries name components, one of `Positioned`, `Render`, `Life`…, with indexes inside the vector); SEM `getter Life lookup`, `getter Life map` | 2 | world silent | |
 | E5b | name/index entry (pointer, index, 0x10 bytes) | 1 | `ComponentLookUpStruct` | the same | CHECK: the search reads through it | 0 | world silent | |
 
@@ -93,7 +93,7 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 
 | ID | Field | n | Struct | Used by | Protections | N | If lost | Notes |
 |---|---|---|---|---|---|---|---|---|
-| C1 | `CurrentWorldPosition` +0x138 | 1 | `RenderOffsets` | every distance and direction | LIVE `JudgePosition` | 1 | world silent | not judged while the camera is off the player |
+| C1 | `CurrentWorldPosition` +0x138 | 1 | `RenderOffsets` | every distance and direction | LIVE `JudgePosition`; SIG two (`Render.WorldPosition`) | 2 | world silent | not judged while the camera is off the player |
 | C2 | `CharactorModelBounds` X/Y/Z +0x144 | 3 | `RenderOffsets` | body-edge gaps, weak-point guide | SIG L31 (Y), L32 (Z); X follows | 1 | one feature: enemy and boss gaps | X (the one used) is never read by the signatures |
 | C3 | `RenderComponent.NameOffset` 0x160 | 1 | plugin | entity names | LIVE `ProbeRenderNames` | 1 | cosmetic | judged once per game |
 | C4 | `Health` +0x1B0 | 1 | `LifeOffset` | `IsAlive` (gates every enemy), player life | LIVE `StructShapes.PlaceVitals`; SEM `label "Life: "`, `geal IsAlive` | 2 | world silent | the living player's total must be above zero and its life no higher |
@@ -226,7 +226,7 @@ What is left:
 
 | Rank | Fields | N | Impact | Suggested anchor |
 |---|---|---|---|---|
-| 1 | A1, A10, A14, A15, E1, C1, E4b: area pointer, local player, entity lists, terrain, entity id, position, entity path (one shape each) | 1 | world silent | a signature or semantic rule from the code that reads each field |
+| 1 | A1, A10, A14, A15, E1, C1, E4b: area pointer, local player, entity lists, terrain, entity id, position, entity path (one shape each) | 2 | world silent | done 2026-11-08: six semantic rules and two signatures ([exe-layouts.md, the world fields](exe-layouts.md#the-world-fields)) |
 | 2 | E5b, A12b, A13b: entry layouts the searches read through (name map entry, inventory entry, inventory cell) | 0 | world silent (E5b), inventories | a change shows as the parent lost; a stride search inside the entry would repair it |
 | 3 | K19, K20, D4: world-map pins, dat key layout, id-at-0 assumptions | 0 | pins and all dat-key names | a search around the key for the table name string, as `DatKey` already tests |
 | 4 | C17b, C21, C11, C34 entry layouts, C26, C32 | 0 | statuses, stats, traps, mod names, shrine radar | a signature from the function that reads the entry, or a value check on a known buff or stat |
@@ -274,7 +274,7 @@ Status 2026-11-08: every item below is fixed, in the doc or in the code (item 6:
 Status 2026-11-08: both are said now in compatibility.md.
 
 1. `catalog/code-fields.txt` L14, L19, L20, L25, L26, L54 carry fields the plugin never consumes (Transitionable state, status
-   effect times, stack size data, tile height multiplier). Harmless, but they count in "50 of 50".
+   effect times, stack size data, tile height multiplier). Harmless, but they count in "51 of 51".
 2. `docs/compatibility.md:94` omits `map_overlay` from the in-game layers found by name; `InGameFields.cs:44` has it.
 
 ### 3.3 Code that defeats its own protection

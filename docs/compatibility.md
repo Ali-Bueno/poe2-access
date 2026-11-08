@@ -264,8 +264,8 @@ recompiled. What the code settles:
 `PlaceFromCode` refuses a field that is not where its signatures were made: when the first run flagged a move on the unchanged
 build, it was a wrong line in the catalog (the plugin's skill key is +0x58, the host's +0x48 is another field), so a wrong line
 must move nothing. **After changing a `FieldOffset` these fields use, update the value in the catalog**, and on any new build
-read the line `Code fields: 50 of 50 read in … ms; moved: none`. A value more than 0x400 from the catalog's is not believed.
-Six of the 50 lines (Transitionable state, the status effect times, the stack size data, the tile height) are fields the mod
+read the line `Code fields: 51 of 51 read in … ms; moved: none`. A value more than 0x400 from the catalog's is not believed.
+Six of the 51 lines (Transitionable state, the status effect times, the stack size data, the tile height) are fields the mod
 does not read: they count in the 50 but protect nothing heard.
 Simulated 2026-11-06: `PlayerOffsets.Level` at +0x20C went back to +0x204 and the level read 19; `TerrainStruct.BytesPerRow` at
 +0x138 went back to +0x130 and the world read as usual; `Shrine.IsUsed` off by 8 gave the spoken warning. None of these fields has moved in a

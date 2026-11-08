@@ -192,8 +192,12 @@ the way it stops a signature.
 | `world` | the same, after `GEAL::GetGameWorld()` (the one function loading that string) | an AreaInstance field |
 | `callee` | the same | the lowest `[rcx+D]` read by the callee that follows `GetComponent<T>` |
 | `getter` | `GetComponent<T>`: the 0xA0-byte or smaller function loading T's name that has the most callers | details, lookup, map, components |
+| `object` | a GEAL row, as `geal` | the k-th field read through the game object the argument helper returns: the function loading `Requires a Game Object (or an Animated Object attached to one)` |
+| `deref` | the same | from argument i of the evaluator, the first pointer loaded at each level, k levels down; the lowest field read through the last one |
+| `slot` | the same, after `GEAL::GetGameWorld()` | the world's virtual slot called next (in the evaluator, or in the first callee the world is passed to), read in every vtable holding a dump that prints the label: `lea rax,[rcx+X]; ret` gives X, anything else its lowest this-field, and all must agree. `then` adds the lowest field the next callee reads from the result; `inline` takes the address the constructors (the functions loading those vtables) store into the field |
+| `this` | the one function loading an ASCII string (and a second one) | the k-th distinct field it reads through `this` |
 
-**Fields.** There are 38 rules for 26 fields, and all 38 read the 0.5.5f value:
+**Fields.** There are 44 rules for 32 fields, and all 44 read the 0.5.5f value:
 
 - **Life:** Health, Mana and ES, Current and Total. Health.Current also comes from GEAL `IsAlive`.
 - **Player:** Xp. Level, from the `Level: ` printed in the function that also prints `Experience: `. Name, through an address-of.
@@ -210,9 +214,34 @@ the way it stops a signature.
 - **Area:** the level, from `IsLevel` and `IfLevel`. The hash comes from `Tile hash: `, which is the area's own tile hash in slot 0x1E0 of both world vtables, not the terrain's.
 - **Entity:** 0x8 and 0x10, the details' lookup at 0x28 and its map at 0x28, from the Life and Render getters.
 
+- **Entity:** the id, from `GetObjectId`. The path, from `TypeContains`.
+- **Area:** the terrain, the entity maps and the local player, from the world's virtual slots that `IsWalkable`, `GetGameObjectById` and `GetLocalPlayer` call.
+- **InGameState:** the area, from the one function that loads `league` and `class`.
+
+### The world fields
+
+Added 2026-11-08 for the seven fields of the audit that had one protection each (`field-protection-audit.md`, A1, A10, A14, A15, E1, E4b,
+C1). Each rule hits once per build and reads one value; the three older builds read the layout before 0.5.5f (terrain and entities 0x28
+lower, the player 8 lower), which is what upstream's constants said and the live searches measured. The id, the path and the state's
+area did not move in these five builds, and the signatures of the earlier study read the same.
+
+| Field | Rule | What it anchors on | 25244054, 25740136, 26261440 | 26473991, 26476662 |
+|---|---|---|---|---|
+| `EntityOffsets.Id` | `object GetObjectId 0` | the evaluator calls the helper whose error reads `Requires a Game Object (or an Animated Object attached to one)` and then `mov ecx,[rax+0x88]` | 0x88 | 0x88 |
+| `EntityDetails.name` (the path) | `deref TypeContains arg 3 2` | the GEAL value in r8: `[value]` is the object, `[object+0x8]` its details, and the path is the wide string at details+0x8 (its capacity +0x20 and size +0x18 are read beside it, the lowest wins) | 0x8 | 0x8 |
+| `AreaInstanceOffsets.TerrainMetadata` | `slot IsWalkable "Tile hash: "` | after `GetGameWorld()` the evaluator calls slot 0x1A8; in the two world vtables holding the `Tile hash: ` dump it is `lea rax,[rcx+0x8F8]; ret` (a third vtable has a stub there that reads no field, so it does not count) | 0x8D0 | 0x8F8 |
+| `AreaInstanceOffsets.Entities` | `slot GetGameObjectById "Tile hash: " then` | slot 0x1B8 is `lea rax,[rcx+0x708]`, the object registry, in all three vtables; the lookup it is passed to reads `[rcx+0x10]` first, the awake map's head | 0x6F0 | 0x718 |
+| `AreaInstanceOffsets.PlayerInfo.LocalPlayerPtr` | `slot GetLocalPlayer "Tile hash: " inline` | `GetLocalPlayer` is a factory of another GEAL table, found by its own arity error string; its evaluator passes the world to a helper that calls slot 0x148; two vtables read `[this+0x5C8]` and `[this+0x5C0]`, the players' end and begin (the third reads nothing). The base constructor, the function loading the base vtable, does `lea rax,[rsi+0x5D8]; mov [rsi+0x5C0],rax`: the inline storage of the small vector is the field | 0x5D0 | 0x5D8 |
+| `InGameStateOffset.AreaInstanceData` | `this "league" 0 with "class"` | one function loads both `league` and `class` (and `level`, `area`): a status builder on the in-game state. The first field it reads through `this` is the area: `cmp [rbx+0x290],0`, later `mov rax,[rbx+0x290]; mov rcx,[rax+0xA0]` (the area id) | 0x290 | 0x290 |
+| `RenderOffsets.CurrentWorldPosition` | two signatures, `Render.WorldPosition` in `code-fields.txt` | no name reaches it: the Positioned dump's `Position: (` prints Positioned's own floats at 0x490, and no first field dominates the 493 `GetComponent<Render>` sites (0x1D0 47 times, 0x39A 41, 0x138 16). Of the 14 sites reading it through the getter, two in different functions (0x269C50 and 0x266B50 in the hotfix) are unique with the operand wildcarded, and both read 0x138 on all five builds | 0x138 | 0x138 |
+
+Tried and dropped: `IsType` and `IfType` compare component names (`player`, `monster`, `chest`) through the lookup, not the path;
+`IsSameType` compares the two details pointers; `GEAL::GetGameWorld()` does not read the state but asks the GEAL context (its
+slot 0x28); no leaf `mov rax,[rcx+0x290]; ret` exists, so the state has no getter to find through a vtable.
+
 No name reaches these:
 
-- Render: it has no dump and no GEAL getter call.
+- Render: it has no dump and no GEAL getter call; its position has the two signatures above.
 - Actor cooldowns and deployed.
 - Stats 0x1C8 and the stat vector.
 - Base.
@@ -259,7 +288,7 @@ An encoding it does not know decodes to nothing, so a rule never guesses. This c
 
 - `CodeFieldCatalog.Settle` keeps one value per target. A target that the signatures and the rules read differently stays where it is and is logged.
 - The value then goes through `PlaceFromCode` or `LayoutFields` as before. A live segment wins, and a value more than 0x400 from the catalog is not believed.
-- The log line reads `Semantic fields: 38 of 38 read in … ms; moved: none`. On the warm 0.5.5f exe, the index takes 0.32 s (every E8 call and RIP `lea`, 154,738 fragments) and the rules take 0.15 s.
+- The log line reads `Semantic fields: 44 of 44 read in … ms; moved: none`. On the warm 0.5.5f exe, the index takes 0.32 s (every E8 call and RIP `lea`, 154,738 fragments) and the rules take 0.15 s.
 - `dotnet run --project tests/Poe2Accessibility.Tests -- semantic <exe> <catalog>` prints each rule's candidates for any build.
 
 **Limits.**
@@ -267,7 +296,8 @@ An encoding it does not know decodes to nothing, so a rule never guesses. This c
 - Rerun on the five builds of the table above (archived under `D:\code\decompilers\projects\poe2-research\builds\<build>`,
   2026-11-08): every rule read the true value of each build. On the three builds before 0.5.5f the area level read 0xBC and
   the hash 0x114, the old layout upstream's constants had, so it reads the very move that silenced the mod; 0.5.5f and its
-  hotfix read 0xC4 and 0x11C. 35 of 38 "right" against the current constants on the old builds means exactly those three.
+  hotfix read 0xC4 and 0x11C. With the world fields of 2026-11-08, 38 of 44 "right" against the current constants on the old
+  builds means exactly the six that moved in 0.5.5f (level, hash, terrain, entities, local player).
   Still one compiler setup over two months: a major version is untested.
 - `label` relies on the dump printing in order, and `field`'s sweep ignores control flow.
 - A removed dump, a renamed GEAL function or an inlined getter only stops a rule.
