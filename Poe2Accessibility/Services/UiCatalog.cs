@@ -17,7 +17,10 @@ namespace Poe2Accessibility.Services
     {
         private readonly Dictionary<string, Entry> byId = new(StringComparer.OrdinalIgnoreCase);
 
-        public sealed record Entry(string Id, string ResolvedClass, UiRole Role, bool? Focusable, int Screens);
+        public sealed record Entry(string Id, string ResolvedClass, UiRole Role, bool? Focusable, int Screens, bool IsPassword = false);
+
+        /// <summary>The .ui script's input mode that hides what is typed.</summary>
+        public const string PasswordMode = "password";
 
         public int Count => this.byId.Count;
 
@@ -37,6 +40,7 @@ namespace Poe2Accessibility.Services
                 var classVotes = new Dictionary<string, Dictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
                 var focusVotes = new Dictionary<string, bool?>(StringComparer.OrdinalIgnoreCase);
                 var screens = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+                var passwords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var control in document?.Controls ?? new List<CatalogControl>())
                 {
                     if (string.IsNullOrEmpty(control.Id))
@@ -47,6 +51,11 @@ namespace Poe2Accessibility.Services
                     var votes = classVotes.TryGetValue(control.Id, out var v) ? v : classVotes[control.Id] = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                     var cls = control.ResolvedClass ?? control.ClassName ?? string.Empty;
                     votes[cls] = votes.TryGetValue(cls, out var n) ? n + 1 : 1;
+                    if (string.Equals(control.Mode, PasswordMode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        passwords.Add(control.Id);
+                    }
+
                     if (control.Focusable.HasValue)
                     {
                         focusVotes[control.Id] = control.Focusable;
@@ -68,7 +77,7 @@ namespace Poe2Accessibility.Services
                         }
                     }
 
-                    catalog.byId[id] = new Entry(id, best, RoleFromClass(best), focusVotes.TryGetValue(id, out var f) ? f : null, screens[id].Count);
+                    catalog.byId[id] = new Entry(id, best, RoleFromClass(best), focusVotes.TryGetValue(id, out var f) ? f : null, screens[id].Count, passwords.Contains(id));
                 }
 
                 log.Info($"UI catalog loaded: {catalog.byId.Count} control ids from {document?.SourceCount ?? 0} scripts");
@@ -142,6 +151,9 @@ namespace Poe2Accessibility.Services
 
             [JsonPropertyName("focusable")]
             public bool? Focusable { get; set; }
+
+            [JsonPropertyName("mode")]
+            public string? Mode { get; set; }
         }
     }
 }

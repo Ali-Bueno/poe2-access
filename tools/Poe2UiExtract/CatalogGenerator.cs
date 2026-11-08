@@ -80,6 +80,7 @@ internal static class CatalogGenerator
                 TabIndex = c.TabIndex,
                 Tag = c.Tag,
                 KeyboardEnabled = c.KeyboardEnabled,
+                Mode = c.Mode,
                 Depth = c.Depth,
             }).ToList(),
         };

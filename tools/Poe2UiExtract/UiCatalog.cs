@@ -19,6 +19,10 @@ public sealed class UiControlRecord
     public int? TabIndex { get; init; }
     public string? Tag { get; init; }
     public bool? KeyboardEnabled { get; init; }
+
+    /// <summary>A text box's input mode as the script declares it ("password"); omitted from the JSON when absent.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Mode { get; init; }
     public required int Depth { get; init; }
 }
 
@@ -53,6 +57,7 @@ internal sealed class RawControl
     public int? TabIndex { get; init; }
     public string? Tag { get; init; }
     public bool? KeyboardEnabled { get; init; }
+    public string? Mode { get; init; }
 
     /// <summary>Root class of the "based on" chain, fully resolved. Empty until <see cref="ClassResolver"/> runs.</summary>
     public string ResolvedClass { get; set; } = "";

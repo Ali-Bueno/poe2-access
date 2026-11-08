@@ -309,6 +309,14 @@ namespace Poe2Accessibility
         public static string Typed(string added, string removed) =>
             added.Length > 0 ? Character(added) : T($"deleted {Character(removed)}", $"borrado {Character(removed)}");
 
+        /// <summary>A password field is never read back, only how long it is (docs/menu-speech-rules.md); empty when it is empty.</summary>
+        public static string PasswordLength(int length) => length switch
+        {
+            0 => string.Empty,
+            1 => T("1 character", "1 carácter"),
+            _ => T($"{length} characters", $"{length} caracteres"),
+        };
+
         public static string ValueOrEmpty(string value) => value.Length == 0 ? Empty : value;
 
         /// <summary>A lone space is silent in most screen readers, so it is named.</summary>

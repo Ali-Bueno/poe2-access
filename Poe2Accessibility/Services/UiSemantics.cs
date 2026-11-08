@@ -138,6 +138,11 @@ namespace Poe2Accessibility.Services
                     break;
                 case UiRole.TextField:
                     value = ownText.Length > 0 ? ownText : this.FindDescendantText(info, CaptionSearchDepth, null);
+                    if (this.catalog.TryGet(info.Name, out var field) && field.IsPassword)
+                    {
+                        value = Announcements.PasswordLength(value.Length); // never the contents
+                    }
+
                     label = this.FindRowLabel(info);
                     if (label.Length == 0)
                     {

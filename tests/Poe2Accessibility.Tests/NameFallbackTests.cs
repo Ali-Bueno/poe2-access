@@ -17,6 +17,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AHarmfulBuffIsNamedOnceWhenItBegins), AHarmfulBuffIsNamedOnceWhenItBegins),
             (nameof(BuffNamesFollowTheLanguageThenEnglish), BuffNamesFollowTheLanguageThenEnglish),
             (nameof(ACurrencyIconIsNamedByItsArtFile), ACurrencyIconIsNamedByItsArtFile),
+            (nameof(APasswordIsOnlyCounted), APasswordIsOnlyCounted),
         };
 
         private static void Expect(string expected, string actual)
@@ -80,6 +81,14 @@ namespace Poe2Accessibility.Tests
             Expect("none", CurrencyIcons.FromTextureKey("Art/2DItems/Currency/Unknown.dds|0,0,0,0|0") ?? "none");
             Expect("none", CurrencyIcons.FromTextureKey("Art/Other/Thing.dds") ?? "none");
             Expect(Announcements.Gold, CurrencyIcons.FromTextureKey("Art/2DItems/Currency/Ruthless/CoinPileTier1.dds|0,0,0,0|0") ?? "none");
+        }
+
+        private static void APasswordIsOnlyCounted()
+        {
+            Localization.Set("en", new());
+            Expect(string.Empty, Announcements.PasswordLength(0));
+            Expect("1 character", Announcements.PasswordLength(1));
+            Expect("12 characters", Announcements.PasswordLength(12));
         }
     }
 }
