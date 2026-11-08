@@ -505,6 +505,11 @@ namespace Poe2Accessibility.Services
             this.CollectTexts(info, 0, RowCellDepth, walk);
             var sets = walk.Icons.Count > 0 ? WeaponSetRows.Pair(walk.Parents, walk.Indices, walk.Icons, walk.Texts.Select(text => text.Node)) : null;
             var cells = walk.Texts.Select(text => sets != null && sets.TryGetValue(text.Node, out var set) ? Announcements.WeaponSetValue(set, text.Text) : text.Text).ToList();
+            if (this.InGame && cells.Count is > 1 and <= MaxRowCells && this.HeadedCells(info, walk.TextAddresses, cells) is { } headed)
+            {
+                cells = headed; // a table row under shown column headings ("Players: 3, Time Left: 9 minutes")
+            }
+
             return cells.Count is > 0 and <= MaxRowCells ? Announcements.Cells(cells) : this.FindDescendantText(info, CaptionSearchDepth, null);
         }
 
@@ -527,6 +532,7 @@ namespace Poe2Accessibility.Services
                 if (this.elements.TryReadSpokenText(children[index], out var text) && text.Length > 0)
                 {
                     walk.Texts.Add((id, text));
+                    walk.TextAddresses.Add(children[index]);
                 }
                 else if (this.elements.ReadTextureKey(child) is { } key && WeaponSetRows.FromTextureKey(key) is { } set)
                 {
@@ -547,6 +553,9 @@ namespace Poe2Accessibility.Services
             public List<(int Node, int Set)> Icons { get; } = new();
 
             public List<(int Node, string Text)> Texts { get; } = new();
+
+            /// <summary>The element of each of <see cref="Texts"/>, in the same order (where it is drawn, for column headings).</summary>
+            public List<IntPtr> TextAddresses { get; } = new();
 
             public int Add(int parent, int index)
             {

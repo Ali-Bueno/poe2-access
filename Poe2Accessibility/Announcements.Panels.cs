@@ -20,5 +20,8 @@ namespace Poe2Accessibility
             "savedshopitemicon" => T("deferred", "reservado"),
             _ => null,
         };
+
+        /// <summary>A table cell under its column heading, both in the game's words ("Jugadores: 3"; `TableHeadings`).</summary>
+        public static string TableCell(string heading, string value) => T($"{heading}: {value}", $"{heading}: {value}");
     }
 }

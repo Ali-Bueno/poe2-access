@@ -41,7 +41,52 @@ namespace Poe2Accessibility.Tests
             (nameof(NamedPicturesAreTold), NamedPicturesAreTold),
             (nameof(IconOnlyControlIsTheItemItShows), IconOnlyControlIsTheItemItShows),
             (nameof(ShippedInlineIconTableNamesTheKnownPictures), ShippedInlineIconTableNamesTheKnownPictures),
+            (nameof(InstanceManagerRowSaysWhatEachNumberCounts), InstanceManagerRowSaysWhatEachNumberCounts),
+            (nameof(LadderRowUnderATitleKeepsItsColumns), LadderRowUnderATitleKeepsItsColumns),
+            (nameof(LabelsThatAreNoHeadingRowAreLeftAlone), LabelsThatAreNoHeadingRowAreLeftAlone),
         };
+
+        private static TableHeadings.Box Box(string text, float x, float width, float y = 0, float height = 20) => new(text, x, y, width, height);
+
+        /// <summary>
+        ///     The Instance Manager's columns (ClientStrings InstanceChooser*ColumnHeading / *Subheading), headings left aligned
+        ///     over centred numbers.
+        /// </summary>
+        private static void InstanceManagerRowSaysWhatEachNumberCounts()
+        {
+            English();
+            var headings = new[]
+            {
+                Box("Players", 100, 120), Box("in this instance", 90, 140, 22, 16),
+                Box("Time Left", 300, 110), Box("before instance closes", 280, 150, 22, 16),
+                Box("Created", 500, 90), Box("Realm", 680, 70),
+            };
+            var row = new[] { Box("3", 150, 12, 60), Box("9 minutes", 320, 80, 60), Box("2 minutes ago", 495, 110, 60), Box("Europe", 680, 60, 60) };
+            Expect("Players: 3|Time Left: 9 minutes|Created: 2 minutes ago|Realm: Europe", string.Join("|", TableHeadings.Pair(headings, row) ?? new()), "instance row");
+        }
+
+        /// <summary>The ladder (LadderColumnRank / Name / Class / Level) under the panel's title, which spans every column.</summary>
+        private static void LadderRowUnderATitleKeepsItsColumns()
+        {
+            English();
+            var headings = new[] { Box("Ladder", 0, 800, -40, 30), Box("Rank", 0, 60), Box("Name", 100, 200), Box("Class", 350, 100), Box("Level", 500, 60) };
+            var row = new[] { Box("1", 10, 15, 40), Box("Yarkidius", 100, 120, 40), Box("Witch", 350, 70, 40), Box("95", 505, 25, 40) };
+            Expect("Rank: 1|Name: Yarkidius|Class: Witch|Level: 95", string.Join("|", TableHeadings.Pair(headings, row) ?? new()), "ladder row");
+            var withHeadingWord = new[] { Box("1", 10, 15, 40), Box("Yarkidius", 100, 120, 40), Box("Class", 350, 70, 40), Box("Level 95", 505, 80, 40) };
+            Expect("Rank: 1|Name: Yarkidius|Class|Level 95", string.Join("|", TableHeadings.Pair(headings, withHeadingWord) ?? new()), "a cell that says its heading");
+        }
+
+        private static void LabelsThatAreNoHeadingRowAreLeftAlone()
+        {
+            English();
+            var twoLabels = new[] { Box("Guild", 0, 100), Box("Members", 200, 100) };
+            var fiveCells = new[] { Box("a", 0, 10, 40), Box("b", 50, 10, 40), Box("c", 100, 10, 40), Box("d", 150, 10, 40), Box("e", 200, 10, 40) };
+            Expect(true, TableHeadings.Pair(twoLabels, fiveCells) == null, "two labels over five cells");
+            var stacked = new[] { Box("You are not in a guild", 0, 300), Box("Create Guild", 0, 300, 80) };
+            Expect(true, TableHeadings.Pair(stacked, new[] { Box("x", 0, 10, 120), Box("y", 100, 10, 120) }) == null, "lines one under another are no heading row");
+            var oneColumn = new[] { Box("Players", 100, 120), Box("Realm", 680, 70) };
+            Expect(true, TableHeadings.Pair(oneColumn, new[] { Box("3", 150, 12, 60), Box("4", 160, 12, 60) }) == null, "every cell under one heading");
+        }
 
         private static void Expect(string expected, string actual, string what)
         {
