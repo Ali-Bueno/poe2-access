@@ -36,7 +36,7 @@ the passive tree and with the left trigger held), `sounds` (what played), `costs
 | A plugin offset (UI element, UI manager, in-game layer, control kind) | `Poe2Accessibility/GameLayout.cs` | `layout` says what it found instead; a UI dump (`dump`) shows the tree | `layout` all ok |
 | A dat column (names, flags, keys) | `catalog/dat-columns.json`, made by `tools/Poe2UiExtract dat-columns` | rerun the extractor on the new install | log `Dat columns: … where measured` |
 | An animation or stat id | `catalog/game-ids.txt`, made by `tools/Poe2UiExtract game-ids` | rerun it | the dodge warning and Rage read right |
-| The game state pointer | `host/GameOffsets/StaticOffsetsPatterns.cs`; `GameStatesSearch` finds it without the pattern | the search logs where it found it | the state changes are logged at login |
+| The game state pointer, its stack and list, the in-game and loading states | `host/GameOffsets/StaticOffsetsPatterns.cs`, `GameStateOffsets.cs`; `GameStatesSearch` finds the pointer without the pattern, `GameStateLayout` and `GameStateRoles` judge the rest on every attach | `Layout: game state stack / list / in-game state …` | the state changes are logged at login |
 
 Change one thing at a time, rebuild (`dotnet build host/Poe2AccessHost -c Release`, `dotnet build Poe2Accessibility -c Release`,
 with the host stopped: `Poe2Access.exe stop`), restart (`Poe2Access.exe restart`), and read the same log lines again. Record

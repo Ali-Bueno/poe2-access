@@ -140,7 +140,7 @@ Clearfell Encampment, no NPC marker), "yarkey" (Mercenary, level 12, Pueblo de O
 languages, projectile dodge timing, quieter area loads, the new package layout) and of the 2026-10-24 one (wall tones,
 "what A uses", weapon swap, map / chat / player menu). Cinematics and their subtitles (`enable_subtitles=true`) are
 untested: voiced NPC lines come as chat lines and are read; a cinematic's text has never been on screen in a test. Places: measure the other tile rotation selectors and place the
-rooms of generated areas (`docs/research/places.md`, Open). After a game patch: `pwsh tools/package/Update-GameHelper.ps1`, then the dev command
+rooms of generated areas (`docs/research/places.md`, Open). After a game patch (then; the script is gone since the host lives in `host/`, see `docs/patch-day.md`): `pwsh tools/package/Update-GameHelper.ps1`, then the dev command
 `layout` through the screens listed in `docs/compatibility.md` (self-test); no part is left unchecked. Not yet heard
 live: the loot filter's quieter settings (kehgan carries no normal item; a white drop with "solo valiosos" set
 must stay silent).

@@ -135,7 +135,7 @@ nearest fit wins). Fields of one structure that move together follow an anchor.
 | UI manager root slot: holds the root of the elements that point at the manager (2 elements must agree before an unproven manager is trusted; the direct in-game slot is taken only as measured) | focus, last focused, hovered, pad state | `LayoutProbe.AdoptManager` |
 | UI focus, on its own: while the player moves through a menu, the slot that takes each element of this manager first (the previous-focus slot gets it a step later); three moves judge it, and the measured slot keeps its place once it led (the inventory grid moves its cursor, not its focus, so a button menu judges it) | last focused, hovered | `LayoutProbe.ObserveFocus` (pure `FocusSlotCheck`) |
 | In-game layer roots (InGameState's mouse and gamepad UI roots): an element whose children carry two known layer names; neither slot holds one, the nearest slot that does gives both their shift | — | `LayoutProbe.ProbeLayerRoots` |
-| In-game layers by name (`HUD`, `death_screen`, `skill_bar`, `bind_management_display`) or shape (inventory: child `panels_parent`; chat: `textField` and `scrollbar` below) | the objective box (no name or shape) follows the nearest one found | `InGameFields` |
+| In-game layers by name (`HUD`, `map_overlay`, `death_screen`, `skill_bar`, `bind_management_display`) or shape (inventory: child `panels_parent`; chat: `textField` and `scrollbar` below) | the objective box (no name or shape) follows the nearest one found | `InGameFields` |
 | Entity names: half of 30 monsters, characters and players read a name | — | `LayoutProbe.ProbeRenderNames` |
 | Targetable in-play flag: set on what is always in play (players, waypoint, stash, checkpoint, living monsters) and, of an NPC's story variants (one Render name), on at most one; the nearest byte that fits when the measured one does not | targeted flag; the measured byte is used while unjudged, everything counts as in play once lost | `EntityFields` (pure `InPlayFlag`) |
 | NPC quest marker: the NPC component's dat reference leads to the MiscAnimated row `NPCQuestMarker…` on some NPC (a town with no marker proves nothing; the self-test lists the row ids it sees) | — | `EntityFields.HasMarkerAt` |
@@ -186,8 +186,8 @@ Outcomes are logged once each ("Layout: HUD where measured", "moved from +0x558 
 found are said once together ("Aviso de compatibilidad: no encuentro el chat y la barra de habilidades…"). A new game
 process (`OnAttachedChanged`) logs the game exe's size and time and checks everything again.
 
-**Dev commands after a patch:** `structs` runs the sweep and logs it ("Struct sweep: 17 intact, 0 moved, 0 lost, 7 not
-judged"; the 7 have no field that can be checked). `sounds` logs what really played since last asked ("output peak 0,950;
+**Dev commands after a patch:** `structs` runs the sweep and logs it ("Struct sweep: 18 intact, 0 moved, 0 lost, 9 not
+judged"; those have no field that can be checked, or nothing live to judge it on, such as a ground item in town). `sounds` logs what really played since last asked ("output peak 0,950;
 started: enemy 128, boss 42, dodge 5…; beds heard: waypoint"): the oracle for audio, since a log of speech says nothing of it.
 
 **Self-test:** dev command `layout` (write it to `Plugins/Poe2Accessibility/debug/command.txt`) starts every search
@@ -262,6 +262,8 @@ recompiled. What the code settles:
 build, it was a wrong line in the catalog (the plugin's skill key is +0x58, the host's +0x48 is another field), so a wrong line
 must move nothing. **After changing a `FieldOffset` these fields use, update the value in the catalog**, and on any new build
 read the line `Code fields: 50 of 50 read in … ms; moved: none`. A value more than 0x400 from the catalog's is not believed.
+Six of the 50 lines (Transitionable state, the status effect times, the stack size data, the tile height) are fields the mod
+does not read: they count in the 50 but protect nothing heard.
 Simulated 2026-11-06: `PlayerOffsets.Level` at +0x20C went back to +0x204 and the level read 19; `TerrainStruct.BytesPerRow` at
 +0x138 went back to +0x130 and the world read as usual; `Shrine.IsUsed` off by 8 gave the spoken warning. None of these fields has moved in a
 real patch yet, so this is proved on simulations and on five past builds that all read the same.
