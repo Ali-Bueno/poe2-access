@@ -139,7 +139,24 @@ restarted in the Act 2 town each time, then reverted; a field at the start of it
 | Stat pairs | list +8; list -8 with the pair swapped; list +0x18 with a field added to the pair (0xC) | `stat entries moved from +0x100 (+0xF0, +0x110) to +0xF8`, `stats where measured`; `playerstats` read the 250 stats, `level` 22 |
 | Buff id | +8; +0x18 | before the sweep the buff read as its description ("Si matas a un enemigo electrocutado…") or empty; then `buff names moved from +0x8 (+0x18) to +0x0` and `herald_of_thunder_79` |
 | State machines | list +8 with the stride -8; both +0x18 | `state machine states moved from +0x18 (+0x28) to +0x10` |
-| Hovered pin, the ids at +0 of Characters and GrantedEffects rows, mod entries, the shrine flag | not searched (see the [audit](research/field-protection-audit.md), section 2) | — |
+| The shrine flag | not searched (see the [audit](research/field-protection-audit.md), section 2) | — |
+
+**Gap pass 2026-11-08, not simulated live yet** (unit tests and the five archived builds only; the
+[audit](research/field-protection-audit.md), section 2). Each is simulated as the passes above: shift the constant and, for a code
+rule, the catalogs' value with it (so the code's reading is believed and differs), rebuild with `--no-incremental`, restart, then
+revert. Dev commands go to `Plugins/Poe2Accessibility/debug/command.txt`.
+
+| Search | Shift | Look for |
+|---|---|---|
+| Hovered pin (`ControlFields.ChangingAt`) | `GameLayout.WorldMap.HoveredPinOffset` 0x370 and `CurrentPinOffset` 0x350 (the canvas's fields moved +8) | on the world map, the cursor moved over three pins: `world map hovered pin moved from +0x370 to +0x378`, `mappin` names the pin, `layout` says `world map hovered pin ok (seen changing)` |
+| Mod entries (code) | `GameLayout.ModArray.RowOffset` 0x30, `EntrySize` 0x48; the two `ModArray*` lines of `semantic-fields.txt` and the two `ModArrayStruct` lines of `code-fields.txt` to 0x30 and 0x48 | at attach `Code fields: … moved: ModArrayStruct.ModsPtr +0x30 to +0x28, ModArrayStruct.Size +0x48 to +0x40`; a magic monster's mods said with its name (outside town) |
+| State machine list and stride (code) | `StateMachine.MeasuredStateListOffset` 0x18, `MeasuredStateStride` 0xC8 and their catalog lines | at attach `StateMachine.StateList +0x18 to +0x10`, `StateMachine.StateStride +0xC8 to +0xC0` before any machine is judged |
+| WorldAreas name and town flag (code and dat) | `WorldAreaDatOffsets.NamePtr` 0x10 and `IsTown` 0x18, the catalog lines and `WorldAreaNameMeasured`, `WorldAreaIsTownMeasured` to match | `Code fields: … WorldAreaDatOffsets.NamePtr +0x10 to +0x8`; the town named on arrival, the lost hint quiet in town |
+| Tile array (code) | `TerrainStruct.TileDetailsPtr` 0x30 and the `Terrain.TileDetails*` catalog lines | `TerrainStruct.TileDetailsPtr +0x30 to +0x28`; `tiles` and the place names as usual |
+| Targeted byte (code) | `GameLayout.TargetableComponent.IsTargetedOffset` 0x6C and the two `IsTargeted` catalog lines | `Targetable.IsTargeted +0x6C to +0x6B`; the interaction target said near an NPC |
+| Animated object (code) | `AnimatedOffsets.AnimatedObjectPtr` 0x348 and the `Animated.Object` catalog lines | `AnimatedOffsets.AnimatedObjectPtr +0x348 to +0x350`; `fight` and the dodge warnings as usual |
+| Class and skill Ids (dat) | `GameLayout.PassiveTree.CharacterIdOffset` and `SkillSlot.EffectIdOffset` 0x8, `dat-columns.json` untouched | `Dat columns: Characters.Id moved from +0x8 to +0x0` (and `GrantedEffects.Id`); the passive tree finds the class's start, `skills` names the skills |
+| WorldAreas Id (code and dat) | not simulable: a field at the start of its struct can only be moved later | — |
 
 
 
@@ -178,7 +195,7 @@ nearest fit wins). Fields of one structure that move together follow an anchor.
 | Skill bar slots: the class found twice in each of the twelve frames, alone (children 1..12) or in co-op (nested in the first child) | — | `UiSemantics.SlotElements` |
 | Area row of the loading state: points at a world-area row with a name and an id shaped like `G1_1` (searched only in game, when it must hold the area) | — | `GameStateService.AreaRowOffset` |
 | Dat keys (row, then the file at +0x8 whose name sits at +0x8): before any key has read, a key that does not read is searched once a second for the file pointer and the name nearest where measured that name the table the caller expects; that layout reads the key, and every key once a key of a second table reads through it | — | `DatKey`, pure `DatKeySearch` |
-| A struct's dat key (a passive node record's PassiveSkills key at +0, a map pin element's MapPins key at +0x2D0): a key into the table nearest where measured, taken once two structs agree. The canvas's hovered pin is not searched: the canvas holds two keys into MapPins (the hovered and the current pin) and a table name cannot tell them apart | — | `DatKeySite` |
+| A struct's dat key (a passive node record's PassiveSkills key at +0, a map pin element's MapPins key at +0x2D0): a key into the table nearest where measured, taken once two structs agree. The canvas's hovered pin is judged as a control field (below): the canvas holds two keys into MapPins (the hovered and the current pin) and a table name cannot tell them apart | — | `DatKeySite` |
 
 ### Control subclasses
 Their fields sit after the base control, so when it grows they all move as far as the label text did
@@ -199,7 +216,7 @@ Their fields sit after the base control, so when it grows they all move as far a
 | Character creation's Continue: nothing fixed to judge it by, so it follows the text; a wrong byte only adds or loses "Name too short" | grey byte | `UiSemantics.ContinueGrey` |
 | Text field hint: reads as words other than the field's font face (the field holds its font 0x50 before the hint) | hint | `UiSemantics.Placeholder` |
 | Options section (weak): on a focused options row, the section two levels above its list has the active byte set and the row's index after it | active, highlighted row | `UiElementReader.IsSectionRow` |
-| Check box, selectable list, quest map depth: nothing static, so judged the way they were measured, by watching them change: the shift whose value changes as the player toggles or moves is the field; another shift that changes twice while the expected one stays put takes its place | state, selected index | `ControlFields.Changing` (pure `ChangingField`) |
+| Check box, selectable list, quest map depth, the world map's hovered pin: nothing static, so judged the way they were measured, by watching them change: the shift whose value changes as the player toggles or moves is the field; another shift that changes twice while the expected one stays put takes its place (for the pin, of the canvas's keys into MapPins the one that changes from pin to pin as the cursor moves; the current area's stays put) | state, selected index, hovered pin | `ControlFields.Changing`, `ChangingAt` (pure `ChangingField`) |
 
 A shift other than the expected one is trusted once two controls agree on it (`ControlFields`); weak groups (tabs, panel
 titles, options sections) need a second control even where measured, and a control that fitted nowhere is tried again later. Only combo
@@ -275,7 +292,10 @@ followed too: a flag column is the 0/1 column set on the most rows whose Id carr
 `mastery`, `jewel`; those rows at least a quarter of its set rows), the graph id the u16 column distinct on every row,
 the class list the only key list into Characters, the per-level effect key the key column reaching nearly every
 GrantedEffects row, and the ActiveSkills key the one whose target Ids appear inside the effect Ids (0.5.5e: 1160 rows,
-the next column 41). A PassiveSkills column a launcher did not write follows the name's shift.
+the next column 41). A PassiveSkills column a launcher did not write follows the name's shift. The Ids the plugin reads
+(Characters, GrantedEffects, WorldAreas; 2026-11-08) are the string column nearest +0 that has no blank and is distinct on
+every row, a class's under `Metadata/Characters/` (`DatColumnSearch.IsIdColumn`): the plugin reads the first two there and
+the host's `WorldAreaDatOffsets.IdPtr` follows the third.
 
 ## Content changes such as 1.0
 GGG has said 1.0 shrinks the Atlas to about 70 nodes and changes the passive tree. A content patch moves table columns,
@@ -308,7 +328,8 @@ por el árbol"), and links are then given by their side only until the next game
 PassiveSkills id `catalog/endgame.json` lacks is logged, said once ("los datos del Atlas") and read from the game's own
 popup. A column the search places elsewhere is logged ("moved from +0x8 to +0x10") and used there.
 
-**Still needs a person.** The `Id` column at +0 of every table, which the searches start from and never move. A table
+**Still needs a person.** The `Id` column at +0 of every table, which the searches start from and never move (the three Ids the
+plugin reads itself are checked and followed, above). A table
 renamed or split, a column whose content changed kind (a key becoming a list), a graph file whose layout changed (not
 only its version byte), a value check whose row changed meaning: each fails its step and is reported, then needs
 `dat-strings` and a new measured offset. New kinds of content (a league mechanic, a new objective) pass in silence until
@@ -317,22 +338,26 @@ re-derived: a new rule is heard as "lost" and needs the exe read again. The 240 
 (`tests/Fixtures/stick-walks.txt`) must be recorded again on the new tree before the rule is trusted.
 
 ## Read from the game's code
-Some fields have nothing in memory to recognise them by: a level, an opened flag, a rarity. `catalog/code-fields.txt` holds 50
-of them with the machine code that reads each, wildcarded so only the operand is taken (`CodeFieldCatalog`, `CodeFieldSearch`,
+Some fields have nothing in memory to recognise them by: a level, an opened flag, a rarity. `catalog/code-fields.txt` holds 52
+lines of them with the machine code that reads each, wildcarded so only the operand is taken (`CodeFieldCatalog`, `CodeFieldSearch`,
 called from `CheckCodeFields`; 0.6 s at attach, on the exe on disk, nothing touches the game). A value counts only when two
 sequences hit exactly once and agree; a miss keeps the constant, and a miss is the usual result for a function a patch
 recompiled. What the code settles:
 
 - a host struct field moves through `OffsetHealer.PlaceFromCode`, unless a live judgment already placed it, because memory beats code;
 - a plugin offset (`layout:`, `LayoutFields`) is set;
-- a `report` field, read where a remap does not reach, is only said ("parte de los datos del juego").
+- a `report` field, read where a remap does not reach, is only said ("parte de los datos del juego"); none ships since the mod
+  entries became plugin offsets (`layout:ModRowOffset`, `layout:ModEntrySize`, 2026-11-08).
+
+`catalog/semantic-fields.txt` reads 80 rules the same way, from what the code does next to a name the game carries
+([exe-layouts.md](research/exe-layouts.md#the-semantic-source)); a field both read is settled only when they agree.
 
 `PlaceFromCode` refuses a field that is not where its signatures were made: when the first run flagged a move on the unchanged
 build, it was a wrong line in the catalog (the plugin's skill key is +0x58, the host's +0x48 is another field), so a wrong line
 must move nothing. **After changing a `FieldOffset` these fields use, update the value in the catalog**, and on any new build
-read the line `Code fields: 51 of 51 read in … ms; moved: none`. A value more than 0x400 from the catalog's is not believed.
-Six of the 51 lines (Transitionable state, the status effect times, the stack size data, the tile height) are fields the mod
-does not read: they count in the 50 but protect nothing heard.
+read the line `Code fields: 52 of 52 read in … ms; moved: none`. A value more than 0x400 from the catalog's is not believed.
+Six of the 52 lines (Transitionable state, the status effect times, the stack size data, the tile height) are fields the mod
+does not read: they count in the 52 but protect nothing heard.
 Simulated 2026-11-06: `PlayerOffsets.Level` at +0x20C went back to +0x204 and the level read 19; `TerrainStruct.BytesPerRow` at
 +0x138 went back to +0x130 and the world read as usual; `Shrine.IsUsed` off by 8 gave the spoken warning. None of these fields has moved in a
 real patch yet, so this is proved on simulations and on five past builds that all read the same.

@@ -51,6 +51,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>GameLayout.WorldMap depth byte: found by watching it change as the toggle is pressed (<see cref="ChangingField"/>).</summary>
         MapDepth,
+
+        /// <summary>
+        ///     GameLayout.WorldMap hovered pin: of the act canvas's keys into MapPins, the one that changes as the cursor moves over
+        ///     pins (the current area's key beside it stays put; <see cref="ChangingField"/>).
+        /// </summary>
+        HoveredPin,
     }
 
     /// <summary>
@@ -180,6 +186,34 @@ namespace Poe2Accessibility.Services
             return state.Known ?? expected;
         }
 
+        /// <summary>
+        ///     As <see cref="Changing"/>, for a field the caller reads itself at each shift within reach (a dat key read through
+        ///     its file): <paramref name="valueAt"/> gives the value there, 0 when none fits (a key into another table).
+        /// </summary>
+        public int ChangingAt(ControlGroup group, IntPtr control, Func<int, long> valueAt)
+        {
+            var state = this.State(group);
+            if (state.Known is { } known)
+            {
+                return known;
+            }
+
+            var expected = this.textShift();
+            var values = new Dictionary<int, long>();
+            foreach (var shift in OffsetSearch.Outward(expected, Radius, Step, expected - Radius))
+            {
+                values[shift] = valueAt(shift);
+            }
+
+            state.Watch ??= new ChangingField();
+            if (state.Watch.Observe(control, expected, values, value => value != 0) && state.Watch.Proved is { } proved)
+            {
+                this.Adopt(group, state, proved);
+            }
+
+            return state.Known ?? expected;
+        }
+
         /// <summary>Whether a live control has proved the group's shift yet.</summary>
         public bool IsKnown(ControlGroup group) => this.State(group).Known != null;
 
@@ -239,6 +273,7 @@ namespace Poe2Accessibility.Services
             ControlGroup.SelectableList => "selectable lists",
             ControlGroup.OptionsSection => "options sections",
             ControlGroup.MapDepth => "quest map depth",
+            ControlGroup.HoveredPin => "world map hovered pin",
             _ => "inventory grid",
         };
 
@@ -259,6 +294,7 @@ namespace Poe2Accessibility.Services
             ControlGroup.SelectableList => GameLayout.SelectableList.SelectedIndexOffset,
             ControlGroup.OptionsSection => GameLayout.OptionsSection.RowIndexOffset,
             ControlGroup.MapDepth => GameLayout.WorldMap.SurfaceShownOffset,
+            ControlGroup.HoveredPin => GameLayout.WorldMap.HoveredPinOffset,
             _ => GameLayout.InventoryGrid.CellSizeOffset,
         };
 

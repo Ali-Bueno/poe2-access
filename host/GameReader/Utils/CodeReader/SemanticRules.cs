@@ -43,7 +43,7 @@ namespace GameReader.Utils.CodeReader
         {
             SemanticKind.Label => this.Label(rule),
             SemanticKind.Geal => this.AfterCall(rule.Name, Only(this.anchors.Getter(rule.Component)), rule.K),
-            SemanticKind.World => this.AfterCall(rule.Name, Only(this.GameWorld()), rule.K),
+            SemanticKind.World => rule.Depth > 0 ? this.ThroughWorld(rule) : this.AfterCall(rule.Name, Only(this.GameWorld()), rule.K),
             SemanticKind.Callee => this.Callee(rule),
             SemanticKind.Called => this.Called(rule),
             SemanticKind.Field => this.LabelSites(rule.Name, rule.With).Select(site => this.fields.Field(site, rule.K, this.LabelWalk(site)))
@@ -56,6 +56,7 @@ namespace GameReader.Utils.CodeReader
             SemanticKind.Stride => this.Stride(rule),
             SemanticKind.Entry => this.Entry(rule),
             SemanticKind.Leaf => this.Leaf(rule),
+            SemanticKind.Scale => this.Scale(rule),
             _ => new long[0],
         };
 

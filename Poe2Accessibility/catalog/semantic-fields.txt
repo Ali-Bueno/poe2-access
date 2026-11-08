@@ -65,3 +65,19 @@ Actor.CurrentAction	ActorOffset:CurrentActionPtr	0x238	geal GetTarget Actor 0
 Actor.CurrentAction	ActorOffset:CurrentActionPtr	0x238	geal GetTargetLocation Actor 0
 Actor.CurrentAction	ActorOffset:CurrentActionPtr	0x238	geal GetCurrentActionStat Actor 0
 Actor.ActionFlags	ActorOffset:ActionFlags	0x2a0	geal IsCurrentAction Actor 0
+WorldAreas.Id	WorldAreaDatOffsets:IdPtr	0x0	world GetAreaId deref 1
+WorldAreas.Name	WorldAreaDatOffsets:NamePtr	0x8	world GetAreaName deref 1
+WorldAreas.IsTown	WorldAreaDatOffsets:IsTown	0x14	world IfTownArea deref 1
+WorldAreas.IsTown	WorldAreaDatOffsets:IsTown	0x14	world IfTownOrHideoutArea deref 1
+MinimapIcon.Row	layout:MinimapIconComponentRow	0x20	geal SetMinimapIcon MinimapIcon 0
+Terrain.TileDetails	TerrainStruct:TileDetailsPtr	0x28	leaf IsInSector 2
+Terrain.TileDetails	TerrainStruct:TileDetailsPtr	0x28	leaf IfInSector 2
+Targetable.IsTargeted	layout:IsTargeted	0x6b	geal DisableHighlighting Targetable 0
+ModArray.Row	layout:ModRowOffset	0x28	label "Implicit Mods: " 1
+ModArray.Row	layout:ModRowOffset	0x28	label "Explicit Mods: " 1
+ModArray.Size	layout:ModEntrySize	0x40	scale label "Implicit Mods: "
+ModArray.Size	layout:ModEntrySize	0x40	scale label "Explicit Mods: "
+StateMachine.StateList	layout:StateListOffset	0x10	label "StateMachine state " 2
+StateMachine.StateStride	layout:StateStride	0xc0	scale label "StateMachine state "
+Animated.Object	AnimatedOffsets:AnimatedObjectPtr	0x350	field "Animated Object: " 0
+Animated.Object	AnimatedOffsets:AnimatedObjectPtr	0x350	geal IfHasAnimation Animated 0

@@ -36,6 +36,28 @@ namespace GameReader.Utils.CodeReader
             return fields.Count > 0 ? new List<long> { fields.Min() } : new List<long>();
         }
 
+        /// <summary>
+        ///     After <c>GEAL::GetGameWorld()</c>, the first pointer loaded from the world followed k levels down; the lowest field
+        ///     read through the last one (<c>GetAreaId</c>: <c>mov rdx,[rax+0xA0]; mov rdx,[rdx]</c>, the area's WorldAreas row and its Id).
+        /// </summary>
+        private List<long> ThroughWorld(SemanticRule rule)
+        {
+            if (this.GameWorld() is not { } world || this.anchors.Evaluator(rule.Name) is not { } evaluator || this.Index.AllOf(evaluator) is not { } code)
+            {
+                return new List<long>();
+            }
+
+            var call = code.FindIndex(instruction => instruction.Kind == InstructionKind.Call && instruction.DirectTarget == world);
+            if (call < 0)
+            {
+                return new List<long>();
+            }
+
+            var fields = RegisterTracker.Track(this.Index, code[call].End, new Dictionary<int, long> { [X64.Rax] = 0 }, ResultInstructions, rule.Depth)?
+                .Where(access => access.Level == rule.Depth && Load(access.Instruction) != null).Select(access => access.Field).ToList();
+            return fields is { Count: > 0 } ? new List<long> { fields.Min() } : new List<long>();
+        }
+
         /// <summary>The world's virtual slot the GEAL function calls, read in the vtables of the class printing the label; with then or inline, one step on.</summary>
         private List<long> Slot(SemanticRule rule)
         {

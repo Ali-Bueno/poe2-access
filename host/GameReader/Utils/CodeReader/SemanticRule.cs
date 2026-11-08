@@ -51,6 +51,9 @@ namespace GameReader.Utils.CodeReader
 
         /// <summary>A GEAL function: the k-th distinct field the callee taking the world's virtual slot result reads through it.</summary>
         Leaf,
+
+        /// <summary>A label: the factor the code scales an index by (shl, lea, imul) before adding it to a pointer it loaded: a vector's element size.</summary>
+        Scale,
     }
 
     /// <summary>
@@ -59,7 +62,8 @@ namespace GameReader.Utils.CodeReader
     ///     <c>called "Team: " 1 returns 0</c>, <c>called "Buffs: " 1 arg 2 0</c>, <c>field "Active Skills: " 0</c>, <c>getter Life details</c>,
     ///     <c>object GetObjectId 0</c>, <c>deref TypeContains arg 3 2</c>, <c>slot IsWalkable "Tile hash: "</c> (with <c>then</c> or
     ///     <c>inline</c>), <c>this "league" 0 with "class"</c>, <c>called "Buffs: " 1 arg 2 deref 1</c>,
-    ///     <c>stride label "Active Skills: "</c>, <c>entry geal ConsumeSkillUse 1</c>, <c>leaf IsWalkable 0</c>.
+    ///     <c>stride label "Active Skills: "</c>, <c>entry geal ConsumeSkillUse 1</c>, <c>leaf IsWalkable 0</c>,
+    ///     <c>world GetAreaId deref 1</c>, <c>scale label "Implicit Mods: "</c>.
     /// </summary>
     /// <param name="Kind">What it starts from.</param>
     /// <param name="Name">The label, the GEAL function, the getter's part, or the string a function loads.</param>
@@ -71,7 +75,7 @@ namespace GameReader.Utils.CodeReader
     /// <param name="Argument">The callee's argument, 1 to 4 (Win64 order), or 0 for the value it returns.</param>
     /// <param name="Then">A slot: add the lowest field the next callee reads from the slot's result.</param>
     /// <param name="Inline">A slot: the storage the constructor points the slot's field at.</param>
-    /// <param name="Depth">A called argument: follow its first pointer this many levels and take the lowest field read there.</param>
+    /// <param name="Depth">A called argument or the world: follow its first pointer this many levels and take the lowest field read there.</param>
     /// <param name="Source">A stride or entry: <c>label</c> when the name is a dump's label, <c>geal</c> when it is a GEAL function.</param>
     public sealed record SemanticRule(
         SemanticKind Kind, string Name, string Component = "", int K = 0, string? With = null, bool Address = false, int Call = 0, int Argument = 0,
@@ -103,7 +107,8 @@ namespace GameReader.Utils.CodeReader
             {
                 "label" when Number(2) is { } k => Options(new SemanticRule(SemanticKind.Label, tokens[1], K: k), tokens, 3),
                 "geal" when count >= 3 => new SemanticRule(SemanticKind.Geal, tokens[1], tokens[2], Number(3) ?? 0),
-                "world" => new SemanticRule(SemanticKind.World, tokens[1], K: Number(2) ?? 0),
+                "world" when count == 4 && tokens[2] == DerefWord && Number(3) is { } depth and >= 1 => new SemanticRule(SemanticKind.World, tokens[1], Depth: depth),
+                "world" when count == 2 || (count == 3 && Number(2) is { }) => new SemanticRule(SemanticKind.World, tokens[1], K: Number(2) ?? 0),
                 "callee" when count == 3 => new SemanticRule(SemanticKind.Callee, tokens[1], tokens[2]),
                 "called" when Number(2) is { } call and >= 1 && count > 3 && tokens[3] == "returns" =>
                     new SemanticRule(SemanticKind.Called, tokens[1], Call: call, K: Number(4) ?? 0),
@@ -123,6 +128,7 @@ namespace GameReader.Utils.CodeReader
                 "stride" when count == 3 && tokens[1] is FromLabel or FromGeal => new SemanticRule(SemanticKind.Stride, tokens[2], Source: tokens[1]),
                 "entry" when count == 4 && tokens[1] is FromLabel or FromGeal && Number(3) is { } k => new SemanticRule(SemanticKind.Entry, tokens[2], K: k, Source: tokens[1]),
                 "leaf" when count == 3 && Number(2) is { } k => new SemanticRule(SemanticKind.Leaf, tokens[1], K: k),
+                "scale" when count == 3 && tokens[1] == FromLabel => new SemanticRule(SemanticKind.Scale, tokens[2], Source: tokens[1]),
                 _ => null,
             };
         }

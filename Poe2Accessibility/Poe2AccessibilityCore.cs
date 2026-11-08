@@ -60,6 +60,7 @@ namespace Poe2Accessibility
         private const string CodeFieldsPart = "code fields";
         private const string CodeFieldFile = "code-fields.txt";
         private const string WorldAreaStruct = "WorldAreaDatOffsets";
+        private const int WorldAreaIdMeasured = 0x0;
         private const int WorldAreaNameMeasured = 0x8;
         private const int WorldAreaIsTownMeasured = 0x14;
 
@@ -85,6 +86,10 @@ namespace Poe2Accessibility
             ["NodeInBuild"] = (() => GameLayout.PassiveTree.NodeInBuildOffset, value => GameLayout.PassiveTree.NodeInBuildOffset = value),
             ["ButtonMenuIndex"] = (() => GameLayout.ButtonMenu.SelectedIndexOffset, value => GameLayout.ButtonMenu.SelectedIndexOffset = value),
             ["PlayerStride"] = (() => GameLayout.UiManager.PlayerStride, value => GameLayout.UiManager.PlayerStride = value),
+            ["ModRowOffset"] = (() => GameLayout.ModArray.RowOffset, value => GameLayout.ModArray.RowOffset = value),
+            ["ModEntrySize"] = (() => GameLayout.ModArray.EntrySize, value => GameLayout.ModArray.EntrySize = value),
+            ["StateListOffset"] = (() => GameReader.RemoteObjects.Components.StateMachine.StateListOffset, value => GameReader.RemoteObjects.Components.StateMachine.StateListOffset = value),
+            ["StateStride"] = (() => GameReader.RemoteObjects.Components.StateMachine.StateStride, value => GameReader.RemoteObjects.Components.StateMachine.StateStride = value),
         };
 
         private WorldLayoutWatch? worldLayout;

@@ -23,10 +23,15 @@ namespace Poe2Accessibility.Services
         /// <summary>Elements looked at for the pin's popup, beside the map: the popup is a few levels under the panel.</summary>
         private const int MaxPopupNodes = 600;
 
+        /// <summary>Until the hovered pin's place is proved, the canvas's keys are looked at this often (the cursor rests on a pin longer).</summary>
+        private const int HoveredPinLookMs = 150;
+
         private static readonly Regex Spaces = new(@"\s+", RegexOptions.Compiled);
 
         /// <summary>Where a pin element keeps its MapPins key, found again by the table its file names.</summary>
         private static readonly DatKeySite PinKey = new("map pin key", GameLayout.MapPinRow.ElementPinOffset, GameLayout.WorldMap.PinTable);
+
+        private long nextHoveredPinLook;
 
         /// <summary>The game's "Monster Level: {0}" of a pin's popup in the client's language, empty without the table.</summary>
         public Func<string>? PinLevelLabel { get; set; }
@@ -71,7 +76,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The MapPins row of the pin under the cursor on the shown act's canvas, zero for none.</summary>
         public IntPtr HoveredPin(IntPtr worldScreen) => this.ShownCanvas(worldScreen) is { } canvas
-            ? DatKey.Row(this.reader, this.elements, canvas + GameLayout.WorldMap.HoveredPinOffset, GameLayout.WorldMap.PinTable) ?? IntPtr.Zero
+            ? this.PinKeyRow(canvas, this.HoveredPinAt(canvas)) ?? IntPtr.Zero
             : IntPtr.Zero;
 
         /// <summary>
@@ -175,7 +180,11 @@ namespace Poe2Accessibility.Services
                 ? Plain(this.elements.ReadUtf16BufferAt(text, MaxPinTextChars) ?? string.Empty)
                 : string.Empty;
 
-        /// <summary>The shown act's canvas: map_control's shown child that keeps a hovered pin.</summary>
+        /// <summary>
+        ///     The shown act's canvas: map_control's shown child that keeps a key into MapPins where the hovered pin is read, or
+        ///     where the current area's is (always set, so a canvas is found with no pin hovered and before the hovered place is
+        ///     proved; both move with the canvas's fields).
+        /// </summary>
         private IntPtr? ShownCanvas(IntPtr worldScreen)
         {
             if (!this.elements.TryReadElement(worldScreen, out var screen))
@@ -183,6 +192,8 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
+            var shift = this.elements.Controls?.Current(ControlGroup.HoveredPin) ?? 0;
+            var current = shift + GameLayout.WorldMap.CurrentPinOffset - GameLayout.WorldMap.HoveredPinOffset;
             foreach (var child in this.elements.ReadChildren(screen))
             {
                 if (!this.elements.TryReadElement(child, out var control) || control.Name != GameLayout.WorldMap.ControlName)
@@ -192,8 +203,7 @@ namespace Poe2Accessibility.Services
 
                 foreach (var canvas in this.elements.ReadChildren(control))
                 {
-                    if (this.elements.TryReadElement(canvas, out var info) && info.IsVisibleFlag &&
-                        DatKey.Row(this.reader, this.elements, canvas + GameLayout.WorldMap.HoveredPinOffset, GameLayout.WorldMap.PinTable) != null)
+                    if (this.elements.TryReadElement(canvas, out var info) && info.IsVisibleFlag && (this.PinKeyRow(canvas, shift) != null || this.PinKeyRow(canvas, current) != null))
                     {
                         return canvas;
                     }
@@ -202,6 +212,30 @@ namespace Poe2Accessibility.Services
 
             return null;
         }
+
+        /// <summary>
+        ///     Where the canvas keeps the hovered pin, as a shift from where it was measured: of its keys into MapPins, the one that
+        ///     changes as the cursor moves over pins (<see cref="ControlFields.ChangingAt"/>), looked at a few times a second until proved.
+        /// </summary>
+        private int HoveredPinAt(IntPtr canvas)
+        {
+            if (this.elements.Controls is not { } controls)
+            {
+                return 0;
+            }
+
+            if (controls.IsKnown(ControlGroup.HoveredPin) || Environment.TickCount64 < this.nextHoveredPinLook)
+            {
+                return controls.Current(ControlGroup.HoveredPin);
+            }
+
+            this.nextHoveredPinLook = Environment.TickCount64 + HoveredPinLookMs;
+            return controls.ChangingAt(ControlGroup.HoveredPin, canvas, shift => this.PinKeyRow(canvas, shift)?.ToInt64() ?? 0);
+        }
+
+        /// <summary>The MapPins row of the key the canvas keeps at the hovered pin's place moved by <paramref name="shift"/>; null when none.</summary>
+        private IntPtr? PinKeyRow(IntPtr canvas, int shift) =>
+            DatKey.Row(this.reader, this.elements, canvas + GameLayout.WorldMap.HoveredPinOffset + shift, GameLayout.WorldMap.PinTable);
 
         /// <summary>The names of the other shown pins of an area (its bosses, its trial), as the popup lists them, in map order.</summary>
         private IEnumerable<string> PinsOfArea(IntPtr worldScreen, IntPtr area, IntPtr except)

@@ -5,6 +5,7 @@ namespace Poe2Accessibility.Services
     using System.Runtime.InteropServices;
     using System.Text.RegularExpressions;
     using GameReader.RemoteObjects.Components;
+    using GameReader.Utils;
     using GameOffsets.Objects.Components;
 
     /// <summary>
@@ -17,12 +18,14 @@ namespace Poe2Accessibility.Services
     {
         private const int MaxMods = 16;
 
-        private static readonly int ModsAt = (int)Marshal.OffsetOf<ObjectMagicPropertiesOffsets>(nameof(ObjectMagicPropertiesOffsets.Details1)) +
-                                             (int)Marshal.OffsetOf<ModsAndObjectMagicProperties>(nameof(ModsAndObjectMagicProperties.Mods));
+        // The implicit and explicit vectors, as measured: read through the host's remap, which the code rules and the sweep move.
+        private static readonly int ImplicitAt = (int)Marshal.OffsetOf<ObjectMagicPropertiesOffsets>(nameof(ObjectMagicPropertiesOffsets.Details1)) +
+                                                 (int)Marshal.OffsetOf<ModsAndObjectMagicProperties>(nameof(ModsAndObjectMagicProperties.Mods)) +
+                                                 (int)Marshal.OffsetOf<AllModsType>(nameof(AllModsType.ImplicitMods));
 
-        private static readonly int VectorBytes = Marshal.SizeOf<GameOffsets.Natives.StdVector>();
-        private static readonly int EntryBytes = Marshal.SizeOf<ModArrayStruct>();
-        private static readonly int RowAt = (int)Marshal.OffsetOf<ModArrayStruct>(nameof(ModArrayStruct.ModsPtr));
+        private static readonly int ExplicitAt = (int)Marshal.OffsetOf<ObjectMagicPropertiesOffsets>(nameof(ObjectMagicPropertiesOffsets.Details1)) +
+                                                 (int)Marshal.OffsetOf<ModsAndObjectMagicProperties>(nameof(ModsAndObjectMagicProperties.Mods)) +
+                                                 (int)Marshal.OffsetOf<AllModsType>(nameof(AllModsType.ExplicitMods));
 
         /// <summary>The first branch of a gendered name: "&lt;if:MS&gt;{de Rabia}&lt;elif:FS&gt;{…}" → "de Rabia".</summary>
         private static readonly Regex FirstBranch = new(@"^<if:[^>]*>\{([^}]*)\}", RegexOptions.Compiled);
@@ -43,19 +46,20 @@ namespace Poe2Accessibility.Services
         public IReadOnlyList<string> Of(ObjectMagicProperties magic)
         {
             var found = new List<string>();
-            for (var list = 0; list < 2; list++)
+            var (entryBytes, rowAt) = (GameLayout.ModArray.EntrySize, GameLayout.ModArray.RowOffset);
+            foreach (var measured in new[] { ImplicitAt, ExplicitAt })
             {
-                var vector = magic.Address + ModsAt + (list * VectorBytes);
-                if (!this.memory.TryRead<IntPtr>(vector, out var first) || !this.memory.TryRead<IntPtr>(vector + 8, out var last) ||
+                var vector = magic.Address + HostStructs.Follow<ObjectMagicPropertiesOffsets>(measured);
+                if (entryBytes <= 0 || !this.memory.TryRead<IntPtr>(vector, out var first) || !this.memory.TryRead<IntPtr>(vector + 8, out var last) ||
                     first == IntPtr.Zero || last.ToInt64() <= first.ToInt64())
                 {
                     continue;
                 }
 
-                var count = Math.Min((last.ToInt64() - first.ToInt64()) / EntryBytes, MaxMods);
+                var count = Math.Min((last.ToInt64() - first.ToInt64()) / entryBytes, MaxMods);
                 for (var i = 0; i < count; i++)
                 {
-                    if (this.memory.TryRead<IntPtr>(first + (int)(i * EntryBytes) + RowAt, out var row) && this.Name(row) is { Length: > 0 } name &&
+                    if (this.memory.TryRead<IntPtr>(first + (int)(i * entryBytes) + rowAt, out var row) && this.Name(row) is { Length: > 0 } name &&
                         !found.Contains(name))
                     {
                         found.Add(name);

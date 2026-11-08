@@ -9,6 +9,8 @@ Updated the same day after closing the gaps of section 2 (commits `28bf763`..`61
 searches cover, and the semantic rules of `catalog/semantic-fields.txt` (added after the audit) are counted as **SEM**.
 Updated again that day for the second pass (commits `bc488f1`..`ad7e92d`: entry layouts, dat keys, the game states' names, value
 checks) and the code rules of `f8010c7`, `4ed525e`, `b507d8b` ([exe-layouts.md](exe-layouts.md), "The entry fields", "The window cull").
+Updated a third time that day for the gap pass (branch `worktree-agent-a0b9d794fbe24ca5f`: the rules of [exe-layouts.md](exe-layouts.md),
+"The gap fields", the dat Id columns and the hovered pin's judgment); C39b, the dodge's animated object, was added to the table.
 
 ## How to read the tables
 
@@ -38,7 +40,7 @@ checks) and the code rules of `f8010c7`, `4ed525e`, `b507d8b` ([exe-layouts.md](
 | G3b | slot indexes (0 = AreaLoading, 4 = InGame) | 1 | `GameStates` | `InGameStateObject`, `AreaLoading` | LIVE `GameStateRoles`: in play the state that leads to an area with a local player, loading the one current before two new areas | 1 | world silent | loading needs two area changes |
 | G3c | the game menu's slot (3 = EscapeState) | 1 | `GameStates` | "Menú del juego", screen messages off in the menu | LIVE `GameStateRoles.Escape`: the state opened in play and closed back to it over the same area, twice | 1 | cosmetic: the menu said as another state | |
 | G3d | the states after the in-game one (PreGame, Login, Waiting, CreateCharacter, SelectCharacter, DeleteCharacter, Loading, the unnamed 0.5.x one) | 8 | `GameStates` | the state said on a change, login and creation hints, appearing texts | FOLLOW the last role's shift (`GameStateRoles.Names`: a state inserted moves every one after it) | 1 (f) | cosmetic: a state said by another's name | a state inserted after the in-game one is not seen |
-| G3e | ChangePassword, Credits (slots 1, 2; null in 0.5.5f) | 2 | `GameStates` | the state said on a change | by slot; between two roles that disagree a state keeps its slot | 0 | cosmetic | |
+| G3e | ChangePassword, Credits (slots 1, 2; null in 0.5.5f) | 2 | `GameStates` | the state said on a change | by slot; between two roles that disagree a state keeps its slot | 0 | cosmetic | both slots are null in 0.5.5f, so neither can be current and its name cannot be said wrong; they have no role to be seen in |
 | G4 | `GameCullSize` static (black-bar width) | 1 | pattern only | UI rect x (`PluginUiElementReflection.cs`) | pattern; fallback pattern `GameCullSize (alt)` (`StaticOffsetsPatterns`, `Core.UpdateCullData`); CHECK plausible (0 to half the window, else 0 and said, `GameWindowCull.Judge`) | 2 | cosmetic: UI rects shifted on non-16:9 windows | the window's shape does not give it: 2560 x 1440 reads 0, not the 16:10 bar (128) |
 
 Not audited (not read by the mod): the other four patterns (`File Root`, `AreaChangeCounter`, the two terrain rotation ones;
@@ -54,9 +56,9 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 | A1 | `AreaInstanceData` +0x290 | 1 | `InGameStateOffset` | the whole world | LIVE `OffsetHealer.LocateArea` (a block that holds a world); SEM `this "league" 0 with "class"` | 2 | world silent | runs only after 8 s with no entities, every 3 s (`WorldLayoutWatch.cs:95-97`) |
 | A2 | `WorldData` +0x368 | 1 | `InGameStateOffset` | camera, area details | LIVE `JudgeCamera` then `LocatePointer` (`OffsetHealer.cs:322`) | 1 | one feature: screen projection (radar falls back to a fixed view, `ScreenProjection.cs:52-60`) | |
 | A3 | camera matrix (+0x98 then +0x108) | 1 | `WorldDataOffset` | direction cues | LIVE `IsCameraMatrix` (matrix kept twice) | 1 | one feature: as A2 | |
-| A4 | `WorldAreaDetailsPtr` +0x98 and `WorldAreaDetailsRowPtr` +0x98 | 2 | `WorldDataOffset`, `WorldAreaDetailsStruct` | `InTownOrHideout` (`Poe2AccessibilityCore.Gameplay.cs:122,124,341`) | none | 0 | cosmetic: lost hint and map hints not suppressed in town | `WorldData.cs:150-154`; `JudgeCamera` remaps from the matrix offset only |
+| A4 | `WorldAreaDetailsPtr` +0x98 and `WorldAreaDetailsRowPtr` +0x98 | 2 | `WorldDataOffset`, `WorldAreaDetailsStruct` | `InTownOrHideout` (`Poe2AccessibilityCore.Gameplay.cs:122,124,341`) | none | 0 | cosmetic: lost hint and map hints not suppressed in town | `WorldData.cs:150-154`; `JudgeCamera` remaps from the matrix offset only. No named function reads this chain: the game's own `IfTownArea`, `GetAreaId` reach the row through the area, `[AreaInstance+0xA0]` (`world GetAreaId 0` reads 0x98 before 0.5.5f, 0xA0 after, on all five builds). Reading the row there instead would give it two code rules, once a live check shows both chains give the same row |
 | A5 | `UiRootStructPtr` +0x2F0, `GamepadUiRootStructPtr` +0x318 | 2 | `InGameStateOffset` | in-game layer container (`UiManagerLocator.cs`) | LIVE `LayoutProbe.ProbeLayerRoots`: an element whose children carry two known layer names; both take the shift of the nearest slot that holds one | 1 | one feature: every in-game panel | |
-| A6 | `MouseOverHostPtr` +0x300, `MouseOverSubPtr` +0x3F0, `EntityPtr` +0xA8 | 3 | `InGameStateOffset`, `MouseOver*Struct` | mouse-hover target (`TargetNarrator.cs:105`) | none | 0 | one feature: hover narration (controller target display is independent) | `InGameState.cs:94-105` |
+| A6 | `MouseOverHostPtr` +0x300, `MouseOverSubPtr` +0x3F0, `EntityPtr` +0xA8 | 3 | `InGameStateOffset`, `MouseOver*Struct` | mouse-hover target (`TargetNarrator.cs:105`) | none | 0 | one feature: hover narration (controller target display is independent) | `InGameState.cs:94-105`; no dump or GEAL function reads the in-game state's hover chain, and a live judgment needs the mouse over an entity, which a pad player does not do |
 | A7 | `InGameState.UiManagerOffset` 0x310 | 1 | plugin | UI manager | direct slot (validated by `IsManager`); scan of the state object for element pointers whose manager two elements agree on (`UiManagerLocator.FromStateElements`) | 2 | menus silent | |
 | A8 | `CurrentAreaLevel` +0xC4 | 1 | `AreaInstanceOffsets` | area level speech | LIVE `AreaLayoutSearch.IsHeader`; SEM `world IsLevel`, `world IfLevel` | 2 | cosmetic | `Poe2AccessibilityCore.Gameplay.cs:224` |
 | A9 | `CurrentAreaHash` +0x11C | 1 | `AreaInstanceOffsets` | area identity (explored map, death place, map hints) | FOLLOW level at the measured 0x58 distance; CHECK value >= 0x10000; SEM `label "Tile hash: "` | 2 | one feature: area memory and guide | if the distance changes it is not found (`AreaLayoutSearch.cs:117-120`) |
@@ -75,7 +77,7 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 | ID | Field | n | Struct | Used by | Protections | N | If lost | Notes |
 |---|---|---|---|---|---|---|---|---|
 | T1 | `TotalTiles` +0x18 | 1 | `TerrainStruct` | `IsTerrain`, grid | SIG L49; SEM `leaf IsWalkable`; `IsTerrain` relation (tile bytes = X*Y*0x38) is detect-only | 2 | world silent | `AreaLayoutSearch.cs:302-320` follows the remap |
-| T2 | `TileDetailsPtr` +0x28 | 1 | `TerrainStruct` | `IsTerrain`, place names | SIG L50; `IsTerrain` | 1 | world silent | |
+| T2 | `TileDetailsPtr` +0x28 | 1 | `TerrainStruct` | `IsTerrain`, place names | SIG L50; SEM `leaf IsInSector 2`, `leaf IfInSector 2` (the leaf indexes `[terrain+0x28]` by tile, 0x38 a tile); `IsTerrain` | 2 | world silent | |
 | T3 | `GridWalkableData` +0xD0 | 1 | `TerrainStruct` | walls, routes, sight | SIG L51; SEM `leaf IsWalkable`; `IsTerrain`; `WalkableCheck` (detect only) | 2 | world silent | |
 | T4 | `BytesPerRow` +0x130 | 1 | `TerrainStruct` | every grid index | SIG L53; SEM `leaf IsWalkable`; `IsTerrain`; `WalkableCheck` | 2 | world silent | |
 | T5 | `GridLandscapeData` +0xE8 | 1 | `TerrainStruct` | enemy line of sight (`EnemyCues.cs:309`) | SIG L52 | 1 | one feature: sight layer | not part of `IsTerrain` |
@@ -126,23 +128,24 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 | C23 | `ObjectMagicProperties.Rarity` (+0x144) | 1 | `ObjectMagicPropertiesOffsets` | monster rarity cues, target narration | SIG L5; SEM `label "Rarity: "` | 2 | one feature: rarity cues | the sweep's vectors start after it (+0x150) and do not cover it |
 | C24 | `Mods.Rarity` +0x94 | 1 | `ModsOffsets` | item rarity speech | SIG L6 | 1 | one feature: item rarity | |
 | C25 | `ImplicitMods` +0x150, `ExplicitMods` +0x168 | 2 | `ObjectMagicPropertiesOffsets` | monster mod names | SIG L7-8; LIVE sweep vector anchor; SEM `label "Implicit Mods: "`, `field "Explicit Mods: "` | 3 | cosmetic | |
-| C26 | `ModArrayStruct.ModsPtr` +0x28 and stride 0x40 | 2 | `ModArrayStruct` | monster mod names | REPORT L36-37 | 0 | cosmetic | `Values` stride 4 is hard-coded (`ObjectMagicProperties.cs:94`); no code anchor (code rules, 2026-11-08); a stride search (now possible, `StructRemap` stride) needs a known mod to check against |
+| C26 | `ModArrayStruct.ModsPtr` +0x28 and stride 0x40 | 2 | plugin `GameLayout.ModArray` (`RowOffset`, `EntrySize`) | monster mod names | SIG L36-37 (placing `layout:ModRowOffset`, `layout:ModEntrySize`, no longer a report); SEM `label "Implicit Mods: " 1`, `label "Explicit Mods: " 1` (the dump reads the first entry's +0x28 and prints that Mods row's Id), `scale label "Implicit Mods: "`, `scale label "Explicit Mods: "` (it walks the rest by `index << 6`) | 2 | cosmetic | `MonsterMods` reads the two vectors through the host's remap (C25's protections reach it now) and the entry through the layout; the host's own `ObjectMagicProperties`/`Mods` lists still read `ModArrayStruct` raw, and `Values` stride 4 is hard-coded there (`ObjectMagicProperties.cs:94`): the plugin reads neither |
 | C27 | `IsTargetable` byte 0x69 | 1 | plugin | in-play filter | SIG L33; LIVE `InPlayFlag`; SEM `label "Targetable: "` | 3 | one feature: in-play filter (everything counts as in play when lost) | |
-| C28 | `IsTargeted` byte 0x6B | 1 | plugin | interaction target | SIG L34; FOLLOW the flag's shift (`EntityFields.cs:173`) | 2 (f) | one feature: interaction target | |
+| C28 | `IsTargeted` byte 0x6B | 1 | plugin | interaction target | SIG L34; SEM `geal DisableHighlighting Targetable 0` (the evaluator clears `[Targetable+0x6B]`, then the highlightable byte 0x6A that `EnableHighlighting` sets); FOLLOW the flag's shift (`EntityFields.cs:173`) | 2 | one feature: interaction target | |
 | C29 | NPC marker row 0x50 | 1 | plugin | quest marker | LIVE `EntityFields.JudgeMarker` (needs an NPC that shows one) | 1 | cosmetic | |
 | C30 | `ChestsDataPtr` +0x160 (L9) | 1 | `ChestOffsets` | chest radar | SIG | 1 | one feature: chests | |
 | C30b | `IsOpened` +0x168 (L10) | 1 | `ChestOffsets` | chest radar | SIG; SEM `label "Chest open: "` | 2 | one feature: chests | |
 | C31 | `IsLabelVisible` +0x21 (L11), `StrongboxDatPtr` +0x50 (L12) | 2 | `ChestsStructInternal` | chest, breakable, strongbox kind | SIG | 1 | one feature: chests | |
-| C32 | `Shrine.IsUsed` +0x24 | 1 | `ShrineOffsets` | shrine radar | SIG L38 (placed, no longer a report) | 1 | one feature: used shrines still announced | no live check: no shrine in town, and a used shrine is told only by its use |
+| C32 | `Shrine.IsUsed` +0x24 | 1 | `ShrineOffsets` | shrine radar | SIG L38 (placed, no longer a report) | 1 | one feature: used shrines still announced | no code anchor: no dump, no GEAL function, and `GetComponent<Shrine>` has one caller that reads nothing of it (2026-11-08); no live check: no shrine in town, and a used shrine is told only by its use |
 | C33 | `IsBlocked` +0x30 | 1 | `TriggerableBlockageOffsets` | barriers, doors | SIG L13 | 1 | one feature: barriers | |
 | C34 | `StatesValues` +0x160 | 1 | `StateMachineComponentOffsets` | trial traps | LIVE sweep vector anchor; SEM `field "StateMachine state "` | 2 | one feature: traps | |
-| C34b | state list +0x10 and definition stride 0xC0 | 2 | `StateMachine` (settable `StateListOffset`, `StateStride`) | trial traps | LIVE `JudgeStateMachines`: every state of up to four machines reads a distinct name | 1 | one feature: traps | the exe reads `[StatesPtr+0x10]`, stride 0xC0: a code rule can set them |
+| C34b | state list +0x10 and definition stride 0xC0 | 2 | `StateMachine` (settable `StateListOffset`, `StateStride`) | trial traps | LIVE `JudgeStateMachines`: every state of up to four machines reads a distinct name; SEM `label "StateMachine state " 2` (`add rax,[def+0x10]`), `scale label "StateMachine state "` (`lea rax,[rcx+rcx*2]; shl rax,6`), as `layout:StateListOffset`, `layout:StateStride` | 2 | one feature: traps | a live judgment that moved them first is kept |
 | C35 | charges: `InternalPtr` +0x10 (L22), `current` +0x18 (L21), `PerUseCharges` +0x18 (L23) | 3 | `ChargesOffsets` | flask charges | SIG | 1 | one feature: flasks | |
 | C36 | `Stack.Count` +0x18 | 1 | `StackOffsets` | stack counts in item speech and pick-up news | SIG L24 | 1 | cosmetic | |
 | C37 | `BaseItemTypesRowPtr` +0x18, `DisplayNameRowPtr` +0x10 | 2 | `BaseOffsets` | item base name | LIVE `BaseNameField` (tooltip titles are the fallback, not a re-find) | 1 | cosmetic | |
 | C38 | `ItemEntityPtr` +0x28 | 1 | `WorldItemOffsets` | ground items (radar, labels) | LIVE `OffsetHealer.JudgeGroundItems` (up to four ground items lead to entities under `Metadata/Items/`) | 1 | one feature: loot | not simulated live: no item on the ground in town |
-| C39 | `AnimatedEntityPtr` +0x280, `ModelInfoPtr` +0x358, `ModelFileRecordPtr` +0x18 | 3 | `AnimatedOffsets` | map-hint model path | none | 0 | cosmetic | |
-| C40 | minimap icon row pointer +0x20 (host `IconName`) | 1 | `MinimapIcon.cs` | NPC and exit classification | SIG L35 moves the host's `MinimapIcon.RowOffset` too; names read before are read again | 1 | one feature: icon-based classification | |
+| C39 | `AnimatedEntityPtr` +0x280, `ModelInfoPtr` +0x358, `ModelFileRecordPtr` +0x18 | 3 | `AnimatedOffsets` | map-hint model path | none | 0 | cosmetic | no code reads +0x280 (stale upstream field, exe-layouts.md); no named function reads +0x358 or its +0x18 (the `Animated Object: ` dump prints the path through +0x350) |
+| C39b | `AnimatedObjectPtr` +0x350 | 1 | `AnimatedOffsets` | the dodge clock and attack reading (`AttackReader`) | SIG L55 (three, after `GetComponent<Animated>` in `IfHasAnimation`, `SwitchAOTypeName` and the animated-object helper the mesh and effect-pack functions share); SEM `field "Animated Object: " 0` (the Animated dump), `geal IfHasAnimation Animated 0`; CHECK `AttackFieldCheck` (the object's path ends in `.ao`, its name map holds `AnimationController`) | 2 | one feature: dodge warnings | added 2026-11-08 |
+| C40 | minimap icon row pointer +0x20 (host `IconName`) | 1 | `MinimapIcon.cs` | NPC and exit classification | SIG L35 moves the host's `MinimapIcon.RowOffset` too; SEM `geal SetMinimapIcon MinimapIcon 0` (the evaluator stores the row at +0x20); names read before are read again | 2 | one feature: icon-based classification | |
 
 ### 1.6 UI element base (host `UiElementBaseOffset`) and plugin element fields
 
@@ -151,11 +154,11 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 | U1 | `Self` +0x08, `ChildrensPtr` +0x10 | 2 | `UiElementBaseOffset` | every tree walk | LIVE `UiElementLayoutSearch` on the UI root (its own address; children that are elements pointing back) | 1 | menus silent | judged before any walk; the plugin's readers follow the remap (`HostStructs`) |
 | U2 | `ParentPtr` +0xB8 | 1 | `UiElementBaseOffset` | roots, panels | LIVE `UiElementLayoutSearch` (the children's parent field points at the root) | 1 | menus silent | |
 | U3 | `Flags` +0x168 with the visible bit 0x0B | 1 | `UiElementBaseOffset` | `IsVisibleFlag`, rects | LIVE (weak) `UiElementLayoutSearch`: the root visible with its scale index, its descendants not all alike, at the parent's or the size's shift | 1 | menus silent or reading hidden controls | |
-| U3b | position-modifier bit 0x0A | 1 | `UiElementBaseOffset` | rects | none | 0 | one feature: positions | |
+| U3b | position-modifier bit 0x0A | 1 | `UiElementBaseOffset` | rects | none | 0 | one feature: positions | the flag word's bits are tested in thousands of unnamed UI functions (`test`, `shr` then `test`); no string found names a bit (the one function loading `disabled` near a flag read looks it up as a state machine's state, 0xE4DB20 in the hotfix) |
 | U4 | `UnscaledSize` 0x270 | 1 | `UiElementBaseOffset` | on-screen rects | LIVE `UiElementLayoutSearch` (the root's size is the base resolution 2560 x 1600) | 1 | one feature: positions, on-screen tests, passive-tree geometry | |
 | U4b | `RelativePosition` 0x100, `PositionModifier` 0x108, `LocalScaleMultiplier` 0x118 | 3 | `UiElementBaseOffset` | on-screen rects | FOLLOW the parent's or the size's shift, CHECK the root at the origin with scale 1 | 1 (f) | one feature: as U4 | |
 | U4c | `ScaleIndex` 0x172 | 1 | `UiElementBaseOffset` | on-screen rects | FOLLOW the flags group (the root's 3) | 1 (f) | one feature: as U4 | |
-| U5 | `Vtable` +0x0 | 1 | `UiElementBaseOffset` | list item kinds (`UiSemantics.Lists.cs:488`) | CHECK | 0 | cosmetic | |
+| U5 | `Vtable` +0x0 | 1 | `UiElementBaseOffset` | list item kinds (`UiSemantics.Lists.cs:488`) | CHECK | 0 | cosmetic | the compiler puts a polymorphic class's vtable pointer first: it cannot move short of a new class, so there is nothing to find again |
 | P1 | `Element.NameOffset` 0x98 | 1 | plugin | roles, layers, every name test | LIVE `ProbeNames` | 1 | menus silent | the layer search (L-rows) depends on it |
 | P2 | `ManagerOffset` 0x90 | 1 | plugin | manager lookup | FOLLOW name | 1 (f) | menus silent | also `AdoptManager` |
 | P3 | `FontOffset` 0xC0 | 1 | plugin | text-field hint test | FOLLOW name | 1 (f) | cosmetic | |
@@ -165,7 +168,7 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 | P7 | `Image.TextureOffset` 0x240 | 1 | plugin | icon-only elements | LIVE `ProbeTextures` | 1 | one feature: image-only items | |
 | P8 | `AltTextureOffset` 0x238 | 1 | plugin | smaller image class | FOLLOW texture | 1 (f) | cosmetic | |
 | P9 | flag bits: interactive 0x1B, navigable 0x0E, text input 0x10 | 3 | plugin | roles on pre-game screens | LIVE `FlagBits` | 1 | one feature: control roles | |
-| P10 | enabled bit 0x0D | 1 | plugin | disabled controls | CHECK: only noticed lost (`FlagBits.EnabledTrusted`) | 0 | cosmetic: all read enabled | |
+| P10 | enabled bit 0x0D | 1 | plugin | disabled controls | CHECK: only noticed lost (`FlagBits.EnabledTrusted`) | 0 | cosmetic: all read enabled | as U3b, no code names it (the stick step tests 0x2000 with 0x40000, unnamed); a live judgment could watch it flip on the one control known to (the terms window's Continue when I Agree is ticked, ui-layers.md), which a session rarely shows |
 | P11 | `UiManager.RootOffset` 0x688 | 1 | plugin | manager root | LIVE `AdoptManager` | 1 | menus silent | |
 | P12 | `CurrentOffset` 0x748 | 1 | plugin | focus tracking (the core of menu reading) | FOLLOW the root slot; LIVE `FocusSlotCheck` (the slot that takes each element of this manager first while the player moves, three moves) | 2 | menus silent | the inventory grid moves its cursor, not its focus: a button menu judges it |
 | P12b | `LastFocusedOffset` 0x750, `HoveredOffset` 0x760 | 2 | plugin | focus tracking | FOLLOW the focus | 1 (f) | menus silent | |
@@ -206,7 +209,7 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 | K17 | world-map depth byte 0x566 | 1 | plugin | world map | LIVE `Changing` | 1 | cosmetic | |
 | K18 | `ContinueGreyOffset` 0x3FA | 1 | plugin | name too short | FOLLOW text shift (`UiSemantics.Selectors.cs:79`) | 1 (f) | cosmetic | |
 | K19 | a pin element's key, `MapPinRow.ElementPinOffset` 0x2D0 | 1 | plugin | world-map pins of an area | LIVE `DatKeySite`: a key into MapPins nearest where measured, two pins agree | 1 | one feature: the pins an area lists | simulated +8, -0x18 |
-| K19b | the canvas's hovered pin 0x378 | 1 | plugin | the pin under the cursor, which canvas shows | CHECK `DatKey.Row` table name | 0 | one feature: world-map pins | the canvas holds two keys into MapPins (hovered, and the current pin at 0x358, which the mod does not read): a table name cannot tell them apart; only a judgment by the cursor's movement could |
+| K19b | the canvas's hovered pin 0x378 | 1 | plugin | the pin under the cursor, which canvas shows | LIVE `ControlFields.ChangingAt` (`HoveredPin`): of the canvas's keys into MapPins within 0x100, the one that changes from pin to pin as the cursor moves (the current area's at 0x358 stays put); CHECK `DatKey.Row` table name | 1 | one feature: world-map pins | 2026-11-08, unit test only; the canvas is now found by either key, so it is found with no pin hovered |
 | K20 | dat key layout: `KeyFileOffset` 0x8, `FileNameOffset` 0x8 | 2 | `DatKey` (from `GameLayout.SkillSlot`) | every dat foreign key | LIVE `DatKey`: before any key has read, a key that does not read is searched (once a second) for the file pointer and the name nearest where measured that name the expected table; taken for every key once a key of a second table reads through it | 1 | one feature family: skill, passive, class and pin names | simulated: both +8; file +8 and name -8; name +0x18 |
 
 ### 1.9 Dat columns
@@ -214,10 +217,10 @@ Not audited (not read by the mod): the other four patterns (`File Root`, `AreaCh
 | ID | Field | n | Struct | Used by | Protections | N | If lost | Notes |
 |---|---|---|---|---|---|---|---|---|
 | D1 | 20 columns of `dat-columns.json` the plugin applies: Mods.Name, MinimapIcons Label and RowSize, Characters.Name, ActiveSkills.DisplayedName, GrantedEffectsPerLevel.GrantedEffect, GrantedEffects.ActiveSkill, PassiveSkills x7, MapPins x4, WorldAreas AreaLevel and IsTown | 20 | plugin `GameLayout.*Row`, `DatColumns` | names, passive flags, pins | DAT `DatColumnExtractor` / `DatContentColumns` (measured offset stays if the file lacks it) | 1 | cosmetic for names; one feature for passive flags and pin content | plugin applies 20 of them (`DatColumns.cs:21-42`); `WorldAreas.Name` goes to the host only |
-| D2 | `WorldAreaDatOffsets.NamePtr` +0x8, `IsTown` +0x14 (host remap) | 2 | `WorldAreaDatOffsets` | area name, town flag | DAT via `PlaceFromCode` (`Poe2AccessibilityCore.DevCommands.cs:617-633`) | 1 | cosmetic | the plugin's own read of `NamePtr` (`GameStateService.cs:172`) bypasses the remap (3.1 item 6) |
-| D3 | `WorldAreaDatOffsets.IdPtr` +0x0 | 1 | `WorldAreaDatOffsets` | area id shape | none | 0 | cosmetic | |
+| D2 | `WorldAreaDatOffsets.NamePtr` +0x8, `IsTown` +0x14 (host remap) | 2 | `WorldAreaDatOffsets` | area name, town flag | DAT via `PlaceFromCode` (`PlaceWorldAreaColumns`); SEM `world GetAreaName deref 1`, `world IfTownArea deref 1`, `world IfTownOrHideoutArea deref 1` (the area's own WorldAreas row, `[world+0xA0]`, then `[row+0x8]` and `cmp byte [row+0x14],0`) | 2 | cosmetic | the plugin's own read of `NamePtr` (`GameStateService.cs:172`) bypasses the remap (3.1 item 6) |
+| D3 | `WorldAreaDatOffsets.IdPtr` +0x0 | 1 | `WorldAreaDatOffsets` | area id shape | DAT `WorldAreas.Id` (`DatColumnSearch.IsIdColumn`: a string with no blank, distinct on every row, nearest +0), placed with D2; SEM `world GetAreaId deref 1` (`mov rdx,[rax+0xA0]; mov rdx,[rdx]`) | 2 | cosmetic | |
 | D4 | a passive node record's PassiveSkills key at +0, `RecordSkillKeyOffset` | 1 | `GameLayout.PassiveTree` | every passive node | LIVE `DatKeySite`: a key into PassiveSkills nearest +0, two records agree | 1 | one feature: passive tree | simulated +8, +0x18 |
-| D4b | row id at +0 assumed: `CharacterIdOffset`, `EffectIdOffset` | 2 | `GameLayout.PassiveTree`, `SkillSlot` | the player's class start, Parry and cull skills by id | none | 0 | one feature: start node, parry and cull cues | a dat table's first column is its Id; nothing in memory names a column, and the extractor could check it in the file (DAT) |
+| D4b | row id at +0: `CharacterIdOffset`, `EffectIdOffset` | 2 | `GameLayout.PassiveTree`, `SkillSlot` (settable since 2026-11-08) | the player's class start, Parry and cull skills by id | DAT `Characters.Id` (every Id under `Metadata/Characters/`), `GrantedEffects.Id` (`DatColumnSearch.IsIdColumn`, nearest +0) | 1 | one feature: start node, parry and cull cues | no named function of the exe reads either table's Id (`IsMalePlayer`, `GetAscendancyName` go through other columns) |
 | D5 | `AreaLoadingState.CurrentAreaRowOffset` 0xEA0 | 1 | plugin | area name on load | LIVE `GameStateService.AreaRowOffset` | 1 | cosmetic | said when lost |
 
 ## 2. Gap list (fields with 0 or 1 protection, most impactful first)
@@ -236,17 +239,24 @@ menu by what it does and the other states' names from the roles around them (G3b
 the player's level), the buff id (C17b) and the state machines' definitions (C34b, the states' names). The code rules added C11,
 C14, C17b, C32, T1, T3, T4 and G4's fallback pattern.
 
+Closed in the gap pass the same day (code rules measured on the five archived builds, [exe-layouts.md](exe-layouts.md#the-gap-fields)):
+the mod entries (C26, two code rules and their signatures now placing), the WorldAreas row's Id, name and town flag (D2, D3, code
+rules beside the dat columns), the terrain's tile array (T2), the targeted byte (C28, no longer a follower), the state machine's list
+and stride (C34b), the minimap icon's row (C40) and the dodge's animated object (C39b, new row: three signatures and two rules). The
+Characters and GrantedEffects Ids (D4b) are found in the file by what they hold (DAT), and the hovered pin (K19b) by the key that
+changes as the cursor moves (LIVE, unit test only).
+
 What is left:
 
-| Rank | Fields | N | Impact | Suggested anchor |
+| Rank | Fields | N | Impact | Why, and what would anchor it |
 |---|---|---|---|---|
 | 1 | A1, A10, A14, A15, E1, C1, E4b: area pointer, local player, entity lists, terrain, entity id, position, entity path (one shape each) | 2 | world silent | done 2026-11-08: six semantic rules and two signatures ([exe-layouts.md, the world fields](exe-layouts.md#the-world-fields)) |
 | 2 | E5b, A12b, A13b | 1 | world silent (E5b), inventories | done 2026-11-08 (second pass) |
-| 3 | K19b (the hovered pin), D4b (ids at +0 of Characters and GrantedEffects rows) | 0 | world-map pins, start node, parry and cull | K19b: a judgment by the cursor's movement (`ControlFields.Changing` over keys into MapPins); D4b: the extractor checking the Id column in the file |
-| 4 | C26 (mod entries), C32 (shrine used) | 0 / 1 | monster mod names, shrine radar | C26: a stride search with a known mod to check against; C32: a shrine to judge it on |
-| 5 | U3b (position-modifier bit), A4, A6, C39, D3, U5, P10 | 0 | rects and cosmetic | low priority |
-| 6 | G3e (ChangePassword, Credits), a state inserted after the in-game one | 0 | the state said on a change | the login screen's own anchor (`login_frame`, `character_selection_panel_*` in its UI tree) would pin the states after the in-game one |
-| 7 | single-protection features (C2, C10, C12, C13, C20, C24, C29, C31, C33, C35-C37, T2, T5, K1-K18, P1-P15, A12b, A13b, E5b, K19, K20, C21, C34b) | 1 | one feature each | a second anchor where a function reads the field, or a value check on a known value |
+| 3 | K19b (the hovered pin), D4b (ids at +0 of Characters and GrantedEffects rows) | 1 | world-map pins, start node, parry and cull | done 2026-11-08 (gap pass), one way each: no named function reads the canvas's keys or either table's Id. K19b needs a live simulation |
+| 4 | C26 (mod entries), C32 (shrine used) | 2 / 1 | monster mod names, shrine radar | C26 done (gap pass). C32: no code anchor (no dump, no GEAL, one caller of its getter); a used shrine in play to judge it on |
+| 5 | U3b (position-modifier bit), A4, A6, C39, U5, P10 | 0 | rects and cosmetic | D3 done (gap pass). A4: read the row through `[AreaInstance+0xA0]`, where the game's own functions do, after a live check; U3b, P10: no name reaches a flag bit (a live flip of P10 on the terms window); A6: a mouse over an entity; C39: no named reader of +0x358 (+0x280 is stale); U5: cannot move |
+| 6 | G3e (ChangePassword, Credits), a state inserted after the in-game one | 0 | the state said on a change | ChangePassword and Credits are null in 0.5.5f, never current. A state inserted after the in-game one still needs the login screen's own anchor (`login_state_root_control`, `login_frame` in its UI tree) fed to `GameStateRoles` as a role, a live change of the plugin's pre-game reading |
+| 7 | single-protection features (C2, C10, C12, C13, C20, C24, C29, C31, C33, C35-C37, T5, K1-K18, P1-P15, A12b, A13b, E5b, K19, K20, C21) | 1 | one feature each | T2, C28, C34b, C40 done (gap pass). For the rest a sweep of 191,188 candidate rules (label, field, called, stride, entry and scale over every dump label ending in `: `; geal, callee, world, object, deref, leaf and entry over every GEAL function of both tables and 48 components) on the five builds found none anchored on the field's own component: Render, Charges, Stack, Base, Mods, the chest data, TriggerableBlockage, the cooldowns and Stats 0x1C8 have no dump or GEAL function reading them, and the UI fields no name at all |
 | 8 | G4: `GameCullSize` | 2 and a check | UI rect offset on non-16:9 | done 2026-11-08: a fallback pattern |
 
 ## 3. Doc and code mismatches
@@ -288,7 +298,7 @@ Status 2026-11-08: every item below is fixed, in the doc or in the code (item 6:
 Status 2026-11-08: both are said now in compatibility.md.
 
 1. `catalog/code-fields.txt` L14, L19, L20, L25, L26, L54 carry fields the plugin never consumes (Transitionable state, status
-   effect times, stack size data, tile height multiplier). Harmless, but they count in "51 of 51".
+   effect times, stack size data, tile height multiplier). Harmless, but they count in "52 of 52" (51 before the gap pass).
 2. `docs/compatibility.md:94` omits `map_overlay` from the in-game layers found by name; `InGameFields.cs:44` has it.
 
 ### 3.3 Code that defeats its own protection
@@ -314,15 +324,16 @@ state slots are judged by `GameStateRoles`). `Rarity` now has a semantic rule as
 
 Counted from the tables of section 1 (sum of `n` per `N`; a `(f)` follower counts as 1).
 
-| N | Fields after the second pass (after the first pass and the world rules; before the audit) | Rows |
+| N | Fields after the gap pass (after the second pass; after the first pass and the world rules; before the audit) | Rows (after the second pass) |
 |---|---|---|
-| 0 | 21 (32; 63) | 12 (19) |
-| 1 | 166 (149; 149), of which 25 are 1 only because they follow another field's anchor (A16, E2, C10, C20, U4b, U4c, P2, P3, P6, P8, P12b, P13, L3, K18, G3d) | 89 (82) |
-| 2 or more | 47 (41; 10) | 40 (34) |
-| Total audited | 234 (222) | 141 (135; rows split where a search covers part of one; the game states' other names are counted now, K19's current pin no longer: the mod does not read it) |
+| 0 | 15 (21; 32; 63) | 8 (12) |
+| 1 | 163 (166; 149; 149), of which 25 are 1 only because they follow another field's anchor (A16, E2, C10, C20, U4b, U4c, P2, P3, P6, P8, P12b, P13, L3, K18, G3d) | 87 (89) |
+| 2 or more | 57 (47; 41; 10) | 47 (40) |
+| Total audited | 235 (234; 222) | 142 (141; the gap pass added C39b, the dodge's animated object. Earlier: rows split where a search covers part of one; the game states' other names counted, K19's current pin no longer: the mod does not read it) |
 
-Counted from the tables by script; the figures this section gave after the world rules (156 at 1, 34 at 2 or more) had not
-been recounted after them.
+Counted from the tables by script, as before: the sum of `n` per `N` over the rows of section 1, a `(f)` follower at its own
+number (C28 was `2 (f)` and counted at 2). The figures this section gave after the world rules (156 at 1, 34 at 2 or more) had
+not been recounted after them.
 
 History says where to look first: the area and entity structs moved in 0.5.4, 0.5.4c, 0.5.5 and 0.5.5f
 (`docs/compatibility.md:18-19`), and no other field has moved in a real patch yet (`docs/compatibility.md:220-221`).

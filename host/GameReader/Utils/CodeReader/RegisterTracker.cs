@@ -30,12 +30,15 @@ namespace GameReader.Utils.CodeReader
         /// <summary>Where a straight-line walk outside any <c>.pdata</c> fragment stops.</summary>
         private const int LeafWindow = 0x400;
 
-        /// <summary>The accesses through the seeded registers in at most <paramref name="limit"/> instructions; null when the code does not decode.</summary>
-        public static List<TrackedAccess>? Track(CodeIndex index, long start, IReadOnlyDictionary<int, long> seeds, int limit)
+        /// <summary>
+        ///     The accesses through the seeded registers in at most <paramref name="limit"/> instructions, straight-line to the first
+        ///     ret or jmp, following loaded pointers <paramref name="follow"/> levels down; null when the code does not decode.
+        /// </summary>
+        public static List<TrackedAccess>? Track(CodeIndex index, long start, IReadOnlyDictionary<int, long> seeds, int limit, int follow = 0)
         {
             var end = index.Fragment(start) is { } fragment ? fragment.End : start + LeafWindow;
             var code = index.Walk(start, limit, end - start, instruction => instruction.Kind is InstructionKind.Ret or InstructionKind.Jmp);
-            return code is null ? null : Track(code, seeds);
+            return code is null ? null : Track(code, seeds, follow);
         }
 
         /// <summary>

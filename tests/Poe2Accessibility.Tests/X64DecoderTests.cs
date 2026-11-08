@@ -110,6 +110,15 @@ namespace Poe2Accessibility.Tests
             Equal(7, Decode("81 7F 08 FF FF 00 00").Length, "cmp dword ptr [rdi+8],imm32");
             Equal(InstructionKind.Cmp, Decode("80 7F 08 01").Kind, "cmp byte ptr [rdi+8],1");
 
+            // The scale rule's shifts and products: shl rdx,6; imul rbp,rcx,0x38; imul rcx,[r8+0x18]; sar rax,6 is not a shl.
+            i = Decode("48 C1 E2 06");
+            Equal((InstructionKind.Shl, X64.Rdx, 6L), (i.Kind, i.FirstRegister, i.Immediate), "shl rdx,6");
+            i = Decode("48 6B E9 38");
+            Equal((InstructionKind.Imul, X64.Rbp, X64.Rcx, 0x38L), (i.Kind, i.FirstRegister, i.SecondRegister, i.Immediate), "imul rbp,rcx,0x38");
+            Equal(InstructionKind.Imul, Decode("49 0F AF 48 18").Kind, "imul rcx,[r8+0x18]");
+            Equal(InstructionKind.Imul, Decode("48 F7 E9").Kind, "imul rcx (rdx:rax)");
+            Equal(InstructionKind.Other, Decode("48 C1 F8 06").Kind, "sar rax,6");
+
             // xchg / xadd write both; div writes rax and rdx; rep stosq writes rdi and rcx.
             Equal((1 << X64.Rax) | (1 << X64.Rcx), (int)Decode("48 87 C8").Writes, "xchg rax,rcx");
             Equal((1 << X64.Rax) | (1 << X64.Rdx), (int)Decode("48 F7 F1").Writes, "div rcx");
@@ -248,6 +257,12 @@ namespace Poe2Accessibility.Tests
                 why.Add($"immediate {i.Immediate}");
             }
 
+            // The scale rule multiplies an index by shl's count and the three-operand imul's factor (shl by one carries none).
+            if (i.Kind is InstructionKind.Shl or InstructionKind.Imul && i.Immediate != 0 && i.Immediate.ToString(CultureInfo.InvariantCulture) != column[12])
+            {
+                why.Add($"immediate {i.Immediate}");
+            }
+
             return string.Join(", ", why);
         }
 
@@ -266,6 +281,8 @@ namespace Poe2Accessibility.Tests
             "cmp" => InstructionKind.Cmp,
             "test" => InstructionKind.Test,
             "add" => InstructionKind.Add,
+            "shl" => InstructionKind.Shl,
+            "imul" => InstructionKind.Imul,
             _ when mnemonic.StartsWith('j') => InstructionKind.Jcc,
             _ => InstructionKind.Other,
         };

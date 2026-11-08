@@ -633,6 +633,11 @@ namespace Poe2Accessibility
         private static void PlaceWorldAreaColumns(System.Collections.Generic.IReadOnlyDictionary<string, int>? columns)
         {
             var fields = new System.Collections.Generic.List<(string Field, int Expected, int Found)>();
+            if (columns?.TryGetValue("WorldAreas.Id", out var id) == true)
+            {
+                fields.Add(("IdPtr", WorldAreaIdMeasured, id));
+            }
+
             if (columns?.TryGetValue("WorldAreas.Name", out var name) == true)
             {
                 fields.Add(("NamePtr", WorldAreaNameMeasured, name));

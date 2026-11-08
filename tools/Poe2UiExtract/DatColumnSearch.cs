@@ -105,6 +105,24 @@ internal sealed class DatColumnSearch
         this.Find(table, name, measured, offset => offset + sizeof(ushort) <= table.RowSize && Enumerable.Range(0, table.RowCount).Select(row => table.UInt16(row, offset)).All(value => value > 0) &&
                                                      Enumerable.Range(0, table.RowCount).Select(row => table.UInt16(row, offset)).Distinct().Count() == table.RowCount, after);
 
+    /// <summary>
+    ///     An Id column: on every row a string with no blank in it (an identifier or a path, never a translated name), each
+    ///     row's distinct, and every one passing <paramref name="matches"/> (the shape the caller's Ids have).
+    /// </summary>
+    public static bool IsIdColumn(DatTable table, int offset, Func<string, bool>? matches = null)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        for (var row = 0; row < table.RowCount; row++)
+        {
+            if (table.StringOrNull(row, offset) is not { Length: > 0 } id || id.Any(char.IsWhiteSpace) || !seen.Add(id) || (matches != null && !matches(id)))
+            {
+                return false;
+            }
+        }
+
+        return table.RowCount > 0;
+    }
+
     public static bool IsText(DatTable table, int offset, Func<string, bool> matches)
     {
         int strings = 0, filled = 0;
