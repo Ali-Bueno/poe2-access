@@ -200,8 +200,10 @@ def sample(game, out, reach, last):
     here = memory.unpack('<3f', parts.get('Render', 0) + RENDER_POSITION) or (0, 0, 0)
     life = memory.one('<i', parts.get('Life', 0) + LIFE_CURRENT)
     stamp = dict(t=round((time.perf_counter() - START) * 1000), wall=int(time.time() * 1000))
-    if last.get('life') != life:
-        last['life'] = life
+    moved = math.hypot(here[0] - last.get('x', here[0]), here[1] - last.get('y', here[1])) > 25
+    if last.get('life') != life or moved or 'x' not in last:
+        # Also when the player walks: an audit measures distances from this place.
+        last['life'], last['x'], last['y'] = life, here[0], here[1]
         out.write(json.dumps(dict(stamp, player=memory.one('<I', player + ID), life=life, at=[round(v) for v in here[:2]])) + '\n')
     owners = last.setdefault('owners', {})
     for entity_id, entity in game.awake(area):
