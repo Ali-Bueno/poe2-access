@@ -88,6 +88,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Switches.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Breakables.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CodeFieldCatalog.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\LayoutOverrides.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PoiseSearch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ItemMoves.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\SalvageOutcome.cs" />

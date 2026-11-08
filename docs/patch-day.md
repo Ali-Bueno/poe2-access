@@ -38,6 +38,22 @@ the passive tree and with the left trigger held), `sounds` (what played), `costs
 | An animation or stat id | `catalog/game-ids.txt`, made by `tools/Poe2UiExtract game-ids` | rerun it | the dodge warning and Rage read right |
 | The game state pointer, its stack and list, the in-game and loading states | `host/GameOffsets/StaticOffsetsPatterns.cs`, `GameStateOffsets.cs`; `GameStatesSearch` finds the pointer without the pattern, `GameStateLayout` and `GameStateRoles` judge the rest on every attach | `Layout: game state stack / list / in-game state …` | the state changes are logged at login |
 
+### A fix without a new mod version
+A host struct field or a plugin offset that the code catalog names can be set by hand for one game build in
+`Plugins/Poe2Accessibility/config/layout-overrides.txt` (the updater keeps `config/`), then `Poe2Access.exe restart`:
+
+```
+build 78440792                               # the game exe's size in bytes: lines count only for that build
+AreaInstanceOffsets:PlayerInfo 0x5B8 0x5C0   # Struct:Field (dotted for nested structs), where the mod has it, where this build has it
+layout:MapOverlayOffset 0xB90 0xB98          # a GameLayout offset by its code-catalog name
+```
+
+Each line is placed as the code catalog would place it: it replaces the code's reading of that field, every later field of
+the struct moves with it up to the next field placed, a line whose first value is not the mod's is refused (the struct is
+left as it is), and a field a live search already placed stays there. The plugin log says `Layout overrides: N for this
+build …` and lists the move with the code fields (`moved: override …`). A new build ignores the lines, so put the fix into
+the source afterwards.
+
 Change one thing at a time, rebuild (`dotnet build host/Poe2AccessHost -c Release`, `dotnet build Poe2Accessibility -c Release`,
 with the host stopped: `Poe2Access.exe stop`), restart (`Poe2Access.exe restart`), and read the same log lines again. Record
 what moved and why it was found or not in [surviving game updates](compatibility.md), and the new build's results beside the

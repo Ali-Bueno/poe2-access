@@ -17,6 +17,9 @@ namespace Poe2Accessibility
         /// <summary>The code fields of this game process, being read off the frame thread.</summary>
         private System.Threading.Tasks.Task<CodeFieldReading>? codeFields;
 
+        /// <summary>The hand-written fields for this game build (config/layout-overrides.txt), applied with the code fields.</summary>
+        private System.Collections.Generic.IReadOnlyList<(CodeFieldEntry Entry, int? Found)> layoutOverrides = Array.Empty<(CodeFieldEntry, int?)>();
+
         private void LogCamera()
         {
             if (!Seats.Followed.TryGetComponent<GameHelper.RemoteObjects.Components.Render>(out var player))
@@ -199,13 +202,13 @@ namespace Poe2Accessibility
                 case var describe when describe.StartsWith("describe 0x", StringComparison.Ordinal):
                     // Research: what the reader makes of any element, focused or not (an icon's item, a row's parts).
                     var node = this.semantics?.Describe((IntPtr)Convert.ToInt64(describe["describe 0x".Length..], 16), true);
-                    this.log.Info($"Describe {describe[9..]}: {node?.Role} \"{node?.Text}\" value \"{node?.Value}\" tooltip \"{string.Join(" | ", node?.Tooltip ?? Array.Empty<string>())}\"");
+                    this.log?.Info($"Describe {describe[9..]}: {node?.Role} \"{node?.Text}\" value \"{node?.Value}\" tooltip \"{string.Join(" | ", node?.Tooltip ?? Array.Empty<string>())}\"");
                     break;
                 case "passivemap":
                     // Research: from each class's start, what the nearest keystones and notables cost.
                     foreach (var line in this.semantics?.PassiveMapReport(this.focus?.Current?.Address ?? IntPtr.Zero) ?? Enumerable.Empty<string>())
                     {
-                        this.log.Info($"Passive map: {line}");
+                        this.log?.Info($"Passive map: {line}");
                     }
 
                     break;
@@ -225,19 +228,19 @@ namespace Poe2Accessibility
 
                     foreach (var line in this.semantics?.DatKeys(keyed) ?? Enumerable.Empty<string>())
                     {
-                        this.log.Info($"Dat key: {line}");
+                        this.log?.Info($"Dat key: {line}");
                     }
 
                     break;
                 case "mappin":
                     // Research: the world map's hovered pin as its data tells it, and whether the game built its popup.
-                    this.log.Info($"Map pin: {this.semantics?.PinReport(this.WorldScreen()) ?? "no semantics"}");
+                    this.log?.Info($"Map pin: {this.semantics?.PinReport(this.WorldScreen()) ?? "no semantics"}");
                     break;
                 case "uilayout":
                     // Research: the focused element's parent chain, drawn rect against the window-free layout rect.
                     foreach (var line in this.semantics?.LayoutChain(this.focus?.Current?.Address ?? IntPtr.Zero) ?? Enumerable.Empty<string>())
                     {
-                        this.log.Info($"Layout: {line}");
+                        this.log?.Info($"Layout: {line}");
                     }
 
                     break;
@@ -245,7 +248,7 @@ namespace Poe2Accessibility
                     // Research: the nodes around the hovered passive, to compare the stick's moves with the links said.
                     foreach (var line in this.semantics?.PassiveNeighbours(this.focus?.Current?.Address ?? IntPtr.Zero, 400) ?? Enumerable.Empty<string>())
                     {
-                        this.log.Info($"Passive near: {line}");
+                        this.log?.Info($"Passive near: {line}");
                     }
 
                     break;
@@ -374,7 +377,7 @@ namespace Poe2Accessibility
                     break;
                 case "structs":
                     this.worldLayout?.Sweep();
-                    this.log.Info($"Animation search: {this.worldLayout?.AnimationSearchState}");
+                    this.log?.Info($"Animation search: {this.worldLayout?.AnimationSearchState}");
                     break;
                 case "sounds":
                     this.log?.Info(this.audio?.Diagnose() ?? "Audio off");
@@ -502,7 +505,7 @@ namespace Poe2Accessibility
             }
             catch (Exception error) when (error is IOException or UnauthorizedAccessException)
             {
-                this.log.Info($"Game news: could not keep the list: {error.Message}");
+                this.log?.Info($"Game news: could not keep the list: {error.Message}");
             }
         }
 
@@ -535,7 +538,7 @@ namespace Poe2Accessibility
             }
             else
             {
-                this.log.Info($"Game news: no id in the game reads as {string.Join(", ", lost)}");
+                this.log?.Info($"Game news: no id in the game reads as {string.Join(", ", lost)}");
                 this.compatibility?.Missing(NamedKindsPart);
             }
         }
@@ -552,7 +555,7 @@ namespace Poe2Accessibility
                 var failed = Path.Join(this.DllDirectory, "catalog", "game-data-failed.txt");
                 if (File.Exists(failed))
                 {
-                    this.log.Info($"Game news: not regenerated after the update: {string.Join(", ", File.ReadAllLines(failed))}");
+                    this.log?.Info($"Game news: not regenerated after the update: {string.Join(", ", File.ReadAllLines(failed))}");
                     this.compatibility?.Missing(GameDataPart);
                 }
 
@@ -564,14 +567,14 @@ namespace Poe2Accessibility
                         : table == AnimationTable ? DodgeThreats.Of(1, _ => key).ToString() : null);
                 foreach (var table in news)
                 {
-                    this.log.Info($"Game news: {table.Table} {table.Added.Count} new, {table.Removed.Count} gone");
+                    this.log?.Info($"Game news: {table.Table} {table.Added.Count} new, {table.Removed.Count} gone");
                 }
 
                 this.gameNewsLine = Announcements.GameNews(news.Select(table => (table.Table, table.Added.Count)));
             }
             catch (Exception error) when (error is IOException or UnauthorizedAccessException)
             {
-                this.log.Info($"Game news: not checked: {error.Message}");
+                this.log?.Info($"Game news: not checked: {error.Message}");
             }
 
             if (this.gameNewsLine == null)
@@ -646,7 +649,31 @@ namespace Poe2Accessibility
         private void StartCodeFields(string exe)
         {
             var catalog = Path.Join(this.DllDirectory, "catalog");
+            this.layoutOverrides = this.ReadLayoutOverrides(new FileInfo(exe).Length);
             this.codeFields = System.Threading.Tasks.Task.Run(() => ReadCodeFields(exe, catalog));
+        }
+
+        /// <summary>The hand-written fields for this build (<see cref="LayoutOverrides"/>); none when there is no file.</summary>
+        private System.Collections.Generic.IReadOnlyList<(CodeFieldEntry Entry, int? Found)> ReadLayoutOverrides(long exeSize)
+        {
+            var path = Path.Join(this.DllDirectory, "config", LayoutOverrides.FileName);
+            try
+            {
+                if (!File.Exists(path))
+                {
+                    return Array.Empty<(CodeFieldEntry, int?)>();
+                }
+
+                var fields = LayoutOverrides.Parse(File.ReadLines(path), exeSize, out var otherBuilds, out var rejected);
+                this.log?.Info($"Layout overrides: {fields.Count} for this build ({exeSize} bytes), {otherBuilds} for other builds, not used"
+                    + (rejected.Count == 0 ? string.Empty : $"; unreadable: {string.Join(" | ", rejected)}"));
+                return fields;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                this.log?.Warn($"Layout overrides unread: {ex.Message}");
+                return Array.Empty<(CodeFieldEntry, int?)>();
+            }
         }
 
         /// <summary>
@@ -666,10 +693,14 @@ namespace Poe2Accessibility
             if (reading.Error != null)
             {
                 this.log?.Debug($"Code fields unread: {reading.Error}");
-                return;
+                if (this.layoutOverrides.Count == 0)
+                {
+                    return;
+                }
             }
 
-            var (read, disagree) = CodeFieldCatalog.Settle(reading.Code, reading.Semantic);
+            var (settled, disagree) = CodeFieldCatalog.Settle(reading.Code, reading.Semantic);
+            var read = LayoutOverrides.Apply(settled, this.layoutOverrides);
             var moved = new System.Collections.Generic.List<string>();
             var stuck = false;
             foreach (var group in read.Where(field => field.Found != null && field.Entry.Struct != null).GroupBy(field => field.Entry.Struct!))

@@ -68,6 +68,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(ObjectsPlayTheSoundTheGameGivesThem), ObjectsPlayTheSoundTheGameGivesThem);
             Run(nameof(CodeFieldsNeedTwoSignaturesThatAgree), CodeFieldsNeedTwoSignaturesThatAgree);
             Run(nameof(CodeFieldCatalogParses), CodeFieldCatalogParses);
+            Run(nameof(LayoutOverridesCountOnlyForTheirBuild), LayoutOverridesCountOnlyForTheirBuild);
             Run(nameof(TheStunRecordIsFoundByItsHead), TheStunRecordIsFoundByItsHead);
             Run(nameof(TheGridMustHoldWhereThePlayerWalks), TheGridMustHoldWhereThePlayerWalks);
             Run(nameof(OpeningSoundsComeFromTheOpeningAnimation), OpeningSoundsComeFromTheOpeningAnimation);
@@ -3285,6 +3286,40 @@ namespace Poe2Accessibility.Tests
             var shipped = CodeFieldCatalog.Parse(System.IO.File.ReadLines(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", "code-fields.txt")));
             Equal(50, shipped.Count, "every shipped line parses");
             Equal(true, shipped.All(entry => entry.Signatures.Count >= 2), "two can agree on each");
+        }
+
+        private static void LayoutOverridesCountOnlyForTheirBuild()
+        {
+            var lines = new[]
+            {
+                "# fixes by hand",
+                "build 100",
+                "AreaInstanceOffsets:PlayerInfo 0x5B8 0x5C0",
+                "build 200",
+                "AreaInstanceOffsets:PlayerInfo 0x5B8 0x5D0  # this build",
+                "layout:MapOverlayOffset 0xB90 0xB98",
+                "report 0x24 0x28",
+                "PlayerOffsets:Level 0x204",
+                "PlayerOffsets:Level:4 0x204 0x20C",
+            };
+            var fields = LayoutOverrides.Parse(lines, 200, out var otherBuilds, out var rejected);
+            Equal(2, fields.Count, "only this build's lines");
+            Equal(1, otherBuilds, "the other build's line is counted, not used");
+            Equal(3, rejected.Count, "a report, a missing value and a bias are refused");
+            Equal(0x5D0, fields[0].Found, "where this build has it");
+            Equal(0x5B8, fields[0].Entry.Value, "where the mod has it");
+            Equal("AreaInstanceOffsets", fields[0].Entry.Struct, "a host struct");
+            Equal("MapOverlayOffset", fields[1].Entry.Layout, "a plugin offset");
+            Equal(0, LayoutOverrides.Parse(lines, 300, out _, out _).Count, "a new build inherits nothing");
+
+            var code = new (CodeFieldEntry, int?)[]
+            {
+                (new CodeFieldEntry("Area.Player", "AreaInstanceOffsets:PlayerInfo:8", 0x5C0, Array.Empty<GameHelper.Utils.CodeField>()), 0x5B8),
+                (new CodeFieldEntry("Area.Level", "AreaInstanceOffsets:CurrentAreaLevel", 0xC4, Array.Empty<GameHelper.Utils.CodeField>()), 0xC4),
+            };
+            var merged = LayoutOverrides.Apply(code, fields);
+            Equal(3, merged.Count, "the overridden reading is replaced, the others stay");
+            Equal(0x5D0, merged.Single(field => field.Entry.Field == "PlayerInfo").Found, "the hand wins over the code, bias or not");
         }
 
         private static void ObjectsPlayTheSoundTheGameGivesThem()
