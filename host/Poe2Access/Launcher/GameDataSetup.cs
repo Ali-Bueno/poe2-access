@@ -85,6 +85,7 @@ internal static class GameDataSetup
             new Step("class mechanics", 1, "class-mechanics.json", "class-mechanics", true),
             new Step("currency art", 1, "currency-art.json", "currency-art", true),
             new Step("inline icons", 1, "inline-icons.txt", "inline-icons", true),
+            new Step("boss mechanics", 1, "boss-mechanics.txt", "boss-mechanics", true),
             new Step("cull skills", 2, "cull-skills.txt", "cull-skills", true),
             // At 2: a stamp from the old layout vouches for every step at 1, these two included, though they never ran.
             new Step("game ids", 4, "game-ids.txt", "game-ids", true),

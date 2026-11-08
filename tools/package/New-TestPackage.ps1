@@ -61,6 +61,7 @@ Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\telegraph-effects.txt') (J
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\code-fields.txt') (Join-Path $plugin 'catalog') # what the game's code reads; no step makes it
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\semantic-fields.txt') (Join-Path $plugin 'catalog') # the semantic rules, read with it
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\cull-skills.txt') (Join-Path $plugin 'catalog') # skills that deal Culling Strike, from the game files
+Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\boss-mechanics.txt') (Join-Path $plugin 'catalog') # boss buffs, movement rules and voiced lines, from the game files
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\inline-icons.txt') (Join-Path $plugin 'catalog') # the markup images texts show as pictures, from the game files
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\important_tgt_files.txt') (Join-Path $plugin 'catalog') # named places: a vendored data file (formerly GameHelper2's Radar table)
 Copy-Item (Join-Path $repo 'Poe2Accessibility\assets') $plugin -Recurse # the mod's own recorded sounds (unexplored-area loop, Diablo IV item set)

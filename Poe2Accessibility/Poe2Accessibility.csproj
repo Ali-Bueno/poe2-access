@@ -74,6 +74,7 @@
     <!-- The item each currency icon shows, for prices (tools/Poe2UiExtract currency-art). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\currency-art.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\currency-art.json')" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\inline-icons.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\inline-icons.txt')" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\boss-mechanics.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\boss-mechanics.txt')" />
     <!-- Harmful buffs' names per language (tools/Poe2UiExtract buff-names). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\buff-names.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\buff-names.json')" />
     <!-- Map objectives, contents and the Atlas's graphs (tools/Poe2UiExtract endgame). -->
