@@ -86,7 +86,7 @@ namespace Poe2Accessibility.Tests
             var bytes = Graph((0, 0, new[] { (10, Array.Empty<int>()) }));
             Expect(true, SkillGraphFile.Parse(bytes.Concat(new byte[] { 0 }).ToArray()) == null, "a byte left over");
             bytes[0] = SkillGraphFile.KnownVersion + 1;
-            Expect(true, SkillGraphFile.Parse(bytes) == null, "another version");
+            Expect(false, SkillGraphFile.Parse(bytes)!.VersionKnown, "another version is read, and flagged (DatColumnSearchTests say when it is kept)");
             Expect(true, SkillGraphFile.Parse(new byte[] { SkillGraphFile.KnownVersion, 1, 2, 1 }) == null, "cut short");
         }
 

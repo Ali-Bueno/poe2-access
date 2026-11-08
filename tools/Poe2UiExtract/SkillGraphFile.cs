@@ -6,30 +6,52 @@ using System.Linq;
 ///     A passive skill graph file (.psg, version 3): the main tree, the Atlas passive tree, the Atlas map's own layout
 ///     (metadata/atlasskillgraphs/endgamemaplayoutgraph.psg) and the league trees. Read from the bytes alone: a header with
 ///     the nodes per orbit, the root node ids, then groups, each a position and its nodes, each node its links
-///     (docs/research/endgame.md). Node ids are PassiveSkills' graph ids. Pure.
+///     (docs/research/endgame.md). Node ids are PassiveSkills' graph ids. A file of another version is read with the same
+///     layout and kept only when it validates (<see cref="IsConsistent"/>), never guessed at. Pure.
 /// </summary>
 internal sealed class SkillGraphFile
 {
-    /// <summary>The only layout this reader knows; another version is refused, not guessed at.</summary>
+    /// <summary>The layout this reader was made on (0.5.x files); <see cref="VersionKnown"/> says whether a file is one.</summary>
     public const int KnownVersion = 3;
 
     private const int RootEntryBytes = 8;
     private const int LinkBytes = 8;
 
-    private SkillGraphFile(IReadOnlyList<Node> nodes) => this.Nodes = nodes;
+    private SkillGraphFile(int version, IReadOnlyList<Node> nodes) => (this.Version, this.Nodes) = (version, nodes);
 
     public IReadOnlyList<Node> Nodes { get; }
 
-    /// <summary>The graph in <paramref name="bytes"/>, or null when it is not a version-3 graph read to its last byte.</summary>
+    /// <summary>The file's version byte.</summary>
+    public int Version { get; }
+
+    public bool VersionKnown => this.Version == KnownVersion;
+
+    /// <summary>
+    ///     Whether the file reads as a graph whatever its version says: some nodes, every link's end a node of the file. A
+    ///     known version is trusted as read; an unknown one is accepted only when this holds (and its nodes resolve in
+    ///     PassiveSkills, which the extractor checks).
+    /// </summary>
+    public bool IsConsistent
+    {
+        get
+        {
+            var ids = this.Nodes.Select(node => node.Id).ToHashSet();
+            return this.Nodes.Count > 0 && this.Nodes.All(node => node.Links.All(ids.Contains));
+        }
+    }
+
+    /// <summary>The graph in <paramref name="bytes"/>, or null when the layout does not read it to its last byte.</summary>
     public static SkillGraphFile? Parse(byte[] bytes)
     {
         try
         {
             var at = 0;
-            if (bytes.Length < 3 || bytes[at++] != KnownVersion)
+            if (bytes.Length < 3)
             {
                 return null;
             }
+
+            var version = bytes[at++];
 
             at++; // graph kind
             var orbits = bytes[at++];
@@ -61,7 +83,7 @@ internal sealed class SkillGraphFile
                 }
             }
 
-            return at == bytes.Length ? new SkillGraphFile(nodes) : null;
+            return at == bytes.Length ? new SkillGraphFile(version, nodes) : null;
         }
         catch (ArgumentOutOfRangeException)
         {

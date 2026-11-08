@@ -9,25 +9,32 @@ namespace Poe2Accessibility.Services
     ///     build 26476662; docs/research/passive-tree.md): a linked node within 20 degrees of the push first, in edge order,
     ///     else the node of lowest (5 − 4 cos) × distance within 45 degrees, both among the nodes drawn inside the window.
     ///     Offsets are the tree's own units, y down; directions are octants counter-clockwise from right, as
-    ///     <see cref="Announcements.StickDirections"/>. Pure.
+    ///     <see cref="Announcements.StickDirections"/>. The constants are the build's where the code was read; the exe on
+    ///     disk can retune them (<see cref="StickRuleCode"/>, <see cref="Apply"/>). Pure.
     /// </summary>
     public static class PassiveStick
     {
         /// <summary>A linked node counts when the push is within acos 0.94 = 19.95 degrees of it (0x9B9E0F, kept when not below).</summary>
-        private const float LinkedCosine = 0.94f;
+        private const float MeasuredLinkedCosine = 0.94f;
 
         /// <summary>Linked score (1.5 − 8.333 (cos − 0.94)) × distance (0x9B9F01); 1 × distance straight ahead, 1.5 × at the edge.</summary>
-        private const float LinkedBase = 1.5f;
+        private const float MeasuredLinkedBase = 1.5f;
 
-        private const float LinkedSlope = 8.333333f;
+        private const float MeasuredLinkedSlope = 8.333333f;
 
         /// <summary>Any node whose cosine is above 0.7071 (0x3F350481 at 0x9CA139, acos 45.0005 degrees) is in the cone: one at exactly 45 degrees counts.</summary>
-        private const float ConeCosine = 0.7071f;
+        private const float MeasuredConeCosine = 0.7071f;
 
         /// <summary>Cone score (5 − 4 cos) × distance (0x9CA080): 1 × distance straight ahead, 2.17 × at the edge.</summary>
         private const float ConeBase = 5f;
 
-        private const float ConeSlope = 4f;
+        private const float MeasuredConeSlope = 4f;
+
+        private static float LinkedCosine = MeasuredLinkedCosine;
+        private static float LinkedBase = MeasuredLinkedBase;
+        private static float LinkedSlope = MeasuredLinkedSlope;
+        private static float ConeCosine = MeasuredConeCosine;
+        private static float ConeSlope = MeasuredConeSlope;
 
         private const int Octants = 8;
 
@@ -51,6 +58,18 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>The rule's constants as the game's exe holds them (<see cref="StickRuleCode"/>); null puts the measured ones back.</summary>
+        public static void Apply(StickRuleCode.Rule? rule)
+        {
+            (LinkedCosine, LinkedSlope, LinkedBase, ConeCosine, ConeSlope) = rule is { } read
+                ? (read.LinkedCosine, read.LinkedSlope, read.LinkedBase, read.ConeCosine, read.ConeSlope)
+                : (MeasuredLinkedCosine, MeasuredLinkedSlope, MeasuredLinkedBase, MeasuredConeCosine, MeasuredConeSlope);
+        }
+
+        /// <summary>Whether the constants differ from the measured ones, for the log.</summary>
+        public static bool Retuned => LinkedCosine != MeasuredLinkedCosine || LinkedSlope != MeasuredLinkedSlope || LinkedBase != MeasuredLinkedBase ||
+                                      ConeCosine != MeasuredConeCosine || ConeSlope != MeasuredConeSlope;
+
         /// <summary>The unit vector of a push in the octant, y down as the game flips the stick's y (0x9B9BA0 entry).</summary>
         public static Vector2 Direction(int octant)
         {
@@ -63,14 +82,12 @@ namespace Poe2Accessibility.Services
         ///     the candidates linked to the cursor's node in the game's edge order (empty when it skips the linked stage);
         ///     without a <paramref name="window"/> the fitted model stands in.
         /// </summary>
-        public static int Pick(IReadOnlyList<Vector2> offsets, int octant, IReadOnlyList<int> linked, Window? window)
-        {
-            if (window is not { } seen)
-            {
-                return PickFitted(offsets, octant);
-            }
+        public static int Pick(IReadOnlyList<Vector2> offsets, int octant, IReadOnlyList<int> linked, Window? window) =>
+            window is { } seen ? Pick(offsets, Direction(octant), linked, seen) : PickFitted(offsets, octant);
 
-            var direction = Direction(octant);
+        /// <summary>The candidate a push along <paramref name="direction"/> (a unit vector, y down: the stick's own, which the game does not snap) lands on, or -1.</summary>
+        public static int Pick(IReadOnlyList<Vector2> offsets, Vector2 direction, IReadOnlyList<int> linked, Window seen)
+        {
             var pick = -1;
             var best = float.MaxValue;
             foreach (var index in linked)

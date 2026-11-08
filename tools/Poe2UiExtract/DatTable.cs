@@ -1,12 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
-using Index = LibBundle3.Index;
 
 /// <summary>
 ///     Minimal reader for an English .datc64 table of the game's Bundles2 (row count, fixed-size rows, then a variable
 ///     section after the 0xBB marker). Fields are read by byte offset inside a row: strings are 8-byte offsets into the
 ///     variable section (UTF-16LE), foreign keys are an 8-byte row index (a null key is all 0xFE bytes).
 /// </summary>
-internal sealed class DatTable
+internal sealed partial class DatTable
 {
     private static readonly byte[] Marker = { 0xBB, 0xBB, 0xBB, 0xBB, 0xBB, 0xBB, 0xBB, 0xBB };
     private readonly byte[] data;
@@ -24,23 +26,8 @@ internal sealed class DatTable
 
     public int RowSize { get; }
 
-    /// <summary>Opens <c>data/[balance/]&lt;name&gt;.datc64</c> (English); null when the index has no such table.</summary>
-    public static DatTable? Open(Index index, string name)
-    {
-        var file = index.Files.Values.FirstOrDefault(f => f.Path != null
-            && (f.Path.Equals($"data/balance/{name}.datc64", StringComparison.OrdinalIgnoreCase)
-                || f.Path.Equals($"data/{name}.datc64", StringComparison.OrdinalIgnoreCase)));
-        return file == null ? null : new DatTable(file.Read().ToArray());
-    }
-
-    /// <summary>Opens <c>data/[balance/]&lt;language&gt;/&lt;name&gt;.datc64</c>, a translated copy; null when absent.</summary>
-    public static DatTable? OpenTranslated(Index index, string name, string language)
-    {
-        var file = index.Files.Values.FirstOrDefault(f => f.Path != null
-            && (f.Path.Equals($"data/balance/{language}/{name}.datc64", StringComparison.OrdinalIgnoreCase)
-                || f.Path.Equals($"data/{language}/{name}.datc64", StringComparison.OrdinalIgnoreCase)));
-        return file == null ? null : new DatTable(file.Read().ToArray());
-    }
+    /// <summary>A table from the bytes of a .datc64 file (the row count, the rows, the 0xBB marker, the variable section).</summary>
+    public static DatTable FromBytes(byte[] data) => new(data);
 
     public string String(int row, int offset) => this.ReadString(BitConverter.ToInt64(this.data, this.RowStart(row) + offset));
 
@@ -56,13 +43,25 @@ internal sealed class DatTable
         }
 
         var value = BitConverter.ToInt64(this.data, this.RowStart(row) + offset);
-        var at = this.varStart + value;
-        if (value < Marker.Length || at >= this.data.Length || (value > Marker.Length && (this.data[at - 1] != 0 || this.data[at - 2] != 0)))
+        return this.IsStringStart(value) ? this.ReadString(value) : null;
+    }
+
+    /// <summary>A list column of strings, or null when an item is not the offset of a string's first character (a misaligned column).</summary>
+    public IReadOnlyList<string>? StringListOrNull(int row, int offset)
+    {
+        var items = new List<string>();
+        foreach (var at in this.ListItems(row, offset, 8))
         {
-            return null;
+            var value = BitConverter.ToInt64(this.data, at);
+            if (!this.IsStringStart(value))
+            {
+                return null;
+            }
+
+            items.Add(this.ReadString(value));
         }
 
-        return this.ReadString(value);
+        return items;
     }
 
     /// <summary>8 bytes at any offset of a row, aligned or not (GrantedEffects' animation key sits at +0x71).</summary>
@@ -226,6 +225,13 @@ internal sealed class DatTable
     private const int MinDistinctKeys = 10;
 
     private int RowStart(int row) => 4 + (row * this.RowSize);
+
+    /// <summary>Whether a variable-section offset is the first character of a string: past the marker and after a NUL pair.</summary>
+    private bool IsStringStart(long value)
+    {
+        var at = this.varStart + value;
+        return value >= Marker.Length && at < this.data.Length && (value == Marker.Length || (this.data[at - 1] == 0 && this.data[at - 2] == 0));
+    }
 
     /// <summary>Byte positions of a list column's items; none when the count or position is implausible.</summary>
     private IEnumerable<int> ListItems(int row, int offset, int itemSize)
