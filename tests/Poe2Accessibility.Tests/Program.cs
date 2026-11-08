@@ -129,6 +129,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(MapMarkersFindTheirCheckpoints), MapMarkersFindTheirCheckpoints);
             Run(nameof(MovedFieldsAreFoundNearestFirst), MovedFieldsAreFoundNearestFirst);
             Run(nameof(MovedControlFieldsAreTrustedOnceTwoControlsAgree), MovedControlFieldsAreTrustedOnceTwoControlsAgree);
+            Run(nameof(TheHoveredPinIsTheKeyThatChangesWithTheCursor), TheHoveredPinIsTheKeyThatChangesWithTheCursor);
             Run(nameof(CheckpointsAreNamedByTheirNeighbour), CheckpointsAreNamedByTheirNeighbour);
             Run(nameof(FarBarrierStaysClosedUntilSeenNear), FarBarrierStaysClosedUntilSeenNear);
             Run(nameof(ScrolledRowsAreNotNews), ScrolledRowsAreNotNews);
@@ -3076,6 +3077,32 @@ namespace Poe2Accessibility.Tests
             var followed = new ControlFields(new CompatibilityReport(log), () => 8);
             Equal(8, followed.Shift(ControlGroup.ComboBox, 1, shift => shift is 0 or 8), "tried first as far as the label text moved");
             Equal(8, followed.Current(ControlGroup.Inventory), "an unjudged group follows the label text");
+        }
+
+        private static void TheHoveredPinIsTheKeyThatChangesWithTheCursor()
+        {
+            var log = new PluginLog(System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests"), false);
+
+            // Keys into MapPins on the canvas, by shift from where the hovered one was measured: the current area's 0x20 before it.
+            static Func<int, long> Canvas(int hoveredAt, long hoveredRow) => shift => shift == hoveredAt ? hoveredRow : shift == hoveredAt - 0x20 ? 0x5000 : 0;
+            var measured = new ControlFields(new CompatibilityReport(log), () => 0);
+            Equal(0, measured.ChangingAt(ControlGroup.HoveredPin, 1, Canvas(0, 0x6000)), "read where measured until judged");
+            Equal(0, measured.ChangingAt(ControlGroup.HoveredPin, 1, Canvas(0, 0x6100)), "the cursor moves to another pin");
+            Equal(true, measured.IsKnown(ControlGroup.HoveredPin), "proved where measured on the first change");
+
+            var moved = new ControlFields(new CompatibilityReport(log), () => 0);
+            var rows = new long[] { 0x6000, 0x6100, 0, 0x6200, 0x6300 };
+            var shifts = rows.Select(row => moved.ChangingAt(ControlGroup.HoveredPin, 1, Canvas(8, row))).ToList();
+            Equal("0,0,0,0,8", string.Join(",", shifts), "after a patch, the key that changed twice from pin to pin (to and from no pin does not count)");
+            Equal(8, moved.Current(ControlGroup.HoveredPin), "kept");
+
+            var still = new ControlFields(new CompatibilityReport(log), () => 0);
+            foreach (var row in rows)
+            {
+                still.ChangingAt(ControlGroup.HoveredPin, 1, Canvas(0x40, 0x6000));
+            }
+
+            Equal(false, still.IsKnown(ControlGroup.HoveredPin), "a cursor resting on one pin proves nothing, nor the current area's key");
         }
 
         private static void MapMarkersFindTheirCheckpoints()
