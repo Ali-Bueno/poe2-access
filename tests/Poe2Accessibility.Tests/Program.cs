@@ -1509,6 +1509,10 @@ namespace Poe2Accessibility.Tests
             Equal(true, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Rare, 100, 1000), "rare at 10%");
             Equal(true, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Unique, 2500, 50000), "unique at 5%");
             Equal(false, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Unique, 0, 50000), "dead is not cullable");
+            Equal(true, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 42, 100, 20), "35% increased by 20%: 42%");
+            Equal(false, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Normal, 43, 100, 20), "above 42%");
+            Equal(true, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Rare, 15, 100, 0, 50), "rare: 10% increased by 50% against rares");
+            Equal(false, CullThreshold.Reached(GameHelper.RemoteEnums.Rarity.Magic, 25, 100, 0, 50), "the rare-or-unique increase leaves magic alone");
         }
 
         private static void CullingSkillsComeFromTheCatalog()

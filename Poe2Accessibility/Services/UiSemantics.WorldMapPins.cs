@@ -77,36 +77,38 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public string DescribePin(IntPtr worldScreen, IntPtr row)
         {
+            var (name, kind, words, contents) = this.PinParts(worldScreen, row);
+            return name.Length == 0 ? string.Empty : Announcements.Sentences(new[] { name, kind, words }.Where(part => part.Length > 0).Concat(contents).Distinct());
+        }
+
+        /// <summary>
+        ///     A pin's popup from its data, part by part: its name, its kind (the monster level, or "Town"), its words and the
+        ///     area's other shown pins; empty name for no pin.
+        /// </summary>
+        public (string Name, string Kind, string Words, IReadOnlyList<string> Contents) PinParts(IntPtr worldScreen, IntPtr row)
+        {
             var name = this.PinText(row, GameLayout.MapPinRow.NameOffset);
             if (name.Length == 0)
             {
-                return string.Empty;
+                return (string.Empty, string.Empty, string.Empty, Array.Empty<string>());
             }
 
-            var parts = new List<string> { name };
+            var kind = string.Empty;
             var area = DatKey.Row(this.reader, this.elements, row + GameLayout.MapPinRow.AreaKeyOffset, GameLayout.WorldMap.AreaTable);
             if (area is { } areaRow && this.reader.TryRead<byte>(areaRow + GameLayout.WorldAreaRow.IsTownOffset, out var town) && town != 0)
             {
-                parts.Add(this.PinTownLabel?.Invoke() is { Length: > 0 } townWord ? townWord : Announcements.PinTown);
+                kind = this.PinTownLabel?.Invoke() is { Length: > 0 } townWord ? townWord : Announcements.PinTown;
             }
             else if (area is { } levelRow && this.reader.TryRead<int>(levelRow + GameLayout.WorldAreaRow.LevelOffset, out var level) && level is > 0 and <= 100)
             {
-                parts.Add(this.PinLevelLabel?.Invoke() is { Length: > 0 } format && format.Contains("{0}", StringComparison.Ordinal)
+                kind = this.PinLevelLabel?.Invoke() is { Length: > 0 } format && format.Contains("{0}", StringComparison.Ordinal)
                     ? format.Replace("{0}", level.ToString(System.Globalization.CultureInfo.CurrentCulture), StringComparison.Ordinal)
-                    : Announcements.PinLevel(level));
+                    : Announcements.PinLevel(level);
             }
 
-            if (this.PinText(row, GameLayout.MapPinRow.DescriptionOffset) is { Length: > 0 } words)
-            {
-                parts.Add(words);
-            }
-
-            if (area is { } sameArea)
-            {
-                parts.AddRange(this.PinsOfArea(worldScreen, sameArea, row).Where(other => !parts.Contains(other)));
-            }
-
-            return Announcements.Sentences(parts);
+            var words = this.PinText(row, GameLayout.MapPinRow.DescriptionOffset);
+            var contents = area is { } sameArea ? this.PinsOfArea(worldScreen, sameArea, row).Where(other => other != name).ToList() : new List<string>();
+            return (name, kind, words, contents);
         }
 
         /// <summary>Whether the game shows the pin's popup: a text beside the map with the pin's words (or its name, without words).</summary>

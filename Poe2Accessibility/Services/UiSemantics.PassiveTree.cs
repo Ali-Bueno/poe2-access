@@ -126,13 +126,11 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private string DescribeLinks(PassiveGraph graph, IntPtr element, IntPtr record, HashSet<int> allocated, HashSet<IntPtr> marked)
         {
-            if (!graph.Links.TryGetValue(record, out var linked) ||
-                !PluginUiElementReflection.TryGetAbsoluteRect(element, out var position, out var size))
+            if (!graph.Links.TryGetValue(record, out var linked) || this.NodeCentre(graph, element) is not { } here)
             {
                 return string.Empty;
             }
 
-            var here = position + (size / 2);
             var places = this.PlacesOf(graph);
             var offsets = places.Index.TryGetValue(record, out var hereIndex) ? places.OffsetsFrom(hereIndex) : null;
             var parts = new List<(double Order, string Text)>();
@@ -158,15 +156,14 @@ namespace Poe2Accessibility.Services
 
                 var state = StateWord(this.StateOf(graph, node, allocated));
                 var words = Announcements.PassiveLink(node.Name, marked.Contains(other) ? $"{state}, {Announcements.InBuild(false)}" : state);
-                if (!graph.Elements.TryGetValue(other, out var otherElement) ||
-                    !PluginUiElementReflection.TryGetAbsoluteRect(otherElement, out var otherPosition, out var otherSize))
+                if (!graph.Elements.TryGetValue(other, out var otherElement) || this.NodeCentre(graph, otherElement) is not { } there)
                 {
                     parts.Add((double.MaxValue - 1, words)); // not drawn: no side to give
                     continue;
                 }
 
-                // Screen y grows downwards; StickDirections count counter-clockwise from right. Clockwise from up.
-                var offset = otherPosition + (otherSize / 2) - here;
+                // Canvas y grows downwards, as on screen; StickDirections count counter-clockwise from right. Clockwise from up.
+                var offset = there - here;
                 var angle = Math.Atan2(-offset.Y, offset.X) * 180 / Math.PI;
                 var geometric = Announcements.StickDirections[PassiveStick.Nearest(offset)];
                 var direction = offsets == null || !places.Index.TryGetValue(other, out var otherIndex)
@@ -194,7 +191,18 @@ namespace Poe2Accessibility.Services
 
             var here = position + (size / 2);
             var linked = graph.Links.GetValueOrDefault(record) ?? new List<IntPtr>();
-            yield return $"hovered {this.PassiveIdOf(record)} at {here.X:F0},{here.Y:F0} size {size.X:F0}";
+            var shown = graph.Elements.Count(pair => this.elements.TryReadElement(pair.Value, out var element) && element.IsVisibleFlag);
+            yield return $"hovered {this.PassiveIdOf(record)} at {here.X:F0},{here.Y:F0} size {size.X:F0}; {shown} of {graph.Elements.Count} node elements shown";
+            // What the stick model says each push lands on (octants counter-clockwise from right), to check against the game.
+            var places = this.PlacesOf(graph);
+            if (places.Index.TryGetValue(record, out var hereIndex))
+            {
+                var records = places.Index.OrderBy(pair => pair.Value).Select(pair => pair.Key).ToArray();
+                var offsets = places.OffsetsFrom(hereIndex);
+                yield return "picks " + string.Join(", ", Enumerable.Range(0, 8).Select(octant =>
+                    $"{Announcements.StickDirections[octant]} {(PassiveStick.Pick(offsets, octant) is var pick and >= 0 ? this.PassiveIdOf(records[pick]) : "-")}"));
+            }
+
             var marked = this.BuildMarks(graph).Select(this.PassiveIdOf).ToHashSet();
             yield return $"build marks {marked.Count}: {string.Join(' ', marked.Take(12))}; file: {this.buildPlans.Matching(marked)?.Name ?? "none"}";
             var near = new List<(double Distance, string Line)>();
@@ -222,8 +230,10 @@ namespace Poe2Accessibility.Services
             this.PassiveRow(record) is { } row && this.reader.TryRead<IntPtr>(row, out var id) ? this.elements.ReadUtf16BufferAt(id, MaxPassiveNameChars) ?? "?" : "?";
 
         /// <summary>
-        ///     The drawn nodes' screen centres (icon-only ones never take the cursor), read once per graph: the tree only
-        ///     pans and zooms, so one frame's pixels keep every angle and every ratio of distances.
+        ///     The drawn nodes' centres on the tree's own canvas (icon-only ones never take the cursor), read once per graph:
+        ///     laid-out places under the canvas (<see cref="LayoutRect"/>), the tree's coordinates whatever the window, the
+        ///     zoom, the pan or the opening animation. One frame's screen pixels were cached before, and a frame taken while
+        ///     the tree opened gave other picks at 5:4 and 21:9 than the game made, which were the same at both (2026-11-08).
         /// </summary>
         private PassivePlaces PlacesOf(PassiveGraph graph)
         {
@@ -238,10 +248,10 @@ namespace Poe2Accessibility.Services
             {
                 if (this.elements.TryReadElement(element, out var info) && info.IsVisibleFlag &&
                     this.PassiveRow(record) is { } row && !this.ReadPassiveRow(record, row).IconOnly &&
-                    PluginUiElementReflection.TryGetAbsoluteRect(element, out var position, out var size))
+                    this.NodeCentre(graph, element) is { } centre)
                 {
                     records.Add(record);
-                    positions.Add(position + (size / 2));
+                    positions.Add(centre);
                 }
             }
 
@@ -249,6 +259,10 @@ namespace Poe2Accessibility.Services
             this.passivePlaces = places;
             return places;
         }
+
+        /// <summary>A node's centre in the canvas's units (y down, as on screen), null when its chain does not reach the canvas.</summary>
+        private Vector2? NodeCentre(PassiveGraph graph, IntPtr element) =>
+            this.LayoutRect(element, graph.Canvas) is { } rect ? rect.Position + (rect.Size / 2) : null;
 
         private PassiveState StateOf(PassiveGraph graph, PassiveNodeRow node, HashSet<int> allocated)
         {

@@ -46,6 +46,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether one of the followed player's skills culls now.</summary>
         public Func<bool> HasCullingSkill { get; set; } = () => false;
 
+        /// <summary>The followed player's culling threshold increases, in percent: all monsters, and rare or unique ones.</summary>
+        public Func<(int All, int RareOrUnique)> Increases { get; set; } = () => (0, 0);
+
         /// <summary>A new area: no enemy is known.</summary>
         public void Reset() => this.cullable.Clear();
 
@@ -60,6 +63,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastPoll = now;
+            var (increase, increaseVsRare) = this.Increases();
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
             this.seen.Clear();
             foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
@@ -72,7 +76,7 @@ namespace Poe2Accessibility.Services
 
                 var at = new Vector2(render.WorldPosition.X, render.WorldPosition.Y);
                 var rarity = entity.TryGetComponent<ObjectMagicProperties>(out var magic) ? magic.Rarity : Rarity.Normal;
-                if (Vector2.Distance(at, here) > WatchWorld || !CullThreshold.Reached(rarity, life.Health.Current, life.Health.Total))
+                if (Vector2.Distance(at, here) > WatchWorld || !CullThreshold.Reached(rarity, life.Health.Current, life.Health.Total, increase, increaseVsRare))
                 {
                     continue;
                 }

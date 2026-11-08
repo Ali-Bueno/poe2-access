@@ -57,8 +57,26 @@ namespace Poe2Accessibility.Services
             this.settled = true;
             var first = this.opening;
             this.opening = false;
-            if (this.semantics.PinMarker(hovered) is not { Length: > 0 } marker || this.output.SaidSince(marker, this.since) ||
-                this.semantics.DescribePin(worldScreen, hovered) is not { Length: > 0 } line)
+            if (this.semantics.PinMarker(hovered) is not { Length: > 0 } marker)
+            {
+                return;
+            }
+
+            if (this.output.SaidSince(marker, this.since))
+            {
+                // The popup was heard, maybe without its level: the screen reading said Keth's words but not "Nivel de
+                // monstruos: 21" at 16:9 (2026-11-08), the level arriving after them. The missing level alone, after it.
+                var kind = this.semantics.PinParts(worldScreen, hovered).Kind;
+                if (kind.Length > 0 && !this.output.SaidSince(kind, this.since))
+                {
+                    this.log.Info($"Map pin heard without its kind, told from its data: {kind}");
+                    this.output.Speak(kind);
+                }
+
+                return;
+            }
+
+            if (this.semantics.DescribePin(worldScreen, hovered) is not { Length: > 0 } line)
             {
                 return;
             }

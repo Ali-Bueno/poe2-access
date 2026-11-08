@@ -367,7 +367,12 @@ namespace Poe2Accessibility
                 this.minions = new MinionReport(elements);
                 var cullSkills = CullSkills.Load(Path.Join(this.DllDirectory, "catalog", "cull-skills.txt"));
                 this.log.Info($"Cull skills: {cullSkills.Count} skills from the game files");
-                this.culls = new CullWatch(this.audio, this.output, elements) { HasCullingSkill = () => cullSkills.AnyCulls(skills.Ids()) };
+                this.culls = new CullWatch(this.audio, this.output, elements)
+                {
+                    HasCullingSkill = () => cullSkills.AnyCulls(skills.Ids()),
+                    Increases = () => (PlayerStats.Of(Seats.Followed, "culling_strike_threshold_+%") ?? 0,
+                                       PlayerStats.Of(Seats.Followed, "culling_strike_threshold_+%_vs_rare_or_unique_monsters") ?? 0),
+                };
                 this.deployed = new DeployedWatch(this.audio, this.log);
                 this.traps = new TrapWatch(this.audio, this.log);
                 this.enemyStates = new EnemyStateWatch(this.audio, this.output, elements, memory);

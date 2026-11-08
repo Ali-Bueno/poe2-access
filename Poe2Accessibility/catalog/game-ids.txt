@@ -1091,6 +1091,8 @@ animation 1087 FloatingFocusPoseAdjustment
 stat current_rage 6996
 stat maximum_rage 6995
 stat virtual_maximum_rage 11163
+stat culling_strike_threshold_+% 19030
+stat culling_strike_threshold_+%_vs_rare_or_unique_monsters 23605
 stat strength 563
 stat dexterity 569
 stat intelligence 566

@@ -18,6 +18,7 @@ internal static class GameIdExtractor
     private static readonly string[] Stats =
     {
         "current_rage", "maximum_rage", "virtual_maximum_rage",
+        "culling_strike_threshold_+%", "culling_strike_threshold_+%_vs_rare_or_unique_monsters",
         "strength", "dexterity", "intelligence",
         "fire_damage_resistance_%", "cold_damage_resistance_%", "lightning_damage_resistance_%", "chaos_damage_resistance_%",
         "uncapped_fire_damage_resistance_%", "uncapped_cold_damage_resistance_%", "uncapped_lightning_damage_resistance_%", "uncapped_chaos_damage_resistance_%",
