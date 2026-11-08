@@ -1,5 +1,8 @@
 # Endgame UI screens never seen live (offline research, 2026-11-01)
 
+The endgame's data (the Atlas is a skill graph file, map objectives and their minimap icons, the catalog the mod extracts)
+is in [endgame.md](endgame.md).
+
 Offline only: GameHelper2 source, ClientStrings (en/es), `ui-catalog.json`, repo docs, one web search (it gave no
 controller bindings, so every button claim below is OPEN). Confidence: **MEASURED** = read from a file in this repo or
 a prior live dump; **INFERRED** = consistent with the sources; **OPEN** = unknown until the screen is open.
