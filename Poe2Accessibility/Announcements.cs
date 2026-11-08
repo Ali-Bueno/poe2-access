@@ -416,8 +416,8 @@ namespace Poe2Accessibility
             return builder.ToString();
         }
 
-        public static string GameAttached => T("Game Helper attached to the game.", "Game Helper conectado al juego.");
-        public static string GameNotAttached => T("Game Helper is not attached to the game.", "Game Helper no está conectado al juego.");
+        public static string GameAttached => T("The mod is connected to the game.", "El mod está conectado al juego.");
+        public static string GameNotAttached => T("The mod is not connected to the game.", "El mod no está conectado al juego.");
         public static string NoGameProcess => T("No Path of Exile process is running.", "No hay ningún proceso de Path of Exile en ejecución.");
 
         /// <summary>"Área: Sierraclara, nivel 2." (the area level is its monsters' level; 0 when unknown).</summary>
@@ -779,8 +779,8 @@ namespace Poe2Accessibility
 
         public static string GameProcessMatches(string processName) =>
             T(
-                $"Process {processName} is running with the expected window title; Game Helper should attach within seconds.",
-                $"El proceso {processName} está en ejecución con el título de ventana esperado; Game Helper debería conectarse en unos segundos.");
+                $"Process {processName} is running with the expected window title; the mod should connect within seconds.",
+                $"El proceso {processName} está en ejecución con el título de ventana esperado; el mod debería conectarse en unos segundos.");
 
         public static string GameProcessTitleMismatch(string processName, string title) =>
             string.IsNullOrEmpty(title)
@@ -788,12 +788,12 @@ namespace Poe2Accessibility
                     $"Process {processName} is running but has no main window yet.",
                     $"El proceso {processName} está en ejecución pero aún no tiene ventana principal.")
                 : T(
-                    $"Process {processName} is running but its window title is \"{title}\", not \"Path of Exile 2\", so Game Helper will not attach.",
-                    $"El proceso {processName} está en ejecución pero el título de su ventana es \"{title}\", no \"Path of Exile 2\", así que Game Helper no se conectará.");
+                    $"Process {processName} is running but its window title is \"{title}\", not \"Path of Exile 2\", so the mod will not connect.",
+                    $"El proceso {processName} está en ejecución pero el título de su ventana es \"{title}\", no \"Path of Exile 2\", así que el mod no se conectará.");
 
         public static string GameProcessInaccessible(string processName) =>
             T(
-                $"Process {processName} is running but cannot be inspected; run Game Helper as administrator.",
-                $"El proceso {processName} está en ejecución pero no se puede inspeccionar; ejecuta Game Helper como administrador.");
+                $"Process {processName} is running but cannot be inspected; run the mod as administrator.",
+                $"El proceso {processName} está en ejecución pero no se puede inspeccionar; ejecuta el mod como administrador.");
     }
 }
