@@ -3315,7 +3315,7 @@ namespace Poe2Accessibility.Tests
             }
 
             var shipped = CodeFieldCatalog.Parse(System.IO.File.ReadLines(System.IO.Path.Join(directory, "Poe2Accessibility", "catalog", "code-fields.txt")));
-            Equal(51, shipped.Count, "every shipped line parses");
+            Equal(52, shipped.Count, "every shipped line parses");
             Equal(true, shipped.All(entry => entry.Signatures.Count >= 2), "two can agree on each");
         }
 
