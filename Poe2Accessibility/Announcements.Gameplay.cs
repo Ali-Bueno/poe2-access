@@ -468,6 +468,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.LootSounds) => T("Items heard and named", "Objetos que suenan y se nombran"),
             nameof(AccessibilitySettings.ItemSounds) => T("Item sound set", "Set de sonidos de objetos"),
             nameof(AccessibilitySettings.DodgeWarnings) => T("Dodge warnings", "Avisos para esquivar"),
+            nameof(AccessibilitySettings.DodgeWarningsAllMonsters) => T("Dodge warnings for every monster", "Avisos para esquivar de todos los monstruos"),
             nameof(AccessibilitySettings.ParryCues) => T("Parry cue", "Aviso de Parada"),
             nameof(AccessibilitySettings.UnblockableCues) => T("Unblockable attack cue", "Aviso de ataque imbloqueable"),
             nameof(AccessibilitySettings.HazardAlarm) => T("Harmful ground alarm", "Alarma de suelo peligroso"),

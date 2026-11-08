@@ -8,7 +8,9 @@ Confidence: **PROVEN** = the game's own code names it (a GEAL getter or a labell
 archived builds (25244054, 25740136, 26261440, 26473991, 26476662), or it was read live and checks itself; **LIKELY** =
 code in one build, or live on players only; **UNSURE** = inferred, needs the live protocol below.
 
-## The pipeline today and where it misses
+## The pipeline before the gate and where it missed
+
+What follows is the warning as it was before the integration below; the misses are what the gate answers.
 
 `BossWatch.Tick` (each frame) walks the awake monsters within `WatchWorld` (1400 world units, a circle) of the followed
 player; for an alive, not hidden monster with an Actor it calls `WatchAttack` with the animation id (Actor +0x8B0) and the
@@ -151,37 +153,24 @@ under way" (IsCurrentAction). In the action:
 
 ## Design: gating and timing
 
-Pure, in new files, tested (`DodgeGateTests`, 26 tests):
+Pure, in their own files, tested (`DodgeGateTests`, 32 tests):
 
 - `AttackClock`: `Rate`, `IsPlausible`, `MsToNext(reading, events, "contact")`, `MsToNominal(reading, files' hit ms)` (a
   table time from the clip's real position and rate), `NewSwing`, `EventId`, `ActionId`.
-- `AttackAim.Of(aim, playerId, player, playerRadius, attacker, areaRadius, pathHalfWidth)`: Player when the target is the
-  player; PlayerArea when the place (or another body's place) is within the area radius + the body + 40 of slack, or the
-  player stands on the projectile's path; Elsewhere otherwise; Unknown when nothing was read.
+- `AttackAim.Of(aim, playerId, player, playerRadius, attacker, areaRadius, projectile)`: Player when the target is the
+  player; PlayerArea when the place (or another body's place) is within the area radius + the body + 40 of slack, or, for a
+  projectile, the player stands on its path; Elsewhere otherwise; Unknown when nothing was read.
 - `AttackReach`: `Farthest(patterns)` from the clip's damage patterns, `MeleeReaches`, `AreaCatches`.
+- `AttackArea` / `AttackAreas`: a skill's danger area from its `telegraph-skills.txt` line (`geometry`: circle, cone,
+  rectangle, donut, triangle; `trigger`: a circle) and `Catches`, oriented from the monster to the action's target place.
+- `AttackData`: the three catalogs (`attack-reach.txt`, `telegraph-skills.txt`, `action-types.txt`) by `ao path|clip`,
+  skill id and action id.
 - `AttackSight`: `BodySeen`, `EntryFraction`, `SeenAt`.
-- `DodgeGate.Decide(facts, leadMs)`: Silent for a calm animation, an attack aimed elsewhere, a blow out of reach (unknown
-  reach: a ranged attack aimed at the player reaches; a melee blow or an unknown aim keeps the old rarity and gap rule), an
-  attacker off screen with nothing of it coming into view, a blow already past or seen too late; else Warn or Wait
-  `max(blow − lead, until it comes into view)`; untimed, at the wind-up (or as the projectile shows). The reason is logged.
+- `DodgeGate.Decide(facts, leadMs)`: the decision order under "Integration" below; every verdict carries its reason.
 - `AttackFieldCheck`: the live checks below, with an Unjudged → Intact/Lost verdict after 20 comparable readings.
 - GameOffsets: `AnimationControllerOffsets`, `AnimationDataOffsets`, `AnimationEventOffsets`, `AmdFileOffsets`,
   `AmdClipTableOffsets` (AnimationController.cs), `ActorActionOffsets` (ActorAction.cs), `ActorOffset.CurrentActionPtr`
-  0x238 and `ActionFlags` 0x2A0, `AnimatedOffsets.AnimatedObjectPtr` 0x350. Nothing reads them yet.
-
-Per monster each frame the integration reads: the action (type, target id, target place → world through the area's
-`WorldToGridConvertor`, skill), the AnimationController reading and the playing clip's events (cached by data pointer
-and clip index), the AO's path and the clip's name (for the files' patterns and radius). Then:
-
-1. Threat: the data-driven kind (other agent's work); None → silent.
-2. Aim: `AttackAim.Of`. Elsewhere → silent.
-3. Reach: melee: `Farthest` of the clip's patterns (files by `ao path|clip`, or the Melee component) against the centre
-   distance; area: the contact's place or the target place with the base radius; unknown → as above.
-4. Sight: `BodySeen` of the attacker's drawn body, else the projectile's entry.
-5. Time: `MsToNext(contact)` live; else `MsToNominal(hit-times)` at the clip's rate; else the learnt delay; else the
-   wind-up. A projectile adds its flight to the release (as today).
-6. Warn when the verdict says Warn; each `NewSwing` re-arms the monster; `WarningGapMs` and the gain, pan and parry cue as
-   today. Learning from blows is then needed only for clips with no event and no file time.
+  0x238 and `ActionFlags` 0x2A0, `AnimatedOffsets.AnimatedObjectPtr` 0x350, read by `AttackReader`.
 
 ## Protections and what a patch does
 
@@ -199,50 +188,130 @@ Every new field has a live rule; four also have the game's code:
 | action +0x150 | a place within a few screens of its monster (`TargetPointPlausible`) | five-build GEAL check |
 
 The twelve `semantic` rules read the right value on all five builds with the host's own reader
-([evidence](evidence/dodge-semantic-rules.txt)); they are not in `catalog/semantic-fields.txt` yet (that catalog's owner
-adds them). A field judged Lost is not read again that session and its part falls back: no clock → the files' time from
-the animation id's change at speed 1 (today); no events → `MsToNominal`; no action → aim Unknown (today's reach rule); no
-animated object → today's behaviour whole. Each part goes to the compatibility report like the other parts ("el reloj de
-los ataques", "a quién apuntan los ataques"), so a patch that moved one is said, not heard as silence or false alarms.
+([evidence](evidence/dodge-semantic-rules.txt)). They ship in `catalog/semantic-fields.txt` with struct targets
+(`AnimationControllerOffsets:CurrentClip` and so on, `ActorOffset:CurrentActionPtr`, `ActorOffset:ActionFlags`), so
+`PlaceFromCode` moves a field a patch shifted before the first frame reads it; `AttackReader` reads every field through
+`HostStructs.Follow`. A field judged Lost is not read again that session and its part falls back: no clock → the files'
+time from the animation id's change at speed 1; no events → `MsToNominal`; no action → aim Unknown and the old reach rule;
+no animated object → the old behaviour whole. Each part goes to the compatibility report like the other parts
+(`dodge: animated object`, `dodge: attack clock`, `dodge: clip events`, `dodge: action types`, `dodge: action targets`,
+`dodge: action places`), so a patch that moved one is said, not heard as silence or false alarms.
+
+## Integration (2026-11-08, offline)
+
+The design above is wired into the live dodge warning; it has not been run in the game yet (the live protocol below).
+
+**Files.** `Services/AttackReader.cs` (memory: one `AttackSnapshot` per monster and frame, the six live checks),
+`Services/BossWatch.Dodge.cs` (the gate: per frame facts, decision, cues, logs; the telegraph hook), `Services/BossWatch.cs`
+(the tick calls it; learning cleaned), `Services/DodgeGate.cs`, `AttackAim.cs`, `AttackArea.cs`, `AttackData.cs`,
+`DodgeTimings.cs`; the setting `DodgeWarningsAllMonsters` (`AccessibilitySettings.cs`, `SettingsMenu.cs`,
+`Announcements.Gameplay.cs`); `Poe2AccessibilityCore.Gameplay.cs` (hands the gate the setting and the catalog folder and
+sends each check's verdict to the compatibility report); the twelve rules in `catalog/semantic-fields.txt`.
+
+**Per frame**, for each monster `BossWatch.Tick` already watches (awake, alive, within 1400 world units, with an Actor):
+
+1. Kind: the files' threat (`DodgeTimings.Threat`), else the animation's name; None is calm.
+2. Reading (`AttackReader.Read`), only for an attack that can warn, while the parry cue is on, or while a live check is
+   still unjudged (about a dozen reads per monster):
+   - the action at Actor +0x238: its type (+0x120, checked against `action-types.txt`), target entity (+0x148, its id
+     checked in the awake map), target place (+0x150 × world per grid cell, checked within 3000 units), skill (+0xF8, the
+     GrantedEffects id);
+   - Animated +0x350: the `.ao` path and its AnimationController, the clock (clip, position, speed, global, global off),
+     the clip's name and events cached per (animation data, clip).
+
+   Each part is handed out only once its check says Intact; a part judged Lost is not read again that session.
+3. Swing: a new swing (the clip restarted or changed) re-arms the warning, and so does a further `contact` in the same clip.
+4. Blow time: the next `contact` ÷ the real rate (Live); else, on the clip the attack started with, the files' hit time at
+   that clip's rate (`MsToNominal`, Nominal); else the start plus the files' or learnt delay on the wall clock (Nominal).
+   A projectile adds its flight (gap ÷ the files' speed).
+5. Facts: the aim (`AttackAim.Of`); the reach: for melee, the clip's reach from `attack-reach.txt` (the larger of its
+   damage patterns and its impact place) against the centre distance with the body and 40 units of slack; a skill area
+   from `telegraph-skills.txt` that catches the player (telegraph path B) sets it true, never false, until the area units
+   are measured; the old rule as the fallback (`Threat != Melee || Unique || gap <= 150`); the sight (the body drawn on a
+   16:9 screen, else when the projectile comes into view); the telegraph hook.
+6. `DodgeGate.Decide`, in this order:
+   1. calm → silent, **calm**;
+   2. the reach is the telegraph's `CatchesPlayer` if it has one, else the facts' reach; aimed elsewhere with a reach not
+      known true → silent, **aimed elsewhere** (a sweep that reaches the player warns whatever it aims at);
+   3. unknown reach: a ranged attack with a known aim reaches; a melee blow or an unknown aim takes the fallback; no reach
+      → silent, **out of reach**;
+   4. neither the body nor a telegraph on screen, and no projectile coming into view → silent, **off screen**;
+   5. timed (live or nominal, else the telegraph's hit time): the blow already landed → silent, **blow passed**; seen only
+      at or after the blow → silent, **seen too late**; else warn at `max(blow − 500 ms lead, when it comes into view)`,
+      **timed live**, **timed nominal** or **timed by its telegraph**;
+   6. untimed: at the wind-up, or when the projectile comes into view, **wind-up**.
+7. Cues: the unblockable cue at the wind-up of a threatening attack; the warning when the verdict is Warn (a repeat swing
+   with no live clock is still warned a files' swing later); the parry cue follows the live blow when the clip is timed
+   live.
+8. Learning (`LearnFromBlow`): only from a threatening attack that is not timed live, and only a delay within
+   max(300 ms, 25%) of the files' hit time (a ranged attack whose projectile speed is unknown has no upper bound). The
+   learnt delay is the median of the believable samples only, so the polluted samples already in
+   `config/dodge-timings.txt` (FungusBehemoth 110-3000 ms, above) are ignored on load, not deleted.
+
+**Normal monsters.** A setting, `DodgeWarningsAllMonsters` ("Dodge warnings for every monster"), off by default: rares and
+uniques only, as before. A pack of normal monsters can warn several times a second, and the files' reach and the aim do not
+yet tell a normal monster's hit that matters from one that does not. The live protocol's recall and false-warning figures
+for normal monsters decide whether it should be on by default.
+
+**Telegraph hooks.** Path B (the skill's GeometryAttack or GeometryTrigger area, oriented from the monster to the target
+place) is wired, as above. Path A (a ServerEffect or spawned entity whose `.ao` the telegraph catalogs know) is a hook:
+`BossWatch.Telegraph` (`Func<uint, AttackTelegraph?>`, by monster id) returns `AttackTelegraph(Seen, CatchesPlayer,
+HitInMs)`. `Seen` makes a telegraph on screen count as seeing the attack, `CatchesPlayer` replaces the reach (and can
+silence it), and `HitInMs` times an attack with no other timing. It returns null until a source is written.
+
+**What is logged** (`logs/accessibility.log` beside the plugin; `Info` always, `Debug` with `VerboseLogging`):
+
+| Line | When |
+|---|---|
+| `Dodge gate: N clips with a reach, M skill areas, K action types` | once, when the catalogs load |
+| `Dodge gate: <monster path>\|<animation id> <animation> -> <reason> (aim …, reach …, seen …, timing …, clip …, action …, skill …)` | once per (monster, animation, reason) |
+| `Dodge warning: monster <id> <key> animation <name> (<threat>, <reason>, gap …, aim …, reach …, blow in … ms[, … ms of flight], clip …)` | each warning (Debug) |
+| `Dodge timing: <key> hit after <ms> ms (learnt <ms> ms)` / `… not believed (the files say <ms> ms)` | each blow it learns from, or rejects |
+| `Layout: dodge: <part> where measured` / `Layout: dodge: <part> NOT FOUND (game update?)…` | each check's verdict, once |
+| `Semantic fields: 64 of 64 read in … ms; moved: …` | at attach (the twelve dodge rules among them) |
+| `Dodge kind from the animation's name`, `Unblockable attack`, `Parry cue` | as before |
 
 ## Live protocol
 
-Read-only: `tools/computer_use/fight_trace.py` records per frame each monster's animation id, action (type, target id,
-place), clip (index, name, position, speed, global) and place, each clip's events once, and the player's life and place,
-with `t` and `wall` (UTC ms) stamps; `--shots DIR --shot-ms 100` adds frame-timed screenshots.
+Read-only throughout: nothing writes game memory. `tools/computer_use/fight_trace.py` records per frame each monster's
+animation id, action (type, target id, place), clip (index, name, position, speed, global) and place, each clip's events
+once, and the player's life and place, with `t` and `wall` (UTC ms) stamps.
 
-1. Setup: dev host with the mod; `VerboseLogging` on (the "Dodge warning" lines); the game windowed 16:9. A 60 fps
-   recording of the window: `ffmpeg -f gdigrab -framerate 60 -i title="Path of Exile 2" -c:v libx264 -preset ultrafast fight.mp4`,
-   started with the trace; the trace's first line holds `start_wall` and ffmpeg logs its start, which lines them up.
-2. Fights (each at least 20 attacks of a kind): the Bloated Miller (Riverbank; on a new character its tutorial pause is a
+1. Setup:
+   - Deploy the plugin to the dev host as usual (`dotnet build Poe2Accessibility/Poe2Accessibility.csproj -c Release`;
+     `DeployToHost` copies the DLL and the catalogs, `attack-reach.txt`, `action-types.txt`, `telegraph-skills.txt`,
+     `telegraph-effects.txt` and `semantic-fields.txt` among them).
+   - In `config/settings.txt` set `VerboseLogging` to true (the `Dodge warning` lines). For the normal-monster run, also
+     set `DodgeWarningsAllMonsters` to true (or switch it in the settings menu).
+   - The game windowed 16:9, in front.
+   - Start both recordings together:
+     `py -B tools/computer_use/fight_trace.py --seconds 120 --out fight.jsonl --shots shots --shot-ms 100` and
+     `ffmpeg -f gdigrab -framerate 60 -i title="Path of Exile 2" -c:v libx264 -preset ultrafast fight.mp4`. The trace's
+     first line holds `start_wall` and ffmpeg logs its start, which lines them up.
+2. At attach, check the log: `Semantic fields: 64 of 64 read`, `Dodge gate: … clips with a reach` with non-zero counts,
+   then within the first fight six `Layout: dodge: … where measured` lines. Any `NOT FOUND` names the part to study first.
+3. Fights (each at least 20 attacks of a kind): the Bloated Miller (Riverbank; on a new character its tutorial pause is a
    ground truth for the 300 ms), a pack with a hasted rare (mod "Hasted"), the player slowed (a chill or slow), monsters
-   fighting the player's minions or companion, archers firing from beyond the screen's edge, a boss with ground slams.
-3. Per attack, from the trace: its start (new action or clip position near 0), its target id and place, its contact (clip
+   fighting the player's minions or companion, archers firing from beyond the screen's edge, a boss with ground slams, and
+   one normal pack with `DodgeWarningsAllMonsters` on.
+4. Per attack, from the trace: its start (new action or clip position near 0), its target id and place, its contact (clip
    start + contact ÷ rate), the hit (life drop), whether the attacker was on screen (`ScreenProjection.Draw` of its place);
    from the video, the first frame where the wind-up is visible (marked by hand on a sample of 50).
-4. Field checks to read off: positions advance at speed × global; speed > 1 on the hasted rare and < 1 when slowed;
+5. Field checks to read off: positions advance at speed × global; speed > 1 on the hasted rare and < 1 when slowed;
    attack clips list a `contact` matching `hit-times.txt` where one clip plays; the target id is the player's for attacks on
    the player and a minion's otherwise; ground spells' places near the player; the life drop 50-150 ms after the contact
-   (network).
-5. Metrics: recall = warned attacks at the player on screen ÷ such attacks (goal ≥ 95%); false warnings = warnings for
+   (network); a skill area's size against the distance its hits land at (the unit of `telegraph-skills.txt`).
+6. Audit the gate from the log:
+   `grep -E "Dodge gate:|Dodge warning:|Dodge timing:|Layout: dodge" logs/accessibility.log`. Each `Dodge gate` line names
+   one (monster, animation, reason) once; set them against the trace: every **aimed elsewhere** should have a target id
+   that is not the player's, every **off screen** an attacker outside the view, every **out of reach** a hit that did not
+   land. `not believed` lines show blows the learning refused.
+7. Metrics: recall = warned attacks at the player on screen ÷ such attacks (goal ≥ 95%); false warnings = warnings for
    attacks aimed elsewhere, out of reach, off screen or calm ÷ all warnings (≤ 5%); timing error = warning − (contact −
-   lead) (p90 ≤ 50 ms), warning vs the visible wind-up and vs the life drop, split by timing source (live, nominal, learnt,
-   wind-up).
-
-## Integration plan
-
-For the owners of `BossWatch`, the dodge services, the extractor and the semantic catalog:
-
-1. A memory-side reader (plugin, beside `HostMemoryReader`): per monster the action and the AnimationController reading
-   through the GameOffsets structs, pointers validated, offsets through `OffsetHealer.Follow` once judged; clip events
-   cached per (data, clip); nothing read for a part judged Lost.
-2. `AttackFieldCheck` verdicts in the compatibility sweep and report; the twelve semantic rules in the catalog.
-3. `BossWatch.WatchAttack`: build `DodgeFacts` each frame and act on `DodgeGate.Decide`; `WatchWorld` replaced by the
-   sight rule; learning only for untimed clips.
-4. Extractor: one more output keyed by `ao path|clip` (contact times and places, damage patterns, the skill's base radius
-   by `monster|animation`) from the same `.ao` parse as `hit-times`.
-5. `ActorTrace`: log the action and clock fields, or retire it for `fight_trace.py`.
-6. Then run the live protocol, tune `LeadMs` (tutorial: 300 ms before the blow; today 500), and the slack constants.
+   lead) (p90 ≤ 50 ms), warning vs the visible wind-up and vs the life drop, split by the reason's timing (timed live,
+   timed nominal, timed by its telegraph, wind-up). The same figures for normal monsters decide the setting's default.
+8. Then tune `LeadMs` (the tutorial says 300 ms before the blow; today 500), the 40-unit slack, and whether path B may
+   also silence an attack (once the area units are measured).
 
 ## First study (2026-10-24, 0.5.5e, Mud Burrow)
 

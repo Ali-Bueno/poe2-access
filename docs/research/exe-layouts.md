@@ -201,7 +201,7 @@ the way it stops a signature.
 | `entry` | the same | the k-th distinct field that loop reads through the pointer each entry holds (one level down from the iterator) |
 | `leaf` | a GEAL row, after `GEAL::GetGameWorld()` and the world's virtual slot | the k-th distinct field (indexed reads included) the callee taking the slot's result reads through it; the sweep to that callee goes past jumps, because the evaluator short-circuits before it |
 
-**Fields.** There are 52 rules for 38 fields, and all 52 read the 0.5.5f value:
+**Fields.** There are 64 rules for 50 fields, and all 64 read the 0.5.5f value:
 
 - **Life:** Health, Mana and ES, Current and Total. Health.Current also comes from GEAL `IsAlive`.
 - **Player:** Xp. Level, from the `Level: ` printed in the function that also prints `Experience: `. Name, through an address-of.
@@ -221,6 +221,14 @@ the way it stops a signature.
 - **Entity:** the id, from `GetObjectId`. The path, from `TypeContains`.
 - **Area:** the terrain, the entity maps and the local player, from the world's virtual slots that `IsWalkable`, `GetGameObjectById` and `GetLocalPlayer` call.
 - **InGameState:** the area, from the one function that loads `league` and `class`.
+
+- **AnimationController** (the dodge clock, 2026-11-08; `dodge-timing.md`, Protections): the clip index from GEAL
+  `CurrentAnimationIndex` and `GetCurrentAnimationLength`; the clip speed from `GetCurrentAnimationSpeed` and the
+  `Current Animation Speed: ` dump; the global speed from `GetGlobalAnimationSpeed` (its first field) and
+  `Global Animation Speed Multiplier: `; the global-off flag as that evaluator's second field; the position from
+  `Current Animation Position: `.
+- **Actor** (the dodge aim): the current action at 0x238 from `GetTarget`, `GetTargetLocation` and `GetCurrentActionStat`;
+  the action flags at 0x2A0 from `IsCurrentAction`. These 12 rules read the same value on all five builds.
 
 ### The world fields
 
@@ -332,7 +340,7 @@ An encoding it does not know decodes to nothing, so a rule never guesses. This c
 
 - `CodeFieldCatalog.Settle` keeps one value per target. A target that the signatures and the rules read differently stays where it is and is logged.
 - The value then goes through `PlaceFromCode` or `LayoutFields` as before. A live segment wins, and a value more than 0x400 from the catalog is not believed.
-- The log line reads `Semantic fields: 52 of 52 read in … ms; moved: none`. On the warm 0.5.5f exe, the index takes 0.32 s (every E8 call and RIP `lea`, 154,738 fragments) and the rules take 0.15 s.
+- The log line reads `Semantic fields: 64 of 64 read in … ms; moved: none`. On the warm 0.5.5f exe, the index takes 0.32 s (every E8 call and RIP `lea`, 154,738 fragments) and the rules take 0.15 s.
 - `dotnet run --project tests/Poe2Accessibility.Tests -- semantic <exe> <catalog>` prints each rule's candidates for any build.
 
 **Limits.**
@@ -340,7 +348,7 @@ An encoding it does not know decodes to nothing, so a rule never guesses. This c
 - Rerun on the five builds of the table above (archived under `D:\code\decompilers\projects\poe2-research\builds\<build>`,
   2026-11-08): every rule read the true value of each build. On the three builds before 0.5.5f the area level read 0xBC and
   the hash 0x114, the old layout upstream's constants had, so it reads the very move that silenced the mod; 0.5.5f and its
-  hotfix read 0xC4 and 0x11C. With the world and entry fields of 2026-11-08, 46 of 52 "right" against the current constants
+  hotfix read 0xC4 and 0x11C. With the world, entry and dodge fields of 2026-11-08, 58 of 64 "right" against the current constants
   on the old builds means exactly the six that moved in 0.5.5f (level, hash, terrain, entities, local player).
   Still one compiler setup over two months: a major version is untested.
 - `label` relies on the dump printing in order, and `field`'s sweep ignores control flow.

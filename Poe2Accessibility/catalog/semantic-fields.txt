@@ -53,3 +53,15 @@ ActiveSkill.LevelKey	layout:SkillLevelKey	0x58	entry geal ConsumeSkillUse 1
 Terrain.TotalTiles	TerrainStruct:TotalTiles	0x18	leaf IsWalkable 0
 Terrain.GridWalkableData	TerrainStruct:GridWalkableData	0xd0	leaf IsWalkable 2
 Terrain.BytesPerRow	TerrainStruct:BytesPerRow	0x130	leaf IsWalkable 4
+AnimationController.Index	AnimationControllerOffsets:CurrentClip	0x190	geal CurrentAnimationIndex AnimationController 0
+AnimationController.Index	AnimationControllerOffsets:CurrentClip	0x190	geal GetCurrentAnimationLength AnimationController 0
+AnimationController.Speed	AnimationControllerOffsets:CurrentSpeed	0x1b0	geal GetCurrentAnimationSpeed AnimationController 0
+AnimationController.Speed	AnimationControllerOffsets:CurrentSpeed	0x1b0	label "Current Animation Speed: " 0
+AnimationController.GlobalSpeed	AnimationControllerOffsets:GlobalSpeed	0x178	geal GetGlobalAnimationSpeed AnimationController 0
+AnimationController.GlobalSpeed	AnimationControllerOffsets:GlobalSpeed	0x178	label "Global Animation Speed Multiplier: " 0
+AnimationController.GlobalSpeedOff	AnimationControllerOffsets:GlobalSpeedOff	0x1d4	geal GetGlobalAnimationSpeed AnimationController 1
+AnimationController.Position	AnimationControllerOffsets:CurrentPosition	0x1a4	label "Current Animation Position: " 0
+Actor.CurrentAction	ActorOffset:CurrentActionPtr	0x238	geal GetTarget Actor 0
+Actor.CurrentAction	ActorOffset:CurrentActionPtr	0x238	geal GetTargetLocation Actor 0
+Actor.CurrentAction	ActorOffset:CurrentActionPtr	0x238	geal GetCurrentActionStat Actor 0
+Actor.ActionFlags	ActorOffset:ActionFlags	0x2a0	geal IsCurrentAction Actor 0

@@ -104,9 +104,23 @@ namespace Poe2Accessibility
                 {
                     this.bosses.AnnounceLife = this.Settings.AnnounceBossLife;
                     this.bosses.DodgeWarnings = this.Settings.DodgeWarnings;
+                    this.bosses.AllMonsters = this.Settings.DodgeWarningsAllMonsters;
                     this.bosses.ParryCues = this.Settings.ParryCues;
                     this.bosses.UnblockableCues = this.Settings.UnblockableCues;
+                    this.bosses.CatalogDirectory = System.IO.Path.Join(this.DllDirectory, "catalog");
                     this.bosses.Tick(playing);
+                    foreach (var (part, trust) in this.bosses.FieldNews())
+                    {
+                        // Each dodge field judged by its live check, said like any other part.
+                        if (trust == FieldTrust.Lost)
+                        {
+                            this.compatibility?.Missing(part);
+                        }
+                        else
+                        {
+                            this.compatibility?.Found(part);
+                        }
+                    }
                 }
             });
             this.Isolated("weak point", () => this.weakPoint?.Tick(playing && this.Settings.BossWeakPoint));
