@@ -47,6 +47,9 @@ the only client-side detection reports concern in-process code. Several sources 
   Key design question: does the game keep a "focused element" we can read (controller mode) or only hover?
 
 ## Speech output — PRISM / Prismatoid
+> Superseded 2026-11-08: the mod ships PRISM v0.18.3 (Wine bridges) through its own binding, `PrismLibrary`;
+> Prismatoid 0.4.0 carries 0.17.3 and a smaller `PrismConfig` ([Proton](../proton.md)).
+
 - PRISM latest **v0.18.2** (2026-08-26): `prism-windows-x64.zip` present; no `tolk.dll` asset anymore.
 - **Prismatoid 0.4.0** on NuGet (2026-08-12): `lib/net8.0`, `lib/net10.0`, and **bundled natives**
   `runtimes/win-x64/native/prism.dll` (+ arm64, linux, osx). Verified by unpacking the .nupkg.

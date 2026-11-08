@@ -14,9 +14,13 @@
   60 frames a second (20 behind another window); GameHelper2 itself is no longer used (70% of a core in town; the host 17%).
   ExileCore2 rejected (binary-only, obfuscated, Discord-gated — `docs/research/exilecore2-study.md`);
   CoreExile2 no longer exists (now `coussiraty/ExileBridge`, an HTTP/MCP API without UI tree).
-- **Speech transport:** PRISM through the **Prismatoid 0.4.0** NuGet binding (net10.0; bundles
-  `runtimes/win-x64/native/prism.dll`). Plugin ships `Poe2Accessibility.dll + Prismatoid.dll + prism.dll`; the native
-  `prism.dll` loads from the plugin folder through the host's `PluginLoadContext` (NVDA heard, 2026-11-08).
+- **Speech transport:** **PRISM v0.18.3** (`third_party/prism`, the release's own files) through the mod's own C-API
+  binding `PrismLibrary` (function pointers, `PrismConfig` matched to the shipped `prism.h`, 56 bytes; shared as source by
+  the plugin and the startup speech), since 2026-11-08: Prismatoid 0.4.0 carried PRISM 0.17.3 (no Wine bridges) and a
+  48-byte config. The plugin folder ships `Poe2Accessibility.dll`, `prism.dll`, the three Wine bridge placeholders beside it
+  and `wine/*.dll.so`; under Proton the `wine/` folder must be on `WINEDLLPATH` ([Proton](docs/proton.md), untested). Windows
+  check 2026-11-08 (`dotnet run --project tests/Poe2Accessibility.Tests -c Release -- prism <plugin folder>`): NVDA picked,
+  the line sent (PRISM_OK), no bridge loaded; Orca, Speech Dispatcher and Spiel now in the registry.
 - **Plugin:** `Poe2Accessibility/` (sealed `Poe2AccessibilityCore : PCore<AccessibilitySettings>`).
 - **Build:** `dotnet build host/Poe2Access -c Release` (executable, with `tools/Poe2UiExtract` as a library), then
   `dotnet build Poe2Accessibility -c Release` → auto-deploys to
@@ -396,7 +400,8 @@
 - Patch survival, offline: `CheckCodeFields` + `CodeFieldCatalog` (`catalog/code-fields.txt`) → `OffsetHealer.PlaceFromCode`;
   live: `WorldLayoutWatch.JudgePoise`/`JudgeWalkable` (`PoiseSearch`, `WalkableCheck`);
   objects' sounds: `ObjectSoundExtractor`, `ObjectSoundLinks`, `AoSoundEvents`, `EventRenderer` → `sounds/breakables.txt` → `Breakables`.
-- Speech: `PrismOutputService` (own thread, logs every line) behind `IAccessibilityOutputService`;
+- Speech: `PrismOutputService` (own thread, logs every line) behind `IAccessibilityOutputService`, over `PrismLibrary`
+  (the PRISM binding, also linked into the executable's `StartupSpeech`; `PrismTests` checks it against the header);
   all spoken strings in `Announcements` (incl. button names, item/slot phrases).
 - Focus: `UiManagerLocator` (manager per state, `element+0x90`) → `FocusTracker` (`M+0x748`, value
   polling, layer of the focus) → `UiSemantics` (role/label/value; in game: `InventoryReader` grids/slots,
@@ -450,7 +455,7 @@ Done (2026-11-08, live test of the single executable): `Poe2Access.exe` (launche
 Done (2026-11-08, afternoon): bosses live on yarkey (Beira, the Devourer, the user's ritual of four uniques; [boss mechanics §7](docs/research/boss-mechanics.md#live-runs-of-2026-11-08)), the dodge warning on rares and uniques within its goals ([dodge timing](docs/research/dodge-timing.md#rares-and-bosses-2026-11-08)), mortars worded, the walking blocks explained ([route walking](docs/research/route-walking.md)), the gap pass simulated live (two protections fixed) and A4 fixed ([compatibility](docs/compatibility.md)), Heat said with its maximum.
 Characters: every fight was on **yarkey** (level 22 Mercenary). **`acceso_prueba`** (Witch, level 1, Forbidden Rites) was created on 2026-11-08 for the Bloated Miller and left at the Riverbank's start; nothing was deleted (the list held no Witch: hairin, kehgan, malgdhler, yarkey, yarkidius).
 Done (2026-11-08, evening): every live check asked passed or was fixed: the options' popup notification rows read as the stick moves (`NoFocusList`), breakables, map hints, the lost hint and the radar mark, the landmark label in Spanish, Beira's spears (p90 39 ms), the urchins' leap rule, crossbow and bow monsters' basic attack warned as a shot (it was gated as melee); then one cue for blows together and every monster warned in a trial (not seen live) ([dodge timing](docs/research/dodge-timing.md#evening-checks-2026-11-08-yarkey-dodgewarningsallmonsters-on)).
-Next: (1) **The Bloated Miller** with `acceso_prueba` (a minion gem first; its tutorial pause times the 300 ms lead), Count Geonor, the King in the Mists and Act 2's bosses: by hand, the script cannot play them without looking like a bot. (2) **Release** — everything since v2026.11.07-8 is pushed, not released (the user decides). (3) The fields left with one protection or none ([audit](docs/research/field-protection-audit.md)). (4) Steam Deck.
+Next: (1) **The Bloated Miller** with `acceso_prueba` (a minion gem first; its tutorial pause times the 300 ms lead), Count Geonor, the King in the Mists and Act 2's bosses: by hand, the script cannot play them without looking like a bot. (2) **Release** — everything since v2026.11.07-8 is pushed, not released (the user decides). (3) The fields left with one protection or none ([audit](docs/research/field-protection-audit.md)). (4) Steam Deck / Proton: speech is ready (PRISM 0.18.3 and its Wine bridges ship, [Proton](docs/proton.md)) but untested; a Linux player must confirm the speech, the start through `protontricks-launch` and the memory reading under Wine.
 
 Earlier chunks, newest first: [status history](docs/status-history.md).
 

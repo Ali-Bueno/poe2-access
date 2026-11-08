@@ -18,7 +18,8 @@
 16. Write findings to `docs/research/*.md`.
 17. Preserve raw evidence/logs for uncertain structures (`Poe2Accessibility/debug/`, `logs/`).
 18. If the game patches and a read breaks, stop and validate offsets rather than adding hacks.
-19. Screen-reader output goes through PRISM (Prismatoid binding) behind `IAccessibilityOutputService` only.
+19. Screen-reader output goes through PRISM (the mod's own binding, `PrismLibrary`, of the shipped `third_party/prism`
+    release) behind `IAccessibilityOutputService` only.
 
 ## Working with the user
 
