@@ -1,0 +1,15 @@
+# Proposed semantic rules for the dodge fields (catalog/semantic-fields.txt format), 2026-11-08.
+# Checked with: Poe2Accessibility.Tests semantic <exe> <this file>: 12 of 12 right on builds 25244054, 25740136,
+# 26261440, 26473991 and 26476662 (docs/research/dodge-timing.md, Protections). Not in the catalog yet.
+AnimationController.Index	layout:AnimIndex	0x190	geal CurrentAnimationIndex AnimationController 0
+AnimationController.Index	layout:AnimIndex	0x190	geal GetCurrentAnimationLength AnimationController 0
+AnimationController.Speed	layout:AnimSpeed	0x1b0	geal GetCurrentAnimationSpeed AnimationController 0
+AnimationController.Speed	layout:AnimSpeed	0x1b0	label "Current Animation Speed: " 0
+AnimationController.GlobalSpeed	layout:AnimGlobalSpeed	0x178	geal GetGlobalAnimationSpeed AnimationController 0
+AnimationController.GlobalSpeed	layout:AnimGlobalSpeed	0x178	label "Global Animation Speed Multiplier: " 0
+AnimationController.GlobalSpeedOff	layout:AnimGlobalOff	0x1d4	geal GetGlobalAnimationSpeed AnimationController 1
+AnimationController.Position	layout:AnimPosition	0x1a4	label "Current Animation Position: " 0
+Actor.CurrentAction	layout:CurrentAction	0x238	geal GetTarget Actor 0
+Actor.CurrentAction	layout:CurrentAction	0x238	geal GetTargetLocation Actor 0
+Actor.CurrentAction	layout:CurrentAction	0x238	geal GetCurrentActionStat Actor 0
+Actor.ActionFlags	layout:ActionFlags	0x2a0	geal IsCurrentAction Actor 0
