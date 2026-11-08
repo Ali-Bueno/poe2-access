@@ -29,8 +29,12 @@ namespace Poe2Accessibility.Services
         /// <summary>Hovered elements remembered as no endgame node, so a menu's buttons are searched once.</summary>
         private const int MaxNotEndgame = 512;
 
+        /// <summary>The compatibility part said once when a hovered node's id is missing from catalog/endgame.json.</summary>
+        private const string AtlasCatalogPart = "Atlas catalog";
+
         private readonly Dictionary<IntPtr, int> endgameRecordByClass = new();
         private readonly HashSet<IntPtr> notEndgame = new();
+        private readonly HashSet<string> uncatalogued = new(StringComparer.Ordinal);
         private (IntPtr Root, string Graph, Dictionary<string, Vector2> Centres)? endgameCentres;
 
         /// <summary>A hovered node of an endgame graph; null for any other element.</summary>
@@ -160,9 +164,21 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            if (this.endgameRecordByClass.TryGetValue(nodeClass, out var known) && this.EndgameIdAt(element, known) is { } id)
+            // A class already judged: a node whose id the catalog lacks is the game ahead of the catalog, said once, read from its popup.
+            if (this.endgameRecordByClass.TryGetValue(nodeClass, out var known) && this.EndgameRowId(element, known) is { } id)
             {
-                return id;
+                if (EndgameCatalog.Shared.Node(id) != null)
+                {
+                    return id;
+                }
+
+                if (this.uncatalogued.Add(id))
+                {
+                    this.TreeFields.Log?.Invoke($"Atlas node {id} is not in catalog/endgame.json ({this.uncatalogued.Count} such); the game's popup is read as it is");
+                    CompatibilityReport.Current?.Missing(AtlasCatalogPart);
+                }
+
+                return null;
             }
 
             var found = OffsetSearch.First(GameLayout.PassiveTree.NodeRecordOffset, EndgameRecordReach, EndgameRecordStep, at => this.EndgameIdAt(element, at) != null, EndgameRecordStep);
@@ -181,12 +197,17 @@ namespace Poe2Accessibility.Services
             return this.EndgameIdAt(element, offset);
         }
 
-        private string? EndgameIdAt(IntPtr element, int offset) =>
+        /// <summary>The PassiveSkills id the element's record leads to at the offset, catalogued or not; null when the chain breaks.</summary>
+        private string? EndgameRowId(IntPtr element, int offset) =>
             this.reader.TryRead<IntPtr>(element + offset, out var record) && record != IntPtr.Zero &&
             this.PassiveRow(record) is { } row && this.reader.TryRead<IntPtr>(row, out var text) && text != IntPtr.Zero &&
-            this.elements.ReadUtf16BufferAt(text, MaxPassiveNameChars) is { Length: > 0 } id && EndgameCatalog.Shared.Node(id) != null
+            this.elements.ReadUtf16BufferAt(text, MaxPassiveNameChars) is { Length: > 0 } id
                 ? id
                 : null;
+
+        /// <summary>The id when the catalog knows the node, which is what lets an offset be learnt for a class.</summary>
+        private string? EndgameIdAt(IntPtr element, int offset) =>
+            this.EndgameRowId(element, offset) is { } id && EndgameCatalog.Shared.Node(id) != null ? id : null;
 
         /// <summary>
         ///     The drawn centres of the hovered node's graph, by id: the nodes under its grandparent (group, then canvas, as the

@@ -17,8 +17,8 @@ namespace Poe2Accessibility.Services
         private const int Radius = 0x100;
         private const int Step = 8;
 
-        /// <summary>The tree has thousands of links; fewer than this is no edge list.</summary>
-        private const int MinEdges = 100;
+        /// <summary>A connected tree of n drawn groups has at least n − 1 links; half the groups is a floor no tree misses, whatever its size.</summary>
+        private const int GroupsPerEdgeFloor = 2;
 
         private const int MaxEdges = 20000;
 
@@ -75,10 +75,14 @@ namespace Poe2Accessibility.Services
             return this.IsGraphFile(state, found) ?? IntPtr.Zero;
         }
 
-        /// <summary>The graph's edge list (edge pointers, each {from record, to record}); null when it cannot be found.</summary>
-        public StdVector? Edges(IntPtr graphFile)
+        /// <summary>
+        ///     The graph's edge list (edge pointers, each {from record, to record}); null when it cannot be found. The list must hold
+        ///     at least half as many edges as the canvas draws groups (<paramref name="drawnGroups"/>): the floor scales with the tree.
+        /// </summary>
+        public StdVector? Edges(IntPtr graphFile, int drawnGroups)
         {
-            if (this.EdgesAt(graphFile, GameLayout.PassiveTree.GraphContentOffset, GameLayout.PassiveTree.EdgeListOffset) is { } edges)
+            var minEdges = Math.Max(1, drawnGroups / GroupsPerEdgeFloor);
+            if (this.EdgesAt(graphFile, GameLayout.PassiveTree.GraphContentOffset, GameLayout.PassiveTree.EdgeListOffset, minEdges) is { } edges)
             {
                 this.Settle(ref this.edgesKnown, "passive tree links", this.measuredEdges, GameLayout.PassiveTree.EdgeListOffset);
                 return edges;
@@ -91,11 +95,11 @@ namespace Poe2Accessibility.Services
 
             foreach (var content in OffsetSearch.Outward(this.measuredContent, Radius, Step))
             {
-                if (OffsetSearch.First(this.measuredEdges, Radius, Step, at => this.EdgesAt(graphFile, content, at) != null) is { } list)
+                if (OffsetSearch.First(this.measuredEdges, Radius, Step, at => this.EdgesAt(graphFile, content, at, minEdges) != null) is { } list)
                 {
                     (GameLayout.PassiveTree.GraphContentOffset, GameLayout.PassiveTree.EdgeListOffset) = (content, list);
                     this.Settle(ref this.edgesKnown, "passive tree links", this.measuredEdges, list);
-                    return this.EdgesAt(graphFile, content, list);
+                    return this.EdgesAt(graphFile, content, list, minEdges);
                 }
             }
 
@@ -190,7 +194,7 @@ namespace Poe2Accessibility.Services
                 ? file
                 : null;
 
-        private StdVector? EdgesAt(IntPtr graphFile, int contentOffset, int edgesOffset)
+        private StdVector? EdgesAt(IntPtr graphFile, int contentOffset, int edgesOffset, int minEdges)
         {
             if (!this.reader.TryRead<IntPtr>(graphFile + contentOffset, out var content) || content == IntPtr.Zero || !this.reader.IsValidAddress(content) ||
                 !this.reader.TryRead<StdVector>(content + edgesOffset, out var vector))
@@ -199,7 +203,7 @@ namespace Poe2Accessibility.Services
             }
 
             var bytes = vector.Last.ToInt64() - vector.First.ToInt64();
-            if (bytes % IntPtr.Size != 0 || bytes / IntPtr.Size is < MinEdges or > MaxEdges || !this.reader.IsValidAddress(vector.First))
+            if (bytes % IntPtr.Size != 0 || bytes / IntPtr.Size < minEdges || bytes / IntPtr.Size > MaxEdges || !this.reader.IsValidAddress(vector.First))
             {
                 return null;
             }

@@ -981,6 +981,8 @@ namespace Poe2Accessibility
             "entity path" or "entity components" or "component lookup" => T("what each thing around you is, so enemies, items and exits stay silent", "qué es cada cosa a tu alrededor, así que enemigos, objetos y salidas no sonarán"),
             "area level" => T("the area's level", "el nivel del área"),
             "life" => T("life, mana and energy shield", "la vida, el maná y el escudo de energía"),
+            "passive tree stick rule" => T("the stick's way through the passive tree, so links are said by their side only", "el paso del stick por el árbol de pasivas, así que los enlaces se dirán solo por su lado"),
+            "Atlas catalog" => T("the Atlas's data, so its nodes read from the game's own popup", "los datos del Atlas, así que sus nodos se leerán solo por su ventana"),
             "buffs" => T("buffs and harmful states", "los efectos y estados"),
             "skills" => T("your skills and cooldowns", "tus habilidades y enfriamientos"),
             "stats" => T("your stats", "tus estadísticas"),

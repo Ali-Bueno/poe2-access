@@ -30,14 +30,46 @@ namespace Poe2Accessibility.Services
         /// <summary>The tree's canvas holds dozens of node groups; an element with fewer children is never searched as one.</summary>
         private const int MinCanvasGroups = 10;
 
+        /// <summary>A push steps the cursor at once; a landing seen later than this is a hold's pan and snap, not the step rule.</summary>
+        private const int StickStepMs = 300;
+
+        /// <summary>The deflection a push must reach to count, and the one it must drop under to end.</summary>
+        private const float PushDeflection = 0.5f;
+
+        private const float ReleaseDeflection = 0.3f;
+
+        /// <summary>The compatibility part said once when the self-check loses the rule.</summary>
+        private const string StickRulePart = "passive tree stick rule";
+
         private PassiveGraph? passiveGraph;
         private PassivePlaces? passivePlaces;
+        private StickPush? stickPush;
+        private StickOrigin? stickOrigin;
 
         /// <summary>The player's metadata path, to find the class's own start node.</summary>
         public Func<string>? PlayerPath { get; set; }
 
         /// <summary>The line an unallocated node's tooltip ends with, in the client's language.</summary>
         public Func<string>? UnallocatedLabel { get; set; }
+
+        /// <summary>Gets the stick rule's live self-check; once it is lost, links are given by their side only (<see cref="StickCheck"/>).</summary>
+        public StickCheck StickCheck { get; } = new();
+
+        private bool StickTrusted => !this.StickCheck.Lost;
+
+        /// <summary>Per frame, the left stick as the game received it (y up): a push begins past <see cref="PushDeflection"/> and ends under <see cref="ReleaseDeflection"/>.</summary>
+        public void ObserveStick(float x, float y, long now)
+        {
+            var deflection = MathF.Max(MathF.Abs(x), MathF.Abs(y));
+            if (this.stickPush == null && deflection >= PushDeflection)
+            {
+                this.stickPush = new StickPush(now, Vector2.Normalize(new Vector2(x, -y)), false); // screen y grows down, as the game flips it
+            }
+            else if (this.stickPush != null && deflection < ReleaseDeflection)
+            {
+                this.stickPush = null;
+            }
+        }
 
         private enum PassiveState
         {
@@ -59,6 +91,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.TreeFields.JudgeAllocated(graph.State, graph.Links.Keys);
+            this.JudgeStickLanding(graph, info.Address, record);
             var allocated = this.AllocatedIds(graph.State);
             var node = this.ReadPassiveRow(record, row);
             var state = this.StateOf(graph, node, allocated);
@@ -173,8 +206,8 @@ namespace Poe2Accessibility.Services
                 var offset = there - here;
                 var angle = Math.Atan2(-offset.Y, offset.X) * 180 / Math.PI;
                 var geometric = Announcements.StickDirections[PassiveStick.Nearest(offset)];
-                var direction = offsets == null || !places.Index.TryGetValue(other, out var otherIndex)
-                    ? geometric // a node the cursor never lands on (hidden): its side only
+                var direction = offsets == null || !this.StickTrusted || !places.Index.TryGetValue(other, out var otherIndex)
+                    ? geometric // a node the cursor never lands on (hidden), or a rule the self-check lost: its side only
                     : PassiveStick.OctantTo(offsets, otherIndex, stickLinks, window) is { } octant ? Announcements.StickDirections[octant] : Announcements.NoDirectPush(geometric);
                 var clockwiseFromUp = (((112.5 - angle) % 360) + 360) % 360; // from the up sector's left edge, so sectors keep their order
                 parts.Add((clockwiseFromUp, $"{direction}, {words}"));
@@ -212,6 +245,7 @@ namespace Poe2Accessibility.Services
                 yield return "picks " + string.Join(", ", Enumerable.Range(0, 8).Select(octant =>
                     $"{Announcements.StickDirections[octant]} {(PassiveStick.Pick(offsets, octant, stickLinks, window) is var pick and >= 0 ? this.PassiveIdOf(records[pick]) : "-")}"));
                 yield return $"window {(window is { } seen ? $"{seen.Size.X:F0}x{seen.Size.Y:F0} cursor {seen.Cursor.X:F1},{seen.Cursor.Y:F1} px per unit {seen.PixelsPerUnit:F4}" : "none (fitted model)")}";
+                yield return $"self-check: {this.StickCheck}{(PassiveStick.Retuned ? "; constants retuned from the exe" : string.Empty)}";
                 var fromRecord = this.RecordEdgeOrder(graph, record);
                 yield return $"edge order record: {(fromRecord == null ? "unreadable" : string.Join(" ", fromRecord.Select(this.PassiveIdOf)))}; " +
                              $"file: {string.Join(" ", (graph.StickLinks.GetValueOrDefault(record) ?? new List<IntPtr>()).Select(this.PassiveIdOf))}; " +
@@ -353,9 +387,42 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private List<int>? PushesBetween(PassiveGraph graph, PassivePlaces places, IntPtr from, int here, int there, int maxMoves)
         {
+            if (!this.StickTrusted)
+            {
+                return null; // the side alone is said then
+            }
+
             var window = graph.Elements.TryGetValue(from, out var element) ? this.StickWindow(graph, element) : null;
             var first = places.IndexesOf(this.StickLinksOf(graph, from));
             return PassiveStick.Route(places.Positions, here, there, maxMoves, index => index == here ? first : places.Links[index], window);
+        }
+
+        /// <summary>
+        ///     The stick rule's self-check: when the hovered node changes right after a push, the node the rule predicts from the
+        ///     previous one (its edge order and the window seen from it, before the game moved the view) is compared with the one
+        ///     the game landed on; <see cref="StickCheck.MaxMisses"/> misses in <see cref="StickCheck.Window"/> pushes lose the rule, said once.
+        /// </summary>
+        private void JudgeStickLanding(PassiveGraph graph, IntPtr element, IntPtr record)
+        {
+            var places = this.PlacesOf(graph);
+            var origin = this.stickOrigin;
+            this.stickOrigin = places.Index.TryGetValue(record, out var here)
+                ? new StickOrigin(graph.State, record, here, places.IndexesOf(this.StickLinksOf(graph, record)), this.StickWindow(graph, element))
+                : null;
+            if (origin == null || origin.State != graph.State || origin.Record == record || origin.Window is not { } window || !this.StickTrusted ||
+                this.stickPush is not { Judged: false } push || Environment.TickCount64 - push.StartedAt > StickStepMs || !places.Index.TryGetValue(record, out var landed))
+            {
+                return;
+            }
+
+            this.stickPush = push with { Judged = true };
+            var predicted = PassiveStick.Pick(places.OffsetsFrom(origin.Index), push.Direction, origin.Linked, window);
+            if (this.StickCheck.Record(predicted == landed))
+            {
+                this.TreeFields.Log?.Invoke($"Stick rule lost: {this.StickCheck}; last push {this.PassiveIdOf(origin.Record)} -> {this.PassiveIdOf(record)}, predicted " +
+                                            $"{(predicted >= 0 ? this.PassiveIdOf(places.Index.First(pair => pair.Value == predicted).Key) : "no move")}; links are said by their side until the next game process");
+                CompatibilityReport.Current?.Missing(StickRulePart);
+            }
         }
 
         private PassiveState StateOf(PassiveGraph graph, PassiveNodeRow node, HashSet<int> allocated)
@@ -464,7 +531,7 @@ namespace Poe2Accessibility.Services
 
             if (state == IntPtr.Zero || !this.elements.TryReadElement(canvasAddress, out var canvas) ||
                 this.TreeFields.GraphFile(state, false) is var graphFile && graphFile == IntPtr.Zero ||
-                this.TreeFields.Edges(graphFile) is not { } edgeVector ||
+                this.TreeFields.Edges(graphFile, this.elements.ReadChildren(canvas).Length) is not { } edgeVector ||
                 !this.reader.TryRead<IntPtr>(hoveredNode.Address, out var nodeClass))
             {
                 return null;
@@ -608,6 +675,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The tree's graph: links both ways, the same in the stick step's edge order (<see cref="StickLinksOf"/>), the drawn element of each record.</summary>
         private sealed record PassiveGraph(IntPtr Canvas, IntPtr State, Dictionary<IntPtr, List<IntPtr>> Links, Dictionary<IntPtr, List<IntPtr>> StickLinks, Dictionary<IntPtr, IntPtr> Elements, IntPtr OwnStart);
+
+        /// <summary>A push of the left stick in progress: when it began, its screen direction (y down) and whether a landing was judged on it.</summary>
+        private sealed record StickPush(long StartedAt, Vector2 Direction, bool Judged);
+
+        /// <summary>The node hovered before the current one, as the stick rule saw from it: its index among the drawn nodes, its edge order, the window.</summary>
+        private sealed record StickOrigin(IntPtr State, IntPtr Record, int Index, int[] Linked, PassiveStick.Window? Window);
 
         /// <summary>A node's row; <paramref name="NoLinkedStep"/> when the stick step skips its linked stage (<see cref="GameLayout.PassiveTree.RowNoLinkedStepOffset"/>).</summary>
         private sealed record PassiveNodeRow(IntPtr Record, int GraphId, string Name, string Kind, bool IconOnly, bool IsStart, PassiveClass Class, bool NoLinkedStep = false);
