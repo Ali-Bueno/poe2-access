@@ -87,6 +87,7 @@ namespace Poe2Accessibility.Services
         private FocusSlotCheck? focusCheck;
         private bool focusKnown;
         private readonly Dictionary<long, bool> ownElements = new();
+        private IntPtr ownElementsManager; // the verdicts above are this manager's
         private bool textKnown;
         private bool managerKnown;
         private bool renderKnown;
@@ -225,6 +226,12 @@ namespace Poe2Accessibility.Services
             if (element == IntPtr.Zero)
             {
                 return false;
+            }
+
+            if (manager != this.ownElementsManager)
+            {
+                this.ownElements.Clear();
+                this.ownElementsManager = manager;
             }
 
             if (!this.ownElements.TryGetValue(element.ToInt64(), out var own))
@@ -433,6 +440,8 @@ namespace Poe2Accessibility.Services
             (this.elementBaseKnown, this.layerRootsKnown, this.focusKnown, this.focusCheck) = (false, false, false, null);
             this.elementBaseLostAt = null;
             this.elementBaseTried.Clear();
+            this.ownElements.Clear();
+            this.ownElementsManager = IntPtr.Zero;
             this.layerRootsTriedAt = long.MinValue / 2;
             this.namesTriedAt = this.textTriedAt = this.texturesTriedAt = long.MinValue / 2;
         }
