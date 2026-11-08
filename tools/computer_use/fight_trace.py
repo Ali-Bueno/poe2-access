@@ -203,7 +203,12 @@ def sample(game, out, reach, last):
     if last.get('life') != life:
         last['life'] = life
         out.write(json.dumps(dict(stamp, player=memory.one('<I', player + ID), life=life, at=[round(v) for v in here[:2]])) + '\n')
+    owners = last.setdefault('owners', {})
     for entity_id, entity in game.awake(area):
+        if owners.get(entity) != entity_id:
+            # A new monster at a dead one's address (spawned larvae): its components are elsewhere.
+            owners[entity] = entity_id
+            game.components.pop(entity, None)
         path = game.path(entity)
         if not path.startswith('Metadata/Monsters'):
             continue
