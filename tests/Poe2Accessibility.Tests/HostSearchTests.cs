@@ -26,7 +26,39 @@ namespace Poe2Accessibility.Tests
             (nameof(ElementBaseFieldsWhereMeasuredStayThere), ElementBaseFieldsWhereMeasuredStayThere),
             (nameof(ElementBaseGroupsFollowTheShiftThatFits), ElementBaseGroupsFollowTheShiftThatFits),
             (nameof(AnElementOfAnotherSizeIsNoRoot), AnElementOfAnotherSizeIsNoRoot),
+            (nameof(TheFocusIsTheSlotThatTakesEachElementFirst), TheFocusIsTheSlotThatTakesEachElementFirst),
         };
+
+        private static void TheFocusIsTheSlotThatTakesEachElementFirst()
+        {
+            const int measured = 0x748;
+            foreach (var shift in new[] { 0, 8, -0x18 })
+            {
+                var check = new Poe2Accessibility.Services.FocusSlotCheck(measured);
+                var focus = measured + shift;
+                int? judged = null;
+                long previous = 0;
+
+                // A root-like element that never changes sits beside them; the previous-focus slot lags one step behind.
+                foreach (var element in new long[] { 0x1000, 0x2000, 0x3000, 0x4000, 0x5000 })
+                {
+                    var slots = new Dictionary<int, long> { [measured - 0x10] = 0x9000, [focus] = element, [focus + 8] = previous };
+                    slots.TryAdd(measured, 0);
+                    judged = check.See(slots);
+                    previous = element;
+                }
+
+                Equal((int?)focus, judged, $"focus moved by {shift:X}");
+            }
+
+            var still = new Poe2Accessibility.Services.FocusSlotCheck(measured);
+            for (var look = 0; look < 10; look++)
+            {
+                still.See(new Dictionary<int, long> { [measured] = 0x1000, [measured + 8] = 0x2000 });
+            }
+
+            Equal((int?)null, still.Judged, "a focus that never moves proves nothing");
+        }
 
         private static void ElementBaseFieldsWhereMeasuredStayThere()
         {

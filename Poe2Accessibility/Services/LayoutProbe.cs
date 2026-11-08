@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.InteropServices;
+    using GameOffsets.Objects.States;
 
     /// <summary>
     ///     Finds the memory layout a game update can move (docs/compatibility.md). Each field is first tried where it was
@@ -27,6 +28,16 @@ namespace Poe2Accessibility.Services
         private const int MinTextHits = 5;
 
         private const int MaxWalkNodes = 3000;
+        private const string LayerRootsPart = "in-game layer roots";
+        private const string FocusPart = "UI focus";
+
+        /// <summary>A layer container's children carry at least this many known layer names.</summary>
+        private const int MinLayerNames = 2;
+
+        /// <summary>Slots looked at either side of the focus slot (the previous-focus and hovered ones sit within 0x18).</summary>
+        private const int FocusWindow = 0x40;
+
+        private const int MaxOwnElements = 512;
         private const int MaxLeaves = 400;
         private const int MaxNamedNodes = 200;
 
@@ -69,6 +80,11 @@ namespace Poe2Accessibility.Services
 
         private bool namesKnown;
         private bool elementBaseKnown;
+        private bool layerRootsKnown;
+        private long layerRootsTriedAt = long.MinValue / 2;
+        private FocusSlotCheck? focusCheck;
+        private bool focusKnown;
+        private readonly Dictionary<long, bool> ownElements = new();
         private bool textKnown;
         private bool managerKnown;
         private bool renderKnown;
@@ -112,6 +128,124 @@ namespace Poe2Accessibility.Services
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        ///     The in-game layer containers (InGameState's mouse and gamepad UI roots): an element whose children carry the
+        ///     known layer names. Taken where they read now when either holds one; else the slot of the state nearest them that
+        ///     does, and both move by that shift (call once the element names are known).
+        /// </summary>
+        public void ProbeLayerRoots(IntPtr inGameState)
+        {
+            var now = Environment.TickCount64;
+            if (this.layerRootsKnown || !this.namesKnown || inGameState == IntPtr.Zero || now - this.layerRootsTriedAt < RetryMs)
+            {
+                return;
+            }
+
+            this.layerRootsTriedAt = now;
+            var (mouse, pad) = (MeasuredStateField(nameof(InGameStateOffset.UiRootStructPtr)), MeasuredStateField(nameof(InGameStateOffset.GamepadUiRootStructPtr)));
+            var (mouseNow, padNow) = (GameHelper.Utils.HostStructs.Follow<InGameStateOffset>(mouse), GameHelper.Utils.HostStructs.Follow<InGameStateOffset>(pad));
+            var slots = this.reader.ReadArray<IntPtr>(inGameState, ManagerScanBytes / IntPtr.Size);
+            bool Holds(int offset) => offset >= 0 && offset / IntPtr.Size < slots.Length && this.IsLayerContainer(slots[offset / IntPtr.Size]);
+            if (Holds(mouseNow) || Holds(padNow))
+            {
+                this.layerRootsKnown = true;
+                this.Record(LayerRootsPart, mouse, mouseNow);
+                return;
+            }
+
+            var nearPad = OffsetSearch.First(padNow, ManagerScanBytes, Step, Holds, Step);
+            var nearMouse = OffsetSearch.First(mouseNow, ManagerScanBytes, Step, Holds, Step);
+            if ((nearPad ?? nearMouse) is null)
+            {
+                this.report.Missing(LayerRootsPart);
+                return;
+            }
+
+            var shift = nearPad is { } p && (nearMouse is not { } m || Math.Abs(p - padNow) <= Math.Abs(m - mouseNow)) ? p - padNow : nearMouse!.Value - mouseNow;
+            GameHelper.Utils.OffsetHealer.PlacePointers(typeof(InGameStateOffset), (mouse, mouseNow + shift), (pad, padNow + shift));
+            this.layerRootsKnown = true;
+            this.report.Moved(LayerRootsPart, mouseNow, mouseNow + shift);
+        }
+
+        /// <summary>
+        ///     Watches the UI manager's focus slot while the player moves (<see cref="FocusSlotCheck"/>): once judged where it
+        ///     reads, nothing changes; judged elsewhere, the last-focused and hovered slots move with it. Call every frame.
+        /// </summary>
+        public void ObserveFocus(IntPtr manager)
+        {
+            if (this.focusKnown || manager == IntPtr.Zero)
+            {
+                return;
+            }
+
+            var current = GameLayout.UiManager.CurrentOffset;
+            this.focusCheck ??= new FocusSlotCheck(current);
+            var start = Math.Max(0, current - FocusWindow);
+            var slots = this.reader.ReadArray<IntPtr>(manager + start, ((current + FocusWindow - start) / IntPtr.Size) + 1);
+            var held = new Dictionary<int, long>(slots.Length);
+            for (var i = 0; i < slots.Length; i++)
+            {
+                held[start + (i * IntPtr.Size)] = this.IsOwnElement(slots[i], manager) ? slots[i].ToInt64() : 0;
+            }
+
+            if (this.focusCheck.See(held) is not { } found)
+            {
+                return;
+            }
+
+            this.focusKnown = true;
+            var shift = found - current;
+            GameLayout.UiManager.CurrentOffset += shift;
+            GameLayout.UiManager.LastFocusedOffset += shift;
+            GameLayout.UiManager.HoveredOffset += shift;
+            this.Record(FocusPart, this.measuredCurrent, found);
+        }
+
+        private static int MeasuredStateField(string field) => Marshal.OffsetOf<InGameStateOffset>(field).ToInt32();
+
+        /// <summary>An element of this manager: the focus never holds another's (a stray pointer or a closed state's).</summary>
+        private bool IsOwnElement(IntPtr element, IntPtr manager)
+        {
+            if (element == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            if (!this.ownElements.TryGetValue(element.ToInt64(), out var own))
+            {
+                own = this.elements.IsElement(element) &&
+                      this.reader.TryRead<IntPtr>(element + GameLayout.Element.ManagerOffset, out var owner) && owner == manager;
+                if (this.ownElements.Count >= MaxOwnElements)
+                {
+                    this.ownElements.Clear();
+                }
+
+                this.ownElements[element.ToInt64()] = own;
+            }
+
+            return own;
+        }
+
+        /// <summary>An element whose children carry at least two of the known layer names.</summary>
+        private bool IsLayerContainer(IntPtr candidate)
+        {
+            if (!this.reader.IsValidAddress(candidate) || !this.elements.TryReadElement(candidate, out var info))
+            {
+                return false;
+            }
+
+            var named = 0;
+            foreach (var child in this.elements.ReadChildren(info))
+            {
+                if (this.elements.TryReadElement(child, out var layer) && KnownLayerNames.Contains(layer.Name) && ++named >= MinLayerNames)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>Control names: the root or its layers must carry a known name (<paramref name="conclusive"/>: in game, where the HUD always does).</summary>
@@ -282,7 +416,8 @@ namespace Poe2Accessibility.Services
         public void Reset()
         {
             (this.namesKnown, this.textKnown, this.managerKnown, this.renderKnown, this.texturesKnown) = (false, false, false, false, false);
-            this.elementBaseKnown = false;
+            (this.elementBaseKnown, this.layerRootsKnown, this.focusKnown, this.focusCheck) = (false, false, false, null);
+            this.layerRootsTriedAt = long.MinValue / 2;
             this.namesTriedAt = this.textTriedAt = this.texturesTriedAt = long.MinValue / 2;
         }
 
@@ -301,7 +436,8 @@ namespace Poe2Accessibility.Services
             var textures = OffsetSearch.First(GameLayout.Image.TextureOffset + SelfTestShift, Radius, Step, this.TextureFits(root), Step);
             return string.Join("; ", SelfTestLine("element names", GameLayout.Element.NameOffset, names), SelfTestLine("element texts", textShift, text),
                 SelfTestLine("UI manager", GameLayout.UiManager.RootOffset, rootSlot), SelfTestLine("image textures", GameLayout.Image.TextureOffset, textures),
-                ElementBaseSelfTest(root));
+                ElementBaseSelfTest(root), this.focusKnown ? "UI focus ok" : "UI focus not judged yet (move through a menu)",
+                this.layerRootsKnown ? "in-game layer roots ok" : "in-game layer roots not judged yet");
         }
 
         /// <summary>The host's element base search started <see cref="SelfTestShift"/> off every field must come back where they read now.</summary>

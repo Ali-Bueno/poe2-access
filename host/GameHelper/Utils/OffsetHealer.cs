@@ -244,6 +244,17 @@ namespace GameHelper.Utils
         ///     Judges the UI element base fields on <paramref name="root"/> (<see cref="UiElementLayoutSearch"/>) and reads every
         ///     element from there. Empty when it is no UI root (no self pointer, no element of the base resolution's size).
         /// </summary>
+        /// <summary>
+        ///     Reads pointer fields of a struct from where a search of the plugin found them, each (measured, found); what
+        ///     follows each pointer stays where it reads now.
+        /// </summary>
+        public static void PlacePointers(Type structType, params (int Measured, int Found)[] fields)
+        {
+            var closing = fields.Select(field => field.Measured + IntPtr.Size).Where(after => fields.All(field => field.Measured != after))
+                .Select(after => (after, Follow(structType, after)));
+            Place(structType, fields.Concat(closing).ToArray());
+        }
+
         /// <summary>Where the UI element base fields are on <paramref name="root"/>, searched nearest <paramref name="near"/>; moves nothing.</summary>
         public static UiElementFields FindUiElementBase(IntPtr root, UiElementFields near) =>
             new UiElementLayoutSearch(new GameMemory(Core.Process.Handle)).Find(root.ToInt64(), near);

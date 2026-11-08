@@ -93,7 +93,10 @@ the host rebuilt with `--no-incremental` and restarted in the Act 2 town, then r
 | Entity layout | details +8, path +0x18, components +0x18, lookup -0x18, map +8, all at once | no world, so the area check searched: all five back where measured before the first area read; friends, portal and waypoint sounded |
 | Entity layout | details -8, path -8, components -8, lookup +8, map -0x18 | the same |
 | Game states | stack +8, list -0x18, and `InGameState` swapped with `PreGameState` in the enum (a state inserted) | stack +0x10 and list +0x50 found at attach, the in-game state taken from slot 4 (`slot 5 -> 4`); "En juego", the sweep and the sounds as usual |
-| Terrain | `TileStructure` size 0x40 and 24 cells per tile | terrain found as before, tiles `moved from +0x40 to +0x38`, cells `from +0x18 to +0x17`; the wall radar sounded |
+| UI focus, layer roots | focus, last focused, hovered +8; both UI roots +8 | roots back at attach; the focus back on the third move in the game menu (the first focus read the lagging slot) |
+| UI focus, layer roots | the same -0x18 | the same |
+| Terrain | `TileStructure` size 0x40 and 24 cells per tile |
+ terrain found as before, tiles `moved from +0x40 to +0x38`, cells `from +0x18 to +0x17`; the wall radar sounded |
 | Terrain | size 0x30 (fields packed) and 22 cells | the same, back to 0x38 and 23 |
 | UI element base | self, children, parent +8; position group, flags group, size +0x18 |
  tree back +8, rects and flags +0x18 (the size's shift) before the first walk; the inventory read its items; `layout` all ok |
@@ -116,6 +119,8 @@ nearest fit wins). Fields of one structure that move together follow an anchor.
 | Label text: tagged text plus two equal stripped copies, on 5+ labels | text colour | `LayoutProbe.ProbeText` |
 | Image texture: 5+ images reach an art key (`Art/…dds|`) through the pointer, far fewer through the next slot (the smaller image class's pointer sits one step before) | the smaller class's texture | `LayoutProbe.ProbeTextures` |
 | UI manager root slot: holds the root of the elements that point at the manager (2 elements must agree before an unproven manager is trusted; the direct in-game slot is taken only as measured) | focus, last focused, hovered, pad state | `LayoutProbe.AdoptManager` |
+| UI focus, on its own: while the player moves through a menu, the slot that takes each element of this manager first (the previous-focus slot gets it a step later); three moves judge it, and the measured slot keeps its place once it led (the inventory grid moves its cursor, not its focus, so a button menu judges it) | last focused, hovered | `LayoutProbe.ObserveFocus` (pure `FocusSlotCheck`) |
+| In-game layer roots (InGameState's mouse and gamepad UI roots): an element whose children carry two known layer names; neither slot holds one, the nearest slot that does gives both their shift | — | `LayoutProbe.ProbeLayerRoots` |
 | In-game layers by name (`HUD`, `death_screen`, `skill_bar`, `bind_management_display`) or shape (inventory: child `panels_parent`; chat: `textField` and `scrollbar` below) | the objective box (no name or shape) follows the nearest one found | `InGameFields` |
 | Entity names: half of 30 monsters, characters and players read a name | — | `LayoutProbe.ProbeRenderNames` |
 | Targetable in-play flag: set on what is always in play (players, waypoint, stash, checkpoint, living monsters) and, of an NPC's story variants (one Render name), on at most one; the nearest byte that fits when the measured one does not | targeted flag; the measured byte is used while unjudged, everything counts as in play once lost | `EntityFields` (pure `InPlayFlag`) |

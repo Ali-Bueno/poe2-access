@@ -32,6 +32,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\FightState.cs" Link="Plugin\FightState.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\InPlayFlag.cs" Link="Plugin\InPlayFlag.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ChangingField.cs" Link="Plugin\ChangingField.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\FocusSlotCheck.cs" Link="Plugin\FocusSlotCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\BitSearch.cs" Link="Plugin\BitSearch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PadButtonCheck.cs" Link="Plugin\PadButtonCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\TileGridSearch.cs" Link="Plugin\TileGridSearch.cs" />

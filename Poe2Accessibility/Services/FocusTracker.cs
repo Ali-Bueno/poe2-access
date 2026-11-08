@@ -285,6 +285,7 @@ namespace Poe2Accessibility.Services
         {
             var manager = this.locator.Locate(state, stateObject);
             this.Manager = manager;
+            this.locator.ObserveFocus(manager);
             if (manager == IntPtr.Zero)
             {
                 this.CurrentRoot = IntPtr.Zero;

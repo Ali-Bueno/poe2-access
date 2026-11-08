@@ -45,6 +45,9 @@ namespace Poe2Accessibility.Services
 
         public void Reset() => this.cache.Clear();
 
+        /// <summary>Lets the layout checks watch the focus slot of <paramref name="manager"/> (each frame, until judged).</summary>
+        public void ObserveFocus(IntPtr manager) => this.probe.ObserveFocus(manager);
+
         /// <summary>Manager address for the given state object, or zero when none can be validated.</summary>
         public IntPtr Locate(GameStateTypes state, IntPtr stateObject)
         {
@@ -93,6 +96,11 @@ namespace Poe2Accessibility.Services
                     this.probe.ProbeNames(root, inGame);
                     this.probe.ProbeText(root, inGame);
                     this.probe.ProbeTextures(root, inGame);
+                    if (inGame)
+                    {
+                        this.probe.ProbeLayerRoots(stateObject);
+                    }
+
                     if (!inGame)
                     {
                         this.Flags?.ProbeScreen(root);
