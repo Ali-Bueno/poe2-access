@@ -114,6 +114,19 @@ namespace Poe2Accessibility.Services
             static string Client(string? id) => string.IsNullOrEmpty(id) ? string.Empty : "client/" + id;
         }
 
+        /// <summary>
+        ///     What an Atlas content icon stands for, by the art it draws ("…/AtlasIconContentBreach.dds" is "Fisura"): an
+        ///     objective's keyword, a node stat's or a content's name; empty for any other art.
+        /// </summary>
+        public string IconName(string textureKey, string language)
+        {
+            var file = textureKey.Split('|')[0].Replace('\\', '/');
+            file = file[(file.LastIndexOf('/') + 1)..];
+            var dot = file.IndexOf('.', StringComparison.Ordinal);
+            file = dot > 0 ? file[..dot] : file;
+            return this.data.Icons.TryGetValue(file, out var icon) ? this.Text(icon.Name, language) : string.Empty;
+        }
+
         /// <summary>Whether two nodes are drawn in the same graph (a link across graphs is never drawn).</summary>
         public bool SameGraph(string a, string b) => this.Node(a) is { } first && this.Node(b) is { } second && first.Graph == second.Graph;
 
@@ -123,6 +136,9 @@ namespace Poe2Accessibility.Services
             public Dictionary<string, CatalogObjective> Objectives { get; set; } = new(StringComparer.Ordinal);
 
             public Dictionary<string, CatalogContent> Contents { get; set; } = new(StringComparer.Ordinal);
+
+            /// <summary>Atlas content icons by art file name (no folder, no extension).</summary>
+            public Dictionary<string, CatalogIcon> Icons { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
             public Dictionary<string, string> Maps { get; set; } = new(StringComparer.Ordinal);
 
@@ -142,6 +158,14 @@ namespace Poe2Accessibility.Services
         public sealed class CatalogContent
         {
             public string? Objective { get; set; }
+        }
+
+        /// <summary>An Atlas content icon: the text keys of its name and of what it does.</summary>
+        public sealed class CatalogIcon
+        {
+            public string Name { get; set; } = string.Empty;
+
+            public string? Text { get; set; }
         }
 
         /// <summary>A node of a skill graph by its PassiveSkills id: where its group is, its links, and for an Atlas map node what it holds.</summary>

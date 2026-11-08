@@ -20,12 +20,22 @@ internal static class EndgameExtractor
     // EndgameMapObjectives
     private const int ObjectiveTextOffset = 0x8;
     private const int ObjectiveDoneOffset = 0x10;
+    private const int ObjectiveArtOffset = 0x18;
     private const int ObjectiveIconOffset = 0x20;
 
     // EndgameMapContent
     private const int ContentTextOffset = 0x28;
     private const int ContentNameOffset = 0x30;
     private const int ContentObjectiveOffset = 0x3C;
+    private const int ContentVisualOffset = 0x4C;
+
+    // EndgameMapContentVisualIdentity: the icon an Atlas node shows for a content
+    private const int VisualIconOffset = 0x8;
+
+    // EndgameMapNodeStats: what a node's stat adds to it (a Delirium fog bank), with its own icon and words
+    private const int NodeStatVisualOffset = 0x44;
+    private const int NodeStatNameOffset = 0x54;
+    private const int NodeStatTextOffset = 0x64;
 
     // EndgameMapBiomes
     private const int BiomeNameOffset = 0x28;
@@ -68,7 +78,8 @@ internal static class EndgameExtractor
     public static int Run(Index index, string outFile)
     {
         var tables = new Dictionary<string, DatTable>(StringComparer.Ordinal);
-        foreach (var name in new[] { "endgamemapobjectives", "endgamemapcontent", "endgamemapbiomes", "endgamemaps", "endgamemappins", "endgamemapatlas", "keywordpopups", "clientstrings2", "minimapicons", "passiveskills", "worldareas" })
+        foreach (var name in new[] { "endgamemapobjectives", "endgamemapcontent", "endgamemapbiomes", "endgamemaps", "endgamemappins", "endgamemapatlas", "endgamemapcontentvisualidentity",
+                     "endgamemapnodestats", "keywordpopups", "clientstrings2", "minimapicons", "passiveskills", "worldareas" })
         {
             if (DatTable.Open(index, name) is not { } table)
             {
@@ -128,6 +139,48 @@ internal static class EndgameExtractor
             }
         }
 
+        // The icons an Atlas node shows for what it holds, by art file name, with the words that name each: a content's, else a
+        // node stat's (the Delirium fog bank). ClientStrings2 rows are kept for their texts below.
+        var visuals = tables["endgamemapcontentvisualidentity"];
+        var nodeStats = tables["endgamemapnodestats"];
+        var iconOut = new SortedDictionary<string, IconEntry>(StringComparer.Ordinal);
+        string IconFile(long visualRow) => visualRow >= 0 && visualRow < visuals.RowCount && visuals.StringOrNull((int)visualRow, VisualIconOffset) is { Length: > 0 } art
+            ? art[(art.LastIndexOf('/') + 1)..]
+            : string.Empty;
+        // An objective's own icon is named by its keyword ("Breach"); an icon several contents share by none of theirs.
+        for (var row = 0; row < objectives.RowCount; row++)
+        {
+            if (objectives.StringOrNull(row, IdOffset) is { Length: > 0 } id && objectiveOut.TryGetValue(id, out var objective) && objective.Keyword is { } keyword &&
+                objectives.StringOrNull(row, ObjectiveArtOffset) is { Length: > 0 } art)
+            {
+                iconOut.TryAdd(art[(art.LastIndexOf('/') + 1)..], new IconEntry("term/" + keyword, "objective/" + id));
+            }
+        }
+
+        var contentIcons = Enumerable.Range(0, contents.RowCount)
+            .Select(row => (Id: contents.StringOrNull(row, IdOffset) ?? string.Empty, File: IconFile(contents.Key(row, ContentVisualOffset))))
+            .Where(pair => pair.Id.Length > 0 && pair.File.Length > 0).GroupBy(pair => pair.File).Where(group => group.Count() == 1).Select(group => group.First());
+        foreach (var (id, file) in contentIcons)
+        {
+            iconOut.TryAdd(file, new IconEntry("content/" + id, "contentText/" + id));
+        }
+
+        var statClients = new List<(string Id, int Row)>();
+        for (var row = 0; row < nodeStats.RowCount; row++)
+        {
+            var name = IdOf(clients, nodeStats.Key(row, NodeStatNameOffset));
+            var about = IdOf(clients, nodeStats.Key(row, NodeStatTextOffset));
+            if (name.Length > 0 && IconFile(nodeStats.Key(row, NodeStatVisualOffset)) is { Length: > 0 } file)
+            {
+                iconOut.TryAdd(file, new IconEntry("client/" + name, about.Length > 0 ? "client/" + about : null));
+                statClients.Add((name, (int)nodeStats.Key(row, NodeStatNameOffset)));
+                if (about.Length > 0)
+                {
+                    statClients.Add((about, (int)nodeStats.Key(row, NodeStatTextOffset)));
+                }
+            }
+        }
+
         // Every skill graph but the main tree: their nodes by PassiveSkills id, with each node's links.
         var byGraphId = new Dictionary<int, int>();
         for (var row = 0; row < passives.RowCount; row++)
@@ -171,6 +224,11 @@ internal static class EndgameExtractor
 
         // What each Atlas node holds: the pin it shows, the maps and biomes it can be, its objective and messages.
         var clientRows = new SortedDictionary<string, int>(StringComparer.Ordinal);
+        foreach (var (id, row) in statClients)
+        {
+            clientRows[id] = row;
+        }
+
         var areaRows = new SortedDictionary<string, int>(StringComparer.Ordinal);
         string ClientId(long row)
         {
@@ -322,6 +380,7 @@ internal static class EndgameExtractor
         {
             objectives = objectiveOut,
             contents = contentOut,
+            icons = iconOut,
             maps = mapOut,
             nodes = nodeOut,
             text,
@@ -349,10 +408,13 @@ internal static class EndgameExtractor
             Enumerable.Range(0, tables[table].RowCount).Any(row => tables[table].Int64(row, offset) is >= 0 and var key && key < tables[target].RowCount);
         var checks = new (string Name, Func<bool> Holds)[]
         {
-            ("EndgameMapObjectives.ObjectiveText", () => Strings("endgamemapobjectives", ObjectiveTextOffset) && Strings("endgamemapobjectives", ObjectiveDoneOffset)),
+            ("EndgameMapObjectives.ObjectiveText", () => Strings("endgamemapobjectives", ObjectiveTextOffset) && Strings("endgamemapobjectives", ObjectiveDoneOffset) && Strings("endgamemapobjectives", ObjectiveArtOffset)),
             ("EndgameMapObjectives.MiniMapIcon", () => Keys("endgamemapobjectives", ObjectiveIconOffset, "minimapicons")),
             ("EndgameMapContent.Name", () => Strings("endgamemapcontent", ContentNameOffset) && Strings("endgamemapcontent", ContentTextOffset)),
             ("EndgameMapContent.MapObjective", () => Keys("endgamemapcontent", ContentObjectiveOffset, "endgamemapobjectives")),
+            ("EndgameMapContent.VisualIdentity", () => Keys("endgamemapcontent", ContentVisualOffset, "endgamemapcontentvisualidentity")),
+            ("EndgameMapContentVisualIdentity.AtlasIcon", () => Strings("endgamemapcontentvisualidentity", VisualIconOffset)),
+            ("EndgameMapNodeStats.Name", () => Keys("endgamemapnodestats", NodeStatNameOffset, "clientstrings2") && Keys("endgamemapnodestats", NodeStatVisualOffset, "endgamemapcontentvisualidentity")),
             ("EndgameMapBiomes.Name", () => Strings("endgamemapbiomes", BiomeNameOffset)),
             ("EndgameMaps.WorldArea", () => Keys("endgamemaps", MapAreaOffset, "worldareas") && Keys("endgamemaps", MapPinOffset, "endgamemappins")),
             ("EndgameMapAtlas.Passives", () => Keys("endgamemapatlas", NodePassiveOffset, "passiveskills") && Keys("endgamemapatlas", NodePinOffset, "endgamemappins")),
@@ -375,6 +437,9 @@ internal static class EndgameExtractor
     private sealed record ObjectiveEntry(string? Icon, string? Keyword);
 
     private sealed record ContentEntry(string? Objective);
+
+    /// <summary>An Atlas content icon's words: the text keys of its name and of what it does.</summary>
+    private sealed record IconEntry(string Name, string? Text);
 
     /// <summary>Null for nothing, so the file leaves the field out.</summary>
     private static string? Present(string value) => value.Length > 0 ? value : null;

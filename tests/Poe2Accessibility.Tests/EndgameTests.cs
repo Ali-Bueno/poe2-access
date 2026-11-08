@@ -19,6 +19,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AtlasNodesAreNamedByWhatTheirDataHolds), AtlasNodesAreNamedByWhatTheirDataHolds),
             (nameof(AtlasNodeDetailsAreTheGamesWords), AtlasNodeDetailsAreTheGamesWords),
             (nameof(LinksAreSaidClockwiseFromUp), LinksAreSaidClockwiseFromUp),
+            (nameof(ContentIconsAreNamedByTheirArt), ContentIconsAreNamedByTheirArt),
         };
 
         private static void Expect<T>(T expected, T actual, string what)
@@ -103,6 +104,7 @@ namespace Poe2Accessibility.Tests
                 ["Breach"] = new() { Icon = "Breach", Keyword = "ContainsBreach" },
                 ["MapBoss"] = new() { Keyword = "MapBoss" },
             },
+            Icons = new() { ["AtlasIconContentBreach"] = new() { Name = "term/ContainsBreach", Text = "objective/Breach" } },
             Nodes = new()
             {
                 ["AtlasSmall1"] = new() { Graph = "atlasskillgraph", X = 0, Y = 0, Links = new() { "AtlasSmall2" } },
@@ -167,6 +169,14 @@ namespace Poe2Accessibility.Tests
             });
             Expect("up, North|right, East|down, South|left, West|Here|Unplaced", string.Join("|", links), "clockwise from up, unplaced last, unnamed left out");
             Expect("North", string.Join("|", AtlasLinks.Describe(null, new (Vector2?, string)[] { (new Vector2(0, -10), "North") })), "no side without the node's own place");
+        }
+
+        private static void ContentIconsAreNamedByTheirArt()
+        {
+            var catalog = Catalog();
+            Expect("Fisura", catalog.IconName("Art/2DArt/UIImages/InGame/AtlasScreen/AtlasIconContent/AtlasIconContentBreach.dds", "es"), "by the file, folder and extension aside");
+            Expect("Breach", catalog.IconName(@"Art\2DArt\AtlasIconContentBreach|tint", "en"), "back slashes and a suffix");
+            Expect(string.Empty, catalog.IconName("Art/2DArt/UIImages/InGame/Gold.dds", "en"), "other art");
         }
     }
 }

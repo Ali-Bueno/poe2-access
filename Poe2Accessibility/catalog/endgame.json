@@ -215,6 +215,104 @@
     "WaterBiome": {},
     "Wildwood": {}
   },
+  "icons": {
+    "AtlasIconContentAbyss": {
+      "name": "term/ContainsAbyss",
+      "text": "objective/Abyss"
+    },
+    "AtlasIconContentAbyssOverrun": {
+      "name": "content/AbyssOverrun",
+      "text": "contentText/AbyssOverrun"
+    },
+    "AtlasIconContentAbyssalDepths": {
+      "name": "content/AbyssDepths",
+      "text": "contentText/AbyssDepths"
+    },
+    "AtlasIconContentAzmeriSpirit": {
+      "name": "term/AzmeriSpirit",
+      "text": "objective/AzmeriSpirits"
+    },
+    "AtlasIconContentBreach": {
+      "name": "term/ContainsBreach",
+      "text": "objective/Breach"
+    },
+    "AtlasIconContentCheckpoint": {
+      "name": "term/CheckpointMaps",
+      "text": "objective/Checkpoints"
+    },
+    "AtlasIconContentCorruptionNexus": {
+      "name": "term/CorruptedBoss",
+      "text": "objective/CorruptedNexus"
+    },
+    "AtlasIconContentDelirium": {
+      "name": "term/ContainsDelirium",
+      "text": "objective/Delirium"
+    },
+    "AtlasIconContentEssence": {
+      "name": "term/Essence",
+      "text": "objective/Essences"
+    },
+    "AtlasIconContentExpedition": {
+      "name": "term/ContainsExpedition",
+      "text": "objective/Expedition"
+    },
+    "AtlasIconContentExpeditionRemnant": {
+      "name": "term/ContainsExpedition2",
+      "text": "objective/Expedition2"
+    },
+    "AtlasIconContentGigaMirror": {
+      "name": "client/MapDeliriumGigaMirrorName",
+      "text": "client/MapDeliriumGigaMirrorDescription"
+    },
+    "AtlasIconContentHideout": {
+      "name": "content/ClaimableHideout",
+      "text": "contentText/ClaimableHideout"
+    },
+    "AtlasIconContentIncursion": {
+      "name": "term/ContainsIncursion",
+      "text": "objective/Incursion"
+    },
+    "AtlasIconContentIrradiated": {
+      "name": "content/Irradiated",
+      "text": "contentText/Irradiated"
+    },
+    "AtlasIconContentMapBoss": {
+      "name": "term/MapBoss",
+      "text": "objective/MapBoss"
+    },
+    "AtlasIconContentRitual": {
+      "name": "term/ContainsRitual",
+      "text": "objective/Ritual"
+    },
+    "AtlasIconContentRogueExile": {
+      "name": "term/RogueExile",
+      "text": "objective/RogueExiles"
+    },
+    "AtlasIconContentSanctificationBoss": {
+      "name": "content/ImmuredFuryQuest",
+      "text": "contentText/ImmuredFuryQuest"
+    },
+    "AtlasIconContentShrine": {
+      "name": "term/Shrine",
+      "text": "objective/Shrines"
+    },
+    "AtlasIconContentStoneCircle": {
+      "name": "term/StoneSummoningCircle",
+      "text": "objective/StoneCircles"
+    },
+    "AtlasIconContentStrongBox": {
+      "name": "term/Strongbox",
+      "text": "objective/Strongboxes"
+    },
+    "AtlasIconContentTrader": {
+      "name": "content/Merchant",
+      "text": "contentText/Merchant"
+    },
+    "AtlasIconContentUniqueMap": {
+      "name": "content/UniqueMap",
+      "text": "contentText/UniqueMap"
+    }
+  },
   "maps": {
     "Abyss_Pinnacle": "AbyssHub",
     "ChayulaLeague": "BreachHub",
@@ -16507,6 +16605,10 @@
       "client/EndgameMapObjectiveClickPrecursorBeacon": "Aktiviere das Wegbereiter-Relais",
       "client/IncursionEndgameDistrictInaccessibleArchitect": "Besiegt Xipocado, Königlicher Architekt im Tempel für Zugang zu diesem Bezirk",
       "client/IncursionEndgameDistrictInaccessibleAtziri": "Besiegt Atziri im Tempel für Zugang zu diesem Bezirk",
+      "client/MapDeliriumFogBankDescription": "Spieler im Gebiet sind {0}% deliriös",
+      "client/MapDeliriumFogBankName": "Deliriumnebel",
+      "client/MapDeliriumGigaMirrorDescription": "Enthält eine Reflexion vom Kartenboss",
+      "client/MapDeliriumGigaMirrorName": "Großer Spiegel",
       "client/MapEntryRequirementArbiterOfAsh": "Zugang nach Abschluss von 'Der Brennende Monolith' freigeschaltet",
       "client/MapEntryRequirementBreachBreachstoneQuest": "Enthülle die Riss-Stadt für den Zugang",
       "client/MapEntryRequirementDeliriumFogSpread": "Benutze den Großen Spiegel für den Zugang",
@@ -16517,6 +16619,8 @@
       "client/MapEntryRequirementWhiteReactor": "Zugang nach Abschluss von 'Uralte Pforte' freigeschaltet",
       "client/MapObjectiveBurningMonolith": "Untersucht den Brennenden Monolithen",
       "client/MapObjectiveGigaMirror": "Untersucht den Großen Spiegel",
+      "client/MapRiteOfTheNamelessDescription": "Gebiet enthält Ritualaltäre",
+      "client/MapRiteOfTheNamelessName": "Ritus der Namenlosen",
       "content/Abyss": "Abgrund",
       "content/AbyssDepths": "Abgründige Tiefen",
       "content/AbyssFissure": "Abgrund-Spalte",
@@ -17706,6 +17810,10 @@
       "client/EndgameMapObjectiveClickPrecursorBeacon": "Activate the Precursor Relay",
       "client/IncursionEndgameDistrictInaccessibleArchitect": "Defeat Xipocado, Royal Architect in the Temple to access this District",
       "client/IncursionEndgameDistrictInaccessibleAtziri": "Defeat Atziri in the Temple to access this District",
+      "client/MapDeliriumFogBankDescription": "Players in area are {0}% Delirious",
+      "client/MapDeliriumFogBankName": "Delirium Fog",
+      "client/MapDeliriumGigaMirrorDescription": "Contains a reflection of the Map Boss",
+      "client/MapDeliriumGigaMirrorName": "Grand Mirror",
       "client/MapEntryRequirementArbiterOfAsh": "Complete the Burning Monolith to access",
       "client/MapEntryRequirementBreachBreachstoneQuest": "Reveal the Breach City to access",
       "client/MapEntryRequirementDeliriumFogSpread": "Use the Grand Mirror to access",
@@ -17716,6 +17824,8 @@
       "client/MapEntryRequirementWhiteReactor": "Complete the Ancient Gateway to access",
       "client/MapObjectiveBurningMonolith": "Investigate the Burning Monolith",
       "client/MapObjectiveGigaMirror": "Investigate the Grand Mirror",
+      "client/MapRiteOfTheNamelessDescription": "Area contains Ritual Altars",
+      "client/MapRiteOfTheNamelessName": "Rite of the Nameless",
       "content/Abyss": "Abyss",
       "content/AbyssDepths": "Abyssal Depths",
       "content/AbyssFissure": "Abyssal Fissure",
@@ -18905,6 +19015,10 @@
       "client/EndgameMapObjectiveClickPrecursorBeacon": "Activa el Repetidor precursor",
       "client/IncursionEndgameDistrictInaccessibleArchitect": "Derrota a Xipocado, Arquitecto real en el Templo para acceder a este distrito",
       "client/IncursionEndgameDistrictInaccessibleAtziri": "Derrota a Atziri en el Templo para acceder a este distrito",
+      "client/MapDeliriumFogBankDescription": "Los jugadores del área tienen un {0}% de delirio",
+      "client/MapDeliriumFogBankName": "Niebla del delirio",
+      "client/MapDeliriumGigaMirrorDescription": "Contiene un reflejo del jefe del mapa",
+      "client/MapDeliriumGigaMirrorName": "Espejo grande",
       "client/MapEntryRequirementArbiterOfAsh": "Completa el Monolito ardiente para acceder",
       "client/MapEntryRequirementBreachBreachstoneQuest": "Revela la Ciudad de fisura para acceder",
       "client/MapEntryRequirementDeliriumFogSpread": "Usa el Espejo grande para acceder",
@@ -18915,6 +19029,8 @@
       "client/MapEntryRequirementWhiteReactor": "Completa la Entrada antigua para acceder",
       "client/MapObjectiveBurningMonolith": "Investiga el Monolito ardiente",
       "client/MapObjectiveGigaMirror": "Investiga el Espejo grande",
+      "client/MapRiteOfTheNamelessDescription": "El área contiene altares de ritual",
+      "client/MapRiteOfTheNamelessName": "Rito de los sin nombre",
       "content/Abyss": "Abismo",
       "content/AbyssDepths": "Profundidades abisales",
       "content/AbyssFissure": "Grieta abisal",
@@ -20104,6 +20220,10 @@
       "client/EndgameMapObjectiveClickPrecursorBeacon": "Activer le Relais des Prédécesseurs",
       "client/IncursionEndgameDistrictInaccessibleArchitect": "Terrassez Xipocado, l'Architecte royal dans le Temple pour accéder à ce Quartier",
       "client/IncursionEndgameDistrictInaccessibleAtziri": "Terrassez Atziri dans le Temple pour accéder à ce Quartier",
+      "client/MapDeliriumFogBankDescription": "Les joueurs présents dans la zone sont {0}% Délirants",
+      "client/MapDeliriumFogBankName": "Brumes du Délire",
+      "client/MapDeliriumGigaMirrorDescription": "Contient un reflet du Boss de Carte",
+      "client/MapDeliriumGigaMirrorName": "Grand miroir",
       "client/MapEntryRequirementArbiterOfAsh": "Terminez le Monolithe ardent pour y accéder",
       "client/MapEntryRequirementBreachBreachstoneQuest": "Révélez la Cité de Brèche pour y accéder",
       "client/MapEntryRequirementDeliriumFogSpread": "Utilisez le Grand miroir pour y accéder",
@@ -20114,6 +20234,8 @@
       "client/MapEntryRequirementWhiteReactor": "Terminez le Portail antique pour y accéder",
       "client/MapObjectiveBurningMonolith": "Examinez le Monolithe ardent",
       "client/MapObjectiveGigaMirror": "Examinez le Grand miroir",
+      "client/MapRiteOfTheNamelessDescription": "La Zone contient des Autels de Rituel",
+      "client/MapRiteOfTheNamelessName": "Rite des Innommés",
       "content/Abyss": "Abysse",
       "content/AbyssDepths": "Profondeurs abyssales",
       "content/AbyssFissure": "Fissure abyssale",
@@ -21303,6 +21425,10 @@
       "client/EndgameMapObjectiveClickPrecursorBeacon": "先人のリレーを起動する",
       "client/IncursionEndgameDistrictInaccessibleArchitect": "この区域にアクセスするには、神殿でロイヤルアーキテクト、シポカドを倒してください",
       "client/IncursionEndgameDistrictInaccessibleAtziri": "この区域にアクセスするには、神殿でアッツィリを倒してください",
+      "client/MapDeliriumFogBankDescription": "エリアのプレイヤーは{0}%のせん妄度になる",
+      "client/MapDeliriumFogBankName": "デリリウムの霧",
+      "client/MapDeliriumGigaMirrorDescription": "マップボスの鏡像が出現する",
+      "client/MapDeliriumGigaMirrorName": "グランドミラー",
       "client/MapEntryRequirementArbiterOfAsh": "アクセスするには燃えるモノリスを完了しろ",
       "client/MapEntryRequirementBreachBreachstoneQuest": "ブリーチの都市を公開してアクセスする",
       "client/MapEntryRequirementDeliriumFogSpread": "グランドミラーを使用してアクセスする",
@@ -21313,6 +21439,8 @@
       "client/MapEntryRequirementWhiteReactor": "アクセスするには古のゲートウェイを完了しろ",
       "client/MapObjectiveBurningMonolith": "燃えるモノリスを調査しろ",
       "client/MapObjectiveGigaMirror": "グランドミラーを調査しろ",
+      "client/MapRiteOfTheNamelessDescription": "エリアにリチュアルの祭壇が出現する",
+      "client/MapRiteOfTheNamelessName": "名もなき者の儀式",
       "content/Abyss": "アビス",
       "content/AbyssDepths": "アビスの深淵",
       "content/AbyssFissure": "アビスの亀裂",
@@ -22502,6 +22630,10 @@
       "client/EndgameMapObjectiveClickPrecursorBeacon": "선도자 계전기 활성화하기",
       "client/IncursionEndgameDistrictInaccessibleArchitect": "이 구역에 들어가려면 사원에서 왕실 건축가 지포카도를 쓰러뜨리십시오.",
       "client/IncursionEndgameDistrictInaccessibleAtziri": "이 구역에 들어가려면 사원에서 앗지리를 쓰러뜨리십시오.",
+      "client/MapDeliriumFogBankDescription": "지역 내 플레이어에게 나타나는 환영의 강도 {0}%",
+      "client/MapDeliriumFogBankName": "환영 안개",
+      "client/MapDeliriumGigaMirrorDescription": "지도 보스의 투영이 등장합니다.",
+      "client/MapDeliriumGigaMirrorName": "웅장한 거울",
       "client/MapEntryRequirementArbiterOfAsh": "들어가려면 불타는 거석을 완료해야 합니다.",
       "client/MapEntryRequirementBreachBreachstoneQuest": "들어가려면 균열 도시를 드러내십시오.",
       "client/MapEntryRequirementDeliriumFogSpread": "들어가려면 웅장한 거울을 사용하십시오.",
@@ -22512,6 +22644,8 @@
       "client/MapEntryRequirementWhiteReactor": "들어가려면 고대 관문을 완료해야 합니다.",
       "client/MapObjectiveBurningMonolith": "불타는 거석 조사하기",
       "client/MapObjectiveGigaMirror": "웅장한 거울 조사하기",
+      "client/MapRiteOfTheNamelessDescription": "지역에 의식 제단 등장",
+      "client/MapRiteOfTheNamelessName": "이름 없는 자의 의례",
       "content/Abyss": "심연",
       "content/AbyssDepths": "심연 지하",
       "content/AbyssFissure": "심연의 균열",
@@ -23701,6 +23835,10 @@
       "client/EndgameMapObjectiveClickPrecursorBeacon": "Ative o Transmissor Precursor",
       "client/IncursionEndgameDistrictInaccessibleArchitect": "Para acessar este distrito, você deve derrotar Xipocado, o Arquiteto Real, no templo",
       "client/IncursionEndgameDistrictInaccessibleAtziri": "Para acessar este distrito, você deve derrotar Atziri no templo",
+      "client/MapDeliriumFogBankDescription": "Jogadores na área são {0}% delirantes",
+      "client/MapDeliriumFogBankName": "Névoa de Delírio",
+      "client/MapDeliriumGigaMirrorDescription": "Contém um reflexo do chefe de mapa",
+      "client/MapDeliriumGigaMirrorName": "Espelho Imponente",
       "client/MapEntryRequirementArbiterOfAsh": "Conclua o Monólito Ardente para acessar",
       "client/MapEntryRequirementBreachBreachstoneQuest": "Revele a Cidade da Fenda para acessar",
       "client/MapEntryRequirementDeliriumFogSpread": "Use o Espelho Imponente para acessar",
@@ -23711,6 +23849,8 @@
       "client/MapEntryRequirementWhiteReactor": "Conclua o Portal Antigo para acessar",
       "client/MapObjectiveBurningMonolith": "Investigue o Monólito Ardente",
       "client/MapObjectiveGigaMirror": "Investigue o Espelho Imponente",
+      "client/MapRiteOfTheNamelessDescription": "Área contém Altares Ritualísticos",
+      "client/MapRiteOfTheNamelessName": "Rito dos Inominados",
       "content/Abyss": "Abismo",
       "content/AbyssDepths": "Profundezas Abissais",
       "content/AbyssFissure": "Fissura Abissal",
@@ -24900,6 +25040,10 @@
       "client/EndgameMapObjectiveClickPrecursorBeacon": "Активировать Ретранслятор Предтеч",
       "client/IncursionEndgameDistrictInaccessibleArchitect": "Победите Шипокадо, царского архитектора в Храме для доступа к этому району",
       "client/IncursionEndgameDistrictInaccessibleAtziri": "Победите Атзири в Храме для доступа к этому району",
+      "client/MapDeliriumFogBankDescription": "Игроки в области на {0}% бредят",
+      "client/MapDeliriumFogBankName": "Туман Делириума",
+      "client/MapDeliriumGigaMirrorDescription": "Содержит отражение босса карты",
+      "client/MapDeliriumGigaMirrorName": "Большое зеркало",
       "client/MapEntryRequirementArbiterOfAsh": "Для доступа завершите Горящий монолит",
       "client/MapEntryRequirementBreachBreachstoneQuest": "Для доступа обнаружьте город Разлома",
       "client/MapEntryRequirementDeliriumFogSpread": "Для доступа используйте большое зеркало",
@@ -24910,6 +25054,8 @@
       "client/MapEntryRequirementWhiteReactor": "Для доступа завершите Древние врата",
       "client/MapObjectiveBurningMonolith": "Осмотрите Горящий монолит",
       "client/MapObjectiveGigaMirror": "Осмотрите большое зеркало",
+      "client/MapRiteOfTheNamelessDescription": "В области можно найти ритуальные алтари",
+      "client/MapRiteOfTheNamelessName": "Ритуал Безымянных",
       "content/Abyss": "Бездна",
       "content/AbyssDepths": "Глубины Бездны",
       "content/AbyssFissure": "Трещина Бездны",
@@ -26099,6 +26245,10 @@
       "client/EndgameMapObjectiveClickPrecursorBeacon": "เปิดเครื่องถ่ายทอดกลุ่มชนก่อนกาล",
       "client/IncursionEndgameDistrictInaccessibleArchitect": "สยบจีโปคาโด สถาปนิกราชสำนักในวิหารเพื่อเข้าถึงเขตนี้",
       "client/IncursionEndgameDistrictInaccessibleAtziri": "สยบอัถสิริในวิหารเพื่อเข้าถึงเขตนี้",
+      "client/MapDeliriumFogBankDescription": "ผู้เล่นในด่านอยู่ในเดลิเรียม {0}%",
+      "client/MapDeliriumFogBankName": "หมอกเดลิเรียม",
+      "client/MapDeliriumGigaMirrorDescription": "มีภาพสะท้อนของบอสประจำแผนที่",
+      "client/MapDeliriumGigaMirrorName": "กระจกมเหาฬาร",
       "client/MapEntryRequirementArbiterOfAsh": "ผ่านอนุสาวรีย์เพลิงพิโรธเพื่อเปิดทางไปยังด่านนี้",
       "client/MapEntryRequirementBreachBreachstoneQuest": "เผยนครบรีชเพื่อเปิดทางไปยังด่านนี้",
       "client/MapEntryRequirementDeliriumFogSpread": "ใช้กระจกมเหาฬารเพื่อเปิดทางไปยังด่านนี้",
@@ -26109,6 +26259,8 @@
       "client/MapEntryRequirementWhiteReactor": "ผ่านทางผ่านโบราณเพื่อเปิดทางไปยังด่านนี้",
       "client/MapObjectiveBurningMonolith": "เข้าไปสำรวจอนุสาวรีย์เพลิงพิโรธ",
       "client/MapObjectiveGigaMirror": "เข้าไปสำรวจกระจกมเหาฬาร",
+      "client/MapRiteOfTheNamelessDescription": "ด่านมี แท่นพิธีกรรม",
+      "client/MapRiteOfTheNamelessName": "พิธีไร้นาม",
       "content/Abyss": "อะบิส",
       "content/AbyssDepths": "เบื้องลึกอะบิส",
       "content/AbyssFissure": "รอยแยกอะบิส",
@@ -27298,6 +27450,10 @@
       "client/EndgameMapObjectiveClickPrecursorBeacon": "啟動先行者繼電器",
       "client/IncursionEndgameDistrictInaccessibleArchitect": "在神廟中擊敗皇家建築師祝帕卡多以進入此區域。",
       "client/IncursionEndgameDistrictInaccessibleAtziri": "在神廟中擊敗阿茲里以進入此區域。",
+      "client/MapDeliriumFogBankDescription": "區域中的玩家有{0}%譫妄",
+      "client/MapDeliriumFogBankName": "譫妄迷霧",
+      "client/MapDeliriumGigaMirrorDescription": "含有一個地圖頭目的映像",
+      "client/MapDeliriumGigaMirrorName": "宏偉之鏡",
       "client/MapEntryRequirementArbiterOfAsh": "完成燃燒豐碑以解鎖",
       "client/MapEntryRequirementBreachBreachstoneQuest": "揭露裂痕城市以解鎖",
       "client/MapEntryRequirementDeliriumFogSpread": "使用宏偉之鏡以解鎖",
@@ -27308,6 +27464,8 @@
       "client/MapEntryRequirementWhiteReactor": "完成遠古閘門以解鎖",
       "client/MapObjectiveBurningMonolith": "調查燃燒豐碑",
       "client/MapObjectiveGigaMirror": "調查宏偉之鏡",
+      "client/MapRiteOfTheNamelessDescription": "區域含有祭祀神壇",
+      "client/MapRiteOfTheNamelessName": "無名之儀",
       "content/Abyss": "深淵",
       "content/AbyssDepths": "無盡深淵",
       "content/AbyssFissure": "深淵裂谷",

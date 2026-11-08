@@ -23,6 +23,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Elements searched for a graph's drawn nodes, below the hovered node's grandparent.</summary>
         private const int MaxEndgameElements = 8000;
 
+        /// <summary>Elements of a node and its popup looked at for content icons.</summary>
+        private const int MaxContentIconElements = 400;
+
         /// <summary>Hovered elements remembered as no endgame node, so a menu's buttons are searched once.</summary>
         private const int MaxNotEndgame = 512;
 
@@ -45,6 +48,11 @@ namespace Poe2Accessibility.Services
             var popup = entries.Count > 0 ? entries[^1] : new List<string>();
             var name = popup.Count > 0 ? popup[0] : catalog.NodeName(id, language) is { Length: > 0 } known ? known : Announcements.AtlasNode;
             var tooltip = popup.Skip(1).ToList();
+            if (this.EndgameContentIcons(info, language) is { Count: > 0 } contents)
+            {
+                tooltip.Insert(0, Announcements.AtlasContents(contents));
+            }
+
             tooltip.AddRange(catalog.NodeDetails(id, language).Where(detail => !popup.Contains(detail)));
 
             var centres = this.EndgameCentres(info, node.Graph);
@@ -69,6 +77,40 @@ namespace Poe2Accessibility.Services
                 Tooltip = tooltip,
                 TooltipPending = popup.Count == 0,
             };
+        }
+
+        /// <summary>
+        ///     The contents an Atlas node shows as icons, on the node or in its popup (a breach, a map boss: pictures with no
+        ///     words), named by the art each draws; in drawing order, each once.
+        /// </summary>
+        private List<string> EndgameContentIcons(in UiElementReader.ElementInfo node, string language)
+        {
+            var names = new List<string>();
+            var pending = new Queue<UiElementReader.ElementInfo>();
+            pending.Enqueue(node);
+            for (var seen = 0; pending.Count > 0 && seen < MaxContentIconElements; seen++)
+            {
+                var info = pending.Dequeue();
+                if (!info.IsVisibleFlag)
+                {
+                    continue;
+                }
+
+                if (this.elements.ReadTextureKey(info) is { } key && EndgameCatalog.Shared.IconName(key, language) is { Length: > 0 } name && !names.Contains(name))
+                {
+                    names.Add(name);
+                }
+
+                foreach (var child in this.elements.ReadChildren(info))
+                {
+                    if (this.elements.TryReadElement(child, out var childInfo))
+                    {
+                        pending.Enqueue(childInfo);
+                    }
+                }
+            }
+
+            return names;
         }
 
         /// <summary>Research (dev command "atlasnode"): what the hovered element is as an endgame node, and where its record was found.</summary>
