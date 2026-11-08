@@ -37,6 +37,18 @@ namespace Poe2Accessibility.Services
 
         private const float Diagonal = 1.41421356f;
 
+        /// <summary><see cref="Keep"/>: the player within this many cells of the earlier route is still on it.</summary>
+        private const float KeepNearCells = 6f;
+
+        /// <summary><see cref="Keep"/>: two routes ending this close (cells) lead to the same place.</summary>
+        private const float KeepEndCells = 3f;
+
+        /// <summary><see cref="Keep"/>: the earlier way is kept unless the new one is shorter by this share of it...</summary>
+        private const float KeepSlack = 0.1f;
+
+        /// <summary>...plus this many cells (a step or two of walking: noise near the start).</summary>
+        private const float KeepCells = 8f;
+
         /// <summary>
         ///     The distance left counts slightly over 1 in the priority, so of equal-cost ways the search follows the one
         ///     nearest the goal (far fewer cells expanded); a route is at most this much longer than the optimum.
@@ -230,6 +242,55 @@ namespace Poe2Accessibility.Services
             {
                 region = scan.Looked;
             }
+        }
+
+        /// <summary>
+        ///     The way to follow when a route is searched again on the way to the same goal: the earlier route from the player's
+        ///     place on it, unless the new one is clearly shorter. Of two ways of nearly equal length round a block the shorter
+        ///     swaps as the player walks, and each fresh search sent them back toward the other side: Clearfell, 2026-11-08,
+        ///     the guide's ping turned the player round four times in a corridor between two log piles (318 and 347 cells round
+        ///     each side). The earlier way is kept while the player stands within <see cref="KeepNearCells"/> of it, it is still
+        ///     walkable and ends where the new one does; a way that opens (a gate) and is shorter by more than
+        ///     <see cref="KeepSlack"/> plus <see cref="KeepCells"/> replaces it.
+        /// </summary>
+        public static List<Vector2> Keep(IReadOnlyList<Vector2>? previous, List<Vector2> fresh, Vector2 player, byte[] grid, int bytesPerRow)
+        {
+            if (previous is not { Count: >= 2 } || fresh.Count < 2 || Vector2.Distance(previous[^1], fresh[^1]) > KeepEndCells)
+            {
+                return fresh;
+            }
+
+            var nearest = 0;
+            var nearestDistance = float.MaxValue;
+            for (var i = 0; i < previous.Count; i++)
+            {
+                var distance = Vector2.DistanceSquared(previous[i], player);
+                if (distance < nearestDistance)
+                {
+                    nearestDistance = distance;
+                    nearest = i;
+                }
+            }
+
+            nearestDistance = MathF.Sqrt(nearestDistance);
+            if (nearestDistance > KeepNearCells)
+            {
+                return fresh; // the player left that way: the new search is where they are
+            }
+
+            var rest = new List<Vector2>(previous.Count - nearest);
+            for (var i = nearest; i < previous.Count; i++)
+            {
+                if (!IsWalkable(grid, bytesPerRow, (int)MathF.Round(previous[i].X), (int)MathF.Round(previous[i].Y)))
+                {
+                    return fresh; // closed since (a barrier): only the new way is real
+                }
+
+                rest.Add(previous[i]);
+            }
+
+            var kept = nearestDistance + Length(rest);
+            return kept <= (Length(fresh) * (1f + KeepSlack)) + KeepCells ? rest : fresh;
         }
 
         /// <summary>Length of a route in grid units.</summary>

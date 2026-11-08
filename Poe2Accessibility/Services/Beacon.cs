@@ -297,6 +297,8 @@ namespace Poe2Accessibility.Services
             var started = this.version;
             // Guiding to a barrier itself: it is the end of the way, not what cuts it.
             var barriers = this.target?.Kind == "barrier" ? Array.Empty<Vector2>() : this.catalog.ClosedBarriers();
+            // The way being walked: a fresh search only replaces it when clearly shorter (RoutePlanner.Keep).
+            var walking = this.partialRoute ? null : this.route;
             // The result travels with the task: a search left running by a lock change must not touch the new one's state.
             this.search = Task.Run(() =>
             {
@@ -306,6 +308,11 @@ namespace Poe2Accessibility.Services
                 }
 
                 var route = RoutePlanner.FindRoute(grid, row, start, end, true, out var reached);
+                if (route != null && reached)
+                {
+                    route = RoutePlanner.Keep(walking, route, start, grid, row);
+                }
+
                 var barrier = route is { Count: > 0 } && EntityCatalog.BarrierBetween(barriers, route[^1], end);
                 return (route, route != null && (!reached || barrier), barrier);
             });

@@ -46,6 +46,8 @@ namespace Poe2Accessibility.Tests
             (nameof(RoutesAreValidAndNeverLongerThanTheOptimum), RoutesAreValidAndNeverLongerThanTheOptimum),
             (nameof(RandomGridsGiveTheOptimalRoute), RandomGridsGiveTheOptimalRoute),
             (nameof(AWalledGoalLeadsToTheNearestReachableCell), AWalledGoalLeadsToTheNearestReachableCell),
+            (nameof(TheWayBeingWalkedIsKeptUnlessClearlyLonger), TheWayBeingWalkedIsKeptUnlessClearlyLonger),
+            (nameof(ADirectionNearAnOctantEdgeKeepsTheOneSaid), ADirectionNearAnOctantEdgeKeepsTheOneSaid),
             (nameof(ALongRouteStaysWithinTheFrameBound), ALongRouteStaysWithinTheFrameBound),
             (nameof(AnUnreachableGoalStaysWithinTheFrameBound), AnUnreachableGoalStaysWithinTheFrameBound),
         };
@@ -127,6 +129,12 @@ namespace Poe2Accessibility.Tests
                 }
             }
 
+            return Pack(cells, side);
+        }
+
+        /// <summary>Walkable cells [x, y] packed as the game holds them: two 4-bit cells per byte, side / 2 bytes a row.</summary>
+        private static (byte[] Grid, int Row) Pack(bool[,] cells, int side)
+        {
             var row = side / 2;
             var grid = new byte[row * side];
             for (var y = 0; y < side; y++)
@@ -251,6 +259,85 @@ namespace Poe2Accessibility.Tests
             }
         }
 
+        /// <summary>
+        ///     A block in an open room with nearly equal ways round each side (Clearfell, 2026-11-08: the guide's ping turned the
+        ///     player round four times between two such ways): once walking one, a fresh search that prefers the other does not
+        ///     take over; a way that is clearly shorter, a closed cell on the old way or the player off it does.
+        /// </summary>
+        private static void TheWayBeingWalkedIsKeptUnlessClearlyLonger()
+        {
+            const int side = 80;
+            var cells = new bool[side, side];
+            for (var y = 0; y < side; y++)
+            {
+                for (var x = 0; x < side; x++)
+                {
+                    cells[x, y] = x is > 0 and < side - 1 && y is > 0 and < side - 1 && !(x is >= 30 and <= 50 && y is >= 10 and <= 70);
+                }
+            }
+
+            var (grid, row) = Pack(cells, side);
+            var goal = new Vector2(70, 41);
+            var above = RoutePlanner.FindRoute(grid, row, new Vector2(10, 38), goal)!;
+            Equal(true, above.Any(cell => cell.Y < 10), "from just above the middle the way goes over the block");
+            var below = RoutePlanner.FindRoute(grid, row, new Vector2(10, 43), goal)!;
+            Equal(true, below.Any(cell => cell.Y > 70), "from just below it goes under");
+
+            // Walking the way over, three cells down from its start: a fresh search would go under; the way over stays.
+            var player = new Vector2(10, 41);
+            var fresh = RoutePlanner.FindRoute(grid, row, player, goal)!;
+            var kept = RoutePlanner.Keep(above, fresh, player, grid, row);
+            Equal(true, fresh.Any(cell => cell.Y > 70), "from there the fresh search goes under");
+            Equal(true, kept.Any(cell => cell.Y < 10) && kept[^1] == above[^1], "the way over is kept");
+            Equal(true, Vector2.Distance(kept[0], player) <= 3f, "from the player's place on it");
+
+            Equal(true, RoutePlanner.Keep(null, fresh, player, grid, row) == fresh, "nothing walked yet: the new way");
+            var far = new Vector2(10, 76);
+            var fromFar = RoutePlanner.FindRoute(grid, row, far, goal)!;
+            Equal(true, RoutePlanner.Keep(above, fromFar, far, grid, row) == fromFar, "the player left the old way");
+            var otherGoal = RoutePlanner.FindRoute(grid, row, player, new Vector2(70, 10))!;
+            Equal(true, RoutePlanner.Keep(above, otherGoal, player, grid, row) == otherGoal, "another target");
+
+            // A cell of the old way closes (a barrier): the new way.
+            var closed = (byte[])grid.Clone();
+            var shut = above[above.Count / 2];
+            closed[((int)shut.Y * row) + ((int)shut.X / 2)] = 0;
+            Equal(true, RoutePlanner.Keep(above, fresh, player, closed, row) == fresh, "a closed cell on the old way");
+
+            // A gap opens through the block: far shorter, it replaces the way round.
+            for (var y = 39; y <= 43; y++)
+            {
+                for (var x = 30; x <= 50; x++)
+                {
+                    cells[x, y] = true;
+                }
+            }
+
+            var (opened, _) = Pack(cells, side);
+            var shortcut = RoutePlanner.FindRoute(opened, row, player, goal)!;
+            Equal(true, RoutePlanner.Keep(above, shortcut, player, opened, row) == shortcut, "a clearly shorter way replaces it");
+        }
+
+        /// <summary>A route near the 22.5 degree edge keeps the direction said last (the alternating "up 2, then up left" STATUS issue).</summary>
+        private static void ADirectionNearAnOctantEdgeKeepsTheOneSaid()
+        {
+            // Screen axes as a plain top-down view: world +X right, +Y down.
+            var x = new Vector2(1f, 0f);
+            var y = new Vector2(0f, 1f);
+            static Vector2 At(double degrees) => new((float)Math.Cos(degrees * Math.PI / 180), -(float)Math.Sin(degrees * Math.PI / 180));
+            var past = At(25);
+            Equal(1, StickDirection.Octant(x, y, past.X, past.Y), "25 degrees is up-right on its own");
+            Equal(0, StickDirection.Octant(x, y, past.X, past.Y, 0, 10), "right was said: it stays right");
+            Equal(1, StickDirection.Octant(x, y, past.X, past.Y, 1, 10), "up-right was said: it stays up-right");
+            var clear = At(35);
+            Equal(1, StickDirection.Octant(x, y, clear.X, clear.Y, 0, 10), "clearly past the edge: up-right");
+            var behind = At(-28);
+            Equal(0, StickDirection.Octant(x, y, behind.X, behind.Y, 0, 10), "the other side of right, within the margin");
+            Equal(7, StickDirection.Octant(x, y, behind.X, behind.Y, null, 10), "nothing said before: down-right");
+            var wrap = At(170);
+            Equal(4, StickDirection.Octant(x, y, wrap.X, wrap.Y, 4, 10), "left kept across the wrap");
+        }
+
         private static void AWalledGoalLeadsToTheNearestReachableCell()
         {
             var random = new Random(RandomSeed + 1);
@@ -313,6 +400,14 @@ namespace Poe2Accessibility.Tests
         }
 
         private static void Fail(string message) => throw new Exception(message);
+
+        private static void Equal<T>(T expected, T actual, string what)
+        {
+            if (!EqualityComparer<T>.Default.Equals(expected, actual))
+            {
+                Fail($"{what}: expected {expected}, got {actual}");
+            }
+        }
 
         private static void RoutesAreValidAndNeverLongerThanTheOptimum()
         {

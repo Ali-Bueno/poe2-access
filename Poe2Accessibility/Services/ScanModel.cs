@@ -59,7 +59,32 @@ namespace Poe2Accessibility.Services
     {
         /// <param name="worldXOnScreen">Screen offset (pixels, y down) of one world unit along +X.</param>
         /// <param name="worldYOnScreen">Screen offset of one world unit along +Y.</param>
-        public static int Octant(Vector2 worldXOnScreen, Vector2 worldYOnScreen, float dx, float dy)
+        public static int Octant(Vector2 worldXOnScreen, Vector2 worldYOnScreen, float dx, float dy) =>
+            (int)(((Math.Round(Angle(worldXOnScreen, worldYOnScreen, dx, dy) / 45) % 8) + 8) % 8);
+
+        /// <summary>
+        ///     As <see cref="Octant(Vector2, Vector2, float, float)"/>, but a way within <paramref name="margin"/> degrees past
+        ///     the edge of <paramref name="keep"/>'s octant stays <paramref name="keep"/>: a route running near the 22.5° edge
+        ///     between two directions was said "up 2, then up left" and "up left 2, then up" on alternate asks as the player
+        ///     walked it; the direction said last is kept until the way is clearly past the edge.
+        /// </summary>
+        public static int Octant(Vector2 worldXOnScreen, Vector2 worldYOnScreen, float dx, float dy, int? keep, double margin)
+        {
+            var angle = Angle(worldXOnScreen, worldYOnScreen, dx, dy);
+            if (keep is { } kept)
+            {
+                var off = Math.Abs(((((angle - (kept * 45)) % 360) + 540) % 360) - 180);
+                if (off <= 22.5 + margin)
+                {
+                    return kept;
+                }
+            }
+
+            return (int)(((Math.Round(angle / 45) % 8) + 8) % 8);
+        }
+
+        /// <summary>The offset's angle in degrees, counter-clockwise from the stick's right (up is 90).</summary>
+        private static double Angle(Vector2 worldXOnScreen, Vector2 worldYOnScreen, float dx, float dy)
         {
             var right = new Vector2(worldYOnScreen.Y, -worldXOnScreen.Y);
             if (OnScreen(right, worldXOnScreen, worldYOnScreen).X < 0)
@@ -74,8 +99,7 @@ namespace Poe2Accessibility.Services
                 up = -up;
             }
 
-            var angle = Math.Atan2((dx * up.X) + (dy * up.Y), (dx * right.X) + (dy * right.Y)) * 180 / Math.PI;
-            return (int)(((Math.Round(angle / 45) % 8) + 8) % 8);
+            return Math.Atan2((dx * up.X) + (dy * up.Y), (dx * right.X) + (dy * right.Y)) * 180 / Math.PI;
         }
 
         /// <summary>The unit world direction that the camera draws as <paramref name="screen"/> (x right, y down); null if degenerate.</summary>

@@ -30,6 +30,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Legs shorter than half a step are sidesteps the game's wall sliding takes care of.</summary>
         private const float MinLegGrid = 5f;
 
+        /// <summary>A way this many degrees past the edge of the direction said last for the same target keeps that direction.</summary>
+        private const double KeepDirectionDegrees = 10;
+
         /// <summary>World offset used to measure how the camera draws the world axes.</summary>
         private const float ProbeWorldUnits = 100f;
 
@@ -145,6 +148,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The last combined grid and the live grid it was made from (see WalkableGrid).</summary>
         private (byte[] Live, byte[] Grid)? stable;
+
+        /// <summary>
+        ///     The target described last (id and area instance), its whole route and the first direction said: asked again on
+        ///     the way, the same way and direction are kept unless clearly changed (<see cref="RoutePlanner.Keep"/>).
+        /// </summary>
+        private (uint Id, string Area, List<Vector2>? Route, int? First) described;
         private long lastSampleAt;
         private IReadOnlyList<ScanEntry> unexplored = Array.Empty<ScanEntry>();
         private long unexploredAt = long.MinValue / 2;
@@ -658,6 +667,12 @@ namespace Poe2Accessibility.Services
             var goal = new Vector2(entry.WorldX, entry.WorldY) / gridSize;
             // One search for both: the whole way, or the ground as close as it goes.
             var route = RoutePlanner.FindRoute(grid, row, start, goal, true, out var whole);
+            var earlier = this.described.Id == entry.Id && this.described.Area == area.AreaHash ? this.described : default;
+            if (route != null && whole)
+            {
+                route = RoutePlanner.Keep(earlier.Route, route, start, grid, row);
+            }
+
             var partial = false;
             if (!whole)
             {
@@ -689,10 +704,11 @@ namespace Poe2Accessibility.Services
             }
 
             var (alongX, alongY) = ScreenProjection.Axes(origin);
-            int DirectionOf(Vector2 delta) => StickDirection.Octant(alongX, alongY, delta.X, delta.Y);
+            int DirectionOf(Vector2 delta) => StickDirection.Octant(alongX, alongY, delta.X, delta.Y, earlier.First, KeepDirectionDegrees);
             var legs = route == null
                 ? new List<(int Direction, float Length)>()
                 : RoutePlanner.Legs(RoutePlanner.Corners(route, CornerToleranceGrid), DirectionOf, MinLegGrid);
+            this.described = (entry.Id, area.AreaHash, whole ? route : null, legs.Count > 0 ? legs[0].Direction : null);
             cut = partial;
             if (legs.Count == 0)
             {
