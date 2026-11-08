@@ -7,7 +7,7 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>false</SelfContained>
     <!-- Class libraries don't copy NuGet assemblies to bin by default; we need Prismatoid.dll + prism.dll there.
-         Only the curated list in DeployToGameHelper reaches the plugin folder (never a second ImGui.NET). -->
+         Only the curated list in DeployToHost reaches the plugin folder (never a second ImGui.NET). -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <PlatformTarget>x64</PlatformTarget>
     <Nullable>enable</Nullable>
@@ -15,9 +15,9 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <RootNamespace>Poe2Accessibility</RootNamespace>
     <NoWarn>1701;1702;1591</NoWarn>
-    <!-- GameHelper2 host checkout (see external/) and the folder it loads plugins from. -->
-    <GameHelperRoot>$(MSBuildProjectDirectory)\..\external\GameHelper2\</GameHelperRoot>
-    <PluginDeployDir>$(GameHelperRoot)GameHelper\bin\$(Configuration)\net10.0-windows\win-x64\Plugins\$(MSBuildProjectName)\</PluginDeployDir>
+    <!-- The mod's host (host/) and the folder it loads the plugin from. -->
+    <HostRoot>$(MSBuildProjectDirectory)\..\host\</HostRoot>
+    <PluginDeployDir>$(HostRoot)Poe2AccessHost\bin\$(Configuration)\net10.0-windows\win-x64\Plugins\$(MSBuildProjectName)\</PluginDeployDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,14 +26,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(GameHelperRoot)GameHelper\GameHelper.csproj">
+    <ProjectReference Include="$(HostRoot)GameHelper\GameHelper.csproj">
       <Private>false</Private>
       <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
     </ProjectReference>
   </ItemGroup>
 
-  <!-- GameHelper2 discovers plugins as Plugins\<Name>\<Name>*.dll; ship the managed binding and the PRISM native next to it. -->
-  <Target Name="DeployToGameHelper" AfterTargets="Build">
+  <!-- The host loads Plugins\<Name>\<Name>.dll; ship the managed binding and the PRISM native next to it. -->
+  <Target Name="DeployToHost" AfterTargets="Build">
     <ItemGroup>
       <_DeployFiles Include="$(OutDir)$(TargetName).dll;$(OutDir)$(TargetName).pdb;$(OutDir)Prismatoid.dll;$(OutDir)prism.dll" />
     </ItemGroup>
@@ -42,7 +42,8 @@
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\ui-catalog.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\catalog\ui-catalog.json')" />
     <!-- GGG's map cues by area, listed by hand from docs/research/map-hints-by-act.md. -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\map-hints.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
-    <!-- Named tiles (exits) for areas GameHelper's Radar table lacks, and corrections to it; same format as its important_tgt_files.txt. -->
+    <!-- Named tiles (exits) from GameHelper2's Radar plugin table, then the ones it lacks and corrections to it, in the same format. -->
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\important_tgt_files.txt" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\landmarks.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />
     <!-- Names objects show only in a WorldDescription, and lines the mod knows by their text (tools/Poe2UiExtract world-titles). -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)\catalog\world-titles.json" DestinationFolder="$(PluginDeployDir)catalog" SkipUnchangedFiles="true" />

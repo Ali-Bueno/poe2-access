@@ -1,0 +1,72 @@
+// <copyright file="HostFrame.cs" company="None">
+// Copyright (c) None. All rights reserved.
+// </copyright>
+
+namespace GameHelper
+{
+    using System;
+    using System.Diagnostics;
+    using Coroutine;
+    using CoroutineEvents;
+
+    /// <summary>What the overlay's render loop did each frame, for a host without a window.</summary>
+    public static class HostFrame
+    {
+        /// <summary>Starts the core's coroutines (process search, static addresses, states).</summary>
+        public static void Start()
+        {
+            Core.Initialize();
+            Core.InitializeCororutines();
+        }
+
+        /// <summary>The names of the parts of a frame, in the order <see cref="Run"/> times them.</summary>
+        public static readonly string[] StepNames = { "coroutines", "reader", "plugin", "after" };
+
+        /// <summary>
+        ///     Runs one frame: coroutines, the remote objects' updates, then <paramref name="tick"/>; adds each
+        ///     part's Stopwatch ticks to <paramref name="elapsed"/> (one slot per <see cref="StepNames"/> entry).
+        /// </summary>
+        public static void Run(double deltaSeconds, Action tick, Action<string, Exception> fault, long[] elapsed)
+        {
+            var start = Stopwatch.GetTimestamp();
+            Step("tick", () => CoroutineHandler.Tick(deltaSeconds), fault);
+            var read = Stopwatch.GetTimestamp();
+            Step("per frame data", () => CoroutineHandler.RaiseEvent(GameHelperEvents.PerFrameDataUpdate), fault);
+            Step("post per frame data", () => CoroutineHandler.RaiseEvent(GameHelperEvents.PostPerFrameDataUpdate), fault);
+            Step("render", () => CoroutineHandler.RaiseEvent(GameHelperEvents.OnRender), fault);
+            var plugin = Stopwatch.GetTimestamp();
+            Step("plugin", tick, fault);
+            var after = Stopwatch.GetTimestamp();
+            Step("post render", () => CoroutineHandler.RaiseEvent(GameHelperEvents.OnPostRender), fault);
+            var end = Stopwatch.GetTimestamp();
+            elapsed[0] += read - start;
+            elapsed[1] += plugin - read;
+            elapsed[2] += after - plugin;
+            elapsed[3] += end - after;
+        }
+
+        /// <summary>Gets a value indicating whether the game process is open.</summary>
+        public static bool GameOpened => Core.Process.Address != IntPtr.Zero;
+
+        /// <summary>Gets a value indicating whether the game window is in front.</summary>
+        public static bool GameForeground => Core.Process.Foreground;
+
+        /// <summary>Gets the current game state's name, for the host's log.</summary>
+        public static string GameState => Core.States.GameCurrentState.ToString();
+
+        /// <summary>Closes the game handle.</summary>
+        public static void Stop() => Core.Dispose();
+
+        private static void Step(string name, Action action, Action<string, Exception> fault)
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception error)
+            {
+                fault(name, error);
+            }
+        }
+    }
+}

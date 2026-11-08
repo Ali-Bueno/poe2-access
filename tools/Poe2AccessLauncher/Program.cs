@@ -6,11 +6,11 @@ internal static partial class Program
 {
     private const string Usage =
         "Poe2Access [start|restart|stop|update] [--host <dir>] [<game exe> <its arguments>]\n" +
-        "  start    (default) offer a newer version if there is one, open Path of Exile 2 if needed, then restart GameHelper\n" +
-        "  restart  restart GameHelper only\n" +
-        "  stop     stop GameHelper only\n" +
+        "  start    (default) offer a newer version if there is one, open Path of Exile 2 if needed, then restart the mod's host\n" +
+        "  restart  restart the host only\n" +
+        "  stop     stop the host only\n" +
         "  update   look for a newer version now and offer to install it\n" +
-        "  --host   GameHelper folder (default: this folder, or the repository build output)\n" +
+        "  --host   folder of Poe2AccessHost.exe (default: this folder, app beside it, or the repository build output)\n" +
         "  Steam starts the mod with the game from the launch options: \"<this file's path>\" %command%";
 
     private const uint MessageBoxError = 0x10;
@@ -116,7 +116,7 @@ internal static partial class Program
         }
     }
 
-    /// <summary>Stays until the game closes: Steam counts it running while the launcher it started lives. GameHelper closes with the game by itself.</summary>
+    /// <summary>Stays until the game closes: Steam counts it running while the launcher it started lives. The host closes with the game by itself.</summary>
     private static void FollowGame()
     {
         try
@@ -136,7 +136,7 @@ internal static partial class Program
         {
             Log.Write($"--- {command}");
             var controller = new HostController(HostController.ResolveDirectory(host));
-            // With the Korean client, GameHelper runs as administrator: only an administrator launcher can stop or replace it.
+            // With the Korean client, the host runs as administrator: only an administrator launcher can stop or replace it.
             if (elevate = NeedsAdministrator(controller))
             {
                 Log.Write("Done");
@@ -190,8 +190,8 @@ internal static partial class Program
         if (needed)
         {
             Log.Write(host
-                ? "GameHelper runs as administrator: restarting as administrator to stop or replace it"
-                : "Korean client running: restarting as administrator, which GameHelper needs to read it");
+                ? "The host runs as administrator: restarting as administrator to stop or replace it"
+                : "Korean client running: restarting as administrator, which the host needs to read it");
         }
 
         return needed;

@@ -14,8 +14,8 @@ versions and their changes: [Releases](https://github.com/Ali-Bueno/poe2-access/
 ## Warning
 
 This is a test version and it can fail. It is not made or approved by Grinding Gear Games. It reads the game's
-memory, read-only, through [GameHelper2](https://github.com/Gordin/GameHelper2): it never writes to the game,
-injects code or touches network traffic. Use it at your own risk.
+memory, read-only, through its own small background program (built on [GameHelper2](https://github.com/Gordin/GameHelper2)'s
+memory-reading code): it never writes to the game, injects code or touches network traffic. Use it at your own risk.
 
 ## Requirements
 
@@ -83,13 +83,15 @@ Send these two files, with what you were doing and at what time:
 
 ## Credits
 
-- [GameHelper2](https://github.com/Gordin/GameHelper2) (GPLv3), the overlay the mod runs in, shipped with the changes in
-  [`tools/package/gamehelper.patch`](tools/package/gamehelper.patch), which find its offsets again after a game patch.
+- [GameHelper2](https://github.com/Gordin/GameHelper2) (GPLv3): the mod's host (`host/`) is built on its memory-reading
+  code, with changes that find its offsets again after a game patch.
 - [PRISM](https://github.com/ethindp/prism), the screen reader output.
 
 ## For developers
 
-- Build: `dotnet build Poe2Accessibility -c Release`; tests: `dotnet run --project tests/Poe2Accessibility.Tests -c Release`.
+- Build: `dotnet build host/Poe2AccessHost -c Release` (the headless host, once), then `dotnet build Poe2Accessibility -c Release`
+  (the plugin, deployed into the host's build folder); run with `Poe2Access.exe` from that folder (`tools/README.md`).
+  Tests: `dotnet run --project tests/Poe2Accessibility.Tests -c Release`.
 - Test package: `tools/package/New-TestPackage.ps1`. Release (builds it and makes it the latest download):
   `tools/package/Publish-Release.ps1`.
 - Where the project stands and what was learned about the game: [STATUS.md](STATUS.md). The accessibility playbook

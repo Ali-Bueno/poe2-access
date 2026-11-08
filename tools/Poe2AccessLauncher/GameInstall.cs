@@ -8,7 +8,7 @@ namespace Poe2AccessLauncher;
 /// </summary>
 internal static class GameInstall
 {
-    /// <summary>The game's process names: Steam, standalone, and the Kakao Games client (the names GameHelper2's GameOffsets looks for).</summary>
+    /// <summary>The game's process names: Steam, standalone, and the Kakao Games client (the names the host's GameOffsets looks for).</summary>
     public static readonly string[] ProcessNames = ["PathOfExileSteam", "PathOfExile", "PathOfExile_KG"];
 
     /// <summary>Path of Exile 2's Steam app id.</summary>
@@ -70,9 +70,9 @@ internal static class GameInstall
     }
 
     /// <summary>
-    ///     Whether the launcher must restart as administrator: for GameHelper to read the running Korean client, which
+    ///     Whether the launcher must restart as administrator: for the host to read the running Korean client, which
     ///     denies its memory to other processes unless they run as administrator (tested 2026-10-31), or to stop or
-    ///     replace a GameHelper left running as administrator after that game closed.
+    ///     replace a host left running as administrator after that game closed.
     /// </summary>
     public static bool NeedsAdministrator(string? runningProcessName, bool hostNeedsAdministrator, bool isAdministrator) =>
         !isAdministrator &&

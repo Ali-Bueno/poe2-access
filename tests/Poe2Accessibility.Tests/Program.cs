@@ -2526,7 +2526,7 @@ namespace Poe2Accessibility.Tests
             Equal(false, Poe2AccessLauncher.GameInstall.NeedsAdministrator("PathOfExile_KG", false, true), "an administrator launcher carries on");
             Equal(false, Poe2AccessLauncher.GameInstall.NeedsAdministrator("PathOfExileSteam", false, false), "the Steam client needs no administrator");
             Equal(false, Poe2AccessLauncher.GameInstall.NeedsAdministrator(null, false, false), "no game running needs no administrator");
-            Equal(true, Poe2AccessLauncher.GameInstall.NeedsAdministrator(null, true, false), "an administrator GameHelper left after the Korean client closed");
+            Equal(true, Poe2AccessLauncher.GameInstall.NeedsAdministrator(null, true, false), "an administrator host left after the Korean client closed");
             Equal(false, Poe2AccessLauncher.GameInstall.NeedsAdministrator(null, true, true), "an administrator launcher stops it itself");
         }
 

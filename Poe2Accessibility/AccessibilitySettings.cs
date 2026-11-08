@@ -1,6 +1,6 @@
 namespace Poe2Accessibility
 {
-    using ClickableTransparentOverlay.Win32;
+    using GameHelper.Utils;
     using GameHelper.Plugin;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;

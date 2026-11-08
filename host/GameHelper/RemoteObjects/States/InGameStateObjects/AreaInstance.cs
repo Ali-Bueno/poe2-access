@@ -1,0 +1,1196 @@
+﻿// <copyright file="AreaInstance.cs" company="None">
+// Copyright (c) None. All rights reserved.
+// </copyright>
+
+namespace GameHelper.RemoteObjects.States.InGameStateObjects
+{
+    using System;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Numerics;
+    using System.Reflection;
+    using System.Text.Json;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Components;
+    using Coroutine;
+    using CoroutineEvents;
+    using GameHelper.Cache;
+    using GameHelper.RemoteEnums;
+    using GameHelper.RemoteEnums.Entity;
+    using GameOffsets.Natives;
+    using GameOffsets.Objects.States.InGameState;
+    using ImGuiNET;
+    using Utils;
+
+    /// <summary>
+    ///     Points to the InGameState -> AreaInstanceData Object.
+    /// </summary>
+    public class AreaInstance : RemoteObjectBase
+    {
+        // Large composite areas such as the Trial of the Sekhemas foyer legitimately exceed the
+        // old 50-million-cell ceiling (222 x 493 tiles requires 57,896,934 cells).
+        // The exact TileDetails vector-shape check below remains the
+        // primary guard against shifted metadata causing multi-gigabyte allocations.
+        private const long MaxTerrainGridCells = 100_000_000;
+        private const int TerrainTileStructureSize = 0x38;
+
+        private static readonly EntityBackedBuffDefinition[] EntityBackedPlayerBuffs =
+        {
+            new(
+                "Metadata/Effects/Spells/sandstorm_swipe/sandstorm_swipe_storm",
+                "spear_sandstorm",
+                rawStage => Math.Max(0, ((int)rawStage - 15) / 3)),
+        };
+
+        private int uselesssEntities;
+        private int totalEntityRemoved;
+        private string entityIdFilter;
+        private string entityPathFilter;
+        private Rarity entityRarityFilter;
+        private byte filterBy;
+        private int lastSleepingScanCount;
+
+        private StdVector environmentPtr;
+        private readonly List<int> environments;
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="AreaInstance" /> class.
+        /// </summary>
+        /// <param name="address">address of the remote memory object.</param>
+        internal AreaInstance(IntPtr address)
+            : base(address)
+        {
+            this.entityIdFilter = string.Empty;
+            this.entityPathFilter = string.Empty;
+            this.entityRarityFilter = Rarity.Normal;
+            this.filterBy = 0;
+
+            this.environmentPtr = default;
+            this.environments = new();
+
+            this.CurrentAreaLevel = 0;
+            this.AreaHash = string.Empty;
+
+            this.ServerDataObject = new(IntPtr.Zero);
+            this.Player = new();
+            this.AwakeEntities = new();
+            this.SleepingEntities = new();
+            this.EntityCaches = new()
+            {
+                new("/LeagueDelirium/", 1105, 1105, this.AwakeEntities), // always keep this at index 0.
+                new("Breach", 1100, 1100, this.AwakeEntities),
+            };
+
+            this.NetworkBubbleEntityCount = 0;
+            this.TerrainMetadata = default;
+            this.GridHeightData = Array.Empty<float[]>();
+            this.GridWalkableData = Array.Empty<byte>();
+            this.TgtTilesLocations = new();
+
+            Core.CoroutinesRegistrar.Add(CoroutineHandler.Start(
+                this.OnPerFrame(), "[AreaInstance] Update Area Data", int.MaxValue - 4));
+        }
+
+        /// <summary>
+        ///     Gets where this game build keeps the area's fields.
+        /// </summary>
+        public AreaInstanceLayout Layout { get; } = new();
+
+        /// <summary>
+        ///     Gets the level of the current Area.
+        /// </summary>
+        public int CurrentAreaLevel { get; private set; }
+
+        /// <summary>
+        ///     Gets the Hash of the current Area/Zone.
+        ///     This value is sent to the client from the server.
+        /// </summary>
+        public string AreaHash { get; private set; }
+
+        /// <summary>
+        ///     Gets the data related to the player the user is playing.
+        /// </summary>
+        public ServerData ServerDataObject { get; }
+
+        /// <summary>
+        ///     Gets the player Entity.
+        /// </summary>
+        public Entity Player { get; }
+
+        /// <summary>
+        ///     Gets the Awake Entities of the current Area/Zone.
+        ///     Awake Entities are the ones which player can interact with
+        ///     e.g. Monsters, Players, NPC, Chests and etc. Sleeping entities
+        ///     are opposite of awake entities e.g. Decorations, Effects, particles and etc.
+        /// </summary>
+        public ConcurrentDictionary<EntityNodeKey, Entity> AwakeEntities { get; }
+
+        /// <summary>
+        ///     Gets the result of the last on-demand scan of the game's SleepingEntities map,
+        ///     filtered to entities whose path contains "Abyss". Populated only when the
+        ///     "Scan Sleeping Entities" button in DataVisualization is pressed; investigative only.
+        /// </summary>
+        public ConcurrentDictionary<EntityNodeKey, Entity> SleepingEntities { get; }
+
+        /// <summary>
+        ///     Gets important environments entity caches. This only contain awake entities.
+        /// </summary>
+        public List<DisappearingEntity> EntityCaches { get; }
+
+        /// <summary>
+        ///     Gets the total number of entities (awake as well as sleeping) in the network bubble.
+        /// </summary>
+        public int NetworkBubbleEntityCount { get; private set; }
+
+        /// <summary>
+        ///     Gets the total number of useless entities in the gamehelper cache that are in the network bubble.
+        /// </summary>
+        public int UselessAwakeEntities => this.uselesssEntities;
+
+        /// <summary>
+        ///     Gets the terrain metadata data of the current Area/Zone instance.
+        /// </summary>
+        public TerrainStruct TerrainMetadata { get; private set; }
+
+        /// <summary>
+        ///     Gets the terrain height data.
+        /// </summary>
+        public float[][] GridHeightData { get; private set; }
+
+        /// <summary>
+        ///     Gets the terrain data of the current Area/Zone instance.
+        /// </summary>
+        public byte[] GridWalkableData { get; private set; }
+
+        /// <summary>
+        ///     Gets the Disctionary of Lists containing only the named tgt tiles locations.
+        /// </summary>
+        public Dictionary<string, List<Vector2>> TgtTilesLocations { get; private set; }
+
+        /// <summary>
+        ///     Gets a value that can convert World coordinate to Grid coordinate.
+        /// </summary>
+        public float WorldToGridConvertor => TileStructure.TileToWorldConversion / TileStructure.TileToGridConversion;
+
+        /// <summary>
+        ///     Converts the <see cref="AreaInstance" /> class data to ImGui.
+        /// </summary>
+        internal override void ToImGui()
+        {
+            base.ToImGui();
+            if (ImGui.TreeNode("Environment Info"))
+            {
+                ImGuiHelper.IntPtrToImGui("Address", this.environmentPtr.First);
+                if (ImGui.TreeNode($"All Environments ({this.environments.Count})###AllEnvironments"))
+                {
+                    for (var i = 0; i < this.environments.Count; i++)
+                    {
+                        if (ImGui.Selectable($"{this.environments[i]}"))
+                        {
+                            ImGui.SetClipboardText($"{this.environments[i]}");
+                        }
+                    }
+
+                    ImGui.TreePop();
+                }
+
+                foreach (var eCache in this.EntityCaches)
+                {
+                    eCache.ToImGui();
+                }
+
+                ImGui.TreePop();
+            }
+
+            ImGui.Text($"Area Hash: {this.AreaHash}");
+            ImGui.Text($"Monster Level: {this.CurrentAreaLevel}");
+            if (ImGui.TreeNode("Terrain Metadata"))
+            {
+                ImGui.Text($"Total Tiles: {this.TerrainMetadata.TotalTiles}");
+                ImGui.Text($"Tiles Data Pointer: {this.TerrainMetadata.TileDetailsPtr}");
+                ImGui.Text($"Tiles Height Multiplier: {this.TerrainMetadata.TileHeightMultiplier}");
+                ImGui.Text($"Grid Walkable Data: {this.TerrainMetadata.GridWalkableData}");
+                ImGui.Text($"Grid Landscape Data: {this.TerrainMetadata.GridLandscapeData}");
+                ImGui.Text($"Data Bytes Per Row (for Walkable/Landscape Data): {this.TerrainMetadata.BytesPerRow}");
+                ImGui.TreePop();
+            }
+
+            if (this.Player.TryGetComponent<Render>(out var pPos))
+            {
+                var y = (int)pPos.GridPosition.Y;
+                var x = (int)pPos.GridPosition.X;
+                if (y < this.GridHeightData.Length && y >= 0)
+                {
+                    if (x < this.GridHeightData[0].Length && x >= 0)
+                    {
+                        ImGui.Text($"Player Pos (y:{y / TileStructure.TileToGridConversion}, x:{x / TileStructure.TileToGridConversion}) to Terrain Height: " +
+                                   $"{this.GridHeightData[y][x]}");
+                    }
+                }
+            }
+
+            ImGui.Text($"Total Entity Removed Per Area: {this.totalEntityRemoved}");
+            ImGui.Text($"Entities in network bubble: {this.NetworkBubbleEntityCount}");
+            this.EntitiesWidget("Awake", this.AwakeEntities);
+
+            if (ImGui.Button("Scan Sleeping Entities for 'Abyss'"))
+            {
+                this.ScanSleepingEntitiesForAbyss();
+            }
+
+            ImGuiHelper.ToolTip(
+                "One-shot scan of the game's SleepingEntities memory map (decorations/effects/etc). " +
+                "Keeps only entities whose path contains 'Abyss'. May briefly hitch on large maps.");
+            ImGui.SameLine();
+            ImGui.Text($"(last scan saw {this.lastSleepingScanCount} sleeping entities)");
+            this.EntitiesWidget("Sleeping Abyss", this.SleepingEntities);
+        }
+
+        /// <inheritdoc />
+        protected override void CleanUpData()
+        {
+            this.Cleanup(false);
+        }
+
+        /// <inheritdoc />
+        protected override void UpdateData(bool hasAddressChanged)
+        {
+            var reader = Core.Process.Handle;
+            var data = this.Layout.Read(reader, this.Address, out var moved);
+
+            if (hasAddressChanged || moved)
+            {
+                this.Cleanup(true);
+                this.TerrainMetadata = data.TerrainMetadata;
+                this.CurrentAreaLevel = data.CurrentAreaLevel;
+                this.AreaHash = $"{data.CurrentAreaHash:X}";
+                if (this.TryGetTerrainDimensions(out _, out _, out _, out _))
+                {
+                    this.GridWalkableData = reader.ReadStdVector<byte>(
+                        this.TerrainMetadata.GridWalkableData);
+                    this.GridHeightData = this.GetTerrainHeight();
+                    this.TgtTilesLocations = this.GetTgtFileData();
+                }
+                else
+                {
+                    this.GridWalkableData = Array.Empty<byte>();
+                    this.GridHeightData = Array.Empty<float[]>();
+                    this.TgtTilesLocations = new();
+                    Console.WriteLine(
+                        $"[AreaInstance] Rejected invalid terrain metadata at 0x{this.Address.ToInt64():X}: " +
+                        $"TotalTiles={this.TerrainMetadata.TotalTiles}, " +
+                        $"TileDetails={this.TerrainMetadata.TileDetailsPtr}. " +
+                        $"Terrain must fit within {MaxTerrainGridCells:N0} grid cells and have a matching tile vector. " +
+                        "The area may exceed the size limit, or the AreaInstance/TerrainMetadata offsets may have shifted.");
+                }
+            }
+
+            this.UpdateEnvironmentAndCaches(data.Environments);
+            this.ServerDataObject.Address = data.PlayerInfo.ServerDataPtr;
+            this.Player.Address = data.PlayerInfo.LocalPlayerPtr;
+            this.UpdateEntities(data.Entities.AwakeEntities, this.AwakeEntities, true);
+            this.AddEntityBackedPlayerBuffs();
+        }
+
+        private void AddEntityBackedPlayerBuffs()
+        {
+            if (!this.Player.TryGetComponent<Buffs>(out var playerBuffs))
+            {
+                return;
+            }
+
+            foreach (var entity in this.AwakeEntities.Values)
+            {
+                if (!entity.IsValid)
+                {
+                    continue;
+                }
+
+                foreach (var definition in EntityBackedPlayerBuffs)
+                {
+                    if (!entity.Path.Contains(definition.EntityPathFragment, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    // Effect entities can be classified as useless and therefore stop refreshing
+                    // cached components. Read a fresh component so changing stages remain live.
+                    if (!entity.TryGetComponent<Buffs>(out var entityBuffs, false))
+                    {
+                        break;
+                    }
+
+                    foreach (var statusEffect in entityBuffs.StatusEffects)
+                    {
+                        if (!statusEffect.Key.Contains(definition.BuffNameFragment, StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        var syntheticEffect = statusEffect.Value;
+                        syntheticEffect.Charges = (short)Math.Min(
+                            short.MaxValue,
+                            definition.StageToStacks(syntheticEffect.RawStage));
+                        playerBuffs.AddSyntheticStatusEffect(statusEffect.Key, syntheticEffect);
+                    }
+                }
+            }
+        }
+
+        private void UpdateEnvironmentAndCaches(StdVector environments)
+        {
+            this.environments.Clear();
+            var reader = Core.Process.Handle;
+            this.environmentPtr = environments;
+            var envData = reader.ReadStdVector<EnvironmentStruct>(environments);
+            for (var i = 0; i < envData.Length; i++)
+            {
+                this.environments.Add(envData[i].Key);
+            }
+
+            this.EntityCaches.ForEach((eCache) => eCache.UpdateState(this.environments));
+        }
+
+        private void AddToCacheParallel(EntityNodeKey key, string path)
+        {
+            for (var i = 0; i < this.EntityCaches.Count; i++)
+            {
+                if (this.EntityCaches[i].TryAddParallel(key, path))
+                {
+                    break;
+                }
+            }
+        }
+
+        private void UpdateEntities(
+            StdMap ePtr,
+            ConcurrentDictionary<EntityNodeKey, Entity> data,
+            bool addToCache)
+        {
+            var reader = Core.Process.Handle;
+            var dc = Core.GHSettings.DisableAllCounters;
+            var areaDetails = Core.States.InGameStateObject.CurrentWorldInstance.AreaDetails;
+            if (Core.GHSettings.DisableEntityProcessingInTownOrHideout &&
+                (areaDetails.IsHideout || areaDetails.IsTown))
+            {
+                this.NetworkBubbleEntityCount = 0;
+                return;
+            }
+
+            var staleCleanup = Core.GHSettings.EnableStaleEntityCleanup;
+            var staleThreshold = Core.GHSettings.StaleEntityFrameThreshold;
+            this.uselesssEntities = 0;
+            Parallel.ForEach(data, (kv) =>
+            {
+                if (kv.Value.IsValid)
+                {
+                    kv.Value.ResetInvalidFrames();
+                    if (dc == false && kv.Value.EntityState == EntityStates.Useless)
+                    {
+                        Interlocked.Increment(ref this.uselesssEntities);
+                    }
+                }
+                else
+                {
+                    kv.Value.IncrementInvalidFrames();
+
+                    var shouldRemove = false;
+
+                    if (kv.Value.EntityState == EntityStates.MonsterFriendly ||
+                        (kv.Value.CanExplodeOrRemovedFromGame &&
+                        this.Player.DistanceFrom(kv.Value) < AreaInstanceConstants.NETWORK_BUBBLE_RADIUS))
+                    {
+                        shouldRemove = true;
+                    }
+
+                    // Time-based cleanup: remove entities invalid for N consecutive frames.
+                    if (!shouldRemove && staleCleanup &&
+                        kv.Value.ConsecutiveInvalidFrames >= staleThreshold)
+                    {
+                        shouldRemove = true;
+                    }
+
+                    if (shouldRemove)
+                    {
+                        data.TryRemove(kv.Key, out _);
+                        if (dc == false)
+                        {
+                            Interlocked.Increment(ref this.totalEntityRemoved);
+                        }
+                    }
+                }
+
+                kv.Value.IsValid = false;
+            });
+
+            this.NetworkBubbleEntityCount = reader.ReadStdMap<EntityNodeKey, EntityNodeValue>(ePtr, 100000, dc == false, (key, value) =>
+            {
+                if (!Core.GHSettings.ProcessAllRenderableEntities && !EntityFilter.IgnoreVisualsAndDecorations(key))
+                {
+                    return false;
+                }
+
+                // Drop torn-read entries whose pointer can't back a real entity.
+                if (!SafeMemoryHandle.IsValidAddress(value.EntityPtr))
+                {
+                    return false;
+                }
+
+                if (data.TryGetValue(key, out var entity))
+                {
+                    entity.Address = value.EntityPtr;
+                }
+                else
+                {
+                    entity = new Entity(value.EntityPtr);
+                    if (!string.IsNullOrEmpty(entity.Path))
+                    {
+                        data[key] = entity;
+                        if (addToCache)
+                        {
+                            this.AddToCacheParallel(key, entity.Path);
+                        }
+                    }
+                    else
+                    {
+                        entity = null;
+                    }
+                }
+
+                entity?.UpdateNearby(this.Player);
+                return true;
+            });
+        }
+
+        private Dictionary<string, List<Vector2>> GetTgtFileData()
+        {
+            if (!this.TryGetTerrainDimensions(out var tileCountX, out _, out _, out _))
+            {
+                return new();
+            }
+
+            var reader = Core.Process.Handle;
+            var tileData = reader.ReadStdVector<TileStructure>(this.TerrainMetadata.TileDetailsPtr);
+            var ret = new Dictionary<string, List<Vector2>>();
+            object mylock = new();
+            Parallel.For(
+                0,
+                tileData.Length,
+                // happens on every thread, rather than every iteration.
+                () => new Dictionary<string, List<Vector2>>(),
+                // happens on every iteration.
+                (tileNumber, _, localstate) =>
+                {
+                    var tile = tileData[tileNumber];
+                    var tgtFile = reader.ReadMemory<TgtFileStruct>(tile.TgtFilePtr);
+                    var tgtName = reader.ReadStdWString(tgtFile.TgtPath);
+                    if (string.IsNullOrEmpty(tgtName))
+                    {
+                        return localstate;
+                    }
+
+                    if (tile.RotationSelector % 2 == 0)
+                    {
+                        tgtName += $"x:{tile.tileIdX}-y:{tile.tileIdY}";
+                    }
+                    else
+                    {
+                        tgtName += $"x:{tile.tileIdY}-y:{tile.tileIdX}";
+                    }
+
+                    var loc = new Vector2
+                    {
+                        Y = (tileNumber / tileCountX) * TileStructure.TileToGridConversion,
+                        X = (tileNumber % tileCountX) * TileStructure.TileToGridConversion
+                    };
+
+                    if (localstate.ContainsKey(tgtName))
+                    {
+                        localstate[tgtName].Add(loc);
+                    }
+                    else
+                    {
+                        localstate[tgtName] = new() { loc };
+                    }
+
+                    return localstate;
+                },
+                finalresult => // happens on every thread, rather than every iteration.
+                {
+                    lock (mylock)
+                    {
+                        foreach (var kv in finalresult)
+                        {
+                            if (!ret.TryGetValue(kv.Key, out var value))
+                            {
+                                value = new();
+                                ret[kv.Key] = value;
+                            }
+
+                            value.AddRange(kv.Value);
+                        }
+                    }
+                });
+
+            return ret;
+        }
+
+        private float[][] GetTerrainHeight()
+        {
+            if (!this.TryGetTerrainDimensions(
+                    out var tileCountX,
+                    out _,
+                    out var gridSizeX,
+                    out var gridSizeY))
+            {
+                return Array.Empty<float[]>();
+            }
+
+            var rotationHelper = Core.RotationSelector.Values;
+            var rotatorMetrixHelper = Core.RotatorHelper.Values;
+            var reader = Core.Process.Handle;
+            var tileData = reader.ReadStdVector<TileStructure>(this.TerrainMetadata.TileDetailsPtr);
+            var subTileHeightCache = new ConcurrentDictionary<IntPtr, sbyte[]>();
+            Parallel.For(0, tileData.Length, index =>
+            {
+                var val = tileData[index];
+                subTileHeightCache.AddOrUpdate(
+                    val.SubTileDetailsPtr,
+                    addr =>
+                    {
+                        var subTileData = reader.ReadMemory<SubTileStruct>(addr);
+                        var subTileHeightData = reader.ReadStdVector<sbyte>(subTileData.SubTileHeight);
+                        return subTileHeightData;
+                    },
+                    (addr, data) => data);
+            });
+
+            var result = new float[gridSizeY][];
+            Parallel.For(0, gridSizeY, y =>
+            {
+                result[y] = new float[gridSizeX];
+                for (var x = 0; x < gridSizeX; x++)
+                {
+                    var tileDataIndex = (y / TileStructure.TileToGridConversion) * tileCountX;
+                    tileDataIndex += x / TileStructure.TileToGridConversion;
+                    var subTileHeight = 0;
+                    if (tileDataIndex >= 0 && tileDataIndex < tileData.Length)
+                    {
+                        var mytiledata = tileData[tileDataIndex];
+                        if (subTileHeightCache.TryGetValue(mytiledata.SubTileDetailsPtr, out var subTileHeightsArray))
+                        {
+                            var gridXremaining = x % TileStructure.TileToGridConversion;
+                            var gridYremaining = y % TileStructure.TileToGridConversion;
+
+                            // 8 is the max number in rotationHelper array. 8 * 3 = 24.
+                            // According to the game, this number should never go above 24.
+                            var rotationSelected = mytiledata.RotationSelector < rotationHelper.Length ?
+                                rotationHelper[mytiledata.RotationSelector] * 3 : 24;
+                            rotationSelected = rotationSelected > 24 ? 24 : rotationSelected;
+
+                            var rotatorMetrix = new int[4]
+                            {
+                                TileStructure.TileToGridConversion - gridXremaining - 1,
+                                gridXremaining,
+                                TileStructure.TileToGridConversion - gridYremaining - 1,
+                                gridYremaining
+                            };
+
+                            int rotatedX0 = rotatorMetrixHelper[rotationSelected];
+                            int rotatedX1 = rotatorMetrixHelper[rotationSelected + 1];
+                            int rotatedY0 = rotatorMetrixHelper[rotationSelected + 2];
+                            var rotatedY1 = 0;
+                            if (rotatedX0 == 0)
+                            {
+                                rotatedY1 = 2;
+                            }
+
+                            var finalRotatedX = rotatorMetrix[rotatedX0 * 2 + rotatedX1];
+                            var finalRotatedY = rotatorMetrix[rotatedY0 + rotatedY1];
+                            subTileHeight = this.GetSubTerrainHeight(subTileHeightsArray, finalRotatedY, finalRotatedX);
+                            result[y][x] = mytiledata.TileHeight * (float)this.TerrainMetadata.TileHeightMultiplier + subTileHeight;
+                            result[y][x] = result[y][x] * TerrainStruct.TileHeightFinalMultiplier * -1;
+                        }
+                    }
+                }
+            });
+
+            return result;
+        }
+
+        private bool TryGetTerrainDimensions(
+            out int tileCountX,
+            out int tileCountY,
+            out int gridSizeX,
+            out int gridSizeY)
+        {
+            tileCountX = 0;
+            tileCountY = 0;
+            gridSizeX = 0;
+            gridSizeY = 0;
+
+            var totalTilesX = this.TerrainMetadata.TotalTiles.X;
+            var totalTilesY = this.TerrainMetadata.TotalTiles.Y;
+            var conversion = TileStructure.TileToGridConversion;
+            if (conversion <= 0 ||
+                totalTilesX <= 0 || totalTilesY <= 0 ||
+                totalTilesX > int.MaxValue / conversion ||
+                totalTilesY > int.MaxValue / conversion)
+            {
+                return false;
+            }
+
+            var candidateGridSizeX = totalTilesX * conversion;
+            var candidateGridSizeY = totalTilesY * conversion;
+            if (candidateGridSizeY > MaxTerrainGridCells / candidateGridSizeX)
+            {
+                return false;
+            }
+
+            var tileDetails = this.TerrainMetadata.TileDetailsPtr;
+            var tileDetailsBytes = tileDetails.Last.ToInt64() - tileDetails.First.ToInt64();
+            var expectedTileDetailsBytes = totalTilesX * totalTilesY * TerrainTileStructureSize;
+            if (tileDetails.First == IntPtr.Zero || tileDetails.Last.ToInt64() < tileDetails.First.ToInt64() ||
+                tileDetails.End.ToInt64() < tileDetails.Last.ToInt64() ||
+                tileDetailsBytes != expectedTileDetailsBytes)
+            {
+                return false;
+            }
+
+            tileCountX = (int)totalTilesX;
+            tileCountY = (int)totalTilesY;
+            gridSizeX = (int)candidateGridSizeX;
+            gridSizeY = (int)candidateGridSizeY;
+            return true;
+        }
+
+        private int GetSubTerrainHeight(sbyte[] subterrainheightarray, int y, int x)
+        {
+            if (x < 0 || y < 0 || x >= TileStructure.TileToGridConversion || y >= TileStructure.TileToGridConversion)
+            {
+                return 0;
+            }
+
+            var index = y * TileStructure.TileToGridConversion + x;
+            if (subterrainheightarray.Length == 0)
+            {
+                return 0;
+            }
+
+#if true
+            var arrayLength = subterrainheightarray.Length;
+            switch (arrayLength)
+            {
+                case 0x01:
+                    return subterrainheightarray[0];
+                case 0x45:
+                    return subterrainheightarray[(byte)subterrainheightarray[(index >> 3) + 2] >> ((index & 7) << 0) & 0x01];
+                case 0x89:
+                    return subterrainheightarray[(byte)subterrainheightarray[(index >> 2) + 4] >> ((index & 3) << 1) & 0x03];
+                case 0x119:
+                    return subterrainheightarray[(byte)subterrainheightarray[(index >> 1) + 16] >> ((index & 1) << 2) & 0xF];
+                default:
+                    if (arrayLength > index)
+                    {
+                        return subterrainheightarray[index];
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[AreaInstance.GetSubTerrainHeight] OOR: len={arrayLength}, index={index} - returning 0 (audit F-138).");
+                        return 0;
+                    }
+            }
+#else
+            return 0;
+#endif
+        }
+
+        /// <summary>
+        ///     knows how to clean up the <see cref="AreaInstance"/> class.
+        /// </summary>
+        /// <param name="isAreaChange">
+        ///     true in case it's a cleanup due to area change otherwise false.
+        /// </param>
+        private void Cleanup(bool isAreaChange)
+        {
+            this.totalEntityRemoved = 0;
+            this.uselesssEntities = 0;
+            this.AwakeEntities.Clear();
+            this.SleepingEntities.Clear();
+            this.lastSleepingScanCount = 0;
+            this.EntityCaches.ForEach((e) => e.Clear());
+
+            if (!isAreaChange)
+            {
+                this.environmentPtr = default;
+                this.environments.Clear();
+                this.CurrentAreaLevel = 0;
+                this.AreaHash = string.Empty;
+                this.ServerDataObject.Address = IntPtr.Zero;
+                this.Player.Address = IntPtr.Zero;
+                this.NetworkBubbleEntityCount = 0;
+                this.TerrainMetadata = default;
+                this.GridHeightData = Array.Empty<float[]>();
+                this.GridWalkableData = Array.Empty<byte>();
+                this.TgtTilesLocations.Clear();
+            }
+        }
+
+        /// <summary>
+        ///     Scans the game's SleepingEntities memory map (decorations / out-of-bubble objects)
+        ///     and invokes <paramref name="onMatch"/> for each entity whose path satisfies
+        ///     <paramref name="pathFilter"/>. Sleeping entities exist at a larger radius than awake
+        ///     ones, so this can surface objects beyond the network bubble.
+        ///     NOTE: the callback runs in parallel (see <see cref="SafeMemoryHandle.ReadStdMap"/>),
+        ///     so <paramref name="onMatch"/> and anything it writes to must be thread-safe.
+        /// </summary>
+        /// <param name="pathFilter">Predicate on the entity path deciding which entities to keep.</param>
+        /// <param name="onMatch">Invoked (possibly concurrently) for each matching entity.</param>
+        /// <returns>Total number of sleeping entities scanned.</returns>
+        public int ScanSleepingEntities(Func<string, bool> pathFilter, Action<EntityNodeKey, Entity> onMatch)
+        {
+            if (this.Address == IntPtr.Zero)
+            {
+                return 0;
+            }
+
+            var reader = Core.Process.Handle;
+            var data = this.Layout.Read(reader, this.Address);
+            return reader.ReadStdMap<EntityNodeKey, EntityNodeValue>(
+                data.Entities.SleepingEntities,
+                500000,
+                true,
+                (key, value) =>
+                {
+                    // Drop torn-read entries whose pointer can't back a real entity.
+                    if (!SafeMemoryHandle.IsValidAddress(value.EntityPtr))
+                    {
+                        return false;
+                    }
+
+                    var entity = new Entity(value.EntityPtr);
+                    if (!string.IsNullOrEmpty(entity.Path) && pathFilter(entity.Path))
+                    {
+                        onMatch(key, entity);
+                    }
+
+                    return true;
+                });
+        }
+
+        private void ScanSleepingEntitiesForAbyss()
+        {
+            this.SleepingEntities.Clear();
+
+            // Investigative one-shot scan: keep any entity with "Abyss" in its path.
+            this.lastSleepingScanCount = this.ScanSleepingEntities(
+                p => p.Contains("Abyss", StringComparison.OrdinalIgnoreCase),
+                (key, entity) => this.SleepingEntities[key] = entity);
+        }
+
+        // Debug aid: dumps the .ao model path of every nearby ExpeditionMarker entity (they all
+        // share one metadata path; only the model distinguishes the flag variants) to the console
+        // and to expedition_marker_models.txt next to the exe.
+        private static void DumpExpeditionMarkerModels(ConcurrentDictionary<EntityNodeKey, Entity> data)
+        {
+            const string markerPath = "Metadata/MiscellaneousObjects/Expedition/ExpeditionMarker";
+            var lines = new List<string>();
+            foreach (var entity in data)
+            {
+                if (!entity.Value.Path.StartsWith(markerPath, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var model = entity.Value.TryGetComponent<Animated>(out var animated)
+                    ? animated.ModelPath
+                    : "(no Animated component)";
+                var grid = entity.Value.TryGetComponent<Render>(out var render)
+                    ? $"({render.GridPosition.X:0},{render.GridPosition.Y:0})"
+                    : "(no pos)";
+                lines.Add($"Id {entity.Value.Id,-7} {grid,-16} {model}");
+            }
+
+            lines.Sort(StringComparer.Ordinal);
+            lines.Insert(0, $"ExpeditionMarker model dump - {lines.Count} marker(s)");
+            foreach (var line in lines)
+            {
+                Console.WriteLine($"[ExpeditionMarkerDump] {line}");
+            }
+
+            try
+            {
+                File.WriteAllLines("expedition_marker_models.txt", lines);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ExpeditionMarkerDump] failed to write file: {ex.Message}");
+            }
+        }
+
+        private void EntitiesWidget(string label, ConcurrentDictionary<EntityNodeKey, Entity> data)
+        {
+            if (ImGui.TreeNode($"{label} Entities ({data.Count})###${label} Entities"))
+            {
+                if (ImGui.RadioButton("Filter by Id           ", this.filterBy == 0))
+                {
+                    this.filterBy = 0;
+                }
+
+                ImGui.SameLine();
+                if (ImGui.RadioButton("Filter by Path           ", this.filterBy == 1))
+                {
+                    this.filterBy = 1;
+                }
+
+                ImGui.SameLine();
+                if (ImGui.RadioButton("Filter by Rarity", this.filterBy == 2))
+                {
+                    this.filterBy = 2;
+                }
+
+                switch (this.filterBy)
+                {
+                    case 0:
+                        ImGui.InputText("Entity Id Filter", ref this.entityIdFilter, 10, ImGuiInputTextFlags.CharsDecimal);
+                        break;
+                    case 1:
+                        ImGui.InputText("Entity Path Filter", ref this.entityPathFilter, 100);
+                        break;
+                    case 2:
+                        ImGuiHelper.EnumComboBox("Entity Rarity Filter", ref this.entityRarityFilter);
+                        break;
+                    default:
+                        break;
+                }
+
+                if (ImGui.Button($"Dump ExpeditionMarker models##{label}"))
+                {
+                    DumpExpeditionMarkerModels(data);
+                }
+
+                foreach (var entity in data)
+                {
+                    switch (this.filterBy)
+                    {
+                        case 0:
+                            if (!(string.IsNullOrEmpty(this.entityIdFilter) ||
+                                $"{entity.Key.id}".Contains(this.entityIdFilter)))
+                            {
+                                continue;
+                            }
+
+                            break;
+                        case 1:
+                            if (!(string.IsNullOrEmpty(this.entityPathFilter) ||
+                                entity.Value.Path.ToLower().Contains(this.entityPathFilter.ToLower())))
+                            {
+                                continue;
+                            }
+
+                            break;
+                        case 2:
+                            if (!(entity.Value.TryGetComponent(out ObjectMagicProperties? omp) &&
+                                omp.Rarity == this.entityRarityFilter))
+                            {
+                                continue;
+                            }
+
+                            break;
+                        default:
+                            break;
+                    }
+
+                    var isClicked = ImGui.TreeNode($"{entity.Value.Id} {entity.Value.Path}");
+                    ImGui.SameLine();
+                    if (ImGui.SmallButton($"dump##{entity.Key}"))
+                    {
+                        string path = entity.Value.Path;
+                        string safeName = string.IsNullOrWhiteSpace(path) ? $"{entity.Value.Id}" : path.Replace("/", "_");
+
+                        // Helpers to robustly read "name" from unknown tuple/dictionary shapes.
+                        static string? TryGetKeyName(object entry)
+                        {
+                            if (entry == null) return null;
+
+                            // Try Key (e.g., KeyValuePair<,>)
+                            var keyProp = entry.GetType().GetProperty("Key", BindingFlags.Public | BindingFlags.Instance);
+                            if (keyProp != null)
+                            {
+                                var keyVal = keyProp.GetValue(entry);
+                                return keyVal?.ToString();
+                            }
+
+                            // Try Item1 (e.g., ValueTuple<string, ...> or Tuple<string,...>)
+                            var item1Prop = entry.GetType().GetProperty("Item1", BindingFlags.Public | BindingFlags.Instance);
+                            if (item1Prop != null)
+                            {
+                                var item1Val = item1Prop.GetValue(entry);
+                                return item1Val?.ToString();
+                            }
+
+                            // Fallback
+                            return entry.ToString();
+                        }
+
+                        // Build a dictionary<string,int> from an unknown KVP/tuple-like collection
+                        static Dictionary<string, int> ToStringIntMap(IEnumerable<object> entries)
+                        {
+                            var result = new Dictionary<string, int>();
+                            if (entries == null) return result;
+
+                            foreach (var e in entries)
+                            {
+                                if (e == null) continue;
+
+                                // Try Key/Value properties first (KeyValuePair-like)
+                                var t = e.GetType();
+                                var keyProp = t.GetProperty("Key", BindingFlags.Public | BindingFlags.Instance);
+                                var valProp = t.GetProperty("Value", BindingFlags.Public | BindingFlags.Instance);
+                                if (keyProp != null && valProp != null)
+                                {
+                                    var k = keyProp.GetValue(e)?.ToString();
+                                    if (k == null) continue;
+                                    var vObj = valProp.GetValue(e);
+                                    if (vObj == null) continue;
+                                    int v;
+                                    if (vObj is int vi) v = vi;
+                                    else if (!int.TryParse(vObj.ToString(), out v)) continue;
+                                    result[k] = v;
+                                    continue;
+                                }
+
+                                // Otherwise, try tuple pattern: Item1 (key), Item2 (value)
+                                var item1 = t.GetProperty("Item1", BindingFlags.Public | BindingFlags.Instance)?.GetValue(e);
+                                var item2 = t.GetProperty("Item2", BindingFlags.Public | BindingFlags.Instance)?.GetValue(e);
+                                if (item1 != null && item2 != null)
+                                {
+                                    var k = item1.ToString();
+                                    if (k == null) continue;
+                                    int v;
+                                    if (item2 is int vi2) v = vi2;
+                                    else if (!int.TryParse(item2.ToString(), out v)) continue;
+                                    result[k] = v;
+                                    continue;
+                                }
+
+                                // Last resort: just ToString the whole entry as a key with value 1
+                                var s = e.ToString();
+                                if (!string.IsNullOrEmpty(s) && !result.ContainsKey(s))
+                                    result[s] = 1;
+                            }
+                            return result;
+                        }
+
+                        // -------- ObjectMagicProperties --------
+                        List<string>? ompMods = null;
+                        Dictionary<string, int>? ompModStats = null;
+                        string? rarityStr = null;
+
+                        if (entity.Value.TryGetComponent<ObjectMagicProperties>(out var omp))
+                        {
+                            // Mods: enumerate without relying on Count
+                            if (omp.Mods != null)
+                            {
+                                var list = new List<string>();
+                                foreach (var m in omp.Mods)
+                                {
+                                    var name = TryGetKeyName(m);
+                                    if (!string.IsNullOrEmpty(name))
+                                        list.Add(name);
+                                }
+                                if (list.Count > 0) ompMods = list;
+                            }
+
+                            // ModStats: enumerate unknown shapes into string->int
+                            if (omp.ModStats != null)
+                            {
+                                // Cast to object-enumerable safely
+                                var objs = omp.ModStats.Cast<object>();
+                                var map = ToStringIntMap(objs);
+                                if (map.Count > 0) ompModStats = map;
+                            }
+
+                            rarityStr = omp.Rarity.ToString();
+                        }
+
+                        // -------- Buffs --------
+                        List<string>? buffs = null;
+                        if (entity.Value.TryGetComponent<Buffs>(out var buf) && buf.StatusEffects != null)
+                        {
+                            var list = new List<string>();
+                            foreach (var se in buf.StatusEffects) // don’t check Count; enumerate directly
+                            {
+                                // se might be KeyValuePair<string, T>
+                                var name = TryGetKeyName(se);
+                                if (!string.IsNullOrEmpty(name))
+                                    list.Add(name);
+                            }
+                            if (list.Count > 0) buffs = list;
+                        }
+
+                        // -------- Components list --------
+                        var components = entity.Value.GetComponentNames()?.ToList();
+
+                        // -------- Stats component (enum-ish keys -> string) --------
+                        Dictionary<string, int>? statsByItems = null;
+                        Dictionary<string, int>? statsByBuffs = null;
+                        if (entity.Value.TryGetComponent<Stats>(out var stats))
+                        {
+                            if (stats.StatsChangedByItems != null)
+                            {
+                                var map = ToStringIntMap(stats.StatsChangedByItems.Cast<object>());
+                                if (map.Count > 0) statsByItems = map;
+                            }
+
+                            if (stats.StatsChangedByBuffAndActions != null)
+                            {
+                                var map = ToStringIntMap(stats.StatsChangedByBuffAndActions.Cast<object>());
+                                if (map.Count > 0) statsByBuffs = map;
+                            }
+                        }
+
+                        // -------- Actor component --------
+                        List<String>? activeSkills = null;
+                        if (entity.Value.TryGetComponent<Actor>(out var actor) && actor.ActiveSkills != null)
+                        {
+                            var list = new List<string>();
+                            foreach (var kv in actor.ActiveSkills) // enumerate directly
+                            {
+                                var name = TryGetKeyName(kv);
+                                if (!string.IsNullOrEmpty(name))
+                                    list.Add(name);
+                            }
+                            if (list.Count > 0) activeSkills = list;
+                        }
+
+                        // -------- Positions (Render) --------
+                        Vector3? worldPos = null;
+                        Vector2? gridPos = null;
+                        if (entity.Value.TryGetComponent<Render>(out var render))
+                        {
+                            worldPos = new Vector3(render.WorldPosition.X, render.WorldPosition.Y, render.WorldPosition.Z);
+                            gridPos = new Vector2(render.GridPosition.X, render.GridPosition.Y);
+                        }
+
+                        // -------- StateMachine component --------
+                        List<object>? stateMachineStates = null;
+                        if (entity.Value.TryGetComponent<StateMachine>(out var sm) && sm.States != null)
+                        {
+                            stateMachineStates = new List<object>();
+                            foreach (var state in sm.States)
+                            {
+                                stateMachineStates.Add(new { state.Name, state.Value });
+                            }
+                        }
+
+                        // -------- MinimapIcon component --------
+                        string? minimapIconName = null;
+                        if (entity.Value.TryGetComponent<MinimapIcon>(out var mIcon))
+                        {
+                            minimapIconName = mIcon.IconName;
+                        }
+
+                        // -------- Build payload --------
+                        var payload = new
+                        {
+                            EntityId = entity.Value.Id,
+                            Key = new { entity.Key.id },
+                            Path = path,
+                            Rarity = rarityStr,
+                            Position = new
+                            {
+                                World = worldPos.HasValue ? new { X = worldPos.Value.X, Y = worldPos.Value.Y, Z = worldPos.Value.Z } : null,
+                                Grid = gridPos.HasValue ? new { X = gridPos.Value.X, Y = gridPos.Value.Y } : null
+                            },
+                            ObjectMagicProperties = new
+                            {
+                                Mods = ompMods,
+                                ModStats = ompModStats
+                            },
+                            Buffs = buffs,
+                            Components = components,
+                            StateMachine = stateMachineStates,
+                            MinimapIconName = minimapIconName,
+                            Stats = new
+                            {
+                                StatsChangedByItems = statsByItems,
+                                StatsChangedByBuffAndActions = statsByBuffs
+                            },
+                            Actor = new
+                            {
+                                ActiveSkillsOnEntity = activeSkills
+                            }
+                        };
+
+                        // -------- Serialize (pretty) --------
+                        var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+                        string json = JsonSerializer.Serialize(payload, jsonOptions);
+
+                        // -------- Write to file + clipboard --------
+                        Directory.CreateDirectory("entity_dumps");
+                        var outPath = Path.Join("entity_dumps", safeName + ".json");
+                        File.WriteAllText(outPath, json);
+                        ImGui.SetClipboardText(json);
+                    }
+                    ImGuiHelper.ToolTip("Dump entity data as pretty-printed JSON (also copied to clipboard).");
+                    if (isClicked)
+                    {
+                        entity.Value.ToImGui();
+                        ImGui.TreePop();
+                    }
+
+                    if (entity.Value.IsValid &&
+                        entity.Value.TryGetComponent<Render>(out var eRender))
+                    {
+                        // Build the label per filter, then draw it through a single
+                        // DrawText call so the overlap-shifting logic lives in one place.
+                        var entityLabel = this.filterBy switch
+                        {
+                            0 => $"ID: {entity.Key.id}",
+                            1 => $"Path: {entity.Value.Path}",
+                            2 => entity.Value.TryGetComponent(out ObjectMagicProperties? omp)
+                                ? $"Rarity: {omp.Rarity}"
+                                : null,
+                            _ => null,
+                        };
+
+                        if (entityLabel != null)
+                        {
+                            ImGuiHelper.DrawText(eRender.WorldPosition, entityLabel);
+                        }
+                    }
+                }
+
+                ImGui.TreePop();
+            }
+        }
+
+        private IEnumerator<Wait> OnPerFrame()
+        {
+            while (true)
+            {
+                yield return new Wait(GameHelperEvents.PerFrameDataUpdate);
+                try
+                {
+                    if (this.Address != IntPtr.Zero)
+                    {
+                        this.UpdateData(false);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[AreaInstance.OnPerFrame] {ex}");
+                }
+            }
+        }
+
+        private readonly record struct EntityBackedBuffDefinition(
+            string EntityPathFragment,
+            string BuffNameFragment,
+            Func<uint, int> StageToStacks);
+    }
+}

@@ -4,10 +4,10 @@
     smaller .7z beside it when 7-Zip is installed (under the 30 MB a chat upload takes; the zip is about 45 MB).
 .DESCRIPTION
     The top folder holds only the launcher (one self-contained, trimmed executable), the instructions, the controls and
-    a stop shortcut. GameHelper and the sound extractor are published self-contained into "app" (they share the same
-    .NET 10 runtime files), so nothing has to be installed. Only the accessibility plugin is shipped, with
+    a stop shortcut. The host (Poe2AccessHost) and the sound extractor are published self-contained into "app" (they
+    share the same .NET 10 runtime files), so nothing has to be installed. Only the accessibility plugin is shipped, with
     research mode off. The game's sounds are not shipped: the launcher regenerates them from the player's own install on
-    the first start and after each game patch (GameDataSetup.cs). Run with GameHelper stopped (the plugin build deploys into its folder).
+    the first start and after each game patch (GameDataSetup.cs). Run with the host stopped (the plugin build deploys into its folder).
     -Version (the release tag) goes into app\version.txt, which the launcher compares with the latest release to offer
     an update; a package without it never updates itself.
 #>
@@ -21,31 +21,25 @@ $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $Output = [System.IO.Path]::GetFullPath($Output)
 $stage = Join-Path $Output 'Poe2Access'
 $app = Join-Path $stage 'app'
-$devHost = Join-Path $repo 'external\GameHelper2\GameHelper\bin\Release\net10.0-windows\win-x64'
 
 function Invoke-Dotnet([string[]]$Arguments) {
     & dotnet @Arguments | Out-Host
     if ($LASTEXITCODE -ne 0) { throw "dotnet $($Arguments -join ' ') failed" }
 }
 
-# A package without the patch would need a new release after every game patch again.
-. (Join-Path $PSScriptRoot 'GameHelperPatch.ps1')
-Add-GameHelperPatch (Join-Path $repo 'external\GameHelper2')
-
 if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 New-Item -ItemType Directory -Force $stage | Out-Null
 
 # Host and extractor: self-contained, into the same "app" folder. The launcher: one file at the top.
-# Built under dist\build: in GameHelper's own bin the self-contained build would leave the .NET runtime in the
+# Built under dist\build: in the host's own bin the self-contained build would leave the .NET runtime in the
 # development host folder, where the framework-dependent development launcher then fails to start.
 $artifacts = Join-Path $Output 'build'
-foreach ($project in 'external\GameHelper2\GameHelper\GameHelper.csproj', 'tools\Poe2UiExtract\Poe2UiExtract.csproj') {
+foreach ($project in 'host\Poe2AccessHost\Poe2AccessHost.csproj', 'tools\Poe2UiExtract\Poe2UiExtract.csproj') {
     Invoke-Dotnet @('publish', (Join-Path $repo $project), '-c', 'Release', '-r', 'win-x64', '--self-contained', 'true', '-o', $app, '--artifacts-path', $artifacts,
         '-p:GenerateDocumentationFile=false', '-p:SatelliteResourceLanguages=en', '-nologo', '-v', 'q')
 }
-# Unused here: GameHelper's bundled fonts serve only its "Universal font" option, off in the shipped settings (it falls
-# back to the configured font without them); the native PDB reader and the crash-dump tool serve debuggers.
-Remove-Item -Recurse -Force (Join-Path $app 'fonts'), (Join-Path $app 'Microsoft.DiaSymReader.Native.amd64.dll'), (Join-Path $app 'createdump.exe') -ErrorAction SilentlyContinue
+# Unused here: the runtime's native PDB reader and crash-dump tool serve debuggers.
+Remove-Item -Force (Join-Path $app 'Microsoft.DiaSymReader.Native.amd64.dll'), (Join-Path $app 'createdump.exe') -ErrorAction SilentlyContinue
 # Uncompressed inside: the archive compresses it better than the bundle's own compression (and it starts faster).
 Invoke-Dotnet @('publish', (Join-Path $repo 'tools\Poe2AccessLauncher\Poe2Access.csproj'), '-c', 'Release', '-r', 'win-x64', '--self-contained', 'true', '-o', $stage,
     '-p:PublishSingleFile=true', '-p:PublishTrimmed=true', '-p:EnableCompressionInSingleFile=false', '-p:DebugType=none', '-nologo', '-v', 'q')
@@ -65,14 +59,9 @@ Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\hit-times.txt') (Join-Path
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\hazards.txt') (Join-Path $plugin 'catalog') # harmful-ground buffs from the game files
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\code-fields.txt') (Join-Path $plugin 'catalog') # what the game's code reads; no step makes it
 Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\cull-skills.txt') (Join-Path $plugin 'catalog') # skills that deal Culling Strike, from the game files
+Copy-Item (Join-Path $repo 'Poe2Accessibility\catalog\important_tgt_files.txt') (Join-Path $plugin 'catalog') # named places, from GameHelper2's Radar plugin
 Copy-Item (Join-Path $repo 'Poe2Accessibility\assets') $plugin -Recurse # the mod's own recorded sounds (unexplored-area loop, Diablo IV item set)
-Copy-Item (Join-Path $repo 'external\GameHelper2\Plugins\Radar\important_tgt_files.txt') (Join-Path $plugin 'catalog') # named places; Radar is not shipped
 Set-Content -Path (Join-Path $plugin 'config\settings.txt') -Value '{ "ResearchMode": false }' -Encoding utf8
-
-# GameHelper settings: controller mode as in development; only the accessibility plugin enabled.
-New-Item -ItemType Directory -Force (Join-Path $app 'configs') | Out-Null
-Copy-Item (Join-Path $devHost 'configs\core_settings.json') (Join-Path $app 'configs')
-Set-Content -Path (Join-Path $app 'configs\plugins.json') -Value "{`n  `"Poe2Accessibility`": {`n    `"Enable`": true`n  }`n}" -Encoding utf8
 
 if ($Version.Length -gt 0) { Set-Content -Path (Join-Path $app 'version.txt') -Value $Version -Encoding ascii }
 

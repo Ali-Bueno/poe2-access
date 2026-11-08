@@ -11,7 +11,7 @@ internal static class GameDataSetup
 {
     private const string ExtractorExe = "Poe2UiExtract.exe";
     private const int StepTimeoutMilliseconds = 180_000;
-    private const string DataFolder = "GameData"; // beside GameHelper: the catalogs made here, kept over the plugin's shipped copies
+    private const string DataFolder = "GameData"; // beside the host: the catalogs made here, kept over the plugin's shipped copies
     private const string StampName = "game-version.txt";
     private const string ItemSoundsStep = "item sounds";
     private const string SoundsStep = "sounds";

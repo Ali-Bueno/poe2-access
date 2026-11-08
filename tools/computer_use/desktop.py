@@ -13,7 +13,7 @@ import pad
 import win32 as w
 
 REPOSITORY = Path(__file__).resolve().parents[2]
-PLUGIN_LOG = REPOSITORY / 'external/GameHelper2/GameHelper/bin/Release/net10.0-windows/win-x64/Plugins/Poe2Accessibility/logs/accessibility.log'
+PLUGIN_LOG = REPOSITORY / 'host/Poe2AccessHost/bin/Release/net10.0-windows/win-x64/Plugins/Poe2Accessibility/logs/accessibility.log'
 MAX_WAIT_SECONDS = 5.0  # long enough for a screen transition, short enough to keep steps observable
 MAX_LOG_LINES = 60  # keep one step's log excerpt readable
 

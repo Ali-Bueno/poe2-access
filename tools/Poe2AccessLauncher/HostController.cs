@@ -3,15 +3,16 @@ using System.Diagnostics;
 
 namespace Poe2AccessLauncher;
 
-/// <summary>Stops and starts the GameHelper host that carries the accessibility plugin.</summary>
+/// <summary>Stops and starts Poe2AccessHost, the headless host that carries the accessibility plugin.</summary>
 internal sealed class HostController(string hostDirectory)
 {
-    private const string HostExe = "GameHelper.exe";
-    private const string OriginalLauncherExe = "Launcher.exe";
+    private const string HostExe = "Poe2AccessHost.exe";
+    private const string StopEventName = @"Local\Poe2AccessHost.Stop"; // the host waits on it and exits (host/Poe2AccessHost)
+    private const int GracefulExitMilliseconds = 5_000;
     private const int ExitWaitMilliseconds = 10_000;
     private const int StartupCheckMilliseconds = 1_500;
 
-    /// <summary>The test package keeps GameHelper and everything else in "app" beside this one executable.</summary>
+    /// <summary>The test package keeps the host and everything else in "app" beside this one executable.</summary>
     public static string PackagedHostDirectory => Path.Join(AppContext.BaseDirectory, "app");
 
     public static string ResolveDirectory(string? overrideDirectory)
@@ -31,7 +32,7 @@ internal sealed class HostController(string hostDirectory)
             return Path.GetFullPath(PackagedHostDirectory);
         }
 
-        var relative = Path.Join("external", "GameHelper2", "GameHelper", "bin", "Release", "net10.0-windows", "win-x64");
+        var relative = Path.Join("host", "Poe2AccessHost", "bin", "Release", "net10.0-windows", "win-x64");
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
         {
             var candidate = Path.Join(directory.FullName, relative);
@@ -41,11 +42,13 @@ internal sealed class HostController(string hostDirectory)
             }
         }
 
-        throw new DirectoryNotFoundException($"GameHelper folder not found from {AppContext.BaseDirectory}; pass --host <dir>.");
+        throw new DirectoryNotFoundException($"Host folder not found from {AppContext.BaseDirectory}; pass --host <dir>.");
     }
 
+    /// <summary>Asks the host to exit and kills whatever else runs from the host folder (an old GameHelper copy, or a host that did not answer).</summary>
     public void Stop()
     {
+        var signalled = SignalStop();
         foreach (var process in Process.GetProcesses())
         {
             using (process)
@@ -57,9 +60,15 @@ internal sealed class HostController(string hostDirectory)
 
                 try
                 {
+                    if (signalled && IsHostExe(path) && process.WaitForExit(GracefulExitMilliseconds))
+                    {
+                        Log.Write($"Stopped {path} (pid {process.Id})");
+                        continue;
+                    }
+
                     process.Kill(entireProcessTree: true);
                     process.WaitForExit(ExitWaitMilliseconds);
-                    Log.Write($"Stopped {path} (pid {process.Id})");
+                    Log.Write($"Killed {path} (pid {process.Id})");
                 }
                 catch (Exception error) when (error is InvalidOperationException or Win32Exception)
                 {
@@ -69,14 +78,11 @@ internal sealed class HostController(string hostDirectory)
         }
     }
 
-    /// <summary>Whether a GameHelper runs that only an administrator may stop, as one started for the Korean client.</summary>
+    /// <summary>Whether a host runs that only an administrator may stop, as one started for the Korean client.</summary>
     // Matched by name: a process run as administrator may hide its path from a launcher that is not.
     public bool HostNeedsAdministrator()
     {
-        var names = Directory.GetFiles(hostDirectory, "*.exe")
-            .Where(file => !string.Equals(Path.GetFileName(file), OriginalLauncherExe, StringComparison.OrdinalIgnoreCase))
-            .Select(Path.GetFileNameWithoutExtension)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var names = Directory.GetFiles(hostDirectory, "*.exe").Select(Path.GetFileNameWithoutExtension).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var processes = Process.GetProcesses();
         try
         {
@@ -90,38 +96,63 @@ internal sealed class HostController(string hostDirectory)
 
     public void Restart()
     {
-        var source = Path.Join(hostDirectory, HostExe);
-        if (!File.Exists(source))
+        var exe = Path.Join(hostDirectory, HostExe);
+        if (!File.Exists(exe))
         {
-            throw new FileNotFoundException($"{HostExe} not found in {hostDirectory}", source);
+            throw new FileNotFoundException($"{HostExe} not found in {hostDirectory}", exe);
         }
 
         Stop();
-        HostCopy.DeleteOldCopies(hostDirectory);
-        var copy = HostCopy.Create(hostDirectory, source);
-        Log.Write($"Created {copy}");
+        LegacyHost.Delete(hostDirectory);
 
-        var info = new ProcessStartInfo(copy)
+        // Its own manifest asks for no administrator rights: it runs with this launcher's, no window, no console.
+        var info = new ProcessStartInfo(exe)
         {
             WorkingDirectory = hostDirectory,
             UseShellExecute = false,
             CreateNoWindow = true,
         };
-        info.Environment["__COMPAT_LAYER"] = "RunAsInvoker"; // never its own prompt: it runs with this launcher's rights
-        using var host = Process.Start(info) ?? throw new InvalidOperationException("GameHelper did not start.");
+        using var host = Process.Start(info) ?? throw new InvalidOperationException("The host did not start.");
         if (host.WaitForExit(StartupCheckMilliseconds))
         {
-            throw new InvalidOperationException($"GameHelper exited right after start (code {host.ExitCode}).");
+            throw new InvalidOperationException($"The host exited right after start (code {host.ExitCode}).");
         }
 
-        Log.Write($"Started GameHelper (pid {host.Id})");
+        Log.Write($"Started {HostExe} (pid {host.Id})");
     }
 
+    /// <summary>Sets the host's stop event; false when no host holds one (none runs, or an old GameHelper does).</summary>
+    private static bool SignalStop()
+    {
+        try
+        {
+            if (!EventWaitHandle.TryOpenExisting(StopEventName, out var stop))
+            {
+                return false;
+            }
+
+            using (stop)
+            {
+                stop.Set();
+            }
+
+            return true;
+        }
+        catch (UnauthorizedAccessException error)
+        {
+            Log.Write($"Stop event denied (an administrator host?): {error.Message}");
+            return false;
+        }
+    }
+
+    private static bool IsHostExe(string path) => string.Equals(Path.GetFileName(path), HostExe, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>A process whose image lies in the host folder, other than this launcher (another copy of it may wait for the game).</summary>
     private bool IsHost(Process process, out string path)
     {
         path = ProcessAccess.ImagePath(process.Id) ?? string.Empty;
         return process.Id != Environment.ProcessId
             && string.Equals(Path.GetDirectoryName(path), hostDirectory.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(Path.GetFileName(path), OriginalLauncherExe, StringComparison.OrdinalIgnoreCase);
+            && !string.Equals(path, Environment.ProcessPath, StringComparison.OrdinalIgnoreCase);
     }
 }

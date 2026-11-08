@@ -35,11 +35,6 @@ namespace Poe2Accessibility
         public static string SettingsInvalid => T("Settings file could not be read, keeping current settings.", "No se pudo leer el archivo de configuración; se mantiene la actual.");
         public static string UiDumpBlockedByDiagnostics => T("Disable memory diagnostics in Game Helper settings before dumping.", "Desactiva los diagnósticos de memoria en la configuración de Game Helper antes de volcar.");
 
-        public static string HotkeyCollision(string key, string action) =>
-            T(
-                $"Warning: hotkey {key} for {action} is already used by Game Helper. Change it in settings.",
-                $"Aviso: la tecla {key} para {action} ya la usa Game Helper. Cámbiala en la configuración.");
-
         public static string ForState(GameStateTypes state) => state switch
         {
             GameStateTypes.PreGameState => T("Splash screen.", "Pantalla de inicio."),

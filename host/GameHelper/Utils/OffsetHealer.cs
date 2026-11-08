@@ -1,0 +1,536 @@
+// <copyright file="OffsetHealer.cs" company="None">
+// Copyright (c) None. All rights reserved.
+// </copyright>
+
+namespace GameHelper.Utils
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Numerics;
+    using System.Reflection;
+    using System.Runtime.InteropServices;
+    using GameHelper.RemoteObjects.Components;
+    using GameHelper.RemoteObjects.States.InGameStateObjects;
+    using GameHelper.Ui;
+    using GameOffsets.Natives;
+    using GameOffsets.Objects.Components;
+    using GameOffsets.Objects.FilesStructures;
+    using GameOffsets.Objects.States;
+    using GameOffsets.Objects.States.InGameState;
+    using GameOffsets.Objects.UiElement;
+
+    /// <summary>What a sweep of the game's structs found for one of them.</summary>
+    public enum StructHealth
+    {
+        /// <summary>Its checked fields hold what they must.</summary>
+        Intact,
+
+        /// <summary>It was broken and now reads from where its fields moved.</summary>
+        Moved,
+
+        /// <summary>It is broken and no place fits.</summary>
+        Lost,
+
+        /// <summary>Nothing live to judge it on, or nothing in it can be checked.</summary>
+        NotJudged,
+    }
+
+    /// <summary>One struct's outcome: its name, its health, where its first moved field went, and the reason.</summary>
+    public readonly record struct StructOutcome(string Name, StructHealth Health, int From, int To, string Detail);
+
+    /// <summary>
+    ///     Finds where a patch left the game's structs, with no one at the keyboard: the fields the mod lives on by what they
+    ///     must hold (<see cref="StructShapes"/>), the rest by GameHelper's offset verifier. A struct that holds what it must
+    ///     is never touched; one that moved is read through <see cref="StructRemap{T}"/>.
+    /// </summary>
+    public static class OffsetHealer
+    {
+        /// <summary>The part that says where things stand.</summary>
+        public const string PositionsPart = "positions";
+
+        /// <summary>The part that says what actors are doing.</summary>
+        public const string AnimationPart = "animations";
+
+        /// <summary>The part that tells friend from foe.</summary>
+        public const string ReactionPart = "reaction";
+
+        private const int SearchRadius = 0x200;
+        private const int GameStateBytes = 0x1000;
+        private const int MinMonstersForReaction = 5;
+        private const int ReactionRadius = 0x40;
+
+        // The player stands near the screen's middle; a wrong position lands anywhere (0.8 of the half screen).
+        private const float CentreShare = 0.8f;
+
+        private const float WorldPerTile = 250f;
+
+        // Judged here or by their own searches (AreaInstanceLayout, the plugin's UI probes), not by the verifier.
+        private static readonly HashSet<Type> OwnJudgment = new()
+        {
+            typeof(AreaInstanceOffsets), typeof(UiElementBaseOffset), typeof(LifeOffset), typeof(BuffsOffsets),
+            typeof(ActorOffset), typeof(RenderOffsets), typeof(StatsOffsets),
+        };
+
+        private static readonly Dictionary<Type, RemapSegment[]> Healed = new();
+
+        /// <summary>Which segments the code placed, so a later build's reading replaces them and a live one is left alone.</summary>
+        private static readonly Dictionary<Type, HashSet<int>> FromCode = new();
+
+        /// <summary>Checks every struct with something live to judge it on; call on the render thread.</summary>
+        public static IReadOnlyList<StructOutcome> Sweep()
+        {
+            var state = Core.States.InGameStateObject;
+            var area = state.CurrentAreaInstance;
+            var memory = new GameMemory(Core.Process.Handle);
+            bool cameraKnown;
+            lock (Healed)
+            {
+                cameraKnown = Healed.ContainsKey(typeof(WorldDataOffset));
+            }
+
+            var camera = JudgeCamera(state.CurrentWorldInstance.Address);
+            var outcomes = new List<StructOutcome>
+            {
+                camera,
+                JudgeLife(area.Player),
+                JudgeBuffs(area.Player, memory),
+                JudgeSkills(area.Player, memory),
+                JudgeStats(area.Player, memory),
+            };
+
+            // The position is judged through the camera, which only reads from its new place on the next frame.
+            outcomes.Add(camera.Health == StructHealth.Moved && !cameraKnown ? NotJudged(PositionsPart, "the camera just moved") : JudgePosition(area));
+            foreach (var probe in OffsetHelperEngine.RunSweep().Probes)
+            {
+                if (probe.StructType is { } type && !OwnJudgment.Contains(type))
+                {
+                    outcomes.Add(Verified(probe, type));
+                }
+            }
+
+            return outcomes;
+        }
+
+        /// <summary>Gets the offset of an entity's id this GameHelper was written for.</summary>
+        internal static int MeasuredEntityId { get; } = OffsetOf<EntityOffsets>(nameof(EntityOffsets.Id));
+
+        /// <summary>
+        ///     Looks through the game state for the area instance when its pointer leads to no world; true once found.
+        ///     Call on the render thread, in game.
+        /// </summary>
+        public static bool LocateArea()
+        {
+            var state = Core.States.InGameStateObject;
+            var area = state.CurrentAreaInstance;
+            var search = new AreaLayoutSearch(new GameMemory(Core.Process.Handle));
+            bool HoldsWorld(long pointer)
+            {
+                var candidate = Block(new IntPtr(pointer), AreaInstanceLayout.BlockSize);
+                return candidate.Length > 0 && search.Find(candidate, area.Layout.Fields).HasWorld;
+            }
+
+            return LocatePointer(state.Address, nameof(InGameStateOffset.AreaInstanceData), HoldsWorld);
+        }
+
+        /// <summary>Where <paramref name="offset"/> of a struct stands in this game build, for readers outside the struct.</summary>
+        public static int Follow(Type structType, int offset)
+        {
+            lock (Healed)
+            {
+                if (!Healed.TryGetValue(structType, out var segments))
+                {
+                    return offset;
+                }
+
+                var last = segments.LastOrDefault(segment => segment.From <= offset);
+                return offset + last.Shift;
+            }
+        }
+
+        /// <summary>The entity id stands at <paramref name="found"/> (negative: unknown); what follows it moves along.</summary>
+        internal static void FollowEntityId(int found)
+        {
+            if (found >= 0 && found != MeasuredEntityId)
+            {
+                Remap(typeof(EntityOffsets), StructRemapper.Segments(new[] { new RemapSegment(MeasuredEntityId, found - MeasuredEntityId) }));
+            }
+        }
+
+        /// <summary>
+        ///     Puts a struct's fields where the game's code reads them (<see cref="CodeFieldSearch"/>). A segment a live
+        ///     judgment placed stays: what memory shows beats what the code suggests.
+        /// </summary>
+        /// <param name="structName">The <c>GameOffsets</c> struct.</param>
+        /// <param name="fields">Each field, where the signatures were made for it, and where the code reads it now.</param>
+        /// <returns>
+        ///     Each field's outcome; null, moving nothing, when a field is unknown or not where its signatures were made:
+        ///     a wrong line in the catalog must not move a right field.
+        /// </returns>
+        public static IReadOnlyList<StructOutcome>? PlaceFromCode(string structName, IReadOnlyList<(string Field, int Expected, int Found)> fields)
+        {
+            if (typeof(EntityOffsets).Assembly.GetTypes().FirstOrDefault(type => type.Name == structName) is not { } structType)
+            {
+                return null;
+            }
+
+            var outcomes = new List<StructOutcome>(fields.Count);
+            var placed = new List<RemapSegment>(fields.Count);
+            foreach (var (field, expected, found) in fields)
+            {
+                if (OffsetOfPath(structType, field) is not { } measured || measured != expected)
+                {
+                    return null;
+                }
+
+                placed.Add(new RemapSegment(measured, found - measured));
+                outcomes.Add(new StructOutcome(field, found == measured ? StructHealth.Intact : StructHealth.Moved, measured, found, string.Empty));
+            }
+
+            lock (Healed)
+            {
+                var kept = Healed.TryGetValue(structType, out var segments) ? segments : Array.Empty<RemapSegment>();
+                var fromCode = FromCode.TryGetValue(structType, out var known) ? known : new HashSet<int>();
+                var live = kept.Where(segment => !fromCode.Contains(segment.From)).ToList();
+                var wanted = placed.Where(segment => live.All(other => other.From != segment.From)).ToList();
+                if (wanted.Any(segment => segment.Shift != 0) || fromCode.Count > 0)
+                {
+                    FromCode[structType] = wanted.Select(segment => segment.From).ToHashSet();
+                    Remap(structType, StructRemapper.Segments(live.Concat(wanted).OrderBy(segment => segment.From)));
+                }
+            }
+
+            return outcomes;
+        }
+
+        /// <summary>A field's place in a struct, through the nested structs of a dotted path; null when there is no such field.</summary>
+        private static int? OffsetOfPath(Type structType, string path)
+        {
+            var offset = 0;
+            foreach (var name in path.Split('.'))
+            {
+                if (structType.GetField(name) is not { } field)
+                {
+                    return null;
+                }
+
+                offset += Marshal.OffsetOf(structType, name).ToInt32();
+                structType = field.FieldType;
+            }
+
+            return offset;
+        }
+
+        /// <summary>Sets where a struct's fields moved.</summary>
+        internal static void Remap(Type structType, RemapSegment[] segments)
+        {
+            lock (Healed)
+            {
+                Healed[structType] = segments;
+            }
+
+            typeof(StructRemap<>).MakeGenericType(structType)
+                .GetMethod("Set", BindingFlags.Static | BindingFlags.NonPublic)!
+                .Invoke(null, new object[] { segments });
+        }
+
+        private static int OffsetOf<T>(string field) => Marshal.OffsetOf<T>(field).ToInt32();
+
+        private static byte[] Block(IntPtr address, int size) => Core.Process.Handle.ReadMemoryArray<byte>(address, size);
+
+        /// <summary>Bytes of the game, for a search the plugin runs.</summary>
+        public static byte[] ReadBlock(IntPtr address, int size) => Block(address, size);
+
+        /// <summary>The outcome of a field found at <paramref name="found"/>, moving what follows it in the struct.</summary>
+        private static StructOutcome Placed<T>(string name, int measured, int found)
+        {
+            if (found < 0)
+            {
+                return new StructOutcome(name, StructHealth.Lost, measured, 0, "nothing nearby holds what it must");
+            }
+
+            if (found == measured)
+            {
+                Unmove(typeof(T), measured);
+                return new StructOutcome(name, StructHealth.Intact, measured, found, string.Empty);
+            }
+
+            Remap(typeof(T), Merged(typeof(T), new RemapSegment(measured, found - measured)));
+            return new StructOutcome(name, StructHealth.Moved, measured, found, string.Empty);
+        }
+
+        /// <summary>A field found where it was measured reads from there, whatever a repair of another build left behind.</summary>
+        private static void Unmove(Type structType, int measured)
+        {
+            if (Follow(structType, measured) != measured)
+            {
+                Remap(structType, Merged(structType, new RemapSegment(measured, 0)));
+            }
+        }
+
+        /// <summary>The struct's segments with <paramref name="moved"/> in them: a struct can have fields moved apart.</summary>
+        private static RemapSegment[] Merged(Type structType, params RemapSegment[] moved)
+        {
+            lock (Healed)
+            {
+                var kept = Healed.TryGetValue(structType, out var segments) ? segments : Array.Empty<RemapSegment>();
+                return StructRemapper.Segments(kept.Where(segment => moved.All(other => other.From != segment.From)).Concat(moved));
+            }
+        }
+
+        private static StructOutcome NotJudged(string name, string why) => new(name, StructHealth.NotJudged, 0, 0, why);
+
+        /// <summary>A pointer of the game state moved: finds the one <paramref name="fits"/> accepts and reads that one alone from there.</summary>
+        private static bool LocatePointer(IntPtr gameState, string field, Func<long, bool> fits)
+        {
+            var measured = OffsetOf<InGameStateOffset>(field);
+            var block = Block(gameState, GameStateBytes);
+            var found = StructShapes.Nearest(measured, sizeof(long), block.Length - sizeof(long), at => fits(BitConverter.ToInt64(block, at)));
+            if (found < 0)
+            {
+                return false;
+            }
+
+            if (found != measured)
+            {
+                lock (Healed)
+                {
+                    var segments = Healed.TryGetValue(typeof(InGameStateOffset), out var known) ? known.ToList() : new List<RemapSegment>();
+                    segments.RemoveAll(segment => segment.From == measured || segment.From == measured + sizeof(long));
+                    segments.Add(new RemapSegment(measured, found - measured));
+                    segments.Add(new RemapSegment(measured + sizeof(long), 0));
+                    Remap(typeof(InGameStateOffset), segments.OrderBy(segment => segment.From).ToArray());
+                }
+            }
+
+            return true;
+        }
+
+        private static StructOutcome JudgeCamera(IntPtr world)
+        {
+            const string name = "camera";
+            var measured = OffsetOf<WorldDataOffset>(nameof(WorldDataOffset.CameraStructurePtr)) +
+                           OffsetOf<CameraStructure>(nameof(CameraStructure.WorldToScreenMatrix));
+
+            int FindMatrix(IntPtr address)
+            {
+                var block = Block(address, measured + SearchRadius);
+                return block.Length == 0 ? -1 : StructShapes.Nearest(measured, sizeof(int), block.Length - 1, at => StructShapes.IsCameraMatrix(block, at));
+            }
+
+            var found = FindMatrix(world);
+            if (found < 0 && LocatePointer(Core.States.InGameStateObject.Address, nameof(InGameStateOffset.WorldData), pointer => FindMatrix(new IntPtr(pointer)) >= 0))
+            {
+                return new StructOutcome(name, StructHealth.Moved, measured, measured, "the world pointer moved");
+            }
+
+            return Placed<WorldDataOffset>(name, measured, found);
+        }
+
+        private static StructOutcome JudgeLife(Entity player)
+        {
+            const string name = "life";
+            if (!player.TryGetComponent<Life>(out var life))
+            {
+                return NotJudged(name, "no player");
+            }
+
+            string[] fields = { nameof(LifeOffset.Health), nameof(LifeOffset.Mana), nameof(LifeOffset.EnergyShield), nameof(LifeOffset.Ward), nameof(LifeOffset.Divinity) };
+            var measured = fields.Select(field => OffsetOf<LifeOffset>(field)).ToArray();
+            var block = Block(life.Address, measured[^1] + SearchRadius);
+            var vitals = StructShapes.Vitals(
+                block,
+                life.Address.ToInt64(),
+                OffsetOf<VitalStruct>(nameof(VitalStruct.PtrToLifeComponent)),
+                OffsetOf<VitalStruct>(nameof(VitalStruct.Total)),
+                OffsetOf<VitalStruct>(nameof(VitalStruct.Current)));
+            var placed = StructShapes.PlaceVitals(measured, vitals);
+            if (placed.Length == 0)
+            {
+                return new StructOutcome(name, StructHealth.Lost, measured[0], 0, "no vitals found");
+            }
+
+            if (placed.SequenceEqual(measured))
+            {
+                return new StructOutcome(name, StructHealth.Intact, measured[0], measured[0], string.Empty);
+            }
+
+            Remap(typeof(LifeOffset), StructRemapper.Segments(measured.Select((at, index) => new RemapSegment(at, placed[index] - at))));
+            return new StructOutcome(name, StructHealth.Moved, measured[0], placed[0], string.Empty);
+        }
+
+        private static StructOutcome JudgeBuffs(Entity player, IAreaMemory memory)
+        {
+            const string name = "buffs";
+            if (!player.TryGetComponent<Buffs>(out var buffs))
+            {
+                return NotJudged(name, "no player");
+            }
+
+            var measured = OffsetOf<BuffsOffsets>(nameof(BuffsOffsets.StatusEffectPtr));
+            var definition = OffsetOf<StatusEffectStruct>(nameof(StatusEffectStruct.BuffDefinationPtr));
+            var block = Block(buffs.Address, measured + SearchRadius);
+            var found = StructShapes.Nearest(measured, sizeof(long), block.Length - 1, at => StructShapes.IsBuffList(block, at, memory, definition));
+
+            // With no buff on the player no list reads as one, and that says nothing about the field.
+            return found < 0 ? NotJudged(name, "no buff to judge it on") : Placed<BuffsOffsets>(name, measured, found);
+        }
+
+        private static StructOutcome JudgeSkills(Entity player, IAreaMemory memory)
+        {
+            const string name = "skills";
+            if (!player.TryGetComponent<Actor>(out var actor))
+            {
+                return NotJudged(name, "no player");
+            }
+
+            var measured = OffsetOf<ActorOffset>(nameof(ActorOffset.ActiveSkillsPtr));
+            var block = Block(actor.Address, measured + SearchRadius);
+            return Placed<ActorOffset>(name, measured, StructShapes.Nearest(measured, sizeof(long), block.Length - 1, at => StructShapes.IsSkillList(block, at, memory)));
+        }
+
+        /// <summary>
+        ///     Whether friend and foe still read apart, judged on the player and the monsters around; null with too few of them, or
+        ///     while nothing can be said. Only a player who is no friend moves the field: a crowd of minions reads friend as well, and a
+        ///     bool that happens to read 1 on the player is not taken for the field until monsters read foe in it.
+        /// </summary>
+        public static StructOutcome? JudgeReaction(Entity player, IReadOnlyList<IntPtr> monsters)
+        {
+            if (!player.TryGetComponent<Positioned>(out var own) || monsters.Count < MinMonstersForReaction)
+            {
+                return null;
+            }
+
+            var measured = OffsetOf<PositionedOffsets>(nameof(PositionedOffsets.Reaction));
+            var size = measured + SearchRadius;
+            var block = Block(own.Address, size);
+            if (block.Length < size)
+            {
+                return null;
+            }
+
+            var others = monsters.Select(monster => Block(monster, size)).ToList();
+            if (StructShapes.IsReaction(block, others, measured))
+            {
+                return Placed<PositionedOffsets>(ReactionPart, measured, measured);
+            }
+
+            return StructShapes.IsFriendly(block[measured]) ? null
+                : Placed<PositionedOffsets>(ReactionPart, measured, StructShapes.FindReaction(block, others, measured, ReactionRadius));
+        }
+
+        /// <summary>
+        ///     One round of watching the player and <paramref name="enemies"/> act; null until they told where the animation is. Its
+        ///     own judgment, apart from the sweep: only actors in motion say it, and upstream's history shows it moving without the
+        ///     skills. The player helps find the pair; only enemies count as proof that there is none.
+        /// </summary>
+        public static StructOutcome? JudgeAnimation(AnimationFieldSearch search, IntPtr player, IEnumerable<IntPtr> enemies)
+        {
+            var measured = OffsetOf<ActorOffset>(nameof(ActorOffset.AnimationId));
+            if (player != IntPtr.Zero)
+            {
+                search.Add(player.ToInt64(), Block(player, measured + SearchRadius), false);
+            }
+
+            foreach (var enemy in enemies)
+            {
+                search.Add(enemy.ToInt64(), Block(enemy, measured + SearchRadius));
+            }
+
+            var found = search.Find(measured);
+            if (found < 0)
+            {
+                return !search.Enough ? null
+                    : search.Behaves(measured) ? new StructOutcome(AnimationPart, StructHealth.Intact, measured, measured, "no copy, but it behaves")
+                    : new StructOutcome(AnimationPart, StructHealth.Lost, measured, 0, "no two fields agree on what the actors do");
+            }
+
+            if (found == measured)
+            {
+                Unmove(typeof(ActorOffset), measured);
+                return new StructOutcome(AnimationPart, StructHealth.Intact, measured, found, string.Empty);
+            }
+
+            if (!search.Proven(found))
+            {
+                return null;
+            }
+
+            // Only this field moves: the skills after it stay where they were judged.
+            var next = OffsetOf<ActorOffset>(nameof(ActorOffset.ActiveSkillsPtr));
+            Remap(typeof(ActorOffset), Merged(typeof(ActorOffset), new RemapSegment(measured, found - measured), new RemapSegment(next, Follow(typeof(ActorOffset), next) - next)));
+            return new StructOutcome(AnimationPart, StructHealth.Moved, measured, found, string.Empty);
+        }
+
+        private static StructOutcome JudgeStats(Entity player, IAreaMemory memory)
+        {
+            const string name = "stats";
+            if (!player.TryGetComponent<Stats>(out var stats))
+            {
+                return NotJudged(name, "no player");
+            }
+
+            var measured = OffsetOf<StatsOffsets>(nameof(StatsOffsets.StatsChangedByItemsPtr));
+            var list = OffsetOf<StatsStructInternal>(nameof(StatsStructInternal.Stats));
+            var block = Block(stats.Address, measured + SearchRadius);
+            return Placed<StatsOffsets>(name, measured, StructShapes.Nearest(measured, sizeof(long), block.Length - 1, at => StructShapes.IsStatsPointer(block, at, memory, list)));
+        }
+
+        private static StructOutcome JudgePosition(AreaInstance area)
+        {
+            if (!area.Player.TryGetComponent<Render>(out var render))
+            {
+                return NotJudged(PositionsPart, "no player");
+            }
+
+            var world = Core.States.InGameStateObject.CurrentWorldInstance;
+            var (mapWidth, mapHeight) = (area.TerrainMetadata.TotalTiles.X * WorldPerTile, area.TerrainMetadata.TotalTiles.Y * WorldPerTile);
+            var window = Core.Process.WindowArea;
+            var centre = new Vector2(window.Width / 2f, window.Height / 2f);
+            var measured = OffsetOf<RenderOffsets>(nameof(RenderOffsets.CurrentWorldPosition));
+            var block = Block(render.Address, measured + SearchRadius);
+
+            bool Fits(int at)
+            {
+                if (!StructShapes.IsWorldPosition(block, at, mapWidth, mapHeight))
+                {
+                    return false;
+                }
+
+                var position = MemoryMarshal.Read<StdTuple3D<float>>(block.AsSpan(at));
+                var offScreen = Vector2.Abs(world.WorldToScreen(position) - centre);
+                return offScreen.X < centre.X * CentreShare && offScreen.Y < centre.Y * CentreShare;
+            }
+
+            var found = StructShapes.Nearest(measured, sizeof(int), block.Length - 1, Fits);
+            if (found < 0 && StructShapes.IsWorldPosition(block, measured, mapWidth, mapHeight))
+            {
+                // Nothing near the screen's middle, yet the field still holds a point of the map: it is the camera that is not on the player.
+                return NotJudged(PositionsPart, "the camera is not on the player");
+            }
+
+            return Placed<RenderOffsets>(PositionsPart, measured, found);
+        }
+
+        private static StructOutcome Verified(ProbeResult probe, Type type)
+        {
+            switch (probe.Verdict)
+            {
+                case OffsetHelperEngine.ProbeVerdict.Intact:
+                    return new StructOutcome(probe.Name, StructHealth.Intact, 0, 0, probe.Detail);
+                case OffsetHelperEngine.ProbeVerdict.Degraded:
+                    var moves = probe.Recoveries.Where(recovery => !recovery.IsAmbiguous).ToList();
+                    if (moves.Count == 0)
+                    {
+                        return new StructOutcome(probe.Name, StructHealth.Lost, 0, 0, probe.Detail);
+                    }
+
+                    Remap(type, StructRemapper.Segments(moves.Select(move => new RemapSegment(move.ConfiguredOffset, move.Shift))));
+                    var first = moves.OrderBy(move => move.ConfiguredOffset).First();
+                    return new StructOutcome(probe.Name, StructHealth.Moved, first.ConfiguredOffset, first.CandidateOffset, probe.Detail);
+                default:
+                    return new StructOutcome(probe.Name, StructHealth.NotJudged, 0, 0, probe.Detail);
+            }
+        }
+    }
+}

@@ -85,11 +85,11 @@ cmake --build ooz\build --target libooz --config Release
 The built binary is kept at `external/oodle/oo2core.dll` (gitignored). Decompression only; compression exports are stubs.
 
 ## Poe2AccessLauncher — one-click start for the player
-.NET 10 WinExe (no console window, assembly `Poe2Access`) that replaces GameHelper's `Launcher.exe` for this project: no
-update check, no key prompt, no visible window.
+.NET 10 WinExe (no console window, assembly `Poe2Access`) that starts the game and the mod's host (`host/Poe2AccessHost`,
+headless) with no visible window.
 
 ```
-dotnet build tools/Poe2AccessLauncher -c Release     # also copies the exe + dlls beside GameHelper.exe
+dotnet build tools/Poe2AccessLauncher -c Release     # also copies the exe + dlls beside Poe2AccessHost.exe (host build output)
 Poe2Access.exe [start|restart|stop] [--host <dir>]   # start (default): open PoE2 via Steam if needed, then restart the host
 "<path>\Poe2Access.exe" %command%                    # in Steam's launch options: Steam's Play button starts the game and the mod
 ```
@@ -97,11 +97,13 @@ Started by Steam, the launcher gets the game's command (`PathOfExileSteam.exe --
 that instead of asking Steam, and it stays until the game closes: Steam counts the game running while that launcher lives.
 A launcher opened by hand with these options set asks Steam for the game; the one Steam then starts finds the first still
 running (the single-instance mutex), starts the game and waits, and the first goes on to the host once the window is up.
-`restart` stops every process whose image is in the host folder (not `Launcher.exe`), deletes the previous random-named
-copies, makes a new copy of `GameHelper.exe` with rewritten version-info strings and starts it with
-`__COMPAT_LAYER=RunAsInvoker`. Single instance; steps go to `Poe2Access.log` next to the exe; a failure shows a message box
-and exits 1. The host folder defaults to the exe's own folder when it holds `GameHelper.exe`, else the repository build output.
-The GameHelper-style copy/rename logic is a short independent reimplementation (GameHelper is GPLv3).
+`stop` sets the host's named event `Local\Poe2AccessHost.Stop`, gives it 5 s to exit, then kills it; every other process whose
+image is in the host folder (an old GameHelper copy) is killed outright. `restart` stops, deletes what packages before the own
+host left (`GameHelper.exe`, its random-named copies listed in `Poe2Access.copies.txt` / `tempFileLocations.dat`; `LegacyHost.cs`)
+and starts `Poe2AccessHost.exe` plainly (no window; its manifest asks for no administrator rights). Single instance; steps go
+to `Poe2Access.log` next to the exe; a failure shows a message box and exits 1. The host folder defaults to the exe's own
+folder when it holds `Poe2AccessHost.exe`, else `app` beside it, else the repository build output
+(`host/Poe2AccessHost/bin/Release/net10.0-windows/win-x64`).
 In a test package `start` also keeps the game data current (`GameDataSetup.cs`): when `Poe2UiExtract.exe` sits beside it, it
 compares a stamp of the install (size and time of `Bundles2/_.index.bin` and of the game exe, `fmod.dll` version) and of
 each step's version with `app/GameData/game-version.txt` (`GameDataStamp.cs`). It reruns the steps whose stamp differs:
@@ -120,21 +122,20 @@ once in game, and the launcher starts it before regenerating.
 
 ## package — test build for other players
 ```
-pwsh tools/package/New-TestPackage.ps1      # with GameHelper stopped; writes dist/Poe2Access-test-<date>.zip (+ .7z with 7-Zip)
-pwsh tools/package/Update-GameHelper.ps1    # after a game patch: pull GameHelper2 upstream, rebuild host + plugin, run the tests
+pwsh tools/package/New-TestPackage.ps1      # with the host stopped; writes dist/Poe2Access-test-<date>.zip (+ .7z with 7-Zip)
 ```
-`Update-GameHelper.ps1` lists the new upstream commits (`-CheckOnly` stops there), keeps the mod's changes to the host
-(`gamehelper.patch`: out before the pull, back after it; `-SavePatch` writes the clone's changes into it), refuses to pull
-over anything else in `external/GameHelper2` or while the host runs from its build folder, and with `-Package` also builds
-the test package. `New-TestPackage.ps1` applies the patch and refuses to package without it.
 The top folder holds only `Poe2Access.exe` (the launcher as one self-contained, trimmed file, ~14 MB, left uncompressed so the archive compresses it better), `README.txt`,
-the controls and the stop shortcut; GameHelper and Poe2UiExtract are published self-contained into `app/` (they share the
-.NET 10 runtime files, nothing to install; the launcher finds `app/GameHelper.exe` and logs to `app/Poe2Access.log`), with only
-the accessibility plugin (dll, PRISM, catalogs, the Radar plugin's
-`important_tgt_files.txt`, research mode off), GameHelper's `core_settings.json` with only this plugin enabled,
-`README.txt` (English instructions), the controls doc (`Controls.md`) and a stop shortcut (`Stop the mod.bat`). No game sounds are shipped: the launcher
-regenerates them, and the catalogs, from the tester's install (`oo2core.dll` ships for bundle reading). GameHelper's bundled fonts (its "Universal font" option, off), the native PDB reader and `createdump.exe` are left out. About 45 MB zipped; the .7z (LZMA2, ~29 MB) fits a 30 MB chat upload, and Windows 11 opens it (Windows 10 needs 7-Zip or WinRAR). `dist/` is gitignored; publishing a release stays a
-manual decision.
+the controls and the stop shortcut; the host (`host/Poe2AccessHost`) and Poe2UiExtract are published self-contained into `app/`
+(they share the .NET 10 runtime files, nothing to install; the launcher finds `app/Poe2AccessHost.exe` and logs to
+`app/Poe2Access.log`), with only the accessibility plugin (dll, PRISM, catalogs including `important_tgt_files.txt`, research
+mode off), `README.txt` (English instructions), the controls doc (`Controls.md`) and a stop shortcut (`Stop the mod.bat`). No
+game sounds are shipped: the launcher regenerates them, and the catalogs, from the tester's install (`oo2core.dll` ships for
+bundle reading). The runtime's native PDB reader and `createdump.exe` are left out. The .7z (LZMA2) fits a 30 MB chat
+upload, and Windows 11 opens it (Windows 10 needs 7-Zip or WinRAR). `dist/` is gitignored; publishing a release stays a
+manual decision. Updating an install made before the own host: the launcher keeps `app/Plugins/Poe2Accessibility/config`
+and the extracted sounds, deletes the loose files in `app/` the new package lacks (GameHelper and its libraries, keeping
+`*.log`) and its `configs/` and `fonts/` folders (`Updater.Prune`), and the first start deletes `GameHelper.exe` and the
+random-named copies (`LegacyHost.cs`).
 
 ## localization — the mod's phrases in the game's other languages
 Spoken strings are `T(english, spanish)` calls in `Poe2Accessibility/Announcements*.cs`; pt, fr, de, ru, th, ja, ko and

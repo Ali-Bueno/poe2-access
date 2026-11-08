@@ -99,7 +99,7 @@ internal static class GameLauncher
 
     /// <summary>
     ///     Runs this launcher again as administrator (the UAC prompt), with the same arguments, and returns its exit code
-    ///     once it ends: whoever ran "stop" (Stop the mod.bat, the build scripts) goes on only once GameHelper is stopped.
+    ///     once it ends: whoever ran "stop" (Stop the mod.bat, the build scripts) goes on only once the host is stopped.
     /// </summary>
     public static int RunAsAdministrator(string[] args)
     {

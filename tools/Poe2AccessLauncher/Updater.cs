@@ -8,7 +8,7 @@ using System.Text.Json;
 namespace Poe2AccessLauncher;
 
 /// <summary>
-///     Installs the latest GitHub release over this package before GameHelper starts, when nothing in "app" is in use:
+///     Installs the latest GitHub release over this package before the host starts, when nothing in "app" is in use:
 ///     asks first, keeps the player's settings, moves the running launcher aside and puts everything back on a failure.
 /// </summary>
 internal static class Updater
@@ -27,8 +27,11 @@ internal static class Updater
     private static readonly TimeSpan CheckTimeout = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan DownloadTimeout = TimeSpan.FromMinutes(10);
 
-    /// <summary>The player's own settings (GameHelper's and the plugin's), kept over the package's defaults.</summary>
-    private static readonly string[] KeptFolders = { Path.Join("app", "configs"), Path.Join("app", "Plugins", "Poe2Accessibility", "config") };
+    /// <summary>The player's own settings, kept over the package's defaults.</summary>
+    private static readonly string[] KeptFolders = { Path.Join("app", "Plugins", "Poe2Accessibility", "config") };
+
+    /// <summary>Folders of the GameHelper host that packages before Poe2AccessHost carried; nothing reads them now.</summary>
+    private static readonly string[] ObsoleteFolders = { "configs", "fonts" };
 
     private static string InstallRoot => AppContext.BaseDirectory;
 
@@ -223,6 +226,38 @@ internal static class Updater
             ?? throw new InvalidDataException($"{ReleaseManifest.PackageAsset} holds no {LauncherExe} beside an app folder");
         controller.Stop();
         Replace(package, Path.Join(work, "backup"));
+        Prune(package);
+    }
+
+    /// <summary>
+    ///     Deletes what the new package no longer carries in "app": its loose files (GameHelper.exe, its copies and
+    ///     libraries after the host change) and the old host's folders. Logs stay; the plugin's and GameData's folders
+    ///     are the player's. Best effort, once the install succeeded.
+    /// </summary>
+    private static void Prune(string package)
+    {
+        var app = Path.Join(package, "app");
+        var installed = HostController.PackagedHostDirectory;
+        if (!Directory.Exists(app) || !Directory.Exists(installed))
+        {
+            return;
+        }
+
+        var shipped = Directory.EnumerateFiles(app).Select(Path.GetFileName).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var file in Directory.EnumerateFiles(installed))
+        {
+            var name = Path.GetFileName(file);
+            if (!shipped.Contains(name) && !name.EndsWith(".log", StringComparison.OrdinalIgnoreCase))
+            {
+                Log.Write($"Deleting {name}: not in the new package");
+                TryDeleteFile(file);
+            }
+        }
+
+        foreach (var folder in ObsoleteFolders.Where(folder => !Directory.Exists(Path.Join(app, folder))))
+        {
+            TryDeleteDirectory(Path.Join(installed, folder));
+        }
     }
 
     /// <summary>Copies the package over the installation; on any failure the files are as they were.</summary>

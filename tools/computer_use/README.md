@@ -10,7 +10,7 @@ Requirements: Python 3.13, ViGEmBus (installed), `py -m pip install vgamepad` (b
 
 ```powershell
 py -B tools/computer_use/pad.py serve --xbox   # background: plugs one virtual pad in for the session
-py -B tools/computer_use/launch.py all         # starts PoE2 via Steam if needed, (re)starts GameHelper
+py -B tools/computer_use/launch.py all         # starts PoE2 via Steam if needed, (re)starts the host
 py -B tools/computer_use/desktop.py list       # game PID
 py -B tools/computer_use/desktop.py --pid N focus
 py -B tools/computer_use/desktop.py --pid N --wait 0.8 pad dpad-down    # press, wait, print new plugin log lines
@@ -24,9 +24,9 @@ Couch co-op: `pad.py serve --xbox --second` plugs a second pad on its own pipe; 
 ([local co-op](../../docs/research/local-coop.md)).
 
 Plugin rebuild loop: `launch.py stop` → `dotnet build Poe2Accessibility -c Release` → `launch.py host`
-(GameHelper locks the plugin DLL; `launch.py` drives `Poe2Access.exe restart|stop` from
-`tools/Poe2AccessLauncher`, which skips the update check and the "path contains poe" prompt and runs the host
-unelevated via `__COMPAT_LAYER=RunAsInvoker` — it only needs read access).
+(the host locks the plugin DLL; `launch.py` drives `Poe2Access.exe restart|stop` from
+`tools/Poe2AccessLauncher`, which stops the host through its named event and starts `Poe2AccessHost.exe` unelevated — it
+only needs read access).
 
 Dev commands for a patch day: `layout`, `structs` (the host's struct sweep), `sounds` (what played since last asked and the
 output peak: the only proof of audio). A panel opened by the radial: `chord share right up|up-right|right|down-right|down|down-left|left|up-left --seconds 0.8 --select`
@@ -87,7 +87,7 @@ new `serve`, which disconnects the game to the login screen.
   disconnect" 40 s after a death with no reason given (Client.txt, 2026-11-05). Cause unknown; keep it short.
 - Steam's launch options start the `dist` host: `dist/Poe2Access/Poe2Access.exe stop`, then `launch.py host`, to test the build output.
 - `--wait` accepts at most 5 seconds: a larger value fails before sending anything (filtered output hides the error).
-- Escape on the login screen quits the game; GameHelper closes with it (`CloseWhenGameExit`), so start both again with
+- Escape on the login screen quits the game; the host closes with it, so start both again with
   `launch.py all`.
 - Stopping the pad server unplugs the virtual pad: in game that is a disconnect ("tu dispositivo de control se ha
   desconectado") back to the login screen.

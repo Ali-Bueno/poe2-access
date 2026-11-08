@@ -50,5 +50,5 @@ If you can, also say what you were doing and at what time.
 Newest version and source code: https://github.com/Ali-Bueno/poe2-access
 
 CREDITS
-- GameHelper2 (GPLv3 license): https://github.com/Gordin/GameHelper2
+- GameHelper2 (GPLv3 license), whose memory-reading code the mod's host is built on: https://github.com/Gordin/GameHelper2
 - PRISM, for the screen reader output: https://github.com/ethindp/prism

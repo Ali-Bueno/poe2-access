@@ -1,7 +1,6 @@
 namespace Poe2Accessibility
 {
     using System;
-    using ClickableTransparentOverlay.Win32;
     using GameHelper;
     using ImGuiNET;
     using Poe2Accessibility.Services;
@@ -178,35 +177,6 @@ namespace Poe2Accessibility
             if (this.targets != null)
             {
                 this.targets.Gain = Fraction(settings.EnemyVolume);
-            }
-        }
-
-        /// <summary>The overlay library's key-timeout table is process-wide: a key the host consumes first never reaches us.</summary>
-        private void WarnOnHotkeyCollisions()
-        {
-            var host = Core.GHSettings;
-            var hostKeys = new (string Name, VK Key)[]
-            {
-                ("disable all rendering", host.DisableAllRenderingKey),
-                ("element finder", host.ElementFinderHotKey),
-                ("main menu", host.MainMenuHotKey),
-            };
-            var ours = new (string Name, VK Key)[]
-            {
-                ("dump UI tree", this.Settings.DumpUiTreeHotKey),
-                ("repeat", this.Settings.RepeatLastHotKey),
-                ("status", this.Settings.SpeakStatusHotKey),
-            };
-            foreach (var (ourName, ourKey) in ours)
-            {
-                foreach (var (hostName, hostKey) in hostKeys)
-                {
-                    if (ourKey == hostKey)
-                    {
-                        this.log?.Warn($"Hotkey collision: {ourKey} is used by GameHelper for '{hostName}'; our '{ourName}' will not fire. Change it in config/settings.txt.");
-                        this.output.Speak(Announcements.HotkeyCollision(ourKey.ToString(), ourName), false);
-                    }
-                }
             }
         }
     }

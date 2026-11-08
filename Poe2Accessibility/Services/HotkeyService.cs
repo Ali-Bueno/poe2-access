@@ -1,15 +1,12 @@
 namespace Poe2Accessibility.Services
 {
     using System.Linq;
-    using ClickableTransparentOverlay.Win32;
+    using GameHelper.Utils;
 
-    /// <summary>
-    ///     Debounced global key check (Win32 GetKeyState through the overlay library), the same mechanism
-    ///     GameHelper2's own plugins use so hotkeys fire while the game window has focus.
-    /// </summary>
+    /// <summary>Debounced global key check (the host's physical key state), so hotkeys fire while the game has focus.</summary>
     public sealed class HotkeyService
     {
-        /// <summary>Same debounce GameHelper2's shipped plugins pass to IsKeyPressedAndNotTimeout.</summary>
+        /// <summary>A held key repeats no faster than this.</summary>
         private const int DebounceMs = 250;
 
         /// <summary>Win32 virtual key of Enter.</summary>
@@ -23,11 +20,11 @@ namespace Poe2Accessibility.Services
             .Concat(Enumerable.Range(0x30, 10)).Concat(Enumerable.Range(0x41, 26)).Concat(Enumerable.Range(0x60, 16))
             .Select(code => (VK)code).ToArray();
 
-        public bool Pressed(VK key) => key != 0 && Utils.IsKeyPressedAndNotTimeout(key, DebounceMs);
+        public bool Pressed(VK key) => key != 0 && KeyState.IsKeyPressedAndNotTimeout(key, DebounceMs);
 
         public bool Enter() => this.Pressed((VK)EnterKey);
 
         /// <summary>A key that types a character went down, not as part of a shortcut.</summary>
-        public bool Typed() => !Modifiers.Any(Utils.IsKeyPressed) && TypingKeys.Any(this.Pressed);
+        public bool Typed() => !Modifiers.Any(KeyState.IsKeyPressed) && TypingKeys.Any(this.Pressed);
     }
 }

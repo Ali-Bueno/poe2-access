@@ -100,7 +100,6 @@ namespace Poe2Accessibility
         private GamepadReader.PadState padState;
         private readonly InputSeat inputSeat = new();
         private readonly CoopDowns coopDowns = new();
-        private readonly HostWindowHider hostWindow = new();
         private IntPtr padManager;
         private readonly System.Collections.Generic.Dictionary<string, long> tickFaults = new();
         private HostMemoryReader? memoryReader;
@@ -239,7 +238,6 @@ namespace Poe2Accessibility
                     ? PrismOutputService.TryCreate(this.DllDirectory, this.log)
                     : null;
                 this.output = prism ?? new NullOutputService();
-                this.WarnOnHotkeyCollisions();
 
                 var memory = new HostMemoryReader(this.log);
                 this.memoryReader = memory;
@@ -294,10 +292,9 @@ namespace Poe2Accessibility
                 this.actorTrace = new ActorTrace(memory, this.log, debugDirectory);
                 this.stunTrace = new StunTrace(memory, this.log, debugDirectory);
                 ItemNames.Load(this.log, Path.Join(this.DllDirectory, "catalog", "item-names.json"));
-                // GameHelper's Radar table; a test package ships only this plugin, with a copy of it in its catalog.
+                // Named tiles from GameHelper2's Radar table (kept in the catalog), then the mod's own additions.
                 var landmarks = LandmarkTable.Load(
                     this.log,
-                    Path.Join(this.DllDirectory, "..", "Radar", "important_tgt_files.txt"),
                     Path.Join(this.DllDirectory, "catalog", "important_tgt_files.txt"),
                     Path.Join(this.DllDirectory, "catalog", "landmarks.json"));
                 this.entityFields = new EntityFields(memory, elements) { Report = this.compatibility };
@@ -528,7 +525,6 @@ namespace Poe2Accessibility
         /// <inheritdoc />
         public override void DrawUI()
         {
-            this.Isolated("host window", this.hostWindow.Tick);
             if (this.settingsStore != null)
             {
                 switch (this.settingsStore.ReloadIfChanged(this.Settings, out var reloaded))
