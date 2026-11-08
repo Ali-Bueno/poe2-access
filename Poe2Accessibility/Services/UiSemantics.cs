@@ -132,6 +132,7 @@ namespace Poe2Accessibility.Services
             var namedById = false;
             var cardDetails = new List<string>();
             var shopPosition = string.Empty;
+            var longestCell = int.MaxValue;
             string label;
             switch (role)
             {
@@ -204,7 +205,14 @@ namespace Poe2Accessibility.Services
                         break;
                     }
 
-                    label = ownText.Length > 0 ? ownText : this.RowText(info);
+                    label = ownText.Length > 0 ? ownText : this.RowText(info, out longestCell);
+                    if (role == UiRole.Button && label.Length > 0 && this.ButtonRowLabel(info) is { Length: > 0 } rowLabel &&
+                        !string.Equals(rowLabel, label, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // A settings row's button says what it acts on: "Popup Notifications, Edit Settings", not "Edit Settings" alone.
+                        label = Announcements.Cells(new[] { rowLabel, label });
+                    }
+
                     if (label.Length == 0 && role == UiRole.Button && this.FollowsTextField(info))
                     {
                         // The icon button at the end of a search box (Cosmetics' "x"): it empties the box.
@@ -326,8 +334,9 @@ namespace Poe2Accessibility.Services
             {
                 (label, position) = (label.Length > 0 ? label : Announcements.HiddenRoom, room);
             }
-            else if (role == UiRole.Panel && label.Length > MaxCellText)
+            else if (role == UiRole.Panel && label.Length > MaxCellText && longestCell > MaxCellText)
             {
+                // A card of short cells keeps its place: the spirit tab's "Herald of Thunder, …, 30 spirit" is 82 long (2026-11-08).
                 position = string.Empty; // a paragraph is no cell: the Trial map's tutorial was read with "columna 1, fila 1" inside (2026-11-07)
             }
 
@@ -503,11 +512,16 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The caption of a control, or every cell of a focused table row ("Maximum Life, 42").</summary>
-        private string RowText(in UiElementReader.ElementInfo info)
+        private string RowText(in UiElementReader.ElementInfo info) => this.RowText(info, out _);
+
+        /// <summary>Same, with the length of its longest cell (a row of short cells is no paragraph, however long together).</summary>
+        private string RowText(in UiElementReader.ElementInfo info, out int longestCell)
         {
             if (info.HasFlagBit(GameLayout.Element.InteractiveFlagBit))
             {
-                return this.FindDescendantText(info, CaptionSearchDepth, null);
+                var caption = this.FindDescendantText(info, CaptionSearchDepth, null);
+                longestCell = caption.Length;
+                return caption;
             }
 
             var walk = new RowWalk();
@@ -516,10 +530,19 @@ namespace Poe2Accessibility.Services
             var cells = walk.Texts.Select(text => sets != null && sets.TryGetValue(text.Node, out var set) ? Announcements.WeaponSetValue(set, text.Text) : text.Text).ToList();
             if (this.InGame && cells.Count is > 1 and <= MaxHeadedRowCells && this.HeadedCells(info, walk.TextAddresses, cells) is { } headed)
             {
+                longestCell = headed.Max(cell => cell.Length);
                 return Announcements.Cells(headed); // a table row under shown column headings ("Players: 3, Time Left: 9 minutes")
             }
 
-            return cells.Count is > 0 and <= MaxRowCells ? Announcements.Cells(cells) : this.FindDescendantText(info, CaptionSearchDepth, null);
+            if (cells.Count is > 0 and <= MaxRowCells)
+            {
+                longestCell = cells.Max(cell => cell.Length);
+                return Announcements.Cells(cells);
+            }
+
+            var text = this.FindDescendantText(info, CaptionSearchDepth, null);
+            longestCell = text.Length;
+            return text;
         }
 
         private void CollectTexts(in UiElementReader.ElementInfo node, int nodeId, int depth, RowWalk walk)
@@ -540,7 +563,7 @@ namespace Poe2Accessibility.Services
                 var id = walk.Add(nodeId, index);
                 if (this.elements.TryReadSpokenText(children[index], out var text) && text.Length > 0)
                 {
-                    walk.Texts.Add((id, text));
+                    walk.Texts.Add((id, this.WithUnitPicture(child, text)));
                     walk.TextAddresses.Add(children[index]);
                 }
                 else if (this.elements.ReadTextureKey(child) is { } key && WeaponSetRows.FromTextureKey(key) is { } set)
@@ -550,6 +573,27 @@ namespace Poe2Accessibility.Services
 
                 this.CollectTexts(child, id, depth - 1, walk);
             }
+        }
+
+        /// <summary>A number with a unit picture as its child ("30" and the spirit icon) said with the unit (<see cref="InlineIcons.WithPicture"/>).</summary>
+        private string WithUnitPicture(in UiElementReader.ElementInfo holder, string text)
+        {
+            var pictures = this.elements.ReadChildren(holder);
+            if (pictures.Length is 0 or > 2)
+            {
+                return text;
+            }
+
+            foreach (var address in pictures)
+            {
+                if (this.elements.TryReadElement(address, out var picture) && picture.IsVisibleFlag && this.elements.ReadTextureKey(picture) is { } art &&
+                    InlineIcons.WithPicture(text, art) is var said && said != text)
+                {
+                    return said;
+                }
+            }
+
+            return text;
         }
 
         /// <summary>A row's texts in drawing order and the weapon-set icons among them, as a tree for <see cref="WeaponSetRows" />.</summary>
@@ -649,6 +693,43 @@ namespace Poe2Accessibility.Services
             return string.Empty;
         }
 
+        /// <summary>
+        ///     The label column of a settings row whose control column holds this button ("Popup Notifications" before "Edit
+        ///     Settings", 2026-11-08): a row of exactly two columns, the label a thin wrapper first, the button inside the second.
+        /// </summary>
+        private string ButtonRowLabel(in UiElementReader.ElementInfo info)
+        {
+            var child = info;
+            foreach (var parent in this.elements.ReadAncestors(info, RowSearchHops))
+            {
+                if (parent.Address == this.LayerContainer)
+                {
+                    break;
+                }
+
+                var columns = this.elements.ReadChildren(parent);
+                if (columns.Length == 2 && columns[1] == child.Address)
+                {
+                    if (!this.elements.TryReadElement(columns[0], out var column) || !column.IsVisibleFlag || column.Name.Length > 0 ||
+                        column.HasFlagBit(GameLayout.Element.InteractiveFlagBit))
+                    {
+                        return string.Empty;
+                    }
+
+                    return this.elements.TryReadSpokenText(column.Address, out var own) && own.Length > 0 ? own : this.FindLabelInThinWrapper(column, SiblingSearchDepth);
+                }
+
+                if (columns.Length != 1)
+                {
+                    return string.Empty; // the button shares its column with other things: not a settings row
+                }
+
+                child = parent;
+            }
+
+            return string.Empty;
+        }
+
         /// <summary>Label columns are a chain of single-child wrappers ending in a text leaf; anything wider is content, not a label.</summary>
         private string FindLabelInThinWrapper(in UiElementReader.ElementInfo wrapper, int maxDepth)
         {
@@ -682,7 +763,8 @@ namespace Poe2Accessibility.Services
                 var index = Array.IndexOf(siblings, child.Address);
                 for (var i = index + 1; i >= 0 && i < siblings.Length; i++)
                 {
-                    if (this.elements.TryReadElement(siblings[i], out var sibling))
+                    // Another control is never the value: the chat size sliders' "Reset" button beside them (2026-11-08).
+                    if (this.elements.TryReadElement(siblings[i], out var sibling) && this.elements.DetectRoleBySound(sibling.Address) == UiRole.Unknown)
                     {
                         var text = this.elements.TryReadSpokenText(sibling.Address, out var own) && own.Length > 0
                             ? own

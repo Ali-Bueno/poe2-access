@@ -126,6 +126,16 @@ namespace Poe2Accessibility.Services
         /// <summary>The unit a price picture beside a number means (a tooltip's cost shown with the tribute icon); null otherwise.</summary>
         public static string? PriceUnit(string textureKey) => Meaning(textureKey) is { Kind: Kind.Price } price ? price.Word : null;
 
+        /// <summary>
+        ///     A bare number drawn with a unit picture of its own beside it, a child element and not inline markup (the spirit tab's
+        ///     assigned spirit: "30" holding the spirit icon, 2026-11-08), said with its unit: "30 spirit"; any other text as it is.
+        /// </summary>
+        public static string WithPicture(string text, string art) =>
+            LeadingNumber.Match(text) is { Success: true } number && number.Length == text.Length &&
+            Meaning(art) is { Kind: Kind.Unit or Kind.Price } unit
+                ? $"{text.Trim()} {unit.Word}"
+                : text;
+
         /// <summary>True when the tagged text shows a picture that means a word.</summary>
         public static bool HasNamed(string tagged) =>
             tagged.Contains("<<", StringComparison.Ordinal) && Token.Matches(tagged).Any(match => MeaningOfToken(match.Groups[1].Value) != null);
