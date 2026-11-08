@@ -19,7 +19,7 @@ internal static class ExperienceExtractor
     {
         if (DatTable.Open(index, "experiencelevels") is not { RowCount: > 1 } table)
         {
-            Console.WriteLine("experiencelevels: table missing");
+            Say.Out.WriteLine("experiencelevels: table missing");
             return 1;
         }
 
@@ -28,13 +28,13 @@ internal static class ExperienceExtractor
         var experience = offsets.Where(offset => offset != level).FirstOrDefault(offset => IsRisingFromZero(table, offset), -1);
         if (level < 0 || experience < 0)
         {
-            Console.WriteLine($"experiencelevels: columns not recognised (level {level}, experience {experience})");
+            Say.Out.WriteLine($"experiencelevels: columns not recognised (level {level}, experience {experience})");
             return 1;
         }
 
         var totals = Enumerable.Range(0, table.RowCount).Select(row => (uint)table.Int32(row, experience)).ToArray();
         File.WriteAllText(outFile, JsonSerializer.Serialize(totals));
-        Console.WriteLine($"experiencelevels: {totals.Length} levels (level +0x{level:X}, experience +0x{experience:X}), last {totals[^1]}");
+        Say.Out.WriteLine($"experiencelevels: {totals.Length} levels (level +0x{level:X}, experience +0x{experience:X}), last {totals[^1]}");
         return 0;
     }
 

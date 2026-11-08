@@ -3,334 +3,360 @@ using System.IO;
 using System.Linq;
 using Index = LibBundle3.Index;
 
-// Args: catalog <uiRootDir> <outJson>  -- parse extracted .ui scripts into a JSON control catalog.
-if (args.Length > 0 && string.Equals(args[0], "catalog", StringComparison.OrdinalIgnoreCase))
+/// <summary>The extractor's commands, callable in process (the mod's executable runs them for the game data).</summary>
+public static class Extractor
 {
-    if (args.Length < 3)
+    /// <summary>Runs one command line; the exit code, 0 when it made its output.</summary>
+    public static int Run(string[] args)
     {
-        Console.WriteLine("Usage: Poe2UiExtract.exe catalog <uiRootDir> <outJson>");
-        return 1;
-    }
-    return CatalogGenerator.Run(args[1], args[2]);
-}
-
-// Args: sounds <gameDir> [outDir] [itemSoundsJson]  -- decode the audio-cue set (plus the drop samples named in the item
-// catalog, as items/<sample>.wav) from the FMOD banks into WAV files + manifest.txt.
-if (args.Length > 0 && string.Equals(args[0], "sounds", StringComparison.OrdinalIgnoreCase))
-{
-    string game = args.Length > 1 ? args[1] : @"D:\games\steam\steamapps\common\Path of Exile 2";
-    return SoundExtractor.Run(game, args.Length > 2 ? args[2] : @"Poe2Accessibility\sounds",
-        args.Length > 3 ? args[3] : @"Poe2Accessibility\catalog\item-sounds.json");
-}
-
-// Args: bank-samples <gameDir> <outDir> <bank,bank...> [filter]  -- research aid: a bank's samples as WAV to audition.
-if (args.Length > 3 && string.Equals(args[0], "bank-samples", StringComparison.OrdinalIgnoreCase))
-{
-    return SoundExtractor.DumpBanks(args[1], args[2], args[3].Split(','), args.Length > 4 ? args[4] : string.Empty);
-}
-
-// Args: paths <gameDir> <part>  -- research aid: every bundled file path containing <part> (quest reward icons' names).
-if (args.Length > 2 && string.Equals(args[0], "paths", StringComparison.OrdinalIgnoreCase))
-{
-    using var pathIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-    pathIndex.ParsePaths();
-    foreach (var path in pathIndex.Files.Values.Select(file => file.Path).Where(path => path != null && path.Contains(args[2], StringComparison.OrdinalIgnoreCase)).Order(StringComparer.OrdinalIgnoreCase))
-    {
-        Console.WriteLine(path);
-    }
-
-    return 0;
-}
-
-// Args: cat <gameDir> <path> [maxChars]  -- research aid: a bundled UTF-16 text file (.ao, .aoc, .ot) printed as text.
-if (args.Length > 2 && string.Equals(args[0], "cat", StringComparison.OrdinalIgnoreCase))
-{
-    using var catIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-    catIndex.ParsePaths();
-    var catFile = catIndex.Files.Values.FirstOrDefault(file => string.Equals(file.Path, args[2], StringComparison.OrdinalIgnoreCase));
-    if (catFile == null)
-    {
-        Console.WriteLine($"No file {args[2]}");
-        return 1;
-    }
-
-    var text = System.Text.Encoding.Unicode.GetString(catFile.Read().ToArray()).TrimStart('﻿');
-    Console.WriteLine(args.Length > 3 ? text[..Math.Min(text.Length, int.Parse(args[3]))] : text);
-    return 0;
-}
-
-// Args: ot-with <gameDir> <text>  -- research aid: every .ot whose text holds <text>, one path a line.
-if (args.Length > 2 && string.Equals(args[0], "ot-with", StringComparison.OrdinalIgnoreCase))
-{
-    using var otIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-    otIndex.ParsePaths();
-    foreach (var file in otIndex.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(".ot", StringComparison.Ordinal)))
-    {
-        if (System.Text.Encoding.Unicode.GetString(file.Read().ToArray()).Contains(args[2], StringComparison.Ordinal))
+        OodleLibrary.Register();
+        try
         {
-            Console.WriteLine(file.Path);
+            return Dispatch(args);
+        }
+        finally
+        {
+            GameContent.CloseAll();
         }
     }
 
-    return 0;
-}
-
-// Args: file-with <gameDir> <pathPart> <text>  -- research aid: every file under a path holding <text> in UTF-16 or UTF-32, as the game's tables keep strings.
-if (args.Length > 3 && string.Equals(args[0], "file-with", StringComparison.OrdinalIgnoreCase))
-{
-    using var withIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-    withIndex.ParsePaths();
-    var needles = new[] { System.Text.Encoding.Unicode.GetBytes(args[3]), System.Text.Encoding.UTF32.GetBytes(args[3]) };
-    foreach (var file in withIndex.Files.Values.Where(file => file.Path != null && file.Path.Contains(args[2], StringComparison.OrdinalIgnoreCase)))
+    private static int Dispatch(string[] args)
     {
-        var bytes = file.Read().ToArray();
-        if (needles.Any(needle => bytes.AsSpan().IndexOf(needle) >= 0))
+        // Args: catalog <uiRootDir> <outJson>  -- parse extracted .ui scripts into a JSON control catalog.
+        if (args.Length > 0 && string.Equals(args[0], "catalog", StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine(file.Path);
-        }
-    }
-
-    return 0;
-}
-
-// Args: ao-sounds <gameDir> <pathPart>  -- research aid: every .ao whose path contains <pathPart> with the sound
-// events it plays (path <TAB> distinct "Audio/..." filenames).
-if (args.Length > 2 && string.Equals(args[0], "ao-sounds", StringComparison.OrdinalIgnoreCase))
-{
-    using var aoIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-    aoIndex.ParsePaths();
-    var audioName = new System.Text.RegularExpressions.Regex("""
-        "filename"\s*:\s*"(Audio/[^"]+)"
-        """);
-    foreach (var file in aoIndex.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(".ao", StringComparison.OrdinalIgnoreCase)
-        && file.Path.Contains(args[2], StringComparison.OrdinalIgnoreCase)).OrderBy(file => file.Path, StringComparer.OrdinalIgnoreCase))
-    {
-        var aoText = System.Text.Encoding.Unicode.GetString(file.Read().ToArray());
-        var names = audioName.Matches(aoText).Select(match => match.Groups[1].Value).Distinct().ToList();
-        Console.WriteLine($"{file.Path}	{string.Join(" | ", names)}");
-    }
-
-    return 0;
-}
-
-// Args: object-sounds <gameDir> <outDir>  -- the sound the game gives each object the word list does not name.
-if (args.Length > 2 && string.Equals(args[0], "object-sounds", StringComparison.OrdinalIgnoreCase))
-{
-    return ObjectSoundExtractor.Run(args[1], args[2]);
-}
-
-// Args: object-links <gameDir>  -- research aid: every chest-like object and the sound the game gives it.
-if (args.Length > 1 && string.Equals(args[0], "object-links", StringComparison.OrdinalIgnoreCase))
-{
-    using var linkIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-    linkIndex.ParsePaths();
-    foreach (var (path, sound) in ObjectSoundLinks.Read(linkIndex) ?? new())
-    {
-        Console.WriteLine($"{path}	{sound}");
-    }
-
-    return 0;
-}
-
-// Args: dat-strings <gameDir> <table> [language] [rows]  -- research aid: every string column of a table's first rows.
-if (args.Length > 2 && string.Equals(args[0], "dat-strings", StringComparison.OrdinalIgnoreCase))
-{
-    using var bundles = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-    bundles.ParsePaths();
-    var language = args.Length > 3 && args[3] != "english" ? args[3] : null;
-    var table = language == null ? DatTable.Open(bundles, args[2]) : DatTable.OpenTranslated(bundles, args[2], language);
-    if (table == null)
-    {
-        Console.WriteLine($"No table {args[2]}");
-        return 1;
-    }
-
-    var rows = Math.Min(table.RowCount, args.Length > 4 ? int.Parse(args[4]) : 20);
-    Console.WriteLine($"{args[2]}: {table.RowCount} rows of 0x{table.RowSize:X} bytes");
-    for (var offset = 0; offset + 8 <= table.RowSize; offset++)
-    {
-        var texts = Enumerable.Range(0, rows).Select(row => table.StringOrNull(row, offset)).ToList();
-        if (texts.Count(text => text != null) >= rows * 0.8 && texts.Any(text => !string.IsNullOrEmpty(text)))
-        {
-            Console.WriteLine($"+0x{offset:X}: {string.Join(" | ", texts.Select(text => text ?? "?"))}");
-        }
-    }
-
-    return 0;
-}
-
-// Args: dat-row-strings <gameDir> <table> <id substring> [language]  -- research aid: every text column of the rows whose id
-// matches, one "+offset: text" line each.
-if (args.Length > 3 && string.Equals(args[0], "dat-row-strings", StringComparison.OrdinalIgnoreCase))
-{
-    using var bundles = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-    bundles.ParsePaths();
-    var english = DatTable.Open(bundles, args[2]);
-    var table = args.Length > 4 && args[4] != "english" ? DatTable.OpenTranslated(bundles, args[2], args[4]) : english;
-    if (english == null || table == null)
-    {
-        Console.WriteLine($"No table {args[2]}");
-        return 1;
-    }
-
-    for (var row = 0; row < english.RowCount; row++)
-    {
-        var id = english.StringOrNull(row, 0) ?? string.Empty;
-        if (id.Contains(args[3], StringComparison.OrdinalIgnoreCase))
-        {
-            Console.WriteLine($"{row} {id}:");
-            for (var offset = 8; offset + 8 <= table.RowSize; offset += 4)
+            if (args.Length < 3)
             {
-                if (table.StringOrNull(row, offset) is { Length: > 1 } text && text.Any(char.IsLetter))
+                Say.Out.WriteLine("Usage: Poe2UiExtract.exe catalog <uiRootDir> <outJson>");
+                return 1;
+            }
+            return CatalogGenerator.Run(args[1], args[2]);
+        }
+
+        // Args: sounds <gameDir> [outDir] [itemSoundsJson]  -- decode the audio-cue set (plus the drop samples named in the item
+        // catalog, as items/<sample>.wav) from the FMOD banks into WAV files + manifest.txt.
+        if (args.Length > 0 && string.Equals(args[0], "sounds", StringComparison.OrdinalIgnoreCase))
+        {
+            string game = args.Length > 1 ? args[1] : @"D:\games\steam\steamapps\common\Path of Exile 2";
+            return SoundExtractor.Run(game, args.Length > 2 ? args[2] : @"Poe2Accessibility\sounds",
+                args.Length > 3 ? args[3] : @"Poe2Accessibility\catalog\item-sounds.json");
+        }
+
+        // Args: bank-samples <gameDir> <outDir> <bank,bank...> [filter]  -- research aid: a bank's samples as WAV to audition.
+        if (args.Length > 3 && string.Equals(args[0], "bank-samples", StringComparison.OrdinalIgnoreCase))
+        {
+            return SoundExtractor.DumpBanks(args[1], args[2], args[3].Split(','), args.Length > 4 ? args[4] : string.Empty);
+        }
+
+        // Args: paths <gameDir> <part>  -- research aid: every bundled file path containing <part> (quest reward icons' names).
+        if (args.Length > 2 && string.Equals(args[0], "paths", StringComparison.OrdinalIgnoreCase))
+        {
+            using var pathIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+            pathIndex.ParsePaths();
+            foreach (var path in pathIndex.Files.Values.Select(file => file.Path).Where(path => path != null && path.Contains(args[2], StringComparison.OrdinalIgnoreCase)).Order(StringComparer.OrdinalIgnoreCase))
+            {
+                Say.Out.WriteLine(path);
+            }
+
+            return 0;
+        }
+
+        // Args: cat <gameDir> <path> [maxChars]  -- research aid: a bundled UTF-16 text file (.ao, .aoc, .ot) printed as text.
+        if (args.Length > 2 && string.Equals(args[0], "cat", StringComparison.OrdinalIgnoreCase))
+        {
+            using var catIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+            catIndex.ParsePaths();
+            var catFile = catIndex.Files.Values.FirstOrDefault(file => string.Equals(file.Path, args[2], StringComparison.OrdinalIgnoreCase));
+            if (catFile == null)
+            {
+                Say.Out.WriteLine($"No file {args[2]}");
+                return 1;
+            }
+
+            var text = System.Text.Encoding.Unicode.GetString(catFile.Read().ToArray()).TrimStart('﻿');
+            Say.Out.WriteLine(args.Length > 3 ? text[..Math.Min(text.Length, int.Parse(args[3]))] : text);
+            return 0;
+        }
+
+        // Args: ot-with <gameDir> <text>  -- research aid: every .ot whose text holds <text>, one path a line.
+        if (args.Length > 2 && string.Equals(args[0], "ot-with", StringComparison.OrdinalIgnoreCase))
+        {
+            using var otIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+            otIndex.ParsePaths();
+            foreach (var file in otIndex.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(".ot", StringComparison.Ordinal)))
+            {
+                if (System.Text.Encoding.Unicode.GetString(file.Read().ToArray()).Contains(args[2], StringComparison.Ordinal))
                 {
-                    Console.WriteLine($"  +0x{offset:X}: {text.Replace("\n", " / ")}");
+                    Say.Out.WriteLine(file.Path);
                 }
             }
+
+            return 0;
         }
-    }
 
-    return 0;
-}
-
-// Args: dat-rows <gameDir> <table> <id substring>  -- research aid: the raw bytes (as int32s) of the rows whose id matches.
-if (args.Length > 3 && string.Equals(args[0], "dat-rows", StringComparison.OrdinalIgnoreCase))
-{
-    using var bundles = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-    bundles.ParsePaths();
-    var table = DatTable.Open(bundles, args[2]);
-    if (table == null)
-    {
-        Console.WriteLine($"No table {args[2]}");
-        return 1;
-    }
-
-    for (var row = 0; row < table.RowCount; row++)
-    {
-        var id = table.StringOrNull(row, 0) ?? string.Empty;
-        if (id.Contains(args[3], StringComparison.OrdinalIgnoreCase))
+        // Args: file-with <gameDir> <pathPart> <text>  -- research aid: every file under a path holding <text> in UTF-16 or UTF-32, as the game's tables keep strings.
+        if (args.Length > 3 && string.Equals(args[0], "file-with", StringComparison.OrdinalIgnoreCase))
         {
-            var words = Enumerable.Range(0, (table.RowSize - 8) / 2).Select(at => 8 + (at * 2)).Where(at => at + 4 <= table.RowSize)
-                .Select(at => $"+{at:X}={table.Int32(row, at)}");
-            Console.WriteLine($"{row} {id}: {string.Join(' ', words)}");
+            using var withIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+            withIndex.ParsePaths();
+            var needles = new[] { System.Text.Encoding.Unicode.GetBytes(args[3]), System.Text.Encoding.UTF32.GetBytes(args[3]) };
+            foreach (var file in withIndex.Files.Values.Where(file => file.Path != null && file.Path.Contains(args[2], StringComparison.OrdinalIgnoreCase)))
+            {
+                var bytes = file.Read().ToArray();
+                if (needles.Any(needle => bytes.AsSpan().IndexOf(needle) >= 0))
+                {
+                    Say.Out.WriteLine(file.Path);
+                }
+            }
+
+            return 0;
         }
+
+        // Args: ao-sounds <gameDir> <pathPart>  -- research aid: every .ao whose path contains <pathPart> with the sound
+        // events it plays (path <TAB> distinct "Audio/..." filenames).
+        if (args.Length > 2 && string.Equals(args[0], "ao-sounds", StringComparison.OrdinalIgnoreCase))
+        {
+            using var aoIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+            aoIndex.ParsePaths();
+            var audioName = new System.Text.RegularExpressions.Regex("""
+                "filename"\s*:\s*"(Audio/[^"]+)"
+                """);
+            foreach (var file in aoIndex.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(".ao", StringComparison.OrdinalIgnoreCase)
+                && file.Path.Contains(args[2], StringComparison.OrdinalIgnoreCase)).OrderBy(file => file.Path, StringComparer.OrdinalIgnoreCase))
+            {
+                var aoText = System.Text.Encoding.Unicode.GetString(file.Read().ToArray());
+                var names = audioName.Matches(aoText).Select(match => match.Groups[1].Value).Distinct().ToList();
+                Say.Out.WriteLine($"{file.Path}	{string.Join(" | ", names)}");
+            }
+
+            return 0;
+        }
+
+        // Args: object-sounds <gameDir> <outDir>  -- the sound the game gives each object the word list does not name.
+        if (args.Length > 2 && string.Equals(args[0], "object-sounds", StringComparison.OrdinalIgnoreCase))
+        {
+            return ObjectSoundExtractor.Run(args[1], args[2]);
+        }
+
+        // Args: object-links <gameDir>  -- research aid: every chest-like object and the sound the game gives it.
+        if (args.Length > 1 && string.Equals(args[0], "object-links", StringComparison.OrdinalIgnoreCase))
+        {
+            using var linkIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+            linkIndex.ParsePaths();
+            foreach (var (path, sound) in ObjectSoundLinks.Read(linkIndex) ?? new())
+            {
+                Say.Out.WriteLine($"{path}	{sound}");
+            }
+
+            return 0;
+        }
+
+        // Args: dat-strings <gameDir> <table> [language] [rows]  -- research aid: every string column of a table's first rows.
+        if (args.Length > 2 && string.Equals(args[0], "dat-strings", StringComparison.OrdinalIgnoreCase))
+        {
+            using var bundles = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+            bundles.ParsePaths();
+            var language = args.Length > 3 && args[3] != "english" ? args[3] : null;
+            var table = language == null ? DatTable.Open(bundles, args[2]) : DatTable.OpenTranslated(bundles, args[2], language);
+            if (table == null)
+            {
+                Say.Out.WriteLine($"No table {args[2]}");
+                return 1;
+            }
+
+            var rows = Math.Min(table.RowCount, args.Length > 4 ? int.Parse(args[4]) : 20);
+            Say.Out.WriteLine($"{args[2]}: {table.RowCount} rows of 0x{table.RowSize:X} bytes");
+            for (var offset = 0; offset + 8 <= table.RowSize; offset++)
+            {
+                var texts = Enumerable.Range(0, rows).Select(row => table.StringOrNull(row, offset)).ToList();
+                if (texts.Count(text => text != null) >= rows * 0.8 && texts.Any(text => !string.IsNullOrEmpty(text)))
+                {
+                    Say.Out.WriteLine($"+0x{offset:X}: {string.Join(" | ", texts.Select(text => text ?? "?"))}");
+                }
+            }
+
+            return 0;
+        }
+
+        // Args: dat-row-strings <gameDir> <table> <id substring> [language]  -- research aid: every text column of the rows whose id
+        // matches, one "+offset: text" line each.
+        if (args.Length > 3 && string.Equals(args[0], "dat-row-strings", StringComparison.OrdinalIgnoreCase))
+        {
+            using var bundles = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+            bundles.ParsePaths();
+            var english = DatTable.Open(bundles, args[2]);
+            var table = args.Length > 4 && args[4] != "english" ? DatTable.OpenTranslated(bundles, args[2], args[4]) : english;
+            if (english == null || table == null)
+            {
+                Say.Out.WriteLine($"No table {args[2]}");
+                return 1;
+            }
+
+            for (var row = 0; row < english.RowCount; row++)
+            {
+                var id = english.StringOrNull(row, 0) ?? string.Empty;
+                if (id.Contains(args[3], StringComparison.OrdinalIgnoreCase))
+                {
+                    Say.Out.WriteLine($"{row} {id}:");
+                    for (var offset = 8; offset + 8 <= table.RowSize; offset += 4)
+                    {
+                        if (table.StringOrNull(row, offset) is { Length: > 1 } text && text.Any(char.IsLetter))
+                        {
+                            Say.Out.WriteLine($"  +0x{offset:X}: {text.Replace("\n", " / ")}");
+                        }
+                    }
+                }
+            }
+
+            return 0;
+        }
+
+        // Args: dat-rows <gameDir> <table> <id substring>  -- research aid: the raw bytes (as int32s) of the rows whose id matches.
+        if (args.Length > 3 && string.Equals(args[0], "dat-rows", StringComparison.OrdinalIgnoreCase))
+        {
+            using var bundles = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
+            bundles.ParsePaths();
+            var table = DatTable.Open(bundles, args[2]);
+            if (table == null)
+            {
+                Say.Out.WriteLine($"No table {args[2]}");
+                return 1;
+            }
+
+            for (var row = 0; row < table.RowCount; row++)
+            {
+                var id = table.StringOrNull(row, 0) ?? string.Empty;
+                if (id.Contains(args[3], StringComparison.OrdinalIgnoreCase))
+                {
+                    var words = Enumerable.Range(0, (table.RowSize - 8) / 2).Select(at => 8 + (at * 2)).Where(at => at + 4 <= table.RowSize)
+                        .Select(at => $"+{at:X}={table.Int32(row, at)}");
+                    Say.Out.WriteLine($"{row} {id}: {string.Join(' ', words)}");
+                }
+            }
+
+            return 0;
+        }
+
+        // Args: item-sounds <gameDir> [outFile]  -- base item id -> drop sample (ItemDrops.bank) from the dat tables as JSON.
+        if (args.Length > 0 && string.Equals(args[0], "item-sounds", StringComparison.OrdinalIgnoreCase))
+        {
+            string game = args.Length > 1 ? args[1] : @"D:\games\steam\steamapps\common\Path of Exile 2";
+            return ItemSoundExtractor.Run(game, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-sounds.json");
+        }
+
+        // Args: hit-times <gameDir> [outFile]  -- when each monster attack lands, from the animation data, for dodge warnings.
+        if (args.Length > 1 && string.Equals(args[0], "hit-times", StringComparison.OrdinalIgnoreCase))
+        {
+            return HitTimeExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hit-times.txt");
+        }
+
+        // Args: hazards <gameDir> [outFile]  -- buffs from standing in harmful ground, for the hazard alarm.
+        if (args.Length > 1 && string.Equals(args[0], "hazards", StringComparison.OrdinalIgnoreCase))
+        {
+            return HazardExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hazards.txt");
+        }
+
+        // Args: game-ids <gameDir> [outFile]  -- the game's numbers for animations and stats, in place of GameHelper's old enums.
+        if (args.Length > 1 && string.Equals(args[0], "game-ids", StringComparison.OrdinalIgnoreCase))
+        {
+            return GameIdExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\game-ids.txt");
+        }
+
+        // Args: game-keys <gameDir> [outFile]  -- the Ids of the tables a player meets, to tell what a patch added.
+        if (args.Length > 1 && string.Equals(args[0], "game-keys", StringComparison.OrdinalIgnoreCase))
+        {
+            return GameKeyExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\game-keys.txt");
+        }
+
+        // Args: cull-skills <gameDir> [outFile]  -- granted effects that deal Culling Strike, for the mod's culling cue.
+        if (args.Length > 1 && string.Equals(args[0], "cull-skills", StringComparison.OrdinalIgnoreCase))
+        {
+            return CullSkillExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\cull-skills.txt");
+        }
+
+        // Args: places <gameDir> [outFile]  -- named map pieces and props for the place announcements (docs/research/places.md).
+        if (args.Length > 1 && string.Equals(args[0], "places", StringComparison.OrdinalIgnoreCase))
+        {
+            return PlaceExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\places.json");
+        }
+
+        // Args: experience <gameDir> [outFile]  -- the total experience each character level starts at.
+        if (args.Length > 1 && string.Equals(args[0], "experience", StringComparison.OrdinalIgnoreCase))
+        {
+            return ExperienceExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\experience.json");
+        }
+
+        // Args: item-names <gameDir> [outFile]  -- currency item names per language, for inline item art in legends.
+        if (args.Length > 1 && string.Equals(args[0], "item-names", StringComparison.OrdinalIgnoreCase))
+        {
+            return ItemNameExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-names.json");
+        }
+
+        // Args: world-titles <gameDir> <outFile>  -- the names objects show only in a WorldDescription, as { lang: { .ot path: title } }.
+        if (args.Length > 2 && string.Equals(args[0], "world-titles", StringComparison.OrdinalIgnoreCase))
+        {
+            return WorldTitleExtractor.Run(args[1], args[2]);
+        }
+
+        // Args: areas <gameDir> <outFile>  -- localized world-area names from WorldAreas.datc64 as { lang: { id: name } }.
+        if (args.Length > 0 && string.Equals(args[0], "areas", StringComparison.OrdinalIgnoreCase))
+        {
+            if (args.Length < 3)
+            {
+                Say.Out.WriteLine("Usage: Poe2UiExtract.exe areas <gameDir> <outFile>");
+                return 1;
+            }
+            return AreaExtractor.Run(args[1], args[2]);
+        }
+
+        // Args: monster-names <gameDir> <radarTableFile> <outFile>  -- the radar table's boss names per language from MonsterVarieties.
+        if (args.Length > 0 && string.Equals(args[0], "monster-names", StringComparison.OrdinalIgnoreCase))
+        {
+            if (args.Length < 4)
+            {
+                Say.Out.WriteLine("Usage: Poe2UiExtract.exe monster-names <gameDir> <radarTableFile> <outFile>");
+                return 1;
+            }
+            return MonsterNameExtractor.Run(args[1], args[2], args[3]);
+        }
+
+        // Args: dat-columns <gameDir> <outFile>  -- the dat columns the plugin reads names from, found again in this install.
+        if (args.Length > 0 && string.Equals(args[0], "dat-columns", StringComparison.OrdinalIgnoreCase))
+        {
+            if (args.Length < 3)
+            {
+                Say.Out.WriteLine("Usage: Poe2UiExtract.exe dat-columns <gameDir> <outFile>");
+                return 1;
+            }
+            return DatColumnExtractor.Run(args[1], args[2]);
+        }
+
+        // Args: batch <gameDir> <command> <outFile> [...]  -- item-sounds, areas, dat-columns, experience, hit-times, hazards, cull-skills, places and
+        // ui-catalog on one opened index (the launcher after a game patch); each output complete or absent.
+        if (args.Length > 3 && string.Equals(args[0], "batch", StringComparison.OrdinalIgnoreCase))
+        {
+            return Batch.Run(args[1], args[2..]);
+        }
+
+        // Args: [0] = path to _.index.bin, [1] = output dir
+        string indexPath = args.Length > 0 ? args[0] : @"D:\games\steam\steamapps\common\Path of Exile 2\Bundles2\_.index.bin";
+        string outDir = args.Length > 1 ? args[1] : @"out";
+
+        Say.Out.WriteLine($"Opening index (read-only intent): {indexPath}");
+
+        // Open with parsePaths:false so a handful of unparsable paths (known PoE2 quirk,
+        // see LibGGPK3 issue #25) don't abort the whole run; we call ParsePaths ourselves
+        // and just report the failure count.
+        using var index = SharedBundles.Open(indexPath);
+        int failed = index.ParsePaths();
+        Say.Out.WriteLine($"ParsePaths failed count: {failed}");
+        var code = UiScripts.Extract(index, outDir);
+        Say.Out.WriteLine("Done.");
+        return code;
     }
-
-    return 0;
 }
 
-// Args: item-sounds <gameDir> [outFile]  -- base item id -> drop sample (ItemDrops.bank) from the dat tables as JSON.
-if (args.Length > 0 && string.Equals(args[0], "item-sounds", StringComparison.OrdinalIgnoreCase))
+internal static class Program
 {
-    string game = args.Length > 1 ? args[1] : @"D:\games\steam\steamapps\common\Path of Exile 2";
-    return ItemSoundExtractor.Run(game, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-sounds.json");
+    private static int Main(string[] args) => Extractor.Run(args);
 }
-
-// Args: hit-times <gameDir> [outFile]  -- when each monster attack lands, from the animation data, for dodge warnings.
-if (args.Length > 1 && string.Equals(args[0], "hit-times", StringComparison.OrdinalIgnoreCase))
-{
-    return HitTimeExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hit-times.txt");
-}
-
-// Args: hazards <gameDir> [outFile]  -- buffs from standing in harmful ground, for the hazard alarm.
-if (args.Length > 1 && string.Equals(args[0], "hazards", StringComparison.OrdinalIgnoreCase))
-{
-    return HazardExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hazards.txt");
-}
-
-// Args: game-ids <gameDir> [outFile]  -- the game's numbers for animations and stats, in place of GameHelper's old enums.
-if (args.Length > 1 && string.Equals(args[0], "game-ids", StringComparison.OrdinalIgnoreCase))
-{
-    return GameIdExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\game-ids.txt");
-}
-
-// Args: game-keys <gameDir> [outFile]  -- the Ids of the tables a player meets, to tell what a patch added.
-if (args.Length > 1 && string.Equals(args[0], "game-keys", StringComparison.OrdinalIgnoreCase))
-{
-    return GameKeyExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\game-keys.txt");
-}
-
-// Args: cull-skills <gameDir> [outFile]  -- granted effects that deal Culling Strike, for the mod's culling cue.
-if (args.Length > 1 && string.Equals(args[0], "cull-skills", StringComparison.OrdinalIgnoreCase))
-{
-    return CullSkillExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\cull-skills.txt");
-}
-
-// Args: places <gameDir> [outFile]  -- named map pieces and props for the place announcements (docs/research/places.md).
-if (args.Length > 1 && string.Equals(args[0], "places", StringComparison.OrdinalIgnoreCase))
-{
-    return PlaceExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\places.json");
-}
-
-// Args: experience <gameDir> [outFile]  -- the total experience each character level starts at.
-if (args.Length > 1 && string.Equals(args[0], "experience", StringComparison.OrdinalIgnoreCase))
-{
-    return ExperienceExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\experience.json");
-}
-
-// Args: item-names <gameDir> [outFile]  -- currency item names per language, for inline item art in legends.
-if (args.Length > 1 && string.Equals(args[0], "item-names", StringComparison.OrdinalIgnoreCase))
-{
-    return ItemNameExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-names.json");
-}
-
-// Args: world-titles <gameDir> <outFile>  -- the names objects show only in a WorldDescription, as { lang: { .ot path: title } }.
-if (args.Length > 2 && string.Equals(args[0], "world-titles", StringComparison.OrdinalIgnoreCase))
-{
-    return WorldTitleExtractor.Run(args[1], args[2]);
-}
-
-// Args: areas <gameDir> <outFile>  -- localized world-area names from WorldAreas.datc64 as { lang: { id: name } }.
-if (args.Length > 0 && string.Equals(args[0], "areas", StringComparison.OrdinalIgnoreCase))
-{
-    if (args.Length < 3)
-    {
-        Console.WriteLine("Usage: Poe2UiExtract.exe areas <gameDir> <outFile>");
-        return 1;
-    }
-    return AreaExtractor.Run(args[1], args[2]);
-}
-
-// Args: monster-names <gameDir> <radarTableFile> <outFile>  -- the radar table's boss names per language from MonsterVarieties.
-if (args.Length > 0 && string.Equals(args[0], "monster-names", StringComparison.OrdinalIgnoreCase))
-{
-    if (args.Length < 4)
-    {
-        Console.WriteLine("Usage: Poe2UiExtract.exe monster-names <gameDir> <radarTableFile> <outFile>");
-        return 1;
-    }
-    return MonsterNameExtractor.Run(args[1], args[2], args[3]);
-}
-
-// Args: dat-columns <gameDir> <outFile>  -- the dat columns the plugin reads names from, found again in this install.
-if (args.Length > 0 && string.Equals(args[0], "dat-columns", StringComparison.OrdinalIgnoreCase))
-{
-    if (args.Length < 3)
-    {
-        Console.WriteLine("Usage: Poe2UiExtract.exe dat-columns <gameDir> <outFile>");
-        return 1;
-    }
-    return DatColumnExtractor.Run(args[1], args[2]);
-}
-
-// Args: batch <gameDir> <command> <outFile> [...]  -- item-sounds, areas, dat-columns, experience, hit-times, hazards, cull-skills, places and
-// ui-catalog on one opened index (the launcher after a game patch); each output complete or absent.
-if (args.Length > 3 && string.Equals(args[0], "batch", StringComparison.OrdinalIgnoreCase))
-{
-    return Batch.Run(args[1], args[2..]);
-}
-
-// Args: [0] = path to _.index.bin, [1] = output dir
-string indexPath = args.Length > 0 ? args[0] : @"D:\games\steam\steamapps\common\Path of Exile 2\Bundles2\_.index.bin";
-string outDir = args.Length > 1 ? args[1] : @"out";
-
-Console.WriteLine($"Opening index (read-only intent): {indexPath}");
-
-// Open with parsePaths:false so a handful of unparsable paths (known PoE2 quirk,
-// see LibGGPK3 issue #25) don't abort the whole run; we call ParsePaths ourselves
-// and just report the failure count.
-using var index = SharedBundles.Open(indexPath);
-int failed = index.ParsePaths();
-Console.WriteLine($"ParsePaths failed count: {failed}");
-var code = UiScripts.Extract(index, outDir);
-Console.WriteLine("Done.");
-return code;

@@ -37,7 +37,7 @@ internal static class SkillFlags
         var flagOfRow = FlagOfStat.Select(pair => (Row: ProjectileSpeeds.Find(stats, pair.Key), Flag: pair.Value)).Where(pair => pair.Row >= 0).ToDictionary(pair => pair.Row, pair => pair.Flag);
         if (flagOfRow.Count == 0)
         {
-            Console.WriteLine($"Stats {string.Join(", ", FlagOfStat.Keys)} not found: {Skipped} left out.");
+            Say.Out.WriteLine($"Stats {string.Join(", ", FlagOfStat.Keys)} not found: {Skipped} left out.");
             return flags;
         }
 

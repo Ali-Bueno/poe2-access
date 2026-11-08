@@ -87,14 +87,14 @@ internal static class EventRenderer
                 || FMOD_System_SetSoftwareFormat(core, MixRate, DefaultSpeakers, 0) != 0
                 || FMOD_Studio_System_Initialize(sys, MaxChannels, SynchronousUpdate, StreamAndMixFromUpdate, Bytes(file)) != 0)
             {
-                Console.WriteLine("FMOD Studio would not start (header version mismatch?).");
+                Say.Out.WriteLine("FMOD Studio would not start (header version mismatch?).");
                 return null;
             }
 
             try
             {
                 var banks = LoadBanks(sys, gameDir, folder);
-                Console.WriteLine($"Loaded {banks} {folder} banks");
+                Say.Out.WriteLine($"Loaded {banks} {folder} banks");
                 FMOD_System_GetMasterChannelGroup(core, out var master);
                 FMOD_System_GetSoftwareFormat(core, out var rate, out _, out _);
                 FMOD_System_GetDSPBufferSize(core, out var block, out _);
@@ -104,7 +104,7 @@ internal static class EventRenderer
                 {
                     if (paths.Select(path => Find(sys, path)).FirstOrDefault(found => found != IntPtr.Zero) is var description && description == IntPtr.Zero)
                     {
-                        Console.WriteLine($"SKIP no event for {sound}");
+                        Say.Out.WriteLine($"SKIP no event for {sound}");
                         continue;
                     }
 
@@ -114,7 +114,7 @@ internal static class EventRenderer
                     }
                     else
                     {
-                        Console.WriteLine($"SKIP samples of {sound} would not load");
+                        Say.Out.WriteLine($"SKIP samples of {sound} would not load");
                     }
 
                     Update(sys, gapBlocks);
@@ -236,7 +236,7 @@ internal static class EventRenderer
         var data = wav.AsSpan().IndexOf("data"u8);
         if (format < 0 || data < 0 || BitConverter.ToInt16(wav, format + 22) != 16)
         {
-            Console.WriteLine("FMOD wrote no 16-bit WAV.");
+            Say.Out.WriteLine("FMOD wrote no 16-bit WAV.");
             return null;
         }
 

@@ -47,18 +47,18 @@ internal static class DatColumnExtractor
             var translated = DatTable.OpenTranslated(index, table, Translation);
             if (english == null || translated == null || english.RowCount != translated.RowCount || english.RowSize != translated.RowSize)
             {
-                Console.WriteLine($"{column}: tables missing or not alike, left out");
+                Say.Out.WriteLine($"{column}: tables missing or not alike, left out");
                 continue;
             }
 
             if (FirstTranslated(english, translated) is { } offset)
             {
                 found[column] = offset;
-                Console.WriteLine($"{column}: +0x{offset:X} (measured +0x{measured:X}), row size 0x{english.RowSize:X}");
+                Say.Out.WriteLine($"{column}: +0x{offset:X} (measured +0x{measured:X}), row size 0x{english.RowSize:X}");
             }
             else
             {
-                Console.WriteLine($"{column}: no translated column found, left out");
+                Say.Out.WriteLine($"{column}: no translated column found, left out");
             }
         }
 
@@ -69,7 +69,7 @@ internal static class DatColumnExtractor
                 found[column] = at;
             }
 
-            Console.WriteLine(offset is { } where ? $"{column}: +0x{where:X} (measured +0x{measured:X})" : $"{column}: not recognised, left out");
+            Say.Out.WriteLine(offset is { } where ? $"{column}: +0x{where:X} (measured +0x{measured:X})" : $"{column}: not recognised, left out");
         }
 
         if (found.Count == 0)

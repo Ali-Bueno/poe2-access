@@ -50,7 +50,7 @@ internal static class HitTimeExtractor
         var animations = DatTable.Open(index, "animation");
         if (monsters == null || skills == null || animations == null)
         {
-            Console.WriteLine("MonsterVarieties, GrantedEffects or Animation not found.");
+            Say.Out.WriteLine("MonsterVarieties, GrantedEffects or Animation not found.");
             return 1;
         }
 
@@ -61,7 +61,7 @@ internal static class HitTimeExtractor
         var skillAnimation = DatContentColumns.Nearest(skills, SkillAnimationOffset, offset => skills.IsKeyColumn(offset, animations.RowCount));
         if (actFiles == null || aoFiles == null || grantedEffects == null || skillAnimation == null)
         {
-            Console.WriteLine("A MonsterVarieties or GrantedEffects column was not found again.");
+            Say.Out.WriteLine("A MonsterVarieties or GrantedEffects column was not found again.");
             return 1;
         }
 
@@ -89,7 +89,7 @@ internal static class HitTimeExtractor
 
             if (!act.EndsWith(".act", StringComparison.OrdinalIgnoreCase) || !ao.EndsWith(".ao", StringComparison.OrdinalIgnoreCase))
             {
-                Console.WriteLine($"MonsterVarieties columns moved (row {row}: '{act}', '{ao}'); find them again with dat-strings.");
+                Say.Out.WriteLine($"MonsterVarieties columns moved (row {row}: '{act}', '{ao}'); find them again with dat-strings.");
                 return 1;
             }
 
@@ -164,7 +164,7 @@ internal static class HitTimeExtractor
         };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllLines(outFile, header.Concat(lines));
-        Console.WriteLine($"Wrote {outFile}: {lines.Count} lines, {lines.Count(line => line.Contains(';'))} attacks the player cannot block or parry.");
+        Say.Out.WriteLine($"Wrote {outFile}: {lines.Count} lines, {lines.Count(line => line.Contains(';'))} attacks the player cannot block or parry.");
         tally.Print();
         return 0;
     }
@@ -208,7 +208,7 @@ internal static class HitTimeExtractor
             return true;
         }
 
-        Console.WriteLine($"{name} {(table == null ? "not found" : $"rows are 0x{table.RowSize:X} bytes, not 0x{rowSize:X}")}: {skipped} left out; " +
+        Say.Out.WriteLine($"{name} {(table == null ? "not found" : $"rows are 0x{table.RowSize:X} bytes, not 0x{rowSize:X}")}: {skipped} left out; " +
                           "find the columns again (dat-strings, dat-schema).");
         return false;
     }
@@ -268,7 +268,7 @@ internal static class HitTimeExtractor
                     var prefix = $"{group}, {warned}|";
                     var parts = this.counts.Where(pair => pair.Key.StartsWith(prefix, StringComparison.Ordinal))
                         .OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => $"{pair.Key[prefix.Length..]} {pair.Value}");
-                    Console.WriteLine($"{prefix[..^1]}: {string.Join(", ", parts)}");
+                    Say.Out.WriteLine($"{prefix[..^1]}: {string.Join(", ", parts)}");
                 }
             }
         }

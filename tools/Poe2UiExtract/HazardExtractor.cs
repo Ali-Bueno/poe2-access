@@ -87,7 +87,7 @@ internal static class HazardExtractor
         };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllLines(outFile, header.Concat(ids));
-        Console.WriteLine($"Wrote {outFile}: {ids.Count} hazard buffs.");
+        Say.Out.WriteLine($"Wrote {outFile}: {ids.Count} hazard buffs.");
         return 0;
     }
 }

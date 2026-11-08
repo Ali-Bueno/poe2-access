@@ -37,7 +37,7 @@ internal static class GameKeyExtractor
             var table = DatTable.Open(index, name);
             if (table == null)
             {
-                Console.WriteLine($"Table {name} missing: {Skipped} left out.");
+                Say.Out.WriteLine($"Table {name} missing: {Skipped} left out.");
                 return 1;
             }
 
@@ -57,12 +57,12 @@ internal static class GameKeyExtractor
             .Select(path => $"{ScreenTable}\t{path}"));
         if (lines.Count <= 1)
         {
-            Console.WriteLine($"No keys read: {Skipped} left out.");
+            Say.Out.WriteLine($"No keys read: {Skipped} left out.");
             return 1;
         }
 
         File.WriteAllLines(outFile, lines);
-        Console.WriteLine($"{lines.Count - 1} keys written to {outFile}");
+        Say.Out.WriteLine($"{lines.Count - 1} keys written to {outFile}");
         return 0;
     }
 }

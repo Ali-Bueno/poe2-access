@@ -22,7 +22,7 @@ internal static class MonsterNameExtractor
         var english = DatTable.Open(index, "monstervarieties");
         if (english == null)
         {
-            Console.WriteLine("MonsterVarieties not found.");
+            Say.Out.WriteLine("MonsterVarieties not found.");
             return 1;
         }
 
@@ -44,7 +44,7 @@ internal static class MonsterNameExtractor
             if (best >= 0)
             {
                 rowByLabel[label] = best;
-                Console.WriteLine($"  {label} -> {bestName}");
+                Say.Out.WriteLine($"  {label} -> {bestName}");
             }
         }
 
@@ -55,7 +55,7 @@ internal static class MonsterNameExtractor
             var table = folder == null ? english : DatTable.OpenTranslated(index, "monstervarieties", folder);
             if (table == null)
             {
-                Console.WriteLine($"  {code}: no MonsterVarieties");
+                Say.Out.WriteLine($"  {code}: no MonsterVarieties");
                 continue;
             }
 
@@ -69,13 +69,13 @@ internal static class MonsterNameExtractor
                 }
             }
 
-            Console.WriteLine($"  {code}: {names.Count} of {rowByLabel.Count} names");
+            Say.Out.WriteLine($"  {code}: {names.Count} of {rowByLabel.Count} names");
             result[code] = names;
         }
 
         foreach (var missing in wanted.Where(name => !rowByLabel.ContainsKey(name)).OrderBy(name => name, StringComparer.Ordinal))
         {
-            Console.WriteLine($"  unmatched: {missing}");
+            Say.Out.WriteLine($"  unmatched: {missing}");
         }
 
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
@@ -84,7 +84,7 @@ internal static class MonsterNameExtractor
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         }));
-        Console.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
+        Say.Out.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
         return 0;
     }
 

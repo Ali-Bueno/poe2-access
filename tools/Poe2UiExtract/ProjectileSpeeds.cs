@@ -64,7 +64,7 @@ internal static class ProjectileSpeeds
         var attackType = Find(skillTypes, AttackType);
         if (variation < 0 || spellType < 0 || attackType < 0)
         {
-            Console.WriteLine($"Stats '{VariationStat}' or ActiveSkillType {SpellType}/{AttackType} not found: {Skipped} left out.");
+            Say.Out.WriteLine($"Stats '{VariationStat}' or ActiveSkillType {SpellType}/{AttackType} not found: {Skipped} left out.");
             return speeds;
         }
 

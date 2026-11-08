@@ -31,7 +31,7 @@ internal static class Batch
         var commands = pairs.Where((_, i) => i % 2 == 0).ToList();
         if (pairs.Length == 0 || pairs.Length % 2 != 0 || commands.Any(command => !Commands.ContainsKey(command)))
         {
-            Console.WriteLine($"Usage: Poe2UiExtract.exe batch <gameDir> <command> <outFile> [...]; commands: {string.Join(", ", Commands.Keys)}");
+            Say.Out.WriteLine($"Usage: Poe2UiExtract.exe batch <gameDir> <command> <outFile> [...]; commands: {string.Join(", ", Commands.Keys)}");
             return 1;
         }
 
@@ -54,7 +54,7 @@ internal static class Batch
         }
         catch (Exception error)
         {
-            Console.WriteLine($"{command}: {error}");
+            Say.Out.WriteLine($"{command}: {error}");
             code = 1;
         }
 
@@ -68,7 +68,7 @@ internal static class Batch
             File.Delete(part);
         }
 
-        Console.WriteLine($"batch {command} {(made ? "done" : "failed")} in {watch.Elapsed.TotalSeconds:0.0} s");
+        Say.Out.WriteLine($"batch {command} {(made ? "done" : "failed")} in {watch.Elapsed.TotalSeconds:0.0} s");
         return made;
     }
 }

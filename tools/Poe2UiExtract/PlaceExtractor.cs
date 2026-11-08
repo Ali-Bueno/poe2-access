@@ -116,7 +116,7 @@ internal static partial class PlaceExtractor
         var catalog = new { tiles, tileProps, rooms };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllText(outFile, JsonSerializer.Serialize(catalog, new JsonSerializerOptions { WriteIndented = false }));
-        Console.WriteLine($"Wrote {outFile}: {tiles.Count} named tiles ({string.Join(", ", tiles.Values.GroupBy(kind => kind).OrderByDescending(group => group.Count()).Select(group => $"{group.Key} {group.Count()}"))}), " +
+        Say.Out.WriteLine($"Wrote {outFile}: {tiles.Count} named tiles ({string.Join(", ", tiles.Values.GroupBy(kind => kind).OrderByDescending(group => group.Count()).Select(group => $"{group.Key} {group.Count()}"))}), " +
                           $"{tileProps.Count} tiles with props, {rooms.Count} rooms with anchors and props");
         return tiles.Count == 0 ? 1 : 0;
     }
