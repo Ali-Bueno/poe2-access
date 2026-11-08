@@ -82,6 +82,7 @@ internal sealed class Instance(int? spareProcessId = null) : IDisposable
     {
         var names = Directory.EnumerateFiles(folders.Exe, "*.exe")
             .Concat(Directory.Exists(folders.Data) ? Directory.EnumerateFiles(folders.Data, "*.exe") : [])
+            .Where(folders.OwnsImage) // not an installer elevated in the same Downloads folder
             .Select(Path.GetFileNameWithoutExtension)
             .Concat(LegacyProcessNames)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -137,7 +138,7 @@ internal sealed class Instance(int? spareProcessId = null) : IDisposable
                         continue;
                     }
 
-                    process.Kill(entireProcessTree: true);
+                    process.Kill(entireProcessTree: false); // a copy started from Steam is the game's parent: the game stays
                     process.WaitForExit(ExitWaitMilliseconds);
                     Log.Write($"Killed {path} (pid {process.Id})");
                 }

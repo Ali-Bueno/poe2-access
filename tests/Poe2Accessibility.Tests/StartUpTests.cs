@@ -49,6 +49,14 @@ namespace Poe2Accessibility.Tests
             LayoutSearchTests.Equal(false, folders.OwnsImage(@"C:\other\Poe2Access.exe"), "another folder");
             LayoutSearchTests.Equal(false, folders.OwnsImage(Exe + @"\app\Plugins\x.exe"), "deeper folders are not the install's own");
             LayoutSearchTests.Equal(false, folders.OwnsImage(null), "an unreadable image");
+            LayoutSearchTests.Equal(true, folders.OwnsImage(Exe + @"\app\x7f3k.exe"), "a random-named GameHelper copy in app");
+            LayoutSearchTests.Equal(true, folders.OwnsImage(Exe + @"\Poe2Access.exe.old"), "the launcher an update moved aside");
+            LayoutSearchTests.Equal(false, folders.OwnsImage(Exe + @"\PathOfExileSteam.exe"), "the game, with the mod unpacked in its folder");
+            LayoutSearchTests.Equal(false, folders.OwnsImage(Exe + @"\app\PathOfExile_KG.exe"), "the game, even in app");
+            LayoutSearchTests.Equal(false, folders.OwnsImage(Exe + @"\setup.exe"), "another program beside the executable (Downloads)");
+            var root = AppFolders.Resolve(@"C:\", _ => false);
+            LayoutSearchTests.Equal(true, root.OwnsImage(@"C:\Poe2Access.exe"), "the executable at a drive's root");
+            LayoutSearchTests.Equal(false, root.OwnsImage(@"C:\tool.exe"), "another program at that root");
         }
 
         private static void AppKeepsLogsVersionOodleAndNothingElse()
