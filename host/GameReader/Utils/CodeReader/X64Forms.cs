@@ -129,6 +129,9 @@ namespace GameReader.Utils.CodeReader
         /// <summary>Group 1 (0x80 to 0x83): /0 is add, /7 cmp.</summary>
         private static InstructionKind Arithmetic(int reg) => reg switch { 0 => InstructionKind.Add, 7 => InstructionKind.Cmp, _ => InstructionKind.Other };
 
+        /// <summary>Group 2 (0xC0, 0xC1, 0xD0 to 0xD3): /4 is shl (/6, sal, is not decoded).</summary>
+        private static InstructionKind Shift(int reg) => reg == 4 ? InstructionKind.Shl : InstructionKind.Other;
+
         private static bool IsRegister(int modRm) => modRm >> 6 == 3;
 
         private static Form Gpr(InstructionKind kind, Slot first, bool write) => new()
@@ -165,9 +168,9 @@ namespace GameReader.Utils.CodeReader
                 >= 0x58 and <= 0x5F => new Form { Kind = InstructionKind.Pop, First = Slot.OpcodeReg, Default64 = true, WriteFirst = true, Implicit = Rsp },
                 0x63 => Gpr(InstructionKind.Other, Slot.Reg, true),
                 0x68 => new Form { Kind = InstructionKind.Push, First = Slot.Immediate, Imm = Immediate.Z, Implicit = Rsp },
-                0x69 => Gpr(InstructionKind.Other, Slot.Reg, true) with { Imm = Immediate.Z },
+                0x69 => Gpr(InstructionKind.Imul, Slot.Reg, true) with { Imm = Immediate.Z },
                 0x6A => new Form { Kind = InstructionKind.Push, First = Slot.Immediate, Imm = Immediate.Byte, Implicit = Rsp },
-                0x6B => Gpr(InstructionKind.Other, Slot.Reg, true) with { Imm = Immediate.Byte },
+                0x6B => Gpr(InstructionKind.Imul, Slot.Reg, true) with { Imm = Immediate.Byte },
                 >= 0x70 and <= 0x7F => new Form { Kind = InstructionKind.Jcc, First = Slot.Immediate, Rel = 1 },
                 0x80 => Group(Arithmetic(reg), reg != 7) with { Imm = Immediate.Byte, Byte = true },
                 0x81 => Group(Arithmetic(reg), reg != 7) with { Imm = Immediate.Z },
@@ -203,8 +206,8 @@ namespace GameReader.Utils.CodeReader
                 0xAE or 0xAF => new Form { First = Slot.Accumulator, StringBase = X64.Rdi, Implicit = 1 << X64.Rdi, Byte = op == 0xAE },
                 >= 0xB0 and <= 0xB7 => new Form { Kind = InstructionKind.Mov, First = Slot.OpcodeReg, WriteFirst = true, Imm = Immediate.Byte, Byte = true },
                 >= 0xB8 and <= 0xBF => new Form { Kind = InstructionKind.Mov, First = Slot.OpcodeReg, WriteFirst = true, Imm = Immediate.V },
-                0xC0 or 0xD0 or 0xD2 => reg == 6 ? null : Group(InstructionKind.Other, true) with { Byte = true, Imm = op == 0xC0 ? Immediate.Byte : Immediate.None },
-                0xC1 or 0xD1 or 0xD3 => reg == 6 ? null : Group(InstructionKind.Other, true) with { Imm = op == 0xC1 ? Immediate.Byte : Immediate.None },
+                0xC0 or 0xD0 or 0xD2 => reg == 6 ? null : Group(Shift(reg), true) with { Byte = true, Imm = op == 0xC0 ? Immediate.Byte : Immediate.None },
+                0xC1 or 0xD1 or 0xD3 => reg == 6 ? null : Group(Shift(reg), true) with { Imm = op == 0xC1 ? Immediate.Byte : Immediate.None },
                 0xC2 => new Form { Kind = InstructionKind.Ret, First = Slot.Immediate, Imm = Immediate.Word, Implicit = Rsp },
                 0xC3 => new Form { Kind = InstructionKind.Ret, Implicit = Rsp },
                 0xC6 when reg == 0 => Group(InstructionKind.Mov, true) with { Imm = Immediate.Byte, Byte = true },
@@ -223,13 +226,13 @@ namespace GameReader.Utils.CodeReader
                 {
                     0 or 1 => Group(InstructionKind.Test, false) with { Imm = Immediate.Byte, Byte = true },
                     2 or 3 => Group(InstructionKind.Other, true) with { Byte = true },
-                    _ => Group(InstructionKind.Other, false) with { Byte = true, Implicit = Rax },
+                    _ => Group(reg == 5 ? InstructionKind.Imul : InstructionKind.Other, false) with { Byte = true, Implicit = Rax },
                 },
                 0xF7 => reg switch
                 {
                     0 or 1 => Group(InstructionKind.Test, false) with { Imm = Immediate.Z },
                     2 or 3 => Group(InstructionKind.Other, true),
-                    _ => Group(InstructionKind.Other, false) with { Implicit = Rax | Rdx },
+                    _ => Group(reg == 5 ? InstructionKind.Imul : InstructionKind.Other, false) with { Implicit = Rax | Rdx },
                 },
                 0xFE when reg <= 1 => Group(InstructionKind.Other, true) with { Byte = true },
                 0xFF => reg switch
@@ -286,7 +289,7 @@ namespace GameReader.Utils.CodeReader
                 0xA5 or 0xAD => Gpr(InstructionKind.Other, Slot.Rm, true),
                 0xAE when !register => Sse(Slot.Rm),
                 0xAE when reg >= 5 => new Form { ModRm = true },
-                0xAF => Gpr(InstructionKind.Other, Slot.Reg, true),
+                0xAF => Gpr(InstructionKind.Imul, Slot.Reg, true),
                 0xB0 => Gpr(InstructionKind.Other, Slot.Rm, true) with { Byte = true, Implicit = Rax },
                 0xB1 => Gpr(InstructionKind.Other, Slot.Rm, true) with { Implicit = Rax },
                 0xB6 or 0xBE => Gpr(InstructionKind.Other, Slot.Reg, true) with { ByteRm = true },

@@ -157,6 +157,71 @@ namespace GameReader.Utils.CodeReader
             return fields.Count > k ? fields[k] : null;
         }
 
+        /// <summary>
+        ///     At each of a label's sites, the factor the code scales an index by before adding it to a pointer it loaded: a vector's
+        ///     element size when the code walks it by index (<c>shl rdx,6; mov rdx,[rdx+rcx+0x28]</c>, or
+        ///     <c>lea rax,[rcx+rcx*2]; shl rax,6; add rax,[rdx+0x10]</c>).
+        /// </summary>
+        private List<long> Scale(SemanticRule rule) =>
+            this.LabelSites(rule.Name, null).Select(site => this.LabelWalk(site) is { } code ? IndexScale(code.Skip(1)) : null).OfType<long>().ToList();
+
+        /// <summary>
+        ///     The first index scale used against a pointer: <c>shl r,n</c>, <c>lea r,[x+x*s]</c> or <c>lea r,[x*s]</c> and the
+        ///     three-operand <c>imul r,x,n</c> scale a register (a register not scaled counts as 1); an <c>add</c> of memory into a
+        ///     scaled register, or an address with a scaled register beside another one, uses it. Any other write drops the scale.
+        /// </summary>
+        private static long? IndexScale(IEnumerable<X64Instruction> code)
+        {
+            var scaled = new Dictionary<int, long>();
+            long Of(int register) => scaled.TryGetValue(register, out var factor) ? factor : 1;
+            foreach (var instruction in code)
+            {
+                var (first, second) = (instruction.First == OperandKind.Register ? instruction.FirstRegister : X64.NoRegister, instruction.SecondRegister);
+                var squares = instruction.Kind == InstructionKind.Lea && instruction.Index != X64.NoRegister && instruction.Displacement == 0
+                    && (instruction.Base == instruction.Index || instruction.Base == X64.NoRegister);
+                if (instruction.Kind == InstructionKind.Add && instruction.HasMemory && first >= 0 && scaled.TryGetValue(first, out var added))
+                {
+                    return added;
+                }
+
+                if (instruction.HasMemory && !squares && instruction.Index != X64.NoRegister && instruction.Base is not (X64.Rsp or X64.Rip or X64.NoRegister))
+                {
+                    if (scaled.TryGetValue(instruction.Index, out var index))
+                    {
+                        return index * instruction.Scale;
+                    }
+
+                    if (instruction.Scale == 1 && scaled.TryGetValue(instruction.Base, out var based))
+                    {
+                        return based;
+                    }
+                }
+
+                long? factor = instruction.Kind switch
+                {
+                    InstructionKind.Shl when !instruction.HasMemory && first >= 0 && instruction.Immediate is > 0 and < 32 => Of(first) << (int)instruction.Immediate,
+                    InstructionKind.Imul when !instruction.HasMemory && first >= 0 && second >= 0 && instruction.Immediate > 1 => Of(second) * instruction.Immediate,
+                    InstructionKind.Lea when squares && first >= 0 => Of(instruction.Index) * (instruction.Scale + (instruction.Base == X64.NoRegister ? 0 : 1)),
+                    InstructionKind.Mov when !instruction.HasMemory && first >= 0 && second >= 0 && scaled.ContainsKey(second) => scaled[second],
+                    _ => null,
+                };
+                for (var register = 0; register < X64.Registers; register++)
+                {
+                    if (instruction.WritesRegister(register) || (instruction.Kind == InstructionKind.Call && (X64.Volatile & (1 << register)) != 0))
+                    {
+                        scaled.Remove(register);
+                    }
+                }
+
+                if (factor is { } value && first >= 0)
+                {
+                    scaled[first] = value;
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>A compare of the register with the memory at the displacement (either operand order).</summary>
         private static bool ComparesWith(X64Instruction instruction, int register, long displacement) =>
             instruction.Kind == InstructionKind.Cmp && instruction.HasMemory && instruction.Index == X64.NoRegister && instruction.Displacement == displacement

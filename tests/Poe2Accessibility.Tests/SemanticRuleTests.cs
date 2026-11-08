@@ -13,12 +13,12 @@ namespace Poe2Accessibility.Tests
     {
         private const string CatalogName = "semantic-fields.txt";
 
-        // A tiny PE32+: four sections of 0x200 bytes each, loaded one page apart.
+        // A tiny PE32+: four sections of 0x400 bytes each, loaded one page apart.
         private const int TextRva = 0x1000;
         private const int RdataRva = 0x2000;
         private const int DataRva = 0x3000;
         private const int PdataRva = 0x4000;
-        private const int SectionBytes = 0x200;
+        private const int SectionBytes = 0x400;
         private const int FirstRaw = 0x400;
         private const int PeAt = 0x40;
         private const int OptionalAt = PeAt + 24;
@@ -30,11 +30,16 @@ namespace Poe2Accessibility.Tests
         private const int FallThrough = TextRva + 0x1C0;
         private const int Tracked = TextRva + 0x1D0;
         private const int Chained = TextRva + 0x1F0;
+        private const int ByShift = TextRva + 0x200;
+        private const int ByProduct = TextRva + 0x240;
+        private const int ModsLabel = RdataRva + 0x40;
+        private const int StateLabel = RdataRva + 0x60;
 
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(SemanticRulesParse), SemanticRulesParse),
             (nameof(ALabelYieldsTheFieldsPrintedAfterIt), ALabelYieldsTheFieldsPrintedAfterIt),
+            (nameof(AScaleIsTheIndexFactorUsedAgainstAPointer), AScaleIsTheIndexFactorUsedAgainstAPointer),
             (nameof(DecodingStopsAtDataNotAtGuesses), DecodingStopsAtDataNotAtGuesses),
             (nameof(TheTrackerFollowsCopiesAndCalls), TheTrackerFollowsCopiesAndCalls),
         };
@@ -87,11 +92,14 @@ namespace Poe2Accessibility.Tests
             Equal(new SemanticRule(SemanticKind.Stride, "Active Skills: ", Source: SemanticRule.FromLabel), SemanticRule.Parse("stride label \"Active Skills: \""), "stride");
             Equal(new SemanticRule(SemanticKind.Entry, "ConsumeSkillUse", K: 1, Source: SemanticRule.FromGeal), SemanticRule.Parse("entry geal ConsumeSkillUse 1"), "entry");
             Equal(new SemanticRule(SemanticKind.Leaf, "IsWalkable", K: 2), SemanticRule.Parse("leaf IsWalkable 2"), "leaf");
+            Equal(new SemanticRule(SemanticKind.World, "GetAreaId", Depth: 1), SemanticRule.Parse("world GetAreaId deref 1"), "world, deref");
+            Equal(new SemanticRule(SemanticKind.Scale, "Implicit Mods: ", Source: SemanticRule.FromLabel), SemanticRule.Parse("scale label \"Implicit Mods: \""), "scale");
             foreach (var broken in new[]
             {
                 "label \"Life: 0", "label Life", "getter Life heap", "called \"Team: \" 0 returns", "called \"Buffs: \" 1 arg 5", "teleport x", "label \"A\" 0 site",
                 "object GetObjectId", "deref TypeContains arg 5 2", "deref TypeContains arg 3 0", "slot IsWalkable", "slot IsWalkable \"T\" then inline", "this \"league\" with \"class\"",
                 "called \"Buffs: \" 1 arg 2 deref 0", "called \"Buffs: \" 1 arg 2 deref", "stride dump \"A\"", "stride label", "entry label \"A\"", "leaf IsWalkable",
+                "world GetAreaId deref 0", "world GetAreaId deref", "world GetAreaId 0 1", "scale geal ConsumeSkillUse", "scale label", "scale label \"A\" 0",
             })
             {
                 Equal(null, SemanticRule.Parse(broken), $"'{broken}' does not parse");
@@ -116,6 +124,15 @@ namespace Poe2Accessibility.Tests
             Equal("0x1DC", Values(rules.Candidates(SemanticRule.Parse("label \"Life: \" 1")!)), "the second, past a stack read");
             Equal(string.Empty, Values(rules.Candidates(SemanticRule.Parse("label \"Mana: \" 0")!)), "a label the exe does not carry reads nothing");
             Equal("0x200", Values(rules.Candidates(SemanticRule.Parse("label \"Next: \" 0")!)), "the next label's own field");
+        }
+
+        private static void AScaleIsTheIndexFactorUsedAgainstAPointer()
+        {
+            var rules = new SemanticRules(new CodeAnchors(new CodeIndex(PeImage.Read(TinyExe())!)));
+            Equal("0x40", Values(rules.Candidates(SemanticRule.Parse("scale label \"Mods: \"")!)), "shl rdx,6 then [rdx+rcx+0x28]");
+            Equal("0xC0", Values(rules.Candidates(SemanticRule.Parse("scale label \"State: \"")!)), "lea rax,[rcx+rcx*2], shl rax,6, then add rax,[rdx+0x10]");
+            Equal("0x10", Values(rules.Candidates(SemanticRule.Parse("label \"State: \" 2")!)), "the list the scaled index is added to");
+            Equal(string.Empty, Values(rules.Candidates(SemanticRule.Parse("scale label \"Life: \"")!)), "no index scaled after the label: nothing");
         }
 
         private static void DecodingStopsAtDataNotAtGuesses()
@@ -181,14 +198,39 @@ namespace Poe2Accessibility.Tests
             text.Bytes(0x8B, 0x50, 0x18);                               // mov edx,[rax+0x18]
             text.Bytes(0xC3);
             var chained = text.At;
+            text.Pad(ByShift);
+            text.Rip(new byte[] { 0x48, 0x8D, 0x15 }, ModsLabel);       // lea rdx,"Mods: "
+            text.Call(Print);
+            text.Bytes(0x48, 0x8B, 0x8F, 0x50, 0x01, 0x00, 0x00);       // mov rcx,[rdi+0x150]
+            text.Bytes(0x8B, 0xD3);                                     // mov edx,ebx
+            text.Bytes(0x48, 0xC1, 0xE2, 0x06);                         // shl rdx,6
+            text.Bytes(0x48, 0x8B, 0x54, 0x0A, 0x28);                   // mov rdx,[rdx+rcx+0x28]
+            text.Bytes(0xC3);
+            var byShift = text.At;
+            text.Pad(ByProduct);
+            text.Rip(new byte[] { 0x48, 0x8D, 0x15 }, StateLabel);      // lea rdx,"State: "
+            text.Call(Print);
+            text.Bytes(0x49, 0x8B, 0x97, 0x58, 0x01, 0x00, 0x00);       // mov rdx,[r15+0x158]
+            text.Bytes(0x8B, 0x0E);                                     // mov ecx,[rsi]
+            text.Bytes(0x48, 0x8D, 0x04, 0x49);                         // lea rax,[rcx+rcx*2]
+            text.Bytes(0x48, 0xC1, 0xE0, 0x06);                         // shl rax,6
+            text.Bytes(0x48, 0x03, 0x42, 0x10);                         // add rax,[rdx+0x10]
+            text.Bytes(0xC3);
+            var byProduct = text.At;
 
             var rdata = new byte[SectionBytes];
             System.Text.Encoding.Unicode.GetBytes("Life: ").CopyTo(rdata, 2);
             System.Text.Encoding.Unicode.GetBytes("Next: ").CopyTo(rdata, 0x12);
+            System.Text.Encoding.Unicode.GetBytes("Mods: ").CopyTo(rdata, ModsLabel - RdataRva);
+            System.Text.Encoding.Unicode.GetBytes("State: ").CopyTo(rdata, StateLabel - RdataRva);
             const int unwind = 0x100;
             rdata[unwind] = 1;
             var pdata = new List<byte>();
-            foreach (var (start, end) in new[] { (TextRva, dump), (Print, Print + 1), (Switch, Table + 0x10), (FallThrough, FallThrough + 3), (Tracked, tracked), (Chained, chained) })
+            foreach (var (start, end) in new[]
+            {
+                (TextRva, dump), (Print, Print + 1), (Switch, Table + 0x10), (FallThrough, FallThrough + 3), (Tracked, tracked), (Chained, chained),
+                (ByShift, byShift), (ByProduct, byProduct),
+            })
             {
                 pdata.AddRange(BitConverter.GetBytes(start).Concat(BitConverter.GetBytes(end)).Concat(BitConverter.GetBytes(RdataRva + unwind)));
             }

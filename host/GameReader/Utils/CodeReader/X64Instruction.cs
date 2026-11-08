@@ -51,6 +51,12 @@ namespace GameReader.Utils.CodeReader
 
         /// <summary><c>test</c>.</summary>
         Test,
+
+        /// <summary><c>shl</c> (by an immediate, by one or by cl; the immediate form carries its count).</summary>
+        Shl,
+
+        /// <summary><c>imul</c>, of any form (the three-operand one carries its factor as the immediate).</summary>
+        Imul,
     }
 
     /// <summary>What an instruction's first operand is.</summary>
