@@ -64,6 +64,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ActorsWithNoCopyLeaveTheFieldToItsBehaviour), ActorsWithNoCopyLeaveTheFieldToItsBehaviour),
             (nameof(BuffListsEndInAnId), BuffListsEndInAnId),
             (nameof(TheStatPairsHoldThePlayersLevel), TheStatPairsHoldThePlayersLevel),
+            (nameof(StateDefinitionsBeginWithTheirNames), StateDefinitionsBeginWithTheirNames),
             (nameof(TheCameraIsKeptTwice), TheCameraIsKeptTwice),
             (nameof(PositionsLieInsideTheMap), PositionsLieInsideTheMap),
             (nameof(ADatKeyIsFoundByTheTableItsFileNames), ADatKeyIsFoundByTheTableItsFileNames),
@@ -587,6 +588,38 @@ namespace Poe2Accessibility.Tests
             memory.Pointers[Heap + 0x308] = Heap + 0x400;
             Equal(false, StructShapes.IsBuffList(block, 0x10, memory, 8), "the id no longer at the row's start");
             Equal(true, StructShapes.IsBuffList(block, 0x10, memory, 8, 8), "the id where the row keeps it now");
+        }
+
+        private static void StateDefinitionsBeginWithTheirNames()
+        {
+            var memory = World();
+            var (definitions, longName) = (Heap + 0x3000, Heap + 0x4000);
+            var near = (List: 0x10, Stride: 0xC0);
+            foreach (var game in new[] { near, (List: 0x18, Stride: 0xC8), (List: 0x10, Stride: 0xA0) })
+            {
+                var states = new byte[0x100];
+                Put(states, game.List, definitions);
+                var bytes = new byte[3 * game.Stride];
+                foreach (var (index, name) in new[] { (0, "activated"), (1, "trap_triggered_and_resetting"), (2, "phase2") })
+                {
+                    var at = index * game.Stride;
+                    if (name.Length <= 15)
+                    {
+                        System.Text.Encoding.ASCII.GetBytes(name).CopyTo(bytes, at);
+                        Put(bytes, at + 0x10, name.Length, 15);
+                    }
+                    else
+                    {
+                        Put(bytes, at, longName, 0, name.Length, 0x1F);
+                        memory.Blocks[longName] = System.Text.Encoding.ASCII.GetBytes(name);
+                    }
+                }
+
+                memory.Blocks[definitions] = bytes;
+                Equal(((int, int)?)game, StructShapes.FindStateLayout(states, memory, 3, near), $"states laid out as {game}");
+            }
+
+            Equal(((int, int)?)null, StructShapes.FindStateLayout(new byte[0x100], memory, 3, near), "no list");
         }
 
         private static void TheStatPairsHoldThePlayersLevel()

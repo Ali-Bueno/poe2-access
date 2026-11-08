@@ -9,7 +9,17 @@
     {
         public StateMachine(IntPtr address) : base(address) { }
 
-        private const int StateStructSize = 0xC0;
+        /// <summary>Where the object StatesPtr leads to keeps the states' definitions (0.5.5f; the exe reads [StatesPtr+0x10]).</summary>
+        public const int MeasuredStateListOffset = 0x10;
+
+        /// <summary>How long a state's definition is, its name first (0.5.5f; the stride the exe walks).</summary>
+        public const int MeasuredStateStride = 0xC0;
+
+        /// <summary>Gets or sets where the states' definitions are read now: as measured, or where a search or the code put them.</summary>
+        public static int StateListOffset { get; set; } = MeasuredStateListOffset;
+
+        /// <summary>Gets or sets how long a state's definition is now.</summary>
+        public static int StateStride { get; set; } = MeasuredStateStride;
 
         public IReadOnlyList<StateMachineState> States { get; private set; } = [];
 
@@ -29,7 +39,7 @@
                 statesCount = MaxStateMachineStates;
             }
 
-            var statesPtr = reader.ReadMemory<IntPtr>(data.StatesPtr + 0x10);
+            var statesPtr = reader.ReadMemory<IntPtr>(data.StatesPtr + StateListOffset);
             if (statesPtr == IntPtr.Zero)
             {
                 this.States = [];
@@ -39,7 +49,7 @@
             var statesList = new List<StateMachineState>(statesCount);
             for (var i = 0; i < statesCount; i++)
             {
-                var stateNameAddr = statesPtr + i * StateStructSize;
+                var stateNameAddr = statesPtr + i * StateStride;
                 var nativeContainer = reader.ReadMemory<StdString>(stateNameAddr);
                 var stateName = reader.ReadStdString(nativeContainer);
                 statesList.Add(new StateMachineState(stateName, stateValues[i]));

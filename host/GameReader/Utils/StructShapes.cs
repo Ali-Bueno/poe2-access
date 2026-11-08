@@ -31,6 +31,16 @@ namespace GameReader.Utils
 
         // A pair of ints in 0.5.5f; a patch may add a field or two to it.
         private const int MaxStatEntry = 0x18;
+
+        // A state machine's states: the reader's own bound on their count, a definition 0xC0 bytes in 0.5.5f with its name
+        // first, as an MSVC string (text or pointer, then length at +0x10 and capacity at +0x18, 15 characters inline).
+        private const int MaxStates = 256;
+        private const int MaxStateStride = 0x200;
+        private const int MaxStateName = 64;
+        private const int StdStringBytes = 0x20;
+        private const int StdStringLength = 0x10;
+        private const int StdStringCapacity = 0x18;
+        private const int StdStringInline = 15;
         private const int FriendlyMask = 0x7F;
         private const int Friendly = 1;
         private const int FoesPerFriendAllowed = 5;
@@ -263,6 +273,36 @@ namespace GameReader.Utils
             return found;
         }
 
+        /// <summary>
+        ///     Where a state machine's states object keeps its list of state definitions and how long a definition is, nearest
+        ///     <paramref name="near"/>: every one of the <paramref name="count"/> definitions begins with its name, distinct ASCII
+        ///     words such as "activated". Null when none does.
+        /// </summary>
+        public static (int List, int Stride)? FindStateLayout(byte[] states, IAreaMemory memory, int count, (int List, int Stride) near)
+        {
+            if (count <= 0 || count > MaxStates)
+            {
+                return null;
+            }
+
+            (int List, int Stride)? found = null;
+            Nearest(near.List, Pointer, states.Length - Pointer, at =>
+            {
+                var first = Long(states, at);
+                if (!IsPointer(first))
+                {
+                    return false;
+                }
+
+                // Read as long as each stride makes the list: past the list's end the game may have nothing mapped.
+                var stride = Nearest(near.Stride, Pointer, MaxStateStride, size =>
+                    size >= StdStringBytes && memory.Read(first, count * size) is { } bytes && bytes.Length == count * size && NamesStates(bytes, size, count, memory));
+                found = stride > 0 ? (at, stride) : null;
+                return found is not null;
+            });
+            return found;
+        }
+
         /// <summary>A pointer to an item's entity, as a ground item holds it: its path lies under <c>Metadata/Items/</c>.</summary>
         public static bool IsItemEntity(byte[] block, int at, IAreaMemory memory) =>
             at >= 0 && at + Pointer <= block.Length && IsPointer(BitConverter.ToInt64(block, at)) &&
@@ -334,6 +374,32 @@ namespace GameReader.Utils
             var end = BitConverter.ToInt64(block, at + (2 * Pointer));
             bytes = last - first;
             return first == 0 ? last == 0 && end == 0 : IsPointer(first) && IsPointer(end) && first <= last && last <= end;
+        }
+
+        /// <summary>Whether <paramref name="count"/> definitions of <paramref name="stride"/> bytes each begin with a distinct state name.</summary>
+        private static bool NamesStates(byte[] definitions, int stride, int count, IAreaMemory memory)
+        {
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            for (var index = 0; index < count; index++)
+            {
+                var at = index * stride;
+                var length = Long(definitions, at + StdStringLength);
+                var capacity = Long(definitions, at + StdStringCapacity);
+                if (length is <= 0 or > MaxStateName || capacity < length)
+                {
+                    return false;
+                }
+
+                // An MSVC string keeps up to 15 characters inline, longer ones behind a pointer.
+                var text = capacity <= StdStringInline ? definitions.AsSpan(at, (int)length).ToArray() : memory.Read(Long(definitions, at), (int)length);
+                if (text.Length != length || !text.All(letter => letter is (>= (byte)'a' and <= (byte)'z') or (>= (byte)'A' and <= (byte)'Z') or (>= (byte)'0' and <= (byte)'9') or (byte)'_') ||
+                    !names.Add(System.Text.Encoding.ASCII.GetString(text)))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>Pairs laid out as <paramref name="layout"/>: every key small and distinct, one of them <paramref name="key"/> holding <paramref name="value"/>.</summary>

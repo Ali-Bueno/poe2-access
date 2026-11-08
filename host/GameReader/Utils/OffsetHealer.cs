@@ -65,6 +65,9 @@ namespace GameReader.Utils
         /// <summary>The part that names an entity's components (lookup pointer, name map).</summary>
         public const string LookUpPart = "component lookup";
 
+        /// <summary>Where a state machine keeps its states' definitions and how long one is; judged by their names.</summary>
+        public const string StateMachinePart = "state machine states";
+
         /// <summary>Where a buff's definition keeps its id; judged with the buff list.</summary>
         public const string BuffNamesPart = "buff names";
 
@@ -156,6 +159,7 @@ namespace GameReader.Utils
 
             outcomes.Add(JudgeGroundItems(area, memory));
             outcomes.AddRange(JudgeBuffs(area.Player, memory));
+            outcomes.Add(JudgeStateMachines(area, memory));
             outcomes.AddRange(JudgeInventories(area, memory));
             var entityLayout = JudgeEntityLayout(memory, area.AwakeEntities.Values.Where(entity => entity.IsValid).Take(EntitiesJudged)
                 .Select(entity => entity.Address.ToInt64()).Prepend(area.Player.Address.ToInt64()).ToList());
@@ -499,6 +503,7 @@ namespace GameReader.Utils
             }
 
             TileStructure.TileToGridConversion = TileStructure.MeasuredTileToGridConversion;
+            (StateMachine.StateListOffset, StateMachine.StateStride) = (StateMachine.MeasuredStateListOffset, StateMachine.MeasuredStateStride);
         }
 
         /// <summary>Sets where a struct's fields moved.</summary>
@@ -920,6 +925,49 @@ namespace GameReader.Utils
             var entry = PlaceEntry<StatArrayStruct>(name, (near.Stride, found.Stride), (near.Key, found.Key), (near.Value, found.Value));
             layout = found;
             return found.List != near.List ? new StructOutcome(name, StructHealth.Moved, near.List, found.List, "the list") : entry;
+        }
+
+        /// <summary>
+        ///     Where a state machine (trial traps, devices) keeps its states' definitions and how long one is: every state of up to
+        ///     four machines in the area must read a distinct name through them. Never said lost: a machine with odd names says
+        ///     nothing of the layout.
+        /// </summary>
+        private static StructOutcome JudgeStateMachines(AreaInstance area, IAreaMemory memory)
+        {
+            const string name = StateMachinePart;
+            var near = (StateMachine.MeasuredStateListOffset, StateMachine.MeasuredStateStride);
+            var machines = new List<(byte[] States, int Count)>();
+            foreach (var entity in area.AwakeEntities.Values)
+            {
+                if (machines.Count >= EntitiesJudged || !entity.IsValid || !entity.TryGetComponent<StateMachine>(out var machine) ||
+                    !Core.Process.Handle.TryReadMemory<StateMachineComponentOffsets>(machine.Address, out var data))
+                {
+                    continue;
+                }
+
+                var count = (data.StatesValues.Last.ToInt64() - data.StatesValues.First.ToInt64()) / sizeof(long);
+                var states = count > 0 ? Block(data.StatesPtr, near.MeasuredStateListOffset + SearchRadius) : Array.Empty<byte>();
+                if (states.Length > 0)
+                {
+                    machines.Add((states, (int)count));
+                }
+            }
+
+            if (machines.Count == 0)
+            {
+                return NotJudged(name, "no state machine with states");
+            }
+
+            // The layout every machine reads its names through, nearest the measured one; the machine with most states decides.
+            machines = machines.OrderByDescending(machine => machine.Count).ToList();
+            var found = StructShapes.FindStateLayout(machines[0].States, memory, machines[0].Count, near);
+            if (found is not { } layout || machines.Skip(1).Any(other => StructShapes.FindStateLayout(other.States, memory, other.Count, layout) != layout))
+            {
+                return NotJudged(name, "the states read no names");
+            }
+
+            (StateMachine.StateListOffset, StateMachine.StateStride) = layout;
+            return Outcome(name, (near.MeasuredStateListOffset, layout.List), (near.MeasuredStateStride, layout.Stride));
         }
 
         private static StructOutcome JudgePosition(AreaInstance area)
