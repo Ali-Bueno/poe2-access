@@ -40,7 +40,7 @@ internal static class LegacyHost
         files.Add(gameHelperStore);
         foreach (var file in files.Distinct(StringComparer.OrdinalIgnoreCase))
         {
-            if (Kept.Contains(Path.GetFileName(file), StringComparer.OrdinalIgnoreCase) || !File.Exists(file))
+            if (Kept.Contains(Path.GetFileName(file), StringComparer.OrdinalIgnoreCase) || !File.Exists(file) || !InFolder(file, hostDirectory))
             {
                 continue;
             }
@@ -56,4 +56,8 @@ internal static class LegacyHost
             }
         }
     }
+
+    /// <summary>Only files directly in the host folder: a corrupt list naming "..\x" must not reach outside it.</summary>
+    private static bool InFolder(string file, string folder) =>
+        string.Equals(Path.GetDirectoryName(Path.GetFullPath(file)), Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder)), StringComparison.OrdinalIgnoreCase);
 }
