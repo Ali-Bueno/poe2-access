@@ -692,9 +692,16 @@ namespace Poe2Accessibility
                     continue;
                 }
 
-                if (entry.Layout is { } layout && LayoutFields.TryGetValue(layout, out var place))
+                if (entry.Layout is { } layout && LayoutFields.TryGetValue(layout, out var field))
                 {
-                    place(value);
+                    // Memory beats code: a live search that moved the field before the code was read keeps its value.
+                    if (field.Get() != entry.Value)
+                    {
+                        this.log?.Info($"Code fields: {entry.Name} reads +0x{value:X}, kept at +0x{field.Get():X} where a live search put it");
+                        continue;
+                    }
+
+                    field.Set(value);
                     moved.Add($"{entry.Name} +0x{entry.Value:X} to +0x{value:X}");
                 }
                 else if (entry.IsReport)

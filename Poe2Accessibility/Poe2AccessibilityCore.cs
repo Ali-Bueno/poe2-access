@@ -63,24 +63,27 @@ namespace Poe2Accessibility
         private const int WorldAreaNameMeasured = 0x8;
         private const int WorldAreaIsTownMeasured = 0x14;
 
-        /// <summary>The plugin's own offsets the game's code can place (catalog/code-fields.txt, <c>layout:</c>).</summary>
-        private static readonly System.Collections.Generic.Dictionary<string, Action<int>> LayoutFields = new()
+        /// <summary>
+        ///     The plugin's own offsets the game's code can place (catalog/code-fields.txt, <c>layout:</c>); the getter lets a
+        ///     live search that already moved one keep it.
+        /// </summary>
+        private static readonly System.Collections.Generic.Dictionary<string, (Func<int> Get, Action<int> Set)> LayoutFields = new()
         {
-            ["IsTargetable"] = value => GameLayout.TargetableComponent.IsTargetableOffset = value,
-            ["IsTargeted"] = value => GameLayout.TargetableComponent.IsTargetedOffset = value,
-            ["MinimapIconComponentRow"] = value => GameLayout.MinimapIconRow.ComponentRowOffset = value,
-            ["SkillId"] = value => GameLayout.SkillSlot.SkillIdOffset = value,
-            ["SkillLevelKey"] = value => GameLayout.SkillSlot.LevelKeyOffset = value,
-            ["CooldownUses"] = value => GameLayout.ActorComponent.CooldownUsesOffset = value,
-            ["CooldownMaxUses"] = value => GameLayout.ActorComponent.CooldownMaxUsesOffset = value,
-            ["CooldownTime"] = value => GameLayout.ActorComponent.CooldownTimeOffset = value,
-            ["CooldownSkillId"] = value => GameLayout.ActorComponent.CooldownSkillIdOffset = value,
-            ["CooldownEntrySize"] = value => GameLayout.ActorComponent.CooldownEntrySize = value,
-            ["PoiseThreshold"] = value => GameLayout.ActorComponent.PoiseThresholdOffset = value,
-            ["Poise"] = value => GameLayout.ActorComponent.PoiseOffset = value,
-            ["NodeInBuild"] = value => GameLayout.PassiveTree.NodeInBuildOffset = value,
-            ["ButtonMenuIndex"] = value => GameLayout.ButtonMenu.SelectedIndexOffset = value,
-            ["PlayerStride"] = value => GameLayout.UiManager.PlayerStride = value,
+            ["IsTargetable"] = (() => GameLayout.TargetableComponent.IsTargetableOffset, value => GameLayout.TargetableComponent.IsTargetableOffset = value),
+            ["IsTargeted"] = (() => GameLayout.TargetableComponent.IsTargetedOffset, value => GameLayout.TargetableComponent.IsTargetedOffset = value),
+            ["MinimapIconComponentRow"] = (() => GameLayout.MinimapIconRow.ComponentRowOffset, value => GameLayout.MinimapIconRow.ComponentRowOffset = value),
+            ["SkillId"] = (() => GameLayout.SkillSlot.SkillIdOffset, value => GameLayout.SkillSlot.SkillIdOffset = value),
+            ["SkillLevelKey"] = (() => GameLayout.SkillSlot.LevelKeyOffset, value => GameLayout.SkillSlot.LevelKeyOffset = value),
+            ["CooldownUses"] = (() => GameLayout.ActorComponent.CooldownUsesOffset, value => GameLayout.ActorComponent.CooldownUsesOffset = value),
+            ["CooldownMaxUses"] = (() => GameLayout.ActorComponent.CooldownMaxUsesOffset, value => GameLayout.ActorComponent.CooldownMaxUsesOffset = value),
+            ["CooldownTime"] = (() => GameLayout.ActorComponent.CooldownTimeOffset, value => GameLayout.ActorComponent.CooldownTimeOffset = value),
+            ["CooldownSkillId"] = (() => GameLayout.ActorComponent.CooldownSkillIdOffset, value => GameLayout.ActorComponent.CooldownSkillIdOffset = value),
+            ["CooldownEntrySize"] = (() => GameLayout.ActorComponent.CooldownEntrySize, value => GameLayout.ActorComponent.CooldownEntrySize = value),
+            ["PoiseThreshold"] = (() => GameLayout.ActorComponent.PoiseThresholdOffset, value => GameLayout.ActorComponent.PoiseThresholdOffset = value),
+            ["Poise"] = (() => GameLayout.ActorComponent.PoiseOffset, value => GameLayout.ActorComponent.PoiseOffset = value),
+            ["NodeInBuild"] = (() => GameLayout.PassiveTree.NodeInBuildOffset, value => GameLayout.PassiveTree.NodeInBuildOffset = value),
+            ["ButtonMenuIndex"] = (() => GameLayout.ButtonMenu.SelectedIndexOffset, value => GameLayout.ButtonMenu.SelectedIndexOffset = value),
+            ["PlayerStride"] = (() => GameLayout.UiManager.PlayerStride, value => GameLayout.UiManager.PlayerStride = value),
         };
 
         private WorldLayoutWatch? worldLayout;
@@ -630,15 +633,17 @@ namespace Poe2Accessibility
             }
 
             this.screen.SetRoot(container);
-            var chatLayer = inGame ? this.locator.InGameChatLayer(stateObject) : IntPtr.Zero;
+            // The layers hang off the container found above; the locator's InGame* wrappers would find it again for each.
+            var fields = this.locator.Fields;
+            var chatLayer = inGame ? fields.Find(container, InGameField.Chat) : IntPtr.Zero;
             this.screen.SetIgnoredElement(chatLayer);
             this.chat?.Tick(chatLayer);
-            this.mapOverlay?.Tick(inGame ? this.locator.InGameMapOverlay(stateObject) : IntPtr.Zero);
+            this.mapOverlay?.Tick(inGame ? fields.Find(container, InGameField.MapOverlay) : IntPtr.Zero);
             this.longText?.Tick(this.screen.LongText);
-            this.narrator.TutorialLayer = inGame ? this.locator.InGameTutorialLayer(stateObject) : IntPtr.Zero;
+            this.narrator.TutorialLayer = inGame ? fields.Find(container, InGameField.Tutorial) : IntPtr.Zero;
             this.screen.SetArrivalLayer(this.narrator.TutorialLayer);
-            this.narrator.HudLayer = inGame ? this.locator.InGameHudLayer(stateObject) : IntPtr.Zero;
-            this.skillBar = inGame ? this.locator.InGameSkillBar(stateObject) : IntPtr.Zero;
+            this.narrator.HudLayer = inGame ? fields.Find(container, InGameField.Hud) : IntPtr.Zero;
+            this.skillBar = inGame ? fields.Find(container, InGameField.SkillBar) : IntPtr.Zero;
             this.narrator.ReadTooltips = this.Settings.ReadTooltipsOnFocus;
             this.narrator.Tick();
             // Another window in front (a notification, alt-tab): what the game redraws meanwhile is not news, and is
