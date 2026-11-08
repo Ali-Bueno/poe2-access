@@ -49,7 +49,8 @@ namespace Poe2Accessibility.Services
         private readonly UiElementReader elements;
         private readonly AttackData data;
         private readonly PluginLog log;
-        private readonly Dictionary<IntPtr, (string? Path, IntPtr Controller)> animatedObjects = new();
+        /// <summary>By monster as well as address: a monster that dies frees its object for the next one.</summary>
+        private readonly Dictionary<(uint Id, IntPtr Object), (string? Path, IntPtr Controller)> animatedObjects = new();
         private readonly Dictionary<(IntPtr Data, int Clip), (string? Name, IReadOnlyList<ClipEvent> Events)> clips = new();
         private readonly ClockBaseline clockPairs = new();
 
@@ -101,13 +102,13 @@ namespace Poe2Accessibility.Services
             AnimationReading? clock = null;
             IReadOnlyList<ClipEvent> events = Array.Empty<ClipEvent>();
             string? clip = null, path = null;
-            if (this.AnimatedObjects.Trust != FieldTrust.Lost && this.Controller(animated) is { } ao)
+            if (this.AnimatedObjects.Trust != FieldTrust.Lost && this.Controller(id, animated) is { } ao)
             {
                 path = ao.Path;
                 if (this.Clock.Trust != FieldTrust.Lost && this.Reading(ao.Controller) is var (reading, dataPtr))
                 {
                     this.Clock.Observe(this.clockPairs.Offer(id, reading, now));
-                    clock = this.Clock.Trust == FieldTrust.Intact ? reading : null;
+                    clock = this.Clock.Trust == FieldTrust.Intact && AttackClock.IsPlausible(reading) ? reading : null; // a failed read is NaN
                     if (dataPtr != IntPtr.Zero && reading.Clip >= 0 && this.Events.Trust != FieldTrust.Lost)
                     {
                         (clip, var read) = this.ClipOf(dataPtr, reading.Clip);
@@ -168,7 +169,7 @@ namespace Poe2Accessibility.Services
                 : null;
 
         /// <summary>The animated object's path and its AnimationController, read once per object and judged on every read.</summary>
-        private (string? Path, IntPtr Controller)? Controller(IntPtr animated)
+        private (string? Path, IntPtr Controller)? Controller(uint id, IntPtr animated)
         {
             if (animated == IntPtr.Zero ||
                 !this.memory.TryRead<IntPtr>(animated + HostStructs.Follow<AnimatedOffsets>(Field<AnimatedOffsets>(nameof(AnimatedOffsets.AnimatedObjectPtr))), out var ao) ||
@@ -177,10 +178,10 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            if (!this.animatedObjects.TryGetValue(ao, out var found))
+            if (!this.animatedObjects.TryGetValue((id, ao), out var found))
             {
                 found = this.Components(ao);
-                this.animatedObjects[ao] = found;
+                this.animatedObjects[(id, ao)] = found;
             }
 
             var holds = found.Path?.EndsWith(AnimatedObjectSuffix, StringComparison.OrdinalIgnoreCase) == true && found.Controller != IntPtr.Zero;
