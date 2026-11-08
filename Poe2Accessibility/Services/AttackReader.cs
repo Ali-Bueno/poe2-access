@@ -23,7 +23,7 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Reads a monster's current action and its animated object's AnimationController (docs/research/dodge-timing.md,
     ///     findings 1-3) through the GameOffsets structs, every pointer checked, each part judged live by its own rule
-    ///     (<see cref="AttackFieldCheck"/>): a part judged lost is not read again until the area changes.
+    ///     (<see cref="AttackFieldCheck"/>): a part judged lost is not read again that session.
     /// </summary>
     public sealed class AttackReader
     {

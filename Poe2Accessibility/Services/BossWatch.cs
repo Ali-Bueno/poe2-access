@@ -52,6 +52,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A blow seen this soon after its attack animation ended still belongs to it (the server's word arrives late).</summary>
         private const int LateBlowMs = 300;
 
+        /// <summary>An attack whose monster has not been seen this long (dead, gone, out of range) is forgotten.</summary>
+        private const int ForgetUnseenMs = 2000;
+
         private readonly AudioCueService audio;
         private readonly IAccessibilityOutputService output;
         private readonly UiElementReader elements;
@@ -66,13 +69,19 @@ namespace Poe2Accessibility.Services
         ///     Projectiles let go by an attack the monster has already left for its next one (an archer's volley): each
         ///     keeps its warning, with the side and loudness from where it was shot.
         /// </summary>
-        private readonly List<(uint Id, long WarnAt, float Pan, float Pitch, float Gain)> flights = new();
+        private readonly List<(uint Id, long WarnAt, float Pan, float Pitch, float Gain, int Rank, float Distance)> flights = new();
         private readonly Dictionary<uint, long> warnedAt = new();
+
+        /// <summary>This frame's warnings, played or covered together once every monster is seen (<see cref="DodgeCueMerge"/>).</summary>
+        private readonly List<(DodgeCueMerge.Candidate Warning, float Pan, float Pitch, float Gain, string Line)> pending = new();
+        private readonly DodgeCueMerge merge = new();
         private readonly HashSet<string> namedThreats = new(StringComparer.Ordinal);
         private int lastPlayerLife = -1;
-        private readonly Dictionary<uint, (string Name, int Step, bool Engaged, int Percent)> bosses = new();
+        private readonly Dictionary<uint, (string Name, int Step, bool Engaged, int Percent, long HurtAt)> bosses = new();
+        private long? playerDiedAt;
         private long lastLifePoll;
         private long lastParryCue = long.MinValue / 2;
+        private bool saveFailureLogged;
 
         public BossWatch(AudioCueService audio, IAccessibilityOutputService output, UiElementReader elements, PluginLog log)
         {
@@ -132,10 +141,20 @@ namespace Poe2Accessibility.Services
             this.attacks.Clear();
             this.flights.Clear();
             this.warnedAt.Clear();
+            this.pending.Clear();
+            this.merge.Reset();
             this.bosses.Clear();
+            this.playerDiedAt = null;
             this.lastPlayerLife = -1;
             this.entityAddresses = null;
             this.Mechanics?.Reset();
+        }
+
+        /// <summary>The player died: an engaged boss seen back at full life afterwards has had its fight reset by the game.</summary>
+        public void PlayerDied()
+        {
+            this.playerDiedAt = Environment.TickCount64;
+            this.Mechanics?.PlayerDied(this.playerDiedAt.Value);
         }
 
         /// <summary>Per frame while playing.</summary>
@@ -182,6 +201,9 @@ namespace Poe2Accessibility.Services
                 this.WarnFlights(now);
             }
 
+            this.PlayWarnings(now);
+
+            this.ForgetUnseen(now);
             if (attacks && Seats.Followed.TryGetComponent<Life>(out var life))
             {
                 this.LearnFromBlow(life.Health.Current, life.Health.Total, now);
@@ -238,7 +260,7 @@ namespace Poe2Accessibility.Services
             if (!this.bosses.TryGetValue(entity.Id, out var boss))
             {
                 var name = this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty;
-                boss = (name, BossLifeSteps.Full, false, 100);
+                boss = (name, BossLifeSteps.Full, false, 100, 0);
             }
 
             if (boss.Name.Length == 0)
@@ -254,17 +276,24 @@ namespace Poe2Accessibility.Services
                     this.log.Info($"Boss defeated: {boss.Name}");
                 }
 
-                this.bosses[entity.Id] = (boss.Name, 0, false, 0);
+                this.bosses[entity.Id] = (boss.Name, 0, false, 0, boss.HurtAt);
                 return;
             }
 
             if (EntityCatalog.IsHidden(entity))
             {
-                this.bosses[entity.Id] = (boss.Name, boss.Step, false, boss.Percent);
+                this.bosses[entity.Id] = boss with { Engaged = false };
                 return;
             }
 
             var percent = life.Health.CurrentInPercent();
+            var now = Environment.TickCount64;
+            if (BossLifeSteps.FightRestarted(this.playerDiedAt, boss.HurtAt, boss.Engaged, percent))
+            {
+                this.log.Info($"Boss fight restarted: {boss.Name} back to full life after the player's death");
+                boss = (boss.Name, BossLifeSteps.Full, false, percent, 0);
+            }
+
             var engaged = boss.Engaged || percent < 100;
             var step = BossLifeSteps.Next(boss.Step, percent);
             if (step < boss.Step)
@@ -273,7 +302,7 @@ namespace Poe2Accessibility.Services
                 this.output.Say(SpeechKind.BossLife, Announcements.BossLife(boss.Name, percent), percent <= UrgentBossPercent);
             }
 
-            this.bosses[entity.Id] = (boss.Name, step, engaged, percent);
+            this.bosses[entity.Id] = (boss.Name, step, engaged, percent, percent < 100 ? now : boss.HurtAt);
         }
 
         /// <summary>Louder the nearer the attacker; never below the far level, so a far archer is still heard.</summary>
@@ -283,8 +312,11 @@ namespace Poe2Accessibility.Services
             return this.Gain * (FarWarningGain + ((1f - FarWarningGain) * closeness));
         }
 
-        /// <summary>Plays the whoosh unless this monster warned a moment ago; true when it played.</summary>
-        private bool Warn(uint id, float pan, float pitch, float gain, long now)
+        /// <summary>
+        ///     Queues the whoosh for this frame unless this monster warned a moment ago; true when queued. <paramref name="line"/> is
+        ///     logged if it plays; a warning another cue covers is logged as merged.
+        /// </summary>
+        private bool Warn(uint id, float pan, float pitch, float gain, long now, DodgeCueMerge.Candidate warning, string line)
         {
             if (now - this.warnedAt.GetValueOrDefault(id, long.MinValue / 2) < WarningGapMs)
             {
@@ -292,8 +324,32 @@ namespace Poe2Accessibility.Services
             }
 
             this.warnedAt[id] = now;
-            this.audio.Play(this.whoosh, pan, pitch, gain, "dodge");
+            this.pending.Add((warning, pan, pitch, gain, line));
             return true;
+        }
+
+        /// <summary>The frame's warnings: one cue for blows that land together, the most dangerous one's.</summary>
+        private void PlayWarnings(long now)
+        {
+            if (this.pending.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var outcome in this.merge.Resolve(this.pending.Select(cue => cue.Warning), now))
+            {
+                var cue = this.pending.First(queued => queued.Warning == outcome.Warning);
+                if (outcome.CoveredBy is { } cover)
+                {
+                    this.log.Debug($"Dodge merged: {cue.Line} covered by monster {cover}");
+                    continue;
+                }
+
+                this.audio.Play(this.whoosh, cue.Pan, cue.Pitch, cue.Gain, "dodge");
+                this.log.Debug($"Dodge warning: {cue.Line}");
+            }
+
+            this.pending.Clear();
         }
 
         /// <summary>The warnings of projectiles in flight whose attack was replaced by the next one.</summary>
@@ -308,9 +364,10 @@ namespace Poe2Accessibility.Services
                 }
 
                 this.flights.RemoveAt(i);
-                if (now - flight.WarnAt <= LeadMs && this.Warn(flight.Id, flight.Pan, flight.Pitch, flight.Gain, now))
+                if (now - flight.WarnAt <= LeadMs)
                 {
-                    this.log.Debug($"Dodge warning: monster {flight.Id}, a projectile still in flight from its previous attack");
+                    this.Warn(flight.Id, flight.Pan, flight.Pitch, flight.Gain, now, new DodgeCueMerge.Candidate(flight.Id, flight.Rank, flight.Distance, flight.WarnAt + LeadMs, now),
+                        $"monster {flight.Id}, a projectile still in flight from its previous attack");
                 }
             }
         }
@@ -328,8 +385,10 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            // An attack the clip's own event times needs no learning; one the gate kept quiet did not hit the player.
+            // An attack the clip's own event times needs no learning; one the gate kept quiet did not hit the player; one whose
+            // monster is no longer seen cannot be told from the blow's real source.
             var hitters = this.attacks.Where(pair => !pair.Value.Learned && pair.Value.InReach && pair.Value.Timing != BlowTiming.Live &&
+                                                     now - pair.Value.SeenAt <= LateBlowMs + pair.Value.TravelMs &&
                                                      (pair.Value.Swing != null || now - pair.Value.StartedAt <= DodgeTimings.MaxDelayMs) &&
                                                      (pair.Value.EndedAt == 0 || now - pair.Value.EndedAt <= LateBlowMs + pair.Value.TravelMs)).ToList();
             if (hitters.Count != 1)
@@ -352,18 +411,32 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (this.TimingsPath.Length > 0)
+            if (this.TimingsPath.Length > 0 && this.Timings.Save(this.TimingsPath) is { } failure && !this.saveFailureLogged)
             {
-                this.Timings.Save(this.TimingsPath);
+                this.saveFailureLogged = true;
+                this.log.Warn($"Dodge timings not saved to {this.TimingsPath}: {failure} (kept for this session, tried again with each blow learnt)");
             }
 
             this.log.Info($"Dodge timing: {attack.Key} hit after {delay} ms (learnt {this.Timings.Delay(attack.Key)} ms)");
+        }
+
+        /// <summary>Drops the attacks of monsters the walk has not met for a while, so they neither linger nor teach.</summary>
+        private void ForgetUnseen(long now)
+        {
+            foreach (var id in this.attacks.Where(pair => now - pair.Value.SeenAt > ForgetUnseenMs).Select(pair => pair.Key).ToList())
+            {
+                this.attacks.Remove(id);
+                this.warnedAt.Remove(id);
+            }
         }
 
         /// <summary>An attack under way: when it began, when to warn, and what was done about it.</summary>
         private sealed record Attack(int Animation, string Key, DodgeThreat Threat, long StartedAt, long WarnAt, int? Learnt, bool Warns, bool Unique)
         {
             public long EndedAt { get; init; }
+
+            /// <summary>When the walk last met its monster.</summary>
+            public long SeenAt { get; init; }
 
             public bool InReach { get; init; }
 

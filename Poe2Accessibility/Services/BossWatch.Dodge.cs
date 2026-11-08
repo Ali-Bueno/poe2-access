@@ -119,7 +119,7 @@ namespace Poe2Accessibility.Services
                     {
                         // The next attack replaces this record; the projectile it let go is still coming.
                         var (flightPan, flightPitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
-                        this.flights.Add((id, flying.WarnAt, flightPan, flightPitch, this.WarningGain(offset)));
+                        this.flights.Add((id, flying.WarnAt, flightPan, flightPitch, this.WarningGain(offset), DodgeCueMerge.RankOf((int)rarity), offset.Length()));
                     }
 
                     var learnt = this.Timings.Delay(key);
@@ -175,13 +175,11 @@ namespace Poe2Accessibility.Services
                     ? attack with { WarnAt = attack.WarnAt + swing, ReleaseAt = attack.ReleaseAt + swing } // a golem's next swing, nothing new written
                     : attack with { Warned = true, WarnedContact = contact };
                 var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(render.WorldPosition, offset));
-                if (this.Warn(id, pan, pitch, this.WarningGain(offset), now))
-                {
-                    this.log.Debug($"Dodge warning: monster {id} {attack.Key} animation {AnimationNames.Of(animation)} ({attack.Threat}, {decision.Reason}, gap {gap:F0}, " +
-                                   $"aim {facts.Aim}, reach {facts.InReach?.ToString() ?? "?"}, blow in {blowIn?.ToString() ?? "?"} ms" +
-                                   $"{(attack.TravelMs > 0 ? $", {attack.TravelMs} ms of flight" : string.Empty)}, clip {snapshot?.Clip ?? "?"})");
-                }
-                else if (attack.Warned && contact is { } covered)
+                var warning = new DodgeCueMerge.Candidate(id, DodgeCueMerge.RankOf((int)rarity), offset.Length(), blowIn is > 0 ? now + blowIn.Value : null, now);
+                var line = $"monster {id} {attack.Key} animation {AnimationNames.Of(animation)} ({attack.Threat}, {decision.Reason}, gap {gap:F0}, " +
+                           $"aim {facts.Aim}, reach {facts.InReach?.ToString() ?? "?"}, blow in {blowIn?.ToString() ?? "?"} ms" +
+                           $"{(attack.TravelMs > 0 ? $", {attack.TravelMs} ms of flight" : string.Empty)}, clip {snapshot?.Clip ?? "?"})";
+                if (!this.Warn(id, pan, pitch, this.WarningGain(offset), now, warning, line) && attack.Warned && contact is { } covered)
                 {
                     // Too soon after this monster's last warning for a sound of its own: that warning covers this contact, and
                     // the next one is timed in full (AttackClock.NextBlow).
@@ -202,7 +200,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            this.attacks[id] = attack;
+            this.attacks[id] = attack with { SeenAt = now };
         }
 
         /// <summary>The clip it plays: a new swing (the clip started over or changed) re-arms the warning.</summary>

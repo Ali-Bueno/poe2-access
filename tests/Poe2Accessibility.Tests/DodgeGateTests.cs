@@ -14,6 +14,10 @@ namespace Poe2Accessibility.Tests
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(TheClockFollowsTheSpeedTheClipPlaysAt), TheClockFollowsTheSpeedTheClipPlaysAt),
+            (nameof(BlowsTogetherGiveOneCue), BlowsTogetherGiveOneCue),
+            (nameof(TheMostDangerousOfAFramePlays), TheMostDangerousOfAFramePlays),
+            (nameof(ALesserCueNeverCoversARare), ALesserCueNeverCoversARare),
+            (nameof(UntimedWindUpsMergeByWhenTheyAreIssued), UntimedWindUpsMergeByWhenTheyAreIssued),
             (nameof(TheGlobalSpeedCountsUnlessItsFlagSaysOne), TheGlobalSpeedCountsUnlessItsFlagSaysOne),
             (nameof(OnlyABlowAheadOfThePositionIsNext), OnlyABlowAheadOfThePositionIsNext),
             (nameof(AContactCoveredByTheLastWarningPassesTheTurnToTheNext), AContactCoveredByTheLastWarningPassesTheTurnToTheNext),
@@ -435,6 +439,55 @@ namespace Poe2Accessibility.Tests
             var polluted = DodgeTimings.FromLines(new[] { $"{swing}=609,625,594,1078,31,110" });
             polluted.AddHitTimes(new[] { $"{swing}=576/1500;melee" });
             Equal(609, polluted.Delay(swing), "blows saved before the rule are judged again when asked");
+        }
+
+        private static DodgeCueMerge.Candidate Cue(uint id, int rank, float distance, long? blowAt, long issuedAt) => new(id, rank, distance, blowAt, issuedAt);
+
+        /// <summary>A second blow 200 ms from the first one's is covered; one 300 ms away, or one after the cue has aged, plays.</summary>
+        private static void BlowsTogetherGiveOneCue()
+        {
+            var merge = new DodgeCueMerge();
+            Equal(null, merge.Resolve(new[] { Cue(1, 0, 300, 1500, 1000) }, 1000)[0].CoveredBy, "the first cue plays");
+            Equal(1u, merge.Resolve(new[] { Cue(2, 0, 200, 1700, 1100) }, 1100)[0].CoveredBy, "a blow 200 ms later is covered");
+            Equal(1u, merge.Resolve(new[] { Cue(3, 0, 200, 1250, 1150) }, 1150)[0].CoveredBy, "a blow 250 ms earlier is covered");
+            Equal(null, merge.Resolve(new[] { Cue(4, 0, 200, 1800, 1200) }, 1200)[0].CoveredBy, "a blow 300 ms later plays");
+            Equal(null, merge.Resolve(new[] { Cue(5, 0, 200, 4500, 4000) }, 4000)[0].CoveredBy, "old cues cover nothing");
+        }
+
+        /// <summary>A pack swinging in one frame: the rare plays over the normals, and among equals the nearest.</summary>
+        private static void TheMostDangerousOfAFramePlays()
+        {
+            var merge = new DodgeCueMerge();
+            var outcomes = merge.Resolve(new[] { Cue(1, 0, 100, 1500, 1000), Cue(2, 2, 600, 1550, 1000), Cue(3, 0, 50, 1520, 1000) }, 1000);
+            Equal(2u, outcomes[0].Warning.Id, "the rare first");
+            Equal(null, outcomes[0].CoveredBy, "the rare plays");
+            Equal(2u, outcomes[1].CoveredBy, "the normals are covered by it");
+            Equal(2u, outcomes[2].CoveredBy, "both of them");
+
+            merge = new DodgeCueMerge();
+            outcomes = merge.Resolve(new[] { Cue(1, 0, 400, 1500, 1000), Cue(3, 0, 50, 1520, 1000) }, 1000);
+            Equal(3u, outcomes[0].Warning.Id, "the nearer of two normals plays");
+            Equal(3u, outcomes[1].CoveredBy, "the farther is covered");
+        }
+
+        /// <summary>A rare's or unique's warning plays after a normal's or magic's cue for the same moment; rares and bosses cover each other.</summary>
+        private static void ALesserCueNeverCoversARare()
+        {
+            var merge = new DodgeCueMerge();
+            merge.Resolve(new[] { Cue(1, 1, 100, 1500, 1000) }, 1000);
+            Equal(null, merge.Resolve(new[] { Cue(2, 2, 300, 1510, 1010) }, 1010)[0].CoveredBy, "a rare after a magic monster's cue");
+            Equal(2u, merge.Resolve(new[] { Cue(3, 3, 300, 1520, 1020) }, 1020)[0].CoveredBy, "a boss's blow with the rare's: one roll");
+            Equal(1u, merge.Resolve(new[] { Cue(4, 0, 300, 1540, 1040) }, 1040)[0].CoveredBy, "a normal's by the first cue for that moment");
+        }
+
+        /// <summary>Wind-ups warned before their blow is known ("blow in ?") merge by when they are issued.</summary>
+        private static void UntimedWindUpsMergeByWhenTheyAreIssued()
+        {
+            var merge = new DodgeCueMerge();
+            merge.Resolve(new[] { Cue(1, 0, 100, null, 1000) }, 1000);
+            Equal(1u, merge.Resolve(new[] { Cue(2, 0, 100, null, 1200) }, 1200)[0].CoveredBy, "an untimed wind-up 200 ms later");
+            Equal(1u, merge.Resolve(new[] { Cue(3, 0, 100, 1700, 1240) }, 1240)[0].CoveredBy, "a timed one issued 240 ms after an untimed cue");
+            Equal(null, merge.Resolve(new[] { Cue(4, 0, 100, null, 1300) }, 1300)[0].CoveredBy, "one issued 300 ms later plays");
         }
 
         private static void Equal<T>(T expected, T actual, string what)

@@ -417,7 +417,11 @@ namespace Poe2Accessibility
                 this.enemyNews = new EnemyNarrator(this.entities, this.output);
                 this.deaths = new DeathWatch(this.locator, elements, this.output, this.log)
                 {
-                    Died = () => this.entities?.RememberDeath(),
+                    Died = () =>
+                    {
+                        this.entities?.RememberDeath();
+                        this.bosses?.PlayerDied();
+                    },
                     Revivable = () => Seats.Other is { } other && IsAlive(other),
                     EndsWithoutDeathScreen = () => TrialHud.IsRunArea(this.gameState?.CurrentAreaId ?? string.Empty),
                 };

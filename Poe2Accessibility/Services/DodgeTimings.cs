@@ -327,11 +327,12 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        public void Save(string path)
+        /// <summary>Writes the learnt timings when they changed; the reason when that failed (they stay in memory for the next try), else null.</summary>
+        public string? Save(string path)
         {
             if (!this.Changed)
             {
-                return;
+                return null;
             }
 
             try
@@ -339,10 +340,11 @@ namespace Poe2Accessibility.Services
                 Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                 File.WriteAllLines(path, this.ToLines());
                 this.Changed = false;
+                return null;
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
-                // kept in memory; saved with the next change
+                return exception.Message;
             }
         }
     }

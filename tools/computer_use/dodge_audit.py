@@ -1,12 +1,15 @@
 """Audit of the dodge warning against a fight trace (docs/research/dodge-timing.md, Live protocol steps 4-7). Read-only.
 
 Swings come from fight_trace.py (a clip started or restarted; its contacts from the clip's events at the clip's rate); the
-warnings from the plugin log's "Dodge warning" lines (VerboseLogging). Prints recall (warned swings aimed at the player
+warnings from the plugin log's "Dodge warning" lines (VerboseLogging); a "Dodge merged" line (a warning another cue covered,
+one cue for blows together) counts as warned but not as a cue. Prints recall (warned swings aimed at the player
 within --screen units), false warnings (aimed elsewhere or far), and the timing error per timing source: against contact
 minus the lead, and against the earliest a warning can come (max(contact - lead, wind-up start)). Clips without a contact
 are timed by the next life drop (noisy in a pack: another monster's hit counts).
 
-    py -B tools/computer_use/dodge_audit.py fight.jsonl [--start HH:MM:SS] [--end HH:MM:SS] [--rarity 2,3] [--detail]
+    py -B tools/computer_use/dodge_audit.py fight.jsonl [--start HH:MM:SS] [--end HH:MM:SS] [--rarity 2,3] [--detail] [--replay-merge]
+
+--replay-merge applies the plugin's merge rule (DodgeCueMerge) to a log written before it, to compare the cues per second.
 """
 import argparse, bisect, collections, datetime, json, math, re, statistics
 from pathlib import Path
@@ -15,7 +18,8 @@ REPOSITORY = Path(__file__).resolve().parents[2]
 LOG = REPOSITORY / 'host/Poe2Access/bin/Release/net10.0-windows/win-x64/Plugins/Poe2Accessibility/logs/accessibility.log'
 ACTIONS = REPOSITORY / 'Poe2Accessibility/catalog/action-types.txt'
 WORLD_PER_GRID = 250 / 23
-WARN = re.compile(r'^(\S+ \S+) DEBUG Dodge warning: monster (\d+) (\S+)\|(\d+) animation (\S+) \((\w+), ([^,]+), gap (-?\d+), aim (\w+), reach (\S+), blow in (-?\d+|\?) ms(?:, (\d+) ms of flight)?, clip ([^)]*)\)')
+MERGE_WINDOW_MS, MERGE_RARE, MERGE_KEEP_MS = 250, 2, 2000  # Poe2Accessibility/Services/DodgeCueMerge.cs
+WARN = re.compile(r'^(\S+ \S+) DEBUG Dodge (?:warning|merged): monster (\d+) (\S+)\|(\d+) animation (\S+) \((\w+), ([^,]+), gap (-?\d+), aim (\w+), reach (\S+), blow in (-?\d+|\?) ms(?:, (\d+) ms of flight)?, clip ([^)]*)\)(?: covered by monster (\d+))?')
 GATE = re.compile(r'^(\S+ \S+) INFO Dodge gate: (\S+)\|(\d+) (\S+) -> ([^(]+) \(')
 
 
@@ -59,6 +63,7 @@ def main():
     ap.add_argument('--detail', action='store_true')
     ap.add_argument('--start', help='HH:MM:SS local, inclusive')
     ap.add_argument('--end', help='HH:MM:SS local')
+    ap.add_argument('--replay-merge', action='store_true', help='merge the warnings of a log written before the merge rule')
     a = ap.parse_args()
     rarities = {int(x) for x in a.rarity.split(',')}
     actions = action_names()
@@ -161,7 +166,8 @@ def main():
             if lo <= w <= hi:
                 warns.append(dict(wall=w, id=int(m.group(2)), monster=m.group(3).split('/')[-1], anim=int(m.group(4)), name=m.group(5),
                                   threat=m.group(6), reason=m.group(7), gap=int(m.group(8)), aim=m.group(9), reach=m.group(10),
-                                  blow_in=None if m.group(11) == '?' else int(m.group(11)), flight=int(m.group(12) or 0), clip=m.group(13)))
+                                  blow_in=None if m.group(11) == '?' else int(m.group(11)), flight=int(m.group(12) or 0), clip=m.group(13),
+                                  merged=m.group(14) is not None))
             continue
         g = GATE.match(line)
         if g and lo <= wall_of(g.group(1)) <= hi:
@@ -186,6 +192,10 @@ def main():
     def ok_rarity(s):
         return (s.get('rarity') is None or s['rarity'] in rarities) and t0 <= s['start'] <= t1
     warns = [w for w in warns if t0 <= w['wall'] <= t1 and (w['swing'] is None or ok_rarity(w['swing']))]
+    if a.replay_merge:
+        replay_merge(warns)
+    cue_rates(warns)
+    covered = [w for w in warns if w['merged']]
 
     # Attacks at the player: a swing aimed at the player whose clip has a contact.
     threatening = {k for k, reasons in gates.items() if reasons - {'calm'}}
@@ -219,6 +229,8 @@ def main():
 
     false, unmatched = [], []
     for w in warns:
+        if w['merged']:
+            continue  # no cue played: neither a false cue nor a timed one
         s = w['swing']
         if s is None:
             unmatched.append(w)
@@ -226,7 +238,8 @@ def main():
         aimed = s['target'] == s['player'] or (s['target'] in (0, None) and s['place_dist'] is not None and s['place_dist'] < 250)
         if not aimed or s['dist'] > a.screen + 400:
             false.append(w)
-    print(f'false (aimed elsewhere / far): {len(false)}/{len(warns)} = {len(false) / max(1, len(warns)):.1%}; unmatched {len(unmatched)}')
+    cues = len(warns) - len(covered)
+    print(f'false (aimed elsewhere / far): {len(false)}/{cues} cues = {len(false) / max(1, cues):.1%}; unmatched {len(unmatched)}; covered by another cue {len(covered)}')
     if false:
         print('  false:', dict(collections.Counter((w['monster'], w['name'], w['swing']['target'], round(w['swing']['dist'])) for w in false).most_common(10)))
     if unmatched:
@@ -244,6 +257,8 @@ def main():
     hitlag = []
     bylife = []
     for w in warns:
+        if w['merged']:
+            continue
         s, c = w['swing'], w.get('contact')
         if s is not None and c is None and (s['target'] == s['player']):
             h = hit_after(w['wall'] + 50, 1500)
@@ -286,6 +301,42 @@ def main():
             c = w.get('contact')
             print(' ', datetime.datetime.fromtimestamp(w['wall'] / 1000).strftime('%H:%M:%S.%f')[:-3], w['monster'], w['name'], w['reason'], 'blow_in', w['blow_in'],
                   'real', None if c is None else round(c + w['flight'] - w['wall']), 'tgt', s and s['target'], 'dist', s and round(s['dist']), 'rate', s and round(s['rate'], 2), 'clip', w['clip'])
+
+
+def replay_merge(warns):
+    """DodgeCueMerge on warnings logged one by one: a frame's warnings (stamps within 2 ms) rarer then nearer first."""
+    played = []
+    ordered = sorted(warns, key=lambda w: w['wall'])
+    i = 0
+    while i < len(ordered):
+        j = i
+        while j < len(ordered) and ordered[j]['wall'] - ordered[i]['wall'] <= 2:
+            j += 1
+        now = ordered[i]['wall']
+        played = [c for c in played if now - c['issued'] <= MERGE_KEEP_MS]
+        frame = []
+        for w in ordered[i:j]:
+            s = w['swing']
+            rank = min(3, max(0, (s.get('rarity') or 0) if s else 0))
+            frame.append(dict(w=w, rank=rank, dist=s['dist'] if s else 9e9, blow=w['wall'] + w['blow_in'] if (w['blow_in'] or 0) > 0 else None, issued=w['wall']))
+        for c in sorted(frame, key=lambda c: (-c['rank'], c['dist'])):
+            cover = next((p for p in played if (c['rank'] < MERGE_RARE or p['rank'] >= MERGE_RARE) and (
+                abs(p['blow'] - c['blow']) <= MERGE_WINDOW_MS if p['blow'] is not None and c['blow'] is not None else abs(p['issued'] - c['issued']) <= MERGE_WINDOW_MS)), None)
+            if cover is None:
+                played.append(c)
+            c['w']['merged'] = cover is not None
+        i = j
+
+
+def cue_rates(warns):
+    """Cues per second over the seconds that had any warning: all warnings (before merging) against the cues played."""
+    def rates(walls):
+        per = collections.Counter(int(w // 1000) for w in walls)
+        if not per:
+            return 'none'
+        counts = list(per.values())
+        return f'{sum(counts) / len(counts):.2f}/s over {len(counts)} s, max {max(counts)}, seconds with 3+ {sum(c >= 3 for c in counts)}'
+    print(f'cues per second: warnings {rates([w["wall"] for w in warns])}; played {rates([w["wall"] for w in warns if not w["merged"]])}')
 
 
 main()

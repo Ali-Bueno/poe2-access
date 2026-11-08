@@ -26,6 +26,7 @@ namespace Poe2Accessibility.Tests
             (nameof(InvulnerableEnragedAndPhaseAreSaidOnce), InvulnerableEnragedAndPhaseAreSaidOnce),
             (nameof(AReplacedBossSaysNothingMore), AReplacedBossSaysNothingMore),
             (nameof(LifeStepsComeBackAfterAHealNotAJitter), LifeStepsComeBackAfterAHealNotAJitter),
+            (nameof(AFightRestartsWhenTheBossIsFullAfterThePlayersDeath), AFightRestartsWhenTheBossIsFullAfterThePlayersDeath),
             (nameof(TheCatalogReadsItsKinds), TheCatalogReadsItsKinds),
             (nameof(AMechanicLineIsKnownInAnyLanguageAndMarkup), AMechanicLineIsKnownInAnyLanguageAndMarkup),
             (nameof(TheFilesMovementRulesBecomeAilments), TheFilesMovementRulesBecomeAilments),
@@ -302,6 +303,16 @@ namespace Poe2Accessibility.Tests
             Equal(false, BossScripts.IsVariant("SwollenMillerAttackARandom", "SwollenMillerAttackB2"), "another line");
             Equal(false, BossScripts.IsVariant("SwollenMillerAttackC", "SwollenMillerAttackC2"), "a fixed line is only itself");
             Equal(BossScripts.Stem("CorruptWolf_Skill_IceBreath_Random"), BossScripts.Stem("CorruptWolf_Skill_IceBreath_12"), "one stem");
+        }
+
+        /// <summary>Beira back at full life after yarkey died under her (Clearfell, 2026-11-08): her fight, phases and all, starts over.</summary>
+        private static void AFightRestartsWhenTheBossIsFullAfterThePlayersDeath()
+        {
+            Equal(true, BossLifeSteps.FightRestarted(diedAt: 5000, hurtAt: 4800, engaged: true, percent: 100), "full after the death");
+            Equal(false, BossLifeSteps.FightRestarted(diedAt: 5000, hurtAt: 4800, engaged: true, percent: 99), "still hurt");
+            Equal(false, BossLifeSteps.FightRestarted(diedAt: null, hurtAt: 4800, engaged: true, percent: 100), "a heal with no death");
+            Equal(false, BossLifeSteps.FightRestarted(diedAt: 5000, hurtAt: 9000, engaged: true, percent: 100), "hurt again after the death, then healed");
+            Equal(false, BossLifeSteps.FightRestarted(diedAt: 5000, hurtAt: 0, engaged: false, percent: 100), "never engaged");
         }
 
         private static void LifeStepsComeBackAfterAHealNotAJitter()

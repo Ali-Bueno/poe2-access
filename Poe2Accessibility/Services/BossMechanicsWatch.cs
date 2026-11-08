@@ -50,6 +50,7 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<(uint, long)> worded = new();
         private readonly HashSet<string> logged = new(StringComparer.Ordinal);
         private int phase = 1;
+        private long? playerDiedAt;
         private long lastPhaseAt = long.MinValue / 2;
         private long lastWordAt = long.MinValue / 2;
         private long addsWaveAt;
@@ -78,7 +79,11 @@ namespace Poe2Accessibility.Services
             this.worded.Clear();
             this.phase = 1;
             this.addsWave = 0;
+            this.playerDiedAt = null;
         }
+
+        /// <summary>The player died at <paramref name="at"/>: a boss back at full life afterwards starts its fight over.</summary>
+        public void PlayerDied(long at) => this.playerDiedAt = at;
 
         /// <summary>One monster within the boss watch's range, each life poll.</summary>
         public void Observe(Entity entity, Render render, Rarity rarity, long now)
@@ -115,7 +120,25 @@ namespace Poe2Accessibility.Services
                 this.bosses[entity.Id] = boss;
             }
 
-            boss.Engaged |= life.Health.Total > 0 && life.Health.CurrentInPercent() < 100; // a zero total reads as 0 percent
+            var percent = life.Health.Total > 0 ? life.Health.CurrentInPercent() : -1; // a zero total reads as 0 percent
+            if (BossLifeSteps.FightRestarted(this.playerDiedAt, boss.HurtAt, boss.Engaged, percent))
+            {
+                // The game reset the encounter: its phases and forms are said from the start again.
+                this.log.Info($"Boss mechanics: {boss.Name} fight restarted (full life after the player's death)");
+                boss = new Boss(monster, boss.Name, new BossPhaseTracker(this.Catalog.HasForms(monster) ? FormSettleMs : BossPhaseTracker.SettleMs));
+                this.bosses[entity.Id] = boss;
+                this.phase = 1;
+                this.lastPhaseAt = long.MinValue / 2;
+                this.formsSaid.Clear();
+                this.addsSaid.Clear();
+                this.addsWave = 0;
+            }
+
+            if (percent is >= 0 and < 100)
+            {
+                boss.Engaged = true;
+                boss.HurtAt = now;
+            }
             var facts = this.FactsOf(entity, monster, boss.Engaged, inPlay);
             if (facts != boss.Facts)
             {
@@ -293,6 +316,9 @@ namespace Poe2Accessibility.Services
             public BossPhaseTracker Tracker { get; } = tracker;
 
             public bool Engaged { get; set; }
+
+            /// <summary>When it was last seen below full life.</summary>
+            public long HurtAt { get; set; }
 
             public BossFacts Facts { get; set; }
 
