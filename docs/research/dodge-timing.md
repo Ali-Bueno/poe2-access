@@ -365,11 +365,10 @@ against the real contact, median −4 ms live, −11 ms nominal. The life drop f
 (network and server). The clip start is taken as the visible wind-up, since the trace's clip position is the animation the
 game draws (inferred, not checked frame by frame: the video was black, see the protocol).
 
-**Not covered on 2026-11-08.** Every attacker was a normal monster (the trace's rarity column): no rare or unique, no
-boss (scripted walking never reached an arena: the Mud Burrow's loops, Clearfell's tree lines and the encampment's broken
-west bridge stopped it), no hasted rare, no minion of the player's (the Mercenary has none), no archer firing from off
-screen. Mud golems' ground slams were among the attacks. The rarity gate itself is unchanged code; the boss fights and
-`Boss counterplay` words stay for the next live run ([boss mechanics §7](boss-mechanics.md#7-live-protocol-the-current-character-level-22-mercenary-in-act-2)).
+**Not covered by this run.** The trace's rarity column read 0 for every monster (a wrong offset in `fight_trace.py`, fixed
+the same day: Beira read normal), so whether rares were among these packs is unknown; the bosses came in the afternoon (below).
+No hasted rare, no minion of the player's (the Mercenary has none), no archer firing from off screen. Mud golems' ground slams
+were among the attacks.
 
 **Knobs.** `LeadMs` stays 500: no run measured a reaction need (the tutorial's 300 ms needs a new character); the 40-unit
 slack stays (no blow landed from beyond the clip's reach plus 40 in this data); path B still never silences (area units
@@ -378,6 +377,31 @@ not measured: no skill area hit the player at a known distance).
 **`DodgeWarningsAllMonsters` stays off.** The precision would allow it (98 % recall, under 1 % false), but a pack warns
 densely: in seconds with any warning, 2.3 a second on average, 5-7 a second in 49 seconds of a larva swarm (620 of 804
 warnings were larvae), for blows of a few life points each. Rares and uniques keep the dodge cue meaningful.
+
+### Rares and bosses (2026-11-08)
+
+The same protocol in the afternoon, audited with `--rarity 2,3` (the ritual with `--rarity 3`), every fight on yarkey (level 22
+Mercenary). Two audit fixes first: a swing is "at the player" by the player's id of its own time (the trace's last id, the town's,
+had read the whole Manor run as aimed elsewhere: 92.7 % false), and warnings given at the wind-up ("blow in ?") are counted.
+
+| Fight | Attacks at the player | Recall | False | Timed live: n, median, p90 of the error |
+|---|---|---|---|---|
+| Beira, Clearfell, standing still under her (script) | 22 | 100 % | 0 of 46 | 46, +44 ms, 87 ms |
+| The Devourer, the Mud Burrow, two fights standing still (script) | 93 | 97.8 % | 0 of 94 | 88, +13 ms, 39 ms |
+| Ogham Manor rares (`BloodCourtesan1`, `TendrilSentinel1__`), walking (script) | 37 | 97.3 % | 0 of 41 | 33, +22 ms, 41 ms |
+| The user's ritual, four uniques, by hand (Devourer, Thorn Horror, Rotten Druid, Beira) | 84 | 98.8 % | 0 of 121 | 46, +24 ms, 50 ms |
+
+- Beira's 87 ms: her five-spear `ice_spear_combo_01` warned its third and fifth spears as the second and fourth landed (each
+  contact too close behind the last warning for a sound of its own); fixed after (the covered contact passes the turn to the next,
+  test `AContactCoveredByTheLastWarningPassesTheTurnToTheNext`). The ritual's Beira, after the fix: 13 of 13 warned, 0 of 38 false,
+  but only 3 blows timed against a contact (p90 73 ms): too few to say the fix holds; her spear combo was not among them.
+- The Devourer's two misses: `bite_vomit_01` hit at 354 and 375 units, read "out of reach" because the table's sizes were taken as
+  world units; they are grid cells (`AttackAreas.InWorld`, test `TheTablesAreaSizesAreGridCells`). The ritual's one miss: the
+  Devourer died 265 ms into the swing. The Manor's one: the player walked out of reach and no blow landed (the gate was right).
+- Life drop after the contact: a median 24-190 ms (network and server; the Devourer's slams the longest).
+- The goals (recall ≥ 95 %, false ≤ 5 %, p90 ≤ 50 ms) are met on every fight but Beira's timing before its fix.
+- Still not covered: a hasted rare, the player slowed, the player's minions (a Witch, `acceso_prueba`, was created for the Bloated
+  Miller but not taken there: see boss mechanics §7), archers off screen. `LeadMs` stays 500.
 
 ## First study (2026-10-24, 0.5.5e, Mud Burrow)
 

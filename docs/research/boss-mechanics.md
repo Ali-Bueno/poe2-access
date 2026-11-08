@@ -153,14 +153,45 @@ Read-only; the dev host as usual, `VerboseLogging` true. After each fight: `grep
    on screen (from the video), the hide lengths, and any `Invulnerable` buff seen. Append the numbers here; tune
    `SettleMs`, `EngageGraceMs`, `WordGapMs`, `MinWordLeadMs`.
 
-### Live run of 2026-11-08 (not reached)
+### Live runs of 2026-11-08
 
 Step 1 passed: `Boss mechanics: 409 bosses, 936 mechanic lines, 15 movement rules` on the development host and on the installed
-package (after its game data update). Steps 2-7 were not reached: the test drove the character by script through the Mud Burrow
-(20 minutes of its loops without the Devourer's arena coming into view), Clearfell (two instances, Beira's arena not seen; the
-route stopped at tree lines) and the Clearfell Encampment (its west bridge toward the Riverbank does not walk through), so no
-`Boss turn`, `Boss facts` or `Boss counterplay` line was produced and no tuning was done. The dodge part of these fights was
-measured on normal monsters instead ([dodge timing, live results](dodge-timing.md#live-results-2026-11-08-055f)).
+package (after its game data update). The morning's scripted walk reached no arena; why, and what in the mod was fixed on the
+way, is in [route walking](route-walking.md). In the afternoon the bosses were reached by waypoint and new instances. Every
+fight below was on **yarkey (level 22 Mercenary)**, the development host with `VerboseLogging`, `fight_trace.py` beside it.
+
+| Boss | How | Lines | Right / wrong |
+|---|---|---|---|
+| Beira (`UrchinHagBoss`), Clearfell, new instance, area level 2 | script, standing still under her, 11:47-11:48 | one `Boss facts` (engaged; no hide, invulnerability, enrage or phase), `Boss defeated`; no `Boss turn`, no word | nothing wrong said, and nothing said for her attacks: `ice_spear_combo` (cold projectiles), `charged_cleave` and `detonate_corpses` have no area in the tables (the corpse detonation is an ExecuteGEAL parent with no geometry row), so no word can follow: a coverage gap (telegraph path A, §8), not a fault |
+| The Devourer (`MudBurrowerHeadBoss`), the Mud Burrow, two fights | script, standing still, 12:15-12:19 and 12:26 | 7 burrows said ("El jefe ha desaparecido"), each with its return ("El jefe ha vuelto"): 4 of the first fight's 6, 3 in the second; 3 "¡Muévete!" (`circle -> Move`, the goop `MudBurrowerGoopGT`), blow in 2.0-2.7 s | no wrong line. The goop word checked against the trace hit the standing player 2.7 s later, as said. The first fight's two unsaid burrows were short (the flag down 0.6 and 0.95 s, at the 0.8 s settle). Each return was said 0.93-0.95 s after the boss was back |
+| Beira again, Clearfell | **the user, by hand**, 13:11 | one `Boss facts`, defeated in 3 s | nothing to judge |
+| A ritual's Devourer (`MudBurrowerHeadBossCampaignSTANDALONE_`, Clearfell's ritual altar) | the user, by hand, 13:13-13:14 | "Jefe a la vista: El devorador"; "¡Sal!" twice (`circle -> Out`, blow in 2.1 s), "¡Muévete!" once (2.0 s); one burrow said 0.94 s after it began and its return **0.47 s** after it ended; life steps (63, 40, 12 %), "Listo para el aturdimiento", "Aturdimiento total", "derrotado" | the player, moving, took no hit at the words' blow times |
+| A ritual's Horror of Thorns (`CarnivorousPlantEaterOldForestCampaignSTANDALONE`) | the user, by hand, 13:14-13:15 | "¡Muévete!" three times (blow in 0.9 s), "Congelado", life steps, "derrotado" | one hit of 8 life at the third word's blow time (the player moving through it) |
+| A ritual's Rotten Druid (`BeehiveBehemoth/FungusBehemothCampaignSTANDALONE`) | the user, by hand, 13:15-13:17 | dodge warnings only, no counterplay word | his mortar (`MMSFungusBehemothProjectile`, MonsterMortar) landed three times unsaid: the telegraph table had no area for any mortar (fixed after, below); he never used his shaped areas (`GAFungusBehemothVineSlam`, `GSFungusBehemothRockSmash`) |
+| A ritual's Beira (`Hags/UrchinHagBossCampaignSTANDALONE`) | the user, by hand, 13:17-13:19 | "¡Muévete!" twice (`raise_freeze_01`, `ice_nova_01`, blow in 0.66 and 0.85 s) | both fit (the player stood on the aimed place at the word, 23 and 8 units from it; no life lost). Her corpse detonation (`EGCarrionCroneCorpseDetonate`, an ExecuteGEAL parent, and `HagBossDetonateDead`) has no size in any table (no base radius stat, no geometry row, no link from ExecuteGEAL), so no word can follow it from the data: §7's "¡Muévete!" for the corpse markers stays unmet |
+| Count Geonor (Ogham Manor) | not fought | | the user stopped the scripted run: too much for a script (the Manor's level 15 packs killed the level 22 character once on the way) |
+| The Bloated Miller (Riverbank) | not reached | | yarkey cannot go back: the Riverbank has no waypoint and the encampment no way to it ([route walking](route-walking.md)); it needs a new character |
+| The King in the Mists, Act 2 bosses | not reached | | |
+
+**Tuning from these runs.**
+- `BossPhaseTracker.BackSettleMs` = 400 (new; a return was waiting the 0.8 s settle): the user's run said the return 0.47 s
+  after the boss was back, against 0.95 s before.
+- `SettleMs` stays 800: the two unsaid burrows were the only shorter ones, and the guard against teleport hides has no
+  counter-evidence yet.
+- `EngageGraceMs`, `WordGapMs`, `MinWordLeadMs` unchanged: no word came within 3 s of the first hit, none was held by the
+  800 ms gap, and every word had 0.9 s of lead or more.
+- The dodge warning in these fights: [dodge timing, rares and bosses](dodge-timing.md#rares-and-bosses-2026-11-08).
+
+**The user's ritual run (13:12:30-13:19:30, yarkey, Clearfell's ritual altar: four bosses in turn).** 8 counterplay words, 2 boss
+turns. Each word, checked against `fight_trace.py`: the player stood within 8-36 units of the aimed place when it was said, and the
+skill had a ground area (`bite_vomit_01`/`GAMudBurrowerHeadSlam` circle → "¡Sal!", `spit_epic_01` and the Horror's
+`root_cascade_01` (`GTAzmeriCarnivorousPlantVineCascade`) and Beira's frost skills → "¡Muévete!"). The "¡Sal!" lead of 2.1 s is the
+clip's own: `bite_vomit_01` lands its `contact` at 2.098 s and the word came at clip position 0.08. The player then moved out every
+time but once (one hit of 8 life from the Horror's vines).
+- **Mortars now say "¡Muévete!"** (`66d5e59`): every `mortar` line is a circle around its aimed place (the action's target place),
+  scattered (count 2), so the player standing there is told to move; its size is whatever the line gives. No table holds a mortar's
+  blast: MonsterMortar's columns, its projectile, its stat sets (only a scatter, `projectile_spread_radius`, on 40 of 56) and the
+  impact `.ao` were searched; 9 of the 56 share their impact visual with a geometry skill whose size the extractor could copy later.
 
 ## 8. Not done
 
