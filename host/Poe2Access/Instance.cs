@@ -11,6 +11,7 @@ internal sealed class Instance(int? spareProcessId = null) : IDisposable
     private const string LegacyStopEventName = @"Local\Poe2AccessHost.Stop"; // the separate host of earlier versions
     private const int GracefulExitMilliseconds = 5_000;
     private const int ExitWaitMilliseconds = 10_000;
+    private const int LeaveMilliseconds = 2_000; // an instance that answered the stop finishes its exit
     private static readonly string[] LegacyProcessNames = ["Poe2AccessHost", "GameHelper"];
 
     private static readonly string Isolation = Environment.GetEnvironmentVariable(IsolationVariable) ?? string.Empty;
@@ -46,16 +47,18 @@ internal sealed class Instance(int? spareProcessId = null) : IDisposable
     /// </summary>
     public void Stop(AppFolders folders)
     {
+        var answered = false;
         if (!this.Owned)
         {
             SignalStop();
-            if (!this.TryOwn(GracefulExitMilliseconds))
+            answered = this.TryOwn(GracefulExitMilliseconds);
+            if (!answered)
             {
                 Log.Write("The running instance did not exit in time");
             }
         }
 
-        KillOthers(folders);
+        KillOthers(folders, answered);
         if (!this.Owned && !this.TryOwn(ExitWaitMilliseconds))
         {
             Log.Write("The mutex is still held after killing the other copies");
@@ -114,7 +117,9 @@ internal sealed class Instance(int? spareProcessId = null) : IDisposable
         }
     }
 
-    private void KillOthers(AppFolders folders)
+    /// <param name="answered">The running instance released the mutex: it is on its way out, so it gets
+    /// <see cref="LeaveMilliseconds"/> to end by itself before it is killed (it was killed 50 ms after logging "Stopped").</param>
+    private void KillOthers(AppFolders folders, bool answered)
     {
         foreach (var process in Process.GetProcesses())
         {
@@ -127,6 +132,11 @@ internal sealed class Instance(int? spareProcessId = null) : IDisposable
 
                 try
                 {
+                    if (answered && process.WaitForExit(LeaveMilliseconds))
+                    {
+                        continue;
+                    }
+
                     process.Kill(entireProcessTree: true);
                     process.WaitForExit(ExitWaitMilliseconds);
                     Log.Write($"Killed {path} (pid {process.Id})");
