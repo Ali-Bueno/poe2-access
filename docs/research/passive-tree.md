@@ -263,7 +263,16 @@ armour_and_evasion2 counted 15, 14 … 1, "Arrived at Oasis" with no correction.
   push that lands elsewhere corrects itself. Followed live from the far side of the tree: 31 pushes, the count falling, to
   "Llegaste a Fe cicatrizada"; beyond 30 pushes it says "lejos" and the direction.
 - A target chosen on a node must not change that node's tooltip: the narrator says a line replaced in place, which cut off the
-  finder's own answer 10 ms after it began (`UiSemantics.FinderLine` keeps the line while the cursor stays).
+  finder's own answer 10 ms after it began (`UiSemantics.FinderLine` keeps the line while the cursor stays and the allocated
+  count is the same: a node allocated under the cursor moves the trail on, said as a replaced line).
+- Trail (2026-11-09, asked by the user: "una mejor forma de guiar al jugador" to keystones, jewel sockets and a build's
+  notables): the cursor way only showed where a node is, and "8 points away" left the 8 nodes to find. After the cursor has
+  been on the target (the game's tooltip says what it does: the mod has no stat text of its own), `PassiveFinder.Taking` turns
+  the guide to `PassiveMap.Trail`: Dijkstra from the taken nodes and the own start over node costs
+  (`PassiveMap.TrailCost`: a point = 1024, 2 off on the active build's marked nodes, 1 off on a notable, so the fewest
+  points win and ties go to the build, then to notables; toward a marked node an unmarked one costs 64 points, so the trail
+  keeps to the build's own line). The line names the trail's first node (always reachable) and the cursor way to it. The D-pad's
+  Build list holds the marked keystones, notables and sockets not taken, in the `.build` file's order when it is here.
 - Row names may hold keyword markup ("Engarce de [Jewel|joya]"); `ReadPassiveRow` shows the display text.
 
 ## Build Planner (patch 0.5, 2026-10-31)

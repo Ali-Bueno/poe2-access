@@ -7,8 +7,9 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     The passive tree's finder for <see cref="UiSemantics"/>: a blind player cannot look across the tree, so the D-pad,
-    ///     which the game leaves free there, lists keystones, notables, jewel sockets and what is reachable, by the points
-    ///     they cost, and every node then says the way to the one chosen (docs/research/passive-tree.md).
+    ///     which the game leaves free there, lists the active build's big nodes, keystones, notables, jewel sockets and what is
+    ///     reachable, by the points they cost, and every node then says the way to the one chosen; once the cursor has been on
+    ///     it, the way to the next node to take for it (docs/research/passive-tree.md).
     /// </summary>
     public sealed partial class UiSemantics
     {
@@ -18,7 +19,7 @@ namespace Poe2Accessibility.Services
         private readonly PassiveFinder finder = new();
         private PassiveAtlas? passiveAtlas;
         private (IntPtr From, IntPtr To, string Words)? finderWay;
-        private (IntPtr Record, string Line)? finderLine;
+        private (IntPtr Record, int Taken, string Line)? finderLine;
 
         /// <summary>The finder is on (setting PassiveFinder): the D-pad answers and locked nodes say what they cost.</summary>
         public bool PassiveFinderOn { get; set; } = true;
@@ -37,7 +38,11 @@ namespace Poe2Accessibility.Services
 
             var atlas = this.AtlasOf(graph);
             var steps = atlas.StepsFrom(this.AllocatedIds(graph.State));
-            IReadOnlyList<IntPtr> Members(PassiveCategory category) => atlas.Members(category, steps, record);
+            var marked = this.BuildMarks(graph);
+            var plan = marked.Count > 0 ? this.buildPlans.Matching(marked.Select(this.PassiveIdOf).ToHashSet()) : null;
+            var order = plan?.Passives.GroupBy(passive => passive.Id).ToDictionary(group => group.Key, group => group.First().Order);
+            int BuildStep(IntPtr node) => order != null && order.TryGetValue(this.PassiveIdOf(node), out var step) ? step : int.MaxValue;
+            IReadOnlyList<IntPtr> Members(PassiveCategory category) => atlas.Members(category, steps, record, marked, BuildStep);
             var hadTarget = this.finder.Target != IntPtr.Zero;
             if (listStep != 0)
             {
@@ -99,22 +104,68 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     The finder's line for the hovered node: the way to its target, or that the cursor got there; empty with no target.
-        ///     Kept while the cursor stays: a choice made on this node is said by the D-pad, and a changed line would cut that off.
+        ///     The finder's line for the hovered node: the way to its target, or that the cursor got there, then the next node to
+        ///     take for it; empty with no target. Kept while the cursor stays and nothing is allocated: a choice made on this node is
+        ///     said by the D-pad, and a changed line would cut that off; a node taken here moves the guide on to the next one.
         /// </summary>
-        private string FinderLine(PassiveGraph graph, IntPtr record, PassiveNodeRow node)
+        private string FinderLine(PassiveGraph graph, IntPtr record, HashSet<int> allocated, HashSet<IntPtr> marked)
         {
-            if (this.finderLine is { } shown && shown.Record == record)
+            if (this.finderLine is { } shown && shown.Record == record && shown.Taken == allocated.Count)
             {
                 return shown.Line;
             }
 
             var atlas = this.AtlasOf(graph);
-            var line = this.finder.Arrive(record) ? Announcements.BeaconArrived(node.Name)
-                : atlas.Places.Index.TryGetValue(this.finder.Target, out var target) ? Announcements.PassiveToward(atlas.Nodes[target].Name, this.WayTo(graph, atlas, record, this.finder.Target))
-                : string.Empty;
-            this.finderLine = (record, line);
+            var line = atlas.Places.Index.TryGetValue(this.finder.Target, out var target) ? this.GuideLine(graph, atlas, record, target, allocated, marked) : string.Empty;
+            this.finderLine = (record, allocated.Count, line);
             return line;
+        }
+
+        /// <summary>
+        ///     "Toward Scarred Faith: up, 7 pushes" until the cursor has been on the target, to read it; then "Scarred Faith, 8 points to
+        ///     go: allocate Attribute: down left, 2 pushes", "allocate this one" on that node, until the target is taken.
+        /// </summary>
+        private string GuideLine(PassiveGraph graph, PassiveAtlas atlas, IntPtr record, int target, HashSet<int> allocated, HashSet<IntPtr> marked)
+        {
+            var name = atlas.Nodes[target].Name;
+            if (!this.finder.Taking && record != this.finder.Target)
+            {
+                return Announcements.PassiveToward(name, this.WayTo(graph, atlas, record, this.finder.Target));
+            }
+
+            var trail = TrailTo(atlas, target, allocated, marked);
+            if (this.finder.Arrive(record, trail is { Count: > 0 }))
+            {
+                var arrived = Announcements.BeaconArrived(name);
+                return this.finder.Taking && trail != null ? this.TrailLine(graph, atlas, record, arrived, trail) : arrived;
+            }
+
+            if (trail is not { Count: > 0 })
+            {
+                this.finder.Drop();
+                return trail == null ? Announcements.BeaconOff : $"{Announcements.PassiveGot(name)}. {Announcements.BeaconOff}";
+            }
+
+            return this.TrailLine(graph, atlas, record, name, trail);
+        }
+
+        /// <summary>The points left for the target and the next node to take, with the way to it from the hovered node.</summary>
+        private string TrailLine(PassiveGraph graph, PassiveAtlas atlas, IntPtr from, string lead, List<int> trail)
+        {
+            var next = atlas.Nodes[trail[0]];
+            var at = trail.FindIndex(index => atlas.Nodes[index].Record == from);
+            var step = next.Record == from ? Announcements.AllocateThis : Announcements.AllocateNode(next.Name, this.WayTo(graph, atlas, from, next.Record));
+            return Announcements.PassiveTrail(lead, trail.Count, at > 0 && at < trail.Count - 1, step);
+        }
+
+        /// <summary>The nodes to take for the target: the fewest points, along the active build where it can (all of it for a build's node).</summary>
+        private static List<int>? TrailTo(PassiveAtlas atlas, int target, HashSet<int> allocated, HashSet<IntPtr> marked)
+        {
+            var targetInBuild = marked.Contains(atlas.Nodes[target].Record);
+            int Cost(int index) => index < atlas.Nodes.Length
+                ? PassiveMap.TrailCost(marked.Contains(atlas.Nodes[index].Record), atlas.Nodes[index].Class == PassiveClass.Notable, targetInBuild)
+                : PassiveMap.TrailCost(false, false, false);
+            return atlas.TrailTo(allocated, target, Cost);
         }
 
         /// <summary>"up, 7 pushes" from one node to another, its direction alone when it is too far to count.</summary>
@@ -178,36 +229,45 @@ namespace Poe2Accessibility.Services
         private sealed record PassiveAtlas(IntPtr State, PassivePlaces Places, PassiveNodeRow[] Nodes, int[][] Links, int[] StartLinks)
         {
             /// <summary>What each node costs from the allocated ids and the own start.</summary>
-            public int[] StepsFrom(HashSet<int> allocated)
-            {
-                var taken = Enumerable.Range(0, this.Nodes.Length).Where(index => this.Nodes[index].TakenIn(allocated)).Append(this.Nodes.Length);
-                return PassiveMap.Steps(this.Links.Append(this.StartLinks).ToArray(), taken);
-            }
+            public int[] StepsFrom(HashSet<int> allocated) => PassiveMap.Steps(this.Links.Append(this.StartLinks).ToArray(), this.Taken(allocated));
+
+            /// <summary>The nodes to take, in order, for the target; see <see cref="PassiveMap.Trail"/>.</summary>
+            public List<int>? TrailTo(HashSet<int> allocated, int target, Func<int, int> cost) =>
+                PassiveMap.Trail(this.Links.Append(this.StartLinks).ToArray(), this.Taken(allocated), target, cost);
 
             /// <summary>The links with another start in the place of the own one.</summary>
             public int[][] LinksWithStart(PassiveGraph graph, IntPtr start) =>
                 this.Links.Append(this.Places.IndexesOf(graph.Links.GetValueOrDefault(start))).ToArray();
 
-            /// <summary>A list's nodes but the one under the cursor, those nearest in points first, then nearest the cursor; what is already taken last.</summary>
-            public IReadOnlyList<IntPtr> Members(PassiveCategory category, int[] steps, IntPtr near)
+            /// <summary>
+            ///     A list's nodes but the one under the cursor, those nearest in points first, then nearest the cursor; what is already
+            ///     taken last. The build's list holds its keystones, notables and jewel sockets not taken, in the build file's order when it is here.
+            /// </summary>
+            public IReadOnlyList<IntPtr> Members(PassiveCategory category, int[] steps, IntPtr near, HashSet<IntPtr> marked, Func<IntPtr, int> buildStep)
             {
                 var here = this.Places.Index.TryGetValue(near, out var at) ? this.Places.Positions[at] : Vector2.Zero;
                 return Enumerable.Range(0, this.Nodes.Length)
                     .Where(index => this.Nodes[index].Record != near)
                     .Where(index => category switch
                     {
+                        PassiveCategory.Build => marked.Contains(this.Nodes[index].Record) && steps[index] != 0 &&
+                                                 this.Nodes[index].Class is PassiveClass.Keystone or PassiveClass.Notable or PassiveClass.JewelSocket,
                         PassiveCategory.Keystones => this.Nodes[index].Class == PassiveClass.Keystone,
                         PassiveCategory.Notables => this.Nodes[index].Class == PassiveClass.Notable,
                         PassiveCategory.JewelSockets => this.Nodes[index].Class == PassiveClass.JewelSocket,
                         PassiveCategory.Reachable => steps[index] == 1,
                         _ => false,
                     })
-                    .OrderBy(index => steps[index] > 0 ? steps[index] : int.MaxValue)
+                    .OrderBy(index => category == PassiveCategory.Build ? buildStep(this.Nodes[index].Record) : 0)
+                    .ThenBy(index => steps[index] > 0 ? steps[index] : int.MaxValue)
                     .ThenBy(index => this.Nodes[index].Class)
                     .ThenBy(index => Vector2.Distance(this.Places.Positions[index], here))
                     .Select(index => this.Nodes[index].Record)
                     .ToList();
             }
+
+            private IEnumerable<int> Taken(HashSet<int> allocated) =>
+                Enumerable.Range(0, this.Nodes.Length).Where(index => this.Nodes[index].TakenIn(allocated)).Append(this.Nodes.Length);
         }
     }
 }

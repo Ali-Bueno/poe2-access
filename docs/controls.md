@@ -191,12 +191,19 @@ attributes; LT/RT say the zoom ("Zoom x1,4"); the directions hold at any zoom. A
 ("not linked, 7 points away": the nodes to take along the links from what you have).
 
 **Finder (D-pad, which does nothing else in the tree;** setting "Passive tree finder on the D-pad", Navigation, on by
-default): D-pad down and up walk the lists Keystones, Notables, Jewel sockets and Reachable now, and left and right walk a
+default): D-pad down and up walk the lists Build (with a Build Planner build active: its keystones, notables and jewel
+sockets not taken yet, in the build's order), Keystones, Notables, Jewel sockets and Reachable now, and left and right walk a
 list, those costing fewest points first. What it names is the target, with nothing to confirm: "Keystones. Scarred Faith, up
 left, middle ring, 8 points away. From here: up, 10 pushes". Then every node ends with the way, "Toward Scarred Faith: up left,
-4 pushes"; push the left stick that way and it counts down to "Arrived at Scarred Faith". The target is only a place to
-look at: nothing is allocated. Back at the first list, Position, it says where the cursor is on the tree ("Position: down
-right, outer ring, 7 points away") and drops the target. Y centres the view on what you have allocated.
+4 pushes"; push the left stick that way and it counts down to "Arrived at Scarred Faith", where the game reads what it does.
+If it is not yours yet, the guide then leads to the points to spend for it, one by one: "Arrived at Scarred Faith, 8 points
+to go: allocate Attribute: down left, 12 pushes"; every node ends with "Scarred Faith, 8 points to go: allocate Attribute:
+…" (", on the way" on a node of that line), and on that node "allocate this one". Press A there and the guide moves on to the
+next node ("7 points to go: allocate …: up, 1 push") until "You have Scarred Faith. Guide off". The line taken is the one
+costing fewest points (among those as cheap, the one through the build's nodes, then through notables); toward a node of the
+build it keeps to the build's nodes. Nothing is allocated for you. Back at the first list, Position, it says where the
+cursor is on the tree ("Position: down right, outer ring, 7 points away") and drops the target. While a target is chosen
+it takes the place of the build's "Next in the build" line. Y centres the view on what you have allocated.
 
 The right stick slides the tree under the cursor, which stays in the middle of the screen: each node passing under it
 is read, and on release the view settles on the node in the middle. The links and the finder's ways count

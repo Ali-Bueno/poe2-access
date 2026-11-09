@@ -121,6 +121,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(PassiveStepsCountThePointsAlongTheLinks), PassiveStepsCountThePointsAlongTheLinks);
             Run(nameof(PassiveZoneNamesTheSideAndRing), PassiveZoneNamesTheSideAndRing);
             Run(nameof(PassiveFinderWalksItsLists), PassiveFinderWalksItsLists);
+            Run(nameof(APassiveTrailTakesTheFewestPointsAlongTheBuild), APassiveTrailTakesTheFewestPointsAlongTheBuild);
             Run(nameof(ObjectSoundsDieAwayPastTheirRange), ObjectSoundsDieAwayPastTheirRange);
             Run(nameof(BuildFilesAreReadWithTheirNotes), BuildFilesAreReadWithTheirNotes);
             Run(nameof(MinionsAreCountedByKind), MinionsAreCountedByKind);
@@ -2350,11 +2351,39 @@ namespace Poe2Accessibility.Tests
             Equal(IntPtr.Zero, finder.Target, "which lets the target go");
 
             finder.ChangeCategory(1, Members);
-            Equal(false, finder.Arrive(reachable), "another node");
+            Equal(false, finder.Arrive(reachable, true), "another node");
             Equal(keystone, finder.Target, "keeps the guide");
-            Equal(true, finder.Arrive(keystone), "landing on the target");
+            Equal(true, finder.Arrive(keystone, false), "landing on a target taken");
             Equal(IntPtr.Zero, finder.Target, "ends the guide");
-            Equal(false, finder.Arrive(keystone), "once");
+            Equal(false, finder.Arrive(keystone, false), "once");
+
+            finder.ChangeCategory(-1, Members);
+            finder.ChangeCategory(1, Members);
+            Equal(true, finder.Arrive(keystone, true), "landing on a target not taken");
+            Equal((keystone, true), (finder.Target, finder.Taking), "leads on to the nodes to take for it");
+            Equal(false, finder.Arrive(keystone, true), "said once");
+            finder.ChangeEntry(1, Members(finder.Category));
+            Equal(false, finder.Taking, "another choice is looked at first");
+            finder.Drop();
+            Equal((IntPtr.Zero, false), (finder.Target, finder.Taking), "taken: the guide ends");
+        }
+
+        private static void APassiveTrailTakesTheFewestPointsAlongTheBuild()
+        {
+            // 0 (taken) - 1 - 2 - 5 (target), and 0 - 3 - 4 - 5: two trails of three points; 6 hangs off 5, 7 is linked to nothing.
+            var links = new[] { new[] { 1, 3 }, new[] { 0, 2 }, new[] { 1, 5 }, new[] { 0, 4 }, new[] { 3, 5 }, new[] { 2, 4, 6 }, new[] { 5 }, Array.Empty<int>() };
+            int Plain(int node) => PassiveMap.TrailCost(false, false, false);
+            Equal(3, PassiveMap.Trail(links, new[] { 0 }, 5, Plain)!.Count, "the fewest points");
+            Equal("1,2,5", string.Join(",", PassiveMap.Trail(links, new[] { 0 }, 5, node => PassiveMap.TrailCost(false, node == 2, false))!), "a notable on one of two trails as long");
+            Equal("3,4,5", string.Join(",", PassiveMap.Trail(links, new[] { 0 }, 5, node => PassiveMap.TrailCost(node is 3 or 4, node == 2, false))!), "the build's nodes before a notable");
+            Equal("2,5,6", string.Join(",", PassiveMap.Trail(links, new[] { 0, 1 }, 6, Plain)!), "from the nearest taken node, in the order they can be taken");
+            Equal(0, PassiveMap.Trail(links, new[] { 0, 1 }, 1, Plain)!.Count, "taken: nothing to take");
+            Equal(true, PassiveMap.Trail(links, new[] { 0 }, 7, Plain) == null, "no link leads there");
+
+            // 0 - 1 - 2 (target): one point off the build, or 0 - 3 - 4 - 5 - 2 along it.
+            var detour = new[] { new[] { 1, 3 }, new[] { 0, 2 }, new[] { 1, 5 }, new[] { 0, 4 }, new[] { 3, 5 }, new[] { 4, 2 } };
+            Equal("3,4,5,2", string.Join(",", PassiveMap.Trail(detour, new[] { 0 }, 2, node => PassiveMap.TrailCost(node is 2 or 3 or 4 or 5, false, true))!), "a build's node is reached along the build");
+            Equal("1,2", string.Join(",", PassiveMap.Trail(detour, new[] { 0 }, 2, node => PassiveMap.TrailCost(node is 3 or 4 or 5, false, false))!), "another node by the fewest points");
         }
 
         private static void ObjectSoundsDieAwayPastTheirRange()

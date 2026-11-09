@@ -9,6 +9,9 @@ namespace Poe2Accessibility.Services
     public enum PassiveCategory
     {
         Position,
+
+        /// <summary>The Build Planner's active build: its keystones, notables and jewel sockets not taken yet.</summary>
+        Build,
         Keystones,
         Notables,
         JewelSockets,
@@ -32,6 +35,12 @@ namespace Poe2Accessibility.Services
         public const int NoPath = -1;
 
         private const int Rings = 3;
+
+        /// <summary>A trail's cost for one point; <see cref="TrailCost"/> takes a little off it to choose between trails as long.</summary>
+        private const int Point = 1024;
+
+        /// <summary>For a build's node, a point off the build costs this many on it: the trail keeps to the build where it can.</summary>
+        private const int OffBuild = 64;
 
         /// <returns>The links from the nearest taken node to each node, which is what it costs in points; taken nodes 0.</returns>
         public static int[] Steps(IReadOnlyList<int[]> links, IEnumerable<int> taken)
@@ -63,6 +72,68 @@ namespace Poe2Accessibility.Services
             return steps;
         }
 
+        /// <returns>
+        ///     The nodes to take for <paramref name="target"/>, in the order they can be taken: the cheapest line of links from
+        ///     what is taken by <paramref name="cost"/> of each node it enters; empty when the target is taken, null when no line leads there.
+        /// </returns>
+        public static List<int>? Trail(IReadOnlyList<int[]> links, IEnumerable<int> taken, int target, Func<int, int> cost)
+        {
+            var best = new int[links.Count];
+            var from = new int[links.Count];
+            Array.Fill(best, int.MaxValue);
+            Array.Fill(from, -1);
+            var queue = new PriorityQueue<int, int>();
+            foreach (var node in taken)
+            {
+                best[node] = 0;
+                queue.Enqueue(node, 0);
+            }
+
+            while (queue.TryDequeue(out var node, out var reached))
+            {
+                if (node == target)
+                {
+                    break;
+                }
+
+                if (reached > best[node])
+                {
+                    continue; // a cheaper way here came out first
+                }
+
+                foreach (var next in links[node])
+                {
+                    var through = reached + cost(next);
+                    if (through < best[next])
+                    {
+                        (best[next], from[next]) = (through, node);
+                        queue.Enqueue(next, through);
+                    }
+                }
+            }
+
+            if (best[target] == int.MaxValue)
+            {
+                return null;
+            }
+
+            var trail = new List<int>();
+            for (var node = target; best[node] > 0; node = from[node])
+            {
+                trail.Add(node);
+            }
+
+            trail.Reverse();
+            return trail;
+        }
+
+        /// <summary>
+        ///     What entering a node costs a trail: a point, a little less on the active build and on a notable, so the fewest points win
+        ///     and among them the build's nodes and then notables; toward a build's own node a point off the build costs <see cref="OffBuild"/>.
+        /// </summary>
+        public static int TrailCost(bool inBuild, bool notable, bool targetInBuild) =>
+            (targetInBuild && !inBuild ? OffBuild * Point : Point) - (inBuild ? 2 : 0) - (notable ? 1 : 0);
+
         /// <returns>The side of the tree the node is on (octant counter-clockwise from right) and its ring, 0 innermost.</returns>
         public static (int Octant, int Ring) Zone(IReadOnlyList<Vector2> positions, int node)
         {
@@ -81,7 +152,8 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     The finder's choice: up and down walk the lists, left and right a list's entries, nearest first, both wrapping.
     ///     The entry chosen is the target, with nothing to confirm; going back to <see cref="PassiveCategory.Position"/> lets
-    ///     it go, and so does landing on it. Pure.
+    ///     it go. The guide first leads the cursor to the target to read it; landing on it ends the guide when it is taken,
+    ///     else the guide goes on along the nodes to take for it (<see cref="Taking"/>) until it is. Pure.
     /// </summary>
     public sealed class PassiveFinder
     {
@@ -91,6 +163,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The node guided to; zero when none.</summary>
         public IntPtr Target { get; private set; }
+
+        /// <summary>The cursor has been on the target, which is not taken yet: the guide leads to the nodes to take for it.</summary>
+        public bool Taking { get; private set; }
 
         /// <param name="step">+1 next, -1 previous.</param>
         /// <param name="members">A list's nodes, nearest first; an empty list is passed over.</param>
@@ -103,6 +178,7 @@ namespace Poe2Accessibility.Services
                 if (this.Category == PassiveCategory.Position || list.Count > 0)
                 {
                     this.Target = list.Count > 0 ? list[0] : IntPtr.Zero;
+                    this.Taking = false;
                     return;
                 }
             }
@@ -116,20 +192,34 @@ namespace Poe2Accessibility.Services
             {
                 var at = members.ToList().IndexOf(this.Target);
                 this.Target = members[at < 0 ? 0 : Wrap(at + step, members.Count)];
+                this.Taking = false;
             }
         }
 
-        /// <returns>True when the cursor landed on the node it was guided to, which ends the guide.</returns>
-        public bool Arrive(IntPtr hovered)
+        /// <param name="hovered">The node under the cursor.</param>
+        /// <param name="toTake">The target still has nodes to take: the guide goes on to them.</param>
+        /// <returns>True when the cursor landed on the node it was guided to, the first time.</returns>
+        public bool Arrive(IntPtr hovered, bool toTake)
         {
-            if (hovered == IntPtr.Zero || hovered != this.Target)
+            if (hovered == IntPtr.Zero || hovered != this.Target || this.Taking)
             {
                 return false;
             }
 
-            this.Target = IntPtr.Zero;
+            if (toTake)
+            {
+                this.Taking = true;
+            }
+            else
+            {
+                this.Drop();
+            }
+
             return true;
         }
+
+        /// <summary>Ends the guide: the target was taken.</summary>
+        public void Drop() => (this.Target, this.Taking) = (IntPtr.Zero, false);
 
         private static int Wrap(int index, int count) => ((index % count) + count) % count;
     }

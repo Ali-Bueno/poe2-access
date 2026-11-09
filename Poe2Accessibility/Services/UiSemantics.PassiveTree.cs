@@ -154,12 +154,13 @@ namespace Poe2Accessibility.Services
                     tooltip.Add(links);
                 }
 
-                if (next is { } nextRecord && nextRecord != record)
+                // The finder's target takes the place of the build's next node: one guide at a time.
+                if (next is { } nextRecord && nextRecord != record && this.finder.Target == IntPtr.Zero)
                 {
                     tooltip.Add(this.DescribeBuildNext(graph, record, nextRecord, allocated));
                 }
 
-                if (this.FinderLine(graph, record, node) is { Length: > 0 } way)
+                if (this.FinderLine(graph, record, allocated, marked) is { Length: > 0 } way)
                 {
                     tooltip.Add(way);
                 }

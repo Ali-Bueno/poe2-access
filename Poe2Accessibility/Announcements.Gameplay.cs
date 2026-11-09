@@ -22,6 +22,7 @@ namespace Poe2Accessibility
 
         public static string PassiveCategoryName(Services.PassiveCategory category) => category switch
         {
+            Services.PassiveCategory.Build => T("Build", "Build"),
             Services.PassiveCategory.Keystones => T("Keystones", "Piedras angulares"),
             Services.PassiveCategory.Notables => T("Notables", "Notables"),
             Services.PassiveCategory.JewelSockets => T("Jewel sockets", "Engarces de joya"),
@@ -52,6 +53,19 @@ namespace Poe2Accessibility
 
         /// <summary>The way to the finder's target, at the end of every node.</summary>
         public static string PassiveToward(string name, string way) => T($"Toward {name}: {way}", $"Hacia {name}: {way}");
+
+        /// <summary>"Scarred Faith, 8 points to go, on the way: allocate Attribute: down, 1 push", once the cursor has been on the target.</summary>
+        public static string PassiveTrail(string lead, int points, bool onTheWay, string step) =>
+            $"{lead}, {(points == 1 ? T("1 point to go", "falta 1 punto") : T($"{points} points to go", $"faltan {points} puntos"))}{(onTheWay ? ", " + T("on the way", "en el camino") : string.Empty)}: {step}";
+
+        /// <summary>The next node to take for the finder's target is the one under the cursor.</summary>
+        public static string AllocateThis => T("allocate this one", "asigna este");
+
+        /// <summary>The next node to take for the finder's target and the way to it.</summary>
+        public static string AllocateNode(string name, string way) => T($"allocate {name}: {way}", $"asigna {name}: {way}");
+
+        /// <summary>The finder's target was taken.</summary>
+        public static string PassiveGot(string name) => T($"You have {name}", $"Ya tienes {name}");
 
         /// <summary>Passive node kinds and states.</summary>
         public static string PassiveKeystone => T("keystone", "piedra angular");
