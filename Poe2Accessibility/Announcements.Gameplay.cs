@@ -89,7 +89,10 @@ namespace Poe2Accessibility
         public static string Zoom(string factor) => $"Zoom {factor}";
 
         /// <summary>A link no single push of the stick reaches: another node lies nearer that way.</summary>
-        public static string NoDirectPush(string direction) => T($"{direction}, not in one push", $"{direction}, sin paso directo");
+        public static string NoDirectPush(string direction) => T($"{direction}, not in one push", $"{direction}, no se llega de un empujón");
+
+        /// <summary>A push halfway between two of the stick's directions ("between left and up left").</summary>
+        public static string BetweenDirections(string first, string second) => T($"between {first} and {second}", $"entre {first} y {second}");
 
         /// <summary>A node the Build Planner's active build includes; the next one to take is named so.</summary>
         public static string InBuild(bool next) => next ? T("next in the build", "siguiente de la build") : T("in the build", "en la build");

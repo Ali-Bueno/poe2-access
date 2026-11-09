@@ -184,7 +184,8 @@ currency, gold, quest items, other items, and the rare layer. Kept in `config/se
 The free cursor (left stick) moves by distance, not along the tree's lines, so each node is read with the push of
 the stick that reaches each of its links: "Attack Speed, small node, reachable, 3% increased Attack Speed. Links: up,
 Armour and Evasion, allocated; down left, …" (clockwise from up). A link no single push reaches (another node lies
-nearer that way) is said "…, not in one push". Kinds: small node, notable, keystone, jewel socket. States: allocated,
+nearer that way) is said "…, not in one push"; one that only a push halfway between two directions reaches is
+said by that push ("between left and up left"). Kinds: small node, notable, keystone, jewel socket. States: allocated,
 reachable (linked to an allocated node or the class's start), not linked. Opening the tree reads the skill points and
 attributes; LT/RT say the zoom ("Zoom x1,4"); the directions hold at any zoom. A node not linked yet says what it costs
 ("not linked, 7 points away": the nodes to take along the links from what you have).

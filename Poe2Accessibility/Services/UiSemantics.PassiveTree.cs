@@ -232,7 +232,10 @@ namespace Poe2Accessibility.Services
                 var geometric = Announcements.StickDirections[PassiveStick.Nearest(offset)];
                 var direction = offsets == null || !this.StickTrusted || !places.Index.TryGetValue(other, out var otherIndex)
                     ? geometric // a node the cursor never lands on (hidden), or a rule the self-check lost: its side only
-                    : PassiveStick.OctantTo(offsets, otherIndex, stickLinks, window) is { } octant ? Announcements.StickDirections[octant] : Announcements.NoDirectPush(geometric);
+                    : PassiveStick.OctantTo(offsets, otherIndex, stickLinks, window) is { } octant ? Announcements.StickDirections[octant]
+                    : PassiveStick.BetweenTo(offsets, otherIndex, stickLinks, window) is { } half
+                        ? Between(half)
+                    : Announcements.NoDirectPush(geometric);
                 var clockwiseFromUp = (((112.5 - angle) % 360) + 360) % 360; // from the up sector's left edge, so sectors keep their order
                 parts.Add((clockwiseFromUp, $"{direction}, {words}"));
             }
@@ -470,6 +473,13 @@ namespace Poe2Accessibility.Services
                    linked.Any(other => other == graph.OwnStart || (this.PassiveRow(other) is { } row && this.RowTaken(row, allocated)))
                 ? PassiveState.Reachable
                 : PassiveState.Locked;
+        }
+
+        /// <summary>The push halfway between two octants, the straight direction first ("between left and up left"; Spanish "y izquierda" would want "e").</summary>
+        private static string Between(int half)
+        {
+            var (first, second) = half % 2 == 0 ? (half, (half + 1) % 8) : ((half + 1) % 8, half);
+            return Announcements.BetweenDirections(Announcements.StickDirections[first], Announcements.StickDirections[second]);
         }
 
         private static string StateWord(PassiveState state) => state switch

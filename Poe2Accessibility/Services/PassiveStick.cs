@@ -174,6 +174,33 @@ namespace Poe2Accessibility.Services
             return found;
         }
 
+        /// <summary>
+        ///     When no octant's push lands on the target, the push halfway between two octants that does (0 between right and
+        ///     up right, counter-clockwise), the one nearest its angle; null when none does or without a window (the fitted model
+        ///     knows octants only). The stick is analog: a Druid's override node lay between Atributo (left) and Regeneración de
+        ///     vida (up left), was said "left, not in one push", and a push between the two reached it (2026-11-09).
+        /// </summary>
+        public static int? BetweenTo(IReadOnlyList<Vector2> offsets, int target, IReadOnlyList<int> linked, Window? window)
+        {
+            if (window is not { } seen)
+            {
+                return null;
+            }
+
+            int? found = null;
+            for (var half = 0; half < Octants; half++)
+            {
+                var angle = (half + 0.5f) * MathF.PI / (Octants / 2);
+                if (Pick(offsets, new Vector2(MathF.Cos(angle), -MathF.Sin(angle)), linked, seen) == target &&
+                    (found is not { } previous || OffDegrees(offsets[target], (half + 0.5) * 45) < OffDegrees(offsets[target], (previous + 0.5) * 45)))
+                {
+                    found = half;
+                }
+            }
+
+            return found;
+        }
+
         /// <summary>The octant nearest the offset's angle (y down).</summary>
         public static int Nearest(Vector2 offset)
         {
@@ -240,10 +267,12 @@ namespace Poe2Accessibility.Services
             return (distance, Vector2.Dot(offset / distance, direction));
         }
 
-        private static double OffDegrees(Vector2 offset, int octant)
+        private static double OffDegrees(Vector2 offset, int octant) => OffDegrees(offset, octant * 45.0);
+
+        private static double OffDegrees(Vector2 offset, double degrees)
         {
             var angle = Math.Atan2(-offset.Y, offset.X) * 180 / Math.PI;
-            return Math.Abs((((angle - (octant * 45) + 180) % 360) + 360) % 360 - 180);
+            return Math.Abs((((angle - degrees + 180) % 360) + 360) % 360 - 180);
         }
     }
 }

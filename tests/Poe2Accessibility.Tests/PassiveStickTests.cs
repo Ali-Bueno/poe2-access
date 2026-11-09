@@ -41,6 +41,7 @@ namespace Poe2Accessibility.Tests
             (nameof(WithoutAWindowTheFittedModelStandsIn), WithoutAWindowTheFittedModelStandsIn),
             (nameof(ALinkIsNamedByThePushThatReachesIt), ALinkIsNamedByThePushThatReachesIt),
             (nameof(ARouteFollowsThePushesThatNear), ARouteFollowsThePushesThatNear),
+            (nameof(ALinkBetweenTwoDirectionsIsNamedByThePushBetween), ALinkBetweenTwoDirectionsIsNamedByThePushBetween),
         };
 
         private static void Expect<T>(T expected, T actual, string what)
@@ -143,6 +144,21 @@ namespace Poe2Accessibility.Tests
             Expect((int?)1, PassiveStick.OctantTo(link, 0, new[] { 0 }, Anywhere), "a link within 20 degrees of the push");
             Expect((int?)2, PassiveStick.OctantTo(link, 0, NoLinks, Anywhere), "the push whose cone it wins");
             Expect((int?)null, PassiveStick.OctantTo(new Vector2[] { new(100, -10), new(300, -100) }, 1, NoLinks, Anywhere), "a node a nearer one hides is reached by no single push");
+        }
+
+        /// <summary>
+        ///     The Druid's override node lay between Atributo (left) and Regeneración de vida (up left), all three linked: no
+        ///     octant reaches it, a push halfway between the two does (2026-11-09, said "left, not in one push" before).
+        /// </summary>
+        private static void ALinkBetweenTwoDirectionsIsNamedByThePushBetween()
+        {
+            var links = new Vector2[] { new(-100, 0), new(-100, -42), new(-70, -70) };
+            var linked = new[] { 0, 1, 2 };
+            Expect(0, PassiveStick.Pick(links, 4, linked, Anywhere), "left lands on Atributo");
+            Expect(2, PassiveStick.Pick(links, 3, linked, Anywhere), "up left on Regeneración de vida");
+            Expect((int?)null, PassiveStick.OctantTo(links, 1, linked, Anywhere), "no octant reaches the node between them");
+            Expect((int?)3, PassiveStick.BetweenTo(links, 1, linked, Anywhere), "the push between up left and left does");
+            Expect((int?)null, PassiveStick.BetweenTo(links, 1, linked, null), "the fitted model knows octants only");
         }
 
         private static void ARouteFollowsThePushesThatNear()

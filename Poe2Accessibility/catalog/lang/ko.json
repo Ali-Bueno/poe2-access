@@ -586,6 +586,7 @@
  "areas": "지역",
  "arena": "투기장",
  "below ground": "지하",
+ "between {0} and {1}": "{0}과(와) {1} 사이",
  "boat": "보트",
  "book": "책",
  "bridge": "다리",

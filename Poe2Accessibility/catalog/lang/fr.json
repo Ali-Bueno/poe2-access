@@ -586,6 +586,7 @@
  "areas": "zones",
  "arena": "arène",
  "below ground": "sous terre",
+ "between {0} and {1}": "entre {0} et {1}",
  "boat": "bateau",
  "book": "livre",
  "bridge": "pont",
