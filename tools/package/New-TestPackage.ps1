@@ -83,6 +83,10 @@ if ($Version.Length -gt 0) { Set-Content -Path (Join-Path $app 'version.txt') -V
 
 # Instructions for the testers, the controls, and a stop shortcut.
 Copy-Item (Join-Path $PSScriptRoot 'README.txt') $stage
+# Steam's launch option under Proton (docs/proton.md); .gitattributes keeps it LF, which sh needs.
+$protonScript = Join-Path $PSScriptRoot 'poe2access-proton.sh'
+if ([System.IO.File]::ReadAllText($protonScript).Contains("`r")) { throw "$protonScript has CR line ends: sh would fail on it" }
+Copy-Item $protonScript $stage
 Copy-Item (Join-Path $repo 'docs\controls.md') (Join-Path $stage 'Controls.md')
 Set-Content -Path (Join-Path $stage 'Stop the mod.bat') -Value "@start `"`" `"%~dp0Poe2Access.exe`" stop" -Encoding ascii
 

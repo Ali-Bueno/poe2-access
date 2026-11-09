@@ -1109,6 +1109,8 @@ namespace Poe2Accessibility.Tests
             Equal(" > none", Split(), "a double click");
             Equal("restart|--host|C:\\PathOfExile > none", Split("restart", "--host", @"C:\PathOfExile"), "a folder named like the game");
             Equal("C:\\tools\\notes.exe > none", Split(@"C:\tools\notes.exe"), "another program");
+            const string Proton = @"Z:\home\deck\.local\share\Steam\steamapps\common\Path of Exile 2\PathOfExileSteam.exe";
+            Equal($" > {Proton}|--nologo", Split(Proton, "--nologo"), "under Proton: the game's Linux path on Wine's Z: drive (poe2access-proton.sh)");
         }
 
         private static void ItemsSoundUnderTheirGroupsVolume()

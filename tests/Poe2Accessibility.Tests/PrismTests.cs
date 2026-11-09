@@ -18,6 +18,9 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(TheConfigMatchesTheShippedHeader), TheConfigMatchesTheShippedHeader),
             (nameof(TheWineBridgesShipWhole), TheWineBridgesShipWhole),
+            (nameof(TheBridgedBackendIdsAreTheHeaders), TheBridgedBackendIdsAreTheHeaders),
+            (nameof(UnderWineOnlyTheBridgedBackendsAreTried), UnderWineOnlyTheBridgedBackendsAreTried),
+            (nameof(TheProtonScriptShipsForSh), TheProtonScriptShipsForSh),
         };
 
         /// <summary>
@@ -32,7 +35,7 @@ namespace Poe2Accessibility.Tests
             foreach (var round in new[] { "startup speech", "plugin" })
             {
                 using var prism = PrismLibrary.Load(path);
-                var failure = prism.Start();
+                var failure = prism.Start(message => Console.WriteLine(message));
                 Console.WriteLine($"[{round}] PRISM {prism.Version}, config version {prism.LibraryConfigVersion} (binding: {PrismLibrary.ConfigVersion})");
                 if (round == "startup speech")
                 {
@@ -117,6 +120,50 @@ namespace Poe2Accessibility.Tests
 
             var shipped = Directory.EnumerateFiles(runtime, "*", SearchOption.AllDirectories).Select(file => Path.GetRelativePath(runtime, file).Replace('\\', '/')).OrderBy(name => name, StringComparer.Ordinal);
             LayoutSearchTests.Equal(7, shipped.Count(), "prism.dll and three bridges in two halves: " + string.Join(", ", shipped));
+        }
+
+        /// <summary>The bridged backends' ids are the header's PRISM_BACKEND_ORCA, _SPEECH_DISPATCHER and _SPIEL.</summary>
+        private static void TheBridgedBackendIdsAreTheHeaders()
+        {
+            var header = File.ReadAllText(Path.Join(PrismFolder(), "include", "prism.h"));
+            foreach (var (name, id) in new[] { ("ORCA", PrismLibrary.OrcaId), ("SPEECH_DISPATCHER", PrismLibrary.SpeechDispatcherId), ("SPIEL", PrismLibrary.SpielId) })
+            {
+                var value = Regex.Match(header, $@"#define PRISM_BACKEND_{name} UINT64_C\(0x([0-9A-Fa-f]+)\)").Groups[1].Value;
+                LayoutSearchTests.Equal(id.ToString("X16"), value.ToUpperInvariant(), "PRISM_BACKEND_" + name);
+            }
+        }
+
+        /// <summary>
+        ///     Under Wine the bridged backends by priority, and never SAPI, which ties Speech Dispatcher at 97 ahead of it in
+        ///     0.18.3's registry and is mute under Proton (the D2R mod's tester, 2026-11-09).
+        /// </summary>
+        private static void UnderWineOnlyTheBridgedBackendsAreTried()
+        {
+            const ulong nvda = 1, oneCore = 2, sapi = 3, uia = 4;
+            var registry = new[]
+            {
+                (nvda, 103), (PrismLibrary.OrcaId, 100), (oneCore, 98), (sapi, 97), (uia, 97), (PrismLibrary.SpeechDispatcherId, 97), (PrismLibrary.SpielId, 96),
+            };
+            LayoutSearchTests.Equal(
+                string.Join(' ', new[] { PrismLibrary.OrcaId, PrismLibrary.SpeechDispatcherId, PrismLibrary.SpielId }),
+                string.Join(' ', PrismLibrary.WineCandidates(registry)),
+                "Orca, then Speech Dispatcher, then Spiel");
+            LayoutSearchTests.Equal(
+                string.Join(' ', new[] { PrismLibrary.SpeechDispatcherId, PrismLibrary.SpielId }),
+                string.Join(' ', PrismLibrary.WineCandidates(registry.Where(entry => entry.Item1 != PrismLibrary.OrcaId))),
+                "without Orca: Speech Dispatcher, not SAPI");
+        }
+
+        /// <summary>
+        ///     The launch option's script runs under sh: Unix line ends (a CR breaks every line; .gitattributes keeps it LF
+        ///     under core.autocrlf) and the bridge folder the package puts beside prism.dll.
+        /// </summary>
+        private static void TheProtonScriptShipsForSh()
+        {
+            var script = File.ReadAllText(Path.Join(PrismFolder(), "..", "..", "tools", "package", PrismLibrary.ProtonScript));
+            LayoutSearchTests.Equal(false, script.Contains('\r'), "no carriage returns");
+            LayoutSearchTests.Equal(true, script.StartsWith("#!/bin/sh\n", StringComparison.Ordinal), "a POSIX sh script");
+            LayoutSearchTests.Equal(true, script.Contains("app/Plugins/Poe2Accessibility/" + PrismLibrary.WineFolder, StringComparison.Ordinal), "WINEDLLPATH names the packaged bridge folder");
         }
     }
 }

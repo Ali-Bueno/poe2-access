@@ -332,7 +332,7 @@ namespace Poe2Accessibility.Services
             try
             {
                 prism = PrismLibrary.Load(Path.Join(pluginDirectory, PrismLibrary.FileName));
-                var failure = prism.Start();
+                var failure = prism.Start(message => this.log.Info(message));
                 foreach (var (name, priority) in prism.Backends())
                 {
                     this.log.Debug($"PRISM backend registered: {name} (priority {priority})");

@@ -1,0 +1,2 @@
+# Shell scripts run under sh on Linux: a CR at each line end breaks them, whatever core.autocrlf says.
+*.sh text eol=lf

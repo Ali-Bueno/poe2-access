@@ -49,6 +49,17 @@
   Windows. Upstream manual: `doc/src/wine-bridges.md`. Worked examples: the D2R mod's `docs/proton.md`, the PoE2
   mod's `docs/proton.md`. A self-updating mod must not overwrite a mapped `.dll.so` in place: write the new file
   beside it and move it over.
+  **Seen live under Proton (2026-11-09, D2R mod, PR #6):** `protontricks-launch` does not pass `WINEDLLPATH`
+  through, so start the game from a Steam launch option (`sh "<script>" %command%`) whose script exports
+  `WINEDLLPATH` and execs the game's `proton` directly. Without the bridges, `acquire_best` takes Wine's SAPI
+  (Proton's `protontts`), which reports a voice but is **mute** because the Steam runtime has no eSpeak-NG data;
+  and SAPI, UIA and Speech Dispatcher share priority 97, so SAPI wins whenever Orca (100) is missing. Under
+  Wine, walk the registry instead (`prism_registry_get` + `IS_SUPPORTED_AT_RUNTIME`, then
+  `prism_registry_acquire`) and accept only Orca, Speech Dispatcher and Spiel; forward PRISM's log
+  (`prism_set_log_handler`, level debug under Wine) to see why a bridge did not load. Orca/Cthulhu is the
+  verified route; `libspeechd.so.2` is absent inside SteamLinuxRuntime_4. A mod that runs in its own process
+  (the PoE2 mod) does the same: the script runs the mod's launcher under that `proton`, and the launcher starts
+  the game from the path the script hands it.
 - **Minimal sequence**: `prism_config_init` → `prism_init(&cfg)` → `prism_registry_acquire_best(ctx)` →
   `prism_backend_initialize(be)` → `prism_backend_speak(be, txt, interrupt)` → … → `prism_backend_free` +
   `prism_shutdown`. **v0.18.x (verified 2026-09-14 on v0.18.2, D2R mod):** `acquire_best` returns a *shared,

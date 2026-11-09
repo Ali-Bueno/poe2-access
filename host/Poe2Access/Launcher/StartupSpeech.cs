@@ -68,7 +68,7 @@ internal sealed class StartupSpeech : IDisposable
 
     private void Run()
     {
-        var failure = this.prism.Start();
+        var failure = this.prism.Start(message => Log.Write(message));
         if (failure is null)
         {
             Log.Write($"PRISM {this.prism.Version}, backend: {this.prism.BackendName}"

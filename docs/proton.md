@@ -1,8 +1,10 @@
 # Linux: Steam with Proton (Steam Deck)
 
 Speech under Wine or Proton, as the sister mods do it (the D2R mod's
-[issue #5](https://github.com/Ali-Bueno/d2r-access/issues/5), its release 1.0.11). Built and checked on Windows on
-2026-11-08; **not yet run under Proton or on a Steam Deck**. The rest of the mod is untested there too: it reads the
+[issue #5](https://github.com/Ali-Bueno/d2r-access/issues/5) and
+[PR #6](https://github.com/Ali-Bueno/d2r-access/pull/6), its releases 1.0.11 and 1.0.12: heard there under Proton
+Experimental on Arch with Cthulhu). Built and checked on Windows on 2026-11-08 and 2026-11-09; **not yet run under
+Proton or on a Steam Deck**. The rest of the mod is untested there too: it reads the
 game's memory from its own process (`ReadProcessMemory` on the game's process, in the same Wine prefix), and whether
 Wine allows that, and finds the game's window and modules as on Windows, is **unverified**.
 
@@ -21,6 +23,16 @@ bytes where Prismatoid 0.4.0 allocates 48. The mod now has its own binding of th
 `Poe2Accessibility/Services/PrismLibrary.cs`: `PrismConfig` field for field from the shipped `prism.h`, filled by the
 library's own `prism_config_init` into a 256-byte slot (a later, larger config cannot overrun it), and only the calls
 the mod makes. The plugin's speech and the executable's startup speech both use it.
+
+With the bridges missing, PRISM is not silent but **mute**: `acquire_best` takes Wine's SAPI, Proton's `protontts`
+over eSpeak-NG, which reports a voice while the Steam runtime carries no eSpeak-NG data, so nothing sounds and nothing
+fails. At 0.18.3 SAPI, UIA and Speech Dispatcher share priority 97 (NVDA 103, Orca 100, OneCore 98, Spiel 96) and SAPI
+comes first, so it wins whenever Orca is missing (the D2R mod's tester, 2026-11-09). Under Wine the binding therefore
+never calls `acquire_best`: `PrismLibrary.StartBridged` tries only Orca, Speech Dispatcher and Spiel, by priority, each
+checked with `prism_registry_get` and `PRISM_BACKEND_IS_SUPPORTED_AT_RUNTIME` before `prism_registry_acquire`
+(`ALREADY_INITIALIZED` counts as started), and when none starts it says why for each. It also sends PRISM's own log to
+the mod's log at debug level while it starts (`prism_set_log_handler`), the only place PRISM says why a bridge did not
+load, then lowers it to warnings. On Windows none of this runs: `acquire_best`, NVDA first, no PRISM log.
 
 ## What ships
 
@@ -50,29 +62,44 @@ the same release and never renamed.
 
 ## Starting the mod
 
-Steam's launch options (`"<path>\Poe2Access.exe" %command%`) do not apply under Proton: there `%command%` is a Linux
-command line. Start `Poe2Access.exe` in the game's prefix with the bridge folder in `WINEDLLPATH`, from the mod's folder
-(the one with `Poe2Access.exe`):
+From Steam's Play button, with the script the package carries beside `Poe2Access.exe`. Unzip the mod anywhere in your
+home folder, then in Steam: **Path of Exile 2 > Properties > General > Launch options**:
 
 ```sh
-WINEDLLPATH="$PWD/app/Plugins/Poe2Accessibility/wine${WINEDLLPATH:+:$WINEDLLPATH}" \
-  protontricks-launch --appid 2694490 ./Poe2Access.exe
+sh "/home/<you>/Poe2Access/poe2access-proton.sh" %command%
 ```
 
-This is the D2R reporter's chain (verified there with Grimdark, the Grim Dawn mod), with Path of Exile 2's app id.
-`Poe2Access.exe` asks Steam for the game when it is not running (`steam://rungameid/2694490`); whether that reaches
-Steam from inside the prefix is unverified, so starting the game from Steam first, then this command, is the safer
-order: the mod finds the running game's window.
+(the script's real path; `sh` in front because a zip made on Windows keeps no execute bit). What it does
+(`tools/package/poe2access-proton.sh`):
 
-The host needs Speech Dispatcher (works with any reader), Orca or Spiel running; PRISM's own priority picks among them.
+1. Takes from Steam's command (`%command%`) the Proton Steam picked (the argument ending in `/proton`), the game's
+   `PathOfExileSteam.exe` and its arguments; keeps Steam's `STEAM_COMPAT_*` and `SteamAppId`, with the usual defaults
+   when one is missing.
+2. Puts `app/Plugins/Poe2Accessibility/wine` in `WINEDLLPATH`.
+3. Runs `proton waitforexitandrun ./Poe2Access.exe "Z:\…\PathOfExileSteam.exe" <its arguments>`: the mod's launcher in
+   the game's prefix, outside Steam's runtime container, as the D2R script does. The launcher starts the game from that
+   path, as it does on Windows when it is the launch option (`GameInstall.SplitArguments`, `GameLauncher.Start`), so
+   the game and the mod share one Wine session and the game keeps Steam's launch environment. Steam's own command,
+   with its container, is not run.
+
+Why not `protontricks-launch`: it does not pass `WINEDLLPATH` to the program (the D2R mod's tester, 2026-11-09: the
+bridges did not load and PRISM took the mute SAPI). The mod's launcher must not be started on its own under Proton
+either: without a game command it asks Steam for the game, and Steam would run the launch option again.
+
+The host needs Orca (Cthulhu included) or Speech Dispatcher running, or Spiel; PRISM's priority picks among them. Orca is
+the route heard in the D2R test. Speech Dispatcher's bridge needs the host's `libspeechd.so.2`, which Steam's runtime
+container lacks; the script runs outside it, so the host's copy should be found (unverified).
 
 ## Checking
 
 - `app/Plugins/Poe2Accessibility/logs/accessibility.log` says `PRISM 0.18.3 initialised, backend: <name> (under Wine
   <version>)` when it works.
-- Under Wine without a backend it says `PRISM 0.18.3: no speech backend under Wine: start the mod with
-  WINEDLLPATH="<path>" ...`, with the bridge folder's Unix path from `wine_get_unix_file_name` (`PrismLibrary.WineHint`),
-  and what `WINEDLLPATH` the mod sees, if any.
+- Under Wine without a backend it says `PRISM 0.18.3: no speech backend under Wine: start the game from Steam with the
+  launch option sh "<mod folder>/poe2access-proton.sh" %command% ...`, with the bridge folder's Unix path from
+  `wine_get_unix_file_name` (`PrismLibrary.WineHint`), what `WINEDLLPATH` the mod sees, and each bridged backend's
+  reason (`Orca not supported here; Speech Dispatcher unavailable; ...`).
+- Under Wine the lines `PRISM log <level>: <source>: <message>` above it are PRISM's own: a bridge that did not load
+  says why there.
 - `app/Poe2Access.log` has the same for the startup speech, when the game data is regenerated.
 
 ## Updates
