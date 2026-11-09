@@ -235,12 +235,20 @@ internal static class Program
     private static bool NeedsAdministrator(AppFolders folders)
     {
         var others = Instance.OthersNeedAdministrator(folders);
-        var needed = GameInstall.NeedsAdministrator(GameLauncher.RunningProcessName(), others, Environment.IsPrivilegedProcess);
+        var running = GameLauncher.RunningProcessName();
+        var denied = running is not null && GameLauncher.RunningGameReadDenied();
+        var needed = GameInstall.NeedsAdministrator(running, others, Environment.IsPrivilegedProcess, denied);
         if (needed)
         {
             Log.Write(others
                 ? "Poe2Access runs as administrator: restarting as administrator to stop or replace it"
-                : "Korean client running: restarting as administrator, which the mod needs to read it");
+                : denied
+                    ? $"{running} denies its memory to this launcher (it runs as administrator): restarting as administrator, which the mod needs to read it"
+                    : "Korean client running: restarting as administrator, which the mod needs to read it");
+        }
+        else if (denied)
+        {
+            Log.Write($"{running} denies its memory even to an administrator: something else (an antivirus) blocks reading it");
         }
 
         return needed;
@@ -255,7 +263,7 @@ internal static class Program
         }
         catch (Win32Exception error) when (error.NativeErrorCode == ErrorCancelled)
         {
-            Dialogs.Fail("The Korean client of Path of Exile 2 can only be read by a program run as administrator. Start Poe2Access again and accept the prompt.");
+            Dialogs.Fail("Path of Exile 2 runs as administrator (Steam run as administrator starts it so), or it is the Korean client: the mod can only read it as administrator. Start Poe2Access again and accept the prompt, or run Steam without administrator rights.");
             return 1;
         }
     }

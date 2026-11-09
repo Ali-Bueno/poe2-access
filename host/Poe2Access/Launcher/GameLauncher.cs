@@ -102,6 +102,21 @@ internal static class GameLauncher
             return processes.Length > 0;
         });
 
+    /// <summary>Whether a running game's memory is denied to this process (<see cref="ProcessAccess.ReadDenied"/>).</summary>
+    public static bool RunningGameReadDenied()
+    {
+        var denied = false;
+        foreach (var process in ProcessNames.SelectMany(Process.GetProcessesByName))
+        {
+            using (process)
+            {
+                denied |= ProcessAccess.ReadDenied(process.Id);
+            }
+        }
+
+        return denied;
+    }
+
     /// <summary>
     ///     Runs this program again as administrator (the UAC prompt), with the same arguments, and returns its exit code
     ///     once it ends: whoever ran "stop" (Stop the mod.bat, the build scripts) goes on only once the mod is stopped.

@@ -110,7 +110,7 @@ Poe2Access.exe [start|restart|stop|update|extract ...]  # start (default): open 
   and the plugin folder's files no version ships any more (`AppCleanup.UnshippedPluginFiles`: `Prismatoid.dll`).
 - The update writes each file beside its target (`.new`) and moves it over, so a library a process still maps (a Wine
   bridge's `.dll.so` under Proton) is never truncated in place; a file Windows refuses to replace rolls the update back.
-- Elevation: with the Korean client, or an instance left running as administrator, it runs itself again as administrator (`--parent <pid>` keeps the child from killing it).
+- Elevation: with the Korean client, a game whose memory Windows denies the launcher (Steam run as administrator), or an instance left running as administrator, it runs itself again as administrator (`--parent <pid>` keeps the child from killing it).
 - Tests may set `POE2ACCESS_INSTANCE=<suffix>` to run apart from the player's own instance (separate mutex and event).
 
 `start` keeps the game data current (`GameDataSetup.cs`): it compares a stamp of the install (size and time of `Bundles2/_.index.bin`

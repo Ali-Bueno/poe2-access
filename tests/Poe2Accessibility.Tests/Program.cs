@@ -2566,6 +2566,8 @@ namespace Poe2Accessibility.Tests
             Equal(true, Poe2Access.GameInstall.NeedsAdministrator("PathOfExile_KG", false, false), "the Korean client is read only by an administrator");
             Equal(false, Poe2Access.GameInstall.NeedsAdministrator("PathOfExile_KG", false, true), "an administrator launcher carries on");
             Equal(false, Poe2Access.GameInstall.NeedsAdministrator("PathOfExileSteam", false, false), "the Steam client needs no administrator");
+            Equal(true, Poe2Access.GameInstall.NeedsAdministrator("PathOfExileSteam", false, false, gameReadDenied: true), "unless it runs as administrator (Steam run so)");
+            Equal(false, Poe2Access.GameInstall.NeedsAdministrator("PathOfExileSteam", false, true, gameReadDenied: true), "denied to an administrator too: elevating again would not help");
             Equal(false, Poe2Access.GameInstall.NeedsAdministrator(null, false, false), "no game running needs no administrator");
             Equal(true, Poe2Access.GameInstall.NeedsAdministrator(null, true, false), "an administrator host left after the Korean client closed");
             Equal(false, Poe2Access.GameInstall.NeedsAdministrator(null, true, true), "an administrator launcher stops it itself");

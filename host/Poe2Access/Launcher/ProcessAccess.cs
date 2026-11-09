@@ -9,6 +9,7 @@ namespace Poe2Access;
 internal static partial class ProcessAccess
 {
     private const uint ProcessTerminate = 0x0001;
+    private const uint ProcessVirtualMemoryRead = 0x0010;
     private const uint ProcessQueryLimitedInformation = 0x1000;
     private const int ErrorAccessDenied = 5;
     private const int ProcessBasicInformation = 0; // PROCESSINFOCLASS (winternl.h)
@@ -55,6 +56,22 @@ internal static partial class ProcessAccess
         {
             CloseHandle(process);
         }
+    }
+
+    /// <summary>
+    ///     Whether Windows denies this launcher reading the process's memory, as the host must: the game runs as
+    ///     administrator (Steam run as administrator starts it so) or is the Korean client, and the launcher does not.
+    /// </summary>
+    public static bool ReadDenied(int processId)
+    {
+        var process = OpenProcess(ProcessVirtualMemoryRead, false, processId);
+        if (process == IntPtr.Zero)
+        {
+            return Marshal.GetLastPInvokeError() == ErrorAccessDenied;
+        }
+
+        CloseHandle(process);
+        return false;
     }
 
     /// <summary>Whether Windows denies this launcher ending the process: it runs as administrator and the launcher does not.</summary>

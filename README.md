@@ -40,6 +40,9 @@ has not been tried yet. It starts from Steam's Play button with the game's launc
    website (it needs your login there), then press OK; and it asks to run as administrator (the Windows prompt): the
    Korean client lets only an administrator read it. With both clients installed, it starts the Steam one; to play the
    Korean one, start it first.
+   If Steam (or the game) runs as administrator, the game runs as administrator too, and `Poe2Access.exe` asks to run
+   as administrator as well (the Windows prompt), since only an administrator can read it; accept it, or run Steam
+   without administrator rights.
 3. Run `Poe2Access.exe`. It starts the game if it is not running, then the mod. The first time, and after each game
    update, it prepares the sounds and data from your own installation, and says so ("Updating the game data after
    the patch", then "Game data ready"): about a minute the first time, less after a game update. A new
