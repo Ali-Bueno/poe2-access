@@ -53,6 +53,16 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private bool cursorMovedFreely;
 
+        /// <summary>How long after the right stick, and after the last tree node hovered, <see cref="TraceRightStick"/> still logs.</summary>
+        private const int RightStickTraceMs = 1500;
+
+        private const int RightStickTraceStepMs = 100;
+
+        private long treeNodeSeenAt = long.MinValue / 2;
+        private long rightStickSeenAt = long.MinValue / 2;
+        private long rightStickTracedAt = long.MinValue / 2;
+        private string rightStickTrace = string.Empty;
+
         /// <summary>The player's metadata path, to find the class's own start node.</summary>
         public Func<string>? PlayerPath { get; set; }
 
@@ -87,6 +97,50 @@ namespace Poe2Accessibility.Services
             {
                 this.stickPush = null;
             }
+        }
+
+        /// <summary>
+        ///     Research, until it is measured what the right stick does in the tree (a free pointer, a pan, a snap on release;
+        ///     2026-11-09): while it moves and <see cref="RightStickTraceMs"/> after, each change of the hovered node, its place
+        ///     on screen and the canvas's is logged, at most every <see cref="RightStickTraceStepMs"/>. Silent; nothing outside the tree.
+        /// </summary>
+        public void TraceRightStick(AccessibleUiNode? focused, float rightX, float rightY, long now)
+        {
+            var onNode = focused is { IsPassiveNode: true };
+            if (onNode)
+            {
+                this.treeNodeSeenAt = now;
+            }
+            else if (now - this.treeNodeSeenAt > RightStickTraceMs)
+            {
+                return; // not in the tree: the right stick aims in play
+            }
+
+            if (MathF.Max(MathF.Abs(rightX), MathF.Abs(rightY)) >= ReleaseDeflection)
+            {
+                this.rightStickSeenAt = now;
+            }
+
+            if (now - this.rightStickSeenAt > RightStickTraceMs || now - this.rightStickTracedAt < RightStickTraceStepMs || this.passiveGraph is not { } graph)
+            {
+                return;
+            }
+
+            var hovered = onNode && this.NodeRecord(focused!.Address) is { } record &&
+                          PluginUiElementReflection.TryGetAbsoluteRect(focused.Address, out var position, out var size)
+                ? $"{this.PassiveIdOf(record)} at {position.X + (size.X / 2):F0},{position.Y + (size.Y / 2):F0}"
+                : "no node";
+            var canvas = PluginUiElementReflection.TryGetAbsoluteRect(graph.Canvas, out var canvasAt, out _) ? $"{canvasAt.X:F0},{canvasAt.Y:F0}" : "unreadable";
+            var centre = this.SettledCursor(graph) is { } settled ? $"{settled.X:F0},{settled.Y:F0}" : "unreadable";
+            var line = $"hovered {hovered}; canvas at {canvas}; frame centre {centre}";
+            if (line == this.rightStickTrace)
+            {
+                return;
+            }
+
+            this.rightStickTracedAt = now;
+            this.rightStickTrace = line;
+            this.TreeFields.Log?.Invoke($"Tree right stick {rightX:F2},{rightY:F2}: {line}");
         }
 
         private enum PassiveState
