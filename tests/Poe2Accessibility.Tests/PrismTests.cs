@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Tests
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Text.RegularExpressions;
     using Poe2Accessibility.Services;
@@ -21,6 +22,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheBridgedBackendIdsAreTheHeaders), TheBridgedBackendIdsAreTheHeaders),
             (nameof(UnderWineOnlyTheBridgedBackendsAreTried), UnderWineOnlyTheBridgedBackendsAreTried),
             (nameof(TheProtonScriptShipsForSh), TheProtonScriptShipsForSh),
+            (nameof(AMentionBeingHeardIsNotSaidAgain), AMentionBeingHeardIsNotSaidAgain),
         };
 
         /// <summary>
@@ -164,6 +166,45 @@ namespace Poe2Accessibility.Tests
             LayoutSearchTests.Equal(false, script.Contains('\r'), "no carriage returns");
             LayoutSearchTests.Equal(true, script.StartsWith("#!/bin/sh\n", StringComparison.Ordinal), "a POSIX sh script");
             LayoutSearchTests.Equal(true, script.Contains("app/Plugins/Poe2Accessibility/" + PrismLibrary.WineFolder, StringComparison.Ordinal), "WINEDLLPATH names the packaged bridge folder");
+        }
+
+        /// <summary>
+        ///     A mentioned warning (life, a flask) sent with nothing ahead of it is being heard: a phrase cutting in soon after
+        ///     waits behind it rather than say it again ("Frasco de vida menor, 5 usos" and then "Frasco de vida menor, 5
+        ///     usos. Remolino" 270 ms later, user 2026-11-09). Queued behind a line or followed by another, it is said first.
+        /// </summary>
+        private static void AMentionBeingHeardIsNotSaidAgain()
+        {
+            var (speech, pending) = Unstarted();
+            speech.Mention("Frasco de vida menor, 5 usos");
+            speech.Urge("Remolino");
+            LayoutSearchTests.Equal("Frasco de vida menor, 5 usos/False|Remolino/False", pending(), "heard at once: the next waits behind it");
+
+            (speech, pending) = Unstarted();
+            speech.Speak("Vida 50 por ciento. Has recibido daño. Presiona cruceta izquierda para usar un frasco de vida.");
+            speech.Mention("Frasco de vida menor, 5 usos");
+            speech.Urge("Enfriado");
+            LayoutSearchTests.Equal("Frasco de vida menor, 5 usos. Enfriado/True", pending(), "behind a long line: said first");
+
+            (speech, pending) = Unstarted();
+            speech.Mention("Vida 50 por ciento");
+            speech.Speak("Cofre, A");
+            speech.Urge("Enfriado");
+            LayoutSearchTests.Equal("Vida 50 por ciento. Enfriado/True", pending(), "a line after it would be cut: said first");
+        }
+
+        /// <summary>A speech service whose worker never started, and what it has queued ("text/interrupt|…").</summary>
+        private static (PrismOutputService Speech, Func<string> Pending) Unstarted()
+        {
+            const BindingFlags Private = BindingFlags.NonPublic | BindingFlags.Instance;
+            var log = new PluginLog(Path.Join(Path.GetTempPath(), "poe2access-tests"), false);
+            var speech = (PrismOutputService)Activator.CreateInstance(typeof(PrismOutputService), Private, null, new object[] { log }, null)!;
+            var queue = typeof(PrismOutputService).GetField("pending", Private)!;
+            return (speech, () => string.Join('|', ((System.Collections.IEnumerable)queue.GetValue(speech)!).Cast<object>().Select(request =>
+            {
+                var type = request.GetType();
+                return $"{type.GetProperty("Text")!.GetValue(request)}/{type.GetProperty("Interrupt")!.GetValue(request)}";
+            })));
         }
     }
 }

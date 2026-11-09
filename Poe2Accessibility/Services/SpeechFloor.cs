@@ -41,6 +41,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether a kept line has the floor now.</summary>
         public bool Held(DateTime now) => now < this.keptUntil;
 
+        /// <summary>Whether nothing sent is estimated still being said: a phrase sent now is heard at once.</summary>
+        public bool Quiet(DateTime now) => this.speechEndsAt <= now;
+
         /// <summary>
         ///     The kept line being said already holds this message: "+10% a la resistencia al hielo" on screen as the chat says
         ///     "malgdhler ha recibido +10% a la resistencia al hielo." (2026-11-06).

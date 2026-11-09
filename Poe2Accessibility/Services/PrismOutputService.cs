@@ -63,8 +63,16 @@ namespace Poe2Accessibility.Services
         /// <summary>How far back <see cref="sent"/> reaches.</summary>
         private const int SentKeptMs = 3000;
 
-        /// <summary>The last <see cref="Mention"/>ed phrase and when: an interrupting phrase soon after says it first.</summary>
-        private (string Text, DateTime At)? mentioned;
+        /// <summary>
+        ///     The last <see cref="Mention"/>ed phrase, when, and, when it went out with nothing estimated still being said
+        ///     ahead of it, the <see cref="enqueued"/> count it left: while that count stands it is being heard with nothing
+        ///     after it, so an interrupting phrase soon after waits behind it; otherwise it may still wait behind another
+        ///     line, and the interrupting phrase says it first (-1).
+        /// </summary>
+        private (string Text, DateTime At, long HeardAt)? mentioned;
+
+        /// <summary>Requests handed to <see cref="pending"/> so far; guarded by <see cref="queueGate"/>.</summary>
+        private long enqueued;
 
         /// <summary>Returns null (after logging) when no backend can be acquired.</summary>
         public static PrismOutputService? TryCreate(string pluginDirectory, PluginLog log)
@@ -125,8 +133,25 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            this.Speak(text, false);
-            this.mentioned = (text, DateTime.UtcNow);
+            long before;
+            bool quiet;
+            lock (this.queueGate)
+            {
+                before = this.enqueued;
+                quiet = this.floor.Quiet(DateTime.UtcNow);
+            }
+
+            if (!this.Say(text, false, Delivery.Normal, 0))
+            {
+                return; // held back as a repeat: it was just heard
+            }
+
+            lock (this.queueGate)
+            {
+                // Said again before an interrupting phrase although it had been heard: "Frasco de vida menor, 5 usos" and
+                // then "Frasco de vida menor, 5 usos. Remolino" 270 ms later (user 2026-11-09).
+                this.mentioned = (text, DateTime.UtcNow, quiet && this.enqueued == before + 1 ? this.enqueued : -1);
+            }
         }
 
         public void Keep(string text, int holdMs, bool interrupt = false, bool yieldsToMoves = false) =>
@@ -193,11 +218,12 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        private void Say(string text, bool interrupt, Delivery delivery, int holdMs)
+        /// <summary>False when the phrase is held back (empty, a repeat, or already in the kept line).</summary>
+        private bool Say(string text, bool interrupt, Delivery delivery, int holdMs)
         {
             if (string.IsNullOrWhiteSpace(text))
             {
-                return;
+                return false;
             }
 
             var now = DateTime.UtcNow;
@@ -206,14 +232,14 @@ namespace Poe2Accessibility.Services
                 if (delivery == Delivery.KeptMessage && this.floor.Echoes(text, now))
                 {
                     this.log.Info($"Speech held back (in the kept line): {text}");
-                    return;
+                    return false;
                 }
             }
 
             if ((!interrupt || delivery == Delivery.Urgent) && this.repeats.IsRepeat(text, now))
             {
                 this.log.Info($"Speech held back (duplicate): {text}");
-                return;
+                return false;
             }
 
             this.repeats.Note(text, now);
@@ -222,14 +248,26 @@ namespace Poe2Accessibility.Services
                 interrupt = false; // an urgent phrase is still being heard: wait behind it
             }
 
-            if (interrupt && this.mentioned is { } news && (now - news.At).TotalMilliseconds < MentionMs)
-            {
-                text = $"{news.Text}. {text}"; // the warning this cuts off is said first, not lost
-            }
-
-            if (interrupt)
+            if (interrupt && this.mentioned is { } news)
             {
                 this.mentioned = null;
+                if ((now - news.At).TotalMilliseconds < MentionMs)
+                {
+                    bool heard;
+                    lock (this.queueGate)
+                    {
+                        heard = news.HeardAt == this.enqueued;
+                    }
+
+                    if (heard)
+                    {
+                        interrupt = false; // the warning is being heard and nothing came after it: wait behind it
+                    }
+                    else
+                    {
+                        text = $"{news.Text}. {text}"; // the warning this cuts off is said first, not lost
+                    }
+                }
             }
 
             this.lastText = text;
@@ -278,6 +316,7 @@ namespace Poe2Accessibility.Services
                 ? $"Speech {(interrupt ? "interrupts" : "queued")}{(delivery is Delivery.Kept or Delivery.KeptMessage ? ", kept" : delivery == Delivery.Move ? ", moved" : string.Empty)}: {text}"
                 : $"Speech waits for the kept line{(interrupt ? ", replacing what waited" : string.Empty)}: {text}");
             this.pendingSignal.Set();
+            return true;
         }
 
         /// <summary>An interrupt drops everything still waiting; a null text is a stop request.</summary>
@@ -299,6 +338,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.pending.Enqueue(request);
+            this.enqueued++;
         }
 
         /// <summary>Queues what waited for a kept line once it is said; returns how long to sleep until the next is due.</summary>
