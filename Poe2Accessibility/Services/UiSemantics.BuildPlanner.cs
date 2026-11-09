@@ -78,7 +78,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private IntPtr? NextBuildNode(PassiveGraph graph, HashSet<IntPtr> marked, BuildPlan? plan, HashSet<int> allocated, IntPtr hovered)
         {
-            var open = marked.Where(record => this.GraphIdOf(record) is not { } id || !allocated.Contains(id)).ToList();
+            var open = marked.Where(record => this.PassiveRow(record) is not { } row || !this.RowTaken(row, allocated)).ToList();
             if (open.Count == 0)
             {
                 return null;

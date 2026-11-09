@@ -109,6 +109,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(GameDataStepsAreEachListedOnce), GameDataStepsAreEachListedOnce);
             Run(nameof(GameContentIsFoundInEitherLayout), GameContentIsFoundInEitherLayout);
             Run(nameof(KakaoClientIsAGameProcess), KakaoClientIsAGameProcess);
+            Run(nameof(AClassSeesItsOwnPassives), AClassSeesItsOwnPassives);
             Run(nameof(SteamGameIsStartedBeforeTheKakaoClient), SteamGameIsStartedBeforeTheKakaoClient);
             Run(nameof(TradeListingSaysItemPriceThenSeller), TradeListingSaysItemPriceThenSeller);
             Run(nameof(NearbyThingsWaitForTheCooldown), NearbyThingsWaitForTheCooldown);
@@ -2557,6 +2558,24 @@ namespace Poe2Accessibility.Tests
             {
                 System.IO.Directory.Delete(root, true);
             }
+        }
+
+        /// <summary>The Druid's tree shows "Regeneración de vida" where the node record keeps "Daño crítico de hechizos" (2026-11-09).</summary>
+        private static void AClassSeesItsOwnPassives()
+        {
+            var overrides = PassiveOverrides.Parse(new[]
+            {
+                "# character id\treplaced passive id\trow\tshown passive id\trow",
+                "row-size\t487",
+                "Metadata/Characters/StrInt/StrIntFourb\tspell_criticals7\t4709\tdruid_class_start22\t5699",
+                "Metadata/Characters/Int/IntFour\tspells18\t2779\tspell_and_minion_damage1\t4935",
+            });
+            Equal(2, overrides.Count, "both overrides read");
+            Equal("druid_class_start22", overrides.Find("Metadata/Characters/StrInt/StrIntFourb", "spell_criticals7")?.ShownId, "the Druid's node in its place");
+            Equal("druid_class_start22", overrides.Find("metadata/characters/strint/strintfourb", "spell_criticals7")?.ShownId, "the player's path in any case");
+            Equal((5699L - 4709L) * 487L, overrides.Step(overrides.Find("Metadata/Characters/StrInt/StrIntFourb", "spell_criticals7")!.Value), "rows apart times the row size");
+            Equal(false, overrides.Find("Metadata/Characters/Dex/DexFour", "spell_criticals7").HasValue, "another class sees the node itself");
+            Equal(0, PassiveOverrides.Parse(new[] { "Metadata/Characters/Int/IntFour\tspells18\t2779\tspell_and_minion_damage1\t4935" }).Count, "no row size: nothing swapped");
         }
 
         private static void KakaoClientIsAGameProcess()

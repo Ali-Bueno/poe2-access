@@ -180,7 +180,7 @@ namespace Poe2Accessibility.Services
             /// <summary>What each node costs from the allocated ids and the own start.</summary>
             public int[] StepsFrom(HashSet<int> allocated)
             {
-                var taken = Enumerable.Range(0, this.Nodes.Length).Where(index => allocated.Contains(this.Nodes[index].GraphId)).Append(this.Nodes.Length);
+                var taken = Enumerable.Range(0, this.Nodes.Length).Where(index => this.Nodes[index].TakenIn(allocated)).Append(this.Nodes.Length);
                 return PassiveMap.Steps(this.Links.Append(this.StartLinks).ToArray(), taken);
             }
 

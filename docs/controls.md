@@ -197,7 +197,8 @@ left, middle ring, 8 points away. From here: up, 10 pushes". Then every node end
 look at: nothing is allocated. Back at the first list, Position, it says where the cursor is on the tree ("Position: down
 right, outer ring, 7 points away") and drops the target. Y centres the view on what you have allocated.
 
-The right stick moves the cursor too (each node is read as it is reached), but the links and the finder's ways count
+The right stick slides the tree under the cursor, which stays in the middle of the screen: each node passing under it
+is read, and on release the view settles on the node in the middle. The links and the finder's ways count
 left-stick pushes: after the right stick, the first left push may land elsewhere than said, and
 from there the ways hold again.
 

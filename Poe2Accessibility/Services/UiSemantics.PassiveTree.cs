@@ -63,8 +63,14 @@ namespace Poe2Accessibility.Services
         private long rightStickTracedAt = long.MinValue / 2;
         private string rightStickTrace = string.Empty;
 
-        /// <summary>The player's metadata path, to find the class's own start node.</summary>
+        /// <summary>The player's metadata path, to find the class's own start node and the nodes its class sees in others' place.</summary>
         public Func<string>? PlayerPath { get; set; }
+
+        /// <summary>The nodes a class sees in another node's place (catalog passive-overrides.txt); null or empty: none swapped.</summary>
+        public PassiveOverrides? Overrides { get; set; }
+
+        private readonly Dictionary<IntPtr, IntPtr> shownRows = new();
+        private string shownRowsFor = string.Empty;
 
         /// <summary>The line an unallocated node's tooltip ends with, in the client's language.</summary>
         public Func<string>? UnallocatedLabel { get; set; }
@@ -508,14 +514,14 @@ namespace Poe2Accessibility.Services
 
         private PassiveState StateOf(PassiveGraph graph, PassiveNodeRow node, HashSet<int> allocated)
         {
-            if (allocated.Contains(node.GraphId))
+            if (node.TakenIn(allocated))
             {
                 return PassiveState.Allocated;
             }
 
             // Reachable: linked to an allocated node, or to the class's own start.
             return graph.Links.TryGetValue(node.Record, out var linked) &&
-                   linked.Any(other => other == graph.OwnStart || (this.PassiveRow(other) is { } row && this.reader.TryRead<ushort>(row + GameLayout.PassiveTree.RowGraphIdOffset, out var id) && allocated.Contains(id)))
+                   linked.Any(other => other == graph.OwnStart || (this.PassiveRow(other) is { } row && this.RowTaken(row, allocated)))
                 ? PassiveState.Reachable
                 : PassiveState.Locked;
         }
@@ -553,15 +559,15 @@ namespace Poe2Accessibility.Services
                 : IntPtr.Zero;
         }
 
+        /// <summary>A node record's graph id (from its own PassiveSkills row); null when it does not lead to one.</summary>
+        private int? GraphIdOf(IntPtr record) =>
+            this.PassiveRow(record) is { } row && this.reader.TryRead<ushort>(row + GameLayout.PassiveTree.RowGraphIdOffset, out var id) ? id : null;
+
         private IntPtr TreeStateAt(IntPtr canvas, int shift) =>
             this.reader.TryRead<IntPtr>(canvas + GameLayout.PassiveTree.CanvasStateOffset + shift, out var state) && state != IntPtr.Zero &&
             this.TreeFields.GraphFile(state, false) != IntPtr.Zero
                 ? state
                 : IntPtr.Zero;
-
-        /// <summary>A node record's graph id (from its PassiveSkills row); null when it does not lead to one.</summary>
-        private int? GraphIdOf(IntPtr record) =>
-            this.PassiveRow(record) is { } row && this.reader.TryRead<ushort>(row + GameLayout.PassiveTree.RowGraphIdOffset, out var id) ? id : null;
 
         /// <summary>A node element's graph record, judged where it leads to a PassiveSkills row.</summary>
         private IntPtr? NodeRecord(IntPtr node)
@@ -579,6 +585,10 @@ namespace Poe2Accessibility.Services
         /// <summary>The PassiveSkills row of a node record, trusted only when its key names the table.</summary>
         private IntPtr? PassiveRow(IntPtr record) => PassiveSkillKey.Row(this.reader, this.elements, record);
 
+        /// <summary>
+        ///     A node as the game shows it: name and kind from the row the player's class sees in its place (<see cref="ShownRow"/>),
+        ///     its place in the graph (graph id, start, stick gate) from the record's own row.
+        /// </summary>
         private PassiveNodeRow ReadPassiveRow(IntPtr record, IntPtr row)
         {
             var bytes = this.elements.ReadBlock(row, GameLayout.PassiveTree.RowBytes);
@@ -587,17 +597,77 @@ namespace Poe2Accessibility.Services
                 return new PassiveNodeRow(record, -1, string.Empty, string.Empty, false, false, PassiveClass.Other);
             }
 
-            var name = KeywordLink.Replace(this.elements.ReadUtf16BufferAt((IntPtr)BitConverter.ToInt64(bytes, GameLayout.PassiveTree.RowNameOffset), MaxPassiveNameChars) ?? string.Empty, ShownText);
+            var shownRow = this.ShownRow(row);
+            var shown = shownRow == row ? bytes : this.elements.ReadBlock(shownRow, GameLayout.PassiveTree.RowBytes);
+            if (shown.Length < GameLayout.PassiveTree.RowBytes)
+            {
+                shown = bytes;
+            }
+
+            var name = KeywordLink.Replace(this.elements.ReadUtf16BufferAt((IntPtr)BitConverter.ToInt64(shown, GameLayout.PassiveTree.RowNameOffset), MaxPassiveNameChars) ?? string.Empty, ShownText);
             var isStart = BitConverter.ToInt64(bytes, GameLayout.PassiveTree.RowCharactersOffset) > 0;
-            var iconOnly = bytes[GameLayout.PassiveTree.RowIconOnlyOffset] == 1;
-            var kind = bytes[GameLayout.PassiveTree.RowKeystoneOffset] == 1 ? PassiveClass.Keystone
-                : bytes[GameLayout.PassiveTree.RowNotableOffset] == 1 ? PassiveClass.Notable
-                : bytes[GameLayout.PassiveTree.RowJewelSocketOffset] == 1 ? PassiveClass.JewelSocket
+            var iconOnly = shown[GameLayout.PassiveTree.RowIconOnlyOffset] == 1;
+            var kind = shown[GameLayout.PassiveTree.RowKeystoneOffset] == 1 ? PassiveClass.Keystone
+                : shown[GameLayout.PassiveTree.RowNotableOffset] == 1 ? PassiveClass.Notable
+                : shown[GameLayout.PassiveTree.RowJewelSocketOffset] == 1 ? PassiveClass.JewelSocket
                 : isStart || iconOnly ? PassiveClass.Other
                 : PassiveClass.Small;
             var noLinkedStep = BitConverter.ToInt64(bytes, GameLayout.PassiveTree.RowNoLinkedStepOffset) != 0;
-            return new PassiveNodeRow(record, BitConverter.ToUInt16(bytes, GameLayout.PassiveTree.RowGraphIdOffset), name, Announcements.PassiveKind(kind), iconOnly, isStart, kind, noLinkedStep);
+            return new PassiveNodeRow(record, BitConverter.ToUInt16(bytes, GameLayout.PassiveTree.RowGraphIdOffset), name, Announcements.PassiveKind(kind), iconOnly, isStart, kind, noLinkedStep)
+            {
+                ShownGraphId = BitConverter.ToUInt16(shown, GameLayout.PassiveTree.RowGraphIdOffset),
+            };
         }
+
+        /// <summary>
+        ///     The PassiveSkills row the game shows for a node's own row: the player's class's override of it when it has one
+        ///     (<see cref="Overrides"/>), found by stepping through the table and trusted only when the Id there is the expected
+        ///     one; else the row itself. Remembered per row for the character it was found for.
+        /// </summary>
+        private IntPtr ShownRow(IntPtr row)
+        {
+            var path = this.PlayerPath?.Invoke() ?? string.Empty;
+            if (this.Overrides is not { Count: > 0 } overrides || path.Length == 0)
+            {
+                return row;
+            }
+
+            if (!string.Equals(path, this.shownRowsFor, StringComparison.OrdinalIgnoreCase))
+            {
+                this.shownRows.Clear();
+                this.shownRowsFor = path;
+            }
+
+            if (this.shownRows.TryGetValue(row, out var known))
+            {
+                return known;
+            }
+
+            var shown = row;
+            if (this.RowId(row) is { } id && overrides.Find(path, id) is { } swap)
+            {
+                var other = row + (nint)overrides.Step(swap);
+                if (this.RowId(other) == swap.ShownId)
+                {
+                    shown = other;
+                }
+                else
+                {
+                    this.TreeFields.Log?.Invoke($"Passive override of {id} for {path}: no {swap.ShownId} {overrides.Step(swap)} bytes on; its own row is read");
+                }
+            }
+
+            this.shownRows[row] = shown;
+            return shown;
+        }
+
+        private string? RowId(IntPtr row) =>
+            this.reader.TryRead<IntPtr>(row, out var id) && id != IntPtr.Zero ? this.elements.ReadUtf16BufferAt(id, MaxPassiveNameChars) : null;
+
+        /// <summary>Whether a node's row, or the one its class sees in its place, is in the allocated list (which of the two the game keeps there is not measured).</summary>
+        private bool RowTaken(IntPtr row, HashSet<int> allocated) =>
+            (this.reader.TryRead<ushort>(row + GameLayout.PassiveTree.RowGraphIdOffset, out var id) && allocated.Contains(id)) ||
+            (this.ShownRow(row) is var shown && shown != row && this.reader.TryRead<ushort>(shown + GameLayout.PassiveTree.RowGraphIdOffset, out var shownId) && allocated.Contains(shownId));
 
         /// <summary>The tree's links and node elements, read once per canvas (they persist while the tree is closed).</summary>
         private PassiveGraph? PassiveGraphOf(IntPtr canvasAddress, in UiElementReader.ElementInfo hoveredNode)
@@ -765,7 +835,14 @@ namespace Poe2Accessibility.Services
         private sealed record StickOrigin(IntPtr State, IntPtr Record, int Index, int[] Linked, PassiveStick.Window? Window);
 
         /// <summary>A node's row; <paramref name="NoLinkedStep"/> when the stick step skips its linked stage (<see cref="GameLayout.PassiveTree.RowNoLinkedStepOffset"/>).</summary>
-        private sealed record PassiveNodeRow(IntPtr Record, int GraphId, string Name, string Kind, bool IconOnly, bool IsStart, PassiveClass Class, bool NoLinkedStep = false);
+        private sealed record PassiveNodeRow(IntPtr Record, int GraphId, string Name, string Kind, bool IconOnly, bool IsStart, PassiveClass Class, bool NoLinkedStep = false)
+        {
+            /// <summary>Gets the graph id of the row the class sees in this node's place; -1 when it sees this one.</summary>
+            public int ShownGraphId { get; init; } = -1;
+
+            /// <summary>Whether the node is in the allocated list, under its own graph id or its class override's.</summary>
+            public bool TakenIn(HashSet<int> allocated) => allocated.Contains(this.GraphId) || (this.ShownGraphId >= 0 && allocated.Contains(this.ShownGraphId));
+        }
 
         /// <summary>Drawn nodes' centres in the canvas's units, by record, with each one's links in the stick step's edge order.</summary>
         private sealed record PassivePlaces(IntPtr State, Vector2[] Positions, Dictionary<IntPtr, int> Index, int[][] Links)

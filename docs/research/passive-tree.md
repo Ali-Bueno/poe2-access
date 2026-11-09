@@ -53,6 +53,23 @@ Foreign key = (row ptr, file ptr), file `+8` = std::wstring table name (same che
 - MEASURED: stat lines are not cheap: the row holds Stats ids and raw values only; the text needs the stat
   description files (12 per minute is shown "0.2% de vida por segundo"). Use the hover tooltip for stats.
 
+## Class overrides (2026-11-09)
+
+- MEASURED (game files, 0.5.5f): **ClassPassiveSkillOverrides** (61 rows of 0x30: Characters key +0x00, the PassiveSkills
+  row replaced +0x10, the row shown +0x20) swaps nodes for three classes only: Witch `Metadata/Characters/Int/IntFour`,
+  Huntress `Dex/DexFourb`, Druid `StrInt/StrIntFourb`. The node record keeps the replaced row; the game shows the other
+  one (its own name, stats and graph id). A Druid heard `spell_criticals7` "Daño crítico de hechizos" over the tooltip of
+  `druid_class_start22` "Regeneración de vida", `criticals25_` "Destino cruel" over "Espíritu primitivo", `area_attacks4`
+  "Área de ataques" over "Daño de hechizos y ataques" (2026-11-07 and 2026-11-09); the Mercenary has no overrides.
+- The plugin reads the shown row for the player's class (catalog `passive-overrides.txt`, extractor `passive-overrides`;
+  `UiSemantics.ShownRow`: the replaced row plus (shown − replaced) × the row size 0x1E7, trusted only when the Id there
+  is the shown one). Name and kind come from it, the graph id, start and stick gate from the record's own row; a node
+  counts as allocated under either graph id. **NOT MEASURED:** which of the two the allocated list keeps for an overridden
+  node, and AscendancyPassiveSkillOverrides (13 rows, `AscendancyWitch3*` → `AscendancyAltWitch*`, its first key into a
+  table not identified), not handled: the ascendancy view was never seen live.
+- PassiveSkills row (0x1E7 bytes): Id +0x0, icon +0x8, stats key list +0x10, values from +0x20, graph id u16 +0x30, name
+  +0x32 (unaligned: `dat-row-strings` steps by 4 and misses it).
+
 ## Allocation
 
 - MEASURED: **tree state object T = canvas `+0x3D8`** (`+0x3E0` = T−0x10, a make_shared control block). Checks:
@@ -220,7 +237,12 @@ armour_and_evasion2 counted 15, 14 … 1, "Arrived at Oasis" with no correction.
   "Seleccionar [A]"): L3 opens the filter, R3 inspect mode, Y centres on the allocated nodes, LB goes to the Character panel and
   RB back, X did nothing with no change pending. The **right stick moves the cursor too**, so it is not free. The stick rule's self-check judges only a left push that does not start where the right stick
   left the cursor: the user's evening of 2026-11-09 lost the rule twice ("7 hit, 3 missed") right after right-stick moves.
-  What the right stick does exactly (a free pointer, a pan, a snap on release) is NOT MEASURED yet. **The D-pad does
+  MEASURED (2026-11-09 17:22, the user's Druid, zoom x0,4, trace `Tree right stick` of v2026.11.09-5): the right stick
+  **pans the view**: the canvas slides (deflection 0.55: 5 px in the first 100 ms) while the cursor stays at the frame's
+  centre (1280,781 in 2560x1440) and hovers whatever node passes under it ("no node" in between); **on release the view
+  eases until the hovered node sits at the centre**, about 1 s (placeholder2 drawn at 1311 → 1280; spell_criticals7 1269 →
+  1280). Once settled the cursor is back on the step rule's footing; a left push during that ease starts from an
+  unsettled view, which is why the push after the right stick is not judged. **The D-pad does
   nothing in any direction**: it is the finder's (`Poe2AccessibilityCore.FindOnTree`, `ModCommands.OnTreeDirection`).
 - MEASURED: "No cumples los requisitos" ends the tooltip of every node not linked yet, small ones and keystones alike, and
   not one reachable ("Atributo … alcanzable"). No node of the tree was seen with a level condition.

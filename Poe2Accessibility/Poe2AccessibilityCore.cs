@@ -457,6 +457,8 @@ namespace Poe2Accessibility
                 this.focus.FocusChanged += this.OnPreGameFocus;
                 this.narrator.Refresh = node => this.semantics?.Describe(node.Address, node.IsHovered);
                 this.semantics.PlayerPath = () => Seats.Followed.Path ?? string.Empty;
+                this.semantics.Overrides = PassiveOverrides.Load(Path.Join(this.DllDirectory, "catalog", "passive-overrides.txt"));
+                this.log.Info($"Passive overrides: {this.semantics.Overrides.Count} class nodes from the game files");
                 this.commands.SettingsChanged = changed =>
                 {
                     this.ApplySettings(changed);

@@ -28,6 +28,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\ObjectNames.cs" Link="Plugin\ObjectNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CurrencyIcons.cs" Link="Plugin\CurrencyIcons.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\HarmfulBuffs.cs" Link="Plugin\HarmfulBuffs.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\PassiveOverrides.cs" Link="Plugin\PassiveOverrides.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\RoutePlanner.cs" Link="Plugin\RoutePlanner.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\VitalAlarm.cs" Link="Plugin\VitalAlarm.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\ExperienceTable.cs" Link="Plugin\ExperienceTable.cs" />

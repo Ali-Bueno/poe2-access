@@ -30,6 +30,7 @@ internal static class GameDataSteps
         new Step("telegraph effects", 1, "telegraph-effects.txt", "telegraph-effects", true),
         new Step("boss mechanics", 2, "boss-mechanics.txt", "boss-mechanics", true), // 2: reruns once where the doubled step left it "failed"
         new Step("buff names", 1, "buff-names.json", "buff-names", true),
+        new Step("passive overrides", 1, "passive-overrides.txt", "passive-overrides", true),
         new Step("class mechanics", 1, "class-mechanics.json", "class-mechanics", true),
         new Step("currency art", 1, "currency-art.json", "currency-art", true),
         new Step("inline icons", 1, "inline-icons.txt", "inline-icons", true),
