@@ -46,6 +46,13 @@ namespace Poe2Accessibility.Services
         private StickPush? stickPush;
         private StickOrigin? stickOrigin;
 
+        /// <summary>
+        ///     The right stick moved the cursor since the last left push began: two false "rule lost" in one evening of the
+        ///     user's, each after right-stick moves (2026-11-09: "7 hit, 3 missed", then links by their side only and the finder's
+        ///     ways gone, "la guía con el d pad se volvió loca").
+        /// </summary>
+        private bool cursorMovedFreely;
+
         /// <summary>The player's metadata path, to find the class's own start node.</summary>
         public Func<string>? PlayerPath { get; set; }
 
@@ -57,13 +64,24 @@ namespace Poe2Accessibility.Services
 
         private bool StickTrusted => !this.StickCheck.Lost;
 
-        /// <summary>Per frame, the left stick as the game received it (y up): a push begins past <see cref="PushDeflection"/> and ends under <see cref="ReleaseDeflection"/>.</summary>
-        public void ObserveStick(float x, float y, long now)
+        /// <summary>
+        ///     Per frame, both sticks as the game received them (y up): a left push begins past <see cref="PushDeflection"/>
+        ///     and ends under <see cref="ReleaseDeflection"/>. The right stick moves the tree's cursor off the step rule's
+        ///     footing (the node at the view's centre): the next push from there is not judged.
+        /// </summary>
+        public void ObserveStick(float x, float y, float rightX, float rightY, long now)
         {
+            if (MathF.Max(MathF.Abs(rightX), MathF.Abs(rightY)) >= ReleaseDeflection)
+            {
+                this.cursorMovedFreely = true;
+            }
+
             var deflection = MathF.Max(MathF.Abs(x), MathF.Abs(y));
             if (this.stickPush == null && deflection >= PushDeflection)
             {
-                this.stickPush = new StickPush(now, Vector2.Normalize(new Vector2(x, -y)), false); // screen y grows down, as the game flips it
+                // Screen y grows down, as the game flips it.
+                this.stickPush = new StickPush(now, Vector2.Normalize(new Vector2(x, -y)), this.cursorMovedFreely);
+                this.cursorMovedFreely = false;
             }
             else if (this.stickPush != null && deflection < ReleaseDeflection)
             {
@@ -686,6 +704,7 @@ namespace Poe2Accessibility.Services
         private sealed record PassiveGraph(IntPtr Canvas, IntPtr State, Dictionary<IntPtr, List<IntPtr>> Links, Dictionary<IntPtr, List<IntPtr>> StickLinks, Dictionary<IntPtr, IntPtr> Elements, IntPtr OwnStart);
 
         /// <summary>A push of the left stick in progress: when it began, its screen direction (y down) and whether a landing was judged on it.</summary>
+        /// <summary>A left push; <paramref name="Judged"/> starts true for one from where the right stick left the cursor (not judged).</summary>
         private sealed record StickPush(long StartedAt, Vector2 Direction, bool Judged);
 
         /// <summary>The node hovered before the current one, as the stick rule saw from it: its index among the drawn nodes, its edge order, the window.</summary>

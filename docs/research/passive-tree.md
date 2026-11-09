@@ -218,7 +218,9 @@ armour_and_evasion2 counted 15, 14 … 1, "Arrived at Oasis" with no correction.
 
 - MEASURED, the virtual pad on a node (hint bar: "Editar filtro [L3]", "Modo inspección [R3]", "Zoom [RT]", "Centrar [Y]",
   "Seleccionar [A]"): L3 opens the filter, R3 inspect mode, Y centres on the allocated nodes, LB goes to the Character panel and
-  RB back, X did nothing with no change pending. The **right stick moves the cursor too**, so it is not free. **The D-pad does
+  RB back, X did nothing with no change pending. The **right stick moves the cursor too**, so it is not free. The stick rule's self-check judges only a left push that does not start where the right stick
+  left the cursor: the user's evening of 2026-11-09 lost the rule twice ("7 hit, 3 missed") right after right-stick moves.
+  What the right stick does exactly (a free pointer, a pan, a snap on release) is NOT MEASURED yet. **The D-pad does
   nothing in any direction**: it is the finder's (`Poe2AccessibilityCore.FindOnTree`, `ModCommands.OnTreeDirection`).
 - MEASURED: "No cumples los requisitos" ends the tooltip of every node not linked yet, small ones and keystones alike, and
   not one reachable ("Atributo … alcanzable"). No node of the tree was seen with a level condition.

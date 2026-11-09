@@ -759,7 +759,7 @@ namespace Poe2Accessibility
             }
 
             this.padState = state;
-            this.semantics?.ObserveStick(state.LeftX, state.LeftY, Environment.TickCount64);
+            this.semantics?.ObserveStick(state.LeftX, state.LeftY, state.RightX, state.RightY, Environment.TickCount64);
             this.CheckPadButtons(state);
             if (IsDirection(state))
             {
