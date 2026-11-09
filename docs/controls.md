@@ -197,6 +197,10 @@ left, middle ring, 8 points away. From here: up, 10 pushes". Then every node end
 look at: nothing is allocated. Back at the first list, Position, it says where the cursor is on the tree ("Position: down
 right, outer ring, 7 points away") and drops the target. Y centres the view on what you have allocated.
 
+The right stick moves the cursor too (each node is read as it is reached), but the links and the finder's ways count
+left-stick pushes: after the right stick, the first left push may land elsewhere than said, and
+from there the ways hold again.
+
 Keystones need no level: a node only needs a line of allocated nodes reaching it. The nearest are 9 to 13 points from any
 class's start, notables 5; the game's "You do not meet the requirements" on a node means it is not linked yet.
 
