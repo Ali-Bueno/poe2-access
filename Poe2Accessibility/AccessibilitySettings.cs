@@ -42,6 +42,9 @@ namespace Poe2Accessibility
         /// <summary>Read the whole tooltip when the focus lands on something (items, gems, stats); off = name only, tooltip on request.</summary>
         public bool ReadTooltipsOnFocus = true;
 
+        /// <summary>Say the focused control again when a D-pad press moves nothing (a page's only control, the end of a list).</summary>
+        public bool RepeatOnBlockedMove = true;
+
         /// <summary>L3 is the mod button: tap, double tap and hold read lines, details, hints and the screen.</summary>
         public bool ControllerCommands = true;
 

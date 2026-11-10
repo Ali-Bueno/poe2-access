@@ -25,7 +25,9 @@ off in Steam's controller settings for Path of Exile 2.
 
 A new focus starts again from its first line. Tooltips are also read automatically when the focus lands
 (`ReadTooltipsOnFocus`, on by default). A count or a level that changes under a resting cursor is said by itself ("2"
-when a stack of 3 loses one, "Level 8" when a gem levels); a clock ticking in a row is not.
+when a stack of 3 loses one, "Level 8" when a gem levels); a clock ticking in a row is not. A D-pad press that moves
+nothing — a page's only control, the end of a list — says the control again a moment later (0.6 s), so silence never means
+"nothing happened" (`RepeatOnBlockedMove`, on by default; settings menu, Items).
 
 ## Scanner (gameplay)
 

@@ -453,6 +453,7 @@
  "Say charges, infusions, surges and Rage": "충전, 주입, 쇄도, 격노 읽기",
  "Say combo points": "연계 점수 읽기",
  "Say skills ready after their cooldown": "재사용 대기시간이 끝난 스킬 읽기",
+ "Say the control again when a direction moves nothing": "방향 입력으로 아무것도 움직이지 않으면 항목을 다시 읽기",
  "Say the map corner on entering an area": "지역에 들어갈 때 지도 모서리 알리기",
  "Scanner": "스캐너",
  "Seal": "봉인",

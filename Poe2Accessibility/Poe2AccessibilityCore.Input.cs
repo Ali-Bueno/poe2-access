@@ -24,6 +24,13 @@ namespace Poe2Accessibility
 
         private bool confirmDown;
 
+        private readonly BlockedMove blockedMove = new();
+
+        private uint lastDPad;
+
+        /// <summary>When the D-pad press <see cref="blockedMove"/> waits on went down, for what was said since.</summary>
+        private DateTime blockedPressAt;
+
         /// <summary>Per frame: the mod button's gestures from the pad state the game received.</summary>
         private void ReadModButton()
         {
@@ -61,6 +68,7 @@ namespace Poe2Accessibility
             var viewMoved = state.IsDown(GameLayout.PadButtons.LeftTrigger | GameLayout.PadButtons.RightTrigger | GameLayout.PadButtons.Y);
             this.semantics?.ObserveStick(state.LeftX, state.LeftY, state.RightX, state.RightY, viewMoved, Environment.TickCount64);
             this.CheckPadButtons(state);
+            this.WatchBlockedMove(state);
             if (IsDirection(state))
             {
                 this.lastDirectionAt = Environment.TickCount64;
@@ -111,6 +119,36 @@ namespace Poe2Accessibility
             if (list != 0 || entry != 0)
             {
                 this.commands?.OnTreeDirection(list, entry);
+            }
+        }
+
+        /// <summary>
+        ///     A D-pad press that leaves the cursor where it was says its control again (<see cref="BlockedMove"/>). Not the
+        ///     sticks, which also scroll and turn previews; not a free cursor, nor the passive tree, whose D-pad is the finder's.
+        /// </summary>
+        private void WatchBlockedMove(GamepadReader.PadState state)
+        {
+            var dpad = state.Buttons & (GameLayout.PadButtons.DPadUp | GameLayout.PadButtons.DPadDown | GameLayout.PadButtons.DPadLeft | GameLayout.PadButtons.DPadRight);
+            var pressed = (dpad & ~this.lastDPad) != 0;
+            this.lastDPad = dpad;
+            if (!pressed && !this.blockedMove.Waiting)
+            {
+                return;
+            }
+
+            var resting = this.Settings.RepeatOnBlockedMove && !state.IsDown(GameLayout.PadButtons.LeftStick) &&
+                          this.focus?.Current is { IsHovered: false, IsPassiveNode: false } current ? current : null;
+            var line = resting == null ? string.Empty : Announcements.Focused(resting);
+            var now = Environment.TickCount64;
+            if (pressed)
+            {
+                this.blockedMove.Pressed(resting?.Address ?? IntPtr.Zero, line, now);
+                this.blockedPressAt = DateTime.UtcNow;
+            }
+            else if (this.blockedMove.Due(resting?.Address ?? IntPtr.Zero, line, this.output.SaidSince(string.Empty, this.blockedPressAt), now))
+            {
+                this.log?.Info("A direction moved nothing: the focus again");
+                this.output.Moved(line);
             }
         }
 

@@ -453,6 +453,7 @@
  "Say charges, infusions, surges and Rage": "チャージ、インフュージョン、サージ、憤怒を読み上げ",
  "Say combo points": "コンボポイントを読み上げ",
  "Say skills ready after their cooldown": "クールダウン後に使えるスキルを読み上げ",
+ "Say the control again when a direction moves nothing": "方向入力で何も動かないときは項目をもう一度読む",
  "Say the map corner on entering an area": "エリアに入ったときにマップの隅を読み上げる",
  "Scanner": "スキャナー",
  "Seal": "封印",

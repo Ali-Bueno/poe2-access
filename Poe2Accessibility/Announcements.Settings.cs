@@ -28,6 +28,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceChat) => T("Chat", "Chat"),
             nameof(AccessibilitySettings.AnnouncePlayerChat) => T("Global and trade chat", "Chat global y de comercio"),
             nameof(AccessibilitySettings.ReadTooltipsOnFocus) => T("Whole tooltips on focus", "Descripciones completas al enfocar"),
+            nameof(AccessibilitySettings.RepeatOnBlockedMove) => T("Say the control again when a direction moves nothing", "Repetir el control cuando una dirección no mueve nada"),
             nameof(AccessibilitySettings.AnnouncePickups) => T("Picked up items", "Objetos recogidos"),
             nameof(AccessibilitySettings.AnnounceDiscoveries) => T("Discoveries", "Descubrimientos"),
             nameof(AccessibilitySettings.AnnounceEnemies) => T("Enemies coming into view", "Enemigos que aparecen"),

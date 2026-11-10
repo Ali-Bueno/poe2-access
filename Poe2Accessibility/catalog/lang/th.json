@@ -453,6 +453,7 @@
  "Say charges, infusions, surges and Rage": "บอก Charge, ชุบพลัง, กระแส และคลั่ง",
  "Say combo points": "บอกแต้มคอมโบ",
  "Say skills ready after their cooldown": "บอกสกิลที่พร้อมใช้หลังคูลดาวน์",
+ "Say the control again when a direction moves nothing": "พูดตัวควบคุมซ้ำเมื่อกดทิศทางแล้วไม่มีอะไรเลื่อน",
  "Say the map corner on entering an area": "บอกมุมของแผนที่เมื่อเข้าพื้นที่",
  "Scanner": "ตัวสแกน",
  "Seal": "ตราผนึก",
