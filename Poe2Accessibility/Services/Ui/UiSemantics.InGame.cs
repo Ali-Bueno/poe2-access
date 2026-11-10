@@ -33,6 +33,7 @@ namespace Poe2Accessibility.Services
         public void ForgetFocusMemos()
         {
             this.gridTabs = (IntPtr.Zero, new List<IntPtr>(), 0);
+            this.tooltipSettle.Forget();
             this.mapHere = default;
             this.depthToggle = default;
             this.notEndgame.Clear();
@@ -68,12 +69,14 @@ namespace Poe2Accessibility.Services
             var emptyCell = false;
             List<string> details;
             var gear = (First: new List<string>(), Last: new List<string>());
+            var filling = false;
             if (this.inventory.TryReadGrid(info.Address, out var column, out var row, out var hovered))
             {
                 role = UiRole.GridCell;
                 hovered = hovered != IntPtr.Zero ? hovered : this.inventory.ItemAt(info.Address, column, row);
                 emptyCell = hovered == IntPtr.Zero;
                 details = this.ItemTooltip(hovered);
+                filling = this.tooltipSettle.Filling(hovered, details.Count, details.Aggregate(0, (hash, line) => HashCode.Combine(hash, line)), Environment.TickCount64);
                 var item = hovered == IntPtr.Zero ? Announcements.EmptyCell : this.inventory.DescribeItem(hovered, Title(details)) ?? Announcements.UnknownItem;
                 item = this.inventory.HighlightOf(hovered) == ItemHighlight.Match ? Announcements.HighlightedItem(item) : item;
                 var inventoryName = this.inventory.InventoryOf(info.Address);
@@ -114,8 +117,11 @@ namespace Poe2Accessibility.Services
                 Context = role == UiRole.GridCell ? Announcements.InContext(this.PanelTitle(info), this.GridTab(info)) : this.PanelTitle(info),
                 Tooltip = details,
                 IsEmptyCell = emptyCell,
+                TooltipFilling = filling,
             };
         }
+
+        private readonly TooltipSettle tooltipSettle = new();
 
         /// <summary>
         ///     The item's own tooltip (the item element owns it, built once the cursor rests on it): its name, then

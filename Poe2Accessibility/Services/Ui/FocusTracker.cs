@@ -22,6 +22,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The grid whose cell read empty on arrival, read once more before it is said.</summary>
         private IntPtr emptyOnArrival;
 
+        /// <summary>The grid whose item's tooltip was still filling, read again sooner than a hidden screen.</summary>
+        private IntPtr fillingTooltip;
+
         /// <summary>How often the focused control is re-read for in-place value changes (a few reads each time).</summary>
         private const int ValuePollMs = 150;
 
@@ -186,7 +189,7 @@ namespace Poe2Accessibility.Services
 
             this.ForgetMemosWithoutFocus(focused);
             var changed = focused != this.lastFocused;
-            var waitedFor = focused == this.emptyOnArrival ? EmptyRecheckMs : PendingRecheckMs;
+            var waitedFor = focused == this.emptyOnArrival ? EmptyRecheckMs : focused == this.fillingTooltip ? TooltipSettle.HoldMs : PendingRecheckMs;
             var recheck = this.pendingVisibility && this.sincePendingCheck.ElapsedMilliseconds >= waitedFor;
             if (!changed && !recheck)
             {
@@ -224,6 +227,16 @@ namespace Poe2Accessibility.Services
             {
                 // The grid names its item a moment after the cursor arrives: "Amuleto, vacío" was said, then the amulet.
                 this.emptyOnArrival = focused;
+                this.pendingVisibility = true;
+                this.sincePendingCheck.Restart();
+                return;
+            }
+
+            this.fillingTooltip = node.TooltipFilling ? focused : IntPtr.Zero;
+            if (node.TooltipFilling)
+            {
+                // An item's first tooltip, still being filled: read again once it holds still (TooltipSettle).
+                this.log.Debug($"Focus 0x{focused.ToInt64():X} waits for its item's first tooltip: {node.Tooltip.Count} lines");
                 this.pendingVisibility = true;
                 this.sincePendingCheck.Restart();
                 return;

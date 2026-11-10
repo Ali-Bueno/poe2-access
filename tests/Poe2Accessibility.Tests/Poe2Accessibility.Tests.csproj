@@ -85,6 +85,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\BuildGear.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GearCatalogs.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.BuildGear.cs" Link="Plugin\Announcements.BuildGear.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.BuildSupports.cs" Link="Plugin\Announcements.BuildSupports.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\BuildPlanFolder.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GemNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GemCatalog.cs" />
@@ -131,6 +132,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\CardText.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\ShopPurchase.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\BlockedMove.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Ui\TooltipSettle.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\ShopBalanceWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\TradeOfferNews.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\AoSoundEvents.cs" Link="Extract\AoSoundEvents.cs" />
