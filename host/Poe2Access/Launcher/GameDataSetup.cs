@@ -93,7 +93,7 @@ internal static class GameDataSetup
         Log.Write($"Game data is {(stamp.Steps.Count == 0 ? "missing" : "out of date")}: regenerating {string.Join(", ", stale)} from {gameDirectory}");
         var watch = Stopwatch.StartNew();
         var failed = new List<string>();
-        using var spoken = GameDataNarrator.Start(plugin, stale.Count);
+        using var spoken = GameDataNarrator.Start(plugin, steps.Where(step => stale.Contains(step.Name)).OrderBy(step => step.Command is null).Select(step => step.Name).ToArray());
         narrator = spoken;
         void Finish(Step step, string? error)
         {

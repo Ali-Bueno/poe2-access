@@ -154,6 +154,7 @@
     <Compile Include="..\..\host\Poe2Access\Launcher\StartupPhrases.cs" Link="Launcher\StartupPhrases.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\ProgressPacer.cs" Link="Launcher\ProgressPacer.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\GameWait.cs" Link="Launcher\GameWait.cs" />
+    <Compile Include="..\..\host\Poe2Access\Launcher\SilenceReminder.cs" Link="Launcher\SilenceReminder.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BuffColumns.cs" Link="Extract\BuffColumns.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\NameAnchors.cs" Link="Extract\NameAnchors.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\NameColumns.cs" Link="Extract\NameColumns.cs" />
