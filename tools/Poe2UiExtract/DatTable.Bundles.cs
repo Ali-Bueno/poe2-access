@@ -7,13 +7,13 @@ internal sealed partial class DatTable
     public static DatTable? Open(Index index, string name)
     {
         var file = BundleFiles.Find(index, $"data/balance/{name}.datc64", $"data/{name}.datc64");
-        return file == null ? null : FromBytes(file.Read().ToArray());
+        return file == null ? null : FromBytes(file.Read().ToArray(), file.Path ?? name);
     }
 
     /// <summary>Opens <c>data/[balance/]&lt;language&gt;/&lt;name&gt;.datc64</c>, a translated copy; null when absent.</summary>
     public static DatTable? OpenTranslated(Index index, string name, string language)
     {
         var file = BundleFiles.Find(index, $"data/balance/{language}/{name}.datc64", $"data/{language}/{name}.datc64");
-        return file == null ? null : FromBytes(file.Read().ToArray());
+        return file == null ? null : FromBytes(file.Read().ToArray(), file.Path ?? name);
     }
 }

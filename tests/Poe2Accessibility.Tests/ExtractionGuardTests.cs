@@ -22,7 +22,9 @@ namespace Poe2Accessibility.Tests
             (nameof(AMissingAnchorRowIsSaidAndFallsBackOnTheTranslation), AMissingAnchorRowIsSaidAndFallsBackOnTheTranslation),
             (nameof(TablesThatDifferInSizeAreNotAName), TablesThatDifferInSizeAreNotAName),
             (nameof(ASkippedKnownRowCheckIsSaid), ASkippedKnownRowCheckIsSaid),
-            (nameof(OverrideColumnsAreFoundWhereMeasuredAndAfterAShift), OverrideColumnsAreFoundWhereMeasuredAndAfterAShift),
+            (nameof(ATableThatIsNotWholeRowsFailsAndNamesItself), ATableThatIsNotWholeRowsFailsAndNamesItself),
+            (nameof(ATableWithoutRowsOrTooShortFailsToo), ATableWithoutRowsOrTooShortFailsToo),
+            (nameof(OverrideColumnsAreFoundWhereMeasuredAndAfterAShift),OverrideColumnsAreFoundWhereMeasuredAndAfterAShift),
             (nameof(AnOverrideTableWithoutTheKnownRowIsJudgedByShape), AnOverrideTableWithoutTheKnownRowIsJudgedByShape),
             (nameof(AKnownOverrideThatReadsOtherwiseFailsTheStep), AKnownOverrideThatReadsOtherwiseFailsTheStep),
             (nameof(OverrideColumnsThatNameNoClassAreNotFound), OverrideColumnsThatNameNoClassAreNotFound),
@@ -153,6 +155,48 @@ namespace Poe2Accessibility.Tests
             var search = new DatColumnSearch();
             Expect(-1, TelegraphColumns.FindTriggerAnimation(Triggers(0), Animations(".txt"), 8, search), "keys that lead to other files");
             Expect(false, search.AllFound, "the step fails");
+        }
+
+        /// <summary>A file of <paramref name="rows"/> rows of <paramref name="rowSize"/> bytes, <paramref name="extra"/> stray bytes before the marker.</summary>
+        private static byte[] DatFile(int rows, int rowSize, int extra = 0, bool marker = true)
+        {
+            var bytes = new List<byte>(BitConverter.GetBytes(rows));
+            bytes.AddRange(new byte[Math.Max(0, rows * rowSize) + extra]);
+            if (marker)
+            {
+                bytes.AddRange(Enumerable.Repeat((byte)0xBB, 8));
+            }
+
+            bytes.AddRange(new byte[16]);
+            return bytes.ToArray();
+        }
+
+        private static string Unreadable(byte[] file, string name)
+        {
+            try
+            {
+                DatTable.FromBytes(file, name);
+                return string.Empty;
+            }
+            catch (System.IO.InvalidDataException error)
+            {
+                return error.Message;
+            }
+        }
+
+        private static void ATableThatIsNotWholeRowsFailsAndNamesItself()
+        {
+            Expect(0x20, DatTable.FromBytes(DatFile(5, 0x20), "data/balance/mods.datc64").RowSize, "whole rows read");
+            var message = Unreadable(DatFile(5, 0x20, extra: 3), "data/balance/mods.datc64");
+            Expect(true, message.StartsWith("data/balance/mods.datc64:", StringComparison.Ordinal) && message.Contains("whole number of rows", StringComparison.Ordinal), "stray bytes: the table is named and the cause said");
+            Expect(true, Unreadable(DatFile(5, 0x20, marker: false), "stats").Contains("marker", StringComparison.Ordinal), "no marker");
+        }
+
+        private static void ATableWithoutRowsOrTooShortFailsToo()
+        {
+            Expect(true, Unreadable(DatFile(0, 0x20), "stats").Contains("0 rows", StringComparison.Ordinal), "the header says no rows");
+            Expect(true, Unreadable(new byte[6], "stats").Contains("too short", StringComparison.Ordinal), "a file without a header");
+            Expect(true, Unreadable(DatFile(-4, 0x20), "stats").Contains("-4 rows", StringComparison.Ordinal), "a nonsense row count");
         }
 
         private static void ASkippedKnownRowCheckIsSaid()

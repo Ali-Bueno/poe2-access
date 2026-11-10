@@ -56,7 +56,7 @@ internal static class AreaExtractor
                 continue;
             }
 
-            tables[code] = (f.Path, DatTable.FromBytes(f.Read().ToArray()));
+            tables[code] = (f.Path, DatTable.FromBytes(f.Read().ToArray(), f.Path));
         }
 
         if (!tables.TryGetValue("en", out var english))

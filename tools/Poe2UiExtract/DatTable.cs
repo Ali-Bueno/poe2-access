@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Text;
 
 /// <summary>
@@ -14,20 +15,45 @@ internal sealed partial class DatTable
     private readonly byte[] data;
     private readonly int varStart;
 
-    private DatTable(byte[] data)
+    private const int HeaderBytes = sizeof(int);
+
+    private DatTable(byte[] data, string name)
     {
         this.data = data;
+        if (data.Length < HeaderBytes + Marker.Length)
+        {
+            throw Unreadable(name, $"{data.Length} bytes is too short for a row count and the variable-data marker");
+        }
+
         this.RowCount = BitConverter.ToInt32(data, 0);
-        this.varStart = data.AsSpan(4).IndexOf(Marker) + 4;
-        this.RowSize = (this.varStart - 4) / this.RowCount;
+        if (this.RowCount <= 0)
+        {
+            throw Unreadable(name, $"the header says {this.RowCount} rows");
+        }
+
+        var marker = data.AsSpan(HeaderBytes).IndexOf(Marker);
+        if (marker < 0)
+        {
+            throw Unreadable(name, "the variable-data marker (eight 0xBB bytes) is not in the file");
+        }
+
+        this.varStart = marker + HeaderBytes;
+        if (marker % this.RowCount != 0 || marker == 0)
+        {
+            throw Unreadable(name, $"the marker is at byte {this.varStart}, which {this.RowCount} rows from the header cannot reach: the file is not a whole number of rows");
+        }
+
+        this.RowSize = marker / this.RowCount;
     }
+
+    private static InvalidDataException Unreadable(string name, string why) => new($"{name}: not a table this reader understands ({why})");
 
     public int RowCount { get; }
 
     public int RowSize { get; }
 
     /// <summary>A table from the bytes of a .datc64 file (the row count, the rows, the 0xBB marker, the variable section).</summary>
-    public static DatTable FromBytes(byte[] data) => new(data);
+    public static DatTable FromBytes(byte[] data, string name = "table") => new(data, name);
 
     public string String(int row, int offset) => this.ReadString(BitConverter.ToInt64(this.data, this.RowStart(row) + offset));
 
