@@ -261,7 +261,12 @@ armour_and_evasion2 counted 15, 14 … 1, "Arrived at Oasis" with no correction.
 - Cost is `PassiveMap.Steps`: breadth-first along the links from the allocated ids and the own start. The way is
   `PassiveStick.Route` (cursor pushes, not links: the cursor needs no link to look at a node), recomputed on every hover, so a
   push that lands elsewhere corrects itself. Followed live from the far side of the tree: 31 pushes, the count falling, to
-  "Llegaste a Fe cicatrizada"; beyond 30 pushes it says "lejos" and the direction.
+  "Llegaste a Fe cicatrizada"; beyond 30 pushes (60 since 2026-11-10) it says "lejos" and the direction.
+- Where you left off (2026-11-10, the user: "el juego al cerrarlo y abrir regresa el árbol al inicio"): `PassiveResume` keeps
+  each character's last hovered node id (`config/passive-resume.txt`), but for the node the tree opens on; a passive node read
+  after 5 s without one is the tree opening (`TreeLeftMs`; a popup over the tree is shorter and keeps the node), and with no
+  build's next node the finder gets `Return(node)`: "Donde lo dejaste, X: dir, N" to "Estás donde lo dejaste"; a node
+  allocated elsewhere drops it. Not tried live.
 - A target chosen on a node must not change that node's tooltip: the narrator says a line replaced in place, which cut off the
   finder's own answer 10 ms after it began (`UiSemantics.FinderLine` keeps the line while the cursor stays and the allocated
   count is the same: a node allocated under the cursor moves the trail on, said as a replaced line).

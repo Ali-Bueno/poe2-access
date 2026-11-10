@@ -13,14 +13,21 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed partial class UiSemantics
     {
-        /// <summary>The pushes counted toward the finder's target; beyond, only its direction is said.</summary>
-        private const int MaxFinderPushes = 30;
+        /// <summary>The pushes counted toward the finder's target; beyond, only its direction is said (30 until 2026-11-10: a place left far from the start).</summary>
+        private const int MaxFinderPushes = 60;
+
+        /// <summary>No passive node read for this long, and the tree was left (a popup over it is shorter, and changes no node).</summary>
+        private const int TreeLeftMs = 5000;
 
         private readonly PassiveFinder finder = new();
         private PassiveAtlas? passiveAtlas;
         private (IntPtr From, IntPtr To, int Max, Way? Way)? finderWay;
         private (IntPtr Record, int Taken, GuideSay Say)? guideSaid;
         private string briefGoal = string.Empty;
+        private PassiveResume? resume;
+        private long lastPassiveAt = long.MinValue;
+        private IntPtr openedOn;
+        private int returnTaken;
 
         /// <summary>The finder is on (setting PassiveFinder): the D-pad answers and locked nodes say what they cost.</summary>
         public bool PassiveFinderOn { get; set; } = true;
@@ -30,6 +37,15 @@ namespace Poe2Accessibility.Services
         ///     the goal said only when it changes, and the node to take leaves its links and button hints for the details (setting PassiveGuideBrief).
         /// </summary>
         public bool PassiveGuideBrief { get; set; } = true;
+
+        /// <summary>The character whose tree is open, for <see cref="PassiveResumeFile"/>; set by the plugin.</summary>
+        public Func<string>? CharacterName { get; set; }
+
+        /// <summary>Where each character's cursor last was on the tree (config/passive-resume.txt); null keeps it for this session.</summary>
+        public string? PassiveResumeFile
+        {
+            set => this.resume = new PassiveResume(value);
+        }
 
         /// <summary>A D-pad press on a passive node: moves the finder and returns what to say; null when the tree cannot be read.</summary>
         /// <param name="hovered">The hovered node's element.</param>
@@ -138,6 +154,23 @@ namespace Poe2Accessibility.Services
         private GuideSay FinderGuide(PassiveGraph graph, PassiveAtlas atlas, IntPtr record, int target, HashSet<int> allocated, HashSet<IntPtr> marked)
         {
             var name = atlas.Nodes[target].Name;
+            if (this.finder.Returning)
+            {
+                if (this.finder.Arrive(record, false))
+                {
+                    return new GuideSay(Announcements.ResumeArrived, true, false, null, true);
+                }
+
+                if (allocated.Count != this.returnTaken)
+                {
+                    this.finder.Drop(); // a node taken elsewhere: work goes on there
+                    return GuideSay.None;
+                }
+
+                var back = this.WayTo(graph, atlas, record, this.finder.Target, MaxFinderPushes);
+                return new GuideSay(this.GoalAndWay($"return {target}", Announcements.ResumeGoal(name), back), false, false, back?.Octant, true);
+            }
+
             if (!this.finder.Taking && record != this.finder.Target)
             {
                 var way = this.WayTo(graph, atlas, record, this.finder.Target, MaxFinderPushes);
@@ -212,6 +245,42 @@ namespace Poe2Accessibility.Services
                 ? PassiveMap.TrailCost(marked.Contains(atlas.Nodes[index].Record), atlas.Nodes[index].Class == PassiveClass.Notable, targetInBuild)
                 : PassiveMap.TrailCost(false, false, false);
             return atlas.TrailTo(allocated, target, Cost);
+        }
+
+        /// <summary>
+        ///     Notes the node under the cursor as the character's place on the tree, kept across sessions, but for the node the tree
+        ///     opens on; and on opening, when no build leads, guides back to the place last noted (user 2026-11-10: "el juego al
+        ///     cerrarlo y abrir regresa el árbol al inicio").
+        /// </summary>
+        private void NoteTreePlace(PassiveGraph graph, IntPtr record, HashSet<int> allocated, IntPtr? buildNext)
+        {
+            var now = Environment.TickCount64;
+            var opened = now - this.lastPassiveAt > TreeLeftMs;
+            this.lastPassiveAt = now;
+            if (this.resume == null || this.CharacterName?.Invoke() is not { Length: > 0 } character)
+            {
+                return;
+            }
+
+            var id = this.PassiveIdOf(record);
+            if (opened)
+            {
+                this.openedOn = record;
+                if (buildNext == null && this.finder.Target == IntPtr.Zero && this.resume.Get(character) is { } last && last != id &&
+                    graph.Elements.Keys.FirstOrDefault(other => this.PassiveIdOf(other) == last) is var back && back != IntPtr.Zero)
+                {
+                    this.finder.Return(back);
+                    this.returnTaken = allocated.Count;
+                }
+
+                return;
+            }
+
+            if (record != this.openedOn)
+            {
+                this.openedOn = IntPtr.Zero;
+                this.resume.Set(character, id);
+            }
         }
 
         /// <summary>The pushes from one node to another, the direction alone when it is too far to count; null for a node with no place.</summary>

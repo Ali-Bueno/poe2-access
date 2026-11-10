@@ -149,6 +149,7 @@ namespace Poe2Accessibility.Services
             var text = Announcements.PassiveNode(node.Name, node.Kind, string.Join(", ", new[] { stateWords, buildWord }.Where(part => part.Length > 0)));
 
             // One guide at a time: the finder's target takes the place of the build's next node.
+            this.NoteTreePlace(graph, record, allocated, next);
             var guide = hovered ? this.GuideAt(graph, record, allocated, marked, next) : GuideSay.None;
 
             // Before the game builds the tooltip the name and state are said alone; stats, then links, follow with it.

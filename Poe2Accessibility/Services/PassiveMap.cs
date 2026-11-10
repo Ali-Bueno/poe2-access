@@ -167,6 +167,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The cursor has been on the target, which is not taken yet: the guide leads to the nodes to take for it.</summary>
         public bool Taking { get; private set; }
 
+        /// <summary>The target is where the cursor was when the tree was last left: landing there ends the guide, nothing to take.</summary>
+        public bool Returning { get; private set; }
+
         /// <param name="step">+1 next, -1 previous.</param>
         /// <param name="members">A list's nodes, nearest first; an empty list is passed over.</param>
         public void ChangeCategory(int step, Func<PassiveCategory, IReadOnlyList<IntPtr>> members)
@@ -178,7 +181,7 @@ namespace Poe2Accessibility.Services
                 if (this.Category == PassiveCategory.Position || list.Count > 0)
                 {
                     this.Target = list.Count > 0 ? list[0] : IntPtr.Zero;
-                    this.Taking = false;
+                    (this.Taking, this.Returning) = (false, false);
                     return;
                 }
             }
@@ -192,7 +195,7 @@ namespace Poe2Accessibility.Services
             {
                 var at = members.ToList().IndexOf(this.Target);
                 this.Target = members[at < 0 ? 0 : Wrap(at + step, members.Count)];
-                this.Taking = false;
+                (this.Taking, this.Returning) = (false, false);
             }
         }
 
@@ -206,7 +209,7 @@ namespace Poe2Accessibility.Services
                 return false;
             }
 
-            if (toTake)
+            if (toTake && !this.Returning)
             {
                 this.Taking = true;
             }
@@ -218,8 +221,11 @@ namespace Poe2Accessibility.Services
             return true;
         }
 
-        /// <summary>Ends the guide: the target was taken.</summary>
-        public void Drop() => (this.Target, this.Taking) = (IntPtr.Zero, false);
+        /// <summary>Ends the guide: the target was taken, or reached on the way back.</summary>
+        public void Drop() => (this.Target, this.Taking, this.Returning) = (IntPtr.Zero, false, false);
+
+        /// <summary>Leads back to where the cursor was when the tree was last left; the D-pad's lists start again from Position.</summary>
+        public void Return(IntPtr node) => (this.Category, this.Target, this.Taking, this.Returning) = (PassiveCategory.Position, node, false, true);
 
         private static int Wrap(int index, int count) => ((index % count) + count) % count;
     }

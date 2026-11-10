@@ -205,6 +205,12 @@ build it keeps to the build's nodes. Nothing is allocated for you. Back at the f
 cursor is on the tree ("Position: down right, outer ring, 7 points away") and drops the target. While a target is chosen
 it takes the place of the build's "Next in the build" line. Y centres the view on what you have allocated.
 
+**Where you left off:** the game opens the tree at the class's start. The mod keeps the node each character's cursor was
+last on (`config/passive-resume.txt`, across sessions), and when the tree opens with no Build Planner build leading (the
+build's next node is where you left off then), the guide leads back there: "Where you left off, Attack Speed: down right,
+12", every node counting down to "Back where you left off". Allocating a node elsewhere first, or choosing another target
+with the D-pad, drops it. Ways are counted up to 60 pushes; beyond, the direction is said ("far, up").
+
 The right stick slides the tree under the cursor, which stays in the middle of the screen: each node passing under it
 is read, and on release the view settles on the node in the middle. The links and the finder's ways count
 left-stick pushes: after the right stick, the first left push may land elsewhere than said, and

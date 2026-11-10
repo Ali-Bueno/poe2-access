@@ -279,6 +279,8 @@ namespace Poe2Accessibility
                 this.semantics.TreeFields.Log = message => this.log?.Info(message);
                 this.semantics.Trace = message => this.log.Debug(message);
                 this.semantics.Fields = this.locator.Fields;
+                this.semantics.CharacterName = () => PlayerAlerts.Name(Seats.Followed);
+                this.semantics.PassiveResumeFile = Path.Join(this.DllDirectory, "config", "passive-resume.txt");
                 this.ApplyPassiveTree(this.Settings);
                 this.focus = new FocusTracker(memory, elements, this.locator, this.semantics, this.log);
                 this.narrator = new ScreenNarrator(this.output, this.log, layer => this.semantics?.SelectedTab(layer) ?? string.Empty);

@@ -122,6 +122,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(PassiveZoneNamesTheSideAndRing), PassiveZoneNamesTheSideAndRing);
             Run(nameof(PassiveFinderWalksItsLists), PassiveFinderWalksItsLists);
             Run(nameof(APassiveTrailTakesTheFewestPointsAlongTheBuild), APassiveTrailTakesTheFewestPointsAlongTheBuild);
+            Run(nameof(TheTreeRemembersWhereEachCharacterLeftOff), TheTreeRemembersWhereEachCharacterLeftOff);
             Run(nameof(ObjectSoundsDieAwayPastTheirRange), ObjectSoundsDieAwayPastTheirRange);
             Run(nameof(BuildFilesAreReadWithTheirNotes), BuildFilesAreReadWithTheirNotes);
             Run(nameof(MinionsAreCountedByKind), MinionsAreCountedByKind);
@@ -2366,6 +2367,33 @@ namespace Poe2Accessibility.Tests
             Equal(false, finder.Taking, "another choice is looked at first");
             finder.Drop();
             Equal((IntPtr.Zero, false), (finder.Target, finder.Taking), "taken: the guide ends");
+        }
+
+        private static void TheTreeRemembersWhereEachCharacterLeftOff()
+        {
+            var file = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"passive-resume-{Guid.NewGuid():N}.txt");
+            try
+            {
+                var book = new PassiveResume(file);
+                Equal(true, book.Get("yarkey") == null, "nothing yet");
+                book.Set("yarkey", "attributes20");
+                book.Set("malgdhler", "spell_criticals7");
+                book.Set("yarkey", "jewel_slot1970");
+                var again = new PassiveResume(file);
+                Equal("jewel_slot1970", again.Get("yarkey"), "the last place, after a restart");
+                Equal("spell_criticals7", again.Get("malgdhler"), "each character its own");
+            }
+            finally
+            {
+                System.IO.File.Delete(file);
+            }
+
+            var finder = new PassiveFinder();
+            var place = (IntPtr)7;
+            finder.Return(place);
+            Equal((place, true, PassiveCategory.Position), (finder.Target, finder.Returning, finder.Category), "led back from the start");
+            Equal(true, finder.Arrive(place, true), "landing there");
+            Equal((IntPtr.Zero, false, false), (finder.Target, finder.Returning, finder.Taking), "ends the guide: nothing to take there");
         }
 
         private static void APassiveTrailTakesTheFewestPointsAlongTheBuild()

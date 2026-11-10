@@ -70,6 +70,12 @@ namespace Poe2Accessibility
         /// <summary>The build's next node, before the way to it.</summary>
         public static string BuildNextGoal(string name) => T("Next in the build: ", "Siguiente de la build: ") + name;
 
+        /// <summary>Opening the passive tree, the way back to where the cursor was last: "Where you left off, Attack Speed: down right, 12".</summary>
+        public static string ResumeGoal(string name) => T($"Where you left off, {name}", $"Donde lo dejaste, {name}");
+
+        /// <summary>The cursor is back where it was when the tree was last left.</summary>
+        public static string ResumeArrived => T("Back where you left off", "Estás donde lo dejaste");
+
         /// <summary>The finder's target was taken.</summary>
         public static string PassiveGot(string name) => T($"You have {name}", $"Ya tienes {name}");
 
