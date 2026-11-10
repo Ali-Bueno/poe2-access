@@ -579,14 +579,25 @@ namespace Poe2Accessibility.Services
 
         private IntPtr VisibleMarkerParent()
         {
-            // An address is a marker only while the element there still is one: a rebuilt screen gives it to another.
-            this.markers.RemoveAll(marker => !this.elements.TryReadElement(marker.Address, out var info) || !this.IsMarker(marker.Address, info, marker.Frame));
-            foreach (var (marker, _) in this.markers)
+            for (var index = 0; index < this.markers.Count; index++)
             {
-                if (this.elements.TryReadElement(marker, out var info) && info.IsVisibleFlag && info.Raw.ParentPtr != IntPtr.Zero &&
+                var (marker, frame) = this.markers[index];
+                if (!this.elements.TryReadElement(marker, out var info))
+                {
+                    this.markers.RemoveAt(index--); // gone with its screen
+                    continue;
+                }
+
+                if (info.IsVisibleFlag && info.Raw.ParentPtr != IntPtr.Zero &&
                     this.elements.TryReadElement(info.Raw.ParentPtr, out var parent) && this.elements.IsVisible(parent))
                 {
-                    return info.Raw.ParentPtr;
+                    if (this.IsMarker(marker, info, frame))
+                    {
+                        return info.Raw.ParentPtr;
+                    }
+
+                    // An address is a marker only while the element there still is one: a rebuilt screen gives it to another.
+                    this.markers.RemoveAt(index--);
                 }
             }
 
