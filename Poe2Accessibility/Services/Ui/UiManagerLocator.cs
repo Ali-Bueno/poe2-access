@@ -137,6 +137,7 @@ namespace Poe2Accessibility.Services
         {
             how = string.Empty;
             var votes = new Dictionary<IntPtr, int>();
+            var (pointers, sawElement) = (new List<IntPtr>(), false);
             // Reads are all-or-nothing and a state object can sit near the end of its heap region (SelectCharacterState
             // 0x1CF0 bytes before an unreadable page, 2026-10-24): read it in chunks so the slots that exist are seen.
             for (var chunk = 0; chunk < GameLayout.StateObjectScanBytes; chunk += ScanChunkBytes)
@@ -144,8 +145,19 @@ namespace Poe2Accessibility.Services
                 var slots = this.reader.ReadArray<IntPtr>(stateObject + chunk, ScanChunkBytes / IntPtr.Size);
                 for (var i = 0; i < slots.Length; i++)
                 {
-                    if (!this.reader.IsValidAddress(slots[i]) || !this.elements.IsElement(slots[i]) ||
-                        !this.reader.TryRead<IntPtr>(slots[i] + GameLayout.Element.ManagerOffset, out var manager) || !this.reader.IsValidAddress(manager))
+                    if (!this.reader.IsValidAddress(slots[i]))
+                    {
+                        continue;
+                    }
+
+                    pointers.Add(slots[i]);
+                    if (!this.elements.IsElement(slots[i]))
+                    {
+                        continue;
+                    }
+
+                    sawElement = true;
+                    if (!this.reader.TryRead<IntPtr>(slots[i] + GameLayout.Element.ManagerOffset, out var manager) || !this.reader.IsValidAddress(manager))
                     {
                         continue;
                     }
@@ -167,6 +179,18 @@ namespace Poe2Accessibility.Services
                     {
                         return manager;
                     }
+                }
+            }
+
+            if (!sawElement)
+            {
+                // A state with UI holds elements. None reading as one means where an element keeps its own address moved,
+                // and every search above starts from an element: the root is looked for by shape, and the next call reads it.
+                if (this.probe.ProbeElementBaseAbove(pointers) is { } root)
+                {
+                    this.log.Info(root == IntPtr.Zero
+                        ? $"Layout: none of the state's {pointers.Count} pointers reads as an element or leads to a UI root"
+                        : $"Layout: none of the state's pointers reads as an element; UI root found by shape at 0x{root.ToInt64():X}");
                 }
             }
 

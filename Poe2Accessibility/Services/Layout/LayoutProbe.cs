@@ -82,6 +82,7 @@ namespace Poe2Accessibility.Services
         private bool elementBaseKnown;
         private long? elementBaseLostAt;
         private readonly Dictionary<IntPtr, long> elementBaseTried = new();
+        private long nextRootSearchAt;
         private bool layerRootsKnown;
         private long layerRootsTriedAt = long.MinValue / 2;
         private FocusSlotCheck? focusCheck;
@@ -143,6 +144,26 @@ namespace Poe2Accessibility.Services
             {
                 this.report.Record(outcome);
             }
+        }
+
+        /// <summary>
+        ///     When none of a state object's <paramref name="pointers"/> reads as an element: looks for the UI root above them
+        ///     by shape alone and judges the element base on it, so base fields a patch moved are found before any screen was
+        ///     read (the screens before the game have no other way to a root). Tried again only after a while.
+        /// </summary>
+        /// <returns>The root found, zero when none; null when it was not looked for this time.</returns>
+        public IntPtr? ProbeElementBaseAbove(IReadOnlyList<IntPtr> pointers)
+        {
+            var now = Environment.TickCount64;
+            if (this.elementBaseKnown || pointers.Count == 0 || now < this.nextRootSearchAt)
+            {
+                return null;
+            }
+
+            this.nextRootSearchAt = now + RetryMs;
+            var root = GameReader.Utils.OffsetHealer.FindUiRootAbove(pointers);
+            this.ProbeElementBase(root);
+            return root;
         }
 
         /// <summary>

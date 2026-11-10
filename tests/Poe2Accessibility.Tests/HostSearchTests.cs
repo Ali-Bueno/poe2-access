@@ -33,6 +33,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ElementBaseFieldsWhereMeasuredStayThere), ElementBaseFieldsWhereMeasuredStayThere),
             (nameof(ElementBaseGroupsFollowTheShiftThatFits), ElementBaseGroupsFollowTheShiftThatFits),
             (nameof(AnElementOfAnotherSizeIsNoRoot), AnElementOfAnotherSizeIsNoRoot),
+            (nameof(TheRootIsReachedFromAnyElementWhateverItsLayout), TheRootIsReachedFromAnyElementWhateverItsLayout),
             (nameof(TheFocusIsTheSlotThatTakesEachElementFirst), TheFocusIsTheSlotThatTakesEachElementFirst),
             (nameof(AVitalThatGrewInsideIsReadAgain), AVitalThatGrewInsideIsReadAgain),
             (nameof(AGroundItemLeadsToAnItem), AGroundItemLeadsToAnItem),
@@ -289,6 +290,32 @@ namespace Poe2Accessibility.Tests
             var measured = UiElementFields.Measured;
             var (memory, root) = UiTree(measured, 1920);
             Equal(-1, new UiElementLayoutSearch(memory).Find(root, measured).Size, "an element 1920 wide is no root");
+        }
+
+        private static void TheRootIsReachedFromAnyElementWhateverItsLayout()
+        {
+            var measured = UiElementFields.Measured;
+            foreach (var shift in new[] { 0, 8, 0x18 })
+            {
+                // Self, children and parent all moved: nothing reads as an element where measured.
+                var moved = new UiElementFields(measured.Self + shift, measured.Children + shift, measured.Parent + shift, measured.Position + shift, measured.Flags + shift, measured.Size + shift);
+                var (memory, root) = UiTree(moved);
+                var search = new UiElementLayoutSearch(memory);
+                Equal(root, search.RootAbove(root + 0x4000), $"from a grandchild, fields moved {shift:X}");
+                Equal(root, search.RootAbove(root + 0x2000), "from a layer");
+                Equal(root, search.RootAbove(root), "the root is its own top");
+                Equal(moved, search.Find(search.RootAbove(root + 0x4000), measured), "and the fields are judged on the root found");
+            }
+
+            var (plain, top) = UiTree(measured);
+            plain.Blocks[Heap + 0x900000] = new byte[UiElementLayoutSearch.BlockBytes];
+            Equal(0L, new UiElementLayoutSearch(plain).RootAbove(Heap + 0x900000), "an object that does not hold its own address is no element");
+            Equal(0L, new UiElementLayoutSearch(plain).RootAbove(Heap + 0x123450), "memory that cannot be read");
+
+            // An element that points at another one which does not list it: no parent, so it is its own top.
+            var orphan = top + 0x9000;
+            Element(plain, measured, orphan, top, Array.Empty<long>(), true, 100);
+            Equal(orphan, new UiElementLayoutSearch(plain).RootAbove(orphan), "a parent is one that lists the element among its children");
         }
 
         /// <summary>A UI root laid out as <paramref name="at"/> says, with three layers (one hidden) and a grandchild.</summary>

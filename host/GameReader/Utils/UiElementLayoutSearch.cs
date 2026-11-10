@@ -49,6 +49,10 @@ namespace GameReader.Utils
         private const int ChildrenChecked = 8;
         private const int NodesWalked = 300;
 
+        // An element keeps its own address right after its vtable (measured at 8); looked for this far in.
+        private const int SelfWindow = 0x40;
+        private const int MaxDepth = 64;
+
         private static readonly int Modifier = Offset(nameof(UiElementBaseOffset.PositionModifier)) - Offset(nameof(UiElementBaseOffset.RelativePosition));
         private static readonly int Scale = Offset(nameof(UiElementBaseOffset.LocalScaleMultiplier)) - Offset(nameof(UiElementBaseOffset.RelativePosition));
         private static readonly int ScaleIndex = Offset(nameof(UiElementBaseOffset.ScaleIndex)) - Offset(nameof(UiElementBaseOffset.Flags));
@@ -81,6 +85,44 @@ namespace GameReader.Utils
             var position = shifts.Select(shift => near.Position + shift).FirstOrDefault(at => IsRootPosition(block, at), -1);
             var flags = children < 0 ? -1 : shifts.Select(shift => near.Flags + shift).FirstOrDefault(at => this.IsVisibleFlag(block, root, children, self, at), -1);
             return new UiElementFields(self, children, parent, position, flags, size);
+        }
+
+        /// <summary>
+        ///     The top of the element tree <paramref name="candidate"/> is in, without knowing where an element keeps its fields:
+        ///     an element holds its own address near its start, and its parent is an object of the same kind that lists it among
+        ///     the elements of one of its vectors. Zero when <paramref name="candidate"/> is no such object. This is the way to a
+        ///     root when the fields moved before any root was seen, and nothing reads as an element (<see cref="Find"/> then
+        ///     judges the root found).
+        /// </summary>
+        public long RootAbove(long candidate)
+        {
+            var body = this.Block(candidate);
+            var self = -1;
+            for (var at = 0; at < SelfWindow && self < 0; at += Pointer)
+            {
+                self = body.Length > 0 && Long(body, at) == candidate ? at : -1;
+            }
+
+            if (self < 0)
+            {
+                return 0;
+            }
+
+            var seen = new HashSet<long> { candidate };
+            var current = candidate;
+            for (var depth = 0; depth < MaxDepth; depth++)
+            {
+                var parent = this.ParentOf(current, self, seen);
+                if (parent == 0)
+                {
+                    return current;
+                }
+
+                seen.Add(parent);
+                current = parent;
+            }
+
+            return 0;
         }
 
         private static int Offset(string field) => Marshal.OffsetOf<UiElementBaseOffset>(field).ToInt32();
@@ -131,6 +173,30 @@ namespace GameReader.Utils
             var children = this.Children(address, at);
             return children.Length > 0 && children.Take(ChildrenChecked).All(child =>
                 this.Block(child) is { Length: > 0 } body && Long(body, self) == child && Long(body, parent) == address);
+        }
+
+        /// <summary>The object <paramref name="element"/> points at that holds its own address at <paramref name="self"/> and lists it in a vector.</summary>
+        private long ParentOf(long element, int self, HashSet<long> seen)
+        {
+            var body = this.Block(element);
+            for (var at = 0; at + Pointer <= body.Length; at += Pointer)
+            {
+                var pointed = Long(body, at);
+                if (seen.Contains(pointed) || this.Block(pointed) is not { Length: > 0 } other || Long(other, self) != pointed)
+                {
+                    continue;
+                }
+
+                for (var vector = 0; vector + (3 * Pointer) <= other.Length; vector += Pointer)
+                {
+                    if (Array.IndexOf(this.Children(pointed, vector), element) >= 0)
+                    {
+                        return pointed;
+                    }
+                }
+            }
+
+            return 0;
         }
 
         /// <summary>The root carries the visible bit and its scale index; of the elements under it some do and some do not.</summary>

@@ -441,6 +441,12 @@ What else remains is by design:
 - A structure redesigned rather than shifted (a component split in two, a list that becomes a map): its readings stop and the mod
   says so. No search can promise more; what it promises is that the common patch costs nothing, and that the rest is heard, not
   guessed from silence.
+- The screens before the game reach the UI through an element the state object holds, and an element is told by where it keeps
+  its own address. Should a patch move that, nothing read as an element and the base search never got a root to judge. Now a
+  state with no pointer that reads as an element has its pointers climbed by shape alone (`UiElementLayoutSearch.RootAbove`: an
+  object that holds its own address in its first 0x40 bytes, whose parent is one of the same kind that lists it in a vector),
+  and the element base is judged on the root reached (`LayoutProbe.ProbeElementBaseAbove`, every 10 s until judged; log
+  `UI root found by shape`). Tested on synthetic trees only: no build has moved the self pointer yet.
 - Three byte patterns are left, for the two statics the mod reads: `Game States` has a proof and a search, `GameCullSize` (the
   window cull the UI rects use) a second pattern and a plausibility check (above). The four nothing read (`File Root`,
   `AreaChangeCounter`, the two terrain rotation ones) were removed on 2026-11-10; broken on purpose on 2026-11-06 they had cost

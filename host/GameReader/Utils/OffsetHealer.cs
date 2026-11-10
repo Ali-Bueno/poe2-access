@@ -362,6 +362,34 @@ namespace GameReader.Utils
             };
         }
 
+        /// <summary>
+        ///     The UI root above the first of <paramref name="pointers"/> that is an element, told without the element base fields
+        ///     (<see cref="UiElementLayoutSearch.RootAbove"/>); zero when none leads to a root. For when nothing reads as an
+        ///     element: the fields moved and no root was known to judge them on.
+        /// </summary>
+        public static IntPtr FindUiRootAbove(IEnumerable<IntPtr> pointers)
+        {
+            // An object that holds its own address costs a climb (hundreds of reads); a state without UI has few, but not none.
+            const int MaxClimbs = 16;
+            var search = new UiElementLayoutSearch(new GameMemory(Core.Process.Handle));
+            var climbs = 0;
+            foreach (var pointer in pointers)
+            {
+                var root = search.RootAbove(pointer.ToInt64());
+                if (root != 0 && search.Find(root, UiElementFields.Measured) is { Self: >= 0, Size: >= 0 })
+                {
+                    return new IntPtr(root);
+                }
+
+                if (root != 0 && ++climbs >= MaxClimbs)
+                {
+                    break;
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+
         /// <summary>Reads the game state object's stack and state list from where <paramref name="found"/> says; their outcomes.</summary>
         internal static IReadOnlyList<StructOutcome> PlaceGameStates(GameStateFields found)
         {
