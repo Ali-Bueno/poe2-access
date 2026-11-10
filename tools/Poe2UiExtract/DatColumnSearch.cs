@@ -101,7 +101,7 @@ internal sealed class DatColumnSearch
     ///     latter; <paramref name="known"/> checks the target row of a row the caller can name.
     /// </summary>
     public int Key(DatTable table, string name, int measured, DatTable target, int after = -1, (int Row, Func<long, bool> Holds)? known = null) =>
-        this.Checking(name, known?.Row).Find(table, name, measured, offset => IsKey(table, offset, target.RowCount) && (known is not { Row: >= 0 } check || check.Holds(table.Key(check.Row, offset))), after);
+        this.Checking(name, known?.Row).Find(table, name, measured, offset => IsKey(table, offset, target.RowCount, wide: !ReferenceEquals(table, target)) && (known is not { Row: >= 0 } check || check.Holds(table.Key(check.Row, offset))), after);
 
     /// <summary>A list column of keys into <paramref name="target"/>: every item of every row a row of the target, some row with items.</summary>
     public int KeyList(DatTable table, string name, int measured, DatTable target, int after = -1, (int Row, Func<IReadOnlyList<long>, bool> Holds)? known = null) =>
@@ -165,10 +165,16 @@ internal sealed class DatColumnSearch
         return table.RowCount > 0 && strings >= table.RowCount * TextShare && filled > 0;
     }
 
-    public static bool IsKey(DatTable table, int offset, int targetRows)
+    /// <summary>
+    ///     Whether every row holds a null key or a row of the target at <paramref name="offset"/>, one at least the latter.
+    ///     A key into another table is <paramref name="wide"/>: 16 bytes, its second half zero (a null key's, null). Without
+    ///     that the search, which takes the nearest offset that fits, took the zero half of the key before a moved column,
+    ///     or a byte into it, for the column: both read as small row numbers on every row.
+    /// </summary>
+    public static bool IsKey(DatTable table, int offset, int targetRows, bool wide = false)
     {
         using var probe = DatTable.Probe();
-        if (offset < 0 || offset + sizeof(long) > table.RowSize)
+        if (offset < 0 || offset + (wide ? WideKeyBytes : sizeof(long)) > table.RowSize)
         {
             return false;
         }
@@ -177,6 +183,11 @@ internal sealed class DatColumnSearch
         for (var row = 0; row < table.RowCount; row++)
         {
             var key = table.Int64(row, offset);
+            if (wide && table.Raw64(row, offset + sizeof(long)) != (key == NullKey ? NullKey : 0))
+            {
+                return false;
+            }
+
             if (key == NullKey)
             {
                 continue;
@@ -192,6 +203,9 @@ internal sealed class DatColumnSearch
 
         return resolving > 0;
     }
+
+    /// <summary>A key into another table: the row, then eight bytes the game leaves zero.</summary>
+    private const int WideKeyBytes = 2 * sizeof(long);
 
     public static bool IsKeyList(DatTable table, int offset, int targetRows)
     {
