@@ -155,7 +155,7 @@ namespace Poe2Accessibility.Services
             this.missedAt[field] = now;
             this.misses[field] = this.misses.GetValueOrDefault(field) + 1;
             if (field != InGameField.BindDisplay && this.misses[field] >= MissesToReport &&
-                (this.elementSeen || this.Absent(field).Against(this.heldArea.Address.ToInt64())))
+                (this.elementSeen || (this.heldArea.Hash.Length > 0 && this.Absent(field).Against(LossWitnesses.AreaKey(this.heldArea.Address.ToInt64(), this.heldArea.Hash)))))
             {
                 this.report.Missing(Part(field));
             }

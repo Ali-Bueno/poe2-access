@@ -128,7 +128,7 @@ namespace Poe2Accessibility.Services
 
             // Twenty readings in one area are one witness (an Actor being rebuilt, an entry of a kind not met before): a
             // second area must read none either.
-            var area = GameReader.Core.States.InGameStateObject.CurrentAreaInstance.Address.ToInt64();
+            var area = AreaWitness();
             if (area != this.entriesArea)
             {
                 (this.entriesArea, this.unreadEntries) = (area, 0);
@@ -152,7 +152,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var area = GameReader.Core.States.InGameStateObject.CurrentAreaInstance.Address.ToInt64();
+            var area = AreaWitness();
             if (!this.idLink.Observe(area, this.Cooldowns(actor).Select(entry => entry.Id).ToList(), this.skillIds))
             {
                 return;
@@ -168,6 +168,13 @@ namespace Poe2Accessibility.Services
                 this.log.Warn($"Layout: skill ids NOT FOUND: no cooldown entry names one of the {this.skillIds.Count} listed skills, in two areas");
                 this.Report.Missing(EntriesPart);
             }
+        }
+
+        /// <summary>The area now, as a witness: its instance's address and hash (the address alone can be the next area's too).</summary>
+        private static long AreaWitness()
+        {
+            var area = GameReader.Core.States.InGameStateObject.CurrentAreaInstance;
+            return LossWitnesses.AreaKey(area.Address.ToInt64(), area.AreaHash);
         }
 
         /// <summary>A new game process: the fields are judged again.</summary>

@@ -29,6 +29,13 @@ namespace Poe2Accessibility.Services
         /// <summary>The part was found, or a new game process began: what spoke against it no longer counts.</summary>
         public void Clear() => this.against.Clear();
 
+        /// <summary>
+        ///     One witness per loaded area: its instance's address with its hash. The address alone is not an area: the game can
+        ///     load the next one into the instance it already had, and a rule that waits for "a second area" would then never
+        ///     see one and never say its loss.
+        /// </summary>
+        public static long AreaKey(long address, string? hash) => address ^ ((long)System.StringComparer.Ordinal.GetHashCode(hash ?? string.Empty) << 20);
+
         /// <summary>One witness for a set of things (a batch of entities, a screen's controls), whatever their order.</summary>
         public static long KeyOf(IEnumerable<long> members)
         {
