@@ -87,6 +87,24 @@ internal sealed record GameDataStamp(string Install, IReadOnlyDictionary<string,
     public bool IsCurrent(string install, string step, int version) =>
         this.Install == install && this.Steps.TryGetValue(step, out var done) && done == version;
 
+    /// <summary>
+    ///     Whether the step's file in GameData was made at this version from this install. A step given up on is stamped
+    ///     without one: the file there is an earlier version's, and must not go over the copy the package ships.
+    /// </summary>
+    public bool Made(string install, string step, int version) =>
+        this.IsCurrent(install, step, version) && !(this.GaveUp.TryGetValue(step, out var givenUpAt) && givenUpAt == version);
+
+    /// <summary>
+    ///     This stamp after a step ran: stamped when it worked, a failed start counted when an optional one failed by
+    ///     itself, and unchanged (the same object) otherwise. A failure by <paramref name="sharedCause"/> (the bundle index
+    ///     would not open) is every step's at once and none's own: counted, three such starts gave every optional step up
+    ///     for the game build, and they stayed so once the index opened again.
+    /// </summary>
+    public GameDataStamp After(string install, string step, int version, bool optional, string? error, string sharedCause) =>
+        error is null ? this.With(install, step, version)
+        : optional && error != sharedCause ? this.WithFailure(install, step, version)
+        : this;
+
     /// <summary>This stamp with one more step done on the given install; a different install forgets the other steps.</summary>
     public GameDataStamp With(string install, string step, int version)
     {
