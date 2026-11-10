@@ -33,6 +33,17 @@ namespace Poe2Accessibility.Services
         /// <summary>The graph's ids are usable once most records gave one: a tree whose rows were not readable yet judges nothing.</summary>
         public static bool IdsUsable(int ids, int records) => records > 0 && ids * 2 >= records;
 
+        /// <summary>
+        ///     The ids a list may hold once the game's files give the graph's (<see cref="PassiveTreeCatalog.GraphIds"/>): every
+        ///     node of the files, and what the rows in memory add, the ids of the nodes a class sees in others' place.
+        /// </summary>
+        public static IReadOnlySet<int> AllIds(IReadOnlySet<int> fromFiles, IReadOnlySet<int> fromRows)
+        {
+            var all = new HashSet<int>(fromFiles);
+            all.UnionWith(fromRows);
+            return all;
+        }
+
         /// <summary>What the list where measured says; <paramref name="list"/> is null when no list reads there.</summary>
         public static AllocatedVerdict Judge(IReadOnlyCollection<int>? list, IReadOnlySet<int> known)
         {

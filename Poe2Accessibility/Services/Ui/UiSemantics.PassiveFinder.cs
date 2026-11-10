@@ -331,15 +331,16 @@ namespace Poe2Accessibility.Services
             return $"{Announcements.StickDirections[octant]}, {Announcements.PassiveRing(ring)}, {cost}";
         }
 
-        /// <summary>Every drawn node with its row and links, by the index of <see cref="PassivePlaces"/>, read once per tree state.</summary>
+        /// <summary>Every drawn node with its row and links, by the index of <see cref="PassivePlaces"/>, read once per set of places.</summary>
         private PassiveAtlas AtlasOf(PassiveGraph graph)
         {
-            if (this.passiveAtlas is { } cached && cached.State == graph.State)
+            // Its indexes are the places': made again (an ascendancy shown since), the atlas is too.
+            var places = this.PlacesOf(graph);
+            if (this.passiveAtlas is { } cached && ReferenceEquals(cached.Places, places))
             {
                 return cached;
             }
 
-            var places = this.PlacesOf(graph);
             var nodes = new PassiveNodeRow[places.Positions.Length];
             var links = new int[nodes.Length][];
             foreach (var (record, index) in places.Index)

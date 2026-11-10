@@ -43,7 +43,7 @@ namespace Poe2Accessibility.Services
         private readonly HostMemoryReader reader;
         private readonly UiElementReader elements;
         private readonly Func<IntPtr, bool> isNodeRecord;
-        private readonly Func<IntPtr, int?> graphIdOf;
+        private readonly Func<IntPtr, (int? Own, int? Shown)> graphIdsOf;
         private readonly int measuredFile = GameLayout.PassiveTree.StateGraphFileOffset;
         private readonly int measuredContent = GameLayout.PassiveTree.GraphContentOffset;
         private readonly int measuredEdges = GameLayout.PassiveTree.EdgeListOffset;
@@ -54,17 +54,70 @@ namespace Poe2Accessibility.Services
         private bool allocatedKnown;
         private Task<HashSet<int>>? graphIds;
 
-        public PassiveTreeFields(HostMemoryReader reader, UiElementReader elements, Func<IntPtr, bool> isNodeRecord, Func<IntPtr, int?> graphIdOf)
+        /// <param name="graphIdsOf">A record's graph id and that of the row its class sees in its place; called off the frame thread.</param>
+        public PassiveTreeFields(HostMemoryReader reader, UiElementReader elements, Func<IntPtr, bool> isNodeRecord, Func<IntPtr, (int? Own, int? Shown)> graphIdsOf)
         {
             this.reader = reader;
             this.elements = elements;
             this.isNodeRecord = isNodeRecord;
-            this.graphIdOf = graphIdOf;
+            this.graphIdsOf = graphIdsOf;
         }
 
         public CompatibilityReport? Report { get; set; }
 
         public Action<string>? Log { get; set; }
+
+        /// <summary>Every graph id the game's files give the tree (<see cref="PassiveTreeCatalog"/>); empty without the catalog.</summary>
+        public Func<IReadOnlySet<int>>? FileIds { get; set; }
+
+        /// <summary>Nodes compared before the files and the rows in memory are said to agree or not: a screenful of the tree.</summary>
+        private const int NodesCompared = 64;
+
+        private readonly CatalogCrossCheck nodeCheck = new(NodesCompared);
+        private bool linksCompared;
+        private bool edgesFromFiles;
+
+        /// <summary>Whether a node of this Id is still to be compared with its row in memory (<see cref="NoteNode"/>).</summary>
+        public bool WantsNode(string passiveId) => this.nodeCheck.Wants(passiveId);
+
+        /// <summary>
+        ///     One node read from the files and from its row; <paramref name="difference"/> null when they agree. Logged once
+        ///     when enough were compared; when most differ the row's columns are not where they are read (or the catalog is
+        ///     another build's), said as any column nothing judged is.
+        /// </summary>
+        public void NoteNode(string passiveId, string? difference)
+        {
+            if (this.nodeCheck.Note(passiveId, difference) is not { } verdict)
+            {
+                return;
+            }
+
+            if (verdict.Disagreeing == 0)
+            {
+                this.Log?.Invoke($"Passive tree catalog: the game files and the rows in memory agree on {verdict.Compared} nodes");
+                return;
+            }
+
+            this.Log?.Invoke($"Passive tree catalog: the game files and the rows in memory DISAGREE on {verdict.Disagreeing} of {verdict.Compared} nodes (first {verdict.First}); the files' are said");
+            if (verdict.MostDisagree)
+            {
+                this.Report?.Missing(DatColumns.UnjudgedPart);
+            }
+        }
+
+        /// <summary>The files' links set beside the graph's edge list in memory, once per game process: a log line, nothing said.</summary>
+        public void NoteLinks(int compared, int differing, string first)
+        {
+            if (this.linksCompared || compared == 0)
+            {
+                return;
+            }
+
+            this.linksCompared = true;
+            this.Log?.Invoke(differing == 0
+                ? $"Passive tree catalog: the game files' links and the graph in memory agree on {compared} nodes"
+                : $"Passive tree catalog: the game files' links and the graph in memory DISAGREE on {differing} of {compared} nodes (first {first}); the files' are used");
+        }
 
         /// <summary>The state's graph file, or zero; a state whose file is not where measured is searched once for it.</summary>
         public IntPtr GraphFile(IntPtr state, bool search)
@@ -101,8 +154,9 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     The graph's edge list (edge pointers, each {from record, to record}); null when it cannot be found. The list must hold
         ///     at least half as many edges as the canvas draws groups (<paramref name="drawnGroups"/>): the floor scales with the tree.
+        ///     With <paramref name="filesStandIn"/> the game files' links are read in its place, so a list not found is logged, not said.
         /// </summary>
-        public StdVector? Edges(IntPtr graphFile, int drawnGroups)
+        public StdVector? Edges(IntPtr graphFile, int drawnGroups, bool filesStandIn = false)
         {
             var minEdges = Math.Max(1, drawnGroups / GroupsPerEdgeFloor);
             if (this.EdgesAt(graphFile, GameLayout.PassiveTree.GraphContentOffset, GameLayout.PassiveTree.EdgeListOffset, minEdges) is { } edges)
@@ -134,6 +188,14 @@ namespace Poe2Accessibility.Services
 
             this.edgesKnown = true;
             this.Log?.Invoke($"Passive tree links where measured: {this.DescribeEdges(graphFile, GameLayout.PassiveTree.GraphContentOffset, GameLayout.PassiveTree.EdgeListOffset)}");
+            if (filesStandIn)
+            {
+                // The tree still reads: only the edge list's order, the stick step's second source, is gone.
+                this.edgesFromFiles = true;
+                this.Log?.Invoke("Passive tree links: not found in memory; the game files' links are read, and the stick's order comes from each node's own lists");
+                return null;
+            }
+
             this.Report?.Missing("passive tree links");
             return null;
         }
@@ -158,8 +220,9 @@ namespace Poe2Accessibility.Services
 
             if (this.graphIds == null)
             {
+                // Both ids of each record: a node its class sees another in place of may stand in the list under either.
                 var snapshot = records.ToList();
-                this.graphIds = Task.Run(() => snapshot.Select(this.graphIdOf).Where(id => id != null).Select(id => id!.Value).ToHashSet());
+                this.graphIds = Task.Run(() => snapshot.Select(this.graphIdsOf).SelectMany(ids => new[] { ids.Own, ids.Shown }).Where(id => id != null).Select(id => id!.Value).ToHashSet());
                 return;
             }
 
@@ -169,8 +232,13 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var ids = this.graphIds.Result;
-            if (!AllocatedListCheck.IdsUsable(ids.Count, records.Count))
+            IReadOnlySet<int> ids = this.graphIds.Result;
+            if (this.FileIds?.Invoke() is { Count: > 0 } fromFiles)
+            {
+                // The files give every node of the graph, read or not; the rows add the ids of the nodes shown in others' place.
+                ids = AllocatedListCheck.AllIds(fromFiles, ids);
+            }
+            else if (!AllocatedListCheck.IdsUsable(ids.Count, records.Count))
             {
                 // The rows were not readable when the ids were gathered: gathered again, nothing judged on a partial set.
                 this.graphIds = null;
@@ -312,11 +380,14 @@ namespace Poe2Accessibility.Services
             (GameLayout.PassiveTree.RecordInEdgesOffset, GameLayout.PassiveTree.RecordOutEdgesOffset) = this.measuredRecordEdges;
             (this.graphEdges, this.recordEdges, this.recordEdgesKnown) = (null, null, false);
             (this.edgesRetryAt, this.edgesFailures, this.allocatedRetryAt, this.allocatedFailures, this.nextWideFileAt) = (0, 0, 0, 0, 0);
+            this.nodeCheck.Reset();
+            (this.linksCompared, this.edgesFromFiles) = (false, false);
         }
 
         /// <summary>Research (dev command "layout"): which of the tree's fields have been judged.</summary>
         public string SelfTest() =>
-            $"passive tree graph {(this.fileKnown ? "ok" : "not judged yet")}; links {(this.edgesKnown ? "ok" : "not judged yet")}; allocations {(this.allocatedKnown ? "ok" : "not judged yet (needs an allocated node)")}; " +
+            $"passive tree graph {(this.fileKnown ? "ok" : "not judged yet")}; links {(this.edgesFromFiles ? "from the game files (not found in memory)" : this.edgesKnown ? "ok" : "not judged yet")}; allocations {(this.allocatedKnown ? "ok" : "not judged yet (needs an allocated node)")}; " +
+            $"catalog nodes {(this.nodeCheck.Done ? "compared" : "not compared yet")}; " +
             $"node links {(this.recordEdgesKnown ? $"judged (+0x{GameLayout.PassiveTree.RecordInEdgesOffset:X}, +0x{GameLayout.PassiveTree.RecordOutEdgesOffset:X})" : "not judged yet")}";
 
         private IntPtr? IsGraphFile(IntPtr state, int offset) =>

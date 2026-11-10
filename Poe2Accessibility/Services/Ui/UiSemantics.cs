@@ -45,7 +45,10 @@ namespace Poe2Accessibility.Services
             this.elements = elements;
             this.catalog = catalog;
             this.comboBoxes = comboBoxes;
-            this.TreeFields = new PassiveTreeFields(reader, elements, record => this.PassiveRow(record) != null, this.GraphIdOf);
+            this.TreeFields = new PassiveTreeFields(reader, elements, record => this.PassiveRow(record) != null, this.GraphIdsOf)
+            {
+                FileIds = () => PassiveTreeCatalog.Shared.GraphIds,
+            };
         }
 
         /// <summary>The passive tree's state and graph fields, found again after a game update.</summary>

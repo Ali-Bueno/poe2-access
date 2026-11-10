@@ -32,6 +32,8 @@ namespace Poe2Accessibility.Tests
             (nameof(TheShippedPassiveTreeHoldsTogether), TheShippedPassiveTreeHoldsTogether),
             (nameof(ASkillIsNamedByItsGrantedEffect), ASkillIsNamedByItsGrantedEffect),
             (nameof(TheShippedGemsHoldTogether), TheShippedGemsHoldTogether),
+            (nameof(TheTwoSourcesAreComparedOnce), TheTwoSourcesAreComparedOnce),
+            (nameof(TheAllocatedListIsJudgedByEveryIdOfTheFiles), TheAllocatedListIsJudgedByEveryIdOfTheFiles),
         };
 
         /// <summary>The repository's shipped catalog file, found from the test's folder upwards; null away from the repository.</summary>
@@ -147,6 +149,40 @@ namespace Poe2Accessibility.Tests
             Equal("Hielo", gems.TagName("cold", "es"), "a tag");
             Equal(null, gems.TagName("intelligence", "es"), "a tag the game shows no name for");
             Equal("Nova de hielo", gems.GemName("Metadata/Items/Gem/SkillGemIceNova", "es"), "the gem");
+        }
+
+        private static void TheTwoSourcesAreComparedOnce()
+        {
+            var check = new CatalogCrossCheck(3);
+            Equal(true, check.Wants("a"), "a node not compared yet");
+            Equal(null, check.Note("a", null), "one node says nothing yet");
+            Equal(false, check.Wants("a"), "each node once");
+            Equal(null, check.Note("a", "its name"), "and a second look at it does not count");
+            Equal(null, check.Note("b", "the row's name reads 'x'"), "two");
+            var verdict = check.Note("c", null);
+            Equal(true, verdict is { Compared: 3, Disagreeing: 1 }, "the verdict comes with the third node");
+            Equal("b: the row's name reads 'x'", verdict!.Value.First, "and names the first that differed");
+            Equal(false, verdict.Value.MostDisagree, "one in three is a renamed node, not a moved column");
+            Equal(true, check.Done, "given once");
+            Equal(false, check.Wants("d"), "nothing more is read for it");
+            Equal(null, check.Note("d", "its name"), "nor counted");
+            check.Reset();
+            Equal(true, check.Wants("a"), "a new game process compares again");
+            check.Note("a", "x");
+            check.Note("b", "x");
+            Equal(true, check.Note("c", null)!.Value.MostDisagree, "two in three: one source reads another column");
+        }
+
+        private static void TheAllocatedListIsJudgedByEveryIdOfTheFiles()
+        {
+            var files = PassiveTreeCatalog.Parse(Tree).GraphIds;
+            var rows = new HashSet<int> { 10, 9000 }; // the rows read so far, one of them a class's own node (no node of the graph)
+            var all = AllocatedListCheck.AllIds(files, rows);
+            Equal(7, all.Count, "the files' six and the override's");
+            Equal(AllocatedVerdict.Kept, AllocatedListCheck.Judge(new[] { 12, 13, 9000 }, all), "nodes whose rows were never read, and the node shown in another's place");
+            Equal(AllocatedVerdict.Unjudged, AllocatedListCheck.Judge(new[] { 12, 13, 9000 }, rows), "the rows alone could not tell");
+            Equal(true, AllocatedListCheck.Strong(new[] { 11, 12, 9000 }, all), "such a list may take the measured one's place");
+            Equal(AllocatedVerdict.Broken, AllocatedListCheck.Judge(Enumerable.Range(20000, 12).ToList(), all), "a list of no node at all is another list");
         }
 
         /// <summary>
