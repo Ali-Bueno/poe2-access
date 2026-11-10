@@ -53,7 +53,10 @@ internal sealed class ProjectileColumns
     public int ProjectileSpeed, TargetLocation;
 
     /// <summary>The tables the columns are in.</summary>
-    public sealed record Tables(DatTable Stats, DatTable Skills, DatTable StatSets, DatTable ActiveSkills, DatTable SkillTypes, DatTable Spells, DatTable Attacks, DatTable Projectiles);
+    public sealed record Tables(DatTable Stats, DatTable Skills, DatTable StatSets, DatTable ActiveSkills, DatTable SkillTypes, DatTable Spells, DatTable Attacks, DatTable Projectiles)
+    {
+        public void Each(Action<DatTable> act) => Array.ForEach(new[] { this.Stats, this.Skills, this.StatSets, this.ActiveSkills, this.SkillTypes, this.Spells, this.Attacks, this.Projectiles }, act);
+    }
 
     public static ProjectileColumns? Find(Tables t)
     {

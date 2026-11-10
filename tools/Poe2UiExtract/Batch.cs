@@ -36,6 +36,8 @@ internal static class Batch
         ["trial-data"] = (_, index, output) => TrialDataExtractor.Run(index, output),
         ["inline-icons"] = (_, index, output) => InlineIconExtractor.Run(index, output),
         ["boss-mechanics"] = (_, index, output) => BossMechanicsExtractor.Run(index, output),
+        ["gems"] = (_, index, output) => GemExtractor.Run(index, output),
+        ["passive-tree"] = (_, index, output) => PassiveTreeExtractor.Run(index, output),
     };
 
     /// <param name="pairs">Command and output file, repeated.</param>
@@ -49,10 +51,10 @@ internal static class Batch
             return 1;
         }
 
-        Index index;
+        IndexLease lease;
         try
         {
-            index = SharedBundles.OpenParsed(gameDir);
+            lease = SharedBundles.OpenParsed(gameDir);
         }
         catch (Exception error)
         {
@@ -61,7 +63,8 @@ internal static class Batch
             return BundleIndexCheck.ExitCode;
         }
 
-        using var opened = index;
+        using var opened = lease;
+        var index = lease.Index;
         using var slots = new SemaphoreSlim(Math.Max(1, MaxParallel));
         var runs = pairs.Chunk(2).Select(pair => Task.Run(() =>
         {
@@ -85,12 +88,15 @@ internal static class Batch
         var part = output + Extractor.BatchPartSuffix;
         var watch = Stopwatch.StartNew();
         using var capture = Say.StartCapture();
+        var audit = DatColumnAudit.Start();
+        var formats = GameFormats.Start();
         string? thrown = null;
         int code;
         try
         {
             File.Delete(part);
             code = Commands[command](gameDir, index, part);
+            code = code == 0 && !(audit.Report(command) & formats.Report(command)) ? 1 : code;
         }
         catch (Exception error)
         {

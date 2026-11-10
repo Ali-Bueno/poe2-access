@@ -23,15 +23,119 @@ internal sealed class SharedBundles : IBundleFactory
         var copy = new MemoryStream();
         file.CopyTo(copy);
         copy.Position = 0;
+        CheckHeader(copy.GetBuffer().AsSpan(0, (int)Math.Min(copy.Length, BundleIndexCheck.HeaderBytes)), copy.Length);
         return new Index(copy, false, false, new SharedBundles(directory));
     }
 
-    /// <summary>The install's index with its paths parsed (a few never parse, a known PoE2 quirk: their count is printed).</summary>
-    public static Index OpenParsed(string gameDir)
+    /// <summary>Refuses an index file whose container is not the one the library reads, before the library is handed it.</summary>
+    internal static void CheckHeader(ReadOnlySpan<byte> head, long fileLength)
     {
+        if (BundleIndexCheck.HeaderProblem(head, fileLength) is { } problem)
+        {
+            throw new InvalidDataException($"the bundle index is not the container this reader knows: {problem}");
+        }
+    }
+
+    private static readonly object KeepGate = new();
+    private static Index? keptIndex;
+    private static string? keptDirectory;
+    private static int keptLeases;
+    private static bool keeping;
+
+    /// <summary>Whether an index is being kept open for the runs to come.</summary>
+    public static bool Keeping
+    {
+        get
+        {
+            lock (KeepGate)
+            {
+                return keeping;
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Until disposed, the index a run opens stays open for the runs after it: the launcher's batch, then its object
+    ///     sounds, which opened and parsed the same index again (about 12 s of each run).
+    /// </summary>
+    public static IDisposable Keep()
+    {
+        lock (KeepGate)
+        {
+            keeping = true;
+        }
+
+        return new Keeper();
+    }
+
+    /// <summary>The install's index with its paths parsed, for one run: the one being kept when there is one, else its own.</summary>
+    public static IndexLease OpenParsed(string gameDir)
+    {
+        var directory = Path.GetFullPath(gameDir);
+        lock (KeepGate)
+        {
+            if (keeping && keptIndex != null && string.Equals(keptDirectory, directory, StringComparison.OrdinalIgnoreCase))
+            {
+                keptLeases++;
+                Say.Out.WriteLine("Index: kept open from the run before this one");
+                return new IndexLease(keptIndex, kept: true);
+            }
+        }
+
+        var index = OpenAndParse(gameDir);
+        lock (KeepGate)
+        {
+            if (keeping && keptIndex == null)
+            {
+                (keptIndex, keptDirectory, keptLeases) = (index, directory, 1);
+                return new IndexLease(index, kept: true);
+            }
+        }
+
+        return new IndexLease(index, kept: false);
+    }
+
+    /// <summary>A run is done with a kept index: it is closed once nothing keeps it and no run still reads it.</summary>
+    internal static void Return()
+    {
+        lock (KeepGate)
+        {
+            keptLeases--;
+            CloseKeptWhenFree();
+        }
+    }
+
+    private static void CloseKeptWhenFree()
+    {
+        if (!keeping && keptLeases <= 0 && keptIndex != null)
+        {
+            keptIndex.Dispose();
+            (keptIndex, keptDirectory, keptLeases) = (null, null, 0);
+            GameContent.CloseAll();
+        }
+    }
+
+    private sealed class Keeper : IDisposable
+    {
+        public void Dispose()
+        {
+            lock (KeepGate)
+            {
+                keeping = false;
+                CloseKeptWhenFree();
+            }
+        }
+    }
+
+    /// <summary>The install's index with its paths parsed (a few never parse, a known PoE2 quirk: their count is printed).</summary>
+    private static Index OpenAndParse(string gameDir)
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         var index = GameContent.OpenIndex(gameDir);
+        var opened = watch.Elapsed.TotalSeconds;
         var unparsed = index.ParsePaths();
         Say.Out.WriteLine($"ParsePaths failed count: {unparsed}");
+        Say.Out.WriteLine($"Index: opened in {opened:0.0} s, its paths parsed in {watch.Elapsed.TotalSeconds - opened:0.0} s");
         if (BundleIndexCheck.Problem(index.Files.Count, index.Bundles.Length, BundleFiles.Find(index, "data/balance/stats.datc64", "data/stats.datc64") != null, unparsed) is { } problem)
         {
             index.Dispose();
@@ -50,4 +154,33 @@ internal sealed class SharedBundles : IBundleFactory
     public Stream CreateBundle(string bundlePath) => throw new NotSupportedException("The game's bundles are only read.");
 
     public bool DeleteBundle(string bundlePath) => throw new NotSupportedException("The game's bundles are only read.");
+}
+
+/// <summary>An opened index for the length of one run; disposing it closes the index unless it is kept for the next run.</summary>
+internal sealed class IndexLease : IDisposable
+{
+    private readonly bool kept;
+    private bool returned;
+
+    internal IndexLease(Index index, bool kept) => (this.Index, this.kept) = (index, kept);
+
+    public Index Index { get; }
+
+    public void Dispose()
+    {
+        if (this.returned)
+        {
+            return;
+        }
+
+        this.returned = true;
+        if (this.kept)
+        {
+            SharedBundles.Return();
+        }
+        else
+        {
+            this.Index.Dispose();
+        }
+    }
 }

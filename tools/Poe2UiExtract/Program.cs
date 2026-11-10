@@ -24,6 +24,9 @@ public static class Extractor
     /// <summary>What the launcher lists as failed when the bundle index would not open (one entry, not one a step).</summary>
     public const string BundleIndexName = BundleIndexCheck.Name;
 
+    /// <summary>Until disposed, the game's index stays open between the runs made (the batch, then the object sounds).</summary>
+    public static IDisposable KeepIndexOpen() => SharedBundles.Keep();
+
     /// <summary>Runs one command line; the exit code, 0 when it made its output.</summary>
     public static int Run(string[] args)
     {
@@ -35,17 +38,67 @@ public static class Extractor
 
         try
         {
-            return Dispatch(args);
+            // A batch judges each of its steps; a command run alone is judged here, a research aid not at all.
+            var audit = DatColumnAudit.Start();
+            var formats = GameFormats.Start();
+            var code = Dispatch(args);
+            return code == 0 && args.Length > 0 && !ResearchCommands.Contains(args[0]) && !(audit.Report(args[0]) & formats.Report(args[0])) ? 1 : code;
         }
         finally
         {
-            GameContent.CloseAll();
+            if (!SharedBundles.Keeping)
+            {
+                GameContent.CloseAll(); // a kept index may read through the GGPK: it is closed with the index
+            }
+
             ProjectileSpeeds.Release();
         }
     }
 
+    /// <summary>The commands that print for a person and try columns as they go: their reads are not judged.</summary>
+    private static readonly HashSet<string> ResearchCommands = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "paths", "cat", "ot-with", "ao-sounds", "object-links", "dat-strings", "dat-row-strings", "dat-rows", "dat-kinds", "bank-samples", SequenceCommand,
+    };
+
+    private const string SequenceCommand = "sequence";
+    private const string SequenceSeparator = "--";
+
+    /// <summary>Several command lines in one process with the index kept open between them, as the launcher runs them; the worst exit code.</summary>
+    private static int RunSequence(string[] args)
+    {
+        using var kept = KeepIndexOpen();
+        var worst = 0;
+        var line = new List<string>();
+        foreach (var word in args.Skip(1).Append(SequenceSeparator))
+        {
+            if (word != SequenceSeparator)
+            {
+                line.Add(word);
+                continue;
+            }
+
+            if (line.Count > 0)
+            {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                var code = Run(line.ToArray());
+                Say.Out.WriteLine($"{SequenceCommand} {line[0]} exit {code} in {watch.Elapsed.TotalSeconds:0.0} s");
+                worst = Math.Max(worst, code);
+                line.Clear();
+            }
+        }
+
+        return worst;
+    }
+
     private static int Dispatch(string[] args)
     {
+        // Args: sequence <command line> -- <command line> [...]  -- measuring aid: the launcher's runs (batch, sounds, object-sounds) in one process.
+        if (args.Length > 1 && string.Equals(args[0], SequenceCommand, StringComparison.OrdinalIgnoreCase))
+        {
+            return RunSequence(args);
+        }
+
 
         // Args: catalog <uiRootDir> <outJson>  -- parse extracted .ui scripts into a JSON control catalog.
         if (args.Length > 0 && string.Equals(args[0], "catalog", StringComparison.OrdinalIgnoreCase))
@@ -179,6 +232,37 @@ public static class Extractor
             return 0;
         }
 
+        // Args: dat-kinds <gameDir> <table> [language] [id substring | #row,row]  -- research aid: the table laid out by what its
+        // bytes hold, a column a line (text, key, list, flag, runs of numbers), with the first value it has or, given an Id
+        // or row numbers, the values of those rows; the judge the steps' second opinion uses.
+        if (args.Length > 2 && string.Equals(args[0], "dat-kinds", StringComparison.OrdinalIgnoreCase))
+        {
+            using var bundles = OpenLoose(args[1]);
+            var table = args.Length > 3 && args[3] != "english" ? DatTable.OpenTranslated(bundles, args[2], args[3]) : DatTable.Open(bundles, args[2]);
+            if (table == null)
+            {
+                Say.Out.WriteLine($"No table {args[2]}");
+                return 1;
+            }
+
+            Say.Out.WriteLine($"{table.Name}: {table.RowCount} rows of 0x{table.RowSize:X} bytes");
+            var layout = DatColumnKinds.Layout(table).ToList();
+            var rows = args.Length <= 4 ? null
+                : args[4].StartsWith('#') ? args[4][1..].Split(',').Select(int.Parse).Where(row => row >= 0 && row < table.RowCount).ToList()
+                : Enumerable.Range(0, table.RowCount).Where(row => (table.StringOrNull(row, 0) ?? string.Empty).Contains(args[4], StringComparison.OrdinalIgnoreCase)).ToList();
+            foreach (var row in rows ?? new List<int> { -1 })
+            {
+                Say.Out.WriteLine(row < 0 ? "offset\tbytes\tkind\tfirst value" : $"row {row}:");
+                foreach (var (offset, kind, width) in layout)
+                {
+                    var value = row < 0 ? DatColumnKinds.Sample(table, offset, kind, width) : DatColumnKinds.Value(table, row, offset, kind, width);
+                    Say.Out.WriteLine($"+0x{offset:X}\t{width}\t{DatColumnKinds.Name(kind)}\t{value.ReplaceLineEndings(" / ")}");
+                }
+            }
+
+            return 0;
+        }
+
         // Args: dat-row-strings <gameDir> <table> <id substring> [language]  -- research aid: every text column of the rows whose id
         // matches, one "+offset: text" line each.
         if (args.Length > 3 && string.Equals(args[0], "dat-row-strings", StringComparison.OrdinalIgnoreCase))
@@ -304,6 +388,18 @@ public static class Extractor
             return OnIndex(args[1], index => PlaceExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\places.json"));
         }
 
+        // Args: gems <gameDir> [outFile]  -- skill and support gems, their names, tags and skills (docs/research/file-catalogs.md).
+        if (args.Length > 1 && string.Equals(args[0], "gems", StringComparison.OrdinalIgnoreCase))
+        {
+            return OnIndex(args[1], index => GemExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\gems.json"));
+        }
+
+        // Args: passive-tree <gameDir> [outFile]  -- the passive tree's nodes, links, class starts and names from the graph file and PassiveSkills.
+        if (args.Length > 1 && string.Equals(args[0], "passive-tree", StringComparison.OrdinalIgnoreCase))
+        {
+            return OnIndex(args[1], index => PassiveTreeExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\passive-tree.json"));
+        }
+
         // Args: experience <gameDir> [outFile]  -- the total experience each character level starts at.
         if (args.Length > 1 && string.Equals(args[0], "experience", StringComparison.OrdinalIgnoreCase))
         {
@@ -325,22 +421,19 @@ public static class Extractor
         // Args: buff-names <gameDir> <outFile>  -- the display names of buffs per language, { lang: { buff id: name } }.
         if (args.Length > 2 && string.Equals(args[0], "buff-names", StringComparison.OrdinalIgnoreCase))
         {
-            using var bundles = SharedBundles.OpenParsed(args[1]);
-            return BuffNameExtractor.Run(bundles, args[2]);
+            return OnIndex(args[1], index => BuffNameExtractor.Run(index, args[2]));
         }
 
         // Args: currency-art <gameDir> <outFile>  -- the item each currency icon shows, { lang: { art file: name } }.
         if (args.Length > 2 && string.Equals(args[0], "currency-art", StringComparison.OrdinalIgnoreCase))
         {
-            using var bundles = SharedBundles.OpenParsed(args[1]);
-            return CurrencyArtExtractor.Run(bundles, args[2]);
+            return OnIndex(args[1], index => CurrencyArtExtractor.Run(index, args[2]));
         }
 
         // Args: endgame <gameDir> <outFile>  -- map objectives, contents, endgame areas and the Atlas's graphs (docs/research/endgame.md).
         if (args.Length > 2 && string.Equals(args[0], "endgame", StringComparison.OrdinalIgnoreCase))
         {
-            using var bundles = SharedBundles.OpenParsed(args[1]);
-            return EndgameExtractor.Run(bundles, args[2]);
+            return OnIndex(args[1], index => EndgameExtractor.Run(index, args[2]));
         }
 
         // Args: world-titles <gameDir> <outFile>  -- the names objects show only in a WorldDescription, as { lang: { .ot path: title } }.
@@ -409,8 +502,8 @@ public static class Extractor
     /// <summary>Runs a command on the install's index, opened with its paths parsed.</summary>
     private static int OnIndex(string gameDir, Func<Index, int> run)
     {
-        using var index = SharedBundles.OpenParsed(gameDir);
-        return run(index);
+        using var lease = SharedBundles.OpenParsed(gameDir);
+        return run(lease.Index);
     }
 
     /// <summary>The loose Bundles2 index with its paths parsed, for the research commands.</summary>

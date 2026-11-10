@@ -40,6 +40,7 @@ internal static class ProjectileSpeeds
     {
         if (shared is { } cached && cached.Index == index)
         {
+            cached.Tables.Each(DatColumnAudit.Opened); // opened by another step: this one's audit judges what it reads of them too
             return (cached.Tables, cached.Columns);
         }
 

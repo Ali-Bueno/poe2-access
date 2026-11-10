@@ -131,6 +131,8 @@ internal static class GameDataSetup
             }
         }
 
+        // One opened index for the batch and the object sounds after it: opening it twice was 12 s of a first run.
+        using var index = Extractor.KeepIndexOpen();
         var catalogs = steps.Where(step => step.Command is not null && stale.Contains(step.Name)).ToList();
         if (catalogs.Count > 0)
         {

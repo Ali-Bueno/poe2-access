@@ -4,16 +4,23 @@ using Index = LibBundle3.Index;
 internal sealed partial class DatTable
 {
     /// <summary>Opens <c>data/[balance/]&lt;name&gt;.datc64</c> (English); null when the index has no such table.</summary>
-    public static DatTable? Open(Index index, string name)
-    {
-        var file = BundleFiles.Find(index, $"data/balance/{name}.datc64", $"data/{name}.datc64");
-        return file == null ? null : FromBytes(file.Read().ToArray(), file.Path ?? name);
-    }
+    public static DatTable? Open(Index index, string name) => Open(index, $"data/balance/{name}.datc64", $"data/{name}.datc64");
 
     /// <summary>Opens <c>data/[balance/]&lt;language&gt;/&lt;name&gt;.datc64</c>, a translated copy; null when absent.</summary>
-    public static DatTable? OpenTranslated(Index index, string name, string language)
+    public static DatTable? OpenTranslated(Index index, string name, string language) =>
+        Open(index, $"data/balance/{language}/{name}.datc64", $"data/{language}/{name}.datc64");
+
+    /// <summary>The first of the paths the index holds, or null.</summary>
+    private static DatTable? Open(Index index, params string[] paths) => BundleFiles.Find(index, paths) is { } file ? Open(index, file) : null;
+
+    /// <summary>
+    ///     A bundled .datc64 as a table whose reads the running step's audit will judge: a table of its own over bytes read
+    ///     once per index, so each step's reads are its own.
+    /// </summary>
+    public static DatTable Open(Index index, LibBundle3.Records.FileRecord file)
     {
-        var file = BundleFiles.Find(index, $"data/balance/{language}/{name}.datc64", $"data/{language}/{name}.datc64");
-        return file == null ? null : FromBytes(file.Read().ToArray(), file.Path ?? name);
+        var table = FromBytes(BundleFiles.ReadOnce(index, file), file.Path ?? "table");
+        DatColumnAudit.Opened(table);
+        return table;
     }
 }

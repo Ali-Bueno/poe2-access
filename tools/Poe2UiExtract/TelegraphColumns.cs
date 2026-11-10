@@ -49,12 +49,14 @@ internal sealed class TelegraphColumns
     internal const int TriggerRange = 45;
     internal const int TriggerRadius = 40;
     internal const int TriggerAngle = 360;
+    internal const string DelayedSkill = "GTAtziriStormCall";
+    internal const int DelayedTriggerDelay = 1800;
 
     public int GeometryRange, GeometryShape, GeometryLength, GeometryWidth, GeometryAngle, GeometryDelay;
     public int TriggerCountColumn, TriggerDelay, TriggerRangeColumn, TriggerRadiusColumn, TriggerAngleColumn, MortarImpact;
 
     /// <summary>The rows (in the geometry and trigger tables) of the skills with known values, -1 where the table has none.</summary>
-    internal readonly record struct KnownRows(int Cone, int Rectangle, int Trigger);
+    internal readonly record struct KnownRows(int Cone, int Rectangle, int Trigger, int Delayed = -1);
 
     /// <summary>The columns, or null (said) when one was not found.</summary>
     public static TelegraphColumns? Find(DatTable geometry, DatTable triggers, DatTable mortars, DatTable animated, KnownRows known)
@@ -68,7 +70,7 @@ internal sealed class TelegraphColumns
         c.GeometryAngle = Number(search, geometry, "GeometryAttack.Angle", GeometryAngleOffset, c.GeometryWidth, (known.Cone, ConeAngle));
         c.GeometryDelay = Number(search, geometry, "GeometryAttack.Delay", GeometryDelayOffset, c.GeometryAngle, (known.Cone, ConeDelay));
         c.TriggerCountColumn = Number(search, triggers, "GeometryTrigger.Count", TriggerCountOffset, -1, (known.Trigger, TriggerCount));
-        c.TriggerDelay = Number(search, triggers, "GeometryTrigger.Delay", TriggerDelayOffset, c.TriggerCountColumn);
+        c.TriggerDelay = Number(search, triggers, "GeometryTrigger.Delay", TriggerDelayOffset, c.TriggerCountColumn, (known.Delayed, DelayedTriggerDelay));
         c.TriggerRangeColumn = Number(search, triggers, "GeometryTrigger.Range", TriggerRangeOffset, c.TriggerDelay, (known.Trigger, TriggerRange));
         c.TriggerRadiusColumn = Number(search, triggers, "GeometryTrigger.Radius", TriggerRadiusOffset, c.TriggerRangeColumn, (known.Trigger, TriggerRadius));
         c.TriggerAngleColumn = Number(search, triggers, "GeometryTrigger.Angle", TriggerAngleOffset, c.TriggerRadiusColumn, (known.Trigger, TriggerAngle));
@@ -101,7 +103,7 @@ internal sealed class TelegraphColumns
         int Through(string skill, IReadOnlyDictionary<int, int> ids) =>
             DatColumnSearch.RowOf(skills, skill) is var row and >= 0 && ids.TryGetValue(skills.Int32(row, skillIdColumn), out var target) ? target : -1;
 
-        return new KnownRows(Through(ConeSkill, geometryIds), Through(RectangleSkill, geometryIds), Through(TriggerSkill, triggerIds));
+        return new KnownRows(Through(ConeSkill, geometryIds), Through(RectangleSkill, geometryIds), Through(TriggerSkill, triggerIds), Through(DelayedSkill, triggerIds));
     }
 
     private static int Number(DatColumnSearch search, DatTable table, string name, int measured, int after, params (int Row, int Value)[] known) =>

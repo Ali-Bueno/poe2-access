@@ -281,8 +281,8 @@ internal static class SoundExtractor
     {
         if (GameContent.ReadBank(gameDir, name) is not { } bank) { Say.Out.WriteLine($"SKIP bank missing: {name}"); return null; }
 
+        if (Fsb5.Problem(bank) is { } changed) { Say.Out.WriteLine($"SKIP {name}.bank is not the FMOD bank this reader knows: {changed}"); return null; }
         int fsb = bank.AsSpan().IndexOf("FSB5"u8);
-        if (fsb < 0) { Say.Out.WriteLine($"SKIP no FSB5 in {name}"); return null; }
         File.WriteAllBytes(tmp, bank.AsSpan(fsb).ToArray());
 
         if (FMOD_System_CreateSound(sys, tmp, ModeSample, IntPtr.Zero, out var snd) != 0)

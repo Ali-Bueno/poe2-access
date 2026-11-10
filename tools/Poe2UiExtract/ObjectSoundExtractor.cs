@@ -18,7 +18,8 @@ internal static class ObjectSoundExtractor
     public static int Run(string gameDir, string outDir)
     {
         outDir = Path.GetFullPath(outDir);
-        using var index = SharedBundles.OpenParsed(gameDir);
+        using var lease = SharedBundles.OpenParsed(gameDir);
+        var index = lease.Index;
         if (ObjectSoundLinks.Read(index) is not { } links)
         {
             Say.Out.WriteLine("Chests table not found.");

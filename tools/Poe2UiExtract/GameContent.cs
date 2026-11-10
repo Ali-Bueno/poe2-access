@@ -29,7 +29,9 @@ internal static class GameContent
 
         var bundles2 = ggpk.Root["Bundles2"] as DirectoryRecord ?? throw new DirectoryNotFoundException($"No Bundles2 in {GgpkName}");
         var index = bundles2["_.index.bin"] as FileRecord ?? throw new FileNotFoundException($"No Bundles2/_.index.bin in {GgpkName}");
-        return new Index(new MemoryStream(index.Read(), false), false, false, new GgpkBundles(bundles2));
+        var bytes = index.Read();
+        SharedBundles.CheckHeader(bytes.AsSpan(0, Math.Min(bytes.Length, BundleIndexCheck.HeaderBytes)), bytes.Length);
+        return new Index(new MemoryStream(bytes, false), false, false, new GgpkBundles(bundles2));
     }
 
     /// <summary>The bank FMOD/Desktop/<paramref name="name"/>.bank, or null when the install has none by that name.</summary>

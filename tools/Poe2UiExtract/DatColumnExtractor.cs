@@ -6,7 +6,8 @@ using Index = LibBundle3.Index;
 ///     moves them is followed without a new plugin build. A display name is the column that holds a known row's name in the
 ///     English table (<see cref="NameAnchor"/>) and reads as text in a translated copy; flags and keys are found by what they
 ///     hold (<see cref="DatContentColumns"/>). The file's column offset is the row offset in memory, a string or key being as
-///     wide as its pointers. Writes { "Table.Column": offset }; a column not found fails the step.
+///     wide as its pointers. Writes { "Table.Column": offset } and each table's "Table.RowSize", by which the plugin judges
+///     a compiled offset the file does not name; a column not found fails the step.
 /// </summary>
 internal static class DatColumnExtractor
 {
@@ -14,6 +15,7 @@ internal static class DatColumnExtractor
     private static IEnumerable<string> ExpectedColumns => NameAnchor.Written.Select(anchor => anchor.Column).Concat(DatContentColumns.Names);
 
     private const string Translation = "spanish";
+    private const string RowSizeSuffix = ".RowSize";
 
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
     public static int Run(Index index, string outFile)
@@ -47,9 +49,13 @@ internal static class DatColumnExtractor
             return 1;
         }
 
-        if (DatTable.Open(index, "minimapicons") is { } icons)
+        // The row size of every table read: the plugin trusts an offset it compiled only while the table has the size it was measured at.
+        foreach (var table in ExpectedColumns.Select(column => column[..column.IndexOf('.')]).Append("MinimapIcons").Distinct(StringComparer.Ordinal))
         {
-            found["MinimapIcons.RowSize"] = icons.RowSize;
+            if (DatTable.Open(index, table.ToLowerInvariant()) is { } opened)
+            {
+                found[table + RowSizeSuffix] = opened.RowSize;
+            }
         }
 
         File.WriteAllText(outFile, JsonSerializer.Serialize(found, new JsonSerializerOptions { WriteIndented = true }));

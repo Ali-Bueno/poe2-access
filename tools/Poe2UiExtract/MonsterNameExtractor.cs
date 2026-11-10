@@ -18,7 +18,8 @@ internal static class MonsterNameExtractor
 
     public static int Run(string gameDir, string radarFiles, string outFile)
     {
-        using var index = SharedBundles.OpenParsed(gameDir);
+        using var lease = SharedBundles.OpenParsed(gameDir);
+        var index = lease.Index;
         var wholes = RadarNames(radarFiles);
         var wanted = wholes.Concat(RadarPieces(radarFiles)).Distinct().ToList();
         var sources = new List<Source>();

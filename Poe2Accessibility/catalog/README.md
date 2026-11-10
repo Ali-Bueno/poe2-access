@@ -22,12 +22,13 @@ A new catalog needs no change to the project file or the package script, only a 
 | `code-fields.txt` | what the game's code reads, to catch a field a patch moved | by hand ([exe layouts](../../docs/research/exe-layouts.md)) | `CodeFieldCatalog`, tests |
 | `cull-skills.txt` | granted effects that deal Culling Strike | `cull-skills`, start | `CullSkills` |
 | `currency-art.json` | the item each currency icon shows, for prices | `currency-art`, start | `CurrencyIcons` |
-| `dat-columns.json` | the dat columns the plugin reads (all of them, or the step fails and the old file stays) | `dat-columns`, start | `DatColumns` |
+| `dat-columns.json` | the dat columns the plugin reads (all of them, or the step fails and the old file stays) and each table's row size, by which a compiled offset is judged | `dat-columns`, start | `DatColumns` |
 | `dodge-timings.txt` | dodge timings measured in development | by hand, from `BossWatch` "Dodge timing" log lines | `DodgeTimings` (seed) |
 | `endgame.json` | map objectives, contents, the Atlas's graphs | `endgame`, start | `EndgameCatalog` |
 | `experience.json` | the total experience each level starts at | `experience`, start | `ExperienceTable` |
 | `game-ids.txt` | the game's numbers for animations and stats | `game-ids`, start | `GameIds` |
 | `game-keys.txt` | the Ids of the tables a player meets, to tell what a patch added | `game-keys`, start | `GameNews` |
+| `gems.json` | skill and support gems by base item Id: kind, effects, skills, tags, attribute shares; names, tag names, support texts and skill names per language | `gems`, start | none yet ([what would read it](../../docs/research/file-catalogs.md)) |
 | `hazards.txt` | buffs from standing in harmful ground | `hazards`, start | `HazardGround` |
 | `hit-times.txt` | when monster attacks land | `hit-times`, start | `DodgeTimings` |
 | `important_tgt_files.txt` | named tiles (exits) | vendored (formerly GameHelper2's Radar table) | `LandmarkTable` |
@@ -37,6 +38,7 @@ A new catalog needs no change to the project file or the package script, only a 
 | `landmarks.json` | areas `important_tgt_files.txt` lacks, and corrections to it | by hand | `LandmarkTable` |
 | `map-hints.json` | GGG's map cues by area | by hand, from [map hints by act](../../docs/research/map-hints-by-act.md) | `MapHintTable` |
 | `monster-names.json` | the radar's boss names as the game names them | `monster-names` | `LandmarkTable` |
+| `passive-tree.json` | the main passive tree by graph id: PassiveSkills Id and kind, links, class starts; node and class names per language | `passive-tree`, start | none yet ([what would read it](../../docs/research/file-catalogs.md)) |
 | `places.json` | named map pieces and props from the terrain files | `places`, start | `PlaceCatalog` |
 | `semantic-fields.txt` | the code reader's semantic rules, read with `code-fields.txt` | by hand ([exe layouts](../../docs/research/exe-layouts.md)) | code-field check, tests |
 | `telegraph-effects.txt` | the effect files monster skills play, by `.ao` path | `telegraph-effects`, start | none yet |

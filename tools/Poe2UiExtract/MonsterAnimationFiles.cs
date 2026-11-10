@@ -223,6 +223,6 @@ internal sealed class MonsterAnimationFiles
 
     private string? Text(string path)
     {
-        return this.read(path) is { } bytes ? Encoding.Unicode.GetString(bytes).TrimStart('\uFEFF') : null;
+        return this.read(path) is { } bytes ? GameFormats.Decode(bytes, path) : null;
     }
 }
