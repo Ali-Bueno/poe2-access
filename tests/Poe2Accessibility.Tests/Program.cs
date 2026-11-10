@@ -2575,6 +2575,13 @@ namespace Poe2Accessibility.Tests
             Equal(Announcements.TabTitle("1"), FocusDetails.PagePlace("Alijo. " + Announcements.TabTitle("1"), "1"), "a stash item keeps its tab");
             Equal(Announcements.TabTitle("1"), FocusDetails.PagePlace(string.Empty, "1"), "a page focus with no part of its own (options) takes the tab");
             Equal("Gráficos", FocusDetails.PagePlace(string.Empty, "Gráficos"), "a named tab keeps its name");
+
+            // Live 2026-11-10: a merchant opened on the inventory's side said "Inventario. Orbe de caos…" and never its tab.
+            Equal("Armas", FocusDetails.PageBeside("Inventario", "Armas", string.Empty), "a merchant's first tab is named beside the inventory");
+            Equal("Alijo, " + Announcements.TabTitle("1"), FocusDetails.PageBeside("Inventario", "1", "Alijo"), "a numbered tab with its panel's title");
+            Equal(string.Empty, FocusDetails.PageBeside("Alijo. " + Announcements.TabTitle("1"), "1", "Alijo"), "a focus on the page itself is placed by its tab alone");
+            Equal(string.Empty, FocusDetails.PageBeside(string.Empty, "Gráficos", string.Empty), "as is one with no part of its own");
+            Equal("Armas", FocusDetails.PageBeside("Inventario", "Armas", "Inventario"), "the inventory is not the panel beside itself");
         }
 
         private static void WallTonesSwellNearWalls()

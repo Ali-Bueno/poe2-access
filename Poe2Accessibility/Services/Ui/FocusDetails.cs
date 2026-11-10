@@ -28,6 +28,23 @@ namespace Poe2Accessibility.Services
             return focusContext.Length == 0 || focusContext.Split(". ").Contains(title) ? title : focusContext;
         }
 
+        /// <summary>
+        ///     The tabbed page that opened beside the focus's own part, named with its selected tab (a merchant's "Armas",
+        ///     "Alijo, pestaña 1"): said before the focus's part, so the page is known without its tab being taken for where
+        ///     the focus is. Empty when the focus is on the page itself, which <see cref="PagePlace"/> names.
+        /// </summary>
+        /// <param name="sidePanel">The title of the panel beside the inventory, empty when it shows none.</param>
+        public static string PageBeside(string focusContext, string tab, string sidePanel)
+        {
+            var title = Announcements.TabTitle(tab);
+            if (title.Length == 0 || PagePlace(focusContext, tab) == title)
+            {
+                return string.Empty;
+            }
+
+            return sidePanel.Length > 0 && sidePanel != focusContext && !sidePanel.Contains(title, StringComparison.Ordinal) ? $"{sidePanel}, {title}" : title;
+        }
+
         /// <summary>The focus's name alone, as a header over its details ("Terremoto" for "Terremoto, Nivel 1").</summary>
         public static bool Names(string text, string focusText) =>
             text.Length > 0 && (focusText == text || focusText.StartsWith(text + ", ", StringComparison.Ordinal));

@@ -191,7 +191,8 @@ namespace Poe2Accessibility.Services
                 // the selected tab and the focus, as pre-game — never the page's labels. A focus outside the page (the
                 // inventory beside the stash) is said in its own part.
                 this.tabbedLayer = change.Layer.Address;
-                this.Speak("page with focus", Announcements.InContext(FocusDetails.PagePlace(focus?.Context ?? string.Empty, pageTab), this.lastFocusSpeech), true);
+                var pageBeside = FocusDetails.PageBeside(focus?.Context ?? string.Empty, pageTab, this.SidePanel?.Invoke() ?? string.Empty);
+                this.Speak("page with focus", Announcements.Sentences(new[] { pageBeside, FocusDetails.PagePlace(focus?.Context ?? string.Empty, pageTab), this.lastFocusSpeech }), true);
             }
             else if (change.Layer.Address != focusLayer)
             {
@@ -209,9 +210,11 @@ namespace Poe2Accessibility.Services
                 // a focus outside the stock (the inventory) is said in its own part.
                 var shown = Describe(change.Texts.Where(text => !text.IsControl && !IsNumber(text.Text) && !own.Contains(text.Text)));
                 var place = FocusDetails.PagePlace(focus?.Context ?? string.Empty, openedTab);
+                // A merchant opened with the cursor on the inventory: its first tab, then the inventory's item in its own part.
+                var beside = FocusDetails.PageBeside(focus?.Context ?? string.Empty, openedTab, this.SidePanel?.Invoke() ?? string.Empty);
                 this.tabbedLayer = change.Layer.Address;
                 this.lastContext = place == Announcements.TabTitle(openedTab) ? openedTab : place;
-                this.Speak("tabbed panel with focus", Announcements.Sentences(new[] { place, shown, this.lastFocusSpeech }), true);
+                this.Speak("tabbed panel with focus", Announcements.Sentences(new[] { beside, place, shown, this.lastFocusSpeech }), true);
             }
             else if (change.Kind == ScreenChangeKind.LayerOpened && justFocused)
             {
