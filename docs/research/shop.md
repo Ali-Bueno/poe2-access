@@ -64,3 +64,14 @@ with the mod's own element fields (children +0x10, flags +0x168, name +0x98, tex
   is read instead (the same item on a single page; a bundle's contents would be wrong). On entering a category every
   card's name is read once before the highlight is found, without prices ("x3" as "Zoom x3"). A bundle's and a
   variant's page, a discount and the too-few-points line were never shown.
+
+## The guild tab (2026-11-10)
+
+"Hermandad", without a guild (UI dump, 90 visible nodes): `subpage_area` > `Guild` > `subpage_root` > `guild_home_page` >
+`no_guild_tips` with the line `tips_str` "No formas parte de una hermandad" and one button, `create_button` "crear
+hermandad", which holds the game's focus and its `highlight`. Nothing else can be reached, so the D-pad does nothing and
+the mod, having read the page ("Hermandad. Crear hermandad, botón. No formas parte de una hermandad"), stayed silent: the
+owner took it for a page that was not read. A D-pad press that moves nothing now says the control again (`BlockedMove`,
+every menu). The bar adds the guild's points under the account's, `topbar_right_guild` > `gold_icon_guild` >
+`player_guild_points_label` "0" (another name than the account's label, so `ShopBalanceWatch` does not take it). Hints:
+"Seleccionar [A]", "Cerrar [B]". What A on the button opens was not entered.

@@ -424,7 +424,8 @@
   `.PreGame` popups and top layer). `ChatWatcher` reads NPC/system/whisper/party chat lines.
 - Memory layout constants: `GameLayout` (each with provenance). Glyph tables: `ControllerGlyphs`.
 - Research: `UiTreeDumper`/`UiTreeReader`, `ResearchSession`, `FocusResearchLog`, `DevCommandFile`.
-- Controller: `GamepadReader` (pad state M+0x768) → `L3Gestures` → `ModCommands` (menu lines / gameplay).
+- Controller: `GamepadReader` (pad state M+0x768) → `L3Gestures` → `ModCommands` (menu lines / gameplay); a D-pad press that
+  moves nothing says the control again: pure `BlockedMove`, `Poe2AccessibilityCore.WatchBlockedMove` (not heard yet).
 - Local co-op: `Seats` (followed, partner, asking player; `InputSeat` picks whose pad and cursor, `PlayerStride`), `LocalPlayers`,
   `LocalInventories` (player 2's server inventories), `PlayerAlerts` + `SeatOutput` (named per-player news), `CoopDowns`.
 - Scanner: `EntityCatalog` (entries, landmarks, `Describe`; `.Classify` categories and names, `.Terrain` live grid and barriers) → `RoutePlanner` (A*, corners,
