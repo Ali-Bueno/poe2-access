@@ -42,6 +42,8 @@ internal static class GameDataSteps
         new Step("endgame", 3, "endgame.json", "endgame", true),
         new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
         new Step("trial data", 2, "trials.json", "trial-data", true), // 2: the class names of four languages were colour strings
+        new Step("gems", 1, "gems.json", "gems", true),
+        new Step("passive tree", 1, "passive-tree.json", "passive-tree", true),
         new Step(Sounds, 7, null, null, Input: ItemSounds),
     ];
 }

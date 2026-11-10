@@ -36,6 +36,8 @@ internal static class Batch
         ["trial-data"] = (_, index, output) => TrialDataExtractor.Run(index, output),
         ["inline-icons"] = (_, index, output) => InlineIconExtractor.Run(index, output),
         ["boss-mechanics"] = (_, index, output) => BossMechanicsExtractor.Run(index, output),
+        ["gems"] = (_, index, output) => GemExtractor.Run(index, output),
+        ["passive-tree"] = (_, index, output) => PassiveTreeExtractor.Run(index, output),
     };
 
     /// <param name="pairs">Command and output file, repeated.</param>
