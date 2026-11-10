@@ -86,13 +86,14 @@ internal static class Batch
         var watch = Stopwatch.StartNew();
         using var capture = Say.StartCapture();
         var audit = DatColumnAudit.Start();
+        var formats = GameFormats.Start();
         string? thrown = null;
         int code;
         try
         {
             File.Delete(part);
             code = Commands[command](gameDir, index, part);
-            code = code == 0 && !audit.Report(command) ? 1 : code;
+            code = code == 0 && !(audit.Report(command) & formats.Report(command)) ? 1 : code;
         }
         catch (Exception error)
         {

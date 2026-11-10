@@ -30,7 +30,7 @@ internal static class ObjectSoundLinks
 
         var files = index.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(AoExtension, StringComparison.OrdinalIgnoreCase))
             .ToDictionary(file => file.Path!, StringComparer.OrdinalIgnoreCase);
-        string? Text(string path) => files.TryGetValue(path, out var file) ? Encoding.Unicode.GetString(file.Read().ToArray()) : null;
+        string? Text(string path) => files.TryGetValue(path, out var file) ? GameFormats.Noted(path, Encoding.Unicode.GetString(file.Read().Span)) : null;
 
         var known = DatAnchors.Row(table, KnownChest, "Chests' .ao files");
         if (DatContentColumns.Nearest(table, AoFilesColumn, offset => table.IsStringListColumn(offset, text => text.EndsWith(AoExtension, StringComparison.OrdinalIgnoreCase)) &&

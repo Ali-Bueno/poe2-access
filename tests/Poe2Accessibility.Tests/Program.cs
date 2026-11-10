@@ -246,6 +246,7 @@ namespace Poe2Accessibility.Tests
                 PassiveStickTests.All(),
                 DatColumnSearchTests.All(),
                 DatColumnKindTests.All(),
+                GameFormatTests.All(),
                 ExtractorColumnTests.All(),
                 ItemReadingTests.All(),
                 StaticAnchorTests.All(),

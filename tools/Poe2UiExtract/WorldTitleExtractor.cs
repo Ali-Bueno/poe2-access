@@ -54,7 +54,7 @@ internal static class WorldTitleExtractor
         var keys = new SortedDictionary<string, string>(StringComparer.Ordinal);
         foreach (var file in index.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(ObjectExtension, StringComparison.Ordinal)))
         {
-            var title = TitleKey.Match(Encoding.Unicode.GetString(file.Read().ToArray()));
+            var title = TitleKey.Match(GameFormats.Noted(file.Path, Encoding.Unicode.GetString(file.Read().Span)));
             if (title.Success)
             {
                 keys[file.Path![..^ObjectExtension.Length]] = title.Groups[1].Value;

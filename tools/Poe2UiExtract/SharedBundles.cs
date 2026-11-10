@@ -23,7 +23,17 @@ internal sealed class SharedBundles : IBundleFactory
         var copy = new MemoryStream();
         file.CopyTo(copy);
         copy.Position = 0;
+        CheckHeader(copy.GetBuffer().AsSpan(0, (int)Math.Min(copy.Length, BundleIndexCheck.HeaderBytes)), copy.Length);
         return new Index(copy, false, false, new SharedBundles(directory));
+    }
+
+    /// <summary>Refuses an index file whose container is not the one the library reads, before the library is handed it.</summary>
+    internal static void CheckHeader(ReadOnlySpan<byte> head, long fileLength)
+    {
+        if (BundleIndexCheck.HeaderProblem(head, fileLength) is { } problem)
+        {
+            throw new InvalidDataException($"the bundle index is not the container this reader knows: {problem}");
+        }
     }
 
     /// <summary>The install's index with its paths parsed (a few never parse, a known PoE2 quirk: their count is printed).</summary>

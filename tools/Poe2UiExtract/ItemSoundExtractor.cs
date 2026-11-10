@@ -43,6 +43,12 @@ internal static partial class ItemSoundExtractor
             return 1;
         }
 
+        if (Fsb5.Problem(bank) is { } changed)
+        {
+            Say.Out.WriteLine($"FMOD/Desktop/{Bank}.bank is not the FMOD bank this reader knows: {changed}");
+            return 1;
+        }
+
         var items = DatTable.Open(index, "baseitemtypes");
         var visuals = DatTable.Open(index, "itemvisualidentity");
         var sounds = DatTable.Open(index, "soundeffects");

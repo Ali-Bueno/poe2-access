@@ -91,7 +91,7 @@ internal static partial class PlaceExtractor
                 tiles[path] = kind;
             }
 
-            if (byPath.TryGetValue(path[..^4] + ".tmd", out var tmd) && Props(Text(tmd.Read().ToArray()), out _) is { Count: > 0 } props)
+            if (byPath.TryGetValue(path[..^4] + ".tmd", out var tmd) && Props(Text(tmd.Read().ToArray(), tmd.Path), out _) is { Count: > 0 } props)
             {
                 tileProps[path] = props;
             }
@@ -100,7 +100,7 @@ internal static partial class PlaceExtractor
         var rooms = new List<object>();
         foreach (var (path, file) in byPath.Where(pair => pair.Key.EndsWith(".arm", StringComparison.Ordinal)))
         {
-            var props = Props(Text(file.Read().ToArray()), out var anchors);
+            var props = Props(Text(file.Read().ToArray(), path), out var anchors);
             if (props.Count > 0 && anchors.Count > 0)
             {
                 rooms.Add(new { arm = path, anchors, props });
@@ -130,10 +130,10 @@ internal static partial class PlaceExtractor
         return null;
     }
 
-    private static string Text(byte[] data) =>
+    private static string Text(byte[] data, string? path) => GameFormats.Noted(path,
         data.Length >= 2 && data[0] == 0xFF && data[1] == 0xFE ? Encoding.Unicode.GetString(data, 2, data.Length - 2)
         : data.Length >= 2 && data[1] == 0 ? Encoding.Unicode.GetString(data)
-        : Encoding.UTF8.GetString(data);
+        : Encoding.UTF8.GetString(data));
 
     /// <summary>Named props of a .tmd or .arm ([x, y, kind], one per kind and spot) and the room's anchors.</summary>
     private static List<object[]> Props(string text, out List<object[]> anchors)

@@ -7,7 +7,7 @@ using Index = LibBundle3.Index;
 internal static class BundleFiles
 {
     /// <summary>A bundled UTF-16 text file (.ao, .ot, ...), its byte-order mark dropped.</summary>
-    public static string ReadText(this FileRecord file) => Encoding.Unicode.GetString(file.Read().ToArray()).TrimStart('\uFEFF');
+    public static string ReadText(this FileRecord file) => GameFormats.Decode(file.Read().Span, file.Path);
 
     private static readonly ConditionalWeakTable<Index, Dictionary<string, FileRecord>> Cache = new();
     private static readonly object Gate = new();

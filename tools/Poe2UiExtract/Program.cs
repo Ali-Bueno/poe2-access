@@ -37,8 +37,9 @@ public static class Extractor
         {
             // A batch judges each of its steps; a command run alone is judged here, a research aid not at all.
             var audit = DatColumnAudit.Start();
+            var formats = GameFormats.Start();
             var code = Dispatch(args);
-            return code == 0 && args.Length > 0 && !ResearchCommands.Contains(args[0]) && !audit.Report(args[0]) ? 1 : code;
+            return code == 0 && args.Length > 0 && !ResearchCommands.Contains(args[0]) && !(audit.Report(args[0]) & formats.Report(args[0])) ? 1 : code;
         }
         finally
         {
