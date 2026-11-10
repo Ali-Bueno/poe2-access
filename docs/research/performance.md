@@ -205,6 +205,13 @@ another. The reads rose a little with the gem and Build Planner readings added t
 regenerates every catalog took 33.8 s with every step succeeding. **No fight was measured**: the comparison with the old
 905 reads and 30 slow frames a minute is still to make at the next boss (`Frames:` in `Poe2Access.log`, then `costs`).
 
+**Measured in fights** (the owner on malgdhler, Druid 8, with another player, 2026-11-10 14:22 to 14:30: the Devourer and
+three ritual bosses; research dumps off): 396 to 530 reads a frame, 1,1 to 1,5 ms a frame (reader 0,5 to 0,75, plugin 0,5 to
+0,65), 0 to 2 frames a minute over 16,7 ms with the slowest at 17,8 ms, `GC` 33 to 47 / 3 to 6 / 0 or 1 with 30 to 46 ms
+paused a minute, 11 to 14 % of one core. The plugin log had no warning or error and one `Slow tick` (the pad). Against the
+old fight figures (905 reads, 30 slow frames a minute) the reads are about half and the slow frames all but gone. It is a
+low-level fight with few monsters: a late-game pack is still to measure.
+
 **Looked at and left** (each would need a live proof first):
 
 - *The local player as two entities* (`AreaInstance.Player` and its entry in `AwakeEntities`): nothing compares entities by
