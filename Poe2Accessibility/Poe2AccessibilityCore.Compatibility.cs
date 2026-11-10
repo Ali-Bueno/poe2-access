@@ -367,7 +367,15 @@ namespace Poe2Accessibility
             this.log?.Info(reading.SemanticError is { } error ? $"Semantic fields unread: {error}"
                 : Tally("Semantic fields", reading.Semantic, reading.SemanticMilliseconds, semanticMoves)
                     + (disagree.Count == 0 ? string.Empty : $"; disagree, left where they are: {string.Join(", ", disagree)}"));
-            if (stuck)
+            // A field neither reading settles keeps its constant, right or wrong: on the build the catalogs were made for every
+            // one settles, so this is a patch that changed the code around it, and many of these fields have no other check.
+            var unsettled = CodeFieldCatalog.Unsettled(read);
+            if (unsettled.Count > 0)
+            {
+                this.log?.Warn($"Code fields: {unsettled.Count} read by neither the signatures nor the rules, their constants stand unchecked: {string.Join(", ", unsettled)}");
+            }
+
+            if (stuck || unsettled.Count > 0)
             {
                 this.compatibility?.Missing(CodeFieldsPart);
             }

@@ -3460,6 +3460,14 @@ namespace Poe2Accessibility.Tests
 
             var moved = new (CodeFieldEntry, int?)[] { (new CodeFieldEntry("Area.Player", "AreaInstanceOffsets:PlayerInfo", 0x5B8, none), 0x5C0) };
             Equal(1, CodeFieldCatalog.Settle(code, moved).Disagree.Count, "the code and the rules reading one field apart");
+            Equal(0, CodeFieldCatalog.Unsettled(settled).Count, "every field read: nothing stands unchecked");
+            Equal("Area.Player", string.Join(",", CodeFieldCatalog.Unsettled(CodeFieldCatalog.Settle(code, moved).Settled)), "two readings apart settle nothing");
+
+            // One source misses and the other reads: settled. Both miss: the constant stands unchecked.
+            var missed = new (CodeFieldEntry, int?)[] { (new CodeFieldEntry("Area.Player", "AreaInstanceOffsets:PlayerInfo", 0x5B8, none), null) };
+            Equal(0, CodeFieldCatalog.Unsettled(CodeFieldCatalog.Settle(code, missed).Settled).Count, "the signatures read what the rule missed");
+            var blind = new (CodeFieldEntry, int?)[] { (new CodeFieldEntry("Chest.Opened", "ChestOffsets:IsOpened", 0x168, none), null) };
+            Equal("Chest.Opened", string.Join(",", CodeFieldCatalog.Unsettled(CodeFieldCatalog.Settle(blind, missed).Settled.Where(field => field.Entry.Name != "Area.Player"))), "read by nothing");
         }
 
         private static void LayoutOverridesCountOnlyForTheirBuild()

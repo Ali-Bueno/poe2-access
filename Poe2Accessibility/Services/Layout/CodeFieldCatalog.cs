@@ -138,6 +138,10 @@ namespace Poe2Accessibility.Services
             return (settled, disagree);
         }
 
+        /// <summary>The fields of a settled reading that nothing read, or that two sources read differently, by name.</summary>
+        public static IReadOnlyList<string> Unsettled(IEnumerable<(CodeFieldEntry Entry, int? Found)> settled) =>
+            settled.Where(read => read.Found == null).Select(read => read.Entry.Name).Distinct().ToList();
+
         /// <summary>Where the code reads each entry; an entry it does not settle has no value.</summary>
         public static IReadOnlyList<(CodeFieldEntry Entry, int? Found)> Read(ReadOnlySpan<byte> code, IReadOnlyList<CodeFieldEntry> entries)
         {

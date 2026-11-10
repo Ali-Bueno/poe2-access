@@ -19,14 +19,19 @@ namespace Poe2Accessibility
         /// </summary>
         private void LogAreaRows()
         {
+            if (this.memoryReader is not { } memory)
+            {
+                return;
+            }
+
             var game = Core.States.InGameStateObject;
             var chain = game.CurrentWorldInstance.AreaDetails.Address;
             var area = game.CurrentAreaInstance.Address;
-            var direct = area != IntPtr.Zero && this.memoryReader.TryRead<IntPtr>(area + AreaInstanceAreaRowOffset, out var row) ? row : IntPtr.Zero;
-            string Id(IntPtr at) => at != IntPtr.Zero && this.memoryReader.TryRead<IntPtr>(at, out var text) ? this.elements?.ReadUtf16BufferAt(text, 64) ?? "?" : "-";
+            var direct = area != IntPtr.Zero && memory.TryRead<IntPtr>(area + AreaInstanceAreaRowOffset, out var row) ? row : IntPtr.Zero;
+            string Id(IntPtr at) => at != IntPtr.Zero && memory.TryRead<IntPtr>(at, out var text) ? this.elements?.ReadUtf16BufferAt(text, 64) ?? "?" : "-";
             var world = game.CurrentWorldInstance.Address;
-            var details = world != IntPtr.Zero && this.memoryReader.TryRead<IntPtr>(world + 0x98, out var held) ? held : IntPtr.Zero;
-            var detailsRow = details != IntPtr.Zero && this.memoryReader.TryRead<IntPtr>(details + 0x98, out var rowHeld) ? rowHeld : IntPtr.Zero;
+            var details = world != IntPtr.Zero && memory.TryRead<IntPtr>(world + 0x98, out var held) ? held : IntPtr.Zero;
+            var detailsRow = details != IntPtr.Zero && memory.TryRead<IntPtr>(details + 0x98, out var rowHeld) ? rowHeld : IntPtr.Zero;
             this.log?.Info($"Area rows: WorldData chain 0x{chain.ToInt64():X} ({Id(chain)}), [AreaInstance+0x{AreaInstanceAreaRowOffset:X}] 0x{direct.ToInt64():X} ({Id(direct)}), " +
                            $"{(chain == direct && chain != IntPtr.Zero ? "the same row" : "DIFFERENT")}; WorldData 0x{world.ToInt64():X}, [+0x98] 0x{details.ToInt64():X}, " +
                            $"[[+0x98]+0x98] 0x{detailsRow.ToInt64():X} ({Id(detailsRow)})");
