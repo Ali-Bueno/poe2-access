@@ -8,8 +8,27 @@ namespace Poe2Accessibility.Services
     ///     Geometry and timing of the guide beacon (D2R beacon.md): where along the route the ping points, how far is
     ///     left and how often it sounds. Pure: grid cells in, numbers out.
     /// </summary>
+    /// <summary>What became of a guide's target that is no longer listed (<see cref="BeaconMath.Gone"/>).</summary>
+    public enum GoneTarget
+    {
+        Unknown,
+        Reached,
+        LostFromView,
+    }
+
     public static class BeaconMath
     {
+        /// <summary>
+        ///     What a locked target that is no longer listed means: within <paramref name="nearWorld"/> of the player, a
+        ///     thing that goes when used (a chest opened, an item picked up, a portal taken, a quest's object) was reached;
+        ///     a creature or anything else only left view (it hid, burrowed, died or walked off). Farther away, or for a
+        ///     named place, nothing is known: the guide goes on to where it was.
+        /// </summary>
+        public static GoneTarget Gone(ScanEntry goal, bool isEntity, float distanceWorld, float nearWorld) =>
+            !isEntity || distanceWorld > nearWorld ? GoneTarget.Unknown
+            : goal.CanVanish && goal.Category is not (ScanCategory.Enemies or ScanCategory.Npcs or ScanCategory.Players) ? GoneTarget.Reached
+            : GoneTarget.LostFromView;
+
         /// <summary>D2R: 160 ms when close, 1200 ms when far, linear in the route left.</summary>
         public const int NearIntervalMs = 160;
         public const int FarIntervalMs = 1200;

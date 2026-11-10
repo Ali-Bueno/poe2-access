@@ -18,6 +18,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AClockInTheFocusedRowStaysQuiet), AClockInTheFocusedRowStaysQuiet),
             (nameof(AMovedItemIsNamedAsItWasWhenItLeft), AMovedItemIsNamedAsItWasWhenItLeft),
             (nameof(AGroundTooltipIsItsOwnItems), AGroundTooltipIsItsOwnItems),
+            (nameof(AVanishedTargetIsReachedOnlyIfUsingItRemovesIt), AVanishedTargetIsReachedOnlyIfUsingItRemovesIt),
         };
 
         private static void ANumberChangingUnderTheCursorIsSaidAlone()
@@ -97,6 +98,23 @@ namespace Poe2Accessibility.Tests
             Equal("Long Staff, rare", GroundTooltip.Name(new[] { "Fierce Long Staff of Impact", "Long Staff" }, null, Array.Empty<GroundTooltip.Item>(), Remembered), "a picked-up item's late tooltip, by its base line");
             Equal(string.Empty, GroundTooltip.Name(new[] { "Gold" }, null, new[] { gold, gold }, Remembered), "gold says nothing, however many piles");
             Equal(null, GroundTooltip.Name(new[] { "New checkpoint" }, three, new[] { three }, Remembered), "a text that is no item's");
+        }
+
+        /// <summary>The guide's target stops being listed 300 units away: a chest was opened, a boss only hid.</summary>
+        private static void AVanishedTargetIsReachedOnlyIfUsingItRemovesIt()
+        {
+            const float Near = 600f;
+            ScanEntry Entry(ScanCategory category, string kind = "", bool questMarked = false) => new(7, category, "x", 0, 0, 0, kind, QuestMarked: questMarked);
+            Equal(GoneTarget.Reached, BeaconMath.Gone(Entry(ScanCategory.Chests), true, 300f, Near), "a chest opened");
+            Equal(GoneTarget.Reached, BeaconMath.Gone(Entry(ScanCategory.Items), true, 300f, Near), "an item picked up");
+            Equal(GoneTarget.Reached, BeaconMath.Gone(Entry(ScanCategory.Waypoints, ScanEntry.PortalKind), true, 300f, Near), "a portal taken");
+            Equal(GoneTarget.Reached, BeaconMath.Gone(Entry(ScanCategory.Objects, questMarked: true), true, 300f, Near), "a quest object used");
+            Equal(GoneTarget.LostFromView, BeaconMath.Gone(Entry(ScanCategory.Enemies), true, 300f, Near), "a boss that hid, burrowed or died");
+            Equal(GoneTarget.LostFromView, BeaconMath.Gone(Entry(ScanCategory.Enemies, questMarked: true), true, 300f, Near), "the quest boss too");
+            Equal(GoneTarget.LostFromView, BeaconMath.Gone(Entry(ScanCategory.Npcs), true, 300f, Near), "an NPC that left");
+            Equal(GoneTarget.LostFromView, BeaconMath.Gone(Entry(ScanCategory.Waypoints, "checkpoint"), true, 300f, Near), "a checkpoint does not go when used");
+            Equal(GoneTarget.Unknown, BeaconMath.Gone(Entry(ScanCategory.Chests), true, 900f, Near), "far away nothing is known");
+            Equal(GoneTarget.Unknown, BeaconMath.Gone(Entry(ScanCategory.Places), false, 300f, Near), "a named place is not an entity");
         }
     }
 }
