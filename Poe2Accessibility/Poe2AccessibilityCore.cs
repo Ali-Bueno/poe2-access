@@ -179,6 +179,9 @@ namespace Poe2Accessibility
                 GemCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "gems.json"));
                 ItemBaseCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "item-bases.json"));
                 ModTextCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "mod-texts.json"));
+                // The build's gear lines name bases and modifiers through these; empty catalogs leave the author's own words.
+                BuildGear.Bases = ItemBaseCatalog.Shared;
+                BuildGear.Texts = ModTextCatalog.Shared;
                 this.compatibility = new CompatibilityReport(this.log);
                 // The columns still read at a compiled offset nothing judged: known as soon as the catalogs are, whatever is read first.
                 DatColumns.Report(this.compatibility);

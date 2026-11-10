@@ -88,7 +88,6 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\BuildPlanFolder.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GemNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GemCatalog.cs" />
-    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GearCatalogs.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemBaseCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ModTextCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ModTextVariation.cs" />
