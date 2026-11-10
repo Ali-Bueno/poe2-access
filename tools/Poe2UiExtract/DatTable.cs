@@ -99,7 +99,7 @@ internal sealed partial class DatTable
     internal int RawByte(int row, int offset) => offset >= 0 && offset < this.RowSize ? this.data[this.RowStart(row) + offset] : -1;
 
     /// <summary>8 bytes of the variable section at a position counted from its marker; -1 past its end.</summary>
-    internal long Pool64(long position) => position >= 0 && this.varStart + position + 8 <= this.data.Length ? BitConverter.ToInt64(this.data, this.varStart + (int)position) : -1;
+    internal long Pool64(long position) => position >= 0 && position <= this.VarLength - 8 ? BitConverter.ToInt64(this.data, this.varStart + (int)position) : -1;
 
     /// <summary>A list column of strings: a count, then where in the variable section its string offsets start.</summary>
     public IReadOnlyList<string> StringList(int row, int offset)
@@ -302,8 +302,15 @@ internal sealed partial class DatTable
     /// <summary>Whether a variable-section offset is the first character of a string: past the marker and after a NUL pair.</summary>
     internal bool IsStringStart(long value)
     {
-        var at = this.varStart + value;
-        return value >= Marker.Length && at < this.data.Length && (value == Marker.Length || (this.data[at - 1] == 0 && this.data[at - 2] == 0));
+        // Against the section's length, never added to its start: the 8 bytes a search tries at every offset can be any
+        // number, and one near the top of the range wrapped the sum to a negative place and threw, failing the step.
+        if (value < Marker.Length || value >= this.VarLength)
+        {
+            return false;
+        }
+
+        var at = this.varStart + (int)value;
+        return value == Marker.Length || (this.data[at - 1] == 0 && this.data[at - 2] == 0);
     }
 
     /// <summary>Byte positions of a list column's items; none when the count or position is implausible.</summary>
@@ -316,7 +323,7 @@ internal sealed partial class DatTable
 
         var count = BitConverter.ToInt64(this.data, this.RowStart(row) + offset);
         var start = BitConverter.ToInt64(this.data, this.RowStart(row) + offset + 8);
-        if (count is <= 0 or > MaxListItems || start < 0 || this.varStart + start + (count * itemSize) > this.data.Length)
+        if (count is <= 0 or > MaxListItems || start < 0 || start > this.VarLength - (count * itemSize))
         {
             yield break;
         }
@@ -330,7 +337,7 @@ internal sealed partial class DatTable
     internal const int MaxListItems = 4096;
 
     /// <summary>Whether the string at a variable-section offset has any character.</summary>
-    internal bool IsFilledString(long value) => this.varStart + value + 1 < this.data.Length && (this.data[this.varStart + value] != 0 || this.data[this.varStart + value + 1] != 0);
+    internal bool IsFilledString(long value) => value >= 0 && value < this.VarLength - 1 && (this.data[this.varStart + (int)value] != 0 || this.data[this.varStart + (int)value + 1] != 0);
 
     private string ReadString(long offset)
     {

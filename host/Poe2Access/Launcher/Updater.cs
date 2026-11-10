@@ -15,7 +15,6 @@ internal static class Updater
 {
     public const string VersionFile = "version.txt";
     private const string LauncherExe = "Poe2Access.exe";
-    private const string IncomingSuffix = ".new"; // a file written beside its target before it replaces it
     private const int NotesShown = 1500;
     private const int LeftoverTries = 10;
     private const int LeftoverWaitMilliseconds = 300;
@@ -27,6 +26,7 @@ internal static class Updater
     private const int AnswerYes = 6;
     private static readonly TimeSpan CheckTimeout = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan DownloadTimeout = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan DownloadQuiet = TimeSpan.FromSeconds(60); // the package's body, which the client's timeout does not cover
 
     /// <summary>The player's own settings, kept over the package's defaults.</summary>
     private static readonly string[] KeptFolders = { Path.Join("app", "Plugins", "Poe2Accessibility", "config") };
@@ -35,7 +35,7 @@ internal static class Updater
 
     private static string WorkRoot => Path.Join(Path.GetTempPath(), "Poe2AccessUpdate");
 
-    private static string OldLauncher => Path.Join(InstallRoot, LauncherExe + ".old");
+    private static string OldLauncher => Path.Join(InstallRoot, LauncherExe + PackageInstall.OldSuffix);
 
     private static string SettingsPath(AppFolders folders) => Path.Join(folders.Plugin("Poe2Accessibility"), "config", "settings.txt");
 
@@ -209,7 +209,14 @@ internal static class Updater
             response.EnsureSuccessStatusCode();
             using var download = response.Content.ReadAsStream();
             using var file = File.Create(zip);
-            download.CopyTo(file);
+            try
+            {
+                PackageInstall.Download(download, file, DownloadQuiet);
+            }
+            catch (TimeoutException)
+            {
+                throw new IOException(Text("the download stopped, no data for a minute", "la descarga se detuvo, un minuto sin datos"));
+            }
         }
 
         using (var file = File.OpenRead(zip))
@@ -227,102 +234,11 @@ internal static class Updater
             .FirstOrDefault(folder => folder is not null && Directory.Exists(Path.Join(folder, "app")))
             ?? throw new InvalidDataException($"{ReleaseManifest.PackageAsset} holds no {LauncherExe} beside an app folder");
         stopRunning();
-        Replace(package, Path.Join(work, "backup"));
-    }
-
-    /// <summary>Copies the package over the installation; on any failure the files are as they were.</summary>
-    private static void Replace(string package, string backup)
-    {
-        var created = new List<string>();
-        var replaced = new List<string>();
-        var running = Environment.ProcessPath ?? string.Empty;
-        var movedAside = string.Equals(running, Path.Join(InstallRoot, LauncherExe), StringComparison.OrdinalIgnoreCase);
-        if (movedAside)
-        {
-            // Windows lets a running executable be renamed, not overwritten.
-            File.Delete(OldLauncher);
-            File.Move(running, OldLauncher);
-        }
-
-        try
-        {
-            foreach (var source in Directory.EnumerateFiles(package, "*", SearchOption.AllDirectories))
-            {
-                var relative = Path.GetRelativePath(package, source);
-                var target = Path.Join(InstallRoot, relative);
-                var existed = File.Exists(target);
-                if (existed)
-                {
-                    if (IsKept(relative))
-                    {
-                        continue;
-                    }
-
-                    var saved = Path.Join(backup, relative);
-                    Directory.CreateDirectory(Path.GetDirectoryName(saved)!);
-                    File.Copy(target, saved, overwrite: true);
-                }
-
-                Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-                Put(source, target);
-                (existed ? replaced : created).Add(relative); // a refused Put left its target as it was: nothing to undo there
-            }
-        }
-        catch
-        {
-            foreach (var relative in created)
-            {
-                TryDeleteFile(Path.Join(InstallRoot, relative));
-            }
-
-            foreach (var relative in replaced)
-            {
-                Put(Path.Join(backup, relative), Path.Join(InstallRoot, relative));
-            }
-
-            if (movedAside && !File.Exists(running))
-            {
-                File.Move(OldLauncher, running);
-            }
-
-            throw;
-        }
-    }
-
-    /// <summary>
-    ///     Writes the file beside its target, then moves it over: a library a process still maps (prism.dll, or under Proton
-    ///     a Wine bridge's .dll.so, which Wine loads without a Windows handle) is never truncated in place under it, and a
-    ///     move Windows refuses for a loaded file fails the update before anything is half written.
-    /// </summary>
-    private static void Put(string source, string target)
-    {
-        var incoming = target + IncomingSuffix;
-        File.Copy(source, incoming, overwrite: true);
-        try
-        {
-            File.Move(incoming, target, overwrite: true);
-        }
-        catch
-        {
-            TryDeleteFile(incoming);
-            throw;
-        }
+        PackageInstall.Replace(package, InstallRoot, Path.Join(work, "backup"), Environment.ProcessPath ?? string.Empty, IsKept, Log.Write);
     }
 
     private static bool IsKept(string relative) =>
         KeptFolders.Any(folder => relative.StartsWith(folder + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase));
-
-    private static void TryDeleteFile(string path)
-    {
-        try
-        {
-            File.Delete(path);
-        }
-        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
-        {
-            Log.Write($"Could not delete {path}: {error.Message}");
-        }
-    }
 
     private static void TryDeleteDirectory(string path)
     {

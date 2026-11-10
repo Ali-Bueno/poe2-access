@@ -69,7 +69,7 @@ namespace Poe2Accessibility.Tests
         private static void HazardBuffKeyIsFoundAndFollowsAShift()
         {
             var buffs = new DatTableBuilder(0x10).Row(w => w.Text(0, "frozen")).Row(w => w.Text(0, "ignited_ground")).Row(w => w.Text(0, "chilled_ground")).Build();
-            DatTable Types(int at) => new DatTableBuilder(0x40).Row(w => w.Text(0, "IgnitedGround").Key(at, 1)).Row(w => w.Text(0, "ChilledGround").Key(at, 2)).Row(w => w.Text(0, "Unused").Key(at, NoKey)).Build();
+            DatTable Types(int at) => new DatTableBuilder(0x40).Row(w => w.Text(0, "IgnitedGround").WideKey(at, 1)).Row(w => w.Text(0, "ChilledGround").WideKey(at, 2)).Row(w => w.Text(0, "Unused").WideKey(at, NoKey)).Build();
             Expect(HazardColumns.TypeBuffOffset, HazardColumns.Find(Types(HazardColumns.TypeBuffOffset), buffs), "measured");
             Expect(HazardColumns.TypeBuffOffset + 8, HazardColumns.Find(Types(HazardColumns.TypeBuffOffset + 8), buffs), "moved");
             Expect(-1, HazardColumns.Find(Types(HazardColumns.TypeBuffOffset), new DatTableBuilder(0x10).Row(w => w.Text(0, "other")).Build()), "buffs no key resolves into");

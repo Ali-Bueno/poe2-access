@@ -150,7 +150,7 @@ namespace Poe2Accessibility.Tests
                     .Text(0x8 + shift, index == 0 ? "Open all [ContainsBreach|Unstable Breaches]" : $"Do thing {index} well")
                     .Text(0x10 + shift, $"Thing {index} done")
                     .Text(0x18 + shift, $"Art/2DArt/Icon{index}.dds")
-                    .Key(0x20 + shift, index == 1 ? -1 : index));
+                    .WideKey(0x20 + shift, index == 1 ? -1 : index));
             }
 
             return builder.Build();
@@ -195,10 +195,10 @@ namespace Poe2Accessibility.Tests
         private static void AKnownRowsValueTellsColumnsApart()
         {
             // Two key columns into the icons: the known row's icon names the right one.
-            var table = new DatTableBuilder(0x20).Row(w => w.Text(0, "Breach").Key(0x8, 2).Key(0x10, 0)).Row(w => w.Text(0, "Other").Key(0x8, 1).Key(0x10, 3)).Build();
+            var table = new DatTableBuilder(0x28).Row(w => w.Text(0, "Breach").WideKey(0x8, 2).WideKey(0x18, 0)).Row(w => w.Text(0, "Other").WideKey(0x8, 1).WideKey(0x18, 3)).Build();
             var search = new DatColumnSearch();
             var known = DatColumnSearch.RowOf(table, "Breach");
-            Expect(0x10, search.Key(table, "T.Icon", 0x8, Icons(), known: (known, key => key == 0)), "the column whose Breach row says Breach");
+            Expect(0x18, search.Key(table, "T.Icon", 0x8, Icons(), known: (known, key => key == 0)), "the column whose Breach row says Breach");
             Expect(0x8, new DatColumnSearch().Key(table, "T.Icon", 0x8, Icons(), known: (-1, key => key == 0)), "no known row: the nearest key column");
         }
 

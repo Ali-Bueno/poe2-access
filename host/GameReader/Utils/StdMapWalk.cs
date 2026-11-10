@@ -169,7 +169,9 @@ namespace GameReader.Utils
                     walk.Descend(queue, subtree.Address, subtree.Range);
                 }
 
-                nodes += walk.Drain(queue, Math.Max(0, cap - nodes));
+                // On the calling thread, the frame's: a map holds no more nodes than its size, so a subtree the game tore
+                // into a loop stops there, not at the cap of a big map (a hundred thousand nodes, each an entity read).
+                nodes += walk.Drain(queue, Math.Max(0, Math.Min(cap, map.Size + 1) - nodes));
                 walk.FailIfLeft(queue);
             }
 

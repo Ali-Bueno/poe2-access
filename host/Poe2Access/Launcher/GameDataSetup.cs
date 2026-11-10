@@ -37,15 +37,16 @@ internal static class GameDataSetup
             return;
         }
 
-        var install = DescribeInstall(gameDirectory);
-        if (install is null)
-        {
-            Log.Write($"Not a Path of Exile 2 install, game data not checked: {gameDirectory}");
-            return;
-        }
-
         try
         {
+            // Inside the guard too: it reads the game's files, which a client patching itself replaces under it.
+            var install = DescribeInstall(gameDirectory);
+            if (install is null)
+            {
+                Log.Write($"Not a Path of Exile 2 install, game data not checked: {gameDirectory}");
+                return;
+            }
+
             Regenerate(folders, gameDirectory, install);
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
@@ -78,7 +79,7 @@ internal static class GameDataSetup
             {
                 stale.Add(step.Name);
             }
-            else if (step.Output is { } current)
+            else if (step.Output is { } current && stamp.Made(install, step.Name, step.Version))
             {
                 CopyIntoPlugin(catalog, pluginCatalog, current); // an update has just put the shipped copy back
             }
@@ -115,19 +116,18 @@ internal static class GameDataSetup
                 spoken.StepDone(); // the catalogs are counted as the batch reports them
             }
 
-            if (error is null)
+            // A failed optional step stays unstamped, so the next start retries it, up to GameDataStamp.MaxAttempts starts.
+            var before = stamp;
+            stamp = stamp.After(install, step.Name, step.Version, step.Optional, error, Extractor.BundleIndexName);
+            if (!ReferenceEquals(stamp, before))
             {
-                stamp = stamp.With(install, step.Name, step.Version);
                 File.WriteAllText(stampFile, stamp.ToString());
-            }
-            else if (step.Optional)
-            {
-                // Unstamped, so the next start retries it, up to GameDataStamp.MaxAttempts starts.
-                stamp = stamp.WithFailure(install, step.Name, step.Version);
-                File.WriteAllText(stampFile, stamp.ToString());
-                Log.Write(stamp.GivenUp().Contains(step.Name)
-                    ? $"Game data: {step.Name} failed on {GameDataStamp.MaxAttempts} starts: given up for this game build and listed as failed"
-                    : $"Game data: {step.Name} failed on start {stamp.Attempts(step.Name, step.Version)} of {GameDataStamp.MaxAttempts}; retried on the next start");
+                if (error is not null)
+                {
+                    Log.Write(stamp.GivenUp().Contains(step.Name)
+                        ? $"Game data: {step.Name} failed on {GameDataStamp.MaxAttempts} starts: given up for this game build and listed as failed"
+                        : $"Game data: {step.Name} failed on start {stamp.Attempts(step.Name, step.Version)} of {GameDataStamp.MaxAttempts}; retried on the next start");
+                }
             }
         }
 

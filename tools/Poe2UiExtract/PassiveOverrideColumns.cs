@@ -59,15 +59,16 @@ internal sealed class PassiveOverrideColumns
     private static void CheckKnownOverride(DatTable overrides, DatTable characters, DatTable passives, PassiveOverrideColumns c, DatColumnSearch search)
     {
         string IdOf(DatTable table, long key) => key >= 0 && key < table.RowCount ? table.StringOrNull((int)key, 0) ?? string.Empty : string.Empty;
-        var rows = Enumerable.Range(0, overrides.RowCount)
-            .Where(row => IdOf(passives, overrides.Key(row, c.Replaced)) == KnownReplaced && IdOf(characters, overrides.Key(row, c.Character)) == KnownCharacter).ToList();
+        // Looked for by the node alone: looked for by the class too, a class column read from the wrong place found no row,
+        // and that was said as "not in the table" with every override filed under another class.
+        var rows = Enumerable.Range(0, overrides.RowCount).Where(row => IdOf(passives, overrides.Key(row, c.Replaced)) == KnownReplaced).ToList();
         if (rows.Count == 0)
         {
             search.Skipped("ClassPassiveSkillOverrides", $"the known override ({KnownReplaced} for the Witch) is not in the table, so the columns were judged by their type and shape alone");
         }
-        else if (rows.All(row => IdOf(passives, overrides.Key(row, c.Shown)) != KnownShown))
+        else if (!rows.Any(row => IdOf(characters, overrides.Key(row, c.Character)) == KnownCharacter && IdOf(passives, overrides.Key(row, c.Shown)) == KnownShown))
         {
-            search.Fail($"ClassPassiveSkillOverrides (the Witch's {KnownReplaced} no longer shows {KnownShown}: the columns moved)");
+            search.Fail($"ClassPassiveSkillOverrides ({KnownReplaced} is no longer replaced by {KnownShown} for the Witch: the columns moved)");
         }
     }
 }
