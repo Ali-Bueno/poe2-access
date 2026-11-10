@@ -85,15 +85,6 @@ internal sealed class DatColumnSearch
     public int KeyList(DatTable table, string name, int measured, DatTable target, int after = -1, (int Row, Func<IReadOnlyList<long>, bool> Holds)? known = null) =>
         this.Find(table, name, measured, offset => IsKeyList(table, offset, target.RowCount) && (known is not { Row: >= 0 } check || check.Holds(table.KeyList(check.Row, offset))), after);
 
-    /// <summary>A list column of strings, every item passing <paramref name="matches"/>, some row with items.</summary>
-    public int StringList(DatTable table, string name, int measured, Func<string, bool> matches, int after = -1) =>
-        this.Find(table, name, measured, offset => IsStringList(table, offset, matches), after);
-
-    /// <summary>A 4-byte integer column whose every value passes <paramref name="fits"/>, with at least two values (a column of one constant tells nothing).</summary>
-    public int Int32(DatTable table, string name, int measured, Func<int, bool> fits, int after = -1) =>
-        this.Find(table, name, measured, offset => offset + sizeof(int) <= table.RowSize && Enumerable.Range(0, table.RowCount).All(row => fits(table.Int32(row, offset))) &&
-                                                     Enumerable.Range(0, table.RowCount).Select(row => table.Int32(row, offset)).Distinct().Skip(1).Any(), after);
-
     /// <summary>A one-byte column whose every value passes <paramref name="fits"/> (a flag: 0 or 1, both present).</summary>
     public int Byte(DatTable table, string name, int measured, Func<int, bool> fits, int after = -1, (int Row, Func<int, bool> Holds)? known = null) =>
         this.Find(table, name, measured, offset => offset < table.RowSize && Enumerable.Range(0, table.RowCount).All(row => fits(table.Byte(row, offset))) &&
@@ -189,33 +180,6 @@ internal sealed class DatColumnSearch
             }
 
             filled += keys.Count > 0 ? 1 : 0;
-        }
-
-        return filled > 0;
-    }
-
-    public static bool IsStringList(DatTable table, int offset, Func<string, bool> matches)
-    {
-        var filled = 0;
-        for (var row = 0; row < table.RowCount; row++)
-        {
-            var items = table.StringListOrNull(row, offset);
-            if (items == null)
-            {
-                return false;
-            }
-
-            if (items.Count == 0)
-            {
-                continue;
-            }
-
-            if (!items.All(matches))
-            {
-                return false;
-            }
-
-            filled++;
         }
 
         return filled > 0;

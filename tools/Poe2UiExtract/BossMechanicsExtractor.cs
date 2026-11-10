@@ -11,8 +11,6 @@ using Index = LibBundle3.Index;
 /// </summary>
 internal static class BossMechanicsExtractor
 {
-    public const string FileName = "boss-mechanics.txt";
-
     /// <summary>The game's name for an invisible monster that only carries a skill (Balbala's fog, Ketzuli's black hole): no add.</summary>
     private const string HelperName = "Daemon";
 
@@ -57,7 +55,7 @@ internal static class BossMechanicsExtractor
             var key = (path.EndsWith(ScriptExtension, StringComparison.OrdinalIgnoreCase) ? path : path + ScriptExtension).ToLowerInvariant();
             if (!scripts.TryGetValue(key, out var script))
             {
-                script = files.TryGetValue(key, out var file) ? BossScripts.Parse(Encoding.Unicode.GetString(file.Read().ToArray()).TrimStart('﻿')) : null;
+                script = files.TryGetValue(key, out var file) ? BossScripts.Parse(file.ReadText()) : null;
                 scripts[key] = script;
             }
 
@@ -181,7 +179,7 @@ internal static class BossMechanicsExtractor
         var byStem = english.RowCount == 0 ? new Dictionary<string, List<int>>() : Enumerable.Range(0, english.RowCount)
             .GroupBy(row => BossScripts.Stem(english.String(row, 0)), StringComparer.Ordinal).ToDictionary(group => group.Key, group => group.ToList(), StringComparer.Ordinal);
 
-        var languages = AreaExtractor.LanguageCodes.Select(pair => (Code: pair.Value, Folder: (string?)pair.Key)).Prepend(("en", null));
+        var languages = AreaExtractor.Languages;
         var output = new List<string>();
         var said = new HashSet<string>(StringComparer.Ordinal);
         foreach (var (code, folder) in languages)

@@ -71,7 +71,7 @@ internal static class MonsterNameExtractor
         }
 
         var result = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
-        var languages = AreaExtractor.LanguageCodes.Select(pair => (Code: pair.Value, Folder: (string?)pair.Key)).Prepend(("en", null));
+        var languages = AreaExtractor.Languages;
         foreach (var (code, folder) in languages)
         {
             var tables = sources.ToDictionary(
@@ -103,12 +103,7 @@ internal static class MonsterNameExtractor
             Say.Out.WriteLine($"  unmatched: {missing}");
         }
 
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
-        File.WriteAllText(outFile, JsonSerializer.Serialize(result, new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        }));
+        AreaExtractor.WriteJson(outFile, result);
         Say.Out.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
         return 0;
     }

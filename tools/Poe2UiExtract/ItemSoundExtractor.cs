@@ -21,12 +21,6 @@ internal static partial class ItemSoundExtractor
     private const int VisualRowSize = 968, VisualInventorySound = 24, VisualDropSound = 919;
     private const int SoundRowSize = 33, SoundFile = 8, SoundFile2D = 16;
 
-    public static int Run(string gameDir, string outFile)
-    {
-        using var index = SharedBundles.OpenParsed(gameDir);
-        return Run(gameDir, index, outFile);
-    }
-
     /// <summary>On an index already opened with its paths parsed (the batch command); the bank is read from the install.</summary>
     public static int Run(string gameDir, Index index, string outFile)
     {

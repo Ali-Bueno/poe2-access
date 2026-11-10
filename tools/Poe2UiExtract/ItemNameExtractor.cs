@@ -15,11 +15,10 @@ internal static class ItemNameExtractor
 
     public static int Run(string gameDir, string outFile)
     {
-        using var index = SharedBundles.Open(Path.Combine(gameDir, "Bundles2", "_.index.bin"));
-        index.ParsePaths();
+        using var index = Extractor.OpenLoose(gameDir);
         var nameColumn = DatColumnExtractor.NameColumn(index, "baseitemtypes") ?? NameOffset;
         var result = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
-        var languages = AreaExtractor.LanguageCodes.Select(pair => (Code: pair.Value, Folder: (string?)pair.Key)).Prepend(("en", null));
+        var languages = AreaExtractor.Languages;
         foreach (var (code, folder) in languages)
         {
             var table = folder == null ? DatTable.Open(index, "baseitemtypes") : DatTable.OpenTranslated(index, "baseitemtypes", folder);
@@ -51,12 +50,7 @@ internal static class ItemNameExtractor
             result[code] = names;
         }
 
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
-        File.WriteAllText(outFile, JsonSerializer.Serialize(result, new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        }));
+        AreaExtractor.WriteJson(outFile, result);
         Say.Out.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
         return 0;
     }

@@ -22,7 +22,7 @@ internal static class BuffNameExtractor
             return 1;
         }
 
-        var languages = AreaExtractor.LanguageCodes.Select(pair => (Code: pair.Value, Folder: (string?)pair.Key)).Prepend(("en", null));
+        var languages = AreaExtractor.Languages;
         foreach (var (code, folder) in languages)
         {
             var table = folder == null ? english : DatTable.OpenTranslated(index, "buffdefinitions", folder);
@@ -54,12 +54,7 @@ internal static class BuffNameExtractor
             result[code] = names;
         }
 
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
-        File.WriteAllText(outFile, JsonSerializer.Serialize(result, new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        }));
+        AreaExtractor.WriteJson(outFile, result);
         Say.Out.WriteLine($"Wrote {outFile}");
         return 0;
     }

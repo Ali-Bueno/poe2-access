@@ -6,6 +6,12 @@ using Index = LibBundle3.Index;
 /// <summary>The extractor's commands, callable in process (the mod's executable runs them for the game data).</summary>
 public static class Extractor
 {
+    /// <summary>The suffix of a batch output still being written; it is renamed when complete.</summary>
+    public const string BatchPartSuffix = ".part";
+
+    /// <summary>How a batch result line starts: "batch places done in 15.2 s".</summary>
+    public const string BatchLinePrefix = "batch ";
+
     /// <summary>Runs one command line; the exit code, 0 when it made its output.</summary>
     public static int Run(string[] args)
     {
@@ -58,8 +64,7 @@ public static class Extractor
         // Args: paths <gameDir> <part>  -- research aid: every bundled file path containing <part> (quest reward icons' names).
         if (args.Length > 2 && string.Equals(args[0], "paths", StringComparison.OrdinalIgnoreCase))
         {
-            using var pathIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-            pathIndex.ParsePaths();
+            using var pathIndex = OpenLoose(args[1]);
             foreach (var path in pathIndex.Files.Values.Select(file => file.Path).Where(path => path != null && path.Contains(args[2], StringComparison.OrdinalIgnoreCase)).Order(StringComparer.OrdinalIgnoreCase))
             {
                 Say.Out.WriteLine(path);
@@ -71,8 +76,7 @@ public static class Extractor
         // Args: cat <gameDir> <path> [maxChars]  -- research aid: a bundled UTF-16 text file (.ao, .aoc, .ot) printed as text.
         if (args.Length > 2 && string.Equals(args[0], "cat", StringComparison.OrdinalIgnoreCase))
         {
-            using var catIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-            catIndex.ParsePaths();
+            using var catIndex = OpenLoose(args[1]);
             var catFile = catIndex.Files.Values.FirstOrDefault(file => string.Equals(file.Path, args[2], StringComparison.OrdinalIgnoreCase));
             if (catFile == null)
             {
@@ -80,7 +84,7 @@ public static class Extractor
                 return 1;
             }
 
-            var text = System.Text.Encoding.Unicode.GetString(catFile.Read().ToArray()).TrimStart('﻿');
+            var text = catFile.ReadText();
             Say.Out.WriteLine(args.Length > 3 ? text[..Math.Min(text.Length, int.Parse(args[3]))] : text);
             return 0;
         }
@@ -88,29 +92,10 @@ public static class Extractor
         // Args: ot-with <gameDir> <text>  -- research aid: every .ot whose text holds <text>, one path a line.
         if (args.Length > 2 && string.Equals(args[0], "ot-with", StringComparison.OrdinalIgnoreCase))
         {
-            using var otIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-            otIndex.ParsePaths();
+            using var otIndex = OpenLoose(args[1]);
             foreach (var file in otIndex.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(".ot", StringComparison.Ordinal)))
             {
                 if (System.Text.Encoding.Unicode.GetString(file.Read().ToArray()).Contains(args[2], StringComparison.Ordinal))
-                {
-                    Say.Out.WriteLine(file.Path);
-                }
-            }
-
-            return 0;
-        }
-
-        // Args: file-with <gameDir> <pathPart> <text>  -- research aid: every file under a path holding <text> in UTF-16 or UTF-32, as the game's tables keep strings.
-        if (args.Length > 3 && string.Equals(args[0], "file-with", StringComparison.OrdinalIgnoreCase))
-        {
-            using var withIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-            withIndex.ParsePaths();
-            var needles = new[] { System.Text.Encoding.Unicode.GetBytes(args[3]), System.Text.Encoding.UTF32.GetBytes(args[3]) };
-            foreach (var file in withIndex.Files.Values.Where(file => file.Path != null && file.Path.Contains(args[2], StringComparison.OrdinalIgnoreCase)))
-            {
-                var bytes = file.Read().ToArray();
-                if (needles.Any(needle => bytes.AsSpan().IndexOf(needle) >= 0))
                 {
                     Say.Out.WriteLine(file.Path);
                 }
@@ -123,8 +108,7 @@ public static class Extractor
         // events it plays (path <TAB> distinct "Audio/..." filenames).
         if (args.Length > 2 && string.Equals(args[0], "ao-sounds", StringComparison.OrdinalIgnoreCase))
         {
-            using var aoIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-            aoIndex.ParsePaths();
+            using var aoIndex = OpenLoose(args[1]);
             var audioName = new System.Text.RegularExpressions.Regex("""
                 "filename"\s*:\s*"(Audio/[^"]+)"
                 """);
@@ -148,8 +132,7 @@ public static class Extractor
         // Args: object-links <gameDir>  -- research aid: every chest-like object and the sound the game gives it.
         if (args.Length > 1 && string.Equals(args[0], "object-links", StringComparison.OrdinalIgnoreCase))
         {
-            using var linkIndex = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-            linkIndex.ParsePaths();
+            using var linkIndex = OpenLoose(args[1]);
             foreach (var (path, sound) in ObjectSoundLinks.Read(linkIndex) ?? new())
             {
                 Say.Out.WriteLine($"{path}	{sound}");
@@ -161,8 +144,7 @@ public static class Extractor
         // Args: dat-strings <gameDir> <table> [language] [rows]  -- research aid: every string column of a table's first rows.
         if (args.Length > 2 && string.Equals(args[0], "dat-strings", StringComparison.OrdinalIgnoreCase))
         {
-            using var bundles = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-            bundles.ParsePaths();
+            using var bundles = OpenLoose(args[1]);
             var language = args.Length > 3 && args[3] != "english" ? args[3] : null;
             var table = language == null ? DatTable.Open(bundles, args[2]) : DatTable.OpenTranslated(bundles, args[2], language);
             if (table == null)
@@ -189,8 +171,7 @@ public static class Extractor
         // matches, one "+offset: text" line each.
         if (args.Length > 3 && string.Equals(args[0], "dat-row-strings", StringComparison.OrdinalIgnoreCase))
         {
-            using var bundles = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-            bundles.ParsePaths();
+            using var bundles = OpenLoose(args[1]);
             var english = DatTable.Open(bundles, args[2]);
             var table = args.Length > 4 && args[4] != "english" ? DatTable.OpenTranslated(bundles, args[2], args[4]) : english;
             if (english == null || table == null)
@@ -221,8 +202,7 @@ public static class Extractor
         // Args: dat-rows <gameDir> <table> <id substring>  -- research aid: the raw bytes (as int32s) of the rows whose id matches.
         if (args.Length > 3 && string.Equals(args[0], "dat-rows", StringComparison.OrdinalIgnoreCase))
         {
-            using var bundles = SharedBundles.Open(Path.Combine(args[1], "Bundles2", "_.index.bin"));
-            bundles.ParsePaths();
+            using var bundles = OpenLoose(args[1]);
             var table = DatTable.Open(bundles, args[2]);
             if (table == null)
             {
@@ -248,80 +228,80 @@ public static class Extractor
         if (args.Length > 0 && string.Equals(args[0], "item-sounds", StringComparison.OrdinalIgnoreCase))
         {
             string game = args.Length > 1 ? args[1] : @"D:\games\steam\steamapps\common\Path of Exile 2";
-            return ItemSoundExtractor.Run(game, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-sounds.json");
+            return OnIndex(game, index => ItemSoundExtractor.Run(game, index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-sounds.json"));
         }
 
         // Args: hit-times <gameDir> [outFile] [auditFile]  -- when each monster attack lands and what kind of threat it is, from the
         // animation data and the skill tables, for dodge warnings; the audit lists where the kind disagrees with the name.
         if (args.Length > 1 && string.Equals(args[0], "hit-times", StringComparison.OrdinalIgnoreCase))
         {
-            return HitTimeExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hit-times.txt", args.Length > 3 ? args[3] : null);
+            return OnIndex(args[1], index => HitTimeExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hit-times.txt", args.Length > 3 ? args[3] : null));
         }
 
         // Args: hazards <gameDir> [outFile]  -- buffs from standing in harmful ground, for the hazard alarm.
         if (args.Length > 1 && string.Equals(args[0], "hazards", StringComparison.OrdinalIgnoreCase))
         {
-            return HazardExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hazards.txt");
+            return OnIndex(args[1], index => HazardExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\hazards.txt"));
         }
 
         // Args: attack-reach <gameDir> [outFile]  -- how far each monster animation clip's blow reaches and lands, from the .ao files.
         if (args.Length > 1 && string.Equals(args[0], "attack-reach", StringComparison.OrdinalIgnoreCase))
         {
-            return AttackReachExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\attack-reach.txt");
+            return OnIndex(args[1], index => AttackReachExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\attack-reach.txt"));
         }
 
         // Args: action-types <gameDir> [outFile]  -- the Id of every ActionTypes row.
         if (args.Length > 1 && string.Equals(args[0], "action-types", StringComparison.OrdinalIgnoreCase))
         {
-            return ActionTypeExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\action-types.txt");
+            return OnIndex(args[1], index => ActionTypeExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\action-types.txt"));
         }
 
         // Args: telegraphs <gameDir> [outDir]  -- what the game draws before a monster skill lands: telegraph-skills, -effects and -monsters.txt.
         if (args.Length > 1 && string.Equals(args[0], "telegraphs", StringComparison.OrdinalIgnoreCase))
         {
-            return TelegraphExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog");
+            return OnIndex(args[1], index => TelegraphExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog"));
         }
 
         // Args: game-ids <gameDir> [outFile]  -- the game's numbers for animations and stats, in place of GameHelper's old enums.
         if (args.Length > 1 && string.Equals(args[0], "game-ids", StringComparison.OrdinalIgnoreCase))
         {
-            return GameIdExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\game-ids.txt");
+            return OnIndex(args[1], index => GameIdExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\game-ids.txt"));
         }
 
         // Args: game-keys <gameDir> [outFile]  -- the Ids of the tables a player meets, to tell what a patch added.
         if (args.Length > 1 && string.Equals(args[0], "game-keys", StringComparison.OrdinalIgnoreCase))
         {
-            return GameKeyExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\game-keys.txt");
+            return OnIndex(args[1], index => GameKeyExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\game-keys.txt"));
         }
 
         // Args: cull-skills <gameDir> [outFile]  -- granted effects that deal Culling Strike, for the mod's culling cue.
         if (args.Length > 1 && string.Equals(args[0], "cull-skills", StringComparison.OrdinalIgnoreCase))
         {
-            return CullSkillExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\cull-skills.txt");
+            return OnIndex(args[1], index => CullSkillExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\cull-skills.txt"));
         }
 
         // Args: class-mechanics <gameDir> [outFile]  -- resources, limits, buff names and skill types for the class mechanics (docs/research/class-mechanics.md).
         if (args.Length > 1 && string.Equals(args[0], "class-mechanics", StringComparison.OrdinalIgnoreCase))
         {
-            return ClassMechanicExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\class-mechanics.json");
+            return OnIndex(args[1], index => ClassMechanicExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\class-mechanics.json"));
         }
 
         // Args: places <gameDir> [outFile]  -- named map pieces and props for the place announcements (docs/research/places.md).
         if (args.Length > 1 && string.Equals(args[0], "places", StringComparison.OrdinalIgnoreCase))
         {
-            return PlaceExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\places.json");
+            return OnIndex(args[1], index => PlaceExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\places.json"));
         }
 
         // Args: experience <gameDir> [outFile]  -- the total experience each character level starts at.
         if (args.Length > 1 && string.Equals(args[0], "experience", StringComparison.OrdinalIgnoreCase))
         {
-            return ExperienceExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\experience.json");
+            return OnIndex(args[1], index => ExperienceExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\experience.json"));
         }
 
         // Args: inline-icons <gameDir> [outFile]  -- the markup images a text shows as pictures (<<village_gold>>), token TAB art.
         if (args.Length > 1 && string.Equals(args[0], "inline-icons", StringComparison.OrdinalIgnoreCase))
         {
-            return InlineIconExtractor.Run(args[1], args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\inline-icons.txt");
+            return OnIndex(args[1], index => InlineIconExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\inline-icons.txt"));
         }
 
         // Args: item-names <gameDir> [outFile]  -- currency item names per language, for inline item art in legends.
@@ -365,7 +345,7 @@ public static class Extractor
                 Say.Out.WriteLine("Usage: Poe2UiExtract.exe areas <gameDir> <outFile>");
                 return 1;
             }
-            return AreaExtractor.Run(args[1], args[2]);
+            return OnIndex(args[1], index => AreaExtractor.Run(index, args[2]));
         }
 
         // Args: monster-names <gameDir> <radarTableFile[;more]> <outFile>  -- the radar table's boss names per language from MonsterVarieties.
@@ -387,7 +367,7 @@ public static class Extractor
                 Say.Out.WriteLine("Usage: Poe2UiExtract.exe dat-columns <gameDir> <outFile>");
                 return 1;
             }
-            return DatColumnExtractor.Run(args[1], args[2]);
+            return OnIndex(args[1], index => DatColumnExtractor.Run(index, args[2]));
         }
 
         // Args: batch <gameDir> <command> <outFile> [...]  -- item-sounds, areas, dat-columns, experience, hit-times, hazards, attack-reach, action-types, telegraph-skills, telegraph-effects, cull-skills, places and
@@ -412,6 +392,21 @@ public static class Extractor
         var code = UiScripts.Extract(index, outDir);
         Say.Out.WriteLine("Done.");
         return code;
+    }
+
+    /// <summary>Runs a command on the install's index, opened with its paths parsed.</summary>
+    private static int OnIndex(string gameDir, Func<Index, int> run)
+    {
+        using var index = SharedBundles.OpenParsed(gameDir);
+        return run(index);
+    }
+
+    /// <summary>The loose Bundles2 index with its paths parsed, for the research commands.</summary>
+    internal static Index OpenLoose(string gameDir)
+    {
+        var index = SharedBundles.Open(Path.Combine(gameDir, "Bundles2", "_.index.bin"));
+        index.ParsePaths();
+        return index;
     }
 }
 

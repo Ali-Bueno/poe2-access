@@ -19,10 +19,19 @@ internal static class AreaExtractor
         ["Simplified Chinese"] = "zh-CN",
     };
 
-    public static int Run(string gameDir, string outFile)
+    /// <summary>English (read from the tables' own folder) first, then every translation: language code and folder.</summary>
+    internal static IEnumerable<(string Code, string? Folder)> Languages =>
+        LanguageCodes.Select(pair => (Code: pair.Value, Folder: (string?)pair.Key)).Prepend(("en", null));
+
+    /// <summary>Writes a per-language catalog as indented JSON, its text unescaped.</summary>
+    internal static void WriteJson<T>(string outFile, T catalog)
     {
-        using var index = SharedBundles.OpenParsed(gameDir);
-        return Run(index, outFile);
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
+        File.WriteAllText(outFile, JsonSerializer.Serialize(catalog, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        }));
     }
 
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
@@ -69,12 +78,7 @@ internal static class AreaExtractor
             return 1;
         }
 
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
-        File.WriteAllText(outFile, JsonSerializer.Serialize(result, new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        }));
+        WriteJson(outFile, result);
         Say.Out.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
         return 0;
     }
