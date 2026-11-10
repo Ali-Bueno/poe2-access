@@ -42,8 +42,6 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            // The first row followed in a game process: the columns it will be read at that nothing judged are said now.
-            DatColumns.Report(CompatibilityReport.Current);
             var layout = Layout();
             if (Names(reader, elements, key, layout, table))
             {

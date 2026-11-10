@@ -178,6 +178,8 @@ namespace Poe2Accessibility
                 PassiveTreeCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "passive-tree.json"));
                 GemCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "gems.json"));
                 this.compatibility = new CompatibilityReport(this.log);
+                // The columns still read at a compiled offset nothing judged: known as soon as the catalogs are, whatever is read first.
+                DatColumns.Report(this.compatibility);
                 this.worldLayout = new WorldLayoutWatch(this.compatibility, this.log, Path.Join(this.DllDirectory, "config", "game-build.txt"));
                 this.layoutProbe = new LayoutProbe(memory, elements, this.compatibility);
                 var probe = this.layoutProbe;

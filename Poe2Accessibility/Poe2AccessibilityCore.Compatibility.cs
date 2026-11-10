@@ -210,6 +210,7 @@ namespace Poe2Accessibility
         private void NoteGameBuild()
         {
             this.compatibility?.Reset();
+            DatColumns.Report(this.compatibility); // said once per game process, and the reset forgot it
             this.CheckGameNews();
             this.worldLayout?.Reset();
             this.layoutProbe?.Reset();

@@ -92,7 +92,11 @@ namespace Poe2Accessibility.Services
             return now == measured ? null : $"the table's rows are 0x{now:X} bytes, 0x{measured:X} when it was measured";
         }
 
-        /// <summary>Says the unjudged columns once per game process, through the report the plugin already speaks.</summary>
+        /// <summary>
+        ///     Says the unjudged columns once per game process, through the report the plugin already speaks. Called when the
+        ///     catalogs are loaded and when a game process is found, not by the first key read: a column is doubtful whether
+        ///     or not something has read through it yet.
+        /// </summary>
         public static void Report(CompatibilityReport? report)
         {
             if (report == null || report.Generation == reportedGeneration)

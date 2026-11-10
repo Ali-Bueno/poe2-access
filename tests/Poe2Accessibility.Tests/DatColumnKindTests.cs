@@ -201,6 +201,17 @@ namespace Poe2Accessibility.Tests
                 var grown = With("{\"Mods.RowSize\": 701}");
                 Expect(true, grown.Single(column => column.StartsWith("Mods.Name", StringComparison.Ordinal)).Contains("0x2BD bytes, 0x2B5 when it was measured", StringComparison.Ordinal), "a table that grew");
                 Expect(null, Poe2Accessibility.Services.DatColumns.Doubt("Mods", new Dictionary<string, int> { ["Mods.RowSize"] = 693 }), "no doubt at the measured size");
+
+                // Said when the catalogs are loaded, before any key is read, once per game process.
+                var report = new Poe2Accessibility.Services.CompatibilityReport(log);
+                Poe2Accessibility.Services.DatColumns.Report(report);
+                Expect(true, report.IsMissing(Poe2Accessibility.Services.DatColumns.UnjudgedPart), "the unjudged columns are a part that may read wrong");
+                report.Found(Poe2Accessibility.Services.DatColumns.UnjudgedPart);
+                Poe2Accessibility.Services.DatColumns.Report(report);
+                Expect(false, report.IsMissing(Poe2Accessibility.Services.DatColumns.UnjudgedPart), "not said twice in one game process");
+                report.Reset();
+                Poe2Accessibility.Services.DatColumns.Report(report);
+                Expect(true, report.IsMissing(Poe2Accessibility.Services.DatColumns.UnjudgedPart), "a new game process is told again");
             }
             finally
             {
