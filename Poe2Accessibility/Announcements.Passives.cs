@@ -142,11 +142,17 @@ namespace Poe2Accessibility
             T("Next in the build: ", "Siguiente de la build: ") + node + (pushes.Any() ? ": " + string.Join(", ", Runs(pushes)) : string.Empty);
 
         /// <summary>Said with the Build list: "24 of 60 taken, 6 points outside the build".</summary>
-        public static string BuildProgress(int taken, int total, int outside) =>
-            outside == 1 ? T($"{taken} of {total} taken, 1 point outside the build", $"{taken} de {total} asignados, 1 punto fuera de la build")
-            : outside > 0
-                ? T($"{taken} of {total} taken, {outside} points outside the build", $"{taken} de {total} asignados, {outside} puntos fuera de la build")
-                : T($"{taken} of {total} taken", $"{taken} de {total} asignados");
+        /// <param name="notShown">The build file's nodes this tree does not show (an ascendancy not chosen yet): said, since no step counts them.</param>
+        public static string BuildProgress(int taken, int total, int outside, int notShown = 0)
+        {
+            var progress = outside == 1 ? T($"{taken} of {total} taken, 1 point outside the build", $"{taken} de {total} asignados, 1 punto fuera de la build")
+                : outside > 0
+                    ? T($"{taken} of {total} taken, {outside} points outside the build", $"{taken} de {total} asignados, {outside} puntos fuera de la build")
+                    : T($"{taken} of {total} taken", $"{taken} de {total} asignados");
+            return notShown == 1 ? progress + ", " + T("1 more of the build is not on this tree", "1 más de la build no está en este árbol")
+                : notShown > 0 ? progress + ", " + T($"{notShown} more of the build are not on this tree", $"{notShown} más de la build no están en este árbol")
+                : progress;
+        }
 
         /// <summary>The same push several times running, counted: "right 3" for "right, right, right".</summary>
         private static IEnumerable<string> Runs(IEnumerable<string> pushes)

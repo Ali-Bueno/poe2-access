@@ -9,6 +9,12 @@ namespace Poe2Accessibility.Services
     /// <summary>One passive of a build plan: its PassiveSkills id, place in the file, weapon set and the author's note.</summary>
     public sealed record BuildPassive(string Id, int Order, int WeaponSet, string Note);
 
+    /// <summary>A plan's nodes on the shown tree, each with its zero-based step, and how many of the plan's nodes that tree does not show.</summary>
+    public sealed record BuildSteps(IReadOnlyDictionary<string, int> Steps, int NotShown)
+    {
+        public int Count => this.Steps.Count;
+    }
+
     /// <summary>One gem of a build plan: its BaseItemTypes id and the character levels it is used at.</summary>
     public sealed record BuildGem(string Id, int FromLevel, int ToLevel)
     {
@@ -40,6 +46,31 @@ namespace Poe2Accessibility.Services
         ///     patch any byte that often reads 1 would mark the tree; no build takes a quarter of it (docs/research/passive-tree.md).
         /// </summary>
         public static bool MarksPlausible(int marked, int nodes) => marked * 4 <= nodes;
+
+        /// <summary>
+        ///     The plan's steps over the nodes the tree shows: each node once, in the file's order. A file names a node again
+        ///     for a weapon set and for its attribute, and lists the nodes of a tree not drawn yet (an ascendancy), so it has
+        ///     more entries than the tree marks (docs/research/passive-tree.md#the-builds-two-counts).
+        /// </summary>
+        /// <param name="shown">The PassiveSkills ids of the nodes the tree marks as the build's.</param>
+        public BuildSteps StepsOver(IReadOnlySet<string> shown)
+        {
+            var steps = new Dictionary<string, int>(StringComparer.Ordinal);
+            var notShown = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var passive in this.Passives)
+            {
+                if (!shown.Contains(passive.Id))
+                {
+                    notShown.Add(passive.Id);
+                }
+                else if (!steps.ContainsKey(passive.Id))
+                {
+                    steps[passive.Id] = steps.Count;
+                }
+            }
+
+            return new BuildSteps(steps, notShown.Count);
+        }
 
         /// <summary>Null when the text is no build file.</summary>
         public static BuildPlan? Parse(string json)

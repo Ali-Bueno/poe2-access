@@ -317,13 +317,25 @@ armour_and_evasion2 counted 15, 14 … 1, "Arrived at Oasis" with no correction.
 - The files: `Documents\My Games\Path of Exile 2\BuildPlanner\*.build`, JSON (GGG developer docs, "Build Planner" v1):
   `passives` = ids (PassiveSkills `Id`) or objects {id, level_interval, weapon_set 0-2, additional_text}; the GGG example
   writes attribute advice as notes ("<m>{<red>{Strength +5 is recommended}}"); Mobalytics exports carry no passive notes.
-  The mod reads the file whose passives cover at least half of the marked nodes (`BuildPlanFolder`): step = place in the
-  file, weapon set, note without markup, and for an attribute node (`strength17`, `attributes65`…) whose note shows the
+  The mod reads the file whose passives cover at least half of the marked nodes (`BuildPlanFolder`): step = place among
+  the marked nodes in the file's order ([the two counts](#the-builds-two-counts)), weapon set, note without markup, and for an attribute node (`strength17`, `attributes65`…) whose note shows the
   attribute only by colour, that attribute. A website-only build has marks but no file: no notes.
 - The mark byte has no second signature on the element. `BuildPlan.MarksPlausible`: when over a quarter of the nodes read
   marked (no build takes that many; a byte moved by a patch would) the marks are dropped, "passive build marks" is reported
   missing, and the build known from the game's settings stays; a file whose passives cover the marks reports them found.
 - The build's gems and equipment: [ui layers](ui-layers.md#build-planner-gems-055f-2026-11-10).
+
+### The build's two counts
+
+MEASURED (2026-11-10, yarkey, "Campaign Progression - [0.5.5] Twister G.build"): the file has **85** `passives` entries
+and the tree marks **60** nodes. The entries hold 64 distinct ids: 21 are a node named again — 5 under a weapon set
+(`dexterity82_`, `attack_speed2_`, `attributes29` in set 1; `dexterity66`, `dexterity20` in set 2) and 16 attribute
+nodes listed once more at the end of the file (entries 69-84, no extra field) — and 4 are `AscendancyMercenary3…` nodes
+(entries 65-68), which the tree of a character that has not ascended does not mark. Live: all 60 marked ids are in the
+file and exactly 4 of the file's ids are not marked (the count, heard as "4 más de la build no están en este árbol"; the
+four ids themselves were not logged). `BuildPlan.StepsOver` numbers the steps over the marked nodes, each at its first
+place in the file, so the Build list's "16 de 60 asignados" and a node's "Build: paso 1 de 60" count the same nodes; the
+file's nodes the tree does not show are said once, with the list.
 - UI: in the tree, L3 opens "Filters/Build Planner"; D-pad right twice reaches the planner button (`collapse_button`,
   A expands it), D-pad down the list (`BuildPlannerComboBox`, "Active Build"). The gem engraving window has the same
   list (`build_planner_combobox`) and a first category of the build's gems.

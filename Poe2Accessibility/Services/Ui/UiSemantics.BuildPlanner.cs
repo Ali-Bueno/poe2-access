@@ -56,16 +56,20 @@ namespace Poe2Accessibility.Services
             return records;
         }
 
+        /// <summary>The plan's steps over the marked nodes: the step numbers and the Build list's count are of the same nodes.</summary>
+        private BuildSteps BuildStepsOf(BuildPlan plan, HashSet<IntPtr> marked) => plan.StepsOver(marked.Select(this.PassiveIdOf).ToHashSet());
+
         /// <summary>The build's step, weapon set and note for a marked node, from the build file.</summary>
-        private IEnumerable<string> BuildLines(BuildPlan plan, IntPtr record)
+        private IEnumerable<string> BuildLines(BuildPlan plan, IntPtr record, HashSet<IntPtr> marked)
         {
             var id = this.PassiveIdOf(record);
-            if (plan.Passives.FirstOrDefault(passive => passive.Id == id) is not { } passive)
+            var steps = this.BuildStepsOf(plan, marked);
+            if (plan.Passives.FirstOrDefault(passive => passive.Id == id) is not { } passive || !steps.Steps.TryGetValue(id, out var step))
             {
                 yield break;
             }
 
-            yield return Announcements.BuildStep(passive.Order + 1, plan.Passives.Count);
+            yield return Announcements.BuildStep(step + 1, steps.Count);
             if (passive.WeaponSet > 0)
             {
                 yield return Announcements.BuildWeaponSet(passive.WeaponSet);

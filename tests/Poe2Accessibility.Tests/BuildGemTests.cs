@@ -29,6 +29,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AGemIsNamedInTheGamesLanguage), AGemIsNamedInTheGamesLanguage),
             (nameof(TheGameFilesNameTheBuildsGems), TheGameFilesNameTheBuildsGems),
             (nameof(TooManyMarksAreNoBuild), TooManyMarksAreNoBuild),
+            (nameof(TheStepsAreOfTheNodesTheTreeShows), TheStepsAreOfTheNodesTheTreeShows),
             (nameof(MarkupGoesAndAPlaceToFillStays), MarkupGoesAndAPlaceToFillStays),
         };
 
@@ -250,6 +251,32 @@ namespace Poe2Accessibility.Tests
             Expect(true, BuildPlan.MarksPlausible(85, 1500), "a build's nodes");
             Expect(true, BuildPlan.MarksPlausible(0, 1500), "no build chosen");
             Expect(false, BuildPlan.MarksPlausible(400, 1500), "over a quarter of the tree");
+        }
+
+        /// <summary>The shape of yarkey's file (2026-11-10): 85 entries for 60 marked nodes — repeats for weapon sets and attributes, an ascendancy not drawn.</summary>
+        private static void TheStepsAreOfTheNodesTheTreeShows()
+        {
+            var plan = BuildPlan.Parse("{\"passives\":[\"spear3\",\"dexterity20\",{\"id\":\"accuracy38\",\"weapon_set\":1},{\"id\":\"dexterity20\",\"weapon_set\":2}," +
+                                       "\"AscendancyMercenary3Small1\",\"AscendancyMercenary3Notable1_\",\"dexterity20\",\"spear3\"]}")!;
+            var steps = plan.StepsOver(new HashSet<string> { "spear3", "dexterity20", "accuracy38", "marked_but_not_in_the_file" });
+            Expect(8, plan.Passives.Count, "the file's entries");
+            Expect(3, steps.Count, "the nodes the tree shows, each once");
+            Expect(0, steps.Steps["spear3"], "the first node");
+            Expect(1, steps.Steps["dexterity20"], "a node named three times keeps its first place");
+            Expect(2, steps.Steps["accuracy38"], "a weapon set's node follows");
+            Expect(2, steps.NotShown, "the ascendancy's two nodes are not on the tree");
+            Localization.Detect("es");
+            try
+            {
+                Expect("Build: paso 3 de 3", Announcements.BuildStep(steps.Steps["accuracy38"] + 1, steps.Count), "the last step is the count");
+                Expect("1 de 3 asignados, 2 puntos fuera de la build, 2 más de la build no están en este árbol", Announcements.BuildProgress(1, steps.Count, 2, steps.NotShown), "the list's header");
+                Expect("1 de 3 asignados, 1 más de la build no está en este árbol", Announcements.BuildProgress(1, 3, 0, 1), "one node left out");
+                Expect("1 de 3 asignados", Announcements.BuildProgress(1, 3, 0, 0), "a file wholly on the tree");
+            }
+            finally
+            {
+                Localization.Detect("en");
+            }
         }
     }
 }

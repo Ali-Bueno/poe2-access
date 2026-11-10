@@ -64,8 +64,8 @@ namespace Poe2Accessibility.Services
             var steps = atlas.StepsFrom(this.AllocatedIds(graph.State));
             var marked = this.BuildMarks(graph);
             var plan = marked.Count > 0 ? this.buildPlans.Matching(AskingCharacter(), marked.Select(this.PassiveIdOf).ToHashSet()) : null;
-            var order = plan?.Passives.GroupBy(passive => passive.Id).ToDictionary(group => group.Key, group => group.First().Order);
-            int BuildStep(IntPtr node) => order != null && order.TryGetValue(this.PassiveIdOf(node), out var step) ? step : int.MaxValue;
+            var order = plan == null ? null : this.BuildStepsOf(plan, marked);
+            int BuildStep(IntPtr node) => order != null && order.Steps.TryGetValue(this.PassiveIdOf(node), out var step) ? step : int.MaxValue;
             IReadOnlyList<IntPtr> Members(PassiveCategory category) => atlas.Members(category, steps, record, marked, BuildStep);
             var hadTarget = this.finder.Target != IntPtr.Zero;
             if (listStep != 0)
@@ -85,10 +85,10 @@ namespace Poe2Accessibility.Services
 
             var way = this.WayTo(graph, atlas, record, this.finder.Target, MaxFinderPushes)?.Words(false) ?? string.Empty;
             var found = Announcements.PassiveFound(atlas.Nodes[target].Name, Where(atlas, target, steps), way);
-            if (this.finder.Category == PassiveCategory.BuildTaken && plan != null && BuildStep(this.finder.Target) is var step and < int.MaxValue)
+            if (this.finder.Category == PassiveCategory.BuildTaken && order != null && BuildStep(this.finder.Target) is var step and < int.MaxValue)
             {
                 // The way made is walked in the build's order: each node says which step of it it is.
-                found = $"{Announcements.BuildStep(step + 1, plan.Passives.Count)}. {found}";
+                found = $"{Announcements.BuildStep(step + 1, order.Count)}. {found}";
             }
 
             if (listStep == 0)
@@ -97,15 +97,15 @@ namespace Poe2Accessibility.Services
             }
 
             var list = Announcements.PassiveCategoryName(this.finder.Category);
-            return Announcements.InContext(this.finder.Category is PassiveCategory.Build or PassiveCategory.BuildTaken ? $"{list}, {BuildProgress(atlas, steps, marked)}" : list, found);
+            return Announcements.InContext(this.finder.Category is PassiveCategory.Build or PassiveCategory.BuildTaken ? $"{list}, {BuildProgress(atlas, steps, marked, order?.NotShown ?? 0)}" : list, found);
         }
 
-        /// <summary>How far along the active build the character is: its nodes taken, and the points spent outside it.</summary>
-        private static string BuildProgress(PassiveAtlas atlas, int[] steps, HashSet<IntPtr> marked)
+        /// <summary>How far along the active build the character is: its nodes taken, the points spent outside it, and the file's nodes this tree does not show.</summary>
+        private static string BuildProgress(PassiveAtlas atlas, int[] steps, HashSet<IntPtr> marked, int notShown)
         {
             var taken = marked.Count(node => atlas.Places.Index.TryGetValue(node, out var index) && steps[index] == 0);
             var outside = atlas.Places.Index.Count(place => steps[place.Value] == 0 && !marked.Contains(place.Key) && !atlas.Nodes[place.Value].IsStart);
-            return Announcements.BuildProgress(taken, marked.Count, outside);
+            return Announcements.BuildProgress(taken, marked.Count, outside, notShown);
         }
 
         /// <summary>Research (dev command "passivemap"): from each class's start, how many points the nearest keystones and notables cost.</summary>
