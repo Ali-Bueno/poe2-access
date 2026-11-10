@@ -476,43 +476,6 @@ namespace GameReader.Utils
         }
 
         /// <summary>
-        ///     Reads the StdList into a List.
-        /// </summary>
-        /// <typeparam name="TValue">StdList element structure.</typeparam>
-        /// <param name="nativeContainer">native object of the std::list.</param>
-        /// <returns>List containing TValue elements.</returns>
-        internal List<TValue> ReadStdList<TValue>(StdList nativeContainer)
-            where TValue : unmanaged
-        {
-            const int MaxIterations = 100_000;
-            var retList = new List<TValue>();
-            var currNodeAddress = this.ReadMemory<StdListNode>(nativeContainer.Head).Next;
-            var iterations = 0;
-            while (currNodeAddress != nativeContainer.Head)
-            {
-                if (++iterations > MaxIterations)
-                {
-                    Console.WriteLine($"[SafeMemoryHandle.ReadStdList] iteration cap {MaxIterations} hit; possible cycle in torn list. Returning partial result.");
-                    break;
-                }
-
-                var currNode = this.ReadMemory<StdListNode<TValue>>(currNodeAddress);
-                if (currNodeAddress == IntPtr.Zero)
-                {
-                    Console.WriteLine("Terminating reading of list next nodes because of" +
-                                      "unexpected 0x00 found. This is normal if it happens " +
-                                      "after closing the game, otherwise report it.");
-                    break;
-                }
-
-                retList.Add(currNode.Data);
-                currNodeAddress = currNode.Next;
-            }
-
-            return retList;
-        }
-
-        /// <summary>
         ///     Reads the std::bucket into a array.
         /// </summary>
         /// <typeparam name="TValue">value type that the std bucket contains.</typeparam>

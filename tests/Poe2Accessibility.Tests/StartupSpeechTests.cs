@@ -5,6 +5,7 @@ namespace Poe2Accessibility.Tests
     using System.Linq;
     using Poe2Access;
     using static Poe2Accessibility.Tests.DatColumnSearchTests;
+    using static Check;
 
     /// <summary>The spoken game-data update (language, phrases, pacing) and the telegraph tables' columns found by content.</summary>
     public static class StartupSpeechTests
@@ -24,14 +25,6 @@ namespace Poe2Accessibility.Tests
             (nameof(TelegraphColumnsFollowAShift), TelegraphColumnsFollowAShift),
             (nameof(AWrongKnownValueMakesTheColumnMissing), AWrongKnownValueMakesTheColumnMissing),
         };
-
-        private static void Expect<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new Exception($"{what}: expected '{expected}', got '{actual}'");
-            }
-        }
 
         private static void TheSettingsLanguageComesFirst()
         {

@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Tests
     using System.Collections.Generic;
     using System.Linq;
     using Poe2Accessibility.Services;
+    using static Check;
 
     /// <summary>The class resources derived from the game's tables and how their changes are told (docs/research/class-mechanics.md).</summary>
     public static class ClassMechanicTests
@@ -30,14 +31,6 @@ namespace Poe2Accessibility.Tests
             "current_demon_form_stacks", "max_demon_form_stacks", "current_focus_lost", "number_of_active_totems", "number_of_totems_allowed",
             "base_number_of_totems_allowed", "number_of_active_skeletons", "number_of_skeletons_allowed", "number_of_active_relics", "current_",
         };
-
-        private static void Expect<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new Exception($"{what}: expected '{expected}', got '{actual}'");
-            }
-        }
 
         private static void ASkillLevelsMaximumIsFoundByItsStatName()
         {

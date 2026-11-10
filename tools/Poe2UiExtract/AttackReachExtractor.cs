@@ -1,7 +1,5 @@
 using System.Globalization;
-using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Index = LibBundle3.Index;
 
 /// <summary>
@@ -21,21 +19,8 @@ internal static class AttackReachExtractor
     private const double MaxLength = 5000;
     private const int MaxParentDepth = 6;
 
-    private static readonly Regex Extends = new("extends\\s+\"([^\"]+)\"", RegexOptions.Compiled);
-    private static readonly Regex Controller = new(@"\nAnimationController\s*\{(.*?)\n\}", RegexOptions.Compiled | RegexOptions.Singleline);
-    private static readonly Regex Animations = new(@"animations\s*=\s*'(\[.*?\])'", RegexOptions.Compiled | RegexOptions.Singleline);
-
-    // Settings such as "offset_scale = 1.2" may come before the list.
-    private static readonly Regex MeleeSection = new(@"\nMelee\s*\{[^{}']*?animations\s*=\s*'(\[.*?\])'", RegexOptions.Compiled | RegexOptions.Singleline);
-
     /// <summary>One .ao's own clips: melee reach and contact distance by clip name (lower case), before its parents'.</summary>
     internal sealed record ClipValues(Dictionary<string, double> Reach, Dictionary<string, double> Impact);
-
-    public static int Run(string gameDir, string outFile)
-    {
-        using var index = SharedBundles.OpenParsed(gameDir);
-        return Run(index, outFile);
-    }
 
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
     public static int Run(Index index, string outFile)
@@ -46,7 +31,7 @@ internal static class AttackReachExtractor
         {
             if (!own.TryGetValue(path, out var cached))
             {
-                var text = files.TryGetValue(path, out var file) ? Encoding.Unicode.GetString(file.Read().ToArray()).TrimStart('﻿') : null;
+                var text = files.TryGetValue(path, out var file) ? file.ReadText() : null;
                 own[path] = cached = text == null ? (null, new ClipValues(new(), new())) : (ParentOf(text), Parse(text));
             }
 
@@ -110,7 +95,7 @@ internal static class AttackReachExtractor
     /// <summary>The .ao named by `extends`, as a lower case path with its extension; null for none or the root.</summary>
     internal static string? ParentOf(string text)
     {
-        if (Extends.Match(text) is not { Success: true } match || match.Groups[1].Value == RootParent)
+        if (MonsterAnimationFiles.Extends.Match(text) is not { Success: true } match || match.Groups[1].Value == RootParent)
         {
             return null;
         }
@@ -123,7 +108,7 @@ internal static class AttackReachExtractor
     internal static ClipValues Parse(string text)
     {
         var result = new ClipValues(new Dictionary<string, double>(StringComparer.Ordinal), new Dictionary<string, double>(StringComparer.Ordinal));
-        if (MeleeSection.Match(text) is { Success: true } melee)
+        if (MonsterAnimationFiles.MeleeSection.Match(text) is { Success: true } melee)
         {
             ForEachClip(melee.Groups[1].Value, (name, clip) =>
             {
@@ -139,7 +124,7 @@ internal static class AttackReachExtractor
             });
         }
 
-        if (Controller.Match(text) is { Success: true } controller && Animations.Match(controller.Groups[1].Value) is { Success: true } list)
+        if (MonsterAnimationFiles.Controller.Match(text) is { Success: true } controller && MonsterAnimationFiles.Animations.Match(controller.Groups[1].Value) is { Success: true } list)
         {
             ForEachClip(list.Groups[1].Value, (name, clip) =>
             {

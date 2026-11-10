@@ -19,6 +19,22 @@ POLL_SECONDS = 0.5
 EXECUTABLE = HOST_DIRECTORY / 'Poe2Access.exe'  # host/Poe2Access: the launcher and the host in one process
 
 
+def log_size(path):
+    try:
+        return path.stat().st_size
+    except FileNotFoundError:
+        return 0
+
+
+def new_log_lines(path, start):
+    """Plugin log lines written since `start` (a byte offset), oldest first."""
+    if log_size(path) <= start:
+        return []
+    with path.open('rb') as stream:
+        stream.seek(start)
+        return stream.read().decode('utf-8', errors='replace').splitlines()
+
+
 def wait_for(condition, seconds, what):
     deadline = time.monotonic() + seconds
     while time.monotonic() < deadline:
@@ -68,7 +84,7 @@ def stop_host():
 
 def restart_host():
     """Starts `Poe2Access.exe restart` detached (it stays running as the host) and waits for the plugin to attach."""
-    log_start = PLUGIN_LOG.stat().st_size if PLUGIN_LOG.exists() else 0
+    log_start = log_size(PLUGIN_LOG)
     process = subprocess.Popen([str(EXECUTABLE), 'restart'], cwd=HOST_DIRECTORY, close_fds=True,
                                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                                creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
@@ -76,11 +92,7 @@ def restart_host():
     def enabled_lines():
         if process.poll() is not None:
             raise RuntimeError(f'Poe2Access.exe restart exited ({process.returncode}); see Poe2Access.log')
-        if not PLUGIN_LOG.exists() or PLUGIN_LOG.stat().st_size <= log_start:
-            return None
-        with PLUGIN_LOG.open('rb') as stream:
-            stream.seek(log_start)
-            lines = stream.read().decode('utf-8', errors='replace').splitlines()
+        lines = new_log_lines(PLUGIN_LOG, log_start)
         return lines if any('Attached to game' in line or 'game open: True' in line for line in lines) else None
 
     lines = wait_for(enabled_lines, HOST_START_SECONDS, 'the plugin to attach')

@@ -6,6 +6,7 @@ namespace Poe2Accessibility.Tests
     using System.Linq;
     using System.Numerics;
     using Poe2Accessibility.Services;
+    using static Check;
 
     /// <summary>The endgame's data from the game's files: skill graph files, keyword markup, the catalog's lookups, link sides.</summary>
     public static class EndgameTests
@@ -22,14 +23,6 @@ namespace Poe2Accessibility.Tests
             (nameof(ContentIconsAreNamedByTheirArt), ContentIconsAreNamedByTheirArt),
             (nameof(TowersCountWhatTheyReach), TowersCountWhatTheyReach),
         };
-
-        private static void Expect<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new Exception($"{what}: expected '{expected}', got '{actual}'");
-            }
-        }
 
         /// <summary>A version-3 graph: kind, orbit sizes, roots, then groups of nodes with their links (and each link's curve).</summary>
         private static byte[] Graph(params (float X, float Y, (int Id, int[] Links)[] Nodes)[] groups)

@@ -7,6 +7,7 @@ namespace Poe2Accessibility.Tests
     using System.Linq;
     using GameReader.Utils.CodeReader;
     using Poe2Accessibility.Services;
+    using static Check;
 
     /// <summary>The semantic rules: their catalog, and a rule run on a tiny synthetic exe.</summary>
     public static class SemanticRuleTests
@@ -258,14 +259,6 @@ namespace Poe2Accessibility.Tests
             }
 
             return file;
-        }
-
-        private static void Equal<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new InvalidOperationException($"{what}: expected {expected}, got {actual}");
-            }
         }
 
         /// <summary>Lays out code at an RVA, resolving call and RIP-relative targets.</summary>

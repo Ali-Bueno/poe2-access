@@ -10,12 +10,6 @@ internal static class ActionTypeExtractor
     // ActionTypes: 0xE-byte rows, Id (string) at +0 (dat-strings, 2026-11-08).
     private const int RowSize = 0xE;
 
-    public static int Run(string gameDir, string outFile)
-    {
-        using var index = SharedBundles.OpenParsed(gameDir);
-        return Run(index, outFile);
-    }
-
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
     public static int Run(Index index, string outFile)
     {

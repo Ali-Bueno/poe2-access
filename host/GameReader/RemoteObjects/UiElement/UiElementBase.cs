@@ -6,10 +6,8 @@ namespace GameReader.RemoteObjects.UiElement
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
-    using System.Numerics;
     using GameReader.Cache;
     using GameOffsets.Objects.UiElement;
-    using Ui;
     using Utils;
 
     /// <summary>
@@ -17,7 +15,6 @@ namespace GameReader.RemoteObjects.UiElement
     /// </summary>
     public class UiElementBase : RemoteObjectBase
     {
-        private Vector2 positionModifier;
         private IntPtr[] childrenAddresses = Array.Empty<IntPtr>();
         // F-136: cache of materialised UiElementBase children — lazily built by the
         // this[int] indexer, invalidated on address change. Slots are null until
@@ -25,17 +22,8 @@ namespace GameReader.RemoteObjects.UiElement
         // that was O(N) per traversal in passive-skill-tree-sized trees.
         private UiElementBase?[] childrenCache = Array.Empty<UiElementBase?>();
         protected uint flags; // IsVisible and ShouldModifyPosition information
-        private float localScaleMultiplier;
-        private Vector2 relativePosition;
-        private Vector2 unScaledSize; // Size before applying the scale multiplier.
         private IntPtr parentAddress;
         private readonly UiElementParents parents;
-        protected Vector4 backgroundColor;
-
-        /// <summary>
-        ///     Index of <see cref="GameWindowScale"/>
-        /// </summary>
-        private byte scaleIndex;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="UiElementBase" /> class.
@@ -50,44 +38,6 @@ namespace GameReader.RemoteObjects.UiElement
             if (address != IntPtr.Zero )
             {
                 this.UpdateData(true);
-            }
-        }
-
-        /// <summary>
-        ///     Gets the scale factor of the UiElement (ratio of the current UiElement's height to the base UiElement's height).
-        /// </summary>
-        public float Scale => this.positionModifier.X;
-
-        /// <summary>
-        ///     Gets the position of the Ui Element w.r.t the game UI.
-        /// </summary>
-        public virtual Vector2 Position
-        {
-            get
-            {
-                var (widthScale, heightScale) = Core.GameScale.GetScaleValue(
-                    this.scaleIndex, this.localScaleMultiplier);
-                var pos = this.GetUnScaledPosition();
-                pos.X *= widthScale;
-                pos.Y *= heightScale;
-                pos.X += Core.GameCull.Value;
-                return pos;
-            }
-        }
-
-        /// <summary>
-        ///     Gets the size of the Ui Element w.r.t the game UI.
-        /// </summary>
-        public virtual Vector2 Size
-        {
-            get
-            {
-                var (widthScale, heightScale) = Core.GameScale.GetScaleValue(
-                    this.scaleIndex, this.localScaleMultiplier);
-                var size = this.unScaledSize;
-                size.X *= widthScale;
-                size.Y *= heightScale;
-                return size;
             }
         }
 
@@ -161,19 +111,13 @@ namespace GameReader.RemoteObjects.UiElement
         /// <inheritdoc />
         protected override void CleanUpData()
         {
-            this.positionModifier = Vector2.Zero;
             this.childrenAddresses = Array.Empty<IntPtr>();
             // F-136: rebuild cache slots to match the new childrenAddresses length.
             // Existing materialised children are dropped; they'll be re-allocated
             // lazily on next this[int] access if still needed.
             this.childrenCache = new UiElementBase?[this.childrenAddresses.Length];
             this.flags = 0x00;
-            this.localScaleMultiplier = 0x01;
-            this.relativePosition = Vector2.Zero;
-            this.unScaledSize = Vector2.Zero;
-            this.scaleIndex = 0x00;
             this.parentAddress = IntPtr.Zero;
-            this.backgroundColor = Vector4.Zero;
         }
 
         /// <inheritdoc />
@@ -203,82 +147,7 @@ namespace GameReader.RemoteObjects.UiElement
             // Existing materialised children are dropped; they'll be re-allocated
             // lazily on next this[int] access if still needed.
             this.childrenCache = new UiElementBase?[this.childrenAddresses.Length];
-
-            this.positionModifier.X = data.PositionModifier.X;
-            this.positionModifier.Y = data.PositionModifier.Y;
-
-            this.scaleIndex = data.ScaleIndex;
-            this.localScaleMultiplier = data.LocalScaleMultiplier;
             this.flags = data.Flags;
-
-            this.relativePosition.X = data.RelativePosition.X;
-            this.relativePosition.Y = data.RelativePosition.Y;
-
-            this.unScaledSize.X = data.UnscaledSize.X;
-            this.unScaledSize.Y = data.UnscaledSize.Y;
-
-            this.backgroundColor = UiElementBase.UnpackColor(data.BackgroundColor);
-        }
-
-        private static Vector4 UnpackColor(uint color)
-        {
-            var ret = Vector4.Zero;
-            ret.Z = (color & 0xFF) / 255f;
-            color >>= 8;
-            ret.Y = (color & 0xFF) / 255f;
-            color >>= 8;
-            ret.X = (color & 0xFF) / 255f;
-            color >>= 8;
-            ret.W = (color & 0xFF) / 255f;
-            return ret;
-        }
-
-        private const int MaxParentChainDepth = 64;
-
-        /// <summary>
-        ///     This function was basically parsed/read/decompiled from the game.
-        ///     To find this function in the game, follow the data used in this function.
-        ///     Although, this function haven't changed since last 3-4 years.
-        /// </summary>
-        /// <returns>Returns position without applying current element scaling values.</returns>
-        private Vector2 GetUnScaledPosition() => this.GetUnScaledPosition(0);
-
-        private Vector2 GetUnScaledPosition(int depth)
-        {
-            if (depth >= MaxParentChainDepth)
-            {
-                Console.WriteLine($"[UiElementBase.GetUnScaledPosition] depth cap {MaxParentChainDepth} hit at 0x{this.Address.ToInt64():X}; possible cycle in parent chain. Returning local position (audit F-137).");
-                return this.relativePosition;
-            }
-
-            // During zone/state transitions, the parent cache can be temporarily empty.
-            if (!this.TryGetParent(out var myParent) || myParent == null)
-            {
-                // Treat as root during the brief window; avoids hard crash.
-                return this.relativePosition;
-            }
-            var parentPos = myParent.GetUnScaledPosition(depth + 1);
-            if (UiElementBaseFuncs.ShouldModifyPos(this.flags))
-            {
-                parentPos += myParent.positionModifier;
-            }
-
-            if (myParent.scaleIndex == this.scaleIndex &&
-                myParent.localScaleMultiplier == this.localScaleMultiplier)
-            {
-                return parentPos + this.relativePosition;
-            }
-
-            var (parentScaleW, parentScaleH) = Core.GameScale.GetScaleValue(
-                myParent.scaleIndex, myParent.localScaleMultiplier);
-            var (myScaleW, myScaleH) = Core.GameScale.GetScaleValue(
-                this.scaleIndex, this.localScaleMultiplier);
-            Vector2 myPos;
-            myPos.X = parentPos.X * parentScaleW / myScaleW
-                      + this.relativePosition.X;
-            myPos.Y = parentPos.Y * parentScaleH / myScaleH
-                      + this.relativePosition.Y;
-            return myPos;
         }
     }
 }

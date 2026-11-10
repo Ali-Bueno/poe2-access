@@ -83,55 +83,14 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         }
 
         /// <summary>
-        ///     Converts the World position to Screen location.
-        /// </summary>
-        /// <param name="worldPosition">3D world position of the entity.</param>
-        /// <param name="height">height value (e.g. terrain heigh or entity Z axis)</param>
-        /// <returns>screen location of the entity.</returns>
-        public Vector2 WorldToScreen(Vector2 worldPosition, float height)
-        {
-            if (this.Address == IntPtr.Zero)
-            {
-                return Vector2.Zero;
-            }
-
-            var snap = System.Threading.Volatile.Read(ref this.matrixSnap);
-            var matrix = snap.M;
-
-            Vector2 result = Vector2.Zero;
-            double[] tmpResult = [0, 0, 0, 0];
-            double[] temp0 = [worldPosition.X, worldPosition.Y, height, 1.0f];
-
-            for (var i = 0; i < 4; i++)
-            {
-                tmpResult[i] = 0;
-                for (var j = 0; j < 4; j++)
-                {
-                    tmpResult[i] += matrix[j, i] * temp0[j];
-                }
-            }
-
-            for (var i = 0; i < 4; i++)
-            {
-                tmpResult[i] /= tmpResult[3];
-            }
-
-            tmpResult[0] = (tmpResult[0] + 1.0f) * (Core.Process.WindowArea.Width / 2.0f);
-            tmpResult[1] = (1.0f - tmpResult[1]) * (Core.Process.WindowArea.Height / 2.0f);
-            result.X = (float)Math.Round(tmpResult[0], 6, MidpointRounding.ToNegativeInfinity);
-            result.Y = (float)Math.Round(tmpResult[1], 6, MidpointRounding.ToNegativeInfinity);
-            return result;
-        }
-
-        /// <summary>
         ///     Initializes a new instance of the <see cref="WorldData" /> class.
         /// </summary>
         /// <param name="address">address of the remote memory object.</param>
         internal WorldData(IntPtr address)
             : base(address)
         {
-            Core.CoroutinesRegistrar.Add(CoroutineHandler.Start(
-                this.OnPerFrame(), "[AreaInstance] Update World Data"));
+            CoroutineHandler.Start(
+                this.OnPerFrame(), "[AreaInstance] Update World Data");
         }
 
         /// <inheritdoc />

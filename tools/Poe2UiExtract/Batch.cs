@@ -7,7 +7,6 @@ using Index = LibBundle3.Index;
 /// </summary>
 internal static class Batch
 {
-    private const string PartSuffix = ".part";
 
     /// <summary>How many commands run at once on the shared index: each holds tables and file reads in memory.</summary>
     internal static int MaxParallel { get; set; } = 3;
@@ -71,7 +70,7 @@ internal static class Batch
     // The commands only read the index once its paths are parsed, and every file read opens its own bundle stream.
     private static bool RunOne(string gameDir, Index index, string command, string output)
     {
-        var part = output + PartSuffix;
+        var part = output + Extractor.BatchPartSuffix;
         var watch = Stopwatch.StartNew();
         int code;
         try
@@ -95,7 +94,7 @@ internal static class Batch
             File.Delete(part);
         }
 
-        Say.Out.WriteLine($"batch {command} {(made ? "done" : "failed")} in {watch.Elapsed.TotalSeconds:0.0} s");
+        Say.Out.WriteLine($"{Extractor.BatchLinePrefix}{command} {(made ? "done" : "failed")} in {watch.Elapsed.TotalSeconds:0.0} s");
         return made;
     }
 }

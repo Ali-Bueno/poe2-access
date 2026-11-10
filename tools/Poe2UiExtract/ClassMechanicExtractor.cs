@@ -27,12 +27,6 @@ internal static class ClassMechanicExtractor
     /// <summary>Two skills whose types are known: the detected columns must give them (KeywordPopups "Banner", "Grenade").</summary>
     private static readonly (string Skill, string Type)[] Checks = { ("war_banner", "Banner"), ("explosive_grenade", "Grenade") };
 
-    public static int Run(string gameDir, string outFile)
-    {
-        using var index = SharedBundles.OpenParsed(gameDir);
-        return Run(index, outFile);
-    }
-
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
     public static int Run(Index index, string outFile)
     {

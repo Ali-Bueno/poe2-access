@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Tests
     using System.Collections.Generic;
     using System.Numerics;
     using Poe2Accessibility.Services;
+    using static Check;
 
     /// <summary>The dodge warning's timing, aim, reach, sight and field checks (docs/research/dodge-timing.md).</summary>
     public static class DodgeGateTests
@@ -509,22 +510,6 @@ namespace Poe2Accessibility.Tests
             Equal(1u, merge.Resolve(new[] { Cue(2, 0, 100, null, 1200) }, 1200)[0].CoveredBy, "an untimed wind-up 200 ms later");
             Equal(1u, merge.Resolve(new[] { Cue(3, 0, 100, 1700, 1240) }, 1240)[0].CoveredBy, "a timed one issued 240 ms after an untimed cue");
             Equal(null, merge.Resolve(new[] { Cue(4, 0, 100, null, 1300) }, 1300)[0].CoveredBy, "one issued 300 ms later plays");
-        }
-
-        private static void Equal<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new Exception($"{what}: expected {expected}, got {actual}");
-            }
-        }
-
-        private static void Near(float expected, float? actual, string what, float tolerance = 0.01f)
-        {
-            if (actual is not { } value || MathF.Abs(value - expected) > tolerance)
-            {
-                throw new Exception($"{what}: expected {expected}, got {actual}");
-            }
         }
     }
 }

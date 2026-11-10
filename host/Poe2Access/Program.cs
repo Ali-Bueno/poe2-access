@@ -97,7 +97,7 @@ internal static class Program
             }
             else if (!instance.TryOwn(0))
             {
-                return AlreadyRunning(call.GameCommand, folders);
+                return AlreadyRunning(call.GameCommand);
             }
 
             if (!instance.Owned)
@@ -206,7 +206,7 @@ internal static class Program
     }
 
     /// <summary>A second start: the running instance stays alone. With Steam's command it starts the game and stays until it closes.</summary>
-    private static int AlreadyRunning(string[]? steamCommand, AppFolders folders)
+    private static int AlreadyRunning(string[]? steamCommand)
     {
         if (steamCommand is null)
         {

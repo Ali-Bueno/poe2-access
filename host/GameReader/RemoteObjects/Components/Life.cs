@@ -6,7 +6,6 @@ namespace GameReader.RemoteObjects.Components
 {
     using System;
     using GameOffsets.Objects.Components;
-    using Utils;
 
     /// <summary>
     ///     The <see cref="Life" /> component in the entity.
@@ -40,16 +39,6 @@ namespace GameReader.RemoteObjects.Components
         /// </summary>
         public VitalStruct Mana { get; private set; }
 
-        /// <summary>
-        ///     Gets the ward related information of the entity.
-        /// </summary>
-        public VitalStruct Ward { get; private set; }
-
-        /// <summary>
-        ///     Gets the divinity related information of the entity.
-        /// </summary>
-        public VitalStruct Divinity { get; private set; }
-
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)
         {
@@ -59,8 +48,6 @@ namespace GameReader.RemoteObjects.Components
             this.Health = data.Health;
             this.EnergyShield = data.EnergyShield;
             this.Mana = data.Mana;
-            this.Ward = data.Ward;
-            this.Divinity = data.Divinity;
             this.IsAlive = data.Health.Current > 0;
         }
 

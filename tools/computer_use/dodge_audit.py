@@ -12,10 +12,8 @@ are timed by the next life drop (noisy in a pack: another monster's hit counts).
 --replay-merge applies the plugin's merge rule (DodgeCueMerge) to a log written before it, to compare the cues per second.
 """
 import argparse, bisect, collections, datetime, json, math, re, statistics
-from pathlib import Path
+from launch import PLUGIN_LOG as LOG, REPOSITORY
 
-REPOSITORY = Path(__file__).resolve().parents[2]
-LOG = REPOSITORY / 'host/Poe2Access/bin/Release/net10.0-windows/win-x64/Plugins/Poe2Accessibility/logs/accessibility.log'
 ACTIONS = REPOSITORY / 'Poe2Accessibility/catalog/action-types.txt'
 WORLD_PER_GRID = 250 / 23
 MERGE_WINDOW_MS, MERGE_RARE, MERGE_KEEP_MS = 250, 2, 2000  # Poe2Accessibility/Services/DodgeCueMerge.cs

@@ -45,12 +45,6 @@ internal static class HitTimeExtractor
         BakedContact,
     }
 
-    public static int Run(string gameDir, string outFile, string? auditFile = null)
-    {
-        using var index = SharedBundles.OpenParsed(gameDir);
-        return Run(index, outFile, auditFile);
-    }
-
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
     public static int Run(Index index, string outFile, string? auditFile = null)
     {

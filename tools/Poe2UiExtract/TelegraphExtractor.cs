@@ -1,4 +1,3 @@
-using System.Text;
 using Index = LibBundle3.Index;
 
 /// <summary>
@@ -30,7 +29,6 @@ internal static class TelegraphExtractor
     private const int TriggerMarkerOffset = 0x73;
     private const int SpawnObjectsOffset = 0x4;
     private const int EffectAnimationOffset = 0x4;
-    private const int MaxGeometryShape = TelegraphColumns.MaxShape;
     // MiscAnimated / MiscObjects: Id, file path. MonsterVarieties: Id, GrantedEffects list (found by content, as hit-times does).
     private const int FileOffset = 0x8;
     private const int MonsterSkillsOffset = 0xD0;
@@ -43,12 +41,6 @@ internal static class TelegraphExtractor
 
     /// <summary>The three files' lines, header apart.</summary>
     internal sealed record Lines(IReadOnlyCollection<string> Skills, IReadOnlyCollection<string> Effects, IReadOnlyCollection<string> Monsters);
-
-    public static int Run(string gameDir, string outDir)
-    {
-        using var index = SharedBundles.OpenParsed(gameDir);
-        return Run(index, outDir);
-    }
 
     /// <summary>Writes the three files into a directory.</summary>
     public static int Run(Index index, string outDir)
@@ -223,7 +215,7 @@ internal static class TelegraphExtractor
         var shaped = 0;
         foreach (var (path, roles) in effectRoles)
         {
-            var text = files.TryGetValue(path.ToLowerInvariant(), out var file) ? Encoding.Unicode.GetString(file.Read().ToArray()).TrimStart('﻿') : null;
+            var text = files.TryGetValue(path.ToLowerInvariant(), out var file) ? file.ReadText() : null;
             var shapes = text == null ? Array.Empty<EffectShape>() : TelegraphShapes.ParseEffectDrivenEvents(text);
             shaped += shapes.Count > 0 ? 1 : 0;
             effectLines.Add(string.Join(TelegraphShapes.FieldSeparator, path, string.Join(TelegraphShapes.ItemSeparator, roles), string.Join(TelegraphShapes.ItemSeparator, shapes.Select(TelegraphShapes.Format))));

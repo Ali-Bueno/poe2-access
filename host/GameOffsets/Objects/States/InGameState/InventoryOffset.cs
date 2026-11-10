@@ -5,12 +5,6 @@ namespace GameOffsets.Objects.States.InGameState
     using Natives;
 
     [StructLayout(LayoutKind.Explicit, Pack = 1)]
-    public struct PreInventoryStruct
-    {
-        [FieldOffset(0x10)] public IntPtr ptr;
-    }
-
-    [StructLayout(LayoutKind.Explicit, Pack = 1)]
     public struct InventoryStruct
     {
         //[FieldOffset(0x00)] public int InventoryType;
@@ -27,20 +21,6 @@ namespace GameOffsets.Objects.States.InGameState
 
         // [FieldOffset(0x58)] public StdVector WierdUiElementsData;
         [FieldOffset(0x1E8)] public int ServerRequestCounter;
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct ItemHashKey
-    {
-        public int ServerRequestCounterSnapShot;
-        public int PAD_8;
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct ItemHashValue
-    {
-        public IntPtr InventoryItemStructPtr;
-        public IntPtr UselessItemPtr;
     }
 
     [StructLayout(LayoutKind.Explicit, Pack = 1)]

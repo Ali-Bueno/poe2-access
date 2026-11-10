@@ -6,10 +6,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
 {
     using System;
     using System.Collections.Generic;
-    using Coroutine;
     using GameOffsets.Objects.States.InGameState;
     using RemoteEnums;
-    using Utils;
 
     /// <summary>
     ///     Points to the InGameState -> ServerData object.
@@ -24,9 +22,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         internal ServerData(IntPtr address)
             : base(address)
         {
-            // Feel free to uncomment this if we ever add stuff like latency.
-            //Core.CoroutinesRegistrar.Add(CoroutineHandler.Start(
-            //    this.OnTimeTick(), "[ServerData] Update ServerData", int.MaxValue - 3));
         }
 
         /// <summary>
@@ -101,18 +96,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         private void ClearCurrentlySelectedInventory()
         {
             this.SelectedInv.Address = IntPtr.Zero;
-        }
-
-        private IEnumerable<Wait> OnTimeTick()
-        {
-            while (true)
-            {
-                yield return new Wait(0.2d);
-                if (this.Address != IntPtr.Zero)
-                {
-                    this.UpdateData(false);
-                }
-            }
         }
     }
 }

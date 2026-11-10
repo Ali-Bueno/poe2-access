@@ -6,15 +6,12 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Numerics;
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
-    using Coroutine;
     using CoroutineEvents;
     using GameReader.Cache;
-    using GameReader.Utils;
     using GameOffsets.Natives;
     using GameOffsets.Objects.States.InGameState;
     using GameOffsets.Objects.UiElement;
@@ -75,8 +72,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         internal ImportantUiElements(IntPtr address)
             : base(address)
         {
-            this.rootCache = new(null, GameStateTypes.InGameState, GameStateTypes.EscapeState, "Root");
-            this.passiveSkillTreeCache = new(this.rootCache, GameStateTypes.InGameState, GameStateTypes.EscapeState, "PassiveSkillTree");
+            this.rootCache = new(null, GameStateTypes.InGameState, GameStateTypes.EscapeState);
+            this.passiveSkillTreeCache = new(this.rootCache, GameStateTypes.InGameState, GameStateTypes.EscapeState);
 
             this.passiveskilltreenodes = new(IntPtr.Zero, this.rootCache);
             this.sekhemasTrialMapPanel = new(IntPtr.Zero, this.rootCache);
@@ -118,7 +115,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         ///     Gets the LargeMap UiElement.
         ///     UiRoot -> MainChild -> 3rd index -> 1nd index.
         /// </summary>
-        public LargeMapUiElement LargeMap { get; }
+        public MapUiElement LargeMap { get; }
 
         /// <summary>
         ///     Gets the MiniMap UiElement.
@@ -262,7 +259,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         {
             this.UpdateParentsCache();
             var reader = Core.Process.Handle;
-            var data1 = reader.ReadMemory<ImportantUiElementsOffsets>(Core.GHSettings.IsTaiwanClient ? this.Address - 0x08 : this.Address);
+            var data1 = reader.ReadMemory<ImportantUiElementsOffsets>(this.Address);
             if (Core.GHSettings.EnableControllerMode)
             {
                 this.UpdateMapAddresses();

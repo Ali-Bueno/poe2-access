@@ -7,7 +7,6 @@ namespace GameReader.RemoteObjects.Components
     using System;
     using System.Collections.Generic;
     using GameReader.RemoteEnums;
-    using GameReader.Utils;
     using GameOffsets.Objects.Components;
 
     /// <summary>
@@ -31,11 +30,6 @@ namespace GameReader.RemoteObjects.Components
         public int CurrentWeaponIndex = 0;
 
         /// <summary>
-        ///     Gets the value indicating if entity is in shape shfited form or not
-        /// </summary>
-        public bool IsInShapeshiftedForm = false;
-
-        /// <summary>
         ///     Initializes a new instance of the <see cref="Stats" /> class.
         /// </summary>
         /// <param name="address">address of the <see cref="Stats" /> component.</param>
@@ -49,7 +43,6 @@ namespace GameReader.RemoteObjects.Components
             var data = reader.ReadMemory<StatsOffsets>(this.Address);
             this.OwnerEntityAddress = data.Header.EntityPtr;
             this.CurrentWeaponIndex = data.CurrentWeaponIndex;
-            this.IsInShapeshiftedForm = data.ShapeshiftFormsRowPtr != 0x00;
             if (data.StatsChangedByItemsPtr != IntPtr.Zero)
             {
                 var data2 = reader.ReadMemory<StatsStructInternal>(data.StatsChangedByItemsPtr);

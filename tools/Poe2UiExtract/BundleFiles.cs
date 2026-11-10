@@ -1,10 +1,14 @@
 using System.Runtime.CompilerServices;
+using System.Text;
 using LibBundle3.Records;
 using Index = LibBundle3.Index;
 
 /// <summary>The index's files by lower-case path, built once per index and shared by the commands that run side by side on it.</summary>
 internal static class BundleFiles
 {
+    /// <summary>A bundled UTF-16 text file (.ao, .ot, ...), its byte-order mark dropped.</summary>
+    public static string ReadText(this FileRecord file) => Encoding.Unicode.GetString(file.Read().ToArray()).TrimStart('\uFEFF');
+
     private static readonly ConditionalWeakTable<Index, Dictionary<string, FileRecord>> Cache = new();
     private static readonly object Gate = new();
 

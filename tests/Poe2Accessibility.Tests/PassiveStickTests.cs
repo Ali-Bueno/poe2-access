@@ -7,6 +7,7 @@ namespace Poe2Accessibility.Tests
     using System.Linq;
     using System.Numerics;
     using Poe2Accessibility.Services;
+    using static Check;
 
     /// <summary>
     ///     The game's stick rule on the passive tree (<see cref="PassiveStick"/>): the 240 pushes recorded with the virtual
@@ -43,14 +44,6 @@ namespace Poe2Accessibility.Tests
             (nameof(ARouteFollowsThePushesThatNear), ARouteFollowsThePushesThatNear),
             (nameof(ALinkBetweenTwoDirectionsIsNamedByThePushBetween), ALinkBetweenTwoDirectionsIsNamedByThePushBetween),
         };
-
-        private static void Expect<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new Exception($"{what}: expected '{expected}', got '{actual}'");
-            }
-        }
 
         private static void EveryRecordedPushLandsWhereTheGameDid()
         {

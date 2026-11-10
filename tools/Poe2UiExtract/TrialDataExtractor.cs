@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using Index = LibBundle3.Index;
 
@@ -60,7 +59,7 @@ internal static class TrialDataExtractor
     {
         var result = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
         var icons = new SortedDictionary<string, string>(StringComparer.Ordinal);
-        var languages = AreaExtractor.LanguageCodes.Select(pair => (Code: pair.Value, Folder: (string?)pair.Key)).Prepend(("en", null));
+        var languages = AreaExtractor.Languages;
         foreach (var (code, folder) in languages)
         {
             var texts = new SortedDictionary<string, string>(StringComparer.Ordinal);
@@ -106,12 +105,7 @@ internal static class TrialDataExtractor
         }
 
         result[IconsEntry] = icons;
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
-        File.WriteAllText(outFile, JsonSerializer.Serialize(result, new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        }));
+        AreaExtractor.WriteJson(outFile, result);
         Say.Out.WriteLine($"Wrote {outFile}: {icons.Count} icons");
         return 0;
     }

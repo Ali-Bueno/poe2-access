@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 /// <summary>
@@ -67,7 +66,7 @@ internal static class WorldTitleExtractor
         var objectiveRows = Objectives.Select(wanted => (wanted.Path, Row: Enumerable.Range(0, englishObjectives?.RowCount ?? 0)
             .FirstOrDefault(row => englishObjectives!.StringOrNull(row, ObjectiveColumn) == wanted.Objective, -1))).ToList();
         var result = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
-        var languages = AreaExtractor.LanguageCodes.Select(pair => (Code: pair.Value, Folder: (string?)pair.Key)).Prepend(("en", null));
+        var languages = AreaExtractor.Languages;
         foreach (var (code, folder) in languages)
         {
             var table = folder == null ? DatTable.Open(index, StringsTable) : DatTable.OpenTranslated(index, StringsTable, folder);
@@ -134,12 +133,7 @@ internal static class WorldTitleExtractor
             result[code] = titles;
         }
 
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
-        File.WriteAllText(outFile, JsonSerializer.Serialize(result, new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        }));
+        AreaExtractor.WriteJson(outFile, result);
         Say.Out.WriteLine($"Wrote {outFile}: {string.Join(", ", result.Keys)}");
         return 0;
     }

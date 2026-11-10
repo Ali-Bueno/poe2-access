@@ -6,6 +6,7 @@ namespace Poe2Accessibility.Tests
     using System.IO;
     using System.Linq;
     using GameReader.Utils.CodeReader;
+    using static Check;
 
     /// <summary>The host's x64 decoder: known encodings, and agreement with capstone on the game's own code.</summary>
     public static class X64DecoderTests
@@ -311,14 +312,6 @@ namespace Poe2Accessibility.Tests
         }
 
         private static byte[] Bytes(string hex) => Convert.FromHexString(hex.Replace(" ", string.Empty, StringComparison.Ordinal));
-
-        private static void Equal<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new InvalidOperationException($"{what}: expected {expected}, got {actual}");
-            }
-        }
 
         private sealed class ComparisonResult
         {

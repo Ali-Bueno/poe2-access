@@ -46,24 +46,6 @@ internal sealed partial class DatTable
         return this.IsStringStart(value) ? this.ReadString(value) : null;
     }
 
-    /// <summary>A list column of strings, or null when an item is not the offset of a string's first character (a misaligned column).</summary>
-    public IReadOnlyList<string>? StringListOrNull(int row, int offset)
-    {
-        var items = new List<string>();
-        foreach (var at in this.ListItems(row, offset, 8))
-        {
-            var value = BitConverter.ToInt64(this.data, at);
-            if (!this.IsStringStart(value))
-            {
-                return null;
-            }
-
-            items.Add(this.ReadString(value));
-        }
-
-        return items;
-    }
-
     /// <summary>8 bytes at any offset of a row, aligned or not (GrantedEffects' animation key sits at +0x71).</summary>
     public long Int64(int row, int offset) => offset >= 0 && offset + 8 <= this.RowSize ? BitConverter.ToInt64(this.data, this.RowStart(row) + offset) : -1;
 

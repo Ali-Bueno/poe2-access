@@ -1,7 +1,6 @@
 ﻿namespace GameReader.RemoteObjects.UiElement
 {
     using GameReader.Cache;
-    using GameOffsets.Natives;
     using System;
 
     /// <summary>
@@ -16,11 +15,5 @@
         /// <param name="parents">parent cache to use for this Ui Element.</param>
         internal ChatParentUiElement(IntPtr address, UiElementParents parents) :
             base(address, parents) {}
-
-        // The chat-active background-alpha heuristic stopped working (alpha is now
-        // always 255). The game instead toggles bit 18 (0x40000) of the chat parent
-        // UiElement flags when the chat is focused/active.
-        private const int CHAT_ACTIVE_BINARY_POS = 0x12;
-
     }
 }

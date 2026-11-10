@@ -26,21 +26,12 @@ namespace GameReader.RemoteObjects.Components
         public RenderItem(IntPtr address)
             : base(address) { }
 
-        /// <summary>
-        ///     Gets the full 2D art (.dds) resource path of the item's own icon. Empty when unavailable.
-        /// </summary>
-        public string ResourcePath { get; private set; } = string.Empty;
-
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)
         {
             var reader = Core.Process.Handle;
             var data = reader.ReadMemory<RenderItemOffsets>(this.Address);
             this.OwnerEntityAddress = data.Header.EntityPtr;
-
-            this.ResourcePath = data.ResourcePathPtr != IntPtr.Zero
-                ? reader.ReadUnicodeString(data.ResourcePathPtr)
-                : string.Empty;
         }
     }
 }

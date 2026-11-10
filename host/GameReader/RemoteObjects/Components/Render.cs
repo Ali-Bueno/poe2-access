@@ -53,11 +53,6 @@ namespace GameReader.RemoteObjects.Components
         /// </summary>
         public StdTuple3D<float> WorldPosition { get; private set; }
 
-        /// <summary>
-        ///     Gets the terrain height on which the Entity is standing.
-        /// </summary>
-        public float TerrainHeight { get; private set; }
-
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)
         {
@@ -66,7 +61,6 @@ namespace GameReader.RemoteObjects.Components
             this.OwnerEntityAddress = data.Header.EntityPtr;
             this.WorldPosition = data.CurrentWorldPosition;
             this.ModelBounds = data.CharactorModelBounds;
-            this.TerrainHeight = (float)Math.Round(data.TerrainHeight, 4);
 
             var newX = data.CurrentWorldPosition.X / WorldToGridRatio;
             var newY = data.CurrentWorldPosition.Y / WorldToGridRatio;

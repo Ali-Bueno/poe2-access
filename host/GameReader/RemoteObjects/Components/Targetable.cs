@@ -5,7 +5,6 @@
 namespace GameReader.RemoteObjects.Components
 {
     using System;
-    using System.Runtime.InteropServices;
     using GameOffsets.Objects.Components;
 
     /// <summary>
@@ -13,8 +12,6 @@ namespace GameReader.RemoteObjects.Components
     /// </summary>
     public class Targetable : ComponentBase
     {
-        private TargetableOffsets cache;
-
         /// <summary>
         ///     Initializes a new instance of the <see cref="Targetable" /> class.
         /// </summary>
@@ -33,7 +30,6 @@ namespace GameReader.RemoteObjects.Components
             var reader = Core.Process.Handle;
             var data = reader.ReadMemory<TargetableOffsets>(this.Address);
             this.OwnerEntityAddress = data.Header.EntityPtr;
-            this.cache = data;
             this.IsTargetable = data.IsTargetable && !data.HiddenfromPlayer &&
                 data.NeedsTrue && data.MeetsQuestState && !data.NeedsFalse;
         }

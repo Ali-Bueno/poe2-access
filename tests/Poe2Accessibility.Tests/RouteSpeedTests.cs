@@ -6,6 +6,7 @@ namespace Poe2Accessibility.Tests
     using System.Linq;
     using System.Numerics;
     using Poe2Accessibility.Services;
+    using static Check;
 
     /// <summary>The route search on realistic cave and room grids: valid, never longer than the optimum, and cheap on the frame thread.</summary>
     public static class RouteSpeedTests
@@ -400,14 +401,6 @@ namespace Poe2Accessibility.Tests
         }
 
         private static void Fail(string message) => throw new Exception(message);
-
-        private static void Equal<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                Fail($"{what}: expected {expected}, got {actual}");
-            }
-        }
 
         private static void RoutesAreValidAndNeverLongerThanTheOptimum()
         {

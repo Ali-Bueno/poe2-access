@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Tests
     using System.Collections.Generic;
     using System.Linq;
     using static Poe2Accessibility.Tests.DatColumnSearchTests;
+    using static Check;
 
     /// <summary>The shared column finders of the extractors (buffs, ground effects, animation links), on small synthetic tables.</summary>
     public static class ExtractorColumnTests
@@ -23,14 +24,6 @@ namespace Poe2Accessibility.Tests
             (nameof(AnimationLinksAreFoundWhereMeasured), AnimationLinksAreFoundWhereMeasured),
             (nameof(AnimationLinksFollowAShift), AnimationLinksFollowAShift),
         };
-
-        private static void Expect<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new Exception($"{what}: expected '{expected}', got '{actual}'");
-            }
-        }
 
         /// <summary>Buffs as the game lays them out (Id, Description, Name, type byte); <paramref name="shift"/> moves every column after the Id.</summary>
         private static DatTable Buffs(int shift, byte frozenType = 2)

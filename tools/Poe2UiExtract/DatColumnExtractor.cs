@@ -31,12 +31,6 @@ internal static class DatColumnExtractor
 
     private const int MinTranslatedRows = 20;
 
-    public static int Run(string gameDir, string outFile)
-    {
-        using var index = SharedBundles.OpenParsed(gameDir);
-        return Run(index, outFile);
-    }
-
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
     public static int Run(Index index, string outFile)
     {

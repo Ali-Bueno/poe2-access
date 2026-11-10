@@ -24,13 +24,13 @@ internal sealed class MonsterAnimationFiles
     private static readonly Regex Comment = new(@"//[^\n]*", RegexOptions.Compiled);
     private static readonly Regex Stance = new(@"stance\s+\w+\s*\{[^{}]*\}", RegexOptions.Compiled);
     private static readonly Regex Assignment = new("(\\w+)\\s*=\\s*\"([^\"]*)\"", RegexOptions.Compiled);
-    private static readonly Regex Extends = new("extends\\s+\"([^\"]+)\"", RegexOptions.Compiled);
-    private static readonly Regex Controller = new(@"\nAnimationController\s*\{(.*?)\n\}", RegexOptions.Compiled | RegexOptions.Singleline);
+    internal static readonly Regex Extends = new("extends\\s+\"([^\"]+)\"", RegexOptions.Compiled);
+    internal static readonly Regex Controller = new(@"\nAnimationController\s*\{(.*?)\n\}", RegexOptions.Compiled | RegexOptions.Singleline);
     private static readonly Regex Metadata = new("metadata\\s*=\\s*\"([^\"]+)\"", RegexOptions.Compiled);
-    private static readonly Regex Animations = new(@"animations\s*=\s*'(\[.*?\])'", RegexOptions.Compiled | RegexOptions.Singleline);
+    internal static readonly Regex Animations = new(@"animations\s*=\s*'(\[.*?\])'", RegexOptions.Compiled | RegexOptions.Singleline);
 
     // Settings such as "offset_scale = 1.2" may come before the list.
-    private static readonly Regex MeleeSection = new(@"\nMelee\s*\{[^{}']*?animations\s*=\s*'(\[.*?\])'", RegexOptions.Compiled | RegexOptions.Singleline);
+    internal static readonly Regex MeleeSection = new(@"\nMelee\s*\{[^{}']*?animations\s*=\s*'(\[.*?\])'", RegexOptions.Compiled | RegexOptions.Singleline);
 
     private readonly Func<string, byte[]?> read;
     private readonly Dictionary<string, Dictionary<string, string>> acts = new(StringComparer.OrdinalIgnoreCase);

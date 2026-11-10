@@ -4,13 +4,9 @@
 
 namespace GameReader.RemoteEnums
 {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     /// <summary>
     ///     Read Rarity.dat file for Rarity to integer mapping.
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum Rarity
     {
         /// <summary>

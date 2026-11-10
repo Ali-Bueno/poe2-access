@@ -8,7 +8,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using Coroutine;
     using GameOffsets.Natives;
     using GameOffsets.Objects.States.InGameState;
@@ -40,19 +39,14 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         internal Inventory(IntPtr address, string name)
             : base(address)
         {
-            Core.CoroutinesRegistrar.Add(CoroutineHandler.Start(
-                this.OnTimeTick(), $"[Inventory] Update {name}", int.MaxValue - 4));
+            CoroutineHandler.Start(
+                this.OnTimeTick(), $"[Inventory] Update {name}", int.MaxValue - 4);
         }
 
         /// <summary>
         ///     Gets a value indicating total number of boxes in the inventory.
         /// </summary>
         public StdTuple2D<int> TotalBoxes { get; private set; }
-
-        /// <summary>
-        ///     Gets a value indicating total number of requests send to the server for this inventory.
-        /// </summary>
-        public int ServerRequestCounter { get; private set; }
 
         /// <summary>
         ///     Gets all the items in the inventory.
@@ -102,7 +96,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         protected override void CleanUpData()
         {
             this.TotalBoxes = default;
-            this.ServerRequestCounter = default;
             this.itemsToInventorySlotMapping = Array.Empty<IntPtr>();
             this.Items.Clear();
         }
@@ -113,7 +106,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             var reader = Core.Process.Handle;
             var invInfo = reader.ReadMemory<InventoryStruct>(this.Address);
             this.TotalBoxes = invInfo.TotalBoxes;
-            this.ServerRequestCounter = invInfo.ServerRequestCounter;
             this.itemsToInventorySlotMapping = reader.ReadStdVector<IntPtr>(invInfo.ItemList);
             if (hasAddressChanged)
             {

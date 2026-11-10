@@ -320,7 +320,7 @@ internal static class EndgameExtractor
         }
 
         var text = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
-        foreach (var (code, folder) in AreaExtractor.LanguageCodes.Select(pair => (Code: pair.Value, Folder: (string?)pair.Key)).Prepend(("en", null)))
+        foreach (var (code, folder) in AreaExtractor.Languages)
         {
             DatTable? Local(string name) => folder == null ? tables[name] : DatTable.OpenTranslated(index, name, folder) is { } local &&
                                                                               local.RowCount == tables[name].RowCount && local.RowSize == tables[name].RowSize ? local : null;
