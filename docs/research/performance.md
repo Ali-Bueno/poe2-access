@@ -153,7 +153,10 @@ player hears changed, and no read was dropped except the two named under "Reads"
   from the shared pool as a `PooledArray<T>`, a ref struct: it cannot be stored, so nothing reads it after it is returned.
 - **The live walkable grid** is read into one buffer per grid size (`EntityCatalog.ReadLiveGrid`), under the samples' lock; a
   sample is copied out of it only when it differs from the one before. Standing still: no array at all, where each sample
-  was hundreds of kilobytes on the large object heap.
+  was hundreds of kilobytes on the large object heap. The samples, the barrier memory and the keep-or-combine decision are
+  `GridSamples`, pure and tested (`GridSamplesTests`). Its rules: a sample kept owns its array; the combined grid is kept
+  only while every sample is the one array it was made from and the barrier memory did not change. The morning's version
+  kept a combination of differing samples under the newest one, so a door that opened stayed closed for routes (f470410).
 - **`Buffs.StatusEffects`** is a plain `Dictionary`: the concurrent one allocated a table per `Clear`, a node per buff per
   frame and a list per `Keys`, and `EntityCatalog.IsHidden` asks for the keys of every monster for every sound. Invariant:
   the dictionary is refilled on the thread that updates its entity and read on the frame thread only (the plugin's tasks

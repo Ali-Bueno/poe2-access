@@ -34,9 +34,9 @@ namespace Poe2Accessibility.Services
             {
                 // Between two samples the answer is the last one: the game's grid is read twice a second, not once a caller.
                 var now = Environment.TickCount64;
-                if (this.stable is { } recent && recent.Grid.Length == snapshot.Length && now - this.lastSampleAt < SampleMs)
+                if (this.grid.Fresh(now, snapshot.Length) is { } recent)
                 {
-                    return recent.Grid;
+                    return recent;
                 }
 
                 if (this.ReadLiveGrid(area, snapshot.Length) is not { } live)
@@ -44,39 +44,13 @@ namespace Poe2Accessibility.Services
                     return snapshot;
                 }
 
-                // A cell is walkable for routes only if it was in every recent sample: a closed tutorial barrier
-                // (TutorialBlocker3 by the Riverbank bridge, 2026-10-23) flickers in the live grid every few seconds,
-                // which split the ground in two and made routes and the guide's "the way is closed" flap. A gate that
-                // really opens is walkable again once the samples agree (about two seconds). Past the network bubble the
-                // grid cannot be trusted at all: see BarrierMemory.
-                if (this.samples.Count > 0 && this.samples.Peek().Length != live.Length)
+                // What is kept of `live` and when the combined grid is made again: GridSamples.
+                var closed = this.grid.ClosedCells;
+                (int X, int Y)? at = Seats.Followed.TryGetComponent<Render>(out var player) ? ((int)player.GridPosition.X, (int)player.GridPosition.Y) : null;
+                var stable = this.grid.Add(now, live, snapshot, area.TerrainMetadata.BytesPerRow, at);
+                if (this.grid.ClosedCells != closed)
                 {
-                    this.samples.Clear();
-                    this.newestSample = null;
-                    this.stable = null;
-                }
-
-                // A grid that did not change is the sample before it: one array stands for all of them. One that did is
-                // kept as a copy: `live` is the buffer the next sample is read into.
-                var newest = this.newestSample;
-                var same = newest != null && newest.AsSpan().SequenceEqual(live);
-                this.newestSample = same ? newest! : (byte[])live.Clone();
-                this.samples.Enqueue(this.newestSample);
-                this.lastSampleAt = now;
-                var closed = this.barriers.ClosedCount;
-                var changes = this.barriers.Changes;
-                if (Seats.Followed.TryGetComponent<Render>(out var player))
-                {
-                    this.barriers.Observe(live, snapshot, area.TerrainMetadata.BytesPerRow, (int)player.GridPosition.X, (int)player.GridPosition.Y);
-                    if (this.barriers.ClosedCount != closed)
-                    {
-                        this.log.Debug($"Barrier cells remembered closed: {this.barriers.ClosedCount}");
-                    }
-                }
-
-                while (this.samples.Count > MaxSamples)
-                {
-                    this.samples.Dequeue();
+                    this.log.Debug($"Barrier cells remembered closed: {this.grid.ClosedCells}");
                 }
 
                 if (this.log.Verbose && !live.AsSpan().SequenceEqual(snapshot))
@@ -84,43 +58,6 @@ namespace Poe2Accessibility.Services
                     this.log.Debug($"Walkable grid changed since the area loaded: {Changed(snapshot, live)} cells");
                 }
 
-                // Every sample the same array and no barrier learnt or forgotten: what was combined before still holds.
-                if (this.stable is { } kept && this.barriers.Changes == changes && this.samples.All(sample => ReferenceEquals(sample, kept.Live)))
-                {
-                    return kept.Grid;
-                }
-
-                var stable = (byte[])this.newestSample.Clone();
-                foreach (var sample in this.samples)
-                {
-                    if (ReferenceEquals(sample, this.newestSample))
-                    {
-                        continue;
-                    }
-
-                    for (var i = 0; i < stable.Length; i++)
-                    {
-                        var both = stable[i];
-                        var other = sample[i];
-                        if ((other & 0x0F) == 0)
-                        {
-                            both &= 0xF0;
-                        }
-
-                        if ((other & 0xF0) == 0)
-                        {
-                            both &= 0x0F;
-                        }
-
-                        stable[i] = both;
-                    }
-                }
-
-                this.barriers.Apply(stable);
-                // Kept under the newest sample only when it was made from that sample alone: a combination of different
-                // samples (a door that just opened still reads closed) must be made again once they all agree, or the
-                // door would stay closed for routes.
-                this.stable = (this.samples.All(sample => ReferenceEquals(sample, this.newestSample)) ? this.newestSample : stable, stable);
                 return stable;
             }
         }
@@ -128,7 +65,8 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     The game's grid now, read into one buffer kept for the area's size (hundreds of kilobytes twice a second, so
         ///     the large object heap otherwise); null when it cannot be read or is not <paramref name="cells"/> bytes long.
-        ///     The buffer is valid until the next sample only and under the samples' lock: what is kept of it is copied.
+        ///     The buffer is valid until the next sample only and under the samples' lock: a sample <see cref="GridSamples"/>
+        ///     keeps is a copy that owns its array.
         /// </summary>
         private byte[]? ReadLiveGrid(AreaInstance area, int cells)
         {
@@ -196,9 +134,7 @@ namespace Poe2Accessibility.Services
         {
             lock (this.samplesLock)
             {
-                this.samples.Clear();
-                this.newestSample = null;
-                this.stable = null;
+                this.grid.Forget();
             }
         }
 

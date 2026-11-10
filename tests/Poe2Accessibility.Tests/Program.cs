@@ -236,6 +236,7 @@ namespace Poe2Accessibility.Tests
                 TickCostsTests.All(),
                 ReaderBufferTests.All(),
                 ListingTests.All(),
+                GridSamplesTests.All(),
                 NameFallbackTests.All(),
                 TrialDataTests.All(),
                 PanelWidgetTests.All(),

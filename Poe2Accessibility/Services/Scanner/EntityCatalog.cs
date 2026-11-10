@@ -152,16 +152,11 @@ namespace Poe2Accessibility.Services
 
         /// <summary>What the objective names, seen or not, as of the last <see cref="Entries"/>: the lost hint's goal.</summary>
         private IReadOnlyList<ScanEntry> questTargets = Array.Empty<ScanEntry>();
-        /// <summary>Recent live walkable grids (GameLayout-free: whole copies), oldest first.</summary>
-        private readonly Queue<byte[]> samples = new();
-        private readonly BarrierMemory barriers = new();
+        /// <summary>The recent live walkable grids, the barrier memory and the grid combined from them (see WalkableGrid).</summary>
+        private readonly GridSamples grid = new(MaxSamples, SampleMs);
         /// <summary>Closed barriers seen in this area by entity id (grid position), kept past the network bubble.</summary>
         private readonly Dictionary<uint, Vector2> closedBarriers = new();
         private readonly object samplesLock = new();
-
-        /// <summary>The last combined grid and the live grid it was made from (see WalkableGrid).</summary>
-        private (byte[] Live, byte[] Grid)? stable;
-        private byte[]? newestSample;
 
         /// <summary>Where each sample of the live grid is read (<see cref="ReadLiveGrid"/>); never a sample itself.</summary>
         private byte[] liveGrid = Array.Empty<byte>();
@@ -171,7 +166,6 @@ namespace Poe2Accessibility.Services
         ///     the way, the same way and direction are kept unless clearly changed (<see cref="RoutePlanner.Keep"/>).
         /// </summary>
         private (uint Id, string Area, List<Vector2>? Route, int? First) described;
-        private long lastSampleAt;
         private IReadOnlyList<ScanEntry> unexplored = Array.Empty<ScanEntry>();
         private long unexploredAt = long.MinValue / 2;
         private long trackedAt = long.MinValue / 2;
@@ -371,10 +365,7 @@ namespace Poe2Accessibility.Services
             this.questTargets = Array.Empty<ScanEntry>();
             lock (this.samplesLock)
             {
-                this.samples.Clear();
-                this.newestSample = null;
-                this.stable = null;
-                this.barriers.Reset();
+                this.grid.Reset();
                 this.closedBarriers.Clear();
             }
             this.unexplored = Array.Empty<ScanEntry>();
