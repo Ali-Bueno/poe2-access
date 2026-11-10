@@ -114,6 +114,15 @@ namespace Poe2Accessibility.Services
 
         private (long At, IntPtr Area, string Instance, IReadOnlyList<ScanEntry> List)? listed;
 
+        /// <summary>The working collections of a listing, kept for the next; null while one is being made (see <see cref="Entries"/>).</summary>
+        private ListingScratch? listing = new();
+
+        /// <summary>What the objective was found to name, between listings (<see cref="QuestMatcher.Memo"/>).</summary>
+        private readonly QuestMatcher.Memo questMemo = new();
+
+        /// <summary>Where each named tile stands in the tile table last asked about (<see cref="TileCentres"/>).</summary>
+        private (Dictionary<string, List<Vector2>>? Tiles, int Count, float Reach, Dictionary<string, Vector2[]> Centres) tileCentres = (null, 0, 0, new(StringComparer.Ordinal));
+
         /// <summary>The explored ground is written this often while playing, so a host restart loses little.</summary>
         private const int SaveExploredMs = 15000;
 
@@ -418,12 +427,29 @@ namespace Poe2Accessibility.Services
                 return Array.Empty<ScanEntry>();
             }
 
-            var found = new Dictionary<uint, ScanEntry>();
+            // Ten listings a second: their working collections are kept, and nothing returned or remembered points into
+            // them (the list handed out is built new). A listing asked for from inside one takes collections of its own.
+            var scratch = this.listing ?? new ListingScratch();
+            this.listing = null;
+            try
+            {
+                return this.List(area, player, now, scratch);
+            }
+            finally
+            {
+                scratch.Clear();
+                this.listing = scratch;
+            }
+        }
+
+        private List<ScanEntry> List(AreaInstance area, Render player, long now, ListingScratch scratch)
+        {
+            var found = scratch.Found;
             // Known to the game but not yet to the player: only the quest marker may point at them.
-            var unseen = new List<ScanEntry>();
-            var renders = new List<IntPtr>();
+            var unseen = scratch.Unseen;
+            var renders = scratch.Renders;
             var sampling = this.Fields?.StartPass() ?? false;
-            foreach (var entity in area.AwakeEntities.Values)
+            foreach (var (_, entity) in area.AwakeEntities)
             {
                 if (!entity.IsValid || !entity.TryGetComponent<Render>(out var render))
                 {
@@ -466,7 +492,8 @@ namespace Poe2Accessibility.Services
             }
 
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
-            foreach (var landmark in this.remembered.Values.ToList())
+            scratch.Remembered.AddRange(this.remembered.Values); // a copy: the loop forgets some
+            foreach (var landmark in scratch.Remembered)
             {
                 if (found.ContainsKey(landmark.Id))
                 {
@@ -491,7 +518,7 @@ namespace Poe2Accessibility.Services
             var toCells = area.WorldToGridConvertor;
             foreach (var landmark in this.TileLandmarks(area, player.WorldPosition.Z))
             {
-                if (landmark.Category == ScanCategory.Exits && found.Values.Any(exit => exit.Category == ScanCategory.Exits && SameExit(exit, landmark, toCells)))
+                if (landmark.Category == ScanCategory.Exits && ListsExit(found.Values, landmark, toCells))
                 {
                     continue; // the exit's own tile beside the game's exit: one place, said once (two "El bosque singular", 2026-11-02)
                 }
@@ -509,11 +536,19 @@ namespace Poe2Accessibility.Services
             }
 
             // A place anchored on a thing already listed (the well, the stash, a waypoint) is that thing, heard twice.
-            var things = found.Values.Where(entry => IsEntity(entry) && entry.Kind.Length > 0).ToList();
+            var things = scratch.Things;
+            foreach (var entry in found.Values)
+            {
+                if (IsEntity(entry) && entry.Kind.Length > 0)
+                {
+                    things.Add(entry);
+                }
+            }
+
             foreach (var place in this.PlaceEntries?.Invoke(player.WorldPosition.Z) ?? Array.Empty<ScanEntry>())
             {
                 var at = new StdTuple3D<float> { X = place.WorldX, Y = place.WorldY, Z = place.WorldZ };
-                if (things.Any(thing => thing.Kind == place.Kind && Distance(at, thing) <= SamePlaceWorld))
+                if (StandsOnOneOf(things, place, at))
                 {
                     continue;
                 }
@@ -539,7 +574,7 @@ namespace Poe2Accessibility.Services
             // The objective is known wherever the game knows it, but said only once seen: the rest is for the player to find,
             // with the lost hint for a last resort (user 2026-11-05, over the marker of 2026-10-24; docs/radar.md).
             var questPool = sorted.Concat(unseen.Where(entry => !found.ContainsKey(entry.Id))).OrderBy(entry => Distance(origin, entry)).ToList();
-            this.questTargets = QuestMatcher.Targets(questPool, this.QuestTexts(), this.AreaName(), this.cameFrom);
+            this.questTargets = QuestMatcher.Targets(questPool, this.QuestTexts(), this.AreaName(), this.cameFrom, this.questMemo);
             sorted.InsertRange(0, this.questTargets.Where(target => target.QuestMarked || found.ContainsKey(target.Id)));
             this.listed = (now, area.Address, this.instance, sorted);
             return sorted;
@@ -756,6 +791,80 @@ namespace Poe2Accessibility.Services
             return !listed.Any(Same) && (unseen.Any(Same) || Vector2.Distance(here, at) > InheritedGoneWorld);
         }
 
+        /// <summary>Whether the game's own exit of a named exit tile is among the listed (<see cref="SameExit"/>).</summary>
+        private static bool ListsExit(Dictionary<uint, ScanEntry>.ValueCollection listed, ScanEntry tile, float worldPerCell)
+        {
+            foreach (var exit in listed)
+            {
+                if (exit.Category == ScanCategory.Exits && SameExit(exit, tile, worldPerCell))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>Whether a place is anchored on a listed thing of its kind (<see cref="SamePlaceWorld"/>).</summary>
+        private static bool StandsOnOneOf(List<ScanEntry> things, ScanEntry place, StdTuple3D<float> at)
+        {
+            foreach (var thing in things)
+            {
+                if (thing.Kind == place.Kind && Distance(at, thing) <= SamePlaceWorld)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>The collections one listing fills and reads before it returns.</summary>
+        private sealed class ListingScratch
+        {
+            public Dictionary<uint, ScanEntry> Found { get; } = new();
+
+            public List<ScanEntry> Unseen { get; } = new();
+
+            public List<IntPtr> Renders { get; } = new();
+
+            public List<ScanEntry> Remembered { get; } = new();
+
+            public List<ScanEntry> Things { get; } = new();
+
+            public void Clear()
+            {
+                this.Found.Clear();
+                this.Unseen.Clear();
+                this.Renders.Clear();
+                this.Remembered.Clear();
+                this.Things.Clear();
+            }
+        }
+
+        /// <summary>
+        ///     Where the named tile <paramref name="key"/> stands, one centre (grid cells) per group of its pieces: worked out
+        ///     once per tile table (looking a file's pieces up walks every tile of the area) and group reach.
+        /// </summary>
+        private Vector2[] TileCentres(Dictionary<string, List<Vector2>> tiles, string key)
+        {
+            // The host empties the same dictionary when the area is left, so its size is part of the key (as for the arenas).
+            var reach = ArenaReachTiles * TileStructure.TileToGridConversion;
+            if (!ReferenceEquals(this.tileCentres.Tiles, tiles) || this.tileCentres.Count != tiles.Count || this.tileCentres.Reach != reach)
+            {
+                this.tileCentres.Centres.Clear();
+                this.tileCentres = (tiles, tiles.Count, reach, this.tileCentres.Centres);
+            }
+
+            if (!this.tileCentres.Centres.TryGetValue(key, out var centres))
+            {
+                centres = TilePlaces.Centres(tiles, key, reach);
+                this.tileCentres.Centres[key] = centres;
+            }
+
+            return centres;
+        }
+
         /// <summary>The game's exit and a named tile of the same name this near it are one exit.</summary>
         private static bool SameExit(ScanEntry exit, ScanEntry tile, float worldPerCell) =>
             string.Equals(exit.Name, tile.Name, StringComparison.OrdinalIgnoreCase) &&
@@ -776,10 +885,8 @@ namespace Poe2Accessibility.Services
             foreach (var (key, label) in this.landmarks.For(this.areaId()))
             {
                 index++;
-                var spots = key.Contains(':', StringComparison.Ordinal)
-                    ? tiles.TryGetValue(key, out var exact) ? exact : new List<Vector2>()
-                    : tiles.Where(tile => tile.Key.StartsWith(key + ".", StringComparison.Ordinal)).SelectMany(tile => tile.Value).ToList();
-                if (spots.Count == 0)
+                var places = this.TileCentres(tiles, key);
+                if (places.Length == 0)
                 {
                     continue;
                 }
@@ -793,11 +900,9 @@ namespace Poe2Accessibility.Services
                 }
 
                 // One place per group of the tile's pieces: the same tile on two floors is two places, not their middle.
-                var places = MinimapMarks.Groups(spots, ArenaReachTiles * TileStructure.TileToGridConversion);
-                for (var place = 0; place < places.Count; place++)
+                for (var place = 0; place < places.Length; place++)
                 {
-                    var members = places[place];
-                    var centre = new Vector2(members.Average(member => spots[member].X), members.Average(member => spots[member].Y)) * toWorld;
+                    var centre = places[place] * toWorld;
                     var id = LandmarkIdBase + (index * LandmarkPlaceStride) + (uint)place;
                     if (boss != null)
                     {

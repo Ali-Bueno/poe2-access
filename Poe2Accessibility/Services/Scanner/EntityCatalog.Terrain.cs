@@ -163,7 +163,7 @@ namespace Poe2Accessibility.Services
         {
             lock (this.samplesLock)
             {
-                foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+                foreach (var (_, entity) in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities)
                 {
                     if (!entity.IsValid || !entity.TryGetComponent<TriggerableBlockage>(out var blockage) ||
                         entity.TryGetComponent<Targetable>(out _) || !entity.TryGetComponent<Render>(out var render))

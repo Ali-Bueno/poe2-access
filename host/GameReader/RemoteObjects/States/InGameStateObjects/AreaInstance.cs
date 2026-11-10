@@ -188,7 +188,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 return;
             }
 
-            foreach (var entity in this.AwakeEntities.Values)
+            // The pairs, not Values: that copies every entity into a list under all the dictionary's locks, each frame.
+            foreach (var (_, entity) in this.AwakeEntities)
             {
                 if (!entity.IsValid)
                 {
@@ -318,7 +319,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 return;
             }
 
-            foreach (var entity in data.Values)
+            foreach (var (_, entity) in data)
             {
                 if (entity.ReachedInWalk != walk)
                 {

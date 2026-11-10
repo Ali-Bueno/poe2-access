@@ -209,6 +209,7 @@
     <Compile Include="..\..\host\GameReader\Utils\StdMapWalk.cs" Link="Host\StdMapWalk.cs" />
     <Compile Include="..\..\host\GameReader\Utils\NativeText.cs" Link="Host\NativeText.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\BlockPool.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\TilePlaces.cs" />
     <Compile Include="..\..\host\GameReader\Utils\StructShapes.cs" Link="Host\StructShapes.cs" />
     <Compile Include="..\..\host\GameReader\Utils\EntityLayoutSearch.cs" Link="Host\EntityLayoutSearch.cs" />
     <Compile Include="..\..\host\GameReader\Utils\GameStateLayout.cs" Link="Host\GameStateLayout.cs" />

@@ -259,7 +259,7 @@ namespace Poe2Accessibility.Services
         private ScanEntry? EssenceHolding(Render monster)
         {
             var place = new Vector2(monster.WorldPosition.X, monster.WorldPosition.Y);
-            foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+            foreach (var (_, entity) in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities)
             {
                 if (entity.IsValid && entity.TryGetComponent<MinimapIcon>(out var icon) && icon.IconName == MinimapMarks.EssenceIcon &&
                     entity.TryGetComponent<Render>(out var render) &&
@@ -277,7 +277,7 @@ namespace Poe2Accessibility.Services
         private string NameNear(Render thing, float reach, Func<Entity, bool> passes)
         {
             var place = new Vector2(thing.WorldPosition.X, thing.WorldPosition.Y);
-            foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+            foreach (var (_, entity) in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities)
             {
                 if (entity.IsValid && passes(entity) && entity.TryGetComponent<Render>(out var render) &&
                     Vector2.Distance(place, new Vector2(render.WorldPosition.X, render.WorldPosition.Y)) < reach &&
@@ -307,7 +307,7 @@ namespace Poe2Accessibility.Services
         public IReadOnlyCollection<uint> GroundItemIds()
         {
             var ids = new HashSet<uint>();
-            foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+            foreach (var (_, entity) in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities)
             {
                 if (entity.IsValid && entity.TryGetComponent<WorldItem>(out _))
                 {
@@ -321,7 +321,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The name of the ground item with this id, as the inventory names it; null when it is not there.</summary>
         public string? GroundItemName(uint id)
         {
-            foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+            foreach (var (_, entity) in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities)
             {
                 if (entity.Id == id && entity.IsValid && entity.TryGetComponent<WorldItem>(out var item))
                 {
@@ -339,7 +339,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public ScanEntry? InteractTarget()
         {
-            foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+            foreach (var (_, entity) in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities)
             {
                 if (entity.IsValid && entity.TryGetComponent<Targetable>(out var target) &&
                     this.memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.IsTargetedOffset, out var flag) && flag != 0 &&
@@ -400,8 +400,24 @@ namespace Poe2Accessibility.Services
         private bool InPlay(Entity entity) => IsInPlay(this.memory, entity);
 
         /// <summary>Set aside by the game (<see cref="BuffIds.HiddenMonster"/>): alive and flagged targetable, yet out of the fight.</summary>
-        public static bool IsHidden(Entity entity) =>
-            entity.TryGetComponent<Buffs>(out var buffs) && buffs.StatusEffects.Keys.Any(BuffIds.IsHiddenMonster);
+        public static bool IsHidden(Entity entity)
+        {
+            if (!entity.TryGetComponent<Buffs>(out var buffs))
+            {
+                return false;
+            }
+
+            // Asked of every monster by every sound each frame: no LINQ here.
+            foreach (var buff in buffs.StatusEffects.Keys)
+            {
+                if (BuffIds.IsHiddenMonster(buff))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         /// <summary>Not hidden and targetable by its own flag (<see cref="GameLayout.TargetableComponent"/>); no component: in play.</summary>
         public static bool IsInPlay(HostMemoryReader memory, Entity entity) =>
