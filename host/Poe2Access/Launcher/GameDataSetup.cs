@@ -99,7 +99,11 @@ internal static class GameDataSetup
             if (error is not null)
             {
                 Log.Write($"Game data: {step.Name} failed, previous kept ({error})");
-                failed.Add(step.Name);
+                var listed = error == Extractor.BundleIndexName ? error : step.Name; // the index failing fails every step: one entry says it
+                if (!failed.Contains(listed))
+                {
+                    failed.Add(listed);
+                }
             }
             else if (step.Output is { } output)
             {
@@ -247,6 +251,10 @@ internal static class GameDataSetup
                         Log.Write($"Game data: {line[Extractor.BatchLinePrefix.Length..]}");
                         narrator?.StepDone();
                     }
+                    else if (line.StartsWith(Extractor.BatchIndexLinePrefix, StringComparison.Ordinal))
+                    {
+                        Log.Write($"Game data: bundle index {line[Extractor.BatchIndexLinePrefix.Length..]}");
+                    }
                 });
         }
         finally
@@ -365,7 +373,7 @@ internal static class GameDataSetup
                 }
             }
 
-            return work.Result == 0 ? null : $"exit code {work.Result}";
+            return work.Result == 0 ? null : work.Result == Extractor.BundleIndexExit ? Extractor.BundleIndexName : $"exit code {work.Result}";
         }
         catch (AggregateException error)
         {

@@ -22,7 +22,8 @@ namespace Poe2Accessibility.Tests
             (nameof(AMissingAnchorRowIsSaidAndFallsBackOnTheTranslation), AMissingAnchorRowIsSaidAndFallsBackOnTheTranslation),
             (nameof(TablesThatDifferInSizeAreNotAName), TablesThatDifferInSizeAreNotAName),
             (nameof(ASkippedKnownRowCheckIsSaid), ASkippedKnownRowCheckIsSaid),
-            (nameof(ATableThatIsNotWholeRowsFailsAndNamesItself), ATableThatIsNotWholeRowsFailsAndNamesItself),
+            (nameof(ABundleIndexThatDoesNotLookLikeTheGamesIsOneNamedFailure), ABundleIndexThatDoesNotLookLikeTheGamesIsOneNamedFailure),
+            (nameof(ATableThatIsNotWholeRowsFailsAndNamesItself),ATableThatIsNotWholeRowsFailsAndNamesItself),
             (nameof(ATableWithoutRowsOrTooShortFailsToo), ATableWithoutRowsOrTooShortFailsToo),
             (nameof(OverrideColumnsAreFoundWhereMeasuredAndAfterAShift),OverrideColumnsAreFoundWhereMeasuredAndAfterAShift),
             (nameof(AnOverrideTableWithoutTheKnownRowIsJudgedByShape), AnOverrideTableWithoutTheKnownRowIsJudgedByShape),
@@ -197,6 +198,16 @@ namespace Poe2Accessibility.Tests
             Expect(true, Unreadable(DatFile(0, 0x20), "stats").Contains("0 rows", StringComparison.Ordinal), "the header says no rows");
             Expect(true, Unreadable(new byte[6], "stats").Contains("too short", StringComparison.Ordinal), "a file without a header");
             Expect(true, Unreadable(DatFile(-4, 0x20), "stats").Contains("-4 rows", StringComparison.Ordinal), "a nonsense row count");
+        }
+
+        private static void ABundleIndexThatDoesNotLookLikeTheGamesIsOneNamedFailure()
+        {
+            Expect(null, BundleIndexCheck.Problem(80_000, 600, statsTableFound: true, unparsedPaths: 5), "today's shape");
+            Expect(true, BundleIndexCheck.Problem(0, 600, true) is { }, "no files");
+            Expect(true, BundleIndexCheck.Problem(80_000, 0, true) is { }, "no bundles");
+            Expect(true, BundleIndexCheck.Problem(80_000, 600, statsTableFound: false)!.Contains("stats.datc64", StringComparison.Ordinal), "the table every step needs is not listed");
+            Expect(true, BundleIndexCheck.Problem(80_000, 600, true, unparsedPaths: 70_000) is { }, "most paths did not parse: a format change");
+            Expect("bundle index", BundleIndexCheck.Name, "the name game-data-failed.txt lists");
         }
 
         private static void ASkippedKnownRowCheckIsSaid()
