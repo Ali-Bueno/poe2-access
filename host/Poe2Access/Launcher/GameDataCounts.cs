@@ -24,7 +24,7 @@ internal static class GameDataCounts
     {
         ["action-types.txt"] = 964, ["area-names.json"] = 4480, ["attack-reach.txt"] = 7309, ["boss-mechanics.txt"] = 2202,
         ["buff-names.json"] = 5986, ["class-mechanics.json"] = 47569, ["cull-skills.txt"] = 6, ["currency-art.json"] = 4140,
-        ["dat-columns.json"] = 24, ["endgame.json"] = 22382, ["experience.json"] = 100, ["game-ids.txt"] = 1105,
+        ["dat-columns.json"] = 32, ["endgame.json"] = 22382, ["experience.json"] = 100, ["game-ids.txt"] = 1105,
         ["game-keys.txt"] = 13118, ["hazards.txt"] = 71, ["hit-times.txt"] = 9025, ["inline-icons.txt"] = 187,
         ["item-sounds.json"] = 3583, ["passive-overrides.txt"] = 62, ["places.json"] = 9023, ["telegraph-effects.txt"] = 1175,
         ["telegraph-skills.txt"] = 2453, ["trials.json"] = 5796, ["ui-catalog.json"] = 11866,

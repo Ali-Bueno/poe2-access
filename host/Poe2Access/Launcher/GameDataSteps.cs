@@ -20,7 +20,7 @@ internal static class GameDataSteps
     [
         new Step(ItemSounds, 1, "item-sounds.json", "item-sounds"),
         new Step("area names", 1, "area-names.json", "areas"),
-        new Step("dat columns", 5, "dat-columns.json", "dat-columns"),
+        new Step("dat columns", 6, "dat-columns.json", "dat-columns"), // 6: each table's row size, by which the plugin judges a compiled offset
         new Step("experience", 1, "experience.json", "experience"),
         new Step("hit times", 4, "hit-times.txt", "hit-times", true),
         new Step("hazards", 3, "hazards.txt", "hazards", true),
@@ -41,7 +41,7 @@ internal static class GameDataSteps
         new Step("places", 1, "places.json", "places", true),
         new Step("endgame", 3, "endgame.json", "endgame", true),
         new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
-        new Step("trial data", 1, "trials.json", "trial-data", true),
+        new Step("trial data", 2, "trials.json", "trial-data", true), // 2: the class names of four languages were colour strings
         new Step(Sounds, 7, null, null, Input: ItemSounds),
     ];
 }

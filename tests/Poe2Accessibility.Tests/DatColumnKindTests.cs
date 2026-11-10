@@ -26,6 +26,9 @@ namespace Poe2Accessibility.Tests
             (nameof(TheAuditNamesTheTableTheOffsetAndBothKinds), TheAuditNamesTheTableTheOffsetAndBothKinds),
             (nameof(ASearchsTrialsAreNotReads), ASearchsTrialsAreNotReads),
             (nameof(AnIdColumnThatReadsAsNamesIsSaid), AnIdColumnThatReadsAsNamesIsSaid),
+            (nameof(KnownLinesMustStillReadAsTheyDid), KnownLinesMustStillReadAsTheyDid),
+            (nameof(ClientStringsAreFoundByAKnownRow), ClientStringsAreFoundByAKnownRow),
+            (nameof(ACompiledOffsetNothingJudgedIsReported), ACompiledOffsetNothingJudgedIsReported),
         };
 
         private static DatTable Table(int rows = Rows, bool namesFirst = false)
@@ -159,5 +162,75 @@ namespace Poe2Accessibility.Tests
             Expect(true, audit.Judge().Changed.Single().Contains("is read as the Id, but its bytes hold display text", StringComparison.Ordinal), "the audit says it");
         }
 
+        private static void KnownLinesMustStillReadAsTheyDid()
+        {
+            var lines = new[] { "Slam|geometry|shape=rectangle|Metadata/Effects/slam.ao|", "Marker|spawn|||Metadata/Objects/Marker" };
+            var known = new[] { ("Slam", new[] { "|geometry|", "slam.ao" }), ("Marker", new[] { "|spawn|", "Objects/Marker" }), ("Gone", new[] { "|effect|" }) };
+            Expect(0, DatAnchors.Unmet(lines, '|', known).Count, "the known lines read as they did; a skill the game dropped judges nothing");
+
+            var moved = new[] { "Slam|geometry|shape=rectangle|Metadata/Effects/other.ao|", lines[1] };
+            Expect(true, DatAnchors.Unmet(moved, '|', known).Single().StartsWith("Slam no longer reads with", StringComparison.Ordinal), "a list column that now leads elsewhere");
+        }
+
+        private static void ACompiledOffsetNothingJudgedIsReported()
+        {
+            var folder = System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests");
+            var log = new Poe2Accessibility.Services.PluginLog(folder, false);
+            var file = System.IO.Path.Join(folder, "dat-columns-" + Guid.NewGuid().ToString("N") + ".json");
+            IReadOnlyList<string> With(string? json)
+            {
+                if (json != null)
+                {
+                    System.IO.File.WriteAllText(file, json);
+                }
+
+                Poe2Accessibility.Services.DatColumns.Apply(file, log);
+                return Poe2Accessibility.Services.DatColumns.Unjudged;
+            }
+
+            try
+            {
+                var none = With(null);
+                Expect(true, none.Count > 20 && none.All(column => column.Contains("no dat-columns.json", StringComparison.Ordinal)), "without the file every compiled offset is unjudged");
+
+                // An older launcher's file: no column of Mods, but the table's row size as it was measured.
+                var sameSize = With("{\"Mods.RowSize\": 693}");
+                Expect(false, sameSize.Any(column => column.StartsWith("Mods.Name", StringComparison.Ordinal)), "a table of the measured size keeps its compiled offset");
+                Expect(true, sameSize.Any(column => column.StartsWith("Characters.Name", StringComparison.Ordinal)), "a table the file says nothing of does not");
+
+                var grown = With("{\"Mods.RowSize\": 701}");
+                Expect(true, grown.Single(column => column.StartsWith("Mods.Name", StringComparison.Ordinal)).Contains("0x2BD bytes, 0x2B5 when it was measured", StringComparison.Ordinal), "a table that grew");
+                Expect(null, Poe2Accessibility.Services.DatColumns.Doubt("Mods", new Dictionary<string, int> { ["Mods.RowSize"] = 693 }), "no doubt at the measured size");
+            }
+            finally
+            {
+                System.IO.File.Delete(file);
+                Poe2Accessibility.Services.DatColumns.Apply(file, log); // back to the compiled offsets for the tests after this one
+            }
+        }
+
+        private static void ClientStringsAreFoundByAKnownRow()
+        {
+            static DatTable Strings(int shift)
+            {
+                var builder = new DatTableBuilder(0x20 + shift);
+                foreach (var (key, text, other) in new[] { ("GameName", "Path of Exile 2", "x"), (ClientStringColumns.KnownKey, ClientStringColumns.KnownText, "Pueblo"), ("Options", "Options Menu", "y") })
+                {
+                    builder.Row(write => write.Text(0x0 + shift, key).Text(0x8 + shift, text).Text(0x10 + shift, other));
+                }
+
+                return builder.Build();
+            }
+
+            Expect((0x0, 0x8), ClientStringColumns.Find(Strings(0), new DatColumnSearch()), "where measured");
+            var search = new DatColumnSearch();
+            Expect((0x8, 0x10), ClientStringColumns.Find(Strings(8), search), "after a column was added before them");
+            Expect(2, search.Moved.Count, "both moves are said");
+
+            var reworded = new DatTableBuilder(0x18).Row(w => w.Text(0, "GameName").Text(8, "Path of Exile 2")).Row(w => w.Text(0, "Options").Text(8, "Options Menu")).Build();
+            var missing = new DatColumnSearch();
+            Expect(null, ClientStringColumns.Find(reworded, missing), "a table without the known key");
+            Expect(false, missing.AllFound, "the step fails");
+        }
     }
 }

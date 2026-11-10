@@ -5,10 +5,12 @@ using Index = LibBundle3.Index;
 /// <summary>
 ///     `item-sounds` command: maps every ground-item base type (BaseItemTypes.Id, the metadata path) to the drop sample
 ///     the game plays for it, written as { baseId: sampleName }. The chain, all English dat tables of Bundles2:
-///     BaseItemTypes.SoundEffect (offset 88) and .ItemVisualIdentity (124) -> ItemVisualIdentity.InventorySoundEffect
-///     (24) / .DropSoundEffect (919) -> SoundEffects.SoundFile (8) = an FMOD event path such as
-///     "Audio/Sound Effects/ItemSounds/4.0/Currency/Scrolls/Scroll_Drop.ogg". Offsets follow poe-tool-dev/dat-schema
-///     (PoE2) and are guarded by the row sizes. The event is resolved to a sample of ItemDrops.bank by name (event
+///     BaseItemTypes.SoundEffect (offset 88) and .ItemVisualIdentity (124) -> ItemVisualIdentity's two sound keys
+///     (24 and 140) -> SoundEffects.SoundFile (8) = an FMOD event path such as
+///     "Audio/Sound Effects/ItemSounds/4.0/Currency/Scrolls/Scroll_Drop.ogg". The offsets are where the columns were on
+///     2026-11-10; they are used only while every one still is its kind and items whose sample is known still resolve to
+///     it through them (<see cref="Known"/>), else found again by content and judged the same way, never trusted for a
+///     row size. The event is resolved to a sample of ItemDrops.bank by name (event
 ///     "Belt_Drop" -> sample "Belt_Drop_01"; the numbered samples are variants of one sound). Orb rows carry only a use
 ///     event ("OrbUse_Chaos_..."), so they take the bank's "OrbDrop_Chaos_01". Read-only on the game; the `sounds`
 ///     command extracts the samples listed in the output.
@@ -17,9 +19,20 @@ internal static partial class ItemSoundExtractor
 {
     public const string Bank = "ItemDrops";
 
-    private const int BaseRowSize = 360, BaseSoundEffect = 88, BaseVisual = 124;
-    private const int VisualRowSize = 968, VisualInventorySound = 24, VisualDropSound = 919;
-    private const int SoundRowSize = 33, SoundFile = 8, SoundFile2D = 16;
+    private const int BaseSoundEffect = 88, BaseVisual = 124;
+    private const int VisualInventorySound = 24, VisualDropSound = 140;
+    private const int SoundFile = 8, SoundFile2D = 16;
+
+    /// <summary>
+    ///     Items whose drop sample is known (0.5.x, 2026-11-10): a scroll, an orb (through its use event) and an amulet
+    ///     (through its visual identity), so each of the six columns is on the way to one of them.
+    /// </summary>
+    private static readonly (string Item, string Sample)[] Known =
+    {
+        ("Metadata/Items/Currency/CurrencyIdentification", "Scroll_Drop_01"),
+        ("Metadata/Items/Currency/CurrencyRerollRare", "OrbDrop_Chaos_01"),
+        ("Metadata/Items/Amulets/FourAmulet1", "Amulet_Drop_01"),
+    };
 
     /// <summary>On an index already opened with its paths parsed (the batch command); the bank is read from the install.</summary>
     public static int Run(string gameDir, Index index, string outFile)
@@ -46,37 +59,13 @@ internal static partial class ItemSoundExtractor
             return 1;
         }
 
-        var (baseSoundEffect, baseVisual, visualInventorySound, visualDropSound, soundFile, soundFile2D) = columns;
         var map = new SortedDictionary<string, string>(StringComparer.Ordinal);
         var unresolved = new Dictionary<string, int>();
+        var tables = new Tables(items, visuals, sounds, resolver);
         for (var row = 0; row < items.RowCount; row++)
         {
-            var baseSound = items.Key(row, baseSoundEffect);
-            var visual = items.Key(row, baseVisual);
-            var candidates = new List<long> { baseSound };
-            if (visual >= 0)
-            {
-                candidates.Add(visuals.Key((int)visual, visualInventorySound));
-                candidates.Add(visuals.Key((int)visual, visualDropSound));
-            }
-
-            // Orb drops: the row only carries the use event; the bank's matching drop sample is the cue.
-            var sample = baseSound >= 0 ? resolver.ResolveOrbDrop(sounds.String((int)baseSound, soundFile2D)) : null;
             var misses = new List<string>();
-            foreach (var file in candidates.Where(c => c >= 0).Select(c => sounds.String((int)c, soundFile)))
-            {
-                if (sample != null || file.Length == 0)
-                {
-                    continue;
-                }
-
-                sample = resolver.Resolve(file);
-                if (sample == null)
-                {
-                    misses.Add(EventName(file));
-                }
-            }
-
+            var sample = SampleOf(tables, columns, row, misses);
             if (sample != null)
             {
                 map[items.String(row, 0)] = sample;
@@ -102,51 +91,106 @@ internal static partial class ItemSoundExtractor
         return map.Count > 0 ? 0 : 1;
     }
 
+    private sealed record Tables(DatTable Items, DatTable Visuals, DatTable Sounds, SampleResolver Resolver);
+
+    /// <summary>The drop sample of a BaseItemTypes row through the six columns, or null; its unresolved events go to <paramref name="misses"/>.</summary>
+    private static string? SampleOf(Tables t, (int BaseSound, int BaseVisual, int VisualInventory, int VisualDrop, int File, int File2D) c, int row, List<string>? misses = null)
+    {
+        var baseSound = Row(t.Items.Key(row, c.BaseSound), t.Sounds);
+        var visual = Row(t.Items.Key(row, c.BaseVisual), t.Visuals);
+        var candidates = new List<long> { baseSound };
+        if (visual >= 0)
+        {
+            candidates.Add(Row(t.Visuals.Key((int)visual, c.VisualInventory), t.Sounds));
+            candidates.Add(Row(t.Visuals.Key((int)visual, c.VisualDrop), t.Sounds));
+        }
+
+        // Orb drops: the row only carries the use event; the bank's matching drop sample is the cue.
+        var sample = baseSound >= 0 ? t.Resolver.ResolveOrbDrop(t.Sounds.String((int)baseSound, c.File2D)) : null;
+        foreach (var file in candidates.Where(candidate => candidate >= 0).Select(candidate => t.Sounds.String((int)candidate, c.File)))
+        {
+            if (sample != null || file.Length == 0)
+            {
+                continue;
+            }
+
+            sample = t.Resolver.Resolve(file);
+            if (sample == null)
+            {
+                misses?.Add(EventName(file));
+            }
+        }
+
+        return sample;
+    }
+
+    /// <summary>A key as a row of its target; -1 for a null key or one past the table.</summary>
+    private static long Row(long key, DatTable target) => key >= 0 && key < target.RowCount ? key : -1;
+
     /// <summary>
-    ///     The six columns: as measured while the row sizes are unchanged and each still holds what it must; after a game
-    ///     update that changed a table, found again by content: the sound paths are strings under "Audio/", and a key
-    ///     column is the one whose keys lead to the most item drop samples (a random number column leads to none).
+    ///     The six columns: where they were measured while each still is its kind and the known items resolve through them;
+    ///     otherwise found again by content (the sound paths are strings under "Audio/", a key column is the one whose keys
+    ///     lead to the most item drop samples, which a random number column never does) and judged by the same known items.
     /// </summary>
     private static bool FindColumns(DatTable items, DatTable visuals, DatTable sounds, SampleResolver resolver,
         out (int BaseSound, int BaseVisual, int VisualInventory, int VisualDrop, int File, int File2D) columns)
     {
         static bool IsSoundPath(string text) => text.StartsWith("Audio/", StringComparison.OrdinalIgnoreCase);
         using var probe = DatTable.Probe();
-        var measured = items.RowSize == BaseRowSize && visuals.RowSize == VisualRowSize && sounds.RowSize == SoundRowSize;
-        int file, file2D;
-        if (measured && sounds.IsStringColumn(SoundFile, IsSoundPath) && sounds.IsStringColumn(SoundFile2D, IsSoundPath))
+        var tables = new Tables(items, visuals, sounds, resolver);
+        var known = Known.Select(check => (check.Item, check.Sample, Row: DatColumnSearch.RowOf(items, check.Item)))
+            .Where(check => check.Row >= 0 && resolver.Has(check.Sample)).ToList();
+        foreach (var gone in Known.Where(check => known.All(kept => kept.Item != check.Item)))
         {
-            (file, file2D) = (SoundFile, SoundFile2D);
+            Say.Out.WriteLine($"  item-sounds: known item {gone.Item} or its sample {gone.Sample} is gone, so it judges no column");
         }
-        else
+
+        bool Holds((int BaseSound, int BaseVisual, int VisualInventory, int VisualDrop, int File, int File2D) c) =>
+            known.All(check => SampleOf(tables, c, check.Row) == check.Sample);
+
+        columns = (BaseSoundEffect, BaseVisual, VisualInventorySound, VisualDropSound, SoundFile, SoundFile2D);
+        var measured = sounds.IsStringColumn(SoundFile, IsSoundPath) && sounds.IsStringColumn(SoundFile2D, IsSoundPath) &&
+                       items.IsKeyColumn(BaseSoundEffect, sounds.RowCount) && items.IsKeyColumn(BaseVisual, visuals.RowCount) &&
+                       visuals.IsKeyColumn(VisualInventorySound, sounds.RowCount) && visuals.IsKeyColumn(VisualDropSound, sounds.RowCount) && Holds(columns);
+        if (!measured)
         {
             var paths = Enumerable.Range(1, Math.Max(0, sounds.RowSize - 8)).Where(offset => sounds.IsStringColumn(offset, IsSoundPath)).ToList();
-            (file, file2D) = paths.Count switch { 0 => (-1, -1), 1 => (paths[0], paths[0]), _ => (paths[0], paths[1]) };
+            var (file, file2D) = paths.Count switch { 0 => (-1, -1), 1 => (paths[0], paths[0]), _ => (paths[0], paths[1]) };
+            columns = (-1, -1, -1, -1, file, file2D);
+            if (file < 0)
+            {
+                return false;
+            }
+
+            bool Drops(long sound) => resolver.Resolve(sounds.String((int)sound, file)) != null;
+            bool BaseDrops(long sound) => Drops(sound) || resolver.ResolveOrbDrop(sounds.String((int)sound, file2D)) != null;
+            var visualKeys = KeyColumns(visuals, sounds.RowCount, Drops, 2);
+            bool VisualDrops(long visual) => visualKeys.Any(column => visuals.Key((int)visual, column) is >= 0 and var sound && Drops(sound));
+            var baseSound = KeyColumns(items, sounds.RowCount, BaseDrops, 1);
+            var baseVisual = visualKeys.Count == 0 ? new List<int>() : KeyColumns(items, visuals.RowCount, VisualDrops, 1);
+            columns = (baseSound.FirstOrDefault(-1), baseVisual.FirstOrDefault(-1), visualKeys.FirstOrDefault(-1), visualKeys.LastOrDefault(-1), file, file2D);
+            if (baseSound.Count != 1 || baseVisual.Count != 1 || visualKeys.Count == 0)
+            {
+                return false;
+            }
+
+            if (!Holds(columns))
+            {
+                Say.Out.WriteLine($"  item-sounds: the columns found by content (BaseItemTypes {columns.BaseSound}/{columns.BaseVisual}, ItemVisualIdentity {columns.VisualInventory}/{columns.VisualDrop}, " +
+                                  $"SoundEffects {file}/{file2D}) do not give the known items their samples ({string.Join(", ", known.Select(check => $"{check.Item} = {check.Sample}"))})");
+                return false;
+            }
         }
 
-        columns = (-1, -1, -1, -1, file, file2D);
-        if (file < 0)
-        {
-            return false;
-        }
-
-        bool Drops(long sound) => resolver.Resolve(sounds.String((int)sound, file)) != null;
-        bool BaseDrops(long sound) => Drops(sound) || resolver.ResolveOrbDrop(sounds.String((int)sound, file2D)) != null;
-        var visualKeys = KeyColumns(visuals, sounds.RowCount, Drops, measured ? new[] { VisualInventorySound, VisualDropSound } : null, 2);
-        bool VisualDrops(long visual) => visualKeys.Any(column => visuals.Key((int)visual, column) is >= 0 and var sound && Drops(sound));
-        var baseSound = KeyColumns(items, sounds.RowCount, BaseDrops, measured ? new[] { BaseSoundEffect } : null, 1);
-        var baseVisual = visualKeys.Count == 0 ? new List<int>() : KeyColumns(items, visuals.RowCount, VisualDrops, measured ? new[] { BaseVisual } : null, 1);
-        columns = (baseSound.FirstOrDefault(-1), baseVisual.FirstOrDefault(-1), visualKeys.FirstOrDefault(-1), visualKeys.LastOrDefault(-1), file, file2D);
         Say.Out.WriteLine($"Sound columns: BaseItemTypes {columns.BaseSound}/{columns.BaseVisual}, ItemVisualIdentity {columns.VisualInventory}/{columns.VisualDrop}, "
-            + $"SoundEffects {file}/{file2D} ({(measured ? "row sizes as measured" : "a table changed: found by content")})");
-        return baseSound.Count == 1 && baseVisual.Count == 1 && visualKeys.Count > 0;
+            + $"SoundEffects {columns.File}/{columns.File2D} ({(measured ? "as measured" : "found by content")}, {known.Count} known items resolve)");
+        return true;
     }
 
     /// <summary>
-    ///     The <paramref name="measured"/> columns while they still are keys that lead somewhere; otherwise the best
-    ///     scoring key columns into a table of <paramref name="targetRows"/> rows, at most <paramref name="count"/>, in row order.
+    ///     The best scoring key columns into a table of <paramref name="targetRows"/> rows, at most <paramref name="count"/>, in row order.
     /// </summary>
-    private static List<int> KeyColumns(DatTable table, int targetRows, Func<long, bool> good, int[]? measured, int count)
+    private static List<int> KeyColumns(DatTable table, int targetRows, Func<long, bool> good, int count)
     {
         int Score(int offset)
         {
@@ -157,11 +201,6 @@ internal static partial class ItemSoundExtractor
             }
 
             return score;
-        }
-
-        if (measured != null && measured.All(offset => table.IsKeyColumn(offset, targetRows) && Score(offset) > 0))
-        {
-            return measured.ToList();
         }
 
         return Enumerable.Range(0, Math.Max(0, table.RowSize - 7))
@@ -203,6 +242,9 @@ internal static partial class ItemSoundExtractor
                 }
             }
         }
+
+        /// <summary>Whether the bank holds a sample by this name.</summary>
+        public bool Has(string sample) => this.byKey.ContainsValue(sample) || this.orbDrops.Contains(sample);
 
         /// <summary>Only drop events: use, move, equip and interact sounds are not what lies on the ground.</summary>
         public string? Resolve(string eventPath)

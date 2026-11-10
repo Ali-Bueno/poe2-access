@@ -59,12 +59,20 @@ internal static class HitTimeExtractor
             return 1;
         }
 
-        // Found by what they hold: this table has no row size to guard it, and a shifted list would read as an empty one.
-        var actFiles = DatContentColumns.Nearest(monsters, ActFilesOffset, offset => monsters.IsStringListColumn(offset, text => text.EndsWith(ActExtension, StringComparison.OrdinalIgnoreCase)));
-        var aoFiles = DatContentColumns.Nearest(monsters, AoFilesOffset, offset => monsters.IsStringListColumn(offset, text => text.EndsWith(AoExtension, StringComparison.OrdinalIgnoreCase)));
-        var grantedEffects = DatContentColumns.Nearest(monsters, GrantedEffectsOffset, offset => monsters.IsKeyListColumn(offset, skills.RowCount));
-        var skillAnimation = DatContentColumns.Nearest(skills, SkillAnimationOffset, offset => skills.IsKeyColumn(offset, animations.RowCount));
-        var mainHand = DatContentColumns.Nearest(monsters, MainHandClassOffset, offset => monsters.IsKeyColumn(offset, itemClasses.RowCount));
+        // Found by what they hold, and by what a known monster's row holds there (DatAnchors): this table has no row size
+        // to guard it, and a shifted list would read as an empty one.
+        var urchin = DatAnchors.Row(monsters, DatAnchors.Monster, "MonsterVarieties' file and skill lists");
+        var sling = DatAnchors.Row(skills, DatAnchors.MonsterSkill, "GrantedEffects' animation and MonsterVarieties' skills");
+        var archer = DatAnchors.Row(monsters, DatAnchors.Archer, "MonsterVarieties' main hand");
+        var actFiles = DatContentColumns.Nearest(monsters, ActFilesOffset, offset => monsters.IsStringListColumn(offset, text => text.EndsWith(ActExtension, StringComparison.OrdinalIgnoreCase)) &&
+                                                                                    DatAnchors.ListsOwnFile(monsters, offset, urchin));
+        var aoFiles = DatContentColumns.Nearest(monsters, AoFilesOffset, offset => monsters.IsStringListColumn(offset, text => text.EndsWith(AoExtension, StringComparison.OrdinalIgnoreCase)) &&
+                                                                                  DatAnchors.ListsOwnFile(monsters, offset, urchin));
+        var grantedEffects = DatContentColumns.Nearest(monsters, GrantedEffectsOffset, offset => monsters.IsKeyListColumn(offset, skills.RowCount) && DatAnchors.GrantsOwnSkill(monsters, offset, urchin, sling));
+        var skillAnimation = DatContentColumns.Nearest(skills, SkillAnimationOffset, offset => skills.IsKeyColumn(offset, animations.RowCount) &&
+                                                                                              (sling < 0 || DatAnchors.IdOf(animations, skills.Key(sling, offset)) == DatAnchors.MonsterSkillAnimation));
+        var mainHand = DatContentColumns.Nearest(monsters, MainHandClassOffset, offset => monsters.IsKeyColumn(offset, itemClasses.RowCount) &&
+                                                                                          (archer < 0 || DatAnchors.IdOf(itemClasses, monsters.Key(archer, offset)) == DatAnchors.ArcherWeapon));
         if (actFiles == null || aoFiles == null || grantedEffects == null || skillAnimation == null || mainHand == null)
         {
             Say.Out.WriteLine("A MonsterVarieties or GrantedEffects column was not found again.");

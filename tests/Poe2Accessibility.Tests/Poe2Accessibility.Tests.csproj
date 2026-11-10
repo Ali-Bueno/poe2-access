@@ -117,6 +117,8 @@
     <Compile Include="..\..\tools\Poe2UiExtract\DatTable.Reads.cs" Link="Extract\DatTable.Reads.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\DatColumnKinds.cs" Link="Extract\DatColumnKinds.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\DatColumnAudit.cs" Link="Extract\DatColumnAudit.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\DatAnchors.cs" Link="Extract\DatAnchors.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\ClientStringColumns.cs" Link="Extract\ClientStringColumns.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\DatColumnSearch.cs" Link="Extract\DatColumnSearch.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\TelegraphColumns.cs" Link="Extract\TelegraphColumns.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\StartupPhrases.cs" Link="Launcher\StartupPhrases.cs" />
@@ -176,6 +178,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapPlaces.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\OffsetSearch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\DatKeySearch.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Layout\DatColumns.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\ControlFields.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\CompatibilityReport.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\LayoutVerdict.cs" />

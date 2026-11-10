@@ -33,6 +33,19 @@ internal static class TelegraphExtractor
     private const int MonsterSkillsOffset = 0xD0;
     private const string AoExtension = ".ao";
 
+    /// <summary>
+    ///     Skills whose lines are known (0.5.x, 2026-11-10): each its kind and a file its line names, so every list and path
+    ///     column the line is read through is the one that held it then, not another of its type.
+    /// </summary>
+    private static readonly (string Key, string[] Holds)[] KnownLines =
+    {
+        ("BearerOfPenitenceSlam", new[] { "|geometry|", "penitence_slam.ao" }),
+        ("FlankSpawnMarker", new[] { "|spawn|", "PathMarkers/FlankMarker" }),
+        ("DeliriumBossPhysMortarSpray", new[] { "|mortar|", "vomitMortarImpact.ao" }),
+        ("BoneCultistZealotFirestorm", new[] { "|effect|", "meteor_01.ao" }),
+        ("GTAtziriStormCall", new[] { "|trigger|", "stormcall_marker.ao" }),
+    };
+
     private const string SkillsHeader1 = "# Monster skills whose tables describe the danger area the client draws (tools/Poe2UiExtract telegraph-skills), regenerated after patches.";
     private const string SkillsHeader2 = "# skill id|kind|area (shape=circle|cone|rectangle|donut; length or radius, width, angle in degrees, delay ms, range, count)|visual .ao files|spawned objects";
     private const string EffectsHeader1 = "# Effect files the client plays for those skills: a ServerEffect entity's .ao names one of them (tools/Poe2UiExtract telegraph-effects).";
@@ -89,7 +102,9 @@ internal static class TelegraphExtractor
         var activeSkill = DatContentColumns.Nearest(skills, SkillActiveSkillOffset, offset => skills.IsKeyColumn(offset, activeSkills.RowCount));
         var aoFile = DatContentColumns.Nearest(animated, FileOffset, offset => animated.IsStringColumn(offset, text => text.EndsWith(AoExtension, StringComparison.OrdinalIgnoreCase)));
         var otFile = DatContentColumns.Nearest(objects, FileOffset, offset => objects.IsStringColumn(offset, text => text.StartsWith("Metadata/", StringComparison.OrdinalIgnoreCase)));
-        var monsterSkills = DatContentColumns.Nearest(monsters, MonsterSkillsOffset, offset => monsters.IsKeyListColumn(offset, skills.RowCount));
+        var urchin = DatAnchors.Row(monsters, DatAnchors.Monster, "MonsterVarieties' skills");
+        var sling = DatAnchors.Row(skills, DatAnchors.MonsterSkill, "MonsterVarieties' skills");
+        var monsterSkills = DatContentColumns.Nearest(monsters, MonsterSkillsOffset, offset => monsters.IsKeyListColumn(offset, skills.RowCount) && DatAnchors.GrantsOwnSkill(monsters, offset, urchin, sling));
         var geometryAnimation = DatContentColumns.Nearest(geometry, GeometryAnimationOffset, offset => geometry.IsKeyListColumn(offset, animated.RowCount));
         var triggerMarkers = DatContentColumns.Nearest(triggers, TriggerMarkerOffset, offset => triggers.IsKeyListColumn(offset, animated.RowCount));
         var spawnObjects = DatContentColumns.Nearest(spawns, SpawnObjectsOffset, offset => spawns.IsKeyListColumn(offset, objects.RowCount));
@@ -235,6 +250,17 @@ internal static class TelegraphExtractor
             {
                 monsterLines.Add($"{id}{TelegraphShapes.FieldSeparator}{string.Join(TelegraphShapes.ItemSeparator, ids)}");
             }
+        }
+
+        foreach (var (skill, _) in KnownLines.Where(known => !skillLines.Any(line => line.StartsWith(known.Key + TelegraphShapes.FieldSeparator, StringComparison.Ordinal))))
+        {
+            Say.Out.WriteLine($"  telegraphs: known skill {skill} has no line any more, so the columns it would tell were judged by type and shape alone");
+        }
+
+        if (DatAnchors.Unmet(skillLines, TelegraphShapes.FieldSeparator, KnownLines) is { Count: > 0 } unmet)
+        {
+            Say.Out.WriteLine($"  telegraphs: {string.Join("; ", unmet)}: a list or path column holds something else (check with dat-kinds), telegraphs keep their previous catalog");
+            return null;
         }
 
         Say.Out.WriteLine($"Telegraphs: {skillLines.Count} skills, {effectLines.Count} effect files ({shaped} with shapes), {monsterLines.Count} monsters.");

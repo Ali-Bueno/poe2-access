@@ -15,6 +15,10 @@ internal static class ObjectSoundLinks
     private const int AoFilesColumn = 0x15;
     private const string AoExtension = ".ao";
 
+    // A row whose value is known (dat-kinds, 2026-11-10): the first chest of the campaign names an .ao of the chests' folder.
+    private const string KnownChest = "Metadata/Chests/MossyBoulder1";
+    private const string KnownChestFolder = "Metadata/Chests/";
+
     /// <summary>Every Chests row's opening sound, by its metadata path; a row with none is left out.</summary>
     /// <returns>Null when the table cannot be read.</returns>
     public static Dictionary<string, string>? Read(Index index)
@@ -28,8 +32,11 @@ internal static class ObjectSoundLinks
             .ToDictionary(file => file.Path!, StringComparer.OrdinalIgnoreCase);
         string? Text(string path) => files.TryGetValue(path, out var file) ? Encoding.Unicode.GetString(file.Read().ToArray()) : null;
 
-        if (DatContentColumns.Nearest(table, AoFilesColumn, offset => table.IsStringListColumn(offset, text => text.EndsWith(AoExtension, StringComparison.OrdinalIgnoreCase))) is not { } aoFiles)
+        var known = DatAnchors.Row(table, KnownChest, "Chests' .ao files");
+        if (DatContentColumns.Nearest(table, AoFilesColumn, offset => table.IsStringListColumn(offset, text => text.EndsWith(AoExtension, StringComparison.OrdinalIgnoreCase)) &&
+                (known < 0 || table.StringList(known, offset).Any(path => path.StartsWith(KnownChestFolder, StringComparison.OrdinalIgnoreCase)))) is not { } aoFiles)
         {
+            Say.Out.WriteLine($"Chests' .ao file list near +0x{AoFilesColumn:X}: not found (check with dat-kinds).");
             return null;
         }
 

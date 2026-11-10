@@ -4,17 +4,16 @@ using System.Text.RegularExpressions;
 /// <summary>
 ///     `world-titles` command: the names objects show only in a WorldDescription, { language: { .ot path without its extension:
 ///     title } }. The game gives such an object no render name: the real Relic Altar, the Trial's Death Crystals. A .ot's
-///     title_text is a ClientStrings key: +0x00 Id, +0x08 Text (dat-strings, 0.5.5f). Also "objective:" + path: the tracker line
-///     without which an object means nothing, QuestStates +0x2C (row 655 for the crystals). Read-only on the game.
+///     title_text is a ClientStrings key (<see cref="ClientStringColumns"/>). Also "objective:" + path: the tracker line without
+///     which an object means nothing, the QuestStates text column that holds it (+0x59, row 655 for the crystals; +0x2C read
+///     the same text until 2026-11-10 only because the list before it is empty on that row). Read-only on the game.
 /// </summary>
 internal static class WorldTitleExtractor
 {
-    internal const int KeyColumn = 0x0;
-    internal const int TextColumn = 0x8;
     private const string ObjectExtension = ".ot";
-    internal const string StringsTable = "clientstrings";
+    private const string StringsTable = ClientStringColumns.Table;
     private const string ObjectivesTable = "queststates";
-    private const int ObjectiveColumn = 0x2C;
+    private const int ObjectiveColumn = 0x59;
     private const string ObjectivePrefix = "objective:";
 
     /// <summary>"[Honour|Honor]: &lt;white&gt;{{0}/{1}}": what the Trial's HUD line starts with, a key of its own in the table.</summary>
@@ -62,28 +61,43 @@ internal static class WorldTitleExtractor
             }
         }
 
+        // Both tables' columns are told in English by rows whose text is known, and read at the same offsets in every language.
+        var english = DatTable.Open(index, StringsTable);
         var englishObjectives = DatTable.Open(index, ObjectivesTable);
-        var objectiveRows = Objectives.Select(wanted => (wanted.Path, Row: Enumerable.Range(0, englishObjectives?.RowCount ?? 0)
-            .FirstOrDefault(row => englishObjectives!.StringOrNull(row, ObjectiveColumn) == wanted.Objective, -1))).ToList();
+        if (english == null || englishObjectives == null)
+        {
+            Say.Out.WriteLine("ClientStrings or QuestStates not found: world-titles left out.");
+            return 1;
+        }
+
+        var search = new DatColumnSearch();
+        var strings = ClientStringColumns.Find(english, search);
+        var objectiveColumn = search.Find(englishObjectives, "QuestStates.Objective", ObjectiveColumn, offset =>
+            DatColumnSearch.IsText(englishObjectives, offset, _ => true) && Objectives.All(wanted => DatAnchors.RowWith(englishObjectives, offset, wanted.Objective) >= 0));
+        if (!search.Report("world-titles") || strings is not { } columns)
+        {
+            return 1;
+        }
+
+        var objectiveRows = Objectives.Select(wanted => (wanted.Path, Row: DatAnchors.RowWith(englishObjectives, objectiveColumn, wanted.Objective))).ToList();
         var result = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
         var languages = AreaExtractor.Languages;
         foreach (var (code, folder) in languages)
         {
-            var table = folder == null ? DatTable.Open(index, StringsTable) : DatTable.OpenTranslated(index, StringsTable, folder);
+            var table = folder == null ? english : DatTable.OpenTranslated(index, StringsTable, folder);
             if (table == null)
             {
                 Say.Out.WriteLine($"  {code}: no ClientStrings");
                 continue;
             }
 
-            var texts = new Dictionary<string, string>(StringComparer.Ordinal);
-            for (var row = 0; row < table.RowCount; row++)
+            if (!ClientStringColumns.SameShape(english, table))
             {
-                if (table.StringOrNull(row, KeyColumn) is { Length: > 0 } key && table.StringOrNull(row, TextColumn)?.Trim() is { Length: > 0 } text)
-                {
-                    texts[key] = text;
-                }
+                Say.Out.WriteLine($"  {code}: ClientStrings differs from the English table in rows or row size: its columns cannot be told, world-titles left out");
+                return 1;
             }
+
+            var texts = ClientStringColumns.Read(table, columns);
 
             var titles = new SortedDictionary<string, string>(StringComparer.Ordinal);
             foreach (var (path, key) in keys)
@@ -121,9 +135,15 @@ internal static class WorldTitleExtractor
             }
 
             var objectives = folder == null ? englishObjectives : DatTable.OpenTranslated(index, ObjectivesTable, folder);
+            if (objectives != null && !ClientStringColumns.SameShape(englishObjectives, objectives))
+            {
+                Say.Out.WriteLine($"  {code}: QuestStates differs from the English table in rows or row size: world-titles left out");
+                return 1;
+            }
+
             foreach (var (path, row) in objectiveRows)
             {
-                if (row >= 0 && objectives?.StringOrNull(row, ObjectiveColumn)?.Trim() is { Length: > 0 } text)
+                if (row >= 0 && objectives?.StringOrNull(row, objectiveColumn)?.Trim() is { Length: > 0 } text)
                 {
                     titles[ObjectivePrefix + path] = text;
                 }

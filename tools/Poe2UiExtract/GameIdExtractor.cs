@@ -11,7 +11,9 @@ internal static class GameIdExtractor
     private const string FirstAnimation = "Idle";
     private const string FirstStat = "level";
 
-    // A stat's key in memory is its row plus one (Stats row 0 is "level", key 1: read live on a Monk, 2026-11-06).
+    // A stat's key in memory is its row plus one (Stats row 0 is "level", key 1: read live on a Monk, 2026-11-06). No file
+    // holds the key: a Stats row has its Id, flags, a type and a 32-bit hash (dat-kinds, 2026-11-10), and every other table
+    // names a stat by its row. Only memory can check the rule: key 1 must read the character's level.
     private const int StatKeyFromRow = 1;
 
     // The stats the mod reads, by the Id column.
