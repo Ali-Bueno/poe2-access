@@ -1,7 +1,7 @@
 # Area memory: same instance or a regenerated map
 
 What the scanner remembers of an area (explored ground, exits, waypoints, NPCs, loot, closed barriers, the way in) and
-when it is the same map. Code: `Services/AreaMemory.cs`, `EntityCatalog.AreaEntered`/`Rebind`.
+when it is the same map. Code: `Services/Scanner/AreaMemory.cs`, `EntityCatalog.AreaEntered`/`Rebind`.
 
 ## How the D2R mod does it (studied 2026-11-01)
 

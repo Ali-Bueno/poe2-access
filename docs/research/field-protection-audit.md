@@ -289,7 +289,7 @@ Status 2026-11-08: every item below is fixed, in the doc or in the code (item 6:
    this for three catalog entries only.
 7. `docs/compatibility.md:249-250` says `WorldAreas.Name` is followed through `PlaceFromCode`; true for the host's `WorldAreaDat`, not for
    the plugin's own `AreaRowAt` read (item 6).
-8. `Poe2Accessibility/Services/LayoutProbe.cs:10-11` (comment: "element base fields follow the control name") and `OffsetHealer.cs:68`
+8. `Poe2Accessibility/Services/Layout/LayoutProbe.cs:10-11` (comment: "element base fields follow the control name") and `OffsetHealer.cs:68`
    (comment: `UiElementBaseOffset` is judged "by the plugin's UI probes") overstate: the probes move only `GameLayout.Element.*`
    (`LayoutProbe.cs:106-109`); nothing remaps `UiElementBaseOffset`.
 

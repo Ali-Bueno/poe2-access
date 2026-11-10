@@ -16,7 +16,7 @@ from launch import PLUGIN_LOG as LOG, REPOSITORY
 
 ACTIONS = REPOSITORY / 'Poe2Accessibility/catalog/action-types.txt'
 WORLD_PER_GRID = 250 / 23
-MERGE_WINDOW_MS, MERGE_RARE, MERGE_KEEP_MS = 250, 2, 2000  # Poe2Accessibility/Services/DodgeCueMerge.cs
+MERGE_WINDOW_MS, MERGE_RARE, MERGE_KEEP_MS = 250, 2, 2000  # Poe2Accessibility/Services/Combat/DodgeCueMerge.cs
 WARN = re.compile(r'^(\S+ \S+) DEBUG Dodge (?:warning|merged): monster (\d+) (\S+)\|(\d+) animation (\S+) \((\w+), ([^,]+), gap (-?\d+), aim (\w+), reach (\S+), blow in (-?\d+|\?) ms(?:, (\d+) ms of flight)?, clip ([^)]*)\)(?: covered by monster (\d+))?')
 GATE = re.compile(r'^(\S+ \S+) INFO Dodge gate: (\S+)\|(\d+) (\S+) -> ([^(]+) \(')
 

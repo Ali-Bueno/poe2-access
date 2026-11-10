@@ -20,7 +20,7 @@ in Wine (found by the d4-assist session, 2026-11-08).
 No Prismatoid release carries 0.18.3, and Prismatoid 0.4.0 with the 0.18.3 `prism.dll` is not safe: 0.18.3 raised
 `PRISM_CONFIG_VERSION` to 4 (`PrismConfig` gained `availability_baseline_callback`) and its `prism_config_init` writes 56
 bytes where Prismatoid 0.4.0 allocates 48. The mod now has its own binding of the C API,
-`Poe2Accessibility/Services/PrismLibrary.cs`: `PrismConfig` field for field from the shipped `prism.h`, filled by the
+`Poe2Accessibility/Services/Speech/PrismLibrary.cs`: `PrismConfig` field for field from the shipped `prism.h`, filled by the
 library's own `prism_config_init` into a 256-byte slot (a later, larger config cannot overrun it), and only the calls
 the mod makes. The plugin's speech and the executable's startup speech both use it.
 

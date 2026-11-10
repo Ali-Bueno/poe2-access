@@ -397,6 +397,7 @@
   monsters around, 1 ready, 2 active, 3/4 done. The King's altar opens once the others are done.
 
 ## Code map
+- Sources: `Poe2Accessibility/Services/<folder>/` by subject, one namespace ([folders](Poe2Accessibility/Services/README.md)); `Announcements*.cs`, `GameLayout.cs` and the core's parts at the plugin's root.
 - `Poe2AccessibilityCore` — wiring + per-frame tick (GameHelper `DrawUI`), no logic; partial files `.Gameplay` (service
   ticks isolated per service, vitals and skill bar readouts, `QuestTexts`), `.States` (game states), `.Input` (the pad),
   `.Creation` (pre-game help, `CreationNameGuide`), `.DevCommands` (command file, status), `.Compatibility` (layout

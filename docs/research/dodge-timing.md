@@ -201,9 +201,9 @@ no animated object → the old behaviour whole. Each part goes to the compatibil
 
 The design above is wired into the live dodge warning and was run in the game on 2026-11-08 ([live results](#live-results-2026-11-08-055f)), which fixed three misses (steps 3 and 4 below say how it works now).
 
-**Files.** `Services/AttackReader.cs` (memory: one `AttackSnapshot` per monster and frame, the six live checks),
-`Services/BossWatch.Dodge.cs` (the gate: per frame facts, decision, cues, logs; the telegraph hook), `Services/BossWatch.cs`
-(the tick calls it; learning cleaned), `Services/DodgeGate.cs`, `AttackAim.cs`, `AttackArea.cs`, `AttackData.cs`,
+**Files.** `Services/Combat/AttackReader.cs` (memory: one `AttackSnapshot` per monster and frame, the six live checks),
+`Services/Combat/BossWatch.Dodge.cs` (the gate: per frame facts, decision, cues, logs; the telegraph hook), `Services/Combat/BossWatch.cs`
+(the tick calls it; learning cleaned), `Services/Combat/DodgeGate.cs`, `AttackAim.cs`, `AttackArea.cs`, `AttackData.cs`,
 `DodgeTimings.cs`; the setting `DodgeWarningsAllMonsters` (`AccessibilitySettings.cs`, `SettingsMenu.cs`,
 `Announcements.Gameplay.cs`); `Poe2AccessibilityCore.Gameplay.cs` (hands the gate the setting and the catalog folder and
 sends each check's verdict to the compatibility report); the twelve rules in `catalog/semantic-fields.txt`.
