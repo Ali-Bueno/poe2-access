@@ -82,11 +82,15 @@ namespace GameReader.RemoteObjects.Components
 
         internal static string GetModName(IntPtr modsDatRowAddress)
         {
-            return Core.GgpkStringCache.AddOrGetExisting(modsDatRowAddress, key =>
-            {
-                var reader = Core.Process.Handle;
-                return reader.ReadUnicodeString(reader.ReadMemory<IntPtr>(key));
-            });
+            // A name that read empty (the row torn as it was read) is read again next time, not kept empty for the area.
+            return Core.GgpkStringCache.GetOrRead(
+                modsDatRowAddress,
+                key =>
+                {
+                    var reader = Core.Process.Handle;
+                    return reader.TryReadMemory<IntPtr>(key, out var name) ? reader.ReadUnicodeString(name) : string.Empty;
+                },
+                name => name.Length > 0);
         }
 
         internal static (float, float) GetValue(StdVector valuesPtr, int value0)
