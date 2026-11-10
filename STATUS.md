@@ -438,6 +438,9 @@
 - Salvage bench: `InventoryWatch.Salvage` (+ pure `SalvageOutcome`), `UiSemantics.FirstLabel` (side panel without a framed title).
 - Shop/stash: tooltip `cost` → `CurrencyIcons`, red price via `UiElementReader.IsTextRed`; grid tabs `UiSemantics.GridTab`;
   a search's lit items `SearchHighlightWatch` (+ pure `SearchHighlightNews`, `InventoryReader.HighlightOf`/`ItemsOf`); an unmet requirement pure `UnmetRequirements`.
+  A grid read whole (L3 long hold): `ModCommands.WholeGrid` → `UiSemantics.ReadGrid` (`UiSemantics.GridReading.cs`) + pure `GridReading`.
+  A merchant's or stash's opening line: `ScreenNarrator.SayPageWithFocus` / `SayHeldPage` (the gamble's stock label, the tab, the focus, then the gold).
+  The build's steps over the marked nodes: pure `BuildPlan.StepsOver` ([two counts](docs/research/passive-tree.md#the-builds-two-counts)).
   Microtransaction shop: `UiSemantics.ShopPage`, `.Cards` `ShopEntryOf` (cards, position), `CardText.ShopImageTitle`
   (featured banners), `FocusTracker.InGameHighlightRoot` (the shop's highlight markers; the game focuses nothing there);
   item page `UiSemantics.ShopPage.cs` (`ShopItemPageOf` title and text, `ShopBuyButtonOf`) + pure `ShopPurchase`, points `ShopBalanceWatch` (the account's and the guild's), the chosen card's root `ShopHighlightRoot`.
@@ -489,7 +492,9 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   principal: 0 de 3 modificadores, otra base. Build, Segundo set de armas, …"), a flask too. Fixed: a tooltip read while the
   game was still filling it (a worn piece without its modifiers, every wanted one "missing") — an item's first tooltip now
   waits until it reads the same 100 ms apart (`TooltipSettle`, `AccessibleUiNode.TooltipFilling`; seen live as 5 lines, then
-  4; the belt itself read whole on every try, so the false lines were not reproduced). Open: (1) two wanted lines answered by
+  4; the belt itself read whole on every try, so the false lines were not reproduced; after a fresh game start on
+  2026-11-10 every worn slot was focused once: the body armour's tooltip grew from 6 to 13 lines while waiting, the belt
+  read 12 lines at once, and none of the 22 "Falta" lines said was among the item's own lines). Open: (1) two wanted lines answered by
   one line repeat it word for word; (2) the inventory's summary comes before the focused item's name; (3) an item's first focus
   is said 100 ms later than before. A worn piece's
   modifiers are known only after its slot was focused in the session; charms, quivers and foci are not compared; a unique is
@@ -510,26 +515,25 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   switch with the cursor in the stash ("Alijo. pestaña 2. Vacío, columna 12, fila 10", once). an empty flask filled at the well
   before a drink showed its cost ("Frasco de vida grandioso recargado, 75 cargas"); a flask not empty and never drunk is
   still silent there, its uses cannot be counted. Taking a flask off the belt empties
-  it (75 → 0 charges, refilled at the well). Open: (1) a merchant with one tab (Zarka: one tab labelled "-1-", no title)
-  now opens as "pestaña 1. Inventario. Pergamino de sabiduría, 8, …" (heard live: a lone tab counts once the selected byte
-  is proved, `UiSemantics.SelectedTab`) when the focus comes before the layer; when the layer comes first (the focus logged
-  270 ms after it, seen twice) it still opens as "4.776 oro. Oro", then "Inventario. …", on merchants with tabs too. Holding
-  the opening while the tracker had a focus pending did not change that (tried live, reverted): the branch that says the
-  gold was not identified, read its `Narrate (…)` label with VerboseLogging on the next time it happens;
-  (2) A beside another player opens that player's menu ("Invitar al grupo"), with no word that it is a player; (3) Finn's
-  "Comprar o vender objetos" is the gamble and is not said to be. Not testable in town: Parry and flask drinks.
-- Hearing a grid at once (proposal, not built: it needs a binding and a choice of words). Facts: every grid gives its items
-  with their cells without the cursor (`InventoryReader.ItemsOf`), and each item its base, rarity and stack
-  (`InventoryReader.Describe`), so name by base, rarity, cell and the Build fit by base and slot can be said for a whole tab;
-  a rare's own name and every modifier line come only from its tooltip. The host reads an item's modifiers from memory
-  (`GameReader/RemoteObjects/Components/Mods.cs`: implicit, explicit and enchant lists of Mods.dat ids with their values;
-  offsets in `GameOffsets/.../ModsAndObjectMagicProperties.cs`, never validated on items by this mod), but
-  `catalog/mod-texts.json` is keyed by wording, not by mod or stat id, so those ids cannot be said or matched to the build
-  without a new extraction (Mods.dat id → stat ids → text) and a live validation of the fields. What it could say: "12
-  objetos. Guantes sombríos, raro, columna 3, fila 1, Build, Guantes: otra base. …", the build's bases first. Bindings: in
-  menus `ModCommands.InMenu` uses L3 tap, double tap and hold; a long hold is free there, but the game takes L3 in the stash
-  and at merchants (edit search), so it needs a live check in exactly those panels; an entry of the mod's own settings menu
-  ("Leer la pestaña") would cost no binding.
+  it (75 → 0 charges, refilled at the well). Fixed 2026-11-10, heard at Zarka, Una and Finn three times each: a merchant
+  or a stash opens as one line in either order of events, then the gold ("pestaña 1. Inventario. Orbe de transmutación, 6,
+  columna 1, fila 1, 180 oro. …", then "4.776 oro", then the buttons). The stray "4.776 oro. Oro" was the "panel without
+  focus" branch: the layer opened while the cursor's line waited for its item's tooltip (`TooltipSettle`); the panel is now
+  held for that line (`FocusTracker.ItemPending`, `ScreenNarrator.SayHeldPage`) and a tooltip that comes before the line
+  joins it. Finn's gamble says so on opening ("Apuesta, objetos aleatorios, existencias 100/100. Armas. Inventario. …":
+  the stock's counter is the game's `gambling_stock_display_label`), and the build says nothing of a random item (base id
+  ends in `Gamble`). Open: A beside another player opens that player's menu ("Invitar al grupo"), with no word that it is
+  a player; a worn weapon's first focus is said twice 170 ms apart (base name, then the tooltip's name: its tooltip is
+  empty at first, so `TooltipSettle` does not wait). Not testable in town: Parry and flask drinks.
+- Hearing a grid at once (built 2026-11-10, heard live in the bag, a stash tab and two merchants): L3 held 1.5 s on a grid
+  reads it whole without moving the cursor ("21 objetos. Máscara labrada, raro, columna 1, fila 1, Build, Casco: otra base,
+  desde el nivel 33. …", "Vacío"; `UiSemantics.ReadGrid`, pure `GridReading`, setting `ReadGridOnHold`,
+  [controls](docs/controls.md#l3-the-mod-button)). In a stash and at a merchant the held L3 is the game's "Borrar búsqueda":
+  with no search the game did nothing (no focus or screen change logged) and the grid is read; with a search lit the hold
+  is left to the game (code only: no search was typed live). Open: modifiers without a tooltip — the host reads an item's
+  modifiers (`GameReader/RemoteObjects/Components/Mods.cs`, offsets in `GameOffsets/.../ModsAndObjectMagicProperties.cs`,
+  never validated on items by this mod) but `catalog/mod-texts.json` is keyed by wording, not by mod or stat id: it needs
+  an extraction (Mods.dat id → stat ids → text) and a live validation of the fields, not started.
 - Stale values, player, combat and host (2026-11-10, code and unit tests only): flask uses from the drink's seen cost, boss
   life read when asked, a shared target name said alone, per-area state reset per instance, untyped entities' components
   rested, buff stacks, learnt blows as clip time, no maximum from tables, buff ids kept whole. What each needs live is listed in

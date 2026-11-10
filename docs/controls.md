@@ -21,13 +21,25 @@ off in Steam's controller settings for Path of Exile 2.
 | Hold (half a second) | Whole tooltip (item mods, gem stats, definitions) | Read the screen (quest tracker, HUD texts), then the skill bar: each set's buttons with what they fire, the empty ones last |
 | Hold + right stick flick | — (the game navigates with the right stick in menus) | Scanner (below) |
 | Hold + right stick press (R3) | — | Guide beacon on the scanner's choice (below); while it guides, the same gesture turns it off |
-| Hold a second and a half | — | The mod's settings menu (below) |
+| Hold a second and a half | On a grid (the bag, a stash tab, a merchant's tab): the whole grid, below | The mod's settings menu (below) |
 
 A new focus starts again from its first line. Tooltips are also read automatically when the focus lands
 (`ReadTooltipsOnFocus`, on by default). A count or a level that changes under a resting cursor is said by itself ("2"
 when a stack of 3 loses one, "Level 8" when a gem levels); a clock ticking in a row is not. A D-pad press that moves
 nothing — a page's only control, the end of a list — says the control again a moment later (0.6 s), so silence never means
 "nothing happened" (`RepeatOnBlockedMove`, on by default; settings menu, Items).
+
+**Hearing a grid at once** (hold L3 a second and a half with the cursor on a grid; `ReadGridOnHold`, on by default, settings
+menu, Items): the cursor stays and the grid it is in is read whole, the count first, then each item once with its
+cell: "21 items. Carved Mask, rare, column 1, row 1, Build, Helmet: another base. …", "Empty" for a grid without
+items. With a Build Planner build active, the items on a base the build asks for come first and each item that fits
+a slot of the build says so by its base ("Build, Gloves: same base" / "another base"; both weapon sets or both rings
+with one verdict are said once); the rest follow in reading order. An item is named by its tooltip's name once the
+cursor has been on it in the session, else by its base ("Omen Sceptre, rare"); its modifiers are heard on the item
+itself. Any move or other speech cuts the reading. In the bag the half-second reading of the focused item starts first
+and the grid takes over at a second and a half. In a stash and at a merchant the game gives the held L3 to "Clear
+search": without a search the game does nothing and the grid is read; with a search lit the hold clears it, as the
+game says, and the next hold reads the grid.
 
 ## Scanner (gameplay)
 
@@ -199,8 +211,10 @@ attributes; LT/RT say the zoom ("Zoom x1,4"); the directions hold at any zoom. A
 **Finder (D-pad, which does nothing else in the tree;** setting "Passive tree finder on the D-pad", Navigation, on by
 default): D-pad down and up walk the lists Build (with a Build Planner build active: its keystones, notables and jewel
 sockets not taken yet, in the build's order; the list opens with how far along you are, "Build, 16 of 60 taken, 13 points
-outside the build"), Taken in the build (the build's nodes you already have, small ones too, in the build's order, each
-with its step: "Build: step 3 of 115. Attack Speed, …": the way made so far, to walk again), Taken outside the build (what
+outside the build, 4 more of the build are not on this tree": the count is of the nodes the tree shows, and the file's
+nodes it does not show, an ascendancy not chosen yet, are said apart), Taken in the build (the build's nodes you already
+have, small ones too, in the build's order, each with its step over those same nodes: "Build: step 3 of 60. Attack Speed,
+…": the way made so far, to walk again), Taken outside the build (what
 you have that the build does not: the points a refund would bring back to it), Keystones, Notables, Jewel sockets and Reachable now, and left and right walk a
 list, those costing fewest points first. What it names is the target, with nothing to confirm: "Keystones. Scarred Faith, up
 left, middle ring, 8 points away. From here: up, 10 pushes". Then every node ends with the way, "Toward Scarred Faith: up left,
@@ -233,7 +247,8 @@ class's start, notables 5; the game's "You do not meet the requirements" on a no
 to "Build Planner", A, D-pad down to "Active Build" and pick it. Its nodes are then read "in the build", the next one
 to take "next in the build", and every node ends with the way there: "Next in the build: Attribute, not linked: down
 left, down". With the file in that folder (not for a website-only build) each build node also says its step, weapon
-set and the author's note ("Build: step 2 of 8. Strength +5 is recommended"); an attribute node whose note shows the
+set and the author's note ("Build: step 2 of 8. Strength +5 is recommended"; a node the file names again for a weapon
+set or an attribute is one step, its first); an attribute node whose note shows the
 attribute only by colour gets it named ("Recommended attribute: Strength").
 
 **Brief guide** (setting "Brief passive tree guide", Navigation, on by default; user 2026-11-10: "es muy verboso"): while
@@ -300,6 +315,12 @@ the build names offers "Show Build Planner notes, hold R3".
 
 In Cosmetics the toggles above each weapon slot read "weapon set I" and "weapon set II"; the search box is "Search
 here..., edit field", the "x" at its end "Clear search, button".
+
+**A merchant or a stash opening** is one line: the tab of the stock, where the cursor is and its item ("tab 1.
+Inventory. Orb of Transmutation, 6, column 1, row 1, 180 gold. …"), then your gold ("4,776 gold"), then the buttons. A
+stock that is the gamble (Finn's "Buy or sell items" in Clearfell: the window has no title, its items are "Random Spear"
+with a price) opens with "Gamble, random items, stock 100/100", the counter the game shows under it; the build says
+nothing of a random item.
 
 **Search in a stash or a merchant** (L3, "Edit search"; the game lights what matches and dims the rest): once typed, the
 mod says what is lit with each cell, "3 highlighted: Sombre Gloves, rare, column 3, row 1. …" (six named, the rest
