@@ -63,9 +63,10 @@ namespace Poe2Accessibility
                 yield break;
             }
 
-            foreach (var mod in fit.Mods.Where(mod => !(lacksSaid && mod.Fit == ModFit.Missing)))
+            // One line of the item can answer two wanted ones ("to all Elemental Resistances" for cold and lightning): said once.
+            foreach (var line in fit.Mods.Where(mod => !(lacksSaid && mod.Fit == ModFit.Missing)).Select(mod => GearModLine(mod, texts)).Distinct())
             {
-                yield return GearModLine(mod, texts);
+                yield return line;
             }
         }
 
@@ -142,7 +143,7 @@ namespace Poe2Accessibility
         }
 
         /// <summary>Each wanted modifier against the item's own line: met, with less than asked, missing, or not comparable (the author's words).</summary>
-        public static IEnumerable<string> GearMods(GearFit fit, IModTexts texts) => fit.Mods.Select(mod => GearModLine(mod, texts));
+        public static IEnumerable<string> GearMods(GearFit fit, IModTexts texts) => fit.Mods.Select(mod => GearModLine(mod, texts)).Distinct();
 
         private static string GearModLine(ModStatus mod, IModTexts texts)
         {
