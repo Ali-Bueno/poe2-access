@@ -29,6 +29,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AnUntypedEntitysComponentsRestLikeATypedOnes), AnUntypedEntitysComponentsRestLikeATypedOnes),
             (nameof(ABuffHeldAsSeveralEntriesCountsEveryOne), ABuffHeldAsSeveralEntriesCountsEveryOne),
             (nameof(ABlowIsLearntAsItsPlaceInTheClip), ABlowIsLearntAsItsPlaceInTheClip),
+            (nameof(AMaximumFromTheTablesIsNeverSaidAsFull), AMaximumFromTheTablesIsNeverSaidAsFull),
         };
 
         /// <summary>A flask whose drinks were seen to cost <paramref name="cost"/>, left at <paramref name="charges"/>; the clock ends past the last drink.</summary>
@@ -228,6 +229,25 @@ namespace Poe2Accessibility.Tests
             Equal(1156, AttackClock.NominalMsAt(hasted, readAt: 769, moment: 889), "hasted: the 889 ms that passed are 1156 of the clip");
             Equal(1100, AttackClock.NominalMsAt(new AnimationReading(7, 1.4f, 1f, 1f, false, 0.3f, 2f), readAt: 5000, moment: 5000), "counted from the clip's own start");
             Equal(1000, AttackClock.NominalMsAt(new AnimationReading(7, 1.2f, 1f, 1f, false, 0f, 2f), readAt: 5000, moment: 4800), "a projectile's release, its flight before the reading");
+        }
+
+        private static void AMaximumFromTheTablesIsNeverSaidAsFull()
+        {
+            const string Heat = "stat:number_of_crossbow_heat_stacks";
+            ResourceTracker.Reading At(int count, int max = 0, int reach = 31) => new(Heat, count, max, ResourceTracker.ModeFor(Math.Max(max, reach)), reach);
+            var tracker = new ResourceTracker();
+            tracker.Update(new[] { At(0) }, 0);
+            var now = ResourceTracker.BaselineGraceMs + 100L;
+            Equal(0, tracker.Update(new[] { At(12) }, now).Count, "a pool on its way is not news");
+            var reached = tracker.Update(new[] { At(31) }, now + 100);
+            Equal(1, reached.Count, "reaching what the skill's level row gives is told");
+            Equal((ResourceChange.Count, 31, 0), (reached[0].Change, reached[0].Count, reached[0].Max), "as a count: no live stat says 31 is the maximum");
+            Equal(0, tracker.Update(new[] { At(36) }, now + 200).Count, "and when something raised the real maximum, going on past it is no news");
+            Equal(ResourceChange.Empty, tracker.Update(new[] { At(0) }, now + 300)[0].Change, "running out is still told");
+
+            var live = new ResourceTracker();
+            live.Update(new[] { At(0, max: 40, reach: 0) }, 0);
+            Equal(ResourceChange.Full, live.Update(new[] { At(40, max: 40, reach: 0) }, now)[0].Change, "a maximum the game holds in a live stat is full when reached");
         }
 
         private static void AFlasksCostOutlivesAnAreaButNotACharacter()

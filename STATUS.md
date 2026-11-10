@@ -244,7 +244,7 @@
 | Trial of Chaos: round said on change | done (code) | `CheckTrialLines` on "Round {0}/{1}" |
 | Ascendancy selector and tree view | todo (blocked: no ascended character) | needs one UI dump with it open and one closed (trials-and-campaign.md §3). 2026-11-08: yarkey's passive tree shows its class art in the centre and no ascendancy view or prompt (Y, LB, RB, X and the d-pad tried); the selector comes from the altar after the Trial of the Sekhemas, which no test character has done |
 | Acts 3-4 puzzle objects and the sailing map | todo (blocked: the character is in Act 2) | trials-and-campaign.md §4 |
-| Class resources from the game's tables | done (code; live: Heat with its maximum, vitals) | `ResourceWatch` + `ResourceTracker`/`ClassMechanicCatalog`, catalog class-mechanics.json; a maximum no player stat holds comes from the skills' level rows (`SkillStatSets`: Rapid Shot's "Calor al máximo, 31", live 2026-11-08) |
+| Class resources from the game's tables | done (code; live: Heat with its maximum, vitals) | `ResourceWatch` + `ResourceTracker`/`ClassMechanicCatalog`, catalog class-mechanics.json; a maximum no player stat holds is read from the skills' level rows (`SkillStatSets`, live 2026-11-08) and, not being live, only marks where the pool is told as a count ("Calor: 31"), never as full; resources and limits the mod has no name for are logged, not spoken (code 2026-11-10) |
 | Endgame data from the game files | done (code) | `endgame` step → catalog/endgame.json; docs/research/endgame.md |
 | Map objective content in the scanner (breach, abyss, essence, Vaal beacon, detonator) | done (code) | Encounters, game's keyword names |
 | Atlas map and tree nodes | done (code, not seen live) | name, content icons, asks/unlocks, links with directions, tower reach; dev `atlasnode` |
@@ -502,8 +502,9 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   content (needs an endgame character). Seen live that day: a rare item's mods and a magic monster's ("de precisión").
 - The lost hint at its 180 s rarely comes in a monster-dense area: any enemy within 1300 units stops the count (a fight is
   no sign of being lost). Clearfell gave it only at a 3 s setting (2026-11-08); whether 180 s suits the user is open.
-- Heat now has its maximum (31 at Rapid Shot level 6), which is above `ResourceTracker`'s counted range: it is said only at its
-  edges ("Calor al máximo, 31", "sin Calor"), no longer "Calor: 8". Whether the user wants the counts back is open.
+- Heat's maximum comes from the skills' tables (31 at Rapid Shot level 6), not from a live stat: it only tells the pool from a
+  count, so Heat is said where it reaches that value, as a count ("Calor: 31"), and when it runs out ("sin Calor"), never
+  "al máximo" (code 2026-11-10, to hear live). Whether the user wants every count back is open.
 - `catalog/landmarks.json` corrects the Radar table's labels that were no area name by a typo ("Oghams Manor", 5 found by near match) and G1_14's "Entrance", the way back read as the Manor's.
 - Radar-table labels are English notes (GameHelper's `important_tgt_files.txt`): area names, bracketed notes and, since
   2026-11-02, boss names are said in the game's language. Since 2026-11-08 every piece of a label (cut at " - ", slashes,

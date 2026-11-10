@@ -147,3 +147,15 @@ rule now in force, where.
   teaches is still off by the chill, inside what `Believable` lets through. Saved entries (`config/dodge-timings.txt`
   and the shipped seed) stay usable as they are, with no migration: at speed 1 the two measures agree, and each new
   blow pushes an old one out of its five. Still from files, not live: a projectile's flight speed and a clip's reach.
+- **Class resources from tables (A8).** Heat has no live maximum (the player stat reads 0), so the largest value the
+  player's skills give at their gem level stood in for it and was said as fact: "Calor al máximo, 31", "Calor 12 de
+  31". A support, a passive or an item that raises it is not in that row. Rule: a maximum is said only when a live
+  player stat holds it. The tables' value (`ResourceTracker.Reading.Reach`) still tells a pool from a count, so the
+  pool is not read at every shot, and marks the one count worth telling on the way up, said as a count ("Calor: 31");
+  the vitals readout says "Calor: 12". Not done: claiming the maximum from the count having stopped rising, since the
+  mod cannot see whether the skill is still adding. Also, any of the catalog's 79 `current_*` stats and 22 limits was
+  spoken by its id's English words when held (`difficulty`, `shapeshift`, `active_block_maximum_distance_for_projectiles`):
+  only the ones `Announcements.ResourceName` / `LimitName` name are spoken now; the rest are logged once (`Resource
+  stat:<name> held (…) has no name in the mod: not said`). Logs for Heat: `Resource stat:number_of_crossbow_heat_stacks:
+  no live maximum, the skills' tables give 31: told as a count there, never as full`, and `… above the 31 its skills'
+  tables give` if it is ever seen higher.

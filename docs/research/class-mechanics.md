@@ -156,8 +156,8 @@ Honour (Trial of the Sekhemas) is the trials agent's (`HonourWatch`).
   400 ms, pools tell full/empty, a 2 s baseline grace after a reset), `ResourceWatch` in `PlayerAlerts` beside `ChargeWatch`
   (stats not covered by the charges, limits as edges "Tótems al máximo, 3" / "sin Tótems", every named non-harmful buff's
   stacks "Jade: 7", a one-stack buff "Unbound" / "Unbound se acabó" only when it lasts ≥ 8 s or is untimed, a buff a stat
-  already counts skipped, ends said only after a said beginning), `Announcements.ClassMechanics` (known names in EN/ES, any
-  other as the stat's words), vitals readout lists what is held, `SkillDetailsDump` (dev `skills`). Switch and level: the
+  already counts skipped, ends said only after a said beginning), `Announcements.ClassMechanics` (known names in EN/ES; any
+  other is logged, not spoken, since 2026-11-10), vitals readout lists what is held, `SkillDetailsDump` (dev `skills`). Switch and level: the
   charges' (`ChargeSpeech`, "Voz: cargas"); no sounds yet.
 
 ## 6. Gaps and plan
