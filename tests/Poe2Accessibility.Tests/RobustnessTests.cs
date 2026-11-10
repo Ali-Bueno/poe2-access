@@ -13,7 +13,9 @@ namespace Poe2Accessibility.Tests
     /// </summary>
     public static partial class RobustnessTests
     {
-        public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
+        public static IEnumerable<(string Name, Action Test)> All() => Readings().Concat(Wide());
+
+        private static IEnumerable<(string Name, Action Test)> Readings() => new (string, Action)[]
         {
             (nameof(AnOverrideNodeDoesNotMoveTheAllocatedList), AnOverrideNodeDoesNotMoveTheAllocatedList),
             (nameof(OnlyAListOfKnownNodesTakesTheAllocatedPlace), OnlyAListOfKnownNodesTakesTheAllocatedPlace),

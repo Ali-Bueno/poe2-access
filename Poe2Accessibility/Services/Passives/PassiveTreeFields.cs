@@ -10,12 +10,22 @@ namespace Poe2Accessibility.Services
     ///     Fields of the passive tree's state and graph objects a game update can move (docs/compatibility.md), each found
     ///     again by what it holds: the state's graph file (named Metadata/PassiveSkillGraph.psg), the file's content (an
     ///     edge list joining node records that lead to PassiveSkills rows) and the state's allocated list (graph ids of the
-    ///     graph's nodes). One change at a time is assumed: the state is found by the canvas, the file in a found state.
+    ///     graph's nodes). Each is looked for near where it was measured, then through its whole object
+    ///     (<see cref="PassiveGraphSearch"/>); the state itself is found by the canvas, the file in a found state.
     /// </summary>
     public sealed class PassiveTreeFields
     {
         private const int Radius = 0x100;
         private const int Step = 8;
+
+        // The whole objects searched once nothing fits nearby, each several times as far as its farthest field measured:
+        // the state (the allocated list at 0x1A8), the graph file (its content at 0x28) and the content (the edge list at 0x58).
+        private const int WideStateBytes = 0x800;
+        private const int WideFileBytes = 0x200;
+        private const int WideContentBytes = 0x400;
+
+        /// <summary>The state is asked for its file on every candidate of the canvas's search: its whole-object search runs this often at most.</summary>
+        private const int WideFileEveryMs = 10_000;
 
         /// <summary>A connected tree of n drawn groups has at least n − 1 links; half the groups is a floor no tree misses, whatever its size.</summary>
         private const int GroupsPerEdgeFloor = 2;
@@ -64,8 +74,20 @@ namespace Poe2Accessibility.Services
                 return file;
             }
 
-            if (this.fileKnown || !search ||
-                OffsetSearch.First(this.measuredFile, Radius, Step, at => this.IsGraphFile(state, at) != null, Step) is not { } found)
+            if (this.fileKnown || !search)
+            {
+                return IntPtr.Zero;
+            }
+
+            // Far from where measured the name alone is not enough: the file must lead to an edge list too.
+            var now = Environment.TickCount64;
+            var wide = now >= this.nextWideFileAt;
+            this.nextWideFileAt = wide ? now + WideFileEveryMs : this.nextWideFileAt;
+            if (PassiveGraphSearch.File(
+                    at => this.reader.TryRead<IntPtr>(state + at, out var file) ? file.ToInt64() : 0,
+                    file => this.NamesGraph(new IntPtr(file)),
+                    file => this.FindEdges(new IntPtr(file), 1) != null,
+                    this.measuredFile, Radius, Step, wide ? WideStateBytes : 0) is not { } found)
             {
                 return IntPtr.Zero;
             }
@@ -93,14 +115,11 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            foreach (var content in OffsetSearch.Outward(this.measuredContent, Radius, Step))
+            if (this.FindEdges(graphFile, minEdges) is (var content, var list))
             {
-                if (OffsetSearch.First(this.measuredEdges, Radius, Step, at => this.EdgesAt(graphFile, content, at, minEdges) != null) is { } list)
-                {
-                    (GameLayout.PassiveTree.GraphContentOffset, GameLayout.PassiveTree.EdgeListOffset) = (content, list);
-                    this.Settle(ref this.edgesKnown, "passive tree links", this.measuredEdges, list);
-                    return this.EdgesAt(graphFile, content, list, minEdges);
-                }
+                (GameLayout.PassiveTree.GraphContentOffset, GameLayout.PassiveTree.EdgeListOffset) = (content, list);
+                this.Settle(ref this.edgesKnown, "passive tree links", this.measuredEdges, list);
+                return this.EdgesAt(graphFile, content, list, minEdges);
             }
 
             // Not repeated on every hover, and not given up at once: a search made before the tree's rows were readable
@@ -168,7 +187,12 @@ namespace Poe2Accessibility.Services
                 return; // nothing allocated (a new character), or too few known ids to tell: judged again on a later node
             }
 
-            if (OffsetSearch.First(this.measuredAllocated, Radius, Step, at => AllocatedListCheck.Strong(this.AllocatedAt(state, at), ids), Step) is { } found)
+            // The state's fields move together more often than apart: as far as the graph file moved is tried first.
+            var together = this.measuredAllocated + (GameLayout.PassiveTree.StateGraphFileOffset - this.measuredFile);
+            if (PassiveGraphSearch.Allocated(
+                    at => this.AllocatedAt(state, at),
+                    at => this.reader.TryRead<IntPtr>(state + at, out var first) ? first.ToInt64() : 0,
+                    ids, this.measuredAllocated, together, Radius, Step, WideStateBytes) is { } found)
             {
                 GameLayout.PassiveTree.AllocatedOffset = found;
                 this.Settle(ref this.allocatedKnown, "passive tree allocations", this.measuredAllocated, found);
@@ -186,6 +210,7 @@ namespace Poe2Accessibility.Services
         private const int AllocatedRetryMs = 10_000;
         private const int AllocatedFailuresToSay = 2;
         private long allocatedRetryAt;
+        private long nextWideFileAt;
         private int allocatedFailures;
 
         /// <summary>The graph ids in an allocated list at the offset of the state; null when no such list is there.</summary>
@@ -215,7 +240,7 @@ namespace Poe2Accessibility.Services
             GameLayout.PassiveTree.EdgeListOffset = this.measuredEdges;
             GameLayout.PassiveTree.AllocatedOffset = this.measuredAllocated;
             (this.fileKnown, this.edgesKnown, this.allocatedKnown, this.graphIds) = (false, false, false, null);
-            (this.edgesRetryAt, this.edgesFailures, this.allocatedRetryAt, this.allocatedFailures) = (0, 0, 0, 0);
+            (this.edgesRetryAt, this.edgesFailures, this.allocatedRetryAt, this.allocatedFailures, this.nextWideFileAt) = (0, 0, 0, 0, 0);
         }
 
         /// <summary>Research (dev command "layout"): which of the tree's fields have been judged.</summary>
@@ -223,10 +248,17 @@ namespace Poe2Accessibility.Services
             $"passive tree graph {(this.fileKnown ? "ok" : "not judged yet")}; links {(this.edgesKnown ? "ok" : "not judged yet")}; allocations {(this.allocatedKnown ? "ok" : "not judged yet (needs an allocated node)")}";
 
         private IntPtr? IsGraphFile(IntPtr state, int offset) =>
-            this.reader.TryRead<IntPtr>(state + offset, out var file) && file != IntPtr.Zero && this.reader.IsValidAddress(file) &&
-            this.elements.ReadWStringStructAt(file + GameLayout.SkillSlot.FileNameOffset) == GameLayout.PassiveTree.GraphFileName
-                ? file
-                : null;
+            this.reader.TryRead<IntPtr>(state + offset, out var file) && this.NamesGraph(file) ? file : null;
+
+        private bool NamesGraph(IntPtr file) =>
+            file != IntPtr.Zero && this.reader.IsValidAddress(file) &&
+            this.elements.ReadWStringStructAt(file + GameLayout.SkillSlot.FileNameOffset) == GameLayout.PassiveTree.GraphFileName;
+
+        /// <summary>Where the file keeps its content and the content its edge list (<see cref="PassiveGraphSearch.Edges"/>); null when nowhere.</summary>
+        private (int Content, int List)? FindEdges(IntPtr graphFile, int minEdges) =>
+            PassiveGraphSearch.Edges(
+                (content, list) => this.EdgesAt(graphFile, content, list, minEdges) is { } edges ? edges.First.ToInt64() : 0,
+                (this.measuredContent, this.measuredEdges), Radius, Step, (WideFileBytes, WideContentBytes));
 
         private StdVector? EdgesAt(IntPtr graphFile, int contentOffset, int edgesOffset, int minEdges)
         {

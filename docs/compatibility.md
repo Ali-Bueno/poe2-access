@@ -214,7 +214,8 @@ upstream learns is copied by hand into `host/GameOffsets` (upstream had no commi
 ## Found again at runtime (plugin)
 Each field is tried where it was measured first, so a build that did not move it behaves exactly as before; only
 when it no longer holds what it must is it looked for nearby (`OffsetSearch`: outward, one 8-byte step either side,
-nearest fit wins). Fields of one structure that move together follow an anchor.
+nearest fit wins). Fields of one structure that move together follow an anchor. A field that fits nowhere nearby is then
+looked for through its whole object ([below](#the-whole-object-when-nothing-is-near)).
 
 | Anchor (how it is recognised) | Followers | Where |
 |---|---|---|
@@ -244,6 +245,31 @@ nearest fit wins). Fields of one structure that move together follow an anchor.
 | Area row of the loading state: points at a world-area row with a name and an id shaped like `G1_1` (searched only in game, when it must hold the area) | — | `GameStateService.AreaRowOffset` |
 | Dat keys (row, then the file at +0x8 whose name sits at +0x8): before any key has read, a key that does not read is searched once a second for the file pointer and the name nearest where measured that name the table the caller expects; that layout reads the key, and every key once a key of a second table reads through it | — | `DatKey`, pure `DatKeySearch` |
 | A struct's dat key (a passive node record's PassiveSkills key at +0, a map pin element's MapPins key at +0x2D0): a key into the table nearest where measured, taken once two structs agree. The canvas's hovered pin is judged as a control field (below): the canvas holds two keys into MapPins (the hovered and the current pin) and a table name cannot tell them apart | — | `DatKeySite` |
+
+### The whole object, when nothing is near
+Added 2026-11-10 (unit tests only, `RobustnessTests.Wide`: no build has moved a field this far yet). Near where a field was
+measured the nearest fit is the likeliest; far from it no place is likelier than another, so a search of the whole object
+(`OffsetSearch.Only`) takes a place only when two facts agree there and no other place holds another answer. Two places with
+the same content (two slots of one pointer) are one answer, the nearest. A healthy field never reaches it: each runs only
+after the near search failed, a few times per game process or behind a timer, since it reads whole objects on the frame thread.
+
+| Field | Object searched | Proof far from where measured | Where |
+|---|---|---|---|
+| Control name (font, manager and tooltips follow) | each of the root, its children and theirs, up to `Element.ProbeBytes` (0x800) | two elements carry two different known names there; near, one name is enough | `ElementFieldSearch.Name`, `LayoutProbe.WideName` (3 tries) |
+| Label texts (tagged, text, copy; the colour follows) | 400 labels, 0x800 each; the three fields at one shift, from the tagged text at the element's start to the copy at its end | as near: five labels read a tagged text and a text equal to its copy; one shift only | `ElementFieldSearch.TextShift`, `LayoutProbe.WideTextShift` (3 tries) |
+| Image texture (the smaller class follows) | 150 images, 0x800 each | as near: five images reach an art key through the pointer and under half as many through the next slot; one place only | `ElementFieldSearch.Texture`, `LayoutProbe.WideTexture` (3 tries) |
+| Control subclass groups (`ControlFields.Shift`: slider, combo box, inventory, tabs, skill slots, passive canvas and node, class selector, hint, title, options section) | the control, 0x800 from its start, after three misses nearby; every 30 s at most | the group's own check fits at one place of the control, and at the same place on a second control (until then it is only noted, never read) | `ControlFields.Shift` |
+| In-game layers with a name or shape | the layer container, 0x2000 | the tree shows a child of the container (its child's child for the skill bar and the bind screen) that carries the name or shape, and one slot of the container holds its address; slots of two such elements are not chosen between (player 2's skill bar) | `LayerSlots`, `InGameFields.LocateFar` |
+| Passive tree: graph file | the tree state, 0x800; every 10 s at most (the canvas's search asks every candidate state) | named `Metadata/PassiveSkillGraph.psg` and leading to an edge list; near, the name is enough | `PassiveGraphSearch.File` |
+| Passive tree: content pointer and edge list | the file's first 0x200 bytes, the content's first 0x400 | as near (sampled edges reach node records, some join two, half the drawn groups or more), and every pair that fits leads to the same list | `PassiveGraphSearch.Edges` |
+| Passive tree: allocated list | the tree state, 0x800 | three or more ids, each once, all nodes of the graph, and no second such list; tried first as far from where measured as the graph file moved (the state's fields move together) | `PassiveGraphSearch.Allocated` |
+| A struct's dat key (passive node record, map pin element) | twice as far as it was measured, 0x200 at least; every 10 s at most | a key whose file names the table, every key found leading to one row, and a second struct agreeing (as near) | `DatKeySearch.SiteWide`, `DatKeySite` |
+| Heavy stun record | each Actor, 0x1000; every 5 s at most | four in five of five or more monsters share the head {5, 8.0, 0} with a threshold at exactly one place | `PoiseSearch.AgreedOnly`, `WorldLayoutWatch.PoiseFar` |
+
+Not widened, and why: entity names (one fact only: a text with a letter on half the entities; any other string of the Render
+component would pass far away); the fields found by watching them change (check box, selectable list, map depth, hovered
+pin: far from the measured place other bytes change too, timers and animations); the UI manager's root slot and the in-game
+layer roots (already searched through 0x1000 of their object).
 
 ### Control subclasses
 Their fields sit after the base control, so when it grows they all move as far as the label text did
@@ -425,8 +451,8 @@ the radar sounded. `tools/exe_reader/reader.py` tells what moved from the exe al
   runbook ([patch day](patch-day.md)). The plugin says what it lost: the world ("lo que hay a tu alrededor, así que
   enemigos, objetos y salidas no sonarán"), a struct by name, or attached two minutes without ever reading a game state
   (`GameStateService`, part "game states": "Aviso de compatibilidad: no encuentro el estado del juego").
-- A part the self-test reports lost after a patch: each search assumes one change at a time near where the field was
-  measured, so a redesign (a new structure, a field moved far) still needs a new measurement. A wrong part makes its
+- A part the self-test reports lost after a patch: each search assumes a field moved, not a structure redesigned, so a
+  new structure or the fields of one group moved apart still need a new measurement. A wrong part makes its
   reading fall back (a mod without its name, an item without its base name) rather than speak garbage, since every
   string goes through the decoders' checks.
 - Run the `layout` self-test (above) and a short session through login, a menu, the inventory and a fight.
@@ -455,8 +481,11 @@ index could be stale while unset (the mod reads the int, as tested live), and +0
 
 What else remains is by design:
 
-- A search finds a field moved near where it was measured (within 0x40 to 0x100 bytes, or a bit renumbered), one
-  change at a time; a field moved farther, or two fields of one judgment moved at once, is reported lost.
+- A search finds a field moved near where it was measured (within 0x40 to 0x100 bytes, or a bit renumbered), and the fields
+  listed under [the whole object](#the-whole-object-when-nothing-is-near) anywhere in their object when one place alone holds
+  the proof. Still reported lost: a field moved far with no second fact to tell it by (entity names, the fields seen
+  changing), two places that both hold the proof, and two fields of one judgment moved apart from each other (the three
+  label texts, a control group's fields).
 - Parts whose evidence is rare are judged late: the quest marker needs an NPC that shows one, check boxes and
   selectable lists a change by the player; the enabled bit is only noticed lost.
 - A structure redesigned rather than shifted (a component split in two, a list that becomes a map): its readings stop and the mod

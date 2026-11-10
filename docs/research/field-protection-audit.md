@@ -12,6 +12,10 @@ checks) and the code rules of `f8010c7`, `4ed525e`, `b507d8b` ([exe-layouts.md](
 Updated a third time that day for the gap pass (branch `worktree-agent-a0b9d794fbe24ca5f`: the rules of [exe-layouts.md](exe-layouts.md),
 "The gap fields", the dat Id columns and the hovered pin's judgment); C39b, the dodge's animated object, was added to the table.
 
+Updated 2026-11-10 (robustness pass, branch `worktree-agent-ae1e78bf8a7f6c159`): the whole-object searches
+([compatibility.md](../compatibility.md#the-whole-object-when-nothing-is-near)) widen the reach of the LIVE searches of P1, P5,
+P7, L1, L2, L4, K1-K6, K8, K11-K13, K16, K19, D4 and C15 without adding a way (N unchanged; unit tests only).
+
 ## How to read the tables
 
 - **n** is how many fields share the row (same struct, same protection).

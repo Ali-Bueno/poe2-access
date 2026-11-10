@@ -50,6 +50,15 @@ namespace Poe2Accessibility.Services
         /// <summary>An inconclusive check (a screen without texts, a loading root) is tried again after this long.</summary>
         private const int RetryMs = 10000;
 
+        /// <summary>
+        ///     Whole-object searches a part gets per game process, once nothing fits nearby: each reads every element looked at
+        ///     up to <see cref="GameLayout.Element.ProbeBytes"/> on the frame thread.
+        /// </summary>
+        private const int MaxWideTries = 3;
+
+        /// <summary>Images looked at in a whole-object search of the texture (each candidate place costs a read per image).</summary>
+        private const int MaxWideLeaves = 150;
+
         /// <summary>Control names the game's roots and in-game layers carry (login and in-game dumps, 2026-09/10).</summary>
         private static readonly string[] KnownLayerNames =
         {
@@ -97,6 +106,9 @@ namespace Poe2Accessibility.Services
         private long textTriedAt = long.MinValue / 2;
         private long texturesTriedAt = long.MinValue / 2;
         private long renderTriedAt = long.MinValue / 2;
+        private int wideNameTries;
+        private int wideTextTries;
+        private int wideTextureTries;
         private readonly LossWitnesses renderMisses = new();
 
         public LayoutProbe(HostMemoryReader reader, UiElementReader elements, CompatibilityReport report)
@@ -302,7 +314,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.namesTriedAt = now;
-            if (OffsetSearch.First(this.measuredName, Radius, Step, this.NameFits(root), Step) is not { } found)
+            if ((OffsetSearch.First(this.measuredName, Radius, Step, this.NameFits(root), Step) ?? this.WideName(root)) is not { } found)
             {
                 if (conclusive)
                 {
@@ -338,7 +350,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (OffsetSearch.First(0, Radius, Step, this.TextFits(root), -Radius) is not { } found)
+            if ((OffsetSearch.First(0, Radius, Step, this.TextFits(root), -Radius) ?? this.WideTextShift(root)) is not { } found)
             {
                 if (conclusive)
                 {
@@ -377,7 +389,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (OffsetSearch.First(this.measuredTexture, Radius, Step, fits, Step) is not { } found)
+            if ((OffsetSearch.First(this.measuredTexture, Radius, Step, fits, Step) ?? this.WideTexture(root)) is not { } found)
             {
                 if (conclusive)
                 {
@@ -478,6 +490,7 @@ namespace Poe2Accessibility.Services
             this.ownElementsManager = IntPtr.Zero;
             this.layerRootsTriedAt = long.MinValue / 2;
             this.namesTriedAt = this.textTriedAt = this.texturesTriedAt = this.renderTriedAt = long.MinValue / 2;
+            (this.wideNameTries, this.wideTextTries, this.wideTextureTries) = (0, 0, 0);
             this.renderMisses.Clear();
         }
 
@@ -521,8 +534,72 @@ namespace Poe2Accessibility.Services
         public static string SelfTestLine(string part, int now, int? found) =>
             found == now ? $"{part} ok" : $"{part} FAIL (found {(found is { } at ? $"0x{at:X}" : "nothing")}, is 0x{now:X})";
 
+        /// <summary>The control name far from where measured: the one place where two elements carry two different known names.</summary>
+        private int? WideName(IntPtr root)
+        {
+            if (this.wideNameTries++ >= MaxWideTries)
+            {
+                return null;
+            }
+
+            var blocks = this.WideBlocks(this.NamedNodes(root), this.measuredName + WStringDecoder.Size);
+            return ElementFieldSearch.Name(blocks, (block, at) => WStringDecoder.TryDecode(this.reader, block, at, MaxLength, false), KnownLayerNames, this.measuredName, Radius, Step);
+        }
+
+        /// <summary>The label texts far from where measured: the one shift under which enough labels read their three fields.</summary>
+        private int? WideTextShift(IntPtr root)
+        {
+            if (this.wideTextTries++ >= MaxWideTries)
+            {
+                return null;
+            }
+
+            var blocks = this.WideBlocks(this.Leaves(root).Take(MaxLeaves), this.measuredCopy + WStringDecoder.Size);
+            var last = GameLayout.Element.ProbeBytes - this.measuredCopy - WStringDecoder.Size;
+            return ElementFieldSearch.TextShift(blocks, this.TextAt, Radius, Step, -this.measuredTagged, last + Step, MinTextHits);
+        }
+
+        /// <summary>The image texture far from where measured: the one place that leads enough images to an art key.</summary>
+        private int? WideTexture(IntPtr root)
+        {
+            if (this.wideTextureTries++ >= MaxWideTries)
+            {
+                return null;
+            }
+
+            var blocks = this.WideBlocks(this.Leaves(root).Take(MaxWideLeaves), this.measuredTexture + IntPtr.Size);
+            return ElementFieldSearch.Texture(blocks, pointer => this.elements.ReadTextureKey(new IntPtr(pointer)) != null, this.measuredTexture, Radius, Step, MinTextureHits);
+        }
+
+        /// <summary>Each element's bytes up to <see cref="GameLayout.Element.ProbeBytes"/>, as far as they read (at least <paramref name="floor"/>).</summary>
+        private List<byte[]> WideBlocks(IEnumerable<IntPtr> elements, int floor)
+        {
+            var blocks = new List<byte[]>();
+            foreach (var element in elements)
+            {
+                // Host reads are all or nothing: an element near the end of its page reads shorter.
+                for (var size = GameLayout.Element.ProbeBytes; size >= floor; size /= 2)
+                {
+                    if (this.reader.ReadBytes(element, size) is { Length: > 0 } block)
+                    {
+                        blocks.Add(block);
+                        break;
+                    }
+                }
+            }
+
+            return blocks;
+        }
+
         /// <summary>The root or one of its layers carries a known control name at the offset.</summary>
         private Func<int, bool> NameFits(IntPtr root)
+        {
+            var blocks = this.NamedNodes(root).Select(node => this.reader.ReadBytes(node, this.measuredName + Radius + WStringDecoder.Size)).Where(block => block.Length > 0).ToList();
+            return offset => blocks.Any(block => WStringDecoder.TryDecode(this.reader, block, offset, MaxLength, false) is { } name && KnownLayerNames.Contains(name));
+        }
+
+        /// <summary>The root, its children and theirs: the elements that carry the known names.</summary>
+        private List<IntPtr> NamedNodes(IntPtr root)
         {
             // In game the named layers sit one level lower than at login (root, layer container, layers).
             var nodes = new List<IntPtr> { root };
@@ -538,8 +615,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            var blocks = nodes.Select(node => this.reader.ReadBytes(node, this.measuredName + Radius + WStringDecoder.Size)).Where(block => block.Length > 0).ToList();
-            return offset => blocks.Any(block => WStringDecoder.TryDecode(this.reader, block, offset, MaxLength, false) is { } name && KnownLayerNames.Contains(name));
+            return nodes;
         }
 
         /// <summary>Enough labels under the root read through the text fields moved by the shift.</summary>

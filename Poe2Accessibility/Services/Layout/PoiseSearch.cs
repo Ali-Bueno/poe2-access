@@ -58,6 +58,22 @@ namespace Poe2Accessibility.Services
                 .ToList();
             return shared.Count > 0 ? shared[0] : null;
         }
+
+        /// <summary>
+        ///     The one place most actors share, for a search of the whole component once none is near where measured: two
+        ///     shared places are not chosen between (the head's three values can stand elsewhere by chance).
+        /// </summary>
+        public static int? AgreedOnly(IReadOnlyList<IReadOnlyList<int>> actors)
+        {
+            if (actors.Count < MinActors)
+            {
+                return null;
+            }
+
+            var needed = actors.Count * AgreedShare;
+            var shared = actors.SelectMany(heads => heads.Distinct()).GroupBy(head => head).Where(group => group.Count() >= needed).Select(group => group.Key).ToList();
+            return shared.Count == 1 ? shared[0] : null;
+        }
     }
 
     /// <summary>

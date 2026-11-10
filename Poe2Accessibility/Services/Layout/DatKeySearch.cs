@@ -48,5 +48,16 @@ namespace Poe2Accessibility.Services
         ///     <paramref name="reads"/> finds a key of the table; null when none does.
         /// </summary>
         public static int? Site(int near, Func<int, bool> reads) => OffsetSearch.First(near, Reach, IntPtr.Size, at => at != near && reads(at));
+
+        /// <summary>A struct is searched whole this far when its key is not near where measured: twice as far as that, and at least this.</summary>
+        public const int MinWide = 0x200;
+
+        /// <summary>
+        ///     The place of a key of the table anywhere in the struct, for when none is within <see cref="Reach"/>:
+        ///     <paramref name="rowAt"/> gives the row a key there leads to (0: no key of the table). A struct that holds keys to
+        ///     two different rows is not chosen between (null); several places of one row give the nearest.
+        /// </summary>
+        public static int? SiteWide(int near, Func<int, long> rowAt) =>
+            OffsetSearch.Only(near, 0, Math.Max(2 * near, MinWide), IntPtr.Size, at => rowAt(at) != 0, rowAt);
     }
 }

@@ -83,6 +83,14 @@ namespace Poe2Accessibility.Services
 
         private const int MissesToReport = 3;
 
+        /// <summary>
+        ///     Once a group missed this often nearby, the whole control is searched (<see cref="OffsetSearch.Only"/>), no more
+        ///     often than <see cref="WideRetryMs"/>: a search costs a judgment per place of the control.
+        /// </summary>
+        private const int MissesBeforeWide = MissesToReport;
+
+        private const int WideRetryMs = 30000;
+
         private readonly CompatibilityReport report;
         private readonly Func<int> textShift;
         private readonly Dictionary<ControlGroup, GroupState> states = new();
@@ -122,7 +130,7 @@ namespace Poe2Accessibility.Services
                     return candidate;
                 }
 
-                return IsWeak(group) ? expected : candidate;
+                return IsWeak(group) || state.CandidateIsFar ? expected : candidate;
             }
 
             var now = Environment.TickCount64;
@@ -139,12 +147,26 @@ namespace Poe2Accessibility.Services
             state.Tried[control] = now;
             if (OffsetSearch.First(expected, Radius, Step, fits, expected - Radius) is { } found)
             {
-                (state.Candidate, state.CandidateControl) = (found, control);
+                (state.Candidate, state.CandidateControl, state.CandidateIsFar) = (found, control, false);
                 return IsWeak(group) ? expected : found;
             }
 
-            if (++state.Misses == MissesToReport && group == ControlGroup.ComboBox)
+            // Nothing nearby, again: the fields may have moved farther than a class grows. The one place of the whole control
+            // that fits is kept as a candidate and read only once a second control fits there too.
+            if (++state.Misses >= MissesBeforeWide && now >= state.NextWideAt)
             {
+                state.NextWideAt = now + WideRetryMs;
+                var first = -Measured(group);
+                if (OffsetSearch.Only(expected, first, first + GameLayout.Element.ProbeBytes, Step, fits) is { } far)
+                {
+                    (state.Candidate, state.CandidateControl, state.CandidateIsFar) = (far, control, true);
+                    return expected;
+                }
+            }
+
+            if (state.Misses >= MissesToReport && !state.Reported && group == ControlGroup.ComboBox)
+            {
+                state.Reported = true;
                 // Only a combo box always proves its layout: a grid is recognised by reading it (a miss may be another
                 // control) and a slider at its minimum fits nearly anywhere.
                 this.report.Missing(Part(group));
@@ -220,7 +242,8 @@ namespace Poe2Accessibility.Services
         public bool IsKnown(ControlGroup group) => this.State(group).Known != null;
 
         /// <summary>The group's shift as known so far, for a field read without a control to judge it on.</summary>
-        public int Current(ControlGroup group) => this.State(group).Known ?? (IsWeak(group) ? null : this.State(group).Candidate) ?? this.textShift();
+        public int Current(ControlGroup group) =>
+            this.State(group).Known ?? (IsWeak(group) || this.State(group).CandidateIsFar ? null : this.State(group).Candidate) ?? this.textShift();
 
         /// <summary>A new game process (perhaps a patched one): every group is judged again.</summary>
         public void Reset() => this.states.Clear();
@@ -332,9 +355,16 @@ namespace Poe2Accessibility.Services
 
             public IntPtr CandidateControl { get; set; }
 
+            /// <summary>The candidate came from a search of the whole control: used only once a second control agrees.</summary>
+            public bool CandidateIsFar { get; set; }
+
+            public long NextWideAt { get; set; }
+
             public Dictionary<IntPtr, long> Tried { get; } = new();
 
             public int Misses { get; set; }
+
+            public bool Reported { get; set; }
 
             public Func<int, bool>? Fits { get; set; }
 

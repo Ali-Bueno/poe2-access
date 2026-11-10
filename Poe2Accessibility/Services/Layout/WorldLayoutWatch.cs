@@ -41,6 +41,14 @@ namespace Poe2Accessibility.Services
         /// <summary>Readings of a full room with no record before it is said lost; the search goes on.</summary>
         private const int PoiseMissesToSay = 30;
 
+        /// <summary>
+        ///     With no record near where measured the whole Actor is searched (its last field measured is the cooldown list at
+        ///     0xB20), no more often than this: it reads every actor around in full.
+        /// </summary>
+        private const int PoiseWideBytes = 0x1000;
+
+        private const long PoiseWideEveryMs = 5000;
+
         private readonly CompatibilityReport report;
         private readonly PluginLog log;
         private readonly string buildFile;
@@ -60,6 +68,7 @@ namespace Poe2Accessibility.Services
         private int poiseMisses;
         private int poiseAreasMissed;
         private IntPtr poiseArea;
+        private long nextPoiseWideAt;
         private WalkableCheck? walkable = new();
         private int walkableFails;
 
@@ -123,6 +132,7 @@ namespace Poe2Accessibility.Services
             this.poiseMisses = 0;
             this.poiseAreasMissed = 0;
             this.poiseArea = IntPtr.Zero;
+            this.nextPoiseWideAt = 0;
             this.walkable = new WalkableCheck();
             this.walkableFails = 0;
         }
@@ -188,7 +198,7 @@ namespace Poe2Accessibility.Services
             }
 
             var measured = GameLayout.ActorComponent.MeasuredPoiseHead;
-            if (PoiseSearch.Agreed(actors, measured - PoiseBlockStart) is not { } found)
+            if ((PoiseSearch.Agreed(actors, measured - PoiseBlockStart) ?? this.PoiseFar(area)) is not { } found)
             {
                 // One area's monsters can all lack the record (totems, the stun-immune): missing only once a second area agrees.
                 if (area.Address != this.poiseArea)
@@ -217,6 +227,26 @@ namespace Poe2Accessibility.Services
             {
                 this.report.Moved(PoisePart, measured, head);
             }
+        }
+
+        /// <summary>The heavy stun record anywhere in the actors around, as a place of the block the near search reads; null when none or several.</summary>
+        private int? PoiseFar(AreaInstance area)
+        {
+            var now = Environment.TickCount64;
+            if (now < this.nextPoiseWideAt)
+            {
+                return null;
+            }
+
+            this.nextPoiseWideAt = now + PoiseWideEveryMs;
+            var actors = area.AwakeEntities.Values
+                .Where(EntityCatalog.IsAliveEnemy)
+                .Select(entity => entity.TryGetComponent<Actor>(out var actor) ? actor.Address : IntPtr.Zero)
+                .Where(address => address != IntPtr.Zero)
+                .Take(MaxActorsWatched)
+                .Select(address => PoiseSearch.Heads(OffsetHealer.ReadBlock(address, PoiseWideBytes)))
+                .ToList();
+            return PoiseSearch.AgreedOnly(actors) is { } head ? head - PoiseBlockStart : null;
         }
 
         /// <summary>The cells the player walks on must read walkable (<see cref="WalkableCheck"/>).</summary>

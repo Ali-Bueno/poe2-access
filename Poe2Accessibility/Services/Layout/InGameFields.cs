@@ -31,6 +31,15 @@ namespace Poe2Accessibility.Services
 
         private const int Step = 8;
 
+        /// <summary>
+        ///     Bytes of the container read when a field is not near where it was measured (<see cref="LayerSlots"/>): twice as
+        ///     far as the farthest field measured (the objective box, 0xDD8) and more.
+        /// </summary>
+        private const int WideBytes = 0x2000;
+
+        /// <summary>Elements of the container's tree looked at for the one a field must hold, and how deep (a field that is no child sits one level down).</summary>
+        private const int MaxMarkedWalk = 600;
+
         /// <summary>A field not found is looked for again after this long (it may not exist yet).</summary>
         private const int RetryMs = 5000;
 
@@ -226,7 +235,72 @@ namespace Poe2Accessibility.Services
             var start = Math.Max(0, spec.Expected - Radius);
             var slots = this.reader.ReadArray<IntPtr>(this.container + start, (2 * Radius) / IntPtr.Size);
             return OffsetSearch.First(spec.Expected, Radius, Step, offset =>
-                (offset - start) / IntPtr.Size is var index && index < slots.Length && this.Fits(slots[index], spec), Step);
+                (offset - start) / IntPtr.Size is var index && index < slots.Length && this.Fits(slots[index], spec), Step) ?? this.LocateFar(spec);
+        }
+
+        /// <summary>The field anywhere in the container: the slot that holds the element the tree shows to be the one it must hold.</summary>
+        private int? LocateFar(Spec spec)
+        {
+            var marked = this.Marked(spec);
+            if (marked.Count == 0)
+            {
+                return null; // no such element under the container now: nothing says where its field is
+            }
+
+            for (var size = WideBytes; size >= 2 * Radius; size /= 2)
+            {
+                // Host reads are all or nothing: a container near the end of its page reads shorter.
+                if (this.reader.ReadArray<long>(this.container, size / sizeof(long)) is { Length: > 0 } slots)
+                {
+                    return LayerSlots.Find(slots, marked, spec.Expected);
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>The elements under the container that are what the field must hold: its children, and theirs for a field that is no child.</summary>
+        private HashSet<long> Marked(Spec spec)
+        {
+            var marked = new HashSet<long>();
+            if (!this.elements.TryReadElement(this.container, out var info))
+            {
+                return marked;
+            }
+
+            var walked = 0;
+            foreach (var child in this.elements.ReadChildren(info))
+            {
+                if (++walked > MaxMarkedWalk)
+                {
+                    break;
+                }
+
+                if (this.Fits(child, spec))
+                {
+                    marked.Add(child.ToInt64());
+                }
+
+                if (spec.Child || !this.elements.TryReadElement(child, out var childInfo))
+                {
+                    continue;
+                }
+
+                foreach (var grandchild in this.elements.ReadChildren(childInfo))
+                {
+                    if (++walked > MaxMarkedWalk)
+                    {
+                        break;
+                    }
+
+                    if (this.Fits(grandchild, spec))
+                    {
+                        marked.Add(grandchild.ToInt64());
+                    }
+                }
+            }
+
+            return marked;
         }
 
         /// <summary>The element at <paramref name="offset"/> of the container when it is what the field must hold.</summary>
