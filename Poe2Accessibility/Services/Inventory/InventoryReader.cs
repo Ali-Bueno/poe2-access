@@ -255,10 +255,23 @@ namespace Poe2Accessibility.Services
                 name = this.BaseName(baseComponent);
             }
 
+            // A rare or unique item's own name, from the words the item keeps: known with no tooltip.
+            var words = mods != null && rarity is Rarity.Rare or Rarity.Unique ? this.NameFromWords(mods.Address) : string.Empty;
+            if (fromTooltip && this.NameTrust.Observe(words, tooltipTitle))
+            {
+                this.Report?.Missing("item names");
+            }
+
             if (tooltipTitle.Length == 0 && rarity != Rarity.Normal)
             {
                 // No tooltip up (yet): the name its tooltip gave it before, so a second look says the same line as the first.
                 tooltipTitle = this.TitleOf(entity);
+            }
+
+            if (words.Length > 0 && !this.NameTrust.Lost && (tooltipTitle.Length == 0 || !fromTooltip))
+            {
+                // No title was read (a ground label, a move, a tooltip not up yet): a ground label is not known to hold the name.
+                tooltipTitle = words;
             }
 
             if (name.Length == 0 || (rarity != Rarity.Normal && tooltipTitle.Length > 0))
@@ -306,8 +319,72 @@ namespace Poe2Accessibility.Services
             }
 
             var item = (Item)Activator.CreateInstance(typeof(Item), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { entity }, null)!;
-            return item.TryGetComponent<Mods>(out var mods) && mods.Rarity != Rarity.Normal;
+            if (!item.TryGetComponent<Mods>(out var mods) || mods.Rarity == Rarity.Normal)
+            {
+                return false;
+            }
+
+            // A rare or unique item's words already give the name its tooltip will show: nothing to wait for.
+            return this.NameTrust.Lost || mods.Rarity == Rarity.Magic || this.NameFromWords(mods.Address).Length == 0;
         }
+
+        /// <summary>Whether the names made from items' words still agree with the tooltip titles read.</summary>
+        public ItemNameTrust NameTrust { get; } = new();
+
+        /// <summary>Names made per Mods component, with the vector they were made from: a new vector is another item's.</summary>
+        private readonly Dictionary<IntPtr, (IntPtr Words, string Name)> wordNames = new();
+
+        /// <summary>
+        ///     A rare or unique item's name from the Words.dat rows its Mods component keeps
+        ///     (<see cref="GameLayout.ItemNameWords"/>); empty when the vector is not one or two keys into that table or the
+        ///     words do not make a name for certain (<see cref="ItemNameWords.Compose"/>).
+        /// </summary>
+        private string NameFromWords(IntPtr mods)
+        {
+            const int Vector = GameLayout.ItemNameWords.VectorOffset;
+            const int KeySize = GameLayout.ItemNameWords.KeySize;
+            if (!this.reader.TryRead<IntPtr>(mods + Vector, out var begin) || !this.reader.TryRead<IntPtr>(mods + Vector + IntPtr.Size, out var end))
+            {
+                return string.Empty;
+            }
+
+            if (this.wordNames.TryGetValue(mods, out var known) && known.Words == begin)
+            {
+                return known.Name;
+            }
+
+            var name = string.Empty;
+            var bytes = end.ToInt64() - begin.ToInt64();
+            if (begin != IntPtr.Zero && bytes > 0 && bytes % KeySize == 0 && bytes / KeySize <= GameLayout.ItemNameWords.MaxWords && this.reader.IsValidAddress(begin))
+            {
+                var words = new List<ItemNameWords.Word>();
+                for (var key = begin; key.ToInt64() < end.ToInt64(); key += KeySize)
+                {
+                    if (DatKey.Row(this.reader, this.elements, key, GameLayout.ItemNameWords.Table) is not { } row)
+                    {
+                        words.Clear(); // not a key into Words.dat: not this field
+                        break;
+                    }
+
+                    words.Add(new ItemNameWords.Word(this.WordText(row + GameLayout.ItemNameWords.LocalTextOffset), this.WordText(row + GameLayout.ItemNameWords.InflectionOffset)));
+                }
+
+                name = ItemNameWords.Compose(words);
+            }
+
+            if (this.wordNames.Count >= MaxTitles)
+            {
+                this.wordNames.Clear();
+            }
+
+            this.wordNames[mods] = (begin, name);
+            return name;
+        }
+
+        private string WordText(IntPtr field) =>
+            this.reader.TryRead<IntPtr>(field, out var text) && text != IntPtr.Zero && this.reader.IsValidAddress(text)
+                ? this.elements.ReadUtf16BufferAt(text, GameLayout.ItemNameWords.MaxTextChars) ?? string.Empty
+                : string.Empty;
 
         /// <summary>Keeps an item's tooltip title; also for the new entity the game makes of an item that changed inventory.</summary>
         public void RememberTitle(IntPtr entity, string title)
@@ -336,6 +413,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Research (dev command "layout"): how item base names were judged.</summary>
         public string SelfTest() =>
+            $"item names from words {(this.NameTrust.Lost ? "LOST" : "ok")} ({this.NameTrust.Agreed} titles agree, {this.NameTrust.Differed} differ); " +
             "item base names " + (!this.BaseNames.Judged ? "not judged yet (needs a normal or magic item's tooltip)"
                 : this.BaseNames.Lost ? "lost (titles hold no name near where measured)"
                 : this.BaseNames.Moved ? $"moved (row +0x{this.BaseNames.Offsets.Row:X}, name +0x{this.BaseNames.Offsets.Name:X})"

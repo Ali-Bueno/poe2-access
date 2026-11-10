@@ -52,7 +52,7 @@ namespace Poe2Accessibility
                 {
                     this.log?.Info($"Inventory {(int)name} {name}: " + string.Join(" | ", items.OrderBy(item => item.Y).ThenBy(item => item.X)
                         .Select(item => $"{item.X},{item.Y} {inventory.ItemBaseId(item.Entity)} \"{inventory.DescribeItemEntity(item.Entity)}\"" +
-                                        (inventory.IsGem(item.Entity) ? " [" + string.Join(" ", inventory.ItemComponents(item.Entity).Select(pair => $"{pair.Key}=0x{pair.Value.ToInt64():X}")) + "]" : string.Empty))));
+                                        (inventory.IsGem(item.Entity) || items.Count == 1 ? " ["+ string.Join(" ", inventory.ItemComponents(item.Entity).Select(pair => $"{pair.Key}=0x{pair.Value.ToInt64():X}")) + "]" : string.Empty))));
                 }
             }
         }

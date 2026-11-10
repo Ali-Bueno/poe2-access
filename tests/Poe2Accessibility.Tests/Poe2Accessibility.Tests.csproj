@@ -46,6 +46,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Input\PadButtonCheck.cs" Link="Plugin\PadButtonCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\TileGridSearch.cs" Link="Plugin\TileGridSearch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\BaseNameField.cs" Link="Plugin\BaseNameField.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemNameWords.cs" Link="Plugin\ItemNameWords.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\CueSynth.cs" Link="Plugin\CueSynth.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\StereoSound.cs" Link="Plugin\StereoSound.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\PeakLimiter.cs" Link="Plugin\PeakLimiter.cs" />

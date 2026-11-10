@@ -689,6 +689,37 @@ namespace Poe2Accessibility
         }
 
         /// <summary>
+        ///     The words that name a rare or unique item, in its Mods component: at +0x18 a std::vector (begin, end) of
+        ///     16-byte keys (row, file) into Words.dat — one for a unique, its name; two for a rare; none for a normal or
+        ///     magic item. Words row, 0x40 bytes: +0x00 Wordlist (int: 1 and 2 a rare's words, 6 a unique's name), +0x04
+        ///     Text (English), +0x30 the text in the client's language, with gender branches, +0x38 the inflection the row
+        ///     gives the other word ("FP" for "Cuentas"). Measured live on 2026-11-10 (0.5.5f, Spanish client) on five worn
+        ///     items of yarkey: a unique ring → "Estallido repentino", a unique belt → "Trenza de medianoche", a rare spear
+        ///     → the branches of " quimérico" and "Filo" (title "Filo quimérico"), a rare amulet → " de destino" and
+        ///     "Cuentas", a magic spear → an empty vector; no host struct names the field. Validated at run time: each key
+        ///     must name Data/Balance/Words.dat (<see cref="Services.DatKey"/>) and every tooltip title read is compared
+        ///     with the name made (<see cref="Services.ItemNameTrust"/>).
+        /// </summary>
+        public static class ItemNameWords
+        {
+            public const string Table = "Data/Balance/Words.dat";
+
+            /// <summary>The vector of keys in the Mods component.</summary>
+            public const int VectorOffset = 0x18;
+
+            public const int KeySize = 0x10;
+
+            /// <summary>A rare's two words; a longer vector is not this field.</summary>
+            public const int MaxWords = 2;
+
+            public const int LocalTextOffset = 0x30;
+
+            public const int InflectionOffset = 0x38;
+
+            public const int MaxTextChars = 256;
+        }
+
+        /// <summary>
         ///     One entry of the ObjectMagicProperties mod vectors (GameHelper's ModArrayStruct): the Mods.dat row at +0x28, 0x40 bytes an
         ///     entry. The game's code places both (catalog/code-fields.txt and semantic-fields.txt: the dump that prints
         ///     <c>Implicit Mods: </c> reads the first entry's +0x28 and walks the rest by <c>index &lt;&lt; 6</c>).
