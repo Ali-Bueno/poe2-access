@@ -72,6 +72,8 @@ internal static class Batch
     {
         var part = output + Extractor.BatchPartSuffix;
         var watch = Stopwatch.StartNew();
+        using var capture = Say.StartCapture();
+        string? thrown = null;
         int code;
         try
         {
@@ -81,6 +83,7 @@ internal static class Batch
         catch (Exception error)
         {
             Say.Out.WriteLine($"{command}: {error}");
+            thrown = $"{error.GetType().Name}: {error.Message}";
             code = 1;
         }
 
@@ -94,7 +97,11 @@ internal static class Batch
             File.Delete(part);
         }
 
-        Say.Out.WriteLine($"{Extractor.BatchLinePrefix}{command} {(made ? "done" : "failed")} in {watch.Elapsed.TotalSeconds:0.0} s");
+        // The reason goes on the result line: the launcher keeps only these lines in its log.
+        var reason = made ? string.Empty : $": {SingleLine(thrown ?? capture.Reason())}";
+        Say.Out.WriteLine($"{Extractor.BatchLinePrefix}{command} {(made ? "done" : "failed")} in {watch.Elapsed.TotalSeconds:0.0} s{reason}");
         return made;
     }
+
+    private static string SingleLine(string text) => text.ReplaceLineEndings(" ");
 }

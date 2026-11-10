@@ -24,6 +24,15 @@ internal static class DatContentColumns
     /// <summary>A class's Id is the player's metadata path, which the plugin compares with the player entity's.</summary>
     private const string CharacterFolder = "Metadata/Characters/";
 
+    /// <summary>The columns <see cref="Find"/> yields, so one whose table is gone or renamed is missed rather than silently absent.</summary>
+    internal static readonly string[] Names =
+    {
+        "PassiveSkills.GraphId", "PassiveSkills.Characters", "PassiveSkills.IsKeystone", "PassiveSkills.IsNotable", "PassiveSkills.IsIconOnly",
+        "PassiveSkills.IsJewelSocket", "Characters.Id", "GrantedEffects.Id", "WorldAreas.Id", "WorldAreas.IsTown", "WorldAreas.AreaLevel",
+        "MapPins.WorldArea", "MapPins.Name", "MapPins.Description", "MapPins.Content", "GrantedEffectsPerLevel.GrantedEffect",
+        "GrantedEffects.ActiveSkill",
+    };
+
     public static IEnumerable<(string Column, int? Offset, int Measured)> Find(Index index)
     {
         if (DatTable.Open(index, "passiveskills") is { } passives)

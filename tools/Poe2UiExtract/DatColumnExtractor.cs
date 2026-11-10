@@ -21,6 +21,9 @@ internal static class DatColumnExtractor
         ("worldareas", "WorldAreas.Name", 0x8),
     };
 
+    /// <summary>Every column the file must hold: the name columns above and <see cref="DatContentColumns.Names"/>.</summary>
+    private static IEnumerable<string> ExpectedColumns => Columns.Select(column => column.Column).Concat(DatContentColumns.Names);
+
     private const string Translation = "spanish";
 
     /// <summary>A string column holds a string's start in at least this share of rows of both tables.</summary>
@@ -41,7 +44,7 @@ internal static class DatColumnExtractor
             var translated = DatTable.OpenTranslated(index, table, Translation);
             if (english == null || translated == null || english.RowCount != translated.RowCount || english.RowSize != translated.RowSize)
             {
-                Say.Out.WriteLine($"{column}: tables missing or not alike, left out");
+                Say.Out.WriteLine($"{column}: tables missing or not alike");
                 continue;
             }
 
@@ -52,7 +55,7 @@ internal static class DatColumnExtractor
             }
             else
             {
-                Say.Out.WriteLine($"{column}: no translated column found, left out");
+                Say.Out.WriteLine($"{column}: no translated column found");
             }
         }
 
@@ -63,11 +66,15 @@ internal static class DatColumnExtractor
                 found[column] = at;
             }
 
-            Say.Out.WriteLine(offset is { } where ? $"{column}: +0x{where:X} (measured +0x{measured:X})" : $"{column}: not recognised, left out");
+            Say.Out.WriteLine(offset is { } where ? $"{column}: +0x{where:X} (measured +0x{measured:X})" : $"{column}: not recognised");
         }
 
-        if (found.Count == 0)
+        // A column left out would be read by the plugin at its compiled offset, unjudged: the step fails instead and the
+        // previous catalog stays, with the game data reported as not regenerated.
+        var missing = ExpectedColumns.Where(column => !found.ContainsKey(column)).ToList();
+        if (missing.Count > 0)
         {
+            Say.Out.WriteLine($"dat-columns: not found: {string.Join(", ", missing)}");
             return 1;
         }
 
