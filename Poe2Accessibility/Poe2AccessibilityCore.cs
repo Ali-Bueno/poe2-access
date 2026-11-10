@@ -174,6 +174,9 @@ namespace Poe2Accessibility
                 var catalog = UiCatalog.Load(Path.Join(this.DllDirectory, "catalog", "ui-catalog.json"), this.log);
                 PlaceWorldAreaColumns(DatColumns.Apply(Path.Join(this.DllDirectory, "catalog", "dat-columns.json"), this.log));
                 this.experience = ExperienceTable.Load(Path.Join(this.DllDirectory, "catalog", "experience.json"), this.log);
+                // What a node, a gem or a skill is, from the game's files: the rows in memory back these up (docs/research/file-catalogs.md).
+                PassiveTreeCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "passive-tree.json"));
+                GemCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "gems.json"));
                 this.compatibility = new CompatibilityReport(this.log);
                 this.worldLayout = new WorldLayoutWatch(this.compatibility, this.log, Path.Join(this.DllDirectory, "config", "game-build.txt"));
                 this.layoutProbe = new LayoutProbe(memory, elements, this.compatibility);
