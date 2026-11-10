@@ -27,6 +27,9 @@ namespace Poe2Accessibility.Services
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
         private readonly ResourceTracker tracker = new();
+
+        // Kept across areas: what a button puts on and takes off is the character's, not the area's.
+        private readonly SteadyBuffs steady = new();
         private readonly Dictionary<string, string> buffNames = new(StringComparer.Ordinal);
         private readonly HashSet<string> spoken = new(StringComparer.Ordinal);
         private readonly HashSet<string> statNames = new(StringComparer.CurrentCultureIgnoreCase);
@@ -80,12 +83,22 @@ namespace Poe2Accessibility.Services
 
             if (entity.TryGetComponent<Buffs>(out var buffs))
             {
-                this.ReadBuffs(catalog, buffs, readings);
+                this.ReadBuffs(catalog, buffs, readings, now);
+            }
+
+            foreach (var key in this.steady.EndReading(now))
+            {
+                this.log.Info($"Resource {key}: came and went {SteadyBuffs.Flaps} times within {SteadyBuffs.WindowMs / 1000} s, a button's own effect: no longer said");
             }
 
             foreach (var news in this.tracker.Update(readings, now))
             {
                 this.log.Info($"Resource {news.Key}: {news.Change} {news.Count} of {news.Max}");
+                if (this.steady.Quiet.Contains(news.Key))
+                {
+                    continue; // its last going is no news either
+                }
+
                 if (this.Worth(news) && settings.ChargeSpeech && this.Phrase(news) is { Length: > 0 } text)
                 {
                     this.output.Say(SpeechKind.Charges, text);
@@ -168,7 +181,7 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        private void ReadBuffs(ClassMechanicCatalog catalog, Buffs buffs, List<ResourceTracker.Reading> readings)
+        private void ReadBuffs(ClassMechanicCatalog catalog, Buffs buffs, List<ResourceTracker.Reading> readings, long now)
         {
             var language = Localization.Language;
             foreach (var (id, effect) in buffs.StatusEffects)
@@ -183,6 +196,13 @@ namespace Poe2Accessibility.Services
                 var name = catalog.BuffName(id, language);
                 // A brief single buff is a skill's own effect; a buff a stat already counts (Heat, Demonflame) is told once, with its maximum.
                 if ((!this.tracker.IsHeld(key) && stacks <= 1 && effect.TotalTime > 0 && effect.TotalTime < LongBuffSeconds) || this.statNames.Contains(name))
+                {
+                    continue;
+                }
+
+                // A buff with no duration is told once it has stayed, and one that keeps coming and going not at all: a held
+                // button's own effect (the buckler raised to parry) is no news each time (SteadyBuffs).
+                if (!this.steady.Tells(key, effect.TotalTime > 0, now))
                 {
                     continue;
                 }

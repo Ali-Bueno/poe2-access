@@ -157,6 +157,7 @@
     <Compile Include="..\..\tools\Poe2UiExtract\ClassMechanics.cs" Link="Extract\ClassMechanics.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\ClassMechanicCatalog.cs" Link="Plugin\ClassMechanicCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\ResourceTracker.cs" Link="Plugin\ResourceTracker.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Player\SteadyBuffs.cs" Link="Plugin\SteadyBuffs.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.ClassMechanics.cs" Link="Plugin\Announcements.ClassMechanics.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Bosses.cs" Link="Plugin\Announcements.Bosses.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossCounterplay.cs" Link="Plugin\BossCounterplay.cs" />

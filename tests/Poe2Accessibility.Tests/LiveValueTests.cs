@@ -15,6 +15,8 @@ namespace Poe2Accessibility.Tests
 
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
+            (nameof(ABuffAButtonPutsOnIsNotToldEachTime), ABuffAButtonPutsOnIsNotToldEachTime),
+            (nameof(ABuffThatStaysIsTold), ABuffThatStaysIsTold),
             (nameof(AFlaskCountsUsesOnlyOnceTwoDrinksAgreeOnTheCost), AFlaskCountsUsesOnlyOnceTwoDrinksAgreeOnTheCost),
             (nameof(AFlaskIsEmptyOnlyBelowTheCostSeen), AFlaskIsEmptyOnlyBelowTheCostSeen),
             (nameof(AChargeGainedDuringADrinkDoesNotChangeTheCost), AChargeGainedDuringADrinkDoesNotChangeTheCost),
@@ -293,6 +295,57 @@ namespace Poe2Accessibility.Tests
             Equal<int?>(9, drinks.Uses(0, Life, 75), "the same flask costs the same in the next area");
             drinks.ForgetCosts();
             Equal<int?>(null, drinks.Uses(0, Life, 75), "another character's flask of the same name is learnt again");
+        }
+        private static void ABuffAButtonPutsOnIsNotToldEachTime()
+        {
+            // The buckler raised to parry: a buff with no duration, on for under two seconds, again and again.
+            const string Parry = "buff:physical_projectile_retaliation";
+            var steady = new SteadyBuffs();
+            var now = 10_000L;
+            for (var raise = 0; raise < 6; raise++)
+            {
+                for (var held = 0; held <= 1500; held += 250)
+                {
+                    Equal(false, steady.Tells(Parry, timed: false, now + held), $"raise {raise}: not told while it has not stayed");
+                    steady.EndReading(now + held);
+                }
+
+                steady.EndReading(now + 1750); // lowered
+                now += 5000;
+            }
+
+            Equal(true, steady.Quiet.Contains(Parry), "and after three comings and goings it is a button's own effect");
+
+            // Held long from then on: still not told.
+            Equal(false, steady.Tells(Parry, timed: false, now), "raised again");
+            steady.EndReading(now);
+            Equal(false, steady.Tells(Parry, timed: false, now + 10_000), "held ten seconds: quiet all the same");
+        }
+
+        private static void ABuffThatStaysIsTold()
+        {
+            var steady = new SteadyBuffs();
+            Equal(false, steady.Tells("buff:aura", timed: false, 1000), "a buff with no duration, just begun");
+            steady.EndReading(1000);
+            Equal(true, steady.Tells("buff:aura", timed: false, 1000 + SteadyBuffs.HoldMs), "told once it has stayed");
+            Equal(true, steady.Tells("buff:long", timed: true, 3000), "a buff with a duration is told from its start");
+            Equal(0, steady.EndReading(3000).Count, "nothing went");
+
+            // It goes and comes back twice in two minutes: not enough to call it a button's.
+            steady.EndReading(4000);
+            steady.Tells("buff:aura", timed: false, 30_000);
+            steady.EndReading(30_000);
+            steady.EndReading(31_000);
+            Equal(false, steady.Quiet.Contains("buff:aura"), "two goings are not three");
+
+            // A third going long after the window started over counts alone.
+            steady.Tells("buff:aura", timed: false, 400_000);
+            steady.EndReading(400_000);
+            Equal(0, steady.EndReading(401_000).Count, "goings outside the window are forgotten");
+            Equal(false, steady.Quiet.Contains("buff:aura"), "still told");
+
+            steady.Reset();
+            Equal(false, steady.Tells("buff:aura", timed: false, 500_000), "after a reset it waits again");
         }
     }
 }
