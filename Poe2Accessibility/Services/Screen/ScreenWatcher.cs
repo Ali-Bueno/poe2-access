@@ -52,8 +52,27 @@ namespace Poe2Accessibility.Services
         /// <summary>A text this tall (layout units) may be a long one scrolled in a frame; only those are checked for it.</summary>
         private const float LongTextMinHeight = 2000;
 
+        /// <summary>More blocks than a walk holds at once (its stack: the siblings waiting at each depth).</summary>
+        private const int MaxBlocksKept = 1024;
+
         private readonly UiElementReader elements;
         private readonly PluginLog log;
+
+        /// <summary>
+        ///     The element blocks of the walk, read some 6 000 times a second: an element's block goes back once the walk is done
+        ///     with the element, and nothing the snapshot keeps (addresses, names, texts) points into one. The watcher's task only.
+        /// </summary>
+        private readonly BlockPool blocks = new(MaxBlocksKept);
+
+        /// <summary>The children of the element being walked: read, pushed and done with before the next element's.</summary>
+        private IntPtr[] walkChildren = new IntPtr[64];
+
+        private readonly List<WalkNode> walkNodes = new();
+        private readonly List<(int Node, ScreenText Text)> walkTexts = new();
+        private readonly List<(int Node, string Button)> walkGlyphs = new();
+        private readonly List<(int Node, string Unit)> walkUnits = new();
+        private readonly List<(int Node, int Set)> walkSetIcons = new();
+        private readonly Stack<(UiElementReader.ElementInfo Info, int Parent, int Index, int Control)> walkStack = new();
         private readonly ScreenDiffer differ = new();
         private readonly ConcurrentQueue<(ScreenChange Change, int Generation)> changes = new();
         private readonly CancellationTokenSource stop = new();
@@ -152,10 +171,11 @@ namespace Poe2Accessibility.Services
                     }
 
                     var started = Volatile.Read(ref this.generation);
-                    var timer = Stopwatch.StartNew();
+                    var began = Stopwatch.GetTimestamp();
                     var captured = this.Capture(this.root);
-                    this.CountSnapshot(timer.Elapsed.TotalMilliseconds);
-                    this.ReportSlowSnapshot(timer.ElapsedMilliseconds, captured);
+                    var took = Stopwatch.GetElapsedTime(began).TotalMilliseconds;
+                    this.CountSnapshot(took);
+                    this.ReportSlowSnapshot((long)took, captured);
                     if (started != Volatile.Read(ref this.generation))
                     {
                         continue; // the screen changed state while it was captured: the next pass starts the new one
@@ -220,10 +240,18 @@ namespace Poe2Accessibility.Services
                 : RectangleF.Empty;
             for (var index = 0; index < children.Length && budget > 0; index++)
             {
-                if (children[index] != ignoredLayer && this.elements.TryReadElement(children[index], out var layerInfo) &&
-                    layerInfo.IsVisibleFlag && !IsIgnored(layerInfo.Name))
+                if (children[index] == ignoredLayer || !this.elements.TryReadElement(children[index], this.blocks, out var layerInfo))
                 {
-                    layers.Add(this.CaptureLayer(layerInfo, index, screen, rects, ref budget));
+                    continue;
+                }
+
+                if (layerInfo.IsVisibleFlag && !IsIgnored(layerInfo.Name))
+                {
+                    layers.Add(this.CaptureLayer(layerInfo, index, screen, rects, ref budget)); // gives the layer's block back
+                }
+                else
+                {
+                    this.blocks.Return(layerInfo.Block);
                 }
             }
 
@@ -252,18 +280,24 @@ namespace Poe2Accessibility.Services
 
         private ScreenLayer CaptureLayer(UiElementReader.ElementInfo layerInfo, int index, RectangleF screen, PluginUiElementReflection.RectCache rects, ref int budget)
         {
-            var nodes = new List<WalkNode>();
-            var texts = new List<(int Node, ScreenText Text)>();
-            var glyphs = new List<(int Node, string Button)>();
-            var units = new List<(int Node, string Unit)>();
-            var setIcons = new List<(int Node, int Set)>();
+            // The walk's working lists serve every layer of every snapshot: the layer returned holds a copy of its texts.
+            var (nodes, texts, glyphs, units, setIcons, stack) = (this.walkNodes, this.walkTexts, this.walkGlyphs, this.walkUnits, this.walkSetIcons, this.walkStack);
+            nodes.Clear();
+            texts.Clear();
+            glyphs.Clear();
+            units.Clear();
+            setIcons.Clear();
+            stack.Clear();
             var hasControls = false;
             bool isHintBar;
-            var stack = new Stack<(UiElementReader.ElementInfo Info, int Parent, int Index, int Control)>();
             stack.Push((layerInfo, -1, 0, -1));
+            byte[]? walked = null;
             while (stack.Count > 0 && budget-- > 0)
             {
+                // The element before this one is done with: its text was decoded into strings, its block reads no more.
+                this.blocks.Return(walked);
                 var (info, parent, childIndex, control) = stack.Pop();
+                walked = info.Block;
                 var above = parent >= 0 ? nodes[parent] : new WalkNode(-1, 0, -1, 0, 0, -1, true);
                 var self = nodes.Count;
                 var enabled = above.Enabled;
@@ -278,7 +312,7 @@ namespace Poe2Accessibility.Services
 
                 var position = info.Raw.RelativePosition;
                 nodes.Add(new WalkNode(parent, childIndex, above.Depth + 1, above.X + position.X, above.Y + position.Y, control, enabled));
-                var children = this.elements.ReadChildren(info);
+                var children = this.elements.ReadChildren(info, ref this.walkChildren);
                 var hasText = this.elements.TryReadText(info, out var text, out var tagged);
                 if (!hasText && this.capturedLongText == IntPtr.Zero && info.Raw.UnscaledSize.Y >= LongTextMinHeight && this.elements.IsLongText(info.Address))
                 {
@@ -321,7 +355,7 @@ namespace Poe2Accessibility.Services
                 {
                     if (ControllerGlyphs.FromTextureKey(key) is { } glyph)
                     {
-                        glyphs.Add((self, this.HasChildNamed(children, GameLayout.InGameUi.HoldProgressName) ? Announcements.HoldButton(glyph) : glyph));
+                        glyphs.Add((self, this.HasChildNamed(this.walkChildren, children, GameLayout.InGameUi.HoldProgressName) ? Announcements.HoldButton(glyph) : glyph));
                     }
                     else if (WeaponSetRows.FromTextureKey(key) is { } set)
                     {
@@ -343,15 +377,26 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                for (var i = children.Length - 1; i >= 0; i--)
+                for (var i = children - 1; i >= 0; i--)
                 {
-                    if (this.elements.TryReadElement(children[i], out var child) && child.IsVisibleFlag && !IsIgnored(child.Name))
+                    if (!this.elements.TryReadElement(this.walkChildren[i], this.blocks, out var child))
+                    {
+                        continue;
+                    }
+
+                    if (child.IsVisibleFlag && !IsIgnored(child.Name))
                     {
                         stack.Push((child, self, i, control));
+                    }
+                    else
+                    {
+                        this.blocks.Return(child.Block);
                     }
                 }
             }
 
+            // What the budget left on the stack keeps its blocks: lost to the collector, never handed out twice.
+            this.blocks.Return(walked);
             PairGlyphs(nodes, texts, glyphs);
             PairUnits(nodes, texts, units);
             PairWeaponSets(nodes, texts, setIcons);
@@ -369,8 +414,22 @@ namespace Poe2Accessibility.Services
         public static bool IsLegend(ScreenText text) => text.Name == HintEntryName || text.Button.Length > 0;
 
         /// <summary>Art key of an image element; texture keys are cached (shared resources).</summary>
-        private bool HasChildNamed(IEnumerable<IntPtr> children, string name) =>
-            children.Any(child => this.elements.TryReadElement(child, out var info) && info.Name == name);
+        private bool HasChildNamed(IntPtr[] children, int count, string name)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                if (this.elements.TryReadElement(children[i], this.blocks, out var info))
+                {
+                    this.blocks.Return(info.Block); // only its name is looked at
+                    if (info.Name == name)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
 
         private string? TextureKeyOf(in UiElementReader.ElementInfo info)
         {

@@ -2,7 +2,6 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Runtime.CompilerServices;
-    using System.Runtime.InteropServices;
     using GameReader;
     using GameOffsets.Natives;
 
@@ -41,6 +40,27 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>
+        ///     Fills <paramref name="destination"/> with no array of its own, for a caller that reuses its buffer; false on any
+        ///     failure (all or nothing, as <see cref="ReadBytes"/>), and the destination then holds nothing to use.
+        /// </summary>
+        public bool TryReadBytes(IntPtr address, Span<byte> destination)
+        {
+            if (destination.IsEmpty || !this.IsValidAddress(address))
+            {
+                return false;
+            }
+
+            try
+            {
+                return HostMemory.TryReadBytes(address, destination);
+            }
+            catch (Exception ex) when (ex is ObjectDisposedException or InvalidOperationException)
+            {
+                return false;
+            }
+        }
+
         /// <summary>Reads a struct as the host does: through the host's remap when a game patch moved its fields.</summary>
         public bool TryRead<T>(IntPtr address, out T value)
             where T : unmanaged
@@ -59,13 +79,37 @@ namespace Poe2Accessibility.Services
         public T[] ReadArray<T>(IntPtr address, int count)
             where T : unmanaged
         {
-            if (count <= 0 || count > int.MaxValue / Unsafe.SizeOf<T>())
+            if (count <= 0 || count > int.MaxValue / Unsafe.SizeOf<T>() || !this.IsValidAddress(address))
             {
                 return Array.Empty<T>();
             }
 
-            var bytes = this.ReadBytes(address, count * Unsafe.SizeOf<T>());
-            return bytes.Length == 0 ? Array.Empty<T>() : MemoryMarshal.Cast<byte, T>(bytes).ToArray();
+            // Read as its own type, not as bytes copied into it: one array instead of two.
+            try
+            {
+                return HostMemory.ReadArray<T>(address, count);
+            }
+            catch (Exception ex) when (ex is ObjectDisposedException or InvalidOperationException)
+            {
+                return Array.Empty<T>();
+            }
+        }
+
+        /// <summary>
+        ///     A game vector in the caller's <paramref name="buffer"/> (replaced by a bigger one when needed): how many elements
+        ///     were read, 0 where <see cref="ReadStdVector{T}(StdVector, int)"/> returns an empty array.
+        /// </summary>
+        public int ReadStdVector<T>(StdVector vector, int maxElements, ref T[] buffer)
+            where T : unmanaged
+        {
+            try
+            {
+                return HostMemory.ReadStdVector(vector, maxElements, ref buffer);
+            }
+            catch (Exception ex) when (ex is ObjectDisposedException or InvalidOperationException)
+            {
+                return 0;
+            }
         }
 
         public T[] ReadStdVector<T>(StdVector vector, int maxElements)

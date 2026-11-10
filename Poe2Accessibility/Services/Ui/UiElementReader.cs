@@ -66,6 +66,10 @@ namespace Poe2Accessibility.Services
 
         private readonly HostMemoryReader reader;
 
+        /// <summary>The 32 bytes of a std::wstring read on their own (entity names, per listing), one array per thread.</summary>
+        [ThreadStatic]
+        private static byte[]? wideStringScratch;
+
         /// <summary>Combo field shift per element class (vtable), once proven on one of its controls.</summary>
         private readonly Dictionary<IntPtr, int> comboBoxShifts = new();
 
@@ -98,11 +102,38 @@ namespace Poe2Accessibility.Services
                 block = this.reader.ReadBytes(address, ElementBlockSize);
             }
 
-            if (block.Length == 0)
+            return block.Length > 0 && this.Describe(address, block, out info);
+        }
+
+        /// <summary>
+        ///     The same read into a block of <paramref name="blocks"/>, for a walk that is done with each element before it
+        ///     reads many more: the caller gives <see cref="ElementInfo.Block"/> back to the pool once nothing reads the
+        ///     element's bytes any more (its text), and must not keep the info past that. False leaves nothing to give back.
+        /// </summary>
+        public bool TryReadElement(IntPtr address, BlockPool blocks, out ElementInfo info)
+        {
+            info = default;
+            var block = blocks.Rent(Math.Max(ElementBlockSize, TextBlockSize));
+            if (!this.reader.TryReadBytes(address, block))
             {
-                return false;
+                // Too small for the text fields: the shorter read, whose length says so, in an array of its own.
+                blocks.Return(block);
+                block = this.reader.ReadBytes(address, ElementBlockSize);
+                return block.Length > 0 && this.Describe(address, block, out info);
             }
 
+            if (this.Describe(address, block, out info))
+            {
+                return true;
+            }
+
+            blocks.Return(block);
+            return false;
+        }
+
+        private bool Describe(IntPtr address, byte[] block, out ElementInfo info)
+        {
+            info = default;
             if (!GameReader.Utils.HostStructs.TryRead<UiElementBaseOffset>(block, out var raw) || (raw.Self != address && raw.Self != IntPtr.Zero))
             {
                 return false;
@@ -127,6 +158,10 @@ namespace Poe2Accessibility.Services
 
         public IntPtr[] ReadChildren(in ElementInfo info) =>
             this.reader.ReadStdVector<IntPtr>(info.Raw.ChildrensPtr, MaxChildrenPerNode);
+
+        /// <summary>The same children in the caller's <paramref name="buffer"/> (see <see cref="HostMemoryReader.ReadStdVector{T}(GameOffsets.Natives.StdVector, int, ref T[])"/>): how many.</summary>
+        public int ReadChildren(in ElementInfo info, ref IntPtr[] buffer) =>
+            this.reader.ReadStdVector(info.Raw.ChildrensPtr, MaxChildrenPerNode, ref buffer);
 
         /// <summary>The first element with this control name at or under <paramref name="root"/>, breadth first, <paramref name="maxDepth"/> levels down.</summary>
         public ElementInfo? FindNamed(IntPtr root, string name, int maxDepth)
@@ -516,8 +551,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Reads a std::wstring struct located at an arbitrary address; null when malformed.</summary>
         public string? ReadWStringStructAt(IntPtr address)
         {
-            var block = this.reader.ReadBytes(address, WStringDecoder.Size);
-            return block.Length == 0 ? null : WStringDecoder.TryDecode(this.reader, block, 0, MaxTextLength, allowEmpty: true);
+            // The decoder returns a string and keeps no bytes, so the same array serves every read of this thread.
+            var block = wideStringScratch ??= new byte[WStringDecoder.Size];
+            return this.reader.TryReadBytes(address, block) ? WStringDecoder.TryDecode(this.reader, block, 0, MaxTextLength, allowEmpty: true) : null;
         }
 
         /// <summary>Reads a NUL-terminated UTF-16 buffer at an arbitrary address; null when not printable text.</summary>

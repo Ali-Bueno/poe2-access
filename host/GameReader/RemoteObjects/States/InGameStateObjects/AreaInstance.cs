@@ -48,6 +48,9 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
 
         /// <summary>Whether the walk skips the visuals' subtrees: off for the rest of an area once its map is seen out of order.</summary>
         private bool skipVisuals = true;
+
+        /// <summary>What the walk does with each node: one delegate for the area's life, not a closure a frame.</summary>
+        private readonly Func<EntityNodeKey, EntityNodeValue, bool> onAwakeNode;
         private int walks;
         private int incompleteWalks;
         private int orderFaults;
@@ -65,6 +68,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             this.ServerDataObject = new(IntPtr.Zero);
             this.Player = new();
             this.AwakeEntities = new();
+            this.onAwakeNode = this.OnAwakeNode;
 
             this.TerrainMetadata = default;
             this.GridWalkableData = Array.Empty<byte>();
@@ -188,7 +192,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 return;
             }
 
-            foreach (var entity in this.AwakeEntities.Values)
+            // The pairs, not Values: that copies every entity into a list under all the dictionary's locks, each frame.
+            foreach (var (_, entity) in this.AwakeEntities)
             {
                 if (!entity.IsValid)
                 {
@@ -270,40 +275,9 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 }
             }
 
+            // The number is set before the walk and read by its nodes (OnAwakeNode), on whichever thread reads them.
             var walk = unchecked(++this.walks);
-            var result = reader.ReadStdMap<EntityNodeKey, EntityNodeValue>(ePtr, 100000, (key, value) =>
-            {
-                if (!EntityFilter.IgnoreVisualsAndDecorations(key))
-                {
-                    return false;
-                }
-
-                // Drop torn-read entries whose pointer can't back a real entity.
-                if (!SafeMemoryHandle.IsValidAddress(value.EntityPtr))
-                {
-                    return false;
-                }
-
-                if (data.TryGetValue(key, out var entity))
-                {
-                    entity.ReachedInWalk = walk;
-                    entity.Address = value.EntityPtr;
-                }
-                else
-                {
-                    entity = new Entity(value.EntityPtr) { ReachedInWalk = walk };
-                    if (!string.IsNullOrEmpty(entity.Path))
-                    {
-                        data[key] = entity;
-                    }
-                    else
-                    {
-                        entity = null;
-                    }
-                }
-
-                return true;
-            }, this.skipVisuals ? VisualIds : null);
+            var result = reader.ReadStdMap(ePtr, 100000, this.onAwakeNode, this.skipVisuals ? VisualIds : null);
 
             if (this.skipVisuals && OrderFaults.GiveUp(ref this.orderFaults, result.OutOfOrder))
             {
@@ -318,13 +292,46 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 return;
             }
 
-            foreach (var entity in data.Values)
+            foreach (var (_, entity) in data)
             {
                 if (entity.ReachedInWalk != walk)
                 {
                     entity.IsValid = false;
                 }
             }
+        }
+
+        /// <summary>One node of the awake map: its entity is updated, or met for the first time.</summary>
+        private bool OnAwakeNode(EntityNodeKey key, EntityNodeValue value)
+        {
+            if (!EntityFilter.IgnoreVisualsAndDecorations(key))
+            {
+                return false;
+            }
+
+            // Drop torn-read entries whose pointer can't back a real entity.
+            if (!SafeMemoryHandle.IsValidAddress(value.EntityPtr))
+            {
+                return false;
+            }
+
+            var data = this.AwakeEntities;
+            var walk = Volatile.Read(ref this.walks);
+            if (data.TryGetValue(key, out var entity))
+            {
+                entity.ReachedInWalk = walk;
+                entity.Address = value.EntityPtr;
+            }
+            else
+            {
+                entity = new Entity(value.EntityPtr) { ReachedInWalk = walk };
+                if (!string.IsNullOrEmpty(entity.Path))
+                {
+                    data[key] = entity;
+                }
+            }
+
+            return true;
         }
 
         private Dictionary<string, List<Vector2>> GetTgtFileData()

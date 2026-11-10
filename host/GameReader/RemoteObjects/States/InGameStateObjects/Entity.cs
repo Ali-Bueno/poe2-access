@@ -13,6 +13,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
     using Components;
     using GameReader.RemoteEnums;
     using GameReader.RemoteEnums.Entity;
+    using GameOffsets.Objects.Components;
     using GameOffsets.Objects.States.InGameState;
 
     /// <summary>
@@ -766,24 +767,40 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         private bool TryGetStatValue(GameStats stat, out int value)
         {
             value = 0;
-            if (!this.TryGetComponent<Stats>(out var statsComp, false))
+
+            // A Stats component something asked for is kept and read with the others; one that nothing keeps was built here
+            // every frame for every monster to answer "is it dead" (two dictionaries of all its stats): now only that stat
+            // is looked for, in the same two lists, in the order they were asked.
+            if (this.componentCache.TryGetValue(nameof(Stats), out var kept))
+            {
+                var statsComp = (Stats)kept;
+                return (statsComp.StatsChangedByBuffAndActions != null && statsComp.StatsChangedByBuffAndActions.TryGetValue(stat, out value)) ||
+                       (statsComp.StatsChangedByItems != null && statsComp.StatsChangedByItems.TryGetValue(stat, out value));
+            }
+
+            if (!this.componentAddresses.TryGetValue(nameof(Stats), out var address) || address == IntPtr.Zero)
             {
                 return false;
             }
 
-            if (statsComp.StatsChangedByBuffAndActions != null &&
-                statsComp.StatsChangedByBuffAndActions.TryGetValue(stat, out value))
+            var reader = Core.Process.Handle;
+            var data = reader.ReadMemory<StatsOffsets>(address);
+            return TryReadStat(reader, data.StatsChangedByBuffAndActions, stat, out value) ||
+                   TryReadStat(reader, data.StatsChangedByItemsPtr, stat, out value);
+        }
+
+        /// <summary>One stat of a stat list of the game (StatsStructInternal); false when the list is null or lacks it.</summary>
+        private static bool TryReadStat(Utils.SafeMemoryHandle reader, IntPtr list, GameStats stat, out int value)
+        {
+            value = 0;
+            if (list == IntPtr.Zero)
             {
-                return true;
+                return false;
             }
 
-            if (statsComp.StatsChangedByItems != null &&
-                statsComp.StatsChangedByItems.TryGetValue(stat, out value))
-            {
-                return true;
-            }
-
-            return false;
+            var inner = reader.ReadMemory<StatsStructInternal>(list);
+            using var pairs = reader.RentStdVector<StatArrayStruct>(inner.Stats);
+            return Utils.StatPairs.TryFind(pairs.Span, (int)stat, out value);
         }
 
         private bool IsInSpecialMiscObjPaths() => Core.GHSettings.SpecialMiscObjPaths.Any(this.HasPathPrefix);

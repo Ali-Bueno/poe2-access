@@ -5,6 +5,7 @@
 namespace GameReader.Utils
 {
     using System;
+    using System.Buffers;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
@@ -35,6 +36,19 @@ namespace GameReader.Utils
         ///     string fragments) that a torn read fed in where a pointer was expected.
         /// </summary>
         private const long MinValidAddress = 0x10000;
+
+        /// <summary>A std::vector holding more bytes than this is a torn read, not a vector.</summary>
+        internal const long MaxVectorBytes = 50_000_000;
+
+        /// <summary>A read this small goes to the stack; a bigger one to an array of the shared pool.</summary>
+        private const int MaxStackBytes = 2048;
+
+        /// <summary>The longest std::string or std::wstring read, in characters.</summary>
+        private const int MaxStdStringLength = 1000;
+
+        /// <summary>The bytes read for a string of unknown length: ASCII, then UTF-16.</summary>
+        private const int AsciiZBytes = 128;
+        private const int WideZBytes = 256;
 
         /// <summary>Gets the reads of the game's memory made so far (each a system call), by the type read: the host logs them per frame.</summary>
         internal static IEnumerable<KeyValuePair<string, long>> ReadsByType =>
@@ -163,14 +177,26 @@ namespace GameReader.Utils
         {
             result = default;
             var target = MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref result, 1));
-            var raw = this.ReadMemoryArray<byte>(address, StructRemapper.ReadSize(target.Length, moved));
-            if (raw.Length == 0)
+            var size = StructRemapper.ReadSize(target.Length, moved);
+            var rented = size > MaxStackBytes ? ArrayPool<byte>.Shared.Rent(size) : null;
+            try
             {
-                return false;
-            }
+                Span<byte> raw = rented == null ? stackalloc byte[size] : rented.AsSpan(0, size);
+                if (!this.TryReadArray(address, raw))
+                {
+                    return false;
+                }
 
-            StructRemapper.Apply(raw, target, moved);
-            return true;
+                StructRemapper.Apply(raw, target, moved);
+                return true;
+            }
+            finally
+            {
+                if (rented != null)
+                {
+                    ArrayPool<byte>.Shared.Return(rented);
+                }
+            }
         }
 
         /// <summary>
@@ -197,7 +223,7 @@ namespace GameReader.Utils
         {
             var typeSize = HostStructs.Stride<T>();
             var length = nativeContainer.Last.ToInt64() - nativeContainer.First.ToInt64();
-            if (length <= 0 || length % typeSize != 0 || length > 50_000_000)
+            if (length <= 0 || length % typeSize != 0 || length > MaxVectorBytes)
             {
                 return Array.Empty<T>();
             }
@@ -206,6 +232,65 @@ namespace GameReader.Utils
             return HostStructs.AsCompiled<T>()
                 ? this.ReadMemoryArray<T>(nativeContainer.First, (int)length / typeSize)
                 : HostStructs.ReadElements<T>(this.ReadMemoryArray<byte>(nativeContainer.First, (int)length));
+        }
+
+        /// <summary>
+        ///     Reads the std::vector into an array of the shared pool, for a reader that is done with the elements before it
+        ///     returns: as <see cref="ReadStdVector{T}"/>, with no elements where that returns an empty array.
+        /// </summary>
+        internal PooledArray<T> RentStdVector<T>(StdVector nativeContainer)
+            where T : unmanaged
+        {
+            var typeSize = HostStructs.Stride<T>();
+            var length = nativeContainer.Last.ToInt64() - nativeContainer.First.ToInt64();
+            if (length <= 0 || length % typeSize != 0 || length > MaxVectorBytes)
+            {
+                return default;
+            }
+
+            if (!HostStructs.AsCompiled<T>())
+            {
+                var rebuilt = this.ReadStdVector<T>(nativeContainer);
+                return new PooledArray<T>(rebuilt, rebuilt.Length, false);
+            }
+
+            var count = (int)length / typeSize;
+            var array = ArrayPool<T>.Shared.Rent(count);
+            if (this.TryReadArray(nativeContainer.First, array.AsSpan(0, count)))
+            {
+                return new PooledArray<T>(array, count, true);
+            }
+
+            ArrayPool<T>.Shared.Return(array);
+            return default;
+        }
+
+        /// <summary>
+        ///     Fills <paramref name="destination"/> from the game's memory, with no array of its own. All or nothing, as
+        ///     <see cref="ReadMemoryArray{T}"/>: false on a short or failed read, and the destination then holds nothing to use.
+        /// </summary>
+        internal unsafe bool TryReadArray<T>(IntPtr address, Span<T> destination)
+            where T : unmanaged
+        {
+            if (this.IsInvalid || !IsValidAddress(address) || destination.IsEmpty)
+            {
+                return false;
+            }
+
+            try
+            {
+                var bytes = (long)destination.Length * sizeof(T);
+                Interlocked.Increment(ref ReadCount<T[]>.Of.Value);
+                fixed (T* target = destination)
+                {
+                    return NativeWrapper.ReadProcessMemory(this.handle, address, (IntPtr)target, (IntPtr)bytes, out var read) &&
+                           read.ToInt64() >= bytes;
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -255,35 +340,21 @@ namespace GameReader.Utils
         /// <returns>string.</returns>
         internal string ReadStdString(StdString nativecontainer)
         {
-            const int MaxAllowed = 1000;
             if (nativecontainer.Length <= 0 ||
-                nativecontainer.Length > MaxAllowed ||
+                nativecontainer.Length > MaxStdStringLength ||
                 nativecontainer.Capacity <= 0 ||
-                nativecontainer.Capacity > MaxAllowed)
+                nativecontainer.Capacity > MaxStdStringLength)
             {
                 return string.Empty;
             }
 
             if (nativecontainer.Capacity <= 15)
             {
-                var buffer = BitConverter.GetBytes(nativecontainer.Buffer.ToInt64());
-                var ret = Encoding.ASCII.GetString(buffer);
-                buffer = BitConverter.GetBytes(nativecontainer.ReservedBytes.ToInt64());
-                ret += Encoding.ASCII.GetString(buffer);
-                if (nativecontainer.Length < ret.Length)
-                {
-                    return ret[..nativecontainer.Length];
-                }
-                else
-                {
-                    return string.Empty;
-                }
+                return NativeText.InlineAscii(nativecontainer);
             }
-            else
-            {
-                var buffer = this.ReadMemoryArray<byte>(nativecontainer.Buffer, nativecontainer.Length);
-                return Encoding.ASCII.GetString(buffer);
-            }
+
+            Span<byte> buffer = stackalloc byte[nativecontainer.Length];
+            return this.TryReadArray(nativecontainer.Buffer, buffer) ? Encoding.ASCII.GetString(buffer) : string.Empty;
         }
 
         /// <summary>
@@ -293,35 +364,21 @@ namespace GameReader.Utils
         /// <returns>string.</returns>
         internal string ReadStdWString(StdWString nativecontainer)
         {
-            const int MaxAllowed = 1000;
             if (nativecontainer.Length <= 0 ||
-                nativecontainer.Length > MaxAllowed ||
+                nativecontainer.Length > MaxStdStringLength ||
                 nativecontainer.Capacity <= 0 ||
-                nativecontainer.Capacity > MaxAllowed)
+                nativecontainer.Capacity > MaxStdStringLength)
             {
                 return string.Empty;
             }
 
             if (nativecontainer.Capacity <= 8)
             {
-                var buffer = BitConverter.GetBytes(nativecontainer.Buffer.ToInt64());
-                var ret = Encoding.Unicode.GetString(buffer);
-                buffer = BitConverter.GetBytes(nativecontainer.ReservedBytes.ToInt64());
-                ret += Encoding.Unicode.GetString(buffer);
-                if (nativecontainer.Length < ret.Length)
-                {
-                    return ret[..nativecontainer.Length];
-                }
-                else
-                {
-                    return string.Empty;
-                }
+                return NativeText.InlineWide(nativecontainer);
             }
-            else
-            {
-                var buffer = this.ReadMemoryArray<byte>(nativecontainer.Buffer, nativecontainer.Length * 2);
-                return Encoding.Unicode.GetString(buffer);
-            }
+
+            Span<byte> buffer = stackalloc byte[nativecontainer.Length * 2];
+            return this.TryReadArray(nativecontainer.Buffer, buffer) ? Encoding.Unicode.GetString(buffer) : string.Empty;
         }
 
         /// <summary>
@@ -331,14 +388,8 @@ namespace GameReader.Utils
         /// <returns>string read.</returns>
         internal string ReadString(IntPtr address)
         {
-            var buffer = this.ReadMemoryArray<byte>(address, 128);
-            var count = Array.IndexOf<byte>(buffer, 0x00, 0);
-            if (count > 0)
-            {
-                return Encoding.ASCII.GetString(buffer, 0, count);
-            }
-
-            return string.Empty;
+            Span<byte> buffer = stackalloc byte[AsciiZBytes];
+            return this.TryReadArray(address, buffer) ? NativeText.AsciiZ(buffer) : string.Empty;
         }
 
         /// <summary>
@@ -349,25 +400,8 @@ namespace GameReader.Utils
         /// <returns>string read from the memory.</returns>
         internal string ReadUnicodeString(IntPtr address)
         {
-            var buffer = this.ReadMemoryArray<byte>(address, 256);
-            var count = 0x00;
-            for (var i = 0; i < buffer.Length - 2; i++)
-            {
-                if (buffer[i] == 0x00 && buffer[i + 1] == 0x00 && buffer[i + 2] == 0x00)
-                {
-                    count = i % 2 == 0 ? i : i + 1;
-                    break;
-                }
-            }
-
-            // let's not return a string if null isn't found.
-            if (count == 0)
-            {
-                return string.Empty;
-            }
-
-            var ret = Encoding.Unicode.GetString(buffer, 0, count);
-            return ret;
+            Span<byte> buffer = stackalloc byte[WideZBytes];
+            return this.TryReadArray(address, buffer) ? NativeText.WideZ(buffer) : string.Empty;
         }
 
         /// <summary>

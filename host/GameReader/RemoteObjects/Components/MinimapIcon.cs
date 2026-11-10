@@ -39,7 +39,7 @@ namespace GameReader.RemoteObjects.Components
         private string? iconName;
         private int readWith;
 
-        private string? TryReadUtf16String(IntPtr address)
+        private static string? TryReadUtf16String(IntPtr address)
         {
             try
             {
@@ -78,6 +78,12 @@ namespace GameReader.RemoteObjects.Components
             this.ReadName(reader);
         }
 
+        private static string? ReadRowName(IntPtr row)
+        {
+            var namePtr = Core.Process.Handle.ReadMemory<IntPtr>(row);
+            return namePtr != IntPtr.Zero && (long)namePtr > 0x10000 ? TryReadUtf16String(namePtr) : null;
+        }
+
         private void ReadName(Utils.SafeMemoryHandle reader)
         {
             // Read icon name: the MinimapIcons row pointer -> +0x00 -> UTF-16 string
@@ -87,11 +93,11 @@ namespace GameReader.RemoteObjects.Components
                 var ptr20 = reader.ReadMemory<IntPtr>(this.Address + RowOffset);
                 if (ptr20 != IntPtr.Zero && (long)ptr20 > 0x10000)
                 {
-                    var namePtr = reader.ReadMemory<IntPtr>(ptr20);
-                    if (namePtr != IntPtr.Zero && (long)namePtr > 0x10000)
-                    {
-                        this.iconName = this.TryReadUtf16String(namePtr);
-                    }
+                    // The row is the game's table data, the same for the whole area: its name is read once per row (as a mod's
+                    // or a buff's is), and the row pointer on every update, so an icon the game swaps is still seen at once.
+                    // A name that failed to read is not kept.
+                    var name = Core.GgpkStringCache.GetOrRead(ptr20, static row => ReadRowName(row) ?? string.Empty, static read => read.Length > 0);
+                    this.iconName = name.Length > 0 ? name : null;
                 }
             }
             catch (Exception ex)

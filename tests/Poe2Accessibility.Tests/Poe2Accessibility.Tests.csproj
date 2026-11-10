@@ -158,6 +158,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapHintTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapMarks.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\BarrierMemory.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\GridSamples.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\DodgeThreats.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\DodgeTimings.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\DodgeCoverage.cs" />
@@ -209,6 +210,11 @@
     <Compile Include="..\..\host\GameReader\RemoteObjects\States\InGameStateObjects\AreaLayoutSearch.cs" Link="Host\AreaLayoutSearch.cs" />
     <Compile Include="..\..\host\GameReader\Utils\StructRemap.cs" Link="Host\StructRemap.cs" />
     <Compile Include="..\..\host\GameReader\Utils\StdMapWalk.cs" Link="Host\StdMapWalk.cs" />
+    <Compile Include="..\..\host\GameReader\Utils\NativeText.cs" Link="Host\NativeText.cs" />
+    <Compile Include="..\..\host\GameReader\Utils\StatPairs.cs" Link="Host\StatPairs.cs" />
+    <Compile Include="..\..\host\GameOffsets\Objects\Components\Stats.cs" Link="Host\Stats.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Ui\BlockPool.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\TilePlaces.cs" />
     <Compile Include="..\..\host\GameReader\Utils\StructShapes.cs" Link="Host\StructShapes.cs" />
     <Compile Include="..\..\host\GameReader\Utils\EntityLayoutSearch.cs" Link="Host\EntityLayoutSearch.cs" />
     <Compile Include="..\..\host\GameReader\Utils\GameStateLayout.cs" Link="Host\GameStateLayout.cs" />

@@ -128,9 +128,93 @@ visual ids plus ~10 (Act 2 town: some 55 instead of ~430, and the total about 37
 `StdString` near zero outside a state machine's first second; no `out of id order` line; and while hovering an entity
 with the mouse, no `EntityOffsets` and component reads for it.
 
-The walkable grid (`EntityCatalog.WalkableGrid`) still reads the live grid into a new array on each call: the samples
-queue keeps the last four live arrays and the combined grid keeps one, so one reused buffer would change them under it.
-Reading into a scratch buffer and copying only when a sample is kept would spare most of those allocations.
+## Allocation pass (2026-11-10, second pass; not yet measured live)
+
+The collector, not the reads, made the hitches, so this pass removes what was allocated per read and per frame. No timing a
+player hears changed, and no read was dropped except the two named under "Reads".
+
+**What allocated, and what it does now**
+
+- **The screen watcher's element blocks**: every element of every snapshot was read into a new array of about 1.4 KB, some
+  6 400 a second in town (the 109 `Byte[]` reads a frame): by far the most garbage. `UiElementReader.TryReadElement(address,
+  BlockPool, out info)` reads into a block of the watcher's `BlockPool`, and the walk gives it back when it is done with the
+  element (`ScreenWatcher.CaptureLayer`: at the next pop). Invariants: a block is exact-size (`info.Block.Length` is still
+  "how much was read", and the decoder's bounds check holds); it goes back only after its text was decoded into strings;
+  nothing a snapshot keeps (addresses, names, texts) points into one; a block never given back (the budget ran out) is lost
+  to the collector, never handed out twice. `TryReadElement(address, out info)` is unchanged and still allocates: some 200
+  callers keep its `ElementInfo` in queues and lists. The child list of each walked element is read into one array
+  (`walkChildren`), and the walk's six working lists serve every layer.
+- **Strings** (`SafeMemoryHandle.ReadStdString`, `ReadStdWString`, `ReadString`, `ReadUnicodeString`) are read on the stack and
+  decoded by `NativeText`, pinned in `ReaderBufferTests` against the old decoding (inline text half by half, the three-zero
+  terminator). `UiElementReader.ReadWStringStructAt` (an entity's name, per listing) reads into one array per thread.
+- **A struct a patch moved** (`TryReadMoved`) is read on the stack or into the shared pool; the 8 KB `AreaInstance` block
+  into the shared pool (the layout search, once per area, gets a copy of its own).
+- **Vectors a component reads and is done with** (`RentStdVector`: stat lists, the buff list, a state machine's values) come
+  from the shared pool as a `PooledArray<T>`, a ref struct: it cannot be stored, so nothing reads it after it is returned.
+- **The live walkable grid** is read into one buffer per grid size (`EntityCatalog.ReadLiveGrid`), under the samples' lock; a
+  sample is copied out of it only when it differs from the one before. Standing still: no array at all, where each sample
+  was hundreds of kilobytes on the large object heap. The samples, the barrier memory and the keep-or-combine decision are
+  `GridSamples`, pure and tested (`GridSamplesTests`). Its rules: a sample kept owns its array; the combined grid is kept
+  only while every sample is the one array it was made from and the barrier memory did not change. The morning's version
+  kept a combination of differing samples under the newest one, so a door that opened stayed closed for routes (f470410).
+- **`Buffs.StatusEffects`** is a plain `Dictionary`: the concurrent one allocated a table per `Clear`, a node per buff per
+  frame and a list per `Keys`, and `EntityCatalog.IsHidden` asks for the keys of every monster for every sound. Invariant:
+  the dictionary is refilled on the thread that updates its entity and read on the frame thread only (the plugin's tasks
+  are the screen watcher, the beacon's route search, the map hints' sleeping-entity scan and the place build; none touches
+  an awake entity's buffs). Its order is now the game's list order; before it was a hash order that changed every run.
+- **A monster's `is_dead`**: `Entity.TryGetStatValue` built a whole `Stats` component (two dictionaries of every stat, five
+  reads) per monster per frame whenever nothing kept one, which is the usual case. It reads the same lists and looks for the
+  one stat (`StatPairs.TryFind`: the last pair of a key, as the dictionary held it). In a fight this was probably the
+  largest source of garbage after the screen blocks.
+- **`StateMachine.States`** keeps its list while names and values are the same (the list is replaced, never changed);
+  **`Render`** packs its grid position into one word instead of an object per update; **`WorldData`** writes a camera
+  snapshot only when the matrix's bits changed.
+- **The entity listing** (`EntityCatalog.Entries`): `QuestMatcher.Targets` folded every name against every quest text ten
+  times a second; a `QuestMatcher.Memo` keeps each answer until the texts or the area change (an answer depends on those and
+  the name alone). `TileLandmarks` walked every tile of the area per landmark, building a string per tile; the places of a
+  named tile are kept per tile table (`TilePlaces`, `EntityCatalog.TileCentres`). The listing's working collections are
+  reused, the awake entities are walked by their pairs (`Values` copied them all under every lock), and the list returned is
+  still built new. `ListingTests` pins the matcher word for word against its old code, with and without the memo.
+- **The frame itself**: the fault delegate, the timer's wait array, the closure over the frame's time and the walk's closure
+  are made once.
+
+**Reads** (the only two dropped): a minimap icon's name is read once per MinimapIcons row and area (`Core.GgpkStringCache`,
+as a mod's name), the row pointer still on every update: two reads and 512 bytes less per update of each entity with an
+icon. A monster's dead stat never costs more reads than before, and fewer when the first list has it.
+
+**To confirm live** (same place and minute as the table above, then a fight):
+
+| `Frames:` line | Before (measured) | Expected (estimate) |
+|---|---|---|
+| `GC a/b/c (gen 0/1/2)` | 101/11/4 | gen 0 under a third (15 to 30), gen 1 at 1 to 3, gen 2 at 0 or 1 |
+| `ms paused` | 72.7 | under 20 |
+| `reads per frame` | 338 | about 330 (this pass is not about reads) |
+| read types | `Byte[]` 109 | `Byte[]` a little lower, with `Char[]` new beside it (texts over seven characters, read as characters now) |
+| `over 16.7 ms` | 1 | 0 or 1 |
+
+`costs`: the runs `over 8 ms` of sounds, nearby and beacon (27, 12, 6 in about 155 s) should fall with the generation 1
+collections; `Screen snapshots:` average should not rise (2.4 ms). In a fight, compare the same line with the old 905 reads
+and 30 frames a minute over 16.7 ms: the reads stay, the collections should not grow with the monsters as they did.
+What a wrong pooled block would look like: a text of one element said for another; none is expected, and
+`Screen snapshot failed` in the log would name an exception.
+
+**Looked at and left** (each would need a live proof first):
+
+- *The local player as two entities* (`AreaInstance.Player` and its entry in `AwakeEntities`): nothing compares entities by
+  reference (`Seats.IsFollowed` compares addresses), but one object in both places would be invalidated by a walk that
+  missed it, updated twice a frame unless the walk skipped it, and left under a stale key if the player's pointer changed.
+- *Slower components for monsters*: `Targetable` (the plugin reads its own flags at the component's address and never the
+  host's `IsTargetable`), `NPC`, `DiesAfterTime` and `ObjectMagicProperties` (rarity) cost a read each per monster per
+  frame for values no timing cue needs. Their re-read is also what notices a component that moved
+  (`IsParentValid`), and the plugin reads flags at those addresses, so a slower one could serve a stale address for 100 ms.
+- *The entity struct of resting entities* (57 `EntityOffsets` reads a frame in town, of which some 45 for entities whose
+  components rest): skipping it between component reads would delay only the struct's own valid flag by up to 100 ms; the
+  walk still sees an entity leave at once. Not proven harmless, so not done; it is the largest read left outside the walk.
+- *`ActorOffset` and `LifeOffset` trimmed*: a read's cost is the system call; the struct lands on the stack (no garbage),
+  `AnimationId` sits at 0x8B0 of 0xC40, so a trimmed read still copies 2.2 KB, and a healed struct is rebuilt from
+  `ReadSize` bytes by segments that assume the whole struct. Nothing to gain for the risk.
+- *Not this pass's files*: `Poe2AccessibilityCore.Isolated(service, () => ...)` makes a closure per part per frame;
+  `EnemyStateWatch.Primed` reads two 4-byte arrays per monster (`TryRead<int>` would not allocate); `StdMapWalk`'s own lists.
 
 ## Not done, and why
 

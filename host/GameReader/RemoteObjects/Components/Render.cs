@@ -17,9 +17,8 @@ namespace GameReader.RemoteObjects.Components
         // Computed on each read: the terrain search sets the cells per tile from what the terrain holds (AreaLayoutSearch).
         private static float WorldToGridRatio => TileStructure.TileToWorldConversion / TileStructure.TileToGridConversion;
 
-        private GridPos2DSnap gridSnap = new(0f, 0f);
-
-        private sealed record GridPos2DSnap(float X, float Y);
+        /// <summary>Both grid coordinates in one word (X low, Y high): written and read whole, with no object per update.</summary>
+        private long gridSnap;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="Render" /> class.
@@ -38,7 +37,7 @@ namespace GameReader.RemoteObjects.Components
             get
             {
                 var s = System.Threading.Volatile.Read(ref this.gridSnap);
-                return new StdTuple3D<float> { X = s.X, Y = s.Y, Z = 0f };
+                return new StdTuple3D<float> { X = BitConverter.Int32BitsToSingle((int)s), Y = BitConverter.Int32BitsToSingle((int)(s >> 32)), Z = 0f };
             }
         }
 
@@ -64,7 +63,9 @@ namespace GameReader.RemoteObjects.Components
 
             var newX = data.CurrentWorldPosition.X / WorldToGridRatio;
             var newY = data.CurrentWorldPosition.Y / WorldToGridRatio;
-            System.Threading.Volatile.Write(ref this.gridSnap, new GridPos2DSnap(newX, newY));
+            System.Threading.Volatile.Write(
+                ref this.gridSnap,
+                ((long)BitConverter.SingleToInt32Bits(newY) << 32) | (uint)BitConverter.SingleToInt32Bits(newX));
         }
     }
 }
