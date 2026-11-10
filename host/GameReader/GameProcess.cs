@@ -85,15 +85,6 @@ namespace GameReader
         // How often a background scan is looked at for its result.
         private const double ScanPollSeconds = 0.05;
 
-        // The place the pattern gave is tried every few seconds, for ten minutes. The game takes up to half a minute to
-        // build its states, so only after that is the image searched for another place: a few times every few seconds,
-        // then seldom. By then the plugin has said it finds no game state (GameStateService.StatesUnreadMs).
-        private const double ProveEverySeconds = 3;
-        private const double PatienceSeconds = 30;
-        private const double SearchSlowlySeconds = 15;
-        private const int QuickSearches = 5;
-        private const double ProveSeconds = 600;
-
         /// <summary>
         ///     Gets the Base Address of the game.
         /// </summary>
@@ -342,22 +333,23 @@ namespace GameReader
         }
 
         /// <summary>
-        ///     Until a static is known to hold the state object. The place the pattern gave is tried again every few seconds:
-        ///     while the game starts it holds nothing yet, and that is no reason to look elsewhere. Only when it has held
-        ///     nothing for <see cref="PatienceSeconds"/>, or when the pattern gave no place at all, the image's data is searched
-        ///     for the static that does hold one; two different objects that both pass settle nothing. Should the pattern's
-        ///     place come to hold a state object after another was taken, it is the one believed. So a patch that breaks the
-        ///     pattern, or leaves it matching elsewhere, costs half a minute at the start and nothing more.
+        ///     Until a static is known to hold the state object. The place the pattern gave is tried again every few seconds
+        ///     for as long as the game runs: while the game starts it holds nothing yet, and that is no reason to look
+        ///     elsewhere. Only when it has held nothing for a while, or when the pattern gave no place at all, the image's data
+        ///     is searched for the static that does hold one (<see cref="StateSearchRules"/>); two different objects that both
+        ///     pass settle nothing. Should the pattern's place come to hold a state object after another was taken, it is the
+        ///     one believed. So a patch that breaks the pattern, or leaves it matching elsewhere, costs half a minute at the
+        ///     start and nothing more.
         /// </summary>
         private IEnumerator<Wait> ProveGameStates(SafeMemoryHandle handle, IntPtr module, int size, List<(long Start, long Size)> data)
         {
             var given = this.StaticAddresses.GetValueOrDefault(StaticOffsetsPatterns.GameStates);
-            var (waited, sinceSearch, searches) = (0d, double.MaxValue, 0);
+            var (waited, sinceSearch, searches, saidLate) = (0d, double.MaxValue, 0, false);
             string Place(IntPtr address) => address == IntPtr.Zero ? "nothing" : $"+0x{address.ToInt64() - module.ToInt64():X}";
-            while (waited < ProveSeconds)
+            while (true)
             {
-                yield return new Wait(ProveEverySeconds);
-                (waited, sinceSearch) = (waited + ProveEverySeconds, sinceSearch + ProveEverySeconds);
+                yield return new Wait(StateSearchRules.LookSeconds);
+                (waited, sinceSearch) = (waited + StateSearchRules.LookSeconds, sinceSearch + StateSearchRules.LookSeconds);
                 if (!ReferenceEquals(handle, this.Handle) || handle.IsClosed)
                 {
                     yield break;
@@ -381,19 +373,37 @@ namespace GameReader
                     yield break;
                 }
 
+                if (current != given)
+                {
+                    // Found by search already: the pattern's place is still watched, when it gave one.
+                    if (given == IntPtr.Zero)
+                    {
+                        yield break;
+                    }
+
+                    continue;
+                }
+
                 // Patience is for a place that may yet come to hold the state object: one that is empty, or holds an object
                 // still being built. A place that holds something no object can be (a number, a pointer into the image) is
                 // another static, and waiting on it only keeps the player in silence.
                 var mayYetHold = given != IntPtr.Zero && handle.TryReadMemory<IntPtr>(given, out var held) &&
                     (held == IntPtr.Zero || GameStatesSearch.IsHeapObject(held.ToInt64(), module.ToInt64(), size));
-                if (current != given || (mayYetHold && waited < PatienceSeconds) || sinceSearch < (searches < QuickSearches ? ProveEverySeconds : SearchSlowlySeconds))
+                if (!saidLate && waited >= StateSearchRules.KeenSeconds)
                 {
-                    // Found by search already (the pattern's place is still watched), or too soon to search (again).
+                    saidLate = true;
+                    Console.WriteLine(
+                        "[GameProcess] Game states: no static holds a state object yet; the game has not made it, or the object itself changed (GameStateLayout). " +
+                        $"The pattern's place ({Place(given)}) is still watched and the image searched, seldom.");
+                }
+
+                if (!StateSearchRules.SearchDue(mayYetHold, waited, sinceSearch, searches))
+                {
                     continue;
                 }
 
                 // The writable sections first; then the whole image, in case the header's flags say something else.
-                var ranges = searches < QuickSearches ? data : new List<(long Start, long Size)> { (0, size) };
+                var ranges = StateSearchRules.DataOnly(searches) ? data : new List<(long Start, long Size)> { (0, size) };
                 (sinceSearch, searches) = (0, searches + 1);
                 var search = Task.Run(() => GameStatesSearch.Find(handle, module, size, ranges));
                 while (!search.IsCompleted)
@@ -413,14 +423,19 @@ namespace GameReader
                 }
 
                 var found = search.Result;
-                var objects = found.Select(place => place.Object).Distinct().Count();
-                if (objects != 1)
+                if (StateSearchRules.OneObject(found.Select(place => place.Object)) == 0)
                 {
-                    if (objects > 1)
+                    if (found.Count > 0)
                     {
-                        Console.WriteLine($"[GameProcess] Game states: {objects} objects pass for the state object ({string.Join(", ", found.Select(place => Place(place.Static)))}); none taken.");
+                        Console.WriteLine($"[GameProcess] Game states: several objects pass for the state object ({string.Join(", ", found.Select(place => Place(place.Static)))}); none taken.");
                     }
 
+                    continue;
+                }
+
+                if (found.Any(place => place.Static == given))
+                {
+                    // The pattern's own place came to hold it while the image was read: the next look proves it.
                     continue;
                 }
 
@@ -429,11 +444,6 @@ namespace GameReader
                     "The pattern needs a look (docs/patch-day.md).");
                 this.StaticAddresses[StaticOffsetsPatterns.GameStates] = found[0].Static;
                 CoroutineHandler.RaiseEvent(this.OnStaticAddressFound);
-            }
-
-            if (this.StaticAddresses.GetValueOrDefault(StaticOffsetsPatterns.GameStates) == given)
-            {
-                Console.WriteLine("[GameProcess] Game states: no static holds a state object; the object itself changed (GameStateLayout).");
             }
         }
 

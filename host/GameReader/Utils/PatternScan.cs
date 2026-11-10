@@ -11,6 +11,47 @@ namespace GameReader.Utils
     using GameReader.Utils.CodeReader;
 
     /// <summary>
+    ///     When the image is searched for the static that holds the state object, and what a search settles, apart from
+    ///     doing it. The place a pattern gave is looked at every <see cref="LookSeconds"/> for as long as the game runs: a
+    ///     game that makes its state object late (it downloads a patch in its own window) is still read when it does.
+    /// </summary>
+    public static class StateSearchRules
+    {
+        /// <summary>How often the place the pattern gave is looked at; the first searches are this far apart too.</summary>
+        public const double LookSeconds = 3;
+
+        /// <summary>A place that may yet hold the state object is waited on this long: the game takes up to half a minute to build its states.</summary>
+        public const double PatienceSeconds = 30;
+
+        /// <summary>The first searches read the image's writable data; the later ones, this far apart, the whole image.</summary>
+        public const int QuickSearches = 5;
+        public const double SlowSeconds = 15;
+
+        /// <summary>After this long the searches are <see cref="SeldomSeconds"/> apart: each reads the whole image, and may find nothing for hours.</summary>
+        public const double KeenSeconds = 600;
+        public const double SeldomSeconds = 60;
+
+        /// <summary>
+        ///     Whether the image is searched now: not while the pattern's place may yet hold the object (<paramref name="mayYetHold"/>:
+        ///     empty, or an object still being built) and <see cref="PatienceSeconds"/> have not passed; then a few times in a
+        ///     row, then less and less often, never given up.
+        /// </summary>
+        public static bool SearchDue(bool mayYetHold, double waited, double sinceSearch, int searches) =>
+            !(mayYetHold && waited < PatienceSeconds) &&
+            sinceSearch >= (searches < QuickSearches ? LookSeconds : waited < KeenSeconds ? SlowSeconds : SeldomSeconds);
+
+        /// <summary>Whether search number <paramref name="searches"/> (from zero) reads the writable data only, not the whole image.</summary>
+        public static bool DataOnly(int searches) => searches < QuickSearches;
+
+        /// <summary>The one object the statics found hold; zero when they hold none, or several: two that both pass settle nothing.</summary>
+        public static long OneObject(IEnumerable<long> objects)
+        {
+            var distinct = objects.Distinct().Take(2).ToList();
+            return distinct.Count == 1 ? distinct[0] : 0;
+        }
+    }
+
+    /// <summary>
     ///     The rules of looking for a byte pattern in the game's image, apart from reading it: every place a pattern
     ///     matches (one that matches twice proves nothing), which parts of the image to look in, and which of two patterns'
     ///     answers to believe.
