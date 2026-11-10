@@ -166,6 +166,8 @@ namespace Poe2Accessibility.Tests
             English();
             Expect("6 portals", ControllerGlyphs.Plain("<<map_portal_icon>> 6"), "map portals left");
             Expect("weapon set II: 30 spirit", ControllerGlyphs.Plain("<<weapon_set_2>>: 30 <<spirit_resource_icon>>"), "a set's numeral where it stands");
+            Localization.Set("es", new());
+            Expect("Equipado: [WeaponSets|Set de armas] II", ControllerGlyphs.Plain("Equipado: [WeaponSets|Set de armas]<<weapon_set_2>>"), "the picture adds only its numeral to the words before it");
         }
 
         /// <summary>A pad token the mod's own list lacks is named from the game's table ("Controller/Button2" = Y).</summary>

@@ -192,12 +192,31 @@ namespace Poe2Accessibility.Services
                 }
                 else
                 {
-                    result = $"{before} {named.Word} {after}";
+                    result = $"{before} {WithoutEcho(before, named.Word)} {after}";
                 }
             }
 
             result = SpaceBeforeStop.Replace(Spaces.Replace(result, " "), "$1").Trim();
             return states.Count == 0 ? result : result.Length == 0 ? string.Join(", ", states) : $"{result}, {string.Join(", ", states)}";
+        }
+
+        /// <summary>
+        ///     The picture's words without those the text just said before it: "Equipado: Set de armas" and the weapon set's
+        ///     picture read "Set de armas set de armas II"; the picture adds only its numeral.
+        /// </summary>
+        private static string WithoutEcho(string before, string word)
+        {
+            var said = before.TrimEnd().TrimEnd(']'); // the words may be a keyword link's shown text: "[WeaponSets|Set de armas]"
+            var words = word.Split(' ');
+            for (var echoed = words.Length - 1; echoed > 0; echoed--)
+            {
+                if (said.EndsWith(string.Join(' ', words[..echoed]), StringComparison.OrdinalIgnoreCase))
+                {
+                    return string.Join(' ', words[echoed..]);
+                }
+            }
+
+            return word;
         }
 
         /// <summary>The line already holds the icon's word as a word of its own (any case).</summary>
