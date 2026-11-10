@@ -464,6 +464,10 @@ Next: (1) **Bosses by hand** — the Bloated Miller with a new low character (a 
 Earlier chunks, newest first: [status history](docs/status-history.md).
 
 ## Known issues / open questions
+- To fix (user 2026-11-10, dropping a sceptre): the held item was said by its file, "En la mano: Metadata/Items/Weapons/
+  OneHandWeapons/Sceptres/FourSceptre4. Elige una celda…": `InventoryWatch` (line ~169) falls back to `entity.Path` when
+  `DescribeItemEntity` reads no name; find why a sceptre is not described (base name lookup for FourSceptre4?) and never
+  speak a path (fall back to the base type's name, or the game's own tooltip).
 - The Mercenary's own crossbow clip (bolts loaded) is still not found: `skills` showed only a use counter (+0xD8, up by
   one per bolt); Permafrost Bolts reloaded within two shots. The help panel has no pad route seen (keyboard H would switch
   the input mode).
