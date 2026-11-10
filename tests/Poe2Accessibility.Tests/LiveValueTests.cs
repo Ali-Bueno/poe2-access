@@ -28,6 +28,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AnotherInstanceOfTheSameAreaIsToldOnce), AnotherInstanceOfTheSameAreaIsToldOnce),
             (nameof(AnUntypedEntitysComponentsRestLikeATypedOnes), AnUntypedEntitysComponentsRestLikeATypedOnes),
             (nameof(ABuffHeldAsSeveralEntriesCountsEveryOne), ABuffHeldAsSeveralEntriesCountsEveryOne),
+            (nameof(ABlowIsLearntAsItsPlaceInTheClip), ABlowIsLearntAsItsPlaceInTheClip),
         };
 
         /// <summary>A flask whose drinks were seen to cost <paramref name="cost"/>, left at <paramref name="charges"/>; the clock ends past the last drink.</summary>
@@ -212,6 +213,21 @@ namespace Poe2Accessibility.Tests
             Equal<short>(4, BuffStacks.Merged(0, 3), "a first entry without a count is one");
             Equal(1, PlayerCharges.Held(0), "one entry alone is one, unmerged");
             Equal(short.MaxValue, BuffStacks.Merged(short.MaxValue, 5), "never past what the field holds");
+        }
+
+        private static void ABlowIsLearntAsItsPlaceInTheClip()
+        {
+            // A golem's slam lands 1.156 s into its clip. Chilled to 0.7 of its speed the blow is felt 1651 ms after the start.
+            var chilled = new AnimationReading(Clip: 7, Position: 1.05f, Speed: 1f, GlobalSpeed: 0.7f, GlobalOff: false, Start: 0f, End: 2f);
+            var learnt = AttackClock.NominalMsAt(chilled, readAt: 1500, moment: 1651);
+            Equal(1156, learnt, "where the clip stood at the blow, not the 1651 ms that passed");
+            Equal(500, AttackClock.MsToNominal(new AnimationReading(7, 0.656f, 1f, 1f, false, 0f, 2f), learnt), "replayed at speed 1 it warns on time");
+            Equal(714, AttackClock.MsToNominal(new AnimationReading(7, 0.656f, 1f, 0.7f, false, 0f, 2f), learnt), "and chilled again, as late as the clip plays");
+
+            var hasted = new AnimationReading(7, 1.0f, 1.3f, 1f, false, 0f, 2f);
+            Equal(1156, AttackClock.NominalMsAt(hasted, readAt: 769, moment: 889), "hasted: the 889 ms that passed are 1156 of the clip");
+            Equal(1100, AttackClock.NominalMsAt(new AnimationReading(7, 1.4f, 1f, 1f, false, 0.3f, 2f), readAt: 5000, moment: 5000), "counted from the clip's own start");
+            Equal(1000, AttackClock.NominalMsAt(new AnimationReading(7, 1.2f, 1f, 1f, false, 0f, 2f), readAt: 5000, moment: 4800), "a projectile's release, its flight before the reading");
         }
 
         private static void AFlasksCostOutlivesAnAreaButNotACharacter()

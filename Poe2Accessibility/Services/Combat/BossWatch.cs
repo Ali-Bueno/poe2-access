@@ -432,18 +432,24 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            // A projectile's blow is learnt as its release: the flight differs with the distance each time.
+            // A projectile's blow is learnt as its release: the flight differs with the distance each time. Where the clip
+            // was read, the blow is its place in the clip, which is how it is replayed; else the real time since the start.
             var (id, attack) = (hitters[0].Key, hitters[0].Value);
-            var delay = (int)(now - attack.StartedAt) - attack.TravelMs;
+            var real = (int)(now - attack.StartedAt) - attack.TravelMs;
+            var delay = attack.BlowClock is var (clock, readAt) ? AttackClock.NominalMsAt(clock, readAt, now - attack.TravelMs) : real;
             if (attack.Swing is { } swing && delay > swing)
             {
                 delay %= swing; // a later swing of the same animation: its blow lands as far into its own swing
             }
 
+            var basis = attack.BlowClock is { } read
+                ? $", clip time at rate {AttackClock.Rate(read.Reading).ToString("F2", System.Globalization.CultureInfo.InvariantCulture)} ({real} ms real)"
+                : ", real time (no clock read)";
+
             this.attacks[id] = attack with { Learned = true };
             if (!this.Timings.Learn(attack.Key, delay))
             {
-                this.log.Info($"Dodge timing: {attack.Key} hit after {delay} ms, not believed (the files say {this.Timings.FileHit(attack.Key)} ms)");
+                this.log.Info($"Dodge timing: {attack.Key} hit after {delay} ms, not believed (the files say {this.Timings.FileHit(attack.Key)} ms){basis}");
                 return;
             }
 
@@ -453,7 +459,7 @@ namespace Poe2Accessibility.Services
                 this.log.Warn($"Dodge timings not saved to {this.TimingsPath}: {failure} (kept for this session, tried again with each blow learnt)");
             }
 
-            this.log.Info($"Dodge timing: {attack.Key} hit after {delay} ms (learnt {this.Timings.Delay(attack.Key)} ms)");
+            this.log.Info($"Dodge timing: {attack.Key} hit after {delay} ms (learnt {this.Timings.Delay(attack.Key)} ms){basis}");
         }
 
         /// <summary>Drops the attacks of monsters the walk has not met for a while, so they neither linger nor teach.</summary>
@@ -504,6 +510,12 @@ namespace Poe2Accessibility.Services
 
             /// <summary>The clip's reading on the last frame, to notice a new swing.</summary>
             public AnimationReading? LastClock { get; init; }
+
+            /// <summary>
+            ///     The attack's clip as last read while its animation ran, and when: where in it a blow felt later fell
+            ///     (<see cref="AttackClock.NominalMsAt"/>). Null when no clock was read or the swing left the clip.
+            /// </summary>
+            public (AnimationReading Reading, long At)? BlowClock { get; init; }
 
             /// <summary>The swing now plays another clip than the one the attack began with (the files' time is for that one).</summary>
             public bool ClipMoved { get; init; }

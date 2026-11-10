@@ -137,3 +137,13 @@ rule now in force, where.
   merges further entries of the name into it, counting an incoming entry without a count as one but the entry already
   kept as its raw 0: three entries read as 2 stacks. Rule: `BuffStacks.Merged` counts both sides for what they hold,
   at least one each. A lone entry stays as read (the plugin's `PlayerCharges.Held` makes it one).
+- **Learnt dodge times (A7).** A blow was learnt as the real milliseconds since its attack began and replayed as
+  milliseconds into the clip at speed 1 (`AttackClock.MsToNominal`): learnt from a chilled or hasted monster it was
+  late or early by that speed, for every monster of the kind, and saved. Rule: where the attack's clip was read while
+  it ran (rares and uniques, every monster with the all-monsters switch, a player who parries, or while the live
+  checks judge), the blow is learnt as its place in the clip: the last reading moved on at its rate for the real time
+  since, a projectile's flight taken off (`AttackClock.NominalMsAt`, `Attack.BlowClock`). An attack whose clip was
+  not read is still learnt in real time, which is the same number at speed 1; so a normal monster chilled while it
+  teaches is still off by the chill, inside what `Believable` lets through. Saved entries (`config/dodge-timings.txt`
+  and the shipped seed) stay usable as they are, with no migration: at speed 1 the two measures agree, and each new
+  blow pushes an old one out of its five. Still from files, not live: a projectile's flight speed and a clip's reach.
