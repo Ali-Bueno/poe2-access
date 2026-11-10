@@ -50,16 +50,32 @@ namespace GameReader.Utils
         private static readonly int Slot = System.Runtime.CompilerServices.Unsafe.SizeOf<StdTuple2D<IntPtr>>();
 
         /// <summary>
+        ///     The first <see cref="BlockBytes"/> of the object at <paramref name="address"/>, or as many as its page holds: a read
+        ///     fails whole, the object is shorter than the block (0x148 bytes on 0.5.5f) and may be the last thing before memory
+        ///     that cannot be read. Empty when nothing can be read.
+        /// </summary>
+        public static byte[] ReadBlock(IAreaMemory memory, long address)
+        {
+            var block = memory.Read(address, BlockBytes);
+            var inPage = (int)(Environment.SystemPageSize - (address & (Environment.SystemPageSize - 1)));
+            return block.Length > 0 || inPage >= BlockBytes ? block : memory.Read(address, inPage);
+        }
+
+        /// <summary>
         ///     The fields nearest <paramref name="near"/> that fit together: a list read 8 bytes off pairs each control block
         ///     with the next state and passes for one, but the stack's top is not in it. Both negative when nothing fits. A list
         ///     read a whole slot off fits too and shifts every name by one: only what the states do tells it (<see cref="GameStateRoles.WholeShift"/>).
         /// </summary>
         public static GameStateFields Locate(byte[] block, GameStateFields near, IAreaMemory memory)
         {
+            // A stack's top is read from the game once: the game may change it between two looks, and every list is judged
+            // against the same one.
+            var tops = new Dictionary<int, long>();
+            long TopAt(int place) => tops.TryGetValue(place, out var top) ? top : tops[place] = Top(block, place, memory);
             int StackFor(int at)
             {
                 var known = States(block, at)?.Where(state => state != 0).ToHashSet();
-                return known == null ? -1 : StructShapes.Nearest(near.Stack, Pointer, block.Length - (3 * Pointer), place => known.Contains(Top(block, place, memory)));
+                return known == null ? -1 : StructShapes.Nearest(near.Stack, Pointer, block.Length - (3 * Pointer), place => known.Contains(TopAt(place)));
             }
 
             var first = StructShapes.Nearest(near.States, Pointer, block.Length - (Slot * MinStates), at => StackFor(at) >= 0);
@@ -279,6 +295,17 @@ namespace GameReader.Utils
 
             return names;
         }
+
+        /// <summary>
+        ///     The name of the state the game is in, read from <paramref name="names"/> again each time the states are looked at:
+        ///     a role seen a second after the state came, or a list read late, names it without a change of state. A state the
+        ///     table lacks has no name when it just became current and keeps the one it <paramref name="had"/> otherwise; no
+        ///     state has none, though the table lists the unused slots under zero.
+        /// </summary>
+        public static GameStateTypes CurrentName(IReadOnlyDictionary<IntPtr, GameStateTypes> names, IntPtr current, bool changed, GameStateTypes had) =>
+            current == IntPtr.Zero ? GameStateTypes.GameNotLoaded
+            : names.TryGetValue(current, out var name) ? name
+            : changed ? GameStateTypes.GameNotLoaded : had;
 
         private int IndexOf(long state)
         {

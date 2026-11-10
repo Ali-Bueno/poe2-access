@@ -20,7 +20,7 @@ namespace GameReader.Utils
 
         /// <summary>Whether the static at <paramref name="address"/> holds the state object now (it does not while the game is still starting).</summary>
         internal static bool Holds(SafeMemoryHandle reader, IntPtr address, IntPtr module, int size) =>
-            reader.TryReadMemory<IntPtr>(address, out var state) && IsStateObject(reader, state.ToInt64(), new GameMemory(reader), module.ToInt64(), size);
+            reader.TryReadMemory<IntPtr>(address, out var state) && IsStateObject(state.ToInt64(), new GameMemory(reader), module.ToInt64(), size);
 
         /// <summary>
         ///     Every static in <paramref name="ranges"/> of the image that holds a state object, in address order, each with
@@ -46,7 +46,7 @@ namespace GameReader.Utils
 
                         if (!judged.TryGetValue(value, out var fits))
                         {
-                            judged[value] = fits = IsStateObject(reader, value, memory, start, size);
+                            judged[value] = fits = IsStateObject(value, memory, start, size);
                         }
 
                         if (fits)
@@ -64,8 +64,7 @@ namespace GameReader.Utils
         internal static bool IsHeapObject(long value, long module, int size) =>
             value % HeapAlignment == 0 && (value < module || value >= module + size) && SafeMemoryHandle.IsValidAddress(new IntPtr(value));
 
-        private static bool IsStateObject(SafeMemoryHandle reader, long address, IAreaMemory memory, long module, int size) =>
-            reader.ReadMemoryArray<byte>(new IntPtr(address), GameStateLayout.BlockBytes) is { Length: > 0 } block &&
-            GameStateLayout.IsStateObject(block, memory, module, module + size);
+        private static bool IsStateObject(long address, IAreaMemory memory, long module, int size) =>
+            GameStateLayout.ReadBlock(memory, address) is { Length: > 0 } block && GameStateLayout.IsStateObject(block, memory, module, module + size);
     }
 }

@@ -96,11 +96,13 @@ namespace GameReader.Utils
         /// </summary>
         public long RootAbove(long candidate)
         {
+            // An element begins with its virtual table: what holds its own address there is the head of an empty list or map,
+            // of which a state holds many.
             var body = this.Block(candidate);
             var self = -1;
-            for (var at = 0; at < SelfWindow && self < 0; at += Pointer)
+            for (var at = Pointer; at < SelfWindow && self < 0 && body.Length > 0 && Long(body, 0) != candidate; at += Pointer)
             {
-                self = body.Length > 0 && Long(body, at) == candidate ? at : -1;
+                self = Long(body, at) == candidate ? at : -1;
             }
 
             if (self < 0)

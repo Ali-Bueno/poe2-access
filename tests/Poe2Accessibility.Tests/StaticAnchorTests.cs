@@ -33,6 +33,9 @@ namespace Poe2Accessibility.Tests
             (nameof(TwoPatternsSettleOneAddress), TwoPatternsSettleOneAddress),
             (nameof(ADisplacementPointsInsideTheImageOrNowhere), ADisplacementPointsInsideTheImageOrNowhere),
             (nameof(TheGameIsToldFromTheFirstOne), TheGameIsToldFromTheFirstOne),
+            (nameof(ThePatternsPlaceIsWaitedOnBeforeTheImageIsSearched), ThePatternsPlaceIsWaitedOnBeforeTheImageIsSearched),
+            (nameof(TheSearchGrowsSeldomAndIsNeverGivenUp), TheSearchGrowsSeldomAndIsNeverGivenUp),
+            (nameof(TwoObjectsThatPassSettleNothing), TwoObjectsThatPassSettleNothing),
         };
 
         /// <summary>
@@ -208,6 +211,36 @@ namespace Poe2Accessibility.Tests
             Equal(false, GameProcessDetails.IsGame("PathOfExileSteam", "Path of Exile", @"D:\games\steam\steamapps\common\Path of Exile\PathOfExileSteam.exe"), "the first game");
             Equal(false, GameProcessDetails.IsGame("PathOfExileSteam", string.Empty, Steam), "no window yet: still starting");
             Equal(false, GameProcessDetails.IsGame("notepad", "Path of Exile 2", Steam), "another program showing the name");
+        }
+
+        private static void ThePatternsPlaceIsWaitedOnBeforeTheImageIsSearched()
+        {
+            const double Never = double.MaxValue;
+            Equal(false, StateSearchRules.SearchDue(true, 3, Never, 0), "an empty place while the game starts is waited on");
+            Equal(false, StateSearchRules.SearchDue(true, 27, Never, 0), "for half a minute");
+            Equal(true, StateSearchRules.SearchDue(true, 30, Never, 0), "then the image is searched");
+            Equal(true, StateSearchRules.SearchDue(false, 3, Never, 0), "a place that can hold no object, or no place: searched at the first look");
+        }
+
+        private static void TheSearchGrowsSeldomAndIsNeverGivenUp()
+        {
+            Equal(true, StateSearchRules.SearchDue(false, 6, 3, 1), "the first searches follow each other");
+            Equal((true, false), (StateSearchRules.DataOnly(4), StateSearchRules.DataOnly(5)), "five of the writable data, then the whole image");
+            Equal(false, StateSearchRules.SearchDue(false, 60, 12, 5), "then not at every look");
+            Equal(true, StateSearchRules.SearchDue(false, 60, 15, 5), "four times a minute");
+            Equal(false, StateSearchRules.SearchDue(false, 600, 15, 40), "after ten minutes, less often");
+
+            // A game that downloads a patch in its own window makes its state object an hour after its window.
+            Equal(true, StateSearchRules.SearchDue(false, 3600, 60, 90), "but still searched an hour in");
+            Equal(true, StateSearchRules.SearchDue(true, 3600, 60, 90), "an empty place too, once patience is over");
+        }
+
+        private static void TwoObjectsThatPassSettleNothing()
+        {
+            Equal(0x5000L, StateSearchRules.OneObject(new long[] { 0x5000 }), "one static, one object");
+            Equal(0x5000L, StateSearchRules.OneObject(new long[] { 0x5000, 0x5000, 0x5000 }), "several statics that hold the one object");
+            Equal(0L, StateSearchRules.OneObject(new long[] { 0x5000, 0x6000, 0x5000 }), "two objects: neither is taken");
+            Equal(0L, StateSearchRules.OneObject(Array.Empty<long>()), "nothing found");
         }
 
         private static string Text(IEnumerable<(long Start, long Size)> ranges) => string.Join(",", ranges.Select(range => $"{range.Start:X}+{range.Size:X}"));

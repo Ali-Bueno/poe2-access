@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Tests
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using GameReader.RemoteEnums;
     using GameReader.Utils;
     using static Check;
     using static LayoutSearchTests;
@@ -29,6 +30,9 @@ namespace Poe2Accessibility.Tests
             (nameof(AStateAPatchAddedIsCounted), AStateAPatchAddedIsCounted),
             (nameof(AListThatLostAStateStillFits), AListThatLostAStateStillFits),
             (nameof(TheStateObjectIsToldByItsListAndStack), TheStateObjectIsToldByItsListAndStack),
+            (nameof(AStackTheGameChangesWhileItIsJudgedBreaksNothing), AStackTheGameChangesWhileItIsJudgedBreaksNothing),
+            (nameof(AStateObjectAtTheEndOfItsMemoryIsStillRead), AStateObjectAtTheEndOfItsMemoryIsStillRead),
+            (nameof(TheCurrentStateTakesTheNameItsTableGivesNow), TheCurrentStateTakesTheNameItsTableGivesNow),
             (nameof(TooFewBytesAreNoStruct), TooFewBytesAreNoStruct),
             (nameof(TheStateInPlayIsTheOneThatLeadsToAnArea), TheStateInPlayIsTheOneThatLeadsToAnArea),
             (nameof(TheLoadingStateIsWhatCameBeforeTwoNewAreas), TheLoadingStateIsWhatCameBeforeTwoNewAreas),
@@ -328,6 +332,13 @@ namespace Poe2Accessibility.Tests
             Equal(0L, new UiElementLayoutSearch(plain).RootAbove(Heap + 0x900000), "an object that does not hold its own address is no element");
             Equal(0L, new UiElementLayoutSearch(plain).RootAbove(Heap + 0x123450), "memory that cannot be read");
 
+            // The head of an empty list or map points at itself, where an element has its virtual table: a state holds many,
+            // and each taken for an element would use up one of the few climbs a search is given.
+            var head = Heap + 0x910000;
+            plain.Blocks[head] = new byte[UiElementLayoutSearch.BlockBytes];
+            Put(plain.Blocks[head], 0, head, head, head);
+            Equal(0L, new UiElementLayoutSearch(plain).RootAbove(head), "an empty container's head is no element");
+
             // An element that points at another one which does not list it: no parent, so it is its own top.
             var orphan = top + 0x9000;
             Element(plain, measured, orphan, top, Array.Empty<long>(), true, 100);
@@ -529,6 +540,82 @@ namespace Poe2Accessibility.Tests
 
             Equal(false, Is(sparse, few), "seven virtual objects are too few for the states");
             Equal(true, states.Length == 13 && Is(StateObject(measured.Stack, measured.States).Block, StateObject(measured.Stack, measured.States).Memory), "and the real thing still passes");
+        }
+
+        private static void AStackTheGameChangesWhileItIsJudgedBreaksNothing()
+        {
+            // A list that moved is judged at several places, each against the stack's top, which is read from the game: the
+            // game may free the stack between two of those reads. Read once, every place is judged against the same top.
+            var measured = GameStateFields.Measured;
+            var moved = new GameStateFields(measured.Stack + 0x18, measured.States + 0x18);
+            var top = Heap + 0x30000 + 0x10;
+            for (var good = 0; good < 8; good++)
+            {
+                var (memory, block, _) = StateObject(moved.Stack, moved.States);
+                var found = GameStateLayout.Locate(block, measured, new ReadsThatStop(memory, top, good));
+                Equal(good == 0 ? new GameStateFields(-1, -1) : moved, found, $"the top readable {good} time(s), then gone");
+                Equal(good >= 2, GameStateLayout.IsStateObject(block, new ReadsThatStop(memory, top, good), Image, Image + ImageSize), $"told as the state object only with its top still there ({good})");
+            }
+        }
+
+        private static void AStateObjectAtTheEndOfItsMemoryIsStillRead()
+        {
+            // A read fails whole. The object is shorter than the block judged (0x148 bytes: the allocation in its pattern)
+            // and can be the last thing before memory that cannot be read.
+            const int ObjectBytes = 0x148;
+            var measured = GameStateFields.Measured;
+            var (memory, block, _) = StateObject(measured.Stack, measured.States);
+            var last = Heap + 0x71000 - ObjectBytes;
+            memory.Blocks[last] = block[..ObjectBytes];
+            var read = GameStateLayout.ReadBlock(memory, last);
+            Equal(ObjectBytes, read.Length, "read as far as its page goes");
+            Equal(measured, GameStateLayout.Locate(read, measured, memory), "its fields found in what was read");
+            Equal(true, GameStateLayout.IsStateObject(read, memory, Image, Image + ImageSize), "and told as the state object");
+
+            memory.Blocks[Heap + 0x72000] = block;
+            Equal(GameStateLayout.BlockBytes, GameStateLayout.ReadBlock(memory, Heap + 0x72000).Length, "an object with memory after it is read whole");
+            memory.Blocks[Heap + 0x74000 - 0x100] = new byte[0x1000];
+            Equal(GameStateLayout.BlockBytes, GameStateLayout.ReadBlock(memory, Heap + 0x74000 - 0x100).Length, "across two pages that both read");
+            Equal(0, GameStateLayout.ReadBlock(memory, Heap + 0x80000).Length, "nothing there");
+            Equal(0, GameStateLayout.ReadBlock(memory, Heap + 0x81000 - 0x40).Length, "nothing there, near the end of a page");
+        }
+
+        private static void TheCurrentStateTakesTheNameItsTableGivesNow()
+        {
+            // A patch put a state before the one in play: it comes named by its slot, the game menu's, and a second later its
+            // role names it, with no change of state in between.
+            var (menu, play) = (new IntPtr(Heap + 0x44000), new IntPtr(Heap + 0x45000));
+            var names = new Dictionary<IntPtr, GameStateTypes> { [IntPtr.Zero] = GameStateTypes.CreditsState, [menu] = GameStateTypes.InGameState, [play] = GameStateTypes.EscapeState };
+            Equal(GameStateTypes.EscapeState, GameStateRoles.CurrentName(names, play, true, GameStateTypes.LoadingState), "named by its slot as it comes");
+            (names[menu], names[play]) = (GameStateTypes.EscapeState, GameStateTypes.InGameState);
+            Equal(GameStateTypes.InGameState, GameStateRoles.CurrentName(names, play, false, GameStateTypes.EscapeState), "and by its role once that is seen");
+
+            Equal(GameStateTypes.GameNotLoaded, GameStateRoles.CurrentName(names, new IntPtr(Heap + 0x99000), true, GameStateTypes.InGameState), "a new state the table lacks has no name");
+            names.Remove(play);
+            Equal(GameStateTypes.InGameState, GameStateRoles.CurrentName(names, play, false, GameStateTypes.InGameState), "a table read short takes no name away");
+            names[play] = GameStateTypes.InGameState;
+            Equal(GameStateTypes.InGameState, GameStateRoles.CurrentName(names, play, false, GameStateTypes.GameNotLoaded), "a state that came before its list was read is named when the list is");
+            Equal(GameStateTypes.GameNotLoaded, GameStateRoles.CurrentName(names, IntPtr.Zero, false, GameStateTypes.GameNotLoaded), "no state yet is not the unused slots' name");
+        }
+
+        /// <summary>Memory in which one address reads only the first few times.</summary>
+        private sealed class ReadsThatStop : GameReader.RemoteObjects.States.InGameStateObjects.IAreaMemory
+        {
+            private readonly FakeMemory memory;
+            private readonly long address;
+            private int left;
+
+            public ReadsThatStop(FakeMemory memory, long address, int good)
+            {
+                (this.memory, this.address, this.left) = (memory, address, good);
+            }
+
+            public byte[] Read(long address, int size) =>
+                address == this.address && this.left-- <= 0 ? Array.Empty<byte>() : this.memory.Read(address, size);
+
+            public string EntityPath(long entity) => this.memory.EntityPath(entity);
+
+            public string WideText(long address) => this.memory.WideText(address);
         }
 
         private static long[] Slots()

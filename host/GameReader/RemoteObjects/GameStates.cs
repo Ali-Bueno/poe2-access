@@ -174,22 +174,17 @@ namespace GameReader.RemoteObjects
                     this.nextLookAt = Environment.TickCount64 + LookEveryMs;
                     this.roles.See(cStateAddr.ToInt64(), this.AreaOf(reader, cStateAddr), this.InGameArea(reader));
                     this.ApplyRoles();
-                }
 
-                if (changed)
-                {
+                    // Named at every look, not only when the state changes: the look may just have renamed it.
                     this.currentStateAddress = cStateAddr;
-                    if (this.AllStates.TryGetValue(this.currentStateAddress, out var currentState))
+                    if (changed && !this.AllStates.ContainsKey(cStateAddr))
                     {
-                        this.GameCurrentState = currentState;
-                    }
-                    else
-                    {
-                        this.GameCurrentState = GameStateTypes.GameNotLoaded;
                         Console.WriteLine(
-                            $"[GameStates] Current state 0x{this.currentStateAddress.ToInt64():X} " +
+                            $"[GameStates] Current state 0x{cStateAddr.ToInt64():X} " +
                             "is absent from the configured state table; GameStateOffset may have shifted.");
                     }
+
+                    this.GameCurrentState = GameStateRoles.CurrentName(this.AllStates, cStateAddr, changed, this.currentStateName);
                 }
             }
         }
@@ -231,7 +226,8 @@ namespace GameReader.RemoteObjects
         private IReadOnlyList<StructOutcome> JudgeLayout(SafeMemoryHandle reader, out long[] states)
         {
             states = Array.Empty<long>();
-            var block = reader.ReadMemoryArray<byte>(this.myStaticObj.GameState, GameStateLayout.BlockBytes);
+            var memory = new GameMemory(reader);
+            var block = GameStateLayout.ReadBlock(memory, this.myStaticObj.GameState.ToInt64());
             if (block.Length == 0)
             {
                 // No object yet (the static is still empty, live on 2026-11-10 with the mod started before the game): looked at
@@ -240,7 +236,7 @@ namespace GameReader.RemoteObjects
                 return Array.Empty<StructOutcome>();
             }
 
-            var found = GameStateLayout.Locate(block, GameStateFields.Measured, new GameMemory(reader));
+            var found = GameStateLayout.Locate(block, GameStateFields.Measured, memory);
             states = GameStateLayout.States(block, found.States) ?? Array.Empty<long>();
             var outcomes = OffsetHealer.PlaceGameStates(found);
             this.layoutPending = outcomes.Any(outcome => outcome.Health == StructHealth.Lost) && ++this.layoutTried < LayoutTries;
