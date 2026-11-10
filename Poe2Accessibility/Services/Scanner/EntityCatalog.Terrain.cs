@@ -104,8 +104,10 @@ namespace Poe2Accessibility.Services
         {
             lock (this.samplesLock)
             {
+                var awake = new HashSet<uint>();
                 foreach (var (_, entity) in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities)
                 {
+                    awake.Add(entity.Id);
                     if (!entity.IsValid || !entity.TryGetComponent<TriggerableBlockage>(out var blockage) ||
                         entity.TryGetComponent<Targetable>(out _) || !entity.TryGetComponent<Render>(out var render))
                     {
@@ -119,6 +121,18 @@ namespace Poe2Accessibility.Services
                     else
                     {
                         this.closedBarriers.Remove(entity.Id);
+                    }
+                }
+
+                if (Seats.Followed.TryGetComponent<Render>(out var player))
+                {
+                    // A barrier the game removed as it opened is never seen open: near the player, no entity is no barrier.
+                    foreach (var (id, at) in this.closedBarriers.ToList())
+                    {
+                        if (BarrierMemory.IsGone(at.X, at.Y, awake.Contains(id), player.GridPosition.X, player.GridPosition.Y))
+                        {
+                            this.closedBarriers.Remove(id);
+                        }
                     }
                 }
 

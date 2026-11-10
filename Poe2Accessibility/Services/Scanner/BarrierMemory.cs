@@ -21,6 +21,13 @@ namespace Poe2Accessibility.Services
         private byte[] closed = Array.Empty<byte>();
         private int closedCount;
 
+        /// <summary>
+        ///     Whether a barrier remembered closed is gone: it stood within the cells whose entities the client surely
+        ///     knows, and no entity carries its id any more (the game removed it once it opened).
+        /// </summary>
+        public static bool IsGone(float barrierX, float barrierY, bool awake, float playerX, float playerY) =>
+            !awake && Math.Abs(barrierX - playerX) <= TrustCells && Math.Abs(barrierY - playerY) <= TrustCells;
+
         /// <summary>Cells remembered closed.</summary>
         public int ClosedCount => this.closedCount;
 

@@ -256,6 +256,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The text of the focused control as last said: what a change in place is told apart from.</summary>
         private string lastText = string.Empty;
+
+        /// <summary>The focused control's place in its list as last said ("3 de 10").</summary>
+        private string lastRow = string.Empty;
         private bool lastExpanded;
 
         /// <summary>The panel whose notes were said with the focus last (<see cref="AccessibleUiNode.PanelNotes"/>).</summary>

@@ -31,6 +31,7 @@ namespace Poe2Accessibility.Services
             this.valueOwner = node.Address;
             this.lastValue = node.Value;
             this.lastText = node.Text;
+            this.lastRow = node.Position;
             this.lastExpanded = node.IsExpanded;
             this.tooltipSaid = this.ReadTooltips || node.IsHovered ? node.Tooltip : Array.Empty<string>();
             var focused = this.Focused(node);
@@ -274,6 +275,17 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>
+        ///     The cursor on another cell or row of the control it was in: said as a move, and the new place's tooltip is what
+        ///     counts as said from now on (a line the last cell's item shared was left out of the next one's late tooltip).
+        /// </summary>
+        private void MovedWithin(AccessibleUiNode node, string whole)
+        {
+            this.lastFocusSpeech = whole;
+            this.tooltipSaid = this.ReadTooltips || node.IsHovered ? node.Tooltip : Array.Empty<string>();
+            this.SayMove(whole);
+        }
+
         /// <summary>Only the new value; a text field echoes just the typed or deleted characters.</summary>
         public void OnValueChanged(AccessibleUiNode node)
         {
@@ -290,10 +302,12 @@ namespace Poe2Accessibility.Services
             var sameOwner = node.Address == this.valueOwner;
             var wasExpanded = sameOwner && this.lastExpanded;
             var textBefore = this.lastText;
+            var rowChanged = sameOwner && FocusNews.RowChanged(this.lastRow, node.Position);
             this.lastExpanded = node.IsExpanded;
             this.valueOwner = node.Address;
             this.lastValue = node.Value;
             this.lastText = node.Text;
+            this.lastRow = node.Position;
             if (this.deferredFocus is { } waiting && waiting.Node.Address == node.Address)
             {
                 // The focus moved before its new layer settled (a vendor opening: the cursor jumps from an empty cell
@@ -313,6 +327,13 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (rowChanged && node.Role is not (UiRole.GridCell or UiRole.ItemSlot or UiRole.ListItem))
+            {
+                // Another row of a list focused as one element, with the same text or none ("vacío, 3 de 10"): a move.
+                this.MovedWithin(node, this.Focused(node));
+                return;
+            }
+
             if (node.IsCollapsible && node.IsExpanded != wasExpanded)
             {
                 // A opened or closed the row: its state; the lines it shows follow as the screen reports them.
@@ -325,7 +346,7 @@ namespace Poe2Accessibility.Services
             {
                 var whole = this.Focused(node);
                 this.lastFocusSpeech = whole;
-                if (sameOwner && node.Value == before && FocusNews.ChangedNumbers(node.Role, textBefore, node.Text) is { } number)
+                if (sameOwner && !rowChanged && node.Value == before && FocusNews.ChangedNumbers(node.Role, textBefore, node.Text) is { } number)
                 {
                     // The item under a resting cursor changed its own number (a stack used, a gem levelled): that part alone.
                     this.output.Speak(number, true);
@@ -333,7 +354,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 // The cursor moved inside the grid: a new item and cell, not a value of the same control.
-                this.SayMove(whole);
+                this.MovedWithin(node, whole);
                 return;
             }
 

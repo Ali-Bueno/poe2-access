@@ -36,6 +36,31 @@ namespace Poe2Accessibility.Services
             return changed.All(part => Duration.IsMatch(part)) ? null : string.Join(PartSeparator, changed);
         }
 
+        private static readonly Regex Number = new(@"\d+", RegexOptions.Compiled);
+
+        /// <summary>
+        ///     Whether the focus is on another row of a list the game focuses as one element ("3 de 10" after "2 de 10"), two
+        ///     rows with the same text included; the list growing or shrinking under a resting focus is not a move.
+        /// </summary>
+        /// <param name="rowFirst">Whether the language says the row before the count; unset, read from the phrase itself.</param>
+        public static bool RowChanged(string before, string after, bool? rowFirst = null)
+        {
+            if (before == after)
+            {
+                return false;
+            }
+
+            var (was, now) = (Number.Matches(before), Number.Matches(after));
+            if (was.Count != 2 || now.Count != 2)
+            {
+                return true; // not "row of count" on both sides: another place
+            }
+
+            var probe = Announcements.ListPosition(1, 2);
+            var row = rowFirst ?? probe.IndexOf('1', StringComparison.Ordinal) < probe.IndexOf('2', StringComparison.Ordinal) ? 0 : 1;
+            return was[row].Value != now[row].Value;
+        }
+
         /// <summary>A counter ticking by itself in the focused text (the Instance Manager's time left): said once, never as news.</summary>
         public static bool IsTick(UiRole role, string before, string after) =>
             ScreenDiffer.SameBesideNumbers(before, after) && ChangedNumbers(role, before, after) == null;

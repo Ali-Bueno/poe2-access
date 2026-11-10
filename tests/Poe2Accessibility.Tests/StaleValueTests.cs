@@ -22,6 +22,8 @@ namespace Poe2Accessibility.Tests
             (nameof(TheScannersChoiceEndsWithItsArea), TheScannersChoiceEndsWithItsArea),
             (nameof(AReadingThatWaitedTooLongIsNotSaid), AReadingThatWaitedTooLongIsNotSaid),
             (nameof(ATileBossRoomIsDefeatedOnceTheGameSaysSo), ATileBossRoomIsDefeatedOnceTheGameSaysSo),
+            (nameof(AnotherRowWithTheSameTextIsAMove), AnotherRowWithTheSameTextIsAMove),
+            (nameof(ABarrierTheGameRemovedIsForgottenNearThePlayer), ABarrierTheGameRemovedIsForgottenNearThePlayer),
         };
 
         private static void ANumberChangingUnderTheCursorIsSaidAlone()
@@ -174,6 +176,25 @@ namespace Poe2Accessibility.Tests
             Equal(true, MinimapMarks.RoomDefeated("The Bloated Miller", 3, none, new[] { "the bloated miller" }), "the boss seen defeated here");
             Equal(true, MinimapMarks.RoomDefeated("Asinia", 3, none, new[] { "Asinia, the Praetor's Consort" }), "by the name its room gives it");
             Equal(false, MinimapMarks.RoomDefeated(string.Empty, 3, none, new[] { "Asinia" }), "an unnamed arena is nobody's by name");
+        }
+
+        /// <summary>Two empty skill rows read alike: going from one to the other is a move; the list growing under the cursor is not.</summary>
+        private static void AnotherRowWithTheSameTextIsAMove()
+        {
+            Equal(true, FocusNews.RowChanged(Announcements.ListPosition(2, 10), Announcements.ListPosition(3, 10)), "the next row");
+            Equal(false, FocusNews.RowChanged(Announcements.ListPosition(2, 10), Announcements.ListPosition(2, 10)), "the same row");
+            Equal(false, FocusNews.RowChanged(Announcements.ListPosition(2, 10), Announcements.ListPosition(2, 11)), "a row added to the list");
+            Equal(true, FocusNews.RowChanged("10件中2件目", "10件中3件目", rowFirst: false), "a language that says the count first");
+            Equal(false, FocusNews.RowChanged("10件中2件目", "11件中2件目", rowFirst: false), "and its list growing");
+            Equal(true, FocusNews.RowChanged(string.Empty, Announcements.ListPosition(1, 3)), "a place where there was none");
+        }
+
+        /// <summary>A barrier the game deletes as it opens is never read open: gone from near the player, it is no longer closed.</summary>
+        private static void ABarrierTheGameRemovedIsForgottenNearThePlayer()
+        {
+            Equal(true, BarrierMemory.IsGone(500, 500, false, 520, 480), "no entity where the client knows every entity");
+            Equal(false, BarrierMemory.IsGone(500, 500, true, 520, 480), "its entity is there: what it reads decides");
+            Equal(false, BarrierMemory.IsGone(500, 500, false, 520 + BarrierMemory.TrustCells, 480), "past the trusted cells the game forgets entities");
         }
     }
 }
