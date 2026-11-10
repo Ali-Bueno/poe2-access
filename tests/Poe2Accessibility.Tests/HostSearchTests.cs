@@ -332,6 +332,13 @@ namespace Poe2Accessibility.Tests
             Equal(0L, new UiElementLayoutSearch(plain).RootAbove(Heap + 0x900000), "an object that does not hold its own address is no element");
             Equal(0L, new UiElementLayoutSearch(plain).RootAbove(Heap + 0x123450), "memory that cannot be read");
 
+            // The head of an empty list or map points at itself, where an element has its virtual table: a state holds many,
+            // and each taken for an element would use up one of the few climbs a search is given.
+            var head = Heap + 0x910000;
+            plain.Blocks[head] = new byte[UiElementLayoutSearch.BlockBytes];
+            Put(plain.Blocks[head], 0, head, head, head);
+            Equal(0L, new UiElementLayoutSearch(plain).RootAbove(head), "an empty container's head is no element");
+
             // An element that points at another one which does not list it: no parent, so it is its own top.
             var orphan = top + 0x9000;
             Element(plain, measured, orphan, top, Array.Empty<long>(), true, 100);
