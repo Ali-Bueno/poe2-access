@@ -19,6 +19,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AMovedItemIsNamedAsItWasWhenItLeft), AMovedItemIsNamedAsItWasWhenItLeft),
             (nameof(AGroundTooltipIsItsOwnItems), AGroundTooltipIsItsOwnItems),
             (nameof(AVanishedTargetIsReachedOnlyIfUsingItRemovesIt), AVanishedTargetIsReachedOnlyIfUsingItRemovesIt),
+            (nameof(TheScannersChoiceEndsWithItsArea), TheScannersChoiceEndsWithItsArea),
         };
 
         private static void ANumberChangingUnderTheCursorIsSaidAlone()
@@ -115,6 +116,29 @@ namespace Poe2Accessibility.Tests
             Equal(GoneTarget.LostFromView, BeaconMath.Gone(Entry(ScanCategory.Waypoints, "checkpoint"), true, 300f, Near), "a checkpoint does not go when used");
             Equal(GoneTarget.Unknown, BeaconMath.Gone(Entry(ScanCategory.Chests), true, 900f, Near), "far away nothing is known");
             Equal(GoneTarget.Unknown, BeaconMath.Gone(Entry(ScanCategory.Places), false, 300f, Near), "a named place is not an entity");
+        }
+
+        /// <summary>Unexplored ground and tiles carry the same ids in every area: the choice made in one is nothing in the next.</summary>
+        private static void TheScannersChoiceEndsWithItsArea()
+        {
+            const uint SharedId = 0x80000100;
+            var here = new[] { new ScanEntry(SharedId, ScanCategory.Unexplored, "Unexplored ground", 0, 0, 0), new ScanEntry(9, ScanCategory.Quest, "Una", 0, 0, 0) };
+            var there = new[] { new ScanEntry(SharedId, ScanCategory.Places, "Bridge", 0, 0, 0), new ScanEntry(12, ScanCategory.Quest, "The Bloated Miller", 0, 0, 0) };
+            var browser = new ScanBrowser();
+            browser.InArea(0x1000, "AAAA");
+            browser.ChangeCategory(here, 1, 0);
+            browser.ChangeCategory(here, 1, 100);
+            Equal("Unexplored ground", browser.Current(here, 200)?.Name, "the choice, asked again in its area");
+            browser.InArea(0x1000, "AAAA");
+            Equal("Unexplored ground", browser.Current(here, 300)?.Name, "the same instance keeps it");
+            browser.InArea(0x1000, "BBBB");
+            Equal(null, browser.Current(there, 400)?.Name, "a new instance at the same address: nothing is chosen");
+            browser.ChangeCategory(there, 1, 500);
+            browser.InArea(0x2000, "BBBB");
+            Equal(null, browser.Current(there, 600)?.Name, "another instance object too");
+            browser.ChangeCategory(there, 1, 700);
+            browser.Reset();
+            Equal(null, browser.Current(there, 800)?.Name, "and the area handler's reset");
         }
     }
 }

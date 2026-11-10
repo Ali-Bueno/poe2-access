@@ -41,6 +41,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The category the scanner lists the target under; a target locked from the Quest category is a copy.</summary>
         private ScanCategory listedAs;
 
+        /// <summary>The area instance the target was locked in: its id and place mean nothing in another.</summary>
+        private (IntPtr Address, string Hash) lockedIn;
+
 
         /// <summary>Route prompts (D2R route-description.md): a turn is named when the player is this close to it.</summary>
         private const float TurnPromptWorld = 160f;
@@ -136,6 +139,8 @@ namespace Poe2Accessibility.Services
             this.targetGone = false;
             this.lostSaid = false;
             this.listedAs = entry.Category;
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            this.lockedIn = (area.Address, area.AreaHash ?? string.Empty);
             this.lockedAt = Environment.TickCount64;
             this.lastRefresh = long.MinValue / 2;
             this.log.Info($"Beacon locked on {entry.Name} ({entry.Category})");
@@ -170,6 +175,12 @@ namespace Poe2Accessibility.Services
             }
 
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            if ((area.Address, area.AreaHash ?? string.Empty) != this.lockedIn)
+            {
+                this.Clear(false); // another instance, should the area handler not have released it
+                return;
+            }
+
             if (!Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return;

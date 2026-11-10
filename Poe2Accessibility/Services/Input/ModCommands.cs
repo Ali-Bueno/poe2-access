@@ -134,8 +134,19 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>A new area or a new instance of it: the scanner's choice was of the one left. Called by the area handler.</summary>
+        public void OnAreaChanged() => this.browser.Reset();
+
+        /// <summary>Tells the scanner which instance its entries are of, should the area handler not have run yet.</summary>
+        private void SeeArea()
+        {
+            var area = GameReader.Core.States.InGameStateObject.CurrentAreaInstance;
+            this.browser.InArea(area.Address.ToInt64(), area.AreaHash ?? string.Empty);
+        }
+
         private void InGameplay(PadGesture gesture)
         {
+            this.SeeArea();
             switch (gesture)
             {
                 case PadGesture.Tap:
