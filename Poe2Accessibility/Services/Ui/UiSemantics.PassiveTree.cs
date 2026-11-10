@@ -774,7 +774,8 @@ namespace Poe2Accessibility.Services
             var known = this.RowId(row) is { } id ? catalog.ById(id) : null;
             if (known != null && shownRow == row)
             {
-                var named = KeywordLink.Replace(catalog.Name(known.Id, Localization.Language) ?? string.Empty, ShownText);
+                // A node the files know but leave unnamed (a catalog short of names) keeps the name its row holds.
+                var named = KeywordLink.Replace(catalog.Name(known.Id, Localization.Language) is { Length: > 0 } fromFiles ? fromFiles : this.RowName(row), ShownText);
                 var gated = this.reader.TryRead<long>(row + GameLayout.PassiveTree.RowNoLinkedStepOffset, out var gate) && gate != 0;
                 this.CompareWithRow(known, row);
                 return new PassiveNodeRow(record, known.GraphId, named, Announcements.PassiveKind(known.Class), known.IconOnly, known.IsStart, known.Class, gated) { Id = known.Id };
@@ -805,6 +806,12 @@ namespace Poe2Accessibility.Services
                 Id = this.RowId(shownRow) ?? string.Empty,
             };
         }
+
+        /// <summary>The name a row itself holds, markup as the game keeps it; empty when it has none or cannot be read.</summary>
+        private string RowName(IntPtr row) =>
+            this.reader.TryRead<IntPtr>(row + GameLayout.PassiveTree.RowNameOffset, out var name) && name != IntPtr.Zero
+                ? this.elements.ReadUtf16BufferAt(name, MaxPassiveNameChars) ?? string.Empty
+                : string.Empty;
 
         /// <summary>A catalog name as the tooltip's title shows it: keyword links as their text.</summary>
         private static string ShownName(string name) => KeywordLink.Replace(name, ShownText);
