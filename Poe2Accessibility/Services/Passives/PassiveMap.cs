@@ -13,6 +13,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The Build Planner's active build: its keystones, notables and jewel sockets not taken yet.</summary>
         Build,
 
+        /// <summary>
+        ///     With a build active: its nodes already taken, small ones too, in the build's order: the way made so far,
+        ///     to walk again (user 2026-11-10: "I would like to see the route that has been done").
+        /// </summary>
+        BuildTaken,
+
         /// <summary>With a build active: what is taken and is not part of it, the points a refund would bring back to it.</summary>
         OutsideBuild,
         Keystones,

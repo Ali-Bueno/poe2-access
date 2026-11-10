@@ -199,8 +199,9 @@ attributes; LT/RT say the zoom ("Zoom x1,4"); the directions hold at any zoom. A
 **Finder (D-pad, which does nothing else in the tree;** setting "Passive tree finder on the D-pad", Navigation, on by
 default): D-pad down and up walk the lists Build (with a Build Planner build active: its keystones, notables and jewel
 sockets not taken yet, in the build's order; the list opens with how far along you are, "Build, 16 of 60 taken, 13 points
-outside the build"), Taken outside the build (what you have that the build does not: the points a refund would bring back to
-it), Keystones, Notables, Jewel sockets and Reachable now, and left and right walk a
+outside the build"), Taken in the build (the build's nodes you already have, small ones too, in the build's order, each
+with its step: "Build: step 3 of 115. Attack Speed, …": the way made so far, to walk again), Taken outside the build (what
+you have that the build does not: the points a refund would bring back to it), Keystones, Notables, Jewel sockets and Reachable now, and left and right walk a
 list, those costing fewest points first. What it names is the target, with nothing to confirm: "Keystones. Scarred Faith, up
 left, middle ring, 8 points away. From here: up, 10 pushes". Then every node ends with the way, "Toward Scarred Faith: up left,
 4 pushes"; push the left stick that way and it counts down to "Arrived at Scarred Faith", where the game reads what it does.

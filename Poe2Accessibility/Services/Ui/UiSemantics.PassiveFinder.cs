@@ -85,13 +85,19 @@ namespace Poe2Accessibility.Services
 
             var way = this.WayTo(graph, atlas, record, this.finder.Target, MaxFinderPushes)?.Words(false) ?? string.Empty;
             var found = Announcements.PassiveFound(atlas.Nodes[target].Name, Where(atlas, target, steps), way);
+            if (this.finder.Category == PassiveCategory.BuildTaken && plan != null && BuildStep(this.finder.Target) is var step and < int.MaxValue)
+            {
+                // The way made is walked in the build's order: each node says which step of it it is.
+                found = $"{Announcements.BuildStep(step + 1, plan.Passives.Count)}. {found}";
+            }
+
             if (listStep == 0)
             {
                 return found;
             }
 
             var list = Announcements.PassiveCategoryName(this.finder.Category);
-            return Announcements.InContext(this.finder.Category == PassiveCategory.Build ? $"{list}, {BuildProgress(atlas, steps, marked)}" : list, found);
+            return Announcements.InContext(this.finder.Category is PassiveCategory.Build or PassiveCategory.BuildTaken ? $"{list}, {BuildProgress(atlas, steps, marked)}" : list, found);
         }
 
         /// <summary>How far along the active build the character is: its nodes taken, and the points spent outside it.</summary>
@@ -407,6 +413,7 @@ namespace Poe2Accessibility.Services
                     {
                         PassiveCategory.Build => marked.Contains(this.Nodes[index].Record) && steps[index] != 0 &&
                                                  this.Nodes[index].Class is PassiveClass.Keystone or PassiveClass.Notable or PassiveClass.JewelSocket,
+                        PassiveCategory.BuildTaken => marked.Contains(this.Nodes[index].Record) && steps[index] == 0 && !this.Nodes[index].IsStart,
                         PassiveCategory.OutsideBuild => marked.Count > 0 && steps[index] == 0 && !marked.Contains(this.Nodes[index].Record) && !this.Nodes[index].IsStart,
                         PassiveCategory.Keystones => this.Nodes[index].Class == PassiveClass.Keystone,
                         PassiveCategory.Notables => this.Nodes[index].Class == PassiveClass.Notable,
@@ -414,7 +421,7 @@ namespace Poe2Accessibility.Services
                         PassiveCategory.Reachable => steps[index] == 1,
                         _ => false,
                     })
-                    .OrderBy(index => category == PassiveCategory.Build ? buildStep(this.Nodes[index].Record) : 0)
+                    .OrderBy(index => category is PassiveCategory.Build or PassiveCategory.BuildTaken ? buildStep(this.Nodes[index].Record) : 0)
                     .ThenBy(index => steps[index] > 0 ? steps[index] : int.MaxValue)
                     .ThenBy(index => this.Nodes[index].Class)
                     .ThenBy(index => Vector2.Distance(this.Places.Positions[index], here))

@@ -19,6 +19,7 @@ namespace Poe2Accessibility
         public static string PassiveCategoryName(Services.PassiveCategory category) => category switch
         {
             Services.PassiveCategory.Build => T("Build", "Build"),
+            Services.PassiveCategory.BuildTaken => T("Taken in the build", "Asignados de la build"),
             Services.PassiveCategory.OutsideBuild => T("Taken outside the build", "Asignados fuera de la build"),
             Services.PassiveCategory.Keystones => T("Keystones", "Piedras angulares"),
             Services.PassiveCategory.Notables => T("Notables", "Notables"),
