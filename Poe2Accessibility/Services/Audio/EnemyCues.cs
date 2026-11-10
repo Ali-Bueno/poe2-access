@@ -298,6 +298,12 @@ namespace Poe2Accessibility.Services
                 return Seats.IsLocal(entity) || !this.Players ? null : CueSynth.Layer.Player;
             }
 
+            // A sign by the road is typed as a character and is none (the scanner lists it as an object, EntityCatalog.Classify).
+            if (entity.TryGetComponent<MinimapIcon>(out var icon) && icon.IconName == MinimapMarks.StoryGlyph)
+            {
+                return null;
+            }
+
             // A friendly monster with the NPC component is a character (Mortimer); corpses and minions have none.
             return entity.EntityType == EntityTypes.NPC || entity.TryGetComponent<NPC>(out _) ? CueSynth.Layer.Friend : null;
         }
