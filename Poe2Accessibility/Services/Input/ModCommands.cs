@@ -76,6 +76,12 @@ namespace Poe2Accessibility.Services
         public void OnGesture(PadGesture gesture)
         {
             this.log.Debug($"Mod button: {gesture}");
+            if (gesture == PadGesture.LongHold && this.WholeGrid() is { } grid)
+            {
+                this.output.Speak(grid, true);
+                return;
+            }
+
             if (gesture is PadGesture.Hold or PadGesture.LongHold && this.GameTakesTheHold())
             {
                 return;
@@ -102,6 +108,22 @@ namespace Poe2Accessibility.Services
             {
                 this.InGameplay(gesture);
             }
+        }
+
+        /// <summary>
+        ///     The focused grid read whole on the long hold; null off a grid, with the setting off, or while a search is lit
+        ///     where the hold is the game's: a stash's or a merchant's hold clears the search and does nothing without one
+        ///     (live 2026-11-10).
+        /// </summary>
+        private string? WholeGrid()
+        {
+            if (this.settingsMenu.IsOpen || this.Settings?.Invoke()?.ReadGridOnHold == false || this.focus.Current is not { } current ||
+                this.semantics.ReadGrid(current, out var searchLit) is not { } read)
+            {
+                return null;
+            }
+
+            return searchLit && this.GameTakesTheHold() ? null : read;
         }
 
         /// <summary>

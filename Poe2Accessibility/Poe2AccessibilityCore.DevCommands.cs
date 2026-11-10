@@ -447,6 +447,7 @@ namespace Poe2Accessibility
                     break;
                 case "focusinfo":
                     this.log?.Info($"Focus info: {(this.focus?.Current is { } focused ? this.semantics?.RawInfo(focused.Address) : "no focus")}");
+                    this.log?.Info($"Focused grid: {(this.focus?.Current is { } gridCell && this.semantics?.ReadGrid(gridCell, out _) is { } wholeGrid ? wholeGrid : "none")} | bases: {(this.focus?.Current is { } baseCell ? this.semantics?.GridBaseIds(baseCell) : string.Empty)}");
                     break;
                 case "camera":
                     this.LogCamera();
