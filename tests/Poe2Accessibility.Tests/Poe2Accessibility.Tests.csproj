@@ -172,6 +172,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\LayoutVerdict.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\AreaKind.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\PluginLog.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Core\TickCosts.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LandmarkTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Input\ControllerGlyphs.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\InlineIcons.cs" />

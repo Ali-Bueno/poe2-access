@@ -59,6 +59,10 @@ namespace Poe2Accessibility.Services
         private readonly CancellationTokenSource stop = new();
         private readonly Dictionary<IntPtr, string?> textureKeys = new();
         private readonly Stopwatch sinceSlowReport = Stopwatch.StartNew();
+        private readonly object snapshotCostsLock = new();
+        private int snapshots;
+        private double snapshotsMs;
+        private double slowestSnapshotMs;
         private volatile bool resetRequested;
 
         /// <summary>Counts resets: a capture or a change from before the last one belongs to the old screen and is dropped.</summary>
@@ -120,6 +124,19 @@ namespace Poe2Accessibility.Services
 
         public void Dispose() => this.stop.Cancel();
 
+        /// <summary>The snapshots taken since the last call (the dev command `costs`): how many, their average and slowest time.</summary>
+        public string TakeSnapshotCosts()
+        {
+            lock (this.snapshotCostsLock)
+            {
+                var line = this.snapshots == 0
+                    ? "Screen snapshots: none"
+                    : $"Screen snapshots: {this.snapshots}, {this.snapshotsMs / this.snapshots:0.0} ms average, slowest {this.slowestSnapshotMs:0.0} ms";
+                (this.snapshots, this.snapshotsMs, this.slowestSnapshotMs) = (0, 0, 0);
+                return line;
+            }
+        }
+
         private async Task RunAsync()
         {
             while (!this.stop.IsCancellationRequested)
@@ -137,6 +154,7 @@ namespace Poe2Accessibility.Services
                     var started = Volatile.Read(ref this.generation);
                     var timer = Stopwatch.StartNew();
                     var captured = this.Capture(this.root);
+                    this.CountSnapshot(timer.Elapsed.TotalMilliseconds);
                     this.ReportSlowSnapshot(timer.ElapsedMilliseconds, captured);
                     if (started != Volatile.Read(ref this.generation))
                     {
@@ -163,6 +181,16 @@ namespace Poe2Accessibility.Services
 
         private static bool IsIgnored(string controlName) =>
             controlName.Length > 0 && Array.Exists(IgnoredControlPrefixes, prefix => controlName.StartsWith(prefix, StringComparison.Ordinal));
+
+        private void CountSnapshot(double ms)
+        {
+            lock (this.snapshotCostsLock)
+            {
+                this.snapshots++;
+                this.snapshotsMs += ms;
+                this.slowestSnapshotMs = Math.Max(this.slowestSnapshotMs, ms);
+            }
+        }
 
         /// <summary>A snapshot slower than SlowSnapshotMs is logged at most once per SlowReportIntervalMs (cost of walking big screens).</summary>
         private void ReportSlowSnapshot(long elapsedMs, ScreenSnapshot snapshot)

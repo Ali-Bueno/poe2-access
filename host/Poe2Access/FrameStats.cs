@@ -20,6 +20,8 @@ namespace Poe2Access
         private long since = Stopwatch.GetTimestamp();
         private TimeSpan cpuSince = Process.GetCurrentProcess().TotalProcessorTime;
         private Dictionary<string, long> readsSince = new(HostFrame.MemoryReadsByType);
+        private int[] collectionsSince = Collections();
+        private TimeSpan pausedSince = GC.GetTotalPauseDuration();
         private int frames;
         private long total;
         private long slowest;
@@ -47,6 +49,9 @@ namespace Poe2Access
 
         private static double Ms(long ticks) => ticks * 1000.0 / Stopwatch.Frequency;
 
+        /// <summary>The garbage collections so far, one count per generation (a collection of one counts in those under it too).</summary>
+        private static int[] Collections() => Enumerable.Range(0, GC.MaxGeneration + 1).Select(GC.CollectionCount).ToArray();
+
         private void Report(long now)
         {
             this.self.Refresh();
@@ -57,14 +62,20 @@ namespace Poe2Access
                 .OrderByDescending(pair => pair.Count).ToList();
             var topReads = string.Join(", ", readsPerFrame.Take(ReadTypesLogged).Select(pair => $"{pair.Key} {pair.Count}"));
             var parts = string.Join(", ", HostFrame.StepNames.Select((name, i) => $"{name} {Ms(this.Steps[i]) / this.frames:0.00}"));
+            var collections = Collections();
+            var collected = string.Join("/", collections.Select((count, generation) => count - this.collectionsSince[generation]));
+            var paused = GC.GetTotalPauseDuration();
             HostLog.Line(
                 $"Frames: {this.frames} in {wall:0} s, {Ms(this.total) / this.frames:0.00} ms each ({parts}), slowest {Ms(this.slowest):0.0} ms, " +
-                $"{this.overBudget} over {BudgetMs:0.0} ms; {readsPerFrame.Sum(pair => pair.Count)} reads per frame ({topReads}); " +
+                $"{this.overBudget} over {BudgetMs:0.0} ms; GC {collected} (gen 0/1/2), {(paused - this.pausedSince).TotalMilliseconds:0.0} ms paused; " +
+                $"{readsPerFrame.Sum(pair => pair.Count)} reads per frame ({topReads}); " +
                 $"CPU {(cpu - this.cpuSince).TotalSeconds / wall * 100:0.0}% of one core, " +
                 $"{this.self.WorkingSet64 / (1024 * 1024)} MB; {HostFrame.GameState}{(HostFrame.GameForeground ? string.Empty : ", game in background")}");
             this.since = now;
             this.cpuSince = cpu;
             this.readsSince = reads;
+            this.collectionsSince = collections;
+            this.pausedSince = paused;
             this.frames = 0;
             this.total = 0;
             this.slowest = 0;

@@ -190,7 +190,11 @@ namespace Poe2Accessibility
                 this.ReportTickFault(service, ex);
             }
 
-            this.tickCosts.Add(service, System.Diagnostics.Stopwatch.GetTimestamp() - start);
+            var ticks = System.Diagnostics.Stopwatch.GetTimestamp() - start;
+            if (this.tickCosts.Add(service, ticks, Environment.TickCount64))
+            {
+                this.log?.Info($"Slow tick: {service} took {ticks * 1000.0 / System.Diagnostics.Stopwatch.Frequency:0.0} ms");
+            }
         }
 
         private void ReportTickFault(string service, Exception ex)

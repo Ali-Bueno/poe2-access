@@ -403,6 +403,7 @@ namespace Poe2Accessibility
                     break;
                 case "costs":
                     this.log?.Info(this.tickCosts.Report(25));
+                    this.log?.Info(this.screen?.TakeSnapshotCosts() ?? "Screen snapshots: no watcher");
                     break;
                 case "flasks":
                     this.log?.Info(this.flasks?.Diagnose() ?? "Flasks off");
