@@ -81,6 +81,28 @@ namespace Poe2Accessibility.Services
         public bool WantsNode(string passiveId) => this.nodeCheck.Wants(passiveId);
 
         /// <summary>
+        ///     Gets a value indicating whether a node whose row differs from the files is said from its row: once enough nodes
+        ///     were compared and most agree. The rows are then seen to read right, so the one that differs is the game's own
+        ///     word on a node the catalog has from an older build; while most differ it is the rows' columns that moved, and
+        ///     the files are said (the rule of the skills' names, <see cref="SkillNameCheck"/>).
+        /// </summary>
+        public bool RowsDecide { get; private set; }
+
+        /// <summary>Nodes said from their row against the files, logged once each (a patch changes a few).</summary>
+        private readonly HashSet<string> ownRows = new(StringComparer.Ordinal);
+
+        private const int OwnRowsLogged = 32;
+
+        /// <summary>A node said from its row because it differs from the files there (<see cref="RowsDecide"/>).</summary>
+        public void NoteOwnRow(string passiveId, string difference)
+        {
+            if (this.ownRows.Count < OwnRowsLogged && this.ownRows.Add(passiveId))
+            {
+                this.Log?.Invoke($"Passive tree catalog: {passiveId} differs from the game files ({difference}); the game's row is said");
+            }
+        }
+
+        /// <summary>
         ///     One node read from the files and from its row; <paramref name="difference"/> null when they agree. Logged once
         ///     when enough were compared; when most differ the row's columns are not where they are read (or the catalog is
         ///     another build's), said as any column nothing judged is.
@@ -92,13 +114,15 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            this.RowsDecide = verdict.RowsDecide;
             if (verdict.Disagreeing == 0)
             {
                 this.Log?.Invoke($"Passive tree catalog: the game files and the rows in memory agree on {verdict.Compared} nodes");
                 return;
             }
 
-            this.Log?.Invoke($"Passive tree catalog: the game files and the rows in memory DISAGREE on {verdict.Disagreeing} of {verdict.Compared} nodes (first {verdict.First}); the files' are said");
+            this.Log?.Invoke($"Passive tree catalog: the game files and the rows in memory DISAGREE on {verdict.Disagreeing} of {verdict.Compared} nodes (first {verdict.First}); " +
+                             (verdict.MostDisagree ? "the files' are said" : "a node whose row differs is said from its row"));
             if (verdict.MostDisagree)
             {
                 this.Report?.Missing(DatColumns.UnjudgedPart);
@@ -381,6 +405,8 @@ namespace Poe2Accessibility.Services
             (this.graphEdges, this.recordEdges, this.recordEdgesKnown) = (null, null, false);
             (this.edgesRetryAt, this.edgesFailures, this.allocatedRetryAt, this.allocatedFailures, this.nextWideFileAt) = (0, 0, 0, 0, 0);
             this.nodeCheck.Reset();
+            this.RowsDecide = false;
+            this.ownRows.Clear();
             (this.linksCompared, this.edgesFromFiles) = (false, false);
         }
 
