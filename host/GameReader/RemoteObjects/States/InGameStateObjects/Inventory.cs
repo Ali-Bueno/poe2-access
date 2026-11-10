@@ -122,7 +122,12 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             {
                 if (invItemPtr != IntPtr.Zero)
                 {
-                    var invItem = reader.ReadMemory<InventoryItemStruct>(invItemPtr);
+                    // The list is torn while an area loads: a cell that cannot be read is skipped, without a log line each.
+                    if (!reader.TryReadMemory<InventoryItemStruct>(invItemPtr, out var invItem))
+                    {
+                        continue;
+                    }
+
                     if (this.Items.ContainsKey(invItemPtr))
                     {
                         this.Items[invItemPtr].Address = invItem.Item;
