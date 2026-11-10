@@ -58,7 +58,7 @@ namespace Poe2Accessibility.Services
             }
 
             parts.AddRange(texts.Where(text => text.Name != GameLayout.InGameUi.ShopEntryNameLabel && text.Name != GameLayout.InGameUi.ShopEntryPriceLabel)
-                .Select(text => text.Text));
+                .Select(text => ShopPurchase.CardLine(text.Name, text.Text)));
             return name.Length > 0 ? (name, string.Join(", ", parts), this.ShopEntryPosition(entry)) : null;
         }
 

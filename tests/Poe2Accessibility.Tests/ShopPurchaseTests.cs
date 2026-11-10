@@ -14,6 +14,7 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(TheBuyButtonSaysWhatItBuysAndForHowMuch), TheBuyButtonSaysWhatItBuysAndForHowMuch),
             (nameof(PressedItAsksToConfirmWithTheItemsName), PressedItAsksToConfirmWithTheItemsName),
+            (nameof(ACardsFlagsAreWords), ACardsFlagsAreWords),
         };
 
         private static void TheBuyButtonSaysWhatItBuysAndForHowMuch()
@@ -55,6 +56,25 @@ namespace Poe2Accessibility.Tests
             {
                 Localization.Detect("en");
             }
+        }
+
+        private static void ACardsFlagsAreWords()
+        {
+            Localization.Detect("es");
+            try
+            {
+                Equal("3 variantes", ShopPurchase.CardLine(GameLayout.InGameUi.ShopVariantCountLabel, "x3"), "the badge of an item sold in variants");
+                Equal("Ya lo tienes", ShopPurchase.CardLine(GameLayout.InGameUi.ShopOwnedLabel, "- Ya lo tienes -"), "dashes are drawing");
+                Equal("¡NUEVO!", ShopPurchase.CardLine("new_flag_label", "¡NUEVO!"), "any other line as shown");
+                Equal("x3", ShopPurchase.CardLine("count_label", "x3"), "x3 elsewhere is not a count of variants");
+            }
+            finally
+            {
+                Localization.Detect("en");
+            }
+
+            Equal(true, ShopPurchase.IsAmount("150") && ShopPurchase.IsAmount("1.250") && ShopPurchase.IsAmount("200-230"), "points and a range of them");
+            Equal(false, ShopPurchase.IsAmount("Confirmar") || ShopPurchase.IsAmount(string.Empty) || ShopPurchase.IsAmount("27/27"), "a caption and a count are no price");
         }
     }
 }
