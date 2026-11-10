@@ -497,13 +497,14 @@ internal static class EndgameExtractor
             c.BiomeName = search.Text(biomes, "EndgameMapBiomes.Name", BiomeNameOffset, NotArt);
 
             // The known area's map row and the known node's Atlas row, looked up through the measured key columns (-1 when they moved: no value check then).
+            // Raw reads: counted as column reads, the audit judged the measured place after a move the search had followed, and failed the step.
             var area = DatColumnSearch.RowOf(areas, KnownArea);
-            var map = area >= 0 ? Enumerable.Range(0, maps.RowCount).FirstOrDefault(row => maps.Int64(row, MapAreaOffset) == area, -1) : -1;
+            var map = area >= 0 ? Enumerable.Range(0, maps.RowCount).FirstOrDefault(row => maps.Raw64(row, MapAreaOffset) == area, -1) : -1;
             c.MapArea = search.Key(maps, "EndgameMaps.WorldArea", MapAreaOffset, areas);
             c.MapPin = search.Key(maps, "EndgameMaps.MapPin", MapPinOffset, pins, c.MapArea, (map, Named(pins, "Hub")));
 
             var passive = DatColumnSearch.RowOf(passives, KnownNode);
-            var node = passive >= 0 ? Enumerable.Range(0, atlas.RowCount).FirstOrDefault(row => atlas.Int64(row, NodePassiveOffset) == passive, -1) : -1;
+            var node = passive >= 0 ? Enumerable.Range(0, atlas.RowCount).FirstOrDefault(row => atlas.Raw64(row, NodePassiveOffset) == passive, -1) : -1;
             c.NodePassive = search.Key(atlas, "EndgameMapAtlas.Passives", NodePassiveOffset, passives);
             c.NodeMaps = search.KeyList(atlas, "EndgameMapAtlas.Maps", NodeMapsOffset, maps, c.NodePassive, (node, list => list.Count > 0));
             c.NodeBiomes = search.KeyList(atlas, "EndgameMapAtlas.Biomes", NodeBiomesOffset, biomes, c.NodeMaps, (node, list => list.Count > 0));
