@@ -117,7 +117,10 @@ namespace Poe2Accessibility.Services
                 }
 
                 this.barriers.Apply(stable);
-                this.stable = (this.newestSample, stable);
+                // Kept under the newest sample only when it was made from that sample alone: a combination of different
+                // samples (a door that just opened still reads closed) must be made again once they all agree, or the
+                // door would stay closed for routes.
+                this.stable = (this.samples.All(sample => ReferenceEquals(sample, this.newestSample)) ? this.newestSample : stable, stable);
                 return stable;
             }
         }
