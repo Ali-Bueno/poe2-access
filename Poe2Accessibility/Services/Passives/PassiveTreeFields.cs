@@ -48,6 +48,7 @@ namespace Poe2Accessibility.Services
         private readonly int measuredContent = GameLayout.PassiveTree.GraphContentOffset;
         private readonly int measuredEdges = GameLayout.PassiveTree.EdgeListOffset;
         private readonly int measuredAllocated = GameLayout.PassiveTree.AllocatedOffset;
+        private readonly (int In, int Out) measuredRecordEdges = (GameLayout.PassiveTree.RecordInEdgesOffset, GameLayout.PassiveTree.RecordOutEdgesOffset);
         private bool fileKnown;
         private bool edgesKnown;
         private bool allocatedKnown;
@@ -107,6 +108,7 @@ namespace Poe2Accessibility.Services
             if (this.EdgesAt(graphFile, GameLayout.PassiveTree.GraphContentOffset, GameLayout.PassiveTree.EdgeListOffset, minEdges) is { } edges)
             {
                 this.Settle(ref this.edgesKnown, "passive tree links", this.measuredEdges, GameLayout.PassiveTree.EdgeListOffset);
+                this.graphEdges = edges;
                 return edges;
             }
 
@@ -148,6 +150,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public void JudgeAllocated(IntPtr state, IReadOnlyCollection<IntPtr> records)
         {
+            this.JudgeRecordEdges(records);
             if (this.allocatedKnown || records.Count == 0 || Environment.TickCount64 < this.allocatedRetryAt)
             {
                 return;
@@ -207,6 +210,72 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>
+        ///     Judges, off the frame thread, where a node record keeps its own edge vectors against the graph file's edge list
+        ///     (<see cref="RecordEdgesSearch"/>): kept or moved when the two agree. When nothing fits it is only logged, as the
+        ///     stick order then comes from the file's list and nothing read is wrong.
+        /// </summary>
+        private void JudgeRecordEdges(IReadOnlyCollection<IntPtr> records)
+        {
+            if (this.recordEdgesKnown || this.graphEdges is not { } edges || records.Count == 0)
+            {
+                return;
+            }
+
+            if (this.recordEdges == null)
+            {
+                var snapshot = records.Take(MaxRecordSamples).ToList();
+                this.recordEdges = Task.Run(() => this.FindRecordEdges(edges, snapshot));
+                return;
+            }
+
+            if (!this.recordEdges.IsCompleted)
+            {
+                return;
+            }
+
+            this.recordEdgesKnown = true; // judged once per game process: the graph does not change while it runs
+            var found = this.recordEdges.IsCompletedSuccessfully ? this.recordEdges.Result : null;
+            if (found is not { } place)
+            {
+                this.Log?.Invoke("Passive node links: the records' own edge lists were not judged or fit nowhere; the stick order comes from the graph file's list");
+                return;
+            }
+
+            (GameLayout.PassiveTree.RecordInEdgesOffset, GameLayout.PassiveTree.RecordOutEdgesOffset) = place;
+            var known = false;
+            var moved = place.In != this.measuredRecordEdges.In ? (this.measuredRecordEdges.In, place.In) : (this.measuredRecordEdges.Out, place.Out);
+            this.Settle(ref known, "passive node links", moved.Item1, moved.Item2);
+        }
+
+        /// <summary>For a worker thread: counts each record's edges in the graph's list, then looks for the vectors that hold as many.</summary>
+        private (int In, int Out)? FindRecordEdges(StdVector edges, IReadOnlyList<IntPtr> records)
+        {
+            var count = (int)Math.Min((edges.Last.ToInt64() - edges.First.ToInt64()) / IntPtr.Size, MaxEdges);
+            var (into, from) = (new Dictionary<long, int>(), new Dictionary<long, int>());
+            foreach (var edge in this.reader.ReadArray<IntPtr>(edges.First, count))
+            {
+                if (this.reader.ReadArray<long>(edge, 2) is { Length: 2 } ends)
+                {
+                    from[ends[0]] = from.GetValueOrDefault(ends[0]) + 1;
+                    into[ends[1]] = into.GetValueOrDefault(ends[1]) + 1;
+                }
+            }
+
+            var samples = records
+                .Select(record => new RecordEdgesSearch.Sample(record.ToInt64(), this.reader.ReadBytes(record, RecordBytes), into.GetValueOrDefault(record.ToInt64()), from.GetValueOrDefault(record.ToInt64())))
+                .Where(sample => sample.Block.Length > 0)
+                .ToList();
+            return RecordEdgesSearch.Find(samples, this.measuredRecordEdges, Step, (address, pointers) => this.reader.ReadArray<long>(new IntPtr(address), pointers));
+        }
+
+        /// <summary>Records the edge vectors are judged on, and the bytes of each that are searched (the vectors were measured at 0x38 and 0x50).</summary>
+        private const int MaxRecordSamples = 64;
+        private const int RecordBytes = 0x100;
+        private StdVector? graphEdges;
+        private Task<(int In, int Out)?>? recordEdges;
+        private bool recordEdgesKnown;
+
         private const int AllocatedRetryMs = 10_000;
         private const int AllocatedFailuresToSay = 2;
         private long allocatedRetryAt;
@@ -240,12 +309,15 @@ namespace Poe2Accessibility.Services
             GameLayout.PassiveTree.EdgeListOffset = this.measuredEdges;
             GameLayout.PassiveTree.AllocatedOffset = this.measuredAllocated;
             (this.fileKnown, this.edgesKnown, this.allocatedKnown, this.graphIds) = (false, false, false, null);
+            (GameLayout.PassiveTree.RecordInEdgesOffset, GameLayout.PassiveTree.RecordOutEdgesOffset) = this.measuredRecordEdges;
+            (this.graphEdges, this.recordEdges, this.recordEdgesKnown) = (null, null, false);
             (this.edgesRetryAt, this.edgesFailures, this.allocatedRetryAt, this.allocatedFailures, this.nextWideFileAt) = (0, 0, 0, 0, 0);
         }
 
         /// <summary>Research (dev command "layout"): which of the tree's fields have been judged.</summary>
         public string SelfTest() =>
-            $"passive tree graph {(this.fileKnown ? "ok" : "not judged yet")}; links {(this.edgesKnown ? "ok" : "not judged yet")}; allocations {(this.allocatedKnown ? "ok" : "not judged yet (needs an allocated node)")}";
+            $"passive tree graph {(this.fileKnown ? "ok" : "not judged yet")}; links {(this.edgesKnown ? "ok" : "not judged yet")}; allocations {(this.allocatedKnown ? "ok" : "not judged yet (needs an allocated node)")}; " +
+            $"node links {(this.recordEdgesKnown ? $"judged (+0x{GameLayout.PassiveTree.RecordInEdgesOffset:X}, +0x{GameLayout.PassiveTree.RecordOutEdgesOffset:X})" : "not judged yet")}";
 
         private IntPtr? IsGraphFile(IntPtr state, int offset) =>
             this.reader.TryRead<IntPtr>(state + offset, out var file) && this.NamesGraph(file) ? file : null;

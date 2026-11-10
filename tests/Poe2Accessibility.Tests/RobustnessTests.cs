@@ -13,7 +13,7 @@ namespace Poe2Accessibility.Tests
     /// </summary>
     public static partial class RobustnessTests
     {
-        public static IEnumerable<(string Name, Action Test)> All() => Readings().Concat(Wide());
+        public static IEnumerable<(string Name, Action Test)> All() => Readings().Concat(Wide()).Concat(Checks());
 
         private static IEnumerable<(string Name, Action Test)> Readings() => new (string, Action)[]
         {

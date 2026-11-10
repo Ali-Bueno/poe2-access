@@ -41,5 +41,27 @@ namespace Poe2Accessibility.Services
 
             return found;
         }
+
+        /// <summary>
+        ///     Whether an element belongs to the tree its UI manager shows: climbing its parents (<paramref name="parentOf"/>, 0 at
+        ///     the top) ends at an element whose manager (<paramref name="managerOf"/>) holds that element as its root
+        ///     (<paramref name="rootOf"/>). A pointer that must lead back: an element of a stale or foreign tree does not.
+        /// </summary>
+        public static bool LeadsBack(long element, Func<long, long> parentOf, Func<long, long> managerOf, Func<long, long> rootOf, int maxDepth = 32)
+        {
+            var top = element;
+            for (var depth = 0; depth < maxDepth && top != 0; depth++)
+            {
+                var parent = parentOf(top);
+                if (parent == 0)
+                {
+                    return managerOf(top) is var manager && manager != 0 && rootOf(manager) == top;
+                }
+
+                top = parent;
+            }
+
+            return false;
+        }
     }
 }

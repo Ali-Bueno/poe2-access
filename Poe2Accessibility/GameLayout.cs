@@ -455,9 +455,9 @@ namespace Poe2Accessibility
             ///     the first then the second (RVA 0x9B9BA0 at 0x9B9DF0–0x9B9E4B, build 26476662); trusted only while every edge
             ///     names the record.
             /// </summary>
-            public const int RecordInEdgesOffset = 0x38;
+            public static int RecordInEdgesOffset { get; internal set; } = 0x38;
 
-            public const int RecordOutEdgesOffset = 0x50;
+            public static int RecordOutEdgesOffset { get; internal set; } = 0x50;
 
             /// <summary>
             ///     PassiveSkills row +0x66: 8 bytes the stick step compares with 0 (0x9B9DE2); non-zero skips its linked stage
@@ -525,7 +525,9 @@ namespace Poe2Accessibility
             public const int FileNameOffset = 0x8;
 
             /// <summary>ActiveSkillDetails → GrantedEffectsPerLevel (GameHelper's +0x48 reads ActionTypes in 0.5.5e).</summary>
-            public static int LevelKeyOffset { get; internal set; } = 0x58;
+            public const int MeasuredLevelKeyOffset = 0x58;
+
+            public static int LevelKeyOffset { get; internal set; } = MeasuredLevelKeyOffset;
 
             public const string LevelTable = "Data/Balance/GrantedEffectsPerLevel.dat";
 

@@ -61,6 +61,37 @@ namespace Poe2Accessibility.Services
             return OffsetSearch.NearThenWide(measured, radius, step, Fits, step, Limit(leaves), Fits);
         }
 
+        /// <summary>Elements of one tree that must agree before the pointer they share is taken for their manager.</summary>
+        public const int MinManagerNodes = 3;
+
+        /// <summary>
+        ///     Where the elements of one tree keep their UI manager: the place where every one of <paramref name="nodes"/> holds
+        ///     the same pointer and the object it leads to holds the tree's root back (<paramref name="holdsRoot"/>). Tried at
+        ///     <paramref name="expected"/> (where the control name's shift puts it), then nearby, then through the whole element;
+        ///     null when the elements are too few or no place has both facts.
+        /// </summary>
+        public static int? Manager(IReadOnlyList<byte[]> nodes, Func<long, bool> holdsRoot, int expected, int radius, int step)
+        {
+            bool Fits(int at)
+            {
+                long shared = 0;
+                foreach (var node in nodes)
+                {
+                    var pointer = at >= 0 && at + sizeof(long) <= node.Length ? BitConverter.ToInt64(node, at) : 0;
+                    if (pointer == 0 || (shared != 0 && pointer != shared))
+                    {
+                        return false;
+                    }
+
+                    shared = pointer;
+                }
+
+                return holdsRoot(shared);
+            }
+
+            return nodes.Count < MinManagerNodes ? null : OffsetSearch.NearThenWide(expected, radius, step, Fits, step, nodes.Min(node => node.Length), Fits);
+        }
+
         private static int Limit(IReadOnlyList<byte[]> blocks) => blocks.Count == 0 ? 0 : blocks.Max(block => block.Length);
     }
 }

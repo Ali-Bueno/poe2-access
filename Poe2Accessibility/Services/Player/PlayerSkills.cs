@@ -87,7 +87,7 @@ namespace Poe2Accessibility.Services
             for (var i = 0; i < count; i++)
             {
                 if (this.memory.TryRead<IntPtr>(first + (int)(i * GameLayout.ActorComponent.SkillEntrySize), out var details) && details != IntPtr.Zero &&
-                    DatKey.Row(this.memory, this.elements, details + GameLayout.SkillSlot.LevelKeyOffset, GameLayout.SkillSlot.LevelTable) is { } level &&
+                    SkillLevelKey.Row(this.memory, this.elements, details) is { } level &&
                     DatKey.Row(this.memory, this.elements, level + GameLayout.SkillSlot.EffectKeyOffset, GameLayout.SkillSlot.EffectTable) is { } effect &&
                     this.memory.TryRead<IntPtr>(effect + GameLayout.SkillSlot.EffectIdOffset, out var id) &&
                     this.elements.ReadUtf16BufferAt(id, MaxIdChars) is { Length: > 0 } text && !ids.Contains(text))

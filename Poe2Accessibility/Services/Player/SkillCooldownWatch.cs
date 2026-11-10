@@ -42,6 +42,8 @@ namespace Poe2Accessibility.Services
         private long lastPoll;
         private float[]? click;
         private bool entriesJudged;
+        private readonly IdLinkCheck idLink = new();
+        private HashSet<uint> skillIds = new();
         private int unreadEntries;
 
         /// <summary>Told whether the cooldown entries still read; only the player's watch has it.</summary>
@@ -84,6 +86,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.JudgeEntries(actor.Address);
+            this.JudgeIds(actor.Address);
             var ready = this.cooldowns.Update(usable, now).Select(id => names[id]).Distinct().ToList();
             if (ready.Count == 0)
             {
@@ -126,6 +129,42 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>
+        ///     A cooldown entry's skill id and the id in a skill's details have the game's code as their only check, each alone;
+        ///     together they have one more (<see cref="IdLinkCheck"/>): some entry must name one of the actor's skills.
+        /// </summary>
+        private void JudgeIds(IntPtr actor)
+        {
+            if (this.Report == null || this.idLink.Proved || this.idLink.Lost)
+            {
+                return;
+            }
+
+            var area = GameReader.Core.States.InGameStateObject.CurrentAreaInstance.Address.ToInt64();
+            if (!this.idLink.Observe(area, this.Cooldowns(actor).Select(entry => entry.Id).ToList(), this.skillIds))
+            {
+                return;
+            }
+
+            // Said as the cooldowns: a skill whose id no entry names never says it is ready.
+            if (this.idLink.Proved)
+            {
+                this.log.Info("Layout: skill ids where measured (a cooldown entry names a listed skill)");
+            }
+            else
+            {
+                this.log.Warn($"Layout: skill ids NOT FOUND: no cooldown entry names one of the {this.skillIds.Count} listed skills, in two areas");
+                this.Report.Missing(EntriesPart);
+            }
+        }
+
+        /// <summary>A new game process: the fields are judged again.</summary>
+        public void ResetLayout()
+        {
+            this.idLink.Reset();
+            (this.entriesJudged, this.unreadEntries) = (false, 0);
+        }
+
         /// <summary>Research (dev command "cooldowns"): each cooldown entry with its skill's name, and the named skills' ids.</summary>
         public string Diagnose()
         {
@@ -158,17 +197,24 @@ namespace Poe2Accessibility.Services
         private Dictionary<uint, string> ReadNames(IntPtr actor)
         {
             var names = new Dictionary<uint, string>();
+            var ids = new HashSet<uint>();
             foreach (var details in this.Vector(actor + GameLayout.ActorComponent.SkillsOffset, GameLayout.ActorComponent.SkillEntrySize, MaxSkills) ?? new List<IntPtr>())
             {
-                if (this.memory.TryRead<IntPtr>(details, out var skill) && skill != IntPtr.Zero &&
-                    this.memory.TryRead<uint>(skill + GameLayout.SkillSlot.SkillIdOffset, out var id) &&
-                    DatKey.Row(this.memory, this.elements, skill + GameLayout.SkillSlot.LevelKeyOffset, GameLayout.SkillSlot.LevelTable) is { } level &&
+                if (!this.memory.TryRead<IntPtr>(details, out var skill) || skill == IntPtr.Zero ||
+                    !this.memory.TryRead<uint>(skill + GameLayout.SkillSlot.SkillIdOffset, out var id))
+                {
+                    continue;
+                }
+
+                ids.Add(id);
+                if (SkillLevelKey.Row(this.memory, this.elements, skill) is { } level &&
                     PlayerSkills.DisplayedName(this.memory, this.elements, level) is { Length: > 0 } name)
                 {
                     names.TryAdd(id, name);
                 }
             }
 
+            this.skillIds = ids;
             return names;
         }
 

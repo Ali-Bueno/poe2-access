@@ -30,6 +30,10 @@ namespace Poe2Accessibility.Services
         private const int MaxWalkNodes = 3000;
         private const string LayerRootsPart = "in-game layer roots";
         private const string FocusPart = "UI focus";
+        private const string ManagerFieldPart = "element manager";
+
+        /// <summary>Elements the manager pointer is judged on: the root and the first of its children and theirs.</summary>
+        private const int MaxManagerNodes = 16;
 
         /// <summary>A layer container's children carry at least this many known layer names.</summary>
         private const int MinLayerNames = 2;
@@ -205,8 +209,10 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var nearPad = OffsetSearch.First(padNow, ManagerScanBytes, Step, Holds, Step);
-            var nearMouse = OffsetSearch.First(mouseNow, ManagerScanBytes, Step, Holds, Step);
+            // A slot found elsewhere needs a second fact: its element climbs to the root its UI manager shows.
+            bool HoldsLinked(int offset) => Holds(offset) && this.LeadsToManagerRoot(slots[offset / IntPtr.Size]);
+            var nearPad = OffsetSearch.First(padNow, ManagerScanBytes, Step, HoldsLinked, Step);
+            var nearMouse = OffsetSearch.First(mouseNow, ManagerScanBytes, Step, HoldsLinked, Step);
             if ((nearPad ?? nearMouse) is null)
             {
                 this.report.Missing(LayerRootsPart);
@@ -284,6 +290,13 @@ namespace Poe2Accessibility.Services
             return own;
         }
 
+        /// <summary>Whether the element's parents end at the root its own UI manager holds (<see cref="LayerSlots.LeadsBack"/>).</summary>
+        private bool LeadsToManagerRoot(IntPtr element) => LayerSlots.LeadsBack(
+            element.ToInt64(),
+            child => this.elements.TryReadElement(new IntPtr(child), out var info) ? info.Raw.ParentPtr.ToInt64() : 0,
+            top => this.reader.TryRead<IntPtr>(new IntPtr(top) + GameLayout.Element.ManagerOffset, out var manager) && this.reader.IsValidAddress(manager) ? manager.ToInt64() : 0,
+            manager => this.reader.TryRead<IntPtr>(new IntPtr(manager) + GameLayout.UiManager.RootOffset, out var held) ? held.ToInt64() : 0);
+
         /// <summary>An element whose children carry at least two of the known layer names.</summary>
         private bool IsLayerContainer(IntPtr candidate)
         {
@@ -331,6 +344,29 @@ namespace Poe2Accessibility.Services
             GameLayout.Element.TooltipsOffset = this.measuredTooltips + shift;
             this.namesKnown = true;
             this.Record("element names", this.measuredName, found);
+            this.JudgeManagerField(root);
+        }
+
+        /// <summary>
+        ///     The manager pointer follows the control name; here it is checked on its own (<see cref="ElementFieldSearch.Manager"/>):
+        ///     the first elements of the tree share one pointer there and that object holds their root. Found elsewhere, it is
+        ///     read from there; with nothing to judge it on it stays where the name's shift put it, and nothing is said.
+        /// </summary>
+        private void JudgeManagerField(IntPtr root)
+        {
+            var blocks = this.WideBlocks(this.NamedNodes(root).Take(MaxManagerNodes), GameLayout.Element.ManagerOffset + IntPtr.Size);
+            bool HoldsRoot(long pointer)
+            {
+                var manager = new IntPtr(pointer);
+                return manager != root && this.reader.IsValidAddress(manager) && !this.elements.IsElement(manager) &&
+                       Array.IndexOf(this.reader.ReadArray<IntPtr>(manager, ManagerScanBytes / IntPtr.Size), root) >= 0;
+            }
+
+            if (ElementFieldSearch.Manager(blocks, HoldsRoot, GameLayout.Element.ManagerOffset, Radius, Step) is { } found)
+            {
+                GameLayout.Element.ManagerOffset = found;
+                this.Record(ManagerFieldPart, this.measuredManager, found);
+            }
         }
 
         /// <summary>Label texts: the tagged text and two equal stripped copies (<see cref="UiElementReader.TryReadText(IntPtr, out string)"/>).</summary>
