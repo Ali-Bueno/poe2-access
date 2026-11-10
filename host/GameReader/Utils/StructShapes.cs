@@ -426,6 +426,13 @@ namespace GameReader.Utils
             return holds;
         }
 
+        /// <summary>
+        ///     Whether a text reads as a buff definition's id: letters, digits and underscores, as all 599 ids in
+        ///     catalog/buff-names.json (3 to 57 characters, some with capitals such as "AoD_beam_degen").
+        /// </summary>
+        public static bool IsBuffId(string text) =>
+            text.Length > 0 && text.All(letter => char.IsAsciiLetterOrDigit(letter) || letter == '_');
+
         private static bool IsId(string text) =>
             text.Length >= 3 && text.All(letter => letter is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '_');
     }

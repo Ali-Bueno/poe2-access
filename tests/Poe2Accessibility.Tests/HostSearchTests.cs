@@ -39,7 +39,21 @@ namespace Poe2Accessibility.Tests
             (nameof(TheInventoryIsNotItsBase), TheInventoryIsNotItsBase),
             (nameof(TheGameMenuIsOpenedAndClosedInPlay), TheGameMenuIsOpenedAndClosedInPlay),
             (nameof(StatesAreNamedFromTheRolesAroundThem), StatesAreNamedFromTheRolesAroundThem),
+            (nameof(OnlyABuffIdIsKeptAsABuffName), OnlyABuffIdIsKeptAsABuffName),
         };
+
+        private static void OnlyABuffIdIsKeptAsABuffName()
+        {
+            foreach (var id in new[] { "herald_of_thunder", "AoD_beam_degen", "hidden_monster", "PoEM_Act1Boss_void_debuff" })
+            {
+                Expect(true, StructShapes.IsBuffId(id), id);
+            }
+
+            foreach (var junk in new[] { string.Empty, "中文字", "flask effect", "a\u0001b", "buff�" })
+            {
+                Expect(false, StructShapes.IsBuffId(junk), $"'{junk}'");
+            }
+        }
 
         private static void TheGameMenuIsOpenedAndClosedInPlay()
         {

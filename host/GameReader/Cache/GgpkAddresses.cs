@@ -43,6 +43,21 @@ namespace GameReader.Cache
             throw new Exception($"Object tried to load 0x{key.ToInt64():X} in the cache.") :
             this.cache.GetOrAdd(key, valueFactory);
 
+        /// <summary>
+        ///     Gets the value kept for the key, or reads it and keeps it only when <paramref name="isSound"/> holds: a read that
+        ///     failed (a row freed or torn as it was read) is read again next time instead of kept for the rest of the area.
+        /// </summary>
+        public T GetOrRead(IntPtr key, Func<IntPtr, T> read, Func<T, bool> isSound)
+        {
+            if (this.cache.TryGetValue(key, out var kept))
+            {
+                return kept;
+            }
+
+            var value = read(key);
+            return isSound(value) ? this.cache.GetOrAdd(key, value) : value;
+        }
+
         /// <summary>Forgets every object read: a search moved a field they were read through.</summary>
         public void Clear() => this.cache.Clear();
 

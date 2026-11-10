@@ -78,11 +78,12 @@ namespace GameReader.RemoteObjects.Components
                     out _,
                     out var skillGemUnknownId);
 
-                var (effectName, effectType) = ((string, byte))Core.GgpkObjectCache.AddOrGetExisting(
-                    statusEffectData.BuffDefinationPtr, key =>
-                    {
-                        return this.GetNameFromBuffDefination(key);
-                    });
+                // A status effect freed after the list was read leaves a garbage definition pointer: a name read through it
+                // that is no buff id serves this frame only and is never kept for the area.
+                var (effectName, effectType) = ((string, byte))Core.GgpkObjectCache.GetOrRead(
+                    statusEffectData.BuffDefinationPtr,
+                    key => GetNameFromBuffDefination(key),
+                    definition => StructShapes.IsBuffId((((string Name, byte))definition).Name));
 
                 if (effectType != 0x4) // Flask Effect Type is 4.
                 {
@@ -123,11 +124,12 @@ namespace GameReader.RemoteObjects.Components
             });
         }
 
-        private (string, byte) GetNameFromBuffDefination(IntPtr addr)
+        private static (string, byte) GetNameFromBuffDefination(IntPtr addr)
         {
             var reader = Core.Process.Handle;
-            var data = reader.ReadMemory<BuffDefinitionsOffset>(addr);
-            return (reader.ReadUnicodeString(data.Name), data.BuffType);
+            return reader.TryReadMemory<BuffDefinitionsOffset>(addr, out var data)
+                ? (reader.ReadUnicodeString(data.Name), data.BuffType)
+                : (string.Empty, (byte)0);
         }
     }
 }
