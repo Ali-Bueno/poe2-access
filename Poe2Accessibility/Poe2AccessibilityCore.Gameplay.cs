@@ -34,126 +34,133 @@ namespace Poe2Accessibility
                 return;
             }
 
-            this.Isolated("enemy sounds", () =>
+            // Each part is a static lambda given the plugin and the frame's facts (Isolated): nothing is allocated to run it.
+            this.Isolated("enemy sounds", playing, static (core, playing) =>
             {
-                if (this.enemyCues != null)
+                if (core.enemyCues != null)
                 {
-                    this.enemyCues.Enemies = this.Settings.EnemySounds;
-                    this.enemyCues.Friends = this.Settings.NpcSounds;
-                    this.enemyCues.Players = this.Settings.PlayerSounds;
-                    this.enemyCues.Tick(playing && (this.Settings.EnemySounds || this.Settings.NpcSounds || this.Settings.MeleeReach));
+                    core.enemyCues.Enemies = core.Settings.EnemySounds;
+                    core.enemyCues.Friends = core.Settings.NpcSounds;
+                    core.enemyCues.Players = core.Settings.PlayerSounds;
+                    core.enemyCues.Tick(playing && (core.Settings.EnemySounds || core.Settings.NpcSounds || core.Settings.MeleeReach));
                 }
             });
-            this.Isolated("radar", () => this.radar?.Tick(playing && this.Settings.Radar));
-            this.Isolated("partner radar", () => this.partnerRadar?.Tick(
-                inWorld && this.Settings.Radar && Seats.Partner is { } partner && IsAlive(partner)));
-            this.Isolated("wall tones", () => this.wallTones?.Tick(playing && this.Settings.WallTones));
-            this.Isolated("fights", () => this.fights?.Tick(playing));
-            this.Isolated("nearby", () => this.nearby?.Tick(playing, this.Settings.AnnounceNearby, this.Settings.AnnounceInteractTarget));
-            this.Isolated("places", () => this.places?.Tick(playing, this.Settings.AnnouncePlaces));
-            this.Isolated("exploration", () =>
+            this.Isolated("radar", playing, static (core, playing) => core.radar?.Tick(playing && core.Settings.Radar));
+            this.Isolated("partner radar", inWorld, static (core, inWorld) => core.partnerRadar?.Tick(
+                inWorld && core.Settings.Radar && Seats.Partner is { } partner && IsAlive(partner)));
+            this.Isolated("wall tones", playing, static (core, playing) => core.wallTones?.Tick(playing && core.Settings.WallTones));
+            this.Isolated("fights", playing, static (core, playing) => core.fights?.Tick(playing));
+            this.Isolated("nearby", playing, static (core, playing) => core.nearby?.Tick(playing, core.Settings.AnnounceNearby, core.Settings.AnnounceInteractTarget));
+            this.Isolated("places", playing, static (core, playing) => core.places?.Tick(playing, core.Settings.AnnouncePlaces));
+            this.Isolated("exploration", playing, static (core, playing) =>
             {
                 if (playing)
                 {
-                    this.entities?.Track();
+                    core.entities?.Track();
                 }
             });
-            this.Isolated("beacon", () =>
+            this.Isolated("beacon", playing, static (core, playing) =>
             {
-                if (this.beacon != null)
+                if (core.beacon != null)
                 {
-                    this.beacon.TurnPrompts = this.Settings.RoutePrompts;
-                    this.GuideToTimed(playing);
-                    this.beacon.Tick(playing);
+                    core.beacon.TurnPrompts = core.Settings.RoutePrompts;
+                    core.GuideToTimed(playing);
+                    core.beacon.Tick(playing);
                 }
             });
-            this.Isolated("target", () =>
+            this.Isolated("target", playing, static (core, playing) =>
             {
-                var aiming = !this.padState.IsDown(GameLayout.PadButtons.LeftStick) && !(this.commands?.InSettingsMenu ?? false) &&
-                             MathF.Max(MathF.Abs(this.padState.RightX), MathF.Abs(this.padState.RightY)) >= AimDeflection;
-                if (this.targets != null)
+                var aiming = !core.padState.IsDown(GameLayout.PadButtons.LeftStick) && !(core.commands?.InSettingsMenu ?? false) &&
+                             MathF.Max(MathF.Abs(core.padState.RightX), MathF.Abs(core.padState.RightY)) >= AimDeflection;
+                if (core.targets != null)
                 {
-                    this.targets.Names = this.Settings.AnnounceTarget;
-                    this.targets.ModNames = this.Settings.AnnounceMonsterMods;
-                    this.targets.Beep = this.Settings.CrosshairBeep;
-                    this.targets.Tick(playing && (this.Settings.AnnounceTarget || this.Settings.CrosshairBeep), aiming);
+                    core.targets.Names = core.Settings.AnnounceTarget;
+                    core.targets.ModNames = core.Settings.AnnounceMonsterMods;
+                    core.targets.Beep = core.Settings.CrosshairBeep;
+                    core.targets.Tick(playing && (core.Settings.AnnounceTarget || core.Settings.CrosshairBeep), aiming);
                 }
             });
             if (this.InGame)
             {
-                this.Isolated("pick-ups", () => this.pickups?.Tick(playing && this.Settings.AnnouncePickups));
-                this.Isolated("hand", () => this.pickups?.TickHand(this.Settings.AnnounceHand));
-                this.Isolated("moves", () => this.pickups?.TickMoves(playing, this.Settings.AnnounceMoves));
-                this.Isolated("gold", () => this.gold?.Tick(this.focus?.LayerContainer ?? IntPtr.Zero, playing, this.Settings.AnnouncePickups));
-                this.Isolated("flasks", () => this.flasks?.Tick(playing, this.Settings.AnnounceFlasks));
+                this.Isolated("pick-ups", playing, static (core, playing) => core.pickups?.Tick(playing && core.Settings.AnnouncePickups));
+                this.Isolated("hand", static core => core.pickups?.TickHand(core.Settings.AnnounceHand));
+                this.Isolated("moves", playing, static (core, playing) => core.pickups?.TickMoves(playing, core.Settings.AnnounceMoves));
+                this.Isolated("gold", playing, static (core, playing) => core.gold?.Tick(core.focus?.LayerContainer ?? IntPtr.Zero, playing, core.Settings.AnnouncePickups));
+                this.Isolated("flasks", playing, static (core, playing) => core.flasks?.Tick(playing, core.Settings.AnnounceFlasks));
                 if (Seats.Partner is { } partner)
                 {
                     // The partner's own pick-ups, hand, moves and flasks, named (its menus are read for whoever moves in them).
                     var partnerPlaying = inWorld && IsAlive(partner);
-                    this.Isolated("partner pick-ups", () => this.partnerPickups?.Tick(partnerPlaying && this.Settings.AnnouncePickups));
-                    this.Isolated("partner hand", () => this.partnerPickups?.TickHand(this.Settings.AnnounceHand));
-                    this.Isolated("partner moves", () => this.partnerPickups?.TickMoves(partnerPlaying, this.Settings.AnnounceMoves));
-                    this.Isolated("partner flasks", () => this.partnerFlasks?.Tick(partnerPlaying, this.Settings.AnnounceFlasks));
+                    this.Isolated("partner pick-ups", partnerPlaying, static (core, playing) => core.partnerPickups?.Tick(playing && core.Settings.AnnouncePickups));
+                    this.Isolated("partner hand", static core => core.partnerPickups?.TickHand(core.Settings.AnnounceHand));
+                    this.Isolated("partner moves", partnerPlaying, static (core, playing) => core.partnerPickups?.TickMoves(playing, core.Settings.AnnounceMoves));
+                    this.Isolated("partner flasks", partnerPlaying, static (core, playing) => core.partnerFlasks?.Tick(playing, core.Settings.AnnounceFlasks));
                 }
-                this.Isolated("barriers", () => this.barriers?.Tick(this.Settings.AnnounceDiscoveries));
+
+                this.Isolated("barriers", static core => core.barriers?.Tick(core.Settings.AnnounceDiscoveries));
             }
 
-            this.Isolated("bosses", () =>
-            {
-                if (this.bosses != null)
-                {
-                    this.bosses.AnnounceLife = this.Settings.AnnounceBossLife;
-                    this.bosses.DodgeWarnings = this.Settings.DodgeWarnings;
-                    var now = Environment.TickCount64;
-                    this.trialScope.Saw(this.screen != null && this.narrator?.TrialShown(this.screen.Current) == true, now);
-                    var allMonsters = TrialDodgeScope.AllMonsters(this.Settings.DodgeWarningsAllMonsters, this.Settings.DodgeWarningsAllMonstersInTrials, this.trialScope.InTrial(now));
-                    if (allMonsters != this.bosses.AllMonsters)
-                    {
-                        this.log?.Info($"Dodge warnings for every monster: {(allMonsters ? "on" : "off")}{(this.trialScope.InTrial(now) ? " (a trial)" : string.Empty)}");
-                    }
-
-                    this.bosses.AllMonsters = allMonsters;
-                    this.bosses.ParryCues = this.Settings.ParryCues;
-                    this.bosses.UnblockableCues = this.Settings.UnblockableCues;
-                    this.bosses.CatalogDirectory = System.IO.Path.Join(this.DllDirectory, "catalog");
-                    this.bosses.Tick(playing);
-                    foreach (var (part, trust) in this.bosses.FieldNews())
-                    {
-                        // Each dodge field judged by its live check, said like any other part.
-                        if (trust == FieldTrust.Lost)
-                        {
-                            this.compatibility?.Missing(part);
-                        }
-                        else
-                        {
-                            this.compatibility?.Found(part);
-                        }
-                    }
-                }
-            });
-            this.Isolated("weak point", () => this.weakPoint?.Tick(playing && this.Settings.BossWeakPoint));
-            this.Isolated("hazards", () => this.hazards?.Tick(playing && this.Settings.HazardAlarm));
-            this.Isolated("shield", () => this.shield?.Tick(playing, this.Settings.ShieldSounds, this.Settings.AnnounceStunBar));
-            this.Isolated("cull", () => this.culls?.Tick(playing));
-            this.Isolated("deployed", () => this.deployed?.Tick(playing && this.Settings.DeployedCues));
-            this.Isolated("traps", () => this.traps?.Tick(playing && this.Settings.TrialTrapCues));
-            this.Isolated("trial doors", () => this.trialDoors?.Tick(playing && this.Settings.AnnounceTrialProgress, this.Settings.GuideTrialDoors));
-            this.Isolated("enemy states", () => this.enemyStates?.Tick(playing, this.Settings.EnemyStateCues, this.Settings.PrimedStunCues));
-            this.Isolated("object sounds", () => this.objectSounds?.Tick(playing && this.Settings.ObjectSounds));
+            this.Isolated("bosses", playing, static (core, playing) => core.TickBosses(playing));
+            this.Isolated("weak point", playing, static (core, playing) => core.weakPoint?.Tick(playing && core.Settings.BossWeakPoint));
+            this.Isolated("hazards", playing, static (core, playing) => core.hazards?.Tick(playing && core.Settings.HazardAlarm));
+            this.Isolated("shield", playing, static (core, playing) => core.shield?.Tick(playing, core.Settings.ShieldSounds, core.Settings.AnnounceStunBar));
+            this.Isolated("cull", playing, static (core, playing) => core.culls?.Tick(playing));
+            this.Isolated("deployed", playing, static (core, playing) => core.deployed?.Tick(playing && core.Settings.DeployedCues));
+            this.Isolated("traps", playing, static (core, playing) => core.traps?.Tick(playing && core.Settings.TrialTrapCues));
+            this.Isolated("trial doors", playing, static (core, playing) => core.trialDoors?.Tick(playing && core.Settings.AnnounceTrialProgress, core.Settings.GuideTrialDoors));
+            this.Isolated("enemy states", playing, static (core, playing) => core.enemyStates?.Tick(playing, core.Settings.EnemyStateCues, core.Settings.PrimedStunCues));
+            this.Isolated("object sounds", playing, static (core, playing) => core.objectSounds?.Tick(playing && core.Settings.ObjectSounds));
             // A town is not explored; the guide, while it leads, is the one sound to follow.
-            this.Isolated("lost hint", () => this.lostHint?.Tick(
-                playing && this.Settings.LostHint && this.beacon?.Target == null && !InTownOrHideout(),
-                this.fights?.InFight(FightState.AnyEnemy) == true));
-            this.Isolated("map hints", () => this.mapHints?.Tick(playing && this.Settings.MapHints && !InTownOrHideout()));
-            this.Isolated("discoveries", () => this.discoveries?.Tick(playing && this.Settings.AnnounceDiscoveries));
-            this.Isolated("enemy news", () => this.enemyNews?.Tick(playing && this.Settings.AnnounceEnemies));
-            this.Isolated("wall bump", () =>
+            this.Isolated("lost hint", playing, static (core, playing) => core.lostHint?.Tick(
+                playing && core.Settings.LostHint && core.beacon?.Target == null && !core.InTownOrHideout(),
+                core.fights?.InFight(FightState.AnyEnemy) == true));
+            this.Isolated("map hints", playing, static (core, playing) => core.mapHints?.Tick(playing && core.Settings.MapHints && !core.InTownOrHideout()));
+            this.Isolated("discoveries", playing, static (core, playing) => core.discoveries?.Tick(playing && core.Settings.AnnounceDiscoveries));
+            this.Isolated("enemy news", playing, static (core, playing) => core.enemyNews?.Tick(playing && core.Settings.AnnounceEnemies));
+            this.Isolated("wall bump", playing, static (core, playing) =>
             {
                 if (playing)
                 {
-                    this.wallBump?.Tick(this.padState.LeftX, this.padState.LeftY, this.Settings.WallBump);
+                    core.wallBump?.Tick(core.padState.LeftX, core.padState.LeftY, core.Settings.WallBump);
                 }
             });
+        }
+
+        /// <summary>The bosses' part of the frame: its settings, the trial's dodge scope, the tick, and what its field checks found.</summary>
+        private void TickBosses(bool playing)
+        {
+            if (this.bosses == null)
+            {
+                return;
+            }
+
+            this.bosses.AnnounceLife = this.Settings.AnnounceBossLife;
+            this.bosses.DodgeWarnings = this.Settings.DodgeWarnings;
+            var now = Environment.TickCount64;
+            this.trialScope.Saw(this.screen != null && this.narrator?.TrialShown(this.screen.Current) == true, now);
+            var allMonsters = TrialDodgeScope.AllMonsters(this.Settings.DodgeWarningsAllMonsters, this.Settings.DodgeWarningsAllMonstersInTrials, this.trialScope.InTrial(now));
+            if (allMonsters != this.bosses.AllMonsters)
+            {
+                this.log?.Info($"Dodge warnings for every monster: {(allMonsters ? "on" : "off")}{(this.trialScope.InTrial(now) ? " (a trial)" : string.Empty)}");
+            }
+
+            this.bosses.AllMonsters = allMonsters;
+            this.bosses.ParryCues = this.Settings.ParryCues;
+            this.bosses.UnblockableCues = this.Settings.UnblockableCues;
+            this.bosses.CatalogDirectory = System.IO.Path.Join(this.DllDirectory, "catalog");
+            this.bosses.Tick(playing);
+            foreach (var (part, trust) in this.bosses.FieldNews())
+            {
+                // Each dodge field judged by its live check, said like any other part.
+                if (trust == FieldTrust.Lost)
+                {
+                    this.compatibility?.Missing(part);
+                }
+                else
+                {
+                    this.compatibility?.Found(part);
+                }
+            }
         }
 
         /// <summary>The panel covering the game; none in local co-op, where it may be the other player's and this one's game goes on.</summary>
@@ -177,19 +184,44 @@ namespace Poe2Accessibility
             return this.worldGate.InFront(this.focus?.Current != null || panel != null, Environment.TickCount64);
         }
 
-        /// <summary>Runs one gameplay service; an exception is logged (throttled per service) and the frame goes on.</summary>
-        private void Isolated(string service, Action tick)
+        /// <summary>
+        ///     Runs one part of the frame; an exception is logged (throttled per part) and the frame goes on. The part is a
+        ///     static lambda handed the plugin: about fifty run every frame, and a lambda that captured <c>this</c> or a local
+        ///     made a delegate, and often a closure, for each of them each time.
+        /// </summary>
+        private void Isolated(string service, Action<Poe2AccessibilityCore> tick)
         {
             var start = System.Diagnostics.Stopwatch.GetTimestamp();
             try
             {
-                tick();
+                tick(this);
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
             {
                 this.ReportTickFault(service, ex);
             }
 
+            this.NoteTickCost(service, start);
+        }
+
+        /// <summary>The same for a part that needs a fact of this frame (<paramref name="state"/>: playing, the game state), passed by value.</summary>
+        private void Isolated<TState>(string service, TState state, Action<Poe2AccessibilityCore, TState> tick)
+        {
+            var start = System.Diagnostics.Stopwatch.GetTimestamp();
+            try
+            {
+                tick(this, state);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                this.ReportTickFault(service, ex);
+            }
+
+            this.NoteTickCost(service, start);
+        }
+
+        private void NoteTickCost(string service, long start)
+        {
             var ticks = System.Diagnostics.Stopwatch.GetTimestamp() - start;
             if (this.tickCosts.Add(service, ticks, Environment.TickCount64))
             {

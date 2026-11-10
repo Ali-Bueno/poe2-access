@@ -520,30 +520,32 @@ namespace Poe2Accessibility
                 // know that A, LB or RB caused the move it is about to hear about.
                 // GameHelper only writes a plugin's exceptions to its hidden console: each part reports its own faults
                 // to the log and one failing part does not silence the rest.
+                // Static lambdas given the plugin and the frame's state (Isolated): a method group or a capturing lambda would allocate each frame.
                 var state = this.gameState.CurrentState;
-                this.Isolated("pad", this.ReadModButton);
-                this.Isolated("focus", () => this.focus?.Tick(state, stateObject));
-                this.Isolated("trade offer", () => this.tradeOffers?.Tick(this.focus?.Current?.Address ?? IntPtr.Zero));
-                this.Isolated("search highlight", () => this.searchHighlights?.Tick(state == GameStateTypes.InGameState ? this.focus?.Current : null));
-                this.Isolated("text field", this.WatchTextFieldClosing);
-                this.Isolated("creation name", this.TickCreationName);
-                this.Isolated("player news", this.TickPlayerNews);
-                this.Isolated("sounds", this.TickSounds);
-                this.Isolated("screen", () => this.NarrateScreenChanges(stateObject));
+                var frame = (State: state, StateObject: stateObject);
+                this.Isolated("pad", static core => core.ReadModButton());
+                this.Isolated("focus", frame, static (core, frame) => core.focus?.Tick(frame.State, frame.StateObject));
+                this.Isolated("trade offer", static core => core.tradeOffers?.Tick(core.focus?.Current?.Address ?? IntPtr.Zero));
+                this.Isolated("search highlight", state, static (core, state) => core.searchHighlights?.Tick(state == GameStateTypes.InGameState ? core.focus?.Current : null));
+                this.Isolated("text field", static core => core.WatchTextFieldClosing());
+                this.Isolated("creation name", static core => core.TickCreationName());
+                this.Isolated("player news", static core => core.TickPlayerNews());
+                this.Isolated("sounds", static core => core.TickSounds());
+                this.Isolated("screen", stateObject, static (core, stateObject) => core.NarrateScreenChanges(stateObject));
                 if (state == GameStateTypes.InGameState)
                 {
-                    this.Isolated("death", () => this.deaths?.Tick(stateObject));
-                    this.Isolated("trace", () => this.actorTrace?.Tick());
-                    this.Isolated("stun trace", () => this.stunTrace?.Tick());
+                    this.Isolated("death", stateObject, static (core, stateObject) => core.deaths?.Tick(stateObject));
+                    this.Isolated("trace", static core => core.actorTrace?.Tick());
+                    this.Isolated("stun trace", static core => core.stunTrace?.Tick());
                 }
 
-                this.Isolated("compatibility", this.SayCompatibility);
-                this.Isolated("research", () =>
+                this.Isolated("compatibility", static core => core.SayCompatibility());
+                this.Isolated("research", frame, static (core, frame) =>
                 {
-                    this.research?.Tick(state, stateObject, this.Settings.UiDumpRootAddressOverride, this.Settings.UiDumpMaxDepth, this.Settings.UiDumpMaxNodes);
-                    if (this.elements != null)
+                    core.research?.Tick(frame.State, frame.StateObject, core.Settings.UiDumpRootAddressOverride, core.Settings.UiDumpMaxDepth, core.Settings.UiDumpMaxNodes);
+                    if (core.elements != null)
                     {
-                        this.research?.WatchFocusedBytes(this.focus?.Current?.Address ?? IntPtr.Zero, this.elements);
+                        core.research?.WatchFocusedBytes(core.focus?.Current?.Address ?? IntPtr.Zero, core.elements);
                     }
                 });
             }
