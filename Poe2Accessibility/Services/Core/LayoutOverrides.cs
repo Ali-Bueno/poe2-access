@@ -24,7 +24,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     The fields for the exe of <paramref name="exeSize"/> bytes, as code-field readings: <c>build 78440792</c>, then
-        ///     <c>AreaInstanceOffsets:PlayerInfo 0x5B8 0x5C0</c> or <c>layout:MapOverlayOffset 0xB90 0xB98</c> (the target,
+        ///     <c>AreaInstanceOffsets:PlayerInfo 0x5B8 0x5C0</c> or <c>layout:SkillLevelKey 0x58 0x60</c> (the target,
         ///     where the mod has it, where this build has it).
         /// </summary>
         /// <param name="lines">The file.</param>

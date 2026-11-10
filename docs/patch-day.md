@@ -108,7 +108,7 @@ A host struct field or a plugin offset that the code catalog names can be set by
 ```
 build 78440792                               # the game exe's size in bytes: lines count only for that build
 AreaInstanceOffsets:PlayerInfo 0x5B8 0x5C0   # Struct:Field (dotted for nested structs), where the mod has it, where this build has it
-layout:MapOverlayOffset 0xB90 0xB98          # a GameLayout offset by its code-catalog name
+layout:SkillLevelKey 0x58 0x60              # a GameLayout offset by its code-catalog name
 ```
 
 Each line is placed as the code catalog would place it: it replaces the code's reading of that field, every later field of
