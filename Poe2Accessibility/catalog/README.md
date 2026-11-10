@@ -22,7 +22,7 @@ A new catalog needs no change to the project file or the package script, only a 
 | `code-fields.txt` | what the game's code reads, to catch a field a patch moved | by hand ([exe layouts](../../docs/research/exe-layouts.md)) | `CodeFieldCatalog`, tests |
 | `cull-skills.txt` | granted effects that deal Culling Strike | `cull-skills`, start | `CullSkills` |
 | `currency-art.json` | the item each currency icon shows, for prices | `currency-art`, start | `CurrencyIcons` |
-| `dat-columns.json` | the dat columns the plugin reads | `dat-columns`, start | `DatColumns` |
+| `dat-columns.json` | the dat columns the plugin reads (all of them, or the step fails and the old file stays) | `dat-columns`, start | `DatColumns` |
 | `dodge-timings.txt` | dodge timings measured in development | by hand, from `BossWatch` "Dodge timing" log lines | `DodgeTimings` (seed) |
 | `endgame.json` | map objectives, contents, the Atlas's graphs | `endgame`, start | `EndgameCatalog` |
 | `experience.json` | the total experience each level starts at | `experience`, start | `ExperienceTable` |

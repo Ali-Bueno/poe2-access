@@ -35,6 +35,13 @@ internal static class GameKeyExtractor
                 return 1;
             }
 
+            // The Id at +0 is a convention of these tables: a table that no longer starts with text would list garbage as keys.
+            if (!DatColumnSearch.IsText(table, 0, _ => true))
+            {
+                Say.Out.WriteLine($"Table {name} does not start with an Id string: {Skipped} left out.");
+                return 1;
+            }
+
             for (var row = 0; row < table.RowCount; row++)
             {
                 if (table.String(row, 0) is { Length: > 0 } key)

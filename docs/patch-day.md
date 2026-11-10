@@ -7,11 +7,31 @@ protects it: [field protection audit](research/field-protection-audit.md).
 ## 1. What happens by itself
 | When | What | Where it shows |
 |---|---|---|
-| `Poe2Access.exe` starts after the install changed | the catalogs made from the game's files and the extracted sounds are rebuilt in the same process (about 53 s on the first run, 18 s after a patch; a step that fails keeps the old file; columns that moved are found by their content) | `Poe2Access.log`; `catalog/game-data-failed.txt`; spoken "Actualizando los datos del juego tras el parche…", then "Datos del juego listos", or "parte de los datos del juego…" for a failed step |
+| `Poe2Access.exe` starts after the install changed | the catalogs made from the game's files and the extracted sounds are rebuilt in the same process (about 53 s on the first run, 18 s after a patch; a step that fails keeps the old file, see below; columns that moved are found by their content) | `Poe2Access.log`; `catalog/game-data-failed.txt`; spoken "Actualizando los datos del juego tras el parche…", then "Datos del juego listos", or "parte de los datos del juego…" for a failed step |
 | The host attaches to a new game process | the game's code on disk is matched against `catalog/code-fields.txt` | plugin log `Code fields: N of M read in … ms; moved: …` |
 | The first three areas of a game process | the struct sweep and the shape searches judge every host struct; the plugin's probes judge the UI and entity fields | `Layout: <part> where measured / moved from … to … / NOT FOUND`, `Struct sweep: … intact, … moved, … lost` |
 | Anything lost | said once ("Aviso de compatibilidad: no encuentro …"); a new build with nothing lost says "El juego se ha actualizado: el mod lo ha encontrado todo" | speech log, `config/game-build.txt` |
 | New game content | new monsters, skills, buffs, areas, map icons and screens are listed, each with what the mod will make of it from its catalogs (dodge data, buff rule or hazard, area name, icon kind, place in the UI catalog: `GameNewsNotes`) | `config/game-news.txt`, a short summary spoken once |
+
+### When a step fails
+A column that moved is found by its type, its shape and a known row's value (a name column by the stable name of one row,
+`NameAnchor`); one that is not found, a table whose length is not whole rows, or a catalog that comes out under a quarter of
+today's entries (`GameDataCounts`), under half of the previous file or without a section it had fails its step: the previous
+file stays, `catalog/game-data-failed.txt` lists the step and the mod says "parte de los datos del juego". The reason, with
+the table and column, is on the step's line of `Poe2Access.log` (`Game data: <step> failed in … s: <reason>`). A known-row
+check that could not run because the row is gone is logged too (`its known row is not in the table`).
+
+| What the log says | Meaning |
+|---|---|
+| `bundle index` in the failed list; `Game data: bundle index failed: …` | the index would not open or does not look like the game's (no files, no `stats.datc64`): every step failed at once; fix the reader (`SharedBundles`, `BundleIndexCheck`) |
+| `Table.Column near +0x…: not found` | the column moved beyond the search or its known row changed: `dat-strings` on the table, then the column's measured offset or known value in its `*Columns.cs` / `NameAnchors.cs` |
+| `not a table this reader understands` | a `.datc64` whose length is not whole rows or has no marker: the file format changed |
+| `… entries, under the N a catalog of this kind has` | the new file is under a quarter of today's count (`GameDataCounts.Today`): a column probably moved; raise the table's numbers only after reading the real output |
+| `MISSING n of m cues` (sounds) | a bank or sample the cue list names is gone; the sounds folder is left as it was |
+
+An optional step that fails is not stamped: it is retried on the next starts, three per game build and step version
+(`GameDataStamp.MaxAttempts`, stamp lines `tried`/`gaveup`), then left alone and still listed as failed until a mod update
+raises its version or the next patch. A step that is not optional is retried on every start while its catalog is missing.
 
 ## 2. Before playing: check the new exe
 1. Keep a copy of every build: `D:\code\decompilers\projects\poe2-research\builds\<build id>\PathOfExileSteam.exe` (the build id
