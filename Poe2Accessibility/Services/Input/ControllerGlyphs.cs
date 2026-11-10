@@ -109,6 +109,12 @@ namespace Poe2Accessibility.Services
         public static bool HasGlyphs(string tagged) => MarkupToken.IsMatch(tagged);
 
         /// <summary>
+        ///     A name the game's tables give with a button in it, spoken: a fallen ally's body is named "Hold
+        ///     &lt;&lt;xbox_button_a&gt;&gt; to revive", and the token itself was said (heard in play, 2026-11-10).
+        /// </summary>
+        public static string InName(string name) => HasGlyphs(name) ? Render(name) : name;
+
+        /// <summary>
         ///     The variant suffix is the player: ";0" legends are player one's, ";1" belong to a second controller
         ///     ("Press &lt;&lt;xbox_button_a;1&gt;&gt; to join" for couch co-op), which is never the reader's.
         /// </summary>

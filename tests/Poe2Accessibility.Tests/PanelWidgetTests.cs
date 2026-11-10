@@ -177,6 +177,9 @@ namespace Poe2Accessibility.Tests
             Expect(ControllerGlyphs.Render("Press <<xbox_button_y>> to confirm"), ControllerGlyphs.Render("Press <<xbox_button_future>> to confirm"), "new glyph token");
             Expect(ControllerGlyphs.FromMarkup("<<xbox_button_y>>"), ControllerGlyphs.FromMarkup("<<xbox_button_future>>"), "legend button");
             Expect("Pay 250 tribute", ControllerGlyphs.Render("Pay <<RitualTribute>> 250"), "a tooltip line rendered with its glyphs keeps the unit");
+            Expect(ControllerGlyphs.Render("Hold <<xbox_button_a>> to revive"), ControllerGlyphs.InName("Hold <<xbox_button_a>> to revive"), "a name with a button in it is spoken");
+            Expect(false, ControllerGlyphs.InName("Hold <<xbox_button_a>> to revive").Contains('<'), "and never keeps the token");
+            Expect("Ritual Altar", ControllerGlyphs.InName("Ritual Altar"), "a plain name is left as it is");
         }
 
         private static void OnlyMoneyPicturesArePriceUnits()
