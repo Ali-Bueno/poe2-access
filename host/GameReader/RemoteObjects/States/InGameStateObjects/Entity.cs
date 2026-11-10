@@ -347,19 +347,18 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 return;
             }
 
+            // Another id at this address (the game reused the memory) or a moved component map is a new entity, as is a new
+            // address: nothing learnt of the old one holds, not its path, its type nor a Useless state that would skip it.
+            var idChanged = entityData.Id != this.Id;
             this.Id = entityData.Id;
-
-            // A search moved what the component map is read through: read it again, as for a new entity.
-            if (Volatile.Read(ref this.componentsStale) == 1 && Interlocked.Exchange(ref this.componentsStale, 0) == 1)
+            var componentsMoved = Volatile.Read(ref this.componentsStale) == 1 && Interlocked.Exchange(ref this.componentsStale, 0) == 1;
+            if (hasAddressChanged || idChanged || componentsMoved)
             {
                 hasAddressChanged = true;
+                this.Path = string.Empty;
                 this.EntityType = EntityTypes.Unidentified;
                 this.EntitySubtype = EntitySubtypes.Unidentified;
                 this.EntityState = EntityStates.None;
-            }
-
-            if (hasAddressChanged)
-            {
                 this.unresolvedRetryCount = 0;
                 this.dormantCheckSkip = 0;
             }
