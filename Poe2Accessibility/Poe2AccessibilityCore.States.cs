@@ -68,6 +68,8 @@ namespace Poe2Accessibility
                 this.classHelpSaid = false;
                 this.flasks?.ForgetCosts();
                 this.partnerFlasks?.ForgetCosts();
+                this.alerts?.Resources.ForgetCharacter();
+                this.partnerAlerts?.Resources.ForgetCharacter();
                 this.narrator?.CharacterChanged();
             }
 
@@ -168,8 +170,9 @@ namespace Poe2Accessibility
 
         private void OnAreaChanged(string areaName, bool resumed)
         {
-            this.ResetAreaState(areaName, resumed, newArea: true);
-            this.narrator?.NewArea(resumed);
+            // The game state's own tick stops at an exception from here: a reset that fails must still leave the area named.
+            this.Isolated("area reset", (Name: areaName, Resumed: resumed), static (core, area) => core.ResetAreaState(area.Name, area.Resumed, newArea: true));
+            this.Isolated("area narration", resumed, static (core, resumed) => core.narrator?.NewArea(resumed));
             if (this.Settings.AnnounceArea)
             {
                 if (this.pendingState is { Detected: false } loaded && loaded.Text == Announcements.ForState(GameStateTypes.InGameState))

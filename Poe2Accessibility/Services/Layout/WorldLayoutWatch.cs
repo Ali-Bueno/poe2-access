@@ -61,7 +61,7 @@ namespace Poe2Accessibility.Services
         private string? survived;
         private bool positionsRetried;
         private bool levelSeen;
-        private IntPtr sweptArea;
+        private long sweptArea;
         private long settledAt;
         private AnimationFieldSearch? animation = new();
         private bool reactionJudged;
@@ -70,7 +70,7 @@ namespace Poe2Accessibility.Services
         private bool poiseJudged;
         private int poiseMisses;
         private int poiseAreasMissed;
-        private IntPtr poiseArea;
+        private long poiseArea;
         private long nextPoiseWideAt;
         private WalkableCheck? walkable = new();
         private readonly Dictionary<string, StructHealth> invariantsSaid = new(StringComparer.Ordinal);
@@ -155,14 +155,14 @@ namespace Poe2Accessibility.Services
         /// <summary>A new game process: everything is judged again.</summary>
         public void Reset()
         {
-            (this.lostSince, this.levelSeen, this.sweptArea, this.settledAt, this.sweeps, this.positionsRetried) = (-1, false, IntPtr.Zero, 0, 0, false);
+            (this.lostSince, this.levelSeen, this.sweptArea, this.settledAt, this.sweeps, this.positionsRetried) = (-1, false, 0, 0, 0, false);
             this.animation = new AnimationFieldSearch();
             this.reactionJudged = false;
             this.animationSaid = null;
             this.poiseJudged = false;
             this.poiseMisses = 0;
             this.poiseAreasMissed = 0;
-            this.poiseArea = IntPtr.Zero;
+            this.poiseArea = 0;
             this.nextPoiseWideAt = 0;
             this.invariantsSaid.Clear();
             this.lostLook.Reset();
@@ -284,9 +284,11 @@ namespace Poe2Accessibility.Services
             if ((PoiseSearch.Agreed(actors, measured - PoiseBlockStart) ?? this.PoiseFar(area)) is not { } found)
             {
                 // One area's monsters can all lack the record (totems, the stun-immune): missing only once a second area agrees.
-                if (area.Address != this.poiseArea)
+                // An area is its instance's address and hash: the game can load the next one into the instance it had.
+                var here = LossWitnesses.AreaKey(area.Address.ToInt64(), area.AreaHash);
+                if (here != this.poiseArea)
                 {
-                    this.poiseArea = area.Address;
+                    this.poiseArea = here;
                     this.poiseMisses = 0;
                 }
 
@@ -414,7 +416,7 @@ namespace Poe2Accessibility.Services
             {
                 // The camera moved in this sweep or was not on the player yet: another pass judges the positions through it.
                 this.positionsRetried = true;
-                this.sweptArea = IntPtr.Zero;
+                this.sweptArea = 0;
                 this.sweeps--;
             }
 
@@ -428,7 +430,14 @@ namespace Poe2Accessibility.Services
         private void SweepStructs(AreaInstance area)
         {
             var now = Environment.TickCount64;
-            if (this.recheckAt != 0 && area.Address == this.sweptArea)
+            if (area.AreaHash.Length == 0)
+            {
+                return; // the instance is not read yet: swept once it is, under the key it keeps
+            }
+
+            // By address and hash: another area loaded into the same instance is another area to sweep.
+            var here = LossWitnesses.AreaKey(area.Address.ToInt64(), area.AreaHash);
+            if (this.recheckAt != 0 && here == this.sweptArea)
             {
                 // The second look at what the last sweep found lost, in the same area.
                 if (now >= this.recheckAt && area.AwakeEntities.Count >= MinEntities)
@@ -441,9 +450,9 @@ namespace Poe2Accessibility.Services
             }
 
             // A second look still owed is taken in the next area even when the three sweeps are spent.
-            if ((this.sweeps >= MaxSweeps && this.recheckAt == 0) || area.Address == this.sweptArea || area.AwakeEntities.Count < MinEntities)
+            if ((this.sweeps >= MaxSweeps && this.recheckAt == 0) || here == this.sweptArea || area.AwakeEntities.Count < MinEntities)
             {
-                this.settledAt = area.Address == this.sweptArea ? this.settledAt : 0;
+                this.settledAt = here == this.sweptArea ? this.settledAt : 0;
                 return;
             }
 
@@ -454,7 +463,7 @@ namespace Poe2Accessibility.Services
             }
             else if (now - this.settledAt >= SettleMs)
             {
-                this.sweptArea = area.Address;
+                this.sweptArea = here;
                 this.settledAt = 0;
                 this.sweeps++;
                 this.rechecksLeft = MaxRechecks;
@@ -542,7 +551,8 @@ namespace Poe2Accessibility.Services
             {
                 this.Part("area level", now.Level, measured.Level, now.Level);
             }
-            else if (hasWorld && this.levelMisses.Against(Core.States.InGameStateObject.CurrentAreaInstance.Address.ToInt64()))
+            else if (hasWorld && Core.States.InGameStateObject.CurrentAreaInstance is { AreaHash.Length: > 0 } instance &&
+                     this.levelMisses.Against(LossWitnesses.AreaKey(instance.Address.ToInt64(), instance.AreaHash)))
             {
                 // Never seen, in two areas: one area alone can miss the level's shape (its vectors) with the field in place.
                 this.report.Missing("area level");

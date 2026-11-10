@@ -61,6 +61,13 @@ namespace Poe2Accessibility.Services
         {
             /// <summary>Gets a value indicating whether most differ: one source reads something else than the other, not a renamed thing or two.</summary>
             public bool MostDisagree => this.Disagreeing * 2 > this.Compared;
+
+            /// <summary>
+            ///     Gets a value indicating whether memory is the one to believe where the two differ on one thing: most agree, so
+            ///     memory reads right and the difference is the game's own (a catalog older than the game). While most differ
+            ///     it is the reading that moved, and the catalog stands.
+            /// </summary>
+            public bool RowsDecide => !this.MostDisagree;
         }
     }
 }

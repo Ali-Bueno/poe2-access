@@ -53,6 +53,9 @@ namespace Poe2Accessibility.Services
 
         private long attachedAt;
         private bool stateRead;
+
+        /// <summary>The states were said lost for this game process: taken back if one is read after all.</summary>
+        private bool statesSaidLost;
         private IReadOnlyList<StructOutcome>? layoutNoted;
         private StructOutcome cullNoted;
 
@@ -263,6 +266,7 @@ namespace Poe2Accessibility.Services
                 this.AttachedPid = pid;
                 this.attachedAt = Environment.TickCount64;
                 this.stateRead = false;
+                this.statesSaidLost = false;
                 this.log.Info(pid == 0 ? "Game process lost" : $"Attached to game process {pid}");
                 foreach (var (address, type) in Core.States.AllStates)
                 {
@@ -277,10 +281,17 @@ namespace Poe2Accessibility.Services
             if (state != GameStateTypes.GameNotLoaded)
             {
                 this.stateRead = true;
+                if (this.statesSaidLost)
+                {
+                    // A client that took longer than the limit to patch itself: the part is not left recorded as lost.
+                    this.statesSaidLost = false;
+                    this.Report?.Found(StatesPart);
+                }
             }
             else if (this.IsAttached && !this.stateRead && StatesOverdue(Environment.TickCount64 - this.attachedAt, Core.States.AwaitsStateObject))
             {
                 this.stateRead = true; // said once per game process
+                this.statesSaidLost = true;
                 this.Report?.Missing(StatesPart);
             }
 

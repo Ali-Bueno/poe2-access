@@ -50,6 +50,7 @@ namespace Poe2Accessibility.Services
         private readonly LossWitnesses interactiveMisses = new();
         private readonly LossWitnesses textInputMisses = new();
         private readonly LossWitnesses navigableMisses = new();
+        private readonly MovedBit navigableMoved = new();
         private long focusRounds;
         private long screenKey;
         private bool screenJudged;
@@ -132,10 +133,10 @@ namespace Poe2Accessibility.Services
             if (this.focusFlags.Count >= MinFocusSamples)
             {
                 this.navigableJudged = this.Judge("navigable flag", this.focusFlags, this.containerFlags, this.measuredNavigable, ContainerShare, MinCarriers, bit => GameLayout.Element.NavigableFlagBit = bit,
-                    this.navigableMisses, ++this.focusRounds);
+                    this.navigableMisses, ++this.focusRounds, this.navigableMoved);
                 if (!this.navigableJudged)
                 {
-                    // No bit fits these: another round of other elements must agree (those seen stay seen, so none counts twice).
+                    // No bit fits these, or another one does: a second round of other elements must agree (those seen stay seen, so none counts twice).
                     this.focusFlags.Clear();
                     this.containerFlags.Clear();
                 }
@@ -155,6 +156,7 @@ namespace Poe2Accessibility.Services
             this.interactiveMisses.Clear();
             this.textInputMisses.Clear();
             this.navigableMisses.Clear();
+            this.navigableMoved.Clear();
             this.focusFlags.Clear();
             this.containerFlags.Clear();
             this.focusSeen.Clear();
@@ -187,13 +189,16 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     Judges one bit on a screen's or a round's controls; true once settled. No bit fitting on one screen is no verdict
         ///     (its controls may all be greyed or of one odd kind): a second <paramref name="witness"/> must find none either,
-        ///     and until then the bit is judged again on the next.
+        ///     and until then the bit is judged again on the next. With <paramref name="moved"/>, another bit than the measured
+        ///     one is likewise taken only once a second witness names it.
         /// </summary>
         private bool Judge(
-            string part, IReadOnlyList<uint> carriers, IReadOnlyList<uint> others, int measured, double otherShare, int minCarriers, Action<int> use, LossWitnesses misses, long witness)
+            string part, IReadOnlyList<uint> carriers, IReadOnlyList<uint> others, int measured, double otherShare, int minCarriers, Action<int> use, LossWitnesses misses, long witness,
+            MovedBit? moved = null)
         {
             if (BitSearch.Share(carriers, measured) >= KeepShare && BitSearch.Share(others, measured) <= otherShare)
             {
+                moved?.Clear();
                 use(measured);
                 this.report.Found(part);
                 return true;
@@ -207,6 +212,11 @@ namespace Poe2Accessibility.Services
                 }
 
                 return misses.Lost;
+            }
+
+            if (bit != measured && moved != null && !moved.Confirms(bit, witness))
+            {
+                return false;
             }
 
             use(bit);

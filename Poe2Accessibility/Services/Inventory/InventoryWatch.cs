@@ -333,7 +333,8 @@ namespace Poe2Accessibility.Services
             var side = this.movedInPanel ? this.SidePanel?.Invoke() ?? string.Empty : string.Empty;
             // The skills panel takes and gives back gems only: anything else that leaves beside it was dropped or used.
             Func<string, bool>? sideTakes = side == Announcements.SkillGemPanel ? this.batchGems.Contains : null;
-            var moves = ItemMoves.Read(this.arrivals, this.departures, Announcements.SlotName, this.movedInPanel, goldChange, side, this.handFrom, sideTakes);
+            var inTrade = this.InTrade?.Invoke() == true;
+            var moves = ItemMoves.Read(this.arrivals, this.departures, Announcements.SlotName, this.movedInPanel, goldChange, side, this.handFrom, sideTakes, inTrade);
             if (this.arrivals.Any(arrival => arrival.To == InventoryName.Cursor1))
             {
                 // Picked up with nothing tracked leaving: from the panel beside (a stash tab), said when set down.
@@ -367,7 +368,7 @@ namespace Poe2Accessibility.Services
                     case ItemMoveKind.Bought:
                         lines.Add(Announcements.Bought(names, -goldChange));
                         break;
-                    case ItemMoveKind.DroppedOrUsed when this.InTrade?.Invoke() == true:
+                    case ItemMoveKind.DroppedOrUsed when inTrade:
                         lines.Add(Announcements.HandedOver(names));
                         break;
                     case ItemMoveKind.DroppedOrUsed:

@@ -15,6 +15,13 @@ namespace Poe2Accessibility.Services
         private const int SearchDepth = 12;
         private const int MaxNodes = 4000;
 
+        /// <summary>
+        ///     A search that found no counter is not made again before this long: it walks up to <see cref="MaxNodes"/>
+        ///     elements on the frame thread, and four of those a second for as long as the counter cannot be found (a patch
+        ///     that renames its coin art) would cost every frame of the session.
+        /// </summary>
+        public const int SearchRetryMs = 1000;
+
         private readonly UiElementReader elements;
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
@@ -31,6 +38,7 @@ namespace Poe2Accessibility.Services
         public long? ReadNow() => this.TryAmount(this.counter, out var value) ? value : null;
         private long? amount;
         private long lastPoll;
+        private long searchAfter;
 
         public GoldWatch(UiElementReader elements, IAccessibilityOutputService output, PluginLog log)
         {
@@ -47,6 +55,7 @@ namespace Poe2Accessibility.Services
         {
             this.counter = IntPtr.Zero;
             this.amount = null;
+            this.searchAfter = 0;
         }
 
         /// <summary>Per frame in game; <paramref name="playing"/> false while a panel or menu is open.</summary>
@@ -61,9 +70,15 @@ namespace Poe2Accessibility.Services
             this.lastPoll = now;
             if (!this.TryAmount(this.counter, out var value))
             {
+                if (now < this.searchAfter)
+                {
+                    return;
+                }
+
                 this.counter = this.Find(layerContainer);
                 if (!this.TryAmount(this.counter, out value))
                 {
+                    this.searchAfter = now + SearchRetryMs;
                     return;
                 }
 

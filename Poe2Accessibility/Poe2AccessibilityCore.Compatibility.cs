@@ -47,6 +47,13 @@ namespace Poe2Accessibility
             ["StateStride"] = (() => GameReader.RemoteObjects.Components.StateMachine.StateStride, value => GameReader.RemoteObjects.Components.StateMachine.StateStride = value),
         };
 
+        /// <summary>
+        ///     Each of those offsets as compiled, taken before anything could move one: a new game process starts from them
+        ///     again. Left where the last process's code or override put them, a patched game restarted under the same host
+        ///     would be read through the old build's offsets, each "kept where a live search put it".
+        /// </summary>
+        private static readonly System.Collections.Generic.Dictionary<string, int> LayoutMeasured = LayoutFields.ToDictionary(field => field.Key, field => field.Value.Get());
+
         private string? gameNewsLine;
 
         /// <summary>Judgments of the left trigger that must find no button bit before the pad's buttons are said lost.</summary>
@@ -212,6 +219,11 @@ namespace Poe2Accessibility
             this.compatibility?.Reset();
             DatColumns.Report(this.compatibility); // said once per game process, and the reset forgot it
             this.CheckGameNews();
+            foreach (var (name, field) in LayoutFields)
+            {
+                field.Set(LayoutMeasured[name]);
+            }
+
             this.worldLayout?.Reset();
             this.layoutProbe?.Reset();
             this.locator?.Fields.Reset();
@@ -368,6 +380,12 @@ namespace Poe2Accessibility
 
                     field.Set(value);
                     moved.Add($"{entry.Name} +0x{entry.Measured:X} to +0x{value:X}");
+                }
+                else if (entry.Layout is { } unknown)
+                {
+                    // An override or a catalog line naming an offset the plugin does not have changes nothing: said in the log,
+                    // or whoever wrote it believes it is in force.
+                    this.log?.Warn($"Code fields: {entry.Name} names the plugin offset '{unknown}', which does not exist: +0x{value:X} is NOT applied");
                 }
                 else if (entry.IsReport)
                 {

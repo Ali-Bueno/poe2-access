@@ -26,6 +26,9 @@ namespace Poe2Accessibility.Services
         private long lastPoll;
         private string? said;
         private string? waiting;
+
+        /// <summary>The player's grid the offer was last read beside: the window is watched from it while the cursor is elsewhere.</summary>
+        private IntPtr grid;
         private long closedAt = -ClosedWindowMs;
 
         public TradeOfferWatch(UiElementReader elements, InventoryReader inventory, Action<string> speak)
@@ -57,13 +60,34 @@ namespace Poe2Accessibility.Services
 
             if (focus == IntPtr.Zero)
             {
-                this.closedAt = this.said != null ? now : this.closedAt;
-                this.said = null;
+                this.Closed(now);
             }
             else if (this.ReadOffer(focus) is { } offer)
             {
+                this.grid = focus;
                 this.waiting = TradeOfferNews.Line(offer.Title, offer.Items, Announcements.Nothing, ref this.said);
             }
+            else if (this.grid != IntPtr.Zero && focus != this.grid)
+            {
+                // The cursor left the player's grid (for the inventory the items are chosen in) and the window is still
+                // there: the other side can change its offer now, and the deal is accepted with RB from anywhere.
+                if (!this.elements.TryReadElement(this.grid, out var kept) || !this.elements.IsVisible(kept))
+                {
+                    this.Closed(now); // closed with another panel still open: what leaves the inventory from now on is not handed over
+                }
+                else if (this.ReadOffer(this.grid) is { Items.Count: > 0 } changed)
+                {
+                    // An offer read empty from afar is left for the cursor's return: a window on its way out empties first.
+                    this.waiting = TradeOfferNews.Line(changed.Title, changed.Items, Announcements.Nothing, ref this.said);
+                }
+            }
+        }
+
+        private void Closed(long now)
+        {
+            this.closedAt = this.said != null ? now : this.closedAt;
+            this.said = null;
+            this.grid = IntPtr.Zero;
         }
 
         private (string Title, IReadOnlyList<string> Items)? ReadOffer(IntPtr grid)

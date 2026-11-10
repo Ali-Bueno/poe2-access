@@ -766,6 +766,9 @@ namespace Poe2Accessibility.Services
         ///     class start come from the game's files by the row's Id (<see cref="PassiveTreeCatalog"/>), the row's columns
         ///     backing them up and checked against them. The row is read as before for a node the files lack (one a patch
         ///     added) and for the row the player's class sees in its place (<see cref="ShownRow"/>), which gives name and kind.
+        ///     A catalog can be older than the game (a patch under a running host, a regeneration that failed): once the rows
+        ///     were seen to agree with the files on most nodes, a node whose row differs is said from its row, as the skills'
+        ///     names are (<see cref="PassiveTreeFields.RowsDecide"/>).
         /// </summary>
         private PassiveNodeRow ReadPassiveRow(IntPtr record, IntPtr row)
         {
@@ -774,11 +777,15 @@ namespace Poe2Accessibility.Services
             var known = this.RowId(row) is { } id ? catalog.ById(id) : null;
             if (known != null && shownRow == row)
             {
-                // A node the files know but leave unnamed (a catalog short of names) keeps the name its row holds.
-                var named = KeywordLink.Replace(catalog.Name(known.Id, Localization.Language) is { Length: > 0 } fromFiles ? fromFiles : this.RowName(row), ShownText);
-                var gated = this.reader.TryRead<long>(row + GameLayout.PassiveTree.RowNoLinkedStepOffset, out var gate) && gate != 0;
-                this.CompareWithRow(known, row);
-                return new PassiveNodeRow(record, known.GraphId, named, Announcements.PassiveKind(known.Class), known.IconOnly, known.IsStart, known.Class, gated) { Id = known.Id };
+                if (!this.CompareWithRow(known, row))
+                {
+                    // A node the files know but leave unnamed (a catalog short of names) keeps the name its row holds.
+                    var named = KeywordLink.Replace(catalog.Name(known.Id, Localization.Language) is { Length: > 0 } fromFiles ? fromFiles : this.RowName(row), ShownText);
+                    var gated = this.reader.TryRead<long>(row + GameLayout.PassiveTree.RowNoLinkedStepOffset, out var gate) && gate != 0;
+                    return new PassiveNodeRow(record, known.GraphId, named, Announcements.PassiveKind(known.Class), known.IconOnly, known.IsStart, known.Class, gated) { Id = known.Id };
+                }
+
+                known = null; // the game's row says otherwise and the rows read right: the node is read from it, as one the files lack
             }
 
             var bytes = this.elements.ReadBlock(row, GameLayout.PassiveTree.RowBytes);
@@ -817,14 +824,16 @@ namespace Poe2Accessibility.Services
         private static string ShownName(string name) => KeywordLink.Replace(name, ShownText);
 
         /// <summary>
-        ///     The cross-check of the two sources, on the first nodes read: the row's own columns must say what the files say
-        ///     of the node (its name in whichever language the game runs in, its flags, graph id and class start).
+        ///     The cross-check of the two sources: the row's own columns must say what the files say of the node (its name in
+        ///     whichever language the game runs in, its flags, graph id and class start). The first nodes read give the
+        ///     verdict on the rows; after it, true when this node's row differs and the rows are the ones to believe.
         /// </summary>
-        private void CompareWithRow(PassiveTreeCatalog.Node known, IntPtr row)
+        private bool CompareWithRow(PassiveTreeCatalog.Node known, IntPtr row)
         {
-            if (!this.TreeFields.WantsNode(known.Id) || this.elements.ReadBlock(row, GameLayout.PassiveTree.RowBytes) is not { } bytes || bytes.Length < GameLayout.PassiveTree.RowBytes)
+            var wanted = this.TreeFields.WantsNode(known.Id);
+            if ((!wanted && !this.TreeFields.RowsDecide) || this.elements.ReadBlock(row, GameLayout.PassiveTree.RowBytes) is not { } bytes || bytes.Length < GameLayout.PassiveTree.RowBytes)
             {
-                return; // a row not readable now compares nothing
+                return false; // a row not readable now compares nothing
             }
 
             var differences = new List<string>();
@@ -850,7 +859,21 @@ namespace Poe2Accessibility.Services
                 differences.Add("the row's class list differs");
             }
 
-            this.TreeFields.NoteNode(known.Id, differences.Count == 0 ? null : string.Join(", ", differences));
+            var difference = differences.Count == 0 ? null : string.Join(", ", differences);
+            if (wanted)
+            {
+                this.TreeFields.NoteNode(known.Id, difference);
+                return false; // the nodes that give the verdict are said from the files, as before it
+            }
+
+            // A name that is no text is a row that did not read, not the game's word.
+            if (difference == null || !SkillNameCheck.IsText(name))
+            {
+                return false;
+            }
+
+            this.TreeFields.NoteOwnRow(known.Id, difference);
+            return true;
         }
 
         /// <summary>

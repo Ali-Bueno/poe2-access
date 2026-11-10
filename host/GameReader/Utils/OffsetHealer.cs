@@ -1035,7 +1035,8 @@ namespace GameReader.Utils
         /// </summary>
         private static IReadOnlyList<StructOutcome> JudgeInvariants(AreaInstance area)
         {
-            var where = area.Address.ToInt64();
+            // By address and hash: the game can load the next area into the instance it already had, and a rule needs two areas.
+            var where = AreaKey(area.Address.ToInt64(), area.AreaHash);
             var lastRarity = (int)RemoteEnums.Rarity.Unique;
             var (examined, items) = (0, 0);
             foreach (var entity in area.AwakeEntities.Values)
@@ -1098,6 +1099,9 @@ namespace GameReader.Utils
             }).ToList();
         }
 
+        /// <summary>One key per loaded area: its instance's address with its hash, since the address alone can be another area's too.</summary>
+        public static long AreaKey(long address, string? hash) => address ^ ((long)StringComparer.Ordinal.GetHashCode(hash ?? string.Empty) << 20);
+
         /// <summary>An item's rarity and stack, and a flask's charges, counted toward their rules; an item that does not read counts for nothing.</summary>
         private static void JudgeItem(Item item, long where, bool flask)
         {
@@ -1114,12 +1118,11 @@ namespace GameReader.Utils
 
             if (item.TryGetComponent<Stack>(out var stack))
             {
-                // The largest stack of its kind, in the inventory or a stash tab; 0 when its data does not read.
-                var max = Core.Process.Handle.TryReadMemory<StackOffsets>(stack.Address, out var data) && data.StackSizeDataPtr != IntPtr.Zero &&
-                          Core.Process.Handle.TryReadMemory<StackSizeDataOffsets>(data.StackSizeDataPtr, out var sizes)
-                    ? Math.Max(Math.Max(sizes.MaxStack, sizes.MaxStackTab), sizes.UnknownMaxStack)
-                    : 0;
-                Invariants.Add(StackCountRule, where, id, StructShapes.IsStackCount(stack.Count, max));
+                // One item at least, and no maximum: the three caps of the stack's data were measured on a Scroll of Wisdom
+                // alone (StackSizeDataOffsets), this rule sees only what lies on the ground, and a pile of gold there may
+                // well hold more than whatever its own data keeps in those fields. Held against them, the rule could fail
+                // on a healthy game and have "code fields" said; until the caps are read on gold it judges the count alone.
+                Invariants.Add(StackCountRule, where, id, StructShapes.IsStackCount(stack.Count, 0));
             }
 
             if (flask && item.TryGetComponent<Charges>(out var charges))

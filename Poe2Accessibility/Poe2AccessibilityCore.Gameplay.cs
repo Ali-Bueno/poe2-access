@@ -253,22 +253,28 @@ namespace Poe2Accessibility
                 return;
             }
 
+            // Each player's news and the co-op's downs on their own: one's watch failing must not silence the other's.
             var inWorld = this.WorldInFront() && Core.Process.Foreground;
-            this.alerts?.Tick(this.Settings, inWorld && IsPlayerAlive());
-            if (Seats.Partner is { } partner)
+            this.Isolated("own news", inWorld, static (core, inWorld) => core.alerts?.Tick(core.Settings, inWorld && IsPlayerAlive()));
+            this.Isolated("partner news", inWorld, static (core, inWorld) =>
             {
-                this.partnerAlerts?.Tick(this.Settings, inWorld && IsAlive(partner));
-            }
-
-            // Local co-op: who is down and who is back. A life not readable (entities reload with the area) is no news.
-            var other = Seats.Other;
-            if (LifeKnown(Seats.Followed) && (other == null || LifeKnown(other)))
-            {
-                foreach (var news in this.coopDowns.Update(Core.States.InGameStateObject.CurrentAreaInstance.Address.ToInt64(), IsPlayerAlive(), other == null ? null : (PlayerAlerts.Name(other), IsAlive(other))))
+                if (Seats.Partner is { } partner)
                 {
-                    this.output.Say(SpeechKind.LifeAndMana, news, true);
+                    core.partnerAlerts?.Tick(core.Settings, inWorld && IsAlive(partner));
                 }
-            }
+            });
+            this.Isolated("co-op downs", static core =>
+            {
+                // Local co-op: who is down and who is back. A life not readable (entities reload with the area) is no news.
+                var other = Seats.Other;
+                if (LifeKnown(Seats.Followed) && (other == null || LifeKnown(other)))
+                {
+                    foreach (var news in core.coopDowns.Update(Core.States.InGameStateObject.CurrentAreaInstance.Address.ToInt64(), IsPlayerAlive(), other == null ? null : (PlayerAlerts.Name(other), IsAlive(other))))
+                    {
+                        core.output.Say(SpeechKind.LifeAndMana, news, true);
+                    }
+                }
+            });
         }
 
         private static bool LifeKnown(GameReader.RemoteObjects.States.InGameStateObjects.Entity entity) =>
