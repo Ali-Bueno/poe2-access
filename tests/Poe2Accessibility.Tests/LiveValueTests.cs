@@ -19,6 +19,8 @@ namespace Poe2Accessibility.Tests
             (nameof(ADrainTeachesNoCost), ADrainTeachesNoCost),
             (nameof(FlaskNewsIsToldBySlot), FlaskNewsIsToldBySlot),
             (nameof(AFlasksCostOutlivesAnAreaButNotACharacter), AFlasksCostOutlivesAnAreaButNotACharacter),
+            (nameof(ABossNotThereToReadIsNotSaid), ABossNotThereToReadIsNotSaid),
+            (nameof(TheBossBeingFoughtIsTheOneSaid), TheBossBeingFoughtIsTheOneSaid),
         };
 
         /// <summary>A flask whose drinks were seen to cost <paramref name="cost"/>, left at <paramref name="charges"/>; the clock ends past the last drink.</summary>
@@ -115,6 +117,24 @@ namespace Poe2Accessibility.Tests
             Equal(FlaskNews.New, drinks.Update(1, Life, 20, now + 2000), "another flask put in the slot");
             Equal<int?>(null, drinks.Uses(1, Life, 20), "which has its own cost to be seen");
             Equal(FlaskNews.New, drinks.Update(2, Mana, 30, now + 2500), "a flask in a slot empty until now");
+        }
+
+        private static void ABossNotThereToReadIsNotSaid()
+        {
+            // The player died to the Miller at 40% and respawned at the checkpoint: the record still says 40, the game says full.
+            Equal<int?>(null, BossLifeSteps.Spoken(new (int?, long, long)[] { (null, 9000, 9000) }, diedAt: 9500), "out of sight: nothing is known of it now");
+            Equal<int?>(null, BossLifeSteps.Spoken(new (int?, long, long)[] { (100, 9000, 9000) }, diedAt: 9500), "read back at full life after the death: the game reset the fight");
+            Equal<int?>(0, BossLifeSteps.Spoken(new (int?, long, long)[] { (38, 9000, 9000) }, diedAt: null), "there and hurt: said, with the life just read");
+            Equal<int?>(0, BossLifeSteps.Spoken(new (int?, long, long)[] { (100, 9000, 9000) }, diedAt: null), "healed to full with no death is still the fight");
+            Equal<int?>(null, BossLifeSteps.Spoken(Array.Empty<(int?, long, long)>(), diedAt: null), "no boss engaged");
+        }
+
+        private static void TheBossBeingFoughtIsTheOneSaid()
+        {
+            var bosses = new (int?, long, long)[] { (40, 5000, 20_000), (72, 19_800, 20_000), (15, 21_000, 21_000) };
+            Equal<int?>(2, BossLifeSteps.Spoken(bosses, diedAt: null), "the one whose life changed last, not the first engaged");
+            bosses[2] = (null, 21_000, 21_000);
+            Equal<int?>(1, BossLifeSteps.Spoken(bosses, diedAt: null), "one that left is passed over for one that is there");
         }
 
         private static void AFlasksCostOutlivesAnAreaButNotACharacter()

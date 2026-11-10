@@ -102,3 +102,9 @@ rule now in force, where.
   survive an area change and are forgotten at character selection. Not covered: a drain slower than one tick in 3 s
   whose ticks repeat, and another flask of the same name put in the same slot (corrected by its second drink). Log:
   `Flask cost: <name> in slot N, 8 charges a drink as seen (was unknown), …`; dev command `flasks` shows base and seen.
+- **Boss life in the vitals readout (A2).** `BossWatch.Status` said the first engaged record's last polled percentage:
+  after a death and a respawn at the checkpoint it kept "40 por ciento" for a boss the game had reset, a boss that left
+  alive kept its last value, and the first record could mask the boss being fought. Rule: the readout reads each engaged
+  boss's life from its entity when asked (`LifeNow`); one that is not among the entities, dead or hidden is not said, nor
+  one read back at full life after the player's death (the reset the poll would notice on meeting it); of several, the
+  one whose life changed last (`BossLifeSteps.Spoken`). Log when an engaged boss is left out: `Boss life not said: …`.
