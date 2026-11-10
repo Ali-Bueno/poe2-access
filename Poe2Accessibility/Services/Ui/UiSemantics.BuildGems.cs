@@ -123,7 +123,7 @@ namespace Poe2Accessibility.Services
 
             foreach (var granted in this.GemPlan()?.Plan.Skills.Select(skill => skill.Gem.Key).Distinct() ?? Enumerable.Empty<string>())
             {
-                if (skills.All(skill => skill.Key != granted) && this.panelSkills.Contains(GemNames.Of(granted)))
+                if (skills.All(skill => skill.Key != granted) && GemNames.RowNames(granted).Any(this.panelSkills.Contains))
                 {
                     skills.Add(new OwnedSkill(granted, Array.Empty<string>()));
                 }
@@ -259,7 +259,7 @@ namespace Poe2Accessibility.Services
 
             var titles = this.RowTitles(row);
             return active.Plan.Skills.Where(skill => skill.Gem.ToLevel >= active.Level).Select(skill => skill.Gem.Key)
-                .FirstOrDefault(key => titles.Contains(GemNames.Of(key), StringComparer.OrdinalIgnoreCase)) ?? string.Empty;
+                .FirstOrDefault(key => GemNames.RowNames(key).Any(name => titles.Contains(name, StringComparer.OrdinalIgnoreCase))) ?? string.Empty;
         }
 
         /// <summary>Keeps the names the panel's rows show, for the skills that have no gem; what was known of the gems is read again when they change.</summary>

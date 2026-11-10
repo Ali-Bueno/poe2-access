@@ -70,7 +70,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets the gem's BaseItemTypes Id ("Metadata/Items/Gem/SkillGemIceNova").</summary>
         public string Id => this.gem.Id;
 
-        /// <summary>Gets the Id's last part ("SkillGemIceNova"), the key a build plan and <see cref="GemNames"/> name a gem by.</summary>
+        /// <summary>Gets the Id's last part ("SkillGemIceNova"), the key a build plan names a gem by (<see cref="GemNames"/>).</summary>
         public string Key { get; }
 
         public GemKind Kind { get; }
@@ -98,6 +98,13 @@ namespace Poe2Accessibility.Services
         ///     0.5.x are patterns the game fills in ("Spectre: {0}"): see <see cref="NameIsPattern"/>.
         /// </summary>
         public string Name(string language) => PlainName(this.catalog.GemName(this.gem.Id, language) ?? string.Empty);
+
+        /// <summary>
+        ///     The names the game shows for the skills the gem grants (the files' own skill names, not the gem's), in the
+        ///     language, English when it has none; the unnamed ones left out.
+        /// </summary>
+        public IReadOnlyList<string> SkillNames(string language) =>
+            this.gem.Skills.Select(skill => this.catalog.SkillName(skill, language) ?? string.Empty).Where(name => name.Length > 0).Select(PlainName).ToList();
 
         /// <summary>Whether the name holds a place the game fills in play (the monster a Spectre gem holds): the name shown is then the game's to read.</summary>
         public bool NameIsPattern(string language) => this.Name(language).Contains(Placeholder, StringComparison.Ordinal);

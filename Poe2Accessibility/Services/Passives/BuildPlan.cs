@@ -163,13 +163,27 @@ namespace Poe2Accessibility.Services
     /// <summary>A build note as it is read: markup out, and the attribute an attribute node's note shows only by colour named.</summary>
     public static class BuildNotes
     {
-        private static readonly Regex Tag = new(@"<[^<>{}]*>\{|\}|<[^<>{}]*>", RegexOptions.Compiled);
+        /// <summary>A tag with the text it wraps ("&lt;red&gt;{…}"); the text may hold a place the game fills ("{0}"), whose braces are no tag's.</summary>
+        private static readonly Regex Wrapped = new(@"<[^<>{}]*>\{((?:[^{}]|\{\d+\})*)\}", RegexOptions.Compiled);
+
+        /// <summary>A tag alone, and a brace left without its pair that is no part of a "{0}".</summary>
+        private static readonly Regex Stray = new(@"<[^<>{}]*>\{?|\{(?!\d+\})|(?<!\{\d+)\}", RegexOptions.Compiled);
 
         /// <summary>An attribute node's PassiveSkills id ("strength17", "intelligence21_", "attributes65": the +5 to any attribute nodes).</summary>
         public static bool IsAttributeNode(string id) => Regex.IsMatch(id, @"^(strength|dexterity|intelligence|attributes)\d+_*$");
 
         /// <summary>"&lt;m&gt;{&lt;red&gt;{Strength +5 is recommended}}" → "Strength +5 is recommended".</summary>
-        public static string Plain(string markup) => Regex.Replace(Tag.Replace(markup, string.Empty), @"\s+", " ").Trim();
+        public static string Plain(string markup)
+        {
+            // Innermost first: "<m>{<red>{x}}" loses <red>{…}, then <m>{…}.
+            string unwrapped;
+            while ((unwrapped = Wrapped.Replace(markup, "$1")) != markup)
+            {
+                markup = unwrapped;
+            }
+
+            return Regex.Replace(Stray.Replace(markup, string.Empty), @"\s+", " ").Trim();
+        }
 
         /// <summary>
         ///     The attribute an attribute node's note points to by colour alone (the game draws strength red, dexterity green,

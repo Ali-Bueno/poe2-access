@@ -484,8 +484,8 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   [patch day](docs/patch-day.md).
 - The stash's and the well's sounds were picked by measurement, the user away (2026-11-10): [audition page](https://claude.ai/artifact/HKNYM3jD9bvzBA1ECTK4Ww);
   another pick is one line of `SoundExtractor.Cues` and the `Sounds` step raised (`GameDataSteps`).
-- `catalog/gem-names.json` was made by hand from `dat-strings`; the extractor and the start-up data steps do not regenerate it yet (a gem
-  added by a patch is named by its id's words until then). Which gems are Spirit gems is not known before they are owned.
+- Which gems are Spirit gems is not known before they are owned: the files give the Meta kind (44 gems) and the game's Persistent tag
+  (193 gems, 9 Meta gems without it), neither of which says which uncut gem engraves a gem, so the build's lines say neither.
 - The Sockets component's second socket (+0x38) is unmeasured: yarkey has one support per skill; every pointer is checked as a support gem.
 - The tree's header "Set de armas: 1, (4)" is read as shown (two rows, one per set, each an icon, the caption, "1" and " (4)"; no tooltip,
   dump 2026-11-10); what the numbers count needs a point spent or refunded to measure, which only the user does.
