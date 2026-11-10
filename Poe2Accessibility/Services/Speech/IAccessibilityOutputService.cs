@@ -14,6 +14,12 @@ namespace Poe2Accessibility.Services
         void Speak(string text, bool interrupt = false);
 
         /// <summary>
+        ///     Speaks a value that changes by itself (a life percentage, a boss's, a count of steps or charges): when it has
+        ///     to wait behind a kept line for longer than the number stays true, it is not said (<see cref="SpeechFloor.ReadingFreshMs"/>).
+        /// </summary>
+        void SpeakReading(string text, bool interrupt = false) => this.Speak(text, interrupt);
+
+        /// <summary>
         ///     D2R "Urge": interrupts, then any interrupting phrase in the next <paramref name="holdMs"/> queues behind
         ///     it instead of cutting it off (low life, arrival, a status that began).
         /// </summary>

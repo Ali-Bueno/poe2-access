@@ -16,7 +16,16 @@ namespace Poe2Accessibility.Services
         /// <summary>Past this, what is still being said ahead of a kept line no longer delays its hold: the estimate is too rough.</summary>
         public const int MaxAheadMs = 6000;
 
-        private readonly List<(string Text, bool Interrupt)> held = new();
+        /// <summary>
+        ///     A reading (a life percentage, a count of steps) that waited this long behind a kept line is no longer said:
+        ///     the number it holds was true when asked, and the next change or the player's own question gives the present one.
+        /// </summary>
+        public const int ReadingFreshMs = 2000;
+
+        private readonly List<(string Text, bool Interrupt, DateTime At, bool Reading)> held = new();
+
+        /// <summary>The readings the last <see cref="Release"/> left unsaid for their age.</summary>
+        public IReadOnlyList<string> Dropped { get; private set; } = Array.Empty<string>();
         private DateTime speechEndsAt = DateTime.MinValue;
         private DateTime keptUntil = DateTime.MinValue;
 
@@ -51,7 +60,8 @@ namespace Poe2Accessibility.Services
         public bool Echoes(string text, DateTime now) => now < this.lastKept.Until && this.lastKept.Text.Contains(text, StringComparison.Ordinal);
 
         /// <summary>True when the phrase goes out now; false when it waits for the kept line (an interrupt drops what waited).</summary>
-        public bool Admit(string text, bool interrupt, DateTime now)
+        /// <param name="reading">The phrase says a value that changes by itself, not something that happened.</param>
+        public bool Admit(string text, bool interrupt, DateTime now, bool reading = false)
         {
             if (!this.Held(now))
             {
@@ -64,7 +74,7 @@ namespace Poe2Accessibility.Services
                 this.held.Clear();
             }
 
-            this.held.Add((text, interrupt));
+            this.held.Add((text, interrupt, now, reading));
             return false;
         }
 
@@ -125,15 +135,21 @@ namespace Poe2Accessibility.Services
             this.speechEndsAt = start.AddMilliseconds(SpokenMs(text));
         }
 
-        /// <summary>What waited, once the floor is free: queued behind whatever is still being said.</summary>
+        /// <summary>
+        ///     What waited, once the floor is free: queued behind whatever is still being said. Readings older than
+        ///     <see cref="ReadingFreshMs"/> are left out (<see cref="Dropped"/>); what happened is said however late.
+        /// </summary>
         public IReadOnlyList<string> Release(DateTime now)
         {
+            this.Dropped = Array.Empty<string>();
             if (this.held.Count == 0 || this.Held(now))
             {
                 return Array.Empty<string>();
             }
 
-            var due = this.held.Select(phrase => phrase.Text).ToList();
+            bool Stale((string Text, bool Interrupt, DateTime At, bool Reading) phrase) => phrase.Reading && (now - phrase.At).TotalMilliseconds > ReadingFreshMs;
+            this.Dropped = this.held.Where(Stale).Select(phrase => phrase.Text).ToList();
+            var due = this.held.Where(phrase => !Stale(phrase)).Select(phrase => phrase.Text).ToList();
             this.held.Clear();
             foreach (var text in due)
             {

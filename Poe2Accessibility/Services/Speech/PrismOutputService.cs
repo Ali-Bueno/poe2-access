@@ -141,7 +141,7 @@ namespace Poe2Accessibility.Services
                 quiet = this.floor.Quiet(DateTime.UtcNow);
             }
 
-            if (!this.Say(text, false, Delivery.Normal, 0))
+            if (!this.Say(text, false, Delivery.Normal, 0, reading: true))
             {
                 return; // held back as a repeat: it was just heard
             }
@@ -158,6 +158,8 @@ namespace Poe2Accessibility.Services
             this.Say(text, interrupt, yieldsToMoves ? Delivery.KeptMessage : Delivery.Kept, holdMs);
 
         public void Moved(string text) => this.Say(text, true, Delivery.Move, 0);
+
+        public void SpeakReading(string text, bool interrupt = false) => this.Say(text, interrupt, Delivery.Normal, 0, reading: true);
 
         public void TakeFloor(string text) => this.Say(text, true, Delivery.Floor, 0);
 
@@ -219,7 +221,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>False when the phrase is held back (empty, a repeat, or already in the kept line).</summary>
-        private bool Say(string text, bool interrupt, Delivery delivery, int holdMs)
+        private bool Say(string text, bool interrupt, Delivery delivery, int holdMs, bool reading = false)
         {
             if (string.IsNullOrWhiteSpace(text))
             {
@@ -300,7 +302,7 @@ namespace Poe2Accessibility.Services
                         this.floor.Sent(text, interrupt, now);
                         break;
                     default:
-                        goesOut = this.floor.Admit(text, interrupt, now);
+                        goesOut = this.floor.Admit(text, interrupt, now, reading);
                         break;
                 }
 
@@ -345,11 +347,13 @@ namespace Poe2Accessibility.Services
         private int ReleaseWaiting()
         {
             IReadOnlyList<string> due;
+            IReadOnlyList<string> dropped;
             TimeSpan? next;
             lock (this.queueGate)
             {
                 var now = DateTime.UtcNow;
                 due = this.floor.Release(now);
+                dropped = this.floor.Dropped;
                 foreach (var text in due)
                 {
                     this.EnqueueLocked(new SpeechRequest(text, false));
@@ -361,6 +365,11 @@ namespace Poe2Accessibility.Services
             foreach (var text in due)
             {
                 this.log.Info($"Speech after the kept line: {text}");
+            }
+
+            foreach (var text in dropped)
+            {
+                this.log.Info($"Speech not said (a reading that waited too long): {text}");
             }
 
             return next is { } wait ? Math.Max(1, (int)Math.Ceiling(wait.TotalMilliseconds)) : Timeout.Infinite;

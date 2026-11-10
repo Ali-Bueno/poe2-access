@@ -20,6 +20,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AGroundTooltipIsItsOwnItems), AGroundTooltipIsItsOwnItems),
             (nameof(AVanishedTargetIsReachedOnlyIfUsingItRemovesIt), AVanishedTargetIsReachedOnlyIfUsingItRemovesIt),
             (nameof(TheScannersChoiceEndsWithItsArea), TheScannersChoiceEndsWithItsArea),
+            (nameof(AReadingThatWaitedTooLongIsNotSaid), AReadingThatWaitedTooLongIsNotSaid),
         };
 
         private static void ANumberChangingUnderTheCursorIsSaidAlone()
@@ -139,6 +140,23 @@ namespace Poe2Accessibility.Tests
             browser.ChangeCategory(there, 1, 700);
             browser.Reset();
             Equal(null, browser.Current(there, 800)?.Name, "and the area handler's reset");
+        }
+
+        /// <summary>"Life 50 percent" waiting six seconds behind a lesson is no longer true; a pick-up still happened.</summary>
+        private static void AReadingThatWaitedTooLongIsNotSaid()
+        {
+            var start = new DateTime(2026, 11, 10, 12, 0, 0, DateTimeKind.Utc);
+            var floor = new SpeechFloor();
+            floor.Keep("Press X to equip the weapon.", true, 6000, start);
+            Equal(false, floor.Admit("Life 50 percent", false, start.AddMilliseconds(500), reading: true), "a reading waits behind the lesson");
+            Equal(false, floor.Admit("Picked up: Scroll of Wisdom, 3", false, start.AddMilliseconds(600)), "and so does a pick-up");
+            Equal(false, floor.Admit("Now up right, 4", false, start.AddMilliseconds(5000), reading: true), "a reading asked a second before the floor is free");
+            Equal(0, floor.Release(start.AddMilliseconds(5900)).Count, "nothing is released while the lesson holds");
+            var said = floor.Release(start.AddMilliseconds(6100));
+            Equal("Picked up: Scroll of Wisdom, 3 | Now up right, 4", string.Join(" | ", said), "the event and the fresh reading are said");
+            Equal("Life 50 percent", string.Join(" | ", floor.Dropped), "the old reading is not");
+            Equal(true, SpeechPriority.IsReading(SpeechKind.LifeAndMana) && SpeechPriority.IsReading(SpeechKind.BossLife) && SpeechPriority.IsReading(SpeechKind.Charges), "percentages and counts are readings");
+            Equal(false, SpeechPriority.IsReading(SpeechKind.GroundItems) || SpeechPriority.IsReading(SpeechKind.StatusBegins) || SpeechPriority.IsReading(SpeechKind.Arrivals), "what happened is not");
         }
     }
 }

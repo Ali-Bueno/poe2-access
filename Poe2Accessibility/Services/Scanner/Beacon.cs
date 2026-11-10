@@ -287,7 +287,7 @@ namespace Poe2Accessibility.Services
 
             this.lastTurn = turn;
             var steps = Math.Max(1, (int)Math.Round(legs[0].Length * gridSize / StepWorld));
-            this.output.Speak(Announcements.RouteTurn(Announcements.StickDirections[legs[0].Direction], steps), false);
+            this.output.SpeakReading(Announcements.RouteTurn(Announcements.StickDirections[legs[0].Direction], steps));
         }
 
         /// <summary>The target's current place; false when it is gone (and the lock was released).</summary>
