@@ -13,6 +13,7 @@ namespace Poe2Accessibility.Tests
             (nameof(VariantSuffixAndUnderscoresAreDropped), VariantSuffixAndUnderscoresAreDropped),
             (nameof(AcronymsStayTogether), AcronymsStayTogether),
             (nameof(TheEngineWordDoodadIsDropped), TheEngineWordDoodadIsDropped),
+            (nameof(AFileWordIsAnUnnamedObjectOutsideEnglish), AFileWordIsAnUnnamedObjectOutsideEnglish),
             (nameof(LeagueNameIsTheGameLabelFirst), LeagueNameIsTheGameLabelFirst),
             (nameof(LeagueNameFallsBackToItsFolder), LeagueNameFallsBackToItsFolder),
             (nameof(AHarmfulBuffIsNamedOnceWhenItBegins), AHarmfulBuffIsNamedOnceWhenItBegins),
@@ -43,6 +44,15 @@ namespace Poe2Accessibility.Tests
 
         private static void AcronymsStayTogether() =>
             Expect("NPC Hideout Door", ObjectNames.FromPath("Metadata/NPCHideoutDoor"));
+
+        private static void AFileWordIsAnUnnamedObjectOutsideEnglish()
+        {
+            Func<string, string> unnamed = word => $"Objeto sin nombre, {word}";
+            Expect("Chair", ObjectNames.Spoken("Chair", "en", unnamed));
+            Expect("Objeto sin nombre, Chair", ObjectNames.Spoken("Chair", "es", unnamed));
+            Expect("Objeto sin nombre, Chair", ObjectNames.Spoken("Chair", "ja", unnamed));
+            Expect(string.Empty, ObjectNames.Spoken(string.Empty, "es", unnamed)); // no word: still no name, as before
+        }
 
         private static void LeagueNameIsTheGameLabelFirst() =>
             Expect("Abismo", ObjectNames.LeagueName("Abismo", "Metadata/Terrain/Leagues/Delirium/Thing"));

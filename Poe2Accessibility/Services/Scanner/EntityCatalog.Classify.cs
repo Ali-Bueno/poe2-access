@@ -199,6 +199,8 @@ namespace Poe2Accessibility.Services
                 {
                     this.log.Info($"Object named from its file: {path} -> {name}");
                 }
+
+                name = ObjectNames.Spoken(name, Localization.Language, Announcements.UnnamedObject);
             }
 
             if (category == null || name.Length == 0)

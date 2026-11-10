@@ -42,6 +42,13 @@ namespace Poe2Accessibility.Services
             return name.StartsWith(DoodadWord, StringComparison.Ordinal) && name.Length > DoodadWord.Length ? name[DoodadWord.Length..] : name;
         }
 
+        /// <summary>
+        ///     What is said for a name made from a file: in English the file's words are a fair name; in another language they
+        ///     would be foreign words posing as one, so the object is said unnamed with the word kept to tell it apart.
+        /// </summary>
+        public static string Spoken(string fileWord, string language, Func<string, string> unnamed) =>
+            fileWord.Length == 0 || language == "en" ? fileWord : unnamed(fileWord);
+
         /// <summary>The game's label, else the league folder of the path ("Metadata/Terrain/Leagues/Delirium/..." gives "Delirium"), else empty.</summary>
         public static string LeagueName(string label, string path)
         {
