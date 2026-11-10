@@ -345,6 +345,21 @@ the next column 41). A PassiveSkills column a launcher did not write follows the
 every row, a class's under `Metadata/Characters/` (`DatColumnSearch.IsIdColumn`): the plugin reads the first two there and
 the host's `WorldAreaDatOffsets.IdPtr` follows the third.
 
+## Self-describing tables
+A `.datc64` has no column names, but its columns say what they are (`DatColumnKinds`, 2026-11-10): a text is the offset of
+a string's first character in the variable section, a key is a row index or the null key (all 0xFE) with eight zero (or
+0xFE) bytes after it when it points into another table, a list is a count and the offset of that many items, a flag is a
+byte of 0 or 1. Each step's reads are recorded as it runs (`DatTable.Reads`; a search trying offsets runs inside
+`DatTable.Probe` and is not a read) and judged when it ends (`DatColumnAudit`): a column read as one kind whose bytes
+hold another fails the step, with the table, the offset and both kinds in the log; a blank or constant column, or a table
+under eight rows, cannot be told and passes. On the 0.5.x files the 25 start-up steps and the four standalone commands
+read 636 columns in 374 table openings and the bytes agree with all 636. The Id read at +0 of every table is also
+judged as identifiers (no more than a quarter of its rows may hold a blank: ItemClasses has 14 of 118). The text files
+are judged by how they start (`GameFormats`), the bundle index by its header, a bank by its RIFF and FSB5 headers.
+`Poe2UiExtract dat-kinds` prints a table's layout by the same judge. What it found the first day: QuestStates' objective
+was read at +0x2C, the offset half of an empty list, which only happened to point at the text of +0x59; and the trial
+catalog's class names were colour strings in four languages, each language having searched its own column.
+
 ## Content changes such as 1.0
 GGG has said 1.0 shrinks the Atlas to about 70 nodes and changes the passive tree. A content patch moves table columns,
 renumbers rows, rewrites graph files and may retune rules; what follows is how each catalog and feature takes it

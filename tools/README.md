@@ -77,6 +77,22 @@ uses it after a game patch: 33 s for all seven instead of 85 s as separate runs 
 byte offset (the same offset in a row in memory), English by default or a translated copy (`spanish`). It is how
 `Characters` +0x08 was found to hold the localized class name ("Monje") read for the passive tree's class starts.
 
+### `dat-kinds` command - a table laid out by what its bytes hold
+`Poe2UiExtract dat-kinds <gameDir> <table> [language] [Id substring | #row,row]` prints the row column by column as the
+bytes alone tell it (text, key, list of texts or keys, flag, runs of numbers), with the first value each has or the
+values of the rows asked for. It is the judge every step's second opinion uses (`DatColumnKinds`,
+[self-describing tables](../docs/compatibility.md#self-describing-tables)), and how a column a patch moved is found by
+hand. The layout is greedy: a key with no null in it can show as numbers, an empty list as the text after it.
+
+### `gems` and `passive-tree` commands - static data the plugin reads from memory today
+`gems.json` (skill and support gems, their skills, tags and names) and `passive-tree.json` (the main tree's nodes, links,
+class starts and names), both from the files alone ([candidates and layouts](../docs/research/file-catalogs.md)).
+
+### `sequence` command - measuring aid
+`Poe2UiExtract sequence batch … -- sounds … -- object-sounds …` runs several command lines in one process with the
+index kept open between them, as the mod's start-up does (`Extractor.KeepIndexOpen`): 33 s on 2026-11-10 against 57 s
+when each run opened the index itself.
+
 ## exe_reader — struct offsets from the game's exe
 `py -B -I tools/exe_reader/reader.py [exe]` reads offsets and component sizes out of `PathOfExileSteam.exe` as a data file, in about 7
 seconds, from the names the game keeps for its own script language and the shape of the code around them. Run it after a patch, before
