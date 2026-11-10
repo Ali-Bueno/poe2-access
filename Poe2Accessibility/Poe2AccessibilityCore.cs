@@ -36,7 +36,6 @@ namespace Poe2Accessibility
         private GamepadReader? pad;
         private ModCommands? commands;
         private L3Gestures gestures = new();
-        private uint lastPadButtons;
 
         /// <summary>How often the guide looks for the next Death Crystal: a disabled one leaves the list at the scanner's pace.</summary>
         private const int TimedGuideMs = 400;
@@ -53,46 +52,8 @@ namespace Poe2Accessibility
         private readonly TimedGuide timedGuide = new();
         private long nextTimedGuide;
         private AudioCueService? audio;
-        private const string BuffTable = "buffdefinitions";
-        private const string NamedKindsPart = "effect names";
-        private const string GameDataPart = "game data";
-        private const string CodeFieldsPart = "code fields";
-        private const string CodeFieldFile = "code-fields.txt";
-        private const string WorldAreaStruct = "WorldAreaDatOffsets";
-        private const int WorldAreaIdMeasured = 0x0;
-        private const int WorldAreaNameMeasured = 0x8;
-        private const int WorldAreaIsTownMeasured = 0x14;
-
-        /// <summary>
-        ///     The plugin's own offsets the game's code can place (catalog/code-fields.txt, <c>layout:</c>); the getter lets a
-        ///     live search that already moved one keep it.
-        /// </summary>
-        private static readonly System.Collections.Generic.Dictionary<string, (Func<int> Get, Action<int> Set)> LayoutFields = new()
-        {
-            ["IsTargetable"] = (() => GameLayout.TargetableComponent.IsTargetableOffset, value => GameLayout.TargetableComponent.IsTargetableOffset = value),
-            ["IsTargeted"] = (() => GameLayout.TargetableComponent.IsTargetedOffset, value => GameLayout.TargetableComponent.IsTargetedOffset = value),
-            ["MinimapIconComponentRow"] = (() => GameLayout.MinimapIconRow.ComponentRowOffset, value => GameLayout.MinimapIconRow.ComponentRowOffset = GameReader.RemoteObjects.Components.MinimapIcon.RowOffset = value),
-            ["SkillId"] = (() => GameLayout.SkillSlot.SkillIdOffset, value => GameLayout.SkillSlot.SkillIdOffset = value),
-            ["SkillLevelKey"] = (() => GameLayout.SkillSlot.LevelKeyOffset, value => GameLayout.SkillSlot.LevelKeyOffset = value),
-            ["CooldownUses"] = (() => GameLayout.ActorComponent.CooldownUsesOffset, value => GameLayout.ActorComponent.CooldownUsesOffset = value),
-            ["CooldownMaxUses"] = (() => GameLayout.ActorComponent.CooldownMaxUsesOffset, value => GameLayout.ActorComponent.CooldownMaxUsesOffset = value),
-            ["CooldownTime"] = (() => GameLayout.ActorComponent.CooldownTimeOffset, value => GameLayout.ActorComponent.CooldownTimeOffset = value),
-            ["CooldownSkillId"] = (() => GameLayout.ActorComponent.CooldownSkillIdOffset, value => GameLayout.ActorComponent.CooldownSkillIdOffset = value),
-            ["CooldownEntrySize"] = (() => GameLayout.ActorComponent.CooldownEntrySize, value => GameLayout.ActorComponent.CooldownEntrySize = value),
-            ["SkillEntrySize"] = (() => GameLayout.ActorComponent.SkillEntrySize, value => GameLayout.ActorComponent.SkillEntrySize = value),
-            ["PoiseThreshold"] = (() => GameLayout.ActorComponent.PoiseThresholdOffset, value => GameLayout.ActorComponent.PoiseThresholdOffset = value),
-            ["Poise"] = (() => GameLayout.ActorComponent.PoiseOffset, value => GameLayout.ActorComponent.PoiseOffset = value),
-            ["NodeInBuild"] = (() => GameLayout.PassiveTree.NodeInBuildOffset, value => GameLayout.PassiveTree.NodeInBuildOffset = value),
-            ["ButtonMenuIndex"] = (() => GameLayout.ButtonMenu.SelectedIndexOffset, value => GameLayout.ButtonMenu.SelectedIndexOffset = value),
-            ["PlayerStride"] = (() => GameLayout.UiManager.PlayerStride, value => GameLayout.UiManager.PlayerStride = value),
-            ["ModRowOffset"] = (() => GameLayout.ModArray.RowOffset, value => GameLayout.ModArray.RowOffset = value),
-            ["ModEntrySize"] = (() => GameLayout.ModArray.EntrySize, value => GameLayout.ModArray.EntrySize = value),
-            ["StateListOffset"] = (() => GameReader.RemoteObjects.Components.StateMachine.StateListOffset, value => GameReader.RemoteObjects.Components.StateMachine.StateListOffset = value),
-            ["StateStride"] = (() => GameReader.RemoteObjects.Components.StateMachine.StateStride, value => GameReader.RemoteObjects.Components.StateMachine.StateStride = value),
-        };
 
         private WorldLayoutWatch? worldLayout;
-        private string? gameNewsLine;
         private TradeOfferWatch? tradeOffers;
 
         private EnemyCues? enemyCues;
@@ -118,9 +79,6 @@ namespace Poe2Accessibility
 
         /// <summary>Right stick deflection that counts as aiming (the target is named only then).</summary>
         private const float AimDeflection = 0.3f;
-
-        /// <summary>A stick pushed this far counts as a direction (our threshold: well past rest, before a full push).</summary>
-        private const float DirectionDeflection = 0.5f;
 
         private Beacon? beacon;
         private TargetNarrator? targets;
@@ -160,59 +118,17 @@ namespace Poe2Accessibility
         /// <summary>Game sounds are cut to this length: repeated proximity cues must stay short.</summary>
         private const float GameSoundSeconds = 0.9f;
 
-        /// <summary>The focus of the previous frame, to notice a text field closing (pre-game focus goes to nothing).</summary>
-        private AccessibleUiNode? previousFocus;
-
-        /// <summary>When A (the confirm button) last went down, from the game's own pad state.</summary>
-        private long lastConfirmAt = long.MinValue / 2;
-
-        /// <summary>When a direction (d-pad or a stick) was last held, from the game's own pad state.</summary>
-        private long lastDirectionAt = long.MinValue / 2;
-
-        /// <summary>When the game went to "not loaded"; zero once announced or left (see <see cref="AnnounceLastingClose"/>).</summary>
-        private long closedSince;
-
-        /// <summary>A "not loaded" state shorter than this is a transition, not the game closing.</summary>
-        private const int ClosedSettleMs = 2000;
-
-        /// <summary>
-        ///     A state the game may only pass through is said once it has lasted this long: entering the game goes
-        ///     through character selection for 18 ms ("Cargando. Selección de personaje. Cargando área", 2026-10-24).
-        ///     The others are said at once, before the area name or the menu they bring.
-        /// </summary>
-        private const int StateSettleMs = 150;
-
         /// <summary>No area goes past this level (endgame maps reach the 80s); a larger number is a broken read.</summary>
         private const int MaxAreaLevel = 100;
 
-        private static readonly System.Collections.Generic.HashSet<GameStateTypes> PassingStates = new()
-        {
-            GameStateTypes.SelectCharacterState, GameStateTypes.WaitingState, GameStateTypes.LoadingState,
-        };
-
-        /// <summary>The state announcement waiting out <see cref="StateSettleMs"/>; Detected keeps "Game detected" when replaced.</summary>
-        private (string Text, bool Detected, long At, bool Queued)? pendingState;
-
-        /// <summary>
-        ///     "Area: X, level N" waiting for the instance it names: the area row can change before the game loads the new
-        ///     instance (a new Clearfell from the instance list said the town's level 15, 2026-11-02).
-        /// </summary>
-        private (string Name, bool Resumed, long At)? pendingArea;
-
-        /// <summary>An area announcement waits at most this long for its instance, then says what it has.</summary>
-        private const long AreaInstanceWaitMs = 15000;
-
         /// <summary>The language setting last applied to <see cref="Localization"/>.</summary>
         private string? appliedLanguage;
-        private bool confirmDown;
 
         /// <summary>When each kind of monster attack lands, learnt from the blows taken (BossWatch).</summary>
         private string DodgeTimingsPath => Path.Join(this.DllDirectory, "config", "dodge-timings.txt");
 
         /// <summary>Timings measured in development, shipped so the first fights are timed too.</summary>
         private string DodgeTimingsSeedPath => Path.Join(this.DllDirectory, "catalog", "dodge-timings.txt");
-
-        /// <summary>The creation screen's name help was said for this visit (a refused name comes back to it).</summary>
 
         /// <summary>The HUD's skill bar this frame (zero outside gameplay or when not found).</summary>
         private IntPtr skillBar;
@@ -735,153 +651,6 @@ namespace Poe2Accessibility
             }
         }
 
-        /// <summary>Per frame: the mod button's gestures from the pad state the game received.</summary>
-        private void ReadModButton()
-        {
-            this.padState = default;
-            if (this.pad == null || this.focus == null)
-            {
-                return;
-            }
-
-            if (this.focus.Manager != this.padManager)
-            {
-                this.padManager = this.focus.Manager;
-                this.inputSeat.Baseline();
-            }
-
-            GamepadReader.PadState? first = this.pad.TryRead(this.focus.Manager, out var one) ? one : null;
-            GamepadReader.PadState? second = this.Settings.ReadPlayer2 && this.pad.TryRead(this.focus.Manager, out var two, 2) ? two : null;
-            var seat = this.inputSeat.Update(this.Settings.ReadPlayer1, this.Settings.ReadPlayer2,
-                first is { } a ? (a.Buttons, a.Deflection) : null, second is { } b ? (b.Buttons, b.Deflection) : null);
-            if (seat != Seats.Input)
-            {
-                this.log?.Info($"Local co-op: reading player {seat}'s controller and cursor");
-                Seats.Input = seat;
-                this.focus.Seat = seat;
-                this.gestures = new L3Gestures(); // a hold on the other controller is not this one's tap
-            }
-
-            if ((seat == 2 ? second : first) is not { } state)
-            {
-                return;
-            }
-
-            this.padState = state;
-            this.semantics?.ObserveStick(state.LeftX, state.LeftY, state.RightX, state.RightY, Environment.TickCount64);
-            this.CheckPadButtons(state);
-            if (IsDirection(state))
-            {
-                this.lastDirectionAt = Environment.TickCount64;
-            }
-
-            // A opens screens and popups, LB/RB switch tabs: a focus that follows them waits for the new page.
-            var confirm = state.IsDown(GameLayout.PadButtons.A) || state.IsDown(GameLayout.PadButtons.LeftShoulder) ||
-                          state.IsDown(GameLayout.PadButtons.RightShoulder);
-            if (confirm && !this.confirmDown)
-            {
-                this.lastConfirmAt = Environment.TickCount64;
-                if (!state.IsDown(GameLayout.PadButtons.A))
-                {
-                    this.narrator?.OnTabKey();
-                }
-            }
-
-            this.confirmDown = confirm;
-            if (!this.Settings.ControllerCommands || this.commands == null)
-            {
-                return;
-            }
-
-            this.FindOnTree(state);
-            this.gestures.FlicksWithoutL3 = this.commands.InSettingsMenu;
-            if (this.commands.InSettingsMenu && this.focus?.Current != null)
-            {
-                this.commands.CloseSettingsMenu();
-            }
-
-            foreach (var gesture in this.gestures.Update(Environment.TickCount64, state.IsDown(GameLayout.PadButtons.LeftStick), state.RightX, state.RightY, state.IsDown(GameLayout.PadButtons.RightStick)))
-            {
-                this.commands.OnGesture(gesture);
-            }
-        }
-
-        /// <summary>A D-pad press, which does nothing in the passive tree, goes to the tree's finder.</summary>
-        private void FindOnTree(GamepadReader.PadState state)
-        {
-            var pressed = state.Buttons & ~this.lastPadButtons;
-            this.lastPadButtons = state.Buttons;
-            var (list, entry) = (pressed & GameLayout.PadButtons.DPadDown) != 0 ? (1, 0)
-                : (pressed & GameLayout.PadButtons.DPadUp) != 0 ? (-1, 0)
-                : (pressed & GameLayout.PadButtons.DPadRight) != 0 ? (0, 1)
-                : (pressed & GameLayout.PadButtons.DPadLeft) != 0 ? (0, -1)
-                : (0, 0);
-            if (list != 0 || entry != 0)
-            {
-                this.commands?.OnTreeDirection(list, entry);
-            }
-        }
-
-        /// <summary>A d-pad direction or a pushed stick: what moves the cursor in a panel.</summary>
-        private static bool IsDirection(GamepadReader.PadState state) =>
-            state.IsDown(GameLayout.PadButtons.DPadUp | GameLayout.PadButtons.DPadDown | GameLayout.PadButtons.DPadLeft | GameLayout.PadButtons.DPadRight) ||
-            MathF.Max(MathF.Max(MathF.Abs(state.LeftX), MathF.Abs(state.LeftY)), MathF.Max(MathF.Abs(state.RightX), MathF.Abs(state.RightY))) >= DirectionDeflection;
-
-        /// <summary>
-        ///     A text field gave the focus up (pre-game the controller cursor then rests on nothing, D2R "B ends editing"):
-        ///     say what it holds and that editing ended, since nothing else changes on screen for the player.
-        /// </summary>
-        private void WatchTextFieldClosing()
-        {
-            var current = this.focus?.Current;
-            if (current == null && this.previousFocus is { Role: UiRole.TextField } field &&
-                this.gameState?.CurrentState != GameStateTypes.InGameState)
-            {
-                this.output.Speak(Announcements.EditFinished(field.Value), true);
-            }
-
-            this.previousFocus = current;
-        }
-
-        private void RepeatFocus()
-        {
-            if (this.focus?.Current != null)
-            {
-                this.output.Speak(Announcements.Focused(this.focus.Current, this.Settings.ReadTooltipsOnFocus), true);
-            }
-        }
-
-        private void RepeatLast()
-        {
-            if (this.focus?.Current != null)
-            {
-                this.RepeatFocus();
-            }
-            else
-            {
-                this.output.Repeat();
-            }
-        }
-
-        private void OnAttachedChanged(bool attached)
-        {
-            this.processProbe?.Reset();
-            if (attached)
-            {
-                this.NoteGameBuild();
-
-                // The game asks for a restart to change its language: a game started again under a running host speaks
-                // the new one (a fresh install starts in English; Español applies on the next start, 2026-10-24).
-                Localization.Detect(this.Settings.Language, message => this.log?.Info(message));
-            }
-
-            // With state announcements on, "Game detected" and the screen follow at once and would cut the attach line off.
-            if (!attached || !this.Settings.AnnounceGameState)
-            {
-                this.output.Speak(attached ? Announcements.GameAttached : Announcements.GameNotAttached, false);
-            }
-        }
-
         /// <summary>A text element inside the HUD's skill bar (its alert line).</summary>
         private bool IsSkillBarText(IntPtr text) =>
             this.skillBar != IntPtr.Zero && this.elements != null && this.elements.TryReadElement(text, out var info) &&
@@ -892,193 +661,5 @@ namespace Poe2Accessibility
             this.elements != null && this.elements.TryReadElement(text, out var info) &&
             info.Name is GameLayout.InGameUi.QuestTitleName or GameLayout.InGameUi.QuestLineName &&
             this.elements.ReadAncestors(info, GameLayout.InGameUi.QuestLineDepth).Any(ancestor => ancestor.Name == GameLayout.InGameUi.QuestPagesName);
-
-        private void OnGameStateChanged(GameStateTypes previous, GameStateTypes current)
-        {
-            this.research?.OnStateChanged(current);
-            if (current == GameStateTypes.SelectCharacterState)
-            {
-                this.creationHelpSaid = false;
-                this.classHelpSaid = false;
-            }
-
-            if (current == GameStateTypes.AreaLoadingState)
-            {
-                // A respawn reloads the same area without an area change; its barriers come back reading open for a
-                // moment ("Se abrió el paso" after a death, 2026-10-24): learnt again without a word.
-                this.barriers?.Reset();
-            }
-
-            this.screen?.Reset(false);
-            this.narrator?.Reset(current == GameStateTypes.InGameState);
-            if (this.narrator != null)
-            {
-                // The game menu's screen carries the pause banner and a loading tip: its focus alone opens it.
-                this.narrator.ReadScreenMessages = current != GameStateTypes.EscapeState;
-                this.narrator.LoadingArea = current == GameStateTypes.AreaLoadingState;
-                this.narrator.SaidTitle = current == GameStateTypes.EscapeState ? Announcements.ForState(current) : string.Empty;
-            }
-            if (this.semantics != null)
-            {
-                this.semantics.InGame = current == GameStateTypes.InGameState;
-            }
-
-            if (previous == GameStateTypes.EscapeState && current == GameStateTypes.InGameState)
-            {
-                // Back to play from the game menu: its long pause banner stops (user 2026-10-28). Options opened from
-                // the menu are read after this, as their page arrives.
-                this.output.Stop();
-            }
-
-            if (!this.Settings.AnnounceGameState)
-            {
-                return;
-            }
-
-            if (current == GameStateTypes.GameNotLoaded)
-            {
-                // Leaving the game for character selection passes through "not loaded" for a moment: only a state
-                // that lasts is the game closing.
-                this.closedSince = Environment.TickCount64;
-                return;
-            }
-
-            if (previous == GameStateTypes.EscapeState && current == GameStateTypes.InGameState)
-            {
-                return; // the game menu closed (D2R: closing is not news), or Options opened from it: its page speaks
-            }
-
-            var reallyClosed = previous == GameStateTypes.GameNotLoaded && this.closedSince == 0;
-            this.closedSince = 0;
-            if (previous == GameStateTypes.AreaLoadingState && current == GameStateTypes.InGameState && this.pendingState?.Detected != true)
-            {
-                // A new area's name follows at once and replaces it ("En juego" before every area name was noise,
-                // 2026-10-25); a respawn in the same area keeps it as the end of the load.
-                this.pendingState = (Announcements.ForState(current), false, Environment.TickCount64, false);
-                return;
-            }
-
-            // Taking an exit, the game's own "Entrando a Sierraclara..." was cut off by "Cargando área" (2026-10-25).
-            var queued = previous == GameStateTypes.InGameState && current == GameStateTypes.AreaLoadingState;
-            this.pendingState = (Announcements.ForState(current), reallyClosed || this.pendingState?.Detected == true, Environment.TickCount64, queued);
-            if (!PassingStates.Contains(current))
-            {
-                this.pendingState = this.pendingState.Value with { At = long.MinValue / 2 };
-                this.AnnounceSettledState();
-            }
-
-            this.SayCreationClassHelp(current);
-        }
-
-        /// <summary>Per frame: the state reached, once it has settled; a passing one is replaced unsaid.</summary>
-        private void AnnounceSettledState()
-        {
-            if (this.pendingState is not { } pending || Environment.TickCount64 - pending.At < StateSettleMs)
-            {
-                return;
-            }
-
-            this.pendingState = null;
-            // Held: the screen's first focus cut "Menú del juego." and "Selección de personaje." 300 ms in (2026-10-26).
-            var text = pending.Detected ? $"{Announcements.GameDetected} {pending.Text}" : pending.Text;
-            this.output.Keep(text, SpeechFloor.MessageHoldMs(text), !pending.Queued, yieldsToMoves: true);
-        }
-
-        /// <summary>Per frame: "Game closed" once the game has stayed unloaded for a while.</summary>
-        private void AnnounceLastingClose()
-        {
-            if (this.closedSince != 0 && Environment.TickCount64 - this.closedSince >= ClosedSettleMs)
-            {
-                this.closedSince = 0;
-                if (this.Settings.AnnounceGameState)
-                {
-                    this.output.Speak(Announcements.ForState(GameStateTypes.GameNotLoaded), true);
-                }
-            }
-        }
-
-        private void OnAreaChanged(string areaName, bool resumed)
-        {
-            this.beacon?.Clear(false);
-            this.bosses?.Reset();
-            this.trialScope.Reset();
-            this.weakPoint?.Reset();
-            this.shield?.Reset();
-            this.culls?.Reset();
-            this.deployed?.Reset();
-            this.traps?.Reset();
-            this.trialDoors?.Reset();
-            this.enemyStates?.Reset();
-            this.alerts?.Statuses.Reset();
-            this.partnerAlerts?.Statuses.Reset();
-            this.alerts?.Charges.Reset();
-            this.partnerAlerts?.Charges.Reset();
-            this.alerts?.Resources.Reset();
-            this.partnerAlerts?.Resources.Reset();
-            this.alerts?.Cooldowns.Reset();
-            this.partnerAlerts?.Cooldowns.Reset();
-            this.pickups?.Reset();
-            this.partnerPickups?.Reset();
-            this.gold?.Reset();
-            this.flasks?.Reset();
-            this.partnerFlasks?.Reset();
-            this.coopDowns.Reset();
-            this.barriers?.Reset();
-            this.targets?.Reset();
-            this.discoveries?.Reset(areaName, resumed);
-            this.enemyNews?.Reset();
-            this.entities?.AreaEntered(areaName);
-            this.lostHint?.Reset();
-            this.nearby?.Reset();
-            this.places?.Reset();
-            this.narrator?.NewArea(resumed);
-            if (this.Settings.AnnounceArea)
-            {
-                if (this.pendingState is { Detected: false } loaded && loaded.Text == Announcements.ForState(GameStateTypes.InGameState))
-                {
-                    this.pendingState = null;
-                }
-
-                this.pendingArea = (areaName, resumed, Environment.TickCount64);
-                this.areaReadyAt = null;
-                this.AnnounceLoadedArea();
-            }
-        }
-
-        /// <summary>The tile table of the instance the last area announcement read: GameHelper makes a new one each load.</summary>
-        private object? areaTilesSaid;
-
-        /// <summary>When the instance to announce was first there; the corner waits for the player's place in it.</summary>
-        private long? areaReadyAt;
-
-        /// <summary>Per frame: the pending area announcement once the game has loaded an instance since the last one said.</summary>
-        private void AnnounceLoadedArea()
-        {
-            if (this.pendingArea is not var (name, resumed, at))
-            {
-                return;
-            }
-
-            var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            var tiles = area.TgtTilesLocations;
-            if (!resumed && (area.AreaHash.Length == 0 || ReferenceEquals(tiles, this.areaTilesSaid)) && Environment.TickCount64 - at < AreaInstanceWaitMs)
-            {
-                return;
-            }
-
-            var now = Environment.TickCount64;
-            this.areaReadyAt ??= now;
-            if (this.Settings.AreaCorner && now - this.areaReadyAt < PlayerSettlesMs)
-            {
-                return; // the line waits behind "Loading area" anyway; the player's place may still be the last area's
-            }
-
-            this.pendingArea = null;
-            this.areaTilesSaid = tiles;
-            var level = AreaLevel();
-            this.log?.Info($"Area level {level} (instance {area.AreaHash})");
-            this.output.Say(SpeechKind.Places, Announcements.Area(name, level) + this.AreaCornerLine());
-        }
-
     }
 }
