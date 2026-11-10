@@ -78,6 +78,9 @@ namespace Poe2Accessibility.Services
                 details.RemoveAt(0); // the name the announcement already gives
             }
 
+            // A gem: its place in the Build Planner's active build, before what it does.
+            details.InsertRange(0, this.GemItemLines(this.inventory.ItemEntity(role == UiRole.GridCell ? hovered : this.inventory.FindItemElement(info.Address))));
+
             return new AccessibleUiNode
             {
                 Address = info.Address,

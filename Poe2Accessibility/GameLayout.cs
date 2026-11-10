@@ -729,6 +729,21 @@ namespace Poe2Accessibility
             public const int IdsOffset = 0x34;
         }
 
+        /// <summary>
+        ///     The Sockets component of a skill gem item (named so by the host's component lookup): the support gems
+        ///     socketed in the skill, item entity pointers back to back from +0x30; a std::vector at +0x60 ends them (two
+        ///     bytes long where the panel shows two sockets). Found 2026-11-10 (0.5.5f) by a memory scan for the entity of
+        ///     the Martial Tempo socketed in Whirling Slash: the only hit inside a component of the skill's own item;
+        ///     Twister's and Herald of Thunder's, with no support, hold zeros from +0x30 to +0x60. Every entry is checked
+        ///     as a gem item before it is believed (docs/research/ui-layers.md#build-planner-gems-055f-2026-11-10).
+        /// </summary>
+        public static class GemSockets
+        {
+            public const string Component = "Sockets";
+            public const int FirstOffset = 0x30;
+            public const int EndOffset = 0x60;
+        }
+
         /// <summary>Inventory item element (grid child or slot content).</summary>
         public static class InventoryItem
         {

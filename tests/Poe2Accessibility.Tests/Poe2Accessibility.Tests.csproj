@@ -80,6 +80,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\ProximityFade.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\MinionGroups.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\BuildPlan.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Passives\BuildGems.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GemNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\SpeechFloor.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\SpeechRepeats.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\FocusDetails.cs" />

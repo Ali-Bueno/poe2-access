@@ -57,7 +57,10 @@ namespace Poe2Accessibility.Services
         /// <summary>The element whose children are the screen's layers: labels are never looked for past it.</summary>
         public IntPtr LayerContainer { get; set; }
 
-        public AccessibleUiNode? Describe(IntPtr address, bool hovered = false)
+        public AccessibleUiNode? Describe(IntPtr address, bool hovered = false) =>
+            this.DescribeElement(address, hovered) is { } node ? this.WithBuildGems(node, hovered) : null;
+
+        private AccessibleUiNode? DescribeElement(IntPtr address, bool hovered)
         {
             if (!this.elements.TryReadElement(address, out var info))
             {

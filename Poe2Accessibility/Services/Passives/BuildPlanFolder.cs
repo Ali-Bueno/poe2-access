@@ -15,15 +15,53 @@ namespace Poe2Accessibility.Services
         private const int RescanMs = 5000;
 
         private readonly string folder;
+        private readonly string config;
         private readonly Dictionary<string, (DateTime Written, BuildPlan? Plan)> files = new(StringComparer.OrdinalIgnoreCase);
         private long? scannedAt;
+        private (DateTime Written, string Text) configRead;
+        private (BuildPlan? Plan, DateTime At)? matched;
 
-        public BuildPlanFolder(string folder)
+        public BuildPlanFolder(string folder, string config)
         {
             this.folder = folder;
+            this.config = config;
         }
 
         public static string Default => Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games", "Path of Exile 2", "BuildPlanner");
+
+        /// <summary>The game's settings file, which keeps each character's active build ("active_builds").</summary>
+        public static string DefaultConfig => Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games", "Path of Exile 2", "poe2_production_Config.ini");
+
+        /// <summary>
+        ///     The character's active build without the tree open: what the tree's marks showed since the game last wrote its
+        ///     settings (a build, or none), else the file those settings name for the character; null when there is none.
+        /// </summary>
+        public BuildPlan? Active(string character)
+        {
+            this.Rescan();
+            try
+            {
+                var written = File.Exists(this.config) ? File.GetLastWriteTimeUtc(this.config) : DateTime.MinValue;
+                if (this.matched is { } seen && seen.At >= written)
+                {
+                    return seen.Plan;
+                }
+
+                if (written != this.configRead.Written)
+                {
+                    this.configRead = (written, written == DateTime.MinValue ? string.Empty : File.ReadAllText(this.config));
+                }
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                return this.matched?.Plan; // the settings being written: what the tree showed last
+            }
+
+            var path = BuildPlan.ActivePath(this.configRead.Text, character);
+            var name = path == null ? null : Path.GetFileName(path);
+            return name == null ? this.matched?.Plan
+                : this.files.FirstOrDefault(file => string.Equals(Path.GetFileName(file.Key), name, StringComparison.OrdinalIgnoreCase)).Value.Plan;
+        }
 
         /// <summary>
         ///     The plan holding most of the passives the tree marks as the active build, if it holds at least half of them;
@@ -33,6 +71,7 @@ namespace Poe2Accessibility.Services
         {
             if (markedIds.Count == 0)
             {
+                this.matched = (null, DateTime.UtcNow);
                 return null;
             }
 
@@ -40,7 +79,9 @@ namespace Poe2Accessibility.Services
             var best = this.files.Values.Select(file => file.Plan).Where(plan => plan != null)
                 .Select(plan => (Plan: plan!, Shared: plan!.Passives.Count(passive => markedIds.Contains(passive.Id))))
                 .OrderByDescending(match => match.Shared).FirstOrDefault();
-            return best.Plan != null && best.Shared * 2 >= markedIds.Count ? best.Plan : null;
+            var plan = best.Plan != null && best.Shared * 2 >= markedIds.Count ? best.Plan : null;
+            this.matched = (plan, DateTime.UtcNow);
+            return plan;
         }
 
         private void Rescan()

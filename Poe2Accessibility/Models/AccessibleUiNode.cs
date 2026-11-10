@@ -33,14 +33,26 @@ namespace Poe2Accessibility.Models
     /// </summary>
     public sealed class AccessibleUiNode
     {
+        private string text = string.Empty;
+        private System.Collections.Generic.IReadOnlyList<string> panelNotes = Array.Empty<string>();
+        private System.Collections.Generic.IReadOnlyList<string> tooltip = Array.Empty<string>();
+
         public IntPtr Address { get; init; }
+
+        /// <summary>The same node with another label, tooltip and panel notes (what a reader adds to a node an archetype built).</summary>
+        public AccessibleUiNode With(string label, System.Collections.Generic.IReadOnlyList<string> lines, System.Collections.Generic.IReadOnlyList<string> notes)
+        {
+            var copy = (AccessibleUiNode)this.MemberwiseClone();
+            (copy.text, copy.tooltip, copy.panelNotes) = (label, lines, notes);
+            return copy;
+        }
 
         public string Name { get; init; } = string.Empty;
 
         public UiRole Role { get; init; }
 
         /// <summary>Spoken label: own text, else the caption of a child label, else the humanised control name.</summary>
-        public string Text { get; init; } = string.Empty;
+        public string Text { get => this.text; init => this.text = value; }
 
         /// <summary>Current value for value-bearing controls (combo box selection, text field contents).</summary>
         public string Value { get; init; } = string.Empty;
@@ -58,7 +70,7 @@ namespace Poe2Accessibility.Models
         ///     The few lines the focus's panel shows outside the focused part ("0 de espíritu" over the Skills list): said
         ///     once as the focus enters the panel.
         /// </summary>
-        public System.Collections.Generic.IReadOnlyList<string> PanelNotes { get; init; } = Array.Empty<string>();
+        public System.Collections.Generic.IReadOnlyList<string> PanelNotes { get => this.panelNotes; init => this.panelNotes = value; }
 
         /// <summary>A row that A opens and closes (a Challenges category): its state is said with it.</summary>
         public bool IsCollapsible { get; init; }
@@ -75,7 +87,7 @@ namespace Poe2Accessibility.Models
         public bool IsPassiveNode { get; init; }
 
         /// <summary>Lines of the element's tooltip (short ones are read with the focus, long ones on request).</summary>
-        public System.Collections.Generic.IReadOnlyList<string> Tooltip { get; init; } = Array.Empty<string>();
+        public System.Collections.Generic.IReadOnlyList<string> Tooltip { get => this.tooltip; init => this.tooltip = value; }
 
         /// <summary>The game has not built the tooltip that holds this element's stats yet (passive node, a few frames).</summary>
         public bool TooltipPending { get; init; }

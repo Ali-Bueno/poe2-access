@@ -37,6 +37,26 @@ namespace Poe2Accessibility
                            $"[[+0x98]+0x98] 0x{detailsRow.ToInt64():X} ({Id(detailsRow)})");
         }
 
+        /// <summary>Research (dev command "inventories"): every server inventory of player 1 that holds items, each item by base id, name and cell.</summary>
+        private void LogInventories()
+        {
+            if (this.memoryReader is not { } memory || this.inventoryReader is not { } inventory)
+            {
+                return;
+            }
+
+            foreach (var (name, address) in Core.States.InGameStateObject.CurrentAreaInstance.ServerDataObject.PlayerInventories.OrderBy(pair => (int)pair.Key))
+            {
+                var items = ServerInventory.Items(memory, address);
+                if (items.Count > 0)
+                {
+                    this.log?.Info($"Inventory {(int)name} {name}: " + string.Join(" | ", items.OrderBy(item => item.Y).ThenBy(item => item.X)
+                        .Select(item => $"{item.X},{item.Y} {inventory.ItemBaseId(item.Entity)} \"{inventory.DescribeItemEntity(item.Entity)}\"" +
+                                        (inventory.IsGem(item.Entity) ? " [" + string.Join(" ", inventory.ItemComponents(item.Entity).Select(pair => $"{pair.Key}=0x{pair.Value.ToInt64():X}")) + "]" : string.Empty))));
+                }
+            }
+        }
+
         /// <summary>How the camera draws the world now: the window, the player on it, and the world axes per window height.</summary>
         private void LogCamera()
         {
@@ -421,6 +441,9 @@ namespace Poe2Accessibility
                     break;
                 case "arearow":
                     this.LogAreaRows();
+                    break;
+                case "inventories":
+                    this.LogInventories();
                     break;
                 case "focusinfo":
                     this.log?.Info($"Focus info: {(this.focus?.Current is { } focused ? this.semantics?.RawInfo(focused.Address) : "no focus")}");

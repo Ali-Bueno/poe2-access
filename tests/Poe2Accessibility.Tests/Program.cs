@@ -247,6 +247,7 @@ namespace Poe2Accessibility.Tests
                 DatColumnSearchTests.All(),
                 ExtractorColumnTests.All(),
                 ItemReadingTests.All(),
+                BuildGemTests.All(),
                 StaticAnchorTests.All(),
                 ExtractionGuardTests.All(),
             };

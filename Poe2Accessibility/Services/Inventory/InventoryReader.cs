@@ -356,20 +356,37 @@ namespace Poe2Accessibility.Services
                 return (mods.Rarity == Rarity.Unique ? "unique" : "rare", LootTier.Valuable);
             }
 
-            return ("item", path.Contains(GemPath, StringComparison.Ordinal) ? LootTier.Valuable : mods.Rarity == Rarity.Magic ? LootTier.Magic : LootTier.Normal);
+            return ("item", BuildGems.IsGemId(path) ? LootTier.Valuable : mods.Rarity == Rarity.Magic ? LootTier.Magic : LootTier.Normal);
         }
 
-        /// <summary>Skill and support gems, uncut ones too, live under Metadata/Items/Gems/.</summary>
-        private const string GemPath = "/Gems/";
-
         /// <summary>A skill or support gem, uncut ones too.</summary>
-        public bool IsGem(IntPtr entity) => this.ItemBaseId(entity).Contains(GemPath, StringComparison.Ordinal);
+        public bool IsGem(IntPtr entity) => BuildGems.IsGemId(this.ItemBaseId(entity));
+
+        /// <summary>The item entity an item element shows; zero when it shows none.</summary>
+        public IntPtr ItemEntity(IntPtr itemElement) => itemElement == IntPtr.Zero ? IntPtr.Zero : this.EntityOf(itemElement);
 
         /// <summary>The item's base type id (its metadata path, "Metadata/Items/Currency/CurrencyIdentification"); empty if unreadable.</summary>
         public string ItemBaseId(IntPtr entity) =>
             entity == IntPtr.Zero || !this.IsItemEntity(entity)
                 ? string.Empty
                 : ItemPath((Item)Activator.CreateInstance(typeof(Item), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { entity }, null)!);
+
+        private static readonly FieldInfo? ComponentMap = typeof(GameReader.RemoteObjects.States.InGameStateObjects.Entity)
+            .GetField("componentAddresses", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        /// <summary>The item's components by name (the host's own lookup), empty when it is no item.</summary>
+        public IReadOnlyDictionary<string, IntPtr> ItemComponents(IntPtr entity)
+        {
+            if (entity == IntPtr.Zero || !this.IsItemEntity(entity))
+            {
+                return new Dictionary<string, IntPtr>();
+            }
+
+            var item = (Item)Activator.CreateInstance(typeof(Item), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { entity }, null)!;
+            return ComponentMap?.GetValue(item) is IEnumerable<KeyValuePair<string, IntPtr>> map
+                ? map.ToDictionary(pair => pair.Key, pair => pair.Value)
+                : new Dictionary<string, IntPtr>();
+        }
 
         /// <summary>The entity path without the "@level" suffix some item paths carry.</summary>
         private static string ItemPath(Item item)

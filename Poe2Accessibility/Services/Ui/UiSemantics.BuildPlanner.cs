@@ -18,8 +18,13 @@ namespace Poe2Accessibility.Services
         /// <summary>The pushes counted toward the build's next node; beyond, only its direction is said.</summary>
         private const int MaxBuildPushes = 6;
 
-        private readonly BuildPlanFolder buildPlans = new(BuildPlanFolder.Default);
+        private readonly BuildPlanFolder buildPlans = new(BuildPlanFolder.Default, BuildPlanFolder.DefaultConfig);
         private (IntPtr State, long At, HashSet<IntPtr> Records)? buildMarks;
+        private bool buildMarksUnreadable;
+
+        /// <summary>The build marks' name in the layout report.</summary>
+        private const string BuildMarksPart = "passive build marks";
+
 
         /// <summary>The records of the active build's nodes (element byte, <see cref="GameLayout.PassiveTree.NodeInBuildOffset"/>), read again every second.</summary>
         private HashSet<IntPtr> BuildMarks(PassiveGraph graph)
@@ -38,6 +43,13 @@ namespace Poe2Accessibility.Services
                 {
                     records.Add(record);
                 }
+            }
+
+            this.buildMarksUnreadable = !BuildPlan.MarksPlausible(records.Count, graph.Elements.Count);
+            if (this.buildMarksUnreadable)
+            {
+                CompatibilityReport.Current?.Missing(BuildMarksPart);
+                records.Clear();
             }
 
             this.buildMarks = (graph.State, now, records);

@@ -140,7 +140,12 @@ namespace Poe2Accessibility.Services
 
             // The Build Planner's active build: the nodes the tree marks, with the author's notes when the file is here.
             var marked = this.BuildMarks(graph);
-            var plan = marked.Count > 0 ? this.buildPlans.Matching(marked.Select(this.PassiveIdOf).ToHashSet()) : null;
+            // Marks that cannot be read say nothing of the build: the plan known from the game's settings stays.
+            var plan = this.buildMarksUnreadable ? null : this.buildPlans.Matching(marked.Select(this.PassiveIdOf).ToHashSet());
+            if (plan != null)
+            {
+                CompatibilityReport.Current?.Found(BuildMarksPart); // a file's passives under the marks: the byte is the mark
+            }
             var next = marked.Count > 0 ? this.NextBuildNode(graph, marked, plan, allocated, record) : null;
             var buildWord = marked.Contains(record) ? Announcements.InBuild(next == record) : string.Empty;
             var stateWords = state == PassiveState.Locked ? this.LockedState(graph, record, allocated) : StateWord(state);
