@@ -470,6 +470,11 @@ Next: (1) **Bosses by hand** — the Bloated Miller with a new low character (a 
 Earlier chunks, newest first: [status history](docs/status-history.md).
 
 ## Known issues / open questions
+- Stale values, player, combat and host (2026-11-10, code and unit tests only): flask uses from the drink's seen cost, boss
+  life read when asked, a shared target name said alone, per-area state reset per instance, untyped entities' components
+  rested, buff stacks, learnt blows as clip time, no maximum from tables, buff ids kept whole. What each needs live is listed in
+  [the audit](docs/research/robustness-audit-2026-11-10.md#stale-values-2026-11-10). Left open there: the sale said as
+  "used", the quest tracker between characters, the cull cue for a culling support.
 - The reader and the extraction were hardened on 2026-11-10 (second pass, [compatibility](docs/compatibility.md#found-again-at-runtime-host),
   [performance](docs/research/performance.md#reader-pass-2026-11-10), [patch day](docs/patch-day.md)): the state anchor is proven and
   searched for, the states are counted, the pre-game UI root is reached by shape, unchecked code fields are said, the game's

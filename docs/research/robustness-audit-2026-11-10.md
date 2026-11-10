@@ -179,3 +179,16 @@ rule now in force, where.
     and `Services/Screen`, which the other half of this audit owns (the page has no reset to call from outside). The
     cull cue stays silent when Culling Strike comes from a support, a passive or an item: the mod reads no live stat
     that says the player culls (`game-ids.txt` has only the two threshold stats), and none is guessed.
+To confirm live (all of the above is code and unit tests; the game was not run):
+
+| Fix | In the game | In `logs/accessibility.log` |
+|---|---|---|
+| A1 | Drink the life flask twice, more than 3 s apart and with nothing dying in between, then wait 3 s; drink a third time; L3 double tap with it full | 1st and 2nd: `Speech queued: <flask>, 67 cargas`; then `Flask cost: <flask> in slot 0, 8 charges a drink as seen (was unknown), 59 charges now`; 3rd: `<flask>, 6 usos`; full: "…, 9 usos" for a flask that consumes 8 of 75. Dev command `flasks`: `75 charges, base type 10 a drink, seen 8` |
+| A2 | Hurt a boss, die to it, respawn at the checkpoint and ask the vitals away from it; walk back and ask again | `Boss life not said: <boss> (last polled 40%) not there to read, or reset by the game`, and no boss in that vitals line; back at it, the vitals line carries the percentage the game shows |
+| A3 | With the pad, aim at a pack of one name with one of them hurt; then at the last one left | Debug: `Target -> <path> "<name>" (name shared: life and rarity not said)`, said once for the pack; then `Target -> <path> "<name>, 40 por ciento"` |
+| A4 | Pass from one trial room to the next (same area name); elsewhere, die and respawn | `Instance: <hash> of <area> (<id>), another than the one entered` with no `Area:` line before it; none at the respawn. A unique met in the new room says its own name and life steps |
+| A5 | Walk a trial's spike traps; open a barrier with a lever | The dodge cue comes before the spikes; `Barrier opened: <path>` within a moment of the game's own sound, not up to a second after |
+| A6 | Hold a buff the game shows with a count (three or more stacks) that the mod said one short | `Resource buff:<id>: Count 3 of 0` with the count the icon shows |
+| A7 | Take a blow from a rare or unique that is chilled or hasted, of an attack without contact events | `Dodge timing: <key> hit after N ms (learnt M ms), clip time at rate 0.70 (R ms real)`, N near R times the rate; from an unwarned normal monster `…, real time (no clock read)` |
+| A8 | Mercenary: fire Rapid Shot until Heat stops rising; ask the vitals mid-way | `Resource stat:number_of_crossbow_heat_stacks: no live maximum, the skills' tables give 31: told as a count there, never as full`, then `…: Count 31 of 0` and `Speech queued: Calor: 31`; never "al máximo"; vitals "Calor: 12" |
+| A9 | Use a warcry that gives "Inspirado"; take a shrine; restart the game under the running host and aim at a rare | `Resource buff:rallying_cry_new_weapon_damage_added: Begun 1 of 0` and the buff's name said; the rare's modifiers read as on screen after the restart |
