@@ -522,9 +522,12 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - Microtransaction shop (game menu, "Microtransaction Shop"): LB/RB change the tab ("Shop", "Special Offers"); the
   D-pad moves the game's highlight, read as the card it lands on: a category ("Stash Tabs, 27/27, 2 of 13"), an item
   with its price in points and its flags ("Extra Stash Tab, 30 points, 5 of 27", "…, NEW!", "You save 435 points!"),
-  its place among all the cards of the page. A opens a category; on an item A is the game's "Buy". The
-  featured banners are pictures only and are named from their image ("Early Access Supporter Packs, featured, 4 of
-  5"); A opens what they show. Your points are read on opening.
+  its place among all the cards of the page ("3 variants" for an item sold in variants, "You already have it" once
+  owned). A opens a category; on an item A opens its page, which does not buy yet: its text is read, then the buy
+  button, "Buy Ghost Dog Pet, 150 points, you have 300 points". A there asks to confirm on the same button ("Confirm,
+  Confirm your purchase of 150 points, Ghost Dog Pet, you have 300 points"); A again buys, B closes the page. Below it,
+  "Equip". The featured banners are pictures only and are named from their image ("Early Access Supporter Packs,
+  featured, 4 of 5"); A opens what they show. Your points are said when the shop opens and after a purchase.
 - Another player's menu (A on a player): "DrBacamarte, Warrior Lvl 2, Forbidden Rites League. Invite to Party,
   1 of 5", then each button as the D-pad moves ("Trade, 3 of 5"); B closes it.
 - Long texts (the terms of use, RB on the login screen): "Long text, 248 paragraphs: scroll it with the stick
