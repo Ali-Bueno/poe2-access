@@ -256,6 +256,7 @@ namespace Poe2Accessibility.Tests
                 BuildGemTests.All(),
                 FileCatalogTests.All(),
                 SkillNameTests.All(),
+                GemIndexTests.All(),
                 StaticAnchorTests.All(),
                 ExtractionGuardTests.All(),
                 RobustnessTests.All(),
