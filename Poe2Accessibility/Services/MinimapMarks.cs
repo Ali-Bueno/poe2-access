@@ -187,6 +187,14 @@ namespace Poe2Accessibility.Services
         /// <summary>The kind of an entity with this icon: under the quest's own, one without a kind is a quest object, and sounds like one (user 2026-11-07).</summary>
         public static string KindUnder(string icon, string kind) => kind.Length == 0 && IsQuestIcon(icon) ? QuestObjectKind : kind;
 
+        public const string StashKind = "stash";
+
+        public const string WellKind = "well";
+
+        /// <summary>A town service by its minimap icon ("StashPlayer", "HealingWell"; entity dump of G2_town, 0.5.5f), or empty.</summary>
+        public static string ServiceKind(string icon) =>
+            icon.StartsWith("Stash", StringComparison.Ordinal) ? StashKind : icon == "HealingWell" ? WellKind : string.Empty;
+
         /// <summary>
         ///     A named barrier a campaign area made for itself, such as the Ancient Seal at Balbala's door (Act2/2_2/Objects/BossDoor,
         ///     user 2026-11-07), and not a dungeon's plain door (Metadata/MiscellaneousObjects/Door), a hideout's or a league's.

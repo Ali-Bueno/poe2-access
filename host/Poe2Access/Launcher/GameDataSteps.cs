@@ -42,6 +42,6 @@ internal static class GameDataSteps
         new Step("endgame", 3, "endgame.json", "endgame", true),
         new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
         new Step("trial data", 1, "trials.json", "trial-data", true),
-        new Step(Sounds, 6, null, null, Input: ItemSounds),
+        new Step(Sounds, 7, null, null, Input: ItemSounds),
     ];
 }

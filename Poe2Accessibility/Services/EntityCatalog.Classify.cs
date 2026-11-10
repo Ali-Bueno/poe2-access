@@ -159,6 +159,7 @@ namespace Poe2Accessibility.Services
             {
                 category = entity.TryGetComponent<Targetable>(out _) ? ScanCategory.Objects : null; // stash, bench, well
                 plain = true;
+                kind = MinimapMarks.ServiceKind(icon);
                 if (this.landmarks.ObjectiveOf(path) is { Length: > 0 } objective)
                 {
                     if (!this.QuestTexts().Any(text => text.Contains(objective, StringComparison.Ordinal)))

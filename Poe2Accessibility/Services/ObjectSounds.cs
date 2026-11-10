@@ -81,6 +81,8 @@ namespace Poe2Accessibility.Services
             ("encounters", 1, entry => entry.Category == ScanCategory.Encounters && entry.Kind != MinimapMarks.RitualDoneKind && SoundKind(entry) != MinimapMarks.QuestObjectKind),
             ("exits", 1, entry => entry.Category == ScanCategory.Exits || entry.Kind == "portal"),
             ("waypoints", 1, entry => entry.Kind is "waypoint" or "checkpoint"),
+            ("stashes", 1, entry => entry.Kind == MinimapMarks.StashKind),
+            ("wells", 1, entry => entry.Kind == MinimapMarks.WellKind),
             ("quests", 1, entry => entry.Kind == "npc_quest"),
             ("quest objects", 1, entry => SoundKind(entry) == MinimapMarks.QuestObjectKind),
         };
@@ -266,7 +268,8 @@ namespace Poe2Accessibility.Services
         ///     "Coloca tu barya en el Altar de reliquias" (user 2026-11-07). Characters and enemies have their own cues.
         /// </summary>
         private static ScanEntry WhileWanted(ScanEntry entry, HashSet<uint> wanted) =>
-            entry.Category is ScanCategory.Objects or ScanCategory.Encounters && wanted.Contains(entry.Id) && entry.Sound.Length == 0 && entry.Kind is not MinimapMarks.RitualDoneKind and not "ritual"
+            entry.Category is ScanCategory.Objects or ScanCategory.Encounters && wanted.Contains(entry.Id) && entry.Sound.Length == 0 &&
+            entry.Kind is not MinimapMarks.RitualDoneKind and not "ritual" and not MinimapMarks.StashKind and not MinimapMarks.WellKind
                 ? entry with { Sound = MinimapMarks.QuestObjectKind }
                 : entry;
 
@@ -292,6 +295,8 @@ namespace Poe2Accessibility.Services
             "portal" => this.sounds.Get("portal"),
             "waypoint" => this.sounds.Get("waypoint"),
             "checkpoint" => this.sounds.Get("checkpoint"),
+            MinimapMarks.StashKind => this.sounds.Get(MinimapMarks.StashKind),
+            MinimapMarks.WellKind => this.sounds.Get(MinimapMarks.WellKind),
             "npc_quest" => this.questRing,
             "exit" => this.sounds.Get("exit"),
             _ => entry.Category == ScanCategory.Items ? this.sounds.Get("item") : null,

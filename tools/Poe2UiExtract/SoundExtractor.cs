@@ -65,7 +65,10 @@ internal static class SoundExtractor
         new("portal",     "PortalScrollPortal", "PortalScroll_Effects_Po_Activate_01"),
         new("waypoint",   "Waypoint4.0",       "WaypointActivate_01"),
         new("checkpoint", "BossCheckpoints",   "BossCheckpoints_Activate_01"),
-        new("npc",        "General_Gameplay",  "Quest_UI_Offer_01"),
+        // What each is heard to do when used: the stash's lid, the well's water (docs/research/game-audio.md).
+        new("stash",      "PlayerStash_4.0",   "Open_1", Rms: 0.10),
+        new("well",       "General_Gameplay",  "Wellwell_FX_Well_03", Rms: 0.10),
+        new("npc",       "General_Gameplay",  "Quest_UI_Offer_01"),
         new("switch",     "Foley",             "PlayerCharacter_Foley_HandGrabLever_01"),
         // Deployed-object locators: the Monk's Tempest Bell toll when it is struck, and the Frozen Locus crystal as it forms.
         new("tempest_bell", "Four_TempestBell", "TempestBell_FX_OnHit_01", 2.5),

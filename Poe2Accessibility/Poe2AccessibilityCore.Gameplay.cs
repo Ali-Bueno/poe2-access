@@ -405,10 +405,17 @@ namespace Poe2Accessibility
             }
         }
 
+        /// <summary>
+        ///     What the quest tracker asks for. A quest's name is not an instruction: "El pozo de las almas" made every town's
+        ///     well the objective (docs/research/ui-layers.md, quest tracker).
+        /// </summary>
         private System.Collections.Generic.IReadOnlyList<string> QuestTexts()
         {
             var hud = this.narrator == null ? null : this.screen?.Current.Find(this.narrator.HudLayer);
-            return hud?.Texts.Select(text => text.Text).ToList() ?? (System.Collections.Generic.IReadOnlyList<string>)Array.Empty<string>();
+            return hud?.Texts.Where(text => text.Name != QuestTitleLabel).Select(text => text.Text).ToList() ?? (System.Collections.Generic.IReadOnlyList<string>)Array.Empty<string>();
         }
+
+        /// <summary>The tracker's label for a quest's name; its objectives are "quest_info" (UI dump 2026-11-10).</summary>
+        private const string QuestTitleLabel = "title_label";
     }
 }
