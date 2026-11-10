@@ -38,6 +38,9 @@ namespace GameReader.RemoteObjects.Components
         /// </summary>
         public string InternalName { get; private set; } = string.Empty;
 
+        private IntPtr displayNameRow;
+        private IntPtr baseItemTypesRow;
+
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)
         {
@@ -45,6 +48,18 @@ namespace GameReader.RemoteObjects.Components
             var data = reader.ReadMemory<BaseOffsets>(this.Address);
             this.OwnerEntityAddress = data.Header.EntityPtr;
 
+            // An item's base type does not change: its names are read again for another component, other rows, or a name not read yet.
+            var known = !hasAddressChanged &&
+                        data.DisplayNameRowPtr == this.displayNameRow && data.BaseItemTypesRowPtr == this.baseItemTypesRow &&
+                        (this.BaseItemName.Length > 0 || data.DisplayNameRowPtr == IntPtr.Zero) &&
+                        (this.InternalName.Length > 0 || data.BaseItemTypesRowPtr == IntPtr.Zero);
+            if (known)
+            {
+                return;
+            }
+
+            this.displayNameRow = data.DisplayNameRowPtr;
+            this.baseItemTypesRow = data.BaseItemTypesRowPtr;
             this.BaseItemName = string.Empty;
             if (data.DisplayNameRowPtr != IntPtr.Zero)
             {
