@@ -50,6 +50,18 @@ namespace GameReader.Utils
         private static readonly int Slot = System.Runtime.CompilerServices.Unsafe.SizeOf<StdTuple2D<IntPtr>>();
 
         /// <summary>
+        ///     The first <see cref="BlockBytes"/> of the object at <paramref name="address"/>, or as many as its page holds: a read
+        ///     fails whole, the object is shorter than the block (0x148 bytes on 0.5.5f) and may be the last thing before memory
+        ///     that cannot be read. Empty when nothing can be read.
+        /// </summary>
+        public static byte[] ReadBlock(IAreaMemory memory, long address)
+        {
+            var block = memory.Read(address, BlockBytes);
+            var inPage = (int)(Environment.SystemPageSize - (address & (Environment.SystemPageSize - 1)));
+            return block.Length > 0 || inPage >= BlockBytes ? block : memory.Read(address, inPage);
+        }
+
+        /// <summary>
         ///     The fields nearest <paramref name="near"/> that fit together: a list read 8 bytes off pairs each control block
         ///     with the next state and passes for one, but the stack's top is not in it. Both negative when nothing fits. A list
         ///     read a whole slot off fits too and shifts every name by one: only what the states do tells it (<see cref="GameStateRoles.WholeShift"/>).

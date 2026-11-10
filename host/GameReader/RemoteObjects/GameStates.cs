@@ -231,7 +231,8 @@ namespace GameReader.RemoteObjects
         private IReadOnlyList<StructOutcome> JudgeLayout(SafeMemoryHandle reader, out long[] states)
         {
             states = Array.Empty<long>();
-            var block = reader.ReadMemoryArray<byte>(this.myStaticObj.GameState, GameStateLayout.BlockBytes);
+            var memory = new GameMemory(reader);
+            var block = GameStateLayout.ReadBlock(memory, this.myStaticObj.GameState.ToInt64());
             if (block.Length == 0)
             {
                 // No object yet (the static is still empty, live on 2026-11-10 with the mod started before the game): looked at
@@ -240,7 +241,7 @@ namespace GameReader.RemoteObjects
                 return Array.Empty<StructOutcome>();
             }
 
-            var found = GameStateLayout.Locate(block, GameStateFields.Measured, new GameMemory(reader));
+            var found = GameStateLayout.Locate(block, GameStateFields.Measured, memory);
             states = GameStateLayout.States(block, found.States) ?? Array.Empty<long>();
             var outcomes = OffsetHealer.PlaceGameStates(found);
             this.layoutPending = outcomes.Any(outcome => outcome.Health == StructHealth.Lost) && ++this.layoutTried < LayoutTries;

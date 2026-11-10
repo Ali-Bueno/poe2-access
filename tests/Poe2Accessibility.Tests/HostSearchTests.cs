@@ -30,6 +30,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AListThatLostAStateStillFits), AListThatLostAStateStillFits),
             (nameof(TheStateObjectIsToldByItsListAndStack), TheStateObjectIsToldByItsListAndStack),
             (nameof(AStackTheGameChangesWhileItIsJudgedBreaksNothing), AStackTheGameChangesWhileItIsJudgedBreaksNothing),
+            (nameof(AStateObjectAtTheEndOfItsMemoryIsStillRead), AStateObjectAtTheEndOfItsMemoryIsStillRead),
             (nameof(TooFewBytesAreNoStruct), TooFewBytesAreNoStruct),
             (nameof(TheStateInPlayIsTheOneThatLeadsToAnArea), TheStateInPlayIsTheOneThatLeadsToAnArea),
             (nameof(TheLoadingStateIsWhatCameBeforeTwoNewAreas), TheLoadingStateIsWhatCameBeforeTwoNewAreas),
@@ -546,6 +547,28 @@ namespace Poe2Accessibility.Tests
                 Equal(good == 0 ? new GameStateFields(-1, -1) : moved, found, $"the top readable {good} time(s), then gone");
                 Equal(good >= 2, GameStateLayout.IsStateObject(block, new ReadsThatStop(memory, top, good), Image, Image + ImageSize), $"told as the state object only with its top still there ({good})");
             }
+        }
+
+        private static void AStateObjectAtTheEndOfItsMemoryIsStillRead()
+        {
+            // A read fails whole. The object is shorter than the block judged (0x148 bytes: the allocation in its pattern)
+            // and can be the last thing before memory that cannot be read.
+            const int ObjectBytes = 0x148;
+            var measured = GameStateFields.Measured;
+            var (memory, block, _) = StateObject(measured.Stack, measured.States);
+            var last = Heap + 0x71000 - ObjectBytes;
+            memory.Blocks[last] = block[..ObjectBytes];
+            var read = GameStateLayout.ReadBlock(memory, last);
+            Equal(ObjectBytes, read.Length, "read as far as its page goes");
+            Equal(measured, GameStateLayout.Locate(read, measured, memory), "its fields found in what was read");
+            Equal(true, GameStateLayout.IsStateObject(read, memory, Image, Image + ImageSize), "and told as the state object");
+
+            memory.Blocks[Heap + 0x72000] = block;
+            Equal(GameStateLayout.BlockBytes, GameStateLayout.ReadBlock(memory, Heap + 0x72000).Length, "an object with memory after it is read whole");
+            memory.Blocks[Heap + 0x74000 - 0x100] = new byte[0x1000];
+            Equal(GameStateLayout.BlockBytes, GameStateLayout.ReadBlock(memory, Heap + 0x74000 - 0x100).Length, "across two pages that both read");
+            Equal(0, GameStateLayout.ReadBlock(memory, Heap + 0x80000).Length, "nothing there");
+            Equal(0, GameStateLayout.ReadBlock(memory, Heap + 0x81000 - 0x40).Length, "nothing there, near the end of a page");
         }
 
         /// <summary>Memory in which one address reads only the first few times.</summary>
