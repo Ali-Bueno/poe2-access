@@ -36,7 +36,6 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.QuietItemsInFights) => T("Silence loot, chests and altars in fights", "Silenciar objetos, cofres y altares en combate"),
             nameof(AccessibilitySettings.QuietChatInFights) => T("Silence characters' lines in fights", "Silenciar frases de personajes en combate"),
             nameof(AccessibilitySettings.AnnounceHand) => T("Item in hand", "Objeto en la mano"),
-            nameof(AccessibilitySettings.ReadGridOnHold) => T("Read the whole grid on a long hold of L3", "Leer toda la cuadrícula al mantener L3"),
             nameof(AccessibilitySettings.AnnounceMoves) => T("Equipped and moved items", "Objetos equipados y movidos"),
             nameof(AccessibilitySettings.RoutePrompts) => T("Turn prompts", "Indicaciones de giro"),
             nameof(AccessibilitySettings.PassiveFinder) => T("Passive tree finder on the D-pad", "Buscador del árbol de pasivas en la cruceta"),

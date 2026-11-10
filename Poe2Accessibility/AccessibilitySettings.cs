@@ -247,9 +247,6 @@ namespace Poe2Accessibility
         /// <summary>While the guide beacon leads, name each turn as you reach it: "Ahora arriba a la derecha, 12".</summary>
         public bool RoutePrompts = true;
 
-        /// <summary>L3 held a second and a half on a grid (bag, stash tab, merchant's tab) reads all its items without moving the cursor.</summary>
-        public bool ReadGridOnHold = true;
-
         /// <summary>In the passive tree the D-pad finds keystones, notables and jewel sockets, and locked nodes say what they cost.</summary>
         public bool PassiveFinder = true;
 

@@ -29,18 +29,6 @@ when a stack of 3 loses one, "Level 8" when a gem levels); a clock ticking in a 
 nothing — a page's only control, the end of a list — says the control again a moment later (0.6 s), so silence never means
 "nothing happened" (`RepeatOnBlockedMove`, on by default; settings menu, Items).
 
-**Hearing a grid at once** (hold L3 a second and a half with the cursor on a grid; `ReadGridOnHold`, on by default, settings
-menu, Items): the cursor stays and the grid it is in is read whole, the count first, then each item once with its
-cell: "21 items. Carved Mask, rare, column 1, row 1, Build, Helmet: another base. …", "Empty" for a grid without
-items. With a Build Planner build active, the items on a base the build asks for come first and each item that fits
-a slot of the build says so by its base ("Build, Gloves: same base" / "another base"; both weapon sets or both rings
-with one verdict are said once); the rest follow in reading order. An item is named by its tooltip's name once the
-cursor has been on it in the session, else by its base ("Omen Sceptre, rare"); its modifiers are heard on the item
-itself. Any move or other speech cuts the reading. In the bag the half-second reading of the focused item starts first
-and the grid takes over at a second and a half. In a stash and at a merchant the game gives the held L3 to "Clear
-search": without a search the game does nothing and the grid is read; with a search lit the hold clears it, as the
-game says, and the next hold reads the grid.
-
 ## Scanner (gameplay)
 
 Hold L3 and flick the right stick: up and down change the category, left and right move through it, nearest

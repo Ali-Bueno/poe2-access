@@ -107,7 +107,6 @@ namespace Poe2Accessibility.Services
                 Switch(nameof(AccessibilitySettings.AnnounceHand)),
                 Switch(nameof(AccessibilitySettings.AnnounceMoves)),
                 Switch(nameof(AccessibilitySettings.ReadTooltipsOnFocus)),
-                Switch(nameof(AccessibilitySettings.ReadGridOnHold)),
                 Switch(nameof(AccessibilitySettings.RepeatOnBlockedMove))),
             Menu("chat",
                 Switch(nameof(AccessibilitySettings.AnnounceChat)),

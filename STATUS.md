@@ -531,15 +531,11 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   ends in `Gamble`). Open: A beside another player opens that player's menu ("Invitar al grupo"), with no word that it is
   a player; a worn weapon's first focus is said twice 170 ms apart (base name, then the tooltip's name: its tooltip is
   empty at first, so `TooltipSettle` does not wait). Not testable in town: Parry and flask drinks.
-- Hearing a grid at once (built 2026-11-10, heard live in the bag, a stash tab and two merchants): L3 held 1.5 s on a grid
-  reads it whole without moving the cursor ("21 objetos. Máscara labrada, raro, columna 1, fila 1, Build, Casco: otra base,
-  desde el nivel 33. …", "Vacío"; `UiSemantics.ReadGrid`, pure `GridReading`, setting `ReadGridOnHold`,
-  [controls](docs/controls.md#l3-the-mod-button)). In a stash and at a merchant the held L3 is the game's "Borrar búsqueda":
-  with no search the game did nothing (no focus or screen change logged) and the grid is read; with a search lit the hold
-  is left to the game (code only: no search was typed live). Open: modifiers without a tooltip — the host's `Mods` lists
-  hold on items (eight compared with their tooltips, every modifier line accounted for; dev command `itemmods`,
-  [item mods](docs/research/item-mods.md)), but they are Mods.dat ids and the tooltip sums stats across modifiers, so
-  saying them needs an extraction (Mods.dat id → stat ids → description text), not started.
+- Hearing a grid at once was built and removed the same day (2026-11-10) at the owner's word ("take out the reading of the
+  whole tab"): do not build it again. What he asked for instead: an item's modifiers known without its tooltip. The host's
+  `Mods` lists hold on items (eight compared with their tooltips, every modifier line accounted for; dev command
+  `itemmods`, [item mods](docs/research/item-mods.md)), but they are Mods.dat ids and the tooltip sums stats across
+  modifiers, so saying them needs an extraction (Mods.dat id → stat ids → description text).
 - Stale values, player, combat and host (2026-11-10, code and unit tests only): flask uses from the drink's seen cost, boss
   life read when asked, a shared target name said alone, per-area state reset per instance, untyped entities' components
   rested, buff stacks, learnt blows as clip time, no maximum from tables, buff ids kept whole. What each needs live is listed in

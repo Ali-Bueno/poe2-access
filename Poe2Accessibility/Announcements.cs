@@ -251,9 +251,6 @@ namespace Poe2Accessibility
         public static string Dimmed => T("dimmed", "atenuado");
 
         public static string EmptyCell => T("empty", "vacío");
-
-        /// <summary>Heads a grid read whole: "12 items".</summary>
-        public static string GridItems(int count) => count == 1 ? T("1 item", "1 objeto") : T($"{count} items", $"{count} objetos");
         public static string UnknownItem => T("unknown item", "objeto desconocido");
 
         /// <summary>

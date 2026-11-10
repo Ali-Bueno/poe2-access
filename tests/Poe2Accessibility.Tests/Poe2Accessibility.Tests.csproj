@@ -69,6 +69,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialLines.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialDoors.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Passives.cs" Link="Plugin\Announcements.Passives.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Trials.cs" Link="Plugin\Announcements.Trials.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\WorldGate.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\AreaInstanceGate.cs" />
@@ -132,7 +133,6 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\CardText.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\ShopPurchase.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\BlockedMove.cs" />
-    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GridReading.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\TooltipSettle.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\ShopBalanceWatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\TradeOfferNews.cs" />
@@ -237,7 +237,6 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ArtCaptions.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\TableHeadings.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Panels.cs" Link="Plugin\Announcements.Panels.cs" />
-    <Compile Include="..\..\Poe2Accessibility\Announcements.Passives.cs" Link="Plugin\Announcements.Passives.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Radar.cs" Link="Plugin\Announcements.Radar.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\PlaceMap.cs" />
