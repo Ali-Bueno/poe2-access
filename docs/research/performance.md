@@ -129,7 +129,7 @@ visual ids plus ~10 (Act 2 town: some 55 instead of ~430, and the total about 37
 `StdString` near zero outside a state machine's first second; no `out of id order` line; and while hovering an entity
 with the mouse, no `EntityOffsets` and component reads for it.
 
-## Allocation pass (2026-11-10, second pass; not yet measured live)
+## Allocation pass (2026-11-10, second pass; measured live in town, not in a fight)
 
 The collector, not the reads, made the hitches, so this pass removes what was allocated per read and per frame. No timing a
 player hears changed, and no read was dropped except the two named under "Reads".
@@ -198,6 +198,12 @@ collections; `Screen snapshots:` average should not rise (2.4 ms). In a fight, c
 and 30 frames a minute over 16.7 ms: the reads stay, the collections should not grow with the monsters as they did.
 What a wrong pooled block would look like: a text of one element said for another; none is expected, and
 `Screen snapshot failed` in the log would name an exception.
+
+**Measured live** (yarkey standing in G2_town the same afternoon, a full minute, after five more fixes the live run
+found): `GC 26/2/0`, 17 ms paused (from 101/11/4 and 73 ms), 363 to 381 reads a frame, no text of one element said for
+another. The reads rose a little with the gem and Build Planner readings added the same day. A first start that
+regenerates every catalog took 33.8 s with every step succeeding. **No fight was measured**: the comparison with the old
+905 reads and 30 slow frames a minute is still to make at the next boss (`Frames:` in `Poe2Access.log`, then `costs`).
 
 **Looked at and left** (each would need a live proof first):
 
