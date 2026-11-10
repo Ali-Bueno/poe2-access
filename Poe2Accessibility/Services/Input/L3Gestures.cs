@@ -45,6 +45,15 @@ namespace Poe2Accessibility.Services
 
         private bool down;
         private long downAt;
+
+        /// <summary>Gets when the mod button last went down.</summary>
+        public long PressedAt => this.downAt;
+
+        /// <summary>
+        ///     A focus that began with the press or after it came from the press: the game gave the button a job there (a
+        ///     stash's "Edit search" opens its field), and the new focus has just been read.
+        /// </summary>
+        public static bool MovedFocus(long pressedAt, long focusSince) => focusSince >= pressedAt;
         private bool holdFired;
         private bool flicked;
         private bool stickOut;

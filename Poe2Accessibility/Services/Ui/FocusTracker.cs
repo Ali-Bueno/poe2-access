@@ -107,6 +107,9 @@ namespace Poe2Accessibility.Services
 
         public AccessibleUiNode? Current { get; private set; }
 
+        /// <summary>Gets when the focus came to the element it is on (Environment.TickCount64).</summary>
+        public long CurrentSince { get; private set; }
+
         /// <summary>UI root of the current screen (from the manager), zero when unknown.</summary>
         public IntPtr CurrentRoot { get; private set; }
 
@@ -219,6 +222,7 @@ namespace Poe2Accessibility.Services
 
             this.emptyOnArrival = IntPtr.Zero;
             this.Current = node;
+            this.CurrentSince = Environment.TickCount64;
             this.CurrentPanelIndex = this.PanelIndexOf(focused);
             this.focusLayer = this.CurrentLayer;
             this.optionSections = this.OptionSectionsOf(focused);

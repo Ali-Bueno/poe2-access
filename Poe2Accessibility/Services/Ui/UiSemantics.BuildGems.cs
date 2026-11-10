@@ -32,6 +32,15 @@ namespace Poe2Accessibility.Services
         /// <summary>Skills every character has without a gem of their own (BaseItemTypes ids, 0.5.5f): no build names them.</summary>
         private static readonly string[] GrantedSkillKeys = { "SkillGemPlayerDefault", "SkillGemUnusable" };
 
+        /// <summary>A skill row's name and level sit in this layout (dump 2026-11-10).</summary>
+        private const string SkillTitle = "skill_title_layout";
+
+        /// <summary>The inventories that hold skills: the measured ones, and any a row of the Skills panel shows its gem from.</summary>
+        private readonly HashSet<InventoryName> skillInventories = GameLayout.SkillGemInventories.Ids.Select(id => (InventoryName)id).ToHashSet();
+
+        /// <summary>The names the Skills panel's rows showed last: a skill a weapon grants (Parry) has no gem of its own to find.</summary>
+        private HashSet<string> panelSkills = new(StringComparer.OrdinalIgnoreCase);
+
         private (long At, GemHoldings Holdings)? gemHoldings;
         private (long At, BuildPlan? Plan, int Level)? gemPlan;
 
@@ -50,7 +59,10 @@ namespace Poe2Accessibility.Services
             return cached.Plan is { Skills.Count: > 0 } plan ? (plan, cached.Level) : null;
         }
 
-        /// <summary>The asking player's gems: the skills of every inventory but the bag's and the hand's, and the bag's cut gems.</summary>
+        /// <summary>
+        ///     The asking player's gems: the skills of the skill inventories (a stash tab seen this session is an inventory too,
+        ///     and its gems are no skills), those of the build the Skills panel names without a gem, and the bag's cut gems.
+        /// </summary>
         private GemHoldings Holdings()
         {
             var now = Environment.TickCount64;
@@ -65,7 +77,7 @@ namespace Poe2Accessibility.Services
             {
                 foreach (var (name, address) in this.inventory.Locals?.Of(Seats.Input)?.ToArray() ?? Array.Empty<KeyValuePair<InventoryName, IntPtr>>())
                 {
-                    if (name == InventoryName.Cursor1)
+                    if (name != InventoryName.MainInventory1 && !this.skillInventories.Contains(name))
                     {
                         continue;
                     }
@@ -93,6 +105,14 @@ namespace Poe2Accessibility.Services
             {
                 // The host rebuilt its inventory list meanwhile: the gems as last read.
                 return this.gemHoldings?.Holdings ?? GemHoldings.None;
+            }
+
+            foreach (var granted in this.GemPlan()?.Plan.Skills.Select(skill => skill.Gem.Key).Distinct() ?? Enumerable.Empty<string>())
+            {
+                if (skills.All(skill => skill.Key != granted) && this.panelSkills.Contains(GemNames.Of(granted)))
+                {
+                    skills.Add(new OwnedSkill(granted, Array.Empty<string>()));
+                }
             }
 
             var holdings = new GemHoldings(skills, bag);
@@ -133,7 +153,7 @@ namespace Poe2Accessibility.Services
             }
 
             var inSkills = node.Context == Announcements.SkillGemPanel;
-            var lines = (inSkills ? this.SkillPanelBuildLines(info, node.Text) : info.Name == EngraveOption ? this.EngraveBuildLines(node.Text) : Array.Empty<string>()).ToList();
+            var lines = (info.Name == EngraveOption ? this.EngraveBuildLines(node.Text) : inSkills ? this.SkillPanelBuildLines(info, node.Text) : Array.Empty<string>()).ToList();
             var notes = inSkills ? node.PanelNotes.Concat(this.BuildGemSummary()).ToList() : node.PanelNotes;
             if (lines.Count == 0 && notes.Count == node.PanelNotes.Count)
             {
@@ -181,7 +201,13 @@ namespace Poe2Accessibility.Services
             if (info.Name == SupportSocket)
             {
                 var row = this.elements.ReadAncestors(info, SocketRowHops).FirstOrDefault(ancestor => this.IsSkillRow(ancestor.Address));
-                return row.Address == IntPtr.Zero ? Array.Empty<string>() : this.SocketLines(active, this.RowSkillGem(row.Address), label);
+                if (row.Address == IntPtr.Zero)
+                {
+                    return Array.Empty<string>();
+                }
+
+                this.NotePanelSkills(row);
+                return this.SocketLines(active, this.RowSkillKey(active, row), this.RowSkillGem(row.Address), label);
             }
 
             if (!this.IsSkillRow(info.Address))
@@ -189,8 +215,60 @@ namespace Poe2Accessibility.Services
                 return Array.Empty<string>();
             }
 
+            this.NotePanelSkills(info);
             var gem = this.RowSkillGem(info.Address);
-            return gem != IntPtr.Zero ? this.GemItemLines(gem) : this.SkillsToGet(active);
+            if (gem != IntPtr.Zero)
+            {
+                return this.GemItemLines(gem);
+            }
+
+            // No gem of its own: an empty slot (nothing names it; its title keeps a bare "LVL:"), or a skill a weapon
+            // grants, told by its name.
+            return label.Length == 0 || label == Announcements.Empty ? this.SkillsToGet(active)
+                : this.RowSkillKey(active, info) is { Length: > 0 } key ? this.BuildSkillLines(active, key, null)
+                : Array.Empty<string>();
+        }
+
+        /// <summary>The texts of a skill row's title ("NIVEL:", "1", "Parada"); none on an empty row.</summary>
+        private List<string> RowTitles(in UiElementReader.ElementInfo row) =>
+            this.elements.FindNamed(row.Address, SkillTitle, 1) is { } title
+                ? this.elements.ReadChildren(title).Select(child => this.elements.TryReadText(child, out var text) ? text.Trim() : string.Empty).Where(text => text.Length > 0).ToList()
+                : new List<string>();
+
+        /// <summary>The build's skill a row shows: by its gem, else by the name in its title; empty when the build has none such.</summary>
+        private string RowSkillKey((BuildPlan Plan, int Level) active, in UiElementReader.ElementInfo row)
+        {
+            if (this.RowSkillGem(row.Address) is var gem && gem != IntPtr.Zero)
+            {
+                return BuildGems.KeyOf(this.inventory.ItemBaseId(gem));
+            }
+
+            var titles = this.RowTitles(row);
+            return active.Plan.Skills.Where(skill => skill.Gem.ToLevel >= active.Level).Select(skill => skill.Gem.Key)
+                .FirstOrDefault(key => titles.Contains(GemNames.Of(key), StringComparer.OrdinalIgnoreCase)) ?? string.Empty;
+        }
+
+        /// <summary>Keeps the names the panel's rows show, for the skills that have no gem; what was known of the gems is read again when they change.</summary>
+        private void NotePanelSkills(in UiElementReader.ElementInfo row)
+        {
+            if (!this.elements.TryReadElement(row.Raw.ParentPtr, out var list))
+            {
+                return;
+            }
+
+            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var sibling in this.elements.ReadChildren(list))
+            {
+                if (this.elements.TryReadElement(sibling, out var other))
+                {
+                    names.UnionWith(this.RowTitles(other));
+                }
+            }
+
+            if (!names.SetEquals(this.panelSkills))
+            {
+                (this.panelSkills, this.gemHoldings) = (names, null);
+            }
         }
 
         private bool IsSkillRow(IntPtr element) =>
@@ -198,10 +276,20 @@ namespace Poe2Accessibility.Services
             this.elements.ReadChildren(row).Any(child => this.elements.TryReadElement(child, out var part) && part.Name == SkillGemFrame);
 
         /// <summary>The skill gem item a row of the Skills panel shows; zero for an empty row.</summary>
-        private IntPtr RowSkillGem(IntPtr row) =>
-            this.elements.FindNamed(row, SkillGemView, GemViewDepth) is { } view
-                ? this.inventory.ItemEntity(this.inventory.FindItemElement(view.Address))
-                : IntPtr.Zero;
+        private IntPtr RowSkillGem(IntPtr row)
+        {
+            if (this.elements.FindNamed(row, SkillGemView, GemViewDepth) is not { } view)
+            {
+                return IntPtr.Zero;
+            }
+
+            if (this.inventory.InventoryOf(view.Address) is { } shown)
+            {
+                this.skillInventories.Add(shown);
+            }
+
+            return this.inventory.ItemEntity(this.inventory.FindItemElement(view.Address));
+        }
 
         /// <summary>What the build says of a gem item: a skill's place in it with its supports, a support's skills, or that it is outside.</summary>
         private IEnumerable<string> GemItemLines(IntPtr entity)
@@ -225,6 +313,15 @@ namespace Poe2Accessibility.Services
                 yield break;
             }
 
+            foreach (var line in this.BuildSkillLines(active, key, new OwnedSkill(key, this.SocketedSupports(entity))))
+            {
+                yield return line;
+            }
+        }
+
+        /// <summary>A skill's place in the build with its supports; <paramref name="own"/> is the copy asked about, null for the one the gems hold.</summary>
+        private IEnumerable<string> BuildSkillLines((BuildPlan Plan, int Level) active, string key, OwnedSkill? own)
+        {
             if (BuildGems.SkillOf(active.Plan, active.Level, key) is not { } planned)
             {
                 yield return Announcements.OutsideBuild;
@@ -232,7 +329,8 @@ namespace Poe2Accessibility.Services
             }
 
             yield return Announcements.InBuild(false);
-            var status = BuildGems.StatusOf(planned, active.Level, this.Holdings(), new OwnedSkill(key, this.SocketedSupports(entity)));
+            var holdings = this.Holdings();
+            var status = BuildGems.StatusOf(planned, active.Level, holdings, own ?? holdings.Skills.FirstOrDefault(held => held.Key == key));
             if (status.Supports.Count > 0)
             {
                 yield return Announcements.BuildSupports(status.Supports.Select(support => this.SupportLine(support, active.Level)));
@@ -251,16 +349,17 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>A support socket of a build skill: the socketed gem's place in the build, or what the build puts in an empty one.</summary>
-        private IEnumerable<string> SocketLines((BuildPlan Plan, int Level) active, IntPtr skillGem, string label)
+        private IEnumerable<string> SocketLines((BuildPlan Plan, int Level) active, string skillKey, IntPtr skillGem, string label)
         {
-            var skillKey = BuildGems.KeyOf(this.inventory.ItemBaseId(skillGem));
-            if (skillGem == IntPtr.Zero || BuildGems.SkillOf(active.Plan, active.Level, skillKey) is not { } planned)
+            if (skillKey.Length == 0 || BuildGems.SkillOf(active.Plan, active.Level, skillKey) is not { } planned)
             {
                 yield break;
             }
 
-            var socketed = this.SocketedSupports(skillGem);
-            var status = BuildGems.StatusOf(planned, active.Level, this.Holdings(), new OwnedSkill(skillKey, socketed));
+            var holdings = this.Holdings();
+            var socketed = skillGem != IntPtr.Zero ? this.SocketedSupports(skillGem)
+                : holdings.Skills.FirstOrDefault(held => held.Key == skillKey)?.Supports ?? Array.Empty<string>();
+            var status = BuildGems.StatusOf(planned, active.Level, holdings, new OwnedSkill(skillKey, socketed));
             if (socketed.FirstOrDefault(key => string.Equals(GemNames.Of(key), label, StringComparison.OrdinalIgnoreCase)) is { } held)
             {
                 // The socket's own gem, told by the name its tooltip gives it.

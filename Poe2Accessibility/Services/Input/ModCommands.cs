@@ -57,6 +57,9 @@ namespace Poe2Accessibility.Services
         /// <summary>What each skill bar button fires, read after the screen on the gameplay hold; null when unknown.</summary>
         public Func<string?>? SkillBar { get; set; }
 
+        /// <summary>Gets or sets when the mod button last went down (<see cref="L3Gestures.PressedAt"/>).</summary>
+        public Func<long>? PressedAt { get; set; }
+
         /// <summary>The settings menu is open (its flicks need no L3).</summary>
         public bool InSettingsMenu => this.settingsMenu.IsOpen;
 
@@ -85,6 +88,12 @@ namespace Poe2Accessibility.Services
             }
 
             var current = this.focus.Current;
+            if (current != null && gesture is PadGesture.Tap or PadGesture.DoubleTap && this.PressedAt?.Invoke() is { } pressed &&
+                L3Gestures.MovedFocus(pressed, this.focus.CurrentSince))
+            {
+                return; // the press was the game's (the stash's search field): its new focus was read, not its name again
+            }
+
             if (current != null)
             {
                 this.InMenu(gesture, current);

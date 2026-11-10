@@ -282,6 +282,10 @@ then read as a focus: "Se ha invitado a un compañero al grupo, marcado, casilla
 Measured on yarkey's stash and inventory in G2_town (UI dumps `ui-tree-InGameState-20261110-07*.txt`, read-only memory
 snapshots of the item elements under three searches).
 
+- **A merchant's search** (Shambrin, 2026-11-10) works as the stash's: "4 resaltados: Sandalias de red, columna 1, fila 3. …".
+  A tab changed with a search typed keeps the search: the watch drops the grid no longer drawn and takes the one drawn in
+  its place (it said "Búsqueda borrada" and nothing more before). A merchant's page changed from the inventory's side is
+  said by its tab ("pestaña 2"; Risu's are named: "Armaduras").
 - **Search highlight.** A stash's field "Resaltar objetos" (L3 "Editar búsqueda", hold L3 "Borrar búsqueda") lights the
   items that match and dims the rest; the player's own inventory beside it is not touched. Each item element (the grid's
   children, entity at `+0x4E0`) holds the state in the byte at **`+0x624`**: 0 with no search, 1 dimmed, 2 lit; the byte at
@@ -310,3 +314,61 @@ Each `quest_display` of the HUD holds a `title_layout` with one `title_label` (t
 `quest_info_layout` of `quest_info_entry` rows, each a `bullet_point` and a `quest_info` (an objective). Only objectives
 name what to look for: the title "El pozo de las almas" made every town's well the quest's target (`QuestTexts` leaves
 `title_label` texts out).
+
+## Build Planner gems (0.5.5f, 2026-11-10)
+
+Measured on yarkey (level 23 Mercenary, "Campaign Progression - [0.5.5] Twister G" active) in G2_town: screenshots of the
+tree's planner, the Skills panel and the inventory, a UI dump with the Skills panel open, read-only memory scans.
+
+- **Where the game shows the build's gems.** Nowhere on the Skills panel: its rows carry no build mark (screenshot and
+  dump). The tree's planner is one list ("Active Build"). The game shows the build's gems only in the engraving window
+  (a first category of the build's gems) and the build's equipment as a small planner icon on each slot the file names,
+  whose note is read on a held R3 ("Mostrar notas del Planificador de build": the file's `additional_text`, read by the
+  screen narration as it appears). So the mod sets the file's gems against the character's own.
+- **The file.** `skills` = `[{id, level_interval [from, to], support_skills: [{id, level_interval}]}]`, ids are
+  BaseItemTypes ids under `Metadata/Items/Gem/` **or** `Metadata/Items/Gems/` (595 and 641 rows): a gem is told by its
+  id's last part. `inventory_slots` = `{inventory_id, additional_text, level_interval, slot_x, slot_y}`.
+- **The active build without the tree.** The game's settings (`Documents\My Games\Path of Exile 2\poe2_production_Config.ini`)
+  hold `active_builds=[{"character":"yarkey","path":"file:C:/…/x.build"}]`. `BuildPlanFolder.Active` reads the file
+  it names for the character; what the tree's marks matched after the settings were last written wins (the game may write
+  them late), and marks that read "none" then mean none. A build followed on the website has no `file:` path: no gems read.
+- **Gem names.** A gem not owned has no item to read its name from: `catalog/gem-names.json` (BaseItemTypes Id +0x0, Name
+  +0x20, every language the game ships; ids' last parts are unique among the 1,238 gem rows). A gem newer than the
+  catalog is named by its id's words.
+- **The character's gems.** Every server inventory of the player (`ServerData.PlayerInventories`, read on demand with
+  the host's `InventoryStruct`/`InventoryItemStruct`: `ServerInventory`) is looked through for gem items: those of the
+  main inventory are "in your inventory", those elsewhere are skills. Seen with the dev command `inventories`: inventory
+  47 holds the skill gems (x = the skill's slot: Attrition 1, Whirling Slash 3, Twister 5, Herald of Thunder 8; the
+  panel's row is x + 5), inventory 75 the weapon's own skills (Spear Stab, Spear Throw, Punch); the host's enum names for
+  those ids are PoE1's and mean nothing here.
+- **Socketed supports: the skill gem item's `Sockets` component** (the host's component lookup names it). MEASURED: a
+  scan of the game's memory for the entity of the Martial Tempo socketed in Whirling Slash found it inside one component
+  of the skill's own item, at **+0x30**; the component is {vtable, owner entity +0x08, …, entity pointers from +0x30,
+  a std::vector at +0x60 two bytes long (the panel shows two sockets), …, 0x90 bytes}. Twister's and Herald of Thunder's,
+  with no support, hold zeros from +0x30 to +0x60. Only one support per skill was there to see, so the second socket's
+  place (+0x38 by the layout) is not measured: every pointer from +0x30 up to the vector is read and believed only when
+  it is an item entity whose id is a support gem's (`GameLayout.GemSockets`). The support socket elements
+  (`new_support_gem_entry`) hold no entity: a socketed gem's tooltip names it, and that name tells which socketed gem it is.
+- **Skills panel elements** (dump): each row = `skillgem_socket_frame` → `skillgem_inventory_view` (an inventory view
+  whose child item element holds the skill gem at `+0x4E0`), `skill_title_layout` (NIVEL:, number, name), `dps_frame`,
+  `support_gem_container` → one `new_support_gem_entry` per socket. An empty row has no item element.
+- **What is said** (`UiSemantics.BuildGems`, pure `BuildGems`): on entering the panel "Build: 2 de 9 habilidades, 0 de 20
+  asistencias. Siguiente habilidad: Colmillos de escarcha. Siguiente asistencia: Furia II para Corte giratorio"; on a
+  skill's row "en la build. Asistencias de la build: Furia II, falta; Ataques rápidos II, tienes Ataques rápidos I; Empuje,
+  falta" or "fuera de la build"; on an empty row the build's skills still to get ("…; Frenesí de combate, desde el nivel
+  26"); on a socketed support "en la build" / "la build pide Ataques rápidos II" / "fuera de la build"; on an empty socket
+  "La build pone aquí: …"; on a cut gem anywhere (inventory, stash, vendor) "en la build, para Torbellino" or "fuera de la
+  build"; on an engraving choice the same, told by its name. A gem the build uses only below the character's level is
+  left out; one it takes later says from which level.
+- **`InventoryReader.IsGem` took only `/Gems/`:** Twister, Attrition and 593 other gems under `/Gem/` were no gems to the
+  move news and the loot filter. Both now ask `BuildGems.IsGemId`.
+- **A skill a weapon grants** (Parry from a buckler, Spear Stab, Spear Throw) has a row but no gem view: its
+  `skillgem_socket_frame` holds a bare element, and Parry has no item in any server inventory (dev command `inventories`
+  with a Ridged Buckler equipped). Such a row is told by the name in its title (`skill_title_layout`), and the names of
+  all the rows are kept so that Parry counts as owned ("Build: 3 de 9 habilidades" once the buckler was on). An empty
+  row's title keeps a bare "NIVEL:": the row is empty when nothing names it.
+- **Stash tabs are server inventories too** once seen (145 and 146 here): only the main inventory and the skill
+  inventories are looked at (`GameLayout.SkillGemInventories`: 47 and 75 measured, plus whatever a gem view of the panel
+  shows through `InventoryReader.InventoryOf`).
+- Not read: which gems are Spirit gems before they are owned (BaseItemTypes only tells skill from support; an owned one's
+  tooltip says "Reserva: 30 Espíritu").

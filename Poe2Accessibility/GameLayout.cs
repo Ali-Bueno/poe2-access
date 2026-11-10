@@ -746,6 +746,18 @@ namespace Poe2Accessibility
             public const int EndOffset = 0x60;
         }
 
+        /// <summary>
+        ///     The server inventories that hold a character's skills, by the id the host's list gives them: 47 the gems
+        ///     engraved (x = the skill's slot), 75 the weapons' own skills (Spear Stab, Spear Throw, Punch). Measured
+        ///     2026-11-10 (0.5.5f) with the dev command "inventories"; the host's enum names for those ids are PoE1's. The
+        ///     Skills panel's gem views tell them too, and the reader adds what it sees there. A stash tab seen this
+        ///     session is an inventory of the same list (145, 146): its gems are no skills.
+        /// </summary>
+        public static class SkillGemInventories
+        {
+            public static readonly int[] Ids = { 47, 75 };
+        }
+
         /// <summary>Inventory item element (grid child or slot content).</summary>
         public static class InventoryItem
         {

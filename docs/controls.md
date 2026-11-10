@@ -263,6 +263,19 @@ column and row, then tooltip ("Use flask in slot 1, column 2, row 2, …"). Its
 first cell, "empty the button", leaves the button empty. On a bound button A picks the skill up to move it ("empty.
 Place, A. Cancel, B") and Y empties it.
 
+**The build's gems** (the Build Planner's active build, when its `.build` file is in the game's folder): the game shows
+them only in the engraving window, so the mod sets the file against your own gems. Entering the Skills panel says how far
+along you are and what comes next: "Build: 2 of 9 skills, 0 of 20 supports. Next skill: Fangs of Frost. Next support: Rage
+II for Whirling Slash". Each skill then says its place: "in the build. Build supports: Rage II, missing; Martial Tempo II,
+you have Martial Tempo I; Bludgeon, socketed" (also "in your inventory", "socketed in Twister"), or "outside the build".
+An empty skill slot lists the build's skills you still lack, those for a later level last ("Build skills to get: Fangs of
+Frost; Barrage; Combat Frenzy, from level 26"). In Manage Sockets a socketed support says "in the build", "the build asks
+for Martial Tempo II" or "outside the build", and an empty socket what goes there ("The build puts here: Rage II,
+missing; …"). A cut gem in the inventory, the stash or a merchant's stock says "in the build, for Twister" or "outside the
+build", and so does each choice of the engraving window. The build's equipment is the game's own: a slot the build names
+offers "Show Build Planner notes, hold R3", and the note is read as it appears. The build is known without opening the
+passive tree (the game's settings name it per character).
+
 In Cosmetics the toggles above each weapon slot read "weapon set I" and "weapon set II"; the search box is "Search
 here..., edit field", the "x" at its end "Clear search, button".
 

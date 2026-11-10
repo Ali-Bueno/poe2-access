@@ -320,6 +320,10 @@ armour_and_evasion2 counted 15, 14 … 1, "Arrived at Oasis" with no correction.
   The mod reads the file whose passives cover at least half of the marked nodes (`BuildPlanFolder`): step = place in the
   file, weapon set, note without markup, and for an attribute node (`strength17`, `attributes65`…) whose note shows the
   attribute only by colour, that attribute. A website-only build has marks but no file: no notes.
+- The mark byte has no second signature on the element. `BuildPlan.MarksPlausible`: when over a quarter of the nodes read
+  marked (no build takes that many; a byte moved by a patch would) the marks are dropped, "passive build marks" is reported
+  missing, and the build known from the game's settings stays; a file whose passives cover the marks reports them found.
+- The build's gems and equipment: [ui layers](ui-layers.md#build-planner-gems-055f-2026-11-10).
 - UI: in the tree, L3 opens "Filters/Build Planner"; D-pad right twice reaches the planner button (`collapse_button`,
   A expands it), D-pad down the list (`BuildPlannerComboBox`, "Active Build"). The gem engraving window has the same
   list (`build_planner_combobox`) and a first category of the build's gems.
