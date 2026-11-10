@@ -305,6 +305,12 @@ namespace Poe2Accessibility.Services
             }
 
             boss = boss with { DeadSince = 0 };
+            if (BossLifeSteps.Alive(boss.Step) != boss.Step)
+            {
+                this.log.Info($"Boss risen: {boss.Name} reads alive after its defeat was said");
+                boss = (boss.Name, BossLifeSteps.Full, false, 100, 0, 0, 0);
+            }
+
             if (EntityCatalog.IsHidden(entity))
             {
                 this.bosses[entity.Id] = boss with { Engaged = false };

@@ -14,6 +14,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ATrapStrikingFromAfarStillWarnsOnceInReach), ATrapStrikingFromAfarStillWarnsOnceInReach),
             (nameof(TheGuideKeepsItsLockThroughARespawn), TheGuideKeepsItsLockThroughARespawn),
             (nameof(ATargetTheScannerNeverListedIsNotLostFromView), ATargetTheScannerNeverListedIsNotLostFromView),
+            (nameof(ABossThatRisesAfterItsDefeatIsFollowedAgain), ABossThatRisesAfterItsDefeatIsFollowedAgain),
         };
 
         /// <summary>A boss's next form waits untargetable under its name: the life said is still the fighting one's.</summary>
@@ -65,6 +66,15 @@ namespace Poe2Accessibility.Tests
             Equal(GoneTarget.Unknown, BeaconMath.Gone(door, true, 300f, Near, listed: false), "never listed: not being listed says nothing of it");
             Equal(GoneTarget.LostFromView, BeaconMath.Gone(door, true, 300f, Near, listed: true), "listed once and no more: it left");
             Equal(GoneTarget.Unknown, BeaconMath.Gone(new ScanEntry(8, ScanCategory.Chests, "Chest", 0, 0, 0), true, 300f, Near, listed: false), "nor is an unlisted chest opened");
+        }
+
+        /// <summary>A second life under the same entity: after "defeated" its life was never said again.</summary>
+        private static void ABossThatRisesAfterItsDefeatIsFollowedAgain()
+        {
+            Equal(BossLifeSteps.Full, BossLifeSteps.Alive(0), "said defeated and alive again: its steps start over");
+            Equal(40, BossLifeSteps.Alive(40), "one that never fell keeps its step");
+            Equal(0, BossLifeSteps.Next(0, 60), "left at 0, no step is ever reached again");
+            Equal(75, BossLifeSteps.Next(BossLifeSteps.Alive(0), 60), "risen and hurt to 60 percent: said from 75 down again");
         }
     }
 }
