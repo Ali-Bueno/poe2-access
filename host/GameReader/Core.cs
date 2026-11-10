@@ -76,16 +76,6 @@ namespace GameReader
         public static GameWindowCull GameCull { get; } = new(IntPtr.Zero);
 
         /// <summary>
-        ///     Gets the values associated with the terrain rotation selector.
-        /// </summary>
-        internal static TerrainHeightHelper RotationSelector { get; } = new(IntPtr.Zero, 9);
-
-        /// <summary>
-        ///     Gets the values associated with the terrain rotator helper.
-        /// </summary>
-        internal static TerrainHeightHelper RotatorHelper { get; } = new(IntPtr.Zero, 25); // if length ever changes, update terrain  height algo.
-
-        /// <summary>
         ///     Initializes the <see cref="Core" /> class.
         /// </summary>
         public static void Initialize()
@@ -127,8 +117,6 @@ namespace GameReader
             CoroutineHandler.Start(GameClosedActions());
             CoroutineHandler.Start(UpdateStatesData(), priority: int.MaxValue - 3);
             CoroutineHandler.Start(UpdateCullData(), priority: int.MaxValue);
-            CoroutineHandler.Start(UpdateRotationSelectorData(), priority: int.MaxValue);
-            CoroutineHandler.Start(UpdateRotatorHelperData(), priority: int.MaxValue);
         }
 
         /// <summary>
@@ -173,32 +161,6 @@ namespace GameReader
         }
 
         /// <summary>
-        ///     Co-routine to update the address where the Rotation Selector values are loaded in the game memory.
-        /// </summary>
-        /// <returns>co-routine IWait.</returns>
-        private static IEnumerator<Wait> UpdateRotationSelectorData()
-        {
-            while (true)
-            {
-                yield return new Wait(Process.OnStaticAddressFound);
-                RotationSelector.Address = Process.StaticAddresses.GetValueOrDefault("Terrain Rotation Selector");
-            }
-        }
-
-        /// <summary>
-        ///     Co-routine to update the address where the rotator helper values are loaded in the game memory.
-        /// </summary>
-        /// <returns>co-routine IWait.</returns>
-        private static IEnumerator<Wait> UpdateRotatorHelperData()
-        {
-            while (true)
-            {
-                yield return new Wait(Process.OnStaticAddressFound);
-                RotatorHelper.Address = Process.StaticAddresses.GetValueOrDefault("Terrain Rotator Helper");
-            }
-        }
-
-        /// <summary>
         ///     Co-routine to set All controllers addresses to Zero,
         ///     once the game closes.
         /// </summary>
@@ -210,8 +172,6 @@ namespace GameReader
                 yield return new Wait(GameHelperEvents.OnClose);
                 States.Address = IntPtr.Zero;
                 GameCull.Address = IntPtr.Zero;
-                RotationSelector.Address = IntPtr.Zero;
-                RotatorHelper.Address = IntPtr.Zero;
                 OffsetHealer.Forget();
 
                 if (GHSettings.CloseWhenGameExit)

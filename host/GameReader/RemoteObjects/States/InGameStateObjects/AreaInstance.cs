@@ -70,7 +70,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             };
 
             this.TerrainMetadata = default;
-            this.GridHeightData = Array.Empty<float[]>();
             this.GridWalkableData = Array.Empty<byte>();
             this.TgtTilesLocations = new();
 
@@ -123,11 +122,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         public TerrainStruct TerrainMetadata { get; private set; }
 
         /// <summary>
-        ///     Gets the terrain height data.
-        /// </summary>
-        public float[][] GridHeightData { get; private set; }
-
-        /// <summary>
         ///     Gets the terrain data of the current Area/Zone instance.
         /// </summary>
         public byte[] GridWalkableData { get; private set; }
@@ -174,13 +168,11 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 {
                     this.GridWalkableData = reader.ReadStdVector<byte>(
                         this.TerrainMetadata.GridWalkableData);
-                    this.GridHeightData = this.GetTerrainHeight();
                     this.TgtTilesLocations = this.GetTgtFileData();
                 }
                 else
                 {
                     this.GridWalkableData = Array.Empty<byte>();
-                    this.GridHeightData = Array.Empty<float[]>();
                     this.TgtTilesLocations = new();
                     Console.WriteLine(
                         $"[AreaInstance] Rejected invalid terrain metadata at 0x{this.Address.ToInt64():X}: " +
@@ -422,89 +414,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             return ret;
         }
 
-        private float[][] GetTerrainHeight()
-        {
-            if (!this.TryGetTerrainDimensions(
-                    out var tileCountX,
-                    out _,
-                    out var gridSizeX,
-                    out var gridSizeY))
-            {
-                return Array.Empty<float[]>();
-            }
-
-            var rotationHelper = Core.RotationSelector.Values;
-            var rotatorMetrixHelper = Core.RotatorHelper.Values;
-            var reader = Core.Process.Handle;
-            var tileData = reader.ReadStdVector<TileStructure>(this.TerrainMetadata.TileDetailsPtr);
-            var subTileHeightCache = new ConcurrentDictionary<IntPtr, sbyte[]>();
-            Parallel.For(0, tileData.Length, index =>
-            {
-                var val = tileData[index];
-                subTileHeightCache.AddOrUpdate(
-                    val.SubTileDetailsPtr,
-                    addr =>
-                    {
-                        var subTileData = reader.ReadMemory<SubTileStruct>(addr);
-                        var subTileHeightData = reader.ReadStdVector<sbyte>(subTileData.SubTileHeight);
-                        return subTileHeightData;
-                    },
-                    (addr, data) => data);
-            });
-
-            var result = new float[gridSizeY][];
-            Parallel.For(0, gridSizeY, y =>
-            {
-                result[y] = new float[gridSizeX];
-                for (var x = 0; x < gridSizeX; x++)
-                {
-                    var tileDataIndex = (y / TileStructure.TileToGridConversion) * tileCountX;
-                    tileDataIndex += x / TileStructure.TileToGridConversion;
-                    var subTileHeight = 0;
-                    if (tileDataIndex >= 0 && tileDataIndex < tileData.Length)
-                    {
-                        var mytiledata = tileData[tileDataIndex];
-                        if (subTileHeightCache.TryGetValue(mytiledata.SubTileDetailsPtr, out var subTileHeightsArray))
-                        {
-                            var gridXremaining = x % TileStructure.TileToGridConversion;
-                            var gridYremaining = y % TileStructure.TileToGridConversion;
-
-                            // 8 is the max number in rotationHelper array. 8 * 3 = 24.
-                            // According to the game, this number should never go above 24.
-                            var rotationSelected = mytiledata.RotationSelector < rotationHelper.Length ?
-                                rotationHelper[mytiledata.RotationSelector] * 3 : 24;
-                            rotationSelected = rotationSelected > 24 ? 24 : rotationSelected;
-
-                            var rotatorMetrix = new int[4]
-                            {
-                                TileStructure.TileToGridConversion - gridXremaining - 1,
-                                gridXremaining,
-                                TileStructure.TileToGridConversion - gridYremaining - 1,
-                                gridYremaining
-                            };
-
-                            int rotatedX0 = rotatorMetrixHelper[rotationSelected];
-                            int rotatedX1 = rotatorMetrixHelper[rotationSelected + 1];
-                            int rotatedY0 = rotatorMetrixHelper[rotationSelected + 2];
-                            var rotatedY1 = 0;
-                            if (rotatedX0 == 0)
-                            {
-                                rotatedY1 = 2;
-                            }
-
-                            var finalRotatedX = rotatorMetrix[rotatedX0 * 2 + rotatedX1];
-                            var finalRotatedY = rotatorMetrix[rotatedY0 + rotatedY1];
-                            subTileHeight = this.GetSubTerrainHeight(subTileHeightsArray, finalRotatedY, finalRotatedX);
-                            result[y][x] = mytiledata.TileHeight * (float)this.TerrainMetadata.TileHeightMultiplier + subTileHeight;
-                            result[y][x] = result[y][x] * TerrainStruct.TileHeightFinalMultiplier * -1;
-                        }
-                    }
-                }
-            });
-
-            return result;
-        }
-
         private bool TryGetTerrainDimensions(
             out int tileCountX,
             out int tileCountY,
@@ -551,47 +460,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             return true;
         }
 
-        private int GetSubTerrainHeight(sbyte[] subterrainheightarray, int y, int x)
-        {
-            if (x < 0 || y < 0 || x >= TileStructure.TileToGridConversion || y >= TileStructure.TileToGridConversion)
-            {
-                return 0;
-            }
-
-            var index = y * TileStructure.TileToGridConversion + x;
-            if (subterrainheightarray.Length == 0)
-            {
-                return 0;
-            }
-
-#if true
-            var arrayLength = subterrainheightarray.Length;
-            switch (arrayLength)
-            {
-                case 0x01:
-                    return subterrainheightarray[0];
-                case 0x45:
-                    return subterrainheightarray[(byte)subterrainheightarray[(index >> 3) + 2] >> ((index & 7) << 0) & 0x01];
-                case 0x89:
-                    return subterrainheightarray[(byte)subterrainheightarray[(index >> 2) + 4] >> ((index & 3) << 1) & 0x03];
-                case 0x119:
-                    return subterrainheightarray[(byte)subterrainheightarray[(index >> 1) + 16] >> ((index & 1) << 2) & 0xF];
-                default:
-                    if (arrayLength > index)
-                    {
-                        return subterrainheightarray[index];
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[AreaInstance.GetSubTerrainHeight] OOR: len={arrayLength}, index={index} - returning 0 (audit F-138).");
-                        return 0;
-                    }
-            }
-#else
-            return 0;
-#endif
-        }
-
         /// <summary>
         ///     knows how to clean up the <see cref="AreaInstance"/> class.
         /// </summary>
@@ -611,7 +479,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 this.ServerDataObject.Address = IntPtr.Zero;
                 this.Player.Address = IntPtr.Zero;
                 this.TerrainMetadata = default;
-                this.GridHeightData = Array.Empty<float[]>();
                 this.GridWalkableData = Array.Empty<byte>();
                 this.TgtTilesLocations.Clear();
             }
