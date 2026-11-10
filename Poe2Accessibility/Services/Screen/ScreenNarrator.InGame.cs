@@ -337,6 +337,28 @@ namespace Poe2Accessibility.Services
             return tracker;
         }
 
+        /// <summary>Says the account's points when the shop shows them and when a purchase changes them, after what is being said.</summary>
+        public void CheckShopBalance(ScreenSnapshot snapshot)
+        {
+            string? shown = null;
+            foreach (var layer in this.inGame ? snapshot.Layers : Array.Empty<ScreenLayer>())
+            {
+                foreach (var text in layer.IsHintBar || layer.Address == this.HudLayer ? Array.Empty<ScreenText>() : layer.Texts)
+                {
+                    if (text.Name == GameLayout.InGameUi.ShopBalanceName)
+                    {
+                        shown = text.Text;
+                        break;
+                    }
+                }
+            }
+
+            if (this.shopBalance.Heard(shown, Environment.TickCount64) is { } points)
+            {
+                this.Speak("shop balance", Announcements.Capitalised(Announcements.ShopBalance(points)), false);
+            }
+        }
+
         /// <summary>Says a clock falling on the HUD, cutting in: running out it can kill.</summary>
         public void CheckCountdown(ScreenSnapshot snapshot)
         {

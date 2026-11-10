@@ -674,6 +674,8 @@ namespace Poe2Accessibility
                 this.Isolated("countdown", snapshot, static (core, snapshot) => core.narrator?.CheckCountdown(snapshot));
             }
 
+            this.Isolated("shop balance", snapshot, static (core, snapshot) => core.narrator?.CheckShopBalance(snapshot));
+
             if (this.Settings.AnnounceHonour)
             {
                 this.Isolated("honour", snapshot, static (core, snapshot) => core.narrator?.CheckHonour(snapshot));

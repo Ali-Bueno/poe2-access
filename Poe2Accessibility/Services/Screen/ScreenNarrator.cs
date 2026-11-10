@@ -77,6 +77,7 @@ namespace Poe2Accessibility.Services
         private readonly TrialCounterWatch trialCounters = new();
         private readonly QuestTrackerPage questPage = new();
         private readonly CountdownWatch countdown = new();
+        private readonly ShopBalanceWatch shopBalance = new();
         private readonly HonourWatch honour = new();
         /// <summary>Tutorial hints said in this area and when.</summary>
         private readonly Dictionary<string, DateTime> tutorialSpoken = new();

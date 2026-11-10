@@ -15,6 +15,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheBuyButtonSaysWhatItBuysAndForHowMuch), TheBuyButtonSaysWhatItBuysAndForHowMuch),
             (nameof(PressedItAsksToConfirmWithTheItemsName), PressedItAsksToConfirmWithTheItemsName),
             (nameof(ACardsFlagsAreWords), ACardsFlagsAreWords),
+            (nameof(ThePointsAreSaidWhenShownAndWhenTheyChange), ThePointsAreSaidWhenShownAndWhenTheyChange),
         };
 
         private static void TheBuyButtonSaysWhatItBuysAndForHowMuch()
@@ -75,6 +76,20 @@ namespace Poe2Accessibility.Tests
 
             Equal(true, ShopPurchase.IsAmount("150") && ShopPurchase.IsAmount("1.250") && ShopPurchase.IsAmount("200-230"), "points and a range of them");
             Equal(false, ShopPurchase.IsAmount("Confirmar") || ShopPurchase.IsAmount(string.Empty) || ShopPurchase.IsAmount("27/27"), "a caption and a count are no price");
+        }
+
+        private static void ThePointsAreSaidWhenShownAndWhenTheyChange()
+        {
+            var watch = new ShopBalanceWatch();
+            Equal(null, watch.Heard(null, 0), "no shop");
+            Equal("300", watch.Heard("300", 1000), "the shop opened");
+            Equal(null, watch.Heard("300", 1100), "the same points are no news");
+            Equal(null, watch.Heard(null, 1200), "a page being rebuilt");
+            Equal(null, watch.Heard("300", 1500), "brings them back unchanged");
+            Equal("150", watch.Heard("150", 2000), "a purchase");
+            Equal(null, watch.Heard("Cargando...", 2100), "not points");
+            Equal(null, watch.Heard(null, 6000), "the shop closed");
+            Equal("150", watch.Heard("150", 9000), "opened again: said again");
         }
     }
 }
