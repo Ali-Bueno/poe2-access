@@ -89,6 +89,16 @@ namespace GameReader.Utils
         /// <summary>Nodes read on the calling thread before the parallel part: their children seed the workers.</summary>
         private const int SeedNodes = 63;
 
+        /// <summary>
+        ///     The seeds a tree full to the seed nodes' depth leaves. Fewer means the walk is nearly over (what the key limit
+        ///     leaves of a town's map: 60 to 100 nodes of some 430), and it reads on on the calling thread up to
+        ///     <see cref="ParallelMinNodes"/> nodes before any worker is woken, as a map under that size is.
+        /// </summary>
+        private const int FullSeeds = SeedNodes + 1;
+
+        /// <summary>A worker's queue starts small: one of 2000 nodes was a large-object allocation per worker per walk (profile, 2026-11-10).</summary>
+        private const int WorkerQueueNodes = 64;
+
         private readonly IntPtr head;
         private readonly StdMapNodeReader<TKey, TValue> read;
         private readonly Func<TKey, TValue, bool> onNode;
@@ -142,6 +152,11 @@ namespace GameReader.Utils
             {
                 cap = maxSizeAllowed;
                 nodes = walk.Drain(queue, SeedNodes);
+                if (queue.Count < FullSeeds)
+                {
+                    nodes += walk.Drain(queue, ParallelMinNodes - SeedNodes);
+                }
+
                 nodes += walk.DrainParallel(queue, maxSizeAllowed, maxParallelism);
             }
 
@@ -173,7 +188,7 @@ namespace GameReader.Utils
             Parallel.ForEach(
                 seeds,
                 new ParallelOptions { MaxDegreeOfParallelism = maxParallelism },
-                () => (Queue: new Queue<(StdMapNode<TKey, TValue> Node, KeyRange Range)>(2000), Nodes: 0),
+                () => (Queue: new Queue<(StdMapNode<TKey, TValue> Node, KeyRange Range)>(WorkerQueueNodes), Nodes: 0),
                 (seed, _, _, local) =>
                 {
                     local.Queue.Enqueue(seed);

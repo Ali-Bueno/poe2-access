@@ -16,11 +16,15 @@ namespace Poe2Accessibility.Tests
         /// <summary>A limit that leaves more than the parallel walk's seed nodes to read in a big map.</summary>
         private const ulong ManyUnder = 400;
 
+        /// <summary>A limit that leaves a few nodes more than the seed nodes to read in a big map, as a town's does.</summary>
+        private const ulong TownUnder = 71;
+
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(AWalkWithoutLimitReadsEveryNodeOnce), AWalkWithoutLimitReadsEveryNodeOnce),
             (nameof(AnOrderedMapIsReadUpToTheLimit), AnOrderedMapIsReadUpToTheLimit),
             (nameof(ABigOrderedMapIsReadUpToTheLimitInParallel), ABigOrderedMapIsReadUpToTheLimitInParallel),
+            (nameof(ABigMapTheLimitCutsToATownIsReadOnTheCallingThread), ABigMapTheLimitCutsToATownIsReadOnTheCallingThread),
             (nameof(AMapOutOfOrderIsReadWhole), AMapOutOfOrderIsReadWhole),
             (nameof(ABigMapOutOfOrderIsReadWhole), ABigMapOutOfOrderIsReadWhole),
             (nameof(ALimitUnderEveryKeyReadsTheLeftEdgeOnly), ALimitUnderEveryKeyReadsTheLeftEdgeOnly),
@@ -61,6 +65,18 @@ namespace Poe2Accessibility.Tests
             Expect(false, walk.OutOfOrder, "in order");
             Expect(string.Join(",", Range(1, 399)), string.Join(",", map.Seen.Where(key => key < ManyUnder).Order()), "every key under the limit once");
             Expect(true, map.Reads <= 399 + map.Depth + 1, $"only the boundary's path past the limit ({map.Reads} reads)");
+        }
+
+        private static void ABigMapTheLimitCutsToATownIsReadOnTheCallingThread()
+        {
+            // A town: some 430 nodes, 70 of them under the visuals' ids. The walk reads a few more than its seed nodes.
+            var map = new FakeMap(Range(1, 430));
+            var walk = map.Walk(TownUnder);
+            Expect(true, walk.Complete, "complete");
+            Expect(false, walk.OutOfOrder, "in order");
+            Expect(string.Join(",", Range(1, (int)TownUnder - 1)), string.Join(",", map.Seen.Where(key => key < TownUnder).Order()), "every key under the limit once");
+            Expect(true, map.Reads > 64, $"more than the seed nodes were read ({map.Reads} reads)");
+            Expect(Environment.CurrentManagedThreadId.ToString(), string.Join(",", map.Threads.Order()), "no worker was woken for the few nodes left");
         }
 
         private static void AMapOutOfOrderIsReadWhole()
@@ -205,6 +221,9 @@ namespace Poe2Accessibility.Tests
 
             public List<ulong> Seen { get; } = new();
 
+            /// <summary>The threads that read a node.</summary>
+            public HashSet<int> Threads { get; } = new();
+
             public void Break(int index) => this.broken.Add(Address(index - 1));
 
             public StdMapWalkResult Walk(ulong? limit) => StdMapWalk<ulong, int>.Run(
@@ -228,6 +247,11 @@ namespace Poe2Accessibility.Tests
             private bool Read(IntPtr address, out StdMapNode<ulong, int> node)
             {
                 Interlocked.Increment(ref this.reads);
+                lock (this.Threads)
+                {
+                    this.Threads.Add(Environment.CurrentManagedThreadId);
+                }
+
                 node = default;
                 return !this.broken.Contains(address) && this.nodes.TryGetValue(address, out node);
             }
