@@ -530,10 +530,10 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   desde el nivel 33. …", "Vacío"; `UiSemantics.ReadGrid`, pure `GridReading`, setting `ReadGridOnHold`,
   [controls](docs/controls.md#l3-the-mod-button)). In a stash and at a merchant the held L3 is the game's "Borrar búsqueda":
   with no search the game did nothing (no focus or screen change logged) and the grid is read; with a search lit the hold
-  is left to the game (code only: no search was typed live). Open: modifiers without a tooltip — the host reads an item's
-  modifiers (`GameReader/RemoteObjects/Components/Mods.cs`, offsets in `GameOffsets/.../ModsAndObjectMagicProperties.cs`,
-  never validated on items by this mod) but `catalog/mod-texts.json` is keyed by wording, not by mod or stat id: it needs
-  an extraction (Mods.dat id → stat ids → text) and a live validation of the fields, not started.
+  is left to the game (code only: no search was typed live). Open: modifiers without a tooltip — the host's `Mods` lists
+  hold on items (eight compared with their tooltips, every modifier line accounted for; dev command `itemmods`,
+  [item mods](docs/research/item-mods.md)), but they are Mods.dat ids and the tooltip sums stats across modifiers, so
+  saying them needs an extraction (Mods.dat id → stat ids → description text), not started.
 - Stale values, player, combat and host (2026-11-10, code and unit tests only): flask uses from the drink's seen cost, boss
   life read when asked, a shared target name said alone, per-area state reset per instance, untyped entities' components
   rested, buff stacks, learnt blows as clip time, no maximum from tables, buff ids kept whole. What each needs live is listed in

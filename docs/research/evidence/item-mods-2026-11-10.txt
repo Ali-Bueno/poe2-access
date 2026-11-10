@@ -1,0 +1,33 @@
+== 
+Metadata/Items/SoulCores/RuneStunLesser: no Mods component || tooltip: Runa de piedra menor | Tamaño de la pila: 1/10 | Runa | Arma marcial: Acumulación de aturdimiento aumentada un 20% | Varita o báculo: Ganas umbral de aturdimiento adicional equivalente al 10% de tu escudo de energía máximo | Armadura: +50 al umbral de aturdimiento | Colócala en un engarce de mejora vacío de un arma o una armadura para aplicar su efecto a ese objeto. Una vez que se haya engarzado, no se podrá retirar, pero se podrá reemplazar por otros objetos de mejora.
+
+== 
+Metadata/Items/Weapons/OneHandWeapons/Sceptres/FourSceptre4 rarity=Rare implicit[0]  | explicit[5] NearbyAlliesLifeRegeneration4 352/NaN; ReducedLocalAttributeRequirements1 -15/NaN; NearbyAlliesCriticalStrikeChance1 13/NaN; NearbyAlliesAddedColdDamage3 6/10; IncreasedMana1 10/NaN | enchant[0]  || tooltip: Canto de condenación | No puedes usarlo: 21 Int | Cetro de augurio | Cetro | Espíritu: 100 | Requiere: Nivel 19, 10 Fue, 21 Int | Otorga la habilidad: Malicia de nivel 7 | +10 al maná máximo | Los aliados que están en tu presencia infligen de 6 a 10 de daño de hielo agregado con los ataques | Los aliados que están en tu presencia tienen la probabilidad de impacto crítico aumentada un 13% | Los aliados que están en tu presencia regeneran 5.9 de vida por segundo | Requisitos de atributos reducidos un 15%
+
+== 
+Metadata/Items/Currency/CurrencyLesserEssenceFireResist: no Mods component || tooltip: Esencia de incombustibilidad menor | Tamaño de la pila: 1/10 | Mejora un objeto de mágico a raro y le agrega un modificador garantizado | Armadura, cinturón o joyería: +(11-15)% a la resistencia al fuego | Presiona X para usarlo y luego A sobre un objeto mágico para aplicarlo. | Usar, X
+
+== "Frasco de vida grandioso, mágico"
+Metadata/Items/Flasks/FourFlaskLife4 rarity=Magic implicit[0]  | explicit[2] FlaskIncreasedRecoveryAmount2_ 46/NaN; FlaskChargesUsed2 -19/NaN | enchant[0]  || tooltip: Frasco de vida grandioso compacto del practicante | Frasco | Recupera 380 de vida en 5 segundos | Consume 8 de 75 cargas cuando lo usas | Actualmente tiene 75 cargas | Requiere: Nivel 16 | Cantidad recuperada aumentada un 46% | Cargas reducidas un 19% por cada uso | Vincula tus frascos a botones para beberlos durante el combate y restaurar tu vida o tu maná. Rellénalos en los pozos o matando monstruos. | Equipado | Desequipar, X
+
+== "Vial de piedra del médico, mágico"
+Metadata/Items/Flasks/FourCharm6 rarity=Magic implicit[1] CharmImplicitUseOnStun1 1/NaN | explicit[1] FlaskChanceRechargeOnKill1 25/NaN | enchant[0]  || tooltip: Vial de piedra del médico | Vial | Dura 3 segundos | Consume 20 de 40 cargas cuando lo usas | Actualmente tiene 40 cargas | No te pueden aturdir | Requiere: Nivel 8 | Se usa cuando te aturden | 25% de probabilidad de ganar una carga cuando matas a un enemigo | Afortunado significa que el número se genera dos veces y se elige el mejor resultado. Presiona el botón vinculado para beber. Solo puede mantener cargas mientras esté en el cinturón. Se rellena a medida que matas monstruos. | Equipado | Desequipar, X
+
+== "Frasco de maná mayor opaco del practicante, mágico"
+Metadata/Items/Flasks/FourFlaskMana3 rarity=Magic implicit[0]  | explicit[2] FlaskChargesUsed2 -20/NaN; FlaskIncreasedRecoveryAmount1 45/NaN | enchant[0]  || tooltip: Frasco de maná mayor opaco del practicante | Frasco | Recupera 131 de maná en 2,50 segundos | Consume 8 de 70 cargas cuando lo usas | Actualmente tiene 70 cargas | Requiere: Nivel 11 | Cantidad recuperada aumentada un 45% | Cargas reducidas un 20% por cada uso | Vincula tus frascos a botones para beberlos durante el combate y restaurar tu vida o tu maná. Rellénalos en los pozos o matando monstruos. | Equipado | Desequipar, X
+
+== "vacío"
+no item || tooltip: 
+
+== "Frasco de maná mayor opaco del practicante, mágico"
+Metadata/Items/Flasks/FourFlaskMana3 rarity=Magic implicit[0]  | explicit[2] FlaskChargesUsed2 -20/NaN; FlaskIncreasedRecoveryAmount1 45/NaN | enchant[0]  || tooltip: Frasco de maná mayor opaco del practicante | Frasco | Recupera 131 de maná en 2,50 segundos | Consume 8 de 70 cargas cuando lo usas | Actualmente tiene 70 cargas | Requiere: Nivel 11 | Cantidad recuperada aumentada un 45% | Cargas reducidas un 20% por cada uso | Vincula tus frascos a botones para beberlos durante el combate y restaurar tu vida o tu maná. Rellénalos en los pozos o matando monstruos. | Equipado | Desequipar, X
+
+== "Botas, Paso de dominación, raro"
+Metadata/Items/Armours/Boots/FourBootsStrDex1 rarity=Rare implicit[0]  | explicit[4] IncreasedMana2 21/NaN; LifeRegeneration1 104/NaN; ColdResist1 8/NaN; MovementVelocity1 10/NaN | enchant[0]  || tooltip: Paso de dominación | Escarpes de malla | Botas | Armadura: 22 | Evasión: 17 | Requiere: Nivel 6 | Velocidad de movimiento aumentada un 10% | +21 al maná máximo | +8% a la resistencia al hielo | Regeneras 1.7 de vida por segundo | Equipado | Desequipar, X
+
+== "Cinturón, Trenza de medianoche, único"
+Metadata/Items/Belts/FourBelt1 rarity=Unique implicit[2] BeltImplicitFlaskLifeRecovery1 27/NaN; BeltImplicitCharmSlots3 1/NaN | explicit[3] UniqueDamageTakenGoesToMana1 50/NaN; UniqueIncreasedMana19 48/NaN; UniqueAllResistances9 9/NaN | enchant[0]  || tooltip: Trenza de medianoche | Cinturón de cuero crudo | Cinturón de origen ezomita | Recuperación de vida con frascos aumentada un 27%. Tiene 1 espacio para vial | +48 al maná máximo | +9% a todas las resistencias elementales | El 50% del daño recibido se recobra como maná | La adversidad es la tierra donde crece la perseverancia. | Equipado | Desequipar, X
+
+== "Guantes, Agarraderas de necrófago, raro"
+Metadata/Items/Armours/Gloves/FourGlovesStr2 rarity=Rare implicit[0]  | explicit[5] CriticalMultiplier2 15/NaN; IncreasedMana3 33/NaN; IncreasedLife3 32/NaN; LifeGainPerTarget1 2/NaN; LocalIncreasedArmourAndLife2 16/15 | enchant[0]  || tooltip: Agarraderas de necrófago | Manoplas remachadas | Guantes | Armadura: 44 | Requiere: Nivel 16, 16 Fue | Armadura aumentada un 16% | +47 a la vida máxima | +33 al maná máximo | Bonificación de daño crítico aumentada un 15% | Ganas 2 de vida por cada enemigo impactado con ataques | Equipado | Desequipar, X
+

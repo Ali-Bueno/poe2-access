@@ -439,6 +439,25 @@ namespace Poe2Accessibility.Services
                 : new Dictionary<string, IntPtr>();
         }
 
+        /// <summary>Research (dev command "focusinfo"): the host's Mods lists of an item, to set against its tooltip (docs/research/item-mods.md).</summary>
+        public string ModsReport(IntPtr entity)
+        {
+            if (entity == IntPtr.Zero || !this.IsItemEntity(entity))
+            {
+                return "no item";
+            }
+
+            var item = (Item)Activator.CreateInstance(typeof(Item), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { entity }, null)!;
+            if (!item.TryGetComponent<Mods>(out var mods))
+            {
+                return $"{ItemPath(item)}: no Mods component";
+            }
+
+            static string Listed(string kind, List<(string name, (float value0, float value1) values)> list) =>
+                $"{kind}[{list.Count}] " + string.Join("; ", list.Select(mod => FormattableString.Invariant($"{mod.name} {mod.values.value0}/{mod.values.value1}")));
+            return $"{ItemPath(item)} rarity={mods.Rarity} {Listed("implicit", mods.ImplicitMods)} | {Listed("explicit", mods.ExplicitMods)} | {Listed("enchant", mods.EnchantMods)}";
+        }
+
         /// <summary>The entity path without the "@level" suffix some item paths carry.</summary>
         private static string ItemPath(Item item)
         {

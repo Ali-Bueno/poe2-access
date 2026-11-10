@@ -42,6 +42,15 @@ namespace Poe2Accessibility.Services
         public string GridBaseIds(AccessibleUiNode focused) =>
             string.Join(" | ", this.inventory.ItemsOf(focused.Address).Select(item => this.inventory.ItemBaseId(this.inventory.ItemEntity(item.Item))));
 
+        /// <summary>Research (dev command "focusinfo"): the focused item's modifiers as the host reads them, beside its tooltip's lines.</summary>
+        public string FocusedItemMods(AccessibleUiNode focused)
+        {
+            var element = this.inventory.TryReadGrid(focused.Address, out var column, out var row, out var hovered)
+                ? hovered != IntPtr.Zero ? hovered : this.inventory.ItemAt(focused.Address, column, row)
+                : this.inventory.FindItemElement(focused.Address);
+            return $"{this.inventory.ModsReport(this.inventory.ItemEntity(element))} || tooltip: {string.Join(" | ", this.ItemTooltip(element))}";
+        }
+
         /// <summary>What the build says of an item by its base alone, per slot it asks for: nothing of its modifiers, which only a tooltip gives.</summary>
         private (bool OnBase, List<string> Lines) BuildFitByBase((BuildPlan Plan, int Level) active, Dictionary<(string Slot, int X), IntPtr> worn, IntPtr entity)
         {
