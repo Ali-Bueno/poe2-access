@@ -67,8 +67,8 @@ namespace Poe2Accessibility.Services
 
             this.Add(SkillCooldownWatch.SoundKey, CueSynth.SkillReady(rate));
             this.Add("deployed", CueSynth.Deployed(rate));
-            this.AddStereo("passive_guide", CueSynth.GuideStep(3, 1, rate));
-            this.AddStereo("passive_guide_here", CueSynth.GuideStep(null, 1, rate));
+            this.AddStereo("passive_guide", CueSynth.GuideStep(3, 2, rate));
+            this.AddStereo("passive_guide_here", CueSynth.GuideStep(null, 2, rate));
             this.AddGame(gameSounds, rate, "tempest_bell", "ice_crystal");
 
             this.Add("enemy", CueSynth.Enemy(CueSynth.Layer.None, rate));

@@ -229,7 +229,7 @@ reachable, next in the build"; "…, allocate this one"), then its stats, step a
 "Select, A" hints; L3 held reads everything, links included. Allocated there: "Attack Speed, allocated. Next in the
 build: Attack Speed: left, 1".
 
-**Guide sound** (setting "Passive tree guide sound, 0 off", Navigation, 1 by default): landing on a node of the guide's
+**Guide sound** (setting "Passive tree guide sound, 0 off", Navigation, 2 by default, the user's pick): landing on a node of the guide's
 line (a build node, or a node of the finder's trail) rings a ding that goes the way of the next push, left and right in
 the ears, higher for up, lower for down; the node to take rings two notes together in the middle. 1 is glass gliding to
 that side, 2 two wooden knocks (the second there), 3 a bell whose echo answers from there; with it off the brief line
