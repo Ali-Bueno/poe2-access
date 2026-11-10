@@ -273,6 +273,15 @@ armour_and_evasion2 counted 15, 14 … 1, "Arrived at Oasis" with no correction.
   points win and ties go to the build, then to notables; toward a marked node an unmarked one costs 64 points, so the trail
   keeps to the build's own line). The line names the trail's first node (always reachable) and the cursor way to it. The D-pad's
   Build list holds the marked keystones, notables and sockets not taken, in the `.build` file's order when it is here.
+- Brief guide (2026-11-10, the user's play log: one node read as name, stats, "Seleccionar, A. Mantén presionado A para
+  seleccionar el tipo de puntos", "No cumples los requisitos", the build step, the author's note twice (the `.build`
+  file's and the game's own note tooltip, differing by one full stop), every link, then the build's way, 5-10 s a push):
+  `UiSemantics.GuideAt` works out the guide once per node and allocation (finder first, else the build's next node) as a
+  `GuideSay` (line, here, on the line, next octant); with `PassiveGuideBrief` a node on the way is `Text` = its name,
+  `Tooltip` = the way alone, not waiting for the game's tooltip, and the goal is said only when its key changes
+  (`GoalAndWay`); every line stays in `AccessibleUiNode.Details` for L3 held. `LinesOf(…, asides)` sets the button hints
+  (a glyph image or inline glyph) and red lines without digits apart. Landing on a node of the line plays
+  `CueSynth.GuideStep` (stereo: pan for left and right, pitch ±4 semitones for up and down, the beacon's rule).
 - Row names may hold keyword markup ("Engarce de [Jewel|joya]"); `ReadPassiveRow` shows the display text.
 
 ## Build Planner (patch 0.5, 2026-10-31)

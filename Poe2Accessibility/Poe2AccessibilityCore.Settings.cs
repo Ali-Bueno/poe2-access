@@ -16,6 +16,8 @@ namespace Poe2Accessibility
             if (this.semantics != null)
             {
                 this.semantics.PassiveFinderOn = settings.PassiveFinder;
+                this.semantics.PassiveGuideBrief = settings.PassiveGuideBrief;
+                this.semantics.GuideCue = settings.PassiveGuideSound is >= 1 and <= 3 ? this.PlayGuideStep : null;
             }
 
             if (this.log != null)
@@ -35,6 +37,19 @@ namespace Poe2Accessibility
             }
 
             this.ApplySoundVolumes(settings);
+        }
+
+        /// <summary>The passive tree guide's sound for the next push's octant, or for the node to take; each made once.</summary>
+        private void PlayGuideStep(int? octant)
+        {
+            var sound = this.Settings.PassiveGuideSound;
+            var key = (sound, octant ?? -1);
+            if (!this.guideSteps.TryGetValue(key, out var cue))
+            {
+                this.guideSteps[key] = cue = CueSynth.GuideStep(octant, sound, AudioCueService.SampleRate);
+            }
+
+            this.audio?.Play(cue, 1f, 1f, octant == null ? "passive_guide_here" : "passive_guide");
         }
 
         private void ApplySoundVolumes(AccessibilitySettings settings)

@@ -221,6 +221,21 @@ left, down". With the file in that folder (not for a website-only build) each bu
 set and the author's note ("Build: step 2 of 8. Strength +5 is recommended"); an attribute node whose note shows the
 attribute only by colour gets it named ("Recommended attribute: Strength").
 
+**Brief guide** (setting "Brief passive tree guide", Navigation, on by default; user 2026-11-10: "es muy verboso"): while
+the finder's target or the build's next node leads, a node passed on the way is its name and the way on, the goal named
+only when it changes: "Attribute. Next in the build: Attack Speed: left, 3", then "Armour and Evasion. left, 2"
+(the count falling by one is the sign of a right push). The node to take says it at once ("Attack Speed, small node,
+reachable, next in the build"; "…, allocate this one"), then its stats, step and note, without the links or the game's
+"Select, A" hints; L3 held reads everything, links included. Allocated there: "Attack Speed, allocated. Next in the
+build: Attack Speed: left, 1".
+
+**Guide sound** (setting "Passive tree guide sound, 0 off", Navigation, 1 by default): landing on a node of the guide's
+line (a build node, or a node of the finder's trail) rings a ding that goes the way of the next push, left and right in
+the ears, higher for up, lower for down; the node to take rings two notes together in the middle. 1 is glass gliding to
+that side, 2 two wooden knocks (the second there), 3 a bell whose echo answers from there; with it off the brief line
+says "in the build" or "on the way" instead. They can be heard on the [audition page](https://claude.ai/artifact/BnzPGz2p9H9esybUqqktc6)
+and in the sound glossary.
+
 ## Radial menu
 
 Hold View: the option the right or left stick points at is read as it changes (up Inventory, up-right Cosmetics,

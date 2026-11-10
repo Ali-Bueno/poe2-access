@@ -18,11 +18,24 @@ namespace Poe2Accessibility.Services
 
         private readonly PassiveFinder finder = new();
         private PassiveAtlas? passiveAtlas;
-        private (IntPtr From, IntPtr To, string Words)? finderWay;
-        private (IntPtr Record, int Taken, string Line)? finderLine;
+        private (IntPtr From, IntPtr To, int Max, Way? Way)? finderWay;
+        private (IntPtr Record, int Taken, GuideSay Say)? guideSaid;
+        private string briefGoal = string.Empty;
 
         /// <summary>The finder is on (setting PassiveFinder): the D-pad answers and locked nodes say what they cost.</summary>
         public bool PassiveFinderOn { get; set; } = true;
+
+        /// <summary>
+        ///     While a guide leads (the finder's target or the build's next node), a node passed on the way is its name and the way on,
+        ///     the goal said only when it changes, and the node to take leaves its links and button hints for the details (setting PassiveGuideBrief).
+        /// </summary>
+        public bool PassiveGuideBrief { get; set; } = true;
+
+        /// <summary>
+        ///     The guide's sound when the cursor lands on a node of its line (a build node, a node of the finder's trail): the octant of
+        ///     the next push, null on the node to take; null when the sound is off (setting PassiveGuideCue).
+        /// </summary>
+        public Action<int?>? GuideCue { get; set; }
 
         /// <summary>A D-pad press on a passive node: moves the finder and returns what to say; null when the tree cannot be read.</summary>
         /// <param name="hovered">The hovered node's element.</param>
@@ -59,7 +72,8 @@ namespace Poe2Accessibility.Services
                 return hadTarget && this.finder.Target == IntPtr.Zero ? $"{position}. {Announcements.BeaconOff}" : position;
             }
 
-            var found = Announcements.PassiveFound(atlas.Nodes[target].Name, Where(atlas, target, steps), this.WayTo(graph, atlas, record, this.finder.Target));
+            var way = this.WayTo(graph, atlas, record, this.finder.Target, MaxFinderPushes)?.Words(false) ?? string.Empty;
+            var found = Announcements.PassiveFound(atlas.Nodes[target].Name, Where(atlas, target, steps), way);
             return listStep != 0 ? Announcements.InContext(Announcements.PassiveCategoryName(this.finder.Category), found) : found;
         }
 
@@ -104,58 +118,101 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     The finder's line for the hovered node: the way to its target, or that the cursor got there, then the next node to
-        ///     take for it; empty with no target. Kept while the cursor stays and nothing is allocated: a choice made on this node is
-        ///     said by the D-pad, and a changed line would cut that off; a node taken here moves the guide on to the next one.
+        ///     What the guide says on the hovered node — the finder's target first, else the build's next node — worked out once per
+        ///     node and allocation: kept while the cursor stays, since a choice made on this node is said by the D-pad and a changed
+        ///     line would cut that off, while a node taken here moves the guide on. A node of the guide's line rings its sound on landing.
         /// </summary>
-        private string FinderLine(PassiveGraph graph, IntPtr record, HashSet<int> allocated, HashSet<IntPtr> marked)
+        private GuideSay GuideAt(PassiveGraph graph, IntPtr record, HashSet<int> allocated, HashSet<IntPtr> marked, IntPtr? next)
         {
-            if (this.finderLine is { } shown && shown.Record == record && shown.Taken == allocated.Count)
+            if (this.guideSaid is { } shown && shown.Record == record && shown.Taken == allocated.Count)
             {
-                return shown.Line;
+                return shown.Say;
             }
 
             var atlas = this.AtlasOf(graph);
-            var line = atlas.Places.Index.TryGetValue(this.finder.Target, out var target) ? this.GuideLine(graph, atlas, record, target, allocated, marked) : string.Empty;
-            this.finderLine = (record, allocated.Count, line);
-            return line;
+            var say = atlas.Places.Index.TryGetValue(this.finder.Target, out var target) ? this.FinderGuide(graph, atlas, record, target, allocated, marked)
+                : next is { } goal ? this.BuildGuide(graph, atlas, record, goal, allocated, marked)
+                : GuideSay.None;
+            this.guideSaid = (record, allocated.Count, say);
+            if (say.Here || say.OnLine)
+            {
+                this.GuideCue?.Invoke(say.Here ? null : say.Octant);
+            }
+
+            return say;
         }
 
         /// <summary>
         ///     "Toward Scarred Faith: up, 7 pushes" until the cursor has been on the target, to read it; then "Scarred Faith, 8 points to
         ///     go: allocate Attribute: down left, 2 pushes", "allocate this one" on that node, until the target is taken.
         /// </summary>
-        private string GuideLine(PassiveGraph graph, PassiveAtlas atlas, IntPtr record, int target, HashSet<int> allocated, HashSet<IntPtr> marked)
+        private GuideSay FinderGuide(PassiveGraph graph, PassiveAtlas atlas, IntPtr record, int target, HashSet<int> allocated, HashSet<IntPtr> marked)
         {
             var name = atlas.Nodes[target].Name;
             if (!this.finder.Taking && record != this.finder.Target)
             {
-                return Announcements.PassiveToward(name, this.WayTo(graph, atlas, record, this.finder.Target));
+                var way = this.WayTo(graph, atlas, record, this.finder.Target, MaxFinderPushes);
+                return new GuideSay(this.GoalAndWay($"toward {target}", Announcements.PassiveToward(name), way), false, false, way?.Octant, true);
             }
 
             var trail = TrailTo(atlas, target, allocated, marked);
             if (this.finder.Arrive(record, trail is { Count: > 0 }))
             {
                 var arrived = Announcements.BeaconArrived(name);
-                return this.finder.Taking && trail != null ? this.TrailLine(graph, atlas, record, arrived, trail) : arrived;
+                return this.finder.Taking && trail != null
+                    ? this.TrailSay(graph, atlas, record, arrived, trail) with { Here = true }
+                    : new GuideSay(arrived, true, false, null, true);
             }
 
             if (trail is not { Count: > 0 })
             {
                 this.finder.Drop();
-                return trail == null ? Announcements.BeaconOff : $"{Announcements.PassiveGot(name)}. {Announcements.BeaconOff}";
+                return new GuideSay(trail == null ? Announcements.BeaconOff : $"{Announcements.PassiveGot(name)}. {Announcements.BeaconOff}", false, false, null, true);
             }
 
-            return this.TrailLine(graph, atlas, record, name, trail);
+            return this.TrailSay(graph, atlas, record, name, trail);
         }
 
         /// <summary>The points left for the target and the next node to take, with the way to it from the hovered node.</summary>
-        private string TrailLine(PassiveGraph graph, PassiveAtlas atlas, IntPtr from, string lead, List<int> trail)
+        private GuideSay TrailSay(PassiveGraph graph, PassiveAtlas atlas, IntPtr from, string lead, List<int> trail)
         {
             var next = atlas.Nodes[trail[0]];
             var at = trail.FindIndex(index => atlas.Nodes[index].Record == from);
-            var step = next.Record == from ? Announcements.AllocateThis : Announcements.AllocateNode(next.Name, this.WayTo(graph, atlas, from, next.Record));
-            return Announcements.PassiveTrail(lead, trail.Count, at > 0 && at < trail.Count - 1, step);
+            if (next.Record == from)
+            {
+                // Brief, the node's name and "allocate this one" are enough; on the target itself, the arrival comes first.
+                var here = !this.PassiveGuideBrief ? Announcements.PassiveTrail(lead, trail.Count, false, Announcements.AllocateThis)
+                    : lead == next.Name ? Announcements.AllocateThis
+                    : $"{lead}, {Announcements.AllocateThis}";
+                return new GuideSay(here, true, true, null, true);
+            }
+
+            var way = this.WayTo(graph, atlas, from, next.Record, MaxFinderPushes);
+            var goal = Announcements.PassiveTrail(lead, trail.Count, !this.PassiveGuideBrief && at > 0 && at < trail.Count - 1, Announcements.AllocateGoal(next.Name));
+            return new GuideSay(this.GoalAndWay($"trail {trail[^1]} {trail.Count} {trail[0]}", goal, way), false, at >= 0, way?.Octant, true);
+        }
+
+        /// <summary>The build's next node: nothing on it (its state says "next in the build"), elsewhere the way to it.</summary>
+        private GuideSay BuildGuide(PassiveGraph graph, PassiveAtlas atlas, IntPtr record, IntPtr next, HashSet<int> allocated, HashSet<IntPtr> marked)
+        {
+            if (next == record)
+            {
+                return new GuideSay(string.Empty, true, true, null, true);
+            }
+
+            var way = this.WayTo(graph, atlas, record, next, MaxFinderPushes);
+            var name = atlas.Places.Index.TryGetValue(next, out var at) ? atlas.Nodes[at].Name : string.Empty;
+            var line = this.PassiveGuideBrief ? this.GoalAndWay($"build {next}", Announcements.BuildNextGoal(name), way) : this.DescribeBuildNext(graph, record, next, allocated);
+            return new GuideSay(line, false, marked.Contains(record), way?.Octant, true);
+        }
+
+        /// <summary>"goal: way"; brief, the way is short ("up, 3") and the goal said only when it changed since the last one said.</summary>
+        private string GoalAndWay(string key, string goal, Way? way)
+        {
+            var words = way?.Words(this.PassiveGuideBrief) ?? string.Empty;
+            var line = words.Length == 0 ? goal : this.PassiveGuideBrief && key == this.briefGoal ? words : $"{goal}: {words}";
+            this.briefGoal = key;
+            return line;
         }
 
         /// <summary>The nodes to take for the target: the fewest points, along the active build where it can (all of it for a build's node).</summary>
@@ -168,26 +225,24 @@ namespace Poe2Accessibility.Services
             return atlas.TrailTo(allocated, target, Cost);
         }
 
-        /// <summary>"up, 7 pushes" from one node to another, its direction alone when it is too far to count.</summary>
-        private string WayTo(PassiveGraph graph, PassiveAtlas atlas, IntPtr from, IntPtr to)
+        /// <summary>The pushes from one node to another, the direction alone when it is too far to count; null for a node with no place.</summary>
+        private Way? WayTo(PassiveGraph graph, PassiveAtlas atlas, IntPtr from, IntPtr to, int maxMoves)
         {
-            if (this.finderWay is { } cached && cached.From == from && cached.To == to)
+            if (this.finderWay is { } cached && cached.From == from && cached.To == to && cached.Max == maxMoves)
             {
-                return cached.Words;
+                return cached.Way;
             }
 
             var places = atlas.Places;
-            if (!places.Index.TryGetValue(from, out var here) || !places.Index.TryGetValue(to, out var there))
+            Way? way = null;
+            if (places.Index.TryGetValue(from, out var here) && places.Index.TryGetValue(to, out var there))
             {
-                return string.Empty;
+                var pushes = this.PushesBetween(graph, places, from, here, there, maxMoves);
+                way = pushes is { Count: > 0 } ? new Way(pushes[0], pushes.Count) : new Way(PassiveStick.Nearest(places.Positions[there] - places.Positions[here]), null);
             }
 
-            var pushes = this.PushesBetween(graph, places, from, here, there, MaxFinderPushes);
-            var words = pushes is { Count: > 0 }
-                ? Announcements.PassivePushes(Announcements.StickDirections[pushes[0]], pushes.Count)
-                : Announcements.Far(Announcements.StickDirections[PassiveStick.Nearest(places.Positions[there] - places.Positions[here])]);
-            this.finderWay = (from, to, words);
-            return words;
+            this.finderWay = (from, to, maxMoves, way);
+            return way;
         }
 
         /// <summary>"down right, outer ring, 7 points away", or "allocated" in place of the points.</summary>
@@ -223,6 +278,26 @@ namespace Poe2Accessibility.Services
             var atlas = new PassiveAtlas(graph.State, places, nodes, links, places.IndexesOf(graph.Links.GetValueOrDefault(graph.OwnStart)));
             this.passiveAtlas = atlas;
             return atlas;
+        }
+
+        /// <summary>The first push toward a node and how many it takes; no count when it is further than counted.</summary>
+        private readonly record struct Way(int Octant, int? Pushes)
+        {
+            /// <summary>"up, 7 pushes", brief "up, 7", or "far, up".</summary>
+            public string Words(bool brief)
+            {
+                var direction = Announcements.StickDirections[this.Octant];
+                return this.Pushes is not { } count ? Announcements.Far(direction) : brief ? $"{direction}, {count}" : Announcements.PassivePushes(direction, count);
+            }
+        }
+
+        /// <summary>
+        ///     What a guide says on a node: its line; whether the node is the one to take (or the finder's target reached); whether it
+        ///     lies on the guide's line (a build node, a node of the finder's trail); the next push's octant; whether a guide leads at all.
+        /// </summary>
+        private readonly record struct GuideSay(string Line, bool Here, bool OnLine, int? Octant, bool Leading)
+        {
+            public static GuideSay None => new(string.Empty, false, false, null, false);
         }
 
         /// <summary>The tree for the finder; the class's own start, which has no place on the canvas, is one more node after the drawn ones.</summary>

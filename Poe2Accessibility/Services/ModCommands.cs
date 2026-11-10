@@ -270,7 +270,7 @@ namespace Poe2Accessibility.Services
         private void SpeakLine(AccessibleUiNode node, int step)
         {
             var lines = new List<string> { Announcements.Focused(node) };
-            lines.AddRange(node.Tooltip);
+            lines.AddRange(node.Details ?? node.Tooltip);
             if (node.Address != this.lineOwner)
             {
                 (this.lineOwner, this.lineIndex) = (node.Address, -1);

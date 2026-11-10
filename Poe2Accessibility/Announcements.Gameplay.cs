@@ -51,18 +51,24 @@ namespace Poe2Accessibility
         public static string PassivePushes(string direction, int pushes) =>
             pushes == 1 ? T($"{direction}, 1 push", $"{direction}, 1 empujón") : T($"{direction}, {pushes} pushes", $"{direction}, {pushes} empujones");
 
-        /// <summary>The way to the finder's target, at the end of every node.</summary>
-        public static string PassiveToward(string name, string way) => T($"Toward {name}: {way}", $"Hacia {name}: {way}");
+        /// <summary>The finder's target, before the way to it at the end of every node.</summary>
+        public static string PassiveToward(string name) => T($"Toward {name}", $"Hacia {name}");
+
+        /// <summary>A node passed on the guide's line, when its sound is off.</summary>
+        public static string OnTheWay => T("on the way", "en el camino");
 
         /// <summary>"Scarred Faith, 8 points to go, on the way: allocate Attribute: down, 1 push", once the cursor has been on the target.</summary>
         public static string PassiveTrail(string lead, int points, bool onTheWay, string step) =>
-            $"{lead}, {(points == 1 ? T("1 point to go", "falta 1 punto") : T($"{points} points to go", $"faltan {points} puntos"))}{(onTheWay ? ", " + T("on the way", "en el camino") : string.Empty)}: {step}";
+            $"{lead}, {(points == 1 ? T("1 point to go", "falta 1 punto") : T($"{points} points to go", $"faltan {points} puntos"))}{(onTheWay ? ", " + OnTheWay : string.Empty)}: {step}";
 
         /// <summary>The next node to take for the finder's target is the one under the cursor.</summary>
         public static string AllocateThis => T("allocate this one", "asigna este");
 
-        /// <summary>The next node to take for the finder's target and the way to it.</summary>
-        public static string AllocateNode(string name, string way) => T($"allocate {name}: {way}", $"asigna {name}: {way}");
+        /// <summary>The next node to take for the finder's target, before the way to it.</summary>
+        public static string AllocateGoal(string name) => T($"allocate {name}", $"asigna {name}");
+
+        /// <summary>The build's next node, before the way to it.</summary>
+        public static string BuildNextGoal(string name) => T("Next in the build: ", "Siguiente de la build: ") + name;
 
         /// <summary>The finder's target was taken.</summary>
         public static string PassiveGot(string name) => T($"You have {name}", $"Ya tienes {name}");
@@ -440,6 +446,8 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.AnnounceMoves) => T("Equipped and moved items", "Objetos equipados y movidos"),
             nameof(AccessibilitySettings.RoutePrompts) => T("Turn prompts", "Indicaciones de giro"),
             nameof(AccessibilitySettings.PassiveFinder) => T("Passive tree finder on the D-pad", "Buscador del árbol de pasivas en la cruceta"),
+            nameof(AccessibilitySettings.PassiveGuideBrief) => T("Brief passive tree guide", "Guía breve en el árbol de pasivas"),
+            nameof(AccessibilitySettings.PassiveGuideSound) => T("Passive tree guide sound, 0 off", "Sonido de la guía del árbol, 0 apagado"),
             nameof(AccessibilitySettings.AutoGuide) => T("Guide to the scanner's choice without confirming", "Guiar a lo elegido en el escáner sin confirmar"),
             nameof(AccessibilitySettings.AnnounceTimers) => T("Countdown timers", "Cuentas atrás"),
             nameof(AccessibilitySettings.AnnounceHonour) => T("Honour in the Trial", "Honor en la Prueba"),
@@ -782,6 +790,8 @@ namespace Poe2Accessibility
             "combo" => T("Combo point", "Punto de combo"),
             "skill_ready" => T("Skill ready", "Habilidad lista"),
             "deployed" => T("Placed by a skill", "Colocado por una habilidad"),
+            "passive_guide" => T("Passive tree guide", "Guía del árbol de pasivas"),
+            "passive_guide_here" => T("Passive tree guide: the node to take", "Guía del árbol: el nodo a asignar"),
             "tempest_bell" => T("Tempest Bell", "Campana de tempestad"),
             "ice_crystal" => T("Ice crystal", "Cristal de hielo"),
             _ when StateOfSound(key) is { } state => EnemyStateName(state),
@@ -862,6 +872,12 @@ namespace Poe2Accessibility
             "skill_ready" => T(
                 "a skill of yours finished its cooldown and can be used again; its name is said too",
                 "una de tus habilidades terminó de recargarse y ya puedes volver a usarla; también se dice su nombre"),
+            "passive_guide" => T(
+                "in the passive tree, the node under the cursor is on the guide's line (the build, or the finder's trail); it goes the way of the next push, higher for up, lower for down",
+                "en el árbol de pasivas, el nodo bajo el cursor está en la línea de la guía (la build, o el camino del buscador); va hacia donde sigue el empujón, más agudo hacia arriba, más grave hacia abajo"),
+            "passive_guide_here" => T(
+                "in the passive tree, the node under the cursor is the one to allocate now",
+                "en el árbol de pasivas, el nodo bajo el cursor es el que toca asignar ahora"),
             "deployed" or "tempest_bell" or "ice_crystal" => T(
                 "something a skill of yours placed and left standing, such as a bell, a crystal or a totem, from where it is; more often as you get closer",
                 "algo que una de tus habilidades colocó y dejó en el suelo, como una campana, un cristal o un tótem, desde donde está; más seguido cuanto más cerca"),

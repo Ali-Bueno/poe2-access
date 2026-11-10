@@ -251,6 +251,22 @@ namespace Poe2Accessibility.Services
         private const float GritSeconds = 0.0025f;
         private const int GritSeed = 7;
         private static readonly float[] Bell = { 1f, 2.76f, 5.4f };
+
+        /// <summary>The passive tree guide's timbres: a small glass bowl's two partials and a wooden bar's (its fourth partial near 3.9).</summary>
+        private static readonly float[] GuideGlass = { 1f, 2.4f };
+        private static readonly float[] GuideWood = { 1f, 3.9f };
+        private const float GuideHz = 1047f;
+        private const float GuideSemitones = 4f;
+        private const float GuideSeconds = 0.45f;
+        private const float GuideDecay = 0.12f;
+        private const float GuideGlideSeconds = 0.25f;
+        private const float GuideKnockSeconds = 0.12f;
+        private const float GuideKnockDecay = 0.035f;
+        private const float GuideKnockGapSeconds = 0.11f;
+        private const float GuideEchoSeconds = 0.17f;
+        private const float GuideEchoLevel = 0.55f;
+        private const float GuideLevel = 0.3f;
+        private const float GuideRoom = 0.25f;
         private static readonly float[] Glass = { 1f, 1.012f, 2f };
         private static readonly float[] Buzz = { 1f, 2f, 3f, 4f, 5f, 6f, 7f };
         private static readonly float[] Wood = { 1f, 2.7f };
@@ -700,6 +716,80 @@ namespace Poe2Accessibility.Services
 
         public static float[] Deployed(int sampleRate) =>
             Struck(new[] { new StateNote(0f, DeployedSeconds, DeployedHz, DeployedHz, Bell, DeployedDecay) }, DeployedLevel, sampleRate);
+
+        /// <summary>
+        ///     Passive tree guide (user 2026-11-10: "un din, pero con un recorrido que diga oye, esto es de la build y sigue hacia esa
+        ///     dirección"): on a node of the guide's line, a ding that goes the way of the next push, left and right in the ears, up
+        ///     and down by its pitch (the beacon's rule). Sound 1, glass, glides from the middle to that side as it rings; 2, wood,
+        ///     knocks in the middle then there; 3, a bell, rings in the middle and its echo answers from there. On the node to take
+        ///     (no octant), two glass strikes together, a fifth, in the middle. Apart from the iron beacon, the high deployed bell and
+        ///     the falling ding-dong of a player down.
+        /// </summary>
+        public static StereoSound GuideStep(int? octant, int sound, int sampleRate)
+        {
+            float[] Ring(float[] tone, float hz, float seconds, float decay, float level = GuideLevel) =>
+                Room(Struck(new[] { new StateNote(0f, seconds, hz, hz, tone, decay) }, level, sampleRate), sampleRate, GuideRoom);
+
+            if (octant is not { } way)
+            {
+                var chord = Struck(
+                    new[] { new StateNote(0f, GuideSeconds, GuideHz, GuideHz, GuideGlass, GuideDecay), new StateNote(0f, GuideSeconds, GuideHz * 1.5f, GuideHz * 1.5f, GuideGlass, GuideDecay) },
+                    GuideLevel,
+                    sampleRate);
+                return Panned(Room(chord, sampleRate, GuideRoom), _ => 0f, sampleRate);
+            }
+
+            var angle = way * MathF.PI / 4f;
+            var side = MathF.Cos(angle);
+            var hz = GuideHz * MathF.Pow(2f, GuideSemitones * MathF.Sin(angle) / 12f);
+            switch (sound)
+            {
+                case 2:
+                    var knock = Panned(Ring(GuideWood, GuideHz, GuideKnockSeconds, GuideKnockDecay), _ => 0f, sampleRate);
+                    var there = Panned(Ring(GuideWood, hz, GuideKnockSeconds, GuideKnockDecay), _ => side, sampleRate);
+                    return Mixed(knock, there, (int)(GuideKnockGapSeconds * sampleRate));
+                case 3:
+                    var ding = Ring(Bell, hz, GuideSeconds, GuideDecay);
+                    var echo = Ring(Bell, hz, GuideSeconds, GuideDecay, GuideLevel * GuideEchoLevel);
+                    return Mixed(Panned(ding, _ => 0f, sampleRate), Panned(echo, _ => side, sampleRate), (int)(GuideEchoSeconds * sampleRate));
+                default:
+                    return Panned(Ring(GuideGlass, hz, GuideSeconds, GuideDecay), seconds => side * SmoothStep(seconds / GuideGlideSeconds), sampleRate);
+            }
+        }
+
+        /// <summary>A mono cue spread over both ears, its place (-1 left … 1 right) at each second given by <paramref name="panAt"/>, at equal power.</summary>
+        private static StereoSound Panned(float[] mono, Func<float, float> panAt, int sampleRate)
+        {
+            var (left, right) = (new float[mono.Length], new float[mono.Length]);
+            for (var i = 0; i < mono.Length; i++)
+            {
+                var angle = (Math.Clamp(panAt((float)i / sampleRate), -1f, 1f) + 1f) * MathF.PI / 4f;
+                (left[i], right[i]) = (mono[i] * MathF.Cos(angle), mono[i] * MathF.Sin(angle));
+            }
+
+            return new StereoSound(left, right);
+        }
+
+        /// <summary>Two stereo cues laid over each other, the second <paramref name="offset"/> samples in.</summary>
+        private static StereoSound Mixed(StereoSound first, StereoSound second, int offset)
+        {
+            var length = Math.Max(first.Left.Length, offset + second.Left.Length);
+            var (left, right) = (new float[length], new float[length]);
+            for (var i = 0; i < first.Left.Length; i++)
+            {
+                (left[i], right[i]) = (first.Left[i], first.Right[i]);
+            }
+
+            for (var i = 0; i < second.Left.Length; i++)
+            {
+                left[offset + i] += second.Left[i];
+                right[offset + i] += second.Right[i];
+            }
+
+            return new StereoSound(left, right);
+        }
+
+        private static float SmoothStep(float x) => Math.Clamp(x, 0f, 1f) is var t ? t * t * (3f - (2f * t)) : 0f;
 
         /// <summary>A charge gained: one tick for each of the <paramref name="held"/> charges now held.</summary>
         public static float[] ChargeGained(ChargeKind kind, int held, int sampleRate)

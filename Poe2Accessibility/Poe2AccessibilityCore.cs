@@ -53,6 +53,7 @@ namespace Poe2Accessibility
         private readonly TimedGuide timedGuide = new();
         private long nextTimedGuide;
         private AudioCueService? audio;
+        private readonly System.Collections.Generic.Dictionary<(int Sound, int Octant), StereoSound> guideSteps = new();
         private const string BuffTable = "buffdefinitions";
         private const string AnimationTable = "animation";
         private const string NamedKindsPart = "effect names";

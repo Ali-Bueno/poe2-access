@@ -247,6 +247,12 @@ namespace Poe2Accessibility
         /// <summary>In the passive tree the D-pad finds keystones, notables and jewel sockets, and locked nodes say what they cost.</summary>
         public bool PassiveFinder = true;
 
+        /// <summary>While the tree's finder or the Build Planner leads, a node on the way is its name and the way on (user 2026-11-10: "es muy verboso").</summary>
+        public bool PassiveGuideBrief = true;
+
+        /// <summary>The passive tree guide's sound on a node of its line, toward the next push: 0 off, 1 glass glide, 2 wooden knocks, 3 bell and echo.</summary>
+        public int PassiveGuideSound = 1;
+
         /// <summary>The Trial's honour is said as it falls past every tenth.</summary>
         public bool AnnounceHonour = true;
 

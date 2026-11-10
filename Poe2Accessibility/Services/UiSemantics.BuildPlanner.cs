@@ -97,6 +97,10 @@ namespace Poe2Accessibility.Services
                 .ThenBy(DistanceFromHovered).First();
         }
 
+        /// <summary>The same note twice, but for its punctuation: the build file's and the one the game shows beside the node.</summary>
+        private static bool SameWords(string one, string other) =>
+            one.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).SequenceEqual(other.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant));
+
         /// <summary>"Next in the build: Attribute, reachable: up right, up" — the pushes the stick needs, or its direction when far.</summary>
         private string DescribeBuildNext(PassiveGraph graph, IntPtr from, IntPtr next, HashSet<int> allocated)
         {

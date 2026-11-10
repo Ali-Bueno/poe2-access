@@ -45,6 +45,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\TileGridSearch.cs" Link="Plugin\TileGridSearch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\BaseNameField.cs" Link="Plugin\BaseNameField.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\CueSynth.cs" Link="Plugin\CueSynth.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\StereoSound.cs" Link="Plugin\StereoSound.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\PeakLimiter.cs" Link="Plugin\PeakLimiter.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\AreaMemory.cs" Link="Plugin\AreaMemory.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\EnemyCueScheduler.cs" Link="Plugin\EnemyCueScheduler.cs" />

@@ -86,6 +86,8 @@ namespace Poe2Accessibility.Services
                 Switch(nameof(AccessibilitySettings.AutoGuide)),
                 Switch(nameof(AccessibilitySettings.GuideTimed)),
                 Switch(nameof(AccessibilitySettings.PassiveFinder)),
+                Switch(nameof(AccessibilitySettings.PassiveGuideBrief)),
+                Number(nameof(AccessibilitySettings.PassiveGuideSound), 0, 3, 1),
                 Switch(nameof(AccessibilitySettings.AnnouncePlaces)),
                 Switch(nameof(AccessibilitySettings.AnnounceDiscoveries))),
             Menu("surroundings",

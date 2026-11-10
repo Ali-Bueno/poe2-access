@@ -163,7 +163,9 @@ namespace Poe2Accessibility.Services
         ///     The lines of each tooltip the element owns: a passive node with a Build Planner note keeps the note in a tooltip of
         ///     its own, before the node's (2026-11-07).
         /// </summary>
-        private List<List<string>> TooltipEntries(in UiElementReader.ElementInfo owner)
+        /// <param name="owner">The element.</param>
+        /// <param name="asides">When given, gets the button hints and the red notices without numbers instead of the lines.</param>
+        private List<List<string>> TooltipEntries(in UiElementReader.ElementInfo owner, List<string>? asides = null)
         {
             var entries = new List<List<string>>();
             if (this.TooltipRoot(owner) == null || !this.reader.TryRead<StdVector>(owner.Address + GameLayout.Element.TooltipsOffset, out var tooltips))
@@ -177,14 +179,14 @@ namespace Poe2Accessibility.Services
                 if (this.reader.TryRead<IntPtr>(tooltips.First + (index * GameLayout.Element.TooltipEntrySize), out var root) &&
                     this.elements.TryReadElement(root, out var rootInfo) && rootInfo.Raw.ParentPtr == owner.Address)
                 {
-                    entries.Add(this.LinesOf(rootInfo));
+                    entries.Add(this.LinesOf(rootInfo, asides));
                 }
             }
 
             return entries;
         }
 
-        private List<string> LinesOf(in UiElementReader.ElementInfo rootInfo)
+        private List<string> LinesOf(in UiElementReader.ElementInfo rootInfo, List<string>? asides = null)
         {
             var lines = new List<string>();
             var stack = new Stack<UiElementReader.ElementInfo>();
@@ -221,7 +223,8 @@ namespace Poe2Accessibility.Services
                         continue;
                     }
 
-                    if (ControllerGlyphs.HasGlyphs(tagged))
+                    var hinted = ControllerGlyphs.HasGlyphs(tagged);
+                    if (hinted)
                     {
                         // "<<xbox_button_a>> to use": the stripped copy drops the button; speak it in place, line by line.
                         text = string.Join('\n', tagged.Split('\n').Select(line => KeywordLink.Replace(ControllerGlyphs.Render(line), ShownText)));
@@ -247,6 +250,14 @@ namespace Poe2Accessibility.Services
                             unmet.Add(line);
                         }
 
+                        continue;
+                    }
+
+                    if (asides != null && line.Length > 0 && (hinted || glyph.Length > 0 || this.elements.IsTextRed(node.Address)))
+                    {
+                        // "Seleccionar, A", "Mantén presionado A para…", "No cumples los requisitos": the caller says them apart, or not.
+                        glyph = string.Empty;
+                        asides.Add(line);
                         continue;
                     }
 

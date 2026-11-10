@@ -657,7 +657,7 @@ namespace Poe2Accessibility
 
         /// <summary>The focused element's full tooltip (skill gems, rich descriptions).</summary>
         public static string Details(Models.AccessibleUiNode node) =>
-            node.Tooltip.Count == 0 ? NoDetails : Sentences(node.Tooltip);
+            (node.Details ?? node.Tooltip) is { Count: > 0 } lines ? Sentences(lines) : NoDetails;
 
         /// <summary>Entering a panel: its title before the focused item.</summary>
         public static string InContext(string context, string focused) =>

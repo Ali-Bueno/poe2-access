@@ -120,7 +120,8 @@ namespace Poe2Accessibility.Services
             var node = this.ReadPassiveRow(record, row);
             var state = this.StateOf(graph, node, allocated);
             // The node's own tooltip comes last; before it, the author's note of a Build Planner build.
-            var entries = this.TooltipEntries(info);
+            var asides = new List<string>(); // button hints and red notices ("No cumples los requisitos"), apart
+            var entries = this.TooltipEntries(info, asides);
             var tooltip = entries.Count > 0 ? entries[^1] : new List<string>();
             var notes = entries.SkipLast(1).SelectMany(lines => lines).ToList();
             var tooltipPending = tooltip.Count == 0;
@@ -135,49 +136,77 @@ namespace Poe2Accessibility.Services
                 tooltip.RemoveAt(tooltip.Count - 1); // the state word says it
             }
 
+            asides.RemoveAll(line => line == this.UnallocatedLabel?.Invoke()); // the same, should the game draw it red
+
             // The Build Planner's active build: the nodes the tree marks, with the author's notes when the file is here.
             var marked = this.BuildMarks(graph);
             var plan = marked.Count > 0 ? this.buildPlans.Matching(marked.Select(this.PassiveIdOf).ToHashSet()) : null;
             var next = marked.Count > 0 ? this.NextBuildNode(graph, marked, plan, allocated, record) : null;
             var buildWord = marked.Contains(record) ? Announcements.InBuild(next == record) : string.Empty;
+            var stateWords = state == PassiveState.Locked ? this.LockedState(graph, record, allocated) : StateWord(state);
+            var text = Announcements.PassiveNode(node.Name, node.Kind, string.Join(", ", new[] { stateWords, buildWord }.Where(part => part.Length > 0)));
+
+            // One guide at a time: the finder's target takes the place of the build's next node.
+            var guide = hovered ? this.GuideAt(graph, record, allocated, marked, next) : GuideSay.None;
 
             // Before the game builds the tooltip the name and state are said alone; stats, then links, follow with it.
+            var whole = new List<string>();
             if (!tooltipPending)
             {
                 var buildLines = plan != null && marked.Contains(record) ? this.BuildLines(plan, record, node).ToList() : new List<string>();
                 tooltip.AddRange(buildLines);
-                tooltip.AddRange(notes.Except(buildLines));
-
+                tooltip.AddRange(notes.Where(note => !buildLines.Any(line => SameWords(line, note))));
+                whole.AddRange(tooltip);
+                whole.AddRange(asides);
                 var links = this.DescribeLinks(graph, info.Address, record, allocated, marked);
                 if (links.Length > 0)
                 {
-                    tooltip.Add(links);
+                    whole.Add(links);
                 }
 
-                // The finder's target takes the place of the build's next node: one guide at a time.
-                if (next is { } nextRecord && nextRecord != record && this.finder.Target == IntPtr.Zero)
+                if (guide.Line.Length > 0)
                 {
-                    tooltip.Add(this.DescribeBuildNext(graph, record, nextRecord, allocated));
-                }
-
-                if (this.FinderLine(graph, record, allocated, marked) is { Length: > 0 } way)
-                {
-                    tooltip.Add(way);
+                    whole.Add(guide.Line);
                 }
             }
 
-            var stateWords = state == PassiveState.Locked ? this.LockedState(graph, record, allocated) : StateWord(state);
+            IReadOnlyList<string> said = whole;
+            if (this.PassiveGuideBrief && guide.Leading)
+            {
+                // A guide leads: its words come first, links and button hints are left for the details (L3 held), so the stick can
+                // go on at once. A node passed on the way is its name and the way on; the one to take says so with its name.
+                if (!guide.Here && guide.Line.Length > 0)
+                {
+                    var word = state == PassiveState.Allocated ? StateWord(state)
+                        : guide.OnLine && this.GuideCue == null ? (this.finder.Target != IntPtr.Zero ? Announcements.OnTheWay : Announcements.InBuild(false))
+                        : string.Empty;
+                    text = word.Length > 0 ? $"{node.Name}, {word}" : node.Name;
+                    said = new[] { guide.Line };
+                    tooltipPending = false;
+                }
+                else if (record == this.finder.Target)
+                {
+                    said = guide.Line.Length > 0 && !tooltipPending ? tooltip.Append(guide.Line).ToList() : tooltip; // read the target, then go on
+                }
+                else
+                {
+                    text = guide.Line.Length > 0 ? $"{text}, {guide.Line}" : text;
+                    said = tooltip;
+                }
+            }
+
             return new AccessibleUiNode
             {
                 Address = info.Address,
                 Name = info.Name,
                 Role = UiRole.Panel,
-                Text = Announcements.PassiveNode(node.Name, node.Kind, string.Join(", ", new[] { stateWords, buildWord }.Where(part => part.Length > 0))),
+                Text = text,
                 IsVisible = this.elements.IsVisible(info),
                 IsHovered = hovered,
                 IsPassiveNode = true,
                 Context = this.PanelTitle(info),
-                Tooltip = tooltip,
+                Tooltip = said,
+                Details = ReferenceEquals(said, whole) ? null : whole,
                 TooltipPending = tooltipPending,
             };
         }
