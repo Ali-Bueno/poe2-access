@@ -19,25 +19,75 @@ namespace Poe2Accessibility.Services
         /// <summary>Tooltips seen whole are kept for this many items; a panel's items are forgotten with it.</summary>
         private const int MaxSettled = 512;
 
+        /// <summary>
+        ///     An item its tooltip names (magic, rare, unique) waits this long for a tooltip that is not up yet: a worn
+        ///     weapon's came about 170 ms after the cursor, and its base name was said, then its own name (2026-11-10).
+        /// </summary>
+        public const long NameWaitMs = 300;
+
         private readonly HashSet<IntPtr> settled = new();
+
+        /// <summary>Items that showed no tooltip within <see cref="NameWaitMs"/>: said at once from then on.</summary>
+        private readonly HashSet<IntPtr> nameless = new();
         private IntPtr item;
         private int lines;
         private long firstSeenAt;
         private long sameSince;
 
+        /// <summary>The item in hand has shown no tooltip yet (the wait for its name).</summary>
+        private bool empty;
+
         /// <returns>Whether the item's tooltip may still be filling: its reading waits and is taken again.</returns>
         /// <param name="item">The item's element.</param>
-        /// <param name="lines">A hash of the tooltip's lines as read now; zero lines are no tooltip yet and never wait.</param>
-        public bool Filling(IntPtr item, int lineCount, int lines, long now)
+        /// <param name="lines">A hash of the tooltip's lines as read now; zero lines are no tooltip yet.</param>
+        /// <param name="nameAwaited">
+        ///     Whether the tooltip will change the item's name (not of normal rarity, never read): only then is a tooltip
+        ///     that is not up yet waited for, so an item whose line would be the same is never held back.
+        /// </param>
+        public bool Filling(IntPtr item, int lineCount, int lines, long now, bool nameAwaited = false)
         {
-            if (item == IntPtr.Zero || lineCount == 0 || this.settled.Contains(item))
+            if (item == IntPtr.Zero || this.settled.Contains(item))
             {
                 return false;
             }
 
-            if (item != this.item)
+            if (lineCount == 0)
             {
-                (this.item, this.lines, this.firstSeenAt, this.sameSince) = (item, lines, now, now);
+                if (!nameAwaited || this.nameless.Contains(item))
+                {
+                    return false;
+                }
+
+                if (item != this.item)
+                {
+                    (this.item, this.lines, this.firstSeenAt, this.sameSince, this.empty) = (item, 0, now, now, true);
+                    return true;
+                }
+
+                if (this.empty && now - this.firstSeenAt < NameWaitMs)
+                {
+                    return true;
+                }
+
+                if (this.empty)
+                {
+                    // No tooltip came (an item in the hand, a panel that shows none): its base name is all there is, and
+                    // the wait is paid once.
+                    if (this.nameless.Count >= MaxSettled)
+                    {
+                        this.nameless.Clear();
+                    }
+
+                    this.nameless.Add(item);
+                }
+
+                return false;
+            }
+
+            if (item != this.item || this.empty)
+            {
+                // Also the tooltip that came after the wait for it: its filling is timed from here.
+                (this.item, this.lines, this.firstSeenAt, this.sameSince, this.empty) = (item, lines, now, now, false);
                 return true;
             }
 
@@ -64,6 +114,7 @@ namespace Poe2Accessibility.Services
         public void Forget()
         {
             this.settled.Clear();
+            this.nameless.Clear();
             this.item = IntPtr.Zero;
         }
     }

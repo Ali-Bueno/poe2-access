@@ -255,6 +255,12 @@ namespace Poe2Accessibility.Services
                 name = this.BaseName(baseComponent);
             }
 
+            if (tooltipTitle.Length == 0 && rarity != Rarity.Normal)
+            {
+                // No tooltip up (yet): the name its tooltip gave it before, so a second look says the same line as the first.
+                tooltipTitle = this.TitleOf(entity);
+            }
+
             if (name.Length == 0 || (rarity != Rarity.Normal && tooltipTitle.Length > 0))
             {
                 name = tooltipTitle;
@@ -286,6 +292,22 @@ namespace Poe2Accessibility.Services
         ///     move names the item by it, not by its base ("Escudo torre reforzado, raro" for Égida de glifo).
         /// </summary>
         public string TitleOf(IntPtr entity) => this.titles.GetValueOrDefault(entity, string.Empty);
+
+        /// <summary>
+        ///     Whether the item's line will change once its tooltip is read: a magic, rare or unique item is named by its
+        ///     tooltip's title, and none was read for this one. A normal item's line is its base name either way.
+        /// </summary>
+        public bool NameAwaitsTooltip(IntPtr itemElement)
+        {
+            var entity = this.EntityOf(itemElement);
+            if (entity == IntPtr.Zero || !this.IsItemEntity(entity) || this.TitleOf(entity).Length > 0)
+            {
+                return false;
+            }
+
+            var item = (Item)Activator.CreateInstance(typeof(Item), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { entity }, null)!;
+            return item.TryGetComponent<Mods>(out var mods) && mods.Rarity != Rarity.Normal;
+        }
 
         /// <summary>Keeps an item's tooltip title; also for the new entity the game makes of an item that changed inventory.</summary>
         public void RememberTitle(IntPtr entity, string title)

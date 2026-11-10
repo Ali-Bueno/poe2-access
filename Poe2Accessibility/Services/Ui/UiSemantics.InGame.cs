@@ -85,7 +85,12 @@ namespace Poe2Accessibility.Services
                 }
 
                 details = this.ItemTooltip(hovered);
-                filling = this.tooltipSettle.Filling(hovered, details.Count, details.Aggregate(0, (hash, line) => HashCode.Combine(hash, line)), Environment.TickCount64);
+                filling = this.tooltipSettle.Filling(
+                    hovered,
+                    details.Count,
+                    details.Aggregate(0, (hash, line) => HashCode.Combine(hash, line)),
+                    Environment.TickCount64,
+                    details.Count == 0 && this.inventory.NameAwaitsTooltip(hovered));
                 var item = hovered == IntPtr.Zero ? Announcements.EmptyCell : this.inventory.DescribeItem(hovered, Title(details)) ?? Announcements.UnknownItem;
                 item = this.inventory.HighlightOf(hovered) == ItemHighlight.Match ? Announcements.HighlightedItem(item) : item;
                 var inventoryName = this.inventory.InventoryOf(info.Address);
