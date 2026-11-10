@@ -35,6 +35,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The target was not listed at the last refresh: its place is where it was last seen, not where it is.</summary>
         private bool targetGone;
 
+        /// <summary>The scanner has listed the target since the lock: only then does its absence from the list say anything.</summary>
+        private bool everListed;
+
         /// <summary>"No longer in sight" is said once per lock: a boss that burrows comes and goes all fight.</summary>
         private bool lostSaid;
 
@@ -137,6 +140,7 @@ namespace Poe2Accessibility.Services
             this.searchesWithoutRoute = 0;
             this.closestSaid = false;
             this.targetGone = false;
+            this.everListed = false;
             this.lostSaid = false;
             this.listedAs = entry.Category;
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
@@ -296,7 +300,8 @@ namespace Poe2Accessibility.Services
             var goal = this.target!;
             var entries = this.catalog.Entries();
             var current = entries.FirstOrDefault(entry => entry.Id == goal.Id);
-            this.targetGone = current == null;
+            this.everListed |= current != null;
+            this.targetGone = current == null && this.everListed;
             if (current != null)
             {
                 this.listedAs = entries.FirstOrDefault(entry => entry.Id == goal.Id && entry.Category != ScanCategory.Quest)?.Category ?? current.Category;
@@ -304,7 +309,7 @@ namespace Poe2Accessibility.Services
                 return true;
             }
 
-            switch (BeaconMath.Gone(this.Listed(goal), EntityCatalog.IsEntity(goal), Vector2.Distance(here, new Vector2(goal.WorldX, goal.WorldY)), GoneNearWorld))
+            switch (BeaconMath.Gone(this.Listed(goal), EntityCatalog.IsEntity(goal), Vector2.Distance(here, new Vector2(goal.WorldX, goal.WorldY)), GoneNearWorld, this.everListed))
             {
                 case GoneTarget.Reached:
                     // D2R: a target that vanishes on reaching it (chest opened, item picked up) counts as arrived.

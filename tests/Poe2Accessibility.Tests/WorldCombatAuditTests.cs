@@ -13,6 +13,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ABossSharesItsNameOnlyWithWhatCanBeTargeted), ABossSharesItsNameOnlyWithWhatCanBeTargeted),
             (nameof(ATrapStrikingFromAfarStillWarnsOnceInReach), ATrapStrikingFromAfarStillWarnsOnceInReach),
             (nameof(TheGuideKeepsItsLockThroughARespawn), TheGuideKeepsItsLockThroughARespawn),
+            (nameof(ATargetTheScannerNeverListedIsNotLostFromView), ATargetTheScannerNeverListedIsNotLostFromView),
         };
 
         /// <summary>A boss's next form waits untargetable under its name: the life said is still the fighting one's.</summary>
@@ -54,6 +55,16 @@ namespace Poe2Accessibility.Tests
             Equal(false, BeaconMath.SameInstance((IntPtr)0x1000, "AAAA", IntPtr.Zero, string.Empty), "no instance held");
             Equal(true, BeaconMath.SameInstance((IntPtr)0x1000, string.Empty, (IntPtr)0x1000, string.Empty), "locked before the hash was read: the object stands for it");
             Equal(false, BeaconMath.SameInstance((IntPtr)0x1000, string.Empty, (IntPtr)0x1000, "AAAA"), "and a hash that comes later is not known to be its own");
+        }
+
+        /// <summary>The Trial's room door is guided to and never in the scanner's list: "no longer in sight" was said as the player came near it.</summary>
+        private static void ATargetTheScannerNeverListedIsNotLostFromView()
+        {
+            const float Near = 600f;
+            var door = new ScanEntry(7, ScanCategory.Exits, "Trial door", 0, 0, 0);
+            Equal(GoneTarget.Unknown, BeaconMath.Gone(door, true, 300f, Near, listed: false), "never listed: not being listed says nothing of it");
+            Equal(GoneTarget.LostFromView, BeaconMath.Gone(door, true, 300f, Near, listed: true), "listed once and no more: it left");
+            Equal(GoneTarget.Unknown, BeaconMath.Gone(new ScanEntry(8, ScanCategory.Chests, "Chest", 0, 0, 0), true, 300f, Near, listed: false), "nor is an unlisted chest opened");
         }
     }
 }
