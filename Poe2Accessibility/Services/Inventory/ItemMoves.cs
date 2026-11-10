@@ -30,7 +30,9 @@ namespace Poe2Accessibility.Services
     ///     is a sale (Y on a merchant sells at once), gold that fell with an arrival a purchase; otherwise the panel open
     ///     beside the inventory names where it went or came from (the stash, the skills: the game's own title), the hand's
     ///     item counting from the panel it was picked up in, unless that panel cannot hold it (the skills hold only gems:
-    ///     an orb used or an item dropped beside them was "moved to Skills", user 2026-10-31). Pure.
+    ///     an orb used or an item dropped beside them was "moved to Skills", user 2026-10-31). In a trade what arrives was
+    ///     received and what leaves was handed over, both said: an arrival there is no item of the inventory in a new
+    ///     place unless it carries the same name. Pure.
     /// </summary>
     public static class ItemMoves
     {
@@ -42,7 +44,8 @@ namespace Poe2Accessibility.Services
             long goldChange,
             string sidePanel,
             string handFrom = "",
-            Func<string, bool>? sideTakes = null)
+            Func<string, bool>? sideTakes = null,
+            bool inTrade = false)
         {
             bool Beside(string name) => sidePanel.Length > 0 && (sideTakes?.Invoke(name) ?? true);
             bool IsEquipment(InventoryName name) => slotName(name) != null;
@@ -70,10 +73,10 @@ namespace Poe2Accessibility.Services
                             moves.Add(new ItemMove(ItemMoveKind.TakenFrom, placed == Announcements.UnknownItem ? name : placed, handFrom));
                         }
                     }
-                    else if ((TakeSame(name) ?? Take(source => source == InventoryName.MainInventory1)) == null && inPanel)
+                    else if ((TakeSame(name) ?? Rearranged()) == null && inPanel)
                     {
                         moves.Add(goldChange < 0 ? new ItemMove(ItemMoveKind.Bought, name)
-                            : Beside(name) ? new ItemMove(ItemMoveKind.TakenFrom, name, sidePanel)
+                            : !inTrade && Beside(name) ? new ItemMove(ItemMoveKind.TakenFrom, name, sidePanel)
                             : new ItemMove(ItemMoveKind.Obtained, name));
                     }
                 }
@@ -92,12 +95,18 @@ namespace Poe2Accessibility.Services
                     }
 
                     moves.Add(goldChange > 0 ? new ItemMove(ItemMoveKind.Sold, name)
-                        : Beside(name) ? new ItemMove(ItemMoveKind.MovedTo, name, sidePanel)
+                        : !inTrade && Beside(name) ? new ItemMove(ItemMoveKind.MovedTo, name, sidePanel)
                         : new ItemMove(ItemMoveKind.DroppedOrUsed, name));
                 }
             }
 
             return moves;
+
+            // An arrival with another name is the inventory's own item in a new place when its departure never read, and
+            // outside a trade whatever its name (an item changed in place). In a trade it is what the other side gave:
+            // paired with what was given for it, neither was said (one item for one: silence).
+            string? Rearranged() =>
+                inTrade ? Take(source => source == InventoryName.MainInventory1, Announcements.UnknownItem) : Take(source => source == InventoryName.MainInventory1);
 
             // A stack that grew is a new entity of the same item, whatever else left with it (a trade).
             string? TakeSame(string arrival)
@@ -113,9 +122,9 @@ namespace Poe2Accessibility.Services
                 return same;
             }
 
-            string? Take(Func<InventoryName, bool> source)
+            string? Take(Func<InventoryName, bool> source, string? named = null)
             {
-                var index = left.FindIndex(departure => source(departure.From));
+                var index = left.FindIndex(departure => source(departure.From) && (named == null || departure.Name == named));
                 if (index < 0)
                 {
                     return null;

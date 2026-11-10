@@ -2,6 +2,8 @@ namespace Poe2Accessibility.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using GameReader.RemoteEnums;
     using Poe2Accessibility.Services;
     using static Check;
 
@@ -17,7 +19,30 @@ namespace Poe2Accessibility.Tests
             (nameof(WhatAnAreaCameWithIsNotHeldBack), WhatAnAreaCameWithIsNotHeldBack),
             (nameof(ADurationIsAPositiveFiniteNumber), ADurationIsAPositiveFiniteNumber),
             (nameof(ACountBackWhereItWasIsNotSaidAgain), ACountBackWhereItWasIsNotSaidAgain),
+            (nameof(WhatATradeGivesAndTakesIsBothSaid), WhatATradeGivesAndTakesIsBothSaid),
         };
+
+        private static void WhatATradeGivesAndTakesIsBothSaid()
+        {
+            static string Said(List<ItemMove> moves) => string.Join(" | ", moves.Select(move => $"{move.Kind} {move.Name} {move.Where}".Trim()));
+            const InventoryName Main = InventoryName.MainInventory1;
+            var ring = new List<(InventoryName, string)> { (Main, "Anillo de hierro") };
+            var orbs = new List<(InventoryName, string)> { (Main, "Orbe de caos, 3") };
+
+            // One item for another: paired as one item in a new place, neither was said.
+            Equal("Obtained Anillo de hierro | DroppedOrUsed Orbe de caos, 3", Said(ItemMoves.Read(ring, orbs, Announcements.SlotName, true, 0, string.Empty, inTrade: true)),
+                  "a trade: what came was received and what left was handed over");
+            Equal(string.Empty, Said(ItemMoves.Read(ring, orbs, Announcements.SlotName, true, 0, string.Empty)),
+                  "outside a trade an arrival beside a departure is still the inventory's own item, changed in place");
+            Equal("Obtained Anillo de hierro | DroppedOrUsed Orbe de caos, 3", Said(ItemMoves.Read(ring, orbs, Announcements.SlotName, true, 0, "Comercio", inTrade: true)),
+                  "the trade window is no panel the items moved to or were taken from");
+            var unread = new List<(InventoryName, string)> { (Main, Announcements.UnknownItem) };
+            Equal(string.Empty, Said(ItemMoves.Read(ring, unread, Announcements.SlotName, true, 0, string.Empty, inTrade: true)),
+                  "an item whose departure never read, moved inside the inventory while the trade is open, is no news");
+            var shards = new List<(InventoryName, string)> { (Main, "Frasco de vida"), (Main, "Esquirla de transmutación") };
+            Equal("DroppedOrUsed Frasco de vida", Said(ItemMoves.Read(new List<(InventoryName, string)> { (Main, "Esquirla de transmutación, 2") }, shards, Announcements.SlotName, true, 0, string.Empty, inTrade: true)),
+                  "a stack that grew is still no departure and no arrival");
+        }
 
         private static void ABuffThatRunsOutIsToldHoweverOftenItComes()
         {
