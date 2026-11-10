@@ -12,6 +12,8 @@ namespace Poe2Accessibility.Tests
     public static class HostSearchTests
     {
         private const long Heap = 0x20_0000_0000;
+        private const long Image = 0x7FF6_0000_0000;
+        private const long ImageSize = 0x4C0_0000;
         private const int EntityStride = 0x10000;
         private static readonly string[] ComponentNames = { "Positioned", "Render", "Life", "Actor", "Player" };
 
@@ -488,23 +490,45 @@ namespace Poe2Accessibility.Tests
         private static void TheStateObjectIsToldByItsListAndStack()
         {
             var measured = GameStateFields.Measured;
+            bool Is(byte[] block, FakeMemory memory) => GameStateLayout.IsStateObject(block, memory, Image, Image + ImageSize);
             foreach (var shift in new[] { 0, 0x40, 0x98 })
             {
                 var (memory, block, _) = StateObject(measured.Stack + shift, measured.States + shift);
-                Equal(true, GameStateLayout.IsStateObject(block, memory), $"a state object with its fields {shift:X} from where measured");
+                Equal(true, Is(block, memory), $"a state object with its fields {shift:X} from where measured");
             }
 
-            var (other, bytes, _) = StateObject(measured.Stack, measured.States);
+            var (other, bytes, states) = StateObject(measured.Stack, measured.States);
             other.Pointers[Heap + 0x30000 + 0x10] = Heap + 0x999990;
-            Equal(false, GameStateLayout.IsStateObject(bytes, other), "a list whose stack leads to none of its states");
-            Equal(false, GameStateLayout.IsStateObject(new byte[GameStateLayout.BlockBytes], other), "an empty object");
+            Equal(false, Is(bytes, other), "a list whose stack leads to none of its states");
+            Equal(false, Is(new byte[GameStateLayout.BlockBytes], other), "an empty object");
             var noise = new byte[GameStateLayout.BlockBytes];
             for (var at = 0; at < noise.Length; at += 8)
             {
                 Put(noise, at, Heap + 0x500000 + (at * 0x20));
             }
 
-            Equal(false, GameStateLayout.IsStateObject(noise, other), "a table of distinct pointers with no stack that leads into it");
+            Equal(false, Is(noise, other), "a table of distinct pointers with no stack that leads into it");
+
+            // What a search took for it while the game was starting (2026-11-10): an allocator's table, the right shape
+            // and nothing virtual in it.
+            var (heap, table, _) = StateObject(measured.Stack, measured.States);
+            Put(table, 0, 0);
+            Equal(false, Is(table, heap), "an object with no virtual table of its own");
+            var (plain, list, slots) = StateObject(measured.Stack, measured.States);
+            plain.Pointers[slots[6]] = plain.Pointers[slots[7]];
+            Equal(false, Is(list, plain), "two states of one class");
+            plain.Pointers[slots[6]] = Heap + 0x10;
+            Equal(true, Is(list, plain), "one slot that is no state leaves ten that are");
+            plain.Pointers[slots[4]] = Heap + 0x20;
+            Equal(false, Is(list, plain), "the current state is not virtual");
+            var (few, sparse, some) = StateObject(measured.Stack, measured.States);
+            foreach (var slot in new[] { 0, 3, 5, 6 })
+            {
+                few.Pointers.Remove(some[slot]);
+            }
+
+            Equal(false, Is(sparse, few), "seven virtual objects are too few for the states");
+            Equal(true, states.Length == 13 && Is(StateObject(measured.Stack, measured.States).Block, StateObject(measured.Stack, measured.States).Memory), "and the real thing still passes");
         }
 
         private static long[] Slots()
@@ -532,6 +556,16 @@ namespace Poe2Accessibility.Tests
             var entries = Heap + 0x30000;
             Put(block, stack, entries, entries + 0x20, entries + 0x40);
             memory.Pointers[entries + 0x10] = states[4];
+
+            // The object and each state begin with a virtual table in the image, each state its own (0.5.5f, live).
+            Put(block, 0, Image + 0x2F884D0);
+            for (var slot = 0; slot < states.Length; slot++)
+            {
+                if (states[slot] != 0)
+                {
+                    memory.Pointers[states[slot]] = Image + 0x3160000 + (slot * 0x600);
+                }
+            }
 
             // After the list a pointer with no control block (0.5.5f); before the stack, a vector whose last entry is no state.
             Put(block, list + 0xD0, Heap + 0x700, 0);

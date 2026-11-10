@@ -75,9 +75,40 @@ namespace GameReader.Utils
             return new GameStateFields(StackFor(best), best);
         }
 
-        /// <summary>Whether <paramref name="block"/> is the game's state object: a list and a stack that fit together, wherever in it.</summary>
-        public static bool IsStateObject(byte[] block, IAreaMemory memory) =>
-            Locate(block, GameStateFields.Measured, memory) is { Stack: >= 0, States: >= 0 };
+        /// <summary>
+        ///     Whether <paramref name="block"/> is the game's state object, for telling it among everything the image's statics
+        ///     point at: a list and a stack that fit together, wherever in it, and besides, since an allocator's table of free
+        ///     blocks has that shape too (taken for it live on 2026-11-10, while the game was starting): the object and each of
+        ///     its states begin with a virtual table inside the image <paramref name="imageStart"/>..<paramref name="imageEnd"/>,
+        ///     no two states share one, each being of its own class, and the state the game is in is one of them.
+        /// </summary>
+        public static bool IsStateObject(byte[] block, IAreaMemory memory, long imageStart, long imageEnd)
+        {
+            bool InImage(long value) => value >= imageStart && value < imageEnd;
+            if (!InImage(Long(block, 0)) || Locate(block, GameStateFields.Measured, memory) is not { Stack: >= 0, States: >= 0 } found)
+            {
+                return false;
+            }
+
+            // A list read from a few slots early takes the pointer pairs before it for states (only what the states do tells
+            // where it starts): those are let be, and the states proper must be enough, with the current one among them.
+            var (tables, current, proper) = (new HashSet<long>(), Top(block, found.Stack, memory), new HashSet<long>());
+            foreach (var state in States(block, found.States)!.Where(state => state != 0))
+            {
+                var head = memory.Read(state, Pointer);
+                if (head.Length == Pointer && InImage(BitConverter.ToInt64(head, 0)))
+                {
+                    if (!tables.Add(BitConverter.ToInt64(head, 0)))
+                    {
+                        return false;
+                    }
+
+                    proper.Add(state);
+                }
+            }
+
+            return proper.Count >= MinStates && proper.Contains(current);
+        }
 
         /// <summary>
         ///     The state objects at <paramref name="at"/> in slot order (zero where unused), as many as there are: the list ends
