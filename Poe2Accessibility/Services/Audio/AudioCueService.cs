@@ -59,6 +59,9 @@ namespace Poe2Accessibility.Services
         private IntPtr device;
         private volatile bool stopping;
 
+        /// <summary>Whether the last write was refused (the output device unplugged or taken): logged once per loss, not every buffer.</summary>
+        private bool writeFailed;
+
         public AudioCueService(PluginLog log)
         {
             this.log = log;
@@ -308,7 +311,17 @@ namespace Poe2Accessibility.Services
         {
             this.Mix();
             Marshal.Copy(this.pcm, 0, Marshal.PtrToStructure<WaveHeader>(header).Data, this.pcm.Length);
-            waveOutWrite(this.device, header, (uint)HeaderSize);
+            var result = waveOutWrite(this.device, header, (uint)HeaderSize);
+            if (result != 0 && !this.writeFailed)
+            {
+                this.writeFailed = true;
+                this.log.Warn($"Audio cues: the output device refused a buffer (waveOutWrite returned {result}); the cues are silent until it answers again");
+            }
+            else if (result == 0 && this.writeFailed)
+            {
+                this.writeFailed = false;
+                this.log.Info("Audio cues: the output device answers again");
+            }
         }
 
         private void Mix()
