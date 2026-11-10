@@ -434,6 +434,9 @@ namespace Poe2Accessibility.Services
         /// <summary>A quest page that waited for a menu can be said now.</summary>
         public bool QuestPageDue => this.questPage.Waiting && !this.InMenu;
 
+        /// <summary>The character selection was reached: what was said of the last character's quests says nothing of the next one's.</summary>
+        public void CharacterChanged() => this.questPage.Reset();
+
         /// <summary>The player is in a menu: the focus is in a panel, or a panel without focus covers the game.</summary>
         private bool InMenu
         {

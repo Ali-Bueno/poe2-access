@@ -297,6 +297,7 @@ namespace Poe2Accessibility
                 this.log.Info($"Dodge timings: {timings.FileTimes} attacks timed by the game files");
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = timings, TimingsPath = this.DodgeTimingsPath };
                 this.bosses.Mechanics = this.BossMechanics(elements, this.log);
+                this.bosses.Defeated = name => this.entities?.BossDefeated(name);
                 this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log);
                 this.shield = new ShieldWatch(this.audio, this.output, memory, this.log);
                 var skills = new PlayerSkills(memory, elements, this.log);

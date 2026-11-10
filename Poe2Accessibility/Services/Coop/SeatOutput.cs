@@ -21,6 +21,9 @@ namespace Poe2Accessibility.Services
 
         public void Speak(string text, bool interrupt = false) => this.inner.Speak(this.Named(text), interrupt);
 
+        /// <summary>A reading stays one behind the seat's name, so it ages like the first player's.</summary>
+        public void SpeakReading(string text, bool interrupt = false) => this.inner.SpeakReading(this.Named(text), interrupt);
+
         public void Urge(string text, int holdMs = 1500) => this.inner.Urge(this.Named(text), holdMs);
 
         public void Keep(string text, int holdMs, bool interrupt = false) => this.inner.Keep(this.Named(text), holdMs, interrupt);

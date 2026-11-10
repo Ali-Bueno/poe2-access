@@ -116,6 +116,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Warning cue gain under the master volume.</summary>
         public float Gain { get; set; } = 1f;
 
+        /// <summary>Raised with a boss's name when its defeat is said: the scanner marks its room, and drops the room's reward note.</summary>
+        public Action<string>? Defeated { get; set; }
+
         /// <summary>
         ///     "El molinero hinchado 40 por ciento" for the vitals command, its life read from the game as it is asked; null
         ///     without a boss in the fight that is there to read (<see cref="BossLifeSteps.Spoken"/>).
@@ -335,6 +338,7 @@ namespace Poe2Accessibility.Services
                 {
                     this.output.Say(SpeechKind.BossLife, Announcements.BossDefeated(boss.Name), true);
                     this.log.Info($"Boss defeated: {boss.Name}");
+                    this.Defeated?.Invoke(boss.Name);
                 }
 
                 this.bosses[id] = (boss.Name, 0, false, 0, boss.HurtAt, boss.DeadSince, boss.ChangedAt);

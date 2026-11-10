@@ -68,6 +68,7 @@ namespace Poe2Accessibility
                 this.classHelpSaid = false;
                 this.flasks?.ForgetCosts();
                 this.partnerFlasks?.ForgetCosts();
+                this.narrator?.CharacterChanged();
             }
 
             if (current == GameStateTypes.AreaLoadingState)
@@ -193,6 +194,7 @@ namespace Poe2Accessibility
         private void ResetAreaState(string areaName, bool resumed, bool newArea)
         {
             this.beacon?.Clear(false);
+            this.commands?.OnAreaChanged(); // the scanner's choice was of the area left
             this.bosses?.Reset();
             this.trialScope.Reset();
             this.weakPoint?.Reset();

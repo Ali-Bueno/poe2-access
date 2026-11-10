@@ -20,6 +20,13 @@ namespace Poe2Accessibility.Services
         /// <summary>A new page waits for the menu over the game to close.</summary>
         public bool Waiting { get; private set; }
 
+        /// <summary>Another character: its quests are news even where they read as the last one's did.</summary>
+        public void Reset()
+        {
+            (this.lastSaid, this.shownPage, this.turning) = (Array.Empty<string>(), string.Empty, false);
+            (this.Turned, this.Waiting) = (false, false);
+        }
+
         /// <summary>
         ///     What to say of the page, or empty when the tracker shows none or the page last said. A page that keeps a quest of
         ///     the last one says only the rest: every page opens with the quest in hand, and one changed objective read the
