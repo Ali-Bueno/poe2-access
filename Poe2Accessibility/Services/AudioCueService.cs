@@ -103,10 +103,20 @@ namespace Poe2Accessibility.Services
             var fractions = new Dictionary<string, float>(StringComparer.Ordinal);
             foreach (var (sound, percent) in percents ?? new Dictionary<string, int>())
             {
-                fractions[sound] = Math.Clamp(percent, 0, SettingsMenu.MaxVolume) / 100f;
+                fractions[sound] = Fraction(percent);
             }
 
             this.levels = fractions;
+        }
+
+        /// <summary>A volume setting's percent as the factor the mixer takes.</summary>
+        public static float Fraction(int percent) => Math.Clamp(percent, 0, SettingsMenu.MaxVolume) / 100f;
+
+        /// <summary>Equal-power pan: the left and right gains of a sound at <paramref name="pan"/> (-1 left … 1 right).</summary>
+        private static (float Left, float Right) Panned(float pan, float gain)
+        {
+            var angle = (Math.Clamp(pan, -1f, 1f) + 1f) * MathF.PI / 4f;
+            return (MathF.Cos(angle) * gain, MathF.Sin(angle) * gain);
         }
 
         /// <summary>A sound's own volume, 1 = as designed.</summary>
@@ -127,10 +137,9 @@ namespace Poe2Accessibility.Services
             }
 
             this.Note(sound);
-            var angle = (Math.Clamp(pan, -1f, 1f) + 1f) * MathF.PI / 4f;
-            var level = MathF.Min(gain, 1f);
+            var (leftGain, rightGain) = Panned(pan, MathF.Min(gain, 1f));
             var (left, right) = this.Driven(samples, samples, gain);
-            this.Add(new Voice(left, right, pitch, MathF.Cos(angle) * level, MathF.Sin(angle) * level));
+            this.Add(new Voice(left, right, pitch, leftGain, rightGain));
         }
 
         /// <summary>Starts a recorded stereo cue as recorded, unpanned (the player's own news); pitch and gain as for a mono cue.</summary>
@@ -372,9 +381,7 @@ namespace Poe2Accessibility.Services
             /// <summary>Equal-power pan as for cues; gain 0 fades it out; pitch 1 = as recorded.</summary>
             public void Set(float pan, float gain, float pitch = 1f)
             {
-                var angle = (Math.Clamp(pan, -1f, 1f) + 1f) * MathF.PI / 4f;
-                this.targetLeft = MathF.Cos(angle) * gain;
-                this.targetRight = MathF.Sin(angle) * gain;
+                (this.targetLeft, this.targetRight) = Panned(pan, gain);
                 this.targetPitch = pitch > 0 ? pitch : 1f;
             }
 

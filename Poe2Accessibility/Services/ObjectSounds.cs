@@ -164,9 +164,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 var closeness = 1f - Math.Clamp(distance / RangeOf(entry), 0f, 1f);
-                var (side, height) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, new Vector2(entry.WorldX, entry.WorldY) - here));
-                var spread = Math.Min(1f, distance / CentreWorld);
-                var (pan, pitch) = (side * spread, 1f + ((height - 1f) * spread));
+                var (pan, pitch) = ScreenProjection.Voice(player.WorldPosition, new Vector2(entry.WorldX, entry.WorldY) - here, distance, CentreWorld);
                 var gain = this.Gain * ProximityFade.Gain(distance, RangeOf(entry), FarGain);
                 if (this.sounds.GetLoop(entry.Kind) is { } idle)
                 {

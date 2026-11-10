@@ -48,7 +48,7 @@ namespace Poe2Accessibility
 
         private void ApplySoundVolumes(AccessibilitySettings settings)
         {
-            static float Fraction(int percent) => Math.Clamp(percent, 0, SettingsMenu.MaxVolume) / 100f;
+            static float Fraction(int percent) => AudioCueService.Fraction(percent);
             if (this.audio != null)
             {
                 this.audio.Volume = Fraction(settings.SoundVolume);

@@ -94,10 +94,9 @@ namespace Poe2Accessibility.Services
             }
 
             var offset = (place * toWorld) - here;
-            var (side, height) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, offset));
-            var spread = System.Math.Min(1f, offset.Length() / CentreWorld);
+            var (pan, pitch) = ScreenProjection.Voice(player.WorldPosition, offset, offset.Length(), CentreWorld);
             this.bed ??= this.audio.AddBed(this.loop, LoopName);
-            this.bed.Set(side * spread, this.Gain, 1f + ((height - 1f) * spread));
+            this.bed.Set(pan, this.Gain, pitch);
         }
     }
 }
