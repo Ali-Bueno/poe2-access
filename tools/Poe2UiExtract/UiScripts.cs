@@ -62,6 +62,12 @@ internal static class UiScripts
         var scripts = Path.Join(Path.GetTempPath(), "poe2-ui-" + Environment.ProcessId);
         try
         {
+            // A run killed midway leaves its folder, and a later process gets its number: those scripts are another patch's.
+            if (Directory.Exists(scripts))
+            {
+                Directory.Delete(scripts, true);
+            }
+
             var code = Extract(index, scripts);
             return code != 0 ? code : CatalogGenerator.Run(scripts, outFile);
         }
