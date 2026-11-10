@@ -265,6 +265,7 @@ namespace Poe2Accessibility.Tests
                 ExtractionGuardTests.All(),
                 RobustnessTests.All(),
                 SpeechEventTests.All(),
+                SpokenOnceTests.All(),
             };
             foreach (var (name, test) in suites.SelectMany(suite => suite))
             {

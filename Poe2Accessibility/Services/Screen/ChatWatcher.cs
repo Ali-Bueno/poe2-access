@@ -3,6 +3,7 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
 
     /// <summary>
     ///     New chat lines worth hearing: NPC shouts ("Wounded Man: Reach... Clearfell..."), the character's own
@@ -26,6 +27,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Lines in a list first found after the chat was seen empty that are still news, not history.</summary>
         private const int FreshLines = 5;
+
+        /// <summary>How many said lines are remembered before the old ones are forgotten.</summary>
+        private const int MaxSpokenKept = 256;
 
         private readonly UiElementReader elements;
         private readonly ComboBoxReader comboBoxes;
@@ -118,11 +122,21 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            var added = !baseline ? ChatDiff.Appended(this.lines, current)
+            var added = !baseline ? ChatDiff.News(this.lines, current, FreshLines)
                 : this.seenEmpty && current.Count <= FreshLines ? current
                 : Array.Empty<string>();
             this.seenEmpty = false;
             this.lines = current;
+            if (added.Count > 0 && this.spokenAt.Count >= MaxSpokenKept)
+            {
+                // Only lines of the last seconds can be repeats: the rest of a long session's chat is let go.
+                var limit = Environment.TickCount64 - RepeatWindowMs;
+                foreach (var old in this.spokenAt.Where(pair => pair.Value < limit).Select(pair => pair.Key).ToList())
+                {
+                    this.spokenAt.Remove(old);
+                }
+            }
+
             foreach (var text in added)
             {
                 var now = Environment.TickCount64;
