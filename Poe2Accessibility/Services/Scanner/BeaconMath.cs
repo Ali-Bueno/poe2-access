@@ -22,12 +22,22 @@ namespace Poe2Accessibility.Services
         ///     What a locked target that is no longer listed means: within <paramref name="nearWorld"/> of the player, a
         ///     thing that goes when used (a chest opened, an item picked up, a portal taken, a quest's object) was reached;
         ///     a creature or anything else only left view (it hid, burrowed, died or walked off). Farther away, or for a
-        ///     named place, nothing is known: the guide goes on to where it was.
+        ///     named place, nothing is known: the guide goes on to where it was. Nor of a target the scanner never listed
+        ///     (<paramref name="listed"/> false: a Trial's room door, which it leaves out): not being listed is no news of it.
         /// </summary>
-        public static GoneTarget Gone(ScanEntry goal, bool isEntity, float distanceWorld, float nearWorld) =>
-            !isEntity || distanceWorld > nearWorld ? GoneTarget.Unknown
+        public static GoneTarget Gone(ScanEntry goal, bool isEntity, float distanceWorld, float nearWorld, bool listed = true) =>
+            !isEntity || !listed || distanceWorld > nearWorld ? GoneTarget.Unknown
             : goal.CanVanish && goal.Category is not (ScanCategory.Enemies or ScanCategory.Npcs or ScanCategory.Players) ? GoneTarget.Reached
             : GoneTarget.LostFromView;
+
+        /// <summary>
+        ///     Whether the game still holds the area instance a target was locked in. Its hash names it: a respawn loads the
+        ///     same instance again, with the same hash and entity ids and perhaps as another object, and the guide goes on
+        ///     (it fell silent without a word had the address been asked to match too). The address decides only while a
+        ///     hash is not read.
+        /// </summary>
+        public static bool SameInstance(IntPtr lockedAddress, string lockedHash, IntPtr address, string hash) =>
+            lockedHash.Length > 0 && hash.Length > 0 ? string.Equals(lockedHash, hash, StringComparison.Ordinal) : lockedAddress == address && lockedHash == hash;
 
         /// <summary>D2R: 160 ms when close, 1200 ms when far, linear in the route left.</summary>
         public const int NearIntervalMs = 160;

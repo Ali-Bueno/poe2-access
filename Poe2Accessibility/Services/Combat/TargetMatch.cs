@@ -31,6 +31,16 @@ namespace Poe2Accessibility.Services
 
             return (best, carriers == 1);
         }
+
+        /// <summary>
+        ///     The same pick among the carriers in play when there is one: the game targets what can be targeted, so a
+        ///     boss's next form waiting untargetable under its name, or the character it was before the fight, does not
+        ///     share the name with it (counted, it kept the boss's life from being said). With none in play, those set
+        ///     aside are all there is to go by.
+        /// </summary>
+        public static (IntPtr Address, bool Alone) Pick(string name, IReadOnlyCollection<(IntPtr Address, string Name, float Distance)> inPlay,
+                                                         IEnumerable<(IntPtr Address, string Name, float Distance)> setAside) =>
+            inPlay.Count > 0 ? Pick(name, inPlay) : Pick(name, setAside);
     }
 
     /// <summary>

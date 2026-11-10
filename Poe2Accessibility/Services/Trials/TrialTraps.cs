@@ -61,4 +61,29 @@ namespace Poe2Accessibility.Services
             return Files.TryGetValue(mark < 0 ? path : path[..mark], out var entry) ? entry : null;
         }
     }
+
+    /// <summary>
+    ///     Which striking traps are news: each once per strike, and only once the player is within its reach. One that began
+    ///     to strike farther off is still news when the player walks up to it (a laser that fires on; taken as said from
+    ///     afar, it never warned). Pure.
+    /// </summary>
+    public sealed class TrapStrikes
+    {
+        private readonly HashSet<uint> warned = new();
+
+        /// <summary>A new area: no trap is known to be striking.</summary>
+        public void Reset() => this.warned.Clear();
+
+        /// <summary>One look at a trap; true when its strike is to be warned of now.</summary>
+        public bool Update(uint id, bool firing, bool inReach)
+        {
+            if (!firing)
+            {
+                this.warned.Remove(id);
+                return false;
+            }
+
+            return inReach && this.warned.Add(id);
+        }
+    }
 }

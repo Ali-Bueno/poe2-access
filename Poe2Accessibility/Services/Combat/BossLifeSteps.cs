@@ -49,7 +49,14 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static bool Defeated(long deadSince, long now) => deadSince != 0 && now - deadSince >= DefeatConfirmMs;
 
-        /// <summary>The step reached at <paramref name="percent"/>, from <paramref name="step"/>, the last one (0: dead, for good).</summary>
+        /// <summary>
+        ///     The step a boss that reads alive is followed from: one said defeated (0) has risen under the same entity, a
+        ///     second life the game gives some of them, and starts over. Left at 0 its life was never said again, nor its
+        ///     real defeat, and the vitals readout left it out.
+        /// </summary>
+        public static int Alive(int step) => step == 0 ? Full : step;
+
+        /// <summary>The step reached at <paramref name="percent"/>, from <paramref name="step"/>, the last one (0: defeated, until it reads alive again).</summary>
         public static int Next(int step, int percent)
         {
             // Back up to the step above the last one said (the fight restarted after a death, a heal phase): those below come again.

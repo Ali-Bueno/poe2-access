@@ -119,6 +119,12 @@ namespace Poe2Accessibility.Services
             return (MathF.Cos(angle) * gain, MathF.Sin(angle) * gain);
         }
 
+        /// <summary>
+        ///     Whether a side, a pitch and a gain are numbers: one that is not (a place read as garbage for a frame) mixed in
+        ///     makes the whole output no number, and in a bed it stayed so: every sound silent until the mod started again.
+        /// </summary>
+        public static bool IsSound(float pan, float pitch, float gain) => float.IsFinite(pan) && float.IsFinite(pitch) && float.IsFinite(gain);
+
         /// <summary>A sound's own volume, 1 = as designed.</summary>
         public float Level(string sound) => this.levels.TryGetValue(sound, out var level) ? level : 1f;
 
@@ -131,7 +137,7 @@ namespace Poe2Accessibility.Services
         public void Play(float[] samples, float pan, float pitch, float gain, string sound)
         {
             gain *= this.Level(sound);
-            if (!this.IsAvailable || samples.Length == 0 || pitch <= 0 || gain <= 0)
+            if (!this.IsAvailable || samples.Length == 0 || pitch <= 0 || gain <= 0 || !IsSound(pan, pitch, gain))
             {
                 return;
             }
@@ -146,7 +152,7 @@ namespace Poe2Accessibility.Services
         public void Play(StereoSound sound, float pitch, float gain, string key)
         {
             gain *= this.Level(key);
-            if (!this.IsAvailable || sound.Left.Length == 0 || pitch <= 0 || gain <= 0)
+            if (!this.IsAvailable || sound.Left.Length == 0 || pitch <= 0 || gain <= 0 || !IsSound(0f, pitch, gain))
             {
                 return;
             }
@@ -381,8 +387,9 @@ namespace Poe2Accessibility.Services
             /// <summary>Equal-power pan as for cues; gain 0 fades it out; pitch 1 = as recorded.</summary>
             public void Set(float pan, float gain, float pitch = 1f)
             {
-                (this.targetLeft, this.targetRight) = Panned(pan, gain);
-                this.targetPitch = pitch > 0 ? pitch : 1f;
+                // What is no number is silence where it was (IsSound).
+                (this.targetLeft, this.targetRight) = IsSound(pan, pitch, gain) ? Panned(pan, gain) : (0f, 0f);
+                this.targetPitch = pitch > 0 && float.IsFinite(pitch) ? pitch : 1f;
             }
 
             /// <summary>Fades it out for good: the mixer lets it go once silent.</summary>

@@ -38,6 +38,7 @@ namespace Poe2Accessibility.Services
 
         public void TakeFloor(string text) => this.inner.TakeFloor(this.Named(text));
 
+        
         public void StopBefore(DateTime since) => this.inner.StopBefore(since);
 
         public void Mention(string text) => this.inner.Mention(this.Named(text));

@@ -239,6 +239,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Coop\LocalPlayerList.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Coop\InputSeat.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Coop\CoopDowns.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Coop\SeatOutput.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\IAccessibilityOutputService.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\PrismLibrary.cs" Link="Plugin\PrismLibrary.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\PrismOutputService.cs" Link="Plugin\PrismOutputService.cs" />

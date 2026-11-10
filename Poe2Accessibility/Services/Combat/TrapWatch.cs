@@ -24,7 +24,7 @@ namespace Poe2Accessibility.Services
         private readonly AudioCueService audio;
         private readonly PluginLog log;
         private readonly float[] warning = CueSynth.Dodge(AudioCueService.SampleRate);
-        private readonly HashSet<uint> firing = new();
+        private readonly TrapStrikes strikes = new();
         private readonly HashSet<string> logged = new(StringComparer.Ordinal);
         private long lastPoll;
         private long lastWarned;
@@ -39,7 +39,7 @@ namespace Poe2Accessibility.Services
         public float Gain { get; set; } = 1f;
 
         /// <summary>A new area: no trap is known to be firing.</summary>
-        public void Reset() => this.firing.Clear();
+        public void Reset() => this.strikes.Reset();
 
         /// <summary>Per frame; <paramref name="playing"/> false while dead, paused or in a menu.</summary>
         public void Tick(bool playing)
@@ -63,22 +63,17 @@ namespace Poe2Accessibility.Services
                     ? machine.States.Select(state => (state.Name, state.Value)).ToList()
                     : new List<(string Name, long Value)>();
                 this.LogOnce(path, states);
-                var armed = TrialTraps.IsFiring(path, states);
-                if (armed && this.firing.Add(entity.Id))
+                var offset = new Vector2(render.WorldPosition.X - player.WorldPosition.X, render.WorldPosition.Y - player.WorldPosition.Y);
+                if (this.strikes.Update(entity.Id, TrialTraps.IsFiring(path, states), offset.Length() <= WarnWorld))
                 {
-                    this.Warn(player, render, now);
-                }
-                else if (!armed)
-                {
-                    this.firing.Remove(entity.Id);
+                    this.Warn(render, offset, now);
                 }
             }
         }
 
-        private void Warn(Render player, Render trap, long now)
+        private void Warn(Render trap, Vector2 offset, long now)
         {
-            var offset = new Vector2(trap.WorldPosition.X - player.WorldPosition.X, trap.WorldPosition.Y - player.WorldPosition.Y);
-            if (offset.Length() > WarnWorld || now - this.lastWarned < MinGapMs)
+            if (now - this.lastWarned < MinGapMs)
             {
                 return;
             }

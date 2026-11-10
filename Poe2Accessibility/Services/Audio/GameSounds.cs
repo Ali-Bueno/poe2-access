@@ -257,7 +257,10 @@ namespace Poe2Accessibility.Services
             return mono;
         }
 
-        /// <summary>Each channel's samples of a 16-bit PCM WAV at the mixer rate (one or two); null for any other format.</summary>
+        /// <summary>The bytes of a PCM format chunk that are read (through bits per sample).</summary>
+        private const int FormatBytes = 16;
+
+        /// <summary>Each channel's samples of a 16-bit PCM WAV at the mixer rate (one or two); null for any other format, an empty or a damaged file.</summary>
         private static float[][]? ReadChannels(byte[] data, float maxSeconds, bool fadeOut)
         {
             if (data.Length < 44 || BitConverter.ToUInt32(data, 0) != 0x46464952 || BitConverter.ToUInt32(data, 8) != 0x45564157)
@@ -271,6 +274,11 @@ namespace Poe2Accessibility.Services
                 var id = BitConverter.ToUInt32(data, offset);
                 var size = BitConverter.ToInt32(data, offset + 4);
                 var body = offset + 8;
+                if (size < 0 || (id == 0x20746D66 && body + FormatBytes > data.Length))
+                {
+                    return null; // a damaged file: a size that walks backwards, a format cut short
+                }
+
                 if (id == 0x20746D66)
                 {
                     // "fmt "
@@ -288,6 +296,11 @@ namespace Poe2Accessibility.Services
 
                     var recorded = Math.Min(size, data.Length - body) / (2 * channels);
                     var frames = Math.Min(recorded, (int)(maxSeconds * rate));
+                    if (frames <= 0)
+                    {
+                        return null; // no sound in it: an empty cue or loop is none
+                    }
+
                     var cut = frames < recorded;
                     var fade = fadeOut ? Math.Min(frames, (int)((cut ? CutFadeSeconds : EndFadeSeconds) * rate)) : 0;
                     var samples = new float[channels][];
