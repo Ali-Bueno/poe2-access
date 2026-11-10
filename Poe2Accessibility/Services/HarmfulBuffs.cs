@@ -47,16 +47,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The game's name for a harmful buff in the language (English when it has none there), empty for any other buff.</summary>
-        public string NameOf(string buffId, string language)
-        {
-            var id = BuffIds.Base(buffId);
-            if (this.names.TryGetValue(language, out var own) && own.TryGetValue(id, out var name))
-            {
-                return name;
-            }
-
-            return this.names.TryGetValue(Fallback, out var english) && english.TryGetValue(id, out var fallback) ? fallback : string.Empty;
-        }
+        public string NameOf(string buffId, string language) => Localization.Pick(this.names, language, BuffIds.Base(buffId)) ?? string.Empty;
 
         /// <summary>
         ///     The names of harmful buffs among <paramref name="ids"/> that were not there a moment ago, each once;

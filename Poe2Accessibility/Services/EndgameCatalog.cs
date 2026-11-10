@@ -13,8 +13,6 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public sealed class EndgameCatalog
     {
-        private const string Fallback = "en";
-
         private readonly CatalogData data;
         private readonly Dictionary<string, string> objectiveByIcon;
         private readonly Dictionary<string, int> towerReach;
@@ -70,11 +68,7 @@ namespace Poe2Accessibility.Services
                 : string.Empty;
 
         /// <summary>A text of the catalog in the language, else in English, else empty.</summary>
-        public string Text(string key, string language) =>
-            (this.data.Text.TryGetValue(language, out var own) && own.TryGetValue(key, out var text)) ||
-            (this.data.Text.TryGetValue(Fallback, out var english) && english.TryGetValue(key, out text))
-                ? text
-                : string.Empty;
+        public string Text(string key, string language) => Localization.Pick(this.data.Text, language, key) ?? string.Empty;
 
         public CatalogNode? Node(string passiveId) => this.data.Nodes.TryGetValue(passiveId, out var node) ? node : null;
 

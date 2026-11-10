@@ -46,10 +46,7 @@ namespace Poe2Accessibility.Services
 
             var end = key.IndexOf(KeyDetailsMark);
             var art = (end < 0 ? key : key[..end]).ToLowerInvariant();
-            return (names.TryGetValue(Localization.Language, out var local) && local.TryGetValue(art, out var name)) ||
-                   (names.TryGetValue("en", out var english) && english.TryGetValue(art, out name))
-                ? name
-                : null;
+            return Localization.Pick(names, Localization.Language, art);
         }
     }
 }
