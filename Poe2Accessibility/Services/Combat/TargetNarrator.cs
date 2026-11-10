@@ -171,6 +171,7 @@ namespace Poe2Accessibility.Services
 
             var here = new System.Numerics.Vector2(player.WorldPosition.X, player.WorldPosition.Y);
             var carriers = new System.Collections.Generic.List<(IntPtr, string, float)>();
+            var setAside = new System.Collections.Generic.List<(IntPtr, string, float)>();
             foreach (var entity in area.AwakeEntities.Values)
             {
                 if (!entity.IsValid || Seats.IsLocal(entity) || !entity.TryGetComponent<Render>(out var render))
@@ -184,11 +185,13 @@ namespace Poe2Accessibility.Services
                 // A corpse or a monster set aside is not what the game targets: it neither is the target nor shares its name.
                 if (entityName == name && (entity.EntityType != EntityTypes.Monster || (EntityCatalog.IsAliveEnemy(entity) && !EntityCatalog.IsHidden(entity))))
                 {
-                    carriers.Add((entity.Address, entityName, System.Numerics.Vector2.DistanceSquared(new System.Numerics.Vector2(render.WorldPosition.X, render.WorldPosition.Y), here)));
+                    // Nor does what cannot be targeted share it with what can (TargetMatch.Pick).
+                    var carrier = (entity.Address, entityName, System.Numerics.Vector2.DistanceSquared(new System.Numerics.Vector2(render.WorldPosition.X, render.WorldPosition.Y), here));
+                    (EntityCatalog.IsInPlay(this.memory, entity) ? carriers : setAside).Add(carrier);
                 }
             }
 
-            return TargetMatch.Pick(name, carriers);
+            return TargetMatch.Pick(name, carriers, setAside);
         }
 
         /// <summary>Finds (once per HUD) the target display and its name label by their control names.</summary>
