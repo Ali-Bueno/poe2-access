@@ -116,7 +116,8 @@ namespace Poe2Accessibility.Services
                 // after the tab name it follows it.
                 // A small box without focus (Engrave? Confirm A, Back B) is answered with its buttons: say them.
                 // A bare number means nothing alone (a stash tab's title while the focus moves to the new tab).
-                var content = change.Texts.Where(text => !IsNumber(text.Text)).ToList();
+                // Nor does a tier numeral (a gem's "I" in the tab being drawn, said alone on a stash tab switch).
+                var content = change.Texts.Where(text => !IsNumber(text.Text) && !IsTierNumeral(text.Text)).ToList();
                 var shown = content.Count <= SmallBoxTexts && legends.Count > 0
                     ? Announcements.Sentences(new[] { Describe(content), Describe(legends) })
                     : Describe(content);

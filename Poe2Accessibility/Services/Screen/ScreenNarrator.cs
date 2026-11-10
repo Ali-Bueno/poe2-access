@@ -156,6 +156,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The game redraws the page this soon after LB/RB; a focus that moves by then says the tab itself.</summary>
         private const int TabSwitchMs = 250;
 
+        /// <summary>A cursor in the switched grid is back by then (0.3 s after the redraw in the stash, live 2026-11-10); past it the tab is said alone.</summary>
+        private const int TabFocusWaitMs = 1000;
+
         /// <summary>Since when nothing has held the focus with only the HUD shown; MaxValue while something does.</summary>
         private DateTime unfocusedSince = DateTime.MaxValue;
 

@@ -260,6 +260,12 @@ namespace Poe2Accessibility.Services
             }
 
             var pressed = this.tabKeyAt;
+            if ((this.FocusLayer?.Invoke() ?? IntPtr.Zero) == IntPtr.Zero && (DateTime.UtcNow - pressed).TotalMilliseconds < TabFocusWaitMs)
+            {
+                // The cursor was in the grid the switch rebuilt: it comes back naming the tab, which was said twice.
+                return;
+            }
+
             this.tabKeyAt = DateTime.MaxValue;
             if (this.lastFocusAt >= pressed || this.deferredFocus != null)
             {
