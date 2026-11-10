@@ -165,7 +165,7 @@ namespace Poe2Accessibility.Services
             var own = focus == null ? new HashSet<string>() : new HashSet<string>(focus.ListItems.Concat(focus.Tooltip)) { focus.Text, focus.Value, focus.Group };
             var said = (DateTime.UtcNow - this.recentTexts.At).TotalMilliseconds < RecentTextsMs ? this.recentTexts.Texts : new HashSet<string>();
             var chrome = this.Chrome(change.Texts);
-            var kept = PairNumbers(change.Texts).Where(text => !own.Contains(text.Text) && !IsNumber(text.Text) && !said.Contains(text.Text) &&
+            var kept = PairNumbers(change.Texts).Where(text => !own.Contains(text.Text) && !IsNumber(text.Text) && !IsTierNumeral(text.Text) && !said.Contains(text.Text) &&
                                                               !chrome.Contains(text.Address) && text.Name != TierLabelName &&
                                                               !(text.Text.Length > ShortLabelChars && (focus?.Text.Contains(text.Text, StringComparison.Ordinal) ?? false)) &&
                                                               !FocusDetails.Names(text.Text, focus?.Text ?? string.Empty) &&

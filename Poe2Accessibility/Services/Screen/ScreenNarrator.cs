@@ -674,6 +674,12 @@ namespace Poe2Accessibility.Services
             return paired;
         }
 
+        /// <summary>
+        ///     A support gem's tier drawn on its icon ("I", "II"): a stash page with such gems said a bare "I" as it was
+        ///     shown (2026-11-10); the gem's name says its tier.
+        /// </summary>
+        internal static bool IsTierNumeral(string text) => text.Length is > 0 and <= 4 && text.All(c => c is 'I' or 'V' or 'X');
+
         private static bool IsNumber(string text) => text.All(c => char.IsDigit(c) || c is '.' or ',' or ':' or '%' or '/' or '+' or '-' or ' '); // "6", "25%", "0:08"
 
         /// <summary>Texts in reading order without repeats; a disabled control is marked unavailable.</summary>

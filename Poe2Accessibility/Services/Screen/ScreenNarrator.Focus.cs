@@ -239,7 +239,7 @@ namespace Poe2Accessibility.Services
         /// <summary>LB or RB pressed (the game's own pad state): a tab switch that leaves the focus in place is said in Tick.</summary>
         public void OnTabKey()
         {
-            if (this.inGame && this.tabbedLayer != IntPtr.Zero && (this.FocusLayer?.Invoke() ?? IntPtr.Zero) != IntPtr.Zero)
+            if (this.inGame && (this.FocusLayer?.Invoke() ?? IntPtr.Zero) != IntPtr.Zero)
             {
                 this.tabKeyAt = DateTime.UtcNow;
             }
@@ -264,7 +264,8 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var tab = this.selectedTab(this.tabbedLayer);
+            // A merchant that opened on the inventory's side never named its tabs' layer: they lie in the focus's own.
+            var tab = this.selectedTab(this.tabbedLayer != IntPtr.Zero ? this.tabbedLayer : this.FocusLayer?.Invoke() ?? IntPtr.Zero);
             if (tab.Length > 0 && tab != this.lastContext)
             {
                 this.lastContext = tab;

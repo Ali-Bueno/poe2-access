@@ -114,6 +114,7 @@
 | Scanner (hold L3 + right stick flicks; tap = where the choice is now) | done (live) | `EntityCatalog` + `RoutePlanner` + `ScanBrowser`: 8 categories, routed steps, leg + next turn ("Una, 14 steps, right 3, then up right"); walked Riverbank → Miller → Clearfell → town NPCs on it |
 | Low-life warnings | done (live) | `VitalAlarm`: "Life 50 percent" / "Life 25 percent" once per fall; the Miller was beaten reacting to them |
 | Skill crafting (engrave an uncut gem): grid in reading order, details after the name, Engrave confirm with its buttons, categories | done (live) | "Skeletal Sniper, Level 1, 1 of 24"; LB/RB say the category first (`category_name_label`, a tab title: "Elemental. Muro de fuego, Nivel 2, 1 de 24", live 2026-10-31); an uncut support goes straight into the skill its category names: "Furia I, engarzada en Campana de tempestad" (`ScreenNarrator.Engraving`, code; user 2026-10-31: where did it go?) |
+| Build Planner gems: the build's skills and supports set against the character's (Skills panel rows, empty slots, sockets; cut gems in the inventory, stash, merchants; engraving choices) | done (live 2026-11-10; engraving choices code only: no uncut gem at hand) | `UiSemantics.BuildGems` + pure `BuildGems`, `GemNames`, `BuildPlanFolder.Active`, `GameLayout.GemSockets`; [ui layers](docs/research/ui-layers.md#build-planner-gems-055f-2026-11-10) |
 | Skill gems in the inventory named from their tooltip (no base display name) | done (live) | "Unearth, column 1, row 1" |
 | Read the whole panel (`screen` command) | done (live) | character detailed stats read fully; summary block order is jumbled |
 | Options section names on entering a section | done (live) | "UI. Controller. HUD Mode, Central, combo box, 1 of 8" |
@@ -450,7 +451,7 @@
   Player resources: `ChargeWatch` (+ pure `PlayerCharges`) in `PlayerAlerts`, beside `StatusWatch`.
   Speech priority: `IAccessibilityOutputService.Urge` (later interrupts queue for 1.5 s), `.Keep` (tutorial lessons; `SpeechFloor` holds what comes meanwhile); `SpeechRepeats` holds back a line repeating the last.
 - Passive tree: `UiSemantics.PassiveTree` + pure `PassiveStick` (the game's stick pick), `BuildPlanFolder` + pure `BuildPlan`/`BuildNotes`
-  (Build Planner files); finder `UiSemantics.PassiveFinder` + pure `PassiveMap`/`PassiveFinder`; dev commands `passivenear` (nodes around the hovered one, build marks), `passivemap` (points from each start). Minions: `MinionReport` + `MinionGroups`.
+  (Build Planner files; the build's gems: `UiSemantics.BuildGems` + pure `BuildGems`, `GemNames`, `ServerInventory`, dev command `inventories`); finder `UiSemantics.PassiveFinder` + pure `PassiveMap`/`PassiveFinder`; dev commands `passivenear` (nodes around the hovered one, build marks), `passivemap` (points from each start). Minions: `MinionReport` + `MinionGroups`.
 - Tests: `tests/Poe2Accessibility.Tests` (differ, text edits, chat diff, gestures, scanner, route legs, life
   alarm, beacon, quest matching, cooldown, skills ready, ailments, dodge threats, map markers). Dev tools: `tools/computer_use/`; dev commands
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
@@ -479,8 +480,9 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   [patch day](docs/patch-day.md).
 - The stash's and the well's sounds were picked by measurement, the user away (2026-11-10): [audition page](https://claude.ai/artifact/HKNYM3jD9bvzBA1ECTK4Ww);
   another pick is one line of `SoundExtractor.Cues` and the `Sounds` step raised (`GameDataSteps`).
-- A merchant's search is not tried (the stash's is): the watch finds the grid by climbing from the focused text field. L3 tapped in a
-  stash opens the game's search field and the mod's own tap says the field's name a second time.
+- `catalog/gem-names.json` was made by hand from `dat-strings`; the extractor and the start-up data steps do not regenerate it yet (a gem
+  added by a patch is named by its id's words until then). Which gems are Spirit gems is not known before they are owned.
+- The Sockets component's second socket (+0x38) is unmeasured: yarkey has one support per skill; every pointer is checked as a support gem.
 - The tree's header "Set de armas: 1, (4)" is read as shown; what its two numbers count is not measured.
 - yarkey follows "Campaign Progression - [0.5.5] Twister G" (Build Planner, 2026-11-10): 16 of 60 taken, 13 points outside it, the
   earlier guide's route. What the audit left open: [robustness audit](docs/research/robustness-audit-2026-11-10.md#open).

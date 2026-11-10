@@ -58,7 +58,14 @@ namespace Poe2Accessibility.Services
                 this.Keep(this.GridsBeside(focus.Address));
             }
 
-            this.grids.RemoveAll(grid => !this.elements.TryReadElement(grid, out var info) || !this.elements.IsVisible(info));
+            // A page turned (another tab of the stash or the merchant): the grid shown in its place is the searched one now.
+            var hidden = this.grids.Where(grid => !this.elements.TryReadElement(grid, out var info) || !this.elements.IsVisible(info)).ToList();
+            this.grids.RemoveAll(hidden.Contains);
+            foreach (var grid in hidden)
+            {
+                this.Keep(this.GridsBeside(grid));
+            }
+
             if (this.grids.Count == 0)
             {
                 this.news.Forget();
@@ -130,7 +137,11 @@ namespace Poe2Accessibility.Services
 
             if (this.inventory.ItemsOf(info.Address).Count > 0)
             {
-                found.Add(info.Address);
+                if (this.elements.IsVisible(info))
+                {
+                    found.Add(info.Address); // a page not shown keeps its own flag: only what is drawn counts
+                }
+
                 return;
             }
 

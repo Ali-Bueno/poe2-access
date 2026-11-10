@@ -28,6 +28,7 @@ A new catalog needs no change to the project file or the package script, only a 
 | `experience.json` | the total experience each level starts at | `experience`, start | `ExperienceTable` |
 | `game-ids.txt` | the game's numbers for animations and stats | `game-ids`, start | `GameIds` |
 | `game-keys.txt` | the Ids of the tables a player meets, to tell what a patch added | `game-keys`, start | `GameNews` |
+| `gem-names.json` | skill and support gem names by the last part of their id, every language | by hand 2026-11-10 from `dat-strings baseitemtypes <language> 6000` (Id +0x0, Name +0x20); needs an extractor command | `GemNames` |
 | `hazards.txt` | buffs from standing in harmful ground | `hazards`, start | `HazardGround` |
 | `hit-times.txt` | when monster attacks land | `hit-times`, start | `DodgeTimings` |
 | `important_tgt_files.txt` | named tiles (exits) | vendored (formerly GameHelper2's Radar table) | `LandmarkTable` |

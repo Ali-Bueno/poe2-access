@@ -441,6 +441,7 @@ namespace Poe2Accessibility.Tests
         private static void L3GesturesAreToldApart()
         {
             Equal("Tap", Play(Down(0), Up(100), Up(450)), "single tap after the double-tap window");
+            Equal(true, L3Gestures.MovedFocus(1000, 1040) && !L3Gestures.MovedFocus(1000, 700), "a focus born of the press is the game's doing, an older one is read");
             Equal("DoubleTap", Play(Down(0), Up(100), Down(200), Up(300), Up(700)), "two quick taps");
             Equal("Hold", Play(Down(0), Down(600), Up(900), Up(1300)), "held past the threshold");
             Equal("FlickUp|FlickRight", Play(Down(0), Stick(100, 0f, 0.9f), Stick(150, 0f, 0f), Stick(200, 0.9f, 0f), Stick(900, 0.9f, 0f), Up(1000), Up(1400)),

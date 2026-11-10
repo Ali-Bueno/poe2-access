@@ -86,6 +86,7 @@ namespace Poe2Accessibility
 
             this.FindOnTree(state);
             this.gestures.FlicksWithoutL3 = this.commands.InSettingsMenu;
+            this.commands.PressedAt ??= () => this.gestures.PressedAt;
             if (this.commands.InSettingsMenu && this.focus?.Current != null)
             {
                 this.commands.CloseSettingsMenu();
