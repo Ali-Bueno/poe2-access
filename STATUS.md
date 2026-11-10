@@ -490,8 +490,8 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   game was still filling it (a worn piece without its modifiers, every wanted one "missing") — an item's first tooltip now
   waits until it reads the same 100 ms apart (`TooltipSettle`, `AccessibleUiNode.TooltipFilling`; seen live as 5 lines, then
   4; the belt itself read whole on every try, so the false lines were not reproduced). Open: (1) two wanted lines answered by
-  one line repeat it word for word; (2) the inventory's summary comes before the focused item's name; (3) a first focus is
-  100 ms later, which makes a panel's opening line come before its focus more often (see the merchants below). A worn piece's
+  one line repeat it word for word; (2) the inventory's summary comes before the focused item's name; (3) an item's first focus
+  is said 100 ms later than before. A worn piece's
   modifiers are known only after its slot was focused in the session; charms, quivers and foci are not compared; a unique is
   judged only when its name equals the author's. Live checks:
   [ui layers](docs/research/ui-layers.md#build-planner-gear-055f-2026-11-10).
@@ -511,9 +511,11 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   filled at the well before a drink showed its cost ("… recargado, 75 cargas"; the well was seen silent live before the
   fix); a flask not empty and never drunk is still silent, its uses cannot be counted. Taking a flask off the belt empties
   it (75 → 0 charges, refilled at the well). Open: (1) a merchant with one tab (Zarka: one tab labelled "-1-", no title)
-  opens as "4.776 oro. Oro", then "Inventario. …": `UiSemantics.SelectedTab` wants two sibling tabs to call a bar a tab
-  bar, and when the cursor's item is read 100–300 ms late (empty on arrival, first tooltip) the layer is narrated as a panel
-  without focus, gold first, also on merchants with tabs — the opening should wait for a focus the tracker has pending;
+  opens as "4.776 oro. Oro", then "Inventario. …": the focus is logged 270 ms after the layer there (Finn's, with tabs, had
+  it 200 ms before and opened "Armas. Inventario. …"), and `UiSemantics.SelectedTab` wants two sibling tabs to call a bar a
+  tab bar. Tried live and reverted, as neither changed the line: holding the opening while the tracker had a focus pending,
+  and counting a lone tab once the selected byte is proved. Next: open Zarka's stock with VerboseLogging on and read which
+  `Narrate (…)` branch says the gold;
   (2) A beside another player opens that player's menu ("Invitar al grupo"), with no word that it is a player; (3) Finn's
   "Comprar o vender objetos" is the gamble and is not said to be. Not testable in town: Parry and flask drinks.
 - Hearing a grid at once (proposal, not built: it needs a binding and a choice of words). Facts: every grid gives its items
