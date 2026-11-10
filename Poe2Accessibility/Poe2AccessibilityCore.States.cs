@@ -66,6 +66,8 @@ namespace Poe2Accessibility
             {
                 this.creationHelpSaid = false;
                 this.classHelpSaid = false;
+                this.flasks?.ForgetCosts();
+                this.partnerFlasks?.ForgetCosts();
             }
 
             if (current == GameStateTypes.AreaLoadingState)

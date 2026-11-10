@@ -1,0 +1,131 @@
+namespace Poe2Accessibility.Tests
+{
+    using System;
+    using System.Collections.Generic;
+    using Poe2Accessibility.Services;
+    using static Check;
+
+    /// <summary>Values that must follow the game, not a table or an old reading (docs/research/robustness-audit-2026-11-10.md, stale values).</summary>
+    public static class LiveValueTests
+    {
+        private const string Life = "Frasco de vida grandioso";
+        private const string Mana = "Frasco de maná mayor";
+
+        public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
+        {
+            (nameof(AFlaskCountsUsesOnlyOnceTwoDrinksAgreeOnTheCost), AFlaskCountsUsesOnlyOnceTwoDrinksAgreeOnTheCost),
+            (nameof(AFlaskIsEmptyOnlyBelowTheCostSeen), AFlaskIsEmptyOnlyBelowTheCostSeen),
+            (nameof(AChargeGainedDuringADrinkDoesNotChangeTheCost), AChargeGainedDuringADrinkDoesNotChangeTheCost),
+            (nameof(ADrainTeachesNoCost), ADrainTeachesNoCost),
+            (nameof(FlaskNewsIsToldBySlot), FlaskNewsIsToldBySlot),
+            (nameof(AFlasksCostOutlivesAnAreaButNotACharacter), AFlasksCostOutlivesAnAreaButNotACharacter),
+        };
+
+        /// <summary>A flask whose drinks were seen to cost <paramref name="cost"/>, left at <paramref name="charges"/>; the clock ends past the last drink.</summary>
+        private static (FlaskDrinks Drinks, long Now) Learnt(int slot, string name, int charges, int cost)
+        {
+            var drinks = new FlaskDrinks();
+            drinks.Update(slot, name, charges + (2 * cost), 0);
+            drinks.Update(slot, name, charges + cost, 10_000);
+            drinks.Update(slot, name, charges, 20_000);
+            drinks.Update(slot, name, charges, 20_000 + FlaskDrinks.DrinkAloneMs);
+            return (drinks, 30_000);
+        }
+
+        private static void AFlaskCountsUsesOnlyOnceTwoDrinksAgreeOnTheCost()
+        {
+            // yarkey's magic flask: "Consume 8 de 75 cargas"; its base type says 10 (7 uses, where the truth is 9).
+            var drinks = new FlaskDrinks();
+            Equal(FlaskNews.New, drinks.Update(0, Life, 75, 0), "first read");
+            Equal<int?>(null, drinks.Uses(0, Life, 75), "no drink seen: no use count, the charges are said");
+            Equal(FlaskNews.Drunk, drinks.Update(0, Life, 67, 10_000), "a drink is news before its cost is known");
+            Equal(FlaskNews.None, drinks.Update(0, Life, 67, 14_000), "nothing new");
+            Equal<int?>(null, drinks.Uses(0, Life, 67), "one drink could have been cut short by a charge gained: not believed alone");
+            Equal(FlaskNews.Drunk, drinks.Update(0, Life, 59, 20_000), "the second drink");
+            Equal<int?>(null, drinks.PerUse(0, Life), "not judged until the drop has been left alone");
+            Equal(FlaskNews.None, drinks.Update(0, Life, 59, 20_000 + FlaskDrinks.DrinkAloneMs), "learning the cost is not news");
+            Equal<int?>(8, drinks.PerUse(0, Life), "two drinks agree");
+            Equal<int?>(7, drinks.Uses(0, Life, 59), "59 charges at 8 a drink");
+            Equal<int?>(9, drinks.Uses(0, Life, 75), "a full flask: 9 drinks, not the 7 of the base type");
+        }
+
+        private static void AFlaskIsEmptyOnlyBelowTheCostSeen()
+        {
+            var (drinks, now) = Learnt(0, Life, 17, 8);
+            Equal(FlaskNews.Drunk, drinks.Update(0, Life, 9, now), "a drink that leaves one more");
+            Equal<int?>(1, drinks.Uses(0, Life, 9), "9 charges at 8 a drink: one drink left, where the 10 of the base type said empty");
+            Equal(FlaskNews.Drunk, drinks.Update(0, Life, 1, now + 10_000), "the last drink: said once, empty");
+            Equal<int?>(0, drinks.Uses(0, Life, 1), "empty below the cost");
+            Equal(FlaskNews.None, drinks.Update(0, Life, 3, now + 11_000), "charges gained short of a drink are not news");
+            Equal(FlaskNews.Refilled, drinks.Update(0, Life, 8, now + 12_000), "a drink gained");
+
+            var unknown = new FlaskDrinks();
+            unknown.Update(1, Mana, 9, 0);
+            Equal(FlaskNews.None, unknown.Update(1, Mana, 9, 500), "9 charges of an unknown cost: never called empty");
+            unknown.Update(1, Mana, 12, 1000);
+            Equal(FlaskNews.None, unknown.Update(1, Mana, 15, 1500), "nor refilled: every charge gained would be told");
+            Equal(FlaskNews.Drunk, unknown.Update(1, Mana, 0, 10_000), "no charge at all is empty whatever a drink costs");
+        }
+
+        private static void AChargeGainedDuringADrinkDoesNotChangeTheCost()
+        {
+            var (drinks, now) = Learnt(0, Life, 50, 8);
+            drinks.Update(0, Life, 44, now); // a drink and two charges from a kill between two reads
+            drinks.Update(0, Life, 44, now + 5000);
+            Equal<int?>(8, drinks.PerUse(0, Life), "one odd drop is not believed");
+            drinks.Update(0, Life, 36, now + 10_000);
+            drinks.Update(0, Life, 36, now + 15_000);
+            drinks.Update(0, Life, 30, now + 20_000);
+            drinks.Update(0, Life, 30, now + 25_000);
+            Equal<int?>(8, drinks.PerUse(0, Life), "nor a second one after a drink at the known cost");
+            drinks.Update(0, Life, 24, now + 30_000);
+            drinks.Update(0, Life, 24, now + 35_000);
+            Equal<int?>(6, drinks.PerUse(0, Life), "two drinks in a row at another cost: the flask or its modifiers changed");
+        }
+
+        private static void ADrainTeachesNoCost()
+        {
+            var drinks = new FlaskDrinks();
+            drinks.Update(0, Life, 75, 0);
+            Equal(FlaskNews.Drunk, drinks.Update(0, Life, 73, 10_000), "the first drop could be a drink");
+            var at = 10_500L;
+            for (var charges = 71; charges > 40; charges -= 2, at += 500)
+            {
+                Equal(FlaskNews.None, drinks.Update(0, Life, charges, at), "a drop right after another is a drain: not told as drinks");
+            }
+
+            drinks.Update(0, Life, 41, 60_000);
+            Equal<int?>(null, drinks.PerUse(0, Life), "ticks one after another teach no cost");
+
+            var aura = new FlaskDrinks();
+            aura.Update(0, Life, 75, 0);
+            Equal(FlaskNews.None, aura.Update(0, Life, 70, 10_000, draining: true), "under a flask-drain effect a drop is no drink");
+            aura.Update(0, Life, 65, 20_000, draining: true);
+            aura.Update(0, Life, 65, 30_000);
+            Equal<int?>(null, aura.PerUse(0, Life), "and teaches no cost, however alone it comes");
+        }
+
+        private static void FlaskNewsIsToldBySlot()
+        {
+            var (drinks, now) = Learnt(1, Mana, 60, 10);
+            Equal(FlaskNews.Drunk, drinks.Update(1, Mana, 50, now), "a drink, whatever item entity the game made for it");
+            Equal(FlaskNews.None, drinks.Update(1, Mana, 50, now + 500), "no change");
+            Equal(FlaskNews.None, drinks.Update(1, Mana, 55, now + 1000), "charges short of a use are not news");
+            Equal(FlaskNews.Refilled, drinks.Update(1, Mana, 60, now + 1500), "a use gained from kills");
+            Equal(FlaskNews.New, drinks.Update(1, Life, 20, now + 2000), "another flask put in the slot");
+            Equal<int?>(null, drinks.Uses(1, Life, 20), "which has its own cost to be seen");
+            Equal(FlaskNews.New, drinks.Update(2, Mana, 30, now + 2500), "a flask in a slot empty until now");
+        }
+
+        private static void AFlasksCostOutlivesAnAreaButNotACharacter()
+        {
+            var (drinks, now) = Learnt(0, Life, 59, 8);
+            drinks.Update(0, Life, 51, now);
+            drinks.Clear();
+            Equal(FlaskNews.New, drinks.Update(0, Life, 75, now + 1000), "a new area: first read (the well refilled it)");
+            Equal<int?>(9, drinks.Uses(0, Life, 75), "the same flask costs the same in the next area");
+            drinks.ForgetCosts();
+            Equal<int?>(null, drinks.Uses(0, Life, 75), "another character's flask of the same name is learnt again");
+        }
+    }
+}

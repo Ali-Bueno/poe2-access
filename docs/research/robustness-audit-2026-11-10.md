@@ -82,3 +82,23 @@ Closed on 2026-11-10, third pass (with the [file catalogs](file-catalogs.md)):
 
 Not faults, by the logs: the vitals' thresholds re-arm with a margin (154 "Vida 50 por ciento" in two days of fights);
 a targeted monster's name is said each time the target changes; the terms of use read their 248 paragraphs.
+
+## Stale values, 2026-11-10
+
+A second audit the same day looked for values said with confidence after the game changed them: a table standing in for a
+live value, a cache that outlives what it caches, a line said after its subject changed. Each entry: what was wrong, the
+rule now in force, where.
+
+### Player, combat, host
+
+- **Flask uses (A1).** The use count divided the charges by the base type's cost, which ignores the flask's modifiers
+  (a magic flask that "consumes 8 of 75 charges" was said as 7 uses and called empty with a drink left). Rule: what a
+  drink costs is the drop seen in the charges when the flask is drunk, kept per belt slot and flask name
+  (`FlaskDrinks`). A drop counts as a drink when no other drop comes within 3 s on either side and no flask-drain
+  effect is on the player (BuffDefinitions has three: `generic_flask_drain`, `monster_flask_drain_aura`,
+  `flask_draining_lasso`); two such drinks in a row must agree before the cost is believed or changed, so a charge
+  gained from a kill between two reads cannot shift it. Until then the flask is said by its charges ("Frasco de vida
+  grandioso, 67 cargas") and is empty only at 0 charges; refills are not said while the cost is unknown. The costs
+  survive an area change and are forgotten at character selection. Not covered: a drain slower than one tick in 3 s
+  whose ticks repeat, and another flask of the same name put in the same slot (corrected by its second drink). Log:
+  `Flask cost: <name> in slot N, 8 charges a drink as seen (was unknown), …`; dev command `flasks` shows base and seen.

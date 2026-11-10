@@ -17,5 +17,8 @@ namespace Poe2Accessibility.Services
         }
 
         public static bool IsHiddenMonster(string id) => Base(id) == HiddenMonster;
+
+        /// <summary>The game's flask-drain effects (BuffDefinitions: generic_flask_drain, monster_flask_drain_aura, flask_draining_lasso).</summary>
+        public static bool IsFlaskDrain(string id) => id.Contains("flask_drain", StringComparison.Ordinal);
     }
 }

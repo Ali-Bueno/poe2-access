@@ -317,7 +317,7 @@ namespace Poe2Accessibility
             var player = Seats.Asking.TryGetComponent<GameReader.RemoteObjects.Components.Player>(out var me) ? me : null;
             var character = player?.Level ?? 0;
             var levels = Announcements.Levels(character, AreaLevel(), player == null ? null : this.experience?.PercentToNext(character, unchecked((uint)player.Xp)));
-            var flasks = string.Join(", ", (Seats.AskingSecond && Seats.Partner != null ? this.partnerFlasks : this.flasks)?.Flasks().Select(flask => Announcements.Flask(flask.Name, flask.Uses)) ?? Enumerable.Empty<string>());
+            var flasks = string.Join(", ", (Seats.AskingSecond && Seats.Partner != null ? this.partnerFlasks : this.flasks)?.Readout() ?? Enumerable.Empty<string>());
             var explored = this.entities?.ExploredPercent() is { } percent ? Announcements.Explored(percent) : string.Empty;
             var gold = this.gold?.Amount is { } coins ? Announcements.Amount(coins.ToString(System.Globalization.CultureInfo.CurrentCulture), Announcements.Gold, false) : string.Empty;
             var encounter = Announcements.Sentences((this.encounters?.Lines(this.narrator?.HudLayer ?? IntPtr.Zero) ?? Array.Empty<string>())

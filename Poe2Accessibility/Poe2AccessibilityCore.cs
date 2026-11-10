@@ -280,8 +280,8 @@ namespace Poe2Accessibility
                 this.searchHighlights = new SearchHighlightWatch(elements, inventory, line => this.output.Speak(line, false));
                 this.pickups = new InventoryWatch(inventory, followedVoice, this.log) { Seat = followedSeat };
                 this.partnerPickups = new InventoryWatch(inventory, partnerVoice, this.log) { Seat = () => 2 };
-                this.flasks = new FlaskWatch(inventory, followedVoice) { Seat = followedSeat };
-                this.partnerFlasks = new FlaskWatch(inventory, partnerVoice) { Seat = () => 2 };
+                this.flasks = new FlaskWatch(inventory, followedVoice) { Seat = followedSeat, Log = this.log };
+                this.partnerFlasks = new FlaskWatch(inventory, partnerVoice) { Seat = () => 2, Log = this.log };
                 this.gold = new GoldWatch(elements, this.output, this.log) { Fields = this.locator.Fields };
                 this.pickups.Gold = () => this.gold?.ReadNow();
                 this.focus.InGameHighlightRoot = this.ShopPage;
