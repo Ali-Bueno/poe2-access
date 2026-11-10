@@ -4,7 +4,6 @@ namespace Poe2Accessibility
     using System.IO;
     using System.Linq;
     using GameReader;
-    using GameReader.RemoteEnums;
     using Poe2Accessibility.Models;
     using Poe2Accessibility.Services;
 
@@ -460,7 +459,7 @@ namespace Poe2Accessibility
             var manager = this.locator.Locate(this.gameState.CurrentState, stateObject);
             var root = this.memoryReader.TryRead<IntPtr>(manager + GameLayout.UiManager.RootOffset, out var held) ? held : IntPtr.Zero;
             var result = $"Layout self-test ({this.gameState.CurrentState}): {this.layoutProbe.SelfTest(root, manager)}";
-            if (this.gameState.CurrentState == GameStateTypes.InGameState)
+            if (this.InGame)
             {
                 result += $"; {this.locator.Fields.SelfTest(this.locator.InGameLayerContainer(stateObject))}";
             }

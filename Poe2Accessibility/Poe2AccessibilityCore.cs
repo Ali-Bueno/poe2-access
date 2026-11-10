@@ -211,7 +211,7 @@ namespace Poe2Accessibility
                         this.semantics?.PassiveFocusLeft();
                     }
 
-                    if (this.gameState?.CurrentState == GameStateTypes.InGameState)
+                    if (this.InGame)
                     {
                         this.flagBits?.SampleFocus(node.Address, node.Role);
                     }
@@ -577,7 +577,7 @@ namespace Poe2Accessibility
                 return;
             }
 
-            var inGame = this.gameState.CurrentState == GameStateTypes.InGameState;
+            var inGame = this.InGame;
             var container = inGame ? this.locator.InGameLayerContainer(stateObject) : this.focus.CurrentRoot;
             this.focus.LayerContainer = container;
             if (this.semantics != null)
@@ -639,7 +639,7 @@ namespace Poe2Accessibility
 
             if (watching && this.Settings.AnnounceAppearingText)
             {
-                this.mapPins?.Tick(this.gameState.CurrentState == GameStateTypes.InGameState ? this.WorldScreen() : IntPtr.Zero);
+                this.mapPins?.Tick(this.InGame ? this.WorldScreen() : IntPtr.Zero);
             }
 
             this.wasWatching = watching;

@@ -1,17 +1,15 @@
 namespace Poe2Accessibility
 {
     using System;
-    using System.IO;
-    using System.Linq;
     using GameReader;
-    using GameReader.Plugin;
     using GameReader.RemoteEnums;
-    using Poe2Accessibility.Models;
     using Poe2Accessibility.Services;
 
     /// <summary>Game state and area changes of <see cref="Poe2AccessibilityCore"/>: what is said when the game attaches, changes state, closes or loads an area.</summary>
     public sealed partial class Poe2AccessibilityCore
     {
+        private bool InGame => this.gameState?.CurrentState == GameStateTypes.InGameState;
+
         /// <summary>When the game went to "not loaded"; zero once announced or left (see <see cref="AnnounceLastingClose"/>).</summary>
         private long closedSince;
 

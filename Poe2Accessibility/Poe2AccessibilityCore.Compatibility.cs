@@ -4,8 +4,6 @@ namespace Poe2Accessibility
     using System.IO;
     using System.Linq;
     using GameReader;
-    using GameReader.RemoteEnums;
-    using Poe2Accessibility.Models;
     using Poe2Accessibility.Services;
 
     /// <summary>Patch survival of <see cref="Poe2AccessibilityCore"/>: the code fields read from the exe, what a game update added, and the compatibility report.</summary>
@@ -88,7 +86,7 @@ namespace Poe2Accessibility
         private void SayCompatibility()
         {
             this.TakeCodeFields();
-            this.worldLayout?.Tick(this.gameState?.CurrentState == GameStateTypes.InGameState);
+            this.worldLayout?.Tick(this.InGame);
             if (this.compatibility?.TakeUnsaid() is { Count: > 0 } missing)
             {
                 this.output.Speak(Announcements.CompatibilityMissing(missing), false);
@@ -99,7 +97,7 @@ namespace Poe2Accessibility
                 this.output.Speak(survived, false);
             }
 
-            if (this.gameNewsLine is { } news && this.gameState?.CurrentState == GameStateTypes.InGameState)
+            if (this.gameNewsLine is { } news && this.InGame)
             {
                 this.gameNewsLine = null;
                 this.output.Speak(news, false);
