@@ -196,7 +196,7 @@
 | Route turn prompts, partial routes, controls help in the settings menu | done (live) | "Ahora arriba a la derecha, 10"; help topics open the L3 menu; the menu edge knock was removed (user 2026-10-24) |
 | Game updates: layout found again, data regenerated, losses said | done (every part judged live 2026-10-25: login, character creation, town with a quest marker, options, inventory, passive tree, skill bar, left trigger) | `LayoutProbe` (+ image textures), `InGameFields`, `ControlFields` (+ tabs, skill slots, passive canvas and nodes, class selector, panel title, hint, check box and list seen changing), `EntityFields` (in-play flag, quest marker), `FlagBits`, `PadButtonCheck`, `PassiveTreeFields`, `TileGridSearch`, `BaseNameField`, `GameStateService.AreaRowOffset`, `CompatibilityReport`; `tools/package/Update-GameHelper.ps1`; launcher `GameDataSetup` + `DatContentColumns` (passive flags, skill keys by content); dev command `layout`; `docs/compatibility.md` |
 | Names from the game's tables, what a patch added | done (live, simulated update) | `GameIds`, `AnimationNames`, `GameNews`: animation names and Rage's stats come from `catalog/game-ids.txt`, 500 of GameHelper's 1084 names were wrong; `catalog/game-keys.txt` says what an update added; [compatibility](docs/compatibility.md#regenerated-by-the-launcher-packaged-builds), [study](docs/research/game-data-sources.md) |
-| Host follows its own offsets after a patch | done (live on 0.5.5f; simulated) | `AreaLayoutSearch`, `OffsetHealer`, `StructRemap`, `GameStatesSearch`, `WorldLayoutWatch`; 0.5.5f silenced enemies, radar and items until this; [compatibility](docs/compatibility.md#found-again-at-runtime-host) |
+| Host follows its own offsets after a patch | done (live on 0.5.5f; simulated; the state anchor with its pattern broken on purpose, 2026-11-10) | `AreaLayoutSearch`, `OffsetHealer`, `StructRemap`, `GameStatesSearch` + `GameProcess.ProveGameStates`, `PatternScan`, `WorldLayoutWatch`, `tools/Check-GameExe.ps1`; 0.5.5f silenced enemies, radar and items until this; [compatibility](docs/compatibility.md#found-again-at-runtime-host) |
 | Content changes such as 1.0 (smaller Atlas, new tree) | done (code; offline: every changed extractor byte-identical on today's install; stick self-check and Atlas catalog check unseen live) | `DatColumnSearch` + per-table finders (`EndgameExtractor.Columns`, `ProjectileColumns`, `BuffColumns`, `HazardColumns`, `AnimationColumns`), `SkillGraphFile` version check, `StickCheck`, `StickRuleCode`; [compatibility](docs/compatibility.md#content-changes-such-as-10) |
 | Game data survives mod updates | done (simulated on a copy of the user's `dist`: carry-over 2 s, update restored, one step rerun alone) | `GameDataSetup` + pure `GameDataStamp`: per-step versions, catalogs in `app/GameData` copied over the shipped ones, sounds in the plugin; a game patch reruns all in ~33 s: one extractor `batch` run on one opened index (`Batch.cs`); `tools/README.md` |
 | Scanner limited to what a sighted player sees | done (live) | `EntityCatalog.Sighted`: enemies on screen, minimap-icon things once the client has them, the rest once seen or explored; Quest category at any distance, a place not seen yet as the way toward it (next row); `docs/research/minimap.md` |
@@ -465,6 +465,18 @@ Next: (1) **Bosses by hand** — the Bloated Miller with a new low character (a 
 Earlier chunks, newest first: [status history](docs/status-history.md).
 
 ## Known issues / open questions
+- The reader and the extraction were hardened on 2026-11-10 (second pass, [compatibility](docs/compatibility.md#found-again-at-runtime-host),
+  [performance](docs/research/performance.md#reader-pass-2026-11-10), [patch day](docs/patch-day.md)): the state anchor is proven and
+  searched for, the states are counted, the pre-game UI root is reached by shape, unchecked code fields are said, the game's
+  process is told by more than its title, the extractor fails a step instead of guessing a column, and the reader makes half the
+  reads in town. Live on yarkey in town, at login and character selection; **no fight was played**: the state-machine name cache,
+  the buff name check, the entity re-identification and the collector's pauses in a fight are for the user's next boss (read
+  `Frames:` in `Poe2Access.log` and `costs`). The UI root by shape has only synthetic tests: no build moved the self pointer.
+- Still on one protection or none, and needing the live game to design a search: the passive tree record's edges (0x38/0x50), the
+  PassiveSkills row byte 0x66, the hovered pin 0x2D0, the skill-slot offsets 0x40/0x58, the mouse hover chain; the 39 fields only the
+  exe's code checks have no live invariant yet (flask charges, cooldown entries, chest and shrine flags, stack counts). A UI group
+  whose near search fails is not yet searched over the whole object. Extractor offsets left unvalidated are listed in
+  [patch day](docs/patch-day.md).
 - The stash's and the well's sounds were picked by measurement, the user away (2026-11-10): [audition page](https://claude.ai/artifact/HKNYM3jD9bvzBA1ECTK4Ww);
   another pick is one line of `SoundExtractor.Cues` and the `Sounds` step raised (`GameDataSteps`).
 - A merchant's search is not tried (the stash's is): the watch finds the grid by climbing from the focused text field. L3 tapped in a

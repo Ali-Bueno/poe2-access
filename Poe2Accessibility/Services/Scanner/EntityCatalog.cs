@@ -152,6 +152,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The last combined grid and the live grid it was made from (see WalkableGrid).</summary>
         private (byte[] Live, byte[] Grid)? stable;
+        private byte[]? newestSample;
 
         /// <summary>
         ///     The target described last (id and area instance), its whole route and the first direction said: asked again on
@@ -359,6 +360,7 @@ namespace Poe2Accessibility.Services
             lock (this.samplesLock)
             {
                 this.samples.Clear();
+                this.newestSample = null;
                 this.stable = null;
                 this.barriers.Reset();
                 this.closedBarriers.Clear();

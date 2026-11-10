@@ -23,48 +23,60 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     The walkable grid as the game holds it now. GameHelper copies it once per area, but the game edits it
         ///     in place when a tutorial barrier or a door opens or closes; the vector itself does not move.
+        ///     The array returned is shared and must not be written to: the guide asks on every ping and a route is
+        ///     searched on another thread, and a copy each (hundreds of kilobytes, so the large object heap) made the
+        ///     collector run every few seconds (2026-11-10: 5 full collections a minute standing in town).
         /// </summary>
         private byte[] WalkableGrid(AreaInstance area)
         {
             var snapshot = area.GridWalkableData;
-            var live = this.memory.ReadStdVector<byte>(area.TerrainMetadata.GridWalkableData, snapshot.Length);
-            if (live.Length != snapshot.Length)
-            {
-                return snapshot;
-            }
-
-            // A cell is walkable for routes only if it was in every recent sample: a closed tutorial barrier
-            // (TutorialBlocker3 by the Riverbank bridge, 2026-10-23) flickers in the live grid every few seconds,
-            // which split the ground in two and made routes and the guide's "the way is closed" flap. A gate that
-            // really opens is walkable again once the samples agree (about two seconds). Past the network bubble the
-            // grid cannot be trusted at all: see BarrierMemory.
             lock (this.samplesLock)
             {
+                // Between two samples the answer is the last one: the game's grid is read twice a second, not once a caller.
                 var now = Environment.TickCount64;
+                if (this.stable is { } recent && recent.Grid.Length == snapshot.Length && now - this.lastSampleAt < SampleMs)
+                {
+                    return recent.Grid;
+                }
+
+                var live = this.memory.ReadStdVector<byte>(area.TerrainMetadata.GridWalkableData, snapshot.Length);
+                if (live.Length != snapshot.Length)
+                {
+                    return snapshot;
+                }
+
+                // A cell is walkable for routes only if it was in every recent sample: a closed tutorial barrier
+                // (TutorialBlocker3 by the Riverbank bridge, 2026-10-23) flickers in the live grid every few seconds,
+                // which split the ground in two and made routes and the guide's "the way is closed" flap. A gate that
+                // really opens is walkable again once the samples agree (about two seconds). Past the network bubble the
+                // grid cannot be trusted at all: see BarrierMemory.
                 if (this.samples.Count > 0 && this.samples.Peek().Length != live.Length)
                 {
                     this.samples.Clear();
+                    this.newestSample = null;
                     this.stable = null;
                 }
 
-                if (this.samples.Count == 0 || now - this.lastSampleAt >= SampleMs)
+                // A grid that did not change is the sample before it: one array stands for all of them.
+                var newest = this.newestSample;
+                var same = newest != null && newest.AsSpan().SequenceEqual(live);
+                this.newestSample = same ? newest! : live;
+                this.samples.Enqueue(this.newestSample);
+                this.lastSampleAt = now;
+                var closed = this.barriers.ClosedCount;
+                var changes = this.barriers.Changes;
+                if (Seats.Followed.TryGetComponent<Render>(out var player))
                 {
-                    this.samples.Enqueue(live);
-                    this.lastSampleAt = now;
-                    this.stable = null;
-                    if (Seats.Followed.TryGetComponent<Render>(out var player))
+                    this.barriers.Observe(live, snapshot, area.TerrainMetadata.BytesPerRow, (int)player.GridPosition.X, (int)player.GridPosition.Y);
+                    if (this.barriers.ClosedCount != closed)
                     {
-                        var before = this.barriers.ClosedCount;
-                        this.barriers.Observe(live, snapshot, area.TerrainMetadata.BytesPerRow, (int)player.GridPosition.X, (int)player.GridPosition.Y);
-                        if (this.barriers.ClosedCount != before)
-                        {
-                            this.log.Debug($"Barrier cells remembered closed: {this.barriers.ClosedCount}");
-                        }
+                        this.log.Debug($"Barrier cells remembered closed: {this.barriers.ClosedCount}");
                     }
-                    while (this.samples.Count > MaxSamples)
-                    {
-                        this.samples.Dequeue();
-                    }
+                }
+
+                while (this.samples.Count > MaxSamples)
+                {
+                    this.samples.Dequeue();
                 }
 
                 if (this.log.Verbose && !live.AsSpan().SequenceEqual(snapshot))
@@ -72,16 +84,20 @@ namespace Poe2Accessibility.Services
                     this.log.Debug($"Walkable grid changed since the area loaded: {Changed(snapshot, live)} cells");
                 }
 
-                // The guide asks on every ping: the combination is kept while no sample was added and the live grid is
-                // the same; callers get their own copy.
-                if (this.stable is { } kept && kept.Live.AsSpan().SequenceEqual(live))
+                // Every sample the same array and no barrier learnt or forgotten: what was combined before still holds.
+                if (this.stable is { } kept && this.barriers.Changes == changes && this.samples.All(sample => ReferenceEquals(sample, kept.Live)))
                 {
-                    return (byte[])kept.Grid.Clone();
+                    return kept.Grid;
                 }
 
-                var stable = (byte[])live.Clone();
+                var stable = (byte[])this.newestSample.Clone();
                 foreach (var sample in this.samples)
                 {
+                    if (ReferenceEquals(sample, this.newestSample))
+                    {
+                        continue;
+                    }
+
                     for (var i = 0; i < stable.Length; i++)
                     {
                         var both = stable[i];
@@ -101,8 +117,8 @@ namespace Poe2Accessibility.Services
                 }
 
                 this.barriers.Apply(stable);
-                this.stable = (live, stable);
-                return (byte[])stable.Clone();
+                this.stable = (this.newestSample, stable);
+                return stable;
             }
         }
 
@@ -158,6 +174,7 @@ namespace Poe2Accessibility.Services
             lock (this.samplesLock)
             {
                 this.samples.Clear();
+                this.newestSample = null;
                 this.stable = null;
             }
         }

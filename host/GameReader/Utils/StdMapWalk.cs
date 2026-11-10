@@ -39,6 +39,24 @@ namespace GameReader.Utils
         public static bool SkipsRight(ulong key, ulong limit) => key >= limit;
     }
 
+    /// <summary>
+    ///     When a map read out of order stops being read by its order (pure). One walk out of order is the game moving
+    ///     nodes while they were read (seen live in town, 80 s into an area, 2026-11-10): that walk reads every node and
+    ///     the next is ordered again. A map that is not ordered by the key at all is out of order on every walk.
+    /// </summary>
+    internal static class OrderFaults
+    {
+        /// <summary>Walks out of order in a row that mean the map is not ordered as assumed.</summary>
+        public const int MaxInARow = 3;
+
+        /// <summary>Counts a walk and says whether the order is to be given up for the area.</summary>
+        public static bool GiveUp(ref int inARow, bool outOfOrder)
+        {
+            inARow = outOfOrder ? inARow + 1 : 0;
+            return inARow >= MaxInARow;
+        }
+    }
+
     /// <summary>How long the entities an incomplete walk did not reach keep their state (pure).</summary>
     internal static class IncompleteWalks
     {

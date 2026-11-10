@@ -24,12 +24,16 @@ namespace Poe2Accessibility.Services
         /// <summary>Cells remembered closed.</summary>
         public int ClosedCount => this.closedCount;
 
+        /// <summary>Gets a number that changes whenever a cell is remembered closed or forgotten: what was made with the memory before is stale.</summary>
+        public int Changes { get; private set; }
+
         /// <summary>A new area.</summary>
         public void Reset()
         {
             this.everOpen = Array.Empty<byte>();
             this.closed = Array.Empty<byte>();
             this.closedCount = 0;
+            this.Changes++;
         }
 
         /// <summary>One live sample, with the grid as the area loaded (to know a barrier closed before the first sample).</summary>
@@ -45,6 +49,7 @@ namespace Poe2Accessibility.Services
                 this.everOpen = loaded.Length == live.Length ? (byte[])loaded.Clone() : new byte[live.Length];
                 this.closed = new byte[live.Length];
                 this.closedCount = 0;
+                this.Changes++;
             }
 
             // Closed is believed at any distance (the client blocks a cell only for an entity it knows); walkable only
@@ -57,6 +62,7 @@ namespace Poe2Accessibility.Services
                 {
                     this.closed[i] |= shut;
                     this.closedCount += Count(shut);
+                    this.Changes++;
                 }
 
                 var reopened = (byte)(now & this.closed[i]);
@@ -69,6 +75,7 @@ namespace Poe2Accessibility.Services
                     {
                         this.closed[i] &= (byte)~mask;
                         this.closedCount--;
+                        this.Changes++;
                     }
                 }
             }

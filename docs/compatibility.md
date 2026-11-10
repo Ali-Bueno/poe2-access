@@ -41,7 +41,7 @@ host's searches (once a patch to GameHelper2, now in `host/`) read those fields 
 | Camera | the game keeps the matrix twice, one copy after the other | `StructShapes.IsCameraMatrix` |
 | Positions | a point inside the map that projects near the screen's middle (the camera follows the player); no such point while the measured field still holds a point of the map is not judged: the camera is elsewhere, and the field has not moved | `OffsetHealer.JudgePosition` |
 | Game state's area and world pointers | the pointer whose target holds a world / a camera matrix | `OffsetHealer.LocateArea` |
-| Game states, when their pattern fails or matches another function | a static in the image's writable data that points at an object with a run of state slots (at least 8 used; counted, 13 on 0.5.5f) and a stack whose top is one of them, wherever in the object they are | `GameStatesSearch`, `GameStateLayout.IsStateObject` |
+| Game states, when their pattern fails or matches another function | a static in the image's writable data that points at an object beginning with a virtual table, with a run of state slots (at least 8 used; counted, 13 on 0.5.5f), each state beginning with a virtual table of its own, and a stack whose top is one of them, wherever in the object they are | `GameStatesSearch`, `GameStateLayout.IsStateObject` |
 | Game state object: stack and state list (every attach) | 13 slots of (object, control block), the used ones distinct and heap-aligned, and a stack of 16-byte entries whose last is one of them. The measured list is kept while it fits; a moved one takes, of the list found and those a slot either side, the one with more states. A list a whole slot off reads as one too: both roles found the same number of slots off rename every state (`WholeShift`). Not found at attach (the game still starting): looked for again every 2 s, said lost after two minutes | `GameStateLayout.Locate`, `GameStates.JudgeLayout` |
 | UI element base (`UiElementBaseOffset`: self, children, parent; position, modifier, scale; flags, scale index; size) | on the UI root, before any walk reads through them: its own address; children that are elements whose parent field points back at it; its size, the base resolution 2560 x 1600. The position group (the root at 0,0 with scale 1) and the flags group (the root visible with scale index 3, its descendants not all alike) have no such mark, so each takes the parent's or the size's shift, whichever fits. The plugin's readers of the struct (`UiElementReader`, `UiTreeReader`, `HostMemoryReader.TryRead`) go through the host's remap (`HostStructs`) | `UiElementLayoutSearch`, `OffsetHealer.JudgeUiElementBase` (called by `LayoutProbe.ProbeElementBase`) |
 | Window cull (`GameCullSize` pattern) | a check only: a value that is no cull of this window (negative, half the width or more) reads 0 and is said lost. Nothing in memory gives it: 2560 x 1440 reads 0, so it is not the 16:10 base resolution's bar (that would be 128) | `GameWindowCull.Judge` |
@@ -58,10 +58,31 @@ offset taken by hand through `HostStructs.Follow<T>` (an item's path in `Invento
 A pattern not found no longer stops the rest (`PatternFinder` threw, and a missing key in `Core` could take the other
 coroutines of the event with it). No pattern is believed alone (`GameProcess.ScanStatics`, `PatternScan`): every match is
 counted, in the image's code only, and a displacement that points outside the image is no answer. The state object's
-place is proven by what it holds; while it is not, `GameProcess.ProveGameStates` tries it again every 3 s and searches the
-image's data for the static that does hold one, so a pattern that is gone, matches twice or matches another function
-costs seconds at the start (log: `Game states: found by search at +0x…; the pattern gave …`). The cull takes the place both
-its patterns name, else the one that names a single place. The scan runs off the frame thread. `WorldLayoutWatch` runs the sweep on a settled area, in the first three areas of a game
+place is proven by what it holds (`GameStateLayout.IsStateObject`): a state list and a stack that fit together, the object
+and each state beginning with a virtual table inside the image, no two states sharing one, the current state among them.
+While it is not proven, `GameProcess.ProveGameStates` tries the pattern's place again every 3 s; a place that is empty or
+holds an object still being built is waited on for 30 s (the game is starting), and only then, or at once when the pattern
+gave no place or one that holds no object, the image's writable data is searched for the static that does hold one. Two
+different objects that pass are not chosen between, and the pattern's place is believed again if it comes to hold the
+object. The cull takes the place both its patterns name, else the one that names a single place. The scan runs off the
+frame thread.
+
+Live on 0.5.5f, 2026-11-10, each with the game then closed from its own menu:
+
+| Case | What happened |
+|---|---|
+| Mod started on a running game | `game states proven +0x45EE348` at attach |
+| Mod started before the game | `not proven yet`, the pre-game states read as they came, `the place the pattern gave holds the state object` 6 s later, no search |
+| Pattern broken on purpose (one byte), game running | `0 places`, `found by search at +0x45EE348 (1 place(s))` 3 s later, login read |
+| Pattern broken, mod started before the game | first search found nothing, the second (6 s) the right static; nothing wrong was said |
+| Pattern made to match the cull's reader instead | `not proven yet +0x45A4C00`, 30 s of patience (the cull holds 0), then found by search |
+
+The first version of the proof asked only for the list and the stack, anywhere in the object. Started before the game, its
+search took an allocator's table of free blocks for the state object 3 s after attach (`found by search at +0x45ED600 (4
+place(s))`, a list "moved to +0x140" with 12 states) and the mod said "Cambiar contraseña" at the login screen. The virtual
+tables, the patience and the refusal to choose between two objects are the answer to that; `HostSearchTests` keeps the shape.
+A mod started before the game also never read the states when the static was still empty at attach: the object is now
+read again every 2 s until it is there (`GameStates.JudgeLayout`), and once more when its place is proven. `WorldLayoutWatch` runs the sweep on a settled area, in the first three areas of a game
 process (80-110 ms each); a field missing is said, and a new build read with nothing lost says "El juego se ha actualizado:
 el mod lo ha encontrado todo" (`config/game-build.txt`).
 

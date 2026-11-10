@@ -59,7 +59,7 @@ measured in this session (the character was 10 levels under the area).
 - **The host's `Frames:` line** now counts the reads per frame by type: the measure to watch after a change.
 - **ImGui and GameHelper's overlay-only code** were removed (no per-frame cost, but less to load and keep compiled).
 
-## Reader pass (2026-11-10, not yet measured live)
+## Reader pass (2026-11-10)
 
 Starting point (read-only analysis, 0.5.5f): a frame cost a median 1.74 ms (reader 0.69, plugin 0.94), 678 reads a frame,
 up to 905 in a boss fight, and in fights about 30 frames a minute over 16.7 ms (slowest 60–93 ms) with no known cause.
@@ -97,6 +97,31 @@ logs `Slow tick: <part> took N ms` for a part's run over 25 ms (once in 10 s per
 `Screen snapshots: n, avg ms average, slowest ms` (the watcher's own thread). A minute's over-budget frames that match
 gen 1/2 collections and the pause point at the GC; `Slow tick` lines name a plugin part; neither leaves the reader
 (parallel walk, pool wake-ups) or the system.
+
+### Measured live (yarkey standing in G2_town, 2026-11-10, a full minute each)
+
+| | Before | After the pass | After the grid change below |
+|---|---|---|---|
+| Reads a frame | about 645 | 370 | 338 |
+| ``StdMapNode`2`` reads a frame | 170 to 273 | 59 | 56 |
+| Frame cost | 1.08 ms | 0.90 ms | 0.82 ms |
+| CPU of one core | 18% | 11.6% | 9.3% |
+| Frames over 16.7 ms | 0 to 4 | 1 | 1 |
+| Collections (gen 0/1/2) | not counted | 105/12/5, 74.5 ms paused | 101/11/4, 72.7 ms paused |
+| Runs over 8 ms in about 155 s: sounds, nearby, beacon | not counted | 73, 32, 25 | 27, 12, 6 |
+
+- **The hitches are the collector.** The runs over 8 ms came once every 5 s in "nearby" (the entity listing, the part that
+  allocates most), which is the rate of the generation 1 collections. `EntityCatalog.WalkableGrid` read the whole live
+  grid into a new array on every call and returned a copy more, hundreds of kilobytes each, so on the large object heap,
+  and the guide asks on every ping. It now reads the grid twice a second (`SampleMs`), keeps one array for samples that did
+  not change, combines them again only when a sample or the barrier memory changed (`BarrierMemory.Changes`), and hands
+  every caller the same array, which none writes to. What is left is the reader's own arrays (109 `Byte[]` reads a frame):
+  a read into a caller's buffer would be the next step.
+- **One walk out of id order in town**, 80 s into the area and never again: the game moving nodes as they were read. The
+  order is given up for an area only after three such walks in a row (`OrderFaults`); none was logged in the 10 minutes after.
+- **Not measured:** a fight (the script does not fight). The `Frames:` line and `costs` now say what a fight costs, with the
+  collections, the slowest run of each part and `Slow tick` lines: read them after the user's next boss.
+- **Screen watcher:** 2.4 ms a snapshot on average (slowest 31 ms), so it is not where the rest of the CPU goes.
 
 **To confirm live** (`Frames:` reads by type, town then a fight): ``StdMapNode`2`` close to the awake entities under the
 visual ids plus ~10 (Act 2 town: some 55 instead of ~430, and the total about 375 lower); no `EnvironmentStruct[]`;

@@ -121,9 +121,10 @@ namespace GameReader.RemoteObjects
             {
                 lock (this.gameStatesLock)
                 {
-                    this.myStaticObj = reader.ReadMemory<GameStateStaticOffset>(this.Address);
+                    // While the game starts the static is empty, then holds an object with no states yet: neither is an error.
+                    this.myStaticObj = reader.TryReadMemory<GameStateStaticOffset>(this.Address, out var held) ? held : default;
                     this.LayoutOutcomes = this.JudgeLayout(reader, out var counted);
-                    var data = reader.ReadMemory<GameStateOffset>(this.myStaticObj.GameState);
+                    var data = this.myStaticObj.GameState != IntPtr.Zero && reader.TryReadMemory<GameStateOffset>(this.myStaticObj.GameState, out var read) ? read : default;
 
                     // As many states as the game has; while its list is not found, the thirteen where they were measured.
                     this.slots = new long[Math.Max(counted.Length, GameStateHelper.TOTAL_STATES)];
@@ -158,6 +159,11 @@ namespace GameReader.RemoteObjects
                 {
                     this.nextLayoutAt = Environment.TickCount64 + LayoutRetryMs;
                     this.UpdateData(true);
+                }
+
+                if (this.myStaticObj.GameState == IntPtr.Zero)
+                {
+                    return; // the game has not made its state object yet
                 }
 
                 var data = reader.ReadMemory<GameStateOffset>(this.myStaticObj.GameState);
@@ -206,6 +212,21 @@ namespace GameReader.RemoteObjects
             }
         }
 
+        /// <summary>Reads the state object again from its static, as on attach: the static was just proven to hold it.</summary>
+        internal void Rejudge()
+        {
+            if (this.Address == IntPtr.Zero)
+            {
+                return;
+            }
+
+            lock (this.gameStatesLock)
+            {
+                this.layoutTried = 0;
+                this.UpdateData(true);
+            }
+        }
+
         /// <summary>Where the state object keeps its stack and its list, judged on every attach (<see cref="GameStateLayout"/>).</summary>
         private IReadOnlyList<StructOutcome> JudgeLayout(SafeMemoryHandle reader, out long[] states)
         {
@@ -213,6 +234,9 @@ namespace GameReader.RemoteObjects
             var block = reader.ReadMemoryArray<byte>(this.myStaticObj.GameState, GameStateLayout.BlockBytes);
             if (block.Length == 0)
             {
+                // No object yet (the static is still empty, live on 2026-11-10 with the mod started before the game): looked at
+                // again like a list not built yet, or the states would never be read.
+                this.layoutPending = ++this.layoutTried < LayoutTries;
                 return Array.Empty<StructOutcome>();
             }
 

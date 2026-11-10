@@ -30,6 +30,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ANodeThatCannotBeReadMakesTheWalkIncomplete), ANodeThatCannotBeReadMakesTheWalkIncomplete),
             (nameof(ATreeLargerThanItsSizeIsCutShortAndSaysSo), ATreeLargerThanItsSizeIsCutShortAndSaysSo),
             (nameof(UnreachedEntitiesAreKeptForThreeIncompleteWalks), UnreachedEntitiesAreKeptForThreeIncompleteWalks),
+            (nameof(OneWalkOutOfOrderDoesNotGiveTheOrderUp), OneWalkOutOfOrderDoesNotGiveTheOrderUp),
         };
 
         private static void AWalkWithoutLimitReadsEveryNodeOnce()
@@ -157,6 +158,17 @@ namespace Poe2Accessibility.Tests
             Expect(false, IncompleteWalks.KeepUnreached(ref inARow, false), "a fourth in a row drops them");
             Expect(false, IncompleteWalks.KeepUnreached(ref inARow, true), "a complete walk");
             Expect(true, IncompleteWalks.KeepUnreached(ref inARow, false), "counting starts over after a complete walk");
+        }
+
+        private static void OneWalkOutOfOrderDoesNotGiveTheOrderUp()
+        {
+            var inARow = 0;
+            Expect(false, OrderFaults.GiveUp(ref inARow, false), "an ordered walk");
+            Expect(false, OrderFaults.GiveUp(ref inARow, true), "one walk out of order: the game was moving nodes");
+            Expect(false, OrderFaults.GiveUp(ref inARow, false), "ordered again");
+            Expect(false, OrderFaults.GiveUp(ref inARow, true), "counting starts over");
+            Expect(false, OrderFaults.GiveUp(ref inARow, true), "two in a row");
+            Expect(true, OrderFaults.GiveUp(ref inARow, true), "three in a row: the map is not ordered by its key");
         }
 
         private static IEnumerable<ulong> Range(int first, int last) => Enumerable.Range(first, last - first + 1).Select(key => (ulong)key);

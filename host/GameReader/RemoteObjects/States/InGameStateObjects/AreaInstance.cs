@@ -50,6 +50,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         private bool skipVisuals = true;
         private int walks;
         private int incompleteWalks;
+        private int orderFaults;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="AreaInstance" /> class.
@@ -304,7 +305,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 return true;
             }, this.skipVisuals ? VisualIds : null);
 
-            if (result.OutOfOrder && this.skipVisuals)
+            if (this.skipVisuals && OrderFaults.GiveUp(ref this.orderFaults, result.OutOfOrder))
             {
                 this.skipVisuals = false;
                 Console.WriteLine("[AreaInstance] The awake entities' map is out of id order: every node is read until the next area.");
@@ -456,6 +457,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             this.AwakeEntities.Clear();
             this.skipVisuals = true;
             this.incompleteWalks = 0;
+            this.orderFaults = 0;
 
             if (!isAreaChange)
             {

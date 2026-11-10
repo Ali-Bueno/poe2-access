@@ -372,6 +372,11 @@ namespace GameReader
                         this.StaticAddresses[StaticOffsetsPatterns.GameStates] = given;
                         CoroutineHandler.RaiseEvent(this.OnStaticAddressFound);
                     }
+                    else
+                    {
+                        // The same place as at attach, when it held nothing: what it holds now is read.
+                        Core.States.Rejudge();
+                    }
 
                     yield break;
                 }
