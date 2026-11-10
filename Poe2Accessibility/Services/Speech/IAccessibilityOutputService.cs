@@ -44,6 +44,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         void Mention(string text) => this.Speak(text);
 
+        /// <summary>
+        ///     <see cref="Mention"/> for a warning that must be heard however late (life at its last mark, a partner down): it
+        ///     does not age behind a kept line as a reading does.
+        /// </summary>
+        void MentionNews(string text) => this.Mention(text);
+
         /// <summary>Re-speak the last announcement (user hotkey).</summary>
         void Repeat();
 
