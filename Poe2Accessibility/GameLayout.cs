@@ -334,6 +334,12 @@ namespace Poe2Accessibility
             /// <summary>The inventory panel's container of panels (inventory, character, skills, quests…), each with its title.</summary>
             public const string PanelsParentName = "panels_parent";
 
+            /// <summary>
+            ///     The world map's own title ("Teletransporte" from a waypoint): WorldScreen > its fourth child > "title_label"
+            ///     (UI dump 2026-11-10, 0.5.5f); the panel above WorldScreen is titled "Misiones" in either use.
+            /// </summary>
+            public const string WorldMapTitleName = "title_label";
+
             /// <summary>The microtransaction shop's page, one of panels_parent's panels (UI dump 2026-10-29).</summary>
             public const string ShopPageName = "EshopMainPage";
 

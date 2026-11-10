@@ -11,6 +11,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Inventory grid → panel holding the title: 7 levels measured; room for deeper panels.</summary>
         private const int PanelTitleHops = 16;
 
+        /// <summary>The world map's title label lies two levels under "WorldScreen" (<see cref="GameLayout.InGameUi.WorldMapTitleName"/>).</summary>
+        private const int WorldMapTitleDepth = 2;
+
         private const int MaxPanelTitleLength = 40;
 
         /// <summary>How deep and how many elements <see cref="FirstLabel"/> looks under a panel without a framed title.</summary>
@@ -538,6 +541,13 @@ namespace Poe2Accessibility.Services
             {
                 // The shop's pages have no title: judged there, the search took a child's name ("background") for one (live 2026-11-10).
                 return string.Empty;
+            }
+
+            var map = chain.FirstOrDefault(ancestor => ancestor.Name == WorldScreenName);
+            if (map.Address != IntPtr.Zero && this.ShownText(map, GameLayout.InGameUi.WorldMapTitleName, WorldMapTitleDepth) is { Length: > 0 } shownTitle)
+            {
+                // The map names itself in a label; its panel is titled "Misiones" whatever it shows (the Teleport map's act tabs).
+                return shownTitle;
             }
 
             var inPanels = chain.Any(ancestor => ancestor.Name == GameLayout.InGameUi.PanelsParentName);

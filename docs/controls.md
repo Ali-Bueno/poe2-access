@@ -322,6 +322,9 @@ Cannot use: 21 Int", then the whole tooltip.
 - Quests (world map): the surface/underground toggle says what the map shows ("…, above ground, button"; A: "below
   ground"). In the quest list a quest's reward is named by its icon: "Reward: support gem, gold" (R3 shows the
   items themselves).
+- Teleport map (A at a waypoint): the D-pad moves between the places; D-pad up from the places under the title
+  reaches the act tabs ("Teleport. Act 2, button, 2 of 2"); left and right move between the acts and A shows that
+  act's map with the cursor back on its places, the town first.
 - Social: Friends opens with your account name and area after the focus; a Guild or Party page without one reads
   its explanation after the focus ("You are not currently in a guild. …").
 - Game menu: its tip (R3 for skills and buffs) and the pause banner are said once a session, after the focus.
