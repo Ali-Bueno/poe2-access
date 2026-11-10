@@ -9,30 +9,12 @@ import time
 
 import capture
 import controls
+from launch import PLUGIN_LOG, log_size, new_log_lines
 import pad
 import win32 as w
 
-REPOSITORY = Path(__file__).resolve().parents[2]
-PLUGIN_LOG = REPOSITORY / 'host/Poe2Access/bin/Release/net10.0-windows/win-x64/Plugins/Poe2Accessibility/logs/accessibility.log'
 MAX_WAIT_SECONDS = 5.0  # long enough for a screen transition, short enough to keep steps observable
 MAX_LOG_LINES = 60  # keep one step's log excerpt readable
-
-
-def log_size(path):
-    try:
-        return path.stat().st_size
-    except FileNotFoundError:
-        return 0
-
-
-def new_log_lines(path, start):
-    """Plugin log lines written since `start` (a byte offset), oldest first."""
-    if log_size(path) <= start:
-        return []
-    with path.open('rb') as stream:
-        stream.seek(start)
-        lines = stream.read().decode('utf-8', errors='replace').splitlines()
-    return lines[-MAX_LOG_LINES:]
 
 
 def main():
@@ -149,7 +131,7 @@ def main():
     except (OSError, RuntimeError, ValueError) as error:
         result.update(ok=False, error=str(error))
     if args.action not in ('list', 'capture'):
-        result['log'] = new_log_lines(args.log, log_start)
+        result['log'] = new_log_lines(args.log, log_start)[-MAX_LOG_LINES:]
     with (args.output_dir / 'actions.jsonl').open('a', encoding='utf-8') as stream:
         stream.write(json.dumps(result, ensure_ascii=False) + '\n')
     print(json.dumps(result, ensure_ascii=False, indent=1))
