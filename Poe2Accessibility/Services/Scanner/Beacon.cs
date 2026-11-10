@@ -122,6 +122,7 @@ namespace Poe2Accessibility.Services
             this.search = null;
             this.version++;
             this.noRouteSaid = false;
+            this.searchesWithoutRoute = 0;
             this.closestSaid = false;
             this.lockedAt = Environment.TickCount64;
             this.lastRefresh = long.MinValue / 2;
@@ -319,6 +320,11 @@ namespace Poe2Accessibility.Services
             this.running = this.search;
         }
 
+        /// <summary>Searches in a row (one every <see cref="RouteRefreshMs"/>) that must find no way before "no route yet" is said.</summary>
+        private const int SearchesToSayNoRoute = 2;
+
+        private int searchesWithoutRoute;
+
         private void CollectSearch()
         {
             if (this.search is not { IsCompleted: true } done)
@@ -333,8 +339,16 @@ namespace Poe2Accessibility.Services
             }
 
             var (found, partial, barrier) = done.IsCompletedSuccessfully ? done.Result : (null, false, false);
+            if (found == null && ++this.searchesWithoutRoute < SearchesToSayNoRoute)
+            {
+                // One search that failed or found nothing is not "no route": the way in use stands until the next one agrees.
+                this.log.Info($"Guide: a route search {(done.IsFaulted ? "failed" : "found no way")}; searched again before it is said");
+                return;
+            }
+
             if (found != null)
             {
+                this.searchesWithoutRoute = 0;
                 this.route = found;
                 this.partialRoute = partial;
                 this.barrierRoute = barrier;
