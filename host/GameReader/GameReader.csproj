@@ -18,10 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Data\MonsterCategories.tsv" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\GameOffsets\GameOffsets.csproj" />
   </ItemGroup>
 

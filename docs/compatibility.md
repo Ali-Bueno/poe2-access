@@ -345,10 +345,13 @@ in `catalog/game-data-failed.txt` and the plugin says "parte de los datos del ju
 Collapsed check also refuses a catalog under half the old size). The extractor's log names the column ("…near +0x68: not
 found (check with dat-strings)"). Live: after each stick push the node the rule predicts is compared with the one the
 game hovers (`StickCheck`: the window seen from the node before the push, the raw stick direction, pushes judged within
-300 ms; not the first push after the right stick or a popup over the tree); five misses in the last ten pushes lose the
-rule, logged once with the last push, said once ("el paso del stick por el árbol"), and links and ways are then given by
-their side only; pushes are still judged, and two misses or fewer in ten give the rule back (logged "Stick rule holds
-again"). Until 2026-11-10 three misses lost it for the session, which a few popups did (passive-tree research). An Atlas node whose
+300 ms; not the first push after the right stick, the zoom, Y's centring or a popup over the tree, nor a push the rule
+expects to move nothing, nor one whose pick changes ten degrees to either side); five misses in the last ten pushes lose the
+rule, logged once with the last push, and links and ways are then given by their side only; pushes are still judged, and
+two misses or fewer in ten give the rule back (logged "Stick rule holds again"). Until 2026-11-10 three misses lost it for
+the session, which a few popups did (passive-tree research), and a loss was said as a compatibility warning, which blamed
+a game update for a passing disturbance (four times in two days of play, each "7 hit, 3 missed"); it is no longer said,
+the links by their side are its only sign. An Atlas node whose
 PassiveSkills id `catalog/endgame.json` lacks is logged, said once ("los datos del Atlas") and read from the game's own
 popup. A column the search places elsewhere is logged ("moved from +0x8 to +0x10") and used there.
 

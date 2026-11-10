@@ -276,3 +276,33 @@ then read as a focus: "Se ha invitado a un compañero al grupo, marcado, casilla
   (x = 2596 on a 2560-wide root): snapshots drop texts whose absolute rect misses the root rect. The D-pad
   moves the map cursor between areas; the hint bar's A action ("Instance Manager" on the town) appears only
   where A does something. Clearfell (no waypoint taken) showed no A action.
+
+## Items in a grid: search highlight, unmet requirements (0.5.5f, 2026-11-10)
+
+Measured on yarkey's stash and inventory in G2_town (UI dumps `ui-tree-InGameState-20261110-07*.txt`, read-only memory
+snapshots of the item elements under three searches).
+
+- **Search highlight.** A stash's field "Resaltar objetos" (L3 "Editar búsqueda", hold L3 "Borrar búsqueda") lights the
+  items that match and dims the rest; the player's own inventory beside it is not touched. Each item element (the grid's
+  children, entity at `+0x4E0`) holds the state in the byte at **`+0x624`**: 0 with no search, 1 dimmed, 2 lit; the byte at
+  `+0x627` is 1 only while dimmed, and its drawn alpha (`+0x16F`) falls from FF to 8C. Validation: all 21 items of the tab
+  read 0 with the field empty, 1 with "cetro" (no match), and with "guante" the three gloves read 2 and the other 18 read 1,
+  as the screen showed. `InventoryReader.HighlightOf` trusts only the pairs (2, 0) and (1, 1); anything else reads as no
+  search. The offset rides on the inventory controls' measured shift (`ControlGroup.Inventory`), like the entity pointer.
+  An item's cell is its `RelativePosition` over the grid's cell size (`+0x33C`, 80 units).
+- **An item the character cannot use.** The game paints its cell red, but nothing in the item element tells (four red
+  items against nineteen others: no byte in 0x1000 separates them). The tooltip does: the requirement line colours only
+  the unmet value inline, `Requiere: <valuedefault>{Nivel <valuedefault>{19}, <augmented>{10} Fue, <unmet>{21} Int}`
+  (`+0x360`, the text with markup). `UnmetRequirements.Of` names each part holding an `<unmet>` tag ("21 Int"). An
+  unidentified item is red too and says so on a line of its own ("Sin identificar").
+- **Equipped line.** `Equipado: [WeaponSets|Set de armas]<<weapon_set_2>>`: the picture's name repeats the words before
+  it, so the picture adds only its numeral (`InlineIcons.WithoutEcho`).
+- **A grid on arrival and on leaving.** A grid's hovered item (`+0x350`) is filled up to 170 ms after the cursor arrives,
+  and emptied a moment before the focus moves to another grid: an empty cell is said on its second reading only.
+
+## Quest tracker rows (0.5.5f, 2026-11-10)
+
+Each `quest_display` of the HUD holds a `title_layout` with one `title_label` (the quest's name) and a
+`quest_info_layout` of `quest_info_entry` rows, each a `bullet_point` and a `quest_info` (an objective). Only objectives
+name what to look for: the title "El pozo de las almas" made every town's well the quest's target (`QuestTexts` leaves
+`title_label` texts out).

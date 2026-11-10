@@ -193,7 +193,9 @@ attributes; LT/RT say the zoom ("Zoom x1,4"); the directions hold at any zoom. A
 
 **Finder (D-pad, which does nothing else in the tree;** setting "Passive tree finder on the D-pad", Navigation, on by
 default): D-pad down and up walk the lists Build (with a Build Planner build active: its keystones, notables and jewel
-sockets not taken yet, in the build's order), Keystones, Notables, Jewel sockets and Reachable now, and left and right walk a
+sockets not taken yet, in the build's order; the list opens with how far along you are, "Build, 16 of 60 taken, 13 points
+outside the build"), Taken outside the build (what you have that the build does not: the points a refund would bring back to
+it), Keystones, Notables, Jewel sockets and Reachable now, and left and right walk a
 list, those costing fewest points first. What it names is the target, with nothing to confirm: "Keystones. Scarred Faith, up
 left, middle ring, 8 points away. From here: up, 10 pushes". Then every node ends with the way, "Toward Scarred Faith: up left,
 4 pushes"; push the left stick that way and it counts down to "Arrived at Scarred Faith", where the game reads what it does.
@@ -264,6 +266,15 @@ Place, A. Cancel, B") and Y empties it.
 In Cosmetics the toggles above each weapon slot read "weapon set I" and "weapon set II"; the search box is "Search
 here..., edit field", the "x" at its end "Clear search, button".
 
+**Search in a stash or a merchant** (L3, "Edit search"; the game lights what matches and dims the rest): once typed, the
+mod says what is lit with each cell, "3 highlighted: Sombre Gloves, rare, column 3, row 1. …" (six named, the rest
+counted), "Nothing highlighted", and "Search cleared" when you hold L3 to clear it (the mod's own reading on a held L3
+stays quiet there). A lit item under the cursor says "highlighted" after its name. A stash opened with a search still in
+its field says what it lights as the cursor enters the grid.
+
+**An item you cannot use** says which requirement is missing right after its name: "Doom Chant, rare, column 3, row 3,
+Cannot use: 21 Int", then the whole tooltip.
+
 ## Other panels
 
 - Trials: the mod says honour each time it falls past a tenth, sacred water and keys as they are gained, and the L3 double tap adds them to the vitals ("Honour 474 of 513. Sacred Water 39, plus 7. Keys: bronze 1, silver 0, gold 0"). A trap about to strike plays the dodge warning from its side; those in the open are in the scanner and named on approach. Both are switches in Surroundings.
@@ -333,7 +344,8 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
   when up the screen and lower when down, more often as you get closer, from the centre once you stand on them. The
   nearest portal and the nearest waypoint or checkpoint sound without a break (a portal's hum, a waypoint's low drone,
   a checkpoint's bright ring), louder as you get closer; the nearest exit is a low rush of air from the game, repeated
-  faster and louder as you get closer, so it stands out beside a checkpoint. Walking off any of them, the sound dies away
+  faster and louder as you get closer, so it stands out beside a checkpoint. The nearest stash sounds with its lid and the
+  nearest well with its water, the sounds each makes when you use it. Walking off any of them, the sound dies away
   over about six steps past the edge of the screen. An item plays the drop sound the game gives its base (a scroll rustles, an orb clinks, a belt,
   a crossbow, a gem each their own; the rare layer over a rare or unique, the quest sound over a quest item, over whatever the quest's icon marks and on the campaign's named barriers, such as the Ancient Seal; the generic item,
   currency, gold and quest sounds alone only for bases without one). They need the sounds extracted once from your game (see

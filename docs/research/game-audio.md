@@ -34,6 +34,8 @@ The header version is derived from `fmod.dll`'s product version (2.3.11 -> `0x00
 | portal | PortalScrollPortal | PortalScroll_Effects_Po_Activate_01 (the portal scroll's portal; idle loop `_Po_IdleActive_01`) |
 | waypoint | Waypoint4.0 | WaypointActivate_01 |
 | checkpoint | BossCheckpoints | BossCheckpoints_Activate_01 |
+| stash | PlayerStash_4.0 | Open_1 (the lid; six `Open_`, six `Close_`, 1.5 to 2 s, low: centroid 330-450 Hz; levelled to RMS 0.10 or its peak) |
+| well | General_Gameplay | Wellwell_FX_Well_03 (water, 0.8 s, bright: centroid 5 kHz, apart from every other cue; the heal `WellRefill_UI_HealNew_*` sits in the chest's band and was not taken) |
 | npc | General_Gameplay | Quest_UI_Offer_01 (placeholder; no generic NPC greeting found) |
 | switch | Foley | PlayerCharacter_Foley_HandGrabLever_01 (0.4 s, about 18 dB under `breakable`) |
 
