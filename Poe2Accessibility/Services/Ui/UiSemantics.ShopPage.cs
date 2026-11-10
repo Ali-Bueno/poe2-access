@@ -16,6 +16,34 @@ namespace Poe2Accessibility.Services
         /// <summary>The points label under the shop's page: bar_area > topbar_right > gold_icon > label.</summary>
         private const int ShopBalanceDepth = 4;
 
+        /// <summary>
+        ///     Where the shop's chosen card is looked for: the open item page's frame, else the shop's page — the list under an
+        ///     open page keeps its own card marked, which was read for the page's card.
+        /// </summary>
+        public IntPtr ShopHighlightRoot(IntPtr shopPage)
+        {
+            if (shopPage == IntPtr.Zero || !this.elements.TryReadElement(shopPage, out var page) ||
+                this.ShownChild(page, GameLayout.InGameUi.ShopSubpagesName) is not { } subpages)
+            {
+                return shopPage;
+            }
+
+            foreach (var tabAddress in this.elements.ReadChildren(subpages))
+            {
+                if (this.elements.TryReadElement(tabAddress, out var tab) && tab.IsVisibleFlag &&
+                    this.ShownChild(tab, GameLayout.InGameUi.ShopDetailPageName) is { } detail &&
+                    this.ShownChild(detail, GameLayout.InGameUi.ShopDetailBodyName) is { } body &&
+                    this.ShownChild(body, GameLayout.InGameUi.ShopItemPageName) is { } frame)
+                {
+                    return frame.Address;
+                }
+            }
+
+            return shopPage;
+        }
+
+        private UiElementReader.ElementInfo? ShownChild(in UiElementReader.ElementInfo parent, string name) => this.ShownNamed(parent, name, 1);
+
         /// <summary>The item page a control lies in: its title, and what it says of the item under it (text, "¡NUEVO!", a discount).</summary>
         private (string Title, IReadOnlyList<string> Notes)? ShopItemPageOf(in UiElementReader.ElementInfo focused)
         {

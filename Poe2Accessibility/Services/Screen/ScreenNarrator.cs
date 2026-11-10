@@ -78,6 +78,10 @@ namespace Poe2Accessibility.Services
         private readonly QuestTrackerPage questPage = new();
         private readonly CountdownWatch countdown = new();
         private readonly ShopBalanceWatch shopBalance = new();
+        private readonly ShopBalanceWatch guildBalance = new(ShopPageSettleMs);
+
+        /// <summary>When a shop tab's actions are due (<see cref="SayShopPageActions"/>), zero when none are.</summary>
+        private long shopActionsDueAt;
         private readonly HonourWatch honour = new();
         /// <summary>Tutorial hints said in this area and when.</summary>
         private readonly Dictionary<string, DateTime> tutorialSpoken = new();
@@ -188,6 +192,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Whether a text lies in another card of the shop's list than the focused card (text, focus).</summary>
         public Func<IntPtr, IntPtr, bool>? InAnotherShopCard { get; set; }
+
+        /// <summary>Whether the microtransaction shop is the panel shown. Set by the plugin.</summary>
+        public Func<bool>? ShopShown { get; set; }
 
         /// <summary>Read a screen's message with its first focus (delete character); off for the game menu.</summary>
         public bool ReadScreenMessages { get; set; } = true;

@@ -40,7 +40,7 @@ namespace Poe2Accessibility.Services
                     .FirstOrDefault(text => text.Length > 0);
                 return title == null ? null : (title, Announcements.ShopFeatured, this.ShopEntryPosition(focused));
             }
-            else if (focused.Name != GameLayout.InGameUi.ShopEntryName &&
+            else if (focused.Name != GameLayout.InGameUi.ShopEntryName && focused.Name != GameLayout.InGameUi.ShopSingleCardName &&
                      (focused.Name.Length > 0 || !this.elements.ReadChildren(focused).Any(child => this.elements.TryReadElement(child, out var caption) &&
                          caption.Name == GameLayout.InGameUi.ShopEntryNameLabel)))
             {

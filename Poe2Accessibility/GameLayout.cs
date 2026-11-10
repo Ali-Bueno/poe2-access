@@ -389,6 +389,17 @@ namespace Poe2Accessibility
             /// <summary>The account's points, top right of every shop page ("300").</summary>
             public const string ShopBalanceName = "player_mtx_points_label";
 
+            /// <summary>The guild's points under the account's, on the shop's guild tab ("0"; UI dump 2026-11-10, docs/research/shop.md).</summary>
+            public const string ShopGuildBalanceName = "player_guild_points_label";
+
+            // The path from the shop's page to an open item page's frame (memory walk 2026-11-10): EshopMainPage >
+            // subpage_area > (the tab's subpage, "AllItems") > EShopDetailPage > bottom_page > item_info_frame.
+            public const string ShopSubpagesName = "subpage_area";
+
+            public const string ShopDetailPageName = "EShopDetailPage";
+
+            public const string ShopDetailBodyName = "bottom_page";
+
             /// <summary>The HUD ("HUD", child 12 of G): quest tracker, flask charges, ground-item tooltips (2026-10-23).</summary>
             public const int HudLayerOffset = 0x558;
 

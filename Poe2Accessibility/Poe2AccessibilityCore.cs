@@ -292,7 +292,7 @@ namespace Poe2Accessibility
                 this.partnerFlasks = new FlaskWatch(inventory, partnerVoice) { Seat = () => 2, Log = this.log };
                 this.gold = new GoldWatch(elements, this.output, this.log) { Fields = this.locator.Fields };
                 this.pickups.Gold = () => this.gold?.ReadNow();
-                this.focus.InGameHighlightRoot = this.ShopPage;
+                this.focus.InGameHighlightRoot = this.ShopHighlightRoot;
                 this.pickups.Engraving = () => this.narrator?.Engraving ?? (string.Empty, string.Empty);
                 this.pickups.InTrade = () => tradeOffers.Open;
                 this.pickups.SidePanel = () => this.semantics?.SidePanelTitle(
@@ -389,6 +389,7 @@ namespace Poe2Accessibility
                 this.narrator.SidePanel = () => this.pickups?.SidePanel?.Invoke() ?? string.Empty;
                 this.narrator.InSiblingRow = this.semantics.InSiblingRow;
                 this.narrator.InAnotherShopCard = this.semantics.InAnotherShopCard;
+                this.narrator.ShopShown = () => this.ShopPage() != IntPtr.Zero;
                 this.narrator.SelectorPosition = this.semantics.SelectorPosition;
                 this.narrator.SelectorChoice = this.semantics.SelectorChoice;
                 this.narrator.IsSkillBarText = this.IsSkillBarText;

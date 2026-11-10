@@ -381,6 +381,22 @@ namespace Poe2Accessibility
             return this.shopPage;
         }
 
+        /// <summary>Where the shop's chosen card shows: its open item page, else the whole page; looked up as often as the page.</summary>
+        private IntPtr ShopHighlightRoot()
+        {
+            var page = this.ShopPage();
+            if (page == IntPtr.Zero || Environment.TickCount64 - this.shopRootLookedUpAt < ShopLookupMs)
+            {
+                return page == IntPtr.Zero ? page : this.shopRoot;
+            }
+
+            this.shopRootLookedUpAt = Environment.TickCount64;
+            return this.shopRoot = this.semantics?.ShopHighlightRoot(page) ?? page;
+        }
+
+        private long shopRootLookedUpAt = long.MinValue / 2;
+        private IntPtr shopRoot;
+
         private long worldScreenLookedUpAt = long.MinValue / 2;
         private IntPtr worldScreen;
 

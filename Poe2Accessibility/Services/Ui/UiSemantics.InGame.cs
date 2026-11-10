@@ -240,13 +240,13 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public bool InAnotherShopCard(IntPtr text, IntPtr focus)
         {
-            if (!this.elements.TryReadElement(text, out var info) || !this.elements.TryReadElement(focus, out var focused) ||
-                focused.Name != GameLayout.InGameUi.ShopEntryName)
+            if (!this.elements.TryReadElement(text, out var info))
             {
                 return false;
             }
 
-            foreach (var ancestor in this.elements.ReadAncestors(info, PanelTitleHops))
+            // With the cursor on no card (a category just opened, the item page over the list) every card is another one.
+            foreach (var ancestor in this.elements.ReadAncestors(info, ShopEntryDepth))
             {
                 if (ancestor.Name == GameLayout.InGameUi.ShopEntryName)
                 {
@@ -522,6 +522,12 @@ namespace Poe2Accessibility.Services
         private string PanelTitle(in UiElementReader.ElementInfo info)
         {
             var chain = this.elements.ReadAncestors(info, PanelTitleHops);
+            if (chain.Any(ancestor => ancestor.Name == GameLayout.InGameUi.ShopPageName))
+            {
+                // The shop's pages have no title: judged there, the search took a child's name ("background") for one (live 2026-11-10).
+                return string.Empty;
+            }
+
             var inPanels = chain.Any(ancestor => ancestor.Name == GameLayout.InGameUi.PanelsParentName);
             // Inside the side panels only the panels themselves carry titles: the root above them holds "HUD" within the
             // search's reach, which the untitled trade market adopted as every panel's title (2026-10-28).

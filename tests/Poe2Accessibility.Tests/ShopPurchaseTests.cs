@@ -90,6 +90,13 @@ namespace Poe2Accessibility.Tests
             Equal(null, watch.Heard("Cargando...", 2100), "not points");
             Equal(null, watch.Heard(null, 6000), "the shop closed");
             Equal("150", watch.Heard("150", 9000), "opened again: said again");
+
+            var guild = new ShopBalanceWatch(settleMs: 600);
+            Equal(null, guild.Heard("0", 1000), "a label that came with its tab waits for the tab's line");
+            Equal(null, guild.Heard("0", 1500), "still settling");
+            Equal("0", guild.Heard("0", 1600), "said once it has shown long enough");
+            Equal(null, guild.Heard("0", 1700), "and once");
+            Equal(null, guild.Heard(null, 1800), "the tab left before another value settled");
         }
     }
 }

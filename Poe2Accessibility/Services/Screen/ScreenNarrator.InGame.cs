@@ -11,6 +11,19 @@ namespace Poe2Accessibility.Services
         /// <summary>In game: the focus layer speaks; panels, popups, the death screen and new texts follow the in-game rules.</summary>
         private void OnInGameChange(ScreenChange change, ScreenSnapshot snapshot, AccessibleUiNode? focus, IntPtr focusLayer, System.Collections.Generic.List<ScreenText> legends)
         {
+            var inShop = this.ShopShown?.Invoke() == true;
+            if (inShop && this.InAnotherShopCard is { } inCard)
+            {
+                // The shop's cards are read as the cursor reaches them: a category opening read every card's name, without
+                // prices, before its cursor showed (live 2026-11-10).
+                var chosen = focus?.Address ?? IntPtr.Zero;
+                change = change with { Texts = change.Texts.Where(text => !inCard(text.Address, chosen)).ToList() };
+                if (change.Texts.Count == 0 && change.Kind != ScreenChangeKind.TopLayerChanged)
+                {
+                    return;
+                }
+            }
+
             var tabTitle = change.Texts.FirstOrDefault(text => TabTitleNames.Contains(text.Name));
             if (tabTitle == null && change.Kind == ScreenChangeKind.TopLayerChanged)
             {
@@ -84,6 +97,7 @@ namespace Poe2Accessibility.Services
                         this.AfterFocus("page lines after focus", pageLines);
                     }
 
+                    this.SayShopPageActions(inShop);
                     return;
                 }
 
@@ -92,6 +106,7 @@ namespace Poe2Accessibility.Services
                     focusSpeech.Length > 0 ? Announcements.InContext(Announcements.TabTitle(tabTitle.Text), focusSpeech) : Announcements.TabTitle(tabTitle.Text),
                     pageLines,
                 }.Where(part => part.Length > 0)), true);
+                this.SayShopPageActions(inShop);
                 return;
             }
 
@@ -337,26 +352,71 @@ namespace Poe2Accessibility.Services
             return tracker;
         }
 
-        /// <summary>Says the account's points when the shop shows them and when a purchase changes them, after what is being said.</summary>
+        /// <summary>
+        ///     Each tab of the shop is a page of its own: its actions are said on entering it, though the bar showed the same
+        ///     before (the guild page's "Seleccionar, A. Cerrar, B" were never said, live 2026-11-10).
+        /// </summary>
+        private void SayShopPageActions(bool inShop)
+        {
+            if (inShop)
+            {
+                this.shopActionsDueAt = Environment.TickCount64 + ShopPageSettleMs;
+            }
+        }
+
+        /// <summary>
+        ///     A shop tab's line cuts in up to 300 ms after its texts and the bar under it is redrawn later still (the guild
+        ///     tab still showed the shop's "Filtrar/buscar", live 2026-11-10): what follows the tab waits this long.
+        /// </summary>
+        private const long ShopPageSettleMs = 600;
+
+        private void SayDueShopActions(ScreenSnapshot snapshot, long now)
+        {
+            if (this.shopActionsDueAt == 0 || now < this.shopActionsDueAt)
+            {
+                return;
+            }
+
+            this.shopActionsDueAt = 0;
+            var actions = snapshot.Layers.Where(layer => layer.IsHintBar).SelectMany(layer => layer.Texts).ToList();
+            if (actions.Count > 0)
+            {
+                // Said here, they are not news again when the bar next changes.
+                this.legendsSaid.Clear();
+                actions.ForEach(action => this.legendsSaid.Add(Describe(new[] { action })));
+                this.Speak("shop page actions", Describe(actions), false);
+            }
+        }
+
+        /// <summary>
+        ///     Says the account's points when the shop shows them and when a purchase changes them, after what is being said;
+        ///     the guild's, on its tab, by their own name.
+        /// </summary>
         public void CheckShopBalance(ScreenSnapshot snapshot)
         {
             string? shown = null;
+            string? guild = null;
             foreach (var layer in this.inGame ? snapshot.Layers : Array.Empty<ScreenLayer>())
             {
                 foreach (var text in layer.IsHintBar || layer.Address == this.HudLayer ? Array.Empty<ScreenText>() : layer.Texts)
                 {
-                    if (text.Name == GameLayout.InGameUi.ShopBalanceName)
-                    {
-                        shown = text.Text;
-                        break;
-                    }
+                    shown ??= text.Name == GameLayout.InGameUi.ShopBalanceName ? text.Text : null;
+                    guild ??= text.Name == GameLayout.InGameUi.ShopGuildBalanceName ? text.Text : null;
                 }
             }
 
-            if (this.shopBalance.Heard(shown, Environment.TickCount64) is { } points)
+            var now = Environment.TickCount64;
+            if (this.shopBalance.Heard(shown, now) is { } points)
             {
                 this.Speak("shop balance", Announcements.Capitalised(Announcements.ShopBalance(points)), false);
             }
+
+            if (this.guildBalance.Heard(guild, now) is { } guildPoints)
+            {
+                this.Speak("guild balance", Announcements.Capitalised(Announcements.ShopGuildBalance(guildPoints)), false);
+            }
+
+            this.SayDueShopActions(snapshot, now);
         }
 
         /// <summary>Says a clock falling on the HUD, cutting in: running out it can kill.</summary>

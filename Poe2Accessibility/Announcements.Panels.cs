@@ -39,6 +39,9 @@ namespace Poe2Accessibility
         /// <summary>The account's points, shown top right in the shop.</summary>
         public static string ShopBalance(string points) => T($"you have {points} points", $"tienes {points} puntos");
 
+        /// <summary>The guild's points, shown under the account's on the shop's guild tab: named so the two are not confused.</summary>
+        public static string ShopGuildBalance(string points) => T($"guild points: {points}", $"puntos de la hermandad: {points}");
+
         /// <summary>A shop card sold in several variants (the card's "x3").</summary>
         public static string ShopVariants(string count) => T($"{count} variants", $"{count} variantes");
     }
