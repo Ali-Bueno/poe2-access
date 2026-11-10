@@ -167,7 +167,8 @@ namespace Poe2Accessibility.Services
             var chrome = this.Chrome(change.Texts);
             var kept = PairNumbers(change.Texts).Where(text => !own.Contains(text.Text) && !IsNumber(text.Text) && !IsTierNumeral(text.Text) && !said.Contains(text.Text) &&
                                                               !chrome.Contains(text.Address) && text.Name != TierLabelName &&
-                                                              !(text.Text.Length > ShortLabelChars && (focus?.Text.Contains(text.Text, StringComparison.Ordinal) ?? false)) &&
+                                                              !(text.Text.Length > ShortLabelChars && focus != null &&
+                                                                (focus.Text.Contains(text.Text, StringComparison.Ordinal) || focus.Value.Contains(text.Text, StringComparison.Ordinal))) &&
                                                               !FocusDetails.Names(text.Text, focus?.Text ?? string.Empty) &&
                                                               !InFocusContext(focus, text.Text)).ToList();
             var texts = Describe(kept);

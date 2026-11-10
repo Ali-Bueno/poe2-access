@@ -197,6 +197,12 @@ namespace Poe2Accessibility.Services
                         break;
                     }
 
+                    if (this.InGame && this.ShopBuyButtonOf(info) is { } buy)
+                    {
+                        (label, value) = buy;
+                        break;
+                    }
+
                     if (ownText.Length == 0 && this.InGame && !info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) && this.CardOf(info) is { } card)
                     {
                         // A trade listing: one label said the seller's status alone ("Jugador desconectado", 2026-10-28).

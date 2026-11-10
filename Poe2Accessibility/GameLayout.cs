@@ -354,6 +354,41 @@ namespace Poe2Accessibility
 
             public const string ShopEntryPriceLabel = "price_label";
 
+            /// <summary>A shop card's "- Ya lo tienes -" and the count of an item sold in variants ("x3"), seen live 2026-11-10.</summary>
+            public const string ShopOwnedLabel = "owned_label";
+
+            public const string ShopVariantCountLabel = "variant_count_label";
+
+            // The shop's item page, opened with A on a card (memory walk 2026-11-10, docs/research/shop.md): the page's
+            // frame, its title, description and flags, and the buy button with the lines it shows.
+            public const string ShopItemPageName = "item_info_frame";
+
+            public const string ShopItemTitleName = "introduction_title";
+
+            public const string ShopItemTextName = "introduction_desc";
+
+            public const string ShopItemNewName = "new_banner_label";
+
+            public const string ShopItemDiscountName = "discount_frame";
+
+            /// <summary>The page's card of an item sold alone; a bundle's page lists its contents' cards instead.</summary>
+            public const string ShopSingleCardName = "single_item_entry";
+
+            /// <summary>The buy button: its "price_frame" shows the price, or "Confirmar" once pressed, under a "confirm_tip" line.</summary>
+            public const string ShopBuyButtonName = "buy_button_bottom";
+
+            public const string ShopBuyCaptionName = "price_frame";
+
+            public const string ShopOldPriceName = "origin_price_label";
+
+            public const string ShopConfirmTipName = "confirm_tip";
+
+            /// <summary>The buy button's line for too few points: seen hidden only, its text never read.</summary>
+            public const string ShopPointsTipName = "requires_points_tip";
+
+            /// <summary>The account's points, top right of every shop page ("300").</summary>
+            public const string ShopBalanceName = "player_mtx_points_label";
+
             /// <summary>The HUD ("HUD", child 12 of G): quest tracker, flask charges, ground-item tooltips (2026-10-23).</summary>
             public const int HudLayerOffset = 0x558;
 

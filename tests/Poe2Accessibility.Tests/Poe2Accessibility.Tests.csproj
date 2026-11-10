@@ -129,6 +129,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\GroundTooltip.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\SalvageOutcome.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\CardText.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Ui\ShopPurchase.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\TradeOfferNews.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\AoSoundEvents.cs" Link="Extract\AoSoundEvents.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\Say.cs" Link="Extract\Say.cs" />

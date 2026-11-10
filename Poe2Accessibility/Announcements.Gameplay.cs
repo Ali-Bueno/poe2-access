@@ -374,12 +374,6 @@ namespace Poe2Accessibility
             ? T($"Boss room, defeated: {label}", $"Sala del jefe, derrotado: {label}")
             : T("Boss room, defeated", "Sala del jefe, derrotado");
 
-        /// <summary>A banner of the shop's featured page (pictures only); A opens what it shows.</summary>
-        public static string ShopFeatured => T("featured", "destacado");
-
-        /// <summary>A shop item's price: the shop's own currency, points ("250 puntos").</summary>
-        public static string ShopPrice(string price) => T($"{price} points", $"{price} puntos");
-
         /// <summary>A readable sign or plaque (the game's story glyphs: "Pueblo de Ogham" by the road, "Proclamación de Asinia").</summary>
         public static string Sign(string name) => T($"Sign: {name}", $"Letrero: {name}");
 
