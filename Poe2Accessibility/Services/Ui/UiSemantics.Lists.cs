@@ -385,8 +385,10 @@ namespace Poe2Accessibility.Services
                 var node = queue.Dequeue();
                 if (node.HasFlagBit(GameLayout.Element.InteractiveFlagBit) && !bars.Contains(node.Raw.ParentPtr) &&
                     (!proved || this.IsTabSelected(node.Address, this.TabSelectedOffset(null))) &&
-                    this.elements.DetectRoleBySound(node.Address) == UiRole.Tab && this.SiblingTabs(node) is { Count: >= 2 } tabs)
+                    this.elements.DetectRoleBySound(node.Address) == UiRole.Tab && this.SiblingTabs(node) is { Count: >= 1 } tabs &&
+                    (tabs.Count >= 2 || proved))
                 {
+                    // A bar of one tab (Zarka's stock, "-1-") counts once the selected byte is proved, which only a bar of several does.
                     bars.Add(node.Raw.ParentPtr);
                     var at = this.TabSelectedOffset(tabs);
                     if (tabs.FirstOrDefault(tab => this.IsTabSelected(tab, at)) is var selected && selected != IntPtr.Zero &&

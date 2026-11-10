@@ -511,11 +511,11 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   filled at the well before a drink showed its cost ("… recargado, 75 cargas"; the well was seen silent live before the
   fix); a flask not empty and never drunk is still silent, its uses cannot be counted. Taking a flask off the belt empties
   it (75 → 0 charges, refilled at the well). Open: (1) a merchant with one tab (Zarka: one tab labelled "-1-", no title)
-  opens as "4.776 oro. Oro", then "Inventario. …": the focus is logged 270 ms after the layer there (Finn's, with tabs, had
-  it 200 ms before and opened "Armas. Inventario. …"), and `UiSemantics.SelectedTab` wants two sibling tabs to call a bar a
-  tab bar. Tried live and reverted, as neither changed the line: holding the opening while the tracker had a focus pending,
-  and counting a lone tab once the selected byte is proved. Next: open Zarka's stock with VerboseLogging on and read which
-  `Narrate (…)` branch says the gold;
+  now opens as "pestaña 1. Inventario. Pergamino de sabiduría, 8, …" (heard live: a lone tab counts once the selected byte
+  is proved, `UiSemantics.SelectedTab`) when the focus comes before the layer; when the layer comes first (the focus logged
+  270 ms after it, seen twice) it still opens as "4.776 oro. Oro", then "Inventario. …", on merchants with tabs too. Holding
+  the opening while the tracker had a focus pending did not change that (tried live, reverted): the branch that says the
+  gold was not identified, read its `Narrate (…)` label with VerboseLogging on the next time it happens;
   (2) A beside another player opens that player's menu ("Invitar al grupo"), with no word that it is a player; (3) Finn's
   "Comprar o vender objetos" is the gamble and is not said to be. Not testable in town: Parry and flask drinks.
 - Hearing a grid at once (proposal, not built: it needs a binding and a choice of words). Facts: every grid gives its items
