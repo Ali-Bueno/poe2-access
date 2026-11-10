@@ -445,6 +445,30 @@ Simulated 2026-11-06: `PlayerOffsets.Level` at +0x20C went back to +0x204 and th
 +0x138 went back to +0x130 and the world read as usual; `Shrine.IsUsed` off by 8 gave the spoken warning. None of these fields has moved in a
 real patch yet, so this is proved on simulations and on five past builds that all read the same.
 
+### Live invariants
+Added 2026-11-10 (unit tests only). The fields above have no shape to be found by, but each must keep a rule on every entity
+that has it. The sweep reads the rule on what the area holds (256 entities, 16 ground items and the flask belt at most) and
+counts over the areas of the game process (`InvariantTally`, an entity once per area); `Struct sweep` lists each as
+`invariant: …`. A rule holds while at most one entity in ten breaks it (log `Layout: invariant: chest flags holds (41 of 41
+keep it)`). It fails when five or more entities break it, they are half or more of those read, and they come from two
+areas: log `Layout: invariant: … FAILS (…)`, said once as the code fields are ("parte de los datos del juego, así que alguna
+lectura puede ser errónea"). A rule can tell, never repair: nothing is moved by it.
+
+| Invariant | Field | Rule |
+|---|---|---|
+| `monster rarity` | `ObjectMagicProperties.Rarity` | 0 to 3 (normal to unique) on every entity with the component |
+| `item rarity` | `Mods.Rarity` | the same, on the flask belt's items and the items on the ground |
+| `chest flags` | `Chest.IsOpened`, its data's `IsLabelVisible` | each byte 0 or 1 (read raw: a bool read through the struct hides any other value) |
+| `shrine flag` | `Shrine.IsUsed` | 0 or 1 |
+| `blockage flag` | `TriggerableBlockage.IsBlocked` | 0 or 1 |
+| `stack counts` | `Stack.Count` | at least 1 and no more than the kind's maximum (`StackSizeData`'s larger of `MaxStack` and `MaxStackTab`; only "at least 1" when that does not read), on ground items |
+| `flask charges` | `Charges.current`, `PerUseCharges` | 0 to 10,000 held, 1 to 10,000 a use (the flask's own maximum is not a field the mod has) |
+| `body sizes` | `Render.CharactorModelBounds` | three finite sizes, none negative or over 10,000; a weak rule, other floats pass it |
+
+A byte that reads 0 everywhere passes every flag rule: a moved flag is caught only when it lands on something that is not
+a bool. The cooldown entry's skill id and the skill's own id have their rule in the plugin (`IdLinkCheck`, above); the
+dodge clock's fields theirs (`AttackFieldCheck`).
+
 ## After a real patch
 The first patch after this work landed by chance at 02:42 on 2026-11-06, with nothing prepared for it: a 73 MB hotfix that moved no
 field. The mod said "El juego se ha actualizado: el mod lo ha encontrado todo", the sweep read 17 intact and 0 lost, and enemies, gold and

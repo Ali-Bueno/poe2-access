@@ -34,6 +34,9 @@ namespace Poe2Accessibility.Services
         private const string PoisePart = "poise";
         private const string WalkablePart = "walkable";
 
+        /// <summary>The part the code fields are said under (Poe2AccessibilityCore.Compatibility): the invariants' fields are of those.</summary>
+        private const string CodeFieldsPart = "code fields";
+
         // The heavy stun record's search reaches this far around where it was measured.
         private const int PoiseBlockStart = 0x400;
         private const int PoiseBlockSize = 0x200;
@@ -70,6 +73,7 @@ namespace Poe2Accessibility.Services
         private IntPtr poiseArea;
         private long nextPoiseWideAt;
         private WalkableCheck? walkable = new();
+        private readonly Dictionary<string, StructHealth> invariantsSaid = new(StringComparer.Ordinal);
         private int walkableFails;
 
         private const int PoiseAreasToSay = 2;
@@ -133,6 +137,7 @@ namespace Poe2Accessibility.Services
             this.poiseAreasMissed = 0;
             this.poiseArea = IntPtr.Zero;
             this.nextPoiseWideAt = 0;
+            this.invariantsSaid.Clear();
             this.walkable = new WalkableCheck();
             this.walkableFails = 0;
         }
@@ -366,12 +371,41 @@ namespace Poe2Accessibility.Services
 
         private void Note(StructOutcome outcome)
         {
+            if (outcome.Name.StartsWith(OffsetHealer.InvariantPrefix, StringComparison.Ordinal))
+            {
+                this.NoteInvariant(outcome);
+                return;
+            }
+
             if (outcome.Health == StructHealth.Lost)
             {
                 this.log.Info($"Struct {outcome.Name}: {outcome.Detail}");
             }
 
             this.report.Record(outcome);
+        }
+
+        /// <summary>
+        ///     A live invariant's verdict, logged when it changes. A rule that fails is said as the code fields are: its field is
+        ///     one only the game's code places, and the part's wording ("some readings may be wrong") is what it means.
+        /// </summary>
+        private void NoteInvariant(StructOutcome outcome)
+        {
+            if (outcome.Health == StructHealth.NotJudged || (this.invariantsSaid.TryGetValue(outcome.Name, out var said) && said == outcome.Health))
+            {
+                return;
+            }
+
+            this.invariantsSaid[outcome.Name] = outcome.Health;
+            if (outcome.Health == StructHealth.Lost)
+            {
+                this.log.Warn($"Layout: {outcome.Name} FAILS ({outcome.Detail}, in two areas or more): its field is not where it is read");
+                this.report.Missing(CodeFieldsPart);
+            }
+            else
+            {
+                this.log.Info($"Layout: {outcome.Name} holds ({outcome.Detail})");
+            }
         }
 
         private void Report(AreaInstanceLayout layout, bool hasWorld)

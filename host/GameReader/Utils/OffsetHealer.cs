@@ -89,6 +89,12 @@ namespace GameReader.Utils
         /// <summary>The part that lists the game's states.</summary>
         public const string StateListPart = "game state list";
 
+        /// <summary>
+        ///     What every live invariant's outcome is named by: a rule the entities must keep, for a field only the game's code
+        ///     places (docs/compatibility.md, "Live invariants"). Such an outcome is never <see cref="StructHealth.Moved"/>.
+        /// </summary>
+        public const string InvariantPrefix = "invariant: ";
+
         /// <summary>The part every walk of the UI tree needs (self, children, parent).</summary>
         public const string ElementTreePart = "element tree";
 
@@ -116,6 +122,27 @@ namespace GameReader.Utils
         private const float CentreShare = 0.8f;
 
         private const float WorldPerTile = 250f;
+
+        // Entities and ground items one sweep reads the invariants on: enough for a verdict, a few milliseconds of reads.
+        private const int MaxInvariantEntities = 256;
+        private const int MaxInvariantItems = 16;
+
+        private const string MonsterRarityRule = InvariantPrefix + "monster rarity";
+        private const string ItemRarityRule = InvariantPrefix + "item rarity";
+        private const string ChestFlagsRule = InvariantPrefix + "chest flags";
+        private const string ShrineFlagRule = InvariantPrefix + "shrine flag";
+        private const string BlockageFlagRule = InvariantPrefix + "blockage flag";
+        private const string StackCountRule = InvariantPrefix + "stack counts";
+        private const string FlaskChargesRule = InvariantPrefix + "flask charges";
+        private const string BodySizeRule = InvariantPrefix + "body sizes";
+
+        private static readonly string[] InvariantRules =
+        {
+            MonsterRarityRule, ItemRarityRule, ChestFlagsRule, ShrineFlagRule, BlockageFlagRule, StackCountRule, FlaskChargesRule, BodySizeRule,
+        };
+
+        /// <summary>The invariants' counts over the areas of this game process.</summary>
+        private static readonly InvariantTally Invariants = new();
 
         // Judged here or by their own searches (AreaInstanceLayout, JudgeEntityLayout, JudgeUiElementBase), not by the verifier.
         private static readonly HashSet<Type> OwnJudgment = new()
@@ -175,6 +202,7 @@ namespace GameReader.Utils
 
             // The position is judged through the camera, which only reads from its new place on the next frame.
             outcomes.Add(camera.Health == StructHealth.Moved && !cameraKnown ? NotJudged(PositionsPart, "the camera just moved") : JudgePosition(area));
+            outcomes.AddRange(JudgeInvariants(area));
             foreach (var probe in OffsetHelperEngine.RunSweep().Probes)
             {
                 if (probe.StructType is { } type && !OwnJudgment.Contains(type))
@@ -529,6 +557,8 @@ namespace GameReader.Utils
                 Healed.Clear();
                 Strides.Clear();
             }
+
+            Invariants.Clear();
 
             TileStructure.TileToGridConversion = TileStructure.MeasuredTileToGridConversion;
             (StateMachine.StateListOffset, StateMachine.StateStride) = (StateMachine.MeasuredStateListOffset, StateMachine.MeasuredStateStride);
@@ -996,6 +1026,122 @@ namespace GameReader.Utils
 
             (StateMachine.StateListOffset, StateMachine.StateStride) = layout;
             return Outcome(name, (near.MeasuredStateListOffset, layout.List), (near.MeasuredStateStride, layout.Stride));
+        }
+
+        /// <summary>
+        ///     The rules the fields with no shape of their own must keep on every entity (a flag is 0 or 1, a rarity is one of the
+        ///     enum's, a stack holds between one item and its maximum…), counted over the areas of this game process. A rule
+        ///     most entities break, in two areas, says its field is not where it is read; nothing is moved by it.
+        /// </summary>
+        private static IReadOnlyList<StructOutcome> JudgeInvariants(AreaInstance area)
+        {
+            var where = area.Address.ToInt64();
+            var lastRarity = (int)RemoteEnums.Rarity.Unique;
+            var (examined, items) = (0, 0);
+            foreach (var entity in area.AwakeEntities.Values)
+            {
+                if (!entity.IsValid || ++examined > MaxInvariantEntities)
+                {
+                    continue;
+                }
+
+                var id = entity.Address.ToInt64();
+                if (entity.TryGetComponent<ObjectMagicProperties>(out var magic))
+                {
+                    Invariants.Add(MonsterRarityRule, where, id, StructShapes.IsRarity((int)magic.Rarity, lastRarity));
+                }
+
+                if (entity.TryGetComponent<Chest>(out var chest) && ChestFlags(chest.Address) is { } chestFlags)
+                {
+                    Invariants.Add(ChestFlagsRule, where, id, chestFlags.All(StructShapes.IsFlag));
+                }
+
+                if (entity.TryGetComponent<Shrine>(out var shrine) && ByteAt<ShrineOffsets>(shrine.Address, nameof(ShrineOffsets.IsUsed)) is { } used)
+                {
+                    Invariants.Add(ShrineFlagRule, where, id, StructShapes.IsFlag(used));
+                }
+
+                if (entity.TryGetComponent<TriggerableBlockage>(out var blockage) &&
+                    ByteAt<TriggerableBlockageOffsets>(blockage.Address, nameof(TriggerableBlockageOffsets.IsBlocked)) is { } blocked)
+                {
+                    Invariants.Add(BlockageFlagRule, where, id, StructShapes.IsFlag(blocked));
+                }
+
+                if (entity.EntityType == RemoteEnums.Entity.EntityTypes.Monster && entity.TryGetComponent<Life>(out var life) && life.IsAlive &&
+                    entity.TryGetComponent<Render>(out var render))
+                {
+                    Invariants.Add(BodySizeRule, where, id, StructShapes.IsBodySize(render.ModelBounds.X, render.ModelBounds.Y, render.ModelBounds.Z));
+                }
+
+                if (items < MaxInvariantItems && entity.TryGetComponent<WorldItem>(out var ground) && ground.ItemEntityAddress != IntPtr.Zero)
+                {
+                    items++;
+                    JudgeItem(new Item(ground.ItemEntityAddress), where, false);
+                }
+            }
+
+            foreach (var flask in area.ServerDataObject.FlaskInventory.Items.Values)
+            {
+                JudgeItem(flask, where, true);
+            }
+
+            return InvariantRules.Select(rule =>
+            {
+                var (verdict, kept, seen) = Invariants.Verdict(rule);
+                var detail = $"{kept} of {seen} keep it";
+                return verdict switch
+                {
+                    InvariantVerdict.Holds => new StructOutcome(rule, StructHealth.Intact, 0, 0, detail),
+                    InvariantVerdict.Fails => new StructOutcome(rule, StructHealth.Lost, 0, 0, detail),
+                    _ => NotJudged(rule, seen == 0 ? "nothing to judge it on" : detail),
+                };
+            }).ToList();
+        }
+
+        /// <summary>An item's rarity and stack, and a flask's charges, counted toward their rules; an item that does not read counts for nothing.</summary>
+        private static void JudgeItem(Item item, long where, bool flask)
+        {
+            if (item.Address == IntPtr.Zero || !item.IsValid)
+            {
+                return;
+            }
+
+            var id = item.Address.ToInt64();
+            if (item.TryGetComponent<Mods>(out var mods))
+            {
+                Invariants.Add(ItemRarityRule, where, id, StructShapes.IsRarity((int)mods.Rarity, (int)RemoteEnums.Rarity.Unique));
+            }
+
+            if (item.TryGetComponent<Stack>(out var stack))
+            {
+                // The largest stack of its kind, in the inventory or a stash tab; 0 when its data does not read.
+                var max = Core.Process.Handle.TryReadMemory<StackOffsets>(stack.Address, out var data) && data.StackSizeDataPtr != IntPtr.Zero &&
+                          Core.Process.Handle.TryReadMemory<StackSizeDataOffsets>(data.StackSizeDataPtr, out var sizes)
+                    ? Math.Max(sizes.MaxStack, sizes.MaxStackTab)
+                    : 0;
+                Invariants.Add(StackCountRule, where, id, StructShapes.IsStackCount(stack.Count, max));
+            }
+
+            if (flask && item.TryGetComponent<Charges>(out var charges))
+            {
+                Invariants.Add(FlaskChargesRule, where, id, StructShapes.IsCharges(charges.Current, charges.PerUseCharge));
+            }
+        }
+
+        /// <summary>The byte of a component's field as the game holds it (a bool read through the struct loses any value but 0); null when unread.</summary>
+        private static byte? ByteAt<T>(IntPtr component, string field) =>
+            Block(component + Follow(typeof(T), OffsetOf<T>(field)), 1) is { Length: 1 } read ? read[0] : null;
+
+        /// <summary>A chest's opened flag and, through its data, its label flag; null when either does not read.</summary>
+        private static byte[]? ChestFlags(IntPtr chest)
+        {
+            if (ByteAt<ChestOffsets>(chest, nameof(ChestOffsets.IsOpened)) is not { } opened || !Core.Process.Handle.TryReadMemory<ChestOffsets>(chest, out var data) ||
+                data.ChestsDataPtr == IntPtr.Zero || ByteAt<ChestsStructInternal>(data.ChestsDataPtr, nameof(ChestsStructInternal.IsLabelVisible)) is not { } label)
+            {
+                return null;
+            }
+
+            return new[] { opened, label };
         }
 
         private static StructOutcome JudgePosition(AreaInstance area)
