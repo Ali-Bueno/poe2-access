@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Tests
     using System.Collections.Generic;
     using System.Text;
     using GameOffsets.Natives;
+    using GameOffsets.Objects.Components;
     using GameReader.Utils;
     using Poe2Accessibility.Services;
     using static Check;
@@ -19,7 +20,31 @@ namespace Poe2Accessibility.Tests
             (nameof(AWideStringOfUnknownLengthReadsAsBefore), AWideStringOfUnknownLengthReadsAsBefore),
             (nameof(ABlockIsHandedOutAgainOnlyOnceGivenBack), ABlockIsHandedOutAgainOnlyOnceGivenBack),
             (nameof(ABlockOfAnotherSizeIsNeverHandedOut), ABlockOfAnotherSizeIsNeverHandedOut),
+            (nameof(AStatIsFoundAsItsDictionaryHeldIt), AStatIsFoundAsItsDictionaryHeldIt),
         };
+
+        private static void AStatIsFoundAsItsDictionaryHeldIt()
+        {
+            var random = new Random(4);
+            for (var run = 0; run < 500; run++)
+            {
+                // Few keys, so some repeat: the dictionary kept the last value of a key.
+                var pairs = new StatArrayStruct[random.Next(0, 30)];
+                var held = new Dictionary<int, int>();
+                for (var i = 0; i < pairs.Length; i++)
+                {
+                    pairs[i] = new StatArrayStruct { key = random.Next(0, 12), value = random.Next(-5, 5) };
+                    held[pairs[i].key] = pairs[i].value;
+                }
+
+                for (var key = 0; key < 14; key++)
+                {
+                    var expected = held.TryGetValue(key, out var value);
+                    Expect(expected, StatPairs.TryFind(pairs, key, out var found), $"run {run}, whether stat {key} is there");
+                    Expect(value, found, $"run {run}, the value of stat {key}");
+                }
+            }
+        }
 
         private static void AnInlineStringReadsAsBefore()
         {
