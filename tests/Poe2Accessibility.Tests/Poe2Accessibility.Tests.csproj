@@ -24,6 +24,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\WeaponSetRows.cs" Link="Plugin\WeaponSetRows.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\QuestRewards.cs" Link="Plugin\QuestRewards.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Input\L3Gestures.cs" Link="Plugin\L3Gestures.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Speech\LongTextParagraphs.cs" Link="Plugin\LongTextParagraphs.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ScanModel.cs" Link="Plugin\ScanModel.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\WayCut.cs" Link="Plugin\WayCut.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ObjectNames.cs" Link="Plugin\ObjectNames.cs" />

@@ -54,6 +54,13 @@ namespace Poe2Accessibility.Services
         ///     stash's "Edit search" opens its field), and the new focus has just been read.
         /// </summary>
         public static bool MovedFocus(long pressedAt, long focusSince) => focusSince >= pressedAt;
+
+        /// <summary>
+        ///     Whether a tap or double tap is the game's own press, not the mod's: in a menu, and the focus it moved to began with
+        ///     the press (<see cref="MovedFocus"/>), so that focus was just read and its name is not said again.
+        /// </summary>
+        public static bool GamesPress(PadGesture gesture, bool inMenu, long? pressedAt, long focusSince) =>
+            inMenu && gesture is PadGesture.Tap or PadGesture.DoubleTap && pressedAt is { } pressed && MovedFocus(pressed, focusSince);
         private bool holdFired;
         private bool flicked;
         private bool stickOut;

@@ -32,7 +32,13 @@ namespace Poe2Accessibility.Tests
             Equal(false, FocusNews.IsTick(UiRole.GridCell, "Orbe de aumento, 3", "Orbe de aumento, 2"), "and it is no clock");
             Equal("Nivel 8", FocusNews.ChangedNumbers(UiRole.ListItem, "Colmillos de escarcha, Nivel 7", "Colmillos de escarcha, Nivel 8"), "a gem levelled under the cursor");
             Equal(null, FocusNews.ChangedNumbers(UiRole.ItemSlot, "Anillo, 3, raro", "Anillo, 12, mágico"), "more than a number changed: the whole slot's news");
-            Equal("DPS: 13,1", FocusNews.ChangedNumbers(UiRole.ListItem, "NIVEL: 1, Rayo atronador, DPS: 12,5", "NIVEL: 1, Rayo atronador, DPS: 13,1"), "a row's own figure");
+            Equal("DPS: 13,1", FocusNews.ChangedNumbers(UiRole.ListItem, "NIVEL: 1, Rayo atronador, DPS: 12,5", "NIVEL: 1, Rayo atronador, DPS: 13,1"), "a row's own figure, as a ListItem");
+
+            // Audit N2, still open: live the Skills panel's rows read as role=Panel, which the rule does not cover, so a figure
+            // changing under the cursor there is not reached by it. The rule is not widened to Panel on purpose: a panel with a
+            // clock would speak every second. This line says what is true today; when the panels that tick are listed and
+            // Panel is covered for the others, it changes with the rule.
+            Equal(null, FocusNews.ChangedNumbers(UiRole.Panel, "NIVEL: 1, Rayo atronador, DPS: 12,5", "NIVEL: 1, Rayo atronador, DPS: 13,1"), "a Skills row as it reads live (Panel): not covered yet");
             Equal(null, FocusNews.ChangedNumbers(UiRole.GridCell, "Orbe de aumento, 3", "Orbe de aumento, 3"), "nothing changed");
             Equal(null, FocusNews.ChangedNumbers(UiRole.GridCell, "Orbe de aumento, 2", "Orbe de aumento"), "the count gone is the whole cell's news");
             Equal(null, FocusNews.ChangedNumbers(UiRole.Button, "Comprar, 3", "Comprar, 2"), "a button's caption is not an item's number");

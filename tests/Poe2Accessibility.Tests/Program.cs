@@ -238,6 +238,7 @@ namespace Poe2Accessibility.Tests
                 GridSamplesTests.All(),
                 SettlingMemoTests.All(),
                 NameFallbackTests.All(),
+                ReachableRuleTests.All(),
                 TrialDataTests.All(),
                 PanelWidgetTests.All(),
                 DodgeGateTests.All(),

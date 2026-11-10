@@ -56,7 +56,7 @@ namespace Poe2Accessibility.Services
                 this.paragraphs = Array.Empty<string>();
                 if (longText != IntPtr.Zero && this.elements.TryReadLongText(longText, out var whole))
                 {
-                    this.paragraphs = Paragraphs(whole);
+                    this.paragraphs = LongTextParagraphs.Split(whole);
                     this.starts = new int[this.paragraphs.Length];
                     this.total = 0;
                     for (var i = 0; i < this.paragraphs.Length; i++)
@@ -87,7 +87,7 @@ namespace Poe2Accessibility.Services
                 this.output.Speak(Announcements.LongText(this.paragraphs.Length), false);
             }
 
-            var index = ParagraphAt(this.starts, (int)(fraction * this.total));
+            var index = LongTextParagraphs.At(this.starts, (int)(fraction * this.total));
             if (index == this.spoken)
             {
                 return;
@@ -108,22 +108,6 @@ namespace Poe2Accessibility.Services
             }
 
             this.spoken = index;
-        }
-
-        /// <summary>The text's lines that hold words; the layout's blank lines only separate them.</summary>
-        public static string[] Paragraphs(string whole) =>
-            whole.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-
-        /// <summary>The paragraph holding character <paramref name="offset"/>, from each paragraph's first character.</summary>
-        public static int ParagraphAt(IReadOnlyList<int> starts, int offset)
-        {
-            var index = 0;
-            while (index + 1 < starts.Count && starts[index + 1] <= offset)
-            {
-                index++;
-            }
-
-            return index;
         }
 
         /// <summary>

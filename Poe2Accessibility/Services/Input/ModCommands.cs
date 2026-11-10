@@ -88,8 +88,7 @@ namespace Poe2Accessibility.Services
             }
 
             var current = this.focus.Current;
-            if (current != null && gesture is PadGesture.Tap or PadGesture.DoubleTap && this.PressedAt?.Invoke() is { } pressed &&
-                L3Gestures.MovedFocus(pressed, this.focus.CurrentSince))
+            if (L3Gestures.GamesPress(gesture, current != null, this.PressedAt?.Invoke(), this.focus.CurrentSince))
             {
                 return; // the press was the game's (the stash's search field): its new focus was read, not its name again
             }
