@@ -225,7 +225,8 @@ attribute only by colour gets it named ("Recommended attribute: Strength").
 the finder's target or the build's next node leads, a node passed on the way is its name and the way on, the goal named
 only when it changes: "Attribute, in the build. Next in the build: Attack Speed: left, 3", then "Armour and Evasion.
 left, 2" (the count falling by one is the sign of a right push; "in the build", or "on the way" on the finder's trail,
-that the node is on the guide's line). A notable or keystone passed also says what it does, after the way. The node to take says it at once ("Attack Speed, small node,
+that the node is on the guide's line); what the node does follows, for the next push to cut short (the build's step and
+note only on the node to take). The node to take says it at once ("Attack Speed, small node,
 reachable, next in the build"; "…, allocate this one"), then its stats, step and note, without the links or the game's
 "Select, A" hints; L3 held reads everything, links included. Allocated there: "Attack Speed, allocated. Next in the
 build: Attack Speed: left, 1".

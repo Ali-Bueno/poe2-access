@@ -278,7 +278,8 @@ armour_and_evasion2 counted 15, 14 … 1, "Arrived at Oasis" with no correction.
   file's and the game's own note tooltip, differing by one full stop), every link, then the build's way, 5-10 s a push):
   `UiSemantics.GuideAt` works out the guide once per node and allocation (finder first, else the build's next node) as a
   `GuideSay` (line, here, on the line, next octant); with `PassiveGuideBrief` a node on the way is `Text` = its name,
-  `Tooltip` = the way alone, not waiting for the game's tooltip, and the goal is said only when its key changes
+  `Tooltip` = the way, said without waiting for the game's tooltip, which follows it (the node's stats, not the build's step and note;
+  first the way alone, then on the user's wish the stats after it: "que la guía tenga más prioridad", "los tooltips del árbol"), and the goal is said only when its key changes
   (`GoalAndWay`); every line stays in `AccessibleUiNode.Details` for L3 held. `LinesOf(…, asides)` sets the button hints
   (a glyph image or inline glyph) and red lines without digits apart. A directional sound for a node of the line
   (`CueSynth.GuideStep`, three candidates) was tried and dropped the same day: the user found the brief line enough

@@ -153,7 +153,7 @@ namespace Poe2Accessibility.Services
 
             // Before the game builds the tooltip the name and state are said alone; stats, then links, follow with it.
             var whole = new List<string>();
-            var stats = new List<string>(tooltip);
+            var stats = new List<string>(tooltip); // what the node does, without the build's step and note
             if (!tooltipPending)
             {
                 var buildLines = plan != null && marked.Contains(record) ? this.BuildLines(plan, record, node).ToList() : new List<string>();
@@ -176,16 +176,16 @@ namespace Poe2Accessibility.Services
             IReadOnlyList<string> said = whole;
             if (this.PassiveGuideBrief && guide.Leading)
             {
-                // A guide leads: its words come first, links and button hints are left for the details (L3 held), so the stick can
-                // go on at once. A node passed on the way is its name, whether it is on the guide's line, and the way on; a notable or
-                // keystone also says what it does, after the way (user 2026-11-10); the one to take says so with its name.
+                // A guide leads: its words come first, then what the node does (user 2026-11-10: "que la guía tenga más prioridad",
+                // "los tooltips del árbol, no de la build"), so the next push can cut in at once; links, button hints and, but on the
+                // node to take, the build's step and note are left for the details (L3 held). The one to take says so with its name.
                 if (!guide.Here && guide.Line.Length > 0)
                 {
                     var word = state == PassiveState.Allocated ? StateWord(state)
                         : guide.OnLine ? (this.finder.Target != IntPtr.Zero ? Announcements.OnTheWay : Announcements.InBuild(false))
                         : string.Empty;
                     text = word.Length > 0 ? $"{node.Name}, {word}" : node.Name;
-                    said = node.Class is PassiveClass.Notable or PassiveClass.Keystone ? stats.Prepend(guide.Line).ToList() : new List<string> { guide.Line };
+                    said = stats.Prepend(guide.Line).ToList();
                     tooltipPending = false;
                 }
                 else if (record == this.finder.Target)
