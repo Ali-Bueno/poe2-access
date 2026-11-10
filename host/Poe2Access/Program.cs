@@ -145,7 +145,13 @@ internal static class Program
         }
 
         Cleanup(folders, instance);
-        if (!GameLauncher.EnsureRunning(call.GameCommand, stop))
+        bool up;
+        using (var voice = new LauncherVoice(folders.Plugin(HostRun.PluginName)))
+        {
+            up = GameLauncher.EnsureRunning(call.GameCommand, stop, voice);
+        }
+
+        if (!up)
         {
             Log.Write("Stopped before the game was up");
             return Next.Finished;

@@ -11,13 +11,18 @@ internal static class GameLauncher
     private const string SteamKey = @"HKEY_CURRENT_USER\Software\Valve\Steam"; // written by Steam
     private const string KakaoKey = @"HKEY_CURRENT_USER\Software\Kakaogames\POE2"; // written by the Korean client's installer
     private static readonly string[] ProcessNames = GameInstall.ProcessNames;
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(240); // first start compiles shaders
+    // The wait goes on while Steam or the game runs; with neither it gives up after this long (a first start compiles shaders).
+    private static readonly TimeSpan Patience = TimeSpan.FromSeconds(240);
+    private static readonly TimeSpan FirstReminder = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan ReminderEvery = TimeSpan.FromSeconds(60);
+    private static readonly string[] SteamProcessNames = ["steam"];
     private static readonly TimeSpan Poll = TimeSpan.FromMilliseconds(500);
 
     /// <param name="steamCommand">The game's command when Steam started this program (%command%), else null: Steam is asked for the game.</param>
     /// <param name="stop">Set when the mod is asked to stop while it waits.</param>
+    /// <param name="voice">Says that the wait goes on; null says nothing.</param>
     /// <returns>True once the game window is up; false when the wait ended because of <paramref name="stop"/>.</returns>
-    public static bool EnsureRunning(string[]? steamCommand, WaitHandle stop)
+    public static bool EnsureRunning(string[]? steamCommand, WaitHandle stop, LauncherVoice? voice = null)
     {
         if (FindWindow())
         {
@@ -42,8 +47,10 @@ internal static class GameLauncher
             Process.Start(new ProcessStartInfo(SteamUrl) { UseShellExecute = true })?.Dispose();
         }
 
-        var deadline = DateTime.UtcNow + Timeout;
-        while (DateTime.UtcNow < deadline)
+        var wait = new GameWait(Patience, FirstReminder, ReminderEvery);
+        wait.Start(DateTime.UtcNow);
+        var steamRuns = steamCommand is not null || !GameInstall.StartsKakaoClient(GameInstall.SteamHasGame(SteamDirectory()), kakao);
+        while (true)
         {
             if (FindWindow())
             {
@@ -51,13 +58,32 @@ internal static class GameLauncher
                 return true;
             }
 
+            switch (wait.Look(SomethingCouldStartTheGame(steamRuns), DateTime.UtcNow))
+            {
+                case WaitStep.GiveUp:
+                    throw new TimeoutException($"The game window did not appear: nothing that could start the game ran for {Patience.TotalSeconds:0} seconds.");
+                case WaitStep.Remind:
+                    Log.Write("Still waiting for the game window");
+                    voice?.Say(StartupPhrases.WaitingForGame);
+                    break;
+            }
+
             if (stop.WaitOne(Poll))
             {
                 return false;
             }
         }
+    }
 
-        throw new TimeoutException($"The game window did not appear within {Timeout.TotalSeconds:0} seconds.");
+    /// <summary>Steam (it patches, downloads and queues the game) or the game process itself, window or not yet.</summary>
+    private static bool SomethingCouldStartTheGame(bool steamRuns) =>
+        RunningProcessName() is not null || (steamRuns && SteamProcessNames.Any(Runs));
+
+    private static bool Runs(string name)
+    {
+        var processes = Process.GetProcessesByName(name);
+        Array.ForEach(processes, process => process.Dispose());
+        return processes.Length > 0;
     }
 
     /// <summary>Starts the game from the command Steam gave, unless it runs already; it inherits Steam's environment from this program.</summary>
