@@ -106,7 +106,7 @@ namespace Poe2Accessibility
         ///     until it and the way it turns ("116 steps, down 3, then left"); "here" when on top of it; "no route"
         ///     when only the straight line is known.
         /// </summary>
-        public static string ScanEntry(string name, int steps, string direction, int legSteps, string? then, bool routed, bool partial = false, bool barrier = false)
+        public static string ScanEntry(string name, int steps, string direction, int legSteps, string? then, bool routed, bool partial = false, bool barrier = false, bool longWay = false)
         {
             if (steps < 1)
             {
@@ -118,6 +118,12 @@ namespace Poe2Accessibility
             {
                 return T($"{name}, {Steps(steps)} away, a closed barrier cuts the way: {leg}",
                          $"{name}, a {Steps(steps)}, una barrera cerrada corta el camino: {leg}");
+            }
+
+            if (partial && longWay)
+            {
+                // The search ran out of budget: not a closed way, so not "stops short".
+                return T($"{name}, {Steps(steps)} away, the way is long: {leg}", $"{name}, a {Steps(steps)}, la ruta es larga: {leg}");
             }
 
             if (partial)

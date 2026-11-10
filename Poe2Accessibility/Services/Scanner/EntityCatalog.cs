@@ -744,9 +744,13 @@ namespace Poe2Accessibility.Services
 
         /// <inheritdoc cref="Describe(ScanEntry)"/>
         /// <param name="cut">The phrase says the way stops short or a closed barrier cuts it.</param>
-        public string Describe(ScanEntry entry, out bool cut)
+        public string Describe(ScanEntry entry, out bool cut) => this.Describe(entry, out cut, out _);
+
+        /// <param name="longWay">The way is cut only because the search ran out of budget (<see cref="WayCuts"/>).</param>
+        public string Describe(ScanEntry entry, out bool cut, out bool longWay)
         {
             cut = false;
+            longWay = false;
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             if (!Seats.Followed.TryGetComponent<Render>(out var player))
             {
@@ -761,7 +765,7 @@ namespace Poe2Accessibility.Services
             var start = new Vector2(origin.X, origin.Y) / gridSize;
             var goal = new Vector2(entry.WorldX, entry.WorldY) / gridSize;
             // One search for both: the whole way, or the ground as close as it goes.
-            var route = RoutePlanner.FindRoute(grid, row, start, goal, true, out var whole);
+            var route = RoutePlanner.FindRoute(grid, row, start, goal, true, out var whole, out var spent);
             var earlier = this.described.Id == entry.Id && this.described.Area == area.AreaHash ? this.described : default;
             if (route != null && whole)
             {
@@ -782,6 +786,7 @@ namespace Poe2Accessibility.Services
             // (the Riverbank exit behind the boss's gate read as a full route): the way stops at the barrier.
             var barrier = route is { Count: > 0 } && entry.Kind != "barrier" && BarrierBetween(this.ClosedBarriers(), route[^1], goal);
             partial |= barrier;
+            longWay = WayCuts.Of(partial, barrier, spent) == WayCut.Long;
 
             this.log.Debug($"Route to {entry.Name}: {(route == null ? "none" : $"{route.Count} cells")} in {timer.ElapsedMilliseconds} ms from cell ({start.X:F0},{start.Y:F0}) to ({goal.X:F0},{goal.Y:F0})");
             if (route == null && this.log.Verbose)
@@ -809,12 +814,12 @@ namespace Poe2Accessibility.Services
             if (legs.Count == 0)
             {
                 // Standing at the cut (no leg left to walk): the straight line, still said as cut, not "no route".
-                return Announcements.ScanEntry(entry.Name, steps, Announcements.StickDirections[DirectionOf(goal - start)], 0, null, route != null, partial, barrier);
+                return Announcements.ScanEntry(entry.Name, steps, Announcements.StickDirections[DirectionOf(goal - start)], 0, null, route != null, partial, barrier, longWay);
             }
 
             var legSteps = Math.Max(1, (int)Math.Round(legs[0].Length * gridSize / StepWorldUnits));
             var then = legs.Count > 1 ? Announcements.StickDirections[legs[1].Direction] : null;
-            return Announcements.ScanEntry(entry.Name, steps, Announcements.StickDirections[legs[0].Direction], legSteps, then, true, partial, barrier);
+            return Announcements.ScanEntry(entry.Name, steps, Announcements.StickDirections[legs[0].Direction], legSteps, then, true, partial, barrier, longWay);
         }
 
         /// <summary>The area's named tiles and boss arenas, seen or not (the "scan" dev command).</summary>

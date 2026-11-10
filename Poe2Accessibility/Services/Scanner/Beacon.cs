@@ -68,7 +68,7 @@ namespace Poe2Accessibility.Services
         private readonly float[] ping;
         private ScanEntry? target;
         private List<Vector2>? route;
-        private Task<(List<Vector2>? Route, bool Partial, bool Barrier)>? search;
+        private Task<(List<Vector2>? Route, bool Partial, bool Barrier, bool Spent)>? search;
 
         /// <summary>The last search started, even one a lock change let go: a new one waits for it (rapid re-locks stacked them).</summary>
         private Task? running;
@@ -80,6 +80,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>"The way is closed further on" is said once per lock, even if the route comes and goes.</summary>
         private bool partialSaid;
+
+        /// <summary>"The way is long, still searching" is said once per lock; a closed way found later is still said.</summary>
+        private bool longSaid;
+
+        /// <summary>The partial way in use is only as far as the last search got (<see cref="WayCut.Long"/>), not closed.</summary>
+        private bool routeSpent;
         private Vector2? lastTurn;
         private bool partialRoute;
         private bool barrierRoute;
@@ -110,15 +116,16 @@ namespace Poe2Accessibility.Services
             }
 
             this.Aim(entry);
-            this.output.Speak(Announcements.BeaconLocked(this.catalog.Describe(entry, out var cut)), true);
-            this.partialSaid = cut; // the lock already said the way stops short: not again when the route arrives
+            this.output.Speak(Announcements.BeaconLocked(this.catalog.Describe(entry, out var cut, out var longWay)), true);
+            this.partialSaid = cut && !longWay;
+            this.longSaid = cut && longWay; // the lock already said the way stops short: not again when the route arrives
         }
 
         /// <summary>
         ///     Guides to what the scanner just named (setting AutoGuide), in place of any earlier target, adding nothing to what
         ///     was said; <paramref name="cut"/> is whether that said the way stops short.
         /// </summary>
-        public void Follow(ScanEntry entry, bool cut)
+        public void Follow(ScanEntry entry, bool cut, bool longWay = false)
         {
             if (this.catalog.DistanceTo(entry) <= ArrivalWorld)
             {
@@ -127,7 +134,8 @@ namespace Poe2Accessibility.Services
             }
 
             this.Aim(entry);
-            this.partialSaid = cut;
+            this.partialSaid = cut && !longWay;
+            this.longSaid = cut && longWay;
         }
 
         private void Aim(ScanEntry entry)
@@ -226,9 +234,9 @@ namespace Poe2Accessibility.Services
                 {
                     this.Arrive(goal);
                 }
-                else
+                else if (!this.routeSpent)
                 {
-                    this.SayClosest(goal);
+                    this.SayClosest(goal); // a way that only ran out of budget is not shut: the next search goes on from here
                 }
 
                 return; // at the end of a way that stops short: silent until the gate opens and the route goes on
@@ -346,17 +354,17 @@ namespace Poe2Accessibility.Services
             {
                 if (started != this.version)
                 {
-                    return ((List<Vector2>?)null, false, false);
+                    return ((List<Vector2>?)null, false, false, false);
                 }
 
-                var route = RoutePlanner.FindRoute(grid, row, start, end, true, out var reached);
+                var route = RoutePlanner.FindRoute(grid, row, start, end, true, out var reached, out var spent);
                 if (route != null && reached)
                 {
                     route = RoutePlanner.Keep(walking, route, start, grid, row);
                 }
 
                 var barrier = route is { Count: > 0 } && EntityCatalog.BarrierBetween(barriers, route[^1], end);
-                return (route, route != null && (!reached || barrier), barrier);
+                return (route, route != null && (!reached || barrier), barrier, spent);
             });
             this.running = this.search;
         }
@@ -379,7 +387,7 @@ namespace Poe2Accessibility.Services
                 this.log.Warn($"Guide: route search failed ({done.Exception?.GetBaseException().Message}); heard as no route");
             }
 
-            var (found, partial, barrier) = done.IsCompletedSuccessfully ? done.Result : (null, false, false);
+            var (found, partial, barrier, spent) = done.IsCompletedSuccessfully ? done.Result : (null, false, false, false);
             if (found == null && ++this.searchesWithoutRoute < SearchesToSayNoRoute)
             {
                 // One search that failed or found nothing is not "no route": the way in use stands until the next one agrees.
@@ -393,7 +401,15 @@ namespace Poe2Accessibility.Services
                 this.route = found;
                 this.partialRoute = partial;
                 this.barrierRoute = barrier;
-                if (this.partialRoute && !this.partialSaid && this.target != null)
+                var cut = WayCuts.Of(partial, barrier, spent);
+                this.routeSpent = cut == WayCut.Long;
+                if (cut == WayCut.Long && !this.longSaid && !this.partialSaid && this.target != null)
+                {
+                    // Only the budget ran out: lead along the part that is worked out, searching again from further on.
+                    this.longSaid = true;
+                    this.output.Speak(Announcements.BeaconLongWay, false);
+                }
+                else if (this.partialRoute && cut != WayCut.Long && !this.partialSaid && this.target != null)
                 {
                     // The way stops short (a gate the quest opens): lead as close as it goes, and say so once.
                     this.partialSaid = true;

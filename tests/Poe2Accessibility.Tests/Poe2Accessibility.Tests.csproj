@@ -25,6 +25,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\QuestRewards.cs" Link="Plugin\QuestRewards.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Input\L3Gestures.cs" Link="Plugin\L3Gestures.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ScanModel.cs" Link="Plugin\ScanModel.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\WayCut.cs" Link="Plugin\WayCut.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ObjectNames.cs" Link="Plugin\ObjectNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\CurrencyIcons.cs" Link="Plugin\CurrencyIcons.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\HarmfulBuffs.cs" Link="Plugin\HarmfulBuffs.cs" />

@@ -16,6 +16,11 @@ namespace Poe2Accessibility.Tests
 
         private const int SmallSide = 120;
 
+        /// <summary>Work bounds measured on the seeded caves (at most 4,647 and 7,948), with room for a rule change; plain A* needs millions.</summary>
+        private const int LongRouteExpansions = 20_000;
+
+        private const int WalledExpansions = 40_000;
+
         /// <summary>The frame budget wanted (60 Hz = 16 ms; the target is a third of it).</summary>
         private const double TargetMs = 5.0;
 
@@ -47,6 +52,8 @@ namespace Poe2Accessibility.Tests
             (nameof(RoutesAreValidAndNeverLongerThanTheOptimum), RoutesAreValidAndNeverLongerThanTheOptimum),
             (nameof(RandomGridsGiveTheOptimalRoute), RandomGridsGiveTheOptimalRoute),
             (nameof(AWalledGoalLeadsToTheNearestReachableCell), AWalledGoalLeadsToTheNearestReachableCell),
+            (nameof(ASearchThatRanOutOfBudgetSaysSo), ASearchThatRanOutOfBudgetSaysSo),
+            (nameof(TheWayIsSaidClosedOnlyWhenItIs), TheWayIsSaidClosedOnlyWhenItIs),
             (nameof(TheWayBeingWalkedIsKeptUnlessClearlyLonger), TheWayBeingWalkedIsKeptUnlessClearlyLonger),
             (nameof(ADirectionNearAnOctantEdgeKeepsTheOneSaid), ADirectionNearAnOctantEdgeKeepsTheOneSaid),
             (nameof(ALongRouteStaysWithinTheFrameBound), ALongRouteStaysWithinTheFrameBound),
@@ -339,6 +346,44 @@ namespace Poe2Accessibility.Tests
             Equal(4, StickDirection.Octant(x, y, wrap.X, wrap.Y, 4, 10), "left kept across the wrap");
         }
 
+        /// <summary>A search that ran out of budget says so, and one that finished (even to a closed way) does not.</summary>
+        private static void ASearchThatRanOutOfBudgetSaysSo()
+        {
+            var (grid, row) = Cave(LargeSide, 1);
+            var start = new Vector2(2, 2);
+            var goal = new Vector2(LargeSide - 3, LargeSide - 3);
+            var route = RoutePlanner.FindRoute(grid, row, start, goal, true, out var reached, out var spent, budget: 50);
+            Equal(false, reached, "50 expansions do not reach the far corner");
+            Equal(true, spent, "the budget was spent");
+            Equal(true, route != null, "the way as far as it got is still returned");
+
+            RoutePlanner.FindRoute(grid, row, start, goal, true, out reached, out spent);
+            Equal(true, reached, "the whole budget finds it");
+            Equal(false, spent, "and is not spent");
+
+            for (var i = 0; i < 40; i++)
+            {
+                foreach (var (x, y) in new[] { (LargeSide - 40, LargeSide - 1 - i), (LargeSide - 1 - i, LargeSide - 40) })
+                {
+                    grid[(y * row) + (x / 2)] &= (byte)(0xF0 >> ((x & 1) * 4));
+                }
+            }
+
+            RoutePlanner.FindRoute(grid, row, start, goal, true, out reached, out spent);
+            Equal(false, reached, "a walled-off goal is not reached");
+            Equal(false, spent, "and the search finished: the way is truly closed");
+        }
+
+        private static void TheWayIsSaidClosedOnlyWhenItIs()
+        {
+            Equal(WayCut.None, WayCuts.Of(false, false, false), "a whole way");
+            Equal(WayCut.None, WayCuts.Of(false, false, true), "a whole way found at the last expansion");
+            Equal(WayCut.Closed, WayCuts.Of(true, false, false), "ground that ends");
+            Equal(WayCut.Long, WayCuts.Of(true, false, true), "a search that ran out of budget");
+            Equal(WayCut.Barrier, WayCuts.Of(true, true, false), "a barrier");
+            Equal(WayCut.Barrier, WayCuts.Of(true, true, true), "a barrier is known whatever the budget did");
+        }
+
         private static void AWalledGoalLeadsToTheNearestReachableCell()
         {
             var random = new Random(RandomSeed + 1);
@@ -443,8 +488,12 @@ namespace Poe2Accessibility.Tests
             }
         }
 
-        /// <summary>Median of several searches in ms, after one warm-up.</summary>
-        private static double Median(Action search)
+        /// <summary>
+        ///     Fastest of several searches in ms, after one warm-up: load on the machine only ever adds time, so the best run
+        ///     is the one that says what the search costs (the median failed at 61 ms against 40 and 85 against 80 under load).
+        ///     The search's work is counted separately, which no load changes.
+        /// </summary>
+        private static double Best(Action search)
         {
             search();
             var times = new List<double>();
@@ -455,8 +504,7 @@ namespace Poe2Accessibility.Tests
                 times.Add(watch.Elapsed.TotalMilliseconds);
             }
 
-            times.Sort();
-            return times[times.Count / 2];
+            return times.Min();
         }
 
         private static void ALongRouteStaysWithinTheFrameBound()
@@ -468,9 +516,13 @@ namespace Poe2Accessibility.Tests
                 var start = new Vector2(2, 2);
                 var goal = new Vector2(LargeSide - 3, LargeSide - 3);
                 List<Vector2>? route = null;
-                var ms = Median(() => route = RoutePlanner.FindRoute(grid, row, start, goal));
+                var ms = Best(() => route = RoutePlanner.FindRoute(grid, row, start, goal));
                 Console.WriteLine($"    long route seed {seed}: {(route == null ? "none" : route.Count + " cells")} in {ms:F1} ms (target {TargetMs} ms)");
                 worst = Math.Max(worst, ms);
+                if (RoutePlanner.LastExpansions > LongRouteExpansions)
+                {
+                    Fail($"seed {seed}: a long route took {RoutePlanner.LastExpansions} expansions (bound {LongRouteExpansions}); the search lost its jump points");
+                }
             }
 
             if (worst > BoundMs)
@@ -495,8 +547,13 @@ namespace Poe2Accessibility.Tests
             var goal = new Vector2(LargeSide - 3, LargeSide - 3);
             var reached = true;
             List<Vector2>? route = null;
-            var ms = Median(() => route = RoutePlanner.FindRoute(grid, row, start, goal, true, out reached));
+            var ms = Best(() => route = RoutePlanner.FindRoute(grid, row, start, goal, true, out reached));
             Console.WriteLine($"    walled goal: {(route == null ? "none" : route.Count + " cells")} reached={reached} in {ms:F1} ms");
+            if (RoutePlanner.LastExpansions > WalledExpansions)
+            {
+                Fail($"a walled-off goal took {RoutePlanner.LastExpansions} expansions (bound {WalledExpansions})");
+            }
+
             if (ms > BoundMs * 2)
             {
                 Fail($"a walled-off goal took {ms:F1} ms (bound {BoundMs * 2} ms)");

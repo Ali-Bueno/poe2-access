@@ -61,6 +61,9 @@ namespace Poe2Accessibility.Services
         [ThreadStatic]
         private static Workspace? workspace;
 
+        /// <summary>Nodes the last start cell's search expanded: the work done, which tests count instead of a clock that load distorts.</summary>
+        public static int LastExpansions { get; private set; }
+
         private static readonly (int Dx, int Dy, float Cost)[] Neighbours =
         {
             (1, 0, 1f), (-1, 0, 1f), (0, 1, 1f), (0, -1, 1f),
@@ -92,9 +95,19 @@ namespace Poe2Accessibility.Services
         ///     the player is led as far as the way goes, to the gate the quest will open. <paramref name="reached"/>
         ///     says which one it is.
         /// </summary>
-        public static List<Vector2>? FindRoute(byte[] grid, int bytesPerRow, Vector2 start, Vector2 goal, bool orNearest, out bool reached)
+        public static List<Vector2>? FindRoute(byte[] grid, int bytesPerRow, Vector2 start, Vector2 goal, bool orNearest, out bool reached) =>
+            FindRoute(grid, bytesPerRow, start, goal, orNearest, out reached, out _);
+
+        /// <summary>
+        ///     As above; <paramref name="spent"/> says the search ran out of its <paramref name="budget"/> of expansions
+        ///     before it could tell whether the goal is reachable, so a route that falls short is only as far as the
+        ///     search got, not a way that is truly closed (a later search from further on may go on).
+        /// </summary>
+        public static List<Vector2>? FindRoute(byte[] grid, int bytesPerRow, Vector2 start, Vector2 goal, bool orNearest, out bool reached,
+                                               out bool spent, int budget = MaxExpansions)
         {
             reached = false;
+            spent = false;
             if (grid.Length == 0 || bytesPerRow <= 0 ||
                 !TrySnap(grid, bytesPerRow, (int)MathF.Round(goal.X), (int)MathF.Round(goal.Y), GoalSnapRadius, out var to))
             {
@@ -110,6 +123,7 @@ namespace Poe2Accessibility.Services
             space.Prepare(grid, bytesPerRow);
             List<Vector2>? first = null;
             var firstReached = false;
+            var firstSpent = false;
             var tries = 0;
             foreach (var from in StartCandidates(grid, bytesPerRow, origin.Item1, origin.Item2, StartSnapRadius))
             {
@@ -123,7 +137,7 @@ namespace Poe2Accessibility.Services
                     break;
                 }
 
-                var route = Search(space, from, to, orNearest, out var region, out var found);
+                var route = Search(space, from, to, orNearest, budget, out var region, out var found, out var ranOut);
                 if (!found && region < PocketCells * LookedPerCell)
                 {
                     region = Flood(space, grid, bytesPerRow, from); // the scans overlap and skip cells: count the whole pocket
@@ -131,17 +145,19 @@ namespace Poe2Accessibility.Services
 
                 if (tries++ == 0)
                 {
-                    (first, firstReached) = (route, found);
+                    (first, firstReached, firstSpent) = (route, found, ranOut);
                 }
 
                 if (found || region >= PocketCells || tries >= MaxStartTries)
                 {
                     reached = found;
+                    spent = ranOut && !found;
                     return route;
                 }
             }
 
             reached = firstReached;
+            spent = firstSpent && !firstReached;
             return first;
         }
 
@@ -151,10 +167,11 @@ namespace Poe2Accessibility.Services
         ///     <paramref name="region"/> counts the cells it looked at (a pocket stays small).
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        private static List<Vector2>? Search(Workspace space, (int X, int Y) from, (int X, int Y) to, bool orNearest,
-                                             out int region, out bool reached)
+        private static List<Vector2>? Search(Workspace space, (int X, int Y) from, (int X, int Y) to, bool orNearest, int budget,
+                                             out int region, out bool reached, out bool spent)
         {
             reached = false;
+            spent = false;
             region = 0;
             var width = space.Width;
             if (from.X < 0 || from.Y < 0 || from.X >= width || from.Y >= space.Height || to.X < 0 || to.Y < 0 || to.X >= width || to.Y >= space.Height)
@@ -184,8 +201,9 @@ namespace Poe2Accessibility.Services
                         continue; // a better entry for this cell was already expanded
                     }
 
-                    if (expansions++ >= MaxExpansions)
+                    if (expansions++ >= budget)
                     {
+                        spent = true;
                         break;
                     }
 
@@ -240,6 +258,7 @@ namespace Poe2Accessibility.Services
             }
             finally
             {
+                LastExpansions = expansions;
                 region = scan.Looked;
             }
         }

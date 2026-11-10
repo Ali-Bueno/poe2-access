@@ -65,6 +65,9 @@ namespace Poe2Accessibility
         public static string BeaconPartialRoute(string name) =>
             T($"The way to {name} is closed further on; guiding as close as it goes", $"El camino a {name} está cerrado más adelante; te guío lo más cerca posible");
 
+        /// <summary>The route search ran out of budget: the way is not known to be closed, and the guide searches again from further on.</summary>
+        public static string BeaconLongWay => T("The way is long, still searching", "La ruta es larga, sigo buscando");
+
         /// <summary>The player reached the end of a route that stops short; the way on is still shut.</summary>
         public static string BeaconAtClosest(string name) =>
             T($"As close to {name} as the way goes; it is still closed", $"Estás lo más cerca posible de {name}; el camino sigue cerrado");

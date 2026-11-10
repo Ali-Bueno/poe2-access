@@ -210,11 +210,11 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var spoken = this.catalog.Describe(answer.Entry, out var cut);
+            var spoken = this.catalog.Describe(answer.Entry, out var cut, out var longWay);
             this.output.Speak(answer.CategoryChanged ? Announcements.InContext(Announcements.ScanCategoryName(answer.Entry.Category), spoken) : spoken, true);
             if (this.Settings?.Invoke().AutoGuide == true)
             {
-                this.beacon?.Follow(answer.Entry, cut);
+                this.beacon?.Follow(answer.Entry, cut, longWay);
             }
         }
 
