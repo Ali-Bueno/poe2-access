@@ -32,6 +32,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             "Metadata/Monsters/LeagueDelirium/DoodadDaemons/DoodadDaemon";
         private static readonly string DeliriumUselessMonsterStarting =
             "Metadata/Monsters/LeagueDelirium/Volatile/";
+        private const string MonstersFolder = "Metadata/Monsters/";
 
         private const int DormantCheckInterval = 30;
         private const int MaxUnresolvedRetries = 5;
@@ -51,6 +52,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         private long componentsReadAt;
         private int consecutiveInvalidFrames;
         private int componentsStale;
+        private string path = string.Empty;
+        private bool monsterPath;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="Entity" /> class.
@@ -82,7 +85,19 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         /// <summary>
         ///     Gets the Path (e.g. Metadata/Character/int/int) assocaited to the entity.
         /// </summary>
-        public string Path { get; private set; }
+        public string Path
+        {
+            get => this.path;
+            private set
+            {
+                this.path = value;
+                this.monsterPath = value.StartsWith(MonstersFolder, StringComparison.Ordinal);
+                this.PathMatch = null;
+            }
+        }
+
+        /// <summary>Gets or sets what <see cref="AreaInstance"/> found in <see cref="Path"/> for its entity-backed buffs; cleared with each new path.</summary>
+        internal int? PathMatch { get; set; }
 
         /// <summary>
         ///     Gets the Id associated to the entity. This is unique per map/Area.
@@ -356,7 +371,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
 
             var isMonster = this.EntityType == EntityTypes.Monster ||
                             this.componentAddresses.ContainsKey("Monster") ||
-                            this.Path.StartsWith("Metadata/Monsters/");
+                            this.monsterPath;
 
             // Skip useless non-monster, non-unresolved entities immediately.
             if (this.EntityState == EntityStates.Useless && !isUnresolved)
@@ -524,8 +539,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                         return false;
                     }
                 }
-                else if (this.Path.StartsWith(DeliriumHiddenMonsterStarting) ||
-                         this.Path.StartsWith(DeliriumUselessMonsterStarting))
+                else if (this.Path.StartsWith(DeliriumHiddenMonsterStarting, StringComparison.Ordinal) ||
+                         this.Path.StartsWith(DeliriumUselessMonsterStarting, StringComparison.Ordinal))
                 {
                     if (this.Path.Contains("ShardPack"))
                     {
@@ -536,7 +551,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                         return false;
                     }
                 }
-                else if (Core.GHSettings.MonstersPathsToIgnore.Any(this.Path.StartsWith))
+                else if (Core.GHSettings.MonstersPathsToIgnore.Any(this.HasPathPrefix))
                 {
                     return false;
                 }
@@ -577,7 +592,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
 
                 case EntityTypes.Chest:
                     this.TryGetComponent<Chest>(out var chestComp);
-                    if (this.Path.StartsWith("Metadata/Chests/LeaguesExpedition"))
+                    if (this.Path.StartsWith("Metadata/Chests/LeaguesExpedition", StringComparison.Ordinal))
                     {
                         this.EntitySubtype = EntitySubtypes.ExpeditionChest;
                     }
@@ -589,7 +604,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                     {
                         return false;
                     }
-                    else if (this.Path.StartsWith("Metadata/Chests/Breach"))
+                    else if (this.Path.StartsWith("Metadata/Chests/Breach", StringComparison.Ordinal))
                     {
                         this.EntitySubtype = EntitySubtypes.BreachChest;
                     }
@@ -766,6 +781,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             return false;
         }
 
-        private bool IsInSpecialMiscObjPaths() => Core.GHSettings.SpecialMiscObjPaths.Any(this.Path.StartsWith);
+        private bool IsInSpecialMiscObjPaths() => Core.GHSettings.SpecialMiscObjPaths.Any(this.HasPathPrefix);
+
+        private bool HasPathPrefix(string prefix) => this.Path.StartsWith(prefix, StringComparison.Ordinal);
     }
 }

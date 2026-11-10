@@ -194,36 +194,39 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                     continue;
                 }
 
-                foreach (var definition in EntityBackedPlayerBuffs)
+                // The path is searched once per path read, not every frame.
+                var match = entity.PathMatch ??= EntityBackedBuffOf(entity.Path);
+                if (match < 0)
                 {
-                    if (!entity.Path.Contains(definition.EntityPathFragment, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                }
+
+                // Effect entities can be classified as useless and therefore stop refreshing
+                // cached components. Read a fresh component so changing stages remain live.
+                if (!entity.TryGetComponent<Buffs>(out var entityBuffs, false))
+                {
+                    continue;
+                }
+
+                var backed = EntityBackedPlayerBuffs[match];
+                foreach (var statusEffect in entityBuffs.StatusEffects)
+                {
+                    if (!statusEffect.Key.Contains(backed.BuffNameFragment, StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
 
-                    // Effect entities can be classified as useless and therefore stop refreshing
-                    // cached components. Read a fresh component so changing stages remain live.
-                    if (!entity.TryGetComponent<Buffs>(out var entityBuffs, false))
-                    {
-                        break;
-                    }
-
-                    foreach (var statusEffect in entityBuffs.StatusEffects)
-                    {
-                        if (!statusEffect.Key.Contains(definition.BuffNameFragment, StringComparison.OrdinalIgnoreCase))
-                        {
-                            continue;
-                        }
-
-                        var syntheticEffect = statusEffect.Value;
-                        syntheticEffect.Charges = (short)Math.Min(
-                            short.MaxValue,
-                            definition.StageToStacks(syntheticEffect.RawStage));
-                        playerBuffs.AddSyntheticStatusEffect(statusEffect.Key, syntheticEffect);
-                    }
+                    var syntheticEffect = statusEffect.Value;
+                    syntheticEffect.Charges = (short)Math.Min(
+                        short.MaxValue,
+                        backed.StageToStacks(syntheticEffect.RawStage));
+                    playerBuffs.AddSyntheticStatusEffect(statusEffect.Key, syntheticEffect);
                 }
             }
         }
+
+        private static int EntityBackedBuffOf(string path) =>
+            Array.FindIndex(EntityBackedPlayerBuffs, definition => path.Contains(definition.EntityPathFragment, StringComparison.OrdinalIgnoreCase));
 
         private void UpdateEntities(
             StdMap ePtr,
