@@ -34,13 +34,13 @@ namespace GameOffsets.Objects.States.InGameState
 
     public static class EntityFilter
     {
-        public static Func<EntityNodeKey, bool> IgnoreVisualsAndDecorations = param =>
-        {
-            // from the game code
-            //     if (0x3fffffff < *(uint *)(lVar1 + 0x60)) {}
-            //     CMP    dword ptr [RSI + 0x60],0x40000000
-            return param.id < 0x40000000;
-        };
+        /// <summary>
+        ///     The first id of the client-side visuals and decorations; from the game code:
+        ///     <c>if (0x3fffffff &lt; *(uint *)(lVar1 + 0x60)) {}</c>, <c>CMP dword ptr [RSI + 0x60],0x40000000</c>.
+        /// </summary>
+        public const uint FirstVisualId = 0x40000000;
+
+        public static Func<EntityNodeKey, bool> IgnoreVisualsAndDecorations = param => param.id < FirstVisualId;
     }
 
     [StructLayout(LayoutKind.Explicit, Pack = 1)]

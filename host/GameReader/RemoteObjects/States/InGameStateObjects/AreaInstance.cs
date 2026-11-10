@@ -41,8 +41,16 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 rawStage => Math.Max(0, ((int)rawStage - 15) / 3)),
         };
 
+        /// <summary>The awake map's keys of client-side visuals, which the walk skips: what <see cref="EntityFilter"/> drops.</summary>
+        private static readonly StdMapKeyLimit<EntityNodeKey> VisualIds = new(key => key.id, EntityFilter.FirstVisualId);
+
         /// <summary>The terrain struct's remap the terrain was last read through (null: as compiled).</summary>
         private RemapSegment[]? terrainRemap;
+
+        /// <summary>Whether the walk skips the visuals' subtrees: off for the rest of an area once its map is seen out of order.</summary>
+        private bool skipVisuals = true;
+        private int walks;
+        private int incompleteWalks;
         private readonly List<int> environments;
 
         /// <summary>
@@ -296,11 +304,10 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                         data.TryRemove(kv.Key, out _);
                     }
                 }
-
-                kv.Value.IsValid = false;
             }
 
-            reader.ReadStdMap<EntityNodeKey, EntityNodeValue>(ePtr, 100000, false, (key, value) =>
+            var walk = unchecked(++this.walks);
+            var result = reader.ReadStdMap<EntityNodeKey, EntityNodeValue>(ePtr, 100000, (key, value) =>
             {
                 if (!EntityFilter.IgnoreVisualsAndDecorations(key))
                 {
@@ -315,11 +322,12 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
 
                 if (data.TryGetValue(key, out var entity))
                 {
+                    entity.ReachedInWalk = walk;
                     entity.Address = value.EntityPtr;
                 }
                 else
                 {
-                    entity = new Entity(value.EntityPtr);
+                    entity = new Entity(value.EntityPtr) { ReachedInWalk = walk };
                     if (!string.IsNullOrEmpty(entity.Path))
                     {
                         data[key] = entity;
@@ -335,7 +343,28 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 }
 
                 return true;
-            });
+            }, this.skipVisuals ? VisualIds : null);
+
+            if (result.OutOfOrder && this.skipVisuals)
+            {
+                this.skipVisuals = false;
+                Console.WriteLine("[AreaInstance] The awake entities' map is out of id order: every node is read until the next area.");
+            }
+
+            // A walk cut short (a node the game moved while it was read) did not see what it missed leave: those keep their
+            // state for a few frames rather than vanish for one and come back as new entities.
+            if (IncompleteWalks.KeepUnreached(ref this.incompleteWalks, result.Complete))
+            {
+                return;
+            }
+
+            foreach (var entity in data.Values)
+            {
+                if (entity.ReachedInWalk != walk)
+                {
+                    entity.IsValid = false;
+                }
+            }
         }
 
         private Dictionary<string, List<Vector2>> GetTgtFileData()
@@ -466,6 +495,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         private void Cleanup(bool isAreaChange)
         {
             this.AwakeEntities.Clear();
+            this.skipVisuals = true;
+            this.incompleteWalks = 0;
             this.EntityCaches.ForEach((e) => e.Clear());
 
             if (!isAreaChange)
@@ -504,7 +535,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             return reader.ReadStdMap<EntityNodeKey, EntityNodeValue>(
                 data.Entities.SleepingEntities,
                 500000,
-                true,
                 (key, value) =>
                 {
                     // Drop torn-read entries whose pointer can't back a real entity.
@@ -520,7 +550,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                     }
 
                     return true;
-                });
+                }).Nodes;
         }
 
         private IEnumerator<Wait> OnPerFrame()

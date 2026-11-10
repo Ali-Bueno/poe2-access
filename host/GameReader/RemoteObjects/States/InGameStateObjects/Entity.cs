@@ -128,6 +128,9 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         /// </summary>
         public int ConsecutiveInvalidFrames => this.consecutiveInvalidFrames;
 
+        /// <summary>Gets or sets the number of the last awake-map walk that reached this entity (<see cref="AreaInstance"/>'s).</summary>
+        internal int ReachedInWalk { get; set; }
+
         /// <summary>
         ///     Increments the consecutive invalid frames counter.
         /// </summary>
