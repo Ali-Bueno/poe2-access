@@ -90,6 +90,9 @@ namespace Poe2Accessibility.Services
         /// <summary>When a ground item's name was said: the rest of its tooltip follows in a second step.</summary>
         private DateTime groundItemAt = DateTime.MinValue;
 
+        /// <summary>What was last said of a ground item's tooltip: its lines settling a moment apart are one tooltip, said once.</summary>
+        private string groundItemSaid = string.Empty;
+
         /// <summary>When the focused control's value last changed in place (its actions may change with it).</summary>
         private DateTime valueChangedAt = DateTime.MinValue;
         private ScreenSnapshot? seenSnapshot;

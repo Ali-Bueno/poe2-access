@@ -467,16 +467,24 @@ namespace Poe2Accessibility.Services
                 }
 
                 var news = change.Texts.Except(alerts).Where(text => text.Address != ignored && !IsNumber(text.Text) && this.hudSpoken.Add(text.Text)).ToList();
-                var itemTarget = news.Count > 0 && this.ItemTargetNamed?.Invoke() == true;
-                var item = news.Count > 0 ? this.GroundItemName?.Invoke(change.Texts.Select(text => text.Text)) : null;
-                if (item != null || (itemTarget && change.Texts.Any(text => PropertyLine.IsMatch(text.Text))))
+                // A tooltip that shows again while the HUD is up is another item's, or the same one aimed at again: news
+                // each time, whatever was said of that title before (a second stack of a currency was silent). The HUD
+                // coming back from behind a panel shows again what it showed before, which is none.
+                var shownAgain = news.Count == 0 && change.Kind == ScreenChangeKind.TextsAppeared && !this.InMenu &&
+                                 (DateTime.UtcNow - this.hudBackAt).TotalMilliseconds >= HudBackMs &&
+                                 change.Texts.Any(text => !IsNumber(text.Text) && !PropertyLine.IsMatch(text.Text));
+                var itemTarget = (news.Count > 0 || shownAgain) && this.ItemTargetNamed?.Invoke() == true;
+                var item = news.Count > 0 || shownAgain ? this.GroundItemName?.Invoke(change.Texts.Select(text => text.Text)) : null;
+                if (item != null || (itemTarget && news.Count > 0 && change.Texts.Any(text => PropertyLine.IsMatch(text.Text))))
                 {
                     var quality = change.Texts.FirstOrDefault(text => QualityLine.IsMatch(text.Text));
-                    if (item is not "" && DateTime.UtcNow >= this.hudQuietUntil && this.QuietGroundItems?.Invoke() != true)
+                    // The game shows this tooltip for what A uses, already named with the button: only its quality is new.
+                    var said = itemTarget ? quality?.Text ?? string.Empty : quality == null ? item ?? string.Empty : $"{item}, {quality.Text}";
+                    var settling = said == this.groundItemSaid && (DateTime.UtcNow - this.groundItemAt).TotalMilliseconds < FocusTextMergeMs;
+                    if (item is not "" && !settling && DateTime.UtcNow >= this.hudQuietUntil && this.QuietGroundItems?.Invoke() != true)
                     {
-                        // The game shows this tooltip for what A uses, already named with the button: only its quality is new.
-                        var said = itemTarget ? quality?.Text ?? string.Empty : quality == null ? item! : $"{item}, {quality.Text}";
                         this.Speak("ground item", said, false);
+                        this.groundItemSaid = said;
                     }
 
                     this.groundItemAt = DateTime.UtcNow; // the stats that follow ("Attacks per Second: 1.40") are its tooltip

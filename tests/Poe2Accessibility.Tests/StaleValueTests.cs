@@ -17,6 +17,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ANumberChangingUnderTheCursorIsSaidAlone), ANumberChangingUnderTheCursorIsSaidAlone),
             (nameof(AClockInTheFocusedRowStaysQuiet), AClockInTheFocusedRowStaysQuiet),
             (nameof(AMovedItemIsNamedAsItWasWhenItLeft), AMovedItemIsNamedAsItWasWhenItLeft),
+            (nameof(AGroundTooltipIsItsOwnItems), AGroundTooltipIsItsOwnItems),
         };
 
         private static void ANumberChangingUnderTheCursorIsSaidAlone()
@@ -70,6 +71,32 @@ namespace Poe2Accessibility.Tests
             names.KeepOnly(item => item == ring);
             Equal("unknown item", names.Last(scrolls), "an item gone from every inventory is forgotten");
             Equal("Iron Ring, magic", names.Last(ring), "the ones in reach are kept");
+        }
+
+        /// <summary>Two stacks of one currency on the ground, 3 and 7: the tooltip is the targeted one's, never the last listed.</summary>
+        private static void AGroundTooltipIsItsOwnItems()
+        {
+            var three = new GroundTooltip.Item("Orb of Augmentation", "Orb of Augmentation", "Orb of Augmentation, 3");
+            var seven = new GroundTooltip.Item("Orb of Augmentation", "Orb of Augmentation", "Orb of Augmentation, 7");
+            var rare = new GroundTooltip.Item("Long Staff", "Long Staff", "Long Staff, rare");
+            var gold = new GroundTooltip.Item("Gold", string.Empty, string.Empty);
+            var tooltip = new[] { "Orb of Augmentation", "Stack Size: 3/20" };
+            var remembered = new Dictionary<string, string>();
+            foreach (var item in new[] { three, seven, rare })
+            {
+                GroundTooltip.Remember(remembered, item.Title, item.Spoken);
+            }
+
+            string? Remembered(string title) => remembered.TryGetValue(title, out var spoken) ? spoken : null;
+            Equal("Orb of Augmentation, 3", GroundTooltip.Name(tooltip, three, new[] { three, seven }, Remembered), "the stack the game targets");
+            Equal("Orb of Augmentation, 7", GroundTooltip.Name(tooltip, seven, new[] { three, seven }, Remembered), "whichever was listed last");
+            Equal("Orb of Augmentation", GroundTooltip.Name(tooltip, null, new[] { three, seven }, Remembered), "no target: the title, not one stack's count");
+            Equal("Orb of Augmentation", GroundTooltip.Name(tooltip, rare, new[] { three, seven, rare }, Remembered), "a target the tooltip does not show is not its item");
+            Equal("Orb of Augmentation, 7", GroundTooltip.Name(tooltip, null, new[] { seven }, Remembered), "one left in view: its own count");
+            Equal("Orb of Augmentation", GroundTooltip.Name(tooltip, null, Array.Empty<GroundTooltip.Item>(), Remembered), "both gone: two were seen, the count is not known");
+            Equal("Long Staff, rare", GroundTooltip.Name(new[] { "Fierce Long Staff of Impact", "Long Staff" }, null, Array.Empty<GroundTooltip.Item>(), Remembered), "a picked-up item's late tooltip, by its base line");
+            Equal(string.Empty, GroundTooltip.Name(new[] { "Gold" }, null, new[] { gold, gold }, Remembered), "gold says nothing, however many piles");
+            Equal(null, GroundTooltip.Name(new[] { "New checkpoint" }, three, new[] { three }, Remembered), "a text that is no item's");
         }
     }
 }

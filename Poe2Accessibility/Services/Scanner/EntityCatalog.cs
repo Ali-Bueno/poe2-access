@@ -231,18 +231,30 @@ namespace Poe2Accessibility.Services
         /// <summary>What each area instance left held, to restore it on return (set by the plugin).</summary>
         public AreaMemory? Memory { get; set; }
 
-        /// <summary>The spoken name of the ground item whose tooltip holds these texts (empty for gold); null when none does.</summary>
+        /// <summary>
+        ///     The spoken name of the ground item whose tooltip holds these texts (empty for gold), read now from the item
+        ///     the game targets or the one in view (<see cref="GroundTooltip"/>); null when none does.
+        /// </summary>
         public string? ItemOfTooltip(IEnumerable<string> texts)
         {
-            foreach (var text in texts)
+            var shown = texts.ToList();
+            if (!shown.Any(this.itemTitles.ContainsKey))
             {
-                if (this.itemTitles.TryGetValue(text, out var spoken))
+                return null; // no title of an item seen here: the ground is not read for every text the HUD shows
+            }
+
+            GroundTooltip.Item? target = null;
+            var inView = new List<GroundTooltip.Item>();
+            foreach (var (_, entity) in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities)
+            {
+                if (this.GroundItemOf(entity) is { } item)
                 {
-                    return spoken;
+                    inView.Add(item);
+                    target = this.IsTargeted(entity) ? item : target;
                 }
             }
 
-            return null;
+            return GroundTooltip.Name(shown, target, inView, title => this.itemTitles.TryGetValue(title, out var spoken) ? spoken : null);
         }
 
         /// <summary>A thing in the world, not a named place of the area's tiles.</summary>

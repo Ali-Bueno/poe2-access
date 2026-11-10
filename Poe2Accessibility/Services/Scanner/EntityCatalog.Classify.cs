@@ -80,10 +80,7 @@ namespace Poe2Accessibility.Services
                 category = ScanCategory.Items;
                 name = this.inventory.DescribeItemEntity(worldItem.ItemEntityAddress, name) ?? name;
                 (kind, loot) = this.inventory.ItemKind(worldItem.ItemEntityAddress);
-                if (name.Split(',')[0].Trim() is { Length: > 0 } title)
-                {
-                    this.itemTitles[title] = kind == "gold" ? string.Empty : name; // "Oro, 2": the title before the amount
-                }
+                GroundTooltip.Remember(this.itemTitles, GroundTooltip.TitleOf(name), kind == "gold" ? string.Empty : name); // "Oro, 2": the title before the amount
 
                 if (this.inventory.ItemBaseName(worldItem.ItemEntityAddress) is { Length: > 0 } baseName)
                 {
@@ -332,6 +329,25 @@ namespace Poe2Accessibility.Services
             return null;
         }
 
+        /// <summary>The game flags the entity as the player's target (<see cref="GameLayout.TargetableComponent.IsTargetedOffset"/>).</summary>
+        private bool IsTargeted(Entity entity) =>
+            entity.TryGetComponent<Targetable>(out var target) &&
+            this.memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.IsTargetedOffset, out var flag) && flag != 0;
+
+        /// <summary>An item on the ground as it reads now, for its tooltip; null for anything else.</summary>
+        private GroundTooltip.Item? GroundItemOf(Entity entity)
+        {
+            if (!entity.IsValid || !entity.TryGetComponent<WorldItem>(out var worldItem) || !entity.TryGetComponent<Render>(out var render))
+            {
+                return null;
+            }
+
+            var label = this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty;
+            var spoken = this.inventory.DescribeItemEntity(worldItem.ItemEntityAddress, label) ?? label;
+            var gold = this.inventory.ItemKind(worldItem.ItemEntityAddress).Kind == "gold";
+            return new GroundTooltip.Item(GroundTooltip.TitleOf(spoken), this.inventory.ItemBaseName(worldItem.ItemEntityAddress), gold ? string.Empty : spoken);
+        }
+
         /// <summary>
         ///     What A uses now: the entity the game flags as the player's target (<see
         ///     cref="GameLayout.TargetableComponent.IsTargetedOffset"/>), named as the scanner names it; monsters are the
@@ -341,8 +357,7 @@ namespace Poe2Accessibility.Services
         {
             foreach (var (_, entity) in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities)
             {
-                if (entity.IsValid && entity.TryGetComponent<Targetable>(out var target) &&
-                    this.memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.IsTargetedOffset, out var flag) && flag != 0 &&
+                if (entity.IsValid && this.IsTargeted(entity) &&
                     entity.TryGetComponent<Render>(out var render) && this.Classify(entity, render) is { } entry)
                 {
                     if (entry.Category is not ScanCategory.Enemies)
