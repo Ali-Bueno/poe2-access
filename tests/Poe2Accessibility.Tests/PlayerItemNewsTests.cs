@@ -22,7 +22,37 @@ namespace Poe2Accessibility.Tests
             (nameof(WhatATradeGivesAndTakesIsBothSaid), WhatATradeGivesAndTakesIsBothSaid),
             (nameof(AMovedBitNeedsASecondRound), AMovedBitNeedsASecondRound),
             (nameof(ANodesRowIsBelievedOnlyWhileMostRowsAgree), ANodesRowIsBelievedOnlyWhileMostRowsAgree),
+            (nameof(AnotherAreaAtTheSameAddressIsASecondWitness), AnotherAreaAtTheSameAddressIsASecondWitness),
+            (nameof(ABuffListMayBeginWithACapitalisedId), ABuffListMayBeginWithACapitalisedId),
         };
+
+        private static void AnotherAreaAtTheSameAddressIsASecondWitness()
+        {
+            // The game loaded the next area into the instance it already had: by the address alone the loss was never said.
+            const long Instance = 0x1F2_3456_7000;
+            var misses = new LossWitnesses();
+            Equal(false, misses.Against(LossWitnesses.AreaKey(Instance, "A1B2C3D4")), "one area");
+            Equal(false, misses.Against(LossWitnesses.AreaKey(Instance, "A1B2C3D4")), "the same area again");
+            Equal(true, misses.Against(LossWitnesses.AreaKey(Instance, "0F0E0D0C")), "another area at that address is the second");
+            Equal(LossWitnesses.AreaKey(Instance, "A1B2C3D4"), LossWitnesses.AreaKey(Instance, "A1B2C3D4"), "one key per area");
+        }
+
+        private static void ABuffListMayBeginWithACapitalisedId()
+        {
+            const long Heap = 0x10_0000_0000;
+            var memory = new LayoutSearchTests.FakeMemory();
+            var block = new byte[0x40];
+            LayoutSearchTests.Put(block, 0x10, Heap + 0x100, Heap + 0x108, Heap + 0x110);
+            memory.Pointers[Heap + 0x100] = Heap + 0x200;
+            memory.Pointers[Heap + 0x208] = Heap + 0x300;
+            memory.Pointers[Heap + 0x300] = Heap + 0x400;
+            memory.Texts[Heap + 0x400] = "AoD_beam_degen";
+            Equal(true, GameReader.Utils.StructShapes.IsBuffList(block, 0x10, memory, 8), "an id with capitals is an id, as IsBuffId reads it");
+            memory.Texts[Heap + 0x400] = "Not an Id";
+            Equal(false, GameReader.Utils.StructShapes.IsBuffList(block, 0x10, memory, 8), "other text is still none");
+            memory.Texts[Heap + 0x400] = "ab";
+            Equal(false, GameReader.Utils.StructShapes.IsBuffList(block, 0x10, memory, 8), "nor two letters");
+        }
 
         private static void AMovedBitNeedsASecondRound()
         {

@@ -320,7 +320,9 @@ namespace GameReader.Utils
             var entry = Long(memory.Read(first, Pointer), 0);
             var row = IsPointer(entry) ? Long(memory.Read(entry + definition, Pointer), 0) : 0;
             var id = IsPointer(row) ? Long(memory.Read(row + name, Pointer), 0) : 0;
-            return IsPointer(id) && IsId(memory.WideText(id));
+            // As IsBuffId reads an id, capitals too ("AoD_beam_degen"): a healthy list whose first buff is one of those must
+            // not fail here and send the sweep looking for the name in another column.
+            return IsPointer(id) && memory.WideText(id) is { Length: >= MinIdLength } text && IsBuffId(text);
         }
 
         /// <summary>The skills (16-byte entries, the first a pointer) with the cooldowns right after them.</summary>
@@ -555,7 +557,10 @@ namespace GameReader.Utils
         public static bool IsBuffId(string text) =>
             text.Length > 0 && text.All(letter => char.IsAsciiLetterOrDigit(letter) || letter == '_');
 
+        /// <summary>The shortest id of the game's tables (buff-names.json: 3 characters).</summary>
+        private const int MinIdLength = 3;
+
         private static bool IsId(string text) =>
-            text.Length >= 3 && text.All(letter => letter is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '_');
+            text.Length >= MinIdLength && text.All(letter => letter is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '_');
     }
 }
