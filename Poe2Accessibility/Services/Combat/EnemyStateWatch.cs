@@ -132,10 +132,23 @@ namespace Poe2Accessibility.Services
         /// <summary>Heavy stun buildup against its threshold, both in the Actor component (<see cref="GameLayout.ActorComponent"/>).</summary>
         private bool Primed(IntPtr actor, Rarity rarity)
         {
-            var threshold = this.memory.ReadBytes(actor + GameLayout.ActorComponent.PoiseThresholdOffset, sizeof(int));
-            var buildup = this.memory.ReadBytes(actor + GameLayout.ActorComponent.PoiseOffset, sizeof(int));
-            return threshold.Length == sizeof(int) && buildup.Length == sizeof(int) &&
-                   PrimedThreshold.Reached(rarity, BitConverter.ToInt32(buildup), BitConverter.ToInt32(threshold));
+            // The two are neighbours in the stun record: one read for both, and no array, per monster and poll.
+            var (threshold, buildup) = (GameLayout.ActorComponent.PoiseThresholdOffset, GameLayout.ActorComponent.PoiseOffset);
+            var first = Math.Min(threshold, buildup);
+            var span = Math.Abs(threshold - buildup) + sizeof(int);
+            if (span > MaxStunRecordSpan)
+            {
+                // Placed apart by a patch: each on its own, as ShieldWatch reads them.
+                return this.memory.TryRead<int>(actor + threshold, out var limit) && this.memory.TryRead<int>(actor + buildup, out var built) &&
+                       PrimedThreshold.Reached(rarity, built, limit);
+            }
+
+            Span<byte> record = stackalloc byte[span];
+            return this.memory.TryReadBytes(actor + first, record) &&
+                   PrimedThreshold.Reached(rarity, BitConverter.ToInt32(record[(buildup - first)..]), BitConverter.ToInt32(record[(threshold - first)..]));
         }
+
+        /// <summary>The stun record is some tens of bytes: fields further apart than this are not read as one block.</summary>
+        private const int MaxStunRecordSpan = 0x40;
     }
 }
