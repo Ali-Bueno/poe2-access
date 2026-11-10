@@ -117,6 +117,15 @@ namespace Poe2Accessibility.Services
             return at >= reading.Position ? MsUntil(reading, at) : null;
         }
 
+        /// <summary>
+        ///     Where in its clip a moment falls, as the files count it (milliseconds from the clip's start at speed 1): the
+        ///     clip's place at its reading, moved on at the rate it plays for the real time since. A blow is learnt so: kept
+        ///     as real time since the attack began it was replayed as clip time (<see cref="MsToNominal"/>), early or late by
+        ///     the speed of a hasted or chilled monster.
+        /// </summary>
+        public static int NominalMsAt(AnimationReading reading, long readAt, long moment) =>
+            (int)Math.Round(((reading.Position - reading.Start) * MsPerSecond) + ((moment - readAt) * Rate(reading)));
+
         /// <summary>A new swing began: another clip, or the same one started over (its position went back).</summary>
         public static bool NewSwing(AnimationReading before, AnimationReading now) =>
             now.Clip != before.Clip || now.Position < before.Position;

@@ -41,7 +41,8 @@ namespace GameReader.RemoteObjects.Components
             var data = reader.ReadMemory<PlayerOffsets>(this.Address);
             this.OwnerEntityAddress = data.Header.EntityPtr;
 
-            if (hasAddressChanged)
+            // A name that read empty (the entity still being made) is asked again: no player has none.
+            if (hasAddressChanged || this.Name.Length == 0)
             {
                 this.Name = reader.ReadStdWString(data.Name);
             }

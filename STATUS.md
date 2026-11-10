@@ -157,7 +157,7 @@
 | Boss weak point heartbeat (the Devourer: strike the head, not the tail) | done (live) | `WeakPointGuide` + pure `WeakPoints`: a unique monster sharing a "Tail" entity's name (MonsterVarieties MudBurrowerTailBoss / DevourerBossDuoTail have no boss bar, read 2026-10-26); silent while the head is out of play (it turns untargetable as it burrows: the log toggled in and out of play through the fight, won 2026-10-26) |
 | Cue timbres and mixer | done (code) | beacon an iron chime, dodge a blade drawn over a low gong into a bass drop, the hit at 0.2 s as the snap was (`CueSynth.Dodge`; a noise sweep was taken for the radar's open-floor breath and a rising tone sounded like a cartoon; the user picked this from samples, 2026-10-28), both in a short stone-room tail; growl with a sub-octave; levels raised toward the game's own sounds; soft limiter instead of clipping (`CueSynth.Limit`) |
 | Mana warnings, vitals on L3 double tap | done (live) | "Maná 50 por ciento"; "Vida 85 por ciento, maná 100 por ciento. El molinero hinchado 65 por ciento" |
-| Vitals: flask uses, level progress, gold, explored share (D2R) | done (live) | "Frasco de vida menor, 6 usos… Nivel 3, 5 por ciento hacia el nivel 4, nivel del área 15. Explorado 41 por ciento" (2026-10-25); `FlaskWatch` (GameHelper FlaskInventory + Charges 60/10), `ExperienceTable` (`catalog/experience.json` from ExperienceLevels), `ExplorationMap.ExploredPercent`; empty-flask warning heard: "Frasco de maná menor vacío" after six drinks in Clearfell, then the game's own "Sin frascos" (2026-10-25; flasks are not drunk in town or at full life/mana); the uses left said after each drink, "Frasco de vida menor, 3 usos" (code, user asked 2026-10-26): flasks tracked by belt slot, since a drink makes a new item entity (`FlaskDrinks`, seen in the log); a use gained and a flask put on the belt said too |
+| Vitals: flask uses, level progress, gold, explored share (D2R) | done (live) | "Frasco de vida menor, 6 usos… Nivel 3, 5 por ciento hacia el nivel 4, nivel del área 15. Explorado 41 por ciento" (2026-10-25); `FlaskWatch` (GameHelper FlaskInventory + Charges; uses only once two drinks showed what one costs, the charges until then: the base type's cost ignores the flask's modifiers, code 2026-11-10), `ExperienceTable` (`catalog/experience.json` from ExperienceLevels), `ExplorationMap.ExploredPercent`; empty-flask warning heard: "Frasco de maná menor vacío" after six drinks in Clearfell, then the game's own "Sin frascos" (2026-10-25; flasks are not drunk in town or at full life/mana); the uses left said after each drink, "Frasco de vida menor, 3 usos" (code, user asked 2026-10-26): flasks tracked by belt slot, since a drink makes a new item entity (`FlaskDrinks`, seen in the log); a use gained and a flask put on the belt said too |
 | Minions in the vitals readout (D2R) | done (code) | `MinionReport` + pure `MinionGroups`: friendly living creatures without the NPC component within object range, by kind with average life ("Esbirros: 3 Esqueleto arquero, 80 por ciento"); a party member's minions count too |
 | Loot filter for item sounds and approach names (D2R) | done (code) | `LootFilter`, setting "Objetos que suenan y se nombran": todos / mágicos o mejores / solo monedas, gemas, objetos de misión, raros y únicos; the scanner still lists every item; not heard live (no ground items in town) |
 | Target name on right-stick aim, crosshair beep | done (code) | GameHelper `MouseOverEntity`; never heard live yet (no monster under the aim during the bot test) |
@@ -244,7 +244,7 @@
 | Trial of Chaos: round said on change | done (code) | `CheckTrialLines` on "Round {0}/{1}" |
 | Ascendancy selector and tree view | todo (blocked: no ascended character) | needs one UI dump with it open and one closed (trials-and-campaign.md §3). 2026-11-08: yarkey's passive tree shows its class art in the centre and no ascendancy view or prompt (Y, LB, RB, X and the d-pad tried); the selector comes from the altar after the Trial of the Sekhemas, which no test character has done |
 | Acts 3-4 puzzle objects and the sailing map | todo (blocked: the character is in Act 2) | trials-and-campaign.md §4 |
-| Class resources from the game's tables | done (code; live: Heat with its maximum, vitals) | `ResourceWatch` + `ResourceTracker`/`ClassMechanicCatalog`, catalog class-mechanics.json; a maximum no player stat holds comes from the skills' level rows (`SkillStatSets`: Rapid Shot's "Calor al máximo, 31", live 2026-11-08) |
+| Class resources from the game's tables | done (code; live: Heat with its maximum, vitals) | `ResourceWatch` + `ResourceTracker`/`ClassMechanicCatalog`, catalog class-mechanics.json; a maximum no player stat holds is read from the skills' level rows (`SkillStatSets`, live 2026-11-08) and, not being live, only marks where the pool is told as a count ("Calor: 31"), never as full; resources and limits the mod has no name for are logged, not spoken (code 2026-11-10) |
 | Endgame data from the game files | done (code) | `endgame` step → catalog/endgame.json; docs/research/endgame.md |
 | Map objective content in the scanner (breach, abyss, essence, Vaal beacon, detonator) | done (code) | Encounters, game's keyword names |
 | Atlas map and tree nodes | done (code, not seen live) | name, content icons, asks/unlocks, links with directions, tower reach; dev `atlasnode` |
@@ -470,6 +470,11 @@ Next: (1) **Bosses by hand** — the Bloated Miller with a new low character (a 
 Earlier chunks, newest first: [status history](docs/status-history.md).
 
 ## Known issues / open questions
+- Stale values, player, combat and host (2026-11-10, code and unit tests only): flask uses from the drink's seen cost, boss
+  life read when asked, a shared target name said alone, per-area state reset per instance, untyped entities' components
+  rested, buff stacks, learnt blows as clip time, no maximum from tables, buff ids kept whole. What each needs live is listed in
+  [the audit](docs/research/robustness-audit-2026-11-10.md#stale-values-2026-11-10). Left open there: the sale said as
+  "used", the quest tracker between characters, the cull cue for a culling support.
 - The reader and the extraction were hardened on 2026-11-10 (second pass, [compatibility](docs/compatibility.md#found-again-at-runtime-host),
   [performance](docs/research/performance.md#reader-pass-2026-11-10), [patch day](docs/patch-day.md)): the state anchor is proven and
   searched for, the states are counted, the pre-game UI root is reached by shape, unchecked code fields are said, the game's
@@ -502,8 +507,9 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   content (needs an endgame character). Seen live that day: a rare item's mods and a magic monster's ("de precisión").
 - The lost hint at its 180 s rarely comes in a monster-dense area: any enemy within 1300 units stops the count (a fight is
   no sign of being lost). Clearfell gave it only at a 3 s setting (2026-11-08); whether 180 s suits the user is open.
-- Heat now has its maximum (31 at Rapid Shot level 6), which is above `ResourceTracker`'s counted range: it is said only at its
-  edges ("Calor al máximo, 31", "sin Calor"), no longer "Calor: 8". Whether the user wants the counts back is open.
+- Heat's maximum comes from the skills' tables (31 at Rapid Shot level 6), not from a live stat: it only tells the pool from a
+  count, so Heat is said where it reaches that value, as a count ("Calor: 31"), and when it runs out ("sin Calor"), never
+  "al máximo" (code 2026-11-10, to hear live). Whether the user wants every count back is open.
 - `catalog/landmarks.json` corrects the Radar table's labels that were no area name by a typo ("Oghams Manor", 5 found by near match) and G1_14's "Entrance", the way back read as the Manor's.
 - Radar-table labels are English notes (GameHelper's `important_tgt_files.txt`): area names, bracketed notes and, since
   2026-11-02, boss names are said in the game's language. Since 2026-11-08 every piece of a label (cut at " - ", slashes,

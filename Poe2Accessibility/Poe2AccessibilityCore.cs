@@ -280,8 +280,8 @@ namespace Poe2Accessibility
                 this.searchHighlights = new SearchHighlightWatch(elements, inventory, line => this.output.Speak(line, false));
                 this.pickups = new InventoryWatch(inventory, followedVoice, this.log) { Seat = followedSeat };
                 this.partnerPickups = new InventoryWatch(inventory, partnerVoice, this.log) { Seat = () => 2 };
-                this.flasks = new FlaskWatch(inventory, followedVoice) { Seat = followedSeat };
-                this.partnerFlasks = new FlaskWatch(inventory, partnerVoice) { Seat = () => 2 };
+                this.flasks = new FlaskWatch(inventory, followedVoice) { Seat = followedSeat, Log = this.log };
+                this.partnerFlasks = new FlaskWatch(inventory, partnerVoice) { Seat = () => 2, Log = this.log };
                 this.gold = new GoldWatch(elements, this.output, this.log) { Fields = this.locator.Fields };
                 this.pickups.Gold = () => this.gold?.ReadNow();
                 this.focus.InGameHighlightRoot = this.ShopPage;
@@ -434,6 +434,7 @@ namespace Poe2Accessibility
                 this.gameState = new GameStateService(this.log, memory, elements) { Report = this.compatibility };
                 this.gameState.StateChanged += this.OnGameStateChanged;
                 this.gameState.AreaChanged += this.OnAreaChanged;
+                this.gameState.InstanceChanged += this.OnInstanceChanged;
                 this.gameState.AttachedChanged += this.OnAttachedChanged;
                 this.processProbe = new GameProcessProbe(this.log);
                 this.processProbe.ReportChanged += report => this.output.Speak(report, false);
@@ -455,6 +456,7 @@ namespace Poe2Accessibility
             {
                 this.gameState.StateChanged -= this.OnGameStateChanged;
                 this.gameState.AreaChanged -= this.OnAreaChanged;
+                this.gameState.InstanceChanged -= this.OnInstanceChanged;
                 this.gameState.AttachedChanged -= this.OnAttachedChanged;
                 this.gameState = null;
             }

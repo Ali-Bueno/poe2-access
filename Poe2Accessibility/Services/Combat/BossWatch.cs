@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
+    using GameOffsets.Objects.States.InGameState;
     using GameReader;
     using GameReader.RemoteEnums;
     using GameReader.RemoteEnums.Entity;
@@ -77,8 +78,11 @@ namespace Poe2Accessibility.Services
         private readonly DodgeCueMerge merge = new();
         private readonly HashSet<string> namedThreats = new(StringComparer.Ordinal);
         private int lastPlayerLife = -1;
-        /// <summary><c>DeadSince</c>: when it first read not alive with no living read since (0: alive), <see cref="BossLifeSteps.Defeated"/>.</summary>
-        private readonly Dictionary<uint, (string Name, int Step, bool Engaged, int Percent, long HurtAt, long DeadSince)> bosses = new();
+        /// <summary>
+        ///     <c>DeadSince</c>: when it first read not alive with no living read since (0: alive), <see cref="BossLifeSteps.Defeated"/>;
+        ///     <c>ChangedAt</c>: when its life last read different. <c>Percent</c> is the last poll's: what is said is read again.
+        /// </summary>
+        private readonly Dictionary<uint, (string Name, int Step, bool Engaged, int Percent, long HurtAt, long DeadSince, long ChangedAt)> bosses = new();
         private long? playerDiedAt;
         private long lastLifePoll;
         private long lastParryCue = long.MinValue / 2;
@@ -112,19 +116,36 @@ namespace Poe2Accessibility.Services
         /// <summary>Warning cue gain under the master volume.</summary>
         public float Gain { get; set; } = 1f;
 
-        /// <summary>"El molinero hinchado 40 por ciento" for the vitals command; null without a boss in the fight.</summary>
+        /// <summary>
+        ///     "El molinero hinchado 40 por ciento" for the vitals command, its life read from the game as it is asked; null
+        ///     without a boss in the fight that is there to read (<see cref="BossLifeSteps.Spoken"/>).
+        /// </summary>
         public string? Status()
         {
-            foreach (var (_, boss) in this.bosses)
+            var engaged = this.bosses.Where(pair => pair.Value.Engaged && pair.Value.Step > 0).ToList();
+            if (engaged.Count == 0)
             {
-                if (boss.Engaged && boss.Step > 0)
-                {
-                    return Announcements.BossLife(boss.Name, boss.Percent);
-                }
+                return null;
             }
 
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            var read = engaged.Select(pair => (Percent: LifeNow(area, pair.Key), pair.Value.ChangedAt, pair.Value.HurtAt)).ToList();
+            if (BossLifeSteps.Spoken(read, this.playerDiedAt) is { } index && read[index].Percent is { } percent)
+            {
+                return Announcements.BossLife(engaged[index].Value.Name, percent);
+            }
+
+            this.log.Info($"Boss life not said: {string.Join(", ", engaged.Select(pair => $"{pair.Value.Name} (last polled {pair.Value.Percent}%)"))} not there to read, or reset by the game");
             return null;
         }
+
+        /// <summary>The boss's life as the game holds it now; null when it is not among the entities, dead or set aside.</summary>
+        private static int? LifeNow(AreaInstance area, uint id) =>
+            area.AwakeEntities.TryGetValue(new EntityNodeKey { id = id }, out var entity) && entity.IsValid && entity.Id == id &&
+            entity.TryGetComponent<Life>(out var life) && life.Health.Total > 0 && life.IsAlive &&
+            !EntityCatalog.IsFrozenDead(entity) && !EntityCatalog.IsHidden(entity)
+                ? life.Health.CurrentInPercent()
+                : null;
 
         /// <summary>When each kind of attack lands (loaded by the plugin).</summary>
         public DodgeTimings Timings { get; set; } = new();
@@ -264,7 +285,7 @@ namespace Poe2Accessibility.Services
             if (!this.bosses.TryGetValue(entity.Id, out var boss))
             {
                 var name = this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty;
-                boss = (name, BossLifeSteps.Full, false, 100, 0, 0);
+                boss = (name, BossLifeSteps.Full, false, 100, 0, 0, 0);
             }
 
             if (boss.Name.Length == 0)
@@ -291,7 +312,7 @@ namespace Poe2Accessibility.Services
             if (BossLifeSteps.FightRestarted(this.playerDiedAt, boss.HurtAt, boss.Engaged, percent))
             {
                 this.log.Info($"Boss fight restarted: {boss.Name} back to full life after the player's death");
-                boss = (boss.Name, BossLifeSteps.Full, false, percent, 0, 0);
+                boss = (boss.Name, BossLifeSteps.Full, false, percent, 0, 0, 0);
             }
 
             var engaged = boss.Engaged || percent < 100;
@@ -302,7 +323,7 @@ namespace Poe2Accessibility.Services
                 this.output.Say(SpeechKind.BossLife, Announcements.BossLife(boss.Name, percent), percent <= UrgentBossPercent);
             }
 
-            this.bosses[entity.Id] = (boss.Name, step, engaged, percent, percent < 100 ? now : boss.HurtAt, 0);
+            this.bosses[entity.Id] = (boss.Name, step, engaged, percent, percent < 100 ? now : boss.HurtAt, 0, percent != boss.Percent ? now : boss.ChangedAt);
         }
 
         /// <summary>The bosses read not alive and not seen alive since: defeated, said once (a corpse the game removed counts too).</summary>
@@ -316,7 +337,7 @@ namespace Poe2Accessibility.Services
                     this.log.Info($"Boss defeated: {boss.Name}");
                 }
 
-                this.bosses[id] = (boss.Name, 0, false, 0, boss.HurtAt, boss.DeadSince);
+                this.bosses[id] = (boss.Name, 0, false, 0, boss.HurtAt, boss.DeadSince, boss.ChangedAt);
             }
         }
 
@@ -411,18 +432,24 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            // A projectile's blow is learnt as its release: the flight differs with the distance each time.
+            // A projectile's blow is learnt as its release: the flight differs with the distance each time. Where the clip
+            // was read, the blow is its place in the clip, which is how it is replayed; else the real time since the start.
             var (id, attack) = (hitters[0].Key, hitters[0].Value);
-            var delay = (int)(now - attack.StartedAt) - attack.TravelMs;
+            var real = (int)(now - attack.StartedAt) - attack.TravelMs;
+            var delay = attack.BlowClock is var (clock, readAt) ? AttackClock.NominalMsAt(clock, readAt, now - attack.TravelMs) : real;
             if (attack.Swing is { } swing && delay > swing)
             {
                 delay %= swing; // a later swing of the same animation: its blow lands as far into its own swing
             }
 
+            var basis = attack.BlowClock is { } read
+                ? $", clip time at rate {AttackClock.Rate(read.Reading).ToString("F2", System.Globalization.CultureInfo.InvariantCulture)} ({real} ms real)"
+                : ", real time (no clock read)";
+
             this.attacks[id] = attack with { Learned = true };
             if (!this.Timings.Learn(attack.Key, delay))
             {
-                this.log.Info($"Dodge timing: {attack.Key} hit after {delay} ms, not believed (the files say {this.Timings.FileHit(attack.Key)} ms)");
+                this.log.Info($"Dodge timing: {attack.Key} hit after {delay} ms, not believed (the files say {this.Timings.FileHit(attack.Key)} ms){basis}");
                 return;
             }
 
@@ -432,7 +459,7 @@ namespace Poe2Accessibility.Services
                 this.log.Warn($"Dodge timings not saved to {this.TimingsPath}: {failure} (kept for this session, tried again with each blow learnt)");
             }
 
-            this.log.Info($"Dodge timing: {attack.Key} hit after {delay} ms (learnt {this.Timings.Delay(attack.Key)} ms)");
+            this.log.Info($"Dodge timing: {attack.Key} hit after {delay} ms (learnt {this.Timings.Delay(attack.Key)} ms){basis}");
         }
 
         /// <summary>Drops the attacks of monsters the walk has not met for a while, so they neither linger nor teach.</summary>
@@ -483,6 +510,12 @@ namespace Poe2Accessibility.Services
 
             /// <summary>The clip's reading on the last frame, to notice a new swing.</summary>
             public AnimationReading? LastClock { get; init; }
+
+            /// <summary>
+            ///     The attack's clip as last read while its animation ran, and when: where in it a blow felt later fell
+            ///     (<see cref="AttackClock.NominalMsAt"/>). Null when no clock was read or the swing left the clip.
+            /// </summary>
+            public (AnimationReading Reading, long At)? BlowClock { get; init; }
 
             /// <summary>The swing now plays another clip than the one the attack began with (the files' time is for that one).</summary>
             public bool ClipMoved { get; init; }

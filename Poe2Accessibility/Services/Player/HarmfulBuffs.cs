@@ -21,7 +21,14 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, long> lastSeen = new(StringComparer.Ordinal);
         private bool baseline = true;
 
-        public HarmfulBuffs(Dictionary<string, Dictionary<string, string>> names) => this.names = names;
+        public HarmfulBuffs(Dictionary<string, Dictionary<string, string>> names)
+        {
+            this.names = names;
+            this.isNamed = names.TryGetValue(Fallback, out var english) ? english.ContainsKey : _ => false;
+        }
+
+        /// <summary>Kept: asked for every buff of the player at each poll.</summary>
+        private readonly Func<string, bool> isNamed;
 
         public int Count => this.names.TryGetValue(Fallback, out var english) ? english.Count : 0;
 
@@ -47,7 +54,10 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The game's name for a harmful buff in the language (English when it has none there), empty for any other buff.</summary>
-        public string NameOf(string buffId, string language) => Localization.Pick(this.names, language, BuffIds.Base(buffId)) ?? string.Empty;
+        public string NameOf(string buffId, string language) => Localization.Pick(this.names, language, this.Key(buffId)) ?? string.Empty;
+
+        /// <summary>The table's id for a buff key of the host (<see cref="BuffIds.In"/>).</summary>
+        private string Key(string buffId) => BuffIds.In(buffId, this.isNamed);
 
         /// <summary>
         ///     The names of harmful buffs among <paramref name="ids"/> that were not there a moment ago, each once;
@@ -64,7 +74,7 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                var key = BuffIds.Base(id);
+                var key = this.Key(id);
                 if (!this.baseline && !this.lastSeen.ContainsKey(key) && !begun.Contains(name))
                 {
                     begun.Add(name);

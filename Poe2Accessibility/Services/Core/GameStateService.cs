@@ -42,6 +42,7 @@ namespace Poe2Accessibility.Services
         private readonly HostMemoryReader reader;
         private readonly UiElementReader elements;
         private IntPtr lastAreaRow;
+        private readonly AreaInstanceGate instances = new();
         private int areaRowOffset = GameLayout.AreaLoadingState.CurrentAreaRowOffset;
         private bool areaRowChecked;
         private int areaMisses;
@@ -69,6 +70,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The area's name, and whether the host just started inside it (no loading screen: nothing is news).</summary>
         public event Action<string, bool>? AreaChanged;
+
+        /// <summary>
+        ///     The game loaded another instance of the area it was already in, by its hash (<see cref="AreaInstanceGate"/>):
+        ///     no new area to name, but every entity id and address of the old one is void.
+        /// </summary>
+        public event Action<string>? InstanceChanged;
 
         /// <summary>GameHelper opened (true) or lost (false) the game process.</summary>
         public event Action<bool>? AttachedChanged;
@@ -114,8 +121,20 @@ namespace Poe2Accessibility.Services
             this.CurrentAreaId = id;
             this.InTownOrHideout = AreaKind.IsTownOrHideout(id, this.reader.TryRead<byte>(row + GameLayout.WorldAreaRow.IsTownOffset, out var town) && town != 0);
             this.log.Info($"Area: {name} ({this.CurrentAreaId}){(this.resuming ? " resumed" : string.Empty)}");
+            this.instances.AreaEntered(Core.States.InGameStateObject.CurrentAreaInstance.AreaHash);
             this.AreaChanged?.Invoke(name, this.resuming);
             this.resuming = false;
+        }
+
+        /// <summary>The instance the host holds: another one under the same area row is told once (a row that changed told it already).</summary>
+        private void TrackInstance()
+        {
+            var hash = Core.States.InGameStateObject.CurrentAreaInstance.AreaHash;
+            if (this.instances.Changed(hash))
+            {
+                this.log.Info($"Instance: {hash} of {this.CurrentAreaName} ({this.CurrentAreaId}), another than the one entered");
+                this.InstanceChanged?.Invoke(hash);
+            }
         }
 
         /// <summary>A new game process (perhaps a patched one): the area row is checked again.</summary>
@@ -276,6 +295,7 @@ namespace Poe2Accessibility.Services
             if (IsInGame(state))
             {
                 this.TrackArea();
+                this.TrackInstance();
             }
             else
             {

@@ -71,6 +71,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialDoors.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Trials.cs" Link="Plugin\Announcements.Trials.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\WorldGate.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Core\AreaInstanceGate.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\StatusAilments.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\SpeechPriority.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\SettingsCursor.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\LessonReminder.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\WeakPoints.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\FlaskDrinks.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\TargetMatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\ShieldStance.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\StunMeter.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\ParryTiming.cs" />
@@ -233,8 +235,11 @@
     <Compile Include="..\..\Poe2Accessibility\Models\AccessibleUiNode.cs" Link="Plugin\AccessibleUiNode.cs" />
     <Compile Include="..\..\host\GameReader\RemoteEnums\GameStateTypes.cs" Link="Plugin\GameStateTypes.cs" />
     <Compile Include="..\..\host\GameReader\RemoteObjects\States\InGameStateObjects\AreaLayoutSearch.cs" Link="Host\AreaLayoutSearch.cs" />
+    <Compile Include="..\..\host\GameReader\RemoteObjects\States\InGameStateObjects\EntityRefresh.cs" Link="Host\EntityRefresh.cs" />
     <Compile Include="..\..\host\GameReader\Utils\StructRemap.cs" Link="Host\StructRemap.cs" />
     <Compile Include="..\..\host\GameReader\Utils\StdMapWalk.cs" Link="Host\StdMapWalk.cs" />
+    <Compile Include="..\..\host\GameReader\Utils\BuffStacks.cs" Link="Host\BuffStacks.cs" />
+    <Compile Include="..\..\host\GameReader\Utils\ConfirmedChange.cs" Link="Host\ConfirmedChange.cs" />
     <Compile Include="..\..\host\GameReader\Utils\NativeText.cs" Link="Host\NativeText.cs" />
     <Compile Include="..\..\host\GameReader\Utils\StatPairs.cs" Link="Host\StatPairs.cs" />
     <Compile Include="..\..\host\GameOffsets\Objects\Components\Stats.cs" Link="Host\Stats.cs" />

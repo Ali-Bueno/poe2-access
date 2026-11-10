@@ -369,17 +369,22 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             // An entity that cannot be told what it is is tried a few frames in a row, then once a second, never given up on:
             // one read while its area still loads is told later, and the local player is read so at every area change.
             var now = Environment.TickCount64;
-            var isUnresolved =
-                (this.EntityType == EntityTypes.Unidentified ||
-                 this.EntitySubtype == EntitySubtypes.Unidentified) &&
-                (this.unresolvedRetryCount < MaxUnresolvedRetries || now >= this.unresolvedRetryAt);
+            var untyped = this.EntityType == EntityTypes.Unidentified || this.EntitySubtype == EntitySubtypes.Unidentified;
+            var isUnresolved = untyped && (this.unresolvedRetryCount < MaxUnresolvedRetries || now >= this.unresolvedRetryAt);
 
             var isMonster = this.EntityType == EntityTypes.Monster ||
                             this.componentAddresses.ContainsKey("Monster") ||
                             this.monsterPath;
-
-            // Skip useless non-monster, non-unresolved entities immediately.
-            if (this.EntityState == EntityStates.Useless && !isUnresolved)
+            var resting = !isMonster && this.EntityType != EntityTypes.Player;
+            if (resting)
+            {
+                if (EntityRefresh.OfResting(untyped, isUnresolved, this.EntityState == EntityStates.Useless, now - this.componentsReadAt, RestingComponentsMs) ==
+                    EntityRefresh.Reads.Nothing)
+                {
+                    return; // the components keep their last values, as does the state computed from them
+                }
+            }
+            else if (this.EntityState == EntityStates.Useless && !isUnresolved)
             {
                 if (!isMonster)
                 {
@@ -410,16 +415,15 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 isUnresolved ||
                 (isMonster && this.EntityState == EntityStates.Useless);
 
-            if (!shouldRefreshComponentMap && !isMonster && this.EntityType != EntityTypes.Player &&
-                now - this.componentsReadAt < RestingComponentsMs)
-            {
-                return; // the components keep their last values, as does the state computed from them
-            }
-
             this.componentsReadAt = now;
             if (!this.UpdateComponentData(entityData.ItemBase, shouldRefreshComponentMap))
             {
                 this.UpdateComponentData(entityData.ItemBase, true);
+            }
+
+            if (resting && untyped && !isUnresolved)
+            {
+                return; // only its components were due: what it is is asked again at the next attempt
             }
 
             if (this.EntityType == EntityTypes.Unidentified)

@@ -46,6 +46,9 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         /// <summary>The terrain struct's remap the terrain was last read through (null: as compiled).</summary>
         private RemapSegment[]? terrainRemap;
 
+        /// <summary>The area hash what is held was copied for.</summary>
+        private ConfirmedChange hash;
+
         /// <summary>Whether the walk skips the visuals' subtrees: off for the rest of an area once its map is seen out of order.</summary>
         private bool skipVisuals = true;
 
@@ -150,13 +153,23 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             var terrainRemap = StructRemap<TerrainStruct>.Segments;
             var remapped = !ReferenceEquals(terrainRemap, this.terrainRemap);
             this.terrainRemap = terrainRemap;
-            if (hasAddressChanged || moved || remapped)
+
+            // Another area loaded into the instance the game already had, or a hash first read before the game wrote it: the
+            // address is the same and everything copied from it is the old area's. Told by the hash, read twice running.
+            var rehashed = !hasAddressChanged && !moved && this.hash.Offer(data.CurrentAreaHash);
+            if (hasAddressChanged || moved || remapped || rehashed)
             {
-                if (hasAddressChanged || moved)
+                if (hasAddressChanged || moved || rehashed)
                 {
                     this.Cleanup(true);
                 }
 
+                if (rehashed)
+                {
+                    Console.WriteLine($"[AreaInstance] Area hash {data.CurrentAreaHash:X} where {this.AreaHash} was held, at the same address 0x{this.Address.ToInt64():X}: the area is read again.");
+                }
+
+                this.hash.Set(data.CurrentAreaHash);
                 this.TerrainMetadata = data.TerrainMetadata;
                 this.CurrentAreaLevel = data.CurrentAreaLevel;
                 this.AreaHash = $"{data.CurrentAreaHash:X}";

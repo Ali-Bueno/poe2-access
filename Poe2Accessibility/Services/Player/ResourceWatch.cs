@@ -30,6 +30,7 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, string> buffNames = new(StringComparer.Ordinal);
         private readonly HashSet<string> spoken = new(StringComparer.Ordinal);
         private readonly HashSet<string> statNames = new(StringComparer.CurrentCultureIgnoreCase);
+        private readonly HashSet<string> noted = new(StringComparer.Ordinal);
         private long lastPoll;
 
         public ResourceWatch(Func<Entity?> subject, IAccessibilityOutputService output, PluginLog log)
@@ -41,7 +42,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     A maximum the player's skills set at their level (<see cref="SkillStatSets"/>), by the maximum's Stats names: Rapid
-        ///     Shot's Heat ("Calor: 8" was said without one, the player stat reading 0). Null in tests.
+        ///     Shot's Heat, whose player stat reads 0. It is the tables' value for the gem's level, not what the game holds now
+        ///     (a support, a passive or an item may raise it unseen): it tells the pool from a count and marks where it is
+        ///     expected to stop, and is never said as the maximum. Null in tests.
         /// </summary>
         public Func<IEnumerable<string>, int?>? SkillMaximum { get; set; }
 
@@ -114,25 +117,54 @@ namespace Poe2Accessibility.Services
             {
                 var current = Value(stats, resource.Current);
                 var max = Math.Max(Value(stats, resource.VirtualMaximum), Value(stats, resource.Maximum));
-                if (max == 0 && current > 0 && this.SkillMaximum?.Invoke(ClassMechanicCatalog.MaximumNames(resource.Name)) is int fromSkill && fromSkill > 0)
+                if (current <= 0 && max <= 0)
                 {
-                    max = fromSkill;
+                    continue;
                 }
 
-                if (current > 0 || max > 0)
+                var name = Announcements.ResourceName(resource.Name);
+                if (name.Length == 0)
                 {
-                    readings.Add(new ResourceTracker.Reading(StatKey + resource.Name, current, max, ResourceTracker.ModeFor(max)));
-                    this.statNames.Add(Announcements.ResourceName(resource.Name));
+                    this.NoteOnce(StatKey + resource.Name, $"Resource {StatKey}{resource.Name} held ({current} of {max}) has no name in the mod: not said");
+                    continue;
                 }
+
+                var reach = max == 0 && current > 0 && this.SkillMaximum?.Invoke(ClassMechanicCatalog.MaximumNames(resource.Name)) is int fromSkill && fromSkill > 0 ? fromSkill : 0;
+                if (reach > 0)
+                {
+                    this.NoteOnce($"{(current > reach ? "above" : "reach")}:{resource.Name}:{reach}", current > reach
+                        ? $"Resource {StatKey}{resource.Name} at {current}, above the {reach} its skills' tables give: something else raises its maximum"
+                        : $"Resource {StatKey}{resource.Name}: no live maximum, the skills' tables give {reach}: told as a count there, never as full");
+                }
+
+                readings.Add(new ResourceTracker.Reading(StatKey + resource.Name, current, max, ResourceTracker.ModeFor(Math.Max(max, reach)), reach));
+                this.statNames.Add(name);
             }
 
             foreach (var limit in catalog.Limits)
             {
                 var allowed = Value(stats, limit.Allowed);
-                if (allowed > 0)
+                if (allowed <= 0)
                 {
-                    readings.Add(new ResourceTracker.Reading(LimitKey + limit.Name, Value(stats, limit.Active), allowed, ResourceMode.Edges));
+                    continue;
                 }
+
+                if (Announcements.LimitName(limit.Name).Length == 0)
+                {
+                    this.NoteOnce(LimitKey + limit.Name, $"Resource {LimitKey}{limit.Name} allowed ({allowed}) has no name in the mod: not said");
+                    continue;
+                }
+
+                readings.Add(new ResourceTracker.Reading(LimitKey + limit.Name, Value(stats, limit.Active), allowed, ResourceMode.Edges));
+            }
+        }
+
+        /// <summary>A line the log gets once a session per <paramref name="what"/>, however often its cause is read.</summary>
+        private void NoteOnce(string what, string line)
+        {
+            if (this.noted.Add(what))
+            {
+                this.log.Info(line);
             }
         }
 
@@ -146,7 +178,7 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                var key = BuffKey + BuffIds.Base(id);
+                var key = BuffKey + catalog.BuffKey(id);
                 var stacks = PlayerCharges.Held(effect.Charges);
                 var name = catalog.BuffName(id, language);
                 // A brief single buff is a skill's own effect; a buff a stat already counts (Heat, Demonflame) is told once, with its maximum.

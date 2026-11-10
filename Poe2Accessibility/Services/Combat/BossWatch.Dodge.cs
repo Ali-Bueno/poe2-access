@@ -150,6 +150,15 @@ namespace Poe2Accessibility.Services
             // About a dozen reads a frame per attack: spent where a cue can follow, or while the live checks still judge.
             var snapshot = attack.Warns || parrying || this.reader?.Judging == true ? this.reader?.Read(id, actor.Address, animated, monster, worldPerGrid, this.EntityAt, now) : null;
             attack = this.FollowClock(attack, snapshot?.Clock, snapshot?.Events, snapshot is { ActionType: not 0 });
+            if (attack.ClipMoved)
+            {
+                attack = attack with { BlowClock = null };
+            }
+            else if (snapshot?.Clock is { } playing && attack.EndedAt == 0)
+            {
+                attack = attack with { BlowClock = (playing, now) };
+            }
+
             if (attack.AimedPlace == null && snapshot?.Aim?.TargetPoint is { } aimed)
             {
                 attack = attack with { AimedPlace = aimed };

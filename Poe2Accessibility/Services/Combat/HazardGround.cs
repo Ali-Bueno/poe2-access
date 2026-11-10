@@ -34,7 +34,8 @@ namespace Poe2Accessibility.Services
 
         public bool IsHazard(string buffId)
         {
-            var id = BuffIds.Base(buffId);
+            // Every prefix that ends at a "_", the whole key first: an id that ends like an instance suffix is still itself.
+            var id = buffId;
             for (var end = id.Length; end > 0; end = id.LastIndexOf('_', end - 1))
             {
                 if (this.ids.Contains(id[..end]))

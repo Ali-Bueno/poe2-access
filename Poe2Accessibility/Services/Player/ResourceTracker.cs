@@ -51,8 +51,12 @@ namespace Poe2Accessibility.Services
         private long baselineAt = long.MinValue;
         private bool baseline = true;
 
-        /// <summary>One reading of a resource: its key, the count and maximum (0 unknown) now, and how to tell it.</summary>
-        public readonly record struct Reading(string Key, int Count, int Max, ResourceMode Mode);
+        /// <summary>
+        ///     One reading of a resource: its key, the count and maximum (0 unknown) now, and how to tell it.
+        ///     <paramref name="Reach"/> is the maximum the game's tables give a skill where no live stat holds one: a pool that
+        ///     gets there is told by its count, never as full, since what the tables do not show may have raised the real one.
+        /// </summary>
+        public readonly record struct Reading(string Key, int Count, int Max, ResourceMode Mode, int Reach = 0);
 
         /// <summary>What to say about a resource.</summary>
         public readonly record struct News(string Key, ResourceChange Change, int Count, int Max);
@@ -136,6 +140,10 @@ namespace Poe2Accessibility.Services
             else if (reading.Max > 0 && reading.Count >= reading.Max && before.Count < reading.Max)
             {
                 news.Add(new News(reading.Key, ResourceChange.Full, reading.Count, reading.Max));
+            }
+            else if (reading.Max == 0 && reading.Reach > 0 && reading.Count >= reading.Reach && before.Count < reading.Reach)
+            {
+                news.Add(new News(reading.Key, ResourceChange.Count, reading.Count, 0));
             }
             else if (reading.Count == 0 && before.Count > 0)
             {

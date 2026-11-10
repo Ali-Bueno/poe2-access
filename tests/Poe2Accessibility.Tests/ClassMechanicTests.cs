@@ -20,7 +20,7 @@ namespace Poe2Accessibility.Tests
             (nameof(PoolsTellOnlyTheirEdges), PoolsTellOnlyTheirEdges),
             (nameof(TheFirstReadingIsOnlyRemembered), TheFirstReadingIsOnlyRemembered),
             (nameof(AMissingResourceEnds), AMissingResourceEnds),
-            (nameof(UnknownNamesBecomeWords), UnknownNamesBecomeWords),
+            (nameof(OnlyNamedResourcesHaveAName), OnlyNamedResourcesHaveAName),
             (nameof(ChargeWatchCoversItsOwnStats), ChargeWatchCoversItsOwnStats),
             (nameof(ASkillLevelsMaximumIsFoundByItsStatName), ASkillLevelsMaximumIsFoundByItsStatName),
         };
@@ -176,12 +176,13 @@ namespace Poe2Accessibility.Tests
             Expect(ResourceChange.Empty, tracker.Update(Array.Empty<ResourceTracker.Reading>(), 3100).Single().Change, "a limit no longer read is empty");
         }
 
-        private static void UnknownNamesBecomeWords()
+        private static void OnlyNamedResourcesHaveAName()
         {
             Localization.Detect("en");
             Expect("Infernal Flame", Announcements.ResourceName("infernal_flame"), "a known stat");
-            Expect("Blood scythe charges", Announcements.ResourceName("blood_scythe_charges"), "an unknown stat as words");
-            Expect("Replicate minions", Announcements.LimitName("replicate_minions"), "an unknown limit as words");
+            Expect(string.Empty, Announcements.ResourceName("difficulty"), "a current_ stat that is no resource: never spoken by its id's English words");
+            Expect(string.Empty, Announcements.ResourceName("blood_scythe_charges"), "nor a resource the mod has no name for");
+            Expect(string.Empty, Announcements.LimitName("replicate_minions"), "nor a limit");
             Expect("Jade: 7", Announcements.ResourceCount("Jade", 7, 0), "a count without a maximum");
             Localization.Detect("es");
             Expect("Tótems", Announcements.LimitName("totems"), "a known limit");

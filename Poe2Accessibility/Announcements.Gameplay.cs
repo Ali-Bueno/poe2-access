@@ -78,12 +78,17 @@ namespace Poe2Accessibility
         /// <summary>The player's heavy stun bar rose past a step while blocking or parrying (the game's "stun bar"): "Stun bar 80 percent".</summary>
         public static string StunBar(int percent) => T($"Stun bar {percent} percent", $"Barra de aturdimiento {percent} por ciento");
 
-        /// <summary>A flask with the uses it has left, for the vitals readout and after a drink: "Frasco de vida menor, 2 usos".</summary>
-        public static string Flask(string name, int uses) => uses switch
+        /// <summary>
+        ///     A flask as it stands, for the vitals readout and after a drink: "Frasco de vida menor, 2 usos"; by its charges
+        ///     while what a drink of it costs has not been seen (<paramref name="uses"/> null): "Frasco de vida menor, 71 cargas".
+        /// </summary>
+        public static string Flask(string name, int charges, int? uses) => (charges, uses) switch
         {
-            <= 0 => FlaskEmpty(name),
-            1 => T($"{name}, 1 use", $"{name}, 1 uso"),
-            _ => T($"{name}, {uses} uses", $"{name}, {uses} usos"),
+            (<= 0, _) or (_, <= 0) => FlaskEmpty(name),
+            (_, 1) => T($"{name}, 1 use", $"{name}, 1 uso"),
+            (_, { } left) => T($"{name}, {left} uses", $"{name}, {left} usos"),
+            (1, _) => T($"{name}, 1 charge", $"{name}, 1 carga"),
+            _ => T($"{name}, {charges} charges", $"{name}, {charges} cargas"),
         };
 
         /// <summary>How much of the area's reachable ground has been seen, for the vitals readout (D2R): "Explorado 40 por ciento".</summary>

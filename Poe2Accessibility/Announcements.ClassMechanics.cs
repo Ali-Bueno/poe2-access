@@ -1,13 +1,12 @@
 namespace Poe2Accessibility
 {
-    using System.Globalization;
-
     /// <summary>Spoken strings of the class resources the game's tables name (same translatable layer; docs/research/class-mechanics.md).</summary>
     public static partial class Announcements
     {
         /// <summary>
         ///     The name of a counted stat after "current_": the game's own wording for the ones the mod knows (KeywordPopups,
-        ///     BuffDefinitions 2026-11-08), the stat's words for any other, so a resource a patch adds is still named.
+        ///     BuffDefinitions 2026-11-08); empty for any other, which is then not spoken: the tables list many "current_"
+        ///     stats that are no resource (difficulty, shapeshift), and a stat's id is English words in every language.
         /// </summary>
         public static string ResourceName(string statName) => statName switch
         {
@@ -22,10 +21,10 @@ namespace Poe2Accessibility
             "instilling_chaos_stacks" => T("Chaos Surges", "Sobrecargas de caos"),
             "spirit_charges" => T("Spirit Charges", "Cargas de espíritu"),
             "focus_lost" => T("Focus lost", "Concentración perdida"),
-            _ => Words(statName),
+            _ => string.Empty,
         };
 
-        /// <summary>The name of a limit after "number_of_active_": totems, minions and offerings by their game words.</summary>
+        /// <summary>The name of a limit after "number_of_active_": totems, minions and offerings by their game words; empty for one the mod has no name for.</summary>
         public static string LimitName(string limitName) => limitName switch
         {
             "totems" => T("Totems", "Tótems"),
@@ -38,7 +37,7 @@ namespace Poe2Accessibility
             "infernal_familiars" => T("Infernal Hounds", "Sabuesos infernales"),
             "tempest_bells" => T("Tempest Bells", "Campanas de tempestad"),
             "generic_limited_minions" => T("Minions", "Esbirros"),
-            _ => limitName.EndsWith("_offerings", System.StringComparison.Ordinal) ? T("Offerings", "Ofrendas") : Words(limitName),
+            _ => limitName.EndsWith("_offerings", System.StringComparison.Ordinal) ? T("Offerings", "Ofrendas") : string.Empty,
         };
 
         /// <summary>"Infernal Flame 120 of 400", "Jade: 7".</summary>
@@ -53,12 +52,5 @@ namespace Poe2Accessibility
 
         /// <summary>A named buff gone: "Unbound ended".</summary>
         public static string ResourceEnded(string name) => T($"{name} ended", $"{name} se acabó");
-
-        /// <summary>A stat's or limit's id as words: "crossbow heat stacks".</summary>
-        private static string Words(string id)
-        {
-            var words = id.Replace('_', ' ').Trim();
-            return words.Length > 0 ? char.ToUpper(words[0], CultureInfo.CurrentCulture) + words[1..] : id;
-        }
     }
 }

@@ -223,7 +223,10 @@ namespace Poe2Accessibility.Services
         private BossFacts FactsOf(Entity entity, string monster, bool engaged, bool inPlay)
         {
             var states = entity.TryGetComponent<StateMachine>(out var machine) ? machine.States : Array.Empty<StateMachineState>();
-            var buffs = entity.TryGetComponent<Buffs>(out var effects) ? effects.StatusEffects.Keys.Select(BuffIds.Base).ToList() : new List<string>();
+            // Each key whole and without its instance suffix: the catalog's ids can end like one.
+            var buffs = entity.TryGetComponent<Buffs>(out var effects)
+                ? effects.StatusEffects.Keys.SelectMany(key => new[] { key, BuffIds.Base(key) }).Distinct().ToList()
+                : new List<string>();
             long? phase = null;
             foreach (var state in states)
             {

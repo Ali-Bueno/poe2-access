@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
     using GameReader;
     using GameReader.RemoteEnums;
@@ -9,8 +10,8 @@ namespace Poe2Accessibility.Services
     using GameReader.RemoteObjects.States.InGameStateObjects;
 
     /// <summary>
-    ///     The flasks on the belt (D2R belt readout): the uses each has left from its charges, for the vitals readout and
-    ///     whenever they change during play (<see cref="FlaskDrinks"/>).
+    ///     The flasks on the belt (D2R belt readout): the uses each has left, from its charges and what a drink of it was
+    ///     seen to cost, for the vitals readout and whenever they change during play (<see cref="FlaskDrinks"/>).
     /// </summary>
     public sealed class FlaskWatch
     {
@@ -33,8 +34,13 @@ namespace Poe2Accessibility.Services
         /// <summary>Whose belt is watched, local player 1 or 2 (<see cref="LocalInventories"/>).</summary>
         public Func<int> Seat { get; init; } = () => 1;
 
-        /// <summary>The flasks in belt order, by their column, with the uses they have left (charges over charges per use).</summary>
-        public IReadOnlyList<(int Slot, string Name, int Uses)> Flasks()
+        public PluginLog? Log { get; init; }
+
+        /// <summary>The flasks in belt order, each as it is said: by its uses once a drink's cost was seen, by its charges until then.</summary>
+        public IEnumerable<string> Readout() => this.Flasks().Select(flask => Announcements.Flask(flask.Name, flask.Charges, this.drinks.Uses(flask.Slot, flask.Name, flask.Charges)));
+
+        /// <summary>The flasks in belt order, by their column, with the charges they hold now.</summary>
+        public IReadOnlyList<(int Slot, string Name, int Charges)> Flasks()
         {
             // A flask fills a column of the belt's cells (5x2 in 0.5.5e): each is read once.
             var flasks = new List<(int, string, int)>();
@@ -51,7 +57,7 @@ namespace Poe2Accessibility.Services
                     var item = belt[y, x];
                     if (seen.Add(item.Address) && Read(item, this.inventory) is { } flask)
                     {
-                        flasks.Add((x, flask.Name, flask.Uses));
+                        flasks.Add((x, flask.Name, flask.Charges));
                     }
                 }
             }
@@ -70,13 +76,22 @@ namespace Poe2Accessibility.Services
 
             this.lastPoll = now;
             var flasks = this.Flasks();
-            foreach (var (slot, name, uses) in flasks)
+            var draining = this.Draining();
+            foreach (var (slot, name, charges) in flasks)
             {
-                var news = this.drinks.Update(slot, name, uses) switch
+                var cost = this.drinks.PerUse(slot, name);
+                var told = this.drinks.Update(slot, name, charges, now, draining);
+                var uses = this.drinks.Uses(slot, name, charges);
+                if (this.drinks.PerUse(slot, name) is { } learnt && learnt != cost)
                 {
-                    FlaskNews.Drunk => Announcements.Flask(name, uses),
-                    FlaskNews.Refilled => Announcements.FlaskRefilled(name, uses),
-                    FlaskNews.New => Announcements.FlaskArrived(Announcements.Flask(name, uses)),
+                    this.Log?.Info($"Flask cost: {name} in slot {slot}, {learnt} charges a drink as seen (was {cost?.ToString() ?? "unknown"}), {charges} charges now");
+                }
+
+                var news = told switch
+                {
+                    FlaskNews.Drunk => Announcements.Flask(name, charges, uses),
+                    FlaskNews.Refilled when uses is { } gained => Announcements.FlaskRefilled(name, gained),
+                    FlaskNews.New => Announcements.FlaskArrived(Announcements.Flask(name, charges, uses)),
                     _ => string.Empty,
                 };
                 if (news.Length > 0 && !this.baseline && enabled)
@@ -96,6 +111,9 @@ namespace Poe2Accessibility.Services
             this.baseline = true;
         }
 
+        /// <summary>Character selection: the next belt may be another character's.</summary>
+        public void ForgetCosts() => this.drinks.ForgetCosts();
+
         /// <summary>Research (dev command "flasks"): every belt cell with what it holds.</summary>
         public string Diagnose()
         {
@@ -110,8 +128,11 @@ namespace Poe2Accessibility.Services
                 for (var y = 0; y < belt.TotalBoxes.Y; y++)
                 {
                     var item = belt[y, x];
-                    var charges = item.TryGetComponent<Charges>(out var c) ? $"{c.Current}/{c.PerUseCharge}" : "no charges";
-                    cells.Add($"({x},{y}) 0x{item.Address.ToInt64():X} {item.Path} {this.inventory.ItemBaseName(item.Address)} {charges}");
+                    var name = this.inventory.ItemBaseName(item.Address);
+                    var charges = item.TryGetComponent<Charges>(out var c)
+                        ? $"{c.Current} charges, base type {c.PerUseCharge} a drink, seen {this.drinks.PerUse(x, name)?.ToString() ?? "none yet"}"
+                        : "no charges";
+                    cells.Add($"({x},{y}) 0x{item.Address.ToInt64():X} {item.Path} {name} {charges}");
                 }
             }
 
@@ -144,7 +165,11 @@ namespace Poe2Accessibility.Services
             return this.secondBelt;
         }
 
-        private static (string Name, int Uses)? Read(Item item, InventoryReader inventory)
+        /// <summary>Whether one of the game's flask-drain effects is on the watched player (BuffDefinitions: generic_flask_drain, monster_flask_drain_aura, flask_draining_lasso).</summary>
+        private bool Draining() =>
+            Seats.Of(this.Seat()).TryGetComponent<Buffs>(out var buffs) && buffs.StatusEffects.Keys.Any(BuffIds.IsFlaskDrain);
+
+        private static (string Name, int Charges)? Read(Item item, InventoryReader inventory)
         {
             if (item.Address == IntPtr.Zero || !item.TryGetComponent<Charges>(out var charges) || charges.Current < 0 ||
                 inventory.ItemBaseName(item.Address) is not { Length: > 0 } name)
@@ -152,7 +177,7 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            return (name, charges.PerUseCharge > 0 ? charges.Current / charges.PerUseCharge : charges.Current);
+            return (name, charges.Current);
         }
     }
 }

@@ -82,3 +82,113 @@ Closed on 2026-11-10, third pass (with the [file catalogs](file-catalogs.md)):
 
 Not faults, by the logs: the vitals' thresholds re-arm with a margin (154 "Vida 50 por ciento" in two days of fights);
 a targeted monster's name is said each time the target changes; the terms of use read their 248 paragraphs.
+
+## Stale values, 2026-11-10
+
+A second audit the same day looked for values said with confidence after the game changed them: a table standing in for a
+live value, a cache that outlives what it caches, a line said after its subject changed. Each entry: what was wrong, the
+rule now in force, where.
+
+### Player, combat, host
+
+- **Flask uses (A1).** The use count divided the charges by the base type's cost, which ignores the flask's modifiers
+  (a magic flask that "consumes 8 of 75 charges" was said as 7 uses and called empty with a drink left). Rule: what a
+  drink costs is the drop seen in the charges when the flask is drunk, kept per belt slot and flask name
+  (`FlaskDrinks`). A drop counts as a drink when no other drop comes within 3 s on either side and no flask-drain
+  effect is on the player (BuffDefinitions has three: `generic_flask_drain`, `monster_flask_drain_aura`,
+  `flask_draining_lasso`); two such drinks in a row must agree before the cost is believed or changed, so a charge
+  gained from a kill between two reads cannot shift it. Until then the flask is said by its charges ("Frasco de vida
+  grandioso, 67 cargas") and is empty only at 0 charges; refills are not said while the cost is unknown. The costs
+  survive an area change and are forgotten at character selection. Not covered: a drain slower than one tick in 3 s
+  whose ticks repeat, and another flask of the same name put in the same slot (corrected by its second drink). Log:
+  `Flask cost: <name> in slot N, 8 charges a drink as seen (was unknown), …`; dev command `flasks` shows base and seen.
+- **Boss life in the vitals readout (A2).** `BossWatch.Status` said the first engaged record's last polled percentage:
+  after a death and a respawn at the checkpoint it kept "40 por ciento" for a boss the game had reset, a boss that left
+  alive kept its last value, and the first record could mask the boss being fought. Rule: the readout reads each engaged
+  boss's life from its entity when asked (`LifeNow`); one that is not among the entities, dead or hidden is not said, nor
+  one read back at full life after the player's death (the reset the poll would notice on meeting it); of several, the
+  one whose life changed last (`BossLifeSteps.Spoken`). Log when an engaged boss is left out: `Boss life not said: …`.
+- **The target's name and life (A3).** With a controller the target is the nearest entity carrying the name the HUD
+  shows; in a pack of one name its life, rarity and modifiers were the nearest one's, not the targeted one's. Names
+  were kept per entity address for the area, so a monster allocated at a dead one's address kept the dead one's name
+  and a name read empty stayed empty. Rule: life, rarity and modifiers are said only when one living, in-play entity
+  carries the name (or the game's own mouse-over entity gives the target); otherwise the name alone, once while the
+  pack stays under the aim (`TargetMatch.Pick`). Corpses and hidden monsters neither are the target nor share its name.
+  Names are kept per address and entity id, never empty (`EntityNameMemo`). Log (debug): `Target -> … (name shared:
+  life and rarity not said)`.
+- **Per-area state follows the instance (A4).** The roughly thirty resets of `OnAreaChanged` ran only when the
+  world-area row changed. A loading screen into another instance under the same row (a trial's next room; the play
+  logs show one hash per instance, the same hash across respawns) kept everything keyed by entity id, and ids start
+  over there: a boss record, the monsters already named, an open trial door, the cull and weak-point sets. Rule:
+  `GameStateService` raises `InstanceChanged` when the host's `AreaInstance.AreaHash` becomes another than the one the
+  last area change found (`AreaInstanceGate`); the handler runs the same resets (`ResetAreaState`) and names no area.
+  The HUD's text memory and the scanner are left out: the first is not keyed by entity, the second binds to the
+  instance by itself. A respawn (same hash) resets nothing; a row that changes before the host reads the new instance
+  is followed by one more reset when it does. Log: `Instance: <hash> of <area> (<id>), another than the one entered`.
+- **Entities the host cannot type (A5).** `Entity.UpdateData` marks an entity it cannot type as Useless and returned
+  at once for a Useless non-monster, so the components of barriers, doors, transitions, ground items and trial traps
+  were read only at the typing attempts: five frames, then once a second (never again before 2026-11-10, when the
+  retry was added). `TrapWatch`, `TrialDoorWatch` and the barrier watch read `StateMachine.States` and `IsBlocked` up
+  to a second old. Rule: the once-a-second retry is for the typing attempt (and the component map) only; between
+  attempts an untyped entity's components rest like a typed one's, re-read every 100 ms (`EntityRefresh.OfResting`).
+  A typed Useless entity (an opened chest) is still not read. Nothing that worked before is lost: monsters and
+  players keep their path through the method unchanged.
+- **Stacks of a buff held as separate entries (A6).** The host keeps one `StatusEffects` entry per buff name and
+  merges further entries of the name into it, counting an incoming entry without a count as one but the entry already
+  kept as its raw 0: three entries read as 2 stacks. Rule: `BuffStacks.Merged` counts both sides for what they hold,
+  at least one each. A lone entry stays as read (the plugin's `PlayerCharges.Held` makes it one).
+- **Learnt dodge times (A7).** A blow was learnt as the real milliseconds since its attack began and replayed as
+  milliseconds into the clip at speed 1 (`AttackClock.MsToNominal`): learnt from a chilled or hasted monster it was
+  late or early by that speed, for every monster of the kind, and saved. Rule: where the attack's clip was read while
+  it ran (rares and uniques, every monster with the all-monsters switch, a player who parries, or while the live
+  checks judge), the blow is learnt as its place in the clip: the last reading moved on at its rate for the real time
+  since, a projectile's flight taken off (`AttackClock.NominalMsAt`, `Attack.BlowClock`). An attack whose clip was
+  not read is still learnt in real time, which is the same number at speed 1; so a normal monster chilled while it
+  teaches is still off by the chill, inside what `Believable` lets through. Saved entries (`config/dodge-timings.txt`
+  and the shipped seed) stay usable as they are, with no migration: at speed 1 the two measures agree, and each new
+  blow pushes an old one out of its five. Still from files, not live: a projectile's flight speed and a clip's reach.
+- **Class resources from tables (A8).** Heat has no live maximum (the player stat reads 0), so the largest value the
+  player's skills give at their gem level stood in for it and was said as fact: "Calor al máximo, 31", "Calor 12 de
+  31". A support, a passive or an item that raises it is not in that row. Rule: a maximum is said only when a live
+  player stat holds it. The tables' value (`ResourceTracker.Reading.Reach`) still tells a pool from a count, so the
+  pool is not read at every shot, and marks the one count worth telling on the way up, said as a count ("Calor: 31");
+  the vitals readout says "Calor: 12". Not done: claiming the maximum from the count having stopped rising, since the
+  mod cannot see whether the skill is still adding. Also, any of the catalog's 79 `current_*` stats and 22 limits was
+  spoken by its id's English words when held (`difficulty`, `shapeshift`, `active_block_maximum_distance_for_projectiles`):
+  only the ones `Announcements.ResourceName` / `LimitName` name are spoken now; the rest are logged once (`Resource
+  stat:<name> held (…) has no name in the mod: not said`). Logs for Heat: `Resource stat:number_of_crossbow_heat_stacks:
+  no live maximum, the skills' tables give 31: told as a count there, never as full`, and `… above the 31 its skills'
+  tables give` if it is ever seen higher.
+- **Smaller ones (A9).**
+  - `BuffIds.Base` cut a trailing "_" and hex-looking letters, and so 16 ids of `class-mechanics.json` (`shrine_*_2`,
+    `rallying_cry_new_weapon_damage_added`): "Inspirado" was never found and `shrine_fire_2` was looked up as `shrine_fire`.
+    Rule: only what the host appends is a suffix (upper-case hex), and a table is asked for the whole key first, the
+    cut one only when it has that and not the whole (`BuffIds.In`; `ClassMechanicCatalog.BuffKey`, `HarmfulBuffs`,
+    `StatusAilments`, `HazardGround`, `BossMechanicsWatch`).
+  - `MonsterMods` kept modifier names per Mods.dat row address for the host's life: cleared when the game's process
+    id changes (the rows of a game started again are elsewhere).
+  - Host `AreaInstance` copied hash, level and terrain only when its address changed: another area loaded at the same
+    address, or a hash read before the game wrote it, kept the old values and the old entities. It now reads the area
+    again when the hash differs twice running (`ConfirmedChange`), logging `[AreaInstance] Area hash … where … was
+    held` to the host's console; the plugin's instance reset (A4) follows from the new hash.
+  - Host `Charges.PerUseCharge`, `Chest`'s kind and `Player.Name` were read once per address: a first read that failed
+    stayed. Each is read again while it is not a value it can have (a cost under 1, a kind that did not read, an empty
+    name).
+  - Not done, with the reason: a sale said as "used" when the gold lags the inventory by more than 300 ms
+    (`InventoryWatch.SettleMs`) and `QuestTrackerPage.lastSaid` kept between characters live in `Services/Inventory`
+    and `Services/Screen`, which the other half of this audit owns (the page has no reset to call from outside). The
+    cull cue stays silent when Culling Strike comes from a support, a passive or an item: the mod reads no live stat
+    that says the player culls (`game-ids.txt` has only the two threshold stats), and none is guessed.
+To confirm live (all of the above is code and unit tests; the game was not run):
+
+| Fix | In the game | In `logs/accessibility.log` |
+|---|---|---|
+| A1 | Drink the life flask twice, more than 3 s apart and with nothing dying in between, then wait 3 s; drink a third time; L3 double tap with it full | 1st and 2nd: `Speech queued: <flask>, 67 cargas`; then `Flask cost: <flask> in slot 0, 8 charges a drink as seen (was unknown), 59 charges now`; 3rd: `<flask>, 6 usos`; full: "…, 9 usos" for a flask that consumes 8 of 75. Dev command `flasks`: `75 charges, base type 10 a drink, seen 8` |
+| A2 | Hurt a boss, die to it, respawn at the checkpoint and ask the vitals away from it; walk back and ask again | `Boss life not said: <boss> (last polled 40%) not there to read, or reset by the game`, and no boss in that vitals line; back at it, the vitals line carries the percentage the game shows |
+| A3 | With the pad, aim at a pack of one name with one of them hurt; then at the last one left | Debug: `Target -> <path> "<name>" (name shared: life and rarity not said)`, said once for the pack; then `Target -> <path> "<name>, 40 por ciento"` |
+| A4 | Pass from one trial room to the next (same area name); elsewhere, die and respawn | `Instance: <hash> of <area> (<id>), another than the one entered` with no `Area:` line before it; none at the respawn. A unique met in the new room says its own name and life steps |
+| A5 | Walk a trial's spike traps; open a barrier with a lever | The dodge cue comes before the spikes; `Barrier opened: <path>` within a moment of the game's own sound, not up to a second after |
+| A6 | Hold a buff the game shows with a count (three or more stacks) that the mod said one short | `Resource buff:<id>: Count 3 of 0` with the count the icon shows |
+| A7 | Take a blow from a rare or unique that is chilled or hasted, of an attack without contact events | `Dodge timing: <key> hit after N ms (learnt M ms), clip time at rate 0.70 (R ms real)`, N near R times the rate; from an unwarned normal monster `…, real time (no clock read)` |
+| A8 | Mercenary: fire Rapid Shot until Heat stops rising; ask the vitals mid-way | `Resource stat:number_of_crossbow_heat_stacks: no live maximum, the skills' tables give 31: told as a count there, never as full`, then `…: Count 31 of 0` and `Speech queued: Calor: 31`; never "al máximo"; vitals "Calor: 12" |
+| A9 | Use a warcry that gives "Inspirado"; take a shrine; restart the game under the running host and aim at a rare | `Resource buff:rallying_cry_new_weapon_damage_added: Begun 1 of 0` and the buff's name said; the rare's modifiers read as on screen after the restart |

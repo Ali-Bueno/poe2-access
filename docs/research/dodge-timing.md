@@ -268,7 +268,7 @@ silence it), and `HitInMs` times an attack with no other timing. It returns null
 | `Dodge gate: N clips with a reach, M skill areas, K action types` | once, when the catalogs load |
 | `Dodge gate: <monster path>\|<animation id> <animation> -> <reason> (aim …, reach …, seen …, timing …, clip …, action …, skill …)` | once per (monster, animation, reason) |
 | `Dodge warning: monster <id> <key> animation <name> (<threat>, <reason>, gap …, aim …, reach …, blow in … ms[, … ms of flight], clip …)` | each warning (Debug) |
-| `Dodge timing: <key> hit after <ms> ms (learnt <ms> ms)` / `… not believed (the files say <ms> ms)` | each blow it learns from, or rejects |
+| `Dodge timing: <key> hit after <ms> ms (learnt <ms> ms)` / `… not believed (the files say <ms> ms)`, then `, clip time at rate <r> (<ms> ms real)` or `, real time (no clock read)` | each blow it learns from, or rejects; a blow whose clip was read is learnt as its place in the clip (`AttackClock.NominalMsAt`), which is how learnt times are replayed |
 | `Layout: dodge: <part> where measured` / `Layout: dodge: <part> NOT FOUND (game update?)…` | each check's verdict, once |
 | `Semantic fields: 64 of 64 read in … ms; moved: …` | at attach (the twelve dodge rules among them) |
 | `Dodge kind from the animation's name`, `Unblockable attack`, `Parry cue` | as before |

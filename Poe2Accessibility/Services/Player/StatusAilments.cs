@@ -84,7 +84,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The ailment a buff id stands for; null for everything else (auras, flasks, charges, immunities).</summary>
         public static StatusAilment? FromBuffId(string id)
         {
-            if (BossMechanicsCatalog.Shared.MoveRule(BuffIds.Base(id)) is { } rule)
+            if ((BossMechanicsCatalog.Shared.MoveRule(id) ?? BossMechanicsCatalog.Shared.MoveRule(BuffIds.Base(id))) is { } rule)
             {
                 return rule; // the files' own words: "Stop moving or…", "Keep moving…", "Moving breaks the vines"
             }

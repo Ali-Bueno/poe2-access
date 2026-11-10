@@ -66,6 +66,8 @@ namespace Poe2Accessibility
             {
                 this.creationHelpSaid = false;
                 this.classHelpSaid = false;
+                this.flasks?.ForgetCosts();
+                this.partnerFlasks?.ForgetCosts();
             }
 
             if (current == GameStateTypes.AreaLoadingState)
@@ -165,6 +167,31 @@ namespace Poe2Accessibility
 
         private void OnAreaChanged(string areaName, bool resumed)
         {
+            this.ResetAreaState(areaName, resumed, newArea: true);
+            this.narrator?.NewArea(resumed);
+            if (this.Settings.AnnounceArea)
+            {
+                if (this.pendingState is { Detected: false } loaded && loaded.Text == Announcements.ForState(GameStateTypes.InGameState))
+                {
+                    this.pendingState = null;
+                }
+
+                this.pendingArea = (areaName, resumed, Environment.TickCount64);
+                this.areaReadyAt = null;
+                this.AnnounceLoadedArea();
+            }
+        }
+
+        /// <summary>
+        ///     Another instance of the area the game was already in (a trial's next room): no area is named and the HUD's
+        ///     texts are not new, but entity ids start over, so what is kept per entity or address goes as for a new area.
+        /// </summary>
+        private void OnInstanceChanged(string hash) =>
+            this.ResetAreaState(this.gameState?.CurrentAreaName ?? string.Empty, resumed: false, newArea: false);
+
+        /// <summary>Forgets what the watches hold of an area's entities; <paramref name="newArea"/> also hands the scanner the area's name.</summary>
+        private void ResetAreaState(string areaName, bool resumed, bool newArea)
+        {
             this.beacon?.Clear(false);
             this.bosses?.Reset();
             this.trialScope.Reset();
@@ -193,22 +220,14 @@ namespace Poe2Accessibility
             this.targets?.Reset();
             this.discoveries?.Reset(areaName, resumed);
             this.enemyNews?.Reset();
-            this.entities?.AreaEntered(areaName);
+            if (newArea)
+            {
+                this.entities?.AreaEntered(areaName); // another instance of the same area the scanner binds by itself
+            }
+
             this.lostHint?.Reset();
             this.nearby?.Reset();
             this.places?.Reset();
-            this.narrator?.NewArea(resumed);
-            if (this.Settings.AnnounceArea)
-            {
-                if (this.pendingState is { Detected: false } loaded && loaded.Text == Announcements.ForState(GameStateTypes.InGameState))
-                {
-                    this.pendingState = null;
-                }
-
-                this.pendingArea = (areaName, resumed, Environment.TickCount64);
-                this.areaReadyAt = null;
-                this.AnnounceLoadedArea();
-            }
         }
 
         /// <summary>The tile table of the instance the last area announcement read: GameHelper makes a new one each load.</summary>

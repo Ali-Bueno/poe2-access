@@ -34,8 +34,11 @@ namespace Poe2Accessibility.Services
         private readonly HostMemoryReader memory;
         private readonly UiElementReader reader;
 
-        /// <summary>Mods.dat rows are static: row address → spoken name ("" for unnamed rows).</summary>
+        /// <summary>Mods.dat rows stay where they are while the game runs: row address → spoken name ("" for unnamed rows).</summary>
         private readonly Dictionary<IntPtr, string> names = new();
+
+        /// <summary>The game process the names were read from: another one (the game restarted under the host) has its rows elsewhere.</summary>
+        private uint process;
 
         public MonsterMods(HostMemoryReader memory, UiElementReader reader)
         {
@@ -47,6 +50,13 @@ namespace Poe2Accessibility.Services
         public IReadOnlyList<string> Of(ObjectMagicProperties magic)
         {
             var found = new List<string>();
+            var pid = GameReader.Core.Process.Pid;
+            if (pid != this.process)
+            {
+                this.process = pid;
+                this.names.Clear();
+            }
+
             var (entryBytes, rowAt) = (GameLayout.ModArray.EntrySize, GameLayout.ModArray.RowOffset);
             foreach (var measured in new[] { ImplicitAt, ExplicitAt })
             {

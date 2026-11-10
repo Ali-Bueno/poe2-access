@@ -1,5 +1,6 @@
 namespace Poe2Accessibility.Services
 {
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>The boss life percentages said once each as a boss falls past them; a heal back past one says them again. Pure.</summary>
@@ -17,6 +18,27 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static bool FightRestarted(long? diedAt, long hurtAt, bool engaged, int percent) =>
             engaged && percent >= Full && diedAt is { } died && died >= hurtAt;
+
+        /// <summary>
+        ///     Which engaged boss the vitals readout names, by its place in <paramref name="engaged"/>; null for none. Each
+        ///     comes with its life as the game holds it when asked (null: not there to read, so nothing is known of it now),
+        ///     never the last one polled: a boss the player died to is back at full life unseen. Of several, the one whose
+        ///     life changed last is the one being fought.
+        /// </summary>
+        public static int? Spoken(IReadOnlyList<(int? Percent, long ChangedAt, long HurtAt)> engaged, long? diedAt)
+        {
+            int? spoken = null;
+            for (var i = 0; i < engaged.Count; i++)
+            {
+                if (engaged[i].Percent is { } percent && !FightRestarted(diedAt, engaged[i].HurtAt, true, percent) &&
+                    (spoken is not { } best || engaged[i].ChangedAt > engaged[best].ChangedAt))
+                {
+                    spoken = i;
+                }
+            }
+
+            return spoken;
+        }
 
         /// <summary>A boss must read not alive this long, with no living reading between, before its defeat is said.</summary>
         public const int DefeatConfirmMs = 500;

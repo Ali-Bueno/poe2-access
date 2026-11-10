@@ -47,7 +47,8 @@ measured in this session (the character was 10 levels under the area).
   ReadStdMap`). Maps under 128 nodes are walked on the calling thread: waking the pool for a town's entities cost more
   than reading them.
 - **Components of entities that are neither monsters nor players** are re-read every 100 ms (`Entity.RestingComponentsMs`);
-  monsters and players keep every frame (life, animations and positions feed the timing cues).
+  monsters and players keep every frame (life, animations and positions feed the timing cues). Entities the host cannot
+  type rest the same way (`EntityRefresh`): only what they are is asked once a second, not their components.
 - **`Actor`** read every active skill's details, the cooldowns and the deployed minions each frame (61 reads a frame for
   the player in town, more per monster in a fight) for data the mod reads from the component's memory itself; it reads
   the component struct only now.

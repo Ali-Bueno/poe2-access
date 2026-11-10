@@ -104,8 +104,8 @@ namespace GameReader.RemoteObjects.Components
 
                 if (this.StatusEffects.TryGetValue(effectName, out var oldValue))
                 {
-                    var incomingStacks = statusEffectData.Charges > 0 ? statusEffectData.Charges : (short)1;
-                    statusEffectData.Charges = (short)(oldValue.Charges + incomingStacks);
+                    // The entry already kept counts too: three entries without a count of their own are three stacks.
+                    statusEffectData.Charges = BuffStacks.Merged(oldValue.Charges, statusEffectData.Charges);
                     statusEffectData.TimeLeft = Math.Max(oldValue.TimeLeft, statusEffectData.TimeLeft);
                 }
 
