@@ -29,6 +29,13 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private const int StatesUnreadMs = 120_000;
 
+        /// <summary>
+        ///     While the game has made no state object at all (the host knows where it will be and reads nothing there) the two
+        ///     minutes prove nothing: a client that patches itself before its login screen takes longer. Said all the same after
+        ///     this long, in case the place is the wrong one and holds nothing for good.
+        /// </summary>
+        private const int StatesAwaitedMs = 600_000;
+
         private const string StatesPart = "game states";
 
         private readonly PluginLog log;
@@ -225,6 +232,10 @@ namespace Poe2Accessibility.Services
             return IntPtr.Zero;
         }
 
+        /// <summary>Whether no state read for <paramref name="elapsedMs"/> since attach means the states are lost (see the two limits).</summary>
+        public static bool StatesOverdue(long elapsedMs, bool awaitsStateObject) =>
+            elapsedMs > (awaitsStateObject ? StatesAwaitedMs : StatesUnreadMs);
+
         public void Tick()
         {
             var pid = Core.Process.Pid;
@@ -248,7 +259,7 @@ namespace Poe2Accessibility.Services
             {
                 this.stateRead = true;
             }
-            else if (this.IsAttached && !this.stateRead && Environment.TickCount64 - this.attachedAt > StatesUnreadMs)
+            else if (this.IsAttached && !this.stateRead && StatesOverdue(Environment.TickCount64 - this.attachedAt, Core.States.AwaitsStateObject))
             {
                 this.stateRead = true; // said once per game process
                 this.Report?.Missing(StatesPart);

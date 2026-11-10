@@ -90,6 +90,12 @@ namespace GameReader.RemoteObjects
         public IntPtr CurrentStateAddress => this.currentStateAddress;
 
         /// <summary>
+        ///     Gets a value indicating whether the static is known and still held no state object when last read: the game
+        ///     is up but has not made its states yet (a client patching itself in its own window), which is no fault of a layout.
+        /// </summary>
+        public bool AwaitsStateObject => this.Address != IntPtr.Zero && this.myStaticObj.GameState == IntPtr.Zero;
+
+        /// <summary>
         ///     Gets what the judgments of the state object found: its stack, its state list, the in-game and loading states.
         /// </summary>
         public IReadOnlyList<StructOutcome> LayoutOutcomes { get; private set; } = Array.Empty<StructOutcome>();
