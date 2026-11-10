@@ -363,6 +363,8 @@ namespace Poe2Accessibility.Services
             this.lastHints = string.Empty;
             this.spokenHints.Clear();
             this.pendingHints = (string.Empty, DateTime.MinValue);
+            // The last state's bar is not said again as cut off: the login's came back after the character (live 2026-11-10).
+            this.cuttableHints = null;
             this.lastFocusLayer = IntPtr.Zero;
             this.deferredFocus = null;
             this.pendingPage = null;
