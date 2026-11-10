@@ -40,7 +40,8 @@ namespace Poe2Accessibility
         ///     On an equipment slot: "Build: Shielded Helm, armour, from level 33, another base", then each wanted modifier
         ///     against the worn item's own line, or the list of them while there is nothing to compare.
         /// </summary>
-        public static IEnumerable<string> BuildGearSlot(GearFit fit, int level, IItemBases bases, IModTexts texts)
+        /// <param name="lacksSaid">The missing modifiers were said before the item (<see cref="BuildGearLacks"/>): not again here.</param>
+        public static IEnumerable<string> BuildGearSlot(GearFit fit, int level, IItemBases bases, IModTexts texts, bool lacksSaid = false)
         {
             var parts = new List<string> { GearWanted(fit.Entry, bases) };
             if (fit.Entry.FromLevel > level)
@@ -62,10 +63,29 @@ namespace Poe2Accessibility
                 yield break;
             }
 
-            foreach (var line in GearMods(fit, texts))
+            foreach (var mod in fit.Mods.Where(mod => !(lacksSaid && mod.Fit == ModFit.Missing)))
             {
-                yield return line;
+                yield return GearModLine(mod, texts);
             }
+        }
+
+        /// <summary>
+        ///     Right after a worn piece's name: how many of the wanted modifiers it has and which it lacks, so what to look
+        ///     for is heard without waiting for the whole item (user 2026-11-10: the build's lines "all come at the end").
+        ///     Empty when the item's lines were not read or none of the wanted ones could be looked for.
+        /// </summary>
+        public static string BuildGearLacks(GearFit fit, IModTexts texts)
+        {
+            if (!fit.ModsRead || fit.Compared == 0)
+            {
+                return string.Empty;
+            }
+
+            var (has, all) = (fit.Has, fit.Compared);
+            var parts = new List<string> { T($"{has} of {all} modifiers", $"{has} de {all} modificadores") };
+            parts.AddRange(fit.Mods.Where(mod => mod.Fit == ModFit.Missing).Select(mod => GearModLine(mod, texts)));
+            var said = string.Join(". ", parts);
+            return T($"Build: {said}", $"Build: {said}");
         }
 
         /// <summary>
@@ -122,19 +142,18 @@ namespace Poe2Accessibility
         }
 
         /// <summary>Each wanted modifier against the item's own line: met, with less than asked, missing, or not comparable (the author's words).</summary>
-        public static IEnumerable<string> GearMods(GearFit fit, IModTexts texts)
+        public static IEnumerable<string> GearMods(GearFit fit, IModTexts texts) => fit.Mods.Select(mod => GearModLine(mod, texts));
+
+        private static string GearModLine(ModStatus mod, IModTexts texts)
         {
-            foreach (var mod in fit.Mods)
+            var (held, asked, wanted, words) = (mod.Held, GearNumbers(mod), GearWantedMod(mod, texts), mod.Wanted);
+            return mod.Fit switch
             {
-                var (held, asked, wanted, words) = (mod.Held, GearNumbers(mod), GearWantedMod(mod, texts), mod.Wanted);
-                yield return mod.Fit switch
-                {
-                    ModFit.Met => T($"{held}, met", $"{held}, cumple"),
-                    ModFit.Below => T($"{held}, the build asks for {asked}", $"{held}, la build pide {asked}"),
-                    ModFit.Missing => T($"Missing {wanted}", $"Falta {wanted}"),
-                    _ => T($"Not compared: {words}", $"Sin comparar: {words}"),
-                };
-            }
+                ModFit.Met => T($"{held}, met", $"{held}, cumple"),
+                ModFit.Below => T($"{held}, the build asks for {asked}", $"{held}, la build pide {asked}"),
+                ModFit.Missing => T($"Missing {wanted}", $"Falta {wanted}"),
+                _ => T($"Not compared: {words}", $"Sin comparar: {words}"),
+            };
         }
 
         /// <summary>On entering the inventory: "Build: 3 of 12 pieces on its base, 5 of 14 modifiers, read on 6 of 12 pieces", then the slot furthest off.</summary>

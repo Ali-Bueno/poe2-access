@@ -147,7 +147,15 @@ namespace Poe2Accessibility.Services
                         this.gearVersion++;
                     }
 
-                    last.AddRange(Announcements.BuildGearSlot(Fit(wanted, entity, entity == IntPtr.Zero ? null : tooltip), active.Level, BuildGear.Bases, BuildGear.Texts));
+                    // What the piece lacks is said before the piece itself; the base wanted and the rest of the comparison after it.
+                    var fit = Fit(wanted, entity, entity == IntPtr.Zero ? null : tooltip);
+                    var lacks = Announcements.BuildGearLacks(fit, BuildGear.Texts);
+                    if (lacks.Length > 0)
+                    {
+                        first.Add(lacks);
+                    }
+
+                    last.AddRange(Announcements.BuildGearSlot(fit, active.Level, BuildGear.Bases, BuildGear.Texts, lacksSaid: lacks.Length > 0));
                 }
 
                 return (first, last);

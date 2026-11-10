@@ -159,6 +159,11 @@ namespace Poe2Accessibility.Tests
             Expect("Build: Yelmo blindado, armadura, otra base|+29 a la vida máxima, la build pide 40|+9% a la resistencia al fuego, la build pide 16|Falta +16% a la resistencia al rayo",
                 string.Join('|', lines), "the helmet slot");
 
+            var helmet = Fit(Piece(Early, "Helm1", 40), Worn);
+            Expect("Build: 2 de 3 modificadores. Falta +16% a la resistencia al rayo", Announcements.BuildGearLacks(helmet, new Texts()), "what it lacks, said before the piece");
+            Expect("Build: Yelmo blindado, armadura, otra base|+29 a la vida máxima, la build pide 40|+9% a la resistencia al fuego, la build pide 16",
+                string.Join('|', Announcements.BuildGearSlot(helmet, 40, new Bases(), new Texts(), lacksSaid: true)), "and not again after it");
+            Expect(string.Empty, Announcements.BuildGearLacks(Fit(Piece(Early, "Helm1", 40), Worn with { Lines = null }), new Texts()), "nothing before its lines were read");
             var evasive = Worn with { BaseId = "Metadata/Items/Armours/Helmets/FourHelmetDex2" };
             Expect("Build: Yelmo blindado, armadura, desde el nivel 33, otra base, la tuya da evasión",
                 Announcements.BuildGearSlot(Fit(Piece(Early, "Helm1", 20), evasive), 20, new Bases(), new Texts()).First(), "a piece to come against an evasion helmet");
