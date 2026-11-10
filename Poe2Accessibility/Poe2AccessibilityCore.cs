@@ -434,6 +434,7 @@ namespace Poe2Accessibility
                 this.gameState = new GameStateService(this.log, memory, elements) { Report = this.compatibility };
                 this.gameState.StateChanged += this.OnGameStateChanged;
                 this.gameState.AreaChanged += this.OnAreaChanged;
+                this.gameState.InstanceChanged += this.OnInstanceChanged;
                 this.gameState.AttachedChanged += this.OnAttachedChanged;
                 this.processProbe = new GameProcessProbe(this.log);
                 this.processProbe.ReportChanged += report => this.output.Speak(report, false);
@@ -455,6 +456,7 @@ namespace Poe2Accessibility
             {
                 this.gameState.StateChanged -= this.OnGameStateChanged;
                 this.gameState.AreaChanged -= this.OnAreaChanged;
+                this.gameState.InstanceChanged -= this.OnInstanceChanged;
                 this.gameState.AttachedChanged -= this.OnAttachedChanged;
                 this.gameState = null;
             }

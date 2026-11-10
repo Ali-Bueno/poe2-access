@@ -71,6 +71,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialDoors.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.Trials.cs" Link="Plugin\Announcements.Trials.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\WorldGate.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Core\AreaInstanceGate.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\StatusAilments.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\SpeechPriority.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\SettingsCursor.cs" />

@@ -116,3 +116,12 @@ rule now in force, where.
   pack stays under the aim (`TargetMatch.Pick`). Corpses and hidden monsters neither are the target nor share its name.
   Names are kept per address and entity id, never empty (`EntityNameMemo`). Log (debug): `Target -> … (name shared:
   life and rarity not said)`.
+- **Per-area state follows the instance (A4).** The roughly thirty resets of `OnAreaChanged` ran only when the
+  world-area row changed. A loading screen into another instance under the same row (a trial's next room; the play
+  logs show one hash per instance, the same hash across respawns) kept everything keyed by entity id, and ids start
+  over there: a boss record, the monsters already named, an open trial door, the cull and weak-point sets. Rule:
+  `GameStateService` raises `InstanceChanged` when the host's `AreaInstance.AreaHash` becomes another than the one the
+  last area change found (`AreaInstanceGate`); the handler runs the same resets (`ResetAreaState`) and names no area.
+  The HUD's text memory and the scanner are left out: the first is not keyed by entity, the second binds to the
+  instance by itself. A respawn (same hash) resets nothing; a row that changes before the host reads the new instance
+  is followed by one more reset when it does. Log: `Instance: <hash> of <area> (<id>), another than the one entered`.

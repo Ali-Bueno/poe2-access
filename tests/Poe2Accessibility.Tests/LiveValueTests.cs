@@ -23,6 +23,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheBossBeingFoughtIsTheOneSaid), TheBossBeingFoughtIsTheOneSaid),
             (nameof(ATargetNameSharedByAPackIsNoOnesLife), ATargetNameSharedByAPackIsNoOnesLife),
             (nameof(AnEntityNameBelongsToItsAddressAndId), AnEntityNameBelongsToItsAddressAndId),
+            (nameof(AnotherInstanceOfTheSameAreaIsToldOnce), AnotherInstanceOfTheSameAreaIsToldOnce),
         };
 
         /// <summary>A flask whose drinks were seen to cost <paramref name="cost"/>, left at <paramref name="charges"/>; the clock ends past the last drink.</summary>
@@ -159,6 +160,24 @@ namespace Poe2Accessibility.Tests
             Equal("Oso", names.Of(0x100, 77, () => "Oso"), "a new monster at the dead one's address is read again, by its id");
             Equal(string.Empty, names.Of(0x200, 5, () => null), "a name that could not be read");
             Equal("Beira", names.Of(0x200, 5, () => "Beira"), "is asked again, not kept empty for the area");
+        }
+
+        private static void AnotherInstanceOfTheSameAreaIsToldOnce()
+        {
+            var gate = new AreaInstanceGate();
+            Equal(false, gate.Changed(string.Empty), "no instance read yet");
+            Equal(false, gate.Changed("54492AF8"), "the first instance met is the one the host started in");
+            gate.AreaEntered("962301CC");
+            Equal(false, gate.Changed("962301CC"), "the instance of the area just entered: its change of area told it");
+            Equal(false, gate.Changed("962301CC"), "a respawn at a checkpoint reloads the same instance");
+            Equal(false, gate.Changed(string.Empty), "nor is a loading screen, while nothing is read");
+            Equal(true, gate.Changed("D28E11CE"), "a trial's next room: the same area row, another instance");
+            Equal(false, gate.Changed("D28E11CE"), "told once");
+
+            gate.AreaEntered("D28E11CE"); // the row changed before the host read the new instance
+            Equal(true, gate.Changed("A21F934"), "what was gathered from the old instance meanwhile goes too");
+            gate.AreaEntered(string.Empty);
+            Equal(false, gate.Changed("B59327DE"), "an area entered with no instance read yet: the first one is its own");
         }
 
         private static void AFlasksCostOutlivesAnAreaButNotACharacter()
