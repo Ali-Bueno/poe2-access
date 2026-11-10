@@ -488,32 +488,42 @@ namespace Poe2Accessibility
         /// <inheritdoc />
         public override void DrawUI()
         {
-            if (this.settingsStore != null)
+            this.Isolated("settings file", static core =>
             {
-                switch (this.settingsStore.ReloadIfChanged(this.Settings, out var reloaded))
+                if (core.settingsStore == null)
+                {
+                    return;
+                }
+
+                switch (core.settingsStore.ReloadIfChanged(core.Settings, out var reloaded))
                 {
                     case SettingsStore<AccessibilitySettings>.ReloadOutcome.Reloaded:
-                        this.ApplySettings(reloaded);
-                        this.output.Speak(Announcements.SettingsReloaded, false);
+                        core.ApplySettings(reloaded);
+                        core.output.Speak(Announcements.SettingsReloaded, false);
                         break;
                     case SettingsStore<AccessibilitySettings>.ReloadOutcome.Failed:
-                        this.output.Speak(Announcements.SettingsInvalid, false);
+                        core.output.Speak(Announcements.SettingsInvalid, false);
                         break;
                 }
-            }
+            });
 
             if (this.gameState == null)
             {
                 return;
             }
 
-            this.gameState.Tick();
-            this.AnnounceLastingClose();
-            this.AnnounceSettledState();
-            this.AnnounceLoadedArea();
+            // The host logs an exception that leaves DrawUI once and drops the rest of the frame, every frame it happens:
+            // what runs before the parts below is isolated like them, so one of these failing cannot silence the whole mod.
+            this.Isolated("game state", static core => core.gameState?.Tick());
+            this.Isolated("state news", static core =>
+            {
+                core.AnnounceLastingClose();
+                core.AnnounceSettledState();
+            });
+            this.Isolated("area news", static core => core.AnnounceLoadedArea());
             if (!this.gameState.IsAttached)
             {
-                this.processProbe?.Tick();
+                this.Isolated("process probe", static core => core.processProbe?.Tick());
             }
             else
             {
@@ -556,7 +566,7 @@ namespace Poe2Accessibility
             {
                 foreach (var command in this.devCommands.Poll())
                 {
-                    this.RunDevCommand(command);
+                    this.Isolated("dev command", command, static (core, command) => core.RunDevCommand(command));
                 }
             }
 
@@ -567,20 +577,23 @@ namespace Poe2Accessibility
                 return;
             }
 
-            if (this.hotkeys.Pressed(this.Settings.DumpUiTreeHotKey))
+            this.Isolated("hotkeys", static core =>
             {
-                this.DumpUiTree(this.Settings.UiDumpVisibleOnly);
-            }
+                if (core.hotkeys.Pressed(core.Settings.DumpUiTreeHotKey))
+                {
+                    core.DumpUiTree(core.Settings.UiDumpVisibleOnly);
+                }
 
-            if (this.hotkeys.Pressed(this.Settings.RepeatLastHotKey))
-            {
-                this.RepeatLast();
-            }
+                if (core.hotkeys.Pressed(core.Settings.RepeatLastHotKey))
+                {
+                    core.RepeatLast();
+                }
 
-            if (this.hotkeys.Pressed(this.Settings.SpeakStatusHotKey))
-            {
-                this.SpeakStatus();
-            }
+                if (core.hotkeys.Pressed(core.Settings.SpeakStatusHotKey))
+                {
+                    core.SpeakStatus();
+                }
+            });
         }
 
         private void NarrateScreenChanges(IntPtr stateObject)
@@ -603,9 +616,16 @@ namespace Poe2Accessibility
             var fields = this.locator.Fields;
             var chatLayer = inGame ? fields.Find(container, InGameField.Chat) : IntPtr.Zero;
             this.screen.SetIgnoredElement(chatLayer);
-            this.chat?.Tick(chatLayer);
-            this.mapOverlay?.Tick(inGame ? fields.Find(container, InGameField.MapOverlay) : IntPtr.Zero);
-            this.longText?.Tick(this.screen.LongText);
+            // Each reader beside the narrator on its own: the chat failing on every frame must not leave every menu unread.
+            this.Isolated("chat", chatLayer, static (core, chatLayer) => core.chat?.Tick(chatLayer));
+            this.Isolated("map overlay", inGame ? fields.Find(container, InGameField.MapOverlay) : IntPtr.Zero, static (core, overlay) => core.mapOverlay?.Tick(overlay));
+            this.Isolated("long text", static core =>
+            {
+                if (core.screen != null)
+                {
+                    core.longText?.Tick(core.screen.LongText);
+                }
+            });
             this.narrator.TutorialLayer = inGame ? fields.Find(container, InGameField.Tutorial) : IntPtr.Zero;
             this.screen.SetArrivalLayer(this.narrator.TutorialLayer);
             this.narrator.HudLayer = inGame ? fields.Find(container, InGameField.Hud) : IntPtr.Zero;
@@ -625,42 +645,50 @@ namespace Poe2Accessibility
                 }
             }
 
+            // What the narrator looks for on the screen, each on its own: a countdown that fails to parse must not take the
+            // honour, the trial's lines and the map pins with it.
+            var snapshot = this.screen.Current;
             if (watching && (!this.wasWatching || this.narrator.QuestPageDue))
             {
-                this.narrator.CheckQuestPage(this.screen.Current); // an objective that changed behind another window or a menu
-            }
-
-            if (watching && this.Settings.AnnounceTimers)
-            {
-                this.narrator.CheckCountdown(this.screen.Current);
-            }
-
-            if (watching && this.Settings.AnnounceHonour)
-            {
-                this.narrator.CheckHonour(this.screen.Current);
-            }
-
-            if (watching && this.Settings.AnnounceTrialCounters)
-            {
-                this.narrator.CheckTrialCounters(this.screen.Current);
-            }
-
-            if (watching && this.Settings.AnnounceTrialProgress)
-            {
-                this.narrator.CheckTrialLines(this.screen.Current);
-            }
-
-            if (watching && this.Settings.AnnounceAppearingText)
-            {
-                this.mapPins?.Tick(this.InGame ? this.WorldScreen() : IntPtr.Zero);
+                // An objective that changed behind another window or a menu.
+                this.Isolated("quest page", snapshot, static (core, snapshot) => core.narrator?.CheckQuestPage(snapshot));
             }
 
             this.wasWatching = watching;
-
-            if (this.gameState.CurrentState is GameStateTypes.LoginState or GameStateTypes.SelectCharacterState or
-                    GameStateTypes.CreateCharacterState or GameStateTypes.DeleteCharacterState && this.Settings.AnnounceAppearingText && watching)
+            if (!watching)
             {
-                this.narrator.OnPreGameHints(this.screen.Current);
+                return;
+            }
+
+            if (this.Settings.AnnounceTimers)
+            {
+                this.Isolated("countdown", snapshot, static (core, snapshot) => core.narrator?.CheckCountdown(snapshot));
+            }
+
+            if (this.Settings.AnnounceHonour)
+            {
+                this.Isolated("honour", snapshot, static (core, snapshot) => core.narrator?.CheckHonour(snapshot));
+            }
+
+            if (this.Settings.AnnounceTrialCounters)
+            {
+                this.Isolated("trial counters", snapshot, static (core, snapshot) => core.narrator?.CheckTrialCounters(snapshot));
+            }
+
+            if (this.Settings.AnnounceTrialProgress)
+            {
+                this.Isolated("trial lines", snapshot, static (core, snapshot) => core.narrator?.CheckTrialLines(snapshot));
+            }
+
+            if (this.Settings.AnnounceAppearingText)
+            {
+                this.Isolated("map pins", static core => core.mapPins?.Tick(core.InGame ? core.WorldScreen() : IntPtr.Zero));
+            }
+
+            if (this.gameState.CurrentState is (GameStateTypes.LoginState or GameStateTypes.SelectCharacterState or
+                    GameStateTypes.CreateCharacterState or GameStateTypes.DeleteCharacterState) && this.Settings.AnnounceAppearingText)
+            {
+                this.Isolated("pre-game hints", snapshot, static (core, snapshot) => core.narrator?.OnPreGameHints(snapshot));
             }
         }
 
