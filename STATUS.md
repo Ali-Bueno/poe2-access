@@ -486,6 +486,12 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   [robustness audit](docs/research/robustness-audit-2026-11-10.md#fourth-pass-2026-11-10-the-whole-code-in-four-parts).
   Open, most important: a boss with forms said defeated at its first form, exit tins flapping, no spoken line when a
   plugin fails to load, `ui-catalog` and `gems` reporting done while losing files, free-cursor controls with no tooltip.
+- Character selection after a quick login (2026-11-10): the login's bar "Presiona para jugar, A. …" was said again after
+  the character, by the bar's own "said again if cut" rule outliving the state (`ScreenNarrator.cuttableHints`), not by the
+  stale-bar check of `099e90b`; dropped on a state change and gone in two logins 1.3 and 1.7 s long.
+- Microtransaction shop, too few points (2026-11-10, heard live, nothing pressed): the game shows the tip with the focus,
+  on a button that reads "Comprar puntos"; said as the game shows it, "Comprar puntos, Esta compra requiere 250 puntos,
+  tienes 150 puntos, botón" (it was "Comprar <item>, Comprar puntos, …").
 - Build Planner gear (2026-11-10, heard live on yarkey): worn slots say what they lack right after the name ("Anillo izquierdo,
   Estallido repentino, único, Build: 1 de 2 modificadores. Falta Agrega de 6 a 10 de daño de fuego a los ataques"), an item
   that could go in a slot says each slot before its own lines ("Canto de condenación, raro, columna 3, fila 2, Build, Mano
