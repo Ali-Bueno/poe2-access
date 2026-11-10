@@ -19,10 +19,18 @@ namespace Poe2Accessibility.Services
     ///     One radar ray's state (D2R radar.cpp Sensor): a reading sounds only once it is confirmed — the player walked
     ///     on with it, or stood still for a moment — and only when it changed. The first reading after a reset is a
     ///     silent baseline. Openings keep a minimum interval and are dropped while the player only backs away from the
-    ///     wall last heard; walls are never delayed.
+    ///     wall last heard; walls are never delayed. An exit once confirmed holds for <see cref="ExitHoldMs"/> after the
+    ///     ray last saw it: a doorway read open again a poll later was heard as "open" within 1.5 s in 69 of 140 exits.
     /// </summary>
     public sealed class RadarSensor
     {
+        /// <summary>
+        ///     How long a confirmed exit stays an exit after the ray stopped seeing it: 30 polls of the radar's 50 ms, longer
+        ///     than the flaps measured (69 of 140 exits read open again within 1.5 s) and short enough that a door really
+        ///     passed is let go before the next room's walls.
+        /// </summary>
+        public const long ExitHoldMs = 1500;
+
         private readonly RadarThresholds limits;
         private RadarReading confirmed;
         private RadarReading candidate;
@@ -33,6 +41,7 @@ namespace Poe2Accessibility.Services
         private Vector2 lastPosition;
         private long lastMoveAt;
         private long lastOpeningAt = long.MinValue / 2;
+        private long lastExitSeenAt = long.MinValue / 2;
         private (float Projection, Vector2 Origin)? frontier;
         private bool baseline = true;
 
@@ -47,6 +56,7 @@ namespace Poe2Accessibility.Services
             this.frontier = null;
             this.baseline = true;
             this.lastOpeningAt = long.MinValue / 2;
+            this.lastExitSeenAt = long.MinValue / 2;
         }
 
         /// <summary>One poll of this ray; returns the reading to sound now, if any.</summary>
@@ -59,6 +69,15 @@ namespace Poe2Accessibility.Services
             {
                 this.lastMoveAt = now;
                 this.lastPosition = position;
+            }
+
+            if (exitAhead)
+            {
+                this.lastExitSeenAt = now;
+            }
+            else if (this.confirmed == RadarReading.Exit && now - this.lastExitSeenAt < ExitHoldMs)
+            {
+                exitAhead = true; // an exit heard stays one through a poll or two that miss it
             }
 
             if (scan.Depth < this.limits.OpenCells && scan.Unknown)

@@ -10,11 +10,58 @@ namespace Poe2Accessibility.Tests
     {
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
+            (nameof(AnExitHeardIsNotLostToAFlap), AnExitHeardIsNotLostToAFlap),
             (nameof(OnlyATapOnAFocusTheGameMovedIsTheGames), OnlyATapOnAFocusTheGameMovedIsTheGames),
             (nameof(ThePanelBesideIsNamedOnlyWhenItAddsSomething), ThePanelBesideIsNamedOnlyWhenItAddsSomething),
             (nameof(ALongTextSplitsIntoItsLinesWithWords), ALongTextSplitsIntoItsLinesWithWords),
             (nameof(AScrollLandsOnTheParagraphHoldingTheOffset), AScrollLandsOnTheParagraphHoldingTheOffset),
         };
+
+        /// <summary>A doorway read open for a poll or two between exit readings is not an opening; one really gone for the hold is.</summary>
+        private static void AnExitHeardIsNotLostToAFlap()
+        {
+            var sensor = new RadarSensor(new RadarThresholds(20, 15, 3, 200, 100, 500));
+            var axis = new System.Numerics.Vector2(1, 0);
+            var open = new PassageScan.Result(40, false);
+            long now = 0;
+            RadarReading? Step(bool exit, long advance = 50, float move = 1f)
+            {
+                now += advance;
+                return sensor.Update(now, new System.Numerics.Vector2(now / 50f * move, 0), axis, open, exit);
+            }
+
+            Equal(null, Step(false), "baseline");
+            var said = new List<RadarReading>();
+            for (var i = 0; i < 8; i++)
+            {
+                if (Step(true) is { } heard)
+                {
+                    said.Add(heard);
+                }
+            }
+
+            Equal("Exit", string.Join(",", said), "walking toward the doorway confirms the exit once");
+
+            // The exit reads open for 1 s (20 polls) while walking, then exit again: no opening, no second exit.
+            for (var i = 0; i < 20; i++)
+            {
+                Equal(null, Step(false), $"a flap, poll {i}");
+            }
+
+            Equal(null, Step(true), "the exit again: already heard");
+
+            // Gone for good: after the hold it is an opening.
+            var cues = new List<RadarReading>();
+            for (var i = 0; i < (RadarSensor.ExitHoldMs / 50) + 10; i++)
+            {
+                if (Step(false) is { } cue)
+                {
+                    cues.Add(cue);
+                }
+            }
+
+            Equal("Open", string.Join(",", cues), "an exit that stays gone is let go once, as an opening");
+        }
 
         /// <summary>The press that moved the focus (a stash's search field) is the game's: neither a hold nor a missing focus is.</summary>
         private static void OnlyATapOnAFocusTheGameMovedIsTheGames()

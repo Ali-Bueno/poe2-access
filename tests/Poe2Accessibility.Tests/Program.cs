@@ -776,10 +776,13 @@ namespace Poe2Accessibility.Tests
             Equal(null, Step(500, open, 0f, true), "an exit waits for confirmation");
             Equal(null, Step(600, open, 0f, true), "still standing: not yet");
             Equal(RadarReading.Exit, Step(700, open, 0f, true), "standing still confirms after a moment");
-            Equal(null, Step(850, open, 1f), "open again");
-            Equal(null, Step(900, open, 1f), "open again");
-            Equal(null, Step(950, open, 1f), "open is confirmed but held by the opening interval");
-            Equal(RadarReading.Open, Step(1350, open, 1f), "then said");
+            Equal(null, Step(850, open, 1f), "open again, but the exit heard holds");
+            Equal(null, Step(900, open, 1f), "still held");
+            Equal(null, Step(950, open, 1f), "still held, and walking on does not release it");
+            Equal(null, Step(2250, open, 1f), "the exit has been gone for the hold: open is a candidate");
+            Equal(null, Step(2300, open, 1f), "walking on");
+            Equal(null, Step(2350, open, 1f), "walking on");
+            Equal(RadarReading.Open, Step(2400, open, 1f), "confirmed after three cells, then said");
             sensor.Reset();
             Equal(null, Step(1400, wall), "after a reset the first reading is silent again");
         }
