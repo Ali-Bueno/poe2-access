@@ -80,6 +80,9 @@ namespace Poe2Accessibility.Models
         /// <summary>The game has not built the tooltip that holds this element's stats yet (passive node, a few frames).</summary>
         public bool TooltipPending { get; init; }
 
+        /// <summary>A grid cell with no item on it.</summary>
+        public bool IsEmptyCell { get; init; }
+
         /// <summary>Every line, when <see cref="Tooltip"/> holds fewer to be said at once (a passive node while a guide leads); the details read these.</summary>
         public System.Collections.Generic.IReadOnlyList<string>? Details { get; init; }
 

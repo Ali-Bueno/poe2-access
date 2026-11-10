@@ -19,6 +19,7 @@ namespace Poe2Accessibility
         public static string PassiveCategoryName(Services.PassiveCategory category) => category switch
         {
             Services.PassiveCategory.Build => T("Build", "Build"),
+            Services.PassiveCategory.OutsideBuild => T("Taken outside the build", "Asignados fuera de la build"),
             Services.PassiveCategory.Keystones => T("Keystones", "Piedras angulares"),
             Services.PassiveCategory.Notables => T("Notables", "Notables"),
             Services.PassiveCategory.JewelSockets => T("Jewel sockets", "Engarces de joya"),
@@ -137,7 +138,34 @@ namespace Poe2Accessibility
 
         /// <summary>"Next in the build: Attribute, reachable: up right, up", the pushes that lead there.</summary>
         public static string BuildNext(string node, IEnumerable<string> pushes) =>
-            T("Next in the build: ", "Siguiente de la build: ") + node + (pushes.Any() ? ": " + string.Join(", ", pushes) : string.Empty);
+            T("Next in the build: ", "Siguiente de la build: ") + node + (pushes.Any() ? ": " + string.Join(", ", Runs(pushes)) : string.Empty);
+
+        /// <summary>Said with the Build list: "24 of 60 taken, 6 points outside the build".</summary>
+        public static string BuildProgress(int taken, int total, int outside) =>
+            outside > 0
+                ? T($"{taken} of {total} taken, {outside} points outside the build", $"{taken} de {total} asignados, {outside} puntos fuera de la build")
+                : T($"{taken} of {total} taken", $"{taken} de {total} asignados");
+
+        /// <summary>The same push several times running, counted: "right 3" for "right, right, right".</summary>
+        private static IEnumerable<string> Runs(IEnumerable<string> pushes)
+        {
+            var (last, count) = (string.Empty, 0);
+            foreach (var push in pushes.Append(string.Empty))
+            {
+                if (push == last)
+                {
+                    count++;
+                    continue;
+                }
+
+                if (count > 0)
+                {
+                    yield return count > 1 ? $"{last} {count}" : last;
+                }
+
+                (last, count) = (push, 1);
+            }
+        }
 
         /// <summary>The next build node beyond the pushes counted: its direction only.</summary>
         public static string Far(string direction) => T($"far, {direction}", $"lejos, {direction}");

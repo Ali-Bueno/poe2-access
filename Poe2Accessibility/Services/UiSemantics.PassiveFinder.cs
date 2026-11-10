@@ -84,7 +84,21 @@ namespace Poe2Accessibility.Services
 
             var way = this.WayTo(graph, atlas, record, this.finder.Target, MaxFinderPushes)?.Words(false) ?? string.Empty;
             var found = Announcements.PassiveFound(atlas.Nodes[target].Name, Where(atlas, target, steps), way);
-            return listStep != 0 ? Announcements.InContext(Announcements.PassiveCategoryName(this.finder.Category), found) : found;
+            if (listStep == 0)
+            {
+                return found;
+            }
+
+            var list = Announcements.PassiveCategoryName(this.finder.Category);
+            return Announcements.InContext(this.finder.Category == PassiveCategory.Build ? $"{list}, {BuildProgress(atlas, steps, marked)}" : list, found);
+        }
+
+        /// <summary>How far along the active build the character is: its nodes taken, and the points spent outside it.</summary>
+        private static string BuildProgress(PassiveAtlas atlas, int[] steps, HashSet<IntPtr> marked)
+        {
+            var taken = marked.Count(node => atlas.Places.Index.TryGetValue(node, out var index) && steps[index] == 0);
+            var outside = atlas.Places.Index.Count(place => steps[place.Value] == 0 && !marked.Contains(place.Key) && !atlas.Nodes[place.Value].IsStart);
+            return Announcements.BuildProgress(taken, marked.Count, outside);
         }
 
         /// <summary>Research (dev command "passivemap"): from each class's start, how many points the nearest keystones and notables cost.</summary>
@@ -391,6 +405,7 @@ namespace Poe2Accessibility.Services
                     {
                         PassiveCategory.Build => marked.Contains(this.Nodes[index].Record) && steps[index] != 0 &&
                                                  this.Nodes[index].Class is PassiveClass.Keystone or PassiveClass.Notable or PassiveClass.JewelSocket,
+                        PassiveCategory.OutsideBuild => marked.Count > 0 && steps[index] == 0 && !marked.Contains(this.Nodes[index].Record) && !this.Nodes[index].IsStart,
                         PassiveCategory.Keystones => this.Nodes[index].Class == PassiveClass.Keystone,
                         PassiveCategory.Notables => this.Nodes[index].Class == PassiveClass.Notable,
                         PassiveCategory.JewelSockets => this.Nodes[index].Class == PassiveClass.JewelSocket,

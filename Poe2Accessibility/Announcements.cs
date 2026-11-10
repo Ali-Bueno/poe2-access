@@ -387,7 +387,14 @@ namespace Poe2Accessibility
         public static string YouAreUp => T("You are back on your feet", "Vuelves a estar en pie");
 
         /// <summary>What the player just walked up to: "Checkpoint", "Una, Stash".</summary>
-        public static string Nearby(System.Collections.Generic.IEnumerable<string> names) => string.Join(", ", names);
+        public static string Nearby(System.Collections.Generic.IEnumerable<string> names)
+        {
+            // Several of a kind are counted, as enemies are ("Tiesto, 3. Botella, 2"): "Tiesto, Tiesto, Tiesto" was heard in a room of pots.
+            var groups = names.GroupBy(name => name).Select(group => (Name: group.Key, Count: group.Count())).ToList();
+            return groups.All(group => group.Count == 1)
+                ? string.Join(", ", groups.Select(group => group.Name))
+                : string.Join(". ", groups.Select(group => group.Count > 1 ? $"{group.Name}, {group.Count}" : group.Name));
+        }
 
         /// <summary>An amount shown beside a currency icon ("128 gold"); a price drawn red is one the player cannot pay.</summary>
         public static string Amount(string amount, string currency, bool cannotAfford) =>

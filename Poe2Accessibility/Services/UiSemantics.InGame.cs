@@ -49,10 +49,12 @@ namespace Poe2Accessibility.Services
             UiRole role;
             string text;
             var value = string.Empty;
+            var emptyCell = false;
             List<string> details;
             if (this.inventory.TryReadGrid(info.Address, out var column, out var row, out var hovered))
             {
                 role = UiRole.GridCell;
+                emptyCell = hovered == IntPtr.Zero;
                 details = this.ItemTooltip(hovered);
                 var item = hovered == IntPtr.Zero ? Announcements.EmptyCell : this.inventory.DescribeItem(hovered, Title(details)) ?? Announcements.UnknownItem;
                 item = this.inventory.HighlightOf(hovered) == ItemHighlight.Match ? Announcements.HighlightedItem(item) : item;
@@ -85,6 +87,7 @@ namespace Poe2Accessibility.Services
                 IsVisible = this.elements.IsVisible(info),
                 Context = role == UiRole.GridCell ? Announcements.InContext(this.PanelTitle(info), this.GridTab(info)) : this.PanelTitle(info),
                 Tooltip = details,
+                IsEmptyCell = emptyCell,
             };
         }
 

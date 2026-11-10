@@ -16,6 +16,12 @@ namespace Poe2Accessibility.Services
         /// <summary>While the focused element is not yet visible (screen still fading in), re-check at this pace.</summary>
         private const int PendingRecheckMs = 250;
 
+        /// <summary>How long a cell that reads empty as the cursor arrives is given to name its item (it did within 170 ms, 2026-11-10).</summary>
+        private const int EmptyRecheckMs = 200;
+
+        /// <summary>The grid whose cell read empty on arrival, read once more before it is said.</summary>
+        private IntPtr emptyOnArrival;
+
         /// <summary>How often the focused control is re-read for in-place value changes (a few reads each time).</summary>
         private const int ValuePollMs = 150;
 
@@ -168,7 +174,8 @@ namespace Poe2Accessibility.Services
             }
 
             var changed = focused != this.lastFocused;
-            var recheck = this.pendingVisibility && this.sincePendingCheck.ElapsedMilliseconds >= PendingRecheckMs;
+            var waitedFor = focused == this.emptyOnArrival ? EmptyRecheckMs : PendingRecheckMs;
+            var recheck = this.pendingVisibility && this.sincePendingCheck.ElapsedMilliseconds >= waitedFor;
             if (!changed && !recheck)
             {
                 this.PollValue();
@@ -177,6 +184,7 @@ namespace Poe2Accessibility.Services
 
             this.lastFocused = focused;
             this.pendingVisibility = false;
+            this.emptyOnArrival = changed ? IntPtr.Zero : this.emptyOnArrival;
             if (focused == IntPtr.Zero)
             {
                 this.Current = null;
@@ -200,6 +208,16 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (node.IsEmptyCell && focused != this.emptyOnArrival)
+            {
+                // The grid names its item a moment after the cursor arrives: "Amuleto, vacío" was said, then the amulet.
+                this.emptyOnArrival = focused;
+                this.pendingVisibility = true;
+                this.sincePendingCheck.Restart();
+                return;
+            }
+
+            this.emptyOnArrival = IntPtr.Zero;
             this.Current = node;
             this.CurrentPanelIndex = this.PanelIndexOf(focused);
             this.focusLayer = this.CurrentLayer;
@@ -285,10 +303,22 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (fresh.IsEmptyCell && !this.Current.IsEmptyCell && this.emptiedValue != (fresh.Text, fresh.Value))
+            {
+                // A grid lets go of its item as the cursor leaves it for another grid, a moment before the focus follows:
+                // "Mano principal, vacío" was said of a held weapon. An empty cell is believed on its second reading.
+                this.emptiedValue = (fresh.Text, fresh.Value);
+                return;
+            }
+
+            this.emptiedValue = default;
             this.log.Info($"Value -> 0x{fresh.Address.ToInt64():X} \"{fresh.Text}\" = \"{fresh.Value}\"");
             this.Current = fresh;
             this.ValueChanged?.Invoke(fresh);
         }
+
+        /// <summary>The empty cell a grid read once on a value poll, not yet said.</summary>
+        private (string Text, string Value) emptiedValue;
 
         /// <summary>
         ///     The activation target: the element under the controller cursor, else the one under the free cursor

@@ -22,6 +22,9 @@ namespace Poe2Accessibility.Services
         /// <summary>One spoken step: about a quarter second of walking (0.5 s moved ~200 world units, 2026-10-23).</summary>
         private const float StepWorldUnits = 100f;
 
+        /// <summary>A place and a listed thing of its kind this near are one (the town well's tile lay 7 units from its entity, 2026-11-10).</summary>
+        private const float SamePlaceWorld = 2.5f * StepWorldUnits;
+
         /// <summary>How far (grid units) the grid's staircase may stray from a straight leg before it counts as a turn.</summary>
         private const float CornerToleranceGrid = 3f;
 
@@ -500,9 +503,16 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            // A place anchored on a thing already listed (the well, the stash, a waypoint) is that thing, heard twice.
+            var things = found.Values.Where(entry => IsEntity(entry) && entry.Kind.Length > 0).ToList();
             foreach (var place in this.PlaceEntries?.Invoke(player.WorldPosition.Z) ?? Array.Empty<ScanEntry>())
             {
                 var at = new StdTuple3D<float> { X = place.WorldX, Y = place.WorldY, Z = place.WorldZ };
+                if (things.Any(thing => thing.Kind == place.Kind && Distance(at, thing) <= SamePlaceWorld))
+                {
+                    continue;
+                }
+
                 if (this.Sighted(place, at, area.WorldToGridConvertor, false))
                 {
                     found.TryAdd(place.Id, place);

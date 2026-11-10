@@ -12,6 +12,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The Build Planner's active build: its keystones, notables and jewel sockets not taken yet.</summary>
         Build,
+
+        /// <summary>With a build active: what is taken and is not part of it, the points a refund would bring back to it.</summary>
+        OutsideBuild,
         Keystones,
         Notables,
         JewelSockets,
