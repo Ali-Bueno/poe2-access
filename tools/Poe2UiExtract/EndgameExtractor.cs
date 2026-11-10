@@ -519,9 +519,9 @@ internal static class EndgameExtractor
             c.KeywordTerm = search.Text(keywords, "KeywordPopups.Term", KeywordTermOffset, NotArt, known: (keyword, text => Filled(text) && text != KnownKeyword));
             c.KeywordHelp = search.Text(keywords, "KeywordPopups.Definition", KeywordHelpOffset, NotArt, c.KeywordTerm, (keyword, Sentence));
             c.ClientText = search.Text(clients, "ClientStrings2.Text", ClientTextOffset, known: (DatColumnSearch.RowOf(clients, KnownClient), Sentence));
-            c.AreaName = search.Text(areas, "WorldAreas.Name", AreaNameOffset, NotArt, known: (area, Sentence));
+            c.AreaName = search.Text(areas, NameAnchor.Areas.Column, AreaNameOffset, NotArt, known: (DatColumnSearch.RowOf(areas, NameAnchor.Areas.Id), text => text == NameAnchor.Areas.Name));
             c.PassiveGraphId = search.UniqueUInt16(passives, "PassiveSkills.GraphId", PassiveGraphIdOffset);
-            c.PassiveName = search.Text(passives, "PassiveSkills.Name", PassiveNameOffset, NotArt);
+            c.PassiveName = search.Text(passives, NameAnchor.Passives.Column, PassiveNameOffset, NotArt, known: (DatColumnSearch.RowOf(passives, NameAnchor.Passives.Id), text => text == NameAnchor.Passives.Name));
             return search.Report("endgame") ? c : null;
         }
     }

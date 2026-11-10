@@ -119,6 +119,9 @@
     <Compile Include="..\..\host\Poe2Access\Launcher\StartupPhrases.cs" Link="Launcher\StartupPhrases.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\ProgressPacer.cs" Link="Launcher\ProgressPacer.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BuffColumns.cs" Link="Extract\BuffColumns.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\NameAnchors.cs" Link="Extract\NameAnchors.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\NameColumns.cs" Link="Extract\NameColumns.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\BossColumns.cs" Link="Extract\BossColumns.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\HazardColumns.cs" Link="Extract\HazardColumns.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\AnimationColumns.cs" Link="Extract\AnimationColumns.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\StickCheck.cs" />

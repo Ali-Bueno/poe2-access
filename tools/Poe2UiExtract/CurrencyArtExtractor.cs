@@ -9,7 +9,6 @@ using Index = LibBundle3.Index;
 internal static class CurrencyArtExtractor
 {
     private const int IdOffset = 0x0;
-    private const int NameOffset = 0x20;
     private const int DdsOffset = 0x8;
     private const string DdsPrefix = "Art/";
     private const string CurrencyPrefix = "Metadata/Items/Currency/";
@@ -28,7 +27,11 @@ internal static class CurrencyArtExtractor
             return 1;
         }
 
-        var nameColumn = DatColumnExtractor.NameColumn(index, "baseitemtypes") ?? NameOffset;
+        if (DatColumnExtractor.NameColumn(index, NameAnchor.Items) is not { } nameColumn)
+        {
+            return 1;
+        }
+
         if (items == null || visuals == null || VisualColumn(items, visuals, ddsColumn) is not { } visualColumn)
         {
             Say.Out.WriteLine("  the ItemVisualIdentity column of BaseItemTypes was not found (check with dat-strings)");

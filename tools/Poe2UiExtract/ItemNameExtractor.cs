@@ -9,13 +9,16 @@ using Index = LibBundle3.Index;
 internal static class ItemNameExtractor
 {
     private const int IdOffset = 0x0;
-    private const int NameOffset = 0x20;
     private const string CurrencyPrefix = "Metadata/Items/Currency/";
 
     public static int Run(string gameDir, string outFile)
     {
         using var index = Extractor.OpenLoose(gameDir);
-        var nameColumn = DatColumnExtractor.NameColumn(index, "baseitemtypes") ?? NameOffset;
+        if (DatColumnExtractor.NameColumn(index, NameAnchor.Items) is not { } nameColumn)
+        {
+            return 1;
+        }
+
         var result = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
         var languages = AreaExtractor.Languages;
         foreach (var (code, folder) in languages)
