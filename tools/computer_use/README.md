@@ -35,7 +35,9 @@ output peak: the only proof of audio). A panel opened by the radial: `chord shar
 Every action prints JSON with the plugin log lines written since it started (`Speech interrupts|queued`,
 `Focus ->`, `Screen <change>`); that log is the test oracle. Research commands go through
 `Plugins/Poe2Accessibility/debug/command.txt` (`dump`, `dump visible`, `hints`, `status`, `repeat`;
-ResearchMode only) so no key press knocks the game out of controller mode.
+ResearchMode only) so no key press knocks the game out of controller mode. `dump` and `dump visible` announce themselves
+aloud ("Volcando el árbol de la interfaz"), over whatever a listening player was hearing: while someone else plays, read
+`focus-research.log` (each focus with its ancestors and nearby subtree) and the screenshots instead.
 
 `fight_trace.py` records each monster's action, clip and place and the player's life and place (read-only, JSON lines);
 `dodge_audit.py` sets it against the plugin log's `Dodge warning` lines (VerboseLogging) and prints the dodge warning's recall,
