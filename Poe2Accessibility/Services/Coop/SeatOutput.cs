@@ -26,9 +26,13 @@ namespace Poe2Accessibility.Services
 
         public void Urge(string text, int holdMs = 1500) => this.inner.Urge(this.Named(text), holdMs);
 
-        public void Keep(string text, int holdMs, bool interrupt = false) => this.inner.Keep(this.Named(text), holdMs, interrupt);
+        /// <summary>Every parameter of the interface's: one short, the interface's own default ran instead and spoke the line unkept.</summary>
+        public void Keep(string text, int holdMs, bool interrupt = false, bool yieldsToMoves = false) =>
+            this.inner.Keep(this.Named(text), holdMs, interrupt, yieldsToMoves);
 
         public void TakeFloor(string text) => this.inner.TakeFloor(this.Named(text));
+
+        public void Moved(string text) => this.inner.Moved(this.Named(text));
 
         public void StopBefore(DateTime since) => this.inner.StopBefore(since);
 

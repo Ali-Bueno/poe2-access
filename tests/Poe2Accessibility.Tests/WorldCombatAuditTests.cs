@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using Poe2Accessibility.Services;
     using static Check;
 
@@ -15,6 +16,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheGuideKeepsItsLockThroughARespawn), TheGuideKeepsItsLockThroughARespawn),
             (nameof(ATargetTheScannerNeverListedIsNotLostFromView), ATargetTheScannerNeverListedIsNotLostFromView),
             (nameof(ABossThatRisesAfterItsDefeatIsFollowedAgain), ABossThatRisesAfterItsDefeatIsFollowedAgain),
+            (nameof(ASeatsVoicePassesEveryKindOfLineOn), ASeatsVoicePassesEveryKindOfLineOn),
         };
 
         /// <summary>A boss's next form waits untargetable under its name: the life said is still the fighting one's.</summary>
@@ -75,6 +77,48 @@ namespace Poe2Accessibility.Tests
             Equal(40, BossLifeSteps.Alive(40), "one that never fell keeps its step");
             Equal(0, BossLifeSteps.Next(0, 60), "left at 0, no step is ever reached again");
             Equal(75, BossLifeSteps.Next(BossLifeSteps.Alive(0), 60), "risen and hurt to 60 percent: said from 75 down again");
+        }
+
+        /// <summary>"Vendido: ..." was asked to be kept and went out as a plain interrupt, cut by the next focus: the seat's voice lacked the call.</summary>
+        private static void ASeatsVoicePassesEveryKindOfLineOn()
+        {
+            var heard = new HeardOutput();
+            IAccessibilityOutputService seat = new SeatOutput(heard, () => "Yarkey");
+            seat.Keep("Sold: ring", 900, true, yieldsToMoves: true);
+            seat.Moved("row 2");
+            Equal("keep Yarkey: Sold: ring True True|moved Yarkey: row 2", string.Join("|", heard.Calls), "kept as asked, and a move told as one");
+
+            // Whatever the interface gains later: a call the seat's voice does not make its own falls to the interface's default.
+            var map = typeof(SeatOutput).GetInterfaceMap(typeof(IAccessibilityOutputService));
+            var missing = map.TargetMethods.Where(method => method.DeclaringType != typeof(SeatOutput)).Select(method => method.Name).ToList();
+            Equal(string.Empty, string.Join(", ", missing), "every call of the output is the seat's own");
+        }
+
+        private sealed class HeardOutput : IAccessibilityOutputService
+        {
+            public List<string> Calls { get; } = new();
+
+            public string BackendName => "test";
+
+            public void Speak(string text, bool interrupt = false) => this.Calls.Add($"speak {text} {interrupt}");
+
+            public void Urge(string text, int holdMs = 1500) => this.Calls.Add($"urge {text}");
+
+            public void Keep(string text, int holdMs, bool interrupt = false, bool yieldsToMoves = false) => this.Calls.Add($"keep {text} {interrupt} {yieldsToMoves}");
+
+            public void Moved(string text) => this.Calls.Add($"moved {text}");
+
+            public void Repeat()
+            {
+            }
+
+            public void Stop()
+            {
+            }
+
+            public void Dispose()
+            {
+            }
         }
     }
 }
