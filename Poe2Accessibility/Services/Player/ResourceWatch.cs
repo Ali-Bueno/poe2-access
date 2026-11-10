@@ -30,6 +30,9 @@ namespace Poe2Accessibility.Services
 
         // Kept across areas: what a button puts on and takes off is the character's, not the area's.
         private readonly SteadyBuffs steady = new();
+
+        /// <summary>Buffs told and then silenced as they went (<see cref="SteadyBuffs"/>): that going is not said either.</summary>
+        private readonly HashSet<string> unsaidEnds = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string> buffNames = new(StringComparer.Ordinal);
         private readonly HashSet<string> spoken = new(StringComparer.Ordinal);
         private readonly HashSet<string> statNames = new(StringComparer.CurrentCultureIgnoreCase);
@@ -64,6 +67,13 @@ namespace Poe2Accessibility.Services
             this.spoken.Clear();
         }
 
+        /// <summary>Character selection: the next character's buttons are learnt again (<see cref="SteadyBuffs"/>).</summary>
+        public void ForgetCharacter()
+        {
+            this.steady.Reset();
+            this.unsaidEnds.Clear();
+        }
+
         /// <summary>Per frame; <paramref name="reading"/> false while dead, paused or in a menu (nothing is said).</summary>
         public void Tick(bool reading, AccessibilitySettings settings)
         {
@@ -81,22 +91,27 @@ namespace Poe2Accessibility.Services
                 this.ReadStats(catalog, stats, readings);
             }
 
+            // Only buffs that were read can be seen to have gone: an unread component is not every button let go.
             if (entity.TryGetComponent<Buffs>(out var buffs))
             {
                 this.ReadBuffs(catalog, buffs, readings, now);
-            }
-
-            foreach (var key in this.steady.EndReading(now))
-            {
-                this.log.Info($"Resource {key}: came and went {SteadyBuffs.Flaps} times within {SteadyBuffs.WindowMs / 1000} s, a button's own effect: no longer said");
+                foreach (var key in this.steady.EndReading(now))
+                {
+                    this.log.Info($"Resource {key}: came and went {SteadyBuffs.Flaps} times within {SteadyBuffs.WindowMs / 1000} s with no duration and no count, a button's own effect: no longer said");
+                    if (this.tracker.IsHeld(key))
+                    {
+                        this.unsaidEnds.Add(key);
+                    }
+                }
             }
 
             foreach (var news in this.tracker.Update(readings, now))
             {
                 this.log.Info($"Resource {news.Key}: {news.Change} {news.Count} of {news.Max}");
-                if (this.steady.Quiet.Contains(news.Key))
+                if (news.Change == ResourceChange.Ended && this.unsaidEnds.Remove(news.Key))
                 {
-                    continue; // its last going is no news either
+                    this.spoken.Remove(news.Key);
+                    continue; // the going that made it a button's effect is no news either
                 }
 
                 if (this.Worth(news) && settings.ChargeSpeech && this.Phrase(news) is { Length: > 0 } text)
@@ -200,9 +215,10 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                // A buff with no duration is told once it has stayed, and one that keeps coming and going not at all: a held
-                // button's own effect (the buckler raised to parry) is no news each time (SteadyBuffs).
-                if (!this.steady.Tells(key, effect.TotalTime > 0, now))
+                // A buff with no duration and no count is told once it has stayed, and one that keeps coming and going not at
+                // all: a held button's own effect (the buckler raised to parry) is no news each time (SteadyBuffs). What the
+                // area or the character came with has stayed already: held back, it would be told as new when the wait ended.
+                if (!this.steady.Tells(key, SteadyBuffs.RunsOut(effect.TotalTime), now, stacks, this.tracker.InBaseline(now)))
                 {
                     continue;
                 }

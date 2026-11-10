@@ -68,6 +68,8 @@ namespace Poe2Accessibility
                 this.classHelpSaid = false;
                 this.flasks?.ForgetCosts();
                 this.partnerFlasks?.ForgetCosts();
+                this.alerts?.Resources.ForgetCharacter();
+                this.partnerAlerts?.Resources.ForgetCharacter();
                 this.narrator?.CharacterChanged();
             }
 

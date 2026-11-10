@@ -47,6 +47,9 @@ namespace Poe2Accessibility.Services
 
         private readonly Dictionary<string, (int Count, int Max, ResourceMode Mode)> held = new();
         private readonly List<string> unsaid = new();
+
+        /// <summary>The count of each counted resource the player knows: the last one told, or taken silently as the baseline.</summary>
+        private readonly Dictionary<string, int> known = new();
         private long changedAt;
         private long baselineAt = long.MinValue;
         private bool baseline = true;
@@ -67,6 +70,9 @@ namespace Poe2Accessibility.Services
         /// <summary>What is held now, by key, for a report.</summary>
         public IEnumerable<(string Key, int Count, int Max)> Held => this.held.Where(entry => entry.Value.Count > 0).Select(entry => (entry.Key, entry.Value.Count, entry.Value.Max));
 
+        /// <summary>Whether a reading at <paramref name="nowMs"/> is still the baseline: the first after a reset and those of the grace after it.</summary>
+        public bool InBaseline(long nowMs) => this.baselineAt == long.MinValue || nowMs - this.baselineAt < BaselineGraceMs;
+
         /// <summary>The mode a maximum calls for when the reader has no better rule.</summary>
         public static ResourceMode ModeFor(int max) => max > CountedMax ? ResourceMode.Edges : ResourceMode.Counted;
 
@@ -75,6 +81,7 @@ namespace Poe2Accessibility.Services
         {
             this.held.Clear();
             this.unsaid.Clear();
+            this.known.Clear();
             this.baseline = true;
             this.baselineAt = long.MinValue;
         }
@@ -106,6 +113,12 @@ namespace Poe2Accessibility.Services
                 foreach (var key in this.unsaid)
                 {
                     var (count, max, _) = this.held[key];
+                    if (this.known.GetValueOrDefault(key) == count)
+                    {
+                        continue; // it moved and came back before it settled (a buff taken off and put on again at once): nothing new
+                    }
+
+                    this.known[key] = count;
                     news.Add(new News(key, count == 0 ? ResourceChange.Ended : count == 1 ? ResourceChange.Begun : ResourceChange.Count, count, max));
                 }
 
@@ -124,7 +137,13 @@ namespace Poe2Accessibility.Services
         {
             var before = this.held.GetValueOrDefault(reading.Key);
             this.held[reading.Key] = (reading.Count, reading.Max, reading.Mode);
-            if (this.baseline || reading.Count == before.Count)
+            if (this.baseline)
+            {
+                this.known[reading.Key] = reading.Count;
+                return;
+            }
+
+            if (reading.Count == before.Count)
             {
                 return;
             }
