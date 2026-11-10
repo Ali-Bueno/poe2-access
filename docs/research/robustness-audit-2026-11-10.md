@@ -82,3 +82,68 @@ Closed on 2026-11-10, third pass (with the [file catalogs](file-catalogs.md)):
 
 Not faults, by the logs: the vitals' thresholds re-arm with a margin (154 "Vida 50 por ciento" in two days of fights);
 a targeted monster's name is said each time the target changes; the terms of use read their 248 paragraphs.
+
+## Stale values, 2026-11-10
+
+A value said with confidence after the game changed it. An audit listed the places; each fix names the rule now in
+force, and a unit test pins it where the rule is pure (`StaleValueTests`, `BuildGemTests`).
+
+### Interface, inventory, scanner, speech
+
+- **A number under a resting cursor** (`FocusTracker.PollValue`, `ScreenNarrator.OnValueChanged`, pure `FocusNews`): a
+  focused cell, slot or list row whose text changed only in its numbers says the changed part alone ("2" for "Orbe de
+  aumento, 3" to "…, 2", "Nivel 8"); only a clock in the row ("11 minutos 46 segundos", "12:28:45") stays a tick, as
+  for every other control. The repeat key and the L3 tap already read the element again.
+- **The build a tree matched** (`BuildPlanFolder`, `UiSemantics.BuildGems`): kept per character name, and the plan, the
+  gems and the Skills panel's names are read again when the asking player changes; a character whose name does not
+  read has no build.
+- **Moved and sold items** (`InventoryWatch.Reread`, pure `ItemReadings`): an item in reach is described again when the
+  stack or the rarity the host shows differs from what its name was read with; the last named reading answers once it
+  is gone, and "unknown item" is never kept. A gem without a tooltip is named from the game files (`GemIndex`). A rare
+  or a unique moved without its tooltip is still said by its base name and rarity: where the item keeps its shown name
+  is not known.
+- **A ground item's tooltip** (`EntityCatalog.ItemOfTooltip`, pure `GroundTooltip`; `ScreenNarrator.OnHudChange`): the
+  item is the one the game targets, else the one in view under that title; two stacks said differently and no target
+  give the title without a count. A tooltip that shows again while the HUD is up is said again (a second stack of one
+  currency was silent). Other HUD texts stay once an area: a notice that repeats (a friend connecting twice) is still
+  silent the second time, because the HUD also shows again what it showed before (the vitals' tooltips came 15 times
+  in one session's log) and which element holds notices needs a live look.
+- **The guide's target gone** (`Beacon.Refresh`, pure `BeaconMath.Gone`): within 600 units, only what goes when used (a
+  chest, an item, a portal, a quest's object) counts as reached; a creature or anything else is said once as "… is no
+  longer in sight", the guide goes on to where it was, and reaching that place says "Arrived where … was last seen".
+- **The scanner's choice** (`ScanBrowser.Reset`/`InArea`, `ModCommands.OnAreaChanged`): forgotten with its area
+  instance (address and hash, checked before every scanner gesture; the area handler should also call
+  `ModCommands.OnAreaChanged`). The guide releases its lock the same way (`Beacon.Tick`).
+- **A reading that waited** (`SpeechFloor.Release`, `IAccessibilityOutputService.SpeakReading`): life, mana, a boss's
+  life, charges, combo and the guide's turn prompts are readings; one that waited more than 2 s behind a kept line is
+  not said (log `Speech not said (a reading that waited too long)`). What happened (a pick-up, a state, an arrival) is
+  said however late. `SeatOutput` does not forward `SpeakReading` yet: player 2's readings through it are not aged.
+- **A boss room from the area's tiles** (`EntityCatalog.Entries`, pure `MinimapMarks.RoomDefeated`): said "Boss room,
+  defeated: …" without the table's reward note once the game's own boss-room mark is spent (the same boss by its
+  label, or the area's one mark for its one room; the mark is remembered with the area) or the boss's defeat was told
+  to `EntityCatalog.BossDefeated(name)`, which the boss watch should call. A reward note on a place that is no boss
+  room ("Una's Lute (+2 passive points)") stays: nothing read today says the reward was taken.
+- **Memos by element address** (`UiSemantics.ForgetFocusMemos`, `FocusTracker`): the map's own marker, the depth toggle,
+  a grid's tabs and "no Atlas node" are forgotten when the focus changes layer or nothing has had it for half a
+  second; a grid found without tabs is searched again after 500 ms; highlight markers are checked to still be markers;
+  a texture's key is read again after 2 s.
+- **Rows that read alike** (`FocusNews.RowChanged`): another row of a list the game focuses as one element is a move
+  even with the same text; the list growing under the cursor is not. A move inside a grid or list resets what counts as
+  said of the tooltip. A closed barrier whose entity is gone from within 120 cells of the player is forgotten
+  (`BarrierMemory.IsGone`). Left as they are: equal tooltip lines are still read once (why the first import did so is
+  not recorded, and no dump shows a tooltip with two equal lines); the explored share is of the ground reachable now,
+  as [controls](../controls.md) says.
+- **Gems from the game files** (`GemNames` over `GemIndex`): `gem-names.json` and its loader are gone. Over the 101 gems
+  the user's seven build files name, both catalogs gave the same name in all ten languages; over all 1,211 keys they
+  differ only where the hand-made table lacked or broke a name: 47 uncut gems (no gems of SkillGems; never asked for),
+  about 44 gems the files mark `[DNT-UNUSED]` (still said by their id's words), three pattern names ("Spectre: {0}",
+  said "Spectre"; `BuildNotes.Plain` cut them to "Spectre: {0") and 27 gems the table did not have. A support is told
+  by the files' kind: `SupportOlrothsConviction`, which the build names, and `SupportEnervation` carry no "SupportGem".
+  Spirit gems: the files hold the Meta kind and the Persistent tag, neither says which uncut gem engraves a gem, so
+  nothing is said of it.
+- **A merchant's first tab** (`FocusDetails.PageBeside`): a tabbed page that opens with the cursor on the inventory is
+  named with its tab before the inventory's part ("Armas. Inventario. Orbe de caos…", "Alijo, pestaña 1. Inventario. …").
+- **The quest tracker after a full-screen panel**: not a repeat inside one run. Of 113 quest pages said in the two play
+  logs none repeats an unchanged page without a host start in between; the two seen that day (10:09:32, 11:11:01)
+  followed host starts at 10:04:56 and 11:10:42 under an open full-screen panel, so the page was that run's first
+  sight of the tracker. Left as it is: a mod started late must still say the objective.

@@ -455,7 +455,9 @@
   (`catalog/gems.json`) with `GemIndex`/`GemInfo` (a gem's identity by any of its Ids or its name, for the Build Planner) and pure
   `SkillNameCheck` (the game's skill names first, the files' when its read is no text or judged moved); pure `StatKeyCheck` (the stat key rule on the character's level).
 - Passive tree: `UiSemantics.PassiveTree` + pure `PassiveStick` (the game's stick pick), `BuildPlanFolder` + pure `BuildPlan`/`BuildNotes`
-  (Build Planner files; the build's gems: `UiSemantics.BuildGems` + pure `BuildGems`, `GemNames`, `ServerInventory`, dev command `inventories`); finder `UiSemantics.PassiveFinder` + pure `PassiveMap`/`PassiveFinder`; dev commands `passivenear` (nodes around the hovered one, build marks), `passivemap` (points from each start). Minions: `MinionReport` + `MinionGroups`.
+  (Build Planner files, the tree's match kept per character; the build's gems: `UiSemantics.BuildGems` + pure `BuildGems`, `GemNames` over `GemIndex`, `ServerInventory`, dev command `inventories`); finder `UiSemantics.PassiveFinder` + pure `PassiveMap`/`PassiveFinder`; dev commands `passivenear` (nodes around the hovered one, build marks), `passivemap` (points from each start). Minions: `MinionReport` + `MinionGroups`.
+- Values that must not go stale ([audit](docs/research/robustness-audit-2026-11-10.md#stale-values-2026-11-10)): pure `FocusNews` (a number or a row changing under
+  the cursor), `ItemReadings` (moved items), `GroundTooltip`, `BeaconMath.Gone`, `ScanBrowser.InArea`, `SpeechFloor` readings, `MinimapMarks.RoomDefeated`.
 - Tests: `tests/Poe2Accessibility.Tests` (differ, text edits, chat diff, gestures, scanner, route legs, life
   alarm, beacon, quest matching, cooldown, skills ready, ailments, dodge threats, map markers). Dev tools: `tools/computer_use/`; dev commands
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
