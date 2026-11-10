@@ -1,6 +1,22 @@
 # Tools
 
-Research tooling that has to be re-run after every game patch. Nothing here ships with the plugin.
+The build, package and release scripts, and research tooling that has to be re-run after every game patch. Nothing here
+ships with the plugin.
+
+## build.ps1 — build and check everything
+```
+pwsh tools/build.ps1                                     # Release: build, unit tests, phrases check
+pwsh tools/build.ps1 -SkipTests                          # build (and deploy the plugin) only
+pwsh tools/build.ps1 -Configuration Debug -ShowWarnings  # Debug, each warning listed
+```
+It builds `Poe2Access.slnx` (the host's projects, the plugin, the extractor, the tests; a plain `dotnet build` at the root
+builds the same), so the plugin deploys itself to `host/Poe2Access/bin/<Configuration>/net10.0-windows/win-x64/Plugins/Poe2Accessibility/`
+(`DeployToHost`: the dll, PRISM, every file of `Poe2Accessibility/catalog/` but its README, `assets/`, the extracted `sounds/`),
+then runs `tests/Poe2Accessibility.Tests` and `py -B tools/localization/phrases.py check`. Plain text, one line a step
+(`Build Release: 0 errors, 4 warnings.`, `Tests: 447 passed, 0 failed.`, `Phrases: 878 phrases, 8 languages, 0 incomplete.`);
+the first failure prints its errors and `FAILED at step <name>: ...`, exit code 1. Warnings are counted for what was
+recompiled. It refuses while the mod runs from that build folder. The steps live in `BuildSteps.ps1`, shared with the
+package scripts.
 
 ## Poe2UiExtract
 .NET 10 console app that opens the Steam install's `Bundles2\_.index.bin` with `LibGGPK3.LibBundle3` and
@@ -89,7 +105,7 @@ The built binary is kept at `external/oodle/oo2core.dll` (gitignored). Decompres
 host loop in the same process: no separate host or extractor process.
 
 ```
-dotnet build host/Poe2Access -c Release                # the executable (Poe2UiExtract is built in as a library)
+pwsh tools/build.ps1                                   # the executable (Poe2UiExtract is built in as a library), the plugin beside it
 Poe2Access.exe [start|restart|stop|update|extract ...]  # start (default): open PoE2 via Steam if needed, update the data, run until the game closes
 "<path>\Poe2Access.exe" %command%                       # in Steam's launch options: Steam's Play button starts the game and the mod
 ```
@@ -134,10 +150,19 @@ so a mod update keeps them. **Raise a step's version in `GameDataSetup` when its
 every machine. The first start after the old layout (one `format=` number in `Plugins/Poe2Accessibility/catalog/game-version.txt`)
 carries over what that stamp vouched for on the same install. The extractor opens the bundles sharing them with the running game
 (`SharedBundles`): the game locks some once in game, and the mod starts it before regenerating. Two extractor processes at once can
-lock each other's index out (a sharing violation); the next start retries.## package — test build for other players
+lock each other's index out (a sharing violation); the next start retries.
+
+## package — test build for other players, and releases
 ```
-pwsh tools/package/New-TestPackage.ps1      # with the mod stopped; writes dist/package/Poe2Access-test-<date>.zip (+ .7z with 7-Zip)
+pwsh tools/package/New-TestPackage.ps1            # with the mod stopped; writes dist/package/Poe2Access-test-<date>.zip (+ .7z with 7-Zip)
+pwsh tools/package/Publish-Release.ps1 -DryRun    # all a release does but the tag and the upload; prints tag, assets and notes
+pwsh tools/package/Publish-Release.ps1            # the latest GitHub release, which every tester's install updates to
 ```
+Both first run the build and checks of `build.ps1` (`New-TestPackage.ps1 -SkipTests` skips the tests and phrases), then
+build the package (`BuildSteps.ps1`, `New-ModPackage`): the executable published under `<output>/build`, the plugin through
+its own deploy step pointed into the package without the game's sounds (`-p:PluginDeployDir=... -p:DeployGameSounds=false`),
+so a new catalog ships with nothing to list, then PRISM's licenses, research mode off, and a check of the layout the
+updater and `AppCleanup.cs` rely on before anything is archived. It needs `external/oodle/oo2core.dll`.
 The top folder holds `Poe2Access.exe` (one self-contained, single-file, not trimmed, uncompressed, ReadyToRun build, ~94 MB: the plugin
 is loaded at run time and uses framework APIs the exe does not, so trimming is off), `README.txt`, the controls and the stop shortcut.
 `app/` holds only `oo2core.dll` (bundle reading), `version.txt` and `Plugins/Poe2Accessibility` (dll, catalogs including
@@ -147,6 +172,11 @@ licenses in `licenses/prism`; [Proton](../docs/proton.md)): nothing of the .NET 
 which the start-up cleanup of `app/` never touches; the cleanup deletes the plugin folder's old `Prismatoid.dll`. No game sounds are shipped: the mod regenerates them, and
 the catalogs, from the tester's install. The .7z (LZMA2, about 33 MB; the zip about 47 MB) no longer fits a 30 MB chat upload, and
 Windows 11 opens it (Windows 10 needs 7-Zip or WinRAR). `dist/` is gitignored; publishing a release stays a manual decision.
+A release refuses (a dry run lists it and goes on) a checkout not on `main`, uncommitted files (it names them), a branch
+without an upstream or not in step with it, `gh` not signed in, a tag not newer than the latest release, or no commits
+since it; it needs 7-Zip. The tag is `vYYYY.MM.DD`, with `-2`, `-3`... for later releases the same day (`ReleaseTag.cs`
+parses it); it goes into `app/version.txt`. The assets are always `Poe2Access.zip`, `Poe2Access.7z` and `release.json`
+(tag, the zip's SHA-256, notes: what the installed mod reads to update); after publishing it checks all three are on the release.
 Updating an install made by the previous layout (`Poe2Access.exe` plus ~250 runtime files, `Poe2AccessHost.exe` and `Poe2UiExtract.exe`
 in `app/`): the update copies the new package over it and the next start deletes what the new layout never ships from the top of `app/`.
 ## localization — the mod's phrases in the game's other languages

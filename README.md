@@ -106,11 +106,12 @@ Send these two files, with what you were doing and at what time:
 
 ## For developers
 
-- Build: `dotnet build host/Poe2Access -c Release` (the executable, once), then `dotnet build Poe2Accessibility -c Release`
-  (the plugin, deployed into the executable's build folder); run with `Poe2Access.exe` from that folder (`tools/README.md`).
-  Tests: `dotnet run --project tests/Poe2Accessibility.Tests -c Release`.
-- Test package: `tools/package/New-TestPackage.ps1`. Release (builds it and makes it the latest download):
-  `tools/package/Publish-Release.ps1`.
+- Build and check: `pwsh tools/build.ps1` builds the executable, the plugin (deployed into the executable's build folder,
+  `host/Poe2Access/bin/Release/net10.0-windows/win-x64`) and the tests, then runs the tests and the phrases check
+  (`-SkipTests`, `-Configuration Debug`). `dotnet build` at the root builds the same, without the checks. Run with
+  `Poe2Access.exe` from that folder (`tools/README.md`).
+- Test package: `pwsh tools/package/New-TestPackage.ps1`. Release (builds, checks and packages it, then makes it the latest
+  download): `pwsh tools/package/Publish-Release.ps1`, first with `-DryRun`.
 - Where the project stands and what was learned about the game: [STATUS.md](STATUS.md). The accessibility playbook
   and engineering rules this mod follows: [CLAUDE.md](CLAUDE.md), [PRINCIPLES.md](PRINCIPLES.md) and
   [reference/](reference/README.md).
