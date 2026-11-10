@@ -53,7 +53,6 @@ namespace Poe2Accessibility
         private readonly TimedGuide timedGuide = new();
         private long nextTimedGuide;
         private AudioCueService? audio;
-        private readonly System.Collections.Generic.Dictionary<(int Sound, int Octant), StereoSound> guideSteps = new();
         private const string BuffTable = "buffdefinitions";
         private const string AnimationTable = "animation";
         private const string NamedKindsPart = "effect names";
@@ -280,6 +279,7 @@ namespace Poe2Accessibility
                 this.semantics.TreeFields.Log = message => this.log?.Info(message);
                 this.semantics.Trace = message => this.log.Debug(message);
                 this.semantics.Fields = this.locator.Fields;
+                this.ApplyPassiveTree(this.Settings);
                 this.focus = new FocusTracker(memory, elements, this.locator, this.semantics, this.log);
                 this.narrator = new ScreenNarrator(this.output, this.log, layer => this.semantics?.SelectedTab(layer) ?? string.Empty);
                 this.narrator.FocusLayer = () => this.focus?.CurrentLayer ?? IntPtr.Zero;
@@ -289,6 +289,11 @@ namespace Poe2Accessibility
                 this.focus.FocusChanged += this.narrator.OnFocusChanged;
                 this.focus.FocusChanged += node =>
                 {
+                    if (!node.IsPassiveNode)
+                    {
+                        this.semantics?.PassiveFocusLeft();
+                    }
+
                     if (this.gameState?.CurrentState == GameStateTypes.InGameState)
                     {
                         this.flagBits?.SampleFocus(node.Address, node.Role);

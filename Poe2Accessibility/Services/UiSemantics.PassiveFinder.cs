@@ -31,12 +31,6 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public bool PassiveGuideBrief { get; set; } = true;
 
-        /// <summary>
-        ///     The guide's sound when the cursor lands on a node of its line (a build node, a node of the finder's trail): the octant of
-        ///     the next push, null on the node to take; null when the sound is off (setting PassiveGuideCue).
-        /// </summary>
-        public Action<int?>? GuideCue { get; set; }
-
         /// <summary>A D-pad press on a passive node: moves the finder and returns what to say; null when the tree cannot be read.</summary>
         /// <param name="hovered">The hovered node's element.</param>
         /// <param name="listStep">+1 next list, -1 previous, 0 to stay in it.</param>
@@ -120,7 +114,7 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     What the guide says on the hovered node — the finder's target first, else the build's next node — worked out once per
         ///     node and allocation: kept while the cursor stays, since a choice made on this node is said by the D-pad and a changed
-        ///     line would cut that off, while a node taken here moves the guide on. A node of the guide's line rings its sound on landing.
+        ///     line would cut that off, while a node taken here moves the guide on.
         /// </summary>
         private GuideSay GuideAt(PassiveGraph graph, IntPtr record, HashSet<int> allocated, HashSet<IntPtr> marked, IntPtr? next)
         {
@@ -134,11 +128,6 @@ namespace Poe2Accessibility.Services
                 : next is { } goal ? this.BuildGuide(graph, atlas, record, goal, allocated, marked)
                 : GuideSay.None;
             this.guideSaid = (record, allocated.Count, say);
-            if (say.Here || say.OnLine)
-            {
-                this.GuideCue?.Invoke(say.Here ? null : say.Octant);
-            }
-
             return say;
         }
 
@@ -238,7 +227,8 @@ namespace Poe2Accessibility.Services
             if (places.Index.TryGetValue(from, out var here) && places.Index.TryGetValue(to, out var there))
             {
                 var pushes = this.PushesBetween(graph, places, from, here, there, maxMoves);
-                way = pushes is { Count: > 0 } ? new Way(pushes[0], pushes.Count) : new Way(PassiveStick.Nearest(places.Positions[there] - places.Positions[here]), null);
+                way = pushes is { Count: > 0 } ? new Way(pushes[0], pushes.Count, false)
+                    : new Way(PassiveStick.Nearest(places.Positions[there] - places.Positions[here]), null, this.StickTrusted);
             }
 
             this.finderWay = (from, to, maxMoves, way);
@@ -280,14 +270,19 @@ namespace Poe2Accessibility.Services
             return atlas;
         }
 
-        /// <summary>The first push toward a node and how many it takes; no count when it is further than counted.</summary>
-        private readonly record struct Way(int Octant, int? Pushes)
+        /// <summary>
+        ///     The first push toward a node and how many it takes; no count when it is further than counted (<paramref name="Far"/>)
+        ///     or the stick rule is not trusted, then its direction alone.
+        /// </summary>
+        private readonly record struct Way(int Octant, int? Pushes, bool Far)
         {
-            /// <summary>"up, 7 pushes", brief "up, 7", or "far, up".</summary>
+            /// <summary>"up, 7 pushes", brief "up, 7", "far, up", or "up".</summary>
             public string Words(bool brief)
             {
                 var direction = Announcements.StickDirections[this.Octant];
-                return this.Pushes is not { } count ? Announcements.Far(direction) : brief ? $"{direction}, {count}" : Announcements.PassivePushes(direction, count);
+                return this.Pushes is { } count ? (brief ? $"{direction}, {count}" : Announcements.PassivePushes(direction, count))
+                    : this.Far ? Announcements.Far(direction)
+                    : direction;
             }
         }
 

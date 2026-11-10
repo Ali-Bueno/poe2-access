@@ -280,8 +280,16 @@ armour_and_evasion2 counted 15, 14 … 1, "Arrived at Oasis" with no correction.
   `GuideSay` (line, here, on the line, next octant); with `PassiveGuideBrief` a node on the way is `Text` = its name,
   `Tooltip` = the way alone, not waiting for the game's tooltip, and the goal is said only when its key changes
   (`GoalAndWay`); every line stays in `AccessibleUiNode.Details` for L3 held. `LinesOf(…, asides)` sets the button hints
-  (a glyph image or inline glyph) and red lines without digits apart. Landing on a node of the line plays
-  `CueSynth.GuideStep` (stereo: pan for left and right, pitch ±4 semitones for up and down, the beacon's rule).
+  (a glyph image or inline glyph) and red lines without digits apart. A directional sound for a node of the line
+  (`CueSynth.GuideStep`, three candidates) was tried and dropped the same day: the user found the brief line enough
+  ("la guía la hiciste tan bien que puedo guiarme muy fácil"); it never played anyway, the tree's settings being applied
+  before `UiSemantics` existed (`ApplyPassiveTree` now runs again once it does).
+- MEASURED from the user's log (2026-11-10, Mercenary, 71-step build): after the attribute node's popup ("+5 a la fuerza,
+  1 de 3", held A) the next push landed elsewhere than predicted three times in four ("Atributo: abajo a la derecha, 1"
+  landed on "Defensas y vida de compañeros", then on `block20` instead of `jewel_slot1970`); with 3 misses in 10 the rule
+  was lost and every way said "lejos" for the rest of the session. Why the popup shifts the push is not measured. Now the
+  first landing after any other focus is not judged (`PassiveFocusLeft`), `StickCheck` loses the rule at 5 misses in 10 and
+  gives it back at 2 or fewer (pushes are still judged while lost), and an untrusted way says the direction alone.
 - Row names may hold keyword markup ("Engarce de [Jewel|joya]"); `ReadPassiveRow` shows the display text.
 
 ## Build Planner (patch 0.5, 2026-10-31)

@@ -97,9 +97,13 @@ namespace Poe2Accessibility.Services
                 .ThenBy(DistanceFromHovered).First();
         }
 
-        /// <summary>The same note twice, but for its punctuation: the build file's and the one the game shows beside the node.</summary>
-        private static bool SameWords(string one, string other) =>
-            one.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).SequenceEqual(other.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant));
+        /// <summary>
+        ///     A line of the note the game shows beside the node that the build file's note already holds: the game splits it in
+        ///     lines and adds full stops ("Allocation Step #15." / "- Next node: [Jewel] Socket.", 2026-11-10).
+        /// </summary>
+        internal static bool SaysAlready(string line, string note) => Letters(note) is { Length: > 0 } words && Letters(line).Contains(words, StringComparison.Ordinal);
+
+        private static string Letters(string text) => new(text.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
 
         /// <summary>"Next in the build: Attribute, reachable: up right, up" — the pushes the stick needs, or its direction when far.</summary>
         private string DescribeBuildNext(PassiveGraph graph, IntPtr from, IntPtr next, HashSet<int> allocated)

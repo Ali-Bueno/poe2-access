@@ -122,7 +122,6 @@ namespace Poe2Accessibility.Tests
             Run(nameof(PassiveZoneNamesTheSideAndRing), PassiveZoneNamesTheSideAndRing);
             Run(nameof(PassiveFinderWalksItsLists), PassiveFinderWalksItsLists);
             Run(nameof(APassiveTrailTakesTheFewestPointsAlongTheBuild), APassiveTrailTakesTheFewestPointsAlongTheBuild);
-            Run(nameof(TheTreeGuideSoundGoesTheWayOfTheNextPush), TheTreeGuideSoundGoesTheWayOfTheNextPush);
             Run(nameof(ObjectSoundsDieAwayPastTheirRange), ObjectSoundsDieAwayPastTheirRange);
             Run(nameof(BuildFilesAreReadWithTheirNotes), BuildFilesAreReadWithTheirNotes);
             Run(nameof(MinionsAreCountedByKind), MinionsAreCountedByKind);
@@ -2367,25 +2366,6 @@ namespace Poe2Accessibility.Tests
             Equal(false, finder.Taking, "another choice is looked at first");
             finder.Drop();
             Equal((IntPtr.Zero, false), (finder.Target, finder.Taking), "taken: the guide ends");
-        }
-
-        private static void TheTreeGuideSoundGoesTheWayOfTheNextPush()
-        {
-            const int Rate = 44100;
-            static (float Left, float Right) Ears(StereoSound sound) => (sound.Left.Sum(MathF.Abs), sound.Right.Sum(MathF.Abs));
-            for (var sound = 1; sound <= 3; sound++)
-            {
-                var (left, right) = Ears(CueSynth.GuideStep(0, sound, Rate));
-                Equal(true, right > left * 1.5f, $"sound {sound}: right is heard on the right ({left:0} / {right:0})");
-                (left, right) = Ears(CueSynth.GuideStep(4, sound, Rate));
-                Equal(true, left > right * 1.5f, $"sound {sound}: left on the left ({left:0} / {right:0})");
-                var up = CueSynth.GuideStep(2, sound, Rate);
-                Equal(up.Left.Length, up.Right.Length, $"sound {sound}: both ears as long");
-                Equal(true, up.Left.All(sample => MathF.Abs(sample) <= 1f), $"sound {sound}: within full scale");
-            }
-
-            var (hereLeft, hereRight) = Ears(CueSynth.GuideStep(null, 1, Rate));
-            Equal(true, MathF.Abs(hereLeft - hereRight) < hereLeft * 0.01f, "the node to take: in the middle");
         }
 
         private static void APassiveTrailTakesTheFewestPointsAlongTheBuild()

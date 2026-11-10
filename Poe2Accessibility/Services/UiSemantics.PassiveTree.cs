@@ -70,6 +70,8 @@ namespace Poe2Accessibility.Services
 
         private bool StickTrusted => !this.StickCheck.Lost;
 
+        private bool focusLeftNode;
+
         /// <summary>
         ///     Per frame, both sticks as the game received them (y up): a left push begins past <see cref="PushDeflection"/>
         ///     and ends under <see cref="ReleaseDeflection"/>. The right stick moves the tree's cursor off the step rule's
@@ -151,11 +153,12 @@ namespace Poe2Accessibility.Services
 
             // Before the game builds the tooltip the name and state are said alone; stats, then links, follow with it.
             var whole = new List<string>();
+            var stats = new List<string>(tooltip);
             if (!tooltipPending)
             {
                 var buildLines = plan != null && marked.Contains(record) ? this.BuildLines(plan, record, node).ToList() : new List<string>();
                 tooltip.AddRange(buildLines);
-                tooltip.AddRange(notes.Where(note => !buildLines.Any(line => SameWords(line, note))));
+                tooltip.AddRange(notes.Where(note => !buildLines.Any(line => SaysAlready(line, note))));
                 whole.AddRange(tooltip);
                 whole.AddRange(asides);
                 var links = this.DescribeLinks(graph, info.Address, record, allocated, marked);
@@ -174,14 +177,15 @@ namespace Poe2Accessibility.Services
             if (this.PassiveGuideBrief && guide.Leading)
             {
                 // A guide leads: its words come first, links and button hints are left for the details (L3 held), so the stick can
-                // go on at once. A node passed on the way is its name and the way on; the one to take says so with its name.
+                // go on at once. A node passed on the way is its name, whether it is on the guide's line, and the way on; a notable or
+                // keystone also says what it does, after the way (user 2026-11-10); the one to take says so with its name.
                 if (!guide.Here && guide.Line.Length > 0)
                 {
                     var word = state == PassiveState.Allocated ? StateWord(state)
-                        : guide.OnLine && this.GuideCue == null ? (this.finder.Target != IntPtr.Zero ? Announcements.OnTheWay : Announcements.InBuild(false))
+                        : guide.OnLine ? (this.finder.Target != IntPtr.Zero ? Announcements.OnTheWay : Announcements.InBuild(false))
                         : string.Empty;
                     text = word.Length > 0 ? $"{node.Name}, {word}" : node.Name;
-                    said = new[] { guide.Line };
+                    said = node.Class is PassiveClass.Notable or PassiveClass.Keystone ? stats.Prepend(guide.Line).ToList() : new List<string> { guide.Line };
                     tooltipPending = false;
                 }
                 else if (record == this.finder.Target)
@@ -463,10 +467,14 @@ namespace Poe2Accessibility.Services
             return PassiveStick.Route(places.Positions, here, there, maxMoves, index => index == here ? first : places.Links[index], window);
         }
 
+        /// <summary>The focus went to something else than a passive node (a popup over the tree): the next landing is not judged.</summary>
+        public void PassiveFocusLeft() => this.focusLeftNode = true;
+
         /// <summary>
         ///     The stick rule's self-check: when the hovered node changes right after a push, the node the rule predicts from the
         ///     previous one (its edge order and the window seen from it, before the game moved the view) is compared with the one
-        ///     the game landed on; <see cref="StickCheck.MaxMisses"/> misses in <see cref="StickCheck.Window"/> pushes lose the rule, said once.
+        ///     the game landed on; <see cref="StickCheck.MaxMisses"/> misses in <see cref="StickCheck.Window"/> pushes lose the rule, said once,
+        ///     and pushes are still judged while it is lost, so a passing disturbance gives it back.
         /// </summary>
         private void JudgeStickLanding(PassiveGraph graph, IntPtr element, IntPtr record)
         {
@@ -475,18 +483,34 @@ namespace Poe2Accessibility.Services
             this.stickOrigin = places.Index.TryGetValue(record, out var here)
                 ? new StickOrigin(graph.State, record, here, places.IndexesOf(this.StickLinksOf(graph, record)), this.StickWindow(graph, element))
                 : null;
-            if (origin == null || origin.State != graph.State || origin.Record == record || origin.Window is not { } window || !this.StickTrusted ||
+            if (origin == null || origin.State != graph.State || origin.Record == record || origin.Window is not { } window ||
                 this.stickPush is not { Judged: false } push || Environment.TickCount64 - push.StartedAt > StickStepMs || !places.Index.TryGetValue(record, out var landed))
             {
                 return;
             }
 
             this.stickPush = push with { Judged = true };
-            var predicted = PassiveStick.Pick(places.OffsetsFrom(origin.Index), push.Direction, origin.Linked, window);
-            if (this.StickCheck.Record(predicted == landed))
+            if (this.focusLeftNode)
             {
-                this.TreeFields.Log?.Invoke($"Stick rule lost: {this.StickCheck}; last push {this.PassiveIdOf(origin.Record)} -> {this.PassiveIdOf(record)}, predicted " +
-                                            $"{(predicted >= 0 ? this.PassiveIdOf(places.Index.First(pair => pair.Value == predicted).Key) : "no move")}; links are said by their side until the next game process");
+                // The first push after a popup over the tree (the attribute's "+5 to Strength, 1 of 3", the weapon set's "Allocate"):
+                // three of four landed elsewhere than predicted on 2026-11-10 and lost the rule; not judged, as after the right stick.
+                this.focusLeftNode = false;
+                return;
+            }
+
+            var predicted = PassiveStick.Pick(places.OffsetsFrom(origin.Index), push.Direction, origin.Linked, window);
+            var verdict = this.StickCheck.Record(predicted == landed);
+            if (verdict != StickVerdict.Same)
+            {
+                var pushed = $"last push {this.PassiveIdOf(origin.Record)} -> {this.PassiveIdOf(record)}, predicted " +
+                           (predicted >= 0 ? this.PassiveIdOf(places.Index.First(pair => pair.Value == predicted).Key) : "no move");
+                this.TreeFields.Log?.Invoke(verdict == StickVerdict.Lost
+                    ? $"Stick rule lost: {this.StickCheck}; {pushed}; links are said by their side until it holds again"
+                    : $"Stick rule holds again: {this.StickCheck}; {pushed}");
+            }
+
+            if (verdict == StickVerdict.Lost)
+            {
                 CompatibilityReport.Current?.Missing(StickRulePart);
             }
         }

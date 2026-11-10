@@ -23,7 +23,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ASmallTableJudgesTheSame), ASmallTableJudgesTheSame),
             (nameof(AnIdIsADistinctIdentifierOnEveryRow), AnIdIsADistinctIdentifierOnEveryRow),
             (nameof(AGraphOfAnotherVersionIsReadWhenItHoldsTogether), AGraphOfAnotherVersionIsReadWhenItHoldsTogether),
-            (nameof(TheStickRuleIsLostAfterThreeMissesInTen), TheStickRuleIsLostAfterThreeMissesInTen),
+            (nameof(TheStickRuleIsLostWhenHalfMissAndHoldsAgain), TheStickRuleIsLostWhenHalfMissAndHoldsAgain),
             (nameof(StickConstantsAreReadFromTheCodesLoads), StickConstantsAreReadFromTheCodesLoads),
         };
 
@@ -239,18 +239,26 @@ namespace Poe2Accessibility.Tests
             Expect(true, SkillGraphFile.Parse(bytes.Concat(new byte[] { 0 }).ToArray()) == null, "a byte left over: not read");
         }
 
-        private static void TheStickRuleIsLostAfterThreeMissesInTen()
+        private static void TheStickRuleIsLostWhenHalfMissAndHoldsAgain()
         {
             var check = new StickCheck();
-            foreach (var hit in new[] { false, true, true, true, false, true, true, true, true, true })
+            foreach (var hit in new[] { false, true, true, false, true, false, true, true, false, true })
             {
-                Expect(false, check.Record(hit), "two misses in ten keep the rule");
+                Expect(StickVerdict.Same, check.Record(hit), "four misses in ten keep the rule (popups, slanted pushes)");
             }
 
-            Expect(false, check.Record(false), "the oldest miss has left the window: still two");
-            Expect(true, check.Record(false), "the third miss loses it, once");
+            Expect(StickVerdict.Same, check.Record(false), "the oldest miss has left the window: still four");
+            Expect(StickVerdict.Lost, check.Record(false), "the fifth miss loses it, once");
             Expect(true, check.Lost, "lost");
-            Expect(false, check.Record(false), "said once only");
+            Expect(StickVerdict.Same, check.Record(false), "said once only");
+            for (var push = 0; push < 7; push++)
+            {
+                check.Record(true);
+            }
+
+            Expect(true, check.Lost, "still three misses in the window");
+            Expect(StickVerdict.Regained, check.Record(true), "the misses fell to two: it holds again");
+            Expect(false, check.Lost, "trusted");
             check.Reset();
             Expect(false, check.Lost, "a new game process starts over");
         }
