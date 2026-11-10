@@ -171,15 +171,18 @@ namespace Poe2Accessibility.Services
                                                               !FocusDetails.Names(text.Text, focus?.Text ?? string.Empty) &&
                                                               !InFocusContext(focus, text.Text)).ToList();
             var texts = Describe(kept);
-            if (texts.Length == 0)
-            {
-                return;
-            }
-
             var pageTab = justFocused && this.pendingFocus == null && change.Texts.Count >= PageChangeTexts
                 ? this.selectedTab(change.Layer.Address)
                 : string.Empty;
-            if (this.pendingFocus != null && justFocused)
+            // A merchant's stock shows nothing to say but its tabs and the gold: its tab is still named before the focus
+            // (Shambrin opened as "Inventario. Orbe de transmutación…" alone, live 2026-11-10).
+            if (texts.Length == 0 && pageTab.Length == 0)
+            {
+                this.log.Debug($"Screen change with nothing to say: {change.Texts.Count} texts, no tab");
+                return;
+            }
+
+            if (this.pendingFocus != null && justFocused && texts.Length > 0)
             {
                 // The tooltip names what the id could not.
                 this.pendingFocus = null;
