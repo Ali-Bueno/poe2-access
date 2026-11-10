@@ -114,6 +114,7 @@
 | Scanner (hold L3 + right stick flicks; tap = where the choice is now) | done (live) | `EntityCatalog` + `RoutePlanner` + `ScanBrowser`: 8 categories, routed steps, leg + next turn ("Una, 14 steps, right 3, then up right"); walked Riverbank → Miller → Clearfell → town NPCs on it |
 | Low-life warnings | done (live) | `VitalAlarm`: "Life 50 percent" / "Life 25 percent" once per fall; the Miller was beaten reacting to them |
 | Skill crafting (engrave an uncut gem): grid in reading order, details after the name, Engrave confirm with its buttons, categories | done (live) | "Skeletal Sniper, Level 1, 1 of 24"; LB/RB say the category first (`category_name_label`, a tab title: "Elemental. Muro de fuego, Nivel 2, 1 de 24", live 2026-10-31); an uncut support goes straight into the skill its category names: "Furia I, engarzada en Campana de tempestad" (`ScreenNarrator.Engraving`, code; user 2026-10-31: where did it go?) |
+| Build Planner gear: the build's base and wanted modifiers per slot against the worn item (slot), any wearable item under the cursor (short line), summary on entering the inventory | wip (code + unit tests 2026-11-10; not run live; real catalogs to plug in) | `UiSemantics.BuildGear` + pure `BuildGear`, `Announcements.BuildGear`, `GearCatalogs` (contract); [ui layers](docs/research/ui-layers.md#build-planner-gear-055f-2026-11-10) |
 | Build Planner gems: the build's skills and supports set against the character's (Skills panel rows, empty slots, sockets; cut gems in the inventory, stash, merchants; engraving choices) | done (live 2026-11-10; engraving choices code only: no uncut gem at hand) | `UiSemantics.BuildGems` + pure `BuildGems`, `GemNames`, `BuildPlanFolder.Active`, `GameLayout.GemSockets`; [ui layers](docs/research/ui-layers.md#build-planner-gems-055f-2026-11-10) |
 | Skill gems in the inventory named from their tooltip (no base display name) | done (live) | "Unearth, column 1, row 1" |
 | Read the whole panel (`screen` command) | done (live) | character detailed stats read fully; summary block order is jumbled |
@@ -455,7 +456,7 @@
   (`catalog/gems.json`) with `GemIndex`/`GemInfo` (a gem's identity by any of its Ids or its name, for the Build Planner) and pure
   `SkillNameCheck` (the game's skill names first, the files' when its read is no text or judged moved); pure `StatKeyCheck` (the stat key rule on the character's level).
 - Passive tree: `UiSemantics.PassiveTree` + pure `PassiveStick` (the game's stick pick), `BuildPlanFolder` + pure `BuildPlan`/`BuildNotes`
-  (Build Planner files, the tree's match kept per character; the build's gems: `UiSemantics.BuildGems` + pure `BuildGems`, `GemNames` over `GemIndex`, `ServerInventory`, dev command `inventories`); finder `UiSemantics.PassiveFinder` + pure `PassiveMap`/`PassiveFinder`; dev commands `passivenear` (nodes around the hovered one, build marks), `passivemap` (points from each start). Minions: `MinionReport` + `MinionGroups`.
+  (Build Planner files, the tree's match kept per character; the build's gems: `UiSemantics.BuildGems` + pure `BuildGems`, `GemNames` over `GemIndex`, `ServerInventory`, dev command `inventories`; the build's gear: `UiSemantics.BuildGear` + pure `BuildGear` (file entries, piece per level, slot by id folder, modifier match) over `IItemBases`/`IModTexts` (`GearCatalogs.cs`), set at `BuildGear.Bases`/`BuildGear.Texts`); finder `UiSemantics.PassiveFinder` + pure `PassiveMap`/`PassiveFinder`; dev commands `passivenear` (nodes around the hovered one, build marks), `passivemap` (points from each start). Minions: `MinionReport` + `MinionGroups`.
 - Values that must not go stale ([audit](docs/research/robustness-audit-2026-11-10.md#stale-values-2026-11-10)): pure `FocusNews` (a number or a row changing under
   the cursor), `ItemReadings` (moved items), `GroundTooltip`, `BeaconMath.Gone`, `ScanBrowser.InArea`, `SpeechFloor` readings, `MinimapMarks.RoomDefeated`.
 - Tests: `tests/Poe2Accessibility.Tests` (differ, text edits, chat diff, gestures, scanner, route legs, life
@@ -472,6 +473,10 @@ Next: (1) **Bosses by hand** — the Bloated Miller with a new low character (a 
 Earlier chunks, newest first: [status history](docs/status-history.md).
 
 ## Known issues / open questions
+- Build Planner gear (2026-11-10, code and unit tests only): a worn piece's modifiers are known only after its slot was
+  focused in the session (tooltip lines), so the summary counts them on the pieces read; charms, quivers and foci are not
+  compared; a unique is judged only when its name equals the author's. Live checks:
+  [ui layers](docs/research/ui-layers.md#build-planner-gear-055f-2026-11-10).
 - Stale values, player, combat and host (2026-11-10, code and unit tests only): flask uses from the drink's seen cost, boss
   life read when asked, a shared target name said alone, per-area state reset per instance, untyped entities' components
   rested, buff stacks, learnt blows as clip time, no maximum from tables, buff ids kept whole. What each needs live is listed in
