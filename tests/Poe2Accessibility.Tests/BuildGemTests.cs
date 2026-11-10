@@ -22,6 +22,7 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(TheFilesSkillsAreReadWithTheirSupports), TheFilesSkillsAreReadWithTheirSupports),
             (nameof(TheActiveBuildIsTheCharactersFile), TheActiveBuildIsTheCharactersFile),
+            (nameof(ATreesBuildIsItsOwnCharacters), ATreesBuildIsItsOwnCharacters),
             (nameof(ASupportIsWhereTheCharacterHasIt), ASupportIsWhereTheCharacterHasIt),
             (nameof(TheNextGemIsOneTheLevelAllows), TheNextGemIsOneTheLevelAllows),
             (nameof(AGemIsNamedInTheGamesLanguage), AGemIsNamedInTheGamesLanguage),
@@ -56,6 +57,34 @@ namespace Poe2Accessibility.Tests
             Expect(null, BuildPlan.ActivePath(Config, "web"), "a build that is no file");
             Expect(null, BuildPlan.ActivePath("active_builds=not json", "yarkey"), "a broken line");
             Expect(null, BuildPlan.ActivePath("[UI]\nfoo=1", "yarkey"), "no line");
+        }
+
+        /// <summary>What one character's tree marked is never the build of the next character played, nor of the co-op partner.</summary>
+        private static void ATreesBuildIsItsOwnCharacters()
+        {
+            var folder = System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests", "builds-" + Guid.NewGuid().ToString("N"));
+            System.IO.Directory.CreateDirectory(folder);
+            try
+            {
+                System.IO.File.WriteAllText(System.IO.Path.Join(folder, "Twister.build"), File);
+                System.IO.File.WriteAllText(System.IO.Path.Join(folder, "Other.build"), "{\"name\":\"Other\",\"passives\":[\"melee3\"],\"skills\":[]}");
+                var config = System.IO.Path.Join(folder, "config.ini");
+                var other = System.IO.Path.Join(folder, "Other.build").Replace('\\', '/');
+                System.IO.File.WriteAllText(config, "active_builds=[{\"character\":\"hairin\",\"path\":\"file:" + other + "\"}]");
+                var plans = new BuildPlanFolder(folder, config);
+                Expect("Twister", plans.Matching("yarkey", new[] { "projectiles18" })?.Name, "the plan under yarkey's marks");
+                Expect("Twister", plans.Active("yarkey")?.Name, "is yarkey's while the tree is closed");
+                Expect("Other", plans.Active("hairin")?.Name, "another character has the build the game's settings give it");
+                Expect(null, plans.Active("kehgan")?.Name, "and one with no build has none, not yarkey's");
+                Expect("Twister", plans.Matching(string.Empty, new[] { "projectiles18" })?.Name, "a tree read without the character's name is still read");
+                Expect(null, plans.Active(string.Empty)?.Name, "but is nobody's build afterwards");
+                Expect(null, plans.Matching("yarkey", Array.Empty<string>())?.Name, "the tree showing no marks");
+                Expect(null, plans.Active("yarkey")?.Name, "is that character's news");
+            }
+            finally
+            {
+                System.IO.Directory.Delete(folder, true);
+            }
         }
 
         private static void ASupportIsWhereTheCharacterHasIt()

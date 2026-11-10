@@ -62,7 +62,7 @@ namespace Poe2Accessibility.Services
             var atlas = this.AtlasOf(graph);
             var steps = atlas.StepsFrom(this.AllocatedIds(graph.State));
             var marked = this.BuildMarks(graph);
-            var plan = marked.Count > 0 ? this.buildPlans.Matching(marked.Select(this.PassiveIdOf).ToHashSet()) : null;
+            var plan = marked.Count > 0 ? this.buildPlans.Matching(AskingCharacter(), marked.Select(this.PassiveIdOf).ToHashSet()) : null;
             var order = plan?.Passives.GroupBy(passive => passive.Id).ToDictionary(group => group.Key, group => group.First().Order);
             int BuildStep(IntPtr node) => order != null && order.TryGetValue(this.PassiveIdOf(node), out var step) ? step : int.MaxValue;
             IReadOnlyList<IntPtr> Members(PassiveCategory category) => atlas.Members(category, steps, record, marked, BuildStep);
