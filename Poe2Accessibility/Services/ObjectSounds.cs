@@ -4,7 +4,6 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
-    using GameReader;
     using GameReader.RemoteObjects.Components;
 
     /// <summary>
@@ -30,9 +29,6 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public const float RangeWorld = 1300f;
         private const float CentreWorld = 150f;
-
-        /// <summary>Where the last of a sound dies away (<see cref="ProximityFade"/>): walking off it fades, it never stops short.</summary>
-        private const float ReachWorld = RangeWorld + ProximityFade.TailWorld;
 
         /// <summary>
         ///     The range of what a clock runs against: a room's crystals stand 2000 to 2800 apart (dump 2026-11-07), so past the first the

@@ -54,7 +54,6 @@ namespace Poe2Accessibility
         private long nextTimedGuide;
         private AudioCueService? audio;
         private const string BuffTable = "buffdefinitions";
-        private const string AnimationTable = "animation";
         private const string NamedKindsPart = "effect names";
         private const string GameDataPart = "game data";
         private const string CodeFieldsPart = "code fields";
@@ -359,7 +358,7 @@ namespace Poe2Accessibility
                 this.partnerPickups = new InventoryWatch(inventory, partnerVoice, this.log) { Seat = () => 2 };
                 this.flasks = new FlaskWatch(inventory, followedVoice) { Seat = followedSeat };
                 this.partnerFlasks = new FlaskWatch(inventory, partnerVoice) { Seat = () => 2 };
-                this.gold = new GoldWatch(memory, elements, this.output, this.log) { Fields = this.locator.Fields };
+                this.gold = new GoldWatch(elements, this.output, this.log) { Fields = this.locator.Fields };
                 this.pickups.Gold = () => this.gold?.ReadNow();
                 this.focus.InGameHighlightRoot = this.ShopPage;
                 this.pickups.Engraving = () => this.narrator?.Engraving ?? (string.Empty, string.Empty);

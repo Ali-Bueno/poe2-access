@@ -118,7 +118,7 @@ namespace Poe2Accessibility.Services
                 return IntPtr.Zero;
             }
 
-            if (this.Locate(field, spec) is { } offset)
+            if (this.Locate(spec) is { } offset)
             {
                 this.offsets[field] = offset;
                 this.missedAt.Remove(field);
@@ -168,13 +168,13 @@ namespace Poe2Accessibility.Services
             var lines = new List<string>();
             foreach (var (field, spec) in Specs)
             {
-                if (spec.Mark == null || this.Locate(field, spec) is not { } now)
+                if (spec.Mark == null || this.Locate(spec) is not { } now)
                 {
                     continue;
                 }
 
                 // Another field holding the same element is as good: it is the element that is read.
-                var found = this.Locate(field, spec with { Expected = now + LayoutProbe.SelfTestShift });
+                var found = this.Locate(spec with { Expected = now + LayoutProbe.SelfTestShift });
                 var same = found is { } at && this.Holds(at, spec) == this.Holds(now, spec);
                 lines.Add(LayoutProbe.SelfTestLine(Part(field), now, same ? now : found));
             }
@@ -206,7 +206,7 @@ namespace Poe2Accessibility.Services
             _ => "bind screen",
         };
 
-        private int? Locate(InGameField field, Spec spec)
+        private int? Locate(Spec spec)
         {
             if (this.Holds(spec.Expected, spec) != IntPtr.Zero)
             {

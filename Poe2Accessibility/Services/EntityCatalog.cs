@@ -5,7 +5,6 @@ namespace Poe2Accessibility.Services
     using System.Linq;
     using System.Numerics;
     using GameReader;
-    using GameReader.RemoteEnums;
     using GameReader.RemoteEnums.Entity;
     using GameReader.RemoteObjects.Components;
     using GameReader.RemoteObjects.States.InGameStateObjects;
@@ -32,9 +31,6 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A way this many degrees past the edge of the direction said last for the same target keeps that direction.</summary>
         private const double KeepDirectionDegrees = 10;
-
-        /// <summary>World offset used to measure how the camera draws the world axes.</summary>
-        private const float ProbeWorldUnits = 100f;
 
         /// <summary>
         ///     A closed barrier this near (grid cells) the line from a route's end to its target cuts the way: the beam
@@ -619,7 +615,6 @@ namespace Poe2Accessibility.Services
         /// <summary>Straight-line world distance from the player to the entry; null without a player position.</summary>
         public float? DistanceTo(ScanEntry entry)
         {
-            var area = Core.States.InGameStateObject.CurrentAreaInstance;
             return Seats.Followed.TryGetComponent<Render>(out var player)
                 ? Vector2.Distance(new Vector2(player.WorldPosition.X, player.WorldPosition.Y), new Vector2(entry.WorldX, entry.WorldY))
                 : null;
@@ -861,7 +856,6 @@ namespace Poe2Accessibility.Services
         /// <summary>How much of the ground the player can reach has been seen, in percent; null outside gameplay or without a grid.</summary>
         public int? ExploredPercent()
         {
-            var area = Core.States.InGameStateObject.CurrentAreaInstance;
             return Seats.Followed.TryGetComponent<Render>(out var player) && this.TryLiveGrid(out var grid, out var row)
                 ? this.explored.ExploredPercent(grid, row, new Vector2(player.GridPosition.X, player.GridPosition.Y))
                 : null;
@@ -958,9 +952,6 @@ namespace Poe2Accessibility.Services
 
         private static float Distance(StdTuple3D<float> origin, ScanEntry entry) =>
             new Vector2(entry.WorldX - origin.X, entry.WorldY - origin.Y).Length();
-
-        private static StdTuple3D<float> Offset(StdTuple3D<float> origin, float dx, float dy) =>
-            new() { X = origin.X + dx, Y = origin.Y + dy, Z = origin.Z };
 
         /// <summary>Notes where the player stands as the place of the death that just happened.</summary>
         public void RememberDeath()

@@ -835,7 +835,7 @@ namespace Poe2Accessibility.Services
             this.log.Debug($"Screen change {change.Kind} layer 0x{change.Layer.Address.ToInt64():X} focus layer 0x{focusLayer.ToInt64():X} hint={change.Layer.IsHintBar} top=0x{snapshot.TopInteractive?.Address.ToInt64() ?? 0:X} justFocused={this.JustFocused()}");
             if (change.Layer.IsHintBar)
             {
-                this.OnHintBarChange(change, snapshot, focus, focusLayer);
+                this.OnHintBarChange(change, snapshot, focusLayer);
                 return;
             }
 
@@ -892,7 +892,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The controller legends of the hint bar, said after the focus that waits for them.</summary>
-        private void OnHintBarChange(ScreenChange change, ScreenSnapshot snapshot, AccessibleUiNode? focus, IntPtr focusLayer)
+        private void OnHintBarChange(ScreenChange change, ScreenSnapshot snapshot, IntPtr focusLayer)
         {
             if (this.inGame && focusLayer == IntPtr.Zero && change.Kind == ScreenChangeKind.TextsAppeared &&
                 (DateTime.UtcNow - this.lastPanel.At).TotalMilliseconds < FocusTextMergeMs)

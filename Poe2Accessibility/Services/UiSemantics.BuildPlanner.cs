@@ -45,7 +45,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The build's step, weapon set and note for a marked node, from the build file.</summary>
-        private IEnumerable<string> BuildLines(BuildPlan plan, IntPtr record, PassiveNodeRow node)
+        private IEnumerable<string> BuildLines(BuildPlan plan, IntPtr record)
         {
             var id = this.PassiveIdOf(record);
             if (plan.Passives.FirstOrDefault(passive => passive.Id == id) is not { } passive)

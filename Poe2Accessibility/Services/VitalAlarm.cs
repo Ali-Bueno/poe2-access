@@ -1,6 +1,5 @@
 namespace Poe2Accessibility.Services
 {
-    using System;
     using System.Linq;
 
     /// <summary>

@@ -4,7 +4,6 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using GameReader;
     using GameReader.RemoteEnums;
-    using GameReader.RemoteObjects.States.InGameStateObjects;
     using GameOffsets.Objects.States.InGameState;
 
     /// <summary>

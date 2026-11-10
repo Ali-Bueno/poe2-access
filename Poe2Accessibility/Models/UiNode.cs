@@ -22,8 +22,6 @@ namespace Poe2Accessibility.Models
 
         public UiElementBaseOffset Raw { get; }
 
-        public IntPtr Parent => this.Raw.ParentPtr;
-
         /// <summary>Own visibility flag only; a node is really visible only if every ancestor is too.</summary>
         public bool IsVisibleFlag => UiElementBaseFuncs.IsVisibleChecker(this.Raw.Flags);
 

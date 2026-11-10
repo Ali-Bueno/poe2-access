@@ -26,7 +26,6 @@ namespace Poe2Accessibility.Services
         private const float ReachWorld = 45f;
 
         private const float PanStrength = 0.9f;
-        private const float ProbeWorld = 100f;
 
         private readonly AudioCueService audio;
         private readonly WallBumpDetector detector = new(Limits);
@@ -87,8 +86,5 @@ namespace Poe2Accessibility.Services
 
             return false;
         }
-
-        private static StdTuple3D<float> Offset(StdTuple3D<float> origin, float dx, float dy) =>
-            new() { X = origin.X + dx, Y = origin.Y + dy, Z = origin.Z };
     }
 }

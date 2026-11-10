@@ -123,7 +123,7 @@ namespace Poe2Accessibility.Services
                     break;
                 }
 
-                var route = Search(space, grid, bytesPerRow, from, to, orNearest, out var region, out var found);
+                var route = Search(space, from, to, orNearest, out var region, out var found);
                 if (!found && region < PocketCells * LookedPerCell)
                 {
                     region = Flood(space, grid, bytesPerRow, from); // the scans overlap and skip cells: count the whole pocket
@@ -151,7 +151,7 @@ namespace Poe2Accessibility.Services
         ///     <paramref name="region"/> counts the cells it looked at (a pocket stays small).
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        private static List<Vector2>? Search(Workspace space, byte[] grid, int bytesPerRow, (int X, int Y) from, (int X, int Y) to, bool orNearest,
+        private static List<Vector2>? Search(Workspace space, (int X, int Y) from, (int X, int Y) to, bool orNearest,
                                              out int region, out bool reached)
         {
             reached = false;

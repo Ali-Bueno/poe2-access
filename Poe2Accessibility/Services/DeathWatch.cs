@@ -2,7 +2,6 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
-    using GameReader;
     using GameReader.RemoteObjects.Components;
 
     /// <summary>

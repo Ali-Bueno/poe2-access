@@ -42,7 +42,7 @@ namespace Poe2Accessibility.Services
 
                 this.catalogDirectory = value;
                 this.attackData = AttackData.Load(value);
-                this.reader = new AttackReader(new HostMemoryReader(this.log), this.elements, this.attackData, this.log);
+                this.reader = new AttackReader(new HostMemoryReader(this.log), this.elements, this.attackData);
                 this.log.Info($"Dodge gate: {this.attackData.Clips} clips with a reach, {this.attackData.Areas} skill areas, {this.attackData.ActionTypeIds.Count} action types");
             }
         }
@@ -148,7 +148,7 @@ namespace Poe2Accessibility.Services
                 attack = attack with { AimedPlace = aimed };
             }
             var (blowIn, timing, contact) = this.BlowIn(attack, snapshot, now);
-            var facts = this.Facts(attack, snapshot, rarity, render, player, here, monster, gap, blowIn, timing, id);
+            var facts = this.Facts(attack, snapshot, render, player, here, monster, gap, blowIn, timing, id);
             var decision = DodgeGate.Decide(facts, LeadMs);
             if (this.DodgeWarnings)
             {
@@ -158,7 +158,7 @@ namespace Poe2Accessibility.Services
 
             this.NoteReason(attack.Key, animation, decision.Reason, facts, snapshot, attack.Warns || parrying);
             var threatens = decision.Verdict != DodgeVerdict.Silent;
-            attack = attack with { InReach = threatens, Threatens = threatens, Timing = timing };
+            attack = attack with { InReach = threatens, Timing = timing };
 
             if (this.DodgeWarnings && this.UnblockableCues && attack is { Unblockable: true, UnblockableCued: false, Warns: true } && threatens)
             {
@@ -257,7 +257,7 @@ namespace Poe2Accessibility.Services
             return (release is > 0 ? release + attack.TravelMs : release, timing, contact);
         }
 
-        private DodgeFacts Facts(Attack attack, AttackSnapshot? snapshot, Rarity rarity, Render render, Render player, Vector2 here, Vector2 monster, float gap,
+        private DodgeFacts Facts(Attack attack, AttackSnapshot? snapshot, Render render, Render player, Vector2 here, Vector2 monster, float gap,
                                  int? blowIn, BlowTiming timing, uint id)
         {
             var playerRadius = player.ModelBounds.X;
@@ -372,9 +372,6 @@ namespace Poe2Accessibility.Services
 
             return threat;
         }
-
-        /// <summary>How many attacks met so far had their kind from the animation's name, not the game's tables.</summary>
-        public int NamedThreats => this.namedThreats.Count;
 
         /// <summary>
         ///     The parry cue for a timed blow worth parrying, at most once per parry and only while its stop still falls

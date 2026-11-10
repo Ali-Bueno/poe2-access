@@ -48,15 +48,14 @@ namespace Poe2Accessibility.Services
         private readonly HostMemoryReader memory;
         private readonly UiElementReader elements;
         private readonly AttackData data;
-        private readonly PluginLog log;
         /// <summary>By monster as well as address: a monster that dies frees its object for the next one.</summary>
         private readonly Dictionary<(uint Id, IntPtr Object), (string? Path, IntPtr Controller)> animatedObjects = new();
         private readonly Dictionary<(IntPtr Data, int Clip), (string? Name, IReadOnlyList<ClipEvent> Events)> clips = new();
         private readonly ClockBaseline clockPairs = new();
 
-        public AttackReader(HostMemoryReader memory, UiElementReader elements, AttackData data, PluginLog log)
+        public AttackReader(HostMemoryReader memory, UiElementReader elements, AttackData data)
         {
-            (this.memory, this.elements, this.data, this.log) = (memory, elements, data, log);
+            (this.memory, this.elements, this.data) = (memory, elements, data);
         }
 
         /// <summary>Animated +0x350 leads to an object of an .ao with an AnimationController.</summary>
