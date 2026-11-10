@@ -55,7 +55,9 @@ with the mod's own element fields (children +0x10, flags +0x168, name +0x98, tex
 - Equip button: A says "Mascota Perro fantasma equipado." (a line on the page); again, "Ya lo tienes equipado".
 - The points: `EshopMainPage` > `bar_area` > `topbar_right` > `gold_icon` > `player_mtx_points_label`. It is filled in
   0.6 s after the shop opens and is a bare number, which the screen news leave out: `ShopBalanceWatch` says it when
-  shown and when it changes (`ScreenNarrator.CheckShopBalance`).
+  shown and when it changes (`ScreenNarrator.CheckShopBalance`), once it has shown for 600 ms: said at once, the first
+  card's line cut it 14 to 160 ms in (2026-11-10; now "Exile Con Packs Full Release, destacado, 1 de 5", then "Tienes 150
+  puntos").
 - What is said (`UiSemantics.ShopBuyButtonOf`, pure `ShopPurchase.Button`): "Comprar Mascota Perro fantasma, 150
   puntos, tienes 300 puntos, botón"; pressed, "Confirmar, Confirma tu compra de 150 puntos, Mascota Perro fantasma,
   tienes 300 puntos, botón". The page's title is the context of its controls and its text and flags are said on entering

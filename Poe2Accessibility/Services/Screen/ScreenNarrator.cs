@@ -77,7 +77,8 @@ namespace Poe2Accessibility.Services
         private readonly TrialCounterWatch trialCounters = new();
         private readonly QuestTrackerPage questPage = new();
         private readonly CountdownWatch countdown = new();
-        private readonly ShopBalanceWatch shopBalance = new();
+        // Both wait for the page's own line: the account's points were cut 14 to 160 ms in by the first card (live 2026-11-10).
+        private readonly ShopBalanceWatch shopBalance = new(ShopPageSettleMs);
         private readonly ShopBalanceWatch guildBalance = new(ShopPageSettleMs);
 
         /// <summary>When a shop tab's actions are due (<see cref="SayShopPageActions"/>), zero when none are.</summary>
