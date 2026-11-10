@@ -66,6 +66,13 @@ namespace Poe2Accessibility.Services
 
         /// <summary>The children of the element being walked: read, pushed and done with before the next element's.</summary>
         private IntPtr[] walkChildren = new IntPtr[64];
+
+        private readonly List<WalkNode> walkNodes = new();
+        private readonly List<(int Node, ScreenText Text)> walkTexts = new();
+        private readonly List<(int Node, string Button)> walkGlyphs = new();
+        private readonly List<(int Node, string Unit)> walkUnits = new();
+        private readonly List<(int Node, int Set)> walkSetIcons = new();
+        private readonly Stack<(UiElementReader.ElementInfo Info, int Parent, int Index, int Control)> walkStack = new();
         private readonly ScreenDiffer differ = new();
         private readonly ConcurrentQueue<(ScreenChange Change, int Generation)> changes = new();
         private readonly CancellationTokenSource stop = new();
@@ -164,10 +171,11 @@ namespace Poe2Accessibility.Services
                     }
 
                     var started = Volatile.Read(ref this.generation);
-                    var timer = Stopwatch.StartNew();
+                    var began = Stopwatch.GetTimestamp();
                     var captured = this.Capture(this.root);
-                    this.CountSnapshot(timer.Elapsed.TotalMilliseconds);
-                    this.ReportSlowSnapshot(timer.ElapsedMilliseconds, captured);
+                    var took = Stopwatch.GetElapsedTime(began).TotalMilliseconds;
+                    this.CountSnapshot(took);
+                    this.ReportSlowSnapshot((long)took, captured);
                     if (started != Volatile.Read(ref this.generation))
                     {
                         continue; // the screen changed state while it was captured: the next pass starts the new one
@@ -272,14 +280,16 @@ namespace Poe2Accessibility.Services
 
         private ScreenLayer CaptureLayer(UiElementReader.ElementInfo layerInfo, int index, RectangleF screen, PluginUiElementReflection.RectCache rects, ref int budget)
         {
-            var nodes = new List<WalkNode>();
-            var texts = new List<(int Node, ScreenText Text)>();
-            var glyphs = new List<(int Node, string Button)>();
-            var units = new List<(int Node, string Unit)>();
-            var setIcons = new List<(int Node, int Set)>();
+            // The walk's working lists serve every layer of every snapshot: the layer returned holds a copy of its texts.
+            var (nodes, texts, glyphs, units, setIcons, stack) = (this.walkNodes, this.walkTexts, this.walkGlyphs, this.walkUnits, this.walkSetIcons, this.walkStack);
+            nodes.Clear();
+            texts.Clear();
+            glyphs.Clear();
+            units.Clear();
+            setIcons.Clear();
+            stack.Clear();
             var hasControls = false;
             bool isHintBar;
-            var stack = new Stack<(UiElementReader.ElementInfo Info, int Parent, int Index, int Control)>();
             stack.Push((layerInfo, -1, 0, -1));
             byte[]? walked = null;
             while (stack.Count > 0 && budget-- > 0)

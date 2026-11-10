@@ -27,6 +27,7 @@ namespace Poe2Access
         public void Run()
         {
             using var timer = FrameTimer.Create();
+            Action<string, Exception> fault = this.Fault; // one delegate for the run, not one a frame
             var frequency = Stopwatch.Frequency;
             var clock = Stopwatch.StartNew();
             var last = clock.ElapsedTicks;
@@ -34,7 +35,7 @@ namespace Poe2Access
             while (!stop.WaitOne(0))
             {
                 var now = clock.ElapsedTicks;
-                HostFrame.Run((now - last) / (double)frequency, tick, this.Fault, this.stats.Steps);
+                HostFrame.Run((now - last) / (double)frequency, tick, fault, this.stats.Steps);
                 this.stats.EndFrame(clock.ElapsedTicks - now);
                 last = now;
                 var period = (long)(frequency / (HostFrame.GameOpened && HostFrame.GameForeground ? FramesPerSecond : BackgroundFramesPerSecond));
@@ -71,6 +72,9 @@ namespace Poe2Access
 
             private readonly TimerHandle? handle;
 
+            /// <summary>The stop handle and the timer, for the wait of every frame.</summary>
+            private WaitHandle[]? either;
+
             private FrameTimer(TimerHandle? handle) => this.handle = handle;
 
             public static FrameTimer Create()
@@ -99,7 +103,9 @@ namespace Poe2Access
                     return stop.WaitOne(delay);
                 }
 
-                return WaitHandle.WaitAny([stop, this.handle]) == 0;
+                this.either ??= [stop, this.handle];
+                this.either[0] = stop;
+                return WaitHandle.WaitAny(this.either) == 0;
             }
 
             public void Dispose() => this.handle?.Dispose();

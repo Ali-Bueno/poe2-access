@@ -113,8 +113,17 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 this.areaDetailsPtrCache = data.WorldAreaDetailsPtr;
             }
 
-            System.Threading.Volatile.Write(ref this.matrixSnap, new MatrixSnap(data.CameraStructurePtr.WorldToScreenMatrix));
+            // A camera that did not move keeps its snapshot: the same bits, and no object a frame.
+            var matrix = data.CameraStructurePtr.WorldToScreenMatrix;
+            if (!SameBits(matrix, this.matrixSnap.M))
+            {
+                System.Threading.Volatile.Write(ref this.matrixSnap, new MatrixSnap(matrix));
+            }
         }
+
+        private static bool SameBits(Matrix4x4 one, Matrix4x4 other) =>
+            System.Runtime.InteropServices.MemoryMarshal.AsBytes(new ReadOnlySpan<Matrix4x4>(in one))
+                .SequenceEqual(System.Runtime.InteropServices.MemoryMarshal.AsBytes(new ReadOnlySpan<Matrix4x4>(in other)));
 
         private IEnumerator<Wait> OnPerFrame()
         {

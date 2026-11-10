@@ -29,7 +29,15 @@ namespace GameReader
         public static void Run(double deltaSeconds, Action tick, Action<string, Exception> fault, long[] elapsed)
         {
             var start = Stopwatch.GetTimestamp();
-            Step("tick", () => CoroutineHandler.Tick(deltaSeconds), fault);
+            try
+            {
+                CoroutineHandler.Tick(deltaSeconds); // not through Step: a lambda over the frame's time is two objects a frame
+            }
+            catch (Exception error)
+            {
+                fault("tick", error);
+            }
+
             var read = Stopwatch.GetTimestamp();
             Step("per frame data", () => CoroutineHandler.RaiseEvent(GameHelperEvents.PerFrameDataUpdate), fault);
             Step("post per frame data", () => CoroutineHandler.RaiseEvent(GameHelperEvents.PostPerFrameDataUpdate), fault);
