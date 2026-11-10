@@ -188,6 +188,9 @@ namespace Poe2Accessibility.Tests
             Expect("Axe Chop", GemNames.Of("SkillGemAxeChop", index, "es"), "a gem the files mark unused, by its id's words");
             Expect("Frost Nexus Nine", GemNames.Of("SupportGemFrostNexusNine", index, "es"), "a gem newer than the catalog, by its id's words");
             Expect(false, GemNames.Of("SkillGemTwister", index, "th").Contains('<'), "Thai names without their size tag");
+            Expect(true, BuildGems.IsSupport("SupportOlrothsConviction", index) && !BuildGems.IsSupport("SupportOlrothsConviction"), "a support whose key does not say so, by the files' kind");
+            Expect(true, BuildGems.IsSupport("SupportGemRageTwo", index) && !BuildGems.IsSupport("SkillGemTwister", index), "the kind for the rest too");
+            Expect(true, BuildGems.IsSupport("SupportGemFrostNexusNine", index), "a gem the files lack, by its key");
         }
 
         /// <summary>"Spectre: {0}" came out as "Spectre: {0": every closing brace was taken for a tag's.</summary>

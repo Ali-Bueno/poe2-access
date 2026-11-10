@@ -53,6 +53,13 @@ namespace Poe2Accessibility.Services
         /// <summary>A support gem's key ("SupportGemRageTwo").</summary>
         public static bool IsSupport(string key) => key.StartsWith("SupportGem", StringComparison.Ordinal);
 
+        /// <summary>
+        ///     A support gem by the kind the game's files give it; by its key for a gem they lack. Two supports of 0.5.x
+        ///     carry no "SupportGem" in their key (SupportOlrothsConviction, SupportEnervation) and read as skills by it.
+        /// </summary>
+        public static bool IsSupport(string key, GemIndex index) =>
+            index.ByBaseItem(key) is { Kind: not GemKind.Other } gem ? gem.Kind == GemKind.Support : IsSupport(key);
+
         /// <summary>The key without its tier ("SupportGemRageTwo" → "SupportGemRage"): tiers of one support share it.</summary>
         public static string FamilyOf(string key) => Tier.Replace(key, string.Empty);
 

@@ -146,7 +146,7 @@ namespace Poe2Accessibility.Services
             for (var at = GameLayout.GemSockets.FirstOffset; at < GameLayout.GemSockets.EndOffset; at += IntPtr.Size)
             {
                 if (this.reader.TryRead<IntPtr>(sockets + at, out var gem) && gem != IntPtr.Zero && this.reader.IsValidAddress(gem) &&
-                    this.inventory.ItemBaseId(gem) is var id && BuildGems.IsGemId(id) && BuildGems.IsSupport(BuildGems.KeyOf(id)))
+                    this.inventory.ItemBaseId(gem) is var id && BuildGems.IsGemId(id) && BuildGems.IsSupport(BuildGems.KeyOf(id), GemIndex.Shared))
                 {
                     keys.Add(BuildGems.KeyOf(id));
                 }
@@ -320,7 +320,7 @@ namespace Poe2Accessibility.Services
                 yield break;
             }
 
-            if (BuildGems.IsSupport(key))
+            if (BuildGems.IsSupport(key, GemIndex.Shared))
             {
                 var users = BuildGems.SkillsUsing(active.Plan, active.Level, key);
                 yield return users.Count > 0 ? Announcements.BuildGemFor(users.Select(skill => GemNames.Of(skill.Gem.Key))) : Announcements.OutsideBuild;
