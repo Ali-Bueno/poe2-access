@@ -54,6 +54,7 @@ namespace Poe2Accessibility.Services
             if (this.inventory.TryReadGrid(info.Address, out var column, out var row, out var hovered))
             {
                 role = UiRole.GridCell;
+                hovered = hovered != IntPtr.Zero ? hovered : this.inventory.ItemAt(info.Address, column, row);
                 emptyCell = hovered == IntPtr.Zero;
                 details = this.ItemTooltip(hovered);
                 var item = hovered == IntPtr.Zero ? Announcements.EmptyCell : this.inventory.DescribeItem(hovered, Title(details)) ?? Announcements.UnknownItem;

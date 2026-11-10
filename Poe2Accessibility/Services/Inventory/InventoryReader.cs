@@ -152,6 +152,30 @@ namespace Poe2Accessibility.Services
             return items.OrderBy(item => item.Row).ThenBy(item => item.Column).ToList();
         }
 
+        /// <summary>
+        ///     The item element lying over a cell, zero when none does: the grid names its hovered item late on arrival, drops it
+        ///     early on leaving, and not at all while a currency is being applied to an equipment slot (2026-11-10).
+        /// </summary>
+        public IntPtr ItemAt(IntPtr grid, int column, int row)
+        {
+            if (!this.reader.TryRead<float>(grid + GameLayout.InventoryGrid.CellSizeOffset + this.Shift, out var cell))
+            {
+                return IntPtr.Zero;
+            }
+
+            foreach (var (item, itemColumn, itemRow) in this.ItemsOf(grid))
+            {
+                if (this.elements.TryReadElement(item, out var info) &&
+                    column >= itemColumn && column < itemColumn + Math.Max(1, (int)MathF.Round(info.Raw.UnscaledSize.X / cell)) &&
+                    row >= itemRow && row < itemRow + Math.Max(1, (int)MathF.Round(info.Raw.UnscaledSize.Y / cell)))
+                {
+                    return item;
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+
         /// <summary>Item element held by an equipment/flask slot (or the slot itself); zero when the slot is empty.</summary>
         public IntPtr FindItemElement(IntPtr slot, int depth = 0)
         {

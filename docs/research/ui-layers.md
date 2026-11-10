@@ -298,7 +298,11 @@ snapshots of the item elements under three searches).
 - **Equipped line.** `Equipado: [WeaponSets|Set de armas]<<weapon_set_2>>`: the picture's name repeats the words before
   it, so the picture adds only its numeral (`InlineIcons.WithoutEcho`).
 - **A grid on arrival and on leaving.** A grid's hovered item (`+0x350`) is filled up to 170 ms after the cursor arrives,
-  and emptied a moment before the focus moves to another grid: an empty cell is said on its second reading only.
+  and emptied a moment before the focus moves to another grid: an empty cell is said on its second reading only. While
+  a currency is being applied (X on an orb, then the right stick's quick navigation) an equipment slot's grid names no
+  hovered item at all: the item lying over the cursor's cell is then read from the grid's children
+  (`InventoryReader.ItemAt`). A on the slot applied nothing in two tries with an Orb of Augmentation on a one-modifier
+  magic spear, and the legend offered no apply button there: how the pad applies a currency to a worn item is not known.
 
 ## Quest tracker rows (0.5.5f, 2026-11-10)
 
