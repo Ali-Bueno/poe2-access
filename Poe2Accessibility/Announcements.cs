@@ -292,6 +292,12 @@ namespace Poe2Accessibility
         public static string? MoveSlotName(GameReader.RemoteEnums.InventoryName inventory) =>
             inventory == GameReader.RemoteEnums.InventoryName.Flask1 ? T("Flasks and charms", "Frascos y viales") : SlotName(inventory);
 
+        /// <summary>The box that splits a stack (hold A on one): the stick sets how many are taken, A takes them.</summary>
+        public static string Unstack => T("Unstack", "Desapilar");
+
+        /// <summary>What the splitter would do now: "2, 4 stay".</summary>
+        public static string UnstackAmounts(int taken, int kept) => T($"{taken}, {kept} stay", $"{taken}, quedan {kept}");
+
         /// <summary>One-based cell of the inventory grid, read after the item.</summary>
         public static string GridPosition(int column, int row) => T($"column {column + 1}, row {row + 1}", $"columna {column + 1}, fila {row + 1}");
 

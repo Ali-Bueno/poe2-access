@@ -207,6 +207,32 @@ namespace Poe2Accessibility.Services
             return IntPtr.Zero;
         }
 
+        /// <summary>
+        ///     The two bare numbers a stack's splitter shows around its input: left what stays in the stack, right what is
+        ///     taken (live 2026-11-10: of 6, "5 | 1" became "4 | 2" and the hand took 2); null for any other field.
+        /// </summary>
+        private (int Kept, int Taken)? SplitAmounts(in UiElementReader.ElementInfo frame)
+        {
+            var numbers = new List<(float X, int Value)>();
+            foreach (var childAddress in this.elements.ReadChildren(frame))
+            {
+                if (!this.elements.TryReadElement(childAddress, out var child) || !child.IsVisibleFlag ||
+                    !this.elements.TryReadSpokenText(childAddress, out var text) || text.Length == 0)
+                {
+                    continue;
+                }
+
+                if (!int.TryParse(text, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var number))
+                {
+                    return null;
+                }
+
+                numbers.Add((child.Raw.RelativePosition.X, number));
+            }
+
+            return numbers.Count == 2 ? (numbers.MinBy(number => number.X).Value, numbers.MaxBy(number => number.X).Value) : null;
+        }
+
         /// <summary>Layout ids that only group other elements ("panels_parent", "container") and numeric ids (a spirit row's "2231762944"): they name nothing.</summary>
         private static bool IsStructuralName(string controlName) =>
             !controlName.Any(char.IsLetter) ||

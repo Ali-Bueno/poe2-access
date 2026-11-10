@@ -133,8 +133,13 @@ namespace Poe2Accessibility.Services
             var longestCell = int.MaxValue;
             var cellRow = false;
             string label;
+            var split = input != IntPtr.Zero ? this.SplitAmounts(info) : null;
             switch (role)
             {
+                case UiRole.TextField when split is var (kept, taken):
+                    // A stack's splitter: the stick changes what is taken and A takes it; nothing is typed there.
+                    (label, value) = (Announcements.Unstack, Announcements.UnstackAmounts(taken, kept));
+                    break;
                 case UiRole.ComboBox:
                     value = this.ComboBoxValue(info, ownText);
                     valuePosition = this.ComboValuePosition(info, value);
@@ -352,7 +357,7 @@ namespace Poe2Accessibility.Services
             {
                 Address = address,
                 Name = info.Name,
-                Role = role,
+                Role = split != null ? UiRole.Slider : role,
                 Text = label,
                 Value = value,
                 ValuePosition = valuePosition,
@@ -366,7 +371,7 @@ namespace Poe2Accessibility.Services
                 Group = group,
                 Tooltip = tooltip,
                 IsHovered = hovered,
-                OpensWithA = input != IntPtr.Zero,
+                OpensWithA = input != IntPtr.Zero && split == null,
                 IsEnabled = !info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) || !FlagBits.EnabledTrusted || info.HasFlagBit(GameLayout.Element.EnabledFlagBit),
             };
         }
