@@ -39,8 +39,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         internal Inventory(IntPtr address, string name)
             : base(address)
         {
-            Core.CoroutinesRegistrar.Add(CoroutineHandler.Start(
-                this.OnTimeTick(), $"[Inventory] Update {name}", int.MaxValue - 4));
+            CoroutineHandler.Start(
+                this.OnTimeTick(), $"[Inventory] Update {name}", int.MaxValue - 4);
         }
 
         /// <summary>

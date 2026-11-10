@@ -89,8 +89,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         internal WorldData(IntPtr address)
             : base(address)
         {
-            Core.CoroutinesRegistrar.Add(CoroutineHandler.Start(
-                this.OnPerFrame(), "[AreaInstance] Update World Data"));
+            CoroutineHandler.Start(
+                this.OnPerFrame(), "[AreaInstance] Update World Data");
         }
 
         /// <inheritdoc />

@@ -70,8 +70,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             this.GridWalkableData = Array.Empty<byte>();
             this.TgtTilesLocations = new();
 
-            Core.CoroutinesRegistrar.Add(CoroutineHandler.Start(
-                this.OnPerFrame(), "[AreaInstance] Update Area Data", int.MaxValue - 4));
+            CoroutineHandler.Start(
+                this.OnPerFrame(), "[AreaInstance] Update Area Data", int.MaxValue - 4);
         }
 
         /// <summary>

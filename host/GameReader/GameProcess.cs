@@ -289,8 +289,8 @@ namespace GameReader
                 return false;
             }
 
-            Core.CoroutinesRegistrar.Add(CoroutineHandler.Start(
-                this.Monitor(), "[GameProcess] Monitoring Game Process"));
+            CoroutineHandler.Start(
+                this.Monitor(), "[GameProcess] Monitoring Game Process");
             CoroutineHandler.RaiseEvent(GameHelperEvents.OnOpened);
             return true;
         }

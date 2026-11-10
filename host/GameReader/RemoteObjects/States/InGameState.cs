@@ -24,8 +24,8 @@ namespace GameReader.RemoteObjects.States
         internal InGameState(IntPtr address)
             : base(address)
         {
-            Core.CoroutinesRegistrar.Add(CoroutineHandler.Start(
-                this.OnPerFrame(), "[InGameState] Update Game State", int.MaxValue - 2));
+            CoroutineHandler.Start(
+                this.OnPerFrame(), "[InGameState] Update Game State", int.MaxValue - 2);
         }
 
         /// <summary>

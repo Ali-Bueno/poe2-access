@@ -32,11 +32,6 @@ namespace GameReader
         public static Action? CloseRequested { get; set; }
 
         /// <summary>
-        ///     Gets the list of active coroutines.
-        /// </summary>
-        public static List<ActiveCoroutine> CoroutinesRegistrar { get; } = new();
-
-        /// <summary>
         ///     Gets the GameStates instance. For details read class description.
         /// </summary>
         public static GameStates States { get; } = new(IntPtr.Zero);
