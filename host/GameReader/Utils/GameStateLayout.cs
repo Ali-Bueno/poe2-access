@@ -56,10 +56,14 @@ namespace GameReader.Utils
         /// </summary>
         public static GameStateFields Locate(byte[] block, GameStateFields near, IAreaMemory memory)
         {
+            // A stack's top is read from the game once: the game may change it between two looks, and every list is judged
+            // against the same one.
+            var tops = new Dictionary<int, long>();
+            long TopAt(int place) => tops.TryGetValue(place, out var top) ? top : tops[place] = Top(block, place, memory);
             int StackFor(int at)
             {
                 var known = States(block, at)?.Where(state => state != 0).ToHashSet();
-                return known == null ? -1 : StructShapes.Nearest(near.Stack, Pointer, block.Length - (3 * Pointer), place => known.Contains(Top(block, place, memory)));
+                return known == null ? -1 : StructShapes.Nearest(near.Stack, Pointer, block.Length - (3 * Pointer), place => known.Contains(TopAt(place)));
             }
 
             var first = StructShapes.Nearest(near.States, Pointer, block.Length - (Slot * MinStates), at => StackFor(at) >= 0);

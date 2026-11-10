@@ -29,6 +29,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AStateAPatchAddedIsCounted), AStateAPatchAddedIsCounted),
             (nameof(AListThatLostAStateStillFits), AListThatLostAStateStillFits),
             (nameof(TheStateObjectIsToldByItsListAndStack), TheStateObjectIsToldByItsListAndStack),
+            (nameof(AStackTheGameChangesWhileItIsJudgedBreaksNothing), AStackTheGameChangesWhileItIsJudgedBreaksNothing),
             (nameof(TooFewBytesAreNoStruct), TooFewBytesAreNoStruct),
             (nameof(TheStateInPlayIsTheOneThatLeadsToAnArea), TheStateInPlayIsTheOneThatLeadsToAnArea),
             (nameof(TheLoadingStateIsWhatCameBeforeTwoNewAreas), TheLoadingStateIsWhatCameBeforeTwoNewAreas),
@@ -529,6 +530,42 @@ namespace Poe2Accessibility.Tests
 
             Equal(false, Is(sparse, few), "seven virtual objects are too few for the states");
             Equal(true, states.Length == 13 && Is(StateObject(measured.Stack, measured.States).Block, StateObject(measured.Stack, measured.States).Memory), "and the real thing still passes");
+        }
+
+        private static void AStackTheGameChangesWhileItIsJudgedBreaksNothing()
+        {
+            // A list that moved is judged at several places, each against the stack's top, which is read from the game: the
+            // game may free the stack between two of those reads. Read once, every place is judged against the same top.
+            var measured = GameStateFields.Measured;
+            var moved = new GameStateFields(measured.Stack + 0x18, measured.States + 0x18);
+            var top = Heap + 0x30000 + 0x10;
+            for (var good = 0; good < 8; good++)
+            {
+                var (memory, block, _) = StateObject(moved.Stack, moved.States);
+                var found = GameStateLayout.Locate(block, measured, new ReadsThatStop(memory, top, good));
+                Equal(good == 0 ? new GameStateFields(-1, -1) : moved, found, $"the top readable {good} time(s), then gone");
+                Equal(good >= 2, GameStateLayout.IsStateObject(block, new ReadsThatStop(memory, top, good), Image, Image + ImageSize), $"told as the state object only with its top still there ({good})");
+            }
+        }
+
+        /// <summary>Memory in which one address reads only the first few times.</summary>
+        private sealed class ReadsThatStop : GameReader.RemoteObjects.States.InGameStateObjects.IAreaMemory
+        {
+            private readonly FakeMemory memory;
+            private readonly long address;
+            private int left;
+
+            public ReadsThatStop(FakeMemory memory, long address, int good)
+            {
+                (this.memory, this.address, this.left) = (memory, address, good);
+            }
+
+            public byte[] Read(long address, int size) =>
+                address == this.address && this.left-- <= 0 ? Array.Empty<byte>() : this.memory.Read(address, size);
+
+            public string EntityPath(long entity) => this.memory.EntityPath(entity);
+
+            public string WideText(long address) => this.memory.WideText(address);
         }
 
         private static long[] Slots()
