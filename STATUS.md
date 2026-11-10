@@ -507,9 +507,9 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   tooltip gave ("Desequipado: Frasco de vida grandioso compacto del practicante, mágico"); a flask or charm put on the belt
   is said ("Equipado: …, Frascos y viales"); the unstack box ("Desapilar, 1, quedan 5, control deslizante", then "2, quedan
   4"); the Teleport map's act tabs ("Teletransporte. Acto 2, botón, 2 de 2", [controls](docs/controls.md)); a stash tab
-  switch with the cursor in the stash ("Alijo. pestaña 2. Vacío, columna 12, fila 10", once). Unit test only: an empty flask
-  filled at the well before a drink showed its cost ("… recargado, 75 cargas"; the well was seen silent live before the
-  fix); a flask not empty and never drunk is still silent, its uses cannot be counted. Taking a flask off the belt empties
+  switch with the cursor in the stash ("Alijo. pestaña 2. Vacío, columna 12, fila 10", once). an empty flask filled at the well
+  before a drink showed its cost ("Frasco de vida grandioso recargado, 75 cargas"); a flask not empty and never drunk is
+  still silent there, its uses cannot be counted. Taking a flask off the belt empties
   it (75 → 0 charges, refilled at the well). Open: (1) a merchant with one tab (Zarka: one tab labelled "-1-", no title)
   now opens as "pestaña 1. Inventario. Pergamino de sabiduría, 8, …" (heard live: a lone tab counts once the selected byte
   is proved, `UiSemantics.SelectedTab`) when the focus comes before the layer; when the layer comes first (the focus logged
