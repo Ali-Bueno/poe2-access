@@ -1,6 +1,7 @@
 namespace Poe2Accessibility.Services
 {
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
@@ -245,6 +246,20 @@ namespace Poe2Accessibility.Services
 
             var toPlayer = Walk(grid, bytesPerRow, width, height, start);
             var toGoal = Walk(grid, bytesPerRow, width, height, end);
+            try
+            {
+                return this.WhereTheWalksLeaveTheSeen(toPlayer, toGoal, width, height, end);
+            }
+            finally
+            {
+                ArrayPool<int>.Shared.Return(toPlayer);
+                ArrayPool<int>.Shared.Return(toGoal);
+            }
+        }
+
+        /// <summary>The unseen cell next to seen ground with the shortest walk through it, from the player's steps and the goal's.</summary>
+        private Vector2? WhereTheWalksLeaveTheSeen(int[] toPlayer, int[] toGoal, int width, int height, Vector2 end)
+        {
             Vector2? best = null;
             var bestWalk = int.MaxValue;
             var bestLeft = float.MaxValue;
@@ -305,12 +320,17 @@ namespace Poe2Accessibility.Services
             return ((x & 1) == 0 ? value & 0xF : value >> 4) != 0;
         }
 
-        /// <summary>Steps from <paramref name="start"/> to every walkable cell joined to it (four neighbours), -1 for the rest.</summary>
+        /// <summary>
+        ///     Steps from <paramref name="start"/> to every walkable cell joined to it (four neighbours), -1 for the rest, in
+        ///     the first width × height entries of an array of the shared pool, which the caller gives back: two arrays of
+        ///     megabytes per call were most of what the collector had to clear in town (profile, 2026-11-10).
+        /// </summary>
         private static int[] Walk(byte[] grid, int bytesPerRow, int width, int height, Vector2 start)
         {
-            var steps = new int[width * height];
-            Array.Fill(steps, -1);
-            var queue = new int[width * height];
+            var cells = width * height;
+            var steps = ArrayPool<int>.Shared.Rent(cells);
+            Array.Fill(steps, -1, 0, cells);
+            var queue = ArrayPool<int>.Shared.Rent(cells);
             var head = 0;
             var tail = 0;
             var first = ((int)start.Y * width) + (int)start.X;
@@ -327,6 +347,7 @@ namespace Poe2Accessibility.Services
                 Step(x, y + 1, steps[cell] + 1);
             }
 
+            ArrayPool<int>.Shared.Return(queue);
             return steps;
 
             void Step(int x, int y, int count)
@@ -409,7 +430,7 @@ namespace Poe2Accessibility.Services
             }
 
             var walk = Walk(grid, bytesPerRow, width, height, start);
-            for (var cell = 0; cell < walk.Length; cell++)
+            for (var cell = 0; cell < width * height; cell++)
             {
                 if (walk[cell] >= 0)
                 {
@@ -417,6 +438,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            ArrayPool<int>.Shared.Return(walk);
             return reachable;
         }
 
