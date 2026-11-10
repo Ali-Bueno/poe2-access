@@ -243,6 +243,13 @@ namespace Poe2Accessibility.Services
                 name = tooltipTitle;
             }
 
+            if (name.Length == 0 && GemIndex.Shared.ByBaseItem(ItemPath(item)) is { } gem && !gem.NameIsPattern(Localization.Language))
+            {
+                // A gem's base row holds no display name and nothing shows its tooltip (a move, the hand, a pick-up):
+                // the game files' name of the same base item, never a pattern the game fills in.
+                name = gem.Name(Localization.Language);
+            }
+
             var count = item.TryGetComponent<Stack>(out var stack) ? stack.Count : 0;
             return Announcements.Item(name, rarity, count);
         }

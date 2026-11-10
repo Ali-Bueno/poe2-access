@@ -117,6 +117,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Core\LayoutOverrides.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\PoiseSearch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemMoves.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemReadings.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\SalvageOutcome.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\CardText.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\TradeOfferNews.cs" />

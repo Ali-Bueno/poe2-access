@@ -16,6 +16,7 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(ANumberChangingUnderTheCursorIsSaidAlone), ANumberChangingUnderTheCursorIsSaidAlone),
             (nameof(AClockInTheFocusedRowStaysQuiet), AClockInTheFocusedRowStaysQuiet),
+            (nameof(AMovedItemIsNamedAsItWasWhenItLeft), AMovedItemIsNamedAsItWasWhenItLeft),
         };
 
         private static void ANumberChangingUnderTheCursorIsSaidAlone()
@@ -38,6 +39,37 @@ namespace Poe2Accessibility.Tests
             Equal(true, FocusNews.IsTick(UiRole.ListItem, Before, After), "the same row as a list's");
             Equal(true, FocusNews.IsTick(UiRole.ListItem, "Sala, 0:59", "Sala, 0:58"), "a clock's digits");
             Equal(false, FocusNews.IsTick(UiRole.ListItem, "Sala, 0:59", "Otra sala, 0:58"), "another text is no tick");
+        }
+
+        /// <summary>A stack of 10 scrolls, 3 used, then sold: "…, 7"; an item made magic in place; "unknown item" never kept.</summary>
+        private static void AMovedItemIsNamedAsItWasWhenItLeft()
+        {
+            const int Normal = 0;
+            const int Magic = 1;
+            var names = new ItemReadings(() => "unknown item");
+            var scrolls = (IntPtr)0x10;
+            Equal(true, names.IsStale(scrolls, 10, Normal), "an item never read");
+            Equal("Scroll of Wisdom, 10", names.Read(scrolls, "Scroll of Wisdom, 10", 10, Normal), "its first reading");
+            Equal(false, names.IsStale(scrolls, 10, Normal), "unchanged, it is not read again");
+            Equal(true, names.IsStale(scrolls, 7, Normal), "three used: read again");
+            names.Read(scrolls, "Scroll of Wisdom, 7", 7, Normal);
+            Equal("Scroll of Wisdom, 7", names.Last(scrolls), "sold as what it was when it left");
+
+            var ring = (IntPtr)0x20;
+            names.Read(ring, "Iron Ring", 0, Normal);
+            Equal(true, names.IsStale(ring, 0, Magic), "made magic in place: read again");
+            Equal("Iron Ring, magic", names.Read(ring, "Iron Ring, magic", 0, Magic), "with its rarity");
+            Equal("Iron Ring, magic", names.Read(ring, null, 0, Magic), "a reading that fails leaves the last good one");
+            Equal("Iron Ring, magic", names.Read(ring, "unknown item, magic", 0, Magic), "and so does one that names nothing");
+
+            var gem = (IntPtr)0x30;
+            Equal("unknown item", names.Read(gem, "unknown item", 0, Normal), "an unnamed item is said as such");
+            Equal(true, names.IsStale(gem, 0, Normal), "but never kept: the next poll reads it again");
+            Equal("Twister", names.Read(gem, "Twister", 0, Normal), "and names it once it reads");
+
+            names.KeepOnly(item => item == ring);
+            Equal("unknown item", names.Last(scrolls), "an item gone from every inventory is forgotten");
+            Equal("Iron Ring, magic", names.Last(ring), "the ones in reach are kept");
         }
     }
 }
