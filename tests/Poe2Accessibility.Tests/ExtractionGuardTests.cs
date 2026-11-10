@@ -25,6 +25,9 @@ namespace Poe2Accessibility.Tests
             (nameof(ABundleIndexThatDoesNotLookLikeTheGamesIsOneNamedFailure), ABundleIndexThatDoesNotLookLikeTheGamesIsOneNamedFailure),
             (nameof(ATableThatIsNotWholeRowsFailsAndNamesItself),ATableThatIsNotWholeRowsFailsAndNamesItself),
             (nameof(ATableWithoutRowsOrTooShortFailsToo), ATableWithoutRowsOrTooShortFailsToo),
+            (nameof(AFailedOptionalStepIsRetriedOnLaterStartsUpToAnLimit), AFailedOptionalStepIsRetriedOnLaterStartsUpToAnLimit),
+            (nameof(AStepThatWorksLaterClearsItsFailuresAndANewBuildStartsOver), AStepThatWorksLaterClearsItsFailuresAndANewBuildStartsOver),
+            (nameof(AnOldStampWithoutRetryLinesStillReads), AnOldStampWithoutRetryLinesStillReads),
             (nameof(OverrideColumnsAreFoundWhereMeasuredAndAfterAShift),OverrideColumnsAreFoundWhereMeasuredAndAfterAShift),
             (nameof(AnOverrideTableWithoutTheKnownRowIsJudgedByShape), AnOverrideTableWithoutTheKnownRowIsJudgedByShape),
             (nameof(AKnownOverrideThatReadsOtherwiseFailsTheStep), AKnownOverrideThatReadsOtherwiseFailsTheStep),
@@ -208,6 +211,45 @@ namespace Poe2Accessibility.Tests
             Expect(true, BundleIndexCheck.Problem(80_000, 600, statsTableFound: false)!.Contains("stats.datc64", StringComparison.Ordinal), "the table every step needs is not listed");
             Expect(true, BundleIndexCheck.Problem(80_000, 600, true, unparsedPaths: 70_000) is { }, "most paths did not parse: a format change");
             Expect("bundle index", BundleIndexCheck.Name, "the name game-data-failed.txt lists");
+        }
+
+        private const string Install = "index=1:2\nexe=3:4\nfmod=2.03.06\n";
+
+        private static void AFailedOptionalStepIsRetriedOnLaterStartsUpToAnLimit()
+        {
+            var stamp = Poe2Access.GameDataStamp.Parse(null).With(Install, "places", 1);
+            stamp = stamp.WithFailure(Install, "hit times", 4);
+            Expect(false, stamp.IsCurrent(Install, "hit times", 4), "one failed start: not stamped, retried");
+            Expect(1, stamp.Attempts("hit times", 4), "counted");
+            stamp = Poe2Access.GameDataStamp.Parse(stamp.ToString()).WithFailure(Install, "hit times", 4);
+            Expect(false, stamp.IsCurrent(Install, "hit times", 4), "two failed starts (read back from the file): still retried");
+            Expect(2, stamp.Attempts("hit times", 4), "counted across starts");
+            stamp = Poe2Access.GameDataStamp.Parse(stamp.ToString()).WithFailure(Install, "hit times", 4);
+            Expect(true, stamp.IsCurrent(Install, "hit times", 4), "the third failed start gives it up for this build");
+            Expect("hit times", string.Join(",", stamp.GivenUp()), "and it is listed as failed");
+            Expect(true, Poe2Access.GameDataStamp.Parse(stamp.ToString()).GivenUp().Contains("hit times"), "also after a restart");
+            Expect(true, stamp.IsCurrent(Install, "places", 1), "the other steps are untouched");
+        }
+
+        private static void AStepThatWorksLaterClearsItsFailuresAndANewBuildStartsOver()
+        {
+            var failed = Poe2Access.GameDataStamp.Parse(null).WithFailure(Install, "hazards", 3).WithFailure(Install, "hazards", 3);
+            var worked = failed.With(Install, "hazards", 3);
+            Expect(0, worked.Attempts("hazards", 3), "success forgets the failed starts");
+            Expect(0, worked.GivenUp().Count(), "and nothing is listed");
+            var given = failed.WithFailure(Install, "hazards", 3);
+            Expect(true, given.IsCurrent(Install, "hazards", 3), "given up on the third start");
+            Expect(1, given.WithFailure("index=9:9\n", "hazards", 3).Attempts("hazards", 3), "a new build counts from the first failed start");
+            Expect(0, given.WithFailure("index=9:9\n", "hazards", 3).GivenUp().Count(), "and has given nothing up");
+            Expect(0, given.WithFailure(Install, "hazards", 4).Attempts("hazards", 3), "a raised step version counts on its own");
+        }
+
+        private static void AnOldStampWithoutRetryLinesStillReads()
+        {
+            var old = Poe2Access.GameDataStamp.Parse(Install + "step places=1\nstep sounds=7\n");
+            Expect(true, old.IsCurrent(Install, "places", 1) && old.IsCurrent(Install, "sounds", 7), "steps read as before");
+            Expect(0, old.GivenUp().Count(), "nothing given up");
+            Expect(old.ToString(), Poe2Access.GameDataStamp.Parse(old.ToString()).ToString(), "written back the same");
         }
 
         private static void ASkippedKnownRowCheckIsSaid()

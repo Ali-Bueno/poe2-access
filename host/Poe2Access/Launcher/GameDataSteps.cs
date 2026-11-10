@@ -9,8 +9,8 @@ internal static class GameDataSteps
     /// <param name="Version">Raise it when the step's output changes: that step alone reruns, once, on every machine.</param>
     /// <param name="Output">The catalog file it makes, or null for the sounds (the plugin's own folder, never shipped).</param>
     /// <param name="Command">The extractor's batch command making the catalog; the stale ones share one opened index.</param>
-    /// <param name="Optional">Its failure keeps the previous file and still counts as done: a patch that moves the
-    /// tables these read must not rerun the step on every start (review 2026-10-25).</param>
+    /// <param name="Optional">Its failure keeps the previous file and is retried on the next starts, at most
+    /// <see cref="GameDataStamp.MaxAttempts"/> per game build, then left alone and listed as failed.</param>
     /// <param name="Input">The step whose output it reads: it reruns whenever that one does.</param>
     internal sealed record Step(string Name, int Version, string? Output, string? Command, bool Optional = false, string? Input = null);
 

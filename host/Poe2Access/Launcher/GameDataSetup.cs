@@ -115,10 +115,19 @@ internal static class GameDataSetup
                 spoken.StepDone(); // the catalogs are counted as the batch reports them
             }
 
-            if (error is null || step.Optional)
+            if (error is null)
             {
                 stamp = stamp.With(install, step.Name, step.Version);
                 File.WriteAllText(stampFile, stamp.ToString());
+            }
+            else if (step.Optional)
+            {
+                // Unstamped, so the next start retries it, up to GameDataStamp.MaxAttempts starts.
+                stamp = stamp.WithFailure(install, step.Name, step.Version);
+                File.WriteAllText(stampFile, stamp.ToString());
+                Log.Write(stamp.GivenUp().Contains(step.Name)
+                    ? $"Game data: {step.Name} failed on {GameDataStamp.MaxAttempts} starts: given up for this game build and listed as failed"
+                    : $"Game data: {step.Name} failed on start {stamp.Attempts(step.Name, step.Version)} of {GameDataStamp.MaxAttempts}; retried on the next start");
             }
         }
 
@@ -141,6 +150,7 @@ internal static class GameDataSetup
 
         // The plugin says it: a catalog left behind by a patch would otherwise only show in this log.
         var failedFile = Path.Join(pluginCatalog, FailedStepsFile);
+        failed.AddRange(stamp.GivenUp().Where(name => !failed.Contains(name))); // given up on an earlier start, still not working
         if (failed.Count > 0)
         {
             File.WriteAllLines(failedFile, failed);
