@@ -13,8 +13,9 @@ namespace Poe2Accessibility.Services
     ///     new target while the stick is pushed. The target is the game's mouse-over entity (GameHelper
     ///     <c>InGameState.MouseOverEntityAddress</c>, mouse play) or, with a controller, the entity the HUD's target display
     ///     names (HUD > entity_info_container > entity_info_display > name_label, the bar at the top of the screen;
-    ///     UI dump 2026-10-23): the nearest awake entity with that name. Sweeping across a pack interrupts the
-    ///     previous name; a first name waits behind what is being said.
+    ///     UI dump 2026-10-23): the nearest awake entity with that name, whose life and rarity are said only when no
+    ///     other carries the name (<see cref="TargetMatch"/>). Sweeping across a pack interrupts the previous name; a
+    ///     first name waits behind what is being said.
     /// </summary>
     public sealed class TargetNarrator
     {
@@ -44,7 +45,11 @@ namespace Poe2Accessibility.Services
         private IntPtr candidate;
         private long candidateSince;
         private IntPtr spoken;
+        private string spokenText = string.Empty;
         private long spokenAt = long.MinValue / 2;
+
+        /// <summary>The target came from the HUD's name and several entities carry it: which of them is aimed at is not known.</summary>
+        private bool nameShared;
 
         private const string DisplayName = "entity_info_display";
         private const string NameLabelName = "name_label";
@@ -52,7 +57,7 @@ namespace Poe2Accessibility.Services
         /// <summary>How deep under the HUD the target display is searched (it sits 3 levels down).</summary>
         private const int DisplaySearchDepth = 4;
 
-        private readonly System.Collections.Generic.Dictionary<IntPtr, string> entityNames = new();
+        private readonly EntityNameMemo entityNames = new();
         private IntPtr display;
 
         public TargetNarrator(AudioCueService audio, HostMemoryReader memory, UiElementReader elements, IAccessibilityOutputService output, PluginLog log)
@@ -103,9 +108,11 @@ namespace Poe2Accessibility.Services
 
             this.lastPoll = now;
             var hovered = Core.States.InGameStateObject.MouseOverEntityAddress;
+            this.nameShared = false;
             if (hovered == IntPtr.Zero)
             {
-                hovered = this.HudTarget();
+                (hovered, var alone) = this.HudTarget();
+                this.nameShared = hovered != IntPtr.Zero && !alone;
             }
             if (hovered != this.candidate)
             {
@@ -127,33 +134,43 @@ namespace Poe2Accessibility.Services
             }
 
             var entity = Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values.FirstOrDefault(candidate => candidate.Address == hovered);
-            if (entity == null || Seats.IsLocal(entity) || this.Describe(entity) is not { } spoken)
+            if (entity == null || Seats.IsLocal(entity) || this.Describe(entity, this.nameShared) is not { } spoken)
             {
                 return;
             }
 
+            if (this.nameShared && spoken == this.spokenText && now - this.spokenAt < RepeatMs)
+            {
+                // Another of the pack became the nearest: the name alone says nothing new.
+                (this.spoken, this.spokenAt) = (hovered, now);
+                return;
+            }
+
             this.output.Say(SpeechKind.EnemyNames, spoken, now - this.spokenAt < SweepMs); // a sweep cuts the last name
-            this.log.Debug($"Target -> {entity.Path} \"{spoken}\"");
-            (this.spoken, this.spokenAt) = (hovered, now);
+            this.log.Debug($"Target -> {entity.Path} \"{spoken}\"{(this.nameShared ? " (name shared: life and rarity not said)" : string.Empty)}");
+            (this.spoken, this.spokenText, this.spokenAt) = (hovered, spoken, now);
         }
 
-        /// <summary>The entity the HUD's target display names, or zero when the display is hidden or unknown.</summary>
-        private IntPtr HudTarget()
+        /// <summary>
+        ///     The nearest entity the HUD's target display could be naming, and whether it is the only one; zero when the
+        ///     display is hidden or unknown.
+        /// </summary>
+        private (IntPtr Address, bool Alone) HudTarget()
         {
             if (!this.FindDisplay() || !this.elements.TryReadElement(this.display, out var info) || !this.elements.IsVisible(info) ||
                 !this.elements.TryReadText(this.NameLabel, out var name) || name.Length == 0)
             {
-                return IntPtr.Zero;
+                return (IntPtr.Zero, false);
             }
 
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
             if (!Seats.Followed.TryGetComponent<Render>(out var player))
             {
-                return IntPtr.Zero;
+                return (IntPtr.Zero, false);
             }
 
-            var best = IntPtr.Zero;
-            var bestDistance = float.MaxValue;
+            var here = new System.Numerics.Vector2(player.WorldPosition.X, player.WorldPosition.Y);
+            var carriers = new System.Collections.Generic.List<(IntPtr, string, float)>();
             foreach (var entity in area.AwakeEntities.Values)
             {
                 if (!entity.IsValid || Seats.IsLocal(entity) || !entity.TryGetComponent<Render>(out var render))
@@ -161,22 +178,17 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                if (!this.entityNames.TryGetValue(entity.Address, out var entityName))
-                {
-                    entityName = this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty;
-                    this.entityNames[entity.Address] = entityName;
-                }
+                var entityName = this.entityNames.Of(entity.Address, entity.Id,
+                    () => this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset));
 
-                var distance = System.Numerics.Vector2.DistanceSquared(
-                    new System.Numerics.Vector2(render.WorldPosition.X, render.WorldPosition.Y),
-                    new System.Numerics.Vector2(player.WorldPosition.X, player.WorldPosition.Y));
-                if (entityName == name && distance < bestDistance)
+                // A corpse or a monster set aside is not what the game targets: it neither is the target nor shares its name.
+                if (entityName == name && (entity.EntityType != EntityTypes.Monster || (EntityCatalog.IsAliveEnemy(entity) && !EntityCatalog.IsHidden(entity))))
                 {
-                    (best, bestDistance) = (entity.Address, distance);
+                    carriers.Add((entity.Address, entityName, System.Numerics.Vector2.DistanceSquared(new System.Numerics.Vector2(render.WorldPosition.X, render.WorldPosition.Y), here)));
                 }
             }
 
-            return best;
+            return TargetMatch.Pick(name, carriers);
         }
 
         /// <summary>Finds (once per HUD) the target display and its name label by their control names.</summary>
@@ -266,8 +278,11 @@ namespace Poe2Accessibility.Services
             this.audio.Play(this.beep, pan, 1f, this.Gain, "crosshair");
         }
 
-        /// <summary>Name, rarity of a magic or better monster, life when hurt; null for unnamed things and corpses.</summary>
-        private string? Describe(Entity entity)
+        /// <summary>
+        ///     Name, rarity of a magic or better monster, life when hurt; null for unnamed things and corpses. The name alone
+        ///     when <paramref name="nameOnly"/>: the entity stands for one of several of that name.
+        /// </summary>
+        private string? Describe(Entity entity, bool nameOnly)
         {
             if (!entity.TryGetComponent<Render>(out var render) ||
                 this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) is not { Length: > 0 } name)
@@ -283,6 +298,11 @@ namespace Poe2Accessibility.Services
             if (!EntityCatalog.IsAliveEnemy(entity) || !entity.TryGetComponent<Life>(out var life))
             {
                 return null;
+            }
+
+            if (nameOnly)
+            {
+                return Announcements.Target(name, null);
             }
 
             if (entity.TryGetComponent<ObjectMagicProperties>(out var magic) && magic.Rarity != Rarity.Normal)

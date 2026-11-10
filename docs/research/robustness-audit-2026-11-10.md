@@ -108,3 +108,11 @@ rule now in force, where.
   boss's life from its entity when asked (`LifeNow`); one that is not among the entities, dead or hidden is not said, nor
   one read back at full life after the player's death (the reset the poll would notice on meeting it); of several, the
   one whose life changed last (`BossLifeSteps.Spoken`). Log when an engaged boss is left out: `Boss life not said: …`.
+- **The target's name and life (A3).** With a controller the target is the nearest entity carrying the name the HUD
+  shows; in a pack of one name its life, rarity and modifiers were the nearest one's, not the targeted one's. Names
+  were kept per entity address for the area, so a monster allocated at a dead one's address kept the dead one's name
+  and a name read empty stayed empty. Rule: life, rarity and modifiers are said only when one living, in-play entity
+  carries the name (or the game's own mouse-over entity gives the target); otherwise the name alone, once while the
+  pack stays under the aim (`TargetMatch.Pick`). Corpses and hidden monsters neither are the target nor share its name.
+  Names are kept per address and entity id, never empty (`EntityNameMemo`). Log (debug): `Target -> … (name shared:
+  life and rarity not said)`.

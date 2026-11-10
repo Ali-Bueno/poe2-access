@@ -95,6 +95,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\LessonReminder.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\WeakPoints.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\FlaskDrinks.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\TargetMatch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\ShieldStance.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\StunMeter.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\ParryTiming.cs" />

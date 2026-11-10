@@ -21,6 +21,8 @@ namespace Poe2Accessibility.Tests
             (nameof(AFlasksCostOutlivesAnAreaButNotACharacter), AFlasksCostOutlivesAnAreaButNotACharacter),
             (nameof(ABossNotThereToReadIsNotSaid), ABossNotThereToReadIsNotSaid),
             (nameof(TheBossBeingFoughtIsTheOneSaid), TheBossBeingFoughtIsTheOneSaid),
+            (nameof(ATargetNameSharedByAPackIsNoOnesLife), ATargetNameSharedByAPackIsNoOnesLife),
+            (nameof(AnEntityNameBelongsToItsAddressAndId), AnEntityNameBelongsToItsAddressAndId),
         };
 
         /// <summary>A flask whose drinks were seen to cost <paramref name="cost"/>, left at <paramref name="charges"/>; the clock ends past the last drink.</summary>
@@ -135,6 +137,28 @@ namespace Poe2Accessibility.Tests
             Equal<int?>(2, BossLifeSteps.Spoken(bosses, diedAt: null), "the one whose life changed last, not the first engaged");
             bosses[2] = (null, 21_000, 21_000);
             Equal<int?>(1, BossLifeSteps.Spoken(bosses, diedAt: null), "one that left is passed over for one that is there");
+        }
+
+        private static void ATargetNameSharedByAPackIsNoOnesLife()
+        {
+            const string Wolf = "Lobo putrefacto";
+            var pack = new (IntPtr, string, float)[] { (0x100, Wolf, 900f), (0x200, Wolf, 400f), (0x300, "Beira", 100f), (0x400, Wolf, 2500f) };
+            Equal(((IntPtr)0x200, false), TargetMatch.Pick(Wolf, pack), "the nearest wolf stands for the name, but which wolf is aimed at is not known");
+            Equal(((IntPtr)0x300, true), TargetMatch.Pick("Beira", pack), "the only one of its name is the target: its life is the target's");
+            Equal((IntPtr.Zero, false), TargetMatch.Pick("Oso", pack), "no entity carries the name");
+        }
+
+        private static void AnEntityNameBelongsToItsAddressAndId()
+        {
+            var names = new EntityNameMemo();
+            var reads = 0;
+            Func<string?> wolf = () => { reads++; return "Lobo putrefacto"; };
+            Equal("Lobo putrefacto", names.Of(0x100, 41, wolf), "read");
+            Equal("Lobo putrefacto", names.Of(0x100, 41, wolf), "kept");
+            Equal(1, reads, "one read for the same entity");
+            Equal("Oso", names.Of(0x100, 77, () => "Oso"), "a new monster at the dead one's address is read again, by its id");
+            Equal(string.Empty, names.Of(0x200, 5, () => null), "a name that could not be read");
+            Equal("Beira", names.Of(0x200, 5, () => "Beira"), "is asked again, not kept empty for the area");
         }
 
         private static void AFlasksCostOutlivesAnAreaButNotACharacter()
