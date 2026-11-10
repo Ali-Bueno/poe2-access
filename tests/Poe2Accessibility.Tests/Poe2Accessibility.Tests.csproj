@@ -85,6 +85,10 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\BuildPlanFolder.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GemNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GemCatalog.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GearCatalogs.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemBaseCatalog.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ModTextCatalog.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ModTextVariation.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\AgreedChoice.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\StatKeyCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\SkillNameCheck.cs" />
@@ -144,6 +148,8 @@
     <Compile Include="..\..\tools\Poe2UiExtract\BundleIndexCheck.cs" Link="Extract\BundleIndexCheck.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\GameFormats.cs" Link="Extract\GameFormats.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\GemColumns.cs" Link="Extract\GemColumns.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\ItemBaseColumns.cs" Link="Extract\ItemBaseColumns.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\StatDescriptionFile.cs" Link="Extract\StatDescriptionFile.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\Fsb5.cs" Link="Extract\Fsb5.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\PassiveOverrideColumns.cs" Link="Extract\PassiveOverrideColumns.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BossColumns.cs" Link="Extract\BossColumns.cs" />

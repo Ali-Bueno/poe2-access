@@ -400,6 +400,18 @@ public static class Extractor
             return OnIndex(args[1], index => PassiveTreeExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\passive-tree.json"));
         }
 
+        // Args: item-bases <gameDir> [outFile]  -- every base a character wears or wields: class, level, defences and names (docs/research/file-catalogs.md).
+        if (args.Length > 1 && string.Equals(args[0], "item-bases", StringComparison.OrdinalIgnoreCase))
+        {
+            return OnIndex(args[1], index => ItemBaseExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\item-bases.json"));
+        }
+
+        // Args: mod-texts <gameDir> [outFile]  -- the lines the game writes a modifier with, per language, from the stat description file.
+        if (args.Length > 1 && string.Equals(args[0], "mod-texts", StringComparison.OrdinalIgnoreCase))
+        {
+            return OnIndex(args[1], index => ModTextExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\mod-texts.json"));
+        }
+
         // Args: experience <gameDir> [outFile]  -- the total experience each character level starts at.
         if (args.Length > 1 && string.Equals(args[0], "experience", StringComparison.OrdinalIgnoreCase))
         {

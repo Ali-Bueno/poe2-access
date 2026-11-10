@@ -177,6 +177,8 @@ namespace Poe2Accessibility
                 // What a node, a gem or a skill is, from the game's files: the rows in memory back these up (docs/research/file-catalogs.md).
                 PassiveTreeCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "passive-tree.json"));
                 GemCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "gems.json"));
+                ItemBaseCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "item-bases.json"));
+                ModTextCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "mod-texts.json"));
                 this.compatibility = new CompatibilityReport(this.log);
                 // The columns still read at a compiled offset nothing judged: known as soon as the catalogs are, whatever is read first.
                 DatColumns.Report(this.compatibility);
