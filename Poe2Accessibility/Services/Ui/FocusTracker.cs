@@ -92,6 +92,9 @@ namespace Poe2Accessibility.Services
 
         private long ignoreFocusUntil;
         private bool pendingVisibility;
+
+        /// <summary>A grid's cursor is seen and waits to be said (its item's first tooltip filling, a cell empty on arrival): its line comes within moments.</summary>
+        public bool ItemPending => this.pendingVisibility && this.lastFocused != IntPtr.Zero && (this.lastFocused == this.fillingTooltip || this.lastFocused == this.emptyOnArrival);
         private GameStateTypes lastState = GameStateTypes.GameNotLoaded;
 
         public FocusTracker(HostMemoryReader reader, UiElementReader elements, UiManagerLocator locator, UiSemantics semantics, PluginLog log)

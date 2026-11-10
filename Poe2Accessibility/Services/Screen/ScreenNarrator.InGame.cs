@@ -8,6 +8,47 @@ namespace Poe2Accessibility.Services
     /// <summary>In-game rules of <see cref="ScreenNarrator"/>: the focus layer, panels and popups, the objective box and new HUD texts.</summary>
     public sealed partial class ScreenNarrator
     {
+        /// <summary>A panel that opened while its cursor's line still waited (<see cref="FocusPending"/>), kept this long for that line.</summary>
+        private const int HeldPageMs = 1000;
+
+        private (IntPtr Layer, IReadOnlyList<ScreenText> Texts, DateTime At)? heldPage;
+
+        /// <summary>The focus tracker sees a grid's cursor whose line is not said yet.</summary>
+        public Func<bool>? FocusPending { get; set; }
+
+        /// <summary>
+        ///     A tabbed page opening with the focus (a merchant's stock, a stash): the gamble when the game marks the stock
+        ///     so, the tab, the focus, then the gold the inventory shows — after the item, never as the first line.
+        /// </summary>
+        private void SayPageWithFocus(IReadOnlyList<ScreenText> texts, AccessibleUiNode? focus, string pageTab)
+        {
+            var context = focus?.Context ?? string.Empty;
+            var gamble = texts.FirstOrDefault(text => text.Name == GameLayout.InGameUi.GamblingStockLabelName) is { } stock ? Announcements.GambleStock(stock.Text) : string.Empty;
+            var pageBeside = FocusDetails.PageBeside(context, pageTab, this.SidePanel?.Invoke() ?? string.Empty);
+            this.Speak("page with focus", Announcements.Sentences(new[] { gamble, pageBeside, FocusDetails.PagePlace(context, pageTab), this.lastFocusSpeech }), true);
+            var counter = this.GoldCounter?.Invoke() ?? IntPtr.Zero;
+            if (counter != IntPtr.Zero && texts.FirstOrDefault(text => text.Address == counter) is { } gold)
+            {
+                this.Speak("gold after page", gold.Text, false);
+            }
+        }
+
+        /// <summary>The focus of a panel held for it is due: said as the page's opening when the page has a tab; false when it is no such page.</summary>
+        private bool SayHeldPage(AccessibleUiNode focus)
+        {
+            var held = this.heldPage;
+            this.heldPage = null;
+            if (held is not { } page || page.Layer != (this.FocusLayer?.Invoke() ?? IntPtr.Zero) || (DateTime.UtcNow - page.At).TotalMilliseconds >= HeldPageMs ||
+                this.selectedTab(page.Layer) is not { Length: > 0 } tab)
+            {
+                return false;
+            }
+
+            this.tabbedLayer = page.Layer;
+            this.SayPageWithFocus(page.Texts, focus, tab);
+            return true;
+        }
+
         /// <summary>In game: the focus layer speaks; panels, popups, the death screen and new texts follow the in-game rules.</summary>
         private void OnInGameChange(ScreenChange change, ScreenSnapshot snapshot, AccessibleUiNode? focus, IntPtr focusLayer, System.Collections.Generic.List<ScreenText> legends)
         {
@@ -117,7 +158,16 @@ namespace Poe2Accessibility.Services
                 // A small box without focus (Engrave? Confirm A, Back B) is answered with its buttons: say them.
                 // A bare number means nothing alone (a stash tab's title while the focus moves to the new tab).
                 // Nor does a tier numeral (a gem's "I" in the tab being drawn, said alone on a stash tab switch).
-                var content = change.Texts.Where(text => !IsNumber(text.Text) && !IsTierNumeral(text.Text)).ToList();
+                if (this.FocusPending?.Invoke() == true)
+                {
+                    // The cursor is on the panel already and its line waits for the item's tooltip: the panel opens with
+                    // that line, as when the focus comes first (a merchant opened as "4.776 oro. Oro", live 2026-11-10).
+                    this.heldPage = change.Kind == ScreenChangeKind.LayerOpened || this.heldPage == null ? (change.Layer.Address, change.Texts, DateTime.UtcNow) : this.heldPage;
+                    return;
+                }
+
+                var goldChrome = this.Chrome(change.Texts);
+                var content = change.Texts.Where(text => !IsNumber(text.Text) && !IsTierNumeral(text.Text) && !goldChrome.Contains(text.Address)).ToList();
                 var shown = content.Count <= SmallBoxTexts && legends.Count > 0
                     ? Announcements.Sentences(new[] { Describe(content), Describe(legends) })
                     : Describe(content);
@@ -211,8 +261,7 @@ namespace Poe2Accessibility.Services
                 // the selected tab and the focus, as pre-game — never the page's labels. A focus outside the page (the
                 // inventory beside the stash) is said in its own part.
                 this.tabbedLayer = change.Layer.Address;
-                var pageBeside = FocusDetails.PageBeside(focus?.Context ?? string.Empty, pageTab, this.SidePanel?.Invoke() ?? string.Empty);
-                this.Speak("page with focus", Announcements.Sentences(new[] { pageBeside, FocusDetails.PagePlace(focus?.Context ?? string.Empty, pageTab), this.lastFocusSpeech }), true);
+                this.SayPageWithFocus(change.Texts, focus, pageTab);
             }
             else if (change.Layer.Address != focusLayer)
             {

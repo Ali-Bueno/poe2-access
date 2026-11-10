@@ -164,9 +164,20 @@ namespace Poe2Accessibility.Services
                 ?? open.OrderBy(entry => entry.FromLevel).FirstOrDefault();
         }
 
-        /// <summary>The slots an item would go in, by its id's folder; none for what is not worn or is not told apart (charms).</summary>
+        /// <summary>
+        ///     Ends the id of a gamble's random item ("…/OneHandSpears/FourSpearGamble", Finn's stock, memory 2026-11-10, 0.5.5f):
+        ///     it has neither base nor modifiers until bought, so the build says nothing of it.
+        /// </summary>
+        private const string GambleSuffix = "Gamble";
+
+        /// <summary>The slots an item would go in, by its id's folder; none for what is not worn or is not told apart (charms, a gamble's random item).</summary>
         public static IReadOnlyList<(string Slot, int X)> SlotsFor(string itemId)
         {
+            if (itemId.EndsWith(GambleSuffix, StringComparison.Ordinal))
+            {
+                return Array.Empty<(string, int)>();
+            }
+
             if (itemId.Contains("/Flasks/", StringComparison.OrdinalIgnoreCase))
             {
                 return itemId.Contains("FlaskLife", StringComparison.OrdinalIgnoreCase) ? new[] { (FlaskSlot, 0) }

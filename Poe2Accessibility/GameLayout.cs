@@ -395,6 +395,12 @@ namespace Poe2Accessibility
             /// <summary>The account's points, top right of every shop page ("300").</summary>
             public const string ShopBalanceName = "player_mtx_points_label";
 
+            /// <summary>
+            ///     The gamble's stock counter under a merchant's stock ("100/100" after a bag icon; Finn's "Comprar o vender
+            ///     objetos", UI dump 2026-11-10, 0.5.5f): the window has no title, the control's name is what says it is the gamble.
+            /// </summary>
+            public const string GamblingStockLabelName = "gambling_stock_display_label";
+
             /// <summary>The guild's points under the account's, on the shop's guild tab ("0"; UI dump 2026-11-10, docs/research/shop.md).</summary>
             public const string ShopGuildBalanceName = "player_guild_points_label";
 

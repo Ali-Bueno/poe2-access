@@ -120,6 +120,18 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            if (this.deferredFocus is { } waiting && waiting.Node.Address == node.Address && node.Address == this.valueOwner &&
+                waiting.Text.EndsWith(this.lastFocusSpeech, StringComparison.Ordinal))
+            {
+                // Its line is not said yet: the tooltip joins it instead of going first and being cut by it (a merchant's
+                // opening lost the item's lines, live 2026-11-10).
+                var named = waiting.Text[..^this.lastFocusSpeech.Length];
+                this.tooltipSaid = this.ReadTooltips || node.IsHovered ? node.Tooltip : Array.Empty<string>();
+                this.lastFocusSpeech = this.Focused(node);
+                this.deferredFocus = (named + this.lastFocusSpeech, waiting.At, node);
+                return;
+            }
+
             if ((this.ReadTooltips || node.IsHovered) && node.Tooltip.Count > 0 && node.Address == this.valueOwner)
             {
                 // Only what was not said yet: a passive node is named before its tooltip is built, its stats and
@@ -170,7 +182,10 @@ namespace Poe2Accessibility.Services
                 // A message that cut in while the focus waited is not cut off by it: "Waiting for the player to accept
                 // the trade invitation…" over the party panel the focus went back to was cut by the panel's lines
                 // (user 2026-10-28).
-                this.Speak("focus in a new layer", this.WithPendingPage(text), this.cutInAt < deferred.At);
+                if (!this.SayHeldPage(deferred.Node))
+                {
+                    this.Speak("focus in a new layer", this.WithPendingPage(text), this.cutInAt < deferred.At);
+                }
             }
 
             if (this.deferredFocus == null && this.hintAfterFocus.Length > 0)
