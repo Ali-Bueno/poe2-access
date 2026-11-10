@@ -118,7 +118,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         ///     Gets the LargeMap UiElement.
         ///     UiRoot -> MainChild -> 3rd index -> 1nd index.
         /// </summary>
-        public LargeMapUiElement LargeMap { get; }
+        public MapUiElement LargeMap { get; }
 
         /// <summary>
         ///     Gets the MiniMap UiElement.
@@ -262,7 +262,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         {
             this.UpdateParentsCache();
             var reader = Core.Process.Handle;
-            var data1 = reader.ReadMemory<ImportantUiElementsOffsets>(Core.GHSettings.IsTaiwanClient ? this.Address - 0x08 : this.Address);
+            var data1 = reader.ReadMemory<ImportantUiElementsOffsets>(this.Address);
             if (Core.GHSettings.EnableControllerMode)
             {
                 this.UpdateMapAddresses();

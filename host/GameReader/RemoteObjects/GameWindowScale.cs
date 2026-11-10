@@ -31,14 +31,6 @@ namespace GameReader.RemoteObjects
         private float[] valuesSnap = new float[6] { 1f, 1f, 1f, 1f, 1f, 1f };
 
         /// <summary>
-        ///     Gets the current game window scale values.
-        ///     There are 3 rows (1 for each UI Element type)
-        ///     and each row contains 2 element.
-        ///     Returns a per-call snapshot — atomic with respect to UpdateData.
-        /// </summary>
-        public float[] Values => System.Threading.Volatile.Read(ref this.valuesSnap);
-
-        /// <summary>
         ///     Gets the Scale Value depending on the index and multiplier.
         /// </summary>
         /// <param name="index">index read from the Ui-Element.</param>
