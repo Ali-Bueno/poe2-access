@@ -3,6 +3,7 @@ namespace Poe2Accessibility.Tests
     using System;
     using System.Collections.Generic;
     using GameReader.RemoteObjects.States.InGameStateObjects;
+    using GameReader.Utils;
     using Poe2Accessibility.Services;
     using static Check;
 
@@ -26,6 +27,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AnEntityNameBelongsToItsAddressAndId), AnEntityNameBelongsToItsAddressAndId),
             (nameof(AnotherInstanceOfTheSameAreaIsToldOnce), AnotherInstanceOfTheSameAreaIsToldOnce),
             (nameof(AnUntypedEntitysComponentsRestLikeATypedOnes), AnUntypedEntitysComponentsRestLikeATypedOnes),
+            (nameof(ABuffHeldAsSeveralEntriesCountsEveryOne), ABuffHeldAsSeveralEntriesCountsEveryOne),
         };
 
         /// <summary>A flask whose drinks were seen to cost <paramref name="cost"/>, left at <paramref name="charges"/>; the clock ends past the last drink.</summary>
@@ -195,6 +197,21 @@ namespace Poe2Accessibility.Tests
             Equal(EntityRefresh.Reads.Components, EntityRefresh.OfResting(untyped: false, typingDue: false, useless: false, 100, Rest), "a typed one, as before");
             Equal(EntityRefresh.Reads.Nothing, EntityRefresh.OfResting(untyped: false, typingDue: false, useless: false, 99, Rest), "resting");
             Equal(EntityRefresh.Reads.Nothing, EntityRefresh.OfResting(untyped: false, typingDue: false, useless: true, 5000, Rest), "an opened chest is not read at all");
+        }
+
+        private static void ABuffHeldAsSeveralEntriesCountsEveryOne()
+        {
+            // The host keeps one entry per buff name: the first as read, each further one merged into it.
+            short held = 0;
+            held = BuffStacks.Merged(held, 0);
+            Equal<short>(2, held, "two entries without a count are two stacks");
+            held = BuffStacks.Merged(held, 0);
+            Equal<short>(3, held, "three are three (they were merged to two)");
+            Equal(3, PlayerCharges.Held(held), "as the plugin counts them");
+            Equal<short>(5, BuffStacks.Merged(3, 2), "entries with their own counts add up");
+            Equal<short>(4, BuffStacks.Merged(0, 3), "a first entry without a count is one");
+            Equal(1, PlayerCharges.Held(0), "one entry alone is one, unmerged");
+            Equal(short.MaxValue, BuffStacks.Merged(short.MaxValue, 5), "never past what the field holds");
         }
 
         private static void AFlasksCostOutlivesAnAreaButNotACharacter()

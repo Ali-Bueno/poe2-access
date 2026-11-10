@@ -133,3 +133,7 @@ rule now in force, where.
   attempts an untyped entity's components rest like a typed one's, re-read every 100 ms (`EntityRefresh.OfResting`).
   A typed Useless entity (an opened chest) is still not read. Nothing that worked before is lost: monsters and
   players keep their path through the method unchanged.
+- **Stacks of a buff held as separate entries (A6).** The host keeps one `StatusEffects` entry per buff name and
+  merges further entries of the name into it, counting an incoming entry without a count as one but the entry already
+  kept as its raw 0: three entries read as 2 stacks. Rule: `BuffStacks.Merged` counts both sides for what they hold,
+  at least one each. A lone entry stays as read (the plugin's `PlayerCharges.Held` makes it one).
