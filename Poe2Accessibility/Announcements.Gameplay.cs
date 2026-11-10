@@ -108,6 +108,9 @@ namespace Poe2Accessibility
             ? T($"{name} refilled, 1 use", $"{name} recargado, 1 uso")
             : T($"{name} refilled, {uses} uses", $"{name} recargado, {uses} usos");
 
+        /// <summary>An empty flask filled again before any drink showed what one costs: by its charges.</summary>
+        public static string FlaskRefilledCharges(string name, int charges) => T($"{name} refilled, {charges} charges", $"{name} recargado, {charges} cargas");
+
         /// <summary>A flask put on the belt during play: "Nuevo frasco: Frasco de vida mayor, 3 usos".</summary>
         public static string FlaskArrived(string flask) => T($"New flask: {flask}", $"Nuevo frasco: {flask}");
 

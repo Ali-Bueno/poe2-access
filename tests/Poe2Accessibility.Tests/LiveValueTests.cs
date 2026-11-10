@@ -80,6 +80,8 @@ namespace Poe2Accessibility.Tests
             unknown.Update(1, Mana, 12, 1000);
             Equal(FlaskNews.None, unknown.Update(1, Mana, 15, 1500), "nor refilled: every charge gained would be told");
             Equal(FlaskNews.Drunk, unknown.Update(1, Mana, 0, 10_000), "no charge at all is empty whatever a drink costs");
+            Equal(FlaskNews.Refilled, unknown.Update(1, Mana, 75, 20_000), "an empty flask filled at the well: said, though no drink has shown its cost");
+            Equal(FlaskNews.None, unknown.Update(1, Mana, 78, 21_000), "once: the charges after it are not told");
         }
 
         private static void AChargeGainedDuringADrinkDoesNotChangeTheCost()

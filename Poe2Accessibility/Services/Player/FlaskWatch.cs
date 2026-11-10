@@ -90,7 +90,7 @@ namespace Poe2Accessibility.Services
                 var news = told switch
                 {
                     FlaskNews.Drunk => Announcements.Flask(name, charges, uses),
-                    FlaskNews.Refilled when uses is { } gained => Announcements.FlaskRefilled(name, gained),
+                    FlaskNews.Refilled => uses is { } gained ? Announcements.FlaskRefilled(name, gained) : Announcements.FlaskRefilledCharges(name, charges),
                     FlaskNews.New => Announcements.FlaskArrived(Announcements.Flask(name, charges, uses)),
                     _ => string.Empty,
                 };

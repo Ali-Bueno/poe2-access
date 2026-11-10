@@ -50,11 +50,7 @@ namespace Poe2Accessibility.Services
             cost.Settle(now);
             var drank = same && charges < before.Charges && cost.Dropped(before.Charges - charges, now, draining);
             var empty = charges <= 0 || (cost.PerUse is { } price && charges < price);
-            if (!empty)
-            {
-                this.dry.Remove(slot);
-            }
-
+            var filled = !empty && this.dry.Remove(slot);
             var ranDry = empty && this.dry.Add(slot);
             if (!same)
             {
@@ -63,7 +59,9 @@ namespace Poe2Accessibility.Services
 
             if (cost.PerUse is not { } perUse)
             {
-                return drank || ranDry ? FlaskNews.Drunk : FlaskNews.None;
+                // Without a cost there are no uses to count, but an empty flask holding charges again is a refill (the
+                // town well filled a flask never drunk and nothing was said, live 2026-11-10).
+                return drank || ranDry ? FlaskNews.Drunk : filled ? FlaskNews.Refilled : FlaskNews.None;
             }
 
             var (uses, usesBefore) = (charges / perUse, before.Charges / perUse);
