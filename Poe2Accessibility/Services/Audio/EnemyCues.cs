@@ -52,7 +52,9 @@ namespace Poe2Accessibility.Services
         private readonly AudioCueService audio;
         private readonly HostMemoryReader memory;
         private byte[] sightGrid = Array.Empty<byte>();
-        private IntPtr sightGridSource;
+
+        /// <summary>Where the sight layer was read and in which area instance: the game hands a freed vector's memory to the next area's.</summary>
+        private (IntPtr First, string Instance) sightGridSource;
         private readonly PluginLog log;
         private long lastReport;
         private int pulses;
@@ -308,9 +310,10 @@ namespace Poe2Accessibility.Services
         {
             var walkable = area.GridWalkableData;
             var layer = area.TerrainMetadata.GridLandscapeData;
-            if (layer.First != this.sightGridSource)
+            var source = (layer.First, area.AreaHash ?? string.Empty);
+            if (source != this.sightGridSource)
             {
-                this.sightGridSource = layer.First;
+                this.sightGridSource = source;
                 this.sightGrid = this.memory.ReadStdVector<byte>(layer, walkable.Length);
             }
 
