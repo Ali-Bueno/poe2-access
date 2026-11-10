@@ -21,6 +21,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AVanishedTargetIsReachedOnlyIfUsingItRemovesIt), AVanishedTargetIsReachedOnlyIfUsingItRemovesIt),
             (nameof(TheScannersChoiceEndsWithItsArea), TheScannersChoiceEndsWithItsArea),
             (nameof(AReadingThatWaitedTooLongIsNotSaid), AReadingThatWaitedTooLongIsNotSaid),
+            (nameof(ATileBossRoomIsDefeatedOnceTheGameSaysSo), ATileBossRoomIsDefeatedOnceTheGameSaysSo),
         };
 
         private static void ANumberChangingUnderTheCursorIsSaidAlone()
@@ -157,6 +158,22 @@ namespace Poe2Accessibility.Tests
             Equal("Life 50 percent", string.Join(" | ", floor.Dropped), "the old reading is not");
             Equal(true, SpeechPriority.IsReading(SpeechKind.LifeAndMana) && SpeechPriority.IsReading(SpeechKind.BossLife) && SpeechPriority.IsReading(SpeechKind.Charges), "percentages and counts are readings");
             Equal(false, SpeechPriority.IsReading(SpeechKind.GroundItems) || SpeechPriority.IsReading(SpeechKind.StatusBegins) || SpeechPriority.IsReading(SpeechKind.Arrivals), "what happened is not");
+        }
+
+        /// <summary>"Boss room: Crop Circle (level 4 skill gem)" comes from tiles and a table: only what was seen makes it "defeated".</summary>
+        private static void ATileBossRoomIsDefeatedOnceTheGameSaysSo()
+        {
+            var none = Array.Empty<(string, bool)>();
+            var nobody = Array.Empty<string>();
+            Equal(false, MinimapMarks.RoomDefeated("Asinia", 1, none, nobody), "nothing seen: the boss is to fight");
+            Equal(false, MinimapMarks.RoomDefeated("Asinia", 1, new[] { ("Asinia", false) }, nobody), "the game's mark still live");
+            Equal(true, MinimapMarks.RoomDefeated("Asinia", 2, new[] { ("Asinia", true), ("Draven", false) }, nobody), "the game's mark of that boss gone spent");
+            Equal(false, MinimapMarks.RoomDefeated("Draven", 2, new[] { ("Asinia", true), ("Draven", false) }, nobody), "another room's boss lives");
+            Equal(true, MinimapMarks.RoomDefeated("Crop Circle", 1, new[] { (string.Empty, true) }, nobody), "one arena, one spent mark without a label");
+            Equal(false, MinimapMarks.RoomDefeated("Crop Circle", 2, new[] { (string.Empty, true) }, nobody), "two arenas: which one the mark is of is not known");
+            Equal(true, MinimapMarks.RoomDefeated("The Bloated Miller", 3, none, new[] { "the bloated miller" }), "the boss seen defeated here");
+            Equal(true, MinimapMarks.RoomDefeated("Asinia", 3, none, new[] { "Asinia, the Praetor's Consort" }), "by the name its room gives it");
+            Equal(false, MinimapMarks.RoomDefeated(string.Empty, 3, none, new[] { "Asinia" }), "an unnamed arena is nobody's by name");
         }
     }
 }
