@@ -39,6 +39,22 @@ namespace Poe2Accessibility.Services
     /// <summary>One skill of the build: owned or not, cut but not yet a skill, and its supports.</summary>
     public sealed record SkillStatus(BuildSkill Skill, bool Owned, IReadOnlyList<SupportStatus> Supports);
 
+    /// <summary>
+    ///     A build skill's supports sorted by where they are, each group in the build's order, and the supports socketed in
+    ///     the skill that the build does not put in it (gem keys).
+    /// </summary>
+    public sealed record SupportGroups(
+        IReadOnlyList<SupportStatus> Socketed,
+        IReadOnlyList<SupportStatus> InBag,
+        IReadOnlyList<SupportStatus> OtherTier,
+        IReadOnlyList<SupportStatus> InOtherSkill,
+        IReadOnlyList<SupportStatus> Missing,
+        IReadOnlyList<string> Outside)
+    {
+        /// <summary>The supports the build puts in the skill.</summary>
+        public int Wanted => this.Socketed.Count + this.InBag.Count + this.OtherTier.Count + this.InOtherSkill.Count + this.Missing.Count;
+    }
+
     /// <summary>The build's gems set against what the character has. Pure.</summary>
     public static class BuildGems
     {
@@ -73,6 +89,20 @@ namespace Poe2Accessibility.Services
         {
             return new SkillStatus(skill, owned != null,
                 skill.Supports.Where(support => support.ToLevel >= level).Select(support => StateOf(support, skill, owned, holdings)).ToList());
+        }
+
+        /// <summary>
+        ///     A skill's supports by where they are, for a line heard group by group. A socketed gem of another tier than the
+        ///     build's belongs to that tier's group, not to the strangers.
+        /// </summary>
+        public static SupportGroups Grouped(SkillStatus status, OwnedSkill? owned)
+        {
+            List<SupportStatus> In(GemState state) => status.Supports.Where(support => support.State == state).ToList();
+            var otherTier = In(GemState.OtherTier);
+            var outside = (owned?.Supports ?? Array.Empty<string>())
+                .Where(key => status.Supports.All(support => support.Gem.Key != key) && otherTier.All(support => support.Held != key))
+                .Distinct().ToList();
+            return new SupportGroups(In(GemState.Socketed), In(GemState.InBag), otherTier, In(GemState.InOtherSkill), In(GemState.Missing), outside);
         }
 
         /// <summary>The build's skill for a gem the character has, among those still in use at this level.</summary>

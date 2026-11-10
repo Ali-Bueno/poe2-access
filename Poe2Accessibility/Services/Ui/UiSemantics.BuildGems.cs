@@ -285,6 +285,12 @@ namespace Poe2Accessibility.Services
             if (!names.SetEquals(this.panelSkills) || this.panelSkillsOf != AskingCharacter())
             {
                 (this.panelSkills, this.panelSkillsOf, this.gemHoldings) = (names, AskingCharacter(), null);
+                // Every row's gem inventory, not only the focused row's: the panel's count of socketed supports is said on
+                // entering, before the other skills were visited.
+                foreach (var sibling in this.elements.ReadChildren(list))
+                {
+                    this.RowSkillGem(sibling);
+                }
             }
         }
 
@@ -347,10 +353,20 @@ namespace Poe2Accessibility.Services
 
             yield return Announcements.InBuild(false);
             var holdings = this.Holdings();
-            var status = BuildGems.StatusOf(planned, active.Level, holdings, own ?? holdings.Skills.FirstOrDefault(held => held.Key == key));
-            if (status.Supports.Count > 0)
+            var owned = own ?? holdings.Skills.FirstOrDefault(held => held.Key == key);
+            var groups = BuildGems.Grouped(BuildGems.StatusOf(planned, active.Level, holdings, owned), owned);
+            static string Name(SupportStatus support) => GemNames.Of(support.Gem.Key);
+            var line = Announcements.BuildSupportGroups(
+                groups.Wanted,
+                groups.Socketed.Select(Name).ToList(),
+                groups.InBag.Select(Name),
+                groups.OtherTier.Select(support => Announcements.BuildTierHeld(GemNames.Of(support.Held), Name(support))),
+                groups.InOtherSkill.Select(support => Announcements.GemInSkill(Name(support), GemNames.Of(support.Held))),
+                groups.Missing.Select(support => Leveled(support.Gem, active.Level)),
+                groups.Outside.Select(GemNames.Of));
+            if (line.Length > 0)
             {
-                yield return Announcements.BuildSupports(status.Supports.Select(support => this.SupportLine(support, active.Level)));
+                yield return line;
             }
         }
 

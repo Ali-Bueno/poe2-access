@@ -18,12 +18,6 @@ namespace Poe2Accessibility
         public static string BuildNextSupport(string support, string skill) =>
             T($"Next support: {support} for {skill}", $"Siguiente asistencia: {support} para {skill}");
 
-        /// <summary>A gem the build takes later: "Combat Frenzy, from level 26".</summary>
-        public static string GemFromLevel(string gem, int level) => T($"{gem}, from level {level}", $"{gem}, desde el nivel {level}");
-
-        /// <summary>A skill's supports in the build, each with where it is: "Build supports: Rage II, missing; Bludgeon, socketed".</summary>
-        public static string BuildSupports(IEnumerable<string> supports) => T("Build supports: ", "Asistencias de la build: ") + string.Join("; ", supports);
-
         /// <summary>One support of the build: socketed, lying in the inventory, held at another tier, sitting in another skill, or missing.</summary>
         public static string BuildSupport(string name, GemState state, string held) => state switch
         {

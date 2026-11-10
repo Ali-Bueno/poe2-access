@@ -24,6 +24,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheActiveBuildIsTheCharactersFile), TheActiveBuildIsTheCharactersFile),
             (nameof(ATreesBuildIsItsOwnCharacters), ATreesBuildIsItsOwnCharacters),
             (nameof(ASupportIsWhereTheCharacterHasIt), ASupportIsWhereTheCharacterHasIt),
+            (nameof(ASkillsSupportsAreHeardByGroup), ASkillsSupportsAreHeardByGroup),
             (nameof(TheNextGemIsOneTheLevelAllows), TheNextGemIsOneTheLevelAllows),
             (nameof(AGemIsNamedInTheGamesLanguage), AGemIsNamedInTheGamesLanguage),
             (nameof(TheGameFilesNameTheBuildsGems), TheGameFilesNameTheBuildsGems),
@@ -106,6 +107,46 @@ namespace Poe2Accessibility.Tests
             Expect((GemState.Socketed, GemState.Missing), (own.Supports[0].State, own.Supports[1].State), "the copy asked about decides");
             Expect("SkillGemTwister", string.Join(" ", BuildGems.SkillsUsing(plan, 23, "SupportGemFrostNexus").Select(skill => skill.Gem.Key)), "the skills a support goes in");
             Expect(null, BuildGems.SkillOf(plan, 23, "SkillGemOld"), "a skill past its levels is no longer the build's");
+        }
+
+        private static void ASkillsSupportsAreHeardByGroup()
+        {
+            static string Support(string key, int from, int to) => "{\"id\":\"Metadata/Items/Gems/" + key + "\",\"level_interval\":[" + from + "," + to + "]}";
+            var plan = BuildPlan.Parse("{\"name\":\"Groups\",\"passives\":[],\"skills\":[{\"id\":\"Metadata/Items/Gem/SkillGemTwister\",\"level_interval\":[1,100],\"support_skills\":[" +
+                string.Join(",", Support("SupportGemRageTwo", 1, 100), Support("SupportGemBrutality", 1, 100), Support("SupportGemMartialTempoTwo", 1, 100),
+                    Support("SupportGemFrostNexus", 1, 100), Support("SupportGemZenithTwo", 1, 100), Support("SupportGemLate", 26, 100), Support("SupportGemGone", 1, 10)) + "]}]}")!;
+            var own = new OwnedSkill("SkillGemTwister", new[] { "SupportGemRageTwo", "SupportGemMartialTempo", "SupportGemStranger", "SupportGemGone" });
+            var holdings = new GemHoldings(new[] { own, new OwnedSkill("SkillGemOther", new[] { "SupportGemFrostNexus" }) }, new[] { "SupportGemBrutality" });
+            var groups = BuildGems.Grouped(BuildGems.StatusOf(plan.Skills[0], 23, holdings, own), own);
+            static string Keys(IEnumerable<SupportStatus> supports) => string.Join(" ", supports.Select(support => support.Gem.Key));
+            Expect(6, groups.Wanted, "the supports the build still uses at this level");
+            Expect("SupportGemRageTwo", Keys(groups.Socketed), "socketed");
+            Expect("SupportGemBrutality", Keys(groups.InBag), "in the inventory");
+            Expect("SupportGemMartialTempoTwo SupportGemMartialTempo", Keys(groups.OtherTier) + " " + groups.OtherTier[0].Held, "another tier, with the one held");
+            Expect("SupportGemFrostNexus SkillGemOther", Keys(groups.InOtherSkill) + " " + groups.InOtherSkill[0].Held, "in another skill, with the skill");
+            Expect("SupportGemZenithTwo SupportGemLate", Keys(groups.Missing), "missing, a later one among them, in the build's order");
+            Expect("SupportGemStranger SupportGemGone", string.Join(" ", groups.Outside), "socketed here and not the build's: a stranger, one the build dropped; not the other tier");
+            Expect(0, BuildGems.Grouped(BuildGems.StatusOf(plan.Skills[0], 23, holdings, null), null).Outside.Count, "a skill not owned holds no stranger");
+
+            Localization.Set("es", new());
+            try
+            {
+                Expect("Asistencias de la build: 1 de 4 engarzadas. Engarzadas: Furia II. En tu inventario: Brutalidad. De otro nivel: tienes Furia I, la build pide Furia II. " +
+                       "En otra habilidad: Nexo, en Tornado. Faltan: Cénit II; Lanzamiento calculado, desde el nivel 26. Fuera de la build: Ajena",
+                    Announcements.BuildSupportGroups(4, new[] { "Furia II" }, new[] { "Brutalidad" }, new[] { Announcements.BuildTierHeld("Furia I", "Furia II") },
+                        new[] { Announcements.GemInSkill("Nexo", "Tornado") }, new[] { "Cénit II", Announcements.GemFromLevel("Lanzamiento calculado", 26) }, new[] { "Ajena" }),
+                    "the count, then each group that holds something");
+                Expect("Asistencias de la build: 2 de 2 engarzadas", Announcements.BuildSupportGroups(2, new[] { "A", "B" }, Array.Empty<string>(), Array.Empty<string>(),
+                    Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>()), "all socketed: the count alone");
+                Expect("Asistencias de la build: 0 de 1 engarzadas. Faltan: A", Announcements.BuildSupportGroups(1, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>(),
+                    Array.Empty<string>(), new[] { "A" }, Array.Empty<string>()), "an empty group is not named");
+                Expect("Fuera de la build: A", Announcements.BuildSupportGroups(0, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>(),
+                    Array.Empty<string>(), Array.Empty<string>(), new[] { "A" }), "a build skill without supports names only the strangers");
+            }
+            finally
+            {
+                Localization.Set("en", new());
+            }
         }
 
         private static void TheNextGemIsOneTheLevelAllows()
