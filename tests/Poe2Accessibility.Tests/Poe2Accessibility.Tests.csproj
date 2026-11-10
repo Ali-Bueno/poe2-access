@@ -181,6 +181,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MinimapMarks.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\BarrierMemory.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\GridSamples.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Ui\SettlingMemo.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\DodgeThreats.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\DodgeTimings.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\DodgeCoverage.cs" />

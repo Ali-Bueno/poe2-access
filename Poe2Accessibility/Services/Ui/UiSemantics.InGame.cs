@@ -343,7 +343,8 @@ namespace Poe2Accessibility.Services
             }
 
             var shift = this.elements.Controls?.Current(ControlGroup.PanelTitle) ?? 0;
-            var labelled = string.Empty;
+            var shown = new List<(UiElementReader.ElementInfo Info, string Title)>();
+            var key = inventoryPanel.ToInt64();
             foreach (var child in this.elements.ReadChildren(root))
             {
                 if (!this.elements.TryReadElement(child, out var parent) || parent.Name != GameLayout.InGameUi.PanelsParentName)
@@ -360,22 +361,44 @@ namespace Poe2Accessibility.Services
 
                     foreach (var panel in this.elements.ReadChildren(groupInfo))
                     {
-                        if (!this.elements.TryReadElement(panel, out var info) || !info.IsVisibleFlag)
+                        if (this.elements.TryReadElement(panel, out var info) && info.IsVisibleFlag)
                         {
-                            continue;
-                        }
-
-                        var title = this.TitleAt(panel, shift);
-                        if (title.Length > 0 && !this.HoldsMainInventory(info))
-                        {
-                            return title;
-                        }
-
-                        if (title.Length == 0 && labelled.Length == 0 && !this.HoldsMainInventory(info))
-                        {
-                            labelled = this.FirstLabel(info);
+                            var title = this.TitleAt(panel, shift);
+                            shown.Add((info, title));
+                            key = MixKey(MixKey(key, panel.ToInt64()), title.GetHashCode());
                         }
                     }
+                }
+            }
+
+            // Which panel is the side one takes a walk of each (hundreds of elements, four times a second from the salvage
+            // watch): the answer is kept while the same panels show the same titles (SettlingMemo).
+            var now = Environment.TickCount64;
+            if (!this.sidePanel.TryGet(key, now, out var side))
+            {
+                side = this.SidePanelAmong(shown);
+                this.sidePanel.Set(key, now, side);
+            }
+
+            return side;
+        }
+
+        private static long MixKey(long key, long value) => unchecked((key ^ value) * KeyPrime);
+
+        /// <summary>The first titled panel that is not the inventory's own; without one, the first label of an untitled one.</summary>
+        private string SidePanelAmong(List<(UiElementReader.ElementInfo Info, string Title)> shown)
+        {
+            var labelled = string.Empty;
+            foreach (var (info, title) in shown)
+            {
+                if (title.Length > 0 && !this.HoldsMainInventory(info))
+                {
+                    return title;
+                }
+
+                if (title.Length == 0 && labelled.Length == 0 && !this.HoldsMainInventory(info))
+                {
+                    labelled = this.FirstLabel(info);
                 }
             }
 
@@ -408,6 +431,11 @@ namespace Poe2Accessibility.Services
 
                 foreach (var child in this.elements.ReadChildren(node))
                 {
+                    if (queue.Count >= budget)
+                    {
+                        break; // never looked at: the budget ends before its turn (the passive tree's canvas has 4,500 children)
+                    }
+
                     if (this.elements.TryReadElement(child, out var info) && info.IsVisibleFlag)
                     {
                         queue.Enqueue((info, depth + 1));
@@ -436,6 +464,11 @@ namespace Poe2Accessibility.Services
                 {
                     foreach (var child in this.elements.ReadChildren(node))
                     {
+                        if (queue.Count >= budget)
+                        {
+                            break; // never looked at: the budget ends before its turn
+                        }
+
                         if (this.elements.TryReadElement(child, out var info))
                         {
                             queue.Enqueue((info, depth + 1));
@@ -449,6 +482,11 @@ namespace Poe2Accessibility.Services
 
         private const int MainGridSearchDepth = 5;
         private const int MainGridSearchNodes = 600;
+
+        /// <summary>The 64-bit FNV prime: mixes the shown panels into the key of <see cref="sidePanel"/>.</summary>
+        private const long KeyPrime = 1099511628211;
+
+        private readonly SettlingMemo<string> sidePanel = new();
 
         /// <summary>Whether an ancestor panel carries this title (a social page under the Challenges overlay does not).</summary>
         public bool IsInPanel(IntPtr address, string title)

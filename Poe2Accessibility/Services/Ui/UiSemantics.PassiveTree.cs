@@ -351,25 +351,25 @@ namespace Poe2Accessibility.Services
         ///     zoom, the pan or the opening animation. One frame's screen pixels were cached before, and a frame taken while
         ///     the tree opened gave other picks at 5:4 and 21:9 than the game made, which were the same at both (2026-11-08).
         /// </summary>
-        private PassivePlaces PlacesOf(PassiveGraph graph)
+        private PassivePlaces PlacesOf(PassiveGraph graph, bool countNow = false)
         {
             var now = Environment.TickCount64;
             if (this.passivePlaces is { } cached && ReferenceEquals(cached.Graph, graph))
             {
                 // The tree shows other nodes once an ascendancy is chosen or opened: places made before would give them none.
-                if (now < this.placesCountedAt + PlacesRecountMs)
+                if (!countNow && now < this.placesCountedAt + PlacesSliceMs)
                 {
                     return cached;
                 }
 
                 this.placesCountedAt = now;
-                if (this.ShownNodes(graph) == cached.ShownNodes)
+                if ((countNow ? this.ShownNodes(graph) : this.ShownNodesSlice(graph)) is not { } shown || shown == cached.ShownNodes)
                 {
                     return cached;
                 }
             }
 
-            this.placesCountedAt = now;
+            (this.placesCountedAt, this.shownOrder) = (now, null);
             var records = new List<IntPtr>();
             var positions = new List<Vector2>();
             var gated = new HashSet<IntPtr>();
@@ -405,11 +405,20 @@ namespace Poe2Accessibility.Services
             return places;
         }
 
-        /// <summary>The places are counted again this often while a node is read: the count reads every node element's flags.</summary>
-        private const int PlacesRecountMs = 2000;
+        /// <summary>
+        ///     While a node is read the shown nodes are counted a slice at a time, a slice this often: all 4,500 elements'
+        ///     flags at once were 25 ms of one frame every two seconds (live, 2026-11-10). A count takes some 3 s this way.
+        /// </summary>
+        private const int PlacesSliceMs = 100;
+        private const int PlacesSliceNodes = 256;
 
-        /// <summary>A hovered node with no place asks for a recount at once, this often at most.</summary>
+        /// <summary>A hovered node with no place asks for a whole count at once, this often at most.</summary>
         private const int PlacesForcedMs = 500;
+
+        /// <summary>The count under way: the graph's elements in one order, how far it got and how many were shown so far.</summary>
+        private IntPtr[]? shownOrder;
+        private int shownAt;
+        private int shownSoFar;
 
         /// <summary>The linked step's gate is an ascendancy's key: over a third of the shown nodes carrying it is a misread (docs/research/passive-tree.md).</summary>
         private const int MaxGatedShare = 3;
@@ -418,17 +427,36 @@ namespace Poe2Accessibility.Services
         private long placesForcedAt;
 
         /// <summary>How many node elements the tree shows now: what the places were made from.</summary>
-        private int ShownNodes(PassiveGraph graph)
+        private int ShownNodes(PassiveGraph graph) => graph.Elements.Values.Count(this.IsShownNode);
+
+        private bool IsShownNode(IntPtr element) =>
+            this.reader.TryRead<GameOffsets.Objects.UiElement.UiElementBaseOffset>(element, out var raw) && GameOffsets.Objects.UiElement.UiElementBaseFuncs.IsVisibleChecker(raw.Flags);
+
+        /// <summary>
+        ///     The next slice of the count of shown node elements; the count once every element was looked at, null until
+        ///     then. Nodes shown or hidden while a count is under way give a count that is off, which reads as a change
+        ///     and makes the places again, as it should.
+        /// </summary>
+        private int? ShownNodesSlice(PassiveGraph graph)
         {
-            var shown = 0;
-            foreach (var element in graph.Elements.Values)
+            if (this.shownOrder == null)
             {
-                if (this.reader.TryRead<GameOffsets.Objects.UiElement.UiElementBaseOffset>(element, out var raw) && GameOffsets.Objects.UiElement.UiElementBaseFuncs.IsVisibleChecker(raw.Flags))
-                {
-                    shown++;
-                }
+                (this.shownOrder, this.shownAt, this.shownSoFar) = (graph.Elements.Values.ToArray(), 0, 0);
             }
 
+            var end = Math.Min(this.shownAt + PlacesSliceNodes, this.shownOrder.Length);
+            for (; this.shownAt < end; this.shownAt++)
+            {
+                this.shownSoFar += this.IsShownNode(this.shownOrder[this.shownAt]) ? 1 : 0;
+            }
+
+            if (this.shownAt < this.shownOrder.Length)
+            {
+                return null;
+            }
+
+            var shown = this.shownSoFar;
+            (this.shownAt, this.shownSoFar) = (0, 0);
             return shown;
         }
 
@@ -438,8 +466,8 @@ namespace Poe2Accessibility.Services
             var now = Environment.TickCount64;
             if (!this.PlacesOf(graph).Index.ContainsKey(hovered) && now - this.placesForcedAt >= PlacesForcedMs)
             {
-                (this.placesForcedAt, this.placesCountedAt) = (now, 0);
-                this.PlacesOf(graph);
+                this.placesForcedAt = now;
+                this.PlacesOf(graph, countNow: true);
             }
         }
 
