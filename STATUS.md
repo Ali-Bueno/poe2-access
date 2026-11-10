@@ -464,6 +464,15 @@ Next: (1) **Bosses by hand** — the Bloated Miller with a new low character (a 
 Earlier chunks, newest first: [status history](docs/status-history.md).
 
 ## Known issues / open questions
+- Next session (user 2026-11-10, left for then): (1) **Search highlight**: the stash/vendor/inventory field "Resaltar
+  objetos" (a regex) highlights matching items; the mod does not read it. (2) **Unusable items**: the game paints the cell of
+  an item the character cannot use red (screenshot 06:44, yarkey: the sceptre "Canto de condenación", needs 21 Int, and a pair
+  of gloves); the mod says "No puedes usarlo" only when a whole tooltip line is red, and this sceptre's requirement line
+  ("Requiere: Nivel 19, 10 Fue, 21 Int") colours only the unmet value inline, so nothing was said; the game also offers no
+  "Colocar [A]" on the weapon slots then. Planned test, both at once: inventory open with the sceptre, search "cetro", then a
+  `dump visible` (ResearchMode on for the moment; dumps of 2026-11-10 06:37 and 06:44 in `debug/` hold the inventory with the
+  red cells, the vendor behind a browser window) and compare the sceptre's element with the others; read the requirement
+  line's tagged text for the inline mark of an unmet value.
 - To fix (user 2026-11-10, dropping a sceptre): the held item was said by its file, "En la mano: Metadata/Items/Weapons/
   OneHandWeapons/Sceptres/FourSceptre4. Elige una celda…": `InventoryWatch` (line ~169) falls back to `entity.Path` when
   `DescribeItemEntity` reads no name; find why a sceptre is not described (base name lookup for FourSceptre4?) and never
