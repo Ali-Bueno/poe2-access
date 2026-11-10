@@ -196,7 +196,7 @@ namespace Poe2Accessibility.Services
 
             if (speech)
             {
-                this.output.Say(SpeechKind.Charges, full ? Announcements.RageFull : Announcements.RageEmpty);
+                this.output.Say(SpeechKind.Charges, full ? Announcements.RageFull : Announcements.RageEmpty, happened: true);
             }
         }
 

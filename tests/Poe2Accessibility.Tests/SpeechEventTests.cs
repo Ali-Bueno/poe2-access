@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using Poe2Accessibility.Services;
     using static Check;
 
@@ -13,6 +14,7 @@ namespace Poe2Accessibility.Tests
             (nameof(UrgentNewsIsNeverAReading), UrgentNewsIsNeverAReading),
             (nameof(AReadingThatCutsInDoesNotTakeAnEventWithIt), AReadingThatCutsInDoesNotTakeAnEventWithIt),
             (nameof(AWarningSaidWithTheUrgentLineWaitsNoMore), AWarningSaidWithTheUrgentLineWaitsNoMore),
+            (nameof(OnlyANumberIsAReadingAtEveryKindAndLevel), OnlyANumberIsAReadingAtEveryKindAndLevel),
         };
 
         /// <summary>
@@ -81,6 +83,45 @@ namespace Poe2Accessibility.Tests
                 "reading boss 60 percent False|speak boss defeated False|mention life 50 percent|news partner down|reading boss 40 percent True|speak the boss turns True|speak partner back True",
                 string.Join("|", output.Calls),
                 "a number waits as a reading, what happened as an event, at the level chosen");
+        }
+
+        /// <summary>
+        ///     Every kind at every level the settings allow, with and without the urgent and the happened marks: a line
+        ///     goes out as a reading (and may be left unsaid after 2 s behind a kept line) only when it is a number of a
+        ///     reading kind and neither urgent nor an event, and never at the level that holds.
+        /// </summary>
+        private static void OnlyANumberIsAReadingAtEveryKindAndLevel()
+        {
+            var readingKinds = new[] { SpeechKind.LifeAndMana, SpeechKind.BossLife, SpeechKind.Charges, SpeechKind.Combo };
+            try
+            {
+                foreach (var kind in Enum.GetValues<SpeechKind>())
+                {
+                    foreach (var level in SpeechPriority.Levels)
+                    {
+                        foreach (var urgent in new[] { false, true })
+                        {
+                            foreach (var happened in new[] { false, true })
+                            {
+                                SpeechPriority.Chosen = _ => level;
+                                var output = new Recorder();
+                                output.Say(kind, "x", urgent, happened);
+                                var call = output.Calls.Single();
+                                var where = $"{kind} at {level}, urgent {urgent}, happened {happened}";
+                                var isReading = readingKinds.Contains(kind) && !urgent && !happened;
+                                Equal(isReading, SpeechPriority.IsReading(kind, urgent, happened), "the rule for " + where);
+                                var aged = call.StartsWith("reading ") || call.StartsWith("mention ");
+                                Equal(isReading && level != SpeechPriority.Holds, aged, "only a number may age: " + where + " said " + call);
+                                Equal(level == SpeechPriority.Holds || (urgent && level == SpeechPriority.Urgent), call.StartsWith("urge "), "holding: " + where);
+                            }
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                SpeechPriority.Chosen = null;
+            }
         }
 
         private sealed class Recorder : IAccessibilityOutputService

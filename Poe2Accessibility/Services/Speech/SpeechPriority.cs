@@ -57,12 +57,18 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     News that is a number true only now (a percentage, a count held), not something that happened. Urgent news of
         ///     these kinds is never one: a boss's turn or defeat, a partner down, life at its last mark are said however late.
+        ///     Neither is a line that says something <paramref name="happened"/> under a reading kind (a flask drunk, a buff
+        ///     begun, rage full): the kind only says which setting the player turns, not what the line is. The level
+        ///     does not matter: a held line is never aged, and the others are judged by the kind alone.
         /// </summary>
-        public static bool IsReading(SpeechKind kind, bool urgent = false) =>
-            !urgent && kind is SpeechKind.LifeAndMana or SpeechKind.BossLife or SpeechKind.Charges or SpeechKind.Combo;
+        public static bool IsReading(SpeechKind kind, bool urgent = false, bool happened = false) =>
+            !urgent && !happened && kind is SpeechKind.LifeAndMana or SpeechKind.BossLife or SpeechKind.Charges or SpeechKind.Combo;
 
-        /// <summary>Speaks a piece of news at the level the player chose for its kind; urgent news cutting in also holds.</summary>
-        public static void Say(this IAccessibilityOutputService output, SpeechKind kind, string text, bool urgent = false)
+        /// <summary>
+        ///     Speaks a piece of news at the level the player chose for its kind; urgent news cutting in also holds.
+        ///     <paramref name="happened"/>: the line reports an event under a kind that otherwise carries readings.
+        /// </summary>
+        public static void Say(this IAccessibilityOutputService output, SpeechKind kind, string text, bool urgent = false, bool happened = false)
         {
             if (Level(kind) == Holds || (urgent && Level(kind) == Urgent))
             {
@@ -70,7 +76,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var reading = IsReading(kind, urgent);
+            var reading = IsReading(kind, urgent, happened);
             if (kind == SpeechKind.LifeAndMana && !Interrupts(kind, urgent))
             {
                 // A waiting life warning was dropped by a state beginning 80 ms later (2026-10-24).

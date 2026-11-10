@@ -96,7 +96,7 @@ namespace Poe2Accessibility.Services
                 };
                 if (news.Length > 0 && !this.baseline && enabled)
                 {
-                    this.output.Say(SpeechKind.LifeAndMana, news);
+                    this.output.Say(SpeechKind.LifeAndMana, news, happened: true);
                 }
             }
 

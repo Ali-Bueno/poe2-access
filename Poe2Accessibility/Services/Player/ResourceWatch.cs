@@ -116,7 +116,7 @@ namespace Poe2Accessibility.Services
 
                 if (this.Worth(news) && settings.ChargeSpeech && this.Phrase(news) is { Length: > 0 } text)
                 {
-                    this.output.Say(SpeechKind.Charges, text);
+                    this.output.Say(SpeechKind.Charges, text, happened: true);
                 }
             }
         }
