@@ -70,12 +70,64 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            this.WatchLife(entity, settings);
-            this.WatchLevel(entity, settings);
-            this.Statuses.Tick(playing && settings.StatusAlerts);
-            this.Charges.Tick(playing, settings);
-            this.Resources.Tick(playing, settings);
-            this.Cooldowns.Tick(playing, settings);
+            // Each watch runs whatever the one before it did: a status reading that throws must not take the charges, the
+            // resources and the cooldowns with it. The first fault is thrown on once all have run, for the caller's report.
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo? fault = null;
+            try
+            {
+                this.WatchLife(entity, settings);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                fault ??= System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex);
+            }
+
+            try
+            {
+                this.WatchLevel(entity, settings);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                fault ??= System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex);
+            }
+
+            try
+            {
+                this.Statuses.Tick(playing && settings.StatusAlerts);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                fault ??= System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex);
+            }
+
+            try
+            {
+                this.Charges.Tick(playing, settings);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                fault ??= System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex);
+            }
+
+            try
+            {
+                this.Resources.Tick(playing, settings);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                fault ??= System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex);
+            }
+
+            try
+            {
+                this.Cooldowns.Tick(playing, settings);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                fault ??= System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex);
+            }
+
+            fault?.Throw();
         }
 
         /// <summary>"Level 3" when the character levels up; the first reading of a character is only remembered.</summary>
