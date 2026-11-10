@@ -275,6 +275,9 @@ namespace Poe2Accessibility.Services
 
             var tooltip = cardDetails.Count > 0 ? cardDetails : this.TooltipLines(info);
             var context = this.InGame ? this.PanelTitle(info) : string.Empty;
+            // The shop's item page keeps its title in a label: the item's name, and under it what the page says of it.
+            var shopItem = this.InGame && context.Length == 0 && !hovered ? this.ShopItemPageOf(info) : null;
+            context = shopItem?.Title ?? context;
             var sheet = this.InGame && value.Length == 0 && role is UiRole.Panel or UiRole.Unknown ? this.SheetValue(info) : null;
             if (sheet is { } stat)
             {
@@ -356,7 +359,7 @@ namespace Poe2Accessibility.Services
                 IsExpanded = expanded,
                 IsVisible = this.elements.IsVisible(info),
                 Context = context,
-                PanelNotes = this.InGame && context.Length > 0 && !hovered ? this.PanelNotes(info) : Array.Empty<string>(),
+                PanelNotes = shopItem?.Notes ?? (this.InGame && context.Length > 0 && !hovered ? this.PanelNotes(info) : Array.Empty<string>()),
                 NamedByControlId = namedById,
                 Position = position,
                 ListItems = listItems,
