@@ -203,6 +203,13 @@ namespace Poe2Accessibility.Tests
             Equal(EntityRefresh.Reads.Components, EntityRefresh.OfResting(untyped: false, typingDue: false, useless: false, 100, Rest), "a typed one, as before");
             Equal(EntityRefresh.Reads.Nothing, EntityRefresh.OfResting(untyped: false, typingDue: false, useless: false, 99, Rest), "resting");
             Equal(EntityRefresh.Reads.Nothing, EntityRefresh.OfResting(untyped: false, typingDue: false, useless: true, 5000, Rest), "an opened chest is not read at all");
+
+            Equal(true, EntityRefresh.Rests(player: false, typedMonster: false, monsterComponent: false, monsterPath: false, untyped: true), "a door rests");
+            Equal(true, EntityRefresh.Rests(player: false, typedMonster: false, monsterComponent: false, monsterPath: true, untyped: true), "as does a trap under the monsters' path that could not be typed");
+            Equal(false, EntityRefresh.Rests(player: false, typedMonster: true, monsterComponent: true, monsterPath: true, untyped: false), "a monster does not");
+            Equal(false, EntityRefresh.Rests(player: false, typedMonster: false, monsterComponent: true, monsterPath: true, untyped: true), "nor one known only by its component");
+            Equal(false, EntityRefresh.Rests(player: false, typedMonster: false, monsterComponent: false, monsterPath: true, untyped: false), "nor a typed thing under the monsters' path");
+            Equal(false, EntityRefresh.Rests(player: true, typedMonster: false, monsterComponent: false, monsterPath: false, untyped: false), "nor a player");
         }
 
         private static void ABuffHeldAsSeveralEntriesCountsEveryOne()

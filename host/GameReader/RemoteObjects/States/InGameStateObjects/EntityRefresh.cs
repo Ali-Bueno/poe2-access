@@ -17,6 +17,22 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         }
 
         /// <summary>
+        ///     Whether the entity is read at the resting rate rather than as a monster or a player. A monster is known by
+        ///     its type or its Monster component; one that only lives under the monsters' path and could not be typed (a
+        ///     trial's trap) is no monster to wake by its life, so it rests too: left to the monsters' rule it was read
+        ///     only at each typing attempt, a second apart.
+        /// </summary>
+        public static bool Rests(bool player, bool typedMonster, bool monsterComponent, bool monsterPath, bool untyped)
+        {
+            if (player || typedMonster || monsterComponent)
+            {
+                return false;
+            }
+
+            return !monsterPath || untyped;
+        }
+
+        /// <summary>
         ///     The reads due. An entity that could not be typed (a barrier, a door, a transition, a ground item, a trap) is
         ///     asked what it is only when <paramref name="typingDue"/>, but its components rest like a typed one's: the
         ///     mod reads their state, and waiting for the next typing attempt served it up to a second old. A typed entity

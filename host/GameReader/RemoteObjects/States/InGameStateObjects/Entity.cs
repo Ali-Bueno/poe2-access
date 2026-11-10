@@ -375,7 +375,12 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             var isMonster = this.EntityType == EntityTypes.Monster ||
                             this.componentAddresses.ContainsKey("Monster") ||
                             this.monsterPath;
-            var resting = !isMonster && this.EntityType != EntityTypes.Player;
+            var resting = EntityRefresh.Rests(
+                this.EntityType == EntityTypes.Player,
+                this.EntityType == EntityTypes.Monster,
+                this.componentAddresses.ContainsKey("Monster"),
+                this.monsterPath,
+                untyped);
             if (resting)
             {
                 if (EntityRefresh.OfResting(untyped, isUnresolved, this.EntityState == EntityStates.Useless, now - this.componentsReadAt, RestingComponentsMs) ==
