@@ -37,6 +37,26 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>GGG's mark on the name of a gem that is not in the game ("[DNT-UNUSED] Axe Chop"): no name to say.</summary>
+        private const string UnusedMark = "[DNT";
+
+        /// <summary>The place a pattern name leaves for the game to fill in play, with the separator before it ("Spectre: {0}").</summary>
+        private static readonly Regex Hole = new(@"\s*[:：]?\s*\{\d+\}", RegexOptions.Compiled);
+
+        /// <summary>A run of spaces, said as one: two of the files' Spanish names carry a double space.</summary>
+        private static readonly Regex Spaces = new(@"\s+", RegexOptions.Compiled);
+
+        /// <summary>
+        ///     The gem's name from the game files' catalog (<see cref="GemIndex"/>) in the language, English when it has none;
+        ///     a pattern name without its unfilled place ("Spectre"); a gem the files lack or mark unused by its id's words.
+        /// </summary>
+        public static string FromFiles(string key, GemIndex index, string language)
+        {
+            var name = index.ByBaseItem(key)?.Name(language) ?? string.Empty;
+            name = name.StartsWith(UnusedMark, StringComparison.Ordinal) ? string.Empty : Spaces.Replace(Hole.Replace(name, string.Empty), " ").Trim();
+            return name.Length > 0 ? name : WordStart.Replace(Prefix.Replace(key, string.Empty), " ");
+        }
+
         /// <summary>For tests: the table as the catalog holds it.</summary>
         public static void Set(Dictionary<string, Dictionary<string, string>> table) => names = table;
 
@@ -44,8 +64,11 @@ namespace Poe2Accessibility.Services
         ///     The gem's name in the game's language (English when that language has none, markup out); a gem newer than the
         ///     catalog is named by its id's words ("SupportGemFrostNexus" → "Frost Nexus").
         /// </summary>
-        public static string Of(string key) =>
-            Localization.Pick(names, Localization.Language, key) is { Length: > 0 } name && BuildNotes.Plain(name) is { Length: > 0 } plain
+        public static string Of(string key) => Of(key, Localization.Language);
+
+        /// <summary>The same in a language asked for.</summary>
+        public static string Of(string key, string language) =>
+            Localization.Pick(names, language, key) is { Length: > 0 } name && BuildNotes.Plain(name) is { Length: > 0 } plain
                 ? plain
                 : WordStart.Replace(Prefix.Replace(key, string.Empty), " ");
     }

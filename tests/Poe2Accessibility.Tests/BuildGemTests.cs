@@ -26,6 +26,8 @@ namespace Poe2Accessibility.Tests
             (nameof(ASupportIsWhereTheCharacterHasIt), ASupportIsWhereTheCharacterHasIt),
             (nameof(TheNextGemIsOneTheLevelAllows), TheNextGemIsOneTheLevelAllows),
             (nameof(AGemIsNamedInTheGamesLanguage), AGemIsNamedInTheGamesLanguage),
+            (nameof(TheGameFilesNameTheBuildsGems), TheGameFilesNameTheBuildsGems),
+            (nameof(TheGameFilesNameEveryGemAsTheHandMadeTableDid), TheGameFilesNameEveryGemAsTheHandMadeTableDid),
             (nameof(TooManyMarksAreNoBuild), TooManyMarksAreNoBuild),
         };
 
@@ -126,6 +128,83 @@ namespace Poe2Accessibility.Tests
             Expect("Rage II", GemNames.Of("SupportGemRageTwo"), "markup out");
             Expect("Frost Nexus", GemNames.Of("SupportGemFrostNexus"), "a gem newer than the catalog, by its id's words");
             GemNames.Set(new());
+        }
+
+        /// <summary>The shipped catalog of the name, or null away from the repository.</summary>
+        private static string? Shipped(string name)
+        {
+            for (var folder = new System.IO.DirectoryInfo(AppContext.BaseDirectory); folder != null; folder = folder.Parent)
+            {
+                var file = System.IO.Path.Combine(folder.FullName, "Poe2Accessibility", "catalog", name);
+                if (System.IO.File.Exists(file))
+                {
+                    return file;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        ///     The names the Build Planner's lines said on 2026-11-10 ("Siguiente habilidad: Colmillos de escarcha"), now from
+        ///     the game files' gems.json: yarkey's builds name 101 gems, and all read as before in every language.
+        /// </summary>
+        private static void TheGameFilesNameTheBuildsGems()
+        {
+            if (Shipped("gems.json") is not { } file)
+            {
+                return;
+            }
+
+            var index = new GemIndex(GemCatalog.Parse(System.IO.File.ReadAllText(file)));
+            Expect("Colmillos de escarcha", GemNames.FromFiles("SkillGemFangsOfFrost", index, "es"), "the build's next skill");
+            Expect("Torbellino", GemNames.FromFiles("SkillGemTwister", index, "es"), "a skill under Gem/");
+            Expect("Corte giratorio", GemNames.FromFiles("SkillGemWhirlingSlash", index, "es"), "a skill under Gems/");
+            Expect("Furia II", GemNames.FromFiles("SupportGemRageTwo", index, "es"), "a support's tier");
+            Expect("Ataques rápidos II", GemNames.FromFiles("SupportGemMartialTempoTwo", index, "es"), "a support named unlike its id");
+            Expect("Convicción de Olroth", GemNames.FromFiles("SupportOlrothsConviction", index, "es"), "a lineage support, no SupportGem prefix");
+            Expect("Lanzar al infligir impactos críticos", GemNames.FromFiles("SkillGemCastOnCritical", index, "es"), "a meta gem");
+            Expect("Fangs of Frost", GemNames.FromFiles("SkillGemFangsOfFrost", index, "en"), "English");
+            Expect("Fangs of Frost", GemNames.FromFiles("skillgemfangsoffrost", index, "en"), "whatever the id's case");
+            Expect("Espectro", GemNames.FromFiles("SkillGemSummonSpectre", index, "es"), "a name the game fills in play, without its hole");
+            Expect("Axe Chop", GemNames.FromFiles("SkillGemAxeChop", index, "es"), "a gem the files mark unused, by its id's words");
+            Expect("Frost Nexus Nine", GemNames.FromFiles("SupportGemFrostNexusNine", index, "es"), "a gem newer than the catalog, by its id's words");
+            Expect(false, GemNames.FromFiles("SkillGemTwister", index, "th").Contains('<'), "Thai names without their size tag");
+        }
+
+        /// <summary>Before the hand-made table goes: every name it gave is the game files' too, but for what it lacked or broke.</summary>
+        private static void TheGameFilesNameEveryGemAsTheHandMadeTableDid()
+        {
+            if (Shipped("gems.json") is not { } file || Shipped("gem-names.json") is not { } byHand)
+            {
+                return;
+            }
+
+            var index = new GemIndex(GemCatalog.Parse(System.IO.File.ReadAllText(file)));
+            var table = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(System.IO.File.ReadAllText(byHand))!;
+            GemNames.Set(table);
+            try
+            {
+                var differences = new List<string>();
+                foreach (var language in table.Keys)
+                {
+                    foreach (var key in table["en"].Keys)
+                    {
+                        // Uncut gems are no gems of the files' SkillGems; the old reading cut a name's "{0}" to "{0".
+                        var old = GemNames.Of(key, language);
+                        if (!key.Contains("Uncut", StringComparison.Ordinal) && !old.Contains('{') && old != GemNames.FromFiles(key, index, language))
+                        {
+                            differences.Add($"{language} {key}: '{old}' / '{GemNames.FromFiles(key, index, language)}'");
+                        }
+                    }
+                }
+
+                Expect(string.Empty, string.Join("; ", differences.Take(5)), $"{differences.Count} names differ");
+            }
+            finally
+            {
+                GemNames.Set(new());
+            }
         }
 
         private static void TooManyMarksAreNoBuild()
