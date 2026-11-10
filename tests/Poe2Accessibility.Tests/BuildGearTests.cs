@@ -53,6 +53,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AnEmptySlotAndALaterPieceSayWhatIsAsked), AnEmptySlotAndALaterPieceSayWhatIsAsked),
             (nameof(AShopItemIsCountedAgainstTheWornOne), AShopItemIsCountedAgainstTheWornOne),
             (nameof(WithoutCatalogsNothingIsClaimed), WithoutCatalogsNothingIsClaimed),
+            (nameof(ALineForAllElementsAnswersOneResistance), ALineForAllElementsAnswersOneResistance),
             (nameof(AUniqueIsToldByItsOwnName), AUniqueIsToldByItsOwnName),
             (nameof(TheSummaryCountsBasesAndTheModifiersRead), TheSummaryCountsBasesAndTheModifiersRead),
         };
@@ -158,12 +159,12 @@ namespace Poe2Accessibility.Tests
             var lines = Announcements.BuildGearSlot(Fit(Piece(Early, "Helm1", 40), Worn), 40, new Bases(), new Texts()).ToList();
             Expect("Build: Yelmo blindado, armadura, otra base|+29 a la vida máxima, la build pide 40|+9% a la resistencia al fuego, la build pide 16|Falta +16% a la resistencia al rayo",
                 string.Join('|', lines), "the helmet slot");
-
             var helmet = Fit(Piece(Early, "Helm1", 40), Worn);
             Expect("Build: 2 de 3 modificadores. Falta +16% a la resistencia al rayo", Announcements.BuildGearLacks(helmet, new Texts()), "what it lacks, said before the piece");
             Expect("Build: Yelmo blindado, armadura, otra base|+29 a la vida máxima, la build pide 40|+9% a la resistencia al fuego, la build pide 16",
                 string.Join('|', Announcements.BuildGearSlot(helmet, 40, new Bases(), new Texts(), lacksSaid: true)), "and not again after it");
             Expect(string.Empty, Announcements.BuildGearLacks(Fit(Piece(Early, "Helm1", 40), Worn with { Lines = null }), new Texts()), "nothing before its lines were read");
+
             var evasive = Worn with { BaseId = "Metadata/Items/Armours/Helmets/FourHelmetDex2" };
             Expect("Build: Yelmo blindado, armadura, desde el nivel 33, otra base, la tuya da evasión",
                 Announcements.BuildGearSlot(Fit(Piece(Early, "Helm1", 20), evasive), 20, new Bases(), new Texts()).First(), "a piece to come against an evasion helmet");
@@ -212,6 +213,27 @@ namespace Poe2Accessibility.Tests
             fit = BuildGear.Fit(entry, english, BuildGear.Bases, BuildGear.Texts, "en");
             Expect(BaseFit.Same, fit.Base, "the base by the author's name");
             Expect("Below Met Unknown", string.Join(' ', fit.Mods.Select(mod => mod.Fit)), "found by its words; what is not found is not called missing");
+        });
+
+        // The worn belt's own lines, heard live 2026-11-10 13:29 under "Falta +16% a la resistencia al hielo".
+        private static void ALineForAllElementsAnswersOneResistance() => InSpanish(() =>
+        {
+            var entry = new BuildGearEntry("Belt1", 0, "Plate Belt", new[] { "+40 to maximum Life", "+16% to Cold Resistance", "+16% to Lightning Resistance" },
+                string.Empty, 24, 100);
+            var belt = new GearItem(string.Empty, "Cinturón de cuero crudo", "Trenza de medianoche", true,
+                new[] { "+48 al maná máximo", "+9% a todas las resistencias elementales" });
+            var fit = BuildGear.Fit(entry, belt, new Bases(), new Texts(), "es");
+            Expect("Missing Below Below", string.Join(' ', fit.Mods.Select(mod => mod.Fit)), "the line for all elements is each resistance, below the 16 asked");
+            Expect("+9% a todas las resistencias elementales", fit.Mods[1].Held, "said by the item's own line");
+
+            var both = belt with { Lines = new[] { "+8% a la resistencia al rayo", "+9% a todas las resistencias elementales" } };
+            fit = BuildGear.Fit(entry, both, new Bases(), new Texts(), "es");
+            Expect("Missing Below Met", string.Join(' ', fit.Mods.Select(mod => mod.Fit)), "its own line and the one for all elements add up: 17 of 16");
+            Expect("+8% a la resistencia al rayo, +9% a todas las resistencias elementales", fit.Mods[2].Held, "both lines said");
+
+            // The other way round is not true: one resistance does not answer a wanted line for all of them.
+            var all = entry with { Wanted = new[] { "+10% to all Elemental Resistances" } };
+            Expect(ModFit.Missing, BuildGear.Fit(all, both with { Lines = new[] { "+30% a la resistencia al rayo" } }, new Bases(), new Texts(), "es").Mods[0].Fit, "one resistance is not all of them");
         });
 
         private static void AUniqueIsToldByItsOwnName() => InSpanish(() =>
@@ -273,6 +295,8 @@ namespace Poe2Accessibility.Tests
                 ("life", "+{0} to maximum Life", "+{0} a la vida máxima"),
                 ("fire", "+{0}% to Fire Resistance", "+{0}% a la resistencia al fuego"),
                 ("lightning", "+{0}% to Lightning Resistance", "+{0}% a la resistencia al rayo"),
+                ("cold", "+{0}% to Cold Resistance", "+{0}% a la resistencia al hielo"),
+                ("all resistances", "+{0}% to all Elemental Resistances", "+{0}% a todas las resistencias elementales"),
                 ("physical", "Adds {0} to {1} Physical Damage", "Agrega de {0} a {1} de daño físico"),
                 ("attack speed", "{0}% increased Attack Speed", "Velocidad de ataque aumentada un {0}%"),
                 ("recovery", "{0}% of Recovery applied Instantly", "El {0}% de la recuperación se aplica al instante"),

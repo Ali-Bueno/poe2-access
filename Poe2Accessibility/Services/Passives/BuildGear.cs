@@ -83,6 +83,15 @@ namespace Poe2Accessibility.Services
         private static readonly Regex Number = new(@"[-+]?\d+(?:[.,]\d+)?", RegexOptions.Compiled);
         private static readonly Regex Spaces = new(@"\s+", RegexOptions.Compiled);
 
+        /// <summary>The game's lines that give narrower ones too, as its English files write them (seen live 2026-11-10: a belt's "+9% to all Elemental Resistances" against a wanted cold and lightning resistance).</summary>
+        private static readonly (string Wide, string[] Narrow)[] Wider =
+        {
+            ("+1% to all Elemental Resistances", new[] { "+1% to Fire Resistance", "+1% to Cold Resistance", "+1% to Lightning Resistance" }),
+            ("+1 to all Attributes", new[] { "+1 to Strength", "+1 to Dexterity", "+1 to Intelligence" }),
+        };
+
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<IModTexts, Dictionary<string, string>> WiderByTexts = new();
+
         /// <summary>
         ///     Where an item goes by the folder of its id (item paths of worn and dropped items, play logs 2026-11-08..10):
         ///     the equipment inventories that take it, named as the build files and the game name them.
@@ -260,6 +269,16 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            // A line that gives the wanted one among others ("to all Elemental Resistances" for one resistance) adds to it.
+            if (line != null && WiderOf(texts).TryGetValue(line.Template, out var wider))
+            {
+                foreach (var whole in held.Where(other => other.Line?.Template == wider && other.Line.Numbers.Count > 0))
+                {
+                    IReadOnlyList<double> sum = best is { } narrow ? new[] { First(narrow.Numbers) + whole.Line!.Numbers[0] } : whole.Line!.Numbers;
+                    best = (best is { } before ? $"{before.Text}, {whole.Text}" : whole.Text, sum);
+                }
+            }
+
             if (best is not { } found)
             {
                 return new ModStatus(wanted, line, line != null ? ModFit.Missing : ModFit.Unknown, string.Empty);
@@ -267,6 +286,32 @@ namespace Poe2Accessibility.Services
 
             return new ModStatus(wanted, line, Meets(line?.Numbers ?? NumbersOf(wanted), found.Numbers) ? ModFit.Met : ModFit.Below, found.Text);
         }
+
+        /// <summary>
+        ///     Per narrow line's template, the template of the line that gives it too, both found by parsing the game's
+        ///     English lines with the texts at hand: a pair the texts do not know is left out, so nothing is assumed.
+        /// </summary>
+        private static Dictionary<string, string> WiderOf(IModTexts texts) => WiderByTexts.GetValue(texts, known =>
+        {
+            var map = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var (wide, narrow) in Wider)
+            {
+                if (known.Parse(wide)?.Template is not { } template)
+                {
+                    continue;
+                }
+
+                foreach (var one in narrow)
+                {
+                    if (known.Parse(one)?.Template is { } part && part != template)
+                    {
+                        map[part] = template;
+                    }
+                }
+            }
+
+            return map;
+        });
 
         private static double First(IReadOnlyList<double> numbers) => numbers.Count > 0 ? numbers[0] : 0;
 
