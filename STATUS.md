@@ -472,6 +472,18 @@ Next: (1) **Bosses by hand** — the Bloated Miller with a new low character (a 
 Earlier chunks, newest first: [status history](docs/status-history.md).
 
 ## Known issues / open questions
+- Found buying gear for yarkey in both towns (2026-11-10, live; fixed there: an orb put back on its stack said "Usado", a
+  merchant with several tabs opened without its tab). Open: (1) a grid is only heard cell by cell — nothing reads a
+  merchant's or a stash tab's contents at once, and the search names six matches — so choosing gear means visiting every
+  cell of every tab; (2) a flask or charm put on the belt with X in the inventory says nothing (`Announcements.SlotName`
+  has no flask slot) and the well filling a new flask is silent; (3) the cell said with an item can be the one just left
+  ("Frasco de vida menor, columna 3, fila 11", then "columna 4, fila 10" 160 ms later), and an item of several cells is
+  said at the cursor's cell, so the same item has several positions; (4) moves name a rare or magic item by its base
+  ("Equipado: Escudo torre reforzado, raro" for Égida de glifo); (5) the unstack box reads "5, campo de texto, A para
+  escribir" though A unstacks; (6) on the Teleport map the act tabs are read under "Misiones." and are reached with D-pad
+  up from the pins, which `docs/controls.md` does not say; (7) a stash tab switch says its tab twice ("pestaña 2", then
+  "Alijo. pestaña 2. Vacío…"); (8) a merchant with one tab (Zarka, Una) opens as "Inventario. …" with no word of the
+  stock. Not testable in town: Parry and flask drinks (the game refuses skills there and a full flask is not drunk).
 - Stale values, player, combat and host (2026-11-10, code and unit tests only): flask uses from the drink's seen cost, boss
   life read when asked, a shared target name said alone, per-area state reset per instance, untyped entities' components
   rested, buff stacks, learnt blows as clip time, no maximum from tables, buff ids kept whole. What each needs live is listed in
