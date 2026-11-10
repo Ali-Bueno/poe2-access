@@ -100,6 +100,7 @@ internal static class GameDataSetup
             if (error is not null)
             {
                 Log.Write($"Game data: {step.Name} failed, previous kept ({error})");
+                spoken.StepFailed();
                 var listed = error == Extractor.BundleIndexName ? error : step.Name; // the index failing fails every step: one entry says it
                 if (!failed.Contains(listed))
                 {

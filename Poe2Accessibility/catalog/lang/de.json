@@ -207,6 +207,7 @@
  "Fury": "Wut",
  "Game closed.": "Spiel beendet.",
  "Game data ready": "Spieldaten bereit",
+ "Game data ready; not updated: {0} of {1}": "Spieldaten bereit; nicht aktualisiert: {0} von {1}",
  "Game data: {0} of {1}": "Spieldaten: {0} von {1}",
  "Game detected.": "Spiel erkannt.",
  "Game menu.": "Spielmenü.",

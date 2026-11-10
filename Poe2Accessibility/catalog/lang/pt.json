@@ -207,6 +207,7 @@
  "Fury": "Fúria selvagem",
  "Game closed.": "Jogo fechado.",
  "Game data ready": "Dados do jogo prontos",
+ "Game data ready; not updated: {0} of {1}": "Dados do jogo prontos; não atualizados: {0} de {1}",
  "Game data: {0} of {1}": "Dados do jogo: {0} de {1}",
  "Game detected.": "Jogo detectado.",
  "Game menu.": "Menu do jogo.",

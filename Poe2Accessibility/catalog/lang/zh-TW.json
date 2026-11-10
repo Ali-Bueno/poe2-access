@@ -207,6 +207,7 @@
  "Fury": "暴怒",
  "Game closed.": "遊戲已關閉。",
  "Game data ready": "遊戲資料已就緒",
+ "Game data ready; not updated: {0} of {1}": "遊戲資料已就緒；{1} 項中有 {0} 項未更新",
  "Game data: {0} of {1}": "遊戲資料：{0}/{1}",
  "Game detected.": "已偵測到遊戲。",
  "Game menu.": "遊戲選單。",

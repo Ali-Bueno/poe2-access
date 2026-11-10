@@ -207,6 +207,7 @@
  "Fury": "激昂",
  "Game closed.": "ゲームが終了しました。",
  "Game data ready": "ゲームデータの準備完了",
+ "Game data ready; not updated: {0} of {1}": "ゲームデータの準備完了。未更新：{1}件中{0}件",
  "Game data: {0} of {1}": "ゲームデータ：{0}/{1}",
  "Game detected.": "ゲームを検出しました。",
  "Game menu.": "ゲームメニュー。",

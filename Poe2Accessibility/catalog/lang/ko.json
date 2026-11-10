@@ -207,6 +207,7 @@
  "Fury": "광분",
  "Game closed.": "게임이 종료되었습니다.",
  "Game data ready": "게임 데이터 준비 완료",
+ "Game data ready; not updated: {0} of {1}": "게임 데이터 준비 완료. 업데이트되지 않음: {1}개 중 {0}개",
  "Game data: {0} of {1}": "게임 데이터: {0}/{1}",
  "Game detected.": "게임을 감지했습니다.",
  "Game menu.": "게임 메뉴.",

@@ -17,6 +17,7 @@ internal sealed class GameDataNarrator : IDisposable
     private readonly int total;
     private readonly ProgressPacer pacer = new(TimeSpan.FromSeconds(ProgressSeconds));
     private int done;
+    private int failed;
 
     private GameDataNarrator(StartupSpeech? speech, string language, IReadOnlyDictionary<string, string>? table, int total)
     {
@@ -42,6 +43,9 @@ internal sealed class GameDataNarrator : IDisposable
 
     public void StepDone() => Interlocked.Increment(ref this.done);
 
+    /// <summary>A step kept its earlier data: the closing line says how many did, so "ready" is not said of a failed update.</summary>
+    public void StepFailed() => Interlocked.Increment(ref this.failed);
+
     /// <summary>Called while waiting: says the progress when a full interval has passed since the last line.</summary>
     public void Poll()
     {
@@ -54,7 +58,10 @@ internal sealed class GameDataNarrator : IDisposable
 
     public void Dispose()
     {
-        this.speech?.Speak(StartupPhrases.Text(StartupPhrases.Ready, this.language, this.table));
+        var kept = Volatile.Read(ref this.failed);
+        this.speech?.Speak(kept > 0
+            ? StartupPhrases.Format(StartupPhrases.Partial, this.language, this.table, kept, this.total)
+            : StartupPhrases.Text(StartupPhrases.Ready, this.language, this.table));
         if (this.speech is not null)
         {
             this.speech.Dispose(FinalLineHoldMilliseconds);

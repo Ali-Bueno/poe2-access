@@ -14,6 +14,7 @@ internal static class StartupPhrases
     public static readonly Phrase Starting = T("Updating the game data after the patch; this takes a few minutes", "Actualizando los datos del juego tras el parche; tarda unos minutos");
     public static readonly Phrase Progress = T("Game data: {0} of {1}", "Datos del juego: {0} de {1}");
     public static readonly Phrase Ready = T("Game data ready", "Datos del juego listos");
+    public static readonly Phrase Partial = T("Game data ready; not updated: {0} of {1}", "Datos del juego listos; sin actualizar: {0} de {1}");
 
     private const string SettingsLanguage = "Language";
     private const string Spanish = "es";

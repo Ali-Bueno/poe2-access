@@ -207,6 +207,7 @@
  "Fury": "Furie",
  "Game closed.": "Jeu fermé.",
  "Game data ready": "Données du jeu prêtes",
+ "Game data ready; not updated: {0} of {1}": "Données du jeu prêtes ; non mises à jour : {0} sur {1}",
  "Game data: {0} of {1}": "Données du jeu : {0} sur {1}",
  "Game detected.": "Jeu détecté.",
  "Game menu.": "Menu du jeu.",
