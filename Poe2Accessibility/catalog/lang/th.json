@@ -177,6 +177,8 @@
  "Equipment on the ground": "อุปกรณ์บนพื้น",
  "Equipped and moved items": "ไอเทมที่สวมใส่และย้าย",
  "Equipped: {0}, {1}": "สวมใส่แล้ว {0} {1}",
+ "Essence": "เอสเซนส์",
+ "Essence: {0}": "เอสเซนส์: {0}",
  "Exit": "ทางออก",
  "Exits": "ทางออก",
  "Explored {0} percent": "สำรวจแล้ว {0} เปอร์เซ็นต์",

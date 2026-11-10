@@ -717,6 +717,9 @@ namespace Poe2Accessibility
             _ => T("League encounter", "Encuentro de liga"),
         };
 
+        /// <summary>An essence's crystal with the monster it holds: "Essence: Blood Cretin".</summary>
+        public static string Essence(string monster) => monster.Length > 0 ? T($"Essence: {monster}", $"Esencia: {monster}") : T("Essence", "Esencia");
+
         /// <summary>A boss's arena as its minimap icon labels it ("Sala del jefe: Corazón de la tumba"); map bosses have no label.</summary>
         public static string BossRoom(string label) => label.Length > 0
             ? T($"Boss room: {label}", $"Sala del jefe: {label}")

@@ -53,7 +53,8 @@ first; both wrap and empty categories are skipped. The category is named only wh
   on, nearest first, then "Unexplored nook" where one look from its edge would show it all, a dead end; ground within about 60 cells of where you walked counts as seen, and a wall with no way through
   hides what lies behind it; forgotten on leaving the area), waypoints and
   checkpoints, **encounters** (league devices: "Ritual altar", where a ritual starts and, once done, where its
-  tribute is spent: A on it says "view favours"; listed during the ritual too), characters (NPCs in play; "Renly, has a quest" when the game shows its quest indicator over them,
+  tribute is spent: A on it says "view favours"; listed during the ritual too; "Essence: Blood Cretin", a crystal holding a
+  rare monster: A frees it, and it drops the essence when slain; walking up to it says it too), characters (NPCs in play; "Renly, has a quest" when the game shows its quest indicator over them,
   with a bell among the object sounds), enemies (with rarity), objects (stash, salvage bench, well, a closed
   barrier: "Closed barrier", readable signs and plaques: "Sign: Ogham Village"), chests
   and shrines (rocks, eggs, urns and other breakables have their own breaking sound, bodies to search their own

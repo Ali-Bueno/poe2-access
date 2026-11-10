@@ -29,6 +29,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public const string RitualIcon = "RitualRune";
 
+        /// <summary>
+        ///     An essence: a crystal (Metadata/MiscellaneousObjects/Monolith, component Monolith) holding a rare monster at the same
+        ///     grid cell; A frees the monster, which drops the essence when slain (dump 2026-11-10, Mansión de Ogham).
+        /// </summary>
+        public const string EssenceIcon = "Essence";
+
         public const string RitualDoneIcon = "RitualRuneFinished";
 
         public const string RitualDoneKind = "ritual_done";

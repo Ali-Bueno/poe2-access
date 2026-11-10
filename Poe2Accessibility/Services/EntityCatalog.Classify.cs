@@ -16,6 +16,9 @@ namespace Poe2Accessibility.Services
         /// <summary>How far from a cage the one it holds may be: Risu was one cell (about 11) from hers; the Karui elders are not measured.</summary>
         private const float CageWorld = 100f;
 
+        /// <summary>How far (world units) the monster an essence holds stands from its crystal: the same grid cell.</summary>
+        private const float EssenceWorld = 30f;
+
         /// <summary>Files of minimap marks the scanner left out, logged once each.</summary>
         private readonly HashSet<string> silentMarks = new(StringComparer.Ordinal);
         private readonly HashSet<string> namedFromPath = new(StringComparer.Ordinal);
@@ -109,6 +112,12 @@ namespace Poe2Accessibility.Services
                 // Listed while the game makes it untargetable too (during the ritual): it is where the fight is and,
                 // once done, where its tribute is spent ("Interactúa para ver los favores").
                 category = ScanCategory.Encounters;
+                if (leagueIcon == MinimapMarks.EssenceIcon)
+                {
+                    // "Esencia: Cretino de sangre": the monster held is what the game names on the crystal.
+                    name = Announcements.Essence(this.NameNear(render, EssenceWorld, IsHeldMonster));
+                }
+
                 name = name.Length > 0 ? name : this.landmarks.WorldTitle(path);
                 name = name.Length > 0 ? name : Announcements.LeagueDevice(leagueIcon, path.Contains(BossDevice, StringComparison.Ordinal),
                     ObjectNames.LeagueName(minimap is null ? string.Empty : MinimapIconLabel.Of(this.memory, this.elements, minimap), path));
@@ -241,6 +250,28 @@ namespace Poe2Accessibility.Services
             return held.Length > 0 ? Announcements.CageOf(held) : Announcements.Cage;
         }
 
+        /// <summary>A creature of the game's monster folder: what an essence's crystal holds.</summary>
+        private static bool IsHeldMonster(Entity entity) =>
+            entity.EntityType == EntityTypes.Monster && (entity.Path ?? string.Empty).StartsWith(CreatureFolder, StringComparison.Ordinal);
+
+        /// <summary>The essence whose crystal stands where this monster is, as the scanner lists it; null when none holds it.</summary>
+        private ScanEntry? EssenceHolding(Render monster)
+        {
+            var place = new Vector2(monster.WorldPosition.X, monster.WorldPosition.Y);
+            foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+            {
+                if (entity.IsValid && entity.TryGetComponent<MinimapIcon>(out var icon) && icon.IconName == MinimapMarks.EssenceIcon &&
+                    entity.TryGetComponent<Render>(out var render) &&
+                    Vector2.Distance(place, new Vector2(render.WorldPosition.X, render.WorldPosition.Y)) < EssenceWorld &&
+                    this.Classify(entity, render) is { } essence)
+                {
+                    return essence;
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>The first name, in the client's language, of an awake entity within reach of a place that passes the test, in play or not.</summary>
         private string NameNear(Render thing, float reach, Func<Entity, bool> passes)
         {
@@ -311,10 +342,18 @@ namespace Poe2Accessibility.Services
             {
                 if (entity.IsValid && entity.TryGetComponent<Targetable>(out var target) &&
                     this.memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.IsTargetedOffset, out var flag) && flag != 0 &&
-                    entity.TryGetComponent<Render>(out var render) && this.Classify(entity, render) is { } entry &&
-                    entry.Category is not ScanCategory.Enemies)
+                    entity.TryGetComponent<Render>(out var render) && this.Classify(entity, render) is { } entry)
                 {
-                    return entry;
+                    if (entry.Category is not ScanCategory.Enemies)
+                    {
+                        return entry;
+                    }
+
+                    // The game targets the monster an essence holds, and A frees it: said as the essence, not left silent as a foe.
+                    if (this.EssenceHolding(render) is { } essence)
+                    {
+                        return essence;
+                    }
                 }
             }
 
