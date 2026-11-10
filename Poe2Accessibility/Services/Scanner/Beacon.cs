@@ -32,6 +32,18 @@ namespace Poe2Accessibility.Services
         /// <summary>A chest or item that vanished while the player stood this close was opened or picked up: arrived.</summary>
         private const float GoneNearWorld = 600f;
 
+        /// <summary>The target was not listed at the last refresh: its place is where it was last seen, not where it is.</summary>
+        private bool targetGone;
+
+        /// <summary>"No longer in sight" is said once per lock: a boss that burrows comes and goes all fight.</summary>
+        private bool lostSaid;
+
+        /// <summary>The category the scanner lists the target under; a target locked from the Quest category is a copy.</summary>
+        private ScanCategory listedAs;
+
+        /// <summary>The area instance the target was locked in: its id and place mean nothing in another.</summary>
+        private (IntPtr Address, string Hash) lockedIn;
+
 
         /// <summary>Route prompts (D2R route-description.md): a turn is named when the player is this close to it.</summary>
         private const float TurnPromptWorld = 160f;
@@ -124,6 +136,11 @@ namespace Poe2Accessibility.Services
             this.noRouteSaid = false;
             this.searchesWithoutRoute = 0;
             this.closestSaid = false;
+            this.targetGone = false;
+            this.lostSaid = false;
+            this.listedAs = entry.Category;
+            var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            this.lockedIn = (area.Address, area.AreaHash ?? string.Empty);
             this.lockedAt = Environment.TickCount64;
             this.lastRefresh = long.MinValue / 2;
             this.log.Info($"Beacon locked on {entry.Name} ({entry.Category})");
@@ -158,6 +175,12 @@ namespace Poe2Accessibility.Services
             }
 
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
+            if ((area.Address, area.AreaHash ?? string.Empty) != this.lockedIn)
+            {
+                this.Clear(false); // another instance, should the area handler not have released it
+                return;
+            }
+
             if (!Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 return;
@@ -264,29 +287,42 @@ namespace Poe2Accessibility.Services
 
             this.lastTurn = turn;
             var steps = Math.Max(1, (int)Math.Round(legs[0].Length * gridSize / StepWorld));
-            this.output.Speak(Announcements.RouteTurn(Announcements.StickDirections[legs[0].Direction], steps), false);
+            this.output.SpeakReading(Announcements.RouteTurn(Announcements.StickDirections[legs[0].Direction], steps));
         }
 
         /// <summary>The target's current place; false when it is gone (and the lock was released).</summary>
         private bool Refresh(Vector2 here)
         {
             var goal = this.target!;
-            var current = this.catalog.Entries().FirstOrDefault(entry => entry.Id == goal.Id);
+            var entries = this.catalog.Entries();
+            var current = entries.FirstOrDefault(entry => entry.Id == goal.Id);
+            this.targetGone = current == null;
             if (current != null)
             {
+                this.listedAs = entries.FirstOrDefault(entry => entry.Id == goal.Id && entry.Category != ScanCategory.Quest)?.Category ?? current.Category;
                 this.target = current with { Category = goal.Category };
                 return true;
             }
 
-            if (EntityCatalog.IsEntity(goal) && Vector2.Distance(here, new Vector2(goal.WorldX, goal.WorldY)) <= GoneNearWorld)
+            switch (BeaconMath.Gone(this.Listed(goal), EntityCatalog.IsEntity(goal), Vector2.Distance(here, new Vector2(goal.WorldX, goal.WorldY)), GoneNearWorld))
             {
-                // D2R: a target that vanishes on reaching it (chest opened, item picked up) counts as arrived.
-                this.Arrive(goal);
-                return false;
+                case GoneTarget.Reached:
+                    // D2R: a target that vanishes on reaching it (chest opened, item picked up) counts as arrived.
+                    this.Arrive(goal);
+                    return false;
+                case GoneTarget.LostFromView when !this.lostSaid:
+                    // A boss that hid, burrowed or died, an NPC that left: said as gone, never as reached.
+                    this.lostSaid = true;
+                    this.output.Say(SpeechKind.Arrivals, Announcements.BeaconLost(goal.Name));
+                    this.log.Info($"Beacon target lost from view: {goal.Name}");
+                    break;
             }
 
-            return true; // out of the game's range: keep walking to where it was last seen
+            return true; // gone or out of the game's range: keep walking to where it was last seen
         }
+
+        /// <summary>The target under the category the scanner lists it in: a quest's copy is judged as the thing it copies.</summary>
+        private ScanEntry Listed(ScanEntry goal) => goal with { Category = this.listedAs };
 
         private void StartSearch(Vector2 start, Vector2 end)
         {
@@ -392,8 +428,10 @@ namespace Poe2Accessibility.Services
 
         private void Arrive(ScanEntry goal)
         {
-            this.output.Say(SpeechKind.Arrivals, Announcements.BeaconArrived(goal.Name));
-            this.log.Info($"Beacon arrived at {goal.Name}");
+            // At the place of a target that is no longer listed, the place is all that was reached.
+            var lastSeen = this.targetGone && BeaconMath.Gone(this.Listed(goal), EntityCatalog.IsEntity(goal), 0f, GoneNearWorld) == GoneTarget.LostFromView;
+            this.output.Say(SpeechKind.Arrivals, lastSeen ? Announcements.BeaconLastSeen(goal.Name) : Announcements.BeaconArrived(goal.Name));
+            this.log.Info(lastSeen ? $"Beacon arrived where {goal.Name} was last seen" : $"Beacon arrived at {goal.Name}");
             this.target = null;
             this.route = null;
             this.search = null;

@@ -19,7 +19,9 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<string, (DateTime Written, BuildPlan? Plan)> files = new(StringComparer.OrdinalIgnoreCase);
         private long? scannedAt;
         private (DateTime Written, string Text) configRead;
-        private (BuildPlan? Plan, DateTime At)? matched;
+
+        /// <summary>Per character, what its own tree's marks matched last and when: one character's build is never another's.</summary>
+        private readonly Dictionary<string, (BuildPlan? Plan, DateTime At)> matched = new(StringComparer.Ordinal);
 
         public BuildPlanFolder(string folder, string config)
         {
@@ -39,10 +41,11 @@ namespace Poe2Accessibility.Services
         public BuildPlan? Active(string character)
         {
             this.Rescan();
+            var onTree = this.matched.TryGetValue(character, out var seen);
             try
             {
                 var written = File.Exists(this.config) ? File.GetLastWriteTimeUtc(this.config) : DateTime.MinValue;
-                if (this.matched is { } seen && seen.At >= written)
+                if (onTree && seen.At >= written)
                 {
                     return seen.Plan;
                 }
@@ -54,24 +57,25 @@ namespace Poe2Accessibility.Services
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
-                return this.matched?.Plan; // the settings being written: what the tree showed last
+                return seen.Plan; // the settings being written: what this character's tree showed last
             }
 
             var path = BuildPlan.ActivePath(this.configRead.Text, character);
             var name = path == null ? null : Path.GetFileName(path);
-            return name == null ? this.matched?.Plan
+            return name == null ? seen.Plan
                 : this.files.FirstOrDefault(file => string.Equals(Path.GetFileName(file.Key), name, StringComparison.OrdinalIgnoreCase)).Value.Plan;
         }
 
         /// <summary>
         ///     The plan holding most of the passives the tree marks as the active build, if it holds at least half of them;
-        ///     null for a build only on the website (no file to read notes from).
+        ///     null for a build only on the website (no file to read notes from). Remembered for <paramref name="character"/>,
+        ///     whose tree it is; for nobody when the name is not known.
         /// </summary>
-        public BuildPlan? Matching(IReadOnlyCollection<string> markedIds)
+        public BuildPlan? Matching(string character, IReadOnlyCollection<string> markedIds)
         {
             if (markedIds.Count == 0)
             {
-                this.matched = (null, DateTime.UtcNow);
+                this.Remember(character, null);
                 return null;
             }
 
@@ -80,8 +84,16 @@ namespace Poe2Accessibility.Services
                 .Select(plan => (Plan: plan!, Shared: plan!.Passives.Count(passive => markedIds.Contains(passive.Id))))
                 .OrderByDescending(match => match.Shared).FirstOrDefault();
             var plan = best.Plan != null && best.Shared * 2 >= markedIds.Count ? best.Plan : null;
-            this.matched = (plan, DateTime.UtcNow);
+            this.Remember(character, plan);
             return plan;
+        }
+
+        private void Remember(string character, BuildPlan? plan)
+        {
+            if (character.Length > 0)
+            {
+                this.matched[character] = (plan, DateTime.UtcNow);
+            }
         }
 
         private void Rescan()

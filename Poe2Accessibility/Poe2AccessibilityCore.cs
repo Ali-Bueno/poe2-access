@@ -230,7 +230,6 @@ namespace Poe2Accessibility
                 this.actorTrace = new ActorTrace(memory, this.log, debugDirectory);
                 this.stunTrace = new StunTrace(memory, this.log, debugDirectory);
                 ItemNames.Load(this.log, Path.Join(this.DllDirectory, "catalog", "item-names.json"));
-                GemNames.Load(this.log, Path.Join(this.DllDirectory, "catalog", "gem-names.json"));
                 CurrencyIcons.Load(this.log, Path.Join(this.DllDirectory, "catalog", "currency-art.json"));
                 EndgameCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "endgame.json"));
             InlineIcons.Load(this.log, Path.Join(this.DllDirectory, "catalog", "inline-icons.txt"));

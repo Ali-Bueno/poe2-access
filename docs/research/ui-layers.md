@@ -332,9 +332,12 @@ tree's planner, the Skills panel and the inventory, a UI dump with the Skills pa
   hold `active_builds=[{"character":"yarkey","path":"file:C:/…/x.build"}]`. `BuildPlanFolder.Active` reads the file
   it names for the character; what the tree's marks matched after the settings were last written wins (the game may write
   them late), and marks that read "none" then mean none. A build followed on the website has no `file:` path: no gems read.
-- **Gem names.** A gem not owned has no item to read its name from: `catalog/gem-names.json` (BaseItemTypes Id +0x0, Name
-  +0x20, every language the game ships; ids' last parts are unique among the 1,238 gem rows). A gem newer than the
-  catalog is named by its id's words.
+- **Gem names.** A gem not owned has no item to read its name from: `GemNames` takes it from the game files' `gems.json`
+  (`GemIndex.ByBaseItem`, by the last part of the id, case ignored), made again at every start, since 2026-11-10; the
+  hand-made `gem-names.json` is gone. Over the 101 gems yarkey's seven build files name, both gave the same name in all ten
+  languages. A gem newer than the catalog, or one the files mark unused (`[DNT-UNUSED] …`), is named by its id's words; a
+  name the game fills in play ("Espectro: {0}") is said without the hole. A Skills row without a gem is matched by the
+  names of the skills the gem grants (`GemNames.RowNames`), not only by the gem's.
 - **The character's gems.** Every server inventory of the player (`ServerData.PlayerInventories`, read on demand with
   the host's `InventoryStruct`/`InventoryItemStruct`: `ServerInventory`) is looked through for gem items: those of the
   main inventory are "in your inventory", those elsewhere are skills. Seen with the dev command `inventories`: inventory

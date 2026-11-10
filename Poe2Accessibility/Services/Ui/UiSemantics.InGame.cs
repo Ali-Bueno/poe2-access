@@ -20,7 +20,23 @@ namespace Poe2Accessibility.Services
         /// <summary>Grid → page → pages container → tab container (vendor stock and stash: 3 hops, 2026-10-23).</summary>
         private const int GridTabHops = 4;
 
-        private (IntPtr Grid, List<IntPtr> Tabs) gridTabs = (IntPtr.Zero, new List<IntPtr>());
+        /// <summary>A grid found without tabs is searched again this often: its panel may still have been building.</summary>
+        private const int GridTabRetryMs = 500;
+
+        private (IntPtr Grid, List<IntPtr> Tabs, long At) gridTabs = (IntPtr.Zero, new List<IntPtr>(), 0);
+
+        /// <summary>
+        ///     What was learnt of the focused part of the interface by its elements' addresses (the map's own marker, the depth
+        ///     toggle, a grid's tabs, what is no Atlas node) is forgotten: the focus left its layer or went away, and the
+        ///     game gives an address to another element once a panel is rebuilt. Called by the focus tracker.
+        /// </summary>
+        public void ForgetFocusMemos()
+        {
+            this.gridTabs = (IntPtr.Zero, new List<IntPtr>(), 0);
+            this.mapHere = default;
+            this.depthToggle = default;
+            this.notEndgame.Clear();
+        }
 
         /// <summary>Label text → cell → row (character stats); a third level would take in the whole section.</summary>
         private const int LinkRowHops = 2;
@@ -589,9 +605,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private string GridTab(in UiElementReader.ElementInfo info)
         {
-            if (info.Address != this.gridTabs.Grid)
+            // "No tabs" is never kept as the answer for long, and tab buttons that no longer read are looked for again.
+            var now = Environment.TickCount64;
+            var lost = this.gridTabs.Tabs.Count == 0 ? now - this.gridTabs.At >= GridTabRetryMs : this.gridTabs.Tabs.Any(tab => !this.elements.IsElement(tab));
+            if (info.Address != this.gridTabs.Grid || lost)
             {
-                this.gridTabs = (info.Address, this.FindGridTabs(info));
+                this.gridTabs = (info.Address, this.FindGridTabs(info), now);
             }
 
             var at = this.TabSelectedOffset(this.gridTabs.Tabs);

@@ -16,7 +16,7 @@ off in Steam's controller settings for Path of Exile 2.
 
 | Gesture | In menus (something has the focus) | In gameplay |
 |---|---|---|
-| Tap | Next line of the focused element: its name first, then each tooltip line | Where the scanner's choice is now; nothing chosen: repeat the last speech |
+| Tap | Next line of the focused element: its name first, then each tooltip line | Where the scanner's choice is now; nothing chosen (none is kept from another area): repeat the last speech |
 | Double tap | Previous line | Life, mana, energy shield, harmful states, charges and Rage held, the boss's life, the flasks' uses left, then your level, how far to the next, the area's, your gold, the league encounter the HUD shows (tribute, rituals left), and how much of the ground you can reach you have seen ("Life 80 percent, mana 40 percent. Poisoned. The Bloated Miller 55 percent. Lesser Life Flask, 6 uses, Lesser Mana Flask, 2 uses. Level 4, 35 percent to level 5, area level 2. 113 gold. Ritual encounter. 100 Tribute. 0 rituals remaining. Explored 40 percent") |
 | Hold (half a second) | Whole tooltip (item mods, gem stats, definitions) | Read the screen (quest tracker, HUD texts), then the skill bar: each set's buttons with what they fire, the empty ones last |
 | Hold + right stick flick | — (the game navigates with the right stick in menus) | Scanner (below) |
@@ -24,7 +24,8 @@ off in Steam's controller settings for Path of Exile 2.
 | Hold a second and a half | — | The mod's settings menu (below) |
 
 A new focus starts again from its first line. Tooltips are also read automatically when the focus lands
-(`ReadTooltipsOnFocus`, on by default).
+(`ReadTooltipsOnFocus`, on by default). A count or a level that changes under a resting cursor is said by itself ("2"
+when a stack of 3 loses one, "Level 8" when a gem levels); a clock ticking in a row is not.
 
 ## Scanner (gameplay)
 
@@ -46,7 +47,7 @@ first; both wrap and empty categories are skipped. The category is named only wh
   death, while that area instance lasts), **points of interest** (what the minimap marks: a boss's arena
   as "Boss room: Asinia" from the moment the minimap points to it, within about 400 cells for a campaign boss and 250
   for a map boss, or once you have seen its place; the quest naming that boss then leads there; "Boss room, defeated"
-  when the game's own icon shows the boss dead; secrets and quest landmarks such as "Renly's Workshop", which the game
+  when the game's own icon shows the boss dead, for a room known from the map's pieces too, which then drops its reward note; secrets and quest landmarks such as "Renly's Workshop", which the game
   draws only near; each said once as "On the map: …"), **places** (named map pieces and props from the game's terrain files:
   bridges, stairs, doors, ruins, graveyards, a cart, a well, an anvil; [places](research/places.md)), **unexplored** (where
   ground never seen begins, one entry per stretch and direction: "Unexplored ground, 7 steps, left" where it goes
@@ -79,7 +80,9 @@ Choose a target with the scanner (the Quest category first is the usual one), ho
 stick: "Guiding to Clearfell Encampment, 21 steps…". A short iron chime then repeats, panned toward where the
 walkable route goes next (around walls, never through them), higher when the way is up the screen and lower
 when it is down, faster as the route shortens. Walk so the ping is centred. "Arrived at …" ends it; the same
-gesture while it guides, whatever the scanner has chosen, or changing area, turns it off. With no scanner choice the gesture locks the first
+gesture while it guides, whatever the scanner has chosen, or changing area, turns it off. A target that disappears near you counts as reached only if
+using it removes it (a chest, an item, a portal); a boss or an NPC that hides, dies or leaves is "… is no longer in sight", the guide goes on to
+where it was and ends there with "Arrived where … was last seen". With no scanner choice the gesture locks the first
 quest target. The ping is silent while a panel or dialogue is open (the lock is kept) and when no route exists
 yet: "No route to … yet". When the way stops short it says so once ("A closed barrier cuts the way
 to …; guiding as close as it goes") and, at that point, "As close to … as the way goes; it is still
@@ -437,6 +440,9 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 
 - "Life 50 percent" / "Life 25 percent" when life falls below half and a quarter, once per fall; they
   cannot be cut off by the next phrase for a moment (`AnnounceLowLife`).
+- A percentage or a count (life, mana, a boss's life, charges, combo, the guide's "Now up right, 4") that had to wait
+  more than two seconds behind a lesson or a message being kept is not said late: the L3 double tap gives the present
+  values. What happened (a pick-up, a state beginning, an arrival) is said however late.
 - "Lesser Life Flask, 3 uses" each time you drink a flask, "Lesser Life Flask refilled, 2 uses" each time one gains
   a use, "Lesser Life Flask empty" when one has no use left, once until it refills, and "New flask: …" when one is put
   on the belt during play (`AnnounceFlasks`, "Flask uses", delivered like the life warnings).

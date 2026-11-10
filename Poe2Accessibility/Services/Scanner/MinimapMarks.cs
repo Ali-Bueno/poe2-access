@@ -122,6 +122,28 @@ namespace Poe2Accessibility.Services
             return (note > 0 ? label[..note] : label).Trim();
         }
 
+        /// <summary>
+        ///     Whether the boss of a room known only from the area's tiles is slain. The tiles and the radar table's reward
+        ///     note never change, so the answer comes from what was seen: the game's own boss-room mark gone spent (the same
+        ///     boss by its label, or the area's one mark for its one room) or a boss of that name seen defeated here.
+        /// </summary>
+        /// <param name="subject">Whom the room's label names, without the reward note; empty for an unnamed arena.</param>
+        /// <param name="tileRooms">How many boss rooms the area's tiles hold.</param>
+        /// <param name="gameMarks">The game's boss-room marks seen in this area: their label and whether the icon is spent.</param>
+        /// <param name="defeated">Names of the bosses whose defeat was seen in this area.</param>
+        public static bool RoomDefeated(string subject, int tileRooms, IReadOnlyCollection<(string Label, bool Spent)> gameMarks, IReadOnlyCollection<string> defeated)
+        {
+            bool Same(string name) => subject.Length > 0 && name.Length > 0 &&
+                                      (name.Contains(subject, StringComparison.OrdinalIgnoreCase) || subject.Contains(name, StringComparison.OrdinalIgnoreCase));
+            if (defeated.Any(Same) || gameMarks.Any(mark => mark.Spent && Same(mark.Label)))
+            {
+                return true;
+            }
+
+            // One arena and one mark are the same room whatever each is called; a mark still live says the boss is too.
+            return tileRooms == 1 && gameMarks.Count == 1 && gameMarks.First().Spent;
+        }
+
         /// <summary>Whether a tile the radar table does not name holds a boss's arena, from its file alone.</summary>
         public static bool IsArenaTile(string tileKey) => ArenaBoss(tileKey, string.Empty) != null;
 

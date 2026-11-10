@@ -137,6 +137,27 @@ namespace Poe2Accessibility.Services
         private ScanCategory? category;
         private uint? selected;
         private long lastAnswerAt = long.MinValue / 2;
+        private (long Address, string Hash) area = (0, string.Empty);
+
+        /// <summary>
+        ///     Forgets the choice (the category is kept): an id names a thing in one area instance only. Tiles and unexplored
+        ///     ground are numbered from the same base in every area, and entity ids start over in a new instance.
+        /// </summary>
+        public void Reset()
+        {
+            this.selected = null;
+            this.lastAnswerAt = long.MinValue / 2;
+        }
+
+        /// <summary>The area instance the entries passed from now on belong to; another one than before forgets the choice.</summary>
+        public void InArea(long address, string hash)
+        {
+            if ((address, hash) != this.area)
+            {
+                this.area = (address, hash);
+                this.Reset();
+            }
+        }
 
         /// <param name="step">+1 next, -1 previous.</param>
         public ScanAnswer ChangeCategory(IReadOnlyList<ScanEntry> entries, int step, long nowMs)

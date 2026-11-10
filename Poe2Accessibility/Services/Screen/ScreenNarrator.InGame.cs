@@ -191,7 +191,8 @@ namespace Poe2Accessibility.Services
                 // the selected tab and the focus, as pre-game — never the page's labels. A focus outside the page (the
                 // inventory beside the stash) is said in its own part.
                 this.tabbedLayer = change.Layer.Address;
-                this.Speak("page with focus", Announcements.InContext(FocusDetails.PagePlace(focus?.Context ?? string.Empty, pageTab), this.lastFocusSpeech), true);
+                var pageBeside = FocusDetails.PageBeside(focus?.Context ?? string.Empty, pageTab, this.SidePanel?.Invoke() ?? string.Empty);
+                this.Speak("page with focus", Announcements.Sentences(new[] { pageBeside, FocusDetails.PagePlace(focus?.Context ?? string.Empty, pageTab), this.lastFocusSpeech }), true);
             }
             else if (change.Layer.Address != focusLayer)
             {
@@ -209,9 +210,11 @@ namespace Poe2Accessibility.Services
                 // a focus outside the stock (the inventory) is said in its own part.
                 var shown = Describe(change.Texts.Where(text => !text.IsControl && !IsNumber(text.Text) && !own.Contains(text.Text)));
                 var place = FocusDetails.PagePlace(focus?.Context ?? string.Empty, openedTab);
+                // A merchant opened with the cursor on the inventory: its first tab, then the inventory's item in its own part.
+                var beside = FocusDetails.PageBeside(focus?.Context ?? string.Empty, openedTab, this.SidePanel?.Invoke() ?? string.Empty);
                 this.tabbedLayer = change.Layer.Address;
                 this.lastContext = place == Announcements.TabTitle(openedTab) ? openedTab : place;
-                this.Speak("tabbed panel with focus", Announcements.Sentences(new[] { place, shown, this.lastFocusSpeech }), true);
+                this.Speak("tabbed panel with focus", Announcements.Sentences(new[] { beside, place, shown, this.lastFocusSpeech }), true);
             }
             else if (change.Kind == ScreenChangeKind.LayerOpened && justFocused)
             {
@@ -467,16 +470,24 @@ namespace Poe2Accessibility.Services
                 }
 
                 var news = change.Texts.Except(alerts).Where(text => text.Address != ignored && !IsNumber(text.Text) && this.hudSpoken.Add(text.Text)).ToList();
-                var itemTarget = news.Count > 0 && this.ItemTargetNamed?.Invoke() == true;
-                var item = news.Count > 0 ? this.GroundItemName?.Invoke(change.Texts.Select(text => text.Text)) : null;
-                if (item != null || (itemTarget && change.Texts.Any(text => PropertyLine.IsMatch(text.Text))))
+                // A tooltip that shows again while the HUD is up is another item's, or the same one aimed at again: news
+                // each time, whatever was said of that title before (a second stack of a currency was silent). The HUD
+                // coming back from behind a panel shows again what it showed before, which is none.
+                var shownAgain = news.Count == 0 && change.Kind == ScreenChangeKind.TextsAppeared && !this.InMenu &&
+                                 (DateTime.UtcNow - this.hudBackAt).TotalMilliseconds >= HudBackMs &&
+                                 change.Texts.Any(text => !IsNumber(text.Text) && !PropertyLine.IsMatch(text.Text));
+                var itemTarget = (news.Count > 0 || shownAgain) && this.ItemTargetNamed?.Invoke() == true;
+                var item = news.Count > 0 || shownAgain ? this.GroundItemName?.Invoke(change.Texts.Select(text => text.Text)) : null;
+                if (item != null || (itemTarget && news.Count > 0 && change.Texts.Any(text => PropertyLine.IsMatch(text.Text))))
                 {
                     var quality = change.Texts.FirstOrDefault(text => QualityLine.IsMatch(text.Text));
-                    if (item is not "" && DateTime.UtcNow >= this.hudQuietUntil && this.QuietGroundItems?.Invoke() != true)
+                    // The game shows this tooltip for what A uses, already named with the button: only its quality is new.
+                    var said = itemTarget ? quality?.Text ?? string.Empty : quality == null ? item ?? string.Empty : $"{item}, {quality.Text}";
+                    var settling = said == this.groundItemSaid && (DateTime.UtcNow - this.groundItemAt).TotalMilliseconds < FocusTextMergeMs;
+                    if (item is not "" && !settling && DateTime.UtcNow >= this.hudQuietUntil && this.QuietGroundItems?.Invoke() != true)
                     {
-                        // The game shows this tooltip for what A uses, already named with the button: only its quality is new.
-                        var said = itemTarget ? quality?.Text ?? string.Empty : quality == null ? item! : $"{item}, {quality.Text}";
                         this.Speak("ground item", said, false);
+                        this.groundItemSaid = said;
                     }
 
                     this.groundItemAt = DateTime.UtcNow; // the stats that follow ("Attacks per Second: 1.40") are its tooltip

@@ -82,6 +82,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\MinionGroups.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\BuildPlan.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\BuildGems.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Passives\BuildPlanFolder.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GemNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GemCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\AgreedChoice.cs" />
@@ -93,6 +94,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\SpeechFloor.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\SpeechRepeats.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\FocusDetails.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Ui\FocusNews.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\LessonReminder.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\WeakPoints.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Player\FlaskDrinks.cs" />
@@ -117,6 +119,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Core\LayoutOverrides.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\PoiseSearch.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemMoves.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\ItemReadings.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Scanner\GroundTooltip.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\SalvageOutcome.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\CardText.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\TradeOfferNews.cs" />

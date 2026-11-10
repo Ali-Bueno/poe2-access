@@ -226,6 +226,7 @@ namespace Poe2Accessibility.Services
                     foreach (var (_, item) in reader.Items)
                     {
                         located[item.Address] = name;
+                        this.Reread(item);
                     }
                 }
             }
@@ -253,8 +254,9 @@ namespace Poe2Accessibility.Services
                 {
                     if (!located.ContainsKey(entity))
                     {
-                        this.departures.Add((from, this.NameOf(entity)));
-                        this.NoteGem(entity);
+                        var name = this.names.Last(entity); // its entity is gone: as last read while it was there
+                        this.departures.Add((from, name));
+                        this.NoteGem(entity, name);
                         (this.lastMoveAt, this.movedInPanel) = (now, this.movedInPanel || !playing);
                     }
                 }
@@ -264,7 +266,7 @@ namespace Poe2Accessibility.Services
                     if (!this.where.ContainsKey(entity))
                     {
                         this.arrivals.Add((to, this.NameOf(entity)));
-                        this.NoteGem(entity);
+                        this.NoteGem(entity, this.NameOf(entity));
                         (this.lastMoveAt, this.movedInPanel) = (now, this.movedInPanel || !playing);
                     }
                 }
@@ -282,18 +284,10 @@ namespace Poe2Accessibility.Services
                 this.batchUncutSupports.Clear();
             }
 
-            foreach (var gone in new List<IntPtr>(this.names.Keys))
+            this.names.KeepOnly(located.ContainsKey);
+            foreach (var gone in this.gems.Keys.Where(entity => !located.ContainsKey(entity)).ToList())
             {
-                if (!located.ContainsKey(gone))
-                {
-                    this.names.Remove(gone);
-                    this.gems.Remove(gone);
-                }
-            }
-
-            foreach (var entity in located.Keys)
-            {
-                this.NameOf(entity); // read while it is there: a swapped-out item's entity is gone ("Unequipped: unknown item")
+                this.gems.Remove(gone);
             }
 
             this.TickWeaponSet(located, enabled);
@@ -462,7 +456,7 @@ namespace Poe2Accessibility.Services
         private long handEmptyDue;
 
         private readonly Dictionary<InventoryName, Inventory> readers = new();
-        private readonly Dictionary<IntPtr, string> names = new();
+        private readonly ItemReadings names = new(() => Announcements.UnknownItem);
         private readonly List<(InventoryName To, string Name)> arrivals = new();
         private readonly List<(InventoryName From, string Name)> departures = new();
         private readonly HashSet<string> batchGems = new();
@@ -490,36 +484,37 @@ namespace Poe2Accessibility.Services
         private long lastMovesPoll;
         private long lastMoveAt;
 
-        /// <summary>An item's name, kept after it leaves (a sold item can no longer be read).</summary>
         /// <summary>Remembers a moved item that is a gem, by name, for the batch (its entity may be gone when the batch settles).</summary>
-        private void NoteGem(IntPtr entity)
+        private void NoteGem(IntPtr entity, string name)
         {
             if (this.gems.TryGetValue(entity, out var gem) ? gem : this.reader.IsGem(entity))
             {
-                this.batchGems.Add(this.NameOf(entity));
+                this.batchGems.Add(name);
                 if (this.reader.ItemBaseId(entity).EndsWith(UncutSupportBase, StringComparison.Ordinal))
                 {
-                    this.batchUncutSupports.Add(this.NameOf(entity));
+                    this.batchUncutSupports.Add(name);
                 }
             }
         }
 
-        private string NameOf(IntPtr entity)
+        /// <summary>
+        ///     Reads an item in reach again when the stack or rarity the host shows is not what its name was read with: a
+        ///     stack used up to 7 was sold as "…, 10", an item made magic in place moved without its rarity.
+        /// </summary>
+        private void Reread(Item item)
         {
-            if (this.names.TryGetValue(entity, out var name))
+            var count = item.TryGetComponent<Stack>(out var stack) ? stack.Count : 0;
+            var rarity = item.TryGetComponent<Mods>(out var mods) ? (int)mods.Rarity : 0;
+            if (this.names.IsStale(item.Address, count, rarity))
             {
-                return name;
+                this.names.Read(item.Address, this.reader.DescribeItemEntity(item.Address), count, rarity);
+                this.gems[item.Address] = this.reader.IsGem(item.Address);
             }
-
-            if (this.reader.DescribeItemEntity(entity) is not { } read)
-            {
-                return Announcements.UnknownItem; // not kept: the next poll may read it
-            }
-
-            this.names[entity] = read;
-            this.gems[entity] = this.reader.IsGem(entity);
-            return read;
         }
+
+        /// <summary>An item's name as last read while it was there; one never read (the bench's) is read now.</summary>
+        private string NameOf(IntPtr entity) =>
+            this.names.Has(entity) ? this.names.Last(entity) : this.names.Read(entity, this.reader.DescribeItemEntity(entity));
 
         /// <summary>
         ///     GameHelper's reader of one player inventory, made once (each registers an update coroutine) and moved

@@ -90,6 +90,9 @@ namespace Poe2Accessibility.Services
         /// <summary>When a ground item's name was said: the rest of its tooltip follows in a second step.</summary>
         private DateTime groundItemAt = DateTime.MinValue;
 
+        /// <summary>What was last said of a ground item's tooltip: its lines settling a moment apart are one tooltip, said once.</summary>
+        private string groundItemSaid = string.Empty;
+
         /// <summary>When the focused control's value last changed in place (its actions may change with it).</summary>
         private DateTime valueChangedAt = DateTime.MinValue;
         private ScreenSnapshot? seenSnapshot;
@@ -250,6 +253,12 @@ namespace Poe2Accessibility.Services
         private bool inGame;
         private IntPtr valueOwner;
         private string lastValue = string.Empty;
+
+        /// <summary>The text of the focused control as last said: what a change in place is told apart from.</summary>
+        private string lastText = string.Empty;
+
+        /// <summary>The focused control's place in its list as last said ("3 de 10").</summary>
+        private string lastRow = string.Empty;
         private bool lastExpanded;
 
         /// <summary>The panel whose notes were said with the focus last (<see cref="AccessibleUiNode.PanelNotes"/>).</summary>

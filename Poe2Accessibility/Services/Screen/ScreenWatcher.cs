@@ -76,7 +76,13 @@ namespace Poe2Accessibility.Services
         private readonly ScreenDiffer differ = new();
         private readonly ConcurrentQueue<(ScreenChange Change, int Generation)> changes = new();
         private readonly CancellationTokenSource stop = new();
-        private readonly Dictionary<IntPtr, string?> textureKeys = new();
+        /// <summary>
+        ///     A texture's key is read again this often: the game gives a freed texture's address to another, and one read
+        ///     before it was loaded has no key yet.
+        /// </summary>
+        private const int TextureKeyKeepMs = 2000;
+
+        private readonly Dictionary<IntPtr, (string? Key, long At)> textureKeys = new();
         private readonly Stopwatch sinceSlowReport = Stopwatch.StartNew();
         private readonly object snapshotCostsLock = new();
         private int snapshots;
@@ -438,13 +444,14 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            if (!this.textureKeys.TryGetValue(info.Texture, out var key))
+            var now = Environment.TickCount64;
+            if (!this.textureKeys.TryGetValue(info.Texture, out var known) || now - known.At >= TextureKeyKeepMs)
             {
-                key = this.elements.ReadTextureKey(info.Texture);
-                this.textureKeys[info.Texture] = key;
+                known = (this.elements.ReadTextureKey(info.Texture), now);
+                this.textureKeys[info.Texture] = known;
             }
 
-            return key;
+            return known.Key;
         }
 
         /// <summary>

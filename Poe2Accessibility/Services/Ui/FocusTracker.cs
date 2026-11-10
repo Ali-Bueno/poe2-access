@@ -60,9 +60,16 @@ namespace Poe2Accessibility.Services
         private readonly Stopwatch sinceMarkerScan = Stopwatch.StartNew();
         private readonly NoFocusList noFocusList;
 
+        /// <summary>The semantics' per-address memos are kept through this long without a focus (a cursor between two controls).</summary>
+        private const int MemoKeepMs = 500;
+
+        /// <summary>The layer the semantics' per-address memos were learnt in, and since when nothing has the focus (0: something has).</summary>
+        private IntPtr memoLayer;
+        private long noFocusSince;
+
         /// <summary>The layer of the last focus: a popup it opens without a focus is looked for there.</summary>
         private IntPtr focusLayer;
-        private System.Collections.Generic.List<IntPtr> markers = new();
+        private System.Collections.Generic.List<(IntPtr Address, bool Frame)> markers = new();
         private IntPtr markersRoot;
         private long inGameRescanMs = InGameMarkerRescanMs;
         private IntPtr lastFocused;
@@ -156,6 +163,7 @@ namespace Poe2Accessibility.Services
             {
                 this.lastState = state;
                 this.markersRoot = IntPtr.Zero; // the root outlives its screen: a second visit rebuilds the controls under it
+                this.semantics.ForgetFocusMemos();
                 this.Reset();
             }
 
@@ -176,6 +184,7 @@ namespace Poe2Accessibility.Services
                 focused = IntPtr.Zero; // neither said nor a menu for the mod button while the game keeps it there
             }
 
+            this.ForgetMemosWithoutFocus(focused);
             var changed = focused != this.lastFocused;
             var waitedFor = focused == this.emptyOnArrival ? EmptyRecheckMs : PendingRecheckMs;
             var recheck = this.pendingVisibility && this.sincePendingCheck.ElapsedMilliseconds >= waitedFor;
@@ -224,11 +233,43 @@ namespace Poe2Accessibility.Services
             this.Current = node;
             this.CurrentSince = Environment.TickCount64;
             this.CurrentPanelIndex = this.PanelIndexOf(focused);
+            if (this.CurrentLayer != this.memoLayer)
+            {
+                // Another layer: what the semantics kept by address was the last one's (the map's own marker, a grid's tabs).
+                // This focus is read again without them, so what it teaches (the marker a map opened on) is this layer's.
+                this.memoLayer = this.CurrentLayer;
+                this.semantics.ForgetFocusMemos();
+                node = this.semantics.Describe(focused, hovered) ?? node;
+                this.Current = node;
+            }
+
             this.focusLayer = this.CurrentLayer;
             this.optionSections = this.OptionSectionsOf(focused);
             this.sinceValuePoll.Restart();
             this.log.Info($"Focus -> 0x{focused.ToInt64():X} panel={this.CurrentPanelIndex} name=\"{node.Name}\" role={node.Role} text=\"{node.Text}\" value=\"{node.Value}\" context=\"{node.Context}\" group=\"{node.Group}\" notes=\"{string.Join(". ", node.PanelNotes)}\"");
             this.FocusChanged?.Invoke(node);
+        }
+
+        /// <summary>A panel closed and opened again shows no layer change: the memos also go once nothing has had the focus for a moment.</summary>
+        private void ForgetMemosWithoutFocus(IntPtr focused)
+        {
+            if (focused != IntPtr.Zero)
+            {
+                this.noFocusSince = 0;
+                return;
+            }
+
+            var now = Environment.TickCount64;
+            if (this.noFocusSince == 0)
+            {
+                this.noFocusSince = now;
+            }
+            else if (this.noFocusSince > 0 && now - this.noFocusSince >= MemoKeepMs)
+            {
+                this.noFocusSince = -1; // forgotten once per stretch without focus
+                this.memoLayer = IntPtr.Zero;
+                this.semantics.ForgetFocusMemos();
+            }
         }
 
         /// <summary>Which child of the root the element lives under; -1 when it cannot be climbed to the root.</summary>
@@ -288,7 +329,9 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (fresh.Value == this.Current.Value && fresh.Text == this.Current.Text && fresh.IsExpanded == this.Current.IsExpanded)
+            // A list the game focuses as one element: another row is a move, even onto a row with the same text.
+            var sameRow = !FocusNews.RowChanged(this.Current.Position, fresh.Position);
+            if (sameRow && fresh.Value == this.Current.Value && fresh.Text == this.Current.Text && fresh.IsExpanded == this.Current.IsExpanded)
             {
                 if (!fresh.Tooltip.SequenceEqual(this.Current.Tooltip))
                 {
@@ -299,10 +342,11 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (fresh.Value == this.Current.Value && fresh.IsExpanded == this.Current.IsExpanded && ScreenDiffer.SameBesideNumbers(fresh.Text, this.Current.Text))
+            if (sameRow && fresh.Value == this.Current.Value && fresh.IsExpanded == this.Current.IsExpanded && FocusNews.IsTick(fresh.Role, this.Current.Text, fresh.Text))
             {
                 // A clock in the focused row ticking (the Instance Manager's "11 minutes 45 seconds" left, 2026-11-08) is no
-                // news, as on the screen (ScreenDiffer): the row was said once, with the time it showed then.
+                // news, as on the screen (ScreenDiffer): the row was said once, with the time it showed then. A cell's
+                // count or a gem's level is the item's own number and is news (FocusNews).
                 this.Current = fresh;
                 return;
             }
@@ -535,17 +579,35 @@ namespace Poe2Accessibility.Services
 
         private IntPtr VisibleMarkerParent()
         {
-            foreach (var marker in this.markers)
+            for (var index = 0; index < this.markers.Count; index++)
             {
-                if (this.elements.TryReadElement(marker, out var info) && info.IsVisibleFlag && info.Raw.ParentPtr != IntPtr.Zero &&
+                var (marker, frame) = this.markers[index];
+                if (!this.elements.TryReadElement(marker, out var info))
+                {
+                    this.markers.RemoveAt(index--); // gone with its screen
+                    continue;
+                }
+
+                if (info.IsVisibleFlag && info.Raw.ParentPtr != IntPtr.Zero &&
                     this.elements.TryReadElement(info.Raw.ParentPtr, out var parent) && this.elements.IsVisible(parent))
                 {
-                    return info.Raw.ParentPtr;
+                    if (this.IsMarker(marker, info, frame))
+                    {
+                        return info.Raw.ParentPtr;
+                    }
+
+                    // An address is a marker only while the element there still is one: a rebuilt screen gives it to another.
+                    this.markers.RemoveAt(index--);
                 }
             }
 
             return IntPtr.Zero;
         }
+
+        /// <summary>Whether the element is still what it was found as: a highlight child by its name, or a shop card's frame (unnamed, its card's last child).</summary>
+        private bool IsMarker(IntPtr address, in UiElementReader.ElementInfo info, bool frame) =>
+            !frame ? Array.IndexOf(HighlightMarkers, info.Name) >= 0
+            : info.Name.Length == 0 && this.elements.TryReadElement(info.Raw.ParentPtr, out var card) && this.elements.ReadChildren(card) is { Length: > 1 } children && children[^1] == address;
 
         /// <summary>
         ///     The frame of a card whose caption is <paramref name="caption"/> ("name_label"): the card's last child, unnamed
@@ -562,9 +624,9 @@ namespace Poe2Accessibility.Services
             return children.Length > 1 && this.elements.TryReadElement(children[^1], out var last) && last.Name.Length == 0 ? children[^1] : IntPtr.Zero;
         }
 
-        private System.Collections.Generic.List<IntPtr> FindMarkers(IntPtr root)
+        private System.Collections.Generic.List<(IntPtr Address, bool Frame)> FindMarkers(IntPtr root)
         {
-            var found = new System.Collections.Generic.List<IntPtr>();
+            var found = new System.Collections.Generic.List<(IntPtr Address, bool Frame)>();
             var queue = new System.Collections.Generic.Queue<IntPtr>();
             var seen = new System.Collections.Generic.HashSet<IntPtr>();
             queue.Enqueue(root);
@@ -578,13 +640,13 @@ namespace Poe2Accessibility.Services
 
                 if (Array.IndexOf(HighlightMarkers, info.Name) >= 0)
                 {
-                    found.Add(address);
+                    found.Add((address, false));
                 }
 
                 if (root != this.CurrentRoot && info.Name == GameLayout.InGameUi.ShopEntryNameLabel && this.CardFrame(info) is var frame &&
-                    frame != IntPtr.Zero && !found.Contains(frame))
+                    frame != IntPtr.Zero && !found.Contains((frame, true)))
                 {
-                    found.Add(frame); // the shop's offer cards: an unnamed frame, last, shown on the chosen one
+                    found.Add((frame, true)); // the shop's offer cards: an unnamed frame, last, shown on the chosen one
                 }
 
                 foreach (var child in this.elements.ReadChildren(info))

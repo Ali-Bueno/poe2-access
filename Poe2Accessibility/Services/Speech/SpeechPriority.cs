@@ -54,6 +54,9 @@ namespace Poe2Accessibility.Services
             _ => false,
         };
 
+        /// <summary>News that is a number true only now (a percentage, a count held), not something that happened.</summary>
+        public static bool IsReading(SpeechKind kind) => kind is SpeechKind.LifeAndMana or SpeechKind.BossLife or SpeechKind.Charges or SpeechKind.Combo;
+
         /// <summary>Speaks a piece of news at the level the player chose for its kind; urgent news cutting in also holds.</summary>
         public static void Say(this IAccessibilityOutputService output, SpeechKind kind, string text, bool urgent = false)
         {
@@ -67,6 +70,12 @@ namespace Poe2Accessibility.Services
             {
                 // A waiting life warning was dropped by a state beginning 80 ms later (2026-10-24).
                 output.Mention(text);
+                return;
+            }
+
+            if (IsReading(kind))
+            {
+                output.SpeakReading(text, Interrupts(kind, urgent));
                 return;
             }
 

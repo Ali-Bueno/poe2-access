@@ -41,18 +41,26 @@ namespace Poe2Accessibility.Services
         /// <summary>The names the Skills panel's rows showed last: a skill a weapon grants (Parry) has no gem of its own to find.</summary>
         private HashSet<string> panelSkills = new(StringComparer.OrdinalIgnoreCase);
 
-        private (long At, GemHoldings Holdings)? gemHoldings;
-        private (long At, BuildPlan? Plan, int Level)? gemPlan;
+        /// <summary>The character whose Skills panel <see cref="panelSkills"/> was read from.</summary>
+        private string panelSkillsOf = string.Empty;
+
+        private (long At, string Character, GemHoldings Holdings)? gemHoldings;
+        private (long At, string Character, BuildPlan? Plan, int Level)? gemPlan;
+
+        /// <summary>The character whose controller asks: the tree, the gems and the build read are its own. Empty when unknown.</summary>
+        private static string AskingCharacter() => Seats.Asking.TryGetComponent<Player>(out var player) ? player.Name : string.Empty;
 
         /// <summary>The active build with gems and the character's level; null without one.</summary>
         private (BuildPlan Plan, int Level)? GemPlan()
         {
             var now = Environment.TickCount64;
-            if (this.gemPlan is not { } cached || now - cached.At >= GemHoldingsMs)
+            var character = AskingCharacter();
+            if (this.gemPlan is not { } cached || cached.Character != character || now - cached.At >= GemHoldingsMs)
             {
-                cached = Seats.Asking.TryGetComponent<Player>(out var player)
-                    ? (now, this.buildPlans.Active(player.Name), player.Level)
-                    : (now, null, 0);
+                // A character without a name read has no build of its own to judge its gems by.
+                cached = character.Length > 0 && Seats.Asking.TryGetComponent<Player>(out var player)
+                    ? (now, character, this.buildPlans.Active(character), player.Level)
+                    : (now, character, null, 0);
                 this.gemPlan = cached;
             }
 
@@ -66,9 +74,15 @@ namespace Poe2Accessibility.Services
         private GemHoldings Holdings()
         {
             var now = Environment.TickCount64;
-            if (this.gemHoldings is { } cached && now - cached.At < GemHoldingsMs)
+            var character = AskingCharacter();
+            if (this.gemHoldings is { } cached && cached.Character == character && now - cached.At < GemHoldingsMs)
             {
                 return cached.Holdings;
+            }
+
+            if (character != this.panelSkillsOf)
+            {
+                (this.panelSkills, this.panelSkillsOf) = (new HashSet<string>(StringComparer.OrdinalIgnoreCase), character);
             }
 
             var skills = new List<OwnedSkill>();
@@ -103,20 +117,20 @@ namespace Poe2Accessibility.Services
             }
             catch (InvalidOperationException)
             {
-                // The host rebuilt its inventory list meanwhile: the gems as last read.
-                return this.gemHoldings?.Holdings ?? GemHoldings.None;
+                // The host rebuilt its inventory list meanwhile: this character's gems as last read.
+                return this.gemHoldings is { } last && last.Character == character ? last.Holdings : GemHoldings.None;
             }
 
             foreach (var granted in this.GemPlan()?.Plan.Skills.Select(skill => skill.Gem.Key).Distinct() ?? Enumerable.Empty<string>())
             {
-                if (skills.All(skill => skill.Key != granted) && this.panelSkills.Contains(GemNames.Of(granted)))
+                if (skills.All(skill => skill.Key != granted) && GemNames.RowNames(granted).Any(this.panelSkills.Contains))
                 {
                     skills.Add(new OwnedSkill(granted, Array.Empty<string>()));
                 }
             }
 
             var holdings = new GemHoldings(skills, bag);
-            this.gemHoldings = (now, holdings);
+            this.gemHoldings = (now, character, holdings);
             return holdings;
         }
 
@@ -132,7 +146,7 @@ namespace Poe2Accessibility.Services
             for (var at = GameLayout.GemSockets.FirstOffset; at < GameLayout.GemSockets.EndOffset; at += IntPtr.Size)
             {
                 if (this.reader.TryRead<IntPtr>(sockets + at, out var gem) && gem != IntPtr.Zero && this.reader.IsValidAddress(gem) &&
-                    this.inventory.ItemBaseId(gem) is var id && BuildGems.IsGemId(id) && BuildGems.IsSupport(BuildGems.KeyOf(id)))
+                    this.inventory.ItemBaseId(gem) is var id && BuildGems.IsGemId(id) && BuildGems.IsSupport(BuildGems.KeyOf(id), GemIndex.Shared))
                 {
                     keys.Add(BuildGems.KeyOf(id));
                 }
@@ -245,7 +259,7 @@ namespace Poe2Accessibility.Services
 
             var titles = this.RowTitles(row);
             return active.Plan.Skills.Where(skill => skill.Gem.ToLevel >= active.Level).Select(skill => skill.Gem.Key)
-                .FirstOrDefault(key => titles.Contains(GemNames.Of(key), StringComparer.OrdinalIgnoreCase)) ?? string.Empty;
+                .FirstOrDefault(key => GemNames.RowNames(key).Any(name => titles.Contains(name, StringComparer.OrdinalIgnoreCase))) ?? string.Empty;
         }
 
         /// <summary>Keeps the names the panel's rows show, for the skills that have no gem; what was known of the gems is read again when they change.</summary>
@@ -265,9 +279,9 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            if (!names.SetEquals(this.panelSkills))
+            if (!names.SetEquals(this.panelSkills) || this.panelSkillsOf != AskingCharacter())
             {
-                (this.panelSkills, this.gemHoldings) = (names, null);
+                (this.panelSkills, this.panelSkillsOf, this.gemHoldings) = (names, AskingCharacter(), null);
             }
         }
 
@@ -306,7 +320,7 @@ namespace Poe2Accessibility.Services
                 yield break;
             }
 
-            if (BuildGems.IsSupport(key))
+            if (BuildGems.IsSupport(key, GemIndex.Shared))
             {
                 var users = BuildGems.SkillsUsing(active.Plan, active.Level, key);
                 yield return users.Count > 0 ? Announcements.BuildGemFor(users.Select(skill => GemNames.Of(skill.Gem.Key))) : Announcements.OutsideBuild;

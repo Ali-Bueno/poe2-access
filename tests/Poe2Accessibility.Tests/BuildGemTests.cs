@@ -22,10 +22,13 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(TheFilesSkillsAreReadWithTheirSupports), TheFilesSkillsAreReadWithTheirSupports),
             (nameof(TheActiveBuildIsTheCharactersFile), TheActiveBuildIsTheCharactersFile),
+            (nameof(ATreesBuildIsItsOwnCharacters), ATreesBuildIsItsOwnCharacters),
             (nameof(ASupportIsWhereTheCharacterHasIt), ASupportIsWhereTheCharacterHasIt),
             (nameof(TheNextGemIsOneTheLevelAllows), TheNextGemIsOneTheLevelAllows),
             (nameof(AGemIsNamedInTheGamesLanguage), AGemIsNamedInTheGamesLanguage),
+            (nameof(TheGameFilesNameTheBuildsGems), TheGameFilesNameTheBuildsGems),
             (nameof(TooManyMarksAreNoBuild), TooManyMarksAreNoBuild),
+            (nameof(MarkupGoesAndAPlaceToFillStays), MarkupGoesAndAPlaceToFillStays),
         };
 
         private static void Expect<T>(T expected, T actual, string what)
@@ -56,6 +59,34 @@ namespace Poe2Accessibility.Tests
             Expect(null, BuildPlan.ActivePath(Config, "web"), "a build that is no file");
             Expect(null, BuildPlan.ActivePath("active_builds=not json", "yarkey"), "a broken line");
             Expect(null, BuildPlan.ActivePath("[UI]\nfoo=1", "yarkey"), "no line");
+        }
+
+        /// <summary>What one character's tree marked is never the build of the next character played, nor of the co-op partner.</summary>
+        private static void ATreesBuildIsItsOwnCharacters()
+        {
+            var folder = System.IO.Path.Join(System.IO.Path.GetTempPath(), "poe2access-tests", "builds-" + Guid.NewGuid().ToString("N"));
+            System.IO.Directory.CreateDirectory(folder);
+            try
+            {
+                System.IO.File.WriteAllText(System.IO.Path.Join(folder, "Twister.build"), File);
+                System.IO.File.WriteAllText(System.IO.Path.Join(folder, "Other.build"), "{\"name\":\"Other\",\"passives\":[\"melee3\"],\"skills\":[]}");
+                var config = System.IO.Path.Join(folder, "config.ini");
+                var other = System.IO.Path.Join(folder, "Other.build").Replace('\\', '/');
+                System.IO.File.WriteAllText(config, "active_builds=[{\"character\":\"hairin\",\"path\":\"file:" + other + "\"}]");
+                var plans = new BuildPlanFolder(folder, config);
+                Expect("Twister", plans.Matching("yarkey", new[] { "projectiles18" })?.Name, "the plan under yarkey's marks");
+                Expect("Twister", plans.Active("yarkey")?.Name, "is yarkey's while the tree is closed");
+                Expect("Other", plans.Active("hairin")?.Name, "another character has the build the game's settings give it");
+                Expect(null, plans.Active("kehgan")?.Name, "and one with no build has none, not yarkey's");
+                Expect("Twister", plans.Matching(string.Empty, new[] { "projectiles18" })?.Name, "a tree read without the character's name is still read");
+                Expect(null, plans.Active(string.Empty)?.Name, "but is nobody's build afterwards");
+                Expect(null, plans.Matching("yarkey", Array.Empty<string>())?.Name, "the tree showing no marks");
+                Expect(null, plans.Active("yarkey")?.Name, "is that character's news");
+            }
+            finally
+            {
+                System.IO.Directory.Delete(folder, true);
+            }
         }
 
         private static void ASupportIsWhereTheCharacterHasIt()
@@ -92,11 +123,85 @@ namespace Poe2Accessibility.Tests
 
         private static void AGemIsNamedInTheGamesLanguage()
         {
-            GemNames.Set(new() { ["en"] = new() { ["SkillGemTwister"] = "Twister", ["SupportGemRageTwo"] = "<size:37>{Rage II}" } });
-            Expect("Twister", GemNames.Of("SkillGemTwister"), "from the catalog");
-            Expect("Rage II", GemNames.Of("SupportGemRageTwo"), "markup out");
-            Expect("Frost Nexus", GemNames.Of("SupportGemFrostNexus"), "a gem newer than the catalog, by its id's words");
-            GemNames.Set(new());
+            var index = new GemIndex(GemCatalog.Parse(
+                "{\"gems\":{" +
+                "\"Metadata/Items/Gem/SkillGemTwister\":{\"kind\":\"ActiveSkillGem\",\"effects\":[],\"skills\":[\"TwisterPlayer\"],\"tags\":[],\"str\":0,\"dex\":100,\"int\":0}," +
+                "\"Metadata/Items/Gems/SupportGemRageTwo\":{\"kind\":\"SupportSkillGem\",\"effects\":[],\"skills\":[],\"tags\":[],\"str\":100,\"dex\":0,\"int\":0}," +
+                "\"Metadata/Items/Gem/SkillGemArmourPiercingRounds\":{\"kind\":\"ActiveSkillGem\",\"effects\":[],\"skills\":[\"LoadArmourPiercingRoundsPlayer\",\"Unnamed\"],\"tags\":[],\"str\":0,\"dex\":100,\"int\":0}," +
+                "\"Metadata/Items/Gem/SkillGemSummonSpectre\":{\"kind\":\"ActiveSkillGem\",\"effects\":[],\"skills\":[\"CommandPlayer\"],\"tags\":[],\"str\":0,\"dex\":0,\"int\":100}," +
+                "\"Metadata/Items/Gem/SkillGemAxeChop\":{\"kind\":\"ActiveSkillGem\",\"effects\":[],\"skills\":[],\"tags\":[],\"str\":100,\"dex\":0,\"int\":0}}," +
+                "\"names\":{\"en\":{\"Metadata/Items/Gem/SkillGemTwister\":\"Twister\",\"Metadata/Items/Gems/SupportGemRageTwo\":\"Rage II\"," +
+                "\"Metadata/Items/Gem/SkillGemArmourPiercingRounds\":\"Armour Piercing Rounds\",\"Metadata/Items/Gem/SkillGemSummonSpectre\":\"Spectre: {0}\"," +
+                "\"Metadata/Items/Gem/SkillGemAxeChop\":\"[DNT-UNUSED] Axe Chop\"}," +
+                "\"es\":{\"Metadata/Items/Gem/SkillGemTwister\":\"Torbellino\",\"Metadata/Items/Gem/SkillGemSummonSpectre\":\"Espectro: {0}\"}," +
+                "\"th\":{\"Metadata/Items/Gems/SupportGemRageTwo\":\"<size:37>{Rage II}\"}}," +
+                "\"skills\":{\"en\":{\"TwisterPlayer\":\"Twister\",\"LoadArmourPiercingRoundsPlayer\":\"Load Armour Piercing Rounds\",\"CommandPlayer\":\"Command: {0}\"}}}"));
+            Expect("Torbellino", GemNames.Of("SkillGemTwister", index, "es"), "from the game files, in the game's language");
+            Expect("Rage II", GemNames.Of("SupportGemRageTwo", index, "es"), "English when the language has none");
+            Expect("Rage II", GemNames.Of("SupportGemRageTwo", index, "th"), "markup out");
+            Expect("Espectro", GemNames.Of("SkillGemSummonSpectre", index, "es"), "a pattern without the place the game fills");
+            Expect("Axe Chop", GemNames.Of("SkillGemAxeChop", index, "en"), "a gem marked unused, by its id's words");
+            Expect("Frost Nexus", GemNames.Of("SupportGemFrostNexus", index, "en"), "a gem newer than the catalog, by its id's words");
+            Expect("Frost Nexus", GemNames.Of("SupportGemFrostNexus"), "and without a catalog at all");
+            Expect("Armour Piercing Rounds|Load Armour Piercing Rounds", string.Join("|", GemNames.RowNames("SkillGemArmourPiercingRounds", index, "en")), "a skill row shows the skill's name, which is not its gem's");
+            Expect("Twister", string.Join("|", GemNames.RowNames("SkillGemTwister", index, "en")), "the same name once");
+            Expect("Spectre|Command", string.Join("|", GemNames.RowNames("SkillGemSummonSpectre", index, "en")), "patterns without their holes");
+        }
+
+        /// <summary>The shipped catalog of the name, or null away from the repository.</summary>
+        private static string? Shipped(string name)
+        {
+            for (var folder = new System.IO.DirectoryInfo(AppContext.BaseDirectory); folder != null; folder = folder.Parent)
+            {
+                var file = System.IO.Path.Combine(folder.FullName, "Poe2Accessibility", "catalog", name);
+                if (System.IO.File.Exists(file))
+                {
+                    return file;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        ///     The names the Build Planner's lines said on 2026-11-10 ("Siguiente habilidad: Colmillos de escarcha"), now from
+        ///     the game files' gems.json: yarkey's builds name 101 gems, and all read as before in every language.
+        /// </summary>
+        private static void TheGameFilesNameTheBuildsGems()
+        {
+            if (Shipped("gems.json") is not { } file)
+            {
+                return;
+            }
+
+            var index = new GemIndex(GemCatalog.Parse(System.IO.File.ReadAllText(file)));
+            Expect("Colmillos de escarcha", GemNames.Of("SkillGemFangsOfFrost", index, "es"), "the build's next skill");
+            Expect("Torbellino", GemNames.Of("SkillGemTwister", index, "es"), "a skill under Gem/");
+            Expect("Corte giratorio", GemNames.Of("SkillGemWhirlingSlash", index, "es"), "a skill under Gems/");
+            Expect("Furia II", GemNames.Of("SupportGemRageTwo", index, "es"), "a support's tier");
+            Expect("Ataques rápidos II", GemNames.Of("SupportGemMartialTempoTwo", index, "es"), "a support named unlike its id");
+            Expect("Convicción de Olroth", GemNames.Of("SupportOlrothsConviction", index, "es"), "a lineage support, no SupportGem prefix");
+            Expect("Lanzar al infligir impactos críticos", GemNames.Of("SkillGemCastOnCritical", index, "es"), "a meta gem");
+            Expect("Fangs of Frost", GemNames.Of("SkillGemFangsOfFrost", index, "en"), "English");
+            Expect("Fangs of Frost", GemNames.Of("skillgemfangsoffrost", index, "en"), "whatever the id's case");
+            Expect("Espectro", GemNames.Of("SkillGemSummonSpectre", index, "es"), "a name the game fills in play, without its hole");
+            Expect("Axe Chop", GemNames.Of("SkillGemAxeChop", index, "es"), "a gem the files mark unused, by its id's words");
+            Expect("Frost Nexus Nine", GemNames.Of("SupportGemFrostNexusNine", index, "es"), "a gem newer than the catalog, by its id's words");
+            Expect(false, GemNames.Of("SkillGemTwister", index, "th").Contains('<'), "Thai names without their size tag");
+            Expect(true, BuildGems.IsSupport("SupportOlrothsConviction", index) && !BuildGems.IsSupport("SupportOlrothsConviction"), "a support whose key does not say so, by the files' kind");
+            Expect(true, BuildGems.IsSupport("SupportGemRageTwo", index) && !BuildGems.IsSupport("SkillGemTwister", index), "the kind for the rest too");
+            Expect(true, BuildGems.IsSupport("SupportGemFrostNexusNine", index), "a gem the files lack, by its key");
+        }
+
+        /// <summary>"Spectre: {0}" came out as "Spectre: {0": every closing brace was taken for a tag's.</summary>
+        private static void MarkupGoesAndAPlaceToFillStays()
+        {
+            Expect("Strength +5 is recommended", BuildNotes.Plain("<m>{<red>{Strength +5 is recommended}}"), "nested tags");
+            Expect("Spectre: {0}", BuildNotes.Plain("Spectre: {0}"), "a place the game fills is no tag");
+            Expect("Spectre: {0}", BuildNotes.Plain("<size:37>{Spectre: {0}}"), "nor inside a tag");
+            Expect("Take this first", BuildNotes.Plain("<b>Take   this <i>{first}"), "bare tags and runs of spaces");
+            Expect("half open", BuildNotes.Plain("<red>{half open"), "a tag left open");
+            Expect("closed twice", BuildNotes.Plain("<red>{closed twice}}"), "a brace without its pair");
         }
 
         private static void TooManyMarksAreNoBuild()

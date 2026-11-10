@@ -231,18 +231,30 @@ namespace Poe2Accessibility.Services
         /// <summary>What each area instance left held, to restore it on return (set by the plugin).</summary>
         public AreaMemory? Memory { get; set; }
 
-        /// <summary>The spoken name of the ground item whose tooltip holds these texts (empty for gold); null when none does.</summary>
+        /// <summary>
+        ///     The spoken name of the ground item whose tooltip holds these texts (empty for gold), read now from the item
+        ///     the game targets or the one in view (<see cref="GroundTooltip"/>); null when none does.
+        /// </summary>
         public string? ItemOfTooltip(IEnumerable<string> texts)
         {
-            foreach (var text in texts)
+            var shown = texts.ToList();
+            if (!shown.Any(this.itemTitles.ContainsKey))
             {
-                if (this.itemTitles.TryGetValue(text, out var spoken))
+                return null; // no title of an item seen here: the ground is not read for every text the HUD shows
+            }
+
+            GroundTooltip.Item? target = null;
+            var inView = new List<GroundTooltip.Item>();
+            foreach (var (_, entity) in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities)
+            {
+                if (this.GroundItemOf(entity) is { } item)
                 {
-                    return spoken;
+                    inView.Add(item);
+                    target = this.IsTargeted(entity) ? item : target;
                 }
             }
 
-            return null;
+            return GroundTooltip.Name(shown, target, inView, title => this.itemTitles.TryGetValue(title, out var spoken) ? spoken : null);
         }
 
         /// <summary>A thing in the world, not a named place of the area's tiles.</summary>
@@ -356,8 +368,39 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>Names of the bosses whose defeat was seen in this area instance (<see cref="BossDefeated"/>).</summary>
+        private readonly HashSet<string> defeatedBosses = new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        ///     A boss's defeat was seen in this area (the boss watch calls this): its room among the area's tiles is said as
+        ///     defeated from now on, without the radar table's reward note, until the instance is left.
+        /// </summary>
+        public void BossDefeated(string name)
+        {
+            lock (this.defeatedBosses)
+            {
+                if (name.Length > 0)
+                {
+                    this.defeatedBosses.Add(name);
+                }
+            }
+        }
+
+        private List<string> DefeatedBosses()
+        {
+            lock (this.defeatedBosses)
+            {
+                return this.defeatedBosses.ToList();
+            }
+        }
+
         private void Clear()
         {
+            lock (this.defeatedBosses)
+            {
+                this.defeatedBosses.Clear();
+            }
+
             this.remembered.Clear();
             this.sighted.Clear();
             this.itemTitles.Clear();
@@ -507,8 +550,19 @@ namespace Poe2Accessibility.Services
             }
 
             var toCells = area.WorldToGridConvertor;
-            foreach (var landmark in this.TileLandmarks(area, player.WorldPosition.Z))
+            var tileLandmarks = this.TileLandmarks(area, player.WorldPosition.Z).ToList();
+            var tileRooms = tileLandmarks.Count(entry => entry.Kind == MinimapMarks.BossRoomKind);
+            var gameRooms = tileRooms == 0 ? null : found.Values.Where(entry => entry.Kind == MinimapMarks.BossRoomKind && IsEntity(entry))
+                .Select(entry => (entry.Subject, entry.Name == Announcements.BossRoomDefeated(entry.Subject))).ToList();
+            foreach (var tileLandmark in tileLandmarks)
             {
+                var landmark = tileLandmark;
+                if (landmark.Kind == MinimapMarks.BossRoomKind && MinimapMarks.RoomDefeated(landmark.Subject, tileRooms, gameRooms!, this.DefeatedBosses()))
+                {
+                    // The table's label and its reward note are of a boss still to fight: said as slain, the note left out.
+                    landmark = landmark with { Name = Announcements.BossRoomDefeated(landmark.Subject) };
+                }
+
                 if (landmark.Category == ScanCategory.Exits && ListsExit(found.Values, landmark, toCells))
                 {
                     continue; // the exit's own tile beside the game's exit: one place, said once (two "El bosque singular", 2026-11-02)
