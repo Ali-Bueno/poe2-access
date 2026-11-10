@@ -32,6 +32,7 @@ one row's values: it is how a moved column is found again by hand.
 | `Table.Column near +0x…: not found` | the column moved beyond the search or its known row changed: `dat-strings` on the table, then the column's measured offset or known value in its `*Columns.cs` / `NameAnchors.cs` |
 | `not a table this reader understands` | a `.datc64` whose length is not whole rows or has no marker: the file format changed |
 | `… entries, under the N a catalog of this kind has` | the new file is under a quarter of today's count (`GameDataCounts.Today`): a column probably moved; raise the table's numbers only after reading the real output |
+| `the block base_fire_damage_resistance_% no longer reads …`, `n of m lines fit nowhere in the format`, `no description block was read` (mod texts) | `stat_descriptions.csd` is no longer the text format `StatDescriptionFile` reads, or its known block changed: read it with `Poe2UiExtract cat "<game folder>" data/statdescriptions/stat_descriptions.csd 3000`, then the reader or the known texts in `ModTextExtractor` ([the format](research/file-catalogs.md#modifier-texts)) |
 | `MISSING n of m cues` (sounds) | a bank or sample the cue list names is gone; the sounds folder is left as it was |
 | `column changed kind: <table> +0x… is read as text, but its bytes hold a key` | the extractor still reads the column where it was, and something else sits there now: `dat-kinds` on the table, then the measured offset in the step's `*Columns.cs` |
 | `… +0x0 is read as the Id, but its bytes hold display text` | a column was put before the Id: every reader of that table starts at the wrong place (`DatColumnSearch.IdColumn`, `RowOf`) |
@@ -63,6 +64,11 @@ What a patch could move without the mod telling (2026-11-10), with the reason ea
   only: two columns swapped inside the same row size are not seen. With the file they are not used.
 - The data bundles' own headers, and the `.tdt`, `.xml` and `.ui` files: `.ui` is parsed, not pattern-matched, and its
   catalog has a count minimum; the others are read for names only.
+- Item bases: the classes a character wears or wields are a named list (`ItemBaseColumns.Equippable`); a class a patch
+  adds is not in `item-bases.json` until it is named there. The level and the three defences are judged by four known
+  bases (`ItemBaseColumns`), not row by row.
+- Modifier texts: the catalog copies every line of the file, but the plugin applies only the handlers and place formats
+  it knows (`ModTextVariation.Arithmetic`); a line with a new one is not told, and nothing says so at start-up.
 - Gem requirements by level: GrantedEffectsPerLevel has a level (+0x10) and a float that rises with it (+0x6C); what the
   float means was not verified against the game, so `gems.json` does not carry it.
 

@@ -33,10 +33,12 @@ A new catalog needs no change to the project file or the package script, only a 
 | `hit-times.txt` | when monster attacks land | `hit-times`, start | `DodgeTimings` |
 | `important_tgt_files.txt` | named tiles (exits) | vendored (formerly GameHelper2's Radar table) | `LandmarkTable` |
 | `inline-icons.txt` | the markup images texts show as pictures | `inline-icons`, start | `InlineIcons` |
+| `item-bases.json` | every base a character wears or wields by base item Id: item class, level, base armour, evasion and energy shield; names per language | `item-bases`, start | `ItemBaseCatalog` (`IItemBases`: the base a build plan names) |
 | `item-names.json` | currency item names for inline item art | `item-names` | `ItemNames`, `LandmarkTable` |
 | `item-sounds.json` | item base id to the drop sample the game plays | `item-sounds`, start | `ItemDropSounds` |
 | `landmarks.json` | areas `important_tgt_files.txt` lacks, and corrections to it | by hand | `LandmarkTable` |
 | `map-hints.json` | GGG's map cues by area | by hand, from [map hints by act](../../docs/research/map-hints-by-act.md) | `MapHintTable` |
+| `mod-texts.json` | the game's stat description blocks (`stat_descriptions.csd`), a block a line: its stat Ids and, per language, its lines as the file holds them (conditions, text, handlers) | `mod-texts`, start | `ModTextCatalog` (`IModTexts`: a modifier line told in one language and said in another) |
 | `monster-names.json` | the radar's boss names as the game names them | `monster-names` | `LandmarkTable` |
 | `passive-tree.json` | the main passive tree by graph id: PassiveSkills Id and kind, links, class starts; node and class names per language | `passive-tree`, start | `PassiveTreeCatalog` |
 | `places.json` | named map pieces and props from the terrain files | `places`, start | `PlaceCatalog` |
