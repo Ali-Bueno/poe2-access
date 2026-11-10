@@ -1,10 +1,6 @@
 namespace Poe2Accessibility
 {
     using System;
-    using System.IO;
-    using System.Linq;
-    using GameReader;
-    using GameReader.Plugin;
     using GameReader.RemoteEnums;
     using Poe2Accessibility.Models;
     using Poe2Accessibility.Services;

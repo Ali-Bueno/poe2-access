@@ -7,7 +7,6 @@ namespace Poe2Accessibility.Services
     using GameReader;
     using GameReader.RemoteObjects.Components;
     using GameReader.RemoteObjects.States.InGameStateObjects;
-    using GameOffsets.Natives;
 
     /// <summary>
     ///     Navigation radar (D2R design, docs/radar.md): four rays along the screen's up, left, right and down, each

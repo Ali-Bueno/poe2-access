@@ -3,7 +3,6 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Poe2Accessibility.Models;
 
     /// <summary>Row reading of <see cref="UiSemantics"/>: a focused row's cells said in drawing order.</summary>
     public sealed partial class UiSemantics

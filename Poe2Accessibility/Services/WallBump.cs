@@ -4,7 +4,6 @@ namespace Poe2Accessibility.Services
     using System.Numerics;
     using GameReader;
     using GameReader.RemoteObjects.Components;
-    using GameOffsets.Natives;
 
     /// <summary>
     ///     A thud when the stick pushes into a wall and the character stops (<see cref="WallBumpDetector"/>), panned to

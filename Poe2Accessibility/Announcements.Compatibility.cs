@@ -1,6 +1,5 @@
 namespace Poe2Accessibility
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
 

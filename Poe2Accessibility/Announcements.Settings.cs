@@ -1,8 +1,6 @@
 namespace Poe2Accessibility
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
 
     /// <summary>Spoken strings of the mod's settings menu: setting and group names, the sound glossary, the controls help and choice values.</summary>
     public static partial class Announcements

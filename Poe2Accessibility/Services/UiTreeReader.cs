@@ -2,7 +2,6 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
-    using System.Runtime.InteropServices;
     using GameReader.Plugin;
     using GameOffsets.Objects.States;
     using GameOffsets.Objects.UiElement;
