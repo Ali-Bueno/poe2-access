@@ -269,7 +269,11 @@ namespace Poe2Accessibility.Tests
             try
             {
                 Expect("Build: paso 3 de 3", Announcements.BuildStep(steps.Steps["accuracy38"] + 1, steps.Count), "the last step is the count");
-                Expect("1 de 3 asignados, 2 puntos fuera de la build, 2 más de la build no están en este árbol", Announcements.BuildProgress(1, steps.Count, 2, steps.NotShown), "the list's header");
+                Expect(2, steps.Ascendancy, "both are ascendancy passives by their ids");
+                Expect("AscendancyMercenary3Small1, AscendancyMercenary3Notable1_", string.Join(", ", steps.NotShownIds), "named for the log, in the file's order");
+                Expect("1 de 3 asignados, 2 puntos fuera de la build, 2 más de la build son pasivas de ascendencia, que este árbol aún no muestra", Announcements.BuildProgress(1, steps.Count, 2, steps.NotShown, steps.Ascendancy), "the list's header says what they are");
+                Expect("1 de 3 asignados, 1 más de la build es una pasiva de ascendencia, que este árbol aún no muestra, 2 más de la build no están en este árbol", Announcements.BuildProgress(1, 3, 0, 3, 1), "an ascendancy's node and two of no known kind");
+                Expect("1 de 3 asignados, 2 puntos fuera de la build, 2 más de la build no están en este árbol", Announcements.BuildProgress(1, steps.Count, 2, steps.NotShown), "nodes of no known kind keep the plain words");
                 Expect("1 de 3 asignados, 1 más de la build no está en este árbol", Announcements.BuildProgress(1, 3, 0, 1), "one node left out");
                 Expect("1 de 3 asignados", Announcements.BuildProgress(1, 3, 0, 0), "a file wholly on the tree");
             }

@@ -97,15 +97,24 @@ namespace Poe2Accessibility.Services
             }
 
             var list = Announcements.PassiveCategoryName(this.finder.Category);
-            return Announcements.InContext(this.finder.Category is PassiveCategory.Build or PassiveCategory.BuildTaken ? $"{list}, {BuildProgress(atlas, steps, marked, order?.NotShown ?? 0)}" : list, found);
+            if (order is { NotShown: > 0 } && string.Join(", ", order.NotShownIds) is var absent && absent != this.loggedNotShown)
+            {
+                this.loggedNotShown = absent; // once per build: what the header's "more of the build" are
+                this.TreeFields.Log?.Invoke($"Build nodes not on this tree ({order.Ascendancy} of an ascendancy): {absent}");
+            }
+
+            return Announcements.InContext(this.finder.Category is PassiveCategory.Build or PassiveCategory.BuildTaken ? $"{list}, {BuildProgress(atlas, steps, marked, order?.NotShown ?? 0, order?.Ascendancy ?? 0)}" : list, found);
         }
 
+        /// <summary>The build's absent node ids last written to the log.</summary>
+        private string loggedNotShown = string.Empty;
+
         /// <summary>How far along the active build the character is: its nodes taken, the points spent outside it, and the file's nodes this tree does not show.</summary>
-        private static string BuildProgress(PassiveAtlas atlas, int[] steps, HashSet<IntPtr> marked, int notShown)
+        private static string BuildProgress(PassiveAtlas atlas, int[] steps, HashSet<IntPtr> marked, int notShown, int ascendancy)
         {
             var taken = marked.Count(node => atlas.Places.Index.TryGetValue(node, out var index) && steps[index] == 0);
             var outside = atlas.Places.Index.Count(place => steps[place.Value] == 0 && !marked.Contains(place.Key) && !atlas.Nodes[place.Value].IsStart);
-            return Announcements.BuildProgress(taken, marked.Count, outside, notShown);
+            return Announcements.BuildProgress(taken, marked.Count, outside, notShown, ascendancy);
         }
 
         /// <summary>Research (dev command "passivemap"): from each class's start, how many points the nearest keystones and notables cost.</summary>

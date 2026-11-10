@@ -143,14 +143,24 @@ namespace Poe2Accessibility
 
         /// <summary>Said with the Build list: "24 of 60 taken, 6 points outside the build".</summary>
         /// <param name="notShown">The build file's nodes this tree does not show (an ascendancy not chosen yet): said, since no step counts them.</param>
-        public static string BuildProgress(int taken, int total, int outside, int notShown = 0)
+        /// <param name="ascendancy">How many of those are ascendancy passives, which the tree draws once the ascendancy is chosen: said as such.</param>
+        public static string BuildProgress(int taken, int total, int outside, int notShown = 0, int ascendancy = 0)
         {
             var progress = outside == 1 ? T($"{taken} of {total} taken, 1 point outside the build", $"{taken} de {total} asignados, 1 punto fuera de la build")
                 : outside > 0
                     ? T($"{taken} of {total} taken, {outside} points outside the build", $"{taken} de {total} asignados, {outside} puntos fuera de la build")
                     : T($"{taken} of {total} taken", $"{taken} de {total} asignados");
-            return notShown == 1 ? progress + ", " + T("1 more of the build is not on this tree", "1 más de la build no está en este árbol")
-                : notShown > 0 ? progress + ", " + T($"{notShown} more of the build are not on this tree", $"{notShown} más de la build no están en este árbol")
+            ascendancy = System.Math.Clamp(ascendancy, 0, notShown);
+            if (ascendancy > 0)
+            {
+                progress += ", " + (ascendancy == 1
+                    ? T("1 more of the build is an ascendancy passive, not on this tree yet", "1 más de la build es una pasiva de ascendencia, que este árbol aún no muestra")
+                    : T($"{ascendancy} more of the build are ascendancy passives, not on this tree yet", $"{ascendancy} más de la build son pasivas de ascendencia, que este árbol aún no muestra"));
+            }
+
+            var rest = notShown - ascendancy;
+            return rest == 1 ? progress + ", " + T("1 more of the build is not on this tree", "1 más de la build no está en este árbol")
+                : rest > 0 ? progress + ", " + T($"{rest} more of the build are not on this tree", $"{rest} más de la build no están en este árbol")
                 : progress;
         }
 

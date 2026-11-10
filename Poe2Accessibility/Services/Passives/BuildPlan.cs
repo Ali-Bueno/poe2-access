@@ -13,6 +13,12 @@ namespace Poe2Accessibility.Services
     public sealed record BuildSteps(IReadOnlyDictionary<string, int> Steps, int NotShown)
     {
         public int Count => this.Steps.Count;
+
+        /// <summary>Gets the ids of the plan's nodes the tree does not show, in the file's order (for the log).</summary>
+        public IReadOnlyList<string> NotShownIds { get; init; } = Array.Empty<string>();
+
+        /// <summary>Gets how many of <see cref="NotShown"/> are ascendancy passives: those the tree draws only once the ascendancy is chosen.</summary>
+        public int Ascendancy => this.NotShownIds.Count(BuildPlan.IsAscendancyNode);
     }
 
     /// <summary>One gem of a build plan: its BaseItemTypes id and the character levels it is used at.</summary>
@@ -69,8 +75,15 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            return new BuildSteps(steps, notShown.Count);
+            return new BuildSteps(steps, notShown.Count) { NotShownIds = this.Passives.Select(passive => passive.Id).Where(notShown.Contains).Distinct().ToList() };
         }
+
+        /// <summary>
+        ///     An ascendancy's node by its PassiveSkills id: every such row is named "Ascendancy" + class + number + kind
+        ///     ("AscendancyMercenary3Notable1_"; the 669 of catalog/passive-tree.json, 0.5.5f, and no other row). yarkey's four
+        ///     nodes "not on this tree" were the four of his file's ascendancy, "Mercenary3" (2026-11-10).
+        /// </summary>
+        public static bool IsAscendancyNode(string id) => id.StartsWith("Ascendancy", StringComparison.Ordinal);
 
         /// <summary>Null when the text is no build file.</summary>
         public static BuildPlan? Parse(string json)
