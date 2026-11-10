@@ -38,6 +38,8 @@ internal static class Batch
         ["boss-mechanics"] = (_, index, output) => BossMechanicsExtractor.Run(index, output),
         ["gems"] = (_, index, output) => GemExtractor.Run(index, output),
         ["passive-tree"] = (_, index, output) => PassiveTreeExtractor.Run(index, output),
+        ["item-bases"] = (_, index, output) => ItemBaseExtractor.Run(index, output),
+        ["mod-texts"] = (_, index, output) => ModTextExtractor.Run(index, output),
     };
 
     /// <param name="pairs">Command and output file, repeated.</param>
