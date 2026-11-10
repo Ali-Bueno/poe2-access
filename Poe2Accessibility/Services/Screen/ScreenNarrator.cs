@@ -356,7 +356,9 @@ namespace Poe2Accessibility.Services
             this.lastSelectorChoice = null;
             this.legendsLayer = IntPtr.Zero;
             this.inGame = inGameState;
-            this.staleHints = (this.lastHints, DateTime.UtcNow);
+            // The bar as last seen, said or not: a login that lasted less than the hints take to settle left its buttons
+            // unknown here, and they were read at character selection as its own (live 2026-11-10).
+            this.staleHints = (this.pendingHints.Text.Length > 0 ? this.pendingHints.Text : this.lastHints, DateTime.UtcNow);
             this.lastHints = string.Empty;
             this.spokenHints.Clear();
             this.pendingHints = (string.Empty, DateTime.MinValue);
