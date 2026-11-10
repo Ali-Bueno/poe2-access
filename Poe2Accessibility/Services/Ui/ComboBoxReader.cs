@@ -6,8 +6,9 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     Reads the selected entry of a combo box. The entry vector and the selected index are known
-    ///     (GameLayout.ComboBox); what the 16-byte entries contain is not, so the first read tries every
-    ///     plausible layout live, keeps the one that yields text, and records the evidence in the log.
+    ///     (GameLayout.ComboBox); what the 16-byte entries contain is not, so a read tries every plausible
+    ///     layout live and takes the first that yields text, for that dropdown alone until a second dropdown
+    ///     reads with the same one (<see cref="AgreedChoice{T}"/>): text found by chance in one must not decode all.
     /// </summary>
     public sealed class ComboBoxReader
     {
@@ -17,7 +18,8 @@ namespace Poe2Accessibility.Services
         private readonly UiElementReader elements;
         private readonly PluginLog log;
         private readonly HashSet<IntPtr> reported = new();
-        private Strategy? working;
+        private readonly HashSet<IntPtr> resolved = new();
+        private readonly AgreedChoice<Strategy> layout = new();
 
         public ComboBoxReader(UiElementReader elements, PluginLog log)
         {
@@ -62,7 +64,7 @@ namespace Poe2Accessibility.Services
             }
 
             var (index, highlight, entries, parallel) = state.Value;
-            var strategy = this.working ?? this.Resolve(comboBox, entries, parallel, index);
+            var strategy = this.layout.Agreed ?? this.Resolve(comboBox, entries, parallel, index);
             if (strategy == null)
             {
                 return new ComboValue(string.Empty, string.Empty, index, highlight, entries.Length);
@@ -80,8 +82,15 @@ namespace Poe2Accessibility.Services
                 var text = this.Decode(strategy, entries, parallel, index);
                 if (text != null)
                 {
-                    this.working = strategy;
-                    this.log.Info($"Combo entry layout resolved: {strategy} (combo 0x{comboBox.ToInt64():X}, {entries.Length} entries, selected {index} = \"{text}\")");
+                    if (this.layout.Note(comboBox.ToInt64(), strategy))
+                    {
+                        this.log.Info($"Combo entry layout settled: {strategy} (a second dropdown reads with it: combo 0x{comboBox.ToInt64():X}, selected {index} = \"{text}\")");
+                    }
+                    else if (this.resolved.Add(comboBox))
+                    {
+                        this.log.Info($"Combo entry layout resolved: {strategy} (combo 0x{comboBox.ToInt64():X}, {entries.Length} entries, selected {index} = \"{text}\"); every dropdown's once a second one agrees");
+                    }
+
                     return strategy;
                 }
             }
