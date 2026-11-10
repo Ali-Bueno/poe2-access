@@ -39,7 +39,7 @@
             var data = reader.ReadMemory<StateMachineComponentOffsets>(this.Address);
             this.OwnerEntityAddress = data.Header.EntityPtr;
 
-            var stateValues = reader.ReadStdVector<long>(data.StatesValues);
+            using var stateValues = reader.RentStdVector<long>(data.StatesValues);
             var statesCount = stateValues.Length;
             if (statesCount > MaxStateMachineStates)
             {
@@ -64,13 +64,40 @@
                 return;
             }
 
+            // The list is replaced, never changed: a reader that holds one keeps what it read. One that says the same stays.
+            var values = stateValues.Span;
+            if (this.Says(this.names, values, statesCount))
+            {
+                return;
+            }
+
             var statesList = new List<StateMachineState>(statesCount);
             for (var i = 0; i < statesCount; i++)
             {
-                statesList.Add(new StateMachineState(this.names[i], stateValues[i]));
+                statesList.Add(new StateMachineState(this.names[i], values[i]));
             }
 
             this.States = statesList;
+        }
+
+        /// <summary>Whether <see cref="States"/> already holds these names and values, in order.</summary>
+        private bool Says(string[] names, ReadOnlySpan<long> values, int count)
+        {
+            var states = this.States;
+            if (states.Count != count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < count; i++)
+            {
+                if (states[i].Value != values[i] || !string.Equals(states[i].Name, names[i], StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static string[]? ReadNames(Utils.SafeMemoryHandle reader, IntPtr type, int count)

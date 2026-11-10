@@ -154,6 +154,9 @@ namespace Poe2Accessibility.Services
         private (byte[] Live, byte[] Grid)? stable;
         private byte[]? newestSample;
 
+        /// <summary>Where each sample of the live grid is read (<see cref="ReadLiveGrid"/>); never a sample itself.</summary>
+        private byte[] liveGrid = Array.Empty<byte>();
+
         /// <summary>
         ///     The target described last (id and area instance), its whole route and the first direction said: asked again on
         ///     the way, the same way and direction are kept unless clearly changed (<see cref="RoutePlanner.Keep"/>).

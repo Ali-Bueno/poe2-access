@@ -5,7 +5,7 @@
 namespace GameReader.RemoteObjects.Components
 {
     using System;
-    using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using GameOffsets.Objects.Components;
     using GameOffsets.Objects.FilesStructures;
     using Utils;
@@ -26,8 +26,10 @@ namespace GameReader.RemoteObjects.Components
         /// <summary>
         ///     Gets the Buffs/Debuffs associated with the entity.
         ///     This is not updated anymore once entity dies.
+        ///     A plain dictionary, refilled in place on the thread that updates the entity and read on the frame thread only
+        ///     (docs/research/performance.md): the concurrent one cost a node per buff per frame and a list per Keys.
         /// </summary>
-        public ConcurrentDictionary<string, StatusEffectStruct> StatusEffects { get; } = new();
+        public Dictionary<string, StatusEffectStruct> StatusEffects { get; } = new();
 
         public bool[] FlaskActive { get; private set; } = new bool[5];
 
@@ -38,7 +40,7 @@ namespace GameReader.RemoteObjects.Components
             var data = reader.ReadMemory<BuffsOffsets>(this.Address);
             this.OwnerEntityAddress = data.Header.EntityPtr;
             this.StatusEffects.Clear();
-            var statusEffects = reader.ReadStdVector<IntPtr>(data.StatusEffectPtr);
+            using var statusEffects = reader.RentStdVector<IntPtr>(data.StatusEffectPtr);
             Array.Fill(this.FlaskActive, false);
 
             // F-129: snapshot the 4-level Player.Id chain once. Each access goes
@@ -56,9 +58,10 @@ namespace GameReader.RemoteObjects.Components
                 playerId = uint.MaxValue;
             }
 
-            for (var i = 0; i < statusEffects.Length; i++)
+            var effects = statusEffects.Span;
+            for (var i = 0; i < effects.Length; i++)
             {
-                var statusEffectData = reader.ReadMemory<StatusEffectStruct>(statusEffects[i]);
+                var statusEffectData = reader.ReadMemory<StatusEffectStruct>(effects[i]);
                 if (statusEffectData.BuffDefinationPtr == IntPtr.Zero)
                 {
                     continue;
@@ -99,13 +102,14 @@ namespace GameReader.RemoteObjects.Components
                     effectName += $"_{skillGemUnknownId:X}";
                 }
 
-                this.StatusEffects.AddOrUpdate(effectName, statusEffectData, (key, oldValue) =>
+                if (this.StatusEffects.TryGetValue(effectName, out var oldValue))
                 {
                     var incomingStacks = statusEffectData.Charges > 0 ? statusEffectData.Charges : (short)1;
                     statusEffectData.Charges = (short)(oldValue.Charges + incomingStacks);
                     statusEffectData.TimeLeft = Math.Max(oldValue.TimeLeft, statusEffectData.TimeLeft);
-                    return statusEffectData;
-                });
+                }
+
+                this.StatusEffects[effectName] = statusEffectData;
             }
         }
 
@@ -118,10 +122,10 @@ namespace GameReader.RemoteObjects.Components
         /// <param name="statusEffectData">Status-effect data with its stage represented as charges.</param>
         internal void AddSyntheticStatusEffect(string effectName, StatusEffectStruct statusEffectData)
         {
-            this.StatusEffects.AddOrUpdate(effectName, statusEffectData, (_, oldValue) =>
+            if (!this.StatusEffects.TryGetValue(effectName, out var oldValue) || statusEffectData.Charges > oldValue.Charges)
             {
-                return statusEffectData.Charges > oldValue.Charges ? statusEffectData : oldValue;
-            });
+                this.StatusEffects[effectName] = statusEffectData;
+            }
         }
 
         private static (string, byte) GetNameFromBuffDefination(IntPtr addr)

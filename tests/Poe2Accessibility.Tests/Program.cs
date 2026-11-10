@@ -234,6 +234,7 @@ namespace Poe2Accessibility.Tests
                 HostSearchTests.All(),
                 StdMapWalkTests.All(),
                 TickCostsTests.All(),
+                ReaderBufferTests.All(),
                 NameFallbackTests.All(),
                 TrialDataTests.All(),
                 PanelWidgetTests.All(),

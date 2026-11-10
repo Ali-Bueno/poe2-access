@@ -39,8 +39,7 @@ namespace Poe2Accessibility.Services
                     return recent.Grid;
                 }
 
-                var live = this.memory.ReadStdVector<byte>(area.TerrainMetadata.GridWalkableData, snapshot.Length);
-                if (live.Length != snapshot.Length)
+                if (this.ReadLiveGrid(area, snapshot.Length) is not { } live)
                 {
                     return snapshot;
                 }
@@ -57,10 +56,11 @@ namespace Poe2Accessibility.Services
                     this.stable = null;
                 }
 
-                // A grid that did not change is the sample before it: one array stands for all of them.
+                // A grid that did not change is the sample before it: one array stands for all of them. One that did is
+                // kept as a copy: `live` is the buffer the next sample is read into.
                 var newest = this.newestSample;
                 var same = newest != null && newest.AsSpan().SequenceEqual(live);
-                this.newestSample = same ? newest! : live;
+                this.newestSample = same ? newest! : (byte[])live.Clone();
                 this.samples.Enqueue(this.newestSample);
                 this.lastSampleAt = now;
                 var closed = this.barriers.ClosedCount;
@@ -120,6 +120,26 @@ namespace Poe2Accessibility.Services
                 this.stable = (this.newestSample, stable);
                 return stable;
             }
+        }
+
+        /// <summary>
+        ///     The game's grid now, read into one buffer kept for the area's size (hundreds of kilobytes twice a second, so
+        ///     the large object heap otherwise); null when it cannot be read or is not <paramref name="cells"/> bytes long.
+        ///     The buffer is valid until the next sample only and under the samples' lock: what is kept of it is copied.
+        /// </summary>
+        private byte[]? ReadLiveGrid(AreaInstance area, int cells)
+        {
+            if (cells == 0)
+            {
+                return Array.Empty<byte>(); // no grid loaded: as empty as the game's, whatever that holds
+            }
+
+            if (this.liveGrid.Length != cells)
+            {
+                this.liveGrid = new byte[cells];
+            }
+
+            return this.memory.ReadStdVector(area.TerrainMetadata.GridWalkableData, cells, ref this.liveGrid) == cells ? this.liveGrid : null;
         }
 
         private static int Changed(byte[] before, byte[] after)

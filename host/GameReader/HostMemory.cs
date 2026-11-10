@@ -21,6 +21,26 @@ namespace GameReader
         public static byte[] ReadBytes(IntPtr address, int count) =>
             Handle() is { } handle ? handle.ReadMemoryArray<byte>(address, count) : Array.Empty<byte>();
 
+        /// <summary>
+        ///     Fills <paramref name="destination"/> from <paramref name="address"/>, with no array of its own; false when no game
+        ///     is open or any byte cannot be read, and the destination then holds nothing to use.
+        /// </summary>
+        public static bool TryReadBytes(IntPtr address, Span<byte> destination) =>
+            Handle() is { } handle && handle.TryReadArray(address, destination);
+
+        /// <summary>Exactly <paramref name="count"/> elements at <paramref name="address"/>, as the game lays them out; empty when any cannot be read.</summary>
+        public static T[] ReadArray<T>(IntPtr address, int count)
+            where T : unmanaged
+        {
+            if (count <= 0 || Handle() is not { } handle)
+            {
+                return Array.Empty<T>();
+            }
+
+            var elements = new T[count];
+            return handle.TryReadArray<T>(address, elements) ? elements : Array.Empty<T>();
+        }
+
         /// <summary>A struct at <paramref name="address"/>, read as the host reads it; false when it cannot be read.</summary>
         public static bool TryRead<T>(IntPtr address, out T value)
             where T : unmanaged
@@ -45,8 +65,45 @@ namespace GameReader
             return bytes / HostStructs.Stride<T>() > maxElements ? Array.Empty<T>() : Handle()?.ReadStdVector<T>(vector) ?? Array.Empty<T>();
         }
 
+        /// <summary>
+        ///     The same elements as <see cref="ReadStdVector{T}(StdVector, int)"/>, in the caller's <paramref name="buffer"/> (a
+        ///     bigger one takes its place when they do not fit): how many were read, 0 where that returns an empty array.
+        ///     What lies past them in the buffer is an earlier read's.
+        /// </summary>
+        public static int ReadStdVector<T>(StdVector vector, int maxElements, ref T[] buffer)
+            where T : unmanaged
+        {
+            var stride = HostStructs.Stride<T>();
+            var bytes = vector.Last.ToInt64() - vector.First.ToInt64();
+            if (bytes <= 0 || bytes % stride != 0 || bytes > SafeMemoryHandle.MaxVectorBytes || bytes / stride > maxElements || Handle() is not { } handle)
+            {
+                return 0;
+            }
+
+            if (!HostStructs.AsCompiled<T>())
+            {
+                // An element a patch changed is rebuilt from the game's bytes: the array that needs is the price of a healed layout.
+                var rebuilt = handle.ReadStdVector<T>(vector);
+                Fit(ref buffer, rebuilt.Length);
+                rebuilt.CopyTo(buffer, 0);
+                return rebuilt.Length;
+            }
+
+            var count = (int)(bytes / stride);
+            Fit(ref buffer, count);
+            return handle.TryReadArray(vector.First, buffer.AsSpan(0, count)) ? count : 0;
+        }
+
         /// <summary>The text of a game string; empty when it cannot be read.</summary>
         public static string ReadStdWString(StdWString value) => Handle()?.ReadStdWString(value) ?? string.Empty;
+
+        private static void Fit<T>(ref T[] buffer, int count)
+        {
+            if (buffer.Length < count)
+            {
+                buffer = new T[count];
+            }
+        }
 
         private static SafeMemoryHandle? Handle() => Core.Process.Handle is { IsClosed: false, IsInvalid: false } handle ? handle : null;
     }

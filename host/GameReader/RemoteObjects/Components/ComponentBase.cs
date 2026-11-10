@@ -61,11 +61,12 @@ namespace GameReader.RemoteObjects.Components
 
         protected void StatUpdator(Dictionary<GameStats, int> stats, StdVector statsptr)
         {
-            var mystats = Core.Process.Handle.ReadStdVector<StatArrayStruct>(statsptr);
+            // The pairs go into the dictionary before this returns, so the array they were read into is the pool's.
+            using var mystats = Core.Process.Handle.RentStdVector<StatArrayStruct>(statsptr);
             lock (stats)
             {
                 stats.Clear();
-                foreach (var newStat in mystats)
+                foreach (var newStat in mystats.Span)
                 {
                     stats[(GameStats)newStat.key] = newStat.value;
                 }

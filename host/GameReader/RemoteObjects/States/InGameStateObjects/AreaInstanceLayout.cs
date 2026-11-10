@@ -5,6 +5,7 @@
 namespace GameReader.RemoteObjects.States.InGameStateObjects
 {
     using System;
+    using System.Buffers;
     using System.Runtime.InteropServices;
     using GameReader.Utils;
     using GameOffsets.Natives;
@@ -41,52 +42,68 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         /// <summary>The area instance at <paramref name="address"/>; <paramref name="moved"/> says the fields changed.</summary>
         internal AreaInstanceOffsets Read(SafeMemoryHandle reader, IntPtr address, out bool moved)
         {
-            moved = false;
-            var block = reader.ReadMemoryArray<byte>(address, BlockSize);
-            if (block.Length == 0)
-            {
-                return reader.ReadMemory<AreaInstanceOffsets>(address);
-            }
-
-            if (address != this.judged && Environment.TickCount64 >= this.nextSearchAt)
-            {
-                moved = this.Judge(reader, address, block);
-            }
-
-            return Compose(block, this.Fields);
+            return this.Read(reader, address, true, out moved);
         }
 
         /// <summary>The area instance at <paramref name="address"/> through the fields known now.</summary>
         internal AreaInstanceOffsets Read(SafeMemoryHandle reader, IntPtr address)
         {
-            var block = reader.ReadMemoryArray<byte>(address, BlockSize);
-            return block.Length == 0 ? reader.ReadMemory<AreaInstanceOffsets>(address) : Compose(block, this.Fields);
+            return this.Read(reader, address, false, out _);
         }
 
-        private static AreaInstanceOffsets Compose(byte[] block, AreaFields at)
+        /// <summary>
+        ///     One read of the block into an array of the shared pool (every frame, 8 KB): the struct composed from it is a
+        ///     copy, and the search, which takes an array, gets one of its own, so nothing holds the pooled one once this returns.
+        /// </summary>
+        private AreaInstanceOffsets Read(SafeMemoryHandle reader, IntPtr address, bool judge, out bool moved)
+        {
+            moved = false;
+            var rented = ArrayPool<byte>.Shared.Rent(BlockSize);
+            try
+            {
+                var block = rented.AsSpan(0, BlockSize);
+                if (!reader.TryReadArray(address, block))
+                {
+                    return reader.ReadMemory<AreaInstanceOffsets>(address);
+                }
+
+                if (judge && address != this.judged && Environment.TickCount64 >= this.nextSearchAt)
+                {
+                    moved = this.Judge(reader, address, block.ToArray());
+                }
+
+                return Compose(block, this.Fields);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
+
+        private static AreaInstanceOffsets Compose(ReadOnlySpan<byte> block, AreaFields at)
         {
             var data = default(AreaInstanceOffsets);
             data.CurrentAreaLevel = block[at.Level];
-            data.CurrentAreaHash = MemoryMarshal.Read<uint>(block.AsSpan(at.Hash));
-            data.Environments = MemoryMarshal.Read<StdVector>(block.AsSpan(at.Environments));
-            data.PlayerInfo.ServerDataPtr = MemoryMarshal.Read<IntPtr>(block.AsSpan(at.ServerData));
-            data.PlayerInfo.LocalPlayerPtr = MemoryMarshal.Read<IntPtr>(block.AsSpan(at.LocalPlayer));
-            data.Entities = MemoryMarshal.Read<EntityListStruct>(block.AsSpan(at.Entities));
+            data.CurrentAreaHash = MemoryMarshal.Read<uint>(block[at.Hash..]);
+            data.Environments = MemoryMarshal.Read<StdVector>(block[at.Environments..]);
+            data.PlayerInfo.ServerDataPtr = MemoryMarshal.Read<IntPtr>(block[at.ServerData..]);
+            data.PlayerInfo.LocalPlayerPtr = MemoryMarshal.Read<IntPtr>(block[at.LocalPlayer..]);
+            data.Entities = MemoryMarshal.Read<EntityListStruct>(block[at.Entities..]);
             data.TerrainMetadata = ReadTerrain(block, at.Terrain);
             return data;
         }
 
         /// <summary>The terrain, read from the block: its fields move as the struct's remap says.</summary>
-        private static TerrainStruct ReadTerrain(byte[] block, int at)
+        private static TerrainStruct ReadTerrain(ReadOnlySpan<byte> block, int at)
         {
             var size = Marshal.SizeOf<TerrainStruct>();
             if (StructRemap<TerrainStruct>.Segments is not { } moved || at + StructRemapper.ReadSize(size, moved) > block.Length)
             {
-                return MemoryMarshal.Read<TerrainStruct>(block.AsSpan(at));
+                return MemoryMarshal.Read<TerrainStruct>(block[at..]);
             }
 
-            var target = new byte[size];
-            StructRemapper.Apply(block.AsSpan(at), target, moved);
+            Span<byte> target = stackalloc byte[size];
+            StructRemapper.Apply(block[at..], target, moved);
             return MemoryMarshal.Read<TerrainStruct>(target);
         }
 
