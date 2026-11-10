@@ -91,7 +91,12 @@ try {
 
     Start-Step 'manifest'
     $zip = Join-Path $output 'Poe2Access.zip'
-    $manifest = [ordered]@{ tag = $tag; sha256 = (Get-FileHash $zip -Algorithm SHA256).Hash; notes = $Notes }
+    # Hashed with .NET itself: Get-FileHash is missing when Windows PowerShell is started from a PowerShell 7 or Git Bash
+    # session, whose module path it inherits (the release of 2026-11-10 stopped here).
+    $stream = [System.IO.File]::OpenRead($zip)
+    try { $hash = [System.BitConverter]::ToString([System.Security.Cryptography.SHA256]::Create().ComputeHash($stream)) -replace '-', '' }
+    finally { $stream.Dispose() }
+    $manifest = [ordered]@{ tag = $tag; sha256 = $hash; notes = $Notes }
     [IO.File]::WriteAllText((Join-Path $output 'release.json'), ($manifest | ConvertTo-Json), [Text.UTF8Encoding]::new($false))
     # The updater opens the zip, finds Poe2Access.exe beside an app folder and installs it; the tag inside is what it compares.
     Add-Type -AssemblyName System.IO.Compression.FileSystem
