@@ -42,7 +42,7 @@ namespace Poe2Accessibility.Services
         /// <summary>From the plugin's catalog folder; a catalog missing or unreadable only leaves its keys unclassified.</summary>
         public static GameNewsNotes Load(string catalogDirectory)
         {
-            var dodge = DodgeCoverage.Parse(Lines(Path.Join(catalogDirectory, HitTimesFile)));
+            var dodge = DodgeCoverage.Parse(AttackData.ReadLines(Path.Join(catalogDirectory, HitTimesFile)));
             var hazards = HazardGround.Load(Path.Join(catalogDirectory, HazardsFile));
             return new GameNewsNotes(dodge, AreaIds(Path.Join(catalogDirectory, AreaNamesFile)), Screens(Path.Join(catalogDirectory, UiCatalogFile)), hazards.IsHazard);
         }
@@ -90,18 +90,6 @@ namespace Poe2Accessibility.Services
             }
 
             return isHazard(key) ? new NewsNote("harmful ground", true) : new NewsNote("no rule names it; said by the game's name only", false);
-        }
-
-        private static IEnumerable<string> Lines(string path)
-        {
-            try
-            {
-                return File.Exists(path) ? File.ReadAllLines(path) : Array.Empty<string>();
-            }
-            catch (Exception error) when (error is IOException or UnauthorizedAccessException)
-            {
-                return Array.Empty<string>();
-            }
         }
 
         /// <summary>The area ids named in any language ({ language: { id: name } }).</summary>

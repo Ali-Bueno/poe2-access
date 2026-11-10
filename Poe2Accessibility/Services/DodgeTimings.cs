@@ -305,26 +305,14 @@ namespace Poe2Accessibility.Services
         ///     The shipped timings measured in development (<paramref name="seedPath"/>), then the player's own: their
         ///     blows come later in each list, so they push the measured ones out.
         /// </summary>
-        public static DodgeTimings Load(string seedPath, string path) => FromLines(ReadLines(seedPath).Concat(ReadLines(path)));
+        public static DodgeTimings Load(string seedPath, string path) => FromLines(AttackData.ReadLines(seedPath).Concat(AttackData.ReadLines(path)));
 
         /// <summary>As <see cref="Load(string, string)"/>, with the game files' hit times beneath what was measured.</summary>
         public static DodgeTimings Load(string hitTimesPath, string seedPath, string path)
         {
             var timings = Load(seedPath, path);
-            timings.AddHitTimes(ReadLines(hitTimesPath));
+            timings.AddHitTimes(AttackData.ReadLines(hitTimesPath));
             return timings;
-        }
-
-        private static IEnumerable<string> ReadLines(string path)
-        {
-            try
-            {
-                return File.Exists(path) ? File.ReadAllLines(path) : Array.Empty<string>();
-            }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-            {
-                return Array.Empty<string>();
-            }
         }
 
         /// <summary>Writes the learnt timings when they changed; the reason when that failed (they stay in memory for the next try), else null.</summary>

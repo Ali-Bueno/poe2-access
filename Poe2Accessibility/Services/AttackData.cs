@@ -98,7 +98,8 @@ namespace Poe2Accessibility.Services
         /// <summary>An action type's name ("GroundSlam"), for the log; null when the files do not list it.</summary>
         public string? ActionName(ushort id) => this.actionTypes.TryGetValue(id, out var name) ? name : null;
 
-        private static IEnumerable<string> ReadLines(string path)
+        /// <summary>A data file's lines; none when it is missing or cannot be read.</summary>
+        internal static IEnumerable<string> ReadLines(string path)
         {
             try
             {
