@@ -73,6 +73,9 @@ namespace Poe2Accessibility.Services
         private readonly List<(int Node, string Unit)> walkUnits = new();
         private readonly List<(int Node, int Set)> walkSetIcons = new();
         private readonly Stack<(UiElementReader.ElementInfo Info, int Parent, int Index, int Control)> walkStack = new();
+
+        /// <summary>Where each ancestor of a snapshot is, emptied for the next: a table per snapshot was megabytes with the passive tree open.</summary>
+        private readonly PluginUiElementReflection.RectCache rects = new();
         private readonly ScreenDiffer differ = new();
         private readonly ConcurrentQueue<(ScreenChange Change, int Generation)> changes = new();
         private readonly CancellationTokenSource stop = new();
@@ -234,7 +237,8 @@ namespace Poe2Accessibility.Services
             var ignoredLayer = this.LayerOf(this.ignoredElement, rootAddress);
             var children = this.elements.ReadChildren(rootInfo);
             var budget = MaxNodes;
-            var rects = new PluginUiElementReflection.RectCache(); // one snapshot: each ancestor placed once
+            var rects = this.rects; // one snapshot: each ancestor placed once
+            rects.Clear();
             var screen = PluginUiElementReflection.TryGetAbsoluteRect(rootAddress, rects, out var screenPosition, out var screenSize)
                 ? new RectangleF(screenPosition.X, screenPosition.Y, screenSize.X, screenSize.Y)
                 : RectangleF.Empty;

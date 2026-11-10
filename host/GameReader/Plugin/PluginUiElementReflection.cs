@@ -33,6 +33,9 @@ namespace GameReader.Plugin
         public sealed class RectCache
         {
             internal readonly Dictionary<IntPtr, (Vector2 Position, UiElementBaseOffset Data)> Positions = new();
+
+            /// <summary>Forgets every position, for the next screen: the table keeps its size, so one cache kept allocates nothing per screen.</summary>
+            public void Clear() => this.Positions.Clear();
         }
 
         /// <summary>Same, reading each ancestor once per <paramref name="cache"/>.</summary>
