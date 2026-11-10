@@ -285,6 +285,13 @@ namespace Poe2Accessibility
             _ => null,
         };
 
+        /// <summary>
+        ///     Where a moved item went: an equipment slot, or the belt's row of flasks and charms (one inventory, whose cells
+        ///     the cursor names itself) — a flask put on it with X said nothing (live 2026-11-10).
+        /// </summary>
+        public static string? MoveSlotName(GameReader.RemoteEnums.InventoryName inventory) =>
+            inventory == GameReader.RemoteEnums.InventoryName.Flask1 ? T("Flasks and charms", "Frascos y viales") : SlotName(inventory);
+
         /// <summary>One-based cell of the inventory grid, read after the item.</summary>
         public static string GridPosition(int column, int row) => T($"column {column + 1}, row {row + 1}", $"columna {column + 1}, fila {row + 1}");
 

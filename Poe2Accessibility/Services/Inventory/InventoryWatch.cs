@@ -256,6 +256,11 @@ namespace Poe2Accessibility.Services
                     {
                         var name = this.names.Last(entity); // its entity is gone: as last read while it was there
                         this.departures.Add((from, name));
+                        if (this.titled.GetValueOrDefault(entity, string.Empty) is { Length: > 0 } title && this.byBase.GetValueOrDefault(entity) is { } plain)
+                        {
+                            this.batchTitles.Add((plain, title));
+                        }
+
                         this.NoteGem(entity, name);
                         (this.lastMoveAt, this.movedInPanel) = (now, this.movedInPanel || !playing);
                     }
@@ -266,6 +271,7 @@ namespace Poe2Accessibility.Services
                     if (!this.where.ContainsKey(entity))
                     {
                         this.arrivals.Add((to, this.NameOf(entity)));
+                        this.arrivalEntities.Add(entity);
                         this.NoteGem(entity, this.NameOf(entity));
                         (this.lastMoveAt, this.movedInPanel) = (now, this.movedInPanel || !playing);
                     }
@@ -279,12 +285,20 @@ namespace Poe2Accessibility.Services
             else
             {
                 this.arrivals.Clear();
+                this.arrivalEntities.Clear();
+                this.batchTitles.Clear();
                 this.departures.Clear();
                 this.batchGems.Clear();
                 this.batchUncutSupports.Clear();
             }
 
             this.names.KeepOnly(located.ContainsKey);
+            foreach (var gone in this.titled.Keys.Where(entity => !located.ContainsKey(entity)).ToList())
+            {
+                this.titled.Remove(gone);
+                this.byBase.Remove(gone);
+            }
+
             foreach (var gone in this.gems.Keys.Where(entity => !located.ContainsKey(entity)).ToList())
             {
                 this.gems.Remove(gone);
@@ -334,7 +348,10 @@ namespace Poe2Accessibility.Services
             // The skills panel takes and gives back gems only: anything else that leaves beside it was dropped or used.
             Func<string, bool>? sideTakes = side == Announcements.SkillGemPanel ? this.batchGems.Contains : null;
             var inTrade = this.InTrade?.Invoke() == true;
-            var moves = ItemMoves.Read(this.arrivals, this.departures, Announcements.SlotName, this.movedInPanel, goldChange, side, this.handFrom, sideTakes, inTrade);
+            this.NameArrivalsByTitle();
+            this.arrivalEntities.Clear();
+            this.batchTitles.Clear();
+            var moves = ItemMoves.Read(this.arrivals, this.departures, Announcements.MoveSlotName,this.movedInPanel, goldChange, side, this.handFrom, sideTakes, inTrade);
             if (this.arrivals.Any(arrival => arrival.To == InventoryName.Cursor1))
             {
                 // Picked up with nothing tracked leaving: from the panel beside (a stash tab), said when set down.
@@ -445,7 +462,7 @@ namespace Poe2Accessibility.Services
         {
             InventoryName.MainInventory1, InventoryName.Cursor1, InventoryName.BodyArmour1, InventoryName.Weapon1, InventoryName.Offhand1,
             InventoryName.Weapon2, InventoryName.Offhand2, InventoryName.Helm1, InventoryName.Amulet1, InventoryName.Ring1, InventoryName.Ring2,
-            InventoryName.Gloves1, InventoryName.Boots1, InventoryName.Belt1,
+            InventoryName.Gloves1, InventoryName.Boots1, InventoryName.Belt1, InventoryName.Flask1,
         };
 
         /// <summary>A move is read once the inventories have not changed for this long.</summary>
@@ -506,10 +523,48 @@ namespace Poe2Accessibility.Services
         {
             var count = item.TryGetComponent<Stack>(out var stack) ? stack.Count : 0;
             var rarity = item.TryGetComponent<Mods>(out var mods) ? (int)mods.Rarity : 0;
-            if (this.names.IsStale(item.Address, count, rarity))
+            var title = this.reader.TitleOf(item.Address);
+            if (this.names.IsStale(item.Address, count, rarity) || this.titled.GetValueOrDefault(item.Address, string.Empty) != title)
             {
-                this.names.Read(item.Address, this.reader.DescribeItemEntity(item.Address), count, rarity);
+                // By the name its tooltip gave it once the cursor has been on it; by its base until then.
+                this.names.Read(item.Address, this.reader.DescribeItemEntity(item.Address, title), count, rarity);
+                this.titled[item.Address] = title;
+                if (title.Length > 0)
+                {
+                    this.byBase[item.Address] = this.reader.DescribeItemEntity(item.Address) ?? string.Empty;
+                }
+
                 this.gems[item.Address] = this.reader.IsGem(item.Address);
+            }
+        }
+
+        /// <summary>The tooltip title each item's name was read with (empty: by its base).</summary>
+        private readonly Dictionary<IntPtr, string> titled = new();
+
+        /// <summary>What a titled item is called by its base alone, as its new entity will be read.</summary>
+        private readonly Dictionary<IntPtr, string> byBase = new();
+
+        /// <summary>The batch's departed items that had a title: their name by base, and the title.</summary>
+        private readonly List<(string ByBase, string Title)> batchTitles = new();
+
+        /// <summary>The batch's arrivals' entities, in the order of <see cref="arrivals"/>.</summary>
+        private readonly List<IntPtr> arrivalEntities = new();
+
+        /// <summary>
+        ///     An item that changed inventory is a new entity, read by its base: it takes the title of the one departure of
+        ///     the batch with that base name ("Equipado: Escudo torre reforzado, raro" for Égida de glifo).
+        /// </summary>
+        private void NameArrivalsByTitle()
+        {
+            for (var index = 0; index < this.arrivals.Count && index < this.arrivalEntities.Count; index++)
+            {
+                var (to, name) = this.arrivals[index];
+                var found = this.batchTitles.Where(gone => gone.ByBase == name).Select(gone => gone.Title).Distinct().ToList();
+                if (found.Count == 1 && this.reader.DescribeItemEntity(this.arrivalEntities[index], found[0]) is { } named)
+                {
+                    this.reader.RememberTitle(this.arrivalEntities[index], found[0]);
+                    this.arrivals[index] = (to, named);
+                }
             }
         }
 

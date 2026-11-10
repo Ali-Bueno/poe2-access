@@ -153,6 +153,23 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
+        ///     The cell an item of the grid starts at (zero-based), read from the item itself: the grid's cursor cell lags the
+        ///     item it names by a frame and lies anywhere on an item of several cells, so one item had several places.
+        /// </summary>
+        public bool TryReadOrigin(IntPtr grid, IntPtr item, out int column, out int row)
+        {
+            column = row = 0;
+            if (item == IntPtr.Zero || !this.elements.TryReadElement(item, out var info) || info.Raw.ParentPtr != grid ||
+                !this.reader.TryRead<float>(grid + GameLayout.InventoryGrid.CellSizeOffset + this.Shift, out var cell) || cell is < MinCellSize or > MaxCellSize)
+            {
+                return false;
+            }
+
+            (column, row) = ((int)MathF.Round(info.Raw.RelativePosition.X / cell), (int)MathF.Round(info.Raw.RelativePosition.Y / cell));
+            return column is >= 0 and < MaxGridCells && row is >= 0 and < MaxGridCells;
+        }
+
+        /// <summary>
         ///     The item element lying over a cell, zero when none does: the grid names its hovered item late on arrival, drops it
         ///     early on leaving, and not at all while a currency is being applied to an equipment slot (2026-11-10).
         /// </summary>
@@ -243,6 +260,11 @@ namespace Poe2Accessibility.Services
                 name = tooltipTitle;
             }
 
+            if (fromTooltip && rarity != Rarity.Normal && tooltipTitle.Length > 0)
+            {
+                this.RememberTitle(entity, tooltipTitle);
+            }
+
             if (name.Length == 0 && GemIndex.Shared.ByBaseItem(ItemPath(item)) is { } gem && !gem.NameIsPattern(Localization.Language))
             {
                 // A gem's base row holds no display name and nothing shows its tooltip (a move, the hand, a pick-up):
@@ -252,6 +274,28 @@ namespace Poe2Accessibility.Services
 
             var count = item.TryGetComponent<Stack>(out var stack) ? stack.Count : 0;
             return Announcements.Item(name, rarity, count);
+        }
+
+        /// <summary>Titles kept for this many items; past it the oldest readings go with the rest.</summary>
+        private const int MaxTitles = 1024;
+
+        private readonly Dictionary<IntPtr, string> titles = new();
+
+        /// <summary>
+        ///     The name a magic, rare or unique item's tooltip gave it while the cursor was on it, empty when it never was: a
+        ///     move names the item by it, not by its base ("Escudo torre reforzado, raro" for Égida de glifo).
+        /// </summary>
+        public string TitleOf(IntPtr entity) => this.titles.GetValueOrDefault(entity, string.Empty);
+
+        /// <summary>Keeps an item's tooltip title; also for the new entity the game makes of an item that changed inventory.</summary>
+        public void RememberTitle(IntPtr entity, string title)
+        {
+            if (this.titles.Count >= MaxTitles && !this.titles.ContainsKey(entity))
+            {
+                this.titles.Clear();
+            }
+
+            this.titles[entity] = title;
         }
 
         /// <summary>The base display name of an item entity ("Broquel de cuero"); empty if unreadable.</summary>

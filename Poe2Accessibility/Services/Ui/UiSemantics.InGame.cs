@@ -75,6 +75,12 @@ namespace Poe2Accessibility.Services
                 role = UiRole.GridCell;
                 hovered = hovered != IntPtr.Zero ? hovered : this.inventory.ItemAt(info.Address, column, row);
                 emptyCell = hovered == IntPtr.Zero;
+                if (this.inventory.TryReadOrigin(info.Address, hovered, out var itemColumn, out var itemRow))
+                {
+                    // The item's own first cell, so the place is the item's and one item has one place.
+                    (column, row) = (itemColumn, itemRow);
+                }
+
                 details = this.ItemTooltip(hovered);
                 filling = this.tooltipSettle.Filling(hovered, details.Count, details.Aggregate(0, (hash, line) => HashCode.Combine(hash, line)), Environment.TickCount64);
                 var item = hovered == IntPtr.Zero ? Announcements.EmptyCell : this.inventory.DescribeItem(hovered, Title(details)) ?? Announcements.UnknownItem;
