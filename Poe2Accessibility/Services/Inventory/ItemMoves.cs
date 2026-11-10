@@ -65,6 +65,9 @@ namespace Poe2Accessibility.Services
                     else if (Take(source => source == InventoryName.Cursor1) is { } placed)
                     {
                         // The hand set it down: news only when the hand took it from the panel beside (the stash).
+                        // Set down on a stack of its kind, that stack is a new entity too: the old one was not used up
+                        // ("Usado: Orbe de transmutación, 5" on putting one orb back, live 2026-11-10).
+                        TakeSame(name);
                         if (handFrom.Length > 0 && inPanel)
                         {
                             moves.Add(new ItemMove(ItemMoveKind.TakenFrom, placed == Announcements.UnknownItem ? name : placed, handFrom));

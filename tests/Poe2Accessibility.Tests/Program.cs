@@ -2781,6 +2781,9 @@ namespace Poe2Accessibility.Tests
             Equal(string.Empty, Said(ItemMoves.Read(new List<(InventoryName, string)> { (main, "Orbe") }, new List<(InventoryName, string)> { (InventoryName.Cursor1, "Orbe") },
                                                     Announcements.SlotName, true, 0, "Alijo")),
                   "put back from the hand: a placement, not news");
+            Equal(string.Empty, Said(ItemMoves.Read(new List<(InventoryName, string)> { (main, "Orbe, 6") },
+                                                    new List<(InventoryName, string)> { (main, "Orbe, 5"), (InventoryName.Cursor1, "Orbe") }, Announcements.SlotName, true, 0, "")),
+                  "put back on its stack: the stack that grew was not used up");
             Equal(string.Empty, Said(ItemMoves.Read(none, new List<(InventoryName, string)> { (main, "Orbe") }, Announcements.SlotName, false, 0, "")),
                   "during play the pick-up watch speaks");
             Equal("TakenFrom Runa Alijo", Said(ItemMoves.Read(new List<(InventoryName, string)> { (main, "Runa") }, new List<(InventoryName, string)> { (InventoryName.Cursor1, "Runa") },
