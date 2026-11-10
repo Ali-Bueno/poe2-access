@@ -20,7 +20,49 @@ namespace Poe2Accessibility.Tests
             (nameof(ADurationIsAPositiveFiniteNumber), ADurationIsAPositiveFiniteNumber),
             (nameof(ACountBackWhereItWasIsNotSaidAgain), ACountBackWhereItWasIsNotSaidAgain),
             (nameof(WhatATradeGivesAndTakesIsBothSaid), WhatATradeGivesAndTakesIsBothSaid),
+            (nameof(AMovedBitNeedsASecondRound), AMovedBitNeedsASecondRound),
+            (nameof(ANodesRowIsBelievedOnlyWhileMostRowsAgree), ANodesRowIsBelievedOnlyWhileMostRowsAgree),
         };
+
+        private static void AMovedBitNeedsASecondRound()
+        {
+            // Twelve passive tree nodes carried 0x12 and not the navigable bit: one round of one odd kind moves nothing.
+            var moved = new MovedBit();
+            Equal(false, moved.Confirms(0x12, witness: 1), "one round naming another bit");
+            Equal(false, moved.Confirms(0x12, witness: 1), "the same round again is no second witness");
+            Equal(true, moved.Confirms(0x12, witness: 2), "a second round names the same bit");
+
+            var other = new MovedBit();
+            other.Confirms(0x12, 1);
+            Equal(false, other.Confirms(0x0B, 2), "a second round naming another bit confirms neither");
+            Equal(true, other.Confirms(0x0B, 3), "until a third agrees with it");
+
+            var cleared = new MovedBit();
+            cleared.Confirms(0x12, 1);
+            cleared.Clear(); // a round on which the measured bit fitted
+            Equal(false, cleared.Confirms(0x12, 2), "what was named before the measured bit fitted no longer counts");
+        }
+
+        private static void ANodesRowIsBelievedOnlyWhileMostRowsAgree()
+        {
+            static CatalogCrossCheck.Verdict After(int compared, int differing)
+            {
+                var check = new CatalogCrossCheck(compared);
+                CatalogCrossCheck.Verdict? verdict = null;
+                for (var node = 0; node < compared; node++)
+                {
+                    verdict = check.Note($"node{node}", node < differing ? "the row's name reads 'x'" : null);
+                }
+
+                return verdict!.Value;
+            }
+
+            Equal(true, After(64, 0).RowsDecide, "the rows agree with the files: one that differs later is the game's own word");
+            Equal(true, After(64, 3).RowsDecide, "a patch renamed three nodes after the catalog was made: their rows are said");
+            Equal(false, After(64, 40).RowsDecide, "most rows differ: their columns moved, the files are said");
+            Equal(false, After(64, 33).RowsDecide, "just over half");
+            Equal(true, After(64, 32).RowsDecide, "half is not most");
+        }
 
         private static void WhatATradeGivesAndTakesIsBothSaid()
         {

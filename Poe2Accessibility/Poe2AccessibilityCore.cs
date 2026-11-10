@@ -217,7 +217,11 @@ namespace Poe2Accessibility
                         this.semantics?.PassiveFocusLeft();
                     }
 
-                    if (this.InGame)
+                    // Only what the manager's own focus slot holds teaches the navigable bit. The tracker also reports as the
+                    // focus what is merely hovered (a passive tree's node, an atlas node), a shop's highlighted choice and a
+                    // list's row with no focus, and those carry other bits: twelve tree nodes moved the bit to 0x12 on a
+                    // healthy game (2026-11-09 and 2026-11-10, sessions that began in the tree).
+                    if (this.InGame && !node.IsHovered && !node.IsPassiveNode && this.InFocusSlot(node.Address))
                     {
                         this.flagBits?.SampleFocus(node.Address, node.Role);
                     }
@@ -691,6 +695,12 @@ namespace Poe2Accessibility
                 this.Isolated("pre-game hints", snapshot, static (core, snapshot) => core.narrator?.OnPreGameHints(snapshot));
             }
         }
+
+        /// <summary>Whether the element is the one the UI manager's controller-focus slot holds now, for the seat being read.</summary>
+        private bool InFocusSlot(IntPtr element) =>
+            this.focus is { Manager: var manager } tracker && manager != IntPtr.Zero && this.memoryReader != null &&
+            this.memoryReader.TryRead<IntPtr>(manager + GameLayout.UiManager.CurrentOffset + ((tracker.Seat - 1) * GameLayout.UiManager.PlayerStride), out var held) &&
+            held == element;
 
         /// <summary>A text element inside the HUD's skill bar (its alert line).</summary>
         private bool IsSkillBarText(IntPtr text) =>
