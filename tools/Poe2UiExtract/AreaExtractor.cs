@@ -8,10 +8,7 @@ using Index = LibBundle3.Index;
 /// </summary>
 internal static class AreaExtractor
 {
-    // WorldAreas: Id (+0x0, read in place), Name (measured +0x8, where its search starts); G1_1 is the first area of the campaign.
-    private const int NameOffset = 0x8;
-    private const string KnownArea = "G1_1";
-
+    // WorldAreas: Id at +0x0 (read in place); the Name column is found with NameAnchor.Areas.
     internal static readonly Dictionary<string, string> LanguageCodes = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Spanish"] = "es", ["French"] = "fr", ["German"] = "de", ["Portuguese"] = "pt", ["Russian"] = "ru",
@@ -40,7 +37,7 @@ internal static class AreaExtractor
         var files = index.Files.Values
             .Where(f => f.Path != null && f.Path.EndsWith("/worldareas.datc64", StringComparison.OrdinalIgnoreCase))
             .ToList();
-        var result = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
+        var tables = new SortedDictionary<string, (string Path, DatTable Table)>(StringComparer.Ordinal);
         foreach (var f in files.OrderBy(f => f.Path, StringComparer.OrdinalIgnoreCase))
         {
             var parts = f.Path!.Split('/');
@@ -59,23 +56,36 @@ internal static class AreaExtractor
                 continue;
             }
 
-            var table = DatTable.FromBytes(f.Read().ToArray());
-            var search = new DatColumnSearch();
-            var nameColumn = search.Text(table, "WorldAreas.Name", NameOffset, known: (DatColumnSearch.RowOf(table, KnownArea), text => text.Length > 0));
-            if (!search.Report("areas"))
+            tables[code] = (f.Path, DatTable.FromBytes(f.Read().ToArray(), f.Path));
+        }
+
+        if (!tables.TryGetValue("en", out var english))
+        {
+            Say.Out.WriteLine("English WorldAreas.datc64 not found.");
+            return 1;
+        }
+
+        // The name column is told in English, by the known area's name, and read in every language at the same offset.
+        var anchor = NameAnchor.Areas;
+        var search = new DatColumnSearch();
+        var nameColumn = search.Text(english.Table, anchor.Column, anchor.Measured, known: (DatColumnSearch.RowOf(english.Table, anchor.Id), text => text == anchor.Name));
+        if (!search.Report("areas"))
+        {
+            return 1;
+        }
+
+        var result = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
+        foreach (var (code, (path, table)) in tables)
+        {
+            if (table.RowSize != english.Table.RowSize || !DatColumnSearch.IsText(table, nameColumn, _ => true))
             {
+                Say.Out.WriteLine($"  {path}: no name text at +0x{nameColumn:X} (row size 0x{table.RowSize:X}, English 0x{english.Table.RowSize:X})");
                 return 1;
             }
 
             var names = Parse(table, nameColumn);
-            Say.Out.WriteLine($"  {f.Path} -> {code}: {names.Count} areas");
+            Say.Out.WriteLine($"  {path} -> {code}: {names.Count} areas");
             result[code] = names;
-        }
-
-        if (!result.ContainsKey("en"))
-        {
-            Say.Out.WriteLine("English WorldAreas.datc64 not found.");
-            return 1;
         }
 
         WriteJson(outFile, result);

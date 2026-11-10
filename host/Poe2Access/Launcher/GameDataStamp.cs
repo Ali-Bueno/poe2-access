@@ -6,10 +6,27 @@ namespace Poe2Access;
 
 /// <summary>
 ///     What the game data was made from: the install (lines such as "index=size:time") and the version each
-///     regeneration step ran at, so a mod update reruns only the steps whose version it raised.
+///     regeneration step ran at, so a mod update reruns only the steps whose version it raised. An optional step that failed
+///     is not stamped: it is counted ("tried") and retried on the next starts, and after <see cref="MaxAttempts"/> it is
+///     stamped and marked "gaveup" so it is left alone and still listed as failed.
 /// </summary>
 internal sealed record GameDataStamp(string Install, IReadOnlyDictionary<string, int> Steps)
 {
+    /// <summary>How many starts an optional step may fail on, per game build and step version: its slowest run is about 12 s on top of opening the index.</summary>
+    public const int MaxAttempts = 3;
+
+    private const string TriedPrefix = "tried ";
+    private const string GaveUpPrefix = "gaveup ";
+    private const char VersionMark = '@';
+
+    private static readonly IReadOnlyDictionary<string, int> None = new Dictionary<string, int>();
+
+    /// <summary>Failed starts of a step at a version, keyed "step@version".</summary>
+    public IReadOnlyDictionary<string, int> Tried { get; init; } = None;
+
+    /// <summary>Steps stamped without having worked, with the version they were given up at.</summary>
+    public IReadOnlyDictionary<string, int> GaveUp { get; init; } = None;
+
     /// <summary>The version every step had when one format number for all of them was replaced.</summary>
     public const int LegacyVersion = 1;
 
@@ -25,12 +42,16 @@ internal sealed record GameDataStamp(string Install, IReadOnlyDictionary<string,
     {
         var install = new List<string>();
         var steps = new Dictionary<string, int>();
+        var tried = new Dictionary<string, int>();
+        var gaveUp = new Dictionary<string, int>();
         foreach (var line in Lines(text))
         {
             var equals = line.LastIndexOf('=');
-            if (line.StartsWith(StepPrefix, StringComparison.Ordinal) && equals > StepPrefix.Length && int.TryParse(line[(equals + 1)..], out var version))
+            var into = new[] { (StepPrefix, steps), (TriedPrefix, tried), (GaveUpPrefix, gaveUp) }
+                .FirstOrDefault(entry => line.StartsWith(entry.Item1, StringComparison.Ordinal) && equals > entry.Item1.Length && int.TryParse(line[(equals + 1)..], out _));
+            if (into.Item2 is { } target)
             {
-                steps[line[StepPrefix.Length..equals]] = version;
+                target[line[into.Item1.Length..equals]] = int.Parse(line[(equals + 1)..]);
             }
             else
             {
@@ -38,7 +59,7 @@ internal sealed record GameDataStamp(string Install, IReadOnlyDictionary<string,
             }
         }
 
-        return new GameDataStamp(Join(install), steps);
+        return new GameDataStamp(Join(install), steps) { Tried = tried, GaveUp = gaveUp };
     }
 
     /// <summary>
@@ -69,13 +90,51 @@ internal sealed record GameDataStamp(string Install, IReadOnlyDictionary<string,
     /// <summary>This stamp with one more step done on the given install; a different install forgets the other steps.</summary>
     public GameDataStamp With(string install, string step, int version)
     {
-        var steps = this.Install == install ? new Dictionary<string, int>(this.Steps) : new Dictionary<string, int>();
+        var same = this.Install == install;
+        var steps = same ? new Dictionary<string, int>(this.Steps) : new Dictionary<string, int>();
         steps[step] = version;
-        return new GameDataStamp(install, steps);
+        var tried = same ? this.Tried.Where(pair => !pair.Key.StartsWith(step + VersionMark, StringComparison.Ordinal)).ToDictionary(pair => pair.Key, pair => pair.Value) : new Dictionary<string, int>();
+        var gaveUp = same ? this.GaveUp.Where(pair => pair.Key != step).ToDictionary(pair => pair.Key, pair => pair.Value) : new Dictionary<string, int>();
+        return new GameDataStamp(install, steps) { Tried = tried, GaveUp = gaveUp };
     }
 
+    /// <summary>
+    ///     This stamp after a start on which an optional step failed: the start is counted and the step stays unstamped, so
+    ///     the next start retries it; at <see cref="MaxAttempts"/> it is stamped as given up instead.
+    /// </summary>
+    public GameDataStamp WithFailure(string install, string step, int version)
+    {
+        var same = this.Install == install;
+        var steps = same ? new Dictionary<string, int>(this.Steps) : new Dictionary<string, int>();
+        var tried = same ? new Dictionary<string, int>(this.Tried) : new Dictionary<string, int>();
+        var gaveUp = same ? new Dictionary<string, int>(this.GaveUp) : new Dictionary<string, int>();
+        var key = $"{step}{VersionMark}{version}";
+        var attempts = tried.GetValueOrDefault(key) + 1;
+        if (attempts >= MaxAttempts)
+        {
+            tried.Remove(key);
+            steps[step] = version;
+            gaveUp[step] = version;
+        }
+        else
+        {
+            tried[key] = attempts;
+        }
+
+        return new GameDataStamp(install, steps) { Tried = tried, GaveUp = gaveUp };
+    }
+
+    /// <summary>How many starts the step has failed on at this version.</summary>
+    public int Attempts(string step, int version) => this.Tried.GetValueOrDefault($"{step}{VersionMark}{version}");
+
+    /// <summary>The steps stamped without having worked, still at the version they were given up at.</summary>
+    public IEnumerable<string> GivenUp() =>
+        this.GaveUp.Where(pair => this.Steps.TryGetValue(pair.Key, out var done) && done == pair.Value).Select(pair => pair.Key).Order(StringComparer.Ordinal);
+
     public override string ToString() =>
-        this.Install + string.Concat(this.Steps.OrderBy(step => step.Key, StringComparer.Ordinal).Select(step => $"{StepPrefix}{step.Key}={step.Value}\n"));
+        this.Install + string.Concat(this.Steps.OrderBy(step => step.Key, StringComparer.Ordinal).Select(step => $"{StepPrefix}{step.Key}={step.Value}\n")) +
+        string.Concat(this.Tried.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => $"{TriedPrefix}{pair.Key}={pair.Value}\n")) +
+        string.Concat(this.GaveUp.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => $"{GaveUpPrefix}{pair.Key}={pair.Value}\n"));
 
     private static IEnumerable<string> Lines(string? text) =>
         (text ?? string.Empty).Split('\n').Select(line => line.TrimEnd('\r')).Where(line => line.Length > 0);

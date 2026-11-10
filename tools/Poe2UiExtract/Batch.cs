@@ -39,7 +39,7 @@ internal static class Batch
     };
 
     /// <param name="pairs">Command and output file, repeated.</param>
-    /// <returns>0 when every command made its output, else 1.</returns>
+    /// <returns>0 when every command made its output, 1 when one did not, <see cref="BundleIndexCheck.ExitCode"/> when the index would not open.</returns>
     public static int Run(string gameDir, string[] pairs)
     {
         var commands = pairs.Where((_, i) => i % 2 == 0).ToList();
@@ -49,7 +49,19 @@ internal static class Batch
             return 1;
         }
 
-        using var index = SharedBundles.OpenParsed(gameDir);
+        Index index;
+        try
+        {
+            index = SharedBundles.OpenParsed(gameDir);
+        }
+        catch (Exception error)
+        {
+            // One failure for the whole batch: the steps cannot say anything the index has not.
+            Say.Out.WriteLine($"{Extractor.BatchIndexLinePrefix}failed: {SingleLine(error.ToString())}");
+            return BundleIndexCheck.ExitCode;
+        }
+
+        using var opened = index;
         using var slots = new SemaphoreSlim(Math.Max(1, MaxParallel));
         var runs = pairs.Chunk(2).Select(pair => Task.Run(() =>
         {
@@ -72,6 +84,8 @@ internal static class Batch
     {
         var part = output + Extractor.BatchPartSuffix;
         var watch = Stopwatch.StartNew();
+        using var capture = Say.StartCapture();
+        string? thrown = null;
         int code;
         try
         {
@@ -81,6 +95,7 @@ internal static class Batch
         catch (Exception error)
         {
             Say.Out.WriteLine($"{command}: {error}");
+            thrown = $"{error.GetType().Name}: {error.Message}";
             code = 1;
         }
 
@@ -94,7 +109,11 @@ internal static class Batch
             File.Delete(part);
         }
 
-        Say.Out.WriteLine($"{Extractor.BatchLinePrefix}{command} {(made ? "done" : "failed")} in {watch.Elapsed.TotalSeconds:0.0} s");
+        // The reason goes on the result line: the launcher keeps only these lines in its log.
+        var reason = made ? string.Empty : $": {SingleLine(thrown ?? capture.Reason())}";
+        Say.Out.WriteLine($"{Extractor.BatchLinePrefix}{command} {(made ? "done" : "failed")} in {watch.Elapsed.TotalSeconds:0.0} s{reason}");
         return made;
     }
+
+    private static string SingleLine(string text) => text.ReplaceLineEndings(" ");
 }

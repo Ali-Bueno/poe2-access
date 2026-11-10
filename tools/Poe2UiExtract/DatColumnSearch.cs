@@ -19,6 +19,7 @@ internal sealed class DatColumnSearch
 
     private readonly List<string> missing = new();
     private readonly List<string> moved = new();
+    private readonly List<string> unverified = new();
 
     /// <summary>The columns not found, as "Table.Column near +0x8".</summary>
     public IReadOnlyList<string> Missing => this.missing;
@@ -26,7 +27,27 @@ internal sealed class DatColumnSearch
     /// <summary>The columns found elsewhere than measured, as "Table.Column moved from +0x8 to +0x10".</summary>
     public IReadOnlyList<string> Moved => this.moved;
 
+    /// <summary>The known-row checks that could not run because the row is not in the table, as "Table.Column: ...".</summary>
+    public IReadOnlyList<string> Unverified => this.unverified;
+
     public bool AllFound => this.missing.Count == 0;
+
+    /// <summary>Records a column that cannot be judged at all (a translated table that does not read at its offset).</summary>
+    public void Fail(string what) => this.missing.Add(what);
+
+    /// <summary>Records a check that could not run, so the log says the column was judged by shape alone.</summary>
+    public void Skipped(string name, string why) => this.unverified.Add($"{name}: {why}");
+
+    /// <summary>Notes a known-row check handed a row the table lacks (-1): it will not run, and the log must say so.</summary>
+    private DatColumnSearch Checking(string name, int? knownRow)
+    {
+        if (knownRow is < 0)
+        {
+            this.Skipped(name, "its known row is not in the table, so the column was judged by its type and shape alone");
+        }
+
+        return this;
+    }
 
     /// <summary>The first row whose Id (the string at +0) is <paramref name="id"/>, or -1: a row the caller can verify a value on.</summary>
     public static int RowOf(DatTable table, string id)
@@ -72,22 +93,22 @@ internal sealed class DatColumnSearch
     ///     that row is absent from this table).
     /// </summary>
     public int Text(DatTable table, string name, int measured, Func<string, bool>? matches = null, int after = IdColumn, (int Row, Func<string, bool> Holds)? known = null) =>
-        this.Find(table, name, measured, offset => IsText(table, offset, matches ?? (_ => true)) && (known is not { Row: >= 0 } check || check.Holds(table.StringOrNull(check.Row, offset) ?? string.Empty)), after);
+        this.Checking(name, known?.Row).Find(table, name, measured, offset => IsText(table, offset, matches ?? (_ => true)) && (known is not { Row: >= 0 } check || check.Holds(table.StringOrNull(check.Row, offset) ?? string.Empty)), after);
 
     /// <summary>
     ///     A key column into <paramref name="target"/>: every row a null key or a row of the target, at least one of the
     ///     latter; <paramref name="known"/> checks the target row of a row the caller can name.
     /// </summary>
     public int Key(DatTable table, string name, int measured, DatTable target, int after = -1, (int Row, Func<long, bool> Holds)? known = null) =>
-        this.Find(table, name, measured, offset => IsKey(table, offset, target.RowCount) && (known is not { Row: >= 0 } check || check.Holds(table.Key(check.Row, offset))), after);
+        this.Checking(name, known?.Row).Find(table, name, measured, offset => IsKey(table, offset, target.RowCount) && (known is not { Row: >= 0 } check || check.Holds(table.Key(check.Row, offset))), after);
 
     /// <summary>A list column of keys into <paramref name="target"/>: every item of every row a row of the target, some row with items.</summary>
     public int KeyList(DatTable table, string name, int measured, DatTable target, int after = -1, (int Row, Func<IReadOnlyList<long>, bool> Holds)? known = null) =>
-        this.Find(table, name, measured, offset => IsKeyList(table, offset, target.RowCount) && (known is not { Row: >= 0 } check || check.Holds(table.KeyList(check.Row, offset))), after);
+        this.Checking(name, known?.Row).Find(table, name, measured, offset => IsKeyList(table, offset, target.RowCount) && (known is not { Row: >= 0 } check || check.Holds(table.KeyList(check.Row, offset))), after);
 
     /// <summary>A one-byte column whose every value passes <paramref name="fits"/> (a flag: 0 or 1, both present).</summary>
     public int Byte(DatTable table, string name, int measured, Func<int, bool> fits, int after = -1, (int Row, Func<int, bool> Holds)? known = null) =>
-        this.Find(table, name, measured, offset => offset < table.RowSize && Enumerable.Range(0, table.RowCount).All(row => fits(table.Byte(row, offset))) &&
+        this.Checking(name, known?.Row).Find(table, name, measured, offset => offset < table.RowSize && Enumerable.Range(0, table.RowCount).All(row => fits(table.Byte(row, offset))) &&
                                                      Enumerable.Range(0, table.RowCount).Select(row => table.Byte(row, offset)).Distinct().Skip(1).Any() &&
                                                      (known is not { Row: >= 0 } check || check.Holds(table.Byte(check.Row, offset))), after);
 
@@ -189,6 +210,11 @@ internal sealed class DatColumnSearch
     public bool Report(string step)
     {
         foreach (var line in this.moved)
+        {
+            Say.Out.WriteLine($"  {line}");
+        }
+
+        foreach (var line in this.unverified)
         {
             Say.Out.WriteLine($"  {line}");
         }

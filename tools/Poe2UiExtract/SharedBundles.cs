@@ -30,7 +30,14 @@ internal sealed class SharedBundles : IBundleFactory
     public static Index OpenParsed(string gameDir)
     {
         var index = GameContent.OpenIndex(gameDir);
-        Say.Out.WriteLine($"ParsePaths failed count: {index.ParsePaths()}");
+        var unparsed = index.ParsePaths();
+        Say.Out.WriteLine($"ParsePaths failed count: {unparsed}");
+        if (BundleIndexCheck.Problem(index.Files.Count, index.Bundles.Length, BundleFiles.Find(index, "data/balance/stats.datc64", "data/stats.datc64") != null, unparsed) is { } problem)
+        {
+            index.Dispose();
+            throw new InvalidDataException(problem);
+        }
+
         return index;
     }
 

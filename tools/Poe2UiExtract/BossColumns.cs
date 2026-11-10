@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 /// <summary>
 ///     The columns `boss-mechanics` reads, each found by what it holds near where it was measured (<see cref="DatColumnSearch"/>):

@@ -248,6 +248,7 @@ namespace Poe2Accessibility.Tests
                 ExtractorColumnTests.All(),
                 ItemReadingTests.All(),
                 StaticAnchorTests.All(),
+                ExtractionGuardTests.All(),
             };
             foreach (var (name, test) in suites.SelectMany(suite => suite))
             {

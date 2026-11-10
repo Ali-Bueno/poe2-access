@@ -23,6 +23,9 @@ internal sealed class TelegraphColumns
     internal const int TriggerRadiusOffset = 0x38;
     internal const int TriggerAngleOffset = 0x3C;
     internal const int MortarImpactOffset = 0x24;
+    internal const int TriggerAnimationOffset = 0x14;
+    private const string AoExtension = ".ao";
+    private const int MinAnimations = 2;
 
     /// <summary>The game's units are small whole numbers (a cone of 10, a delay of 33 ms, 360 degrees); a column beyond this is not one of them.</summary>
     internal const int LargestValue = 100_000;
@@ -72,6 +75,24 @@ internal sealed class TelegraphColumns
         c.MortarImpact = search.Find(mortars, "MonsterMortar.Impact", MortarImpactOffset,
             offset => DatColumnSearch.IsKey(mortars, offset, animated.RowCount) && Enumerable.Range(0, mortars.RowCount).Select(row => mortars.Key(row, offset)).Distinct().Skip(1).Any());
         return search.Report("telegraphs") ? c : null;
+    }
+
+    /// <summary>
+    ///     GeometryTrigger's animation key (a few rows have one): a key into the animations whose every filled row leads to an
+    ///     .ao file, over more than one file. Unaligned offsets overlap the neighbouring keys' bytes, so the nearest fit wins.
+    /// </summary>
+    internal static int FindTriggerAnimation(DatTable triggers, DatTable animated, int aoFileColumn, DatColumnSearch search) =>
+        search.Find(triggers, "GeometryTrigger.Animation", TriggerAnimationOffset, offset => IsAnimationKey(triggers, offset, animated, aoFileColumn));
+
+    private static bool IsAnimationKey(DatTable triggers, int offset, DatTable animated, int aoFileColumn)
+    {
+        if (!DatColumnSearch.IsKey(triggers, offset, animated.RowCount))
+        {
+            return false;
+        }
+
+        var keys = Enumerable.Range(0, triggers.RowCount).Select(row => triggers.Key(row, offset)).Where(key => key >= 0).Distinct().ToList();
+        return keys.Count >= MinAnimations && keys.All(key => animated.StringOrNull((int)key, aoFileColumn) is { } path && path.EndsWith(AoExtension, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>The geometry and trigger rows of the skills whose values are known, found through the skills' ids.</summary>

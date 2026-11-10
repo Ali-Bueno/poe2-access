@@ -99,7 +99,11 @@ internal static class GameDataSetup
             if (error is not null)
             {
                 Log.Write($"Game data: {step.Name} failed, previous kept ({error})");
-                failed.Add(step.Name);
+                var listed = error == Extractor.BundleIndexName ? error : step.Name; // the index failing fails every step: one entry says it
+                if (!failed.Contains(listed))
+                {
+                    failed.Add(listed);
+                }
             }
             else if (step.Output is { } output)
             {
@@ -111,10 +115,19 @@ internal static class GameDataSetup
                 spoken.StepDone(); // the catalogs are counted as the batch reports them
             }
 
-            if (error is null || step.Optional)
+            if (error is null)
             {
                 stamp = stamp.With(install, step.Name, step.Version);
                 File.WriteAllText(stampFile, stamp.ToString());
+            }
+            else if (step.Optional)
+            {
+                // Unstamped, so the next start retries it, up to GameDataStamp.MaxAttempts starts.
+                stamp = stamp.WithFailure(install, step.Name, step.Version);
+                File.WriteAllText(stampFile, stamp.ToString());
+                Log.Write(stamp.GivenUp().Contains(step.Name)
+                    ? $"Game data: {step.Name} failed on {GameDataStamp.MaxAttempts} starts: given up for this game build and listed as failed"
+                    : $"Game data: {step.Name} failed on start {stamp.Attempts(step.Name, step.Version)} of {GameDataStamp.MaxAttempts}; retried on the next start");
             }
         }
 
@@ -137,6 +150,7 @@ internal static class GameDataSetup
 
         // The plugin says it: a catalog left behind by a patch would otherwise only show in this log.
         var failedFile = Path.Join(pluginCatalog, FailedStepsFile);
+        failed.AddRange(stamp.GivenUp().Where(name => !failed.Contains(name))); // given up on an earlier start, still not working
         if (failed.Count > 0)
         {
             File.WriteAllLines(failedFile, failed);
@@ -247,6 +261,10 @@ internal static class GameDataSetup
                         Log.Write($"Game data: {line[Extractor.BatchLinePrefix.Length..]}");
                         narrator?.StepDone();
                     }
+                    else if (line.StartsWith(Extractor.BatchIndexLinePrefix, StringComparison.Ordinal))
+                    {
+                        Log.Write($"Game data: bundle index {line[Extractor.BatchIndexLinePrefix.Length..]}");
+                    }
                 });
         }
         finally
@@ -283,10 +301,21 @@ internal static class GameDataSetup
             }
         }
 
-        var error = Run(["sounds", gameDirectory, fresh, itemSounds], StepTimeoutMilliseconds);
+        var error = Run(["sounds", gameDirectory, fresh, itemSounds], StepTimeoutMilliseconds, line =>
+        {
+            if (line.StartsWith(Extractor.SoundsMissingPrefix, StringComparison.Ordinal))
+            {
+                Log.Write($"Game data: sounds {line}"); // the cues a bank no longer holds, by name
+            }
+        });
         if (error is null && !File.Exists(Path.Join(fresh, SoundsManifest)))
         {
             error = "no manifest written";
+        }
+
+        if (error is null && ShortOfManifest(fresh) is { } short_)
+        {
+            error = short_;
         }
 
         if (error is not null)
@@ -328,6 +357,14 @@ internal static class GameDataSetup
         return null;
     }
 
+    /// <summary>Whether the extracted folder holds fewer samples than its manifest lists (a write cut short); the cause, or null.</summary>
+    private static string? ShortOfManifest(string folder)
+    {
+        var listed = File.ReadLines(Path.Join(folder, SoundsManifest)).Count(line => line.Length > 0 && line[0] != '#');
+        var written = Directory.EnumerateFiles(folder, "*.wav", SearchOption.AllDirectories).Count();
+        return written < listed ? $"{written} samples written, {listed} listed" : null;
+    }
+
     private static string? Promote(string temp, string target)
     {
         if (!File.Exists(temp) || new FileInfo(temp).Length == 0)
@@ -341,6 +378,12 @@ internal static class GameDataSetup
             var sizes = $"{new FileInfo(target).Length} to {new FileInfo(temp).Length} bytes";
             File.Delete(temp);
             return $"output fell from {sizes}, a column probably moved";
+        }
+
+        if (GameDataCounts.Problem(Path.GetFileName(target), File.Exists(target) ? File.ReadAllText(target) : null, File.ReadAllText(temp)) is { } problem)
+        {
+            File.Delete(temp);
+            return problem;
         }
 
         File.Move(temp, target, true);
@@ -365,7 +408,7 @@ internal static class GameDataSetup
                 }
             }
 
-            return work.Result == 0 ? null : $"exit code {work.Result}";
+            return work.Result == 0 ? null : work.Result == Extractor.BundleIndexExit ? Extractor.BundleIndexName : $"exit code {work.Result}";
         }
         catch (AggregateException error)
         {

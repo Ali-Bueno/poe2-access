@@ -17,9 +17,16 @@ internal sealed class SkillGraphFile
     private const int RootEntryBytes = 8;
     private const int LinkBytes = 8;
 
-    private SkillGraphFile(int version, IReadOnlyList<Node> nodes) => (this.Version, this.Nodes) = (version, nodes);
+    private SkillGraphFile(int version, IReadOnlyList<Node> nodes, IReadOnlyList<int> orbitSizes, IReadOnlyList<int> roots) =>
+        (this.Version, this.Nodes, this.OrbitSizes, this.Roots) = (version, nodes, orbitSizes, roots);
 
     public IReadOnlyList<Node> Nodes { get; }
+
+    /// <summary>The header's nodes per orbit: a node's orbit is an index into it and its slot a place on that ring.</summary>
+    public IReadOnlyList<int> OrbitSizes { get; }
+
+    /// <summary>The header's root node ids (where a class's tree starts).</summary>
+    public IReadOnlyList<int> Roots { get; }
 
     /// <summary>The file's version byte.</summary>
     public int Version { get; }
@@ -27,16 +34,20 @@ internal sealed class SkillGraphFile
     public bool VersionKnown => this.Version == KnownVersion;
 
     /// <summary>
-    ///     Whether the file reads as a graph whatever its version says: some nodes, every link's end a node of the file. A
-    ///     known version is trusted as read; an unknown one is accepted only when this holds (and its nodes resolve in
-    ///     PassiveSkills, which the extractor checks).
+    ///     Whether the file reads as a graph whatever its version says: some nodes, every link's end a node of the file, every group position finite, every node on an orbit and a slot the header gives, every root a node.
+    ///     (<see cref="Parse"/> has already checked that the counts consume the file to its last byte.) A known version is
+    ///     trusted as read; an unknown one is accepted only when this holds (and its nodes resolve in PassiveSkills, which the
+    ///     extractor checks).
     /// </summary>
     public bool IsConsistent
     {
         get
         {
             var ids = this.Nodes.Select(node => node.Id).ToHashSet();
-            return this.Nodes.Count > 0 && this.Nodes.All(node => node.Links.All(ids.Contains));
+            return this.Nodes.Count > 0 &&
+                   this.Nodes.All(node => node.Links.All(ids.Contains) && float.IsFinite(node.X) && float.IsFinite(node.Y) &&
+                                          node.Orbit < this.OrbitSizes.Count && node.Slot < this.OrbitSizes[node.Orbit]) &&
+                   this.Roots.All(ids.Contains);
         }
     }
 
@@ -55,9 +66,21 @@ internal sealed class SkillGraphFile
 
             at++; // graph kind
             var orbits = bytes[at++];
+            if (at + orbits > bytes.Length)
+            {
+                return null;
+            }
+
+            var orbitSizes = bytes.AsSpan(at, orbits).ToArray().Select(size => (int)size).ToList();
             at += orbits; // nodes per orbit
-            var roots = ReadInt(bytes, ref at);
-            at += roots * RootEntryBytes;
+            var rootCount = ReadInt(bytes, ref at);
+            var roots = new List<int>();
+            for (var root = 0; root < rootCount; root++)
+            {
+                roots.Add(ReadInt(bytes, ref at));
+                at += RootEntryBytes - sizeof(int);
+            }
+
             var groups = ReadInt(bytes, ref at);
             var nodes = new List<Node>();
             for (var group = 0; group < groups; group++)
@@ -72,6 +95,11 @@ internal sealed class SkillGraphFile
                     var orbit = ReadInt(bytes, ref at);
                     var slot = ReadInt(bytes, ref at);
                     var links = ReadInt(bytes, ref at);
+                    if (links > (bytes.Length - at) / LinkBytes)
+                    {
+                        return null; // more links than the file has bytes for
+                    }
+
                     var to = new List<int>(links);
                     for (var link = 0; link < links; link++)
                     {
@@ -83,7 +111,7 @@ internal sealed class SkillGraphFile
                 }
             }
 
-            return at == bytes.Length ? new SkillGraphFile(version, nodes) : null;
+            return at == bytes.Length ? new SkillGraphFile(version, nodes, orbitSizes, roots) : null;
         }
         catch (ArgumentOutOfRangeException)
         {

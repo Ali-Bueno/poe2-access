@@ -19,6 +19,12 @@ internal static class ActionTypeExtractor
             return 1;
         }
 
+        if (!DatColumnSearch.IsText(table!, 0, _ => true))
+        {
+            Say.Out.WriteLine("ActionTypes does not start with an Id string: action-types left out.");
+            return 1;
+        }
+
         var ids = Enumerable.Range(0, table!.RowCount).Select(row => table.String(row, 0)).Where(id => id.Length > 0).ToList();
         var header = new[] { "# The Id of every ActionTypes row, one a line (tools/Poe2UiExtract action-types), regenerated after patches." };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);

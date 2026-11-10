@@ -1,0 +1,331 @@
+namespace Poe2Accessibility.Tests
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using static Poe2Accessibility.Tests.DatColumnSearchTests;
+    using static Check;
+
+    /// <summary>
+    ///     The rules that make a game patch followed or reported, never silently wrong (docs/patch-day.md): name columns told
+    ///     by a known row, known-row checks that cannot run said, tables that do not read, counts that collapse.
+    /// </summary>
+    public static class ExtractionGuardTests
+    {
+        private const string AnchorId = "G1_1";
+        private const string AnchorName = "The Riverbank";
+
+        public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
+        {
+            (nameof(ANameColumnIsToldByTheAnchorsName), ANameColumnIsToldByTheAnchorsName),
+            (nameof(ANameColumnNoRowHoldsFailsTheStep), ANameColumnNoRowHoldsFailsTheStep),
+            (nameof(AMissingAnchorRowIsSaidAndFallsBackOnTheTranslation), AMissingAnchorRowIsSaidAndFallsBackOnTheTranslation),
+            (nameof(TablesThatDifferInSizeAreNotAName), TablesThatDifferInSizeAreNotAName),
+            (nameof(ASkippedKnownRowCheckIsSaid), ASkippedKnownRowCheckIsSaid),
+            (nameof(ABundleIndexThatDoesNotLookLikeTheGamesIsOneNamedFailure), ABundleIndexThatDoesNotLookLikeTheGamesIsOneNamedFailure),
+            (nameof(AGraphOfAnotherVersionMustHoldTogetherStrictly), AGraphOfAnotherVersionMustHoldTogetherStrictly),
+            (nameof(AGraphWhoseCountsDoNotConsumeTheFileIsNotRead), AGraphWhoseCountsDoNotConsumeTheFileIsNotRead),
+            (nameof(ATableThatIsNotWholeRowsFailsAndNamesItself),ATableThatIsNotWholeRowsFailsAndNamesItself),
+            (nameof(ATableWithoutRowsOrTooShortFailsToo), ATableWithoutRowsOrTooShortFailsToo),
+            (nameof(ACatalogBelowAQuarterOfTodaysEntriesIsRefusedEvenOnAFirstRun), ACatalogBelowAQuarterOfTodaysEntriesIsRefusedEvenOnAFirstRun),
+            (nameof(CountsReadLinesAndValues), CountsReadLinesAndValues),
+            (nameof(APartialLossAgainstThePreviousFileIsRefused), APartialLossAgainstThePreviousFileIsRefused),
+            (nameof(AFailedOptionalStepIsRetriedOnLaterStartsUpToAnLimit), AFailedOptionalStepIsRetriedOnLaterStartsUpToAnLimit),
+            (nameof(AStepThatWorksLaterClearsItsFailuresAndANewBuildStartsOver), AStepThatWorksLaterClearsItsFailuresAndANewBuildStartsOver),
+            (nameof(AnOldStampWithoutRetryLinesStillReads), AnOldStampWithoutRetryLinesStillReads),
+            (nameof(OverrideColumnsAreFoundWhereMeasuredAndAfterAShift),OverrideColumnsAreFoundWhereMeasuredAndAfterAShift),
+            (nameof(AnOverrideTableWithoutTheKnownRowIsJudgedByShape), AnOverrideTableWithoutTheKnownRowIsJudgedByShape),
+            (nameof(AKnownOverrideThatReadsOtherwiseFailsTheStep), AKnownOverrideThatReadsOtherwiseFailsTheStep),
+            (nameof(OverrideColumnsThatNameNoClassAreNotFound), OverrideColumnsThatNameNoClassAreNotFound),
+            (nameof(TheTriggerAnimationKeyMustLeadToAnimationFiles), TheTriggerAnimationKeyMustLeadToAnimationFiles),
+        };
+
+        private static readonly NameAnchor Anchor = new("worldareas", "WorldAreas.Name", 0x10, AnchorId, AnchorName);
+
+        /// <summary>
+        ///     Areas: Id, a note column that a translation changes too (the old heuristic's first pick), then the name at
+        ///     <paramref name="nameAt"/>; <paramref name="language"/> translates both.
+        /// </summary>
+        private static DatTable Areas(bool translated, int nameAt = 0x10, bool withAnchorRow = true, int rowSize = 0x20)
+        {
+            var builder = new DatTableBuilder(rowSize);
+            for (var row = 0; row < 8; row++)
+            {
+                var index = row;
+                var isAnchor = withAnchorRow && row == 0;
+                builder.Row(write => write.Text(0, isAnchor ? AnchorId : $"Area{index}")
+                    .Text(0x8, translated ? $"nota {index}" : $"note {index}")
+                    .Text(nameAt, translated ? $"Nombre {index}" : isAnchor ? AnchorName : $"Name {index}"));
+            }
+
+            return builder.Build();
+        }
+
+        private static void ANameColumnIsToldByTheAnchorsName()
+        {
+            var search = new DatColumnSearch();
+            Expect(0x10, NameColumns.Find(Areas(false), Areas(true), Anchor, search), "the column holding the anchor's name, not the first one a translation changes");
+            Expect(true, search.AllFound && search.Unverified.Count == 0, "nothing missing, nothing unchecked");
+            Expect(0x8, (int)(NameColumns.FirstTranslated(Areas(false), Areas(true)) ?? -1), "the old heuristic would have taken the note column");
+        }
+
+        private static void ANameColumnNoRowHoldsFailsTheStep()
+        {
+            var search = new DatColumnSearch();
+            Expect(-1, NameColumns.Find(Areas(false, nameAt: 0x10), Areas(true, nameAt: 0x10), Anchor with { Name = "Somewhere Else" }, search), "no column holds that name");
+            Expect(false, search.AllFound, "the step fails");
+            Expect(true, search.Missing[0].StartsWith("WorldAreas.Name", StringComparison.Ordinal), "and names the column");
+        }
+
+        private static void AMissingAnchorRowIsSaidAndFallsBackOnTheTranslation()
+        {
+            var search = new DatColumnSearch();
+            var column = NameColumns.Find(Areas(false, withAnchorRow: false), Areas(true, withAnchorRow: false), Anchor, search);
+            Expect(0x8, column, "without the anchor row only the translation can tell");
+            Expect(1, search.Unverified.Count, "the skipped check is said");
+            Expect(true, search.Unverified[0].Contains(AnchorId, StringComparison.Ordinal), "naming the row");
+        }
+
+        private static void TablesThatDifferInSizeAreNotAName()
+        {
+            var search = new DatColumnSearch();
+            Expect(-1, NameColumns.Find(Areas(false), Areas(true, rowSize: 0x28), Anchor, search), "a translated copy of another row size");
+            Expect(false, search.AllFound, "the step fails");
+        }
+
+        private const int OverrideRows = 12;
+        private const int KnownReplacedRow = 20;
+        private const int KnownShownRow = 21;
+
+        private static DatTable Classes() => new DatTableBuilder(0x20)
+            .Row(w => w.Text(0, PassiveOverrideColumns.KnownCharacter)).Row(w => w.Text(0, "Metadata/Characters/Dex/DexFour")).Build();
+
+        private static DatTable Nodes()
+        {
+            var builder = new DatTableBuilder(0x10);
+            for (var row = 0; row < 40; row++)
+            {
+                var id = row == KnownReplacedRow ? PassiveOverrideColumns.KnownReplaced : row == KnownShownRow ? PassiveOverrideColumns.KnownShown : $"node{row}";
+                builder.Row(w => w.Text(0, id));
+            }
+
+            return builder.Build();
+        }
+
+        /// <summary>Overrides of the Witch (class 0), each node replaced once; the first is the known one unless <paramref name="known"/> is off.</summary>
+        private static DatTable Overrides(int shift, bool known = true, int shownOfKnown = KnownShownRow)
+        {
+            var builder = new DatTableBuilder(0x30 + shift);
+            for (var row = 0; row < OverrideRows; row++)
+            {
+                var index = row;
+                var replaced = index == 0 && known ? KnownReplacedRow : index;
+                var shown = index == 0 ? (known ? shownOfKnown : 22) : 22 + index;
+                builder.Row(w => w.Key(0, 0x7777777777777777).Key(PassiveOverrideColumns.CharacterOffset + shift, 0).Key(PassiveOverrideColumns.ReplacedOffset + shift, replaced).Key(PassiveOverrideColumns.ShownOffset + shift, shown));
+            }
+
+            return builder.Build();
+        }
+
+        private static void OverrideColumnsAreFoundWhereMeasuredAndAfterAShift()
+        {
+            var found = PassiveOverrideColumns.Find(Overrides(0), Classes(), Nodes()) ?? throw new Exception("not found");
+            Expect("0 10 20", $"{found.Character:X} {found.Replaced:X} {found.Shown:X}", "the measured offsets");
+            var moved = PassiveOverrideColumns.Find(Overrides(8), Classes(), Nodes()) ?? throw new Exception("not found after a shift");
+            Expect("8 18 28", $"{moved.Character:X} {moved.Replaced:X} {moved.Shown:X}", "a column inserted before them moves them all");
+        }
+
+        private static void AnOverrideTableWithoutTheKnownRowIsJudgedByShape()
+        {
+            // Without the Witch's known override the columns stand on their shape (the log says the check did not run).
+            Expect(true, PassiveOverrideColumns.Find(Overrides(0, known: false), Classes(), Nodes()) != null, "found by shape");
+        }
+
+        private static void AKnownOverrideThatReadsOtherwiseFailsTheStep()
+        {
+            Expect(true, PassiveOverrideColumns.Find(Overrides(0, shownOfKnown: 25), Classes(), Nodes()) == null, "the Witch's spells18 shows another node: the columns are wrong");
+        }
+
+        private static void OverrideColumnsThatNameNoClassAreNotFound()
+        {
+            var oneClass = new DatTableBuilder(0x20).Row(w => w.Text(0, "Not a character")).Row(w => w.Text(0, "Metadata/Characters/Dex/DexFour")).Build();
+            Expect(true, PassiveOverrideColumns.Find(Overrides(0), oneClass, Nodes()) == null, "a class Id is a player's metadata path");
+        }
+
+        private static void TheTriggerAnimationKeyMustLeadToAnimationFiles()
+        {
+            static DatTable Animations(string suffix) => new DatTableBuilder(0x10)
+                .Row(w => w.Text(0, "a").Text(8, "Effects/one" + suffix)).Row(w => w.Text(0, "b").Text(8, "Effects/two" + suffix)).Row(w => w.Text(0, "c").Text(8, "Effects/three" + suffix)).Build();
+            static DatTable Triggers(int shift) => new DatTableBuilder(0x40 + shift)
+                .Row(w => w.Key(TelegraphColumns.TriggerAnimationOffset + shift, 0)).Row(w => w.Key(TelegraphColumns.TriggerAnimationOffset + shift, -1))
+                .Row(w => w.Key(TelegraphColumns.TriggerAnimationOffset + shift, 2)).Build();
+            Expect(0x14, TelegraphColumns.FindTriggerAnimation(Triggers(0), Animations(".ao"), 8, new DatColumnSearch()), "found where measured");
+            Expect(0x1C, TelegraphColumns.FindTriggerAnimation(Triggers(8), Animations(".ao"), 8, new DatColumnSearch()), "found after a shift");
+            var search = new DatColumnSearch();
+            Expect(-1, TelegraphColumns.FindTriggerAnimation(Triggers(0), Animations(".txt"), 8, search), "keys that lead to other files");
+            Expect(false, search.AllFound, "the step fails");
+        }
+
+        /// <summary>A file of <paramref name="rows"/> rows of <paramref name="rowSize"/> bytes, <paramref name="extra"/> stray bytes before the marker.</summary>
+        private static byte[] DatFile(int rows, int rowSize, int extra = 0, bool marker = true)
+        {
+            var bytes = new List<byte>(BitConverter.GetBytes(rows));
+            bytes.AddRange(new byte[Math.Max(0, rows * rowSize) + extra]);
+            if (marker)
+            {
+                bytes.AddRange(Enumerable.Repeat((byte)0xBB, 8));
+            }
+
+            bytes.AddRange(new byte[16]);
+            return bytes.ToArray();
+        }
+
+        private static string Unreadable(byte[] file, string name)
+        {
+            try
+            {
+                DatTable.FromBytes(file, name);
+                return string.Empty;
+            }
+            catch (System.IO.InvalidDataException error)
+            {
+                return error.Message;
+            }
+        }
+
+        private static void ATableThatIsNotWholeRowsFailsAndNamesItself()
+        {
+            Expect(0x20, DatTable.FromBytes(DatFile(5, 0x20), "data/balance/mods.datc64").RowSize, "whole rows read");
+            var message = Unreadable(DatFile(5, 0x20, extra: 3), "data/balance/mods.datc64");
+            Expect(true, message.StartsWith("data/balance/mods.datc64:", StringComparison.Ordinal) && message.Contains("whole number of rows", StringComparison.Ordinal), "stray bytes: the table is named and the cause said");
+            Expect(true, Unreadable(DatFile(5, 0x20, marker: false), "stats").Contains("marker", StringComparison.Ordinal), "no marker");
+        }
+
+        private static void ATableWithoutRowsOrTooShortFailsToo()
+        {
+            Expect(true, Unreadable(DatFile(0, 0x20), "stats").Contains("0 rows", StringComparison.Ordinal), "the header says no rows");
+            Expect(true, Unreadable(new byte[6], "stats").Contains("too short", StringComparison.Ordinal), "a file without a header");
+            Expect(true, Unreadable(DatFile(-4, 0x20), "stats").Contains("-4 rows", StringComparison.Ordinal), "a nonsense row count");
+        }
+
+        private static void ABundleIndexThatDoesNotLookLikeTheGamesIsOneNamedFailure()
+        {
+            Expect(null, BundleIndexCheck.Problem(80_000, 600, statsTableFound: true, unparsedPaths: 5), "today's shape");
+            Expect(true, BundleIndexCheck.Problem(0, 600, true) is { }, "no files");
+            Expect(true, BundleIndexCheck.Problem(80_000, 0, true) is { }, "no bundles");
+            Expect(true, BundleIndexCheck.Problem(80_000, 600, statsTableFound: false)!.Contains("stats.datc64", StringComparison.Ordinal), "the table every step needs is not listed");
+            Expect(true, BundleIndexCheck.Problem(80_000, 600, true, unparsedPaths: 70_000) is { }, "most paths did not parse: a format change");
+            Expect("bundle index", BundleIndexCheck.Name, "the name game-data-failed.txt lists");
+        }
+
+        private const string Install = "index=1:2\nexe=3:4\nfmod=2.03.06\n";
+
+        private static void AFailedOptionalStepIsRetriedOnLaterStartsUpToAnLimit()
+        {
+            var stamp = Poe2Access.GameDataStamp.Parse(null).With(Install, "places", 1);
+            stamp = stamp.WithFailure(Install, "hit times", 4);
+            Expect(false, stamp.IsCurrent(Install, "hit times", 4), "one failed start: not stamped, retried");
+            Expect(1, stamp.Attempts("hit times", 4), "counted");
+            stamp = Poe2Access.GameDataStamp.Parse(stamp.ToString()).WithFailure(Install, "hit times", 4);
+            Expect(false, stamp.IsCurrent(Install, "hit times", 4), "two failed starts (read back from the file): still retried");
+            Expect(2, stamp.Attempts("hit times", 4), "counted across starts");
+            stamp = Poe2Access.GameDataStamp.Parse(stamp.ToString()).WithFailure(Install, "hit times", 4);
+            Expect(true, stamp.IsCurrent(Install, "hit times", 4), "the third failed start gives it up for this build");
+            Expect("hit times", string.Join(",", stamp.GivenUp()), "and it is listed as failed");
+            Expect(true, Poe2Access.GameDataStamp.Parse(stamp.ToString()).GivenUp().Contains("hit times"), "also after a restart");
+            Expect(true, stamp.IsCurrent(Install, "places", 1), "the other steps are untouched");
+        }
+
+        private static void AStepThatWorksLaterClearsItsFailuresAndANewBuildStartsOver()
+        {
+            var failed = Poe2Access.GameDataStamp.Parse(null).WithFailure(Install, "hazards", 3).WithFailure(Install, "hazards", 3);
+            var worked = failed.With(Install, "hazards", 3);
+            Expect(0, worked.Attempts("hazards", 3), "success forgets the failed starts");
+            Expect(0, worked.GivenUp().Count(), "and nothing is listed");
+            var given = failed.WithFailure(Install, "hazards", 3);
+            Expect(true, given.IsCurrent(Install, "hazards", 3), "given up on the third start");
+            Expect(1, given.WithFailure("index=9:9\n", "hazards", 3).Attempts("hazards", 3), "a new build counts from the first failed start");
+            Expect(0, given.WithFailure("index=9:9\n", "hazards", 3).GivenUp().Count(), "and has given nothing up");
+            Expect(0, given.WithFailure(Install, "hazards", 4).Attempts("hazards", 3), "a raised step version counts on its own");
+        }
+
+        private static void AnOldStampWithoutRetryLinesStillReads()
+        {
+            var old = Poe2Access.GameDataStamp.Parse(Install + "step places=1\nstep sounds=7\n");
+            Expect(true, old.IsCurrent(Install, "places", 1) && old.IsCurrent(Install, "sounds", 7), "steps read as before");
+            Expect(0, old.GivenUp().Count(), "nothing given up");
+            Expect(old.ToString(), Poe2Access.GameDataStamp.Parse(old.ToString()).ToString(), "written back the same");
+        }
+
+        private static string Lines(int count) => "# header\n" + string.Concat(Enumerable.Range(0, count).Select(index => $"entry{index}\n"));
+
+        private static string Languages(params (string Code, int Entries)[] sections) =>
+            "{" + string.Join(",", sections.Select(section => $"\"{section.Code}\":{{" + string.Join(",", Enumerable.Range(0, section.Entries).Select(index => $"\"k{index}\":\"v\"")) + "}")) + "}";
+
+        private static void ACatalogBelowAQuarterOfTodaysEntriesIsRefusedEvenOnAFirstRun()
+        {
+            Expect(241, Poe2Access.GameDataCounts.Minimum("action-types.txt"), "a quarter of today's 964");
+            Expect(0, Poe2Access.GameDataCounts.Minimum("something-new.txt"), "a catalog with no recorded count has no minimum");
+            Expect(true, Poe2Access.GameDataCounts.Problem("action-types.txt", null, Lines(40)) is { }, "a first run that read few rows");
+            Expect(null, Poe2Access.GameDataCounts.Problem("action-types.txt", null, Lines(960)), "today's size");
+            Expect(null, Poe2Access.GameDataCounts.Problem("action-types.txt", null, Lines(300)), "a patch that removed a share");
+            Expect(null, Poe2Access.GameDataCounts.Problem("something-new.txt", null, Lines(1)), "no minimum, no refusal");
+        }
+
+        private static void CountsReadLinesAndValues()
+        {
+            Expect(3, Poe2Access.GameDataCounts.Count("x.txt", "# comment\n\nA\nB\r\nC"), "data lines of a text file");
+            Expect(4, Poe2Access.GameDataCounts.Count("x.json", "{\"a\":{\"b\":1,\"c\":[1,2]},\"d\":\"x\"}"), "values of a JSON file, however deep");
+            Expect(100, Poe2Access.GameDataCounts.Count("experience.json", "[" + string.Join(",", Enumerable.Range(0, 100)) + "]"), "an array");
+            Expect(0, Poe2Access.GameDataCounts.Count("x.json", "not json"), "unreadable JSON holds nothing");
+        }
+
+        private static void APartialLossAgainstThePreviousFileIsRefused()
+        {
+            Expect(true, Poe2Access.GameDataCounts.Problem("hit-times.txt", Lines(9000), Lines(4000)) is { }, "under half of the previous file's lines");
+            Expect(null, Poe2Access.GameDataCounts.Problem("hit-times.txt", Lines(9000), Lines(9500)), "a patch that added lines");
+            var before = Languages(("en", 1000), ("es", 1000), ("fr", 1000));
+            Expect(true, Poe2Access.GameDataCounts.Problem("area-names.json", before, Languages(("en", 1000), ("es", 1000)))!.Contains("'fr'", StringComparison.Ordinal), "a language gone, named");
+            Expect(true, Poe2Access.GameDataCounts.Problem("area-names.json", before, Languages(("en", 1000), ("es", 1000), ("fr", 100)))!.Contains("'fr'", StringComparison.Ordinal), "a language that fell under half");
+            Expect(null, Poe2Access.GameDataCounts.Problem("area-names.json", before, Languages(("en", 1000), ("es", 980), ("fr", 900), ("de", 1000))), "small losses and a new language pass");
+        }
+
+        private static SkillGraphFile OtherVersion(byte[] bytes)
+        {
+            bytes[0] = SkillGraphFile.KnownVersion + 1;
+            return SkillGraphFile.Parse(bytes) ?? throw new Exception("a file of another version with today's layout is read");
+        }
+
+        private static void AGraphOfAnotherVersionMustHoldTogetherStrictly()
+        {
+            var nodes = new[] { (10, new[] { 20 }), (20, Array.Empty<int>()) };
+            Expect(true, OtherVersion(Graph((0f, 0f, nodes))).IsConsistent, "links, positions, orbits and roots all hold");
+            Expect(true, OtherVersion(Graph(1, 5, null, (0f, 0f, nodes))).IsConsistent, "the last slot of an orbit of six");
+            Expect(false, OtherVersion(Graph(1, 6, null, (0f, 0f, nodes))).IsConsistent, "a slot past the orbit's size");
+            Expect(false, OtherVersion(Graph(2, 0, null, (0f, 0f, nodes))).IsConsistent, "an orbit the header does not list");
+            Expect(false, OtherVersion(Graph((float.NaN, 0f, nodes))).IsConsistent, "a group position that is not a number");
+            Expect(false, OtherVersion(Graph((0f, float.PositiveInfinity, nodes))).IsConsistent, "an infinite group position");
+            Expect(false, OtherVersion(Graph(0, 0, 99, (0f, 0f, nodes))).IsConsistent, "a root that is no node");
+            Expect(false, OtherVersion(Graph((0f, 0f, new[] { (10, new[] { 99 }) }))).IsConsistent, "a link to no node");
+        }
+
+        private static void AGraphWhoseCountsDoNotConsumeTheFileIsNotRead()
+        {
+            var bytes = Graph((0f, 0f, new[] { (10, new[] { 20 }), (20, Array.Empty<int>()) }));
+            Expect(true, SkillGraphFile.Parse(bytes) is { VersionKnown: true, IsConsistent: true }, "today's layout reads");
+            Expect(true, SkillGraphFile.Parse(bytes[..^1]) == null, "a byte missing: a count promises more than the file holds");
+            Expect(true, SkillGraphFile.Parse(bytes.Concat(new byte[] { 0, 0, 0, 0 }).ToArray()) == null, "bytes left over");
+            bytes[3 + 2] = 200; // the root count's low byte: more roots than the file has bytes for
+            Expect(true, SkillGraphFile.Parse(bytes) == null, "a root count the file cannot hold");
+        }
+
+        private static void ASkippedKnownRowCheckIsSaid()
+        {
+            var table = Areas(false);
+            var search = new DatColumnSearch();
+            Expect(0x8, search.Text(table, "T.Note", 0x8, known: (-1, _ => false)), "the check cannot run, so the shape alone decides");
+            Expect(1, search.Unverified.Count, "and the log says so");
+            Expect(true, search.Report("test"), "it is not a failure");
+        }
+    }
+}
