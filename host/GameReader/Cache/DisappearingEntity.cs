@@ -104,13 +104,6 @@ namespace GameReader.Cache
             this.cache.Clear();
         }
 
-        /// <summary>
-        ///     Checks if the entity exists in this cache or not.
-        /// </summary>
-        /// <param name="entity">entity key to check.</param>
-        /// <returns>true in case entity exists otherwise false.</returns>
-        public bool Contains(EntityNodeKey entity) => this.cache.ContainsKey(entity);
-
         private void UpdateActivation(IReadOnlyList<int> environments)
         {
             // F-042: compute the new state into a local first, then publish once.

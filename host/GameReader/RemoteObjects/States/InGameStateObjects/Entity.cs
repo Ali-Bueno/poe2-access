@@ -47,8 +47,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         private readonly ConcurrentDictionary<string, IntPtr> componentAddresses;
         private readonly ConcurrentDictionary<string, ComponentBase> componentCache;
 
-        private int customGroup;
-        private EntitySubtypes oldSubtypeWithoutPOI;
         private int dormantCheckSkip;
         private int unresolvedRetryCount;
         private long componentsReadAt;
@@ -79,24 +77,13 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             this.IsValid = false;
             this.EntityType = EntityTypes.Unidentified;
             this.EntitySubtype = EntitySubtypes.Unidentified;
-            this.oldSubtypeWithoutPOI = EntitySubtypes.None;
             this.EntityState = EntityStates.None;
-            this.customGroup = 0;
         }
 
         /// <summary>
         ///     Gets the Path (e.g. Metadata/Character/int/int) assocaited to the entity.
         /// </summary>
         public string Path { get; private set; }
-
-        /// <summary>
-        ///     Gets the <see cref="RemoteEnums.MonsterCategory" /> flags for this entity's monster
-        ///     variety (Beast, Humanoid, Undead, …), resolved from its <see cref="Path" /> via the
-        ///     shipped data table. A monster can belong to several categories (a werewolf is
-        ///     <c>Humanoid | Beast</c>); non-monsters / unknown paths return
-        ///     <see cref="RemoteEnums.MonsterCategory.None" />. Test with <c>HasFlag</c>.
-        /// </summary>
-        public MonsterCategory MonsterCategory => MonsterCategories.Get(this.Path);
 
         /// <summary>
         ///     Gets the Id associated to the entity. This is unique per map/Area.
@@ -224,18 +211,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         }
 
         /// <summary>
-        ///     Validates if the monster is/was of a specific subtype.
-        /// </summary>
-        /// <param name="subType">subType the entity is/was in.</param>
-        /// <returns>true if it is/was that subtype; otherwise false.</returns>
-        public bool IsOrWasMonsterSubType(EntitySubtypes subType)
-        {
-            var toCheck = this.EntitySubtype == EntitySubtypes.POIMonster ?
-                this.oldSubtypeWithoutPOI : this.EntitySubtype;
-            return toCheck == subType;
-        }
-
-        /// <summary>
         ///     Gets the entity's component name -> component memory address pairs. Used by the
         ///     OffsetHelper to bind component offset structs to live addresses for verification.
         /// </summary>
@@ -331,9 +306,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             this.IsValid = false;
             this.EntityType = EntityTypes.Unidentified;
             this.EntitySubtype = EntitySubtypes.Unidentified;
-            this.oldSubtypeWithoutPOI = EntitySubtypes.None;
             this.EntityState = EntityStates.None;
-            this.customGroup = 0;
             this.consecutiveInvalidFrames = 0;
         }
 
@@ -449,24 +422,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             }
 
             this.CalculateEntityState();
-        }
-
-        /// <summary>
-        ///     Loads the component class for the entity.
-        /// </summary>
-        /// <param name="componentType">component type to load.</param>
-        private void LoadComponent(Type componentType)
-        {
-            if (this.componentAddresses.TryGetValue(componentType.Name, out var compAddr))
-            {
-                if (compAddr != IntPtr.Zero)
-                {
-                    if (Activator.CreateInstance(componentType, compAddr) is ComponentBase component)
-                    {
-                        this.componentCache[componentType.Name] = component;
-                    }
-                }
-            }
         }
 
         private bool ShouldForceMonsterRefresh()
@@ -598,11 +553,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             {
                 this.EntityType = EntityTypes.NPC;
             }
-            else if (Core.GHSettings.ProcessAllRenderableEntities &&
-                     this.TryGetComponent<Positioned>(out var _))
-            {
-                this.EntityType = EntityTypes.Renderable;
-            }
             else
             {
                 return false;
@@ -690,52 +640,16 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
 
                 case EntityTypes.Monster:
                     this.EntitySubtype = EntitySubtypes.None;
-                    this.customGroup = 0;
-                    this.oldSubtypeWithoutPOI = EntitySubtypes.None;
-
                     this.TryGetComponent<ObjectMagicProperties>(out var omp, false);
-                    this.TryGetComponent<Stats>(out var statcomp, false);
-
                     if (omp != null && omp.ModNames.Contains("PinnacleAtlasBoss"))
                     {
                         this.EntitySubtype = EntitySubtypes.PinnacleBoss;
                     }
 
-                    if (omp != null)
-                    {
-                        for (var i = 0; i < Core.GHSettings.PoiMonstersCategories2.Count; i++)
-                        {
-                            var (filtertype, filter, rarity, stat, group) = Core.GHSettings.PoiMonstersCategories2[i];
-                            var matched = filtertype switch
-                            {
-                                EntityFilterType.PATH => this.Path.StartsWith(filter),
-                                EntityFilterType.PATHANDRARITY => omp.Rarity == rarity && this.Path.StartsWith(filter),
-                                EntityFilterType.MOD => omp.ModNames.Contains(filter),
-                                EntityFilterType.MODANDRARITY => omp.Rarity == rarity && omp.ModNames.Contains(filter),
-                                EntityFilterType.PATHANDSTAT =>
-                                    this.Path.StartsWith(filter) &&
-                                    ((omp.ModStats != null && omp.ModStats.ContainsKey(stat)) ||
-                                     (statcomp != null &&
-                                      statcomp.StatsChangedByItems != null &&
-                                      statcomp.StatsChangedByItems.ContainsKey(stat))),
-                                _ => LogUnhandledFilterType(filtertype),
-                            };
-
-                            if (matched)
-                            {
-                                this.oldSubtypeWithoutPOI = this.EntitySubtype;
-                                this.EntitySubtype = EntitySubtypes.POIMonster;
-                                this.customGroup = group;
-                            }
-                        }
-                    }
-
                     break;
 
                 case EntityTypes.NPC:
-                    this.EntitySubtype = Core.GHSettings.SpecialNPCPaths.Any(this.Path.StartsWith)
-                        ? EntitySubtypes.SpecialNPC
-                        : EntitySubtypes.None;
+                    this.EntitySubtype = EntitySubtypes.None;
                     break;
 
                 case EntityTypes.OtherImportantObjects:
@@ -798,7 +712,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 {
                     this.EntityState = EntityStates.MonsterFriendly;
                 }
-                else if (this.IsOrWasMonsterSubType(EntitySubtypes.PinnacleBoss) &&
+                else if (this.EntitySubtype == EntitySubtypes.PinnacleBoss &&
                          this.TryGetComponent<Buffs>(out var buffsComp) &&
                          buffsComp.StatusEffects.ContainsKey("hidden_monster"))
                 {
@@ -850,25 +764,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             return false;
         }
 
-        private bool IsInSpecialMiscObjPaths()
-        {
-            for (var i = 0; i < Core.GHSettings.SpecialMiscObjPaths.Count; i++)
-            {
-                var (moPath, moGroup) = Core.GHSettings.SpecialMiscObjPaths[i];
-                if (this.Path.StartsWith(moPath))
-                {
-                    this.customGroup = moGroup;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool LogUnhandledFilterType(EntityFilterType filtertype)
-        {
-            Console.WriteLine($"[Entity.TryCalculateEntitySubType] EntityFilterType {filtertype} added but not handled - skipping match (audit F-133).");
-            return false;
-        }
+        private bool IsInSpecialMiscObjPaths() => Core.GHSettings.SpecialMiscObjPaths.Any(this.Path.StartsWith);
     }
 }

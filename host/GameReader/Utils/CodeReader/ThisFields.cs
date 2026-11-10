@@ -15,7 +15,6 @@ namespace GameReader.Utils.CodeReader
     /// </summary>
     internal sealed class ThisFields
     {
-        private const int Instructions = 100;
         private const int SubObjectGetter = 2;
 
         private readonly CodeAnchors anchors;

@@ -102,17 +102,5 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         {
             this.SelectedInv.Address = IntPtr.Zero;
         }
-
-        private IEnumerable<Wait> OnTimeTick()
-        {
-            while (true)
-            {
-                yield return new Wait(0.2d);
-                if (this.Address != IntPtr.Zero)
-                {
-                    this.UpdateData(false);
-                }
-            }
-        }
     }
 }
