@@ -60,10 +60,19 @@ with the mod's own element fields (children +0x10, flags +0x168, name +0x98, tex
   puntos, tienes 300 puntos, botón"; pressed, "Confirmar, Confirma tu compra de 150 puntos, Mascota Perro fantasma,
   tienes 300 puntos, botón". The page's title is the context of its controls and its text and flags are said on entering
   it (`ShopItemPageOf`).
-- Open: with the cursor on the page's own card the game marks nothing the mod finds, and the list's card under the page
-  is read instead (the same item on a single page; a bundle's contents would be wrong). On entering a category every
-  card's name is read once before the highlight is found, without prices ("x3" as "Zoom x3"). A bundle's and a
-  variant's page, a discount and the too-few-points line were never shown.
+- Fixed 2026-11-10 (heard live, 150 points): a category opens on its first card alone ("Mascota Perro fantasma, 150
+  puntos, ¡NUEVO!, Ya lo tienes, botón, 1 de 23") — texts inside any card but the chosen one are never the page's news
+  (`UiSemantics.InAnotherShopCard`, applied to every change while the shop shows); the item page says its title first
+  ("Mascota Esfinge gigante momificada. Este gato colosal… ¡NUEVO! Comprar Mascota Esfinge gigante momificada, 150
+  puntos, tienes 150 puntos, botón"). The shop's pages have no panel title: judged there, the title search adopted a
+  child's name ("background", "highlight") as the context and moved the title offset for the session, so `PanelTitle`
+  answers nothing under `EshopMainPage`.
+- A single item's page holds three controls, top to bottom: "más información", the buy button, and "equipar" on an owned
+  item; the D-pad reaches nothing else, so the page's own card was not reached with the pad. While a page is open the
+  chosen card is looked for under its frame only (`ShopHighlightRoot`: `subpage_area` > the tab's subpage >
+  `EShopDetailPage` > `bottom_page` > `item_info_frame`), so the list's card under it is no longer read; the page's own
+  card (`single_item_entry`) reads as a list card would. Not heard: no way was found to put the cursor on it.
+- Open: a bundle's and a variant's page, a discount and the too-few-points line were never shown.
 
 ## The guild tab (2026-11-10)
 
@@ -73,5 +82,11 @@ hermandad", which holds the game's focus and its `highlight`. Nothing else can b
 the mod, having read the page ("Hermandad. Crear hermandad, botón. No formas parte de una hermandad"), stayed silent: the
 owner took it for a page that was not read. A D-pad press that moves nothing now says the control again (`BlockedMove`,
 every menu). The bar adds the guild's points under the account's, `topbar_right_guild` > `gold_icon_guild` >
-`player_guild_points_label` "0" (another name than the account's label, so `ShopBalanceWatch` does not take it). Hints:
-"Seleccionar [A]", "Cerrar [B]". What A on the button opens was not entered.
+`player_guild_points_label` "0" (another name than the account's label). Hints: "Seleccionar [A]", "Cerrar [B]",
+"Filtrar/buscar [L3]" (screenshot). What A on the button opens was not entered.
+
+Since 2026-11-10 (heard live): "Hermandad. Crear hermandad, botón. No formas parte de una hermandad", then "Puntos de la
+hermandad: 0" (a second `ShopBalanceWatch`, which waits 600 ms so the tab's line does not cut it), then the whole hint bar
+("Seleccionar, A. Cerrar, B. Filtrar/buscar, clic del stick izquierdo"): each tab of the shop says its actions on
+entering, though the bar showed the same before (`ScreenNarrator.SayShopPageActions`). A D-pad press there says "Crear
+hermandad, botón" again, once a press, also when held.

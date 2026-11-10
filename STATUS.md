@@ -425,7 +425,7 @@
 - Memory layout constants: `GameLayout` (each with provenance). Glyph tables: `ControllerGlyphs`.
 - Research: `UiTreeDumper`/`UiTreeReader`, `ResearchSession`, `FocusResearchLog`, `DevCommandFile`.
 - Controller: `GamepadReader` (pad state M+0x768) → `L3Gestures` → `ModCommands` (menu lines / gameplay); a D-pad press that
-  moves nothing says the control again: pure `BlockedMove`, `Poe2AccessibilityCore.WatchBlockedMove` (not heard yet).
+  moves nothing says the control again: pure `BlockedMove`, `Poe2AccessibilityCore.WatchBlockedMove` (heard live 2026-11-10: the guild tab, a dialogue list's end, an item page).
 - Local co-op: `Seats` (followed, partner, asking player; `InputSeat` picks whose pad and cursor, `PlayerStride`), `LocalPlayers`,
   `LocalInventories` (player 2's server inventories), `PlayerAlerts` + `SeatOutput` (named per-player news), `CoopDowns`.
 - Scanner: `EntityCatalog` (entries, landmarks, `Describe`; `.Classify` categories and names, `.Terrain` live grid and barriers) → `RoutePlanner` (A*, corners,
@@ -440,7 +440,7 @@
   a search's lit items `SearchHighlightWatch` (+ pure `SearchHighlightNews`, `InventoryReader.HighlightOf`/`ItemsOf`); an unmet requirement pure `UnmetRequirements`.
   Microtransaction shop: `UiSemantics.ShopPage`, `.Cards` `ShopEntryOf` (cards, position), `CardText.ShopImageTitle`
   (featured banners), `FocusTracker.InGameHighlightRoot` (the shop's highlight markers; the game focuses nothing there);
-  item page `UiSemantics.ShopPage.cs` (`ShopItemPageOf` title and text, `ShopBuyButtonOf`) + pure `ShopPurchase`, points `ShopBalanceWatch`.
+  item page `UiSemantics.ShopPage.cs` (`ShopItemPageOf` title and text, `ShopBuyButtonOf`) + pure `ShopPurchase`, points `ShopBalanceWatch` (the account's and the guild's), the chosen card's root `ShopHighlightRoot`.
 - Gameplay guides: `Beacon` (+ pure `BeaconMath`), `QuestMatcher`, `BossWatch` (boss life + dodge whoosh, pure
   `DodgeThreats`), `TargetNarrator` (aim names + crosshair), `StatusWatch` (+ pure `StatusAilments`), `EnemyNarrator`, `DeathWatch`,
   `ObjectSounds` + `GameSounds` + `ItemDropSounds` (game WAVs), `CheckpointPlaces` (+ pure `MapPlaces`),
@@ -483,32 +483,51 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   [robustness audit](docs/research/robustness-audit-2026-11-10.md#fourth-pass-2026-11-10-the-whole-code-in-four-parts).
   Open, most important: a boss with forms said defeated at its first form, exit tins flapping, no spoken line when a
   plugin fails to load, `ui-catalog` and `gems` reporting done while losing files, free-cursor controls with no tooltip.
-- Build Planner gear (2026-11-10; heard live on yarkey in the Act 2 town with both catalogs loaded): the ten worn slots
-  were focused once each and the lines of both weapons, both rings, body, gloves, boots and helmet were true against the
-  build file and the tooltips; the off-hand is silent (the file has no `Offhand1` piece). Fixed and heard: a belt's "+9% a
-  todas las resistencias elementales" was called missing cold and lightning resistance (now "…, la build pide 16" for
-  each; "to all Attributes" counts toward one attribute the same way, unit test only); what a worn piece lacks is now
-  said right after its name ("Casco, Halo de cólera, raro, Build: 2 de 3 modificadores. Falta +16% a la resistencia al
-  rayo. Gran yelmo de soldado…"). Open: (1) the first focus of the belt in a session gave a tooltip without its
-  modifiers ("…Nivel de objeto 16. Recuperación de vida… Tiene 1 espacio para vial.") and the build lines were said from
-  it, all three as missing; the next focus was whole; (2) two wanted lines answered by one line repeat it word for word;
-  (3) the inventory's summary ("Build: 3 de 6 piezas con su base. Más lejos de la build: Amuleto") comes before the
-  focused item's name; (4) not heard: an item that could go in a slot (bag, stash, merchant), the summary after slots
-  were read, flasks. A worn piece's modifiers are known only after its slot was focused in the session; charms, quivers
-  and foci are not compared; a unique is judged only when its name equals the author's. Live checks:
+- Build Planner gear (2026-11-10, heard live on yarkey): worn slots say what they lack right after the name ("Anillo izquierdo,
+  Estallido repentino, único, Build: 1 de 2 modificadores. Falta Agrega de 6 a 10 de daño de fuego a los ataques"), an item
+  that could go in a slot says each slot before its own lines ("Canto de condenación, raro, columna 3, fila 2, Build, Mano
+  principal: 0 de 3 modificadores, otra base. Build, Segundo set de armas, …"), a flask too. Fixed: a tooltip read while the
+  game was still filling it (a worn piece without its modifiers, every wanted one "missing") — an item's first tooltip now
+  waits until it reads the same 100 ms apart (`TooltipSettle`, `AccessibleUiNode.TooltipFilling`; seen live as 5 lines, then
+  4; the belt itself read whole on every try, so the false lines were not reproduced). Open: (1) two wanted lines answered by
+  one line repeat it word for word; (2) the inventory's summary comes before the focused item's name; (3) a first focus is
+  100 ms later, which makes a panel's opening line come before its focus more often (see the merchants below). A worn piece's
+  modifiers are known only after its slot was focused in the session; charms, quivers and foci are not compared; a unique is
+  judged only when its name equals the author's. Live checks:
   [ui layers](docs/research/ui-layers.md#build-planner-gear-055f-2026-11-10).
-- Found buying gear for yarkey in both towns (2026-11-10, live; fixed there: an orb put back on its stack said "Usado", a
-  merchant with several tabs opened without its tab). Open: (1) a grid is only heard cell by cell — nothing reads a
-  merchant's or a stash tab's contents at once, and the search names six matches — so choosing gear means visiting every
-  cell of every tab; (2) a flask or charm put on the belt with X in the inventory says nothing (`Announcements.SlotName`
-  has no flask slot) and the well filling a new flask is silent; (3) the cell said with an item can be the one just left
-  ("Frasco de vida menor, columna 3, fila 11", then "columna 4, fila 10" 160 ms later), and an item of several cells is
-  said at the cursor's cell, so the same item has several positions; (4) moves name a rare or magic item by its base
-  ("Equipado: Escudo torre reforzado, raro" for Égida de glifo); (5) the unstack box reads "5, campo de texto, A para
-  escribir" though A unstacks; (6) on the Teleport map the act tabs are read under "Misiones." and are reached with D-pad
-  up from the pins, which `docs/controls.md` does not say; (7) a stash tab switch says its tab twice ("pestaña 2", then
-  "Alijo. pestaña 2. Vacío…"); (8) a merchant with one tab (Zarka, Una) opens as "Inventario. …" with no word of the
-  stock. Not testable in town: Parry and flask drinks (the game refuses skills there and a full flask is not drunk).
+- Build Planner supports (2026-11-10, heard live): a build skill says its supports by group, the count first ("Corte giratorio,
+  …, en la build. Asistencias de la build: 0 de 3 engarzadas. De otro nivel: tienes Ataques rápidos I, la build pide Ataques
+  rápidos II. Faltan: Furia II; Empuje"); groups in order: Engarzadas, En tu inventario, De otro nivel, En otra habilidad,
+  Faltan, Fuera de la build (pure `BuildGems.Grouped`, `Announcements.BuildSupportGroups`). yarkey has no build support
+  socketed at the build's tier, so "Engarzadas", "En otra habilidad" and "Fuera de la build" have unit tests only, and the
+  panel's "0 de 20 asistencias" agrees with the three skills (0 de 2, 0 de 3, 0 de 3). The panel's count now reads every
+  row's gems on entering, not only the focused row's (not provable live: nothing is socketed).
+- Inventory and merchants (found buying gear for yarkey, 2026-11-10). Fixed and heard live: an item is said at its own
+  first cell, read from the item ("Canto de condenación, raro, columna 3, fila 2" from any side); moves keep the name the
+  tooltip gave ("Desequipado: Frasco de vida grandioso compacto del practicante, mágico"); a flask or charm put on the belt
+  is said ("Equipado: …, Frascos y viales"); the unstack box ("Desapilar, 1, quedan 5, control deslizante", then "2, quedan
+  4"); the Teleport map's act tabs ("Teletransporte. Acto 2, botón, 2 de 2", [controls](docs/controls.md)); a stash tab
+  switch with the cursor in the stash ("Alijo. pestaña 2. Vacío, columna 12, fila 10", once). Unit test only: an empty flask
+  filled at the well before a drink showed its cost ("… recargado, 75 cargas"; the well was seen silent live before the
+  fix); a flask not empty and never drunk is still silent, its uses cannot be counted. Taking a flask off the belt empties
+  it (75 → 0 charges, refilled at the well). Open: (1) a merchant with one tab (Zarka: one tab labelled "-1-", no title)
+  opens as "4.776 oro. Oro", then "Inventario. …": `UiSemantics.SelectedTab` wants two sibling tabs to call a bar a tab
+  bar, and when the cursor's item is read 100–300 ms late (empty on arrival, first tooltip) the layer is narrated as a panel
+  without focus, gold first, also on merchants with tabs — the opening should wait for a focus the tracker has pending;
+  (2) A beside another player opens that player's menu ("Invitar al grupo"), with no word that it is a player; (3) Finn's
+  "Comprar o vender objetos" is the gamble and is not said to be. Not testable in town: Parry and flask drinks.
+- Hearing a grid at once (proposal, not built: it needs a binding and a choice of words). Facts: every grid gives its items
+  with their cells without the cursor (`InventoryReader.ItemsOf`), and each item its base, rarity and stack
+  (`InventoryReader.Describe`), so name by base, rarity, cell and the Build fit by base and slot can be said for a whole tab;
+  a rare's own name and every modifier line come only from its tooltip. The host reads an item's modifiers from memory
+  (`GameReader/RemoteObjects/Components/Mods.cs`: implicit, explicit and enchant lists of Mods.dat ids with their values;
+  offsets in `GameOffsets/.../ModsAndObjectMagicProperties.cs`, never validated on items by this mod), but
+  `catalog/mod-texts.json` is keyed by wording, not by mod or stat id, so those ids cannot be said or matched to the build
+  without a new extraction (Mods.dat id → stat ids → text) and a live validation of the fields. What it could say: "12
+  objetos. Guantes sombríos, raro, columna 3, fila 1, Build, Guantes: otra base. …", the build's bases first. Bindings: in
+  menus `ModCommands.InMenu` uses L3 tap, double tap and hold; a long hold is free there, but the game takes L3 in the stash
+  and at merchants (edit search), so it needs a live check in exactly those panels; an entry of the mod's own settings menu
+  ("Leer la pestaña") would cost no binding.
 - Stale values, player, combat and host (2026-11-10, code and unit tests only): flask uses from the drink's seen cost, boss
   life read when asked, a shared target name said alone, per-area state reset per instance, untyped entities' components
   rested, buff stacks, learnt blows as clip time, no maximum from tables, buff ids kept whole. What each needs live is listed in
