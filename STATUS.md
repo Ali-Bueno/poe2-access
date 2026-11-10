@@ -473,6 +473,14 @@ Next: (1) **Bosses by hand** — the Bloated Miller with a new low character (a 
 Earlier chunks, newest first: [status history](docs/status-history.md).
 
 ## Known issues / open questions
+- Fourth audit pass (2026-11-10, code and unit tests only; none of it ran in a fight): a boss's defeat or a partner
+  down no longer dropped as a late reading; the navigable flag bit no longer moved by hovered tree nodes; "Vendido" and
+  other move lines now kept; a stalled update download ends after 60 s and a failed update keeps a launcher; a step
+  given up on no longer overwrites the shipped catalog; one failing part no longer silences the frame; the chat no
+  longer replayed whole; trades and recurring buffs said. Details and live checks:
+  [robustness audit](docs/research/robustness-audit-2026-11-10.md#fourth-pass-2026-11-10-the-whole-code-in-four-parts).
+  Open, most important: a boss with forms said defeated at its first form, exit tins flapping, no spoken line when a
+  plugin fails to load, `ui-catalog` and `gems` reporting done while losing files, free-cursor controls with no tooltip.
 - Build Planner gear (2026-11-10, code and unit tests only): a worn piece's modifiers are known only after its slot was
   focused in the session (tooltip lines), so the summary counts them on the pieces read; charms, quivers and foci are not
   compared; a unique is judged only when its name equals the author's. Live checks:
