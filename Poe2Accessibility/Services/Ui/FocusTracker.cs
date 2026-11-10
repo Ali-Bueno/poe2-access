@@ -299,10 +299,11 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (fresh.Value == this.Current.Value && fresh.IsExpanded == this.Current.IsExpanded && ScreenDiffer.SameBesideNumbers(fresh.Text, this.Current.Text))
+            if (fresh.Value == this.Current.Value && fresh.IsExpanded == this.Current.IsExpanded && FocusNews.IsTick(fresh.Role, this.Current.Text, fresh.Text))
             {
                 // A clock in the focused row ticking (the Instance Manager's "11 minutes 45 seconds" left, 2026-11-08) is no
-                // news, as on the screen (ScreenDiffer): the row was said once, with the time it showed then.
+                // news, as on the screen (ScreenDiffer): the row was said once, with the time it showed then. A cell's
+                // count or a gem's level is the item's own number and is news (FocusNews).
                 this.Current = fresh;
                 return;
             }

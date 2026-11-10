@@ -30,6 +30,7 @@ namespace Poe2Accessibility.Services
 
             this.valueOwner = node.Address;
             this.lastValue = node.Value;
+            this.lastText = node.Text;
             this.lastExpanded = node.IsExpanded;
             this.tooltipSaid = this.ReadTooltips || node.IsHovered ? node.Tooltip : Array.Empty<string>();
             var focused = this.Focused(node);
@@ -286,10 +287,13 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var wasExpanded = node.Address == this.valueOwner && this.lastExpanded;
+            var sameOwner = node.Address == this.valueOwner;
+            var wasExpanded = sameOwner && this.lastExpanded;
+            var textBefore = this.lastText;
             this.lastExpanded = node.IsExpanded;
             this.valueOwner = node.Address;
             this.lastValue = node.Value;
+            this.lastText = node.Text;
             if (this.deferredFocus is { } waiting && waiting.Node.Address == node.Address)
             {
                 // The focus moved before its new layer settled (a vendor opening: the cursor jumps from an empty cell
@@ -319,8 +323,17 @@ namespace Poe2Accessibility.Services
 
             if (node.Role is UiRole.GridCell or UiRole.ItemSlot or UiRole.ListItem)
             {
+                var whole = this.Focused(node);
+                this.lastFocusSpeech = whole;
+                if (sameOwner && node.Value == before && FocusNews.ChangedNumbers(node.Role, textBefore, node.Text) is { } number)
+                {
+                    // The item under a resting cursor changed its own number (a stack used, a gem levelled): that part alone.
+                    this.output.Speak(number, true);
+                    return;
+                }
+
                 // The cursor moved inside the grid: a new item and cell, not a value of the same control.
-                this.SayMove(this.Focused(node));
+                this.SayMove(whole);
                 return;
             }
 

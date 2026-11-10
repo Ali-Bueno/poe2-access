@@ -250,6 +250,9 @@ namespace Poe2Accessibility.Services
         private bool inGame;
         private IntPtr valueOwner;
         private string lastValue = string.Empty;
+
+        /// <summary>The text of the focused control as last said: what a change in place is told apart from.</summary>
+        private string lastText = string.Empty;
         private bool lastExpanded;
 
         /// <summary>The panel whose notes were said with the focus last (<see cref="AccessibleUiNode.PanelNotes"/>).</summary>
