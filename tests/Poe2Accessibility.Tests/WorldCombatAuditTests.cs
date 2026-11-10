@@ -11,6 +11,7 @@ namespace Poe2Accessibility.Tests
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(ABossSharesItsNameOnlyWithWhatCanBeTargeted), ABossSharesItsNameOnlyWithWhatCanBeTargeted),
+            (nameof(ATrapStrikingFromAfarStillWarnsOnceInReach), ATrapStrikingFromAfarStillWarnsOnceInReach),
         };
 
         /// <summary>A boss's next form waits untargetable under its name: the life said is still the fighting one's.</summary>
@@ -24,6 +25,22 @@ namespace Poe2Accessibility.Tests
             var pack = new[] { ((IntPtr)0x300, "Lobo", 400f), ((IntPtr)0x400, "Lobo", 250f) };
             Equal(((IntPtr)0x400, false), TargetMatch.Pick("Lobo", pack, waiting), "a pack in play still shares its name");
             Equal((IntPtr.Zero, false), TargetMatch.Pick(Boss, Array.Empty<(IntPtr, string, float)>(), Array.Empty<(IntPtr, string, float)>()), "no one carries it");
+        }
+
+        /// <summary>A laser seen firing from across the room warned no one, and was then taken as said when the player reached it.</summary>
+        private static void ATrapStrikingFromAfarStillWarnsOnceInReach()
+        {
+            var strikes = new TrapStrikes();
+            Equal(false, strikes.Update(7, firing: true, inReach: false), "striking out of reach: nothing to dodge yet");
+            Equal(true, strikes.Update(7, firing: true, inReach: true), "still striking as the player walks up: warned");
+            Equal(false, strikes.Update(7, firing: true, inReach: true), "once per strike");
+            Equal(false, strikes.Update(7, firing: true, inReach: false), "stepping back out");
+            Equal(false, strikes.Update(7, firing: true, inReach: true), "and in again during the same strike says nothing new");
+            Equal(false, strikes.Update(7, firing: false, inReach: true), "it stopped");
+            Equal(true, strikes.Update(7, firing: true, inReach: true), "the next strike is news");
+            Equal(true, strikes.Update(8, firing: true, inReach: true), "each trap on its own");
+            strikes.Reset();
+            Equal(true, strikes.Update(7, firing: true, inReach: true), "another area's trap under the same id");
         }
     }
 }
