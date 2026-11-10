@@ -17,8 +17,6 @@ namespace GameReader.RemoteObjects.States
     /// </summary>
     public class InGameState : RemoteObjectBase
     {
-        private IntPtr uiRootAddress;
-
         /// <summary>
         ///     Initializes a new instance of the <see cref="InGameState" /> class.
         /// </summary>
@@ -55,7 +53,6 @@ namespace GameReader.RemoteObjects.States
         protected override void CleanUpData()
         {
             this.CurrentAreaInstance.Address = IntPtr.Zero;
-            this.uiRootAddress = IntPtr.Zero;
             this.GameUi.Address = IntPtr.Zero;
             this.CurrentWorldInstance.Address = IntPtr.Zero;
             this.MouseOverEntity.Address = IntPtr.Zero;
@@ -74,8 +71,6 @@ namespace GameReader.RemoteObjects.States
                 ? data.GamepadUiRootStructPtr
                 : data.UiRootStructPtr;
 
-            var uiRootStruct = reader.ReadMemory<UiRootStruct>(uiManagerPtr);
-            this.uiRootAddress = uiRootStruct.UiRootPtr;
             this.GameUi.Address = uiManagerPtr;
 
             this.MouseOverEntity.Address = this.ReadMouseOverEntityAddress(reader, data.MouseOverHostPtr);

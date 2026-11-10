@@ -75,8 +75,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         internal ImportantUiElements(IntPtr address)
             : base(address)
         {
-            this.rootCache = new(null, GameStateTypes.InGameState, GameStateTypes.EscapeState, "Root");
-            this.passiveSkillTreeCache = new(this.rootCache, GameStateTypes.InGameState, GameStateTypes.EscapeState, "PassiveSkillTree");
+            this.rootCache = new(null, GameStateTypes.InGameState, GameStateTypes.EscapeState);
+            this.passiveSkillTreeCache = new(this.rootCache, GameStateTypes.InGameState, GameStateTypes.EscapeState);
 
             this.passiveskilltreenodes = new(IntPtr.Zero, this.rootCache);
             this.sekhemasTrialMapPanel = new(IntPtr.Zero, this.rootCache);

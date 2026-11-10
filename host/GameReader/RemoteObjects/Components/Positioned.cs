@@ -21,12 +21,6 @@ namespace GameReader.RemoteObjects.Components
             : base(address) { }
 
         /// <summary>
-        ///     Gets the flags related to the entity from the positioned component.
-        ///     NOTE: This flag contains the information if the entity is friendly or not.
-        /// </summary>
-        public byte Flags { get; private set; }
-
-        /// <summary>
         ///     Gets a value indicating whether the entity is friendly or not.
         /// </summary>
         public bool IsFriendly { get; private set; }
@@ -37,7 +31,6 @@ namespace GameReader.RemoteObjects.Components
             var reader = Core.Process.Handle;
             var data = reader.ReadMemory<PositionedOffsets>(this.Address);
             this.OwnerEntityAddress = data.Header.EntityPtr;
-            this.Flags = data.Reaction;
             this.IsFriendly = EntityHelper.IsFriendly(data.Reaction);
         }
     }

@@ -18,7 +18,6 @@ namespace GameReader.Cache
 
     internal class UiElementParents
     {
-        private readonly string name;
         private readonly UiElementParents? grandparent;
         private readonly GameStateTypes ownerState1;
         private readonly GameStateTypes ownerState2;
@@ -30,10 +29,8 @@ namespace GameReader.Cache
         /// <param name="grandparent">other Ui Element cache to check</param>
         /// <param name="ownerStateA"><see cref="GameStateTypes"/> on which cache shouldn't be cleaned</param>
         /// <param name="ownerStateB"><see cref="GameStateTypes"/> on which cache shouldn't be cleaned</param>
-        /// <param name="name">human friendly name to give to this cache</param>
-        public UiElementParents(UiElementParents? grandparent, GameStateTypes ownerStateA, GameStateTypes ownerStateB, string name)
+        public UiElementParents(UiElementParents? grandparent, GameStateTypes ownerStateA, GameStateTypes ownerStateB)
         {
-            this.name = name;
             this.ownerState1 = ownerStateA;
             this.ownerState2 = ownerStateB;
             this.cache = new();

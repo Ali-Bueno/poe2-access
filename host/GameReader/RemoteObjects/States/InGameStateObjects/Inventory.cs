@@ -50,11 +50,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         public StdTuple2D<int> TotalBoxes { get; private set; }
 
         /// <summary>
-        ///     Gets a value indicating total number of requests send to the server for this inventory.
-        /// </summary>
-        public int ServerRequestCounter { get; private set; }
-
-        /// <summary>
         ///     Gets all the items in the inventory.
         /// </summary>
         public ConcurrentDictionary<IntPtr, Item> Items { get; } =
@@ -102,7 +97,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         protected override void CleanUpData()
         {
             this.TotalBoxes = default;
-            this.ServerRequestCounter = default;
             this.itemsToInventorySlotMapping = Array.Empty<IntPtr>();
             this.Items.Clear();
         }
@@ -113,7 +107,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             var reader = Core.Process.Handle;
             var invInfo = reader.ReadMemory<InventoryStruct>(this.Address);
             this.TotalBoxes = invInfo.TotalBoxes;
-            this.ServerRequestCounter = invInfo.ServerRequestCounter;
             this.itemsToInventorySlotMapping = reader.ReadStdVector<IntPtr>(invInfo.ItemList);
             if (hasAddressChanged)
             {

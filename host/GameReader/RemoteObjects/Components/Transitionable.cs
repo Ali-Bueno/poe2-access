@@ -21,18 +21,12 @@ namespace GameReader.RemoteObjects.Components
         {
         }
 
-        /// <summary>
-        ///     Gets the transitionable state that the entity is currently in.
-        /// </summary>
-        public int CurrentState { get; private set; }
-
         /// <inheritdoc/>
         protected override void UpdateData(bool hasAddressChanged)
         {
             var reader = Core.Process.Handle;
             var data = reader.ReadMemory<TransitionableOffsets>(this.Address);
             this.OwnerEntityAddress = data.Header.EntityPtr;
-            this.CurrentState = data.CurrentStateEnum;
         }
     }
 }

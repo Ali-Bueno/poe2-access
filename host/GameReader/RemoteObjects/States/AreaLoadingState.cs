@@ -29,11 +29,6 @@ namespace GameReader.RemoteObjects.States
         }
 
         /// <summary>
-        ///     Gets the game current Area Name.
-        /// </summary>
-        public string CurrentAreaName { get; private set; } = string.Empty;
-
-        /// <summary>
         ///     Gets a value indicating whether the game is in loading screen or not.
         /// </summary>
         internal bool IsLoading { get; private set; }
@@ -42,7 +37,6 @@ namespace GameReader.RemoteObjects.States
         protected override void CleanUpData()
         {
             this.lastCache = default;
-            this.CurrentAreaName = string.Empty;
         }
 
         /// <inheritdoc />
@@ -56,9 +50,6 @@ namespace GameReader.RemoteObjects.States
                 !this.IsLoading &&
                 data.TotalLoadingScreenTimeMs > this.lastCache.TotalLoadingScreenTimeMs)
             {
-                var areaDetails = reader.ReadMemory<WorldAreaDatOffsets>(data.CurrentAreaDetailsPtr);
-                var areaName = reader.ReadUnicodeString(areaDetails.NamePtr);
-                this.CurrentAreaName = areaName;
                 this.lastCache = data;
                 hasAreaChanged = true;
             }

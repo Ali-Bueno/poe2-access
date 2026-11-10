@@ -28,11 +28,6 @@ namespace GameReader.RemoteObjects.Components
         public string Path { get; private set; } = string.Empty;
 
         /// <summary>
-        ///     Gets the Id of the animated entity.
-        /// </summary>
-        public uint Id { get; private set; }
-
-        /// <summary>
         ///     Gets the loaded .ao model file path for this entity (e.g.
         ///     "Metadata/Terrain/Doodads/Leagues/Expedition/chestmarker3_02.ao"). This is what
         ///     distinguishes the visual model of otherwise-identical entities that share the same
@@ -56,7 +51,6 @@ namespace GameReader.RemoteObjects.Components
                 var entity = reader.ReadMemory<EntityOffsets>(data.AnimatedEntityPtr);
                 var details = reader.ReadMemory<EntityDetails>(entity.ItemBase.EntityDetailsPtr);
                 this.Path = reader.ReadStdWString(details.name);
-                this.Id = entity.Id;
             }
 
             this.ModelPath = this.ReadModelPath(reader, data.ModelInfoPtr);
