@@ -125,3 +125,11 @@ rule now in force, where.
   The HUD's text memory and the scanner are left out: the first is not keyed by entity, the second binds to the
   instance by itself. A respawn (same hash) resets nothing; a row that changes before the host reads the new instance
   is followed by one more reset when it does. Log: `Instance: <hash> of <area> (<id>), another than the one entered`.
+- **Entities the host cannot type (A5).** `Entity.UpdateData` marks an entity it cannot type as Useless and returned
+  at once for a Useless non-monster, so the components of barriers, doors, transitions, ground items and trial traps
+  were read only at the typing attempts: five frames, then once a second (never again before 2026-11-10, when the
+  retry was added). `TrapWatch`, `TrialDoorWatch` and the barrier watch read `StateMachine.States` and `IsBlocked` up
+  to a second old. Rule: the once-a-second retry is for the typing attempt (and the component map) only; between
+  attempts an untyped entity's components rest like a typed one's, re-read every 100 ms (`EntityRefresh.OfResting`).
+  A typed Useless entity (an opened chest) is still not read. Nothing that worked before is lost: monsters and
+  players keep their path through the method unchanged.

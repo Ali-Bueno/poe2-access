@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Tests
 {
     using System;
     using System.Collections.Generic;
+    using GameReader.RemoteObjects.States.InGameStateObjects;
     using Poe2Accessibility.Services;
     using static Check;
 
@@ -24,6 +25,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ATargetNameSharedByAPackIsNoOnesLife), ATargetNameSharedByAPackIsNoOnesLife),
             (nameof(AnEntityNameBelongsToItsAddressAndId), AnEntityNameBelongsToItsAddressAndId),
             (nameof(AnotherInstanceOfTheSameAreaIsToldOnce), AnotherInstanceOfTheSameAreaIsToldOnce),
+            (nameof(AnUntypedEntitysComponentsRestLikeATypedOnes), AnUntypedEntitysComponentsRestLikeATypedOnes),
         };
 
         /// <summary>A flask whose drinks were seen to cost <paramref name="cost"/>, left at <paramref name="charges"/>; the clock ends past the last drink.</summary>
@@ -178,6 +180,21 @@ namespace Poe2Accessibility.Tests
             Equal(true, gate.Changed("A21F934"), "what was gathered from the old instance meanwhile goes too");
             gate.AreaEntered(string.Empty);
             Equal(false, gate.Changed("B59327DE"), "an area entered with no instance read yet: the first one is its own");
+        }
+
+        private static void AnUntypedEntitysComponentsRestLikeATypedOnes()
+        {
+            const int Rest = 100;
+            Equal(EntityRefresh.Reads.Everything, EntityRefresh.OfResting(untyped: true, typingDue: true, useless: false, 0, Rest), "a new entity is read whole and typed");
+            Equal(EntityRefresh.Reads.Everything, EntityRefresh.OfResting(untyped: true, typingDue: true, useless: true, 20, Rest), "as is one whose next typing attempt is due");
+
+            // A barrier or a trap the host cannot type: its state was served up to a second old, between typing attempts.
+            Equal(EntityRefresh.Reads.Components, EntityRefresh.OfResting(untyped: true, typingDue: false, useless: true, 100, Rest), "between attempts its components are read at the resting rate");
+            Equal(EntityRefresh.Reads.Nothing, EntityRefresh.OfResting(untyped: true, typingDue: false, useless: true, 40, Rest), "not more often than a typed one's");
+
+            Equal(EntityRefresh.Reads.Components, EntityRefresh.OfResting(untyped: false, typingDue: false, useless: false, 100, Rest), "a typed one, as before");
+            Equal(EntityRefresh.Reads.Nothing, EntityRefresh.OfResting(untyped: false, typingDue: false, useless: false, 99, Rest), "resting");
+            Equal(EntityRefresh.Reads.Nothing, EntityRefresh.OfResting(untyped: false, typingDue: false, useless: true, 5000, Rest), "an opened chest is not read at all");
         }
 
         private static void AFlasksCostOutlivesAnAreaButNotACharacter()

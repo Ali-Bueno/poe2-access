@@ -235,6 +235,7 @@
     <Compile Include="..\..\Poe2Accessibility\Models\AccessibleUiNode.cs" Link="Plugin\AccessibleUiNode.cs" />
     <Compile Include="..\..\host\GameReader\RemoteEnums\GameStateTypes.cs" Link="Plugin\GameStateTypes.cs" />
     <Compile Include="..\..\host\GameReader\RemoteObjects\States\InGameStateObjects\AreaLayoutSearch.cs" Link="Host\AreaLayoutSearch.cs" />
+    <Compile Include="..\..\host\GameReader\RemoteObjects\States\InGameStateObjects\EntityRefresh.cs" Link="Host\EntityRefresh.cs" />
     <Compile Include="..\..\host\GameReader\Utils\StructRemap.cs" Link="Host\StructRemap.cs" />
     <Compile Include="..\..\host\GameReader\Utils\StdMapWalk.cs" Link="Host\StdMapWalk.cs" />
     <Compile Include="..\..\host\GameReader\Utils\NativeText.cs" Link="Host\NativeText.cs" />
