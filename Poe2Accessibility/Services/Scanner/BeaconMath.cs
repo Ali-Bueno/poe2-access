@@ -29,6 +29,15 @@ namespace Poe2Accessibility.Services
             : goal.CanVanish && goal.Category is not (ScanCategory.Enemies or ScanCategory.Npcs or ScanCategory.Players) ? GoneTarget.Reached
             : GoneTarget.LostFromView;
 
+        /// <summary>
+        ///     Whether the game still holds the area instance a target was locked in. Its hash names it: a respawn loads the
+        ///     same instance again, with the same hash and entity ids and perhaps as another object, and the guide goes on
+        ///     (it fell silent without a word had the address been asked to match too). The address decides only while a
+        ///     hash is not read.
+        /// </summary>
+        public static bool SameInstance(IntPtr lockedAddress, string lockedHash, IntPtr address, string hash) =>
+            lockedHash.Length > 0 && hash.Length > 0 ? string.Equals(lockedHash, hash, StringComparison.Ordinal) : lockedAddress == address && lockedHash == hash;
+
         /// <summary>D2R: 160 ms when close, 1200 ms when far, linear in the route left.</summary>
         public const int NearIntervalMs = 160;
         public const int FarIntervalMs = 1200;

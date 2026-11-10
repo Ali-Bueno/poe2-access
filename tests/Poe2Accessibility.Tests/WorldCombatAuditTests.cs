@@ -12,6 +12,7 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(ABossSharesItsNameOnlyWithWhatCanBeTargeted), ABossSharesItsNameOnlyWithWhatCanBeTargeted),
             (nameof(ATrapStrikingFromAfarStillWarnsOnceInReach), ATrapStrikingFromAfarStillWarnsOnceInReach),
+            (nameof(TheGuideKeepsItsLockThroughARespawn), TheGuideKeepsItsLockThroughARespawn),
         };
 
         /// <summary>A boss's next form waits untargetable under its name: the life said is still the fighting one's.</summary>
@@ -41,6 +42,18 @@ namespace Poe2Accessibility.Tests
             Equal(true, strikes.Update(8, firing: true, inReach: true), "each trap on its own");
             strikes.Reset();
             Equal(true, strikes.Update(7, firing: true, inReach: true), "another area's trap under the same id");
+        }
+
+        /// <summary>The hash names the instance; the object the game holds it in may be another after a respawn.</summary>
+        private static void TheGuideKeepsItsLockThroughARespawn()
+        {
+            Equal(true, BeaconMath.SameInstance((IntPtr)0x1000, "AAAA", (IntPtr)0x1000, "AAAA"), "nothing changed");
+            Equal(true, BeaconMath.SameInstance((IntPtr)0x1000, "AAAA", (IntPtr)0x2000, "AAAA"), "the same instance loaded again elsewhere");
+            Equal(false, BeaconMath.SameInstance((IntPtr)0x1000, "AAAA", (IntPtr)0x1000, "BBBB"), "another instance at the same address");
+            Equal(false, BeaconMath.SameInstance((IntPtr)0x1000, "AAAA", (IntPtr)0x2000, "BBBB"), "another instance");
+            Equal(false, BeaconMath.SameInstance((IntPtr)0x1000, "AAAA", IntPtr.Zero, string.Empty), "no instance held");
+            Equal(true, BeaconMath.SameInstance((IntPtr)0x1000, string.Empty, (IntPtr)0x1000, string.Empty), "locked before the hash was read: the object stands for it");
+            Equal(false, BeaconMath.SameInstance((IntPtr)0x1000, string.Empty, (IntPtr)0x1000, "AAAA"), "and a hash that comes later is not known to be its own");
         }
     }
 }

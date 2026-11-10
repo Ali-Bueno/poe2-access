@@ -175,7 +175,7 @@ namespace Poe2Accessibility.Services
             }
 
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            if ((area.Address, area.AreaHash ?? string.Empty) != this.lockedIn)
+            if (!BeaconMath.SameInstance(this.lockedIn.Address, this.lockedIn.Hash, area.Address, area.AreaHash ?? string.Empty))
             {
                 this.Clear(false); // another instance, should the area handler not have released it
                 return;
