@@ -8,7 +8,6 @@ namespace GameReader.RemoteObjects.UiElement
     using System.Diagnostics.CodeAnalysis;
     using GameReader.Cache;
     using GameOffsets.Objects.UiElement;
-    using Ui;
     using Utils;
 
     /// <summary>

@@ -6,7 +6,6 @@ namespace GameReader.RemoteObjects.Components
 {
     using System;
     using GameOffsets.Objects.Components;
-    using Utils;
 
     /// <summary>
     ///     The <see cref="Life" /> component in the entity.

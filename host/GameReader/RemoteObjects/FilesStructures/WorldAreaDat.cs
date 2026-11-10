@@ -6,7 +6,6 @@ namespace GameReader.RemoteObjects.FilesStructures
 {
     using System;
     using GameOffsets.Objects.FilesStructures;
-    using States;
 
     /// <summary>
     ///     Points to a row in WorldArea.dat file.

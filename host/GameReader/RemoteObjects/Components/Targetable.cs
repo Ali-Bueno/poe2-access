@@ -5,7 +5,6 @@
 namespace GameReader.RemoteObjects.Components
 {
     using System;
-    using System.Runtime.InteropServices;
     using GameOffsets.Objects.Components;
 
     /// <summary>

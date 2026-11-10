@@ -14,7 +14,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
     using GameReader.RemoteEnums;
     using GameReader.RemoteEnums.Entity;
     using GameOffsets.Objects.States.InGameState;
-    using Utils;
 
     /// <summary>
     ///     Points to an Entity/Object in the game.

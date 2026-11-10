@@ -1,7 +1,6 @@
 ﻿namespace GameReader.RemoteObjects.UiElement
 {
     using GameReader.Cache;
-    using GameOffsets.Natives;
     using System;
 
     /// <summary>

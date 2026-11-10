@@ -6,9 +6,7 @@ namespace GameReader
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Reflection;
-    using System.Diagnostics;
     using Coroutine;
     using CoroutineEvents;
     using GameReader.Cache;

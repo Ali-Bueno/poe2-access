@@ -6,10 +6,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
 {
     using System;
     using System.Collections.Generic;
-    using Coroutine;
     using GameOffsets.Objects.States.InGameState;
     using RemoteEnums;
-    using Utils;
 
     /// <summary>
     ///     Points to the InGameState -> ServerData object.

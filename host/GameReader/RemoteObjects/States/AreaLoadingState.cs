@@ -8,7 +8,6 @@ namespace GameReader.RemoteObjects.States
     using System.Collections.Generic;
     using Coroutine;
     using CoroutineEvents;
-    using GameOffsets.Objects.FilesStructures;
     using GameOffsets.Objects.States;
 
     /// <summary>

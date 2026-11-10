@@ -1,4 +1,3 @@
-using System.Text;
 using Index = LibBundle3.Index;
 
 /// <summary>

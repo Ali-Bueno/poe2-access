@@ -7,7 +7,6 @@ namespace GameReader.RemoteObjects.Components
     using System;
     using System.Collections.Generic;
     using GameReader.RemoteEnums;
-    using GameReader.Utils;
     using GameOffsets.Objects.Components;
 
     /// <summary>

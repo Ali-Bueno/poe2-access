@@ -8,7 +8,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using Coroutine;
     using GameOffsets.Natives;
     using GameOffsets.Objects.States.InGameState;

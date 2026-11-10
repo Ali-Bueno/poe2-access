@@ -6,15 +6,12 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Numerics;
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
-    using Coroutine;
     using CoroutineEvents;
     using GameReader.Cache;
-    using GameReader.Utils;
     using GameOffsets.Natives;
     using GameOffsets.Objects.States.InGameState;
     using GameOffsets.Objects.UiElement;
