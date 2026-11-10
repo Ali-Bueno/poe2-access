@@ -25,7 +25,8 @@ namespace Poe2Accessibility.Services
         private (IntPtr Record, int Taken, GuideSay Say)? guideSaid;
         private string briefGoal = string.Empty;
         private PassiveResume? resume;
-        private long lastPassiveAt = long.MinValue;
+        /// <summary>When a node was last read; halved so that the time since then does not overflow before the first one.</summary>
+        private long lastPassiveAt = long.MinValue / 2;
         private IntPtr openedOn;
         private int returnTaken;
 
