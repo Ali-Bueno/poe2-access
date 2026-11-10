@@ -11,7 +11,8 @@ the gaps: [field protection audit](research/field-protection-audit.md).
 |---|---|---|
 | The host's reader (`host/`, from GameHelper2) | 3 byte patterns (the state object, the window cull twice); struct offsets in `GameOffsets` (area, entities, components) | Found again at run time by the searches below; the constants are kept at the current build's values. |
 | The plugin's own offsets (`GameLayout`, ~86) | control name and text fields, UI manager focus fields, in-game layer fields, Render name, Targetable flag, dat row columns | The ones below are found again at runtime; the rest are checked only by the readings that use them. |
-| Data from the game's files | `catalog/item-sounds.json`, `area-names.json`, `ui-catalog.json`, `dat-columns.json`, the extracted sounds | Regenerated on the player's machine by the mod's start-up when the game's files change. |
+| Data from the game's files | `catalog/item-sounds.json`, `area-names.json`, `ui-catalog.json`, `dat-columns.json`, `passive-tree.json`, `gems.json`, the extracted sounds | Regenerated on the player's machine by the mod's start-up when the game's files change. |
+| Static data read through the plugin's offsets that the files also hold (a passive node's name, kind and links, a skill's name) | `PassiveTreeCatalog`, `GemCatalog` | Read from the regenerated catalog by Id, the memory read kept beside it: [static data from the files](#static-data-from-the-games-files). |
 
 ## Found again at runtime (host)
 The host's offsets are compiled in, so a patch that moved them silenced the whole world until a new host shipped: 0.5.5f
@@ -347,9 +348,11 @@ a part found again before it is said is not said (`CompatibilityReport.Note`, 3 
 | `cooldowns` | entries that exist and none reads, 20 readings in each of two areas; or no entry naming a listed skill, the same (`IdLinkCheck`) | `SkillCooldownWatch` |
 | the dodge fields (`AttackFieldCheck`) | two batches of readings, each counted from nothing, at or under one in five kept | `AttackFieldCheck.Observe` |
 | `pad buttons` | two judgments of the left trigger (twenty frames down and twenty up each) find no bit | `Poe2AccessibilityCore.CheckPadButtons` |
-| `passive tree links` | three searches ten seconds apart | `PassiveTreeFields.Edges` |
+| `passive tree links` | three searches ten seconds apart, and no `passive-tree.json` to read the links from (with it the miss is logged and the tree reads on) | `PassiveTreeFields.Edges` |
 | `passive tree allocations` | two readings ten seconds apart of a list with under one known id in ten, and no other list | `PassiveTreeFields.JudgeAllocated` |
 | `item base names` | six different items' titles in a row hold no name anywhere (unchanged) | `BaseNameField` |
+| `code fields` (from the file catalogs) | the rows in memory differ from `passive-tree.json` on most of the first 64 nodes read both ways; the game's read of the skill names differs from `gems.json` on most of the player's skills (three at least) in two readings running, 2 s apart; a dat column read at a compiled offset nothing judged (said when the catalogs load and at each new game process, no longer on the first key read) | `PassiveTreeFields.NoteNode`, `PlayerSkills.JudgeNames`, `DatColumns.Report` |
+| `stats` (the key rule) | the `level` stat's key (Stats row 0 plus one) reads something else than the Player component's level in two readings 3 s apart, among eight stats or more; the sweep's "stats intact" does not take it back | `StatKeyCheck`, `WorldLayoutWatch.JudgeStatKeys` |
 | `code fields` | a field neither the signatures nor the rules read, unless nothing of the mod reads it (Transitionable state, the status effect times, the tile height) or a live judgment finds it or says it lost by itself (`CodeFieldCatalog.Heard`: the area's and entity's fields, the vitals, positions, friend and foe, the animation, the skills and stats pointers, the terrain's four, the stun record, the in-play flag, the dodge's animated object, the monster mod lists); a live invariant that fails | `TakeCodeFields`, `WorldLayoutWatch.NoteInvariant` |
 | `effect names`, `game data` | read from files once per game process, whole: nothing transient to guard (unchanged) | `CheckGameNews` |
 
@@ -405,6 +408,28 @@ the next column 41). A PassiveSkills column a launcher did not write follows the
 (Characters, GrantedEffects, WorldAreas; 2026-11-08) are the string column nearest +0 that has no blank and is distinct on
 every row, a class's under `Metadata/Characters/` (`DatColumnSearch.IsIdColumn`): the plugin reads the first two there and
 the host's `WorldAreaDatOffsets.IdPtr` follows the third.
+
+## Static data from the game's files
+Added 2026-11-10 (unit tests and the shipped catalogs only: the game was not run). What a thing is does not change while
+the game runs and sits in the game's files, so it is read from a catalog made from them at start-up, by an Id, and the row
+offsets in memory become the second source ([candidates, rules and findings](research/file-catalogs.md)). What the game
+computes or changes in play is never taken from a file.
+
+| Reading | Order | Cross-check |
+|---|---|---|
+| Passive node: name, kind, graph id, class start | files by the row's Id (row +0), then the row's columns (a node the files lack, the row a class sees in another's place) | the first 64 nodes read both ways (`CatalogCrossCheck`); log `Passive tree catalog: … agree on 64 nodes` / `DISAGREE on N of 64 nodes` |
+| Passive links | files, then the graph's edge list (alone without the catalog; always for a node the files lack, a start's root record and the stick's order) | every record's link set when the tree is read; log `Passive tree catalog: the game files' links and the graph in memory agree on N nodes` |
+| Allocated list's judgment | every graph id of the files, plus the ids the records give | — |
+| Skill name | the game's read while it is text, then the files by GrantedEffects Id | all the followed player's skills every 2 s (`SkillNameCheck`); log `Skill names: the game's read agrees with the game files on N of M skills` |
+
+After a patch: the launcher rebuilds both catalogs before the game is read, so a moved PassiveSkills, Characters,
+GrantedEffects or ActiveSkills column costs nothing heard; the log line says which source moved. What still needs the
+plugin's own offsets: the node record's key, the row's Id at +0, the allocated list, the build marks, the stick's order,
+the skill's level row and effect key. A catalog that is another build's (a development host, the shipped copy) is told by
+the same lines.
+
+The stat keys have no file (`game-ids.txt` holds a stat's row plus one): `StatKeyCheck` reads the `level` stat's key on the
+character once per game process; log `Stat keys: key 1 reads the character's level (22): a stat's key is its row plus one`.
 
 ## Self-describing tables
 A `.datc64` has no column names, but its columns say what they are (`DatColumnKinds`, 2026-11-10): a text is the offset of

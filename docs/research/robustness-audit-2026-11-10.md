@@ -55,14 +55,23 @@ the skill level key and the skill ids; live invariants of the code-only fields i
 
 | Where | What can go wrong | Smallest fix |
 |---|---|---|
-| `UiSemantics.GraphIdOf` | The allocated list's check knows a node by its replaced row only | Give the shown row's id too (`ShownRow`) |
-| `UiSemantics.PassiveTree.PlacesOf` | Places are kept for the nodes visible at the first read: the ascendancy's 197 nodes get none | Rebuild when the count of visible node elements changes |
 | `UiSemantics.BuildPlanner.BuildMarks` | The build mark byte has one signature; moved by a patch, any byte equal to 1 marks nodes | Treat the marks as unreadable when over a quarter of the nodes read 1 |
-| `UiSemantics.PassiveTree` (`StickLinksOf`) | The row byte that makes the game skip the linked stage is read and ignored; the multiple-choice redirect is not modelled (the first push after an attribute popup lands one node off) | Empty links for such rows; skip them in the self-check |
-| `ComboBoxReader` | The first decoding that yields text is used for every dropdown | Latch after two dropdowns agree |
-| `Beacon` | A route task that failed or ran out of budget is said like "no route yet" | Say it after two nulls; tell budget from unreachable |
-| `EntityCatalog.Classify` (`ObjectNames.FromPath`) | An object no table names is said by its file's words, in English ("Chair") | Speak them only as a last resort, marked as unnamed outside English |
-| `GameNews` | A catalog read with no IO guard: a locked file throws | The guard the other loaders have |
+| `UiSemantics.PassiveTree` (the stick step) | The multiple-choice redirect (`row+0x8B`, `elem+0x648`) is not modelled: the first push after an attribute popup lands one node off | Needs the redirect read from the game first; such pushes are not judged meanwhile |
+| `Beacon` | A search that spent its budget ends as a partial way and is said as "the way stops short" | `RoutePlanner.FindRoute` would have to say the budget was spent; and a phrase for it |
+| `EntityCatalog.Classify` (`ObjectNames.FromPath`) | An object no table names is said by its file's words, in English ("Chair"). It is already the last resort and logged | Marking it as unnamed outside English needs a new phrase in eight languages: the owner's call |
+
+Closed on 2026-11-10, third pass (with the [file catalogs](file-catalogs.md)):
+
+- `UiSemantics.GraphIdOf`: the allocated list is judged by every graph id of the game's files plus, from the records, the
+  id of the row a class sees in each node's place (`GraphIdsOf`, `AllocatedListCheck.AllIds`).
+- `PlacesOf`: the places are made again when the count of shown node elements changes (counted every 2 s while a node is
+  read, and at once when the hovered node has no place); the finder's atlas and the stick's origin go with them.
+- `StickLinksOf`: a node whose row holds the key at +0x66 (an ascendancy's, by the files) has no linked stage, as the game's
+  step has none for it, and a push from it is not judged (its sub-canvas shift is not modelled). Over a third of the
+  shown nodes carrying it is a misread and is ignored (log `Passive stick: … read as skipping the linked step`).
+- `ComboBoxReader`: a layout read on one dropdown is that dropdown's alone until a second reads with the same (`AgreedChoice`).
+- `Beacon`: "no route yet" needs two searches in a row that fail or find nothing; the way in use stands through the first.
+- `GameNews`: not a fault: both callers guard its file reads (`CheckGameNews`, `RememberGameKeys`).
 
 Not faults, by the logs: the vitals' thresholds re-arm with a margin (154 "Vida 50 por ciento" in two days of fights);
 a targeted monster's name is said each time the target changes; the terms of use read their 248 paragraphs.

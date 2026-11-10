@@ -449,6 +449,10 @@
   Skills ready: `SkillCooldownWatch` (+ pure `SkillCooldowns`) in `PlayerAlerts`; dev command `cooldowns`.
   Player resources: `ChargeWatch` (+ pure `PlayerCharges`) in `PlayerAlerts`, beside `StatusWatch`.
   Speech priority: `IAccessibilityOutputService.Urge` (later interrupts queue for 1.5 s), `.Keep` (tutorial lessons; `SpeechFloor` holds what comes meanwhile); `SpeechRepeats` holds back a line repeating the last.
+- Static data from the game's files ([file catalogs](docs/research/file-catalogs.md)): `PassiveTreeCatalog` (`catalog/passive-tree.json`: nodes, links, class
+  starts, names; files first, the rows and the edge list in memory as fallback and cross-check, pure `CatalogCrossCheck`), `GemCatalog`
+  (`catalog/gems.json`) with `GemIndex`/`GemInfo` (a gem's identity by any of its Ids or its name, for the Build Planner) and pure
+  `SkillNameCheck` (the game's skill names first, the files' when its read is no text or judged moved); pure `StatKeyCheck` (the stat key rule on the character's level).
 - Passive tree: `UiSemantics.PassiveTree` + pure `PassiveStick` (the game's stick pick), `BuildPlanFolder` + pure `BuildPlan`/`BuildNotes`
   (Build Planner files); finder `UiSemantics.PassiveFinder` + pure `PassiveMap`/`PassiveFinder`; dev commands `passivenear` (nodes around the hovered one, build marks), `passivemap` (points from each start). Minions: `MinionReport` + `MinionGroups`.
 - Tests: `tests/Poe2Accessibility.Tests` (differ, text edits, chat diff, gestures, scanner, route legs, life

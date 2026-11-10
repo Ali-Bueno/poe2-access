@@ -172,7 +172,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Every gem the game shows under this name in the language (case, markup and outer spaces ignored), in Id order: one for
-        ///     most names, two or more for 49 of them in 0.5.x (a unique's copy, a weapon's attack by class). English names
+        ///     most names, two or more for 18 of them in 0.5.x (a unique's copy, a weapon's attack by class). English names
         ///     answer when the language has none such.
         /// </summary>
         public IReadOnlyList<GemInfo> ByName(string name, string language)

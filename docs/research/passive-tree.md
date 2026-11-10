@@ -188,7 +188,11 @@ OPEN: `+0x648` values and `T+0x1A8` entry layout with several or weapon-set allo
   out-edges; `PassiveGraph.StickLinks`); the `Window` is the hovered node's screen centre (GameHelper's absolute rect),
   `Core.Process.WindowArea`'s client size and the scale = the node's screen width / its canvas width. The row's 8 bytes at
   `+0x66` (`RowNoLinkedStepOffset`, column unknown; the code also shifts such nodes by the sub-canvas, likely ascendancy)
-  are read but not yet applied: the linked stage is skipped by the game when they are non-zero. The multiple-choice redirect
+  are a key (16 bytes in the file: null on `blind17`, row 4 on `AscendancyWarrior2Small9`; `dat-kinds`, 2026-11-10), set on
+  ascendancy rows. Applied since 2026-11-10: a node that holds it gets no linked stage (`PassivePlaces.Gated`,
+  `StickLinksOf`), and a push from it is not judged by the self-check, as the sub-canvas shift is not modelled; when over a
+  third of the shown nodes read it set, the bytes are another column's and are ignored. Not confirmed live yet (dev
+  command `passivenear` on an ascendancy node: `no linked step True`). The multiple-choice redirect
   (`row+0x8B`, `elem+0x648`) is not implemented. When the window or the rects are unreadable, the fitted model stands in
   (`PassiveStick.PickFitted`, 208/240). `Route` (finder and Build Planner ways) uses the same rule, the first step with the
   hovered record's live edge order and every other with the file order. Tests: `PassiveStickTests` replays the 240 pushes
