@@ -288,6 +288,25 @@ namespace Poe2Accessibility
         /// <summary>One-based cell of the inventory grid, read after the item.</summary>
         public static string GridPosition(int column, int row) => T($"column {column + 1}, row {row + 1}", $"columna {column + 1}, fila {row + 1}");
 
+        /// <summary>An item the panel's search lights, under the cursor: "Vendajes de lino, mágico, resaltado".</summary>
+        public static string HighlightedItem(string item) => T($"{item}, highlighted", $"{item}, resaltado");
+
+        /// <summary>What a search lights: "3 resaltados: Vendajes de lino, mágico, columna 3, fila 1. …"; the ones not named are counted.</summary>
+        public static string SearchMatches(int count, System.Collections.Generic.IEnumerable<string> named)
+        {
+            var list = named.ToList();
+            if (count == 0)
+            {
+                return T("Nothing highlighted", "Nada resaltado");
+            }
+
+            var head = count == 1 ? T("1 highlighted", "1 resaltado") : T($"{count} highlighted", $"{count} resaltados");
+            var rest = count > list.Count ? T($". And {count - list.Count} more", $". Y {count - list.Count} más") : string.Empty;
+            return $"{head}: {string.Join(". ", list)}{rest}";
+        }
+
+        public static string SearchCleared => T("Search cleared", "Búsqueda borrada");
+
         /// <summary>Base name, stack size when more than one, rarity unless normal.</summary>
         public static string Item(string name, GameReader.RemoteEnums.Rarity rarity, int count)
         {
@@ -498,13 +517,19 @@ namespace Poe2Accessibility
                 parts.Add(UnavailableState);
             }
 
+            var tooltip = Unsaid(node.Tooltip, node.Text);
+
             // Name, state, place in the list, then what it means (D2R order): the position never trails a description.
             if (node.Position.Length > 0)
             {
+                if (parts.Count == 0 && tooltip.Count == 0)
+                {
+                    parts.Add(Capitalised(Empty)); // a row with nothing in it (an unused skill slot) was heard as a bare "5 de 13"
+                }
+
                 parts.Add(node.Position);
             }
 
-            var tooltip = Unsaid(node.Tooltip, node.Text);
             if ((node.IsHovered || node.Role == Models.UiRole.Link) && tooltip.Count > 0)
             {
                 parts.Add(Sentences(tooltip));

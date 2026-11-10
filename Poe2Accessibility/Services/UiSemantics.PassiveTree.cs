@@ -38,9 +38,6 @@ namespace Poe2Accessibility.Services
 
         private const float ReleaseDeflection = 0.3f;
 
-        /// <summary>The compatibility part said once when the self-check loses the rule.</summary>
-        private const string StickRulePart = "passive tree stick rule";
-
         private PassiveGraph? passiveGraph;
         private PassivePlaces? passivePlaces;
         private StickPush? stickPush;
@@ -75,11 +72,12 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     Per frame, both sticks as the game received them (y up): a left push begins past <see cref="PushDeflection"/>
         ///     and ends under <see cref="ReleaseDeflection"/>. The right stick moves the tree's cursor off the step rule's
-        ///     footing (the node at the view's centre): the next push from there is not judged.
+        ///     footing (the node at the view's centre), and so does anything else that moves the view (the zoom, Y's centring):
+        ///     the next push from there is not judged.
         /// </summary>
-        public void ObserveStick(float x, float y, float rightX, float rightY, long now)
+        public void ObserveStick(float x, float y, float rightX, float rightY, bool viewMoved, long now)
         {
-            if (MathF.Max(MathF.Abs(rightX), MathF.Abs(rightY)) >= ReleaseDeflection)
+            if (viewMoved || MathF.Max(MathF.Abs(rightX), MathF.Abs(rightY)) >= ReleaseDeflection)
             {
                 this.cursorMovedFreely = true;
             }
@@ -454,10 +452,11 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     The pushes from a drawn node to another as the game lands them, the first with the node's own edge order; null
-        ///     when the way is longer than <paramref name="maxMoves"/> or a push lands nowhere nearer.
+        ///     when the way is longer than <paramref name="maxMoves"/> (<paramref name="far"/>) or a push lands nowhere nearer.
         /// </summary>
-        private List<int>? PushesBetween(PassiveGraph graph, PassivePlaces places, IntPtr from, int here, int there, int maxMoves)
+        private List<int>? PushesBetween(PassiveGraph graph, PassivePlaces places, IntPtr from, int here, int there, int maxMoves, out bool far)
         {
+            far = false;
             if (!this.StickTrusted)
             {
                 return null; // the side alone is said then
@@ -465,7 +464,7 @@ namespace Poe2Accessibility.Services
 
             var window = graph.Elements.TryGetValue(from, out var element) ? this.StickWindow(graph, element) : null;
             var first = places.IndexesOf(this.StickLinksOf(graph, from));
-            return PassiveStick.Route(places.Positions, here, there, maxMoves, index => index == here ? first : places.Links[index], window);
+            return PassiveStick.Route(places.Positions, here, there, maxMoves, index => index == here ? first : places.Links[index], window, out far);
         }
 
         /// <summary>The focus went to something else than a passive node (a popup over the tree): the next landing is not judged.</summary>
@@ -499,7 +498,15 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var predicted = PassiveStick.Pick(places.OffsetsFrom(origin.Index), push.Direction, origin.Linked, window);
+            var offsets = places.OffsetsFrom(origin.Index);
+            var predicted = PassiveStick.Pick(offsets, push.Direction, origin.Linked, window);
+            if (predicted < 0 || !SteadyPick(offsets, push.Direction, origin.Linked, window, predicted))
+            {
+                // No judgement where the rule itself is unsure: a push it expects to move nothing becomes a pan when held, and a
+                // push on the line between two nodes is the game's to sample, a frame apart from the mod's.
+                return;
+            }
+
             var verdict = this.StickCheck.Record(predicted == landed);
             if (verdict != StickVerdict.Same)
             {
@@ -509,12 +516,26 @@ namespace Poe2Accessibility.Services
                     ? $"Stick rule lost: {this.StickCheck}; {pushed}; links are said by their side until it holds again"
                     : $"Stick rule holds again: {this.StickCheck}; {pushed}");
             }
-
-            if (verdict == StickVerdict.Lost)
-            {
-                CompatibilityReport.Current?.Missing(StickRulePart);
-            }
         }
+
+        /// <summary>True when the rule picks the same node a little to either side of the push: only such a push can be judged.</summary>
+        private static bool SteadyPick(IReadOnlyList<Vector2> offsets, Vector2 direction, IReadOnlyList<int> linked, PassiveStick.Window window, int picked)
+        {
+            foreach (var turn in new[] { -JudgeSlackRadians, JudgeSlackRadians })
+            {
+                var (sin, cos) = MathF.SinCos(turn);
+                var turned = new Vector2((direction.X * cos) - (direction.Y * sin), (direction.X * sin) + (direction.Y * cos));
+                if (PassiveStick.Pick(offsets, turned, linked, window) != picked)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>How far the game's own sample of a push may lie from the mod's (ten degrees): a thumb is still turning when a push begins.</summary>
+        private const float JudgeSlackRadians = MathF.PI / 18f;
 
         private PassiveState StateOf(PassiveGraph graph, PassiveNodeRow node, HashSet<int> allocated)
         {
@@ -547,8 +568,19 @@ namespace Poe2Accessibility.Services
         /// <summary>The graph ids in the tree's allocated list (re-read on every describe: allocating changes it).</summary>
         private HashSet<int> AllocatedIds(IntPtr state)
         {
-            return this.TreeFields.AllocatedAt(state, GameLayout.PassiveTree.AllocatedOffset)?.ToHashSet() ?? new HashSet<int>();
+            var now = Environment.TickCount64;
+            if (this.TreeFields.AllocatedAt(state, GameLayout.PassiveTree.AllocatedOffset) is { } list)
+            {
+                this.lastAllocated = (state, now, list.ToHashSet());
+                return this.lastAllocated.Ids;
+            }
+
+            // One failed read is not "nothing allocated": what was just read of this tree stands for a moment.
+            return this.lastAllocated.State == state && now - this.lastAllocated.At < AllocatedKeptMs ? this.lastAllocated.Ids : new HashSet<int>();
         }
+
+        private const int AllocatedKeptMs = 2000;
+        private (IntPtr State, long At, HashSet<int> Ids) lastAllocated = (IntPtr.Zero, 0, new HashSet<int>());
 
         /// <summary>
         ///     The canvas's tree state, judged where it holds the passive skill graph; zero on any other element. When no
@@ -688,6 +720,13 @@ namespace Poe2Accessibility.Services
             var state = this.TreeState(canvasAddress);
             if (this.passiveGraph is { } cached && cached.Canvas == canvasAddress && state == cached.State)
             {
+                if (cached.OwnStart == IntPtr.Zero && this.OwnStart(cached.Links.Keys) is var start && start != IntPtr.Zero)
+                {
+                    // The character was not readable when the tree was first read: without its start nothing reads as reachable.
+                    this.passiveGraph = cached = cached with { OwnStart = start };
+                    this.passiveAtlas = null;
+                }
+
                 return cached;
             }
 

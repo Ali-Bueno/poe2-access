@@ -95,6 +95,7 @@ namespace Poe2Accessibility
         private WorldLayoutWatch? worldLayout;
         private string? gameNewsLine;
         private TradeOfferWatch? tradeOffers;
+        private SearchHighlightWatch? searchHighlights;
 
         private EnemyCues? enemyCues;
         private Radar? radar;
@@ -355,6 +356,7 @@ namespace Poe2Accessibility
                 this.partnerAlerts = new PlayerAlerts(() => Seats.Partner, memory, elements, null, partnerVoice, this.log);
                 var tradeOffers = new TradeOfferWatch(elements, inventory, line => this.output.Speak(line, false));
                 this.tradeOffers = tradeOffers;
+                this.searchHighlights = new SearchHighlightWatch(elements, inventory, line => this.output.Speak(line, false));
                 this.pickups = new InventoryWatch(inventory, followedVoice, this.log) { Seat = followedSeat };
                 this.partnerPickups = new InventoryWatch(inventory, partnerVoice, this.log) { Seat = () => 2 };
                 this.flasks = new FlaskWatch(inventory, followedVoice) { Seat = followedSeat };
@@ -601,6 +603,7 @@ namespace Poe2Accessibility
                 this.Isolated("pad", this.ReadModButton);
                 this.Isolated("focus", () => this.focus?.Tick(state, stateObject));
                 this.Isolated("trade offer", () => this.tradeOffers?.Tick(this.focus?.Current?.Address ?? IntPtr.Zero));
+                this.Isolated("search highlight", () => this.searchHighlights?.Tick(state == GameStateTypes.InGameState ? this.focus?.Current : null));
                 this.Isolated("text field", this.WatchTextFieldClosing);
                 this.Isolated("creation name", this.TickCreationName);
                 this.Isolated("player news", this.TickPlayerNews);
@@ -769,7 +772,9 @@ namespace Poe2Accessibility
             }
 
             this.padState = state;
-            this.semantics?.ObserveStick(state.LeftX, state.LeftY, state.RightX, state.RightY, Environment.TickCount64);
+            // In the passive tree the triggers zoom and Y centres the view.
+            var viewMoved = state.IsDown(GameLayout.PadButtons.LeftTrigger | GameLayout.PadButtons.RightTrigger | GameLayout.PadButtons.Y);
+            this.semantics?.ObserveStick(state.LeftX, state.LeftY, state.RightX, state.RightY, viewMoved, Environment.TickCount64);
             this.CheckPadButtons(state);
             if (IsDirection(state))
             {

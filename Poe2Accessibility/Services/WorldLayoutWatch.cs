@@ -58,7 +58,13 @@ namespace Poe2Accessibility.Services
         private long nextActorsAt;
         private bool poiseJudged;
         private int poiseMisses;
+        private int poiseAreasMissed;
+        private IntPtr poiseArea;
         private WalkableCheck? walkable = new();
+        private int walkableFails;
+
+        private const int PoiseAreasToSay = 2;
+        private const int WalkableFailsToSay = 2;
 
         public WorldLayoutWatch(CompatibilityReport report, PluginLog log, string buildFile)
         {
@@ -115,7 +121,10 @@ namespace Poe2Accessibility.Services
             this.animationSaid = null;
             this.poiseJudged = false;
             this.poiseMisses = 0;
+            this.poiseAreasMissed = 0;
+            this.poiseArea = IntPtr.Zero;
             this.walkable = new WalkableCheck();
+            this.walkableFails = 0;
         }
 
         /// <summary>Gets the animation search's state, for the dev command "structs".</summary>
@@ -181,7 +190,14 @@ namespace Poe2Accessibility.Services
             var measured = GameLayout.ActorComponent.MeasuredPoiseHead;
             if (PoiseSearch.Agreed(actors, measured - PoiseBlockStart) is not { } found)
             {
-                if (++this.poiseMisses == PoiseMissesToSay)
+                // One area's monsters can all lack the record (totems, the stun-immune): missing only once a second area agrees.
+                if (area.Address != this.poiseArea)
+                {
+                    this.poiseArea = area.Address;
+                    this.poiseMisses = 0;
+                }
+
+                if (++this.poiseMisses == PoiseMissesToSay && ++this.poiseAreasMissed == PoiseAreasToSay)
                 {
                     this.report.Missing(PoisePart);
                 }
@@ -218,8 +234,9 @@ namespace Poe2Accessibility.Services
                 this.walkable = null;
                 this.report.Found(WalkablePart);
             }
-            else if (held == false)
+            else if (held == false && ++this.walkableFails == WalkableFailsToSay)
             {
+                // The first cells after a load can be read from the grid of the area left: one failed window is not a verdict.
                 this.report.Missing(WalkablePart);
             }
         }

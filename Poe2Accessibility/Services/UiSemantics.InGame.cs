@@ -55,6 +55,7 @@ namespace Poe2Accessibility.Services
                 role = UiRole.GridCell;
                 details = this.ItemTooltip(hovered);
                 var item = hovered == IntPtr.Zero ? Announcements.EmptyCell : this.inventory.DescribeItem(hovered, Title(details)) ?? Announcements.UnknownItem;
+                item = this.inventory.HighlightOf(hovered) == ItemHighlight.Match ? Announcements.HighlightedItem(item) : item;
                 var inventoryName = this.inventory.InventoryOf(info.Address);
                 (text, value) = Announcements.InventoryCell(inventoryName, item, column, row);
             }

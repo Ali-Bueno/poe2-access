@@ -164,10 +164,10 @@ namespace Poe2Accessibility.Tests
         private static void ARouteFollowsThePushesThatNear()
         {
             var line = new Vector2[] { new(0, 0), new(100, 0), new(200, 0), new(300, 0) };
-            Expect("0 0 0", string.Join(" ", PassiveStick.Route(line, 0, 3, 8, _ => NoLinks, Anywhere) ?? new List<int>()), "right three times, each push stopping at the next node");
-            Expect(true, PassiveStick.Route(line, 0, 3, 2, _ => NoLinks, Anywhere) == null, "too far for the moves allowed");
+            Expect("0 0 0", string.Join(" ", PassiveStick.Route(line, 0, 3, 8, _ => NoLinks, Anywhere, out _) ?? new List<int>()), "right three times, each push stopping at the next node");
+            Expect(true, PassiveStick.Route(line, 0, 3, 2, _ => NoLinks, Anywhere, out var ranOut) == null && ranOut, "too far for the moves allowed, and said so");
             var corner = new Vector2[] { new(0, 0), new(100, 0), new(200, 0), new(200, -100) };
-            Expect("0 1", string.Join(" ", PassiveStick.Route(corner, 0, 3, 8, _ => NoLinks, Anywhere) ?? new List<int>()), "right (the near node at exactly 45 degrees is in up-right's cone and wins it), then up-right");
+            Expect("0 1", string.Join(" ", PassiveStick.Route(corner, 0, 3, 8, _ => NoLinks, Anywhere, out _) ?? new List<int>()), "right (the near node at exactly 45 degrees is in up-right's cone and wins it), then up-right");
         }
 
         /// <summary>Screen offsets from angles in degrees counter-clockwise from right and distances, y down.</summary>

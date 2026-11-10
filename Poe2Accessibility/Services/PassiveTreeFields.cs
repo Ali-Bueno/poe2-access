@@ -88,7 +88,7 @@ namespace Poe2Accessibility.Services
                 return edges;
             }
 
-            if (this.edgesKnown)
+            if (this.edgesKnown || Environment.TickCount64 < this.edgesRetryAt)
             {
                 return null;
             }
@@ -103,11 +103,24 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            this.edgesKnown = true; // searched once: not repeated on every hover
+            // Not repeated on every hover, and not given up at once: a search made before the tree's rows were readable
+            // must not silence the tree for the session.
+            this.edgesRetryAt = Environment.TickCount64 + EdgesRetryMs;
+            if (++this.edgesFailures < EdgesFailuresToSay)
+            {
+                return null;
+            }
+
+            this.edgesKnown = true;
             this.Log?.Invoke($"Passive tree links where measured: {this.DescribeEdges(graphFile, GameLayout.PassiveTree.GraphContentOffset, GameLayout.PassiveTree.EdgeListOffset)}");
             this.Report?.Missing("passive tree links");
             return null;
         }
+
+        private const int EdgesRetryMs = 10_000;
+        private const int EdgesFailuresToSay = 3;
+        private long edgesRetryAt;
+        private int edgesFailures;
 
         /// <summary>
         ///     Judges the allocated list once the graph's node ids are known (gathered off the frame thread from its

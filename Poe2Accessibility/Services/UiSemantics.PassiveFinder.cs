@@ -295,9 +295,9 @@ namespace Poe2Accessibility.Services
             Way? way = null;
             if (places.Index.TryGetValue(from, out var here) && places.Index.TryGetValue(to, out var there))
             {
-                var pushes = this.PushesBetween(graph, places, from, here, there, maxMoves);
+                var pushes = this.PushesBetween(graph, places, from, here, there, maxMoves, out var far);
                 way = pushes is { Count: > 0 } ? new Way(pushes[0], pushes.Count, false)
-                    : new Way(PassiveStick.Nearest(places.Positions[there] - places.Positions[here]), null, this.StickTrusted);
+                    : new Way(PassiveStick.Nearest(places.Positions[there] - places.Positions[here]), null, far);
             }
 
             this.finderWay = (from, to, maxMoves, way);

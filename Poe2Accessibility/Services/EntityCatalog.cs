@@ -684,8 +684,9 @@ namespace Poe2Accessibility.Services
             {
                 // No way all the way (a gate the quest opens, a bridge out of the grid): the legs lead as close as the
                 // ground goes, like the guide beacon; the distance stays the straight line.
-                partial = route is { Count: > 1 } && RoutePlanner.Length(route) * gridSize >= StepWorldUnits;
-                route = partial ? route : null;
+                // Cut however near the cut the player stands; a part shorter than a step leaves no leg to walk.
+                partial = route != null;
+                route = route is { Count: > 1 } && RoutePlanner.Length(route) * gridSize >= StepWorldUnits ? route : null;
             }
 
             // A target inside a wall snaps to the nearest walkable cell, which can lie on this side of a closed barrier

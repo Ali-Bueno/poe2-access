@@ -210,17 +210,20 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Pushes that lead from the origin to the target, each the one landing nearest it, at most <paramref name="maxMoves"/>;
-        ///     null when a push lands nowhere nearer or the moves run out. <paramref name="linksOf"/> gives each node's linked
-        ///     nodes in edge order; the window stays the same, the game centring each node the cursor lands on.
+        ///     null when a push lands nowhere nearer or the moves run out (<paramref name="ranOut"/>: only then is the target far).
+        ///     <paramref name="linksOf"/> gives each node's linked nodes in edge order; the window stays the same, the game
+        ///     centring each node the cursor lands on.
         /// </summary>
-        public static List<int>? Route(IReadOnlyList<Vector2> positions, int origin, int target, int maxMoves, Func<int, IReadOnlyList<int>> linksOf, Window? window)
+        public static List<int>? Route(IReadOnlyList<Vector2> positions, int origin, int target, int maxMoves, Func<int, IReadOnlyList<int>> linksOf, Window? window, out bool ranOut)
         {
+            ranOut = false;
             var route = new List<int>();
             var here = origin;
             while (here != target)
             {
                 if (route.Count == maxMoves)
                 {
+                    ranOut = true;
                     return null;
                 }
 

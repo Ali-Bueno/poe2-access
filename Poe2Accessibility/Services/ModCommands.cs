@@ -73,6 +73,11 @@ namespace Poe2Accessibility.Services
         public void OnGesture(PadGesture gesture)
         {
             this.log.Debug($"Mod button: {gesture}");
+            if (gesture is PadGesture.Hold or PadGesture.LongHold && this.GameTakesTheHold())
+            {
+                return;
+            }
+
             if (this.settingsMenu.IsOpen)
             {
                 this.InSettings(gesture);
@@ -89,6 +94,19 @@ namespace Poe2Accessibility.Services
                 this.InGameplay(gesture);
             }
         }
+
+        /// <summary>
+        ///     True while the game's own legend gives the mod button's hold a job (a stash's "Clear search"): the hold is the
+        ///     game's then, and the mod's reading over it hid what it did.
+        /// </summary>
+        private bool GameTakesTheHold()
+        {
+            var holds = new[] { false, true }.Select(playStation => Announcements.HoldButton(Announcements.ButtonName(ModButtonGlyph, playStation))).ToList();
+            return this.screen().Layers.Any(layer => layer.IsHintBar && layer.Texts.Any(text => holds.Contains(text.Button)));
+        }
+
+        /// <summary>The glyph file of the mod button, the left stick's click (<see cref="Announcements.ButtonName"/>).</summary>
+        private const string ModButtonGlyph = "LeftStickButton2";
 
         private void InMenu(PadGesture gesture, AccessibleUiNode current)
         {

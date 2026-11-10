@@ -239,7 +239,10 @@ namespace Poe2Accessibility.Services
                     }
 
                     var line = Announcements.WithButton(Announcements.Flatten(string.Join('\n', wrapped)), glyph);
-                    if (line.Any(char.IsDigit) && this.elements.IsTextRed(node.Address))
+                    // Only the unmet value is coloured inside the line: the line stays where it is, what is unmet goes first.
+                    var marked = UnmetRequirements.Of(tagged);
+                    unmet.AddRange(marked.Where(requirement => !unmet.Contains(requirement)));
+                    if (marked.Count == 0 && line.Any(char.IsDigit) && this.elements.IsTextRed(node.Address))
                     {
                         // A requirement drawn in red is one the character does not meet (D2R "cannot equip" reasons):
                         // gathered and said right after the name (and price); red lines without numbers (Corrupted,

@@ -88,6 +88,7 @@ namespace Poe2Accessibility.Services
             }
             else
             {
+                this.unsaid.Remove(part); // found after all, before it was said missing
                 this.log.Info(message);
             }
 

@@ -49,6 +49,10 @@ namespace Poe2Accessibility.Services
         private bool handKnown;
         private long lastHandPoll;
 
+        /// <summary>How long a held item that does not read is tried again before it is said as an unknown one.</summary>
+        private const int HandUnreadMs = 1000;
+        private long handUnreadSince;
+
         public InventoryWatch(InventoryReader reader, IAccessibilityOutputService output, PluginLog log)
         {
             this.reader = reader;
@@ -105,7 +109,12 @@ namespace Poe2Accessibility.Services
                 this.known[address] = count;
                 if (!this.baseline && playing && count > before)
                 {
-                    var name = this.reader.DescribeItemEntity(item.Address) ?? item.Path; // keys are inventory slots, the entity is the item's address
+                    if (this.reader.DescribeItemEntity(item.Address) is not { } name) // keys are inventory slots, the entity is the item's address
+                    {
+                        this.known[address] = before; // not readable yet: the next poll says it
+                        continue;
+                    }
+
                     this.output.Say(SpeechKind.GroundItems, Announcements.PickedUp(name, before == 0 ? 0 : count - before));
                 }
             }
@@ -157,6 +166,7 @@ namespace Poe2Accessibility.Services
 
             if (item == this.held || now < this.readersSettleUntil)
             {
+                this.handUnreadSince = 0;
                 this.held = item;
                 this.handKnown = true;
                 return;
@@ -164,9 +174,18 @@ namespace Poe2Accessibility.Services
 
             if (item != IntPtr.Zero && entity != null)
             {
+                // An item on its way out (a Y drop passes through the cursor) no longer reads: tried again, never said by its file.
+                var name = this.reader.DescribeItemEntity(entity.Address);
+                this.handUnreadSince = name != null ? 0 : this.handUnreadSince == 0 ? now : this.handUnreadSince;
+                if (name == null && now - this.handUnreadSince < HandUnreadMs)
+                {
+                    return;
+                }
+
+                this.handUnreadSince = 0;
                 this.handEmptyDue = 0;
                 // Held only past the readout of the cell it left (now empty); the next D-pad move cuts it.
-                this.output.Urge(Announcements.InHand(this.reader.DescribeItemEntity(entity.Address) ?? entity.Path), InHandHoldMs); // the name carries the stack
+                this.output.Urge(Announcements.InHand(name ?? Announcements.UnknownItem), InHandHoldMs); // the name carries the stack
             }
             else if (this.handKnown)
             {

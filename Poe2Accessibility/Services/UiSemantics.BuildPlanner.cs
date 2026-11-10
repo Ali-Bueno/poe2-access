@@ -121,10 +121,11 @@ namespace Poe2Accessibility.Services
                 return Announcements.BuildNext(named, Array.Empty<string>());
             }
 
-            var pushes = this.PushesBetween(graph, places, from, here, there, MaxBuildPushes);
+            var pushes = this.PushesBetween(graph, places, from, here, there, MaxBuildPushes, out var far);
+            var side = Announcements.StickDirections[PassiveStick.Nearest(places.Positions[there] - places.Positions[here])];
             return pushes != null
                 ? Announcements.BuildNext(named, pushes.Select(octant => Announcements.StickDirections[octant]))
-                : Announcements.BuildNext(named, new[] { Announcements.Far(Announcements.StickDirections[PassiveStick.Nearest(places.Positions[there] - places.Positions[here])]) });
+                : Announcements.BuildNext(named, new[] { far ? Announcements.Far(side) : side });
         }
     }
 }

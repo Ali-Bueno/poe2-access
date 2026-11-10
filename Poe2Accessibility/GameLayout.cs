@@ -734,6 +734,15 @@ namespace Poe2Accessibility
         {
             /// <summary>Item entity (GameHelper ItemStruct); validated by its Metadata/Items path.</summary>
             public const int EntityOffset = 0x4E0;
+
+            /// <summary>
+            ///     How the panel's search ("Resaltar objetos") draws the item: byte 0 with no search, 1 dimmed out, 2 lit as a
+            ///     match; the byte <see cref="DimmedAfterHighlight"/> on is 1 only while dimmed, which is how a reading is told
+            ///     from another field (21 stash items under three searches, 2026-11-10; docs/research/ui-layers.md).
+            /// </summary>
+            public const int HighlightOffset = 0x624;
+
+            public const int DimmedAfterHighlight = 3;
         }
 
         public static class AreaLoadingState

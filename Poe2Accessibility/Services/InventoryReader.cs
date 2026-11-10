@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
     using GameReader;
     using System.Runtime.InteropServices;
@@ -24,6 +25,9 @@ namespace Poe2Accessibility.Services
 
         private const float MaxCellSize = 512;
         private const int MaxGridCells = 64;
+
+        /// <summary>Items read of one grid: a quad stash tab holds 24 by 24 cells.</summary>
+        private const int MaxGridItems = 576;
 
         /// <summary>Slot element → item element depth (slot → frame → item).</summary>
         private const int ItemSearchDepth = 2;
@@ -109,6 +113,44 @@ namespace Poe2Accessibility.Services
             }
 
             return null;
+        }
+
+        /// <summary>What the panel's search makes of an item; <see cref="ItemHighlight.None"/> when the field does not read as measured.</summary>
+        public ItemHighlight HighlightOf(IntPtr itemElement)
+        {
+            if (itemElement == IntPtr.Zero || !this.reader.TryRead<uint>(itemElement + GameLayout.InventoryItem.HighlightOffset + this.Shift, out var field))
+            {
+                return ItemHighlight.None;
+            }
+
+            var (state, dimmed) = ((byte)field, (byte)(field >> (8 * GameLayout.InventoryItem.DimmedAfterHighlight)));
+            return (state, dimmed) switch
+            {
+                ((byte)ItemHighlight.Match, 0) => ItemHighlight.Match,
+                ((byte)ItemHighlight.Dimmed, 1) => ItemHighlight.Dimmed,
+                _ => ItemHighlight.None,
+            };
+        }
+
+        /// <summary>The grid's item elements with their cell (zero-based column and row), in reading order.</summary>
+        public List<(IntPtr Item, int Column, int Row)> ItemsOf(IntPtr grid)
+        {
+            var items = new List<(IntPtr Item, int Column, int Row)>();
+            if (!this.elements.TryReadElement(grid, out var info) ||
+                !this.reader.TryRead<float>(grid + GameLayout.InventoryGrid.CellSizeOffset + this.Shift, out var cell) || cell is < MinCellSize or > MaxCellSize)
+            {
+                return items;
+            }
+
+            foreach (var child in this.elements.ReadChildren(info).Take(MaxGridItems))
+            {
+                if (this.EntityOf(child) != IntPtr.Zero && this.elements.TryReadElement(child, out var item))
+                {
+                    items.Add((child, (int)MathF.Round(item.Raw.RelativePosition.X / cell), (int)MathF.Round(item.Raw.RelativePosition.Y / cell)));
+                }
+            }
+
+            return items.OrderBy(item => item.Row).ThenBy(item => item.Column).ToList();
         }
 
         /// <summary>Item element held by an equipment/flask slot (or the slot itself); zero when the slot is empty.</summary>
