@@ -202,6 +202,10 @@
     <Compile Include="..\..\host\GameReader\Utils\StructShapes.cs" Link="Host\StructShapes.cs" />
     <Compile Include="..\..\host\GameReader\Utils\EntityLayoutSearch.cs" Link="Host\EntityLayoutSearch.cs" />
     <Compile Include="..\..\host\GameReader\Utils\GameStateLayout.cs" Link="Host\GameStateLayout.cs" />
+    <Compile Include="..\..\host\GameReader\Utils\PatternScan.cs" Link="Host\PatternScan.cs" />
+    <Compile Include="..\..\host\GameOffsets\Pattern.cs" Link="Host\Pattern.cs" />
+    <Compile Include="..\..\host\GameOffsets\GameProcessName.cs" Link="Host\GameProcessName.cs" />
+    <Compile Include="..\..\host\GameOffsets\StaticOffsetsPatterns.cs" Link="Host\StaticOffsetsPatterns.cs" />
     <Compile Include="..\..\host\GameReader\Utils\InventoryLayoutSearch.cs" Link="Host\InventoryLayoutSearch.cs" />
     <Compile Include="..\..\host\GameOffsets\Objects\States\InGameState\InventoryOffset.cs" Link="Host\InventoryOffset.cs" />
     <Compile Include="..\..\host\GameReader\Utils\UiElementLayoutSearch.cs" Link="Host\UiElementLayoutSearch.cs" />

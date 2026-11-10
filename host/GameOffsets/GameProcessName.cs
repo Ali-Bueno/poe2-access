@@ -1,21 +1,41 @@
 ﻿namespace GameOffsets
 {
+    using System;
     using System.Collections.Generic;
+    using System.IO;
 
     public struct GameProcessDetails
     {
+        /// <summary>The game's name, as its window's title and its install folder say it.</summary>
+        public const string Title = "Path of Exile 2";
+
         /// <summary>
-        ///     Name of the Game Process (Normally name of the executable file without .exe)
-        ///     and the main window title. See task-manager to find the exact process name
-        ///     and convert the game to the window mode to see the window title on the game.
+        ///     The names the game's process runs under, one per store (the executable's name without .exe). The first game
+        ///     runs under the same ones.
         /// </summary>
-        public static readonly Dictionary<string, string> ProcessName = new()
+        public static readonly HashSet<string> ProcessNames = new(StringComparer.OrdinalIgnoreCase)
         {
-            { "PathOfExile", "Path of Exile 2".ToLower() }, // also works on Garena
-            { "PathOfExile_KG", "Path of Exile 2".ToLower() },
-            { "PathOfExileSteam", "Path of Exile 2".ToLower() },
-            { "PathOfExile_x64", "Path of Exile 2".ToLower() },
-            { "PathOfExileEGS", "Path of Exile 2".ToLower() }
+            "PathOfExile", // also on Garena
+            "PathOfExile_KG",
+            "PathOfExileSteam",
+            "PathOfExile_x64",
+            "PathOfExileEGS",
         };
+
+        /// <summary>
+        ///     Whether a process is the game. Its name alone is also the first game's, so the 2 has to show: in the window's
+        ///     title, or, should a patch reword the title, in the folder the game runs from. A process with no window yet is
+        ///     still starting.
+        /// </summary>
+        public static bool IsGame(string processName, string? windowTitle, string? imagePath)
+        {
+            if (!ProcessNames.Contains(processName) || string.IsNullOrWhiteSpace(windowTitle))
+            {
+                return false;
+            }
+
+            return windowTitle.TrimStart().StartsWith(Title, StringComparison.OrdinalIgnoreCase) ||
+                   (Path.GetDirectoryName(imagePath)?.Contains(Title, StringComparison.OrdinalIgnoreCase) ?? false);
+        }
     }
 }

@@ -7,7 +7,9 @@ namespace GameReader
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Runtime.InteropServices;
+    using System.Threading.Tasks;
     using Coroutine;
     using CoroutineEvents;
     using GameOffsets;
@@ -80,7 +82,15 @@ namespace GameReader
         /// </summary>
         public Rectangle WindowArea { get; private set; } = Rectangle.Empty;
 
-        private const string GameStatesPattern = "Game States";
+        // How often a background scan is looked at for its result.
+        private const double ScanPollSeconds = 0.05;
+
+        // The state object is looked for every few seconds while the game starts, then seldom, then no more: by then the
+        // plugin has said it finds no game state (GameStateService.StatesUnreadMs).
+        private const double ProveEverySeconds = 3;
+        private const double ProveSlowlySeconds = 15;
+        private const int ProveQuickTries = 10;
+        private const int ProveTries = 40;
 
         /// <summary>
         ///     Gets the Base Address of the game.
@@ -166,12 +176,11 @@ namespace GameReader
                 this.processesInfo.Clear();
                 foreach (var process in Process.GetProcesses())
                 {
-                    if (GameProcessDetails.ProcessName.TryGetValue(process.ProcessName, out var windowTitle))
+                    // The image's path is asked only of a process with the game's name: asking it of every process is slow.
+                    if (GameProcessDetails.ProcessNames.Contains(process.ProcessName) &&
+                        GameProcessDetails.IsGame(process.ProcessName, process.MainWindowTitle, ImagePath(process)))
                     {
-                        if (process.MainWindowTitle.ToLower() == windowTitle)
-                        {
-                            this.processesInfo.Add(process);
-                        }
+                        this.processesInfo.Add(process);
                     }
                 }
 
@@ -237,8 +246,8 @@ namespace GameReader
         }
 
         /// <summary>
-        ///     Finds the static addresses in the GameProcess based on the
-        ///     GameOffsets.StaticOffsetsPatterns file.
+        ///     Finds the game's statics each time a game is opened: by their byte patterns, and for the state object, which
+        ///     everything hangs from, by proof (<see cref="ProveGameStates"/>).
         /// </summary>
         /// <returns>co-routine IWait.</returns>
         private IEnumerator<Wait> FindStaticAddresses()
@@ -246,34 +255,175 @@ namespace GameReader
             while (true)
             {
                 yield return new Wait(GameHelperEvents.OnOpened);
-                var baseAddress = this.Address;
-                if (baseAddress == IntPtr.Zero)
+                while (true)
+                {
+                    var (handle, module, size) = (this.Handle, this.Address, this.ModuleSize());
+                    if (module == IntPtr.Zero || size <= 0)
+                    {
+                        break;
+                    }
+
+                    // Off the frame thread: the image is tens of megabytes.
+                    var scan = Task.Run(() => ScanStatics(handle, module, size));
+                    while (!scan.IsCompleted)
+                    {
+                        yield return new Wait(ScanPollSeconds);
+                    }
+
+                    if (!ReferenceEquals(handle, this.Handle))
+                    {
+                        // Another game was opened meanwhile, and its opening was not waited for.
+                        continue;
+                    }
+
+                    if (scan.IsFaulted)
+                    {
+                        Console.WriteLine($"[GameProcess] Static scan failed: {scan.Exception?.GetBaseException()}");
+                    }
+                    else if (!handle.IsClosed)
+                    {
+                        var (addresses, proven, data) = scan.Result;
+                        this.StaticAddresses.Clear();
+                        foreach (var (name, address) in addresses)
+                        {
+                            this.StaticAddresses[name] = address;
+                        }
+
+                        CoroutineHandler.RaiseEvent(this.OnStaticAddressFound);
+                        if (!proven)
+                        {
+                            CoroutineHandler.Start(this.ProveGameStates(handle, module, size, data), "[GameProcess] Proving the game states");
+                        }
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        ///     The statics the patterns give. A pattern's answer is one place inside the image or it is no answer; the state
+        ///     object's is also tried for what it holds, since a pattern that still matches can match another function.
+        /// </summary>
+        private static (Dictionary<string, IntPtr> Addresses, bool Proven, List<(long Start, long Size)> Data) ScanStatics(SafeMemoryHandle reader, IntPtr module, int size)
+        {
+            var sections = PatternFinder.Sections(reader, module, size);
+            var hits = PatternFinder.Find(reader, module, PatternScan.Ranges(sections, size, section => section.IsExecutable));
+            List<long> Targets(string pattern) => hits.GetValueOrDefault(pattern, new List<long>())
+                .Select(at => reader.TryReadMemory<int>(module + (nint)at, out var displacement) ? PatternScan.Target(at, displacement, size) : -1)
+                .Where(target => target >= 0).Distinct().ToList();
+
+            var addresses = new Dictionary<string, IntPtr>();
+            var cull = PatternScan.Pick(Targets(StaticOffsetsPatterns.Cull), Targets(StaticOffsetsPatterns.CullAlt));
+            if (cull > 0)
+            {
+                addresses[StaticOffsetsPatterns.Cull] = module + (nint)cull;
+            }
+
+            var states = Targets(StaticOffsetsPatterns.GameStates).Select(target => module + (nint)target).ToList();
+            var proven = states.FirstOrDefault(address => GameStatesSearch.Holds(reader, address));
+            if (proven != IntPtr.Zero)
+            {
+                addresses[StaticOffsetsPatterns.GameStates] = proven;
+            }
+            else if (states.Count == 1)
+            {
+                // Right or wrong, it cannot be told yet: the game builds its states a while after it starts.
+                addresses[StaticOffsetsPatterns.GameStates] = states[0];
+            }
+
+            Console.WriteLine(
+                $"[GameProcess] Statics: cull {(cull > 0 ? $"+0x{cull:X}" : "not found")}, game states " +
+                $"{(proven != IntPtr.Zero ? "proven" : states.Count == 1 ? "not proven yet" : $"{states.Count} places, none proven")} " +
+                $"{string.Join(", ", states.Select(address => $"+0x{address.ToInt64() - module.ToInt64():X}"))}");
+            return (addresses, proven != IntPtr.Zero, PatternScan.Ranges(sections, size, section => section.IsWritable));
+        }
+
+        /// <summary>
+        ///     Until a static is known to hold the state object: tries the place the pattern gave again, and when it still
+        ///     does not hold one, looks through the image's data for the static that does. So a patch that breaks the
+        ///     pattern, or leaves it matching elsewhere, costs a few seconds at the start and nothing more.
+        /// </summary>
+        private IEnumerator<Wait> ProveGameStates(SafeMemoryHandle handle, IntPtr module, int size, List<(long Start, long Size)> data)
+        {
+            for (var tries = 0; tries < ProveTries; tries++)
+            {
+                yield return new Wait(tries < ProveQuickTries ? ProveEverySeconds : ProveSlowlySeconds);
+                if (!ReferenceEquals(handle, this.Handle) || handle.IsClosed)
+                {
+                    yield break;
+                }
+
+                var current = this.StaticAddresses.GetValueOrDefault(StaticOffsetsPatterns.GameStates);
+                if (current != IntPtr.Zero && GameStatesSearch.Holds(handle, current))
+                {
+                    Console.WriteLine("[GameProcess] Game states: the place the pattern gave holds the state object.");
+                    yield break;
+                }
+
+                // The writable sections first; then the whole image, in case the header's flags say something else.
+                var ranges = tries < ProveQuickTries ? data : new List<(long Start, long Size)> { (0, size) };
+                var search = Task.Run(() => GameStatesSearch.Find(handle, module, size, ranges));
+                while (!search.IsCompleted)
+                {
+                    yield return new Wait(ScanPollSeconds);
+                }
+
+                if (!ReferenceEquals(handle, this.Handle) || handle.IsClosed)
+                {
+                    yield break;
+                }
+
+                if (search.IsFaulted)
+                {
+                    Console.WriteLine($"[GameProcess] Game states search failed: {search.Exception?.GetBaseException()}");
+                    continue;
+                }
+
+                var found = search.Result;
+                if (found.Count == 0)
                 {
                     continue;
                 }
 
-                var mainModule = this.Information.MainModule;
-                if (mainModule == null)
+                var pick = found.Contains(current) ? current : found[0];
+                Console.WriteLine(
+                    $"[GameProcess] Game states: found by search at +0x{pick.ToInt64() - module.ToInt64():X} ({found.Count} place(s)); the pattern gave " +
+                    $"{(current == IntPtr.Zero ? "nothing" : $"+0x{current.ToInt64() - module.ToInt64():X}")}. The pattern needs a look (docs/patch-day.md).");
+                if (pick != current)
                 {
-                    continue;
+                    this.StaticAddresses[StaticOffsetsPatterns.GameStates] = pick;
+                    CoroutineHandler.RaiseEvent(this.OnStaticAddressFound);
                 }
 
-                var procSize = mainModule.ModuleMemorySize;
-                var patternsInfo = PatternFinder.Find(this.Handle, baseAddress, procSize);
-                foreach (var patternInfo in patternsInfo)
-                {
-                    var offsetDataValue = this.Handle.ReadMemory<int>(baseAddress + patternInfo.Value);
-                    var address = baseAddress + patternInfo.Value + offsetDataValue + 0x04;
-                    this.StaticAddresses[patternInfo.Key] = address;
-                }
+                yield break;
+            }
 
-                if (!patternsInfo.ContainsKey(GameStatesPattern) &&
-                    GameStatesSearch.Find(this.Handle, baseAddress, procSize) is var found && found != IntPtr.Zero)
-                {
-                    this.StaticAddresses[GameStatesPattern] = found;
-                }
+            Console.WriteLine("[GameProcess] Game states: no static holds a state object; the object itself changed (GameStateLayout).");
+        }
 
-                CoroutineHandler.RaiseEvent(this.OnStaticAddressFound);
+        /// <summary>Where the process runs from; null when Windows will not say (a game run as another user).</summary>
+        private static string? ImagePath(Process process)
+        {
+            try
+            {
+                return process.MainModule?.FileName;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        private int ModuleSize()
+        {
+            try
+            {
+                return this.Information.MainModule?.ModuleMemorySize ?? 0;
+            }
+            catch (Exception)
+            {
+                return 0;
             }
         }
 

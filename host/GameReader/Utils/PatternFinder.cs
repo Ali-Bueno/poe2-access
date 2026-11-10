@@ -7,227 +7,82 @@ namespace GameReader.Utils
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
     using GameOffsets;
+    using GameReader.Utils.CodeReader;
 
-    /// <summary>
-    ///     This class contains helper functions to find the
-    ///     patterns (array of bytes in HEX) in the process memory.
-    ///     To improve the perforamnce and memory footprint, it parallelizes
-    ///     the search and ensures that the whole executable is not loaded in
-    ///     the memory at once.
-    ///     NOTE: According to microsoft docs (linked below) anything bigger
-    ///     than 85,000 bytes will go into the large-object-heap and will
-    ///     remain in the memory for a long time.
-    ///     https://docs.microsoft.com/en-us/dotnet/standard/garbage-collection/large-object-heap.
-    /// </summary>
+    /// <summary>Reads the game's image out of its process: its sections, and where the static patterns match in its code.</summary>
     internal static class PatternFinder
     {
-        /// <summary>
-        ///     This is 1000 less than the maximum number of bytes that can be created
-        ///     with non-large-object-heap. Benefit of doing that is to ensure
-        ///     that GC cleans up the memory ASAP.
-        ///     NOTE: 1000 less than the maximum number allows us to read a bit more than
-        ///     this number when require.
-        /// </summary>
-        private const int MaxBytesObject = 84000;
+        // The section table of a PE sits in its first page.
+        private const int HeaderBytes = 0x1000;
+        private const int Chunk = 1 << 22;
+        private const int Piece = 1 << 16;
+
+        /// <summary>The image's sections as its loaded header lists them; empty when the header cannot be read.</summary>
+        internal static IReadOnlyList<PeSection> Sections(SafeMemoryHandle reader, IntPtr module, int size) =>
+            PeImage.SectionsOf(reader.ReadMemoryArray<byte>(module, Math.Min(HeaderBytes, size)));
 
         /// <summary>
-        ///     Gets the HEX (byte array) patterns for finding static offsets in the Process.
-        ///     All patterns are read from the GameOffsets library so that users just have to update
-        ///     GameOffsets lib once there is a new patch.
+        ///     Every place each pattern of <see cref="StaticOffsetsPatterns"/> matches in <paramref name="ranges"/> of the image,
+        ///     as the offset of the displacement it marks.
         /// </summary>
-        private static Pattern[] Patterns => StaticOffsetsPatterns.Patterns;
-
-        /// <summary>
-        ///     Tries to find all the patterns given in the GameOffsets StaticOffsetsPatterns class.
-        /// </summary>
-        /// <param name="handle">Handle to the process.</param>
-        /// <param name="baseAddress">BaseAddress of the process main module.</param>
-        /// <param name="processSize">Total Size of the process main module.</param>
-        /// <returns> Static offsets name and location in the processs.</returns>
-        internal static Dictionary<string, int> Find(
-            SafeMemoryHandle handle,
-            IntPtr baseAddress,
-            int processSize
-        )
+        internal static Dictionary<string, List<long>> Find(SafeMemoryHandle reader, IntPtr module, IReadOnlyList<(long Start, long Size)> ranges)
         {
-            // This allows the algorithm to read X bytes more than MaxBytesObject.
-            // Algorithm does this to find patterns between the chunks.
-            // e.g.      1 5 {4
-            //           6 9 }2
-            //           3 5 2
-            //           each line shows a chunks
-            //           {} shows the pattern we want to find.
-            var patternMaxLength = BiggestPatternLength();
+            var patterns = StaticOffsetsPatterns.Patterns;
+            var hits = patterns.Select(_ => new SortedSet<long>()).ToArray();
 
-            // Underlying library silently crashes if the algorithm reads more than the processSize.
-            // So lets find the total number of reads required and modify the number of byes to read
-            // in the last read operation.
-            var totalReadOperations = CalculateTotalReadOperations(processSize);
-
-            Dictionary<string, int> result = new();
-
-            var totalPatterns = Patterns.Length;
-            var isPatternFound = new bool[totalPatterns];
-            var patternOffsets = new int[totalPatterns];
-            var totalPatternsFound = 0;
-
-            var pOptions = new ParallelOptions { MaxDegreeOfParallelism = 4 };
-            Parallel.For(0, totalReadOperations, pOptions, (i, state1) =>
+            // A match may lie across two reads: each reads as far into the next as the longest pattern reaches.
+            var overlap = patterns.Max(pattern => pattern.Data.Length) - 1;
+            foreach (var range in ranges)
             {
-                var currentOffset = i * MaxBytesObject;
-                var isLastIteration = i == totalReadOperations - 1;
-                // F-037: chunks overlap by patternMaxLength so a pattern that straddles
-                // the boundary between chunk N and chunk N+1 is matched in chunk N.
-                // The last chunk reads to end-of-process; intermediate chunks read
-                // MaxBytesObject + patternMaxLength but capped at end-of-process.
-                var actualReadSize = isLastIteration
-                    ? processSize - currentOffset
-                    : Math.Min(MaxBytesObject + patternMaxLength, processSize - currentOffset);
-
-                if (state1.ShouldExitCurrentIteration)
+                foreach (var (offset, bytes) in Read(reader, module.ToInt64(), range, overlap))
                 {
-                    // No need to check LowestBreakIteration property
-                    // because we don't care as long as someone found
-                    // the pattern and called the break.
-                    return;
-                }
-
-                var processData = handle.ReadMemoryArray<byte>(baseAddress + currentOffset, actualReadSize);
-                var processDataLength = processData.Length;
-                Parallel.For(0, processDataLength, pOptions, (j, state2) =>
-                {
-                    if (state2.ShouldExitCurrentIteration)
+                    for (var index = 0; index < patterns.Length; index++)
                     {
-                        // No need to check LowestBreakIteration property
-                        // because we don't care as long as someone found
-                        // the pattern and called the break.
-                        return;
+                        PatternScan.Hits(bytes, patterns[index], offset, hits[index]);
                     }
-
-                    for (var k = 0; k < totalPatterns; k++)
-                    {
-                        if (isPatternFound[k])
-                        {
-                            continue;
-                        }
-
-                        var pattern = Patterns[k];
-                        var patternLength = pattern.Data.Length;
-                        var isOddLengthPattern = patternLength % 2 != 0;
-                        var middleOfOddLengthPattern = patternLength / 2;
-                        var isAnyByteDifferent = false;
-
-                        if (processDataLength - j < patternLength)
-                        {
-                            continue;
-                        }
-
-                        // The paired comparison loop below intentionally excludes the single
-                        // middle byte of an odd-length pattern, so validate that byte here when
-                        // it is fixed. Wildcards must never reject a candidate.
-                        if (isOddLengthPattern &&
-                            pattern.Mask[middleOfOddLengthPattern] &&
-                            processData[j + middleOfOddLengthPattern] !=
-                            pattern.Data[middleOfOddLengthPattern])
-                        {
-                            continue;
-                        }
-
-                        for (var l = 0; l < patternLength / 2 && !isAnyByteDifferent; l++)
-                        {
-                            if (pattern.Mask[l] && processData[j + l] != pattern.Data[l])
-                            {
-                                isAnyByteDifferent = true;
-                            }
-
-                            var last = patternLength - (l + 1);
-                            if (pattern.Mask[last] && processData[j + last] != pattern.Data[last])
-                            {
-                                isAnyByteDifferent = true;
-                            }
-                        }
-
-                        if (!isAnyByteDifferent)
-                        {
-                            Interlocked.Increment(ref totalPatternsFound);
-                            isPatternFound[k] = true;
-                            patternOffsets[k] = currentOffset + j;
-                        }
-                    }
-
-                    if (totalPatternsFound >= totalPatterns)
-                    {
-                        state2.Break();
-                        state1.Break();
-                        if (!isPatternFound.All(k => k))
-                        {
-                            throw new Exception(
-                                "There is a non-unique pattern. Kindly fix the patterns.");
-                        }
-                    }
-                });
-            });
-
-            if (totalPatternsFound < totalPatterns)
-            {
-                var missingPatterns = Patterns
-                    .Where((_, index) => !isPatternFound[index])
-                    .ToArray();
-                var missingPatternNames = string.Join(", ", missingPatterns.Select(pattern => pattern.Name));
-
-                Console.WriteLine(
-                    $"[PatternFinder] Static-pattern scan found {totalPatternsFound}/{totalPatterns}. " +
-                    $"Missing: {missingPatternNames}");
-                foreach (var missingPattern in missingPatterns)
-                {
-                    Console.WriteLine($"[PatternFinder] Missing pattern: {missingPattern}");
                 }
             }
 
-            // What was found still works: most patterns feed one reading, and the game states have a search of their own.
-            for (var i = 0; i < totalPatterns; i++)
+            var found = new Dictionary<string, List<long>>();
+            for (var index = 0; index < patterns.Length; index++)
             {
-                if (isPatternFound[i])
+                found[patterns[index].Name] = hits[index].Select(hit => hit + patterns[index].BytesToSkip).ToList();
+                if (hits[index].Count != 1)
                 {
-                    result.Add(Patterns[i].Name, patternOffsets[i] + Patterns[i].BytesToSkip);
+                    Console.WriteLine($"[PatternFinder] {patterns[index].Name}: {hits[index].Count} matches, one expected. {patterns[index]}");
                 }
             }
 
-            return result;
+            return found;
         }
 
         /// <summary>
-        ///     Gets the length of the biggest pattern.
+        ///     The bytes of <paramref name="range"/>, a few megabytes at a time, each read <paramref name="overlap"/> bytes
+        ///     into the next. A read with a page that cannot be read fails whole, so one that fails is taken again in small pieces.
         /// </summary>
-        /// <returns>length of the biggest pattern.</returns>
-        private static int BiggestPatternLength()
+        internal static IEnumerable<(long Offset, byte[] Bytes)> Read(SafeMemoryHandle reader, long module, (long Start, long Size) range, int overlap)
         {
-            var maxLength = 0;
-            foreach (var pattern in Patterns)
+            var end = range.Start + range.Size;
+            for (var at = range.Start; at < end; at += Chunk)
             {
-                var currentPatternLength = pattern.Data.Length;
-                if (currentPatternLength > maxLength)
+                var want = (int)Math.Min(Chunk + overlap, end - at);
+                var bytes = reader.ReadMemoryArray<byte>(new IntPtr(module + at), want);
+                if (bytes.Length > 0)
                 {
-                    maxLength = currentPatternLength;
+                    yield return (at, bytes);
+                    continue;
+                }
+
+                for (var piece = at; piece < at + want; piece += Piece)
+                {
+                    var part = reader.ReadMemoryArray<byte>(new IntPtr(module + piece), (int)Math.Min(Piece + overlap, end - piece));
+                    if (part.Length > 0)
+                    {
+                        yield return (piece, part);
+                    }
                 }
             }
-
-            return maxLength;
-        }
-
-        /// <summary>
-        ///     Calculates the total number of read operations required for a given
-        ///     process size based on the MaxBytesObject constant.
-        /// </summary>
-        /// <param name="processSize">Size of the process main module.</param>
-        /// <returns>total number of read operations requried.</returns>
-        private static int CalculateTotalReadOperations(int processSize)
-        {
-            var ret = processSize / MaxBytesObject;
-            return processSize % MaxBytesObject == 0 ? ret : ret + 1;
         }
     }
 }

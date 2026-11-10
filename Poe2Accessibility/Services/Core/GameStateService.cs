@@ -206,6 +206,13 @@ namespace Poe2Accessibility.Services
         /// <summary>Address of the game's state object for the current state (needed to find its UI root).</summary>
         public static IntPtr CurrentStateObjectAddress()
         {
+            // The host reads it off the state stack; looking a name up comes second, since several states can share
+            // "unknown" and a state a patch added has no name at all.
+            if (Core.States.CurrentStateAddress != IntPtr.Zero)
+            {
+                return Core.States.CurrentStateAddress;
+            }
+
             var current = Core.States.GameCurrentState;
             foreach (var pair in Core.States.AllStates)
             {

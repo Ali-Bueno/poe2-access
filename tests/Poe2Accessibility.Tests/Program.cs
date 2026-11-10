@@ -32,6 +32,16 @@ namespace Poe2Accessibility.Tests
                 return SemanticRuleTests.CheckExe(exe, catalog);
             }
 
+            if (args is [StaticAnchorTests.CheckCommand, var image])
+            {
+                return StaticAnchorTests.CheckExe(image);
+            }
+
+            if (args is [StaticAnchorTests.GateCommand, var build, var catalogs])
+            {
+                return StaticAnchorTests.CheckBuild(build, catalogs);
+            }
+
             if (args is [PrismTests.CheckCommand, var prismFolder])
             {
                 return PrismTests.Check(prismFolder);
@@ -217,7 +227,7 @@ namespace Poe2Accessibility.Tests
                 Run(name, test);
             }
 
-            foreach (var (name, test) in LayoutSearchTests.All().Concat(HostSearchTests.All()).Concat(NameFallbackTests.All()).Concat(TrialDataTests.All()).Concat(PanelWidgetTests.All()).Concat(DodgeGateTests.All()).Concat(ClassMechanicTests.All()).Concat(DodgeDataTests.All()).Concat(TelegraphTests.All()).Concat(RouteSpeedTests.All()).Concat(RadarLabelTests.All()).Concat(PassiveStickTests.All()).Concat(DatColumnSearchTests.All()).Concat(ExtractorColumnTests.All()).Concat(ItemReadingTests.All()))
+            foreach (var (name, test) in LayoutSearchTests.All().Concat(HostSearchTests.All()).Concat(NameFallbackTests.All()).Concat(TrialDataTests.All()).Concat(PanelWidgetTests.All()).Concat(DodgeGateTests.All()).Concat(ClassMechanicTests.All()).Concat(DodgeDataTests.All()).Concat(TelegraphTests.All()).Concat(RouteSpeedTests.All()).Concat(RadarLabelTests.All()).Concat(PassiveStickTests.All()).Concat(DatColumnSearchTests.All()).Concat(ExtractorColumnTests.All()).Concat(ItemReadingTests.All()).Concat(StaticAnchorTests.All()))
             {
                 Run(name, test);
             }

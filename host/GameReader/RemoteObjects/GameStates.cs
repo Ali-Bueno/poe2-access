@@ -84,6 +84,12 @@ namespace GameReader.RemoteObjects
         public InGameState InGameStateObject { get; } = new(IntPtr.Zero);
 
         /// <summary>
+        ///     Gets the object of the state the game is in; zero before one is read. It is known even for a state the mod
+        ///     has no name for, so what hangs from the current state (its UI) does not depend on the naming.
+        /// </summary>
+        public IntPtr CurrentStateAddress => this.currentStateAddress;
+
+        /// <summary>
         ///     Gets what the judgments of the state object found: its stack, its state list, the in-game and loading states.
         /// </summary>
         public IReadOnlyList<StructOutcome> LayoutOutcomes { get; private set; } = Array.Empty<StructOutcome>();
@@ -116,20 +122,33 @@ namespace GameReader.RemoteObjects
                 lock (this.gameStatesLock)
                 {
                     this.myStaticObj = reader.ReadMemory<GameStateStaticOffset>(this.Address);
-                    this.LayoutOutcomes = this.JudgeLayout(reader);
+                    this.LayoutOutcomes = this.JudgeLayout(reader, out var counted);
                     var data = reader.ReadMemory<GameStateOffset>(this.myStaticObj.GameState);
-                    this.AllStates.Clear();
-                    this.named = Enumerable.Range(0, GameStateHelper.TOTAL_STATES).ToArray();
-                    this.slots = new long[GameStateHelper.TOTAL_STATES];
-                    for (var i = 0; i < GameStateHelper.TOTAL_STATES; i++)
+
+                    // As many states as the game has; while its list is not found, the thirteen where they were measured.
+                    this.slots = new long[Math.Max(counted.Length, GameStateHelper.TOTAL_STATES)];
+                    for (var i = 0; i < this.slots.Length; i++)
                     {
-                        this.AllStates[data.States[i].X] = (GameStateTypes)i;
-                        this.slots[i] = data.States[i].X.ToInt64();
+                        this.slots[i] = counted.Length > 0 ? (i < counted.Length ? counted[i] : 0)
+                            : i < GameStateHelper.TOTAL_STATES ? data.States[i].X.ToInt64() : 0;
+                    }
+
+                    // A slot past the ones the mod has a name for is a state all the same: an unknown one, not "game not loaded".
+                    this.AllStates.Clear();
+                    this.named = Enumerable.Range(0, this.slots.Length).Select(slot => slot < StateNames ? slot : -1).ToArray();
+                    for (var i = 0; i < this.slots.Length; i++)
+                    {
+                        this.AllStates[new IntPtr(this.slots[i])] = this.named[i] >= 0 ? (GameStateTypes)this.named[i] : GameStateTypes.UnknownState;
+                    }
+
+                    if (counted.Length > 0 && counted.Length != GameStateHelper.TOTAL_STATES)
+                    {
+                        Console.WriteLine($"[GameStates] the game has {counted.Length} states, {GameStateHelper.TOTAL_STATES} when measured.");
                     }
 
                     this.roles = new GameStateRoles(this.slots);
-                    this.AreaLoading.Address = data.States[(int)GameStateTypes.AreaLoadingState].X;
-                    this.InGameStateObject.Address = data.States[(int)GameStateTypes.InGameState].X;
+                    this.AreaLoading.Address = new IntPtr(this.slots[(int)GameStateTypes.AreaLoadingState]);
+                    this.InGameStateObject.Address = new IntPtr(this.slots[(int)GameStateTypes.InGameState]);
                 }
             }
             else
@@ -188,8 +207,9 @@ namespace GameReader.RemoteObjects
         }
 
         /// <summary>Where the state object keeps its stack and its list, judged on every attach (<see cref="GameStateLayout"/>).</summary>
-        private IReadOnlyList<StructOutcome> JudgeLayout(SafeMemoryHandle reader)
+        private IReadOnlyList<StructOutcome> JudgeLayout(SafeMemoryHandle reader, out long[] states)
         {
+            states = Array.Empty<long>();
             var block = reader.ReadMemoryArray<byte>(this.myStaticObj.GameState, GameStateLayout.BlockBytes);
             if (block.Length == 0)
             {
@@ -197,6 +217,7 @@ namespace GameReader.RemoteObjects
             }
 
             var found = GameStateLayout.Locate(block, GameStateFields.Measured, new GameMemory(reader));
+            states = GameStateLayout.States(block, found.States) ?? Array.Empty<long>();
             var outcomes = OffsetHealer.PlaceGameStates(found);
             this.layoutPending = outcomes.Any(outcome => outcome.Health == StructHealth.Lost) && ++this.layoutTried < LayoutTries;
             return this.layoutPending

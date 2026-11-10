@@ -7,8 +7,8 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     Diagnoses "game is running but GameHelper did not attach" for a user who cannot see the overlay.
-    ///     GameHelper attaches only when the process name is in GameProcessDetails.ProcessName AND the main
-    ///     window title equals the expected one, so we report exactly those two facts.
+    ///     The host attaches to a process that <c>GameProcessDetails.IsGame</c> takes for the game (its name, and the 2 in
+    ///     its window's title or its folder), so the same rule is reported here.
     /// </summary>
     public sealed class GameProcessProbe
     {
@@ -36,13 +36,13 @@ namespace Poe2Accessibility.Services
             {
                 try
                 {
-                    if (!GameProcessDetails.ProcessName.TryGetValue(process.ProcessName, out var expectedTitle))
+                    if (!GameProcessDetails.ProcessNames.Contains(process.ProcessName))
                     {
                         continue;
                     }
 
                     var title = process.MainWindowTitle;
-                    lines.Add(string.Equals(title.ToLowerInvariant(), expectedTitle, StringComparison.Ordinal)
+                    lines.Add(GameProcessDetails.IsGame(process.ProcessName, title, ImagePath(process))
                         ? Announcements.GameProcessMatches(process.ProcessName)
                         : Announcements.GameProcessTitleMismatch(process.ProcessName, title));
                 }
@@ -58,6 +58,19 @@ namespace Poe2Accessibility.Services
             }
 
             return string.Join(" ", lines);
+        }
+
+        /// <summary>Where the process runs from; null when Windows will not say, which leaves the title to tell.</summary>
+        private static string? ImagePath(Process process)
+        {
+            try
+            {
+                return process.MainModule?.FileName;
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
+            {
+                return null;
+            }
         }
 
         /// <summary>Call every frame while unattached; throttled internally.</summary>

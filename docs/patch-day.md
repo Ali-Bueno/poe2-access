@@ -17,9 +17,12 @@ protects it: [field protection audit](research/field-protection-audit.md).
 1. Keep a copy of every build: `D:\code\decompilers\projects\poe2-research\builds\<build id>\PathOfExileSteam.exe` (the build id
    and the depot manifest are in Steam's `logs/content_log.txt`; an older build: `steam://open/console`, then
    `download_depot 2694490 2694492 <manifest>`, [how](research/exe-layouts.md#measured-on-five-builds)).
-2. Run the code-field catalog over it: `py -I D:\code\decompilers\projects\poe2-research\re\cat_check.py` (edit the exe path at
-   its top) or `py -I tools/exe_reader/reader.py <exe>`. Every line that moved or missed is a field to look at before the game
-   is started.
+2. Run `powershell -File tools/Check-GameExe.ps1 <exe>` (2 s, the game not running): the static patterns (each must match
+   once and point into writable data), `catalog/code-fields.txt` and the 80 rules of `catalog/semantic-fields.txt`. It exits 0
+   when everything reads where it was measured. `MOVED` is a field the mod follows by itself at the start; `UNREAD`, `WRONG`
+   with nothing read, or a pattern not right is what to look at before the game is started. On the five archived builds the
+   patterns are right on all and the rules name the area fields that moved between them. `py -I tools/exe_reader/reader.py <exe>`
+   reads 21 fields with rules of its own, as a second opinion.
 
 ## 3. After the first start: read the log
 In `Plugins/Poe2Accessibility/logs/accessibility.log` look for `NOT FOUND`, `moved from`, `lost`, `does not match the
@@ -36,7 +39,7 @@ the passive tree and with the left trigger held), `sounds` (what played), `costs
 | A plugin offset (UI element, UI manager, in-game layer, control kind) | `Poe2Accessibility/GameLayout.cs` | `layout` says what it found instead; a UI dump (`dump`) shows the tree | `layout` all ok |
 | A dat column (names, flags, keys) | `catalog/dat-columns.json`, made by `tools/Poe2UiExtract dat-columns` | rerun the extractor on the new install | log `Dat columns: … where measured` |
 | An animation or stat id | `catalog/game-ids.txt`, made by `tools/Poe2UiExtract game-ids` | rerun it | the dodge warning and Rage read right |
-| The game state pointer, its stack and list, the in-game and loading states | `host/GameOffsets/StaticOffsetsPatterns.cs`, `GameStateOffsets.cs`; `GameStatesSearch` finds the pointer without the pattern, `GameStateLayout` and `GameStateRoles` judge the rest on every attach | `Layout: game state stack / list / in-game state …` | the state changes are logged at login |
+| The game state pointer, its stack and list, the in-game and loading states | `host/GameOffsets/StaticOffsetsPatterns.cs`, `GameStateOffsets.cs`; `GameStatesSearch` finds the pointer without the pattern (host log `Game states: found by search …`: the mod works, the pattern needs remaking), `GameStateLayout` and `GameStateRoles` judge the rest on every attach, and the states are counted (`the game has N states`) | `Layout: game state stack / list / in-game state …`; `Check-GameExe.ps1` | the state changes are logged at login |
 
 ### A fix without a new mod version
 A host struct field or a plugin offset that the code catalog names can be set by hand for one game build in

@@ -9,7 +9,7 @@ the gaps: [field protection audit](research/field-protection-audit.md).
 ## What depends on the game's build
 | Layer | Examples | After a patch |
 |---|---|---|
-| The host's reader (`host/`, from GameHelper2) | 6 byte patterns; struct offsets in `GameOffsets` (area, entities, components) | Found again at run time by the searches below; the constants are kept at the current build's values. |
+| The host's reader (`host/`, from GameHelper2) | 3 byte patterns (the state object, the window cull twice); struct offsets in `GameOffsets` (area, entities, components) | Found again at run time by the searches below; the constants are kept at the current build's values. |
 | The plugin's own offsets (`GameLayout`, ~86) | control name and text fields, UI manager focus fields, in-game layer fields, Render name, Targetable flag, dat row columns | The ones below are found again at runtime; the rest are checked only by the readings that use them. |
 | Data from the game's files | `catalog/item-sounds.json`, `area-names.json`, `ui-catalog.json`, `dat-columns.json`, the extracted sounds | Regenerated on the player's machine by the mod's start-up when the game's files change. |
 
@@ -41,7 +41,7 @@ host's searches (once a patch to GameHelper2, now in `host/`) read those fields 
 | Camera | the game keeps the matrix twice, one copy after the other | `StructShapes.IsCameraMatrix` |
 | Positions | a point inside the map that projects near the screen's middle (the camera follows the player); no such point while the measured field still holds a point of the map is not judged: the camera is elsewhere, and the field has not moved | `OffsetHealer.JudgePosition` |
 | Game state's area and world pointers | the pointer whose target holds a world / a camera matrix | `OffsetHealer.LocateArea` |
-| Game states, when their pattern fails | a static pointer to an object whose state stack ends in one of its states (at least 8 states; two of 13 are null until used) | `GameStatesSearch` |
+| Game states, when their pattern fails or matches another function | a static in the image's writable data that points at an object with a run of state slots (at least 8 used; counted, 13 on 0.5.5f) and a stack whose top is one of them, wherever in the object they are | `GameStatesSearch`, `GameStateLayout.IsStateObject` |
 | Game state object: stack and state list (every attach) | 13 slots of (object, control block), the used ones distinct and heap-aligned, and a stack of 16-byte entries whose last is one of them. The measured list is kept while it fits; a moved one takes, of the list found and those a slot either side, the one with more states. A list a whole slot off reads as one too: both roles found the same number of slots off rename every state (`WholeShift`). Not found at attach (the game still starting): looked for again every 2 s, said lost after two minutes | `GameStateLayout.Locate`, `GameStates.JudgeLayout` |
 | UI element base (`UiElementBaseOffset`: self, children, parent; position, modifier, scale; flags, scale index; size) | on the UI root, before any walk reads through them: its own address; children that are elements whose parent field points back at it; its size, the base resolution 2560 x 1600. The position group (the root at 0,0 with scale 1) and the flags group (the root visible with scale index 3, its descendants not all alike) have no such mark, so each takes the parent's or the size's shift, whichever fits. The plugin's readers of the struct (`UiElementReader`, `UiTreeReader`, `HostMemoryReader.TryRead`) go through the host's remap (`HostStructs`) | `UiElementLayoutSearch`, `OffsetHealer.JudgeUiElementBase` (called by `LayoutProbe.ProbeElementBase`) |
 | Window cull (`GameCullSize` pattern) | a check only: a value that is no cull of this window (negative, half the width or more) reads 0 and is said lost. Nothing in memory gives it: 2560 x 1440 reads 0, so it is not the 16:10 base resolution's bar (that would be 128) | `GameWindowCull.Judge` |
@@ -56,7 +56,12 @@ its `TryRead<T>` is the host's `TryReadMemory<T>` and follows the remap (the are
 `UiManagerLocator`, `UiTreeReader`); elements parsed from a block already read go through `HostStructs.Read<T>`, and a field
 offset taken by hand through `HostStructs.Follow<T>` (an item's path in `InventoryReader`).
 A pattern not found no longer stops the rest (`PatternFinder` threw, and a missing key in `Core` could take the other
-coroutines of the event with it). `WorldLayoutWatch` runs the sweep on a settled area, in the first three areas of a game
+coroutines of the event with it). No pattern is believed alone (`GameProcess.ScanStatics`, `PatternScan`): every match is
+counted, in the image's code only, and a displacement that points outside the image is no answer. The state object's
+place is proven by what it holds; while it is not, `GameProcess.ProveGameStates` tries it again every 3 s and searches the
+image's data for the static that does hold one, so a pattern that is gone, matches twice or matches another function
+costs seconds at the start (log: `Game states: found by search at +0x…; the pattern gave …`). The cull takes the place both
+its patterns name, else the one that names a single place. The scan runs off the frame thread. `WorldLayoutWatch` runs the sweep on a settled area, in the first three areas of a game
 process (80-110 ms each); a field missing is said, and a new build read with nothing lost says "El juego se ha actualizado:
 el mod lo ha encontrado todo" (`config/game-build.txt`).
 
@@ -436,8 +441,11 @@ What else remains is by design:
 - A structure redesigned rather than shifted (a component split in two, a list that becomes a map): its readings stop and the mod
   says so. No search can promise more; what it promises is that the common patch costs nothing, and that the rest is heard, not
   guessed from silence.
-- Of the six byte patterns only `Game States` and `GameCullSize` matter; `Game States` has a search, `GameCullSize` (the
-  window cull the UI rects use) only a plausibility check (above). The other four (`File Root`,
-  `AreaChangeCounter`, the two terrain rotation ones) were broken on purpose on 2026-11-06: the sweep, enemies, radar and walls went
-  on as before, since nothing the plugin reads goes through them. Build with `--no-incremental` to try it: a pattern edit alone
-  left `GameOffsets.dll` unbuilt.
+- Three byte patterns are left, for the two statics the mod reads: `Game States` has a proof and a search, `GameCullSize` (the
+  window cull the UI rects use) a second pattern and a plausibility check (above). The four nothing read (`File Root`,
+  `AreaChangeCounter`, the two terrain rotation ones) were removed on 2026-11-10; broken on purpose on 2026-11-06 they had cost
+  nothing. To try a broken pattern build with `--no-incremental`: a pattern edit alone left `GameOffsets.dll` unbuilt.
+- The state object is still told by its shape: slots of (object, control block) pointers and a vector of 16-byte entries. A
+  state list kept another way (a map, an array of raw pointers) would be said lost after two minutes, as before.
+- The game's process is told by its name and the 2 in its window's title or, if the title is reworded, in the folder it runs
+  from (`GameProcessDetails.IsGame`); a new process name for a new store still needs adding by hand.

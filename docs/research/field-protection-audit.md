@@ -34,7 +34,7 @@ Updated a third time that day for the gap pass (branch `worktree-agent-a0b9d794f
 
 | ID | Field | n | Struct | Used by | Protections | N | If lost | Notes |
 |---|---|---|---|---|---|---|---|---|
-| G1 | static "Game States" pointer | 1 | `StaticOffsetsPatterns` | everything | pattern; LIVE `GameStatesSearch` only when the pattern is absent (`GameProcess.cs:272`) | 2 | world and menus silent | said after two minutes with no state (`GameStateService`) |
+| G1 | static "Game States" pointer | 1 | `StaticOffsetsPatterns` | everything | pattern, proven by what it points at; LIVE `GameStatesSearch` whenever the proof fails: pattern absent, ambiguous or matching elsewhere (`GameProcess.ProveGameStates`, since 2026-11-10) | 2 | world and menus silent | said after two minutes with no state (`GameStateService`) |
 | G2 | `CurrentStatePtr` +0x10 (the last stack entry's object) | 1 | `GameStateOffset` | current state (login, select, loading, in game) | LIVE `GameStateLayout.Locate` on every attach: a stack of 16-byte entries whose top is one of the listed states | 1 | menus and world mode silent | `GameStates.JudgeLayout` |
 | G3 | `States` +0x50 | 1 | `GameStateOffset` | state addresses | LIVE `GameStateLayout.Locate`: 13 slots of distinct heap-aligned objects; of a list and one a slot off, the one with more states | 1 | world silent | |
 | G3b | slot indexes (0 = AreaLoading, 4 = InGame) | 1 | `GameStates` | `InGameStateObject`, `AreaLoading` | LIVE `GameStateRoles`: in play the state that leads to an area with a local player, loading the one current before two new areas | 1 | world silent | loading needs two area changes |
@@ -43,7 +43,7 @@ Updated a third time that day for the gap pass (branch `worktree-agent-a0b9d794f
 | G3e | ChangePassword, Credits (slots 1, 2; null in 0.5.5f) | 2 | `GameStates` | the state said on a change | by slot; between two roles that disagree a state keeps its slot | 0 | cosmetic | both slots are null in 0.5.5f, so neither can be current and its name cannot be said wrong; they have no role to be seen in |
 | G4 | `GameCullSize` static (black-bar width) | 1 | pattern only | UI rect x (`PluginUiElementReflection.cs`) | pattern; fallback pattern `GameCullSize (alt)` (`StaticOffsetsPatterns`, `Core.UpdateCullData`); CHECK plausible (0 to half the window, else 0 and said, `GameWindowCull.Judge`) | 2 | cosmetic: UI rects shifted on non-16:9 windows | the window's shape does not give it: 2560 x 1440 reads 0, not the 16:10 bar (128) |
 
-Not audited (not read by the mod): the other four patterns (`File Root`, `AreaChangeCounter`, the two terrain rotation ones;
+Not audited (not read by the mod): the other four patterns, removed on 2026-11-10 (`File Root`, `AreaChangeCounter`, the two terrain rotation ones;
 `Core.cs:170-250`, the preload scan is left off in `UpdateFilesData`, `Core.cs:183-196`), `AreaLoadingStateOffset` (`IsLoading`, `TotalLoadingScreenTimeMs`,
 `CurrentAreaDetailsPtr`: only `LoadedFiles.cs:107` reads them), `WorldAreaDatOffsets.Act/HasWaypoint`, `Transitionable.CurrentState`,
 `StatusEffect.TimeLeft/TotalTime`, `Stack.StackSizeDataPtr/MaxStack`, `TerrainStruct.TileHeightMultiplier`, `AreaInstance.Environments`

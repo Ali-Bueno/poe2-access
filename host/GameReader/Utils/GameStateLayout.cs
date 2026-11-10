@@ -23,8 +23,9 @@ namespace GameReader.Utils
     }
 
     /// <summary>
-    ///     Finds the game state object's fields by what they hold: thirteen slots of (object, control block) pointers,
-    ///     distinct and heap-aligned, and a stack of 16-byte entries whose last one is one of those states.
+    ///     Finds the game state object's fields by what they hold: a run of slots of (object, control block) pointers,
+    ///     distinct and heap-aligned, and a stack of 16-byte entries whose last one is one of those states. How many
+    ///     states there are is counted, not assumed: a patch has added one before (0.5.x).
     /// </summary>
     public static class GameStateLayout
     {
@@ -43,6 +44,9 @@ namespace GameReader.Utils
         // A state the game has not used yet is null (0.5.5f: two of thirteen).
         private const int MinStates = 8;
 
+        // More slots than this in a row are not a state list but a table of something else.
+        private const int MaxStates = 32;
+
         private static readonly int Slot = System.Runtime.CompilerServices.Unsafe.SizeOf<StdTuple2D<IntPtr>>();
 
         /// <summary>
@@ -58,40 +62,55 @@ namespace GameReader.Utils
                 return known == null ? -1 : StructShapes.Nearest(near.Stack, Pointer, block.Length - (3 * Pointer), place => known.Contains(Top(block, place, memory)));
             }
 
-            var first = StructShapes.Nearest(near.States, Pointer, block.Length - (Slot * GameStateHelper.TOTAL_STATES), at => StackFor(at) >= 0);
+            var first = StructShapes.Nearest(near.States, Pointer, block.Length - (Slot * MinStates), at => StackFor(at) >= 0);
             if (first < 0 || first == near.States)
             {
                 return first < 0 ? new GameStateFields(-1, -1) : new GameStateFields(StackFor(first), first);
             }
 
-            // Moved: of the list found and those a slot either side, the one with the most states (a slot off drops one at an end).
+            // Moved: of the list found and those a slot either side, the one with the most states in the slots the mod names
+            // (a slot off drops one at an end). Counted to the end, a list read from a pointer pair before it would hold them all.
             var best = new[] { first, first - Slot, first + Slot }.Where(at => StackFor(at) >= 0)
-                .OrderByDescending(at => States(block, at)!.Count(state => state != 0)).First();
+                .OrderByDescending(at => States(block, at)!.Take(GameStateHelper.TOTAL_STATES).Count(state => state != 0)).First();
             return new GameStateFields(StackFor(best), best);
         }
 
-        /// <summary>The thirteen state objects at <paramref name="at"/> in slot order (zero where unused); null when they are no state list.</summary>
+        /// <summary>Whether <paramref name="block"/> is the game's state object: a list and a stack that fit together, wherever in it.</summary>
+        public static bool IsStateObject(byte[] block, IAreaMemory memory) =>
+            Locate(block, GameStateFields.Measured, memory) is { Stack: >= 0, States: >= 0 };
+
+        /// <summary>
+        ///     The state objects at <paramref name="at"/> in slot order (zero where unused), as many as there are: the list ends
+        ///     at the first slot that is no state, and at its last used slot when that is past the thirteen the mod names. Null
+        ///     when they are no state list.
+        /// </summary>
         public static long[]? States(byte[] block, int at)
         {
-            if (at < 0 || at + (Slot * GameStateHelper.TOTAL_STATES) > block.Length)
+            if (at < 0)
             {
                 return null;
             }
 
-            var states = new long[GameStateHelper.TOTAL_STATES];
+            var states = new List<long>();
             var seen = new HashSet<long>();
-            for (var index = 0; index < states.Length; index++)
+            for (var index = 0; index < MaxStates && at + ((index + 1) * Slot) <= block.Length; index++)
             {
                 var (state, control) = (Long(block, at + (index * Slot)), Long(block, at + (index * Slot) + Pointer));
                 if (state != 0 && (!IsPointer(state) || state % HeapAlignment != 0 || !IsPointer(control) || !seen.Add(state)))
                 {
-                    return null;
+                    break;
                 }
 
-                states[index] = state;
+                states.Add(state);
             }
 
-            return seen.Count >= MinStates ? states : null;
+            // Empty slots past the named ones are the memory after the list, not states to come.
+            while (states.Count > GameStateHelper.TOTAL_STATES && states[^1] == 0)
+            {
+                states.RemoveAt(states.Count - 1);
+            }
+
+            return seen.Count >= MinStates ? states.ToArray() : null;
         }
 
         /// <summary>The state on top of the stack at <paramref name="at"/>; zero when it is no stack.</summary>

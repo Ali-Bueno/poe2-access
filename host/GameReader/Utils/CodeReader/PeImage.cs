@@ -15,8 +15,18 @@ namespace GameReader.Utils.CodeReader
     /// <param name="VirtualSize">Its size once loaded.</param>
     /// <param name="RawStart">Where its bytes start in the file.</param>
     /// <param name="RawSize">Its bytes in the file.</param>
-    public readonly record struct PeSection(string Name, long Start, long VirtualSize, long RawStart, long RawSize)
+    /// <param name="Flags">Its characteristics: what the loader lets the process do with it.</param>
+    public readonly record struct PeSection(string Name, long Start, long VirtualSize, long RawStart, long RawSize, uint Flags = 0)
     {
+        private const uint Executable = 0x20000000;
+        private const uint Writable = 0x80000000;
+
+        /// <summary>Gets whether it holds code. Told by the loader's flag, not by the name: a packer or a linker option renames sections.</summary>
+        public bool IsExecutable => (this.Flags & Executable) != 0;
+
+        /// <summary>Gets whether the process writes to it, as it does to the statics that hold its objects.</summary>
+        public bool IsWritable => (this.Flags & Writable) != 0;
+
         /// <summary>Gets the bytes both loaded and in the file.</summary>
         public long Size => Math.Min(this.VirtualSize, this.RawSize);
 
@@ -49,6 +59,7 @@ namespace GameReader.Utils.CodeReader
         private const int SectionStartAt = 12;
         private const int SectionRawSizeAt = 16;
         private const int SectionRawAt = 20;
+        private const int SectionFlagsAt = 36;
 
         private readonly byte[] file;
 
@@ -130,7 +141,8 @@ namespace GameReader.Utils.CodeReader
                     BinaryPrimitives.ReadUInt32LittleEndian(row[SectionStartAt..]),
                     BinaryPrimitives.ReadUInt32LittleEndian(row[SectionVirtualSizeAt..]),
                     BinaryPrimitives.ReadUInt32LittleEndian(row[SectionRawAt..]),
-                    BinaryPrimitives.ReadUInt32LittleEndian(row[SectionRawSizeAt..])));
+                    BinaryPrimitives.ReadUInt32LittleEndian(row[SectionRawSizeAt..]),
+                    BinaryPrimitives.ReadUInt32LittleEndian(row[SectionFlagsAt..])));
             }
 
             return sections;

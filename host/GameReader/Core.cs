@@ -9,6 +9,7 @@ namespace GameReader
     using System.Reflection;
     using Coroutine;
     using CoroutineEvents;
+    using GameOffsets;
     using GameReader.Cache;
     using RemoteObjects;
     using Settings;
@@ -120,10 +121,6 @@ namespace GameReader
             Process.Close(false);
         }
 
-        /// <summary>The two static patterns of <c>StaticOffsetsPatterns</c> that read the window cull; the second is the fallback.</summary>
-        private const string CullPattern = "GameCullSize";
-        private const string CullPatternAlt = "GameCullSize (alt)";
-
         /// <summary>
         ///     Co-routine to update the address where the
         ///     Game Cull Value is loaded in the game memory.
@@ -134,8 +131,7 @@ namespace GameReader
             while (true)
             {
                 yield return new Wait(Process.OnStaticAddressFound);
-                var cull = Process.StaticAddresses.GetValueOrDefault(CullPattern);
-                GameCull.Address = cull != IntPtr.Zero ? cull : Process.StaticAddresses.GetValueOrDefault(CullPatternAlt);
+                GameCull.Address = Process.StaticAddresses.GetValueOrDefault(StaticOffsetsPatterns.Cull);
                 GameScale.Refresh();
             }
         }
@@ -149,7 +145,7 @@ namespace GameReader
             while (true)
             {
                 yield return new Wait(Process.OnStaticAddressFound);
-                States.Address = Process.StaticAddresses.GetValueOrDefault("Game States");
+                States.Address = Process.StaticAddresses.GetValueOrDefault(StaticOffsetsPatterns.GameStates);
             }
         }
 

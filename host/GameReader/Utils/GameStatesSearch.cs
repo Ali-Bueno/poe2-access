@@ -6,69 +6,62 @@ namespace GameReader.Utils
 {
     using System;
     using System.Collections.Generic;
-    using GameOffsets.Objects;
+    using GameReader.RemoteObjects.States.InGameStateObjects;
 
     /// <summary>
-    ///     Finds the game's state list when its byte pattern no longer matches: a static pointer to an object whose state
-    ///     stack ends in one of its states, a shape nothing else in the image has.
+    ///     Finds the static that holds the game's state object without its byte pattern: a pointer in the image's own data to
+    ///     an object that <see cref="GameStateLayout"/> takes for the state object, wherever in it the list and the stack are.
+    ///     The same judgment says whether the place a pattern gave is the right one.
     /// </summary>
     internal static class GameStatesSearch
     {
-        private const int Chunk = 1 << 22;
         private const int Pointer = 8;
         private const int HeapAlignment = 16;
-        private const int StackEntry = 0x10;
-        private const int MaxStack = 0x400;
-        private const int MinStates = 8;
 
-        /// <summary>The address of the pointer to the state list; zero when no place fits.</summary>
-        internal static IntPtr Find(SafeMemoryHandle reader, IntPtr module, int size)
+        /// <summary>Whether the static at <paramref name="address"/> holds the state object now (it does not while the game is still starting).</summary>
+        internal static bool Holds(SafeMemoryHandle reader, IntPtr address) =>
+            reader.TryReadMemory<IntPtr>(address, out var state) && IsStateObject(reader, state.ToInt64(), new GameMemory(reader));
+
+        /// <summary>Every static in <paramref name="ranges"/> of the image that holds the state object, in address order.</summary>
+        internal static List<IntPtr> Find(SafeMemoryHandle reader, IntPtr module, int size, IReadOnlyList<(long Start, long Size)> ranges)
         {
-            var start = module.ToInt64();
-            for (var offset = 0; offset < size; offset += Chunk)
+            var (start, memory) = (module.ToInt64(), new GameMemory(reader));
+            var (judged, found) = (new Dictionary<long, bool>(), new List<IntPtr>());
+            foreach (var range in ranges)
             {
-                var bytes = reader.ReadMemoryArray<byte>(new IntPtr(start + offset), Math.Min(Chunk, size - offset));
-                for (var at = 0; at + Pointer <= bytes.Length; at += Pointer)
+                // Statics are pointer-aligned, and so is the image.
+                var aligned = (range.Start + Pointer - 1) / Pointer * Pointer;
+                foreach (var (offset, bytes) in PatternFinder.Read(reader, start, (aligned, range.Start + range.Size - aligned), 0))
                 {
-                    var value = BitConverter.ToInt64(bytes, at);
-                    if (value % HeapAlignment == 0 && (value < start || value >= start + size) &&
-                        SafeMemoryHandle.IsValidAddress(new IntPtr(value)) && IsStateList(reader, new IntPtr(value)))
+                    for (var at = 0; at + Pointer <= bytes.Length; at += Pointer)
                     {
-                        return new IntPtr(start + offset + at);
+                        var value = BitConverter.ToInt64(bytes, at);
+                        if (!IsHeapObject(value, start, size))
+                        {
+                            continue;
+                        }
+
+                        if (!judged.TryGetValue(value, out var fits))
+                        {
+                            judged[value] = fits = IsStateObject(reader, value, memory);
+                        }
+
+                        if (fits)
+                        {
+                            found.Add(new IntPtr(start + offset + at));
+                        }
                     }
                 }
             }
 
-            return IntPtr.Zero;
+            return found;
         }
 
-        private static bool IsStateList(SafeMemoryHandle reader, IntPtr candidate)
-        {
-            if (!reader.TryReadMemory<GameStateOffset>(candidate, out var data))
-            {
-                return false;
-            }
+        /// <summary>Whether <paramref name="value"/> can be a pointer to an object the game allocated: aligned as the heap aligns, and outside the image.</summary>
+        internal static bool IsHeapObject(long value, long module, int size) =>
+            value % HeapAlignment == 0 && (value < module || value >= module + size) && SafeMemoryHandle.IsValidAddress(new IntPtr(value));
 
-            var stack = data.CurrentStatePtr;
-            var bytes = stack.Last.ToInt64() - stack.First.ToInt64();
-            if (stack.First == IntPtr.Zero || bytes <= 0 || bytes > MaxStack || bytes % StackEntry != 0 ||
-                stack.End.ToInt64() < stack.Last.ToInt64())
-            {
-                return false;
-            }
-
-            // A state the game has not used yet is null (0.5.5f: two of thirteen).
-            var states = new HashSet<IntPtr>();
-            for (var index = 0; index < GameStateHelper.TOTAL_STATES; index++)
-            {
-                var state = data.States[index].X;
-                if (state != IntPtr.Zero && (!SafeMemoryHandle.IsValidAddress(state) || !states.Add(state)))
-                {
-                    return false;
-                }
-            }
-
-            return states.Count >= MinStates && reader.TryReadMemory<IntPtr>(stack.Last - StackEntry, out var current) && states.Contains(current);
-        }
+        private static bool IsStateObject(SafeMemoryHandle reader, long address, IAreaMemory memory) =>
+            reader.ReadMemoryArray<byte>(new IntPtr(address), GameStateLayout.BlockBytes) is { Length: > 0 } block && GameStateLayout.IsStateObject(block, memory);
     }
 }

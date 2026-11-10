@@ -24,6 +24,9 @@ namespace Poe2Accessibility.Tests
             (nameof(TheStateListAndStackAreFoundWhereverTheyMoved), TheStateListAndStackAreFoundWhereverTheyMoved),
             (nameof(PointersThatRepeatAreNoStateList), PointersThatRepeatAreNoStateList),
             (nameof(AValidListStaysWhereMeasured), AValidListStaysWhereMeasured),
+            (nameof(AStateAPatchAddedIsCounted), AStateAPatchAddedIsCounted),
+            (nameof(AListThatLostAStateStillFits), AListThatLostAStateStillFits),
+            (nameof(TheStateObjectIsToldByItsListAndStack), TheStateObjectIsToldByItsListAndStack),
             (nameof(TooFewBytesAreNoStruct), TooFewBytesAreNoStruct),
             (nameof(TheStateInPlayIsTheOneThatLeadsToAnArea), TheStateInPlayIsTheOneThatLeadsToAnArea),
             (nameof(TheLoadingStateIsWhatCameBeforeTwoNewAreas), TheLoadingStateIsWhatCameBeforeTwoNewAreas),
@@ -412,6 +415,55 @@ namespace Poe2Accessibility.Tests
             Put(block, measured.States + (12 * 0x10), 0, 0);
             Put(block, measured.States - 0x10, Heap + 0x7000, Heap + 0x7800);
             Equal(measured, GameStateLayout.Locate(block, measured, memory), "the measured list, not the longer one a slot off");
+        }
+
+        private static void AStateAPatchAddedIsCounted()
+        {
+            var measured = GameStateFields.Measured;
+            var (memory, block, states) = StateObject(measured.Stack, measured.States);
+            Equal(13, GameStateLayout.States(block, measured.States)!.Length, "thirteen as measured: what follows the list is no state");
+
+            // Two more states after the thirteen, and the game is in the last one.
+            var (added, last) = (Heap + 0x60000, Heap + 0x61000);
+            Put(block, measured.States + (13 * 0x10), added, added + 0x800, last, last + 0x800);
+            memory.Pointers[Heap + 0x30000 + 0x10] = last;
+            Equal(measured, GameStateLayout.Locate(block, measured, memory), "found though the current state is a new one");
+            var counted = GameStateLayout.States(block, measured.States)!;
+            Equal((15, last), (counted.Length, counted[14]), "every state the game has, the new ones last");
+            Equal(states[4], counted[4], "the old ones where they were");
+        }
+
+        private static void AListThatLostAStateStillFits()
+        {
+            var measured = GameStateFields.Measured;
+            var (memory, block, _) = StateObject(measured.Stack, measured.States);
+
+            // The thirteenth slot now belongs to whatever follows the list: a counter, not a pointer.
+            Put(block, measured.States + (12 * 0x10), 7, 0);
+            Equal(measured, GameStateLayout.Locate(block, measured, memory), "twelve states are a list");
+            Equal(12, GameStateLayout.States(block, measured.States)!.Length, "the list ends where the states do");
+        }
+
+        private static void TheStateObjectIsToldByItsListAndStack()
+        {
+            var measured = GameStateFields.Measured;
+            foreach (var shift in new[] { 0, 0x40, 0x98 })
+            {
+                var (memory, block, _) = StateObject(measured.Stack + shift, measured.States + shift);
+                Equal(true, GameStateLayout.IsStateObject(block, memory), $"a state object with its fields {shift:X} from where measured");
+            }
+
+            var (other, bytes, _) = StateObject(measured.Stack, measured.States);
+            other.Pointers[Heap + 0x30000 + 0x10] = Heap + 0x999990;
+            Equal(false, GameStateLayout.IsStateObject(bytes, other), "a list whose stack leads to none of its states");
+            Equal(false, GameStateLayout.IsStateObject(new byte[GameStateLayout.BlockBytes], other), "an empty object");
+            var noise = new byte[GameStateLayout.BlockBytes];
+            for (var at = 0; at < noise.Length; at += 8)
+            {
+                Put(noise, at, Heap + 0x500000 + (at * 0x20));
+            }
+
+            Equal(false, GameStateLayout.IsStateObject(noise, other), "a table of distinct pointers with no stack that leads into it");
         }
 
         private static long[] Slots()
