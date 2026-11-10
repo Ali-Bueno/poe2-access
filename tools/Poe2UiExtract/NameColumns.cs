@@ -55,6 +55,7 @@ internal static class NameColumns
     {
         // A table of a dozen classes has fewer rows than the rule asks of a long one.
         var minTranslated = Math.Min(MinTranslatedRows, english.RowCount / 2);
+        using var probe = DatTable.Probe();
         for (var offset = 1; offset + 8 <= english.RowSize; offset++)
         {
             int strings = 0, named = 0, differing = 0;

@@ -91,8 +91,11 @@ internal static class DatContentColumns
     }
 
     /// <summary>The fitting offset nearest to where the column was measured.</summary>
-    internal static int? Nearest(DatTable table, int measured, Func<int, bool> fits) =>
-        Enumerable.Range(0, table.RowSize).OrderBy(offset => Math.Abs(offset - measured)).Where(fits).Select(offset => (int?)offset).FirstOrDefault();
+    internal static int? Nearest(DatTable table, int measured, Func<int, bool> fits)
+    {
+        using var probe = DatTable.Probe();
+        return Enumerable.Range(0, table.RowSize).OrderBy(offset => Math.Abs(offset - measured)).Where(fits).Select(offset => (int?)offset).FirstOrDefault();
+    }
 
     /// <summary>An area's level: every row 0 to 100, most of them above 1, many values (0.5.5e: +0x26, the Riverbank 1, the Trial's hub 22).</summary>
     private static bool IsAreaLevel(DatTable areas, int offset)
@@ -167,6 +170,7 @@ internal static class DatContentColumns
     private static int? FlagOfIds(DatTable table, string word, int minRows = MinMarkedRows)
     {
         var marked = Enumerable.Range(0, table.RowCount).Where(row => table.String(row, 0).Contains(word, StringComparison.OrdinalIgnoreCase)).ToList();
+        using var probe = DatTable.Probe();
         return Enumerable.Range(0, table.RowSize)
             .Where(table.IsFlagColumn)
             .Select(offset => (Offset: offset, Marked: marked.Count(row => table.Bool(row, offset)), Set: Enumerable.Range(0, table.RowCount).Count(row => table.Bool(row, offset))))
@@ -177,14 +181,17 @@ internal static class DatContentColumns
     }
 
     /// <summary>The key column that reaches the most rows of its target, nearly all of them.</summary>
-    private static int? FullestKey(DatTable table, int targetRows) =>
-        Enumerable.Range(0, table.RowSize)
+    private static int? FullestKey(DatTable table, int targetRows)
+    {
+        using var probe = DatTable.Probe();
+        return Enumerable.Range(0, table.RowSize)
             .Where(offset => table.IsKeyColumn(offset, targetRows))
             .Select(offset => (Offset: offset, Reached: Enumerable.Range(0, table.RowCount).Select(row => table.Key(row, offset)).Where(key => key >= 0).Distinct().Count()))
             .Where(column => column.Reached >= targetRows * MostTargetRows)
             .OrderByDescending(column => column.Reached)
             .Select(column => (int?)column.Offset)
             .FirstOrDefault();
+    }
 
     /// <summary>The key column into <paramref name="targets"/> whose rows' Ids (underscores dropped) most often appear in the row's own Id.</summary>
     private static int? NamedKey(DatTable table, DatTable targets)
@@ -192,6 +199,7 @@ internal static class DatContentColumns
         static string Plain(string id) => id.Replace("_", string.Empty).ToLowerInvariant();
         var targetIds = Enumerable.Range(0, targets.RowCount).Select(row => Plain(targets.String(row, 0))).ToArray();
         var ids = Enumerable.Range(0, table.RowCount).Select(row => Plain(table.String(row, 0))).ToArray();
+        using var probe = DatTable.Probe();
         var ranked = Enumerable.Range(0, table.RowSize)
             .Where(offset => table.IsKeyColumn(offset, targets.RowCount))
             .Select(offset => (Offset: offset, Named: Enumerable.Range(0, table.RowCount).Count(row => table.Key(row, offset) is var key and >= 0 && targetIds[key].Length > 0 && ids[row].Contains(targetIds[key]))))

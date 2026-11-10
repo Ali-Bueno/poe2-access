@@ -111,6 +111,7 @@ internal static partial class ItemSoundExtractor
         out (int BaseSound, int BaseVisual, int VisualInventory, int VisualDrop, int File, int File2D) columns)
     {
         static bool IsSoundPath(string text) => text.StartsWith("Audio/", StringComparison.OrdinalIgnoreCase);
+        using var probe = DatTable.Probe();
         var measured = items.RowSize == BaseRowSize && visuals.RowSize == VisualRowSize && sounds.RowSize == SoundRowSize;
         int file, file2D;
         if (measured && sounds.IsStringColumn(SoundFile, IsSoundPath) && sounds.IsStringColumn(SoundFile2D, IsSoundPath))

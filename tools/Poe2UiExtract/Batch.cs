@@ -85,12 +85,14 @@ internal static class Batch
         var part = output + Extractor.BatchPartSuffix;
         var watch = Stopwatch.StartNew();
         using var capture = Say.StartCapture();
+        var audit = DatColumnAudit.Start();
         string? thrown = null;
         int code;
         try
         {
             File.Delete(part);
             code = Commands[command](gameDir, index, part);
+            code = code == 0 && !audit.Report(command) ? 1 : code;
         }
         catch (Exception error)
         {

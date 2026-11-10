@@ -88,6 +88,30 @@ namespace Poe2Accessibility.Tests
                     return this;
                 }
 
+                /// <summary>A key into another table as the game writes it: sixteen bytes, all 0xFE when null.</summary>
+                public RowWriter WideKey(int offset, long key)
+                {
+                    BitConverter.GetBytes(key < 0 ? NullKey : key).CopyTo(this.row, offset);
+                    BitConverter.GetBytes(key < 0 ? NullKey : 0).CopyTo(this.row, offset + 8);
+                    return this;
+                }
+
+                public RowWriter TextList(int offset, params string[] texts)
+                {
+                    var starts = new List<long>();
+                    foreach (var text in texts)
+                    {
+                        starts.Add(MarkerBytes + this.pool.Position);
+                        this.pool.Write(Encoding.Unicode.GetBytes(text));
+                        this.pool.Write(new byte[4]);
+                    }
+
+                    BitConverter.GetBytes((long)texts.Length).CopyTo(this.row, offset);
+                    BitConverter.GetBytes(MarkerBytes + this.pool.Position).CopyTo(this.row, offset + 8);
+                    starts.ForEach(start => this.pool.Write(BitConverter.GetBytes(start)));
+                    return this;
+                }
+
                 public RowWriter Int(int offset, int value)
                 {
                     BitConverter.GetBytes(value).CopyTo(this.row, offset);

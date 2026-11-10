@@ -69,6 +69,7 @@ internal sealed class DatColumnSearch
     /// </summary>
     public int Find(DatTable table, string name, int measured, Func<int, bool> fits, int after = -1)
     {
+        using var probe = DatTable.Probe();
         var found = Enumerable.Range(after + 1, Math.Max(0, table.RowSize - after - 1)).OrderBy(offset => Math.Abs(offset - measured)).Where(fits).Select(offset => (int?)offset).FirstOrDefault();
         if (found is not { } offset)
         {
@@ -123,6 +124,7 @@ internal sealed class DatColumnSearch
     /// </summary>
     public static bool IsIdColumn(DatTable table, int offset, Func<string, bool>? matches = null)
     {
+        using var probe = DatTable.Probe();
         var seen = new HashSet<string>(StringComparer.Ordinal);
         for (var row = 0; row < table.RowCount; row++)
         {
@@ -137,6 +139,7 @@ internal sealed class DatColumnSearch
 
     public static bool IsText(DatTable table, int offset, Func<string, bool> matches)
     {
+        using var probe = DatTable.Probe();
         int strings = 0, filled = 0;
         for (var row = 0; row < table.RowCount; row++)
         {
@@ -164,6 +167,7 @@ internal sealed class DatColumnSearch
 
     public static bool IsKey(DatTable table, int offset, int targetRows)
     {
+        using var probe = DatTable.Probe();
         if (offset < 0 || offset + sizeof(long) > table.RowSize)
         {
             return false;
@@ -191,6 +195,7 @@ internal sealed class DatColumnSearch
 
     public static bool IsKeyList(DatTable table, int offset, int targetRows)
     {
+        using var probe = DatTable.Probe();
         var filled = 0;
         for (var row = 0; row < table.RowCount; row++)
         {

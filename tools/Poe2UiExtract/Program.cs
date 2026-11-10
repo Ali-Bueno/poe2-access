@@ -35,7 +35,10 @@ public static class Extractor
 
         try
         {
-            return Dispatch(args);
+            // A batch judges each of its steps; a command run alone is judged here, a research aid not at all.
+            var audit = DatColumnAudit.Start();
+            var code = Dispatch(args);
+            return code == 0 && args.Length > 0 && !ResearchCommands.Contains(args[0]) && !audit.Report(args[0]) ? 1 : code;
         }
         finally
         {
@@ -43,6 +46,12 @@ public static class Extractor
             ProjectileSpeeds.Release();
         }
     }
+
+    /// <summary>The commands that print for a person and try columns as they go: their reads are not judged.</summary>
+    private static readonly HashSet<string> ResearchCommands = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "paths", "cat", "ot-with", "ao-sounds", "object-links", "dat-strings", "dat-row-strings", "dat-rows", "dat-kinds", "bank-samples",
+    };
 
     private static int Dispatch(string[] args)
     {
@@ -173,6 +182,37 @@ public static class Extractor
                 if (texts.Count(text => text != null) >= rows * 0.8 && texts.Any(text => !string.IsNullOrEmpty(text)))
                 {
                     Say.Out.WriteLine($"+0x{offset:X}: {string.Join(" | ", texts.Select(text => text ?? "?"))}");
+                }
+            }
+
+            return 0;
+        }
+
+        // Args: dat-kinds <gameDir> <table> [language] [id substring | #row,row]  -- research aid: the table laid out by what its
+        // bytes hold, a column a line (text, key, list, flag, runs of numbers), with the first value it has or, given an Id
+        // or row numbers, the values of those rows; the judge the steps' second opinion uses.
+        if (args.Length > 2 && string.Equals(args[0], "dat-kinds", StringComparison.OrdinalIgnoreCase))
+        {
+            using var bundles = OpenLoose(args[1]);
+            var table = args.Length > 3 && args[3] != "english" ? DatTable.OpenTranslated(bundles, args[2], args[3]) : DatTable.Open(bundles, args[2]);
+            if (table == null)
+            {
+                Say.Out.WriteLine($"No table {args[2]}");
+                return 1;
+            }
+
+            Say.Out.WriteLine($"{table.Name}: {table.RowCount} rows of 0x{table.RowSize:X} bytes");
+            var layout = DatColumnKinds.Layout(table).ToList();
+            var rows = args.Length <= 4 ? null
+                : args[4].StartsWith('#') ? args[4][1..].Split(',').Select(int.Parse).Where(row => row >= 0 && row < table.RowCount).ToList()
+                : Enumerable.Range(0, table.RowCount).Where(row => (table.StringOrNull(row, 0) ?? string.Empty).Contains(args[4], StringComparison.OrdinalIgnoreCase)).ToList();
+            foreach (var row in rows ?? new List<int> { -1 })
+            {
+                Say.Out.WriteLine(row < 0 ? "offset\tbytes\tkind\tfirst value" : $"row {row}:");
+                foreach (var (offset, kind, width) in layout)
+                {
+                    var value = row < 0 ? DatColumnKinds.Sample(table, offset, kind, width) : DatColumnKinds.Value(table, row, offset, kind, width);
+                    Say.Out.WriteLine($"+0x{offset:X}\t{width}\t{DatColumnKinds.Name(kind)}\t{value.ReplaceLineEndings(" / ")}");
                 }
             }
 

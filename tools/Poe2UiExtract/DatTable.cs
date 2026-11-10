@@ -20,6 +20,7 @@ internal sealed partial class DatTable
     private DatTable(byte[] data, string name)
     {
         this.data = data;
+        this.Name = name;
         if (data.Length < HeaderBytes + Marker.Length)
         {
             throw Unreadable(name, $"{data.Length} bytes is too short for a row count and the variable-data marker");
@@ -44,6 +45,7 @@ internal sealed partial class DatTable
         }
 
         this.RowSize = marker / this.RowCount;
+        this.reads = new byte[this.RowSize];
     }
 
     private static InvalidDataException Unreadable(string name, string why) => new($"{name}: not a table this reader understands ({why})");
@@ -52,10 +54,20 @@ internal sealed partial class DatTable
 
     public int RowSize { get; }
 
+    /// <summary>What the table was opened as: its path in the bundles.</summary>
+    public string Name { get; }
+
+    /// <summary>The bytes of the variable section, its marker included: string and list offsets count from its start.</summary>
+    public int VarLength => this.data.Length - this.varStart;
+
     /// <summary>A table from the bytes of a .datc64 file (the row count, the rows, the 0xBB marker, the variable section).</summary>
     public static DatTable FromBytes(byte[] data, string name = "table") => new(data, name);
 
-    public string String(int row, int offset) => this.ReadString(BitConverter.ToInt64(this.data, this.RowStart(row) + offset));
+    public string String(int row, int offset)
+    {
+        this.Note(offset, DatRead.Text);
+        return this.ReadString(BitConverter.ToInt64(this.data, this.RowStart(row) + offset));
+    }
 
     /// <summary>
     ///     The string a column holds in a row, or null when the 8 bytes there are not the offset of a string's first
@@ -68,32 +80,67 @@ internal sealed partial class DatTable
             return null;
         }
 
+        this.Note(offset, DatRead.Text);
         var value = BitConverter.ToInt64(this.data, this.RowStart(row) + offset);
         return this.IsStringStart(value) ? this.ReadString(value) : null;
     }
 
     /// <summary>8 bytes at any offset of a row, aligned or not (GrantedEffects' animation key sits at +0x71).</summary>
-    public long Int64(int row, int offset) => offset >= 0 && offset + 8 <= this.RowSize ? BitConverter.ToInt64(this.data, this.RowStart(row) + offset) : -1;
+    public long Int64(int row, int offset)
+    {
+        this.Note(offset, DatRead.Key);
+        return this.Raw64(row, offset);
+    }
+
+    /// <summary>8 bytes of a row for a judge of the bytes, not counted as a column read; -1 past the row's end.</summary>
+    internal long Raw64(int row, int offset) => offset >= 0 && offset + 8 <= this.RowSize ? BitConverter.ToInt64(this.data, this.RowStart(row) + offset) : -1;
+
+    /// <summary>One byte of a row for a judge of the bytes; -1 past the row's end.</summary>
+    internal int RawByte(int row, int offset) => offset >= 0 && offset < this.RowSize ? this.data[this.RowStart(row) + offset] : -1;
+
+    /// <summary>8 bytes of the variable section at a position counted from its marker; -1 past its end.</summary>
+    internal long Pool64(long position) => position >= 0 && this.varStart + position + 8 <= this.data.Length ? BitConverter.ToInt64(this.data, this.varStart + (int)position) : -1;
 
     /// <summary>A list column of strings: a count, then where in the variable section its string offsets start.</summary>
-    public IReadOnlyList<string> StringList(int row, int offset) =>
-        this.ListItems(row, offset, 8).Select(at => this.ReadString(BitConverter.ToInt64(this.data, at))).ToList();
+    public IReadOnlyList<string> StringList(int row, int offset)
+    {
+        this.Note(offset, DatRead.TextList);
+        return this.ListItems(row, offset, 8).Select(at => this.ReadString(BitConverter.ToInt64(this.data, at))).ToList();
+    }
 
     /// <summary>4 bytes at any offset of a row; -1 past its end.</summary>
-    public int Int32(int row, int offset) => offset >= 0 && offset + 4 <= this.RowSize ? BitConverter.ToInt32(this.data, this.RowStart(row) + offset) : -1;
+    public int Int32(int row, int offset)
+    {
+        this.Note(offset, DatRead.Number);
+        return offset >= 0 && offset + 4 <= this.RowSize ? BitConverter.ToInt32(this.data, this.RowStart(row) + offset) : -1;
+    }
 
     /// <summary>A one-byte flag column.</summary>
-    public bool Bool(int row, int offset) => offset >= 0 && offset < this.RowSize && this.data[this.RowStart(row) + offset] != 0;
+    public bool Bool(int row, int offset)
+    {
+        this.Note(offset, DatRead.Flag);
+        return offset >= 0 && offset < this.RowSize && this.data[this.RowStart(row) + offset] != 0;
+    }
 
     /// <summary>One byte at any offset of a row; -1 past its end.</summary>
-    public int Byte(int row, int offset) => offset >= 0 && offset < this.RowSize ? this.data[this.RowStart(row) + offset] : -1;
+    public int Byte(int row, int offset)
+    {
+        this.Note(offset, DatRead.Number);
+        return this.RawByte(row, offset);
+    }
 
     /// <summary>2 bytes at any offset of a row; -1 past its end.</summary>
-    public int UInt16(int row, int offset) => offset >= 0 && offset + 2 <= this.RowSize ? BitConverter.ToUInt16(this.data, this.RowStart(row) + offset) : -1;
+    public int UInt16(int row, int offset)
+    {
+        this.Note(offset, DatRead.Number);
+        return offset >= 0 && offset + 2 <= this.RowSize ? BitConverter.ToUInt16(this.data, this.RowStart(row) + offset) : -1;
+    }
 
     /// <summary>A one-byte flag column: every row holds 0 or 1, and both occur.</summary>
     public bool IsFlagColumn(int offset)
     {
+        using var probe = Probe();
+
         if (offset < 0 || offset >= this.RowSize)
         {
             return false;
@@ -115,20 +162,30 @@ internal sealed partial class DatTable
     }
 
     /// <summary>A list column of foreign keys (16 bytes each, the row index first).</summary>
-    public IReadOnlyList<long> KeyList(int row, int offset) =>
-        this.ListItems(row, offset, 16).Select(at => BitConverter.ToInt64(this.data, at)).ToList();
+    public IReadOnlyList<long> KeyList(int row, int offset)
+    {
+        this.Note(offset, DatRead.KeyList);
+        return this.ListItems(row, offset, 16).Select(at => BitConverter.ToInt64(this.data, at)).ToList();
+    }
 
     /// <summary>A list column of keys into the same table (8 bytes each).</summary>
-    public IReadOnlyList<long> RowList(int row, int offset) =>
-        this.ListItems(row, offset, 8).Select(at => BitConverter.ToInt64(this.data, at)).ToList();
+    public IReadOnlyList<long> RowList(int row, int offset)
+    {
+        this.Note(offset, DatRead.RowList);
+        return this.ListItems(row, offset, 8).Select(at => BitConverter.ToInt64(this.data, at)).ToList();
+    }
 
     /// <summary>A list column of 4-byte integers.</summary>
-    public IReadOnlyList<int> Int32List(int row, int offset) =>
-        this.ListItems(row, offset, 4).Select(at => BitConverter.ToInt32(this.data, at)).ToList();
+    public IReadOnlyList<int> Int32List(int row, int offset)
+    {
+        this.Note(offset, DatRead.NumberList);
+        return this.ListItems(row, offset, 4).Select(at => BitConverter.ToInt32(this.data, at)).ToList();
+    }
 
     /// <summary>The row a foreign-key column points to, or -1 for a null key.</summary>
     public long Key(int row, int offset)
     {
+        this.Note(offset, DatRead.Key);
         var value = BitConverter.ToInt64(this.data, this.RowStart(row) + offset);
         return value is >= 0 and < int.MaxValue ? value : -1;
     }
@@ -139,6 +196,8 @@ internal sealed partial class DatTable
     /// </summary>
     public bool IsKeyColumn(int offset, int targetRows)
     {
+        using var probe = Probe();
+
         if (offset < 0 || offset + 8 > this.RowSize)
         {
             return false;
@@ -170,6 +229,8 @@ internal sealed partial class DatTable
     /// </summary>
     public bool IsStringColumn(int offset, Func<string, bool> matches)
     {
+        using var probe = Probe();
+
         int strings = 0, filled = 0, hits = 0;
         for (var row = 0; row < this.RowCount; row++)
         {
@@ -189,6 +250,8 @@ internal sealed partial class DatTable
     /// <summary>A list column of strings: every item of every row matches, with enough rows filled.</summary>
     public bool IsStringListColumn(int offset, Func<string, bool> matches)
     {
+        using var probe = Probe();
+
         var filled = 0;
         for (var row = 0; row < this.RowCount; row++)
         {
@@ -210,6 +273,8 @@ internal sealed partial class DatTable
     /// <summary>A list column of keys into a table of <paramref name="targetRows"/> rows, with enough rows filled.</summary>
     public bool IsKeyListColumn(int offset, int targetRows)
     {
+        using var probe = Probe();
+
         var filled = 0;
         for (var row = 0; row < this.RowCount; row++)
         {
@@ -235,7 +300,7 @@ internal sealed partial class DatTable
     private int RowStart(int row) => 4 + (row * this.RowSize);
 
     /// <summary>Whether a variable-section offset is the first character of a string: past the marker and after a NUL pair.</summary>
-    private bool IsStringStart(long value)
+    internal bool IsStringStart(long value)
     {
         var at = this.varStart + value;
         return value >= Marker.Length && at < this.data.Length && (value == Marker.Length || (this.data[at - 1] == 0 && this.data[at - 2] == 0));
@@ -262,7 +327,10 @@ internal sealed partial class DatTable
         }
     }
 
-    private const int MaxListItems = 4096;
+    internal const int MaxListItems = 4096;
+
+    /// <summary>Whether the string at a variable-section offset has any character.</summary>
+    internal bool IsFilledString(long value) => this.varStart + value + 1 < this.data.Length && (this.data[this.varStart + value] != 0 || this.data[this.varStart + value + 1] != 0);
 
     private string ReadString(long offset)
     {

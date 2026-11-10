@@ -18,8 +18,13 @@ internal static class ExperienceExtractor
         }
 
         var offsets = Enumerable.Range(0, table.RowSize / 4).Select(column => column * 4).ToList();
-        var level = offsets.FirstOrDefault(offset => Enumerable.Range(0, table.RowCount).All(row => table.Int32(row, offset) == row + 1), -1);
-        var experience = offsets.Where(offset => offset != level).FirstOrDefault(offset => IsRisingFromZero(table, offset), -1);
+        int level, experience;
+        using (DatTable.Probe())
+        {
+            level = offsets.FirstOrDefault(offset => Enumerable.Range(0, table.RowCount).All(row => table.Int32(row, offset) == row + 1), -1);
+            experience = offsets.Where(offset => offset != level).FirstOrDefault(offset => IsRisingFromZero(table, offset), -1);
+        }
+
         if (level < 0 || experience < 0)
         {
             Say.Out.WriteLine($"experiencelevels: columns not recognised (level {level}, experience {experience})");
