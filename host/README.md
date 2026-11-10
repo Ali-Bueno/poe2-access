@@ -27,4 +27,4 @@ in the package (`AppFolders.Resolve`). The log is `Poe2Access.log` in that same 
 repository's root builds the same without them ([tools](../tools/README.md)). The three projects share `Directory.Build.props`
 (x64, nullable, latest C#).
 
-**Cost:** once a minute the log says what the frames cost (`Frames: … ms each (coroutines, reader, plugin, after) … CPU`).
+**Cost:** once a minute the log says what the frames cost (`Frames: … ms each (coroutines, reader, plugin) … CPU`).

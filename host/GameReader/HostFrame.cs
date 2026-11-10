@@ -20,7 +20,7 @@ namespace GameReader
         }
 
         /// <summary>The names of the parts of a frame, in the order <see cref="Run"/> times them.</summary>
-        public static readonly string[] StepNames = { "coroutines", "reader", "plugin", "after" };
+        public static readonly string[] StepNames = { "coroutines", "reader", "plugin" };
 
         /// <summary>
         ///     Runs one frame: coroutines, the remote objects' updates, then <paramref name="tick"/>; adds each
@@ -33,16 +33,12 @@ namespace GameReader
             var read = Stopwatch.GetTimestamp();
             Step("per frame data", () => CoroutineHandler.RaiseEvent(GameHelperEvents.PerFrameDataUpdate), fault);
             Step("post per frame data", () => CoroutineHandler.RaiseEvent(GameHelperEvents.PostPerFrameDataUpdate), fault);
-            Step("render", () => CoroutineHandler.RaiseEvent(GameHelperEvents.OnRender), fault);
             var plugin = Stopwatch.GetTimestamp();
             Step("plugin", tick, fault);
-            var after = Stopwatch.GetTimestamp();
-            Step("post render", () => CoroutineHandler.RaiseEvent(GameHelperEvents.OnPostRender), fault);
             var end = Stopwatch.GetTimestamp();
             elapsed[0] += read - start;
             elapsed[1] += plugin - read;
-            elapsed[2] += after - plugin;
-            elapsed[3] += end - after;
+            elapsed[2] += end - plugin;
         }
 
         /// <summary>Gets a value indicating whether the game process is open.</summary>

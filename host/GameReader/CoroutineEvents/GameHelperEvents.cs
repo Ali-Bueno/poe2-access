@@ -32,16 +32,6 @@ namespace GameReader.CoroutineEvents
         internal static readonly Event PerFrameDataUpdate = new();
 
         /// <summary>
-        ///     To submit the per-frame UI drawing.
-        /// </summary>
-        internal static readonly Event OnRender = new();
-
-        /// <summary>
-        ///     Gets the event raised after all OnRender coroutines have executed.
-        /// </summary>
-        internal static readonly Event OnPostRender = new();
-
-        /// <summary>
         ///     Gets the event raised when GameProcess has opened a new game.
         /// </summary>
         internal static readonly Event OnOpened = new();

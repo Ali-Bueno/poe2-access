@@ -15,7 +15,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
     using Components;
     using Coroutine;
     using CoroutineEvents;
-    using GameReader.Cache;
     using GameReader.RemoteEnums.Entity;
     using GameOffsets.Natives;
     using GameOffsets.Objects.States.InGameState;
@@ -51,7 +50,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         private bool skipVisuals = true;
         private int walks;
         private int incompleteWalks;
-        private readonly List<int> environments;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="AreaInstance" /> class.
@@ -60,19 +58,12 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         internal AreaInstance(IntPtr address)
             : base(address)
         {
-            this.environments = new();
-
             this.CurrentAreaLevel = 0;
             this.AreaHash = string.Empty;
 
             this.ServerDataObject = new(IntPtr.Zero);
             this.Player = new();
             this.AwakeEntities = new();
-            this.EntityCaches = new()
-            {
-                new("/LeagueDelirium/", 1105, 1105, this.AwakeEntities), // always keep this at index 0.
-                new("Breach", 1100, 1100, this.AwakeEntities),
-            };
 
             this.TerrainMetadata = default;
             this.GridWalkableData = Array.Empty<byte>();
@@ -115,11 +106,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         ///     are opposite of awake entities e.g. Decorations, Effects, particles and etc.
         /// </summary>
         public ConcurrentDictionary<EntityNodeKey, Entity> AwakeEntities { get; }
-
-        /// <summary>
-        ///     Gets important environments entity caches. This only contain awake entities.
-        /// </summary>
-        public List<DisappearingEntity> EntityCaches { get; }
 
         /// <summary>
         ///     Gets the terrain metadata data of the current Area/Zone instance.
@@ -188,10 +174,9 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 }
             }
 
-            this.UpdateEnvironmentAndCaches(data.Environments);
             this.ServerDataObject.Address = data.PlayerInfo.ServerDataPtr;
             this.Player.Address = data.PlayerInfo.LocalPlayerPtr;
-            this.UpdateEntities(data.Entities.AwakeEntities, this.AwakeEntities, true);
+            this.UpdateEntities(data.Entities.AwakeEntities, this.AwakeEntities);
             this.AddEntityBackedPlayerBuffs();
         }
 
@@ -240,34 +225,9 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             }
         }
 
-        private void UpdateEnvironmentAndCaches(StdVector environments)
-        {
-            this.environments.Clear();
-            var reader = Core.Process.Handle;
-            var envData = reader.ReadStdVector<EnvironmentStruct>(environments);
-            for (var i = 0; i < envData.Length; i++)
-            {
-                this.environments.Add(envData[i].Key);
-            }
-
-            this.EntityCaches.ForEach((eCache) => eCache.UpdateState(this.environments));
-        }
-
-        private void AddToCacheParallel(EntityNodeKey key, string path)
-        {
-            for (var i = 0; i < this.EntityCaches.Count; i++)
-            {
-                if (this.EntityCaches[i].TryAddParallel(key, path))
-                {
-                    break;
-                }
-            }
-        }
-
         private void UpdateEntities(
             StdMap ePtr,
-            ConcurrentDictionary<EntityNodeKey, Entity> data,
-            bool addToCache)
+            ConcurrentDictionary<EntityNodeKey, Entity> data)
         {
             var reader = Core.Process.Handle;
             var staleCleanup = Core.GHSettings.EnableStaleEntityCleanup;
@@ -331,10 +291,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                     if (!string.IsNullOrEmpty(entity.Path))
                     {
                         data[key] = entity;
-                        if (addToCache)
-                        {
-                            this.AddToCacheParallel(key, entity.Path);
-                        }
                     }
                     else
                     {
@@ -497,11 +453,9 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             this.AwakeEntities.Clear();
             this.skipVisuals = true;
             this.incompleteWalks = 0;
-            this.EntityCaches.ForEach((e) => e.Clear());
 
             if (!isAreaChange)
             {
-                this.environments.Clear();
                 this.CurrentAreaLevel = 0;
                 this.AreaHash = string.Empty;
                 this.ServerDataObject.Address = IntPtr.Zero;
