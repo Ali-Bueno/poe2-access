@@ -142,7 +142,7 @@ namespace Poe2Accessibility.Services
         /// <summary>Research (dev command "layout"): each bit judged so far, and any other bit that would fit as well.</summary>
         public string SelfTest()
         {
-            var (controls, labels, inputs, buttons) = this.screen;
+            var (controls, labels, inputs, _) = this.screen;
             return string.Join("; ", Line("interactive flag", controls, labels, GameLayout.Element.InteractiveFlagBit, OtherShare, MinCarriers),
                 Line("text input flag", inputs, labels, GameLayout.Element.TextInputFlagBit, OtherShare, MinInputs),
                 Line("navigable flag", this.focusFlags, this.containerFlags, GameLayout.Element.NavigableFlagBit, ContainerShare, MinCarriers),

@@ -172,8 +172,7 @@ namespace Poe2Accessibility.Services
             {
                 var t = (float)i / sampleRate;
                 phase += BumpStartHz * MathF.Pow(BumpEndHz / BumpStartHz, t / BumpSeconds) / sampleRate;
-                seed = (seed * 1664525) + 1013904223;
-                low += smoothing * ((((seed >> 8) / 8388608f) - 1f) - low);
+                low += smoothing * (Noise(ref seed) - low);
                 var body = MathF.Sin((float)(2 * Math.PI * phase)) * MathF.Exp(-t / BumpBodyDecaySeconds);
                 var knock = BumpNoiseLevel * low * MathF.Exp(-t / BumpNoiseDecaySeconds);
                 var gate = MathF.Min(1f, t / BumpAttackSeconds) * MathF.Min(1f, (BumpSeconds - t) / BumpReleaseSeconds);
@@ -201,8 +200,7 @@ namespace Poe2Accessibility.Services
             uint seed = 3;
             for (var i = 0; i < line.Length; i++)
             {
-                seed = (seed * 1664525) + 1013904223;
-                line[i] = ((seed >> 8) / 8388608f) - 1f;
+                line[i] = Noise(ref seed);
             }
 
             var smoothing = 1f - MathF.Exp(-2 * MathF.PI * PluckBrightness * hz / sampleRate);
@@ -266,6 +264,13 @@ namespace Poe2Accessibility.Services
             {
                 samples[i] *= factor;
             }
+        }
+
+        /// <summary>The next sample of white noise, -1 … 1, from a seed: the same sound every time.</summary>
+        private static float Noise(ref uint seed)
+        {
+            seed = (seed * 1664525) + 1013904223;
+            return ((seed >> 8) / 8388608f) - 1f;
         }
 
         /// <summary>
@@ -422,8 +427,7 @@ namespace Poe2Accessibility.Services
             for (var i = 0; i < samples.Length; i++)
             {
                 var t = (float)i / sampleRate;
-                seed = (seed * 1664525) + 1013904223;
-                var noise = ((seed >> 8) / 8388608f) - 1f;
+                var noise = Noise(ref seed);
                 var centre = startHz * MathF.Pow(endHz / startHz, t / seconds);
                 var tuning = 2 * MathF.Sin(MathF.PI * centre / sampleRate);
                 var high = noise - low - (band / BreathQ);

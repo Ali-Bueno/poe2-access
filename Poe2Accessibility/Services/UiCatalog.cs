@@ -22,8 +22,6 @@ namespace Poe2Accessibility.Services
         /// <summary>The .ui script's input mode that hides what is typed.</summary>
         public const string PasswordMode = "password";
 
-        public int Count => this.byId.Count;
-
         /// <summary>Loads the catalog; an absent or broken file yields an empty catalog (heuristics take over).</summary>
         public static UiCatalog Load(string path, PluginLog log)
         {

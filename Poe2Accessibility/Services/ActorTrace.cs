@@ -7,10 +7,8 @@ namespace Poe2Accessibility.Services
     using System.Numerics;
     using System.Text;
     using GameReader;
-    using GameReader.RemoteEnums;
     using GameReader.RemoteEnums.Entity;
     using GameReader.RemoteObjects.Components;
-    using GameReader.RemoteObjects.States.InGameStateObjects;
 
     /// <summary>
     ///     Research (dev command "trace [seconds]"): every frame, for each monster near the player that is acting (not

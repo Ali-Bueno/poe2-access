@@ -155,7 +155,7 @@ namespace Poe2Accessibility.Services
             var stats = new List<string>(tooltip); // what the node does, without the build's step and note
             if (!tooltipPending)
             {
-                var buildLines = plan != null && marked.Contains(record) ? this.BuildLines(plan, record, node).ToList() : new List<string>();
+                var buildLines = plan != null && marked.Contains(record) ? this.BuildLines(plan, record).ToList() : new List<string>();
                 tooltip.AddRange(buildLines);
                 tooltip.AddRange(notes.Where(note => !buildLines.Any(line => SaysAlready(line, note))));
                 whole.AddRange(tooltip);

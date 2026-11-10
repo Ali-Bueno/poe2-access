@@ -38,10 +38,6 @@ namespace Poe2Accessibility.Services
         public static void Set(Dictionary<string, Dictionary<string, string>> table) => names = table;
 
         /// <summary>The item's name in the game's language (English when that language has none), or null.</summary>
-        public static string? Of(string artId) =>
-            (names.TryGetValue(Localization.Language, out var local) && local.TryGetValue(artId, out var name)) ||
-            (names.TryGetValue("en", out var english) && english.TryGetValue(artId, out name))
-                ? name
-                : null;
+        public static string? Of(string artId) => Localization.Pick(names, Localization.Language, artId);
     }
 }

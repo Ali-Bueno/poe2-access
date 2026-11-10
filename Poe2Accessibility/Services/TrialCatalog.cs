@@ -30,7 +30,6 @@ namespace Poe2Accessibility.Services
         public const string RoundLabel = "label:round";
         public const string CrystalsLabel = "label:crystals";
 
-        private const string Fallback = "en";
         private const string EffectPrefix = "effect:";
         private const string AfflictionPrefix = EffectPrefix + "Affliction";
         private const string BoonPrefix = EffectPrefix + "Boon";
@@ -115,11 +114,7 @@ namespace Poe2Accessibility.Services
         };
 
         /// <summary>The text of a key in the game's language, else in English, else empty.</summary>
-        public string Text(string key) =>
-            (this.texts.TryGetValue(Localization.Language, out var own) && own.TryGetValue(key, out var text)) ||
-            (this.texts.TryGetValue(Fallback, out var english) && english.TryGetValue(key, out text))
-                ? text
-                : string.Empty;
+        public string Text(string key) => Localization.Pick(this.texts, Localization.Language, key) ?? string.Empty;
 
         /// <summary>A key's description.</summary>
         public string About(string key) => this.Text(key + AboutSuffix);

@@ -75,7 +75,7 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Character creation's Continue is grey (GameLayout.CreateCharacter); false when it is not found.</summary>
         public bool ContinueGrey(IntPtr layer) =>
-            this.FindNamed(layer, GameLayout.CreateCharacter.Continue, GameLayout.CreateCharacter.ContinueDepth) is { } button &&
+            this.elements.FindNamed(layer, GameLayout.CreateCharacter.Continue, GameLayout.CreateCharacter.ContinueDepth)?.Address is { } button &&
             this.reader.TryRead<byte>(button + GameLayout.CreateCharacter.ContinueGreyOffset + (this.elements.Controls?.TextShift ?? 0), out var grey) && grey == 1;
 
         /// <summary>
@@ -89,8 +89,7 @@ namespace Poe2Accessibility.Services
 
         private (IntPtr Selector, IntPtr Grid) FindSelector(IntPtr layer)
         {
-            if (this.FindNamed(layer, GameLayout.ClassSelector.Name, SelectorSearchDepth) is not { } selector ||
-                !this.elements.TryReadElement(selector, out var info))
+            if (this.elements.FindNamed(layer, GameLayout.ClassSelector.Name, SelectorSearchDepth) is not { } info)
             {
                 return (IntPtr.Zero, IntPtr.Zero);
             }
@@ -120,37 +119,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            return best.Address == IntPtr.Zero ? (IntPtr.Zero, IntPtr.Zero) : (selector, best.Address);
-        }
-
-        /// <summary>The first element with this control name under <paramref name="root"/>, breadth first.</summary>
-        private IntPtr? FindNamed(IntPtr root, string name, int maxDepth)
-        {
-            var queue = new Queue<(IntPtr Address, int Depth)>();
-            queue.Enqueue((root, 0));
-            while (queue.Count > 0)
-            {
-                var (address, depth) = queue.Dequeue();
-                if (!this.elements.TryReadElement(address, out var info))
-                {
-                    continue;
-                }
-
-                if (info.Name == name)
-                {
-                    return address;
-                }
-
-                if (depth < maxDepth)
-                {
-                    foreach (var child in this.elements.ReadChildren(info))
-                    {
-                        queue.Enqueue((child, depth + 1));
-                    }
-                }
-            }
-
-            return null;
+            return best.Address == IntPtr.Zero ? (IntPtr.Zero, IntPtr.Zero) : (info.Address, best.Address);
         }
     }
 }

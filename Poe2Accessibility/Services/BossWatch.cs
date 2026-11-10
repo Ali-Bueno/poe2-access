@@ -486,9 +486,6 @@ namespace Poe2Accessibility.Services
 
             /// <summary>Where the time to the blow came from on the last frame.</summary>
             public BlowTiming Timing { get; init; }
-
-            /// <summary>The gate's last verdict was not silent.</summary>
-            public bool Threatens { get; init; }
         }
     }
 }

@@ -121,7 +121,7 @@ namespace Poe2Accessibility.Services
             }
 
             var link = links[index];
-            var keyword = link.Groups[2].Success ? link.Groups[2].Value : link.Groups[1].Value;
+            var keyword = ShownText(link);
             var row = this.LinkRow(parent, sentence, keyword, out var rowElement);
             return new AccessibleUiNode
             {

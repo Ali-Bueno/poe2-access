@@ -3,7 +3,6 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using GameReader.Utils;
     using GameReader.Utils.CodeReader;
 
     /// <summary>

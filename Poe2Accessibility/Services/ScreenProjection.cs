@@ -35,6 +35,17 @@ namespace Poe2Accessibility.Services
             return ((worldOffset.X / ProbeWorld) * alongX) + ((worldOffset.Y / ProbeWorld) * alongY);
         }
 
+        /// <summary>
+        ///     Pan and pitch of a sound at a world offset (<see cref="BeaconMath.Voice"/>), drawn in to the centre as it comes
+        ///     within <paramref name="centreWorld"/> of the listener.
+        /// </summary>
+        public static (float Pan, float Pitch) Voice(StdTuple3D<float> origin, Vector2 worldOffset, float distance, float centreWorld)
+        {
+            var (side, height) = BeaconMath.Voice(Direction(origin, worldOffset));
+            var spread = Math.Min(1f, distance / centreWorld);
+            return (side * spread, 1f + ((height - 1f) * spread));
+        }
+
         /// <summary>The stick direction (<see cref="StickDirection"/> octant) of a world offset from a place.</summary>
         public static int Octant(StdTuple3D<float> origin, Vector2 worldOffset)
         {

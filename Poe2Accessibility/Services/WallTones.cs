@@ -18,8 +18,6 @@ namespace Poe2Accessibility.Services
         /// <summary>Half the width scanned either side of a ray, in cells: the body and a lane each side.</summary>
         private const float LaneCells = 1.5f;
 
-        private const float ProbeWorld = 100f;
-
         private static readonly RadarSynth.Direction[] Directions = Enum.GetValues<RadarSynth.Direction>();
 
         private readonly Dictionary<RadarSynth.Direction, AudioCueService.Bed> beds = new();
@@ -66,7 +64,6 @@ namespace Poe2Accessibility.Services
 
             this.lastPoll = now;
             var area = Core.States.InGameStateObject.CurrentAreaInstance;
-            var world = Core.States.InGameStateObject.CurrentWorldInstance;
             var cellSize = area.WorldToGridConvertor;
             var grid = area.GridWalkableData;
             var row = area.TerrainMetadata.BytesPerRow;

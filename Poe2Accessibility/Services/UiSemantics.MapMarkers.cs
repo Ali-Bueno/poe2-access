@@ -130,9 +130,7 @@ namespace Poe2Accessibility.Services
                 if (offset.Length() >= markers[hereIndex].Width / 2)
                 {
                     // Screen y grows downwards; StickDirections count counter-clockwise from right.
-                    var angle = System.Math.Atan2(-offset.Y, offset.X) * 180 / System.Math.PI;
-                    var octant = (int)(((System.Math.Round(angle / 45) % 8) + 8) % 8);
-                    label = $"{label}, {Announcements.StickDirections[octant]}";
+                    label = $"{label}, {Announcements.StickDirections[PassiveStick.Nearest(offset)]}";
                 }
             }
 

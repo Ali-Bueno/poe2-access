@@ -7,7 +7,6 @@ namespace Poe2Accessibility.Services
     using GameReader;
     using GameReader.RemoteObjects.Components;
     using GameReader.RemoteObjects.States.InGameStateObjects;
-    using GameOffsets.Natives;
 
     /// <summary>
     ///     Navigation radar (D2R design, docs/radar.md): four rays along the screen's up, left, right and down, each
@@ -55,8 +54,6 @@ namespace Poe2Accessibility.Services
         private const long StillMs = 200;
         private const long StillConfirmMs = 100;
         private const long OpeningIntervalMs = 500;
-
-        private const float ProbeWorld = 100f;
 
         /// <summary>Widest blocked group still a small obstacle, in cells (D2R: 5×5 subtiles).</summary>
         private const int SmallObstacleCells = 5;
@@ -322,9 +319,6 @@ namespace Poe2Accessibility.Services
 
             return found;
         }
-
-        internal static StdTuple3D<float> Offset(StdTuple3D<float> origin, float dx, float dy) =>
-            new() { X = origin.X + dx, Y = origin.Y + dy, Z = origin.Z };
 
         /// <summary>When the radars' next cue may start: one cue at a time across all of them.</summary>
         public sealed class Turn

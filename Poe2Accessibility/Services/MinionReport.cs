@@ -2,10 +2,8 @@ namespace Poe2Accessibility.Services
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Numerics;
     using GameReader;
-    using GameReader.RemoteEnums;
     using GameReader.RemoteEnums.Entity;
     using GameReader.RemoteObjects.Components;
     using GameReader.RemoteObjects.States.InGameStateObjects;

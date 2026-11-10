@@ -71,6 +71,13 @@ namespace Poe2Accessibility
         /// <summary>The current language's translation of an English phrase (a composite format for interpolated ones).</summary>
         public static string? Translate(string english) => phrases.TryGetValue(english, out var translated) ? translated : null;
 
+        /// <summary>A key's text in a { language: { key: text } } catalog, in the language, else in English; null when neither has it.</summary>
+        public static string? Pick(Dictionary<string, Dictionary<string, string>> catalog, string language, string key) =>
+            (catalog.TryGetValue(language, out var own) && own.TryGetValue(key, out var text)) ||
+            (catalog.TryGetValue("en", out var english) && english.TryGetValue(key, out text))
+                ? text
+                : null;
+
         /// <summary>For tests: a language with the given phrase table.</summary>
         public static void Set(string language, Dictionary<string, string> table)
         {

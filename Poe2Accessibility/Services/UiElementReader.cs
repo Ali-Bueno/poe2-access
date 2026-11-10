@@ -128,6 +128,36 @@ namespace Poe2Accessibility.Services
         public IntPtr[] ReadChildren(in ElementInfo info) =>
             this.reader.ReadStdVector<IntPtr>(info.Raw.ChildrensPtr, MaxChildrenPerNode);
 
+        /// <summary>The first element with this control name at or under <paramref name="root"/>, breadth first, <paramref name="maxDepth"/> levels down.</summary>
+        public ElementInfo? FindNamed(IntPtr root, string name, int maxDepth)
+        {
+            var queue = new Queue<(IntPtr Address, int Depth)>();
+            queue.Enqueue((root, 0));
+            while (queue.Count > 0)
+            {
+                var (address, depth) = queue.Dequeue();
+                if (!this.TryReadElement(address, out var info))
+                {
+                    continue;
+                }
+
+                if (info.Name == name)
+                {
+                    return info;
+                }
+
+                if (depth < maxDepth)
+                {
+                    foreach (var child in this.ReadChildren(info))
+                    {
+                        queue.Enqueue((child, depth + 1));
+                    }
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>
         ///     Display text of a label / text-field element. Only the 0x700-byte text subclass has these
         ///     fields; on smaller elements the offsets fall into the next heap object, so the read is accepted

@@ -15,7 +15,6 @@ namespace Poe2Accessibility.Services
         private const int SearchDepth = 12;
         private const int MaxNodes = 4000;
 
-        private readonly HostMemoryReader memory;
         private readonly UiElementReader elements;
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
@@ -33,9 +32,8 @@ namespace Poe2Accessibility.Services
         private long? amount;
         private long lastPoll;
 
-        public GoldWatch(HostMemoryReader memory, UiElementReader elements, IAccessibilityOutputService output, PluginLog log)
+        public GoldWatch(UiElementReader elements, IAccessibilityOutputService output, PluginLog log)
         {
-            this.memory = memory;
             this.elements = elements;
             this.output = output;
             this.log = log;

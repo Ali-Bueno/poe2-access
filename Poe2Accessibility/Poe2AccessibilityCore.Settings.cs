@@ -1,7 +1,6 @@
 namespace Poe2Accessibility
 {
     using System;
-    using GameReader;
     using Poe2Accessibility.Services;
 
     /// <summary>Settings of <see cref="Poe2AccessibilityCore"/>: applying them to the services, hotkey checks.</summary>
@@ -49,7 +48,7 @@ namespace Poe2Accessibility
 
         private void ApplySoundVolumes(AccessibilitySettings settings)
         {
-            static float Fraction(int percent) => Math.Clamp(percent, 0, SettingsMenu.MaxVolume) / 100f;
+            static float Fraction(int percent) => AudioCueService.Fraction(percent);
             if (this.audio != null)
             {
                 this.audio.Volume = Fraction(settings.SoundVolume);

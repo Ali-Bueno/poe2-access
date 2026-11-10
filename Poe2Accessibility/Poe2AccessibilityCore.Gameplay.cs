@@ -25,7 +25,7 @@ namespace Poe2Accessibility
             bool inWorld, playing;
             try
             {
-                inWorld = this.WorldInFront() && Core.Process.Foreground && this.gameState?.CurrentState == GameStateTypes.InGameState;
+                inWorld = this.WorldInFront() && Core.Process.Foreground && this.InGame;
                 playing = inWorld && IsPlayerAlive();
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
@@ -79,7 +79,7 @@ namespace Poe2Accessibility
                     this.targets.Tick(playing && (this.Settings.AnnounceTarget || this.Settings.CrosshairBeep), aiming);
                 }
             });
-            if (this.gameState?.CurrentState == GameStateTypes.InGameState)
+            if (this.InGame)
             {
                 this.Isolated("pick-ups", () => this.pickups?.Tick(playing && this.Settings.AnnouncePickups));
                 this.Isolated("hand", () => this.pickups?.TickHand(this.Settings.AnnounceHand));
