@@ -52,12 +52,17 @@ internal static class ClassMechanicExtractor
             return 1;
         }
 
+        if (SkillTypes(index) is not { } skillTypes)
+        {
+            return 1;
+        }
+
         var result = new
         {
             stats = resources.Select(resource => new { name = resource.Name, current = resource.Current, maximum = resource.Maximum, virtualMaximum = resource.VirtualMaximum }).ToList(),
             limits = limits.Select(limit => new { name = limit.Name, active = limit.Active, allowed = limit.Allowed }).ToList(),
             buffs = BuffNames(index, buffs, buffColumns),
-            skills = SkillTypes(index),
+            skills = skillTypes,
         };
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outFile))!);
         File.WriteAllText(outFile, JsonSerializer.Serialize(result, new JsonSerializerOptions
@@ -107,8 +112,8 @@ internal static class ClassMechanicExtractor
         return new SortedDictionary<string, object>(named.ToDictionary(pair => pair.Key, pair => (object)new { type = pair.Value.Type, names = pair.Value.Names }), StringComparer.Ordinal);
     }
 
-    /// <summary>Each granted effect with an active skill: its skill type names, by the GrantedEffects id; empty when the columns fail the checks.</summary>
-    private static SortedDictionary<string, List<string>> SkillTypes(Index index)
+    /// <summary>Each granted effect with an active skill: its skill type names, by the GrantedEffects id; null (said) when the columns fail the checks.</summary>
+    private static SortedDictionary<string, List<string>>? SkillTypes(Index index)
     {
         var result = new SortedDictionary<string, List<string>>(StringComparer.Ordinal);
         var effects = DatTable.Open(index, "grantedeffects");
@@ -116,24 +121,24 @@ internal static class ClassMechanicExtractor
         var types = DatTable.Open(index, "activeskilltype");
         if (effects == null || skills == null || types == null)
         {
-            Say.Out.WriteLine("GrantedEffects, ActiveSkills or ActiveSkillType missing: skill types left out.");
-            return result;
+            Say.Out.WriteLine("GrantedEffects, ActiveSkills or ActiveSkillType missing.");
+            return null;
         }
 
         var typeNames = Enumerable.Range(0, types.RowCount).Select(row => types.String(row, ActiveSkillTypeIdOffset)).ToList();
         var typesOffset = TypesColumn(skills, types.RowCount, typeNames);
         if (typesOffset < 0)
         {
-            Say.Out.WriteLine("No ActiveSkills column gives war_banner 'Banner' and explosive_grenade 'Grenade': skill types left out.");
-            return result;
+            Say.Out.WriteLine("No ActiveSkills column gives war_banner 'Banner' and explosive_grenade 'Grenade'.");
+            return null;
         }
 
-        var skillOffset = effects.IsKeyColumn(EffectActiveSkillOffset, skills.RowCount) ? EffectActiveSkillOffset
-            : Enumerable.Range(0, effects.RowSize - 8).FirstOrDefault(offset => effects.IsKeyColumn(offset, skills.RowCount), -1);
-        if (skillOffset < 0)
+        var search = new DatColumnSearch();
+        var skillOffset = search.Key(effects, "GrantedEffects.ActiveSkill", EffectActiveSkillOffset, skills,
+            known: (DatColumnSearch.RowOf(effects, BossColumns.KnownSkill), key => key >= 0 && key < skills.RowCount && skills.StringOrNull((int)key, ActiveSkillIdOffset) == BossColumns.KnownSkillKind));
+        if (!search.Report("class-mechanics"))
         {
-            Say.Out.WriteLine("No GrantedEffects column keys into ActiveSkills: skill types left out.");
-            return result;
+            return null;
         }
 
         for (var row = 0; row < effects.RowCount; row++)

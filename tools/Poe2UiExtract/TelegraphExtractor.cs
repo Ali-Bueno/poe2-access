@@ -25,7 +25,6 @@ internal static class TelegraphExtractor
     private const int SkillActiveSkillOffset = 0x4F;
     private const int SkillIdOffset = 0x9B;
     private const int GeometryAnimationOffset = 0x4;
-    private const int TriggerAnimationOffset = 0x14;
     private const int TriggerMarkerOffset = 0x73;
     private const int SpawnObjectsOffset = 0x4;
     private const int EffectAnimationOffset = 0x4;
@@ -101,6 +100,13 @@ internal static class TelegraphExtractor
             return null;
         }
 
+        var animationSearch = new DatColumnSearch();
+        var triggerAnimation = TelegraphColumns.FindTriggerAnimation(triggers, animated, aoFile.Value, animationSearch);
+        if (!animationSearch.Report("telegraphs"))
+        {
+            return null;
+        }
+
         var granted = new HashSet<long>();
         for (var row = 0; row < monsters.RowCount; row++)
         {
@@ -169,7 +175,7 @@ internal static class TelegraphExtractor
                     area = TelegraphShapes.PairsOf(("count", triggers.Int32(target, columns.TriggerCountColumn)), ("delay", triggers.Int32(target, columns.TriggerDelay)), ("range", triggers.Int32(target, columns.TriggerRangeColumn)),
                         ("radius", triggers.Int32(target, columns.TriggerRadiusColumn)), ("angle", triggers.Int32(target, columns.TriggerAngleColumn)));
                     visuals.AddRange(Paths(triggers, target, triggerMarkers.Value, animated, aoFile.Value).Select(path => path + ":marker"));
-                    if (Path(triggers.Key(target, TriggerAnimationOffset), animated, aoFile.Value) is { } animation)
+                    if (Path(triggers.Key(target, triggerAnimation), animated, aoFile.Value) is { } animation)
                     {
                         visuals.Add(animation);
                     }

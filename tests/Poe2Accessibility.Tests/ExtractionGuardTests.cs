@@ -22,6 +22,11 @@ namespace Poe2Accessibility.Tests
             (nameof(AMissingAnchorRowIsSaidAndFallsBackOnTheTranslation), AMissingAnchorRowIsSaidAndFallsBackOnTheTranslation),
             (nameof(TablesThatDifferInSizeAreNotAName), TablesThatDifferInSizeAreNotAName),
             (nameof(ASkippedKnownRowCheckIsSaid), ASkippedKnownRowCheckIsSaid),
+            (nameof(OverrideColumnsAreFoundWhereMeasuredAndAfterAShift), OverrideColumnsAreFoundWhereMeasuredAndAfterAShift),
+            (nameof(AnOverrideTableWithoutTheKnownRowIsJudgedByShape), AnOverrideTableWithoutTheKnownRowIsJudgedByShape),
+            (nameof(AKnownOverrideThatReadsOtherwiseFailsTheStep), AKnownOverrideThatReadsOtherwiseFailsTheStep),
+            (nameof(OverrideColumnsThatNameNoClassAreNotFound), OverrideColumnsThatNameNoClassAreNotFound),
+            (nameof(TheTriggerAnimationKeyMustLeadToAnimationFiles), TheTriggerAnimationKeyMustLeadToAnimationFiles),
         };
 
         private static readonly NameAnchor Anchor = new("worldareas", "WorldAreas.Name", 0x10, AnchorId, AnchorName);
@@ -74,6 +79,79 @@ namespace Poe2Accessibility.Tests
         {
             var search = new DatColumnSearch();
             Expect(-1, NameColumns.Find(Areas(false), Areas(true, rowSize: 0x28), Anchor, search), "a translated copy of another row size");
+            Expect(false, search.AllFound, "the step fails");
+        }
+
+        private const int OverrideRows = 12;
+        private const int KnownReplacedRow = 20;
+        private const int KnownShownRow = 21;
+
+        private static DatTable Classes() => new DatTableBuilder(0x20)
+            .Row(w => w.Text(0, PassiveOverrideColumns.KnownCharacter)).Row(w => w.Text(0, "Metadata/Characters/Dex/DexFour")).Build();
+
+        private static DatTable Nodes()
+        {
+            var builder = new DatTableBuilder(0x10);
+            for (var row = 0; row < 40; row++)
+            {
+                var id = row == KnownReplacedRow ? PassiveOverrideColumns.KnownReplaced : row == KnownShownRow ? PassiveOverrideColumns.KnownShown : $"node{row}";
+                builder.Row(w => w.Text(0, id));
+            }
+
+            return builder.Build();
+        }
+
+        /// <summary>Overrides of the Witch (class 0), each node replaced once; the first is the known one unless <paramref name="known"/> is off.</summary>
+        private static DatTable Overrides(int shift, bool known = true, int shownOfKnown = KnownShownRow)
+        {
+            var builder = new DatTableBuilder(0x30 + shift);
+            for (var row = 0; row < OverrideRows; row++)
+            {
+                var index = row;
+                var replaced = index == 0 && known ? KnownReplacedRow : index;
+                var shown = index == 0 ? (known ? shownOfKnown : 22) : 22 + index;
+                builder.Row(w => w.Key(0, 0x7777777777777777).Key(PassiveOverrideColumns.CharacterOffset + shift, 0).Key(PassiveOverrideColumns.ReplacedOffset + shift, replaced).Key(PassiveOverrideColumns.ShownOffset + shift, shown));
+            }
+
+            return builder.Build();
+        }
+
+        private static void OverrideColumnsAreFoundWhereMeasuredAndAfterAShift()
+        {
+            var found = PassiveOverrideColumns.Find(Overrides(0), Classes(), Nodes()) ?? throw new Exception("not found");
+            Expect("0 10 20", $"{found.Character:X} {found.Replaced:X} {found.Shown:X}", "the measured offsets");
+            var moved = PassiveOverrideColumns.Find(Overrides(8), Classes(), Nodes()) ?? throw new Exception("not found after a shift");
+            Expect("8 18 28", $"{moved.Character:X} {moved.Replaced:X} {moved.Shown:X}", "a column inserted before them moves them all");
+        }
+
+        private static void AnOverrideTableWithoutTheKnownRowIsJudgedByShape()
+        {
+            // Without the Witch's known override the columns stand on their shape (the log says the check did not run).
+            Expect(true, PassiveOverrideColumns.Find(Overrides(0, known: false), Classes(), Nodes()) != null, "found by shape");
+        }
+
+        private static void AKnownOverrideThatReadsOtherwiseFailsTheStep()
+        {
+            Expect(true, PassiveOverrideColumns.Find(Overrides(0, shownOfKnown: 25), Classes(), Nodes()) == null, "the Witch's spells18 shows another node: the columns are wrong");
+        }
+
+        private static void OverrideColumnsThatNameNoClassAreNotFound()
+        {
+            var oneClass = new DatTableBuilder(0x20).Row(w => w.Text(0, "Not a character")).Row(w => w.Text(0, "Metadata/Characters/Dex/DexFour")).Build();
+            Expect(true, PassiveOverrideColumns.Find(Overrides(0), oneClass, Nodes()) == null, "a class Id is a player's metadata path");
+        }
+
+        private static void TheTriggerAnimationKeyMustLeadToAnimationFiles()
+        {
+            static DatTable Animations(string suffix) => new DatTableBuilder(0x10)
+                .Row(w => w.Text(0, "a").Text(8, "Effects/one" + suffix)).Row(w => w.Text(0, "b").Text(8, "Effects/two" + suffix)).Row(w => w.Text(0, "c").Text(8, "Effects/three" + suffix)).Build();
+            static DatTable Triggers(int shift) => new DatTableBuilder(0x40 + shift)
+                .Row(w => w.Key(TelegraphColumns.TriggerAnimationOffset + shift, 0)).Row(w => w.Key(TelegraphColumns.TriggerAnimationOffset + shift, -1))
+                .Row(w => w.Key(TelegraphColumns.TriggerAnimationOffset + shift, 2)).Build();
+            Expect(0x14, TelegraphColumns.FindTriggerAnimation(Triggers(0), Animations(".ao"), 8, new DatColumnSearch()), "found where measured");
+            Expect(0x1C, TelegraphColumns.FindTriggerAnimation(Triggers(8), Animations(".ao"), 8, new DatColumnSearch()), "found after a shift");
+            var search = new DatColumnSearch();
+            Expect(-1, TelegraphColumns.FindTriggerAnimation(Triggers(0), Animations(".txt"), 8, search), "keys that lead to other files");
             Expect(false, search.AllFound, "the step fails");
         }
 

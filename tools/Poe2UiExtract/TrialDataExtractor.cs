@@ -86,7 +86,12 @@ internal static class TrialDataExtractor
             var strings = folder == null ? DatTable.Open(index, WorldTitleExtractor.StringsTable) : DatTable.OpenTranslated(index, WorldTitleExtractor.StringsTable, folder);
             if (strings != null)
             {
-                ReadLabels(strings, texts);
+                var missing = ReadLabels(strings, texts);
+                if (folder == null && missing.Count > 0)
+                {
+                    Say.Out.WriteLine($"  ClientStrings has no text for {string.Join(", ", missing)} (key +0x{WorldTitleExtractor.KeyColumn:X}, text +0x{WorldTitleExtractor.TextColumn:X}; check with dat-strings)");
+                    return 1;
+                }
             }
 
             if (texts.Count == 0)
@@ -146,17 +151,22 @@ internal static class TrialDataExtractor
         }
     }
 
-    private static void ReadLabels(DatTable strings, SortedDictionary<string, string> texts)
+    /// <summary>Reads the HUD labels into <paramref name="texts"/>; the keys the table had no text for.</summary>
+    private static List<string> ReadLabels(DatTable strings, SortedDictionary<string, string> texts)
     {
         var wanted = Labels.ToDictionary(label => label.Key, label => label.Entry, StringComparer.Ordinal);
+        var found = new HashSet<string>(StringComparer.Ordinal);
         for (var row = 0; row < strings.RowCount; row++)
         {
             if (strings.StringOrNull(row, WorldTitleExtractor.KeyColumn) is { } key && wanted.TryGetValue(key, out var entry) &&
                 strings.StringOrNull(row, WorldTitleExtractor.TextColumn)?.Trim() is { Length: > 0 } text)
             {
                 texts[entry] = Link.Replace(text, "$1");
+                found.Add(key);
             }
         }
+
+        return wanted.Keys.Where(key => !found.Contains(key)).ToList();
     }
 
     /// <summary>The column fitting <paramref name="matches"/> nearest to where it was measured; null for none or no measure.</summary>
