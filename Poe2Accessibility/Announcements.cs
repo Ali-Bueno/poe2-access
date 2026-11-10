@@ -790,9 +790,11 @@ namespace Poe2Accessibility
         };
 
         /// <summary>A text too long to say at once: how many paragraphs it has and how to read them.</summary>
-        public static string LongText(int paragraphs) => T(
-            $"Long text, {paragraphs} paragraphs: scroll it with the stick to read it",
-            $"Texto largo, {paragraphs} párrafos: desplázalo con el stick para leerlo");
+        public static string LongText(int paragraphs) => paragraphs == 1
+            ? T("Long text, 1 paragraph: scroll it with the stick to read it", "Texto largo, 1 párrafo: desplázalo con el stick para leerlo")
+            : T(
+                $"Long text, {paragraphs} paragraphs: scroll it with the stick to read it",
+                $"Texto largo, {paragraphs} párrafos: desplázalo con el stick para leerlo");
 
         /// <summary>One paragraph of a long text, after its place in it.</summary>
         public static string LongTextParagraph(string paragraph, int number, int total) => T($"{number} of {total}. {paragraph}", $"{number} de {total}. {paragraph}");

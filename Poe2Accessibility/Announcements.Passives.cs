@@ -142,7 +142,8 @@ namespace Poe2Accessibility
 
         /// <summary>Said with the Build list: "24 of 60 taken, 6 points outside the build".</summary>
         public static string BuildProgress(int taken, int total, int outside) =>
-            outside > 0
+            outside == 1 ? T($"{taken} of {total} taken, 1 point outside the build", $"{taken} de {total} asignados, 1 punto fuera de la build")
+            : outside > 0
                 ? T($"{taken} of {total} taken, {outside} points outside the build", $"{taken} de {total} asignados, {outside} puntos fuera de la build")
                 : T($"{taken} of {total} taken", $"{taken} de {total} asignados");
 
