@@ -356,8 +356,12 @@ namespace Poe2Accessibility
         /// <summary>Each sound's own volume by its sound glossary key, percent (0-300) of its group's volume; one not listed is at 100.</summary>
         public System.Collections.Generic.Dictionary<string, int> SoundLevels = new();
 
-        /// <summary>Research: dump the UI tree automatically once per screen (game state) after it settles, and log every focused widget's surroundings.</summary>
-        public bool ResearchMode = true;
+        /// <summary>
+        ///     Research: dump the UI tree automatically once per screen (game state) after it settles, and log every focused
+        ///     widget's surroundings. Off unless the settings file turns it on (the development install's does): a player whose
+        ///     file was lost or does not parse must not get a dump per screen on the frame thread and a log that only grows.
+        /// </summary>
+        public bool ResearchMode;
 
         /// <summary>Only dump UI subtrees whose visibility flag is set (their ancestors' too, implicitly).</summary>
         public bool UiDumpVisibleOnly = false;
