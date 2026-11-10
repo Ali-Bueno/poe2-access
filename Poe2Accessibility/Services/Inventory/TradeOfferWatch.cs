@@ -13,9 +13,12 @@ namespace Poe2Accessibility.Services
         private const long PollMs = 250;
         private const long ClosedWindowMs = 1500;
 
-        // The window's body: the other side's grid, the player's grid, then each one's title in the same order.
-        private const int TitleAfterGrid = 2;
+        // The window's body holds two grids and their two titles (TradeOfferNews.Sides); a body with many children is another panel.
         private const int MinChildren = 4;
+        private const int MaxChildren = 12;
+
+        /// <summary>The grids are the body's first two children where it was measured.</summary>
+        private const int MeasuredGrids = 2;
 
         private readonly UiElementReader elements;
         private readonly InventoryReader inventory;
@@ -72,15 +75,21 @@ namespace Poe2Accessibility.Services
 
             var parts = this.elements.ReadChildren(body);
             var mine = Array.IndexOf(parts, grid);
-            if (parts.Length < MinChildren || mine is < 0 or >= TitleAfterGrid || !this.inventory.TryReadGrid(grid, out _, out _, out _))
+            if (parts.Length < MinChildren || mine < 0 || (mine >= MeasuredGrids && parts.Length > MaxChildren) ||
+                !this.inventory.TryReadGrid(grid, out _, out _, out _))
             {
                 return null;
             }
 
-            var theirs = TitleAfterGrid - 1 - mine;
-            if (!this.elements.TryReadText(parts[theirs + TitleAfterGrid], out var title) || title.Length == 0 ||
-                !this.elements.TryReadText(parts[mine + TitleAfterGrid], out var ownTitle) || ownTitle.Length == 0 ||
-                !this.elements.TryReadElement(parts[theirs], out var other))
+            // Where measured first (the texts alone tell); the grids are looked for only in a small body laid out another way.
+            var texts = parts.Select(part => this.elements.TryReadText(part, out var text) && text.Length > 0).ToList();
+            var sides = TradeOfferNews.Sides(texts.Select(text => (false, text)).ToList(), mine);
+            if (sides == null && parts.Length <= MaxChildren)
+            {
+                sides = TradeOfferNews.Sides(parts.Select((part, index) => (!texts[index] && (index == mine || this.inventory.TryReadGrid(part, out _, out _, out _)), texts[index])).ToList(), mine);
+            }
+
+            if (sides is not { } found || !this.elements.TryReadText(parts[found.TheirTitle], out var title) || !this.elements.TryReadElement(parts[found.Theirs], out var other))
             {
                 return null;
             }

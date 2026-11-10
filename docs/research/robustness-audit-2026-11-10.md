@@ -21,24 +21,48 @@ player-visible first, each with where it lives.
 - The scanner's "sin ruta" at a cut the player stood on (`EntityCatalog.Describe`): said as cut.
 - A quest's name making a town's well the objective (`QuestTexts`, [ui layers](ui-layers.md)).
 
+## Fixed on 2026-11-10, second pass
+
+Each with a unit test in `RobustnessTests` unless said.
+
+- `PassiveTreeFields.JudgeAllocated`: the list where measured is kept while it names the graph's nodes with at most one id in
+  ten unknown (a class override node may stand there under an id the records do not give; `AllocatedListCheck`); it is moved
+  only when under one id in ten is known and another list of the state holds three or more ids, each once, all known; said lost
+  on the second such reading, ten seconds apart. A list in between is not judged. Ids gathered from under half the records
+  (rows not readable yet) judge nothing. The shown row's graph id is still not known to the check: that needs
+  `UiSemantics.GraphIdOf` to give both rows' ids (not done: another owner's file).
+- `BossWatch.WatchLife`: a boss is defeated when it read not alive and no living reading came for half a second
+  (`BossLifeSteps.Defeated`, `ConfirmDefeats`; a corpse the game removed in between counts); a unique whose `Positioned` says
+  friend is not tracked (no unit test: a host entity).
+- `AttackFieldCheck`: the six verdicts of the dodge fields start over with each game process (`BossWatch.ResetLayout`, called
+  beside `FlagBits.Reset`).
+- `MonsterMods.Name`: a row is cached only once its name read, or its first character is the terminator (no unit test: reads
+  through the host).
+- `TradeOfferWatch`: where measured first (grid, grid, title, title); in a body of twelve children or fewer laid out another
+  way, the only two grids (`TryReadGrid`) and the only two texts, paired in order (`TradeOfferNews.Sides`).
+- `FlagBits.EnabledTrusted`: judged on every pre-game screen until one shows the bit working; lost only when two different
+  screens have under 20% of their controls enabled, and given back by any screen that shows it (`EnabledBitCheck`).
+- `LayoutProbe` (entity names): settled only by a batch that reads; missing once two different batches read none, ten
+  seconds apart or more (`LossWitnesses`).
+- `CullSkills.Load`, `HazardGround.Load`: a file in use loads empty. `GameNews` is not guarded here (another owner's file).
+
+Also that day, beyond the Open table ([surviving game updates](../compatibility.md)): the searches of a whole object when
+nothing is near where a field was measured; second checks for the element's manager pointer, a node record's edge vectors,
+the skill level key and the skill ids; live invariants of the code-only fields in the struct sweep; and every spoken
+"lost" made to need two looks, two areas or two witnesses ("When a part is said lost").
+
 ## Open
 
 | Where | What can go wrong | Smallest fix |
 |---|---|---|
-| `PassiveTreeFields.JudgeAllocated` | A class override node taken (Witch, Huntress, Druid) may fail the "only known ids" test and move the allocated offset onto another list | Know both rows' ids, accept 90% known, never move on a weak candidate |
+| `UiSemantics.GraphIdOf` | The allocated list's check knows a node by its replaced row only | Give the shown row's id too (`ShownRow`) |
 | `UiSemantics.PassiveTree.PlacesOf` | Places are kept for the nodes visible at the first read: the ascendancy's 197 nodes get none | Rebuild when the count of visible node elements changes |
 | `UiSemantics.BuildPlanner.BuildMarks` | The build mark byte has one signature; moved by a patch, any byte equal to 1 marks nodes | Treat the marks as unreadable when over a quarter of the nodes read 1 |
 | `UiSemantics.PassiveTree` (`StickLinksOf`) | The row byte that makes the game skip the linked stage is read and ignored; the multiple-choice redirect is not modelled (the first push after an attribute popup lands one node off) | Empty links for such rows; skip them in the self-check |
-| `BossWatch.WatchLife` | "Defeated" on one not-alive read; an allied unique is tracked as a boss | Two reads half a second apart; skip friendly entities |
-| `AttackFieldCheck` | Verdicts last across a game restart within one host session | Reset beside `FlagBits.Reset` |
-| `MonsterMods.Name` | A failed name read is cached empty for the process | Do not cache an unreadable row |
-| `TradeOfferWatch` | Fixed child positions (grid, grid, title, title) | Find both grids by `TryReadGrid`, each title its nearest text sibling |
 | `ComboBoxReader` | The first decoding that yields text is used for every dropdown | Latch after two dropdowns agree |
 | `Beacon` | A route task that failed or ran out of budget is said like "no route yet" | Say it after two nulls; tell budget from unreachable |
-| `FlagBits.EnabledTrusted` | Judged once, on the first screen | Judge again on later screens |
-| `LayoutProbe` (entity names) | One bad batch of fifteen says "entity names" missing for the session | Judged only on success; missing after two failed batches |
 | `EntityCatalog.Classify` (`ObjectNames.FromPath`) | An object no table names is said by its file's words, in English ("Chair") | Speak them only as a last resort, marked as unnamed outside English |
-| `CullSkills.Load`, `HazardGround.Load`, `GameNews` | A catalog read with no IO guard: a locked file throws | The guard the other loaders have |
+| `GameNews` | A catalog read with no IO guard: a locked file throws | The guard the other loaders have |
 
 Not faults, by the logs: the vitals' thresholds re-arm with a margin (154 "Vida 50 por ciento" in two days of fights);
 a targeted monster's name is said each time the target changes; the terms of use read their 248 paragraphs.

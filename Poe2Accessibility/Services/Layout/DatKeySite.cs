@@ -12,6 +12,9 @@ namespace Poe2Accessibility.Services
         // A struct whose key does not read is searched at most this often until one has read.
         private const int SearchEveryMs = 1000;
 
+        // The whole struct is searched less often: it costs a key read per place.
+        private const int WideEveryMs = 10_000;
+
         private readonly string part;
         private readonly int measured;
         private readonly string table;
@@ -21,6 +24,7 @@ namespace Poe2Accessibility.Services
         private int generation = -1;
         private (int Offset, IntPtr Owner)? candidate;
         private long nextSearchAt;
+        private long nextWideAt;
 
         public DatKeySite(string part, int measured, string table)
         {
@@ -76,7 +80,7 @@ namespace Poe2Accessibility.Services
                 this.nextSearchAt = Environment.TickCount64 + SearchEveryMs;
             }
 
-            if (DatKeySearch.Site(at, place => DatKey.Row(reader, elements, owner + place, this.table) != null) is not { } found)
+            if ((DatKeySearch.Site(at, place => DatKey.Row(reader, elements, owner + place, this.table) != null) ?? this.SiteFar(reader, elements, owner, at)) is not { } found)
             {
                 return null;
             }
@@ -93,6 +97,22 @@ namespace Poe2Accessibility.Services
 
             this.Settle(found);
             return DatKey.Row(reader, elements, owner + found, this.table);
+        }
+
+        /// <summary>The key anywhere in the struct (<see cref="DatKeySearch.SiteWide"/>), asked for no more often than <see cref="WideEveryMs"/>.</summary>
+        private int? SiteFar(HostMemoryReader reader, UiElementReader elements, IntPtr owner, int near)
+        {
+            lock (this.gate)
+            {
+                if (Environment.TickCount64 < this.nextWideAt)
+                {
+                    return null;
+                }
+
+                this.nextWideAt = Environment.TickCount64 + WideEveryMs;
+            }
+
+            return DatKeySearch.SiteWide(near, place => DatKey.Row(reader, elements, owner + place, this.table)?.ToInt64() ?? 0);
         }
 
         private void Settle(int at)
@@ -125,7 +145,7 @@ namespace Poe2Accessibility.Services
             {
                 if (now != this.generation)
                 {
-                    (this.generation, this.offset, this.settled, this.candidate) = (now, this.measured, false, null);
+                    (this.generation, this.offset, this.settled, this.candidate, this.nextWideAt) = (now, this.measured, false, null, 0);
                 }
             }
         }

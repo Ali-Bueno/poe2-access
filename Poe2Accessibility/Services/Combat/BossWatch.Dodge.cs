@@ -53,6 +53,13 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public Func<uint, AttackTelegraph?> Telegraph { get; set; } = _ => null;
 
+        /// <summary>A new game process: the dodge fields' live checks start over (a part lost in the last build is read again).</summary>
+        public void ResetLayout()
+        {
+            this.reader?.ResetVerdicts();
+            this.saidTrust.Clear();
+        }
+
         /// <summary>The live checks' verdicts that changed since last asked, by compatibility part.</summary>
         public IReadOnlyList<(string Part, FieldTrust Trust)> FieldNews()
         {

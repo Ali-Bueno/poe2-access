@@ -19,7 +19,18 @@ namespace Poe2Accessibility.Services
 
         public int Count => this.ids.Count;
 
-        public static HazardGround Load(string path) => new(File.Exists(path) ? File.ReadAllLines(path) : Array.Empty<string>());
+        /// <summary>The catalog at <paramref name="path"/>; empty when it is missing or cannot be read (a file in use must not stop the plugin).</summary>
+        public static HazardGround Load(string path)
+        {
+            try
+            {
+                return new(File.Exists(path) ? File.ReadAllLines(path) : Array.Empty<string>());
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+            {
+                return new(Array.Empty<string>());
+            }
+        }
 
         public bool IsHazard(string buffId)
         {

@@ -214,25 +214,30 @@ upstream learns is copied by hand into `host/GameOffsets` (upstream had no commi
 ## Found again at runtime (plugin)
 Each field is tried where it was measured first, so a build that did not move it behaves exactly as before; only
 when it no longer holds what it must is it looked for nearby (`OffsetSearch`: outward, one 8-byte step either side,
-nearest fit wins). Fields of one structure that move together follow an anchor.
+nearest fit wins). Fields of one structure that move together follow an anchor. A field that fits nowhere nearby is then
+looked for through its whole object ([below](#the-whole-object-when-nothing-is-near)).
 
 | Anchor (how it is recognised) | Followers | Where |
 |---|---|---|
 | Control name: the root or a layer carries a known name (`root_control`, `HUD`, `map_overlay`, …) | font, manager pointer, tooltips | `LayoutProbe.ProbeNames` |
+| Element's manager pointer, checked on its own once the names are found (2026-11-10): the root and the first of its children and theirs (16 at most, 3 at least) hold one pointer there, and the object it leads to is no element and holds their root in its first 0x1000 bytes. Tried where the name's shift puts it, then nearby, then through the element; with nothing to judge it on it stays with the name and nothing is said (log `Layout: element manager where measured` / `moved from …`) | — | `ElementFieldSearch.Manager`, `LayoutProbe.JudgeManagerField` |
 | Label text: tagged text plus two equal stripped copies, on 5+ labels | text colour | `LayoutProbe.ProbeText` |
 | Image texture: 5+ images reach an art key (`Art/…dds|`) through the pointer, far fewer through the next slot (the smaller image class's pointer sits one step before) | the smaller class's texture | `LayoutProbe.ProbeTextures` |
 | UI manager root slot: holds the root of the elements that point at the manager (2 elements must agree before an unproven manager is trusted; the direct in-game slot is taken only as measured) | focus, last focused, hovered, pad state | `LayoutProbe.AdoptManager` |
 | UI focus, on its own: while the player moves through a menu, the slot that takes each element of this manager first and whose previous-focus slot (8 after it) gets that element when the focus moves on; four moves judge it, and the measured slot keeps its place once it moved. The hovered slot, filled by the passive tree's free cursor with nothing focused, has no such follower and is never taken (the inventory grid moves its cursor, not its focus, so a button menu judges it) | last focused, hovered | `LayoutProbe.ObserveFocus` (pure `FocusSlotCheck`) |
-| In-game layer roots (InGameState's mouse and gamepad UI roots): an element whose children carry two known layer names; neither slot holds one, the nearest slot that does gives both their shift | — | `LayoutProbe.ProbeLayerRoots` |
+| In-game layer roots (InGameState's mouse and gamepad UI roots): an element whose children carry two known layer names; neither slot holds one, the nearest slot that does gives both their shift, and such a slot counts only when its element's parents end at the root its own UI manager holds (2026-11-10: a container of a stale tree has the names too) | — | `LayoutProbe.ProbeLayerRoots` (pure `LayerSlots.LeadsBack`) |
 | In-game layers by name (`HUD`, `map_overlay`, `death_screen`, `skill_bar`, `bind_management_display`) or shape (inventory: child `panels_parent`; chat: `textField` and `scrollbar` below) | the objective box (no name or shape) follows the nearest one found | `InGameFields` |
-| Entity names: half of 30 monsters, characters and players read a name | — | `LayoutProbe.ProbeRenderNames` |
+| Entity names: half of 30 monsters, characters and players read a name; settled only by a batch that reads, said lost once two different batches read none | — | `LayoutProbe.ProbeRenderNames` |
 | Targetable in-play flag: set on what is always in play (players, waypoint, stash, checkpoint, living monsters) and, of an NPC's story variants (one Render name), on at most one; the nearest byte that fits when the measured one does not | targeted flag; the measured byte is used while unjudged, everything counts as in play once lost | `EntityFields` (pure `InPlayFlag`) |
 | NPC quest marker: the NPC component's dat reference leads to the MiscAnimated row `NPCQuestMarker…` on some NPC (a town with no marker proves nothing; the self-test lists the row ids it sees) | — | `EntityFields.HasMarkerAt` |
 | Control flag bits: interactive is on most controls with a click sound and on no plain label; text input on combo boxes and text fields and on no label (some buttons carry it too); navigable on what the in-game controller focus lands on, rarely on its container (grids left out); a bit is kept while half its carriers still have it | — | `FlagBits` (pure `BitSearch`) |
-| Enabled flag bit: nothing tells it apart (a disabled control is rare), so it is only noticed lost (under 20% of a screen's controls): then every control counts as enabled | — | `FlagBits.EnabledTrusted` |
+| Enabled flag bit: nothing tells it apart (a disabled control is rare), so it is only noticed lost: under 20% of the controls on two different pre-game screens (one screen, such as a login still connecting, says nothing); then every control counts as enabled, until a screen shows the bit working | — | `FlagBits.EnabledTrusted` (pure `EnabledBitCheck`) |
 | Pad state: sticks within ±1, triggers within 0..1, else no input (no phantom L3 gestures) | — | `GamepadReader` |
 | Pad buttons: the left trigger is reported both as a pressure and as a button bit; the bit set in nearly every frame it is down alone and in nearly none with both up gives how far all the buttons moved | every button | `PadButtonCheck` |
-| Passive tree graph: the tree state holds the graph file (named `Metadata/PassiveSkillGraph.psg`); its content an edge list whose sampled edges join node records; the state's allocated list holds only graph ids of those records (gathered off the frame thread) | links, allocations | `PassiveTreeFields` |
+| Passive tree graph: the tree state holds the graph file (named `Metadata/PassiveSkillGraph.psg`); its content an edge list whose sampled edges join node records; the state's allocated list holds graph ids of those records, at most one in ten unknown (a class override node), and is moved only onto a list of three or more ids all known when under one in ten of its own is (gathered off the frame thread; said lost on the second such reading) | links, allocations | `PassiveTreeFields` (pure `AllocatedListCheck`) |
+| Passive node record's own edge vectors (+0x38 the edges ending at it, +0x50 those starting at it; the stick step's order): judged once per game process, off the frame thread, against the graph file's edge list, which says how many of each a record has. On 64 records (8 with edges of the kind at least) nine in ten must hold a vector of that many edges whose first names the record at the right end; each vector nearest where measured within the record's first 0x100 bytes. Log `Layout: passive node links where measured` / `moved from …`; when nothing fits, a log line only (`Passive node links: … fit nowhere`): the reader's own check then takes the order from the file's list, so nothing read is wrong | the stick's link order | `RecordEdgesSearch`, `PassiveTreeFields.JudgeRecordEdges` |
+| Skill level key (ActiveSkillDetails +0x58, placed by the code at attach): on the skills the player lists, read where it stands; while none has read there, a key into GrantedEffectsPerLevel nearest it (then anywhere in the first 0x200 bytes), taken once two skills agree; every reader of the offset follows (log `Layout: skill level key …`). A place the code already moved is left to the code | skill names, cooldown names, Parry and cull skills | `SkillLevelKey` (`DatKeySite`) |
+| Skill ids, a check only: a cooldown entry's skill id (+0x3C) and the id in a skill's details (+0x40) have the code as their only source, each alone; some entry must name one of the actor's skills. One match proves both (log `Layout: skill ids where measured`); none in 20 readings with ids on both sides, in each of two areas, is said as the cooldowns ("cuándo están listas tus habilidades"), log `Layout: skill ids NOT FOUND`. Which of the two moved cannot be told, so nothing is moved | — | `IdLinkCheck`, `SkillCooldownWatch.JudgeIds` |
 | Tile grid (GameHelper's `TileDetailsPtr`, read raw): record size = the grid's bytes over its sub-tiles; the file pointer and path where half the sub-tiles name a `.tdt`; the three id bytes where neighbours from one file differ by one step (90% in the Act 1 town) and selectors stay 0..7; searched on every grid, and a layout the search finds wins (the reading's own check looks at the paths and selectors only) | place names, props | `TileGridSearch` (pure), `PlaceNarrator` |
 | Item base name (GameHelper's `BaseOffsets`, no static check): a normal or magic item's tooltip title holds it (each item counted once, case ignored; ground labels do not count); two titles in a row that miss start a search of the row pointer and the name nearby, taken once a second title agrees; none anywhere: titles are used instead | — | `BaseNameField` (pure), `InventoryReader` |
 | Local player list: entry 0 is GameHelper's player and there are at most two (else no player 2, the partner radar stays silent); read beside the local player field the area search found, so it moves with it (`layout`: "local player list ok") | — | `LocalPlayers` (pure `LocalPlayerList`) |
@@ -244,6 +249,31 @@ nearest fit wins). Fields of one structure that move together follow an anchor.
 | Area row of the loading state: points at a world-area row with a name and an id shaped like `G1_1` (searched only in game, when it must hold the area) | — | `GameStateService.AreaRowOffset` |
 | Dat keys (row, then the file at +0x8 whose name sits at +0x8): before any key has read, a key that does not read is searched once a second for the file pointer and the name nearest where measured that name the table the caller expects; that layout reads the key, and every key once a key of a second table reads through it | — | `DatKey`, pure `DatKeySearch` |
 | A struct's dat key (a passive node record's PassiveSkills key at +0, a map pin element's MapPins key at +0x2D0): a key into the table nearest where measured, taken once two structs agree. The canvas's hovered pin is judged as a control field (below): the canvas holds two keys into MapPins (the hovered and the current pin) and a table name cannot tell them apart | — | `DatKeySite` |
+
+### The whole object, when nothing is near
+Added 2026-11-10 (unit tests only, `RobustnessTests.Wide`: no build has moved a field this far yet). Near where a field was
+measured the nearest fit is the likeliest; far from it no place is likelier than another, so a search of the whole object
+(`OffsetSearch.Only`) takes a place only when two facts agree there and no other place holds another answer. Two places with
+the same content (two slots of one pointer) are one answer, the nearest. A healthy field never reaches it: each runs only
+after the near search failed, a few times per game process or behind a timer, since it reads whole objects on the frame thread.
+
+| Field | Object searched | Proof far from where measured | Where |
+|---|---|---|---|
+| Control name (font, manager and tooltips follow) | each of the root, its children and theirs, up to `Element.ProbeBytes` (0x800); in game only, as the two below | two elements carry two different known names there; near, one name is enough | `ElementFieldSearch.Name`, `LayoutProbe.WideName` (3 tries) |
+| Label texts (tagged, text, copy; the colour follows) | 400 labels, 0x800 each; the three fields at one shift, from the tagged text at the element's start to the copy at its end | as near: five labels read a tagged text and a text equal to its copy; one shift only | `ElementFieldSearch.TextShift`, `LayoutProbe.WideTextShift` (3 tries) |
+| Image texture (the smaller class follows) | 150 images, 0x800 each | as near: five images reach an art key through the pointer and under half as many through the next slot; one place only | `ElementFieldSearch.Texture`, `LayoutProbe.WideTexture` (3 tries) |
+| Control subclass groups (`ControlFields.Shift`: slider, combo box, inventory, tabs, skill slots, passive canvas and node, class selector, hint, title, options section) | the control, 0x800 from its start, after three misses nearby; every 30 s at most | the group's own check fits at one place of the control, and at the same place on a second control (until then it is only noted, never read) | `ControlFields.Shift` |
+| In-game layers with a name or shape | the layer container, 0x2000 | the tree shows a child of the container (its child's child for the skill bar and the bind screen) that carries the name or shape, and one slot of the container holds its address; slots of two such elements are not chosen between (player 2's skill bar) | `LayerSlots`, `InGameFields.LocateFar` |
+| Passive tree: graph file | the tree state, 0x800; every 10 s at most (the canvas's search asks every candidate state) | named `Metadata/PassiveSkillGraph.psg` and leading to an edge list; near, the name is enough | `PassiveGraphSearch.File` |
+| Passive tree: content pointer and edge list | the file's first 0x200 bytes, the content's first 0x400 | as near (sampled edges reach node records, some join two, half the drawn groups or more), and every pair that fits leads to the same list | `PassiveGraphSearch.Edges` |
+| Passive tree: allocated list | the tree state, 0x800 | three or more ids, each once, all nodes of the graph, and no second such list; tried first as far from where measured as the graph file moved (the state's fields move together) | `PassiveGraphSearch.Allocated` |
+| A struct's dat key (passive node record, map pin element) | twice as far as it was measured, 0x200 at least; every 10 s at most | a key whose file names the table, every key found leading to one row, and a second struct agreeing (as near) | `DatKeySearch.SiteWide`, `DatKeySite` |
+| Heavy stun record | each Actor, 0x1000; every 5 s at most | four in five of five or more monsters share the head {5, 8.0, 0} with a threshold at exactly one place | `PoiseSearch.AgreedOnly`, `WorldLayoutWatch.PoiseFar` |
+
+Not widened, and why: entity names (one fact only: a text with a letter on half the entities; any other string of the Render
+component would pass far away); the fields found by watching them change (check box, selectable list, map depth, hovered
+pin: far from the measured place other bytes change too, timers and animations); the UI manager's root slot and the in-game
+layer roots (already searched through 0x1000 of their object).
 
 ### Control subclasses
 Their fields sit after the base control, so when it grows they all move as far as the label text did
@@ -278,7 +308,9 @@ found are said once together ("Aviso de compatibilidad: no encuentro el chat y l
 process (`OnAttachedChanged`) logs the game exe's size and time and checks everything again.
 
 **Dev commands after a patch:** `structs` runs the sweep and logs it ("Struct sweep: 24 intact, 0 moved, 0 lost, 9 not
-judged"; those have no field that can be checked, or nothing live to judge it on, such as a ground item in town). `sounds` logs what really played since last asked ("output peak 0,950;
+judged"; those have no field that can be checked, or nothing live to judge it on, such as a ground item in town; the eight
+`invariant: …` lines count over areas and say "not judged" until five entities were read). A part the sweep finds lost is
+only said on the second sweep in a row that finds it so: run `structs` twice. `sounds` logs what really played since last asked ("output peak 0,950;
 started: enemy 128, boss 42, dodge 5…; beds heard: waypoint"): the oracle for audio, since a log of speech says nothing of it.
 
 **Self-test:** dev command `layout` (write it to `Plugins/Poe2Accessibility/debug/command.txt`) starts every search
@@ -291,6 +323,35 @@ sub-tiles name a tile; …; a search finds it too)", "item base names ok", "sele
 "not judged yet" with what they need. Run it on each new build of the plugin at login, at character creation (class
 selector, name field), in town (an NPC with a quest marker), in the options, the inventory (a tooltip), the passive
 tree, and with the left trigger pressed alone (2026-10-25: all ok, every part judged live).
+
+### When a part is said lost
+Reviewed 2026-11-10: every place that says a part lost (`CompatibilityReport.Missing`) was asked whether a healthy game can
+reach it (a screen without the evidence, a load in progress, a first frame, one bad read). Each now needs proof that holds;
+a part found again before it is said is not said (`CompatibilityReport.Note`, 3 s).
+
+| Part | What it takes to be said lost | Where |
+|---|---|---|
+| `element names`, `element texts`, `image textures` | in game only, two looks ten seconds apart or more (the locator probes once per state, so the probe looks again by itself while in play: `LayoutProbe.LookAgain`); before, the first look said it, on the first frame in game | `LayoutProbe.Missed` |
+| `in-game layer roots` | three such looks | `LayoutProbe.ProbeLayerRoots` |
+| `entity names` | two different batches of fifteen entities or more read no name | `LayoutProbe.ProbeRenderNames` |
+| `interactive flag`, `text input flag` | no bit fits on two different pre-game screens (a screen is told by its controls); until then judged again on the next screen | `FlagBits.Judge` |
+| `navigable flag` | no bit fits on two rounds of twelve focus targets, no element counted twice | `FlagBits.SampleFocus` |
+| `enabled flag` | two screens under 20%; given back by any screen that shows it | `EnabledBitCheck` |
+| `combo boxes` | three misses on at least two different dropdowns (one empty or half-built list is no layout), and no place found in the whole control | `ControlFields.Shift` |
+| in-game layers (`HUD`, `map overlay`, `death screen`, `inventory panel`, `chat`, `skill bar`) | three misses in a row with the element shown by the tree and no slot of the container holding it; with no such element under the container (it may only not exist yet), three misses in a row in each of two areas. The objective box, which has no mark, takes the second rule | `InGameFields.Find` |
+| `local player`, `entity lists`, `terrain` (no world) | in play, no world for 8 s, then two looks 3 s apart with no area found by the search either | `WorldLayoutWatch.Tick` |
+| `area level` | never seen, in two areas | `WorldLayoutWatch.Report` |
+| struct parts of the sweep (`life`, `skills`, `stats`, `buffs`, `ground items`, `inventories`, `camera`, `positions`, the entity layout, the verifier's components) | lost in two sweeps in a row: a part lost once is swept again 3 s later in the same area (twice at most), or in the next area, before it is said (log `Struct …: lost in this sweep (…); swept again before it is said`) | `SecondLook`, `WorldLayoutWatch.Sweep` |
+| `reaction` | five readings in a row (ten a second) with the player read as no friend and no byte that fits | `WorldLayoutWatch.JudgeReaction` |
+| `poise`, `walkable` | two areas; two windows of thirty cells (2026-11-10, first pass) | `WorldLayoutWatch` |
+| `cooldowns` | entries that exist and none reads, 20 readings in each of two areas; or no entry naming a listed skill, the same (`IdLinkCheck`) | `SkillCooldownWatch` |
+| the dodge fields (`AttackFieldCheck`) | two batches of readings, each counted from nothing, at or under one in five kept | `AttackFieldCheck.Observe` |
+| `pad buttons` | two judgments of the left trigger (twenty frames down and twenty up each) find no bit | `Poe2AccessibilityCore.CheckPadButtons` |
+| `passive tree links` | three searches ten seconds apart | `PassiveTreeFields.Edges` |
+| `passive tree allocations` | two readings ten seconds apart of a list with under one known id in ten, and no other list | `PassiveTreeFields.JudgeAllocated` |
+| `item base names` | six different items' titles in a row hold no name anywhere (unchanged) | `BaseNameField` |
+| `code fields` | a field neither the signatures nor the rules read, unless nothing of the mod reads it (Transitionable state, the status effect times, the tile height) or a live judgment finds it or says it lost by itself (`CodeFieldCatalog.Heard`: the area's and entity's fields, the vitals, positions, friend and foe, the animation, the skills and stats pointers, the terrain's four, the stun record, the in-play flag, the dodge's animated object, the monster mod lists); a live invariant that fails | `TakeCodeFields`, `WorldLayoutWatch.NoteInvariant` |
+| `effect names`, `game data` | read from files once per game process, whole: nothing transient to guard (unchanged) | `CheckGameNews` |
 
 ## Regenerated at start-up (packaged builds)
 `GameDataSetup` stamps the install (`app/GameData/game-version.txt`: size and time of `Bundles2/_.index.bin` and of the
@@ -415,6 +476,30 @@ Simulated 2026-11-06: `PlayerOffsets.Level` at +0x20C went back to +0x204 and th
 +0x138 went back to +0x130 and the world read as usual; `Shrine.IsUsed` off by 8 gave the spoken warning. None of these fields has moved in a
 real patch yet, so this is proved on simulations and on five past builds that all read the same.
 
+### Live invariants
+Added 2026-11-10 (unit tests only). The fields above have no shape to be found by, but each must keep a rule on every entity
+that has it. The sweep reads the rule on what the area holds (256 entities, 16 ground items and the flask belt at most) and
+counts over the areas of the game process (`InvariantTally`, an entity once per area); `Struct sweep` lists each as
+`invariant: …`. A rule holds while at most one entity in ten breaks it (log `Layout: invariant: chest flags holds (41 of 41
+keep it)`). It fails when five or more entities break it, they are half or more of those read, and they come from two
+areas: log `Layout: invariant: … FAILS (…)`, said once as the code fields are ("parte de los datos del juego, así que alguna
+lectura puede ser errónea"). A rule can tell, never repair: nothing is moved by it.
+
+| Invariant | Field | Rule |
+|---|---|---|
+| `monster rarity` | `ObjectMagicProperties.Rarity` | 0 to 3 (normal to unique) on every entity with the component |
+| `item rarity` | `Mods.Rarity` | the same, on the flask belt's items and the items on the ground |
+| `chest flags` | `Chest.IsOpened`, its data's `IsLabelVisible` | each byte 0 or 1 (read raw: a bool read through the struct hides any other value) |
+| `shrine flag` | `Shrine.IsUsed` | 0 or 1 |
+| `blockage flag` | `TriggerableBlockage.IsBlocked` | 0 or 1 |
+| `stack counts` | `Stack.Count` | at least 1 and no more than the kind's maximum (`StackSizeData`'s larger of `MaxStack` and `MaxStackTab`; only "at least 1" when that does not read), on ground items |
+| `flask charges` | `Charges.current`, `PerUseCharges` | 0 to 10,000 held, 1 to 10,000 a use (the flask's own maximum is not a field the mod has) |
+| `body sizes` | `Render.CharactorModelBounds` | three finite sizes, none negative or over 10,000; a weak rule, other floats pass it |
+
+A byte that reads 0 everywhere passes every flag rule: a moved flag is caught only when it lands on something that is not
+a bool. The cooldown entry's skill id and the skill's own id have their rule in the plugin (`IdLinkCheck`, above); the
+dodge clock's fields theirs (`AttackFieldCheck`).
+
 ## After a real patch
 The first patch after this work landed by chance at 02:42 on 2026-11-06, with nothing prepared for it: a 73 MB hotfix that moved no
 field. The mod said "El juego se ha actualizado: el mod lo ha encontrado todo", the sweep read 17 intact and 0 lost, and enemies, gold and
@@ -425,8 +510,8 @@ the radar sounded. `tools/exe_reader/reader.py` tells what moved from the exe al
   runbook ([patch day](patch-day.md)). The plugin says what it lost: the world ("lo que hay a tu alrededor, así que
   enemigos, objetos y salidas no sonarán"), a struct by name, or attached two minutes without ever reading a game state
   (`GameStateService`, part "game states": "Aviso de compatibilidad: no encuentro el estado del juego").
-- A part the self-test reports lost after a patch: each search assumes one change at a time near where the field was
-  measured, so a redesign (a new structure, a field moved far) still needs a new measurement. A wrong part makes its
+- A part the self-test reports lost after a patch: each search assumes a field moved, not a structure redesigned, so a
+  new structure or the fields of one group moved apart still need a new measurement. A wrong part makes its
   reading fall back (a mod without its name, an item without its base name) rather than speak garbage, since every
   string goes through the decoders' checks.
 - Run the `layout` self-test (above) and a short session through login, a menu, the inventory and a fight.
@@ -455,8 +540,11 @@ index could be stale while unset (the mod reads the int, as tested live), and +0
 
 What else remains is by design:
 
-- A search finds a field moved near where it was measured (within 0x40 to 0x100 bytes, or a bit renumbered), one
-  change at a time; a field moved farther, or two fields of one judgment moved at once, is reported lost.
+- A search finds a field moved near where it was measured (within 0x40 to 0x100 bytes, or a bit renumbered), and the fields
+  listed under [the whole object](#the-whole-object-when-nothing-is-near) anywhere in their object when one place alone holds
+  the proof. Still reported lost: a field moved far with no second fact to tell it by (entity names, the fields seen
+  changing), two places that both hold the proof, and two fields of one judgment moved apart from each other (the three
+  label texts, a control group's fields).
 - Parts whose evidence is rare are judged late: the quest marker needs an NPC that shows one, check boxes and
   selectable lists a change by the player; the enabled bit is only noticed lost.
 - A structure redesigned rather than shifted (a component split in two, a list that becomes a map): its readings stop and the mod

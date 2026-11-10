@@ -13,7 +13,7 @@ namespace Poe2Accessibility.Services
     ///     fields the root pointer); the element base itself is the host's judgment (<see cref="ProbeElementBase"/>).
     ///     Outcomes go to the <see cref="CompatibilityReport"/>.
     /// </summary>
-    public sealed class LayoutProbe
+    public sealed partial class LayoutProbe
     {
         /// <summary>Fields are pointer-aligned.</summary>
         private const int Step = 8;
@@ -30,6 +30,10 @@ namespace Poe2Accessibility.Services
         private const int MaxWalkNodes = 3000;
         private const string LayerRootsPart = "in-game layer roots";
         private const string FocusPart = "UI focus";
+        private const string ManagerFieldPart = "element manager";
+
+        /// <summary>Elements the manager pointer is judged on: the root and the first of its children and theirs.</summary>
+        private const int MaxManagerNodes = 16;
 
         /// <summary>A layer container's children carry at least this many known layer names.</summary>
         private const int MinLayerNames = 2;
@@ -49,6 +53,21 @@ namespace Poe2Accessibility.Services
 
         /// <summary>An inconclusive check (a screen without texts, a loading root) is tried again after this long.</summary>
         private const int RetryMs = 10000;
+
+        /// <summary>
+        ///     Whole-object searches a part gets per game process, once nothing fits nearby: each reads every element looked at
+        ///     up to <see cref="GameLayout.Element.ProbeBytes"/> on the frame thread.
+        /// </summary>
+        private const int MaxWideTries = 3;
+
+        /// <summary>
+        ///     Looks, each <see cref="RetryMs"/> after the last, that must miss the layer roots before they are said lost: the
+        ///     first look comes on the first frame in game, when the layers may not be built yet.
+        /// </summary>
+        private const int LayerRootLooksToSay = 3;
+
+        /// <summary>Images looked at in a whole-object search of the texture (each candidate place costs a read per image).</summary>
+        private const int MaxWideLeaves = 150;
 
         /// <summary>Control names the game's roots and in-game layers carry (login and in-game dumps, 2026-09/10).</summary>
         private static readonly string[] KnownLayerNames =
@@ -96,6 +115,20 @@ namespace Poe2Accessibility.Services
         private long namesTriedAt = long.MinValue / 2;
         private long textTriedAt = long.MinValue / 2;
         private long texturesTriedAt = long.MinValue / 2;
+        private long renderTriedAt = long.MinValue / 2;
+        private readonly LossWitnesses nameMisses = new();
+        private readonly LossWitnesses textMisses = new();
+        private readonly LossWitnesses textureMisses = new();
+        private readonly LossWitnesses layerRootMisses = new(LayerRootLooksToSay);
+        private const int LookAgainEveryMs = 1000;
+        private bool missedInGame;
+        private IntPtr pendingState;
+        private long nextLookAgainAt;
+        private long looks;
+        private int wideNameTries;
+        private int wideTextTries;
+        private int wideTextureTries;
+        private readonly LossWitnesses renderMisses = new();
 
         public LayoutProbe(HostMemoryReader reader, UiElementReader elements, CompatibilityReport report)
         {
@@ -187,21 +220,30 @@ namespace Poe2Accessibility.Services
             if (Holds(mouseNow) || Holds(padNow))
             {
                 this.layerRootsKnown = true;
+                this.layerRootMisses.Clear();
                 this.Record(LayerRootsPart, mouse, mouseNow);
                 return;
             }
 
-            var nearPad = OffsetSearch.First(padNow, ManagerScanBytes, Step, Holds, Step);
-            var nearMouse = OffsetSearch.First(mouseNow, ManagerScanBytes, Step, Holds, Step);
+            // A slot found elsewhere needs a second fact: its element climbs to the root its UI manager shows.
+            bool HoldsLinked(int offset) => Holds(offset) && this.LeadsToManagerRoot(slots[offset / IntPtr.Size]);
+            var nearPad = OffsetSearch.First(padNow, ManagerScanBytes, Step, HoldsLinked, Step);
+            var nearMouse = OffsetSearch.First(mouseNow, ManagerScanBytes, Step, HoldsLinked, Step);
             if ((nearPad ?? nearMouse) is null)
             {
-                this.report.Missing(LayerRootsPart);
+                this.pendingState = inGameState;
+                if (this.layerRootMisses.Against(++this.looks))
+                {
+                    this.report.Missing(LayerRootsPart);
+                }
+
                 return;
             }
 
             var shift = nearPad is { } p && (nearMouse is not { } m || Math.Abs(p - padNow) <= Math.Abs(m - mouseNow)) ? p - padNow : nearMouse!.Value - mouseNow;
             GameReader.Utils.OffsetHealer.PlacePointers(typeof(InGameStateOffset), (mouse, mouseNow + shift), (pad, padNow + shift));
             this.layerRootsKnown = true;
+            this.layerRootMisses.Clear();
             this.report.Moved(LayerRootsPart, mouseNow, mouseNow + shift);
         }
 
@@ -211,6 +253,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public void ObserveFocus(IntPtr manager)
         {
+            this.LookAgain(manager);
             if (this.focusKnown || manager == IntPtr.Zero)
             {
                 return;
@@ -300,11 +343,12 @@ namespace Poe2Accessibility.Services
             }
 
             this.namesTriedAt = now;
-            if (OffsetSearch.First(this.measuredName, Radius, Step, this.NameFits(root), Step) is not { } found)
+            // The whole-object searches are kept for in game, where the evidence is always there (a few tries per game process).
+            if ((OffsetSearch.First(this.measuredName, Radius, Step, this.NameFits(root), Step) ?? (conclusive ? this.WideName(root) : null)) is not { } found)
             {
                 if (conclusive)
                 {
-                    this.report.Missing("element names");
+                    this.Missed("element names", this.nameMisses);
                 }
 
                 return;
@@ -317,6 +361,7 @@ namespace Poe2Accessibility.Services
             GameLayout.Element.TooltipsOffset = this.measuredTooltips + shift;
             this.namesKnown = true;
             this.Record("element names", this.measuredName, found);
+            this.JudgeManagerField(root);
         }
 
         /// <summary>Label texts: the tagged text and two equal stripped copies (<see cref="UiElementReader.TryReadText(IntPtr, out string)"/>).</summary>
@@ -336,11 +381,11 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (OffsetSearch.First(0, Radius, Step, this.TextFits(root), -Radius) is not { } found)
+            if ((OffsetSearch.First(0, Radius, Step, this.TextFits(root), -Radius) ?? (conclusive ? this.WideTextShift(root) : null)) is not { } found)
             {
                 if (conclusive)
                 {
-                    this.report.Missing("element texts");
+                    this.Missed("element texts", this.textMisses);
                 }
 
                 return;
@@ -375,11 +420,11 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (OffsetSearch.First(this.measuredTexture, Radius, Step, fits, Step) is not { } found)
+            if ((OffsetSearch.First(this.measuredTexture, Radius, Step, fits, Step) ?? (conclusive ? this.WideTexture(root) : null)) is not { } found)
             {
                 if (conclusive)
                 {
-                    this.report.Missing("image textures");
+                    this.Missed("image textures", this.textureMisses);
                 }
 
                 return;
@@ -430,23 +475,34 @@ namespace Poe2Accessibility.Services
             return true;
         }
 
-        /// <summary>Entity names (Render component): judged on monsters, characters and players, half of which must read.</summary>
+        /// <summary>
+        ///     Entity names (Render component): judged on monsters, characters and players, half of which must read. Settled only
+        ///     by a batch that reads (once: a second guess must not flap); lost once two different batches read none.
+        /// </summary>
         public void ProbeRenderNames(IReadOnlyList<IntPtr> renders)
         {
-            if (this.renderKnown || renders.Count < MinRenders)
+            var now = Environment.TickCount64;
+            if (this.renderKnown || renders.Count < MinRenders || now - this.renderTriedAt < RetryMs)
             {
                 return;
             }
 
+            this.renderTriedAt = now;
             int Named(int offset) => renders.Count(render => this.elements.ReadWStringStructAt(render + offset) is { Length: > 0 } name && name.Any(char.IsLetter));
             bool Fits(int offset) => Named(offset) * 2 >= renders.Count;
-            this.renderKnown = true; // judged once per game: a wrong guess must not flap
             if (OffsetSearch.First(this.measuredRenderName, Radius, Step, Fits, Step) is not { } found)
             {
-                this.report.Missing("entity names");
+                // A batch read while its entities were being freed reads no names on a healthy game.
+                if (this.renderMisses.Against(LossWitnesses.KeyOf(renders.Select(render => render.ToInt64()))))
+                {
+                    this.report.Missing("entity names");
+                }
+
                 return;
             }
 
+            this.renderKnown = true;
+            this.renderMisses.Clear();
             GameLayout.RenderComponent.NameOffset = found;
             this.Record("entity names", this.measuredRenderName, found);
         }
@@ -464,7 +520,14 @@ namespace Poe2Accessibility.Services
             this.ownElements.Clear();
             this.ownElementsManager = IntPtr.Zero;
             this.layerRootsTriedAt = long.MinValue / 2;
-            this.namesTriedAt = this.textTriedAt = this.texturesTriedAt = long.MinValue / 2;
+            this.namesTriedAt = this.textTriedAt = this.texturesTriedAt = this.renderTriedAt = long.MinValue / 2;
+            (this.wideNameTries, this.wideTextTries, this.wideTextureTries) = (0, 0, 0);
+            (this.missedInGame, this.pendingState, this.nextLookAgainAt) = (false, IntPtr.Zero, 0);
+            foreach (var misses in new[] { this.nameMisses, this.textMisses, this.textureMisses, this.layerRootMisses })
+            {
+                misses.Clear();
+            }
+            this.renderMisses.Clear();
         }
 
         /// <summary>
@@ -510,6 +573,13 @@ namespace Poe2Accessibility.Services
         /// <summary>The root or one of its layers carries a known control name at the offset.</summary>
         private Func<int, bool> NameFits(IntPtr root)
         {
+            var blocks = this.NamedNodes(root).Select(node => this.reader.ReadBytes(node, this.measuredName + Radius + WStringDecoder.Size)).Where(block => block.Length > 0).ToList();
+            return offset => blocks.Any(block => WStringDecoder.TryDecode(this.reader, block, offset, MaxLength, false) is { } name && KnownLayerNames.Contains(name));
+        }
+
+        /// <summary>The root, its children and theirs: the elements that carry the known names.</summary>
+        private List<IntPtr> NamedNodes(IntPtr root)
+        {
             // In game the named layers sit one level lower than at login (root, layer container, layers).
             var nodes = new List<IntPtr> { root };
             if (this.elements.TryReadElement(root, out var rootInfo))
@@ -524,8 +594,7 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            var blocks = nodes.Select(node => this.reader.ReadBytes(node, this.measuredName + Radius + WStringDecoder.Size)).Where(block => block.Length > 0).ToList();
-            return offset => blocks.Any(block => WStringDecoder.TryDecode(this.reader, block, offset, MaxLength, false) is { } name && KnownLayerNames.Contains(name));
+            return nodes;
         }
 
         /// <summary>Enough labels under the root read through the text fields moved by the shift.</summary>

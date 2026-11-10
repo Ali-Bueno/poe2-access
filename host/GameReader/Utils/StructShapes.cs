@@ -12,12 +12,134 @@ namespace GameReader.Utils
     /// <summary>Where a stat list keeps its vector of pairs, how long a pair is, and where it keeps the stat's key and value.</summary>
     public readonly record struct StatLayout(int List, int Stride, int Key, int Value);
 
+    /// <summary>What a rule that every entity must keep says, over the entities it was read on.</summary>
+    public enum InvariantVerdict
+    {
+        /// <summary>Too few entities, or neither clearly kept nor clearly broken.</summary>
+        NotJudged,
+
+        /// <summary>Nearly every entity keeps it.</summary>
+        Holds,
+
+        /// <summary>Most entities break it, in more than one area: the field is not where it is read.</summary>
+        Fails,
+    }
+
+    /// <summary>
+    ///     Counts, over the areas of one game process, how many entities keep a rule their field must keep
+    ///     (<see cref="StructShapes.IsFlag"/> and the like): the only live check of the fields nothing but the game's code
+    ///     places. It can tell, never repair: a rule that fails reports its part and moves nothing. An entity counts once
+    ///     per area (a flask is the same entity in every area, a second sweep of one area adds nothing).
+    /// </summary>
+    public sealed class InvariantTally
+    {
+        /// <summary>Entities a rule must have been read on before it says anything, and that must break it before it fails.</summary>
+        public const int MinEntities = 5;
+
+        /// <summary>Areas the entities that break a rule must come from: one area can hold one odd kind of thing.</summary>
+        public const int MinAreas = 2;
+
+        // A rule holds while at most one entity in ten breaks it (an entity freed while it was read).
+        private const int KeptPerBroken = 10;
+        private const int MaxRemembered = 4096;
+
+        private readonly Dictionary<string, Rule> rules = new(StringComparer.Ordinal);
+
+        /// <summary>Notes whether <paramref name="entity"/>, met in <paramref name="area"/>, keeps the rule; one seen there before is not counted again.</summary>
+        public void Add(string rule, long area, long entity, bool keeps)
+        {
+            lock (this.rules)
+            {
+                if (!this.rules.TryGetValue(rule, out var tally))
+                {
+                    this.rules[rule] = tally = new Rule();
+                }
+
+                if (tally.Entities.Count >= MaxRemembered || !tally.Entities.Add((area, entity)))
+                {
+                    return;
+                }
+
+                if (keeps)
+                {
+                    tally.Kept++;
+                }
+                else
+                {
+                    tally.Broken++;
+                    tally.BrokenAreas.Add(area);
+                }
+            }
+        }
+
+        /// <summary>What the rule says so far, and on how many entities.</summary>
+        public (InvariantVerdict Verdict, int Kept, int Seen) Verdict(string rule)
+        {
+            lock (this.rules)
+            {
+                if (!this.rules.TryGetValue(rule, out var tally))
+                {
+                    return (InvariantVerdict.NotJudged, 0, 0);
+                }
+
+                var seen = tally.Kept + tally.Broken;
+                var verdict = seen < MinEntities ? InvariantVerdict.NotJudged
+                    : tally.Broken >= MinEntities && tally.Broken * 2 >= seen && tally.BrokenAreas.Count >= MinAreas ? InvariantVerdict.Fails
+                    : tally.Broken * KeptPerBroken <= seen ? InvariantVerdict.Holds
+                    : InvariantVerdict.NotJudged;
+                return (verdict, tally.Kept, seen);
+            }
+        }
+
+        /// <summary>A new game process: nothing counted before says anything of it.</summary>
+        public void Clear()
+        {
+            lock (this.rules)
+            {
+                this.rules.Clear();
+            }
+        }
+
+        private sealed class Rule
+        {
+            public HashSet<(long Area, long Entity)> Entities { get; } = new();
+
+            public HashSet<long> BrokenAreas { get; } = new();
+
+            public int Kept { get; set; }
+
+            public int Broken { get; set; }
+        }
+    }
+
     /// <summary>
     ///     What a field must hold, so it is recognised wherever a game patch left it: facts that cannot hold by chance, such
     ///     as a pointer back to its own component or a chain that ends in a buff's name.
     /// </summary>
     public static class StructShapes
     {
+        // Far above what any flask or charm holds or spends (under a hundred charges in 0.5.5f); a pointer's half is not.
+        private const int MaxCharges = 10_000;
+
+        // No body is several screens wide (a screen is about 1400 world units); a pointer's half read as a float is tiny or huge.
+        private const float MaxBodySize = 10_000f;
+
+        /// <summary>A C++ bool as the game writes it: 0 or 1. A byte of anything else there is another field.</summary>
+        public static bool IsFlag(byte value) => value <= 1;
+
+        /// <summary>A rarity within the game's enum, 0 to <paramref name="last"/> (unique).</summary>
+        public static bool IsRarity(int value, int last) => value >= 0 && value <= last;
+
+        /// <summary>A stack holds one item at least and no more than its kind allows (<paramref name="max"/>; under 1 when that was not read).</summary>
+        public static bool IsStackCount(int count, int max) => count >= 1 && (max < 1 || count <= max);
+
+        /// <summary>A flask's charges: none or more held, one or more spent per use, neither a pointer's half.</summary>
+        public static bool IsCharges(int current, int perUse) => current is >= 0 and <= MaxCharges && perUse is >= 1 and <= MaxCharges;
+
+        /// <summary>A body's three sizes: numbers, none negative or absurd. A weak rule (other floats pass it); it catches a pointer or an id read as sizes.</summary>
+        public static bool IsBodySize(float x, float y, float z) =>
+            float.IsFinite(x) && float.IsFinite(y) && float.IsFinite(z) && x >= 0 && y >= 0 && z >= 0 && x < MaxBodySize && y < MaxBodySize && z < MaxBodySize;
+
         private const long MinPointer = 0x10000;
         private const long MaxPointer = 0x7FFFFFFFFFFF;
         private const int Pointer = 8;

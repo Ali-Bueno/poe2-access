@@ -17,6 +17,7 @@ namespace Poe2Accessibility.Services
     public sealed class MonsterMods
     {
         private const int MaxMods = 16;
+        private const int MaxNameChars = 120;
 
         // The implicit and explicit vectors, as measured: read through the host's remap, which the code rules and the sweep move.
         private static readonly int ImplicitAt = (int)Marshal.OffsetOf<ObjectMagicPropertiesOffsets>(nameof(ObjectMagicPropertiesOffsets.Details1)) +
@@ -84,15 +85,27 @@ namespace Poe2Accessibility.Services
                 return string.Empty;
             }
 
-            if (!this.names.TryGetValue(row, out var name))
+            if (this.names.TryGetValue(row, out var name))
             {
-                name = this.memory.TryRead<IntPtr>(row + GameLayout.ModsDat.NameOffset, out var text) && this.memory.IsValidAddress(text) &&
-                       this.reader.ReadUtf16BufferAt(text, 120) is { Length: > 0 } raw && !raw.Contains('\0')
-                    ? Spoken(raw)
-                    : string.Empty;
-                this.names[row] = name;
+                return name;
             }
 
+            // Only a row that read is kept: a name that did not read (a table still loading) is asked for again.
+            if (!this.memory.TryRead<IntPtr>(row + GameLayout.ModsDat.NameOffset, out var text) || !this.memory.IsValidAddress(text) ||
+                !this.memory.TryRead<ushort>(text, out var first))
+            {
+                return string.Empty;
+            }
+
+            // A row with no name (a technical mod) begins with the terminator; any other text must read whole.
+            var raw = first == 0 ? string.Empty : this.reader.ReadUtf16BufferAt(text, MaxNameChars);
+            if (raw == null)
+            {
+                return string.Empty;
+            }
+
+            name = raw.Length > 0 ? Spoken(raw) : string.Empty;
+            this.names[row] = name;
             return name;
         }
     }

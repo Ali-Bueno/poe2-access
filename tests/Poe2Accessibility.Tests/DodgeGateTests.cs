@@ -266,7 +266,13 @@ namespace Poe2Accessibility.Tests
 
             Equal(FieldTrust.Unjudged, check.Trust, "not enough frames yet");
             check.Observe(AttackFieldCheck.ClockAdvances(Clip(0.1f), Clip(0.15f), 16));
-            Equal(FieldTrust.Lost, check.Trust, "a position running three times its rate is not a position");
+            Equal(FieldTrust.Unjudged, check.Trust, "one batch that says lost is looked at again");
+            for (var i = 0; i < AttackFieldCheck.MinSamples; i++)
+            {
+                check.Observe(AttackFieldCheck.ClockAdvances(Clip(0.1f), Clip(0.15f), 16));
+            }
+
+            Equal(FieldTrust.Lost, check.Trust, "a position running three times its rate, in two batches, is not a position");
             Equal(false, AttackFieldCheck.ClockAdvances(Clip(0.1f), Clip(float.NaN), 16), "garbage");
         }
 

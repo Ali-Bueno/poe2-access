@@ -45,9 +45,10 @@ raises its version or the next patch. A step that is not optional is retried on 
    reads 21 fields with rules of its own, as a second opinion.
 
 ## 3. After the first start: read the log
-In `Plugins/Poe2Accessibility/logs/accessibility.log` look for `NOT FOUND`, `moved from`, `lost`, `does not match the
-catalog`, `Aviso de compatibilidad`, and in `Poe2Access.log` for `threw`. Then run the dev commands (write the word to
-`Plugins/Poe2Accessibility/debug/command.txt`): `structs` (the host sweep), `layout` (every plugin search started 0x18 off
+In `Plugins/Poe2Accessibility/logs/accessibility.log` look for `NOT FOUND`, `moved from`, `lost`, `FAILS` (a live invariant:
+a field only the code places reads wrong on most entities), `does not match the catalog`, `Aviso de compatibilidad`, and in
+`Poe2Access.log` for `threw`. Then run the dev commands (write the word to
+`Plugins/Poe2Accessibility/debug/command.txt`): `structs` (the host sweep; twice, as a part lost in one sweep is said on the second), `layout` (every plugin search started 0x18 off
 target: each must come back; run it at login, character creation, in town near a quest NPC, in the options, the inventory,
 the passive tree and with the left trigger held), `sounds` (what played), `costs` (what the frame costs).
 

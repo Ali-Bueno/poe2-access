@@ -81,8 +81,12 @@ namespace Poe2Accessibility.Services
         private const float MinAdvance = 0.005f;
 
         private readonly int minSamples;
+        /// <summary>Batches of readings that must each say the field lost before it is given up.</summary>
+        public const int LostBatches = 2;
+
         private int kept;
         private int broken;
+        private int lostBatches;
 
         public AttackFieldCheck(int minSamples = MinSamples) => this.minSamples = minSamples;
 
@@ -129,6 +133,9 @@ namespace Poe2Accessibility.Services
         public static bool TargetPointPlausible(Vector2 target, Vector2 attacker, float maxWorld) =>
             float.IsFinite(target.X) && float.IsFinite(target.Y) && Vector2.Distance(target, attacker) <= maxWorld;
 
+        /// <summary>A new game process, perhaps another build: the verdict of the last one says nothing of it.</summary>
+        public void Reset() => (this.kept, this.broken, this.lostBatches, this.Trust) = (0, 0, 0, FieldTrust.Unjudged);
+
         /// <summary>One judged reading (null: it said nothing); the verdict settles once enough comparable readings came.</summary>
         public FieldTrust Observe(bool? holds)
         {
@@ -147,10 +154,21 @@ namespace Poe2Accessibility.Services
             }
 
             var total = this.kept + this.broken;
-            if (total >= this.minSamples)
+            if (total < this.minSamples)
             {
-                var share = this.kept / (double)total;
-                this.Trust = share >= KeptShare ? FieldTrust.Intact : share <= LostShare ? FieldTrust.Lost : FieldTrust.Unjudged;
+                return this.Trust;
+            }
+
+            var share = this.kept / (double)total;
+            if (share >= KeptShare)
+            {
+                this.Trust = FieldTrust.Intact;
+            }
+            else if (share <= LostShare)
+            {
+                // Lost is for the session: a second batch, counted from nothing, must say so too (one fight's odd monsters do not).
+                this.Trust = ++this.lostBatches >= LostBatches ? FieldTrust.Lost : FieldTrust.Unjudged;
+                (this.kept, this.broken) = (0, 0);
             }
 
             return this.Trust;
