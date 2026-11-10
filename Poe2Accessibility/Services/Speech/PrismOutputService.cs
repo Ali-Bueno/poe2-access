@@ -320,7 +320,7 @@ namespace Poe2Accessibility.Services
 
             this.log.Info(goesOut
                 ? $"Speech {(interrupt ? "interrupts" : "queued")}{(delivery is Delivery.Kept or Delivery.KeptMessage ? ", kept" : delivery == Delivery.Move ? ", moved" : string.Empty)}: {text}"
-                : $"Speech waits for the kept line{(interrupt ? ", replacing what waited" : string.Empty)}: {text}");
+                : $"Speech waits for the kept line{(SpeechFloor.Replaces(interrupt, reading) ? ", replacing what waited" : string.Empty)}: {text}");
             this.pendingSignal.Set();
             return true;
         }

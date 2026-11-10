@@ -11,7 +11,28 @@ namespace Poe2Accessibility.Tests
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(UrgentNewsIsNeverAReading), UrgentNewsIsNeverAReading),
+            (nameof(AReadingThatCutsInDoesNotTakeAnEventWithIt), AReadingThatCutsInDoesNotTakeAnEventWithIt),
         };
+
+        /// <summary>
+        ///     With the boss's life set to cut in, "Boss 60 percent" behind a lesson replaced the pick-up that waited and
+        ///     then went unsaid for its age: neither was heard.
+        /// </summary>
+        private static void AReadingThatCutsInDoesNotTakeAnEventWithIt()
+        {
+            var start = new DateTime(2026, 11, 10, 12, 0, 0, DateTimeKind.Utc);
+            var floor = new SpeechFloor();
+            floor.Keep("Press X to equip the weapon.", true, 6000, start);
+            floor.Admit("Picked up: Scroll of Wisdom, 3", false, start.AddMilliseconds(500));
+            floor.Admit("Boss 60 percent", true, start.AddMilliseconds(600), reading: true);
+            Equal("Picked up: Scroll of Wisdom, 3", string.Join(" | ", floor.Release(start.AddMilliseconds(6100))), "the pick-up is said after the lesson");
+            Equal("Boss 60 percent", string.Join(" | ", floor.Dropped), "the old percentage is not");
+
+            floor.Keep("Press X to equip the weapon.", true, 6000, start.AddSeconds(10));
+            floor.Admit("Picked up: Scroll of Wisdom, 3", false, start.AddSeconds(10.5));
+            floor.Admit("Stash, tab 2", true, start.AddSeconds(10.6));
+            Equal("Stash, tab 2", string.Join(" | ", floor.Release(start.AddSeconds(16.1))), "an interrupt that is no reading still replaces what waited");
+        }
 
         /// <summary>
         ///     "Geonor defeated", "Yarkbruja is down" and "Life 25 percent" are spoken under the kinds of the boss's and the
