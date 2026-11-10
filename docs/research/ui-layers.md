@@ -282,6 +282,10 @@ then read as a focus: "Se ha invitado a un compañero al grupo, marcado, casilla
 Measured on yarkey's stash and inventory in G2_town (UI dumps `ui-tree-InGameState-20261110-07*.txt`, read-only memory
 snapshots of the item elements under three searches).
 
+- **A merchant's search** (Shambrin, 2026-11-10) works as the stash's: "4 resaltados: Sandalias de red, columna 1, fila 3. …".
+  A tab changed with a search typed keeps the search: the watch drops the grid no longer drawn and takes the one drawn in
+  its place (it said "Búsqueda borrada" and nothing more before). A merchant's page changed from the inventory's side is
+  said by its tab ("pestaña 2"; Risu's are named: "Armaduras").
 - **Search highlight.** A stash's field "Resaltar objetos" (L3 "Editar búsqueda", hold L3 "Borrar búsqueda") lights the
   items that match and dims the rest; the player's own inventory beside it is not touched. Each item element (the grid's
   children, entity at `+0x4E0`) holds the state in the byte at **`+0x624`**: 0 with no search, 1 dimmed, 2 lit; the byte at
@@ -358,5 +362,13 @@ tree's planner, the Skills panel and the inventory, a UI dump with the Skills pa
   left out; one it takes later says from which level.
 - **`InventoryReader.IsGem` took only `/Gems/`:** Twister, Attrition and 593 other gems under `/Gem/` were no gems to the
   move news and the loot filter. Both now ask `BuildGems.IsGemId`.
+- **A skill a weapon grants** (Parry from a buckler, Spear Stab, Spear Throw) has a row but no gem view: its
+  `skillgem_socket_frame` holds a bare element, and Parry has no item in any server inventory (dev command `inventories`
+  with a Ridged Buckler equipped). Such a row is told by the name in its title (`skill_title_layout`), and the names of
+  all the rows are kept so that Parry counts as owned ("Build: 3 de 9 habilidades" once the buckler was on). An empty
+  row's title keeps a bare "NIVEL:": the row is empty when nothing names it.
+- **Stash tabs are server inventories too** once seen (145 and 146 here): only the main inventory and the skill
+  inventories are looked at (`GameLayout.SkillGemInventories`: 47 and 75 measured, plus whatever a gem view of the panel
+  shows through `InventoryReader.InventoryOf`).
 - Not read: which gems are Spirit gems before they are owned (BaseItemTypes only tells skill from support; an owned one's
   tooltip says "Reserva: 30 Espíritu").

@@ -153,7 +153,7 @@ namespace Poe2Accessibility.Services
             }
 
             var inSkills = node.Context == Announcements.SkillGemPanel;
-            var lines = (inSkills ? this.SkillPanelBuildLines(info, node.Text) : info.Name == EngraveOption ? this.EngraveBuildLines(node.Text) : Array.Empty<string>()).ToList();
+            var lines = (info.Name == EngraveOption ? this.EngraveBuildLines(node.Text) : inSkills ? this.SkillPanelBuildLines(info, node.Text) : Array.Empty<string>()).ToList();
             var notes = inSkills ? node.PanelNotes.Concat(this.BuildGemSummary()).ToList() : node.PanelNotes;
             if (lines.Count == 0 && notes.Count == node.PanelNotes.Count)
             {

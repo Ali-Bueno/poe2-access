@@ -21,13 +21,20 @@ player-visible first, each with where it lives.
 - The scanner's "sin ruta" at a cut the player stood on (`EntityCatalog.Describe`): said as cut.
 - A quest's name making a town's well the objective (`QuestTexts`, [ui layers](ui-layers.md)).
 
+- Second pass, the same day (live on yarkey in G2_town, each heard in the log before and after):
+  the build mark byte is distrusted when over a quarter of the nodes read marked (`BuildPlan.MarksPlausible`, reported as "passive build marks");
+  L3 where the game uses it (a stash's or a merchant's "Edit search", the tree's filters) no longer says the new focus a second time
+  (`L3Gestures.MovedFocus`, `ModCommands.OnGesture`); a merchant's tab changed with LB/RB from the inventory's side is said (`ScreenNarrator.TickTabKey`);
+  a search kept across a tab change said "Search cleared" and never the new page's matches (`SearchHighlightWatch`: the page shown in place of a hidden one);
+  a stash page with support gems said a bare "I", the tier drawn on the icon (`ScreenNarrator.IsTierNumeral`); gems under `Metadata/Items/Gem/` (Twister,
+  Attrition, 593 more) were no gems to the move news and the loot filter (`BuildGems.IsGemId`). A merchant's search was tried and works.
+
 ## Open
 
 | Where | What can go wrong | Smallest fix |
 |---|---|---|
 | `PassiveTreeFields.JudgeAllocated` | A class override node taken (Witch, Huntress, Druid) may fail the "only known ids" test and move the allocated offset onto another list | Know both rows' ids, accept 90% known, never move on a weak candidate |
 | `UiSemantics.PassiveTree.PlacesOf` | Places are kept for the nodes visible at the first read: the ascendancy's 197 nodes get none | Rebuild when the count of visible node elements changes |
-| `UiSemantics.BuildPlanner.BuildMarks` | The build mark byte has one signature; moved by a patch, any byte equal to 1 marks nodes | Treat the marks as unreadable when over a quarter of the nodes read 1 |
 | `UiSemantics.PassiveTree` (`StickLinksOf`) | The row byte that makes the game skip the linked stage is read and ignored; the multiple-choice redirect is not modelled (the first push after an attribute popup lands one node off) | Empty links for such rows; skip them in the self-check |
 | `BossWatch.WatchLife` | "Defeated" on one not-alive read; an allied unique is tracked as a boss | Two reads half a second apart; skip friendly entities |
 | `AttackFieldCheck` | Verdicts last across a game restart within one host session | Reset beside `FlagBits.Reset` |

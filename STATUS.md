@@ -483,7 +483,10 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
 - `catalog/gem-names.json` was made by hand from `dat-strings`; the extractor and the start-up data steps do not regenerate it yet (a gem
   added by a patch is named by its id's words until then). Which gems are Spirit gems is not known before they are owned.
 - The Sockets component's second socket (+0x38) is unmeasured: yarkey has one support per skill; every pointer is checked as a support gem.
-- The tree's header "Set de armas: 1, (4)" is read as shown; what its two numbers count is not measured.
+- The tree's header "Set de armas: 1, (4)" is read as shown (two rows, one per set, each an icon, the caption, "1" and " (4)"; no tooltip,
+  dump 2026-11-10); what the numbers count needs a point spent or refunded to measure, which only the user does.
+- yarkey's gear was set for the build on 2026-11-10 (unique ruby ring and movement boots from the stash, a Ridged Buckler bought for 394 gold
+  in the second set's off-hand: Parry). Closing a full-screen panel reads the whole quest tracker again as the HUD comes back.
 - yarkey follows "Campaign Progression - [0.5.5] Twister G" (Build Planner, 2026-11-10): 16 of 60 taken, 13 points outside it, the
   earlier guide's route. What the audit left open: [robustness audit](docs/research/robustness-audit-2026-11-10.md#open).
 - The Mercenary's own crossbow clip (bolts loaded) is still not found: `skills` showed only a use counter (+0xD8, up by
