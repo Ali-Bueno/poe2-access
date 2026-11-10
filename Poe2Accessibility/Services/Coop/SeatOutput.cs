@@ -26,7 +26,15 @@ namespace Poe2Accessibility.Services
 
         public void Urge(string text, int holdMs = 1500) => this.inner.Urge(this.Named(text), holdMs);
 
-        public void Keep(string text, int holdMs, bool interrupt = false) => this.inner.Keep(this.Named(text), holdMs, interrupt);
+        // Every member of the interface that has a default body is forwarded: a default would say the line through Speak,
+        // and a kept line (a sale, what is in the hand), a move or a piece of news would lose what makes it one. Keep had
+        // three parameters where the interface has four, so no kept line was ever kept (found 2026-11-10).
+        public void Keep(string text, int holdMs, bool interrupt = false, bool yieldsToMoves = false) =>
+            this.inner.Keep(this.Named(text), holdMs, interrupt, yieldsToMoves);
+
+        public void Moved(string text) => this.inner.Moved(this.Named(text));
+
+        public void MentionNews(string text) => this.inner.MentionNews(this.Named(text));
 
         public void TakeFloor(string text) => this.inner.TakeFloor(this.Named(text));
 
