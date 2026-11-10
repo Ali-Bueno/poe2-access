@@ -197,6 +197,7 @@ namespace Poe2Accessibility
         private void ResetAreaState(string areaName, bool resumed, bool newArea)
         {
             this.beacon?.Clear(false);
+            this.timedGuide.Reset();
             this.commands?.OnAreaChanged(); // the scanner's choice was of the area left
             this.bosses?.Reset();
             this.trialScope.Reset();

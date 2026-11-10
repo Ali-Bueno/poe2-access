@@ -3096,6 +3096,10 @@ namespace Poe2Accessibility.Tests
             other.Look(Array.Empty<uint>(), 42);
             other.Look(Array.Empty<uint>(), 42);
             Equal((null, false), other.Look(Array.Empty<uint>(), 42), "and it is not let go when the room ends");
+            var next = new TimedGuide();
+            next.Look(new uint[] { 7 }, null);
+            next.Reset();
+            Equal((7u, false), next.Look(new uint[] { 7 }, null), "in the next room the same id is another crystal: it is aimed at anew");
         }
 
         private static void HonourIsSaidAsItFalls()

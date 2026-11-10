@@ -15,6 +15,9 @@ namespace Poe2Accessibility.Services
         private uint? aimed;
         private int emptyLooks;
 
+        /// <summary>Another area or instance: entity ids start over there, so the one aimed at names nothing of it.</summary>
+        public void Reset() => (this.aimed, this.emptyLooks) = (null, 0);
+
         /// <summary>The entry chosen in place of the one <see cref="Look"/> gave, nearest in a straight line.</summary>
         public void Aim(uint id) => this.aimed = id;
 
