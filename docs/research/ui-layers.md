@@ -375,3 +375,48 @@ tree's planner, the Skills panel and the inventory, a UI dump with the Skills pa
   shows through `InventoryReader.InventoryOf`).
 - Not read: which gems are Spirit gems before they are owned (BaseItemTypes only tells skill from support; an owned one's
   tooltip says "Reserva: 30 Espíritu").
+
+## Build Planner gear (0.5.5f, 2026-11-10)
+
+Code and unit tests only (the game was in use): what a live session must check is listed last.
+
+- **The file.** `inventory_slots` holds one entry per piece: `{inventory_id, slot_x, slot_y, level_interval [from, to],
+  additional_text}` where the text's first line is the base in the author's English and the next are the wanted
+  modifiers, numbered, most important first (0 to 8 in yarkey's ten files); or `{inventory_id, slot_x, slot_y,
+  unique_name}` with no levels, the name sometimes followed by a note in brackets ("Darkness Enthroned (body armour)").
+  `inventory_id` is the game's inventory name: `Weapon1/2`, `Offhand1/2`, `Helm1`, `BodyArmour1`, `Gloves1`, `Boots1`,
+  `Amulet1`, `Belt1`, `Ring1/2`, `Flask1` (`slot_x` 0 life, 1 mana), `Charm1` (`slot_x` 0..2). Pure `BuildGear.Parse`,
+  `EntryFor` (the latest piece that applies at the level, else the first to come).
+- **Which slot a control is.** An equipment slot is a one-cell inventory grid (`role=GridCell`, play log 2026-11-10:
+  `text="Casco, Halo de cólera, raro" context="Inventario"`); `InventoryReader.InventoryOf` names its server inventory,
+  and the host's `InventoryName` uses the file's very ids (`Helm1`…), so the slot is `InventoryName.ToString()` and, for
+  `Flask1`, the cell's column. A stash tab the host names after a slot is told apart: the slot's own cell holds the
+  entity its server inventory holds. `Charm1` is not in the host's enum: charms are not compared.
+- **Where an item goes.** By its id's folder, read live (`InventoryReader.ItemBaseId`; ids seen in the play logs
+  2026-11-08..10): `/Armours/Helmets/`, `/BodyArmours/`, `/Gloves/`, `/Boots/`, `/Armours/Shields/` (bucklers too:
+  `FourShieldDex`) → both off-hands, `/Weapons/` → both main hands, `/Rings/` → both rings, `/Amulets/`, `/Belts/`,
+  `/Flasks/FourFlaskLife…` and `…FourFlaskMana…`. Charms (`/Flasks/FourCharm…`), quivers and foci (folders not seen) go
+  nowhere.
+- **What is compared, and from what.** The worn item per slot and its base id come from the server inventories without
+  any tooltip (`ServerInventory`); its base name from the item (`ItemBaseName`), its rarity from `ItemKind`. Its modifier
+  lines exist only in its tooltip, which the game builds when the cursor rests on it: the lines of each worn item are
+  kept from the last time its slot was focused (dropped when the item leaves the slot). So the summary counts bases for
+  every slot and modifiers only on the pieces read. Reading them without the cursor needs a measurement: whether a slot's
+  item element keeps a tooltip root (`GameLayout.Element.TooltipsOffset`) before it was ever hovered, or where the item's
+  `Mods` component keeps its explicit modifiers and their values.
+- **Names and texts.** `GearCatalogs.cs` is the contract with the game files' catalogs: `IItemBases` (a base by name in
+  any language or by id, with its armour, evasion and energy shield) and `IModTexts` (a modifier line in any language →
+  template and numbers, and back). `BuildGear.Bases` / `BuildGear.Texts` are the seam, empty until the plugin sets them.
+  A wanted line and an item's line are the same modifier when their templates are, else when they are the same words
+  around other numbers (the author's line, or the game's own text of it); they compare by the first number. A wanted
+  line the texts do not know is "not compared", never missing, and is left out of the counts; a base the files do not
+  name is said in the author's words and judged only by an equal name; a unique only by its own name.
+- **Speech.** `DescribeInventory` puts the short line before the item's lines and the modifiers after them (the tooltip's
+  own lines: read on focus, tap and hold); nothing is said of an item until its tooltip is read, so no modifier is
+  called missing from a tooltip still being built. The summary rides the panel notes of the player's own grids, kept off
+  when the focus comes from another grid (stash, merchant).
+- **To check live.** (1) Inventory open, cursor on the helmet: the log's `Speech` line ends with "Build: …" and one line
+  per wanted modifier; with the catalogs loaded the base and the lines are Spanish. (2) Cursor on a helmet in the bag or
+  a merchant's stock: "Build, Casco: n de m modificadores, …" right after the name. (3) Open the inventory: `Focus ->`
+  shows `notes="Build: … piezas con su base…"`. (4) Flasks: that the grid's column and the server item's X are 0 for
+  life and 1 for mana. (5) A two-handed weapon and the off-hand entry; a ring against both ring slots.

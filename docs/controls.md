@@ -275,9 +275,25 @@ An empty skill slot lists the build's skills you still lack, those for a later l
 Frost; Barrage; Combat Frenzy, from level 26"). In Manage Sockets a socketed support says "in the build", "the build asks
 for Martial Tempo II" or "outside the build", and an empty socket what goes there ("The build puts here: Rage II,
 missing; …"). A cut gem in the inventory, the stash or a merchant's stock says "in the build, for Twister" or "outside the
-build", and so does each choice of the engraving window. The build's equipment is the game's own: a slot the build names
-offers "Show Build Planner notes, hold R3", and the note is read as it appears. The build is known without opening the
-passive tree (the game's settings name it per character).
+build", and so does each choice of the engraving window. The build is known without opening the passive tree (the game's
+settings name it per character).
+
+**The build's gear** (the same file's piece per equipment slot, at your level). On an equipment slot, after the item's
+own lines: "Build: Shielded Helm, armour, another base" — the base by its name in the game's language, the defence its
+own values give (armour, evasion, energy shield or a mix), "from level 33" while the piece is still to come, "same
+base" or "another base, yours gives evasion" — then each modifier the author wants, in his order, against the worn
+item's own line: "+29 to maximum Life, the build asks for 40", "+16% to Fire Resistance, met", "Missing +16% to
+Lightning Resistance". An empty slot says what goes there ("Asks for: …"). A unique the build names is said by the
+author's name ("Build: unique Headhunter, it is not this one"). On any other item that can be worn — in the inventory,
+the stash or a merchant's stock — one short line comes right after its name, per slot it would go in: "Build, helmet: 2
+of 3 modifiers, another base, more than the worn one, which has 1" ("fewer than", "same as the worn one", "nothing worn
+there"); the modifiers one by one come after the item's own lines, as the rest of the tooltip does (tap for the next
+line, hold for all of it). The worn piece is compared once its slot has been visited in the session: its lines are read
+from its tooltip. Entering the inventory says how the worn gear stands: "Build: 3 of 12 pieces on its base, 5 of 14
+modifiers, read on 6 of 12 pieces. Furthest from the build: helmet" — not again when coming back from the stash or a
+merchant's stock. What the game's files cannot name or tell apart is said in the author's own words and never counted
+as had or missing ("Not compared: …"). Charms, quivers and foci are not compared yet. The game's own note stays: a slot
+the build names offers "Show Build Planner notes, hold R3".
 
 In Cosmetics the toggles above each weapon slot read "weapon set I" and "weapon set II"; the search box is "Search
 here..., edit field", the "x" at its end "Clear search, button".

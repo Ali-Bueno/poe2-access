@@ -67,6 +67,7 @@ namespace Poe2Accessibility.Services
             var value = string.Empty;
             var emptyCell = false;
             List<string> details;
+            var gear = (First: new List<string>(), Last: new List<string>());
             if (this.inventory.TryReadGrid(info.Address, out var column, out var row, out var hovered))
             {
                 role = UiRole.GridCell;
@@ -77,6 +78,7 @@ namespace Poe2Accessibility.Services
                 item = this.inventory.HighlightOf(hovered) == ItemHighlight.Match ? Announcements.HighlightedItem(item) : item;
                 var inventoryName = this.inventory.InventoryOf(info.Address);
                 (text, value) = Announcements.InventoryCell(inventoryName, item, column, row);
+                gear = this.BuildGearLines(info.Address, inventoryName, column, this.inventory.ItemEntity(hovered), details.ToList());
             }
             else if (this.inventory.FindItemElement(info.Address) is var item && item != IntPtr.Zero)
             {
@@ -96,6 +98,10 @@ namespace Poe2Accessibility.Services
 
             // A gem: its place in the Build Planner's active build, before what it does.
             details.InsertRange(0, this.GemItemLines(this.inventory.ItemEntity(role == UiRole.GridCell ? hovered : this.inventory.FindItemElement(info.Address))));
+
+            // A piece of gear: how it fits the build's slot before its own lines, each wanted modifier after them.
+            details.InsertRange(0, gear.First);
+            details.AddRange(gear.Last);
 
             return new AccessibleUiNode
             {

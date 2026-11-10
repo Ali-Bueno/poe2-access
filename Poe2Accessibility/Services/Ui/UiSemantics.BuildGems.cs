@@ -51,7 +51,10 @@ namespace Poe2Accessibility.Services
         private static string AskingCharacter() => Seats.Asking.TryGetComponent<Player>(out var player) ? player.Name : string.Empty;
 
         /// <summary>The active build with gems and the character's level; null without one.</summary>
-        private (BuildPlan Plan, int Level)? GemPlan()
+        private (BuildPlan Plan, int Level)? GemPlan() => this.ActivePlan() is { } active && active.Plan.Skills.Count > 0 ? active : null;
+
+        /// <summary>The asking character's active build and level; null without a build.</summary>
+        private (BuildPlan Plan, int Level)? ActivePlan()
         {
             var now = Environment.TickCount64;
             var character = AskingCharacter();
@@ -64,7 +67,7 @@ namespace Poe2Accessibility.Services
                 this.gemPlan = cached;
             }
 
-            return cached.Plan is { Skills.Count: > 0 } plan ? (plan, cached.Level) : null;
+            return cached.Plan is { } plan ? (plan, cached.Level) : null;
         }
 
         /// <summary>
