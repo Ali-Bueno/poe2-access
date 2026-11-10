@@ -22,14 +22,11 @@ internal static class GameDataSetup
     private const int PollMilliseconds = 1_000; // how often the wait lets the narrator speak
     private const string DataFolder = "GameData"; // beside the host: the catalogs made here, kept over the plugin's shipped copies
     private const string StampName = "game-version.txt";
-    private const string ItemSoundsStep = GameDataSteps.ItemSounds;
     private const string SoundsStep = GameDataSteps.Sounds;
     private const string SoundsManifest = "manifest.txt";
     private const string NewSuffix = ".new"; // an output before it replaces the previous one
-    private const string PartSuffix = ".part"; // the extractor's batch output still being written (Batch.cs)
     private const string FailedStepsFile = "game-data-failed.txt";
     private static GameDataNarrator? narrator;
-    private const string BatchLinePrefix = "batch "; // the extractor's batch result lines, "batch places done in 15.2 s"
 
 
     public static void EnsureCurrent(AppFolders folders, string? gameDirectory)
@@ -238,16 +235,16 @@ internal static class GameDataSetup
     private static string? RunBatch(string gameDirectory, IEnumerable<(string Command, string Output)> jobs)
     {
         var list = jobs.ToList();
-        var leftovers = list.SelectMany(job => new[] { job.Output, job.Output + PartSuffix }).ToList();
+        var leftovers = list.SelectMany(job => new[] { job.Output, job.Output + Extractor.BatchPartSuffix }).ToList();
         leftovers.ForEach(File.Delete);
         try
         {
             return Run(["batch", gameDirectory, .. list.SelectMany(job => new[] { job.Command, job.Output })], Math.Min(StepTimeoutMilliseconds * list.Count, BatchTimeoutMilliseconds),
                 line =>
                 {
-                    if (line.StartsWith(BatchLinePrefix, StringComparison.Ordinal))
+                    if (line.StartsWith(Extractor.BatchLinePrefix, StringComparison.Ordinal))
                     {
-                        Log.Write($"Game data: {line[BatchLinePrefix.Length..]}");
+                        Log.Write($"Game data: {line[Extractor.BatchLinePrefix.Length..]}");
                         narrator?.StepDone();
                     }
                 });
@@ -255,7 +252,7 @@ internal static class GameDataSetup
         finally
         {
             // A timed-out run's unfinished outputs; the abandoned worker may still hold one open, which the next start clears.
-            foreach (var part in leftovers.Where(file => file.EndsWith(PartSuffix, StringComparison.Ordinal)))
+            foreach (var part in leftovers.Where(file => file.EndsWith(Extractor.BatchPartSuffix, StringComparison.Ordinal)))
             {
                 try
                 {
