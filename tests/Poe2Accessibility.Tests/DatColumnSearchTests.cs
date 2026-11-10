@@ -272,7 +272,10 @@ namespace Poe2Accessibility.Tests
         }
 
         /// <summary>A version-3 graph (as EndgameTests builds one): kind, orbit sizes, roots, then groups of nodes with their links.</summary>
-        private static byte[] Graph(params (float X, float Y, (int Id, int[] Links)[] Nodes)[] groups)
+        internal static byte[] Graph(params (float X, float Y, (int Id, int[] Links)[] Nodes)[] groups) => Graph(0, 0, null, groups);
+
+        /// <summary>The same, with every node on <paramref name="orbit"/> and <paramref name="slot"/>, and the root named (the first node by default).</summary>
+        internal static byte[] Graph(int orbit, int slot, int? root, params (float X, float Y, (int Id, int[] Links)[] Nodes)[] groups)
         {
             using var stream = new MemoryStream();
             using var writer = new BinaryWriter(stream);
@@ -281,7 +284,7 @@ namespace Poe2Accessibility.Tests
             writer.Write((byte)2);
             writer.Write(new byte[] { 1, 6 });
             writer.Write(1);
-            writer.Write(groups[0].Nodes[0].Id);
+            writer.Write(root ?? groups[0].Nodes[0].Id);
             writer.Write(0);
             writer.Write(groups.Length);
             foreach (var (x, y, nodes) in groups)
@@ -295,8 +298,8 @@ namespace Poe2Accessibility.Tests
                 foreach (var (id, links) in nodes)
                 {
                     writer.Write(id);
-                    writer.Write(0);
-                    writer.Write(0);
+                    writer.Write(orbit);
+                    writer.Write(slot);
                     writer.Write(links.Length);
                     foreach (var link in links)
                     {

@@ -23,6 +23,8 @@ namespace Poe2Accessibility.Tests
             (nameof(TablesThatDifferInSizeAreNotAName), TablesThatDifferInSizeAreNotAName),
             (nameof(ASkippedKnownRowCheckIsSaid), ASkippedKnownRowCheckIsSaid),
             (nameof(ABundleIndexThatDoesNotLookLikeTheGamesIsOneNamedFailure), ABundleIndexThatDoesNotLookLikeTheGamesIsOneNamedFailure),
+            (nameof(AGraphOfAnotherVersionMustHoldTogetherStrictly), AGraphOfAnotherVersionMustHoldTogetherStrictly),
+            (nameof(AGraphWhoseCountsDoNotConsumeTheFileIsNotRead), AGraphWhoseCountsDoNotConsumeTheFileIsNotRead),
             (nameof(ATableThatIsNotWholeRowsFailsAndNamesItself),ATableThatIsNotWholeRowsFailsAndNamesItself),
             (nameof(ATableWithoutRowsOrTooShortFailsToo), ATableWithoutRowsOrTooShortFailsToo),
             (nameof(ACatalogBelowAQuarterOfTodaysEntriesIsRefusedEvenOnAFirstRun), ACatalogBelowAQuarterOfTodaysEntriesIsRefusedEvenOnAFirstRun),
@@ -286,6 +288,35 @@ namespace Poe2Accessibility.Tests
             Expect(true, Poe2Access.GameDataCounts.Problem("area-names.json", before, Languages(("en", 1000), ("es", 1000)))!.Contains("'fr'", StringComparison.Ordinal), "a language gone, named");
             Expect(true, Poe2Access.GameDataCounts.Problem("area-names.json", before, Languages(("en", 1000), ("es", 1000), ("fr", 100)))!.Contains("'fr'", StringComparison.Ordinal), "a language that fell under half");
             Expect(null, Poe2Access.GameDataCounts.Problem("area-names.json", before, Languages(("en", 1000), ("es", 980), ("fr", 900), ("de", 1000))), "small losses and a new language pass");
+        }
+
+        private static SkillGraphFile OtherVersion(byte[] bytes)
+        {
+            bytes[0] = SkillGraphFile.KnownVersion + 1;
+            return SkillGraphFile.Parse(bytes) ?? throw new Exception("a file of another version with today's layout is read");
+        }
+
+        private static void AGraphOfAnotherVersionMustHoldTogetherStrictly()
+        {
+            var nodes = new[] { (10, new[] { 20 }), (20, Array.Empty<int>()) };
+            Expect(true, OtherVersion(Graph((0f, 0f, nodes))).IsConsistent, "links, positions, orbits and roots all hold");
+            Expect(true, OtherVersion(Graph(1, 5, null, (0f, 0f, nodes))).IsConsistent, "the last slot of an orbit of six");
+            Expect(false, OtherVersion(Graph(1, 6, null, (0f, 0f, nodes))).IsConsistent, "a slot past the orbit's size");
+            Expect(false, OtherVersion(Graph(2, 0, null, (0f, 0f, nodes))).IsConsistent, "an orbit the header does not list");
+            Expect(false, OtherVersion(Graph((float.NaN, 0f, nodes))).IsConsistent, "a group position that is not a number");
+            Expect(false, OtherVersion(Graph((0f, float.PositiveInfinity, nodes))).IsConsistent, "an infinite group position");
+            Expect(false, OtherVersion(Graph(0, 0, 99, (0f, 0f, nodes))).IsConsistent, "a root that is no node");
+            Expect(false, OtherVersion(Graph((0f, 0f, new[] { (10, new[] { 99 }) }))).IsConsistent, "a link to no node");
+        }
+
+        private static void AGraphWhoseCountsDoNotConsumeTheFileIsNotRead()
+        {
+            var bytes = Graph((0f, 0f, new[] { (10, new[] { 20 }), (20, Array.Empty<int>()) }));
+            Expect(true, SkillGraphFile.Parse(bytes) is { VersionKnown: true, IsConsistent: true }, "today's layout reads");
+            Expect(true, SkillGraphFile.Parse(bytes[..^1]) == null, "a byte missing: a count promises more than the file holds");
+            Expect(true, SkillGraphFile.Parse(bytes.Concat(new byte[] { 0, 0, 0, 0 }).ToArray()) == null, "bytes left over");
+            bytes[3 + 2] = 200; // the root count's low byte: more roots than the file has bytes for
+            Expect(true, SkillGraphFile.Parse(bytes) == null, "a root count the file cannot hold");
         }
 
         private static void ASkippedKnownRowCheckIsSaid()
