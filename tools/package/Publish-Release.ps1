@@ -1,68 +1,143 @@
 <#
 .SYNOPSIS
-    Publishes a test version on GitHub: builds the package (New-TestPackage.ps1) and makes it the latest release, so the
-    links in README.md always download the newest one:
+    Publishes a test version on GitHub as the latest release, so the links in README.md always download the newest one:
     https://github.com/Ali-Bueno/poe2-access/releases/latest/download/Poe2Access.zip (and Poe2Access.7z).
 .DESCRIPTION
-    The assets keep the same names in every release; that is what keeps the "latest" links stable. The tag is the date
-    (v2026.10.26), with -2, -3... for a second release the same day. The notes are -Notes, or else the subjects of the
-    commits since the previous release. release.json (tag, the zip's SHA-256, notes) is what the mod reads to
-    update, since GitHub's API refuses addresses past 60 requests an hour. Refuses to run with uncommitted changes or unpushed commits, so a release is
-    always the code on GitHub. Needs the GitHub CLI (gh) signed in.
+    Refuses unless the tree is main, committed and pushed, gh is signed in and there are commits since the latest release.
+    Then builds and checks everything (the steps of tools/build.ps1, tests and phrases included), builds the package with
+    the tag in app\version.txt, and publishes Poe2Access.zip, Poe2Access.7z and release.json under the tag. The assets keep
+    the same names in every release (that keeps the "latest" links stable); release.json (tag, the zip's SHA-256, notes) is
+    what the installed mod reads to update (ReleaseManifest.cs). The tag is the date, v2026.10.26, with -2, -3... for a
+    later release the same day (ReleaseTag.cs parses it). The notes are -Notes, or else the subjects of the commits since
+    the previous release.
+    -DryRun does all of it except creating the tag and the release: it says what it would refuse, prints the tag, the
+    assets and the notes, and leaves the files in dist\release.
 #>
 param(
-    [string]$Notes = ''
+    [string]$Notes = '',
+    [switch]$DryRun
 )
 
-$ErrorActionPreference = 'Stop'
-$repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$output = Join-Path $repo 'dist\release'
-$assets = 'Poe2Access.zip', 'Poe2Access.7z'
+. (Join-Path $PSScriptRoot '..\BuildSteps.ps1')
+$repository = 'Ali-Bueno/poe2-access' # the repository the installed mod updates from (ReleaseManifest.cs)
+$output = Join-Path $RepoRoot 'dist\release'
 
-function Invoke-Git([string[]]$Arguments) {
-    $result = & git -C $repo @Arguments
-    if ($LASTEXITCODE -ne 0) { throw "git $($Arguments -join ' ') failed" }
-    return $result
+function Invoke-Git([string[]]$Arguments, [switch]$AllowFailure) {
+    Push-Location $RepoRoot
+    try { Invoke-Native git $Arguments -AllowFailure:$AllowFailure } finally { Pop-Location }
 }
 
-if (Invoke-Git @('status', '--porcelain')) { throw 'Uncommitted changes: commit and push them first.' }
-& git -C $repo fetch --quiet
-if ((Invoke-Git @('rev-parse', 'HEAD')) -ne (Invoke-Git @('rev-parse', '@{u}'))) { throw 'HEAD is not the pushed branch: push (or pull) first.' }
-
-$tag = 'v{0:yyyy.MM.dd}' -f (Get-Date)
-$taken = @(Invoke-Git @('ls-remote', '--tags', 'origin', "refs/tags/$tag*")) | ForEach-Object { ($_ -split 'refs/tags/')[1] }
-for ($n = 2; $taken -contains $tag; $n++) { $tag = 'v{0:yyyy.MM.dd}-{1}' -f (Get-Date), $n }
-
-if ($Notes.Length -eq 0) {
-    $previous = & gh release view --repo Ali-Bueno/poe2-access --json tagName --jq .tagName 2>$null
-    $range = if ($LASTEXITCODE -eq 0 -and $previous) { "$previous..HEAD" } else { 'HEAD~10..HEAD' }
-    & git -C $repo fetch --quiet --tags
-    $Notes = "Test version. Unzip it anywhere and run Poe2Access.exe (instructions in README.txt).`n`nChanges:`n" +
-        ((Invoke-Git @('log', '--format=- %s', $range)) -join "`n")
+# A tag as ReleaseTag.Parse reads it: year, month, day, and the release's number that day (1 when unnumbered).
+function ConvertTo-TagVersion([string]$Tag) {
+    if ($Tag -notmatch '^v(\d{4})\.(\d{2})\.(\d{2})(?:-(\d+))?$') { return $null }
+    $number = if ($Matches[4]) { [int]$Matches[4] } else { 1 }
+    return [version]::new([int]$Matches[1], [int]$Matches[2], [int]$Matches[3], $number)
 }
 
-if (Test-Path $output) { Remove-Item $output -Recurse -Force }
-& (Join-Path $PSScriptRoot 'New-TestPackage.ps1') -Output $output -Version $tag
-$built = Get-ChildItem $output -File | Where-Object { $_.Name -like 'Poe2Access-test-*' }
-foreach ($file in $built) { Move-Item $file.FullName (Join-Path $output ('Poe2Access' + $file.Extension)) -Force }
-# Relative to the repository: gh reads "path#label", and the repository's path holds a '#' (c#).
-$files = @($assets | Where-Object { Test-Path (Join-Path $output $_) } | ForEach-Object { "dist/release/$_" })
-if (-not $files) { throw "No package in $output" }
-
-$manifest = [ordered]@{ tag = $tag; sha256 = (Get-FileHash (Join-Path $output 'Poe2Access.zip') -Algorithm SHA256).Hash; notes = $Notes }
-[IO.File]::WriteAllText((Join-Path $output 'release.json'), ($manifest | ConvertTo-Json), [Text.UTF8Encoding]::new($false))
-$files += 'dist/release/release.json'
-
-$notesFile = Join-Path $output 'notes.md'
-Set-Content -Path $notesFile -Value $Notes -Encoding utf8
-Push-Location $repo
 try {
-    $created = & gh release create $tag @files --repo Ali-Bueno/poe2-access --target (Invoke-Git @('rev-parse', 'HEAD')) --title "Test version $tag" --notes-file $notesFile --latest 2>&1
-}
-finally {
-    Pop-Location
-}
+    # Everything that makes a release refuse is listed at once; a dry run lists it and goes on.
+    Start-Step 'checks'
+    $blockers = @()
+    Invoke-Native gh @('auth', 'status') -AllowFailure | Out-Null
+    if ($LASTEXITCODE -ne 0) { $blockers += 'gh is not signed in (gh auth login).' }
+    $branch = (Invoke-Git @('rev-parse', '--abbrev-ref', 'HEAD')) | Select-Object -Last 1
+    if ($branch -ne 'main') { $blockers += "the checkout is on $branch, not main." }
+    $dirty = @(Invoke-Git @('status', '--porcelain'))
+    if ($dirty) {
+        $names = $dirty | Select-Object -First 10 | ForEach-Object { $_.Substring(3) }
+        $blockers += "$($dirty.Count) uncommitted files: $($names -join ', ')$(if ($dirty.Count -gt 10) { ', ...' })."
+    }
+    Invoke-Git @('fetch', '--quiet', '--tags', 'origin') | Out-Null
+    $upstream = @(Invoke-Git @('rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}') -AllowFailure)
+    if ($LASTEXITCODE -ne 0) {
+        $blockers += "$branch has no upstream branch: push it first."
+    }
+    else {
+        $ahead, $behind = ((Invoke-Git @('rev-list', '--left-right', '--count', 'HEAD...@{u}')) | Select-Object -Last 1) -split '\s+'
+        if ([int]$ahead -gt 0) { $blockers += "$ahead commits are not pushed to $($upstream[-1])." }
+        if ([int]$behind -gt 0) { $blockers += "$($upstream[-1]) has $behind commits not pulled." }
+    }
 
-if ($LASTEXITCODE -ne 0) { throw "gh release create failed: $created" }
-Remove-Item $output -Recurse -Force
-Write-Host "Released $tag. Always the newest: https://github.com/Ali-Bueno/poe2-access/releases/latest/download/Poe2Access.zip"
+    Start-Step 'tag'
+    $latest = @(Invoke-Native gh @('release', 'view', '--repo', $repository, '--json', 'tagName', '--jq', '.tagName') -AllowFailure)
+    $latest = if ($LASTEXITCODE -eq 0) { $latest[-1].Trim() } else { '' }
+    $tag = 'v{0:yyyy.MM.dd}' -f (Get-Date)
+    $taken = @(Invoke-Git @('ls-remote', '--tags', 'origin', "refs/tags/$tag*")) | ForEach-Object { ($_ -split 'refs/tags/')[1] }
+    for ($n = 2; $taken -contains $tag; $n++) { $tag = 'v{0:yyyy.MM.dd}-{1}' -f (Get-Date), $n }
+    $version = ConvertTo-TagVersion $tag
+    if (-not $version) { throw "$tag is not a tag the updater can read." }
+    if ($latest) {
+        $latestVersion = ConvertTo-TagVersion $latest
+        if ($latestVersion -and $version -le $latestVersion) { $blockers += "$tag would not be newer than the latest release $latest (check the clock)." }
+        $since = @(Invoke-Git @('rev-list', '--count', "$latest..HEAD") -AllowFailure)
+        if ($LASTEXITCODE -eq 0 -and $since[-1] -eq '0') { $blockers += "nothing was committed since $latest." }
+    }
+    $commit = (Invoke-Git @('rev-parse', 'HEAD')) | Select-Object -Last 1
+
+    if ($blockers) {
+        $blockers | ForEach-Object { Write-Host "Refuses: $_" }
+        if (-not $DryRun) { throw "$($blockers.Count) reasons above; nothing was built or published." }
+    }
+
+    if (-not $Notes) {
+        $range = if ($latest) { "$latest..HEAD" } else { 'HEAD~10..HEAD' }
+        $Notes = "Test version. Unzip it anywhere and run Poe2Access.exe (instructions in README.txt).`n`nChanges:`n" +
+            ((Invoke-Git @('log', '--format=- %s', $range)) -join "`n")
+    }
+
+    if (Test-Path $output) { Remove-Item $output -Recurse -Force }
+    Invoke-ModBuild -Configuration Release
+    $archives = New-ModPackage -Output $output -Name 'Poe2Access' -Version $tag -Require7z
+
+    Start-Step 'manifest'
+    $zip = Join-Path $output 'Poe2Access.zip'
+    $manifest = [ordered]@{ tag = $tag; sha256 = (Get-FileHash $zip -Algorithm SHA256).Hash; notes = $Notes }
+    [IO.File]::WriteAllText((Join-Path $output 'release.json'), ($manifest | ConvertTo-Json), [Text.UTF8Encoding]::new($false))
+    # The updater opens the zip, finds Poe2Access.exe beside an app folder and installs it; the tag inside is what it compares.
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $archive = [IO.Compression.ZipFile]::OpenRead($zip)
+    try {
+        $entries = $archive.Entries | ForEach-Object { $_.FullName.Replace('\', '/') }
+        $versionEntry = $archive.Entries | Where-Object { $_.FullName.Replace('\', '/') -eq 'Poe2Access/app/version.txt' }
+        $packed = if ($versionEntry) { [IO.StreamReader]::new($versionEntry.Open()).ReadToEnd().Trim() } else { '' }
+    }
+    finally {
+        $archive.Dispose()
+    }
+    if ('Poe2Access/Poe2Access.exe' -notin $entries -or $packed -ne $tag) { throw "Poe2Access.zip does not hold Poe2Access/Poe2Access.exe and app/version.txt $tag." }
+    # Relative to the repository: gh reads "path#label", and the repository's path holds a '#' (c#).
+    $assets = @($archives | ForEach-Object { "dist/release/$($_.Name)" }) + 'dist/release/release.json'
+    $notesFile = Join-Path $output 'notes.md'
+    Set-Content -Path $notesFile -Value $Notes -Encoding utf8
+
+    if ($DryRun) {
+        Start-Step 'dry run'
+        Write-Host "Dry run: would publish $tag, titled Test version $tag, at commit $($commit.Substring(0, 7)) of $branch on $repository, marked latest$(if ($latest) { "; the latest now is $latest" })."
+        $archives | ForEach-Object { Write-Host ('Asset: {0}, {1:N1} MB.' -f $_.Name, ($_.Length / 1MB)) }
+        Write-Host "Asset: release.json, SHA-256 of the zip $($manifest.sha256)."
+        Write-Host 'Notes:'
+        Write-Host $Notes
+        Write-Host "Nothing was tagged or published$(if ($blockers) { ", and a real release would refuse ($($blockers.Count) reasons above)" }). The files are in $output."
+        Complete-Run 'Dry run done'
+        exit 0
+    }
+
+    Start-Step 'publish'
+    Push-Location $RepoRoot
+    try {
+        Invoke-Native gh (@('release', 'create', $tag) + $assets + @('--repo', $repository, '--target', $commit, '--title', "Test version $tag", '--notes-file', $notesFile, '--latest')) | Out-Null
+    }
+    finally {
+        Pop-Location
+    }
+    $published = @(Invoke-Native gh @('release', 'view', $tag, '--repo', $repository, '--json', 'assets', '--jq', '.assets[].name'))
+    $missing = @($assets | ForEach-Object { Split-Path $_ -Leaf } | Where-Object { $_ -notin $published })
+    if ($missing) { throw "$tag was created but lacks $($missing -join ', '): upload them with gh release upload $tag, or delete the release." }
+    Remove-Item $output -Recurse -Force
+    Write-Host "Released $tag. Always the newest: https://github.com/$repository/releases/latest/download/Poe2Access.zip"
+    Complete-Run
+}
+catch {
+    Write-Failure $_
+    exit 1
+}

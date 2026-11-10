@@ -54,7 +54,6 @@ left as it is), and a field a live search already placed stays there. The plugin
 build …` and lists the move with the code fields (`moved: override …`). A new build ignores the lines, so put the fix into
 the source afterwards.
 
-Change one thing at a time, rebuild (`dotnet build host/Poe2Access -c Release`, `dotnet build Poe2Accessibility -c Release`,
-with the host stopped: `Poe2Access.exe stop`), restart (`Poe2Access.exe restart`), and read the same log lines again. Record
+Change one thing at a time, rebuild (`pwsh tools/build.ps1 -SkipTests`, with the host stopped: `Poe2Access.exe stop`), restart (`Poe2Access.exe restart`), and read the same log lines again. Record
 what moved and why it was found or not in [surviving game updates](compatibility.md), and the new build's results beside the
 earlier ones in `research/evidence/`.

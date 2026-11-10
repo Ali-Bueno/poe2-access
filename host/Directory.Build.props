@@ -1,5 +1,9 @@
 <Project>
+  <!-- What the host's three projects share: they run in the x64 executable. -->
   <PropertyGroup>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PlatformTarget>x64</PlatformTarget>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 </Project>
