@@ -15,6 +15,9 @@ public static class Extractor
     /// <summary>How the line saying the bundle index failed starts (not a step's result line, which the launcher counts).</summary>
     public const string BatchIndexLinePrefix = "batch-index ";
 
+    /// <summary>How the `sounds` line naming the cues the banks lacked starts.</summary>
+    public const string SoundsMissingPrefix = SoundExtractor.MissingPrefix;
+
     /// <summary>The exit code of a batch whose bundle index would not open.</summary>
     public const int BundleIndexExit = BundleIndexCheck.ExitCode;
 

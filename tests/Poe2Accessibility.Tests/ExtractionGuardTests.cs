@@ -25,6 +25,9 @@ namespace Poe2Accessibility.Tests
             (nameof(ABundleIndexThatDoesNotLookLikeTheGamesIsOneNamedFailure), ABundleIndexThatDoesNotLookLikeTheGamesIsOneNamedFailure),
             (nameof(ATableThatIsNotWholeRowsFailsAndNamesItself),ATableThatIsNotWholeRowsFailsAndNamesItself),
             (nameof(ATableWithoutRowsOrTooShortFailsToo), ATableWithoutRowsOrTooShortFailsToo),
+            (nameof(ACatalogBelowAQuarterOfTodaysEntriesIsRefusedEvenOnAFirstRun), ACatalogBelowAQuarterOfTodaysEntriesIsRefusedEvenOnAFirstRun),
+            (nameof(CountsReadLinesAndValues), CountsReadLinesAndValues),
+            (nameof(APartialLossAgainstThePreviousFileIsRefused), APartialLossAgainstThePreviousFileIsRefused),
             (nameof(AFailedOptionalStepIsRetriedOnLaterStartsUpToAnLimit), AFailedOptionalStepIsRetriedOnLaterStartsUpToAnLimit),
             (nameof(AStepThatWorksLaterClearsItsFailuresAndANewBuildStartsOver), AStepThatWorksLaterClearsItsFailuresAndANewBuildStartsOver),
             (nameof(AnOldStampWithoutRetryLinesStillReads), AnOldStampWithoutRetryLinesStillReads),
@@ -250,6 +253,39 @@ namespace Poe2Accessibility.Tests
             Expect(true, old.IsCurrent(Install, "places", 1) && old.IsCurrent(Install, "sounds", 7), "steps read as before");
             Expect(0, old.GivenUp().Count(), "nothing given up");
             Expect(old.ToString(), Poe2Access.GameDataStamp.Parse(old.ToString()).ToString(), "written back the same");
+        }
+
+        private static string Lines(int count) => "# header\n" + string.Concat(Enumerable.Range(0, count).Select(index => $"entry{index}\n"));
+
+        private static string Languages(params (string Code, int Entries)[] sections) =>
+            "{" + string.Join(",", sections.Select(section => $"\"{section.Code}\":{{" + string.Join(",", Enumerable.Range(0, section.Entries).Select(index => $"\"k{index}\":\"v\"")) + "}")) + "}";
+
+        private static void ACatalogBelowAQuarterOfTodaysEntriesIsRefusedEvenOnAFirstRun()
+        {
+            Expect(241, Poe2Access.GameDataCounts.Minimum("action-types.txt"), "a quarter of today's 964");
+            Expect(0, Poe2Access.GameDataCounts.Minimum("something-new.txt"), "a catalog with no recorded count has no minimum");
+            Expect(true, Poe2Access.GameDataCounts.Problem("action-types.txt", null, Lines(40)) is { }, "a first run that read few rows");
+            Expect(null, Poe2Access.GameDataCounts.Problem("action-types.txt", null, Lines(960)), "today's size");
+            Expect(null, Poe2Access.GameDataCounts.Problem("action-types.txt", null, Lines(300)), "a patch that removed a share");
+            Expect(null, Poe2Access.GameDataCounts.Problem("something-new.txt", null, Lines(1)), "no minimum, no refusal");
+        }
+
+        private static void CountsReadLinesAndValues()
+        {
+            Expect(3, Poe2Access.GameDataCounts.Count("x.txt", "# comment\n\nA\nB\r\nC"), "data lines of a text file");
+            Expect(4, Poe2Access.GameDataCounts.Count("x.json", "{\"a\":{\"b\":1,\"c\":[1,2]},\"d\":\"x\"}"), "values of a JSON file, however deep");
+            Expect(100, Poe2Access.GameDataCounts.Count("experience.json", "[" + string.Join(",", Enumerable.Range(0, 100)) + "]"), "an array");
+            Expect(0, Poe2Access.GameDataCounts.Count("x.json", "not json"), "unreadable JSON holds nothing");
+        }
+
+        private static void APartialLossAgainstThePreviousFileIsRefused()
+        {
+            Expect(true, Poe2Access.GameDataCounts.Problem("hit-times.txt", Lines(9000), Lines(4000)) is { }, "under half of the previous file's lines");
+            Expect(null, Poe2Access.GameDataCounts.Problem("hit-times.txt", Lines(9000), Lines(9500)), "a patch that added lines");
+            var before = Languages(("en", 1000), ("es", 1000), ("fr", 1000));
+            Expect(true, Poe2Access.GameDataCounts.Problem("area-names.json", before, Languages(("en", 1000), ("es", 1000)))!.Contains("'fr'", StringComparison.Ordinal), "a language gone, named");
+            Expect(true, Poe2Access.GameDataCounts.Problem("area-names.json", before, Languages(("en", 1000), ("es", 1000), ("fr", 100)))!.Contains("'fr'", StringComparison.Ordinal), "a language that fell under half");
+            Expect(null, Poe2Access.GameDataCounts.Problem("area-names.json", before, Languages(("en", 1000), ("es", 980), ("fr", 900), ("de", 1000))), "small losses and a new language pass");
         }
 
         private static void ASkippedKnownRowCheckIsSaid()

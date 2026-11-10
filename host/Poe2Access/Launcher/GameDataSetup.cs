@@ -301,10 +301,21 @@ internal static class GameDataSetup
             }
         }
 
-        var error = Run(["sounds", gameDirectory, fresh, itemSounds], StepTimeoutMilliseconds);
+        var error = Run(["sounds", gameDirectory, fresh, itemSounds], StepTimeoutMilliseconds, line =>
+        {
+            if (line.StartsWith(Extractor.SoundsMissingPrefix, StringComparison.Ordinal))
+            {
+                Log.Write($"Game data: sounds {line}"); // the cues a bank no longer holds, by name
+            }
+        });
         if (error is null && !File.Exists(Path.Join(fresh, SoundsManifest)))
         {
             error = "no manifest written";
+        }
+
+        if (error is null && ShortOfManifest(fresh) is { } short_)
+        {
+            error = short_;
         }
 
         if (error is not null)
@@ -346,6 +357,14 @@ internal static class GameDataSetup
         return null;
     }
 
+    /// <summary>Whether the extracted folder holds fewer samples than its manifest lists (a write cut short); the cause, or null.</summary>
+    private static string? ShortOfManifest(string folder)
+    {
+        var listed = File.ReadLines(Path.Join(folder, SoundsManifest)).Count(line => line.Length > 0 && line[0] != '#');
+        var written = Directory.EnumerateFiles(folder, "*.wav", SearchOption.AllDirectories).Count();
+        return written < listed ? $"{written} samples written, {listed} listed" : null;
+    }
+
     private static string? Promote(string temp, string target)
     {
         if (!File.Exists(temp) || new FileInfo(temp).Length == 0)
@@ -359,6 +378,12 @@ internal static class GameDataSetup
             var sizes = $"{new FileInfo(target).Length} to {new FileInfo(temp).Length} bytes";
             File.Delete(temp);
             return $"output fell from {sizes}, a column probably moved";
+        }
+
+        if (GameDataCounts.Problem(Path.GetFileName(target), File.Exists(target) ? File.ReadAllText(target) : null, File.ReadAllText(temp)) is { } problem)
+        {
+            File.Delete(temp);
+            return problem;
         }
 
         File.Move(temp, target, true);
