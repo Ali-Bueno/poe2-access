@@ -30,13 +30,11 @@ namespace Poe2Accessibility.Services
         /// <summary>A container of a navigable control is sometimes navigable itself (an equipment slot's frame).</summary>
         private const double ContainerShare = 0.3;
 
-        /// <summary>Below this share of enabled controls on a screen the enabled bit is taken for lost.</summary>
-        private const double EnabledLostShare = 0.2;
-
         /// <summary>The login screen has one text field and two combo boxes: one input is enough to judge the text input bit.</summary>
         private const int MinInputs = 1;
 
         private const string TextFieldName = "textField";
+        private const long ScreenKeyPrime = 1099511628211;
 
         private readonly UiElementReader elements;
         private readonly CompatibilityReport report;
@@ -48,6 +46,8 @@ namespace Poe2Accessibility.Services
         private readonly List<uint> containerFlags = new();
         private readonly HashSet<IntPtr> focusSeen = new();
         private (List<uint> Controls, List<uint> Labels, List<uint> Inputs, List<uint> Buttons) screen = (new(), new(), new(), new());
+        private readonly EnabledBitCheck enabled = new();
+        private long screenKey;
         private bool screenJudged;
         private bool textInputJudged;
         private bool navigableJudged;
@@ -58,13 +58,16 @@ namespace Poe2Accessibility.Services
             this.report = report;
         }
 
-        /// <summary>The enabled bit is believed until a screen shows it lost.</summary>
+        /// <summary>The enabled bit is believed until two screens show it lost, and again once one shows it working (<see cref="EnabledBitCheck"/>).</summary>
         public static bool EnabledTrusted { get; private set; } = true;
 
-        /// <summary>Pre-game: judges the interactive, text-input and enabled bits on a screen's controls, once per game process.</summary>
+        /// <summary>
+        ///     Pre-game: judges the interactive and text-input bits on a screen's controls, once per game process, and the enabled
+        ///     bit on every screen until one shows it working.
+        /// </summary>
         public void ProbeScreen(IntPtr root)
         {
-            if ((this.screenJudged && this.textInputJudged) || root == IntPtr.Zero)
+            if ((this.screenJudged && this.textInputJudged && this.enabled.Proved) || root == IntPtr.Zero)
             {
                 return;
             }
@@ -81,14 +84,18 @@ namespace Poe2Accessibility.Services
             {
                 this.screenJudged = true;
                 this.Judge("interactive flag", controls, labels, this.measuredInteractive, OtherShare, MinCarriers, bit => GameLayout.Element.InteractiveFlagBit = bit);
-                if (BitSearch.Share(controls, GameLayout.Element.EnabledFlagBit) < EnabledLostShare)
+            }
+
+            if (this.enabled.Observe(this.screenKey, BitSearch.Share(controls, GameLayout.Element.EnabledFlagBit)))
+            {
+                EnabledTrusted = this.enabled.Trusted;
+                if (EnabledTrusted)
                 {
-                    EnabledTrusted = false;
-                    this.report.Missing("enabled flag");
+                    this.report.Found("enabled flag");
                 }
                 else
                 {
-                    this.report.Found("enabled flag");
+                    this.report.Missing("enabled flag");
                 }
             }
 
@@ -133,6 +140,7 @@ namespace Poe2Accessibility.Services
             GameLayout.Element.NavigableFlagBit = this.measuredNavigable;
             GameLayout.Element.EnabledFlagBit = this.measuredEnabled;
             EnabledTrusted = true;
+            this.enabled.Reset();
             (this.screenJudged, this.textInputJudged, this.navigableJudged) = (false, false, false);
             this.focusFlags.Clear();
             this.containerFlags.Clear();
@@ -193,6 +201,7 @@ namespace Poe2Accessibility.Services
         private (List<uint> Controls, List<uint> Labels, List<uint> Inputs, List<uint> Buttons) Gather(IntPtr root)
         {
             var found = (Controls: new List<uint>(), Labels: new List<uint>(), Inputs: new List<uint>(), Buttons: new List<uint>());
+            this.screenKey = root.ToInt64();
             var queue = new Queue<IntPtr>();
             queue.Enqueue(root);
             for (var walked = 0; queue.Count > 0 && walked < MaxWalkNodes; walked++)
@@ -217,6 +226,7 @@ namespace Poe2Accessibility.Services
                     if (role is UiRole.Button or UiRole.CheckBox or UiRole.Slider or UiRole.ComboBox or UiRole.Tab)
                     {
                         found.Controls.Add(info.Raw.Flags);
+                        this.screenKey = unchecked((this.screenKey * ScreenKeyPrime) ^ info.Address.ToInt64()); // other controls, another screen
                         (role == UiRole.ComboBox ? found.Inputs : role == UiRole.Button ? found.Buttons : null)?.Add(info.Raw.Flags);
                     }
                 }

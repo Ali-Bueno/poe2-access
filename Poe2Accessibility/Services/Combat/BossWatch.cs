@@ -77,7 +77,8 @@ namespace Poe2Accessibility.Services
         private readonly DodgeCueMerge merge = new();
         private readonly HashSet<string> namedThreats = new(StringComparer.Ordinal);
         private int lastPlayerLife = -1;
-        private readonly Dictionary<uint, (string Name, int Step, bool Engaged, int Percent, long HurtAt)> bosses = new();
+        /// <summary><c>DeadSince</c>: when it first read not alive with no living read since (0: alive), <see cref="BossLifeSteps.Defeated"/>.</summary>
+        private readonly Dictionary<uint, (string Name, int Step, bool Engaged, int Percent, long HurtAt, long DeadSince)> bosses = new();
         private long? playerDiedAt;
         private long lastLifePoll;
         private long lastParryCue = long.MinValue / 2;
@@ -193,6 +194,7 @@ namespace Poe2Accessibility.Services
                 if (poll)
                 {
                     this.Mechanics?.EndPoll(now);
+                    this.ConfirmDefeats(now);
                 }
             }
 
@@ -252,7 +254,9 @@ namespace Poe2Accessibility.Services
 
         private void WatchLife(Entity entity, Render render)
         {
-            if (!entity.TryGetComponent<Life>(out var life) || life.Health.Total <= 0)
+            // An allied unique (a companion, a spectre) is no boss: its life and its death are not the fight's.
+            if (!entity.TryGetComponent<Life>(out var life) || life.Health.Total <= 0 ||
+                (entity.TryGetComponent<Positioned>(out var positioned) && positioned.IsFriendly))
             {
                 return;
             }
@@ -260,7 +264,7 @@ namespace Poe2Accessibility.Services
             if (!this.bosses.TryGetValue(entity.Id, out var boss))
             {
                 var name = this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty;
-                boss = (name, BossLifeSteps.Full, false, 100, 0);
+                boss = (name, BossLifeSteps.Full, false, 100, 0, 0);
             }
 
             if (boss.Name.Length == 0)
@@ -268,18 +272,15 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
+            var now = Environment.TickCount64;
             if (!life.IsAlive || EntityCatalog.IsFrozenDead(entity))
             {
-                if (boss.Engaged && boss.Step > 0)
-                {
-                    this.output.Say(SpeechKind.BossLife, Announcements.BossDefeated(boss.Name), true);
-                    this.log.Info($"Boss defeated: {boss.Name}");
-                }
-
-                this.bosses[entity.Id] = (boss.Name, 0, false, 0, boss.HurtAt);
+                // One reading is no death: said by ConfirmDefeats once no living reading came for a while.
+                this.bosses[entity.Id] = boss with { DeadSince = boss.DeadSince == 0 ? now : boss.DeadSince };
                 return;
             }
 
+            boss = boss with { DeadSince = 0 };
             if (EntityCatalog.IsHidden(entity))
             {
                 this.bosses[entity.Id] = boss with { Engaged = false };
@@ -287,11 +288,10 @@ namespace Poe2Accessibility.Services
             }
 
             var percent = life.Health.CurrentInPercent();
-            var now = Environment.TickCount64;
             if (BossLifeSteps.FightRestarted(this.playerDiedAt, boss.HurtAt, boss.Engaged, percent))
             {
                 this.log.Info($"Boss fight restarted: {boss.Name} back to full life after the player's death");
-                boss = (boss.Name, BossLifeSteps.Full, false, percent, 0);
+                boss = (boss.Name, BossLifeSteps.Full, false, percent, 0, 0);
             }
 
             var engaged = boss.Engaged || percent < 100;
@@ -302,7 +302,22 @@ namespace Poe2Accessibility.Services
                 this.output.Say(SpeechKind.BossLife, Announcements.BossLife(boss.Name, percent), percent <= UrgentBossPercent);
             }
 
-            this.bosses[entity.Id] = (boss.Name, step, engaged, percent, percent < 100 ? now : boss.HurtAt);
+            this.bosses[entity.Id] = (boss.Name, step, engaged, percent, percent < 100 ? now : boss.HurtAt, 0);
+        }
+
+        /// <summary>The bosses read not alive and not seen alive since: defeated, said once (a corpse the game removed counts too).</summary>
+        private void ConfirmDefeats(long now)
+        {
+            foreach (var (id, boss) in this.bosses.Where(pair => pair.Value.Step > 0 && BossLifeSteps.Defeated(pair.Value.DeadSince, now)).ToList())
+            {
+                if (boss.Engaged)
+                {
+                    this.output.Say(SpeechKind.BossLife, Announcements.BossDefeated(boss.Name), true);
+                    this.log.Info($"Boss defeated: {boss.Name}");
+                }
+
+                this.bosses[id] = (boss.Name, 0, false, 0, boss.HurtAt, boss.DeadSince);
+            }
         }
 
         /// <summary>Louder the nearer the attacker; never below the far level, so a far archer is still heard.</summary>

@@ -203,6 +203,7 @@ namespace Poe2Accessibility
             this.controls?.Reset();
             this.entityFields?.Reset();
             this.flagBits?.Reset();
+            this.bosses?.ResetLayout();
             this.padCheck.Reset();
             this.semantics?.TreeFields.Reset();
             this.semantics?.StickCheck.Reset();

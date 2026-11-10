@@ -176,6 +176,9 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\ControlFields.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\CompatibilityReport.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\LayoutVerdict.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Layout\LossWitnesses.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Layout\EnabledBitCheck.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Passives\AllocatedListCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\AreaKind.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\PluginLog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\TickCosts.cs" />

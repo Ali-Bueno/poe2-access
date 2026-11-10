@@ -124,11 +124,12 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     Judges the allocated list once the graph's node ids are known (gathered off the frame thread from its
-        ///     records): where measured it holds only such ids; else the nearest list in the state that does is taken.
+        ///     records): kept where measured while it names the graph's nodes (<see cref="AllocatedListCheck"/>); moved only
+        ///     when it names almost none and another list of the state names nothing else; said lost on the second such reading.
         /// </summary>
         public void JudgeAllocated(IntPtr state, IReadOnlyCollection<IntPtr> records)
         {
-            if (this.allocatedKnown || records.Count == 0)
+            if (this.allocatedKnown || records.Count == 0 || Environment.TickCount64 < this.allocatedRetryAt)
             {
                 return;
             }
@@ -147,26 +148,45 @@ namespace Poe2Accessibility.Services
             }
 
             var ids = this.graphIds.Result;
-            var measured = this.AllocatedAt(state, GameLayout.PassiveTree.AllocatedOffset);
-            if (measured is { Count: > 0 } && measured.All(ids.Contains))
+            if (!AllocatedListCheck.IdsUsable(ids.Count, records.Count))
+            {
+                // The rows were not readable when the ids were gathered: gathered again, nothing judged on a partial set.
+                this.graphIds = null;
+                this.allocatedRetryAt = Environment.TickCount64 + AllocatedRetryMs;
+                return;
+            }
+
+            var verdict = AllocatedListCheck.Judge(this.AllocatedAt(state, GameLayout.PassiveTree.AllocatedOffset), ids);
+            if (verdict == AllocatedVerdict.Kept)
             {
                 this.Settle(ref this.allocatedKnown, "passive tree allocations", this.measuredAllocated, GameLayout.PassiveTree.AllocatedOffset);
                 return;
             }
 
-            if (OffsetSearch.First(this.measuredAllocated, Radius, Step, at => this.AllocatedAt(state, at) is { Count: > 0 } list && list.All(ids.Contains), Step) is { } found)
+            if (verdict == AllocatedVerdict.Unjudged)
+            {
+                return; // nothing allocated (a new character), or too few known ids to tell: judged again on a later node
+            }
+
+            if (OffsetSearch.First(this.measuredAllocated, Radius, Step, at => AllocatedListCheck.Strong(this.AllocatedAt(state, at), ids), Step) is { } found)
             {
                 GameLayout.PassiveTree.AllocatedOffset = found;
                 this.Settle(ref this.allocatedKnown, "passive tree allocations", this.measuredAllocated, found);
+                return;
             }
-            else if (measured is { Count: > 0 })
+
+            this.allocatedRetryAt = Environment.TickCount64 + AllocatedRetryMs;
+            if (++this.allocatedFailures >= AllocatedFailuresToSay)
             {
                 this.allocatedKnown = true;
                 this.Report?.Missing("passive tree allocations");
             }
-
-            // Nothing allocated anywhere (a new character): judged again on a later opening.
         }
+
+        private const int AllocatedRetryMs = 10_000;
+        private const int AllocatedFailuresToSay = 2;
+        private long allocatedRetryAt;
+        private int allocatedFailures;
 
         /// <summary>The graph ids in an allocated list at the offset of the state; null when no such list is there.</summary>
         public List<int>? AllocatedAt(IntPtr state, int offset)
@@ -195,6 +215,7 @@ namespace Poe2Accessibility.Services
             GameLayout.PassiveTree.EdgeListOffset = this.measuredEdges;
             GameLayout.PassiveTree.AllocatedOffset = this.measuredAllocated;
             (this.fileKnown, this.edgesKnown, this.allocatedKnown, this.graphIds) = (false, false, false, null);
+            (this.edgesRetryAt, this.edgesFailures, this.allocatedRetryAt, this.allocatedFailures) = (0, 0, 0, 0);
         }
 
         /// <summary>Research (dev command "layout"): which of the tree's fields have been judged.</summary>

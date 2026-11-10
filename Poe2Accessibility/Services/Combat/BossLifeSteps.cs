@@ -18,6 +18,15 @@ namespace Poe2Accessibility.Services
         public static bool FightRestarted(long? diedAt, long hurtAt, bool engaged, int percent) =>
             engaged && percent >= Full && diedAt is { } died && died >= hurtAt;
 
+        /// <summary>A boss must read not alive this long, with no living reading between, before its defeat is said.</summary>
+        public const int DefeatConfirmMs = 500;
+
+        /// <summary>
+        ///     Whether a boss first read not alive at <paramref name="deadSince"/> (0: it reads alive) is defeated: one reading is
+        ///     not enough, as a life read while the game rewrites it, or a component read that failed, says dead for a frame.
+        /// </summary>
+        public static bool Defeated(long deadSince, long now) => deadSince != 0 && now - deadSince >= DefeatConfirmMs;
+
         /// <summary>The step reached at <paramref name="percent"/>, from <paramref name="step"/>, the last one (0: dead, for good).</summary>
         public static int Next(int step, int percent)
         {

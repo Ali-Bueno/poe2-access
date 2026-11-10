@@ -76,17 +76,27 @@ namespace Poe2Accessibility.Services
         /// <summary>The action's target place lies near its monster.</summary>
         public AttackFieldCheck Places { get; } = new();
 
-        /// <summary>A new area: objects and clips met before are gone.</summary>
         /// <summary>Whether a live check still waits for its verdict: until then every attack is read, so the checks fill fast.</summary>
         public bool Judging =>
             this.AnimatedObjects.Trust == FieldTrust.Unjudged || this.Clock.Trust == FieldTrust.Unjudged || this.Events.Trust == FieldTrust.Unjudged ||
             this.Actions.Trust == FieldTrust.Unjudged || this.Targets.Trust == FieldTrust.Unjudged || this.Places.Trust == FieldTrust.Unjudged;
 
+        /// <summary>A new area: objects and clips met before are gone.</summary>
         public void Reset()
         {
             this.animatedObjects.Clear();
             this.clips.Clear();
             this.clockPairs.Clear();
+        }
+
+        /// <summary>A new game process: every field is judged again, a part lost in the last one is read again.</summary>
+        public void ResetVerdicts()
+        {
+            this.Reset();
+            foreach (var check in new[] { this.AnimatedObjects, this.Clock, this.Events, this.Actions, this.Targets, this.Places })
+            {
+                check.Reset();
+            }
         }
 
         /// <param name="id">The monster's entity id.</param>

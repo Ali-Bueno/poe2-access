@@ -96,6 +96,8 @@ namespace Poe2Accessibility.Services
         private long namesTriedAt = long.MinValue / 2;
         private long textTriedAt = long.MinValue / 2;
         private long texturesTriedAt = long.MinValue / 2;
+        private long renderTriedAt = long.MinValue / 2;
+        private readonly LossWitnesses renderMisses = new();
 
         public LayoutProbe(HostMemoryReader reader, UiElementReader elements, CompatibilityReport report)
         {
@@ -430,23 +432,34 @@ namespace Poe2Accessibility.Services
             return true;
         }
 
-        /// <summary>Entity names (Render component): judged on monsters, characters and players, half of which must read.</summary>
+        /// <summary>
+        ///     Entity names (Render component): judged on monsters, characters and players, half of which must read. Settled only
+        ///     by a batch that reads (once: a second guess must not flap); lost once two different batches read none.
+        /// </summary>
         public void ProbeRenderNames(IReadOnlyList<IntPtr> renders)
         {
-            if (this.renderKnown || renders.Count < MinRenders)
+            var now = Environment.TickCount64;
+            if (this.renderKnown || renders.Count < MinRenders || now - this.renderTriedAt < RetryMs)
             {
                 return;
             }
 
+            this.renderTriedAt = now;
             int Named(int offset) => renders.Count(render => this.elements.ReadWStringStructAt(render + offset) is { Length: > 0 } name && name.Any(char.IsLetter));
             bool Fits(int offset) => Named(offset) * 2 >= renders.Count;
-            this.renderKnown = true; // judged once per game: a wrong guess must not flap
             if (OffsetSearch.First(this.measuredRenderName, Radius, Step, Fits, Step) is not { } found)
             {
-                this.report.Missing("entity names");
+                // A batch read while its entities were being freed reads no names on a healthy game.
+                if (this.renderMisses.Against(LossWitnesses.KeyOf(renders.Select(render => render.ToInt64()))))
+                {
+                    this.report.Missing("entity names");
+                }
+
                 return;
             }
 
+            this.renderKnown = true;
+            this.renderMisses.Clear();
             GameLayout.RenderComponent.NameOffset = found;
             this.Record("entity names", this.measuredRenderName, found);
         }
@@ -464,7 +477,8 @@ namespace Poe2Accessibility.Services
             this.ownElements.Clear();
             this.ownElementsManager = IntPtr.Zero;
             this.layerRootsTriedAt = long.MinValue / 2;
-            this.namesTriedAt = this.textTriedAt = this.texturesTriedAt = long.MinValue / 2;
+            this.namesTriedAt = this.textTriedAt = this.texturesTriedAt = this.renderTriedAt = long.MinValue / 2;
+            this.renderMisses.Clear();
         }
 
         /// <summary>

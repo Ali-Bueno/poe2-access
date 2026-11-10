@@ -129,6 +129,9 @@ namespace Poe2Accessibility.Services
         public static bool TargetPointPlausible(Vector2 target, Vector2 attacker, float maxWorld) =>
             float.IsFinite(target.X) && float.IsFinite(target.Y) && Vector2.Distance(target, attacker) <= maxWorld;
 
+        /// <summary>A new game process, perhaps another build: the verdict of the last one says nothing of it.</summary>
+        public void Reset() => (this.kept, this.broken, this.Trust) = (0, 0, FieldTrust.Unjudged);
+
         /// <summary>One judged reading (null: it said nothing); the verdict settles once enough comparable readings came.</summary>
         public FieldTrust Observe(bool? holds)
         {
