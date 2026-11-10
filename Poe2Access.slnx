@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/host/">
+    <Project Path="host/GameOffsets/GameOffsets.csproj" />
+    <Project Path="host/GameReader/GameReader.csproj" />
+    <Project Path="host/Poe2Access/Poe2Access.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Poe2Accessibility.Tests/Poe2Accessibility.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Poe2UiExtract/Poe2UiExtract.csproj" />
+  </Folder>
+  <Project Path="Poe2Accessibility/Poe2Accessibility.csproj" />
+</Solution>
