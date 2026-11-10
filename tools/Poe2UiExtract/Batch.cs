@@ -49,10 +49,10 @@ internal static class Batch
             return 1;
         }
 
-        Index index;
+        IndexLease lease;
         try
         {
-            index = SharedBundles.OpenParsed(gameDir);
+            lease = SharedBundles.OpenParsed(gameDir);
         }
         catch (Exception error)
         {
@@ -61,7 +61,8 @@ internal static class Batch
             return BundleIndexCheck.ExitCode;
         }
 
-        using var opened = index;
+        using var opened = lease;
+        var index = lease.Index;
         using var slots = new SemaphoreSlim(Math.Max(1, MaxParallel));
         var runs = pairs.Chunk(2).Select(pair => Task.Run(() =>
         {

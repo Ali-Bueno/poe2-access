@@ -24,6 +24,9 @@ public static class Extractor
     /// <summary>What the launcher lists as failed when the bundle index would not open (one entry, not one a step).</summary>
     public const string BundleIndexName = BundleIndexCheck.Name;
 
+    /// <summary>Until disposed, the game's index stays open between the runs made (the batch, then the object sounds).</summary>
+    public static IDisposable KeepIndexOpen() => SharedBundles.Keep();
+
     /// <summary>Runs one command line; the exit code, 0 when it made its output.</summary>
     public static int Run(string[] args)
     {
@@ -43,7 +46,11 @@ public static class Extractor
         }
         finally
         {
-            GameContent.CloseAll();
+            if (!SharedBundles.Keeping)
+            {
+                GameContent.CloseAll(); // a kept index may read through the GGPK: it is closed with the index
+            }
+
             ProjectileSpeeds.Release();
         }
     }
@@ -51,11 +58,47 @@ public static class Extractor
     /// <summary>The commands that print for a person and try columns as they go: their reads are not judged.</summary>
     private static readonly HashSet<string> ResearchCommands = new(StringComparer.OrdinalIgnoreCase)
     {
-        "paths", "cat", "ot-with", "ao-sounds", "object-links", "dat-strings", "dat-row-strings", "dat-rows", "dat-kinds", "bank-samples",
+        "paths", "cat", "ot-with", "ao-sounds", "object-links", "dat-strings", "dat-row-strings", "dat-rows", "dat-kinds", "bank-samples", SequenceCommand,
     };
+
+    private const string SequenceCommand = "sequence";
+    private const string SequenceSeparator = "--";
+
+    /// <summary>Several command lines in one process with the index kept open between them, as the launcher runs them; the worst exit code.</summary>
+    private static int RunSequence(string[] args)
+    {
+        using var kept = KeepIndexOpen();
+        var worst = 0;
+        var line = new List<string>();
+        foreach (var word in args.Skip(1).Append(SequenceSeparator))
+        {
+            if (word != SequenceSeparator)
+            {
+                line.Add(word);
+                continue;
+            }
+
+            if (line.Count > 0)
+            {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                var code = Run(line.ToArray());
+                Say.Out.WriteLine($"{SequenceCommand} {line[0]} exit {code} in {watch.Elapsed.TotalSeconds:0.0} s");
+                worst = Math.Max(worst, code);
+                line.Clear();
+            }
+        }
+
+        return worst;
+    }
 
     private static int Dispatch(string[] args)
     {
+        // Args: sequence <command line> -- <command line> [...]  -- measuring aid: the launcher's runs (batch, sounds, object-sounds) in one process.
+        if (args.Length > 1 && string.Equals(args[0], SequenceCommand, StringComparison.OrdinalIgnoreCase))
+        {
+            return RunSequence(args);
+        }
+
 
         // Args: catalog <uiRootDir> <outJson>  -- parse extracted .ui scripts into a JSON control catalog.
         if (args.Length > 0 && string.Equals(args[0], "catalog", StringComparison.OrdinalIgnoreCase))
@@ -366,22 +409,19 @@ public static class Extractor
         // Args: buff-names <gameDir> <outFile>  -- the display names of buffs per language, { lang: { buff id: name } }.
         if (args.Length > 2 && string.Equals(args[0], "buff-names", StringComparison.OrdinalIgnoreCase))
         {
-            using var bundles = SharedBundles.OpenParsed(args[1]);
-            return BuffNameExtractor.Run(bundles, args[2]);
+            return OnIndex(args[1], index => BuffNameExtractor.Run(index, args[2]));
         }
 
         // Args: currency-art <gameDir> <outFile>  -- the item each currency icon shows, { lang: { art file: name } }.
         if (args.Length > 2 && string.Equals(args[0], "currency-art", StringComparison.OrdinalIgnoreCase))
         {
-            using var bundles = SharedBundles.OpenParsed(args[1]);
-            return CurrencyArtExtractor.Run(bundles, args[2]);
+            return OnIndex(args[1], index => CurrencyArtExtractor.Run(index, args[2]));
         }
 
         // Args: endgame <gameDir> <outFile>  -- map objectives, contents, endgame areas and the Atlas's graphs (docs/research/endgame.md).
         if (args.Length > 2 && string.Equals(args[0], "endgame", StringComparison.OrdinalIgnoreCase))
         {
-            using var bundles = SharedBundles.OpenParsed(args[1]);
-            return EndgameExtractor.Run(bundles, args[2]);
+            return OnIndex(args[1], index => EndgameExtractor.Run(index, args[2]));
         }
 
         // Args: world-titles <gameDir> <outFile>  -- the names objects show only in a WorldDescription, as { lang: { .ot path: title } }.
@@ -450,8 +490,8 @@ public static class Extractor
     /// <summary>Runs a command on the install's index, opened with its paths parsed.</summary>
     private static int OnIndex(string gameDir, Func<Index, int> run)
     {
-        using var index = SharedBundles.OpenParsed(gameDir);
-        return run(index);
+        using var lease = SharedBundles.OpenParsed(gameDir);
+        return run(lease.Index);
     }
 
     /// <summary>The loose Bundles2 index with its paths parsed, for the research commands.</summary>

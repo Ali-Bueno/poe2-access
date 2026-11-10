@@ -80,6 +80,16 @@ internal static partial class PlaceExtractor
         var files = index.Files.Values.Where(file => file.Path != null && file.Path.StartsWith(TerrainPrefix, StringComparison.OrdinalIgnoreCase)).ToList();
         var byPath = files.ToDictionary(file => file.Path!.ToLowerInvariant(), StringComparer.Ordinal);
 
+        // Every .arm and every .tmd beside a .tdt, read bundle by bundle and parsed side by side; the catalog is then built in the paths' own order.
+        var parsed = new System.Collections.Concurrent.ConcurrentDictionary<string, (List<object[]> Props, List<object[]> Anchors)>(StringComparer.Ordinal);
+        var wanted = byPath.Where(pair => pair.Key.EndsWith(".arm", StringComparison.Ordinal) || (pair.Key.EndsWith(".tmd", StringComparison.Ordinal) && byPath.ContainsKey(pair.Key[..^4] + ".tdt")))
+            .ToDictionary(pair => pair.Value, pair => pair.Key);
+        BundleFiles.ReadGrouped(wanted.Keys, (file, bytes) =>
+        {
+            var props = Props(Text(bytes, wanted[file]), out var anchors);
+            parsed[wanted[file]] = (props, anchors);
+        });
+
         var tiles = new SortedDictionary<string, string>(StringComparer.Ordinal);
         var tileProps = new SortedDictionary<string, List<object[]>>(StringComparer.Ordinal);
         foreach (var (path, file) in byPath.Where(pair => pair.Key.EndsWith(".tdt", StringComparison.Ordinal)))
@@ -91,16 +101,16 @@ internal static partial class PlaceExtractor
                 tiles[path] = kind;
             }
 
-            if (byPath.TryGetValue(path[..^4] + ".tmd", out var tmd) && Props(Text(tmd.Read().ToArray(), tmd.Path), out _) is { Count: > 0 } props)
+            if (parsed.TryGetValue(path[..^4] + ".tmd", out var tmd) && tmd.Props.Count > 0)
             {
-                tileProps[path] = props;
+                tileProps[path] = tmd.Props;
             }
         }
 
         var rooms = new List<object>();
         foreach (var (path, file) in byPath.Where(pair => pair.Key.EndsWith(".arm", StringComparison.Ordinal)))
         {
-            var props = Props(Text(file.Read().ToArray(), path), out var anchors);
+            var (props, anchors) = parsed[path];
             if (props.Count > 0 && anchors.Count > 0)
             {
                 rooms.Add(new { arm = path, anchors, props });

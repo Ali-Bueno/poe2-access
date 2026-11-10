@@ -87,8 +87,35 @@ internal static class TelegraphExtractor
         return 0;
     }
 
-    /// <summary>Reads the tables; null, and said, when one moved. Only skills some MonsterVarieties row grants are kept.</summary>
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Index, Lines> Built = new();
+    private static readonly object BuildGate = new();
+
+    /// <summary>
+    ///     The lines of this index, made once: the skills step and the effects step write two files from the same read of
+    ///     the tables. A read that fails is not kept, so each step says why itself.
+    /// </summary>
     internal static Lines? Build(Index index)
+    {
+        lock (BuildGate)
+        {
+            if (Built.TryGetValue(index, out var made))
+            {
+                Say.Out.WriteLine("Telegraphs: read once for this index, by the step before this one.");
+                return made;
+            }
+
+            var lines = Read(index);
+            if (lines != null)
+            {
+                Built.Add(index, lines);
+            }
+
+            return lines;
+        }
+    }
+
+    /// <summary>Reads the tables; null, and said, when one moved. Only skills some MonsterVarieties row grants are kept.</summary>
+    private static Lines? Read(Index index)
     {
         if (Sized(index, "grantedeffects") is not { } skills || Sized(index, "geometryattack") is not { } geometry ||
             Sized(index, "geometrytrigger") is not { } triggers || Sized(index, "spawnobject") is not { } spawns ||

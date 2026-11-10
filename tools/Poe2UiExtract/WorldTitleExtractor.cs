@@ -50,7 +50,8 @@ internal static class WorldTitleExtractor
 
     public static int Run(string gameDir, string outFile)
     {
-        using var index = SharedBundles.OpenParsed(gameDir);
+        using var lease = SharedBundles.OpenParsed(gameDir);
+        var index = lease.Index;
         var keys = new SortedDictionary<string, string>(StringComparer.Ordinal);
         foreach (var file in index.Files.Values.Where(file => file.Path != null && file.Path.EndsWith(ObjectExtension, StringComparison.Ordinal)))
         {

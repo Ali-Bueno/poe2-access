@@ -11,12 +11,15 @@ internal sealed partial class DatTable
         Open(index, $"data/balance/{language}/{name}.datc64", $"data/{language}/{name}.datc64");
 
     /// <summary>The first of the paths the index holds, or null.</summary>
-    private static DatTable? Open(Index index, params string[] paths) => BundleFiles.Find(index, paths) is { } file ? Open(file) : null;
+    private static DatTable? Open(Index index, params string[] paths) => BundleFiles.Find(index, paths) is { } file ? Open(index, file) : null;
 
-    /// <summary>A bundled .datc64 as a table whose reads the running step's audit will judge.</summary>
-    public static DatTable Open(LibBundle3.Records.FileRecord file)
+    /// <summary>
+    ///     A bundled .datc64 as a table whose reads the running step's audit will judge: a table of its own over bytes read
+    ///     once per index, so each step's reads are its own.
+    /// </summary>
+    public static DatTable Open(Index index, LibBundle3.Records.FileRecord file)
     {
-        var table = FromBytes(file.Read().ToArray(), file.Path ?? "table");
+        var table = FromBytes(BundleFiles.ReadOnce(index, file), file.Path ?? "table");
         DatColumnAudit.Opened(table);
         return table;
     }
