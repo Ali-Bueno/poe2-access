@@ -465,6 +465,10 @@ Live checks:
   (`SteadyBuffs.RunsOut`: positive and finite) or holds more is told every time; a buff first seen in the baseline is
   not held back; the quiet list is forgotten at character selection; a settled count equal to the last one told is not
   said. `SteadyBuffs`, `ResourceWatch`, `ResourceTracker`.
+  Heard in the first fight (owner on a Druid, 2026-11-10) and kept on purpose: a held Volcano says its stage as it
+  grows ("Volcán: 2", "Volcán: 3", "Volcán se acabó"), and he uses it to know when to let go; "Altar de ritual,
+  completado, A" and a ground item's name each time he walks over them, and the energy shield's thresholds, do not
+  bother him. None of the three is noise to remove.
 - **An accepted trade said nothing, or half (`4ff3695`).** One for one was taken as "the inventory's own item in a new
   place"; two for one swallowed a departure. Rule: in a trade an arrival is the same item only under the same name or
   when its departure never read; otherwise "Obtenido" and "Entregado". `ItemMoves`, `InventoryWatch`.
