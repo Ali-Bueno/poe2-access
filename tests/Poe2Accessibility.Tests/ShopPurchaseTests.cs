@@ -32,6 +32,9 @@ namespace Poe2Accessibility.Tests
                 // The tip's own words were never seen (the label was hidden): whatever it shows is said.
                 Equal(("Comprar Mascota Perro fantasma", "150 puntos, Necesitas 50 puntos más, tienes 100 puntos"),
                     ShopPurchase.Button(new ShopOffer(Pet, "150", string.Empty, "Necesitas 50 puntos más", string.Empty, string.Empty, "100")), "too few points");
+                Equal(("Comprar puntos", "Esta compra requiere 250 puntos, tienes 150 puntos"),
+                    ShopPurchase.Button(new ShopOffer(Pet, "Comprar puntos", string.Empty, "Esta compra requiere 250 puntos", string.Empty, string.Empty, "150")),
+                    "too few points, as the game shows it: the button buys points, not the item");
                 Equal(("Comprar", "150 puntos"), ShopPurchase.Button(new ShopOffer(string.Empty, "150", string.Empty, string.Empty, string.Empty, string.Empty, string.Empty)),
                     "no title and no points found: the price alone, still a buy button");
                 Localization.Detect("en");

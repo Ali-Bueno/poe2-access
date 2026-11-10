@@ -35,6 +35,12 @@ namespace Poe2Accessibility.Services
                 return (offer.Caption, Join(offer.ConfirmTip, offer.Item, offer.PointsTip, balance));
             }
 
+            if (offer.PointsTip.Length > 0 && offer.Caption.Length > 0 && !IsAmount(offer.Caption))
+            {
+                // Too few points: the button is the game's "Comprar puntos" and no longer buys the item (live 2026-11-10).
+                return (offer.Caption, Join(offer.PointsTip, balance));
+            }
+
             var price = IsAmount(offer.Caption) ? Announcements.ShopPrice(offer.Caption) : offer.Caption;
             var was = IsAmount(offer.OldPrice) ? Announcements.ShopOldPrice(offer.OldPrice) : string.Empty;
             return (Announcements.ShopBuy(offer.Item), Join(price, was, offer.ConfirmTip, Flag(offer.Owned), offer.PointsTip, balance));
