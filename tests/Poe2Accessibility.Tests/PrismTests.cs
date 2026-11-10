@@ -8,6 +8,7 @@ namespace Poe2Accessibility.Tests
     using System.Runtime.InteropServices;
     using System.Text.RegularExpressions;
     using Poe2Accessibility.Services;
+    using static Check;
 
     /// <summary>The PRISM binding against the shipped header and payload, and a dev command that speaks through a built prism.dll.</summary>
     public static class PrismTests
@@ -86,13 +87,13 @@ namespace Poe2Accessibility.Tests
         private static void TheConfigMatchesTheShippedHeader()
         {
             var header = File.ReadAllText(Path.Join(PrismFolder(), "include", "prism.h"));
-            LayoutSearchTests.Equal(
+            Equal(
                 $"#define PRISM_CONFIG_VERSION {PrismLibrary.ConfigVersion}",
                 Regex.Match(header, @"#define PRISM_CONFIG_VERSION \d+").Value,
                 "the header's config version is the binding's");
             var body = Regex.Match(header, @"typedef struct \{([^}]*)\} PrismConfig;").Groups[1].Value;
             var fields = Regex.Matches(body, @"(\w[\w ]*?)\s*\*?\s*(\w+);").Select(m => m.Groups[2].Value);
-            LayoutSearchTests.Equal(
+            Equal(
                 "version registry availability_callback availability_userdata availability_poll_interval_ms availability_debounce_samples availability_backoff_max_ms availability_auto_power_manage availability_baseline_callback",
                 string.Join(' ', fields),
                 "the header's fields, which PrismLibrary.PrismConfig mirrors");
@@ -104,24 +105,24 @@ namespace Poe2Accessibility.Tests
                 nameof(PrismLibrary.PrismConfig.AvailabilityDebounceSamples), nameof(PrismLibrary.PrismConfig.AvailabilityBackoffMaxMs),
                 nameof(PrismLibrary.PrismConfig.AvailabilityAutoPowerManage), nameof(PrismLibrary.PrismConfig.AvailabilityBaselineCallback),
             }.Select(field => Marshal.OffsetOf<PrismLibrary.PrismConfig>(field).ToInt32());
-            LayoutSearchTests.Equal("0 8 16 24 32 36 40 44 48", string.Join(' ', offsets), "x64 offsets (MSVC packing)");
-            LayoutSearchTests.Equal(56, Marshal.SizeOf<PrismLibrary.PrismConfig>(), "the struct prism_config_init writes");
-            LayoutSearchTests.Equal(true, Marshal.SizeOf<PrismLibrary.ConfigSlot>() >= 2 * Marshal.SizeOf<PrismLibrary.PrismConfig>(), "room to spare for a grown config");
+            Equal("0 8 16 24 32 36 40 44 48", string.Join(' ', offsets), "x64 offsets (MSVC packing)");
+            Equal(56, Marshal.SizeOf<PrismLibrary.PrismConfig>(), "the struct prism_config_init writes");
+            Equal(true, Marshal.SizeOf<PrismLibrary.ConfigSlot>() >= 2 * Marshal.SizeOf<PrismLibrary.PrismConfig>(), "room to spare for a grown config");
         }
 
         /// <summary>Each bridge has its placeholder beside prism.dll and its Unix half in wine/, as the plugin build and the package copy them.</summary>
         private static void TheWineBridgesShipWhole()
         {
             var runtime = Path.Join(PrismFolder(), "runtime");
-            LayoutSearchTests.Equal(true, File.Exists(Path.Join(runtime, PrismLibrary.FileName)), "prism.dll");
+            Equal(true, File.Exists(Path.Join(runtime, PrismLibrary.FileName)), "prism.dll");
             foreach (var bridge in PrismLibrary.WineBridges)
             {
-                LayoutSearchTests.Equal(true, File.Exists(Path.Join(runtime, bridge)), bridge);
-                LayoutSearchTests.Equal(true, File.Exists(Path.Join(runtime, PrismLibrary.WineFolder, bridge + ".so")), bridge + ".so");
+                Equal(true, File.Exists(Path.Join(runtime, bridge)), bridge);
+                Equal(true, File.Exists(Path.Join(runtime, PrismLibrary.WineFolder, bridge + ".so")), bridge + ".so");
             }
 
             var shipped = Directory.EnumerateFiles(runtime, "*", SearchOption.AllDirectories).Select(file => Path.GetRelativePath(runtime, file).Replace('\\', '/')).OrderBy(name => name, StringComparer.Ordinal);
-            LayoutSearchTests.Equal(7, shipped.Count(), "prism.dll and three bridges in two halves: " + string.Join(", ", shipped));
+            Equal(7, shipped.Count(), "prism.dll and three bridges in two halves: " + string.Join(", ", shipped));
         }
 
         /// <summary>The bridged backends' ids are the header's PRISM_BACKEND_ORCA, _SPEECH_DISPATCHER and _SPIEL.</summary>
@@ -131,7 +132,7 @@ namespace Poe2Accessibility.Tests
             foreach (var (name, id) in new[] { ("ORCA", PrismLibrary.OrcaId), ("SPEECH_DISPATCHER", PrismLibrary.SpeechDispatcherId), ("SPIEL", PrismLibrary.SpielId) })
             {
                 var value = Regex.Match(header, $@"#define PRISM_BACKEND_{name} UINT64_C\(0x([0-9A-Fa-f]+)\)").Groups[1].Value;
-                LayoutSearchTests.Equal(id.ToString("X16"), value.ToUpperInvariant(), "PRISM_BACKEND_" + name);
+                Equal(id.ToString("X16"), value.ToUpperInvariant(), "PRISM_BACKEND_" + name);
             }
         }
 
@@ -146,11 +147,11 @@ namespace Poe2Accessibility.Tests
             {
                 (nvda, 103), (PrismLibrary.OrcaId, 100), (oneCore, 98), (sapi, 97), (uia, 97), (PrismLibrary.SpeechDispatcherId, 97), (PrismLibrary.SpielId, 96),
             };
-            LayoutSearchTests.Equal(
+            Equal(
                 string.Join(' ', new[] { PrismLibrary.OrcaId, PrismLibrary.SpeechDispatcherId, PrismLibrary.SpielId }),
                 string.Join(' ', PrismLibrary.WineCandidates(registry)),
                 "Orca, then Speech Dispatcher, then Spiel");
-            LayoutSearchTests.Equal(
+            Equal(
                 string.Join(' ', new[] { PrismLibrary.SpeechDispatcherId, PrismLibrary.SpielId }),
                 string.Join(' ', PrismLibrary.WineCandidates(registry.Where(entry => entry.Item1 != PrismLibrary.OrcaId))),
                 "without Orca: Speech Dispatcher, not SAPI");
@@ -163,9 +164,9 @@ namespace Poe2Accessibility.Tests
         private static void TheProtonScriptShipsForSh()
         {
             var script = File.ReadAllText(Path.Join(PrismFolder(), "..", "..", "tools", "package", PrismLibrary.ProtonScript));
-            LayoutSearchTests.Equal(false, script.Contains('\r'), "no carriage returns");
-            LayoutSearchTests.Equal(true, script.StartsWith("#!/bin/sh\n", StringComparison.Ordinal), "a POSIX sh script");
-            LayoutSearchTests.Equal(true, script.Contains("app/Plugins/Poe2Accessibility/" + PrismLibrary.WineFolder, StringComparison.Ordinal), "WINEDLLPATH names the packaged bridge folder");
+            Equal(false, script.Contains('\r'), "no carriage returns");
+            Equal(true, script.StartsWith("#!/bin/sh\n", StringComparison.Ordinal), "a POSIX sh script");
+            Equal(true, script.Contains("app/Plugins/Poe2Accessibility/" + PrismLibrary.WineFolder, StringComparison.Ordinal), "WINEDLLPATH names the packaged bridge folder");
         }
 
         /// <summary>
@@ -178,19 +179,19 @@ namespace Poe2Accessibility.Tests
             var (speech, pending) = Unstarted();
             speech.Mention("Frasco de vida menor, 5 usos");
             speech.Urge("Remolino");
-            LayoutSearchTests.Equal("Frasco de vida menor, 5 usos/False|Remolino/False", pending(), "heard at once: the next waits behind it");
+            Equal("Frasco de vida menor, 5 usos/False|Remolino/False", pending(), "heard at once: the next waits behind it");
 
             (speech, pending) = Unstarted();
             speech.Speak("Vida 50 por ciento. Has recibido daño. Presiona cruceta izquierda para usar un frasco de vida.");
             speech.Mention("Frasco de vida menor, 5 usos");
             speech.Urge("Enfriado");
-            LayoutSearchTests.Equal("Frasco de vida menor, 5 usos. Enfriado/True", pending(), "behind a long line: said first");
+            Equal("Frasco de vida menor, 5 usos. Enfriado/True", pending(), "behind a long line: said first");
 
             (speech, pending) = Unstarted();
             speech.Mention("Vida 50 por ciento");
             speech.Speak("Cofre, A");
             speech.Urge("Enfriado");
-            LayoutSearchTests.Equal("Vida 50 por ciento. Enfriado/True", pending(), "a line after it would be cut: said first");
+            Equal("Vida 50 por ciento. Enfriado/True", pending(), "a line after it would be cut: said first");
         }
 
         /// <summary>A speech service whose worker never started, and what it has queued ("text/interrupt|…").</summary>

@@ -6,6 +6,7 @@ namespace Poe2Accessibility.Tests
     using GameReader.RemoteObjects.States.InGameStateObjects;
     using GameReader.Utils;
     using Poe2Accessibility.Services;
+    using static Check;
 
     /// <summary>The host's runtime layout search against a fake game memory: a patch moves the fields, the search must follow.</summary>
     public static class LayoutSearchTests
@@ -695,14 +696,6 @@ namespace Poe2Accessibility.Tests
             Equal((int?)0x18, DatKeySearch.Site(0, at => at == 0x18), "a key moved from the struct's start");
             Equal((int?)0x2C8, DatKeySearch.Site(0x2D0, at => at is 0x2C8 or 0x2F0), "the nearer of two places");
             Equal((int?)null, DatKeySearch.Site(0x2D0, at => at == 0x2D0 + DatKeySearch.Reach + 8), "nothing within reach");
-        }
-
-        internal static void Equal<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new InvalidOperationException($"{what}: expected {expected}, got {actual}");
-            }
         }
 
         internal static void Put(byte[] block, int at, params long[] values)

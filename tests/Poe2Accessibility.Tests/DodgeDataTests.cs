@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Tests
     using System.Collections.Generic;
     using System.Linq;
     using Poe2Accessibility.Services;
+    using static Check;
 
     /// <summary>The dodge warning's kinds from the game's data, the name fallback behind them, and the per-patch coverage report.</summary>
     public static class DodgeDataTests
@@ -204,14 +205,6 @@ namespace Poe2Accessibility.Tests
             }
 
             return null;
-        }
-
-        private static void Equal<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new InvalidOperationException($"{what}: expected {expected}, got {actual}");
-            }
         }
     }
 }

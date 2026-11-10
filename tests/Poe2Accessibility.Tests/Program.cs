@@ -7,6 +7,7 @@ namespace Poe2Accessibility.Tests
     using GameReader.RemoteEnums;
     using Poe2Accessibility.Models;
     using Poe2Accessibility.Services;
+    using static Check;
 
     /// <summary>Runs every test; exit code 1 when any fails. Run: dotnet run --project tests/Poe2Accessibility.Tests</summary>
     public static class Program
@@ -3811,14 +3812,6 @@ namespace Poe2Accessibility.Tests
             new((IntPtr)address, index, texts, controls, false);
 
         private static ScreenText Text(long address, string text) => new((IntPtr)address, text, string.Empty, false, true);
-
-        private static void Equal<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new InvalidOperationException($"{what}: expected {expected}, got {actual}");
-            }
-        }
 
         private static void Run(string name, Action test)
         {

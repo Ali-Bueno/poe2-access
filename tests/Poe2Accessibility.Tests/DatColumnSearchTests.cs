@@ -6,6 +6,7 @@ namespace Poe2Accessibility.Tests
     using System.Linq;
     using System.Text;
     using Poe2Accessibility.Services;
+    using static Check;
 
     /// <summary>
     ///     Surviving a content patch (docs/compatibility.md): dat columns found again by what they hold, a skill graph file of
@@ -27,14 +28,6 @@ namespace Poe2Accessibility.Tests
             (nameof(StickConstantsAreReadFromTheCodesLoads), StickConstantsAreReadFromTheCodesLoads),
         };
 
-        private static void Expect<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new Exception($"{what}: expected '{expected}', got '{actual}'");
-            }
-        }
-
         /// <summary>A .datc64 in memory: fixed rows, then the 0xBB marker and a string pool.</summary>
         internal sealed class DatTableBuilder
         {
@@ -51,8 +44,6 @@ namespace Poe2Accessibility.Tests
             {
                 this.rowSize = rowSize;
             }
-
-            public int Count => this.rows.Count;
 
             public DatTableBuilder Row(Action<RowWriter> write)
             {

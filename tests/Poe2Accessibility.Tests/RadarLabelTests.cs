@@ -6,6 +6,7 @@ namespace Poe2Accessibility.Tests
     using System.Linq;
     using Newtonsoft.Json;
     using Poe2Accessibility.Services;
+    using static Check;
 
     /// <summary>Radar-table labels: a name the game has is said as the game names it, the rest as before.</summary>
     public static class RadarLabelTests
@@ -23,14 +24,6 @@ namespace Poe2Accessibility.Tests
             (nameof(ALanguageWithoutTheTablesKeepsTheLabel), ALanguageWithoutTheTablesKeepsTheLabel),
             (nameof(TheRealTablesNameMostOfWhatTheGameNames), TheRealTablesNameMostOfWhatTheGameNames),
         };
-
-        private static void Expect<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new Exception($"{what}: expected '{expected}', got '{actual}'");
-            }
-        }
 
         private static LandmarkTable Table()
         {

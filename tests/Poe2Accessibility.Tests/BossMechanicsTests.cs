@@ -5,6 +5,7 @@ namespace Poe2Accessibility.Tests
     using System.Linq;
     using System.Numerics;
     using Poe2Accessibility.Services;
+    using static Check;
 
     /// <summary>Boss fights' turns, the way out of danger areas, the boss catalog and its extractor's reading of scripts (docs/research/boss-mechanics.md).</summary>
     public static class BossMechanicsTests
@@ -326,22 +327,6 @@ namespace Poe2Accessibility.Tests
             Equal(BossLifeSteps.Full, BossLifeSteps.Next(30, 100), "full again (the fight restarted after the player died): all of them");
             Equal(75, BossLifeSteps.Next(BossLifeSteps.Next(30, 100), 74), "then said again from the top");
             Equal(0, BossLifeSteps.Next(0, 100), "a dead boss read alive for a moment stays dead");
-        }
-
-        private static void Equal<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new Exception($"{what}: expected {expected}, got {actual}");
-            }
-        }
-
-        private static void Near(float expected, float? actual, string what, float tolerance = 0.01f)
-        {
-            if (actual is not { } value || MathF.Abs(value - expected) > tolerance)
-            {
-                throw new Exception($"{what}: expected {expected}, got {actual}");
-            }
         }
     }
 }

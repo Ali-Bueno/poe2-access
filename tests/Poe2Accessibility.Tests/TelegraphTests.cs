@@ -3,6 +3,7 @@ namespace Poe2Accessibility.Tests
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using static Check;
 
     /// <summary>The telegraph extractor's pure parsing: effect-driven shapes, geometry shape names and catalog lines.</summary>
     public static class TelegraphTests
@@ -25,14 +26,6 @@ namespace Poe2Accessibility.Tests
             (nameof(GeometryPairsLeaveZerosOutAndReadBack), GeometryPairsLeaveZerosOutAndReadBack),
             (nameof(OnlyMechanismKindsGetALine), OnlyMechanismKindsGetALine),
         };
-
-        private static void Expect<T>(T expected, T actual, string what)
-        {
-            if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            {
-                throw new Exception($"{what}: expected '{expected}', got '{actual}'");
-            }
-        }
 
         private static void EachShapeLineStartsAShapeWithItsSettings()
         {
