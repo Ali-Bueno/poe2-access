@@ -1117,7 +1117,7 @@ namespace GameReader.Utils
                 // The largest stack of its kind, in the inventory or a stash tab; 0 when its data does not read.
                 var max = Core.Process.Handle.TryReadMemory<StackOffsets>(stack.Address, out var data) && data.StackSizeDataPtr != IntPtr.Zero &&
                           Core.Process.Handle.TryReadMemory<StackSizeDataOffsets>(data.StackSizeDataPtr, out var sizes)
-                    ? Math.Max(sizes.MaxStack, sizes.MaxStackTab)
+                    ? Math.Max(Math.Max(sizes.MaxStack, sizes.MaxStackTab), sizes.UnknownMaxStack)
                     : 0;
                 Invariants.Add(StackCountRule, where, id, StructShapes.IsStackCount(stack.Count, max));
             }

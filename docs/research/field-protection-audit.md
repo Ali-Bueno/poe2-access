@@ -325,6 +325,22 @@ state slots are judged by `GameStateRoles`). `Rarity` now has a semantic rule as
 - Whether `Verified` would repair `Rarity` (C23) when `Details1` moves: its vector anchors start at +0x150, after the field, and a
   segment applies upward from its own offset (`OffsetHealer.cs:528`, `StructRemap.cs`), so I treat it as not covered.
 
+## 3b. What needs the live game before a check can be designed (2026-11-10)
+
+No offset or rule was guessed for these; each says what to measure and where.
+
+| Field | What to measure | Where |
+|---|---|---|
+| C3 entity names (one fact: a text with a letter on half the entities) | a second fact that tells the name from the other strings of Render: dump 0x400 bytes of the Render component of ten monsters of three kinds and of two players (`peek.py hex`), list every wide string in them and what tells the name apart (does it differ per kind and repeat within one; does the same text appear in the entity's tooltip label) | any area with monsters and another player |
+| K3 inventory grid (cell size 0x33C, server inventory 0x6F8) | whether the grid element's unscaled size divided by the cell size equals the server inventory's `TotalBoxes` (X, Y), on the main inventory, the flask belt and one equipment slot; if it does, the pair is an invariant of both fields | inventory open, dev command `dump` on the grid and `flasks` |
+| A6 mouse hover chain (+0x300, +0x3F0, +0xA8) | what `MouseOverEntityAddress` reads with only the pad in use (always 0, or the last hovered entity), and whether a non-zero value is always the address of an awake entity; if so, "non-zero and no awake entity, five times" is a sound report | a town with NPCs, mouse then pad; log line `Mouse-over entity 0x…` |
+| `RowNoLinkedStepOffset` 0x66 (PassiveSkills row) | the share of rows that read non-zero there on the main tree and on one ascendancy (`passivenear`); if the main tree reads 0 throughout, "over a third of the graph's rows non-zero" is a sound report | passive tree open |
+| U3 visible bit, U3b position-modifier bit, P10 enabled bit (host element base and `FlagBits`, other owners' files for the first two) | a control seen to flip each: for the visible bit a panel opened and closed (the element's flags word before and after); for the enabled bit the terms window's Continue as I Agree is ticked | login (terms window), inventory |
+| K14, K15, K17, K19b fields found by watching them change | which other bytes of the control change while the value does not (timers, hover animations), over the whole 0x800: only then can a far search by change be made safe | options (check box), a selectable list, the world map |
+| `Charges` maximum | where `ChargesInternalStruct` keeps the flask's maximum charges (the mod has only `PerUseCharges` at +0x18), so the charges invariant can use it instead of a bound | flask belt, a flask full and one partly used |
+| `invariant: stack counts` | that the larger of `MaxStack`, `MaxStackTab` and the field between them is never under the count of a stack on the ground (gold, currency shards, a full stack) | an area with loot; `structs` twice in two areas, log `Layout: invariant: stack counts holds` |
+| A12 inventories of a character with no item at all | whether `InventoryLayoutSearch` (another owner's file) finds the inventories when none holds an item; if not, the sweep says `inventories` lost on a healthy game | a new character before its first pick-up, should the game ever start one without flasks |
+
 ## 4. Totals
 
 Counted from the tables of section 1 (sum of `n` per `N`; a `(f)` follower counts as 1).
@@ -335,6 +351,10 @@ Counted from the tables of section 1 (sum of `n` per `N`; a `(f)` follower count
 | 1 | 163 (166; 149; 149), of which 25 are 1 only because they follow another field's anchor (A16, E2, C10, C20, U4b, U4c, P2, P3, P6, P8, P12b, P13, L3, K18, G3d) | 87 (89) |
 | 2 or more | 57 (47; 41; 10) | 47 (40) |
 | Total audited | 235 (234; 222) | 142 (141; the gap pass added C39b, the dodge's animated object. Earlier: rows split where a search covers part of one; the game states' other names counted, K19's current pin no longer: the mod does not read it) |
+
+After the robustness pass of 2026-11-10: P2 went from 1 (a follower) to 2, C14 from 2 to 3, and K9b (two fields, N 1) was
+added: 15 fields at 0, 164 at 1 (24 of them followers), 58 at 2 or more, 237 audited in 143 rows. The checks that only
+report (the sweep's invariants, `IdLinkCheck`) change no N.
 
 Counted from the tables by script, as before: the sum of `n` per `N` over the rows of section 1, a `(f)` follower at its own
 number (C28 was `2 (f)` and counted at 2). The figures this section gave after the world rules (156 at 1, 34 at 2 or more) had

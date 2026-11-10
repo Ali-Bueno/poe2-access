@@ -47,6 +47,10 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<IntPtr> focusSeen = new();
         private (List<uint> Controls, List<uint> Labels, List<uint> Inputs, List<uint> Buttons) screen = (new(), new(), new(), new());
         private readonly EnabledBitCheck enabled = new();
+        private readonly LossWitnesses interactiveMisses = new();
+        private readonly LossWitnesses textInputMisses = new();
+        private readonly LossWitnesses navigableMisses = new();
+        private long focusRounds;
         private long screenKey;
         private bool screenJudged;
         private bool textInputJudged;
@@ -82,8 +86,8 @@ namespace Poe2Accessibility.Services
             this.screen = gathered;
             if (!this.screenJudged)
             {
-                this.screenJudged = true;
-                this.Judge("interactive flag", controls, labels, this.measuredInteractive, OtherShare, MinCarriers, bit => GameLayout.Element.InteractiveFlagBit = bit);
+                this.screenJudged = this.Judge("interactive flag", controls, labels, this.measuredInteractive, OtherShare, MinCarriers, bit => GameLayout.Element.InteractiveFlagBit = bit,
+                    this.interactiveMisses, this.screenKey);
             }
 
             if (this.enabled.Observe(this.screenKey, BitSearch.Share(controls, GameLayout.Element.EnabledFlagBit)))
@@ -103,8 +107,8 @@ namespace Poe2Accessibility.Services
             // carry it too (3 of 14 at character creation, 2026-10-25).
             if (!this.textInputJudged && inputs.Count >= MinInputs)
             {
-                this.textInputJudged = true;
-                this.Judge("text input flag", inputs, labels, this.measuredTextInput, OtherShare, MinInputs, bit => GameLayout.Element.TextInputFlagBit = bit);
+                this.textInputJudged = this.Judge("text input flag", inputs, labels, this.measuredTextInput, OtherShare, MinInputs, bit => GameLayout.Element.TextInputFlagBit = bit,
+                    this.textInputMisses, this.screenKey);
             }
         }
 
@@ -127,8 +131,14 @@ namespace Poe2Accessibility.Services
 
             if (this.focusFlags.Count >= MinFocusSamples)
             {
-                this.navigableJudged = true;
-                this.Judge("navigable flag", this.focusFlags, this.containerFlags, this.measuredNavigable, ContainerShare, MinCarriers, bit => GameLayout.Element.NavigableFlagBit = bit);
+                this.navigableJudged = this.Judge("navigable flag", this.focusFlags, this.containerFlags, this.measuredNavigable, ContainerShare, MinCarriers, bit => GameLayout.Element.NavigableFlagBit = bit,
+                    this.navigableMisses, ++this.focusRounds);
+                if (!this.navigableJudged)
+                {
+                    // No bit fits these: another round of other elements must agree (those seen stay seen, so none counts twice).
+                    this.focusFlags.Clear();
+                    this.containerFlags.Clear();
+                }
             }
         }
 
@@ -141,7 +151,10 @@ namespace Poe2Accessibility.Services
             GameLayout.Element.EnabledFlagBit = this.measuredEnabled;
             EnabledTrusted = true;
             this.enabled.Reset();
-            (this.screenJudged, this.textInputJudged, this.navigableJudged) = (false, false, false);
+            (this.screenJudged, this.textInputJudged, this.navigableJudged, this.focusRounds) = (false, false, false, 0);
+            this.interactiveMisses.Clear();
+            this.textInputMisses.Clear();
+            this.navigableMisses.Clear();
             this.focusFlags.Clear();
             this.containerFlags.Clear();
             this.focusSeen.Clear();
@@ -171,19 +184,29 @@ namespace Poe2Accessibility.Services
                 : $"{part} FAIL (fits {string.Join(", ", fits.Select(bit => $"0x{bit:X}"))}, is 0x{now:X}: on {BitSearch.Share(carriers, now):P0} of {carriers.Count}, {BitSearch.Share(others, now):P0} of {others.Count} others)";
         }
 
-        private void Judge(string part, IReadOnlyList<uint> carriers, IReadOnlyList<uint> others, int measured, double otherShare, int minCarriers, Action<int> use)
+        /// <summary>
+        ///     Judges one bit on a screen's or a round's controls; true once settled. No bit fitting on one screen is no verdict
+        ///     (its controls may all be greyed or of one odd kind): a second <paramref name="witness"/> must find none either,
+        ///     and until then the bit is judged again on the next.
+        /// </summary>
+        private bool Judge(
+            string part, IReadOnlyList<uint> carriers, IReadOnlyList<uint> others, int measured, double otherShare, int minCarriers, Action<int> use, LossWitnesses misses, long witness)
         {
             if (BitSearch.Share(carriers, measured) >= KeepShare && BitSearch.Share(others, measured) <= otherShare)
             {
                 use(measured);
                 this.report.Found(part);
-                return;
+                return true;
             }
 
             if (BitSearch.FindBit(carriers, others, measured, CarrierShare, otherShare, minCarriers) is not { } bit)
             {
-                this.report.Missing(part);
-                return;
+                if (misses.Against(witness))
+                {
+                    this.report.Missing(part);
+                }
+
+                return misses.Lost;
             }
 
             use(bit);
@@ -195,6 +218,8 @@ namespace Poe2Accessibility.Services
             {
                 this.report.Moved(part, measured, bit);
             }
+
+            return true;
         }
 
         /// <summary>Visible controls with a click sound, plain labels, text inputs and buttons under the root, breadth first.</summary>

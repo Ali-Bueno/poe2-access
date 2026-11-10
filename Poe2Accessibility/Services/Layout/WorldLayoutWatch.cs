@@ -74,9 +74,27 @@ namespace Poe2Accessibility.Services
         private long nextPoiseWideAt;
         private WalkableCheck? walkable = new();
         private readonly Dictionary<string, StructHealth> invariantsSaid = new(StringComparer.Ordinal);
+        private readonly SecondLook lostLook = new();
+        private readonly LossWitnesses levelMisses = new();
+        private int lostLooks;
+        private int reactionLost;
+        private long recheckAt;
+        private int rechecksLeft;
         private int walkableFails;
 
         private const int PoiseAreasToSay = 2;
+
+        /// <summary>Looks with no world, <see cref="LocateEveryMs"/> apart after <see cref="LostAfterMs"/>, before the world is said lost.</summary>
+        private const int LostLooksToSay = 2;
+
+        /// <summary>Readings in a row that must say the reaction lost (ten a second) before it is said: one bad read of the player is not a moved field.</summary>
+        private const int ReactionLostToSay = 5;
+
+        /// <summary>A part a sweep found lost is swept again this long after, in the same area, before it is said (<see cref="SecondLook"/>).</summary>
+        private const long RecheckMs = 3000;
+
+        /// <summary>Second looks one area's sweep may ask for: parts that read lost by turns must not keep the sweep running.</summary>
+        private const int MaxRechecks = 2;
         private const int WalkableFailsToSay = 2;
 
         public WorldLayoutWatch(CompatibilityReport report, PluginLog log, string buildFile)
@@ -94,7 +112,7 @@ namespace Poe2Accessibility.Services
         {
             if (!inGame)
             {
-                this.lostSince = -1;
+                (this.lostSince, this.lostLooks) = (-1, 0);
                 return;
             }
 
@@ -102,7 +120,7 @@ namespace Poe2Accessibility.Services
             var layout = area.Layout;
             if (layout.HasWorld && area.AwakeEntities.Count > 0)
             {
-                this.lostSince = -1;
+                (this.lostSince, this.lostLooks) = (-1, 0);
                 this.Report(layout, true);
                 this.SweepStructs(area);
                 this.WatchActors(area);
@@ -113,12 +131,20 @@ namespace Poe2Accessibility.Services
             }
             else if (Environment.TickCount64 - this.lostSince >= LostAfterMs && Environment.TickCount64 >= this.nextLocateAt)
             {
+                // One look says nothing yet (a slow load can leave the state in play with no world a little longer): the
+                // second, LocateEveryMs later, with still no world and no area found, is the verdict.
                 this.nextLocateAt = Environment.TickCount64 + LocateEveryMs;
+                var found = !layout.HasWorld && OffsetHealer.LocateArea();
+                if (found || ++this.lostLooks < LostLooksToSay)
+                {
+                    return;
+                }
+
                 if (layout.HasWorld)
                 {
                     this.report.Missing("entity lists"); // the fields fit and still nothing lives in them
                 }
-                else if (!OffsetHealer.LocateArea())
+                else
                 {
                     this.Report(layout, false);
                 }
@@ -138,6 +164,9 @@ namespace Poe2Accessibility.Services
             this.poiseArea = IntPtr.Zero;
             this.nextPoiseWideAt = 0;
             this.invariantsSaid.Clear();
+            this.lostLook.Reset();
+            this.levelMisses.Clear();
+            (this.lostLooks, this.reactionLost, this.recheckAt) = (0, 0, 0);
             this.walkable = new WalkableCheck();
             this.walkableFails = 0;
         }
@@ -292,7 +321,11 @@ namespace Poe2Accessibility.Services
             if (OffsetHealer.JudgeReaction(area.Player, monsters) is { } outcome)
             {
                 this.reactionJudged = outcome.Health != StructHealth.Lost;
-                this.Note(outcome);
+                this.reactionLost = this.reactionJudged ? 0 : this.reactionLost + 1;
+                if (this.reactionJudged || this.reactionLost >= ReactionLostToSay)
+                {
+                    this.Note(outcome);
+                }
             }
         }
 
@@ -309,11 +342,24 @@ namespace Poe2Accessibility.Services
         {
             var started = Environment.TickCount64;
             var outcomes = OffsetHealer.Sweep();
+
+            // A part lost in one sweep is swept once more before it is said; the invariants count entities over areas instead.
+            static bool IsInvariant(StructOutcome outcome) => outcome.Name.StartsWith(OffsetHealer.InvariantPrefix, StringComparison.Ordinal);
+            var lost = outcomes.Where(outcome => outcome.Health == StructHealth.Lost && !IsInvariant(outcome)).Select(outcome => outcome.Name).ToList();
+            var confirmed = this.lostLook.Confirm(lost);
+            var unconfirmed = lost.Where(name => !confirmed.Contains(name)).ToList();
             foreach (var outcome in outcomes)
             {
+                if (unconfirmed.Contains(outcome.Name) && outcome.Health == StructHealth.Lost)
+                {
+                    this.log.Info($"Struct {outcome.Name}: lost in this sweep ({outcome.Detail}); swept again before it is said");
+                    continue;
+                }
+
                 this.Note(outcome);
             }
 
+            this.recheckAt = unconfirmed.Count > 0 && this.rechecksLeft > 0 ? started + RecheckMs : 0;
             this.NoteBuild(outcomes);
             if (!this.positionsRetried && outcomes.Any(outcome => outcome.Name == OffsetHealer.PositionsPart && outcome.Health == StructHealth.NotJudged))
             {
@@ -332,14 +378,27 @@ namespace Poe2Accessibility.Services
 
         private void SweepStructs(AreaInstance area)
         {
-            if (this.sweeps >= MaxSweeps || area.Address == this.sweptArea || area.AwakeEntities.Count < MinEntities)
+            var now = Environment.TickCount64;
+            if (this.recheckAt != 0 && area.Address == this.sweptArea)
+            {
+                // The second look at what the last sweep found lost, in the same area.
+                if (now >= this.recheckAt && area.AwakeEntities.Count >= MinEntities)
+                {
+                    this.rechecksLeft--;
+                    this.Sweep();
+                }
+
+                return;
+            }
+
+            // A second look still owed is taken in the next area even when the three sweeps are spent.
+            if ((this.sweeps >= MaxSweeps && this.recheckAt == 0) || area.Address == this.sweptArea || area.AwakeEntities.Count < MinEntities)
             {
                 this.settledAt = area.Address == this.sweptArea ? this.settledAt : 0;
                 return;
             }
 
             // Components fill in a moment after the area appears: judged on a live world, not a half-read one.
-            var now = Environment.TickCount64;
             if (this.settledAt == 0)
             {
                 this.settledAt = now;
@@ -349,6 +408,7 @@ namespace Poe2Accessibility.Services
                 this.sweptArea = area.Address;
                 this.settledAt = 0;
                 this.sweeps++;
+                this.rechecksLeft = MaxRechecks;
                 this.Sweep();
             }
         }
@@ -424,9 +484,14 @@ namespace Poe2Accessibility.Services
 
             // A level found once stays where it is: an area that misses the shape alone says nothing about the build.
             this.levelSeen |= found.Level >= 0;
-            if (hasWorld)
+            if (hasWorld && this.levelSeen)
             {
-                this.Part("area level", this.levelSeen ? now.Level : -1, measured.Level, now.Level);
+                this.Part("area level", now.Level, measured.Level, now.Level);
+            }
+            else if (hasWorld && this.levelMisses.Against(Core.States.InGameStateObject.CurrentAreaInstance.Address.ToInt64()))
+            {
+                // Never seen, in two areas: one area alone can miss the level's shape (its vectors) with the field in place.
+                this.report.Missing("area level");
             }
         }
 

@@ -71,6 +71,10 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<InGameField, long> missedAt = new();
         private readonly Dictionary<InGameField, int> misses = new();
         private readonly Dictionary<InGameField, (long At, IntPtr Element)> held = new();
+        private readonly Dictionary<InGameField, LossWitnesses> absent = new();
+
+        /// <summary>Whether the last search saw, in the element tree, the element its field must hold.</summary>
+        private bool elementSeen;
         private IntPtr container;
         private (IntPtr Address, string Hash) heldArea;
 
@@ -132,6 +136,7 @@ namespace Poe2Accessibility.Services
                 this.offsets[field] = offset;
                 this.missedAt.Remove(field);
                 this.misses.Remove(field);
+                this.Absent(field).Clear();
                 if (offset == spec.Expected)
                 {
                     this.report.Found(Part(field));
@@ -144,11 +149,15 @@ namespace Poe2Accessibility.Services
                 return this.Holds(offset, spec);
             }
 
+            // Lost when the tree shows the element and no slot of the container holds it. With no such element under the
+            // container the layer may only not exist now (the bind screen's display exists only once it was opened; it is
+            // never said): then two areas must miss it, three times in a row each.
             this.missedAt[field] = now;
             this.misses[field] = this.misses.GetValueOrDefault(field) + 1;
-            if (field != InGameField.BindDisplay && this.misses[field] == MissesToReport)
+            if (field != InGameField.BindDisplay && this.misses[field] >= MissesToReport &&
+                (this.elementSeen || this.Absent(field).Against(this.heldArea.Address.ToInt64())))
             {
-                this.report.Missing(Part(field)); // the bind screen's display exists only once it was opened
+                this.report.Missing(Part(field));
             }
 
             return IntPtr.Zero;
@@ -198,6 +207,7 @@ namespace Poe2Accessibility.Services
             this.missedAt.Clear();
             this.misses.Clear();
             this.held.Clear();
+            this.absent.Clear();
             this.container = IntPtr.Zero;
         }
 
@@ -215,8 +225,19 @@ namespace Poe2Accessibility.Services
             _ => "bind screen",
         };
 
+        private LossWitnesses Absent(InGameField field)
+        {
+            if (!this.absent.TryGetValue(field, out var areas))
+            {
+                this.absent[field] = areas = new LossWitnesses();
+            }
+
+            return areas;
+        }
+
         private int? Locate(Spec spec)
         {
+            this.elementSeen = false;
             if (this.Holds(spec.Expected, spec) != IntPtr.Zero)
             {
                 return spec.Expected;
@@ -242,6 +263,7 @@ namespace Poe2Accessibility.Services
         private int? LocateFar(Spec spec)
         {
             var marked = this.Marked(spec);
+            this.elementSeen = marked.Count > 0;
             if (marked.Count == 0)
             {
                 return null; // no such element under the container now: nothing says where its field is

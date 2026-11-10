@@ -43,6 +43,8 @@ namespace Poe2Accessibility.Services
         private float[]? click;
         private bool entriesJudged;
         private readonly IdLinkCheck idLink = new();
+        private readonly LossWitnesses entriesMissed = new();
+        private long entriesArea;
         private HashSet<uint> skillIds = new();
         private int unreadEntries;
 
@@ -121,8 +123,18 @@ namespace Poe2Accessibility.Services
             {
                 this.entriesJudged = true;
                 this.Report.Found(EntriesPart);
+                return;
             }
-            else if (++this.unreadEntries >= MaxUnreadEntries)
+
+            // Twenty readings in one area are one witness (an Actor being rebuilt, an entry of a kind not met before): a
+            // second area must read none either.
+            var area = GameReader.Core.States.InGameStateObject.CurrentAreaInstance.Address.ToInt64();
+            if (area != this.entriesArea)
+            {
+                (this.entriesArea, this.unreadEntries) = (area, 0);
+            }
+
+            if (++this.unreadEntries == MaxUnreadEntries && this.entriesMissed.Against(area))
             {
                 this.entriesJudged = true;
                 this.Report.Missing(EntriesPart);
@@ -162,7 +174,8 @@ namespace Poe2Accessibility.Services
         public void ResetLayout()
         {
             this.idLink.Reset();
-            (this.entriesJudged, this.unreadEntries) = (false, 0);
+            this.entriesMissed.Clear();
+            (this.entriesJudged, this.unreadEntries, this.entriesArea) = (false, 0, 0);
         }
 
         /// <summary>Research (dev command "cooldowns"): each cooldown entry with its skill's name, and the named skills' ids.</summary>

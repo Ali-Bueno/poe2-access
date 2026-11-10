@@ -25,6 +25,10 @@ namespace Poe2Accessibility.Tests
             (nameof(TheEnabledBitIsLostOnlyOnTwoScreens), TheEnabledBitIsLostOnlyOnTwoScreens),
             (nameof(ALossNeedsTwoDifferentWitnesses), ALossNeedsTwoDifferentWitnesses),
             (nameof(ACatalogInUseLoadsEmpty), ACatalogInUseLoadsEmpty),
+            (nameof(ABatchOfOddReadingsDoesNotLoseAField), ABatchOfOddReadingsDoesNotLoseAField),
+            (nameof(APartLostInOneSweepIsLookedAtAgain), APartLostInOneSweepIsLookedAtAgain),
+            (nameof(OneDropdownThatDoesNotReadIsNoLostLayout), OneDropdownThatDoesNotReadIsNoLostLayout),
+            (nameof(AnUnreadCodeIsSaidOnlyForFieldsWithNoOtherJudge), AnUnreadCodeIsSaidOnlyForFieldsWithNoOtherJudge),
         };
 
         private static void AnOverrideNodeDoesNotMoveTheAllocatedList()
@@ -69,7 +73,13 @@ namespace Poe2Accessibility.Tests
                 check.Observe(false);
             }
 
-            Equal(FieldTrust.Lost, check.Trust, "lost in one game process");
+            Equal(FieldTrust.Unjudged, check.Trust, "one batch that says lost is no verdict");
+            for (var i = 0; i < 4; i++)
+            {
+                check.Observe(false);
+            }
+
+            Equal(FieldTrust.Lost, check.Trust, "a second batch agrees: lost in this game process");
             check.Reset();
             Equal(FieldTrust.Unjudged, check.Trust, "the next process starts unjudged");
             for (var i = 0; i < 4; i++)
@@ -78,6 +88,59 @@ namespace Poe2Accessibility.Tests
             }
 
             Equal(FieldTrust.Intact, check.Trust, "and counts from nothing");
+        }
+
+        private static void ABatchOfOddReadingsDoesNotLoseAField()
+        {
+            var check = new AttackFieldCheck(4);
+            foreach (var holds in new[] { false, false, false, false, true, true, true, true })
+            {
+                check.Observe(holds);
+            }
+
+            Equal(FieldTrust.Intact, check.Trust, "a first batch of odd monsters, then four that keep the rule: the field is intact");
+        }
+
+        private static void APartLostInOneSweepIsLookedAtAgain()
+        {
+            var look = new SecondLook();
+            Equal(0, look.Confirm(new[] { "life", "skills" }).Count, "lost for the first time: swept again, nothing said");
+            Equal("life", string.Join(",", look.Confirm(new[] { "life", "ground items" })), "lost twice in a row: said; the newly lost one waits");
+            Equal("ground items", string.Join(",", look.Confirm(new[] { "ground items" })), "its turn");
+            Equal(0, look.Confirm(Array.Empty<string>()).Count, "nothing lost");
+            Equal(0, look.Confirm(new[] { "life" }).Count, "lost again after an intact look: a first time again");
+        }
+
+        private static void OneDropdownThatDoesNotReadIsNoLostLayout()
+        {
+            const string part = "combo boxes";
+            var log = new PluginLog(Path.Join(Path.GetTempPath(), "poe2access-tests"), false);
+            var report = new CompatibilityReport(log);
+            long now = 1_000_000;
+            var controls = new ControlFields(report, () => 0, () => now);
+            for (var look = 0; look < 5; look++)
+            {
+                controls.Shift(ControlGroup.ComboBox, 1, _ => false);
+                now += 6000; // past the retry of one control
+            }
+
+            Equal(false, report.IsMissing(part), "one dropdown that never reads (an empty list): five misses, no warning");
+            controls.Shift(ControlGroup.ComboBox, 2, _ => false);
+            Equal(true, report.IsMissing(part), "a second dropdown does not read either: the layout is lost");
+
+            var healthy = new CompatibilityReport(log);
+            var fine = new ControlFields(healthy, () => 0, () => now);
+            fine.Shift(ControlGroup.ComboBox, 1, _ => false);
+            fine.Shift(ControlGroup.ComboBox, 2, shift => shift == 0);
+            fine.Shift(ControlGroup.ComboBox, 3, _ => false);
+            Equal(false, healthy.IsMissing(part), "once a dropdown proved the layout, others that do not read say nothing");
+        }
+
+        private static void AnUnreadCodeIsSaidOnlyForFieldsWithNoOtherJudge()
+        {
+            Equal(0, CodeFieldCatalog.Heard(new[] { "Positioned.Reaction", "Life.Health.Total", "Terrain.BytesPerRow" }).Count, "fields a live judgment finds or says lost by itself");
+            Equal(0, CodeFieldCatalog.Heard(new[] { "Transitionable.CurrentState", "StatusEffect.TimeLeft" }).Count, "fields nothing of the mod reads");
+            Equal("Stack.Count,Shrine.IsUsed", string.Join(",", CodeFieldCatalog.Heard(new[] { "Stack.Count", "Area.Entities", "Shrine.IsUsed" })), "fields only the code vouches for are still said");
         }
 
         private static void ATradeWindowIsReadHoweverItsBodyIsOrdered()

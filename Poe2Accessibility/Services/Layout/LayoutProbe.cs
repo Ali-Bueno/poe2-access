@@ -60,6 +60,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         private const int MaxWideTries = 3;
 
+        /// <summary>
+        ///     Looks, each <see cref="RetryMs"/> after the last, that must miss the layer roots before they are said lost: the
+        ///     first look comes on the first frame in game, when the layers may not be built yet.
+        /// </summary>
+        private const int LayerRootLooksToSay = 3;
+
         /// <summary>Images looked at in a whole-object search of the texture (each candidate place costs a read per image).</summary>
         private const int MaxWideLeaves = 150;
 
@@ -110,6 +116,15 @@ namespace Poe2Accessibility.Services
         private long textTriedAt = long.MinValue / 2;
         private long texturesTriedAt = long.MinValue / 2;
         private long renderTriedAt = long.MinValue / 2;
+        private readonly LossWitnesses nameMisses = new();
+        private readonly LossWitnesses textMisses = new();
+        private readonly LossWitnesses textureMisses = new();
+        private readonly LossWitnesses layerRootMisses = new(LayerRootLooksToSay);
+        private const int LookAgainEveryMs = 1000;
+        private bool missedInGame;
+        private IntPtr pendingState;
+        private long nextLookAgainAt;
+        private long looks;
         private int wideNameTries;
         private int wideTextTries;
         private int wideTextureTries;
@@ -205,6 +220,7 @@ namespace Poe2Accessibility.Services
             if (Holds(mouseNow) || Holds(padNow))
             {
                 this.layerRootsKnown = true;
+                this.layerRootMisses.Clear();
                 this.Record(LayerRootsPart, mouse, mouseNow);
                 return;
             }
@@ -215,13 +231,19 @@ namespace Poe2Accessibility.Services
             var nearMouse = OffsetSearch.First(mouseNow, ManagerScanBytes, Step, HoldsLinked, Step);
             if ((nearPad ?? nearMouse) is null)
             {
-                this.report.Missing(LayerRootsPart);
+                this.pendingState = inGameState;
+                if (this.layerRootMisses.Against(++this.looks))
+                {
+                    this.report.Missing(LayerRootsPart);
+                }
+
                 return;
             }
 
             var shift = nearPad is { } p && (nearMouse is not { } m || Math.Abs(p - padNow) <= Math.Abs(m - mouseNow)) ? p - padNow : nearMouse!.Value - mouseNow;
             GameReader.Utils.OffsetHealer.PlacePointers(typeof(InGameStateOffset), (mouse, mouseNow + shift), (pad, padNow + shift));
             this.layerRootsKnown = true;
+            this.layerRootMisses.Clear();
             this.report.Moved(LayerRootsPart, mouseNow, mouseNow + shift);
         }
 
@@ -231,6 +253,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public void ObserveFocus(IntPtr manager)
         {
+            this.LookAgain(manager);
             if (this.focusKnown || manager == IntPtr.Zero)
             {
                 return;
@@ -257,6 +280,49 @@ namespace Poe2Accessibility.Services
             GameLayout.UiManager.LastFocusedOffset += shift;
             GameLayout.UiManager.HoveredOffset += shift;
             this.Record(FocusPart, this.measuredCurrent, found);
+        }
+
+        /// <summary>
+        ///     The parts that missed where a miss counts (in game) are looked for again here: the locator probes once per state,
+        ///     and one look on the first frame in game, when the HUD may not be built yet, is neither a loss nor the last word.
+        /// </summary>
+        private void LookAgain(IntPtr manager)
+        {
+            var now = Environment.TickCount64;
+            if (manager == IntPtr.Zero || now < this.nextLookAgainAt ||
+                ((!this.missedInGame || (this.namesKnown && this.textKnown && this.texturesKnown)) && (this.pendingState == IntPtr.Zero || this.layerRootsKnown)))
+            {
+                return;
+            }
+
+            // Only in play is a miss a miss: the manager given then is the in-game one, whose root always shows the HUD.
+            this.nextLookAgainAt = now + LookAgainEveryMs;
+            if (GameReader.Core.States.GameCurrentState != GameReader.RemoteEnums.GameStateTypes.InGameState)
+            {
+                return;
+            }
+
+            if (this.missedInGame && this.reader.TryRead<IntPtr>(manager + GameLayout.UiManager.RootOffset, out var root) && root != IntPtr.Zero)
+            {
+                this.ProbeNames(root, true);
+                this.ProbeText(root, true);
+                this.ProbeTextures(root, true);
+            }
+
+            if (this.pendingState != IntPtr.Zero && GameReader.Core.States.InGameStateObject.Address == this.pendingState)
+            {
+                this.ProbeLayerRoots(this.pendingState);
+            }
+        }
+
+        /// <summary>A conclusive look that found nothing: said lost once a second look, <see cref="RetryMs"/> later or more, agrees.</summary>
+        private void Missed(string part, LossWitnesses misses)
+        {
+            this.missedInGame = true;
+            if (misses.Against(++this.looks))
+            {
+                this.report.Missing(part);
+            }
         }
 
         private static int MeasuredStateField(string field) => Marshal.OffsetOf<InGameStateOffset>(field).ToInt32();
@@ -327,11 +393,12 @@ namespace Poe2Accessibility.Services
             }
 
             this.namesTriedAt = now;
-            if ((OffsetSearch.First(this.measuredName, Radius, Step, this.NameFits(root), Step) ?? this.WideName(root)) is not { } found)
+            // The whole-object searches are kept for in game, where the evidence is always there (a few tries per game process).
+            if ((OffsetSearch.First(this.measuredName, Radius, Step, this.NameFits(root), Step) ?? (conclusive ? this.WideName(root) : null)) is not { } found)
             {
                 if (conclusive)
                 {
-                    this.report.Missing("element names");
+                    this.Missed("element names", this.nameMisses);
                 }
 
                 return;
@@ -386,11 +453,11 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if ((OffsetSearch.First(0, Radius, Step, this.TextFits(root), -Radius) ?? this.WideTextShift(root)) is not { } found)
+            if ((OffsetSearch.First(0, Radius, Step, this.TextFits(root), -Radius) ?? (conclusive ? this.WideTextShift(root) : null)) is not { } found)
             {
                 if (conclusive)
                 {
-                    this.report.Missing("element texts");
+                    this.Missed("element texts", this.textMisses);
                 }
 
                 return;
@@ -425,11 +492,11 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if ((OffsetSearch.First(this.measuredTexture, Radius, Step, fits, Step) ?? this.WideTexture(root)) is not { } found)
+            if ((OffsetSearch.First(this.measuredTexture, Radius, Step, fits, Step) ?? (conclusive ? this.WideTexture(root) : null)) is not { } found)
             {
                 if (conclusive)
                 {
-                    this.report.Missing("image textures");
+                    this.Missed("image textures", this.textureMisses);
                 }
 
                 return;
@@ -527,6 +594,11 @@ namespace Poe2Accessibility.Services
             this.layerRootsTriedAt = long.MinValue / 2;
             this.namesTriedAt = this.textTriedAt = this.texturesTriedAt = this.renderTriedAt = long.MinValue / 2;
             (this.wideNameTries, this.wideTextTries, this.wideTextureTries) = (0, 0, 0);
+            (this.missedInGame, this.pendingState, this.nextLookAgainAt) = (false, IntPtr.Zero, 0);
+            foreach (var misses in new[] { this.nameMisses, this.textMisses, this.textureMisses, this.layerRootMisses })
+            {
+                misses.Clear();
+            }
             this.renderMisses.Clear();
         }
 

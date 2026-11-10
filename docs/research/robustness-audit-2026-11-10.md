@@ -46,6 +46,11 @@ Each with a unit test in `RobustnessTests` unless said.
   seconds apart or more (`LossWitnesses`).
 - `CullSkills.Load`, `HazardGround.Load`: a file in use loads empty. `GameNews` is not guarded here (another owner's file).
 
+Also that day, beyond the Open table ([surviving game updates](../compatibility.md)): the searches of a whole object when
+nothing is near where a field was measured; second checks for the element's manager pointer, a node record's edge vectors,
+the skill level key and the skill ids; live invariants of the code-only fields in the struct sweep; and every spoken
+"lost" made to need two looks, two areas or two witnesses ("When a part is said lost").
+
 ## Open
 
 | Where | What can go wrong | Smallest fix |

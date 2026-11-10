@@ -142,6 +142,32 @@ namespace Poe2Accessibility.Services
         public static IReadOnlyList<string> Unsettled(IEnumerable<(CodeFieldEntry Entry, int? Found)> settled) =>
             settled.Where(read => read.Found == null).Select(read => read.Entry.Name).Distinct().ToList();
 
+        /// <summary>
+        ///     Of the fields the code did not settle, those worth a spoken warning: not a field nothing of the mod reads, nor one a
+        ///     live judgment finds or reports lost by itself (the world's fields, the vitals, friend and foe, positions, the
+        ///     animation, the stun record, the in-play flag): for these an unread code is a recompiled function, not a loss.
+        /// </summary>
+        public static IReadOnlyList<string> Heard(IEnumerable<string> unsettled) =>
+            unsettled.Where(name => !Unread.Contains(name) && !JudgedLive.Contains(name)).ToList();
+
+        // In the catalogs for the count only (docs/compatibility.md, "Read from the game's code").
+        private static readonly HashSet<string> Unread = new(StringComparer.Ordinal)
+        {
+            "Transitionable.CurrentState", "StatusEffect.TimeLeft", "StatusEffect.TotalTime", "Terrain.TileHeightMultiplier",
+        };
+
+        // Each has a live search or check that says the part lost on its own (docs/research/field-protection-audit.md, LIVE).
+        private static readonly HashSet<string> JudgedLive = new(StringComparer.Ordinal)
+        {
+            "InGameState.Area", "Area.Level", "Area.LocalPlayer", "Area.Entities", "Area.Terrain",
+            "Terrain.TotalTiles", "Terrain.TileDetailsPtr", "Terrain.TileDetails", "Terrain.GridWalkableData", "Terrain.BytesPerRow",
+            "Entity.Id", "Entity.Components", "Entity.Details", "EntityDetails.Path", "EntityDetails.ComponentLookUp", "ComponentLookUp.NameAndIndex",
+            "Life.Health.Current", "Life.Health.Total", "Life.Mana.Current", "Life.Mana.Total", "Life.ES.Current", "Life.ES.Total",
+            "Render.WorldPosition", "Positioned.Reaction", "Actor.AnimationId", "Actor.ActiveSkills", "Stats.StatsChangedByItems",
+            "Targetable.IsTargetable", "Actor.PoiseThreshold", "Actor.Poise", "Animated.Object",
+            "ObjectMagicProperties.ImplicitMods", "ObjectMagicProperties.ExplicitMods",
+        };
+
         /// <summary>Where the code reads each entry; an entry it does not settle has no value.</summary>
         public static IReadOnlyList<(CodeFieldEntry Entry, int? Found)> Read(ReadOnlySpan<byte> code, IReadOnlyList<CodeFieldEntry> entries)
         {

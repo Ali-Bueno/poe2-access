@@ -49,6 +49,11 @@ namespace Poe2Accessibility
 
         private string? gameNewsLine;
 
+        /// <summary>Judgments of the left trigger that must find no button bit before the pad's buttons are said lost.</summary>
+        private const int PadMissesToSay = 2;
+
+        private int padMisses;
+
         private const string SemanticFieldFile = "semantic-fields.txt";
 
         /// <summary>The code fields of this game process, being read off the frame thread.</summary>
@@ -67,7 +72,16 @@ namespace Poe2Accessibility
 
             if (this.padCheck.Shift is not { } shift)
             {
-                this.compatibility?.Missing("pad buttons");
+                // One judgment that finds no bit (frames read while the game ignored the pad) is made again before it is said.
+                if (++this.padMisses >= PadMissesToSay)
+                {
+                    this.compatibility?.Missing("pad buttons");
+                }
+                else
+                {
+                    this.padCheck.Reset();
+                }
+
                 return;
             }
 
@@ -207,6 +221,7 @@ namespace Poe2Accessibility
             SkillLevelKey.Reset();
             this.alerts?.Cooldowns.ResetLayout();
             this.padCheck.Reset();
+            this.padMisses = 0;
             this.semantics?.TreeFields.Reset();
             this.semantics?.StickCheck.Reset();
             this.places?.ResetLayout();
@@ -373,12 +388,15 @@ namespace Poe2Accessibility
             // A field neither reading settles keeps its constant, right or wrong: on the build the catalogs were made for every
             // one settles, so this is a patch that changed the code around it, and many of these fields have no other check.
             var unsettled = CodeFieldCatalog.Unsettled(read);
+            var heard = CodeFieldCatalog.Heard(unsettled);
             if (unsettled.Count > 0)
             {
-                this.log?.Warn($"Code fields: {unsettled.Count} read by neither the signatures nor the rules, their constants stand unchecked: {string.Join(", ", unsettled)}");
+                this.log?.Warn($"Code fields: {unsettled.Count} read by neither the signatures nor the rules, their constants stand unchecked: {string.Join(", ", unsettled)}" +
+                    (heard.Count == unsettled.Count ? string.Empty : $"; said for {(heard.Count == 0 ? "none (the rest are judged live or not read by the mod)" : string.Join(", ", heard))}"));
             }
 
-            if (stuck || unsettled.Count > 0)
+            // Said only for a field that has no other judge: the others are found, or said lost, by their own live checks.
+            if (stuck || heard.Count > 0)
             {
                 this.compatibility?.Missing(CodeFieldsPart);
             }

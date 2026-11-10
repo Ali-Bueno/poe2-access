@@ -259,7 +259,7 @@ after the near search failed, a few times per game process or behind a timer, si
 
 | Field | Object searched | Proof far from where measured | Where |
 |---|---|---|---|
-| Control name (font, manager and tooltips follow) | each of the root, its children and theirs, up to `Element.ProbeBytes` (0x800) | two elements carry two different known names there; near, one name is enough | `ElementFieldSearch.Name`, `LayoutProbe.WideName` (3 tries) |
+| Control name (font, manager and tooltips follow) | each of the root, its children and theirs, up to `Element.ProbeBytes` (0x800); in game only, as the two below | two elements carry two different known names there; near, one name is enough | `ElementFieldSearch.Name`, `LayoutProbe.WideName` (3 tries) |
 | Label texts (tagged, text, copy; the colour follows) | 400 labels, 0x800 each; the three fields at one shift, from the tagged text at the element's start to the copy at its end | as near: five labels read a tagged text and a text equal to its copy; one shift only | `ElementFieldSearch.TextShift`, `LayoutProbe.WideTextShift` (3 tries) |
 | Image texture (the smaller class follows) | 150 images, 0x800 each | as near: five images reach an art key through the pointer and under half as many through the next slot; one place only | `ElementFieldSearch.Texture`, `LayoutProbe.WideTexture` (3 tries) |
 | Control subclass groups (`ControlFields.Shift`: slider, combo box, inventory, tabs, skill slots, passive canvas and node, class selector, hint, title, options section) | the control, 0x800 from its start, after three misses nearby; every 30 s at most | the group's own check fits at one place of the control, and at the same place on a second control (until then it is only noted, never read) | `ControlFields.Shift` |
@@ -308,7 +308,9 @@ found are said once together ("Aviso de compatibilidad: no encuentro el chat y l
 process (`OnAttachedChanged`) logs the game exe's size and time and checks everything again.
 
 **Dev commands after a patch:** `structs` runs the sweep and logs it ("Struct sweep: 24 intact, 0 moved, 0 lost, 9 not
-judged"; those have no field that can be checked, or nothing live to judge it on, such as a ground item in town). `sounds` logs what really played since last asked ("output peak 0,950;
+judged"; those have no field that can be checked, or nothing live to judge it on, such as a ground item in town; the eight
+`invariant: …` lines count over areas and say "not judged" until five entities were read). A part the sweep finds lost is
+only said on the second sweep in a row that finds it so: run `structs` twice. `sounds` logs what really played since last asked ("output peak 0,950;
 started: enemy 128, boss 42, dodge 5…; beds heard: waypoint"): the oracle for audio, since a log of speech says nothing of it.
 
 **Self-test:** dev command `layout` (write it to `Plugins/Poe2Accessibility/debug/command.txt`) starts every search
@@ -321,6 +323,35 @@ sub-tiles name a tile; …; a search finds it too)", "item base names ok", "sele
 "not judged yet" with what they need. Run it on each new build of the plugin at login, at character creation (class
 selector, name field), in town (an NPC with a quest marker), in the options, the inventory (a tooltip), the passive
 tree, and with the left trigger pressed alone (2026-10-25: all ok, every part judged live).
+
+### When a part is said lost
+Reviewed 2026-11-10: every place that says a part lost (`CompatibilityReport.Missing`) was asked whether a healthy game can
+reach it (a screen without the evidence, a load in progress, a first frame, one bad read). Each now needs proof that holds;
+a part found again before it is said is not said (`CompatibilityReport.Note`, 3 s).
+
+| Part | What it takes to be said lost | Where |
+|---|---|---|
+| `element names`, `element texts`, `image textures` | in game only, two looks ten seconds apart or more (the locator probes once per state, so the probe looks again by itself while in play: `LayoutProbe.LookAgain`); before, the first look said it, on the first frame in game | `LayoutProbe.Missed` |
+| `in-game layer roots` | three such looks | `LayoutProbe.ProbeLayerRoots` |
+| `entity names` | two different batches of fifteen entities or more read no name | `LayoutProbe.ProbeRenderNames` |
+| `interactive flag`, `text input flag` | no bit fits on two different pre-game screens (a screen is told by its controls); until then judged again on the next screen | `FlagBits.Judge` |
+| `navigable flag` | no bit fits on two rounds of twelve focus targets, no element counted twice | `FlagBits.SampleFocus` |
+| `enabled flag` | two screens under 20%; given back by any screen that shows it | `EnabledBitCheck` |
+| `combo boxes` | three misses on at least two different dropdowns (one empty or half-built list is no layout), and no place found in the whole control | `ControlFields.Shift` |
+| in-game layers (`HUD`, `map overlay`, `death screen`, `inventory panel`, `chat`, `skill bar`) | three misses in a row with the element shown by the tree and no slot of the container holding it; with no such element under the container (it may only not exist yet), three misses in a row in each of two areas. The objective box, which has no mark, takes the second rule | `InGameFields.Find` |
+| `local player`, `entity lists`, `terrain` (no world) | in play, no world for 8 s, then two looks 3 s apart with no area found by the search either | `WorldLayoutWatch.Tick` |
+| `area level` | never seen, in two areas | `WorldLayoutWatch.Report` |
+| struct parts of the sweep (`life`, `skills`, `stats`, `buffs`, `ground items`, `inventories`, `camera`, `positions`, the entity layout, the verifier's components) | lost in two sweeps in a row: a part lost once is swept again 3 s later in the same area (twice at most), or in the next area, before it is said (log `Struct …: lost in this sweep (…); swept again before it is said`) | `SecondLook`, `WorldLayoutWatch.Sweep` |
+| `reaction` | five readings in a row (ten a second) with the player read as no friend and no byte that fits | `WorldLayoutWatch.JudgeReaction` |
+| `poise`, `walkable` | two areas; two windows of thirty cells (2026-11-10, first pass) | `WorldLayoutWatch` |
+| `cooldowns` | entries that exist and none reads, 20 readings in each of two areas; or no entry naming a listed skill, the same (`IdLinkCheck`) | `SkillCooldownWatch` |
+| the dodge fields (`AttackFieldCheck`) | two batches of readings, each counted from nothing, at or under one in five kept | `AttackFieldCheck.Observe` |
+| `pad buttons` | two judgments of the left trigger (twenty frames down and twenty up each) find no bit | `Poe2AccessibilityCore.CheckPadButtons` |
+| `passive tree links` | three searches ten seconds apart | `PassiveTreeFields.Edges` |
+| `passive tree allocations` | two readings ten seconds apart of a list with under one known id in ten, and no other list | `PassiveTreeFields.JudgeAllocated` |
+| `item base names` | six different items' titles in a row hold no name anywhere (unchanged) | `BaseNameField` |
+| `code fields` | a field neither the signatures nor the rules read, unless nothing of the mod reads it (Transitionable state, the status effect times, the tile height) or a live judgment finds it or says it lost by itself (`CodeFieldCatalog.Heard`: the area's and entity's fields, the vitals, positions, friend and foe, the animation, the skills and stats pointers, the terrain's four, the stun record, the in-play flag, the dodge's animated object, the monster mod lists); a live invariant that fails | `TakeCodeFields`, `WorldLayoutWatch.NoteInvariant` |
+| `effect names`, `game data` | read from files once per game process, whole: nothing transient to guard (unchanged) | `CheckGameNews` |
 
 ## Regenerated at start-up (packaged builds)
 `GameDataSetup` stamps the install (`app/GameData/game-version.txt`: size and time of `Bundles2/_.index.bin` and of the

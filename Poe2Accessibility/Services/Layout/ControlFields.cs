@@ -83,6 +83,9 @@ namespace Poe2Accessibility.Services
 
         private const int MissesToReport = 3;
 
+        /// <summary>Different controls that must miss before a group is said lost: one empty or half-built dropdown is no layout.</summary>
+        private const int ControlsToReport = 2;
+
         /// <summary>
         ///     Once a group missed this often nearby, the whole control is searched (<see cref="OffsetSearch.Only"/>), no more
         ///     often than <see cref="WideRetryMs"/>: a search costs a judgment per place of the control.
@@ -93,12 +96,17 @@ namespace Poe2Accessibility.Services
 
         private readonly CompatibilityReport report;
         private readonly Func<int> textShift;
+        private readonly Func<long> clock;
         private readonly Dictionary<ControlGroup, GroupState> states = new();
 
-        public ControlFields(CompatibilityReport report, Func<int> textShift)
+        /// <param name="report">Where each group's outcome goes.</param>
+        /// <param name="textShift">How far the label text moved: where each group is tried first.</param>
+        /// <param name="clock">Milliseconds, for the retry timers; the system's when null (a test's own otherwise).</param>
+        public ControlFields(CompatibilityReport report, Func<int> textShift, Func<long>? clock = null)
         {
             this.report = report;
             this.textShift = textShift;
+            this.clock = clock ?? (() => Environment.TickCount64);
         }
 
         /// <summary>
@@ -133,7 +141,7 @@ namespace Poe2Accessibility.Services
                 return IsWeak(group) || state.CandidateIsFar ? expected : candidate;
             }
 
-            var now = Environment.TickCount64;
+            var now = this.clock();
             if (state.Tried.TryGetValue(control, out var triedAt) && now - triedAt < RetryMs)
             {
                 return expected;
@@ -164,7 +172,12 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            if (state.Misses >= MissesToReport && !state.Reported && group == ControlGroup.ComboBox)
+            if (state.Missed.Count < MaxTriedControls)
+            {
+                state.Missed.Add(control);
+            }
+
+            if (state.Misses >= MissesToReport && state.Missed.Count >= ControlsToReport && !state.Reported && group == ControlGroup.ComboBox)
             {
                 state.Reported = true;
                 // Only a combo box always proves its layout: a grid is recognised by reading it (a miss may be another
@@ -365,6 +378,8 @@ namespace Poe2Accessibility.Services
             public int Misses { get; set; }
 
             public bool Reported { get; set; }
+
+            public HashSet<IntPtr> Missed { get; } = new();
 
             public Func<int, bool>? Fits { get; set; }
 
