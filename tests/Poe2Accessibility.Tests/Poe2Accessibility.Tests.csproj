@@ -172,6 +172,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\LayoutVerdict.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\AreaKind.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Core\PluginLog.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Core\TickCosts.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LandmarkTable.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Input\ControllerGlyphs.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\InlineIcons.cs" />
@@ -199,6 +200,7 @@
     <Compile Include="..\..\host\GameReader\RemoteEnums\GameStateTypes.cs" Link="Plugin\GameStateTypes.cs" />
     <Compile Include="..\..\host\GameReader\RemoteObjects\States\InGameStateObjects\AreaLayoutSearch.cs" Link="Host\AreaLayoutSearch.cs" />
     <Compile Include="..\..\host\GameReader\Utils\StructRemap.cs" Link="Host\StructRemap.cs" />
+    <Compile Include="..\..\host\GameReader\Utils\StdMapWalk.cs" Link="Host\StdMapWalk.cs" />
     <Compile Include="..\..\host\GameReader\Utils\StructShapes.cs" Link="Host\StructShapes.cs" />
     <Compile Include="..\..\host\GameReader\Utils\EntityLayoutSearch.cs" Link="Host\EntityLayoutSearch.cs" />
     <Compile Include="..\..\host\GameReader\Utils\GameStateLayout.cs" Link="Host\GameStateLayout.cs" />

@@ -44,10 +44,13 @@ namespace GameReader.RemoteObjects.States
         public ImportantUiElements GameUi { get; } = new(IntPtr.Zero);
 
         /// <summary>
-        ///     Gets the entity currently under the mouse cursor (monsters included).
-        ///     <see cref="Entity.IsValid" /> is false when nothing is hovered.
+        ///     Gets the address of the entity currently under the mouse cursor (monsters included), zero when nothing is
+        ///     hovered. Only the address is read each frame: <see cref="ReadMouseOverEntity"/> reads the entity itself.
         /// </summary>
-        public Entity MouseOverEntity { get; } = new();
+        public IntPtr MouseOverEntityAddress { get; private set; }
+
+        /// <summary>Reads the entity under the mouse cursor now, with its components (an empty entity when nothing is hovered).</summary>
+        internal Entity ReadMouseOverEntity() => new(this.MouseOverEntityAddress);
 
         /// <inheritdoc />
         protected override void CleanUpData()
@@ -55,7 +58,7 @@ namespace GameReader.RemoteObjects.States
             this.CurrentAreaInstance.Address = IntPtr.Zero;
             this.GameUi.Address = IntPtr.Zero;
             this.CurrentWorldInstance.Address = IntPtr.Zero;
-            this.MouseOverEntity.Address = IntPtr.Zero;
+            this.MouseOverEntityAddress = IntPtr.Zero;
         }
 
         /// <inheritdoc />
@@ -73,7 +76,7 @@ namespace GameReader.RemoteObjects.States
 
             this.GameUi.Address = uiManagerPtr;
 
-            this.MouseOverEntity.Address = this.ReadMouseOverEntityAddress(reader, data.MouseOverHostPtr);
+            this.MouseOverEntityAddress = this.ReadMouseOverEntityAddress(reader, data.MouseOverHostPtr);
         }
 
         /// <summary>

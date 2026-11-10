@@ -208,7 +208,7 @@ namespace GameReader.Ui
             }
 
             AddEntity(area.Player, "Player");
-            AddEntity(state.MouseOverEntity, "MouseOver");
+            AddEntity(state.ReadMouseOverEntity(), "MouseOver");
             var scanned = 0;
             foreach (var kv in area.AwakeEntities)
             {

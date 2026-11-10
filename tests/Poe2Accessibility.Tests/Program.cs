@@ -227,7 +227,29 @@ namespace Poe2Accessibility.Tests
                 Run(name, test);
             }
 
-            foreach (var (name, test) in LayoutSearchTests.All().Concat(HostSearchTests.All()).Concat(NameFallbackTests.All()).Concat(TrialDataTests.All()).Concat(PanelWidgetTests.All()).Concat(DodgeGateTests.All()).Concat(ClassMechanicTests.All()).Concat(DodgeDataTests.All()).Concat(TelegraphTests.All()).Concat(RouteSpeedTests.All()).Concat(RadarLabelTests.All()).Concat(PassiveStickTests.All()).Concat(DatColumnSearchTests.All()).Concat(ExtractorColumnTests.All()).Concat(ItemReadingTests.All()).Concat(StaticAnchorTests.All()))
+            // One suite a line: two branches adding one each then merge by themselves.
+            var suites = new[]
+            {
+                LayoutSearchTests.All(),
+                HostSearchTests.All(),
+                StdMapWalkTests.All(),
+                TickCostsTests.All(),
+                NameFallbackTests.All(),
+                TrialDataTests.All(),
+                PanelWidgetTests.All(),
+                DodgeGateTests.All(),
+                ClassMechanicTests.All(),
+                DodgeDataTests.All(),
+                TelegraphTests.All(),
+                RouteSpeedTests.All(),
+                RadarLabelTests.All(),
+                PassiveStickTests.All(),
+                DatColumnSearchTests.All(),
+                ExtractorColumnTests.All(),
+                ItemReadingTests.All(),
+                StaticAnchorTests.All(),
+            };
+            foreach (var (name, test) in suites.SelectMany(suite => suite))
             {
                 Run(name, test);
             }

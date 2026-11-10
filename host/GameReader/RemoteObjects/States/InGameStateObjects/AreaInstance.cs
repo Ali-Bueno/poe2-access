@@ -15,7 +15,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
     using Components;
     using Coroutine;
     using CoroutineEvents;
-    using GameReader.Cache;
     using GameReader.RemoteEnums.Entity;
     using GameOffsets.Natives;
     using GameOffsets.Objects.States.InGameState;
@@ -41,9 +40,16 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 rawStage => Math.Max(0, ((int)rawStage - 15) / 3)),
         };
 
+        /// <summary>The awake map's keys of client-side visuals, which the walk skips: what <see cref="EntityFilter"/> drops.</summary>
+        private static readonly StdMapKeyLimit<EntityNodeKey> VisualIds = new(key => key.id, EntityFilter.FirstVisualId);
+
         /// <summary>The terrain struct's remap the terrain was last read through (null: as compiled).</summary>
         private RemapSegment[]? terrainRemap;
-        private readonly List<int> environments;
+
+        /// <summary>Whether the walk skips the visuals' subtrees: off for the rest of an area once its map is seen out of order.</summary>
+        private bool skipVisuals = true;
+        private int walks;
+        private int incompleteWalks;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="AreaInstance" /> class.
@@ -52,19 +58,12 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         internal AreaInstance(IntPtr address)
             : base(address)
         {
-            this.environments = new();
-
             this.CurrentAreaLevel = 0;
             this.AreaHash = string.Empty;
 
             this.ServerDataObject = new(IntPtr.Zero);
             this.Player = new();
             this.AwakeEntities = new();
-            this.EntityCaches = new()
-            {
-                new("/LeagueDelirium/", 1105, 1105, this.AwakeEntities), // always keep this at index 0.
-                new("Breach", 1100, 1100, this.AwakeEntities),
-            };
 
             this.TerrainMetadata = default;
             this.GridWalkableData = Array.Empty<byte>();
@@ -107,11 +106,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         ///     are opposite of awake entities e.g. Decorations, Effects, particles and etc.
         /// </summary>
         public ConcurrentDictionary<EntityNodeKey, Entity> AwakeEntities { get; }
-
-        /// <summary>
-        ///     Gets important environments entity caches. This only contain awake entities.
-        /// </summary>
-        public List<DisappearingEntity> EntityCaches { get; }
 
         /// <summary>
         ///     Gets the terrain metadata data of the current Area/Zone instance.
@@ -180,10 +174,9 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 }
             }
 
-            this.UpdateEnvironmentAndCaches(data.Environments);
             this.ServerDataObject.Address = data.PlayerInfo.ServerDataPtr;
             this.Player.Address = data.PlayerInfo.LocalPlayerPtr;
-            this.UpdateEntities(data.Entities.AwakeEntities, this.AwakeEntities, true);
+            this.UpdateEntities(data.Entities.AwakeEntities, this.AwakeEntities);
             this.AddEntityBackedPlayerBuffs();
         }
 
@@ -201,65 +194,43 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                     continue;
                 }
 
-                foreach (var definition in EntityBackedPlayerBuffs)
+                // The path is searched once per path read, not every frame.
+                var match = entity.PathMatch ??= EntityBackedBuffOf(entity.Path);
+                if (match < 0)
                 {
-                    if (!entity.Path.Contains(definition.EntityPathFragment, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                }
+
+                // Effect entities can be classified as useless and therefore stop refreshing
+                // cached components. Read a fresh component so changing stages remain live.
+                if (!entity.TryGetComponent<Buffs>(out var entityBuffs, false))
+                {
+                    continue;
+                }
+
+                var backed = EntityBackedPlayerBuffs[match];
+                foreach (var statusEffect in entityBuffs.StatusEffects)
+                {
+                    if (!statusEffect.Key.Contains(backed.BuffNameFragment, StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
 
-                    // Effect entities can be classified as useless and therefore stop refreshing
-                    // cached components. Read a fresh component so changing stages remain live.
-                    if (!entity.TryGetComponent<Buffs>(out var entityBuffs, false))
-                    {
-                        break;
-                    }
-
-                    foreach (var statusEffect in entityBuffs.StatusEffects)
-                    {
-                        if (!statusEffect.Key.Contains(definition.BuffNameFragment, StringComparison.OrdinalIgnoreCase))
-                        {
-                            continue;
-                        }
-
-                        var syntheticEffect = statusEffect.Value;
-                        syntheticEffect.Charges = (short)Math.Min(
-                            short.MaxValue,
-                            definition.StageToStacks(syntheticEffect.RawStage));
-                        playerBuffs.AddSyntheticStatusEffect(statusEffect.Key, syntheticEffect);
-                    }
+                    var syntheticEffect = statusEffect.Value;
+                    syntheticEffect.Charges = (short)Math.Min(
+                        short.MaxValue,
+                        backed.StageToStacks(syntheticEffect.RawStage));
+                    playerBuffs.AddSyntheticStatusEffect(statusEffect.Key, syntheticEffect);
                 }
             }
         }
 
-        private void UpdateEnvironmentAndCaches(StdVector environments)
-        {
-            this.environments.Clear();
-            var reader = Core.Process.Handle;
-            var envData = reader.ReadStdVector<EnvironmentStruct>(environments);
-            for (var i = 0; i < envData.Length; i++)
-            {
-                this.environments.Add(envData[i].Key);
-            }
-
-            this.EntityCaches.ForEach((eCache) => eCache.UpdateState(this.environments));
-        }
-
-        private void AddToCacheParallel(EntityNodeKey key, string path)
-        {
-            for (var i = 0; i < this.EntityCaches.Count; i++)
-            {
-                if (this.EntityCaches[i].TryAddParallel(key, path))
-                {
-                    break;
-                }
-            }
-        }
+        private static int EntityBackedBuffOf(string path) =>
+            Array.FindIndex(EntityBackedPlayerBuffs, definition => path.Contains(definition.EntityPathFragment, StringComparison.OrdinalIgnoreCase));
 
         private void UpdateEntities(
             StdMap ePtr,
-            ConcurrentDictionary<EntityNodeKey, Entity> data,
-            bool addToCache)
+            ConcurrentDictionary<EntityNodeKey, Entity> data)
         {
             var reader = Core.Process.Handle;
             var staleCleanup = Core.GHSettings.EnableStaleEntityCleanup;
@@ -296,11 +267,10 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                         data.TryRemove(kv.Key, out _);
                     }
                 }
-
-                kv.Value.IsValid = false;
             }
 
-            reader.ReadStdMap<EntityNodeKey, EntityNodeValue>(ePtr, 100000, false, (key, value) =>
+            var walk = unchecked(++this.walks);
+            var result = reader.ReadStdMap<EntityNodeKey, EntityNodeValue>(ePtr, 100000, (key, value) =>
             {
                 if (!EntityFilter.IgnoreVisualsAndDecorations(key))
                 {
@@ -315,18 +285,15 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
 
                 if (data.TryGetValue(key, out var entity))
                 {
+                    entity.ReachedInWalk = walk;
                     entity.Address = value.EntityPtr;
                 }
                 else
                 {
-                    entity = new Entity(value.EntityPtr);
+                    entity = new Entity(value.EntityPtr) { ReachedInWalk = walk };
                     if (!string.IsNullOrEmpty(entity.Path))
                     {
                         data[key] = entity;
-                        if (addToCache)
-                        {
-                            this.AddToCacheParallel(key, entity.Path);
-                        }
                     }
                     else
                     {
@@ -335,7 +302,28 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 }
 
                 return true;
-            });
+            }, this.skipVisuals ? VisualIds : null);
+
+            if (result.OutOfOrder && this.skipVisuals)
+            {
+                this.skipVisuals = false;
+                Console.WriteLine("[AreaInstance] The awake entities' map is out of id order: every node is read until the next area.");
+            }
+
+            // A walk cut short (a node the game moved while it was read) did not see what it missed leave: those keep their
+            // state for a few frames rather than vanish for one and come back as new entities.
+            if (IncompleteWalks.KeepUnreached(ref this.incompleteWalks, result.Complete))
+            {
+                return;
+            }
+
+            foreach (var entity in data.Values)
+            {
+                if (entity.ReachedInWalk != walk)
+                {
+                    entity.IsValid = false;
+                }
+            }
         }
 
         private Dictionary<string, List<Vector2>> GetTgtFileData()
@@ -466,11 +454,11 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         private void Cleanup(bool isAreaChange)
         {
             this.AwakeEntities.Clear();
-            this.EntityCaches.ForEach((e) => e.Clear());
+            this.skipVisuals = true;
+            this.incompleteWalks = 0;
 
             if (!isAreaChange)
             {
-                this.environments.Clear();
                 this.CurrentAreaLevel = 0;
                 this.AreaHash = string.Empty;
                 this.ServerDataObject.Address = IntPtr.Zero;
@@ -504,7 +492,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             return reader.ReadStdMap<EntityNodeKey, EntityNodeValue>(
                 data.Entities.SleepingEntities,
                 500000,
-                true,
                 (key, value) =>
                 {
                     // Drop torn-read entries whose pointer can't back a real entity.
@@ -520,7 +507,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                     }
 
                     return true;
-                });
+                }).Nodes;
         }
 
         private IEnumerator<Wait> OnPerFrame()

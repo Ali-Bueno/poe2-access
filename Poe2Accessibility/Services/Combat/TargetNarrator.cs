@@ -11,7 +11,7 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Names what the right stick aims at (D2R target-sight: the game's own target, its name and life), once per
     ///     new target while the stick is pushed. The target is the game's mouse-over entity (GameHelper
-    ///     <c>InGameState.MouseOverEntity</c>, mouse play) or, with a controller, the entity the HUD's target display
+    ///     <c>InGameState.MouseOverEntityAddress</c>, mouse play) or, with a controller, the entity the HUD's target display
     ///     names (HUD > entity_info_container > entity_info_display > name_label, the bar at the top of the screen;
     ///     UI dump 2026-10-23): the nearest awake entity with that name. Sweeping across a pack interrupts the
     ///     previous name; a first name waits behind what is being said.
@@ -102,7 +102,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastPoll = now;
-            var hovered = Core.States.InGameStateObject.MouseOverEntity.Address;
+            var hovered = Core.States.InGameStateObject.MouseOverEntityAddress;
             if (hovered == IntPtr.Zero)
             {
                 hovered = this.HudTarget();

@@ -32,9 +32,11 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             "Metadata/Monsters/LeagueDelirium/DoodadDaemons/DoodadDaemon";
         private static readonly string DeliriumUselessMonsterStarting =
             "Metadata/Monsters/LeagueDelirium/Volatile/";
+        private const string MonstersFolder = "Metadata/Monsters/";
 
         private const int DormantCheckInterval = 30;
         private const int MaxUnresolvedRetries = 5;
+        private const long UnresolvedRetryMs = 1000;
 
         /// <summary>
         ///     Components of what is neither a monster nor a player (chests, NPCs, items, doors, decorations) are re-read
@@ -48,9 +50,12 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
 
         private int dormantCheckSkip;
         private int unresolvedRetryCount;
+        private long unresolvedRetryAt;
         private long componentsReadAt;
         private int consecutiveInvalidFrames;
         private int componentsStale;
+        private string path = string.Empty;
+        private bool monsterPath;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="Entity" /> class.
@@ -82,7 +87,19 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         /// <summary>
         ///     Gets the Path (e.g. Metadata/Character/int/int) assocaited to the entity.
         /// </summary>
-        public string Path { get; private set; }
+        public string Path
+        {
+            get => this.path;
+            private set
+            {
+                this.path = value;
+                this.monsterPath = value.StartsWith(MonstersFolder, StringComparison.Ordinal);
+                this.PathMatch = null;
+            }
+        }
+
+        /// <summary>Gets or sets what <see cref="AreaInstance"/> found in <see cref="Path"/> for its entity-backed buffs; cleared with each new path.</summary>
+        internal int? PathMatch { get; set; }
 
         /// <summary>
         ///     Gets the Id associated to the entity. This is unique per map/Area.
@@ -127,6 +144,9 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         ///     Gets how many consecutive frames this entity has been invalid.
         /// </summary>
         public int ConsecutiveInvalidFrames => this.consecutiveInvalidFrames;
+
+        /// <summary>Gets or sets the number of the last awake-map walk that reached this entity (<see cref="AreaInstance"/>'s).</summary>
+        internal int ReachedInWalk { get; set; }
 
         /// <summary>
         ///     Increments the consecutive invalid frames counter.
@@ -329,31 +349,33 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 return;
             }
 
+            // Another id at this address (the game reused the memory) or a moved component map is a new entity, as is a new
+            // address: nothing learnt of the old one holds, not its path, its type nor a Useless state that would skip it.
+            var idChanged = entityData.Id != this.Id;
             this.Id = entityData.Id;
-
-            // A search moved what the component map is read through: read it again, as for a new entity.
-            if (Volatile.Read(ref this.componentsStale) == 1 && Interlocked.Exchange(ref this.componentsStale, 0) == 1)
+            var componentsMoved = Volatile.Read(ref this.componentsStale) == 1 && Interlocked.Exchange(ref this.componentsStale, 0) == 1;
+            if (hasAddressChanged || idChanged || componentsMoved)
             {
                 hasAddressChanged = true;
+                this.Path = string.Empty;
                 this.EntityType = EntityTypes.Unidentified;
                 this.EntitySubtype = EntitySubtypes.Unidentified;
                 this.EntityState = EntityStates.None;
-            }
-
-            if (hasAddressChanged)
-            {
                 this.unresolvedRetryCount = 0;
                 this.dormantCheckSkip = 0;
             }
 
+            // An entity that cannot be told what it is is tried a few frames in a row, then once a second, never given up on:
+            // one read while its area still loads is told later, and the local player is read so at every area change.
+            var now = Environment.TickCount64;
             var isUnresolved =
                 (this.EntityType == EntityTypes.Unidentified ||
                  this.EntitySubtype == EntitySubtypes.Unidentified) &&
-                this.unresolvedRetryCount < MaxUnresolvedRetries;
+                (this.unresolvedRetryCount < MaxUnresolvedRetries || now >= this.unresolvedRetryAt);
 
             var isMonster = this.EntityType == EntityTypes.Monster ||
                             this.componentAddresses.ContainsKey("Monster") ||
-                            this.Path.StartsWith("Metadata/Monsters/");
+                            this.monsterPath;
 
             // Skip useless non-monster, non-unresolved entities immediately.
             if (this.EntityState == EntityStates.Useless && !isUnresolved)
@@ -387,7 +409,6 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 isUnresolved ||
                 (isMonster && this.EntityState == EntityStates.Useless);
 
-            var now = Environment.TickCount64;
             if (!shouldRefreshComponentMap && !isMonster && this.EntityType != EntityTypes.Player &&
                 now - this.componentsReadAt < RestingComponentsMs)
             {
@@ -405,6 +426,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 if (!this.TryCalculateEntityType())
                 {
                     this.unresolvedRetryCount++;
+                    this.unresolvedRetryAt = now + UnresolvedRetryMs;
                     this.EntityState = EntityStates.Useless;
                     return;
                 }
@@ -415,6 +437,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 if (!this.TryCalculateEntitySubType())
                 {
                     this.unresolvedRetryCount++;
+                    this.unresolvedRetryAt = now + UnresolvedRetryMs;
                     this.EntityState = EntityStates.Useless;
                     return;
                 }
@@ -521,8 +544,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                         return false;
                     }
                 }
-                else if (this.Path.StartsWith(DeliriumHiddenMonsterStarting) ||
-                         this.Path.StartsWith(DeliriumUselessMonsterStarting))
+                else if (this.Path.StartsWith(DeliriumHiddenMonsterStarting, StringComparison.Ordinal) ||
+                         this.Path.StartsWith(DeliriumUselessMonsterStarting, StringComparison.Ordinal))
                 {
                     if (this.Path.Contains("ShardPack"))
                     {
@@ -533,7 +556,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                         return false;
                     }
                 }
-                else if (Core.GHSettings.MonstersPathsToIgnore.Any(this.Path.StartsWith))
+                else if (Core.GHSettings.MonstersPathsToIgnore.Any(this.HasPathPrefix))
                 {
                     return false;
                 }
@@ -574,7 +597,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
 
                 case EntityTypes.Chest:
                     this.TryGetComponent<Chest>(out var chestComp);
-                    if (this.Path.StartsWith("Metadata/Chests/LeaguesExpedition"))
+                    if (this.Path.StartsWith("Metadata/Chests/LeaguesExpedition", StringComparison.Ordinal))
                     {
                         this.EntitySubtype = EntitySubtypes.ExpeditionChest;
                     }
@@ -586,7 +609,7 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                     {
                         return false;
                     }
-                    else if (this.Path.StartsWith("Metadata/Chests/Breach"))
+                    else if (this.Path.StartsWith("Metadata/Chests/Breach", StringComparison.Ordinal))
                     {
                         this.EntitySubtype = EntitySubtypes.BreachChest;
                     }
@@ -763,6 +786,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
             return false;
         }
 
-        private bool IsInSpecialMiscObjPaths() => Core.GHSettings.SpecialMiscObjPaths.Any(this.Path.StartsWith);
+        private bool IsInSpecialMiscObjPaths() => Core.GHSettings.SpecialMiscObjPaths.Any(this.HasPathPrefix);
+
+        private bool HasPathPrefix(string prefix) => this.Path.StartsWith(prefix, StringComparison.Ordinal);
     }
 }

@@ -59,6 +59,54 @@ measured in this session (the character was 10 levels under the area).
 - **The host's `Frames:` line** now counts the reads per frame by type: the measure to watch after a change.
 - **ImGui and GameHelper's overlay-only code** were removed (no per-frame cost, but less to load and keep compiled).
 
+## Reader pass (2026-11-10, not yet measured live)
+
+Starting point (read-only analysis, 0.5.5f): a frame cost a median 1.74 ms (reader 0.69, plugin 0.94), 678 reads a frame,
+up to 905 in a boss fight, and in fights about 30 frames a minute over 16.7 ms (slowest 60–93 ms) with no known cause.
+
+- **Awake-entity map** (`StdMapWalk`): ids from `EntityFilter.FirstVisualId` (0x40000000) up are client-side visuals the
+  reader drops, and the map is ordered by id, so the walk leaves unread the right subtree of a node at or above it. It
+  checks every node it reads against its ancestors' ids; on a node out of place it reads what it left (that walk misses
+  nothing), stops pruning for the area and logs `[AreaInstance] The awake entities' map is out of id order` once. The
+  sleeping-entity scans (dev, map hints) keep the full walk.
+- **A walk cut short** (a child unreadable, nil or of no colour, or more nodes than the size) used to leave every entity it
+  missed invalid, so a monster near the player was removed and came back the next frame as a new `Entity`. Now the walk
+  says whether it was complete; the entities an incomplete walk missed keep their state, for at most
+  `IncompleteWalks.MaxKept` (3) incomplete walks in a row, then are dropped as before.
+- **`StateMachine`** names belong to the machine's type: read again only when the type pointer, the values vector, the count
+  or the list layout changes, once a second, or after a name that failed to read. Values stay per frame.
+- **`Base`** names are read for a new component address or new rows (or while one is still empty), as `ObjectMagicProperties`
+  does its mods.
+- **Mouse-over entity**: the narrator only compares its address, so only the address is read each frame
+  (`InGameState.MouseOverEntityAddress`); the offset helper reads the entity when it asks (`ReadMouseOverEntity`).
+- **Overlay leftovers**: the Delirium/Breach caches read the area's environments every frame (one read) only to remove
+  entities the stale-entity cleanup (120 invalid frames) removes anyway, and recreated still-valid ones as new objects;
+  the render events had no subscriber. The camera matrix stays: it comes with the same `WorldDataOffset` read as the
+  area-details pointer, so reading it on demand would add reads (the offset healer's camera judge projects per candidate).
+- **CPU per entity**: the monster-folder test (`StartsWith` without a comparison: culture-aware, Spanish culture) and the
+  entity-backed buff search (case-folded `Contains`) ran per entity per frame; they run once per path read now.
+- **Identity**: a new id at an entity's address, like a new address, resets path, type and state with the component map.
+  Before, a new address kept the old type, and a Useless non-monster returned before its component map was re-read.
+- **Buff names** are kept per definition only when they read as a buff id (`StructShapes.IsBuffId`); a garbage or failed
+  read serves its frame only instead of the rest of the area. Nothing reads `StatusEffects` off the frame thread (the
+  screen watcher, beacon, map hints and place builds touch no awake entity), so the set is still refilled in place.
+
+**Slow frames, named.** The host's `Frames:` line adds `GC a/b/c (gen 0/1/2), N ms paused` for the minute. The plugin
+logs `Slow tick: <part> took N ms` for a part's run over 25 ms (once in 10 s per part; parts nest: "sounds" holds
+"radar", "nearby"…), and `costs` gives each part's `slowest` run and its runs `over 8 ms`, plus
+`Screen snapshots: n, avg ms average, slowest ms` (the watcher's own thread). A minute's over-budget frames that match
+gen 1/2 collections and the pause point at the GC; `Slow tick` lines name a plugin part; neither leaves the reader
+(parallel walk, pool wake-ups) or the system.
+
+**To confirm live** (`Frames:` reads by type, town then a fight): ``StdMapNode`2`` close to the awake entities under the
+visual ids plus ~10 (Act 2 town: some 55 instead of ~430, and the total about 375 lower); no `EnvironmentStruct[]`;
+`StdString` near zero outside a state machine's first second; no `out of id order` line; and while hovering an entity
+with the mouse, no `EntityOffsets` and component reads for it.
+
+The walkable grid (`EntityCatalog.WalkableGrid`) still reads the live grid into a new array on each call: the samples
+queue keeps the last four live arrays and the combined grid keeps one, so one reused buffer would change them under it.
+Reading into a scratch buffer and copying only when a sample is kept would spare most of those allocations.
+
 ## Not done, and why
 
 - The screen watcher's 150 ms snapshot: its interval is the speech latency after a screen change (two snapshots confirm

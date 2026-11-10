@@ -25,6 +25,14 @@
 
         private const int MaxStateMachineStates = 256;
 
+        /// <summary>The names belong to the machine's type and do not change: read again at most this often while their key holds.</summary>
+        private const int NamesRefreshMs = 1000;
+
+        /// <summary>The names last read (null: the machine has no state list), and what they were read through.</summary>
+        private string[]? names;
+        private (IntPtr Type, IntPtr Values, int Count, int ListOffset, int Stride) namesKey;
+        private long namesDueAt;
+
         protected override void UpdateData(bool hasAddressChanged)
         {
             var reader = Core.Process.Handle;
@@ -39,8 +47,18 @@
                 statesCount = MaxStateMachineStates;
             }
 
-            var statesPtr = reader.ReadMemory<IntPtr>(data.StatesPtr + StateListOffset);
-            if (statesPtr == IntPtr.Zero)
+            var key = (data.StatesPtr, data.StatesValues.First, statesCount, StateListOffset, StateStride);
+            var now = Environment.TickCount64;
+            if (hasAddressChanged || key != this.namesKey || now >= this.namesDueAt)
+            {
+                this.names = ReadNames(reader, data.StatesPtr, statesCount);
+                this.namesKey = key;
+
+                // A name that failed to read is not kept: the next frame reads them all again.
+                this.namesDueAt = this.names == null || Array.Exists(this.names, string.IsNullOrEmpty) ? 0 : now + NamesRefreshMs;
+            }
+
+            if (this.names == null)
             {
                 this.States = [];
                 return;
@@ -49,13 +67,28 @@
             var statesList = new List<StateMachineState>(statesCount);
             for (var i = 0; i < statesCount; i++)
             {
-                var stateNameAddr = statesPtr + i * StateStride;
-                var nativeContainer = reader.ReadMemory<StdString>(stateNameAddr);
-                var stateName = reader.ReadStdString(nativeContainer);
-                statesList.Add(new StateMachineState(stateName, stateValues[i]));
+                statesList.Add(new StateMachineState(this.names[i], stateValues[i]));
             }
 
             this.States = statesList;
+        }
+
+        private static string[]? ReadNames(Utils.SafeMemoryHandle reader, IntPtr type, int count)
+        {
+            var statesPtr = reader.ReadMemory<IntPtr>(type + StateListOffset);
+            if (statesPtr == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            var names = new string[count];
+            for (var i = 0; i < count; i++)
+            {
+                var nativeContainer = reader.ReadMemory<StdString>(statesPtr + i * StateStride);
+                names[i] = reader.ReadStdString(nativeContainer);
+            }
+
+            return names;
         }
 
         // Offsets for resolving the authoritative socket/hole count from the RuneStation object

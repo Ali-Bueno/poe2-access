@@ -11,7 +11,6 @@ namespace GameReader.Utils
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading;
-    using System.Threading.Tasks;
     using GameOffsets.Natives;
     using Microsoft.Win32.SafeHandles;
     using ProcessMemoryUtilities.Managed;
@@ -36,12 +35,6 @@ namespace GameReader.Utils
         ///     string fragments) that a torn read fed in where a pointer was expected.
         /// </summary>
         private const long MinValidAddress = 0x10000;
-
-        /// <summary>
-        ///     A std::map smaller than this is walked on the calling thread: a town holds some 45 entities, and waking the
-        ///     pool's workers for them cost more than their reads (profile, 2026-11-08). Fights, with hundreds, stay parallel.
-        /// </summary>
-        private const int ParallelMinNodes = 128;
 
         /// <summary>Gets the reads of the game's memory made so far (each a system call), by the type read: the host logs them per frame.</summary>
         internal static IEnumerable<KeyValuePair<string, long>> ReadsByType =>
@@ -378,101 +371,25 @@ namespace GameReader.Utils
         }
 
         /// <summary>
-        ///     Reads the StdMap in parallel and execute onValue function on each node that isn't null
+        ///     Walks a std::map, calling <paramref name="onEachNotNullNode"/> on each node read (concurrently for big maps); with
+        ///     <paramref name="keyLimit"/> the subtrees holding only keys at or above it may be left unread (<see cref="StdMapWalk{TKey, TValue}"/>).
         /// </summary>
-        /// <typeparam name="TKey">stdmap key type</typeparam>
-        /// <typeparam name="TValue">stdmap value type</typeparam>
-        /// <param name="nativeContainer">native object pointing to the std::map</param>
-        /// <param name="maxSizeAllowed">to remove infinite loops, function will return upon reaching this number</param>
-        /// <param name="enableCounting">extract more juice from the cpu</param>
-        /// <param name="onEachNotNullNode">function to execute on each std map node that isn't null.</param>
-        /// <returns>total nodes/childrens in the stdmap</returns>
-        internal int ReadStdMap<TKey, TValue>(StdMap nativeContainer, int maxSizeAllowed, bool enableCounting, Func<TKey, TValue, bool> onEachNotNullNode)
+        /// <returns>the nodes read, and whether the walk reached all of them.</returns>
+        internal StdMapWalkResult ReadStdMap<TKey, TValue>(
+            StdMap nativeContainer,
+            int maxSizeAllowed,
+            Func<TKey, TValue, bool> onEachNotNullNode,
+            StdMapKeyLimit<TKey>? keyLimit = null)
             where TKey : unmanaged
             where TValue : unmanaged
         {
-            if (nativeContainer.Size <= 0 || nativeContainer.Size > maxSizeAllowed)
-            {
-                return 0;
-            }
-
-            var head = this.ReadMemory<StdMapNode<TKey, TValue>>(nativeContainer.Head);
-            var parent = this.ReadMemory<StdMapNode<TKey, TValue>>(head.Parent);
-            var first64Childrens = new Queue<StdMapNode<TKey, TValue>>(64);
-            if (nativeContainer.Size < ParallelMinNodes)
-            {
-                // A torn tree with a cycle must not walk the full cap on the frame thread: a few nodes past the size is enough.
-                return processSubTree(first64Childrens, parent, Math.Min(maxSizeAllowed, nativeContainer.Size + 2));
-            }
-
-            // processing first 63 nodes will gives us 64 childrens
-            // in the first64Childrens list (assuming there is no node with just 1 child).
-            // TODO: Benchmark 64 childrens
-            var totalChildrenProcessed = processSubTree(first64Childrens, parent, 64);
-
-            // then Parallel.ForEach loop will process those 32 childrens in parallel
-            Parallel.ForEach(first64Childrens,
-                new ParallelOptions() { MaxDegreeOfParallelism = Core.GHSettings.EntityReaderMaxDegreeOfParallelism },
-                // executed once per task/thread
-                () => { return (new Queue<StdMapNode<TKey, TValue>>(2000), new int()); },
-                // executed once per iteration
-                (first32Child, _, _, localState) =>
-                {
-                    localState.Item2 += processSubTree(localState.Item1, first32Child, maxSizeAllowed / first64Childrens.Count);
-                    return localState;
-                },
-                // executed once per task/thread
-                localFinal =>
-                {
-                    if(enableCounting)
-                    {
-                        Interlocked.Add(ref totalChildrenProcessed, localFinal.Item2);
-                    }
-                });
-
-            return totalChildrenProcessed;
-
-            void processNode(Queue<StdMapNode<TKey, TValue>> childrens, StdMapNode<TKey, TValue> current)
-            {
-                if (!current.IsNil)
-                {
-                    onEachNotNullNode(current.Data.Key, current.Data.Value);
-                }
-
-                // Child pointers are read from a live tree the game mutates concurrently, so a
-                // torn read can yield a non-pointer value. Use the non-logging read + validity
-                // check and simply stop descending that branch on failure (audit: torn-read noise).
-                // Color is the red/black flag and is always 0 or 1 in a real node; if a torn/bad
-                // pointer lands us on string or float data, Color is almost never 0/1, so this
-                // rejects garbage before we descend into it and propagate the failure further.
-                // A leaf's children point at the head node (MSVC's nil sentinel): known without a read, which halved
-                // the walk's reads (a town's 250 nodes cost 750 reads a frame, 2026-11-08).
-                if (current.Left != nativeContainer.Head &&
-                    this.TryReadMemory<StdMapNode<TKey, TValue>>(current.Left, out var leftChild) &&
-                    !leftChild.IsNil && leftChild.Color <= 1)
-                {
-                    childrens.Enqueue(leftChild);
-                }
-
-                if (current.Right != nativeContainer.Head &&
-                    this.TryReadMemory<StdMapNode<TKey, TValue>>(current.Right, out var rightChild) &&
-                    !rightChild.IsNil && rightChild.Color <= 1)
-                {
-                    childrens.Enqueue(rightChild);
-                }
-            }
-
-            int processSubTree(Queue<StdMapNode<TKey, TValue>> childrens, StdMapNode<TKey, TValue> subTreeRoot, int forceBreakOnIteration)
-            {
-                childrens.Enqueue(subTreeRoot);
-                var counter = 0;
-                while (++counter < forceBreakOnIteration && childrens.TryDequeue(out var current))
-                {
-                    processNode(childrens, current);
-                }
-
-                return counter;
-            }
+            return StdMapWalk<TKey, TValue>.Run(
+                nativeContainer,
+                maxSizeAllowed,
+                this.TryReadMemory<StdMapNode<TKey, TValue>>,
+                onEachNotNullNode,
+                keyLimit,
+                Core.GHSettings.EntityReaderMaxDegreeOfParallelism);
         }
 
         /// <summary>
