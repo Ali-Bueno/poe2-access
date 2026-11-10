@@ -481,9 +481,19 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   [robustness audit](docs/research/robustness-audit-2026-11-10.md#fourth-pass-2026-11-10-the-whole-code-in-four-parts).
   Open, most important: a boss with forms said defeated at its first form, exit tins flapping, no spoken line when a
   plugin fails to load, `ui-catalog` and `gems` reporting done while losing files, free-cursor controls with no tooltip.
-- Build Planner gear (2026-11-10, code and unit tests only): a worn piece's modifiers are known only after its slot was
-  focused in the session (tooltip lines), so the summary counts them on the pieces read; charms, quivers and foci are not
-  compared; a unique is judged only when its name equals the author's. Live checks:
+- Build Planner gear (2026-11-10; heard live on yarkey in the Act 2 town with both catalogs loaded): the ten worn slots
+  were focused once each and the lines of both weapons, both rings, body, gloves, boots and helmet were true against the
+  build file and the tooltips; the off-hand is silent (the file has no `Offhand1` piece). Fixed and heard: a belt's "+9% a
+  todas las resistencias elementales" was called missing cold and lightning resistance (now "…, la build pide 16" for
+  each; "to all Attributes" counts toward one attribute the same way, unit test only); what a worn piece lacks is now
+  said right after its name ("Casco, Halo de cólera, raro, Build: 2 de 3 modificadores. Falta +16% a la resistencia al
+  rayo. Gran yelmo de soldado…"). Open: (1) the first focus of the belt in a session gave a tooltip without its
+  modifiers ("…Nivel de objeto 16. Recuperación de vida… Tiene 1 espacio para vial.") and the build lines were said from
+  it, all three as missing; the next focus was whole; (2) two wanted lines answered by one line repeat it word for word;
+  (3) the inventory's summary ("Build: 3 de 6 piezas con su base. Más lejos de la build: Amuleto") comes before the
+  focused item's name; (4) not heard: an item that could go in a slot (bag, stash, merchant), the summary after slots
+  were read, flasks. A worn piece's modifiers are known only after its slot was focused in the session; charms, quivers
+  and foci are not compared; a unique is judged only when its name equals the author's. Live checks:
   [ui layers](docs/research/ui-layers.md#build-planner-gear-055f-2026-11-10).
 - Found buying gear for yarkey in both towns (2026-11-10, live; fixed there: an orb put back on its stack said "Usado", a
   merchant with several tabs opened without its tab). Open: (1) a grid is only heard cell by cell — nothing reads a
