@@ -12,7 +12,24 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(UrgentNewsIsNeverAReading), UrgentNewsIsNeverAReading),
             (nameof(AReadingThatCutsInDoesNotTakeAnEventWithIt), AReadingThatCutsInDoesNotTakeAnEventWithIt),
+            (nameof(AWarningSaidWithTheUrgentLineWaitsNoMore), AWarningSaidWithTheUrgentLineWaitsNoMore),
         };
+
+        /// <summary>
+        ///     "Life 50 percent" waiting behind a lesson is joined to "Stunned" 80 ms later, which goes out behind the lesson
+        ///     at once: still waiting too, it was said a second time when the lesson ended.
+        /// </summary>
+        private static void AWarningSaidWithTheUrgentLineWaitsNoMore()
+        {
+            var start = new DateTime(2026, 11, 10, 12, 0, 0, DateTimeKind.Utc);
+            var floor = new SpeechFloor();
+            floor.Keep("Press X to equip the weapon.", true, 1500, start);
+            floor.Admit("Picked up: Scroll of Wisdom, 3", false, start.AddMilliseconds(400));
+            floor.Admit("Life 50 percent", false, start.AddMilliseconds(500), reading: true);
+            floor.Withdraw("Life 50 percent");
+            Equal("Picked up: Scroll of Wisdom, 3", string.Join(" | ", floor.Release(start.AddMilliseconds(1600))), "only what was not said yet follows the lesson");
+            Equal(0, floor.Dropped.Count, "and the warning does not count as left unsaid");
+        }
 
         /// <summary>
         ///     With the boss's life set to cut in, "Boss 60 percent" behind a lesson replaced the pick-up that waited and

@@ -263,6 +263,11 @@ namespace Poe2Accessibility.Services
                     lock (this.queueGate)
                     {
                         heard = news.HeardAt == this.enqueued;
+                        if (!heard)
+                        {
+                            // Said with this phrase now: left waiting behind a kept line it would be said a second time.
+                            this.floor.Withdraw(news.Text);
+                        }
                     }
 
                     if (heard)

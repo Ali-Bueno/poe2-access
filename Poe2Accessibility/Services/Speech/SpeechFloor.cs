@@ -84,6 +84,9 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static bool Replaces(bool interrupt, bool reading) => interrupt && !reading;
 
+        /// <summary>A waiting phrase that went out another way (a warning joined to the urgent line after it) waits no more.</summary>
+        public void Withdraw(string text) => this.held.RemoveAll(phrase => phrase.Text == text);
+
         /// <summary>
         ///     A kept line going out now: cutting in, or after what is being said; returns whether it may interrupt (never
         ///     another kept line still holding). A message (<paramref name="yieldsToMoves"/>) stops holding once the player moves.
