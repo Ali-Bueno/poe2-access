@@ -1,5 +1,5 @@
 """Shared helpers: load the PE once as a flat image; read-only."""
-import struct, mmap, os, pickle, bisect, sys, site
+import struct, sys, site
 sys.path.append(site.getusersitepackages())  # -I hides user site; numpy/capstone live there
 import numpy as np
 EXE = r"D:\games\steam\steamapps\common\Path of Exile 2\PathOfExileSteam.exe"
@@ -44,27 +44,9 @@ class PE:
     def sec_of(self, rva):
         for x in self.sections:
             if x["va"] <= rva < x["va"]+max(x["vsize"], x["rsize"]): return x["name"]
-    def u32(self, rva): return struct.unpack_from("<I", self.img, rva)[0]
-    def i32(self, rva): return struct.unpack_from("<i", self.img, rva)[0]
-    def u64(self, rva): return struct.unpack_from("<Q", self.img, rva)[0]
-    def cstr(self, rva, maxn=512):
-        e = self.img.find(b"\0", rva, rva+maxn)
-        return self.img[rva:e if e >= 0 else rva+maxn]
     def funcs(self):
         """(begin,end,unwind) rows of .pdata, sorted."""
         va, sz = self.dirs[3]
         a = np.frombuffer(self.img, dtype="<u4", count=sz//4, offset=va).reshape(-1, 3)
         a = a[a[:, 0] != 0]
         return a[np.argsort(a[:, 0])]
-
-def find_all(buf, needle, start=0, end=None):
-    out = []; i = buf.find(needle, start, end if end is not None else len(buf))
-    while i >= 0:
-        out.append(i); i = buf.find(needle, i+1, end if end is not None else len(buf))
-    return out
-
-def entropy(b):
-    if not len(b): return 0.0
-    c = np.bincount(np.frombuffer(b, dtype=np.uint8), minlength=256).astype(float)
-    p = c[c > 0]/c.sum()
-    return float(-(p*np.log2(p)).sum())

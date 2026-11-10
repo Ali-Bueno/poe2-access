@@ -9,7 +9,7 @@ either a field that moved or a rule the patch broke, and only a live check tells
 
 Run: py -B -I tools/exe_reader/reader.py [path to PathOfExileSteam.exe]   (needs capstone and numpy)
 """
-import sys, os, struct, time, bisect, collections
+import sys, os, struct, time, collections
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import PE, np
 import capstone
