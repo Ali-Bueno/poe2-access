@@ -174,22 +174,17 @@ namespace GameReader.RemoteObjects
                     this.nextLookAt = Environment.TickCount64 + LookEveryMs;
                     this.roles.See(cStateAddr.ToInt64(), this.AreaOf(reader, cStateAddr), this.InGameArea(reader));
                     this.ApplyRoles();
-                }
 
-                if (changed)
-                {
+                    // Named at every look, not only when the state changes: the look may just have renamed it.
                     this.currentStateAddress = cStateAddr;
-                    if (this.AllStates.TryGetValue(this.currentStateAddress, out var currentState))
+                    if (changed && !this.AllStates.ContainsKey(cStateAddr))
                     {
-                        this.GameCurrentState = currentState;
-                    }
-                    else
-                    {
-                        this.GameCurrentState = GameStateTypes.GameNotLoaded;
                         Console.WriteLine(
-                            $"[GameStates] Current state 0x{this.currentStateAddress.ToInt64():X} " +
+                            $"[GameStates] Current state 0x{cStateAddr.ToInt64():X} " +
                             "is absent from the configured state table; GameStateOffset may have shifted.");
                     }
+
+                    this.GameCurrentState = GameStateRoles.CurrentName(this.AllStates, cStateAddr, changed, this.currentStateName);
                 }
             }
         }

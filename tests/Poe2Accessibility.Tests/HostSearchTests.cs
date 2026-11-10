@@ -4,6 +4,7 @@ namespace Poe2Accessibility.Tests
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using GameReader.RemoteEnums;
     using GameReader.Utils;
     using static Check;
     using static LayoutSearchTests;
@@ -31,6 +32,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheStateObjectIsToldByItsListAndStack), TheStateObjectIsToldByItsListAndStack),
             (nameof(AStackTheGameChangesWhileItIsJudgedBreaksNothing), AStackTheGameChangesWhileItIsJudgedBreaksNothing),
             (nameof(AStateObjectAtTheEndOfItsMemoryIsStillRead), AStateObjectAtTheEndOfItsMemoryIsStillRead),
+            (nameof(TheCurrentStateTakesTheNameItsTableGivesNow), TheCurrentStateTakesTheNameItsTableGivesNow),
             (nameof(TooFewBytesAreNoStruct), TooFewBytesAreNoStruct),
             (nameof(TheStateInPlayIsTheOneThatLeadsToAnArea), TheStateInPlayIsTheOneThatLeadsToAnArea),
             (nameof(TheLoadingStateIsWhatCameBeforeTwoNewAreas), TheLoadingStateIsWhatCameBeforeTwoNewAreas),
@@ -569,6 +571,24 @@ namespace Poe2Accessibility.Tests
             Equal(GameStateLayout.BlockBytes, GameStateLayout.ReadBlock(memory, Heap + 0x74000 - 0x100).Length, "across two pages that both read");
             Equal(0, GameStateLayout.ReadBlock(memory, Heap + 0x80000).Length, "nothing there");
             Equal(0, GameStateLayout.ReadBlock(memory, Heap + 0x81000 - 0x40).Length, "nothing there, near the end of a page");
+        }
+
+        private static void TheCurrentStateTakesTheNameItsTableGivesNow()
+        {
+            // A patch put a state before the one in play: it comes named by its slot, the game menu's, and a second later its
+            // role names it, with no change of state in between.
+            var (menu, play) = (new IntPtr(Heap + 0x44000), new IntPtr(Heap + 0x45000));
+            var names = new Dictionary<IntPtr, GameStateTypes> { [IntPtr.Zero] = GameStateTypes.CreditsState, [menu] = GameStateTypes.InGameState, [play] = GameStateTypes.EscapeState };
+            Equal(GameStateTypes.EscapeState, GameStateRoles.CurrentName(names, play, true, GameStateTypes.LoadingState), "named by its slot as it comes");
+            (names[menu], names[play]) = (GameStateTypes.EscapeState, GameStateTypes.InGameState);
+            Equal(GameStateTypes.InGameState, GameStateRoles.CurrentName(names, play, false, GameStateTypes.EscapeState), "and by its role once that is seen");
+
+            Equal(GameStateTypes.GameNotLoaded, GameStateRoles.CurrentName(names, new IntPtr(Heap + 0x99000), true, GameStateTypes.InGameState), "a new state the table lacks has no name");
+            names.Remove(play);
+            Equal(GameStateTypes.InGameState, GameStateRoles.CurrentName(names, play, false, GameStateTypes.InGameState), "a table read short takes no name away");
+            names[play] = GameStateTypes.InGameState;
+            Equal(GameStateTypes.InGameState, GameStateRoles.CurrentName(names, play, false, GameStateTypes.GameNotLoaded), "a state that came before its list was read is named when the list is");
+            Equal(GameStateTypes.GameNotLoaded, GameStateRoles.CurrentName(names, IntPtr.Zero, false, GameStateTypes.GameNotLoaded), "no state yet is not the unused slots' name");
         }
 
         /// <summary>Memory in which one address reads only the first few times.</summary>

@@ -296,6 +296,17 @@ namespace GameReader.Utils
             return names;
         }
 
+        /// <summary>
+        ///     The name of the state the game is in, read from <paramref name="names"/> again each time the states are looked at:
+        ///     a role seen a second after the state came, or a list read late, names it without a change of state. A state the
+        ///     table lacks has no name when it just became current and keeps the one it <paramref name="had"/> otherwise; no
+        ///     state has none, though the table lists the unused slots under zero.
+        /// </summary>
+        public static GameStateTypes CurrentName(IReadOnlyDictionary<IntPtr, GameStateTypes> names, IntPtr current, bool changed, GameStateTypes had) =>
+            current == IntPtr.Zero ? GameStateTypes.GameNotLoaded
+            : names.TryGetValue(current, out var name) ? name
+            : changed ? GameStateTypes.GameNotLoaded : had;
+
         private int IndexOf(long state)
         {
             for (var index = 0; state != 0 && index < this.states.Count; index++)
