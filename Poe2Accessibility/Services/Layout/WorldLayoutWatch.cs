@@ -124,6 +124,7 @@ namespace Poe2Accessibility.Services
                 this.Report(layout, true);
                 this.SweepStructs(area);
                 this.WatchActors(area);
+                this.JudgeStatKeys(area);
             }
             else if (this.lostSince < 0)
             {
@@ -169,6 +170,54 @@ namespace Poe2Accessibility.Services
             (this.lostLooks, this.reactionLost, this.recheckAt) = (0, 0, 0);
             this.walkable = new WalkableCheck();
             this.walkableFails = 0;
+            this.statKeys.Reset();
+            this.nextStatKeysAt = 0;
+        }
+
+        /// <summary>The part the stat keys belong to: what they read is the character's stats.</summary>
+        private const string StatsPart = "stats";
+
+        /// <summary>The key rule is looked at this often until judged: a second reading must come well after the first.</summary>
+        private const int StatKeysEveryMs = 3000;
+
+        private readonly StatKeyCheck statKeys = new();
+        private long nextStatKeysAt;
+
+        /// <summary>
+        ///     Once per game process: the <c>level</c> stat's key must read the level the Player component holds
+        ///     (<see cref="StatKeyCheck"/>). It holds, logged; two readings read something else, the stats are said lost, as
+        ///     every stat the mod asks for by the catalog's key (rage, resistances, attributes) is then another stat.
+        /// </summary>
+        private void JudgeStatKeys(AreaInstance area)
+        {
+            var now = Environment.TickCount64;
+            if (this.statKeys.Verdict != StatKeyVerdict.Pending || now < this.nextStatKeysAt)
+            {
+                return;
+            }
+
+            this.nextStatKeysAt = now + StatKeysEveryMs;
+            if (!area.Player.TryGetComponent<Player>(out var hero) || !area.Player.TryGetComponent<Stats>(out var stats))
+            {
+                return;
+            }
+
+            var key = GameIds.Current.Stat("level", StatKeyCheck.LevelKey);
+            var read = PlayerStats.Value(stats, (GameReader.RemoteEnums.GameStats)key);
+            var count = stats.StatsChangedByBuffAndActions.Count + stats.StatsChangedByItems.Count;
+            if (!this.statKeys.Observe(hero.Level, read, count))
+            {
+                return;
+            }
+
+            if (this.statKeys.Verdict == StatKeyVerdict.Holds)
+            {
+                this.log.Info($"Stat keys: key {key} reads the character's level ({read}): a stat's key is its row plus one");
+                return;
+            }
+
+            this.log.Warn($"Stat keys: key {key} reads {read} where the character's level is {hero.Level}, twice, among {count} stats: a stat's key is no longer its row plus one");
+            this.report.Missing(StatsPart);
         }
 
         /// <summary>Gets the animation search's state, for the dev command "structs".</summary>
@@ -440,6 +489,11 @@ namespace Poe2Accessibility.Services
             if (outcome.Health == StructHealth.Lost)
             {
                 this.log.Info($"Struct {outcome.Name}: {outcome.Detail}");
+            }
+
+            if (outcome.Name == StatsPart && outcome.Health != StructHealth.Lost && this.statKeys.Verdict == StatKeyVerdict.Lost)
+            {
+                return; // the sweep found the list; what its keys mean is still lost, and stays said
             }
 
             this.report.Record(outcome);
