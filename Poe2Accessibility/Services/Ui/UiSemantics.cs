@@ -61,7 +61,7 @@ namespace Poe2Accessibility.Services
         public IntPtr LayerContainer { get; set; }
 
         public AccessibleUiNode? Describe(IntPtr address, bool hovered = false) =>
-            this.DescribeElement(address, hovered) is { } node ? this.WithBuildGems(node, hovered) : null;
+            this.DescribeElement(address, hovered) is { } node ? this.WithBuildGear(this.WithBuildGems(node, hovered), hovered) : null;
 
         private AccessibleUiNode? DescribeElement(IntPtr address, bool hovered)
         {

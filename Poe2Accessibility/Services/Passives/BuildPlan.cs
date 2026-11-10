@@ -32,6 +32,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Gets the build's skills ("skills": id, level_interval, support_skills), empty when the file has none.</summary>
         public IReadOnlyList<BuildSkill> Skills { get; init; } = Array.Empty<BuildSkill>();
 
+        /// <summary>Gets the build's gear ("inventory_slots": one entry per piece and level interval), empty when the file has none.</summary>
+        public IReadOnlyList<BuildGearEntry> Gear { get; init; } = Array.Empty<BuildGearEntry>();
+
         /// <summary>
         ///     Whether that many marked nodes can be a build: the tree's mark is one byte with no second sign, and moved by a
         ///     patch any byte that often reads 1 would mark the tree; no build takes a quarter of it (docs/research/passive-tree.md).
@@ -66,7 +69,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 var name = root.TryGetProperty("name", out var named) && named.ValueKind == JsonValueKind.String ? named.GetString() ?? string.Empty : string.Empty;
-                return new BuildPlan(name, list.Where(passive => passive.Id.Length > 0).ToList()) { Skills = ParseSkills(root) };
+                return new BuildPlan(name, list.Where(passive => passive.Id.Length > 0).ToList()) { Skills = ParseSkills(root), Gear = BuildGear.Parse(root) };
             }
             catch (JsonException)
             {

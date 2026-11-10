@@ -1,0 +1,289 @@
+namespace Poe2Accessibility.Services
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.Linq;
+    using System.Text.Json;
+    using System.Text.RegularExpressions;
+
+    /// <summary>One piece of a build plan's gear: its slot, the base or the unique the author wants there, the modifiers wanted in his order and words, and the levels it applies to.</summary>
+    public sealed record BuildGearEntry(string Slot, int SlotX, string Base, IReadOnlyList<string> Wanted, string Unique, int FromLevel, int ToLevel)
+    {
+        public bool IsUnique => this.Unique.Length > 0;
+
+        /// <summary>The unique's name without the author's note in brackets ("Darkness Enthroned (body armour)").</summary>
+        public string UniqueName => this.Unique.IndexOf(" (", StringComparison.Ordinal) is var note and > 0 ? this.Unique[..note] : this.Unique;
+    }
+
+    /// <summary>Whether an item is of the base (or is the unique) the build wants; unknown when neither the game's files nor the names can tell.</summary>
+    public enum BaseFit
+    {
+        Unknown,
+        Same,
+        Other,
+    }
+
+    /// <summary>A wanted modifier on an item: there with the number or more, there with less, not there, or not comparable.</summary>
+    public enum ModFit
+    {
+        Unknown,
+        Met,
+        Below,
+        Missing,
+    }
+
+    /// <summary>The defences an item base gives.</summary>
+    [Flags]
+    public enum Defence
+    {
+        None = 0,
+        Armour = 1,
+        Evasion = 2,
+        EnergyShield = 4,
+    }
+
+    /// <summary>One wanted modifier set against an item: the author's words, the game's line it is (null when unknown) and the item's own line that answers it.</summary>
+    public sealed record ModStatus(string Wanted, ModLine? Line, ModFit Fit, string Held);
+
+    /// <summary>An item as the game shows it: its base id and name, its tooltip's title, and its tooltip lines (null while no tooltip of it was read).</summary>
+    public sealed record GearItem(string BaseId, string BaseName, string Title, bool IsUnique, IReadOnlyList<string>? Lines);
+
+    /// <summary>A build piece set against an item; no item for an empty slot.</summary>
+    public sealed record GearFit(BuildGearEntry Entry, GearItem? Item, BaseFit Base, IReadOnlyList<ModStatus> Mods)
+    {
+        /// <summary>Whether the item's modifier lines were there to compare.</summary>
+        public bool ModsRead => this.Item?.Lines != null;
+
+        /// <summary>The wanted modifiers the item has, whatever their number.</summary>
+        public int Has => this.Mods.Count(mod => mod.Fit is ModFit.Met or ModFit.Below);
+
+        /// <summary>The wanted modifiers that could be looked for on the item: only among these is one had or missing.</summary>
+        public int Compared => this.Mods.Count(mod => mod.Fit != ModFit.Unknown);
+
+        /// <summary>How far the slot is from the build: everything for an empty one, else a wrong base and each modifier known to be missing.</summary>
+        public int Shortfall => this.Item == null ? 1 + this.Mods.Count
+            : (this.Base == BaseFit.Other ? 1 : 0) + this.Mods.Count(mod => mod.Fit == ModFit.Missing);
+    }
+
+    /// <summary>The worn gear against the build: slots on the wanted base, modifiers had of those compared on the pieces whose lines were read, and the slot furthest off.</summary>
+    public sealed record GearSummary(int Slots, int OnBase, int PiecesRead, int Has, int Wanted, GearFit? Furthest);
+
+    /// <summary>The build's gear set against the items the game shows. Pure; the game files' names and texts come through <see cref="Bases"/> and <see cref="Texts"/>.</summary>
+    public static class BuildGear
+    {
+        /// <summary>The file's last level when a piece gives no interval (a unique).</summary>
+        private const int LastLevel = 100;
+
+        /// <summary>The flask inventory holds life at column 0 and mana at 1 (Build Planner files, <c>slot_x</c>).</summary>
+        public const string FlaskSlot = "Flask1";
+        public const int ManaFlaskX = 1;
+
+        private static readonly Regex Ordinal = new(@"^\s*\d+\.\s*", RegexOptions.Compiled);
+        private static readonly Regex Number = new(@"[-+]?\d+(?:[.,]\d+)?", RegexOptions.Compiled);
+        private static readonly Regex Spaces = new(@"\s+", RegexOptions.Compiled);
+
+        /// <summary>
+        ///     Where an item goes by the folder of its id (item paths of worn and dropped items, play logs 2026-11-08..10):
+        ///     the equipment inventories that take it, named as the build files and the game name them.
+        /// </summary>
+        private static readonly (string Folder, string[] Slots)[] Folders =
+        {
+            ("/Armours/Helmets/", new[] { "Helm1" }),
+            ("/Armours/BodyArmours/", new[] { "BodyArmour1" }),
+            ("/Armours/Gloves/", new[] { "Gloves1" }),
+            ("/Armours/Boots/", new[] { "Boots1" }),
+            ("/Armours/Shields/", new[] { "Offhand1", "Offhand2" }),
+            ("/Weapons/", new[] { "Weapon1", "Weapon2" }),
+            ("/Rings/", new[] { "Ring1", "Ring2" }),
+            ("/Amulets/", new[] { "Amulet1" }),
+            ("/Belts/", new[] { "Belt1" }),
+        };
+
+        /// <summary>Gets or sets the game files' item bases; none until the plugin loads them.</summary>
+        public static IItemBases Bases { get; set; } = new NoCatalog();
+
+        /// <summary>Gets or sets the game files' modifier texts; none until the plugin loads them.</summary>
+        public static IModTexts Texts { get; set; } = new NoCatalog();
+
+        /// <summary>The file's "inventory_slots": a base with numbered modifiers in "additional_text", or a "unique_name".</summary>
+        public static IReadOnlyList<BuildGearEntry> Parse(JsonElement root)
+        {
+            var gear = new List<BuildGearEntry>();
+            if (!root.TryGetProperty("inventory_slots", out var entries) || entries.ValueKind != JsonValueKind.Array)
+            {
+                return gear;
+            }
+
+            foreach (var entry in entries.EnumerateArray())
+            {
+                if (entry.ValueKind != JsonValueKind.Object || Text(entry, "inventory_id") is not { Length: > 0 } slot)
+                {
+                    continue;
+                }
+
+                var lines = (Text(entry, "additional_text") ?? string.Empty).Split('\n').Select(BuildNotes.Plain).Where(line => line.Length > 0).ToList();
+                var unique = BuildNotes.Plain(Text(entry, "unique_name") ?? string.Empty);
+                if (lines.Count == 0 && unique.Length == 0)
+                {
+                    continue;
+                }
+
+                var (from, to) = (1, LastLevel);
+                if (entry.TryGetProperty("level_interval", out var interval) && interval.ValueKind == JsonValueKind.Array && interval.GetArrayLength() == 2 &&
+                    interval[0].TryGetInt32(out var first) && interval[1].TryGetInt32(out var last))
+                {
+                    (from, to) = (first, last);
+                }
+
+                var x = entry.TryGetProperty("slot_x", out var column) && column.TryGetInt32(out var number) ? number : 0;
+                gear.Add(new BuildGearEntry(slot, x, lines.Count > 0 ? lines[0] : string.Empty,
+                    lines.Skip(1).Select(line => Ordinal.Replace(line, string.Empty)).Where(line => line.Length > 0).ToList(), unique, from, to));
+            }
+
+            return gear;
+        }
+
+        /// <summary>
+        ///     The build's piece for a slot at a level: the latest one that applies, else the first to come; null when the
+        ///     build has none there any more.
+        /// </summary>
+        public static BuildGearEntry? EntryFor(BuildPlan plan, string slot, int slotX, int level)
+        {
+            var open = plan.Gear.Where(entry => entry.Slot == slot && entry.SlotX == slotX && entry.ToLevel >= level).ToList();
+            return open.Where(entry => entry.FromLevel <= level).OrderByDescending(entry => entry.FromLevel).FirstOrDefault()
+                ?? open.OrderBy(entry => entry.FromLevel).FirstOrDefault();
+        }
+
+        /// <summary>The slots an item would go in, by its id's folder; none for what is not worn or is not told apart (charms).</summary>
+        public static IReadOnlyList<(string Slot, int X)> SlotsFor(string itemId)
+        {
+            if (itemId.Contains("/Flasks/", StringComparison.OrdinalIgnoreCase))
+            {
+                return itemId.Contains("FlaskLife", StringComparison.OrdinalIgnoreCase) ? new[] { (FlaskSlot, 0) }
+                    : itemId.Contains("FlaskMana", StringComparison.OrdinalIgnoreCase) ? new[] { (FlaskSlot, ManaFlaskX) }
+                    : Array.Empty<(string, int)>();
+            }
+
+            foreach (var (folder, slots) in Folders)
+            {
+                if (itemId.Contains(folder, StringComparison.OrdinalIgnoreCase))
+                {
+                    return slots.Select(slot => (slot, 0)).ToList();
+                }
+            }
+
+            return Array.Empty<(string, int)>();
+        }
+
+        /// <summary>The defences a base gives by its own values; none for an unknown base or what is no armour piece.</summary>
+        public static Defence DefenceOf(ItemBase? item) => item == null ? Defence.None
+            : (item.Armour > 0 ? Defence.Armour : Defence.None) | (item.Evasion > 0 ? Defence.Evasion : Defence.None) |
+              (item.EnergyShield > 0 ? Defence.EnergyShield : Defence.None);
+
+        /// <summary>A build piece set against an item (null for an empty slot): what cannot be compared stays unknown, never met or missing.</summary>
+        public static GearFit Fit(BuildGearEntry entry, GearItem? item, IItemBases bases, IModTexts texts, string language)
+        {
+            var held = item?.Lines?.Select(line => (Text: line, Line: texts.Parse(line), Shape: Shape(line))).ToList();
+            var mods = entry.Wanted.Select(wanted => Match(wanted, held, texts, language)).ToList();
+            return new GearFit(entry, item, item == null ? BaseFit.Unknown : BaseFitOf(entry, item, bases, language), mods);
+        }
+
+        /// <summary>The worn pieces against the build; the furthest is the first in the build's order among the worst.</summary>
+        public static GearSummary Summary(IReadOnlyList<GearFit> fits)
+        {
+            var read = fits.Where(fit => fit.ModsRead).ToList();
+            return new GearSummary(fits.Count, fits.Count(fit => fit.Base == BaseFit.Same), read.Count, read.Sum(fit => fit.Has), read.Sum(fit => fit.Compared),
+                fits.Where(fit => fit.Shortfall > 0).OrderByDescending(fit => fit.Shortfall).FirstOrDefault());
+        }
+
+        /// <summary>The numbers written in a line, in order ("Adds 6 to 11 Physical Damage" → 6, 11).</summary>
+        public static IReadOnlyList<double> NumbersOf(string text) =>
+            Number.Matches(text).Select(match => double.Parse(match.Value.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture)).ToList();
+
+        /// <summary>A line without its numbers, case and spacing: two lines of one shape are the same modifier in one language.</summary>
+        public static string Shape(string text) => Spaces.Replace(Number.Replace(text, "#"), " ").Trim().TrimEnd('.').ToLowerInvariant();
+
+        private static string? Text(JsonElement entry, string name) =>
+            entry.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
+
+        private static bool SameText(string one, string other) =>
+            one.Length > 0 && string.Equals(Spaces.Replace(one, " ").Trim(), Spaces.Replace(other, " ").Trim(), StringComparison.OrdinalIgnoreCase);
+
+        private static BaseFit BaseFitOf(BuildGearEntry entry, GearItem item, IItemBases bases, string language)
+        {
+            if (entry.IsUnique)
+            {
+                // A unique's name in the game's language is not in the files read: only its own words can say it is this one.
+                return !item.IsUnique ? BaseFit.Other : SameText(entry.UniqueName, item.Title) ? BaseFit.Same : BaseFit.Unknown;
+            }
+
+            if (bases.ByName(entry.Base) is not { } wanted)
+            {
+                return SameText(entry.Base, item.BaseName) ? BaseFit.Same : BaseFit.Unknown;
+            }
+
+            if ((item.BaseId.Length > 0 && SameText(BuildGems.KeyOf(wanted.Id), BuildGems.KeyOf(item.BaseId))) || SameText(wanted.Name(language), item.BaseName))
+            {
+                return BaseFit.Same;
+            }
+
+            return item.BaseName.Length > 0 || bases.ById(item.BaseId) != null ? BaseFit.Other : BaseFit.Unknown;
+        }
+
+        /// <summary>
+        ///     The item's line that is the wanted modifier: by the game's texts, else by the same words around other numbers
+        ///     (the wanted line as written, or as the game says it). A wanted line the texts do not know is never missing.
+        /// </summary>
+        private static ModStatus Match(string wanted, List<(string Text, ModLine? Line, string Shape)>? held, IModTexts texts, string language)
+        {
+            var line = texts.Parse(wanted);
+            if (held == null)
+            {
+                return new ModStatus(wanted, line, ModFit.Unknown, string.Empty);
+            }
+
+            var shapes = new List<string> { Shape(wanted) };
+            if (line != null && texts.Say(line, language) is { Length: > 0 } said)
+            {
+                shapes.Add(Shape(said));
+            }
+
+            (string Text, IReadOnlyList<double> Numbers)? best = null;
+            foreach (var candidate in held)
+            {
+                var numbers = line != null && candidate.Line?.Template == line.Template ? candidate.Line.Numbers
+                    : shapes.Contains(candidate.Shape) ? NumbersOf(candidate.Text) : null;
+                if (numbers != null && (best == null || First(numbers) > First(best.Value.Numbers)))
+                {
+                    best = (candidate.Text, numbers);
+                }
+            }
+
+            if (best is not { } found)
+            {
+                return new ModStatus(wanted, line, line != null ? ModFit.Missing : ModFit.Unknown, string.Empty);
+            }
+
+            return new ModStatus(wanted, line, Meets(line?.Numbers ?? NumbersOf(wanted), found.Numbers) ? ModFit.Met : ModFit.Below, found.Text);
+        }
+
+        private static double First(IReadOnlyList<double> numbers) => numbers.Count > 0 ? numbers[0] : 0;
+
+        /// <summary>By the first number, as the author orders a line by it ("Adds 6 to 11"); a line without one is met by being there.</summary>
+        private static bool Meets(IReadOnlyList<double> wanted, IReadOnlyList<double> held) =>
+            wanted.Count == 0 || held.Count == 0 || (wanted[0] >= 0 ? held[0] >= wanted[0] : held[0] <= wanted[0]);
+
+        /// <summary>No catalog loaded: every name and line is unknown.</summary>
+        private sealed class NoCatalog : IItemBases, IModTexts
+        {
+            public ItemBase? ByName(string name) => null;
+
+            public ItemBase? ById(string id) => null;
+
+            public ModLine? Parse(string text) => null;
+
+            public string Say(ModLine line, string language) => string.Empty;
+        }
+    }
+}

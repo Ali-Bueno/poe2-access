@@ -255,6 +255,7 @@ namespace Poe2Accessibility.Tests
                 ExtractorColumnTests.All(),
                 ItemReadingTests.All(),
                 BuildGemTests.All(),
+                BuildGearTests.All(),
                 FileCatalogTests.All(),
                 AgreedChoiceTests.All(),
                 StatKeyTests.All(),

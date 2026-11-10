@@ -82,6 +82,9 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\MinionGroups.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\BuildPlan.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\BuildGems.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Passives\BuildGear.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GearCatalogs.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.BuildGear.cs" Link="Plugin\Announcements.BuildGear.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\BuildPlanFolder.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GemNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GemCatalog.cs" />
