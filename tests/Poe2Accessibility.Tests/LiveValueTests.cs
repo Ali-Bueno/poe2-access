@@ -30,6 +30,8 @@ namespace Poe2Accessibility.Tests
             (nameof(ABuffHeldAsSeveralEntriesCountsEveryOne), ABuffHeldAsSeveralEntriesCountsEveryOne),
             (nameof(ABlowIsLearntAsItsPlaceInTheClip), ABlowIsLearntAsItsPlaceInTheClip),
             (nameof(AMaximumFromTheTablesIsNeverSaidAsFull), AMaximumFromTheTablesIsNeverSaidAsFull),
+            (nameof(ABuffIdThatEndsLikeASuffixIsStillItself), ABuffIdThatEndsLikeASuffixIsStillItself),
+            (nameof(AnAreaHashIsAnotherOnceReadTwice), AnAreaHashIsAnotherOnceReadTwice),
         };
 
         /// <summary>A flask whose drinks were seen to cost <paramref name="cost"/>, left at <paramref name="charges"/>; the clock ends past the last drink.</summary>
@@ -248,6 +250,38 @@ namespace Poe2Accessibility.Tests
             var live = new ResourceTracker();
             live.Update(new[] { At(0, max: 40, reach: 0) }, 0);
             Equal(ResourceChange.Full, live.Update(new[] { At(40, max: 40, reach: 0) }, now)[0].Change, "a maximum the game holds in a live stat is full when reached");
+        }
+
+        private static void ABuffIdThatEndsLikeASuffixIsStillItself()
+        {
+            Equal("rallying_cry_new_weapon_damage_added", BuffIds.Base("rallying_cry_new_weapon_damage_added"), "a lower-case word is no suffix of the host's, though all its letters are hex digits");
+            Equal("power_charge", BuffIds.Base("power_charge_79"), "the host's suffix");
+            Equal("chilled", BuffIds.Base("chilled_1A"), "in upper case hex");
+
+            var catalog = ClassMechanicCatalog.Parse("""
+                {"buffs":{"shrine_fire":{"type":7,"names":{"en":"Fire Shrine"}},"shrine_fire_2":{"type":7,"names":{"en":"Greater Fire Shrine"}},
+                          "shrine_corrupt_2":{"type":7,"names":{"en":"Corrupting Shrine"}},"rallying_cry_new_weapon_damage_added":{"type":1,"names":{"en":"Inspired"}},
+                          "jade_stacks":{"type":1,"names":{"en":"Jade"}}}}
+                """);
+            Equal("Greater Fire Shrine", catalog.BuffName("shrine_fire_2", "en"), "an id of the table is itself, not the one it would be cut to");
+            Equal("Corrupting Shrine", catalog.BuffName("shrine_corrupt_2", "en"), "nor lost when the cut one is no id");
+            Equal("Inspired", catalog.BuffName("rallying_cry_new_weapon_damage_added", "en"), "the warcry's buff has its name");
+            Equal("Jade", catalog.BuffName("jade_stacks_79", "en"), "a key with the host's suffix is the id without it");
+            Equal("Greater Fire Shrine", catalog.BuffName("shrine_fire_2_1A", "en"), "also when the id itself ends in a number");
+            Equal("jade_stacks", catalog.BuffKey("jade_stacks_79"), "one key per buff");
+            Equal(-1, catalog.BuffType("unknown_buff_79"), "a buff the table lacks stays unknown");
+        }
+
+        private static void AnAreaHashIsAnotherOnceReadTwice()
+        {
+            var hash = default(ConfirmedChange);
+            hash.Set(0x962301CC);
+            Equal(false, hash.Offer(0x962301CC), "the same area");
+            Equal(false, hash.Offer(0x0BADF00D), "one odd reading could be a read caught mid-write");
+            Equal(false, hash.Offer(0x962301CC), "and it was");
+            Equal(false, hash.Offer(0xD28E11CE), "another area in the instance the game already had: seen once");
+            Equal(true, hash.Offer(0xD28E11CE), "seen again: what is held is the old area's");
+            Equal(false, hash.Offer(0xD28E11CE), "told once");
         }
 
         private static void AFlasksCostOutlivesAnAreaButNotACharacter()

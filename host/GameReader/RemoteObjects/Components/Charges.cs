@@ -6,6 +6,7 @@ namespace GameReader.RemoteObjects.Components
 {
     using System;
     using GameOffsets.Objects.Components;
+    using GameReader.Utils;
 
     /// <summary>
     ///     The <see cref="Charges" /> component in the entity.
@@ -36,7 +37,9 @@ namespace GameReader.RemoteObjects.Components
             var data = reader.ReadMemory<ChargesOffsets>(this.Address);
             this.OwnerEntityAddress = data.Header.EntityPtr;
             this.Current = data.current;
-            if (hasAddressChanged )
+            // The base type's cost does not change, but a first read that failed or was torn must not stay: asked again
+            // until it is one a flask can have. What a drink really costs (the flask's modifiers) is not here.
+            if (hasAddressChanged || !StructShapes.IsCharges(0, this.PerUseCharge))
             {
                 this.PerUseCharge = reader.ReadMemory<ChargesInternalStruct>(data.ChargesInternalPtr).PerUseCharges;
             }

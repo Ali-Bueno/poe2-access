@@ -159,3 +159,23 @@ rule now in force, where.
   stat:<name> held (…) has no name in the mod: not said`). Logs for Heat: `Resource stat:number_of_crossbow_heat_stacks:
   no live maximum, the skills' tables give 31: told as a count there, never as full`, and `… above the 31 its skills'
   tables give` if it is ever seen higher.
+- **Smaller ones (A9).**
+  - `BuffIds.Base` cut a trailing "_" and hex-looking letters, and so 16 ids of `class-mechanics.json` (`shrine_*_2`,
+    `rallying_cry_new_weapon_damage_added`): "Inspirado" was never found and `shrine_fire_2` was looked up as `shrine_fire`.
+    Rule: only what the host appends is a suffix (upper-case hex), and a table is asked for the whole key first, the
+    cut one only when it has that and not the whole (`BuffIds.In`; `ClassMechanicCatalog.BuffKey`, `HarmfulBuffs`,
+    `StatusAilments`, `HazardGround`, `BossMechanicsWatch`).
+  - `MonsterMods` kept modifier names per Mods.dat row address for the host's life: cleared when the game's process
+    id changes (the rows of a game started again are elsewhere).
+  - Host `AreaInstance` copied hash, level and terrain only when its address changed: another area loaded at the same
+    address, or a hash read before the game wrote it, kept the old values and the old entities. It now reads the area
+    again when the hash differs twice running (`ConfirmedChange`), logging `[AreaInstance] Area hash … where … was
+    held` to the host's console; the plugin's instance reset (A4) follows from the new hash.
+  - Host `Charges.PerUseCharge`, `Chest`'s kind and `Player.Name` were read once per address: a first read that failed
+    stayed. Each is read again while it is not a value it can have (a cost under 1, a kind that did not read, an empty
+    name).
+  - Not done, with the reason: a sale said as "used" when the gold lags the inventory by more than 300 ms
+    (`InventoryWatch.SettleMs`) and `QuestTrackerPage.lastSaid` kept between characters live in `Services/Inventory`
+    and `Services/Screen`, which the other half of this audit owns (the page has no reset to call from outside). The
+    cull cue stays silent when Culling Strike comes from a support, a passive or an item: the mod reads no live stat
+    that says the player culls (`game-ids.txt` has only the two threshold stats), and none is guessed.

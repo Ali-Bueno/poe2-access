@@ -178,7 +178,7 @@ namespace Poe2Accessibility.Services
                     continue;
                 }
 
-                var key = BuffKey + BuffIds.Base(id);
+                var key = BuffKey + catalog.BuffKey(id);
                 var stacks = PlayerCharges.Held(effect.Charges);
                 var name = catalog.BuffName(id, language);
                 // A brief single buff is a skill's own effect; a buff a stat already counts (Heat, Demonflame) is told once, with its maximum.

@@ -44,10 +44,18 @@ namespace GameReader.RemoteObjects.Components
             this.IsOpened = data.IsOpened;
             if (hasAddressChanged)
             {
-                var dataInternal = reader.ReadMemory<ChestsStructInternal>(data.ChestsDataPtr);
+                this.kindRead = false;
+            }
+
+            // The chest's kind does not change, but a read that failed must not stand for "no strongbox, no label": asked again.
+            if (!this.kindRead && reader.TryReadMemory<ChestsStructInternal>(data.ChestsDataPtr, out var dataInternal))
+            {
                 this.IsStrongbox = dataInternal.StrongboxDatPtr != IntPtr.Zero;
                 this.IsLabelVisible = dataInternal.IsLabelVisible;
+                this.kindRead = true;
             }
         }
+
+        private bool kindRead;
     }
 }

@@ -28,6 +28,7 @@ namespace Poe2Accessibility.Services
             this.Resources = resources;
             this.Limits = limits;
             this.buffs = buffs;
+            this.isBuff = buffs.ContainsKey;
             this.skills = skills;
         }
 
@@ -125,12 +126,18 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The BuffDefinitions type of a named buff; -1 for a buff the catalog does not name.</summary>
-        public int BuffType(string buffId) => this.buffs.TryGetValue(BuffIds.Base(buffId), out var buff) ? buff.Type : -1;
+        public int BuffType(string buffId) => this.buffs.TryGetValue(this.BuffKey(buffId), out var buff) ? buff.Type : -1;
+
+        /// <summary>The catalog's id for a buff key of the host (<see cref="BuffIds.In"/>): one key per buff for whoever counts it.</summary>
+        public string BuffKey(string buffId) => BuffIds.In(buffId, this.isBuff);
+
+        /// <summary>Kept: asked for every buff of the player at each poll.</summary>
+        private readonly Func<string, bool> isBuff;
 
         /// <summary>The game's name for a buff in the language (English when it has none there), empty for any other buff.</summary>
         public string BuffName(string buffId, string language)
         {
-            if (!this.buffs.TryGetValue(BuffIds.Base(buffId), out var buff))
+            if (!this.buffs.TryGetValue(this.BuffKey(buffId), out var buff))
             {
                 return string.Empty;
             }

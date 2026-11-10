@@ -239,6 +239,7 @@
     <Compile Include="..\..\host\GameReader\Utils\StructRemap.cs" Link="Host\StructRemap.cs" />
     <Compile Include="..\..\host\GameReader\Utils\StdMapWalk.cs" Link="Host\StdMapWalk.cs" />
     <Compile Include="..\..\host\GameReader\Utils\BuffStacks.cs" Link="Host\BuffStacks.cs" />
+    <Compile Include="..\..\host\GameReader\Utils\ConfirmedChange.cs" Link="Host\ConfirmedChange.cs" />
     <Compile Include="..\..\host\GameReader\Utils\NativeText.cs" Link="Host\NativeText.cs" />
     <Compile Include="..\..\host\GameReader\Utils\StatPairs.cs" Link="Host\StatPairs.cs" />
     <Compile Include="..\..\host\GameOffsets\Objects\Components\Stats.cs" Link="Host\Stats.cs" />
