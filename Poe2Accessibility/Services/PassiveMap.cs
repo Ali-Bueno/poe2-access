@@ -176,7 +176,7 @@ namespace Poe2Accessibility.Services
         {
             for (var tried = 0; tried < Categories.Length; tried++)
             {
-                this.Category = Categories[Wrap((int)this.Category + step, Categories.Length)];
+                this.Category = Categories[SettingsCursor.Wrap((int)this.Category + step, Categories.Length)];
                 var list = this.Category == PassiveCategory.Position ? Array.Empty<IntPtr>() : members(this.Category);
                 if (this.Category == PassiveCategory.Position || list.Count > 0)
                 {
@@ -194,7 +194,7 @@ namespace Poe2Accessibility.Services
             if (members.Count > 0)
             {
                 var at = members.ToList().IndexOf(this.Target);
-                this.Target = members[at < 0 ? 0 : Wrap(at + step, members.Count)];
+                this.Target = members[at < 0 ? 0 : SettingsCursor.Wrap(at + step, members.Count)];
                 (this.Taking, this.Returning) = (false, false);
             }
         }
@@ -226,7 +226,5 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Leads back to where the cursor was when the tree was last left; the D-pad's lists start again from Position.</summary>
         public void Return(IntPtr node) => (this.Category, this.Target, this.Taking, this.Returning) = (PassiveCategory.Position, node, false, true);
-
-        private static int Wrap(int index, int count) => ((index % count) + count) % count;
     }
 }

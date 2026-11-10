@@ -24,7 +24,7 @@ namespace Poe2Accessibility.Services
         public IReadOnlyList<string> Lines(IntPtr hudLayer)
         {
             var lines = new List<string>();
-            if (hudLayer == IntPtr.Zero || this.FindColumn(hudLayer) is not { } column || !this.elements.IsVisible(column))
+            if (hudLayer == IntPtr.Zero || this.elements.FindNamed(hudLayer, GameLayout.EncounterTracker.ColumnName, GameLayout.EncounterTracker.SearchDepth) is not { } column || !this.elements.IsVisible(column))
             {
                 return lines;
             }
@@ -50,36 +50,6 @@ namespace Poe2Accessibility.Services
             }
 
             return lines;
-        }
-
-        /// <summary>The column by its name, breadth first under the HUD layer.</summary>
-        private UiElementReader.ElementInfo? FindColumn(IntPtr hudLayer)
-        {
-            var queue = new Queue<(IntPtr Address, int Depth)>();
-            queue.Enqueue((hudLayer, 0));
-            while (queue.Count > 0)
-            {
-                var (address, depth) = queue.Dequeue();
-                if (!this.elements.TryReadElement(address, out var info))
-                {
-                    continue;
-                }
-
-                if (info.Name == GameLayout.EncounterTracker.ColumnName)
-                {
-                    return info;
-                }
-
-                if (depth < GameLayout.EncounterTracker.SearchDepth)
-                {
-                    foreach (var child in this.elements.ReadChildren(info))
-                    {
-                        queue.Enqueue((child, depth + 1));
-                    }
-                }
-            }
-
-            return null;
         }
     }
 }
