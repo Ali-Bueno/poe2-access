@@ -87,6 +87,9 @@ namespace Poe2Accessibility.Services
 
         private readonly Dictionary<IntPtr, (string? Key, long At)> textureKeys = new();
         private readonly Stopwatch sinceSlowReport = Stopwatch.StartNew();
+
+        /// <summary>When a snapshot that ran out of its element budget may next be logged (Environment.TickCount64): the first one at once.</summary>
+        private long cutShortReportAt;
         private readonly object snapshotCostsLock = new();
         private int snapshots;
         private double snapshotsMs;
@@ -263,6 +266,13 @@ namespace Poe2Accessibility.Services
                 {
                     this.blocks.Return(layerInfo.Block);
                 }
+            }
+
+            if (budget <= 0 && Environment.TickCount64 >= this.cutShortReportAt)
+            {
+                // Layers after the last one read are missing from this snapshot: a popup or the hint bar there goes unread.
+                this.cutShortReportAt = Environment.TickCount64 + SlowReportIntervalMs;
+                this.log.Warn($"Screen snapshot cut short at {MaxNodes} elements: {layers.Count} layers read of {children.Length} under the root, the last one whole or in part");
             }
 
             this.longText = this.capturedLongText;

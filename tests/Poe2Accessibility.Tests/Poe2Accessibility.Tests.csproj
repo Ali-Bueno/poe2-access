@@ -247,6 +247,7 @@
     <Compile Include="..\..\Poe2Accessibility\Localization.cs" Link="Plugin\Localization.cs" />
     <Compile Include="..\..\Poe2Accessibility\Phrase.cs" Link="Plugin\Phrase.cs" />
     <Compile Include="..\..\Poe2Accessibility\Announcements.cs" Link="Plugin\Announcements.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Announcements.Compatibility.cs" Link="Plugin\Announcements.Compatibility.cs" />
     <Compile Include="..\..\Poe2Accessibility\Models\AccessibleUiNode.cs" Link="Plugin\AccessibleUiNode.cs" />
     <Compile Include="..\..\host\GameReader\RemoteEnums\GameStateTypes.cs" Link="Plugin\GameStateTypes.cs" />
     <Compile Include="..\..\host\GameReader\RemoteObjects\States\InGameStateObjects\AreaLayoutSearch.cs" Link="Host\AreaLayoutSearch.cs" />

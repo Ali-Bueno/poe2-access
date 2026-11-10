@@ -13,7 +13,12 @@ namespace Poe2Accessibility.Services
         /// <summary>An icon grid has at least this many children.</summary>
         private const int MinSelectorIcons = 4;
 
-        private readonly Dictionary<IntPtr, (IntPtr Selector, IntPtr Grid)> selectors = new();
+        /// <summary>A layer found without a selector is searched again this often: it may still have been building, or be another screen's by now.</summary>
+        private const int SelectorRetryMs = 500;
+
+        private const int MaxSelectorLayers = 64;
+
+        private readonly Dictionary<IntPtr, (IntPtr Selector, IntPtr Grid, long At)> selectors = new();
 
         /// <summary>
         ///     "4 de 6" for the class choice of character creation: no control holds the focus, the left stick moves a
@@ -23,13 +28,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public string? SelectorPosition(IntPtr layer)
         {
-            if (!this.selectors.TryGetValue(layer, out var found) ||
-                (found.Selector != IntPtr.Zero && !(this.elements.TryReadElement(found.Selector, out var cached) && cached.Name == GameLayout.ClassSelector.Name)))
-            {
-                found = this.FindSelector(layer);
-                this.selectors[layer] = found;
-            }
-
+            var found = this.SelectorOf(layer);
             if (found.Selector == IntPtr.Zero || !this.elements.TryReadElement(found.Grid, out var grid))
             {
                 return null;
@@ -63,12 +62,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public int? SelectorChoice(IntPtr layer)
         {
-            if (!this.selectors.TryGetValue(layer, out var found))
-            {
-                found = this.FindSelector(layer);
-                this.selectors[layer] = found;
-            }
-
+            var found = this.SelectorOf(layer);
             var shift = this.elements.Controls?.Current(ControlGroup.ClassSelector) ?? 0;
             return found.Selector != IntPtr.Zero && this.reader.TryRead<int>(found.Selector + GameLayout.ClassSelector.ClassIdOffset + shift, out var id) ? id : null;
         }
@@ -86,6 +80,32 @@ namespace Poe2Accessibility.Services
             this.reader.TryRead<int>(selector + GameLayout.ClassSelector.IndexOffset + shift, out var index) &&
             this.reader.TryRead<int>(selector + GameLayout.ClassSelector.ClassIdOffset + shift, out var id) &&
             index >= 0 && index < Math.Min(icons, GameLayout.ClassSelector.FirstRowClassIds.Length) && GameLayout.ClassSelector.FirstRowClassIds[index] == id;
+
+        /// <summary>
+        ///     The layer's selector as last found, while the element there still is one; "none" is kept only for a moment (the
+        ///     layer every pre-game screen change asks about may get its selector later), and an address the game gave to
+        ///     another element is searched again.
+        /// </summary>
+        private (IntPtr Selector, IntPtr Grid) SelectorOf(IntPtr layer)
+        {
+            var now = Environment.TickCount64;
+            if (this.selectors.TryGetValue(layer, out var known) &&
+                (known.Selector == IntPtr.Zero
+                    ? now - known.At < SelectorRetryMs
+                    : this.elements.TryReadElement(known.Selector, out var cached) && cached.Name == GameLayout.ClassSelector.Name))
+            {
+                return (known.Selector, known.Grid);
+            }
+
+            if (this.selectors.Count >= MaxSelectorLayers)
+            {
+                this.selectors.Clear();
+            }
+
+            var found = this.FindSelector(layer);
+            this.selectors[layer] = (found.Selector, found.Grid, now);
+            return found;
+        }
 
         private (IntPtr Selector, IntPtr Grid) FindSelector(IntPtr layer)
         {

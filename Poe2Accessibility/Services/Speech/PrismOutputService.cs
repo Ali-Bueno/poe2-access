@@ -126,7 +126,11 @@ namespace Poe2Accessibility.Services
             this.urgedUntil = until > this.urgedUntil ? until : this.urgedUntil;
         }
 
-        public void Mention(string text)
+        public void Mention(string text) => this.Mention(text, reading: true);
+
+        public void MentionNews(string text) => this.Mention(text, reading: false);
+
+        private void Mention(string text, bool reading)
         {
             if (string.IsNullOrWhiteSpace(text))
             {
@@ -141,7 +145,7 @@ namespace Poe2Accessibility.Services
                 quiet = this.floor.Quiet(DateTime.UtcNow);
             }
 
-            if (!this.Say(text, false, Delivery.Normal, 0, reading: true))
+            if (!this.Say(text, false, Delivery.Normal, 0, reading))
             {
                 return; // held back as a repeat: it was just heard
             }
@@ -259,6 +263,11 @@ namespace Poe2Accessibility.Services
                     lock (this.queueGate)
                     {
                         heard = news.HeardAt == this.enqueued;
+                        if (!heard)
+                        {
+                            // Said with this phrase now: left waiting behind a kept line it would be said a second time.
+                            this.floor.Withdraw(news.Text);
+                        }
                     }
 
                     if (heard)
@@ -316,7 +325,7 @@ namespace Poe2Accessibility.Services
 
             this.log.Info(goesOut
                 ? $"Speech {(interrupt ? "interrupts" : "queued")}{(delivery is Delivery.Kept or Delivery.KeptMessage ? ", kept" : delivery == Delivery.Move ? ", moved" : string.Empty)}: {text}"
-                : $"Speech waits for the kept line{(interrupt ? ", replacing what waited" : string.Empty)}: {text}");
+                : $"Speech waits for the kept line{(SpeechFloor.Replaces(interrupt, reading) ? ", replacing what waited" : string.Empty)}: {text}");
             this.pendingSignal.Set();
             return true;
         }

@@ -774,7 +774,8 @@ namespace Poe2Accessibility.Services
             var known = this.RowId(row) is { } id ? catalog.ById(id) : null;
             if (known != null && shownRow == row)
             {
-                var named = KeywordLink.Replace(catalog.Name(known.Id, Localization.Language) ?? string.Empty, ShownText);
+                // A node the files know but leave unnamed (a catalog short of names) keeps the name its row holds.
+                var named = KeywordLink.Replace(catalog.Name(known.Id, Localization.Language) is { Length: > 0 } fromFiles ? fromFiles : this.RowName(row), ShownText);
                 var gated = this.reader.TryRead<long>(row + GameLayout.PassiveTree.RowNoLinkedStepOffset, out var gate) && gate != 0;
                 this.CompareWithRow(known, row);
                 return new PassiveNodeRow(record, known.GraphId, named, Announcements.PassiveKind(known.Class), known.IconOnly, known.IsStart, known.Class, gated) { Id = known.Id };
@@ -805,6 +806,12 @@ namespace Poe2Accessibility.Services
                 Id = this.RowId(shownRow) ?? string.Empty,
             };
         }
+
+        /// <summary>The name a row itself holds, markup as the game keeps it; empty when it has none or cannot be read.</summary>
+        private string RowName(IntPtr row) =>
+            this.reader.TryRead<IntPtr>(row + GameLayout.PassiveTree.RowNameOffset, out var name) && name != IntPtr.Zero
+                ? this.elements.ReadUtf16BufferAt(name, MaxPassiveNameChars) ?? string.Empty
+                : string.Empty;
 
         /// <summary>A catalog name as the tooltip's title shows it: keyword links as their text.</summary>
         private static string ShownName(string name) => KeywordLink.Replace(name, ShownText);
@@ -909,7 +916,7 @@ namespace Poe2Accessibility.Services
             var catalog = PassiveTreeCatalog.Shared;
             if (this.passiveGraph is { } cached && cached.Canvas == canvasAddress && state == cached.State && !this.EdgesReadNow(cached, canvasAddress))
             {
-                if (cached.OwnStart == IntPtr.Zero && this.OwnStart(cached.Links.Keys, cached.Nodes) is var start && start != IntPtr.Zero)
+                if (cached.OwnStart == IntPtr.Zero && this.OwnStartDue() && this.OwnStart(cached.Links.Keys, cached.Nodes) is var start && start != IntPtr.Zero)
                 {
                     // The character was not readable when the tree was first read: without its start nothing reads as reachable.
                     this.passiveGraph = cached = cached with { OwnStart = start };
@@ -993,6 +1000,27 @@ namespace Poe2Accessibility.Services
             var graph = new PassiveGraph(canvasAddress, state, links, stickLinks, elementsByRecord, this.OwnStart(links.Keys, nodes)) { Nodes = nodes, EdgesFromMemory = edgeList != null };
             this.passiveGraph = graph;
             return graph;
+        }
+
+        /// <summary>
+        ///     A start that was not found for a readable character is looked for again this often: the search reads every
+        ///     node's row, and a class no node starts would cost that on each reading of the hovered node.
+        /// </summary>
+        private const int OwnStartAgainMs = 1000;
+
+        private long ownStartAgainAt;
+
+        /// <summary>Whether the class's start is worth looking for now: the character reads, and the last search was a moment ago.</summary>
+        private bool OwnStartDue()
+        {
+            var now = Environment.TickCount64;
+            if ((this.PlayerPath?.Invoke() ?? string.Empty).Length == 0 || now < this.ownStartAgainAt)
+            {
+                return false; // no character yet (nothing to find, nothing spent), or just searched
+            }
+
+            this.ownStartAgainAt = now + OwnStartAgainMs;
+            return true;
         }
 
         /// <summary>A graph made from the files alone looks for the edge list again this often: its order serves the stick step.</summary>

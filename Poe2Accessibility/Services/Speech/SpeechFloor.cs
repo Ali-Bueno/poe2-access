@@ -69,7 +69,7 @@ namespace Poe2Accessibility.Services
                 return true;
             }
 
-            if (interrupt)
+            if (Replaces(interrupt, reading))
             {
                 this.held.Clear();
             }
@@ -77,6 +77,15 @@ namespace Poe2Accessibility.Services
             this.held.Add((text, interrupt, now, reading));
             return false;
         }
+
+        /// <summary>
+        ///     Whether a phrase that must wait takes the place of what already waits: an interrupt does, but not a reading,
+        ///     which may itself go unsaid for its age and would take a pick-up or a refusal with it.
+        /// </summary>
+        public static bool Replaces(bool interrupt, bool reading) => interrupt && !reading;
+
+        /// <summary>A waiting phrase that went out another way (a warning joined to the urgent line after it) waits no more.</summary>
+        public void Withdraw(string text) => this.held.RemoveAll(phrase => phrase.Text == text);
 
         /// <summary>
         ///     A kept line going out now: cutting in, or after what is being said; returns whether it may interrupt (never
