@@ -83,6 +83,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\BuildGems.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GemNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\GemCatalog.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Player\SkillNameCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Layout\CatalogCrossCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\PassiveTreeCatalog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\SpeechFloor.cs" />

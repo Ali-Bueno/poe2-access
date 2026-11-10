@@ -39,14 +39,37 @@ namespace Poe2Accessibility.Services
             this.log = log;
         }
 
-        /// <summary>A skill's localized name ("Saeta básica") from its GrantedEffectsPerLevel row, each key checked against its table; "" when none.</summary>
-        public static string DisplayedName(HostMemoryReader memory, UiElementReader elements, IntPtr levelRow) =>
-            DatKey.Row(memory, elements, levelRow + GameLayout.SkillSlot.EffectKeyOffset, GameLayout.SkillSlot.EffectTable) is { } effect &&
+        /// <summary>
+        ///     A skill's localized name ("Saeta básica") from its GrantedEffectsPerLevel row, each key checked against its
+        ///     table; "" when none. The name the game reads is said whenever it is text; the game files' name of the same
+        ///     GrantedEffects Id (<see cref="GemCatalog"/>) stands in when it is not, and for every skill once the game's read
+        ///     is judged moved (<see cref="SkillNameCheck"/>).
+        /// </summary>
+        public static string DisplayedName(HostMemoryReader memory, UiElementReader elements, IntPtr levelRow)
+        {
+            if (DatKey.Row(memory, elements, levelRow + GameLayout.SkillSlot.EffectKeyOffset, GameLayout.SkillSlot.EffectTable) is not { } effect)
+            {
+                return string.Empty;
+            }
+
+            var fromFiles = EffectId(memory, elements, effect) is { } id ? GemCatalog.Shared.SkillName(id, Localization.Language) : null;
+            return SkillNameCheck.Choose(GameName(memory, elements, effect), fromFiles, NameCheck.Source);
+        }
+
+        /// <summary>The displayed name the game's own rows give a granted effect: its ActiveSkills row's; "" when the chain does not read.</summary>
+        private static string GameName(HostMemoryReader memory, UiElementReader elements, IntPtr effect) =>
             DatKey.Row(memory, elements, effect + GameLayout.SkillSlot.SkillKeyOffset, GameLayout.SkillSlot.SkillTable) is { } skill &&
-            memory.TryRead<IntPtr>(skill + GameLayout.SkillSlot.DisplayedNameOffset, out var name) &&
-            elements.ReadUtf16BufferAt(name, MaxNameChars) is { Length: > 0 } text
-                ? text
+            memory.TryRead<IntPtr>(skill + GameLayout.SkillSlot.DisplayedNameOffset, out var name)
+                ? elements.ReadUtf16BufferAt(name, MaxNameChars) ?? string.Empty
                 : string.Empty;
+
+        private static string? EffectId(HostMemoryReader memory, UiElementReader elements, IntPtr effect) =>
+            memory.TryRead<IntPtr>(effect + GameLayout.SkillSlot.EffectIdOffset, out var id) && elements.ReadUtf16BufferAt(id, MaxIdChars) is { Length: > 0 } text ? text : null;
+
+        /// <summary>Whose names are said, judged on all the followed player's skills at each poll; one for the plugin, as the offsets are.</summary>
+        private static readonly SkillNameCheck NameCheck = new();
+        private static readonly HashSet<string> OwnNamesLogged = new(StringComparer.Ordinal);
+        private static int nameGeneration = -1;
 
         /// <summary>Whether the followed player has the skill now.</summary>
         public bool Has(string id) => this.Ids().Contains(id);
@@ -76,6 +99,7 @@ namespace Poe2Accessibility.Services
         private List<string> SkillIds(IntPtr actor)
         {
             var ids = new List<string>();
+            var names = new List<(string Id, string FromGame)>();
             if (!this.memory.TryRead<IntPtr>(actor + GameLayout.ActorComponent.SkillsOffset, out var first) ||
                 !this.memory.TryRead<IntPtr>(actor + GameLayout.ActorComponent.SkillsOffset + IntPtr.Size, out var last) ||
                 first == IntPtr.Zero || last.ToInt64() <= first.ToInt64())
@@ -89,14 +113,55 @@ namespace Poe2Accessibility.Services
                 if (this.memory.TryRead<IntPtr>(first + (int)(i * GameLayout.ActorComponent.SkillEntrySize), out var details) && details != IntPtr.Zero &&
                     SkillLevelKey.Row(this.memory, this.elements, details) is { } level &&
                     DatKey.Row(this.memory, this.elements, level + GameLayout.SkillSlot.EffectKeyOffset, GameLayout.SkillSlot.EffectTable) is { } effect &&
-                    this.memory.TryRead<IntPtr>(effect + GameLayout.SkillSlot.EffectIdOffset, out var id) &&
-                    this.elements.ReadUtf16BufferAt(id, MaxIdChars) is { Length: > 0 } text && !ids.Contains(text))
+                    EffectId(this.memory, this.elements, effect) is { } text && !ids.Contains(text))
                 {
                     ids.Add(text);
+                    names.Add((text, GameName(this.memory, this.elements, effect)));
                 }
             }
 
+            this.JudgeNames(names);
             return ids;
+        }
+
+        /// <summary>
+        ///     One reading of every skill's name beside the game files' (in whichever language the game runs in). They agree on
+        ///     most: a skill that differs is the game's own display name, and the game's is said. They disagree on most, twice
+        ///     running: the row offsets the game's read goes through moved, the files' names are said and the columns are
+        ///     reported as any column nothing judged is.
+        /// </summary>
+        private void JudgeNames(List<(string Id, string FromGame)> names)
+        {
+            var catalog = GemCatalog.Shared;
+            var known = names.Where(skill => catalog.SkillName(skill.Id, "en") != null).ToList();
+            var differing = known.Where(skill => !catalog.IsSkillName(skill.Id, skill.FromGame)).ToList();
+            if ((CompatibilityReport.Current?.Generation ?? 0) is var generation && generation != nameGeneration)
+            {
+                nameGeneration = generation; // a new game process: judged again
+                NameCheck.Reset();
+                OwnNamesLogged.Clear();
+            }
+
+            if (NameCheck.Observe(known.Count, differing.Count))
+            {
+                if (NameCheck.Source == SkillNameSource.Files)
+                {
+                    this.log.Warn($"Skill names: the game's read DISAGREES with the game files on {differing.Count} of {known.Count} skills (first {differing[0].Id}: '{differing[0].FromGame}'); the files' names are said");
+                    CompatibilityReport.Current?.Missing(DatColumns.UnjudgedPart);
+                }
+                else
+                {
+                    this.log.Info($"Skill names: the game's read agrees with the game files on {known.Count - differing.Count} of {known.Count} skills; the game's names are said");
+                }
+            }
+
+            if (NameCheck.Source == SkillNameSource.Game)
+            {
+                foreach (var (id, fromGame) in differing.Where(skill => OwnNamesLogged.Add(skill.Id)))
+                {
+                    this.log.Info($"Skill name: the game shows {id} as '{fromGame}', the game files as '{catalog.SkillName(id, "en")}'; the game's is said when it is text");
+                }
+            }
         }
     }
 }
