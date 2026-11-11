@@ -72,6 +72,10 @@ namespace Poe2Accessibility.Services
         private readonly List<(int Node, string Button)> walkGlyphs = new();
         private readonly List<(int Node, string Unit)> walkUnits = new();
         private readonly List<(int Node, int Set)> walkSetIcons = new();
+
+        /// <summary>The tab controls met in the layer being walked, and one entry per end button already given its legend.</summary>
+        private readonly List<int> walkTabBars = new();
+        private readonly List<int> walkTabBarEnds = new();
         private readonly Stack<(UiElementReader.ElementInfo Info, int Parent, int Index, int Control)> walkStack = new();
 
         /// <summary>Where each ancestor of a snapshot is, emptied for the next: a table per snapshot was megabytes with the passive tree open.</summary>
@@ -316,6 +320,9 @@ namespace Poe2Accessibility.Services
             setIcons.Clear();
             stack.Clear();
             var hasControls = false;
+            var (tabBars, tabBarEnds) = (this.walkTabBars, this.walkTabBarEnds);
+            tabBars.Clear();
+            tabBarEnds.Clear();
             bool isHintBar;
             stack.Push((layerInfo, -1, 0, -1));
             byte[]? walked = null;
@@ -335,6 +342,11 @@ namespace Poe2Accessibility.Services
                     hasControls = true;
                     control = self;
                     enabled = !FlagBits.EnabledTrusted || info.HasFlagBit(GameLayout.Element.EnabledFlagBit);
+                }
+
+                if (info.Name == TabBar.ButtonsName && parent >= 0)
+                {
+                    tabBars.Add(parent); // the tab control holding this bar: two of its later children hold its end buttons
                 }
 
                 var position = info.Raw.RelativePosition;
@@ -380,7 +392,15 @@ namespace Poe2Accessibility.Services
                 }
                 else if (this.TextureKeyOf(info) is { } key)
                 {
-                    if (ControllerGlyphs.FromTextureKey(key) is { } glyph)
+                    if (ControllerGlyphs.FromTextureKey(key) is { } end && parent >= 0 && tabBars.Contains(nodes[parent].Parent))
+                    {
+                        // The buttons at the two ends of a tab bar switch tabs: a legend of their own, not the label of
+                        // the tab or heading nearest in the tree ("Entrada, RB" was said of the Options, 2026-11-10).
+                        var bar = nodes[parent].Parent;
+                        texts.Add((self, new ScreenText(info.Address, TabBar.EndLegend(tabBarEnds.Count(seen => seen == bar)), info.Name, false, true, end)));
+                        tabBarEnds.Add(bar);
+                    }
+                    else if (ControllerGlyphs.FromTextureKey(key) is { } glyph)
                     {
                         glyphs.Add((self, this.HasChildNamed(this.walkChildren, children, GameLayout.InGameUi.HoldProgressName) ? Announcements.HoldButton(glyph) : glyph));
                     }

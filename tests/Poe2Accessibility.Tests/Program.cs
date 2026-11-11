@@ -52,6 +52,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(ChangedTextIsReportedOnce), ChangedTextIsReportedOnce);
             Run(nameof(CounterTicksAreIgnored), CounterTicksAreIgnored);
             Run(nameof(APadButtonTurningUsableIsNews), APadButtonTurningUsableIsNews);
+            Run(nameof(TheEndsOfATabBarSayWhatTheyDo), TheEndsOfATabBarSayWhatTheyDo);
             Run(nameof(ClosedPopupIsNewsAgain), ClosedPopupIsNewsAgain);
             Run(nameof(InGameBaseLayersNeverOwnInput), InGameBaseLayersNeverOwnInput);
             Run(nameof(TypingIsReportedAsTheEdit), TypingIsReportedAsTheEdit);
@@ -365,6 +366,14 @@ namespace Poe2Accessibility.Tests
             Equal(1, differ.Apply(Options(false)).Count, "saved: unavailable again is news too");
             differ.Apply(Options(false, false));
             Equal(0, differ.Apply(Options(false, false)).Count, "a control of the HUD (a skill on cooldown) is not followed");
+        }
+
+        /// <summary>The Options' bar: [LB] Gráficos … Entrada [RB]; "Entrada, RB" was said of it (2026-11-10).</summary>
+        private static void TheEndsOfATabBarSayWhatTheyDo()
+        {
+            Equal(Announcements.PreviousTab, TabBar.EndLegend(0), "the first end button met is the previous tab's");
+            Equal(Announcements.NextTab, TabBar.EndLegend(1), "the second the next tab's");
+            Equal(false, Announcements.PreviousTab == Announcements.NextTab, "two legends");
         }
 
         private static void ClosedPopupIsNewsAgain()

@@ -589,6 +589,11 @@ namespace Poe2Accessibility
         /// <summary>The icon button that empties a search box (the game's own hint for it: "Borrar búsqueda").</summary>
         public static string ClearSearch => T("Clear search", "Borrar búsqueda");
 
+        /// <summary>The shoulder buttons drawn at the two ends of a tab bar (Options): what each does, not the tab beside it.</summary>
+        public static string PreviousTab => T("Previous tab", "Pestaña anterior");
+
+        public static string NextTab => T("Next tab", "Pestaña siguiente");
+
         /// <summary>A collapsible row shown open (a Challenges category after A).</summary>
         public static string Expanded => T("expanded", "expandido");
 
