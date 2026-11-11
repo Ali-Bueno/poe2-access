@@ -2,6 +2,7 @@ namespace Poe2Accessibility.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using Poe2Accessibility.Services;
     using static Check;
 
@@ -12,6 +13,7 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(APartWithNoWordingIsNotSaidByItsInternalName), APartWithNoWordingIsNotSaidByItsInternalName),
             (nameof(AChatThatReadEmptyOnceIsNotSaidAgainWhole), AChatThatReadEmptyOnceIsNotSaidAgainWhole),
+            (nameof(AChatWhoseNewestLineIsItsOldestIsNotSaidAgainWhole), AChatWhoseNewestLineIsItsOldestIsNotSaidAgainWhole),
         };
 
         /// <summary>"Aviso de compatibilidad: no encuentro EntityOffsets" was heard on 2026-11-08; "passive build marks" would be today.</summary>
@@ -30,6 +32,16 @@ namespace Poe2Accessibility.Tests
             Equal(0, ChatDiff.News(Array.Empty<string>(), history, Fresh).Count, "the history back after an empty reading is not news");
             Equal("Una: Bienvenido.", string.Join(" | ", ChatDiff.News(Array.Empty<string>(), new[] { "Una: Bienvenido." }, Fresh)), "the first lines of an empty chat are");
             Equal("Intercambio cancelado.", string.Join(" | ", ChatDiff.News(history[..5], history, Fresh)), "and so is a line added to a chat that read whole");
+        }
+
+        /// <summary>A poll that read only the newest line, the same shout as the oldest one, lined up with the whole history (2026-11-11).</summary>
+        private static void AChatWhoseNewestLineIsItsOldestIsNotSaidAgainWhole()
+        {
+            const int Fresh = 5;
+            var shout = "yarkey: ¡Todavía no!";
+            var history = new[] { shout, "yarkey: ¡Locos!", "yarkey ha muerto.", "Renly: Vuelve pronto.", "yarkey: ¡Granada!", "Una: Adiós.", "yarkey: ¡Más tiempo!", shout };
+            Equal(0, ChatDiff.News(new[] { shout }, history, Fresh).Count, "the history back after a reading of its newest line only is not news");
+            Equal("Una: Hola. | yarkey: ¡Ya!", string.Join(" | ", ChatDiff.News(history, history.Append("Una: Hola.").Append("yarkey: ¡Ya!").ToArray(), Fresh)), "lines added to a chat that read whole still are");
         }
     }
 }
