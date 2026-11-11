@@ -12,6 +12,7 @@ internal sealed class Instance(int? spareProcessId = null) : IDisposable
     private const int GracefulExitMilliseconds = 5_000;
     private const int ExitWaitMilliseconds = 10_000;
     private const int LeaveMilliseconds = 2_000; // an instance that answered the stop finishes its exit
+    private const int SecondLookMilliseconds = 100; // TryOwn's second wait (Proton's fsync)
     private const int MaxAncestors = 32; // parent ids are reused, so a chain can loop back on itself
     private static readonly string[] LegacyProcessNames = ["Poe2AccessHost", "GameHelper"];
 
@@ -32,7 +33,10 @@ internal sealed class Instance(int? spareProcessId = null) : IDisposable
 
         try
         {
-            this.Owned = this.mutex.WaitOne(waitMilliseconds);
+            // Under Proton's fsync the first zero-timeout wait of a process fails on a free mutex (seen 2026-11-11,
+            // Proton Experimental 11: the mod took itself for a second copy and only started the game); a second, short
+            // wait answers right. On Windows it costs that wait only when another copy holds the mutex.
+            this.Owned = this.mutex.WaitOne(waitMilliseconds) || this.mutex.WaitOne(SecondLookMilliseconds);
         }
         catch (AbandonedMutexException)
         {

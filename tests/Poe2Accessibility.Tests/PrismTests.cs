@@ -23,6 +23,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheBridgedBackendIdsAreTheHeaders), TheBridgedBackendIdsAreTheHeaders),
             (nameof(UnderWineOnlyTheBridgedBackendsAreTried), UnderWineOnlyTheBridgedBackendsAreTried),
             (nameof(TheProtonScriptShipsForSh), TheProtonScriptShipsForSh),
+            (nameof(UnderWineTheDialogsAskTheLinuxDesktop), UnderWineTheDialogsAskTheLinuxDesktop),
             (nameof(AMentionBeingHeardIsNotSaidAgain), AMentionBeingHeardIsNotSaidAgain),
         };
 
@@ -163,10 +164,37 @@ namespace Poe2Accessibility.Tests
         /// </summary>
         private static void TheProtonScriptShipsForSh()
         {
-            var script = File.ReadAllText(Path.Join(PrismFolder(), "..", "..", "tools", "package", PrismLibrary.ProtonScript));
-            Equal(false, script.Contains('\r'), "no carriage returns");
-            Equal(true, script.StartsWith("#!/bin/sh\n", StringComparison.Ordinal), "a POSIX sh script");
+            var package = Path.Join(PrismFolder(), "..", "..", "tools", "package");
+            foreach (var name in new[] { PrismLibrary.ProtonScript, "poe2access-stop.sh", "install-linux.sh" })
+            {
+                var text = File.ReadAllText(Path.Join(package, name));
+                Equal(false, text.Contains('\r'), $"{name}: no carriage returns");
+                Equal(true, text.StartsWith("#!/bin/sh\n", StringComparison.Ordinal), $"{name}: a POSIX sh script");
+            }
+
+            var script = File.ReadAllText(Path.Join(package, PrismLibrary.ProtonScript));
             Equal(true, script.Contains("app/Plugins/Poe2Accessibility/" + PrismLibrary.WineFolder, StringComparison.Ordinal), "WINEDLLPATH names the packaged bridge folder");
+            Equal(true, File.ReadAllText(Path.Join(package, "poe2access-stop.sh")).Contains("poe2access-proton.env", StringComparison.Ordinal), "the stop script reads the session the launch script records");
+        }
+
+        /// <summary>
+        ///     Under Wine the start-up questions and errors go to zenity or kdialog, which Orca reads, and their exit code
+        ///     comes back as MessageBoxW's answer; nothing written means the message box is shown instead.
+        /// </summary>
+        private static void UnderWineTheDialogsAskTheLinuxDesktop()
+        {
+            const uint question = 0x4 | 0x20 | 0x10000 | 0x40000; // the updater's MB_YESNO | MB_ICONQUESTION | MB_SETFOREGROUND | MB_TOPMOST
+            Equal("question", Poe2Access.HostDialog.Kind(question), "the update question");
+            Equal("error", Poe2Access.HostDialog.Kind(0x10), "an error");
+            Equal("info", Poe2Access.HostDialog.Kind(0x40), "a note");
+            Equal<int?>(6, Poe2Access.HostDialog.Answer(question, "0\n"), "Yes");
+            Equal<int?>(7, Poe2Access.HostDialog.Answer(question, "1\n"), "No, or the window closed");
+            Equal<int?>(7, Poe2Access.HostDialog.Answer(question, "255\n"), "a failed zenity is no");
+            Equal<int?>(1, Poe2Access.HostDialog.Answer(0x10, "0\n"), "OK");
+            Equal<int?>(null, Poe2Access.HostDialog.Answer(question, null), "no zenity nor kdialog: the message box");
+            Equal<int?>(null, Poe2Access.HostDialog.Answer(question, string.Empty), "nothing written");
+            Equal<int?>(null, Poe2Access.HostDialog.Answer(question, "none\n"), "the script found neither: the message box");
+            Equal(false, Poe2Access.HostDialog.Script.Contains('\r'), "the script has Unix line ends");
         }
 
         /// <summary>
