@@ -394,9 +394,10 @@ namespace Poe2Accessibility.Services
             var legend = hud?.Texts.FirstOrDefault(text => text.Name == GameLayout.InGameUi.QuestLegendName)?.Text ?? string.Empty;
             if (this.questPage.News(QuestsOf(tracker), this.InMenu, legend) is { Length: > 0 } page)
             {
-                // Held whole, pages turned one after another queued up behind each other (user 2026-11-07).
+                // Held whole, pages turned one after another queued up behind each other (user 2026-11-07); the cursor's
+                // move cuts it, as it held a dialogue's options back for 12 s (user 2026-11-11).
                 var turned = this.questPage.Turned;
-                this.Speak("quest page", Announcements.QuestPage(page), turned || SpeechPriority.Interrupts(SpeechKind.Quest), turned ? Hold.Floor : Hold.Lesson);
+                this.Speak("quest page", Announcements.QuestPage(page), turned || SpeechPriority.Interrupts(SpeechKind.Quest), turned ? Hold.Floor : Hold.Page);
             }
 
             return tracker;

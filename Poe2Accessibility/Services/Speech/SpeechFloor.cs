@@ -32,6 +32,9 @@ namespace Poe2Accessibility.Services
         /// <summary>The part of the hold the player's own move does not end (a lesson's).</summary>
         private DateTime lessonUntil = DateTime.MinValue;
 
+        /// <summary>The hold of a kept line that yields to moves but is longer than a message's: a move cuts it instead of following it.</summary>
+        private DateTime pageUntil = DateTime.MinValue;
+
         /// <summary>The last kept line and when it is estimated said, whatever move ended its hold.</summary>
         private (string Text, DateTime Until) lastKept = (string.Empty, DateTime.MinValue);
 
@@ -100,6 +103,7 @@ namespace Poe2Accessibility.Services
             var until = startsAt.AddMilliseconds(holdMs);
             this.keptUntil = until > this.keptUntil ? until : this.keptUntil;
             this.lastKept = (text, until);
+            this.pageUntil = yieldsToMoves && holdMs > MaxMessageHoldMs ? until : DateTime.MinValue;
             if (!yieldsToMoves && until > this.lessonUntil)
             {
                 this.lessonUntil = until;
@@ -111,6 +115,7 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     The player's own move (the cursor to another cell): a message no longer holds it back, it follows what is being
         ///     said instead of waiting out the estimate (user 2026-10-28, selling); a lesson still holds. What waited is stale.
+        ///     A kept page too long to wait behind (the quest tracker's, user 2026-11-11) is cut by the move.
         /// </summary>
         public bool Move(string text, ref bool interrupt, DateTime now)
         {
@@ -122,7 +127,7 @@ namespace Poe2Accessibility.Services
             if (this.Held(now))
             {
                 this.keptUntil = this.lessonUntil;
-                interrupt = false;
+                interrupt &= now < this.pageUntil;
             }
 
             this.held.Clear();

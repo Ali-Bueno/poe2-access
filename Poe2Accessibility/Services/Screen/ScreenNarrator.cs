@@ -743,6 +743,9 @@ namespace Poe2Accessibility.Services
             Message,
             Lesson,
 
+            /// <summary>What the player can ask for again (the quest page): kept for its length, but the cursor's move cuts it.</summary>
+            Page,
+
             /// <summary>The player asked for it: it cuts even a held line, and holds nothing back itself.</summary>
             Floor,
         }
@@ -796,8 +799,8 @@ namespace Poe2Accessibility.Services
 
             if (hold != Hold.None)
             {
-                this.output.Keep(text, hold == Hold.Lesson ? Math.Clamp(SpeechFloor.SpokenMs(text), MinKeepMs, MaxKeepMs) : SpeechFloor.MessageHoldMs(text), interrupt,
-                    yieldsToMoves: hold == Hold.Message);
+                this.output.Keep(text, hold == Hold.Message ? SpeechFloor.MessageHoldMs(text) : Math.Clamp(SpeechFloor.SpokenMs(text), MinKeepMs, MaxKeepMs), interrupt,
+                    yieldsToMoves: hold != Hold.Lesson);
                 return;
             }
 

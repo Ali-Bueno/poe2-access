@@ -1580,6 +1580,19 @@ namespace Poe2Accessibility.Tests
             floor.Keep("Navega a tu arbol de pasivas", true, 2000, lesson);
             interrupt = true;
             Equal(false, floor.Move("Vacío, columna 4, fila 2", ref interrupt, lesson.AddMilliseconds(300)), "a lesson still holds the move");
+
+            // The quest page on entering the camp held Renly's options back for 12 s (2026-11-11).
+            var page = start.AddMinutes(2);
+            floor.Keep("Misión: Secretos en la oscuridad. Atraviesa Sierraclara y adéntrate en el Bosque singular", false, 6000, page, yieldsToMoves: true);
+            Equal(false, floor.Admit("Renly, A", true, page.AddMilliseconds(500)), "what the game shows meanwhile waits for the page");
+            interrupt = true;
+            Equal(true, floor.Move("El devorador, 6 de 8", ref interrupt, page.AddMilliseconds(900)), "the player's move goes out now");
+            Equal(true, interrupt, "cutting the page, too long to wait behind");
+            Equal(false, floor.Held(page.AddMilliseconds(1000)), "and the page holds nothing more");
+            floor.Keep("Vendido: Porra de madera, por 3 de oro", true, 1700, page.AddSeconds(2), yieldsToMoves: true);
+            interrupt = true;
+            floor.Move("Vacío, columna 1, fila 1", ref interrupt, page.AddSeconds(2).AddMilliseconds(200));
+            Equal(false, interrupt, "a message after a page is followed as ever");
         }
 
         private static void PendingLessonIsRemindedNowAndThen()
