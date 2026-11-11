@@ -112,8 +112,11 @@ function New-ModPackage([string]$Output, [string]$Name, [string]$Version = '', [
     $plugin = Join-Path $app 'Plugins\Poe2Accessibility'
     $oodle = Join-Path $RepoRoot 'external\oodle\oo2core.dll'
     if (-not (Test-Path $oodle)) { throw 'external\oodle\oo2core.dll is missing: the mod reads the game''s bundles with it (tools/README.md, ooz-shim).' }
-    $protonScript = Join-Path $ToolsRoot 'package\poe2access-proton.sh'
-    if ([IO.File]::ReadAllText($protonScript).Contains("`r")) { throw 'tools\package\poe2access-proton.sh has CR line ends: sh would fail on it.' }
+    # The Linux scripts (Proton launch option, stop, installer) beside Poe2Access.exe; sh fails on CR line ends.
+    $linuxScripts = 'poe2access-proton.sh', 'poe2access-stop.sh', 'install-linux.sh' | ForEach-Object { Join-Path $ToolsRoot "package\$_" }
+    foreach ($script in $linuxScripts) {
+        if ([IO.File]::ReadAllText($script).Contains("`r")) { throw "$script has CR line ends: sh would fail on it." }
+    }
     $sevenZip = Join-Path $env:ProgramFiles '7-Zip\7z.exe'
     if (-not (Test-Path $sevenZip)) {
         if ($Require7z) { throw "7-Zip is not installed ($sevenZip): the release's Poe2Access.7z needs it." }
@@ -154,7 +157,8 @@ function New-ModPackage([string]$Output, [string]$Name, [string]$Version = '', [
     # The release tag the updater compares with the latest release; a package without it never updates itself.
     if ($Version) { Set-Content -Path (Join-Path $app 'version.txt') -Value $Version -Encoding ascii }
 
-    Copy-Item (Join-Path $ToolsRoot 'package\README.txt'), $protonScript $stage
+    Copy-Item (Join-Path $ToolsRoot 'package\README.txt') $stage
+    Copy-Item $linuxScripts $stage
     Copy-Item (Join-Path $RepoRoot 'docs\controls.md') (Join-Path $stage 'Controls.md')
     Set-Content -Path (Join-Path $stage 'Stop the mod.bat') -Value "@start `"`" `"%~dp0Poe2Access.exe`" stop" -Encoding ascii
 
@@ -182,7 +186,7 @@ function New-ModPackage([string]$Output, [string]$Name, [string]$Version = '', [
 function Test-PackageLayout([string]$Stage, [string]$Version) {
     $problems = @()
     $top = @(Get-ChildItem $Stage | ForEach-Object Name)
-    $expected = 'Poe2Access.exe', 'README.txt', 'Controls.md', 'Stop the mod.bat', 'poe2access-proton.sh', 'app'
+    $expected = 'Poe2Access.exe', 'README.txt', 'Controls.md', 'Stop the mod.bat', 'poe2access-proton.sh', 'poe2access-stop.sh', 'install-linux.sh', 'app'
     $problems += $expected | Where-Object { $_ -notin $top } | ForEach-Object { "missing $_" }
     $problems += $top | Where-Object { $_ -notin $expected } | ForEach-Object { "unexpected $_ at the top" }
     $app = Join-Path $Stage 'app'

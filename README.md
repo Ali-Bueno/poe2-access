@@ -27,10 +27,12 @@ network traffic. Use it at your own risk.
 
 Nothing else needs installing: everything is inside the folder.
 
-Linux and Steam Deck (Proton): the mod carries what its speech needs there (through Orca or Speech Dispatcher), but it
-has not been tried yet. It starts from Steam's Play button with the game's launch option set to
-`sh "<mod folder>/poe2access-proton.sh" %command%`; the details, and what is still unknown, are in
-[docs/proton.md](docs/proton.md).
+Linux and Steam Deck (Proton): unzip the mod in your home folder and run `sh install-linux.sh` in it (with Steam
+closed). It checks speech (Speech Dispatcher, or Orca) and sets the game's launch option to
+`sh "<mod folder>/poe2access-proton.sh" %command%`; then the mod starts with the game from Steam's Play button, speaks
+through Speech Dispatcher or Orca, and asks its questions in zenity windows that Orca reads. `sh poe2access-stop.sh`
+stops it. Speech, memory reading and dialogs are checked under Proton; a full game session is still to be tried. The
+details are in [docs/proton.md](docs/proton.md).
 
 ## Getting started
 

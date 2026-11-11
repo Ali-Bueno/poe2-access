@@ -1,12 +1,26 @@
 # Linux: Steam with Proton (Steam Deck)
 
-Speech under Wine or Proton, as the sister mods do it (the D2R mod's
-[issue #5](https://github.com/Ali-Bueno/d2r-access/issues/5) and
-[PR #6](https://github.com/Ali-Bueno/d2r-access/pull/6), its releases 1.0.11 and 1.0.12: heard there under Proton
-Experimental on Arch with Cthulhu). Built and checked on Windows on 2026-11-08 and 2026-11-09; **not yet run under
-Proton or on a Steam Deck**. The rest of the mod is untested there too: it reads the
-game's memory from its own process (`ReadProcessMemory` on the game's process, in the same Wine prefix), and whether
-Wine allows that, and finds the game's window and modules as on Windows, is **unverified**.
+The mod runs under Proton the way it runs on Windows: `Poe2Access.exe` in the game's own Wine prefix, beside the game,
+reading its memory with `ReadProcessMemory`. Speech goes to the Linux desktop through PRISM's Wine bridges (Speech
+Dispatcher, Orca or Spiel), and the start-up questions and errors through zenity or kdialog, which Orca reads.
+
+**Checked on Linux (Linux Mint 22.3, Proton Experimental 11.0, Orca 46.1, Speech Dispatcher; 2026-11-11), without the
+game:** the solution builds on Linux; all unit tests pass under Proton's Wine; PRISM speaks through Speech Dispatcher
+under Wine; a Wine process reads another Wine process's memory (`OpenProcess(PROCESS_VM_READ)`, `ReadProcessMemory`,
+about 11 µs a read, with `kernel.yama.ptrace_scope` 1), finds its main window, main module and image path; zenity opens
+from the mod and its answer comes back. And the whole start, with Wine's Notepad renamed `PathOfExileSteam.exe` standing
+in for the game: `poe2access-proton.sh` with a Steam-like command ran `Poe2Access.exe` under `proton`, which started
+the stand-in from that command, saw its window, loaded the plugin (speech: "Path of Exile 2 accessibility ready"),
+opened the process and searched its memory; `poe2access-stop.sh` stopped it in a third of a second; closing the
+stand-in ended the mod and the script. **Not yet checked: the game itself** (it was still downloading): Steam's real
+command, a real PoE2 process and the game data step (FMOD, Oodle) under Wine wait for a first run.
+
+Why not natively, as [Awakened PoE Trade](https://github.com/SnosMe/awakened-poe-trade) runs on Linux: that tool never
+reads the game's memory (it reads the log file `Client.txt`, the clipboard and the X11 window), so a native Electron
+build is enough. This mod reads the memory, decompresses the game's bundles with an Oodle-compatible `oo2core.dll`,
+renders the game's sounds with the game's own `fmod.dll` and plays its cues through `winmm`: all Windows libraries.
+Inside the prefix they work unchanged, and a Wine process may read the game where a native one would need ptrace rights
+over it (Wine lets its own server trace its processes, so the default Yama level 1 is enough).
 
 ## Why it was silent
 
@@ -29,8 +43,9 @@ over eSpeak-NG, which reports a voice while the Steam runtime carries no eSpeak-
 fails. At 0.18.3 SAPI, UIA and Speech Dispatcher share priority 97 (NVDA 103, Orca 100, OneCore 98, Spiel 96) and SAPI
 comes first, so it wins whenever Orca is missing (the D2R mod's tester, 2026-11-09). Under Wine the binding therefore
 never calls `acquire_best`: `PrismLibrary.StartBridged` tries only Orca, Speech Dispatcher and Spiel, by priority, each
-checked with `prism_registry_get` and `PRISM_BACKEND_IS_SUPPORTED_AT_RUNTIME` before `prism_registry_acquire`
-(`ALREADY_INITIALIZED` counts as started), and when none starts it says why for each. It also sends PRISM's own log to
+taken with `prism_registry_acquire` and kept only when `PRISM_BACKEND_IS_SUPPORTED_AT_RUNTIME` is set and it initialises
+(until 2026-11-11 it asked `prism_registry_get` first, which at v0.18.3 only returns an instance acquired before: null
+for every bridge, so nothing spoke under Wine) (`ALREADY_INITIALIZED` counts as started), and when none starts it says why for each. It also sends PRISM's own log to
 the mod's log at debug level while it starts (`prism_set_log_handler`), the only place PRISM says why a bridge did not
 load, then lowers it to warnings. On Windows none of this runs: `acquire_best`, NVDA first, no PRISM log.
 
@@ -60,35 +75,84 @@ the same release and never renamed.
 - Wine then loads the matching `.dll.so` by name from `WINEDLLPATH`, read when the process starts: the mod cannot set
   it from inside.
 
-## Starting the mod
+## Installing
 
-From Steam's Play button, with the script the package carries beside `Poe2Access.exe`. Unzip the mod anywhere in your
-home folder, then in Steam: **Path of Exile 2 > Properties > General > Launch options**:
+Unzip the mod anywhere in your home folder, open a terminal there and run `sh install-linux.sh`
+(`tools/package/install-linux.sh`). It finds the game in the Steam libraries, says whether speech (Speech Dispatcher or
+Orca), zenity or kdialog and the kernel's ptrace setting are as the mod needs, and sets the game's launch option in
+Steam's `userdata/<account>/config/localconfig.vdf` (a backup `.poe2access-backup` beside it), keeping any other option
+the player had (`PROTON_LOG=1 %command% --x` becomes `PROTON_LOG=1 sh "<mod>/poe2access-proton.sh" %command% --x`; a
+moved mod folder replaces the old path). Steam must be closed, since it rewrites that file when it exits; otherwise the
+script prints the steps to do it by hand. `sh install-linux.sh --uninstall` takes the launch option out again.
+
+By hand, in Steam: **Path of Exile 2 > Properties > General > Launch options**:
 
 ```sh
 sh "/home/<you>/Poe2Access/poe2access-proton.sh" %command%
 ```
 
-(the script's real path; `sh` in front because a zip made on Windows keeps no execute bit). What it does
-(`tools/package/poe2access-proton.sh`):
+(the script's real path; `sh` in front because a zip made on Windows keeps no execute bit).
+
+## Starting the mod
+
+From Steam's Play button. What `poe2access-proton.sh` does (`tools/package/poe2access-proton.sh`):
 
 1. Takes from Steam's command (`%command%`) the Proton Steam picked (the argument ending in `/proton`), the game's
    `PathOfExileSteam.exe` and its arguments; keeps Steam's `STEAM_COMPAT_*` and `SteamAppId`, with the usual defaults
    when one is missing.
-2. Puts `app/Plugins/Poe2Accessibility/wine` in `WINEDLLPATH`.
-3. Runs `proton waitforexitandrun ./Poe2Access.exe "Z:\…\PathOfExileSteam.exe" <its arguments>`: the mod's launcher in
+2. Puts `app/Plugins/Poe2Accessibility/wine` in `WINEDLLPATH`, and sets `DOTNET_SYSTEM_GLOBALIZATION_USENLS=1`: .NET
+   takes ICU for culture data and Wine's `icu.dll` lacks it, so `Poe2Access.exe` stopped at once ("Cannot get symbol
+   u_charsToUChars from libicuuc", seen 2026-11-11); Windows' NLS calls, which Wine implements, serve instead. Windows
+   is not touched: only this script sets it.
+3. Warns, aloud through `spd-say` and in its log, when `kernel.yama.ptrace_scope` is 2 or 3 (then even Wine's server
+   may not read the game), and records the session (`$XDG_RUNTIME_DIR/poe2access-proton.env`) for the stop script.
+4. Runs `proton waitforexitandrun ./Poe2Access.exe "Z:\…\PathOfExileSteam.exe" <its arguments>`: the mod's launcher in
    the game's prefix, outside Steam's runtime container, as the D2R script does. The launcher starts the game from that
    path, as it does on Windows when it is the launch option (`GameInstall.SplitArguments`, `GameLauncher.Start`), so
    the game and the mod share one Wine session and the game keeps Steam's launch environment. Steam's own command,
-   with its container, is not run.
+   with its container, is not run. Outside the container the bridges find the host's `libspeechd.so.2` (Steam Linux
+   Runtime 4 has none) and the mod reaches the host's zenity.
+
+Proton runs with fsync, under which the first zero-timeout wait of a process fails on a free mutex: the mod's
+single-instance check (`Instance.TryOwn(0)`) took itself for a second copy, only started the game and stayed silent
+(2026-11-11). `TryOwn` now looks a second time with a 100 ms wait, which answers right under fsync and costs Windows
+that wait only when another copy really holds the mutex.
+
+Steam shows nothing a launch option prints: the script logs to `app/proton-launch.log` and says its errors aloud. Run
+by hand without Steam's command (a terminal, a shortcut), it asks Steam to start the game when the launch option is
+set, which runs it again the proper way, and otherwise says to run `install-linux.sh`.
 
 Why not `protontricks-launch`: it does not pass `WINEDLLPATH` to the program (the D2R mod's tester, 2026-11-09: the
 bridges did not load and PRISM took the mute SAPI). The mod's launcher must not be started on its own under Proton
 either: without a game command it asks Steam for the game, and Steam would run the launch option again.
 
-The host needs Orca (Cthulhu included) or Speech Dispatcher running, or Spiel; PRISM's priority picks among them. Orca is
-the route heard in the D2R test. Speech Dispatcher's bridge needs the host's `libspeechd.so.2`, which Steam's runtime
-container lacks; the script runs outside it, so the host's copy should be found (unverified).
+The host needs Speech Dispatcher, Orca (Cthulhu included) or Spiel; PRISM's priority picks among them. PRISM's Orca
+bridge talks to Orca's D-Bus service, which Orca 46 does not have: with it (Linux Mint 22.3, Ubuntu 24.04) the bridge
+loads and Speech Dispatcher speaks instead, with Orca's own voice settings.
+
+## Stopping
+
+The mod stops by itself when the game closes. `sh poe2access-stop.sh` (beside `Poe2Access.exe`) stops it while the game
+runs, as `Stop the mod.bat` does on Windows: it runs `proton runinprefix ./Poe2Access.exe stop` in the session the
+launch script recorded (`proton run` goes through Proton's `steam.exe`, which waits for the game to close).
+
+## Questions and errors (dialogs)
+
+A Windows message box under Wine is a bare X11 window: Orca cannot read it, so the update question at start would
+have stopped a blind player before the game. Under Wine, `Dialogs.Show` asks the Linux desktop instead
+(`HostDialog`): it writes a small sh script and the message under `/tmp` (Wine's `Z:` drive), runs it with
+`start.exe /unix /bin/sh …`, and the script opens zenity (`--question`, `--error`, `--info`, `--no-markup`) or kdialog.
+`start.exe /wait` does not wait for a Unix program and its exit code is lost, so the script creates an "open" file when
+the dialog opens and moves the exit code into an "answer" file when it closes; the mod polls them (15 s for the dialog
+to open, an hour for the answer). With neither program installed the script answers "none" and the message box is
+shown as before. Checked 2026-11-11: the text came through whole, with line breaks and quotes.
+
+## Developing on Linux
+
+`sh tools/linux-tests.sh` builds the solution (`-p:EnableWindowsTargeting=true`) and runs the unit tests under
+Proton's Wine in a prefix of its own (`~/.cache/poe2access-tests-prefix`); `sh tools/linux-tests.sh prism` also says one
+line through the built `prism.dll` and its bridges. Run natively, eight tests fail: they build Windows paths. The
+release package itself is made by `tools/package/*.ps1` under PowerShell and needs `external/oodle/oo2core.dll`.
 
 ## Checking
 

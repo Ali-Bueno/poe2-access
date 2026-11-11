@@ -11,7 +11,7 @@ WHAT YOU NEED
 - A screen reader. NVDA is recommended. Without one, the Windows voice is used.
 - An Xbox or PlayStation controller. The mod is built for playing with a controller.
 Nothing else needs installing: everything is inside this folder. Poe2Access.exe starts the mod; everything else is in the "app" folder and does not need touching.
-Linux and Steam Deck (Proton): not tried yet. In Steam, set the game's launch option (Properties, General, Launch options) to: sh "<this folder>/poe2access-proton.sh" %command%   then start the game with Play, with Orca or Speech Dispatcher running. Details: https://github.com/Ali-Bueno/poe2-access/blob/main/docs/proton.md
+Linux and Steam Deck (Proton): unzip this folder in your home folder, open a terminal in it and run: sh install-linux.sh   It finds the game, checks speech (Speech Dispatcher, or Orca) and sets the game's launch option in Steam to: sh "<this folder>/poe2access-proton.sh" %command%   (close Steam first, or it tells you how to set it by hand). Then start the game with Play: the mod starts with it. Questions and errors open in zenity windows, which Orca reads. To stop the mod: sh poe2access-stop.sh. What the launch did is in app/proton-launch.log. Still being tested. Details: https://github.com/Ali-Bueno/poe2-access/blob/main/docs/proton.md
 The mod speaks the language the game is set to (all ten of the game's languages).
 
 GETTING STARTED
