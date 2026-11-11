@@ -75,18 +75,11 @@ internal static class GameDataSetup
         var steps = GameDataSteps.All;
 
         var stamp = LoadStamp(stampFile, install, pluginCatalog, catalog, steps);
-        var stale = new HashSet<string>();
-        foreach (var step in steps)
+        var (staleSteps, copyBack) = GameDataSteps.Plan(steps, stamp, install, output => File.Exists(Path.Join(catalog, output)), File.Exists(Path.Join(sounds, SoundsManifest)));
+        var stale = staleSteps.ToHashSet();
+        foreach (var current in copyBack)
         {
-            var missing = step.Output is { } output ? !step.Optional && !File.Exists(Path.Join(catalog, output)) : !File.Exists(Path.Join(sounds, SoundsManifest));
-            if (missing || !stamp.IsCurrent(install, step.Name, step.Version) || (step.Input is { } input && stale.Contains(input)))
-            {
-                stale.Add(step.Name);
-            }
-            else if (step.Output is { } current && stamp.Made(install, step.Name, step.Version))
-            {
-                CopyIntoPlugin(catalog, pluginCatalog, current); // an update has just put the shipped copy back
-            }
+            CopyIntoPlugin(catalog, pluginCatalog, current); // an update has just put the shipped copy back
         }
 
         if (stale.Count == 0)
@@ -96,7 +89,7 @@ internal static class GameDataSetup
 
         Log.Write($"Game data is {(stamp.Steps.Count == 0 ? "missing" : "out of date")}: regenerating {string.Join(", ", stale)} from {gameDirectory}");
         var watch = Stopwatch.StartNew();
-        var failed = new List<string>();
+        var failures = new List<(string Step, string Error)>();
         using var spoken = GameDataNarrator.Start(plugin, steps.Where(step => stale.Contains(step.Name)).OrderBy(step => step.Command is null).Select(step => step.Name).ToArray());
         narrator = spoken;
         void Finish(Step step, string? error)
@@ -105,11 +98,7 @@ internal static class GameDataSetup
             {
                 Log.Write($"Game data: {step.Name} failed, previous kept ({error})");
                 spoken.StepFailed();
-                var listed = error == Extractor.BundleIndexName ? error : step.Name; // the index failing fails every step: one entry says it
-                if (!failed.Contains(listed))
-                {
-                    failed.Add(listed);
-                }
+                failures.Add((step.Name, error)); // the index failing fails every step: one entry says it (GameDataSteps.Failed)
             }
             else if (step.Output is { } output)
             {
@@ -157,7 +146,7 @@ internal static class GameDataSetup
 
         // The plugin says it: a catalog left behind by a patch would otherwise only show in this log.
         var failedFile = Path.Join(pluginCatalog, FailedStepsFile);
-        failed.AddRange(stamp.GivenUp().Where(name => !failed.Contains(name))); // given up on an earlier start, still not working
+        var failed = GameDataSteps.Failed(failures, stamp.GivenUp(), Extractor.BundleIndexName);
         if (failed.Count > 0)
         {
             File.WriteAllLines(failedFile, failed);

@@ -278,6 +278,7 @@ namespace Poe2Accessibility.Tests
                 HostAndToolsAuditTests.All(),
                 KnownRowTests.All(),
                 GameNameTests.All(),
+                HostRuleTests.All(),
                 LauncherWaitTests.All(),
                 RequiredStepTests.All(),
                 SpeechEventTests.All(),

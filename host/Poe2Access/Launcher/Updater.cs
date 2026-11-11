@@ -46,10 +46,11 @@ internal static class Updater
     public static bool Offer(AppFolders folders, Action stopRunning, bool manual)
     {
         var installedTag = InstalledTag(folders);
-        if (installedTag is null || ReleaseTag.Parse(installedTag) is not { } installed)
+        var before = UpdateOffer.Before(installedTag, manual, () => AutomaticCheckOn(folders));
+        if (before == UpdateStep.NoVersion || installedTag is null || ReleaseTag.Parse(installedTag) is not { } installed)
         {
             Log.Write("No version file: a development build, no update check");
-            if (manual)
+            if (UpdateOffer.Tells(UpdateStep.NoVersion, manual))
             {
                 Tell(Text("This copy has no version number (a development build), so it cannot update itself.",
                     "Esta copia no tiene número de versión (es de desarrollo), así que no puede actualizarse sola."), MessageBoxInformation);
@@ -58,7 +59,7 @@ internal static class Updater
             return false;
         }
 
-        if (!manual && !AutomaticCheckOn(folders))
+        if (before == UpdateStep.Off)
         {
             Log.Write("Update check off in the settings");
             return false;
@@ -81,9 +82,9 @@ internal static class Updater
         }
 
         Log.Write($"Installed {installedTag}, latest {release.Tag}");
-        if (release.Version <= installed)
+        if (UpdateOffer.After(installed, release.Version) == UpdateStep.UpToDate)
         {
-            if (manual)
+            if (UpdateOffer.Tells(UpdateStep.UpToDate, manual))
             {
                 Tell(Text($"Poe2Access is up to date ({installedTag}).", $"Poe2Access está al día ({installedTag})."), MessageBoxInformation);
             }

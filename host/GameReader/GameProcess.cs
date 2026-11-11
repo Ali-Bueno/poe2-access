@@ -181,7 +181,7 @@ namespace GameReader
                 {
                     // Several clients: the one in front, else the first (no one can pick from a popup).
                     var foreground = GetForegroundWindow();
-                    this.Information = this.processesInfo.Find(p => p.MainWindowHandle == foreground) ?? this.processesInfo[0];
+                    this.Information = this.processesInfo[GameProcessDetails.Pick(this.processesInfo.Count, i => this.processesInfo[i].MainWindowHandle, foreground)];
                     if (this.Open())
                     {
                         break;
@@ -203,10 +203,7 @@ namespace GameReader
                 {
                     // Have to check MainWindowHandle because
                     // sometime HasExited returns false even when game isn't running..
-                    if (this.Information == null ||
-                        this.Information.HasExited ||
-                        this.Information.MainWindowHandle.ToInt64() <= 0x00 ||
-                        this.closeForcefully)
+                    if (GameProcessDetails.Gone(this.Information != null, () => this.Information!.HasExited, () => this.Information!.MainWindowHandle.ToInt64(), this.closeForcefully))
                     {
                         shouldClose = true;
                     }
@@ -314,22 +311,17 @@ namespace GameReader
             }
 
             var states = Targets(StaticOffsetsPatterns.GameStates).Select(target => module + (nint)target).ToList();
-            var proven = states.FirstOrDefault(address => GameStatesSearch.Holds(reader, address, module, size));
-            if (proven != IntPtr.Zero)
+            var (given, proven) = StateSearchRules.Given(states.Select(address => address.ToInt64()).ToList(), address => GameStatesSearch.Holds(reader, (IntPtr)address, module, size));
+            if (given != 0)
             {
-                addresses[StaticOffsetsPatterns.GameStates] = proven;
-            }
-            else if (states.Count == 1)
-            {
-                // Right or wrong, it cannot be told yet: the game builds its states a while after it starts.
-                addresses[StaticOffsetsPatterns.GameStates] = states[0];
+                addresses[StaticOffsetsPatterns.GameStates] = (IntPtr)given;
             }
 
             Console.WriteLine(
                 $"[GameProcess] Statics: cull {(cull > 0 ? $"+0x{cull:X}" : "not found")}, game states " +
-                $"{(proven != IntPtr.Zero ? "proven" : states.Count == 1 ? "not proven yet" : $"{states.Count} places, none proven")} " +
+                $"{(proven ? "proven" : states.Count == 1 ? "not proven yet" : $"{states.Count} places, none proven")} " +
                 $"{string.Join(", ", states.Select(address => $"+0x{address.ToInt64() - module.ToInt64():X}"))}");
-            return (addresses, proven != IntPtr.Zero, PatternScan.Ranges(sections, size, section => section.IsWritable));
+            return (addresses, proven, PatternScan.Ranges(sections, size, section => section.IsWritable));
         }
 
         /// <summary>
@@ -356,10 +348,29 @@ namespace GameReader
                 }
 
                 var current = this.StaticAddresses.GetValueOrDefault(StaticOffsetsPatterns.GameStates);
-                if (given != IntPtr.Zero && GameStatesSearch.Holds(handle, given, module, size))
+                var givenHolds = given != IntPtr.Zero && GameStatesSearch.Holds(handle, given, module, size);
+                var mayYetHold = false;
+                if (!givenHolds && current == given)
+                {
+                    // Patience is for a place that may yet come to hold the state object: one that is empty, or holds an object
+                    // still being built. A place that holds something no object can be (a number, a pointer into the image) is
+                    // another static, and waiting on it only keeps the player in silence.
+                    mayYetHold = given != IntPtr.Zero && handle.TryReadMemory<IntPtr>(given, out var held) &&
+                        (held == IntPtr.Zero || GameStatesSearch.IsHeapObject(held.ToInt64(), module.ToInt64(), size));
+                    if (!saidLate && waited >= StateSearchRules.KeenSeconds)
+                    {
+                        saidLate = true;
+                        Console.WriteLine(
+                            "[GameProcess] Game states: no static holds a state object yet; the game has not made it, or the object itself changed (GameStateLayout). " +
+                            $"The pattern's place ({Place(given)}) is still watched and the image searched, seldom.");
+                    }
+                }
+
+                var look = StateSearchRules.Look(givenHolds, current == given, given != IntPtr.Zero, mayYetHold, waited, sinceSearch, searches);
+                if (look is StateLook.TakeGiven or StateLook.Rejudge)
                 {
                     Console.WriteLine($"[GameProcess] Game states: the place the pattern gave ({Place(given)}) holds the state object.");
-                    if (current != given)
+                    if (look == StateLook.TakeGiven)
                     {
                         this.StaticAddresses[StaticOffsetsPatterns.GameStates] = given;
                         CoroutineHandler.RaiseEvent(this.OnStaticAddressFound);
@@ -373,33 +384,14 @@ namespace GameReader
                     yield break;
                 }
 
-                if (current != given)
+                if (look == StateLook.Stop)
                 {
-                    // Found by search already: the pattern's place is still watched, when it gave one.
-                    if (given == IntPtr.Zero)
-                    {
-                        yield break;
-                    }
-
-                    continue;
+                    yield break;
                 }
 
-                // Patience is for a place that may yet come to hold the state object: one that is empty, or holds an object
-                // still being built. A place that holds something no object can be (a number, a pointer into the image) is
-                // another static, and waiting on it only keeps the player in silence.
-                var mayYetHold = given != IntPtr.Zero && handle.TryReadMemory<IntPtr>(given, out var held) &&
-                    (held == IntPtr.Zero || GameStatesSearch.IsHeapObject(held.ToInt64(), module.ToInt64(), size));
-                if (!saidLate && waited >= StateSearchRules.KeenSeconds)
+                if (look == StateLook.Watch)
                 {
-                    saidLate = true;
-                    Console.WriteLine(
-                        "[GameProcess] Game states: no static holds a state object yet; the game has not made it, or the object itself changed (GameStateLayout). " +
-                        $"The pattern's place ({Place(given)}) is still watched and the image searched, seldom.");
-                }
-
-                if (!StateSearchRules.SearchDue(mayYetHold, waited, sinceSearch, searches))
-                {
-                    continue;
+                    continue; // found by search already, the pattern's place still watched; or no search due yet
                 }
 
                 // The writable sections first; then the whole image, in case the header's flags say something else.
@@ -423,19 +415,14 @@ namespace GameReader
                 }
 
                 var found = search.Result;
-                if (StateSearchRules.OneObject(found.Select(place => place.Object)) == 0)
+                if (found.Count > 0 && StateSearchRules.OneObject(found.Select(place => place.Object)) == 0)
                 {
-                    if (found.Count > 0)
-                    {
-                        Console.WriteLine($"[GameProcess] Game states: several objects pass for the state object ({string.Join(", ", found.Select(place => Place(place.Static)))}); none taken.");
-                    }
-
-                    continue;
+                    Console.WriteLine($"[GameProcess] Game states: several objects pass for the state object ({string.Join(", ", found.Select(place => Place(place.Static)))}); none taken.");
                 }
 
-                if (found.Any(place => place.Static == given))
+                // Nothing settled; or the pattern's own place came to hold it while the image was read, and the next look proves it.
+                if (StateSearchRules.Settled(found.Select(place => (place.Static.ToInt64(), place.Object)).ToList(), given.ToInt64()) == 0)
                 {
-                    // The pattern's own place came to hold it while the image was read: the next look proves it.
                     continue;
                 }
 

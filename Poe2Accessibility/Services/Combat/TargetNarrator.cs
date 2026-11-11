@@ -21,15 +21,6 @@ namespace Poe2Accessibility.Services
     {
         private const int PollMs = 100;
 
-        /// <summary>A target must stay under the aim this long before it is named (the aim sweeps over others).</summary>
-        private const int SettleMs = 150;
-
-        /// <summary>The same target is named again only after this long without it.</summary>
-        private const int RepeatMs = 3000;
-
-        /// <summary>Names within this long of the previous one cut it off (sweeping); later ones queue.</summary>
-        private const int SweepMs = 2000;
-
         /// <summary>D2R crosshair: a monster beeped for stays quiet for this long of being the target.</summary>
         private const int BeepQuietMs = 3000;
 
@@ -41,12 +32,8 @@ namespace Poe2Accessibility.Services
         private readonly IAccessibilityOutputService output;
         private readonly PluginLog log;
         private readonly MonsterMods mods;
+        private readonly TargetNaming naming = new();
         private long lastPoll;
-        private IntPtr candidate;
-        private long candidateSince;
-        private IntPtr spoken;
-        private string spokenText = string.Empty;
-        private long spokenAt = long.MinValue / 2;
 
         /// <summary>The target came from the HUD's name and several entities carry it: which of them is aimed at is not known.</summary>
         private bool nameShared;
@@ -114,41 +101,27 @@ namespace Poe2Accessibility.Services
                 (hovered, var alone) = this.HudTarget();
                 this.nameShared = hovered != IntPtr.Zero && !alone;
             }
-            if (hovered != this.candidate)
+            if (this.naming.Moved(hovered, now))
             {
                 this.log.Debug($"Mouse-over entity 0x{hovered.ToInt64():X} (aiming {aiming})");
-                (this.candidate, this.candidateSince) = (hovered, now);
                 return;
             }
 
             this.BeepOnEnemy(hovered, now);
-            if (!this.Names || !aiming || hovered == IntPtr.Zero || now - this.candidateSince < SettleMs ||
-                (hovered == this.spoken && now - this.spokenAt < RepeatMs))
+            if (!this.naming.MayName(hovered, this.Names, aiming, now))
             {
-                if (hovered == this.spoken)
-                {
-                    this.spokenAt = now; // still on it: keep it from being named again when the aim comes back
-                }
-
                 return;
             }
 
             var entity = Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values.FirstOrDefault(candidate => candidate.Address == hovered);
-            if (entity == null || Seats.IsLocal(entity) || this.Describe(entity, this.nameShared) is not { } spoken)
+            if (entity == null || Seats.IsLocal(entity) || this.Describe(entity, this.nameShared) is not { } spoken ||
+                this.naming.Say(hovered, spoken, this.nameShared, now) is not { } cut)
             {
                 return;
             }
 
-            if (this.nameShared && spoken == this.spokenText && now - this.spokenAt < RepeatMs)
-            {
-                // Another of the pack became the nearest: the name alone says nothing new.
-                (this.spoken, this.spokenAt) = (hovered, now);
-                return;
-            }
-
-            this.output.Say(SpeechKind.EnemyNames, spoken, now - this.spokenAt < SweepMs); // a sweep cuts the last name
+            this.output.Say(SpeechKind.EnemyNames, spoken, cut); // a sweep cuts the last name
             this.log.Debug($"Target -> {entity.Path} \"{spoken}\"{(this.nameShared ? " (name shared: life and rarity not said)" : string.Empty)}");
-            (this.spoken, this.spokenText, this.spokenAt) = (hovered, spoken, now);
         }
 
         /// <summary>

@@ -299,8 +299,9 @@ finding was not fixed and `Live checks` is what only the game can settle. Findin
   patch's `.ui` files into the catalog. Rule: the folder is emptied before it is filled. `UiScripts`.
 
 Tests: 12 in `HostAndToolsAuditTests.cs`; two fixtures of `DatColumnSearchTests` and `ExtractorColumnTests` wrote keys as
-8 bytes, which the game never does, and now use `WideKey`. Still untested: `GameDataSetup.Regenerate`, `Updater.Offer`,
-`GameProcess` coroutines.
+8 bytes, which the game never does, and now use `WideKey`. Tested since (`HostRuleTests`), their rules lifted pure with
+no change of behaviour: `GameDataSetup.Regenerate` (`GameDataSteps.Plan`, `Failed`), `Updater.Offer` (`UpdateOffer`),
+the `GameProcess` coroutines (`GameProcessDetails.Pick`, `Gone`; `StateSearchRules.Given`, `Look`, `Settled`).
 
 Left open, settled in the fifth pass (2026-11-10, evening). Each entry ends as **fixed** (how it was verified), **not a
 fault** (why) or **blocked** (by what, and what unblocks it):
@@ -531,8 +532,11 @@ Left open, settled in the fifth pass (2026-11-10, evening):
   spinner turret is `BulletHellTurret`, whose animation is `BulletHellSpinnerTurret_01.ao`), and it was removed from
   `TrialTraps`. Every name is in a file the extractor reads.
 - **Rules in host-bound classes with no test** (`Beacon.CollectSearch`, `BossWatch.WatchLife`, `TargetNarrator.Tick`).
-  **Blocked:** each reads the host's entities directly; a test needs the rule lifted out of the class, not done in this
-  pass. The Beacon's new phrase choice is tested (`WayCuts.Of`).
+  **Fixed** (unit tests `HostRuleTests`, each seen failing with its rule broken): lifted with no change of behaviour
+  into pure `RouteSearchNews` (the guide's way lines, once per lock; no route only when two searches agree),
+  `BossLifeSteps.Read` with the `BossLife` record (a dead reading only starts the wait, risen, hidden, restarted, the
+  real percent past a step) and `TargetNaming` (settle, repeat, sweep, a pack's shared name); the classes act on their
+  verdicts.
 - **The guide on a closed barrier that opens says "ya no está a la vista" beside "Se abrió el paso".** **Not a fault:**
   both are true (the barrier as a target is gone because it opened); two short lines, in that order.
 - **The half second before "derrotado" equals the host's 30-frame dormant latch.** **Blocked** by the owner's choice:

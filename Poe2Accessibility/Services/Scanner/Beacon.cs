@@ -76,20 +76,12 @@ namespace Poe2Accessibility.Services
         private long lockedAt;
         private long lastPing;
         private long lastRefresh = long.MinValue / 2;
-        private bool noRouteSaid;
-
-        /// <summary>"The way is closed further on" is said once per lock, even if the route comes and goes.</summary>
-        private bool partialSaid;
-
-        /// <summary>"The way is long, still searching" is said once per lock; a closed way found later is still said.</summary>
-        private bool longSaid;
+        private readonly RouteSearchNews news = new();
 
         /// <summary>The partial way in use is only as far as the last search got (<see cref="WayCut.Long"/>), not closed.</summary>
         private bool routeSpent;
         private Vector2? lastTurn;
         private bool partialRoute;
-        private bool barrierRoute;
-        private bool closestSaid;
 
         public Beacon(AudioCueService audio, EntityCatalog catalog, IAccessibilityOutputService output, PluginLog log)
         {
@@ -117,8 +109,7 @@ namespace Poe2Accessibility.Services
 
             this.Aim(entry);
             this.output.Speak(Announcements.BeaconLocked(this.catalog.Describe(entry, out var cut, out var longWay)), true);
-            this.partialSaid = cut && !longWay;
-            this.longSaid = cut && longWay; // the lock already said the way stops short: not again when the route arrives
+            this.news.Aim(cut, longWay);
         }
 
         /// <summary>
@@ -134,8 +125,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.Aim(entry);
-            this.partialSaid = cut && !longWay;
-            this.longSaid = cut && longWay;
+            this.news.Aim(cut, longWay);
         }
 
         private void Aim(ScanEntry entry)
@@ -144,9 +134,6 @@ namespace Poe2Accessibility.Services
             this.route = null;
             this.search = null;
             this.version++;
-            this.noRouteSaid = false;
-            this.searchesWithoutRoute = 0;
-            this.closestSaid = false;
             this.targetGone = false;
             this.everListed = false;
             this.lostSaid = false;
@@ -236,7 +223,7 @@ namespace Poe2Accessibility.Services
                 }
                 else if (!this.routeSpent)
                 {
-                    this.SayClosest(goal); // a way that only ran out of budget is not shut: the next search goes on from here
+                    this.Say(this.news.Closest(), goal); // a way that only ran out of budget is not shut: the next search goes on from here
                 }
 
                 return; // at the end of a way that stops short: silent until the gate opens and the route goes on
@@ -369,11 +356,6 @@ namespace Poe2Accessibility.Services
             this.running = this.search;
         }
 
-        /// <summary>Searches in a row (one every <see cref="RouteRefreshMs"/>) that must find no way before "no route yet" is said.</summary>
-        private const int SearchesToSayNoRoute = 2;
-
-        private int searchesWithoutRoute;
-
         private void CollectSearch()
         {
             if (this.search is not { IsCompleted: true } done)
@@ -388,62 +370,40 @@ namespace Poe2Accessibility.Services
             }
 
             var (found, partial, barrier, spent) = done.IsCompletedSuccessfully ? done.Result : (null, false, false, false);
-            if (found == null && ++this.searchesWithoutRoute < SearchesToSayNoRoute)
+            var verdict = this.news.Collect(found != null, partial, barrier, spent, this.target != null, this.route != null);
+            switch (verdict.Way)
             {
-                // One search that failed or found nothing is not "no route": the way in use stands until the next one agrees.
-                this.log.Info($"Guide: a route search {(done.IsFaulted ? "failed" : "found no way")}; searched again before it is said");
-                return;
+                case SearchWay.Wait:
+                    this.log.Info($"Guide: a route search {(done.IsFaulted ? "failed" : "found no way")}; searched again before it is said");
+                    return;
+                case SearchWay.Take:
+                    (this.route, this.partialRoute, this.routeSpent) = (found, partial, verdict.Spent);
+                    break;
+                case SearchWay.Drop:
+                    this.route = null;
+                    break;
             }
 
-            if (found != null)
+            if (this.target is { } goal)
             {
-                this.searchesWithoutRoute = 0;
-                this.route = found;
-                this.partialRoute = partial;
-                this.barrierRoute = barrier;
-                var cut = WayCuts.Of(partial, barrier, spent);
-                this.routeSpent = cut == WayCut.Long;
-                if (cut == WayCut.Long && !this.longSaid && !this.partialSaid && this.target != null)
-                {
-                    // Only the budget ran out: lead along the part that is worked out, searching again from further on.
-                    this.longSaid = true;
-                    this.output.Speak(Announcements.BeaconLongWay, false);
-                }
-                else if (this.partialRoute && cut != WayCut.Long && !this.partialSaid && this.target != null)
-                {
-                    // The way stops short (a gate the quest opens): lead as close as it goes, and say so once.
-                    this.partialSaid = true;
-                    this.output.Speak(this.barrierRoute ? Announcements.BeaconBarrierRoute(this.target.Name) : Announcements.BeaconPartialRoute(this.target.Name), false);
-                }
-                else if (!this.partialRoute)
-                {
-                    this.noRouteSaid = false;
-                    this.closestSaid = false;
-                }
-            }
-            else if (!this.noRouteSaid && this.target != null)
-            {
-                // Standing where a partial route ended is "as close as it goes", not "no route yet".
-                this.noRouteSaid = true;
-                if (this.route != null && this.partialSaid)
-                {
-                    this.SayClosest(this.target);
-                }
-                else
-                {
-                    this.output.Speak(Announcements.BeaconNoRoute(this.target.Name), false);
-                }
-
-                this.route = null;
+                this.Say(verdict.Line, goal);
             }
         }
 
-        private void SayClosest(ScanEntry goal)
+        private void Say(SearchLine line, ScanEntry goal)
         {
-            if (!this.closestSaid)
+            var text = line switch
             {
-                this.closestSaid = true;
-                this.output.Speak(Announcements.BeaconAtClosest(goal.Name), false);
+                SearchLine.LongWay => Announcements.BeaconLongWay,
+                SearchLine.PartialWay => Announcements.BeaconPartialRoute(goal.Name),
+                SearchLine.BarrierWay => Announcements.BeaconBarrierRoute(goal.Name),
+                SearchLine.NoRoute => Announcements.BeaconNoRoute(goal.Name),
+                SearchLine.AtClosest => Announcements.BeaconAtClosest(goal.Name),
+                _ => null,
+            };
+            if (text != null)
+            {
+                this.output.Speak(text, false);
             }
         }
 
