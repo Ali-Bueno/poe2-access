@@ -29,6 +29,9 @@ namespace Poe2Accessibility.Services
         /// <summary>No character is past this level; a larger number is no level to compare with.</summary>
         public const int MaxLevel = 100;
 
+        /// <summary>A new character's level: its list holds no <c>level</c> stat yet (74 stats, the attributes at their keys, 2026-11-11).</summary>
+        public const int FirstLevel = 1;
+
         private const int MissesToLose = 2;
 
         private int misses;
@@ -42,7 +45,7 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public bool Observe(int level, int read, int stats)
         {
-            if (this.Verdict != StatKeyVerdict.Pending || level is <= 0 or > MaxLevel || stats < MinStats)
+            if (this.Verdict != StatKeyVerdict.Pending || level is <= 0 or > MaxLevel || stats < MinStats || (level == FirstLevel && read == 0))
             {
                 return false;
             }

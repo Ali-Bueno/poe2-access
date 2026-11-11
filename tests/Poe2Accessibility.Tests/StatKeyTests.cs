@@ -48,6 +48,8 @@ namespace Poe2Accessibility.Tests
             Equal(false, check.Observe(101, 101, 250), "a number that is no level");
             Equal(false, check.Observe(22, 0, 3), "a stat list not read yet");
             Equal(false, check.Observe(22, 0, 0), "or empty");
+            Equal(false, check.Observe(1, 0, 74), "a new character lists no level stat");
+            Equal(false, check.Observe(1, 0, 74), "however often it is looked at (said lost on a level 1 Warrior, 2026-11-11)");
             Equal(StatKeyVerdict.Pending, check.Verdict, "none of them counts as a miss");
             Equal(false, check.Observe(22, 5, 250), "the first real miss");
             Equal(StatKeyVerdict.Pending, check.Verdict, "is still only one");
