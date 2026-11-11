@@ -34,6 +34,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ANodeThatCannotBeReadMakesTheWalkIncomplete), ANodeThatCannotBeReadMakesTheWalkIncomplete),
             (nameof(ATreeLargerThanItsSizeIsCutShortAndSaysSo), ATreeLargerThanItsSizeIsCutShortAndSaysSo),
             (nameof(TheParallelPartOfABigMapIsBoundBySizeToo), TheParallelPartOfABigMapIsBoundBySizeToo),
+            (nameof(APatchedGameIsNoticedOnceOnAttach), APatchedGameIsNoticedOnceOnAttach),
             (nameof(UnreachedEntitiesAreKeptForThreeIncompleteWalks), UnreachedEntitiesAreKeptForThreeIncompleteWalks),
             (nameof(OneWalkOutOfOrderDoesNotGiveTheOrderUp), OneWalkOutOfOrderDoesNotGiveTheOrderUp),
         };
@@ -170,6 +171,19 @@ namespace Poe2Accessibility.Tests
             var walk = map.Walk(null);
             Expect(false, walk.Complete, "incomplete");
             Expect(true, walk.Nodes <= 5 * 301, $"bound near the size ({walk.Nodes} nodes)");
+        }
+
+        private static void APatchedGameIsNoticedOnceOnAttach()
+        {
+            var watch = new Poe2Access.GameUpdateWatch("a");
+            Expect(false, watch.Poll(false, () => "b"), "no game yet");
+            Expect(true, watch.Poll(true, () => "b"), "a new game attached with another build");
+            Expect(false, watch.Poll(true, () => "b"), "not again while it runs");
+            Expect(false, watch.Poll(false, () => "b"), "closed");
+            Expect(false, watch.Poll(true, () => "b"), "said once for the run");
+            Expect(false, new Poe2Access.GameUpdateWatch("a").Poll(true, () => "a"), "same build");
+            Expect(false, new Poe2Access.GameUpdateWatch(null).Poll(true, () => "b"), "data never checked: nothing to compare");
+            Expect(false, new Poe2Access.GameUpdateWatch("a").Poll(true, () => null), "install unreadable");
         }
 
         private static void UnreachedEntitiesAreKeptForThreeIncompleteWalks()

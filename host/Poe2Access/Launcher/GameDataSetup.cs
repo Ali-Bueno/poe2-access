@@ -29,6 +29,9 @@ internal static class GameDataSetup
     private static GameDataNarrator? narrator;
 
 
+    /// <summary>The install description the game data was checked against this run; null when it was not checked.</summary>
+    internal static string? MadeFor { get; private set; }
+
     public static void EnsureCurrent(AppFolders folders, string? gameDirectory)
     {
         if (gameDirectory is null)
@@ -47,6 +50,7 @@ internal static class GameDataSetup
                 return;
             }
 
+            MadeFor = install;
             Regenerate(folders, gameDirectory, install);
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
@@ -232,7 +236,7 @@ internal static class GameDataSetup
     // The index (in the Korean client, the Content.ggpk holding it) lists every bundle, so its size and time move with
     // each content patch; the game executable (whose version resource is empty) and fmod.dll cover patches that leave
     // the bundles alone.
-    private static string? DescribeInstall(string gameDirectory)
+    internal static string? DescribeInstall(string gameDirectory)
     {
         if (GameInstall.ContentFile(gameDirectory) is not { } content)
         {

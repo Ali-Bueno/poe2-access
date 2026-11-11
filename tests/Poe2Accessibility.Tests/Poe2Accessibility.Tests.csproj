@@ -192,6 +192,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\BossMechanicsCatalog.cs" Link="Plugin\BossMechanicsCatalog.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\BossScripts.cs" Link="Extract\BossScripts.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\ReleaseTag.cs" Link="Launcher\ReleaseTag.cs" />
+    <Compile Include="..\..\host\Poe2Access\GameUpdateWatch.cs" Link="Launcher\GameUpdateWatch.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\ReleaseManifest.cs" Link="Launcher\ReleaseManifest.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\GameDataStamp.cs" Link="Launcher\GameDataStamp.cs" />
     <Compile Include="..\..\host\Poe2Access\Launcher\PackageInstall.cs" Link="Launcher\PackageInstall.cs" />

@@ -20,11 +20,28 @@ internal static class HostRun
 
         HostFrame.Start();
         plugin?.Enable();
-        new FrameLoop(stop, () => plugin?.Tick()).Run();
+        var watch = new GameUpdateWatch(GameDataSetup.MadeFor);
+        new FrameLoop(stop, () =>
+        {
+            plugin?.Tick();
+            WarnWhenPatched(watch);
+        }).Run();
 
         plugin?.Disable();
         HostFrame.Stop();
         Log.Write("Stopped");
+    }
+
+    /// <summary>
+    ///     Logs once that the game was patched under this host. Log only: the plugin owns the screen reader once the game runs,
+    ///     and a second PRISM session from here could cut its speech.
+    /// </summary>
+    private static void WarnWhenPatched(GameUpdateWatch watch)
+    {
+        if (watch.Poll(HostFrame.GameOpened, () => GameLauncher.InstallDirectory() is { } directory ? GameDataSetup.DescribeInstall(directory) : null))
+        {
+            Log.Write("The game was updated since the game data was made: restart the mod to update its game data");
+        }
     }
 
     /// <summary>The plugin is what speaks the game: without it the player would hear nothing and not know why.</summary>
