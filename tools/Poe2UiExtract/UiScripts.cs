@@ -53,6 +53,12 @@ internal static class UiScripts
         }
 
         Say.Out.WriteLine($"Extracted: {extracted}, Errors: {errors}");
+        if (!UiLoss.Tolerated(errors, toExtract.Count))
+        {
+            Say.Out.WriteLine(UiLoss.Failure("script files", errors, toExtract.Count));
+            return 1;
+        }
+
         return 0;
     }
 

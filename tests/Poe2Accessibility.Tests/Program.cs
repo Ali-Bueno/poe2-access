@@ -274,6 +274,7 @@ namespace Poe2Accessibility.Tests
                 RobustnessTests.All(),
                 HostAndToolsAuditTests.All(),
                 LauncherWaitTests.All(),
+                RequiredStepTests.All(),
                 SpeechEventTests.All(),
                 SpokenOnceTests.All(),
                 WorldCombatAuditTests.All(),

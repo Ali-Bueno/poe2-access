@@ -59,6 +59,12 @@ internal static class CatalogGenerator
             }
         }
 
+        if (!UiLoss.Tolerated(uiFiles.Count - parsedCount, uiFiles.Count))
+        {
+            Say.Out.WriteLine(UiLoss.Failure(".ui files", uiFiles.Count - parsedCount, uiFiles.Count));
+            return 1;
+        }
+
         ClassResolver.ResolveAll(controls, templates, controlsByFile);
 
         var root = new UiCatalogRoot
