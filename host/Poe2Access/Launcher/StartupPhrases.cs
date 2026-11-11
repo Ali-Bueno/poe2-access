@@ -12,6 +12,8 @@ internal static class StartupPhrases
 {
     // T(english, spanish): tools/localization/phrases.py reads these like the plugin's Announcements, for the other languages' tables.
     public static readonly Phrase Starting = T("Updating the game data after the patch; this takes a few minutes", "Actualizando los datos del juego tras el parche; tarda unos minutos");
+    public static readonly Phrase StartingFirst = T("Preparing the game data for the first time; this takes a few minutes", "Preparando los datos del juego por primera vez; tarda unos minutos");
+    public static readonly Phrase StartingAgain = T("Updating the game data", "Actualizando los datos del juego");
     public static readonly Phrase Progress = T("Game data: {0} of {1}", "Datos del juego: {0} de {1}");
     public static readonly Phrase Ready = T("Game data ready", "Datos del juego listos");
     public static readonly Phrase Partial = T("Game data ready; not updated: {0} of {1}", "Datos del juego listos; sin actualizar: {0} de {1}");
@@ -22,6 +24,10 @@ internal static class StartupPhrases
     private const string SettingsLanguage = "Language";
     private const string Spanish = "es";
     private const string English = "en";
+
+    /// <summary>The opening line for what made the data stale: only a game patch is called one.</summary>
+    public static Phrase Opening(GameDataCause cause) =>
+        cause == GameDataCause.FirstStart ? StartingFirst : cause == GameDataCause.GamePatch ? Starting : StartingAgain;
 
     /// <summary>A line in the two languages kept in code; its English text is the key of the other languages' tables.</summary>
     public readonly record struct Phrase(string English, string Spanish);

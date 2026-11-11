@@ -23,13 +23,13 @@ internal sealed class GameDataNarrator : IDisposable
 
     /// <summary>Opens PRISM from the plugin folder and says the opening line; silent (logged) when PRISM is not there.</summary>
     /// <param name="order">The steps in the order they run, so a silent spell can say which one works.</param>
-    public static GameDataNarrator Start(string pluginFolder, string[] order)
+    public static GameDataNarrator Start(string pluginFolder, string[] order, StartupPhrases.Phrase opening)
     {
         var narrator = new GameDataNarrator(new LauncherVoice(pluginFolder), order);
         var now = DateTime.UtcNow;
         narrator.pacer.Start(now);
         narrator.silence.Start(0, now);
-        narrator.voice.Say(StartupPhrases.Starting, interrupt: true);
+        narrator.voice.Say(opening, interrupt: true);
         return narrator;
     }
 

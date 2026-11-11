@@ -4,6 +4,14 @@ using System.Linq;
 
 namespace Poe2Access;
 
+/// <summary>Why game data is made again: none made yet, a game patch, or the mod's own steps (a raised version, a retry).</summary>
+internal enum GameDataCause
+{
+    FirstStart,
+    GamePatch,
+    ModSteps,
+}
+
 /// <summary>
 ///     What the game data was made from: the install (lines such as "index=size:time") and the version each
 ///     regeneration step ran at, so a mod update reruns only the steps whose version it raised. An optional step that failed
@@ -83,6 +91,10 @@ internal sealed record GameDataStamp(string Install, IReadOnlyDictionary<string,
 
         return new GameDataStamp(install, vouched);
     }
+
+    /// <summary>Why steps are stale against this install.</summary>
+    public GameDataCause Cause(string install) =>
+        this.Steps.Count == 0 ? GameDataCause.FirstStart : this.Install != install ? GameDataCause.GamePatch : GameDataCause.ModSteps;
 
     public bool IsCurrent(string install, string step, int version) =>
         this.Install == install && this.Steps.TryGetValue(step, out var done) && done == version;

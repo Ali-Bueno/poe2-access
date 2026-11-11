@@ -87,10 +87,11 @@ internal static class GameDataSetup
             return;
         }
 
-        Log.Write($"Game data is {(stamp.Steps.Count == 0 ? "missing" : "out of date")}: regenerating {string.Join(", ", stale)} from {gameDirectory}");
+        var cause = stamp.Cause(install);
+        Log.Write($"Game data is {(cause == GameDataCause.FirstStart ? "missing" : cause == GameDataCause.GamePatch ? "out of date after a game patch" : "out of date")}: regenerating {string.Join(", ", stale)} from {gameDirectory}");
         var watch = Stopwatch.StartNew();
         var failures = new List<(string Step, string Error)>();
-        using var spoken = GameDataNarrator.Start(plugin, steps.Where(step => stale.Contains(step.Name)).OrderBy(step => step.Command is null).Select(step => step.Name).ToArray());
+        using var spoken = GameDataNarrator.Start(plugin, steps.Where(step => stale.Contains(step.Name)).OrderBy(step => step.Command is null).Select(step => step.Name).ToArray(), StartupPhrases.Opening(cause));
         narrator = spoken;
         void Finish(Step step, string? error)
         {

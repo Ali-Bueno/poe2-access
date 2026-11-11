@@ -20,6 +20,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheSettingsLanguageComesFirst), TheSettingsLanguageComesFirst),
             (nameof(AutoFollowsTheGameThenTheSystem), AutoFollowsTheGameThenTheSystem),
             (nameof(SpanishAndEnglishAreInCodeTheRestInTheTable), SpanishAndEnglishAreInCodeTheRestInTheTable),
+            (nameof(OnlyAGamePatchIsCalledOne), OnlyAGamePatchIsCalledOne),
             (nameof(ProgressIsSaidOncePerIntervalWhenItMoved), ProgressIsSaidOncePerIntervalWhenItMoved),
             (nameof(TelegraphColumnsAreFoundWhereMeasured), TelegraphColumnsAreFoundWhereMeasured),
             (nameof(TelegraphColumnsFollowAShift), TelegraphColumnsFollowAShift),
@@ -49,6 +50,16 @@ namespace Poe2Accessibility.Tests
             Expect("Données prêtes", StartupPhrases.Text(StartupPhrases.Ready, "fr", table), "the table by the English key");
             Expect(StartupPhrases.Starting.English, StartupPhrases.Text(StartupPhrases.Starting, "fr", table), "a missing entry is English");
             Expect("Datos del juego: 8 de 22", StartupPhrases.Format(StartupPhrases.Progress, "es", null, 8, 22), "progress");
+        }
+
+        /// <summary>"Actualizando los datos del juego tras el parche" was said after a mod update with no patch (user, 2026-11-11).</summary>
+        private static void OnlyAGamePatchIsCalledOne()
+        {
+            const string Install = "index=1:2\nexe=3:4\nfmod=2.3.11\n";
+            var made = GameDataStamp.Parse(null).With(Install, "places", 1);
+            Expect(StartupPhrases.StartingFirst, StartupPhrases.Opening(GameDataStamp.Parse(null).Cause(Install)), "nothing made yet: the first time");
+            Expect(StartupPhrases.Starting, StartupPhrases.Opening(made.Cause("index=5:6\nexe=3:4\nfmod=2.3.11\n")), "another install: the patch");
+            Expect(StartupPhrases.StartingAgain, StartupPhrases.Opening(GameDataStamp.Parse(made.ToString()).Cause(Install)), "the same install, a step the mod raised: no patch named");
         }
 
         private static void ProgressIsSaidOncePerIntervalWhenItMoved()
