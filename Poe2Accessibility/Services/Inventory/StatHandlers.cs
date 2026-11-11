@@ -43,6 +43,14 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static readonly IReadOnlyDictionary<string, int> SeenExact = new Dictionary<string, int>(StringComparer.Ordinal) { ["divide_by_one_hundred"] = 1 };
 
+        /// <summary>
+        ///     Handlers seen to show a number at an exact half of the last decimal: 201 a minute read "Regeneras 3.3 de
+        ///     vida por segundo" on a unique ring (live check 2026-11-10), the digit single precision gives (3.35 is held
+        ///     as 3.3499999; the two earlier readings, 352 as 5.9 and 104 as 1.7, agree with it). Under any other handler
+        ///     a half stays in doubt.
+        /// </summary>
+        public static readonly IReadOnlySet<string> SeenTies = new HashSet<string>(StringComparer.Ordinal) { "per_minute_to_per_second" };
+
         /// <summary>Handlers that change no number: which line stands for the stat elsewhere in the game.</summary>
         public static readonly IReadOnlySet<string> Marks = new HashSet<string>(StringComparer.Ordinal) { "canonical_stat", "reminderstring", CanonicalLine };
 

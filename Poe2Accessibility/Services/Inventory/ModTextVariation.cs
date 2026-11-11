@@ -304,7 +304,7 @@ namespace Poe2Accessibility.Services
         /// <param name="Stated">The decimals a handler's name states ("_1dp"), as required or always; null when none does.</param>
         /// <param name="SeenDecimals">The decimals a handler that states none was seen to show; null when none was.</param>
         /// <param name="Unsettled">A handler whose arithmetic is not settled took part.</param>
-        private readonly record struct Shown(double Factor, double Offset, int Decimals, bool Fixed, int? Stated = null, int? SeenDecimals = null, bool Unsettled = false, int? SeenExact = null)
+        private readonly record struct Shown(double Factor, double Offset, int Decimals, bool Fixed, int? Stated = null, int? SeenDecimals = null, bool Unsettled = false, int? SeenExact = null, bool TieSeen = false)
         {
             public double Number(double value) => (value * this.Factor) + this.Offset;
 
@@ -343,8 +343,13 @@ namespace Poe2Accessibility.Services
 
                 var scaled = Math.Abs(number) * Math.Pow(10, places);
                 var tie = Math.Abs(scaled - Math.Floor(scaled) - 0.5) < 1e-6;
-                var digits = Math.Round(number, places, MidpointRounding.AwayFromZero).ToString("F" + places, CultureInfo.InvariantCulture);
-                var seen = plain && decimalMarkSeen && !tie;
+                // At an exact half the tooltip showed the lower digit (201 a minute read "3.3", not "3.4"): the game's own
+                // number is single precision, where 3.35 is 3.3499999. Said for certain only under a handler it was seen with.
+                var rounded = tie ? (double)(float)number : number;
+                var digits = Math.Round(rounded, places, MidpointRounding.AwayFromZero).ToString("F" + places, CultureInfo.InvariantCulture);
+                var single = Math.Abs(rounded) * Math.Pow(10, places);
+                var halfStill = tie && Math.Abs(single - Math.Floor(single) - 0.5) < 1e-9; // 2.25 is a half in single precision too: up or to even is not known
+                var seen = plain && decimalMarkSeen && (!tie || (this.TieSeen && !halfStill));
                 if (!digits.EndsWith('0'))
                 {
                     return (digits, seen);
@@ -368,7 +373,7 @@ namespace Poe2Accessibility.Services
                 var factor = step.Factor == 0 ? 1 : step.Factor;
                 changed = new Shown(this.Factor * factor, (this.Offset * factor) + step.Offset, decimals ?? this.Decimals, decimals != null ? !ifRequired : this.Fixed,
                     decimals ?? this.Stated, StatHandlers.SeenDecimals.TryGetValue(handler, out var seen) ? seen : this.SeenDecimals, this.Unsettled || StatHandlers.Unsettled.Contains(name),
-                    StatHandlers.SeenExact.TryGetValue(handler, out var exact) ? exact : this.SeenExact);
+                    StatHandlers.SeenExact.TryGetValue(handler, out var exact) ? exact : this.SeenExact, this.TieSeen || StatHandlers.SeenTies.Contains(handler));
                 return true;
             }
         }

@@ -97,6 +97,8 @@ namespace Poe2Accessibility.Tests
             Equal("Requisitos de atributos reducidos un 15%", Explicit("es", Mod("ReducedRequirements1", -15)), "a negative value takes the line its condition fits, negated");
             Equal("Regeneras 1.7 de vida por segundo", Explicit("es", Mod("LifeRegeneration1", 104)), "stored a minute, shown a second: 104");
             Equal("Regeneras 5.9 de vida por segundo", Explicit("es", Mod("LifeRegeneration1", 352)), "and 352");
+            Equal("Regeneras 3.3 de vida por segundo", Explicit("es", Mod("LifeRegeneration1", 201)), "201 is 3.35, a half: the tooltip showed 3.3, as single precision holds it (a unique ring, 2026-11-10)");
+            Equal("?Regeneras 2.3 de vida por segundo", Explicit("es", Mod("LifeRegeneration1", 135)), "2.25 is a half in single precision too: not known");
             Equal("+10 al maná máximo | Regeneras 1.7 de vida por segundo", Explicit("es", Mod("LifeRegeneration1", 104), Mod("IncreasedMana1", 10)), "in the description file's order, whatever the list's");
             Equal(string.Empty, Written(Lists()), "an item without modifiers has no line, and that is certain");
         }
