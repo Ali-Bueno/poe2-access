@@ -18,6 +18,8 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\DodgeThreats.cs" Link="DodgeThreats.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\DodgeCoverage.cs" Link="DodgeCoverage.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\Breakables.cs" Link="Breakables.cs" />
+    <!-- The handlers the plugin applies to a stat's value, so mod-stats fails on one it does not know. -->
+    <Compile Include="..\..\Poe2Accessibility\Services\Inventory\StatHandlers.cs" Link="StatHandlers.cs" />
   </ItemGroup>
 
   <ItemGroup>

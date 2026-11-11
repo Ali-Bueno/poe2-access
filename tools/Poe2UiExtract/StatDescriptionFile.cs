@@ -18,13 +18,14 @@ internal static class StatDescriptionFile
     /// <summary>One block: the stats it describes and, per language name, its lines as the file holds them.</summary>
     public sealed record Description(IReadOnlyList<string> Stats, Dictionary<string, List<string>> Texts);
 
-    /// <summary>The file's blocks, the files it includes, its lines and how many of them fit nowhere in the format.</summary>
-    public sealed record Parsed(List<Description> Descriptions, List<string> Includes, int Lines, int Unplaced);
+    /// <summary>The file's blocks, the files it includes, the stats it says have no description, its lines and how many of them fit nowhere in the format.</summary>
+    public sealed record Parsed(List<Description> Descriptions, List<string> Includes, List<string> Hidden, int Lines, int Unplaced);
 
     public static Parsed Parse(string text)
     {
         var descriptions = new List<Description>();
         var includes = new List<string>();
+        var hidden = new List<string>();
         Description? current = null;
         var (awaitingStats, language, lines, unplaced) = (false, English, 0, 0);
         foreach (var raw in text.Split('\n'))
@@ -44,6 +45,7 @@ internal static class StatDescriptionFile
             else if (word == NoDescriptionWord)
             {
                 (current, awaitingStats) = (null, false);
+                hidden.AddRange(line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).Skip(1));
             }
             else if (word == IncludeWord)
             {
@@ -86,7 +88,7 @@ internal static class StatDescriptionFile
             }
         }
 
-        return new Parsed(descriptions, includes, lines, unplaced);
+        return new Parsed(descriptions, includes, hidden, lines, unplaced);
     }
 
     /// <summary>The text between a line's first and last quote, or empty.</summary>

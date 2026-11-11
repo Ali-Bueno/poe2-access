@@ -46,6 +46,7 @@ internal static class GameDataSteps
         new Step("passive tree", 1, "passive-tree.json", "passive-tree", true),
         new Step("item bases", 1, "item-bases.json", "item-bases", true),
         new Step("mod texts", 1, "mod-texts.json", "mod-texts", true),
+        new Step("mod stats", 1, "mod-stats.json", "mod-stats", true),
         new Step(Sounds, 7, null, null, Input: ItemSounds),
     ];
 }

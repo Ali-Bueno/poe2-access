@@ -40,6 +40,7 @@ internal static class Batch
         ["passive-tree"] = (_, index, output) => PassiveTreeExtractor.Run(index, output),
         ["item-bases"] = (_, index, output) => ItemBaseExtractor.Run(index, output),
         ["mod-texts"] = (_, index, output) => ModTextExtractor.Run(index, output),
+        [ModStatColumns.Step] = (_, index, output) => ModStatExtractor.Run(index, output),
     };
 
     /// <param name="pairs">Command and output file, repeated.</param>

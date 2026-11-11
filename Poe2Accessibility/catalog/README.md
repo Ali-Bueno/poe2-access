@@ -38,6 +38,7 @@ A new catalog needs no change to the project file or the package script, only a 
 | `item-sounds.json` | item base id to the drop sample the game plays | `item-sounds`, start | `ItemDropSounds` |
 | `landmarks.json` | areas `important_tgt_files.txt` lacks, and corrections to it | by hand | `LandmarkTable` |
 | `map-hints.json` | GGG's map cues by area | by hand, from [map hints by act](../../docs/research/map-hints-by-act.md) | `MapHintTable` |
+| `mod-stats.json` | every modifier by its Mods Id: its stats in the order its values follow, each with the least and most it rolls; the modifiers whose values are not told apart; the stats the description file says have no line | `mod-stats`, start | `ModStatCatalog` (`ItemModLines`: an item's modifier lines without its tooltip, the texts taken from `mod-texts.json`) |
 | `mod-texts.json` | the game's stat description blocks (`stat_descriptions.csd`), a block a line: its stat Ids and, per language, its lines as the file holds them (conditions, text, handlers) | `mod-texts`, start | `ModTextCatalog` (`IModTexts`: a modifier line told in one language and said in another) |
 | `monster-names.json` | the radar's boss names as the game names them | `monster-names` | `LandmarkTable` |
 | `passive-tree.json` | the main passive tree by graph id: PassiveSkills Id and kind, links, class starts; node and class names per language | `passive-tree`, start | `PassiveTreeCatalog` |
