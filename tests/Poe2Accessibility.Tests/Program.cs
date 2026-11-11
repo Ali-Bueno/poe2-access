@@ -2341,14 +2341,45 @@ namespace Poe2Accessibility.Tests
 
         private static void RadarMarksTheWayToUnseenGround()
         {
-            var from = new System.Numerics.Vector2(100, 100);
-            var east = new System.Numerics.Vector2(170, 100);
-            var north = new System.Numerics.Vector2(100, 40);
+            // An open field 600 cells square, an unbroken wall at x = 400; the player walks up from (200, 500) to (200, 200).
+            const int width = 600, height = 600;
+            var row = width / 2;
+            var grid = Enumerable.Repeat((byte)0x11, row * height).ToArray();
+            for (var y = 0; y < height; y++)
+            {
+                grid[(y * row) + 200] = 0; // cells 400 and 401
+            }
+
+            var up = new System.Numerics.Vector2(0, -1);
             var right = new System.Numerics.Vector2(1, 0);
-            Equal(true, ExplorationMap.AnyToward(from, right, new[] { east }, ExplorationMap.MarkReachCells), "unseen ground ahead marks the ray");
-            Equal(true, ExplorationMap.AnyToward(from, right, new[] { new System.Numerics.Vector2(160, 150) }, ExplorationMap.MarkReachCells), "within the ray's quarter");
-            Equal(false, ExplorationMap.AnyToward(from, right, new[] { north }, ExplorationMap.MarkReachCells), "not off to the side");
-            Equal(false, ExplorationMap.AnyToward(from, right, new[] { new System.Numerics.Vector2(100 + ExplorationMap.MarkReachCells + 1, 100) }, ExplorationMap.MarkReachCells), "not beyond reach");
+            var reach = ExplorationMap.MarkReachCells;
+            var map = new ExplorationMap();
+            var from = new System.Numerics.Vector2(200, 200);
+            for (var y = 500; y >= 200; y -= 10)
+            {
+                map.Visit(new System.Numerics.Vector2(200, y), width, height);
+            }
+
+            Equal(false, map.LeavesTheSeen(from, up, reach), "nothing is marked before the ground was read");
+            map.Frontier(grid, row, from, 8);
+            Equal(true, map.LeavesTheSeen(from, up, reach), "unseen ground ahead marks the ray");
+            Equal(true, map.LeavesTheSeen(from, -right, reach), "and the ground beside the way, never seen");
+            // "Up is unexplored", then a few seconds on "down is": the edge of the walked strip lay in the ray's quarter (user 2026-11-11).
+            Equal(false, map.LeavesTheSeen(from, -up, reach), "the way the player came is not unexplored");
+            Equal(false, map.LeavesTheSeen(from, System.Numerics.Vector2.Normalize(new System.Numerics.Vector2(0.4f, 1)), reach), "nor a way back a little aslant");
+            var byTheWall = new System.Numerics.Vector2(340, 200);
+            map.Visit(byTheWall, width, height);
+            Equal(false, map.LeavesTheSeen(byTheWall, right, reach), "ground past a wall with no way round is no way on");
+
+            // Walked on, what was ahead is behind and seen: nothing stale marks it.
+            for (var y = 190; y >= 60; y -= 10)
+            {
+                map.Visit(new System.Numerics.Vector2(200, y), width, height);
+            }
+
+            Equal(false, map.LeavesTheSeen(new System.Numerics.Vector2(200, 60), -up, reach), "what was ahead is seen once walked");
+            map.Reset();
+            Equal(false, map.LeavesTheSeen(from, up, reach), "a new area knows nothing of the last one's ground");
             const int rate = 44100;
             var open = RadarSynth.Cue(RadarReading.Open, RadarSynth.Direction.Up, rate);
             var marked = RadarSynth.WithUnexploredTail(open, RadarSynth.Direction.Up, rate);

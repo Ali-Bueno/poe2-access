@@ -26,10 +26,10 @@ namespace Poe2Accessibility.Services
         public const float SeenRadiusCells = 60f;
 
         /// <summary>
-        ///     A radar ray is marked unexplored when unseen ground begins within this many cells inside its quarter of the
-        ///     screen (LeAccess: twice the reveal radius; ours reveals 60 cells, so frontier lies at least that far).
+        ///     A radar ray is marked unexplored when it leaves the seen ground within this many cells (LeAccess: twice the
+        ///     reveal radius). Farther, the edge of the strip a walk revealed is met by the ray pointing back along it.
         /// </summary>
-        public const float MarkReachCells = 3 * SeenRadiusCells;
+        public const float MarkReachCells = 2 * SeenRadiusCells;
 
         /// <summary>A block with fewer walkable cells is wall (a corridor three cells wide crossing it still counts).</summary>
         private const int MinWalkableCells = 6;
@@ -50,6 +50,11 @@ namespace Poe2Accessibility.Services
         private int blocksX;
         private int blocksY;
 
+        /// <summary>What the last <see cref="Frontier"/> found: the blocks the player can reach, and the size of each one's unseen ground.</summary>
+        private (bool[] Reachable, int[] UnseenGround, bool GoesOn) ground = NoGround;
+
+        private static readonly (bool[], int[], bool) NoGround = (Array.Empty<bool>(), Array.Empty<int>(), false);
+
         /// <summary>How many blocks have been seen: it grows while the player finds new ground.</summary>
         public int SeenBlocks { get; private set; }
 
@@ -58,6 +63,7 @@ namespace Poe2Accessibility.Services
         {
             this.seen = Array.Empty<bool>();
             this.blocksX = this.blocksY = 0;
+            this.ground = NoGround;
             this.SeenBlocks = 0;
         }
 
@@ -100,6 +106,7 @@ namespace Poe2Accessibility.Services
             }
 
             (this.blocksX, this.blocksY, this.seen) = (bx, by, seen);
+            this.ground = NoGround;
             this.SeenBlocks = seen.Count(block => block);
             return true;
         }
@@ -117,6 +124,7 @@ namespace Poe2Accessibility.Services
             if (bx != this.blocksX || by != this.blocksY)
             {
                 (this.blocksX, this.blocksY, this.seen) = (bx, by, new bool[bx * by]);
+                this.ground = NoGround;
                 this.SeenBlocks = 0;
             }
 
@@ -228,7 +236,43 @@ namespace Poe2Accessibility.Services
                 }
             }
 
+            this.ground = (reachable, unseenGround, targets.Any(target => !target.Place.Pocket));
             return targets.OrderBy(target => target.Place.Pocket).ThenBy(target => target.Distance).Take(maxEntries).Select(target => target.Place).ToList();
+        }
+
+        /// <summary>
+        ///     The straight line from <paramref name="from"/> along <paramref name="axis"/> leaves the seen ground within
+        ///     <paramref name="reach"/> cells, onto ground the player can reach (as of the last <see cref="Frontier"/>);
+        ///     pockets only once nothing else is left. The line alone, not what lies beside it: ground to a side of the way
+        ///     the player came is not ahead on the way back (docs/radar.md).
+        /// </summary>
+        public bool LeavesTheSeen(Vector2 from, Vector2 axis, float reach)
+        {
+            if (this.ground.Reachable.Length != this.seen.Length || axis.LengthSquared() <= 0)
+            {
+                return false;
+            }
+
+            var along = Vector2.Normalize(axis);
+            const float step = BlockCells / 2f; // no block the line crosses is stepped over
+            for (var distance = step; distance <= reach; distance += step)
+            {
+                var cell = from + (along * distance);
+                var x = (int)(cell.X / BlockCells);
+                var y = (int)(cell.Y / BlockCells);
+                if (cell.X < 0 || cell.Y < 0 || x >= this.blocksX || y >= this.blocksY)
+                {
+                    return false;
+                }
+
+                var block = (y * this.blocksX) + x;
+                if (!this.seen[block] && this.ground.Reachable[block] && (!this.ground.GoesOn || this.ground.UnseenGround[block] >= PocketBlocks))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

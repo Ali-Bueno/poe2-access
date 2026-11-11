@@ -50,9 +50,14 @@ With player 2 read alone, the one radar follows player 2 in the first voice.
 ## Unexplored ground (D2R / LeAccess)
 
 - **Mark:** an open-way or exit cue whose ray points toward unseen ground ends in D2R's tail: 30 ms gap, two 900 Hz
-  pips of 35 ms, 30 ms apart, a little lower downward (`RadarSynth.WithUnexploredTail`). The ray's quarter (±45°)
-  must hold a frontier place of the scanner's Unexplored category within 3 × the 60-cell reveal radius
-  (`ExplorationMap.AnyToward`). Pockets count only once nothing else is left. Setting `UnexploredMark`.
+  pips of 35 ms, 30 ms apart, a little lower downward (`RadarSynth.WithUnexploredTail`). The ray's own line, walls
+  ignored, must leave the seen ground onto ground the player can reach within 2 × the 60-cell reveal radius
+  (`ExplorationMap.LeavesTheSeen`, read from the seen map at the moment of the cue). Pockets count only once nothing
+  else is left. Setting `UnexploredMark`.
+  Until 2026-11-11 the test was a frontier place of the scanner within the ray's quarter (±45°) and 180 cells: walking
+  a straight line reveals a strip 120 cells wide, and its edge, 60 cells to the side, lies 22° off the line 157 cells
+  back, so the ray pointing where the player came from was marked ("up is unexplored", then "down is"; user). On the
+  line alone, the way back is marked only when the player came more than 30° aslant of it.
 - **Hint when lost** (`LostHint`, `LostWatch`; settings `LostHint`, `LostHintSeconds`, at the object sounds' volume): the
   D2R mod's "unexplored room" recording (supplied by the user for D2R, resampled to the mixer's 44.1 kHz, shipped in
   `assets/loops/`) is not a constant loop any more (user 2026-11-05: the radar is what explores). After 180 s spent

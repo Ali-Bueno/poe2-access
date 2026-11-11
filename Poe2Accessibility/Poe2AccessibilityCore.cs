@@ -357,7 +357,7 @@ namespace Poe2Accessibility
                 this.lostHint = new LostHint(this.audio, this.entities, modSounds.GetLoop(LostHint.LoopName), this.log);
                 this.mapHints = new MapHintNarrator(this.entities, this.output, MapHintTable.Load(this.log, Path.Join(this.DllDirectory, "catalog", "map-hints.json")),
                                                     () => this.gameState?.CurrentAreaId ?? string.Empty, this.log);
-                this.radar.Unexplored = () => this.Settings.UnexploredMark ? this.entities.UnexploredCells() : Array.Empty<System.Numerics.Vector2>();
+                this.radar.LeadsToUnseen = (from, axis) => this.Settings.UnexploredMark && this.entities.LeadsToUnseen(from, axis);
                 this.discoveries = new DiscoveryNarrator(this.entities, this.output, this.audio, gameSounds, new KnownPlaces(Path.Join(this.DllDirectory, "config", "known-places.txt")));
                 this.enemyNews = new EnemyNarrator(this.entities, this.output);
                 this.deaths = new DeathWatch(this.locator, elements, this.output, this.log)

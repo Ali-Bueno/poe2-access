@@ -1046,6 +1046,18 @@ namespace Poe2Accessibility.Services
             return (onward.Count > 0 ? onward : places).Select(entry => new Vector2(entry.WorldX, entry.WorldY) / toWorld).ToList();
         }
 
+        /// <summary>The line from <paramref name="from"/> along <paramref name="axis"/> (grid cells) soon leaves the seen ground: the radar's mark.</summary>
+        public bool LeadsToUnseen(Vector2 from, Vector2 axis)
+        {
+            if (!Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return false;
+            }
+
+            this.Unexplored(Core.States.InGameStateObject.CurrentAreaInstance, player); // keeps the reachable ground fresh
+            return this.explored.LeavesTheSeen(from, axis, ExplorationMap.MarkReachCells);
+        }
+
         /// <summary>Where unseen ground begins (<see cref="ExplorationMap"/>), refreshed every UnexploredRefreshMs.</summary>
         private IReadOnlyList<ScanEntry> Unexplored(AreaInstance area, Render player)
         {

@@ -125,8 +125,8 @@ namespace Poe2Accessibility.Services
         /// <summary>Cue volume, a fraction of the synthesized level.</summary>
         public float Gain { get; set; } = 1f;
 
-        /// <summary>Where unseen ground begins (grid cells, <see cref="ExplorationMap.Frontier"/>), for the unexplored mark; null: no mark.</summary>
-        public Func<IReadOnlyList<Vector2>>? Unexplored { get; set; }
+        /// <summary>Whether the line from a cell along an axis soon leaves the seen ground (<see cref="ExplorationMap.LeavesTheSeen"/>), for the unexplored mark; null: no mark.</summary>
+        public Func<Vector2, Vector2, bool>? LeadsToUnseen { get; set; }
 
         /// <summary>A wall that is a rock, tree or pillar standing alone knocks hollow instead (D2R small obstacles).</summary>
         public bool SmallObstacles { get; set; } = true;
@@ -259,10 +259,9 @@ namespace Poe2Accessibility.Services
             var due = Directions.Where(direction => this.pending.TryGetValue(direction, out var reading) && reading == urgency).ToList();
             var direction = due[this.rotation++ % due.Count];
             this.pending.Remove(direction);
-            // D2R: a way that leads toward ground never seen ends in two pips (docs/radar.md).
+            // D2R: a way that leads onto ground never seen ends in two pips (docs/radar.md).
             var (sound, key) = urgency == RadarReading.Wall && this.smallObstacles.Contains(direction) ? (this.obstacleSounds[direction], $"{this.soundPrefix}_obstacle")
-                : urgency != RadarReading.Wall && this.Unexplored?.Invoke() is { Count: > 0 } frontier && this.axes.TryGetValue(direction, out var axis) &&
-                  ExplorationMap.AnyToward(this.lastPosition, axis, frontier, ExplorationMap.MarkReachCells)
+                : urgency != RadarReading.Wall && this.axes.TryGetValue(direction, out var axis) && this.LeadsToUnseen?.Invoke(this.lastPosition, axis) == true
                     ? (this.markedSounds[(urgency, direction)], "radar_unexplored")
                     : (this.sounds[(urgency, direction)], $"{this.soundPrefix}_{urgency.ToString().ToLowerInvariant()}");
             this.audio.Play(sound, RadarSynth.Pan(direction) * PanStrength, 1f, this.Gain, key);
