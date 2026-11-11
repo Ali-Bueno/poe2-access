@@ -55,6 +55,12 @@ namespace Poe2Accessibility.Services
             {
                 if (slotName(to) is { } slot)
                 {
+                    // A flask drunk is a new entity in its own slot; in play nothing else can arrive where one left.
+                    if (Take(source => source == to, null, departed => !inPanel || Title(departed) == Title(name)) != null)
+                    {
+                        continue;
+                    }
+
                     moves.Add(new ItemMove(ItemMoveKind.Equipped, name, slot));
                     Take(source => source != InventoryName.Cursor1 && !IsEquipment(source));
                 }
@@ -125,9 +131,9 @@ namespace Poe2Accessibility.Services
                 return same;
             }
 
-            string? Take(Func<InventoryName, bool> source, string? named = null)
+            string? Take(Func<InventoryName, bool> source, string? named = null, Func<string, bool>? fits = null)
             {
-                var index = left.FindIndex(departure => source(departure.From) && (named == null || departure.Name == named));
+                var index = left.FindIndex(departure => source(departure.From) && (named == null || departure.Name == named) && (fits?.Invoke(departure.Name) ?? true));
                 if (index < 0)
                 {
                     return null;

@@ -24,7 +24,31 @@ namespace Poe2Accessibility.Tests
             (nameof(ANodesRowIsBelievedOnlyWhileMostRowsAgree), ANodesRowIsBelievedOnlyWhileMostRowsAgree),
             (nameof(AnotherAreaAtTheSameAddressIsASecondWitness), AnotherAreaAtTheSameAddressIsASecondWitness),
             (nameof(ABuffListMayBeginWithACapitalisedId), ABuffListMayBeginWithACapitalisedId),
+            (nameof(AFlaskDrunkIsNotEquippedAgain), AFlaskDrunkIsNotEquippedAgain),
         };
+
+        /// <summary>Drinking makes the flask a new entity in its own slot: "Equipped" on every drink (live 2026-11-11).</summary>
+        private static void AFlaskDrunkIsNotEquippedAgain()
+        {
+            static string Said(List<ItemMove> moves) => string.Join(" | ", moves.Select(move => $"{move.Kind} {move.Name} {move.Where}".Trim()));
+            static List<(InventoryName, string)> Items(params (InventoryName, string)[] items) => items.ToList();
+            const InventoryName Main = InventoryName.MainInventory1;
+            const InventoryName Belt = InventoryName.Flask1;
+            var where = Announcements.MoveSlotName(Belt);
+            Equal(string.Empty, Said(ItemMoves.Read(Items((Belt, "Frasco de vida, Mágico")), Items((Belt, "Frasco de vida, Mágico")), Announcements.MoveSlotName, false, 0, string.Empty)),
+                  "drunk in play: the same flask, made anew where it was");
+            Equal(string.Empty, Said(ItemMoves.Read(Items((Belt, "Arco de carcelero")), Items((Belt, "Frasco de vida, Mágico")), Announcements.MoveSlotName, false, 0, string.Empty)),
+                  "in play nothing was moved there, even when the new entity's name read wrong");
+            Equal(string.Empty, Said(ItemMoves.Read(Items((Belt, "Frasco de vida, Mágico")), Items((Belt, "Frasco de vida, Mágico")), Announcements.MoveSlotName, true, 0, string.Empty)),
+                  "drunk with the inventory open");
+            Equal($"Equipped Frasco de maná {where}", Said(ItemMoves.Read(Items((Belt, "Frasco de maná")), Items((Main, "Frasco de maná")), Announcements.MoveSlotName, true, 0, string.Empty)),
+                  "put on the belt from the inventory");
+            Equal($"Equipped Frasco de maná {where} | Unequipped Frasco de vida", Said(ItemMoves.Read(Items((Belt, "Frasco de maná"), (Main, "Frasco de vida")),
+                      Items((Main, "Frasco de maná"), (Belt, "Frasco de vida")), Announcements.MoveSlotName, true, 0, string.Empty)),
+                  "swapped for another flask from the inventory");
+            Equal($"Equipped Frasco de vida {where}", Said(ItemMoves.Read(Items((Belt, "Frasco de vida")), Items(), Announcements.MoveSlotName, false, 0, string.Empty)),
+                  "picked up in play straight onto an empty belt slot");
+        }
 
         private static void AnotherAreaAtTheSameAddressIsASecondWitness()
         {
