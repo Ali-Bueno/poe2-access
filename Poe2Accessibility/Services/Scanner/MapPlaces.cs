@@ -20,6 +20,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Above this many pairings the markers are matched one by one by direction.</summary>
         private const int MaxPairings = 50000;
 
+        /// <summary>Cosine of 23 degrees: the direction tolerance of the cheap match.</summary>
+        private const float GreedyCosine = 0.92f;
+
         /// <summary>
         ///     For each marker (screen offset from the player's own marker), the index of the place (screen projection of
         ///     its world offset from the player's checkpoint) it stands for, or -1: the pairing whose single scale fits
@@ -28,9 +31,14 @@ namespace Poe2Accessibility.Services
         public static int[] Assign(IReadOnlyList<Vector2> markers, IReadOnlyList<Vector2> places)
         {
             var result = Enumerable.Repeat(-1, markers.Count).ToArray();
-            if (markers.Count == 0 || places.Count == 0 || Pairings(Math.Max(markers.Count, places.Count), Math.Min(markers.Count, places.Count)) > MaxPairings)
+            if (markers.Count == 0 || places.Count == 0)
             {
                 return result;
+            }
+
+            if (Pairings(Math.Max(markers.Count, places.Count), Math.Min(markers.Count, places.Count)) > MaxPairings)
+            {
+                return Greedy(markers, places); // too many to try every pairing: a cheaper match beats naming none
             }
 
             var best = float.MaxValue;
@@ -70,6 +78,37 @@ namespace Poe2Accessibility.Services
             return best <= MaxResidual && bestPairs != null ? bestPairs : result;
         }
 
+        /// <summary>
+        ///     The cheap fallback past the pairing budget: the (marker, place) pairs by direction, best first, each marker and
+        ///     place taken once, a pair kept only when its direction is within the same 23 degrees the exact fit allows.
+        /// </summary>
+        public static int[] Greedy(IReadOnlyList<Vector2> markers, IReadOnlyList<Vector2> places)
+        {
+            var result = Enumerable.Repeat(-1, markers.Count).ToArray();
+            var candidates = new List<(float Cosine, int Marker, int Place)>();
+            for (var marker = 0; marker < markers.Count; marker++)
+            {
+                for (var place = 0; place < places.Count; place++)
+                {
+                    var lengths = markers[marker].Length() * places[place].Length();
+                    if (lengths > 0 && Vector2.Dot(markers[marker], places[place]) / lengths is var cosine && cosine >= GreedyCosine)
+                    {
+                        candidates.Add((cosine, marker, place));
+                    }
+                }
+            }
+
+            var taken = new bool[places.Count];
+            foreach (var (_, marker, place) in candidates.OrderByDescending(candidate => candidate.Cosine))
+            {
+                if (result[marker] < 0 && !taken[place])
+                {
+                    (result[marker], taken[place]) = (place, true);
+                }
+            }
+
+            return result;
+        }
         /// <summary>The named entry nearest <paramref name="point"/> within <paramref name="radius"/> (world units), or null.</summary>
         public static ScanEntry? NamedNear(Vector2 point, IEnumerable<ScanEntry> entries, float radius) =>
             entries.Where(entry => entry.Category is ScanCategory.Exits or ScanCategory.Waypoints or ScanCategory.Npcs or ScanCategory.Objects &&

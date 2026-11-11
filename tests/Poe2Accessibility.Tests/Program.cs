@@ -3295,6 +3295,14 @@ namespace Poe2Accessibility.Tests
             Equal("-1", string.Join(",", MapPlaces.Assign(new[] { V(-30, -30) }, new[] { V(100, 0) })), "nothing in its direction: unnamed");
             Equal("0,-1", string.Join(",", MapPlaces.Assign(new[] { V(50, 0), V(0, 50) }, new[] { V(1000, 0) })), "a checkpoint never seen stays unnamed");
             Equal(string.Empty, string.Join(",", MapPlaces.Assign(Array.Empty<System.Numerics.Vector2>(), places)), "no markers");
+
+            // Past the pairing budget the cheaper match still names them (it named none before).
+            const int Many = 16;
+            var ring = Enumerable.Range(0, Many).Select(i => V(MathF.Cos(i * 2 * MathF.PI / Many) * 1000, MathF.Sin(i * 2 * MathF.PI / Many) * 1000)).ToArray();
+            var shuffled = Enumerable.Range(0, Many).Select(i => (i * 5) % Many).ToArray();
+            var many = shuffled.Select(i => ring[i] / 20).ToArray();
+            Equal(string.Join(",", shuffled), string.Join(",", MapPlaces.Assign(many, ring)), "sixteen checkpoints past the budget are each named");
+            Equal("-1", string.Join(",", MapPlaces.Greedy(new[] { V(-30, -30) }, new[] { V(100, 0) })), "the cheap match leaves a marker with nothing in its direction unnamed");
         }
 
         private static void CheckpointsAreNamedByTheirNeighbour()
