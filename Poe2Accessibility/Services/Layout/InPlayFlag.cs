@@ -47,6 +47,10 @@ namespace Poe2Accessibility.Services
             return zeros > 0;
         }
 
+        /// <summary>The quest-state flag reads as it must: 1 on everything surely in play, of which there is enough to judge.</summary>
+        public static bool QuestStateHolds(IReadOnlyList<byte[]> inPlay, int offset) =>
+            inPlay.Count >= MinInPlay && inPlay.All(block => At(block, offset) == 1);
+
         /// <summary>The byte at the offset; 0xFF past the block's end (never fits).</summary>
         private static int At(byte[] block, int offset) => offset >= 0 && offset < block.Length ? block[offset] : 0xFF;
     }

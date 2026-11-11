@@ -437,10 +437,15 @@ namespace Poe2Accessibility.Services
             return false;
         }
 
-        /// <summary>Not hidden and targetable by its own flag (<see cref="GameLayout.TargetableComponent"/>); no component: in play.</summary>
+        /// <summary>
+        ///     Not hidden, targetable by its own flag and reached by the quest (<see cref="GameLayout.TargetableComponent"/>:
+        ///     the rune seals sounded before their step, user 2026-11-11); no component: in play.
+        /// </summary>
         public static bool IsInPlay(HostMemoryReader memory, Entity entity) =>
             !IsHidden(entity) &&
             (!EntityFields.InPlayTrusted || !entity.TryGetComponent<Targetable>(out var target) ||
-             (memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.IsTargetableOffset, out var flag) && flag != 0));
+             (memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.IsTargetableOffset, out var flag) && flag != 0 &&
+              (!EntityFields.QuestStateTrusted ||
+               !memory.TryRead<byte>(target.Address + GameLayout.TargetableComponent.MeetsQuestStateOffset, out var quest) || quest != 0)));
     }
 }

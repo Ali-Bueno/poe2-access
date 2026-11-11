@@ -227,6 +227,14 @@ namespace Poe2Accessibility
             ///     notice board walked up to (Clearfell Encampment, 2026-10-24).
             /// </summary>
             public static int IsTargetedOffset { get; internal set; } = 0x6B;
+
+            /// <summary>
+            ///     0 while the quest has not reached the thing: five bytes after the in-play flag, as in GameHelper's
+            ///     TargetableOffsets (IsTargetable 0x51, MeetsQuestState 0x56), so it moves with it. In 47 entity dumps
+            ///     (2026-11-05 to 11-11) 0 only on the Grelwood's rune seals before their step, a reforging bench and a
+            ///     relic locker not yet unlocked; 1 on the other 823 targetable entities.
+            /// </summary>
+            public static int MeetsQuestStateOffset => IsTargetableOffset + 5;
         }
 
         /// <summary>Button bits of the pad state (each button held while sampling the field, 2026-10-23).</summary>

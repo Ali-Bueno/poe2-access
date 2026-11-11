@@ -1327,6 +1327,9 @@ namespace Poe2Accessibility.Tests
             Equal(false, InPlayFlag.Fits(inPlay, renly, 0x12), "both variants in play: not the flag");
             Equal(false, InPlayFlag.Fits(inPlay, Array.Empty<IReadOnlyList<byte[]>>(), 0x10), "no story variants: nothing proves a 0");
             Equal(false, InPlayFlag.Fits(inPlay.Take(2).ToList(), renly, 0x10), "too little in play");
+            Equal(true, InPlayFlag.QuestStateHolds(inPlay, 0x11), "the quest flag is believed where all that is surely in play reads 1");
+            Equal(false, InPlayFlag.QuestStateHolds(inPlay, 0x13), "not where one of them reads 0: nothing is left out by it");
+            Equal(false, InPlayFlag.QuestStateHolds(inPlay.Take(2).ToList(), 0x11), "nor on too little in play");
             Equal(0x10, OffsetSearch.First(0x14, 8, 1, at => InPlayFlag.Fits(inPlay, renly, at)), "found again from a moved start");
             Equal(1.0, InPlayFlag.Share(inPlay, 0x10), "share in play");
         }

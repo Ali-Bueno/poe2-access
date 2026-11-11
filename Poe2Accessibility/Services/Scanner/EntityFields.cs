@@ -52,6 +52,12 @@ namespace Poe2Accessibility.Services
         /// <summary>The in-play flag is believed until a game update visibly breaks it; then everything counts as in play.</summary>
         public static bool InPlayTrusted { get; private set; } = true;
 
+        /// <summary>
+        ///     The quest-state flag is believed once everything surely in play reads 1 there (judged with the in-play flag);
+        ///     until then, and when it does not, nothing is left out by it.
+        /// </summary>
+        public static bool QuestStateTrusted { get; private set; }
+
         public CompatibilityReport? Report { get; set; }
 
         /// <summary>Whether this pass over the awake entities samples them (every <see cref="PassMs"/> until both fields are known).</summary>
@@ -125,7 +131,7 @@ namespace Poe2Accessibility.Services
             GameLayout.TargetableComponent.IsTargetableOffset = this.measuredFlag;
             GameLayout.TargetableComponent.IsTargetedOffset = this.measuredTargeted;
             GameLayout.NpcComponent.MarkerRowOffset = this.measuredMarker;
-            (this.flagKnown, this.markerKnown, InPlayTrusted, this.markerSearchedFor) = (false, false, true, -1);
+            (this.flagKnown, this.markerKnown, InPlayTrusted, QuestStateTrusted, this.markerSearchedFor) = (false, false, true, false, -1);
         }
 
         /// <summary>Research (dev command "layout"): every other flag offset within reach that also fits, and the marker's state.</summary>
@@ -156,6 +162,7 @@ namespace Poe2Accessibility.Services
             if (InPlayFlag.Share(this.inPlay, measured) >= 0.5)
             {
                 this.flagKnown = true;
+                QuestStateTrusted = InPlayFlag.QuestStateHolds(this.inPlay, GameLayout.TargetableComponent.MeetsQuestStateOffset);
                 this.Report?.Found("targetable flag");
                 return;
             }
@@ -171,6 +178,7 @@ namespace Poe2Accessibility.Services
             {
                 GameLayout.TargetableComponent.IsTargetableOffset = found;
                 GameLayout.TargetableComponent.IsTargetedOffset = this.measuredTargeted + (found - this.measuredFlag);
+                QuestStateTrusted = InPlayFlag.QuestStateHolds(this.inPlay, GameLayout.TargetableComponent.MeetsQuestStateOffset);
                 this.Report?.Moved("targetable flag", this.measuredFlag, found);
             }
             else
