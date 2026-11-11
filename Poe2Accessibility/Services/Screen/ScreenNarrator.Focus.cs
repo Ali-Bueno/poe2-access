@@ -307,6 +307,9 @@ namespace Poe2Accessibility.Services
             this.SayMove(whole);
         }
 
+        /// <summary>When a panel row's figure last changed under the cursor (<see cref="FocusNews.HeldStill"/>).</summary>
+        private long lastFigureAt = long.MinValue / 2;
+
         /// <summary>Only the new value; a text field echoes just the typed or deleted characters.</summary>
         public void OnValueChanged(AccessibleUiNode node)
         {
@@ -360,6 +363,21 @@ namespace Poe2Accessibility.Services
                 // A opened or closed the row: its state; the lines it shows follow as the screen reports them.
                 this.collapsedAt = node.IsExpanded ? DateTime.MinValue : DateTime.UtcNow;
                 this.output.Speak(node.IsExpanded ? Announcements.Expanded : Announcements.Collapsed, true);
+                return;
+            }
+
+            if (node.Role == UiRole.Panel && sameOwner && !rowChanged && node.Value == before && FocusNews.ChangedNumbers(node.Role, textBefore, node.Text) is { } figure)
+            {
+                // A Skills row's level or DPS changed under a resting cursor: that part alone, unless it keeps moving.
+                var now = Environment.TickCount64;
+                var still = FocusNews.HeldStill(now - this.lastFigureAt);
+                this.lastFigureAt = now;
+                this.lastFocusSpeech = this.Focused(node);
+                if (still)
+                {
+                    this.output.Speak(figure, true);
+                }
+
                 return;
             }
 

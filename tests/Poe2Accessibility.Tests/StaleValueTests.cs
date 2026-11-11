@@ -16,6 +16,7 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(ANumberChangingUnderTheCursorIsSaidAlone), ANumberChangingUnderTheCursorIsSaidAlone),
             (nameof(AClockInTheFocusedRowStaysQuiet), AClockInTheFocusedRowStaysQuiet),
+            (nameof(AControlWithNoTooltipIsSaidOnceTheCursorRests), AControlWithNoTooltipIsSaidOnceTheCursorRests),
             (nameof(AMovedItemIsNamedAsItWasWhenItLeft), AMovedItemIsNamedAsItWasWhenItLeft),
             (nameof(AGroundTooltipIsItsOwnItems), AGroundTooltipIsItsOwnItems),
             (nameof(AVanishedTargetIsReachedOnlyIfUsingItRemovesIt), AVanishedTargetIsReachedOnlyIfUsingItRemovesIt),
@@ -34,11 +35,20 @@ namespace Poe2Accessibility.Tests
             Equal(null, FocusNews.ChangedNumbers(UiRole.ItemSlot, "Anillo, 3, raro", "Anillo, 12, mágico"), "more than a number changed: the whole slot's news");
             Equal("DPS: 13,1", FocusNews.ChangedNumbers(UiRole.ListItem, "NIVEL: 1, Rayo atronador, DPS: 12,5", "NIVEL: 1, Rayo atronador, DPS: 13,1"), "a row's own figure, as a ListItem");
 
-            // Audit N2, still open: live the Skills panel's rows read as role=Panel, which the rule does not cover, so a figure
-            // changing under the cursor there is not reached by it. The rule is not widened to Panel on purpose: a panel with a
-            // clock would speak every second. This line says what is true today; when the panels that tick are listed and
-            // Panel is covered for the others, it changes with the rule.
-            Equal(null, FocusNews.ChangedNumbers(UiRole.Panel, "NIVEL: 1, Rayo atronador, DPS: 12,5", "NIVEL: 1, Rayo atronador, DPS: 13,1"), "a Skills row as it reads live (Panel): not covered yet");
+            // Audit N2: the Skills panel's rows read as role=Panel, and all they hold beside the name is a captioned figure.
+            Equal("DPS: 211,3", FocusNews.ChangedNumbers(UiRole.Panel, "NIVEL: 8, Lanzamiento de lanza, DPS: 205,1", "NIVEL: 8, Lanzamiento de lanza, DPS: 211,3"), "a Skills row as it reads live (Panel)");
+            Equal("NIVEL: 6, Daño: 18,4", FocusNews.ChangedNumbers(UiRole.Panel, "NIVEL: 5, Heraldo de trueno, Daño: 16,1", "NIVEL: 6, Heraldo de trueno, Daño: 18,4"), "a gem levelled there: both figures");
+            Equal("LEVEL: 6", FocusNews.ChangedNumbers(UiRole.Panel, "LEVEL: 5, Attrition", "LEVEL: 6, Attrition"), "a row with no damage figure");
+            Equal("DPS: 1.205,1", FocusNews.ChangedNumbers(UiRole.Panel, "NIVEL: 8, Lanzazo, DPS: 1.198,7", "NIVEL: 8, Lanzazo, DPS: 1.205,1"), "a figure in the thousands");
+            Equal(null, FocusNews.ChangedNumbers(UiRole.Panel, "NIVEL: 8, Lanzazo, DPS: 998,7", "NIVEL: 8, Lanzazo, DPS: 1.205,1"), "a figure gaining a group of digits: the row is read whole");
+            Equal(null, FocusNews.ChangedNumbers(UiRole.Panel, "Lo W, 3", "Lo W, 2"), "a panel's bare number is not a row's figure");
+            Equal(null, FocusNews.ChangedNumbers(UiRole.Panel, "Sala, Enfriamiento: 3,2 s", "Sala, Enfriamiento: 3,1 s"), "nor a cooldown with its unit");
+            Equal(null, FocusNews.ChangedNumbers(UiRole.Panel, "Oferta, Termina en: 0:59", "Oferta, Termina en: 0:58"), "nor a clock under a caption");
+            Equal(null, FocusNews.ChangedNumbers(UiRole.Panel, "Oferta, 2 días 3 horas", "Oferta, 2 días 2 horas"), "nor a length of time");
+            Equal(null, FocusNews.ChangedNumbers(UiRole.Panel, "NIVEL: 8, Lanzazo, DPS: 74,2", "NIVEL: 8, Lanzazo"), "a figure gone is the whole row's news");
+            Equal(true, FocusNews.HeldStill(FocusNews.MovingFigureMs), "a figure that had held still is said");
+            Equal(false, FocusNews.HeldStill(FocusNews.MovingFigureMs - 1), "one that changed a moment ago keeps moving: quiet");
+            Equal(false, FocusNews.HeldStill(150), "a figure changing at every reading (a buff running out)");
             Equal(null, FocusNews.ChangedNumbers(UiRole.GridCell, "Orbe de aumento, 3", "Orbe de aumento, 3"), "nothing changed");
             Equal(null, FocusNews.ChangedNumbers(UiRole.GridCell, "Orbe de aumento, 2", "Orbe de aumento"), "the count gone is the whole cell's news");
             Equal(null, FocusNews.ChangedNumbers(UiRole.Button, "Comprar, 3", "Comprar, 2"), "a button's caption is not an item's number");
@@ -52,6 +62,21 @@ namespace Poe2Accessibility.Tests
             Equal(true, FocusNews.IsTick(UiRole.ListItem, Before, After), "the same row as a list's");
             Equal(true, FocusNews.IsTick(UiRole.ListItem, "Sala, 0:59", "Sala, 0:58"), "a clock's digits");
             Equal(false, FocusNews.IsTick(UiRole.ListItem, "Sala, 0:59", "Otra sala, 0:58"), "another text is no tick");
+            Equal(true, FocusNews.IsTick(UiRole.Panel, "Oferta, Termina en: 0:59", "Oferta, Termina en: 0:58"), "a panel's clock");
+            Equal(false, FocusNews.IsTick(UiRole.Panel, "NIVEL: 8, Lanzazo, DPS: 74,2", "NIVEL: 8, Lanzazo, DPS: 80,0"), "a Skills row's figure is no clock");
+        }
+
+        /// <summary>Audit N1: a control under the free cursor that never gets a tooltip.</summary>
+        private static void AControlWithNoTooltipIsSaidOnceTheCursorRests()
+        {
+            Equal(true, BareHover.IsSaid(true, UiRole.Button, "Activar", false, BareHover.RestMs), "a captioned button the cursor rests on");
+            Equal(false, BareHover.IsSaid(true, UiRole.Button, "Activar", false, BareHover.RestMs - 1), "the cursor still passing over it");
+            Equal(false, BareHover.IsSaid(false, UiRole.Button, "Salir", false, 5000), "the login's Exit under a mouse left there (seen 2026-11-10)");
+            Equal(false, BareHover.IsSaid(true, UiRole.Button, "close", true, 5000), "a control only its id names");
+            Equal(false, BareHover.IsSaid(true, UiRole.Button, string.Empty, false, 5000), "nothing names it");
+            Equal(false, BareHover.IsSaid(true, UiRole.Panel, "Keth", false, 5000), "a panel is not a control: the map's areas are the screen's news");
+            Equal(false, BareHover.IsSaid(true, UiRole.Button, new string('a', BareHover.MaxCaption + 1), false, 5000), "a page's text gathered under a background");
+            Equal(true, BareHover.IsSaid(true, UiRole.CheckBox, "Ocultar completados", false, 5000), "a check box");
         }
 
         /// <summary>A stack of 10 scrolls, 3 used, then sold: "…, 7"; an item made magic in place; "unknown item" never kept.</summary>
