@@ -68,19 +68,17 @@ namespace Poe2Accessibility.Services
         private StructHealth? animationSaid;
         private long nextActorsAt;
         private bool poiseJudged;
-        private int poiseMisses;
-        private int poiseAreasMissed;
-        private long poiseArea;
+        private readonly AreaMisses poiseMisses = new(PoiseMissesToSay, PoiseAreasToSay);
         private long nextPoiseWideAt;
         private WalkableCheck? walkable = new();
         private readonly Dictionary<string, StructHealth> invariantsSaid = new(StringComparer.Ordinal);
         private readonly SecondLook lostLook = new();
         private readonly LossWitnesses levelMisses = new();
-        private int lostLooks;
-        private int reactionLost;
+        private readonly MissCount lostLooks = new(LostLooksToSay);
+        private readonly MissCount reactionLost = new(ReactionLostToSay);
         private long recheckAt;
         private int rechecksLeft;
-        private int walkableFails;
+        private readonly MissCount walkableFails = new(WalkableFailsToSay);
 
         private const int PoiseAreasToSay = 2;
 
@@ -112,7 +110,8 @@ namespace Poe2Accessibility.Services
         {
             if (!inGame)
             {
-                (this.lostSince, this.lostLooks) = (-1, 0);
+                this.lostSince = -1;
+                this.lostLooks.Clear();
                 return;
             }
 
@@ -120,7 +119,8 @@ namespace Poe2Accessibility.Services
             var layout = area.Layout;
             if (layout.HasWorld && area.AwakeEntities.Count > 0)
             {
-                (this.lostSince, this.lostLooks) = (-1, 0);
+                this.lostSince = -1;
+                this.lostLooks.Clear();
                 this.Report(layout, true);
                 this.SweepStructs(area);
                 this.WatchActors(area);
@@ -136,7 +136,7 @@ namespace Poe2Accessibility.Services
                 // second, LocateEveryMs later, with still no world and no area found, is the verdict.
                 this.nextLocateAt = Environment.TickCount64 + LocateEveryMs;
                 var found = !layout.HasWorld && OffsetHealer.LocateArea();
-                if (found || ++this.lostLooks < LostLooksToSay)
+                if (found || !this.lostLooks.Reached())
                 {
                     return;
                 }
@@ -160,16 +160,16 @@ namespace Poe2Accessibility.Services
             this.reactionJudged = false;
             this.animationSaid = null;
             this.poiseJudged = false;
-            this.poiseMisses = 0;
-            this.poiseAreasMissed = 0;
-            this.poiseArea = 0;
+            this.poiseMisses.Clear();
             this.nextPoiseWideAt = 0;
             this.invariantsSaid.Clear();
             this.lostLook.Reset();
             this.levelMisses.Clear();
-            (this.lostLooks, this.reactionLost, this.recheckAt) = (0, 0, 0);
+            this.lostLooks.Clear();
+            this.reactionLost.Clear();
+            this.recheckAt = 0;
             this.walkable = new WalkableCheck();
-            this.walkableFails = 0;
+            this.walkableFails.Clear();
             this.statKeys.Reset();
             this.nextStatKeysAt = 0;
         }
@@ -286,13 +286,7 @@ namespace Poe2Accessibility.Services
                 // One area's monsters can all lack the record (totems, the stun-immune): missing only once a second area agrees.
                 // An area is its instance's address and hash: the game can load the next one into the instance it had.
                 var here = LossWitnesses.AreaKey(area.Address.ToInt64(), area.AreaHash);
-                if (here != this.poiseArea)
-                {
-                    this.poiseArea = here;
-                    this.poiseMisses = 0;
-                }
-
-                if (++this.poiseMisses == PoiseMissesToSay && ++this.poiseAreasMissed == PoiseAreasToSay)
+                if (this.poiseMisses.Miss(here))
                 {
                     this.report.Missing(PoisePart);
                 }
@@ -349,7 +343,7 @@ namespace Poe2Accessibility.Services
                 this.walkable = null;
                 this.report.Found(WalkablePart);
             }
-            else if (held == false && ++this.walkableFails == WalkableFailsToSay)
+            else if (held == false && this.walkableFails.Once())
             {
                 // The first cells after a load can be read from the grid of the area left: one failed window is not a verdict.
                 this.report.Missing(WalkablePart);
@@ -372,8 +366,12 @@ namespace Poe2Accessibility.Services
             if (OffsetHealer.JudgeReaction(area.Player, monsters) is { } outcome)
             {
                 this.reactionJudged = outcome.Health != StructHealth.Lost;
-                this.reactionLost = this.reactionJudged ? 0 : this.reactionLost + 1;
-                if (this.reactionJudged || this.reactionLost >= ReactionLostToSay)
+                if (this.reactionJudged)
+                {
+                    this.reactionLost.Clear();
+                }
+
+                if (this.reactionJudged || this.reactionLost.Reached())
                 {
                     this.Note(outcome);
                 }

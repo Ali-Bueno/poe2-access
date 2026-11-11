@@ -633,8 +633,11 @@ Left open, settled in the fifth pass (2026-11-10, evening):
   (the best of several runs, and the expansions counted).
 - **Tests that do not exist** (`WorldLayoutWatch` inline counters, `LayoutProbe`'s two looks, `InGameFields`' absent
   rule, `PlayerSkills.JudgeNames`, `GameStateService.StatesOverdue`, `FlagBits` rounds beyond `MovedBit`).
-  **Blocked:** not written in this pass; each class reads through the host, so each needs its rule lifted into a pure
-  class first (`StatesOverdue` is already static: it needs only a `Compile` line and a test).
+  **Fixed** (unit tests `LayoutRuleTests`): each rule lifted pure with no change of behaviour: `MissCount` and
+  `AreaMisses` (the watch's no-world looks, reaction streak, walkable windows, poise misses per area),
+  `PartLoss.LookAgainDue` and `AfterMisses` (the probe's looks again, the absent rule), `BitSearch.Judge` (a bit kept,
+  moved or lost only on a second round), `StatesWait.Overdue` (out of the host-bound service) and
+  `SkillNameCheck.Compare`, `NewProcess`.
 - **A rare or unique item named by its base where no tooltip was read** (ground labels, moves; from the stale-values
   pass). **Fixed and seen live:** the item's own words name it (`ItemNameWords`, `GameLayout.ItemNameWords`: the
   Words.dat keys at Mods +0x18; unit tests `ItemNameWordsTests`). With no tooltip read since the mod started, dev

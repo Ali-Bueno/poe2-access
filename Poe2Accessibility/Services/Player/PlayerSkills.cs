@@ -69,7 +69,6 @@ namespace Poe2Accessibility.Services
         /// <summary>Whose names are said, judged on all the followed player's skills at each poll; one for the plugin, as the offsets are.</summary>
         private static readonly SkillNameCheck NameCheck = new();
         private static readonly HashSet<string> OwnNamesLogged = new(StringComparer.Ordinal);
-        private static int nameGeneration = -1;
 
         /// <summary>Whether the followed player has the skill now.</summary>
         public bool Has(string id) => this.Ids().Contains(id);
@@ -133,25 +132,22 @@ namespace Poe2Accessibility.Services
         private void JudgeNames(List<(string Id, string FromGame)> names)
         {
             var catalog = GemCatalog.Shared;
-            var known = names.Where(skill => catalog.SkillName(skill.Id, "en") != null).ToList();
-            var differing = known.Where(skill => !catalog.IsSkillName(skill.Id, skill.FromGame)).ToList();
-            if ((CompatibilityReport.Current?.Generation ?? 0) is var generation && generation != nameGeneration)
+            var (known, differing) = SkillNameCheck.Compare(names, id => catalog.SkillName(id, "en") != null, catalog.IsSkillName);
+            if (NameCheck.NewProcess(CompatibilityReport.Current?.Generation ?? 0))
             {
-                nameGeneration = generation; // a new game process: judged again
-                NameCheck.Reset();
-                OwnNamesLogged.Clear();
+                OwnNamesLogged.Clear(); // a new game process: judged again
             }
 
-            if (NameCheck.Observe(known.Count, differing.Count))
+            if (NameCheck.Observe(known, differing.Count))
             {
                 if (NameCheck.Source == SkillNameSource.Files)
                 {
-                    this.log.Warn($"Skill names: the game's read DISAGREES with the game files on {differing.Count} of {known.Count} skills (first {differing[0].Id}: '{differing[0].FromGame}'); the files' names are said");
+                    this.log.Warn($"Skill names: the game's read DISAGREES with the game files on {differing.Count} of {known} skills (first {differing[0].Id}: '{differing[0].FromGame}'); the files' names are said");
                     CompatibilityReport.Current?.Missing(DatColumns.UnjudgedPart);
                 }
                 else
                 {
-                    this.log.Info($"Skill names: the game's read agrees with the game files on {known.Count - differing.Count} of {known.Count} skills; the game's names are said");
+                    this.log.Info($"Skill names: the game's read agrees with the game files on {known - differing.Count} of {known} skills; the game's names are said");
                 }
             }
 

@@ -555,7 +555,9 @@ unblocks it). The audit's own lists, entry by entry:
   checkpoints named past the pairing budget; object cues without the game's sounds; a grace for charges after an
   area's first reading; the skill stat key searched again; the wall-clock tests; the tests that did not test; a known
   row from the game's files for every key column of the endgame and skill tables; the data step "game names", which
-  fails naming any buff, animation, trap or door state or boss tail a rule matches that a patch removed.
+  fails naming any buff, animation, trap or door state or boss tail a rule matches that a patch removed; the rules of
+  host-bound classes lifted into tested pure code (the guide's way lines, boss life, the target's name, the data step's
+  plan, the update offer, the game process's watch, the layout's loss counters, flag bit rounds, skill name check).
 - **Character selection after a quick login** (the login's bar said again after the character): the bar is dropped
   when the state changes (`2840bbb`); heard again that evening, the bar once, before the character.
 - **Microtransaction shop, too few points:** "Comprar puntos, Esta compra requiere 250 puntos, tienes 150 puntos,
@@ -646,7 +648,7 @@ unblocks it). The audit's own lists, entry by entry:
   ear); a slider at 0 focused
   first (none of the owner's sits at 0); a start with `oo2core.dll` renamed (the owner's leave to rename a game file);
   a way back from a release that does not work, the "ended" lines after a respawn and a quiet buff (the owner's choice
-  between the options named there); the tests of host-bound rules not written.
+  between the options named there).
 
 ### Decisions the owner can overrule
 Taken on 2026-11-10 where the audit had left "the owner's call"; each is one constant or one phrase.

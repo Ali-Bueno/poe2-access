@@ -1,5 +1,7 @@
 namespace Poe2Accessibility.Services
 {
+    using System;
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>Whose skill names are said.</summary>
@@ -72,5 +74,28 @@ namespace Poe2Accessibility.Services
 
         /// <summary>A new game process: judged again.</summary>
         public void Reset() => (this.Source, this.lastDisagreed) = (SkillNameSource.Unjudged, false);
+
+        private int generation = -1;
+
+        /// <summary>The compatibility report's generation of this reading: true, and judged again, when it is a new game process's.</summary>
+        public bool NewProcess(int now)
+        {
+            if (now == this.generation)
+            {
+                return false;
+            }
+
+            this.generation = now;
+            this.Reset();
+            return true;
+        }
+
+        /// <summary>Of one reading's skills, how many have a name in the files, and those whose name read from the game is not the files'.</summary>
+        public static (int Compared, List<(string Id, string FromGame)> Differing) Compare(
+            IEnumerable<(string Id, string FromGame)> skills, Func<string, bool> inFiles, Func<string, string, bool> isFilesName)
+        {
+            var known = skills.Where(skill => inFiles(skill.Id)).ToList();
+            return (known.Count, known.Where(skill => !isFilesName(skill.Id, skill.FromGame)).ToList());
+        }
     }
 }
