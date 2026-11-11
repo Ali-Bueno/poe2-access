@@ -143,6 +143,17 @@ namespace Poe2Accessibility
         /// <summary>A count of scanner steps: "1 step", "12 steps".</summary>
         public static string Steps(int steps) => steps == 1 ? T("1 step", "1 paso") : T($"{steps} steps", $"{steps} pasos");
 
+        /// <summary>
+        ///     The heading of a button menu: the texts it shows above its buttons. The menu A opens beside another player
+        ///     shows only that player's class, level, league and name ("Cazadora Niv. 6, Liga …, LaGuanche. Invitar al
+        ///     grupo"), with no word that it is a player (2026-11-10): said as one when a player of that name is there.
+        /// </summary>
+        public static string ButtonMenuContext(System.Collections.Generic.IReadOnlyList<string> header, System.Func<string, bool>? isPlayerNamed)
+        {
+            var shown = string.Join(", ", header);
+            return shown.Length > 0 && isPlayerNamed != null && header.Any(text => isPlayerNamed(text.Trim())) ? T($"Player: {shown}", $"Jugador: {shown}") : shown;
+        }
+
         /// <summary>Another player: character name, then class ("Yarky, Witch").</summary>
         public static string OtherPlayer(string name, string characterClass, int level = 0)
         {

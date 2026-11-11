@@ -11,7 +11,26 @@ namespace Poe2Accessibility.Tests
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(TheAreaIsSaidOnlyInAGame), TheAreaIsSaidOnlyInAGame),
+            (nameof(TheMenuOnAPlayerSaysItIsAPlayer), TheMenuOnAPlayerSaysItIsAPlayer),
         };
+
+        /// <summary>"Cazadora Niv. 6, Liga Forbidden Rites, LaGuanche. Invitar al grupo" had no word that it was a player (2026-11-10).</summary>
+        private static void TheMenuOnAPlayerSaysItIsAPlayer()
+        {
+            var header = new[] { "Cazadora Niv. 6", "Liga Forbidden Rites", "LaGuanche" };
+            Localization.Detect("es");
+            try
+            {
+                Equal("Jugador: Cazadora Niv. 6, Liga Forbidden Rites, LaGuanche", Announcements.ButtonMenuContext(header, name => name == "LaGuanche"), "a player of that name is in the area");
+                Equal("Cazadora Niv. 6, Liga Forbidden Rites, LaGuanche", Announcements.ButtonMenuContext(header, _ => false), "no such player: the menu's own texts");
+                Equal("Cazadora Niv. 6, Liga Forbidden Rites, LaGuanche", Announcements.ButtonMenuContext(header, null), "nothing to ask");
+                Equal(string.Empty, Announcements.ButtonMenuContext(Array.Empty<string>(), _ => true), "a menu with no heading");
+            }
+            finally
+            {
+                Localization.Detect("en");
+            }
+        }
 
         private static void TheAreaIsSaidOnlyInAGame()
         {

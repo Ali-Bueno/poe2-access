@@ -101,6 +101,9 @@ namespace Poe2Accessibility.Services
         ///     the button and its place, with the texts outside the buttons (the player's name, class and league) as
         ///     its context.
         /// </summary>
+        /// <summary>Whether a player other than the character's own is in the area under that name; set by the plugin.</summary>
+        public Func<string, bool>? IsPlayerNamed { get; set; }
+
         private AccessibleUiNode? DescribeButtonMenu(in UiElementReader.ElementInfo info)
         {
             if (info.HasFlagBit(GameLayout.Element.InteractiveFlagBit) ||
@@ -153,7 +156,7 @@ namespace Poe2Accessibility.Services
                 Text = buttons[selected],
                 Position = Announcements.ListPosition(selected + 1, buttons.Count),
                 IsVisible = this.elements.IsVisible(info),
-                Context = string.Join(", ", header),
+                Context = Announcements.ButtonMenuContext(header, this.IsPlayerNamed),
             };
         }
 

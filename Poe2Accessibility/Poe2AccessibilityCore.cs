@@ -206,6 +206,7 @@ namespace Poe2Accessibility
                 this.semantics.Trace = message => this.log.Debug(message);
                 this.semantics.Fields = this.locator.Fields;
                 this.semantics.CharacterName = () => PlayerAlerts.Name(Seats.Followed);
+                this.semantics.IsPlayerNamed = OtherPlayerNamed;
                 this.semantics.PassiveResumeFile = Path.Join(this.DllDirectory, "config", "passive-resume.txt");
                 this.ApplyPassiveTree(this.Settings);
                 this.focus = new FocusTracker(memory, elements, this.locator, this.semantics, this.log);
@@ -710,6 +711,30 @@ namespace Poe2Accessibility
             this.focus is { Manager: var manager } tracker && manager != IntPtr.Zero && this.memoryReader != null &&
             this.memoryReader.TryRead<IntPtr>(manager + GameLayout.UiManager.CurrentOffset + ((tracker.Seat - 1) * GameLayout.UiManager.PlayerStride), out var held) &&
             held == element;
+
+        /// <summary>
+        ///     Whether another player in the area bears that name (the host's Player component): what tells the menu A
+        ///     opens beside a player from any other button menu.
+        /// </summary>
+        private static bool OtherPlayerNamed(string name)
+        {
+            if (name.Length == 0 || Core.States.GameCurrentState != GameStateTypes.InGameState)
+            {
+                return false;
+            }
+
+            foreach (var entity in Core.States.InGameStateObject.CurrentAreaInstance.AwakeEntities.Values)
+            {
+                if (entity.IsValid && entity.EntityType == GameReader.RemoteEnums.Entity.EntityTypes.Player &&
+                    entity.TryGetComponent<GameReader.RemoteObjects.Components.Player>(out var player) &&
+                    string.Equals(player.Name, name, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         /// <summary>A text element inside the HUD's skill bar (its alert line).</summary>
         private bool IsSkillBarText(IntPtr text) =>
