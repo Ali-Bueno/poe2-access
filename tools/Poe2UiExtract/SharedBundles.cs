@@ -107,10 +107,12 @@ internal sealed class SharedBundles : IBundleFactory
 
     private static void CloseKeptWhenFree()
     {
-        if (!keeping && keptLeases <= 0 && keptIndex != null)
+        if (!keeping && keptLeases <= 0)
         {
-            keptIndex.Dispose();
+            keptIndex?.Dispose();
             (keptIndex, keptDirectory, keptLeases) = (null, null, 0);
+
+            // Also when no index was ever kept: a bank read alone opens the GGPK, and no run closes it once the sequence is over.
             GameContent.CloseAll();
         }
     }

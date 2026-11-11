@@ -83,7 +83,15 @@ internal static class GameContent
             }
 
             var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-            return Opened[path] = new GGPK(stream);
+            try
+            {
+                return Opened[path] = new GGPK(stream);
+            }
+            catch
+            {
+                stream.Dispose(); // a file that is not a GGPK must not stay open
+                throw;
+            }
         }
     }
 
