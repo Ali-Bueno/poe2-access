@@ -241,7 +241,11 @@ Settled afterwards from the files (second pass, unit tests): hairin's unique hel
 furia también otorga umbral de aturdimiento aumentado un 1%", whose stat `stun_threshold_+%_per_rage` is in two blocks of
 the description file. Both blocks describe that stat alone, with one line of condition `#` and no handler, the same
 text in all eleven languages (the blocks list them in another order): whichever the game writes, the line is that one,
-and it is now certain (`ModTextCatalog.AlikeBlock`). Her spear has the same skill grant as yarkey's.
+and it is now certain (`ModTextCatalog.AlikeBlock`). Her spear has the same skill grant as yarkey's. Seen live the same
+night (23:34, catalog `16083 modifiers, 828 not told apart`): "Alas de Caelyn, único (Helm1 0,0): 5 lines equal, 0
+differ, 0 uncertain", and over hairin's nine pieces "22 lines equal, 0 differ, 1 uncertain" (the spear's grant). The
+launcher ran the two new data steps on that start (`game-names done in 0,3 s`, `mod-stats done in 2,2 s`) and yarkey's
+summary read "3 de 6 piezas con su base, 3 de 15 modificadores, leídos en 6 de 6 piezas" with no slot focused.
 
 The spears' "Otorga la habilidad: Lanzamiento de lanza" (`local_display_grants_spear_throw_skill`, implicit
 `SpearImplicitDisplaySpearThrow1`) stays uncertain, as before not counted against the piece: its frame is ClientStrings'
