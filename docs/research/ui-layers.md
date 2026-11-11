@@ -414,7 +414,8 @@ Code and unit tests only (the game was in use): what a live session must check i
 - **Speech.** `DescribeInventory` puts the short line before the item's lines and the modifiers after them (the tooltip's
   own lines: read on focus, tap and hold); nothing is said of an item until its tooltip is read, so no modifier is
   called missing from a tooltip still being built. The summary rides the panel notes of the player's own grids, kept off
-  when the focus comes from another grid (stash, merchant).
+  when the focus comes from another grid (stash, merchant). A worn piece whose slot was not focused yet is compared by
+  the lines made from its modifiers in memory ([item mods](item-mods.md)); the item under the cursor always by its tooltip.
 - **To check live.** (1) Inventory open, cursor on the helmet: the log's `Speech` line ends with "Build: …" and one line
   per wanted modifier; with the catalogs loaded the base and the lines are Spanish. (2) Cursor on a helmet in the bag or
   a merchant's stock: "Build, Casco: n de m modificadores, …" right after the name. (3) Open the inventory: `Focus ->`

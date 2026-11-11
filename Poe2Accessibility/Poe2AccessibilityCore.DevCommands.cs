@@ -451,6 +451,13 @@ namespace Poe2Accessibility
                 case "itemmods":
                     this.log?.Info($"Item mods: {(this.focus?.Current is { } onItem ? this.semantics?.FocusedItemMods(onItem) : "no focus")}");
                     break;
+                case "itemmodscheck":
+                    foreach (var line in this.semantics?.ItemModsCheck() ?? Array.Empty<string>())
+                    {
+                        this.log?.Info(line);
+                    }
+
+                    break;
                 case "camera":
                     this.LogCamera();
                     break;

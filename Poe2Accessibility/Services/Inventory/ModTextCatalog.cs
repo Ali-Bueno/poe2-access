@@ -31,14 +31,19 @@ namespace Poe2Accessibility.Services
         private readonly byte[] lineLanguage;
         private readonly int[] blockFirstLine;
         private readonly int[] blockStats;
+        private readonly string[][] blockStatIds;
         private readonly string[] languages;
         private readonly ConcurrentDictionary<(int Block, int Language), ModTextVariation?[]> parsed = new();
         private readonly Lazy<Index> index;
+        private readonly Lazy<Dictionary<string, int[]>> byStat;
+
+        /// <summary>The languages a fraction's mark was seen in on a modifier line: "5.9" on the Spanish client, as the English files write it.</summary>
+        private static readonly HashSet<string> DecimalMarkSeen = new(StringComparer.Ordinal) { English, "es" };
 
         private ModTextCatalog(ReadOnlySpan<byte> json)
         {
             var (pool, used) = (new byte[json.Length], 0);
-            var (starts, blocks, lineLanguages, firstLines, stats, codes) = (new List<int>(), new List<int>(), new List<byte>(), new List<int>(), new List<int>(), new List<string>());
+            var (starts, blocks, lineLanguages, firstLines, stats, codes) = (new List<int>(), new List<int>(), new List<byte>(), new List<int>(), new List<string[]>(), new List<string>());
             var reader = new Utf8JsonReader(json);
             if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
             {
@@ -57,7 +62,7 @@ namespace Poe2Accessibility.Services
 
                 while (reader.Read() && reader.TokenType == JsonTokenType.StartObject)
                 {
-                    var (block, count) = (firstLines.Count, 0);
+                    var (block, ids) = (firstLines.Count, Array.Empty<string>());
                     firstLines.Add(starts.Count);
                     while (reader.Read() && reader.TokenType == JsonTokenType.PropertyName)
                     {
@@ -65,7 +70,7 @@ namespace Poe2Accessibility.Services
                         reader.Read();
                         if (name == StatsProperty && reader.TokenType == JsonTokenType.String)
                         {
-                            count = reader.GetString()!.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+                            ids = reader.GetString()!.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                         }
                         else if (name == TextsProperty && reader.TokenType == JsonTokenType.StartObject)
                         {
@@ -101,16 +106,19 @@ namespace Poe2Accessibility.Services
                         }
                     }
 
-                    stats.Add(count);
+                    stats.Add(ids);
                 }
             }
 
             starts.Add(used);
             firstLines.Add(starts.Count - 1);
             Array.Resize(ref pool, used);
-            (this.pool, this.lineStart, this.lineBlock, this.lineLanguage, this.blockFirstLine, this.blockStats, this.languages) =
+            (this.pool, this.lineStart, this.lineBlock, this.lineLanguage, this.blockFirstLine, this.blockStatIds, this.languages) =
                 (pool, starts.ToArray(), blocks.ToArray(), lineLanguages.ToArray(), firstLines.ToArray(), stats.ToArray(), codes.ToArray());
+            this.blockStats = this.blockStatIds.Select(ids => ids.Length).ToArray();
             this.index = new Lazy<Index>(this.BuildIndex);
+            this.byStat = new Lazy<Dictionary<string, int[]>>(() => this.blockStatIds.SelectMany((ids, block) => ids.Distinct(StringComparer.Ordinal).Select(id => (id, block)))
+                .GroupBy(pair => pair.id, pair => pair.block, StringComparer.Ordinal).ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.Ordinal));
         }
 
         /// <summary>The catalog the plugin loaded; empty until then, so no line is told and none is said.</summary>
@@ -201,6 +209,42 @@ namespace Poe2Accessibility.Services
             }
 
             return string.Empty;
+        }
+
+        /// <summary>The description blocks a stat is in, in the file's order: none for a stat the file does not describe, more than one for the few it describes twice.</summary>
+        public IReadOnlyList<int> BlocksOf(string stat) => this.byStat.Value.TryGetValue(stat, out var blocks) ? blocks : Array.Empty<int>();
+
+        /// <summary>The stats a block describes, in the order its lines take their values.</summary>
+        public IReadOnlyList<string> StatsOf(int block) => this.blockStatIds[block];
+
+        /// <summary>
+        ///     The line the game writes for a block's stat values in a language: the first of the block they fit. Not certain
+        ///     when a line before it cannot be read here (its conditions are then unknown), when none fits, when the language
+        ///     has no text for the block, or when a number in it is written a way never seen (<see cref="ModTextVariation.Show"/>).
+        /// </summary>
+        public (string Text, bool Certain) Show(int block, IReadOnlyList<double> values, string language)
+        {
+            var local = Array.IndexOf(this.languages, language);
+            if (local < 0 || block < 0 || block >= this.blockStatIds.Length || values.Count != this.blockStats[block])
+            {
+                return (string.Empty, false);
+            }
+
+            var unread = false;
+            foreach (var variation in this.Variations(block, local))
+            {
+                if (variation == null)
+                {
+                    unread = true;
+                }
+                else if (variation.Fits(values))
+                {
+                    var (text, certain) = variation.Show(values, DecimalMarkSeen.Contains(language));
+                    return (text, certain && !unread);
+                }
+            }
+
+            return (string.Empty, false);
         }
 
         private static ReadOnlySpan<byte> WithoutMark(ReadOnlySpan<byte> file) => file.StartsWith(Encoding.UTF8.Preamble) ? file[Encoding.UTF8.Preamble.Length..] : file;

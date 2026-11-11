@@ -158,7 +158,14 @@ lines, eleven languages, a block a line of the JSON, every line as the file hold
 
 The step fails when no block is read, when more than one line in a hundred fits nowhere in the format, or when the fire
 resistance block no longer reads "Fire Resistance" in English and "fuego" in Spanish. It is not cut to the stats item
-modifiers use: that needs the Mods table's stat columns, which nobody has proven yet, so the file is 18 MB.
+modifiers use, so the file is 18 MB; the Mods table's stat columns are proven since (`mod-stats.json`, below), and the
+4,038 stats they name would be the cut.
+
+**Modifier stats.** `mod-stats.json` (`Poe2UiExtract mod-stats`, `ModStatCatalog`) is Mods.dat's side of the same
+lines: each modifier's stats in the order its values follow, with what each rolls. With it an item's modifier lines
+are written from the modifiers it holds in memory, the texts taken from `mod-texts.json` by stat
+(`ModTextCatalog.BlocksOf`, `Show`): columns, handlers, the rules for a certain line and the live check are in
+[item modifiers](item-mods.md).
 
 **The plugin** (`ModTextCatalog`, pure `ModTextVariation`) keeps the lines as UTF-8 (about 20 MB) and indexes them on a
 worker thread at start-up (about 2 s) by their skeleton: markup out as `BuildNotes.Plain` and the keyword links do it,

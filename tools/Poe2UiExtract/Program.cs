@@ -58,7 +58,7 @@ public static class Extractor
     /// <summary>The commands that print for a person and try columns as they go: their reads are not judged.</summary>
     private static readonly HashSet<string> ResearchCommands = new(StringComparer.OrdinalIgnoreCase)
     {
-        "paths", "cat", "ot-with", "ao-sounds", "object-links", "dat-strings", "dat-row-strings", "dat-rows", "dat-kinds", "bank-samples", SequenceCommand,
+        "paths", "cat", "ot-with", "ao-sounds", "object-links", "dat-strings", "dat-row-strings", "dat-rows", "dat-kinds", "dat-keys", "bank-samples", SequenceCommand,
     };
 
     private const string SequenceCommand = "sequence";
@@ -263,6 +263,34 @@ public static class Extractor
             return 0;
         }
 
+        // Args: dat-keys <gameDir> <table> <target table>  -- research aid: every offset of the table that reads as a 16-byte key
+        // into the target on every row, with how many rows hold one and the last three of them (Id -> the target's Id).
+        if (args.Length > 3 && string.Equals(args[0], "dat-keys", StringComparison.OrdinalIgnoreCase))
+        {
+            using var bundles = OpenLoose(args[1]);
+            var (table, target) = (DatTable.Open(bundles, args[2]), DatTable.Open(bundles, args[3]));
+            if (table == null || target == null)
+            {
+                Say.Out.WriteLine($"No table {(table == null ? args[2] : args[3])}");
+                return 1;
+            }
+
+            Say.Out.WriteLine($"{table.Name}: {table.RowCount} rows of 0x{table.RowSize:X} bytes; {target.Name}: {target.RowCount} rows");
+            for (var offset = 0; offset < table.RowSize; offset++)
+            {
+                if (!DatColumnSearch.IsKey(table, offset, target.RowCount, wide: true))
+                {
+                    continue;
+                }
+
+                var held = Enumerable.Range(0, table.RowCount).Where(row => table.Key(row, offset) >= 0).ToList();
+                var samples = held.TakeLast(3).Select(row => $"{table.StringOrNull(row, 0)} -> {DatAnchors.IdOf(target, table.Key(row, offset))}");
+                Say.Out.WriteLine($"+0x{offset:X}\t{held.Count} rows\t{string.Join(" | ", samples)}");
+            }
+
+            return 0;
+        }
+
         // Args: dat-row-strings <gameDir> <table> <id substring> [language]  -- research aid: every text column of the rows whose id
         // matches, one "+offset: text" line each.
         if (args.Length > 3 && string.Equals(args[0], "dat-row-strings", StringComparison.OrdinalIgnoreCase))
@@ -410,6 +438,12 @@ public static class Extractor
         if (args.Length > 1 && string.Equals(args[0], "mod-texts", StringComparison.OrdinalIgnoreCase))
         {
             return OnIndex(args[1], index => ModTextExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\mod-texts.json"));
+        }
+
+        // Args: mod-stats <gameDir> [outFile]  -- each modifier's stats and what they roll, in the order its values follow (docs/research/item-mods.md).
+        if (args.Length > 1 && string.Equals(args[0], ModStatColumns.Step, StringComparison.OrdinalIgnoreCase))
+        {
+            return OnIndex(args[1], index => ModStatExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\mod-stats.json"));
         }
 
         // Args: experience <gameDir> [outFile]  -- the total experience each character level starts at.

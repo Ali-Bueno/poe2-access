@@ -37,26 +37,13 @@ namespace Poe2Accessibility.Services
         /// <summary>A range alone, as a crafting text shows what an item may get: "(11-15)".</summary>
         private static readonly Regex RangeAlone = new(@"\(\s*(" + NumberPattern + @")\s*[-–—]\s*" + NumberPattern + @"\s*\)", RegexOptions.Compiled);
 
-        private static readonly Regex DecimalsPart = new(@"_(\d)dp(_if_required)?$", RegexOptions.Compiled);
-
-        /// <summary>What each handler does to a value, by its name without the decimals part: shown = value × Factor + Offset.</summary>
-        private static readonly Dictionary<string, (double Factor, double Offset)> Arithmetic = new(StringComparer.Ordinal)
-        {
-            ["negate"] = (-1, 0), ["negate_and_double"] = (-2, 0), ["double"] = (2, 0), ["times_twenty"] = (20, 0),
-            ["divide_by_one_hundred"] = (1 / 100.0, 0), ["divide_by_one_hundred_and_negate"] = (-1 / 100.0, 0),
-            ["per_minute_to_per_second"] = (1 / 60.0, 0), ["milliseconds_to_seconds"] = (1 / 1000.0, 0), ["deciseconds_to_seconds"] = (1 / 10.0, 0),
-            ["divide_by_ten"] = (1 / 10.0, 0), ["divide_by_two"] = (1 / 2.0, 0), ["divide_by_three"] = (1 / 3.0, 0), ["divide_by_four"] = (1 / 4.0, 0),
-            ["divide_by_five"] = (1 / 5.0, 0), ["divide_by_fifteen"] = (1 / 15.0, 0), ["divide_by_fifty"] = (1 / 50.0, 0),
-            ["divide_by_twenty_then_double"] = (1 / 10.0, 0), ["add_one"] = (0, 1), ["subtract_one"] = (0, -1), ["plus_two_hundred"] = (0, 200),
-        };
-
-        /// <summary>Handlers that change no number: which line stands for the stat elsewhere in the game.</summary>
-        private static readonly HashSet<string> Marks = new(StringComparer.Ordinal) { "canonical_stat" };
-
-        private const string CanonicalLine = "canonical_line", ReminderString = "reminderstring";
-
         /// <summary>The decimals a number is shown with when no handler says: as many as it has, two at most.</summary>
         private const int DefaultDecimals = 2;
+
+        /// <summary>From this number on the tooltip may group the digits, which was never seen on a modifier line.</summary>
+        private const double FirstGrouped = 1000;
+
+        private const double Tiny = 1e-9;
 
         private readonly Condition[] conditions;
         private readonly Shown[] shown;
@@ -107,13 +94,13 @@ namespace Poe2Accessibility.Services
             var handlers = line[(last + 1)..].Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
             for (var at = 0; at < handlers.Length; at += 2)
             {
-                if (handlers[at] == CanonicalLine)
+                if (handlers[at] == StatHandlers.CanonicalLine)
                 {
                     at--; // the one handler with no stat number after it
                     continue;
                 }
 
-                if (handlers[at] == ReminderString || Marks.Contains(handlers[at]))
+                if (StatHandlers.Marks.Contains(handlers[at]))
                 {
                     continue;
                 }
@@ -237,7 +224,27 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>The line as the game writes it for these stat values.</summary>
-        public string Say(IReadOnlyList<double> values)
+        public string Say(IReadOnlyList<double> values) => this.Written(values, (shown, number) => shown.Digits(number));
+
+        /// <summary>
+        ///     The line for these stat values, and whether every number in it is written a way the tooltip was seen to write
+        ///     one (docs/research/item-mods.md, "Numbers"): what was not seen (digits grouped, a minus sign, a fraction where
+        ///     no handler states the decimals, a fixed decimal that is zero) is written as <see cref="Say"/> does and told.
+        /// </summary>
+        /// <param name="decimalMarkSeen">Whether a fraction's mark was seen in the language the line is written in.</param>
+        public (string Text, bool Certain) Show(IReadOnlyList<double> values, bool decimalMarkSeen)
+        {
+            var certain = true;
+            var text = this.Written(values, (shown, number) =>
+            {
+                var (digits, seen) = shown.Seen(number, decimalMarkSeen);
+                certain &= seen;
+                return digits;
+            });
+            return (text, certain);
+        }
+
+        private string Written(IReadOnlyList<double> values, Func<Shown, double, string> digits)
         {
             var text = new StringBuilder();
             var place = 0;
@@ -252,8 +259,7 @@ namespace Poe2Accessibility.Services
                 var token = this.tokens.Where(candidate => candidate.Stat >= 0).ElementAt(place++);
                 var shown = this.shown[token.Stat];
                 var number = shown.Number(values[token.Stat]);
-                var digits = shown.Fixed ? number.ToString("F" + shown.Decimals, CultureInfo.InvariantCulture) : Math.Round(number, shown.Decimals).ToString(shown.Decimals == 0 ? "0" : "0." + new string('#', shown.Decimals), CultureInfo.InvariantCulture);
-                text.Append(token.Plus && number >= 0 ? "+" : string.Empty).Append(digits);
+                text.Append(token.Plus && number >= 0 ? "+" : string.Empty).Append(digits(shown, number));
             }
 
             return text.ToString();
@@ -295,26 +301,63 @@ namespace Poe2Accessibility.Services
         private readonly record struct Token(int Stat, bool Plus, int Sign, double Number);
 
         /// <summary>How a stat's value becomes the number shown, and with how many decimals.</summary>
-        private readonly record struct Shown(double Factor, double Offset, int Decimals, bool Fixed)
+        /// <param name="Stated">The decimals a handler's name states ("_1dp"), as required or always; null when none does.</param>
+        /// <param name="SeenDecimals">The decimals a handler that states none was seen to show; null when none was.</param>
+        /// <param name="Unsettled">A handler whose arithmetic is not settled took part.</param>
+        private readonly record struct Shown(double Factor, double Offset, int Decimals, bool Fixed, int? Stated = null, int? SeenDecimals = null, bool Unsettled = false)
         {
             public double Number(double value) => (value * this.Factor) + this.Offset;
 
             public double Value(double number) => (number - this.Offset) / this.Factor;
 
+            /// <summary>The number's digits: the stated decimals, else as many as it has, two at most.</summary>
+            public string Digits(double number) => this.Fixed
+                ? number.ToString("F" + this.Decimals, CultureInfo.InvariantCulture)
+                : Math.Round(number, this.Decimals).ToString(this.Decimals == 0 ? "0" : "0." + new string('#', this.Decimals), CultureInfo.InvariantCulture);
+
+            /// <summary>The number's digits, and whether the tooltip was seen to write such a number that way.</summary>
+            public (string Digits, bool Seen) Seen(double number, bool decimalMarkSeen)
+            {
+                var plain = !this.Unsettled && number > -Tiny && number < FirstGrouped;
+                if (Math.Abs(number - Math.Round(number)) < Tiny)
+                {
+                    // "2" or "2.0": a whole number under decimals that are always shown was never seen.
+                    var always = this.Stated is > 0 ? this.Fixed : this.Stated == null && this.SeenDecimals is > 0;
+                    return (Math.Round(number).ToString("0", CultureInfo.InvariantCulture), plain && !always);
+                }
+
+                if ((this.Stated ?? this.SeenDecimals) is not (> 0 and var places))
+                {
+                    return (this.Digits(number), false); // no decimals stated, or none shown: rounded or cut is not known
+                }
+
+                var scaled = Math.Abs(number) * Math.Pow(10, places);
+                var tie = Math.Abs(scaled - Math.Floor(scaled) - 0.5) < 1e-6;
+                var digits = Math.Round(number, places, MidpointRounding.AwayFromZero).ToString("F" + places, CultureInfo.InvariantCulture);
+                var seen = plain && decimalMarkSeen && !tie;
+                if (!digits.EndsWith('0'))
+                {
+                    return (digits, seen);
+                }
+
+                // A last decimal of zero: dropped where the handler says "if required", not seen where it does not.
+                var required = this.Stated != null && !this.Fixed;
+                return (required ? digits.TrimEnd('0').TrimEnd('.') : digits, seen && required);
+            }
+
             /// <summary>This with one more handler applied after it; false for a handler that is no arithmetic.</summary>
             public bool With(string handler, out Shown changed)
             {
-                var decimals = DecimalsPart.Match(handler);
-                var name = decimals.Success ? handler[..decimals.Index] : handler;
-                if (!Arithmetic.TryGetValue(name, out var step))
+                var (name, decimals, ifRequired) = StatHandlers.Split(handler);
+                if (!StatHandlers.Arithmetic.TryGetValue(name, out var step))
                 {
                     changed = this;
                     return false;
                 }
 
                 var factor = step.Factor == 0 ? 1 : step.Factor;
-                changed = new Shown(this.Factor * factor, (this.Offset * factor) + step.Offset,
-                    decimals.Success ? decimals.Groups[1].Value[0] - '0' : this.Decimals, decimals.Success ? !decimals.Groups[2].Success : this.Fixed);
+                changed = new Shown(this.Factor * factor, (this.Offset * factor) + step.Offset, decimals ?? this.Decimals, decimals != null ? !ifRequired : this.Fixed,
+                    decimals ?? this.Stated, StatHandlers.SeenDecimals.TryGetValue(handler, out var seen) ? seen : this.SeenDecimals, this.Unsettled || StatHandlers.Unsettled.Contains(name));
                 return true;
             }
         }

@@ -46,8 +46,12 @@ namespace Poe2Accessibility.Services
     /// <summary>One wanted modifier set against an item: the author's words, the game's line it is (null when unknown) and the item's own line that answers it.</summary>
     public sealed record ModStatus(string Wanted, ModLine? Line, ModFit Fit, string Held);
 
-    /// <summary>An item as the game shows it: its base id and name, its tooltip's title, and its tooltip lines (null while no tooltip of it was read).</summary>
-    public sealed record GearItem(string BaseId, string BaseName, string Title, bool IsUnique, IReadOnlyList<string>? Lines);
+    /// <summary>
+    ///     An item as the game shows it: its base id and name, its tooltip's title, and its lines: its tooltip's, or the
+    ///     modifier lines made from its modifiers in memory (<see cref="ItemModLines"/>); null while neither is known.
+    /// </summary>
+    /// <param name="LinesPartial">Some line of the item could not be made: a modifier not found among <paramref name="Lines"/> is not known to be missing.</param>
+    public sealed record GearItem(string BaseId, string BaseName, string Title, bool IsUnique, IReadOnlyList<string>? Lines, bool LinesPartial = false);
 
     /// <summary>A build piece set against an item; no item for an empty slot.</summary>
     public sealed record GearFit(BuildGearEntry Entry, GearItem? Item, BaseFit Base, IReadOnlyList<ModStatus> Mods)
@@ -205,8 +209,19 @@ namespace Poe2Accessibility.Services
         public static GearFit Fit(BuildGearEntry entry, GearItem? item, IItemBases bases, IModTexts texts, string language)
         {
             var held = item?.Lines?.Select(line => (Text: line, Line: texts.Parse(line), Shape: Shape(line))).ToList();
-            var mods = entry.Wanted.Select(wanted => Match(wanted, held, texts, language)).ToList();
+            var mods = entry.Wanted.Select(wanted => Match(wanted, held, item?.LinesPartial ?? false, texts, language)).ToList();
             return new GearFit(entry, item, item == null ? BaseFit.Unknown : BaseFitOf(entry, item, bases, language), mods);
+        }
+
+        /// <summary>
+        ///     What an item's lines made from memory give the comparison: the certain ones, partial when some line is in
+        ///     doubt, and none at all (an item not read) when every line is.
+        /// </summary>
+        public static (IReadOnlyList<string>? Lines, bool Partial) LinesFromMemory(IReadOnlyList<ItemModLine> made)
+        {
+            var certain = made.Where(line => line.Certain).Select(line => line.Text).ToList();
+            var partial = certain.Count < made.Count;
+            return (partial && certain.Count == 0 ? null : certain, partial);
         }
 
         /// <summary>The worn pieces against the build; the furthest is the first in the build's order among the worst.</summary>
@@ -253,9 +268,10 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     The item's line that is the wanted modifier: by the game's texts, else by the same words around other numbers
-        ///     (the wanted line as written, or as the game says it). A wanted line the texts do not know is never missing.
+        ///     (the wanted line as written, or as the game says it). A wanted line the texts do not know is never missing,
+        ///     nor is any when the item's lines are <paramref name="partial"/>.
         /// </summary>
-        private static ModStatus Match(string wanted, List<(string Text, ModLine? Line, string Shape)>? held, IModTexts texts, string language)
+        private static ModStatus Match(string wanted, List<(string Text, ModLine? Line, string Shape)>? held, bool partial, IModTexts texts, string language)
         {
             var line = texts.Parse(wanted);
             if (held == null)
@@ -292,7 +308,7 @@ namespace Poe2Accessibility.Services
 
             if (best is not { } found)
             {
-                return new ModStatus(wanted, line, line != null ? ModFit.Missing : ModFit.Unknown, string.Empty);
+                return new ModStatus(wanted, line, line != null && !partial ? ModFit.Missing : ModFit.Unknown, string.Empty);
             }
 
             return new ModStatus(wanted, line, Meets(line?.Numbers ?? NumbersOf(wanted), found.Numbers) ? ModFit.Met : ModFit.Below, found.Text);

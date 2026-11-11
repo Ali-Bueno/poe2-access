@@ -1,0 +1,27 @@
+The modifiers of item-mods-2026-11-10.txt as catalog/mod-stats.json holds them (Poe2UiExtract mod-stats, 0.5.5f files, 2026-11-10):
+Mods Id: stat least most, in the order the modifier's values follow. Every value the host read lies within its stat's range.
+
+NearbyAlliesLifeRegeneration4: allies_in_presence_life_regeneration_rate_per_minute 246 360
+ReducedLocalAttributeRequirements1: local_attribute_requirements_+% -15 -15
+NearbyAlliesCriticalStrikeChance1: allies_in_presence_critical_strike_chance_+% 10 14
+NearbyAlliesAddedColdDamage3: allies_in_presence_attack_minimum_added_cold_damage 5 6 allies_in_presence_attack_maximum_added_cold_damage 9 11
+IncreasedMana1: base_maximum_mana 10 14
+FlaskIncreasedRecoveryAmount2_: local_flask_amount_to_recover_+% 46 50
+FlaskChargesUsed2: local_charges_used_+% -20 -18
+CharmImplicitUseOnStun1: local_flask_use_on_stunned 1 1
+FlaskChanceRechargeOnKill1: local_%_chance_to_gain_flask_charge_on_kill 21 25
+FlaskIncreasedRecoveryAmount1: local_flask_amount_to_recover_+% 41 45
+IncreasedMana2: base_maximum_mana 15 24
+LifeRegeneration1: base_life_regeneration_rate_per_minute 60 120
+ColdResist1: base_cold_damage_resistance_% 6 10
+MovementVelocity1: base_movement_velocity_+% 10 10
+BeltImplicitFlaskLifeRecovery1: flask_life_to_recover_+% 20 30
+BeltImplicitCharmSlots3: local_charm_slots 1 3
+UniqueDamageTakenGoesToMana1: damage_taken_goes_to_mana_% 50 50
+UniqueIncreasedMana19: base_maximum_mana 30 50
+UniqueAllResistances9: base_resist_all_elements_% 5 10
+CriticalMultiplier2: base_critical_strike_multiplier_+ 15 19
+IncreasedMana3: base_maximum_mana 25 34
+IncreasedLife3: base_maximum_life 30 39
+LifeGainPerTarget1: base_life_gain_per_target 2 2
+LocalIncreasedArmourAndLife2: local_physical_damage_reduction_rating_+% 14 20 base_maximum_life 11 19

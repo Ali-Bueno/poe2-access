@@ -294,10 +294,11 @@ author's name ("Build: unique Headhunter, it is not this one"). On any other ite
 the stash or a merchant's stock — one short line comes right after its name, per slot it would go in: "Build, helmet: 2
 of 3 modifiers, another base, more than the worn one, which has 1" ("fewer than", "same as the worn one", "nothing worn
 there"); the modifiers one by one come after the item's own lines, as the rest of the tooltip does (tap for the next
-line, hold for all of it). The worn piece is compared once its slot has been visited in the session: its lines are read
-from its tooltip. Entering the inventory says how the worn gear stands: "Build: 3 of 12 pieces on its base, 5 of 14
-modifiers, read on 6 of 12 pieces. Furthest from the build: helmet" — not again when coming back from the stash or a
-merchant's stock. What the game's files cannot name or tell apart is said in the author's own words and never counted
+line, hold for all of it). A worn piece is compared from the start: by its tooltip's lines once its slot has been
+visited in the session, before that by its modifier lines made from the game's memory (a line the mod cannot make with
+certainty is left out, and nothing is then called missing on that piece). Entering the inventory says how the worn gear
+stands: "Build: 3 of 12 pieces on its base, 5 of 14 modifiers, read on 12 of 12 pieces. Furthest from the build: helmet"
+— not again when coming back from the stash or a merchant's stock. What the game's files cannot name or tell apart is said in the author's own words and never counted
 as had or missing ("Not compared: …"). Charms, quivers and foci are not compared yet. The game's own note stays: a slot
 the build names offers "Show Build Planner notes, hold R3".
 
