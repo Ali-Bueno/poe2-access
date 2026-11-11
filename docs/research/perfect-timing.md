@@ -35,3 +35,6 @@ the clip passes `leeway`, or `max_stage` in a clip without one (`PerfectTimingWi
 `PerfectTimingCue`, glossary key `perfect_timing`. It logs each clip once with its events and each release with where
 the clip stood and which end followed ("Perfect timing: …"), so Snipe's and Gathering Storm's clips can be read from
 a session's log the same way. Not heard in play yet.
+
+The sound is the user's to pick: candidates A (587 Hz, in the build), B (392 Hz) and C (784 Hz) beside the shield, parry,
+dodge, cull and radar sounds on https://claude.ai/artifact/EoUvrHP4BeZyJiEDixyBLq (rendered with `CueSynth.PerfectTiming(rate, hz)`).
