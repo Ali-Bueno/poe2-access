@@ -91,7 +91,8 @@ namespace Poe2Accessibility.Services
                 return "unreadable";
             }
 
-            return $"art={this.elements.ReadTextureKey(info)} tooltip={this.TooltipMarkup(info)}";
+            var own = this.elements.TryReadText(address, out _, out var tagged) ? tagged : "(no text)";
+            return $"art={this.elements.ReadTextureKey(info)} text={own} tooltip={this.TooltipMarkup(info)}";
         }
 
         /// <summary>The tagged text of the element's tooltip, its keyword keys in English whatever the language.</summary>

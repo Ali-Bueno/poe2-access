@@ -47,6 +47,7 @@ namespace Poe2Accessibility.Services
 
             var options = new List<string>();
             var rows = new List<UiElementReader.ElementInfo>();
+            var shortcuts = new List<string>();
             var chosen = -1;
             foreach (var (list, listFrame) in lists)
             {
@@ -60,6 +61,14 @@ namespace Poe2Accessibility.Services
                     }
 
                     chosen = options.Count + index;
+                }
+                else
+                {
+                    // A choice of the list beside this one with a button of its own: Finn's "Comprar o vender objetos"
+                    // shows X while the cursor is among his topics, and D-pad down from the last topic does not reach it
+                    // (live 2026-11-11). The screen's walk does not pair that glyph, an image of the smaller class.
+                    shortcuts.AddRange(entries.Select(entry => (entry.Text, Button: this.EntryShortcut(entry.Entry)))
+                        .Where(entry => entry.Button.Length > 0).Select(entry => Announcements.WithButton(entry.Text, entry.Button)));
                 }
 
                 options.AddRange(entries.Select(entry => entry.Text));
@@ -77,10 +86,48 @@ namespace Poe2Accessibility.Services
                 Value = heard ? Announcements.Dimmed : string.Empty,
                 Position = Announcements.ListPosition(chosen + 1, options.Count),
                 ListItems = options,
+                Shortcuts = shortcuts,
                 IsVisible = this.elements.IsVisible(info),
                 Context = this.PanelTitle(info),
             };
         }
+
+        /// <summary>
+        ///     The button drawn in an entry that is neither the confirm glyph (the cursor is on it) nor the back button,
+        ///     which every panel's legend already gives ("Adiós, B"); empty when it shows none.
+        /// </summary>
+        private string EntryShortcut(in UiElementReader.ElementInfo entry)
+        {
+            var queue = new Queue<(UiElementReader.ElementInfo Node, int Depth)>();
+            queue.Enqueue((entry, 0));
+            while (queue.Count > 0)
+            {
+                var (node, depth) = queue.Dequeue();
+                if (depth > 0 && this.GlyphOf(node) is { Length: > 0 } button)
+                {
+                    return button == Announcements.ButtonName(ConfirmGlyphFile, ControllerGlyphs.PlayStationSeen) ||
+                           button == Announcements.ButtonName(BackGlyphFile, ControllerGlyphs.PlayStationSeen) ? string.Empty : button;
+                }
+
+                if (depth == OptionGlyphDepth)
+                {
+                    continue;
+                }
+
+                foreach (var childAddress in this.elements.ReadChildren(node))
+                {
+                    if (this.elements.TryReadElement(childAddress, out var child) && child.IsVisibleFlag)
+                    {
+                        queue.Enqueue((child, depth + 1));
+                    }
+                }
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>Glyph file of the back button in every controller family (xbox_button_b in ControllerGlyphs).</summary>
+        private const string BackGlyphFile = "Button3";
 
         /// <summary>The visible entry frame of a scrolling list; null when the element is not one.</summary>
         private UiElementReader.ElementInfo? ListFrame(in UiElementReader.ElementInfo list)
@@ -216,12 +263,16 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>A controller glyph of the confirm button, drawn as an image or as a markup-only label (as ScreenWatcher pairs them).</summary>
-        private bool IsConfirmGlyph(in UiElementReader.ElementInfo node)
+        private bool IsConfirmGlyph(in UiElementReader.ElementInfo node) =>
+            this.GlyphOf(node) is { Length: > 0 } button && button == Announcements.ButtonName(ConfirmGlyphFile, ControllerGlyphs.PlayStationSeen);
+
+        /// <summary>The button a node draws, as an image of either class or as a markup-only label; empty for anything else.</summary>
+        private string GlyphOf(in UiElementReader.ElementInfo node)
         {
             var hasText = this.elements.TryReadText(node.Address, out var text, out var tagged);
             if (hasText && text.Length > 0)
             {
-                return false;
+                return string.Empty;
             }
 
             var button = hasText ? ControllerGlyphs.FromMarkup(tagged) : string.Empty;
@@ -230,7 +281,7 @@ namespace Poe2Accessibility.Services
                 button = ControllerGlyphs.FromTextureKey(key) ?? string.Empty;
             }
 
-            return button.Length > 0 && button == Announcements.ButtonName(ConfirmGlyphFile, ControllerGlyphs.PlayStationSeen);
+            return button;
         }
     }
 }

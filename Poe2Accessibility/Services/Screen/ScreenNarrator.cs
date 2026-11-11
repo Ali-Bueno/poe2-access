@@ -356,6 +356,7 @@ namespace Poe2Accessibility.Services
             this.lastSelectorPosition = string.Empty;
             this.lastSelectorChoice = null;
             this.legendsLayer = IntPtr.Zero;
+            this.shortcutsSaid.Clear();
             this.inGame = inGameState;
             // The bar as last seen, said or not: a login that lasted less than the hints take to settle left its buttons
             // unknown here, and they were read at character selection as its own (live 2026-11-10).

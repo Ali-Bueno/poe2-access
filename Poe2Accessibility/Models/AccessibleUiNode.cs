@@ -107,6 +107,12 @@ namespace Poe2Accessibility.Models
         /// <summary>Captions of the other items of the same list (a popup's message must not repeat them).</summary>
         public System.Collections.Generic.IReadOnlyList<string> ListItems { get; init; } = Array.Empty<string>();
 
+        /// <summary>
+        ///     Buttons that act on a choice beside the list without going to it ("Comprar o vender objetos, X" next to an
+        ///     NPC's topics): said once as the panel opens, after the focus.
+        /// </summary>
+        public System.Collections.Generic.IReadOnlyList<string> Shortcuts { get; init; } = Array.Empty<string>();
+
         /// <summary>True when the only name found was the control id ("layout"): nothing a player sees.</summary>
         public bool NamedByControlId { get; init; }
 

@@ -86,6 +86,7 @@ namespace Poe2Accessibility.Services
             if (intoNewLayer)
             {
                 this.deferredFocus = (text, DateTime.UtcNow, node);
+                this.SayShortcuts(node, afterDeferredFocus: true);
                 return;
             }
 
@@ -93,6 +94,32 @@ namespace Poe2Accessibility.Services
             this.deferredFocus = null;
             this.NoteNarrated(text);
             this.SayMove(this.WithPendingPage(text));
+            this.SayShortcuts(node, afterDeferredFocus: false);
+        }
+
+        /// <summary>The shortcuts said since the focus last came to a panel (<see cref="AccessibleUiNode.Shortcuts"/>).</summary>
+        private readonly HashSet<string> shortcutsSaid = new(StringComparer.Ordinal);
+
+        /// <summary>
+        ///     The buttons of the choices beside the focused list, each once per opening and after the focus: coming back from
+        ///     a topic to an NPC's list does not say "Comprar o vender objetos, X" again.
+        /// </summary>
+        private void SayShortcuts(AccessibleUiNode node, bool afterDeferredFocus)
+        {
+            var fresh = node.Shortcuts.Where(this.shortcutsSaid.Add).ToList();
+            if (fresh.Count == 0)
+            {
+                return;
+            }
+
+            if (afterDeferredFocus)
+            {
+                this.hintAfterFocus = Announcements.Sentences(new[] { this.hintAfterFocus, Announcements.Sentences(fresh) });
+            }
+            else
+            {
+                this.Speak("shortcuts of focus", Announcements.Sentences(fresh), false);
+            }
         }
 
         /// <summary>The cursor's new place: the player's own move ends a message's hold, the game's refresh does not.</summary>
@@ -244,6 +271,7 @@ namespace Poe2Accessibility.Services
             else if ((now - this.unfocusedSince).TotalMilliseconds >= BackToPlayMs)
             {
                 this.panelShown = false;
+                this.shortcutsSaid.Clear();
                 this.tabbedLayer = IntPtr.Zero;
                 this.deferredFocus = null;
                 this.pendingPage = null;

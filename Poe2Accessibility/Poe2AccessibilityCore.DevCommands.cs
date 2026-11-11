@@ -470,6 +470,10 @@ namespace Poe2Accessibility
                 case "inventories":
                     this.LogInventories();
                     break;
+                case var info when info.StartsWith("focusinfo 0x", StringComparison.Ordinal):
+                    // Research: the art and tooltip markup of any element (a glyph the screen did not pair with its label).
+                    this.log?.Info($"Focus info {info[10..]}: {this.semantics?.RawInfo((IntPtr)Convert.ToInt64(info["focusinfo 0x".Length..], 16))}");
+                    break;
                 case "focusinfo":
                     this.log?.Info($"Focus info: {(this.focus?.Current is { } focused ? this.semantics?.RawInfo(focused.Address) : "no focus")}");
                     break;
