@@ -52,7 +52,8 @@ namespace Poe2Accessibility.Tests
             // yarkey's magic flask: "Consume 8 de 75 cargas"; its base type says 10 (7 uses, where the truth is 9).
             var drinks = new FlaskDrinks();
             Equal(FlaskNews.New, drinks.Update(0, Life, 75, 0), "first read");
-            Equal<int?>(null, drinks.Uses(0, Life, 75), "no drink seen: no use count, the charges are said");
+            Equal<int?>(null, drinks.Uses(0, Life, 75), "no drink seen and no base cost: no use count, the charges are said");
+            Equal<int?>(7, drinks.Uses(0, Life, 75, 10), "by the base type's cost until drinks are seen: uses from the first (user 2026-11-11)");
             Equal(FlaskNews.Drunk, drinks.Update(0, Life, 67, 10_000), "a drink is news before its cost is known");
             Equal(FlaskNews.None, drinks.Update(0, Life, 67, 14_000), "nothing new");
             Equal<int?>(null, drinks.Uses(0, Life, 67), "one drink could have been cut short by a charge gained: not believed alone");
@@ -62,6 +63,7 @@ namespace Poe2Accessibility.Tests
             Equal<int?>(8, drinks.PerUse(0, Life), "two drinks agree");
             Equal<int?>(7, drinks.Uses(0, Life, 59), "59 charges at 8 a drink");
             Equal<int?>(9, drinks.Uses(0, Life, 75), "a full flask: 9 drinks, not the 7 of the base type");
+            Equal<int?>(9, drinks.Uses(0, Life, 75, 10), "the cost seen goes before the base type's");
         }
 
         private static void AFlaskIsEmptyOnlyBelowTheCostSeen()

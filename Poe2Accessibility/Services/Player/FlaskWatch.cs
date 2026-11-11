@@ -36,14 +36,15 @@ namespace Poe2Accessibility.Services
 
         public PluginLog? Log { get; init; }
 
-        /// <summary>The flasks in belt order, each as it is said: by its uses once a drink's cost was seen, by its charges until then.</summary>
-        public IEnumerable<string> Readout() => this.Flasks().Select(flask => Announcements.Flask(flask.Name, flask.Charges, this.drinks.Uses(flask.Slot, flask.Name, flask.Charges)));
+        /// <summary>The flasks in belt order, each as it is said: by the uses it has left (<see cref="FlaskDrinks.Uses"/>).</summary>
+        public IEnumerable<string> Readout() =>
+            this.Flasks().Select(flask => Announcements.Flask(flask.Name, flask.Charges, this.drinks.Uses(flask.Slot, flask.Name, flask.Charges, flask.BaseCost)));
 
-        /// <summary>The flasks in belt order, by their column, with the charges they hold now.</summary>
-        public IReadOnlyList<(int Slot, string Name, int Charges)> Flasks()
+        /// <summary>The flasks in belt order, by their column, with the charges they hold now and what a drink costs by the base type.</summary>
+        public IReadOnlyList<(int Slot, string Name, int Charges, int BaseCost)> Flasks()
         {
             // A flask fills a column of the belt's cells (5x2 in 0.5.5e): each is read once.
-            var flasks = new List<(int, string, int)>();
+            var flasks = new List<(int, string, int, int)>();
             if (this.Belt() is not { } belt)
             {
                 return flasks;
@@ -57,7 +58,7 @@ namespace Poe2Accessibility.Services
                     var item = belt[y, x];
                     if (seen.Add(item.Address) && Read(item, this.inventory) is { } flask)
                     {
-                        flasks.Add((x, flask.Name, flask.Charges));
+                        flasks.Add((x, flask.Name, flask.Charges, flask.BaseCost));
                     }
                 }
             }
@@ -77,11 +78,11 @@ namespace Poe2Accessibility.Services
             this.lastPoll = now;
             var flasks = this.Flasks();
             var draining = this.Draining();
-            foreach (var (slot, name, charges) in flasks)
+            foreach (var (slot, name, charges, baseCost) in flasks)
             {
                 var cost = this.drinks.PerUse(slot, name);
-                var told = this.drinks.Update(slot, name, charges, now, draining);
-                var uses = this.drinks.Uses(slot, name, charges);
+                var told = this.drinks.Update(slot, name, charges, now, draining, baseCost);
+                var uses = this.drinks.Uses(slot, name, charges, baseCost);
                 if (this.drinks.PerUse(slot, name) is { } learnt && learnt != cost)
                 {
                     this.Log?.Info($"Flask cost: {name} in slot {slot}, {learnt} charges a drink as seen (was {cost?.ToString() ?? "unknown"}), {charges} charges now");
@@ -169,7 +170,7 @@ namespace Poe2Accessibility.Services
         private bool Draining() =>
             Seats.Of(this.Seat()).TryGetComponent<Buffs>(out var buffs) && buffs.StatusEffects.Keys.Any(BuffIds.IsFlaskDrain);
 
-        private static (string Name, int Charges)? Read(Item item, InventoryReader inventory)
+        private static (string Name, int Charges, int BaseCost)? Read(Item item, InventoryReader inventory)
         {
             if (item.Address == IntPtr.Zero || !item.TryGetComponent<Charges>(out var charges) || charges.Current < 0 ||
                 inventory.ItemBaseName(item.Address) is not { Length: > 0 } name)
@@ -177,7 +178,7 @@ namespace Poe2Accessibility.Services
                 return null;
             }
 
-            return (name, charges.Current);
+            return (name, charges.Current, charges.PerUseCharge);
         }
     }
 }

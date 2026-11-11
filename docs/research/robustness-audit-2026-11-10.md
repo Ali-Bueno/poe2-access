@@ -99,8 +99,10 @@ rule now in force, where.
   (`FlaskDrinks`). A drop counts as a drink when no other drop comes within 3 s on either side and no flask-drain
   effect is on the player (BuffDefinitions has three: `generic_flask_drain`, `monster_flask_drain_aura`,
   `flask_draining_lasso`); two such drinks in a row must agree before the cost is believed or changed, so a charge
-  gained from a kill between two reads cannot shift it. Until then the flask is said by its charges ("Frasco de vida
-  grandioso, 67 cargas") and is empty only at 0 charges; refills are not said while the cost is unknown. The costs
+  gained from a kill between two reads cannot shift it. Until then the uses are counted by the base type's cost
+  (2026-11-11: the user heard "64 cargas" on the first drinks after each start and uses afterwards, and asked for uses
+  only), so a flask whose modifiers change the cost counts wrong for its first two drinks after a start; by its charges
+  only when the base type's cost does not read. The costs
   survive an area change and are forgotten at character selection. Not covered: a drain slower than one tick in 3 s
   whose ticks repeat, and another flask of the same name put in the same slot (corrected by its second drink). Log:
   `Flask cost: <name> in slot N, 8 charges a drink as seen (was unknown), …`; dev command `flasks` shows base and seen.

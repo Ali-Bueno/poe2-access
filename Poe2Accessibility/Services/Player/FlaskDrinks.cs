@@ -14,7 +14,8 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Which flask reads are news, and what a drink costs: the charges a flask is seen to lose when drunk, since the
     ///     base type's cost ignores the flask's modifiers (docs/research/robustness-audit-2026-11-10.md, stale values).
-    ///     Until two drinks agree on the cost the flask has no use count, only charges. Slots, not item addresses: the
+    ///     Until two drinks agree on the cost the uses are counted by the base type's (user 2026-11-11: uses only, never
+    ///     charges then uses), and with neither the flask has only charges. Slots, not item addresses: the
     ///     game makes a new item entity whenever a flask's charges change. Pure.
     /// </summary>
     public sealed class FlaskDrinks
@@ -26,9 +27,11 @@ namespace Poe2Accessibility.Services
         private readonly Dictionary<(int Slot, string Name), Cost> costs = new();
         private readonly HashSet<int> dry = new();
 
-        /// <summary>The drinks left in the flask; null while what a drink costs has not been seen.</summary>
-        public int? Uses(int slot, string name, int charges) =>
-            this.costs.TryGetValue((slot, name), out var cost) && cost.PerUse is { } perUse ? charges / perUse : null;
+        /// <summary>The drinks left in the flask, by the cost seen or else the base type's; null with neither.</summary>
+        public int? Uses(int slot, string name, int charges, int baseCost = 0) =>
+            Price(this.costs.GetValueOrDefault((slot, name)), baseCost) is { } perUse ? charges / perUse : null;
+
+        private static int? Price(Cost? cost, int baseCost) => cost?.PerUse ?? (baseCost > 0 ? baseCost : null);
 
         /// <summary>The charges a drink of this flask was seen to cost; null until two drinks agreed.</summary>
         public int? PerUse(int slot, string name) => this.costs.TryGetValue((slot, name), out var cost) ? cost.PerUse : null;
@@ -37,7 +40,7 @@ namespace Poe2Accessibility.Services
         ///     The flask now in <paramref name="slot"/> and what it tells; the caller keeps an area's first read silent.
         ///     <paramref name="draining"/>: something is draining the player's flasks, so a drop teaches no cost.
         /// </summary>
-        public FlaskNews Update(int slot, string name, int charges, long now, bool draining = false)
+        public FlaskNews Update(int slot, string name, int charges, long now, bool draining = false, int baseCost = 0)
         {
             var known = this.last.TryGetValue(slot, out var before);
             this.last[slot] = (name, charges);
@@ -49,7 +52,7 @@ namespace Poe2Accessibility.Services
 
             cost.Settle(now);
             var drank = same && charges < before.Charges && cost.Dropped(before.Charges - charges, now, draining);
-            var empty = charges <= 0 || (cost.PerUse is { } price && charges < price);
+            var empty = charges <= 0 || (Price(cost, baseCost) is { } price && charges < price);
             var filled = !empty && this.dry.Remove(slot);
             var ranDry = empty && this.dry.Add(slot);
             if (!same)
@@ -57,7 +60,7 @@ namespace Poe2Accessibility.Services
                 return FlaskNews.New;
             }
 
-            if (cost.PerUse is not { } perUse)
+            if (Price(cost, baseCost) is not { } perUse)
             {
                 // Without a cost there are no uses to count, but an empty flask holding charges again is a refill (the
                 // town well filled a flask never drunk and nothing was said, live 2026-11-10).
