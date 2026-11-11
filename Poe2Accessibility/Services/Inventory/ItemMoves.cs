@@ -150,6 +150,10 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>Whether a ground item is the one dropped: named alike, or as the base a titled item's new entity is read by.</summary>
+        public static bool IsDropOf(string onGround, string dropped, string byBase) =>
+            Title(onGround) is var title && (title == Title(dropped) || (byBase.Length > 0 && title == Title(byBase)));
+
         /// <summary>An item's name without its stack or rarity ("Orbe de aumento, 3" → "Orbe de aumento"), to find it on the ground.</summary>
         public static string Title(string name) => name.Split(',')[0].Trim();
     }

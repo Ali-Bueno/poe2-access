@@ -258,7 +258,7 @@ namespace Poe2Accessibility.Services
                         this.departures.Add((from, name));
                         if (this.titled.GetValueOrDefault(entity, string.Empty) is { Length: > 0 } title && this.byBase.GetValueOrDefault(entity) is { } plain)
                         {
-                            this.batchTitles.Add((plain, title));
+                            this.batchTitles.Add((name, plain, title));
                         }
 
                         this.NoteGem(entity, name);
@@ -349,6 +349,7 @@ namespace Poe2Accessibility.Services
             Func<string, bool>? sideTakes = side == Announcements.SkillGemPanel ? this.batchGems.Contains : null;
             var inTrade = this.InTrade?.Invoke() == true;
             this.NameArrivalsByTitle();
+            var byBase = this.batchTitles.GroupBy(gone => gone.Name).ToDictionary(group => group.Key, group => group.First().ByBase);
             this.arrivalEntities.Clear();
             this.batchTitles.Clear();
             var moves = ItemMoves.Read(this.arrivals, this.departures, Announcements.MoveSlotName,this.movedInPanel, goldChange, side, this.handFrom, sideTakes, inTrade);
@@ -391,7 +392,7 @@ namespace Poe2Accessibility.Services
                     case ItemMoveKind.DroppedOrUsed:
                         foreach (var move in group)
                         {
-                            this.drops.Add((move.Name, Environment.TickCount64 + DropWaitMs, this.groundBefore));
+                            this.drops.Add((move.Name, byBase.GetValueOrDefault(move.Name, string.Empty), Environment.TickCount64 + DropWaitMs, this.groundBefore));
                         }
 
                         break;
@@ -431,8 +432,7 @@ namespace Poe2Accessibility.Services
             var lines = new List<string>();
             foreach (var drop in this.drops.ToList())
             {
-                var title = ItemMoves.Title(drop.Name);
-                if (ground.Except(drop.GroundBefore).Any(id => this.GroundItemTitle?.Invoke(id) is { } onGround && ItemMoves.Title(onGround) == title))
+                if (ground.Except(drop.GroundBefore).Any(id => this.GroundItemTitle?.Invoke(id) is { } onGround && ItemMoves.IsDropOf(onGround, drop.Name, drop.ByBase)))
                 {
                     lines.Add(Announcements.Dropped(drop.Name));
                     this.drops.Remove(drop);
@@ -483,7 +483,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The uncut support gem's base type (BaseItemTypes, dat-rows 2026-10-31): engraving one sockets the support at once.</summary>
         private const string UncutSupportBase = "/Gems/SupportGemUncut";
         private readonly Dictionary<IntPtr, bool> gems = new();
-        private readonly List<(string Name, long Due, IReadOnlyCollection<uint> GroundBefore)> drops = new();
+        private readonly List<(string Name, string ByBase, long Due, IReadOnlyCollection<uint> GroundBefore)> drops = new();
         private readonly Queue<(long? Gold, IReadOnlyCollection<uint> Ground)> recent = new();
         private long? goldBefore;
 
@@ -544,8 +544,8 @@ namespace Poe2Accessibility.Services
         /// <summary>What a titled item is called by its base alone, as its new entity will be read.</summary>
         private readonly Dictionary<IntPtr, string> byBase = new();
 
-        /// <summary>The batch's departed items that had a title: their name by base, and the title.</summary>
-        private readonly List<(string ByBase, string Title)> batchTitles = new();
+        /// <summary>The batch's departed items that had a title: their name, their name by base, and the title.</summary>
+        private readonly List<(string Name, string ByBase, string Title)> batchTitles = new();
 
         /// <summary>The batch's arrivals' entities, in the order of <see cref="arrivals"/>.</summary>
         private readonly List<IntPtr> arrivalEntities = new();

@@ -25,7 +25,19 @@ namespace Poe2Accessibility.Tests
             (nameof(AnotherAreaAtTheSameAddressIsASecondWitness), AnotherAreaAtTheSameAddressIsASecondWitness),
             (nameof(ABuffListMayBeginWithACapitalisedId), ABuffListMayBeginWithACapitalisedId),
             (nameof(AFlaskDrunkIsNotEquippedAgain), AFlaskDrunkIsNotEquippedAgain),
+            (nameof(ATitledItemDroppedLiesAsItsBase), ATitledItemDroppedLiesAsItsBase),
         };
+
+        /// <summary>An identified magic flask thrown down was "Usado": on the ground it reads by its base (live 2026-11-11).</summary>
+        private static void ATitledItemDroppedLiesAsItsBase()
+        {
+            const string Dropped = "Frasco de vida menor de lo amplio, mágico";
+            const string ByBase = "Frasco de vida menor, mágico";
+            Equal(true, ItemMoves.IsDropOf("Frasco de vida menor, mágico", Dropped, ByBase), "the ground item reads by the base");
+            Equal(true, ItemMoves.IsDropOf("Orbe de aumento", "Orbe de aumento, 3", string.Empty), "an item with no title, by its own name");
+            Equal(false, ItemMoves.IsDropOf("Frasco de maná menor, mágico", Dropped, ByBase), "another item that fell just then");
+            Equal(false, ItemMoves.IsDropOf("Frasco de vida menor, mágico", Dropped, string.Empty), "no base known: only the name counts");
+        }
 
         /// <summary>Drinking makes the flask a new entity in its own slot: "Equipped" on every drink (live 2026-11-11).</summary>
         private static void AFlaskDrunkIsNotEquippedAgain()
