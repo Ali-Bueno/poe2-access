@@ -31,6 +31,12 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<IntPtr> baseLayers = new();
         private readonly Dictionary<IntPtr, string> stableTexts = new();
 
+        /// <summary>The stable texts that are a control shown unavailable ("guardar X" with nothing to save).</summary>
+        private readonly HashSet<IntPtr> stableOff = new();
+
+        /// <summary>A control that cannot be used now: in a panel, it turning usable or back is news though its text stays.</summary>
+        private static bool IsOff(ScreenText text) => text.IsControl && !text.IsEnabled;
+
         /// <summary>Per layer, the snapshot number in which some of its texts last went away.</summary>
         private readonly Dictionary<IntPtr, long> vanishedAt = new();
         private long applied;
@@ -59,6 +65,7 @@ namespace Poe2Accessibility.Services
             this.baseLayers.Clear();
             this.stableLayers.Clear();
             this.stableTexts.Clear();
+            this.stableOff.Clear();
             this.vanishedAt.Clear();
             this.previous = ScreenSnapshot.Empty;
             this.stableTop = IntPtr.Zero;
@@ -77,6 +84,7 @@ namespace Poe2Accessibility.Services
             var previousLayers = this.previous.Layers.ToDictionary(layer => layer.Address);
             var previousTexts = this.previous.Layers.SelectMany(layer => layer.Texts).GroupBy(text => text.Address)
                 .ToDictionary(group => group.Key, group => group.First().Text);
+            var previousOff = this.previous.Layers.SelectMany(layer => layer.Texts).Where(IsOff).Select(text => text.Address).ToHashSet();
             this.applied++;
             foreach (var layer in current.Layers)
             {
@@ -95,13 +103,17 @@ namespace Poe2Accessibility.Services
                 foreach (var text in layer.Texts)
                 {
                     var confirmed = previousTexts.TryGetValue(text.Address, out var before) && before == text.Text;
-                    if (!confirmed || (this.stableTexts.TryGetValue(text.Address, out var known) && known == text.Text))
+                    var known = this.stableTexts.GetValueOrDefault(text.Address);
+                    var off = IsOff(text);
+                    var flipped = !layer.IsBase && known == text.Text && previousOff.Contains(text.Address) == off && this.stableOff.Contains(text.Address) != off;
+                    if (!confirmed || (known == text.Text && !flipped))
                     {
                         continue;
                     }
 
-                    var counterTick = known != null && SameBesideNumbers(known, text.Text) && !ZoomFactor.IsMatch(text.Text);
+                    var counterTick = !flipped && known != null && SameBesideNumbers(known, text.Text) && !ZoomFactor.IsMatch(text.Text);
                     this.stableTexts[text.Address] = text.Text;
+                    _ = off ? this.stableOff.Add(text.Address) : this.stableOff.Remove(text.Address);
                     if (!opened && !counterTick)
                     {
                         appeared.Add(text);
@@ -159,6 +171,7 @@ namespace Poe2Accessibility.Services
             foreach (var address in this.stableTexts.Keys.Where(address => !visibleTexts.Contains(address)).ToList())
             {
                 this.stableTexts.Remove(address);
+                this.stableOff.Remove(address);
             }
         }
     }

@@ -51,6 +51,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(PopupNeedsTwoSnapshots), PopupNeedsTwoSnapshots);
             Run(nameof(ChangedTextIsReportedOnce), ChangedTextIsReportedOnce);
             Run(nameof(CounterTicksAreIgnored), CounterTicksAreIgnored);
+            Run(nameof(APadButtonTurningUsableIsNews), APadButtonTurningUsableIsNews);
             Run(nameof(ClosedPopupIsNewsAgain), ClosedPopupIsNewsAgain);
             Run(nameof(InGameBaseLayersNeverOwnInput), InGameBaseLayersNeverOwnInput);
             Run(nameof(TypingIsReportedAsTheEdit), TypingIsReportedAsTheEdit);
@@ -343,6 +344,27 @@ namespace Poe2Accessibility.Tests
             Equal(true, ScreenDiffer.SameBesideNumbers("1 Sekunde", "2 Sekunden"), "German plural");
             Equal(true, ScreenDiffer.SameBesideNumbers("1 minute 5 seconds", "2 minutes 5 seconds"), "English plural");
             Equal(false, ScreenDiffer.SameBesideNumbers("3 rounds left", "3 lives left"), "another word is news");
+        }
+
+        /// <summary>The Options' "Guardar X" turns usable at the first change with its text as it was (heard 2026-11-10: only "Cancelar B").</summary>
+        private static void APadButtonTurningUsableIsNews()
+        {
+            static ScreenSnapshot Options(bool canSave, bool skillReady = true) => Snapshot(
+                Layer(1, 0, true, new ScreenText((IntPtr)10, "guardar X", "save", true, canSave)),
+                new ScreenLayer((IntPtr)2, 1, new[] { new ScreenText((IntPtr)20, "Q", "skill", true, skillReady) }, true, false, true));
+            var differ = new ScreenDiffer();
+            differ.Apply(Options(false));
+            differ.Apply(Options(false));
+            Equal(0, differ.Apply(Options(false)).Count, "nothing to save: said with the panel, not again");
+            Equal(0, differ.Apply(Options(true)).Count, "one sighting");
+            var changes = differ.Apply(Options(true));
+            Equal("guardar X", string.Join("|", changes.SelectMany(change => change.Texts).Select(text => text.Text)), "usable now");
+            Equal(true, changes.SelectMany(change => change.Texts).All(text => text.IsEnabled), "and told as usable");
+            Equal(0, differ.Apply(Options(true)).Count, "once");
+            differ.Apply(Options(false));
+            Equal(1, differ.Apply(Options(false)).Count, "saved: unavailable again is news too");
+            differ.Apply(Options(false, false));
+            Equal(0, differ.Apply(Options(false, false)).Count, "a control of the HUD (a skill on cooldown) is not followed");
         }
 
         private static void ClosedPopupIsNewsAgain()
