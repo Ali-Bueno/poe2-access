@@ -58,8 +58,37 @@ namespace Poe2Accessibility.Services
         /// <summary>Priority differences below this are float noise, not a better entry.</summary>
         private const double StaleSlack = 1e-3;
 
-        [ThreadStatic]
-        private static Workspace? workspace;
+        /// <summary>Most workspaces kept between searches: a workspace holds about 14 MB on a 1600 x 1600 area, so one per pool thread that ever searched was unbounded.</summary>
+        public const int MaxPooledWorkspaces = 2;
+
+        private static readonly Stack<Workspace> Pool = new();
+
+        /// <summary>Workspaces kept for the next search (the tests check the bound).</summary>
+        public static int PooledWorkspaces { get { lock (Pool) { return Pool.Count; } } }
+
+        private static Workspace Rent()
+        {
+            lock (Pool)
+            {
+                if (Pool.Count > 0)
+                {
+                    return Pool.Pop();
+                }
+            }
+
+            return new Workspace();
+        }
+
+        private static void Return(Workspace space)
+        {
+            lock (Pool)
+            {
+                if (Pool.Count < MaxPooledWorkspaces)
+                {
+                    Pool.Push(space);
+                }
+            }
+        }
 
         /// <summary>Nodes the last start cell's search expanded: the work done, which tests count instead of a clock that load distorts.</summary>
         public static int LastExpansions { get; private set; }
@@ -119,7 +148,22 @@ namespace Poe2Accessibility.Services
             // outside what was already searched (the route flipped between "no route" and the long way each step).
             // Only among cells within PocketSnapRadius of the player: ground farther away is not where they stand.
             var origin = ((int)MathF.Round(start.X), (int)MathF.Round(start.Y));
-            var space = workspace ??= new Workspace();
+            var space = Rent();
+            try
+            {
+                return FindWith(space, grid, bytesPerRow, origin, to, orNearest, budget, out reached, out spent);
+            }
+            finally
+            {
+                Return(space);
+            }
+        }
+
+        private static List<Vector2>? FindWith(Workspace space, byte[] grid, int bytesPerRow, (int, int) origin, (int X, int Y) to, bool orNearest,
+                                               int budget, out bool reached, out bool spent)
+        {
+            reached = false;
+            spent = false;
             space.Prepare(grid, bytesPerRow);
             List<Vector2>? first = null;
             var firstReached = false;

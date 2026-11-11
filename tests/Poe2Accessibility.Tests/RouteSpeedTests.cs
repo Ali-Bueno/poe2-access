@@ -58,8 +58,23 @@ namespace Poe2Accessibility.Tests
             (nameof(ADirectionNearAnOctantEdgeKeepsTheOneSaid), ADirectionNearAnOctantEdgeKeepsTheOneSaid),
             (nameof(ALongRouteStaysWithinTheFrameBound), ALongRouteStaysWithinTheFrameBound),
             (nameof(AnUnreachableGoalStaysWithinTheFrameBound), AnUnreachableGoalStaysWithinTheFrameBound),
+            (nameof(SearchWorkspacesKeptBetweenSearchesAreBounded), SearchWorkspacesKeptBetweenSearchesAreBounded),
         };
 
+        /// <summary>Many threads searching at once must not leave a workspace (about 14 MB on a large area) each behind.</summary>
+        private static void SearchWorkspacesKeptBetweenSearchesAreBounded()
+        {
+            var (grid, row) = Cave(SmallSide, 1);
+            using var gate = new System.Threading.Barrier(8);
+            var threads = Enumerable.Range(0, 8).Select(_ => new System.Threading.Thread(() =>
+            {
+                RoutePlanner.FindRoute(grid, row, new Vector2(2, 2), new Vector2(SmallSide - 3, SmallSide - 3));
+                gate.SignalAndWait();
+            })).ToList();
+            threads.ForEach(t => t.Start());
+            threads.ForEach(t => t.Join());
+            Check.Equal(true, RoutePlanner.PooledWorkspaces <= RoutePlanner.MaxPooledWorkspaces, "pooled workspaces within the bound");
+        }
         /// <summary>Cave-like grid: scattered rock blobs and walls with gaps; row = side / 2 bytes (two cells per byte).</summary>
         internal static (byte[] Grid, int Row) Cave(int side, int seed)
         {
