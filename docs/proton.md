@@ -105,7 +105,7 @@ From Steam's Play button. What `poe2access-proton.sh` does (`tools/package/poe2a
    u_charsToUChars from libicuuc", seen 2026-11-11); Windows' NLS calls, which Wine implements, serve instead. Windows
    is not touched: only this script sets it.
 3. Warns, aloud through `spd-say` and in its log, when `kernel.yama.ptrace_scope` is 2 or 3 (then even Wine's server
-   may not read the game), and records the session (`$XDG_RUNTIME_DIR/poe2access-proton.env`) for the stop script.
+   may not read the game), and records the session (`$XDG_RUNTIME_DIR/poe2access-proton.env`, or the mod's `app` folder without one; never `/tmp`) for the stop script.
 4. Runs `proton waitforexitandrun ./Poe2Access.exe "Z:\…\PathOfExileSteam.exe" <its arguments>`: the mod's launcher in
    the game's prefix, outside Steam's runtime container, as the D2R script does. The launcher starts the game from that
    path, as it does on Windows when it is the launch option (`GameInstall.SplitArguments`, `GameLauncher.Start`), so

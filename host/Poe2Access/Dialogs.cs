@@ -60,9 +60,16 @@ internal static partial class Dialogs
     /// </summary>
     private static int? OnLinuxDesktop(string text, uint type)
     {
-        var folder = Path.Join(@"Z:\tmp", $"poe2access-dialog-{Environment.ProcessId}-{Environment.TickCount64}");
+        // A name nobody else on the machine can tell beforehand: the folder holds a script that sh then runs, and /tmp is
+        // everyone's (a folder made ahead under a guessable name would let another user swap the script).
+        var folder = Path.Join(@"Z:\tmp", $"poe2access-dialog-{Guid.NewGuid():N}");
         try
         {
+            if (Directory.Exists(folder))
+            {
+                return null; // not ours: never write a script where someone else already is
+            }
+
             Directory.CreateDirectory(folder);
             var unix = "/tmp/" + Path.GetFileName(folder);
             File.WriteAllText(Path.Join(folder, "dialog.sh"), HostDialog.Script.Replace("\r", string.Empty, StringComparison.Ordinal));

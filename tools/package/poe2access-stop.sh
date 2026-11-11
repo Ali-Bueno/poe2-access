@@ -3,10 +3,17 @@
 #   sh "/path/to/Poe2Access/poe2access-stop.sh"
 # It runs "Poe2Access.exe stop" in the game's Wine session (Proton's runinprefix: "run" goes through Proton's steam.exe,
 # which waits for the game to close), with what poe2access-proton.sh recorded when it started.
-state="${XDG_RUNTIME_DIR:-/tmp}/poe2access-proton.env"
+here=$(cd "$(dirname "$0")" && pwd) || exit 1
+state="${XDG_RUNTIME_DIR:-$here/app}/poe2access-proton.env"
 if [ ! -f "$state" ]; then
 	echo "Poe2Access is not running under Proton."
 	exit 0
+fi
+
+# The record is run as sh below: only one this user wrote.
+if [ ! -O "$state" ]; then
+	echo "Error: $state is not yours; it was not used." >&2
+	exit 1
 fi
 
 . "$state"

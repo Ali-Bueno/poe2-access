@@ -17,7 +17,9 @@
 here=$(cd "$(dirname "$0")" && pwd) || exit 1
 app_id=2694490
 log="$here/app/proton-launch.log"
-state="${XDG_RUNTIME_DIR:-/tmp}/poe2access-proton.env"
+# The session's record for poe2access-stop.sh, which runs it as sh: in the user's own runtime folder, else in the mod's
+# folder, never in /tmp, where another user could put one first.
+state="${XDG_RUNTIME_DIR:-$here/app}/poe2access-proton.env"
 
 # Steam shows nothing a launch option prints, so the log keeps it and errors are also said aloud.
 if [ -f "$log" ] && [ "$(wc -c <"$log")" -gt 1000000 ]; then
