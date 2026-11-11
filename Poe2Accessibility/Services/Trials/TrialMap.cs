@@ -27,9 +27,12 @@ namespace Poe2Accessibility.Services
     {
         private const int MinColumns = 4;
 
-        /// <summary>Whether columns holding these many buttons are the map: one room at each end, the entrance and the boss.</summary>
+        /// <summary>
+        ///     Whether columns holding these many buttons are the map: one room at each end, the entrance and the boss, and a
+        ///     choice of rooms between them.
+        /// </summary>
         public static bool IsMap(IReadOnlyList<int> rooms) =>
-            rooms.Count >= MinColumns && rooms[0] == 1 && rooms[^1] == 1 && rooms.All(count => count > 0);
+            rooms.Count >= MinColumns && rooms[0] == 1 && rooms[^1] == 1 && rooms.All(count => count > 0) && rooms.Any(count => count > 1);
 
         /// <summary>A room's standing; the player is one column before the first that has a room to enter.</summary>
         /// <param name="column">The room's column.</param>

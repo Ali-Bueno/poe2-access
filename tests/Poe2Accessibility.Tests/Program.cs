@@ -3071,6 +3071,7 @@ namespace Poe2Accessibility.Tests
             Equal(false, TrialMap.IsMap(new[] { 3, 3, 3, 3 }), "a grid of buttons has no entrance");
             Equal(false, TrialMap.IsMap(new[] { 1, 2, 1 }), "too few columns");
             Equal(false, TrialMap.IsMap(new[] { 1, 0, 3, 1 }), "and every column holds rooms");
+            Equal(false, TrialMap.IsMap(Enumerable.Repeat(1, 31).ToArray()), "no choice of rooms: the Cosmetics panel's 31 slots (2026-11-10)");
             Equal(TrialRoomStanding.Open, TrialMap.Standing(1, true, 1), "the room offers to enter");
             Equal(TrialRoomStanding.Here, TrialMap.Standing(0, false, 1), "the column before the first to enter is the player's");
             Equal(TrialRoomStanding.Behind, TrialMap.Standing(1, false, 3), "before it, left behind");
