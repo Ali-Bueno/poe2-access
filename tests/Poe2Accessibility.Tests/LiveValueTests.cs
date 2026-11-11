@@ -29,6 +29,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AnEntityNameBelongsToItsAddressAndId), AnEntityNameBelongsToItsAddressAndId),
             (nameof(AnotherInstanceOfTheSameAreaIsToldOnce), AnotherInstanceOfTheSameAreaIsToldOnce),
             (nameof(AnUntypedEntitysComponentsRestLikeATypedOnes), AnUntypedEntitysComponentsRestLikeATypedOnes),
+            (nameof(ComponentsOfAnotherEntityAreReadAgainNotLost), ComponentsOfAnotherEntityAreReadAgainNotLost),
             (nameof(ABuffHeldAsSeveralEntriesCountsEveryOne), ABuffHeldAsSeveralEntriesCountsEveryOne),
             (nameof(ABlowIsLearntAsItsPlaceInTheClip), ABlowIsLearntAsItsPlaceInTheClip),
             (nameof(AMaximumFromTheTablesIsNeverSaidAsFull), AMaximumFromTheTablesIsNeverSaidAsFull),
@@ -192,6 +193,16 @@ namespace Poe2Accessibility.Tests
             Equal(true, gate.Changed("A21F934"), "what was gathered from the old instance meanwhile goes too");
             gate.AreaEntered(string.Empty);
             Equal(false, gate.Changed("B59327DE"), "an area entered with no instance read yet: the first one is its own");
+        }
+
+        private static void ComponentsOfAnotherEntityAreReadAgainNotLost()
+        {
+            // Vastiri Outskirts after Act 2's opening scene: 4 of 6 objects listed components that pointed back elsewhere (2026-11-11).
+            var mixed = new (long, bool?)[] { (1, true), (2, false), (3, false), (4, true), (5, false), (6, false) };
+            Equal("2,3,5,6", string.Join(",", System.Linq.Enumerable.OrderBy(GameReader.Utils.StaleComponents.Owners(mixed), owner => owner)), "the entities to read again");
+            Equal(0, GameReader.Utils.StaleComponents.Owners(new (long, bool?)[] { (1, false), (2, false), (3, null) }).Count, "none points back: the field moved");
+            Equal(0, GameReader.Utils.StaleComponents.Owners(new (long, bool?)[] { (1, true), (2, true) }).Count, "all point back: nothing to do");
+            Equal(0, GameReader.Utils.StaleComponents.Owners(new (long, bool?)[] { (1, null), (2, false) }).Count, "an unread one is no witness");
         }
 
         private static void AnUntypedEntitysComponentsRestLikeATypedOnes()

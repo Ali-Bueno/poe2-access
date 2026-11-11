@@ -207,7 +207,7 @@ namespace GameReader.Utils
             {
                 if (probe.StructType is { } type && !OwnJudgment.Contains(type))
                 {
-                    outcomes.Add(Verified(probe, type));
+                    outcomes.Add(ReadAgain(probe, area) ?? Verified(probe, type));
                 }
             }
 
@@ -1181,6 +1181,42 @@ namespace GameReader.Utils
             }
 
             return Placed<RenderOffsets>(PositionsPart, measured, found);
+        }
+
+        /// <summary>
+        ///     A struct whose back-pointer holds in some entities and not in others is not lost: those others are read again
+        ///     (<see cref="StaleComponents"/>) and the struct is judged at the next sweep. Null when that is not the case.
+        /// </summary>
+        private static StructOutcome? ReadAgain(ProbeResult probe, AreaInstance area)
+        {
+            if (probe.Verdict != OffsetHelperEngine.ProbeVerdict.Degraded)
+            {
+                return null;
+            }
+
+            static bool? PointsBack(RootResult root) =>
+                root.Fields.FirstOrDefault(field => field.Kind == OffsetHelperEngine.FieldKind.OwnerPtr)?.Status switch
+                {
+                    OffsetHelperEngine.FieldStatus.Pass => true,
+                    OffsetHelperEngine.FieldStatus.Fail => false,
+                    _ => null,
+                };
+
+            var stale = StaleComponents.Owners(probe.Roots.Where(root => root.ReadOk).Select(root => (root.Owner.ToInt64(), PointsBack(root))));
+            if (stale.Count == 0)
+            {
+                return null;
+            }
+
+            foreach (var entity in area.AwakeEntities.Values.Append(area.Player))
+            {
+                if (stale.Contains(entity.Address.ToInt64()))
+                {
+                    entity.ReadComponentsAgain();
+                }
+            }
+
+            return NotJudged(probe.Name, $"{stale.Count} of {probe.Roots.Count} entities listed a component of another entity: read again");
         }
 
         private static StructOutcome Verified(ProbeResult probe, Type type)
