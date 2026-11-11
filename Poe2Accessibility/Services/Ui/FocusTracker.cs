@@ -91,6 +91,9 @@ namespace Poe2Accessibility.Services
         private IntPtr ignoredFocus;
 
         private long ignoreFocusUntil;
+
+        /// <summary>When the pointer last moved to the element it is on: how long a free cursor has rested there.</summary>
+        private long hoverSince;
         private bool pendingVisibility;
 
         /// <summary>A grid's cursor is seen and waits to be said (its item's first tooltip filling, a cell empty on arrival): its line comes within moments.</summary>
@@ -217,10 +220,22 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (!node.IsVisible || (hovered && node.Tooltip.Count == 0 && !node.TooltipPending))
+            if (changed)
+            {
+                this.hoverSince = Environment.TickCount64;
+            }
+
+            var bare = hovered && node.IsVisible && node.Tooltip.Count == 0 && !node.TooltipPending;
+            if (bare && changed)
+            {
+                this.log.Debug($"Hover without tooltip 0x{focused.ToInt64():X}: name=\"{node.Name}\" role={node.Role} text=\"{node.Text}\" value=\"{node.Value}\" byId={node.NamedByControlId}");
+            }
+
+            if (!node.IsVisible || (bare && !BareHover.IsSaid(state == GameStateTypes.InGameState, node.Role, node.Text, node.NamedByControlId, Environment.TickCount64 - this.hoverSince)))
             {
                 // Focus already points at the control while the screen is still hidden: say it once it shows. A hovered
-                // node is described by the tooltip the game builds a frame later; one that never gets one stays silent.
+                // node is described by the tooltip the game builds a frame later; one that never gets one is said by its
+                // own caption once the cursor rests on it (BareHover), else stays silent.
                 this.pendingVisibility = true;
                 this.sincePendingCheck.Restart();
                 return;

@@ -111,6 +111,7 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\SpeechFloor.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Speech\SpeechRepeats.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\FocusDetails.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Ui\BareHover.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Ui\FocusNews.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Screen\LessonReminder.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Combat\WeakPoints.cs" />
