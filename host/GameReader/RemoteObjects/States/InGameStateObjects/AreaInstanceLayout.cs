@@ -33,6 +33,8 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
         /// <summary>Gets a value indicating whether the current area's world fields were all found.</summary>
         public bool HasWorld { get; private set; }
 
+        private bool loggedFallback;
+
         /// <summary>The tile record's size and the cells a tile spans this host was written for.</summary>
         public static (int Record, int CellsPerTile) MeasuredTerrainShape { get; } = (Marshal.SizeOf<TileStructure>(), TileStructure.MeasuredTileToGridConversion);
 
@@ -64,8 +66,16 @@ namespace GameReader.RemoteObjects.States.InGameStateObjects
                 var block = rented.AsSpan(0, BlockSize);
                 if (!reader.TryReadArray(address, block))
                 {
+                    if (!this.loggedFallback)
+                    {
+                        this.loggedFallback = true; // once for each spell of failures: the frame loop reads this every frame
+                        Console.WriteLine($"Area instance block at 0x{address.ToInt64():X} unreadable: reading it with the compiled offsets");
+                    }
+
                     return reader.ReadMemory<AreaInstanceOffsets>(address);
                 }
+
+                this.loggedFallback = false;
 
                 if (judge && address != this.judged && Environment.TickCount64 >= this.nextSearchAt)
                 {
