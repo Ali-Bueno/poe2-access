@@ -418,7 +418,7 @@ namespace Poe2Accessibility.Services
                 yield break;
             }
 
-            bool Named(BuildGem gem) => gem.ToLevel >= active.Level && string.Equals(GemNames.Of(gem.Key), label, StringComparison.OrdinalIgnoreCase);
+            bool Named(BuildGem gem) => gem.ToLevel >= active.Level && BuildGems.Labels(label, GemNames.Of(gem.Key));
             var skills = active.Plan.Skills.Where(skill => skill.Gem.ToLevel >= active.Level).ToList();
             if (skills.Any(skill => Named(skill.Gem)))
             {

@@ -28,6 +28,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheNextGemIsOneTheLevelAllows), TheNextGemIsOneTheLevelAllows),
             (nameof(AGemIsNamedInTheGamesLanguage), AGemIsNamedInTheGamesLanguage),
             (nameof(TheGameFilesNameTheBuildsGems), TheGameFilesNameTheBuildsGems),
+            (nameof(AnEngravingChoiceIsNamedBeforeItsLevel), AnEngravingChoiceIsNamedBeforeItsLevel),
             (nameof(TooManyMarksAreNoBuild), TooManyMarksAreNoBuild),
             (nameof(TheStepsAreOfTheNodesTheTreeShows), TheStepsAreOfTheNodesTheTreeShows),
             (nameof(MarkupGoesAndAPlaceToFillStays), MarkupGoesAndAPlaceToFillStays),
@@ -244,6 +245,15 @@ namespace Poe2Accessibility.Tests
             Expect("Take this first", BuildNotes.Plain("<b>Take   this <i>{first}"), "bare tags and runs of spaces");
             Expect("half open", BuildNotes.Plain("<red>{half open"), "a tag left open");
             Expect("closed twice", BuildNotes.Plain("<red>{closed twice}}"), "a brace without its pair");
+        }
+
+        /// <summary>The engraving window's choice reads "Destrozahuesos, Nivel 1": the build's skill was not marked there (live 2026-11-11).</summary>
+        private static void AnEngravingChoiceIsNamedBeforeItsLevel()
+        {
+            Expect(true, BuildGems.Labels("Destrozahuesos, Nivel 1", "Destrozahuesos"), "the name before the level");
+            Expect(true, BuildGems.Labels("destrozahuesos", "Destrozahuesos"), "the name alone");
+            Expect(false, BuildGems.Labels("Golpe perfecto, Nivel 5", "Golpe"), "another skill that begins alike");
+            Expect(false, BuildGems.Labels("Terremoto, Nivel 1", string.Empty), "a gem with no name");
         }
 
         private static void TooManyMarksAreNoBuild()

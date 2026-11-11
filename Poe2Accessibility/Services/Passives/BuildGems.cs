@@ -76,6 +76,10 @@ namespace Poe2Accessibility.Services
         public static bool IsSupport(string key, GemIndex index) =>
             index.ByBaseItem(key) is { Kind: not GemKind.Other } gem ? gem.Kind == GemKind.Support : IsSupport(key);
 
+        /// <summary>Whether an engraving choice's label is this gem's: its name, alone or before the level ("Destrozahuesos, Nivel 1").</summary>
+        public static bool Labels(string label, string name) =>
+            name.Length > 0 && label.StartsWith(name, StringComparison.OrdinalIgnoreCase) && (label.Length == name.Length || label[name.Length] == ',');
+
         /// <summary>The key without its tier ("SupportGemRageTwo" → "SupportGemRage"): tiers of one support share it.</summary>
         public static string FamilyOf(string key) => Tier.Replace(key, string.Empty);
 
