@@ -18,14 +18,20 @@ game marks it only on the screen).
   `AttackReader.Playing` on the player's Animated component, judging none of the fields (a held pose does not
   advance).
 
-## Not known yet
+## Measured (2026-11-11, yarkey, Perfect Strike, 13 releases in play)
 
-- Where in the channel the window opens (a named clip event, the clip's end, a fixed share of the attack time), and
-  whether it moves with attack speed. No source gives it.
+- The channel plays one clip (index 21 of the player's object, 2.016 s long) at rate 0.635, 3.2 s of real time; its
+  named events: `footstepright` 0.250, `leeway` 1.470, `max_stage` 1.600, `release` 2.000.
+- Released at 1.496, 1.550, 1.761, 1.802, 1.845, 1.866 (twice), 1.950 and 1.957 s of the clip: `PerfectStrikePerfectEnd`
+  every time. Held to the end (1.990-1.992, where `release` lets go by itself): `PerfectStrikeEnd`, four times.
+- So the window runs from `leeway` to `release`, 0.53 s of clip, about 830 ms at this attack speed. No release before
+  `leeway` was recorded: that it is plain there is the event's name, not a measurement.
+- The 300 ms of the stat is not that span; what it measures is not known.
 
-## Measuring it (2026-11-11)
+## The cue
 
-`PerfectTimingWatch` logs each channel of the player: the clips it plays with their bounds, rate and named events, and
-at each release how long it was held, where the clip stood and which end followed
-(`accessibility.log`, lines "Perfect timing: …"). A few perfect and plain releases bracket the window; the cue then
-goes at its opening, timed by the clip's clock as the dodge warning is.
+`PerfectTimingWatch` plays `CueSynth.PerfectTiming` (one hammer blow on an anvil, 587 Hz bar modes, 0.16 s) the frame
+the clip passes `leeway`, or `max_stage` in a clip without one (`PerfectTimingWindow`, pure, unit-tested); setting
+`PerfectTimingCue`, glossary key `perfect_timing`. It logs each clip once with its events and each release with where
+the clip stood and which end followed ("Perfect timing: …"), so Snipe's and Gathering Storm's clips can be read from
+a session's log the same way. Not heard in play yet.
