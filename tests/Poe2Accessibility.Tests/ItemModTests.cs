@@ -138,7 +138,8 @@ namespace Poe2Accessibility.Tests
 
         private static void ANumberWrittenAWayNeverSeenIsUncertain()
         {
-            Equal("?2 Life Regeneration per second", Explicit("en", Mod("LifeRegeneration1", 120)), "a whole number where a decimal was always seen: 2 or 2.0");
+            Equal("2 Life Regeneration per second", Explicit("en", Mod("LifeRegeneration1", 120)), "a whole number under a handler seen to drop a zero decimal (a belt's \"Regeneras 3\", 2026-11-10)");
+            Equal("Regeneras 3 de vida por segundo", Explicit("es", Mod("LifeRegeneration1", 181)), "3.02 rounds to 3.0, written 3");
             Equal("?2.3 Life Regeneration per second", Explicit("en", Mod("LifeRegeneration1", 135)), "a half: rounded up or to even");
             Equal("?1.7 de Régénération de Vie par seconde", Explicit("fr", Mod("LifeRegeneration1", 104)), "a fraction in a language whose decimal mark was not seen");
             Equal("?+1500 a la armadura", Explicit("es", Mod("Armour9", 1500)), "from a thousand on the digits may be grouped");

@@ -304,7 +304,7 @@ namespace Poe2Accessibility.Services
         /// <param name="Stated">The decimals a handler's name states ("_1dp"), as required or always; null when none does.</param>
         /// <param name="SeenDecimals">The decimals a handler that states none was seen to show; null when none was.</param>
         /// <param name="Unsettled">A handler whose arithmetic is not settled took part.</param>
-        private readonly record struct Shown(double Factor, double Offset, int Decimals, bool Fixed, int? Stated = null, int? SeenDecimals = null, bool Unsettled = false, int? SeenExact = null, bool TieSeen = false)
+        private readonly record struct Shown(double Factor, double Offset, int Decimals, bool Fixed, int? Stated = null, int? SeenDecimals = null, bool Unsettled = false, int? SeenExact = null, bool TieSeen = false, bool ZeroDropped = false)
         {
             public double Number(double value) => (value * this.Factor) + this.Offset;
 
@@ -322,7 +322,7 @@ namespace Poe2Accessibility.Services
                 if (Math.Abs(number - Math.Round(number)) < Tiny)
                 {
                     // "2" or "2.0": a whole number under decimals that are always shown was never seen.
-                    var always = this.Stated is > 0 ? this.Fixed : this.Stated == null && this.SeenDecimals is > 0;
+                    var always = this.Stated is > 0 ? this.Fixed : this.Stated == null && this.SeenDecimals is > 0 && !this.ZeroDropped;
                     return (Math.Round(number).ToString("0", CultureInfo.InvariantCulture), plain && !always);
                 }
 
@@ -356,7 +356,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 // A last decimal of zero: dropped where the handler says "if required", not seen where it does not.
-                var required = this.Stated != null && !this.Fixed;
+                var required = (this.Stated != null && !this.Fixed) || (this.Stated == null && this.ZeroDropped);
                 return (required ? digits.TrimEnd('0').TrimEnd('.') : digits, seen && required);
             }
 
@@ -373,7 +373,8 @@ namespace Poe2Accessibility.Services
                 var factor = step.Factor == 0 ? 1 : step.Factor;
                 changed = new Shown(this.Factor * factor, (this.Offset * factor) + step.Offset, decimals ?? this.Decimals, decimals != null ? !ifRequired : this.Fixed,
                     decimals ?? this.Stated, StatHandlers.SeenDecimals.TryGetValue(handler, out var seen) ? seen : this.SeenDecimals, this.Unsettled || StatHandlers.Unsettled.Contains(name),
-                    StatHandlers.SeenExact.TryGetValue(handler, out var exact) ? exact : this.SeenExact, this.TieSeen || StatHandlers.SeenTies.Contains(handler));
+                    StatHandlers.SeenExact.TryGetValue(handler, out var exact) ? exact : this.SeenExact, this.TieSeen || StatHandlers.SeenTies.Contains(handler),
+                    this.ZeroDropped || StatHandlers.SeenZeroDropped.Contains(handler));
                 return true;
             }
         }
