@@ -44,6 +44,9 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public string? MoveToResume { get; private set; }
 
+        /// <summary>The line <see cref="lessonUntil"/> holds for.</summary>
+        private string lessonText = string.Empty;
+
         /// <summary>The last kept line and when it is estimated said, whatever move ended its hold.</summary>
         private (string Text, DateTime Until) lastKept = (string.Empty, DateTime.MinValue);
 
@@ -67,7 +70,8 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     The kept line being said already holds this message: "+10% a la resistencia al hielo" on screen as the chat says
-        ///     "malgdhler ha recibido +10% a la resistencia al hielo." (2026-11-06).
+        ///     "malgdhler ha recibido +10% a la resistencia al hielo." (2026-11-06). The copy can show in the hint box, where it
+        ///     is kept as a lesson: "+20 a la vida máxima" held the cursor back for 3 s (user 2026-11-11).
         /// </summary>
         public bool Echoes(string text, DateTime now) => now < this.lastKept.Until && this.lastKept.Text.Contains(text, StringComparison.Ordinal);
 
@@ -105,6 +109,12 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public bool Keep(string text, bool interrupt, int holdMs, DateTime now, bool yieldsToMoves = false)
         {
+            if (yieldsToMoves && now < this.lessonUntil && this.lessonText.Length > 0 && text.Contains(this.lessonText, StringComparison.Ordinal))
+            {
+                // The line kept as a lesson was this notice's copy in the hint box: it yields to moves as the notice does.
+                this.lessonUntil = now;
+            }
+
             interrupt &= !this.Held(now);
             var ahead = this.speechEndsAt - now;
             var startsAt = interrupt || ahead <= TimeSpan.Zero ? now : now + TimeSpan.FromMilliseconds(Math.Min(ahead.TotalMilliseconds, MaxAheadMs));
@@ -125,6 +135,7 @@ namespace Poe2Accessibility.Services
             if (!yieldsToMoves && until > this.lessonUntil)
             {
                 this.lessonUntil = until;
+                this.lessonText = text;
             }
 
             return interrupt;

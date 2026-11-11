@@ -161,6 +161,7 @@ namespace Poe2Accessibility.Tests
             Run(nameof(KeptLessonHoldsFromItsStart), KeptLessonHoldsFromItsStart);
             Run(nameof(PlayerMoveCutsAMessage), PlayerMoveCutsAMessage);
             Run(nameof(AMessageCuttingAMoveIsFollowedByIt), AMessageCuttingAMoveIsFollowedByIt);
+            Run(nameof(ANoticesCopyInTheHintBoxIsNoLesson), ANoticesCopyInTheHintBoxIsNoLesson);
             Run(nameof(PendingLessonIsRemindedNowAndThen), PendingLessonIsRemindedNowAndThen);
             Run(nameof(WeakPointLeadsToTheHead), WeakPointLeadsToTheHead);
             Run(nameof(WeakPointBeatsFasterThenSteady), WeakPointBeatsFasterThenSteady);
@@ -1596,6 +1597,23 @@ namespace Poe2Accessibility.Tests
             floor.Keep("Misión: Lamentos entre lápidas. Registra el Mausoleo en busca de Draven y su consorte", false, 3800, arrival.AddMilliseconds(20), yieldsToMoves: true);
             Equal(false, floor.Admit("Cementerio de los eternos, A", true, arrival.AddMilliseconds(200)), "the exit's prompt waits for both");
             Equal(true, floor.Move("Salidas. Cementerio de los eternos, 3 pasos", true, arrival.AddMilliseconds(3000)), "the scanner's answer cuts both");
+        }
+
+        private static void ANoticesCopyInTheHintBoxIsNoLesson()
+        {
+            // The hint box showed "+20 a la vida máxima" as the chat said who received it: kept as a lesson, it held the cursor for 3 s (2026-11-11).
+            const string notice = "yarkidius ha recibido +20 a la vida máxima.";
+            const string copy = "+20 a la vida máxima";
+            var floor = new SpeechFloor();
+            var start = new DateTime(2026, 11, 11, 18, 49, 32, DateTimeKind.Utc);
+            floor.Keep(copy, false, 1500, start);
+            Equal(false, floor.Move("Vacío, columna 5, fila 5", true, start.AddMilliseconds(30)), "a lesson holds the move");
+            floor.Keep(notice, true, SpeechFloor.MessageHoldMs(notice), start.AddMilliseconds(80), yieldsToMoves: true);
+            Equal(true, floor.Move("Arco de protector, columna 9, fila 1", true, start.AddMilliseconds(900)), "the copy of a notice does not");
+            var lesson = start.AddMinutes(1);
+            floor.Keep("Navega a tu arbol de pasivas", true, 2000, lesson);
+            floor.Keep(notice, false, 1900, lesson.AddMilliseconds(80), yieldsToMoves: true);
+            Equal(false, floor.Move("Vacío, columna 4, fila 2", true, lesson.AddMilliseconds(300)), "another notice leaves a lesson its hold");
         }
 
         private static void AMessageCuttingAMoveIsFollowedByIt()

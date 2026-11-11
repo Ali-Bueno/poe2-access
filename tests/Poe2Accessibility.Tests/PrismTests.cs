@@ -244,6 +244,12 @@ namespace Poe2Accessibility.Tests
             Equal("Vacío, columna 2, fila 1/True", pending(), "and once cut it holds nothing more");
 
             (speech, pending) = Unstarted();
+            speech.Keep("yarkidius ha recibido +20 a la vida máxima.", 1900, true, yieldsToMoves: true);
+            speech.Keep("+20 a la vida máxima", 1500);
+            speech.Moved("Arco de protector, columna 9, fila 1");
+            Equal("Arco de protector, columna 9, fila 1/True", pending(), "a notice's copy in the hint box is not said as a lesson");
+
+            (speech, pending) = Unstarted();
             speech.Say(SpeechKind.LifeAndMana, "Vida 10 por ciento", urgent: true);
             speech.Moved("Maza liviana, A");
             Equal("Vida 10 por ciento/True|Maza liviana, A/False", pending(), "urgent news is heard first");

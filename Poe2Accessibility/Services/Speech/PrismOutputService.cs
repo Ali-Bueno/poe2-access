@@ -256,7 +256,7 @@ namespace Poe2Accessibility.Services
             var now = DateTime.UtcNow;
             lock (this.queueGate)
             {
-                if (delivery == Delivery.KeptMessage && this.floor.Echoes(text, now))
+                if (delivery is Delivery.Kept or Delivery.KeptMessage && this.floor.Echoes(text, now))
                 {
                     this.log.Info($"Speech held back (in the kept line): {text}");
                     return false;
