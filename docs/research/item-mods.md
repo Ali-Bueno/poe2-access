@@ -170,7 +170,7 @@ Run on 2026-11-10; the results are under "Live check, 2026-11-10" below. The pro
    - a modifier of **three values or more**, and one logged as `its values are not told apart`;
    - `uncertain: "…" (…) as the tooltip shows it`: each such line is evidence to make that case certain (a regeneration
      of 120 a minute, a number over 999, a negative resistance, a leech fraction);
-   - the client in another language for the decimal mark.
+   - the client in another language for the decimal mark (English tried: the same).
 5. Then the feature itself: with no slot focused since the game started, open the inventory — the summary must read
    "leídos en N de N piezas" with N the worn pieces, and focusing each slot afterwards must not change its counts.
 
@@ -230,11 +230,29 @@ The questions of step 4:
   such an item rested on once (yarkey holds a Runa de piedra menor; socketing it is the owner's to do).
 - **Another class:** malgdhler's staff (a unique), helm, gloves and ring (rare) and four magic pieces, all equal;
   hairin's nine pieces as in the table.
-- The client in another language was not tried.
+- **The client in another language:** English, below.
 
 The feature itself (step 5): the summary counts every worn piece at the first opening and focusing the slots does not
 change it (yarkey, above; malgdhler "3 de 7 piezas con su base, 3 de 13 modificadores, leídos en 6 de 7 piezas": the
 seventh is the second set's talisman, whose lines are none).
+
+### Live check on the English client, 2026-11-10
+
+The client switched to English in its own options (Game, Language; it writes `language=en` under `[LANGUAGE]` of
+`poe2_production_Config.ini` and asks for a restart), started again with the mod, yarkey in the Act 2 town; the mod
+spoke English by itself (`Language: auto`). With no slot focused: "Build: 3 of 6 pieces on its base, 3 of 15
+modifiers, read on 6 of 6 pieces. Furthest from the build: Main hand", the same counts as in Spanish. One pass of the
+cursor over every worn slot and the bag's sceptre, then `itemmodscheck`:
+
+| Where | Items | Lines equal | Differ | Uncertain |
+|---|---|---|---|---|
+| yarkey, English client | 16 | 59 | 1 | 2 |
+
+The same three as in Spanish and nothing else: the one "differ" is the charm's own "Cannot be Stunned" (tooltip only),
+the two uncertain are the spears' `local_display_grants_spear_throw_skill`. `memory only` was never logged. The
+decimal mark is the same in both clients ("1.7 Life Regeneration per second", "Regeneras 1.7 de vida por segundo").
+Spanish was then set back the same way, the game started again, and client and mod spoke Spanish; the client's file
+equals the copy taken before the change.
 
 ## The item's own name, without the tooltip (2026-11-10)
 
@@ -271,7 +289,10 @@ destino, Estallido repentino, Nudillo hipnótico, Agarraderas de necrófago, Pas
 the magic spear by its base); after each slot was focused once, dev `layout` said "item names from words ok (56 titles
 agree, 0 differ)". On malgdhler (a Druid): "Estrella quimérica", "Banda de kraken", "Zarpa de apocalipsis", "Unión de
 tierra, único", and "212 titles agree, 0 differ". Not seen: a ground label (no item lies on the ground in a town), an
-unidentified rare (its vector is expected empty), a client in another language.
+unidentified rare (its vector is expected empty). On the English client (late that night) the pieces not yet focused
+were named "Wrath Halo, rare", "Fate Beads, rare", "Ghoul Clutches, rare", "Domination Pace, rare", "Midnight Braid,
+unique" (dev `itemmodscheck`, `tooltip not read yet`), the names their tooltips then showed; dev `layout` was not run
+there.
 
 ## Not done
 

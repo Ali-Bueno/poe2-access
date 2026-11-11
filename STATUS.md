@@ -419,7 +419,8 @@
   (selectable lists, `selected_*` marker rows), `.SkillBar` (HUD bar + bind-screen glyphs + dat chain to names),
   `.MapMarkers`, `.OptionLists` (NPC dialogue).
 - Screen: `ScreenWatcher` (background snapshots of visible layers: texts, controls, enabled bit, glyph
-  pairing, row merge) → `ScreenDiffer` (pure: two-snapshot confirmation, counters, top layer) →
+  pairing, a tab bar's end buttons by `TabBar`, row merge) → `ScreenDiffer` (pure: two-snapshot confirmation, counters,
+  a panel control's availability, top layer) →
   `ScreenNarrator` (`OnScreenChange` dispatches by layer: hint bar, `.Focus` the focused control, `.InGame` focus layer / objective box / HUD,
   `.PreGame` popups and top layer). `ChatWatcher` reads NPC/system/whisper/party chat lines.
 - Memory layout constants: `GameLayout` (each with provenance). Glyph tables: `ControllerGlyphs`.
@@ -463,7 +464,7 @@
 - Passive tree: `UiSemantics.PassiveTree` + pure `PassiveStick` (the game's stick pick), `BuildPlanFolder` + pure `BuildPlan`/`BuildNotes`
   (Build Planner files, the tree's match kept per character; the build's gems: `UiSemantics.BuildGems` + pure `BuildGems`, `GemNames` over `GemIndex`, `ServerInventory`, dev command `inventories`; the build's gear: `UiSemantics.BuildGear` + pure `BuildGear` (file entries, piece per level, slot by id folder, modifier match) over `IItemBases`/`IModTexts` (`GearCatalogs.cs`), set at `BuildGear.Bases`/`BuildGear.Texts`); finder `UiSemantics.PassiveFinder` + pure `PassiveMap`/`PassiveFinder`; dev commands `passivenear` (nodes around the hovered one, build marks), `passivemap` (points from each start). Minions: `MinionReport` + `MinionGroups`.
 - Values that must not go stale ([audit](docs/research/robustness-audit-2026-11-10.md#stale-values-2026-11-10)): pure `FocusNews` (a number or a row changing under
-  the cursor), `ItemReadings` (moved items), `GroundTooltip`, `BeaconMath.Gone`, `ScanBrowser.InArea`, `SpeechFloor` readings, `MinimapMarks.RoomDefeated`.
+  the cursor, a Skills row's captioned figure), `BareHover` (a control under the free cursor with no tooltip, read by `FocusTracker`), `ItemReadings` (moved items), `GroundTooltip`, `BeaconMath.Gone`, `ScanBrowser.InArea`, `SpeechFloor` readings, `MinimapMarks.RoomDefeated`.
 - Tests: `tests/Poe2Accessibility.Tests` (differ, text edits, chat diff, gestures, scanner, route legs, life
   alarm, beacon, quest matching, cooldown, skills ready, ailments, dodge threats, map markers). Dev tools: `tools/computer_use/`; dev commands
   `entities`, `hints`, `gesture <Tap|DoubleTap|Hold|StickClick|FlickUp…>` (command file works without ResearchMode).
@@ -471,6 +472,7 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+Done (2026-11-10, late, 22:10 to 22:58, unattended on yarkey and malgdhler): the audit's N1 and N2, the slider at its minimum, the plugin-missing line, the dropdown latch and the item modifiers in English checked live; the Cosmetics slots, the Options' "Guardar X" and the tab bar's hints fixed on the way (Known issues, Fixed). Not released.
 Done (2026-11-10, evening): every open entry of the Known issues and of the audit settled as fixed, not a fault or blocked (below); item modifiers without the tooltip merged and checked live on two characters; rare and unique items named without their tooltip; the game's patch of 21:15 taken with the mod (data regenerated, no field moved). Not released.
 Done (2026-11-10, infrastructure and readings, live on yarkey in G2_town): dead and duplicated code out of the plugin, the host, the extractor and the tools, the big files split; `tools/build.ps1` builds and checks in one command and the release refuses a dirty tree; stashes and wells sound and a quest's name no longer makes the well its objective; a stash's search says what it lights; an item that cannot be used says which requirement is missing; the tree's stick check no longer reports a game update, the Build list says its progress and a new list walks what is taken outside the build; cells that read empty for a moment are not said ([audit](docs/research/robustness-audit-2026-11-10.md), [ui layers](docs/research/ui-layers.md#items-in-a-grid-search-highlight-unmet-requirements-055f-2026-11-10)). Released **v2026.11.10-7**.
 Characters: every fight was on **yarkey** (level 23 Mercenary, a spear with Whirling Slash since 2026-11-09). The user deleted **`acceso_prueba`** and **frajtnir** on 2026-11-09; left: hairin (Huntress 4), kehgan, malgdhler (Druid 8), yarkey, yarkidius.
@@ -545,9 +547,36 @@ unblocks it). The audit's own lists, entry by entry:
   of game and mod, on hairin, who follows no build: "Evasión, asignado, Donde lo dejaste, Armadura: izquierda, 2"
   (with a build active the build's next node leads instead, by design).
 - **A slider at its minimum focused first could be read with another number.** Read where measured, nothing searched
-  (`UiElementReader.ReadSliderState`). Code only.
-- **Exit tins flapping to "open" and back:** a confirmed exit holds for 1.5 s (`RadarSensor.ExitHoldMs`). Unit tests;
-  to hear near any exit.
+  (`UiElementReader.ReadSliderState`). Heard (late session): the ground labels' size taken from 100 to its minimum, 80
+  (no slider outside Sound goes to 0), and the mod started on it, the first slider that process read: "Interfaz.
+  Escalado de la IU. Tamaño de las ventanas emergentes de los objetos del suelo, 80, control deslizante, 3 de 6, …";
+  put back and heard, "…, 100, control deslizante, 3 de 6".
+- **Exit tins flapping to "open" and back:** a confirmed exit holds for 1.5 s (`RadarSensor.ExitHoldMs`). Unit tests.
+  Beside Clearfell's exit in the encampment (malgdhler, dev `sounds`): 22 s standing, no radar cue at all; 16 small
+  steps to and fro over 3 cells in 26 s, `radar_exit` once, `radar_wall` 7, `radar_open` 6.
+- **Late session (2026-11-10, 22:10 to 22:58), found on the way and fixed, each heard:**
+  - **The Cosmetics slots were read as a trial's rooms** ("Efecto para arma, botón, columna 4 de 31, sala 1 de 1, aún
+    no puedes entrar"): 31 columns of one button each fitted the Trial map's shape. A map has a choice of rooms
+    (`TrialMap.IsMap`, unit-tested). Now "Efecto para arma, botón, 11 de 19".
+  - **Options: "Guardar X" turning usable was never said** (only "Cancelar B"); its text does not change. A panel's
+    control whose availability flips is news, the HUD's never (`ScreenDiffer`, `APadButtonTurningUsableIsNews`). After
+    a change: "96", "Guardar X. Cancelar B"; back: "100", "Guardar X, no disponible. Cerrar B".
+  - **The hints named the tab and heading beside the tab bar's shoulder icons** ("Entrada, RB. Idioma, LB"), which
+    also dropped them from the panel's reading. The two icons a tab control holds at its ends are their own legends
+    (`TabBar`, `ScreenWatcher`; two new phrases in the ten languages): "Pestaña anterior, LB. Pestaña siguiente, RB.
+    Seleccionar, A. …", and the Options read "… Cerrar B. Entrada. Sonido. Juego. Gráficos. Interfaz. Escalado de la
+    IU. …".
+  - **A plugin that is missing:** the development host started with its plugin DLL set aside said "El plugin de
+    accesibilidad falta o no se cargó, así que el juego no se leerá" (`Poe2Access.log`: `plugin missing`, `Spoken (0)`).
+  - **The dropdown latch** with two owners: `Combo entry layout resolved` by the chat's channel list ("Global"),
+    `settled` by the Options' renderer list ("Vulkan"); the language list then read all ten entries.
+  - **Item modifiers on the English client:** the same counts as in Spanish
+    ([item mods](docs/research/item-mods.md#live-check-on-the-english-client-2026-11-10)).
+- **A Skills row's figure that changes under the cursor** (audit N2). The rows read live in both languages: "NIVEL: 8,
+  Lanzamiento de lanza, DPS: 205,1", "NIVEL: 5, Heraldo de trueno, Daño: 16,1", "NIVEL: 5, Atrición", "vacío" ("LVL:
+  8, Spear Throw, DPS: 205,1"); none holds a clock or a cooldown. A `Panel` row's captioned figure that changes is said
+  alone ("DPS: 211,3"; `FocusNews.ChangedNumbers`, `StaleValueTests`); a panel's other numbers stay quiet. Not heard:
+  see Blocked.
 - **From the audit's lists, code and unit tests** (each named there): `ui-catalog` failing when it loses more than 2
   files in 100; a language lost from `gems` or `passive-tree` refusing the catalog; a spoken line when the plugin does
   not load; one log line for a burst of failed reads; a timed-out batch stopped; the parallel map walk bounded; the
@@ -622,8 +651,9 @@ unblocks it). The audit's own lists, entry by entry:
   monster-dense area; the ritual rune's states. **Unblocks:** the owner's next boss or area with the log kept
   (AGENTS rule 25: no scripted fights).
 - **The radar's flip near the encampment exit** (Up and Left between wall and exit every 2 s while the character
-  swayed between two cells, seen once): the 1.5 s exit hold shortens it and does not end it. **Unblocks:** met again
-  with the log kept, standing between two cells beside an exit.
+  swayed between two cells, seen once): the 1.5 s exit hold shortens it and does not end it. Not met again beside
+  Clearfell's exit that night (see Fixed: standing still no cue, stepping to and fro the exit once). **Unblocks:** met
+  again with the log kept, standing between two cells beside an exit.
 - **Second player:** a trade swapped for an item that reads the same, the trade window without the focus, whether
   other players see yarkey's own chat lines ("¡Abajo!").
 - **No character there yet:** the ascendancy view of the tree, the trials (Sekhemas, Chaos; a vendor price in another
@@ -640,10 +670,20 @@ unblocks it). The audit's own lists, entry by entry:
 - **Steam Deck / Proton, the Korean client, the updater on a real release:** need a Linux player, a Kakao client and a
   published release.
 - **GGG's written approval:** emailed `contact@grindinggear.com` on 2026-10-26, no reply; ask before any public release.
+- **A Skills row's figure heard changing** (audit N2; fixed in code, see Fixed): in a town a row's level or DPS moves
+  only when a gem levels or the gear or its supports change, and toggling the weapon set (RT, tried and put back: "Set
+  de armas 2: …", "Set de armas 1: Filo quimérico, raro, Égida de glifo, raro") moves no row. **Unblocks:** the owner
+  levels a gem with the cursor on its row and hears "NIVEL: 9" and no more.
+- **A control with no tooltip under the free cursor, heard** (audit N1; the rule is under Decisions): none exists on
+  the panels yarkey opens. **Unblocks:** a character at the Atlas or the map device, swept with `VerboseLogging` on
+  (`Hover without tooltip` lists each one).
+- **"La ruta es larga, sigo buscando" heard:** no town can run the search out: the Ardura caravan has 164,423 walkable
+  cells (dev `terrain`) and the budget is 600,000 expansions (`RoutePlanner.MaxExpansions`). **Unblocks:** an area
+  larger than the budget, met in play with the log kept.
+- **A language lost from `gems` or `passive-tree` at the start:** needs the game's data set aside, which is the
+  game's files.
 - **From the audit, each with its reason there:** a key column with no known row (needs a known row per column from
-  the game's files); free-cursor controls with no tooltip and the Skills panel's rows (a live sweep, then the owner's
-  ear); a slider at 0 focused
-  first (none of the owner's sits at 0); a start with `oo2core.dll` renamed (the owner's leave to rename a game file);
+  the game's files); a start with `oo2core.dll` renamed (the owner's leave to rename a game file);
   a way back from a release that does not work, the "ended" lines after a respawn and a quiet buff (the owner's choice
   between the options named there); the tests of host-bound rules not written.
 
@@ -659,6 +699,17 @@ Taken on 2026-11-10 where the audit had left "the owner's call"; each is one con
   does not move; the wait ends after 240 s only with neither Steam nor the game running.
 - **`ui-catalog` fails past 2 lost files in 100** (`UiLoss.MaxLostPerHundred`).
 - **Charges and Rage are a baseline for 1.5 s** after an area's first reading (`BaselineGrace`).
+- **A control under the free cursor that never gets a tooltip** (audit N1) is said by its own caption once the cursor
+  has rested on it 500 ms (`BareHover`): in game only, a button, check box, tab, list, slider or text field, a caption
+  of its own up to 80 characters, never one only a control id names; one line, as any focus. The sweep found no such
+  control (Cosmetics, Character, Social and Challenges move a focus, the shop a highlight; the world map's one
+  control and the tree's nodes have tooltips), so it is unheard. Out of the game it stays silent: the only one ever
+  logged was the login's Exit under the mouse pointer, which is not where the pad is. Left aside: no rule until the
+  Atlas is swept.
+- **A Skills row's figure that changed again within 2 s** is moving by itself and is not said again
+  (`FocusNews.MovingFigureMs`); the first change is. Left aside: the last value once it holds still.
+- **A panel's control turning usable or unavailable is said** with the panel's other news ("Guardar X"); the HUD's
+  controls never. Left aside: only the pad buttons of a panel.
 
 ### Notes
 - yarkey (Mercenary 23, Act 2 town) follows "Campaign Progression - [0.5.5] Twister G" (16 of 60 taken, 13 points

@@ -96,6 +96,13 @@ new `serve`, which disconnects the game to the login screen.
   new `pad.py serve --xbox` and one `pad cross` resume play if it ever happens again.
 - ffmpeg's `gdigrab` records the DX12 game window black; `-f lavfi -i ddagrab=output_idx=0` (Desktop Duplication) works.
 - Steam's launch options start the `dist` host: `dist/Poe2Access/Poe2Access.exe stop`, then `launch.py host`, to test the build output.
+  A game started by `launch.py game` starts it too, beside the development host (two mods reading and speaking, seen
+  2026-11-10): end the `Poe2Access.exe` whose path is under `dist\` as soon as the game window shows.
+- Stick pushes with a panel open can walk the character (yarkey went from the waypoint to the well during a sweep of
+  panels, 2026-11-10): check where it stands before relying on its place.
+- The client's language: Options, Game, Language, then X to save and a restart (`language=` under `[LANGUAGE]` of
+  `poe2_production_Config.ini`); the mod follows it.
+- A second dump in the same second overwrites the first (`dump visible` lost to a full dump once): copy it at once.
 - `--wait` accepts at most 5 seconds: a larger value fails before sending anything (filtered output hides the error).
 - Escape on the login screen quits the game; the host closes with it, so start both again with
   `launch.py all`.

@@ -339,8 +339,9 @@ fault** (why) or **blocked** (by what, and what unblocks it):
 - **A release that installs and does not work has no way back.** **Blocked** by the owner's choice between: (a) keep the
   last version's files beside the new ones and a `Poe2Access.exe rollback` command; (b) as now, reinstall the older zip
   by hand. Recommended: (a), because a blind player cannot easily find and unpack an older release.
-- **A plugin that is missing or does not load is logged and nothing else.** **Fixed**, code only (`HostRun`): "El plugin
-  de accesibilidad falta o no se cargó, así que el juego no se leerá".
+- **A plugin that is missing or does not load is logged and nothing else.** **Fixed** (`HostRun`): "El plugin
+  de accesibilidad falta o no se cargó, así que el juego no se leerá". Heard late that night: the development host
+  started with its plugin DLL set aside (`plugin missing`, `Launcher speech in 'es'`, `Spoken (0)`).
 - **17 log lines "Failed To Read the Memory" each time the game closes.** **Fixed** (`ReadFailureLog`, unit test
   `ABurstOfFailedReadsIsOneLine`): the first failure of a burst and a count of the rest.
 - **`InventoryItemStruct` log bursts on area load** (`Inventory.UpdateData`). **Fixed**, code only: a cell that cannot
@@ -399,12 +400,35 @@ the world part; `SeatOutput` now also forwards `MentionNews`), and the passive-t
 the live rows (O3; see the player part).
 
 Left open, settled in the fifth pass (2026-11-10, evening):
-- **A control under the free cursor with no tooltip is never said** (N1). **Blocked:** needs one live sweep of the
-  free-cursor panels (shop, world map, Atlas) listing the hovered interactive elements that never get a tooltip, then
-  the owner's ear for the chatter; the realm's maintenance and patch (21:01 to 21:25) left no time for the sweep.
-- **A number that changes under the cursor does not reach the Skills panel's rows** (N2). **Blocked:** needs the list of
-  `Panel` rows whose text ticks (a clock would speak every second), read live on the Skills panel. Meanwhile the test
-  says what is true: `StaleValueTests` asserts that a `Panel` row is not covered and names this entry.
+- **A control under the free cursor with no tooltip is never said** (N1). **Not a fault where yarkey can go**, swept
+  late that night with a line logged for every hovered element that has no tooltip (`Hover without tooltip`, with
+  `VerboseLogging`), the cursor rastered over each panel with the stick:
+
+  | Panel | What the stick moves | Hovered controls with no tooltip |
+  |---|---|---|
+  | Microtransaction shop | the highlight (cards, "1 de 5") | none: nothing is hovered |
+  | Cosmetics, Character, Social, Challenges | the focus | none |
+  | World map (Quests) | the free cursor | none: its one control ("Selecciona para alternar entre por encima y por debajo del suelo") has a tooltip; the areas are the panel's own news |
+  | Passive tree | the free cursor | none: every node has a tooltip; the header is reached with L3, not the cursor |
+  | Atlas, map device | not seen | no character there |
+
+  The only element ever logged was the login's `exit_button` ("Salir") under the mouse pointer left on it, at each of
+  three starts; said as a focus it would name a button the pad is not on. **Fixed** for the panels not seen, code and
+  unit test (`BareHover`, `AControlWithNoTooltipIsSaidOnceTheCursorRests`; `FocusTracker.Tick`): in game, a button,
+  check box, tab, list, slider or text field with a caption of its own (80 characters at most, never a control id's
+  name) is said as a focus once the pointer has stayed on it 500 ms. One line: a focus is said when the pointer
+  changes element, and its text changing afterwards goes through the same rules as any focus. Unheard: no case exists
+  to hear. Gives up: a control with no caption and no tooltip, and anything hovered out of the game.
+- **A number that changes under the cursor does not reach the Skills panel's rows** (N2). **Fixed**, code and unit
+  test; the rows read live in Spanish and English: "NIVEL: 8, Lanzamiento de lanza, DPS: 205,1", "NIVEL: 7, Lanzazo,
+  DPS: 181,1", "NIVEL: 5, Heraldo de trueno, Daño: 16,1", "NIVEL: 5, Atrición", "vacío"; "LVL: 8, Spear Throw, DPS:
+  205,1". No row holds a clock or a cooldown: beside the name there is only a figure under its own caption, and that
+  is what the player changes (a gem levelled, gear or supports changed). Rule: a `Panel` row whose changed parts are
+  all `caption: number` says those parts alone ("DPS: 211,3"); any other number in a panel (a bare count, a cooldown
+  with its unit, a clock, a length of time) stays a tick, and a figure that changed again within 2 s is moving by
+  itself and is not said again (`FocusNews.ChangedNumbers`, `MovingFigureMs`; `ScreenNarrator.OnValueChanged`;
+  `StaleValueTests`). A figure that gains a group of digits (998,7 to 1.205,1) reads the row whole. **Blocked** for the
+  hearing: in a town nothing moves a row's figure but a gem or the gear, the owner's; the weapon-set toggle moves none.
 - **A cell is read whole again when little changed** (N3). **Not a fault:** the readout it replaces had not been spoken
   yet (`ScreenNarrator.OnValueChanged`, the `deferredFocus` branch): the player hears one line, with the value as it is
   now, instead of the old line and then a correction.
@@ -439,8 +463,10 @@ Left open, settled in the fifth pass (2026-11-10, evening):
 - **A slider at its minimum fails its own check** (from the player part). **Fixed**, code only
   (`UiElementReader.ReadSliderState`): while no slider has proved the fields, one that reads at its minimum where they
   were measured is read there and nothing is searched; before, the search took the first place nearby with a value
-  above a minimum and that number was read. **Blocked** for the live check: none of the owner's sliders sits at 0
-  (volumes 78, 100, 69, 100, 100; HUD scale 100) and moving one changes his settings.
+  above a minimum and that number was read. **Heard** late that night: the ground labels' size (Interfaz, 100) taken to
+  its minimum, 80, and the mod started with the focus on it, so it was the first slider that process read: "…, 80,
+  control deslizante, 3 de 6"; set back and read, "…, 100, control deslizante, 3 de 6" (the client's file unchanged).
+  No slider outside Sound goes down to 0, so a 0 itself was not read.
 
 Live checks, as they stand:
 - Boss fight with a lesson or the quest page on screen; the day's speed work in a fight. **Blocked:** need a fight.
@@ -458,7 +484,17 @@ Live checks, as they stand:
   Inventario. Orbe de transmutación, 6, columna 1, fila 1, …"; "Mesa de reciclaje. Aquí puedes reciclar objetos de
   equipamiento con calidad o engarces … Orbe de transmutación, 6, columna 1, fila 1, …"; Zarka's "pestaña 1. Inventario.
   Pergamino de sabiduría, 8, columna 1, fila 2, 16 oro. …", then "4.776 oro".
-- Free-cursor controls (N1) and the Skills row (N2). **Blocked:** see their entries.
+- Free-cursor controls (N1) and the Skills row (N2): swept and read late that night, see their entries.
+- The dropdown latch (N6): `Combo entry layout resolved: PointerToWString` by the chat's channel list ("Global"), then
+  `settled` by the Options' renderer list ("Vulkan"); the language list read its ten entries, "English, 1 de 10" to
+  "Español, 8 de 10".
+- The exit hold: beside Clearfell's exit in the encampment (dev `sounds`), 22 s standing with no radar cue; 16 small
+  steps to and fro over 3 cells in 26 s gave `radar_exit` once, `radar_wall` 7 and `radar_open` 6.
+- "La ruta es larga, sigo buscando": no town case. The Ardura caravan has 164,423 walkable cells (dev `terrain`) and
+  the search stops at 600,000 expansions.
+- Found on the way and fixed, each heard: the Cosmetics slots read as a trial's rooms (`TrialMap.IsMap` now wants a
+  choice of rooms); the Options' "Guardar X" turning usable (`ScreenDiffer`: a panel control's availability is news);
+  the tab bar's shoulder icons naming the tab beside them (`TabBar`: "Pestaña anterior, LB. Pestaña siguiente, RB").
 
 ### World, combat and audio
 

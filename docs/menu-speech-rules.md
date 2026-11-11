@@ -32,6 +32,9 @@ reader exists only for a genuine quirk. Status column: **done** = implemented in
 | Popup closes | the focused item underneath again | yes | done |
 | Panel opened with nothing focused | its prompt and legends (bound buttons) | yes | done (legend glyphs todo) |
 | Disabled control | append "unavailable"; never skip it | — | done |
+| A panel's control turns usable or unavailable with its text unchanged (Options: "Guardar X" at the first change) | the control with its state, with the panel's other news; the HUD's controls never | queued | done (`ScreenDiffer`, heard 2026-11-10) |
+| The shoulder icons at the ends of a tab bar | "Previous tab, LB. Next tab, RB" with the hints; never as the label of the tab or heading beside them | — | done (`TabBar`, Options heard 2026-11-10) |
+| A control under the free cursor that never gets a tooltip (in game) | its own caption, as a focus, once the cursor has rested 500 ms | yes | done (`BareHover`; no such control found to hear) |
 | Text appears in the owning layer (description, tooltip, class info) | the new text, after the control | queued; interrupt when the screen has no focus (navigation result) | done |
 | Live counters (timers, queue position) | never automatically | — | done (digit-only changes ignored) |
 | Text field | label (row label or placeholder), "edit field", contents; echo typed characters | — | done (label; typed or deleted characters echoed by `ScreenNarrator.OnValueChanged`) |
