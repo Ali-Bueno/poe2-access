@@ -66,7 +66,7 @@ internal static class GameDataCounts
 
         if (previous is null)
         {
-            return null;
+            return LanguageProblem(null, made);
         }
 
         var before = Count(file, previous);
@@ -90,8 +90,59 @@ internal static class GameDataCounts
             }
         }
 
+        return LanguageProblem(previous, made);
+    }
+
+    /// <summary>
+    ///     A language gone from a section keyed by language codes (gems, passive tree): one the previous file, made from this
+    ///     install, held, or one another section of the same file holds. A language the client never had is no problem.
+    /// </summary>
+    private static string? LanguageProblem(string? previous, string made)
+    {
+        var now = LanguageSections(made);
+        foreach (var (section, languages) in LanguageSections(previous ?? string.Empty).OrderBy(pair => pair.Key, StringComparer.Ordinal))
+        {
+            var gone = languages.Except(now.GetValueOrDefault(section) ?? []).Order(StringComparer.Ordinal).FirstOrDefault();
+            if (gone is not null)
+            {
+                return $"language '{gone}' of '{section}' is gone";
+            }
+        }
+
+        var everywhere = now.Values.SelectMany(languages => languages).ToHashSet(StringComparer.Ordinal);
+        foreach (var (section, languages) in now.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+        {
+            var missing = everywhere.Except(languages).Order(StringComparer.Ordinal).FirstOrDefault();
+            if (missing is not null)
+            {
+                return $"language '{missing}' is in the other sections but not in '{section}'";
+            }
+        }
+
         return null;
     }
+
+    /// <summary>The language codes (de, zh-TW) keying each top-level section whose keys are all such codes.</summary>
+    private static Dictionary<string, HashSet<string>> LanguageSections(string text)
+    {
+        var sections = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        if (Parse(text) is { ValueKind: JsonValueKind.Object } root)
+        {
+            foreach (var property in root.EnumerateObject().Where(property => property.Value.ValueKind == JsonValueKind.Object))
+            {
+                var keys = property.Value.EnumerateObject().Select(child => child.Name).ToList();
+                if (keys.Count > 0 && keys.All(key => LanguageCode.IsMatch(key)))
+                {
+                    sections[property.Name] = keys.ToHashSet(StringComparer.Ordinal);
+                }
+            }
+        }
+
+        return sections;
+    }
+
+    
+    private static readonly System.Text.RegularExpressions.Regex LanguageCode = new("^[a-z]{2}(-[A-Z]{2})?$");
 
     private static JsonElement Parse(string text)
     {
