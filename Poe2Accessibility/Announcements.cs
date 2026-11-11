@@ -833,7 +833,10 @@ namespace Poe2Accessibility
                 return T($"{GameNotAttached} {detail} Speech backend {backend}.", $"{GameNotAttached} {detail} Motor de voz {backend}.");
             }
 
-            return string.IsNullOrEmpty(areaName)
+            // The area's name outlives the game it was read in: at the login screen after leaving a character it is the
+            // last one's ("Inicio de sesión. Área: La caravana de los ardura", 2026-11-10), so it is said only in a game.
+            var inAnArea = state is GameStateTypes.InGameState or GameStateTypes.EscapeState or GameStateTypes.AreaLoadingState;
+            return string.IsNullOrEmpty(areaName) || !inAnArea
                 ? T($"{ForState(state)} Speech backend {backend}.", $"{ForState(state)} Motor de voz {backend}.")
                 : T($"{ForState(state)} {Area(areaName)} Speech backend {backend}.", $"{ForState(state)} {Area(areaName)} Motor de voz {backend}.");
         }

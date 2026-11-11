@@ -263,6 +263,7 @@ namespace Poe2Accessibility.Tests
                 BlockedMoveTests.All(),
                 TooltipSettleTests.All(),
                 ItemNameWordsTests.All(),
+                StatusLineTests.All(),
                 StatKeyTests.All(),
                 SkillNameTests.All(),
                 GemIndexTests.All(),
