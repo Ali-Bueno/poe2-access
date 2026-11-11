@@ -47,6 +47,9 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>The reader of animation clocks, once the catalogs are read (the player's own channel reads it too).</summary>
+        public AttackReader? Reader => this.reader;
+
         /// <summary>
         ///     A ground telegraph of the monster's attack, by monster id (the telegraph study's run-time path A,
         ///     docs/research/attack-telegraphs.md §4); none until a telegraph source is wired.

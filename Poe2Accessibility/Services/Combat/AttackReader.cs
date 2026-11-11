@@ -129,6 +129,22 @@ namespace Poe2Accessibility.Services
             return new AttackSnapshot(clock, events, clip, this.AnimatedObjects.Trust == FieldTrust.Intact ? path : null, aim, type, skill);
         }
 
+        /// <summary>
+        ///     The clip the player's own controller plays, by the fields the monsters' readings proved. It judges none of
+        ///     them: a channel held at its pose does not advance, which in a monster would be a lost clock.
+        /// </summary>
+        public (AnimationReading Clock, IReadOnlyList<ClipEvent> Events, string? Clip)? Playing(uint id, IntPtr animated)
+        {
+            if (this.AnimatedObjects.Trust == FieldTrust.Lost || this.Clock.Trust == FieldTrust.Lost || this.Find(id, animated) is not { Controller: var controller } ||
+                controller == IntPtr.Zero || this.Reading(controller) is not var (reading, dataPtr) || !AttackClock.IsPlausible(reading))
+            {
+                return null;
+            }
+
+            var (clip, events) = dataPtr != IntPtr.Zero && this.Events.Trust != FieldTrust.Lost ? this.ClipOf(dataPtr, reading.Clip) : (null, Array.Empty<ClipEvent>());
+            return (reading, events, clip);
+        }
+
         private (ActionAim? Aim, ushort Type, string? Skill) Action(IntPtr actor, Vector2 place, float worldPerGrid, Func<uint, IntPtr?> entityAt)
         {
             if (this.Actions.Trust == FieldTrust.Lost || !this.memory.TryRead<IntPtr>(actor + HostStructs.Follow<ActorOffset>(Field<ActorOffset>(nameof(ActorOffset.CurrentActionPtr))), out var action) ||
@@ -180,6 +196,19 @@ namespace Poe2Accessibility.Services
         /// <summary>The animated object's path and its AnimationController, read once per object and judged on every read.</summary>
         private (string? Path, IntPtr Controller)? Controller(uint id, IntPtr animated)
         {
+            if (this.Find(id, animated) is not { } found)
+            {
+                return null;
+            }
+
+            var holds = found.Path?.EndsWith(AnimatedObjectSuffix, StringComparison.OrdinalIgnoreCase) == true && found.Controller != IntPtr.Zero;
+            this.AnimatedObjects.Observe(holds);
+            return holds ? found : null;
+        }
+
+        /// <summary>What the Animated component's object pointer leads to, unjudged.</summary>
+        private (string? Path, IntPtr Controller)? Find(uint id, IntPtr animated)
+        {
             if (animated == IntPtr.Zero ||
                 !this.memory.TryRead<IntPtr>(animated + HostStructs.Follow<AnimatedOffsets>(Field<AnimatedOffsets>(nameof(AnimatedOffsets.AnimatedObjectPtr))), out var ao) ||
                 ao == IntPtr.Zero || !this.memory.IsValidAddress(ao))
@@ -193,9 +222,7 @@ namespace Poe2Accessibility.Services
                 this.animatedObjects[(id, ao)] = found;
             }
 
-            var holds = found.Path?.EndsWith(AnimatedObjectSuffix, StringComparison.OrdinalIgnoreCase) == true && found.Controller != IntPtr.Zero;
-            this.AnimatedObjects.Observe(holds);
-            return holds ? found : null;
+            return found;
         }
 
         /// <summary>An entity-like object's path and AnimationController, through the same details and name map as an entity's.</summary>

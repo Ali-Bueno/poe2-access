@@ -40,6 +40,7 @@ namespace Poe2Accessibility.Services
             EnemyStates.BuffIdsMatched.Select(id => new GameName(GameNameKind.Buff, id, null, nameof(EnemyStates)))
                 .Concat(EnemyStates.AnimationsMatched.Select(id => new GameName(GameNameKind.Animation, id, null, nameof(EnemyStates))))
                 .Concat(new[] { ShieldStance.HeldPrefix, ShieldStance.EndPrefix }.Select(start => new GameName(GameNameKind.AnimationStart, start, null, nameof(ShieldStance))))
+                .Concat(PerfectTimingChannel.Channels.Select(id => new GameName(GameNameKind.Animation, id, null, nameof(PerfectTimingChannel))))
                 .Concat(KnownTails.Select(tail => new GameName(GameNameKind.Monster, tail, null, "WeakPoints")))
                 .Concat(TrialTraps.FilesMatched.SelectMany(trap => trap.Firing.Count == 0
                     ? new[] { new GameName(GameNameKind.ObjectFile, trap.File, null, nameof(TrialTraps)) }

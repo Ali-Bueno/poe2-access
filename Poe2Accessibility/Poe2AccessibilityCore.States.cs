@@ -203,6 +203,7 @@ namespace Poe2Accessibility
             this.trialScope.Reset();
             this.weakPoint?.Reset();
             this.shield?.Reset();
+            this.perfectTiming?.Reset();
             this.culls?.Reset();
             this.deployed?.Reset();
             this.traps?.Reset();

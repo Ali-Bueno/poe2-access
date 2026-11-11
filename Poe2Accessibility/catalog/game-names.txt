@@ -15,6 +15,9 @@ Animation	ElectrocuteLeft		EnemyStates
 Animation	ElectrocuteRight		EnemyStates
 AnimationStart	ActiveBlockChannel		ShieldStance
 AnimationStart	ActiveBlockEnd		ShieldStance
+Animation	PerfectStrike		PerfectTimingChannel
+Animation	SnipeChannel		PerfectTimingChannel
+Animation	GatheringStorm		PerfectTimingChannel
 Monster	MudBurrowerTailBoss		WeakPoints
 Monster	DevourerBossDuoTail		WeakPoints
 ObjectFile	Metadata/Monsters/MarakethSanctumTrial/Hazards/GroundSpike	rumble	TrialTraps

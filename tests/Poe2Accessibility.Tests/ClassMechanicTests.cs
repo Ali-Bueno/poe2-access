@@ -23,7 +23,28 @@ namespace Poe2Accessibility.Tests
             (nameof(OnlyNamedResourcesHaveAName), OnlyNamedResourcesHaveAName),
             (nameof(ChargeWatchCoversItsOwnStats), ChargeWatchCoversItsOwnStats),
             (nameof(ASkillLevelsMaximumIsFoundByItsStatName), ASkillLevelsMaximumIsFoundByItsStatName),
+            (nameof(APerfectTimingChannelEndsPerfectPlainOrDropped), APerfectTimingChannelEndsPerfectPlainOrDropped),
         };
+
+        private static void APerfectTimingChannelEndsPerfectPlainOrDropped()
+        {
+            var channel = new PerfectTimingChannel();
+            Equal(PerfectTimingChange.None, channel.Update("Run", 0), "not a channel");
+            Equal(PerfectTimingChange.Began, channel.Update("PerfectStrike", 100), "the channel's animation");
+            Equal(PerfectTimingChange.None, channel.Update("PerfectStrike", 600), "held");
+            Equal(PerfectTimingChange.Perfect, channel.Update("PerfectStrikePerfectEnd", 900), "its perfect end");
+            Equal(100L, channel.EndedSince, "when the channel it ended began");
+            Equal(PerfectTimingChange.None, channel.Update("Idle", 1500), "over");
+            channel.Update("PerfectStrike", 2000);
+            Equal(PerfectTimingChange.Plain, channel.Update("PerfectStrikeEnd", 2300), "its plain end");
+            channel.Update("SnipeChannel", 3000);
+            Equal(PerfectTimingChange.Perfect, channel.Update("SnipeChannelEndPerfect", 3900), "Snipe names its perfect end the other way round");
+            channel.Update("GatheringStorm", 5000);
+            Equal(PerfectTimingChange.Dropped, channel.Update("Stunned", 5200), "ended by something else");
+            channel.Update("PerfectStrike", 6000);
+            Equal(PerfectTimingChange.Plain, channel.Update("PerfectStrikeEnd", 6400), "a plain end");
+            Equal(PerfectTimingChange.Began, channel.Update("PerfectStrike", 6800), "and the next channel");
+        }
 
         private static readonly string[] Stats =
         {
