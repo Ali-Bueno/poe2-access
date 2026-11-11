@@ -122,7 +122,8 @@ namespace Poe2Accessibility.Services
         public void Tick(bool playing)
         {
             this.heardBeds.Clear();
-            if (!playing || this.sounds.Count == 0 || !Seats.Followed.TryGetComponent<Render>(out var player))
+            // No early return on an empty game set: the Diablo IV loops and the quest ring do not come from the game's files.
+            if (!playing || !Seats.Followed.TryGetComponent<Render>(out var player))
             {
                 this.SetBeds();
                 return;
