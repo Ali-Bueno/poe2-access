@@ -303,6 +303,7 @@ namespace Poe2Accessibility.Services
             }
 
             var goesOut = true;
+            string? resumed;
             lock (this.queueGate)
             {
                 switch (delivery)
@@ -312,7 +313,7 @@ namespace Poe2Accessibility.Services
                         interrupt = this.floor.Keep(text, interrupt, holdMs, now, delivery == Delivery.KeptMessage);
                         break;
                     case Delivery.Move:
-                        goesOut = this.floor.Move(text, ref interrupt, now);
+                        goesOut = this.floor.Move(text, interrupt, now);
                         break;
                     case Delivery.Floor:
                         this.floor.Take(text, now);
@@ -332,11 +333,22 @@ namespace Poe2Accessibility.Services
                     this.sent.RemoveAll(line => (now - line.At).TotalMilliseconds > SentKeptMs);
                     this.sent.Add((text, now, delivery is Delivery.Kept or Delivery.KeptMessage));
                 }
+
+                resumed = delivery == Delivery.KeptMessage ? this.floor.MoveToResume : null;
+                if (resumed != null)
+                {
+                    this.EnqueueLocked(new SpeechRequest(resumed, false));
+                }
             }
 
             this.log.Info(goesOut
                 ? $"Speech {(interrupt ? "interrupts" : "queued")}{(delivery is Delivery.Kept or Delivery.KeptMessage ? ", kept" : delivery == Delivery.Move ? ", moved" : string.Empty)}: {text}"
                 : $"Speech waits for the kept line{(SpeechFloor.Replaces(interrupt, reading) ? ", replacing what waited" : string.Empty)}: {text}");
+            if (resumed != null)
+            {
+                this.log.Info($"Speech after the kept line (the move it cut): {resumed}");
+            }
+
             this.pendingSignal.Set();
             return true;
         }

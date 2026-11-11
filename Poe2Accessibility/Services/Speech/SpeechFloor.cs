@@ -32,8 +32,17 @@ namespace Poe2Accessibility.Services
         /// <summary>The part of the hold the player's own move does not end (a lesson's).</summary>
         private DateTime lessonUntil = DateTime.MinValue;
 
-        /// <summary>The hold of a kept line that yields to moves but is longer than a message's: a move cuts it instead of following it.</summary>
-        private DateTime pageUntil = DateTime.MinValue;
+        /// <summary>The player's last move, until something cuts it.</summary>
+        private (string Text, DateTime At)? lastMove;
+
+        /// <summary>A line cut this soon after it was sent was not heard: at most its first words.</summary>
+        public const int UnheardMs = 1000;
+
+        /// <summary>
+        ///     The move the last <see cref="Keep"/> cut before it was heard, to be said again behind the kept line: the cursor
+        ///     had gone on as "Movido a Alijo: …" came, and nothing said where it stood (user 2026-11-11).
+        /// </summary>
+        public string? MoveToResume { get; private set; }
 
         /// <summary>The last kept line and when it is estimated said, whatever move ended its hold.</summary>
         private (string Text, DateTime Until) lastKept = (string.Empty, DateTime.MinValue);
@@ -43,7 +52,7 @@ namespace Poe2Accessibility.Services
         /// <summary>
         ///     How long a message the game or the player's own action produced ("Inventario lleno", "Vendido: …", "Menú del
         ///     juego") keeps the floor: about its spoken length, never so long that the cursor's next stop lags behind. The
-        ///     focus that lands meanwhile follows it instead of cutting it off (user 2026-10-28).
+        ///     focus the game lands meanwhile follows it instead of cutting it off (user 2026-10-28).
         /// </summary>
         public static int MessageHoldMs(string text) => Math.Clamp(SpokenMs(text), MinMessageHoldMs, MaxMessageHoldMs);
 
@@ -99,13 +108,18 @@ namespace Poe2Accessibility.Services
             interrupt &= !this.Held(now);
             var ahead = this.speechEndsAt - now;
             var startsAt = interrupt || ahead <= TimeSpan.Zero ? now : now + TimeSpan.FromMilliseconds(Math.Min(ahead.TotalMilliseconds, MaxAheadMs));
+            // Behind a message only: a page is too long for the cursor's place to wait for.
+            var cut = interrupt && yieldsToMoves && holdMs <= MaxMessageHoldMs && this.lastMove is { } move &&
+                      (now - move.At).TotalMilliseconds < UnheardMs ? move.Text : null;
             this.Sent(text, interrupt, now);
             var until = startsAt.AddMilliseconds(holdMs);
             this.keptUntil = until > this.keptUntil ? until : this.keptUntil;
             this.lastKept = (text, until);
-            if (yieldsToMoves && holdMs > MaxMessageHoldMs && until > this.pageUntil)
+            this.MoveToResume = cut;
+            if (cut != null)
             {
-                this.pageUntil = until; // a message kept behind the page does not make the page wait for a move again
+                this.Sent(cut, false, now);
+                this.lastMove = (cut, now); // still unheard: another message cutting in is followed by it too
             }
 
             if (!yieldsToMoves && until > this.lessonUntil)
@@ -117,33 +131,31 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     The player's own move (the cursor to another cell): a message no longer holds it back, it follows what is being
-        ///     said instead of waiting out the estimate (user 2026-10-28, selling); a lesson still holds. What waited is stale.
-        ///     A kept page too long to wait behind (the quest tracker's, user 2026-11-11) is cut by the move.
+        ///     The player's own move (the cursor to another cell) cuts a message or a page being kept, as it cuts anything
+        ///     else: behind "Movido a Alijo: …" or "Vendido: …" it left the player waiting to hear where they were (user
+        ///     2026-11-11). A lesson still holds. What waited is stale.
         /// </summary>
-        public bool Move(string text, ref bool interrupt, DateTime now)
+        public bool Move(string text, bool interrupt, DateTime now)
         {
-            if (now < this.lessonUntil)
-            {
-                return this.Admit(text, interrupt, now);
-            }
-
-            if (this.Held(now))
+            if (now >= this.lessonUntil)
             {
                 this.keptUntil = this.lessonUntil;
-                interrupt &= now < this.pageUntil;
+                this.held.Clear();
             }
 
-            this.pageUntil = DateTime.MinValue;
-            this.held.Clear();
-            return this.Admit(text, interrupt, now);
+            var goesOut = this.Admit(text, interrupt, now);
+            if (goesOut)
+            {
+                this.lastMove = (text, now);
+            }
+
+            return goesOut;
         }
 
         /// <summary>What the player just asked for: no kept line holds it back, and what waited is stale.</summary>
         public void Take(string text, DateTime now)
         {
             this.keptUntil = this.lessonUntil = now;
-            this.pageUntil = DateTime.MinValue;
             this.held.Clear();
             this.Sent(text, true, now);
         }
@@ -153,6 +165,10 @@ namespace Poe2Accessibility.Services
         {
             var start = interrupt || this.speechEndsAt < now ? now : this.speechEndsAt;
             this.speechEndsAt = start.AddMilliseconds(SpokenMs(text));
+            if (interrupt)
+            {
+                this.lastMove = null;
+            }
         }
 
         /// <summary>
@@ -188,7 +204,7 @@ namespace Poe2Accessibility.Services
             this.held.Clear();
             this.keptUntil = DateTime.MinValue;
             this.lessonUntil = DateTime.MinValue;
-            this.pageUntil = DateTime.MinValue;
+            this.lastMove = null;
             this.lastKept = (string.Empty, DateTime.MinValue);
             this.speechEndsAt = now;
         }

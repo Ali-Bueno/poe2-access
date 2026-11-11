@@ -159,7 +159,8 @@ namespace Poe2Accessibility.Tests
             Run(nameof(FocusDetailsAreNotScrolledRows), FocusDetailsAreNotScrolledRows);
             Run(nameof(KeptLessonIsHeardWhole), KeptLessonIsHeardWhole);
             Run(nameof(KeptLessonHoldsFromItsStart), KeptLessonHoldsFromItsStart);
-            Run(nameof(PlayerMoveFollowsAMessage), PlayerMoveFollowsAMessage);
+            Run(nameof(PlayerMoveCutsAMessage), PlayerMoveCutsAMessage);
+            Run(nameof(AMessageCuttingAMoveIsFollowedByIt), AMessageCuttingAMoveIsFollowedByIt);
             Run(nameof(PendingLessonIsRemindedNowAndThen), PendingLessonIsRemindedNowAndThen);
             Run(nameof(WeakPointLeadsToTheHead), WeakPointLeadsToTheHead);
             Run(nameof(WeakPointBeatsFasterThenSteady), WeakPointBeatsFasterThenSteady);
@@ -1566,57 +1567,66 @@ namespace Poe2Accessibility.Tests
             Equal(false, floor.Held(later.AddMilliseconds(SpeechFloor.MaxAheadMs + 2100)), "a long line ahead delays the hold only so far");
         }
 
-        private static void PlayerMoveFollowsAMessage()
+        private static void PlayerMoveCutsAMessage()
         {
             var floor = new SpeechFloor();
             var start = new DateTime(2026, 10, 28, 12, 35, 9);
             floor.Keep("Vendido: Lanza con punta de hierro, raro, por 124 de oro", true, 2500, start, yieldsToMoves: true);
             Equal(false, floor.Admit("Vacío, columna 2, fila 1", true, start.AddMilliseconds(100)), "the game's refresh waits for the sale");
-            var interrupt = true;
-            Equal(true, floor.Move("Orbe de aumento, columna 3, fila 1", ref interrupt, start.AddMilliseconds(230)), "the player's move goes out now");
-            Equal(false, interrupt, "queued behind the sale, not cutting it");
+            // Queued behind the sale, the move left the player waiting to hear where they were (user 2026-11-11).
+            Equal(true, floor.Move("Orbe de aumento, columna 3, fila 1", true, start.AddMilliseconds(230)), "the player's move cuts the sale");
+            Equal(false, floor.Held(start.AddMilliseconds(240)), "and the sale holds nothing more");
             Equal(0, floor.Release(start.AddMilliseconds(3000)).Count, "the stale refresh is dropped");
-            interrupt = true;
-            Equal(true, floor.Move("Pergamino de sabiduría, 5, columna 1, fila 1", ref interrupt, start.AddMilliseconds(600)), "the next move");
-            Equal(true, interrupt, "cuts in as usual");
+            Equal(true, floor.Move("Pergamino de sabiduría, 5, columna 1, fila 1", true, start.AddMilliseconds(600)), "the next move");
 
             var lesson = start.AddMinutes(1);
             floor.Keep("Navega a tu arbol de pasivas", true, 2000, lesson);
-            interrupt = true;
-            Equal(false, floor.Move("Vacío, columna 4, fila 2", ref interrupt, lesson.AddMilliseconds(300)), "a lesson still holds the move");
+            Equal(false, floor.Move("Vacío, columna 4, fila 2", true, lesson.AddMilliseconds(300)), "a lesson still holds the move");
 
             // The quest page on entering the camp held Renly's options back for 12 s (2026-11-11).
             var page = start.AddMinutes(2);
             floor.Keep("Misión: Secretos en la oscuridad. Atraviesa Sierraclara y adéntrate en el Bosque singular", false, 6000, page, yieldsToMoves: true);
             Equal(false, floor.Admit("Renly, A", true, page.AddMilliseconds(500)), "what the game shows meanwhile waits for the page");
-            interrupt = true;
-            Equal(true, floor.Move("El devorador, 6 de 8", ref interrupt, page.AddMilliseconds(900)), "the player's move goes out now");
-            Equal(true, interrupt, "cutting the page, too long to wait behind");
+            Equal(true, floor.Move("El devorador, 6 de 8", true, page.AddMilliseconds(900)), "the player's move cuts the page");
             Equal(false, floor.Held(page.AddMilliseconds(1000)), "and the page holds nothing more");
-            floor.Keep("Vendido: Porra de madera, por 3 de oro", true, 1700, page.AddSeconds(2), yieldsToMoves: true);
-            interrupt = true;
-            floor.Move("Vacío, columna 1, fila 1", ref interrupt, page.AddSeconds(2).AddMilliseconds(200));
-            Equal(false, interrupt, "a message after a page is followed as ever");
 
             // An area's line and its quest page go out one behind the other; the scanner's answer waited for both (2026-11-11).
             var arrival = start.AddMinutes(3);
             floor.Keep("Área: Mausoleo del pretor, nivel 8. Esquina inferior derecha.", false, 2500, arrival, yieldsToMoves: true);
             floor.Keep("Misión: Lamentos entre lápidas. Registra el Mausoleo en busca de Draven y su consorte", false, 3800, arrival.AddMilliseconds(20), yieldsToMoves: true);
             Equal(false, floor.Admit("Cementerio de los eternos, A", true, arrival.AddMilliseconds(200)), "the exit's prompt waits for both");
-            interrupt = true;
-            Equal(true, floor.Move("Salidas. Cementerio de los eternos, 3 pasos", ref interrupt, arrival.AddMilliseconds(3000)), "the scanner's answer goes out now");
-            Equal(true, interrupt, "cutting the page");
+            Equal(true, floor.Move("Salidas. Cementerio de los eternos, 3 pasos", true, arrival.AddMilliseconds(3000)), "the scanner's answer cuts both");
+        }
 
-            var noticed = start.AddMinutes(4);
-            floor.Keep("Misión: Secretos en la oscuridad. Atraviesa Sierraclara y adéntrate en el Bosque singular", false, 6000, noticed, yieldsToMoves: true);
-            floor.Keep("Has recibido 2 puntos de habilidad pasiva", false, 1800, noticed.AddMilliseconds(500), yieldsToMoves: true);
-            interrupt = true;
-            floor.Move("Urna, 12 pasos, izquierda", ref interrupt, noticed.AddMilliseconds(900));
-            Equal(true, interrupt, "a message kept behind the page does not make a move wait for the page");
-            floor.Keep("Vendido: Porra de madera, por 3 de oro", true, 1700, noticed.AddSeconds(2), yieldsToMoves: true);
-            interrupt = true;
-            floor.Move("Vacío, columna 1, fila 1", ref interrupt, noticed.AddSeconds(2).AddMilliseconds(200));
-            Equal(false, interrupt, "and once the page was cut, a message is followed again");
+        private static void AMessageCuttingAMoveIsFollowedByIt()
+        {
+            // "Orbe regio…" 116 ms before "Movido a Alijo: Runa glacial menor": the cursor's place was never said (2026-11-11).
+            const string place = "Orbe regio, columna 3, fila 3";
+            const string moved = "Movido a Alijo: Runa glacial menor";
+            var floor = new SpeechFloor();
+            var start = new DateTime(2026, 11, 11, 14, 49, 22, DateTimeKind.Utc);
+            floor.Move(place, true, start);
+            floor.Admit("Comprobar precio, mantener Triángulo", false, start.AddMilliseconds(50));
+            Equal(true, floor.Keep(moved, true, SpeechFloor.MessageHoldMs(moved), start.AddMilliseconds(116), yieldsToMoves: true), "the message cuts the move");
+            Equal(place, floor.MoveToResume, "which follows it");
+            floor.Keep("Inventario lleno", false, 700, start.AddMilliseconds(300), yieldsToMoves: true);
+            Equal(null, floor.MoveToResume, "a message queued behind cuts nothing");
+
+            var heard = start.AddMinutes(1);
+            floor.Move(place, true, heard);
+            floor.Keep(moved, true, 1500, heard.AddMilliseconds(SpeechFloor.UnheardMs + 100), yieldsToMoves: true);
+            Equal(null, floor.MoveToResume, "a place already heard is not said again");
+
+            var refreshed = start.AddMinutes(2);
+            floor.Move(place, true, refreshed);
+            floor.Admit("Vacío, columna 3, fila 3", true, refreshed.AddMilliseconds(200));
+            floor.Keep(moved, true, 1500, refreshed.AddMilliseconds(500), yieldsToMoves: true);
+            Equal(null, floor.MoveToResume, "the game's refresh took the move's place");
+
+            var page = start.AddMinutes(3);
+            floor.Move("Urna, 12 pasos, izquierda", true, page);
+            floor.Keep("Misión: Secretos en la oscuridad. Atraviesa Sierraclara y adéntrate en el Bosque singular", true, 6000, page.AddMilliseconds(200), yieldsToMoves: true);
+            Equal(null, floor.MoveToResume, "a page is too long to wait behind");
         }
 
         private static void PendingLessonIsRemindedNowAndThen()
@@ -3919,9 +3929,7 @@ namespace Poe2Accessibility.Tests
             Equal(true, floor.Keep(notice, true, hold, start.AddMilliseconds(400), yieldsToMoves: true), "the notice cuts the long text");
             Equal(true, floor.Echoes(copy, start.AddMilliseconds(600)), "the copy on screen is no news");
             Equal(false, floor.Echoes("Inventario lleno", start.AddMilliseconds(600)), "another message is");
-            var moved = true;
-            Equal(true, floor.Move("Grebas rústicas", ref moved, start.AddMilliseconds(900)), "the cursor goes out at once");
-            Equal(false, moved, "behind the notice, not over it");
+            Equal(true, floor.Move("Grebas rústicas", true, start.AddMilliseconds(900)), "the cursor goes out at once");
             Equal(true, floor.Echoes(copy, start.AddMilliseconds(1000)), "a move does not bring the copy back");
             Equal(false, floor.Echoes(copy, start.AddMilliseconds(400 + hold + 1)), "said again once it is over");
         }
