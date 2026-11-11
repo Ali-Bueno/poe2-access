@@ -142,6 +142,7 @@
     <Compile Include="..\..\tools\Poe2UiExtract\AoSoundEvents.cs" Link="Extract\AoSoundEvents.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\Say.cs" Link="Extract\Say.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\UiLoss.cs" Link="Extract\UiLoss.cs" />
+    <Compile Include="..\..\host\GameReader\Utils\ReadFailureLog.cs" Link="Launcher\ReadFailureLog.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\TelegraphShapes.cs" Link="Extract\TelegraphShapes.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\SkillGraphFile.cs" Link="Extract\SkillGraphFile.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\DatTable.cs" Link="Extract\DatTable.cs" />

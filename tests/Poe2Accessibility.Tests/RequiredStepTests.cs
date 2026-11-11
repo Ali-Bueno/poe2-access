@@ -3,6 +3,7 @@ namespace Poe2Accessibility.Tests
     using System;
     using System.Collections.Generic;
     using Poe2Access;
+    using GameReader.Utils;
     using static Check;
 
     /// <summary>A required game-data step that loses files or a language does not report done.</summary>
@@ -14,6 +15,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ALanguageGoneFromAKeyedSectionIsAProblem), ALanguageGoneFromAKeyedSectionIsAProblem),
             (nameof(ALanguageTheClientNeverHadIsNoProblem), ALanguageTheClientNeverHadIsNoProblem),
             (nameof(TheShippedCatalogsPassTheirOwnRule), TheShippedCatalogsPassTheirOwnRule),
+            (nameof(ABurstOfFailedReadsIsOneLine), ABurstOfFailedReadsIsOneLine),
         };
 
         private static void AFewLostUiScriptsAreToleratedAShareIsNot()
@@ -63,6 +65,28 @@ namespace Poe2Accessibility.Tests
                 var text = System.IO.File.ReadAllText(file);
                 Expect(null, GameDataCounts.Problem(System.IO.Path.GetFileName(file), text, text), $"{System.IO.Path.GetFileName(file)} against itself");
             }
+        }
+
+        private static void ABurstOfFailedReadsIsOneLine()
+        {
+            var log = new ReadFailureLog(TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(30));
+            var start = new DateTime(2026, 11, 10, 12, 0, 0, DateTimeKind.Utc);
+            Expect(true, log.Report(start), "the first failure speaks");
+            for (var i = 1; i <= 16; i++)
+            {
+                Expect(false, log.Report(start.AddMilliseconds(i * 10)), "the rest of the burst is left out");
+            }
+
+            Expect(16, log.TakeLeftOut(), "and counted");
+            Expect(0, log.TakeLeftOut(), "once");
+            Expect(true, log.Report(start.AddSeconds(10)), "a failure after a quiet spell speaks again");
+            Expect(false, log.Report(start.AddSeconds(11)), "inside the new burst");
+            for (var seconds = 12; seconds < 40; seconds++)
+            {
+                log.Report(start.AddSeconds(seconds));
+            }
+
+            Expect(true, log.Report(start.AddSeconds(41)), "a burst that never ends speaks again after 30 s");
         }
     }
 }

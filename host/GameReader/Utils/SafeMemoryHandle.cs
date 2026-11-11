@@ -22,6 +22,16 @@ namespace GameReader.Utils
     /// </summary>
     internal class SafeMemoryHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
+        private static readonly ReadFailureLog FailedReads = new(TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(30)); // a burst: the game closing, an area loading
+
+        private static void WriteLeftOut()
+        {
+            if (FailedReads.TakeLeftOut() is > 0 and var count)
+            {
+                Console.WriteLine($"{count} more failed reads in the same burst left out");
+            }
+        }
+
         /// <summary>
         ///     Max valid user-mode address on 64-bit Windows (48-bit addressing).
         /// </summary>
@@ -116,8 +126,9 @@ namespace GameReader.Utils
             // Only a genuine read failure on a plausible address warrants a console error;
             // an out-of-range address is silently skipped (historical behaviour). Both cases
             // are still captured by the diagnostics window via TryReadMemory.
-            if (!this.IsInvalid && IsValidAddress(address))
+            if (!this.IsInvalid && IsValidAddress(address) && FailedReads.Report(DateTime.UtcNow))
             {
+                WriteLeftOut();
                 Console.WriteLine("ERROR: Failed To Read the Memory (T)" +
                                   $" due to Error Number: 0x{NativeWrapper.LastError:X} on " +
                                   $"adress 0x{address.ToInt64():X} for type {typeof(T).Name}");
@@ -453,6 +464,7 @@ namespace GameReader.Utils
         /// </returns>
         protected override bool ReleaseHandle()
         {
+            WriteLeftOut();
             Console.WriteLine($"Releasing handle on 0x{this.handle:X}\n");
             return NativeWrapper.CloseHandle(this.handle);
         }
