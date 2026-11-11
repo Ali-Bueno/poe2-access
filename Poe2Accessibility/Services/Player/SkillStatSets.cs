@@ -99,9 +99,11 @@ namespace Poe2Accessibility.Services
         /// <summary>The skill's GrantedEffectStatSetsPerLevel row: its key found once among the details' 8-byte steps by the table it names.</summary>
         private IntPtr? LevelRow(IntPtr details)
         {
-            if (this.keyOffset is { } known)
+            // A known offset that no longer names the table (a patch moved it under a host that outlived the game process)
+            // falls through to the search again and is replaced; a skill with no stat set just finds nothing, as before.
+            if (this.keyOffset is { } known && this.Names(details + known, Table))
             {
-                return this.Names(details + known, Table) ? this.Row(details + known) : null;
+                return this.Row(details + known);
             }
 
             for (var offset = 0; offset < DetailsSearchBytes; offset += IntPtr.Size)
