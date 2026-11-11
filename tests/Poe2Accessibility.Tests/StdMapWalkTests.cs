@@ -33,6 +33,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ASingleNodeIsReadAlone), ASingleNodeIsReadAlone),
             (nameof(ANodeThatCannotBeReadMakesTheWalkIncomplete), ANodeThatCannotBeReadMakesTheWalkIncomplete),
             (nameof(ATreeLargerThanItsSizeIsCutShortAndSaysSo), ATreeLargerThanItsSizeIsCutShortAndSaysSo),
+            (nameof(TheParallelPartOfABigMapIsBoundBySizeToo), TheParallelPartOfABigMapIsBoundBySizeToo),
             (nameof(UnreachedEntitiesAreKeptForThreeIncompleteWalks), UnreachedEntitiesAreKeptForThreeIncompleteWalks),
             (nameof(OneWalkOutOfOrderDoesNotGiveTheOrderUp), OneWalkOutOfOrderDoesNotGiveTheOrderUp),
         };
@@ -160,6 +161,15 @@ namespace Poe2Accessibility.Tests
             var walk = map.Walk(null);
             Expect(false, walk.Complete, "incomplete");
             Equal(51, walk.Nodes, "one node past the size");
+        }
+
+        private static void TheParallelPartOfABigMapIsBoundBySizeToo()
+        {
+            // A torn big map holding more nodes than its size says: the parallel part must stop near the size, not at 100,000.
+            var map = new FakeMap(Range(1, 20000), size: 300);
+            var walk = map.Walk(null);
+            Expect(false, walk.Complete, "incomplete");
+            Expect(true, walk.Nodes <= 5 * 301, $"bound near the size ({walk.Nodes} nodes)");
         }
 
         private static void UnreachedEntitiesAreKeptForThreeIncompleteWalks()

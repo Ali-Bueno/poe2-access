@@ -150,14 +150,15 @@ namespace GameReader.Utils
             }
             else
             {
-                cap = maxSizeAllowed;
+                // The parallel part is bound by the map's size too, not by the cap of a big map.
+                cap = Math.Min(maxSizeAllowed, map.Size + 1);
                 nodes = walk.Drain(queue, SeedNodes);
                 if (queue.Count < FullSeeds)
                 {
                     nodes += walk.Drain(queue, ParallelMinNodes - SeedNodes);
                 }
 
-                nodes += walk.DrainParallel(queue, maxSizeAllowed, maxParallelism);
+                nodes += walk.DrainParallel(queue, Math.Max(0, cap - nodes), maxParallelism);
             }
 
             if (Volatile.Read(ref walk.outOfOrder) == 1 && !walk.skipped.IsEmpty)
@@ -178,14 +179,15 @@ namespace GameReader.Utils
             return new(nodes, Volatile.Read(ref walk.incomplete) == 0, Volatile.Read(ref walk.outOfOrder) == 1);
         }
 
-        private int DrainParallel(Queue<(StdMapNode<TKey, TValue> Node, KeyRange Range)> seeds, int maxSizeAllowed, int maxParallelism)
+        private int DrainParallel(Queue<(StdMapNode<TKey, TValue> Node, KeyRange Range)> seeds, int budget, int maxParallelism)
         {
             if (seeds.Count == 0)
             {
                 return 0;
             }
 
-            var capPerSeed = maxSizeAllowed / seeds.Count;
+            // A seed's subtree may hold nearly the whole map, so each seed may read what the budget has left when it starts;
+            // the shared count keeps a torn loop from costing every seed the full budget in turn.
             var nodes = 0;
             Parallel.ForEach(
                 seeds,
@@ -193,12 +195,14 @@ namespace GameReader.Utils
                 () => (Queue: new Queue<(StdMapNode<TKey, TValue> Node, KeyRange Range)>(WorkerQueueNodes), Nodes: 0),
                 (seed, _, _, local) =>
                 {
+                    var before = local.Nodes;
                     local.Queue.Enqueue(seed);
-                    local.Nodes += this.Drain(local.Queue, capPerSeed);
+                    local.Nodes += this.Drain(local.Queue, Math.Max(0, budget - Volatile.Read(ref nodes)));
                     this.FailIfLeft(local.Queue);
+                    Interlocked.Add(ref nodes, local.Nodes - before);
                     return local;
                 },
-                local => Interlocked.Add(ref nodes, local.Nodes));
+                _ => { });
             return nodes;
         }
 
