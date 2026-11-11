@@ -23,6 +23,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Within this distance at arrival: the way back, or where the player stands, not a discovery.</summary>
         private const float ArrivalNearWorld = 800f;
 
+        /// <summary>Nearer than this a find is at the player's place: the chime in the middle, no direction said (as the object sounds).</summary>
+        private const float CentreWorld = 150f;
+
         private readonly EntityCatalog catalog;
         private readonly IAccessibilityOutputService output;
         /// <summary>The discovery chime's glossary key (the game's waypoint sound, its own volume).</summary>
@@ -138,11 +141,18 @@ namespace Poe2Accessibility.Services
             string Near(ScanEntry entry) => entry.Kind == "checkpoint"
                 ? MapPlaces.NamedNear(new Vector2(entry.WorldX, entry.WorldY), entries, CheckpointPlaces.NearPlaceWorld)?.Name ?? string.Empty
                 : string.Empty;
+            // Where each lies on the screen, in words and in the chime's side and height (user 2026-11-11); none beside the player.
+            Vector2 Offset(ScanEntry entry) => new Vector2(entry.WorldX, entry.WorldY) - here;
+            string Found(ScanEntry entry) => Offset(entry).Length() < CentreWorld
+                ? Announcements.Discovered(entry, Near(entry))
+                : Announcements.Toward(Announcements.Discovered(entry, Near(entry)), ScreenProjection.Octant(player.WorldPosition, Offset(entry)));
             // Said once, ever: "Ya no estás enfriado" cut "Nueva salida: Mansión de Ogham" 15 ms in and it was never heard (2026-11-05).
-            this.output.Say(SpeechKind.Places, string.Join(". ", this.waiting.Select(entry => Announcements.Discovered(entry, Near(entry)))), urgent: true);
+            this.output.Say(SpeechKind.Places, string.Join(". ", this.waiting.Select(Found)), urgent: true);
             if (this.sound != null)
             {
-                this.audio.Play(this.sound, 0f, 1f, this.Gain, SoundKey);
+                var first = Offset(this.waiting[0]);
+                var (pan, pitch) = ScreenProjection.Voice(player.WorldPosition, first, first.Length(), CentreWorld);
+                this.audio.Play(this.sound, pan, pitch, this.Gain, SoundKey);
             }
 
             this.waiting.Clear();

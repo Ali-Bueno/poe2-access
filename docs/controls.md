@@ -513,7 +513,9 @@ left; a topic already heard (drawn grey) is read "dimmed": "Introduction, dimmed
 - Death: "You have died. Resurrect at Checkpoint", then the focused button (A). Y shows or hides the death
   screen, so a Y meant for a skill can hide it: then "The death screen is hidden: Y shows it".
 - Discoveries: the first time the game shows an exit, a waypoint or checkpoint, or a boss in the area: "New
-  exit: Clearfell", "New checkpoint, near Clearfell Encampment", "Boss in sight: The Bloated Miller" (`AnnounceDiscoveries`).
+  exit: Clearfell, up left", "New checkpoint, near Clearfell Encampment, down right", "Boss in sight: The Bloated
+  Miller, right" (`AnnounceDiscoveries`). The direction is where it lies on the screen, in a straight line, and the
+  chime comes from that side, higher above you and lower below.
   Said once, so it holds through a fight for a moment; other spoken news waits behind it.
 - Where you start: the area's line ends in the part of the map you are in, in screen directions: "Area: The Manor
   Ramparts, level 14. Bottom left corner." From there the way on lies the other way (setting "Say the map corner on

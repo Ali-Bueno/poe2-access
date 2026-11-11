@@ -454,6 +454,9 @@ namespace Poe2Accessibility
         /// <summary>A straight-line distance in scanner steps: "a 35 pasos".</summary>
         public static string StepsAway(int steps) => T($"{Steps(steps)} away", $"a {Steps(steps)}");
 
+        /// <summary>Something and where it lies on the screen (a <see cref="StickDirections"/> octant): "Nueva salida: Sierraclara, arriba a la izquierda".</summary>
+        public static string Toward(string what, int octant) => $"{what}, {StickDirections[octant]}";
+
         /// <summary>A first sighting: "Nueva salida: Sierraclara", "Nuevo punto de control", "Jefe a la vista: El molinero hinchado".</summary>
         public static string Discovered(Services.ScanEntry entry, string near = "") => entry.Kind switch
         {
