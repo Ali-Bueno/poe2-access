@@ -56,6 +56,7 @@ namespace Poe2Accessibility.Tests
             (nameof(ALineForAllElementsAnswersOneResistance), ALineForAllElementsAnswersOneResistance),
             (nameof(AUniqueIsToldByItsOwnName), AUniqueIsToldByItsOwnName),
             (nameof(TheSummaryCountsBasesAndTheModifiersRead), TheSummaryCountsBasesAndTheModifiersRead),
+            (nameof(AWornPieceNeverFocusedIsComparedByItsLinesFromMemory), AWornPieceNeverFocusedIsComparedByItsLinesFromMemory),
         };
 
         private static void Expect<T>(T expected, T actual, string what)
@@ -263,6 +264,38 @@ namespace Poe2Accessibility.Tests
             Expect("Build: 1 de 3 piezas con su base, 2 de 3 modificadores, leídos en 1 de 3 piezas|Más lejos de la build: Mano principal",
                 string.Join('|', Announcements.BuildGearSummary(summary)), "said on entering the inventory");
             Expect("Build: 1 de 1 piezas con su base", string.Join('|', Announcements.BuildGearSummary(BuildGear.Summary(new[] { fits[2] }))), "bases alone while no tooltip was read");
+        });
+
+        /// <summary>The worn helmet with no tooltip read: its lines made from its modifiers in memory (docs/research/item-mods.md).</summary>
+        private static void AWornPieceNeverFocusedIsComparedByItsLinesFromMemory() => InSpanish(() =>
+        {
+            var entry = Piece(Early, "Helm1", 40);
+            GearItem FromMemory(params ItemModLine[] made)
+            {
+                var (lines, partial) = BuildGear.LinesFromMemory(made);
+                return Worn with { Title = string.Empty, Lines = lines, LinesPartial = partial };
+            }
+
+            ItemModLine Sure(string text) => new(text, true, "stat");
+            var doubt = new ItemModLine(string.Empty, false, "Nothing1: not in the game files");
+
+            var whole = Fit(entry, FromMemory(Sure("Armadura aumentada un 10%"), Sure("+29 a la vida máxima"), Sure("+9% a la resistencia al fuego")));
+            Expect((true, 2, 3, ModFit.Missing), (whole.ModsRead, whole.Has, whole.Compared, whole.Mods[2].Fit), "every line certain: compared as its tooltip would be, the lightning resistance missing");
+            Expect("Build: 0 de 1 piezas con su base, 2 de 3 modificadores, leídos en 1 de 1 piezas|Más lejos de la build: Casco",
+                string.Join('|', Announcements.BuildGearSummary(BuildGear.Summary(new[] { whole }))), "the summary counts it at the first opening");
+            var shop = new GearItem("Metadata/Items/Armours/Helmets/FourHelmetStr5", "Yelmo blindado", "Yelmo blindado", false,
+                new[] { "Yelmo blindado", "+40 a la vida máxima", "+20% a la resistencia al fuego", "+18% a la resistencia al rayo" });
+            Expect("Build, Casco: 3 de 3 modificadores, misma base, más que el puesto, que tiene 2", Announcements.BuildGearItem(Fit(entry, shop), whole, 40), "and an item is set against it at once");
+
+            var partial = Fit(entry, FromMemory(Sure("+29 a la vida máxima"), doubt));
+            Expect((true, 1, 1, ModFit.Unknown, ModFit.Unknown), (partial.ModsRead, partial.Has, partial.Compared, partial.Mods[1].Fit, partial.Mods[2].Fit),
+                "a line in doubt: what is not found among the certain ones is not known to be missing");
+            Expect(1, partial.Shortfall, "so only its base counts against it");
+            Expect("Build, Casco: 3 de 3 modificadores, misma base", Announcements.BuildGearItem(Fit(entry, shop), partial, 40), "and no item is said to have more than it");
+
+            Expect(false, Fit(entry, FromMemory(doubt, doubt)).ModsRead, "every line in doubt: as an item whose lines were not read");
+            var bare = Fit(entry, FromMemory());
+            Expect((true, 0, 3), (bare.ModsRead, bare.Has, bare.Compared), "an item without modifiers lacks them all, and that is known");
         });
 
         /// <summary>The bases the tests name, as the game's files would give them.</summary>

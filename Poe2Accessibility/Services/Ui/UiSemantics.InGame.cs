@@ -91,6 +91,10 @@ namespace Poe2Accessibility.Services
                 var inventoryName = this.inventory.InventoryOf(info.Address);
                 (text, value) = Announcements.InventoryCell(inventoryName, item, column, row);
                 gear = this.BuildGearLines(info.Address, inventoryName, column, this.inventory.ItemEntity(hovered), details.ToList());
+                if (!filling)
+                {
+                    this.CheckItemMods(this.inventory.ItemEntity(hovered), item, details);
+                }
             }
             else if (this.inventory.FindItemElement(info.Address) is var item && item != IntPtr.Zero)
             {

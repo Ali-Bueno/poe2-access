@@ -37,6 +37,16 @@ namespace GameReader.RemoteObjects.Components
             EnchantMods = new(),
             HellscapeMods = new();
 
+        /// <summary>
+        ///     The same lists with every value each entry holds, in the entry's order, and the entries without a Mods.dat
+        ///     row kept under an empty name: what an item's lines are written from (docs/research/item-mods.md).
+        /// </summary>
+        public List<(string name, int[] values)>
+            ImplicitModValues = new(),
+            ExplicitModValues = new(),
+            EnchantModValues = new(),
+            HellscapeModValues = new();
+
         /// <inheritdoc />
         protected override void UpdateData(bool hasAddressChanged)
         {
@@ -51,11 +61,30 @@ namespace GameReader.RemoteObjects.Components
                 this.ExplicitMods.Clear();
                 this.EnchantMods.Clear();
                 this.HellscapeMods.Clear();
-                ObjectMagicProperties.AddToMods(this.ImplicitMods, reader.ReadStdVector<ModArrayStruct>(data.Details0.Mods.ImplicitMods));
-                ObjectMagicProperties.AddToMods(this.ExplicitMods, reader.ReadStdVector<ModArrayStruct>(data.Details0.Mods.ExplicitMods));
-                ObjectMagicProperties.AddToMods(this.EnchantMods, reader.ReadStdVector<ModArrayStruct>(data.Details0.Mods.EnchantMods));
-                ObjectMagicProperties.AddToMods(this.HellscapeMods, reader.ReadStdVector<ModArrayStruct>(data.Details0.Mods.HellscapeMods));
-                ObjectMagicProperties.AddToMods(this.HellscapeMods, reader.ReadStdVector<ModArrayStruct>(data.Details0.Mods.CrucibleMods));
+                this.ImplicitModValues.Clear();
+                this.ExplicitModValues.Clear();
+                this.EnchantModValues.Clear();
+                this.HellscapeModValues.Clear();
+                Add(this.ImplicitMods, this.ImplicitModValues, reader.ReadStdVector<ModArrayStruct>(data.Details0.Mods.ImplicitMods));
+                Add(this.ExplicitMods, this.ExplicitModValues, reader.ReadStdVector<ModArrayStruct>(data.Details0.Mods.ExplicitMods));
+                Add(this.EnchantMods, this.EnchantModValues, reader.ReadStdVector<ModArrayStruct>(data.Details0.Mods.EnchantMods));
+                Add(this.HellscapeMods, this.HellscapeModValues, reader.ReadStdVector<ModArrayStruct>(data.Details0.Mods.HellscapeMods));
+                Add(this.HellscapeMods, this.HellscapeModValues, reader.ReadStdVector<ModArrayStruct>(data.Details0.Mods.CrucibleMods));
+            }
+        }
+
+        private static void Add(List<(string name, (float value0, float value1) values)> collection, List<(string name, int[] values)> whole, ModArrayStruct[] mods)
+        {
+            foreach (var mod in mods)
+            {
+                // One read of the values for both lists: the first keeps two of them, as before.
+                var name = mod.ModsPtr == IntPtr.Zero ? string.Empty : ObjectMagicProperties.GetModName(mod.ModsPtr);
+                var values = ObjectMagicProperties.GetValues(mod.Values, mod.Value0);
+                whole.Add((name, values));
+                if (mod.ModsPtr != IntPtr.Zero)
+                {
+                    collection.Add((name, (values.Length > 0 ? values[0] : float.NaN, values.Length > 1 ? values[1] : float.NaN)));
+                }
             }
         }
     }

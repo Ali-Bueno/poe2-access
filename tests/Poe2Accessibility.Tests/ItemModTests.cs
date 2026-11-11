@@ -170,16 +170,19 @@ namespace Poe2Accessibility.Tests
             Equal(true, other.Details.StartsWith("memory only: +32 a la vida máxima; tooltip only: +33 a la vida máxima | Regeneras 1.7 de vida por segundo; uncertain: ", StringComparison.Ordinal), "each side named");
         }
 
-        /// <summary>The items of the evidence file: each one's modifiers as the host read them and its tooltip's lines.</summary>
+        /// <summary>
+        ///     The items of the evidence file, as the dev command "itemmods" logs them: each one's modifiers as the host read
+        ///     them ("Id 16/15", a value that is no number left out) and its tooltip's lines.
+        /// </summary>
         private static IEnumerable<(string Item, ItemModLists Mods, string[] Tooltip)> EvidenceItems(string file)
         {
-            var list = new Regex(@"(implicit|explicit|enchant)\[\d+\] (.*?)(?= \| (?:explicit|enchant)\[|$)");
+            var list = new Regex(@"(implicit|explicit|enchant|other)\[\d+\] (.*?)(?= \| (?:explicit|enchant|other)\[|$)");
             foreach (var line in File.ReadAllLines(file).Where(line => line.Contains(" rarity=", StringComparison.Ordinal)))
             {
                 var parts = line.Split(" || tooltip: ");
                 var lists = list.Matches(parts[0]).ToDictionary(match => match.Groups[1].Value, match => match.Groups[2].Value.Split("; ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                     .Select(entry => entry.Split(' ')).Select(words => Mod(words[0], words[1].Split('/').Where(value => int.TryParse(value, out _)).Select(int.Parse).ToArray())).ToList());
-                yield return (parts[0][..parts[0].IndexOf(' ')], Lists(lists.GetValueOrDefault("implicit"), lists.GetValueOrDefault("explicit"), lists.GetValueOrDefault("enchant")), parts[1].Split(" | "));
+                yield return (parts[0][..parts[0].IndexOf(' ')], Lists(lists.GetValueOrDefault("implicit"), lists.GetValueOrDefault("explicit"), lists.GetValueOrDefault("enchant"), lists.GetValueOrDefault("other")), parts[1].Split(" | "));
             }
         }
 

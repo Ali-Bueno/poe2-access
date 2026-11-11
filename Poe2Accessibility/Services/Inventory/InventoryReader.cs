@@ -453,9 +453,32 @@ namespace Poe2Accessibility.Services
                 return $"{ItemPath(item)}: no Mods component";
             }
 
-            static string Listed(string kind, List<(string name, (float value0, float value1) values)> list) =>
-                $"{kind}[{list.Count}] " + string.Join("; ", list.Select(mod => FormattableString.Invariant($"{mod.name} {mod.values.value0}/{mod.values.value1}")));
-            return $"{ItemPath(item)} rarity={mods.Rarity} {Listed("implicit", mods.ImplicitMods)} | {Listed("explicit", mods.ExplicitMods)} | {Listed("enchant", mods.EnchantMods)}";
+            // Each entry "Id v/v/…" with every value it holds, "Id -" for none.
+            static string Listed(string kind, List<(string name, int[] values)> list) =>
+                $"{kind}[{list.Count}] " + string.Join("; ", list.Select(mod => $"{mod.name} {(mod.values.Length == 0 ? "-" : string.Join('/', mod.values))}"));
+            return $"{ItemPath(item)} rarity={mods.Rarity} {Listed("implicit", mods.ImplicitModValues)} | {Listed("explicit", mods.ExplicitModValues)} | " +
+                   $"{Listed("enchant", mods.EnchantModValues)} | {Listed("other", mods.HellscapeModValues)}";
+        }
+
+        /// <summary>
+        ///     The item's modifiers as the host's Mods component holds them (GameHelper2's layout, set against nine tooltips:
+        ///     docs/research/item-mods.md); null when it is no item or has no such component.
+        /// </summary>
+        public ItemModLists? ItemMods(IntPtr entity)
+        {
+            if (entity == IntPtr.Zero || !this.IsItemEntity(entity))
+            {
+                return null;
+            }
+
+            var item = (Item)Activator.CreateInstance(typeof(Item), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { entity }, null)!;
+            if (!item.TryGetComponent<Mods>(out var mods))
+            {
+                return null;
+            }
+
+            static List<ItemMod> Listed(List<(string name, int[] values)> list) => list.Select(mod => new ItemMod(mod.name, mod.values)).ToList();
+            return new ItemModLists(Listed(mods.ImplicitModValues), Listed(mods.ExplicitModValues), Listed(mods.EnchantModValues), Listed(mods.HellscapeModValues));
         }
 
         /// <summary>The entity path without the "@level" suffix some item paths carry.</summary>

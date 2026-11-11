@@ -179,6 +179,7 @@ namespace Poe2Accessibility
                 GemCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "gems.json"));
                 ItemBaseCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "item-bases.json"));
                 ModTextCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "mod-texts.json"));
+                ModStatCatalog.Load(this.log, Path.Join(this.DllDirectory, "catalog", "mod-stats.json"));
                 // The build's gear lines name bases and modifiers through these; empty catalogs leave the author's own words.
                 BuildGear.Bases = ItemBaseCatalog.Shared;
                 BuildGear.Texts = ModTextCatalog.Shared;
@@ -204,6 +205,7 @@ namespace Poe2Accessibility
                 this.semantics.TreeFields.Report = this.compatibility;
                 this.semantics.TreeFields.Log = message => this.log?.Info(message);
                 this.semantics.Trace = message => this.log.Debug(message);
+                this.semantics.ItemModsLog = message => this.log.Info(message);
                 this.semantics.Fields = this.locator.Fields;
                 this.semantics.CharacterName = () => PlayerAlerts.Name(Seats.Followed);
                 this.semantics.PassiveResumeFile = Path.Join(this.DllDirectory, "config", "passive-resume.txt");

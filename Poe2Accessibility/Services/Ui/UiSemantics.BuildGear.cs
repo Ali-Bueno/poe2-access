@@ -15,7 +15,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The unique rarity as <see cref="InventoryReader.ItemKind"/> names it.</summary>
         private const string UniqueKind = "unique";
 
-        /// <summary>Tooltip lines of the worn items seen this session, by item entity: a worn item's lines are read from its tooltip alone.</summary>
+        /// <summary>Tooltip lines of the worn items seen this session, by item entity: they stand before the lines made from memory.</summary>
         private readonly Dictionary<IntPtr, IReadOnlyList<string>> wornLines = new();
 
         private (long At, string Character, Dictionary<(string Slot, int X), IntPtr> Worn, HashSet<string> Slots)? wornGear;
@@ -89,9 +89,29 @@ namespace Poe2Accessibility.Services
             return (worn, slots);
         }
 
-        private GearItem? GearItemOf(IntPtr entity, IReadOnlyList<string>? tooltip) => entity == IntPtr.Zero ? null
+        private GearItem? GearItemOf(IntPtr entity, IReadOnlyList<string>? tooltip, IReadOnlyList<string>? fromMemory = null, bool partial = false) => entity == IntPtr.Zero ? null
             : new GearItem(this.inventory.ItemBaseId(entity), this.inventory.ItemBaseName(entity), tooltip is { Count: > 0 } ? tooltip[0] : string.Empty,
-                this.inventory.ItemKind(entity).Kind == UniqueKind, tooltip);
+                this.inventory.ItemKind(entity).Kind == UniqueKind, tooltip ?? fromMemory, tooltip == null && partial);
+
+        /// <summary>A worn item by its tooltip's lines once its slot was focused, else by the lines made from its modifiers in memory.</summary>
+        private GearItem? WornItemOf(IntPtr entity)
+        {
+            if (entity == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            if (this.wornLines.TryGetValue(entity, out var read))
+            {
+                return this.GearItemOf(entity, read);
+            }
+
+            // Made anew each time: the callers keep what they say while the worn gear stands (GearState).
+            var (lines, partial) = ModStatCatalog.Shared.Count == 0 || this.inventory.ItemMods(entity) is not { } mods
+                ? (null, false)
+                : BuildGear.LinesFromMemory(ItemModLines.Render(mods, Localization.Language, ModStatCatalog.Shared, ModTextCatalog.Shared));
+            return this.GearItemOf(entity, null, lines, partial);
+        }
 
         /// <summary>
         ///     What the build says of a grid cell: on an equipment slot, its piece against the worn item, said after the item's
@@ -120,7 +140,7 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>What the gear's lines are made from besides the item itself: the build, the level, the worn items with their lines read, and the catalogs.</summary>
-        private object GearState((BuildPlan Plan, int Level) active) => (active.Plan, active.Level, this.gearVersion, BuildGear.Bases, BuildGear.Texts);
+        private object GearState((BuildPlan Plan, int Level) active) => (active.Plan, active.Level, this.gearVersion, BuildGear.Bases, BuildGear.Texts, ModStatCatalog.Shared, Localization.Language);
 
         private (List<string> First, List<string> Last) GearLinesNow((BuildPlan Plan, int Level) active, InventoryName? inventoryName, int column, IntPtr entity, IReadOnlyList<string> tooltip)
         {
@@ -172,7 +192,8 @@ namespace Poe2Accessibility.Services
             {
                 var fit = Fit(entry!, entity, tooltip);
                 var held = worn.GetValueOrDefault(slot);
-                var line = Announcements.BuildGearItem(fit, held == IntPtr.Zero ? null : Fit(entry!, held, this.wornLines.GetValueOrDefault(held)), active.Level);
+                var wornFit = held == IntPtr.Zero ? null : BuildGear.Fit(entry!, this.WornItemOf(held), BuildGear.Bases, BuildGear.Texts, Localization.Language);
+                var line = Announcements.BuildGearItem(fit, wornFit, active.Level);
                 if (line.Length == 0)
                 {
                     continue;
@@ -217,7 +238,7 @@ namespace Poe2Accessibility.Services
             return notes.Count == 0 ? node : node.With(node.Text, node.Tooltip, node.PanelNotes.Concat(notes).ToList());
         }
 
-        /// <summary>The slots whose piece applies at this level, each against what is worn there; modifiers only where a tooltip was read.</summary>
+        /// <summary>The slots whose piece applies at this level, each against what is worn there, its lines from its tooltip or from memory.</summary>
         private IReadOnlyList<string> GearSummaryLines((BuildPlan Plan, int Level) active)
         {
             var (worn, known) = this.WornGear();
@@ -235,7 +256,7 @@ namespace Poe2Accessibility.Services
                 }
 
                 var entity = worn.GetValueOrDefault(slot);
-                fits.Add(BuildGear.Fit(entry, this.GearItemOf(entity, this.wornLines.GetValueOrDefault(entity)), BuildGear.Bases, BuildGear.Texts, Localization.Language));
+                fits.Add(BuildGear.Fit(entry, this.WornItemOf(entity), BuildGear.Bases, BuildGear.Texts, Localization.Language));
             }
 
             IReadOnlyList<string> lines = fits.Count == 0 ? Array.Empty<string>() : Announcements.BuildGearSummary(BuildGear.Summary(fits)).ToList();

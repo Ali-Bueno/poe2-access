@@ -93,6 +93,18 @@ namespace GameReader.RemoteObjects.Components
                 name => name.Length > 0);
         }
 
+        /// <summary>
+        ///     Every value of a modifier in the order its entry holds them, read as <see cref="GetValue"/> reads its two:
+        ///     none, the one kept in the entry itself, or the vector's.
+        /// </summary>
+        internal static int[] GetValues(StdVector valuesPtr, int value0)
+        {
+            var totalElements = valuesPtr.TotalElements(0x04);
+            return totalElements <= 0 ? Array.Empty<int>()
+                : totalElements == 1 ? new[] { value0 }
+                : Core.Process.Handle.ReadStdVector<int>(valuesPtr);
+        }
+
         internal static (float, float) GetValue(StdVector valuesPtr, int value0)
         {
             var totalElements = valuesPtr.TotalElements(0x04);
