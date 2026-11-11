@@ -17,6 +17,8 @@ namespace Poe2Accessibility.Services
         /// <summary>Binding index → button and set index → set title, from the hidden bind screen.</summary>
         private (IntPtr Display, Dictionary<int, string> Buttons, string[] Titles)? bindTable;
 
+        private bool skillBarLayoutLogged;
+
         /// <summary>One set of the bar in screen order: its title and each binding's button and what it fires ("" = empty).</summary>
         public sealed record SkillSet(string Title, IReadOnlyList<(string Button, string Bound)> Bindings);
 
@@ -31,6 +33,13 @@ namespace Poe2Accessibility.Services
 
             if (this.SlotElements(bar) is not var (slotElements, slotClass))
             {
+                // A patch that changes the frame layout empties the readout; say it once, not every press.
+                if (!this.skillBarLayoutLogged)
+                {
+                    this.skillBarLayoutLogged = true;
+                    this.TreeFields.Log?.Invoke("Skill bar: its frames are not laid out as expected (twelve frames of two same-class slots); the readout is empty");
+                }
+
                 return sets;
             }
 
