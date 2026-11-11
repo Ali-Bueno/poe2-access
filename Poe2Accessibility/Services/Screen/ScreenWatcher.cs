@@ -175,6 +175,9 @@ namespace Poe2Accessibility.Services
                 try
                 {
                     await Task.Delay(SnapshotIntervalMs, this.stop.Token).ConfigureAwait(false);
+                    // Taken before the reset flag is read: a Reset landing between the two would otherwise stamp this capture with
+                    // the new generation while the differ still holds the old screen, and the stale pass would go through.
+                    var started = Volatile.Read(ref this.generation);
                     if (this.resetRequested)
                     {
                         this.resetRequested = false;
@@ -182,7 +185,6 @@ namespace Poe2Accessibility.Services
                         this.textureKeys.Clear();
                     }
 
-                    var started = Volatile.Read(ref this.generation);
                     var began = Stopwatch.GetTimestamp();
                     var captured = this.Capture(this.root);
                     var took = Stopwatch.GetElapsedTime(began).TotalMilliseconds;
@@ -194,6 +196,11 @@ namespace Poe2Accessibility.Services
                     }
 
                     var applied = this.differ.Apply(captured);
+                    if (started != Volatile.Read(ref this.generation))
+                    {
+                        continue; // a reset landed while the pass was applied: Current stays the reset's empty snapshot and nothing is queued
+                    }
+
                     this.Current = this.differ.Last;
                     foreach (var change in applied)
                     {
