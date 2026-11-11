@@ -54,6 +54,7 @@ namespace Poe2Accessibility.Services
                     Number(nameof(AccessibilitySettings.ParryLeadMs), 0, 600, 50),
                     Switch(nameof(AccessibilitySettings.ShieldSounds)),
                     Switch(nameof(AccessibilitySettings.AnnounceStunBar)),
+                    Switch(nameof(AccessibilitySettings.PerfectTimingCue)),
                     Switch(nameof(AccessibilitySettings.HazardAlarm)),
                     OwnVolume("hazard")),
                 Menu("skills",

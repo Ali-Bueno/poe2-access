@@ -94,6 +94,7 @@ namespace Poe2Accessibility
             nameof(AccessibilitySettings.BossWeakPoint) => T("Boss weak point heartbeat", "Latido del punto débil del jefe"),
             nameof(AccessibilitySettings.ShieldSounds) => T("Shield raised and lowered", "Escudo levantado y bajado"),
             nameof(AccessibilitySettings.AnnounceStunBar) => T("Stun bar while blocking", "Barra de aturdimiento al bloquear"),
+            nameof(AccessibilitySettings.PerfectTimingCue) => T("Perfect Timing cue", "Aviso del momento perfecto"),
             nameof(AccessibilitySettings.CullCue) => T("Culling Strike cue", "Aviso de golpe de gracia"),
             nameof(AccessibilitySettings.DeployedCues) => T("Sound of what your skills place", "Sonido de lo que colocan tus habilidades"),
             nameof(AccessibilitySettings.EnemyStateCues) => T("Enemy state sounds", "Sonidos de estados del enemigo"),
@@ -128,6 +129,7 @@ namespace Poe2Accessibility
             "crosshair" => T("Crosshair", "Mira"),
             "weak_point" => T("Boss weak point", "Punto débil del jefe"),
             "shield_up" => T("Shield raised", "Escudo levantado"),
+            Services.PerfectTimingWatch.SoundKey => T("Perfect Timing", "Momento perfecto"),
             "cull" => T("Culling Strike", "Golpe de gracia"),
             "charge_gained" => T("Charge gained", "Carga ganada"),
             "charge_lost" => T("Charge lost", "Carga perdida"),
@@ -203,6 +205,9 @@ namespace Poe2Accessibility
             "crosshair" => T("the game's target lands on a living enemy", "el objetivo del juego cae en un enemigo vivo"),
             "shield_up" => T("you raised your shield (Raise Shield, held)", "levantaste el escudo (Levantar escudo, mantenido)"),
             "shield_down" => T("your shield came down", "el escudo bajó"),
+            Services.PerfectTimingWatch.SoundKey => T(
+                "let go now of the skill you are holding: its Perfect Timing window has opened (Perfect Strike and the like)",
+                "suelta ya la habilidad que mantienes: se abrió su ventana de momento perfecto (Golpe perfecto y similares)"),
             "cull" => T(
                 "an enemy on that side is low enough for a Culling Strike: 35% life normal, 20% magic, 10% rare, 5% unique",
                 "un enemigo de ese lado ya cae con un golpe de gracia: 35% de vida si es normal, 20% mágico, 10% raro, 5% único"),

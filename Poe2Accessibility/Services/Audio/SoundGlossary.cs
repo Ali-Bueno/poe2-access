@@ -88,6 +88,7 @@ namespace Poe2Accessibility.Services
             this.Add("parry", CueSynth.Parry(rate));
             this.Add("shield_up", CueSynth.ShieldUp(rate));
             this.Add("shield_down", CueSynth.ShieldDown(rate));
+            this.Add(PerfectTimingWatch.SoundKey, CueSynth.PerfectTiming(rate));
             this.Add("hazard", CueSynth.HazardAlarm(rate));
 
             this.Add("radar_wall", RadarSynth.Cue(RadarReading.Wall, RadarSynth.Direction.Left, rate));

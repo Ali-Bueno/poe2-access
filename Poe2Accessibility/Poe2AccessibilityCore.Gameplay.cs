@@ -104,7 +104,7 @@ namespace Poe2Accessibility
             this.Isolated("weak point", playing, static (core, playing) => core.weakPoint?.Tick(playing && core.Settings.BossWeakPoint));
             this.Isolated("hazards", playing, static (core, playing) => core.hazards?.Tick(playing && core.Settings.HazardAlarm));
             this.Isolated("shield", playing, static (core, playing) => core.shield?.Tick(playing, core.Settings.ShieldSounds, core.Settings.AnnounceStunBar));
-            this.Isolated("perfect timing", playing, static (core, playing) => core.perfectTiming?.Tick(playing));
+            this.Isolated("perfect timing", playing, static (core, playing) => core.perfectTiming?.Tick(playing, core.Settings.PerfectTimingCue));
             this.Isolated("cull", playing, static (core, playing) => core.culls?.Tick(playing));
             this.Isolated("deployed", playing, static (core, playing) => core.deployed?.Tick(playing && core.Settings.DeployedCues));
             this.Isolated("traps", playing, static (core, playing) => core.traps?.Tick(playing && core.Settings.TrialTrapCues));

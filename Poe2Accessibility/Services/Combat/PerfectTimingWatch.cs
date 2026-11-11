@@ -6,18 +6,27 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     The player's own channel of a skill released with Perfect Timing (Perfect Strike, Snipe, Gathering Storm),
-    ///     followed by its animation and its clip's clock, and how each release ended. For now it only records them, to
-    ///     find where in the clip the window opens (docs/research/perfect-timing.md).
+    ///     followed by its animation and its clip's clock: a hammer blow the moment its window opens, and each release
+    ///     logged with how it ended (docs/research/perfect-timing.md).
     /// </summary>
     public sealed class PerfectTimingWatch
     {
+        /// <summary>The cue's glossary key.</summary>
+        public const string SoundKey = "perfect_timing";
+
+        private readonly AudioCueService audio;
         private readonly PluginLog log;
         private readonly PerfectTimingChannel channel = new();
+        private readonly float[] cue = CueSynth.PerfectTiming(AudioCueService.SampleRate);
         private AnimationReading last;
         private string? clip;
 
-        public PerfectTimingWatch(PluginLog log)
+        /// <summary>Whether <see cref="last"/> is a reading of the channel being held.</summary>
+        private bool followed;
+
+        public PerfectTimingWatch(AudioCueService audio, PluginLog log)
         {
+            this.audio = audio;
             this.log = log;
         }
 
@@ -25,14 +34,18 @@ namespace Poe2Accessibility.Services
         public Func<AttackReader?> Reader { get; set; } = () => null;
 
         /// <summary>A new area: no channel is held.</summary>
-        public void Reset() => this.channel.Reset();
+        public void Reset()
+        {
+            this.channel.Reset();
+            this.followed = false;
+        }
 
-        /// <summary>Per frame while playing.</summary>
-        public void Tick(bool playing)
+        /// <summary>Per frame while playing; <paramref name="sounds"/> is the setting.</summary>
+        public void Tick(bool playing, bool sounds)
         {
             if (!playing || !Seats.Followed.TryGetComponent<Actor>(out var actor))
             {
-                this.channel.Reset();
+                this.Reset();
                 return;
             }
 
@@ -44,12 +57,13 @@ namespace Poe2Accessibility.Services
             {
                 case PerfectTimingChange.Began:
                     this.clip = null;
-                    this.log.Info($"Perfect timing: {animation} begins");
+                    this.followed = false;
                     break;
                 case PerfectTimingChange.Perfect:
                 case PerfectTimingChange.Plain:
                 case PerfectTimingChange.Dropped:
                     this.clip = null;
+                    this.followed = false;
                     this.log.Info($"Perfect timing: released as {animation} after {now - this.channel.EndedSince} ms, clip at {this.last.Position:0.000} s of " +
                                   $"{this.last.Start:0.000}-{this.last.End:0.000}, rate {AttackClock.Rate(this.last):0.000}");
                     break;
@@ -60,16 +74,24 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            if (name != this.clip || AttackClock.NewSwing(this.last, clock))
+            var opens = PerfectTimingWindow.Opens(events);
+            if (name != this.clip || (this.followed && AttackClock.NewSwing(this.last, clock)))
             {
-                // A channel can pass through more than one clip (a wind-up, then a held loop): each is told once.
+                // A channel can pass through more than one clip: each is told once, with the events that time it.
                 this.clip = name;
-                this.log.Info($"Perfect timing: clip {clock.Clip} {name}, {clock.Start:0.000}-{clock.End:0.000} s, at {clock.Position:0.000}, speed {clock.Speed:0.000}, " +
-                              $"global {clock.GlobalSpeed:0.000}{(clock.GlobalOff ? " off" : string.Empty)}, {now - this.channel.Since} ms in; events: " +
-                              (events.Count == 0 ? "none" : string.Join(", ", events.OrderBy(clipEvent => clipEvent.Time).Select(clipEvent => $"{clipEvent.Name}@{clipEvent.Time:0.000}"))));
+                this.followed = false;
+                this.log.Info($"Perfect timing: {animation}, clip {clock.Clip} {name}, {clock.Start:0.000}-{clock.End:0.000} s at rate {AttackClock.Rate(clock):0.000}, " +
+                              $"window from {(opens is { } at ? $"{at:0.000}" : "no event")}; events: " +
+                              (events.Count == 0 ? "none" : string.Join(", ", events.Select(clipEvent => $"{clipEvent.Name}@{clipEvent.Time:0.000}").Distinct())));
+            }
+
+            if (sounds && this.followed && PerfectTimingWindow.Crossed(opens, this.last.Position, clock.Position))
+            {
+                this.audio.Play(this.cue, 0f, 1f, 1f, SoundKey);
             }
 
             this.last = clock;
+            this.followed = true;
         }
     }
 }

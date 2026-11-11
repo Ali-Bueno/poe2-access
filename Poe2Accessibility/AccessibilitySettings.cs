@@ -90,6 +90,9 @@ namespace Poe2Accessibility
         /// <summary>Raise Shield: a rising clank as you raise your shield, a falling one as it comes down.</summary>
         public bool ShieldSounds = true;
 
+        /// <summary>A hammer blow as the Perfect Timing window of the skill you hold opens (Perfect Strike, Snipe, Gathering Storm).</summary>
+        public bool PerfectTimingCue = true;
+
         /// <summary>Say the heavy stun bar that blocking with a raised shield or parrying fills, at half, three quarters and nine tenths.</summary>
         public bool AnnounceStunBar = true;
 

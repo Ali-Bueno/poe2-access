@@ -24,7 +24,28 @@ namespace Poe2Accessibility.Tests
             (nameof(ChargeWatchCoversItsOwnStats), ChargeWatchCoversItsOwnStats),
             (nameof(ASkillLevelsMaximumIsFoundByItsStatName), ASkillLevelsMaximumIsFoundByItsStatName),
             (nameof(APerfectTimingChannelEndsPerfectPlainOrDropped), APerfectTimingChannelEndsPerfectPlainOrDropped),
+            (nameof(ThePerfectTimingWindowOpensAtTheClipsLeeway), ThePerfectTimingWindowOpensAtTheClipsLeeway),
         };
+
+        private static void ThePerfectTimingWindowOpensAtTheClipsLeeway()
+        {
+            // Perfect Strike's clip as the game holds it (yarkey, 2026-11-11): released at 1.496, 1.550 and 1.761 s perfect, held to 1.99 plain.
+            var events = new[]
+            {
+                new ClipEvent("footstepright", 0.25f), new ClipEvent("max_stage", 1.6f), new ClipEvent("leeway", 1.47f), new ClipEvent("leeway", 1.47f),
+                new ClipEvent("release", 2f),
+            };
+            Equal<float?>(1.47f, PerfectTimingWindow.Opens(events), "from the leeway on");
+            Equal<float?>(1.6f, PerfectTimingWindow.Opens(events.Where(clipEvent => clipEvent.Name != PerfectTimingWindow.Leeway).ToList()), "a clip without one: at its last stage");
+            Equal<float?>(null, PerfectTimingWindow.Opens(new[] { new ClipEvent("contact", 0.4f) }), "a clip that marks no window");
+            Equal(false, PerfectTimingWindow.Crossed(1.47f, 1.44f, 1.46f), "not yet");
+            Equal(true, PerfectTimingWindow.Crossed(1.47f, 1.46f, 1.48f), "the frame it opens");
+            Equal(false, PerfectTimingWindow.Crossed(1.47f, 1.48f, 1.5f), "once only");
+            Equal(false, PerfectTimingWindow.Crossed(null, 0f, 2f), "no window, no cue");
+            var cue = CueSynth.PerfectTiming(44100);
+            Equal(true, cue.Length < 44100 / 5 && cue.Max(MathF.Abs) <= 0.51f && MathF.Abs(cue[^1]) < 0.01f, "a short blow that ends in silence");
+            Equal(true, cue.Take(441).Max(MathF.Abs) > 0.25f, "struck at once: nothing to wait for");
+        }
 
         private static void APerfectTimingChannelEndsPerfectPlainOrDropped()
         {

@@ -314,7 +314,7 @@ namespace Poe2Accessibility
                 this.bosses.Defeated = name => this.entities?.BossDefeated(name);
                 this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log);
                 this.shield = new ShieldWatch(this.audio, this.output, memory, this.log);
-                this.perfectTiming = new PerfectTimingWatch(this.log) { Reader = () => this.bosses?.Reader };
+                this.perfectTiming = new PerfectTimingWatch(this.audio, this.log) { Reader = () => this.bosses?.Reader };
                 var skills = new PlayerSkills(memory, elements, this.log);
                 this.skillDump = new SkillDetailsDump(memory, elements);
                 this.bosses.CanParry = () => skills.Has(PlayerSkills.Parry);

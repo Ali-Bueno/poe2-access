@@ -814,6 +814,42 @@ namespace Poe2Accessibility.Services
             return Normalized(samples, level);
         }
 
+        /// <summary>
+        ///     Perfect Timing: one hammer blow on an anvil as the window opens. A burst of noise for the strike, then a
+        ///     free bar's modes (1 : 2.76 : 5.40 : 8.93) ringing briefly on a steady pitch: the shield's clank glides, the
+        ///     radar's exit and its pips ring higher (900 and 1320 Hz).
+        /// </summary>
+        public const float PerfectTimingHz = 587f;
+        private const float PerfectTimingSeconds = 0.16f;
+        private const float PerfectTimingLevel = 0.5f;
+        private const float PerfectTimingStrikeSeconds = 0.004f;
+        private const float PerfectTimingStrikeLevel = 0.5f;
+        private const int PerfectTimingSeed = 23;
+        private static readonly float[] PerfectTimingRatios = { 1f, 2.76f, 5.4f, 8.93f };
+        private static readonly float[] PerfectTimingAmplitudes = { 1f, 0.6f, 0.35f, 0.2f };
+        private static readonly float[] PerfectTimingDecaySeconds = { 0.07f, 0.045f, 0.03f, 0.02f };
+
+        /// <param name="hz">The bar's lowest mode; the candidates the user picks from differ by it.</param>
+        public static float[] PerfectTiming(int sampleRate, float hz = PerfectTimingHz)
+        {
+            var samples = new float[(int)(PerfectTimingSeconds * sampleRate)];
+            var random = new Random(PerfectTimingSeed);
+            for (var i = 0; i < samples.Length; i++)
+            {
+                var t = (float)i / sampleRate;
+                var value = t < PerfectTimingStrikeSeconds ? PerfectTimingStrikeLevel * (((float)random.NextDouble() * 2f) - 1f) : 0f;
+                for (var p = 0; p < PerfectTimingRatios.Length; p++)
+                {
+                    value += PerfectTimingAmplitudes[p] * MathF.Exp(-t / PerfectTimingDecaySeconds[p]) *
+                             MathF.Sin(2f * MathF.PI * hz * PerfectTimingRatios[p] * t);
+                }
+
+                samples[i] = value * MathF.Min(1f, (PerfectTimingSeconds - t) / TapReleaseSeconds);
+            }
+
+            return Normalized(samples, PerfectTimingLevel);
+        }
+
         public static float[] ShieldUp(int sampleRate) => Shield(sampleRate, ShieldLowHz, ShieldHighHz, ShieldUpLevel);
 
         public static float[] ShieldDown(int sampleRate) => Shield(sampleRate, ShieldHighHz, ShieldLowHz, ShieldDownLevel);
