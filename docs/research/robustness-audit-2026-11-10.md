@@ -444,9 +444,10 @@ Left open, settled in the fifth pass (2026-11-10, evening):
 
 Live checks, as they stand:
 - Boss fight with a lesson or the quest page on screen; the day's speed work in a fight. **Blocked:** need a fight.
-- Restart with the tree left on a far node (`Donde lo dejaste, …`). **Blocked** by time in this pass (the patch took 25
-  minutes of it): push the stick to a far node, quit, start, open the tree. The evening's restart found the cursor on
-  the class start's first node, where no such line is due.
+- Restart with the tree left on a far node: heard on hairin, who follows no build (with a build active the build's next
+  node leads instead, by design: yarkey and malgdhler). Her cursor left on "Armadura" (`config/passive-resume.txt`:
+  `hairin	armour6`), the game quit and started again with the mod: "Zoom x1,0. … Evasión, asignado, Donde lo dejaste,
+  Armadura: izquierda, 2. +16 a la evasión".
 - Hours with NPC talk; two character creations in one session. **Blocked:** the first needs hours of play; the second
   needs the creation screen entered twice, which the patch left no time for.
 - `Screen snapshot cut short`: none in the day's log (0 lines) with the tree at every zoom from x0,4 to x1,9, the shop

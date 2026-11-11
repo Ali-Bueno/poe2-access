@@ -178,13 +178,16 @@ Run on 2026-11-10; the results are under "Live check, 2026-11-10" below. The pro
 
 Run that evening on the patched 0.5.5f (the catalog loaded: `Modifier stat catalog: 15851 modifiers, 1060 not told
 apart, 24 hidden stats from the game files`), on yarkey (Mercenary 23, Act 2 town) and malgdhler (Druid 8, Act 1
-town); one pass of the cursor over each worn slot, then dev `itemmodscheck`.
+town) and, in a second short session, hairin (Huntress 4, Act 1 town); one pass of the cursor over each worn slot, then
+dev `itemmodscheck`.
 
 | Where | Items | Lines equal | Differ | Uncertain |
 |---|---|---|---|---|
 | yarkey, first run (as merged) | 16 | 57 | 2 | 4 |
 | yarkey, after the three fixes below | 15 (the bag's sceptre not rested on again) | 54 | 1 | 2 |
 | malgdhler | 10 | 27 | 0 | 0 |
+| hairin (Huntress 4, Act 1 town), first run | 9 | 20 | 2 | 3 |
+| hairin's belt, after the fourth fix below | 1 | 3 | 0 | 0 |
 | stash tab 1, 12 items rested on (11 rare, 1 magic) | 12 | no `Item mods: … differ` line | 0 | not listed |
 
 What is left on yarkey: the one "differ" is the charm's "No te pueden aturdir", the base's own line (tooltip only,
@@ -209,13 +212,24 @@ Found and fixed:
   rounds it and is certain (`StatHandlers.SeenTies`); a number that is a half in single precision too (2.25) stays in
   doubt, and so does a half under any other handler. One reading stands behind this.
 
+- **A decimal of zero.** hairin's magic belt regenerates a little over 180 a minute: written "Regeneras 3.0 de vida por
+  segundo" (in doubt) where the tooltip shows "Regeneras 3 de vida por segundo" (a pair of boots in the stash shows
+  "Regeneras 2 …"). Under `per_minute_to_per_second` a zero decimal is dropped and the line is certain
+  (`StatHandlers.SeenZeroDropped`). The belt rested on again: 3 lines equal, 0 differ.
+
+Left as it is on hairin: her unique helm (Alas de Caelyn) shows "Cada punto de furia también otorga umbral de
+aturdimiento aumentado un 1%", whose stat `stun_threshold_+%_per_rage` is in two blocks of the description file: in
+doubt, never said and never held against the helm, as designed (which block is written is not known from one item);
+her spear has the same skill grant as yarkey's.
+
 The questions of step 4:
 - **Quality:** the second set's spear has "Calidad: +8%" and its two modifier lines are equal: quality changes the
   base's own numbers, not the lists.
 - **A socketed rune or soul core, an enchanted item, a corrupted item, one stat on an implicit and an explicit, a
   modifier of three values, a number over 999:** none at hand on either character or in stash tab 1. Open, each needing
   such an item rested on once (yarkey holds a Runa de piedra menor; socketing it is the owner's to do).
-- **Another class:** malgdhler's staff (a unique), helm, gloves and ring (rare) and four magic pieces, all equal.
+- **Another class:** malgdhler's staff (a unique), helm, gloves and ring (rare) and four magic pieces, all equal;
+  hairin's nine pieces as in the table.
 - The client in another language was not tried.
 
 The feature itself (step 5): the summary counts every worn piece at the first opening and focusing the slots does not

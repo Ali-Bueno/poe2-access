@@ -503,10 +503,12 @@ unblocks it). The audit's own lists, entry by entry:
   inventory opens with "Build: 3 de 6 piezas con su base, 3 de 15 modificadores, leídos en 6 de 6 piezas. Más lejos de
   la build: Mano principal", and the line is the same after every slot was focused. `itemmodscheck`: yarkey 15 items,
   54 lines equal, 1 differ (a charm's own "No te pueden aturdir", the base's line), 2 uncertain (the two spears' skill
-  grant, outside the description file); malgdhler 10 items, 27 equal, 0 differ, 0 uncertain; 12 stash items, no
-  difference logged. Three faults found and fixed on the way: a spear's skill grant made the whole piece "not
-  compared" (the summary read "3 de 9" before the slots were focused); "+1.4%" and "+1.12%" (hundredths) were in doubt;
-  201 a minute was written "3.4" where the tooltip shows "3.3". Still unseen: a piece with a rune socketed, an
+  grant, outside the description file); malgdhler 10 items, 27 equal, 0 differ, 0 uncertain; hairin 9 items, 20 equal,
+  2 differ, 3 uncertain, her belt equal after the fix; 12 stash items, no difference logged. Four faults found and
+  fixed on the way: a spear's skill grant made the whole piece "not compared" (the summary read "3 de 9" before the
+  slots were focused); "+1.4%" and "+1.12%" (hundredths) were in doubt; 201 a minute was written "3.4" where the
+  tooltip shows "3.3"; a regeneration rounding to 3.0 was written "3.0" where it shows "3". Left in doubt, as designed:
+  a unique helm's line whose stat is in two blocks of the description file. Still unseen: a piece with a rune socketed, an
   enchanted or corrupted item, one stat on an implicit and an explicit, a modifier of three values, a number over 999.
 - **The passive list's "4 más de la build no están en este árbol".** They are the four nodes of the file's ascendancy
   ("ascendancy": "Mercenary3": `AscendancyMercenary3Small1`, `…Notable1_`, `…Small4`, `…Notable4`; 60 + 4 = the file's
@@ -539,7 +541,9 @@ unblocks it). The audit's own lists, entry by entry:
   summary of the character in play. **The stash, the salvage bench and a merchant in turn:** each title on its first
   line ("Alijo, pestaña 1. Inventario. …", "Mesa de reciclaje. Aquí puedes reciclar … Orbe de transmutación, 6, columna
   1, fila 1", Zarka's "pestaña 1. Inventario. Pergamino de sabiduría, 8, columna 1, fila 2, 16 oro", then "4.776 oro").
-  **No screen snapshot cut short** with the tree at every zoom from x0,4 to x1,9.
+  **No screen snapshot cut short** with the tree at every zoom from x0,4 to x1,9. **The tree's place after a restart**
+  of game and mod, on hairin, who follows no build: "Evasión, asignado, Donde lo dejaste, Armadura: izquierda, 2"
+  (with a build active the build's next node leads instead, by design).
 - **A slider at its minimum focused first could be read with another number.** Read where measured, nothing searched
   (`UiElementReader.ReadSliderState`). Code only.
 - **Exit tins flapping to "open" and back:** a confirmed exit holds for 1.5 s (`RadarSensor.ExitHoldMs`). Unit tests;
@@ -591,7 +595,7 @@ unblocks it). The audit's own lists, entry by entry:
   (`catalog/game-keys.txt`), its text is not extracted.
 - **Which gems are Spirit gems, and the engraving window with the build's lines.** The files give the Meta kind (44
   gems) and the Persistent tag (193), neither says which uncut gem engraves a gem. Neither yarkey nor malgdhler holds
-  an uncut gem (dev `inventories`, both read that evening; hairin, level 4, was not loaded), so the window could not be
+  an uncut gem, nor hairin (dev `inventories`, the three read that evening), so the window could not be
   opened. **Unblocks:** an uncut gem in a bag (the owner keeps one instead of engraving it), then its window opened and
   read without confirming.
 - **The cosmetics shop's purchase confirmation.** Only the owner may spend points (150): he presses A on a buy button
@@ -638,7 +642,7 @@ unblocks it). The audit's own lists, entry by entry:
 - **GGG's written approval:** emailed `contact@grindinggear.com` on 2026-10-26, no reply; ask before any public release.
 - **From the audit, each with its reason there:** a key column with no known row (needs a known row per column from
   the game's files); free-cursor controls with no tooltip and the Skills panel's rows (a live sweep, then the owner's
-  ear); the tree's place kept across a restart (push to a far node, quit, start, open the tree); a slider at 0 focused
+  ear); a slider at 0 focused
   first (none of the owner's sits at 0); a start with `oo2core.dll` renamed (the owner's leave to rename a game file);
   a way back from a release that does not work, the "ended" lines after a respawn and a quiet buff (the owner's choice
   between the options named there); the tests of host-bound rules not written.
@@ -668,4 +672,6 @@ Taken on 2026-11-10 where the audit had left "the owner's call"; each is one con
 - Passive tree: allocation was checked on two characters (2026-10-24). The tree's first reading takes 440 ms at the
   first opening of a session and 635-754 ms when the mod starts with the tree open (`Slow tick: focus`).
 - malgdhler (Druid 8) was started in his town, the Campamento de Sierraclara, on 2026-11-10 for the checks (the game's
-  own prompt "Aparecer en el pueblo o la guarida" confirmed): he had been left in El enredo sombrío. hairin was not loaded.
+  own prompt "Aparecer en el pueblo o la guarida" confirmed): he had been left in El enredo sombrío; hairin (Huntress 4)
+  likewise, left in Sierraclara. Both now stand in the Act 1 town. The development build's `config/passive-resume.txt`
+  holds `hairin	armour6` from the restart check.
