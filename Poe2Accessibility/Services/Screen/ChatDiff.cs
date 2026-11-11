@@ -64,12 +64,15 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>
-        ///     The lines added since the last reading of a list already watched; none when a reading with no line at all is
-        ///     followed by more than <paramref name="fresh"/> lines: that reading was taken while the game rebuilt its line
-        ///     elements, and what comes back is the history, said once already.
+        ///     The lines added since the last reading of a list already watched; none when more than <paramref name="fresh"/>
+        ///     lines outnumber those that lined up: the last reading caught the game rebuilding its line elements (none, or
+        ///     only the newest, which may match the oldest), and what comes back is the history, said once already.
         /// </summary>
-        public static IReadOnlyList<string> News(IReadOnlyList<string> before, IReadOnlyList<string> after, int fresh) =>
-            before.Count == 0 && after.Count > fresh ? Array.Empty<string>() : Appended(before, after);
+        public static IReadOnlyList<string> News(IReadOnlyList<string> before, IReadOnlyList<string> after, int fresh)
+        {
+            var added = Appended(before, after);
+            return added.Count > fresh && added.Count > after.Count - added.Count ? Array.Empty<string>() : added;
+        }
 
         public static IReadOnlyList<string> Appended(IReadOnlyList<string> before, IReadOnlyList<string> after)
         {
