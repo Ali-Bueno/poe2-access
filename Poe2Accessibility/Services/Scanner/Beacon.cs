@@ -97,19 +97,34 @@ namespace Poe2Accessibility.Services
 
         public ScanEntry? Target => this.target;
 
-        /// <summary>Locks <paramref name="entry"/> in place of any earlier target.</summary>
-        public void Lock(ScanEntry entry)
+        /// <summary>
+        ///     Locks <paramref name="entry"/> in place of any earlier target. <paramref name="asked"/>: the player chose it just
+        ///     now, so the answer is their own move and a quest page being said does not hold it back.
+        /// </summary>
+        public void Lock(ScanEntry entry, bool asked = false)
         {
             if (this.catalog.DistanceTo(entry) <= ArrivalWorld)
             {
                 // Already there: locking would say the way and then the arrival at once.
-                this.output.Speak(Announcements.Here(entry.Name), true);
+                this.Answer(Announcements.Here(entry.Name), asked);
                 return;
             }
 
             this.Aim(entry);
-            this.output.Speak(Announcements.BeaconLocked(this.catalog.Describe(entry, out var cut, out var longWay)), true);
+            this.Answer(Announcements.BeaconLocked(this.catalog.Describe(entry, out var cut, out var longWay)), asked);
             this.news.Aim(cut, longWay);
+        }
+
+        private void Answer(string text, bool asked)
+        {
+            if (asked)
+            {
+                this.output.Moved(text);
+            }
+            else
+            {
+                this.output.Speak(text, true);
+            }
         }
 
         /// <summary>

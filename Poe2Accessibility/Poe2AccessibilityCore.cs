@@ -398,6 +398,7 @@ namespace Poe2Accessibility
                 this.narrator.SelectorChoice = this.semantics.SelectorChoice;
                 this.narrator.IsSkillBarText = this.IsSkillBarText;
                 this.narrator.IsQuestTrackerText = this.IsQuestTrackerText;
+                this.narrator.AreaLinePending = this.AreaLinePending;
                 this.focus.FocusChanged += this.OnCreationFocus;
                 this.focus.FocusChanged += this.OnPreGameFocus;
                 this.narrator.Refresh = node => this.semantics?.Describe(node.Address, node.IsHovered);

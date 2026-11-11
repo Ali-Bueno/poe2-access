@@ -1596,6 +1596,26 @@ namespace Poe2Accessibility.Tests
             interrupt = true;
             floor.Move("Vacío, columna 1, fila 1", ref interrupt, page.AddSeconds(2).AddMilliseconds(200));
             Equal(false, interrupt, "a message after a page is followed as ever");
+
+            // An area's line and its quest page go out one behind the other; the scanner's answer waited for both (2026-11-11).
+            var arrival = start.AddMinutes(3);
+            floor.Keep("Área: Mausoleo del pretor, nivel 8. Esquina inferior derecha.", false, 2500, arrival, yieldsToMoves: true);
+            floor.Keep("Misión: Lamentos entre lápidas. Registra el Mausoleo en busca de Draven y su consorte", false, 3800, arrival.AddMilliseconds(20), yieldsToMoves: true);
+            Equal(false, floor.Admit("Cementerio de los eternos, A", true, arrival.AddMilliseconds(200)), "the exit's prompt waits for both");
+            interrupt = true;
+            Equal(true, floor.Move("Salidas. Cementerio de los eternos, 3 pasos", ref interrupt, arrival.AddMilliseconds(3000)), "the scanner's answer goes out now");
+            Equal(true, interrupt, "cutting the page");
+
+            var noticed = start.AddMinutes(4);
+            floor.Keep("Misión: Secretos en la oscuridad. Atraviesa Sierraclara y adéntrate en el Bosque singular", false, 6000, noticed, yieldsToMoves: true);
+            floor.Keep("Has recibido 2 puntos de habilidad pasiva", false, 1800, noticed.AddMilliseconds(500), yieldsToMoves: true);
+            interrupt = true;
+            floor.Move("Urna, 12 pasos, izquierda", ref interrupt, noticed.AddMilliseconds(900));
+            Equal(true, interrupt, "a message kept behind the page does not make a move wait for the page");
+            floor.Keep("Vendido: Porra de madera, por 3 de oro", true, 1700, noticed.AddSeconds(2), yieldsToMoves: true);
+            interrupt = true;
+            floor.Move("Vacío, columna 1, fila 1", ref interrupt, noticed.AddSeconds(2).AddMilliseconds(200));
+            Equal(false, interrupt, "and once the page was cut, a message is followed again");
         }
 
         private static void PendingLessonIsRemindedNowAndThen()
@@ -2975,8 +2995,8 @@ namespace Poe2Accessibility.Tests
             var ivory = "Un robo de marfil. Viaja al Páramo";
             var crown = "Una corona de piedra. Encuentra la Gruta";
             Equal($"{ivory}. {crown}", page.News(new[] { ivory, crown }), "a page with nothing in common is said whole");
-            Equal(string.Empty, page.News(new[] { ivory, crown }, inMenu: true), "the same page in a menu is no news");
-            Equal(string.Empty, page.News(new[] { ivory, placed }, inMenu: true), "a change waits for the menu");
+            Equal(string.Empty, page.News(new[] { ivory, crown }, waits: true), "the same page in a menu is no news");
+            Equal(string.Empty, page.News(new[] { ivory, placed }, waits: true), "a change waits for the menu");
             Equal(placed, page.News(new[] { ivory, placed }), "and says only itself");
         }
 
@@ -3207,12 +3227,12 @@ namespace Poe2Accessibility.Tests
         {
             var page = new QuestTrackerPage();
             page.News(new[] { "Noticias graves. Habla con Leitis" });
-            Equal(string.Empty, page.News(new[] { "El lobo rabioso de Ogham. Encuentra al Conde Geonor" }, inMenu: true), "accepted at the NPC: not over its options");
+            Equal(string.Empty, page.News(new[] { "El lobo rabioso de Ogham. Encuentra al Conde Geonor" }, waits: true), "accepted at the NPC: not over its options");
             Equal(true, page.Waiting, "it waits");
-            Equal(string.Empty, page.News(new[] { "El lobo rabioso de Ogham. Entra en la mansión" }, inMenu: true), "changed again in the same conversation");
+            Equal(string.Empty, page.News(new[] { "El lobo rabioso de Ogham. Entra en la mansión" }, waits: true), "changed again in the same conversation");
             Equal("El lobo rabioso de Ogham. Entra en la mansión", page.News(new[] { "El lobo rabioso de Ogham. Entra en la mansión" }), "the menu closed: the latest page, whole");
             Equal(false, page.Waiting, "said");
-            Equal(string.Empty, page.News(new[] { "El lobo rabioso de Ogham. Entra en la mansión" }, inMenu: true), "the same page in a menu is no news");
+            Equal(string.Empty, page.News(new[] { "El lobo rabioso de Ogham. Entra en la mansión" }, waits: true), "the same page in a menu is no news");
             Equal(false, page.Waiting, "and nothing waits");
         }
 

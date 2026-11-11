@@ -103,7 +103,11 @@ namespace Poe2Accessibility.Services
             var until = startsAt.AddMilliseconds(holdMs);
             this.keptUntil = until > this.keptUntil ? until : this.keptUntil;
             this.lastKept = (text, until);
-            this.pageUntil = yieldsToMoves && holdMs > MaxMessageHoldMs ? until : DateTime.MinValue;
+            if (yieldsToMoves && holdMs > MaxMessageHoldMs && until > this.pageUntil)
+            {
+                this.pageUntil = until; // a message kept behind the page does not make the page wait for a move again
+            }
+
             if (!yieldsToMoves && until > this.lessonUntil)
             {
                 this.lessonUntil = until;
@@ -130,6 +134,7 @@ namespace Poe2Accessibility.Services
                 interrupt &= now < this.pageUntil;
             }
 
+            this.pageUntil = DateTime.MinValue;
             this.held.Clear();
             return this.Admit(text, interrupt, now);
         }
@@ -138,6 +143,7 @@ namespace Poe2Accessibility.Services
         public void Take(string text, DateTime now)
         {
             this.keptUntil = this.lessonUntil = now;
+            this.pageUntil = DateTime.MinValue;
             this.held.Clear();
             this.Sent(text, true, now);
         }
@@ -182,6 +188,7 @@ namespace Poe2Accessibility.Services
             this.held.Clear();
             this.keptUntil = DateTime.MinValue;
             this.lessonUntil = DateTime.MinValue;
+            this.pageUntil = DateTime.MinValue;
             this.lastKept = (string.Empty, DateTime.MinValue);
             this.speechEndsAt = now;
         }

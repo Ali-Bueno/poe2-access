@@ -268,7 +268,16 @@ namespace Poe2Accessibility
             this.areaTilesSaid = tiles;
             var level = AreaLevel();
             this.log?.Info($"Area level {level} (instance {area.AreaHash})");
-            this.output.Say(SpeechKind.Places, Announcements.Area(name, level) + this.AreaCornerLine());
+            // Kept for its length, right behind "Loading area": waiting its turn, the prompt of the exit beside the player
+            // took its place, or it came after the quest page and the player's next question cut it (user 2026-11-11).
+            var line = Announcements.Area(name, level) + this.AreaCornerLine();
+            this.output.Keep(line, SpeechFloor.MessageHoldMs(line), SpeechPriority.Interrupts(SpeechKind.Places), yieldsToMoves: true);
         }
+
+        /// <summary>
+        ///     An area was entered and its line is not said yet: the quest page of the area follows it. Never for longer than
+        ///     the line may wait for its instance, so a line that fails to come out does not keep the page back.
+        /// </summary>
+        private bool AreaLinePending() => this.pendingArea is { } area && Environment.TickCount64 - area.At <= AreaInstanceWaitMs + PlayerSettlesMs;
     }
 }

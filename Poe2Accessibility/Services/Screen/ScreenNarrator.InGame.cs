@@ -392,7 +392,7 @@ namespace Poe2Accessibility.Services
                 : hud.Texts.Where(text => text.Name is GameLayout.InGameUi.QuestTitleName or GameLayout.InGameUi.QuestLineName &&
                                           (this.IsQuestTrackerText?.Invoke(text.Address) ?? false)).ToList();
             var legend = hud?.Texts.FirstOrDefault(text => text.Name == GameLayout.InGameUi.QuestLegendName)?.Text ?? string.Empty;
-            if (this.questPage.News(QuestsOf(tracker), this.InMenu, legend) is { Length: > 0 } page)
+            if (this.questPage.News(QuestsOf(tracker), this.InMenu || this.AreaUnnamed, legend) is { Length: > 0 } page)
             {
                 // Held whole, pages turned one after another queued up behind each other (user 2026-11-07); the cursor's
                 // move cuts it, as it held a dialogue's options back for 12 s (user 2026-11-11).
@@ -568,8 +568,10 @@ namespace Poe2Accessibility.Services
         /// <summary>A panel with no focus covers the game (<see cref="ScreenSnapshot.PanelOver"/>).</summary>
         public Func<bool>? PanelOverGame { get; set; }
 
-        /// <summary>A quest page that waited for a menu can be said now.</summary>
-        public bool QuestPageDue => this.questPage.Waiting && !this.InMenu;
+        /// <summary>A quest page that waited for a menu or for the area's line can be said now.</summary>
+        public bool QuestPageDue => this.questPage.Waiting && !this.InMenu && !this.AreaUnnamed;
+
+        private bool AreaUnnamed => this.AreaLinePending?.Invoke() ?? false;
 
         /// <summary>The character selection was reached: what was said of the last character's quests says nothing of the next one's.</summary>
         public void CharacterChanged() => this.questPage.Reset();

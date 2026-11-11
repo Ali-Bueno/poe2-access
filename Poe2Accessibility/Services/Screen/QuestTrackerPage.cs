@@ -17,7 +17,7 @@ namespace Poe2Accessibility.Services
         /// <summary>The news last given is a page the player turned to: its number on the tracker's legend changed.</summary>
         public bool Turned { get; private set; }
 
-        /// <summary>A new page waits for the menu over the game to close.</summary>
+        /// <summary>A new page waits: for the menu over the game to close, or for the area's own line.</summary>
         public bool Waiting { get; private set; }
 
         /// <summary>Another character: its quests are news even where they read as the last one's did.</summary>
@@ -34,15 +34,15 @@ namespace Poe2Accessibility.Services
         ///     (docs/menu-speech-rules.md).
         /// </summary>
         /// <param name="quests">Each shown quest, title and objectives, as it would be said.</param>
-        /// <param name="inMenu">A menu covers the game.</param>
+        /// <param name="waits">A menu covers the game, or the area just entered is still to be named: the page comes after.</param>
         /// <param name="legend">The tracker's page legend: it is read after the pages, so a turn can show there first.</param>
-        public string News(IReadOnlyList<string> quests, bool inMenu = false, string legend = "")
+        public string News(IReadOnlyList<string> quests, bool waits = false, string legend = "")
         {
             this.NoteLegend(legend);
             this.Turned = false;
             var fresh = quests.Count > 0 && !quests.SequenceEqual(this.lastSaid);
-            this.Waiting = fresh && inMenu;
-            if (!fresh || inMenu)
+            this.Waiting = fresh && waits;
+            if (!fresh || waits)
             {
                 return string.Empty;
             }

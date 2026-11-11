@@ -152,7 +152,7 @@ namespace Poe2Accessibility.Services
                     // Where the scanner's choice is now (distance and turn refreshed); nothing chosen: say it again.
                     if (this.browser.Current(this.catalog.Entries(), Environment.TickCount64) is { } target)
                     {
-                        this.output.Speak(this.catalog.Describe(target), true);
+                        this.output.Moved(this.catalog.Describe(target));
                     }
                     else
                     {
@@ -163,7 +163,7 @@ namespace Poe2Accessibility.Services
                 case PadGesture.DoubleTap:
                     if (this.vitals() is { } reading)
                     {
-                        this.output.Speak(reading, true);
+                        this.output.Moved(reading);
                     }
 
                     break;
@@ -192,6 +192,11 @@ namespace Poe2Accessibility.Services
             }
         }
 
+        /// <summary>
+        ///     The scanner's answers are the player's own move (<see cref="IAccessibilityOutputService.Moved"/>): the quest
+        ///     page said on entering an area held them back for its whole length, each flick taking the place of the last
+        ///     (user 2026-11-11). A lesson still holds them.
+        /// </summary>
         private void Scan(PadGesture flick)
         {
             var entries = this.catalog.Entries();
@@ -205,12 +210,12 @@ namespace Poe2Accessibility.Services
             };
             if (answer.Entry == null)
             {
-                this.output.Speak(Announcements.NothingFound, true);
+                this.output.Moved(Announcements.NothingFound);
                 return;
             }
 
             var spoken = this.catalog.Describe(answer.Entry, out var cut, out var longWay);
-            this.output.Speak(answer.CategoryChanged ? Announcements.InContext(Announcements.ScanCategoryName(answer.Entry.Category), spoken) : spoken, true);
+            this.output.Moved(answer.CategoryChanged ? Announcements.InContext(Announcements.ScanCategoryName(answer.Entry.Category), spoken) : spoken);
             if (this.Settings?.Invoke().AutoGuide == true)
             {
                 this.beacon?.Follow(answer.Entry, cut, longWay);
@@ -244,7 +249,7 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            this.beacon.Lock(choice);
+            this.beacon.Lock(choice, asked: true);
         }
 
         /// <summary>A D-pad press on a passive node: up and down change the finder's list, left and right its entry.</summary>

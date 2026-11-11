@@ -471,6 +471,12 @@ namespace Poe2Accessibility.Services
         /// <summary>A quest's title or objective line in the HUD's quest tracker.</summary>
         public Func<IntPtr, bool>? IsQuestTrackerText { get; set; }
 
+        /// <summary>
+        ///     The area just entered is still to be named: its quest page waits for that line, which says where the player
+        ///     stands and came after the page or not at all (user 2026-11-11).
+        /// </summary>
+        public Func<bool>? AreaLinePending { get; set; }
+
         /// <summary>The panel whose button legends were said (<see cref="legendsSaid"/>), each once per opening.</summary>
         private IntPtr legendsLayer;
 
