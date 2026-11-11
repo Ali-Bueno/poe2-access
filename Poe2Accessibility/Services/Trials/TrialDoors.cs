@@ -11,8 +11,9 @@ namespace Poe2Accessibility.Services
     /// </summary>
     public static class TrialDoors
     {
-        private const string DoorFile = "Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumRoomSelectorDoor";
-        private const string OpenState = "open";
+        /// <summary>The door's file and the state matched; public for the data step's check (<see cref="GameNames"/>).</summary>
+        public const string DoorFile = "Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumRoomSelectorDoor";
+        public const string OpenState = "open";
         private const char InstanceMark = '@';
 
         /// <summary>Whether an object's path is a room door.</summary>

@@ -34,7 +34,6 @@ namespace Poe2Accessibility.Services
             [SanctumHazards + "LaserCrossBeamTurret"] = (TrialTrap.Laser, new[] { "fire" }),
             [SanctumHazards + "ProxMine"] = (TrialTrap.Mine, new[] { "prime" }),
             [SanctumHazards + "BulletHellTurret"] = (TrialTrap.Turret, Array.Empty<string>()),
-            [SanctumHazards + "BulletHellSpinner"] = (TrialTrap.Turret, Array.Empty<string>()),
             [SanctumHazards + "QuicksandPit"] = (TrialTrap.Quicksand, Array.Empty<string>()),
             [SanctumHazards + "PressurePlate_DartLauncher"] = (TrialTrap.PressurePlate, Array.Empty<string>()),
             [SanctumHazards + "PressurePlate_PoisonGas"] = (TrialTrap.PressurePlate, Array.Empty<string>()),
@@ -44,6 +43,9 @@ namespace Poe2Accessibility.Services
             [UltimatumHazards + "Turrets/PetrificationStatue"] = (TrialTrap.PetrifyingStatue, Array.Empty<string>()),
             [UltimatumHazards + "Daemon/LaserPyramid"] = (TrialTrap.Laser, Array.Empty<string>()),
         };
+
+        /// <summary>Each trap's file and the states matched as its strike, for the data step's check (<see cref="GameNames"/>).</summary>
+        public static IEnumerable<(string File, IReadOnlyList<string> Firing)> FilesMatched => Files.Select(pair => (pair.Key, (IReadOnlyList<string>)pair.Value.Firing));
 
         /// <summary>The trap an object's path stands for; null for anything else, the spawners and controllers behind them too.</summary>
         public static TrialTrap? KindOf(string path) => Entry(path)?.Kind;

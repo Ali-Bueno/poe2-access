@@ -179,6 +179,8 @@
     <Compile Include="..\..\tools\Poe2UiExtract\AnimationColumns.cs" Link="Extract\AnimationColumns.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\EndgameColumns.cs" Link="Extract\EndgameColumns.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\ProjectileColumns.cs" Link="Extract\ProjectileColumns.cs" />
+    <Compile Include="..\..\tools\Poe2UiExtract\GameNameCheck.cs" Link="Extract\GameNameCheck.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Core\GameNames.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\StickCheck.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Passives\StickRuleCode.cs" />
     <Compile Include="..\..\tools\Poe2UiExtract\GameMarkup.cs" Link="Extract\GameMarkup.cs" />

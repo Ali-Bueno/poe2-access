@@ -554,7 +554,8 @@ unblocks it). The audit's own lists, entry by entry:
   GGPK closed; the dropdown latch by name, not address; the screen watcher's reset race; the route planner's memory;
   checkpoints named past the pairing budget; object cues without the game's sounds; a grace for charges after an
   area's first reading; the skill stat key searched again; the wall-clock tests; the tests that did not test; a known
-  row from the game's files for every key column of the endgame and skill tables.
+  row from the game's files for every key column of the endgame and skill tables; the data step "game names", which
+  fails naming any buff, animation, trap or door state or boss tail a rule matches that a patch removed.
 - **Character selection after a quick login** (the login's bar said again after the character): the bar is dropped
   when the state changes (`2840bbb`); heard again that evening, the bar once, before the character.
 - **Microtransaction shop, too few points:** "Comprar puntos, Esta compra requiere 250 puntos, tienes 150 puntos,

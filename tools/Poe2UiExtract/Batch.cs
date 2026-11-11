@@ -35,6 +35,7 @@ internal static class Batch
         ["cull-skills"] = (_, index, output) => CullSkillExtractor.Run(index, output),
         ["game-ids"] = (_, index, output) => GameIdExtractor.Run(index, output),
         ["game-keys"] = (_, index, output) => GameKeyExtractor.Run(index, output),
+        ["game-names"] = (_, index, output) => GameNameExtractor.Run(index, output),
         ["buff-names"] = (_, index, output) => BuffNameExtractor.Run(index, output),
         ["passive-overrides"] = (_, index, output) => PassiveOverrideExtractor.Run(index, output),
         ["class-mechanics"] = (_, index, output) => ClassMechanicExtractor.Run(index, output),

@@ -401,6 +401,12 @@ public static class Extractor
             return OnIndex(args[1], index => GameKeyExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\game-keys.txt"));
         }
 
+        // Args: game-names <gameDir> [outFile]  -- the names the plugin's rules match, each looked up in the game's files.
+        if (args.Length > 1 && string.Equals(args[0], "game-names", StringComparison.OrdinalIgnoreCase))
+        {
+            return OnIndex(args[1], index => GameNameExtractor.Run(index, args.Length > 2 ? args[2] : @"Poe2Accessibility\catalog\game-names.txt"));
+        }
+
         // Args: cull-skills <gameDir> [outFile]  -- granted effects that deal Culling Strike, for the mod's culling cue.
         if (args.Length > 1 && string.Equals(args[0], "cull-skills", StringComparison.OrdinalIgnoreCase))
         {

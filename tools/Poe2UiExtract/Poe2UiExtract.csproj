@@ -20,6 +20,13 @@
     <Compile Include="..\..\Poe2Accessibility\Services\Audio\Breakables.cs" Link="Breakables.cs" />
     <!-- The handlers the plugin applies to a stat's value, so mod-stats fails on one it does not know. -->
     <Compile Include="..\..\Poe2Accessibility\Services\Inventory\StatHandlers.cs" Link="StatHandlers.cs" />
+    <!-- The names the plugin's rules match, so game-names checks the very lists the rules use. -->
+    <Compile Include="..\..\Poe2Accessibility\Services\Core\GameNames.cs" Link="GameNames.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\EnemyStates.cs" Link="EnemyStates.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Combat\ShieldStance.cs" Link="ShieldStance.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Player\BuffIds.cs" Link="BuffIds.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialTraps.cs" Link="TrialTraps.cs" />
+    <Compile Include="..\..\Poe2Accessibility\Services\Trials\TrialDoors.cs" Link="TrialDoors.cs" />
   </ItemGroup>
 
   <ItemGroup>

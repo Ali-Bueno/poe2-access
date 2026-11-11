@@ -1,0 +1,33 @@
+# The names the plugin's rules match, each found in the game's files (tools/Poe2UiExtract game-names).
+Buff	frozen		EnemyStates
+Buff	electrocute_display_buff		EnemyStates
+Buff	pinned		EnemyStates
+Buff	broken_armour_debuff		EnemyStates
+Buff	dazed		EnemyStates
+Buff	parried		EnemyStates
+Animation	HeavyStun		EnemyStates
+Animation	HeavyStunBack		EnemyStates
+Animation	HeavyStunForward		EnemyStates
+Animation	HeavyStunForesight		EnemyStates
+Animation	ElectrocuteForward		EnemyStates
+Animation	ElectrocuteBackward		EnemyStates
+Animation	ElectrocuteLeft		EnemyStates
+Animation	ElectrocuteRight		EnemyStates
+AnimationStart	ActiveBlockChannel		ShieldStance
+AnimationStart	ActiveBlockEnd		ShieldStance
+Monster	MudBurrowerTailBoss		WeakPoints
+Monster	DevourerBossDuoTail		WeakPoints
+ObjectFile	Metadata/Monsters/MarakethSanctumTrial/Hazards/GroundSpike	rumble	TrialTraps
+ObjectFile	Metadata/Monsters/MarakethSanctumTrial/Hazards/GroundSpike	spike	TrialTraps
+ObjectFile	Metadata/Monsters/MarakethSanctumTrial/Hazards/LaserCrossBeamTurret	fire	TrialTraps
+ObjectFile	Metadata/Monsters/MarakethSanctumTrial/Hazards/ProxMine	prime	TrialTraps
+ObjectFile	Metadata/Monsters/MarakethSanctumTrial/Hazards/BulletHellTurret		TrialTraps
+ObjectFile	Metadata/Monsters/MarakethSanctumTrial/Hazards/QuicksandPit		TrialTraps
+ObjectFile	Metadata/Monsters/MarakethSanctumTrial/Hazards/PressurePlate_DartLauncher		TrialTraps
+ObjectFile	Metadata/Monsters/MarakethSanctumTrial/Hazards/PressurePlate_PoisonGas		TrialTraps
+ObjectFile	Metadata/Monsters/MarakethSanctumTrial/Hazards/TimeRewindTrap	active	TrialTraps
+ObjectFile	Metadata/Monsters/MarakethSanctumTrial/Hazards/ProjectilePortal		TrialTraps
+ObjectFile	Metadata/Monsters/LeagueUltimatum/Turrets/ProjectileTurret		TrialTraps
+ObjectFile	Metadata/Monsters/LeagueUltimatum/Turrets/PetrificationStatue		TrialTraps
+ObjectFile	Metadata/Monsters/LeagueUltimatum/Daemon/LaserPyramid		TrialTraps
+ObjectFile	Metadata/Terrain/Gallows/Leagues/Sanctum/Objects/SanctumRoomSelectorDoor	open	TrialDoors

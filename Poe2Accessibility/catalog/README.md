@@ -28,6 +28,7 @@ A new catalog needs no change to the project file or the package script, only a 
 | `experience.json` | the total experience each level starts at | `experience`, start | `ExperienceTable` |
 | `game-ids.txt` | the game's numbers for animations and stats | `game-ids`, start | `GameIds` |
 | `game-keys.txt` | the Ids of the tables a player meets, to tell what a patch added | `game-keys`, start | `GameNews` |
+| `game-names.txt` | the names the plugin's rules match (buff and animation Ids, trap and door scripts and states, boss tails), each found in the game's files; a name gone fails the step, which names it | `game-names`, start | none (the check is the step; `GameNames` lists them) |
 | `gems.json` | skill and support gems by base item Id: kind, effects, skills, tags, attribute shares; names, tag names, support texts and skill names per language | `gems`, start | `GemCatalog` (skill names for `PlayerSkills`, the gems for `GemIndex`, which names the Build Planner's gems through `GemNames` and a moved gem without a tooltip) |
 | `hazards.txt` | buffs from standing in harmful ground | `hazards`, start | `HazardGround` |
 | `hit-times.txt` | when monster attacks land | `hit-times`, start | `DodgeTimings` |

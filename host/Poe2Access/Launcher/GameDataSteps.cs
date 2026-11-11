@@ -38,6 +38,7 @@ internal static class GameDataSteps
         // At 2: a stamp from the old layout vouches for every step at 1, these two included, though they never ran.
         new Step("game ids", 4, "game-ids.txt", "game-ids", true),
         new Step("game keys", 3, "game-keys.txt", "game-keys", true),
+        new Step("game names", 1, "game-names.txt", "game-names", true), // fails, naming them, when a name a rule matches is gone
         new Step("places", 1, "places.json", "places", true),
         new Step("endgame", 3, "endgame.json", "endgame", true),
         new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),

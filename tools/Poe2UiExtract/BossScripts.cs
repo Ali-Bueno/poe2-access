@@ -60,7 +60,7 @@ internal static class BossScripts
 
     public static Script Parse(string text)
     {
-        var extends = ExtendsLine.Matches(text).Select(match => match.Groups[1].Value).Where(path => path != "nothing").ToList();
+        var extends = ExtendsOf(text);
         var hides = new List<(string, int)>();
         var phases = new List<string>();
         foreach (Match handler in StateHandler.Matches(text))
@@ -78,14 +78,21 @@ internal static class BossScripts
             }
         }
 
-        var states = SharedStates.Matches(text).SelectMany(match => match.Groups[1].Value.Split(';'))
-            .Select(state => state.Split('=')[0].Trim()).Where(state => state.Length > 0).Distinct().ToList();
         // "enraged", "enrage": not "enrage_swings" or "enrage_time", counters beside it (Rudja, Tangmazu).
-        var enrages = states.Where(state => WordsOf(state) is { Count: > 0 } words && words[^1] is "enrage" or "enraged").ToList();
+        var enrages = StatesOf(text).Where(state => WordsOf(state) is { Count: > 0 } words && words[^1] is "enrage" or "enraged").ToList();
         return new Script(extends, hides, phases, enrages, Lines(text),
             PreloadMonster.Matches(text).Select(match => match.Groups[1].Value).Distinct().ToList(),
             PreloadObject.Matches(text).Select(match => match.Groups[1].Value).Distinct().ToList());
     }
+
+    /// <summary>The states a script declares itself (define_shared_state "spike; rumble; trap_speed = 2;"), without their defaults.</summary>
+    internal static IReadOnlyList<string> StatesOf(string text) =>
+        SharedStates.Matches(text).SelectMany(match => match.Groups[1].Value.Split(';'))
+            .Select(state => state.Split('=')[0].Trim()).Where(state => state.Length > 0).Distinct().ToList();
+
+    /// <summary>The scripts a script extends ("nothing" left out).</summary>
+    internal static IReadOnlyList<string> ExtendsOf(string text) =>
+        ExtendsLine.Matches(text).Select(match => match.Groups[1].Value).Where(path => path != "nothing").ToList();
 
     /// <summary>Each voice line the script plays, with the handler or function it is played from.</summary>
     private static List<(string Handler, string Line)> Lines(string text)

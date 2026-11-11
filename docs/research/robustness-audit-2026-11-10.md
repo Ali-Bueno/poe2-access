@@ -521,9 +521,15 @@ Left open, settled in the fifth pass (2026-11-10, evening):
 - **`RoutePlanner.workspace` kept about 14 MB per pool thread.** **Fixed**
   (`SearchWorkspacesKeptBetweenSearchesAreBounded`): searches rent from one pool that keeps two workspaces at most.
 - **Game names with no check when a patch renames them** (trap states, the room door, enemy-state buff ids and
-  animations, `ActiveBlockChannel`, `Tail`). **Blocked:** needs each name looked up in the game's files after a patch
-  (`catalog/game-keys.txt` holds table keys, not these names); a check that names them all needs a list from the
-  extractor, which is not built.
+  animations, `ActiveBlockChannel`, `Tail`). **Fixed** (unit tests `GameNameTests`; run on the game's files): the rules'
+  own lists are gathered in `GameNames` (linked into the extractor), and the new optional data step "game names"
+  (`game-names`, `catalog/game-names.txt`) looks each up: a BuffDefinitions or Animation Id, the start of one, a word of a
+  MonsterVarieties Id (the two tails), a trap's or the door's script and the state it or a script it extends declares.
+  A name gone fails the step: the launcher lists it as failed, says "parte de los datos del juego" and logs `game names
+  failed …: gone from the game's files: Monster MudBurrowerBackBoss (WeakPoints)` (seen with a made-up tail). On
+  0.5.5f all 34 names are found; the first run found the trap `BulletHellSpinner`, which no file of the game holds (the
+  spinner turret is `BulletHellTurret`, whose animation is `BulletHellSpinnerTurret_01.ao`), and it was removed from
+  `TrialTraps`. Every name is in a file the extractor reads.
 - **Rules in host-bound classes with no test** (`Beacon.CollectSearch`, `BossWatch.WatchLife`, `TargetNarrator.Tick`).
   **Blocked:** each reads the host's entities directly; a test needs the rule lifted out of the class, not done in this
   pass. The Beacon's new phrase choice is tested (`WayCuts.Of`).
