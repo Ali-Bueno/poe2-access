@@ -374,6 +374,13 @@ namespace Poe2Accessibility.Tests
             Equal(Announcements.PreviousTab, TabBar.EndLegend(0), "the first end button met is the previous tab's");
             Equal(Announcements.NextTab, TabBar.EndLegend(1), "the second the next tab's");
             Equal(false, Announcements.PreviousTab == Announcements.NextTab, "two legends");
+            Equal(true, TabBar.IsPart("buttons_container", 0, false), "the bar, the control's first child");
+            Equal(true, TabBar.IsPart("pages_container", 1, true), "then its pages");
+            Equal(false, TabBar.IsPart("pages_container", 1, false), "pages with no bar before them");
+            Equal(false, TabBar.IsPart("buttons_container", 3, false), "a row of buttons elsewhere in a dialog");
+            Equal(false, TabBar.IsPart("label", 0, false), "any other element");
+            Equal(true, TabBar.IsControl(2), "bar and pages under one element");
+            Equal(false, TabBar.IsControl(1), "a row of buttons alone is no tab control");
         }
 
         private static void ClosedPopupIsNewsAgain()

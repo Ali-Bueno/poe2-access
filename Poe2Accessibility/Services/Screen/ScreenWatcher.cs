@@ -73,7 +73,7 @@ namespace Poe2Accessibility.Services
         private readonly List<(int Node, string Unit)> walkUnits = new();
         private readonly List<(int Node, int Set)> walkSetIcons = new();
 
-        /// <summary>The tab controls met in the layer being walked, and one entry per end button already given its legend.</summary>
+        /// <summary>The parts of tab controls met in the layer being walked, by their control, and one entry per end button already given its legend.</summary>
         private readonly List<int> walkTabBars = new();
         private readonly List<int> walkTabBarEnds = new();
         private readonly Stack<(UiElementReader.ElementInfo Info, int Parent, int Index, int Control)> walkStack = new();
@@ -344,9 +344,9 @@ namespace Poe2Accessibility.Services
                     enabled = !FlagBits.EnabledTrusted || info.HasFlagBit(GameLayout.Element.EnabledFlagBit);
                 }
 
-                if (info.Name == TabBar.ButtonsName && parent >= 0)
+                if (parent >= 0 && TabBar.IsPart(info.Name, childIndex, tabBars.Contains(parent)))
                 {
-                    tabBars.Add(parent); // the tab control holding this bar: two of its later children hold its end buttons
+                    tabBars.Add(parent); // once for its bar, once for its pages: a tab control, whose later children hold its end buttons
                 }
 
                 var position = info.Raw.RelativePosition;
@@ -392,7 +392,7 @@ namespace Poe2Accessibility.Services
                 }
                 else if (this.TextureKeyOf(info) is { } key)
                 {
-                    if (ControllerGlyphs.FromTextureKey(key) is { } end && parent >= 0 && tabBars.Contains(nodes[parent].Parent))
+                    if (ControllerGlyphs.FromTextureKey(key) is { } end && parent >= 0 && TabBar.IsControl(tabBars.Count(seen => seen == nodes[parent].Parent)))
                     {
                         // The buttons at the two ends of a tab bar switch tabs: a legend of their own, not the label of
                         // the tab or heading nearest in the tree ("Entrada, RB" was said of the Options, 2026-11-10).
