@@ -3,6 +3,7 @@ namespace Poe2Accessibility.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using GameReader.RemoteEnums;
     using Poe2Accessibility.Models;
 
     /// <summary>An item's modifiers as the host reads them, set against its tooltip, for <see cref="UiSemantics"/> (docs/research/item-mods.md).</summary>
@@ -24,6 +25,57 @@ namespace Poe2Accessibility.Services
                 ? hovered != IntPtr.Zero ? hovered : this.inventory.ItemAt(focused.Address, column, row)
                 : this.inventory.FindItemElement(focused.Address);
             return $"{this.inventory.ModsReport(this.inventory.ItemEntity(element))} || tooltip: {string.Join(" | ", this.ItemTooltip(element))}";
+        }
+
+        /// <summary>
+        ///     Research (dev command "itemmodscheck", docs/research/item-mods.md "Live check"): every worn item and every item
+        ///     of the bag of the asking player, a line each: how its lines made from memory stood against its tooltip when
+        ///     that was read, else the lines themselves; then the totals.
+        /// </summary>
+        public IReadOnlyList<string> ItemModsCheck()
+        {
+            var lines = new List<string>();
+            int compared = 0, equal = 0, differ = 0, uncertain = 0, unread = 0, bare = 0;
+            KeyValuePair<InventoryName, IntPtr>[] inventories;
+            try
+            {
+                inventories = this.inventory.Locals?.Of(Seats.Input)?.ToArray() ?? Array.Empty<KeyValuePair<InventoryName, IntPtr>>();
+            }
+            catch (InvalidOperationException)
+            {
+                return new[] { "Item mods check: the host rebuilt its inventory list meanwhile; ask again" };
+            }
+
+            foreach (var (inventoryName, address) in inventories.Where(pair => pair.Key == InventoryName.MainInventory1 || IsEquipment(pair.Key)).OrderBy(pair => (int)pair.Key))
+            {
+                foreach (var item in ServerInventory.Items(this.reader, address).OrderBy(item => item.Y).ThenBy(item => item.X))
+                {
+                    var named = this.inventory.DescribeItemEntity(item.Entity, this.inventory.TitleOf(item.Entity)) ?? this.inventory.ItemBaseId(item.Entity);
+                    var name = $"{named} ({inventoryName} {item.X},{item.Y})";
+                    if (this.inventory.ItemMods(item.Entity) is not { } mods)
+                    {
+                        bare++;
+                        lines.Add($"Item mods check: {name}: no modifiers in memory");
+                        continue;
+                    }
+
+                    if (this.itemModChecks.TryGetValue(item.Entity, out var known) && known.Result is { } result)
+                    {
+                        compared++;
+                        (equal, differ, uncertain) = (equal + result.Equal, differ + result.MemoryOnly.Count + result.TooltipOnly.Count, uncertain + result.Uncertain.Count);
+                        lines.Add($"Item mods check: {name}: {result.Counts}{(result.Details.Length > 0 ? "; " + result.Details : string.Empty)}");
+                        continue;
+                    }
+
+                    unread++;
+                    var made = ItemModLines.Render(mods, Localization.Language, ModStatCatalog.Shared, ModTextCatalog.Shared);
+                    lines.Add($"Item mods check: {name}: tooltip not read yet, {made.Count(line => line.Certain)} lines certain, {made.Count(line => !line.Certain)} uncertain: " +
+                              string.Join(" | ", made.Select(line => line.Certain ? line.Text : $"?{line.Text} ({line.From})")));
+                }
+            }
+
+            lines.Add($"Item mods check: {compared} items compared: {equal} lines equal, {differ} differ, {uncertain} uncertain; {unread} with no tooltip read, {bare} without modifiers");
+            return lines;
         }
 
         /// <summary>

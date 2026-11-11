@@ -439,7 +439,7 @@ namespace Poe2Accessibility.Services
                 : new Dictionary<string, IntPtr>();
         }
 
-        /// <summary>Research (dev command "focusinfo"): the host's Mods lists of an item, to set against its tooltip (docs/research/item-mods.md).</summary>
+        /// <summary>Research (dev command "itemmods"): the host's Mods lists of an item, to set against its tooltip (docs/research/item-mods.md).</summary>
         public string ModsReport(IntPtr entity)
         {
             if (entity == IntPtr.Zero || !this.IsItemEntity(entity))

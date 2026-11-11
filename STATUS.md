@@ -114,7 +114,7 @@
 | Scanner (hold L3 + right stick flicks; tap = where the choice is now) | done (live) | `EntityCatalog` + `RoutePlanner` + `ScanBrowser`: 8 categories, routed steps, leg + next turn ("Una, 14 steps, right 3, then up right"); walked Riverbank → Miller → Clearfell → town NPCs on it |
 | Low-life warnings | done (live) | `VitalAlarm`: "Life 50 percent" / "Life 25 percent" once per fall; the Miller was beaten reacting to them |
 | Skill crafting (engrave an uncut gem): grid in reading order, details after the name, Engrave confirm with its buttons, categories | done (live) | "Skeletal Sniper, Level 1, 1 of 24"; LB/RB say the category first (`category_name_label`, a tab title: "Elemental. Muro de fuego, Nivel 2, 1 de 24", live 2026-10-31); an uncut support goes straight into the skill its category names: "Furia I, engarzada en Campana de tempestad" (`ScreenNarrator.Engraving`, code; user 2026-10-31: where did it go?) |
-| Build Planner gear: the build's base and wanted modifiers per slot against the worn item (slot), any wearable item under the cursor (short line), summary on entering the inventory | wip (code + unit tests 2026-11-10; not run live; real catalogs to plug in) | `UiSemantics.BuildGear` + pure `BuildGear`, `Announcements.BuildGear`, `GearCatalogs` (contract); [ui layers](docs/research/ui-layers.md#build-planner-gear-055f-2026-11-10) |
+| Build Planner gear: the build's base and wanted modifiers per slot against the worn item (slot), any wearable item under the cursor (short line), summary on entering the inventory | wip (code + unit tests 2026-11-10; not run live; real catalogs to plug in) | `UiSemantics.BuildGear` + pure `BuildGear`, `Announcements.BuildGear`, `GearCatalogs` (contract); worn pieces from memory: `ItemModLines`, `ModStatCatalog`, `UiSemantics.ItemMods` ([item mods](docs/research/item-mods.md)); [ui layers](docs/research/ui-layers.md#build-planner-gear-055f-2026-11-10) |
 | Build Planner gems: the build's skills and supports set against the character's (Skills panel rows, empty slots, sockets; cut gems in the inventory, stash, merchants; engraving choices) | done (live 2026-11-10; engraving choices code only: no uncut gem at hand) | `UiSemantics.BuildGems` + pure `BuildGems`, `GemNames`, `BuildPlanFolder.Active`, `GameLayout.GemSockets`; [ui layers](docs/research/ui-layers.md#build-planner-gems-055f-2026-11-10) |
 | Skill gems in the inventory named from their tooltip (no base display name) | done (live) | "Unearth, column 1, row 1" |
 | Read the whole panel (`screen` command) | done (live) | character detailed stats read fully; summary block order is jumbled |
@@ -502,8 +502,8 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   2026-11-10 every worn slot was focused once: the body armour's tooltip grew from 6 to 13 lines while waiting, the belt
   read 12 lines at once, and none of the 22 "Falta" lines said was among the item's own lines). Open: (1) two wanted lines answered by
   one line repeat it word for word; (2) the inventory's summary comes before the focused item's name; (3) an item's first focus
-  is said 100 ms later than before. A worn piece's
-  modifiers are known only after its slot was focused in the session; charms, quivers and foci are not compared; a unique is
+  is said 100 ms later than before. A worn piece never
+  focused is compared by the lines made from its modifiers in memory (next bullet; not run live); charms, quivers and foci are not compared; a unique is
   judged only when its name equals the author's. Live checks:
   [ui layers](docs/research/ui-layers.md#build-planner-gear-055f-2026-11-10).
 - Build Planner supports (2026-11-10, heard live): a build skill says its supports by group, the count first ("Corte giratorio,
@@ -532,10 +532,13 @@ Earlier chunks, newest first: [status history](docs/status-history.md).
   a player; a worn weapon's first focus is said twice 170 ms apart (base name, then the tooltip's name: its tooltip is
   empty at first, so `TooltipSettle` does not wait). Not testable in town: Parry and flask drinks.
 - Hearing a grid at once was built and removed the same day (2026-11-10) at the owner's word ("take out the reading of the
-  whole tab"): do not build it again. What he asked for instead: an item's modifiers known without its tooltip. The host's
-  `Mods` lists hold on items (eight compared with their tooltips, every modifier line accounted for; dev command
-  `itemmods`, [item mods](docs/research/item-mods.md)), but they are Mods.dat ids and the tooltip sums stats across
-  modifiers, so saying them needs an extraction (Mods.dat id → stat ids → description text).
+  whole tab"): do not build it again. What he asked for instead: an item's modifiers known without its tooltip.
+- Item modifiers without the tooltip (2026-11-10, code and unit tests; **not run live**): `catalog/mod-stats.json`
+  (`Poe2UiExtract mod-stats`: Mods.dat Id → stats and rolls) plus `mod-texts.json` give an item's modifier lines from the
+  host's `Mods` lists (`ItemModLines`, pure); the 25 lines of the seven compared items equal their Spanish tooltips letter
+  for letter. Used for worn pieces never focused (summary complete at the first opening, "más que el puesto" at once); a
+  line that is not certain is never said nor counted as missing. Next step: the live check, dev command `itemmodscheck`
+  (a rune-socketed, an enchanted and a quality item first): [item mods](docs/research/item-mods.md#live-check).
 - Stale values, player, combat and host (2026-11-10, code and unit tests only): flask uses from the drink's seen cost, boss
   life read when asked, a shared target name said alone, per-area state reset per instance, untyped entities' components
   rested, buff stacks, learnt blows as clip time, no maximum from tables, buff ids kept whole. What each needs live is listed in
