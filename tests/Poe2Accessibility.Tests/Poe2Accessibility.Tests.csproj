@@ -213,6 +213,7 @@
     <Compile Include="..\..\host\Poe2Access\AppFolders.cs" Link="Launcher\AppFolders.cs" />
     <Compile Include="..\..\host\Poe2Access\AppCleanup.cs" Link="Launcher\AppCleanup.cs" />
     <Compile Include="..\..\host\Poe2Access\CommandLine.cs" Link="Launcher\CommandLine.cs" />
+    <Compile Include="..\..\host\Poe2Access\Launcher\HostDialog.cs" Link="Launcher\HostDialog.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\ExplorationMap.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\MapCorner.cs" />
     <Compile Include="..\..\Poe2Accessibility\Services\Scanner\LostWatch.cs" />
