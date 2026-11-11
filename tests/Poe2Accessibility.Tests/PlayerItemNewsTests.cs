@@ -46,6 +46,12 @@ namespace Poe2Accessibility.Tests
             Equal($"Equipped Frasco de maná {where} | Unequipped Frasco de vida", Said(ItemMoves.Read(Items((Belt, "Frasco de maná"), (Main, "Frasco de vida")),
                       Items((Main, "Frasco de maná"), (Belt, "Frasco de vida")), Announcements.MoveSlotName, true, 0, string.Empty)),
                   "swapped for another flask from the inventory");
+            Equal($"Equipped Frasco de vida, Mágico {where} | Unequipped Frasco de vida, Normal", Said(ItemMoves.Read(Items((Belt, "Frasco de vida, Mágico"), (Main, "Frasco de vida, Normal")),
+                      Items((Main, "Frasco de vida, Mágico"), (Belt, "Frasco de vida, Normal")), Announcements.MoveSlotName, true, 0, string.Empty)),
+                  "swapped for another flask of its own name");
+            Equal($"Equipped Frasco de vida, Mágico {where}", Said(ItemMoves.Read(Items((Belt, "Frasco de vida, Mágico"), (InventoryName.Cursor1, "Frasco de vida, Normal")),
+                      Items((InventoryName.Cursor1, "Frasco de vida, Mágico"), (Belt, "Frasco de vida, Normal")), Announcements.MoveSlotName, true, 0, string.Empty)),
+                  "and so with the hand, which takes the one that was there");
             Equal($"Equipped Frasco de vida {where}", Said(ItemMoves.Read(Items((Belt, "Frasco de vida")), Items(), Announcements.MoveSlotName, false, 0, string.Empty)),
                   "picked up in play straight onto an empty belt slot");
         }

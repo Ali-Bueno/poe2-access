@@ -55,8 +55,9 @@ namespace Poe2Accessibility.Services
             {
                 if (slotName(to) is { } slot)
                 {
-                    // A flask drunk is a new entity in its own slot; in play nothing else can arrive where one left.
-                    if (Take(source => source == to, null, departed => !inPanel || Title(departed) == Title(name)) != null)
+                    // A flask drunk is a new entity in its own slot; in play nothing else can arrive where one left, and
+                    // with a panel open one of its name brought from the inventory or the hand is another flask.
+                    if (Take(source => source == to, null, departed => !inPanel || (Title(departed) == Title(name) && !Brought(name))) != null)
                     {
                         continue;
                     }
@@ -116,6 +117,10 @@ namespace Poe2Accessibility.Services
             // paired with what was given for it, neither was said (one item for one: silence).
             string? Rearranged() =>
                 inTrade ? Take(source => source == InventoryName.MainInventory1, Announcements.UnknownItem) : Take(source => source == InventoryName.MainInventory1);
+
+            // Whether an item of this name, or one never read, left the inventory or the hand in this batch.
+            bool Brought(string arrival) => left.Any(departure =>
+                !IsEquipment(departure.From) && (departure.Name == Announcements.UnknownItem || Title(departure.Name) == Title(arrival)));
 
             // A stack that grew is a new entity of the same item, whatever else left with it (a trade).
             string? TakeSame(string arrival)
