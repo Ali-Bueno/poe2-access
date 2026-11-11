@@ -81,6 +81,10 @@ namespace Poe2Accessibility.Services
                 {
                     blocks.Add(found[0]);
                 }
+                else if (found is { Count: > 1 } && sum != 0 && texts.AlikeBlock(found, id => sums.GetValueOrDefault(id), language) is >= 0 and var alike)
+                {
+                    blocks.Add(alike); // described twice, written alike by both
+                }
                 else if (found != null && sum != 0)
                 {
                     lines.Add(new ItemModLine(string.Empty, false, stat + (found.Count == 0 ? ": no description" : ": described twice"), found.Count == 0));

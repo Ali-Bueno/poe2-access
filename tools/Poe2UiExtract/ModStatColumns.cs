@@ -34,8 +34,37 @@ internal sealed class ModStatColumns
     /// <summary>The other columns that read as a key into Stats with some row empty: a modifier with one filled is not told apart.</summary>
     public IReadOnlyList<int> Others { get; private init; } = Array.Empty<int>();
 
-    /// <summary>The columns, or null (said) when one was not found.</summary>
-    public static ModStatColumns? Find(DatTable mods, DatTable stats)
+    /// <summary>The columns after the run that key BuffTemplates, not Stats (<see cref="IsBuffColumn"/>): no value of the modifier is theirs.</summary>
+    public IReadOnlyList<int> Buffs { get; private init; } = Array.Empty<int>();
+
+    /// <summary>
+    ///     Whether a column after the run keys BuffTemplates rather than Stats: every filled row's key is one of its rows and
+    ///     most name the modifier's own Id. 0.5.x, 2026-11-10: +0x25C, all 265 filled keys under BuffTemplates' 665 rows (Stats
+    ///     has 27,299), 206 naming their own modifier, LocalDisplayYouAndNearbyAlliesHaveIncreasedItemRarityUnique__1 among them.
+    /// </summary>
+    internal static bool IsBuffColumn(DatTable mods, DatTable buffs, int offset)
+    {
+        using var probe = DatTable.Probe();
+        if (!DatColumnSearch.IsKey(mods, offset, buffs.RowCount, wide: true))
+        {
+            return false;
+        }
+
+        var (filled, own) = (0, 0);
+        for (var row = 0; row < mods.RowCount; row++)
+        {
+            if (mods.Key(row, offset) is >= 0 and var key)
+            {
+                filled++;
+                own += DatAnchors.IdOf(buffs, key) is { Length: > 0 } id && id == mods.StringOrNull(row, DatColumnSearch.IdColumn) ? 1 : 0;
+            }
+        }
+
+        return own * 2 > filled;
+    }
+
+    /// <summary>The columns, or null (said) when one was not found; <paramref name="buffs"/> (BuffTemplates) tells its key columns from the stats'.</summary>
+    public static ModStatColumns? Find(DatTable mods, DatTable stats, DatTable? buffs = null)
     {
         var search = new DatColumnSearch();
         var (life, hybrid) = (DatAnchors.Row(mods, KnownLife, "Mods' stats"), DatAnchors.Row(mods, KnownHybrid, "Mods' stats and ranges"));
@@ -59,8 +88,9 @@ internal sealed class ModStatColumns
 
         var end = run[^1] + KeyBytes;
         var ranges = search.Find(mods, "Mods.StatRanges", RangesOffset, offset => IsRanges(mods, run, offset, hybrid), end - 1);
-        var others = Enumerable.Range(end, Math.Max(0, mods.RowSize - end)).Where(offset => IsStat(offset) && Enumerable.Range(0, mods.RowCount).Any(row => mods.Key(row, offset) < 0)).ToList();
-        return search.Report(Step) ? new ModStatColumns { Stats = run, Ranges = ranges, Others = others } : null;
+        var keys = Enumerable.Range(end, Math.Max(0, mods.RowSize - end)).Where(offset => IsStat(offset) && Enumerable.Range(0, mods.RowCount).Any(row => mods.Key(row, offset) < 0)).ToList();
+        var buffColumns = buffs == null ? new List<int>() : keys.Where(offset => IsBuffColumn(mods, buffs, offset)).ToList();
+        return search.Report(Step) ? new ModStatColumns { Stats = run, Ranges = ranges, Others = keys.Except(buffColumns).ToList(), Buffs = buffColumns } : null;
     }
 
     /// <summary>Of this many rows, fewer than one may roll a number where its stat column is empty (78 of 16,911 do, 0.5.x).</summary>

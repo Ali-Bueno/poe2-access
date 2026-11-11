@@ -20,8 +20,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Another animation this long while held means the shield came down without its end (stunned, dodged).</summary>
         public const int LostMs = 300;
 
-        private const string HeldPrefix = "ActiveBlockChannel";
-        private const string EndPrefix = "ActiveBlockEnd";
+        /// <summary>The Animation ids' starts matched; public for the data step's check that a patch kept them (<see cref="GameNames"/>).</summary>
+        public const string HeldPrefix = "ActiveBlockChannel";
+        public const string EndPrefix = "ActiveBlockEnd";
 
         private bool raised;
         private long otherSince = -1;

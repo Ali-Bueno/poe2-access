@@ -218,6 +218,28 @@ namespace Poe2Accessibility.Services
         public IReadOnlyList<string> StatsOf(int block) => this.blockStatIds[block];
 
         /// <summary>
+        ///     For a stat the file describes in several blocks: the first of them when every one writes the same certain line for
+        ///     these values in the language, so the line is that whichever block the game takes (the 26 such stats of 0.5.x are
+        ///     each the one stat of each of its blocks); -1 when they write it otherwise, which the file does not settle.
+        /// </summary>
+        public int AlikeBlock(IReadOnlyList<int> blocks, Func<string, double> value, string language)
+        {
+            string? written = null;
+            foreach (var block in blocks)
+            {
+                var (text, certain) = this.Show(block, this.blockStatIds[block].Select(value).ToArray(), language);
+                if (!certain || text.Length == 0 || (written != null && written != text))
+                {
+                    return -1;
+                }
+
+                written = text;
+            }
+
+            return written != null ? blocks[0] : -1;
+        }
+
+        /// <summary>
         ///     The line the game writes for a block's stat values in a language: the first of the block they fit. Not certain
         ///     when a line before it cannot be read here (its conditions are then unknown), when none fits, when the language
         ///     has no text for the block, or when a number in it is written a way never seen (<see cref="ModTextVariation.Show"/>).

@@ -509,8 +509,10 @@ unblocks it). The audit's own lists, entry by entry:
   2 differ, 3 uncertain, her belt equal after the fix; 12 stash items, no difference logged. Four faults found and
   fixed on the way: a spear's skill grant made the whole piece "not compared" (the summary read "3 de 9" before the
   slots were focused); "+1.4%" and "+1.12%" (hundredths) were in doubt; 201 a minute was written "3.4" where the
-  tooltip shows "3.3"; a regeneration rounding to 3.0 was written "3.0" where it shows "3". Left in doubt, as designed:
-  a unique helm's line whose stat is in two blocks of the description file. Still unseen: a piece with a rune socketed, an
+  tooltip shows "3.3"; a regeneration rounding to 3.0 was written "3.0" where it shows "3". A unique helm's line whose
+  stat is in two blocks of the description file is certain since both blocks write it alike (`ModTextCatalog.AlikeBlock`,
+  2026-11-10); the spears' grant stays in doubt: no file links `local_display_grants_spear_throw_skill` to a skill
+  ([item mods](docs/research/item-mods.md)). Still unseen: a piece with a rune socketed, an
   enchanted or corrupted item, one stat on an implicit and an explicit, a modifier of three values, a number over 999.
 - **The passive list's "4 más de la build no están en este árbol".** They are the four nodes of the file's ascendancy
   ("ascendancy": "Mercenary3": `AscendancyMercenary3Small1`, `…Notable1_`, `…Small4`, `…Notable4`; 60 + 4 = the file's
@@ -582,7 +584,11 @@ unblocks it). The audit's own lists, entry by entry:
   not load; one log line for a burst of failed reads; a timed-out batch stopped; the parallel map walk bounded; the
   GGPK closed; the dropdown latch by name, not address; the screen watcher's reset race; the route planner's memory;
   checkpoints named past the pairing budget; object cues without the game's sounds; a grace for charges after an
-  area's first reading; the skill stat key searched again; the wall-clock tests; the tests that did not test.
+  area's first reading; the skill stat key searched again; the wall-clock tests; the tests that did not test; a known
+  row from the game's files for every key column of the endgame and skill tables; the data step "game names", which
+  fails naming any buff, animation, trap or door state or boss tail a rule matches that a patch removed; the rules of
+  host-bound classes lifted into tested pure code (the guide's way lines, boss life, the target's name, the data step's
+  plan, the update offer, the game process's watch, the layout's loss counters, flag bit rounds, skill name check).
 - **Character selection after a quick login** (the login's bar said again after the character): the bar is dropped
   when the state changes (`2840bbb`); heard again that evening, the bar once, before the character.
 - **Microtransaction shop, too few points:** "Comprar puntos, Esta compra requiere 250 puntos, tienes 150 puntos,
@@ -682,10 +688,10 @@ unblocks it). The audit's own lists, entry by entry:
   larger than the budget, met in play with the log kept.
 - **A language lost from `gems` or `passive-tree` at the start:** needs the game's data set aside, which is the
   game's files.
-- **From the audit, each with its reason there:** a key column with no known row (needs a known row per column from
-  the game's files); a start with `oo2core.dll` renamed (the owner's leave to rename a game file);
+- **From the audit, each with its reason there:** a start with `oo2core.dll` renamed (the owner's leave to rename a
+  game file);
   a way back from a release that does not work, the "ended" lines after a respawn and a quiet buff (the owner's choice
-  between the options named there); the tests of host-bound rules not written.
+  between the options named there).
 
 ### Decisions the owner can overrule
 Taken on 2026-11-10 where the audit had left "the owner's call"; each is one constant or one phrase.

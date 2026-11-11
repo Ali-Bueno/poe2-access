@@ -49,6 +49,49 @@ namespace GameReader.Utils
             var distinct = objects.Distinct().Take(2).ToList();
             return distinct.Count == 1 ? distinct[0] : 0;
         }
+
+        /// <summary>
+        ///     The state object's static the patterns give at attach: the first place that holds the object; else the only
+        ///     place, unproven (the game builds its states a while after it starts); else none (zero).
+        /// </summary>
+        public static (long Address, bool Proven) Given(IReadOnlyList<long> places, Func<long, bool> holds)
+        {
+            var proven = places.FirstOrDefault(holds);
+            return proven != 0 ? (proven, true) : (places.Count == 1 ? places[0] : 0, false);
+        }
+
+        /// <summary>
+        ///     One look while the state object is not proven: the pattern's place now holds it (taken, or read again when it is
+        ///     already the one in use); a place found by search stands, the pattern's still watched when it gave one; else the
+        ///     image is searched when <see cref="SearchDue"/> says so.
+        /// </summary>
+        public static StateLook Look(bool givenHolds, bool givenInUse, bool gaveOne, bool mayYetHold, double waited, double sinceSearch, int searches) =>
+            givenHolds ? (givenInUse ? StateLook.Rejudge : StateLook.TakeGiven)
+            : !givenInUse ? (gaveOne ? StateLook.Watch : StateLook.Stop)
+            : SearchDue(mayYetHold, waited, sinceSearch, searches) ? StateLook.Search : StateLook.Watch;
+
+        /// <summary>What a search settles: the static of the one object found, unless it is the pattern's own place (the next look proves that); zero for nothing.</summary>
+        public static long Settled(IReadOnlyList<(long Static, long Object)> found, long given) =>
+            OneObject(found.Select(place => place.Object)) == 0 || found.Any(place => place.Static == given) ? 0 : found[0].Static;
+    }
+
+    /// <summary>What a look at the state object's static does.</summary>
+    public enum StateLook
+    {
+        /// <summary>The pattern's place holds it and another is in use: it is taken.</summary>
+        TakeGiven,
+
+        /// <summary>The pattern's place, in use since the attach when it held nothing, holds it now: what it holds is read.</summary>
+        Rejudge,
+
+        /// <summary>A place found by search is in use and the pattern gave none to watch: the looks end.</summary>
+        Stop,
+
+        /// <summary>Nothing to do on this look.</summary>
+        Watch,
+
+        /// <summary>The image is searched.</summary>
+        Search,
     }
 
     /// <summary>

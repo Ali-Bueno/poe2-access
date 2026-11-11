@@ -82,7 +82,7 @@ namespace Poe2Accessibility.Services
         ///     <c>DeadSince</c>: when it first read not alive with no living read since (0: alive), <see cref="BossLifeSteps.Defeated"/>;
         ///     <c>ChangedAt</c>: when its life last read different. <c>Percent</c> is the last poll's: what is said is read again.
         /// </summary>
-        private readonly Dictionary<uint, (string Name, int Step, bool Engaged, int Percent, long HurtAt, long DeadSince, long ChangedAt)> bosses = new();
+        private readonly Dictionary<uint, BossLife> bosses = new();
         private long? playerDiedAt;
         private long lastLifePoll;
         private long lastParryCue = long.MinValue / 2;
@@ -287,8 +287,7 @@ namespace Poe2Accessibility.Services
 
             if (!this.bosses.TryGetValue(entity.Id, out var boss))
             {
-                var name = this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty;
-                boss = (name, BossLifeSteps.Full, false, 100, 0, 0, 0);
+                boss = BossLife.Fresh(this.elements.ReadWStringStructAt(render.Address + GameLayout.RenderComponent.NameOffset) ?? string.Empty);
             }
 
             if (boss.Name.Length == 0)
@@ -296,43 +295,26 @@ namespace Poe2Accessibility.Services
                 return;
             }
 
-            var now = Environment.TickCount64;
-            if (!life.IsAlive || EntityCatalog.IsFrozenDead(entity))
-            {
-                // One reading is no death: said by ConfirmDefeats once no living reading came for a while.
-                this.bosses[entity.Id] = boss with { DeadSince = boss.DeadSince == 0 ? now : boss.DeadSince };
-                return;
-            }
-
-            boss = boss with { DeadSince = 0 };
-            if (BossLifeSteps.Alive(boss.Step) != boss.Step)
+            // One reading not alive is no death: said by ConfirmDefeats once no living reading came for a while.
+            var alive = life.IsAlive && !EntityCatalog.IsFrozenDead(entity);
+            var reading = BossLifeSteps.Read(boss, alive, alive && EntityCatalog.IsHidden(entity), alive ? life.Health.CurrentInPercent() : 0, this.playerDiedAt, Environment.TickCount64);
+            if (reading.Risen)
             {
                 this.log.Info($"Boss risen: {boss.Name} reads alive after its defeat was said");
-                boss = (boss.Name, BossLifeSteps.Full, false, 100, 0, 0, 0);
             }
 
-            if (EntityCatalog.IsHidden(entity))
-            {
-                this.bosses[entity.Id] = boss with { Engaged = false };
-                return;
-            }
-
-            var percent = life.Health.CurrentInPercent();
-            if (BossLifeSteps.FightRestarted(this.playerDiedAt, boss.HurtAt, boss.Engaged, percent))
+            if (reading.Restarted)
             {
                 this.log.Info($"Boss fight restarted: {boss.Name} back to full life after the player's death");
-                boss = (boss.Name, BossLifeSteps.Full, false, percent, 0, 0, 0);
             }
 
-            var engaged = boss.Engaged || percent < 100;
-            var step = BossLifeSteps.Next(boss.Step, percent);
-            if (step < boss.Step)
+            if (reading.Said is { } percent)
             {
                 // The real value, not the step (D2R): a big hit may skip several steps at once.
                 this.output.Say(SpeechKind.BossLife, Announcements.BossLife(boss.Name, percent), percent <= UrgentBossPercent);
             }
 
-            this.bosses[entity.Id] = (boss.Name, step, engaged, percent, percent < 100 ? now : boss.HurtAt, 0, percent != boss.Percent ? now : boss.ChangedAt);
+            this.bosses[entity.Id] = reading.Boss;
         }
 
         /// <summary>The bosses read not alive and not seen alive since: defeated, said once (a corpse the game removed counts too).</summary>
@@ -347,7 +329,7 @@ namespace Poe2Accessibility.Services
                     this.Defeated?.Invoke(boss.Name);
                 }
 
-                this.bosses[id] = (boss.Name, 0, false, 0, boss.HurtAt, boss.DeadSince, boss.ChangedAt);
+                this.bosses[id] = boss with { Step = 0, Engaged = false, Percent = 0 };
             }
         }
 

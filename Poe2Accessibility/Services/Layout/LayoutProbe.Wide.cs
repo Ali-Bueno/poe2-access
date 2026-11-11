@@ -18,8 +18,8 @@ namespace Poe2Accessibility.Services
         private void LookAgain(IntPtr manager)
         {
             var now = Environment.TickCount64;
-            if (manager == IntPtr.Zero || now < this.nextLookAgainAt ||
-                ((!this.missedInGame || (this.namesKnown && this.textKnown && this.texturesKnown)) && (this.pendingState == IntPtr.Zero || this.layerRootsKnown)))
+            if (!PartLoss.LookAgainDue(manager != IntPtr.Zero, now, this.nextLookAgainAt, this.missedInGame, this.namesKnown && this.textKnown && this.texturesKnown,
+                    this.pendingState != IntPtr.Zero, this.layerRootsKnown))
             {
                 return;
             }

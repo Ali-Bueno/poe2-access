@@ -3,9 +3,56 @@ namespace Poe2Accessibility.Services
     using System.Collections.Generic;
     using System.Linq;
 
+    /// <summary>
+    ///     A boss as the life watch keeps it: its name, the last step said (0: said defeated), whether its fight is on, its last
+    ///     percent, when it was last hurt, when it first read not alive (0: it reads alive) and when its percent last changed.
+    /// </summary>
+    public readonly record struct BossLife(string Name, int Step, bool Engaged, int Percent, long HurtAt, long DeadSince, long ChangedAt)
+    {
+        public static BossLife Fresh(string name) => new(name, BossLifeSteps.Full, false, 100, 0, 0, 0);
+    }
+
+    /// <summary>What one reading of a boss's life gives: the boss after it, the percent to say (null: none), and whether it rose or its fight restarted.</summary>
+    public readonly record struct BossLifeReading(BossLife Boss, int? Said, bool Risen, bool Restarted);
+
     /// <summary>The boss life percentages said once each as a boss falls past them; a heal back past one says them again. Pure.</summary>
     public static class BossLifeSteps
     {
+        /// <summary>
+        ///     One reading of a hostile unique's life: a reading not alive only starts the defeat's wait (<see cref="Defeated"/>);
+        ///     a boss said defeated that reads alive starts over; a hidden one is out of the fight; one back at full life after
+        ///     the player's death starts over; a fall past a step says the real percent.
+        /// </summary>
+        public static BossLifeReading Read(BossLife boss, bool alive, bool hidden, int percent, long? diedAt, long now)
+        {
+            if (!alive)
+            {
+                return new BossLifeReading(boss with { DeadSince = boss.DeadSince == 0 ? now : boss.DeadSince }, null, false, false);
+            }
+
+            boss = boss with { DeadSince = 0 };
+            var risen = Alive(boss.Step) != boss.Step;
+            if (risen)
+            {
+                boss = BossLife.Fresh(boss.Name);
+            }
+
+            if (hidden)
+            {
+                return new BossLifeReading(boss with { Engaged = false }, null, risen, false);
+            }
+
+            var restarted = FightRestarted(diedAt, boss.HurtAt, boss.Engaged, percent);
+            if (restarted)
+            {
+                boss = BossLife.Fresh(boss.Name) with { Percent = percent };
+            }
+
+            var step = Next(boss.Step, percent);
+            var next = new BossLife(boss.Name, step, boss.Engaged || percent < 100, percent, percent < 100 ? now : boss.HurtAt, 0, percent != boss.Percent ? now : boss.ChangedAt);
+            return new BossLifeReading(next, step < boss.Step ? percent : null, risen, restarted);
+        }
+
         /// <summary>No step said yet: the boss at full life.</summary>
         public const int Full = 100;
 

@@ -196,40 +196,25 @@ namespace Poe2Accessibility.Services
             string part, IReadOnlyList<uint> carriers, IReadOnlyList<uint> others, int measured, double otherShare, int minCarriers, Action<int> use, LossWitnesses misses, long witness,
             MovedBit? moved = null)
         {
-            if (BitSearch.Share(carriers, measured) >= KeepShare && BitSearch.Share(others, measured) <= otherShare)
+            var verdict = BitSearch.Judge(carriers, others, measured, KeepShare, CarrierShare, otherShare, minCarriers, misses, witness, moved);
+            if (verdict.SayLost)
             {
-                moved?.Clear();
-                use(measured);
-                this.report.Found(part);
-                return true;
+                this.report.Missing(part);
             }
 
-            if (BitSearch.FindBit(carriers, others, measured, CarrierShare, otherShare, minCarriers) is not { } bit)
+            switch (verdict.Judgement)
             {
-                if (misses.Against(witness))
-                {
-                    this.report.Missing(part);
-                }
-
-                return misses.Lost;
+                case BitJudgement.Found:
+                    use(verdict.Bit);
+                    this.report.Found(part);
+                    return true;
+                case BitJudgement.Moved:
+                    use(verdict.Bit);
+                    this.report.Moved(part, measured, verdict.Bit);
+                    return true;
+                default:
+                    return verdict.Judgement == BitJudgement.Lost;
             }
-
-            if (bit != measured && moved != null && !moved.Confirms(bit, witness))
-            {
-                return false;
-            }
-
-            use(bit);
-            if (bit == measured)
-            {
-                this.report.Found(part);
-            }
-            else
-            {
-                this.report.Moved(part, measured, bit);
-            }
-
-            return true;
         }
 
         /// <summary>Visible controls with a click sound, plain labels, text inputs and buttons under the root, breadth first.</summary>

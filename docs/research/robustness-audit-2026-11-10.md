@@ -299,14 +299,22 @@ finding was not fixed and `Live checks` is what only the game can settle. Findin
   patch's `.ui` files into the catalog. Rule: the folder is emptied before it is filled. `UiScripts`.
 
 Tests: 12 in `HostAndToolsAuditTests.cs`; two fixtures of `DatColumnSearchTests` and `ExtractorColumnTests` wrote keys as
-8 bytes, which the game never does, and now use `WideKey`. Still untested: `GameDataSetup.Regenerate`, `Updater.Offer`,
-`GameProcess` coroutines.
+8 bytes, which the game never does, and now use `WideKey`. Tested since (`HostRuleTests`), their rules lifted pure with
+no change of behaviour: `GameDataSetup.Regenerate` (`GameDataSteps.Plan`, `Failed`), `Updater.Offer` (`UpdateOffer`),
+the `GameProcess` coroutines (`GameProcessDetails.Pick`, `Gone`; `StateSearchRules.Given`, `Look`, `Settled`).
 
 Left open, settled in the fifth pass (2026-11-10, evening). Each entry ends as **fixed** (how it was verified), **not a
 fault** (why) or **blocked** (by what, and what unblocks it):
-- **A key column with no known row can still be a neighbouring key that fits** (finding 12). **Blocked:** needs one
-  known row per key column of `EndgameExtractor` and `ProjectileColumns` (a row id and the value its key must name),
-  picked by reading those tables in the game's files; nothing in the repository names one, and none is guessed.
+- **A key column with no known row can still be a neighbouring key that fits** (finding 12). **Fixed** (unit tests
+  `KnownRowTests`, each failing with its known row taken away): every key column of `EndgameColumns` (split out of
+  `EndgameExtractor`) and `ProjectileColumns` has a row read from the 0.5.5f files whose key names a row that fits it
+  (the Merchant content shows the Trader icon, the Delirium mirror's node stat its own name, the Penitentiary's flavour
+  text its map, Kingsmarch's node the Kingsmarch pin, Cull the Weak's stat set the cull stat, the Urchin's sling
+  variation the `SlingUrchinProjectile`, …; the list is in the code). Tables whose rows have no Id are found through
+  another column: a node stat by its stat, a map by its flavour text, an Atlas node by its passive or pin, a tower by
+  its own node. On the game's files each known row accepts exactly one of the key-shaped offsets of its row (scratch
+  probe: the Atlas objective among +0x8F, +0xA7, +0xC3; the map pin among +0x3C, +0x5C, +0x6C, +0x84), and
+  `endgame`, `cull-skills`, `hit-times` and `game-ids` write the shipped catalogs byte for byte.
 - **The launcher says nothing while a step hangs** (13). **Fixed** (`SilenceReminder`, unit tests
   `AStepWithoutProgressIsRemindedFirstAfterThirtySecondsThenEverySixty`, `AMovingCountRestartsTheSilence`): after 30 s
   with no count moving it says "Sigo trabajando en <paso>, unos N min", then every 60 s. The owner's to overrule: the
@@ -550,12 +558,21 @@ Left open, settled in the fifth pass (2026-11-10, evening):
 - **`RoutePlanner.workspace` kept about 14 MB per pool thread.** **Fixed**
   (`SearchWorkspacesKeptBetweenSearchesAreBounded`): searches rent from one pool that keeps two workspaces at most.
 - **Game names with no check when a patch renames them** (trap states, the room door, enemy-state buff ids and
-  animations, `ActiveBlockChannel`, `Tail`). **Blocked:** needs each name looked up in the game's files after a patch
-  (`catalog/game-keys.txt` holds table keys, not these names); a check that names them all needs a list from the
-  extractor, which is not built.
+  animations, `ActiveBlockChannel`, `Tail`). **Fixed** (unit tests `GameNameTests`; run on the game's files): the rules'
+  own lists are gathered in `GameNames` (linked into the extractor), and the new optional data step "game names"
+  (`game-names`, `catalog/game-names.txt`) looks each up: a BuffDefinitions or Animation Id, the start of one, a word of a
+  MonsterVarieties Id (the two tails), a trap's or the door's script and the state it or a script it extends declares.
+  A name gone fails the step: the launcher lists it as failed, says "parte de los datos del juego" and logs `game names
+  failed …: gone from the game's files: Monster MudBurrowerBackBoss (WeakPoints)` (seen with a made-up tail). On
+  0.5.5f all 34 names are found; the first run found the trap `BulletHellSpinner`, which no file of the game holds (the
+  spinner turret is `BulletHellTurret`, whose animation is `BulletHellSpinnerTurret_01.ao`), and it was removed from
+  `TrialTraps`. Every name is in a file the extractor reads.
 - **Rules in host-bound classes with no test** (`Beacon.CollectSearch`, `BossWatch.WatchLife`, `TargetNarrator.Tick`).
-  **Blocked:** each reads the host's entities directly; a test needs the rule lifted out of the class, not done in this
-  pass. The Beacon's new phrase choice is tested (`WayCuts.Of`).
+  **Fixed** (unit tests `HostRuleTests`, each seen failing with its rule broken): lifted with no change of behaviour
+  into pure `RouteSearchNews` (the guide's way lines, once per lock; no route only when two searches agree),
+  `BossLifeSteps.Read` with the `BossLife` record (a dead reading only starts the wait, risen, hidden, restarted, the
+  real percent past a step) and `TargetNaming` (settle, repeat, sweep, a pack's shared name); the classes act on their
+  verdicts.
 - **The guide on a closed barrier that opens says "ya no está a la vista" beside "Se abrió el paso".** **Not a fault:**
   both are true (the barrier as a target is gone because it opened); two short lines, in that order.
 - **The half second before "derrotado" equals the host's 30-frame dormant latch.** **Blocked** by the owner's choice:
@@ -652,8 +669,11 @@ Left open, settled in the fifth pass (2026-11-10, evening):
   (the best of several runs, and the expansions counted).
 - **Tests that do not exist** (`WorldLayoutWatch` inline counters, `LayoutProbe`'s two looks, `InGameFields`' absent
   rule, `PlayerSkills.JudgeNames`, `GameStateService.StatesOverdue`, `FlagBits` rounds beyond `MovedBit`).
-  **Blocked:** not written in this pass; each class reads through the host, so each needs its rule lifted into a pure
-  class first (`StatesOverdue` is already static: it needs only a `Compile` line and a test).
+  **Fixed** (unit tests `LayoutRuleTests`): each rule lifted pure with no change of behaviour: `MissCount` and
+  `AreaMisses` (the watch's no-world looks, reaction streak, walkable windows, poise misses per area),
+  `PartLoss.LookAgainDue` and `AfterMisses` (the probe's looks again, the absent rule), `BitSearch.Judge` (a bit kept,
+  moved or lost only on a second round), `StatesWait.Overdue` (out of the host-bound service) and
+  `SkillNameCheck.Compare`, `NewProcess`.
 - **A rare or unique item named by its base where no tooltip was read** (ground labels, moves; from the stale-values
   pass). **Fixed and seen live:** the item's own words name it (`ItemNameWords`, `GameLayout.ItemNameWords`: the
   Words.dat keys at Mods +0x18; unit tests `ItemNameWordsTests`). With no tooltip read since the mod started, dev

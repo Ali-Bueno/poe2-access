@@ -19,6 +19,18 @@ internal sealed class ProjectileColumns
         "kill_enemy_on_hit_if_under_10%_life", "base_cannot_be_blocked", "skill_cannot_be_blocked", "base_cannot_be_parried", "base_skill_cannot_be_parried",
     };
 
+    // Known rows of the key columns, read from the 0.5.5f files (2026-11-10, dat-keys and the extractor's own readers):
+    // the player's Fireball is the fireball active skill with its own stat set; Cull the Weak's set lists the cull stat;
+    // the Urchin's sling and the spooky wraith's cold bolt hand their variations (1001, 1003) to the projectile of their name.
+    internal const string KnownSkill = "FireballPlayer";
+    internal const string KnownActiveSkill = "fireball";
+    internal const string KnownCullSet = "CullTheWeakPlayer";
+    internal const string KnownCullStat = "kill_enemy_on_hit_if_under_10%_life";
+    internal const string KnownAttackSkill = DatAnchors.MonsterSkill;
+    internal const string KnownAttackProjectile = "Metadata/Projectiles/SlingUrchinProjectile";
+    internal const string KnownSpellSkill = "SpookyWraithProjectileCold";
+    internal const string KnownSpellProjectile = "Metadata/Projectiles/SpookyWraithCold";
+
     // Offsets measured from the community dat-schema (2026-10-25), where each search starts.
     // GrantedEffects: ActiveSkill, StatSet.
     internal const int SkillActiveSkillOffset = 0x4F;
@@ -65,13 +77,20 @@ internal sealed class ProjectileColumns
         var variation = StatRow(t.Stats, VariationStat);
         var flags = FlagStats.Select(id => StatRow(t.Stats, id)).Where(row => row >= 0).ToHashSet();
 
-        c.SkillActive = search.Key(t.Skills, "GrantedEffects.ActiveSkill", SkillActiveSkillOffset, t.ActiveSkills);
-        c.SkillStatSet = search.Key(t.Skills, "GrantedEffects.StatSet", SkillStatSetOffset, t.StatSets, c.SkillActive);
+        c.FindSkillKeys(search, t.Skills, t.ActiveSkills, t.StatSets);
 
-        c.ImplicitStats = search.Find(t.StatSets, "GrantedEffectStatSets.ImplicitStats", ImplicitStatsOffset, offset =>
-            DatColumnSearch.IsKeyList(t.StatSets, offset, t.Stats.RowCount) && (flags.Count == 0 || ListsAny(t.StatSets, offset, flags)));
-        c.ConstantStats = search.Find(t.StatSets, "GrantedEffectStatSets.ConstantStats", ConstantStatsOffset, offset =>
-            DatColumnSearch.IsKeyList(t.StatSets, offset, t.Stats.RowCount) && (variation < 0 || ListsAny(t.StatSets, offset, new HashSet<long> { variation })), c.ImplicitStats);
+        // A known stat set listing a known stat: absent (-1) when either is gone, and the log says so.
+        int SetListing(string set, long stat) => stat < 0 ? -1 : DatColumnSearch.RowOf(t.StatSets, set);
+        bool Lists(int set, int offset, long stat) => set < 0 || t.StatSets.KeyList(set, offset).Contains(stat);
+        const string ImplicitName = "GrantedEffectStatSets.ImplicitStats", ConstantName = "GrantedEffectStatSets.ConstantStats";
+        var cullStat = StatRow(t.Stats, KnownCullStat);
+        var cull = SetListing(KnownCullSet, cullStat);
+        var urchin = SetListing(KnownAttackSkill, variation);
+        c.ImplicitStats = search.Checking(ImplicitName, cull).Find(t.StatSets, ImplicitName, ImplicitStatsOffset, offset =>
+            DatColumnSearch.IsKeyList(t.StatSets, offset, t.Stats.RowCount) && (flags.Count == 0 || ListsAny(t.StatSets, offset, flags)) && Lists(cull, offset, cullStat));
+        c.ConstantStats = search.Checking(ConstantName, urchin).Find(t.StatSets, ConstantName, ConstantStatsOffset, offset =>
+            DatColumnSearch.IsKeyList(t.StatSets, offset, t.Stats.RowCount) && (variation < 0 || ListsAny(t.StatSets, offset, new HashSet<long> { variation })) &&
+            Lists(urchin, offset, variation), c.ImplicitStats);
         c.ConstantValues = search.Find(t.StatSets, "GrantedEffectStatSets.ConstantStatsValues", ConstantValuesOffset, offset =>
             ValuesMatchStats(t.StatSets, offset, c.ConstantStats), c.ConstantStats);
 
@@ -82,9 +101,13 @@ internal sealed class ProjectileColumns
         // The variation numbers the skills hand to the monster projectile tables: an Id column holds some of them.
         var variations = c.ConstantStats < 0 || c.ConstantValues < 0 || variation < 0 ? new HashSet<int>() : VariationValues(t.StatSets, c.ConstantStats, c.ConstantValues, variation);
         c.SpellId = IdColumn(search, t.Spells, "MonsterProjectileSpell.Id", variations);
-        c.SpellProjectile = search.Key(t.Spells, "MonsterProjectileSpell.Projectile", VariationProjectileOffset, t.Projectiles, c.SpellId);
+        var spell = VariationRow(t.Spells, c.SpellId, Variation(t, c, KnownSpellSkill, variation));
+        c.SpellProjectile = search.Key(t.Spells, "MonsterProjectileSpell.Projectile", VariationProjectileOffset, t.Projectiles, c.SpellId,
+            (spell, key => IdOf(t.Projectiles, key) == KnownSpellProjectile));
         c.AttackId = IdColumn(search, t.Attacks, "MonsterProjectileAttack.Id", variations);
-        c.AttackProjectile = search.Key(t.Attacks, "MonsterProjectileAttack.Projectile", VariationProjectileOffset, t.Projectiles, c.AttackId);
+        var attack = VariationRow(t.Attacks, c.AttackId, Variation(t, c, KnownAttackSkill, variation));
+        c.AttackProjectile = search.Key(t.Attacks, "MonsterProjectileAttack.Projectile", VariationProjectileOffset, t.Projectiles, c.AttackId,
+            (attack, key => IdOf(t.Projectiles, key) == KnownAttackProjectile));
 
         var reached = ReachedProjectiles(t, c);
         c.ProjectileSpeed = search.Find(t.Projectiles, "Projectiles.ProjectileSpeed", ProjectileSpeedOffset, offset =>
@@ -92,6 +115,14 @@ internal sealed class ProjectileColumns
                 reached.Count(row => t.Projectiles.Int32(row, offset) is > 0 and <= MaxSpeed) >= reached.Count * SpeedShare));
         c.TargetLocation = search.Byte(t.Projectiles, "Projectiles.UseTargetLocation", TargetLocationOffset, value => value is 0 or 1, c.ProjectileSpeed);
         return search.Report("skill tables") ? c : null;
+    }
+
+    /// <summary>A skill's active skill and stat set, both checked on the player's Fireball.</summary>
+    internal void FindSkillKeys(DatColumnSearch search, DatTable skills, DatTable activeSkills, DatTable statSets)
+    {
+        var skill = DatColumnSearch.RowOf(skills, KnownSkill);
+        this.SkillActive = search.Key(skills, "GrantedEffects.ActiveSkill", SkillActiveSkillOffset, activeSkills, known: (skill, key => IdOf(activeSkills, key) == KnownActiveSkill));
+        this.SkillStatSet = search.Key(skills, "GrantedEffects.StatSet", SkillStatSetOffset, statSets, this.SkillActive, (skill, key => IdOf(statSets, key) == KnownSkill));
     }
 
     private static long StatRow(DatTable stats, string id) => DatColumnSearch.RowOf(stats, id);
@@ -134,6 +165,33 @@ internal sealed class ProjectileColumns
         }
 
         return found;
+    }
+
+    /// <summary>The variation number the stat set of that Id hands to a monster projectile table, or null; not judged as column reads.</summary>
+    private static int? Variation(Tables t, ProjectileColumns c, string set, long variation)
+    {
+        var row = DatColumnSearch.RowOf(t.StatSets, set);
+        if (row < 0 || variation < 0 || c.ConstantStats < 0 || c.ConstantValues < 0)
+        {
+            return null;
+        }
+
+        using var probe = DatTable.Probe();
+        var at = t.StatSets.KeyList(row, c.ConstantStats).ToList().IndexOf(variation);
+        var values = t.StatSets.Int32List(row, c.ConstantValues);
+        return at >= 0 && at < values.Count ? values[at] : null;
+    }
+
+    /// <summary>The row of a monster projectile table whose Id is <paramref name="value"/>, or -1.</summary>
+    private static int VariationRow(DatTable table, int idColumn, int? value)
+    {
+        if (idColumn < 0 || value is not { } id)
+        {
+            return -1;
+        }
+
+        using var probe = DatTable.Probe();
+        return Enumerable.Range(0, table.RowCount).FirstOrDefault(row => table.Int32(row, idColumn) == id, -1);
     }
 
     /// <summary>The Id column of a monster projectile table: non-negative and holding some of the variation numbers the skills use.</summary>

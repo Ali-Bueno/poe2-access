@@ -37,5 +37,25 @@
             return windowTitle.TrimStart().StartsWith(Title, StringComparison.OrdinalIgnoreCase) ||
                    (Path.GetDirectoryName(imagePath)?.Contains(Title, StringComparison.OrdinalIgnoreCase) ?? false);
         }
+
+        /// <summary>Of several clients, the one whose window is in front, else the first: nobody can pick from a popup. Windows are read in order, up to that one.</summary>
+        public static int Pick(int clients, Func<int, IntPtr> window, IntPtr foreground)
+        {
+            for (var i = 0; i < clients; i++)
+            {
+                if (window(i) == foreground)
+                {
+                    return i;
+                }
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        ///     Whether the game opened is gone: no process, one that exited, or no window (HasExited sometimes says false for a
+        ///     game that is not running), or a close was asked for. Read in that order: an exited process's window throws.
+        /// </summary>
+        public static bool Gone(bool known, Func<bool> exited, Func<long> window, bool forced) => !known || exited() || window() <= 0 || forced;
     }
 }

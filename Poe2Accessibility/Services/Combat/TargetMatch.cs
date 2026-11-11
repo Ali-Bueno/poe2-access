@@ -69,4 +69,69 @@ namespace Poe2Accessibility.Services
 
         public void Clear() => this.names.Clear();
     }
+
+    /// <summary>
+    ///     When the target under the aim is named: once it stayed there <see cref="SettleMs"/>, not again while the aim keeps
+    ///     coming back to it, a sweep across a pack cutting the last name, and a pack's next nearest of the same name not
+    ///     named again when that name is all that could be said. Pure.
+    /// </summary>
+    public sealed class TargetNaming
+    {
+        /// <summary>A target must stay under the aim this long before it is named (the aim sweeps over others).</summary>
+        public const int SettleMs = 150;
+
+        /// <summary>The same target is named again only after this long without it.</summary>
+        public const int RepeatMs = 3000;
+
+        /// <summary>Names within this long of the previous one cut it off (sweeping); later ones queue.</summary>
+        public const int SweepMs = 2000;
+
+        private IntPtr candidate;
+        private long candidateSince;
+        private IntPtr spoken;
+        private string spokenText = string.Empty;
+        private long spokenAt = long.MinValue / 2;
+
+        /// <summary>A poll's target: true when it is another than the last poll's, which starts its settling.</summary>
+        public bool Moved(IntPtr hovered, long now)
+        {
+            if (hovered == this.candidate)
+            {
+                return false;
+            }
+
+            (this.candidate, this.candidateSince) = (hovered, now);
+            return true;
+        }
+
+        /// <summary>Whether the settled target may be named now; staying on the one named keeps it from being named again.</summary>
+        public bool MayName(IntPtr hovered, bool names, bool aiming, long now)
+        {
+            if (names && aiming && hovered != IntPtr.Zero && now - this.candidateSince >= SettleMs && (hovered != this.spoken || now - this.spokenAt >= RepeatMs))
+            {
+                return true;
+            }
+
+            if (hovered == this.spoken)
+            {
+                this.spokenAt = now; // still on it: keep it from being named again when the aim comes back
+            }
+
+            return false;
+        }
+
+        /// <summary>The line for the target: null when it is not said (another of a pack, the same name); else whether it cuts the last name.</summary>
+        public bool? Say(IntPtr hovered, string line, bool nameShared, long now)
+        {
+            if (nameShared && line == this.spokenText && now - this.spokenAt < RepeatMs)
+            {
+                (this.spoken, this.spokenAt) = (hovered, now);
+                return null;
+            }
+
+            var cut = now - this.spokenAt < SweepMs;
+            (this.spoken, this.spokenText, this.spokenAt) = (hovered, line, now);
+            return cut;
+        }
+    }
 }

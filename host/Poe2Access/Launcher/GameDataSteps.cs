@@ -1,3 +1,7 @@
+using System; // also built into the tests, which have no implicit usings
+using System.Collections.Generic;
+using System.Linq;
+
 namespace Poe2Access;
 
 /// <summary>The game data catalogs <see cref="GameDataSetup"/> keeps current, each made by one extractor command.</summary>
@@ -38,6 +42,7 @@ internal static class GameDataSteps
         // At 2: a stamp from the old layout vouches for every step at 1, these two included, though they never ran.
         new Step("game ids", 4, "game-ids.txt", "game-ids", true),
         new Step("game keys", 3, "game-keys.txt", "game-keys", true),
+        new Step("game names", 1, "game-names.txt", "game-names", true), // fails, naming them, when a name a rule matches is gone
         new Step("places", 1, "places.json", "places", true),
         new Step("endgame", 3, "endgame.json", "endgame", true),
         new Step("UI catalog", 1, "ui-catalog.json", "ui-catalog"),
@@ -46,7 +51,51 @@ internal static class GameDataSteps
         new Step("passive tree", 1, "passive-tree.json", "passive-tree", true),
         new Step("item bases", 1, "item-bases.json", "item-bases", true),
         new Step("mod texts", 1, "mod-texts.json", "mod-texts", true),
-        new Step("mod stats", 1, "mod-stats.json", "mod-stats", true),
+        new Step("mod stats", 2, "mod-stats.json", "mod-stats", true), // 2: a modifier keying its own buff is told apart
         new Step(Sounds, 7, null, null, Input: ItemSounds),
     ];
+
+    /// <summary>
+    ///     What a start does with each step: reruns it when its required output is missing, it is not current at its version
+    ///     on this install, or the step it reads reruns; else, when this install made its output, puts that over the
+    ///     plugin's copy (an update has just put the shipped one back). <paramref name="made"/> says whether a catalog file is
+    ///     in GameData; <paramref name="soundsMade"/> whether the sounds' manifest is in the plugin.
+    /// </summary>
+    internal static (List<string> Stale, List<string> CopyBack) Plan(IReadOnlyList<Step> steps, GameDataStamp stamp, string install, Func<string, bool> made, bool soundsMade)
+    {
+        var stale = new List<string>();
+        var copyBack = new List<string>();
+        foreach (var step in steps)
+        {
+            var missing = step.Output is { } output ? !step.Optional && !made(output) : !soundsMade;
+            if (missing || !stamp.IsCurrent(install, step.Name, step.Version) || (step.Input is { } input && stale.Contains(input)))
+            {
+                stale.Add(step.Name);
+            }
+            else if (step.Output is { } current && stamp.Made(install, step.Name, step.Version))
+            {
+                copyBack.Add(current);
+            }
+        }
+
+        return (stale, copyBack);
+    }
+
+    /// <summary>
+    ///     The steps the plugin is told failed: this start's, the bundle index once for all it failed, then those given up on
+    ///     an earlier start and still not working.
+    /// </summary>
+    internal static List<string> Failed(IEnumerable<(string Step, string Error)> failures, IEnumerable<string> givenUp, string indexFailure)
+    {
+        var failed = new List<string>();
+        foreach (var listed in failures.Select(failure => failure.Error == indexFailure ? failure.Error : failure.Step).Concat(givenUp))
+        {
+            if (!failed.Contains(listed))
+            {
+                failed.Add(listed);
+            }
+        }
+
+        return failed;
+    }
 }

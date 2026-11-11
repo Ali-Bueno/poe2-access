@@ -34,18 +34,32 @@ namespace Poe2Accessibility.Services
             ["parried"] = EnemyState.Parried,
         };
 
+        /// <summary>The Animation ids that show a state (GameHelper's Animation names); the stun deaths are deaths.</summary>
+        private static readonly Dictionary<string, EnemyState> Animations = new(StringComparer.Ordinal)
+        {
+            ["HeavyStun"] = EnemyState.HeavyStunned,
+            ["HeavyStunBack"] = EnemyState.HeavyStunned,
+            ["HeavyStunForward"] = EnemyState.HeavyStunned,
+            ["HeavyStunForesight"] = EnemyState.HeavyStunned,
+            ["ElectrocuteForward"] = EnemyState.Electrocuted,
+            ["ElectrocuteBackward"] = EnemyState.Electrocuted,
+            ["ElectrocuteLeft"] = EnemyState.Electrocuted,
+            ["ElectrocuteRight"] = EnemyState.Electrocuted,
+        };
+
+        /// <summary>The BuffDefinitions ids matched, for the data step's check that a patch kept them (<see cref="GameNames"/>).</summary>
+        public static IEnumerable<string> BuffIdsMatched => Buffs.Keys;
+
+        /// <summary>The Animation ids matched, for the same check.</summary>
+        public static IEnumerable<string> AnimationsMatched => Animations.Keys;
+
         public static EnemyState? FromBuffId(string id)
         {
             return Buffs.TryGetValue(id, out var state) || Buffs.TryGetValue(BuffIds.Base(id), out state) ? state : null;
         }
 
-        /// <summary>The state an animation shows (GameHelper's Animation names); the stun deaths are deaths.</summary>
-        public static EnemyState? FromAnimation(string name) => name switch
-        {
-            "HeavyStun" or "HeavyStunBack" or "HeavyStunForward" or "HeavyStunForesight" => EnemyState.HeavyStunned,
-            "ElectrocuteForward" or "ElectrocuteBackward" or "ElectrocuteLeft" or "ElectrocuteRight" => EnemyState.Electrocuted,
-            _ => null,
-        };
+        /// <summary>The state an animation shows.</summary>
+        public static EnemyState? FromAnimation(string name) => Animations.TryGetValue(name, out var state) ? state : null;
     }
 
     /// <summary>

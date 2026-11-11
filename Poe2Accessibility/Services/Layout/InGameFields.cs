@@ -154,8 +154,8 @@ namespace Poe2Accessibility.Services
             // never said): then two areas must miss it, three times in a row each.
             this.missedAt[field] = now;
             this.misses[field] = this.misses.GetValueOrDefault(field) + 1;
-            if (field != InGameField.BindDisplay && this.misses[field] >= MissesToReport &&
-                (this.elementSeen || (this.heldArea.Hash.Length > 0 && this.Absent(field).Against(LossWitnesses.AreaKey(this.heldArea.Address.ToInt64(), this.heldArea.Hash)))))
+            if (PartLoss.AfterMisses(field == InGameField.BindDisplay, this.misses[field], MissesToReport, this.elementSeen,
+                    () => this.heldArea.Hash.Length > 0 && this.Absent(field).Against(LossWitnesses.AreaKey(this.heldArea.Address.ToInt64(), this.heldArea.Hash))))
             {
                 this.report.Missing(Part(field));
             }
