@@ -61,11 +61,13 @@ the skill level key and the skill ids; live invariants of the code-only fields i
 
 ## Open
 
-| Where | What can go wrong | Smallest fix |
+Settled in the fifth pass (2026-11-10, evening); nothing is left merely "open".
+
+| Where | What could go wrong | Outcome |
 |---|---|---|
-| `UiSemantics.PassiveTree` (the stick step) | The multiple-choice redirect (`row+0x8B`, `elem+0x648`) is not modelled: the first push after an attribute popup lands one node off | Needs the redirect read from the game first; such pushes are not judged meanwhile |
-| `Beacon` | A search that spent its budget ends as a partial way and is said as "the way stops short" | `RoutePlanner.FindRoute` would have to say the budget was spent; and a phrase for it |
-| `EntityCatalog.Classify` (`ObjectNames.FromPath`) | An object no table names is said by its file's words, in English ("Chair"). It is already the last resort and logged | Marking it as unnamed outside English needs a new phrase in eight languages: the owner's call |
+| `UiSemantics.PassiveTree` (the stick step) | The multiple-choice redirect (`row+0x8B`, `elem+0x648`) is not modelled: the first push after an attribute popup lands one node off | **Blocked:** the redirect must be read from the game while an attribute popup is up, which needs a node allocated — the owner's to do (one attribute node, with dev `passivenear` before and after). Such pushes are not judged meanwhile |
+| `Beacon` | A search that spent its budget ended as a partial way and was said as "the way stops short" | **Fixed**, unit tests only (`ASearchThatRanOutOfBudgetSaysSo`, `TheWayIsSaidClosedOnlyWhenItIs`). Decision, the owner's to overrule: `RoutePlanner.FindRoute` says when the budget was spent, and the guide then says "La ruta es larga, sigo buscando" once and keeps leading along the part it has (it searches again every 700 ms from where the player is); the scanner's line says "la ruta es larga" instead of "el camino se corta antes". A way truly cut, or cut by a known barrier, keeps its words. The alternative left aside: silence until the whole way is found, which would leave a far target with no guide at all |
+| `EntityCatalog.Classify` (`ObjectNames.FromPath`) | An object no table names was said by its file's words, in English ("Chair") | **Fixed and heard** (`AFileWordIsAnUnnamedObjectOutsideEnglish`; in the Act 2 town's scanner: "Objeto sin nombre, Chair, 9 pasos, arriba a la izquierda 2, luego arriba a la derecha"). Decision, the owner's to overrule: outside English it is said as "Objeto sin nombre, Chair" (the phrase in the ten languages), so the English word is heard as a file's word and two such objects can still be told apart; in English it stays "Chair". The alternatives left aside: not saying such objects at all (a thing in the way would go unnamed), or "Objeto sin nombre" alone (every such object the same) |
 
 Closed on 2026-11-10, third pass (with the [file catalogs](file-catalogs.md)):
 
@@ -205,8 +207,8 @@ To confirm live (all of the above is code and unit tests; the game was not run):
 - **Moved and sold items** (`InventoryWatch.Reread`, pure `ItemReadings`): an item in reach is described again when the
   stack or the rarity the host shows differs from what its name was read with; the last named reading answers once it
   is gone, and "unknown item" is never kept. A gem without a tooltip is named from the game files (`GemIndex`). A rare
-  or a unique moved without its tooltip is still said by its base name and rarity: where the item keeps its shown name
-  is not known.
+  or a unique moved without its tooltip was said by its base name and rarity; since the fifth pass it is named from the
+  Words.dat keys its Mods component keeps (`ItemNameWords`, [item mods](item-mods.md#the-items-own-name-without-the-tooltip-2026-11-10)).
 - **A ground item's tooltip** (`EntityCatalog.ItemOfTooltip`, pure `GroundTooltip`; `ScreenNarrator.OnHudChange`): the
   item is the one the game targets, else the one in view under that title; two stacks said differently and no target
   give the title without a count. A tooltip that shows again while the HUD is up is said again (a second stack of one
@@ -300,34 +302,67 @@ Tests: 12 in `HostAndToolsAuditTests.cs`; two fixtures of `DatColumnSearchTests`
 8 bytes, which the game never does, and now use `WideKey`. Still untested: `GameDataSetup.Regenerate`, `Updater.Offer`,
 `GameProcess` coroutines.
 
-Left open:
-- **A key column with no known row can still be a neighbouring key that fits** (finding 12): two keys into ClientStrings
-  side by side are both accepted, the nearer wins. Needs a known row per column (`EndgameExtractor`, and by one reading
-  `ProjectileColumns`), chosen from the game files.
-- **The launcher says nothing while a step hangs** (13): `ProgressPacer` speaks only when the count moved, so up to ten
-  minutes can pass in silence. Changes what he hears, so the owner's.
-- **The game window not up in 240 s ends the mod** (14): `GameLauncher.EnsureRunning` throws while Steam is still
-  patching. Keep waiting while Steam runs is a choice for the owner.
-- **`ui-catalog` reports done while it loses files** (15): `UiScripts.Extract` and `CatalogGenerator.Run` return 0 with
-  errors. The step is required, so the rule for failing it is the owner's.
-- **`gems` and `passive-tree` leave a language out and report done** (16): the section check sees top-level sections
-  only. Returning 1 is not safe without knowing whether the Korean client holds all ten languages; the smallest safe fix
-  is in `GameDataCounts.Problem`.
-- **Lower:** a batch that timed out keeps running beside the frame loop; `Player.Name` is read once per component
-  object; `AreaInstanceLayout.Read` falls back on the compiled offsets silently when its block cannot be read; the
-  parallel part of the map walk keeps the cap of 100,000; the Korean client's GGPK stays open; a release that installs
-  and does not work has no way back (design); a plugin that is missing or does not load is logged and nothing else (a
-  spoken line needs a new phrase); 17 log lines "Failed To Read the Memory" each time the game closes (log only).
+Left open, settled in the fifth pass (2026-11-10, evening). Each entry ends as **fixed** (how it was verified), **not a
+fault** (why) or **blocked** (by what, and what unblocks it):
+- **A key column with no known row can still be a neighbouring key that fits** (finding 12). **Blocked:** needs one
+  known row per key column of `EndgameExtractor` and `ProjectileColumns` (a row id and the value its key must name),
+  picked by reading those tables in the game's files; nothing in the repository names one, and none is guessed.
+- **The launcher says nothing while a step hangs** (13). **Fixed** (`SilenceReminder`, unit tests
+  `AStepWithoutProgressIsRemindedFirstAfterThirtySecondsThenEverySixty`, `AMovingCountRestartsTheSilence`): after 30 s
+  with no count moving it says "Sigo trabajando en <paso>, unos N min", then every 60 s. The owner's to overrule: the
+  two times are constants of `SilenceReminder`. Not heard: on that evening's patch the 28 steps ran in 30 s and none stalled.
+- **The game window not up in 240 s ends the mod** (14). **Fixed** (`GameWait`, unit tests
+  `TheWaitGoesOnWhileSomethingRunsAndRemindsCalmly`, `TheWaitGivesUpOnlyWhenNothingRanForThePatience`): the wait goes on
+  while Steam or a game process runs and ends only after 240 s with neither; "Sigo esperando la ventana del juego" at
+  30 s, then every 60 s. On the Kakao route only the game process counts (its patcher's name is not known). Heard on
+  the patch of that evening, while Steam verified the install for seven minutes: `Spoken (0): Sigo esperando la ventana
+  del juego` at 21:18:20 and then each minute, five times, until the launcher was stopped for a rebuild (`Poe2Access.log`).
+- **`ui-catalog` reports done while it loses files** (15). **Fixed** (`UiLoss`, unit test
+  `AFewLostUiScriptsAreToleratedAShareIsNot`): the step fails when more than 2 script files in 100 are lost, its output
+  is absent and the last catalog stays. The share is a choice, not a measurement (`UiLoss.MaxLostPerHundred`).
+- **`gems` and `passive-tree` leave a language out and report done** (16). **Fixed** (`GameDataCounts.Problem`, unit
+  tests `ALanguageGoneFromAKeyedSectionIsAProblem`, `ALanguageTheClientNeverHadIsNoProblem`,
+  `TheShippedCatalogsPassTheirOwnRule`): a language the last file had and the new one lacks, or sections that disagree
+  on their languages, refuse the catalog; a client that never had the language passes.
+- **A batch that timed out keeps running beside the frame loop.** **Fixed**, code only (`Extractor.Abandon`): steps
+  still queued do not start and an abandoned step deletes its part file; the worker ends within the step it was in.
+- **`Player.Name` is read once per component object.** **Not a fault**, seen live: yarkey, then malgdhler in one
+  session; the inventory's build summary was malgdhler's own ("Build: 3 de 7 piezas con su base, 3 de 13
+  modificadores, leídos en 6 de 7 piezas. Más lejos de la build: Guantes"), and the active build is found by the
+  character's name; back on yarkey it was his again ("3 de 6 piezas … Mano principal").
+- **`AreaInstanceLayout.Read` falls back on the compiled offsets silently.** **Fixed**, code only: logged once per spell
+  of failures.
+- **The parallel part of the map walk keeps the cap of 100,000.** **Fixed** (unit test
+  `TheParallelPartOfABigMapIsBoundBySizeToo`): bound by the map's size plus one, counted across the seeds.
+- **The Korean client's GGPK stays open.** **Fixed**, code only (`GameContent.CloseAll` runs whenever a sequence ends,
+  and a file that does not open as a GGPK is disposed); **blocked** for the proof: needs a Kakao client.
+- **A release that installs and does not work has no way back.** **Blocked** by the owner's choice between: (a) keep the
+  last version's files beside the new ones and a `Poe2Access.exe rollback` command; (b) as now, reinstall the older zip
+  by hand. Recommended: (a), because a blind player cannot easily find and unpack an older release.
+- **A plugin that is missing or does not load is logged and nothing else.** **Fixed**, code only (`HostRun`): "El plugin
+  de accesibilidad falta o no se cargó, así que el juego no se leerá".
+- **17 log lines "Failed To Read the Memory" each time the game closes.** **Fixed** (`ReadFailureLog`, unit test
+  `ABurstOfFailedReadsIsOneLine`): the first failure of a burst and a count of the rest.
+- **`InventoryItemStruct` log bursts on area load** (`Inventory.UpdateData`). **Fixed**, code only: a cell that cannot
+  be read is skipped with no line; none was found in the logs at hand (the host log is rewritten at each start), so
+  that they had stopped by themselves is not proven.
+- **`GameDataSetup` regenerates catalogs only when the launcher starts** (from the player part). **Fixed** as a log
+  line (`GameUpdateWatch`, unit test `APatchedGameIsNoticedOnceOnAttach`): a new game process whose install differs from
+  the one the catalogs were made for is logged once, and the plugin says "El juego se actualizó. Reinicia el mod para
+  actualizar sus datos" when a game process's exe is another than the last one's under the same mod
+  (`GameBuildChange`, unit test `AGameRestartedPatchedIsNoticed`). Not heard: on that evening's patch the mod was
+  started again with the game, the path that regenerates ("Actualizando los datos del juego tras el parche; tarda unos
+  minutos", 28 steps in 30 s, "Datos del juego listos"; then `Code fields: 52 of 52 read; moved: none`).
 
-Live checks:
-- A fight with 128+ entities: `Frames:` lines (slowest over 16,7 ms) and no "awake entities' map is out of id order".
-- Boss phases still said when they change (the one-second name cache); stacked buffs say 2 and 3 (`BuffStacks`).
-- An entity whose id changes at one address (leave an area and come back): the scanner names the new thing.
-- Log in with one character, out, in with another: the name used is the second's.
-- The updater on a real release from a packaged install, and once with the network cut during the download.
-- A start with `oo2core.dll` renamed: the log says "bundle index" once and no step "failed on start 1 of 3"; put back,
-  every step regenerates.
-- Korean client: the ten languages of `gems.json` and `passive-tree.json`, and the GGPK handle.
+Live checks, as they stand:
+- A fight with 128+ entities (`Frames:`, the id order); boss phases and stacked buffs; an entity whose id changes at one
+  address. **Blocked:** need a fight, or leaving town, which the unattended session may not do.
+- Log in with one character, out, in with another: done (yarkey, malgdhler, yarkey), each time the build summary of the
+  character in play; see the `Player.Name` entry.
+- The updater on a real release, and with the network cut. **Blocked:** needs a published release, the owner's to make.
+- A start with `oo2core.dll` renamed. **Blocked:** it renames a file of the game's own install; needs the owner's leave
+  (or a copy of the install to point the mod at).
+- Korean client: the ten languages and the GGPK handle. **Blocked:** needs a Kakao client.
 
 ### Interface and speech
 
@@ -363,31 +398,66 @@ entry of the player part), "Vendido" and other move lines not kept because `Seat
 the world part; `SeatOutput` now also forwards `MentionNews`), and the passive-tree catalog older than the game said over
 the live rows (O3; see the player part).
 
-Left open:
-- **A control under the free cursor with no tooltip is never said** (N1): `FocusTracker` keeps a hovered node pending
-  until a tooltip shows. Saying hovered interactive elements may add chatter; his choice, with the game open.
-- **A number that changes under the cursor does not reach the Skills panel's rows** (N2): live they are `role=Panel`,
-  the rule covers `GridCell`, `ItemSlot`, `ListItem`, and `StaleValueTests` asserts the row as `ListItem`. Widening to
-  `Panel` would make a panel with a clock speak every second; needs the list of panels that tick.
-- **A cell is read whole again when little changed** (N3): a value change during the 300 ms wait replaces the readout with
-  the whole focus (`ScreenNarrator.Focus`). What to say instead is his to choose.
-- **The skill bar's readout drops out with no log if a patch changes its frame layout** (N5, `UiSemantics.SkillBar`).
-- **The dropdown layout latch can be settled by one dropdown** (N6, `ComboBoxReader`: owners counted by address).
-- **`ScreenWatcher.Reset` races the capture under way** (N7): one stale pass of at most 150 ms plus capture.
-- **`RouteSpeedTests.ALongRouteStaysWithinTheFrameBound` fails under load** (O4, 61,1 ms against 40): a wall-clock gate
-  that can fail a release on a busy machine.
-- **Tests that do not test:** `StaleValueTests` fixture role (N2); the L3 gesture rule in `ModCommands.OnGesture`;
-  `FocusDetails.PageBeside` third condition; `LongTextReader.Paragraphs`/`ParagraphAt`.
+Left open, settled in the fifth pass (2026-11-10, evening):
+- **A control under the free cursor with no tooltip is never said** (N1). **Blocked:** needs one live sweep of the
+  free-cursor panels (shop, world map, Atlas) listing the hovered interactive elements that never get a tooltip, then
+  the owner's ear for the chatter; the realm's maintenance and patch (21:01 to 21:25) left no time for the sweep.
+- **A number that changes under the cursor does not reach the Skills panel's rows** (N2). **Blocked:** needs the list of
+  `Panel` rows whose text ticks (a clock would speak every second), read live on the Skills panel. Meanwhile the test
+  says what is true: `StaleValueTests` asserts that a `Panel` row is not covered and names this entry.
+- **A cell is read whole again when little changed** (N3). **Not a fault:** the readout it replaces had not been spoken
+  yet (`ScreenNarrator.OnValueChanged`, the `deferredFocus` branch): the player hears one line, with the value as it is
+  now, instead of the old line and then a correction.
+- **The skill bar's readout drops out with no log** (N5). **Fixed**, code only: logged once per session when the frames
+  no longer match (`UiSemantics.SkillBar`, through `TreeFields.Log`).
+- **The dropdown layout latch can be settled by one dropdown** (N6). **Fixed** (`ComboIdentity`, unit test
+  `OneDropdownRebuiltIsStillOneOwner`): an owner is its name, its three nearest ancestors' names and its entry count,
+  not its address; with every name empty the latch never settles and each dropdown reads with its own layout.
+- **`ScreenWatcher.Reset` races the capture under way** (N7). **Fixed**, code only: the generation is taken before the
+  reset flag and checked again after the pass is applied, so a pass begun before a reset is dropped.
+- **`RouteSpeedTests.ALongRouteStaysWithinTheFrameBound` fails under load** (O4). **Fixed:** the best of several runs
+  against the same bound, and the work counted (`RoutePlanner.LastExpansions`: at most 20,000 for the long routes,
+  40,000 for the walled goal; measured 4,647 and 7,948). Not run under load.
+- **Tests that do not test.** **Fixed:** the Skills row's role (above); the L3 press rule (`L3Gestures.GamesPress`,
+  `OnlyATapOnAFocusTheGameMovedIsTheGames`); `FocusDetails.PageBeside`'s third condition
+  (`ThePanelBesideIsNamedOnlyWhenItAddsSomething`); the long-text split (`LongTextParagraphs`,
+  `ALongTextSplitsIntoItsLinesWithWords`, `AScrollLandsOnTheParagraphHoldingTheOffset`).
+- **`SpeechPriority.IsReading` aged events under a reading kind.** **Fixed** (unit test
+  `OnlyANumberIsAReadingAtEveryKindAndLevel`, kinds x levels x urgent x happened): a line is a reading only when it is
+  a number, not urgent and not marked as something that happened; a flask drunk, refilled or arrived, a buff begun or
+  ended and rage full or empty are marked. The level never makes a reading.
+- **A worn weapon's first focus said twice** (found buying gear). **Fixed and heard:** an item its tooltip names waits
+  up to 300 ms for a tooltip not up yet (`TooltipSettle.NameWaitMs`; a normal item never waits), and a rare or unique
+  item is named from its own words at once. One line on each set: "Mano principal, Filo quimérico, raro, Build: 0 de 3
+  modificadores. …" and "Segundo set de armas, mano principal, Lanza de guerra dentada, mágico, Build: 1 de 3 …".
+- **The menu A opens beside another player had no word that it is a player.** **Fixed and heard**
+  (`TheMenuOnAPlayerSaysItIsAPlayer`; said when a player of that name is in the area): "Jugador: Tejetormentas Niv. 27,
+  Liga Forbidden Rites, Bleidz. Invitar al grupo, 1 de 5", and again by accident when a player stepped onto the stash
+  ("Jugador: Monje Niv. 26, Liga Forbidden Rites, sanllee. Invitar al grupo, 1 de 5"); closed with B both times.
+- **The status line named the last character's area at the login screen** (heard that evening: "Inicio de sesión.
+  Área: La caravana de los ardura"). **Fixed** (`TheAreaIsSaidOnlyInAGame`).
+- **A slider at its minimum fails its own check** (from the player part). **Fixed**, code only
+  (`UiElementReader.ReadSliderState`): while no slider has proved the fields, one that reads at its minimum where they
+  were measured is read there and nothing is searched; before, the search took the first place nearby with a value
+  above a minimum and that number was read. **Blocked** for the live check: none of the owner's sliders sits at 0
+  (volumes 78, 100, 69, 100, 100; HUD scale 100) and moving one changes his settings.
 
-Live checks:
-- Boss fight with a lesson or the quest page on screen, boss life on *espera* and on *interrumpe*: the defeat is said, a
-  pick-up follows the lesson, no `Speech not said` for it.
-- Restart game and mod with the tree left on a far node: `Donde lo dejaste, …`, and `config/passive-resume.txt` keeps it.
-- Hours with NPC talk: no replay of old chat lines. Two character creations in one session: "N de 6" on both.
-- `Screen snapshot cut short` with the tree open at every zoom, the Atlas and the shop.
-- Which free-cursor panels hold controls without a tooltip (N1); whether the new DPS is wanted on a Skills row (N2).
-- The day's speed work in a fight (none was played): `Slow tick: focus/screen`, and a panel opened mid-fight reads its
-  focus within 300 ms. `SettlingMemo`: salvage bench, stash and a merchant in turn, each title right on the first item.
+Live checks, as they stand:
+- Boss fight with a lesson or the quest page on screen; the day's speed work in a fight. **Blocked:** need a fight.
+- Restart with the tree left on a far node (`Donde lo dejaste, …`). **Blocked** by time in this pass (the patch took 25
+  minutes of it): push the stick to a far node, quit, start, open the tree. The evening's restart found the cursor on
+  the class start's first node, where no such line is due.
+- Hours with NPC talk; two character creations in one session. **Blocked:** the first needs hours of play; the second
+  needs the creation screen entered twice, which the patch left no time for.
+- `Screen snapshot cut short`: none in the day's log (0 lines) with the tree at every zoom from x0,4 to x1,9, the shop
+  earlier that day, the stash, a merchant and the salvage bench. The Atlas is **blocked:** no character there.
+- The tree's first reading: `Slow tick: focus` 440 ms at the first opening of a session and 635 to 754 ms when the mod
+  starts with the tree already open (three starts); once per session, the game itself is not held.
+- `SettlingMemo`: the stash, the salvage bench and a merchant in turn, each title on its first line: "Alijo, pestaña 1.
+  Inventario. Orbe de transmutación, 6, columna 1, fila 1, …"; "Mesa de reciclaje. Aquí puedes reciclar objetos de
+  equipamiento con calidad o engarces … Orbe de transmutación, 6, columna 1, fila 1, …"; Zarka's "pestaña 1. Inventario.
+  Pergamino de sabiduría, 8, columna 1, fila 2, 16 oro. …", then "4.776 oro".
+- Free-cursor controls (N1) and the Skills row (N2). **Blocked:** see their entries.
 
 ### World, combat and audio
 
@@ -419,39 +489,51 @@ part's `61c774c`. Tests: `WorldCombatAuditTests.cs` (6); none for `101f053`, `5b
 the tests do not link). The sentence of this document saying `SeatOutput` does not forward `SpeakReading` was out of
 date and is dropped.
 
-Left open:
-- **A boss with forms is said defeated at the end of its first form, and its room marked** (12): `BossWatch`,
-  `EntityCatalog`, `MinimapMarks.RoomDefeated`. Smallest fix: do not say or mark the defeat of a boss the catalog says
-  has a form still to come; needs a look at one such boss.
-- **Exit tins flap to "open" and back** (13): of 140 `Exit` readings 69 were followed by `Open` within 1.5 s. An exit has
-  no hysteresis (`RadarSensor`, `PassageScan`); how long it must be gone is for his ear.
-- **"Se abrió el paso" may be said for a barrier still closed** (14): after walking away until it sleeps and coming back
-  (`BarrierWatch`). Needs the live game.
-- **A boss's growl stops while it cannot be targeted** (15, `EnemyCues`): owner's choice.
-- **The loss of the output device is neither seen nor logged** (16, `AudioCueService` ignores `waveOutWrite`'s result):
-  whether the handle works after the device returns is Windows'; needs the live game.
-- **Smaller:** `ObjectSounds` returns when no game sound was extracted (the Diablo IV set and the quest ring too);
-  `MapPlaces.Assign` names no checkpoint past 50,000 pairings (needs a design); `RoutePlanner.workspace` keeps about
-  14 MB per pool thread that searched a 1600 x 1600 area; game names with no check when a patch renames them (trap
-  states, the room door, enemy-state buff ids and animations, `ActiveBlockChannel`, `Tail`); rules in host-bound classes
-  with no test (`Beacon.CollectSearch`, `BossWatch.WatchLife`, `TargetNarrator.Tick`).
-- **Also:** the guide on a closed barrier that opens within 600 units says "ya no está a la vista" beside "Se abrió el
-  paso" (true, odd; a wording choice); the half second before "derrotado" equals the host's 30-frame dormant latch
-  (raising `DefeatConfirmMs` to a second would cover it, at the price of a later line); `StaleValueTests` pins "another
-  instance object with the same hash forgets the scanner's choice", against the respawn rule (harmless).
+Left open, settled in the fifth pass (2026-11-10, evening):
+- **A boss with forms is said defeated at the end of its first form, and its room marked** (12). **Blocked:** needs one
+  fight against a boss with two forms, watched in the log (`Boss risen:`, the catalog's row for the second form); the
+  bosses are the owner's to fight (AGENTS rule 25).
+- **Exit tins flap to "open" and back** (13). **Fixed**, unit tests only (`AnExitHeardIsNotLostToAFlap`,
+  `RadarSoundsConfirmedChangesOnly`): an exit once confirmed stays an exit for `RadarSensor.ExitHoldMs`, 1.5 s (30
+  polls), after the ray last saw it. The price: a true change from exit to wall or open is said 1.5 s later. The
+  owner's to overrule by that one constant; to hear near any area exit.
+- **"Se abrió el paso" may be said for a barrier still closed** (14). **Blocked:** needs a closed barrier walked away
+  from until it sleeps, and back (two screens), outside a town.
+- **A boss's growl stops while it cannot be targeted** (15). **Blocked** by the owner's choice between: (a) silence, as
+  now: no growl means nothing to hit; (b) the growl goes on, quieter, so the boss is still placed while it cannot be
+  hit. Recommended: (b) only if he finds bosses hard to place again after a phase.
+- **The loss of the output device is neither seen nor logged** (16). **Fixed** as a log line, code only
+  (`AudioCueService`: once when `waveOutWrite` fails, once when it works again); whether the cues come back after a
+  replug is **blocked:** needs a person to unplug and plug the headset with the game open.
+- **`ObjectSounds` returned when no game sound was extracted.** **Fixed**, code only: the Diablo IV loops and the quest
+  ring play without the game's own sounds.
+- **`MapPlaces.Assign` named no checkpoint past 50,000 pairings.** **Fixed** (`MapMarkersFindTheirCheckpoints`, 16
+  shuffled checkpoints): past the budget each marker takes the place in the nearest direction, each place once, within
+  the exact fit's 23 degrees (`MapPlaces.Greedy`).
+- **`RoutePlanner.workspace` kept about 14 MB per pool thread.** **Fixed**
+  (`SearchWorkspacesKeptBetweenSearchesAreBounded`): searches rent from one pool that keeps two workspaces at most.
+- **Game names with no check when a patch renames them** (trap states, the room door, enemy-state buff ids and
+  animations, `ActiveBlockChannel`, `Tail`). **Blocked:** needs each name looked up in the game's files after a patch
+  (`catalog/game-keys.txt` holds table keys, not these names); a check that names them all needs a list from the
+  extractor, which is not built.
+- **Rules in host-bound classes with no test** (`Beacon.CollectSearch`, `BossWatch.WatchLife`, `TargetNarrator.Tick`).
+  **Blocked:** each reads the host's entities directly; a test needs the rule lifted out of the class, not done in this
+  pass. The Beacon's new phrase choice is tested (`WayCuts.Of`).
+- **The guide on a closed barrier that opens says "ya no está a la vista" beside "Se abrió el paso".** **Not a fault:**
+  both are true (the barrier as a target is gone because it opened); two short lines, in that order.
+- **The half second before "derrotado" equals the host's 30-frame dormant latch.** **Blocked** by the owner's choice:
+  `DefeatConfirmMs` 500 (now) or 1000 (covers the latch, the line comes half a second later); needs his ear in a fight.
+- **`StaleValueTests` pins "another instance object with the same hash forgets the scanner's choice".** **Not a
+  fault:** the scanner is left out of the respawn rule on purpose (`ScanBrowser.InArea` was left alone in `f391e80`);
+  the test says what the code does.
+- **The Beacon's "way stops short" when the search only ran out of budget** (the Open table). **Fixed**, unit tests
+  only (`ASearchThatRanOutOfBudgetSaysSo`, `TheWayIsSaidClosedOnlyWhenItIs`): see the table.
 
-Live checks:
-- Aim at a boss through its whole fight, also while a second form waits: `Target -> … "<name>, N por ciento"`, no
-  `(name shared…)`. A boss with two lives or forms: is "derrotado" said at the first fall, does `Boss risen:` follow?
-- Die with the guide locked and respawn: the ping goes on, no `Beacon released`; no `Instance:` line at a respawn.
-- Sell an item: `Speech interrupts, kept: Vendido: …` and the focus line after it.
-- A Trial: `Trial trap seen:` lines, the dodge cue before spikes and on walking into a firing laser, its delay against the
-  game's rumble, "Llegaste a Puerta…" at the room door.
-- Open a door or pull a lever and scan the far side within two seconds: `Route to …: N cells`, not "cut".
-- A blow from a chilled or hasted rare: `Dodge timing: … hit after N ms`, N near X x R.
-- `Frames:` and dev `costs` in a boss fight: `bosses`, `enemy sounds`, `target` under a millisecond or two each.
-- Walk two screens from a closed barrier and back: no `Barrier opened:` while shut. Replug the headset: cues sound.
-  A road sign: no character tap.
+Live checks, as they stand. **Blocked**, all of them, by what the unattended session may not do: a boss fought through
+its forms; a death and respawn with the guide locked; a sale ("Vendido: …" kept); a Trial; a door opened and the far
+side scanned; a blow from a chilled or hasted rare; `Frames:` in a boss fight; a barrier left and come back to; a
+replugged headset; a road sign. The first seven need a fight or a sale, the owner's; the barrier and the sign need a
+walk outside a town.
 
 ### Player, items, passives, layout and core
 
@@ -502,40 +584,59 @@ Tests: `PlayerItemNewsTests.cs` (10: buff rule, settled count, trade moves, move
 None for the trade window watch, the gold backoff, the frame isolation and the offset restore (they read through the
 host).
 
-Left open:
-- **A trade item swapped for one that reads the same is not noticed** (`TradeOfferNews`): the offer is compared as text.
-  Needs to know live whether the other side's item entities are stable.
-- **`TradeOfferWatch.Open` is true only after the cursor has been in the trade grid once**; otherwise an accepted trade
-  is told by the dropped/used rules. The window must be recognised without the focus.
-- **A flask's cost learnt in a fight** (`FlaskDrinks`): two drinks that each held a charge gained from a kill agree on a
-  cost one too low; no `Flask cost:` line has been seen in play. Follows from the "two drinks agree" design.
-- **A quiet button buff stays quiet for the character's session**; **after a respawn every buff, charge and ailment held
-  at death is said as ended** (by design, noisy): the owner's rules.
-- **The dev command file is read whatever `ResearchMode` says**; gating it would break the unattended tests.
-- **`ChargeWatch` has no grace after an area's first reading**; **an unnamed item is described again at every poll**
-  (`InventoryWatch`, `ItemReadings.IsStale`); **`SkillStatSets.keyOffset` is found once per host**; **a real loss judged
-  only on things that come and go can stay unsaid** (`SecondLook`); **nothing is gated while a part is suspected or
-  lost** (by design; a decision per part).
-- **A slider at its minimum fails its own check** (`UiElementReader`, `ControlFields`); not settled.
-- **`GameDataSetup` regenerates catalogs only when the launcher starts**: a game patched under a running host leaves the
-  plugin on the old build's columns and names.
-- **`AnUnreachableGoalStaysWithinTheFrameBound` failed once at 85,3 ms against 80** under load: a wall-clock test.
-- **Tests that do not exist:** `WorldLayoutWatch` inline counters, `LayoutProbe`'s two looks, `InGameFields`' absent
-  rule, `PlayerSkills.JudgeNames`, `GameStateService.StatesOverdue`, `FlagBits` rounds beyond `MovedBit`.
+Left open, settled in the fifth pass (2026-11-10, evening):
+- **A trade item swapped for one that reads the same is not noticed**; **`TradeOfferWatch.Open` is true only after the
+  cursor has been in the trade grid once.** **Blocked:** both need a trade window with a second player (whether the
+  other side's item entities are stable; the window recognised without the focus).
+- **A flask's cost learnt in a fight** (`FlaskDrinks`). **Blocked:** needs two drinks in a fight with kills between
+  (`Flask cost:` against the tooltip's "Consume N").
+- **A quiet button buff stays quiet for the character's session**; **after a respawn every buff, charge and ailment
+  held at death is said as ended.** **Blocked** by the owner's choice: (a) as now; (b) nothing held at death is said as
+  ended at the respawn (he knows he died), and a quiet buff is told again after an area change. Recommended: (b) for
+  the respawn, (a) for the quiet buff.
+- **The dev command file is read whatever `ResearchMode` says.** **Not a fault:** only someone who can already write
+  into the mod's own folder can use it, the commands read and speak and never act on the game, and the unattended
+  tests depend on it.
+- **`ChargeWatch` has no grace after an area's first reading.** **Fixed** (`BaselineGrace`,
+  `TheWindowStartsAtTheFirstReadingAndEnds`): for 1.5 s after an area's first reading, charges and Rage are the
+  baseline, not news.
+- **An unnamed item is described again at every poll** (`InventoryWatch`, `ItemReadings.IsStale`). **Not a fault:** it
+  is a few reads per unnamed item four times a second, and it is how the item gets its name once the game fills it;
+  a rare or unique item's name from its words is kept per Mods component (`InventoryReader.wordNames`).
+- **`SkillStatSets.keyOffset` is found once per host.** **Fixed**, code only: when the known offset no longer names the
+  table it is searched for again and replaced.
+- **A real loss judged only on things that come and go can stay unsaid** (`SecondLook`); **nothing is gated while a
+  part is suspected or lost.** **Not a fault**, by design: a part is said lost only on evidence that cannot be a thing
+  leaving the screen, and a suspected part keeps reading because silence is worse than a doubtful line; each lost part
+  is said once (`Announcements.Compatibility`).
+- **A slider at its minimum fails its own check.** **Fixed**, code only; see the interface part.
+- **`GameDataSetup` regenerates catalogs only when the launcher starts.** **Fixed** as a log line; see the host part.
+- **`AnUnreachableGoalStaysWithinTheFrameBound` failed once under load.** **Fixed** with the other wall-clock test
+  (the best of several runs, and the expansions counted).
+- **Tests that do not exist** (`WorldLayoutWatch` inline counters, `LayoutProbe`'s two looks, `InGameFields`' absent
+  rule, `PlayerSkills.JudgeNames`, `GameStateService.StatesOverdue`, `FlagBits` rounds beyond `MovedBit`).
+  **Blocked:** not written in this pass; each class reads through the host, so each needs its rule lifted into a pure
+  class first (`StatesOverdue` is already static: it needs only a `Compile` line and a test).
+- **A rare or unique item named by its base where no tooltip was read** (ground labels, moves; from the stale-values
+  pass). **Fixed and seen live:** the item's own words name it (`ItemNameWords`, `GameLayout.ItemNameWords`: the
+  Words.dat keys at Mods +0x18; unit tests `ItemNameWordsTests`). With no tooltip read since the mod started, dev
+  `inventories` named all eleven worn pieces ("Filo quimérico, raro", "Égida de glifo, raro", "Estallido repentino,
+  único", "Trenza de medianoche, único", …); then each focused slot's title agreed (dev `layout`: "item names from
+  words ok (56 titles agree, 0 differ)"). A rare's two words are put in the order their own space gives, so a language
+  written without spaces keeps the base name; a magic item keeps no words and is still named by its base until its
+  tooltip is read. Ground labels use the same call and were not seen (no item on the ground in a town).
 
-Live checks:
-- What `TotalTime` reads for a buff with no duration (0, infinity, other); the parry buff's id and duration; six short
-  raises say nothing.
-- A player trade end to end: the offer said with the cursor in the inventory, a change said, "Obtenido" and "Entregado"
-  on accept, no "…: nada" as the window closes.
-- The flask cost in a fight: `Flask cost: … N charges a drink as seen`, N equal to the tooltip's "Consume N".
-- Gold piles in two areas, dev `structs` twice (`invariant: stack counts`), then the three caps of a gold stack.
-- Whether the game reuses an `AreaInstance` address (`[AreaInstance] … at the same address`, then a `Struct sweep`).
-- A new game process begun in the tree: no `navigable flag moved`; the tree's opening time (`Slow tick: focus`).
-- The game restarted under the running host: the `Code fields:` tally, cooldowns still said.
-- Options with a slider at 0 focused first: dev `layout` says "sliders ok", the value said is 0.
-- Item-granted or internal skills: `Skill names: … agrees on N of M`. After a death and respawn: which "ended" lines are
-  said, and whether the owner wants them.
+Live checks, as they stand:
+- `TotalTime` of a buff with no duration, the parry buff; the flask cost in a fight; gold piles in two areas; a reused
+  `AreaInstance` address; item-granted skills' names; the lines after a death. **Blocked:** need a fight or areas
+  outside a town.
+- A player trade end to end. **Blocked:** needs a second player.
+- A new game process begun in the tree: no `navigable flag moved` after the fix (`fb1a6cc`) in that day's log, with
+  three mod starts under an open tree that evening; a fresh game process begun there was not tried.
+- The game restarted under the running host: on that evening's patch the mod was started again with the game (`Code
+  fields: 52 of 52 read in 522 ms; moved: none`, `Semantic fields: 80 of 80`); a host left running through a game
+  restart was not tried, and now says so if the exe changed (see the host part).
+- Options with a slider at 0 focused first. **Blocked:** see the slider entry of the interface part.
 
 ### Closed after the pass
 

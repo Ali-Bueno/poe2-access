@@ -43,3 +43,12 @@ After the reader was built, with no tooltip read since the mod's start, dev `inv
   Ring2 "Nudillo hipnótico, raro" | Gloves1 "Agarraderas de necrófago, raro" | Boots1 "Paso de dominación, raro" |
   Belt1 "Trenza de medianoche, único" | Weapon2 "Lanza de guerra, mágico"
 and after each worn slot was focused once, dev `layout`: "item names from words ok (56 titles agree, 0 differ)".
+
+malgdhler's worn rares, the same evening (21:44, another game process: other addresses). His helm was first made
+"Estrella quimérico" (the first branch) while its tooltip reads "Estrella quimérica": the noun's row gives "F".
+  helm:   row Wordlist 1 'Chimeric' +0x30 '<if:MS>{ quimérico}<elif:FS>{ quimérica}<elif:MP>{ quiméricos}<elif:FP>{ quiméricas}', +0x38 -> ''
+          row Wordlist 2 ' Star'   +0x30 'Estrella', +0x38 -> 'F' (bytes 46 00 00 00)
+  ring:   row Wordlist 1 'Kraken'  +0x30 '\xa0de kraken' (a no-break space), row Wordlist 2 ' Band' +0x30 'Banda', +0x38 -> 'F' (the same text as the helm's)
+  gloves: row Wordlist 1 'Apocalypse' +0x30 ' de apocalipsis', row Wordlist 2 ' Paw' +0x30 'Zarpa', +0x38 -> 'F'
+After the fix, with no tooltip read: Helm1 "Estrella quimérica, raro", Ring2 "Banda de kraken, raro", Gloves1 "Zarpa de
+apocalipsis, raro"; after each slot was focused, dev `layout`: "item names from words ok (212 titles agree, 0 differ)".

@@ -150,7 +150,7 @@ for a number written a way not seen, 124 with no line that could be written, 108
 
 ## Live check
 
-Not run: the game was in use by another session while this was built. Before the feature is trusted:
+Run on 2026-11-10; the results are under "Live check, 2026-11-10" below. The procedure:
 
 1. Start the game with the build; the log must say `Modifier stat catalog: 15851 modifiers, 1060 not told apart, 24
    hidden stats from the game files`.
@@ -173,6 +173,91 @@ Not run: the game was in use by another session while this was built. Before the
    - the client in another language for the decimal mark.
 5. Then the feature itself: with no slot focused since the game started, open the inventory — the summary must read
    "leídos en N de N piezas" with N the worn pieces, and focusing each slot afterwards must not change its counts.
+
+## Live check, 2026-11-10
+
+Run that evening on the patched 0.5.5f (the catalog loaded: `Modifier stat catalog: 15851 modifiers, 1060 not told
+apart, 24 hidden stats from the game files`), on yarkey (Mercenary 23, Act 2 town) and malgdhler (Druid 8, Act 1
+town); one pass of the cursor over each worn slot, then dev `itemmodscheck`.
+
+| Where | Items | Lines equal | Differ | Uncertain |
+|---|---|---|---|---|
+| yarkey, first run (as merged) | 16 | 57 | 2 | 4 |
+| yarkey, after the three fixes below | 15 (the bag's sceptre not rested on again) | 54 | 1 | 2 |
+| malgdhler | 10 | 27 | 0 | 0 |
+| stash tab 1, 12 items rested on (11 rare, 1 magic) | 12 | no `Item mods: … differ` line | 0 | not listed |
+
+What is left on yarkey: the one "differ" is the charm's "No te pueden aturdir", the base's own line (tooltip only,
+as expected); the two uncertain are the spears' `local_display_grants_spear_throw_skill`, which the description file
+does not hold. `memory only` was never logged.
+
+Found and fixed:
+- **A line outside the description file made its whole piece "not compared".** Both spears carry the implicit that
+  shows "Otorga la habilidad: Lanzamiento de lanza"; its stat has no block in `stat_descriptions.csd`, the line was in
+  doubt and the piece partial, so with no slot focused the summary read "3 de 9 modificadores … Más lejos de la build:
+  Segundo set de armas, mano secundaria" and after focusing "3 de 15 … Mano principal". Such a line cannot be a wanted
+  modifier the file knows, and only those are ever said missing: it no longer makes the piece partial
+  (`ItemModLine.OutsideTexts`, `BuildGear.LinesFromMemory`). Now "3 de 15 modificadores, leídos en 6 de 6 piezas. Más
+  lejos de la build: Mano principal" before and after.
+- **Hundredths.** "+1.4% a la probabilidad de impacto crítico" (`local_critical_strike_chance`, `divide_by_one_hundred`)
+  was in doubt though the tooltip shows it so; a staff in the stash shows "+1.12%". A whole number of hundredths has no
+  third decimal to round: written as it is, with up to two decimals and no zero after them (`StatHandlers.SeenExact`).
+  The staff rested on again afterwards: no difference logged.
+- **A half.** The unique ring's regeneration, 201 a minute, was written "3.4" (in doubt, as every half was) where the
+  tooltip shows "Regeneras 3.3 de vida por segundo". Single precision holds 3.35 as 3.3499999, which also fits the two
+  earlier readings (352 as 5.9, 104 as 1.7): under `per_minute_to_per_second` a half is now written as single precision
+  rounds it and is certain (`StatHandlers.SeenTies`); a number that is a half in single precision too (2.25) stays in
+  doubt, and so does a half under any other handler. One reading stands behind this.
+
+The questions of step 4:
+- **Quality:** the second set's spear has "Calidad: +8%" and its two modifier lines are equal: quality changes the
+  base's own numbers, not the lists.
+- **A socketed rune or soul core, an enchanted item, a corrupted item, one stat on an implicit and an explicit, a
+  modifier of three values, a number over 999:** none at hand on either character or in stash tab 1. Open, each needing
+  such an item rested on once (yarkey holds a Runa de piedra menor; socketing it is the owner's to do).
+- **Another class:** malgdhler's staff (a unique), helm, gloves and ring (rare) and four magic pieces, all equal.
+- The client in another language was not tried.
+
+The feature itself (step 5): the summary counts every worn piece at the first opening and focusing the slots does not
+change it (yarkey, above; malgdhler "3 de 7 piezas con su base, 3 de 13 modificadores, leídos en 6 de 7 piezas": the
+seventh is the second set's talisman, whose lines are none).
+
+## The item's own name, without the tooltip (2026-11-10)
+
+A rare or unique item was named by its base wherever no tooltip had been read (a ground label, a move of an item the
+cursor was never on, the first line of a focused slot whose tooltip came late). The name is in the item's Mods
+component, as keys into Words.dat. No host struct names the field; it was found by reading the component of five worn
+items of yarkey and three of malgdhler (0.5.5f, Spanish client; read-only reads through `tools/computer_use/peek.py`,
+their output in [evidence](evidence/item-name-words-2026-11-10.txt)).
+
+| Where | What | Seen |
+|---|---|---|
+| Mods component `+0x18`, `+0x20` | begin and end of a std::vector of 16-byte keys (row, file) | one key on a unique, two on a rare, an empty vector (0, 0) on a magic item |
+| key `+0x08` | the file object; its name reads `Data/Balance/Words.dat` (the same shape `DatKey` checks everywhere) | all seven keys |
+| Words row `+0x00` | Wordlist, int | 6 for a unique's name, 1 and 2 for a rare's two words |
+| Words row `+0x04` | Text, English | "Cracklecreep", "Midnight Braid", "Chimeric", " Edge", "Fate", " Beads" |
+| Words row `+0x30` | the text in the client's language, with gender branches | "Estallido repentino", "Trenza de medianoche", `<if:MS>{ quimérico}<elif:FS>{ quimérica}<elif:MP>{ quiméricos}<elif:FP>{ quiméricas}`, "Filo", " de destino", "Cuentas" |
+| Words row `+0x38` | the inflection the row gives the other word | the gender alone on a singular noun ("F" on "Estrella", "Banda", "Zarpa"), both letters on a plural ("FP" on "Cuentas"), empty on a masculine singular ("Filo") and on the first words |
+| row size | 0x40 (the next row's Text follows at `+0x44`) | "Matsya", "Corpse", " Frontier", "Spirit Link", "Foe", " Beak" |
+
+The name (`ItemNameWords.Compose`, pure): a unique is its one word; a rare is its two words, the one that begins with a
+space second ("Chimeric" + " Edge" in English, "Filo" + " quimérico" in Spanish: each language writes the space into
+the word that goes second, so no language is assumed; the space may be a no-break one, as in " de kraken"), the
+branch chosen by the inflection the noun's row gives ("F" stands for "FS": "Estrella quimérica"; the first reader took
+the first branch and made "Estrella quimérico", caught on malgdhler's helm the same evening), the first branch when
+none fits. Two words of which not exactly one begins with a space (a language written without
+spaces), an empty word or markup left over give no name, and the base name is kept. A magic item's title holds its
+affixes' words, which are in no Words key: it is still named by its base until its tooltip is read.
+
+Validation at run time: each key must name Words.dat (`DatKey.Row`), at most two keys, and every tooltip title read is
+compared with the name made (`ItemNameTrust`: given up, and reported as "item names", once two titles differ with
+none or fewer in favour). Live, 2026-11-10: with no tooltip read since the mod started, dev `inventories` named the
+eleven worn pieces by their own names (Manto de anochecer, Filo quimérico, Égida de glifo, Halo de cólera, Cuentas de
+destino, Estallido repentino, Nudillo hipnótico, Agarraderas de necrófago, Paso de dominación, Trenza de medianoche;
+the magic spear by its base); after each slot was focused once, dev `layout` said "item names from words ok (56 titles
+agree, 0 differ)". On malgdhler (a Druid): "Estrella quimérica", "Banda de kraken", "Zarpa de apocalipsis", "Unión de
+tierra, único", and "212 titles agree, 0 differ". Not seen: a ground label (no item lies on the ground in a town), an
+unidentified rare (its vector is expected empty), a client in another language.
 
 ## Not done
 

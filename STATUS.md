@@ -471,6 +471,7 @@
   + `ProcessAccess` (Korean client), `GameDataSetup` + pure `GameDataStamp` (per-step versions; catalogs kept in `app/GameData`, survives mod updates).
 
 ## Next step
+Done (2026-11-10, evening): every open entry of the Known issues and of the audit settled as fixed, not a fault or blocked (below); item modifiers without the tooltip merged and checked live on two characters; rare and unique items named without their tooltip; the game's patch of 21:15 taken with the mod (data regenerated, no field moved). Not released.
 Done (2026-11-10, infrastructure and readings, live on yarkey in G2_town): dead and duplicated code out of the plugin, the host, the extractor and the tools, the big files split; `tools/build.ps1` builds and checks in one command and the release refuses a dirty tree; stashes and wells sound and a quest's name no longer makes the well its objective; a stash's search says what it lights; an item that cannot be used says which requirement is missing; the tree's stick check no longer reports a game update, the Build list says its progress and a new list walks what is taken outside the build; cells that read empty for a moment are not said ([audit](docs/research/robustness-audit-2026-11-10.md), [ui layers](docs/research/ui-layers.md#items-in-a-grid-search-highlight-unmet-requirements-055f-2026-11-10)). Released **v2026.11.10-7**.
 Characters: every fight was on **yarkey** (level 23 Mercenary, a spear with Whirling Slash since 2026-11-09). The user deleted **`acceso_prueba`** and **frajtnir** on 2026-11-09; left: hairin (Huntress 4), kehgan, malgdhler (Druid 8), yarkey, yarkidius.
 Next: (1) **Bosses by hand** — the Bloated Miller with a new low character (a minion gem first; its tutorial pause times the 300 ms lead), Count Geonor, the King in the Mists and Act 2's bosses: the script cannot play them without looking like a bot (user, 2026-11-08). (2) **Steam Deck / Proton:** speech is ready (PRISM 0.18.3 and its Wine bridges ship through the mod's own binding, NVDA still picked on Windows; [Proton](docs/proton.md)) but untested; a Linux player must confirm the speech, the start from Steam's launch option `poe2access-proton.sh` (2026-11-09: `protontricks-launch` drops `WINEDLLPATH`, and SAPI is mute, per the D2R mod's test) and the memory reading under Wine. (3) **Blocked, each for its reason:** a vendor price in another currency and the Trial of the Sekhemas (a Djinn Barya and a run yarkey survives); the trials, the Atlas, maps and Acts 3-4 (no character there yet); the fields left with one protection or none ([audit](docs/research/field-protection-audit.md) §2: no function reads them alone, or only a mouse judges them); the Mercenary's crossbow ammunition in memory (not needed for now, user 2026-11-08); GGG's written approval (emailed 2026-10-26).
@@ -478,151 +479,193 @@ Next: (1) **Bosses by hand** — the Bloated Miller with a new low character (a 
 Earlier chunks, newest first: [status history](docs/status-history.md).
 
 ## Known issues / open questions
-- Fourth audit pass (2026-11-10, code and unit tests only; none of it ran in a fight): a boss's defeat or a partner
-  down no longer dropped as a late reading; the navigable flag bit no longer moved by hovered tree nodes; "Vendido" and
-  other move lines now kept; a stalled update download ends after 60 s and a failed update keeps a launcher; a step
-  given up on no longer overwrites the shipped catalog; one failing part no longer silences the frame; the chat no
-  longer replayed whole; trades and recurring buffs said. Details and live checks:
-  [robustness audit](docs/research/robustness-audit-2026-11-10.md#fourth-pass-2026-11-10-the-whole-code-in-four-parts).
-  Open, most important: a boss with forms said defeated at its first form, exit tins flapping, no spoken line when a
-  plugin fails to load, `ui-catalog` and `gems` reporting done while losing files, free-cursor controls with no tooltip.
-- Character selection after a quick login (2026-11-10): the login's bar "Presiona para jugar, A. …" was said again after
-  the character, by the bar's own "said again if cut" rule outliving the state (`ScreenNarrator.cuttableHints`), not by the
-  stale-bar check of `099e90b`; dropped on a state change and gone in two logins 1.3 and 1.7 s long.
-- Microtransaction shop, too few points (2026-11-10, heard live, nothing pressed): the game shows the tip with the focus,
-  on a button that reads "Comprar puntos"; said as the game shows it, "Comprar puntos, Esta compra requiere 250 puntos,
-  tienes 150 puntos, botón" (it was "Comprar <item>, Comprar puntos, …").
-- Build Planner gear (2026-11-10, heard live on yarkey): worn slots say what they lack right after the name ("Anillo izquierdo,
-  Estallido repentino, único, Build: 1 de 2 modificadores. Falta Agrega de 6 a 10 de daño de fuego a los ataques"), an item
-  that could go in a slot says each slot before its own lines ("Canto de condenación, raro, columna 3, fila 2, Build, Mano
-  principal: 0 de 3 modificadores, otra base. Build, Segundo set de armas, …"), a flask too. Fixed: a tooltip read while the
-  game was still filling it (a worn piece without its modifiers, every wanted one "missing") — an item's first tooltip now
-  waits until it reads the same 100 ms apart (`TooltipSettle`, `AccessibleUiNode.TooltipFilling`; seen live as 5 lines, then
-  4; the belt itself read whole on every try, so the false lines were not reproduced; after a fresh game start on
-  2026-11-10 every worn slot was focused once: the body armour's tooltip grew from 6 to 13 lines while waiting, the belt
-  read 12 lines at once, and none of the 22 "Falta" lines said was among the item's own lines). Open: (1) two wanted lines answered by
-  one line repeat it word for word; (2) the inventory's summary comes before the focused item's name; (3) an item's first focus
-  is said 100 ms later than before. A worn piece never
-  focused is compared by the lines made from its modifiers in memory (next bullet; not run live); charms, quivers and foci are not compared; a unique is
-  judged only when its name equals the author's. Live checks:
-  [ui layers](docs/research/ui-layers.md#build-planner-gear-055f-2026-11-10).
-- Build Planner supports (2026-11-10, heard live): a build skill says its supports by group, the count first ("Corte giratorio,
-  …, en la build. Asistencias de la build: 0 de 3 engarzadas. De otro nivel: tienes Ataques rápidos I, la build pide Ataques
-  rápidos II. Faltan: Furia II; Empuje"); groups in order: Engarzadas, En tu inventario, De otro nivel, En otra habilidad,
-  Faltan, Fuera de la build (pure `BuildGems.Grouped`, `Announcements.BuildSupportGroups`). yarkey has no build support
-  socketed at the build's tier, so "Engarzadas", "En otra habilidad" and "Fuera de la build" have unit tests only, and the
-  panel's "0 de 20 asistencias" agrees with the three skills (0 de 2, 0 de 3, 0 de 3). The panel's count now reads every
-  row's gems on entering, not only the focused row's (not provable live: nothing is socketed).
-- Inventory and merchants (found buying gear for yarkey, 2026-11-10). Fixed and heard live: an item is said at its own
-  first cell, read from the item ("Canto de condenación, raro, columna 3, fila 2" from any side); moves keep the name the
-  tooltip gave ("Desequipado: Frasco de vida grandioso compacto del practicante, mágico"); a flask or charm put on the belt
-  is said ("Equipado: …, Frascos y viales"); the unstack box ("Desapilar, 1, quedan 5, control deslizante", then "2, quedan
-  4"); the Teleport map's act tabs ("Teletransporte. Acto 2, botón, 2 de 2", [controls](docs/controls.md)); a stash tab
-  switch with the cursor in the stash ("Alijo. pestaña 2. Vacío, columna 12, fila 10", once). an empty flask filled at the well
-  before a drink showed its cost ("Frasco de vida grandioso recargado, 75 cargas"); a flask not empty and never drunk is
-  still silent there, its uses cannot be counted. Taking a flask off the belt empties
-  it (75 → 0 charges, refilled at the well). Fixed 2026-11-10, heard at Zarka, Una and Finn three times each: a merchant
-  or a stash opens as one line in either order of events, then the gold ("pestaña 1. Inventario. Orbe de transmutación, 6,
-  columna 1, fila 1, 180 oro. …", then "4.776 oro", then the buttons). The stray "4.776 oro. Oro" was the "panel without
-  focus" branch: the layer opened while the cursor's line waited for its item's tooltip (`TooltipSettle`); the panel is now
-  held for that line (`FocusTracker.ItemPending`, `ScreenNarrator.SayHeldPage`) and a tooltip that comes before the line
-  joins it. Finn's gamble says so on opening ("Apuesta, objetos aleatorios, existencias 100/100. Armas. Inventario. …":
-  the stock's counter is the game's `gambling_stock_display_label`), and the build says nothing of a random item (base id
-  ends in `Gamble`). Open: A beside another player opens that player's menu ("Invitar al grupo"), with no word that it is
-  a player; a worn weapon's first focus is said twice 170 ms apart (base name, then the tooltip's name: its tooltip is
-  empty at first, so `TooltipSettle` does not wait). Not testable in town: Parry and flask drinks.
-- Hearing a grid at once was built and removed the same day (2026-11-10) at the owner's word ("take out the reading of the
-  whole tab"): do not build it again. What he asked for instead: an item's modifiers known without its tooltip.
-- Item modifiers without the tooltip (2026-11-10, code and unit tests; **not run live**): `catalog/mod-stats.json`
-  (`Poe2UiExtract mod-stats`: Mods.dat Id → stats and rolls) plus `mod-texts.json` give an item's modifier lines from the
-  host's `Mods` lists (`ItemModLines`, pure); the 25 lines of the seven compared items equal their Spanish tooltips letter
-  for letter. Used for worn pieces never focused (summary complete at the first opening, "más que el puesto" at once); a
-  line that is not certain is never said nor counted as missing. Next step: the live check, dev command `itemmodscheck`
-  (a rune-socketed, an enchanted and a quality item first): [item mods](docs/research/item-mods.md#live-check).
-- Stale values, player, combat and host (2026-11-10, code and unit tests only): flask uses from the drink's seen cost, boss
-  life read when asked, a shared target name said alone, per-area state reset per instance, untyped entities' components
-  rested, buff stacks, learnt blows as clip time, no maximum from tables, buff ids kept whole. What each needs live is listed in
-  [the audit](docs/research/robustness-audit-2026-11-10.md#stale-values-2026-11-10). Left open there: the sale said as
-  "used", the quest tracker between characters, the cull cue for a culling support.
-- The reader and the extraction were hardened on 2026-11-10 (second pass, [compatibility](docs/compatibility.md#found-again-at-runtime-host),
-  [performance](docs/research/performance.md#reader-pass-2026-11-10), [patch day](docs/patch-day.md)): the state anchor is proven and
-  searched for, the states are counted, the pre-game UI root is reached by shape, unchecked code fields are said, the game's
-  process is told by more than its title, the extractor fails a step instead of guessing a column, and the reader makes half the
-  reads in town. Live on yarkey in town, at login and character selection; **no fight was played**: the state-machine name cache,
-  the buff name check, the entity re-identification and the collector's pauses in a fight are for the user's next boss (read
-  `Frames:` in `Poe2Access.log` and `costs`). The UI root by shape has only synthetic tests: no build moved the self pointer.
-- Still on one protection or none, and needing the live game to design a search: the passive tree record's edges (0x38/0x50), the
-  PassiveSkills row byte 0x66, the hovered pin 0x2D0, the skill-slot offsets 0x40/0x58, the mouse hover chain; the 39 fields only the
-  exe's code checks have no live invariant yet (flask charges, cooldown entries, chest and shrine flags, stack counts). A UI group
-  whose near search fails is not yet searched over the whole object. Extractor offsets left unvalidated are listed in
-  [patch day](docs/patch-day.md).
-- The stash's and the well's sounds were picked by measurement, the user away (2026-11-10): [audition page](https://claude.ai/artifact/HKNYM3jD9bvzBA1ECTK4Ww);
-  another pick is one line of `SoundExtractor.Cues` and the `Sounds` step raised (`GameDataSteps`).
-- Which gems are Spirit gems is not known before they are owned: the files give the Meta kind (44 gems) and the game's Persistent tag
-  (193 gems, 9 Meta gems without it), neither of which says which uncut gem engraves a gem, so the build's lines say neither.
-- The Sockets component's second socket (+0x38) is unmeasured: yarkey has one support per skill; every pointer is checked as a support gem.
-- The tree's header "Set de armas: 1, (4)" is read as shown (two rows, one per set, each an icon, the caption, "1" and " (4)"; no tooltip,
-  dump 2026-11-10); what the numbers count needs a point spent or refunded to measure, which only the user does.
-- yarkey's gear was set for the build on 2026-11-10 (unique ruby ring and movement boots from the stash, a Ridged Buckler bought for 394 gold
-  in the second set's off-hand: Parry). Closing a full-screen panel reads the whole quest tracker again as the HUD comes back.
-- yarkey follows "Campaign Progression - [0.5.5] Twister G" (Build Planner, 2026-11-10): 16 of 60 taken, 13 points outside it, the
-  earlier guide's route. What the audit left open: [robustness audit](docs/research/robustness-audit-2026-11-10.md#open).
-- The Mercenary's own crossbow clip (bolts loaded) is still not found: `skills` showed only a use counter (+0xD8, up by
-  one per bolt); Permafrost Bolts reloaded within two shots. The help panel has no pad route seen (keyboard H would switch
-  the input mode).
-- Not reached on 2026-11-08 (evening checks otherwise done): a vendor price in another currency (in Acts 1-2 only the
-  Sekhemas merchant, for Sacred Water, inside a trial run behind a Djinn Barya; yarkey died twice that evening in level 2
-  and 12 areas, a run is beyond him), the Trial of the Sekhemas (icons, Death Crystals, every monster warned), map objective
-  content (needs an endgame character). Seen live that day: a rare item's mods and a magic monster's ("de precisión").
-- The lost hint at its 180 s rarely comes in a monster-dense area: any enemy within 1300 units stops the count (a fight is
-  no sign of being lost). Clearfell gave it only at a 3 s setting (2026-11-08); whether 180 s suits the user is open.
-- Heat's maximum comes from the skills' tables (31 at Rapid Shot level 6), not from a live stat: it only tells the pool from a
-  count, so Heat is said where it reaches that value, as a count ("Calor: 31"), and when it runs out ("sin Calor"), never
-  "al máximo" (code 2026-11-10, to hear live). Whether the user wants every count back is open.
-- `catalog/landmarks.json` corrects the Radar table's labels that were no area name by a typo ("Oghams Manor", 5 found by near match) and G1_14's "Entrance", the way back read as the Manor's.
-- Radar-table labels are English notes (GameHelper's `important_tgt_files.txt`): area names, bracketed notes and, since
-  2026-11-02, boss names are said in the game's language. Since 2026-11-08 every piece of a label (cut at " - ", slashes,
-  "&", commas, brackets) that is a name the game has (area, MonsterVarieties or NPCs row, object title, item) is said as
-  the game names it, whatever its case or apostrophes (`LandmarkTable.Localize`; `catalog/monster-names.json` regenerated
-  with `Poe2UiExtract monster-names` over pieces and NPCs; its name-column detection took a garbage column in 0.5.6,
-  now the measured one wins): 92 of the 211 labels in Spanish (74 before). 61 stay untouched, and others keep
-  their names with only common words/notes translated: players' notes ("Dungeon entrance down"), places the game has no name for ("The
-  Corpse Tree (punto de ruta)") and names with no row (Siren, Shark, The Moving Bramble, Narag, Areagne, Renly). Words the
-  table shares with the radar ("Boss", "Quest", "Exit"…) are phrases of `Announcements.Radar.cs`, translated into the 8
-  other languages with the rest (`phrases.py check`: 865 phrases, 0 missing, 2026-11-08).
-- Yarkey's chat showed his own lines ("¡Abajo!", "Matando el tiempo.", "¡Retrocede o muere!") while X or RT were held
-  (2026-11-02), absent from Client.txt; probably the Mercenary's voice lines shown in chat (not verified: whether
-  other players see them).
-- Never seen in game (no test character got there, 2026-11-01): the ascendancy view of the passive tree (its 197 nodes
-  are hidden in the main canvas; state and links untested), the trials (Sekhemas, Chaos), the Atlas, its passive tree
-  and the map device (GameHelper knows `AtlasSkillsPanel` and the atlas node fingerprint `0x542EF3`), and Act 4.
-  Act 4 sails between its islands from Kingsmarch through a destination map (Rog / Makoru; fan guides of 0.3): a
-  menu, not steering, so the radar is not involved; take an F6 dump of that map the first time it opens.
-- Ritual rune (`RitualRuneInteractable`): untargetable in two dumps (13:42, 14:06), targetable in one (13:18); which ritual states those are is not known. Typing is settled: the league-icon branch of `EntityCatalog.Classify` takes it before the Monster rule.
-- Landmark labels that are not area names are players' notes from GameHelper Radar: in Spanish their common words and
-  reward notes are translated ("Escaleras hacia arriba", "Crop Circle (gema de habilidad de nivel 4)"); the names in
-  them the game has no row for (Crop Circle) stay as written; Kabala, Torbik, Zelina… are the game's names (above).
-- Radar: once, near the encampment exit, Up and Left flipped wall/exit every ~2 s with depths 100 ↔ 500 units while
-  the character oscillated between two cells; not reproduced standing still.
-- Scanner: long routes searched ~200 ms on the frame thread; since 2026-11-08 `RoutePlanner` is a jump point search over a
-  cached cell map (same optimal routes, `RouteSpeedTests`): 1600x1600 cave grids take 2-10 ms, a walled-off goal ~12 ms
-  (it was 35-280 and 270), measured offline only. The exit prompt "Mantener presionado (Mostrar opciones)" is drawn
-  outside the UI tree (not in a full dump while on screen): the A target says "mantén A para opciones" instead.
-  A barrier never seen closed and past the network bubble still reads open (nothing to know it by).
-- Skill tooltips read "Costo." with no value: the game draws the header with nothing under it (Chaos Bolt,
-  Punch; seen on screen 2026-10-24), so the readout is faithful.
-- Character selection with the virtual pad: "J2 Presiona A para unirte" and A selects nothing (Client.txt: "popup
-  without a valid player index"); with the Xbox test pad Enter on the keyboard starts the game and the pad drives
-  it (`tools/computer_use/README.md`). Never press A at that prompt.
-- With the keyboard as player 1 (entered with the mouse) the HUD's "1 2 Q W E R T" skill bar is read as a panel.
-- A text appearing right after a focus move repeats the focus with it ("Accesorio para casco, botón, 10 de 19.
-  No tienes cosméticos…"): by design, so the name is never cut off; the first readout is interrupted.
-- Passive tree: allocation checked on two characters (Duelist pending/applied, Witch applied, 2026-10-24); a class
-  start is said without a direction (the portrait has no node element): "inicio de tu clase, Monje".
-- Panel notes (`UiSemantics.PanelNotes`) are a heuristic: a titled panel's texts outside navigable elements and outside
-  parts holding more than three; checked on Skills ("0 de espíritu", gem capacity) and Character ("Monje.
-  Resistencias"), the inventory and stash give none. A panel whose loose lines change while open says them only on
-  entry.
-- GGG ToS: read-only tool, still no written approval — ask before any public release (brief §25). Emailed
-  `contact@grindinggear.com` on 2026-10-26 (permission, an opt-in accessibility log file instead of memory reading,
-  a team contact); awaiting a reply.
+Settled on 2026-11-10 (evening, unattended, yarkey in the Act 2 town; the realm closed for a patch from 21:01 to 21:25):
+every entry is **fixed** (how it was verified), **not a fault** (why) or **blocked** (by what, and the one action that
+unblocks it). The audit's own lists, entry by entry:
+[robustness audit](docs/research/robustness-audit-2026-11-10.md#fourth-pass-2026-11-10-the-whole-code-in-four-parts).
+
+### Fixed
+- **A worn weapon said twice on its first focus** (base name, then the tooltip's name 170 ms later). An item its
+  tooltip names waits up to 300 ms for a tooltip not up yet (`TooltipSettle.NameWaitMs`; a normal item never waits) and
+  a rare or unique item is named from its own words at once. Heard, one line on each set: "Mano principal, Filo
+  quimérico, raro, Build: 0 de 3 modificadores. …" and "Segundo set de armas, mano principal, Lanza de guerra dentada,
+  mágico, Build: 1 de 3 modificadores. …".
+- **Rare and unique items named by their base where no tooltip was read.** The item keeps its name as Words.dat keys in
+  its Mods component (`GameLayout.ItemNameWords`, [item mods](docs/research/item-mods.md#the-items-own-name-without-the-tooltip-2026-11-10),
+  [evidence](docs/research/evidence/item-name-words-2026-11-10.txt)). Seen live: with no tooltip read, yarkey's worn
+  pieces by their names ("Égida de glifo, raro", "Estallido repentino, único"…), then "56 titles agree, 0 differ" (dev
+  `layout`); on malgdhler "Estrella quimérica", "Banda de kraken", "Zarpa de apocalipsis" and "212 titles agree, 0
+  differ" (his helm first read "Estrella quimérico": a singular noun's row gives its gender alone, fixed the same
+  evening). Ground labels and moves use the same call; none was seen (no item on the ground in a town, moves not
+  allowed). A magic item keeps no words: by its base until its tooltip is read.
+- **Item modifiers without the tooltip** (the other agent's work, merged and checked live; procedure and results in
+  [item mods](docs/research/item-mods.md#live-check-2026-11-10)). With no slot focused since the mod started the
+  inventory opens with "Build: 3 de 6 piezas con su base, 3 de 15 modificadores, leídos en 6 de 6 piezas. Más lejos de
+  la build: Mano principal", and the line is the same after every slot was focused. `itemmodscheck`: yarkey 15 items,
+  54 lines equal, 1 differ (a charm's own "No te pueden aturdir", the base's line), 2 uncertain (the two spears' skill
+  grant, outside the description file); malgdhler 10 items, 27 equal, 0 differ, 0 uncertain; 12 stash items, no
+  difference logged. Three faults found and fixed on the way: a spear's skill grant made the whole piece "not
+  compared" (the summary read "3 de 9" before the slots were focused); "+1.4%" and "+1.12%" (hundredths) were in doubt;
+  201 a minute was written "3.4" where the tooltip shows "3.3". Still unseen: a piece with a rune socketed, an
+  enchanted or corrupted item, one stat on an implicit and an explicit, a modifier of three values, a number over 999.
+- **The passive list's "4 más de la build no están en este árbol".** They are the four nodes of the file's ascendancy
+  ("ascendancy": "Mercenary3": `AscendancyMercenary3Small1`, `…Notable1_`, `…Small4`, `…Notable4`; 60 + 4 = the file's
+  64 nodes; every ascendancy row of the game's files is named `Ascendancy…`, 669 of them). Heard: "Build, 16 de 60
+  asignados, 13 puntos fuera de la build, 4 más de la build son pasivas de ascendencia, que este árbol aún no muestra";
+  the ids are logged once (`Build nodes not on this tree (4 of an ascendancy): …`).
+- **`SpeechPriority.IsReading` ageing events** under a reading kind: only a number that is not urgent and not marked
+  as something that happened is a reading, at every level (`OnlyANumberIsAReadingAtEveryKindAndLevel`). Unit tests.
+- **The mod ended when the game window was not up in 240 s.** It waits while Steam or the game runs and says so.
+  Heard on the patch of 2026-11-10 21:17, while Steam verified the install: "Sigo esperando la ventana del juego" at
+  30 s, then every 60 s (`Poe2Access.log`: `Spoken (0): Sigo esperando la ventana del juego`, five times).
+- **A game restarted patched under the running mod** left it on the old build's game data without a word: the plugin
+  says "El juego se actualizó. Reinicia el mod para actualizar sus datos" (`GameBuildChange`), the host logs it. Unit
+  tests; on that evening's patch the mod was started again with the game, which regenerated the data ("Actualizando
+  los datos del juego tras el parche; tarda unos minutos", 28 steps in 30 s, `Code fields: 52 of 52; moved: none`).
+- **The launcher silent while a data step hangs.** "Sigo trabajando en <paso>, unos N min" after 30 s without the
+  count moving, then every 60 s (`SilenceReminder`). Unit tests; not heard, no step stalled on that evening's patch.
+- **`InventoryItemStruct` log bursts on area load.** A cell that cannot be read is skipped without a line
+  (`Inventory.UpdateData`). Code only; no such line is in the logs at hand (the host log is rewritten at each start).
+- **The Beacon's "way stops short" when the search only ran out of budget**, and **an object named by its file's
+  English words**: decided and built, see "Decisions the owner can overrule". Unit tests; the second heard in the Act 2
+  town's scanner: "Objeto sin nombre, Chair, 9 pasos, arriba a la izquierda 2, luego arriba a la derecha".
+- **The status line named the last character's area at the login screen** ("Inicio de sesión. Área: La caravana de los
+  ardura", heard): the area is said only in a game (`TheAreaIsSaidOnlyInAGame`).
+- **A beside another player opened that player's menu with no word that it is a player.** Heard: "Jugador:
+  Tejetormentas Niv. 27, Liga Forbidden Rites, Bleidz. Invitar al grupo, 1 de 5" (`Announcements.ButtonMenuContext`,
+  when a player of that name is in the area). In a crowded town a player can step onto the spot between the A target's
+  line and the press: the menu then says whose it is, and B closes it.
+- **The character's name after a change of character:** yarkey, malgdhler, yarkey in one session, each time the build
+  summary of the character in play. **The stash, the salvage bench and a merchant in turn:** each title on its first
+  line ("Alijo, pestaña 1. Inventario. …", "Mesa de reciclaje. Aquí puedes reciclar … Orbe de transmutación, 6, columna
+  1, fila 1", Zarka's "pestaña 1. Inventario. Pergamino de sabiduría, 8, columna 1, fila 2, 16 oro", then "4.776 oro").
+  **No screen snapshot cut short** with the tree at every zoom from x0,4 to x1,9.
+- **A slider at its minimum focused first could be read with another number.** Read where measured, nothing searched
+  (`UiElementReader.ReadSliderState`). Code only.
+- **Exit tins flapping to "open" and back:** a confirmed exit holds for 1.5 s (`RadarSensor.ExitHoldMs`). Unit tests;
+  to hear near any exit.
+- **From the audit's lists, code and unit tests** (each named there): `ui-catalog` failing when it loses more than 2
+  files in 100; a language lost from `gems` or `passive-tree` refusing the catalog; a spoken line when the plugin does
+  not load; one log line for a burst of failed reads; a timed-out batch stopped; the parallel map walk bounded; the
+  GGPK closed; the dropdown latch by name, not address; the screen watcher's reset race; the route planner's memory;
+  checkpoints named past the pairing budget; object cues without the game's sounds; a grace for charges after an
+  area's first reading; the skill stat key searched again; the wall-clock tests; the tests that did not test.
+- **Character selection after a quick login** (the login's bar said again after the character): the bar is dropped
+  when the state changes (`2840bbb`); heard again that evening, the bar once, before the character.
+- **Microtransaction shop, too few points:** "Comprar puntos, Esta compra requiere 250 puntos, tienes 150 puntos,
+  botón" (heard 2026-11-10).
+- **The quest tracker between characters:** `QuestTrackerPage.Reset` runs at character selection
+  (`ScreenNarrator.CharacterChanged`); it was listed as open by mistake.
+
+### Not a fault
+- **Closing a full-screen panel reads the whole quest tracker again:** not inside one run. Of 113 quest pages in two
+  play logs none repeats an unchanged page without a mod start in between (the audit's stale-values part); a mod
+  started under an open panel must still say the objective.
+- **An item's first focus is said about 100 ms later than before** (`TooltipSettle`): the price of a tooltip read
+  whole; an item whose tooltip was seen once is said at once.
+- **A cell read whole again when its value changed during the 300 ms wait:** the line it replaces had not been spoken.
+- **Skill tooltips read "Costo." with no value:** the game draws the header with nothing under it.
+- **A text appearing right after a focus move repeats the focus with it:** by design, so the name is never cut off.
+- **Character selection with the virtual DS4** ("J2 Presiona A para unirte"): the test tool's limit, not the mod's;
+  the Xbox pad plugged before the game starts works (`tools/computer_use/README.md`). Never press A at that prompt.
+- **The keyboard as player 1 reads the HUD's "1 2 Q W E R T" bar as a panel:** the mod is for a controller; the
+  keyboard HUD is reached only by entering with the mouse.
+- **A barrier never seen closed, past the network bubble, reads open:** the game sends nothing to know it by.
+- **Panel notes are a heuristic** (`UiSemantics.PanelNotes`: a titled panel's texts outside navigable elements) and a
+  panel whose loose lines change while open says them only on entry: by design, checked on Skills and Character.
+- **Radar-table labels and landmark notes that stay in English** (61 of 211): players' notes and names the game has no
+  row for; every piece the game names is said as the game names it (`LandmarkTable.Localize`).
+- **A class start said without a direction** ("inicio de tu clase, Monje"): the portrait has no node element.
+- **The dev command file read whatever `ResearchMode` says:** it only reads and speaks, and needs write access to the
+  mod's own folder.
+
+### Blocked
+- **The tree's header "Set de armas: 1, (4)".** Read as shown (two rows, one per set, each the caption, "1" and
+  " (4)"; no tooltip). What the first number counts is not proven: it read "4, (4)" on both rows on 2026-11-08 and
+  "1, (4)" on both on 2026-11-10 with "Puntos de habilidad: 0" each time, and of yarkey's 16 build nodes taken, three
+  carry weapon set 1 in the build file (`attack_speed2_`, `dexterity82_`, `attack_speed1`) and two set 2
+  (`dexterity66`, `dexterity65_`). That fits "1 left of 4" (three spent in set I) and also "1 spent of 4" (only
+  `attack_speed1` is of a set alone). The bracket is the same on both days: the points owned. **Unblocks:** the owner
+  allocates or refunds one weapon-set node and reads the header before and after; then the words are one phrase
+  ("1 sin asignar de 4" or "1 asignado de 4"). The game's popup key `WeaponSetPassiveSkillPoints` exists
+  (`catalog/game-keys.txt`), its text is not extracted.
+- **Which gems are Spirit gems, and the engraving window with the build's lines.** The files give the Meta kind (44
+  gems) and the Persistent tag (193), neither says which uncut gem engraves a gem. Neither yarkey nor malgdhler holds
+  an uncut gem (dev `inventories`, both read that evening; hairin, level 4, was not loaded), so the window could not be
+  opened. **Unblocks:** an uncut gem in a bag (the owner keeps one instead of engraving it), then its window opened and
+  read without confirming.
+- **The cosmetics shop's purchase confirmation.** Only the owner may spend points (150): he presses A on a buy button
+  once and says what he hears, or allows one purchase.
+- **Item modifiers on kinds of item not at hand:** a piece with a rune or soul core socketed (is the rune's line in a
+  list, or would a runed piece be said to lack it until focused?), an enchanted and a corrupted item, one stat on an
+  implicit and an explicit, a modifier of three values, a number over 999. **Unblocks:** one such item rested on once
+  and dev `itemmodscheck` (yarkey holds a Runa de piedra menor; socketing it is the owner's).
+- **Build Planner gear:** two wanted lines answered by one line repeat it word for word; the inventory's summary comes
+  before the focused item's name. Both are wording choices in `BuildGear*`: the owner's choice between (a) as now and
+  (b) the item's name first and a joined line "…, pedido dos veces". Charms, quivers and foci are not compared and a
+  unique is judged only when its name equals the author's: needs a build file that uses them.
+- **Build Planner supports:** "Engarzadas", "En otra habilidad" and "Fuera de la build" have unit tests only: needs a
+  build support socketed at the build's tier on yarkey (the owner's gems). The Sockets component's second socket
+  (+0x38) is unmeasured for the same reason: one support per skill.
+- **A sale said as "used"** when the gold lags the inventory by more than 300 ms (`InventoryWatch.SettleMs`), and
+  "Vendido: …" kept: need a sale, the owner's.
+- **The cull cue for a culling support, passive or item:** the mod reads no live stat that says the player culls
+  (`game-ids.txt` has the two threshold stats only): needs the stat found with a Culling Strike support socketed.
+- **Fights:** a boss with forms said defeated at its first form; the boss growl while it cannot be targeted (the
+  owner's choice, in the audit); `DefeatConfirmMs`; the reader's second pass in a fight (state-machine name cache, buff
+  name check, entity re-identification, the collector's pauses: `Frames:` and `costs`); flask uses and costs; Parry;
+  Heat said as a count ("Calor: 31", never "al máximo") and whether every count is wanted; the lost hint's 180 s in a
+  monster-dense area; the ritual rune's states. **Unblocks:** the owner's next boss or area with the log kept
+  (AGENTS rule 25: no scripted fights).
+- **The radar's flip near the encampment exit** (Up and Left between wall and exit every 2 s while the character
+  swayed between two cells, seen once): the 1.5 s exit hold shortens it and does not end it. **Unblocks:** met again
+  with the log kept, standing between two cells beside an exit.
+- **Second player:** a trade swapped for an item that reads the same, the trade window without the focus, whether
+  other players see yarkey's own chat lines ("¡Abajo!").
+- **No character there yet:** the ascendancy view of the tree, the trials (Sekhemas, Chaos; a vendor price in another
+  currency), the Atlas and the map device, Act 4's destination map.
+- **The passive stick after an attribute popup** (the multiple-choice redirect): needs a node allocated, the owner's.
+- **Fields on one protection or none** (the tree record's edges 0x38/0x50, PassiveSkills row byte 0x66, the hovered
+  pin 0x2D0, the skill-slot offsets 0x40/0x58, the mouse hover chain, the 39 fields only the exe's code checks): each
+  needs a live invariant designed with the game open in a fight or with a mouse
+  ([audit](docs/research/field-protection-audit.md) §2). Extractor offsets left unvalidated: [patch day](docs/patch-day.md).
+- **The Mercenary's crossbow clip in memory:** set aside by the owner (2026-11-08), yarkey now uses a spear.
+- **The stash's and the well's sounds** were picked by measurement: the owner's ear on the
+  [audition page](https://claude.ai/artifact/HKNYM3jD9bvzBA1ECTK4Ww); another pick is one line of
+  `SoundExtractor.Cues`.
+- **Steam Deck / Proton, the Korean client, the updater on a real release:** need a Linux player, a Kakao client and a
+  published release.
+- **GGG's written approval:** emailed `contact@grindinggear.com` on 2026-10-26, no reply; ask before any public release.
+- **From the audit, each with its reason there:** a key column with no known row (needs a known row per column from
+  the game's files); free-cursor controls with no tooltip and the Skills panel's rows (a live sweep, then the owner's
+  ear); the tree's place kept across a restart (push to a far node, quit, start, open the tree); a slider at 0 focused
+  first (none of the owner's sits at 0); a start with `oo2core.dll` renamed (the owner's leave to rename a game file);
+  a way back from a release that does not work, the "ended" lines after a respawn and a quiet buff (the owner's choice
+  between the options named there); the tests of host-bound rules not written.
+
+### Decisions the owner can overrule
+Taken on 2026-11-10 where the audit had left "the owner's call"; each is one constant or one phrase.
+- **The guide when the search ran out of budget:** "La ruta es larga, sigo buscando", once, and it keeps leading along
+  the part it has (it searches again every 700 ms from where the player stands); the scanner says "…, la ruta es
+  larga: …". A way truly cut keeps "el camino se corta antes". Left aside: silence until the whole way is found.
+- **An object no table names, outside English:** "Objeto sin nombre, Chair" (the file's word kept so two can be told
+  apart). Left aside: not saying it, or "Objeto sin nombre" alone.
+- **An exit holds 1.5 s** after the ray last saw it (`RadarSensor.ExitHoldMs`); a true change is said that much later.
+- **The launcher's reminders:** first at 30 s, then every 60 s, for the wait for the game window and for a step that
+  does not move; the wait ends after 240 s only with neither Steam nor the game running.
+- **`ui-catalog` fails past 2 lost files in 100** (`UiLoss.MaxLostPerHundred`).
+- **Charges and Rage are a baseline for 1.5 s** after an area's first reading (`BaselineGrace`).
+
+### Notes
+- yarkey (Mercenary 23, Act 2 town) follows "Campaign Progression - [0.5.5] Twister G" (16 of 60 taken, 13 points
+  outside it, the earlier guide's route); his gear was set for the build on 2026-11-10 (unique ruby ring and movement
+  boots from the stash, a Ridged Buckler in the second set's off hand). Taking a flask off the belt empties it.
+- `catalog/landmarks.json` corrects the Radar table's labels that were no area name by a typo ("Oghams Manor") and
+  G1_14's "Entrance".
+- The scanner's long routes are a jump point search over a cached cell map (2-10 ms on 1600x1600 grids, measured
+  offline). The exit prompt "Mantener presionado (Mostrar opciones)" is drawn outside the UI tree: the A target says
+  "mantén A para opciones".
+- Passive tree: allocation was checked on two characters (2026-10-24). The tree's first reading takes 440 ms at the
+  first opening of a session and 635-754 ms when the mod starts with the tree open (`Slow tick: focus`).
+- malgdhler (Druid 8) was started in his town, the Campamento de Sierraclara, on 2026-11-10 for the checks (the game's
+  own prompt "Aparecer en el pueblo o la guarida" confirmed): he had been left in El enredo sombrío. hairin was not loaded.

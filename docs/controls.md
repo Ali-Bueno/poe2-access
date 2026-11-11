@@ -199,8 +199,8 @@ attributes; LT/RT say the zoom ("Zoom x1,4"); the directions hold at any zoom. A
 **Finder (D-pad, which does nothing else in the tree;** setting "Passive tree finder on the D-pad", Navigation, on by
 default): D-pad down and up walk the lists Build (with a Build Planner build active: its keystones, notables and jewel
 sockets not taken yet, in the build's order; the list opens with how far along you are, "Build, 16 of 60 taken, 13 points
-outside the build, 4 more of the build are not on this tree": the count is of the nodes the tree shows, and the file's
-nodes it does not show, an ascendancy not chosen yet, are said apart), Taken in the build (the build's nodes you already
+outside the build, 4 more of the build are ascendancy passives, not on this tree yet": the count is of the nodes the tree
+shows, and the file's nodes it does not show are said apart, as ascendancy passives when their ids say so), Taken in the build (the build's nodes you already
 have, small ones too, in the build's order, each with its step over those same nodes: "Build: step 3 of 60. Attack Speed,
 …": the way made so far, to walk again), Taken outside the build (what
 you have that the build does not: the points a refund would bring back to it), Keystones, Notables, Jewel sockets and Reachable now, and left and right walk a
