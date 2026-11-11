@@ -97,18 +97,22 @@ namespace GameReader.Utils
 
         /// <summary>
         ///     The fields that every one of <paramref name="entities"/> that can be read agrees on, nearest <paramref name="near"/>;
-        ///     a part none of them holds anywhere is negative.
+        ///     a part none of them holds anywhere is negative. The components are judged on the entities that hold their own.
         /// </summary>
         public EntityLayout Find(IReadOnlyList<long> entities, EntityLayout near)
         {
             var bodies = entities.Where(IsPointer).Distinct().Select(entity => (Address: entity, Body: this.Block(entity))).Where(entity => entity.Body.Length > 0).ToList();
             var (details, path) = Pair(near.Details, near.Path, (d, p) => bodies.All(entity => this.IsPath(entity.Body, d, p)));
-            var components = Nearest(near.Components, BlockBytes - VectorBytes, at => bodies.All(entity => this.Components(entity.Body, at, entity.Address) > 0));
+            // An entity whose components point back at it nowhere says nothing of where the vector is, which a patch moves in
+            // every entity: three corpses of the Vastiri Outskirts listed one another's and the part was called lost (2026-11-11).
+            var sound = bodies.Where(entity => Nearest(near.Components, BlockBytes - VectorBytes, at => this.Components(entity.Body, at, entity.Address) > 0) >= 0).ToList();
+            var components = sound.Count == 0 ? -1
+                : Nearest(near.Components, BlockBytes - VectorBytes, at => sound.All(entity => this.Components(entity.Body, at, entity.Address) > 0));
             var counts = components < 0 ? null : bodies.Select(entity => this.Components(entity.Body, components, entity.Address)).ToList();
             var entry = NameEntryLayout.Measured;
             bool IsMap(int l, int m)
             {
-                var maps = bodies.Select((entity, index) => (this.Block(Long(entity.Body, details)), counts?[index] ?? MaxComponents)).ToList();
+                var maps = bodies.Select((entity, index) => (this.Block(Long(entity.Body, details)), counts?[index] is > 0 and var count ? count : MaxComponents)).ToList();
                 if (this.NameEntry(maps, l, m, near.Entry) is not { } fits)
                 {
                     return false;

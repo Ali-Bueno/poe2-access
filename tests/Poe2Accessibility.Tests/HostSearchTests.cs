@@ -21,6 +21,7 @@ namespace Poe2Accessibility.Tests
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
             (nameof(EntityFieldsWhereMeasuredStayThere), EntityFieldsWhereMeasuredStayThere),
+            (nameof(AnEntityListingAnothersComponentsDoesNotLoseTheField), AnEntityListingAnothersComponentsDoesNotLoseTheField),
             (nameof(EntityFieldsAreFoundWhereAPatchMovedThem), EntityFieldsAreFoundWhereAPatchMovedThem),
             (nameof(WhatIsNoEntityGivesNoEntityLayout), WhatIsNoEntityGivesNoEntityLayout),
             (nameof(AMapOfOtherNamesIsNoComponentMap), AMapOfOtherNamesIsNoComponentMap),
@@ -667,6 +668,27 @@ namespace Poe2Accessibility.Tests
             var entities = new[] { Entity(memory, 0, measured), Entity(memory, 1, measured) };
             Equal(measured, new EntityLayoutSearch(memory).Find(entities, measured), "entity fields that did not move");
             Equal(true, new EntityLayoutSearch(memory).ReadsPath(entities[0], measured), "the path read where measured");
+        }
+
+        private static void AnEntityListingAnothersComponentsDoesNotLoseTheField()
+        {
+            // Vastiri Outskirts, 2026-11-11: corpses 870-872 listed one Transitionable; "no encuentro qué es cada cosa a tu alrededor".
+            var memory = new FakeMemory();
+            var measured = EntityLayout.Measured;
+            var entities = new[] { Entity(memory, 0, measured), Entity(memory, 1, measured), Entity(memory, 2, measured) };
+            for (var i = 0; i < ComponentNames.Length; i++)
+            {
+                memory.Pointers[entities[2] + 0x7000 + (i * 0x100) + 8] = entities[1]; // its components point back at another entity
+            }
+
+            Equal(measured, new EntityLayoutSearch(memory).Find(entities, measured), "the others hold the field where measured");
+            for (var i = 0; i < ComponentNames.Length; i++)
+            {
+                memory.Pointers[entities[0] + 0x7000 + (i * 0x100) + 8] = entities[2];
+                memory.Pointers[entities[1] + 0x7000 + (i * 0x100) + 8] = entities[2];
+            }
+
+            Equal(-1, new EntityLayoutSearch(memory).Find(entities, measured).Components, "no entity holds its own: the field is not where measured");
         }
 
         private static void EntityFieldsAreFoundWhereAPatchMovedThem()
