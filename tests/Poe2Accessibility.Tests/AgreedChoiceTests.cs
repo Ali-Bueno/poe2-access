@@ -12,7 +12,23 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(OneDropdownSettlesNothing), OneDropdownSettlesNothing),
             (nameof(TwoThatDisagreeNeverSettle), TwoThatDisagreeNeverSettle),
+            (nameof(OneDropdownRebuiltIsStillOneOwner), OneDropdownRebuiltIsStillOneOwner),
         };
+
+        /// <summary>The same dropdown rebuilt at a new address keeps its identity; another one does not share it.</summary>
+        private static void OneDropdownRebuiltIsStillOneOwner()
+        {
+            var first = ComboIdentity.Of("Resolution", new[] { "Display", "Options" }, 12);
+            var rebuilt = ComboIdentity.Of("Resolution", new[] { "Display", "Options" }, 12);
+            Equal(first, rebuilt, "same name, parents and count give the same owner");
+            var layout = new AgreedChoice<int>();
+            Equal(false, layout.Note(first, 2), "the dropdown read");
+            Equal(false, layout.Note(rebuilt, 2), "rebuilt at a new address it is still one owner, so nothing settles");
+            Equal(null, layout.Agreed, "not settled by one dropdown");
+            Equal(true, layout.Note(ComboIdentity.Of("Language", new[] { "Display", "Options" }, 12), 2), "a different dropdown settles it");
+            Equal(false, ComboIdentity.Of("ab", new[] { "c" }, 1) == ComboIdentity.Of("a", new[] { "bc" }, 1), "names are separated");
+            Equal(false, ComboIdentity.Of("Resolution", new[] { "Display" }, 12) == ComboIdentity.Of("Resolution", new[] { "Display" }, 13), "the entry count tells two apart");
+        }
 
         private static void OneDropdownSettlesNothing()
         {

@@ -75,6 +75,12 @@ namespace Poe2Accessibility.Services
             return new ComboValue(selected, highlighted, index, highlight, entries.Length);
         }
 
+        /// <summary>The dropdown's identity for the layout latch: not its address, which a rebuild changes (one dropdown counted twice).</summary>
+        private long OwnerOf(IntPtr comboBox, int entryCount) =>
+            this.elements.TryReadElement(comboBox, out var info)
+                ? ComboIdentity.Of(info.Name, this.elements.ReadAncestors(info, 3).ConvertAll(ancestor => ancestor.Name), entryCount)
+                : comboBox.ToInt64();
+
         private Strategy? Resolve(IntPtr comboBox, byte[][] entries, byte[][] parallel, int index)
         {
             foreach (Strategy strategy in Enum.GetValues<Strategy>())
@@ -82,7 +88,7 @@ namespace Poe2Accessibility.Services
                 var text = this.Decode(strategy, entries, parallel, index);
                 if (text != null)
                 {
-                    if (this.layout.Note(comboBox.ToInt64(), strategy))
+                    if (this.layout.Note(this.OwnerOf(comboBox, entries.Length), strategy))
                     {
                         this.log.Info($"Combo entry layout settled: {strategy} (a second dropdown reads with it: combo 0x{comboBox.ToInt64():X}, selected {index} = \"{text}\")");
                     }
