@@ -287,6 +287,11 @@ namespace Poe2Accessibility.Tests
                 new[] { "Yelmo blindado", "+40 a la vida máxima", "+20% a la resistencia al fuego", "+18% a la resistencia al rayo" });
             Expect("Build, Casco: 3 de 3 modificadores, misma base, más que el puesto, que tiene 2", Announcements.BuildGearItem(Fit(entry, shop), whole, 40), "and an item is set against it at once");
 
+            // A spear's "Otorga la habilidad" comes from a stat the description file does not hold: no wanted modifier can be it.
+            var grant = new ItemModLine(string.Empty, false, "local_display_grants_spear_throw_skill: no description", true);
+            var granted = Fit(entry, FromMemory(Sure("+29 a la vida máxima"), grant));
+            Expect((true, 1, 3, ModFit.Missing), (granted.ModsRead, granted.Has, granted.Compared, granted.Mods[2].Fit), "a line outside the file leaves the comparison whole");
+
             var partial = Fit(entry, FromMemory(Sure("+29 a la vida máxima"), doubt));
             Expect((true, 1, 1, ModFit.Unknown, ModFit.Unknown), (partial.ModsRead, partial.Has, partial.Compared, partial.Mods[1].Fit, partial.Mods[2].Fit),
                 "a line in doubt: what is not found among the certain ones is not known to be missing");

@@ -17,7 +17,12 @@ namespace Poe2Accessibility.Services
     /// <param name="Text">The line as the tooltip writes it; empty when none could be written.</param>
     /// <param name="Certain">Whether every part of it is known: an uncertain line is never said and its absence never held against the item.</param>
     /// <param name="From">What it was made from, for the log: the stats, or the modifier and why it gave no line.</param>
-    public sealed record ItemModLine(string Text, bool Certain, string From);
+    /// <param name="OutsideTexts">
+    ///     An uncertain line for a stat the description file does not hold: whatever the tooltip shows for it (a weapon's
+    ///     "Otorga la habilidad: Lanzamiento de lanza") is no line of that file, so it cannot be a wanted modifier the
+    ///     file knows, and those are the only ones ever said missing: it leaves the comparison whole.
+    /// </param>
+    public sealed record ItemModLine(string Text, bool Certain, string From, bool OutsideTexts = false);
 
     /// <summary>
     ///     An item's modifier lines without its tooltip (docs/research/item-mods.md): each list's values summed by stat,
@@ -78,7 +83,7 @@ namespace Poe2Accessibility.Services
                 }
                 else if (found != null && sum != 0)
                 {
-                    lines.Add(new ItemModLine(string.Empty, false, stat + (found.Count == 0 ? ": no description" : ": described twice")));
+                    lines.Add(new ItemModLine(string.Empty, false, stat + (found.Count == 0 ? ": no description" : ": described twice"), found.Count == 0));
                 }
             }
 

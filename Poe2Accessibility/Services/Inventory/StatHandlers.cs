@@ -36,6 +36,13 @@ namespace Poe2Accessibility.Services
         /// </summary>
         public static readonly IReadOnlyDictionary<string, int> SeenDecimals = new Dictionary<string, int>(StringComparer.Ordinal) { ["per_minute_to_per_second"] = 1 };
 
+        /// <summary>
+        ///     Handlers that state no decimals and were seen to write a number that has this many decimals as it is (140
+        ///     hundredths read "+1.4%" on a rare spear's critical hit chance, live check 2026-11-10). A number with more
+        ///     decimals is still not known: rounded or cut.
+        /// </summary>
+        public static readonly IReadOnlyDictionary<string, int> SeenExact = new Dictionary<string, int>(StringComparer.Ordinal) { ["divide_by_one_hundred"] = 1 };
+
         /// <summary>Handlers that change no number: which line stands for the stat elsewhere in the game.</summary>
         public static readonly IReadOnlySet<string> Marks = new HashSet<string>(StringComparer.Ordinal) { "canonical_stat", "reminderstring", CanonicalLine };
 

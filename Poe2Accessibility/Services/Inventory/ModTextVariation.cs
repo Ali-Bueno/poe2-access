@@ -304,7 +304,7 @@ namespace Poe2Accessibility.Services
         /// <param name="Stated">The decimals a handler's name states ("_1dp"), as required or always; null when none does.</param>
         /// <param name="SeenDecimals">The decimals a handler that states none was seen to show; null when none was.</param>
         /// <param name="Unsettled">A handler whose arithmetic is not settled took part.</param>
-        private readonly record struct Shown(double Factor, double Offset, int Decimals, bool Fixed, int? Stated = null, int? SeenDecimals = null, bool Unsettled = false)
+        private readonly record struct Shown(double Factor, double Offset, int Decimals, bool Fixed, int? Stated = null, int? SeenDecimals = null, bool Unsettled = false, int? SeenExact = null)
         {
             public double Number(double value) => (value * this.Factor) + this.Offset;
 
@@ -328,6 +328,16 @@ namespace Poe2Accessibility.Services
 
                 if ((this.Stated ?? this.SeenDecimals) is not (> 0 and var places))
                 {
+                    if (this.Stated == null && this.SeenExact is > 0 and var exact)
+                    {
+                        var parts = Math.Abs(number) * Math.Pow(10, exact);
+                        if (Math.Abs(parts - Math.Round(parts)) < 1e-6)
+                        {
+                            // No more decimals than were seen written out as they are: nothing is rounded or cut.
+                            return (number.ToString("F" + exact, CultureInfo.InvariantCulture), plain && decimalMarkSeen);
+                        }
+                    }
+
                     return (this.Digits(number), false); // no decimals stated, or none shown: rounded or cut is not known
                 }
 
@@ -357,7 +367,8 @@ namespace Poe2Accessibility.Services
 
                 var factor = step.Factor == 0 ? 1 : step.Factor;
                 changed = new Shown(this.Factor * factor, (this.Offset * factor) + step.Offset, decimals ?? this.Decimals, decimals != null ? !ifRequired : this.Fixed,
-                    decimals ?? this.Stated, StatHandlers.SeenDecimals.TryGetValue(handler, out var seen) ? seen : this.SeenDecimals, this.Unsettled || StatHandlers.Unsettled.Contains(name));
+                    decimals ?? this.Stated, StatHandlers.SeenDecimals.TryGetValue(handler, out var seen) ? seen : this.SeenDecimals, this.Unsettled || StatHandlers.Unsettled.Contains(name),
+                    StatHandlers.SeenExact.TryGetValue(handler, out var exact) ? exact : this.SeenExact);
                 return true;
             }
         }

@@ -220,7 +220,10 @@ namespace Poe2Accessibility.Services
         public static (IReadOnlyList<string>? Lines, bool Partial) LinesFromMemory(IReadOnlyList<ItemModLine> made)
         {
             var certain = made.Where(line => line.Certain).Select(line => line.Text).ToList();
-            var partial = certain.Count < made.Count;
+
+            // A line outside the description file is in doubt and still answers no wanted modifier: both spears were
+            // "not compared" for their skill grant until their slots were focused (live check 2026-11-10).
+            var partial = made.Any(line => !line.Certain && !line.OutsideTexts);
             return (partial && certain.Count == 0 ? null : certain, partial);
         }
 
