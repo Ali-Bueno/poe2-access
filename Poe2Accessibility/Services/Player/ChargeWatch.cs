@@ -21,6 +21,8 @@ namespace Poe2Accessibility.Services
         /// <summary>The count is said once it has held this long: charges come in bursts.</summary>
         private const int SettleMs = 400;
 
+        private const int GraceMs = 1500;
+
         private readonly Func<Entity?> subject;
         private readonly AudioCueService? audio;
         private readonly IAccessibilityOutputService output;
@@ -32,6 +34,9 @@ namespace Poe2Accessibility.Services
         private (int Count, int Max) rage;
         private bool rageLogged;
         private bool baseline = true;
+
+        /// <summary>Buffs fill in a little after an area loads: readings in this window of the first one stay baseline.</summary>
+        private readonly BaselineGrace grace = new(GraceMs);
         private long changedAt;
         private long lastPoll;
 
@@ -61,6 +66,7 @@ namespace Poe2Accessibility.Services
             this.held.Clear();
             this.unsaid.Clear();
             this.baseline = true;
+            this.grace.Reset();
         }
 
         /// <summary>Per frame; <paramref name="reading"/> false while dead, paused or in a menu (nothing is said).</summary>
@@ -120,7 +126,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.WatchRage(entity, settings);
-            this.baseline = false;
+            this.baseline = this.grace.Active(now);
             if (this.unsaid.Count > 0 && now - this.changedAt >= SettleMs)
             {
                 foreach (var group in this.unsaid.GroupBy(PlayerCharges.SpeechKindOf))
