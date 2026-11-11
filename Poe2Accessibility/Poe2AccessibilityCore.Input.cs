@@ -125,6 +125,8 @@ namespace Poe2Accessibility
         /// <summary>
         ///     A D-pad press that leaves the cursor where it was says its control again (<see cref="BlockedMove"/>). Not the
         ///     sticks, which also scroll and turn previews; not a free cursor, nor the passive tree, whose D-pad is the finder's.
+        ///     Not while something is still being said either: a press against the grid's edge said the item's name again
+        ///     over its own tooltip, which was lost (user 2026-11-11); speech going on is no silence to break.
         /// </summary>
         private void WatchBlockedMove(GamepadReader.PadState state)
         {
@@ -145,7 +147,7 @@ namespace Poe2Accessibility
                 this.blockedMove.Pressed(resting?.Address ?? IntPtr.Zero, line, now);
                 this.blockedPressAt = DateTime.UtcNow;
             }
-            else if (this.blockedMove.Due(resting?.Address ?? IntPtr.Zero, line, this.output.SaidSince(string.Empty, this.blockedPressAt), now))
+            else if (this.blockedMove.Due(resting?.Address ?? IntPtr.Zero, line, this.output.SaidSince(string.Empty, this.blockedPressAt) || this.output.Speaking, now))
             {
                 this.log?.Info("A direction moved nothing: the focus again");
                 this.output.Moved(line);

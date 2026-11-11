@@ -564,6 +564,7 @@ namespace Poe2Accessibility
                     this.Isolated("death", stateObject, static (core, stateObject) => core.deaths?.Tick(stateObject));
                     this.Isolated("trace", static core => core.actorTrace?.Tick());
                     this.Isolated("stun trace", static core => core.stunTrace?.Tick());
+                    this.Isolated("grid trace", static core => core.TickGridTrace());
                 }
 
                 this.Isolated("compatibility", static core => core.SayCompatibility());

@@ -46,6 +46,11 @@ namespace Poe2Accessibility.Tests
             move.Pressed(Create, Button, 3000);
             Equal(false, move.Due(Create, Button, true, 3000 + BlockedMove.WaitMs), "something was said meanwhile");
 
+            // Against the bag's edge with the item's tooltip still being read (2026-11-11): its name again cut the tooltip.
+            move.Pressed(Create, "Arco corto, raro, columna 10, fila 1", 3500);
+            Equal(false, move.Due(Create, "Arco corto, raro, columna 10, fila 1", true, 3516), "its own lines are still being said");
+            Equal(false, move.Due(Create, "Arco corto, raro, columna 10, fila 1", false, 3500 + BlockedMove.WaitMs), "and the press is answered for good");
+
             move.Pressed(IntPtr.Zero, string.Empty, 4000);
             Equal(false, move.Waiting, "no control under the cursor (play, a free cursor): nothing to wait for");
             Equal(false, move.Due(IntPtr.Zero, string.Empty, false, 4000 + BlockedMove.WaitMs), "and nothing to say");

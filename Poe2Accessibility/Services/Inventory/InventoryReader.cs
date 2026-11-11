@@ -193,6 +193,31 @@ namespace Poe2Accessibility.Services
             return IntPtr.Zero;
         }
 
+        /// <summary>
+        ///     The grid's item elements lying under a block of cells, in reading order: what an item in the hand would be put
+        ///     on, its top left corner on the cursor's cell.
+        /// </summary>
+        public List<IntPtr> ItemsUnder(IntPtr grid, int column, int row, int columns, int rows)
+        {
+            var under = new List<IntPtr>();
+            if (!this.reader.TryRead<float>(grid + GameLayout.InventoryGrid.CellSizeOffset + this.Shift, out var cell) || cell is < MinCellSize or > MaxCellSize)
+            {
+                return under;
+            }
+
+            foreach (var (item, itemColumn, itemRow) in this.ItemsOf(grid))
+            {
+                if (this.elements.TryReadElement(item, out var info) &&
+                    GridBlocks.Overlap(column, row, columns, rows, itemColumn, itemRow,
+                        Math.Max(1, (int)MathF.Round(info.Raw.UnscaledSize.X / cell)), Math.Max(1, (int)MathF.Round(info.Raw.UnscaledSize.Y / cell))))
+                {
+                    under.Add(item);
+                }
+            }
+
+            return under;
+        }
+
         /// <summary>Item element held by an equipment/flask slot (or the slot itself); zero when the slot is empty.</summary>
         public IntPtr FindItemElement(IntPtr slot, int depth = 0)
         {

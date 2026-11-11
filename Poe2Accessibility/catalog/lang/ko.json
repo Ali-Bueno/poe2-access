@@ -765,6 +765,8 @@
  "option {0} of {1}": "{1}개 중 {0}번째 옵션",
  "outer ring": "바깥쪽 고리",
  "outside the build": "빌드 외",
+ "over {0}": "{0} 위",
+ "over {0} items: ": "아이템 {0}개 위: ",
  "part of the game's data after its update, so some warnings may be out of date": "업데이트 후 게임 데이터 일부, 일부 경고가 최신이 아닐 수 있습니다",
  "portals": "포털",
  "quest rewards": "퀘스트 보상",

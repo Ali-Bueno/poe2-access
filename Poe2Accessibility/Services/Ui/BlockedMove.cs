@@ -27,7 +27,8 @@ namespace Poe2Accessibility.Services
 
         /// <returns>
         ///     Whether to say the control again: once, <see cref="WaitMs"/> after the last press, when the cursor still rests
-        ///     on it, it still says the same and nothing was said meanwhile.
+        ///     on it, it still says the same and nothing was said meanwhile nor is still being said (<paramref name="saidSince"/>):
+        ///     the control's own lines going on are no silence, and the repeat cut an item's tooltip short (user 2026-11-11).
         /// </returns>
         public bool Due(IntPtr control, string line, bool saidSince, long now)
         {

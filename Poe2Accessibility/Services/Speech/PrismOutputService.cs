@@ -112,6 +112,17 @@ namespace Poe2Accessibility.Services
             return false;
         }
 
+        public bool Speaking
+        {
+            get
+            {
+                lock (this.queueGate)
+                {
+                    return !this.floor.Quiet(DateTime.UtcNow);
+                }
+            }
+        }
+
         public void Urge(string text, int holdMs = 1500)
         {
             if (string.IsNullOrWhiteSpace(text))

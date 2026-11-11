@@ -63,6 +63,9 @@ namespace Poe2Accessibility.Services
 
         /// <summary>Whether a phrase holding <paramref name="fragment"/> was asked for since then (the last seconds are kept).</summary>
         bool SaidSince(string fragment, DateTime since) => false;
+
+        /// <summary>Whether something asked for is estimated still being said (<see cref="SpeechFloor.Quiet"/>).</summary>
+        bool Speaking => false;
     }
 
     /// <summary>Fallback when PRISM cannot be initialised: the plugin keeps logging but stays silent.</summary>

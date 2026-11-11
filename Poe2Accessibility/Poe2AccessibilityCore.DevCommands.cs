@@ -129,6 +129,25 @@ namespace Poe2Accessibility
             this.log?.Info($"Player stats written: {file}");
         }
 
+        private long gridTraceUntil;
+        private string gridTraceLast = string.Empty;
+
+        /// <summary>`gridtrace N`: for N seconds, the focused inventory grid's own state each time it changes (<see cref="UiSemantics.GridState"/>).</summary>
+        private void TickGridTrace()
+        {
+            if (Environment.TickCount64 >= this.gridTraceUntil || this.focus?.Current is not { } focused || this.semantics == null)
+            {
+                return;
+            }
+
+            var state = $"0x{focused.Address.ToInt64():X} {this.semantics.GridState(focused.Address)}";
+            if (state != this.gridTraceLast)
+            {
+                this.gridTraceLast = state;
+                this.log?.Info($"Grid: {state}");
+            }
+        }
+
         private void RunDevCommand(string command)
         {
             if (command.StartsWith("gesture ", StringComparison.Ordinal) &&
@@ -142,6 +161,12 @@ namespace Poe2Accessibility
             if (command.StartsWith("trace ", StringComparison.Ordinal) && int.TryParse(command["trace ".Length..], out var seconds))
             {
                 this.actorTrace?.Start(seconds);
+                return;
+            }
+
+            if (command.StartsWith("gridtrace ", StringComparison.Ordinal) && int.TryParse(command["gridtrace ".Length..], out var gridSeconds))
+            {
+                (this.gridTraceUntil, this.gridTraceLast) = (Environment.TickCount64 + (gridSeconds * 1000L), string.Empty);
                 return;
             }
 

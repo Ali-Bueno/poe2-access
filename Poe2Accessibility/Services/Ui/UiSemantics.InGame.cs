@@ -73,7 +73,22 @@ namespace Poe2Accessibility.Services
             List<string> details;
             var gear = (First: new List<string>(), Last: new List<string>());
             var filling = false;
-            if (this.inventory.TryReadGrid(info.Address, out var column, out var row, out var hovered))
+            if (this.inventory.TryReadGrid(info.Address, out var column, out var row, out var hovered) &&
+                Announcements.IsCellGrid(this.inventory.InventoryOf(info.Address)) && this.HandSpan() is { Columns: > 0 } hand)
+            {
+                // An item in the hand: the cursor's cell is where its top left corner would go, and the item the grid
+                // names is any one of those under it, so the place read as another item's and jumped about; each stop also
+                // read that item whole, with its place in the build (user 2026-11-11, arranging the bag). Said instead: what
+                // lies under the item held, and the cell.
+                role = UiRole.GridCell;
+                var under = this.inventory.ItemsUnder(info.Address, column, row, hand.Columns, hand.Rows);
+                emptyCell = under.Count == 0;
+                hovered = IntPtr.Zero;
+                details = new List<string>();
+                text = Announcements.UnderHand(under.Select(item => this.inventory.DescribeItem(item) ?? Announcements.UnknownItem).ToList());
+                value = Announcements.GridPosition(column, row);
+            }
+            else if (this.inventory.TryReadGrid(info.Address, out column, out row, out hovered))
             {
                 role = UiRole.GridCell;
                 hovered = hovered != IntPtr.Zero ? hovered : this.inventory.ItemAt(info.Address, column, row);
@@ -137,6 +152,39 @@ namespace Poe2Accessibility.Services
                 IsEmptyCell = emptyCell,
                 TooltipFilling = filling,
             };
+        }
+
+        /// <summary>
+        ///     Dev aid (`gridtrace`): the focused grid as the game holds it — the cursor's own cell, the item the grid names
+        ///     with its first cell and size, the item lying over the cursor's cell, and how many items the hand holds.
+        /// </summary>
+        public string GridState(IntPtr address)
+        {
+            if (!this.inventory.TryReadGrid(address, out var column, out var row, out var hovered))
+            {
+                return "no grid";
+            }
+
+            string Name(IntPtr item) => item == IntPtr.Zero ? "none" : this.inventory.DescribeItem(item) ?? "?";
+            var origin = this.inventory.TryReadOrigin(address, hovered, out var itemColumn, out var itemRow) ? $"{itemColumn},{itemRow}" : "-";
+            var size = hovered != IntPtr.Zero && this.elements.TryReadElement(hovered, out var info) ? $"{info.Raw.UnscaledSize.X:0}x{info.Raw.UnscaledSize.Y:0}" : "-";
+            return $"cell={column},{row} hovered={Name(hovered)}@{origin} size={size} lying={Name(this.inventory.ItemAt(address, column, row))} " +
+                   $"inventory={this.inventory.InventoryOf(address)} hand={this.HandSpan()}";
+        }
+
+        /// <summary>The cells the item in the asking player's hand spans, columns and rows; (0, 0) with an empty hand.</summary>
+        private (int Columns, int Rows) HandSpan()
+        {
+            try
+            {
+                return this.inventory.Locals?.Of(Seats.Input) is { } inventories && inventories.TryGetValue(GameReader.RemoteEnums.InventoryName.Cursor1, out var cursor)
+                    ? ServerInventory.FirstSpan(this.reader, cursor)
+                    : (0, 0);
+            }
+            catch (InvalidOperationException)
+            {
+                return (0, 0); // the host rebuilt its inventory list meanwhile
+            }
         }
 
         private readonly TooltipSettle tooltipSettle = new();

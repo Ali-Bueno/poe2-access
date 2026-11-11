@@ -765,6 +765,8 @@
  "option {0} of {1}": "ตัวเลือกที่ {0} จาก {1}",
  "outer ring": "วงนอก",
  "outside the build": "อยู่นอกบิลด์",
+ "over {0}": "ทับ {0}",
+ "over {0} items: ": "ทับไอเทม {0} ชิ้น: ",
  "part of the game's data after its update, so some warnings may be out of date": "ข้อมูลบางส่วนของเกมหลังการอัปเดต คำเตือนบางอย่างจึงอาจล้าสมัย",
  "portals": "พอร์ทัล",
  "quest rewards": "รางวัลเควสต์",

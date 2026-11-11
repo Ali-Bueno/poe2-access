@@ -285,6 +285,21 @@ namespace Poe2Accessibility
             return inventory is { } slot && SlotName(slot) is { } name ? ($"{name}, {item}", string.Empty) : (item, GridPosition(column, row));
         }
 
+        /// <summary>Whether a grid's cells are said by column and row (<see cref="InventoryCell"/>): not the flasks' row nor an equipment slot.</summary>
+        public static bool IsCellGrid(GameReader.RemoteEnums.InventoryName? inventory) =>
+            inventory != GameReader.RemoteEnums.InventoryName.Flask1 && (inventory is not { } slot || SlotName(slot) is null);
+
+        /// <summary>
+        ///     A grid cell with an item in the hand: what lies where that item would go — "vacío", "sobre Mirada de odio,
+        ///     raro" (one item: A swaps them), "sobre 3 objetos: …" (it cannot be put there).
+        /// </summary>
+        public static string UnderHand(System.Collections.Generic.IReadOnlyList<string> items) => items.Count switch
+        {
+            0 => EmptyCell,
+            1 => T($"over {items[0]}", $"sobre {items[0]}"),
+            _ => T($"over {items.Count} items: ", $"sobre {items.Count} objetos: ") + string.Join("; ", items),
+        };
+
         public static string? SlotName(GameReader.RemoteEnums.InventoryName inventory) => inventory switch
         {
             GameReader.RemoteEnums.InventoryName.BodyArmour1 => T("Body armour", "Armadura corporal"),

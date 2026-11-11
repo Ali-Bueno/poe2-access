@@ -27,7 +27,14 @@ A new focus starts again from its first line. Tooltips are also read automatical
 (`ReadTooltipsOnFocus`, on by default). A count or a level that changes under a resting cursor is said by itself ("2"
 when a stack of 3 loses one, "Level 8" when a gem levels); a clock ticking in a row is not. A D-pad press that moves
 nothing — a page's only control, the end of a list — says the control again a moment later (0.6 s), so silence never means
-"nothing happened" (`RepeatOnBlockedMove`, on by default; settings menu, Items).
+"nothing happened" (`RepeatOnBlockedMove`, on by default; settings menu, Items); not while something is still being said
+(estimated), since the repeat cut an item's own tooltip short at the bag's edge.
+
+With an item in the hand the cursor moves cell by cell (without one it jumps from item to item), its cell being where the
+held item's top left corner would go. Each cell says what lies where the item would be put, then the cell: "Vacío, columna
+10, fila 1" (A puts it down), "sobre Mirada de odio, raro, columna 6, fila 2" (one item under it: A swaps them, whatever
+the game's own legend says — it showed "Colocar" there), "sobre 3 objetos: …" (it cannot be put there; the legend offers
+no A). No tooltip nor build lines are read then. Equipment slots and the flasks' row read as ever.
 
 ## Scanner (gameplay)
 

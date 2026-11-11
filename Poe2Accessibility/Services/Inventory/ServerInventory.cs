@@ -34,5 +34,33 @@ namespace Poe2Accessibility.Services
 
             return items;
         }
+
+        /// <summary>
+        ///     How many cells the first item of an inventory spans, columns and rows; (0, 0) when it holds none. For the
+        ///     cursor's inventory, the item in the hand. Source: the host's <see cref="InventoryItemStruct"/>, SlotEnd (+0x10)
+        ///     less SlotStart (+0x08), GameHelper's own layout; validated live 2026-11-11 with a short bow in the hand, which
+        ///     read 2 x 4 as the frame the game draws around its place.
+        /// </summary>
+        public static (int Columns, int Rows) FirstSpan(HostMemoryReader reader, IntPtr inventory)
+        {
+            if (inventory == IntPtr.Zero || !reader.TryRead<InventoryStruct>(inventory, out var info))
+            {
+                return (0, 0);
+            }
+
+            foreach (var slot in reader.ReadStdVector<IntPtr>(info.ItemList, MaxSlots))
+            {
+                if (slot != IntPtr.Zero && reader.IsValidAddress(slot) && reader.TryRead<InventoryItemStruct>(slot, out var item) && item.Item != IntPtr.Zero)
+                {
+                    var (columns, rows) = (item.SlotEnd.X - item.SlotStart.X, item.SlotEnd.Y - item.SlotStart.Y);
+                    return columns is > 0 and <= MaxSpan && rows is > 0 and <= MaxSpan ? (columns, rows) : (0, 0);
+                }
+            }
+
+            return (0, 0);
+        }
+
+        /// <summary>No item is wider or taller than this many cells (a two-handed weapon is 2 x 4): more is a misread.</summary>
+        private const int MaxSpan = 8;
     }
 }

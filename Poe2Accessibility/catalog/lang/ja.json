@@ -765,6 +765,8 @@
  "option {0} of {1}": "{1}件中{0}番目の選択肢",
  "outer ring": "外側の輪",
  "outside the build": "ビルド外",
+ "over {0}": "{0}の上",
+ "over {0} items: ": "アイテム{0}個の上：",
  "part of the game's data after its update, so some warnings may be out of date": "更新後のゲームデータの一部。一部の警告が古い場合があります",
  "portals": "ポータル",
  "quest rewards": "クエスト報酬",

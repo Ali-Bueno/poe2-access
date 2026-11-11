@@ -765,6 +765,8 @@
  "option {0} of {1}": "第 {0} 個選項，共 {1} 個",
  "outer ring": "外圈",
  "outside the build": "不在流派中",
+ "over {0}": "在 {0} 上",
+ "over {0} items: ": "在 {0} 件物品上：",
  "part of the game's data after its update, so some warnings may be out of date": "更新後的部分遊戲資料，因此部分警告可能已過時",
  "portals": "傳送門",
  "quest rewards": "任務獎勵",
