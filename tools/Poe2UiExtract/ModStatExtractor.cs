@@ -16,10 +16,10 @@ internal static class ModStatExtractor
     /// <summary>On an index already opened with its paths parsed (the batch command).</summary>
     public static int Run(Index index, string outFile)
     {
-        var (mods, stats) = (DatTable.Open(index, "mods"), DatTable.Open(index, "stats"));
-        if (mods == null || stats == null || BundleFiles.Find(index, ModTextExtractor.Source) is not { } file)
+        var (mods, stats, buffs) = (DatTable.Open(index, "mods"), DatTable.Open(index, "stats"), DatTable.Open(index, "bufftemplates"));
+        if (mods == null || stats == null || buffs == null || BundleFiles.Find(index, ModTextExtractor.Source) is not { } file)
         {
-            Say.Out.WriteLine($"Mods, Stats or {ModTextExtractor.Source} is missing: {Step} left out.");
+            Say.Out.WriteLine($"Mods, Stats, BuffTemplates or {ModTextExtractor.Source} is missing: {Step} left out.");
             return 1;
         }
 
@@ -38,12 +38,13 @@ internal static class ModStatExtractor
             return 1;
         }
 
-        if (ModStatColumns.Find(mods, stats) is not { } columns)
+        if (ModStatColumns.Find(mods, stats, buffs) is not { } columns)
         {
             return 1;
         }
 
-        Say.Out.WriteLine($"  Mods: {columns.Stats.Count} stat columns from +0x{columns.Stats[0]:X}, ranges at +0x{columns.Ranges:X}, other keys into Stats at {string.Join(", ", columns.Others.Select(offset => $"+0x{offset:X}"))}");
+        Say.Out.WriteLine($"  Mods: {columns.Stats.Count} stat columns from +0x{columns.Stats[0]:X}, ranges at +0x{columns.Ranges:X}, other keys into Stats at {string.Join(", ", columns.Others.Select(offset => $"+0x{offset:X}"))}" +
+                          $", keys into BuffTemplates at {string.Join(", ", columns.Buffs.Select(offset => $"+0x{offset:X}"))}");
         if (columns.Problem(mods, stats) is { } problem)
         {
             Say.Out.WriteLine($"  {problem}, {Step} keeps its previous catalog");

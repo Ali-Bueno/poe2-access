@@ -54,7 +54,8 @@ a 16-byte key into another table), 0.5.x files: Mods has 16,911 rows of 0x2B5 by
 |---|---|---|
 | Stat 1 to 4 | +0x1E, +0x2E, +0x3E, +0x4E, 16-byte keys into Stats | `IncreasedLife3` → `base_maximum_life` (its line read "+… a la vida máxima"); `LocalIncreasedArmourAndLife2` → `local_physical_damage_reduction_rating_+%`, then `base_maximum_life` (16 → "Armadura aumentada un 16%", 15 → part of "+47 a la vida máxima"). The run ends where a column is no key into Stats (+0x5E, a number and a text) |
 | Least and most of each | +0x7E, four pairs of int32 | the hybrid's 14–20 and 11–19 hold its rolls 16 and 15; all 22 live values lie in their stat's pair. An empty stat column has 0, 0 on all but 78 rows |
-| Other keys into Stats | +0x12E (771 rows filled), +0x196 (476), +0x1DF (96), +0x1EF (42), +0x25C (265) | by shape only. The first four hold further stats of one modifier (`HandWrapsUniqueBaseDamageOverrideForMaceAttacks1`: three `…facebreaker…` stats at +0x4E, +0x12E, +0x196); +0x25C is not understood |
+| Other keys into Stats | +0x12E (771 rows filled), +0x196 (476), +0x1DF (96), +0x1EF (42) | by shape only. They hold further stats of one modifier (`HandWrapsUniqueBaseDamageOverrideForMaceAttacks1`: three `…facebreaker…` stats at +0x4E, +0x12E, +0x196) |
+| Key into BuffTemplates | +0x25C (265 rows filled) | not a stat: all 265 keys lie under BuffTemplates' 665 rows (Stats has 27,299) and 206 name the BuffTemplates row of the modifier's own Id (`LocalDisplayYouAndNearbyAlliesHaveIncreasedItemRarityUnique__1`, `NearbyAlliesHaveFortifyUnique__1__`, `MonsterSirusInfluenced`); found as such by `ModStatColumns.IsBuffColumn`, so a modifier with it is told apart by its run (2026-11-10, second pass) |
 
 A modifier's values follow its stat columns: value 1 is stat 1, value 2 is stat 2 (the range `NearbyAlliesAddedColdDamage3`
 6/10 = minimum and maximum, the hybrid 16/15 = armour and life). Proven for two values; three and four are the same
@@ -68,8 +69,8 @@ never gives a certain line.
 
 ```
 "hidden":   [ "level", … ]                      24 stats the description file marks no_description
-"mods":     { "LocalIncreasedArmourAndLife2": "local_physical_damage_reduction_rating_+% 14 20 base_maximum_life 11 19" }   15,851
-"unproven": { "HandWrapsUniqueBaseDamageOverrideForMaceAttacks1": "stat stat stat" }                                          1,060
+"mods":     { "LocalIncreasedArmourAndLife2": "local_physical_damage_reduction_rating_+% 14 20 base_maximum_life 11 19" }   16,083
+"unproven": { "HandWrapsUniqueBaseDamageOverrideForMaceAttacks1": "stat stat stat" }                                            828
 ```
 
 - **The texts are not copied.** `mod-texts.json` already holds `stat_descriptions.csd` whole, each block with its stat
@@ -93,7 +94,16 @@ The 44 handler names of `stat_descriptions.csd` (0.5.x), all in `StatHandlers` (
 | Arithmetic, applied | `negate`, `negate_and_double`, `double`, `times_twenty`, `add_one`, `subtract_one`, `plus_two_hundred`, `divide_by_one_hundred` (and `_1dp`, `_2dp`, `_2dp_if_required`), `divide_by_one_hundred_and_negate`, `per_minute_to_per_second` (and `_0dp`, `_1dp`, `_2dp`, `_2dp_if_required`), `milliseconds_to_seconds` (and `_0dp`, `_1dp`, `_2dp`, `_2dp_if_required`), `deciseconds_to_seconds`, `divide_by_ten_0dp`, `_1dp`, `_1dp_if_required`, `divide_by_two_0dp`, `divide_by_three`, `divide_by_four`, `divide_by_five`, `divide_by_fifteen_0dp`, `divide_by_fifty` | shown = value × factor + offset, as the name says |
 | Arithmetic, never certain | `divide_by_twenty_then_double_0dp` | applied as ÷10; what is rounded between its two steps is not known |
 | Marks | `canonical_line`, `canonical_stat` | no number changes |
-| Look-ups, not applied | `affliction_reward_type`, `display_indexable_support`, `mages_legacy_index`, `mod_value_to_item_class`, `passive_hash`, `passive_keystone_index`, `specific_skill`, `tree_expansion_jewel_passive`, `ultimatum_wager_type_hash` | they show a name found by the value: the line is not written and is uncertain |
+| Look-ups, not applied | `affliction_reward_type`, `display_indexable_support`, `mages_legacy_index`, `mod_value_to_item_class`, `passive_hash`, `passive_keystone_index`, `specific_skill`, `tree_expansion_jewel_passive`, `ultimatum_wager_type_hash` | they show a name found by the value: the line is not written and is uncertain (why each stays so: below) |
+
+Why the nine look-ups stay uncertain (checked on the 0.5.5f files, 2026-11-10): no file says which table and column a value
+indexes, nor which of a row's words the line shows. `passive_hash` (`GrantedPassive`, `EssenceGrantedPassive`, two abyss
+jewels, two unique jewels), `mages_legacy_index`, `affliction_reward_type`, `passive_keystone_index` and `specific_skill`
+roll 0 to 0 in Mods: the value is given when the item drops and only memory holds it. `ultimatum_wager_type_hash` rolls a
+fixed number that UltimatumWagerTypes holds at +0x8 (19846 on its `CurrencyAddEquipmentSocket` row, beside the text "20
+Artificer's Orbs"), but whether the line shows that text or the currency's name is not in a file; `mod_value_to_item_class`
+(18 map-boss modifiers) would name an item class, singular or plural is not in a file. No modifier uses
+`display_indexable_support` or `tree_expansion_jewel_passive`.
 
 Seen live: `negate` (-15 → "reducidos un 15%", -19 and -20 on the flasks) and `per_minute_to_per_second` without a
 decimals part (352 → "5.9", 104 → "1.7": one decimal, rounded). Every other one is applied as its name reads.
@@ -123,7 +133,9 @@ what it was made from:
    with its handlers. Blocks come in the file's order: on the seven items that is the tooltip's own order.
 3. Uncertain, never said and never held against the item: a modifier the catalog lacks (every line of its list, since
    it may add to any), a modifier with other than a value a stat or marked unproven (the lines of its stats), a value
-   outside what its stat rolls, a stat with no block or with two (26 stats are in two blocks), a line before the fitting
+   outside what its stat rolls, a stat with no block, a stat in two blocks that write it otherwise for its value (26 stats
+   are in two blocks, each the one stat of both; when every block writes the same certain line for the value, that line
+   is written whichever block the game takes: `ModTextCatalog.AlikeBlock`, 18 of the 26 alike in Spanish), a line before the fitting
    one that cannot be read (a look-up, `table_only`, a `{0:-d}` place), no fitting line, no text in the language, a
    number as above, and anything from the enchant and other lists. A stat marked `no_description` gives no line and no
    doubt.
@@ -132,10 +144,18 @@ what it was made from:
 catalogs): 7 items, 25 lines, **25 equal to the Spanish tooltip letter for letter, 0 uncertain, 0 wrong**, in the
 tooltip's order.
 
-Over the whole catalog (each of the 15,457 proven modifiers with a stat, at its least and at its most roll, Spanish):
-22,529 of 30,914 rolls have every line certain. The lines in doubt: 8,800 for a stat `stat_descriptions.csd` does not
-describe (monster, map and skill modifiers among them: the catalog does not tell an item's modifiers from those), 676
-for a number written a way not seen, 124 with no line that could be written, 108 for a stat in two blocks.
+Over the whole catalog (each of the 15,663 proven modifiers with a stat, at its least and at its most roll, Spanish;
+counted again 2026-11-10, second pass): 23,096 of 31,326 rolls have every line certain (22,529 of 30,914 before the
+hundredths, halves, zero decimals, alike blocks and the buff column). The lines in doubt: 9,020 for a stat
+`stat_descriptions.csd` does not describe (monster, map and skill modifiers among them: the catalog does not tell an
+item's modifiers from those), 415 for a number written a way not seen or a look-up line before the fitting one, 124 with
+no line that could be written, 12 for a stat whose two blocks write it otherwise.
+
+The 828 unproven modifiers (after the buff column of +0x25C was told from the stats, which proved 232, 38 of them on
+items, uniques' auras among them): 771 with a stat in another key column (+0x12E, +0x196, +0x1DF, +0x1EF), 57 with a
+number rolled at an empty stat column (30 of them with no stat in the run at all: monster thorns, map tiers). In each, which value of the item's
+list is which stat's is not in a file: Mods says what each stat rolls, never in which order memory keeps them. They stay
+unproven until an item with one is read beside its tooltip.
 
 ## What the gear feature does with them
 
@@ -152,8 +172,8 @@ for a number written a way not seen, 124 with no line that could be written, 108
 
 Run on 2026-11-10; the results are under "Live check, 2026-11-10" below. The procedure:
 
-1. Start the game with the build; the log must say `Modifier stat catalog: 15851 modifiers, 1060 not told apart, 24
-   hidden stats from the game files`.
+1. Start the game with the build; the log must say `Modifier stat catalog: 16083 modifiers, 828 not told apart, 24
+   hidden stats from the game files` (15851 and 1060 before the buff column, 2026-11-10).
 2. Open the inventory and rest the cursor on every worn slot and every bag item once (a tooltip exists only after
    that), then send the dev command `itemmodscheck`. It logs, per worn and bag item,
    `Item mods check: <name> (<inventory> x,y): n lines equal, m differ, k uncertain` with the differing lines, or
@@ -217,10 +237,19 @@ Found and fixed:
   "Regeneras 2 …"). Under `per_minute_to_per_second` a zero decimal is dropped and the line is certain
   (`StatHandlers.SeenZeroDropped`). The belt rested on again: 3 lines equal, 0 differ.
 
-Left as it is on hairin: her unique helm (Alas de Caelyn) shows "Cada punto de furia también otorga umbral de
-aturdimiento aumentado un 1%", whose stat `stun_threshold_+%_per_rage` is in two blocks of the description file: in
-doubt, never said and never held against the helm, as designed (which block is written is not known from one item);
-her spear has the same skill grant as yarkey's.
+Settled afterwards from the files (second pass, unit tests): hairin's unique helm (Alas de Caelyn) shows "Cada punto de
+furia también otorga umbral de aturdimiento aumentado un 1%", whose stat `stun_threshold_+%_per_rage` is in two blocks of
+the description file. Both blocks describe that stat alone, with one line of condition `#` and no handler, the same
+text in all eleven languages (the blocks list them in another order): whichever the game writes, the line is that one,
+and it is now certain (`ModTextCatalog.AlikeBlock`). Her spear has the same skill grant as yarkey's.
+
+The spears' "Otorga la habilidad: Lanzamiento de lanza" (`local_display_grants_spear_throw_skill`, implicit
+`SpearImplicitDisplaySpearThrow1`) stays uncertain, as before not counted against the piece: its frame is ClientStrings'
+`ItemDisplayGrantedSkillNoScaling` ("Otorga la habilidad: {0}"; the sceptre's levelled line is
+`ItemDisplayGrantedSkill`), but no file says which skill fills it. The stat is in no description file (none of the 26
+in `data/statdescriptions/`), its Stats row names no skill, no table keys it, the modifier keys no granted effect, and
+ItemInherentSkills, which gives the wands', staves' and sceptres' skills, has no spear: only the stat's Id names Spear
+Throw.
 
 The questions of step 4:
 - **Quality:** the second set's spear has "Calidad: +8%" and its two modifier lines are equal: quality changes the

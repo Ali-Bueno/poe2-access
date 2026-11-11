@@ -507,8 +507,10 @@ unblocks it). The audit's own lists, entry by entry:
   2 differ, 3 uncertain, her belt equal after the fix; 12 stash items, no difference logged. Four faults found and
   fixed on the way: a spear's skill grant made the whole piece "not compared" (the summary read "3 de 9" before the
   slots were focused); "+1.4%" and "+1.12%" (hundredths) were in doubt; 201 a minute was written "3.4" where the
-  tooltip shows "3.3"; a regeneration rounding to 3.0 was written "3.0" where it shows "3". Left in doubt, as designed:
-  a unique helm's line whose stat is in two blocks of the description file. Still unseen: a piece with a rune socketed, an
+  tooltip shows "3.3"; a regeneration rounding to 3.0 was written "3.0" where it shows "3". A unique helm's line whose
+  stat is in two blocks of the description file is certain since both blocks write it alike (`ModTextCatalog.AlikeBlock`,
+  2026-11-10); the spears' grant stays in doubt: no file links `local_display_grants_spear_throw_skill` to a skill
+  ([item mods](docs/research/item-mods.md)). Still unseen: a piece with a rune socketed, an
   enchanted or corrupted item, one stat on an implicit and an explicit, a modifier of three values, a number over 999.
 - **The passive list's "4 más de la build no están en este árbol".** They are the four nodes of the file's ascendancy
   ("ascendancy": "Mercenary3": `AscendancyMercenary3Small1`, `…Notable1_`, `…Small4`, `…Notable4`; 60 + 4 = the file's

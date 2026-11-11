@@ -22,7 +22,7 @@ namespace Poe2Accessibility.Tests
             "\"LifeRegeneration1\":\"base_life_regeneration_rate_per_minute 60 400\"," +
             "\"Level1\":\"level 1 1\",\"Undescribed1\":\"stat_without_text 1 5\",\"Twice1\":\"stat_described_twice 1 5\"," +
             "\"Passive1\":\"named_passive 1 9000\",\"Armour9\":\"flat_armour 500 2000\",\"FireResist1\":\"base_fire_damage_resistance_% -30 30\"," +
-            "\"Leech1\":\"life_leech_permyriad 100 900\",\"Duration1\":\"duration_ms 500 9000\",\"Tenth1\":\"tenths 1 90\",\"Wave1\":\"waves 1 90\",\"English1\":\"only_english 1 9\"}," +
+            "\"Leech1\":\"life_leech_permyriad 100 900\",\"Duration1\":\"duration_ms 500 9000\",\"Tenth1\":\"tenths 1 90\",\"Wave1\":\"waves 1 90\",\"English1\":\"only_english 1 9\",\"RagePerStun1\":\"stun_threshold_+%_per_rage 1 1\",\"NoPoison1\":\"cannot_be_poisoned -1 1\"}," +
             "\"unproven\":{\"SixStats1\":\"base_maximum_mana stat_in_a_later_column\"}}";
 
         private const string Texts =
@@ -44,7 +44,10 @@ namespace Poe2Accessibility.Tests
             "{\"stats\":\"duration_ms\",\"texts\":{\"en\":[\"# \\\"Lasts {0} seconds\\\" milliseconds_to_seconds_2dp_if_required 1\",\"# \\\"never reached\\\"\"]}}," +
             "{\"stats\":\"tenths\",\"texts\":{\"en\":[\"# \\\"{0} metres\\\" divide_by_ten_1dp 1\"]}}," +
             "{\"stats\":\"waves\",\"texts\":{\"en\":[\"# \\\"{0} waves\\\" divide_by_twenty_then_double_0dp 1\"]}}," +
-            "{\"stats\":\"only_english\",\"texts\":{\"en\":[\"2|# \\\"{0} to Spirit\\\"\"]}}]}";
+            "{\"stats\":\"only_english\",\"texts\":{\"en\":[\"2|# \\\"{0} to Spirit\\\"\"]}}," +
+            "{\"stats\":\"stun_threshold_+%_per_rage\",\"texts\":{\"en\":[\"# \\\"Every [Rage] also grants {0}% increased [StunThreshold|Stun Threshold]\\\"\"],\"es\":[\"# \\\"Cada punto de [Rage|furia] también otorga [StunThreshold|umbral de aturdimiento] aumentado un {0}%\\\"\"]}}," +
+            "{\"stats\":\"stun_threshold_+%_per_rage\",\"texts\":{\"en\":[\"# \\\"Every [Rage] also grants {0}% increased [StunThreshold|Stun Threshold]\\\"\"],\"es\":[\"# \\\"Cada punto de [Rage|furia] también otorga [StunThreshold|umbral de aturdimiento] aumentado un {0}%\\\"\"]}}," +
+            "{\"stats\":\"cannot_be_poisoned\",\"texts\":{\"en\":[\"# \\\"Cannot be [Poison|Poisoned]\\\"\"]}},{\"stats\":\"cannot_be_poisoned\",\"texts\":{\"en\":[\"1|# \\\"Cannot be [Poison|Poisoned]\\\"\"]}}]}";
 
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
@@ -129,6 +132,10 @@ namespace Poe2Accessibility.Tests
             Equal(string.Empty, Explicit("es", Mod("Level1", 1)), "a stat the file says has no description: no line, and nothing in doubt");
             Equal("?", Explicit("es", Mod("Undescribed1", 3)), "a stat the file does not mention: whether the tooltip shows a line is not known");
             Equal("?", Explicit("en", Mod("Twice1", 3)), "a stat in two blocks: which one is written is not known");
+            Equal("Cada punto de furia también otorga umbral de aturdimiento aumentado un 1%", Explicit("es", Mod("RagePerStun1", 1)),
+                "a stat in two blocks that write it alike: that line, whichever the game takes (the unique helm Alas de Caelyn's tooltip, 2026-11-10)");
+            Equal("Cannot be Poisoned", Explicit("en", Mod("NoPoison1", 1)), "two blocks whose conditions differ and fit this value alike");
+            Equal("?", Explicit("en", Mod("NoPoison1", -1)), "a value one of them writes no line for: which is written is not known");
             Equal("?", Explicit("en", Mod("Passive1", 77)), "a line that shows a name looked up, not a number");
             Equal("?+600 to Armour", Explicit("en", Mod("Armour9", 600)), "a line after one that cannot be read: the first may have been the one");
             Equal("+600 a la armadura", Explicit("es", Mod("Armour9", 600)), "the same block in a language where every line reads");
@@ -242,6 +249,9 @@ namespace Poe2Accessibility.Tests
             Equal(true, ItemModLines.Render(gloves.Mods, "es", stats, texts).Any(line => line.Text == "+47 a la vida máxima"), "the gloves' life is 32 and 15 from two modifiers, one line of 47");
             Equal("16% increased Armour | +47 to maximum Life | +33 to maximum Mana | 15% increased Critical Damage Bonus | Gain 2 Life per Enemy Hit with Attacks",
                 string.Join(" | ", ItemModLines.Render(gloves.Mods, "en", stats, texts).Where(line => line.Certain).Select(line => line.Text)), "the same item in English");
+            Equal("Cada punto de furia también otorga umbral de aturdimiento aumentado un 1%",
+                string.Join(" | ", ItemModLines.Render(Lists(@explicit: new[] { Mod("UniqueIncreasedStunThresholdPerRage1", 1) }), "es", stats, texts).Where(line => line.Certain).Select(line => line.Text)),
+                "hairin's helm, Alas de Caelyn: its stat is in two blocks of the file, which write it alike (its tooltip, 2026-11-10)");
         }
     }
 }

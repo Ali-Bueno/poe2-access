@@ -18,6 +18,7 @@ namespace Poe2Accessibility.Tests
         {
             (nameof(ModStatColumnsAreFoundByTheKnownModifiers), ModStatColumnsAreFoundByTheKnownModifiers),
             (nameof(AModifierWhoseValuesCannotBeToldApartIsUnproven), AModifierWhoseValuesCannotBeToldApartIsUnproven),
+            (nameof(AColumnThatKeysTheModifiersOwnBuffIsNoStat), AColumnThatKeysTheModifiersOwnBuffIsNoStat),
             (nameof(TheHiddenStatsOfADescriptionFileAreKept), TheHiddenStatsOfADescriptionFileAreKept),
             (nameof(EveryHandlerOfTheShippedTextsIsKnown), EveryHandlerOfTheShippedTextsIsKnown),
         };
@@ -104,6 +105,18 @@ namespace Poe2Accessibility.Tests
             Expect((false, "base_maximum_mana third_stat"), (Read("Gap1").Proven, ModStatColumns.Written(Read("Gap1"))), "a stat after an empty column");
             Equal(false, Read("Stray1").Proven, "a number rolled where no stat is");
             Equal(true, Read("FourStats1").Proven, "the run filled from its start");
+        }
+
+        private static void AColumnThatKeysTheModifiersOwnBuffIsNoStat()
+        {
+            var (mods, stats) = Tables();
+            DatTable Buffs(string fifth) => Enumerable.Range(0, 6).Aggregate(new DatTableBuilder(0x8), (table, row) => table.Row(w => w.Text(0, row == 5 ? fifth : $"Buff{row}"))).Build();
+            var c = ModStatColumns.Find(mods, stats, Buffs("LaterStat1")) ?? throw new Exception("not found");
+            Expect((string.Empty, LaterStatOffset.ToString()), (string.Join(',', c.Others), string.Join(',', c.Buffs)), "its keys name the modifier's own BuffTemplates row (+0x25C in 0.5.x)");
+            var read = c.Read(mods, stats, DatColumnSearch.RowOf(mods, "LaterStat1"));
+            Expect((true, "base_maximum_mana 1 2"), (read.Proven, ModStatColumns.Written(read)), "so the modifier is told apart by its run");
+            Equal(LaterStatOffset.ToString(), string.Join(',', (ModStatColumns.Find(mods, stats, Buffs("AnotherModifier")) ?? throw new Exception("not found")).Others),
+                "keys that name other modifiers' buffs: a stat column still");
         }
 
         private static void TheHiddenStatsOfADescriptionFileAreKept()
