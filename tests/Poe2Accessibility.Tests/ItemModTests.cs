@@ -145,7 +145,7 @@ namespace Poe2Accessibility.Tests
             Equal("?-10% to Fire Resistance", Explicit("en", Mod("FireResist1", -10)), "a number shown below zero: which minus sign is not known");
             Equal("+10% to Fire Resistance", Explicit("en", Mod("FireResist1", 10)), "above zero it is certain");
             Equal("Leeches 2.5% of Damage as Life", Explicit("en", Mod("Leech1", 250)), "one decimal exactly where no handler states the decimals: seen written as it is (+1.4% on a spear, 2026-11-10)");
-            Equal("?Leeches 2.55% of Damage as Life", Explicit("en", Mod("Leech1", 255)), "more decimals than were seen: rounded or cut is not known");
+            Equal("Leeches 2.55% of Damage as Life", Explicit("en", Mod("Leech1", 255)), "two decimals, all a number of hundredths can have (+1.12% on a staff's tooltip)");
             Equal("Leeches 3% of Damage as Life", Explicit("en", Mod("Leech1", 300)), "a whole number under the same handler");
             Equal("Lasts 1.5 seconds", Explicit("en", Mod("Duration1", 1500)), "decimals as required: the last zero dropped");
             Equal("Lasts 0.75 seconds", Explicit("en", Mod("Duration1", 750)), "both when both are needed");

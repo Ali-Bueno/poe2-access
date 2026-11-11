@@ -37,11 +37,13 @@ namespace Poe2Accessibility.Services
         public static readonly IReadOnlyDictionary<string, int> SeenDecimals = new Dictionary<string, int>(StringComparer.Ordinal) { ["per_minute_to_per_second"] = 1 };
 
         /// <summary>
-        ///     Handlers that state no decimals and were seen to write a number that has this many decimals as it is (140
-        ///     hundredths read "+1.4%" on a rare spear's critical hit chance, live check 2026-11-10). A number with more
-        ///     decimals is still not known: rounded or cut.
+        ///     Handlers that state no decimals and were seen to write a number that has up to this many decimals as it is,
+        ///     with no zero after them: 140 hundredths read "+1.4%" on a rare spear's critical hit chance (set against memory
+        ///     in the live check of 2026-11-10) and a staff in the stash read "+1.12%" (its tooltip, the same day). A whole
+        ///     number of hundredths has no third decimal, so nothing is rounded or cut. A number with more decimals than
+        ///     this under another handler is still not known.
         /// </summary>
-        public static readonly IReadOnlyDictionary<string, int> SeenExact = new Dictionary<string, int>(StringComparer.Ordinal) { ["divide_by_one_hundred"] = 1 };
+        public static readonly IReadOnlyDictionary<string, int> SeenExact = new Dictionary<string, int>(StringComparer.Ordinal) { ["divide_by_one_hundred"] = 2 };
 
         /// <summary>
         ///     Handlers seen to show a number at an exact half of the last decimal: 201 a minute read "Regeneras 3.3 de

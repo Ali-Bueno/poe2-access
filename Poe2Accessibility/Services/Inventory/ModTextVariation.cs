@@ -334,7 +334,7 @@ namespace Poe2Accessibility.Services
                         if (Math.Abs(parts - Math.Round(parts)) < 1e-6)
                         {
                             // No more decimals than were seen written out as they are: nothing is rounded or cut.
-                            return (number.ToString("F" + exact, CultureInfo.InvariantCulture), plain && decimalMarkSeen);
+                            return (number.ToString("0." + new string('#', exact), CultureInfo.InvariantCulture), plain && decimalMarkSeen);
                         }
                     }
 
