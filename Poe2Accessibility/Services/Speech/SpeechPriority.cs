@@ -65,14 +65,15 @@ namespace Poe2Accessibility.Services
             !urgent && !happened && kind is SpeechKind.LifeAndMana or SpeechKind.BossLife or SpeechKind.Charges or SpeechKind.Combo;
 
         /// <summary>
-        ///     Speaks a piece of news at the level the player chose for its kind; urgent news cutting in also holds.
+        ///     Speaks a piece of news at the level the player chose for its kind; urgent news cutting in also holds. News
+        ///     held only by its level (a state that began, an arrival) yields to the player's own move.
         ///     <paramref name="happened"/>: the line reports an event under a kind that otherwise carries readings.
         /// </summary>
         public static void Say(this IAccessibilityOutputService output, SpeechKind kind, string text, bool urgent = false, bool happened = false)
         {
             if (Level(kind) == Holds || (urgent && Level(kind) == Urgent))
             {
-                output.Urge(text);
+                output.Urge(text, yieldsToMoves: !urgent);
                 return;
             }
 

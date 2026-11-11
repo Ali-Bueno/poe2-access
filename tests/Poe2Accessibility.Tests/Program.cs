@@ -2674,7 +2674,7 @@ namespace Poe2Accessibility.Tests
 
             public void Speak(string text, bool interrupt = false) => this.Calls.Add($"{text} {interrupt}");
 
-            public void Urge(string text, int holdMs = 1500) => this.Calls.Add($"urge {text}");
+            public void Urge(string text, int holdMs = 1500, bool yieldsToMoves = false) => this.Calls.Add($"urge {text}");
 
             public void Keep(string text, int holdMs, bool interrupt = false, bool yieldsToMoves = false) => this.Calls.Add($"keep {text} {interrupt}");
 

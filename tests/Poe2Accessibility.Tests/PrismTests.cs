@@ -25,6 +25,7 @@ namespace Poe2Accessibility.Tests
             (nameof(TheProtonScriptShipsForSh), TheProtonScriptShipsForSh),
             (nameof(UnderWineTheDialogsAskTheLinuxDesktop), UnderWineTheDialogsAskTheLinuxDesktop),
             (nameof(AMentionBeingHeardIsNotSaidAgain), AMentionBeingHeardIsNotSaidAgain),
+            (nameof(WhatAUsesCutsWhatIsBeingSaid), WhatAUsesCutsWhatIsBeingSaid),
         };
 
         /// <summary>
@@ -220,6 +221,32 @@ namespace Poe2Accessibility.Tests
             speech.Speak("Cofre, A");
             speech.Urge("Enfriado");
             Equal("Vida 50 por ciento. Enfriado/True", pending(), "a line after it would be cut: said first");
+        }
+
+        /// <summary>
+        ///     What A uses is the player's own move: it waited behind "Inventario lleno", the quest page and "Remolino"
+        ///     (user 2026-11-11). Urgent news still holds against it.
+        /// </summary>
+        private static void WhatAUsesCutsWhatIsBeingSaid()
+        {
+            var (speech, pending) = Unstarted();
+            speech.Keep("Inventario lleno", 700, true, yieldsToMoves: true);
+            speech.Moved("Maza liviana, A");
+            Equal("Maza liviana, A/True", pending(), "a message being kept");
+
+            (speech, pending) = Unstarted();
+            speech.Say(SpeechKind.StatusBegins, "Remolino");
+            speech.Speak("Vacío, columna 1, fila 1", true);
+            Equal("Remolino/True|Vacío, columna 1, fila 1/False", pending(), "a state that began holds against what the game shows");
+            speech.Moved("Maza liviana, A");
+            Equal("Maza liviana, A/True", pending(), "not against the player's move");
+            speech.Speak("Vacío, columna 2, fila 1", true);
+            Equal("Vacío, columna 2, fila 1/True", pending(), "and once cut it holds nothing more");
+
+            (speech, pending) = Unstarted();
+            speech.Say(SpeechKind.LifeAndMana, "Vida 10 por ciento", urgent: true);
+            speech.Moved("Maza liviana, A");
+            Equal("Vida 10 por ciento/True|Maza liviana, A/False", pending(), "urgent news is heard first");
         }
 
         /// <summary>A speech service whose worker never started, and what it has queued ("text/interrupt|…").</summary>

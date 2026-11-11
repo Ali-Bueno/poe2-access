@@ -233,7 +233,8 @@ namespace Poe2Accessibility.Services
 
             // What A takes now cuts in, like a focus: queued behind other lines it came late and A took the next item
             // ("Ballesta tensa, A" heard while A already held a bow, 2026-10-26). A queued name of it is skipped later.
-            this.output.Speak(this.Label(current), true);
+            // The player's own move: it waited out "Inventario lleno" and the quest page (user 2026-11-11).
+            this.output.Moved(this.Label(current));
         }
 
         /// <summary>A name, with the interact button when A uses it now.</summary>

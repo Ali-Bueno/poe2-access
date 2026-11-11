@@ -51,6 +51,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Until then interrupting phrases queue (see <see cref="Urge"/>).</summary>
         private DateTime urgedUntil = DateTime.MinValue;
 
+        /// <summary>The same for an urged phrase that is not urgent news: the player's own move still cuts it.</summary>
+        private DateTime urgedSoftlyUntil = DateTime.MinValue;
+
         /// <summary>A kept line's hold and what waits behind it; guarded by <see cref="queueGate"/>.</summary>
         private readonly SpeechFloor floor = new();
 
@@ -123,7 +126,7 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        public void Urge(string text, int holdMs = 1500)
+        public void Urge(string text, int holdMs = 1500, bool yieldsToMoves = false)
         {
             if (string.IsNullOrWhiteSpace(text))
             {
@@ -134,7 +137,14 @@ namespace Poe2Accessibility.Services
             // off by "Burning" 70 ms later, 2026-10-24), then holds in turn.
             var until = DateTime.UtcNow.AddMilliseconds(holdMs);
             this.Say(text, true, Delivery.Urgent, 0);
-            this.urgedUntil = until > this.urgedUntil ? until : this.urgedUntil;
+            if (yieldsToMoves)
+            {
+                this.urgedSoftlyUntil = until > this.urgedSoftlyUntil ? until : this.urgedSoftlyUntil;
+            }
+            else
+            {
+                this.urgedUntil = until > this.urgedUntil ? until : this.urgedUntil;
+            }
         }
 
         public void Mention(string text) => this.Mention(text, reading: true);
@@ -260,9 +270,13 @@ namespace Poe2Accessibility.Services
             }
 
             this.repeats.Note(text, now);
-            if (interrupt && now < this.urgedUntil)
+            if (interrupt && (now < this.urgedUntil || (now < this.urgedSoftlyUntil && delivery != Delivery.Move)))
             {
-                interrupt = false; // an urgent phrase is still being heard: wait behind it
+                interrupt = false; // an urged phrase is still being heard: wait behind it
+            }
+            else if (interrupt && delivery == Delivery.Move)
+            {
+                this.urgedSoftlyUntil = DateTime.MinValue; // cut by the player's move: it holds nothing more
             }
 
             if (interrupt && this.mentioned is { } news)

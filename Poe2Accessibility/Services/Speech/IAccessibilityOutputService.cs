@@ -21,9 +21,10 @@ namespace Poe2Accessibility.Services
 
         /// <summary>
         ///     D2R "Urge": interrupts, then any interrupting phrase in the next <paramref name="holdMs"/> queues behind
-        ///     it instead of cutting it off (low life, arrival, a status that began).
+        ///     it instead of cutting it off (low life, arrival, a status that began). News that is not urgent
+        ///     (<paramref name="yieldsToMoves"/>) is still cut by the player's own move (<see cref="Moved"/>).
         /// </summary>
-        void Urge(string text, int holdMs = 1500);
+        void Urge(string text, int holdMs = 1500, bool yieldsToMoves = false);
 
         /// <summary>
         ///     Says a tutorial lesson whole: for <paramref name="holdMs"/> once it starts, what would cut it waits and follows
@@ -35,7 +36,10 @@ namespace Poe2Accessibility.Services
         /// <summary>What the player just asked for: cuts what is being said, even a kept line, and drops what waited behind it.</summary>
         void TakeFloor(string text) => this.Speak(text, true);
 
-        /// <summary>The cursor moved by the player: interrupts even a message or a page being kept, never a lesson.</summary>
+        /// <summary>
+        ///     The player's own move (the cursor to another cell, a step onto what A uses): interrupts even a message or a
+        ///     page being kept; never a lesson, nor urgent news.
+        /// </summary>
         void Moved(string text) => this.Speak(text, true);
 
         /// <summary>
@@ -77,7 +81,7 @@ namespace Poe2Accessibility.Services
         {
         }
 
-        public void Urge(string text, int holdMs = 1500)
+        public void Urge(string text, int holdMs = 1500, bool yieldsToMoves = false)
         {
         }
 

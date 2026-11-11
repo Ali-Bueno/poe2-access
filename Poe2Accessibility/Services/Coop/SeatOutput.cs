@@ -24,7 +24,7 @@ namespace Poe2Accessibility.Services
         /// <summary>A reading stays one behind the seat's name, so it ages like the first player's.</summary>
         public void SpeakReading(string text, bool interrupt = false) => this.inner.SpeakReading(this.Named(text), interrupt);
 
-        public void Urge(string text, int holdMs = 1500) => this.inner.Urge(this.Named(text), holdMs);
+        public void Urge(string text, int holdMs = 1500, bool yieldsToMoves = false) => this.inner.Urge(this.Named(text), holdMs, yieldsToMoves);
 
         // Every member of the interface that has a default body is forwarded: a default would say the line through Speak,
         // and a kept line (a sale, what is in the hand), a move or a piece of news would lose what makes it one. Keep had

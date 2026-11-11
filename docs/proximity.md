@@ -14,6 +14,10 @@
   player has gone more than 300 units from it and come back within 200 (a lone item kept the game's target from afar, so
   walking back over it said nothing, 2026-10-26); it cuts in
   like a focus: queued, it came after other lines and the player pressed A on what the game had already moved to
-  (2026-10-26). The game's tooltip for that item on the HUD is then not said again (only its quality), whatever name it
+  (2026-10-26). It goes out as the player's own move (`IAccessibilityOutputService.Moved`): it cuts another item's
+  name, a message being kept ("Inventario lleno"), the quest page and news held only by its level (a state that began
+  such as "Remolino", an arrival); it waits only behind a tutorial lesson, urgent news (life at its last mark, a boss's
+  call, a discovery) for its 1.5 s, and a life or flask warning being heard (user 2026-11-11: of 1727 such names in
+  two sessions' logs, 256 had waited for a kept line and 141 behind an urged or mentioned one). The game's tooltip for that item on the HUD is then not said again (only its quality), whatever name it
   shows: a magic or rare item's full name ("Bastón largo intenso de impacto") is not the base the scanner knows, and its
   whole tooltip used to be read as HUD news. Setting: `AnnounceInteractTarget`.
