@@ -29,6 +29,7 @@ namespace Poe2Accessibility.Tests
             (nameof(AGemIsNamedInTheGamesLanguage), AGemIsNamedInTheGamesLanguage),
             (nameof(TheGameFilesNameTheBuildsGems), TheGameFilesNameTheBuildsGems),
             (nameof(AnEngravingChoiceIsNamedBeforeItsLevel), AnEngravingChoiceIsNamedBeforeItsLevel),
+            (nameof(AnEngravingChoiceSaysWhetherItIsHeld), AnEngravingChoiceSaysWhetherItIsHeld),
             (nameof(TooManyMarksAreNoBuild), TooManyMarksAreNoBuild),
             (nameof(TheStepsAreOfTheNodesTheTreeShows), TheStepsAreOfTheNodesTheTreeShows),
             (nameof(MarkupGoesAndAPlaceToFillStays), MarkupGoesAndAPlaceToFillStays),
@@ -254,6 +255,46 @@ namespace Poe2Accessibility.Tests
             Expect(true, BuildGems.Labels("destrozahuesos", "Destrozahuesos"), "the name alone");
             Expect(false, BuildGems.Labels("Golpe perfecto, Nivel 5", "Golpe"), "another skill that begins alike");
             Expect(false, BuildGems.Labels("Terremoto, Nivel 1", string.Empty), "a gem with no name");
+        }
+
+        /// <summary>Before an uncut gem is spent: whether the build's gem offered is already the character's (user 2026-11-11).</summary>
+        private static void AnEngravingChoiceSaysWhetherItIsHeld()
+        {
+            const string Shared =
+                "{\"name\":\"Mace\",\"passives\":[],\"skills\":[" +
+                "{\"id\":\"Metadata/Items/Gem/SkillGemBoneshatter\",\"level_interval\":[1,100],\"support_skills\":[{\"id\":\"Metadata/Items/Gems/SupportGemRageTwo\",\"level_interval\":[1,100]}]}," +
+                "{\"id\":\"Metadata/Items/Gem/SkillGemRollingSlam\",\"level_interval\":[1,100],\"support_skills\":[{\"id\":\"Metadata/Items/Gems/SupportGemRageTwo\",\"level_interval\":[1,100]}]}]}";
+            var plan = BuildPlan.Parse(Shared)!;
+            static string States(IEnumerable<(BuildSkill Skill, SupportStatus Status)> places) =>
+                string.Join(" ", places.Select(place => $"{place.Skill.Gem.Key}:{place.Status.State}:{place.Status.Held}"));
+            var both = new[] { new OwnedSkill("SkillGemBoneshatter", new[] { "SupportGemRageTwo" }), new OwnedSkill("SkillGemRollingSlam", Array.Empty<string>()) };
+            Expect("SkillGemBoneshatter:Socketed: SkillGemRollingSlam:Missing:",
+                States(BuildGems.SupportPlaces(plan, 5, "SupportGemRageTwo", new GemHoldings(both, Array.Empty<string>()))), "the copy in one build skill is not the other's");
+            var none = new[] { new OwnedSkill("SkillGemBoneshatter", Array.Empty<string>()), new OwnedSkill("SkillGemOther", new[] { "SupportGemRageTwo" }) };
+            Expect("SkillGemBoneshatter:InOtherSkill:SkillGemOther SkillGemRollingSlam:InOtherSkill:SkillGemOther",
+                States(BuildGems.SupportPlaces(plan, 5, "SupportGemRageTwo", new GemHoldings(none, Array.Empty<string>()))), "a copy in a skill outside those is one to move");
+            Expect("SkillGemBoneshatter:InBag: SkillGemRollingSlam:InBag:",
+                States(BuildGems.SupportPlaces(plan, 5, "SupportGemRageTwo", new GemHoldings(none.Take(1).ToList(), new[] { "SupportGemRageTwo" }))), "cut and not yet socketed");
+            Expect(0, BuildGems.SupportPlaces(plan, 5, "SupportGemBrutality", GemHoldings.None).Count, "a support the build does not use");
+
+            Localization.Set("es", new());
+            try
+            {
+                Expect("ya engarzada en Destrozahuesos; falta en Golpe rodante",
+                    Announcements.EngraveSupportHeld(new[] { "Destrozahuesos" }, false, Array.Empty<string>(), Array.Empty<string>(), new[] { "Golpe rodante" }), "in one skill of two");
+                Expect("no la tienes", Announcements.EngraveSupportHeld(Array.Empty<string>(), false, Array.Empty<string>(), Array.Empty<string>(), new[] { "Destrozahuesos", "Golpe rodante" }), "nowhere");
+                Expect("la tienes en tu inventario", Announcements.EngraveSupportHeld(Array.Empty<string>(), true, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>()), "cut already");
+                Expect("la tienes en Terremoto", Announcements.EngraveSupportHeld(Array.Empty<string>(), false, new[] { "Terremoto" }, Array.Empty<string>(), Array.Empty<string>()), "in another skill");
+                Expect("tienes Furia I, la build pide Furia II; falta en Golpe rodante",
+                    Announcements.EngraveSupportHeld(Array.Empty<string>(), false, Array.Empty<string>(), new[] { Announcements.BuildTierHeld("Furia I", "Furia II") }, new[] { "Golpe rodante" }), "another tier");
+                Expect("ya la tienes", Announcements.EngraveSkillHeld(true, false), "a skill owned");
+                Expect("la tienes en tu inventario", Announcements.EngraveSkillHeld(false, true), "a skill cut and not yet in the panel");
+                Expect("no la tienes", Announcements.EngraveSkillHeld(false, false), "a skill to get");
+            }
+            finally
+            {
+                Localization.Set("en", new());
+            }
         }
 
         private static void TooManyMarksAreNoBuild()

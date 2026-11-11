@@ -118,6 +118,21 @@ namespace Poe2Accessibility.Services
             plan.Skills.Where(skill => skill.Gem.ToLevel >= level && skill.Supports.Any(support => support.Key == supportKey && support.ToLevel >= level)).ToList();
 
         /// <summary>
+        ///     Where a support already is for each build skill that sockets it, asked before cutting another one. A copy in
+        ///     one of those skills is no copy for the next: that skill still misses its own.
+        /// </summary>
+        public static IReadOnlyList<(BuildSkill Skill, SupportStatus Status)> SupportPlaces(BuildPlan plan, int level, string supportKey, GemHoldings holdings)
+        {
+            var users = SkillsUsing(plan, level, supportKey);
+            return users.Select(skill =>
+            {
+                var status = StateOf(skill.Supports.First(support => support.Key == supportKey && support.ToLevel >= level), skill,
+                    holdings.Skills.FirstOrDefault(held => held.Key == skill.Gem.Key), holdings);
+                return (skill, status.State == GemState.InOtherSkill && users.Any(user => user.Gem.Key == status.Held) ? status with { State = GemState.Missing, Held = string.Empty } : status);
+            }).ToList();
+        }
+
+        /// <summary>
         ///     What to get next: the first skill of the build not owned (one the level allows before one it does not, then
         ///     the lowest level), and the first support not socketed in a skill already owned.
         /// </summary>

@@ -410,7 +410,11 @@ namespace Poe2Accessibility.Services
             }
         }
 
-        /// <summary>A choice of the engraving window that the build uses, told by its name.</summary>
+        /// <summary>
+        ///     A choice of the engraving window that the build uses, told by its name, and whether the character has it
+        ///     already: an uncut gem is spent on the answer (user 2026-11-11). Nothing is said of having it when no skill
+        ///     of the character was read, which is a failed reading and not a character without gems.
+        /// </summary>
         private IEnumerable<string> EngraveBuildLines(string label)
         {
             if (this.GemPlan() is not { } active)
@@ -419,14 +423,34 @@ namespace Poe2Accessibility.Services
             }
 
             bool Named(BuildGem gem) => gem.ToLevel >= active.Level && BuildGems.Labels(label, GemNames.Of(gem.Key));
+            static string Name(string key) => GemNames.Of(key);
             var skills = active.Plan.Skills.Where(skill => skill.Gem.ToLevel >= active.Level).ToList();
-            if (skills.Any(skill => Named(skill.Gem)))
+            var holdings = this.Holdings();
+            var read = holdings.Skills.Count > 0;
+            if (skills.FirstOrDefault(skill => Named(skill.Gem)) is { } offered)
             {
                 yield return Announcements.InBuild(false);
+                if (read)
+                {
+                    yield return Announcements.EngraveSkillHeld(holdings.Skills.Any(held => held.Key == offered.Gem.Key), holdings.Bag.Contains(offered.Gem.Key));
+                }
             }
             else if (skills.Where(skill => skill.Supports.Any(Named)).ToList() is { Count: > 0 } users)
             {
-                yield return Announcements.BuildGemFor(users.Select(skill => GemNames.Of(skill.Gem.Key)));
+                yield return Announcements.BuildGemFor(users.Select(skill => Name(skill.Gem.Key)));
+                if (!read)
+                {
+                    yield break;
+                }
+
+                var places = BuildGems.SupportPlaces(active.Plan, active.Level, users[0].Supports.First(Named).Key, holdings);
+                IEnumerable<(BuildSkill Skill, SupportStatus Status)> In(GemState state) => places.Where(place => place.Status.State == state);
+                yield return Announcements.EngraveSupportHeld(
+                    In(GemState.Socketed).Select(place => Name(place.Skill.Gem.Key)).ToList(),
+                    In(GemState.InBag).Any(),
+                    In(GemState.InOtherSkill).Select(place => Name(place.Status.Held)).Distinct(),
+                    In(GemState.OtherTier).Select(place => Announcements.BuildTierHeld(Name(place.Status.Held), Name(place.Status.Gem.Key))).Distinct(),
+                    In(GemState.Missing).Select(place => Name(place.Skill.Gem.Key)).ToList());
             }
         }
 
