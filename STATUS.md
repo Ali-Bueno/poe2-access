@@ -553,7 +553,8 @@ unblocks it). The audit's own lists, entry by entry:
   not load; one log line for a burst of failed reads; a timed-out batch stopped; the parallel map walk bounded; the
   GGPK closed; the dropdown latch by name, not address; the screen watcher's reset race; the route planner's memory;
   checkpoints named past the pairing budget; object cues without the game's sounds; a grace for charges after an
-  area's first reading; the skill stat key searched again; the wall-clock tests; the tests that did not test.
+  area's first reading; the skill stat key searched again; the wall-clock tests; the tests that did not test; a known
+  row from the game's files for every key column of the endgame and skill tables.
 - **Character selection after a quick login** (the login's bar said again after the character): the bar is dropped
   when the state changes (`2840bbb`); heard again that evening, the bar once, before the character.
 - **Microtransaction shop, too few points:** "Comprar puntos, Esta compra requiere 250 puntos, tienes 150 puntos,
@@ -640,8 +641,7 @@ unblocks it). The audit's own lists, entry by entry:
 - **Steam Deck / Proton, the Korean client, the updater on a real release:** need a Linux player, a Kakao client and a
   published release.
 - **GGG's written approval:** emailed `contact@grindinggear.com` on 2026-10-26, no reply; ask before any public release.
-- **From the audit, each with its reason there:** a key column with no known row (needs a known row per column from
-  the game's files); free-cursor controls with no tooltip and the Skills panel's rows (a live sweep, then the owner's
+- **From the audit, each with its reason there:** free-cursor controls with no tooltip and the Skills panel's rows (a live sweep, then the owner's
   ear); a slider at 0 focused
   first (none of the owner's sits at 0); a start with `oo2core.dll` renamed (the owner's leave to rename a game file);
   a way back from a release that does not work, the "ended" lines after a respawn and a quiet buff (the owner's choice

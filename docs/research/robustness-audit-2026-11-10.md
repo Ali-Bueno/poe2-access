@@ -304,9 +304,16 @@ Tests: 12 in `HostAndToolsAuditTests.cs`; two fixtures of `DatColumnSearchTests`
 
 Left open, settled in the fifth pass (2026-11-10, evening). Each entry ends as **fixed** (how it was verified), **not a
 fault** (why) or **blocked** (by what, and what unblocks it):
-- **A key column with no known row can still be a neighbouring key that fits** (finding 12). **Blocked:** needs one
-  known row per key column of `EndgameExtractor` and `ProjectileColumns` (a row id and the value its key must name),
-  picked by reading those tables in the game's files; nothing in the repository names one, and none is guessed.
+- **A key column with no known row can still be a neighbouring key that fits** (finding 12). **Fixed** (unit tests
+  `KnownRowTests`, each failing with its known row taken away): every key column of `EndgameColumns` (split out of
+  `EndgameExtractor`) and `ProjectileColumns` has a row read from the 0.5.5f files whose key names a row that fits it
+  (the Merchant content shows the Trader icon, the Delirium mirror's node stat its own name, the Penitentiary's flavour
+  text its map, Kingsmarch's node the Kingsmarch pin, Cull the Weak's stat set the cull stat, the Urchin's sling
+  variation the `SlingUrchinProjectile`, …; the list is in the code). Tables whose rows have no Id are found through
+  another column: a node stat by its stat, a map by its flavour text, an Atlas node by its passive or pin, a tower by
+  its own node. On the game's files each known row accepts exactly one of the key-shaped offsets of its row (scratch
+  probe: the Atlas objective among +0x8F, +0xA7, +0xC3; the map pin among +0x3C, +0x5C, +0x6C, +0x84), and
+  `endgame`, `cull-skills`, `hit-times` and `game-ids` write the shipped catalogs byte for byte.
 - **The launcher says nothing while a step hangs** (13). **Fixed** (`SilenceReminder`, unit tests
   `AStepWithoutProgressIsRemindedFirstAfterThirtySecondsThenEverySixty`, `AMovingCountRestartsTheSilence`): after 30 s
   with no count moving it says "Sigo trabajando en <paso>, unos N min", then every 60 s. The owner's to overrule: the

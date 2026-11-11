@@ -39,7 +39,7 @@ internal sealed class DatColumnSearch
     public void Skipped(string name, string why) => this.unverified.Add($"{name}: {why}");
 
     /// <summary>Notes a known-row check handed a row the table lacks (-1): it will not run, and the log must say so.</summary>
-    private DatColumnSearch Checking(string name, int? knownRow)
+    internal DatColumnSearch Checking(string name, int? knownRow)
     {
         if (knownRow is < 0)
         {

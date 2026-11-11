@@ -49,6 +49,40 @@ internal static class DatAnchors
         return -1;
     }
 
+    /// <summary>The first row holding <paramref name="text"/> in any text column, or -1: a sentence found wherever its column moved.</summary>
+    public static int RowWithText(DatTable table, string text)
+    {
+        using var probe = DatTable.Probe();
+        return Enumerable.Range(0, table.RowCount).FirstOrDefault(row => Enumerable.Range(0, table.RowSize).Any(offset => table.StringOrNull(row, offset) == text), -1);
+    }
+
+    /// <summary>
+    ///     The first row whose key at <paramref name="offset"/> names <paramref name="target"/>, or -1 (no such row, no target,
+    ///     no column): a known row of a table whose rows have no Id but a key. Raw reads, not judged as column reads.
+    /// </summary>
+    public static int RowKeyed(DatTable table, int offset, long target)
+    {
+        if (offset < 0 || target < 0)
+        {
+            return -1;
+        }
+
+        using var probe = DatTable.Probe();
+        return Enumerable.Range(0, table.RowCount).FirstOrDefault(row => table.Raw64(row, offset) == target, -1);
+    }
+
+    /// <summary>The first row whose key list at <paramref name="offset"/> holds <paramref name="target"/>, or -1; not judged as a column read.</summary>
+    public static int RowListing(DatTable table, int offset, long target)
+    {
+        if (offset < 0 || target < 0)
+        {
+            return -1;
+        }
+
+        using var probe = DatTable.Probe();
+        return Enumerable.Range(0, table.RowCount).FirstOrDefault(row => table.KeyList(row, offset).Contains(target), -1);
+    }
+
     /// <summary>The Id of a key's target row, or null for a null key or one past the table.</summary>
     public static string? IdOf(DatTable target, long row) => row >= 0 && row < target.RowCount ? target.StringOrNull((int)row, DatColumnSearch.IdColumn) : null;
 

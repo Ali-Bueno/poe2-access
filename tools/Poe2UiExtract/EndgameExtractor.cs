@@ -7,84 +7,18 @@ using Index = LibBundle3.Index;
 ///     each map content, biome and endgame area, every node of the skill graphs other than the main tree (the Atlas map's
 ///     layout, the Atlas passive tree, the league trees) with its position, links and, for an Atlas map node, its pin,
 ///     maps, biomes and messages. Writes { objectives, contents, nodes, text: { language: { key: text } } }.
-///     Column offsets: the community dat-schema (poe2/_Core.gql of 2026-11-05) on this install's row sizes (2026-11-08) are
-///     where each column is looked for first; every column is found again by what it holds (<see cref="DatColumnSearch"/>),
-///     and one not found fails the step, which keeps the previous catalog. Read-only on the game.
+///     The columns are found by <see cref="EndgameColumns"/>; one not found fails the step, which keeps the previous
+///     catalog. Read-only on the game.
 /// </summary>
 internal static class EndgameExtractor
 {
     private const int IdOffset = 0x0;
-
-    // Measured offsets (0.5.5f), where each column is looked for first. EndgameMapObjectives
-    private const int ObjectiveTextOffset = 0x8;
-    private const int ObjectiveDoneOffset = 0x10;
-    private const int ObjectiveArtOffset = 0x18;
-    private const int ObjectiveIconOffset = 0x20;
-
-    // EndgameMapContent
-    private const int ContentTextOffset = 0x28;
-    private const int ContentNameOffset = 0x30;
-    private const int ContentObjectiveOffset = 0x3C;
-    private const int ContentVisualOffset = 0x4C;
-
-    // EndgameMapContentVisualIdentity: the icon an Atlas node shows for a content
-    private const int VisualIconOffset = 0x8;
-
-    // EndgameMapNodeStats: what a node's stat adds to it (a Delirium fog bank), with its own icon and words
-    private const int NodeStatVisualOffset = 0x44;
-    private const int NodeStatNameOffset = 0x54;
-    private const int NodeStatTextOffset = 0x64;
-
-    // EndgameMapBiomes
-    private const int BiomeNameOffset = 0x28;
-
-    // EndgameMaps
-    private const int MapAreaOffset = 0x0;
-    private const int MapPinOffset = 0x3C;
-
-    // EndgameMapAtlas: one row per Atlas node, keyed by its PassiveSkills row
-    private const int NodePassiveOffset = 0x0;
-    private const int NodeMapsOffset = 0x10;
-    private const int NodeBiomesOffset = 0x24;
-    private const int NodePinOffset = 0x68;
-    private const int NodeBlockedOffset = 0x7C;
-    private const int NodeObjectiveOffset = 0xA7;
-    private const int NodeHintOffset = 0x10D;
-
-    // EndgameMapAtlasTowers: the Atlas nodes a tower reaches, and the tower's own node
-    private const int TowerReachOffset = 0x14;
-    private const int TowerSelfOffset = 0x34;
-
-    // KeywordPopups, ClientStrings2, WorldAreas
-    private const int KeywordTermOffset = 0x8;
-    private const int KeywordHelpOffset = 0x10;
-    private const int ClientTextOffset = 0x8;
-    private const int AreaNameOffset = 0x8;
-
-    // PassiveSkills (unaligned, as dat-columns finds them)
-    private const int PassiveGraphIdOffset = 0x30;
-    private const int PassiveNameOffset = 0x32;
 
     /// <summary>The main tree, read from game memory by the plugin (GameLayout.PassiveTree.GraphFileName).</summary>
     private const string MainGraph = "metadata/passiveskillgraph.psg";
 
     /// <summary>Nodes the game names "do not translate" (the Atlas map's layout nodes) have no name worth saying.</summary>
     private const string UntranslatedMark = "[DNT]";
-
-    /// <summary>Rows the value checks look at while the data has them: an objective, a content, an endgame area and an Atlas node of 0.5.5f.</summary>
-    private const string KnownObjective = "Breach";
-
-    private const string KnownContent = "Abyss";
-
-    private const string KnownArea = "Abyss_Pinnacle";
-
-    private const string KnownNode = "Atlas4thReactor";
-
-    private const string KnownKeyword = "ContainsBreach";
-
-    private const string KnownClient = "EndgameMapObjectiveClickPrecursorBeacon";
-
-    private const string ArtPrefix = "Art/";
 
     /// <summary>Every graph id of a graph file must lead to a PassiveSkills row; fewer is a moved graph id column.</summary>
     private const double ResolvedShare = 0.99;
@@ -93,7 +27,7 @@ internal static class EndgameExtractor
     {
         var tables = new Dictionary<string, DatTable>(StringComparer.Ordinal);
         foreach (var name in new[] { "endgamemapobjectives", "endgamemapcontent", "endgamemapbiomes", "endgamemaps", "endgamemappins", "endgamemapatlas", "endgamemapcontentvisualidentity",
-                     "endgamemapnodestats", "endgamemapatlastowers", "keywordpopups", "clientstrings2", "minimapicons", "passiveskills", "worldareas" })
+                     "endgamemapnodestats", "endgamemapatlastowers", "keywordpopups", "clientstrings2", "minimapicons", "passiveskills", "worldareas", "stats" })
         {
             if (DatTable.Open(index, name) is not { } table)
             {
@@ -104,7 +38,7 @@ internal static class EndgameExtractor
             tables[name] = table;
         }
 
-        if (Columns.Find(tables) is not { } c)
+        if (EndgameColumns.Find(tables) is not { } c)
         {
             return 1;
         }
@@ -432,99 +366,6 @@ internal static class EndgameExtractor
         }));
         Say.Out.WriteLine($"Wrote {outFile}: {objectiveOut.Count} objectives, {contentOut.Count} contents, {mapOut.Count} areas, {nodeOut.Count} graph nodes");
         return 0;
-    }
-
-
-    /// <summary>
-    ///     The columns read, each found by its type near where it was measured and, on a row the data still has, by its
-    ///     value (an objective's icon named like it, a content's objective, an endgame area's pin, an Atlas node's map).
-    /// </summary>
-    private sealed class Columns
-    {
-        public int ObjectiveText, ObjectiveDone, ObjectiveArt, ObjectiveIcon;
-        public int ContentText, ContentName, ContentObjective, ContentVisual;
-        public int VisualIcon;
-        public int NodeStatVisual, NodeStatName, NodeStatText;
-        public int BiomeName;
-        public int MapArea, MapPin;
-        public int NodePassive, NodeMaps, NodeBiomes, NodePin, NodeBlocked, NodeObjective, NodeHint;
-        public int TowerReach, TowerSelf;
-        public int KeywordTerm, KeywordHelp;
-        public int ClientText, AreaName;
-        public int PassiveGraphId, PassiveName;
-
-        public static Columns? Find(Dictionary<string, DatTable> tables)
-        {
-            var search = new DatColumnSearch();
-            var objectives = tables["endgamemapobjectives"];
-            var contents = tables["endgamemapcontent"];
-            var visuals = tables["endgamemapcontentvisualidentity"];
-            var nodeStats = tables["endgamemapnodestats"];
-            var biomes = tables["endgamemapbiomes"];
-            var maps = tables["endgamemaps"];
-            var pins = tables["endgamemappins"];
-            var atlas = tables["endgamemapatlas"];
-            var towers = tables["endgamemapatlastowers"];
-            var keywords = tables["keywordpopups"];
-            var clients = tables["clientstrings2"];
-            var icons = tables["minimapicons"];
-            var passives = tables["passiveskills"];
-            var areas = tables["worldareas"];
-            static bool Sentence(string text) => text.Contains(' ', StringComparison.Ordinal);
-            static bool Art(string text) => text.StartsWith(ArtPrefix, StringComparison.Ordinal);
-            static bool NotArt(string text) => !Art(text);
-            static bool Filled(string text) => text.Length > 0;
-            Func<long, bool> Named(DatTable target, string word) => key => IdOf(target, key).Contains(word, StringComparison.Ordinal);
-            Func<long, bool> Is(DatTable target, string id) => key => IdOf(target, key) == id;
-
-            var c = new Columns();
-            var objective = DatColumnSearch.RowOf(objectives, KnownObjective);
-            c.ObjectiveText = search.Text(objectives, "EndgameMapObjectives.ObjectiveText", ObjectiveTextOffset, NotArt, known: (objective, text => text.Contains(KnownKeyword, StringComparison.Ordinal)));
-            c.ObjectiveDone = search.Text(objectives, "EndgameMapObjectives.CompletionText", ObjectiveDoneOffset, NotArt, c.ObjectiveText, (objective, Sentence));
-            c.ObjectiveArt = search.Text(objectives, "EndgameMapObjectives.ContentIcon", ObjectiveArtOffset, Art, c.ObjectiveDone);
-            c.ObjectiveIcon = search.Key(objectives, "EndgameMapObjectives.MiniMapIcon", ObjectiveIconOffset, icons, c.ObjectiveArt, (objective, Named(icons, KnownObjective)));
-
-            var content = DatColumnSearch.RowOf(contents, KnownContent);
-            c.ContentText = search.Text(contents, "EndgameMapContent.Description", ContentTextOffset, NotArt, known: (content, Sentence));
-            c.ContentName = search.Text(contents, "EndgameMapContent.Name", ContentNameOffset, NotArt, c.ContentText, (content, Filled));
-            c.ContentObjective = search.Key(contents, "EndgameMapContent.MapObjective", ContentObjectiveOffset, objectives, c.ContentName, (content, Is(objectives, KnownContent)));
-            c.ContentVisual = search.Key(contents, "EndgameMapContent.VisualIdentity", ContentVisualOffset, visuals, c.ContentObjective);
-            c.VisualIcon = search.Text(visuals, "EndgameMapContentVisualIdentity.AtlasIcon", VisualIconOffset, Art);
-
-            c.NodeStatVisual = search.Key(nodeStats, "EndgameMapNodeStats.VisualIdentity", NodeStatVisualOffset, visuals);
-            c.NodeStatName = search.Key(nodeStats, "EndgameMapNodeStats.Name", NodeStatNameOffset, clients, c.NodeStatVisual);
-            c.NodeStatText = search.Key(nodeStats, "EndgameMapNodeStats.Description", NodeStatTextOffset, clients, c.NodeStatName);
-            c.BiomeName = search.Text(biomes, "EndgameMapBiomes.Name", BiomeNameOffset, NotArt);
-
-            // The known area's map row and the known node's Atlas row, looked up through the measured key columns (-1 when they moved: no value check then).
-            // Raw reads: counted as column reads, the audit judged the measured place after a move the search had followed, and failed the step.
-            var area = DatColumnSearch.RowOf(areas, KnownArea);
-            var map = area >= 0 ? Enumerable.Range(0, maps.RowCount).FirstOrDefault(row => maps.Raw64(row, MapAreaOffset) == area, -1) : -1;
-            c.MapArea = search.Key(maps, "EndgameMaps.WorldArea", MapAreaOffset, areas);
-            c.MapPin = search.Key(maps, "EndgameMaps.MapPin", MapPinOffset, pins, c.MapArea, (map, Named(pins, "Hub")));
-
-            var passive = DatColumnSearch.RowOf(passives, KnownNode);
-            var node = passive >= 0 ? Enumerable.Range(0, atlas.RowCount).FirstOrDefault(row => atlas.Raw64(row, NodePassiveOffset) == passive, -1) : -1;
-            c.NodePassive = search.Key(atlas, "EndgameMapAtlas.Passives", NodePassiveOffset, passives);
-            c.NodeMaps = search.KeyList(atlas, "EndgameMapAtlas.Maps", NodeMapsOffset, maps, c.NodePassive, (node, list => list.Count > 0));
-            c.NodeBiomes = search.KeyList(atlas, "EndgameMapAtlas.Biomes", NodeBiomesOffset, biomes, c.NodeMaps, (node, list => list.Count > 0));
-            c.NodePin = search.Key(atlas, "EndgameMapAtlas.MapPin", NodePinOffset, pins, c.NodeBiomes, (node, key => key >= 0));
-            c.NodeBlocked = search.Key(atlas, "EndgameMapAtlas.BlockedMessage", NodeBlockedOffset, clients, c.NodePin);
-            c.NodeObjective = search.Key(atlas, "EndgameMapAtlas.MapObjective", NodeObjectiveOffset, objectives, c.NodeBlocked);
-            c.NodeHint = search.Key(atlas, "EndgameMapAtlas.Hint", NodeHintOffset, clients, c.NodeObjective);
-
-            c.TowerReach = search.KeyList(towers, "EndgameMapAtlasTowers.AtlasNodes", TowerReachOffset, atlas);
-            c.TowerSelf = search.KeyList(towers, "EndgameMapAtlasTowers.Tower", TowerSelfOffset, atlas, c.TowerReach);
-
-            var keyword = DatColumnSearch.RowOf(keywords, KnownKeyword);
-            c.KeywordTerm = search.Text(keywords, "KeywordPopups.Term", KeywordTermOffset, NotArt, known: (keyword, text => Filled(text) && text != KnownKeyword));
-            c.KeywordHelp = search.Text(keywords, "KeywordPopups.Definition", KeywordHelpOffset, NotArt, c.KeywordTerm, (keyword, Sentence));
-            c.ClientText = search.Text(clients, "ClientStrings2.Text", ClientTextOffset, known: (DatColumnSearch.RowOf(clients, KnownClient), Sentence));
-            c.AreaName = search.Text(areas, NameAnchor.Areas.Column, AreaNameOffset, NotArt, known: (DatColumnSearch.RowOf(areas, NameAnchor.Areas.Id), text => text == NameAnchor.Areas.Name));
-            c.PassiveGraphId = search.UniqueUInt16(passives, "PassiveSkills.GraphId", PassiveGraphIdOffset);
-            c.PassiveName = search.Text(passives, NameAnchor.Passives.Column, PassiveNameOffset, NotArt, known: (DatColumnSearch.RowOf(passives, NameAnchor.Passives.Id), text => text == NameAnchor.Passives.Name));
-            return search.Report("endgame") ? c : null;
-        }
     }
 
     private static string IdOf(DatTable table, long row) =>
