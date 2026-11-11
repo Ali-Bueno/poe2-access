@@ -115,6 +115,7 @@ namespace Poe2Accessibility.Tests
             Expect(true, ClassMechanics.IsShownName("Jade"), "a plain name");
             Expect(false, ClassMechanics.IsShownName("[Not Displayed] Tempest Bell"), "not displayed");
             Expect(false, ClassMechanics.IsShownName(" [DNT-UNUSED] Donut"), "do not translate");
+            Expect(false, ClassMechanics.IsShownName("DNT"), "the bare mark");
             Expect(false, ClassMechanics.IsShownName(" "), "blank");
         }
 

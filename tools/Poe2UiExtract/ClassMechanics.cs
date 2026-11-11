@@ -23,6 +23,9 @@ internal static class ClassMechanics
     /// <summary>Buff names the game never shows: "[DNT-UNUSED] …", "[Not Displayed] …".</summary>
     private const char HiddenNameMark = '[';
 
+    /// <summary>GGG's "do not translate", the whole name of some buffs the game never shows.</summary>
+    private const string UntranslatedMark = "DNT";
+
     /// <summary>A counted resource: its name after "current_" and the keys of its current value and maximum (0 when the table has none).</summary>
     internal sealed record Resource(string Name, int Current, int Maximum, int VirtualMaximum);
 
@@ -75,8 +78,9 @@ internal static class ClassMechanics
         return limits;
     }
 
-    /// <summary>Whether a buff's display name is one the game shows (not a "[DNT]" or "[Not Displayed]" note).</summary>
-    internal static bool IsShownName(string? name) => !string.IsNullOrWhiteSpace(name) && name.TrimStart()[0] != HiddenNameMark;
+    /// <summary>Whether a buff's display name is one the game shows (not a "[DNT]" or "[Not Displayed]" note, nor a bare "DNT").</summary>
+    internal static bool IsShownName(string? name) =>
+        !string.IsNullOrWhiteSpace(name) && name.TrimStart() is var shown && shown[0] != HiddenNameMark && !shown.StartsWith(UntranslatedMark, StringComparison.Ordinal);
 
     private static Dictionary<string, int> Rows(IReadOnlyList<string> statIds)
     {
