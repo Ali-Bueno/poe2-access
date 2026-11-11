@@ -85,6 +85,11 @@ namespace Poe2Accessibility.Services
                               (events.Count == 0 ? "none" : string.Join(", ", events.Select(clipEvent => $"{clipEvent.Name}@{clipEvent.Time:0.000}").Distinct())));
             }
 
+            if (opens == null)
+            {
+                return; // the release's own clip, a frame before the animation says so: the channel's place is the last one read
+            }
+
             if (sounds && this.followed && PerfectTimingWindow.Crossed(opens, this.last.Position, clock.Position))
             {
                 this.audio.Play(this.cue, 0f, 1f, 1f, SoundKey);

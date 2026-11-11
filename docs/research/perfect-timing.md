@@ -24,8 +24,9 @@ game marks it only on the screen).
   named events: `footstepright` 0.250, `leeway` 1.470, `max_stage` 1.600, `release` 2.000.
 - Released at 1.496, 1.550, 1.761, 1.802, 1.845, 1.866 (twice), 1.950 and 1.957 s of the clip: `PerfectStrikePerfectEnd`
   every time. Held to the end (1.990-1.992, where `release` lets go by itself): `PerfectStrikeEnd`, four times.
-- So the window runs from `leeway` to `release`, 0.53 s of clip, about 830 ms at this attack speed. No release before
-  `leeway` was recorded: that it is plain there is the event's name, not a measurement.
+- With the cue (18:05, six more releases): 1.475, 1.492, 1.517, 1.559 and 1.580 perfect, and one let go early at 1.342,
+  before `leeway`: `PerfectStrikeEnd`.
+- So the window runs from `leeway` to `release`, 0.53 s of clip, about 830 ms at this attack speed.
 - The 300 ms of the stat is not that span; what it measures is not known.
 
 ## The cue
@@ -34,7 +35,8 @@ game marks it only on the screen).
 the clip passes `leeway`, or `max_stage` in a clip without one (`PerfectTimingWindow`, pure, unit-tested); setting
 `PerfectTimingCue`, glossary key `perfect_timing`. It logs each clip once with its events and each release with where
 the clip stood and which end followed ("Perfect timing: …"), so Snipe's and Gathering Storm's clips can be read from
-a session's log the same way. Not heard in play yet.
+a session's log the same way. Heard in play by the user the same evening: five of six releases after it were perfect,
+90 to 170 ms behind the blow.
 
-The sound is the user's to pick: candidates A (587 Hz, in the build), B (392 Hz) and C (784 Hz) beside the shield, parry,
+The user picked A (2026-11-11), from candidates A (587 Hz, in the build), B (392 Hz) and C (784 Hz) beside the shield, parry,
 dodge, cull and radar sounds on https://claude.ai/artifact/EoUvrHP4BeZyJiEDixyBLq (rendered with `CueSynth.PerfectTiming(rate, hz)`).
