@@ -39,6 +39,8 @@ namespace Poe2Accessibility.Tests
             Equal("Filo quimérico", ItemNameWords.Compose(new[] { Word(Chimeric), Word("Filo") }), "Spanish: the noun first, no inflection is the first branch");
             Equal("Cuentas quiméricas", ItemNameWords.Compose(new[] { Word(Chimeric), Word("Cuentas", "FP") }), "the noun's inflection picks the branch");
             Equal("Cuentas de destino", ItemNameWords.Compose(new[] { Word(" de destino"), Word("Cuentas", "FP") }), "a word with no branches");
+            Equal("Estrella quimérica", ItemNameWords.Compose(new[] { Word(Chimeric), Word("Estrella", "F") }), "a singular noun's row gives its gender alone (malgdhler's helm, 2026-11-10)");
+            Equal("Banda\u00A0de kraken", ItemNameWords.Compose(new[] { Word("\u00A0de kraken"), Word("Banda", "F") }), "the space may be a no-break one, kept as written");
             Equal("Chimeric Edge", ItemNameWords.Compose(new[] { Word("Chimeric"), Word(" Edge") }), "English: the space is in the second word");
             Equal(" quimérica", ItemNameWords.Resolve(Chimeric, "fs"), "a branch by its key");
             Equal(" quimérico", ItemNameWords.Resolve(Chimeric, "N"), "an unknown key: the first branch");

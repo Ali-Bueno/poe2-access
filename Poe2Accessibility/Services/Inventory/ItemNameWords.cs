@@ -36,7 +36,10 @@ namespace Poe2Accessibility.Services
             }
 
             // The word that carries an inflection is the noun; the other one's branches follow it.
+            // A row gives the gender alone for a singular noun ("F" on "Estrella", "Banda", "Zarpa") and both letters
+            // for a plural ("FP" on "Cuentas"); the branches are keyed by both ("FS"): "Estrella quimérica".
             var gender = words.Select(word => word.Inflection).FirstOrDefault(inflection => inflection.Length > 0) ?? string.Empty;
+            gender = gender.Length == 1 ? gender + "S" : gender;
             var pieces = words.Select(word => Resolve(word.Text, gender)).ToList();
             if (pieces.Any(piece => piece.Trim().Length == 0 || piece.IndexOfAny(new[] { '<', '>', '{', '}' }) >= 0))
             {
@@ -49,8 +52,10 @@ namespace Poe2Accessibility.Services
             }
 
             var (first, second) = (pieces[0], pieces[1]);
-            return first.StartsWith(' ') == second.StartsWith(' ') ? string.Empty
-                : second.StartsWith(' ') ? first + second
+            // The space may be a no-break one ("\u00A0de kraken"): it stays in the name as the game writes it.
+            var (firstSpaced, secondSpaced) = (char.IsWhiteSpace(first[0]), char.IsWhiteSpace(second[0]));
+            return firstSpaced == secondSpaced ? string.Empty
+                : secondSpaced ? first + second
                 : second + first;
         }
 

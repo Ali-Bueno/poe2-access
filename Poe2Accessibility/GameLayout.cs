@@ -693,7 +693,7 @@ namespace Poe2Accessibility
         ///     16-byte keys (row, file) into Words.dat — one for a unique, its name; two for a rare; none for a normal or
         ///     magic item. Words row, 0x40 bytes: +0x00 Wordlist (int: 1 and 2 a rare's words, 6 a unique's name), +0x04
         ///     Text (English), +0x30 the text in the client's language, with gender branches, +0x38 the inflection the row
-        ///     gives the other word ("FP" for "Cuentas"). Measured live on 2026-11-10 (0.5.5f, Spanish client) on five worn
+        ///     gives the other word (the gender alone for a singular noun, "F" on "Estrella"; both letters for a plural, "FP" on "Cuentas"; empty on a masculine singular). Measured live on 2026-11-10 (0.5.5f, Spanish client) on five worn
         ///     items of yarkey: a unique ring → "Estallido repentino", a unique belt → "Trenza de medianoche", a rare spear
         ///     → the branches of " quimérico" and "Filo" (title "Filo quimérico"), a rare amulet → " de destino" and
         ///     "Cuentas", a magic spear → an empty vector; no host struct names the field. Validated at run time: each key
