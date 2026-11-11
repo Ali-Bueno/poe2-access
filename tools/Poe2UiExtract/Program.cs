@@ -27,6 +27,9 @@ public static class Extractor
     /// <summary>Until disposed, the game's index stays open between the runs made (the batch, then the object sounds).</summary>
     public static IDisposable KeepIndexOpen() => SharedBundles.Keep();
 
+    /// <summary>Tells the batch running that nobody waits for it any more: it starts no more steps and leaves no output.</summary>
+    public static void Abandon() => Batch.Abandon();
+
     /// <summary>Runs one command line; the exit code, 0 when it made its output.</summary>
     public static int Run(string[] args)
     {

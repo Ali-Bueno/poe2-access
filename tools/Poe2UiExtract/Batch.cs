@@ -11,6 +11,15 @@ internal static class Batch
     /// <summary>How many commands run at once on the shared index: each holds tables and file reads in memory.</summary>
     internal static int MaxParallel { get; set; } = 3;
 
+    private static int abandonedRuns;
+
+    /// <summary>
+    ///     Tells the batches running now that nobody waits for them any more (the launcher gave up on a step that timed out):
+    ///     steps not yet started do not start and a step that ends makes no output, so the worker ends by itself within the
+    ///     step it was in, and never leaves a file the launcher has already judged. A batch begun later is not affected.
+    /// </summary>
+    internal static void Abandon() => Interlocked.Increment(ref abandonedRuns);
+
     private static readonly Dictionary<string, Func<string, Index, string, int>> Commands = new(StringComparer.OrdinalIgnoreCase)
     {
         ["item-sounds"] = ItemSoundExtractor.Run,
@@ -67,6 +76,8 @@ internal static class Batch
         }
 
         using var opened = lease;
+        var generation = Volatile.Read(ref abandonedRuns);
+        bool Abandoned() => Volatile.Read(ref abandonedRuns) != generation;
         var index = lease.Index;
         using var slots = new SemaphoreSlim(Math.Max(1, MaxParallel));
         var runs = pairs.Chunk(2).Select(pair => Task.Run(() =>
@@ -74,7 +85,7 @@ internal static class Batch
             slots.Wait();
             try
             {
-                return RunOne(gameDir, index, pair[0], pair[1]);
+                return !Abandoned() && RunOne(gameDir, index, pair[0], pair[1], Abandoned);
             }
             finally
             {
@@ -86,7 +97,7 @@ internal static class Batch
     }
 
     // The commands only read the index once its paths are parsed, and every file read opens its own bundle stream.
-    private static bool RunOne(string gameDir, Index index, string command, string output)
+    private static bool RunOne(string gameDir, Index index, string command, string output, Func<bool> abandoned)
     {
         var part = output + Extractor.BatchPartSuffix;
         var watch = Stopwatch.StartNew();
@@ -108,7 +119,7 @@ internal static class Batch
             code = 1;
         }
 
-        var made = code == 0 && File.Exists(part) && new FileInfo(part).Length > 0;
+        var made = code == 0 && !abandoned() && File.Exists(part) && new FileInfo(part).Length > 0;
         if (made)
         {
             File.Move(part, output, true);

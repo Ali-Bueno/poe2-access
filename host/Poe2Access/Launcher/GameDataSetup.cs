@@ -407,6 +407,7 @@ internal static class GameDataSetup
                 if (clock.ElapsedMilliseconds > timeoutMilliseconds)
                 {
                     Say.Redirect(TextWriter.Null); // the abandoned worker goes on without filling the log
+                    Extractor.Abandon(); // and without starting the steps it had queued or leaving output behind
                     return "timed out";
                 }
             }
