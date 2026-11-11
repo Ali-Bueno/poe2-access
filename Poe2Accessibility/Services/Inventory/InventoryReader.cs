@@ -329,7 +329,15 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>Whether the names made from items' words still agree with the tooltip titles read.</summary>
-        public ItemNameTrust NameTrust { get; } = new();
+        public ItemNameTrust NameTrust { get; private set; } = new();
+
+        /// <summary>A new game process, perhaps a patched one: the names made and their standing are the last one's.</summary>
+        public void ResetNameWords()
+        {
+            this.NameTrust = new ItemNameTrust();
+            this.wordNames.Clear();
+            this.titles.Clear();
+        }
 
         /// <summary>Names made per Mods component, with the vector they were made from: a new vector is another item's.</summary>
         private readonly Dictionary<IntPtr, (IntPtr Words, string Name)> wordNames = new();

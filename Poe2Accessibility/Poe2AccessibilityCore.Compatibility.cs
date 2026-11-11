@@ -213,9 +213,13 @@ namespace Poe2Accessibility
             }
         }
 
+        /// <summary>The exe of the last game process under this host (size and write time); empty before the first.</summary>
+        private string lastGameBuild = string.Empty;
+
         /// <summary>Logs which build of the game this is; a new game process is checked against the layout again.</summary>
         private void NoteGameBuild()
         {
+            this.inventoryReader?.ResetNameWords();
             this.compatibility?.Reset();
             DatColumns.Report(this.compatibility); // said once per game process, and the reset forgot it
             this.CheckGameNews();
@@ -248,6 +252,16 @@ namespace Poe2Accessibility
                 if (game.MainModule?.FileName is { Length: > 0 } path)
                 {
                     var file = new FileInfo(path);
+                    var build = $"{file.Length}:{file.LastWriteTimeUtc.Ticks}";
+                    if (GameBuildChange.Patched(this.lastGameBuild, build))
+                    {
+                        // The catalogs were made when the mod started, for the build that ran then: said, because the
+                        // launcher's own notice of it is only a log line (the plugin holds the speech by now).
+                        this.log?.Info("Game build changed under the running mod: its game data is the last build's");
+                        this.output?.Speak(Announcements.GameUpdatedUnderMod, false);
+                    }
+
+                    this.lastGameBuild = build;
                     if (this.worldLayout != null)
                     {
                         this.worldLayout.GameBuild = $"{file.Length}:{file.LastWriteTimeUtc.Ticks}";

@@ -14,7 +14,16 @@ namespace Poe2Accessibility.Tests
             (nameof(ARareIsItsTwoWordsInTheOrderTheSpaceGives), ARareIsItsTwoWordsInTheOrderTheSpaceGives),
             (nameof(WordsThatDoNotSayTheNameGiveNone), WordsThatDoNotSayTheNameGiveNone),
             (nameof(TitlesThatDisagreeEndTheTrust), TitlesThatDisagreeEndTheTrust),
+            (nameof(AGameRestartedPatchedIsNoticed), AGameRestartedPatchedIsNoticed),
         };
+
+        private static void AGameRestartedPatchedIsNoticed()
+        {
+            Equal(false, GameBuildChange.Patched(string.Empty, "100:5"), "the first game process under the mod");
+            Equal(false, GameBuildChange.Patched("100:5", "100:5"), "the same exe again");
+            Equal(true, GameBuildChange.Patched("100:5", "120:9"), "another exe: the game data is the last build's");
+            Equal(false, GameBuildChange.Patched("100:5", string.Empty), "an exe that could not be read is no news");
+        }
 
         private static ItemNameWords.Word Word(string text, string inflection = "") => new(text, inflection);
 

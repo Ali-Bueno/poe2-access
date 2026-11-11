@@ -836,6 +836,10 @@ namespace Poe2Accessibility
             return number.Length > 0 && number.All(char.IsDigit) ? T($"tab {number}", $"pestaña {number}") : caption;
         }
 
+        /// <summary>The game came back as another build while the mod kept running: its catalogs are made only when the mod starts.</summary>
+        public static string GameUpdatedUnderMod =>
+            T("The game was updated. Restart the mod to update its game data", "El juego se actualizó. Reinicia el mod para actualizar sus datos");
+
         public static string Status(bool attached, GameStateTypes state, string areaName, string backend, string processReport)
         {
             if (!attached)

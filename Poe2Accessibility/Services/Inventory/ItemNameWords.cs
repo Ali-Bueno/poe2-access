@@ -69,6 +69,13 @@ namespace Poe2Accessibility.Services
         }
     }
 
+    /// <summary>A game restarted patched while the mod kept running: the mod's game data was made for the build before. Pure.</summary>
+    public static class GameBuildChange
+    {
+        /// <summary>Whether a game process's exe is another than the last one's under this mod; the first process is no change.</summary>
+        public static bool Patched(string lastBuild, string build) => lastBuild.Length > 0 && build.Length > 0 && lastBuild != build;
+    }
+
     /// <summary>
     ///     Whether the names made from an item's words are believed: every tooltip title read is compared with them, and
     ///     they are given up once the titles disagree twice with nothing in their favour (a patch moved the rows). Pure.

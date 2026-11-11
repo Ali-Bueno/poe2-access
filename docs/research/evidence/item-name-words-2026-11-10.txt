@@ -1,0 +1,45 @@
+Read-only reads of the Mods component of five worn items of yarkey (0.5.5f, Spanish client, 2026-11-10 20:55),
+through tools/computer_use/peek.py's Process: the vector at Mods+0x18 (begin, end, capacity), each 16-byte key
+(row, file) and the row's first 0x48 bytes with every pointer in it that leads to text.
+Component addresses from dev `inventories` (Mods=0x…): Ring1, Weapon1, Belt1, Amulet1, Weapon2.
+A first look two pointer hops out of the component showed at Mods+0x18 → key → file → "Data/Balance/Words.dat".
+
+Mods 0x354F315F9B0 rarity=3 words vector: 354E9C01F90..354E9C01FA0 cap 354E9C01FA0 = 1 keys of 16 bytes
+  row 0x3552C929CD0 file 0x35506043F50; hex 06000000 6245972c 55030000 01000000 00000000 7e45972c 55030000 01000000 00000000 a201952c 55030000 14a14971 8e45972c 55030000 a201952c 55030000 06000000 b845972c
+    +0x04 -> 'Cracklecreep'
+    +0x30 -> 'Estallido repentino'
+    +0x44 -> 'Matsya'
+Mods 0x354F315EFB0 rarity=2 words vector: 354F37EB6E0..354F37EB700 cap 354F37EB700 = 2 keys of 16 bytes
+  row 0x3552C931850 file 0x35506043F50; hex 01000000 0c09982c 55030000 15000000 00000000 2009982c 55030000 15000000 00000000 1afa972c 55030000 d8d673d7 700a982c 55030000 a201952c 55030000 01000000 1c0b982c
+    +0x04 -> 'Chimeric'
+    +0x30 -> '<if:MS>{ quimérico}<elif:FS>{ quimérica}<elif:MP>{ quiméricos}<elif:FP>{ quiméricas}'
+    +0x44 -> 'Corpse'
+  row 0x3552C92D3D0 file 0x35506043F50; hex 02000000 32a3972c 55030000 09000000 00000000 40a3972c 55030000 09000000 00000000 d0a3972c 55030000 57db7839 f4a3972c 55030000 209f972c 55030000 02000000 00a4972c
+    +0x04 -> ' Edge'
+    +0x30 -> 'Filo'
+    +0x44 -> ' Frontier'
+Mods 0x354F31603B0 rarity=3 words vector: 354E9C01ED0..354E9C01EE0 cap 354E9C01EE0 = 1 keys of 16 bytes
+  row 0x3552C929450 file 0x35506043F50; hex 06000000 383a972c 55030000 01000000 00000000 583a972c 55030000 01000000 00000000 a201952c 55030000 79bc2385 683a972c 55030000 a201952c 55030000 06000000 943a972c
+    +0x04 -> 'Midnight Braid'
+    +0x30 -> 'Trenza de medianoche'
+    +0x44 -> 'Spirit Link'
+Mods 0x354F315F730 rarity=2 words vector: 354F37E5800..354F37E5820 cap 354F37E5820 = 2 keys of 16 bytes
+  row 0x3552C931C50 file 0x35506043F50; hex 01000000 ee1c982c 55030000 16000000 00000000 fa1c982c 55030000 16000000 00000000 08fc972c 55030000 54fe613c 5a1e982c 55030000 a201952c 55030000 01000000 741e982c
+    +0x04 -> 'Fate'
+    +0x30 -> ' de destino'
+    +0x44 -> 'Foe'
+  row 0x3552C92E050 file 0x35506043F50; hex 02000000 72b3972c 55030000 03000000 00000000 82b3972c 55030000 03000000 00000000 3202952c 55030000 933f9f8a b2b3972c 55030000 6ca0972c 55030000 02000000 c4b3972c
+    +0x04 -> ' Beads'
+    +0x30 -> 'Cuentas'
+    +0x38 -> 'FP'
+    +0x44 -> ' Beak'
+Mods 0x354F3160DB0 rarity=1 words vector: 0..0 cap 0 = 0 keys of 16 bytes
+
+The tooltips' titles of the same items: Estallido repentino; Filo quimérico; Trenza de medianoche; Cuentas de destino;
+Lanza de guerra dentada (the magic spear: its affix word is in no Words key).
+After the reader was built, with no tooltip read since the mod's start, dev `inventories` (20:57:32):
+  BodyArmour1 "Manto de anochecer, raro" | Weapon1 "Filo quimérico, raro" | Offhand1 "Égida de glifo, raro" |
+  Helm1 "Halo de cólera, raro" | Amulet1 "Cuentas de destino, raro" | Ring1 "Estallido repentino, único" |
+  Ring2 "Nudillo hipnótico, raro" | Gloves1 "Agarraderas de necrófago, raro" | Boots1 "Paso de dominación, raro" |
+  Belt1 "Trenza de medianoche, único" | Weapon2 "Lanza de guerra, mágico"
+and after each worn slot was focused once, dev `layout`: "item names from words ok (56 titles agree, 0 differ)".
