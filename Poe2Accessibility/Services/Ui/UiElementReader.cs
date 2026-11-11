@@ -403,8 +403,20 @@ namespace Poe2Accessibility.Services
         }
 
         /// <summary>Numeric state of a slider (GameLayout.Slider); null when unreadable or nonsensical.</summary>
-        public (int Value, int Min, int Max)? ReadSliderState(IntPtr address) =>
-            this.SliderAt(address, this.Controls?.Shift(ControlGroup.Slider, address, shift => this.SliderAt(address, shift) is { } state && state.Value > state.Min) ?? 0);
+        public (int Value, int Min, int Max)? ReadSliderState(IntPtr address)
+        {
+            // A slider at its minimum proves nothing (zeros fit nearly anywhere), so it fails the check below; while no
+            // slider has proved the fields, the search then took the first place nearby holding a value above a minimum
+            // and that number was read (a music volume at 0 focused first). Where the fields were measured it still
+            // reads as a slider at its minimum: read there, and nothing is searched or learnt from it.
+            if (this.Controls is { } controls && !controls.IsKnown(ControlGroup.Slider) &&
+                this.SliderAt(address, controls.Current(ControlGroup.Slider)) is { } resting && resting.Value == resting.Min)
+            {
+                return resting;
+            }
+
+            return this.SliderAt(address, this.Controls?.Shift(ControlGroup.Slider, address, shift => this.SliderAt(address, shift) is { } state && state.Value > state.Min) ?? 0);
+        }
 
         /// <summary>Selected and highlighted indices plus raw 16-byte entries of a combo box (GameLayout.ComboBox); null when the shape is wrong.</summary>
         public (int SelectedIndex, int HighlightIndex, byte[][] Entries, byte[][] ParallelEntries)? ReadComboBoxState(IntPtr address) =>
