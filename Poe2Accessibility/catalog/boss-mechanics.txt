@@ -1,6 +1,7 @@
 # What the mod tells of boss fights, from the game's files (tools/Poe2UiExtract boss-mechanics), regenerated after patches.
 # boss|monster|name   hide|monster|state=value (stops drawing it)   phase|monster|state (its value is the fight's phase)
-# enrage|monster|state   add|monster|monster it brings   form|monster|boss it turns into   buff|id|invulnerable or enrage
+# enrage|monster|state   seek|monster|state (it hides until the player comes near)   add|monster|monster it brings
+# form|monster|boss it turns into   buff|id|invulnerable or enrage
 # move|buff id|stop or keep (the player's rule)   line|language|text|monster|skill or -|line id (a voice line announcing a mechanic)
 boss|Metadata/Monsters/Dummy/D_Boss|- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 boss|Metadata/Monsters/Dummy/D_BossLarge|- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -149,12 +150,16 @@ boss|Metadata/Monsters/TitanBoss/TitanBossSTANDALONE|Vastweld, the Colossal Guar
 hide|Metadata/Monsters/TitanBoss/TitanBossSTANDALONE|deli_clone=1
 boss|Metadata/Monsters/Balbala/Balbala|Balbala, the Traitor
 hide|Metadata/Monsters/Balbala/Balbala|bb_visible=0
+seek|Metadata/Monsters/Balbala/Balbala|hiding
 boss|Metadata/Monsters/Balbala/BalbalaCampaignSTANDALONE_|Balbala, the Traitor
 hide|Metadata/Monsters/Balbala/BalbalaCampaignSTANDALONE_|deli_clone=1
+seek|Metadata/Monsters/Balbala/BalbalaCampaignSTANDALONE_|hiding
 boss|Metadata/Monsters/Balbala/BalbalaMAP|Pirasha, the Forgotten Prisoner
 hide|Metadata/Monsters/Balbala/BalbalaMAP|bb_visible=0
+seek|Metadata/Monsters/Balbala/BalbalaMAP|hiding
 boss|Metadata/Monsters/Balbala/BalbalaSTANDALONE_|Pirasha, the Forgotten Prisoner
 hide|Metadata/Monsters/Balbala/BalbalaSTANDALONE_|deli_clone=1
+seek|Metadata/Monsters/Balbala/BalbalaSTANDALONE_|hiding
 boss|Metadata/Monsters/LeagueExpeditionNew/Olroth/Olroth|Olroth, Origin of the Fall
 hide|Metadata/Monsters/LeagueExpeditionNew/Olroth/Olroth|bb_visible=0
 boss|Metadata/Monsters/SaltGolem/SaltGolemBoss|Rattlecage, the Earthbreaker

@@ -312,7 +312,7 @@ namespace Poe2Accessibility
                 this.bosses = new BossWatch(this.audio, this.output, elements, this.log) { Timings = timings, TimingsPath = this.DodgeTimingsPath };
                 this.bosses.Mechanics = this.BossMechanics(elements, this.log);
                 this.bosses.Defeated = name => this.entities?.BossDefeated(name);
-                this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log);
+                this.weakPoint = new WeakPointGuide(this.audio, this.output, elements, memory, this.log) { Hiding = () => this.bosses?.Mechanics?.Hiding };
                 this.shield = new ShieldWatch(this.audio, this.output, memory, this.log);
                 this.perfectTiming = new PerfectTimingWatch(this.audio, this.log) { Reader = () => this.bosses?.Reader };
                 var skills = new PlayerSkills(memory, elements, this.log);

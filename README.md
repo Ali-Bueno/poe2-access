@@ -80,7 +80,8 @@ of the game's languages). The full instructions are in `README.txt`, inside the 
   point; life, mana, flasks and status effects; skills ready again after their cooldown; your class's resources
   (charges, Heat and the like); and a sound for enemy states that skills pay off on (primed for stun, heavy stunned,
   frozen, electrocuted, pinned, armour broken, dazed, parried, culling strike).
-- **Boss fights:** what a boss is doing that you cannot see: when it vanishes and comes back, turns invulnerable,
+- **Boss fights:** what a boss is doing that you cannot see: when it vanishes and comes back, hides until you find it
+  (a heartbeat leads to it), turns invulnerable,
   changes phase or enrages, and the way out of its danger areas as it winds up ("Out!", "To the centre!",
   "Behind it!", "Move!", or a stick direction). The bosses and their mechanics come from the game's own files, so new
   bosses are covered without a mod update.

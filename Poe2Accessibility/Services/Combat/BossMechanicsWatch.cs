@@ -11,7 +11,7 @@ namespace Poe2Accessibility.Services
 
     /// <summary>
     ///     A boss fight's turns from memory, read through <see cref="BossMechanicsCatalog"/> (docs/research/boss-mechanics.md):
-    ///     the boss vanishing and coming back, turning invulnerable (with its adds counted) and vulnerable, enraging, its next
+    ///     the boss vanishing and coming back (or hiding to be found, with the way to it), turning invulnerable (with its adds counted) and vulnerable, enraging, its next
     ///     phase or form, its adds when the enemy news is off; and, for a boss's attack whose danger area holds the player, the
     ///     way out in a word ("¡Sal!", "¡Al centro!", "¡Izquierda!"). Fed by <see cref="BossWatch"/> from the monsters it already walks.
     /// </summary>
@@ -69,8 +69,15 @@ namespace Poe2Accessibility.Services
         /// <summary>Whether a boss's adds are counted aloud: only while the enemy news (which names them) is off.</summary>
         public Func<bool> SayAdds { get; set; } = () => false;
 
+        /// <summary>Whether the heartbeat leads to a hiding boss (<see cref="WeakPointGuide"/>): its line then says to follow it.</summary>
+        public Func<bool> Heartbeat { get; set; } = () => false;
+
+        /// <summary>Where a boss said to be hiding waits to be found, and its radius; null when none hides.</summary>
+        public (Vector2 At, float Radius)? Hiding { get; private set; }
+
         public void Reset()
         {
+            this.Hiding = null;
             this.bosses.Clear();
             this.others.Clear();
             this.inPlaySeen.Clear();
@@ -140,13 +147,15 @@ namespace Poe2Accessibility.Services
                 boss.HurtAt = now;
             }
             var facts = this.FactsOf(entity, monster, boss.Engaged, inPlay);
-            if (facts != boss.Facts)
+            if (facts != boss.Facts || facts.Gone)
             {
-                this.LogStates(entity, monster, facts);
+                this.LogStates(entity, monster, facts); // while it is away, each state it passes through
             }
 
             boss.Facts = facts;
             boss.SeenAt = now;
+            boss.At = new Vector2(render.WorldPosition.X, render.WorldPosition.Y);
+            boss.Radius = render.ModelBounds.X;
             if (firstInPlay)
             {
                 this.NoteForm(boss, now);
@@ -174,7 +183,13 @@ namespace Poe2Accessibility.Services
                         continue;
                     }
 
-                    said.Add(Announcements.BossTurn(news, multi ? boss.Name : null, news == BossNews.Invulnerable ? adds.Count : 0, this.phase));
+                    if (news == BossNews.Back)
+                    {
+                        this.Found(boss, now);
+                    }
+
+                    said.Add((news == BossNews.Gone ? this.HidingLine(boss, multi, now) : null) ??
+                             Announcements.BossTurn(news, multi ? boss.Name : null, news == BossNews.Invulnerable ? adds.Count : 0, this.phase));
                 }
 
                 if (boss.FormNews)
@@ -192,6 +207,41 @@ namespace Poe2Accessibility.Services
             }
 
             this.others.Clear();
+            this.Hiding = this.bosses.Values.FirstOrDefault(boss => boss.SeenAt == now && boss.HidingSince != null && boss.Facts.Gone) is { } hidden
+                ? (hidden.At, hidden.Radius)
+                : null;
+        }
+
+        /// <summary>
+        ///     The line of a boss that left to hide until it is found (<see cref="BossMechanicsCatalog.HidesToBeFound"/>), with
+        ///     the way to it on screen; null for any other boss, whose leaving is said as such.
+        /// </summary>
+        private string? HidingLine(Boss boss, bool multi, long now)
+        {
+            if (!this.Catalog.HidesToBeFound(boss.Monster) || !Seats.Followed.TryGetComponent<Render>(out var player))
+            {
+                return null;
+            }
+
+            var offset = boss.At - new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
+            boss.HidingSince = now;
+            this.log.Info($"Boss hiding: {boss.Monster} at {boss.At.X:0},{boss.At.Y:0}, {offset.Length():0} world units from the player");
+            return Announcements.BossHiding(multi ? boss.Name : null, ScreenProjection.Octant(player.WorldPosition, offset), this.Heartbeat());
+        }
+
+        /// <summary>A hiding boss is back in play: how long it took and how near the player was, for the log.</summary>
+        private void Found(Boss boss, long now)
+        {
+            if (boss.HidingSince is not { } since)
+            {
+                return;
+            }
+
+            boss.HidingSince = null;
+            var gap = Seats.Followed.TryGetComponent<Render>(out var player)
+                ? Vector2.Distance(boss.At, new Vector2(player.WorldPosition.X, player.WorldPosition.Y)).ToString("0")
+                : "?";
+            this.log.Info($"Boss hiding: {boss.Monster} back after {now - since} ms at {boss.At.X:0},{boss.At.Y:0}, {gap} world units from the player");
         }
 
         /// <summary>
@@ -236,7 +286,8 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            var hidden = states.Any(state => this.Catalog.Hides(monster, state.Name, state.Value));
+            var hidden = states.Any(state => this.Catalog.Hides(monster, state.Name, state.Value) ||
+                                             (state.Value != 0 && this.Catalog.IsSeekState(monster, state.Name)));
             var enraged = buffs.Any(this.Catalog.IsEnrage) || states.Any(state => state.Value > 0 && this.Catalog.IsEnrageState(monster, state.Name));
             return new BossFacts(engaged, !inPlay || hidden, buffs.Any(this.Catalog.IsUnhurtable), enraged, phase);
         }
@@ -326,6 +377,14 @@ namespace Poe2Accessibility.Services
             public BossFacts Facts { get; set; }
 
             public long SeenAt { get; set; }
+
+            /// <summary>Where it stood at the last poll (world), and its radius.</summary>
+            public Vector2 At { get; set; }
+
+            public float Radius { get; set; }
+
+            /// <summary>When it was said to be hiding until found; null once it is back.</summary>
+            public long? HidingSince { get; set; }
 
             /// <summary>It came into play as an engaged boss's next form: its "Phase N: name" is due.</summary>
             public bool FormNews { get; set; }

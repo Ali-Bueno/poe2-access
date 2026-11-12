@@ -12,7 +12,7 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     Boss weak point: while a boss whose tail is not the part to strike is near (<see cref="WeakPoints"/>), a
     ///     heartbeat from the head's side leads there, faster as it nears and slow and soft at the head; silent while the
-    ///     head is out of play (buried).
+    ///     head is out of play (buried). The same beat leads to a boss that hides until the player finds it.
     /// </summary>
     public sealed class WeakPointGuide
     {
@@ -49,6 +49,9 @@ namespace Poe2Accessibility.Services
         /// <summary>Gap between the bodies within which the player is at the head (the melee reach setting).</summary>
         public float ReachWorld { get; set; } = 40f;
 
+        /// <summary>Where a boss hides until the player finds it (<see cref="BossMechanicsWatch.Hiding"/>): the beat leads there first.</summary>
+        public Func<(Vector2 At, float Radius)?> Hiding { get; set; } = () => null;
+
         /// <summary>A new area: no boss is known.</summary>
         public void Reset()
         {
@@ -66,6 +69,13 @@ namespace Poe2Accessibility.Services
             }
 
             var here = new Vector2(player.WorldPosition.X, player.WorldPosition.Y);
+            if (this.Hiding() is { } hidden)
+            {
+                this.Lose();
+                this.Beat(player, hidden.At - here, Vector2.Distance(hidden.At, here) - hidden.Radius - player.ModelBounds.X);
+                return;
+            }
+
             if (!this.Gather(here))
             {
                 this.Lose();
@@ -89,7 +99,12 @@ namespace Poe2Accessibility.Services
                 }
             }
 
-            var gap = Vector2.Distance(head.Position, here) - head.Radius - player.ModelBounds.X;
+            this.Beat(player, head.Position - here, Vector2.Distance(head.Position, here) - head.Radius - player.ModelBounds.X);
+        }
+
+        /// <summary>One beat from the side of a place <paramref name="gap"/> away, when the last is far enough behind.</summary>
+        private void Beat(Render player, Vector2 offset, float gap)
+        {
             var now = Environment.TickCount64;
             if (now - this.lastBeat < WeakPoints.IntervalMs(gap, this.ReachWorld))
             {
@@ -97,7 +112,7 @@ namespace Poe2Accessibility.Services
             }
 
             this.lastBeat = now;
-            var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, head.Position - here));
+            var (pan, pitch) = BeaconMath.Voice(ScreenProjection.Direction(player.WorldPosition, offset));
             this.audio.Play(this.beat, pan, pitch, this.Gain * (gap <= this.ReachWorld ? AtPartGain : 1f), "weak_point");
         }
 

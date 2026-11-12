@@ -9,7 +9,7 @@ namespace Poe2Accessibility.Services
     /// <summary>
     ///     What the game's files say of boss fights (<c>boss-mechanics.txt</c>, tools/Poe2UiExtract boss-mechanics;
     ///     docs/research/boss-mechanics.md): which monsters are bosses, the states that hide them or carry their phase or
-    ///     enrage, the monsters each brings or turns into, the unhurtable and enrage buffs, the player's movement rules and
+    ///     enrage, the states in which they hide to be found, the monsters each brings or turns into, the unhurtable and enrage buffs, the player's movement rules and
     ///     the voice lines that announce a fight's turn. Pure apart from <see cref="Load"/>.
     /// </summary>
     public sealed class BossMechanicsCatalog
@@ -23,6 +23,8 @@ namespace Poe2Accessibility.Services
         private readonly HashSet<string> hides = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> phaseStates = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> enrageStates = new(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> seekStates = new(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> seekers = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> adds = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> forms = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> withForms = new(StringComparer.OrdinalIgnoreCase);
@@ -84,6 +86,10 @@ namespace Poe2Accessibility.Services
                     case "enrage":
                         this.enrageStates.Add($"{c[1]}|{c[2]}");
                         break;
+                    case "seek":
+                        this.seekStates.Add($"{c[1]}|{c[2]}");
+                        this.seekers.Add(c[1]);
+                        break;
                     case "add":
                         this.adds.Add($"{c[1]}|{c[2]}");
                         break;
@@ -123,6 +129,12 @@ namespace Poe2Accessibility.Services
         public bool IsPhaseState(string monster, string state) => this.phaseStates.Contains($"{monster}|{state}");
 
         public bool IsEnrageState(string monster, string state) => this.enrageStates.Contains($"{monster}|{state}");
+
+        /// <summary>A state in which the boss hides until the player comes near it (Balbala's "hiding").</summary>
+        public bool IsSeekState(string monster, string state) => this.seekStates.Contains($"{monster}|{state}");
+
+        /// <summary>A boss whose script hides it to be found: out of play, it waits somewhere in its arena.</summary>
+        public bool HidesToBeFound(string monster) => this.seekers.Contains(monster);
 
         /// <summary>A monster the boss brings into its fight (its script preloads it, no boss bar).</summary>
         public bool IsAdd(string boss, string monster) => this.adds.Contains($"{boss}|{monster}");

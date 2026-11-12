@@ -6,8 +6,8 @@ using System.Text.RegularExpressions;
 /// <summary>
 ///     What a monster's script (.ot) says of its fight (docs/research/boss-mechanics.md): the scripts it extends, the
 ///     state values that stop drawing it, the states whose value is the fight's phase (they set a "*Phase" music
-///     parameter), its enrage states, the voice lines it plays and from which handler, and the monsters and objects it
-///     preloads (its adds, its next forms, its arena objects). Pure.
+///     parameter), its enrage states, the states in which it hides to be found, the voice lines it plays and from which
+///     handler, and the monsters and objects it preloads (its adds, its next forms, its arena objects). Pure.
 /// </summary>
 internal static class BossScripts
 {
@@ -15,7 +15,7 @@ internal static class BossScripts
     internal sealed record Script(
         IReadOnlyList<string> Extends, IReadOnlyList<(string State, int Value)> Hides, IReadOnlyList<string> PhaseStates,
         IReadOnlyList<string> EnrageStates, IReadOnlyList<(string Handler, string Line)> Lines, IReadOnlyList<string> Monsters,
-        IReadOnlyList<string> Objects);
+        IReadOnlyList<string> Objects, IReadOnlyList<string> SeekStates);
 
     /// <summary>The handler prefix of a skill starting: <c>on_effect_start_&lt;GrantedEffects id&gt;</c>.</summary>
     internal const string SkillStartHandler = "on_effect_start_";
@@ -23,6 +23,10 @@ internal static class BossScripts
     // The client call that stops drawing an object, and the music parameter naming the fight's phase (BaronPhase, DoryaniPhase).
     private const string HideCall = "DisableRendering(";
     private const string PhaseParameter = "Phase";
+
+    // The effect pack that draws an object by its distance from the player: a boss hiding until the player comes near (Balbala).
+    private const string AddPackCall = "AddEffectPack(";
+    private const string SeekPack = "fade_by_player_dist";
 
     private static readonly Regex ExtendsLine = new(@"^\s*extends\s+""([^""]+)""", RegexOptions.Multiline);
     private static readonly Regex SharedStates = new(@"define_shared_state\s*=\s*""([^""]*)""");
@@ -63,10 +67,16 @@ internal static class BossScripts
         var extends = ExtendsOf(text);
         var hides = new List<(string, int)>();
         var phases = new List<string>();
+        var seeks = new List<string>();
         foreach (Match handler in StateHandler.Matches(text))
         {
             var body = Body(text, handler.Index + handler.Length);
             var (state, value) = (handler.Groups[1].Value, int.Parse(handler.Groups[2].Value));
+            if (value != 0 && body.Contains(AddPackCall, StringComparison.Ordinal) && body.Contains(SeekPack, StringComparison.OrdinalIgnoreCase) && !seeks.Contains(state))
+            {
+                seeks.Add(state);
+            }
+
             if (body.Contains(HideCall, StringComparison.Ordinal) && !hides.Contains((state, value)))
             {
                 hides.Add((state, value));
@@ -82,7 +92,7 @@ internal static class BossScripts
         var enrages = StatesOf(text).Where(state => WordsOf(state) is { Count: > 0 } words && words[^1] is "enrage" or "enraged").ToList();
         return new Script(extends, hides, phases, enrages, Lines(text),
             PreloadMonster.Matches(text).Select(match => match.Groups[1].Value).Distinct().ToList(),
-            PreloadObject.Matches(text).Select(match => match.Groups[1].Value).Distinct().ToList());
+            PreloadObject.Matches(text).Select(match => match.Groups[1].Value).Distinct().ToList(), seeks);
     }
 
     /// <summary>The states a script declares itself (define_shared_state "spike; rumble; trap_speed = 2;"), without their defaults.</summary>

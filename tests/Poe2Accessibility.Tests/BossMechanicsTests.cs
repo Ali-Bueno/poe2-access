@@ -11,6 +11,7 @@ namespace Poe2Accessibility.Tests
     public static class BossMechanicsTests
     {
         private const string Wolf = "Metadata/Monsters/Baron/BaronBossCorruptedWolfForm";
+        private const string Balbala = "Metadata/Monsters/Balbala/Balbala";
 
         public static IEnumerable<(string Name, Action Test)> All() => new (string, Action)[]
         {
@@ -174,6 +175,7 @@ namespace Poe2Accessibility.Tests
                 $"hide|{Wolf}|faded=1",
                 $"phase|{Wolf}|audio_param",
                 $"enrage|{Wolf}|enraged",
+                $"seek|{Balbala}|hiding",
                 $"add|{Wolf}|Metadata/Monsters/Baron/BaronWerewolfSummon",
                 $"form|Metadata/Monsters/Baron/BaronBossHumanForm|{Wolf}",
                 "buff|god_mode|invulnerable",
@@ -192,6 +194,8 @@ namespace Poe2Accessibility.Tests
             Equal(true, catalog.IsBoss(BossMechanicsCatalog.MonsterId(Wolf + "@15")), "a boss by its entity path");
             Equal(true, catalog.Hides(Wolf, "faded", 1) && !catalog.Hides(Wolf, "faded", 0), "the fog's fade hides it");
             Equal(true, catalog.IsPhaseState(Wolf, "audio_param") && catalog.IsEnrageState(Wolf, "enraged"), "phase and enrage states");
+            Equal(true, catalog.IsSeekState(Balbala, "hiding") && catalog.HidesToBeFound(Balbala), "Balbala hides until she is found");
+            Equal(false, catalog.IsSeekState(Wolf, "faded") || catalog.HidesToBeFound(Wolf), "the Wolf's fog is no hide-and-seek");
             Equal(true, catalog.IsAdd(Wolf, "Metadata/Monsters/Baron/BaronWerewolfSummon"), "its werewolves");
             Equal(true, catalog.IsForm("Metadata/Monsters/Baron/BaronBossHumanForm", Wolf) && catalog.HasForms("Metadata/Monsters/Baron/BaronBossHumanForm"), "the Count turns into it");
             Equal(true, catalog.IsUnhurtable("god_mode") && catalog.IsEnrage("enrage_buff") && !catalog.IsUnhurtable("enrage_buff"), "buff kinds");
@@ -232,6 +236,8 @@ namespace Poe2Accessibility.Tests
                 Equal("¡Al centro!", Announcements.Counterplay(CounterplayKind.Centre, 0), "a donut");
                 Equal("Fase 2: Geonor", Announcements.BossTurn(BossNews.NextPhase, "Geonor", phase: 2), "a new form");
                 Equal("Invulnerable, 3 esbirros", Announcements.BossTurn(BossNews.Invulnerable, null, 3), "a shield and its adds");
+                Equal("El jefe se esconde: sigue el latido, abajo a la izquierda", Announcements.BossHiding(null, 5, true), "a boss to find, by the heartbeat");
+                Equal("Balbala se esconde, arriba", Announcements.BossHiding("Balbala", 2, false), "named among several, the heartbeat off");
             }
             finally
             {
@@ -258,6 +264,8 @@ namespace Poe2Accessibility.Tests
                         DisableRendering();
                     }
                     on_or_create_state_audio_param_1 = { SetGlobalAudioParam( BaronPhase, 1 ); }
+                    on_or_create_state_hiding_1 = { AddEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/fade_by_player_dist.epk' ); }
+                    on_state_hiding_0 = { RemoveEffectPack( 'Metadata/Effects/Spells/monsters_effects/Act2_FOUR/Balbala/fade_by_player_dist.epk' ); }
                 }
                 Animated
                 {
@@ -279,6 +287,7 @@ namespace Poe2Accessibility.Tests
             Equal("faded=1", string.Join(",", script.Hides.Select(hide => $"{hide.State}={hide.Value}")), "the fade draws nothing, the teleport only stops colliding");
             Equal("audio_param", string.Join(",", script.PhaseStates), "the state setting BaronPhase");
             Equal("enraged", string.Join(",", script.EnrageStates), "not the enrage timer");
+            Equal("hiding", string.Join(",", script.SeekStates), "drawn by the player's distance: it hides to be found; the fade's smoke is another pack");
             Equal(true, script.Lines.Contains(("on_effect_start_GSBaronBossColdBreathChannel", "CorruptWolf_Skill_IceBreath_Random")), "a line with its skill");
             Equal("Metadata/Monsters/Baron/BaronWerewolfSummon", script.Monsters.Single(), "its add");
             Equal("Metadata/Monsters/Baron/Objects/BaronWolfBloodOrb", script.Objects.Single(), "its object");

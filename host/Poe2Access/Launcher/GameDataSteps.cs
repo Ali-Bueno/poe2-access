@@ -32,7 +32,7 @@ internal static class GameDataSteps
         new Step("action types", 1, "action-types.txt", "action-types", true),
         new Step("telegraph skills", 1, "telegraph-skills.txt", "telegraph-skills", true),
         new Step("telegraph effects", 1, "telegraph-effects.txt", "telegraph-effects", true),
-        new Step("boss mechanics", 2, "boss-mechanics.txt", "boss-mechanics", true), // 2: reruns once where the doubled step left it "failed"
+        new Step("boss mechanics", 3, "boss-mechanics.txt", "boss-mechanics", true), // 3: the states in which a boss hides to be found
         new Step("buff names", 2, "buff-names.json", "buff-names", true), // 2: without the names the game never shows ("[DNT…")
         new Step("passive overrides", 1, "passive-overrides.txt", "passive-overrides", true),
         new Step("class mechanics", 1, "class-mechanics.json", "class-mechanics", true),

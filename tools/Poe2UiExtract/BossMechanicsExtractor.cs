@@ -4,7 +4,7 @@ using Index = LibBundle3.Index;
 /// <summary>
 ///     `boss-mechanics` command: what the mod tells of a boss fight, from the game's files (docs/research/boss-mechanics.md).
 ///     Every monster with the boss life bar (MonsterVarieties.BossHealthBar) and, from its script (.ot) and the scripts it
-///     extends: the state values that hide it, its phase and enrage states, the monsters it brings (adds, or its next form
+///     extends: the state values that hide it, its phase, enrage and hide-and-seek states, the monsters it brings (adds, or its next form
 ///     when they have a boss bar too) and the voice lines that announce a mechanic, in every language the game ships; then
 ///     the buffs that make a monster unhurtable or enraged, and those whose description tells the player to stop or keep moving.
 /// </summary>
@@ -25,7 +25,8 @@ internal static class BossMechanicsExtractor
     {
         "# What the mod tells of boss fights, from the game's files (tools/Poe2UiExtract boss-mechanics), regenerated after patches.",
         "# boss|monster|name   hide|monster|state=value (stops drawing it)   phase|monster|state (its value is the fight's phase)",
-        "# enrage|monster|state   add|monster|monster it brings   form|monster|boss it turns into   buff|id|invulnerable or enrage",
+        "# enrage|monster|state   seek|monster|state (it hides until the player comes near)   add|monster|monster it brings",
+        "# form|monster|boss it turns into   buff|id|invulnerable or enrage",
         "# move|buff id|stop or keep (the player's rule)   line|language|text|monster|skill or -|line id (a voice line announcing a mechanic)",
     };
 
@@ -95,6 +96,7 @@ internal static class BossMechanicsExtractor
             output.AddRange(chain.SelectMany(script => script.Hides).Distinct().Select(hide => $"hide|{id}|{hide.State}={hide.Value}"));
             output.AddRange(chain.SelectMany(script => script.PhaseStates).Distinct().Select(state => $"phase|{id}|{state}"));
             output.AddRange(chain.SelectMany(script => script.EnrageStates).Distinct().Select(state => $"enrage|{id}|{state}"));
+            output.AddRange(chain.SelectMany(script => script.SeekStates).Distinct().Select(state => $"seek|{id}|{state}"));
             foreach (var monster in chain.SelectMany(script => script.Monsters).Distinct(StringComparer.OrdinalIgnoreCase))
             {
                 if (monsterRows.TryGetValue(monster, out var other) && other != row && monsters.StringOrNull(other, c.Name) is { Length: > 0 } name && name != HelperName)

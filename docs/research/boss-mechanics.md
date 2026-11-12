@@ -16,6 +16,7 @@ existing readers), **LIKELY** (consistent data, not yet seen live), **UNSURE**. 
 | Adds | monsters its script preloads (203 links) | counted with "Invulnerable"; "3 esbirros" only while the enemy news (which names them) is off | 44 |
 | Where to go inside a danger area | the current skill's GeometryAttack/GeometryTrigger row | one word at the wind-up: "¡Sal!", "¡Al centro!", "¡Detrás!", "¡Muévete!", or the stick way "¡Izquierda!" | 198 have area skills |
 | Stand still / keep moving | buff descriptions ("Stop moving or…", "Keep moving…", "Moving breaks the vines") | "¡Quédate quieto!" / "¡Sigue moviéndote!" (15 buffs; was 2 by hand) | King in the Mists, Kulemak, vines, tethers |
+| The boss hides until the player finds it | a state whose handler adds the effect pack `fade_by_player_dist` (4 monsters, all Balbala) | "El jefe se esconde: sigue el latido, abajo a la izquierda" and the weak point's heartbeat from its side | Balbala / Pirasha ([§11](#11-hide-and-seek-balbala-2026-11-11)) |
 | The boss's line announcing a turn | `PlayTextAudio(line)` in its script, on a skill start or a function | let through the fight's chat mute (41 line groups, 97 variants, 10 languages) | 27 |
 
 ## 2. The bosses
@@ -209,3 +210,30 @@ Python decoders over saved `.datc64` with the community dat-schema (`poe2/_Core.
 
 poe-vault.com act 1-4, interlude and pinnacle boss guides; maxroll.gg act 1 boss guide; timesaver.gg Arbiter guides (0.3-0.4
 era, thresholds not checked against 0.5). poe2wiki and poe2db refused the fetch.
+
+## 11. Hide and seek: Balbala (2026-11-11)
+
+The user's two deaths to Balbala on yarkidius (Warrior 20, the play install's log, 22:42 and 22:44): "El jefe ha desaparecido",
+then nothing for 22 s and 17 s while the life fell.
+
+- **PROVEN (log).** Each time she took `hidden_monster` (her states unchanged at that poll: `visible=1`), and 5-8 s later the
+  player had `caustic_cloud_balbala` from `Metadata/Monsters/Balbala/BalbalaFog` ("Hazard ground", the hazard cue). Nothing
+  else made her leave the fight in either run (her clone strike, `BalbalaFlickerCloneStrike`, did not).
+- **PROVEN (files).** `Balbala.ot` (the same in `BalbalaMAP_`, `BalbalaSTANDALONE_`, `BalbalaCampaignSTANDALONE_`): states
+  `visible = 1; hiding; multi_stab; knives_visible = 1; collidable = 1`; client `on_or_create_state_hiding_1 = { AddEffectPack(
+  '…/Balbala/fade_by_player_dist.epk' ) }`, removed at `hiding_0`: she is drawn by the player's distance. Stance 4 idles in
+  `disappear_idle_01` and its GroundSlam is `disappear_slam_01`. Skills `BalbalaHideAndSeekDisappear` (cannot be interrupted or
+  stunned) → `BalbalaHideAndSeekSlam` → `BalbalaHideAndSeekSlamImpact` (circle, length 21, fire, `base_skill_cannot_be_avoided_by_dodge_roll_or_evaded_or_blocked`,
+  strongest at its centre). The fog is the daemon `BalbalaFog` (states `fog`, `leaking`; art "centerfog": it grows from the
+  room's centre), its buff `caustic_cloud_balbala` "Caustic Ground" (chaos damage). No other monster script uses the pack.
+- **LIKELY (guides: maxroll, game8).** From 90 % life: she vanishes, the gas seeps from the centre, she waits at a place of the
+  arena and coming near her ends it with her slam.
+- **UNSURE, to read off the next fight's log:** whether `hiding` is 1 through the phase (`Boss facts` now logs each reading while
+  a boss is away); whether her entity stands at the hiding place all along and within the boss watch's 1400 units (`Boss hiding:
+  … at x,y, N world units from the player`, then `… back after N ms …`); whether the reveal slam passes the dodge gate (attacks
+  of a `hidden_monster` are not judged, `BossWatch.WatchNear`), so that "¡Sal!" can follow.
+
+**Implementation.** Extractor: `seek|monster|state` for a non-zero state whose handler adds that pack (`BossScripts.SeekStates`;
+launcher step "boss mechanics" 3). Plugin: such a boss out of play, or in that state, is hiding (`BossMechanicsCatalog.HidesToBeFound`,
+`IsSeekState`): its leaving is said as `Announcements.BossHiding` with the screen direction, and `BossMechanicsWatch.Hiding` gives
+its place to `WeakPointGuide`, whose heartbeat leads there (setting `BossWeakPoint`, no new sound) until it is back in play.

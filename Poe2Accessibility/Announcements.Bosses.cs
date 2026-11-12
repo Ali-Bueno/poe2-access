@@ -17,6 +17,14 @@ namespace Poe2Accessibility
             _ => name == null ? T($"Phase {phase}", $"Fase {phase}") : T($"Phase {phase}: {name}", $"Fase {phase}: {name}"),
         };
 
+        /// <summary>A boss hiding somewhere in its arena until the player finds it, and the way there: "The boss is hiding: follow the heartbeat, down left".</summary>
+        public static string BossHiding(string? name, int octant, bool heartbeat)
+        {
+            var hiding = name == null ? T("The boss is hiding", "El jefe se esconde") : T($"{name} is hiding", $"{name} se esconde");
+            var way = StickDirections[((octant % StickDirections.Length) + StickDirections.Length) % StickDirections.Length];
+            return heartbeat ? $"{hiding}: {T("follow the heartbeat", "sigue el latido")}, {way}" : $"{hiding}, {way}";
+        }
+
         /// <summary>"3 adds": the monsters a boss brought, in play.</summary>
         public static string BossAdds(int count) => count == 1 ? T("1 add", "1 esbirro") : T($"{count} adds", $"{count} esbirros");
 
